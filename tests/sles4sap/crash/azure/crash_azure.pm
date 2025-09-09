@@ -24,15 +24,22 @@ sub run {
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
-    record_info('PATCH START', 'Fully patch system start');
-    my %cmd_params = (
-        cmd => 'sudo zypper -n patch',
-        timeout => 600,
-        ssh_opts => '-E /var/tmp/ssh_sut.log -o ServerAliveInterval=2',
-        username => 'cloudadmin'
-    );
-    my $ret = $instance->run_ssh_command(%cmd_params);
-    record_info('PATCH END', "zypper patch output:\n$ret");
+    my $max_rounds = 2;
+    for my $round (1 .. $max_rounds) {
+        record_info("PATCH $round START", "zypper patch round $round");
+        my $ret = eval {
+            $instance->run_ssh_command(
+                cmd => 'sudo zypper -n patch',
+                timeout => 600,
+                ssh_opts => '-E /var/tmp/ssh_sut.log -o ServerAliveInterval=2',
+                username => 'cloudadmin'
+            );
+        };
+        die "zypper patch failed: $@" if $@;
+        record_info("PATCH $round END", "Output:\n$ret");
+        last if $ret =~ /Nothing to do|No updates found/;
+        die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
+    }
 
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     select_serial_terminal;
