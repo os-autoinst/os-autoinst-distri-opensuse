@@ -46,7 +46,7 @@ sub run {
         assert_script_run('touch ~/.ssh/{authorized_keys,known_hosts}');
         assert_script_run('chmod 600 ~/.ssh/*');
         assert_script_run('cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys');
-        assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts");
+        assert_script_run("(set -o pipefail; ssh-keyscan -T 20 localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts)");
     }
     else {
         assert_script_run("mkdir -pv ~/.ssh ~$user/.ssh");
@@ -55,7 +55,7 @@ sub run {
         assert_script_run("chmod 600 ~{,$user}/.ssh/*");
         assert_script_run("chown -R bernhard ~$user/.ssh");
         assert_script_run("cat ~/.ssh/id_rsa.pub | tee -a ~{,$user}/.ssh/authorized_keys");
-        assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts");
+        assert_script_run("(set -o pipefail; ssh-keyscan -T 20 localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts)");
     }
 
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
