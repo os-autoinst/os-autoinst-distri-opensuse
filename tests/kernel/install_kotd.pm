@@ -43,8 +43,14 @@ sub run {
     my $packlist = zypper_search('-sx kernel-default');
     die 'More than one kernel was installed'
       unless 1 == scalar grep { $$_{status} =~ m/^i/ } @$packlist;
+
     # Reboot system after kernel installation
     power_action('reboot');
+
+    if (is_remote_backend) {
+        record_info 'Remote', 'Reconnect mgmt console';
+        reconnect_mgmt_console();
+    }
 }
 
 sub test_flags {
