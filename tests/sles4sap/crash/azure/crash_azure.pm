@@ -24,15 +24,15 @@ sub run {
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
-    record_info('PATCH', 'Fully patch system start');
-    my $remote = '-F /dev/null -o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . 'cloudadmin' . '@' . $vm_ip;
+    record_info('PATCH START', 'Fully patch system start');
     my %cmd_params = (
         cmd => 'sudo zypper -n patch',
         timeout => 600,
         ssh_opts => '-E /var/tmp/ssh_sut.log -o ServerAliveInterval=2',
         username => 'cloudadmin'
     );
-    $instance->run_ssh_command(%cmd_params);
+    my $ret = $instance->run_ssh_command(%cmd_params);
+    record_info('PATCH END', "zypper patch output:\n$ret");
 
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     select_serial_terminal;
@@ -56,6 +56,7 @@ sub run {
         sleep $delay;
     }
 
+    my $remote = '-F /dev/null -o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . 'cloudadmin' . '@' . $vm_ip;
     my $services_output = script_output(join(' ', 'ssh', $remote, 'sudo systemctl --failed --no-pager --plain'), 100);
     record_info('Failed services', "Service status : $services_output");
     my @failed_units = grep { /^\S+\.(service|socket|target|mount|timer)\s/ } split /\n/, $services_output;
