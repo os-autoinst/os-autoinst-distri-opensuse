@@ -24,20 +24,23 @@ sub run {
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
-    my $max_rounds = 2;
+    my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
         record_info("PATCH $round START", "zypper patch round $round");
-        my $ret = eval {
-            $instance->run_ssh_command(
-                cmd => 'sudo zypper -n patch',
-                timeout => 600,
-                ssh_opts => '-E /var/tmp/ssh_sut.log -o ServerAliveInterval=2',
-                username => 'cloudadmin'
-            );
-        };
-        die "zypper patch failed: $@" if $@ && $@ !~ /exit code 103/;
-        record_info("PATCH $round RE-RUN", "Package manager updated") if $@;
+        my $ret = $instance->run_ssh_command(
+            cmd => 'sudo zypper -n patch',
+            timeout => 600,
+            ssh_opts => '-E /var/tmp/ssh_sut.log -o ServerAliveInterval=2',
+            username => 'cloudadmin',
+            proceed_on_failure => 1
+        );
+        record_info("PATCH $round END", "Output:\n$ret");
         last if $ret =~ /Nothing to do|No updates found/;
+        if ($ret =~ /SCRIPT_FINISHED.*-103-/) {
+            record_info("PATCH $round RE-RUN", "Package manager updated, retrying");
+            next;
+        }
+        die "Patching failed unexpectedly" if $ret =~ /exit code \d+/;
         die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
     }
 
