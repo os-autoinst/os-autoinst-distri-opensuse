@@ -86,7 +86,10 @@ sub post_process {
             $summary_ln_idx++;
             if ($summary_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/) {
                 my $test_failed = $summary_ln =~ /^not ok/ ? 1 : 0;
-                if ($test_failed && $whitelist->find_whitelist_entry($env, $collection, $sanitized_test_name)) {
+                my $wl_entry = $whitelist->find_whitelist_entry($env, $collection, $sanitized_test_name);
+                if (defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
+                    $summary_ln = "ok $test_index selftests: $collection: $test_name # SKIP";
+                } elsif (defined($wl_entry)) {
                     $ret = 1;
                     record_info("Known Issue", "$test marked as softfail");
                     $summary_ln = "ok $test_index selftests: $collection: $test_name # TODO Known Issue";
@@ -103,7 +106,7 @@ sub post_process {
         my @log = split(/\n/, script_output("cat /tmp/$test_name"));    # When using `--per-test-log`, that's where they are found
         my $parser = Kselftests::parser::factory($collection, $sanitized_test_name);
         my $hardfails = 0;
-        my $fails = 0;
+        my $softfails = 0;
         for my $test_ln (@log) {
             $test_ln = $parser->parse_line($test_ln);
             if (!$test_ln) {
@@ -112,19 +115,22 @@ sub post_process {
             if ($test_ln =~ /^# not ok (\d+) (\S+)/) {
                 my $subtest_idx = $1;
                 my $subtest_name = $2;
-                if ($whitelist->find_whitelist_entry($env, $collection, $subtest_name)) {
+                my $wl_entry = $whitelist->find_whitelist_entry($env, $collection, $subtest_name);
+                if (defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
+                    $test_ln = "# ok $subtest_idx $subtest_name # SKIP";
+                } elsif (defined($wl_entry)) {
                     $ret = 1;
                     record_info("Known Issue", "$test:$subtest_name marked as softfail");
                     $test_ln = "# ok $subtest_idx $subtest_name # TODO Known Issue";
+                    $softfails++;
                 } else {
                     $hardfails++;
                 }
-                $fails++;
             }
             push(@full_ktap, $test_ln);
         }
 
-        if ($fails > 0 && $hardfails == 0) {
+        if ($softfails > 0 && $hardfails == 0) {
             record_info("Known Issue", "All failed subtests in $test are known issues; propagating TODO directive to the top-level");
             $summary_ln = "ok $test_index selftests: $collection: $test_name # TODO Known Issue";
         }
