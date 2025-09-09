@@ -35,8 +35,8 @@ sub run {
                 username => 'cloudadmin'
             );
         };
-        die "zypper patch failed: $@" if $@;
-        record_info("PATCH $round END", "Output:\n$ret");
+        die "zypper patch failed: $@" if $@ && $@ !~ /exit code 103/;
+        record_info("PATCH $round RE-RUN", "Package manager updated") if $@;
         last if $ret =~ /Nothing to do|No updates found/;
         die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
     }
