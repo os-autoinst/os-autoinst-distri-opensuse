@@ -11,7 +11,8 @@ use testapi;
 use grub_utils 'grub_test';
 use migration 'disable_installation_repos';
 use power_action_utils 'power_action';
-use utils 'zypper_call';
+use utils qw(zypper_call reconnect_mgmt_console);
+use Utils::Architectures 'is_s390x';
 
 sub run {
     my $self = shift;
@@ -26,16 +27,22 @@ sub run {
     zypper_call("ar --refresh -p 90 $repo_images home_images");
 
     # install the migration image and active it
-    zypper_call("--gpg-auto-import-keys -n in suse-migration-sle16-activation");
+    my $migration_tool = is_s390x() ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
+    zypper_call("--gpg-auto-import-keys -n in $migration_tool");
 
     # Disable repos of the product to migrate from due to proxySCC is not serving SLES 15 SP*
     my $version = get_var('VERSION_UPGRADE_FROM');
     $version =~ s/-/_/;
     script_run('for s in $(zypper -t ls | grep _Module_' . "$version" . ' | sed -e \'s,|.*,,g\'); do zypper modifyservice --disable $s; done');
-    power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
 
-    assert_screen([qw(grub-menu-migration migration-running)], 150);
-    assert_screen('grub2', 400);
+    if (is_s390x()) {
+        enter_cmd '/usr/sbin/run_migration';
+        reconnect_mgmt_console;
+    } else {
+        power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
+        assert_screen([qw(grub-menu-migration migration-running)]);
+        assert_screen('grub2', 400);
+    }
 }
 
 sub post_fail_hook {
