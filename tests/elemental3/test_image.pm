@@ -119,7 +119,7 @@ sub run {
     record_info('RKE2 version/node', script_output('kubectl version; kubectl get nodes'));
 
     # Check toolkit version
-    record_info('Toolkit version', script_output('elemental3-toolkit version'));
+    record_info('Toolkit version', script_output('elemental3ctl version'));
 }
 
 sub test_flags {
