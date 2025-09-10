@@ -32,7 +32,7 @@ sub run {
         die "$task $file_name, it is not well restored: $script_output" if ($script_output =~ m/$file_name/);
     }
     # cleanup
-    assert_script_run "rm -f $file_output";
+    assert_script_run "rm $file_output";
 }
 
 1;
