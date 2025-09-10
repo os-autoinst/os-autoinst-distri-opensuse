@@ -93,7 +93,7 @@ sub run {
 
     az_vm_create(%vm_create_args);
 
-    my $vm_ip = az_network_publicip_get(resource_group => $rg, name => DEPLOY_PREFIX . "-pub_ip");
+    my $vm_ip = az_network_publicip_get(resource_group => $rg, name => $azure_prefix . "-pub_ip");
     my $ssh_cmd = 'ssh cloudadmin@' . $vm_ip;
 
     set_var('VM_IP', $vm_ip);
