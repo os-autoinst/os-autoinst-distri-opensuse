@@ -12,11 +12,11 @@
 use base "x11test";
 use testapi;
 use utils;
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_sle is_tumbleweed);
 use x11utils qw(default_gui_terminal handle_relogin);
 
 sub install_ibus {
-    my $ibus_pinyin = is_tumbleweed() ? "ibus-libpinyin" : "ibus-pinyin";
+    my $ibus_pinyin = (is_sle('16+') || is_tumbleweed) ? "ibus-libpinyin" : "ibus-pinyin";
     ensure_installed("ibus $ibus_pinyin ibus-kkc ibus-hangul");
 }
 
@@ -29,6 +29,7 @@ sub override_i18n {
 }
 
 sub ibus_daemon_started {
+    send_key 'esc';
     x11_start_program(default_gui_terminal());
     wait_still_screen;
 
