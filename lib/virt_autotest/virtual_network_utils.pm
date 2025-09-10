@@ -230,18 +230,8 @@ sub test_network_interface {
         $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     }
     die "$mac not found in guest $guest" unless $nic;
-    if ((get_var('TEST', '') =~ m/qam-(kvm|xen)-install-and-features-test/ || $is_sriov_test eq "true") and !is_sle('16+')) {
+    unless (is_sle('16+')) {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
-
-        # Restart the network - the SSH connection may drop here, so no return code is checked.
-        if ($is_sriov_test ne "true") {
-            script_run("ssh root\@$guest systemctl restart network", 300);
-        }
-        # Exit the SSH master socket if open
-        script_run("ssh -O exit root\@$guest");
-        # Wait until guest's primary interface is back up
-        script_retry("ping -c3 $guest", delay => 6, retry => 30);
-        # Activate guest's secondary (tested) interface
         script_retry("ssh root\@$guest ifup $nic", delay => 10, retry => 20, timeout => 120);
     }
 
