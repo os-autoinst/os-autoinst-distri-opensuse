@@ -31,7 +31,7 @@ sub run {
     install_kubectl();
     install_helm();
 
-    helm_install_chart($helm_chart, $helm_values, "rmt");
+    helm_install_chart($helm_chart, $helm_values, "rmt", split_image_registry => 0);
 
     validate_script_output_retry("kubectl get pods", qr/rmt-app/, retry => 10, delay => 30, timeout => 120, fail_message => "rmt-app didn't become ready");
     my @rmts = split(' ', script_output("kubectl get pods | grep rmt-app"));
