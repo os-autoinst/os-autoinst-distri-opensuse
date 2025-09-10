@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Ship the "swtpm" software TPM emulator for QEMU,
@@ -17,19 +17,17 @@ use version_utils 'is_sle';
 sub run {
     select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
     if (is_sle('=15-SP6')) {
-        record_soft_failure('SKIPPING TEST - poo#179729');
+        record_soft_failure('SKIPPING TEST; poo#179729 bsc#1242989');
         return;
     }
-    my $vm_type = 'legacy';
-    $vm_type = 'uefi' if get_var('UEFI');
+    my $vm_type = check_var('UEFI', '1') ? 'uefi' : 'legacy';
     # aarch64 does not support tpm1.2
     my @swtpm_versions = qw(swtpm_2);
-    # do not test TPM 1.2 on aarch64 or SLE >= 15-SP6 if FIPS is enabled
-    if (!is_aarch64) {
-        if (is_sle('<=15-SP5') || (is_sle('>=15-SP6') && (!get_var('FIPS_ENABLED') || check_var('FIPS_ENABLED', '0')))) {
-            push @swtpm_versions, qw(swtpm_1);
-        }
-    }
+    # Do not test TPM 1.2 on aarch64 or SLE >=15-SP6 if FIPS is enabled
+    my $is_legacy_sle = is_sle('<=15-SP5');
+    my $is_sle_nonfips = is_sle('>=15-SP6') && !get_var('FIPS_ENABLED');
+    my $supports_swtpm1 = !is_aarch64 && ($is_legacy_sle || $is_sle_nonfips);
+    push @swtpm_versions, 'swtpm_1' if $supports_swtpm1;
     foreach my $i (@swtpm_versions) {
         start_swtpm_vm($i, "$vm_type");
         swtpm_verify($i);

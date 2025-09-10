@@ -18,21 +18,21 @@ The tests rely on some variables:
 | variable | description |
 | --- | --- |
 | `BATS_PACKAGE` | `aardvark-dns` `buildah` `conmon` `netavark` `podman` `runc` `skopeo` |
-| `BATS_PATCHES` | List of github PR id's containing upstream test patches |
-| `BATS_REPO` | Repo & branch in the form `[<GITHUB_ORG>]#<BRANCH>` |
 | `BATS_TEST_PACKAGES` | List of optional package URL's |
 | `BATS_TEST_REPOS` | List of optional test repositories |
 | `BATS_TESTS` | Run only the specified tests |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `BUILDAH_STORAGE_DRIVER` | Storage driver used for buildah: `vfs` or `overlay` |
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
+| `GITHUB_PATCHES` | List of github PR id's containing upstream test patches |
+| `GITHUB_REPO` | Repo & branch in the form `[<GITHUB_ORG>]#<BRANCH>` |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
 
 NOTES
-- `BATS_REPO` can be `SUSE#branch` or a tag `v1.2.3`
-- `BATS_PATCHES` can contain full URL's like `https://github.com/containers/podman/pull/25918.patch`
 - `BATS_TEST_PACKAGES` may be used to test candidate kernels (KOTD, PTF, etc) and other packages.
 - `BATS_TEST_REPOS` may be used to test candidate packages outside the usual maintenance workflow.
+- `GITHUB_REPO` can be `SUSE#branch` or a tag `v1.2.3`
+- `GITHUB_PATCHES` can contain full URL's like `https://github.com/containers/podman/pull/25918.patch`
 
 ### Summary of the `BATS_IGNORE` variables
 
@@ -60,14 +60,14 @@ NOTES
 - The BATS output is collected in the log files with the `.tap.txt` extension
 - The commands are collected in a log file ending with `-commands.txt`
 
-## Adding patches to `BATS_PATCHES`
+## Adding patches to `GITHUB_PATCHES`
 
 Note: We add the [patches](../../../data/containers/patches) to our tree to avoid hitting secondary rate-limits at Github.
 
 1. Identify the commit that fixes the issue.
 1. Identify the PR ID associated with the commit with `gh pr list --search $COMMIT_SHA --state merged`
 1. Download with `wget https://github.com/containers/$PACKAGE/pull/$ID.patch` (`runc` is under `opencontainers`)
-1. Add the ID to `BATS_PATCHES` sorted numerically as we assume lower numbered are merged earlier.
+1. Add the ID to `GITHUB_PATCHES` sorted numerically as we assume lower numbered are merged earlier.
 1. Add verification runs with the above setting to the PR.
 1. Adjust YAML schedule.
 

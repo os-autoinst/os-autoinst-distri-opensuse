@@ -52,13 +52,13 @@ sub helm_get_chart {
 
 =head2 helm_configure_values
 Configure values from a values file. 
-Usage: helm_configure_values($helm_values)
+Usage: helm_configure_values($helm_values [, split_image_registry => undef ])
 $helm_values should be a URL to a valid values.yml file. e.g. https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
 Returns the installation ad-hoc options ($set_options) and the options from the values file ($helm_options).
 =cut
 
 sub helm_configure_values {
-    my ($helm_values) = @_;
+    my ($helm_values, %args) = @_;
 
     # Pull helm values file if defined
     assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o myvalue.yaml $helm_values") if ($helm_values);
@@ -68,14 +68,15 @@ sub helm_configure_values {
     my $set_options = "";
 
     if ($full_registry_path ne "") {
-        $set_options = "--set global.imageRegistry=$full_registry_path";    # Only necessary if the chart uses non-publicly available images.
+        $set_options = " --set global.imageRegistry=$full_registry_path";    # Only necessary if the chart uses non-publicly available images.
     }
 
     if (my $image = get_var('CONTAINER_IMAGE_TO_TEST')) {
         my ($registry, $repository, $tag);
         my $helm_values_image_path = get_required_var('HELM_VALUES_IMAGE_PATH');
 
-        if ($image =~ /^registry\.suse\.(com|de)\//) {
+        my $split_image_registry = $args{split_image_registry} // $image =~ /^registry\.suse\.(com|de)\//;
+        if ($split_image_registry) {
             # split at first slash
             ($registry, my $rest) = split('/', $image, 2);
             ($repository, $tag) = split(/:/, $rest, 2);
@@ -85,9 +86,7 @@ sub helm_configure_values {
 
         $tag //= 'latest';
 
-        $set_options .= " " if $set_options ne "";
-
-        $set_options .= "--set $helm_values_image_path.image.repository=$repository";
+        $set_options .= " --set $helm_values_image_path.image.repository=$repository";
         $set_options .= " --set $helm_values_image_path.image.registry=$registry" if defined $registry;
         $set_options .= " --set $helm_values_image_path.image.tag=$tag" if defined $tag;
     }
@@ -101,15 +100,15 @@ sub helm_configure_values {
 }
 
 =head2 helm_install_chart
-Installs a helm chart with settings, values and a release name. 
-Usage: helm_install_chart("URL_TO_CHART", "URL_TO_VALUES_FILE", "RELEASE_NAME")
+Installs a helm chart with settings, values and a release name.
+Usage: helm_install_chart($chart_url, $values_url, $release_name [, split_image_registry => undef ])
 =cut
 
 sub helm_install_chart {
-    my ($chart, $values, $release_name) = @_;
+    my ($chart, $values, $release_name, %args) = @_;
 
     my $helm_chart = helm_get_chart($chart);
-    my ($set_options, $helm_options) = helm_configure_values($values);
+    my ($set_options, $helm_options) = helm_configure_values($values, split_image_registry => $args{split_image_registry});
 
     # Install the helm chart
     script_retry("helm pull $helm_chart", timeout => 300, retry => 6, delay => 60) if ($helm_chart =~ m!^oci://!);

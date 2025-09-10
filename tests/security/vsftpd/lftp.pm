@@ -59,7 +59,7 @@ sub run {
         queue rmdir test
         bye
     };
-    assert_script_run("echo '$lftp_script_file' > lftp_script_file.txt");
+    script_output("echo '$lftp_script_file' > lftp_script_file.txt");
     # run lftp in batch mode
     assert_script_run("lftp -f lftp_script_file.txt");
 

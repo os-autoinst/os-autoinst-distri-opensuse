@@ -33,33 +33,10 @@ sub setup {
 
     my $version = script_output "$docker_compose version | awk '{ print \$4 }'";
     record_info("version", $version);
-    my $branch = "v$version";
-    my $github_org = "docker";
 
-    # Support these cases for GIT_REPO: [<GITHUB_ORG>]#BRANCH
-    # 1. As GITHUB_ORG#TAG: github_user#test-patch
-    # 2. As TAG only: main, v1.2.3, etc
-    # 3. Empty. Use defaults specified above for $github_org & $branch
-    my $repo = get_var("GIT_REPO", "");
-    if ($repo =~ /#/) {
-        ($github_org, $branch) = split("#", $repo, 2);
-    } elsif ($repo) {
-        $branch = $repo;
-    }
-
-    run_command "cd ~";
-    run_command "git clone --branch $branch https://github.com/$github_org/compose", timeout => 300;
-    run_command "cd ~/compose";
-
-    unless ($repo) {
-        my @patches = ();
-        foreach my $patch (@patches) {
-            my $url = "https://github.com/docker/compose/pull/$patch";
-            record_info("patch", $url);
-            assert_script_run "curl -O " . data_url("containers/patches/compose/$patch.patch");
-            run_command "git apply -3 --ours $patch.patch";
-        }
-    }
+    # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
+    my @patches = qw(13214);
+    patch_sources "compose", "v$version", "pkg/e2e", \@patches;
 }
 
 
@@ -92,27 +69,21 @@ sub run {
     $self->wait_boot();
     select_serial_terminal;
 
-    assert_script_run "cd ~/compose";
-    run_command 'PATH=$PATH:$HOME/compose/bin/build';
+    assert_script_run "cd /var/tmp/compose";
+    run_command 'PATH=$PATH:/var/tmp/compose/bin/build';
 
     my @targets = split('\s+', get_var("DOCKER_COMPOSE_TARGETS", "e2e-compose e2e-compose-standalone"));
     test $_ foreach (@targets);
 }
 
-sub cleanup() {
-    script_run "cd / ; rm -rf /root/compose";
-}
-
 sub post_fail_hook {
     my ($self) = @_;
-    cleanup;
     bats_post_hook;
     $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    cleanup;
     bats_post_hook;
     $self->SUPER::post_run_hook;
 }

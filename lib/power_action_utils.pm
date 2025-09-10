@@ -357,7 +357,12 @@ sub power_action {
             systemctl 'poweroff';
         }
 
-        assert_shutdown_with_soft_timeout($soft_fail_data) if ($action eq 'poweroff');
+        if ($action eq 'poweroff') {
+            # Swicth back to mgmt console then video can capture some logs in case shutdown fails on PVM setup
+            reconnect_mgmt_console if is_pvm;
+            assert_shutdown_with_soft_timeout($soft_fail_data);
+        }
+
         # We should only reset consoles if the system really rebooted.
         # Otherwise the next select_console will check for a login prompt
         # instead of handling the still logged in system.

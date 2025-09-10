@@ -14,14 +14,14 @@ use utils;
 use warnings;
 use strict;
 use opensslca;
+use network_utils 'iface';
+use Utils::Architectures 'is_s390x';
+use Utils::Systemd qw(disable_and_stop_service systemctl);
 
-our @EXPORT = qw($local_ip $remote_ip $local_name $remote_name $ca_dir $inst_ca_dir);
-our $local_ip = '10.0.2.101';
-our $remote_ip = '10.0.2.102';
-our $local_name = '389ds';
-our $remote_name = 'sssdclient';
-our $ca_dir = '/etc/openldap/ssl';
-our $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
+my $local_name = '389ds';
+my $remote_name = 'sssdclient';
+my $ca_dir = '/etc/openldap/ssl';
+my $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
 
 sub install_service {
     zypper_call("in 389-ds openssl");
@@ -29,9 +29,24 @@ sub install_service {
 
 # The function below covers all required steps for 389ds server's configuration
 sub config_service {
+    my $server_ip = get_var('SERVER_IP', '10.0.2.101');
+    my $client_ip = get_var('CLIENT_IP', '10.0.2.102');
+    if (is_s390x) {
+        my $ssh_port = '2222';
+        assert_script_run("ip addr add $server_ip/24 dev " . iface);
+        assert_script_run("echo \"$server_ip server master\" >> /etc/hosts");
+        assert_script_run("echo 'ListenAddress 0.0.0.0' >> /etc/ssh/sshd_config");
+        assert_script_run("echo \"Port $ssh_port\" >> /etc/ssh/sshd_config");
+        systemctl('restart sshd');
+        disable_and_stop_service('firewalld', ignore_failure => 1);
+        disable_and_stop_service('apparmor', ignore_failure => 1);
+    }
+
     # Start a local instance with basic configuration file
     assert_script_run("wget --quiet " . data_url("389ds/instance.inf") . " -O /tmp/instance.inf");
     assert_script_run("sed -i 's/\{\{PASSWORD\}\}/$testapi::password/g' /tmp/instance.inf");
+    # On s390x we need to set strict_host_checking to False, otherwise the test will fail
+    assert_script_run("sed -i 's/True/False/g' /tmp/instance.inf") if is_s390x;
     assert_script_run("dscreate from-file /tmp/instance.inf");
     validate_script_output("dsctl localhost status", sub { m/Instance.*is running/ });
 

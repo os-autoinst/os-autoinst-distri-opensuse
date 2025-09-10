@@ -260,6 +260,24 @@ sub stop_instance {
     die("Failed to stop instance $instance_id") unless ($attempts > 0);
 }
 
+sub suspend_instance {
+    my ($self, $instance) = @_;
+    my $instance_id = $instance->instance_id();
+
+    die("Cannot suspend instance which is not running.") if (lc($self->get_state_from_instance($instance)) ne 'running');
+    assert_script_run("gcloud compute instances suspend $instance_id", timeout => 3600);
+    $instance->wait_for_state('suspended');
+}
+
+sub resume_instance {
+    my ($self, $instance) = @_;
+    my $instance_id = $instance->instance_id();
+
+    die("Cannot resume instance which is not suspended.") if (lc($self->get_state_from_instance($instance)) ne 'suspended');
+    assert_script_run("gcloud compute instances resume $instance_id", timeout => 3600);
+    $instance->wait_for_state('running');
+}
+
 sub start_instance {
     my ($self, $instance, %args) = @_;
     my $instance_id = $instance->instance_id();

@@ -1,5 +1,5 @@
-local base_lib = import 'lib/base.libsonnet';
 local addons_lib = import 'lib/addons.libsonnet';
+local base_lib = import 'lib/base.libsonnet';
 local dasd_lib = import 'lib/dasd.libsonnet';
 local iscsi_lib = import 'lib/iscsi.libsonnet';
 local scripts_post_lib = import 'lib/scripts_post.libsonnet';
@@ -11,6 +11,7 @@ local security_lib = import 'lib/security.libsonnet';
 
 function(bootloader=true,
          bootloader_timeout=false,
+         bootloader_extra_kernel_params='',
          dasd=false,
          extra_repositories=false,
          files=false,
@@ -30,43 +31,44 @@ function(bootloader=true,
          scripts_post='',
          ssl_certificates=false,
          storage='',
-         user=true) {
-  [if bootloader then 'bootloader']: base_lib.stop_timeout(),
-  [if bootloader_timeout then 'bootloader']: base_lib.timeout(),
-  [if dasd == true then 'dasd']: dasd_lib.dasd(),
-  [if files == true then 'files']: base_lib['files'],
-  [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
-  [if localization == true then 'localization']: base_lib['localization'],
-  [if patterns != '' || packages != '' || extra_repositories || patterns_to_add != '' || patterns_to_remove != '' then 'software']: std.prune({
-    patterns: if patterns_to_add != '' || patterns_to_remove != ''  
-      then software_lib.modify_patterns(patterns_to_add, patterns_to_remove)  
-      else if patterns != '' then std.split(patterns, ','),
-    packages: if packages != '' then std.split(packages, ','),
-    extraRepositories: if extra_repositories then software_lib['extraRepositories'],
-  }),
-  [if product != '' then 'product']: {
-    [if registration_code_ha != '' then 'addons']: std.prune([
-      if registration_code_ha != '' then addons_lib.addon_ha(registration_code_ha),
-    ]),
-    id: product,
-    [if registration_code != '' then 'registrationCode']: registration_code,
-    [if registration_url != '' then 'registrationUrl']: registration_url,
-  },
-  root: base_lib.root(root_password),
-  [if ssl_certificates == true then 'security']: security_lib.sslCertificates(),
-  [if scripts_pre != '' || scripts_post != '' || scripts_post_partitioning != '' then 'scripts']: {
-    [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],
-    [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
-    [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
-  },
-  [if std.startsWith(storage, 'raid') then 'storage']: storage_lib[storage],
-  [if storage == 'home_on_iscsi' then 'storage']: storage_lib.home_on_iscsi,
-  [if storage == 'lvm' then 'storage']: storage_lib['lvm'],
-  [if storage == 'lvm_encrypted' then 'storage']: storage_lib['lvm_encrypted'],
-  [if storage == 'lvm_tpm_fde' then 'storage']: storage_lib['lvm_tpm_fde'],
-  [if storage == 'root_filesystem_ext4' then 'storage']: storage_lib['root_filesystem_ext4'],
-  [if storage == 'root_filesystem_xfs' then 'storage']: storage_lib['root_filesystem_xfs'],
-  [if storage == 'resize' then 'storage']: storage_lib['resize'],
-  [if storage == 'whole_disk_and_boot_unattended' then 'storage']: storage_lib['whole_disk_and_boot_unattended'],
-  [if user == true then 'user']: base_lib['user'],
-}
+         user=true) (
+        base_lib.bootloader(bootloader, bootloader_timeout, bootloader_extra_kernel_params) +
+        {
+          [if dasd == true then 'dasd']: dasd_lib.dasd(),
+          [if files == true then 'files']: base_lib['files'],
+          [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
+          [if localization == true then 'localization']: base_lib['localization'],
+          [if patterns != '' || packages != '' || extra_repositories || patterns_to_add != ''
+            || patterns_to_remove != '' then 'software']: std.prune({
+            patterns: if patterns_to_add != '' || patterns_to_remove != ''
+              then software_lib.modify_patterns(patterns_to_add, patterns_to_remove)
+              else if patterns != '' then std.split(patterns, ','),
+            packages: if packages != '' then std.split(packages, ','),
+            extraRepositories: if extra_repositories then software_lib['extraRepositories'],
+          }),
+          [if product != '' then 'product']: {
+            [if registration_code_ha != '' then 'addons']: std.prune([
+              if registration_code_ha != '' then addons_lib.addon_ha(registration_code_ha),
+            ]),
+            id: product,
+            [if registration_code != '' then 'registrationCode']: registration_code,
+            [if registration_url != '' then 'registrationUrl']: registration_url,
+          },
+          root: base_lib.root(root_password),
+          [if ssl_certificates == true then 'security']: security_lib.sslCertificates(),
+          [if scripts_pre != '' || scripts_post != '' || scripts_post_partitioning != '' then 'scripts']: {
+            [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],
+            [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
+            [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
+          },
+          [if std.startsWith(storage, 'raid') then 'storage']: storage_lib[storage],
+          [if storage == 'home_on_iscsi' then 'storage']: storage_lib.home_on_iscsi,
+          [if storage == 'lvm' then 'storage']: storage_lib['lvm'],
+          [if storage == 'lvm_encrypted' then 'storage']: storage_lib['lvm_encrypted'],
+          [if storage == 'lvm_tpm_fde' then 'storage']: storage_lib['lvm_tpm_fde'],
+          [if storage == 'root_filesystem_ext4' then 'storage']: storage_lib['root_filesystem_ext4'],
+          [if storage == 'root_filesystem_xfs' then 'storage']: storage_lib['root_filesystem_xfs'],
+          [if storage == 'resize' then 'storage']: storage_lib['resize'],
+          [if storage == 'whole_disk_and_boot_unattended' then 'storage']: storage_lib['whole_disk_and_boot_unattended'],
+          [if user == true then 'user']: base_lib['user'],
+        })

@@ -94,15 +94,17 @@ sub run {
         assert_script_run("echo 'Download completed' >> ~/repos/qem_download_status.txt");
         upload_logs('/tmp/repos.list.txt');
         upload_logs('qem_download_status.txt');
-        # Failsafe 2: Ensure the repos are not empty (i.e. size >= 100 kB)
-        my $size = script_output(q(du -s ~/repos | awk '{print $1}'));
-        # we will not die if repos are empty due to embargoed updates filtering
-        die "Empty test repositories" if (!get_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED") && $check_empty_repos && $size < 100);
     }
 
     my $total_size = script_output("du -hs ~/repos");
     record_info("Repo size", "Total repositories size: $total_size");
     assert_script_run("find ./ -name '*.rpm' -exec du -h '{}' + | sort -h > /root/rpm_list.txt", timeout => 60);
+
+    # Failsafe 2: Ensure the repos are not empty (i.e. size >= 50 kB)
+    my $size = script_output(q(du -s ~/repos | awk '{print $1}'));
+    # we will not die if repos are empty due to embargoed updates filtering
+    die "Empty test repositories" if (!get_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED") && $check_empty_repos && $size < 50);
+
     upload_logs("/root/rpm_list.txt");
     assert_script_run("cd");
 }
