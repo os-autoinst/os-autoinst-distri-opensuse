@@ -72,15 +72,6 @@ sub run_test {
 
         # SLES16 guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
         next if ($guest =~ /sles-16/i);
-        #Prepare the new guest network interface files for libvirt virtual network
-        #for some guests, interfaces are named eth0, eth1, eth2, ...
-        #for TW kvm guest, they are enp1s0, enp2s0, enp3s0, ...
-        my $primary_nic = script_output("ssh root\@$guest \"ip a|awk -F': ' '/state UP/ {print \\\$2}'|head -n1\"");
-        $primary_nic =~ /([a-zA-Z]*)(\d)(\w*)/;
-        for (my $i = 1; $i <= 6; $i++) {
-            my $nic = $1 . (int($2) + $i) . $3;
-            assert_script_run("ssh root\@$guest 'cp /etc/sysconfig/network/ifcfg-$primary_nic /etc/sysconfig/network/ifcfg-$nic'");
-        }
         #enable guest wickedd debugging
         assert_script_run "ssh root\@$guest \"sed -i 's/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g' /etc/sysconfig/network/config\"";
         assert_script_run "ssh root\@$guest 'grep 'WICKED_DEBUG' /etc/sysconfig/network/config'";
