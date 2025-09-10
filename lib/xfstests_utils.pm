@@ -565,6 +565,7 @@ sub test_run_without_heartbeat {
     my ($category, $num) = split(/\//, $test);
     my $run_options = '';
     my $status_num = 1;
+    my $test_timeout = 0;
     if ($fstype =~ /nfs/) {
         $run_options = '-nfs';
     }
@@ -580,8 +581,6 @@ sub test_run_without_heartbeat {
     if ($@) {
         $test_status = 'FAILED';
         $test_duration = time() - $test_start;
-        script_run('rm -rf /tmp/*', timeout => 90);    # Get some space and inode for no-space-left-on-device error to get reboot signal
-        sleep 2;
         copy_all_log($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, 1);
 
         if (is_public_cloud) {
@@ -616,8 +615,14 @@ sub test_run_without_heartbeat {
         elsif ($status_num == 22) {
             $test_status = 'SKIPPED';
         }
-        else {
+        elsif ($status_num == 1) {
             $test_status = 'FAILED';
+            copy_all_log($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, 0);
+        }
+        else {
+            # Here maybe test terminated because of run out of time killed by timeout command or have some internal error
+            $test_status = 'FAILED';
+            $test_timeout = 1;
             copy_all_log($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, 0);
         }
     }
@@ -633,6 +638,7 @@ sub test_run_without_heartbeat {
             status => $test_status,
             time => $test_duration,
             output => $log_content,
+            timeout => $test_timeout,
         };
         return $targs;
     }
