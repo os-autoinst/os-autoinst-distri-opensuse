@@ -14,7 +14,7 @@ pulseaudio:
     tag: "17.0"
 workload:
   # Page to load if using firefox as the workload
-  url: "https://freesound.org/people/kevp888/sounds/796468/"
+  url: "http://10.43.0.69/audio.html"
   # Additional environment variables to passthrough into the workload
   env: []
   # These can be used to provide a custom workload
