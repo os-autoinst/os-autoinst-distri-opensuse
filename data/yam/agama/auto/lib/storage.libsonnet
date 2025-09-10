@@ -107,13 +107,13 @@ local whole_disk_and_boot_unattended() = {
 local mdroot_partition = {
   alias: 'mdroot',
   id: 'raid',
-  size: '6 GiB',
+  size: '7.81 GiB',
 };
 
 local mdswap_partition = {
   alias: 'mdswap',
   id: 'raid',
-  size: '4 GiB',
+  size: '512 MiB',
 };
 
 local raid(level='raid0', boot_type='bios') = {
@@ -124,7 +124,7 @@ local raid(level='raid0', boot_type='bios') = {
         { delete: true, search: '*' },
         {
           id: 'esp',
-          size: '128 MiB',
+          size: '300 MiB',
           filesystem: { path: '/boot/efi', type: 'vfat' },
         },
         mdroot_partition,
@@ -138,7 +138,7 @@ local raid(level='raid0', boot_type='bios') = {
         { delete: true, search: '*' },
         {
           id: 'esp',
-          size: '128 MiB',
+          size: '300 MiB',
           filesystem: { type: 'vfat' },
         },
         mdroot_partition,
@@ -205,7 +205,7 @@ local search_raid0() = {
       partitions: [
         {
           id: 'esp',
-          size: '128 MiB',
+          size: '300 MiB',
           filesystem: {
             path: '/boot/efi',
             type: 'vfat'
@@ -223,15 +223,9 @@ local search_raid0() = {
           search: '*'
         },
         {
-          size: '6 GiB',
+          size: '7.81 GiB',
           filesystem: {
             path: '/'
-          },
-        },
-        {
-          size: '2 GiB',
-          filesystem: {
-            path: 'swap'
           },
         },
       ],
@@ -244,9 +238,9 @@ local search_raid0() = {
           search: '*'
         },
         {
-          size: '4 GiB',
+          size: '512 MiB',
           filesystem: {
-            path: '/home'
+            path: 'swap'
           },
         },
       ],
