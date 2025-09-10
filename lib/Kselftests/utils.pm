@@ -17,6 +17,7 @@ use Kselftests::parser;
 use LTP::WhiteList;
 use version_utils qw(is_sle);
 use base 'opensusebasetest';
+use File::Basename 'basename';
 
 our @EXPORT = qw(
   install_from_git
@@ -97,8 +98,16 @@ sub post_process_single {
     };
     my $whitelist = get_whitelist();
 
+    # Avoid timeouts if the log is too big by reading it locally
+    my @log;
+    upload_asset($args{logfile});
+    open(my $logfile, '<', "assets_private/" . basename($args{logfile})) or die("Can't open $args{logfile}");
+    while (my $ln = <$logfile>) {
+        push(@log, $ln);
+    }
+    close($logfile);
+
     my ($test_name, $sanitized_test_name) = get_sanitized_test_name($args{test});
-    my @log = split(/\n/, script_output("cat $args{logfile}"));
     my $parser = Kselftests::parser::factory($args{collection}, $sanitized_test_name);
 
     my @ktap = @{$args{output} //= ["TAP version 13", "1..1", "# selftests: $args{collection}: $sanitized_test_name"]};
