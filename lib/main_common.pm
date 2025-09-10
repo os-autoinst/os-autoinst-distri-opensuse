@@ -2585,7 +2585,7 @@ sub load_hypervisor_tests {
             modules => ['virt_autotest/libvirt_host_bridge_virtual_network', 'virt_autotest/libvirt_nated_virtual_network', 'virt_autotest/libvirt_isolated_virtual_network'],
         },
         ENABLE_BRIDGE_VIR_NET => {
-            ['virt_autotest/libvirt_host_bridge_virtual_network'],
+            modules => ['virt_autotest/libvirt_host_bridge_virtual_network'],
         },
         ENABLE_VIRTMANAGER => {
             modules => ['virtualization/universal/virtmanager_init', 'virtualization/universal/virtmanager_offon', 'virtualization/universal/virtmanager_add_devices', 'virtualization/universal/virtmanager_rm_devices'],
