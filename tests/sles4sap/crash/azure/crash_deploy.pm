@@ -27,8 +27,8 @@ sub run {
     die('Azure is the only CSP supported for this test')
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
-    my $deploy_prefix = get_var('DEPLOY_PREFIX', 'clne');
-    my $rg = $deploy_prefix . get_current_job_id();
+    my $azure_prefix = get_var('DEPLOY_PREFIX', 'clne');
+    my $rg = $azure_prefix . get_current_job_id();
 
     select_serial_terminal;
 
@@ -54,15 +54,15 @@ sub run {
         $os_ver = $img_name;
     }
 
-    my $nsg = $deploy_prefix . '-nsg';
+    my $nsg = $azure_prefix . '-nsg';
     az_network_nsg_create(resource_group => $rg, name => $nsg);
     az_network_nsg_rule_create(resource_group => $rg, nsg => $nsg, name => $nsg . 'RuleSSH', port => 22);
 
-    my $pub_ip_prefix = $deploy_prefix . '-pub_ip';
+    my $pub_ip_prefix = $azure_prefix . '-pub_ip';
     az_network_publicip_create(resource_group => $rg, name => $pub_ip_prefix, zone => '1 2 3');
 
-    my $vnet = $deploy_prefix . '-vnet';
-    my $subnet = $deploy_prefix . '-snet';
+    my $vnet = $azure_prefix . '-vnet';
+    my $subnet = $azure_prefix . '-snet';
     az_network_vnet_create(
         resource_group => $rg,
         region => $provider->provider_client->region,
@@ -71,7 +71,7 @@ sub run {
         snet => $subnet,
         subnet_prefixes => '10.1.0.0/24');
 
-    my $nic = $deploy_prefix . '-nic';
+    my $nic = $azure_prefix . '-nic';
     assert_script_run(join(' ', 'az network nic create',
             '--resource-group', $rg,
             '--name', $nic,
@@ -81,7 +81,7 @@ sub run {
             '--private-ip-address-version IPv4',
             '--public-ip-address', $pub_ip_prefix));
 
-    my $vm = $deploy_prefix . '-vm';
+    my $vm = $azure_prefix . '-vm';
     my %vm_create_args = (
         resource_group => $rg,
         name => $vm,
@@ -109,7 +109,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    az_group_delete(name => $deploy_prefix . get_current_job_id(), timeout => 600);
+    az_group_delete(name => $azure_prefix . get_current_job_id(), timeout => 600);
     $self->SUPER::post_fail_hook;
 }
 

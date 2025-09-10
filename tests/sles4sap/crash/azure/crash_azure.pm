@@ -18,7 +18,7 @@ sub run {
     my ($self) = @_;
 
     # Crash test
-    my $deploy_prefix = get_var('DEPLOY_PREFIX', 'clne');
+    my $azure_prefix = get_var('DEPLOY_PREFIX', 'clne');
     my $vm_ip = get_required_var('VM_IP');
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
     $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
@@ -78,7 +78,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    az_group_delete(name => $deploy_prefix . get_current_job_id(), timeout => 600);
+    az_group_delete(name => $azure_prefix . get_current_job_id(), timeout => 600);
     $self->SUPER::post_fail_hook;
 }
 

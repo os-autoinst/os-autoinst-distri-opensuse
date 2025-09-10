@@ -68,6 +68,7 @@ sub ensure_system_ready_and_register {
 sub run {
     my ($self) = @_;
 
+    my $azure_prefix = get_var('DEPLOY_PREFIX', 'clne');
     my $vm_ip = get_required_var('VM_IP');
     my $ssh_cmd = get_required_var('SSH_CMD');
     my $rg = get_required_var('RG');
@@ -97,7 +98,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    az_group_delete(name => DEPLOY_PREFIX . get_current_job_id(), timeout => 600);
+    az_group_delete(name => $azure_prefix . get_current_job_id(), timeout => 600);
     $self->SUPER::post_fail_hook;
 }
 
