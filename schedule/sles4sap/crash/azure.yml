@@ -2,8 +2,6 @@
 name: sles4sap_cloud_crash
 description: |
   crash scenario with one machine for azure
-vars:
-    TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
     - sles4sap/crash/azure/crash_deploy
     - sles4sap/crash/azure/crash_configure

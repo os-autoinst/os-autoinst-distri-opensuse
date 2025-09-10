@@ -53,15 +53,16 @@ sub ensure_system_ready_and_register {
     if ($args{reg_code}) {
         script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'), 200);
         script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect --cleanup'), 200);
+
         my $cmd = join(' ',
             $args{ssh_command},
             qq(sudo registercloudguest --force-new -r "$args{reg_code}" -e testing\@suse.com));
-        my $ret = script_output($cmd, timeout => 600);
-        $ret =~ s/Instance registry setup done, sessions must be restarted !//g;
-        #Avoid issue currentSMTInfo.obj
-        die "registercloudguest failed: $ret" unless ($ret =~ /(rc-(0|1)\s*$|Registration succeeded)/);
-        assert_script_run(join(' ', $args{ssh_command}, 'sudo', 'SUSEConnect -s'));
+        my $exit = script_run($cmd, 600);
+        die "registercloudguest failed with exit $exit" unless ($exit == 0);
+
+        assert_script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'));
     }
+
 }
 
 sub run {
@@ -86,16 +87,7 @@ sub run {
     assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
     record_info('SSH', 'VM reachable with SSH');
 
-    my $register_code = get_required_var('SCC_REGCODE_SLES4SAP');
-    my %system_register_args = (
-        reg_code => $register_code,
-        ssh_command => $ssh_cmd,
-    );
-    ensure_system_ready_and_register(%system_register_args);
-
-    assert_script_run("$ssh_cmd sudo reboot", timeout => 600);
-    select_serial_terminal;
-    wait_serial(qr/\#/, timeout => 600);
+    ensure_system_ready_and_register(reg_code => get_required_var('SCC_REGCODE_SLES4SAP'), ssh_command => $ssh_cmd);
     record_info('Done', 'Test finished');
 }
 
@@ -105,7 +97,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    az_group_delete(name => DEPLOY_PREFIX . get_current_job_id(), timeout => 600);
+    az_group_delete(name => get_var('DEPLOY_PREFIX', 'clne') . get_current_job_id(), timeout => 600);
     $self->SUPER::post_fail_hook;
 }
 
