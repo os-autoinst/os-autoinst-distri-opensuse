@@ -165,7 +165,7 @@ sub run {
             assert_script_run 'toolbox run -c devel -- zypper -n ref -s', timeout => 300;
         }
         assert_script_run 'toolbox run -c devel -- zypper lr -u', timeout => 180;
-        assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180;
+        assert_script_run 'toolbox run -c devel -- zypper -n in zip', timeout => 180;
     }
     assert_script_run 'podman rm devel';
 
