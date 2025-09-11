@@ -128,6 +128,10 @@ sub post_fail_hook {
         }
     }
 
+    # Disable any stray redirection being active. This resets the console to the worker VM.
+    disconnect_target_from_serial if check_serial_redirection();
+    az_login();
+
     # Update logs (except deployment VM logs) before cleanup
     if (get_required_var('TEST') !~ /_deploy_/) {
         # Upload logs appearing in deployer VM
