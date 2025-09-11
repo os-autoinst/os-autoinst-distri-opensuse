@@ -12,9 +12,10 @@ use base 'opensusebasetest';
 use File::Basename;
 use testapi;
 use utils;
-use Utils::Backends 'is_pvm';
+use Utils::Backends qw(is_pvm is_svirt);
+use Utils::Architectures qw(is_s390x);
 use serial_terminal 'select_serial_terminal';
-use power_action_utils qw(prepare_system_shutdown);
+use power_action_utils qw(prepare_system_shutdown assert_shutdown_and_restore_system);
 use filesystem_utils qw(format_partition generate_xfstests_list);
 use lockapi;
 use mmapi;
@@ -65,7 +66,7 @@ my $HB_DONE = '<d>';
 # - XFSTESTS_TIMEOUT: Set the sub-test timeout threshold
 my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
 
-my ($type, $status, $time);
+my ($type, $status, $time, $test_timeout);
 my $whitelist;
 my $whitelist_env = prepare_whitelist_environment();
 my $whitelist_url = get_var('XFSTESTS_KNOWN_ISSUES');
@@ -88,6 +89,7 @@ sub run {
         $status = $result_args->{status};
         $time = $result_args->{time};
         $status_log_content = $result_args->{output};
+        $test_timeout = $result_args->{timeout};
     }
     else {
         heartbeat_start;
@@ -135,7 +137,14 @@ sub run {
     bmwqemu::fctinfo("$generate_name");
     my $targs = OpenQA::Test::RunArgs->new();
     my $whitelist_entry;
-    $targs->{output} = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo 'No log in test path, find log in serial0.txt'; fi", 600, type_command => 1, proceed_on_failure => 1);
+    my $output_message;
+    if ($test_timeout) {
+        $output_message = 'Test run timeout, it was terminated by wrapper. Find more info in serial0.txt';
+    }
+    else {
+        $output_message = 'No log in test path, find log in serial0.txt';
+    }
+    $targs->{output} = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$output_message'; fi", 600, type_command => 1, proceed_on_failure => 1);
     $targs->{name} = $test;
     $targs->{time} = $time;
     $targs->{status} = $status;
@@ -176,6 +185,11 @@ sub run {
     }
     if ($is_last_one) {
         mutex_unlock 'last_subtest_run_finish';
+    }
+    # s390x will not load to new snapshot automatically
+    if ($test_timeout && is_s390x && is_svirt) {
+        assert_shutdown_and_restore_system;
+        reconnect_mgmt_console;
     }
 }
 
