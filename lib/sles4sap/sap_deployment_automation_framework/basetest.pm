@@ -94,7 +94,13 @@ sub full_cleanup {
     # Resource retention time can be controlled by OpenQA parameter: SDAF_DEPLOYER_VM_RETENTION_SEC
     record_info('Remove orphans', 'Cleaning up orphaned resources');
     destroy_orphaned_resources();
-    destroy_orphaned_peerings();
+    if (my $ret = destroy_orphaned_peerings()) {
+        record_info('Retry', 'Delete orphaned peerings failed and retry');
+        $ret = destroy_orphaned_peerings();
+        if ($ret) {
+            die('Delete orphaned peerings failed, please check log and delete manually');
+        }
+    }
 }
 
 sub post_fail_hook {
