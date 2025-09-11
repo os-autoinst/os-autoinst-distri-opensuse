@@ -1,0 +1,12 @@
+---
+name: agama_iscsi_ibft_lvm_encrypted_unattended
+description: >
+  Perform unattended installation on an encrypted LVM with Agama using iscsi ibft disk.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - installation/validation/ibft
+  - console/validate_lvm
+  - console/validate_encrypt
