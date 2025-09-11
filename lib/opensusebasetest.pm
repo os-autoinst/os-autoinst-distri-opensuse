@@ -534,6 +534,10 @@ sub reconnect_s390 {
     my $enable_root_ssh = $args{enable_root_ssh} // 0;
     return undef unless is_s390x;
     my $login_ready = get_login_message();
+    # this is only a temporary measure for BCI tests that run on slem 6.0 and 6.1
+    if (is_s390x && get_var('BCI_TESTS', '') && get_var('HOST_VERSION', '') =~ /slem/i) {
+        $login_ready = qr|Welcome to SUSE Linux Micro 6.[01].*\(s390x\)|;
+    }
     if (is_backend_s390x) {
         my $console = console('x3270');
         # skip grub handle for 11sp4
