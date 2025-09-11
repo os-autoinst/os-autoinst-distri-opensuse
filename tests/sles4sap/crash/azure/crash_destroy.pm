@@ -16,7 +16,6 @@ use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
 
-use constant DEPLOY_PREFIX => 'clne';
 
 sub run {
     my ($self) = @_;

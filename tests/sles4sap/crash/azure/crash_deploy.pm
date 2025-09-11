@@ -20,7 +20,6 @@ use sles4sap::azure_cli;
 use utils;
 use version_utils;
 
-use constant DEPLOY_PREFIX => 'clne';
 
 sub run {
     my ($self) = @_;
@@ -28,7 +27,8 @@ sub run {
     die('Azure is the only CSP supported for this test')
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
 
-    my $rg = DEPLOY_PREFIX . get_current_job_id();
+    my $azure_prefix = get_var('DEPLOY_PREFIX', 'clne');
+    my $rg = $azure_prefix . get_current_job_id();
 
     select_serial_terminal;
 
@@ -38,7 +38,7 @@ sub run {
     if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
         $os_ver = $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     } else {
-        $os_ver = get_required_var('CLUSTER_OS_VER');
+        $os_ver = $provider->get_image_id();
     }
 
     assert_script_run('rm ~/.ssh/config');
@@ -54,15 +54,15 @@ sub run {
         $os_ver = $img_name;
     }
 
-    my $nsg = DEPLOY_PREFIX . '-nsg';
+    my $nsg = $azure_prefix . '-nsg';
     az_network_nsg_create(resource_group => $rg, name => $nsg);
     az_network_nsg_rule_create(resource_group => $rg, nsg => $nsg, name => $nsg . 'RuleSSH', port => 22);
 
-    my $pub_ip_prefix = DEPLOY_PREFIX . '-pub_ip';
+    my $pub_ip_prefix = $azure_prefix . '-pub_ip';
     az_network_publicip_create(resource_group => $rg, name => $pub_ip_prefix, zone => '1 2 3');
 
-    my $vnet = DEPLOY_PREFIX . '-vnet';
-    my $subnet = DEPLOY_PREFIX . '-snet';
+    my $vnet = $azure_prefix . '-vnet';
+    my $subnet = $azure_prefix . '-snet';
     az_network_vnet_create(
         resource_group => $rg,
         region => $provider->provider_client->region,
@@ -71,7 +71,7 @@ sub run {
         snet => $subnet,
         subnet_prefixes => '10.1.0.0/24');
 
-    my $nic = DEPLOY_PREFIX . '-nic';
+    my $nic = $azure_prefix . '-nic';
     assert_script_run(join(' ', 'az network nic create',
             '--resource-group', $rg,
             '--name', $nic,
@@ -81,7 +81,7 @@ sub run {
             '--private-ip-address-version IPv4',
             '--public-ip-address', $pub_ip_prefix));
 
-    my $vm = DEPLOY_PREFIX . '-vm';
+    my $vm = $azure_prefix . '-vm';
     my %vm_create_args = (
         resource_group => $rg,
         name => $vm,
@@ -93,7 +93,7 @@ sub run {
 
     az_vm_create(%vm_create_args);
 
-    my $vm_ip = az_network_publicip_get(resource_group => $rg, name => DEPLOY_PREFIX . "-pub_ip");
+    my $vm_ip = az_network_publicip_get(resource_group => $rg, name => $azure_prefix . "-pub_ip");
     my $ssh_cmd = 'ssh cloudadmin@' . $vm_ip;
 
     set_var('VM_IP', $vm_ip);
@@ -109,7 +109,7 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    az_group_delete(name => DEPLOY_PREFIX . get_current_job_id(), timeout => 600);
+    az_group_delete(name => get_var('DEPLOY_PREFIX', 'clne') . get_current_job_id(), timeout => 600);
     $self->SUPER::post_fail_hook;
 }
 
