@@ -419,7 +419,7 @@ sub destroy_orphaned_resources {
     destroy_orphaned_peerings();
 
 Searches for network peerings in B<Disconnected> state. Destroys a peering if its resource group does not exist anymore.
-Returns B<ARRAYREF> with all peerings deleted.
+Returns the result of deleting: 0 succeeded, 1 failed.
 
 =cut
 
@@ -437,18 +437,24 @@ sub destroy_orphaned_peerings {
     );
     my @deleted_peerings;
 
+    my $result = 0;
     for my $peering (@{$disconnected_peerings}) {
         # Do not delete peering if group it belongs to still exists
         next if az_group_exists(resource_group => $peering->{workload_resource_group}, quiet => 'yes') eq 'true';
-        az_network_peering_delete(
+        my $ret = az_network_peering_delete(
             resource_group => $deployer_resource_group,
             vnet => $vnet_name,
             name => $peering->{peering_name});
+        if ($ret) {
+            $result = 1;
+            record_info("Issue found: deleting $vnet_name failed, continue to delete other peerings");
+            next;
+        }
         push @deleted_peerings, $peering->{peering_name};
     }
 
     record_info('Peer clean', "Following orphaned peerings were deleted:\n" . join("\n", @deleted_peerings) . "\n");
-    return (\@deleted_peerings);
+    return $result;
 }
 
 =head2 no_cleanup_tag

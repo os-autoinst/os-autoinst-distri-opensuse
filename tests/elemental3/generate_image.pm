@@ -56,7 +56,7 @@ sub run {
     # Add Unified Core repository and install Elemental package
     trup_call("run zypper addrepo --check --refresh $repo_to_test elemental");
     trup_call("--continue run zypper --gpg-auto-import-keys refresh");
-    trup_call("--continue pkg install elemental3-toolkit");
+    trup_call("--continue pkg install elemental3ctl");
     trup_call("apply");
 
     # OS configuration script
@@ -104,7 +104,7 @@ sub run {
 
     # Generate RAW image
     record_info('QCOW2', 'Generate and upload QCOW2 image');
-    assert_script_run("elemental3-toolkit --debug install --os-image $image --overlay tar://$overlay --config $config_file --target $device", $timeout);
+    assert_script_run("elemental3ctl --debug install --os-image $image --overlay tar://$overlay --config $config_file --target $device", $timeout);
 
     # Generate and upload QCOW2 image
     assert_script_run("losetup -d $device");

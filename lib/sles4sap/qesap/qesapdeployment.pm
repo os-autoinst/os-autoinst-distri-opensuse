@@ -563,6 +563,10 @@ sub qesap_execute {
 
 =item B<DESTROY> - destroy terraform before retrying terraform apply
 
+=item B<DELAY_SEC> - seconds of delay before retry
+
+=item B<RANDOM_FACTOR> - random factor for delay to avoid concurrent retries. 0 is no random factor, 1 is max random factor.
+
 =back
 =cut
 
@@ -571,8 +575,12 @@ sub qesap_terraform_conditional_retry {
     foreach (qw(error_list logname)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
 
     $args{timeout} //= bmwqemu::scale_timeout(90);
-    $args{retries} //= 1;
+    $args{retries} //= 3;
     my $retries_count = $args{retries};
+    $args{delay_sec} //= 60;
+    $args{random_factor} //= 0.3;
+    $args{random_factor} = 1 if $args{random_factor} > 1;
+    $args{random_factor} = 0 if $args{random_factor} < 0;
     my %exec_args = (
         cmd => 'terraform',
         verbose => $args{verbose},
@@ -589,16 +597,26 @@ sub qesap_terraform_conditional_retry {
 
         # Immediately fails if the output does not have one of the errors indicated by the caller
         return @ret if (!qesap_file_find_strings(file => $ret[1], search_strings => $args{error_list}));
-        record_info('DETECTED ERROR');
+        record_info('DETECTED ERROR', "Retrying (left: $retries_count)");
 
-        # Executing terraform destroy before retrying terraform apply
+        # Wait and retry terraform apply
+        my $base = $args{delay_sec};
+        my $fractional_diff = int($base * $args{random_factor});
+        my $rand_delay = $fractional_diff ? (int(rand(2 * $fractional_diff + 1)) - $fractional_diff) : 0;
+        my $sleep_sec = $base + $rand_delay;
+        $sleep_sec = 0 if $sleep_sec < 0;
+        record_info('BACKOFF', "Sleeping ${sleep_sec}s before retry");
+        sleep $sleep_sec if $sleep_sec > 0;
+
+        # Optionally destroy before retry
         if ($args{destroy}) {
             my @destroy_ret = qesap_execute(
                 cmd => 'terraform',
                 cmd_options => '-d',
                 logname => "qesap_exec_terraform_destroy_before_retry$retries_count.log.txt",
                 verbose => 1,
-                timeout => 1200);
+                timeout => 1200
+            );
             return @destroy_ret if ($destroy_ret[0] != 0);
         }
 

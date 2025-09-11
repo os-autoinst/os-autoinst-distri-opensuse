@@ -289,15 +289,19 @@ subtest '[destroy_orphaned_peerings]' => sub {
     $mock_function->redefine(az_network_vnet_get => sub { return ['Zabi-VNET']; });
     $mock_function->redefine(az_group_exists => sub { return 'true' if grep /^existing$/, @_; return 'false' });
     $mock_function->redefine(az_network_peering_list => sub { return [
-                {"workload_resource_group" => "not_existing", "peering_name" => "Iron_blooded_orphans"},
+                {"workload_resource_group" => "existing", "peering_name" => "Iron_blooded_orphans"},
                 {"workload_resource_group" => "existing", "peering_name" => "EarthFederation"}];
     });
 
     set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'Karaba');
     set_var('SDAF_DEPLOYER_VNET_CODE', 'Zabi');
 
-    ok(grep(/Iron_blooded_orphans/, @{destroy_orphaned_peerings()}), 'Delete orphaned peering');
-    ok(!grep(/EarthFederation/, @{destroy_orphaned_peerings()}), 'Do not delete orphaned peering');
+    ok(!destroy_orphaned_peerings(), 'Do not delete orphaned peering');
+    $mock_function->redefine(az_network_peering_list => sub { return [
+                {"workload_resource_group" => "not_existing", "peering_name" => "Iron_blooded_orphans"},
+                {"workload_resource_group" => "not_existing", "peering_name" => "EarthFederation"}];
+    });
+    ok(!destroy_orphaned_peerings(), 'Delete orphaned peering');
 
     undef_variables;
 };

@@ -94,7 +94,13 @@ sub full_cleanup {
     # Resource retention time can be controlled by OpenQA parameter: SDAF_DEPLOYER_VM_RETENTION_SEC
     record_info('Remove orphans', 'Cleaning up orphaned resources');
     destroy_orphaned_resources();
-    destroy_orphaned_peerings();
+    if (my $ret = destroy_orphaned_peerings()) {
+        record_info('Retry', 'Delete orphaned peerings failed and retry');
+        $ret = destroy_orphaned_peerings();
+        if ($ret) {
+            die('Delete orphaned peerings failed, please check log and delete manually');
+        }
+    }
 }
 
 sub post_fail_hook {
@@ -127,6 +133,10 @@ sub post_fail_hook {
             }
         }
     }
+
+    # Disable any stray redirection being active. This resets the console to the worker VM.
+    disconnect_target_from_serial if check_serial_redirection();
+    az_login();
 
     # Update logs (except deployment VM logs) before cleanup
     if (get_required_var('TEST') !~ /_deploy_/) {

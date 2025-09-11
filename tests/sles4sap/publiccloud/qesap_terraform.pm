@@ -250,7 +250,7 @@ sub run {
             'An internal execution error occurred. Please retry later',
             'There is a peering operation in progress'
         ],
-        destroy => 1);
+        destroy => 0);
     # Retrying terraform more times in case of GCP, to handle concurrent peering attempts
     $retry_args{retries} = is_gce() ? 5 : 2;
     $retry_args{cmd_options} = '--parallel ' . get_var('HANASR_TERRAFORM_PARALLEL') if get_var('HANASR_TERRAFORM_PARALLEL');
