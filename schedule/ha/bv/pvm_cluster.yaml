@@ -40,7 +40,6 @@ schedule:
   - console/system_prepare
   - ha/check_hae_active.py
   - ha/wait_barriers
-  - console/system_prepare
   - console/consoletest_setup
   - console/check_os_release
   - console/hostname
@@ -65,6 +64,7 @@ schedule:
   - '{{remove_node}}'
   - '{{graceful_shutdown}}'
   - ha/check_logs
+  - ha/prepare_shutdown
   - shutdown/shutdown
 conditional_schedule:
   barrier_init:
