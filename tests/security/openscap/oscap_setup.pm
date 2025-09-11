@@ -13,7 +13,7 @@ use version_utils 'is_opensuse';
 
 sub run {
 
-    zypper_call("in openscap-utils libxslt-tools wget /usr/bin/xmllint");
+    zypper_call("in openscap-utils libxslt-tools wget libxml2-tools");
 
     oscap_get_test_file("oval.xml");
     oscap_get_test_file("xccdf.xml");
