@@ -30,7 +30,7 @@ use power_action_utils 'assert_shutdown_and_restore_system';
 
 sub upload_agama_logs {
     return if (get_var('NOLOGS'));
-    select_console("root-console");
+    select_console("install-shell");
     script_run('agama logs store -d /tmp');
     script_run('agama config show > /tmp/agama_config.txt');
     upload_logs('/tmp/agama-logs.tar.gz');
@@ -59,7 +59,7 @@ sub run {
     my ($self) = @_;
 
     if ((is_ipmi || is_pvm || is_s390x) && get_var('INST_AUTO')) {
-        select_console('root-console');
+        select_console('install-shell');
         record_info 'Wait for installation phase done';
         verify_agama_auto_install_done_cmdline();
         upload_agama_logs();
@@ -105,7 +105,7 @@ sub post_fail_hook {
 
     return if (get_var('NOLOGS'));
 
-    select_console("root-console");
+    select_console("install-shell");
     export_healthcheck_basic();
     upload_agama_logs();
 }

@@ -208,7 +208,7 @@ sub post_fail_hook {
 
     return if (get_var('NOLOGS'));
 
-    select_console("root-console");
+    select_console("install-shell");
     export_healthcheck_basic();
     upload_agama_logs();
 }
