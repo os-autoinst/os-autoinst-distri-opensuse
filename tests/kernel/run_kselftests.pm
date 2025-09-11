@@ -80,7 +80,7 @@ sub run {
         ($ktap, $softfails, $hardfails) = post_process(collection => $collection, tests => \@tests);
     }
 
-    script_output("cat <<'EOF' > kselftest.tap.txt\n" . join("\n", @{$ktap}) . "\nEOF");
+    assert_script_run("echo \"\$(cat <<EOF\n" . join("\n", @{$ktap}) . "\nEOF)\" > kselftest.tap.txt", timeout => 360);
     parse_extra_log(KTAP => 'kselftest.tap.txt');
 
     if ($softfails > 0 && $hardfails == 0) {
