@@ -18,6 +18,7 @@ use testapi;
 use version_utils qw(is_leap is_sle);
 use utils;
 use Utils::Logging qw(export_healthcheck_basic);
+use Utils::Architectures;
 use x11utils 'ensure_unlocked_desktop';
 
 # A More complex screen for root auth
@@ -141,8 +142,10 @@ sub select_software {
 
 sub run {
     my ($self) = @_;
-    assert_screen('agama-inst-welcome-product-list');
-    select_product();
+    if (!is_ppc64le && !is_s390x) {
+        assert_screen('agama-inst-welcome-product-list');
+        select_product();
+    }
 
     # can take few minutes to get here
     assert_screen('agama-overview-screen');
