@@ -122,6 +122,11 @@ wait_serial(get_login_message(), 300);
 
 sub get_login_message {
     my $arch = get_required_var("ARCH");
+
+    # this is only a temporary measure for BCI s390x tests that run on slem 6.0 and 6.1
+    if (is_s390x && get_var('BCI_TESTS', '') && get_var('HOST_VERSION', '') =~ /slem/i) {
+        return qr/Welcome to SUSE Linux Micro 6.[01].*\(s390x\)/;
+    }
     return is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
       : is_sle_micro() ? qr/Welcome to SUSE Linux.* Micro .*\($arch\)/
       : is_leap() ? qr/Welcome to openSUSE Leap.*/
