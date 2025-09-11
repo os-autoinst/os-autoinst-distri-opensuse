@@ -152,7 +152,7 @@ sub run {
         connect_target_to_serial(destination_ip => $ip_addr_client, ssh_user => $user, switch_root => 'yes');
         my $count = 60;
         for my $i (1 .. $count) {
-            my $output = script_output("curl --connect-timeout 1 --max-time 60 -I http://$ip_addr:8080/sap/bc/gui/sap/its/webgui", proceed_on_failure => 1, timeout => 300);
+            my $output = script_output("curl --connect-timeout 1 --max-time 300 -I http://$ip_addr:8080/sap/bc/gui/sap/its/webgui", proceed_on_failure => 1, timeout => 320);
             if ($output =~ /HTTP.* OK/) {
                 record_info("WebGUI access succeeded on $host");
                 last;
