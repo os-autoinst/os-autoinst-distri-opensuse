@@ -542,10 +542,21 @@ sub qesap_execute {
     qesap_terraform_conditional_retry(
         error_list => ['Fatal:'],
         logname => 'somefile.txt'
-        [, verbose => 1, cmd_options => '--parallel 3', timeout => 1200, retries => 5, destroy => 1] );
+        [, verbose => 1, cmd_options => '--parallel 3', timeout => 1200, retries => 5, destroy => 1, delay_sec => 6, random_factor => 0.3] );
 
-    Execute 'qesap.py ... terraform' and eventually retry for some specific errors.
-    Test returns execution result in same format of qesap_execute.
+    Executes 'qesap.py ... terraform' and provides a robust retry mechanism for transient
+    cloud provider errors. The primary motivation is to avoid a slow and brittle
+    destroy-and-recreate cycle for sporadic issues, such as an Azure API timeout like
+    "InternalExecutionError: An internal execution error occurred. Please retry later.".
+
+    Upon detecting a recoverable error from the `error_list`, the function waits for a
+    randomized backoff period and then re-executes the 'terraform plan' and 'apply'
+    commands. This approach works because the 'plan' command implicitly refreshes the
+    state from the cloud, detecting any drift or partially completed operations. This
+    allows Terraform to intelligently correct the state on the next apply, rather than
+    starting from scratch.
+
+    The function returns its execution result in the same format as `qesap_execute`.
 
 =over
 
