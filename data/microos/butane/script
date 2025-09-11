@@ -102,6 +102,7 @@ else
 fi
 
 sed -i "s,${luks_keyfile},/.virtual-root.key,g" /etc/crypttab
+sed -i "s,${luks_keyfile},/.virtual-root.key,g" /etc/dracut.conf.d/99-luks-boot.conf
 cryptsetup --key-file "${oldpass}" luksChangeKey --pbkdf pbkdf2 "${luks_dev}" "${newpass}"
 cryptsetup reencrypt --key-file "${newpass}" "${luks_dev}"
 fdectl --passfile "${newpass}" regenerate-key
