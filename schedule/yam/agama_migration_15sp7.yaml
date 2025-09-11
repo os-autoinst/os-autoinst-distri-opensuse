@@ -14,7 +14,6 @@ schedule:
   - yam/migration/migration_unattended
   - installation/grub_test
   - installation/first_boot
-  - console/zypper_lr
   - yam/validate/validate_migration_logs
   - yam/validate/validate_product
   - console/validate_repos
