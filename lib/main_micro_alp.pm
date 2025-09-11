@@ -44,7 +44,7 @@ sub load_config_tests {
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
     loadtest 'console/suseconnect_scc' if (get_var('SCC_REGISTER') && !is_dvd);
     loadtest 'transactional/install_updates' if (is_sle_micro && is_released);
-    loadtest 'transactional/install_k3s' if (get_var('CONTAINER_UPDATE_HOST') && is_sle_micro('6.0+') && (is_x86_64 || is_aarch64));
+    loadtest 'containers/k3s_helm_install' if (get_var('CONTAINER_UPDATE_HOST') && is_sle_micro('6.0+') && (is_x86_64 || is_aarch64));
     loadtest 'containers/bci_prepare' if (get_var('CONTAINER_UPDATE_HOST') && get_var('BCI_PREPARE'));
 }
 
