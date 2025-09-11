@@ -184,7 +184,7 @@
 
 <pre><code>destroy_orphaned_peerings();</code></pre>
 
-<p>Searches for network peerings in <b>Disconnected</b> state. Destroys a peering if its resource group does not exist anymore. Returns <b>ARRAYREF</b> with all peerings deleted.</p>
+<p>Searches for network peerings in <b>Disconnected</b> state. Destroys a peering if its resource group does not exist anymore. Returns the result of deleting: 0 succeeded, 1 failed.</p>
 
 <h2 id="no_cleanup_tag">no_cleanup_tag</h2>
 
