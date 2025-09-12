@@ -119,6 +119,9 @@ sub run {
     test_zypper_on_container($podman, $image);
     verify_userid_on_container($image, $subuid_start);
     $podman->cleanup_system_host();
+
+    # Like above, but the other way around: Delete the files left by the regular user.
+    assert_script_run 'rm -rf /tmp/script*';
 }
 
 sub get_user_subuid {

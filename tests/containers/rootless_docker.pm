@@ -63,6 +63,9 @@ sub run {
     test_container_image(image => $image, runtime => $docker);
     build_and_run_image(base => $image, runtime => $docker);
     test_zypper_on_container($docker, $image);
+
+    # Like above, but the other way around: Delete the files left by the regular user.
+    assert_script_run 'rm -rf /tmp/script*';
 }
 
 sub get_user_subuid {
