@@ -39,6 +39,10 @@ AddDevice=/dev/ttyS0
 
 Exec=sleep infinity
 
+[Service]
+# Slow systems need more than the default 1min 30s
+TimeoutStartSec=5min
+
 [Quadlet]
 # avoid infinite waiting for network by podman-user-wait-network-online.service
 # https://github.com/systemd/systemd/issues/28762
