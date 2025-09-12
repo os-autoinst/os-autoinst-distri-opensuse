@@ -1,5 +1,14 @@
 ---
-os_release_name: SLES
+os_release:
+  NAME: "SLES"
+  PRETTY_NAME: "SUSE Linux Enterprise Server %VERSION%"
+  VARIANT: "Enterprise Server"
+  VARIANT_ID: "server"
+  VERSION_ID: "%VERSION%"
+  ID: "sles"
+  ID_LIKE: "suse opensuse"
+  CPE_NAME: "cpe:/o:suse:sles:16:%VERSION%"
+  SUSE_SUPPORT_PRODUCT: "SUSE Linux Enterprise Server"
 repos:
   - name: SLE-Product-HA-%VERSION%
     alias: SUSE_Linux_Enterprise_High_Availability_Extension_%VERSION%_%ARCH%:SLE-Product-HA-%VERSION%
