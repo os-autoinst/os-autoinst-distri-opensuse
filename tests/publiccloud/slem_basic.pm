@@ -19,14 +19,15 @@ use List::Util 'sum';
 
 sub check_avc {
     my ($self) = @_;
+    my $ssh_opts = "-t -o ControlPath=none";
 
     my $instance = $self->{my_instance};
     # Read the Access Vector Cache to check for SELinux denials
-    my $avc = $instance->ssh_script_output(cmd => 'sudo ausearch -ts boot -m avc --format raw', proceed_on_failure => 1, ssh_opts => '-t -o ControlPath=none');
+    my $avc = $instance->ssh_script_output(cmd => 'sudo ausearch -ts boot -m avc --format raw', proceed_on_failure => 1, ssh_opts => $ssh_opts);
     record_info("AVC at boot", $avc);
 
     ## Gain better formatted logs and upload them for further investigation
-    $instance->ssh_script_run(cmd => 'sudo ausearch -ts boot -m avc > ausearch.txt', ssh_opts => '-t -o ControlPath=none'); # ausearch fails if there are no matches
+    $instance->ssh_script_run(cmd => 'sudo ausearch -ts boot -m avc > ausearch.txt', ssh_opts => $ssh_opts);    # ausearch fails if there are no matches
     assert_script_run("scp " . $instance->username() . "@" . $instance->public_ip . ":ausearch.txt ausearch.txt");
     upload_logs("ausearch.txt");
 
@@ -39,12 +40,48 @@ sub check_avc {
     }
 }
 
+sub check_selinux_enforced {
+    # Check SELinux-enforced VMs on publiccloud
+    my ($self) = @_;
+    my $log_avc = "selinux_avc_audit.txt";
+    my $ssh_opts = "-t -o ControlPath=none";
+
+    my $instance = $self->{my_instance};
+    my $out;
+
+    $out = $instance->ssh_script_output("cat /sys/kernel/security/lsm", ssh_opts => $ssh_opts);
+    die("unexpected SELinux status in kernel security lsm: $out") unless (grep(/^selinux$/, split(/,/, $out)));
+    record_info("SELinux status", $out);
+
+    $out = $instance->ssh_script_output("sestatus", ssh_opts => $ssh_opts);
+    die("Unexpected SELinux status: $out") unless (grep(/Current mode:\s+enforcing/, split(/\n+/, $out)));
+    record_info("SELinux status", $out);
+
+    # Check audit status:
+    $instance->ssh_assert_script_run("sudo systemctl is-active auditd", ssh_opts => $ssh_opts);
+    $instance->ssh_assert_script_run("sudo [ -s /var/log/audit/audit.log ]", ssh_opts => $ssh_opts);
+    $instance->ssh_assert_script_run("sudo which ausearch", ssh_opts => $ssh_opts);
+
+    # get audit log:
+    $out = $instance->ssh_script_output("sudo ausearch -m avc,user_avc,selinux_err,user_selinux_err -ts boot -r",
+        timeout => 300, proceed_on_failure => 1, ssh_opts => $ssh_opts);
+    record_info("ausearch AVC", $out);
+
+    # check audit alerts
+    if (grep(/denied|deny|error|fail/i, split(/\n+/, $out))) {
+        script_run("echo \"$out\" > $log_avc");
+        upload_logs($log_avc, failok => 1);
+        die("SELinux alerts in audit.log, see $log_avc");
+    }
+}
+
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal();
 
     my $instance = $self->{my_instance} = $args->{my_instance};
 
+    $self->check_selinux_enforced() if (is_sle_micro('5.4+'));
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
     $self->check_avc() unless (is_sle_micro('=5.1'));
 
