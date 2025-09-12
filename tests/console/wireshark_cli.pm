@@ -37,6 +37,7 @@ sub run {
     assert_script_run("kill \$(cat $pid_file)");
     assert_script_run("wait \$(cat $pid_file)");
     record_info('Captured packets', script_output("tshark -r $cap_file"));
+    zypper_call('rm -u wireshark');
 }
 
 sub post_fail_hook {
