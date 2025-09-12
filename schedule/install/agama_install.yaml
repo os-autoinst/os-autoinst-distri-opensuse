@@ -1,12 +1,19 @@
 name:           leap16_agama_install
 description:    >
     This is prepare install opensuse-16.0 agama installer
+conditional_schedule:
+  opensuse_welcome:
+    ARCH:
+      x86_64:
+        - installation/opensuse_welcome
+      aarch64:
+        - installation/opensuse_welcome
 schedule:
   - installation/bootloader_start
   - installation/agama
   - installation/agama_reboot
   - installation/grub_test
   - installation/first_boot
-  - installation/opensuse_welcome
+  - '{{opensuse_welcome}}'
   - console/system_prepare
   - shutdown/shutdown
