@@ -1,0 +1,22 @@
+---
+name: agama_migration_sles_sap_15sp7
+description: >
+  Migration from SLES for SAP 15SP7.
+schedule:
+  - yam/migration/setup_upgrade_env
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - sles4sap/patterns
+  - sles4sap/netweaver_install
+  - sles4sap/netweaver_test_instance
+  - yam/migration/restore_upgrade_env
+  - yam/migration/migration_unattended
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_product
+  - console/validate_repos

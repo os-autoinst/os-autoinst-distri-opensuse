@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader t="map">
+    <global>
+      <timeout t="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <general t="map">
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <partitioning t="list">
+    <drive t="map">
+      <partitions t="list">
+        <partition t="map">
+          <create t="boolean">true</create>
+          <create_subvolumes t="boolean">true</create_subvolumes>
+          <filesystem t="symbol">btrfs</filesystem>
+          <lv_name>root</lv_name>
+          <mount>/</mount>
+          <mountby t="symbol">device</mountby>
+        </partition>
+        <partition t="map">
+          <create t="boolean">true</create>
+          <filesystem t="symbol">swap</filesystem>
+          <lv_name>swap</lv_name>
+          <mount>swap</mount>
+          <mountby t="symbol">device</mountby>
+        </partition>
+      </partitions>
+    </drive>
+  </partitioning>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>xrdp</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software t="map">
+    <packages t="list">
+      <package>xrdp</package>
+      <package>sap-installation-wizard</package>
+      <package>lvm2</package>
+    </packages>
+    <patterns t="list">
+      <pattern>32bit</pattern>
+      <pattern>apparmor</pattern>
+      <pattern>apparmor-32bit</pattern>
+      <pattern>base</pattern>
+      <pattern>base-32bit</pattern>
+      <pattern>basesystem</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>enhanced_base-32bit</pattern>
+      <pattern>fonts</pattern>
+      <pattern>gnome_basic</pattern>
+      <pattern>gnome_basis</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>minimal_base-32bit</pattern>
+      <pattern>sap_server</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11-32bit</pattern>
+      <pattern>x11_enhanced</pattern>
+      <pattern>x11_enhanced-32bit</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+      <pattern>yast2_desktop</pattern>
+      <pattern>yast2_server</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES_SAP</product>
+    </products>
+  </software>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-systems-management</name>
+	<version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-python3</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-sap-applications</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-ha</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <install_updates t="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE_SLES4SAP}}</reg_code>
+  </suse_register>
+  <users t="list">
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <user_password>$6$gha9jiYOHjtF7dRK$IsTmdy1B9wMM3zWWlJIXx82AsLd/gw3N0gLOi06h8q1l/h.uuT7bo56jD1PJ73VLyP4RuVj2f9uQexQRc0R.k1</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <report>
+    <errors>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </errors>
+    <messages>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+      </messages>
+    <warnings>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </yesno_messages>
+  </report>
+</profile>

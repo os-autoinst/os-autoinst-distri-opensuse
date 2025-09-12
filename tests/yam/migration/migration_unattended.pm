@@ -28,9 +28,9 @@ sub run {
     # install the migration image and active it
     zypper_call("--gpg-auto-import-keys -n in suse-migration-sle16-activation");
 
-    power_action('reboot', keepconsole => 1, first_reboot => 1);
+    power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
 
-    assert_screen([qw(grub-menu-migration migration-running)]);
+    assert_screen([qw(grub-menu-migration migration-running)], 150);
     assert_screen('grub2', 400);
 }
 
