@@ -17,10 +17,12 @@ use Kselftests::parser;
 use LTP::WhiteList;
 use version_utils qw(is_sle);
 use base 'opensusebasetest';
+use File::Basename 'basename';
 
 our @EXPORT = qw(
   install_from_git
   install_from_repo
+  post_process_single
   post_process
   validate_kconfig
 );
@@ -53,31 +55,129 @@ sub install_from_repo
     zypper_call("install -y kselftests kernel-devel");
 }
 
-sub post_process {
-    my ($collection, @tests) = @_;
+sub get_sanitized_test_name {
+    my $test = shift;
+    my $test_name = $test =~ s/^\w+://r;    # Remove the collection from it, sub . with _
+    my $sanitized_test_name = $test_name =~ s/\.|-/_/gr;    # Dots and hyphens should be underscore for better handling in Perl and YAML files
+    return ($test_name, $sanitized_test_name);
+}
 
-    my $ret = 0;
-
+sub get_whitelist {
     my $default_whitelist_file = 'https://raw.githubusercontent.com/openSUSE/kernel-qe/refs/heads/main/kselftests_known_issues.yaml';
     if (is_sle) {
         $default_whitelist_file = 'https://qam.suse.de/known_issues/kselftests.yaml';
     }
     my $whitelist_file = get_var('KSELFTEST_KNOWN_ISSUES', $default_whitelist_file);
     my $whitelist = LTP::WhiteList->new($whitelist_file);
+    return $whitelist;
+}
+
+=head2 post_process_single
+
+ post_process_single(logfile => $logfile, collection => $collection, test => @test);
+
+Post process a single generic selftest output file that can be written from any runner
+into a single valid KTAP output for openQA with the known issues correctly tagged.
+
+C<logfile> path to the file from the runner
+C<collection> the selftest collection to parse (e.g. `bpf`, `livepatch`, `cgroup`, etc)
+C<test> the subtest name to parse
+C<test_index> the current index of the test
+
+Returns the KTAP output, the number of soft and hardfails
+
+=cut
+
+sub post_process_single {
+    my %args = @_;
+    $args{logfile} //= 'summary.tap';
+    $args{test_index} //= 1;
     my $env = {
         product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
         arch => get_var('ARCH', ''),
     };
+    my $whitelist = get_whitelist();
+
+    # Avoid timeouts if the log is too big by reading it locally
+    my @log;
+    upload_asset($args{logfile});
+    open(my $logfile, '<', "assets_private/" . basename($args{logfile})) or die("Can't open $args{logfile}");
+    while (my $ln = <$logfile>) {
+        push(@log, $ln);
+    }
+    close($logfile);
+
+    my ($test_name, $sanitized_test_name) = get_sanitized_test_name($args{test});
+    my $parser = Kselftests::parser::factory($args{collection}, $sanitized_test_name);
+
+    my @ktap = @{$args{output} //= ["TAP version 13", "1..1", "# selftests: $args{collection}: $sanitized_test_name"]};
+    my $hardfails = 0;
+    my $softfails = 0;
+    for my $test_ln (@log) {
+        $test_ln = $parser->parse_line($test_ln);
+        if (!$test_ln) {
+            next;
+        }
+        if ($test_ln =~ /^# not ok (\d+) (\S+)/) {
+            my $subtest_idx = $1;
+            my $subtest_name = $2;
+            my $wl_entry = $whitelist->find_whitelist_entry($env, $args{collection}, $subtest_name);
+            if (defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
+                $test_ln = "# ok $subtest_idx $subtest_name # SKIP";
+            } elsif (defined($wl_entry)) {
+                record_info("Known Issue", "$args{test}:$subtest_name marked as softfail");
+                $test_ln = "# ok $subtest_idx $subtest_name # TODO Known Issue";
+                $softfails++;
+            } else {
+                $hardfails++;
+            }
+        }
+        push(@ktap, $test_ln);
+    }
+
+    if ($softfails > 0 && $hardfails == 0) {
+        record_info("Known Issue", "All failed subtests in $args{test} are known issues; propagating TODO directive to the top-level");
+        push(@ktap, "ok $args{test_index} selftests: $args{collection}: $sanitized_test_name # TODO Known Issue");
+    }
+
+    upload_logs("$args{logfile}", log_name => "$sanitized_test_name.tap.txt");
+    return (\@ktap, $softfails, $hardfails);
+}
+
+=head2 post_process
+
+ post_process(logfile => $logfile, collection => $collection, tests => @tests);
+
+Post process all the Kselftests output into a single valid KTAP output file
+for openQA with the known issues correctly tagged.
+
+C<logfile> path to the summary ktap file from `run_kselftest.sh`
+C<collection> the selftest collection to parse (e.g. `bpf`, `livepatch`, `cgroup`, etc)
+C<tests> array of the individual subtests to parse
+
+Returns the KTAP output, the number of soft and hard fails
+
+=cut
+
+sub post_process {
+    my %args = @_;
+    $args{logfile} //= 'summary.tap';
+    my $env = {
+        product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
+        arch => get_var('ARCH', ''),
+    };
+    my $whitelist = get_whitelist();
 
     my @full_ktap;
-    my @summary = split(/\n/, script_output("cat summary.tap"));
+    my @summary = split(/\n/, script_output("cat $args{logfile}"));
     my $summary_ln_idx = 0;
     my $test_index = 0;
+    my $softfails = 0;
+    my $hardfails = 0;
 
-    for my $test (@tests) {
+    for my $test (@{$args{tests}}) {
         $test_index++;
-        my $test_name = $test =~ s/^\w+://r;    # Remove the $collection from it, sub . with _
-        my $sanitized_test_name = $test_name =~ s/\.|-/_/gr;    # Dots and hyphens should be underscore for better handling in Perl and YAML files
+        my ($test_name, $sanitized_test_name) = get_sanitized_test_name($test);
 
         # Check test result in the summary
         my $summary_ln;
@@ -86,13 +186,15 @@ sub post_process {
             $summary_ln_idx++;
             if ($summary_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/) {
                 my $test_failed = $summary_ln =~ /^not ok/ ? 1 : 0;
-                my $wl_entry = $whitelist->find_whitelist_entry($env, $collection, $sanitized_test_name);
+                my $wl_entry = $whitelist->find_whitelist_entry($env, $args{collection}, $sanitized_test_name);
                 if (defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
-                    $summary_ln = "ok $test_index selftests: $collection: $test_name # SKIP";
+                    $summary_ln = "ok $test_index selftests: $args{collection}: $test_name # SKIP";
                 } elsif (defined($wl_entry)) {
-                    $ret = 1;
                     record_info("Known Issue", "$test marked as softfail");
-                    $summary_ln = "ok $test_index selftests: $collection: $test_name # TODO Known Issue";
+                    $summary_ln = "ok $test_index selftests: $args{collection}: $test_name # TODO Known Issue";
+                    $softfails++;
+                } else {
+                    $hardfails++;
                 }
                 # Break and keep the index so that we only read each line in the summary once
                 last;
@@ -103,48 +205,21 @@ sub post_process {
         }
 
         # Check each subtest result in the individual test log
-        my @log = split(/\n/, script_output("cat /tmp/$test_name"));    # When using `--per-test-log`, that's where they are found
-        my $parser = Kselftests::parser::factory($collection, $sanitized_test_name);
-        my $hardfails = 0;
-        my $softfails = 0;
-        for my $test_ln (@log) {
-            $test_ln = $parser->parse_line($test_ln);
-            if (!$test_ln) {
-                next;
-            }
-            if ($test_ln =~ /^# not ok (\d+) (\S+)/) {
-                my $subtest_idx = $1;
-                my $subtest_name = $2;
-                my $wl_entry = $whitelist->find_whitelist_entry($env, $collection, $subtest_name);
-                if (defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
-                    $test_ln = "# ok $subtest_idx $subtest_name # SKIP";
-                } elsif (defined($wl_entry)) {
-                    $ret = 1;
-                    record_info("Known Issue", "$test:$subtest_name marked as softfail");
-                    $test_ln = "# ok $subtest_idx $subtest_name # TODO Known Issue";
-                    $softfails++;
-                } else {
-                    $hardfails++;
-                }
-            }
-            push(@full_ktap, $test_ln);
-        }
-
-        if ($softfails > 0 && $hardfails == 0) {
-            record_info("Known Issue", "All failed subtests in $test are known issues; propagating TODO directive to the top-level");
-            $summary_ln = "ok $test_index selftests: $collection: $test_name # TODO Known Issue";
-        }
-
+        my ($ktap, $s, $h) = post_process_single(
+            logfile => "/tmp/$test_name",
+            collection => $args{collection},
+            test => $test,
+            test_index => $test_index,
+        );
+        push(@full_ktap, @{$ktap});
+        $softfails += $s;
+        $hardfails += $h;
+        next unless $s == 0;
         push(@full_ktap, $summary_ln);
-        upload_logs("/tmp/$test_name", log_name => "$test_name.tap.txt");
     }
 
-    upload_logs("summary.tap", log_name => "summary.tap.txt");
-
-    script_output("cat <<'EOF' > kselftest.tap.txt\n" . join("\n", @full_ktap) . "\nEOF");
-    parse_extra_log(KTAP => 'kselftest.tap.txt');    # Append .txt so that it can be easily previewed within openQA
-
-    return $ret;
+    upload_logs($args{logfile}, log_name => "$args{logfile}.txt");    # Append .txt so that it can be easily previewed within openQA
+    return (\@full_ktap, $softfails, $hardfails);
 }
 
 sub validate_kconfig
