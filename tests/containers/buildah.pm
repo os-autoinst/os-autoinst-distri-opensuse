@@ -40,7 +40,7 @@ sub run_tests {
     if ($runtime eq 'podman') {
         record_info('Test', "Install arbitrary package in the container");
         assert_script_run("buildah run $container -- zypper in -y perl", timeout => 600);
-        assert_script_run(qq{buildah run $container -- perl -e 'print("Hello World\n");'});
+        assert_script_run(qq{buildah run $container -- perl -e 'print("Hello World\\n");'});
     }
 
     record_info('Test', "Add environment variable to the container");
