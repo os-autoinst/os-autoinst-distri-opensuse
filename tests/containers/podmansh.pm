@@ -136,7 +136,8 @@ sub prepare_user_account {
     # create user container
     my $quadlet = '/usr/libexec/podman/quadlet';
     assert_script_run("mkdir -p $systemd_user_path");
-    assert_script_run(qq(printf "$quadlet_container" >"$systemd_user_path/$unit_name"));
+    my $escaped_quadlet_container = $quadlet_container =~ s/\n/\\n/gr;
+    assert_script_run(qq(printf "$escaped_quadlet_container" >"$systemd_user_path/$unit_name"));
     record_info('Unit', script_output("sudo -su $username $quadlet -user -v -dryrun"));
 
     # change the default user shell to /usr/bin/podmansh
