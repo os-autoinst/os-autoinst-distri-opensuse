@@ -111,7 +111,16 @@ sub helm_install_chart {
     my ($set_options, $helm_options) = helm_configure_values($values, split_image_registry => $args{split_image_registry});
 
     # Install the helm chart
-    script_retry("helm pull $helm_chart", timeout => 300, retry => 6, delay => 60) if ($helm_chart =~ m!^oci://!);
+    if ($helm_chart =~ m!^oci://!) {
+        my $helm_chart_download_folder = "/tmp/helmchart_download";
+        assert_script_run("mkdir -p $helm_chart_download_folder");
+        assert_script_run("cd $helm_chart_download_folder");
+        script_retry("helm pull $helm_chart", timeout => 300, retry => 6, delay => 60);
+        my $tgz_file = script_output(qq{find $helm_chart_download_folder -maxdepth 1 -type f -name "*.tgz"});
+        upload_logs("$tgz_file");
+        assert_script_run("cd ~");
+        assert_script_run("rm -rf $helm_chart_download_folder");
+    }
     assert_script_run("helm install $set_options $release_name $helm_chart $helm_options", timeout => 300);
     script_run("helm list");
 }
