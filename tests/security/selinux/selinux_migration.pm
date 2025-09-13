@@ -1,0 +1,171 @@
+use base 'selinuxtest';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use utils;
+use power_action_utils 'power_action';
+use version_utils qw(is_sle is_leap is_tumbleweed is_sle_micro has_selinux);
+use transactional qw(process_reboot trup_call);
+use Utils::Architectures;
+
+sub run {
+    select_serial_terminal;
+    
+    initial_state();
+    
+    my $rollback_number = create_snapshot();
+
+    update_selinux_policy();
+
+    check_paths();
+
+    check_after_update();
+
+    rollback_and_verify_state($rollback_number);
+    
+    cleanup_test_artifacts();
+}
+
+# set up the initial test environment with packages, users, and custom policies
+sub initial_state {
+    record_info('Verifying SELinux status and installing packages.');
+    assert_script_run('sestatus | grep "SELinux status:" | awk "{print $3}" | grep -q "enabled"');
+    assert_script_run('sestatus | grep "SELinux root directory:" | awk "{print $4}" | grep -q "/etc/selinux"');
+
+    # install selinux packages
+    zypper_call('install selinux-policy-targeted selinux-policy-targeted-gaming policycoreutils policycoreutils-python-utils setools-console');
+    
+    assert_script_run('rpm -qvl selinux-policy-targeted > rpm_qvl_before_targeted.txt');
+    assert_script_run('rpm -qvl selinux-policy-targeted-gaming > rpm_qvl_before_gaming.txt');
+    record_info('Creating test user and custom policy.');
+    assert_script_run('useradd testselinux');
+    assert_script_run('echo testselinux:testpasswd | chpasswd');
+    assert_script_run('semanage login -a -s staff_u testselinux');
+    create_custom_module('mycustom', 'httpd_t', 'tcp_socket name_connect', 'allow httpd_t self:tcp_socket name_connect;');
+    enable_boolean('httpd_can_network_connect_db');
+    capture_current_state();
+}
+
+# create a new SELinux module from a template
+sub create_custom_module {
+    my ($name, $type, $class_perm, $policy_rule) = @_;
+    record_info("Creating and installing custom module: $name");
+    
+    my $te_content = "module $name 1.0;\n\nrequire {\n    type $type;\n    class $class_perm;\n};\n\n$policy_rule";
+    
+    assert_script_run("echo '$te_content' > ${name}.te");
+    assert_script_run("checkmodule -M -m -o ${name}.mod ${name}.te");
+    assert_script_run("semodule_package -o ${name}.pp -m ${name}.mod");
+    assert_script_run("semodule -i ${name}.pp");
+    assert_script_run("semodule -l | grep -q '$name'");
+}
+
+# enable a specific SELinux boolean
+sub enable_boolean {
+    my ($boolean_name) = @_;
+    record_info("Enabling boolean: $boolean_name");
+    assert_script_run("setsebool -P $boolean_name on");
+    assert_script_run("getsebool $boolean_name | grep -q 'on'");
+}
+
+# save the current system state for later verification
+sub capture_current_state {
+    record_info('Capturing system state before update.');
+    script_run('semodule -l > semodule_list_before.txt');
+    script_run('semanage boolean -l > semanage_booleans_before.txt');
+    script_run('semanage login -l > semanage_login_before.txt');
+    script_run('semanage port -l > semanage_ports_before.txt');
+    script_run('semanage fcontext -l > semanage_fcontexts_before.txt');
+}
+
+# create a snapper snapshot
+sub create_snapshot {
+    record_info('Creating snapper snapshot for rollback.');
+    my $rollback_number = script_output('snapper create -d "Before SELinux update" -p');
+    script_output('snapper list');
+    return $rollback_number;
+}
+
+# SELinux policy package update
+sub update_selinux_policy {
+    #TODO test repo
+    zypper_call('ar https://download.opensuse.org/repositories/home:/djz88:/branches:/security:/SELinux/openSUSE_Factory/ selinux-miration');
+    record_info('Updating SELinux policy package.');
+    zypper_call("--gpg-auto-import-keys ref");
+    zypper_call('up --force-resolution  --allow-vendor-change selinux-policy selinux-policy-targeted selinux-policy-targeted-gaming libsemanage-conf libsemanage2 policycoreutils policycoreutils-python-utils setools-console');
+    zypper_call('info selinux-policy selinux-policy-targeted selinux-policy-targeted-gaming libsemanage-conf libsemanage2 policycoreutils policycoreutils-python-utils setools-console');
+    # Verify libsemanage-config store-root path
+    #assert_script_run('grep -qx "store-root=/etc/selinux" /etc/selinux/semanage.conf');
+    record_info('Adding a second custom module after update.');
+    create_custom_module('mycustom2', 'sshd_t', 'process setrlimit', 'allow sshd_t self:process setrlimit;');
+}
+
+# check the system state after the update
+sub check_after_update {
+    record_info('Verifying system state after update.');
+    script_run('rpm -qvl selinux-policy-targeted > rpm_qvl_after_targeted.txt');
+    script_run('rpm -qvl selinux-policy-targeted-gaming > rpm_qvl_after_gaming.txt');
+
+    script_run('diff -q rpm_qvl_before_targeted.txt rpm_qvl_after_targeted.txt');
+    script_run('diff -q rpm_qvl_before_gaming.txt rpm_qvl_after_gaming.txt');
+    script_run('diff -q semodule_list_before.txt <(semodule -l)');
+    script_run('diff -q semanage_booleans_before.txt <(semanage boolean -l)');
+    script_run('diff -q semanage_login_before.txt <(semanage login -l)');
+    
+    assert_script_run('semodule -l | grep -q "mycustom"');
+    assert_script_run('semodule -l | grep -q "mycustom2"');
+}
+
+# roll back the system to the pre-update state and verify
+sub rollback_and_verify_state {
+    my ($rollback_number) = @_;
+    record_info("Rolling back to snapshot $rollback_number.");
+    assert_script_run("snapper rollback $rollback_number");
+    
+    record_info('Verifying system state after rollback.');
+    script_run('rpm -q selinux-policy-targeted policycoreutils');
+    script_run('semodule -l | grep -q "mycustom"');
+    script_run('semodule -l | grep -v "mycustom2"');
+    script_run('semanage boolean -l | grep -q "httpd_can_network_connect_db.* on"');
+    script_run('semanage login -l | grep -q "testselinux.*staff_u"');
+}
+
+# test selinux-policy-targeted-gaming boolean
+sub check_gaming_boolean {
+   record_info('Verify gaming boolean is set');
+   zypper_call('in selinux-policy-targeted-gaming');
+   script_run('getsebool -a | grep selinuxuser_execstack');
+   script_run('getsebool -a | grep selinuxuser_execmod');
+
+}
+
+# no packages install in  /var/lib/selinux
+sub check_paths {
+    my @packages= qw(selinux-policy selinux-policy-targeted selinux-policy-targeted-gaming libsemanage-conf libsemanage2 policycoreutils policycoreutils-python-utils setools-console);
+    foreach my $package (@packages) {
+      if (script_run("rpm -qvl $package | grep -q '/var/lib/selinux'")) {
+          script_output('echo "[FAIL] package contains /var/lib/selinux paths"');
+         #exit 1;
+      }
+      else {
+         script_run('echo "[PASS] no /var/lib/selinux paths found"');
+     }
+
+ }
+}
+
+
+# clean up all temporary files, users, and policy modules.
+sub cleanup_test_artifacts {
+    record_info('Cleaning up test environment.');
+    script_run('semodule -r mycustom || true');
+    script_run('semodule -r mycustom2 || true');
+    script_run('userdel -r testselinux || true');
+    script_run('semanage login -d testselinux || true');
+    script_run('rm -f rpm_qvl_before_*.txt rpm_qvl_after_*.txt mycustom*.{te,mod,pp}');
+    script_run('rm -f semodule_list_before.txt semanage_booleans_before.txt semanage_login_before.txt');
+    script_run('rm -f semanage_ports_before.txt semanage_fcontexts_before.txt');
+    script_run('snapper list | grep "Before SELinux update" | awk "{print \$1}" | xargs -r snapper delete');
+}
+
+1;
+
