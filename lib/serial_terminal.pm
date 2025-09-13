@@ -127,7 +127,9 @@ sub get_login_message {
     if (is_s390x && get_var('BCI_TESTS', '') && get_var('HOST_VERSION', '') =~ /slem/i) {
         return qr/Welcome to SUSE Linux Micro 6.[01].*\(s390x\)/;
     }
-    return is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
+    my $agama_opts = get_var('AGAMA_PROFILE_OPTIONS', '');
+    return is_sle() && $agama_opts =~ /software_only_required/ ? qr/\blogin:/
+      : is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
       : is_sle_micro() ? qr/Welcome to SUSE Linux.* Micro .*\($arch\)/
       : is_leap() ? qr/Welcome to openSUSE Leap.*/
       : qr/Welcome to openSUSE Tumbleweed 20.*/;
