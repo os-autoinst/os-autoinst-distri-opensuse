@@ -1000,7 +1000,7 @@ elsif (get_var('LIBSOLV_INSTALLCHECK')) {
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     load_extra_tests();
-    loadtest "console/coredump_collect" unless (check_var('EXTRATEST', 'wicked') || get_var('PUBLIC_CLOUD') || is_jeos);
+    loadtest "console/coredump_collect" unless (get_var('EXTRATEST') =~ /wicked|himmelblau/ || get_var('PUBLIC_CLOUD') || is_jeos);
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";
