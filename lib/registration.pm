@@ -174,7 +174,7 @@ in format X-SPY into X.Y.
 
 sub scc_version {
     my $version = shift;
-    $version //= get_required_var('VERSION');
+    $version //= get_var('VERSION_TO_INSTALL', get_required_var('VERSION'));
     return $version =~ s/-SP/./gr;
 }
 

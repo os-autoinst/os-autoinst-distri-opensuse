@@ -53,7 +53,7 @@ use version_utils qw(is_opensuse is_sle is_alp is_microos get_os_release);
 use virt_utils qw(collect_host_and_guest_logs cleanup_host_and_guest_logs enable_debug_logging);
 use virt_autotest::utils qw(is_kvm_host is_xen_host check_host_health check_guest_health is_fv_guest is_pv_guest add_guest_to_hosts parse_subnet_address_ipv4 check_port_state setup_common_ssh_config is_monolithic_libvirtd restart_libvirtd check_libvirtd restart_modular_libvirt_daemons reselect_openqa_console);
 use virt_autotest::domain_management_utils qw(construct_uri create_guest remove_guest shutdown_guest show_guest check_guest_state register_guest_name manage_guest_service);
-use virt_autotest::virtual_network_utils qw(config_domain_resolver write_network_bridge_device_config write_network_bridge_device_ifcfg write_network_bridge_device_nmconnection activate_network_bridge_device config_virtual_network_device);
+use virt_autotest::virtual_network_utils qw(config_domain_resolver write_network_bridge_device_config write_network_bridge_device_ifcfg write_network_bridge_device_nmconnection activate_network_bridge_device config_virtual_network_device check_guest_network_config check_guest_network_address);
 use utils qw(zypper_call systemctl script_retry define_secret_variable);
 use virt_autotest::common;
 use mm_network;
@@ -1026,10 +1026,11 @@ sub catalogue_guest {
 =head2 maintain_guest
 
 Call manage_guest_service to manage service, target or socket unit in guest system.
-Multiple guests and corresponding ip addresses are supported as strings separated
-by space. Other arguments include _keyfile (key file for passwordless ssh connection
-), _operation (systemctl subcommand) and _unit to be manipulated. Call croak to die
-if subroutine fails and _die is set.
+Call virt_autotest::virtual_network_utils::check_guest_network_address to get guest
+ip address. Multiple guests and corresponding ip addresses are supported as strings
+separated by space. Other arguments include _keyfile (key file for passwordless ssh
+connection), _operation (systemctl subcommand) and _unit to be manipulated. Call
+croak to die if subroutine fails and _die is set.
 =cut
 
 sub maintain_guest {
@@ -1043,16 +1044,17 @@ sub maintain_guest {
     croak("Guest to wait for must be given") if (!$args{_guest});
 
     my $_ret = virt_autotest::domain_management_utils::manage_guest_service(guest => $args{_guest}, ipaddr => $_guest_matrix{$args{_guest}}{ipaddr}, keyfile => $args{_keyfile}, operation => $args{_operation}, unit => $args{_unit});
-    $self->check_guest_network_address(_guest => $args{_guest}) if ($args{_checkip} == 1 and $args{_unit} =~ /network/img);
+    virt_autotest::virtual_network_utils::check_guest_network_address(guest => $args{_guest}, matrix => \%_guest_matrix) if ($args{_checkip} == 1 and $args{_unit} =~ /network/img);
     croak("Maintaining operation failed for certain guest in $args{_guest}") if ($_ret != 0 and $args{_die} == 1);
     return $_ret;
 }
 
 =head2 wait_guest
 
-Wait for guest up and running after obtaining ip address, and calling wait_guest_ssh.
-Main arguments are guest to wait, whether check ip  address (1) or not (0) and whether
-die (1) or not (0) if any failures happen.
+Call virt_autotest::virtual_network_utils::check_guest_network_address to get guest
+ip address. Wait for guest up and running after obtaining ip address, and calling
+wait_guest_ssh. Main arguments are guest to wait, whether check ip  address (1) or
+not (0) and whether die (1) or not (0) if any failures happen.
 =cut
 
 sub wait_guest {
@@ -1068,7 +1070,7 @@ sub wait_guest {
     my $_ret = 0;
     foreach my $_guest (split(/ /, $args{_guest})) {
         my $_temp = 1;
-        $self->check_guest_network_address(_guest => $_guest) if ($args{_checkip} == 1);
+        virt_autotest::virtual_network_utils::check_guest_network_address(guest => $_guest, matrix => \%_guest_matrix) if ($args{_checkip} == 1);
         $_temp = (($_guest_matrix{$_guest}{ipaddr} eq '') ? 1 : $self->wait_guest_ssh(_guest => $_guest));
         $_ret |= $_temp;
         save_screenshot;
@@ -1113,127 +1115,6 @@ sub wait_guest_ssh {
     }
     croak("ssh connection failed for certain guest in $args{_guest}") if ($_ret != 0 and $args{_die} == 1);
     return $_ret;
-}
-
-=head2 check_guest_network_config
-
-Check and obtain guest network configuration. Guest xml config contains enough
-information about network to which guest connects on boot, for example:
-<interface type="network">
-  <mac address="00:16:3e:4f:5a:35"/>
-  <source network="vn_nat_vbrXXX"/>
-</interface>
-or
-<interface type='bridge'>
-  <mac address='52:54:00:70:9d:b2'/>
-  <source bridge='br123'/>
-  <model type='virtio'/>
-  <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
-</interface>
-Interface type, source network/bridge name and model type are those useful ones
-determine the network, they will be stored in guest_matrix{guest}{nettype}, 
-guest_matrix{guest}{netname} and guest_matrix{guest}{netmode}. In order to obtain
-netmode conveniently and consistently, netname should take the form of "vn_" +
-"nat/route/host" + "_other_strings" if virtual network to be used. Addtionally,
-guest_matrix{guest}{macaddr} is also upated by querying domiflist and ip address
-guest_matrix{guest}{ipaddr} can also be obtained from lib/virt_autotest/common.pm
-if static ip address is being used. The main arguments are guest to be checked 
-and directory in which guest xml config is stored. This subroutine also calls 
-construct_uri to determine the desired URI to be connected if the interested party 
-is not localhost. Please refer to subroutine construct_uri for the arguments related.
-=cut
-
-sub check_guest_network_config {
-    my ($self, %args) = @_;
-    $args{_guest} //= '';
-    $args{_confdir} //= '/var/lib/libvirt/images';
-    $args{_driver} //= '';
-    $args{_transport} //= 'ssh';
-    $args{_user} //= '';
-    $args{_host} //= 'localhost';
-    $args{_port} //= '';
-    $args{_path} //= 'system';
-    $args{_extra} //= '';
-    croak("Guest to be checked must be given") if (!$args{_guest});
-
-    my $_uri = "--connect=" . virt_autotest::domain_management_utils::construct_uri(driver => $args{_driver}, transport => $args{_transport}, user => $args{_user}, host => $args{_host}, port => $args{_port}, path => $args{_path}, extra => $args{_extra});
-    foreach my $_guest (split(/ /, $args{_guest})) {
-        record_info("Check $_guest network config", "Check and store $_guest network config from xml config, including ip address if static ip is assigned");
-        $_guest_matrix{$_guest}{macaddr} = script_output("virsh $_uri domiflist $_guest | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"", type_command => 1, proceed_on_failure => 1);
-        $_guest_matrix{$_guest}{nettype} = script_output("xmlstarlet sel -T -t -v \"//devices/interface/\@type\" $args{_confdir}/$_guest.xml", type_command => 1, proceed_on_failure => 1);
-        if ($_guest_matrix{$_guest}{nettype} eq 'network' or $_guest_matrix{$_guest}{nettype} eq 'bridge') {
-            $_guest_matrix{$_guest}{netname} = script_output("xmlstarlet sel -T -t -v \"//devices/interface/source/\@$_guest_matrix{$_guest}{nettype}\" $args{_confdir}/$_guest.xml", type_command => 1, proceed_on_failure => 1);
-            if ($_guest_matrix{$_guest}{nettype} eq 'network') {
-                $_guest_matrix{$_guest}{netmode} = (($_guest_matrix{$_guest}{netname} ne 'default') ? (split(/_/, $_guest_matrix{$_guest}{netname}))[1] : 'default');
-            }
-            if ($_guest_matrix{$_guest}{nettype} eq 'bridge') {
-                $_guest_matrix{$_guest}{netmode} = (($_guest_matrix{$_guest}{netname} eq 'br0') ? 'host' : 'bridge');
-            }
-        }
-        if (get_var('REGRESSION', '') =~ /xen|kvm|qemu/i and defined $virt_autotest::common::guests{$_guest}->{ip} and $virt_autotest::common::guests{$_guest}->{ip} ne '') {
-            $_guest_matrix{$_guest}{ipaddr} = $virt_autotest::common::guests{$_guest}->{ip};
-            $_guest_matrix{$_guest}{staticip} = 'yes';
-        }
-        save_screenshot;
-    }
-}
-
-=head2 check_guest_network_address
-
-Check and obtain guest ip address. If static ip address is being used, there is
-no need to check it anymore. If guest uses bridge device directly, its ip address 
-can be obtained by querying journal log or scanning subnet by using nmap (if host 
-bridge device br0 is being used directly) with mac address. If guest uses virtual 
-network created by virsh, its ip address can be obtained by querying dhcp leases 
-of the virtual network or scanning subnet by using nmap (if host bridge device is 
-being used in the virtual network directly) with mac address. The main arguments 
-is guest to be checked. This subroutine also calls construct_uri to determine the 
-desired URI to be connected if the interested party is not localhost. Please refer 
-to subroutine construct_uri for the arguments related.
-=cut
-
-sub check_guest_network_address {
-    my ($self, %args) = @_;
-    $args{_guest} //= '';
-    $args{_driver} //= '';
-    $args{_transport} //= 'ssh';
-    $args{_user} //= '';
-    $args{_host} //= 'localhost';
-    $args{_port} //= '';
-    $args{_path} //= 'system';
-    $args{_extra} //= '';
-    croak("Guest to be checked must be given") if (!$args{_guest});
-
-    my $_uri = "--connect=" . virt_autotest::domain_management_utils::construct_uri(driver => $args{_driver}, transport => $args{_transport}, user => $args{_user}, host => $args{_host}, port => $args{_port}, path => $args{_path}, extra => $args{_extra});
-    foreach my $_guest (split(/ /, $args{_guest})) {
-        record_info("Check $_guest network address", "Check and store $_guest network address assigned by dhcp service. Skip if static ip is being used.");
-        return if ($_guest_matrix{$_guest}{staticip} eq 'yes');
-        if ($_guest_matrix{$_guest}{nettype} eq 'network') {
-            if ($_guest_matrix{$_guest}{netmode} eq 'host') {
-                my $_br0_network = script_output("ip route show all | grep -v default | grep \".* br0\" | awk \'{print \$1}\'", type_command => 1, proceed_on_failure => 1);
-                script_retry("nmap -sP $_br0_network | grep -i $_guest_matrix{$_guest}{macaddr}", option => '--kill-after=1 --signal=9', timeout => 180, retry => 30, delay => 10, die => 0);
-                $_guest_matrix{$_guest}{ipaddr} = script_output("nmap -sP $_br0_network | grep -i $_guest_matrix{$_guest}{macaddr} -B2 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", type_command => 1, timeout => 180, proceed_on_failure => 1);
-            }
-            else {
-                script_retry("virsh $_uri net-dhcp-leases --network $_guest_matrix{$_guest}{netname} | grep -ioE \"$_guest_matrix{$_guest}{macaddr}.*([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", retry => 30, delay => 10, die => 0);
-                $_guest_matrix{$_guest}{ipaddr} = script_output("virsh $_uri net-dhcp-leases --network $_guest_matrix{$_guest}{netname} | grep -i $_guest_matrix{$_guest}{macaddr} | awk \'{print \$5}\'", type_command => 1, proceed_on_failure => 1);
-                $_guest_matrix{$_guest}{ipaddr} = (split(/\//, $_guest_matrix{$_guest}{ipaddr}))[0];
-                save_screenshot;
-            }
-        }
-        elsif ($_guest_matrix{$_guest}{nettype} eq 'bridge') {
-            if ($_guest_matrix{$_guest}{netname} eq 'br0') {
-                my $_br0_network = script_output("ip route show all | grep -v default | grep \".* br0\" | awk \'{print \$1}\'", type_command => 1, proceed_on_failure => 1);
-                script_retry("nmap -sP $_br0_network | grep -i $_guest_matrix{$_guest}{macaddr}", option => '--kill-after=1 --signal=9', timeout => 180, retry => 30, delay => 10, die => 0);
-                $_guest_matrix{$_guest}{ipaddr} = script_output("nmap -sP $_br0_network | grep -i $_guest_matrix{$_guest}{macaddr} -B2 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", type_command => 1, timeout => 180, proceed_on_failure => 1);
-            }
-            else {
-                script_retry("journalctl --no-pager -n 100 | grep -i \"DHCPACK.*$_guest_matrix{$_guest}{netname}.*$_guest_matrix{$_guest}{macaddr}\" | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", option => '--kill-after=1 --signal=9', retry => 30, delay => 10, die => 0);
-                $_guest_matrix{$_guest}{ipaddr} = script_output("journalctl --no-pager -n 100 | grep -i \"DHCPACK.*$_guest_matrix{$_guest}{netname}.*$_guest_matrix{$_guest}{macaddr}\" | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", type_command => 1, proceed_on_failure => 1);
-            }
-        }
-        save_screenshot;
-    }
 }
 
 =head2 create_guest_network

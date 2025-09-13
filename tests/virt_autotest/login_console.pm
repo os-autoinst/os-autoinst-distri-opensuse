@@ -15,7 +15,7 @@ use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_
 use version_utils qw(is_sle is_tumbleweed is_sle_micro is_agama);
 use utils qw(is_ipxe_boot);
 use ipmi_backend_utils;
-use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd);
+use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd double_check_xen_role check_kvm_modules);
 use IPC::Run;
 
 sub set_ssh_console_timeout_before_use {
@@ -55,47 +55,6 @@ sub config_ssh_client {
     script_run("chmod 600 $ssh_dir/id_rsa");
     script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " > $ssh_dir/id_rsa.pub");
     script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " >> $ssh_dir/authorized_keys");
-}
-
-#Just only match bootmenu-xen-kernel needle was not enough for xen host if got Xen domain0 kernel panic(bsc#1192258)
-#Need to double-check xen role after matched bootmenu-xen-kernel needle successfully
-sub double_check_xen_role {
-    record_info 'INFO', 'Double-check xen kernel';
-    if (script_run('lsmod | grep xen') == 0) {
-        diag("Boot up xen kernel successfully");
-    }
-    else {
-        record_info 'INFO', 'Check Xen hypervisor as Grub2 menuentry';
-        die 'Check Xen hypervisor as Grub2 menuentry failed' if (script_run('grub2-once --list | grep Xen') != 0);
-        save_screenshot;
-        die 'Double-check xen kernel failed';
-    }
-
-    # for modular libvirt, virtxend is expected in "loaded: active or inactive" status.
-    # virtxend.socket seems to be always in "loaded: active" status
-    unless (is_monolithic_libvirtd) {
-        die 'virtxend.socket is not running!' unless script_run("systemctl is-active virtxend.socket") eq 0;
-    }
-
-    record_info 'INFO', 'Check if start bootloader from a read-only snapshot';
-    assert_script_run('touch /root/read-only.fs && rm -rf /root/read-only.fs');
-    save_screenshot;
-}
-
-sub check_kvm_modules {
-    unless (script_run('lsmod | grep "^kvm\b"') == 0 or script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0) {
-        save_screenshot;
-        die "KVM modules are not loaded!";
-    }
-
-    # for modular libvirt, virtqemud is expected in "loaded: active or inactive" status.
-    # virtqemud.socket seems to be always in "loaded: active" status
-    unless (is_monolithic_libvirtd) {
-        unless (get_var('TEST_SUITE_NAME') =~ /kubevirt-tests/ or script_run("systemctl is-active virtqemud.socket") eq 0) {
-            die 'virtqemud.socket is not running!';
-        }
-    }
-    record_info("KVM", "kvm modules are loaded!");
 }
 
 #Explanation for parameters introduced to facilitate offline host upgrade:
