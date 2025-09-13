@@ -18,9 +18,12 @@ use power_action_utils 'power_action';
 
 sub run {
     my $self = shift;
-    $self->wait_boot;
+
+    $self->wait_boot unless (is_backend_s390x);
+
     # Use root-console for KOTD installation on svirt instead of root-sut-serial poo#54275
-    is_svirt ? select_console('root-console') : select_serial_terminal;
+    is_svirt_except_s390x ? select_console('root-console') : select_serial_terminal;
+
     # Get url of kotd/kmp repositories
     my $kotd_repo = get_required_var('KOTD_REPO');
     my $kmp_repo = get_var('KMP_REPO');
@@ -40,8 +43,14 @@ sub run {
     my $packlist = zypper_search('-sx kernel-default');
     die 'More than one kernel was installed'
       unless 1 == scalar grep { $$_{status} =~ m/^i/ } @$packlist;
+
     # Reboot system after kernel installation
     power_action('reboot');
+
+    if (is_remote_backend) {
+        record_info 'Remote', 'Reconnect mgmt console';
+        reconnect_mgmt_console();
+    }
 }
 
 sub test_flags {
