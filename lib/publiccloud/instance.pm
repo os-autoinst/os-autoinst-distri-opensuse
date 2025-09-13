@@ -919,7 +919,10 @@ sub do_systemd_analyze_time {
 
 sub upload_supportconfig_log {
     my ($self, %args) = @_;
-    $self->ssh_script_run(cmd => 'sudo supportconfig -R /var/tmp -B supportconfig -x AUDIT', timeout => 600);
+    my $start = time();
+    diag "supportconfig start " . localtime();
+    $self->ssh_script_run(cmd => 'sudo supportconfig -R /var/tmp -B supportconfig -x AUDIT', timeout => 2700);
+    diag "supportconfig end   " . localtime() . " duration: " . time() - $start;
     $self->ssh_script_run(cmd => 'sudo chmod 0644 /var/tmp/scc_supportconfig.txz');
     $self->upload_log('/var/tmp/scc_supportconfig.txz', failok => 1, timeout => 600);
 }
