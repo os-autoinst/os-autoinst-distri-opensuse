@@ -467,15 +467,14 @@ sub setup_vm_simple_dns_with_ip {
 
     my $_dns_file = '/etc/hosts';
 
-    # Workaround for directly editing file issue: resource busy
-    if (is_alp) {
-        $_dns_file = '/etc/hosts.wip';
-        assert_script_run "cp /etc/hosts $_dns_file";
-    }
-
     script_run "sed -i '/$_vm/d' $_dns_file";
     assert_script_run "echo '$_ip $_vm' >> $_dns_file";
-    assert_script_run "cp $_dns_file /etc/hosts" if (is_alp);
+    if (is_sle('>=16')) {
+        my $cmd = qq(nmcli dev show | grep DOMAIN | awk '{print \$2}' | uniq);
+        my $host_domain_name = script_output($cmd);
+        my $guest_fqdn = "$_vm.$host_domain_name";
+        assert_script_run "echo '$_ip $guest_fqdn' >> $_dns_file";
+    }
     save_screenshot;
     record_info("Simple DNS setup in /etc/hosts for $_ip $_vm is successful!", script_output("cat /etc/hosts"));
 }

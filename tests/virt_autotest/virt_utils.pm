@@ -659,8 +659,15 @@ sub cleanup_host_and_guest_logs {
     $extra_logs_to_cleanup //= '';
 
     #Clean dhcpd and named services up explicity
-    if (get_var('VIRT_AUTOTEST') and !is_alp) {
-        script_run("brctl addbr br123;brctl setfd br123 0;ip addr add 192.168.123.1/24 dev br123;ip link set br123 up");
+    if (get_var('VIRT_AUTOTEST')) {
+        my $bridge_name = "br123";
+        if (script_run("ip link show $bridge_name") == 0) {
+            if (is_sle('>=16')) {
+                script_run("nmcli connection add type bridge con-name $bridge_name ifname $bridge_name connection.autoconnect yes connection.autoconnect-slaves 1 ipv4.method manual ipv4.addresses 192.168.123.1/24 bridge.stp no bridge.forward-delay 15;nmcli connection up $bridge_name");
+            } else {
+                script_run("brctl addbr $bridge_name;brctl setfd $bridge_name 0;ip addr add 192.168.123.1/24 dev $bridge_name;ip link set $bridge_name up");
+            }
+        }
         if (!get_var('VIRT_UNIFIED_GUEST_INSTALL')) {
             my @control_operation = ('restart');
             virt_autotest::utils::manage_system_service('dhcpd', \@control_operation);
