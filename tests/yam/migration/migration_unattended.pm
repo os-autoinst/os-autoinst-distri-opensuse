@@ -12,12 +12,10 @@ use grub_utils 'grub_test';
 use migration 'disable_installation_repos';
 use power_action_utils 'power_action';
 use utils qw(zypper_call reconnect_mgmt_console upload_folders);
-use Utils::Architectures 'is_s390x';
+use Utils::Architectures qw(is_s390x is_zvm);
 use registration;
 
 sub run {
-    my $self = shift;
-
     select_console('root-console');
 
     assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
@@ -55,8 +53,21 @@ sub run {
     if (is_s390x) {
         assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         enter_cmd '/usr/sbin/run_migration';
-        reset_consoles;
-        reconnect_mgmt_console(timeout => 600);
+        if (is_zvm) {
+            my $grub_like = qr/(?:Welcome to GRUB!|Use the \^ and v keys|SLES\s*16)/i;
+            my $start_like = qr/(?:Starting dracut|Starting mount|Mounting \/sysroot|dracut pre-pivot)/i;
+
+            if (wait_serial($grub_like, 600) || wait_serial($start_like, 300)) {
+                diag "Migration started: GRUB or early dracut detected.";
+            }
+            else {
+                diag "No early markers observed; deferring full wait to reconnect_mgmt_console.";
+            }
+            return;
+        } else {
+            reset_consoles;
+            reconnect_mgmt_console(timeout => 600);
+        }
     } else {
         # disable timeout for migration grub menu
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
