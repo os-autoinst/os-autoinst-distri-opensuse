@@ -11,6 +11,7 @@ schedule:
     - console/hostname
     - console/force_scheduled_tasks
     - console/validate_repos
+    - security/secureboot/validate_keylength
     - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
