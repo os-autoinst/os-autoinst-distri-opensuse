@@ -239,8 +239,9 @@ see boot_grub_item()
 =cut
 
 sub handle_grub_zvm {
-    my ($console) = @_;
-    eval { $console->expect_3270(output_delim => 'GNU GRUB', timeout => 60); };
+    my ($console, $timeout) = @_;
+    my $timeout = get_var('VERSION_UPGRADE_FROM') ? 600 : 60;
+    eval { $console->expect_3270(output_delim => 'GNU GRUB', timeout => $timeout); };
     if ($@) {
         diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
     }
