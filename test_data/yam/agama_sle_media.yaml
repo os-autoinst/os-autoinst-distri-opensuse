@@ -15,3 +15,6 @@ repos:
     uri: dvd:/install
     enabled: 'No'
     filter: alias
+selinux:
+  status: enabled
+  mode: enforcing
