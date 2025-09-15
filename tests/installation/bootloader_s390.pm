@@ -23,47 +23,6 @@ use utils 'shorten_url';
 use version_utils qw(is_agama is_sle is_tumbleweed is_opensuse);
 use autoyast qw(parse_dud_parameter);
 
-
-# try to find the 2 longest lines that are below beyond the limit
-# collapsing the lines - we have a limit of 10 lines
-sub try_merge_lines {
-    my ($lines, $columns) = @_;
-    # the order of the parameters doesn't matter, so take the longest first
-    @$lines = sort { length($b) <=> length($a) } @$lines;
-    for my $start_index (0 .. scalar(@$lines) - 1) {
-        my $start = $lines->[$start_index];
-        for my $end_index ($start_index + 1 .. scalar(@$lines) - 1) {
-            my $end = $lines->[$end_index];
-            if (length($start) + length($end) + 1 < $columns) {    # hit!
-                my $last = pop @$lines;
-                $lines->[$start_index] .= " $end";
-                $lines->[$end_index] = $last unless ($last eq $end);
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
-sub split_lines {
-    my ($params) = @_;
-
-    # s3270 has a funny behaviour in xedit, so be careful
-    my $columns = 72;
-
-    my @lines = split(/ /, $params);
-    while (try_merge_lines(\@lines, $columns)) {
-        # just keep trying!
-    }
-
-    $params = '';
-    for my $line (@lines) {
-        $params .= "String(\"$line \")\nNewline\n";
-    }
-
-    return $params;
-}
-
 use backend::console_proxy;
 
 sub create_infofile {
@@ -132,7 +91,7 @@ sub prepare_parmfile {
         $params .= " autoyast=" . $url;
         set_var('AUTOYAST', $url);
     }
-    return split_lines($params);
+    return $params;
 }
 
 sub get_to_yast {
@@ -145,12 +104,19 @@ sub get_to_yast {
     my $dir_with_suse_ins = get_var('REPO_UPGRADE_BASE_0') ? get_required_var('REPO_UPGRADE_BASE_0') : get_required_var('REPO_0');
     my $repo_host = get_var('REPO_HOST', 'openqa.suse.de');
 
-    my $parmfile_with_Newline_s = prepare_parmfile($dir_with_suse_ins);
-    my $sequence = <<"EO_frickin_boot_parms";
-${parmfile_with_Newline_s}
-ENTER
-ENTER
-EO_frickin_boot_parms
+    my $params = prepare_parmfile($dir_with_suse_ins);
+
+    # Split the parameters into 79 character + 1 character pairs.
+    # The input mode can handle 79 characters per line, the last one
+    # is handled later.
+    my @param_pairs = unpack('(a79a1)*', $params);
+
+    my $sequence = '';
+    for (my $i = 0; $i < @param_pairs; $i += 2) {
+        my $line_start = $param_pairs[$i];
+        $sequence .= "String(\"$line_start\")\n";
+    }
+    $sequence .= "ENTER\nENTER\n";
 
     # arbitrary number of retries
     my $max_retries = 7;
@@ -183,6 +149,16 @@ EO_frickin_boot_parms
     $s3270->sequence_3270(split /\n/, $sequence);
 
     $r = $s3270->expect_3270(buffer_ready => qr/X E D I T/);
+
+    # Now input the remaining 1 character at column 80 of each line
+    # manually using clocate :80 and creplace
+    $s3270->sequence_3270("String(\"clocate :80\")", "ENTER",);
+    for (my $i = 1; $i < @param_pairs; $i += 2) {
+        my $lineno = int($i / 2) + 1;
+        my $line_end = $param_pairs[$i] // ' ';
+        next if ($line_end eq ' ' || $line_end eq '');
+        $s3270->sequence_3270("String(\"l :$lineno\")", "ENTER", "String(\"creplace $line_end\")", "ENTER",);
+    }
 
     ## Remove the "manual=1" and the empty line at the end
     ## of the parmfile.
