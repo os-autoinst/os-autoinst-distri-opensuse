@@ -24,6 +24,12 @@ sub run {
     # Debug
     $instance->ssh_script_run('systemctl --no-pager list-units');
 
+    # Check if there are any failed services
+    my $failed_services = $instance->ssh_script_output('systemctl --failed');
+    unless ($failed_services =~ /0 loaded units listed/) {
+        record_info("Failing services!", $failed_services);
+        die("There are some failed services!");
+    }
     # waagent, cloud-init, google agents not available in Micro
     unless (is_sle_micro) {
         if (is_azure) {
