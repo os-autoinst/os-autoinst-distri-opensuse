@@ -70,6 +70,7 @@ sub fully_build_ltp_from_git {
     my $start = time();
     my $ltp_build_timeout = 20 * 60;
 
+    $self->install_build_deps($instance);
     $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
     $instance->run_ssh_command(
         cmd => "cd $ltp_dir && make -j\$(getconf _NPROCESSORS_ONLN) && sudo make install",
@@ -85,6 +86,7 @@ sub partially_build_ltp_from_git {
     my $start = time();
     my $ltp_subdir_build_timeout = 5 * 60;
 
+    $self->install_build_deps($instance);
     $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
 
     foreach my $subdir (get_submodules_to_rebuild()) {
@@ -102,6 +104,7 @@ sub partially_build_ltp_from_git_modules_install {
     my $start = time();
     my $ltp_subdir_build_timeout = 5 * 60;
 
+    $self->install_build_deps($instance);
     $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
     $instance->run_ssh_command(
         cmd => "sudo make -C $ltp_dir -j\$(getconf _NPROCESSORS_ONLN) modules-install",
@@ -213,7 +216,6 @@ sub run {
 
     my $ltp_dir = '/tmp/ltp';
     my $ltp_prefix = '/opt/ltp';
-    $self->install_build_deps($instance);
     if (should_fully_build_ltp_from_git()) {
         $self->fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
     } else {
