@@ -318,7 +318,7 @@ sub load_helm_chart_tests {
         loadtest 'containers/charts/privateregistry';
     } elsif ($chart =~ m/kiosk/) {
         my $version = get_var("HOST_VERSION", get_required_var("VERSION"));    # VERSION is the version of the container, not the host.
-        loadtest 'containers/charts/kiosk_firefox' if (is_sle(">=15-SP6", $version) || is_sle_micro(">=6.0", $version));
+        loadtest 'containers/charts/kiosk_firefox' if ($version =~ "15-SP[4,5,6,7]|16\..*|slem-.*");
     }
     else {
         die "Unsupported HELM_CHART value or HOST_VERSION";
