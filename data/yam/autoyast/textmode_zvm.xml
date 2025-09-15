@@ -1,0 +1,131 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <dasd t="map">
+    <devices t="list">
+      <listentry t="map">
+        <channel>0.0.0150</channel>
+        <diag t="boolean">false</diag>
+        <format t="boolean">false</format>
+      </listentry>
+    </devices>
+    <format_unformatted t="boolean">false</format_unformatted>
+  </dasd>
+  <firewall t="map">
+    <default_zone>public</default_zone>
+    <enable_firewall t="boolean">true</enable_firewall>
+    <start_firewall t="boolean">true</start_firewall>
+    <zones t="list">
+      <zone t="map">
+        <interfaces t="list">
+          <interface>eth0</interface>
+        </interfaces>
+        <name>public</name>
+        <services t="list">
+          <service>dhcpv6-client</service>
+          <service>ssh</service>
+          <service>tigervnc</service>
+          <service>tigervnc-https</service>
+        </services>
+        <short>Public</short>
+        <target>default</target>
+      </zone>
+    </zones>
+  </firewall>
+  <general t="map">
+    <cio_ignore t="boolean">true</cio_ignore>
+    <mode t="map">
+      <confirm t="boolean">false</confirm>
+    </mode>
+  </general>
+  <networking t="map">
+    <keep_install_network t="boolean">true</keep_install_network>
+  </networking>
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>firewalld</service>
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+    <software t="map">
+    <patterns t="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>basic_desktop</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>x11</pattern>
+      <pattern>x11_yast</pattern>
+      <pattern>yast2_basis</pattern>
+    </patterns>
+    <products t="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <suse_register t="map">
+    <addons t="list">
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-python3</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+      </addon>
+      <addon t="map">
+        <arch>{{ARCH}}</arch>
+        <name>sle-module-systems-management</name>
+	<version>{{VERSION}}</version>
+      </addon>
+    </addons>
+    <do_registration t="boolean">true</do_registration>
+    <install_updates t="boolean">true</install_updates>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+  </suse_register>
+  <users t="list">
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>bernhard</fullname>
+      <user_password>$6$q4jwWIpQmV7l19qi$EktCiNXrFRW.4jcqI87iD91L7sANzaTTRL9jFLU5zpfmhAldjw7D4zZxGs32vOBNOmhRqUyRf.0iBDB75a/R70</user_password>
+      <username>bernhard</username>
+    </user>
+    <user t="map">
+      <encrypted t="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <user_password>$6$ua7HkMovn8PZ05Na$HIoT1MCYSkzKSC2MbOkH9l/.cvD9ZKXx9JV59M6Pl0x1c9wCc5pR77kziuzK6Q5/jpyQEd9pd0lZKi8e8RAFP0</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <report>
+    <errors>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </errors>
+    <messages>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log t="boolean">true</log>
+      <show t="boolean">true</show>
+      <timeout t="integer">0</timeout>
+    </yesno_messages>
+  </report>
+</profile>
