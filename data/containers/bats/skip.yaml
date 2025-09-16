@@ -180,12 +180,14 @@ runc:
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 4825
+    - 4893
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
   sle-16.0:
     GITHUB_PATCHES:
     - 4825
+    - 4893
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
