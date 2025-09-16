@@ -455,6 +455,12 @@ END
     script_run('kadmin.local -q "addprinc -randkey nfs/$(hostname -f)@SUSETEST.COM"');
     script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab nfs/$(hostname -f)@SUSETEST.COM"');
 
+    #create fsgqa/fsgqa2 users for some xfstests
+    script_run('kadmin.local -q "addprinc -randkey fsgqa@SUSETEST.COM"');
+    script_run('kadmin.local -q "addprinc -randkey fsgqa2@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab fsgqa@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab fsgqa2@SUSETEST.COM"');
+
     #verify the key
     script_run('klist -kte /etc/krb5.keytab');
     script_run('kadmin.local -q "getprinc nfs/$(hostname -f)@SUSETEST.COM"');
