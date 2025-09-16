@@ -80,7 +80,7 @@ sub run {
     $variables{SCC_LTSS_REGCODE} = get_var('SCC_REGCODE_LTSS', '');
     $variables{SCC_LTSS_MODULE} = get_var('QESAPDEPLOY_SCC_LTSS_MODULE', '');
 
-    $variables{GOOGLE_PROJECT} = get_var('QESAPDEPLOY_GOOGLE_PROJECT', 'ei-sle-qa-sap-8469') if ($provider_setting eq 'GCE');
+    $variables{GOOGLE_PROJECT} = get_required_var('QESAPDEPLOY_GOOGLE_PROJECT') if ($provider_setting eq 'GCE');
     $variables{HANA_INSTANCE_TYPE} = get_var('QESAPDEPLOY_HANA_INSTANCE_TYPE', 'r6i.xlarge') if ($provider_setting eq 'EC2');
 
     $variables{HANA_ACCOUNT} = get_required_var('QESAPDEPLOY_HANA_ACCOUNT');
