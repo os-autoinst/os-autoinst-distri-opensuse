@@ -448,6 +448,17 @@ includedir  /etc/krb5.conf.d
 END
     script_run("echo '$content' > \"/etc/krb5.conf\"");
 
+    #Config idmapd.conf
+    $content = <<END;
+[General]
+Domain = susetest.com
+
+[Mapping]
+Nobody-User = nobody
+Nobody-Group = nobody
+END
+    script_run("echo '$content' > \"/etc/idmapd.conf\"");
+
     #create KDC database, start service and setup key
     script_run('kdb5_util create -s -P susetest -r SUSETEST.COM');
     script_run('systemctl start krb5kdc kadmind; systemctl enable krb5kdc kadmind');
@@ -470,6 +481,9 @@ END
     script_run('klist');
     script_run('kinit -k nfs/$(hostname -f)@SUSETEST.COM');
     script_run('klist');
+
+    script_run("systemctl restart nfs-idmapd");
+    script_run("systemctl restart rpc-gssd");
 }
 
 sub setup_nfs_server {
