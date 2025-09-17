@@ -95,6 +95,7 @@ sub full_test {
     sudo_with_pw 'sudo su - sudo_test';
     test_sudoers $test_password;
     sudo_with_pw 'bash -c "sudo su - sudo_test 2>check_err.log"', password => "$test_password", expected_screen => 'user-console';
+    sleep 1;
     assert_script_run 'grep -i "not allowed" check_err.log';
     enter_cmd 'exit';
     select_console 'root-console';
