@@ -10,7 +10,6 @@ schedule:
     - installation/network_check
     - console/system_prepare
     - console/hostname
-    - console/setup_ibs_repos
     - console/force_scheduled_tasks
     - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
