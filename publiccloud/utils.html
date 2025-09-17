@@ -35,6 +35,7 @@
       <li><a href="#zypper_remove_repo_remote">zypper_remove_repo_remote</a></li>
       <li><a href="#zypper_install_remote">zypper_install_remote</a></li>
       <li><a href="#zypper_install_available_remote">zypper_install_available_remote</a></li>
+      <li><a href="#wait_quit_zypper_pc">wait_quit_zypper_pc</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/utils.pm</h1>
@@ -176,6 +177,16 @@
 <p>zypper_install_available_remote($instance, $packages_ref)</p>
 
 <p>This function checks which packages from the provided list are available for installation on the remote instance. If any packages are available, it installs them using zypper_install_remote.</p>
+
+<h2 id="wait_quit_zypper_pc">wait_quit_zypper_pc</h2>
+
+<pre><code>wait_quit_zypper_pc($instance
+    [, timeout =&gt; 20 ]   # per-attempt SSH timeout (s)
+    [, delay   =&gt; 10 ]   # delay between attempts (s)
+    [, retry   =&gt; 60 ]   # number of attempts
+);</code></pre>
+
+<p>Wait until no background zypper-related processes are running on the remote instance. Uses <code>retry_ssh_command</code> for polling. Returns on success; dies after retries are exhausted.</p>
 
 
 </body>
