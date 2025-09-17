@@ -47,13 +47,13 @@ sub run {
 
     # Staging does not have access to repositories, only to DVD
     # curl -sfL https://get.k3s.io is not supported on ppc poo#128456
-    if (!is_staging && !is_ppc64le) {
-        prepare_pod_yaml();
-        record_info('Test', 'kube apply');
-        assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml', timeout => 180);
-        assert_script_run('kubectl wait --timeout=600s --for=condition=Ready pod/testing-pod', timeout => 610);
-        validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ }, timeout => 300);
-    }
+    return if (is_staging || is_ppc64le || get_var('HELM_CHART', ''));
+
+    prepare_pod_yaml();
+    record_info('Test', 'kube apply');
+    assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml', timeout => 180);
+    assert_script_run('kubectl wait --timeout=600s --for=condition=Ready pod/testing-pod', timeout => 610);
+    validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ }, timeout => 300);
 }
 
 sub post_fail_hook {

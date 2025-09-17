@@ -76,8 +76,17 @@ sub run {
     install_podman_when_needed() if ($engine =~ 'podman|k3s' && !is_sle("=12-SP5", get_var('HOST_VERSION', get_required_var('VERSION'))));
 
     if ($engine =~ 'k3s') {
+        # Disable firewall for k3s but don't fail if not installed
+        if ($version eq '12') {
+            script_run('systemctl disable SuSEfirewall2');
+            add_grub_cmdline_settings('apparmor=0', update_grub => 1);
+            power_action("reboot", textmode => 1);
+            $self->wait_boot(textmode => 1);
+            select_serial_terminal;
+        } else {
+            script_run('systemctl disable --now firewalld');
+        }
         install_k3s();
-        script_run("systemctl disable --now firewalld");    # Disable firewall for k3s but don't fail if not installed
     } else {
         reset_container_network_if_needed($engine);
     }
