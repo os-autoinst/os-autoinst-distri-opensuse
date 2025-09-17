@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2025 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Test deploy a helm chart in a k3s
@@ -22,14 +22,10 @@ use containers::k8s qw(install_kubectl install_helm);
 
 sub run {
     my ($self) = @_;
+
     select_serial_terminal;
     my $helm_chart = get_required_var('HELM_CHART');
     my $helm_values = get_var('HELM_CONFIG');
-
-    return unless (helm_is_supported());
-
-    install_kubectl();
-    install_helm();
 
     helm_install_chart($helm_chart, $helm_values, "rmt", split_image_registry => 0);
 
