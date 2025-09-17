@@ -176,8 +176,6 @@ sub handle_warning_install_os_prober {
 # use yast2 kdump to enable the kdump service
 sub activate_kdump {
     my (%args) = @_;
-    # increase kdump memory when bsc#1161421 applies
-    my $increase_kdump_memory = $args{increase_kdump_memory} // 1;
     # restart info will appear only when change has been done
     my $expect_restart_info = 0;
 
@@ -202,17 +200,6 @@ sub activate_kdump {
         # enable kdump
         send_key('alt-u');
         assert_screen('yast2-kdump-enabled');
-        $expect_restart_info = 1;
-    }
-    # ppcl64e and aarch64 needs increased kdump memory bsc#1161421
-    # migration regression test cases need increase kdump memory since lot of services start
-    if (is_ppc64le || is_aarch64 || get_var('FLAVOR') =~ /Regression/) {
-        if ($increase_kdump_memory) {
-            send_key('alt-y');
-            type_string $memory_kdump;
-            wait_screen_change(sub { send_key 'ret' }, 10) for (1 .. 2);
-            record_soft_failure 'default kdump memory size is too small for ppc64le and aarch64, see bsc#1161421';
-        }
         $expect_restart_info = 1;
     }
     # enable and verify fadump settings
