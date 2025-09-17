@@ -1,0 +1,22 @@
+---
+name: agama
+description: >
+  Perform interactive installation with agama for s390x worker.
+  FIPS is set up during installation in kernel mode by setting `BOOTPARAMS` to `fips=1`.
+vars:
+  FIPS_INSTALLATION: 1
+  BOOTPARAMS: 'fips=1'
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_arrange
+  - yam/agama/import_agama_profile
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/validate_base_product
+  - yam/validate/validate_first_user
+  - fips/fips_setup
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
