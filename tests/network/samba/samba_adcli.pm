@@ -195,15 +195,14 @@ sub run {
     # - smbclient //$AD_hostname/openQA as geekouser is permitted (read-only), but as berhard it is denied
     # - delete the computer OU after the test is done in post_run_hook
     # - test winbind (samba?) authentication
-
-    # Restore the network config files, poo#156427
-    assert_script_run("cp /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
-    assert_script_run("cp /etc/resolv.conf{.bak,}");
 }
 
 sub post_run_hook {
     my ($self) = shift;
     enable_ipv6();
+    # Restore the network config files
+    assert_script_run("cp /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
+    assert_script_run("cp /etc/resolv.conf{.bak,}");
 }
 
 sub post_fail_hook {
