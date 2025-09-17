@@ -106,6 +106,8 @@ sub setup_ulp {
 
 sub run {
     my ($self, $tinfo) = @_;
+    my $ld_conf_regex = qr(^include\s+/var/livepatches/ld\.so\.conf$)m;
+    my $ldd_regex = qr(^\s*libc\.so\.\d+\s+=>\s+/var/livepatches/)m;
 
     select_serial_terminal;
 
@@ -128,12 +130,23 @@ sub run {
     if (is_transactional()) {
         log_versions(1);
         prepare_ltp_env;
+        validate_script_output('cat /etc/ld.so.conf', $ld_conf_regex);
+    }
+    else {
+        validate_script_output('cat /etc/ld.so.conf', sub { $_ !~ m/$ld_conf_regex/ });
     }
 
     schedule_tests('openposix', "_glibc-$libver");
     loadtest_kernel('ulp_threads', name => "ulp_threads_glibc-$libver",
         run_args => $tinfo);
     install_package($tinfo->{packname});
+
+    if (is_transactional()) {
+        validate_script_output('ldd $(which echo)', $ldd_regex);
+    }
+    else {
+        validate_script_output('ldd $(which echo)', sub { $_ !~ m/$ldd_regex/ });
+    }
 
     # Run tests again with the next untested glibc version
     if ($tinfo->{run_id} < $#{$tinfo->{glibc_versions}}) {
