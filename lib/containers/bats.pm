@@ -337,7 +337,7 @@ sub bats_post_hook {
     assert_script_run "mkdir -p $log_dir || true";
     assert_script_run "cd $log_dir";
 
-    script_run "rm -rf $test_dir" unless ($test_dir eq "/var/tmp/");
+    script_run("rm -rf $test_dir", timeout => 300, proceed_on_failure => 1) unless ($test_dir eq "/var/tmp/");
 
     collect_calltraces;
     collect_coredumps;
