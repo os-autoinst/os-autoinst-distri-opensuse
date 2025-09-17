@@ -61,6 +61,7 @@ our @EXPORT = qw(
   get_available_packages_remote
   zypper_install_remote
   zypper_install_available_remote
+  wait_quit_zypper_pc
 );
 
 # Check if we are a BYOS test run
@@ -791,6 +792,39 @@ sub zypper_install_available_remote {
     my $available_ref = get_available_packages_remote($instance, $packages_ref);
     return unless @$available_ref;
     zypper_install_remote($instance, $available_ref);
+}
+
+=head2 wait_quit_zypper_pc
+
+    wait_quit_zypper_pc($instance
+        [, timeout => 20 ]   # per-attempt SSH timeout (s)
+        [, delay   => 10 ]   # delay between attempts (s)
+        [, retry   => 60 ]   # number of attempts
+    );
+
+Wait until no background zypper-related processes are running on the remote
+instance. Uses C<retry_ssh_command> for polling. Returns on success; dies
+after retries are exhausted.
+
+=cut
+
+sub wait_quit_zypper_pc {
+    my ($instance, %args) = @_;
+
+    my $timeout = $args{timeout} // 20;    # per-attempt SSH timeout
+    my $delay = $args{delay} // 10;    # seconds between polls
+    my $retry = $args{retry} // 120;    # total attempts (~10 min ceiling)
+
+    # Succeeds (RC 0) only when NO matching processes exist.
+    # Using '!' avoids explicit 'exit' and works cleanly with retry_ssh_command.
+    my $cmd = q{pgrep -f "zypper|purge-kernels|rpm" && false || true};
+
+    $instance->retry_ssh_command(
+        cmd => $cmd,
+        timeout => $timeout,
+        delay => $delay,
+        retry => $retry,
+    );
 }
 
 1;
