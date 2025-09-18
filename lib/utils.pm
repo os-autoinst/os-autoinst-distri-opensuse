@@ -950,7 +950,7 @@ sub zypper_search {
         @fields = ('status', 'name', 'type', 'version', 'arch', 'repository');
     }
 
-    my $output = script_output("zypper -n se $params");
+    my $output = script_output("zypper -in se $params");
     return parse_zypper_table($output, \@fields);
 }
 
