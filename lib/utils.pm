@@ -838,6 +838,64 @@ sub fully_patch_system {
     return $ret;
 }
 
+sub _ssh_fully_patch_system_upload_solver {
+    my ($remote) = @_;
+    script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
+    script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
+    upload_logs('/tmp/solver.tar.gz', failok => 1);
+}
+
+sub _ssh_fully_patch_system_run_patch {
+    my (%args) = @_;
+    my $remote = $args{remote};
+    my $timeout = $args{timeout};
+    my $with_solver = $args{with_solver} // 0;
+    my $label = $args{label};
+
+    my $solver_opt = $with_solver ? '--debug-solver' : '';
+    my $cmd = "ssh $remote 'sudo zypper -n patch $solver_opt --with-interactive -l'";
+
+    my $t0 = time();
+    my $ret = script_run($cmd, $timeout);
+    record_info('zypper patch', "$label took " . (time() - $t0) . "s (exit $ret)");
+    return $ret;
+}
+
+sub _ssh_fully_patch_system_pass {
+    my (%args) = @_;
+    my $remote = $args{remote};
+    my $timeout = $args{timeout};
+    my $label = $args{label};
+    my $accept_codes = $args{accept_codes};
+    my $gen_resolver = $args{gen_resolver};
+
+    my $ret = -1;
+    my $attempt = 0;
+
+    unless ($gen_resolver) {
+        $attempt++;
+        $ret = _ssh_fully_patch_system_run_patch(
+            remote => $remote,
+            timeout => $timeout,
+            with_solver => $gen_resolver,
+            label => "$label attempt $attempt"
+        );
+    }
+
+    if ($gen_resolver || !grep { $_ == $ret } @$accept_codes) {
+        $attempt++;
+        $ret = _ssh_fully_patch_system_run_patch(
+            remote => $remote,
+            timeout => $timeout,
+            with_solver => $gen_resolver,
+            label => "$label attempt $attempt (debug-solver)"
+        );
+        _ssh_fully_patch_system_upload_solver($remote);
+    }
+
+    croak("Zypper failed with $ret") unless grep { $_ == $ret } @$accept_codes;
+}
+
 =head2 ssh_fully_patch_system
 
  ssh_fully_patch_system($host);
@@ -849,31 +907,26 @@ the second run will update the system.
 =cut
 
 sub ssh_fully_patch_system {
-    my $remote = shift;
-    my $cmd_time = time();
-    my $resolver_option = get_var('PUBLIC_CLOUD_GEN_RESOLVER') ? '--debug-solver' : '';
-    my $cmd = "ssh $remote 'sudo zypper -n patch $resolver_option --with-interactive -l'";
-    # first run, possible update of packager -- exit code 103
-    my $ret = script_run($cmd, 1500);
-    record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    if ($ret != 0 && $ret != 102 && $ret != 103) {
-        if ($resolver_option) {
-            script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
-            script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
-            upload_logs('/tmp/solver.tar.gz', failok => 1);
-        }
-        croak("Zypper failed with $ret");
-    }
-    $cmd_time = time();
-    # second run, full system update
-    $ret = script_run($cmd, 6000);
-    record_info('zypper patch', 'The second command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    if ($resolver_option) {
-        script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
-        script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
-        upload_logs('/tmp/solver.tar.gz', failok => 1);
-    }
-    croak("Zypper failed with $ret") if ($ret != 0 && $ret != 102);
+    my ($remote) = @_;
+    my $gen_resolver = get_var('PUBLIC_CLOUD_GEN_RESOLVER', 0);
+
+    # First run — allow 103 (zypper updated itself)
+    _ssh_fully_patch_system_pass(
+        remote => $remote,
+        timeout => 1500,
+        label => 'zypper patch (first run)',
+        accept_codes => [0, 102, 103],
+        gen_resolver => $gen_resolver
+    );
+
+    # Second run — system update, only 0/102 allowed
+    _ssh_fully_patch_system_pass(
+        remote => $remote,
+        timeout => 6000,
+        label => 'zypper patch (second run)',
+        accept_codes => [0, 102],
+        gen_resolver => $gen_resolver
+    );
 }
 
 =head2 minimal_patch_system
