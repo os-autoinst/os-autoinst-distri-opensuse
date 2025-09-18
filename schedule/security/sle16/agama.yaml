@@ -10,6 +10,7 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_base_product
+  - security/secureboot/validate_keylength
   - yam/validate/validate_connectivity
   - yam/validate/validate_first_user
   - console/validate_repos

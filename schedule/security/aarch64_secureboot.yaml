@@ -5,5 +5,6 @@ schedule:
     - boot/boot_to_desktop
     - console/consoletest_setup
     - console/verify_efi_mok
+    - security/secureboot/validate_keylength
     - security/aarch64_secure_boot/boot_without_secureboot
     - security/aarch64_secure_boot/yast2_bootloader
