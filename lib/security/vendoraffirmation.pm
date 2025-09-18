@@ -66,6 +66,8 @@ my %va_common_packages = (
     'mozilla-nss-tools' => $version->{nss_ver},
     'mozilla-nss-certs' => $version->{nss_ver},
     'mozilla-nss-devel' => $version->{nss_ver},
+    'mozilla-nss-debuginfo' => $version->{nss_ver},
+    'mozilla-nss-debugsource' => $version->{nss_ver},
     libfreebl3 => $version->{nss_ver},
     libsoftokn3 => $version->{nss_ver},
     libgnutls30 => $version->{gnutls_ver},
@@ -85,12 +87,18 @@ my %va_s390x_packages = (
 
 my %va_kernel_default = (
     'kernel-default' => $version->{kernel_ver},
-    'kernel-default-devel' => $version->{kernel_ver}
+    'kernel-default-devel' => $version->{kernel_ver},
+    'kernel-devel' => $version->{kernel_ver},
+    'kernel-source' => $version->{kernel_ver},
+    'kernel-default-devel-debuginfo' => $version->{kernel_ver},
+    'kernel-default-debuginfo' => $version->{kernel_ver},
+    'kernel-default-debugsource' => $version->{kernel_ver}
 );
 
 my %va_kernel_rt = (
     'kernel-rt' => $version->{kernelRT_ver},
-    'kernel-devel-rt' => $version->{kernelRT_ver}
+    'kernel-devel-rt' => $version->{kernelRT_ver},
+    'kernel-source-rt' => $version->{kernelRT_ver}
 );
 
 my %va_15sp4_pkgs = (
