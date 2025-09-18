@@ -50,8 +50,8 @@ sub prepare_parmfile {
     else {
         if (get_var('AGAMA')) {
             my $host = "ftp://" . get_var('REPO_HOST', 'openqa');
-            my $root_line = " root=live:" . ((get_var('FLAVOR') =~ /^(Full|agama-installer)$/) ?
-                  shorten_url($host . '/' . get_required_var('REPO_0') . "/LiveOS/squashfs.img") :
+            my $root_line = " root=live:" . ((get_var('FLAVOR') =~ /^(Full|agama-installer|offline-installer|online-installer)$/) ?
+                  $host . '/' . get_required_var('REPO_0') . "/LiveOS/squashfs.img" :
                   $host . '/' . get_var('REPO_999'));
             $params .= $root_line;
 
