@@ -595,6 +595,8 @@ sub create_guest {
     my $maxmemory = $guest->{maxmemory} // $memory + 1536;    # use by default just a bit more, so that we don't waste memory but still use the functionality
     my $vcpus = $guest->{vcpus} // "2";
     my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
+    my $launch_security = $guest->{launch_security} // '';
+    my $memory_backing = $guest->{memory_backing} // '';
     my $extra_args = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
     $extra_args = trim($extra_args);
 
@@ -712,7 +714,13 @@ sub create_guest {
             $virtinstall .= " --boot firmware=efi";
             record_info("Boot Firmware", "Guest $name configured for EFI boot");
         }
+        if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi_sev_es') {
+            $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-sev.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no,loader.stateless=yes";
+            record_info("Boot Firmware", "Guest $name configured for EFI sev_es boot");
+        }
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
+        $virtinstall .= " --memorybacking $memory_backing" unless ($launch_security eq '');
+        $virtinstall .= " --launchSecurity $launch_security" unless ($memory_backing eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
         record_info("$name", "Creating $name guests:\n$virtinstall");
         script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";    # true required because & terminator is not allowed

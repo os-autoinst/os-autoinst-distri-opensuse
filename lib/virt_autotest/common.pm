@@ -220,6 +220,15 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
             boot_firmware => 'efi',    # EFI version of SLES 15 SP6
         },
+        'sles15sp6-efi-sev-es' => {
+            name => 'sles15sp6-efi-sev-es',
+            extra_params => '--os-variant sle15-unknown',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
+            boot_firmware => 'efi_sev_es',    # sev_es
+            launch_security => 'sev,policy=0x06',    # sev_es
+            memory_backing => 'locked=on',    # sev_es
+        },
         sles15sp7 => {
             name => 'sles15sp7',
             extra_params => '--os-variant sle15-unknown',
@@ -247,6 +256,15 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://openqa.suse.de/assets/repo/SLES-16.0-Full-x86_64-Build135.5.install/',    # Network location for live OS
             install_url => 'http://openqa.suse.de/assets/repo/SLES-16.0-x86_64-Build135.5/',    # Install repository URL
             boot_firmware => 'efi',    # SLES16 only supports EFI guests, no BIOS support
+        },
+        'sles15sp7-efi-sev-es' => {
+            name => 'sles15sp7-efi-sev-es',
+            extra_params => '--os-variant sle15-unknown',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
+            boot_firmware => 'efi_sev_es',    # sev_es
+            launch_security => 'sev,policy=0x06',    # sev_es
+            memory_backing => 'locked=on',    # sev_es
         }
     );
     # Filter out guests not allowed for the detected SLE version
@@ -290,6 +308,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         # For SEV-SNP guest verification, use specific guest sets
         if (check_var('ENABLE_SEV_SNP', '1')) {
             @allowed_guests = qw(sles15sp6efi sles15sp7efi);
+        }
+        if (check_var('ENABLE_SEV_ES', '1')) {
+            @allowed_guests = qw(sles15sp6-efi-sev-es sles15sp7-efi-sev-es);
         }
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;

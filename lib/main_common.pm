@@ -2461,6 +2461,9 @@ sub get_virt_features_definition {
         ENABLE_SEV_SNP => {
             modules => ['virt_autotest/sev_snp_validation'],
         },
+        ENABLE_SEV_ES => {
+            modules => ['virt_autotest/sev_es_guest_verification'],
+        },
     );
 }
 
@@ -2581,6 +2584,7 @@ sub set_mu_virt_vars {
         $scc_addons .= ',' if ($scc_addons);
         $scc_addons .= 'base,sdk,serverapp,desktop';
         $scc_addons .= ',contm' if (get_var('KUBEVIRT_TEST'));
+        $scc_addons .= ',coco' if (get_var('ENABLE_SEV_ES')) and (is_sle('=15-sp7'));
     }
     set_var('SCC_ADDONS', "$scc_addons");
 
