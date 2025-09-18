@@ -506,6 +506,10 @@ sub generate_version {
     } elsif (is_sle) {
         $dist = 'SLE';
         $version =~ s/-/$separator/;
+        if(is_sle("<=16.0")){
+            $dist = 'SLFO';
+            $version = 'Main';
+        }
     } elsif (is_tumbleweed) {
         $dist = 'openSUSE';
     } elsif (is_leap) {
