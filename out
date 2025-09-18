@@ -1,0 +1,349 @@
+commit a9d4eb5fa98ddf72610f03d931137b8d26371c6f
+Author: Paolo Stivanin <info@paolostivanin.com>
+Date:   Thu Sep 18 15:13:41 2025 +0200
+
+    Add VA stuff
+
+diff --git a/lib/security/vendoraffirmation.pm b/lib/security/vendoraffirmation.pm
+new file mode 100644
+index 0000000000..4c75170b70
+--- /dev/null
++++ b/lib/security/vendoraffirmation.pm
+@@ -0,0 +1,152 @@
++# Vendor Affirmation
++#
++# Copyright SUSE LLC
++# SPDX-License-Identifier: FSFAP
++# Summary: Stronger password to be used with CC/FIPS.
++#
++# Maintainer: QE Security <none@suse.de>
++
++package security::vendoraffirmation;
++
++use strict;
++use warnings;
++use testapi;
++
++use base 'Exporter';
++use registration qw(add_suseconnect_product);
++use version_utils qw(is_rt is_sle);
++use Utils::Architectures qw(is_s390x);
++use utils qw(zypper_call);
++
++our @EXPORT = qw(install_vendor_affirmation_pkgs get_expected_va_packages);
++
++# 15-SP6 and SP7 not yet. Need to adjust after the certification
++my %product_versions = (
++    '15-SP4' => {
++        kernel_ver => '5.14.21-150400.24.46.1',
++        kernelRT_ver => '5.14.21-150400.15.11.1',
++        openssl1_ver => '1.1.1l-150400.7.28.1',
++        gnutls_ver => '3.7.3-150400.4.35.1',
++        gcrypt_ver => '1.9.4-150400.6.8.1',
++        nss_ver => '3.79.4-150400.3.29.1',
++        ica_ver => '4.2.1-150400.3.8.1',
++        nettle_ver => '3.7.3-150400.2.21',
++    },
++    '15-SP6' => {
++        kernel_ver => '6.4.0-150600.23.25.1',
++        kernelRT_ver => '6.4.0-150600.10.17.1',
++        openssl1_ver => '1.1.1w-150600.5.15.1',
++        openssl3_ver => '3.1.4-150600.5.15.1',
++        gnutls_ver => '3.8.3-150600.4.6.2',
++        gcrypt_ver => '1.10.3-150600.3.6.1',
++        nss_ver => '3.101.2-150400.3.54.1',
++        ica_ver => '4.3.1-150600.4.25.1',
++        nettle_ver => '3.9.1-150600.3.2.1',
++    },
++    '15-SP7' => {
++        kernel_ver => '6.4.0-150600.23.25.1',
++        kernelRT_ver => '6.4.0-150600.10.17.1',
++        openssl1_ver => '1.1.1w-150600.5.15.1',
++        openssl3_ver => '3.1.4-150600.5.15.1',
++        gnutls_ver => '3.8.3-150600.4.6.2',
++        gcrypt_ver => '1.10.3-150600.3.6.1',
++        nss_ver => '3.101.2-150400.3.54.1',
++        ica_ver => '4.3.1-150600.4.25.1',
++        nettle_ver => '3.9.1-150600.3.2.1',
++    }
++);
++
++my $sle_version = get_required_var("VERSION");
++my $version = $product_versions{$sle_version};
++
++my %va_common_packages = (
++    'libopenssl1_1' => $version->{openssl1_ver},
++    'libopenssl1_1-32bit' => $version->{openssl1_ver},
++    'mozilla-nss' => $version->{nss_ver},
++    'mozilla-nss-tools' => $version->{nss_ver},
++    'mozilla-nss-certs' => $version->{nss_ver},
++    'mozilla-nss-devel' => $version->{nss_ver},
++    'mozilla-nss-debuginfo' => $version->{nss_ver},
++    'mozilla-nss-debugsource' => $version->{nss_ver},
++    libfreebl3 => $version->{nss_ver},
++    libsoftokn3 => $version->{nss_ver},
++    libgnutls30 => $version->{gnutls_ver},
++    'libgnutls30-hmac' => $version->{gnutls_ver},
++    'libgnutls-devel' => $version->{gnutls_ver},
++    libnettle8 => $version->{nettle_ver},
++    libhogweed6 => $version->{nettle_ver},
++    libgcrypt20 => $version->{gcrypt_ver},
++    'libgcrypt20-hmac' => $version->{gcrypt_ver},
++    'libgcrypt-devel' => $version->{gcrypt_ver}
++);
++
++my %va_s390x_packages = (
++    libica4 => $version->{ica_ver},
++    'libica-tools' => $version->{ica_ver}
++);
++
++my %va_kernel_default = (
++    'kernel-default' => $version->{kernel_ver},
++    'kernel-default-devel' => $version->{kernel_ver},
++    'kernel-devel' => $version->{kernel_ver},
++    'kernel-source' => $version->{kernel_ver},
++    'kernel-default-devel-debuginfo' => $version->{kernel_ver},
++    'kernel-default-debuginfo' => $version->{kernel_ver},
++    'kernel-default-debugsource' => $version->{kernel_ver}
++);
++
++my %va_kernel_rt = (
++    'kernel-rt' => $version->{kernelRT_ver},
++    'kernel-devel-rt' => $version->{kernelRT_ver},
++    'kernel-source-rt' => $version->{kernelRT_ver}
++);
++
++my %va_15sp4_pkgs = (
++    'libopenssl1_1-hmac' => $version->{openssl1_ver},
++    'libopenssl1_1-hmac-32bit' => $version->{openssl1_ver}
++);
++
++my %va_15sp6_pkgs = (
++    'libopenssl-3-fips-provider' => $version->{openssl3_ver}
++);
++
++sub install_vendor_affirmation_pkgs {
++    my @to_install = map { "$_=$va_common_packages{$_}" } keys %va_common_packages;
++
++    push @to_install, map { "$_=$va_s390x_packages{$_}" } keys %va_s390x_packages if is_s390x;
++
++    push @to_install, map { "$_=$va_15sp4_pkgs{$_}" } keys %va_15sp4_pkgs if is_sle('=15-SP4');
++    push @to_install, map { "$_=$va_15sp6_pkgs{$_}" } keys %va_15sp6_pkgs if is_sle('=15-SP6') || is_sle('=15-SP7');
++
++    my %kernel_packages = is_rt ? %va_kernel_rt : %va_kernel_default;
++    push @to_install, map { "$_=$kernel_packages{$_}" } keys %kernel_packages;
++
++    my $from_repo = "";
++    if (is_sle('=15-SP7')) {
++        # On 15-SP7 we need to use the dedicated certification module
++        add_suseconnect_product('sle-module-certifications');
++        $from_repo = "--from SLE-Module-Certifications-" . $sle_version . "-Updates";
++    }
++    zypper_call("--ignore-unknown in --oldpackage --force-resolution $from_repo " . join(' ', @to_install), exitcode => [0, 102, 104]);
++}
++
++sub get_expected_va_packages {
++    my %expected = %va_common_packages;
++
++    %expected = (%expected, %va_s390x_packages) if is_s390x;
++
++    if (is_sle('=15-SP4')) {
++        %expected = (%expected, %va_15sp4_pkgs);
++    }
++
++    if (is_sle('=15-SP6') || is_sle('=15-SP7')) {
++        %expected = (%expected, %va_15sp6_pkgs);
++    }
++
++    my %kernel_packages = is_rt ? %va_kernel_rt : %va_kernel_default;
++    %expected = (%expected, %kernel_packages);
++
++    return %expected;
++}
++
++1;
+diff --git a/tests/fips/fips_setup.pm b/tests/fips/fips_setup.pm
+index f78bccbb15..85da5d499a 100644
+--- a/tests/fips/fips_setup.pm
++++ b/tests/fips/fips_setup.pm
+@@ -9,7 +9,7 @@
+ # Maintainer: QE Security <none@suse.de>
+ # Tags: poo#39071, poo#105591, poo#105999, poo#109133
+ 
+-use base qw(consoletest);
++use base 'consoletest';
+ use testapi;
+ use bootloader_setup qw(add_grub_cmdline_settings change_grub_config);
+ use power_action_utils 'power_action';
+@@ -19,6 +19,7 @@ use utils qw(zypper_call reconnect_mgmt_console);
+ use Utils::Backends 'is_pvm';
+ use Utils::Architectures 'is_aarch64';
+ use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional is_microos);
++use security::vendoraffirmation;
+ 
+ my @vars = ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GNUTLS_FORCE_FIPS_MODE');
+ 
+@@ -78,6 +79,7 @@ sub install_fips {
+         zypper_call("in crypto-policies-scripts");
+         # Explicitly install openssl-3 on s390x SLE16 https://bugzilla.suse.com/show_bug.cgi?id=1247463
+         zypper_call("in openssl-3") if (is_s390x && is_sle('>=16'));
++        install_vendor_affirmation_pkgs if (check_var('FIPS_USE_CERT_MODULE', '1') && is_sle('=15-SP7'));
+     } elsif (is_sle('<=15-SP3') || get_var("FIPS_ENV_MODE")) {
+         # No crypto-policies in older SLE
+         zypper_call("in -t pattern fips");
+diff --git a/tests/security/verify_fips_packages.pm b/tests/security/verify_fips_packages.pm
+index c86cfb761f..e6a34c41c0 100644
+--- a/tests/security/verify_fips_packages.pm
++++ b/tests/security/verify_fips_packages.pm
+@@ -14,90 +14,13 @@ use Mojo::Util 'trim';
+ use version_utils qw(is_rt);
+ use Utils::Architectures qw(is_s390x);
+ use power_action_utils 'power_action';
++use version_utils 'is_sle';
+ use autotest;
+ use kernel;
++use security::vendoraffirmation;
+ 
+ my $final_result = 'ok';
+ my $outfile = '/tmp/fips_packages_mismatch';
+-my $version_get = get_required_var("VERSION");
+-
+-# 15-SP6 and SP7 not yet. Need to adjust after the certification
+-my %product_versions = (
+-    '15-SP4' => {
+-        kernel_ver => '5.14.21-150400.24.46.1',
+-        kernelRT_ver => '5.14.21-150400.15.11.1',
+-        openssl1_1_ver => '1.1.1l-150400.7.28.1',
+-        openssl3_ver => '',
+-        gnutls_ver => '3.7.3-150400.4.35.1',
+-        gcrypt_ver => '1.9.4-150400.6.8.1',
+-        nss_ver => '3.79.4-150400.3.29.1',
+-        ica_ver => '4.2.1-150400.3.8.1',
+-        nettle_ver => '3.7.3-150400.2.21',
+-    },
+-    '15-SP6' => {
+-        kernel_ver => '6.4.0-150600.23.25.1',
+-        kernelRT_ver => '6.4.0-150600.10.17.1',
+-        openssl1_1_ver => '1.1.1w-150600.5.15.1',
+-        openssl3_ver => '3.1.4-150600.5.15.1',
+-        gnutls_ver => '3.8.3-150600.4.6.2',
+-        gcrypt_ver => '1.10.3-150600.3.6.1',
+-        nss_ver => '3.101.2-150400.3.54.1',
+-        ica_ver => '4.3.1-150600.4.25.1',
+-        nettle_ver => '3.9.1-150600.3.2.1',
+-    },
+-    '15-SP7' => {
+-        kernel_ver => '6.4.0-150600.23.25.1',
+-        kernelRT_ver => '6.4.0-150600.10.17.1',
+-        openssl1_1_ver => '1.1.1w-150600.5.15.1',
+-        openssl3_ver => '3.1.4-150600.5.15.1',
+-        gnutls_ver => '3.8.3-150600.4.6.2',
+-        gcrypt_ver => '1.10.3-150600.3.6.1',
+-        nss_ver => '3.101.2-150400.3.54.1',
+-        ica_ver => '4.3.1-150600.4.25.1',
+-        nettle_ver => '3.9.1-150600.3.2.1',
+-    }
+-);
+-
+-my $version = $product_versions{$version_get};
+-
+-my %packages_common = (
+-    'kernel-default' => $version->{kernel_ver},
+-    'kernel-default-devel' => $version->{kernel_ver},
+-    'kernel-devel' => $version->{kernel_ver},
+-    'kernel-source' => $version->{kernel_ver},
+-    'kernel-default-devel-debuginfo' => $version->{kernel_ver},
+-    'kernel-default-debuginfo' => $version->{kernel_ver},
+-    'kernel-default-debugsource' => $version->{kernel_ver},
+-    'libopenssl1_1' => $version->{openssl1_1_ver},
+-    'libopenssl1_1-hmac' => $version->{openssl1_1_ver},
+-    'libopenssl1_1-32bit' => $version->{openssl1_1_ver},
+-    'libopenssl1_1-hmac-32bit' => $version->{openssl1_1_ver},
+-    'libopenssl-3-fips-provider' => $version->{openssl3_ver},
+-    libgnutls30 => $version->{gnutls_ver},
+-    'libgnutls30-hmac' => $version->{gnutls_ver},
+-    'libgnutls-devel' => $version->{gnutls_ver},
+-    libnettle8 => $version->{nettle_ver},
+-    libgcrypt20 => $version->{gcrypt_ver},
+-    'libgcrypt20-hmac' => $version->{gcrypt_ver},
+-    'libgcrypt-devel' => $version->{gcrypt_ver},
+-    'mozilla-nss-tools' => $version->{nss_ver},
+-    'mozilla-nss-debugsource' => $version->{nss_ver},
+-    'mozilla-nss' => $version->{nss_ver},
+-    'mozilla-nss-certs' => $version->{nss_ver},
+-    'mozilla-nss-devel' => $version->{nss_ver},
+-    'mozilla-nss-debuginfo' => $version->{nss_ver}
+-);
+-
+-my %packages_s390x = (
+-    libica4 => $version->{ica_ver},
+-    'libica-tools' => $version->{ica_ver}
+-);
+-
+-my %packages_rt = (
+-    'kernel-rt' => $version->{kernelRT_ver},
+-    'kernel-devel-rt' => $version->{kernelRT_ver},
+-    'kernel-source-rt' => $version->{kernelRT_ver}
+-);
+ 
+ sub cmp_version {
+     my ($old, $new) = @_;
+@@ -136,9 +59,8 @@ sub cmp_packages {
+ 
+     # Is certified version installed?
+     if ($version_found) {
+-        record_info("Pacakage OK", "Package '$package' Version: '$version'");
+-    }
+-    else {
++        record_info("Package OK", "Package '$package' Version: '$version'");
++    } else {
+         $final_result = 'fail';
+         my $list_installed = join(', ', @installed_versions);
+         record_info("Version not found", "Package '$package' version '$version'\nInstalled: $list_installed", result => $final_result);
+@@ -153,17 +75,10 @@ sub run {
+ 
+     select_serial_terminal;
+ 
+-    remove_kernel_packages;
++    # On SLE 15-SP6 and 15-SP7 we don't yet have a kernel version to install
++    remove_kernel_packages if is_sle('=15-SP4');
+ 
+-    # Try to install all  the packages
+-    foreach my $package (keys %packages_common) {
+-        eval {
+-            zypper_call('in --oldpackage --force-resolution ' . $package . '-' . $packages_common{$package});
+-        } or do {
+-            my $err = substr($@, 0, 512);
+-            record_info("$package installation result: $err");
+-        };
+-    }
++    install_vendor_affirmation_pkgs;
+ 
+     power_action('reboot');
+     $self->wait_boot();
+@@ -173,22 +88,9 @@ sub run {
+     # Create outfile. (In case there is no issue recorded)
+     assert_script_run "touch $outfile";
+ 
+-    foreach my $key (keys %packages_common) {
+-        if ($packages_common{$key}) {
+-            cmp_packages($key, $packages_common{$key});
+-        }
+-    }
+-
+-    if (is_s390x) {
+-        foreach my $key (keys %packages_s390x) {
+-            cmp_packages($key, $packages_s390x{$key});
+-        }
+-    }
+-
+-    if (is_rt) {
+-        foreach my $key (keys %packages_rt) {
+-            cmp_packages($key, $packages_rt{$key});
+-        }
++    my %expected = get_expected_va_packages();
++    foreach my $pkg (keys %expected) {
++        cmp_packages($pkg, $expected{$pkg});
+     }
+ 
+     upload_asset $outfile;
