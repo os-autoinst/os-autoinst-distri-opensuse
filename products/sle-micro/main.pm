@@ -42,7 +42,7 @@ $needle::cleanuphandler = sub {
         unregister_needle_tags('bootloader-grub2-bls');
         unregister_needle_tags('grub2-bls');
     }
-    unless (get_var('FLAVOR', '') =~ /selfinstall/i) {
+    unless (get_var('FLAVOR', '') =~ /selfinstall|dvd/i) {
         unregister_needle_tags('inst-bootmenu');
         unregister_needle_tags('inst-oninstallation');
     }
