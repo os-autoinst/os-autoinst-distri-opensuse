@@ -48,7 +48,7 @@ sub run {
             record_soft_failure("bsc#1249902 - systemd-vconsole-setup.service failed to load:\n$log_output");
             next;
         }
-        record_info("SVC $service FAILED:\n$log_output", screenshot => 0);
+        record_info("Failing services!", "SVC $service FAILED:\n$log_output");
         $failed = 1;
     }
 
