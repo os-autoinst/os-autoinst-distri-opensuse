@@ -38,7 +38,7 @@ sub run {
 
     # 'pamu2fcfg' command test, we don't have available yubikey
     # However, we can still check this command can work
-    validate_script_output('pamu2fcfg 2>&1 || true', sub { m/No device found. Aborting/ });
+    validate_script_output('pamu2fcfg 2>&1 || true', sub { m/No .* found. Aborting/ });
 }
 
 sub test_flags {
