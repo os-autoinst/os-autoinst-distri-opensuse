@@ -29,6 +29,7 @@
       <li><a href="#config_guest_metadata">config_guest_metadata</a></li>
       <li><a href="#config_guest_vcpus">config_guest_vcpus</a></li>
       <li><a href="#config_guest_memory">config_guest_memory</a></li>
+      <li><a href="#config_guest_numa">config_guest_numa</a></li>
       <li><a href="#config_guest_virtualization">config_guest_virtualization</a></li>
       <li><a href="#config_guest_platform">config_guest_platform</a></li>
       <li><a href="#config_guest_os_variant">config_guest_os_variant</a></li>
@@ -201,6 +202,12 @@
 
 <p>Configure [guest_memory_options]. User can still change [guest_memory], [guest_memballoon], [guest_memdev], [guest_memtune] and [guest_memorybacking] by passing non-empty arguments using hash. If installation already passes, modify_guest_params will be called to modify [guest_memory], [guest_memballoon], [guest_memdev], [guest_memtune] and [guest_memorybacking] using already modified [guest_memory_options].</p>
 
+<h2 id="config_guest_numa">config_guest_numa</h2>
+
+<pre><code>config_guest_numa($self[, guest_numatune =&gt; &#39;numatune&#39;])</code></pre>
+
+<p>Configure [guest_numa_options]. User can still change [guest_numatune], by passing non-empty arguments using hash. If installation already passes, modify_guest_params will be called to modify [guest_numatune] using already modified [guest_numa_options].</p>
+
 <h2 id="config_guest_virtualization">config_guest_virtualization</h2>
 
 <pre><code>config_guest_virtualization($self[, host_hypervisor_uri =&gt; &#39;uri&#39;, host_virt_type =&gt; &#39;type&#39;])</code></pre>
@@ -338,7 +345,7 @@ _netmask =&gt; &#39;mask&#39;, _startaddr =&gt; &#39;start&#39;, _endaddr =&gt; 
 
 <pre><code>config_guest_network_vent_policy($self)</code></pre>
 
-<p>Loosen iptables rules for [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly. IPv6 forwarding should not be enabled due to product bug bsc#1222229.</p>
+<p>Loosen iptables rules for [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly. IPv6 forwarding should not be enabled due to product bug bsc#1222229. Calling virt_autotest::virtual_network_utils::config_network_device_policy to do the actual work.</p>
 
 <h2 id="config_guest_network_bridge">config_guest_network_bridge</h2>
 
@@ -365,7 +372,7 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 
 <pre><code>config_guest_network_bridge_policy($self, $_guest_network_device)</code></pre>
 
-<p>Stop firewall/apparmor, loosen iptables rules and enable forwarding globally and on all default route devices and [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly. IPv6 forwarding should not be enabled due to product bug bsc#1222229.</p>
+<p>Stop firewall/apparmor, loosen iptables rules and enable forwarding globally and on all default route devices and [guest_network_device]. Additionally, write commands executed into crontab to re-execute them automatically on reboot if host reboots somehow unexpectedly. IPv6 forwarding should not be enabled due to product bug bsc#1222229. Calling virt_autotest::virtual_network_utils::config_network_device_policy to do the actual work.</p>
 
 <h2 id="schedule_tasks_on_boot">schedule_tasks_on_boot</h2>
 

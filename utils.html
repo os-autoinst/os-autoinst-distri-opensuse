@@ -122,6 +122,7 @@
       <li><a href="#install_extra_packages">install_extra_packages</a></li>
       <li><a href="#render_autoinst_url">render_autoinst_url</a></li>
       <li><a href="#is_agama_guest">is_agama_guest</a></li>
+      <li><a href="#upload_folders">upload_folders</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -904,6 +905,12 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>is_agama_guest(guest =&gt; &#39;guest or domain name&#39;);</code></pre>
 
 <p>Determine whether virtual machine under test uses Agama installer. Must provide virtual machine or domain name to argument guest to judge whether agama string is present.</p>
+
+<h2 id="upload_folders">upload_folders</h2>
+
+<pre><code>upload_folders(folders =&gt; &#39;absolute path to folder separated by commas&#39;);</code></pre>
+
+<p>Compress folders to files and call upload_logs to upload. The arguments are folders which accept absolute path to folders and store which indicates the absolute path to a folder that stores compressed files</p>
 
 
 </body>

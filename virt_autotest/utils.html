@@ -25,6 +25,9 @@
       <li><a href="#reboot_virtual_machine">reboot_virtual_machine</a></li>
       <li><a href="#get_guest_settings">get_guest_settings</a></li>
       <li><a href="#reselect_openqa_console">reselect_openqa_console</a></li>
+      <li><a href="#select_backend_console">select_backend_console</a></li>
+      <li><a href="#double_check_xen_role">double_check_xen_role</a></li>
+      <li><a href="#check_kvm_modules">check_kvm_modules</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -93,6 +96,18 @@
 <h2 id="reselect_openqa_console">reselect_openqa_console</h2>
 
 <p>Reselect named console in openQA test if concerned console is lost after detecting ssh port or needle. Arguments include address to be detected, console to be selected , needle to be checked on console, counter to be used for lost console detection, countdown value to be decreased at the end of each loopthe number of retries when detecting ssh port of address and delay before next ssh port detection.</p>
+
+<h2 id="select_backend_console">select_backend_console</h2>
+
+<p>Select corresponding ipmi or qemu backend console &#39;root-ssh&#39; or &#39;root-console&#39;. If argument init is set, select ipmi backend &#39;sol&#39; console. User can also set arguments console or wait to select cusotmized console in desired behavior.</p>
+
+<h2 id="double_check_xen_role">double_check_xen_role</h2>
+
+<p>Just only match bootmenu-xen-kernel needle was not enough for xen host if got Xen domain0 kernel panic(bsc#1192258). Need to double-check xen role after matched bootmenu-xen-kernel needle successfully.</p>
+
+<h2 id="check_kvm_modules">check_kvm_modules</h2>
+
+<p>Check whether kvm moduldes are successfully loaded on running system.</p>
 
 
 </body>
