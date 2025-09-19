@@ -108,6 +108,7 @@ sub run {
 
     # For some containers we need to fake the OS version to distinguish them
     my $os_version = get_var('BCI_OS_VERSION');
+    script_run('systemctl stop k3s.service');
 
     my $engine = $args->{runtime};
     my $bci_devel_repo = get_var('BCI_DEVEL_REPO');
