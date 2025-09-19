@@ -100,6 +100,7 @@ sub run {
     set_var('SSH_CMD', $ssh_cmd);
     set_var('RG', $rg);
     set_var('VM_NAME', $vm);
+    set_var('OS_VER', $os_ver);
     record_info('Done', 'Test finished');
 }
 
