@@ -20,9 +20,9 @@ sub run {
     # Crash test
     my $vm_ip = get_required_var('VM_IP');
     my $provider_instance = $self->provider_factory();
-    my @instances = create_instance_data(provider => $provider_instance);
-    record_info("INSTANCES", "$instances[0]");
-    $instances[0]->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    my $instances = create_instance_data(provider => $provider_instance);
+    record_info("INSTANCES", {instances}[0]);
+    { instances }[0]->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
     my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
@@ -44,11 +44,11 @@ sub run {
         die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
     }
 
-    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    { instances }[0]->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     select_serial_terminal;
     wait_serial(qr/\#/, timeout => 600);
 
-    $instance->run_ssh_command(
+    { instances }[0]->run_ssh_command(
         cmd => 'sudo su -c "echo b > /proc/sysrq-trigger &"',
         timeout => 10,
         rc_only => 1,
