@@ -21,6 +21,8 @@ use containers::k8s qw(install_k3s);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils qw(power_action);
 use zypper qw(wait_quit_zypper);
+use containers::bats;
+use Utils::Architectures qw(is_x86_64 is_aarch64);
 
 sub run {
     my ($self) = @_;
@@ -71,6 +73,13 @@ sub run {
     quit_packagekit;
     # poo#87850 wait the zypper processes in background to finish and release the lock.
     wait_quit_zypper;
+
+    # docker GO tests build Rancher (only x86_64 and aarch64) that requires a significant size of tmpfs
+    # sle-micro tmp.mount allocates 50% for tmpfs by default setup
+    if ((is_x86_64 || is_aarch64) && $engine =~ /docker/ && get_var('HOST_VERSION', '') =~ /slem/i && get_var('BCI_IMAGE_NAME', '') =~ /golang/) {
+        script_run('systemctl disable --now k3s.service');
+        mount_tmp_vartmp;
+    }
 
     install_docker_when_needed() if ($engine =~ 'docker');
     install_podman_when_needed() if ($engine =~ 'podman|k3s' && !is_sle("=12-SP5", get_var('HOST_VERSION', get_required_var('VERSION'))));
