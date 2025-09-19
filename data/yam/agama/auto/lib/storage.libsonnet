@@ -196,19 +196,15 @@ local raid(level='raid0', boot_type='bios') = {
 local search_raid0() = {
   drives: [
     {
-      search: {
-        sort: {
-          size: 'asc'
-        },
-        max: 1
-      },
       partitions: [
         {
-          id: 'esp',
-          size: '300 MiB',
+          search: {
+            condition: {
+              size: "300 MiB"
+            },
+          },
           filesystem: {
-            path: '/boot/efi',
-            type: 'vfat'
+            path: "/boot/efi"
           },
         },
       ],
@@ -217,33 +213,15 @@ local search_raid0() = {
   mdRaids: [
     {
       search: '/dev/md0',
-      partitions: [
-        {
-          delete: true,
-          search: '*'
-        },
-        {
-          size: '7.81 GiB',
-          filesystem: {
-            path: '/'
-          },
-        },
-      ],
+      filesystem: {
+        path: "/"
+      },
     },
     {
       search: '/dev/md1',
-      partitions: [
-        {
-          delete: true,
-          search: '*'
-        },
-        {
-          size: '512 MiB',
-          filesystem: {
-            path: 'swap'
-          },
-        },
-      ],
+      filesystem: {
+        path: "swap"
+      },
     }
   ],
   boot: {  configure: false },
