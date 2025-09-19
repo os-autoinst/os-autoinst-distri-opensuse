@@ -12,16 +12,52 @@ use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';
 use sles4sap::azure_cli;
 use publiccloud::instance;
+use publiccloud::ssh_interactive;
 use utils;
+
+=head2 softrestart
+
+    ($shutdown_time, $bootup_time) = softrestart([timeout => 600] [, scan_ssh_host_key => ?]);
+
+Does a softrestart of the instance by running the command C<shutdown -r>.
+Return an array of two values, first one is the time till the instance isn't
+reachable anymore. The second one is the estimated bootup time.
+=cut
+sub softrestart {
+    my ($self, %args) = @_;
+    $args{timeout} //= 600;
+    $args{scan_ssh_host_key} //= 0;
+    $args{username} //= $self->username();
+
+    my $duration;
+
+    select_host_console();
+
+    $self->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
+    sleep 60;
+    my $start_time = time();
+
+    # wait till ssh disappear
+    my $out = $self->wait_for_ssh(timeout => $args{timeout}, wait_stop => 1, username => $args{username});
+    # ok ssh port closed
+    record_info("Shutdown failed", "WARNING: while stopping the system, ssh port still open after timeout,\nreporting: $out")
+      if (defined $out);    # not ok port still open
+
+    my $shutdown_time = time() - $start_time;
+    die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
+
+    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username}, scan_ssh_host_key => $args{scan_ssh_host_key});
+
+    return ($shutdown_time, $bootup_time);
+}
 
 sub run {
     my ($self) = @_;
 
     # Crash test
     my $vm_ip = get_required_var('VM_IP');
-    my $provider = $self->provider_factory();
-    my $instance = $provider->create_instance();
-    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
+    softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
     my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
@@ -43,7 +79,7 @@ sub run {
         die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
     }
 
-    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     select_serial_terminal;
     wait_serial(qr/\#/, timeout => 600);
 
