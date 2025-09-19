@@ -448,12 +448,29 @@ includedir  /etc/krb5.conf.d
 END
     script_run("echo '$content' > \"/etc/krb5.conf\"");
 
+    #Config idmapd.conf
+    $content = <<END;
+[General]
+Domain = susetest.com
+
+[Mapping]
+Nobody-User = nobody
+Nobody-Group = nobody
+END
+    script_run("echo '$content' > \"/etc/idmapd.conf\"");
+
     #create KDC database, start service and setup key
     script_run('kdb5_util create -s -P susetest -r SUSETEST.COM');
     script_run('systemctl start krb5kdc kadmind; systemctl enable krb5kdc kadmind');
     script_run('echo -e "susetest\nsusetest" | kadmin.local -q "addprinc root/admin@SUSETEST.COM"');
     script_run('kadmin.local -q "addprinc -randkey nfs/$(hostname -f)@SUSETEST.COM"');
     script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab nfs/$(hostname -f)@SUSETEST.COM"');
+
+    #create fsgqa/fsgqa2 users for some xfstests
+    script_run('kadmin.local -q "addprinc -randkey fsgqa@SUSETEST.COM"');
+    script_run('kadmin.local -q "addprinc -randkey fsgqa2@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab fsgqa@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab fsgqa2@SUSETEST.COM"');
 
     #verify the key
     script_run('klist -kte /etc/krb5.keytab');
@@ -464,6 +481,9 @@ END
     script_run('klist');
     script_run('kinit -k nfs/$(hostname -f)@SUSETEST.COM');
     script_run('klist');
+
+    script_run("systemctl restart nfs-idmapd");
+    script_run("systemctl restart rpc-gssd");
 }
 
 sub setup_nfs_server {
