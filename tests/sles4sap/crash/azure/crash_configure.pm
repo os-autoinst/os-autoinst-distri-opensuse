@@ -87,7 +87,9 @@ sub run {
     assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
     record_info('SSH', 'VM reachable with SSH');
 
-    ensure_system_ready_and_register(reg_code => get_required_var('SCC_REGCODE_SLES4SAP'), ssh_command => $ssh_cmd);
+    if ($os =~ /byos/i) {}
+        ensure_system_ready_and_register(reg_code => get_required_var('SCC_REGCODE_SLES4SAP'), ssh_command => $ssh_cmd);
+    }
     record_info('Done', 'Test finished');
 }
 
