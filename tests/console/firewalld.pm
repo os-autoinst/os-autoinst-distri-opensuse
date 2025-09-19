@@ -340,8 +340,8 @@ sub test_firewall_offline_cmd {
 sub test_default_backend {
     return if (script_run("command -v iptables") != 0);
     # Only install iptables-backend-nft then iptables backend will change to nf_tables, refer bsc#1206383
-    add_suseconnect_product("sle-module-legacy") if (is_sle('>=15-SP3'));
-    zypper_call('in iptables-backend-nft') if (!uses_iptables);
+    add_suseconnect_product("sle-module-legacy") if (is_sle('>=15-SP3') && is_sle('<16'));
+    zypper_call('in iptables-backend-nft') if (!uses_iptables && is_sle('<16'));
     validate_script_output('iptables --version', sub {
             # This could have been done using capture groups too
             # removing the need for repeating regexes and nesting ifs
