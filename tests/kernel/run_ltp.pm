@@ -15,7 +15,7 @@ use power_action_utils 'power_action';
 use utils;
 use version_utils 'is_sle';
 use Time::HiRes qw(clock_gettime CLOCK_MONOTONIC);
-use Utils::Backends qw(is_pvm);
+use Utils::Backends 'is_remote_backend';
 use serial_terminal;
 use Mojo::File 'path';
 use Mojo::JSON;
@@ -27,8 +27,9 @@ sub do_reboot {
     my $self = shift;
 
     record_info("reboot");
-    power_action('reboot', textmode => 1, keepconsole => is_pvm);
-    reconnect_mgmt_console if is_pvm || get_var('LTP_BAREMETAL');
+    #power_action('reboot', textmode => 1, keepconsole => is_remote_backend);
+    power_action('reboot');
+    reconnect_mgmt_console if is_remote_backend || get_var('LTP_BAREMETAL');
     $self->wait_boot;
     select_serial_terminal;
     prepare_ltp_env;
