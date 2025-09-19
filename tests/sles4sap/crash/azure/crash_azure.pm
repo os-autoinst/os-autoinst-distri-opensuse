@@ -27,7 +27,7 @@ sub run {
     my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
         record_info("PATCH $round START", "zypper patch round $round");
-        my $ret = $instance->run_ssh_command(
+        my $ret = {instances}[0]->run_ssh_command(
             cmd => 'sudo zypper -n patch',
             timeout => 600,
             ssh_opts => '-E /var/tmp/ssh_sut.log -o ServerAliveInterval=2',
@@ -61,7 +61,7 @@ sub run {
     my ($duration, $exit_code, $sshout, $sysout);
     while (($duration = time() - $start_time) < 300) {
         $exit_code = script_run('nc -vz -w 1 ' . $vm_ip . ' 22', quiet => 1);
-        last if ($instance->isok($exit_code));    # ssh port open ok
+        last if ({instances}[0]->isok($exit_code));    # ssh port open ok
 
         sleep $delay;
     }
