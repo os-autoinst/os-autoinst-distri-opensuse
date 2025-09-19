@@ -21,9 +21,47 @@ sub run {
 
     my $instance = $args->{my_instance};
 
+    # DEBUG!! REMOVE BEFORE MERGING!! ##########################################
+    # Create dummy services to check the code:
+    $instance->ssh_assert_script_run(
+        "sudo tee /etc/systemd/system/dummy-fail-known.service > /dev/null << 'EOF'
+            [Unit]
+            Description=Dummy Service For Testing Failure
+
+            [Service]
+            Type=oneshot
+            ExecStart=/bin/false
+            RemainAfterExit=yes
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF"
+    );
+    $instance->ssh_assert_script_run(
+        "sudo tee /etc/systemd/system/dummy-fail-unknown.service > /dev/null << 'EOF'
+            [Unit]
+            Description=Dummy Service For Testing Failure
+
+            [Service]
+            Type=oneshot
+            ExecStart=/bin/false
+            RemainAfterExit=yes
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF"
+    );
+    $instance->ssh_assert_script_run("sudo systemctl daemon-reload");
+    $instance->ssh_assert_script_run("sudo systemctl start dummy-fail-known");
+    $instance->ssh_assert_script_run("sudo systemctl start dummy-fail-unknown");
+    ############################################################################
+
     my %known_failing_services = (
         'systemd-vconsole-setup' => 'bsc#1249902 - systemd-vconsole-setup.service failed to load',
-        'NetworkManager-wait-online' => 'This service throws false positives sometimes'
+        'NetworkManager-wait-online' => 'This service throws false positives sometimes',
+    # DEBUG!! REMOVE BEFORE MERGING!! ##########################################
+        'dummy-fail-known' => 'Dummy service to test a known issue'
+    ############################################################################
     );
 
     my $failed_services_output = $instance->ssh_script_output(
@@ -38,7 +76,7 @@ sub run {
     } else {
         my $failed = 0;
         foreach my $service (@failed_services) {
-            if (exists %known_failing_services{$service}) {
+            if (exists($known_failing_services{$service})) {
                 record_soft_failure(
                     "%known_failing_services($service)\n$log_output"
                 );
