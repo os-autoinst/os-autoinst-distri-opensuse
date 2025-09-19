@@ -231,7 +231,7 @@ sub register_addons_in_pc {
     # Workaround for bsc#1245220
     my $env = is_sle("=15-SP3") ? "ZYPP_CURL2=1" : "";
     my $cmd = "sudo $env zypper -n --gpg-auto-import-keys ref";
-    my $ret = script_run $cmd, timeout => 300;
+    my $ret = $instance->ssh_script_run(cmd => $cmd, timeout => 300);
     die 'No enabled repos defined: bsc#1245651' if $ret == 6;    # from zypper man page: ZYPPER_EXIT_NO_REPOS
     $instance->ssh_script_retry(cmd => $cmd, timeout => 300, retry => 3, delay => 120);
     for my $addon (@addons) {
