@@ -51,6 +51,7 @@ sub run {
 
     if (is_s390x()) {
         enter_cmd '/usr/sbin/run_migration';
+        reset_consoles;
         reconnect_mgmt_console;
     } else {
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
