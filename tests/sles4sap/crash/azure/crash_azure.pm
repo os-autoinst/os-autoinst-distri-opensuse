@@ -12,6 +12,7 @@ use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';
 use sles4sap::azure_cli;
 use publiccloud::instance;
+use sles4sap::publiccloud;
 use utils;
 
 sub run {
@@ -21,7 +22,7 @@ sub run {
     my $vm_ip = get_required_var('VM_IP');
     my $provider_instance = $self->provider_factory();
     my $instances = create_instance_data(provider => $provider_instance);
-    my $first_instance = $instances[0];
+    my $first_instance = $instances->[0];
     $first_instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
     my $max_rounds = 5;
