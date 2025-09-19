@@ -21,7 +21,6 @@ sub run {
     my $vm_ip = get_required_var('VM_IP');
     my $provider_instance = $self->provider_factory();
     my $instances = create_instance_data(provider => $provider_instance);
-    record_info("INSTANCES", {instances}[0]);
     { instances }[0]->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
     my $max_rounds = 5;
