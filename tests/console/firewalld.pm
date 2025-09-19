@@ -13,6 +13,7 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call script_retry);
 use version_utils qw(is_sle is_leap is_transactional);
 use transactional qw(trup_call check_reboot_changes);
+use registration;
 
 sub uses_iptables {
     return is_sle('<15-SP3') || is_leap('<15.3');
@@ -338,6 +339,9 @@ sub test_firewall_offline_cmd {
 #            Factory derived products, should have nf_tables too
 sub test_default_backend {
     return if (script_run("command -v iptables") != 0);
+    # Only install iptables-backend-nft then iptables backend will change to nf_tables, refer bsc#1206383
+    add_suseconnect_product("sle-module-legacy") if (is_sle('>=15-SP3'));
+    zypper_call('in iptables-backend-nft') if (!uses_iptables);
     validate_script_output('iptables --version', sub {
             # This could have been done using capture groups too
             # removing the need for repeating regexes and nesting ifs
@@ -346,12 +350,7 @@ sub test_default_backend {
                 # if iptables reports no backend, or legacy backend, we' re using old version of it
                 m/(?:iptables\sv[[:digit:]].+\w)\s?($|(?:.legacy.$))/;
             } else {
-                if (m/(?:iptables\sv[[:digit:]].+\w)\s?($|(?:.legacy.$))/) {
-                    record_soft_failure('bsc#1206383 - iptables uses legacy backend instead of nftables');
-                    return 1;
-                } else {
-                    m/nf_tables/;
-                }
+                m/nf_tables/;
             }
     });
 }
