@@ -19,8 +19,10 @@ sub run {
 
     # Crash test
     my $vm_ip = get_required_var('VM_IP');
-    my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
-    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    my $provider_instance = $self->provider_factory();
+    my $instances = create_instance_data(provider => $provider_instance);
+    record_info("INSTANCES", "$instances[0]");
+    $instances[0]->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
 
     my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
@@ -72,7 +74,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1,publiccloud_multi_module => 1};
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 sub post_fail_hook {
