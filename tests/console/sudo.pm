@@ -92,7 +92,7 @@ sub full_test {
     enter_cmd 'exit';
     sudo_with_pw 'sudo sed -i "s/^Defaults\[\[\:space\:\]\]*targetpw/Defaults\ !targetpw/" /etc/sudoers';
     sudo_with_pw 'sudo sed -i "s/^ALL\[\[\:space\:\]\]*ALL/#ALL ALL/" /etc/sudoers';
-    sudo_with_pw 'sudo su - sudo_test';
+    sudo_with_pw 'sudo su - sudo_test', expected_screen => 'sudo_test-console';
     test_sudoers $test_password;
     sudo_with_pw 'bash -c "sudo su - sudo_test 2>check_err.log"', password => "$test_password", expected_screen => 'user-console';
     sleep 1;
