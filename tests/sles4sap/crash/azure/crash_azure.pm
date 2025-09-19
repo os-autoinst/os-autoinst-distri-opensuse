@@ -12,6 +12,7 @@ use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';
 use sles4sap::azure_cli;
 use publiccloud::instance;
+use sles4sap_publiccloud;
 use utils;
 
 sub run {
