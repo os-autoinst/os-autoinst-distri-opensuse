@@ -28,6 +28,7 @@ sub run {
     my $self = shift;
 
     select_backend_console(init => 0);
+    $self->verify_bootloader;
     $self->verify_system;
     $self->verify_hypervisor;
     $self->verify_network;
@@ -36,6 +37,21 @@ sub run {
     $self->verify_guest_storage;
     return $self;
 }
+
+sub verify_bootloader {
+    my $self = shift;
+
+    my %osinfo = script_output("cat /etc/os-release") =~ /^([^#]\S+)="?([^"\r\n]+)"?$/gm;
+    %osinfo = map { uc($_) => $osinfo{$_} } keys %osinfo;
+    if (script_run("ls -d /sys/firmware/efi") != 0) {
+        record_info("Not uefi boot on system $osinfo{VERSION}", "Current system is running $osinfo{ID} $osinfo{VERSION} which does not use uefi boot", result => 'fail');
+    }
+    else {
+        record_info("Uefi boot on system $osinfo{VERSION}", "Current system is running $osinfo{ID} $osinfo{VERSION} which boots with uefi firmware", result => 'fail');
+    }
+    return $self;
+}
+
 
 sub verify_system {
     my $self = shift;
