@@ -34,3 +34,4 @@ schedule:
   - ha/firewall_disable
   - ha/setup_hosts_and_luns
   - ha/qnetd
+  - shutdown/shutdown

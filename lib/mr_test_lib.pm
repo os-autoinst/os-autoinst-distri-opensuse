@@ -69,6 +69,12 @@ sub load_mr_tests {
         loadtest_mr_test('tests/publiccloud/ssh_interactive_end', run_args => $args);
         loadtest_mr_test('tests/sles4sap/publiccloud/qesap_cleanup', run_args => $args);
     }
+
+    # Load 'shutdown.pm' here instead of YAML schedule file,
+    # otherwise 'shutdown' will not be the last test step.
+    if (is_pvm_hmc()) {
+        autotest::loadtest('tests/shutdown/shutdown.pm');
+    }
 }
 
 1;

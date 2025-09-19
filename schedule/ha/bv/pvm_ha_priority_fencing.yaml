@@ -48,6 +48,7 @@ schedule:
   - '{{cluster_setup}}'
   - ha/priority_fencing_delay
   - ha/check_logs
+  - shutdown/shutdown
 conditional_schedule:
   barrier_init:
     HA_CLUSTER_INIT:
