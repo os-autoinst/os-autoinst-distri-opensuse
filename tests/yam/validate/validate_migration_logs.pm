@@ -21,10 +21,14 @@ sub run {
     script_run("tar czvf /tmp/udev_rules.tar.gz /etc/udev/rules.d/*", {timeout => 60});
     upload_logs("/tmp/udev_rules.tar.gz", failok => 1);
 
-    if (script_run("cat /var/log/distro_migration.log | grep -i -E \"migration failed|aborting migration\"") == 0) {
-        record_info("Migration failed", script_output("cat /var/log/distro_migration.log | grep -i -E \"migration failed|aborting migration\" -B50"), result => 'fail');
+    my $fatal_errors = script_output("cat /var/log/distro_migration.log | grep -i -E \"migration failed|aborting migration\" -B50", proceed_on_failure => 1);
+    if ($fatal_errors) {
+        record_info("Migration failed", $fatal_errors, result => 'fail');
         die("Migration failed");
     }
+
+    my $minor_errors = script_output("cat /var/log/distro_migration.log | grep -ivE \"\\-errors?|errors?\\-|error=''\" | grep -iE \"failed|failure|error\" -B50", proceed_on_failure => 1);
+    record_info("Minor errors", $minor_errors, result => 'fail') if ($minor_errors);
 }
 
 sub test_flags {
