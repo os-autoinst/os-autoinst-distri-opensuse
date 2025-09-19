@@ -11,7 +11,7 @@ apiver: 3
 terraform:
   variables:
     # GENERAL VARIABLES #
-    project: 'ei-sle-qa-sap-8469'
+    project: '%SLES4SAP_GOOGLE_PROJECT%'
     region: '%PUBLIC_CLOUD_REGION%'
     deployment_name: '%QESAP_DEPLOYMENT_NAME%'
     admin_user: 'cloudadmin'
