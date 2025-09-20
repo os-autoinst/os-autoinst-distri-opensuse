@@ -273,7 +273,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     } elsif (is_sle('=15-SP7')) {
         my @allowed_guests = qw(sles12sp5 sles15sp6 sles15sp7);
         # For SEV-SNP guest verification, use specific guest sets
-        if (get_var('ENABLE_SEV_SNP', 1)) {
+        if (check_var('ENABLE_SEV_SNP', '1')) {
             @allowed_guests = qw(sles15sp6efi sles15sp7efi);
         }
         foreach my $guest (keys %guests) {
