@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 This script is used to:
-1. Add xfail="true" to expected failures in JUnit XML files,
+1. Replace <failure> with <xfailure> for expected failures in JUnit XML files,
    adjusting the failure counters so the openQA parser ignores them.
 2. Prepend a prefix to the testsuite name when needed.
+3. Print a message if an expected failure actually passed.
 """
 
 import xml.etree.ElementTree as ET
@@ -80,8 +81,8 @@ def patch_xml(file: str, xfails: Dict[str, List[str]]) -> None:
                     print(prefix + suitename, casename)
                 continue
 
-            # Add xfail attribute
-            failure.set("xfail", "true")
+            # Transform <failure> into <xfailure>
+            failure.tag = "xfailure"
             adjusted -= 1
 
         # Update failures counter
@@ -92,5 +93,5 @@ def patch_xml(file: str, xfails: Dict[str, List[str]]) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 1:
         patch_xml(sys.argv[1], get_xfails(sys.argv[2:]))

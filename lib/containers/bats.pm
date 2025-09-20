@@ -182,13 +182,12 @@ sub patch_logfile {
 
     @skip_tests = uniq sort @skip_tests;
 
-    if (@skip_tests) {
-        my $skip_tests = join(' ', map { "\"$_\"" } @skip_tests);
-        assert_script_run "bats_skip_notok $log_file $skip_tests";
-        my @passed = split /\n/, script_output "bats_xfails $xmlfile $skip_tests";
-        foreach my $pass (@passed) {
-            record_info("PASS", $pass);
-        }
+    my $skip_tests = join(' ', map { "\"$_\"" } @skip_tests);
+    assert_script_run "bats_skip_notok $log_file $skip_tests" if (@skip_tests);
+    # We must unconditionally call bats_xfails to prefix suitename when needed
+    my @passed = split /\n/, script_output "bats_xfails $xmlfile $skip_tests";
+    foreach my $pass (@passed) {
+        record_info("PASS", $pass);
     }
 }
 
