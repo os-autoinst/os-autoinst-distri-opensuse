@@ -919,9 +919,15 @@ sub do_systemd_analyze_time {
 
 sub upload_supportconfig_log {
     my ($self, %args) = @_;
-    $self->ssh_script_run(cmd => 'sudo supportconfig -R /var/tmp -B supportconfig -x AUDIT', timeout => 600);
-    $self->ssh_script_run(cmd => 'sudo chmod 0644 /var/tmp/scc_supportconfig.txz');
-    $self->upload_log('/var/tmp/scc_supportconfig.txz', failok => 1, timeout => 600);
+    my $timeout = 600;
+    my $start = time();
+    my $logs = "/var/tmp/scc_supportconfig";
+    my $cmd = "printf '\\n'|timeout $timeout sudo supportconfig -R " . dirname($logs) . " -B supportconfig -x AUDIT";
+    # poo#187440: send '\n' in ssh supportconfig w.a. to avoid hang
+    my $err = $self->ssh_script_run(cmd => "$cmd", timeout => ($timeout + 60), proceed_on_failure => 1);
+    $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txz", proceed_on_failure => 1);
+    $self->upload_log("logs.txz", failok => 1, timeout => $timeout);
+    record_info('supportconfig done', ($err) ? 'Failed after ' . time() - $start . "sec." : "OK Log $logs.txz", result => ($err) ? 'fail' : 'ok');
 }
 
 sub wait_for_state {
