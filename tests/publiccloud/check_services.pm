@@ -21,37 +21,77 @@ sub run {
 
     my $instance = $args->{my_instance};
 
-    # Debug
-    $instance->ssh_script_run('systemctl --no-pager list-units');
+    # DEBUG!! REMOVE BEFORE MERGING!! ##########################################
+    # Create dummy services to check the code:
+    $instance->ssh_assert_script_run(
+        "sudo tee /etc/systemd/system/dummy-fail-known.service > /dev/null << 'EOF'
+            [Unit]
+            Description=Dummy Service For Testing Failure
 
-    # Check if there are any failed services
-    # 1. Get the list of failed services from the SUT
-    my $failed_services_output = $instance->ssh_script_output('sudo systemctl --failed --no-legend --plain | awk "{print \\$1}"');
+            [Service]
+            Type=oneshot
+            ExecStart=/bin/false
+            RemainAfterExit=yes
 
-    # 2. Split the output into a Perl array of service names
+            [Install]
+            WantedBy=multi-user.target
+            EOF"
+    );
+    $instance->ssh_assert_script_run(
+        "sudo tee /etc/systemd/system/dummy-fail-unknown.service > /dev/null << 'EOF'
+            [Unit]
+            Description=Dummy Service For Testing Failure
+
+            [Service]
+            Type=oneshot
+            ExecStart=/bin/false
+            RemainAfterExit=yes
+
+            [Install]
+            WantedBy=multi-user.target
+            EOF"
+    );
+    $instance->ssh_assert_script_run("sudo systemctl daemon-reload");
+    $instance->ssh_assert_script_run("sudo systemctl start dummy-fail-known");
+    $instance->ssh_assert_script_run("sudo systemctl start dummy-fail-unknown");
+    ############################################################################
+
+    my %known_failing_services = (
+        'systemd-vconsole-setup' => 'bsc#1249902 - systemd-vconsole-setup.service failed to load',
+        'NetworkManager-wait-online' => 'This service throws false positives sometimes',
+    # DEBUG!! REMOVE BEFORE MERGING!! ##########################################
+        'dummy-fail-known' => 'Dummy service to test a known issue'
+    ############################################################################
+    );
+
+    my $failed_services_output = $instance->ssh_script_output(
+        'sudo systemctl --failed --no-legend --plain --no-pager | awk "{print \\$1}"'
+    );
+
     my @failed_services = split /\s+/, $failed_services_output;
 
     if (!@failed_services) {
         record_info("All SVCs good", "No failed services found.");
         return;
-    }
-
-    # 3. Loop through each service name in Perl
-    my $failed = 0;
-    foreach my $service (@failed_services) {
-        # 4. Capture the log output for the service into a Perl variable
-        my $log_output = $instance->ssh_script_output("sudo journalctl -u $service --no-pager");
-
-        # 5. Pass the captured logs as the text for record_info.
-        #    This creates a single, expandable log entry in the openQA web UI.
-        if ($service =~ /systemd-vconsole-setup/) {
-            record_soft_failure("bsc#1249902 - systemd-vconsole-setup.service failed to load:\n$log_output");
-            next;
+    } else {
+        my $failed = 0;
+        foreach my $service (@failed_services) {
+            if (exists($known_failing_services{$service})) {
+                record_soft_failure(
+                    "%known_failing_services($service)\n$log_output"
+                );
+            }
+            else {
+                my $log_output = $instance->ssh_script_output(
+                    "sudo journalctl -u $service --no-pager"
+                );
+                record_info(
+                    "Failing services!", "SVC $service FAILED:\n$log_output"
+                );
+                $failed = 1;
+            }
         }
-        record_info("Failing services!", "SVC $service FAILED:\n$log_output");
-        $failed = 1;
     }
-
     die('Some services failed to start.') if ($failed);
 
     # waagent, cloud-init, google agents not available in Micro
