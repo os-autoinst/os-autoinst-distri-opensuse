@@ -87,9 +87,6 @@ def patch_xml(file: str, xfails: Dict[str, List[str]]) -> None:
         # Update failures counter
         if adjusted != failures:
             testsuite.set("failures", str(adjusted))
-            # This suite was expected to fail but passed
-            if suitename in xfails and not xfails[suitename] and adjusted == 0:
-                print(prefix + suitename)
 
     tree.write(file, encoding="utf-8", xml_declaration=True)
 
