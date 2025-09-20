@@ -33,12 +33,12 @@ sub softrestart {
 
     select_host_console();
 
-    $self->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
+    ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
     sleep 60;
     my $start_time = time();
 
     # wait till ssh disappear
-    my $out = $self->wait_for_ssh(timeout => $args{timeout}, wait_stop => 1, username => $args{username});
+    my $out = wait_for_ssh(timeout => $args{timeout}, wait_stop => 1, username => $args{username});
     # ok ssh port closed
     record_info("Shutdown failed", "WARNING: while stopping the system, ssh port still open after timeout,\nreporting: $out")
       if (defined $out);    # not ok port still open
@@ -46,7 +46,7 @@ sub softrestart {
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
 
-    my $bootup_time = $self->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username}, scan_ssh_host_key => $args{scan_ssh_host_key});
+    my $bootup_time = wait_for_ssh(timeout => $args{timeout} - $shutdown_time, username => $args{username}, scan_ssh_host_key => $args{scan_ssh_host_key});
 
     return ($shutdown_time, $bootup_time);
 }
