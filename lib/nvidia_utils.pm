@@ -22,6 +22,7 @@ use power_action_utils qw(power_action);
 our @EXPORT = qw(
   install
   validate
+  validate_cuda
 );
 
 =head2 install
@@ -102,6 +103,21 @@ sub validate
     # Check driver works
     my $smi_output = script_output("nvidia-smi");
     record_info("NVIDIA SMI", $smi_output);
+}
+
+sub validate_cuda
+{
+    zypper_call('in cmake git cuda-toolkit vulkan-devel freeglut-devel Mesa-libEGL-devel');
+    # Compiler smoke test with a simple hello_world program
+    assert_script_run('curl -s -o hello_world.cu ' . data_url('cuda/hello_world.cu'));
+    assert_script_run('/usr/local/cuda/bin/nvcc -rdc=true -o hello_world hello_world.cu');
+    record_info('CUDA Sample', script_output('./hello_world'));
+    # Build NVIDIA/cuda-samples
+    assert_script_run('git clone --depth 1 --single-branch --branch master https://github.com/NVIDIA/cuda-samples.git');
+    assert_script_run('mkdir cuda-samples/build; cd $_');
+    assert_script_run('cmake .. -DCMAKE_CUDA_COMPILER_TOOLKIT_ROOT=/usr/local/cuda -DCMAKE_CUDA_ARCHITECTURES=native -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc');
+    assert_script_run('make -j$(nproc)', 3000);
+    record_info('CUDA Sample', script_output('./Samples/0_Introduction/clock/clock'));
 }
 
 1;
