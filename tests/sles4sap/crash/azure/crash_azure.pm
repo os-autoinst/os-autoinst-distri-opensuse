@@ -57,7 +57,7 @@ sub run {
     # Crash test
     my $vm_ip = get_required_var('VM_IP');
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
-    softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), username => 'cloudadmin');
+    $self->softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), username => 'cloudadmin');
 
     my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
@@ -79,7 +79,7 @@ sub run {
         die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
     }
 
-    softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), username => 'cloudadmin');
+    $self->softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), username => 'cloudadmin');
     select_serial_terminal;
     wait_serial(qr/\#/, timeout => 600);
 
