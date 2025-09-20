@@ -43,6 +43,7 @@ schedule:
   - console/tar
   - console/ruby
   - console/tcpdump
+  - console/zypper_update
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
