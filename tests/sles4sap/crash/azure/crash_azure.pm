@@ -28,12 +28,13 @@ sub softrestart {
     $args{timeout} //= 600;
     $args{scan_ssh_host_key} //= 0;
     $args{username} //= $self->username();
+    $args{instance} //= '';
 
     my $duration;
 
     select_host_console();
 
-    ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
+    $args{instance}->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
     sleep 60;
     my $start_time = time();
 
@@ -57,7 +58,7 @@ sub run {
     # Crash test
     my $vm_ip = get_required_var('VM_IP');
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
-    $self->softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), username => 'cloudadmin');
+    $self->softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), username => 'cloudadmin', instance => $instance);
 
     my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
@@ -79,7 +80,7 @@ sub run {
         die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
     }
 
-    $self->softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), username => 'cloudadmin');
+    $self->softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), username => 'cloudadmin', instance => $instance);
     select_serial_terminal;
     wait_serial(qr/\#/, timeout => 600);
 
