@@ -40,6 +40,7 @@ use virt_autotest::utils qw(is_kvm_host is_xen_host check_host_health check_gues
 use virt_utils qw(collect_host_and_guest_logs cleanup_host_and_guest_logs enable_debug_logging);
 use utils qw(script_retry);
 use virt_autotest::domain_management_utils qw(construct_uri create_guest remove_guest shutdown_guest show_guest check_guest_state);
+use virt_autotest::virtual_network_utils qw(check_guest_network_config);
 use version_utils qw(is_sle);
 
 =head2 run_test
@@ -122,7 +123,7 @@ sub prepare_guest {
     $self->config_guest_storage(_guest => $guest);
     virt_autotest::domain_management_utils::create_guest(guest => $guest, start => 0);
     $self->config_guest_console(_guest => $guest);
-    $self->check_guest_network_config(_guest => $guest);
+    virt_autotest::virtual_network_utils::check_guest_network_config(guest => $guest, matrix => \%parallel_guest_migration_base::_guest_matrix);
     $self->create_guest_network;
     $self->start_guest(_guest => $guest);
     virt_autotest::domain_management_utils::show_guest();

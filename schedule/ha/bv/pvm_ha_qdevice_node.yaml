@@ -46,6 +46,7 @@ schedule:
   - ha/qnetd
   - '{{boot}}'
   - ha/check_after_reboot
+  - shutdown/shutdown
 conditional_schedule:
   barrier_init:
     HA_CLUSTER_INIT:

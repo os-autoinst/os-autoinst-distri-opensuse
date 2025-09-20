@@ -20,8 +20,6 @@ use version_utils qw(is_sle);
 sub run_test {
     my ($self) = @_;
 
-    #Refer to bsc#1214223 more details
-    record_soft_failure('bsc#1214223 - Failed to attach NAT virtual network interface to guest system') if (is_xen_host && !is_monolithic_libvirtd);
     #Download libvirt host bridge virtual network configuration file
     my $vnet_nated_cfg_name = "vnet_nated.xml";
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_nated_cfg_name);

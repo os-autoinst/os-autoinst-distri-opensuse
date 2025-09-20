@@ -6,9 +6,10 @@ openQA TAP parser ignores them
 
 import re
 import sys
+from typing import List
 
 
-def flush(file, lines, comment_block=False):
+def flush(file: str, lines: List[str], comment_block: bool = False) -> None:
     """
     Flush buffer optionally commenting the block
     """
@@ -23,10 +24,13 @@ def flush(file, lines, comment_block=False):
         print("\n".join(lines), file=file)
 
 
-def comment_not_ok(path, tests):
+def comment_not_ok(path: str, tests: List[str]) -> None:
     """
     Comment "not ok" lines in path for the specified tests
     """
+    # Strip ".bats::..." from each string
+    tests = [t.split(".bats::", 1)[0] for t in tests]
+
     skipped = re.compile(rf"in test file .*/(?:{'|'.join(tests)})\.bats")
     # Some podman tests may not show the "in test file" line above but we can leverage:
     # "not ok 295 [130] podman kill - print IDs or raw input in 894ms"

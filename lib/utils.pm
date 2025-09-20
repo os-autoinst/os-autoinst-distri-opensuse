@@ -135,6 +135,7 @@ our @EXPORT = qw(
   install_extra_packages
   render_autoinst_url
   is_agama_guest
+  upload_folders
 );
 
 our @EXPORT_OK = qw(
@@ -838,6 +839,64 @@ sub fully_patch_system {
     return $ret;
 }
 
+sub _ssh_fully_patch_system_upload_solver {
+    my ($remote) = @_;
+    script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
+    script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
+    upload_logs('/tmp/solver.tar.gz', failok => 1);
+}
+
+sub _ssh_fully_patch_system_run_patch {
+    my (%args) = @_;
+    my $remote = $args{remote};
+    my $timeout = $args{timeout};
+    my $with_solver = $args{with_solver} // 0;
+    my $label = $args{label};
+
+    my $solver_opt = $with_solver ? '--debug-solver' : '';
+    my $cmd = "ssh $remote 'sudo zypper -n patch $solver_opt --with-interactive -l'";
+
+    my $t0 = time();
+    my $ret = script_run($cmd, $timeout);
+    record_info('zypper patch', "$label took " . (time() - $t0) . "s (exit $ret)");
+    return $ret;
+}
+
+sub _ssh_fully_patch_system_pass {
+    my (%args) = @_;
+    my $remote = $args{remote};
+    my $timeout = $args{timeout};
+    my $label = $args{label};
+    my $accept_codes = $args{accept_codes};
+    my $gen_resolver = $args{gen_resolver};
+
+    my $ret = -1;
+    my $attempt = 0;
+
+    unless ($gen_resolver) {
+        $attempt++;
+        $ret = _ssh_fully_patch_system_run_patch(
+            remote => $remote,
+            timeout => $timeout,
+            with_solver => $gen_resolver,
+            label => "$label attempt $attempt"
+        );
+    }
+
+    if ($gen_resolver || !grep { $_ == $ret } @$accept_codes) {
+        $attempt++;
+        $ret = _ssh_fully_patch_system_run_patch(
+            remote => $remote,
+            timeout => $timeout,
+            with_solver => $gen_resolver,
+            label => "$label attempt $attempt (debug-solver)"
+        );
+        _ssh_fully_patch_system_upload_solver($remote);
+    }
+
+    croak("Zypper failed with $ret") unless grep { $_ == $ret } @$accept_codes;
+}
+
 =head2 ssh_fully_patch_system
 
  ssh_fully_patch_system($host);
@@ -849,31 +908,26 @@ the second run will update the system.
 =cut
 
 sub ssh_fully_patch_system {
-    my $remote = shift;
-    my $cmd_time = time();
-    my $resolver_option = get_var('PUBLIC_CLOUD_GEN_RESOLVER') ? '--debug-solver' : '';
-    my $cmd = "ssh $remote 'sudo zypper -n patch $resolver_option --with-interactive -l'";
-    # first run, possible update of packager -- exit code 103
-    my $ret = script_run($cmd, 1500);
-    record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    if ($ret != 0 && $ret != 102 && $ret != 103) {
-        if ($resolver_option) {
-            script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
-            script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
-            upload_logs('/tmp/solver.tar.gz', failok => 1);
-        }
-        croak("Zypper failed with $ret");
-    }
-    $cmd_time = time();
-    # second run, full system update
-    $ret = script_run($cmd, 6000);
-    record_info('zypper patch', 'The second command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    if ($resolver_option) {
-        script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
-        script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
-        upload_logs('/tmp/solver.tar.gz', failok => 1);
-    }
-    croak("Zypper failed with $ret") if ($ret != 0 && $ret != 102);
+    my ($remote) = @_;
+    my $gen_resolver = get_var('PUBLIC_CLOUD_GEN_RESOLVER', 0);
+
+    # First run — allow 103 (zypper updated itself)
+    _ssh_fully_patch_system_pass(
+        remote => $remote,
+        timeout => 1500,
+        label => 'zypper patch (first run)',
+        accept_codes => [0, 102, 103],
+        gen_resolver => $gen_resolver
+    );
+
+    # Second run — system update, only 0/102 allowed
+    _ssh_fully_patch_system_pass(
+        remote => $remote,
+        timeout => 6000,
+        label => 'zypper patch (second run)',
+        accept_codes => [0, 102],
+        gen_resolver => $gen_resolver
+    );
 }
 
 =head2 minimal_patch_system
@@ -3265,7 +3319,10 @@ sub is_reboot_needed {
 
     my $check_reboot_needed = "zypper needs-rebooting";
     $check_reboot_needed = "ssh $args{username}\@$args{address} \"$check_reboot_needed\"" if ($args{address} ne 'localhost');
-    return 1 if (script_run("$check_reboot_needed") == 102 or get_var('NEEDS_REBOOTING'));
+    if (script_run("$check_reboot_needed") == 102 or get_var('_NEEDS_REBOOTING')) {
+        set_var('_NEEDS_REBOOTING', 0);
+        return 1;
+    }
     return 0;
 }
 
@@ -3365,6 +3422,35 @@ sub is_agama_guest {
 
     croak("Guest or domain name must be given") if (!$args{guest});
     return $args{guest} =~ /agama/img;
+}
+
+=head2 upload_folders
+
+ upload_folders(folders => 'absolute path to folder separated by commas');
+
+Compress folders to files and call upload_logs to upload. The arguments are folders
+which accept absolute path to folders and store which indicates the absolute path to
+a folder that stores compressed files
+=cut
+
+sub upload_folders {
+    my %args = @_;
+    $args{folders} //= '';
+    $args{store} //= '/var/log';
+    $args{failok} //= 1;
+    $args{cleanup} //= 1;
+
+    croak("Absolute path to folders must be given") if (!$args{folders});
+    foreach my $folder (split(/,/, $args{folders})) {
+        my $file = $folder;
+        $file =~ s|/$|| if ($file ne '/');
+        $file =~ s/\//_/g;
+        $file =~ s/^_+//g if ($file ne '_');
+        $args{store} =~ s|/$|| if ($args{store} ne '/');
+        script_run("tar -I 'gzip -9' -cvf $args{store}/$file.tar.gz $folder");
+        upload_logs("$args{store}/$file.tar.gz", failok => $args{failok});
+        script_run("rm -f -r $args{store}/$file.tar.gz") if ($args{cleanup});
+    }
 }
 
 1;

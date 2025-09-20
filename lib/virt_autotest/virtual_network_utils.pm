@@ -20,11 +20,13 @@ use testapi;
 use Data::Dumper;
 use XML::Writer;
 use IO::File;
+use Carp;
 use utils 'script_retry';
 use upload_system_log 'upload_supportconfig_log';
 use version_utils qw(is_sle is_alp is_opensuse);
 use Utils::Architectures;
 use virt_autotest::utils;
+use virt_autotest::common;
 use virt_autotest::domain_management_utils qw(construct_uri);
 use mm_network;
 
@@ -62,6 +64,9 @@ our @EXPORT
   create_host_bridge_nm
   get_virtual_network_data
   get_guest_bridge_src
+  check_guest_network_config
+  check_guest_network_address
+  config_network_device_policy
   );
 
 sub get_virtual_network_data {
@@ -225,18 +230,8 @@ sub test_network_interface {
         $nic = script_output "ssh root\@$guest \"grep '$mac' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     }
     die "$mac not found in guest $guest" unless $nic;
-    if ((get_var('TEST', '') =~ m/qam-(kvm|xen)-install-and-features-test/ || $is_sriov_test eq "true") and !is_sle('16+')) {
+    unless (is_sle('16+')) {
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
-
-        # Restart the network - the SSH connection may drop here, so no return code is checked.
-        if ($is_sriov_test ne "true") {
-            script_run("ssh root\@$guest systemctl restart network", 300);
-        }
-        # Exit the SSH master socket if open
-        script_run("ssh -O exit root\@$guest");
-        # Wait until guest's primary interface is back up
-        script_retry("ping -c3 $guest", delay => 6, retry => 30);
-        # Activate guest's secondary (tested) interface
         script_retry("ssh root\@$guest ifup $nic", delay => 10, retry => 20, timeout => 120);
     }
 
@@ -535,6 +530,9 @@ EOF
             $ret = script_run("sed -ri \'s/^NETCONFIG_DNS_POLICY.*\$/NETCONFIG_DNS_POLICY=\"\"/g\' /etc/sysconfig/network/config");
             $ret |= script_run("echo \'#Modified by parallel_guest_migration_base module\' >> /etc/sysconfig/network/config");
         }
+        else {
+            $ret = 0;
+        }
         record_info("Content of /etc/sysconfig/network/config", script_output("cat /etc/sysconfig/network/config", proceed_on_failure => 1));
     }
     my $detect_signature = script_output("cat $args{resolvconf} | grep \"#Modified by parallel_guest_migration_base.pm module\"", proceed_on_failure => 1);
@@ -544,7 +542,14 @@ EOF
     $ret |= script_run("awk -v dnsvar=$args{resolvip} \'done != 1 && /^nameserver.*\$/ { print \"nameserver \"dnsvar\"\"; done=1 } 1\' $args{resolvconf} > $args{resolvconf}.tmp") if ($detect_name_server eq '');
     if ($detect_domain_name eq '') {
         $ret |= script_run("cp $args{resolvconf} $args{resolvconf}.tmp") if (script_run("ls $args{resolvconf}.tmp") != 0);
-        $ret |= script_run("sed -i -r \'s/^search/search $args{domainname}/\' $args{resolvconf}.tmp");
+        if (script_run("cat $args{resolvconf}.tmp | grep -E \"^search \"") == 0) {
+            $ret |= script_run("sed -i -r \'s/^search/search $args{domainname}/\' $args{resolvconf}.tmp");
+        }
+        else {
+            my $domain_name = "$args{domainname} qa2.suse.asia suse.asia suse.de oqa.prg2.suse.org opensuse.org nue.suse.com suse.com";
+            $ret |= script_run("awk \'!found && /^nameserver/ { print \"search $domain_name\";found = 1 } { print }\' $args{resolvconf}.tmp > $args{resolvconf}.tmp2");
+            $ret |= script_run("mv $args{resolvconf}.tmp2 $args{resolvconf}.tmp");
+        }
     }
     if (script_run("ls $args{resolvconf}.tmp") == 0) {
         $ret |= script_run("mv $args{resolvconf}.tmp $args{resolvconf}");
@@ -903,6 +908,216 @@ EOF
         $ret |= 1;
     }
     return $ret;
+}
+
+=head2 check_guest_network_config
+
+Check and obtain guest network configuration. Guest xml config contains enough
+information about network to which guest connects on boot, for example:
+<interface type="network">
+  <mac address="00:16:3e:4f:5a:35"/>
+  <source network="vn_nat_vbrXXX"/>
+</interface>
+or
+<interface type='bridge'>
+  <mac address='52:54:00:70:9d:b2'/>
+  <source bridge='br123'/>
+  <model type='virtio'/>
+  <address type='pci' domain='0x0000' bus='0x01' slot='0x00' function='0x0'/>
+</interface>
+Interface type, source network/bridge name and model type are those useful ones
+determine the network, they will be stored in guest_matrix{guest}{nettype},
+guest_matrix{guest}{netname} and guest_matrix{guest}{netmode}. In order to obtain
+netmode conveniently and consistently, netname should take the form of "vn_" +
+"nat/route/host" + "_other_strings" if virtual network to be used. Addtionally,
+guest_matrix{guest}{macaddr} is also upated by querying domiflist and ip address
+guest_matrix{guest}{ipaddr} can also be obtained from lib/virt_autotest/common.pm
+if static ip address is being used. The main arguments are guest to be checked
+and directory in which guest xml config is stored. This subroutine also calls
+construct_uri to determine the desired URI to be connected if the interested party
+is not localhost. Please refer to subroutine construct_uri for the arguments related.
+Argument guest specifies list of guests separated by space to be handled, matrix
+specifies address of guest matrix to be filled up after obtainsing information
+about a guest. If matrix is not specified, a local matrix address will be used
+and returned.
+=cut
+
+sub check_guest_network_config {
+    my (%args) = @_;
+    $args{guest} //= '';
+    $args{matrix} //= '';
+    $args{confdir} //= '/var/lib/libvirt/images';
+    $args{driver} //= '';
+    $args{transport} //= 'ssh';
+    $args{user} //= '';
+    $args{host} //= 'localhost';
+    $args{port} //= '';
+    $args{path} //= 'system';
+    $args{extra} //= '';
+    die("Guest to be checked must be given") if (!$args{guest});
+
+    my $uri = "--connect=" . virt_autotest::domain_management_utils::construct_uri(driver => $args{driver}, transport => $args{transport}, user => $args{user}, host => $args{host}, port => $args{port}, path => $args{path}, extra => $args{extra});
+    my $local_matrix = 0;
+    if (!$args{matrix}) {
+        my %guest_matrix = ();
+        $args{matrix} = \%guest_matrix;
+        $local_matrix = 1;
+    }
+    foreach my $guest (split(/ /, $args{guest})) {
+        record_info("Check $guest network config", "Check and store $guest network config from xml config, including ip address if static ip is assigned");
+        if ($local_matrix) {
+            $args{matrix}->{$guest}{macaddr} = $args{matrix}->{$guest}{nettype} = $args{matrix}->{$guest}{netname} = $args{matrix}->{$guest}{netmode} = $args{matrix}->{$guest}{ipaddr} = '';
+            $args{matrix}->{$guest}{staticip} = 'no';
+        }
+        $args{matrix}->{$guest}{macaddr} = script_output("virsh $uri domiflist $guest | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"", type_command => 1, proceed_on_failure => 1);
+        $args{matrix}->{$guest}{nettype} = script_output("xmlstarlet sel -T -t -v \"//devices/interface/\@type\" $args{confdir}/$guest.xml", type_command => 1, proceed_on_failure => 1);
+        if ($args{matrix}->{$guest}{nettype} eq 'network' or $args{matrix}->{$guest}{nettype} eq 'bridge') {
+            $args{matrix}->{$guest}{netname} = script_output("xmlstarlet sel -T -t -v \"//devices/interface/source/\@$args{matrix}->{$guest}{nettype}\" $args{confdir}/$guest.xml", type_command => 1, proceed_on_failure => 1);
+            if ($args{matrix}->{$guest}{nettype} eq 'network') {
+                $args{matrix}->{$guest}{netmode} = (($args{matrix}->{$guest}{netname} ne 'default') ? (split(/_/, $args{matrix}->{$guest}{netname}))[1] : 'default');
+            }
+            if ($args{matrix}->{$guest}{nettype} eq 'bridge') {
+                $args{matrix}->{$guest}{netmode} = (($args{matrix}->{$guest}{netname} eq 'br0') ? 'host' : 'bridge');
+            }
+        }
+        if (get_var('REGRESSION', '') =~ /xen|kvm|qemu/i and defined $virt_autotest::common::guests{$guest}->{ip} and $virt_autotest::common::guests{$guest}->{ip} ne '') {
+            $args{matrix}->{$guest}{ipaddr} = $virt_autotest::common::guests{$guest}->{ip};
+            $args{matrix}->{$guest}{staticip} = 'yes';
+        }
+        save_screenshot;
+    }
+    return $args{matrix};
+}
+
+=head2 check_guest_network_address
+
+Check and obtain guest ip address. If static ip address is being used, there is
+no need to check it anymore. If guest uses bridge device directly, its ip address
+can be obtained by querying journal log or scanning subnet by using nmap (if host
+bridge device br0 is being used directly) with mac address. If guest uses virtual
+network created by virsh, its ip address can be obtained by querying dhcp leases
+of the virtual network or scanning subnet by using nmap (if host bridge device is
+being used in the virtual network directly) with mac address. The main arguments
+is guest to be checked. This subroutine also calls construct_uri to determine the
+desired URI to be connected if the interested party is not localhost. Please refer
+to subroutine construct_uri for the arguments related. Argument guest specifies
+list of guests separated by space to be handled, matrix specifies address of guest
+matrix to be filled up after obtainsing information about a guest. If matrix is
+not specified, a local matrix address will be used and returned.
+=cut
+
+sub check_guest_network_address {
+    my (%args) = @_;
+    $args{guest} //= '';
+    $args{matrix} //= '';
+    $args{driver} //= '';
+    $args{transport} //= 'ssh';
+    $args{user} //= '';
+    $args{host} //= 'localhost';
+    $args{port} //= '';
+    $args{path} //= 'system';
+    $args{extra} //= '';
+    croak("Guest to be checked must be given") if (!$args{guest});
+
+    my $uri = "--connect=" . virt_autotest::domain_management_utils::construct_uri(driver => $args{driver}, transport => $args{transport}, user => $args{user}, host => $args{host}, port => $args{port}, path => $args{path}, extra => $args{extra});
+    my $local_matrix = 0;
+    if (!$args{matrix}) {
+        my %guest_matrix = ();
+        $args{matrix} = \%guest_matrix;
+        $local_matrix = 1;
+    }
+    foreach my $guest (split(/ /, $args{guest})) {
+        record_info("Check $guest network address", "Check and store $guest network address assigned by dhcp service. Skip if static ip is being used.");
+        return if ($args{matrix}->{$guest}{staticip} eq 'yes');
+        if ($local_matrix) {
+            $args{matrix}->{$guest}{ipaddr} = '';
+        }
+        if ($args{matrix}->{$guest}{nettype} eq 'network') {
+            if ($args{matrix}->{$guest}{netmode} eq 'host') {
+                my $br0_network = script_output("ip route show all | grep -v default | grep \".* br0\" | awk \'{print \$1}\'", type_command => 1, proceed_on_failure => 1);
+                script_retry("nmap -sP $br0_network | grep -i $args{matrix}->{$guest}{macaddr}", option => '--kill-after=1 --signal=9', timeout => 180, retry => 30, delay => 10, die => 0);
+                $args{matrix}->{$guest}{ipaddr} = script_output("nmap -sP $br0_network | grep -i $args{matrix}->{$guest}{macaddr} -B2 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", type_command => 1, timeout => 180, proceed_on_failure => 1);
+            }
+            else {
+                script_retry("virsh $uri net-dhcp-leases --network $args{matrix}->{$guest}{netname} | grep -ioE \"$args{matrix}->{$guest}{macaddr}.*([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", retry => 30, delay => 10, die => 0);
+                $args{matrix}->{$guest}{ipaddr} = script_output("virsh $uri net-dhcp-leases --network $args{matrix}->{$guest}{netname} | grep -i $args{matrix}->{$guest}{macaddr} | awk \'{print \$5}\'", type_command => 1, proceed_on_failure => 1);
+                $args{matrix}->{$guest}{ipaddr} = (split(/\//, $args{matrix}->{$guest}{ipaddr}))[0];
+                save_screenshot;
+            }
+        }
+        elsif ($args{matrix}->{$guest}{nettype} eq 'bridge') {
+            if ($args{matrix}->{$guest}{netname} eq 'br0') {
+                my $br0_network = script_output("ip route show all | grep -v default | grep \".* br0\" | awk \'{print \$1}\'", type_command => 1, proceed_on_failure => 1);
+                script_retry("nmap -sP $br0_network | grep -i $args{matrix}->{$guest}{macaddr}", option => '--kill-after=1 --signal=9', timeout => 180, retry => 30, delay => 10, die => 0);
+                $args{matrix}->{$guest}{ipaddr} = script_output("nmap -sP $br0_network | grep -i $args{matrix}->{$guest}{macaddr} -B2 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", type_command => 1, timeout => 180, proceed_on_failure => 1);
+            }
+            else {
+                script_retry("journalctl --no-pager -n 100 | grep -i \"DHCPACK.*$args{matrix}->{$guest}{netname}.*$args{matrix}->{$guest}{macaddr}\" | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", option => '--kill-after=1 --signal=9', retry => 30, delay => 10, die => 0);
+                $args{matrix}->{$guest}{ipaddr} = script_output("journalctl --no-pager -n 100 | grep -i \"DHCPACK.*$args{matrix}->{$guest}{netname}.*$args{matrix}->{$guest}{macaddr}\" | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", type_command => 1, proceed_on_failure => 1);
+            }
+        }
+        save_screenshot;
+    }
+    return $args{matrix};
+}
+
+=head2 config_network_device_policy
+
+  config_network_device_policy(logdir => 'folder path', name => 'distiguish name',
+      netdev => 'network device')
+
+Stop firewall/apparmor, loosen iptables rules and enable forwarding globally and
+on all default route devices and netdev. Please specify logdir in which applied
+rules will be stored, name which will be appened to form distinguish scirpt name
+and netdev to be concerned.
+
+=cut
+
+sub config_network_device_policy {
+    my (%args) = @_;
+    $args{logdir} //= '/var/log';
+    $args{name} //= $args{netdev};
+    $args{netdev} //= '';
+    croak("Network device to which policy will be applied must be given") if (!$args{netdev});
+
+    my @default_route_devices = split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", proceed_on_failure => 0));
+    my $iptables_default_route_devices = '';
+    $iptables_default_route_devices = "iptables --table nat --append POSTROUTING --out-interface $_ -j MASQUERADE\n" . $iptables_default_route_devices foreach (@default_route_devices);
+    my $network_policy_config_file = $args{logdir} . '/network_policy_bridge_device_' . $args{netdev} . '_default_route_device';
+    $network_policy_config_file = $network_policy_config_file . '_' . $_ foreach (@default_route_devices);
+    $network_policy_config_file = $network_policy_config_file . '.sh';
+    type_string("cat > $network_policy_config_file <<EOF
+#!/bin/bash
+iptables-save > $args{logdir}/iptables_before_modification_by_$args{name}
+systemctl stop SuSEFirewall2
+systemctl disable SuSEFirewall2
+systemctl stop firewalld
+systemctl disable firewalld
+systemctl stop apparmor
+systemctl disable apparmor
+systemctl stop named
+systemctl disable named
+systemctl stop dhcpd
+systemctl disable dhcpd
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -t nat -F
+iptables -F
+iptables -X
+$iptables_default_route_devices
+iptables --append FORWARD --in-interface $args{netdev} -j ACCEPT
+iptables --append FORWARD --out-interface $args{netdev} -j ACCEPT
+sysctl -w net.ipv4.ip_forward=1
+sysctl -w net.ipv4.conf.all.forwarding=1
+iptables-save > $args{logdir}/iptables_after_modification_by_$args{name}
+EOF
+");
+
+    record_info("Network policy config file", script_output("cat $network_policy_config_file", proceed_on_failure => 0));
+    assert_script_run("chmod 777 $network_policy_config_file");
+    script_run("$network_policy_config_file", timeout => 60);
+    return $network_policy_config_file;
 }
 
 1;
