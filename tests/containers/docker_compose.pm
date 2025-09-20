@@ -35,7 +35,9 @@ sub setup {
     record_info("version", $version);
 
     # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
-    my @patches = qw(13214);
+    my @patches = ();
+    # PR#13214 was merged on v2.39.4
+    push @patches, "13214" unless is_tumbleweed;
     patch_sources "compose", "v$version", "pkg/e2e", \@patches;
 }
 
