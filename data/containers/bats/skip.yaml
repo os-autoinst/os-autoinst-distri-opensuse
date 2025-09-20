@@ -61,7 +61,6 @@ buildah:
     BATS_IGNORE_ROOT:
     - "bud.bats::bud-git-context"
     - "bud.bats::bud-git-context-subdirectory"
-    - "bud.bats::bud-multiple-platform-no-partial-manifest-list"
     - "bud.bats::bud using gitrepo and branch"
     - "bud.bats::bud with --cgroup-parent"
     - "run.bats::Check if containers run with correct open files/processes limits"
@@ -74,7 +73,6 @@ buildah:
     BATS_IGNORE_ROOT:
     - "bud.bats::bud-git-context"
     - "bud.bats::bud-git-context-subdirectory"
-    - "bud.bats::bud-multiple-platform-no-partial-manifest-list"
     - "bud.bats::bud using gitrepo and branch"
     - "bud.bats::bud with --cgroup-parent"
     - "run.bats::Check if containers run with correct open files/processes limits"
@@ -84,12 +82,12 @@ buildah:
     - 5495
     - 6226
     BATS_IGNORE:
-    - "bud.bats::bud-git-context"
-    - "bud.bats::bud-git-context-subdirectory"
     - "bud.bats::bud-multiple-platform-no-partial-manifest-list"
+    BATS_IGNORE_ROOT:
     - "bud.bats::bud using gitrepo and branch"
     - "bud.bats::bud with --cgroup-parent"
-    BATS_IGNORE_ROOT:
+    - "bud.bats::bud-git-context"
+    - "bud.bats::bud-git-context-subdirectory"
     - "run.bats::Check if containers run with correct open files/processes limits"
     BATS_IGNORE_USER:
   sle-15-SP4:
@@ -97,12 +95,12 @@ buildah:
     - 5495
     - 6226
     BATS_IGNORE:
-    - "bud.bats::bud-git-context"
-    - "bud.bats::bud-git-context-subdirectory"
     - "bud.bats::bud-multiple-platform-no-partial-manifest-list"
+    BATS_IGNORE_ROOT:
     - "bud.bats::bud using gitrepo and branch"
     - "bud.bats::bud with --cgroup-parent"
-    BATS_IGNORE_ROOT:
+    - "bud.bats::bud-git-context"
+    - "bud.bats::bud-git-context-subdirectory"
     - "run.bats::Check if containers run with correct open files/processes limits"
     BATS_IGNORE_USER:
 conmon:
