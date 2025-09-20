@@ -88,6 +88,10 @@ sub run {
     return $self;
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 sub post_fail_hook {
     my $self = shift;
 

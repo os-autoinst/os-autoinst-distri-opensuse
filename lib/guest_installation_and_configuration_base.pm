@@ -1463,7 +1463,18 @@ by passing non-empty arguments using hash.Call config_guest_installation_media t
 set correct installation media. For directkernel installation method which uses
 virt-install --install, please also refer to following link for more information
 https://manpages.opensuse.org/Tumbleweed/virt-install/virt-install.1.en.html
-
+For 'location' installation method, virt-install command looks like:
+--location [guest_installation_media],[guest_installation_method_others]
+--extra-args root=live:[guest_installation_fine_grained_media]
+--extra-args inst.install_url=[guest_installation_fine_grained_repos]
+--extra-args [guest_installation_extra_args] 
+For 'directkernel' installation method, virt-install command looks like:
+--install kernel=[guest_installation_fine_grained_media]/linux,
+initrd=[guest_installation_fine_grained_media]/initrd,
+kernel_args=root=live:[guest_installation_media],inst.install_url=
+[guest_installation_fine_grained_repos],[guest_installation_fine_grained_kernel_args]
+For 'import' installation method, virt-install command looks like:
+virt-install --import --disk [guest_storage_options]
 =cut
 
 sub config_guest_installation_method {
@@ -1478,50 +1489,55 @@ sub config_guest_installation_method {
         record_info("Installation media $_guest_installation_media does not exist", script_output("curl -I $_guest_installation_media", proceed_on_failure => 1), result => 'fail');
         $self->record_guest_installation_result('FAILED');
     }
-    if ($self->{guest_installation_method} eq 'directkernel') {
-        $self->{guest_installation_method_options} = '--autoconsole ' . $self->{guest_autoconsole} if ($self->{guest_autoconsole} ne '');
-        $self->{guest_installation_method_options} = '--noautoconsole' if ($self->{guest_noautoconsole} eq 'true');
-        if ($self->{guest_build} ne 'gm') {
-            $self->{guest_installation_fine_grained_media} =~ s/12345/$self->{guest_build}/g;
-            $self->{guest_installation_fine_grained_repos} =~ s/12345/$self->{guest_build}/g;
-        }
+
+    my $_guest_installation_fine_grained_media = '';
+    if ($self->{guest_installation_fine_grained_media} ne '') {
+        $self->{guest_installation_fine_grained_media} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
+        $_guest_installation_fine_grained_media = render_autoinst_url(url => $self->{guest_installation_fine_grained_media});
         my $_guest_arch = ($self->{guest_arch} ? $self->{guest_arch} : get_required_var('ARCH'));
-        my $_guest_installation_fine_grained_media = render_autoinst_url(url => $self->{guest_installation_fine_grained_media});
         if (script_output("curl --silent -I $_guest_installation_fine_grained_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") == "200") {
-            assert_script_run("curl -s -o $self->{guest_image_folder}/linux $_guest_installation_fine_grained_media/boot/$_guest_arch/loader/linux");
-            assert_script_run("curl -s -o $self->{guest_image_folder}/initrd $_guest_installation_fine_grained_media/boot/$_guest_arch/loader/initrd");
+            if ($self->{guest_installation_method} eq 'directkernel') {
+                assert_script_run("curl -s -o $self->{guest_image_folder}/linux $_guest_installation_fine_grained_media/boot/$_guest_arch/loader/linux");
+                assert_script_run("curl -s -o $self->{guest_image_folder}/initrd $_guest_installation_fine_grained_media/boot/$_guest_arch/loader/initrd");
+            }
         }
         else {
             record_info("Fine-grained installation media $self->{guest_installation_fine_grained_media} does not exist", script_output("curl -I $_guest_installation_fine_grained_media", proceed_on_failure => 1), result => 'fail');
             $self->record_guest_installation_result('FAILED');
         }
+    }
+
+    my $_guest_installation_fine_grained_repos = '';
+    if ($self->{guest_installation_fine_grained_repos} ne '') {
+        $self->{guest_installation_fine_grained_repos} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
+        foreach (split(',', $self->{guest_installation_fine_grained_repos})) {
+            my $_guest_installation_fine_grained_repo = render_autoinst_url(url => $_);
+            if (script_output("curl --silent -I $_guest_installation_fine_grained_repo | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") != "200") {
+                record_info("Fine-grained repo $_guest_installation_fine_grained_repo does not exist", script_output("curl -I $_guest_installation_fine_grained_repo", proceed_on_failure => 1), result => 'fail');
+                $self->record_guest_installation_result('FAILED');
+            }
+            $_guest_installation_fine_grained_repos .= $_guest_installation_fine_grained_repo . ',';
+        }
+        $_guest_installation_fine_grained_repos =~ s/,$//g;
+    }
+
+    $self->{guest_installation_method_options} = '--autoconsole ' . $self->{guest_autoconsole} if ($self->{guest_autoconsole} ne '');
+    $self->{guest_installation_method_options} = '--noautoconsole' if ($self->{guest_noautoconsole} eq 'true');
+
+    if ($self->{guest_installation_method} eq 'directkernel') {
         $self->{guest_installation_method_options} .= ' --install kernel=' . $self->{guest_image_folder} . '/linux,initrd=' . $self->{guest_image_folder} . '/initrd';
         $self->{guest_installation_method_options} .= ',' . $self->{guest_installation_fine_grained_others} if ($self->{guest_installation_fine_grained_others} ne '');
         $self->{guest_installation_fine_grained_kernel_args} .= ' root=live:' . $_guest_installation_media;
-        if ($self->{guest_installation_fine_grained_repos} ne '') {
-            my $_guest_installation_fine_grained_repos = '';
-            foreach (split(',', $self->{guest_installation_fine_grained_repos})) {
-                my $_guest_installation_fine_grained_repo = render_autoinst_url(url => $_);
-                if (script_output("curl --silent -I $_guest_installation_fine_grained_repo | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") != "200") {
-                    record_info("Fine-grained repo $_guest_installation_fine_grained_repo does not exist", script_output("curl -I $_guest_installation_fine_grained_repo", proceed_on_failure => 1), result => 'fail');
-                    $self->record_guest_installation_result('FAILED');
-                }
-                $_guest_installation_fine_grained_repos .= $_guest_installation_fine_grained_repo . ',';
-            }
-            $_guest_installation_fine_grained_repos =~ s/,$//g;
-            $self->{guest_installation_fine_grained_kernel_args} .= ' agama.install_url=' . $_guest_installation_fine_grained_repos if (is_agama_guest(guest => $self->{guest_name}));
-        }
+        $self->{guest_installation_fine_grained_kernel_args} .= ' inst.install_url=' . $_guest_installation_fine_grained_repos if (is_agama_guest(guest => $self->{guest_name}) and $_guest_installation_fine_grained_repos ne '');
     }
-    else {
-        if ($self->{guest_installation_method} eq 'import') {
-            $self->{guest_installation_method_options} = '--import ';
-        }
-        elsif ($self->{guest_installation_method} eq 'location') {
-            $self->{guest_installation_method_options} = '--location ' . $_guest_installation_media;
-        }
-        $self->{guest_installation_method_options} .= (($self->{guest_installation_method_others} ne '') ? ",$self->{guest_installation_method_others}" : '') if ($self->{guest_installation_method_others} ne '');
-        $self->{guest_installation_method_options} .= " --autoconsole $self->{guest_autoconsole}" if ($self->{guest_autoconsole} ne '');
-        $self->{guest_installation_method_options} .= " --noautoconsole" if ($self->{guest_noautoconsole} eq 'true');
+    elsif ($self->{guest_installation_method} eq 'location') {
+        $self->{guest_installation_method_options} .= ' --location ' . $_guest_installation_media;
+        $self->{guest_installation_method_options} .= ",$self->{guest_installation_method_others}" if ($self->{guest_installation_method_others} ne '');
+        $self->{guest_installation_extra_args} .= '#root=live:' . $_guest_installation_fine_grained_media if ($_guest_installation_fine_grained_media ne '');
+        $self->{guest_installation_extra_args} .= '#inst.install_url=' . $_guest_installation_fine_grained_repos if (is_agama_guest(guest => $self->{guest_name}) and $_guest_installation_fine_grained_repos ne '');
+    }
+    elsif ($self->{guest_installation_method} eq 'import') {
+        $self->{guest_installation_method_options} .= ' --import ';
     }
 
     return $self;
@@ -1622,12 +1638,14 @@ sub config_guest_installation_extra_args {
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
     if ($self->{guest_installation_extra_args} ne '') {
         my @_guest_installation_extra_args = split(/#/, $self->{guest_installation_extra_args});
-        $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . "--extra-args \"$_\" " foreach (@_guest_installation_extra_args);
+        foreach (@_guest_installation_extra_args) {
+            $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . "--extra-args \"$_\" " if ($_ ne '');
+        }
         $self->{guest_installation_extra_args_options} = $self->{guest_installation_extra_args_options} . "--extra-args \"ip=$self->{guest_ipaddr}\"" if (($self->{guest_ipaddr_static} eq 'true') and ($self->{guest_ipaddr} ne ''));
     }
 
     if ($self->{guest_installation_fine_grained_kernel_args} ne '' or $self->{guest_installation_fine_grained_kernel_args_overwrite} ne '') {
-        $self->{guest_installation_method_options} = (($self->{guest_installation_method} ne 'directkernel') ? '--install ' : ($self->{guest_installation_method_options} . ','));
+        $self->{guest_installation_method_options} = (($self->{guest_installation_method} ne 'directkernel') ? ($self->{guest_installation_method_options} . ' --install ') : ($self->{guest_installation_method_options} . ','));
         if ($self->{guest_installation_fine_grained_kernel_args} ne '') {
             $self->{guest_installation_method_options} .= 'kernel_args="' . $self->{guest_installation_fine_grained_kernel_args};
             $self->{guest_installation_method_options} .= '"';
@@ -1699,9 +1717,14 @@ sub config_guest_installation_automation_registration {
                 assert_script_run("sed -zri \'s/<\\\/addons>.*\\n.*<\\\/suse_register>/$_guest_registration_extension_clip\\n    <\\\/addons>\\n  <\\\/suse_register>/\' $self->{guest_installation_automation_file}");
             }
         }
-        if ($self->{guest_installation_method} eq 'directkernel') {
-            my $_guest_registration_server = ($self->{guest_registration_server} ? $self->{guest_registration_server} : get_var('SCC_URL', 'https://scc.suse.com'));
-            $self->{guest_installation_fine_grained_kernel_args} .= ' inst.register_url=' . $_guest_registration_server if (is_agama_guest(guest => $self->{guest_name}));
+        my $_guest_registration_server = ($self->{guest_registration_server} ? $self->{guest_registration_server} : get_var('SCC_URL', 'https://scc.suse.com'));
+        if (is_agama_guest(guest => $self->{guest_name}) and $self->{guest_do_registration} eq 'true') {
+            if ($self->{guest_installation_method} eq 'directkernel') {
+                $self->{guest_installation_fine_grained_kernel_args} .= ' inst.register_url=' . $_guest_registration_server;
+            }
+            elsif ($self->{guest_installation_method} eq 'location') {
+                $self->{guest_installation_extra_args} .= '#inst.register_url=' . $_guest_registration_server;
+            }
         }
     }
     return $self;
@@ -2074,7 +2097,12 @@ sub config_guest_unattended_installation {
             $self->{guest_installation_automation_options} = "--extra-args \"ks=$self->{guest_installation_automation_file}\"" if (($self->{guest_os_name} =~ /oraclelinux/im) and ($self->{guest_version_major} lt 7));
         }
         elsif ($self->{guest_installation_automation_method} eq 'autoagama') {
-            $self->{guest_installation_fine_grained_kernel_args} .= ' inst.auto=' . $self->{guest_installation_automation_file} . ' inst.finish=stop' if ($self->{guest_installation_method} eq 'directkernel');
+            if ($self->{guest_installation_method} eq 'directkernel') {
+                $self->{guest_installation_fine_grained_kernel_args} .= ' inst.auto=' . $self->{guest_installation_automation_file} . ' inst.finish=stop';
+            }
+            elsif ($self->{guest_installation_method} eq 'location') {
+                $self->{guest_installation_extra_args} .= '#inst.auto=' . $self->{guest_installation_automation_file} . '#inst.finish=stop';
+            }
         }
         if (script_retry("curl -sSf $self->{guest_installation_automation_file} > /dev/null") ne 0) {
             record_info("Guest $self->{guest_name} unattended installation file hosted on local host can not be reached", "Mark guest installation as FAILED. The unattended installation file url is $self->{guest_installation_automation_file}", result => 'fail');
@@ -2570,9 +2598,13 @@ sub setup_guest_agama_installation_shell {
     }
     else {
         enter_cmd("clear", wait_still_screen => 3);
-        enter_cmd("timeout --kill-after=1 --signal=9 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
-        assert_screen('password-prompt', timeout => 30);
-        enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+        if (script_run("timeout --kill-after=1 --signal=9 60 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}") != 0) {
+            type_string("reset\n");
+            wait_still_screen;
+            enter_cmd("timeout --kill-after=1 --signal=9 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
+            assert_screen('password-prompt', timeout => 30);
+            enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+        }
         wait_still_screen(15);
         if (script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
             $self->record_guest_installation_result('FAILED');
