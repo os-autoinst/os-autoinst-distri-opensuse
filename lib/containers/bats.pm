@@ -111,10 +111,10 @@ sub install_bats {
     run_command "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
 
-    foreach my $file (qw(skip_notok xfails)) {
-        assert_script_run "curl -o /usr/local/bin/bats_$file " . data_url("containers/bats/$file.py");
-        assert_script_run "chmod +x /usr/local/bin/bats_$file";
-    }
+    assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats/skip_notok.py");
+    assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
+    assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
+    assert_script_run "chmod +x /usr/local/bin/patch_junit";
 }
 
 sub configure_oci_runtime {
@@ -184,8 +184,8 @@ sub patch_logfile {
 
     my $skip_tests = join(' ', map { "\"$_\"" } @skip_tests);
     assert_script_run "bats_skip_notok $log_file $skip_tests" if (@skip_tests);
-    # We must unconditionally call bats_xfails to prefix suitename when needed
-    my @passed = split /\n/, script_output "bats_xfails $xmlfile $skip_tests";
+    # We must unconditionally call patch_junit to prefix suitename when needed
+    my @passed = split /\n/, script_output "patch_junit $xmlfile $skip_tests";
     foreach my $pass (@passed) {
         record_info("PASS", $pass);
     }
