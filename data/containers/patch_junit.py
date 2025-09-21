@@ -58,9 +58,9 @@ def patch_xml(file: str, xfails: Dict[str, List[str]]) -> None:
         adjusted = failures
 
         for testcase in testsuite.findall("testcase"):
-            # Prepend prefix to the suite name (now in classname)
+            # Prepend prefix to the classname if it matches the suitename
             classname = testcase.get("classname")  # type: ignore
-            if prefix and classname:
+            if prefix and classname == suitename:
                 testcase.set("classname", prefix + classname)
 
             # We don't do this before because we need to prepend the prefix above
@@ -88,6 +88,13 @@ def patch_xml(file: str, xfails: Dict[str, List[str]]) -> None:
         # Update failures counter
         if adjusted != failures:
             testsuite.set("failures", str(adjusted))
+
+    # Also update failures counters in root testsuites, if present
+    if root.tag == "testsuites" and "failures" in root.attrib:
+        total_failures = sum(
+            int(ts.get("failures", "0")) for ts in root.findall("testsuite")
+        )
+        root.set("failures", str(total_failures))
 
     tree.write(file, encoding="utf-8", xml_declaration=True)
 
