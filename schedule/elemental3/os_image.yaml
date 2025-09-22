@@ -1,0 +1,17 @@
+name: os_image
+description: |
+  - Test boot of Elemental OS image
+  - Test k8s distribution included in the image
+  Maintainer: unified-core@suse.com, ldevulder@suse.com
+schedule:
+  - elemental3/elemental_boot
+  - '{{elemental_test}}'
+conditional_schedule:
+  elemental_test:
+    TEST_TYPE:
+      test_image:
+        - elemental3/start_k8s
+      k8s_validation:
+        - elemental3/wait_barriers
+        - elemental3/configure_network
+        - elemental3/start_k8s
