@@ -52,14 +52,17 @@ sub ensure_system_ready_and_register {
     }
     if ($args{reg_code}) {
         script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'), 200);
-        script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect --cleanup'), 200);
+        script_run(join(' ', $args{ssh_command}, 'sudo registercloudguest --clean'), 200);
 
-        my $cmd = join(' ',
-            $args{ssh_command},
-            qq(sudo registercloudguest --force-new -r "$args{reg_code}" -e testing\@suse.com));
-        my $exit = script_run($cmd, 600);
-        die "registercloudguest failed with exit $exit" unless ($exit == 0);
+        my $rc = 1;
+        my $attempt = 0;
 
+        while ($rc != 0 && $attempt < 4) {
+            $rc = script_run("$args{ssh_command} sudo registercloudguest --force-new -r $args{reg_code} -e testing\@suse.com", 600);
+            record_info('REGISTER CODE', $rc);
+            $attempt++;
+        }
+        die "registercloudguest failed after $attempt attempts with exit $rc" unless ($rc == 0);
         assert_script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'));
     }
 
@@ -87,12 +90,12 @@ sub run {
     assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
     record_info('SSH', 'VM reachable with SSH');
 
-    ensure_system_ready_and_register(reg_code => get_required_var('SCC_REGCODE_SLES4SAP'), ssh_command => $ssh_cmd);
+    ensure_system_ready_and_register(reg_code => get_var('SCC_REGCODE_SLES4SAP'), ssh_command => $ssh_cmd);
     record_info('Done', 'Test finished');
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 sub post_fail_hook {

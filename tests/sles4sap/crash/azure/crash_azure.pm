@@ -13,6 +13,31 @@ use version_utils 'is_sle';
 use sles4sap::azure_cli;
 use publiccloud::instance;
 use utils;
+use publiccloud::ssh_interactive;
+
+=head2 softrestart
+    softrestart(instance => $instance [, timeout => 600]);
+Does a soft restart of the given C<instance> by running the command C<shutdown -r>.
+=cut
+
+sub softrestart {
+    my (%args) = @_;
+    $args{timeout} //= 600;
+    die "Missing mandatory argument 'instance'" unless $args{instance};
+
+    $args{instance}->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
+    sleep 60;
+    my $start_time = time();
+
+    # wait till ssh disappear
+    my $out = $args{instance}->wait_for_ssh(timeout => $args{timeout}, wait_stop => 1, 'cloudadmin');
+    # ok ssh port closed
+    record_info("Shutdown failed", "WARNING: while stopping the system, ssh port still open after timeout,\nreporting: $out")
+      if (defined $out);    # not ok port still open
+
+    my $shutdown_time = time() - $start_time;
+    $args{instance}->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, 'cloudadmin', 0);
+}
 
 sub run {
     my ($self) = @_;
@@ -20,7 +45,8 @@ sub run {
     # Crash test
     my $vm_ip = get_required_var('VM_IP');
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => 'cloudadmin');
-    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    select_host_console();
+    softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), instance => $instance);
 
     my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
@@ -42,7 +68,7 @@ sub run {
         die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
     }
 
-    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), instance => $instance);
     select_serial_terminal;
     wait_serial(qr/\#/, timeout => 600);
 
@@ -72,7 +98,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 sub post_fail_hook {
