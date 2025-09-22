@@ -338,7 +338,7 @@ sub load_container_tests {
     }
 
     if (my $container_tests = get_var('CONTAINER_TESTS', '')) {
-        loadtest "containers/$_" foreach (split('\s+', $container_tests));
+        loadtest "containers/$_" foreach (split(',\s*', $container_tests));
         return;
     }
 
