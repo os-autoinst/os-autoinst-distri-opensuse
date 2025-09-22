@@ -11,6 +11,7 @@ use testapi;
 use utils;
 use nvidia_utils;
 use serial_terminal qw(select_serial_terminal);
+use version_utils qw(is_sle);
 
 sub run
 {
@@ -20,6 +21,7 @@ sub run
 
     nvidia_utils::install(variant => "cuda", reboot => 1);
     nvidia_utils::validate();
+    nvidia_utils::validate_cuda() if is_sle;
 
     nvidia_utils::install(reboot => 1);
     nvidia_utils::validate();

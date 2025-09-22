@@ -11,6 +11,7 @@ use registration;
 use testapi;
 use utils;
 use nvidia_utils;
+use version_utils qw(is_sle);
 
 sub run
 {
@@ -23,6 +24,7 @@ sub run
     nvidia_utils::install(variant => "cuda");
     $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     nvidia_utils::validate();
+    nvidia_utils::validate_cuda() if is_sle;
 }
 
 sub test_flags {
