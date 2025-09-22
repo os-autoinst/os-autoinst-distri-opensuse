@@ -5,6 +5,7 @@ schedule:
   - yam/agama/agama_auto
   - installation/grub_test
   - installation/first_boot
+  - console/console_reboot
   - console/validate_lvm
   - console/validate_encrypt
   - yam/validate/validate_tpm_fde
