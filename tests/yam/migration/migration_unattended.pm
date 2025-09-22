@@ -45,18 +45,22 @@ sub run {
         }
     }
 
-    # upload logs to know system state before migration
-    upload_logs("/boot/grub2/grub.cfg", failok => 1);
-    upload_folders(folders => '/etc/zypp/repos.d/');
-
     if (is_s390x) {
         assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         enter_cmd '/usr/sbin/run_migration';
         reset_consoles;
         reconnect_mgmt_console;
     } else {
+        # disable timeout for migration grub menu
+        assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
+        assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+        # upload logs to know system state before migration
+        upload_logs("/boot/grub2/grub.cfg", failok => 1);
+        upload_folders(folders => '/etc/zypp/repos.d/');
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
-        assert_screen([qw(grub-menu-migration migration-running)], 90);
+        assert_screen('grub-menu-migration', 120);
+        send_key 'ret';
+        assert_screen('migration-running');
         assert_screen('grub2', 600);
     }
 }
