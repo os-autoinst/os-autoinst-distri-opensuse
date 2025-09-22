@@ -47,7 +47,7 @@ sub run {
     $img_filename =~ tr/\/#/_/;
 
     # Define timeouts based on the architecture
-    my $timeout = (is_aarch64) ? 480 : 240;
+    my $timeout = (is_aarch64) ? 960 : 480;
 
     # Set SELinux in permissive mode, as there is an issue with Enforcing mode and Elemental doesn't support it
     assert_script_run("setenforce Permissive");
@@ -56,7 +56,7 @@ sub run {
     assert_script_run("mkdir -p $shared");
 
     if (lc($flavor) =~ m/image/) {
-        assert_script_run("podman pull $image");
+        assert_script_run("podman pull $image", $timeout);
         assert_script_run("podman run --name $cnt_name -v $shared:/host:Z -dt $image sleep infinity");
 
         record_info('Kernel', 'Test that kernel files are present');
@@ -113,7 +113,7 @@ sub run {
     if (lc($flavor) =~ m/iso/) {
         # Create and upload ISO image
         record_info('ISO', 'Generate and upload ISO');
-        assert_script_run("podman run --rm -v $shared:/host:Z $image /bin/sh -c 'busybox cp /elemental-iso/*.iso /host/$img_filename.iso'");
+        assert_script_run("podman run --rm -v $shared:/host:Z $image /bin/sh -c 'busybox cp /elemental-iso/*.iso /host/$img_filename.iso'", $timeout);
         upload_asset("$shared/$img_filename.iso", 1);
     }
 }
