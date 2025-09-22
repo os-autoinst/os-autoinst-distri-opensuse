@@ -18,6 +18,7 @@ use autotest;
 
 use base 'consoletest';
 use LTP::TestInfo 'testinfo';
+use Utils::Backends 'is_pvm_hmc';
 use mr_test_run qw(get_notes get_solutions);
 
 our @EXPORT = qw(
