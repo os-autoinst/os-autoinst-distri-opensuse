@@ -97,6 +97,7 @@ our @EXPORT = qw(
   load_virtualization_tests
   load_x11tests
   load_hypervisor_tests
+  load_sles16_mu_virt_tests
   load_yast2_gui_tests
   load_zdup_tests
   logcurrentenv
@@ -111,6 +112,7 @@ our @EXPORT = qw(
   rescuecdstep_is_applicable
   set_defaults_for_username_and_password
   set_mu_virt_vars
+  set_sles16_mu_virt_vars
   setup_env
   snapper_is_applicable
   ssh_key_import
@@ -2411,6 +2413,70 @@ sub check_and_load_mu_virt_features {
     }
 }
 
+sub get_virt_features_definition {
+    # Common virtualization features definition shared between load_hypervisor_tests and load_sles16_mu_virt_tests
+    return (
+        ENABLE_SAVE_AND_RESTORE => {
+            modules => ['virtualization/universal/save_and_restore'],
+        },
+        ENABLE_GUEST_MANAGEMENT => {
+            modules => ['virtualization/universal/guest_management'],
+        },
+        ENABLE_FINAL => {
+            modules => ['virtualization/universal/ssh_final', 'virtualization/universal/virtmanager_final', 'virtualization/universal/smoketest', 'virtualization/universal/stresstest', 'console/perf'],
+        },
+        ENABLE_STORAGE => {
+            modules => ['virtualization/universal/storage'],
+        },
+        ENABLE_WINDOWS => {
+            modules => ['virtualization/universal/download_image', 'virtualization/universal/windows'],
+        },
+        ENABLE_DOM_METRICS => {
+            modules => ['virtualization/universal/virsh_stop', 'virtualization/universal/xl_create', 'virtualization/universal/dom_install', 'virtualization/universal/dom_metrics', 'virtualization/universal/xl_stop', 'virtualization/universal/virsh_start'],
+            hypervisor => 'xen',
+        },
+        ENABLE_IRQBALANCE => {
+            modules => ['virt_autotest/xen_guest_irqbalance'],
+            hypervisor => 'xen',
+        },
+        ENABLE_VIR_NET => {
+            modules => ['virt_autotest/libvirt_host_bridge_virtual_network', 'virt_autotest/libvirt_nated_virtual_network', 'virt_autotest/libvirt_isolated_virtual_network'],
+        },
+        ENABLE_NATED_VIR_NET => {
+            modules => ['virt_autotest/libvirt_nated_virtual_network'],
+        },
+        ENABLE_VIRTMANAGER => {
+            modules => ['virtualization/universal/virtmanager_init', 'virtualization/universal/virtmanager_offon', 'virtualization/universal/virtmanager_add_devices', 'virtualization/universal/virtmanager_rm_devices'],
+        },
+        ENABLE_HOTPLUGGING => {
+            modules => ['virtualization/universal/hotplugging_guest_preparation', 'virtualization/universal/hotplugging_network_interfaces', 'virtualization/universal/hotplugging_HDD', 'virtualization/universal/hotplugging_vCPUs', 'virtualization/universal/hotplugging_memory', 'virtualization/universal/hotplugging_cleanup'],
+        },
+        ENABLE_SNAPSHOTS => {
+            modules => ['virt_autotest/virsh_internal_snapshot', 'virt_autotest/virsh_external_snapshot'],
+            hypervisor => 'kvm',
+        },
+        ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH => {
+            modules => ['virt_autotest/sriov_network_card_pci_passthrough'],
+        },
+        ENABLE_SEV_SNP => {
+            modules => ['virt_autotest/sev_snp_validation'],
+        },
+    );
+}
+
+sub load_guest_migration_tests {
+    # Common guest migration tests logic shared between hypervisor test functions
+    if (check_var('VIRT_NEW_GUEST_MIGRATION_SOURCE', '1')) {
+        loadtest "virt_autotest/login_console";
+        loadtest "virt_autotest/parallel_guest_migration_source";
+    }
+    if (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
+        loadtest "virt_autotest/parallel_guest_migration_barrier";
+        loadtest "virt_autotest/login_console";
+        loadtest "virt_autotest/parallel_guest_migration_destination";
+    }
+}
+
 sub load_host_installation_modules {
     loadtest "installation/welcome";
     loadtest "installation/scc_registration";
@@ -2528,6 +2594,78 @@ sub set_mu_virt_vars {
     bmwqemu::save_vars();
 }
 
+sub set_sles16_mu_virt_vars {
+    # SLES16 MU testing only supports staging mode
+    # - FLAVOR contains "staging" AND INCIDENT_REPO is set → Staging mode
+
+    if (get_var('FLAVOR', '') =~ /staging/i && get_var('INCIDENT_REPO')) {
+        # Staging mode: Use dedicated virt staging profile for KVM patterns
+        set_var('INST_AUTO', 'virtualization/agama_virt_auto/sle_virt_default_staging.jsonnet');
+        diag("Staging mode detected (FLAVOR contains staging and INCIDENT_REPO is set): using virtualization/agama_virt_auto/sle_virt_default_staging.jsonnet for installation");
+    } else {
+        # No valid mode detected, exit test immediately
+        die("SLES16 MU test requires staging mode - FLAVOR must contain 'staging' with INCIDENT_REPO set");
+    }
+
+    # Parse BUILD variable and set UPDATE_PACKAGE (format example: BUILD=:345:qemu)
+    # This logic is the same as set_mu_virt_vars() to maintain consistency
+    if (!get_var('UPDATE_PACKAGE') && (my $BUILD = get_var('BUILD'))) {
+        $BUILD =~ /^:(\d+):([^:]+)$/im;
+        die "BUILD value is $BUILD, but does not match required format." unless $2;
+
+        set_var('UPDATE_PACKAGE', $2);
+        diag("BUILD is $BUILD, UPDATE_PACKAGE is set to " . get_var('UPDATE_PACKAGE', ''));
+    }
+
+    # Parse and set the target package for host installation verification
+    # Package name transformation logic (same as SLES12/15 MU testing)
+    my $_pkg = get_var('UPDATE_PACKAGE', '');
+    my $_update_package = '';
+
+    if ($_pkg) {
+        if ($_pkg =~ /none/) {
+            # 'none' is for ease of functional testing when no package update is needed
+            $_update_package = '';
+        } elsif ($_pkg =~ /qemu|virt-manager|libguestfs|libslirp|open-vm-tools|snphost|dnsmasq/) {
+            # Direct package name usage (SLES16 currently supports KVM/QEMU only)
+            $_update_package = $_pkg;
+        } elsif ($_pkg =~ /snpguest/) {
+            # SNP guest testing requires patching workflow
+            $_update_package = $_pkg;
+            set_var('PATCH_ON_GUEST', 1);
+        } elsif ($_pkg =~ /libvirt/) {
+            # Special case: libvirt maps to libvirt-client
+            $_update_package = 'libvirt-client';
+        } elsif ($_pkg =~ /xen/) {
+            # Xen support will return in SLES16.2
+            die "Xen testing is not supported in SLES16 (will return in SLES16.2)";
+        } else {
+            # Default to kernel-default for other cases
+            $_update_package = 'kernel-default';
+            set_var('PATCH_ON_GUEST', 1);
+        }
+
+        # Set the parsed package name for later use in test modules
+        set_var('UPDATE_PACKAGE', $_update_package) if $_update_package;
+        diag("SLES16 MU: UPDATE_PACKAGE is set to $_update_package") if $_update_package;
+    }
+
+    # Set SLES16 guest configuration variables
+    my $install_type = get_var('SLES16_MU_INSTALL_TYPE', 'online');
+
+    set_var('SLES16_MU_TEST_MODE', 'staging');
+    set_var('SLES16_MU_INSTALL_TYPE', $install_type);
+
+    set_var('ENABLE_HOST_INSTALLATION', '1') unless get_var('ENABLE_HOST_INSTALLATION');
+    set_var('ENABLE_VM_INSTALL', '1') unless get_var('ENABLE_VM_INSTALL');
+
+    diag("SLES16 MU variables configured: test_mode=staging, install_type=$install_type, host_install=" .
+          get_var('ENABLE_HOST_INSTALLATION') . ", vm_install=" . get_var('ENABLE_VM_INSTALL'));
+
+    # Save vars
+    bmwqemu::save_vars();
+}
+
 sub load_hypervisor_tests {
     return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
 
@@ -2568,53 +2706,7 @@ sub load_hypervisor_tests {
         loadtest "virtualization/universal/finish";
     }
 
-    my %virt_features = (
-        ENABLE_SAVE_AND_RESTORE => {
-            modules => ['virtualization/universal/save_and_restore'],
-        },
-        ENABLE_GUEST_MANAGEMENT => {
-            modules => ['virtualization/universal/guest_management'],
-        },
-        ENABLE_FINAL => {
-            modules => ['virtualization/universal/ssh_final', 'virtualization/universal/virtmanager_final', 'virtualization/universal/smoketest', 'virtualization/universal/stresstest', 'console/perf'],
-        },
-        ENABLE_STORAGE => {
-            modules => ['virtualization/universal/storage'],
-        },
-        ENABLE_WINDOWS => {
-            modules => ['virtualization/universal/download_image', 'virtualization/universal/windows'],
-        },
-        ENABLE_DOM_METRICS => {
-            modules => ['virtualization/universal/virsh_stop', 'virtualization/universal/xl_create', 'virtualization/universal/dom_install', 'virtualization/universal/dom_metrics', 'virtualization/universal/xl_stop', 'virtualization/universal/virsh_start'],
-            hypervisor => 'xen',
-        },
-        ENABLE_IRQBALANCE => {
-            modules => ['virt_autotest/xen_guest_irqbalance'],
-            hypervisor => 'xen',
-        },
-        ENABLE_VIR_NET => {
-            modules => ['virt_autotest/libvirt_host_bridge_virtual_network', 'virt_autotest/libvirt_nated_virtual_network', 'virt_autotest/libvirt_isolated_virtual_network'],
-        },
-        ENABLE_NATED_VIR_NET => {
-            modules => ['virt_autotest/libvirt_nated_virtual_network'],
-        },
-        ENABLE_VIRTMANAGER => {
-            modules => ['virtualization/universal/virtmanager_init', 'virtualization/universal/virtmanager_offon', 'virtualization/universal/virtmanager_add_devices', 'virtualization/universal/virtmanager_rm_devices'],
-        },
-        ENABLE_HOTPLUGGING => {
-            modules => ['virtualization/universal/hotplugging_guest_preparation', 'virtualization/universal/hotplugging_network_interfaces', 'virtualization/universal/hotplugging_HDD', 'virtualization/universal/hotplugging_vCPUs', 'virtualization/universal/hotplugging_memory', 'virtualization/universal/hotplugging_cleanup'],
-        },
-        ENABLE_SNAPSHOTS => {
-            modules => ['virt_autotest/virsh_internal_snapshot', 'virt_autotest/virsh_external_snapshot'],
-            hypervisor => 'kvm',
-        },
-        ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH => {
-            modules => ['virt_autotest/sriov_network_card_pci_passthrough'],
-        },
-        ENABLE_SEV_SNP => {
-            modules => ['virt_autotest/sev_snp_validation'],
-        },
-    );
+    my %virt_features = get_virt_features_definition();
 
     for my $test (keys %virt_features) {
         next if $test eq 'ENABLE_SNAPSHOTS';
@@ -2634,16 +2726,104 @@ sub load_hypervisor_tests {
     # Load ENABLE_SNAPSHOTS at the end
     check_and_load_mu_virt_features('ENABLE_SNAPSHOTS', $virt_features{ENABLE_SNAPSHOTS}{modules}, $virt_features{ENABLE_SNAPSHOTS}{hypervisor});
 
-    # Guest migration tests
-    if (check_var('VIRT_NEW_GUEST_MIGRATION_SOURCE', '1')) {
+    # Guest migration tests - use common function
+    load_guest_migration_tests();
+}
+
+sub load_sles16_mu_virt_tests {
+    # Currently only KVM/QEMU supported with Agama installer
+    # Xen testing will return in SLES16.2
+    return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
+
+    diag("SLES16 MU Virt: Loading SLES16 MU virtualization test suite (staging mode only)");
+
+    # Set SLES16 MU virtualization variables
+    set_sles16_mu_virt_vars();
+
+    # Host installation phase
+    if (check_var('ENABLE_HOST_INSTALLATION', 1)) {
+        # Load SLES16 host installation sequence
+        if (get_var("IPXE")) {
+            loadtest "installation/ipxe_install";
+        }
+        loadtest "installation/agama_reboot";
         loadtest "virt_autotest/login_console";
-        loadtest "virt_autotest/parallel_guest_migration_source";
+        loadtest "installation/bridge_br0";
+        # For SLES16 MU tests, repositories are already configured during agama installation
+        # Run zypper_lr to verify installed repositories
+        loadtest "console/zypper_lr";
+        # Host always needs package installation check and install if missing
+        loadtest "virtualization/universal/install_update_package";
+
     }
-    if (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
-        loadtest "virt_autotest/parallel_guest_migration_barrier";
+
+    # Guest installation phase
+    if (check_var('ENABLE_VM_INSTALL', 1)) {
         loadtest "virt_autotest/login_console";
-        loadtest "virt_autotest/parallel_guest_migration_destination";
+        # Skip guest installation for migration destination - guests will be migrated from source
+        unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
+            # Parallel guest installation using the enhanced prepare_guests
+            loadtest "virtualization/universal/prepare_guests";
+            # Wait for all guest installations to complete
+            loadtest "virtualization/universal/waitfor_guests";
+        }
+
+        # Guest patching workflow (controlled by PATCH_ON_GUEST)
+        # Skip patching for migration destination - no guests installed yet
+        unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1')) {
+            if (check_var('PATCH_ON_GUEST', 1)) {
+                my $update_pkg = get_var('UPDATE_PACKAGE', '');
+                if ($update_pkg) {
+                    loadtest "virt_autotest/login_console";
+                    loadtest "virtualization/universal/list_guests";
+                    loadtest "virtualization/universal/patch_guests";
+                }
+            }
+            loadtest "virtualization/universal/finish";
+        }
     }
+
+    # SLES16 MU Virtualization Features Support
+    # Features are loaded after basic guest installation and patching
+    my %virt_features = get_virt_features_definition();
+
+    # Process virtualization features - skip SNAPSHOTS for now, load it at the end
+    for my $test (keys %virt_features) {
+        next if $test eq 'ENABLE_SNAPSHOTS';
+        my $feature = $virt_features{$test};
+        my $modules = $feature->{modules};
+        my $hypervisor = $feature->{hypervisor};
+
+        # SLES16 specific feature restrictions
+        # Skip Xen-specific features as Xen support returns in SLES16.2
+        if ($hypervisor && $hypervisor eq 'xen') {
+            diag("SLES16 MU: Skipping Xen feature $test (Xen support returns in SLES16.2)");
+            next;
+        }
+
+        # SRIOV tests - keep same version restrictions as original
+        if ($test eq 'ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH') {
+            next unless is_sle('>=15-sp3');
+        }
+
+        # SEV-SNP tests are available from SLE15-SP7 onwards and SLE16+
+        if ($test eq 'ENABLE_SEV_SNP') {
+            next unless (is_sle('>=15-sp7') || is_sle('>=16'));
+        }
+
+        # Load the feature using existing function
+        check_and_load_mu_virt_features($test, $modules, $hypervisor);
+    }
+
+    # Load ENABLE_SNAPSHOTS at the end (KVM only, supported in SLES16)
+    if (get_var('HOST_HYPERVISOR') =~ /kvm|qemu/) {
+        check_and_load_mu_virt_features('ENABLE_SNAPSHOTS', $virt_features{ENABLE_SNAPSHOTS}{modules}, $virt_features{ENABLE_SNAPSHOTS}{hypervisor});
+    }
+
+    # Guest migration tests support - independent of ENABLE_VM_INSTALL - use common function
+    load_guest_migration_tests();
+
+    diag("SLES16 MU Loaded: Test suite loaded for staging mode with features support");
 }
 
 sub load_extra_tests_syscontainer {
