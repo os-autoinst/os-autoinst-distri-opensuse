@@ -55,7 +55,7 @@ sub run {
         reconnect_mgmt_console;
     } else {
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
-        assert_screen([qw(grub-menu-migration migration-running)]);
+        assert_screen([qw(grub-menu-migration migration-running)], 90);
         assert_screen('grub2', 600);
     }
 }
