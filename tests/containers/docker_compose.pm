@@ -81,13 +81,11 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     bats_post_hook;
-    $self->SUPER::post_fail_hook;
 }
 
 sub post_run_hook {
     my ($self) = @_;
     bats_post_hook;
-    $self->SUPER::post_run_hook;
 }
 
 1;
