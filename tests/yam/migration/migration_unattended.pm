@@ -29,7 +29,7 @@ sub run {
     zypper_call("ar --refresh -p 90 $repo_images home_images");
 
     # install the migration image and active it
-    my $migration_tool = is_s390x() ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
+    my $migration_tool = is_s390x ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
     zypper_call("--gpg-auto-import-keys -n in $migration_tool");
 
     # disable repos of the product to migrate from due to proxySCC is not serving SLES 15 SP*
@@ -49,7 +49,8 @@ sub run {
     upload_logs("/boot/grub2/grub.cfg", failok => 1);
     upload_folders(folders => '/etc/zypp/repos.d/');
 
-    if (is_s390x()) {
+    if (is_s390x) {
+        assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         enter_cmd '/usr/sbin/run_migration';
         reset_consoles;
         reconnect_mgmt_console;
