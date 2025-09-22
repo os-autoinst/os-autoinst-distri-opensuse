@@ -486,6 +486,7 @@ sub patch_sources {
         $branch = $repo;
     }
 
+    $test_dir = "/var/tmp/";
     run_command "cd $test_dir";
     run_command "git clone https://github.com/$github_org/$package.git", timeout => 300;
     $test_dir .= $package;
