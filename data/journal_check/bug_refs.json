@@ -765,8 +765,8 @@
     "bsc#1228559": {
         "description": "kernel: I/O error, dev fd0|kernel: piix4_smbus",
         "products": {
-            "sle-micro": ["6.0", "6.1"],
-            "leap-micro": ["6.0", "6.1"]
+            "sle-micro": ["6.0", "6.1", "6.2"],
+            "leap-micro": ["6.0", "6.1", "6.2"]
         },
         "type": "bug"
     },
@@ -983,6 +983,26 @@
     "replenish-aarch74": {
         "description": "kernel: sched: DL replenish lagged too much",
         "products": {
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
+    "vmware-firmware-bug": {
+        "description": ".*APIC ID mismatch",
+        "products": {
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"],
+            "sle-micro": ["6.0","6.1","6.2"],
+            "sle": ["16.0"]
+        },
+        "type": "ignore"
+    },
+    "vmware-smbus-base-uninitialized": {
+        "description": "SMBus base address uninitialized - upgrade BIOS",
+        "products": {
+            "opensuse": ["Tumbleweed"],
+            "microos":  ["Tumbleweed"],
+            "sle-micro": ["6.0","6.1","6.2"],
             "sle": ["16.0"]
         },
         "type": "ignore"
