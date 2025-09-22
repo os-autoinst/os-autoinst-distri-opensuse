@@ -11,7 +11,7 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call script_retry);
-use version_utils qw(is_sle is_leap is_transactional);
+use version_utils qw(is_sle is_leap is_transactional is_sle_micro);
 use transactional qw(trup_call check_reboot_changes);
 use registration;
 
@@ -340,13 +340,13 @@ sub test_firewall_offline_cmd {
 sub test_default_backend {
     return if (script_run("command -v iptables") != 0);
     # Only install iptables-backend-nft then iptables backend will change to nf_tables, refer bsc#1206383
-    add_suseconnect_product("sle-module-legacy") if (is_sle('>=15-SP3') && is_sle('<16'));
-    zypper_call('in iptables-backend-nft') if (!uses_iptables && is_sle('<16'));
+    add_suseconnect_product("sle-module-legacy") if (is_sle('>=15-SP5') && is_sle('<16'));
+    zypper_call('in iptables-backend-nft') if ((is_sle('>=15-SP5') && is_sle('<16')) || is_leap('>=15.6'));
     validate_script_output('iptables --version', sub {
             # This could have been done using capture groups too
             # removing the need for repeating regexes and nesting ifs
             # let's wait until a new backend is added, before optimizing
-            if (uses_iptables) {
+            if (is_sle('<15-SP5') || is_sle_micro('<6.2')) {
                 # if iptables reports no backend, or legacy backend, we' re using old version of it
                 m/(?:iptables\sv[[:digit:]].+\w)\s?($|(?:.legacy.$))/;
             } else {
