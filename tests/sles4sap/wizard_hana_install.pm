@@ -84,9 +84,8 @@ sub run {
     $package_version =~ /curlver=([\d\.]+)/;
     $package_version = $1;
     die 'Could not determine curl version' unless ($package_version);
-    record_info("PKG", "$package_version");
     if (package_version_cmp($package_version, '8.14.1') <= 0) {
-        record_info "Running installer workaround";
+        record_soft_failure "jsc#TEAM-10632 - Workaround for Business One due to bsc#1246964 / libcurl update";
         b1_wiz_workaround;
     }
 
