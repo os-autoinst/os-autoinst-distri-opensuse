@@ -3,15 +3,37 @@ description:    >
     Install sle16 via agama auto with ibs repo for installtest
     Maintainer: qe-core <qe-core@suse.de>
 schedule:
-    - yam/agama/boot_agama
-    - yam/agama/agama_auto
-    - installation/grub_test
-    - installation/first_boot
-    - installation/network_check
+    - '{{agama}}'
     - console/system_prepare
     - console/hostname
-    - console/setup_ibs_repos
     - console/force_scheduled_tasks
     - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
+    - '{{svirt_upload_assets}}'
+
+conditional_schedule:
+    qemu:
+        BACKEND:
+            qemu:
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+                - installation/grub_test
+                - installation/first_boot
+                - installation/network_check
+    agama:
+        ARCH:
+            x86_64:
+                - '{{qemu}}'
+            s390x:
+                - installation/bootloader_zkvm
+                - installation/agama_reboot
+                - installation/first_boot
+            ppc64le:
+                - '{{qemu}}'
+            aarch64:
+                - '{{qemu}}'
+    svirt_upload_assets:
+        ARCH:
+            s390x:
+                - shutdown/svirt_upload_assets
