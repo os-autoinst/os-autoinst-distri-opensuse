@@ -1,11 +1,11 @@
-# Copyright 2020-2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: gnutls / libnettle
-# Summary: SLES15SP2 and SLES15SP4 FIPS certification need to certify gnutls and libnettle
+# Summary: In certified SLE version FIPS certification need to verify gnutls and libnettle
 #          In this case, will do some base check for gnutls
 #
-# Maintainer: QE Security <none@suse.de>, Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#63223, poo#102770, tc#1744099
 
 use base 'consoletest';
@@ -58,6 +58,14 @@ sub run {
             Description:\s\(TLS1\.3.*\).*
             Handshake\swas\scompleted.*/sx
     };
+    # Check expired site expecting to fail
+    my $bad_result = script_run('echo | gnutls-cli -d 1 expired.badssl.com -p 443');
+    if ($bad_result) {
+        record_info("Invalid certificate as expected: $my_result");
+    }
+    else {
+        die('Certificate should be invalid');
+    }
 }
 
 sub test_flags {
