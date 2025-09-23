@@ -1,0 +1,5 @@
+epoch|format|expected
+1704059999|%A|Sunday
+1704059999|%B|December
+1704059999|%x|12/31/2023
+1704059999|%X|09:59:59 PM

@@ -101,6 +101,134 @@ sub test_users_locale {
     return $ldd_help_string_updated;
 }
 
+sub test_lc_collate {
+    my ($self, $locale) = @_;
+    my $lang_csv = autoinst_url("/data/jeos/glibc_locale/lc_collate/$locale.csv");
+    assert_script_run("curl -O $lang_csv");
+
+    my $column_input = 1;
+    my $column_expected_output = 2;
+
+    my $dataset_expected_output = script_output("cut -d, -f$column_expected_output $locale.csv | tail -n +2");
+
+    validate_script_output(
+        "cut -d, -f$column_input $locale.csv | tail -n +2 | LC_COLLATE=$locale sort",
+        sub {
+            my $out = $_;
+            $out =~ s/\r//g;
+            $out =~ s/\n/,/g;
+            $out =~ s/,\z//;
+
+            my $exp = $dataset_expected_output;
+            $exp =~ s/\r//g;
+            $exp =~ s/\n/,/g;
+            $exp =~ s/,\z//;
+
+            $out eq $exp;
+        },
+        title => "LC_COLLATE (sorting)",
+        fail_message => "Sorted order does not match expected CSV"
+    );
+
+    assert_script_run("rm -f $locale.csv");
+}
+
+sub test_lc_numeric {
+    my ($self, $locale) = @_;
+    my $url = autoinst_url("/data/jeos/glibc_locale/lc_numeric/$locale.csv");
+    assert_script_run("curl -f -O $url");
+
+    my $column_input = 1;
+    my $column_expect = 2;
+
+    my $expected = script_output("cut -d'|' -f$column_expect $locale.csv | tail -n +2 | tr -d '\\r'");
+
+    my $cmd = qq{
+        cut -d'|' -f$column_input $locale.csv | tail -n +2 | tr -d '\\r' | LC_ALL= LC_NUMERIC=$locale gawk --use-lc-numeric '{printf("%.2f\\n", \$1)}'
+    };
+
+    validate_script_output(
+        $cmd,
+        sub {
+            my $out = $_;
+            $out =~ s/\r//g; chomp $out;
+            (my $exp = $expected) =~ s/\r//g;
+            chomp $exp;
+            $out eq $exp;
+        },
+        title => "LC_NUMERIC (decimal formatting)",
+        fail_message => "Formatted numbers don't match expected"
+    );
+
+    assert_script_run("rm -f $locale.csv");
+}
+
+sub test_lc_monetary {
+    my ($self, $locale) = @_;
+
+    my $csv_url = autoinst_url("/data/jeos/glibc_locale/lc_monetary/$locale.csv");
+    assert_script_run("curl -f -O $csv_url");
+
+    my $expected_output = script_output("cat $locale.csv");
+
+    validate_script_output(
+        "LC_MONETARY=$locale locale currency_symbol",
+        sub { m/$expected_output/ },
+        title => "LC_MONETARY currency_symbol",
+        fail_message => "Expected currency symbol '$expected_output' not found, got '$_'"
+    );
+
+    assert_script_run("rm -f $locale.csv");
+}
+
+sub test_lc_time {
+    my ($self, $locale) = @_;
+
+    my $csv_url = autoinst_url("/data/jeos/glibc_locale/lc_time/$locale.csv");
+    assert_script_run("curl -f -O $csv_url");
+
+    my $csv = script_output("tr -d '\\r' < $locale.csv");
+    my @lines = grep { length } split /\n/, $csv;
+    my $header = shift @lines;
+
+    my $sep = (index($header, '|') >= 0) ? qr/\|/ : qr/,/;
+
+    for my $i (0 .. $#lines) {
+        my ($epoch, $fmt, $expected) = split $sep, $lines[$i], 3;
+
+        my $cmd = qq{LC_ALL= LC_TIME=$locale TZ=UTC date -u -d '\@$epoch' +"$fmt"};
+
+        validate_script_output(
+            $cmd,
+            sub {
+                my $out = $_; $out =~ s/\r//g;
+                chomp $out;
+                $out eq $expected;
+            },
+            title => "LC_TIME $fmt (line " . ($i + 2) . ")",
+            fail_message => "Line " . ($i + 2) . ": expected '$expected', got '$_'"
+        );
+    }
+
+    assert_script_run("rm -f $locale.csv");
+}
+
+sub run_lc_tests_for_locale {
+    my ($self, $locale) = @_;
+    record_info($locale);
+    $self->test_lc_collate($locale);
+    $self->test_lc_monetary($locale);
+    $self->test_lc_time($locale);
+    $self->test_lc_numeric($locale);
+}
+
+sub run_lc_tests {
+    my ($self) = @_;
+    for my $locale (qw(en_US.UTF-8 de_DE.UTF-8 sv_SE.UTF-8 da_DK.UTF-8 zh_CN.UTF-8)) {
+        $self->run_lc_tests_for_locale($locale);
+    }
+}
+
 sub run {
     my ($self) = @_;
     # C<$lang_ref> denotes what kind of lang setting is expected from test suite perspective
@@ -146,6 +274,8 @@ sub run {
 
     my $output = script_output("localectl list-locales | tee -a /dev/$serialdev | grep -E '$lang_new_short\.(UTF-8|utf8)'");
     die "Test locale not found in the available ones" unless ($output =~ $lang_new_short);
+
+    $self->run_lc_tests();
 
     # Parse and evaluate /etc/sysconfig/language
     # /etc/sysconfig/language is no longer used in Tumbleweed
