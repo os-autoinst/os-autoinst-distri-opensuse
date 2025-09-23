@@ -20,39 +20,36 @@ sub run {
     select_host_console();
 
     my $instance = $args->{my_instance};
-
-    # Debug
-    $instance->ssh_script_run('systemctl --no-pager list-units');
-
-    # Check if there are any failed services
-    # 1. Get the list of failed services from the SUT
-    my $failed_services_output = $instance->ssh_script_output('sudo systemctl --failed --no-legend --plain | awk "{print \\$1}"');
-
-    # 2. Split the output into a Perl array of service names
+    my %known_failing_services = (
+        'systemd-vconsole-setup' => 'bsc#1249902 - systemd-vconsole-setup.service failed to load',
+        augenrules => 'bsc#1250320 - augenrules.service fails at startup on Hardened Images'
+    );
+    my $failed_services_output = $instance->ssh_script_output(
+        'sudo systemctl --failed --no-legend --plain --no-pager | awk "{print \\$1}"'
+    );
     my @failed_services = split /\s+/, $failed_services_output;
-
     if (!@failed_services) {
         record_info("All SVCs good", "No failed services found.");
-        return;
-    }
-
-    # 3. Loop through each service name in Perl
-    my $failed = 0;
-    foreach my $service (@failed_services) {
-        # 4. Capture the log output for the service into a Perl variable
-        my $log_output = $instance->ssh_script_output("sudo journalctl -u $service --no-pager");
-
-        # 5. Pass the captured logs as the text for record_info.
-        #    This creates a single, expandable log entry in the openQA web UI.
-        if ($service =~ /systemd-vconsole-setup/) {
-            record_soft_failure("bsc#1249902 - systemd-vconsole-setup.service failed to load:\n$log_output");
-            next;
+    } else {
+        my $failed = 0;
+        foreach my $service (@failed_services) {
+            $service =~ s/\.service//;    # Removes .service if exists
+            if (exists($known_failing_services{$service})) {
+                my $reference = $known_failing_services{$service};
+                record_soft_failure($reference);
+            }
+            else {
+                my $log_output = $instance->ssh_script_output(
+                    "sudo journalctl -u $service --no-pager"
+                );
+                record_info(
+                    "Failing services!", "SVC $service FAILED:\n$log_output"
+                );
+                $failed = 1;
+            }
         }
-        record_info("Failing services!", "SVC $service FAILED:\n$log_output");
-        $failed = 1;
+        die('Some services failed to start.') if ($failed);
     }
-
-    die('Some services failed to start.') if ($failed);
 
     # waagent, cloud-init, google agents not available in Micro
     unless (is_sle_micro) {
