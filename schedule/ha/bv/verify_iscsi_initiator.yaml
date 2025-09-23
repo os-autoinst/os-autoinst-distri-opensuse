@@ -1,0 +1,40 @@
+---
+name: verify_iscsi_initiator
+description: >
+  This schedule performs two consecutive agama installations
+  on a SUT and verifies right after each installation the
+  value of the iSCSI Initiator configured in the system by
+  the installer, which is expected to be different after each
+  installation. It does so by scheduling ha/check_iscsi_initiator.py
+  after each installation.
+  Requires the settings AGAMA_PRODUCT_ID, INST_AUTO,
+  and AGAMA_PROFILE (on s390x). The JSONnet file provided by
+  INST_AUTO should include a pre-script that cleans up the
+  local filesystems to prevent files from the first installation
+  to pollute the second installation.
+  This schedule relies on BOOTFROM=d setting, so the VM always
+  boots first from the ISO.
+vars:
+  BOOTFROM: 'd'
+schedule:
+  - '{{agama_install}}'
+  - installation/first_boot
+  - console/system_prepare
+  - ha/check_iscsi_initiator.py
+  - '{{agama_install}}'
+  - installation/first_boot
+  - console/system_prepare
+  - ha/check_iscsi_initiator.py
+conditional_schedule:
+  agama_install:
+    BACKEND:
+      qemu:
+        - yam/agama/boot_agama
+        - yam/agama/agama_auto
+        - boot/boot_to_desktop
+      pvm_hmc:
+        - installation/bootloader
+        - installation/agama_reboot
+      svirt:
+        - installation/bootloader_zkvm
+        - installation/agama_reboot
