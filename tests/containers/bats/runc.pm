@@ -47,7 +47,7 @@ sub run {
 
     # Download runc sources
     my $runc_version = script_output "runc --version  | awk '{ print \$3 }'";
-    patch_sources "runc", "v$runc_version", "tests/integration", bats_patches();
+    patch_sources "runc", "v$runc_version", "tests/integration";
 
     # Compile helpers used by the tests
     my $helpers = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d ! -name _bin -printf '%f ' || true";
