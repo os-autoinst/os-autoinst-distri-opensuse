@@ -10,7 +10,6 @@
 use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils;
 use utils;
 use power_action_utils 'power_action';
 use containers::common qw(install_packages);
@@ -34,11 +33,7 @@ sub setup {
     my $version = script_output "$docker_compose version | awk '{ print \$4 }'";
     record_info("version", $version);
 
-    # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
-    my @patches = ();
-    # PR#13214 was merged on v2.39.4
-    push @patches, "13214" unless is_tumbleweed;
-    patch_sources "compose", "v$version", "pkg/e2e", \@patches;
+    patch_sources "compose", "v$version", "pkg/e2e";
 }
 
 

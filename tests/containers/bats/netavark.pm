@@ -40,7 +40,7 @@ sub run {
 
     # Download netavark sources
     my $netavark_version = script_output "$netavark --version | awk '{ print \$2 }'";
-    patch_sources "netavark", "v$netavark_version", "test", bats_patches();
+    patch_sources "netavark", "v$netavark_version", "test";
 
     my $firewalld_backend = script_output "awk -F= '\$1 == \"FirewallBackend\" { print \$2 }' < /etc/firewalld/firewalld.conf";
     record_info("Firewalld backend", $firewalld_backend);

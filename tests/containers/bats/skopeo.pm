@@ -48,7 +48,7 @@ sub run {
 
     # Download skopeo sources
     my $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
-    patch_sources "skopeo", "v$skopeo_version", "systemtest", bats_patches();
+    patch_sources "skopeo", "v$skopeo_version", "systemtest";
 
     # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
     my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";

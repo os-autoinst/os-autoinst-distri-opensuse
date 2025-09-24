@@ -87,7 +87,7 @@ sub run {
 
     # Download buildah sources
     my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
-    patch_sources "buildah", "v$buildah_version", "tests", bats_patches();
+    patch_sources "buildah", "v$buildah_version", "tests";
 
     # Patch mkdir to always use -p
     run_command "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";

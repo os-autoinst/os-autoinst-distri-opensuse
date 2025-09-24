@@ -49,7 +49,7 @@ sub run {
     record_info("conmon package version", script_output("rpm -q conmon"));
 
     # Download conmon sources
-    patch_sources "conmon", "v$conmon_version", "test", bats_patches();
+    patch_sources "conmon", "v$conmon_version", "test";
 
     my $errors = 0;
 

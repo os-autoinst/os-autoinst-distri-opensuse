@@ -103,6 +103,14 @@ buildah:
     - "bud.bats::bud-git-context-subdirectory"
     - "run.bats::Check if containers run with correct open files/processes limits"
     BATS_IGNORE_USER:
+compose:
+  # Note on patches:
+  # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
+  opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+  sle-16.0:
+    GITHUB_PATCHES:
+    - 13214
 conmon:
   # Note on patches:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
@@ -118,6 +126,29 @@ conmon:
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
+docker-py:
+  # Note on patches:
+  # https://github.com/docker/docker-py/pull/3199 - Bump default API version to 1.43 (Moby 24.0)
+  # https://github.com/docker/docker-py/pull/3203 - integration/commit: Don't check for deprecated fields
+  # https://github.com/docker/docker-py/pull/3206 - Update Ruff, fix some minor issues
+  # https://github.com/docker/docker-py/pull/3231 - Bump default API version to 1.44 (Moby 25.0)
+  # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
+  # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
+  opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 3290
+    - 3354
+  sle-16.0:
+    GITHUB_PATCHES:
+    - 3290
+    - 3354
+  sle-15-SP7:
+    GITHUB_PATCHES:
+    - 3199
+    - 3203
+    - 3206
+    - 3231
+    - 3290
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
@@ -211,6 +242,14 @@ podman:
     BATS_IGNORE_ROOT_REMOTE:
     BATS_IGNORE_USER_LOCAL:
     BATS_IGNORE_USER_REMOTE:
+podman-py:
+  # Note on patches:
+  # https://github.com/containers/podman-py/pull/572 - tests: Fix tests to reflect removal of rw as default option
+  # https://github.com/containers/podman-py/pull/575 - tests: Fix deprecation warning for utcfromtimestamp()
+  opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 572
+    - 575
 runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/4825 is needed for cgroups

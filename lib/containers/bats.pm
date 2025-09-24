@@ -27,7 +27,6 @@ use File::Basename;
 use Utils::Architectures;
 
 our @EXPORT = qw(
-  bats_patches
   bats_post_hook
   bats_setup
   bats_tests
@@ -444,8 +443,8 @@ sub bats_tests {
 }
 
 sub bats_settings {
+    my $package = shift;
     my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
-    my $package = get_required_var("BATS_PACKAGE");
 
     assert_script_run "curl -o /tmp/skip.yaml " . data_url("containers/bats/skip.yaml");
     my $text = script_output("cat /tmp/skip.yaml", quiet => 1);
@@ -454,18 +453,14 @@ sub bats_settings {
     return $yaml->{$package}{$os_version};
 }
 
-sub bats_patches {
-    $settings = bats_settings;
+sub patch_sources {
+    my ($package, $branch, $tests_dir) = @_;
+
+    $settings = bats_settings $package;
     my @patches = split(/\s+/, get_var("GITHUB_PATCHES", ""));
     if (!@patches && defined $settings->{GITHUB_PATCHES}) {
         @patches = @{$settings->{GITHUB_PATCHES}};
     }
-    return \@patches;
-}
-
-sub patch_sources {
-    my ($package, $branch, $tests_dir, $patches) = @_;
-    my @patches = @{$patches};
 
     my $github_org = "containers";
     if ($package eq "runc") {
