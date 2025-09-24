@@ -97,4 +97,23 @@ sub get_pas_host {
     return \%result;
 }
 
+=head2 get_sap_hosts
+
+    get_sap_hosts();
+
+Returns B<ARRAYREF> containing connection data to all hosts related to SAP suite.
+B<Example:>
+{
+    hostname_a => {ip_address => '192.168.0.2', ssh_user => 'username'}
+    hostname_b => {ip_address => '192.168.0.2', ssh_user => 'username'}
+};
+
+=cut
+
+sub get_sap_hosts {
+    my $self = shift;
+    my %result = map { %{$_} } ($self->{nw_ascs}, $self->{nw_ers}, $self->{nw_pas}, $self->{nw_aas}, $self->{db_hana});
+    return \%result;
+}
+
 1;

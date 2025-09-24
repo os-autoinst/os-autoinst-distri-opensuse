@@ -155,4 +155,9 @@ subtest '[get_sizing_filename]' => sub {
     is get_sizing_filename(), 'custom_sizes_S4HANA.json', 'Return filename for ENSA2 scenario';
 };
 
+subtest '[get_ibsm_peering_name]' => sub {
+    is get_ibsm_peering_name(source_vnet => 'source', target_vnet => 'target'), 'SDAF-source-target', 'Check naming composition';
+};
+
+
 done_testing;
