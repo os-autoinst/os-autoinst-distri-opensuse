@@ -36,6 +36,7 @@
     </addons>
   </suse_register>
   <general>
+    <cio_ignore t="boolean">false</cio_ignore>
     <mode>
       <confirm config:type="boolean">false</confirm>
     </mode>
