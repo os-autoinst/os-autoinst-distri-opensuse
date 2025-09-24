@@ -36,7 +36,7 @@ NOTES
 
 ### Summary of the `BATS_IGNORE` variables
 
-These are defined in [skip.yaml](data/containers/bats/skip.yaml)
+These are defined in [skip.yaml](../../../data/containers/bats/skip.yaml)
 
 | variable | description | aardvark | buildah | conmon | netavark | podman | runc | skopeo |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -250,10 +250,6 @@ openSUSE Tumbleweed with crun as `OCI_RUNTIME`
 
 [sp4s_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=ppc44le&test=runc_testsuite
 [sp4s_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Server-DVD-Updates&version=15-SP4&arch=ppc44le&test=skopeo_testsuite
-
-## Skipped tests
-
-Complete list found in [skip.yaml](data/containers/bats/skip.yaml)
 
 ## Tools
 
