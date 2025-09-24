@@ -14,6 +14,7 @@ use Exporter qw(import);
 use Mojo::JSON qw(decode_json);
 use Regexp::Common qw(net);
 use NetAddr::IP;
+use Mojo::Base -signatures;
 use utils qw(write_sut_file);
 
 
@@ -30,6 +31,7 @@ our @EXPORT = qw(
   az_group_exists
   az_network_vnet_create
   az_network_vnet_get
+  az_network_vnet_show
   az_network_vnet_subnet_update
   az_network_nsg_create
   az_network_nsg_rule_create
@@ -39,6 +41,7 @@ our @EXPORT = qw(
   az_network_lb_create
   az_network_lb_probe_create
   az_network_lb_rule_create
+  az_network_nic_list
   az_vm_as_create
   az_vm_as_list
   az_vm_as_show
@@ -119,14 +122,21 @@ sub az_group_create {
 
     my $ret = az_group_name_get();
 
-Get the name of all existing Resource Group in the current subscription
+Get the name of all existing Resource Group in the current subscription. Output can be modified using B<$args{query}>.
 
+=over
+
+=item B<query> Modify output filter using jmespath query. Default: value
+
+=back
 =cut
 
 sub az_group_name_get {
+    my (%args) = @_;
+    $args{query} //= '[].name';
     my $az_cmd = join(' ',
         'az group list',
-        '--query "[].name"',
+        "--query \"$args{query}\"",
         '-o json');
     return decode_json(script_output($az_cmd));
 }
@@ -1931,6 +1941,56 @@ sub az_group_exists {
     my (%args) = @_;
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     return script_output("az group exists --resource-group $args{resource_group}", quiet => $args{quiet});
+}
+
+=head2 az_network_nic_list
+
+    az_network_nic_list(resource_group=>'resource group name' [, query=>'[].name']);
+
+Returns ARRAYREF with all nic names located in resource group. Output can be modified using B<$args{query}>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<query> Modify output filter using jmespath query. Default: value
+
+=back
+=cut
+
+sub az_network_nic_list (%args) {
+    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
+    $args{query} //= '[].name';
+    return
+      decode_json(script_output("az network nic list --resource-group $args{resource_group} --query \"$args{query}\""));
+}
+
+=head2 az_network_vnet_show
+
+    az_network_vnet_show(resource_group=>'resource group name', name=>'vnet01' [, query=>'[].name']);
+
+Returns HASHREF with all nic names located in resource group. Output can be modified using B<$args{query}>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<name> VNET name
+
+=item B<query> Modify output filter using jmespath query. Default: undefined
+
+=back
+=cut
+
+sub az_network_vnet_show (%args) {
+    my @mandatory_args = qw(resource_group name);
+    foreach (@mandatory_args) {
+        croak "Missing mandatory argument: '$_'" unless $args{$_};
+    }
+    my @cmd = (' ', 'az network vnet show', "--resource-group $args{resource_group}", "--name $args{name}");
+    push @cmd, "--query \"$args{query}\"" if $args{query};
+
+    return decode_json(script_output(join(' ', @cmd)));
 }
 
 1;
