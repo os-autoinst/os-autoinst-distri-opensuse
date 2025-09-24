@@ -22,7 +22,7 @@ schedule:
 - installation/reboot_after_installation
 - installation/grub_test
 - installation/first_boot
-- qa_automation/patch_and_reboot
+- console/zypper_lr
 - locale/keymap_or_locale
 - console/system_prepare
 - console/chrony
@@ -36,7 +36,6 @@ schedule:
 - console/installation_snapshots
 - console/zypper_in
 - console/zypper_lifecycle
-- console/zypper_lr
 - console/zypper_ref
 - console/firewall_enabled
 - console/glibc_sanity
