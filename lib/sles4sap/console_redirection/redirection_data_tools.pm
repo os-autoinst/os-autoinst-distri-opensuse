@@ -56,8 +56,7 @@ B<Example:>
 
 sub get_ensa2_hosts {
     my $self = shift;
-    my %result = map { %{$_} } ($self->{nw_ascs}, $self->{nw_ers});
-    return \%result;
+    return {map { %{$self->{$_}} } qw(nw_ascs nw_ers)};
 }
 
 =head2 get_nw_hosts
@@ -75,8 +74,7 @@ B<Example:>
 
 sub get_nw_hosts {
     my $self = shift;
-    my %result = map { %{$_} } ($self->{nw_ascs}, $self->{nw_ers}, $self->{nw_pas}, $self->{nw_aas});
-    return \%result;
+    return {map { %{$self->{$_}} } qw(nw_ascs nw_ers nw_pas nw_aas)};
 }
 
 =head2 get_pas_host
@@ -93,8 +91,25 @@ B<Example:>
 
 sub get_pas_host {
     my $self = shift;
-    my %result = map { %{$_} } ($self->{nw_pas});
-    return \%result;
+    return {map { %{$_} } ($self->{nw_pas})};
+}
+
+=head2 get_sap_hosts
+
+    get_sap_hosts();
+
+Returns B<ARRAYREF> containing connection data to all hosts related to SAP suite (Databases, instances, etc...).
+B<Example:>
+{
+    hostname_a => {ip_address => '192.168.0.2', ssh_user => 'username'}
+    hostname_b => {ip_address => '192.168.0.2', ssh_user => 'username'}
+};
+
+=cut
+
+sub get_sap_hosts {
+    my $self = shift;
+    return {map { %{$self->{$_}} } qw(nw_ascs nw_ers nw_pas nw_aas db_hana)};
 }
 
 1;

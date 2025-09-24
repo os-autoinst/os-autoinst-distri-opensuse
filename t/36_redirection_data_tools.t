@@ -82,4 +82,14 @@ subtest '[get_pas_host]' => sub {
     ok(grep(/$expected_host/, keys(%pas_host)), "NW list contains host '$expected_host'");
 };
 
+subtest '[get_sap_hosts]' => sub {
+    my $mockObject = sles4sap::console_redirection::redirection_data_tools->new($mock_data);
+    my %nw_hosts = %{$mockObject->get_sap_hosts()};
+    my @expected_hosts = qw(nw_ascs_01 nw_ers_02 nw_aas_01 nw_pas hanadb_a hanadb_b);
+    note('NW hosts found: ' . join(' ', keys %nw_hosts));
+    for my $host (@expected_hosts) {
+        ok(grep(/$host/, keys(%nw_hosts)), "SAP list contains host '$host'");
+    }
+};
+
 done_testing();
