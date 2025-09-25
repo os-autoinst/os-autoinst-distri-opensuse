@@ -7,7 +7,7 @@
 # Summary: Register addons in the remote system
 #   Registration is in registercloudguest test module
 #
-# Maintainer: <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use Feature::Compat::Try;

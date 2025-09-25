@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Install xfstests and prepare secondary disk
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'consoletest';
 use testapi;

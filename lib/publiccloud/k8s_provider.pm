@@ -5,7 +5,7 @@
 
 # Summary: Helper class for amazon connection and authentication
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::k8s_provider;
 use Mojo::Base -base;

@@ -5,7 +5,7 @@
 
 # Summary: Test to check for bsc#1205002
 #
-# Maintainer: <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use base "publiccloud::basetest";
 use testapi;

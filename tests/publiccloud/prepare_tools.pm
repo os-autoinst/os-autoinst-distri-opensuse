@@ -7,7 +7,7 @@
 # python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
-# Maintainer: qa-c team <qa-c@suse.de>, QE-SAP <qe-sap@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>, QE-SAP <qe-sap@suse.de>
 
 use base "opensusebasetest";
 use testapi;

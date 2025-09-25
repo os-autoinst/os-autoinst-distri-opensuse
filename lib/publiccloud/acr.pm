@@ -10,7 +10,7 @@
 
 # Summary: Helper class for Azure Container Registry (ACR)
 #
-# Maintainer: Ivan Lausuch <ilausuch@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::acr;
 use Mojo::Base 'publiccloud::k8s_provider';

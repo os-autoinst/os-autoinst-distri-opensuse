@@ -9,7 +9,7 @@
 # - perform basic file checks there (see check_nfs_share)
 # This test uses the data/publiccloud/terraform/azure_nfstest.tf terraform profile
 # to create a VM and a storage account in its own resource group. All resources are disposed after execution
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use base 'consoletest';
 use testapi;

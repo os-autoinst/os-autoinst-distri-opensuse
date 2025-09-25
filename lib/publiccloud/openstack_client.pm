@@ -5,7 +5,7 @@
 
 # Summary: Helper class for OpenStack connection and authentication
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::openstack_client;
 use Mojo::Base -base;

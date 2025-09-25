@@ -5,7 +5,7 @@
 
 # Summary: Helper class for amazon connection and authentication
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::aws_client;
 use Mojo::Base -base;

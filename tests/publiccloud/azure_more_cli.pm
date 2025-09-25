@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Create VM in Azure using azure-cli binary
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use utils 'zypper_call';

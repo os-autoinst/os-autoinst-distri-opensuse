@@ -5,7 +5,7 @@
 
 # Summary: helper class for azure
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::azure;
 use Mojo::Base 'publiccloud::provider';

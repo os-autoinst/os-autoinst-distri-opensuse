@@ -5,7 +5,7 @@
 
 # Summary: Base class for the public cloud namespace
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::instances;
 use testapi;

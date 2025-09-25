@@ -6,7 +6,7 @@
 # Package: python3-img-proof
 # Summary: Use img-proof framework to test public cloud SUSE images
 #
-# Maintainer: <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
