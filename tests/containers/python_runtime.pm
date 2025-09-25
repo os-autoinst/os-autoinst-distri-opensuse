@@ -28,13 +28,14 @@ sub deb_arch ($arch) {
 }
 
 sub setup {
+    my $self = shift;
+
     add_suseconnect_product(get_addon_fullname('python3')) if (is_sle('>=15-SP4') && is_sle("<16"));
     my $python3 = is_sle("<16") ? "python311" : "python3";
     my @pkgs = ($runtime, $python3, "$python3-$runtime");
     push @pkgs, qq(jq make $python3-pytest);
     push @pkgs, $runtime eq 'podman' ? qq($python3-fixtures $python3-requests-mock) : qq($python3-paramiko $python3-pytest-timeout);
-    install_packages(@pkgs);
-    install_git;
+    $self->setup_pkgs(@pkgs);
 
     # Add IP to /etc/hosts
     my $iface = script_output "ip -4 --json route list match default | jq -Mr '.[0].dev'";
@@ -166,9 +167,9 @@ sub run {
     $runtime = $args->{runtime} // get_var("CONTAINER_RUNTIMES");
 
     select_serial_terminal;
+    $self->setup;
 
-    setup;
-
+    select_serial_terminal;
     test $_ foreach (qw(unit integration));
     # This test fails on SLES 15 due to https://bugzilla.suse.com/show_bug.cgi?id=1248755
     if ($runtime eq "docker" && (is_sle(">=16.0") || is_tumbleweed)) {

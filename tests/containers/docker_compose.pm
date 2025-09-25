@@ -11,16 +11,15 @@ use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
-use power_action_utils 'power_action';
 use containers::common qw(install_packages);
 use containers::bats;
 
 my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
 
 sub setup {
+    my $self = shift;
     my @pkgs = qw(docker docker-compose jq go1.24 make);
-    install_packages(@pkgs);
-    install_git;
+    $self->setup_pkgs(@pkgs);
 
     systemctl "enable docker";
     systemctl "restart docker";
@@ -58,14 +57,9 @@ sub run {
     my ($self, $args) = @_;
 
     select_serial_terminal;
-    setup;
+    $self->setup;
 
-    # Bind-mount /tmp to /var/tmp
-    mount_tmp_vartmp;
-    power_action('reboot', textmode => 1);
-    $self->wait_boot();
     select_serial_terminal;
-
     assert_script_run "cd /var/tmp/compose";
     run_command 'PATH=$PATH:/var/tmp/compose/bin/build';
 
