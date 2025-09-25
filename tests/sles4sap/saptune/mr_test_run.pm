@@ -640,6 +640,9 @@ sub test_x86_64 {
     $result = "ok";
     $self->result("$result");
 
+    # automatically applied SAP_Base solution on SLE 16.0 for SAP
+    # we need to revert it first
+    $self->wrap_script_run("saptune revert all") if (is_sle('>=16'));
     # energy_perf_bias=6
     $self->wrap_script_run("cpupower set -b 6");
     # governor=powersave

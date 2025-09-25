@@ -22,6 +22,7 @@ use virt_autotest::utils qw(is_kvm_host is_xen_host);
 use HTTP::Tiny;
 use IPC::Run;
 use Time::HiRes 'sleep';
+use Socket qw(inet_ntoa inet_aton);
 
 
 sub poweroff_host {
@@ -355,6 +356,17 @@ sub run {
     if (is_disk_image) {
         check_screen([qw(load-linux-kernel load-initrd)], 120 / get_var('TIMEOUT_SCALE', 1));
         return;
+    }
+
+    if (get_var('WORKER_CLASS') =~ /ipmi-nvdimm/) {
+        assert_screen 'nue-ipxe-menu', 600;
+        my $sut_ip = inet_ntoa(inet_aton(get_required_var('SUT_IP')));
+        wait_screen_change { send_key 'i' };
+        assert_screen 'ipxe-shell';
+        # machine has two interfaces with IPs, ipxe detects the first one,
+        # but it is not correct, this line is correcting it
+        enter_cmd_slow 'chain --replace --autofree ' . get_var('IPXE_HTTPSERVER') . '/' . $sut_ip . '/script.ipxe';
+        send_key "ret";
     }
 
     if (is_agama) {
