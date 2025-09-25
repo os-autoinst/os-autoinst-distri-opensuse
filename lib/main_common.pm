@@ -42,6 +42,7 @@ our @EXPORT = qw(
   installzdupstep_is_applicable
   is_desktop
   is_kernel_test
+  is_kselftest
   is_ltp_test
   is_systemd_test
   is_livesystem
@@ -271,10 +272,14 @@ sub is_publiccloud_ltp_test {
     return (get_var('LTP_COMMAND_FILE') && is_public_cloud());
 }
 
+sub is_kselftest {
+    return get_var('KSELFTEST_COLLECTION');
+}
+
 sub is_kernel_test {
     # ignore ltp tests in publiccloud
     return if is_publiccloud_ltp_test();
-    return is_ltp_test() ||
+    return is_ltp_test() || is_kselftest() ||
       (get_var('QA_TEST_KLP_REPO')
         || get_var('INSTALL_KLP_PRODUCT')
         || get_var('INSTALL_KOTD')
