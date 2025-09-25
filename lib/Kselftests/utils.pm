@@ -118,14 +118,14 @@ sub post_process_single {
         if (!$test_ln) {
             next;
         }
-        if ($test_ln =~ /^# not ok (\d+) (\S+)/) {
+        if ($test_ln =~ /^# not ok (\d+) (.*?)\s*(?=#|$)/) {
             my $subtest_idx = $1;
             my $subtest_name = $2;
             my $wl_entry = $whitelist->find_whitelist_entry($env, $args{collection}, $subtest_name);
             if (defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
                 $test_ln = "# ok $subtest_idx $subtest_name # SKIP";
             } elsif (defined($wl_entry)) {
-                record_info("Known Issue", "$args{test}:$subtest_name marked as softfail");
+                record_info("Known Issue", "'$args{test}:$subtest_name' marked as softfail");
                 $test_ln = "# ok $subtest_idx $subtest_name # TODO Known Issue";
                 $softfails++;
             } else {
