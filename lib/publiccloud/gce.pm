@@ -5,9 +5,7 @@
 
 # Summary: Helper class for Google Cloud Platform Computer Engine
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
-#             Jose Lausuch <jalausuch@suse.de>
-#             qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::gce;
 use Mojo::Base 'publiccloud::provider';

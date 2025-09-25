@@ -5,7 +5,7 @@
 
 # Package: podman, docker
 # Summary: Test RT workload in a container
-# Maintainer: qa-c@suse.de
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base qw(containers::basetest);
 use testapi;

@@ -6,7 +6,7 @@
 # Package: zypper
 # Summary: Refresh repositories, apply patches and reboot
 #
-# Maintainer: qa-c <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use registration;

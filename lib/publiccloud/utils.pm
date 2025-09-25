@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Public cloud utilities
-# Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::utils;
 

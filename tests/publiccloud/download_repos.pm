@@ -5,7 +5,7 @@
 
 # Summary: Download repositores from the internal server
 #
-# Maintainer: qa-c <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use base 'consoletest';
 use registration;

@@ -6,7 +6,7 @@
 # Package: perl-base ltp
 # Summary: Use perl script to run LTP on public cloud
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;

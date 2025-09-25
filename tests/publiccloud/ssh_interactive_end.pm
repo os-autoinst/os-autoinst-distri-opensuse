@@ -5,7 +5,7 @@
 
 # Summary: This test will leave the SSH interactive session, kill the SSH tunnel and destroy the public cloud instance
 #
-# Maintainer: Pavel Dostal <pdostal@suse.cz>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::ssh_interactive 'select_host_console';

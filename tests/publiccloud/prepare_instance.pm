@@ -7,7 +7,7 @@
 # Summary: This tests will deploy the public cloud instance, create user,
 #   prepare ssh config and permit password login
 #
-# Maintainer: <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::ssh_interactive qw(select_host_console);

@@ -5,7 +5,7 @@
 
 # Package: podman
 # Summary: Test podman-remote functionality
-# Maintainer: qe-c <qe-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

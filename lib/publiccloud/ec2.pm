@@ -5,7 +5,7 @@
 
 # Summary: Helper class for amazon ec2
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::ec2;
 use Mojo::Base 'publiccloud::provider';

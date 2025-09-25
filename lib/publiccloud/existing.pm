@@ -5,7 +5,7 @@
 
 # Summary: Helper class for existing instance connection
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::existing;
 use Mojo::Base -base;

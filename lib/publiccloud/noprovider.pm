@@ -5,7 +5,7 @@
 
 # Summary: Helper class for dummy provider
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::noprovider;
 use Mojo::Base 'publiccloud::provider';

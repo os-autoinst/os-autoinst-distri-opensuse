@@ -6,7 +6,7 @@
 # Package: rsync
 # Summary: Transfer repositories to the public cloud instasnce
 #
-# Maintainer: <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use registration;

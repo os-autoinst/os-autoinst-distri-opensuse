@@ -5,7 +5,7 @@
 
 # Summary: Base class for publiccloud tests
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::basetest;
 use base 'opensusebasetest';

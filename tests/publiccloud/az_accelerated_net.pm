@@ -6,7 +6,7 @@
 # Package: azure-cli
 # Summary: Network performance for Azure Accelerated NICs
 #
-# Maintainer: Jose Lausuch <jalausuch@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use base "publiccloud::basetest";
 use testapi;

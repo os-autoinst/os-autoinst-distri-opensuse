@@ -5,7 +5,7 @@
 
 # Summary: Test public cloud hardened images
 #
-# Maintainer: <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use base 'consoletest';
 use testapi;

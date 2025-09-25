@@ -5,7 +5,7 @@
 
 # Summary: Helper class for OpenStack
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::openstack;
 use Mojo::Base 'publiccloud::provider';

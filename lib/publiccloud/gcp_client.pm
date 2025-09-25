@@ -5,7 +5,7 @@
 
 # Summary: Helper class for google connection and authentication
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::gcp_client;
 use Mojo::Base -base;

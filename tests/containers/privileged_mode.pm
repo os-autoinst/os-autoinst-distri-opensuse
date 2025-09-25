@@ -5,7 +5,7 @@
 
 # Package: podman
 # Summary: Test container runtime privileged mode
-# Maintainer: qa-c@suse.de
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;

@@ -8,7 +8,7 @@
 #
 # Test that a VM can be suspended and resumed without successfully
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use Test::Assert qw(assert_equals assert_not_equals);

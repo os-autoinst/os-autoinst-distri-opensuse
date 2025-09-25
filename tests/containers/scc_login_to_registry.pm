@@ -7,7 +7,7 @@
 #          and (optionally) Helm registry login if HELM_CHART is defined.
 # - login to registry.suse.com using docker|podman login
 # - if HELM_CHART is defined, also run: helm registry login
-# Maintainer: qe-c <qe-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;
