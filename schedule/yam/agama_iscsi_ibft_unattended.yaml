@@ -8,3 +8,5 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - installation/validation/ibft
+  - console/validate_lvm
+  - console/validate_encrypt
