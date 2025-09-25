@@ -41,7 +41,7 @@ sub run {
     my @pkgs = qw(apache2-utils jq openssl podman squashfs skopeo);
     push @pkgs, "fakeroot" unless (is_sle('>=16.0') || (is_sle(">=15-SP6") && is_s390x));
 
-    $self->bats_setup(@pkgs);
+    $self->setup_pkgs(@pkgs);
 
     record_info("skopeo version", script_output("skopeo --version"));
     record_info("skopeo package version", script_output("rpm -q skopeo"));

@@ -28,18 +28,18 @@ use Utils::Architectures;
 
 our @EXPORT = qw(
   bats_post_hook
-  bats_setup
   bats_tests
-  install_git
   mount_tmp_vartmp
   patch_sources
   run_command
+  setup_pkgs
   switch_to_root
   switch_to_user
 );
 
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/";
+my $rebooted = 0;
 my $settings;
 
 my @commands = ();
@@ -120,6 +120,7 @@ sub configure_oci_runtime {
     my $oci_runtime = shift;
 
     return if (script_run("command -v podman") != 0);
+    return if (script_run("test -f /etc/containers/containers.conf.d/engine.conf") == 0);
 
     if (!$oci_runtime) {
         $oci_runtime = script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'");
@@ -163,8 +164,6 @@ sub delegate_controllers {
 }
 
 sub enable_modules {
-    return if is_sle("16+");    # no modules on SLES16+
-
     add_suseconnect_product(get_addon_fullname('desktop'));
     add_suseconnect_product(get_addon_fullname('sdk'));
     add_suseconnect_product(get_addon_fullname('python3')) if is_sle('>=15-SP4');
@@ -208,10 +207,8 @@ EOF
     write_sut_file('/etc/systemd/system/tmp.mount.d/override.conf', $override_conf);
 }
 
-sub bats_setup {
+sub setup_pkgs {
     my ($self, @pkgs) = @_;
-
-    my $package = get_required_var("BATS_PACKAGE");
 
     push @commands, "### RUN AS root";
 
@@ -232,9 +229,9 @@ sub bats_setup {
         run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";
     }
 
-    install_bats;
+    install_bats if get_var("BATS_PACKAGE");
 
-    enable_modules if is_sle;
+    enable_modules if is_sle("<16");
 
     my $install_ncat = 0;
     if (grep { $_ eq "ncat" } @pkgs) {
@@ -255,6 +252,8 @@ sub bats_setup {
     configure_oci_runtime $oci_runtime;
 
     install_ncat if $install_ncat;
+
+    return if $rebooted;
 
     install_git;
 
@@ -287,6 +286,7 @@ sub bats_setup {
     power_action('reboot', textmode => 1);
     $self->wait_boot();
     push @commands, "reboot";
+    $rebooted = 1;
 
     select_serial_terminal;
 

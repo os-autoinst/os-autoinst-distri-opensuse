@@ -59,7 +59,7 @@ sub run {
         push @pkgs, "qemu-arm";
     }
 
-    $self->bats_setup(@pkgs);
+    $self->setup_pkgs(@pkgs);
 
     run_command "podman system reset -f";
     run_command "modprobe ip6_tables";

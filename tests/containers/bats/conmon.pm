@@ -42,7 +42,7 @@ sub run {
     }
     push @pkgs, @oci_runtimes;
 
-    $self->bats_setup(@pkgs);
+    $self->setup_pkgs(@pkgs);
 
     my $conmon_version = script_output("conmon --version | awk '/version/ { print \$3 }'");
     record_info("conmon version", $conmon_version);

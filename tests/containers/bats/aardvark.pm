@@ -35,7 +35,7 @@ sub run {
     # Install tests dependencies
     my @pkgs = qw(aardvark-dns firewalld iproute2 jq netavark podman socat);
     push @pkgs, is_sle("<16") ? qw(dbus-1) : qw(dbus-1-daemon);
-    $self->bats_setup(@pkgs);
+    $self->setup_pkgs(@pkgs);
 
     $aardvark = script_output "rpm -ql aardvark-dns | grep podman/aardvark-dns";
     record_info("aardvark-dns version", script_output("$aardvark --version"));
