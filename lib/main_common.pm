@@ -2427,7 +2427,7 @@ sub set_mu_virt_vars {
     # If $_pkg contains none, it is for ease of functional testing when no incidents are coming.
     if ($_pkg =~ /none/) {
         $_update_package = '';
-    } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|libslirp|open-vm-tools/) {
+    } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|libslirp|open-vm-tools|snphost|snpguest/) {
         $_update_package = $_pkg;
     } elsif ($_pkg =~ /libvirt/) {
         $_update_package = 'libvirt-client';
@@ -2540,12 +2540,13 @@ sub load_hypervisor_tests {
             loadtest "virtualization/universal/waitfor_guests";
         }
         if (check_var('PATCH_WITH_ZYPPER', 1)) {
-            loadtest "virtualization/universal/patch_and_reboot";
-            if (check_var('UPDATE_PACKAGE', 'kernel-default')) {
+            if (check_var('UPDATE_PACKAGE', 'kernel-default') || check_var('UPDATE_PACKAGE', 'snpguest')) {
+                loadtest "virtualization/universal/patch_and_reboot";
                 loadtest "virt_autotest/login_console";
                 loadtest "virtualization/universal/list_guests";
                 loadtest "virtualization/universal/patch_guests";
             } elsif (check_var('UPDATE_PACKAGE', 'xen') || check_var('UPDATE_PACKAGE', 'qemu')) {
+                loadtest "virtualization/universal/patch_and_reboot";
                 loadtest "virt_autotest/login_console";
                 loadtest "virtualization/universal/list_guests" unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1'));
             }
