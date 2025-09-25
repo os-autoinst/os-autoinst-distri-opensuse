@@ -212,7 +212,7 @@ sub setup_pkgs {
 
     push @commands, "### RUN AS root";
 
-    if (get_var("BATS_TEST_REPOS", "")) {
+    if (get_var("TEST_REPOS", "")) {
         if (script_run("zypper lr | grep -q SUSE_CA")) {
             run_command "zypper addrepo --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo";
         }
@@ -220,12 +220,12 @@ sub setup_pkgs {
             run_command "zypper --gpg-auto-import-keys -n install ca-certificates-suse";
         }
 
-        foreach my $repo (split(/\s+/, get_var("BATS_TEST_REPOS", ""))) {
+        foreach my $repo (split(/\s+/, get_var("TEST_REPOS", ""))) {
             run_command "zypper addrepo $repo";
         }
     }
 
-    foreach my $pkg (split(/\s+/, get_var("BATS_TEST_PACKAGES", ""))) {
+    foreach my $pkg (split(/\s+/, get_var("TEST_PACKAGES", ""))) {
         run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";
     }
 

@@ -18,8 +18,6 @@ The tests rely on some variables:
 | variable | description |
 | --- | --- |
 | `BATS_PACKAGE` | `aardvark-dns` `buildah` `conmon` `netavark` `podman` `runc` `skopeo` |
-| `BATS_TEST_PACKAGES` | List of optional package URL's |
-| `BATS_TEST_REPOS` | List of optional test repositories |
 | `BATS_TESTS` | Run only the specified tests |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `BUILDAH_STORAGE_DRIVER` | Storage driver used for buildah: `vfs` or `overlay` |
@@ -27,12 +25,14 @@ The tests rely on some variables:
 | `GITHUB_PATCHES` | List of github PR id's containing upstream test patches |
 | `GITHUB_REPO` | Repo & branch in the form `[<GITHUB_ORG>]#<BRANCH>` |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
+| `TEST_PACKAGES` | List of optional package URL's |
+| `TEST_REPOS` | List of optional test repositories |
 
 NOTES
-- `BATS_TEST_PACKAGES` may be used to test candidate kernels (KOTD, PTF, etc) and other packages.
-- `BATS_TEST_REPOS` may be used to test candidate packages outside the usual maintenance workflow.
 - `GITHUB_REPO` can be `SUSE#branch` or a tag `v1.2.3`
 - `GITHUB_PATCHES` can contain full URL's like `https://github.com/containers/podman/pull/25918.patch`
+- `TEST_PACKAGES` may be used to test candidate kernels (KOTD, PTF, etc) and other packages.
+- `TEST_REPOS` may be used to test candidate packages outside the usual maintenance workflow.
 
 ### Summary of the `BATS_IGNORE` variables
 
