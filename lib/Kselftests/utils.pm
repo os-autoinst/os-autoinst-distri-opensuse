@@ -180,6 +180,7 @@ sub post_process {
         my ($test_name, $sanitized_test_name) = get_sanitized_test_name($test);
 
         # Check test result in the summary
+        my $top_hardfail = 0;
         my $summary_ln;
         while ($summary_ln_idx < @summary) {
             $summary_ln = $summary[$summary_ln_idx];
@@ -194,7 +195,8 @@ sub post_process {
                     $summary_ln = "ok $test_index selftests: $args{collection}: $test_name # TODO Known Issue";
                     $softfails++;
                 } elsif ($test_failed) {
-                    $hardfails++;
+                    # The top-level test result might be rewritten later, so hold off the $hardfails increment for now
+                    $top_hardfail = 1;
                 }
                 # Break and keep the index so that we only read each line in the summary once
                 last;
@@ -214,6 +216,7 @@ sub post_process {
         push(@full_ktap, @{$ktap});
         $softfails += $s;
         $hardfails += $h;
+        $hardfails++ if $top_hardfail && !($s > 0 && $h == 0);
         next unless $s == 0;
         push(@full_ktap, $summary_ln);
     }
