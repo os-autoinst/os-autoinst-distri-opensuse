@@ -12,7 +12,7 @@ use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
 use utils qw(write_sut_file);
-use sles4sap::sap_deployment_automation_framework::deployment qw(get_os_variable get_fencing_mechanism);
+use sles4sap::sap_deployment_automation_framework::deployment qw(get_os_variable get_fencing_mechanism export_credentials);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
   qw(convert_region_to_short generate_resource_group_name);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id no_cleanup_tag);
@@ -179,7 +179,8 @@ sub create_workload_tfvars {
 
 =head2 define_workload_environment
 
-    define_workload_environment(environment=>'LAB', location=>'swedencentral', resource_group=>'OpenQA');
+    define_workload_environment(environment=>'LAB', location=>'swedencentral', resource_group=>'OpenQA'
+        [arm_client_id => 'beefcafe-dead-beef-food-deadbeefcafe']);
 
 Returns tfvars environment definitions section in B<HASHREF> format.
 This section includes various environmental parameters and parameters that do not belong to a specific section.
@@ -203,6 +204,7 @@ sub define_workload_environment {
         croak "Missing mandatory argument \$args{$arg}" unless $args{$arg};
     }
 
+    my $arm_client_id = ${export_credentials()}{subscription_id};
     my %result = (
         header => q|### Environment definitions ###|,
         environment => qq|"$args{environment}"|,
@@ -211,8 +213,9 @@ sub define_workload_environment {
         resourcegroup_name => qq|"$args{resource_group}"|,
         automation_username => '"' . get_var('PUBLIC_CLOUD_USER', 'azureadm') . '"',
         # enable_rbac_authorization_for_keyvault Controls the access policy model for the workload zone keyvault.
-        enable_rbac_authorization_for_keyvault => q|false|,
-        # enable_purge_control_for_keyvaults is an optional parameter that can be used to disable the purge protection fro Azure keyvaults
+        enable_rbac_authorization_for_keyvault => q|true|,
+        additional_users_to_add_to_keyvault_policies => qq|["$arm_client_id"]|,
+        # enable_purge_control_for_keyvaults is an optional parameter that can be used to disable the purge protection for Azure keyvaults
         enable_purge_control_for_keyvaults => q|false|,
         # use_spn defines if the deployments are performed using Service Principals or the deployer's managed identity, true=SPN, false=MSI
         use_spn => q|true|,
