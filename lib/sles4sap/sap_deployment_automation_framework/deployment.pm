@@ -1170,7 +1170,7 @@ sub sdaf_upload_logs {
     upload_logs("${crm_report_log}.tar.gz");
 
     record_info('Uploading crm configure log');
-    script_run("sudo crm configure show > $crm_cfg_log", timeout => 120);
+    record_info('crm configure show', 'Failed to run "crm configure show"', result => 'fail') if (script_run("sudo crm configure show > $crm_cfg_log", timeout => 120));
     upload_logs("$crm_cfg_log");
 
     # Upload zypper log

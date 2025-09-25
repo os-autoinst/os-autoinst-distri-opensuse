@@ -24,6 +24,7 @@ use network_utils qw(iface);
 use Carp qw(croak);
 use Data::Dumper;
 use XML::Simple;
+use serial_terminal qw(select_serial_terminal set_serial_prompt serial_term_prompt);
 
 our @EXPORT = qw(
   $crm_mon_cmd
@@ -97,6 +98,7 @@ our @EXPORT = qw(
   list_configured_sbd
   sbd_device_report
   get_fencing_type
+  check_crm_nonroot
 );
 
 =head1 SYNOPSIS
@@ -399,7 +401,13 @@ screenshot.
 =cut
 
 sub save_state {
-    script_run 'yes | crm configure show', $default_timeout;
+    my $ret = script_run('yes | crm configure show', $default_timeout);
+
+    # In this pipeline, "crm configure show" exits cleanly with 0, but "yes" keeps writing after
+    # the pipe is closed and dies with SIGPIPE (128+13=141). We could ingore 141 exit code.
+    if ($ret != 0 && $ret != 141) {
+        record_info('crm configure show', 'Failed to run "crm configure show"', result => 'fail');
+    }
     assert_script_run "$crm_mon_cmd", $default_timeout;
     save_screenshot;
 }
@@ -684,7 +692,7 @@ sub ha_export_logs {
     $crm_log_name = $1;
     upload_logs("$crm_log_name", failok => 1);
 
-    script_run "crm configure show > /tmp/crm.txt";
+    record_info('crm configure show', 'Failed to run "crm configure show"', result => 'fail') if (script_run("crm configure show > /tmp/crm.txt"));
     upload_logs('/tmp/crm.txt');
 
     # Extract YaST logs and upload them
@@ -2068,6 +2076,54 @@ sub get_fencing_type {
     my $stonith_type = script_output('crm configure show type:primitive | grep stonith');
     $stonith_type =~ m/stonith:(.*)\s/;
     return $1;
+}
+
+=head2 check_crm_nonroot
+
+    check_crm_nonroot();
+
+Checks if non-root user run 'crm configure show' successfully
+
+=over
+
+=item * B<user> non-root user, usually be <sid>adm
+
+=back
+
+=cut
+
+sub check_crm_nonroot {
+    my $user = shift // die 'check_crm_nonroot requires a username';
+
+    # Get the command 'crm' path
+    my $command = script_output('which crm');
+
+    # Set the user into haclient job group because of `crm` permission
+    assert_script_run("usermod -a -G haclient $user");
+
+    my $orig_prompt = serial_term_prompt() // '# ';
+
+    # Login as non-root user
+    enter_cmd "su - $user";
+    wait_serial '> ', no_regex => 1, timeout => 2;
+    set_serial_prompt '> ';
+
+    # Unset all related PATH which belong to non-root user.
+    my @paths = ('PYTHONPATH', 'PYTHONHOME', 'PYTHON_DIR', 'PYTHON_MODULES_DIR', 'PYTHON_VERSION', 'PYTHON_VERSION_FILE', 'LD_LIBRARY_PATH');
+    foreach my $path (@paths) {
+        assert_script_run("unset $path");
+    }
+
+    # Run crm configure show
+    assert_script_run("yes | $command configure show");
+
+    # Exit non-root user
+    enter_cmd 'exit';
+
+    $testapi::distri->{serial_term_prompt} = $orig_prompt;
+    wait_serial $orig_prompt, no_regex => 1, timeout => 2;
+
+    select_serial_terminal();
 }
 
 1;
