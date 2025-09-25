@@ -39,6 +39,7 @@ sub is_regproxy_required {
 }
 
 sub load_config_tests {
+    loadtest 'transactional/disable_timers';
     loadtest 'transactional/tdup' if get_var('TDUP');
     loadtest 'rt/rt_is_realtime' if is_rt;
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
@@ -223,7 +224,6 @@ sub load_common_tests {
 
 
 sub load_transactional_tests {
-    loadtest 'transactional/disable_timers';
     loadtest 'transactional/filesystem_ro';
     loadtest 'transactional/trup_smoke';
     loadtest 'microos/patterns' if is_sle_micro;
