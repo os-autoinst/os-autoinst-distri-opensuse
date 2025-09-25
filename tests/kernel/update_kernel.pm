@@ -499,7 +499,15 @@ sub run {
         reboot_on_changes;
     }
 
-    my $repo = is_sle_micro('>=6.0') ? get_var('OS_TEST_REPOS') : get_var('KOTD_REPO');
+    my $repo = undef;
+    if (is_sle('16+')) {
+        $repo = get_var('MAINT_TEST_REPO');
+    } elsif (is_sle_micro('>=6.0')) {
+        $repo = get_var('OS_TEST_REPOS');
+    } else {
+        $ repo = get_var('KOTD_REPO');
+    }
+
     my $incident_id = undef;
     my $grub_param = get_var('APPEND_GRUB_PARAMS');
 
