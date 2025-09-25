@@ -64,16 +64,12 @@ sub run {
         $tests .= "--test $_ " for @tests;
     }
 
-    my $timeout = '';
-    if ($timeout = get_var('KSELFTEST_TIMEOUT')) {
-        $timeout = "--override-timeout $timeout";    # Individual timeout for each test in the collection
-    }
-
     validate_kconfig($collection);
 
-    my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh --per-test-log $timeout $tests";
+    my $timeout = get_var('KSELFTEST_TIMEOUT') // 300;
+    my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh --per-test-log $tests";
     $runner .= " | tee summary.tap";
-    assert_script_run("$runner", 7200);
+    assert_script_run("$runner", $timeout);
 
     my ($ktap, $softfails, $hardfails);
     if (@tests > 1) {
