@@ -10,6 +10,77 @@ use testapi qw(set_var);
 
 use sles4sap::ipaddr2;
 
+my %mock_context = (
+    main_address_range => '55.44.33.22/1',
+    subnet_address_range => '99.88.77.66/5',
+    frontend_ip => '22.33.22.11',
+    priv_ip_range => '11.22.33',
+    bastion_ip => '1.2.3.4'
+);
+
+subtest '[ipaddr2_context_reset]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    ipaddr2_context_reset();
+
+    my $ctx = ipaddr2_context_get();
+    is($ctx, undef, 'Context undef after the reset');
+
+};
+
+subtest '[ipaddr2_context_create]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    ipaddr2_context_reset();
+
+    ipaddr2_context_create();
+
+    my $ctx = ipaddr2_context_get();
+    my %expected_value = (
+        main_address_range => '192.168.0.0/16',
+        subnet_address_range => '192.168.0.0/24',
+        priv_ip_range => '192.168.0',
+        frontend_ip => '192.168.0.50');
+    is_deeply $ctx, \%expected_value, "IP range is count according by worker_id";
+    ipaddr2_context_reset();
+};
+
+subtest '[ipaddr2_context_create] bastion_ip' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '12.23.34.45'; });
+    ipaddr2_context_reset();
+
+    ipaddr2_context_create();
+
+    my $ctx = ipaddr2_context_get();
+    my %expected_value = (
+        main_address_range => '192.168.0.0/16',
+        subnet_address_range => '192.168.0.0/24',
+        priv_ip_range => '192.168.0',
+        frontend_ip => '192.168.0.50',
+        bastion_ip => '12.23.34.45');
+    is_deeply $ctx, \%expected_value, "IP range is count according by worker_id";
+    ipaddr2_context_reset();
+};
+
+subtest '[ipaddr2_context_create] slot' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    ipaddr2_context_reset();
+
+    ipaddr2_context_create(slot => 123);
+    my %expected_value = (
+        main_address_range => '10.3.208.0/21',
+        subnet_address_range => '10.3.208.0/24',
+        priv_ip_range => '10.3.208',
+        frontend_ip => '10.3.208.50');
+    my $ctx = ipaddr2_context_get();
+    is_deeply $ctx, \%expected_value, "IP range is count according by worker_id";
+    ipaddr2_context_reset();
+};
+
 subtest '[ipaddr2_infra_deploy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
@@ -22,6 +93,9 @@ subtest '[ipaddr2_infra_deploy]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+
+    # Mock the context
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
     ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci');
 
@@ -58,6 +132,9 @@ subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
+    # Mock the context
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
+
     ipaddr2_infra_deploy(
         region => 'Marconi',
         os => 'Meucci:gen2:ByoS',
@@ -90,6 +167,9 @@ subtest '[ipaddr2_infra_deploy] no cloud-init' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
 
+    # Mock the context
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
+
     ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci:gen2:ByoS');
 
     # push the list of commands in another list, this one without the source
@@ -120,6 +200,9 @@ subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
 
+    # Mock the context
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
+
     ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', diagnostic => 1);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -144,6 +227,9 @@ subtest '[ipaddr2_infra_deploy] disable trusted launch' => sub {
             return; });
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
 
+    # Mock the context
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
+
     ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', trusted_launch => 0);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -162,6 +248,9 @@ subtest '[ipaddr2_infra_deploy] with .vhd' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
     $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+
+    # Mock the context
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
     ipaddr2_infra_deploy(region => 'Sithonia', os => 'Toroni.vhd');
 
@@ -192,26 +281,13 @@ subtest '[ipaddr2_bastion_key_accept]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
     my $ret = ipaddr2_bastion_key_accept();
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
-    ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
-    ok((scalar @calls eq 2), "Exactly 2 calls and get " . (scalar @calls));
-};
-
-subtest '[ipaddr2_bastion_key_accept] without providing the bastion_ip' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-
-    my $ret = ipaddr2_bastion_key_accept(bastion_ip => '1.2.3.4');
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
-    ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
+    ok((any { /$mock_context{bastion_ip}/ } @calls), 'Bastion IP in the ssh command');
     ok((scalar @calls eq 2), "Exactly 2 calls and get " . (scalar @calls));
 };
 
@@ -224,16 +300,15 @@ subtest '[ipaddr2_internal_key_accept]' => sub {
             if ($_[0] =~ /nc.*22/) { return 0; }
             if ($_[0] =~ /ssh.*accept-new/) { return 0; }
             return 1; });
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
-    my $ret = ipaddr2_internal_key_accept();
+    ipaddr2_internal_key_accept();
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /StrictHostKeyChecking=accept-new/ } @calls), 'Correct call ssh command');
-    ok((any { /1\.2\.3\.4/ } @calls), 'Bastion IP in the ssh command');
-    ok((any { /0\.41/ } @calls), 'Internal VM1 IP in the ssh command');
-    ok((any { /0\.42/ } @calls), 'Internal VM2 IP in the ssh command');
+    ok((any { /$mock_context{bastion_ip}/ } @calls), 'Bastion IP in the ssh command');
+    ok((any { /$mock_context{priv_ip_range}\.41/ } @calls), 'Internal VM1 IP in the ssh command');
+    ok((any { /$mock_context{priv_ip_range}\.42/ } @calls), 'Internal VM2 IP in the ssh command');
 };
 
 subtest '[ipaddr2_internal_key_accept] key_checking' => sub {
@@ -245,10 +320,9 @@ subtest '[ipaddr2_internal_key_accept] key_checking' => sub {
             if ($_[0] =~ /nc.*22/) { return 0; }
             if ($_[0] =~ /ssh.*StrictHostKeyChecking/) { return 0; }
             return 1; });
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
-    my $ret = ipaddr2_internal_key_accept(key_checking => 'LuigiTorchi');
+    ipaddr2_internal_key_accept(key_checking => 'LuigiTorchi');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /StrictHostKeyChecking=LuigiTorchi/ } @calls), 'Correct call ssh command value StrictHostKeyChecking');
@@ -263,8 +337,7 @@ subtest '[ipaddr2_internal_key_accept] nc timeout' => sub {
             if ($_[0] =~ /nc.*22/) { return 1; }
             if ($_[0] =~ /ssh.*accept-new/) { return 0; }
             return 1; });
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
     dies_ok { ipaddr2_internal_key_accept() } "die if ssh port 22 is not open";
 
@@ -276,7 +349,7 @@ subtest '[ipaddr2_cluster_create]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
     ipaddr2_cluster_create();
 
@@ -292,7 +365,7 @@ subtest '[ipaddr2_cluster_create] rootless' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
     ipaddr2_cluster_create(rootless => 1);
 
@@ -306,6 +379,7 @@ subtest '[ipaddr2_cluster_check_version]' => sub {
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
     ipaddr2_cluster_check_version();
 
@@ -320,6 +394,7 @@ subtest '[ipaddr2_deployment_sanity] Pass' => sub {
     my @calls;
     $ipaddr2->redefine(script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
@@ -354,6 +429,7 @@ subtest '[ipaddr2_deployment_sanity] Fails rg num' => sub {
     # Simulate az cli to return 2 resource groups
     # one for the current jobId Volta and another one
     $ipaddr2->redefine(get_current_job_id => sub { return 'Majorana'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     $azcli->redefine(script_output => sub {
             push @calls, ['azure_cli', $_[0]];
             if ($_[0] =~ /az group list*/) { return '["ip2tVolta","ip2tFermi"]'; }
@@ -373,6 +449,7 @@ subtest '[ipaddr2_os_sanity]' => sub {
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_run => sub {
             push @calls, ['local', $_[0]]; });
@@ -403,6 +480,7 @@ subtest '[ipaddr2_os_sanity] root' => sub {
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_run => sub {
             push @calls, ['local', $_[0]]; });
@@ -430,6 +508,7 @@ subtest '[ipaddr2_os_sanity] root' => sub {
 
 subtest '[ipaddr2_bastion_pubip]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     $ipaddr2->redefine(az_network_publicip_get => sub { return '1.2.3.4'; });
 
@@ -452,7 +531,7 @@ subtest '[ipaddr2_bastion_pubip] get invalid IP' => sub {
 
 subtest '[ipaddr2_internal_key_gen]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_output => sub {
             push @calls, $_[0];
@@ -478,7 +557,7 @@ subtest '[ipaddr2_internal_key_gen]' => sub {
 
 subtest '[ipaddr2_internal_key_gen] custom user' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_output => sub {
             push @calls, $_[0];
@@ -493,7 +572,7 @@ subtest '[ipaddr2_internal_key_gen] custom user' => sub {
 
 subtest '[ipaddr2_internal_key_gen] root' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_output => sub {
             push @calls, $_[0];
@@ -508,7 +587,7 @@ subtest '[ipaddr2_internal_key_gen] root' => sub {
 
 subtest '[ipaddr2_crm_move]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub {
             my (%args) = @_;
@@ -525,7 +604,7 @@ subtest '[ipaddr2_crm_move]' => sub {
 
 subtest '[ipaddr2_crm_clear]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub {
             my (%args) = @_;
@@ -542,7 +621,7 @@ subtest '[ipaddr2_crm_clear]' => sub {
 
 subtest '[ipaddr2_wait_for_takeover]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_output => sub { push @calls, $_[0]; return 'I am ip2t-vm-042'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -551,12 +630,12 @@ subtest '[ipaddr2_wait_for_takeover]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(($ret eq 1), "Expected result 1 get $ret");
-    ok((any { /ssh.*1.2.3.4.*curl.*http.*192.168.0.50/ } @calls), "Expected curl command called");
+    ok((any { /ssh.*$mock_context{bastion_ip}.*curl.*http.*$mock_context{frontend_ip}/ } @calls), "Expected curl command called");
 };
 
 subtest '[ipaddr2_wait_for_takeover] timeout' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_output => sub { push @calls, $_[0]; return 'I am Galileo Galilei.'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -569,7 +648,7 @@ subtest '[ipaddr2_wait_for_takeover] timeout' => sub {
 
 subtest '[ipaddr2_test_master_vm]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     $ipaddr2->redefine(ipaddr2_get_web => sub { return 1; });
     my @calls;
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -586,7 +665,7 @@ subtest '[ipaddr2_test_master_vm]' => sub {
             } elsif ($args{cmd} =~ /crm configure show/) {
                 $out = 'cli-prefer-ip2t-vm-042';
             } elsif ($args{cmd} =~ /ip a show eth0/) {
-                $out = '192.168.0.50';
+                $out = $mock_context{frontend_ip};
             } elsif ($args{cmd} =~ /ps -xa/) {
                 $out = '12345   ?   S 12:34  nginx';
             } else {
@@ -607,7 +686,7 @@ subtest '[ipaddr2_test_master_vm]' => sub {
 
 subtest '[ipaddr2_test_master_vm] crm failure' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     $ipaddr2->redefine(ipaddr2_get_web => sub { return 1; });
     my @calls;
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -647,7 +726,7 @@ subtest '[ipaddr2_test_master_vm] crm failure' => sub {
 
 subtest '[ipaddr2_test_master_vm] web failure' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
     # Simulate a failure in curl response
     $ipaddr2->redefine(ipaddr2_get_web => sub { return 0; });
@@ -689,7 +768,7 @@ subtest '[ipaddr2_test_master_vm] web failure' => sub {
 
 subtest '[ipaddr2_test_master_vm] nginx not running' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     $ipaddr2->redefine(ipaddr2_get_web => sub { return 1; });
     my @calls;
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -728,7 +807,7 @@ subtest '[ipaddr2_test_master_vm] nginx not running' => sub {
 
 subtest '[ipaddr2_cluster_sanity]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -761,7 +840,7 @@ subtest '[ipaddr2_cluster_sanity]' => sub {
 
 subtest '[ipaddr2_configure_web_server]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -780,7 +859,7 @@ subtest '[ipaddr2_configure_web_server]' => sub {
 
 subtest '[ipaddr2_configure_web_server] nginx_root' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -798,7 +877,7 @@ subtest '[ipaddr2_configure_web_server] nginx_root' => sub {
 
 subtest '[ipaddr2_configure_web_server] external_repo' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -817,7 +896,7 @@ subtest '[ipaddr2_configure_web_server] external_repo' => sub {
 
 subtest '[ipaddr2_scc_check] all registered' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_output => sub {
             push @calls, $_[0];
@@ -834,7 +913,7 @@ subtest '[ipaddr2_scc_check] all registered' => sub {
 
 subtest '[ipaddr2_scc_check] one not registered' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_output => sub {
             push @calls, $_[0];
@@ -850,7 +929,7 @@ subtest '[ipaddr2_scc_check] one not registered' => sub {
 
 subtest '[ipaddr2_scc_register]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -863,7 +942,7 @@ subtest '[ipaddr2_scc_register]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /registercloudguest.*clean/ } @calls), 'registercloudguest clean');
-    ok((any { /registercloudguest.*force-new.*-r.*1234567890/ } @calls), 'registercloudguest register');
+    ok((any { /registercloudguest.*-r.*1234567890/ } @calls), 'registercloudguest register');
 };
 
 subtest '[ipaddr2_scc_register] scc_endpoint' => sub {
@@ -887,7 +966,7 @@ subtest '[ipaddr2_scc_register] scc_endpoint' => sub {
 
 subtest '[ipaddr2_cloudinit_logs]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -961,7 +1040,7 @@ subtest '[ipaddr2_cloudinit_create] nginx_root' => sub {
 
 subtest '[ipaddr2_os_connectivity_sanity]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
@@ -974,7 +1053,7 @@ subtest '[ipaddr2_os_connectivity_sanity]' => sub {
 
 subtest '[ipaddr2_test_other_vm]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ["VM???", $_[0], '']; return; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
@@ -1001,41 +1080,27 @@ subtest '[ipaddr2_test_other_vm]' => sub {
 
 subtest '[ipaddr2_repo_refresh]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { my (%args) = @_; push @calls, $args{cmd}; });
 
     ipaddr2_repo_refresh(id => '2');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /ssh.*\.42 .*zypper.*ref/ } @calls), 'Call zypper ref');
+    ok((any { /zypper.*ref/ } @calls), 'Call zypper ref');
 };
 
 subtest '[ipaddr2_repo_list]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { my (%args) = @_; push @calls, $args{cmd}; });
 
     ipaddr2_repo_list(id => '2');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /ssh.*\.42 .*zypper.*lr/ } @calls), 'Call zypper lr');
-    ok((any { /ssh.*\.42 .*zypper.*ls/ } @calls), 'Call zypper ls');
-};
-
-subtest '[get_private_ip_range]' => sub {
-    my %ip_range = sles4sap::ipaddr2::get_private_ip_range();
-    my %expected_value = (main_address_range => '192.168.0.0/16', subnet_address_range => '192.168.0.0/24', priv_ip_range => '192.168.0');
-    is_deeply \%ip_range, \%expected_value, "No worker_id, return 192.168.0.0 ip range";
-
-    set_var('WORKER_ID', '123');
-    %ip_range = sles4sap::ipaddr2::get_private_ip_range();
-    $expected_value{main_address_range} = '10.3.208.0/21';
-    $expected_value{subnet_address_range} = '10.3.208.0/24';
-    $expected_value{priv_ip_range} = '10.3.208';
-    is_deeply \%ip_range, \%expected_value, "IP range is count according by worker_id";
-    set_var('WORKER_ID', undef);
+    ok((any { /zypper.*lr/ } @calls), 'Call zypper lr');
+    ok((any { /zypper.*ls/ } @calls), 'Call zypper ls');
 };
 
 subtest '[ipaddr2_network_peering_create]' => sub {
@@ -1068,7 +1133,7 @@ subtest '[ipaddr2_patch_system] no args' => sub {
 
 subtest '[ipaddr2_patch_system]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(script_run => sub {
@@ -1091,15 +1156,14 @@ subtest '[ipaddr2_patch_system]' => sub {
 
 subtest '[ipaddr2_scc_addons] no args' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     dies_ok { ipaddr2_scc_addons() } "die if no argument is provided";
-    dies_ok { ipaddr2_scc_addons(priv_ip_range => '1.2.3') } "die if no scc_addons argument is provided";
-    dies_ok { ipaddr2_scc_addons(priv_ip_range => '1.2.3', scc_addons => '') } "die if empty scc_addons argument is provided";
+    dies_ok { ipaddr2_scc_addons(scc_addons => '') } "die if empty scc_addons argument is provided";
 };
 
 subtest '[ipaddr2_scc_addons] addons' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
     my (@remotes, @addons);
     $ipaddr2->redefine(register_addon => sub {
             my ($remote, $addon) = @_;
@@ -1126,7 +1190,7 @@ subtest '[ipaddr2_repos_add_server_to_hosts]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_context_get => sub { return \%mock_context; });
 
     ipaddr2_repos_add_server_to_hosts(ibsm_ip => 7.6.5.4, incident_repos => 'AAAA,BBBB');
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -1203,6 +1267,5 @@ subtest '[ipaddr2_cleanup] ipaddr2_deployment_logs' => sub {
 
     ok(($called eq 1), "az_vm_diagnostic_log_get called");
 };
-
 
 done_testing;

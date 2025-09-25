@@ -59,7 +59,6 @@ use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
   ipaddr2_configure_web_server
-  ipaddr2_bastion_pubip
   ipaddr2_cluster_create
   ipaddr2_cluster_check_version
   ipaddr2_cleanup);
@@ -72,15 +71,12 @@ sub run {
 
     select_serial_terminal;
 
-    my $bastion_ip = ipaddr2_bastion_pubip();
-
     # Check if cloudinit is active or not. In case it is,
     # registration was eventually there and no need to per performed here.
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
         record_info("TEST STAGE", "Install the web server");
         my %web_install_args;
         $web_install_args{external_repo} = get_var('IPADDR2_NGINX_EXTREPO') if get_var('IPADDR2_NGINX_EXTREPO');
-        $web_install_args{bastion_ip} = $bastion_ip;
         foreach (1 .. 2) {
             $web_install_args{id} = $_;
             ipaddr2_configure_web_server(%web_install_args);
@@ -90,9 +86,7 @@ sub run {
     record_info("TEST STAGE", "Init and configure the Pacemaker cluster");
 
     ipaddr2_cluster_check_version();
-    ipaddr2_cluster_create(
-        bastion_ip => $bastion_ip,
-        rootless => get_var('IPADDR2_ROOTLESS', '0'));
+    ipaddr2_cluster_create(rootless => get_var('IPADDR2_ROOTLESS', '0'));
 }
 
 sub test_flags {

@@ -75,6 +75,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
+  ipaddr2_context_create
   ipaddr2_cloudinit_create
   ipaddr2_infra_deploy
   ipaddr2_deployment_sanity
@@ -107,6 +108,9 @@ sub run {
     } else {
         $os = $provider->get_image_id();
     }
+
+    # This call will create the context
+    ipaddr2_context_create(slot => get_var('WORKER_ID'));
 
     my %cloudinit_args;
     # This line of code is not really specific to cloud-init,
