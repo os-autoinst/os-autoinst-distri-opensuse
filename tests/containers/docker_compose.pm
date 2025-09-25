@@ -18,7 +18,7 @@ use containers::bats;
 my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
 
 sub setup {
-    my @pkgs = qw(docker docker-compose go1.24 make);
+    my @pkgs = qw(docker docker-compose jq go1.24 make);
     install_packages(@pkgs);
     install_git;
 
