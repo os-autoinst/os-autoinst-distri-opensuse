@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2023 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: python openvswitch
@@ -31,13 +31,13 @@ sub run {
     systemctl('start openvswitch');
 
     # Create vswitch, virtual tap devices and add them to vswitch
-    assert_script_run 'ovs-vsctl add-br ovsbr0';
+    assert_script_run 'ovs-vsctl --may-exist add-br ovsbr0';
     assert_script_run 'ip tuntap add mode tap vport1';
     assert_script_run 'ip tuntap add mode tap vport2';
     assert_script_run 'ip link set vport1 up';
     assert_script_run 'ip link set vport2 up';
-    assert_script_run 'ovs-vsctl add-port ovsbr0 vport1';
-    assert_script_run 'ovs-vsctl add-port ovsbr0 vport2';
+    assert_script_run 'ovs-vsctl --may-exist add-port ovsbr0 vport1';
+    assert_script_run 'ovs-vsctl --may-exist add-port ovsbr0 vport2';
 
     # Prepare private/public keys, and certificates
     for my $pem (qw(ca-cert.pem ca-key.pem server-cert.pem server-key.pem client-cert.pem client-key.pem)) {
