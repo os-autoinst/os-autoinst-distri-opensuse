@@ -72,7 +72,7 @@ sub setup {
     # Transform "python311" into "python3.11" and leave "python3" as is
     $python3 =~ s/^python3(\d{2})$/python3.$1/;
     my $version = script_output "$python3 -c 'import $runtime; print($runtime.__version__)'";
-    record_info("Version", $version);
+    record_info("$runtime-py version", $version);
 
     # podman-py uses v$version in tags while docker-py uses bare version
     $version = ($runtime eq "podman") ? "v$version" : $version;
