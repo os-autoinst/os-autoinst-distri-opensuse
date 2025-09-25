@@ -29,6 +29,7 @@ sub run {
     record_info('KERNEL VERSION', script_output('uname -a'));
 
     my $collection = get_required_var('KSELFTEST_COLLECTION');
+    $self->{collection} = $collection;
     if (get_var('KSELFTEST_FROM_GIT', 0)) {
         install_from_git($collection);
         assert_script_run("cd ./tools/testing/selftests/kselftest_install");
@@ -53,6 +54,7 @@ sub run {
         # Remove tests that are in @skip
         @tests = grep { !$skip{$_} } @tests;
     }
+    $self->{tests} = [@tests];
 
     # Run specific tests if the arrays have different lengths
     my $tests = '';
@@ -69,7 +71,7 @@ sub run {
     my $stamp = "OpenQA::run_kselftest.pm";
     my $timeout = get_var('KSELFTEST_TIMEOUT') // 300;
     my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh --per-test-log $tests";
-    $runner .= " | tee -a summary.tap; echo $stamp END";
+    $runner .= " | tee -a \$HOME/summary.tap; echo $stamp END";
 
     script_run("echo '$stamp BEGIN' > /dev/kmsg");
     wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
@@ -81,12 +83,18 @@ sub run {
     if (not defined $finished) {
         die "Timed out waiting for Kselftests runner which may still be running or the OS may have crashed!";
     }
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    $self->SUPER::post_run_hook;
 
     my ($ktap, $softfails, $hardfails);
+    my @tests = @{$self->{tests}};
     if (@tests > 1) {
-        ($ktap, $softfails, $hardfails) = post_process(collection => $collection, tests => \@tests);
+        ($ktap, $softfails, $hardfails) = post_process(collection => $self->{collection}, tests => \@tests);
     } else {
-        ($ktap, $softfails, $hardfails) = post_process_single(collection => $collection, test => $tests[0]);
+        ($ktap, $softfails, $hardfails) = post_process_single(collection => $self->{collection}, test => $tests[0]);
     }
 
     write_sut_file('/tmp/kselftest.tap.txt', join("\n", @{$ktap}));

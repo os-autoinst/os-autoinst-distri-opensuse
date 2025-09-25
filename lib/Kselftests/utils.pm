@@ -90,7 +90,7 @@ Returns the KTAP output, the number of soft and hardfails
 
 sub post_process_single {
     my %args = @_;
-    $args{logfile} //= 'summary.tap';
+    $args{logfile} //= '$HOME/summary.tap';
     $args{test_index} //= 1;
     my $env = {
         product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
@@ -161,7 +161,7 @@ Returns the KTAP output, the number of soft and hard fails
 
 sub post_process {
     my %args = @_;
-    $args{logfile} //= 'summary.tap';
+    $args{logfile} //= '$HOME/summary.tap';
     my $env = {
         product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
         arch => get_var('ARCH', ''),
