@@ -321,6 +321,9 @@ sub load_helm_chart_tests {
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
+    # Workaround while we use 15.99 for SLE 16 maintenance
+    set_var('VERSION', '16.0') if (check_var('VERSION', '15.99'));
+
     if (get_var('CONTAINER_UPDATE_HOST')) {
         update_host_and_publish_hdd();
         return;
