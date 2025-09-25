@@ -71,14 +71,15 @@ sub run {
 
     validate_kconfig($collection);
 
+    my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh --per-test-log $timeout $tests";
+    $runner .= " | tee summary.tap";
+    assert_script_run("$runner", 7200);
+
     my ($ktap, $softfails, $hardfails);
-    my $runner = '';
-    if ($runner = get_var('KSELFTEST_RUNNER')) {
-        script_run("$runner | tee summary.tap", 7200);
-        ($ktap, $softfails, $hardfails) = post_process_single(collection => $collection, test => $tests[0]);
-    } else {
-        assert_script_run("./run_kselftest.sh --per-test-log $timeout $tests | tee summary.tap", 7200);
+    if (@tests > 1) {
         ($ktap, $softfails, $hardfails) = post_process(collection => $collection, tests => \@tests);
+    } else {
+        ($ktap, $softfails, $hardfails) = post_process_single(collection => $collection, test => $tests[0]);
     }
 
     write_sut_file('/tmp/kselftest.tap.txt', join("\n", @{$ktap}));
