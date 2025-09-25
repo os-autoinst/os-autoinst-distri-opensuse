@@ -74,7 +74,7 @@ sub run {
     my ($ktap, $softfails, $hardfails);
     my $runner = '';
     if ($runner = get_var('KSELFTEST_RUNNER')) {
-        script_run("$runner > summary.tap 2>&1", 7200);
+        script_run("$runner | tee summary.tap", 7200);
         ($ktap, $softfails, $hardfails) = post_process_single(collection => $collection, test => $tests[0]);
     } else {
         assert_script_run("./run_kselftest.sh --per-test-log $timeout $tests | tee summary.tap", 7200);
