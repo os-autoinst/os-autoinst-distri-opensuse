@@ -1,0 +1,30 @@
+name:           NFS bare-metal tests
+description:    >
+    The test schedule meant for openQA NFS multimachine tests
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    DESKTOP: textmode
+    MLX_PROTOCOL: 2
+    NFS_MULTIPATH: 1
+conditional_schedule:
+    nfs_barriers:
+        ROLE:
+            nfs_server:
+                - kernel/nfs_barriers
+    #nfstest:
+    #    ROLE:
+    #        nfs_server:
+    #            - kernel/nfs_server
+    #        nfs_client:
+    #            - kernel/nfs_client
+schedule:
+    - '{{nfs_barriers}}'
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - kernel/mellanox_config
+    - kernel/before_nfs_test
+    #- '{{nfstest}}'
+    - kernel/nfs_server
+    - kernel/nfs_client
