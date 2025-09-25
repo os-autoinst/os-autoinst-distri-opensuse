@@ -14,7 +14,6 @@ use version_utils;
 use utils;
 use Utils::Architectures qw(is_x86_64);
 use registration qw(add_suseconnect_product get_addon_fullname);
-use containers::common qw(install_packages);
 use containers::bats;
 
 my $api_version;
@@ -48,6 +47,14 @@ sub setup {
     run_command "ssh-keygen -t $algo -N '' -f ~/.ssh/id_$algo";
     run_command "cat ~/.ssh/id_$algo.pub >> ~/.ssh/authorized_keys";
     run_command "ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts";
+    # Persist SSH connections
+    # https://docs.docker.com/engine/security/protect-access/#ssh-tips
+    my $ssh_config = <<'EOF';
+ControlMaster     auto
+ControlPath       ~/.ssh/control-%C
+ControlPersist    yes
+EOF
+    write_sut_file('/root/.ssh/config', $ssh_config);
 
     if ($runtime eq "podman") {
         systemctl "enable --now podman.socket";
@@ -83,9 +90,6 @@ sub setup {
     if ($runtime eq "docker") {
         $api_version = get_var("DOCKER_API_VERSION", script_output 'make --eval=\'version: ; @echo $(TEST_API_VERSION)\' version');
         record_info("API version", $api_version);
-    }
-
-    if ($runtime eq "docker") {
         run_command "curl -sSLo /usr/local/bin/pass https://raw.githubusercontent.com/zx2c4/password-store/refs/heads/master/src/password-store.sh";
         run_command "chmod +x /usr/local/bin/pass";
         # Fill credentials store. Taken from https://github.com/docker/docker-py/blob/main/tests/Dockerfile
