@@ -19,7 +19,7 @@ use base 'opensusebasetest';
 
 use testapi;
 use utils qw(write_sut_file);
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(serial_term_prompt select_serial_terminal);
 use Kselftests::utils;
 
 sub run {
@@ -66,10 +66,21 @@ sub run {
 
     validate_kconfig($collection);
 
+    my $stamp = "OpenQA::run_kselftest.pm";
     my $timeout = get_var('KSELFTEST_TIMEOUT') // 300;
     my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh --per-test-log $tests";
-    $runner .= " | tee summary.tap";
-    assert_script_run("$runner", $timeout);
+    $runner .= " | tee -a summary.tap; echo $stamp END";
+
+    script_run("echo '$stamp BEGIN' > /dev/kmsg");
+    wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
+    type_string($runner);
+    wait_serial($runner, undef, 0, no_regex => 1);
+    send_key 'ret';
+
+    my $finished = wait_serial(qr/$stamp END/, timeout => $timeout, expect_not_found => 0, record_output => 1);
+    if (not defined $finished) {
+        die "Timed out waiting for Kselftests runner which may still be running or the OS may have crashed!";
+    }
 
     my ($ktap, $softfails, $hardfails);
     if (@tests > 1) {
