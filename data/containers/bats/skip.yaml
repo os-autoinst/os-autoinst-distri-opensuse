@@ -187,13 +187,12 @@ podman:
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
   # https://github.com/containers/podman/pull/26798 is needed for 505-networking-pasta
   # https://github.com/containers/podman/pull/26920 is needed to drop ncat
+  # https://github.com/containers/podman/pull/26921 is needed to drop socat
   # https://github.com/containers/podman/pull/27152 is needed for 030-run
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26017
     - 26798
-    - 26920
-    - 26921
     - 27152
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
