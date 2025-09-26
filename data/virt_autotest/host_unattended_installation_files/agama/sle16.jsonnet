@@ -40,7 +40,8 @@
         'kvm_tools'
       ],
       packages: [
-        'virt-bridge-setup'
+        'virt-bridge-setup',
+        'libvirt-daemon'
       ]
   },
   scripts: {
