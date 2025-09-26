@@ -192,7 +192,11 @@ sub post_fail_hook {
     # virt logs are included in next step "virt_utils::collect_host_and_guest_logs"
     collect_virt_system_logs() unless get_var("VIRT_AUTOTEST");
 
-    virt_utils::collect_host_and_guest_logs('', '', '', "_" . caller 0);
+    virt_utils::collect_host_and_guest_logs(
+        full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1),
+        excluded_supportconfig_features => get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX'),
+        token => "_" . caller 0
+    );
     upload_logs("/var/log/clean_up_virt_logs.log");
     save_screenshot;
     upload_logs("/var/log/guest_console_monitor.log");

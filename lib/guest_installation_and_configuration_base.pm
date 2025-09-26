@@ -2929,7 +2929,8 @@ sub check_guest_installation_result_via_ssh {
                 virt_autotest::utils::add_alias_in_ssh_config('/root/.ssh/config', $_guest_transient_hostname_via_ipaddr, $self->{guest_domain_name}, $self->{guest_name});
             }
             save_screenshot;
-            $_ret = script_run("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", timeout => 60);
+            $_ret = 255;
+            #$_ret = script_run("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", timeout => 60);
             $_guest_transient_hostname_via_name = script_output("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
             save_screenshot;
             if ($_guest_transient_hostname_via_name ne '' and $_ret == 0) {
@@ -2940,12 +2941,14 @@ sub check_guest_installation_result_via_ssh {
                 if ($self->{guest_network_type} eq 'bridge' and $self->{guest_network_mode} eq 'host') {
                     virt_autotest::utils::add_guest_to_hosts("$_guest_transient_hostname_via_ipaddr", $self->{guest_ipaddr});
                     virt_autotest::utils::add_guest_to_hosts("$_guest_transient_hostname_via_ipaddr.$self->{guest_domain_name}", $self->{guest_ipaddr});
-                    $_ret = script_run("timeout 30 " . $_host_params{ssh_command} . "\@$_guest_transient_hostname_via_ipaddr.$self->{guest_domain_name} hostname", timeout => 60);
+                    $_ret = 255;
+ #$_ret = script_run("timeout 30 " . $_host_params{ssh_command} . "\@$_guest_transient_hostname_via_ipaddr.$self->{guest_domain_name} hostname", timeout => 60);
                     $_guest_transient_hostname_via_name = script_output("timeout 30 " . $_host_params{ssh_command} . "\@$_guest_transient_hostname_via_ipaddr.$self->{guest_domain_name} hostname", proceed_on_failure => 1);
                 }
                 else {
                     virt_autotest::utils::add_guest_to_hosts($self->{guest_name}, $self->{guest_ipaddr});
-                    $_ret = script_run("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", timeout => 60);
+                    $_ret = 255;
+                    #$_ret = script_run("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", timeout => 60);
                     $_guest_transient_hostname_via_name = script_output("timeout 30 " . $_host_params{ssh_command} . "\@$self->{guest_name} hostname", proceed_on_failure => 1);
                 }
                 if ($_guest_transient_hostname_via_name ne '' and $_ret == 0) {
@@ -3486,7 +3489,13 @@ sub post_fail_hook {
     $self->reveal_myself;
     $self->upload_guest_installation_logs;
     save_screenshot;
-    virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log /emergency_mode /agama_installation_logs", "_guest_installation");
+    virt_utils::collect_host_and_guest_logs(
+        extra_host_log => get_var('EXTRA_HOST_LOG', '/var/log'),
+        extra_guest_log => get_var('EXTRA_GUEST_LOG', '/root /var/log /emergency_mode /agama_installation_logs'),
+        full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1),
+        excluded_supportconfig_features => get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX'),
+        token => '_guest_installation'
+    );
     save_screenshot;
     upload_coredumps;
     save_screenshot;
