@@ -107,7 +107,7 @@ sub validate
 
 sub validate_cuda
 {
-    zypper_call('in cmake git cuda-toolkit vulkan-devel freeglut-devel Mesa-libEGL-devel');
+    zypper_call('install -l cmake git cuda-toolkit vulkan-devel freeglut-devel Mesa-libEGL-devel', timeout => 1200);
     # Compiler smoke test with a simple hello_world program
     assert_script_run('curl -s -o hello_world.cu ' . data_url('cuda/hello_world.cu'));
     assert_script_run('/usr/local/cuda/bin/nvcc -rdc=true -o hello_world hello_world.cu');
