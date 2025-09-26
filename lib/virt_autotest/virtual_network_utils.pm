@@ -27,7 +27,7 @@ use version_utils qw(is_sle is_alp is_opensuse);
 use Utils::Architectures;
 use virt_autotest::utils;
 use virt_autotest::common;
-use virt_autotest::domain_management_utils qw(construct_uri);
+use virt_autotest::domain_management_utils;
 use mm_network;
 
 our @EXPORT
