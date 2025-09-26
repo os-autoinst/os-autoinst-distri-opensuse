@@ -38,7 +38,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(apache2-utils jq openssl podman squashfs skopeo);
+    my @pkgs = qw(apache2-utils openssl podman squashfs skopeo);
     push @pkgs, "fakeroot" unless (is_sle('>=16.0') || (is_sle(">=15-SP6") && is_s390x));
 
     $self->setup_pkgs(@pkgs);

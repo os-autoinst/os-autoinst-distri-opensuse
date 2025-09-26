@@ -244,8 +244,7 @@ sub setup_pkgs {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
-    # We use xz to compress core files
-    push @pkgs, "xz";
+    push @pkgs, qw(jq xz);
     @pkgs = uniq sort @pkgs;
     run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 600;
 
