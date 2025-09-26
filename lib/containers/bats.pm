@@ -30,6 +30,7 @@ our @EXPORT = qw(
   bats_post_hook
   bats_tests
   mount_tmp_vartmp
+  patch_junit
   patch_sources
   run_command
   setup_pkgs
@@ -112,8 +113,6 @@ sub install_bats {
 
     assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats/skip_notok.py");
     assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
-    assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
-    assert_script_run "chmod +x /usr/local/bin/patch_junit";
 }
 
 sub configure_oci_runtime {
@@ -171,10 +170,21 @@ sub enable_modules {
     add_suseconnect_product(get_addon_fullname('phub'));
 }
 
+sub patch_junit {
+    my ($package, $version, $xmlfile, $skip_tests) = @_;
+    my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
+
+    my @passed = split /\n/, script_output "patch_junit $xmlfile '$package $version $os_version' $skip_tests";
+    foreach my $pass (@passed) {
+        record_info("PASS", $pass);
+    }
+}
+
 sub patch_logfile {
     my ($log_file, $xmlfile, @skip_tests) = @_;
 
     my $package = get_required_var("BATS_PACKAGE");
+    my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
 
     die "BATS failed!" if (script_run("test -e $log_file") != 0);
 
@@ -182,11 +192,7 @@ sub patch_logfile {
 
     my $skip_tests = join(' ', map { "\"$_\"" } @skip_tests);
     assert_script_run "bats_skip_notok $log_file $skip_tests" if (@skip_tests);
-    # We must unconditionally call patch_junit to prefix suitename when needed
-    my @passed = split /\n/, script_output "patch_junit $xmlfile $skip_tests";
-    foreach my $pass (@passed) {
-        record_info("PASS", $pass);
-    }
+    patch_junit $package, $version, $xmlfile, $skip_tests;
 }
 
 # /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
@@ -230,6 +236,8 @@ sub setup_pkgs {
     }
 
     install_bats if get_var("BATS_PACKAGE");
+    assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
+    assert_script_run "chmod +x /usr/local/bin/patch_junit";
 
     enable_modules if is_sle("<16");
 
@@ -437,11 +445,7 @@ sub bats_tests {
     $log_file .= ".tap.txt";
     $cmd .= " | tee -a $log_file";
 
-    my $version = script_output "rpm -q --queryformat '%{VERSION} %{RELEASE}' $package";
-    my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
-
     run_command "echo $log_file .. > $log_file";
-    run_command "echo '# $package $version $os_version' >> $log_file";
     push @commands, $cmd;
     my $ret = script_run($cmd, timeout => $timeout);
     script_run "mv report.xml $xmlfile";
