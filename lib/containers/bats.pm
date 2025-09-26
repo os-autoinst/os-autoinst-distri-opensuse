@@ -257,6 +257,26 @@ sub setup_pkgs {
 
     install_git;
 
+    # Add IP to /etc/hosts
+    my $iface = script_output "ip -4 --json route list match default | jq -Mr '.[0].dev'";
+    my $ip_addr = script_output "ip -4 --json addr show $iface | jq -Mr '.[0].addr_info[0].local'";
+    assert_script_run "echo $ip_addr \$(hostname) >> /etc/hosts";
+
+    # Enable SSH
+    my $algo = "ed25519";
+    systemctl 'enable --now sshd';
+    assert_script_run "ssh-keygen -t $algo -N '' -f ~/.ssh/id_$algo";
+    assert_script_run "cat ~/.ssh/id_$algo.pub >> ~/.ssh/authorized_keys";
+    assert_script_run "ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts";
+    # Persist SSH connections
+    # https://docs.docker.com/engine/security/protect-access/#ssh-tips
+    my $ssh_config = <<'EOF';
+ControlMaster     auto
+ControlPath       ~/.ssh/control-%C
+ControlPersist    yes
+EOF
+    write_sut_file('/root/.ssh/config', $ssh_config);
+
     delegate_controllers;
 
     if (check_var("ENABLE_SELINUX", "0") && script_output("getenforce") eq "Enforcing") {
