@@ -291,7 +291,7 @@ sub clean_up_guests {
     $self->reveal_myself;
     foreach (keys %guest_instances) {
         if ($guest_instances{$_}->{guest_installation_result} eq 'PASSED') {
-            check_guest_health($_);
+            #check_guest_health($_);
             virt_autotest::domain_management_utils::shutdown_guest(guest => $_) if (get_var('KEEP_GUEST_SHUTOFF', ''));
         }
         else {

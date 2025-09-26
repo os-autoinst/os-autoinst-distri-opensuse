@@ -63,6 +63,7 @@ sub run_test {
     $self->prepare_host;
     barrier_wait('HOST_PREPARATION_DONE');
 
+    die;
     $self->prepare_guest(keyfile => $parallel_guest_migration_base::_guest_params{ssh_keyfile});
     barrier_wait('GUEST_PREPARATION_SOURCE_DONE');
 
@@ -192,7 +193,14 @@ sub guest_migration_test {
             my $test_stop_time = $test_start_time;
             $self->pre_guest_migration(guest => $guest, virttool => $virttool, first => (($testindex == 0) ? 1 : 0));
             $ret = $self->do_guest_migration(guest => $guest, test => $test, command => $command, offline => $offline);
-            collect_host_and_guest_logs($guest, '/var/log', '/var/log', "_$guest" . "_$test") if ($ret != 0 and get_var('INTERVAL_LOG', ''));
+            collect_host_and_guest_logs(
+                guest => $guest,
+                extra_host_log => '/var/log',
+                extra_guest_log => '/var/log',
+                full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1),
+                excluded_supportconfig_features => get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX'),
+                token => "_$guest" . "_$test"
+            ) if ($ret != 0 and get_var('INTERVAL_LOG', ''));
 
             barrier_wait("DO_GUEST_MIGRATION_DONE_$counter");
 

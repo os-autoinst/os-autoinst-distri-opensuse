@@ -1853,7 +1853,13 @@ sub post_fail_hook {
 
     $self->{"stop_run"} = time();
     $self->create_junit_log;
-    collect_host_and_guest_logs('', '/var/log', '/var/log', "_post_fail_hook");
+    collect_host_and_guest_logs(
+        extra_host_log => '/var/log',
+        extra_guest_log => '/var/log',
+        full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1),
+        excluded_supportconfig_features => get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX'),
+        token => '_post_fail_hook'
+    );
 }
 
 1;
