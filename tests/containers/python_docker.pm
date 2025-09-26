@@ -48,7 +48,7 @@ cp ca.pem cert.pem key.pem /etc/docker/
 openssl genrsa -out key.pem 4096
 openssl req -new -key key.pem -subj "/CN=docker-client" -out client.csr
 openssl x509 -req -days 7 -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile <(printf "extendedKeyUsage=clientAuth")
-mkdir -m 700 /root/.docker/
+mkdir -m 700 /root/.docker/ || true
 mv ca.pem cert.pem key.pem /root/.docker/
 EOF
     write_sut_file('/tmp/gencerts', $gencerts);
