@@ -127,13 +127,13 @@ sub verify_guest_number {
 sub verify_guest_network {
     my ($self, %args) = @_;
     $args{confdir} //= '/var/lib/libvirt/images';
-    $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519');
+    $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa');
 
     record_info("List virtual networks", script_output("virsh net-list --all"));
     record_info("List guests", script_output("virsh list --all"));
     my $ssh_command = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i $args{keyfile}";
     if (script_run("ls $args{keyfile}") != 0) {
-        assert_script_run("clear && ssh-keygen -b 2048 -t ed25519 -q -N \"\" -f $args{keyfile} <<< y");
+        assert_script_run("clear && ssh-keygen -b 2048 -t rsa -q -N \"\" -f $args{keyfile} <<< y");
         assert_script_run("chmod 600 $args{keyfile} $args{keyfile}.pub");
     }
 
@@ -214,7 +214,7 @@ sub verify_guest_network {
 
 sub verify_guest_storage {
     my ($self, %args) = @_;
-    $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519');
+    $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa');
 
     my $ret = 0;
     my $ssh_command = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i $args{keyfile}";
@@ -242,7 +242,7 @@ sub post_fail_hook {
     script_run("cp -r /etc/sysconfig/network/scripts > /var/log/etc_sysconfig_network_scripts");
     script_run("cp -r /etc/NetworkManager/system-connections > /var/log/etc_networkmanager_system_connections");
     script_run("iptables -L -n -v > /var/log/iptables_rules");
-    virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log", "_verify_virtualization");
+    virt_utils::collect_host_and_guest_logs(extra_host_log => '/var/log', extra_guest_log => '/root /var/log', full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1), token => '_verify_virtualization');
     save_screenshot;
     upload_coredumps;
     save_screenshot;

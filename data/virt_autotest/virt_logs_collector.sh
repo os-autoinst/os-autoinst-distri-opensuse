@@ -58,6 +58,8 @@ function setup_common_logs_folder() {
 function collect_logs_via_guest_console() {
         local guest_domain=$1
         local logs_folder=$2
+        local full_supportconfig=${3:-true}
+        shift
         shift
         shift
         local extra_logs=$@
@@ -73,6 +75,7 @@ set guest_domain [lindex \$argv 1]
 set guest_transformed [lindex \$argv 2]
 set logs_folder [lindex \$argv 3]
 set extra_logs [lindex \$argv 4]
+set full_supportconfig [lindex \$argv 5]
 set retry_times 2
 set ret_result 1
 set fail_string sad_to_fail
@@ -106,10 +109,16 @@ while { \${retry_times} > 0 } {
          expect -re "~( |\\\])#"
          if { \${extra_logs} == {support_config} } {
             send "rm -f -r \${logs_folder}/*supportconfig*\r"
-            send "export excluded_features=\"\""
-            send "for feature in \${supportconfig_excluded_features};do if supportconfig -F | grep -i \$feature &> /dev/null;then excluded_features=\"\${excluded_features},\$feature\";fi;done"
-            send "excluded_features=\${excluded_features#,}"
-            send "supportconfig -y -A -x \${excluded_features} -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r"
+            send "export excluded_features=\"\"\r"
+            send "for feature in \${supportconfig_excluded_features};do if supportconfig -F | grep -i \\\$feature &> /dev/null;then excluded_features=\"\\\${excluded_features},\\\$feature\";fi;done\r"
+            send "excluded_features=\\\${excluded_features#,}\r"
+            send "export supportconfig_cmd=\"supportconfig -y -x \\\${excluded_features} -t \${logs_folder} -B guest_\${guest_transformed}_supportconfig_\\\${time_stamp}\r\""
+            if { \${full_supportconfig} == {true} } {
+                send "\\\${supportconfig_cmd} -A\r"
+            }
+            if { \${full_supportconfig} == {false} } {
+                send "\\\${supportconfig_cmd}\r"
+            }
          }
          if { \${extra_logs} == {sos_report} } {
             send "rm -f -r \${logs_folder}/*sosreport*\r"
@@ -173,6 +182,7 @@ function collect_system_log_and_diagnosis() {
 	local target_type=$2
 	local target_ipaddr=$3
 	local target_domain=$4
+	local full_supportconfig=${5:-true} 
 	local target_user=""
 	local target_pass=""
 	local sshpass_ssh_cmd=""
@@ -207,8 +217,14 @@ function collect_system_log_and_diagnosis() {
 	      local excluded_features=""
 	      for feature in ${supportconfig_excluded_features};do if supportconfig -F | grep -i $feature &> /dev/null;then excluded_features="${excluded_features},$feature";fi;done
 	      excluded_features=${excluded_features#,}
-	      echo -e "${sshpass_ssh_cmd} supportconfig -y -A -x ${excluded_features} -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
-	      ${sshpass_ssh_cmd} supportconfig -y -A -x ${excluded_features} -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}
+	      supportconfig_cmd="${sshpass_ssh_cmd} supportconfig -y -x ${excluded_features} -t ${logs_folder} -B ${target_type}_${target_transformed}_supportconfig_${time_stamp}"
+	      if [[ ${full_supportconfig} == "true" ]];then
+	          echo -e "${supportconfig_cmd} -A"
+	          ${supportconfig_cmd} -A
+	      else
+	          echo -e "${supportconfig_cmd}"
+	          ${supportconfig_cmd}
+	      fi
 	   fi
 	   ret_result=$?
 	   if [[ ${ret_result} -eq 0 ]];then
@@ -221,11 +237,11 @@ function collect_system_log_and_diagnosis() {
 	if [[ ${target_type} == "guest" ]] && [[ ${ret_result} -ne 0 ]];then
 	   echo -e "Can not collect supportconfig or sosreport from ${target_type} ${target_domain} via ssh. Try to use guest virsh console."
 	   if [[ ${target_domain} =~ oracle|rhel|fedora ]];then
-	      echo -e "collect_sosreport_via_guest_console ${target_domain} ${logs_folder}"
-	      collect_sosreport_via_guest_console ${target_domain} ${logs_folder}
+	      echo -e "collect_sosreport_via_guest_console ${target_domain} ${logs_folder} ${full_supportconfig}"
+	      collect_sosreport_via_guest_console ${target_domain} ${logs_folder} ${full_supportconfig}
 	   else 
-	      echo -e "collect_supportconfig_via_guest_console ${target_domain} ${logs_folder}"
-	      collect_supportconfig_via_guest_console ${target_domain} ${logs_folder}
+	      echo -e "collect_supportconfig_via_guest_console ${target_domain} ${logs_folder} ${full_supportconfig}"
+	      collect_supportconfig_via_guest_console ${target_domain} ${logs_folder} ${full_supportconfig}
 	   fi
 	   if [[ $? -eq 0 ]];then
 	      return 0
@@ -243,7 +259,8 @@ function collect_system_log_and_diagnosis() {
 function collect_supportconfig_via_guest_console() {
         local guest_domain=$1
         local logs_folder=$2
-        collect_logs_via_guest_console ${guest_domain} ${logs_folder} support_config
+        local full_supportconfig=${3:-true}
+        collect_logs_via_guest_console ${guest_domain} ${logs_folder} ${full_supportconfig} support_config
         if [[ $? -eq 0 ]];then
            return 0
         else
@@ -254,7 +271,8 @@ function collect_supportconfig_via_guest_console() {
 function collect_sosreport_via_guest_console() {
         local guest_domain=$1
         local logs_folder=$2
-        collect_logs_via_guest_console ${guest_domain} ${logs_folder} sos_report
+        local full_supportconfig=${3:-true}
+        collect_logs_via_guest_console ${guest_domain} ${logs_folder} ${full_supportconfig} sos_report
         if [[ $? -eq 0 ]];then
            return 0
         else
@@ -265,10 +283,12 @@ function collect_sosreport_via_guest_console() {
 function collect_extra_logs_via_guest_console() {
         local guest_domain=$1
         local logs_folder=$2
+        local full_supportconfig=${3:-true}
+        shift
         shift
         shift
         local extra_logs=$@
-        collect_logs_via_guest_console ${guest_domain} ${logs_folder} ${extra_logs}
+        collect_logs_via_guest_console ${guest_domain} ${logs_folder} ${full_supportconfig} ${extra_logs}
         if [[ $? -eq 0 ]];then
            return 0
         else
@@ -281,6 +301,8 @@ function collect_extra_logs_from_guest() {
         local logs_folder=$1
         local guest_ipaddr=$2
         local guest_domain=$3
+	local full_supportconfig=${4:-true}
+        shift
         shift
         shift
         shift
@@ -308,8 +330,8 @@ function collect_extra_logs_from_guest() {
            done
            if [[ ${ret_result} -ne 0 ]];then
               echo -e "Can not collect ${extra_logs} from guest ${guest_domain} via ssh. Try to use guest virsh console"
-              echo -e "collect_extra_logs_via_guest_console ${guest_domain} ${logs_folder} ${extra_logs}"
-              collect_extra_logs_via_guest_console ${guest_domain} ${logs_folder} ${extra_logs}
+              echo -e "collect_extra_logs_via_guest_console ${guest_domain} ${logs_folder} ${full_supportconfig} ${extra_logs}"
+              collect_extra_logs_via_guest_console ${guest_domain} ${logs_folder} ${full_supportconfig} ${extra_logs}
               if [[ $? -eq 0 ]];then
                  return 0
               else
@@ -409,6 +431,7 @@ help_usage(){
 [-l \"Extra folders or files to be collected as host logs,for example,\"log_file_1 log_file_2 log_folder_1\"(Can be omitted/Default to nothing)\"] \
 [-g \"guests to be involved or none,for example,\"guest1 guest2 guest3\"(Can be omitted/Default to all)\"] \
 [-e \"Extra folders or files to be collected as guest logs, for example, \"log_file_1 log_file_2 log_folder_1\"(Can be omitted/Default to nothing)\"] \
+[-a \"Activating all supportconfig functions or not, for example, \"true\" or \"false\"(Can be omitted/Default to true)\"] \
 [-h help]"
 }
 
@@ -418,11 +441,12 @@ virt_extra_logs_host=""
 virt_extra_logs_guest=""
 virt_guests_wanted=""
 virt_logs_collector_result=0
+all_supportconfig_functions="true"
 rm -f ${virt_logs_collecor_log}
 
 #Parse input arguments, all options are optional
 #Any log paremter passed in should take absolute path form
-while getopts 'f:l:g:e:h' OPTION; do
+while getopts 'f:l:g:e:a:h' OPTION; do
    case "$OPTION" in
       f)
         virt_logs_folder="$OPTARG"
@@ -442,6 +466,10 @@ while getopts 'f:l:g:e:h' OPTION; do
       e)
         virt_extra_logs_guest="$OPTARG"
         echo "The extra guest logs wanted are ${virt_extra_logs_guest}" | tee -a ${virt_logs_collecor_log}
+        ;;
+      a)
+        all_supportconfig_functions="$OPTARG"
+        echo "Activating all supportconfig functions is ${all_supportconfig_functions}" | tee -a ${virt_logs_collecor_log}
         ;;
       h)
         help_usage | tee -a ${virt_logs_collecor_log}
@@ -518,7 +546,7 @@ done
 #Start collecing logs from host and virtual machine
 setup_common_logs_folder ${virt_logs_folder}	
 echo -e "collect_system_log_and_diagnosis ${virt_logs_folder} host" | tee -a ${virt_logs_collecor_log}
-collect_system_log_and_diagnosis ${virt_logs_folder} host | tee -a ${virt_logs_collecor_log}
+collect_system_log_and_diagnosis ${virt_logs_folder} host "" "" ${all_supportconfig_functions} | tee -a ${virt_logs_collecor_log}
 virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
 echo -e "collect_extra_logs_from_host ${virt_logs_folder} ${virt_extra_logs_host}" | tee -a ${virt_logs_collecor_log}
 collect_extra_logs_from_host ${virt_logs_folder} "" ${virt_extra_logs_host} | tee -a ${virt_logs_collecor_log}
@@ -532,11 +560,11 @@ else
           if [[ ${guests_inactive_array[@]} =~ .*${guest_current}.* ]];then 
              echo -e "Virtual machine ${guest_current} in shutdown state. Skip collecting logs from it." | tee -a ${virt_logs_collecor_log}
           else
-             echo -e "collect_system_log_and_diagnosis ${virt_logs_folder} guest ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current}" | tee -a ${virt_logs_collecor_log}
-             collect_system_log_and_diagnosis ${virt_logs_folder} guest ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current} | tee -a ${virt_logs_collecor_log}
+             echo -e "collect_system_log_and_diagnosis ${virt_logs_folder} guest ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current} ${all_supportconfig_functions}" | tee -a ${virt_logs_collecor_log}
+             collect_system_log_and_diagnosis ${virt_logs_folder} guest ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current} ${all_supportconfig_functions} | tee -a ${virt_logs_collecor_log}
              virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
-             echo -e "collect_extra_logs_from_guest ${virt_logs_folder} ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current}  ${virt_extra_logs_guest}" | tee -a ${virt_logs_collecor_log}
-             collect_extra_logs_from_guest ${virt_logs_folder} ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current} ${virt_extra_logs_guest} | tee -a ${virt_logs_collecor_log}
+             echo -e "collect_extra_logs_from_guest ${virt_logs_folder} ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current} ${all_supportconfig_functions} ${virt_extra_logs_guest}" | tee -a ${virt_logs_collecor_log}
+             collect_extra_logs_from_guest ${virt_logs_folder} ${guest_hash_ipaddr[${guest_hash_index}]} ${guest_current} ${all_supportconfig_functions} ${virt_extra_logs_guest} | tee -a ${virt_logs_collecor_log}
              virt_logs_collector_result=$(( ${virt_logs_collector_result} | $? ))
           fi
        else
