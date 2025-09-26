@@ -33,7 +33,7 @@ sub run {
     select_serial_terminal;
 
     # Install tests dependencies
-    my @pkgs = qw(aardvark-dns firewalld iproute2 jq netavark podman socat);
+    my @pkgs = qw(aardvark-dns firewalld iproute2 netavark podman socat);
     push @pkgs, is_sle("<16") ? qw(dbus-1) : qw(dbus-1-daemon);
     $self->setup_pkgs(@pkgs);
 
