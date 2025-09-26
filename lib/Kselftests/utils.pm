@@ -90,7 +90,7 @@ Returns the KTAP output, the number of soft and hardfails
 
 sub post_process_single {
     my %args = @_;
-    $args{logfile} //= 'summary.tap';
+    $args{logfile} //= '$HOME/summary.tap';
     $args{test_index} //= 1;
     my $env = {
         product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
@@ -118,14 +118,14 @@ sub post_process_single {
         if (!$test_ln) {
             next;
         }
-        if ($test_ln =~ /^# not ok (\d+) (\S+)/) {
+        if ($test_ln =~ /^# not ok (\d+) (.*?)\s*(?=#|$)/) {
             my $subtest_idx = $1;
             my $subtest_name = $2;
             my $wl_entry = $whitelist->find_whitelist_entry($env, $args{collection}, $subtest_name);
             if (defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
                 $test_ln = "# ok $subtest_idx $subtest_name # SKIP";
             } elsif (defined($wl_entry)) {
-                record_info("Known Issue", "$args{test}:$subtest_name marked as softfail");
+                record_info("Known Issue", "'$args{test}:$subtest_name' marked as softfail");
                 $test_ln = "# ok $subtest_idx $subtest_name # TODO Known Issue";
                 $softfails++;
             } else {
@@ -161,7 +161,7 @@ Returns the KTAP output, the number of soft and hard fails
 
 sub post_process {
     my %args = @_;
-    $args{logfile} //= 'summary.tap';
+    $args{logfile} //= '$HOME/summary.tap';
     my $env = {
         product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
         arch => get_var('ARCH', ''),
@@ -180,21 +180,23 @@ sub post_process {
         my ($test_name, $sanitized_test_name) = get_sanitized_test_name($test);
 
         # Check test result in the summary
+        my $top_hardfail = 0;
         my $summary_ln;
         while ($summary_ln_idx < @summary) {
             $summary_ln = $summary[$summary_ln_idx];
             $summary_ln_idx++;
             if ($summary_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/) {
-                my $test_failed = $summary_ln =~ /^not ok/ ? 1 : 0;
                 my $wl_entry = $whitelist->find_whitelist_entry($env, $args{collection}, $sanitized_test_name);
-                if (defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
+                my $test_failed = $summary_ln =~ /^not ok/ ? 1 : 0;
+                if ($test_failed && defined($wl_entry) && exists($wl_entry->{skip}) && $wl_entry->{skip}) {
                     $summary_ln = "ok $test_index selftests: $args{collection}: $test_name # SKIP";
-                } elsif (defined($wl_entry)) {
+                } elsif ($test_failed && defined($wl_entry)) {
                     record_info("Known Issue", "$test marked as softfail");
                     $summary_ln = "ok $test_index selftests: $args{collection}: $test_name # TODO Known Issue";
                     $softfails++;
-                } else {
-                    $hardfails++;
+                } elsif ($test_failed) {
+                    # The top-level test result might be rewritten later, so hold off the $hardfails increment for now
+                    $top_hardfail = 1;
                 }
                 # Break and keep the index so that we only read each line in the summary once
                 last;
@@ -214,6 +216,7 @@ sub post_process {
         push(@full_ktap, @{$ktap});
         $softfails += $s;
         $hardfails += $h;
+        $hardfails++ if $top_hardfail && !($s > 0 && $h == 0);
         next unless $s == 0;
         push(@full_ktap, $summary_ln);
     }

@@ -62,7 +62,7 @@ sub create_list_of_serial_failures {
     push @$serial_failures, {type => 'soft', message => 'bsc#1103199', pattern => qr/serial-getty.*service: Service hold-off time over, scheduling restart/};
 
     if (is_kernel_test()) {
-        my $type = is_ltp_test() ? 'soft' : 'hard';
+        my $type = (is_ltp_test() || is_kselftest()) ? 'soft' : 'hard';
         push @$serial_failures, {type => $type, message => 'Kernel Oops found', pattern => quotemeta 'Oops:', post_boot_type => 'hard'};
         push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => qr/kernel BUG at/i, post_boot_type => 'hard'};
         push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU', post_boot_type => 'hard', soft_on_expect_warn => 1};
