@@ -41,7 +41,8 @@
         ],
       },
       packages: [
-        'virt-bridge-setup'
+        'virt-bridge-setup',
+        'libvirt-daemon'
       ]
   },
   scripts: {

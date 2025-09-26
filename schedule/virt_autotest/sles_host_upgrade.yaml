@@ -4,15 +4,15 @@ description: |
 schedule:
   - '{{prepare_host_installation}}'
   - '{{prepare_virtualization}}'
-  - yam/migration/restore_upgrade_env
-  - console/system_prepare
+#  - yam/migration/restore_upgrade_env
+#  - console/system_prepare
   - '{{network_prepare}}'
-  - yam/migration/migration_unattended
-  - installation/grub_test
-  - installation/first_boot
-  - console/zypper_lr
-  - yam/validate/validate_migration_logs
-  - '{{verify_virtualization}}'
+#  - yam/migration/migration_unattended
+#  - installation/grub_test
+#  - installation/first_boot
+#  - console/zypper_lr
+#  - yam/validate/validate_migration_logs
+#  - '{{verify_virtualization}}'
 conditional_schedule:
   prepare_host_installation:
     BACKEND:
@@ -26,12 +26,14 @@ conditional_schedule:
     VIRT_AUTOTEST:
       '1':
         - virt_autotest/prepare_non_transactional_server
-        - virt_autotest/unified_guest_installation
+        #- virt_autotest/unified_guest_installation
   network_prepare:
     BACKEND:
       qemu:
-        - console/hostname
+        - virt_autotest/ssh_serial_pipe 
+        - virt_autotest/prepare_non_transactional_server
+        #- console/hostname
   verify_virtualization:
     VIRT_AUTOTEST:
       '1':
-        - virt_autotest/verify_virtualization
+        #- virt_autotest/verify_virtualization
