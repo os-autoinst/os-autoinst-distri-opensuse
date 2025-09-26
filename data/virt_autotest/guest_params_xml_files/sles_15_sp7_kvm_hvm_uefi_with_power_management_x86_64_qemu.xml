@@ -39,7 +39,7 @@
     <guest_storage_backing_format/>
     <guest_storage_others>bus=virtio,io=threads,cache=none</guest_storage_others>
     <guest_network_type>bridge</guest_network_type>
-    <guest_network_mode>bridge</guest_network_mode>
+    <guest_network_mode>host</guest_network_mode>
     <guest_network_device/>
     <guest_network_others>model=virtio</guest_network_others>
     <guest_netaddr/>

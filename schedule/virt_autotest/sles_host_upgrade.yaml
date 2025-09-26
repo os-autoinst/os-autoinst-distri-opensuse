@@ -30,6 +30,7 @@ conditional_schedule:
   network_prepare:
     BACKEND:
       qemu:
+        - virt_autotest/ssh_serial_pipe 
         - console/hostname
   verify_virtualization:
     VIRT_AUTOTEST:
