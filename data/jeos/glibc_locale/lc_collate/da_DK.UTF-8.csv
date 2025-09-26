@@ -1,0 +1,9 @@
+input,output
+ö,a
+ae,ae
+ä,z
+å,æ
+ø,ä
+æ,ø
+z,ö
+a,å
