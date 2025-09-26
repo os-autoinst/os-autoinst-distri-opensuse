@@ -149,6 +149,7 @@
       <package>nmap</package>
       <package>iputils</package>
       <package>bind-utils</package>
+      <package>libvirt</package>
     </packages>
     <products config:type="list">
       <product><%= uc $get_var->('SLE_PRODUCT') %></product>
