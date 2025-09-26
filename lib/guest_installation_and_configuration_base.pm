@@ -3488,7 +3488,13 @@ sub post_fail_hook {
     $self->reveal_myself;
     $self->upload_guest_installation_logs;
     save_screenshot;
-    virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log /emergency_mode /agama_installation_logs", "_guest_installation");
+    virt_utils::collect_host_and_guest_logs(
+        extra_host_log => get_var('EXTRA_HOST_LOG', '/var/log'),
+        extra_guest_log => get_var('EXTRA_GUEST_LOG', '/root /var/log /emergency_mode /agama_installation_logs'),
+        full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1),
+        excluded_supportconfig_features => get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX'),
+        token => '_guest_installation'
+    );
     save_screenshot;
     upload_coredumps;
     save_screenshot;
