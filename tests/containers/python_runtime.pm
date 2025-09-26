@@ -14,7 +14,6 @@ use version_utils;
 use utils;
 use Utils::Architectures qw(is_x86_64);
 use registration qw(add_suseconnect_product get_addon_fullname);
-use containers::common qw(install_packages);
 use containers::bats;
 
 my $api_version;
@@ -48,15 +47,43 @@ sub setup {
     run_command "ssh-keygen -t $algo -N '' -f ~/.ssh/id_$algo";
     run_command "cat ~/.ssh/id_$algo.pub >> ~/.ssh/authorized_keys";
     run_command "ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts";
+    # Persist SSH connections
+    # https://docs.docker.com/engine/security/protect-access/#ssh-tips
+    my $ssh_config = <<'EOF';
+ControlMaster     auto
+ControlPath       ~/.ssh/control-%C
+ControlPersist    yes
+EOF
+    write_sut_file('/root/.ssh/config', $ssh_config);
 
     if ($runtime eq "podman") {
         systemctl "enable --now podman.socket";
     } else {
-        run_command q(sed -ri 's,^(DOCKER_OPTS)=.*,\1="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock",' /etc/sysconfig/docker);
+        my $gencerts = <<'EOF';
+set -e
+set -x
+# Create self-signed CA
+openssl genrsa -out ca-key.pem 4096
+openssl req -new -x509 -days 7 -key ca-key.pem -sha256 -subj "/CN=CA" -out ca.pem
+# Create server cert & key
+openssl genrsa -out key.pem 4096
+openssl req -new -key key.pem -subj "/CN=$(hostname)" -out server.csr
+openssl x509 -req -days 7 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile <(printf "subjectAltName=DNS:$(hostname),IP:127.0.0.1")
+cp ca.pem cert.pem key.pem /etc/docker/
+# Create client server & key
+openssl genrsa -out key.pem 4096
+openssl req -new -key key.pem -subj "/CN=docker-client" -out client.csr
+openssl x509 -req -days 7 -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile <(printf "extendedKeyUsage=clientAuth")
+mkdir -m 700 /root/.docker/
+mv ca.pem cert.pem key.pem /root/.docker/
+EOF
+        write_sut_file('/tmp/gencerts', $gencerts);
+        assert_script_run "bash -x /tmp/gencerts";
+        run_command q(sed -ri 's,^(DOCKER_OPTS)=.*,\1="--tlsverify --tlscacert=/etc/docker/ca.pem --tlscert=/etc/docker/cert.pem --tlskey=/etc/docker/key.pem -H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock",' /etc/sysconfig/docker);
         record_info("sysconfig", script_output("cat /etc/sysconfig/docker"));
         if (is_sle("<16")) {
             # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1248755
-            run_command "export DOCKER_HOST=tcp://127.0.0.1:2375";
+            run_command "export DOCKER_HOST=tcp://127.0.0.1:2376 DOCKER_TLS_VERIFY=1";
             run_command "echo 0 > /etc/docker/suse-secrets-enable";
         }
         systemctl "enable docker";
@@ -83,9 +110,6 @@ sub setup {
     if ($runtime eq "docker") {
         $api_version = get_var("DOCKER_API_VERSION", script_output 'make --eval=\'version: ; @echo $(TEST_API_VERSION)\' version');
         record_info("API version", $api_version);
-    }
-
-    if ($runtime eq "docker") {
         run_command "curl -sSLo /usr/local/bin/pass https://raw.githubusercontent.com/zx2c4/password-store/refs/heads/master/src/password-store.sh";
         run_command "chmod +x /usr/local/bin/pass";
         # Fill credentials store. Taken from https://github.com/docker/docker-py/blob/main/tests/Dockerfile
