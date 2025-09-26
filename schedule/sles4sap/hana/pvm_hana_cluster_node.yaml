@@ -81,6 +81,8 @@ schedule:
   - '{{boot_to_desktop_non_init}}'
   - ha/check_after_reboot
   - ha/check_logs
+  - ha/prepare_shutdown
+  - shutdown/shutdown
 conditional_schedule:
   multipath:
     MULTIPATH:
