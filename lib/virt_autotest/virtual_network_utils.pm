@@ -433,7 +433,7 @@ sub get_active_pool_and_available_space {
     if (is_alp) {
         $active_pool = script_output("virsh pool-list | grep -ivE \"nvram|boot\" | grep active | awk '{print \$1}'");
     } else {
-        $active_pool = script_output("virsh pool-list --persistent | grep -iv nvram | grep active | awk '{print \$1}'");
+        $active_pool = script_output("virsh pool-list --persistent | grep -iv nvram | grep active | awk '{print \$1}' | head -1");
     }
     my $available_size = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$2}'");
     my $pool_unit = script_output("virsh pool-info $active_pool | grep ^Available | awk '{print \$3}'");
