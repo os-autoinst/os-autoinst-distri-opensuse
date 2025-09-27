@@ -7,7 +7,8 @@ In addition to the [BATS](bats/) tests we currently have tests for:
 | --- | --- |
 | [docker-compose](docker_compose.pm) | https://github.com/docker/compose/tree/main/pkg/e2e |
 | [docker-py](python_runtime.pm) | https://github.com/docker/docker-py/tree/main/tests |
-| [podman-py](python_runtime.pm) | https://github.com/containers/podman-py |
+| [podman-py](python_runtime.pm) | https://github.com/containers/podman-py/tree/main/podman/tests |
+| [podman](podman_e2e.pm) | https://github.com/containers/podman/tree/main/test/e2e |
 
 Library code is found in [lib/containers/bats.pm](../../../lib/containers/bats.pm)
 
@@ -31,7 +32,7 @@ Note: These jobs are scheduled only for the x86_64 architecture.
 
 Notes:
 - `docker_testsuite` tests `docker-compose` & `docker-py`
-- `podman_e2e` tests `podman-py` & the upcoming e2e tests.
+- `podman_e2e` tests `podman-py` & `podman` (e2e)
 
 [logo]: bats/logo.svg
 
