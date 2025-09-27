@@ -19,15 +19,6 @@ use containers::bats;
 my $oci_runtime;
 my $version;
 
-# mapping of known expected failures
-my @xfails = (
-    # https://bugzilla.suse.com/show_bug.cgi?id=1249050 - podman passes volume options as bind mount options to runtime
-    'localintegration::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
-    'remoteintegration::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
-    'localintegration::[It] Podman run with volumes podman named volume copyup',
-    'remoteintegration::[It] Podman run with volumes podman named volume copyup',
-);
-
 sub setup {
     my $self = shift;
     my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit glibc-devel-static go1.24 gpg2 jq libgpgme-devel
@@ -84,6 +75,19 @@ sub run {
         TESTFLAGS => "--junit-report=report.xml",
     );
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
+
+    # mapping of known expected failures
+    my @xfails = ();
+    unless (is_tumbleweed) {
+        # Fixed in podman 5.6.1:
+        # https://bugzilla.suse.com/show_bug.cgi?id=1249050 - podman passes volume options as bind mount options to runtime
+        push @xfails, (
+            'localintegration::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
+            'remoteintegration::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
+            'localintegration::[It] Podman run with volumes podman named volume copyup',
+            'remoteintegration::[It] Podman run with volumes podman named volume copyup',
+        );
+    }
 
     my @targets = split('\s+', get_var('PODMAN_TARGETS', 'localintegration remoteintegration'));
     foreach my $target (@targets) {
