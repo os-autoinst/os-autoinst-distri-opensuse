@@ -17,6 +17,7 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::bats;
 
 my $api_version;
+my $version;
 
 # Translate RPM arch to Go arch
 sub deb_arch ($arch) {
@@ -73,7 +74,7 @@ EOF
 
     # Transform "python311" into "python3.11" and leave "python3" as is
     $python3 =~ s/^python3(\d{2})$/python3.$1/;
-    my $version = script_output "$python3 -c 'import docker; print(docker.__version__)'";
+    $version = script_output "$python3 -c 'import docker; print(docker.__version__)'";
     record_info("docker-py version", $version);
 
     patch_sources "docker-py", $version, "tests";
@@ -135,8 +136,7 @@ sub test ($target) {
 
     run_command "$env pytest $pytest_args tests/$target &> $target.txt || true", timeout => 3600;
 
-    # Patch the test name in the first line of the JUnit XML file so each target is parsed independently
-    assert_script_run qq{sed -ri '0,/name=/s/name="docker-py"/name="pytest-$target"/' $target.xml};
+    patch_junit "docker-py", $version, "$target.xml";
     parse_extra_log(XUnit => "$target.xml");
     upload_logs("$target.txt");
 }

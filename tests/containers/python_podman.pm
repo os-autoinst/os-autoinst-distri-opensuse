@@ -16,7 +16,7 @@ use Utils::Architectures qw(is_x86_64);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::bats;
 
-my $api_version;
+my $version;
 
 sub setup {
     my $self = shift;
@@ -29,10 +29,11 @@ sub setup {
     systemctl "enable --now podman.socket";
     # Transform "python311" into "python3.11" and leave "python3" as is
     $python3 =~ s/^python3(\d{2})$/python3.$1/;
-    my $version = script_output "$python3 -c 'import podman; print(podman.__version__)'";
+    $version = script_output "$python3 -c 'import podman; print(podman.__version__)'";
+    $version = "v$version";
     record_info("podman-py version", $version);
 
-    patch_sources "podman-py", "v$version", "podman/tests";
+    patch_sources "podman-py", $version, "podman/tests";
 }
 
 sub test ($target) {
@@ -54,8 +55,7 @@ sub test ($target) {
 
     run_command "$env pytest $pytest_args podman/tests/$target &> $target.txt || true", timeout => 3600;
 
-    # Patch the test name in the first line of the JUnit XML file so each target is parsed independently
-    assert_script_run qq{sed -ri '0,/name=/s/name=pytest/name="pytest-$target"/' $target.xml};
+    patch_junit "podman-py", $version, "$target.xml";
     parse_extra_log(XUnit => "$target.xml");
     upload_logs("$target.txt");
 }

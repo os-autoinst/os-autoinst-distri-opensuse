@@ -20,21 +20,21 @@ aardvark-dns:
     - 581
     - 623
     BATS_IGNORE:
-    - "100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6"
+    - 100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6
   sle-15-SP6:
     GITHUB_PATCHES:
     - 519
     - 581
     - 623
     BATS_IGNORE:
-    - "100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6"
+    - 100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6
   sle-15-SP5:
     GITHUB_PATCHES:
     - 519
     - 581
     - 623
     BATS_IGNORE:
-    - "100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6"
+    - 100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6
 buildah:
   # Note on patches:
   # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
@@ -51,7 +51,7 @@ buildah:
     - 6226
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
-    - "bud.bats::bud with --cgroup-parent"
+    - bud.bats::bud with --cgroup-parent
     BATS_IGNORE_USER:
   sle-15-SP7:
     GITHUB_PATCHES:
@@ -59,11 +59,11 @@ buildah:
     - 6226
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
-    - "bud.bats::bud-git-context"
-    - "bud.bats::bud-git-context-subdirectory"
-    - "bud.bats::bud using gitrepo and branch"
-    - "bud.bats::bud with --cgroup-parent"
-    - "run.bats::Check if containers run with correct open files/processes limits"
+    - bud.bats::bud-git-context
+    - bud.bats::bud-git-context-subdirectory
+    - bud.bats::bud using gitrepo and branch
+    - bud.bats::bud with --cgroup-parent
+    - run.bats::Check if containers run with correct open files/processes limits
     BATS_IGNORE_USER:
   sle-15-SP6:
     GITHUB_PATCHES:
@@ -71,37 +71,37 @@ buildah:
     - 6226
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
-    - "bud.bats::bud-git-context"
-    - "bud.bats::bud-git-context-subdirectory"
-    - "bud.bats::bud using gitrepo and branch"
-    - "bud.bats::bud with --cgroup-parent"
-    - "run.bats::Check if containers run with correct open files/processes limits"
+    - bud.bats::bud-git-context
+    - bud.bats::bud-git-context-subdirectory
+    - bud.bats::bud using gitrepo and branch
+    - bud.bats::bud with --cgroup-parent
+    - run.bats::Check if containers run with correct open files/processes limits
     BATS_IGNORE_USER:
   sle-15-SP5:
     GITHUB_PATCHES:
     - 5495
     - 6226
     BATS_IGNORE:
-    - "bud.bats::bud-multiple-platform-no-partial-manifest-list"
+    - bud.bats::bud-multiple-platform-no-partial-manifest-list
     BATS_IGNORE_ROOT:
-    - "bud.bats::bud using gitrepo and branch"
-    - "bud.bats::bud with --cgroup-parent"
-    - "bud.bats::bud-git-context"
-    - "bud.bats::bud-git-context-subdirectory"
-    - "run.bats::Check if containers run with correct open files/processes limits"
+    - bud.bats::bud using gitrepo and branch
+    - bud.bats::bud with --cgroup-parent
+    - bud.bats::bud-git-context
+    - bud.bats::bud-git-context-subdirectory
+    - run.bats::Check if containers run with correct open files/processes limits
     BATS_IGNORE_USER:
   sle-15-SP4:
     GITHUB_PATCHES:
     - 5495
     - 6226
     BATS_IGNORE:
-    - "bud.bats::bud-multiple-platform-no-partial-manifest-list"
+    - bud.bats::bud-multiple-platform-no-partial-manifest-list
     BATS_IGNORE_ROOT:
-    - "bud.bats::bud using gitrepo and branch"
-    - "bud.bats::bud with --cgroup-parent"
-    - "bud.bats::bud-git-context"
-    - "bud.bats::bud-git-context-subdirectory"
-    - "run.bats::Check if containers run with correct open files/processes limits"
+    - bud.bats::bud using gitrepo and branch
+    - bud.bats::bud with --cgroup-parent
+    - bud.bats::bud-git-context
+    - bud.bats::bud-git-context-subdirectory
+    - run.bats::Check if containers run with correct open files/processes limits
     BATS_IGNORE_USER:
 compose:
   # Note on patches:
@@ -162,20 +162,20 @@ netavark:
     GITHUB_PATCHES:
     - 1191
     BATS_IGNORE:
-    - "200-bridge-firewalld.bats"
-    - "250-bridge-nftables.bats"
+    - 200-bridge-firewalld.bats
+    - 250-bridge-nftables.bats
   sle-15-SP6:
     GITHUB_PATCHES:
     - 1191
     BATS_IGNORE:
-    - "200-bridge-firewalld.bats"
-    - "250-bridge-nftables.bats"
+    - 200-bridge-firewalld.bats
+    - 250-bridge-nftables.bats
   sle-15-SP5:
     GITHUB_PATCHES:
     - 1191
     BATS_IGNORE:
-    - "200-bridge-firewalld.bats"
-    - "250-bridge-nftables.bats"
+    - 200-bridge-firewalld.bats
+    - 250-bridge-nftables.bats
 podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
@@ -197,12 +197,12 @@ podman:
     - 27152
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
-    - "200-pod.bats::pod resource limits"
+    - 200-pod.bats::pod resource limits
     BATS_IGNORE_ROOT_REMOTE:
     BATS_IGNORE_USER_LOCAL:
-    - "252-quadlet.bats::quadlet kube - start error"
+    - 252-quadlet.bats::quadlet kube - start error
     BATS_IGNORE_USER_REMOTE:
-    - "130-kill.bats::podman kill - print IDs or raw input"
+    - 130-kill.bats::podman kill - print IDs or raw input
   sle-16.0:
     GITHUB_PATCHES:
     - 25792
@@ -215,11 +215,11 @@ podman:
     - 26921
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
-    - "200-pod.bats::pod resource limits"
+    - 200-pod.bats::pod resource limits
     BATS_IGNORE_ROOT_REMOTE:
     BATS_IGNORE_USER_LOCAL:
     BATS_IGNORE_USER_REMOTE:
-    - "130-kill.bats::podman kill - print IDs or raw input"
+    - 130-kill.bats::podman kill - print IDs or raw input
   sle-15-SP7:
     GITHUB_PATCHES:
     - 21875
@@ -275,32 +275,32 @@ runc:
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
-    - "run.bats::runc run [joining existing container namespaces]"
-    - "userns.bats::userns join other container userns"
+    - run.bats::runc run [joining existing container namespaces]
+    - userns.bats::userns join other container userns
   sle-15-SP6:
     GITHUB_PATCHES:
     - 4825
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
-    - "run.bats::runc run [joining existing container namespaces]"
-    - "userns.bats::userns join other container userns"
+    - run.bats::runc run [joining existing container namespaces]
+    - userns.bats::userns join other container userns
   sle-15-SP5:
     GITHUB_PATCHES:
     - 4825
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
-    - "run.bats::runc run [joining existing container namespaces]"
-    - "userns.bats::userns join other container userns"
+    - run.bats::runc run [joining existing container namespaces]
+    - userns.bats::userns join other container userns
   sle-15-SP4:
     GITHUB_PATCHES:
     - 4825
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
-    - "run.bats::runc run [joining existing container namespaces]"
-    - "userns.bats::userns join other container userns"
+    - run.bats::runc run [joining existing container namespaces]
+    - userns.bats::userns join other container userns
 skopeo:
   opensuse-Tumbleweed:
     BATS_IGNORE:

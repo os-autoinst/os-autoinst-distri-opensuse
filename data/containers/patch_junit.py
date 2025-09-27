@@ -8,6 +8,7 @@ This script is used to:
 """
 
 import xml.etree.ElementTree as ET
+import os
 import re
 import sys
 from typing import Dict, List
@@ -32,7 +33,7 @@ def get_xfails(args: List[str]) -> Dict[str, List[str]]:
     return xfails
 
 
-def patch_xml(file: str, xfails: Dict[str, List[str]]) -> None:
+def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
     """
     Patch XML with dict of expected failures
     """
@@ -53,6 +54,9 @@ def patch_xml(file: str, xfails: Dict[str, List[str]]) -> None:
             continue
         if prefix:
             testsuite.set("name", prefix + suitename)
+        else:
+            # str.removesuffix() was added to Python 3.8
+            testsuite.set("name", os.path.basename(file)[: -len(".xml")])
 
         failures = int(testsuite.get("failures", "0"))
         adjusted = failures
@@ -90,15 +94,22 @@ def patch_xml(file: str, xfails: Dict[str, List[str]]) -> None:
             testsuite.set("failures", str(adjusted))
 
     # Also update failures counters in root testsuites, if present
-    if root.tag == "testsuites" and "failures" in root.attrib:
-        total_failures = sum(
-            int(ts.get("failures", "0")) for ts in root.findall("testsuite")
+    if root.tag == "testsuites":
+        if "failures" in root.attrib:
+            total_failures = sum(
+                int(ts.get("failures", "0")) for ts in root.findall("testsuite")
+            )
+            root.set("failures", str(total_failures))
+        attribs = dict(
+            zip("package version distri release build arch".split(), info.split())
         )
-        root.set("failures", str(total_failures))
+        # str.removesuffix() was added to Python 3.8
+        attribs["name"] = os.path.basename(file)[: -len(".xml")]
+        root.attrib.update(attribs)
 
     tree.write(file, encoding="utf-8", xml_declaration=True)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        patch_xml(sys.argv[1], get_xfails(sys.argv[2:]))
+    if len(sys.argv) > 2:
+        patch_xml(sys.argv[1], sys.argv[2], get_xfails(sys.argv[3:]))
