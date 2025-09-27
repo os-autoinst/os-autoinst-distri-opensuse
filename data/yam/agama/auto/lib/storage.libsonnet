@@ -107,13 +107,13 @@ local whole_disk_and_boot_unattended() = {
 local mdroot_partition = {
   alias: 'mdroot',
   id: 'raid',
-  size: '6 GiB',
+  size: '7.81 GiB',
 };
 
 local mdswap_partition = {
   alias: 'mdswap',
   id: 'raid',
-  size: '4 GiB',
+  size: '512 MiB',
 };
 
 local raid(level='raid0', boot_type='bios') = {
@@ -124,7 +124,7 @@ local raid(level='raid0', boot_type='bios') = {
         { delete: true, search: '*' },
         {
           id: 'esp',
-          size: '128 MiB',
+          size: '300 MiB',
           filesystem: { path: '/boot/efi', type: 'vfat' },
         },
         mdroot_partition,
@@ -138,7 +138,7 @@ local raid(level='raid0', boot_type='bios') = {
         { delete: true, search: '*' },
         {
           id: 'esp',
-          size: '128 MiB',
+          size: '300 MiB',
           filesystem: { type: 'vfat' },
         },
         mdroot_partition,
@@ -196,16 +196,15 @@ local raid(level='raid0', boot_type='bios') = {
 local search_raid0() = {
   drives: [
     {
-      search: {
-        sort: {
-          size: 'asc'
-        },
-        max: 1
-      },
+      search: '*',
       partitions: [
         {
+          search: {
+            condition: {
+              size: '300 MiB'
+            },
+          },
           id: 'esp',
-          size: '128 MiB',
           filesystem: {
             path: '/boot/efi',
             type: 'vfat'
@@ -217,42 +216,20 @@ local search_raid0() = {
   mdRaids: [
     {
       search: '/dev/md0',
-      partitions: [
-        {
-          delete: true,
-          search: '*'
-        },
-        {
-          size: '6 GiB',
-          filesystem: {
-            path: '/'
-          },
-        },
-        {
-          size: '2 GiB',
-          filesystem: {
-            path: 'swap'
-          },
-        },
-      ],
+      filesystem: {
+        path: "/"
+      },
     },
     {
       search: '/dev/md1',
-      partitions: [
-        {
-          delete: true,
-          search: '*'
-        },
-        {
-          size: '4 GiB',
-          filesystem: {
-            path: '/home'
-          },
-        },
-      ],
+      filesystem: {
+        path: 'swap'
+      },
     }
   ],
-  boot: {  configure: false },
+  boot: {
+    configure: false
+  },
 };
 
 local home_on_iscsi() = {

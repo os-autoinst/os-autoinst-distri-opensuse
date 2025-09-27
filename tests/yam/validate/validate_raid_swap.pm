@@ -10,11 +10,11 @@ use testapi;
 sub run {
     select_console 'root-console';
 
-    # Check that swap is on /dev/md0
-    assert_script_run 'swapon --summary | grep -q "^/dev/md0"';
+    # Ensure /dev/md0 is not used for swap
+    assert_script_run '! swapon --summary | grep -q "^/dev/md0"';
 
-    # Ensure /dev/md1 is not used for swap
-    assert_script_run '! swapon --summary | grep -q "^/dev/md1"';
+    # Check that swap is on /dev/md1
+    assert_script_run 'swapon --summary | grep -q "^/dev/md1"';
 }
 
 1;
