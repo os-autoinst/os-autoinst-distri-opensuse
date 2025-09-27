@@ -35,6 +35,7 @@ use testapi;
 use IPC::Run;
 use virt_utils;
 use virt_autotest_base;
+use virt_autotest::domain_management_utils;
 use XML::Simple;
 use Data::Dumper;
 use LWP;
@@ -265,6 +266,21 @@ sub save_guest_installations_assets {
     return $self;
 }
 
+#Remove guests having unsuccessful installations according to setting KEEP_NORMAL_GUEST.
+sub clean_up_guests {
+    my $self = shift;
+
+    $self->reveal_myself;
+    if (get_var('KEEP_NORMAL_GUEST', '')) {
+        my @abnormal_guests = ();
+        foreach (keys %guest_instances) {
+            push(@abnormal_guests, $guest_instances{$_}->{guest_name}) if ($guest_instances{$_}->{guest_installation_result} ne 'PASSED');
+        }
+        virt_autotest::domain_management_utils::remove_guest(guest => join(" ", @abnormal_guests)) if (scalar(@abnormal_guests) > 0);
+    }
+    return $self;
+}
+
 sub post_fail_hook {
     my $self = shift;
 
@@ -273,6 +289,7 @@ sub post_fail_hook {
     $self->junit_log_provision((caller(0))[3]);
     $self->SUPER::post_fail_hook;
     $self->save_guest_installations_assets;
+    $self->clean_up_guests;
     return $self;
 }
 
