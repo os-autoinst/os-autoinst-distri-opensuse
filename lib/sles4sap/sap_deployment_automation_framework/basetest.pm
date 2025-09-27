@@ -105,6 +105,9 @@ sub full_cleanup {
 
 sub post_fail_hook {
     my ($self, $run_args) = @_;
+    # Flag for uploading SUT losgs if sdaf_execute_playbook() failed
+    my $upload_SUT_logs = $serial_regexp_playbook;
+
     record_info('Post fail', 'Executing post fail hook');
     if (testapi::is_serial_terminal()) {
         # In case playbook/script times out, it will keep occupying the command line,
@@ -138,8 +141,8 @@ sub post_fail_hook {
     disconnect_target_from_serial if check_serial_redirection();
     az_login();
 
-    # Update logs (except deployment VM logs) before cleanup
-    if (get_required_var('TEST') !~ /_deploy_/) {
+    # Upload logs before cleanup
+    if (get_required_var('TEST') !~ /_deploy_/ || $upload_SUT_logs) {
         # Upload logs appearing in deployer VM
         record_info('Upload logs appearing in deloyer VM');
         # Prepare deployer logs path
