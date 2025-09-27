@@ -134,6 +134,11 @@ sub finalize {
             diag($local_text);
         }
         # check Instance
+        # Possibly first, recover the instance saved in terraform_apply
+        if (!$self->{run_args}->{my_instance} && publiccloud::instances::get_instance()) {
+            $self->{run_args}->{my_instance} = publiccloud::instances::get_instance();
+        }
+        #
         if ($self->{run_args}->{my_instance}) {
             my $dumpable_instance = Storable::dclone($self->{run_args}->{my_instance});
             $dumpable_instance->{provider}->{provider_client}->{credentials_file_content} = '******';
