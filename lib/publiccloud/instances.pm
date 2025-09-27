@@ -19,7 +19,7 @@ sub set_instances {
 }
 
 sub get_instance {
-    die "no instances defined" if (scalar @instances) < 1;
+    return unless (scalar @instances);
     return $instances[0];
 }
 
