@@ -227,12 +227,13 @@
       <package>nmap</package>
       <package>iputils</package>
       <package>bind-utils</package>
+      <package>libvirt</package>
     </packages>
     <products config:type="list">
       <product><%= uc $get_var->('SLE_PRODUCT') %></product>
     </products>
     <patterns config:type="list">
-      % my $patterns = $check_var->('SYSTEM_ROLE', 'kvm') ? ['base', 'enhanced_base', 'kvm_server', 'kvm_tools'] : ['base', 'enhanced_base', 'xen_server', 'xen_tools'];
+      % my $patterns = $check_var->('SYSTEM_ROLE', 'kvm') ? ['base', 'enhanced_base', 'kvm_server', 'kvm_tools', 'libvirt'] : ['base', 'enhanced_base', 'xen_server', 'xen_tools', 'libvirt'];
       % for my $pattern (@$patterns) {
       <pattern><%= $pattern %></pattern>
       % }
