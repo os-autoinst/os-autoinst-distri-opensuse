@@ -34,7 +34,13 @@ sub setup {
     my @pkgs = qq(docker jq make $python3 $python3-docker $python3-paramiko $python3-pytest $python3-pytest-timeout);
     $self->setup_pkgs(@pkgs);
 
-    my $gencerts = <<'EOF';
+    assert_script_run "cd /root";
+
+    my $iface = script_output "ip -4 --json route list match default | jq -Mr '.[0].dev'";
+    my $ip_addr = script_output "ip -4 --json addr show $iface | jq -Mr '.[0].addr_info[0].local'";
+
+    # Follow https://docs.docker.com/engine/security/protect-access/
+    my $gencerts = <<"EOF";
 set -e
 set -x
 # Create self-signed CA
@@ -42,8 +48,8 @@ openssl genrsa -out ca-key.pem 4096
 openssl req -new -x509 -days 7 -key ca-key.pem -sha256 -subj "/CN=CA" -out ca.pem
 # Create server cert & key
 openssl genrsa -out key.pem 4096
-openssl req -new -key key.pem -subj "/CN=$(hostname)" -out server.csr
-openssl x509 -req -days 7 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile <(printf "subjectAltName=DNS:$(hostname),IP:127.0.0.1")
+openssl req -new -key key.pem -subj "/CN=\$(hostname)" -out server.csr
+openssl x509 -req -days 7 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile <(printf "subjectAltName=DNS:\$(hostname),IP:127.0.0.1,IP:$ip_addr")
 cp ca.pem cert.pem key.pem /etc/docker/
 # Create client server & key
 openssl genrsa -out key.pem 4096
@@ -54,6 +60,7 @@ mv ca.pem cert.pem key.pem /root/.docker/
 EOF
     write_sut_file('/tmp/gencerts', $gencerts);
     assert_script_run "bash -x /tmp/gencerts";
+
     run_command q(sed -ri 's,^(DOCKER_OPTS)=.*,\1="--tlsverify --tlscacert=/etc/docker/ca.pem --tlscert=/etc/docker/cert.pem --tlskey=/etc/docker/key.pem -H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock",' /etc/sysconfig/docker);
     record_info("sysconfig", script_output("cat /etc/sysconfig/docker"));
     if (is_sle("<16")) {
