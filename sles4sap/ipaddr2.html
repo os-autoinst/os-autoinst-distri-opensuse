@@ -61,6 +61,8 @@
       <li><a href="#ipaddr2_patch_system">ipaddr2_patch_system</a></li>
       <li><a href="#ipaddr2_scc_addons">ipaddr2_scc_addons</a></li>
       <li><a href="#ipaddr2_cleanup">ipaddr2_cleanup</a></li>
+      <li><a href="#ipaddr2_logs_collect_cmds">ipaddr2_logs_collect_cmds</a></li>
+      <li><a href="#ipaddr2_logs_collect">ipaddr2_logs_collect</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -323,7 +325,7 @@
 
 <pre><code>ipaddr2_cloudinit_logs()</code></pre>
 
-<p>Collect some cloud-init related logs</p>
+<p>Print on the terminal some cloud-init related logs</p>
 
 <dl>
 
@@ -455,7 +457,7 @@
 <pre><code>ipaddr2_ssh_internal(id =&gt; 2,
     cmd =&gt; &#39;whoami&#39;,
     bastion_ip =&gt; &#39;4.5.6.7&#39;,
-    method =&gt; script_run/assert_script_run);</code></pre>
+    no_assert =&gt; 1);</code></pre>
 
 <p>Run a command on one of the two internal VM through the bastion using the assert_script_run API</p>
 
@@ -477,7 +479,7 @@
 <dd>
 
 </dd>
-<dt id="method---Specify-which-function-use-when-running-command"><b>method</b> - Specify which function use when running command</dt>
+<dt id="no_assert---If-specified-internally-use-script_run-in-place-of-assert_script_run-and-return-the-exit-code"><b>no_assert</b> - If specified internally use &#39;script_run&#39; in place of &#39;assert_script_run&#39; and return the exit code.</dt>
 <dd>
 
 </dd>
@@ -903,6 +905,26 @@
 
 </dd>
 <dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it34"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_logs_collect_cmds">ipaddr2_logs_collect_cmds</h2>
+
+<pre><code>my @cmds = ipaddr2_logs_collect_cmds();</code></pre>
+
+<p>Returns a list of commands to collect logs from the ipaddr2 cluster.</p>
+
+<h2 id="ipaddr2_logs_collect">ipaddr2_logs_collect</h2>
+
+<pre><code>ipaddr2_logs_collect();</code></pre>
+
+<p>Collect logs from the ipaddr2 cluster.</p>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it35"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
 <dd>
 
 </dd>
