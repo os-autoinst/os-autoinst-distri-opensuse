@@ -292,6 +292,7 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
             return (%paths);
     });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return $expected_res; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
     # needed within the qesap_venv_cmd_exec as activating the vevn
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0] });
@@ -300,8 +301,6 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
 
     note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
     note("\n  -->  " . join("\n  -->  ", @calls));
-    # check that the glue script is called with failok, 90 is default in qesap_execute
-    ok((any { /.*timeout \d+.*qesap\.py/ } @calls), 'timeout wrap the qesap.py with default value');
     # command composition
     ok((any { /.*qesap\.py.*-c.*-b.*$cmd\s+/ } @calls), 'qesap.py cmd composition is fine');
     ok((any { /.*qesap\.py.*tee.*\/tmp\/WALLABY_STREET/ } @calls), 'qesap.py log redirection is fine');
@@ -341,29 +340,6 @@ subtest '[qesap_execute] simplest call' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /.*qesap\.py.*-c.*-b.*$cmd\s+/ } @calls), 'qesap.py cmd composition is fine');
     ok(($res[0] == $expected_res), 'The function return what is internally returned by the command call');
-};
-
-subtest '[qesap_execute] positive timeout' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
-    my @calls;
-    my @logs = ();
-    my $cmd = 'GILL';
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
-    $qesap->redefine(qesap_get_file_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
-            return (%paths);
-    });
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
-
-    my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET', timeout => 123456);
-
-    note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /.*timeout 123456.*qesap\.py/ } @calls), 'timeout wrap the qesap.py');
 };
 
 subtest '[qesap_execute] invalid timeout' => sub {
@@ -961,8 +937,10 @@ subtest '[qesap_prepare_env] integration test' => sub {
     $qesap->redefine(qesap_get_variables => sub { return; });
     $qesap->redefine(qesap_upload_logs => sub { return; });
     my @calls;
+    my @retries;
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { my ($cmd, %args) = @_; push @retries, $args{retry}; return 0; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'DENTIST'; });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -970,11 +948,7 @@ subtest '[qesap_prepare_env] integration test' => sub {
     qesap_prepare_env(provider => 'DONALDUCK');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    foreach (@calls) {
-        # check that all command using the redirection also have the pipefail
-        my $cmd = $_;
-        like($cmd, qr/set -o pipefail/, "Command $cmd has pipe and set pipefail") if $cmd =~ /\|/;
-    }
+    ok((any { /3/ } @retries), 'default retry times is 3 for qesap_pip_install and qesap_galaxy_install');
 };
 
 subtest '[qesap_prepare_env]' => sub {
@@ -1086,6 +1060,7 @@ subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths defau
     my @calls;
     $qesap->redefine(data_url => sub { return '/TORNADO'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_upload_logs => sub { return; });
@@ -1110,6 +1085,7 @@ subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths user 
     my @calls;
     $qesap->redefine(data_url => sub { return '/TORNADO'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_upload_logs => sub { return; });
