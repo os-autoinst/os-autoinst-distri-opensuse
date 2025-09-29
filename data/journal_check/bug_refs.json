@@ -988,7 +988,7 @@
         "type": "ignore"
     },
     "vmware-firmware-bug": {
-        "description": ".*APIC ID mismatch",
+        "description": ".*APIC (ID|id) mismatch",
         "products": {
             "opensuse": ["Tumbleweed"],
             "microos":  ["Tumbleweed"],
