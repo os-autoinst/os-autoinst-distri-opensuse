@@ -67,11 +67,39 @@ my $HB_DONE = '<d>';
 my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
 
 my ($type, $status, $time, $test_timeout);
-my $whitelist;
 my $whitelist_env = prepare_whitelist_environment();
-my $whitelist_url = get_var('XFSTESTS_KNOWN_ISSUES');
-$whitelist = LTP::WhiteList->new($whitelist_url) if $whitelist_url;
 my %softfail_list = generate_xfstests_list(get_var('XFSTESTS_SOFTFAIL'));
+
+sub override_known_failures {
+    my ($self) = @_;
+    my $targs = $self->{targs};
+    my $result_args = $self->{result_args};
+    my $whitelist_url = get_var('XFSTESTS_KNOWN_ISSUES');
+    my %args = (result => 'ok');
+    my $whitelist;
+    my $whitelist_entry;
+
+    $whitelist = LTP::WhiteList->new($whitelist_url) if $whitelist_url;
+    $whitelist_entry = $whitelist->find_whitelist_entry($whitelist_env, $TEST_SUITE, $targs->{name}) if defined($whitelist);
+    check_bugzilla_status($whitelist_entry, $targs) if $whitelist_entry;
+
+    $self->record_resultfile('INFO', "name: $targs->{name}\ntest result: $result_args->{status}\ntime: $result_args->{time}\n", %args);
+    $self->record_resultfile('output', "$targs->{output}", %args) if defined($targs->{output});
+    $self->record_resultfile('out.bad', "$targs->{outbad}", %args) if defined($targs->{outbad});
+    $self->record_resultfile('full', "$targs->{fullog}", %args) if defined($targs->{fullog});
+    $self->record_resultfile('dmesg', "$targs->{dmesg}", %args) if defined($targs->{dmesg});
+
+    if ($targs->{status} =~ /SOFTFAILED/) {
+        $self->{result} = 'softfail';
+        $self->record_resultfile('softfail', "$targs->{failinfo}", %args) if defined($targs->{failinfo});
+        $self->record_resultfile('bugzilla', "$targs->{bugzilla}", %args) if defined($targs->{bugzilla});
+    }
+    else {
+        $self->{result} = 'fail';
+        $self->record_resultfile('known', "$targs->{failinfo}", %args) if defined($targs->{failinfo});
+        $self->record_resultfile('bugzilla', "$targs->{bugzilla}", %args) if defined($targs->{bugzilla});
+    }
+}
 
 sub run {
     my ($self, $args) = @_;
@@ -82,19 +110,28 @@ sub run {
     umount_xfstests_dev($TEST_DEV, $SCRATCH_DEV, $SCRATCH_DEV_POOL) unless get_var('XFSTESTS_HIGHSPEED');
     my ($category, $num) = split(/\//, $test);
     my $status_log_content = "";
-    my $result_args;
+    my %targs = (name => $test, status => 'FAILED', time => 'timeout');
+
+    $self->{targs} = \%targs;
+    $self->{result_args} = {status => 'FAILED', time => 'timeout'};
+
     enter_cmd("echo $test > /dev/$serialdev");
     if ($enable_heartbeat == 0) {
-        $result_args = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
-        $status = $result_args->{status};
-        $time = $result_args->{time};
-        $status_log_content = $result_args->{output};
-        $test_timeout = $result_args->{timeout};
+        $self->{result_args} = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
+        $status = $self->{result_args}->{status};
+        $time = $self->{result_args}->{time};
+        $status_log_content = $self->{result_args}->{output};
+        $test_timeout = $self->{result_args}->{timeout};
     }
     else {
+        my $result_args = {};
         heartbeat_start;
         test_run($test, $FSTYPE, $INJECT_INFO);
         ($type, $status, $time) = test_wait($SUBTEST_MAX_TIME, $HB_TIMEOUT, $VIRTIO_CONSOLE);
+        $result_args->{type} = $type;
+        $result_args->{status} = $status;
+        $result_args->{time} = $time;
+        $self->{result_args} = $result_args;
         if ($type eq $HB_DONE) {
             # Test finished without crashing SUT
             $status_log_content = log_add($STATUS_LOG, $test, $status, $time);
@@ -135,7 +172,6 @@ sub run {
     (my $generate_name = $test) =~ s/-/\//;
     my $test_path = '/opt/log/' . $generate_name;
     bmwqemu::fctinfo("$generate_name");
-    my $targs = OpenQA::Test::RunArgs->new();
     my $whitelist_entry;
     my $output_message;
     if ($test_timeout) {
@@ -144,44 +180,27 @@ sub run {
     else {
         $output_message = 'No log in test path, find log in serial0.txt';
     }
-    $targs->{output} = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$output_message'; fi", 600, type_command => 1, proceed_on_failure => 1);
-    $targs->{name} = $test;
-    $targs->{time} = $time;
-    $targs->{status} = $status;
-    if ($status =~ /FAILED|SKIPPED|SOFTFAILED/) {
-        if ($status =~ /FAILED|SOFTFAILED/) {
-            $targs->{outbad} = script_output("if [ -f $test_path.out.bad ]; then tail -n 200 $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.out.bad not exist';fi", 600, type_command => 1, proceed_on_failure => 1);
-            $targs->{fullog} = script_output("if [ -f $test_path.full ]; then tail -n 200 $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.full not exist'; fi", 600, type_command => 1, proceed_on_failure => 1);
-            $targs->{dmesg} = script_output("if [ -f $test_path.dmesg ]; then tail -n 200 $test_path.dmesg | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600, type_command => 1, proceed_on_failure => 1);
-            if (exists($softfail_list{$generate_name})) {
-                $targs->{status} = 'SOFTFAILED';
-                $targs->{failinfo} = 'XFSTESTS_SOFTFAIL set in configuration';
-            }
-            $whitelist_entry = $whitelist->find_whitelist_entry($whitelist_env, $TEST_SUITE, $generate_name) if defined($whitelist);
-            check_bugzilla_status($whitelist_entry, $targs) if ($whitelist_entry);
-            record_info('INFO', "name: $test\ntest result: $status\ntime: $time\n");
-            record_info('output', "$targs->{output}");
-            record_info('out.bad', "$targs->{outbad}");
-            record_info('full', "$targs->{fullog}");
-            record_info('dmesg', "$targs->{dmesg}");
-            if ($targs->{status} =~ /SOFTFAILED/) {
-                $self->{result} = 'softfail';
-                record_info('softfail', "$targs->{failinfo}") if defined($targs->{failinfo});
-                record_info('bugzilla', "$targs->{bugzilla}") if defined($targs->{bugzilla});
-            }
-            else {
-                $self->{result} = 'fail';
-                record_info('known', "$targs->{failinfo}") if defined($targs->{failinfo});
-                record_info('bugzilla', "$targs->{bugzilla}") if defined($targs->{bugzilla});
-            }
-        }
-        else {
-            $self->{result} = 'skip';
+    $targs{output} = script_output("if [ -f $test_path ]; then tail -n 200 $test_path | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$output_message'; fi", 600, type_command => 1, proceed_on_failure => 1);
+    $targs{time} = $time;
+    $targs{status} = $status;
+    if ($status =~ /SKIPPED/) {
+        $self->{result} = 'skip';
+    }
+    elsif ($status =~ /FAILED|SOFTFAILED/) {
+        $self->{result} = 'fail';
+        $targs{outbad} = script_output("if [ -f $test_path.out.bad ]; then tail -n 200 $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.out.bad not exist';fi", 600, type_command => 1, proceed_on_failure => 1);
+        $targs{fullog} = script_output("if [ -f $test_path.full ]; then tail -n 200 $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.full not exist'; fi", 600, type_command => 1, proceed_on_failure => 1);
+        $targs{dmesg} = script_output("if [ -f $test_path.dmesg ]; then tail -n 200 $test_path.dmesg | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600, type_command => 1, proceed_on_failure => 1);
+        $targs{status} = 'SOFTFAILED' if $status =~ /SOFTFAILED/;
+
+        if (exists($softfail_list{$generate_name})) {
+            $targs{status} = 'SOFTFAILED';
+            $targs{failinfo} = 'XFSTESTS_SOFTFAIL set in configuration';
         }
     }
     else {
         record_info('INFO', "name: $test\ntest result: $status\ntime: $time\n");
-        record_info('output', "$targs->{output}");
+        record_info('output', "$targs{output}");
     }
     if ($is_last_one) {
         mutex_unlock 'last_subtest_run_finish';
@@ -197,10 +216,12 @@ sub test_flags {
     return {fatal => 0};
 }
 
-sub post_fail_hook {
+sub run_post_fail {
     my ($self, $msg) = @_;
     $self->get_new_serial_output();
     $self->fail_if_running();
+    $self->override_known_failures() if $self->{result} eq 'fail';
+
     if ($msg =~ qr/died/) {
         die $msg . "\n";
     }
