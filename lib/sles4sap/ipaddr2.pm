@@ -63,6 +63,7 @@ our @EXPORT = qw(
   ipaddr2_patch_system
   ipaddr2_repos_add_server_to_hosts
   ipaddr2_cleanup
+  ipaddr2_logs_collect
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -70,8 +71,8 @@ use constant WEB_RSC => 'rsc_web_00';
 use constant USER => 'cloudadmin';
 use constant SSH_KEY_ID => 'id_rsa';
 use constant SSH_VERBOSE => '-vvv';
-use constant SSH_LOG => '/var/tmp/ssh_sut.log';
-use constant SSH_PROXY_LOG => '/var/tmp/ssh_proxy_sut.log';
+use constant SSH_LOG => '/var/tmp/ssh_sut.log.txt';
+use constant SSH_PROXY_LOG => '/var/tmp/ssh_proxy_sut.log.txt';
 use constant PING_CMD => 'ping -c 3';
 
 our $bastion_vm_name = DEPLOY_PREFIX . "-vm-bastion";
@@ -1041,7 +1042,7 @@ sub ipaddr2_cloudinit_sanity {
 
     ipaddr2_cloudinit_logs()
 
-Collect some cloud-init related logs
+Print on the terminal some cloud-init related logs
 
 =over
 
@@ -1308,7 +1309,7 @@ sub ipaddr2_ssh_internal_cmd {
     ipaddr2_ssh_internal(id => 2,
         cmd => 'whoami',
         bastion_ip => '4.5.6.7',
-        method => script_run/assert_script_run);
+        no_assert => 1);
 
 Run a command on one of the two internal VM through the bastion
 using the assert_script_run API
@@ -1325,7 +1326,8 @@ using the assert_script_run API
 
 =item B<timeout> - Execution timeout, default 90sec
 
-=item B<method> - Specify which function use when running command
+=item B<no_assert> - If specified internally use 'script_run' in place of
+                     'assert_script_run' and return the exit code.
 
 =back
 =cut
@@ -1336,13 +1338,12 @@ sub ipaddr2_ssh_internal {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{timeout} //= 90;
-    $args{method} //= 'assert_script_run';
 
     my $command = ipaddr2_ssh_internal_cmd(
         id => $args{id},
         bastion_ip => $args{bastion_ip},
         cmd => $args{cmd});
-    if ($args{method} eq "script_run") {
+    if ($args{no_assert}) {
         return script_run($command, timeout => $args{timeout});
     }
     else {
@@ -2167,7 +2168,7 @@ sub ipaddr2_patch_system {
         ipaddr2_ssh_internal(id => $vm_id,
             cmd => 'sudo systemctl mask packagekit; sudo systemctl stop packagekit; while pgrep packagekitd; do sleep 1; done',
             timeout => 120,
-            method => 'script_run',
+            no_assert => 1,
             bastion_ip => $args{bastion_ip});
 
         # on 12-SP5, reboot causes the VM to restart too fast which can cause failures with
@@ -2175,7 +2176,7 @@ sub ipaddr2_patch_system {
         ipaddr2_ssh_internal(id => $vm_id,
             cmd => 'sudo reboot',
             timeout => 60,
-            method => 'script_run',
+            no_assert => 1,
             bastion_ip => $args{bastion_ip});
     }
 
@@ -2204,7 +2205,7 @@ sub ipaddr2_patch_system {
                 id => $v_id,
                 cmd => 'pgrep "zypper|purge-kernels|rpm"',
                 timeout => 60,
-                method => 'script_run',
+                no_assert => 1,
                 bastion_ip => $args{bastion_ip});
             if ($ret == 0) {
                 record_info('zypper process running, need to quit');
@@ -2289,6 +2290,131 @@ sub ipaddr2_cleanup {
             ibsm_rg => $args{ibsm_rg});
     }
     ipaddr2_infra_destroy();
+}
+
+=head2 ipaddr2_logs_collect_cmds
+
+    my @cmds = ipaddr2_logs_collect_cmds();
+
+Returns a list of commands to collect logs from the ipaddr2 cluster.
+=cut
+
+sub ipaddr2_logs_collect_cmds {
+    my @log_list = (
+        {
+            name => 'cloudregister',
+            remote_log => 1,
+            f_log => sub {
+                my $id = shift;
+                return {
+                    file => '/var/log/cloudregister'}; }
+        },
+        {
+            name => 'crm_report',
+            remote_log => 1,
+            f_log => sub {
+                my $id = shift;
+                my $file = "/var/log/crm_report_$id";
+                return {
+                    cmd => "sudo crm report $file",
+                    file => $file . '.tar.gz'}; }
+        },
+        {
+            name => 'y2logs',
+            remote_log => 1,
+            f_log => sub {
+                my $id = shift;
+                my $file = "/tmp/y2logs_$id.tar.gz";
+                return {
+                    cmd => "sudo save_y2logs $file",
+                    file => $file}; }
+        },
+        {
+            name => 'supportconfig',
+            remote_log => 1,
+            f_log => sub {
+                my $id = shift;
+                my $file = "supportconfig_$id";
+                return {
+                    cmd => "sudo supportconfig -R /var/tmp -B $file -x AUDIT && sudo chmod 0755 $file",
+                    file => "/var/tmp/scc_$file.txz"}; }
+        },
+        {f_log => sub { return {file => SSH_LOG}; }},
+        {f_log => sub { return {file => SSH_PROXY_LOG}; }}
+    );
+    return @log_list;
+}
+
+=head2 ipaddr2_logs_collect
+
+    ipaddr2_logs_collect();
+
+Collect logs from the ipaddr2 cluster.
+
+=over
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_logs_collect {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
+    my $vm_addr;
+    my $worker_tmp_dir;
+    my $scp_ret;
+    my $local_file;
+    my %log_data;
+    my $remote_file;
+
+    # Iterate over all the logs
+    foreach my $log (ipaddr2_logs_collect_cmds()) {
+        $scp_ret = 0;
+
+        if (defined $log->{remote_log} && $log->{remote_log} == 1) {
+            # Iterate through each remote VM to generate and collect logs.
+            foreach my $id (1 .. 2) {
+                $vm_addr = USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $id);
+                $worker_tmp_dir = ipaddr2_get_worker_tmp_for_internal_vm(id => $id);
+                assert_script_run("mkdir -p $worker_tmp_dir || echo 'Folder $worker_tmp_dir already exist'");
+                %log_data = %{$log->{f_log}->($id)};
+                $remote_file = $log_data{file};
+
+                # Step 1: Execute command on the remote VM to generate the log file, if there is a command to run.
+                ipaddr2_ssh_internal(
+                    id => $id,
+                    bastion_ip => $args{bastion_ip},
+                    no_assert => 1,
+                    timeout => 300,
+                    cmd => $log_data{cmd}) if (defined $log_data{cmd});
+
+                # Step 2: Download the generated file from the remote VM to the local worker.
+                my ($filename) = $remote_file =~ m|/([^/]+)$|;
+                $filename //= $remote_file;    # Fallback
+                $local_file = "$worker_tmp_dir/$filename";
+                record_info("bastion_ssh_addr:$bastion_ssh_addr vm_addr:$vm_addr ", join(' ',
+                        'scp',
+                        '-J', $bastion_ssh_addr,
+                        "$vm_addr:$remote_file", $local_file));
+
+                $scp_ret = script_run(join(' ',
+                        'scp',
+                        '-J', $bastion_ssh_addr,
+                        "$vm_addr:$remote_file", $local_file));
+
+                # Step 3: If download was successful or file is local, upload the local file to openQA.
+                upload_logs($local_file) if ($scp_ret == 0);
+            }
+        } else {
+            # call it without id
+            %log_data = %{$log->{f_log}->()};
+            upload_logs($log_data{file});
+        }
+    }
 }
 
 1;

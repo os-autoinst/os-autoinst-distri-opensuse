@@ -1129,6 +1129,7 @@ subtest '[ipaddr2_repos_add_server_to_hosts]' => sub {
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
 
     ipaddr2_repos_add_server_to_hosts(ibsm_ip => 7.6.5.4, incident_repos => 'AAAA,BBBB');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /ssh.*41.*download.suse.de.*\/etc\/hosts/ } @calls), "Node 1 /etc/hosts");
     ok((any { /ssh.*42.*download.suse.de.*\/etc\/hosts/ } @calls), "Node 2 /etc/hosts");
@@ -1204,5 +1205,44 @@ subtest '[ipaddr2_cleanup] ipaddr2_deployment_logs' => sub {
     ok(($called eq 1), "az_vm_diagnostic_log_get called");
 };
 
+
+
+subtest '[ipaddr2_logs_collect]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @ssh_calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_calls, "VM$args{id}: $args{cmd}";
+            return;
+    });
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub {
+            push @upload_calls, $_[0];
+            return;
+    });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
+    ipaddr2_logs_collect();
+
+    note("\n  SSH CALLS -->  " . join("\n  SSH CALLS -->  ", @ssh_calls));
+    note("\n  UPLOAD CALLS -->  " . join("\n  UPLOAD CALLS -->  ", @upload_calls));
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    is(scalar @ssh_calls, 6, "ipaddr2_ssh_internal called 6 times (3 log files * 2 VM)");
+    is(scalar @upload_calls, 10, "upload_logs called 8 times (4 log files * 2 VM + 2 ssh local logs)");
+
+    ok((any { /crm report/ } @ssh_calls), "crm report command called");
+    ok((any { /save_y2logs/ } @ssh_calls), "YaST2 logs collected");
+    ok((any { /supportconfig/ } @ssh_calls), "supportconfig command called");
+
+    ok((any { /cloudregister/ } @upload_calls), "cloudregister log uploaded");
+    ok((any { /crm_report_.*gz/ } @upload_calls), "crm_report.tar.gz uploaded");
+    ok((any { /y2logs/ } @upload_calls), "y2logs uploaded");
+    ok((any { /supportconfig.*/ } @upload_calls), "supportconfig uploaded");
+};
 
 done_testing;
