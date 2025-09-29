@@ -25,7 +25,8 @@
       </packages>
       <patterns config:type="list">
         <pattern>base</pattern>
-        <pattern>gnome_x11</pattern>
+        <pattern>gnome</pattern>
+        <pattern>x11</pattern>
         <pattern>selinux</pattern>
       </patterns>
     </software>
