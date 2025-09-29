@@ -3,7 +3,7 @@ name: qam-minimal-base
 schedule:
   - installation/bootloader_start
   - boot/boot_to_desktop
-  - qa_automation/patch_and_reboot
+  - console/post_installation
   - console/dracut
   - locale/keymap_or_locale
   - console/system_prepare

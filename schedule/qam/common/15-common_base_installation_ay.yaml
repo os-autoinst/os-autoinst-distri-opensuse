@@ -7,7 +7,7 @@ schedule:
   - installation/first_boot
   - '{{x11_setup}}'
   - console/system_prepare
-  - qa_automation/patch_and_reboot
+  - console/post_installation
   - console/hostname
   - console/force_scheduled_tasks
   - shutdown/grub_set_bootargs
