@@ -399,6 +399,8 @@ sub bats_post_hook {
 
     write_sut_file('/tmp/commands.txt', join("\n", @commands));
     upload_logs('/tmp/commands.txt');
+
+    script_run('cd / ; rm -rf /tmp/logs');
 }
 
 sub bats_tests {

@@ -34,6 +34,8 @@ sub setup {
     my @pkgs = qq(docker jq make $python3 $python3-docker $python3-paramiko $python3-pytest $python3-pytest-timeout);
     $self->setup_pkgs(@pkgs);
 
+    assert_script_run "cd /root";
+
     my $gencerts = <<'EOF';
 set -e
 set -x
