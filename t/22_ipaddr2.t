@@ -1205,8 +1205,6 @@ subtest '[ipaddr2_cleanup] ipaddr2_deployment_logs' => sub {
     ok(($called eq 1), "az_vm_diagnostic_log_get called");
 };
 
-
-
 subtest '[ipaddr2_logs_collect]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
