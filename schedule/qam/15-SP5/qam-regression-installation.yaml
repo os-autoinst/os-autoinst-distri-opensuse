@@ -8,7 +8,7 @@ schedule:
   - autoyast/installation
   - installation/first_boot
   - x11/x11_setup
-  - qa_automation/patch_and_reboot
+  - console/post_installation
   - console/system_prepare
   - console/hostname
   - console/force_scheduled_tasks
