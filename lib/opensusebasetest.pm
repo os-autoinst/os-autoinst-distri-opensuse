@@ -336,7 +336,7 @@ sub handle_uefi_boot_disk_workaround {
     send_key_until_needlematch 'tianocore-boot_from_file', 'down';
     wait_screen_change { send_key 'ret' };
     # Device selection: HD or CDROM
-    (is_agama && is_aarch64 && get_var('BOOTFROM') eq 'd') ?
+    (is_agama && is_aarch64 && get_var('BOOTFROM') eq 'd' && is_sle) ?
       map { send_key 'down' } (1 .. 4) :
       send_key_until_needlematch 'tianocore-select_HD', 'down';
     wait_screen_change { send_key 'ret' };
