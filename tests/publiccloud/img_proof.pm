@@ -88,7 +88,8 @@ sub run {
 
     unless ($args->{my_provider} && $args->{my_instance}) {
         $args->{my_provider} = $self->provider_factory();
-        $args->{my_instance} = $args->{my_provider}->create_instance(check_guestregister => is_ondemand ? 1 : 0);
+        $args->{my_instance} = $args->{my_provider}->create_instance();
+        $args->{my_instance}->wait_for_guestregister() if (is_ondemand);
     }
     $instance = $args->{my_instance};
     $provider = $args->{my_provider};

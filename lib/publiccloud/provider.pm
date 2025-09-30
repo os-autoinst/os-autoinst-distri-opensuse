@@ -378,7 +378,6 @@ C<proceed_on_failure>  Same as timeout.
 sub create_instances {
     my ($self, %args) = @_;
     $args{check_connectivity} //= 1;
-    $args{check_guestregister} //= 1;
     $args{upload_boot_diagnostics} //= 1;
     my @vms = $self->terraform_apply(%args);
     my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://larry.qe.suse.de:8086');
@@ -386,11 +385,11 @@ sub create_instances {
     foreach my $instance (@vms) {
         record_info("INSTANCE", $instance->{instance_id});
         if ($args{check_connectivity}) {
+            # An error in VM-up causes test to stop
             $instance->wait_for_ssh(timeout => $args{timeout},
                 proceed_on_failure => $args{proceed_on_failure}, scan_ssh_host_key => 1);
         }
-        # check guestregister conditional, default yes:
-        $instance->wait_for_guestregister() if ($args{check_guestregister});
+
         $self->upload_boot_diagnostics() if ($args{upload_boot_diagnostics});
 
         $self->show_instance_details();

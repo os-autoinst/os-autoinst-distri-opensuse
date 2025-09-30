@@ -37,7 +37,8 @@ sub run {
         $instance = $self->{my_instance} = $args->{my_instance};
     } else {
         $provider = $args->{my_provider} = $self->provider_factory();
-        $instance = $self->{my_instance} = $args->{my_instance} = $provider->create_instance(check_guestregister => is_openstack ? 0 : 1);
+        $instance = $self->{my_instance} = $args->{my_instance} = $provider->create_instance();
+        $instance->wait_for_guestregister() if (is_ondemand());
     }
 
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
