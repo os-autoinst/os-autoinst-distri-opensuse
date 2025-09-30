@@ -8,15 +8,28 @@
 
 use base 'opensusebasetest';
 use testapi;
+use version_utils;
 
 sub run {
     my ($self, $tinfo) = @_;
 
     die 'ulp_threads must be scheduled by ulp_openposix' unless defined($tinfo);
 
+    my $packname = $tinfo->{packname};
+    # Use package version without release substring
+    my $packver = $tinfo->{packver} =~ s/-.*$//r;
     my $threadcount = get_var('ULP_THREAD_COUNT', 1000);
     my $threadsleep = get_var('ULP_THREAD_SLEEP', 100);
-    my $livepatch_list = script_output("rpm -ql " . $tinfo->{packname});
+    my $livepatch_list;
+
+    if (is_transactional()) {
+        script_run("find /var/livepatches/");
+        $livepatch_list = script_output("find /var/livepatches/$packname/$packver/lp -name '*.so'");
+    }
+    else {
+        $livepatch_list = script_output("rpm -ql $packname");
+    }
+
     assert_script_run('export LD_PRELOAD=/usr/lib64/libpulp.so.0');
 
     # Do not use background_script_run() here. The actual test runs inside
