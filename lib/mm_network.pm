@@ -9,6 +9,7 @@ use Exporter;
 use testapi;
 use version_utils 'is_opensuse';
 use Utils::Architectures 'is_aarch64';
+use Utils::Systemd qw(systemctl);
 
 our @EXPORT = qw(configure_hostname get_host_resolv_conf is_networkmanager restart_networking
   configure_static_ip configure_dhcp configure_default_gateway configure_static_dns
@@ -99,7 +100,7 @@ sub configure_dhcp {
     type_string("echo \"STARTMODE='auto'\nBOOTPROTO='dhcp'\n\" > /etc/sysconfig/network/ifcfg-\$NIC;");
     enter_cmd 'done';
     save_screenshot;
-    assert_script_run "rcnetwork restart";
+    systemctl 'restart network';
     assert_script_run "ip addr";
     save_screenshot;
 }
@@ -244,7 +245,7 @@ sub restart_networking {
             assert_script_run "timeout 90 bash -c \"until nmcli networking connectivity check | tee /dev/stderr | grep -E '$expected_nm_connectivity'; do sleep 10; done\"";
         }
     } else {
-        assert_script_run 'rcnetwork restart';
+        systemctl 'restart network';
     }
 
     record_info('network cfg', script_output('ip address show; echo; ip route show; echo; grep -v "^#" /etc/resolv.conf', proceed_on_failure => 1));

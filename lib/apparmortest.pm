@@ -19,6 +19,7 @@ use version_utils qw(is_sle is_leap is_tumbleweed);
 use y2_module_guitest 'launch_yast2_module_x11';
 use x11utils 'turn_off_gnome_screensaver';
 use serial_terminal qw(select_serial_terminal);
+use Utils::Systemd qw(systemctl);
 
 use base 'consoletest';
 
@@ -199,7 +200,7 @@ Set up mail server with Postfix and Dovecot:
 
 =over
 
-=item * 1. Setting Postfix for outgoing mail by: setting hostname and domain, restart rcnetwork services, double check the setting
+=item * 1. Setting Postfix for outgoing mail by: setting hostname and domain, restart network services, double check the setting
 
 =item * 2. Setting mail sender/recipient as needed
 
@@ -229,8 +230,8 @@ sub setup_mail_server_postfix_dovecot {
     assert_script_run("echo $ip $hostname.$testdomain $hostname >> /etc/hosts");
     set_hostname($hostname);
 
-    # Restart rcnetwork services:
-    assert_script_run("rcnetwork restart");
+    # Restart network services:
+    systemctl 'restart network';
 
     # Double check the setting
     validate_script_output("hostname --short", sub { m/$hostname/ });
