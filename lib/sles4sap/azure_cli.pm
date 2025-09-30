@@ -719,11 +719,6 @@ sub az_vm_as_show {
         '--name', $args{name},
         '-o table');
     assert_script_run($az_cmd);
-
-    $az_cmd = join(' ', 'az vm availability-set list-sizes',
-        '--resource-group', $args{resource_group},
-        '--name', $args{name});
-    assert_script_run($az_cmd);
 }
 
 =head2 az_img_from_vhd_create
