@@ -40,8 +40,12 @@ sub run {
     select_serial_terminal();
     my $provider = $args->{my_provider};
     my $instance = $provider->create_instance();
-    $instance->wait_for_guestregister() if (is_ondemand);
-    registercloudguest($instance) if is_byos();
+    if (is_byos()) {
+        registercloudguest($instance);
+    }
+    else {
+        $instance->wait_for_guestregister();
+    }
     register_addons_in_pc($instance);
 
     my $versions_info = sprintf("Target version : %s\n DMS package: %s\n Activation package: %s\n PC package: %s",

@@ -306,7 +306,6 @@ a soft-failure will be recorded.
 If guestregister will not finish within C<timeout> seconds, job dies.
 In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
-C<wait_for_guestregister> is called just after C<create_instance()>
 =cut
 
 sub wait_for_guestregister {
