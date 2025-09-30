@@ -55,9 +55,8 @@ subtest '[qesap_ansible_cmd] integration' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(script_run => sub {
-            push @calls, $_[0];
-            return 0; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
 
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN');
@@ -125,9 +124,8 @@ subtest '[qesap_ansible_cmd] filter and user' => sub {
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
-    $qesap->redefine(script_run => sub {
-            push @calls, $_[0];
-            return 0; });
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
 
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN', filter => 'NEMO', user => 'DARLA');
 
@@ -165,6 +163,7 @@ subtest '[qesap_ansible_script_output] integration' => sub {
     my @calls;
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(data_url => sub { return '/BRUCE'; });
@@ -299,6 +298,7 @@ subtest '[qesap_ansible_script_output_file] integrate with qesap_venv_cmd_exec a
     my @calls;
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(data_url => sub { return '/BRUCE'; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; });
@@ -428,6 +428,7 @@ subtest '[qesap_ansible_script_output_file] custom user integrate with qesap_ven
 
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(data_url => sub { return '/BRUCE'; });
@@ -445,6 +446,7 @@ subtest '[qesap_ansible_script_output_file] root integrate with qesap_venv_cmd_e
 
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
     $qesap->redefine(data_url => sub { return '/BRUCE'; });
@@ -508,6 +510,7 @@ subtest '[qesap_ansible_fetch_file] integration' => sub {
     $qesap->redefine(qesap_get_inventory => sub { return '/SIDNEY'; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(data_url => sub { return '/BRUCE'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 

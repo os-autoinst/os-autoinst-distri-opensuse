@@ -35,7 +35,7 @@ use YAML::PP;
 use Exporter 'import';
 use Scalar::Util 'looks_like_number';
 use File::Basename;
-use utils qw(file_content_replace);
+use utils qw(file_content_replace script_retry);
 use version_utils 'is_sle';
 use publiccloud::utils qw(get_credentials);
 use sles4sap::qesap::aws;
@@ -204,6 +204,8 @@ sub qesap_create_ansible_section {
 
 =item B<LOG_FILE> - optional argument that results in changing the command to redirect the output to a log file
 
+=item B<RETRY> - number of retry attempts, default is 1
+
 =back
 =cut
 
@@ -212,23 +214,25 @@ sub qesap_venv_cmd_exec {
     croak 'Missing mandatory cmd argument' unless $args{cmd};
     $args{timeout} //= bmwqemu::scale_timeout(90);
     croak "Invalid timeout value $args{timeout}" unless $args{timeout} > 0;
+    my $retry = $args{retry} // 1;
 
-    my $cmd = '';
+    my $cmd = $args{cmd};
     # pipefail is needed as at the end of the command line there could be a pipe
     # to redirect all output to a log_file.
     # pipefail allow script_run always getting the exit code of the cmd command
     # and not only the one from tee
-    $cmd .= 'set -o pipefail ; ' if $args{log_file};
-    $cmd .= join(' ', 'timeout', $args{timeout}, $args{cmd});
-    # always use tee in append mode
-    $cmd .= " |& tee -a $args{log_file}" if $args{log_file};
+    if ($args{log_file}) {
+        script_run 'set -o pipefail';
+        # always use tee in append mode
+        $cmd .= " |& tee -a $args{log_file}";
+    }
 
     my $ret = script_run('source ' . QESAPDEPLOY_VENV . '/bin/activate');
     if ($ret) {
         record_info('qesap_venv_cmd_exec error', "source .venv ret:$ret");
         return $ret;
     }
-    $ret = script_run($cmd, timeout => ($args{timeout} + 10));
+    $ret = script_retry($cmd, timeout => $args{timeout}, retry => $retry, die => 0);
 
     # deactivate python virtual environment
     script_run('deactivate');
@@ -281,6 +285,7 @@ sub qesap_pip_install {
     my $ret = qesap_venv_cmd_exec(
         cmd => $pip_ints_cmd,
         timeout => 720,
+        retry => 3,
         log_file => $pip_install_log);
 
     # here it is possible to retry in case of exit code 124
@@ -308,6 +313,7 @@ sub qesap_galaxy_install {
     my $ret = qesap_venv_cmd_exec(
         cmd => $ans_galaxy_cmd,
         timeout => 720,
+        retry => 3,
         log_file => $galaxy_install_log);
 
     # here it is possible to retry in case of exit code 124
