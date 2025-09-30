@@ -49,17 +49,22 @@ sub install
     my %args = @_;
     my $variant_std = 'nvidia-open-driver-G06-signed-kmp-default';
     my $variant_cuda = 'nvidia-open-driver-G06-signed-cuda-kmp-default';
-    my $variant = $args{variant} eq "cuda" ? $variant_cuda : $variant_std;
+    my $variant;
     my $reboot = $args{reboot} // 0;
 
     enter_trup_shell if is_transactional;
 
-    zypper_ar(get_required_var('NVIDIA_REPO'), name => 'nvidia', no_gpg_check => 1, priority => 90);
-    zypper_ar(get_required_var('NVIDIA_CUDA_REPO'), name => 'cuda', no_gpg_check => 1, priority => 90);
-
-    # Make sure to remove the other variant first
-    my $remove_variant = script_run("rpm -q $variant_std") ? $variant_cuda : $variant_std;
-    zypper_call("remove --clean-deps ${remove_variant}", exitcode => [0, 104]);
+    if ($args{variant} eq 'cuda') {
+        $variant = $variant_cuda;
+        zypper_call("remove --clean-deps $variant_std", exitcode => [0, 104]);
+        zypper_call('rr nvidia');
+        zypper_ar(get_required_var('NVIDIA_CUDA_REPO'), name => 'cuda', no_gpg_check => 1, priority => 90);
+    } else {
+        $variant = $variant_std;
+        zypper_call("remove --clean-deps $variant_cuda", exitcode => [0, 104]);
+        zypper_call('rr cuda');
+        zypper_ar(get_required_var('NVIDIA_REPO'), name => 'nvidia', no_gpg_check => 1, priority => 90);
+    }
 
     # Install driver and compute utils which packages `nvidia-smi`
     zypper_call("install -l $variant");
