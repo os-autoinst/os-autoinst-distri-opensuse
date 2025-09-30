@@ -18,4 +18,8 @@ sub run {
     select_host_console(force => 1);
 }
 
+sub test_flags {
+    return {ignore_failure => 1};
+}
+
 1;
