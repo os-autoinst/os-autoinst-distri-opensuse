@@ -72,7 +72,7 @@ sub install
     record_info("NVIDIA Version", $version);
 
     my $workaround;
-    if ($version < 580) {
+    if ($version < 580 && $args{variant} eq 'cuda') {
         $workaround = "nvidia-persistenced == $version";
         record_soft_failure("bsc#1249098 - workaround for Nvidia driver dependency issue");
     }
