@@ -109,8 +109,6 @@ sub run {
 
     prepare_virtual_env($version, $sp, $host_distri) if get_var('BCI_PREPARE');
 
-    return if (get_var('HELM_CONFIG') && !($host_distri == "sles" && $version == 15 && $sp >= 3));
-
     # Ensure LTSS subscription is active when testing LTSS containers.
     validate_script_output("SUSEConnect -l", qr/.*LTSS.*Activated/, fail_message => "Host requires LTSS subscription for LTSS container") if (get_var('CONTAINER_IMAGE_TO_TEST') =~ /ltss/i);
 
