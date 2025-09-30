@@ -34,7 +34,13 @@ sub run ($self) {
     test_case('Installation', 'ww4', $rt);
 
     assert_script_run("wget --quiet " . data_url("hpc/net/ifcfg-eth1") . " -O /etc/sysconfig/network/ifcfg-eth1");
-    assert_script_run(qq{sed -ri 's/^DHCPD_INTERFACE.*\$/DHCPD_INTERFACE="eth1"/g' /etc/sysconfig/dhcpd});
+    # Detect if warewulf4 installed dnsmasq as dependency, otherwise use dhcp-server configuration
+    my $dnsmasq = script_run('! rpm -q dnsmasq');
+    if ($dnsmasq) {
+        assert_script_run(qq{sed -ri 's/^#interface=.*\$/interface=eth1/g' /etc/dnsmasq.conf});
+    } else {
+        assert_script_run(qq{sed -ri 's/^DHCPD_INTERFACE.*\$/DHCPD_INTERFACE="eth1"/g' /etc/sysconfig/dhcpd});
+    }
     systemctl 'restart wicked';
     assert_script_run(qq{sed -ri 's/^ipaddr:.*\$/ipaddr: 192.168.10.100/g' /etc/warewulf/warewulf.conf});
     assert_script_run(qq{sed -ri 's/^netmask:.*\$/netmask: 255.255.255.0/g' /etc/warewulf/warewulf.conf});
