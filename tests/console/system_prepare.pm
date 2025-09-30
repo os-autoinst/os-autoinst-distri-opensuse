@@ -68,6 +68,12 @@ sub run {
         }
     }
 
+    my $nss_systemd = script_run('if [ -f /etc/nsswitch.conf ]; then grep passwd.*systemd /etc/nsswitch.conf; fi');
+    if ($nss_systemd) {
+        assert_script_run('rm /etc/nsswitch.conf');
+        record_soft_failure("boo#1250513 - /etc/nsswitch.conf does not handle nss_systemd");
+    }
+
     # bsc#997263 - VMware screen resolution defaults to 800x600 and longer GRUB_TIMEOUT for better needle detection
     # Also for HA ha_cluster_crash_test test cases
     if (check_var('VIRSH_VMM_FAMILY', 'vmware') || (check_var('CLUSTER_NAME', 'crashtest') && is_pvm)) {
