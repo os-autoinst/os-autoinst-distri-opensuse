@@ -71,7 +71,7 @@ sub setup_static_network {
     assert_script_run("echo default $gw - - > /etc/sysconfig/network/routes");
     my $iface = iface();
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'\\nMTU='$mtu'">/etc/sysconfig/network/ifcfg-$iface);
-    assert_script_run 'rcnetwork restart';
+    systemctl 'restart network';
     assert_script_run 'ip addr';
     assert_script_run "ping -c 1 $gw", fail_message => 'Gateway is not reachable, please check your network configuration and setups';
     assert_script_run "ip -6 addr add $args{ipv6} dev $iface" if exists $args{ipv6};
