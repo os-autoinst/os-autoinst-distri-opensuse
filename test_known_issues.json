@@ -1,1 +1,0 @@
-{"testsuite_01":{"test_01":[{"message":"overwrite result 2","product":"^sle:15","retval":"^2$"},{"message":"overwrite for product sle:12","product":"^sle:12","skip":1},{"message":"overwrite ZERO result","product":"^sle:11","retval":"^0$"},{"message":"overwrite TWO result","product":"^sle:11","retval":"^2$"}]}}
