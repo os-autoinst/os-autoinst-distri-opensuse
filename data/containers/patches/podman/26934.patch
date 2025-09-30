@@ -1,0 +1,84 @@
+From 18b5b2e2d699551dab8fb25c9969d231d5662513 Mon Sep 17 00:00:00 2001
+From: Kir Kolyshkin <kolyshkin@gmail.com>
+Date: Fri, 29 Aug 2025 17:18:44 -0700
+Subject: [PATCH] test/e2e: fix 'block all syscalls' seccomp for runc
+
+Error messages between runc and crun are not synchronized, and
+in some case exit codes can be different, too.
+
+Commit dd1bcabae9 ("CI: use local registry, part 2 of 3: fix tests")
+removed the special case handling for runc from the
+"podman run --seccomp-policy image (block all syscalls)"
+test case, and so it fails, for example, like this:
+
+	  Error: failed to connect to container's attach socket: /tmp/podman-e2e-2877753109/subtest-1698249469/p/root/overlay-containers/62585e98da7dc3fdb32d3b6de0980c762a8a6cde008ed35c68727fb97f5369c7/userdata/attach: no such file or directory
+	  [FAILED] Command exited with status 127 (expected 126)
+
+or this:
+
+	  time="2025-08-29T17:16:52-07:00" level=error msg="cannot start a container that has stopped"
+	  Error: `/usr/bin/runc start 63ce789f7037d9545cde832d29343704cab842e7288046407d0efa347d5ecb77` failed: exit status 1
+	  [FAILED] Command exited 126 as expected, but did not emit 'OCI runtime error: runc: read from the init process'
+
+(depending on runc version, phase of the moon etc.)
+
+We can not reasonably expect a specific error message and exit code in
+such an unusual scenario, but let's try.
+
+With this commit, the above test passes successfully on my machine.
+
+Tested with:
+
+	make localintegration FOCUS="block all syscalls" OCI_RUNTIME=/usr/local/bin/runc
+	make remoteintegration FOCUS="block all syscalls" OCI_RUNTIME=/usr/local/bin/runc
+
+While at it, simplify the error message check for crun (we don't have to
+check for the entire message, [the same] substring is fine for both
+local and remote cases).
+
+Fixes: dd1bcabae9 ("CI: use local registry, part 2 of 3: fix tests")
+Reported-by: Yiqiao Pu <ypu@redhat.com>
+Signed-off-by: Kir Kolyshkin <kolyshkin@gmail.com>
+---
+ test/e2e/run_seccomp_test.go | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
+
+diff --git a/test/e2e/run_seccomp_test.go b/test/e2e/run_seccomp_test.go
+index 82a7a42831..ada74b071f 100644
+--- a/test/e2e/run_seccomp_test.go
++++ b/test/e2e/run_seccomp_test.go
+@@ -3,7 +3,7 @@
+ package integration
+ 
+ import (
+-	"fmt"
++	"path"
+ 
+ 	. "github.com/containers/podman/v5/test/utils"
+ 	. "github.com/onsi/ginkgo/v2"
+@@ -55,11 +55,21 @@ var _ = Describe("Podman run", func() {
+ 		session := podmanTest.Podman([]string{"run", "--seccomp-policy", "image", img, "ls"})
+ 		session.WaitWithDefaultTimeout()
+ 
+-		expect := fmt.Sprintf("OCI runtime error: %s: read from the init process", podmanTest.OCIRuntime)
+-		if IsRemote() {
+-			expect = fmt.Sprintf("for attach: %s: read from the init process: OCI runtime error", podmanTest.OCIRuntime)
++		switch path.Base(podmanTest.OCIRuntime) {
++		case "crun":
++			// "crun create" fails with "read from the init process" error.
++			Expect(session).To(ExitWithError(126, "read from the init process"))
++		case "runc":
++			// "runc create" succeeds, then...
++			Expect(session).To(Or(
++				// either "runc start" fails with "cannot start a container that has stopped",
++				ExitWithError(126, "cannot start a container that has stopped"),
++				// or podman itself fails with "failed to connect to container's attach socket".
++				ExitWithError(127, "failed to connect to container's attach socket"),
++			))
++		default:
++			Expect(session.ExitCode()).To(BeNumerically(">", 0), "Exit status using generic runtime")
+ 		}
+-		Expect(session).To(ExitWithError(126, expect))
+ 	})
+ 
+ 	It("podman run --seccomp-policy image (bogus profile)", func() {
