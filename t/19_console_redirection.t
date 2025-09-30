@@ -6,7 +6,7 @@ use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
 use testapi;
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 
 our $serialdev = 'ttyS0';    # this is a global OpenQA variable
 
@@ -18,7 +18,7 @@ sub unset_vars {
 }
 
 subtest '[connect_target_to_serial] Test exceptions' => sub {
-    my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
+    my $redirect = Test::MockModule->new('sles4sap::console_redirection::console_redirection', no_auto => 1);
     $redirect->redefine(enter_cmd => sub { return; });
     $redirect->redefine(handle_login_prompt => sub { return; });
     $redirect->redefine(record_info => sub { return; });
@@ -39,7 +39,7 @@ subtest '[connect_target_to_serial] Test exceptions' => sub {
 };
 
 subtest '[connect_target_to_serial] Connect with unprivileged user' => sub {
-    my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
+    my $redirect = Test::MockModule->new('sles4sap::console_redirection::console_redirection', no_auto => 1);
     my @ssh_cmd;
     my $redirection_status;
     $redirect->redefine(enter_cmd => sub { @ssh_cmd = @_; return 1; });
@@ -65,7 +65,7 @@ subtest '[connect_target_to_serial] Connect with unprivileged user' => sub {
 };
 
 subtest '[connect_target_to_serial] Switch root option' => sub {
-    my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
+    my $redirect = Test::MockModule->new('sles4sap::console_redirection::console_redirection', no_auto => 1);
     my @ssh_cmd;
     my $redirection_status;
     $redirect->redefine(enter_cmd => sub { @ssh_cmd = @_; return 1; });
@@ -83,7 +83,7 @@ subtest '[connect_target_to_serial] Switch root option' => sub {
 };
 
 subtest '[connect_target_to_serial] Scenario: console already redirected' => sub {
-    my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
+    my $redirect = Test::MockModule->new('sles4sap::console_redirection::console_redirection', no_auto => 1);
     # Simulate redirection is already active
     $redirect->redefine(check_serial_redirection => sub { return 1; });
     # monitor enter_cmd
@@ -99,7 +99,7 @@ subtest '[connect_target_to_serial] Scenario: console already redirected' => sub
 };
 
 subtest '[disconnect_target_from_serial]' => sub {
-    my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
+    my $redirect = Test::MockModule->new('sles4sap::console_redirection::console_redirection', no_auto => 1);
     my $redirection_status = 1;
     $redirect->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $redirect->redefine(wait_serial => sub { return 1; });
@@ -116,7 +116,7 @@ subtest '[disconnect_target_from_serial]' => sub {
 };
 
 subtest '[check_serial_redirection]' => sub {
-    my $redirect = Test::MockModule->new('sles4sap::console_redirection', no_auto => 1);
+    my $redirect = Test::MockModule->new('sles4sap::console_redirection::console_redirection', no_auto => 1);
     $redirect->redefine(script_output => sub { return '7902847fcc554911993686a1d5eca2c8'; });
     $redirect->redefine(select_console => sub { return; });
     $redirect->redefine(select_serial_terminal => sub { return; });

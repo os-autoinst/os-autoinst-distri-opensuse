@@ -13,7 +13,7 @@ use utils qw(script_retry);
 use hacluster;
 use sles4sap::sap_host_agent qw(saphostctrl_list_instances);
 use sles4sap::sapcontrol;
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 
 =head1 SYNOPSIS
 

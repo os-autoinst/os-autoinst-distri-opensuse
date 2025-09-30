@@ -12,7 +12,7 @@ use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
 use sles4sap::sap_deployment_automation_framework::networking qw(assign_address_space calculate_subnets);
 use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(create_workload_tfvars);
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
 

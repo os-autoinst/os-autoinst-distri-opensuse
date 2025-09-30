@@ -11,7 +11,7 @@ package check_hana_database;
 use warnings FATAL => 'all';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use sles4sap::console_redirection::redirection_data_tools;
 use hacluster;
 use sles4sap::database_hana qw(hdb_info);
