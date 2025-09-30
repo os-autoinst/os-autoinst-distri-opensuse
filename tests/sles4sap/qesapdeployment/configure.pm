@@ -47,7 +47,6 @@ sub run {
         $variables{OS_VER} = get_var('QESAPDEPLOY_CLUSTER_OS_VER');
     }
     elsif ($provider_setting eq 'AZURE') {
-        $variables{STORAGE_ACCOUNT_NAME} = get_required_var('STORAGE_ACCOUNT_NAME');
         $variables{OS_URI} = $provider->get_blob_uri(get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     }
     else
