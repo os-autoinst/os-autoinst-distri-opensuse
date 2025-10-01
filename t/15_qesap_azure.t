@@ -85,6 +85,19 @@ subtest '[qesap_az_get_resource_group] az integrate' => sub {
     ok($result eq 'BOAT1234', "result:$result is like expected BOAT1234");
 };
 
+subtest '[qesap_az_get_resource_group] die when job_id is undef' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
+    $qesap->redefine(az_group_name_get => sub { return ['BOAT1234']; });
+    # Mock get_current_job_id to return undef
+    $qesap->redefine(get_current_job_id => sub { return undef; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Ensure QESAP_DEPLOYMENT_IMPORT is not set
+    set_var('QESAP_DEPLOYMENT_IMPORT', undef);
+
+    dies_ok { qesap_az_get_resource_group() } 'croaks when job_id is not defined';
+};
+
 subtest '[qesap_az_setup_native_fencing_permissions] missing argument' => sub {
     my %mandatory_args = (
         vm_name => 'CaptainUsop',

@@ -69,7 +69,8 @@ by the qe-sap-deployment
 
 sub qesap_az_get_resource_group {
     my (%args) = @_;
-    my $job_id = get_var('QESAP_DEPLOYMENT_IMPORT', get_current_job_id());    # in case existing deployment is used
+    my $job_id = get_var('QESAP_DEPLOYMENT_IMPORT', get_current_job_id());
+    die "Could not determine job ID to find the resource group" unless defined $job_id;
     my $all_rg = az_group_name_get();
     my @selected_rg = grep(/$job_id/, @$all_rg);
     @selected_rg = grep(/$args{substring}/, @selected_rg) if ($args{substring});
