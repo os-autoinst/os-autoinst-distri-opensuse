@@ -229,6 +229,7 @@ sub run {
 
     my @patches = get_patch($incident_id, $repos);
     record_info "Patches", "@patches";
+    die 'No patch found!' unless scalar(@patches);
 
     # Get packages affected by the incident.
     my @packages = get_incident_packages($incident_id);
