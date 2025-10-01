@@ -1,0 +1,255 @@
+From 1b7ec6cbd3873fb4c80447c918319a0a499c6f20 Mon Sep 17 00:00:00 2001
+From: Jan Kaluza <jkaluza@redhat.com>
+Date: Mon, 22 Sep 2025 13:10:51 +0200
+Subject: [PATCH] Add tests for _OCI_SYNCPIPE.
+
+This commit does the following:
+
+- Moves the common code to create and read from the pipe to new helper
+  funcs `start_oci_sync_pipe_read` and `start_oci_attach_pip_reader`.
+- Renames the `attach-sync` to `attach-pipe` in tests to stay
+  consistent with the other names.
+- Adds new tests for _OCI_SYNCPIPE.
+
+Signed-off-by: Jan Kaluza <jkaluza@redhat.com>
+---
+ test/04-runtime.bats  | 45 +++++++++++++++++++++++++-
+ test/08-exec.bats     | 75 ++++++++++++++++++++++++++++---------------
+ test/test_helper.bash | 42 +++++++++++++++++++++++-
+ 3 files changed, 134 insertions(+), 28 deletions(-)
+
+diff --git a/test/04-runtime.bats b/test/04-runtime.bats
+index 311ac703..8be70e9f 100644
+--- a/test/04-runtime.bats
++++ b/test/04-runtime.bats
+@@ -78,4 +78,47 @@ teardown() {
+     run_conmon --version
+     assert_success
+     assert_output_contains "conmon version"
+-}
+\ No newline at end of file
++}
++
++@test "runtime: simple test with _OCI_SYNCPIPE defined" {
++    start_oci_sync_pipe_reader
++    run_conmon_with_default_args \
++        --log-path "k8s-file:$LOG_PATH" 6>"$OCI_SYNCPIPE_PATH"
++
++    # Check that the pid is sent to the sync pipe.
++    assert_file_exists $TEST_TMPDIR/syncpipe-output
++    run cat $TEST_TMPDIR/syncpipe-output
++    CONTAINER_PID=$(cat "$PID_FILE")
++    assert "${output}" =~ "\"pid\": $CONTAINER_PID"
++}
++
++@test "runtime: runtime error with _OCI_SYNCPIPE defined" {
++    # This trailing " results in wrong config.json. We expect the runtime
++    # failure.
++    setup_container_env '"'
++    start_oci_sync_pipe_reader
++    run_conmon \
++        --cid "$CTR_ID" \
++        --cuuid "$CTR_ID" \
++        --runtime "$RUNTIME_BINARY" \
++        --log-path "k8s-file:$LOG_PATH" \
++        --bundle "$BUNDLE_PATH" \
++        --socket-dir-path "$SOCKET_PATH" \
++        --syslog \
++        --container-pidfile "$PID_FILE" \
++        --conmon-pidfile "$CONMON_PID_FILE" 6>"$OCI_SYNCPIPE_PATH"
++
++    # Give conmon some time to run the runtime and fail.
++    sleep 1
++
++    assert_file_exists $CONMON_PID_FILE
++    CONMON_PID=$(cat "$CONMON_PID_FILE")
++    wait $CONMON_PID_FILE 2>/dev/null || true
++
++    # Check that the error is sent to the sync pipe.
++    assert_file_exists $TEST_TMPDIR/syncpipe-output
++    run cat $TEST_TMPDIR/syncpipe-output
++    assert "${output}" =~ "\"pid\": -1"
++    assert "${output}" =~ "\"message\":"
++    assert "${output}" =~ "runc create failed"
++}
+diff --git a/test/08-exec.bats b/test/08-exec.bats
+index ae1e180d..98d65621 100644
+--- a/test/08-exec.bats
++++ b/test/08-exec.bats
+@@ -71,17 +71,7 @@ teardown() {
+     wait_for_runtime_status "$CTR_ID" running
+ 
+     # Create the attach pipe and later pass it as fd 4 to conmon.
+-    mkfifo "$OCI_ATTACHSYNC_PATH"
+-    export _OCI_ATTACHPIPE=4
+-
+-    # Run the reader in the background, otherwise it would block until the
+-    # conmon opens the other side of the pipe.
+-    {
+-        exec {r}<"$OCI_ATTACHSYNC_PATH"
+-        while IFS= read -r -u "$r" line; do
+-            echo "$line" >>$TEST_TMPDIR/attach-output
+-        done
+-    } &
++    start_oci_attach_pipe_reader
+ 
+     # Start the conmon and pass the writer's side as fd 4.
+     start_conmon_with_default_args \
+@@ -89,13 +79,13 @@ teardown() {
+         --api-version 1 \
+         --exec \
+         --exec-process-spec "${BUNDLE_PATH}/process.json" \
+-        --exec-attach 4>"$OCI_ATTACHSYNC_PATH"
++        --exec-attach 4>"$OCI_ATTACHPIPE_PATH"
+ 
+     wait_for_runtime_status "$CTR_ID" stopped
+ 
+     # Check that the conmon wrote something back.
+-    assert_file_exists $TEST_TMPDIR/attach-output
+-    run cat $TEST_TMPDIR/attach-output
++    assert_file_exists $TEST_TMPDIR/attachpipe-output
++    run cat $TEST_TMPDIR/attachpipe-output
+     assert "${output}" =~ '"data": 0'
+ }
+ 
+@@ -104,22 +94,12 @@ teardown() {
+     wait_for_runtime_status "$CTR_ID" running
+ 
+     # Create attach pipe and later pass it as fd 4 to conmon.
+-    mkfifo "$OCI_ATTACHSYNC_PATH"
+-    export _OCI_ATTACHPIPE=4
++    start_oci_attach_pipe_reader
+ 
+     # Create start pipe and later pass it as fd 5 to conmon.
+     mkfifo "$OCI_STARTPIPE_PATH"
+     export _OCI_STARTPIPE=5
+ 
+-    # Run the reader in the background, otherwise it would block until the
+-    # conmon opens the other side of the pipe.
+-    {
+-        exec {r}<"$OCI_ATTACHSYNC_PATH"
+-        while IFS= read -r -u "$r" line; do
+-            echo "$line" >>$TEST_TMPDIR/attach-output
+-        done
+-    } &
+-
+     # Run the writer in the background, otherwise it would block until the
+     # conmon opens the other side of the pipe.
+     {
+@@ -140,7 +120,7 @@ teardown() {
+         --api-version 1 \
+         --exec \
+         --exec-process-spec "${BUNDLE_PATH}/process.json" \
+-        --exec-attach 4>"$OCI_ATTACHSYNC_PATH" 5<"$OCI_STARTPIPE_PATH"
++        --exec-attach 4>"$OCI_ATTACHPIPE_PATH" 5<"$OCI_STARTPIPE_PATH"
+ 
+     # Give conmon some time to really start.
+     sleep 1
+@@ -159,3 +139,46 @@ teardown() {
+     run cat "$LOG_PATH.exec"
+     assert "${output}" =~ "Hello from exec!"
+ }
++
++@test "exec: --exec with _OCI_SYNCPIPE defined" {
++    start_conmon_with_default_args --log-path "k8s-file:$LOG_PATH"
++    wait_for_runtime_status "$CTR_ID" running
++    start_oci_sync_pipe_reader
++
++    # Start the conmon and pass the writer's side as fd 4.
++    start_conmon_with_default_args \
++        --log-path "k8s-file:$LOG_PATH.exec" \
++        --exec \
++        --exec-process-spec "${BUNDLE_PATH}/process.json" 6>"$OCI_SYNCPIPE_PATH"
++
++    wait_for_runtime_status "$CTR_ID" stopped
++
++    # Check that the conmon wrote something back.
++    assert_file_exists $TEST_TMPDIR/syncpipe-output
++    run cat $TEST_TMPDIR/syncpipe-output
++    assert "${output}" =~ '"exit_code": 0'
++}
++
++@test "exec: --exec --api-version=1 with _OCI_SYNCPIPE defined" {
++    start_conmon_with_default_args --log-path "k8s-file:$LOG_PATH"
++    wait_for_runtime_status "$CTR_ID" running
++    start_oci_sync_pipe_reader
++
++    # Start the conmon and pass the writer's side as fd 4.
++    start_conmon_with_default_args \
++        --log-path "k8s-file:$LOG_PATH.exec" \
++        --api-version 1 \
++        --exec \
++        --exec-process-spec "${BUNDLE_PATH}/process.json" 6>"$OCI_SYNCPIPE_PATH"
++
++    wait_for_runtime_status "$CTR_ID" stopped
++
++    # There should be two values with "data" key. The first one is the PID and
++    # the second one is the exit code.
++    assert_file_exists $TEST_TMPDIR/syncpipe-output
++    run cat $TEST_TMPDIR/syncpipe-output
++    CONTAINER_PID=$(cat "$PID_FILE")
++    assert "${output}" =~ "\"data\": $CONTAINER_PID"
++    assert "${output}" =~ '"data": 0'
++}
++
+diff --git a/test/test_helper.bash b/test/test_helper.bash
+index 65fefbac..698df4a6 100644
+--- a/test/test_helper.bash
++++ b/test/test_helper.bash
+@@ -295,8 +295,9 @@ setup_test_env() {
+     export ROOTFS="$TEST_TMPDIR/rootfs"
+     export SOCKET_PATH="$TEST_TMPDIR"
+     export ATTACH_PATH="$TEST_TMPDIR/attach"
+-    export OCI_ATTACHSYNC_PATH="$TEST_TMPDIR/attach-sync"
++    export OCI_ATTACHPIPE_PATH="$TEST_TMPDIR/attach-pipe"
+     export OCI_STARTPIPE_PATH="$TEST_TMPDIR/start-pipe"
++    export OCI_SYNCPIPE_PATH="$TEST_TMPDIR/sync-pipe"
+ }
+ 
+ # Setup full container environment with busybox
+@@ -436,6 +437,45 @@ run_conmon_with_default_args() {
+     wait_for_runtime_status "$CTR_ID" stopped
+ }
+ 
++# Generic helper function to create pipe and read from it.
++_start_pipe_reader() {
++    local pipe_path=$1
++    local pipe_fd_env_name=$2
++    local pipe_fd_number=$3
++    local output_file=$4
++
++    # Create the pipe and export the env variable.
++    mkfifo "$pipe_path"
++    export "$pipe_fd_env_name"="$pipe_fd_number"
++
++    # Run the reader in the background, otherwise it would block until the
++    # conmon opens the other side of the pipe.
++    {
++        exec {r}<"$pipe_path"
++        while IFS= read -r -u "$r" line; do
++            echo "$line" >>$output_file
++        done
++    } &
++}
++
++# Helper function to create the _OCI_SYNCPIPE pipe and start the reader.
++# The data read from the pipe is stored in the $TEST_TMPDIR/syncpipe-output
++# file.
++# To pass the pipe to conmon, use the `6>"$OCI_SYNCPIPE_PATH"` as argument
++# to `run_conmon_with_default_args` or `start_conmon_with_default_args`.
++start_oci_sync_pipe_reader() {
++    _start_pipe_reader "$OCI_SYNCPIPE_PATH" "_OCI_SYNCPIPE" 6 "$TEST_TMPDIR/syncpipe-output"
++}
++
++# Helper function to create the _OCI_ATTACHPIPE pipe and start the reader.
++# The data read from the pipe is stored in the $TEST_TMPDIR/attachpipe-output
++# file.
++# To pass the pipe to conmon, use the `4>"$OCI_ATTACHPIPE_PATH"` as argument
++# to `run_conmon_with_default_args` or `start_conmon_with_default_args`.
++start_oci_attach_pipe_reader() {
++    _start_pipe_reader "$OCI_ATTACHPIPE_PATH" "_OCI_ATTACHPIPE" 4 "$TEST_TMPDIR/attachpipe-output"
++}
++
+ # Helper function ensuring the file does not exist.
+ assert_file_not_exists() {
+     FILE=$1

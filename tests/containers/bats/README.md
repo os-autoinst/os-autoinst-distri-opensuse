@@ -91,12 +91,12 @@ With runc as `OCI_RUNTIME`
 | Product / Package     | aardvark-dns       | buildah          | conmon             | netavark           | podman             | runc               | skopeo |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | openSUSE Tumbleweed   | [![tw_al]][tw_a]   | [![tw_bl]][tw_b] | [![tw_cl]][tw_c]   | [![tw_nl]][tw_n]   | [![tw_pl]][tw_p]   | [![tw_rl]][tw_r]   | [![tw_sl]][tw_s]   |
-| openSUSE TW (aarch64) | [![twa_al]][twa_a] |                  | [![twa_cl]][twa_c] | [![twa_nl]][twa_n] | [![twa_pl]][twa_p] | [![twa_rl]][twa_r] | [![twa_sl]][twa_s] |
-| openSUSE TW (ppc64le) | [![twp_al]][twp_a] |                  | [![twp_cl]][twp_c] | [![twp_nl]][twp_n] | [![twp_pl]][twp_p] | [![twp_rl]][twp_r] | [![twp_sl]][twp_s] |
+| openSUSE TW (aarch64) | [![twa_al]][twa_a] |                  |                    | [![twa_nl]][twa_n] | [![twa_pl]][twa_p] | [![twa_rl]][twa_r] | [![twa_sl]][twa_s] |
+| openSUSE TW (ppc64le) | [![twp_al]][twp_a] |                  |                    | [![twp_nl]][twp_n] | [![twp_pl]][twp_p] | [![twp_rl]][twp_r] | [![twp_sl]][twp_s] |
 | SLES 16.0             | [![logo]][s16_a]   | [![logo]][s16_b] | [![logo]][s16_c]   | [![logo]][s16_n]   | [![logo]][s16_p]   | [![logo]][s16_r]   | [![logo]][s16_s]   |
-| SLES 16.0 (aarch64)   | [![logo]][s16a_a]  |                  | [![logo]][s16a_c]  | [![logo]][s16a_n]  | [![logo]][s16a_p]  | [![logo]][s16a_r]  | [![logo]][s16a_s]  |
-| SLES 16.0 (ppc64le)   | [![logo]][s16p_a]  |                  | [![logo]][s16p_c]  | [![logo]][s16p_n]  | [![logo]][s16p_p]  | [![logo]][s16p_r]  | [![logo]][s16p_s]  |
-| SLES 16.0 (s390x)     | [![logo]][s16s_a]  |                  | [![logo]][s16s_c]  | [![logo]][s16s_n]  | [![logo]][s16s_p]  | [![logo]][s16s_r]  | [![logo]][s16s_s]  |
+| SLES 16.0 (aarch64)   | [![logo]][s16a_a]  |                  |                    | [![logo]][s16a_n]  | [![logo]][s16a_p]  | [![logo]][s16a_r]  | [![logo]][s16a_s]  |
+| SLES 16.0 (ppc64le)   | [![logo]][s16p_a]  |                  |                    | [![logo]][s16p_n]  | [![logo]][s16p_p]  | [![logo]][s16p_r]  | [![logo]][s16p_s]  |
+| SLES 16.0 (s390x)     | [![logo]][s16s_a]  |                  |                    | [![logo]][s16s_n]  | [![logo]][s16s_p]  | [![logo]][s16s_r]  | [![logo]][s16s_s]  |
 | SLES 15 SP7           | [![logo]][sp7_a]   | [![logo]][sp7_b] |                    | [![logo]][sp7_n]   | [![logo]][sp7_p]   | [![logo]][sp7_r]   | [![logo]][sp7_s]   |
 | SLES 15 SP7 (aarch64) | [![logo]][sp7a_a]  |                  |                    | [![logo]][sp7a_n]  | [![logo]][sp7a_p]  | [![logo]][sp7a_r]  | [![logo]][sp7a_s]  |
 | SLES 15 SP7 (s390x)   |                    |                  |                    |                    |                    | [![logo]][sp7s_r]  | [![logo]][sp7s_s]  |
@@ -146,8 +146,6 @@ openSUSE Tumbleweed with crun as `OCI_RUNTIME`
 
 [twa_al]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_aardvark_testsuite
 [twa_a]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_aardvark_testsuite
-[twa_cl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_conmon_testsuite
-[twa_c]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_conmon_testsuite
 [twa_nl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_netavark_testsuite
 [twa_n]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_netavark_testsuite
 [twa_pl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_testsuite
@@ -159,8 +157,6 @@ openSUSE Tumbleweed with crun as `OCI_RUNTIME`
 
 [twp_al]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_aardvark_testsuite
 [twp_a]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_aardvark_testsuite
-[twp_cl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_conmon_testsuite
-[twp_c]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_conmon_testsuite
 [twp_nl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_netavark_testsuite
 [twp_n]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_netavark_testsuite
 [twp_pl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_podman_testsuite
@@ -179,21 +175,18 @@ openSUSE Tumbleweed with crun as `OCI_RUNTIME`
 [s16_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=skopeo_testsuite
 
 [s16a_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=aardvark_testsuite
-[s16a_c]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=conmon_testsuite
 [s16a_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=netavark_testsuite
 [s16a_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=podman_testsuite
 [s16a_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=runc_testsuite
 [s16a_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=aarch64&test=skopeo_testsuite
 
 [s16p_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=aardvark_testsuite
-[s16p_c]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=conmon_testsuite
 [s16p_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=netavark_testsuite
 [s16p_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=podman_testsuite
 [s16p_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=runc_testsuite
 [s16p_s]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=ppc64le&test=skopeo_testsuite
 
 [s16s_a]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=aardvark_testsuite
-[s16s_c]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=conmon_testsuite
 [s16s_n]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=netavark_testsuite
 [s16s_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=podman_testsuite
 [s16s_r]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=s390x&test=runc_testsuite
