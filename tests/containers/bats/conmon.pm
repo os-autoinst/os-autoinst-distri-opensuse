@@ -34,7 +34,7 @@ sub run {
     select_serial_terminal;
 
     my @oci_runtimes = ();
-    my @pkgs = qw(conmon);
+    my @pkgs = qw(conmon socat);
     if (my $oci_runtime = get_var("OCI_RUNTIME")) {
         push @oci_runtimes, $oci_runtime;
     } else {
