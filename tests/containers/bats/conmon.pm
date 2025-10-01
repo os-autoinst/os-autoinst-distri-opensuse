@@ -48,6 +48,8 @@ sub run {
     record_info("conmon version", $conmon_version);
     record_info("conmon package version", script_output("rpm -q conmon"));
 
+    switch_to_user;
+
     # Download conmon sources
     patch_sources "conmon", "v$conmon_version", "test";
 
