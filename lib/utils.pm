@@ -1004,7 +1004,8 @@ sub zypper_search {
         @fields = ('status', 'name', 'type', 'version', 'arch', 'repository');
     }
 
-    my $output = script_output("zypper -in se $params");
+    zypper_call("search $params", log => 'zypper.log', exitcode => [0, 104]);
+    my $output = script_output('cat /tmp/zypper.log');
     return parse_zypper_table($output, \@fields);
 }
 
