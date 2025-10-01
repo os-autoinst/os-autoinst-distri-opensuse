@@ -292,6 +292,11 @@ sub run {
         assert_script_run("uname -v | grep -E '(/kGraft-|/${lp_tag})'");
     }
 
+    # poo#188250 on Tumbleweed defautl shell is /usr/sbin/nologin
+    record_info('nobody before', script_output('getent passwd nobody'));
+    assert_script_run('if ! getent passwd nobody | grep /bin/bash; then chsh -s /bin/bash nobody; fi');
+    record_info('nobody after', script_output('getent passwd nobody'));
+
     upload_logs('/boot/config-$(uname -r)', failok => 1);
     set_zypper_lock_timeout(300);
     add_we_repo_if_available;
