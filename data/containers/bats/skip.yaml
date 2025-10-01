@@ -317,24 +317,41 @@ skopeo:
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
+    - "030-local-registry-tls.bats::local registry, with cert"
+    - "040-local-registry-auth.bats::auth: credentials via authfile"
+    - "060-delete.bats::delete: remove image from registry"
   sle-16.0:
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
+    - "030-local-registry-tls.bats::local registry, with cert"
+    - "040-local-registry-auth.bats::auth: credentials via authfile"
+    - "060-delete.bats::delete: remove image from registry"
   sle-15-SP7:
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
+    - "030-local-registry-tls.bats::local registry, with cert"
+    - "040-local-registry-auth.bats::auth: credentials via authfile"
+    - "060-delete.bats::delete: remove image from registry"
   sle-15-SP6:
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
+    - "030-local-registry-tls.bats::local registry, with cert"
+    - "040-local-registry-auth.bats::auth: credentials via authfile"
+    - "060-delete.bats::delete: remove image from registry"
   sle-15-SP5:
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
+    - "030-local-registry-tls.bats::local registry, with cert"
+    - "040-local-registry-auth.bats::auth: credentials via authfile"
+    - "060-delete.bats::delete: remove image from registry"
   sle-15-SP4:
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
-
+    - "030-local-registry-tls.bats::local registry, with cert"
+    - "040-local-registry-auth.bats::auth: credentials via authfile"
+    - "060-delete.bats::delete: remove image from registry"
