@@ -129,6 +129,9 @@ conmon:
   sle-16.0:
     GITHUB_PATCHES:
     - 579
+    - 597
+    - 602
+    - 603
     BATS_IGNORE:
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
