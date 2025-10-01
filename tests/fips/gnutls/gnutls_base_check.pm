@@ -1,11 +1,11 @@
-# Copyright 2020-2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Package: gnutls / libnettle
-# Summary: SLES15SP2 and SLES15SP4 FIPS certification need to certify gnutls and libnettle
+# Summary: In certified SLE version FIPS certification need to verify gnutls and libnettle
 #          In this case, will do some base check for gnutls
 #
-# Maintainer: QE Security <none@suse.de>, Ben Chou <bchou@suse.com>
+# Maintainer: QE Security <none@suse.de>
 # Tags: poo#63223, poo#102770, tc#1744099
 
 use base 'consoletest';
@@ -15,9 +15,7 @@ use utils 'zypper_call';
 use version_utils qw(is_tumbleweed is_leap is_sle is_transactional);
 use transactional qw(trup_call process_reboot);
 
-sub run {
-    select_serial_terminal;
-
+sub install_gnutls {
     # Install the gnutls / libnettle packages (pulled as dependency)
     if (is_transactional) {
         trup_call('pkg install gnutls');
@@ -35,7 +33,9 @@ sub run {
     unless (is_sle('<15-SP4') || is_leap('<15.4')) {
         assert_script_run "gnutls-cli --list | tee -a /dev/$serialdev | grep -w SIGN-EdDSA-Ed448";
     }
+}
 
+sub validate_gnutls {
     # Check the library is in FIPS kernel mode, and skip checking this in FIPS ENV mode
     # Since ENV mode is not pulled out/installed the fips library
     if (!get_var("FIPS_ENV_MODE")) {
@@ -49,7 +49,9 @@ sub run {
     assert_script_run 'gnutls-cli -l | grep "Certificate types" | grep "CTYPE-X.509"';
     my $re_proto = is_tumbleweed ? 'grep -e VERS-TLS1.2 -e VERS-TLS1.3 -e VERS-DTLS1.2' : 'grep -e VERS-SSL3.0 -e VERS-TLS1.3 -e VERS-DTLS1.2';
     assert_script_run "gnutls-cli -l | grep Protocols | $re_proto";
+}
 
+sub validate_gmail_imap {
     # Check google's imap server and verify basic function
     validate_script_output 'echo | gnutls-cli -d 1 imap.gmail.com -p 993', sub {
         m/
@@ -58,6 +60,45 @@ sub run {
             Description:\s\(TLS1\.3.*\).*
             Handshake\swas\scompleted.*/sx
     };
+}
+
+sub ensure_self_signed_cerificate_fails {
+    # Check self-signed certificate, expecting to fail.
+    # Prepare the env
+    assert_script_run('mkdir -p /root/cert && cd $_');
+    assert_script_run('wget --quiet ' . data_url('security/gnutls/ca.tmpl'));
+    assert_script_run('wget --quiet ' . data_url('security/gnutls/server.tmpl'));
+
+    # setup CA
+    assert_script_run('certtool --generate-privkey > ca-key.pem');
+    assert_script_run('certtool --generate-self-signed --load-privkey ca-key.pem --template ca.tmpl --outfile ca.pem');
+
+    # Generate server Cert
+    assert_script_run('certtool --generate-privkey > server-key.pem');
+    assert_script_run('certtool --generate-certificate --load-privkey server-key.pem --load-ca-certificate ca.pem --load-ca-privkey ca-key.pem --template server.tmpl --outfile server.pem');
+
+    # Run test
+    background_script_run('gnutls-serv --http --x509cafile ca.pem --x509keyfile server-key.pem --x509certfile server.pem');
+    my $bad_result = script_run('echo | gnutls-cli -d 1 localhost -p 443');
+    if ($bad_result) {
+        record_info("Invalid certificate as expected: $my_result");
+    }
+    else {
+        die('Certificate should be invalid');
+    }
+    assert_script_run('killall gnutls-serv');
+}
+
+sub run {
+    select_serial_terminal;
+
+    install_gnutls();
+
+    validate_gnutls();
+
+    validate_gmail_imap();
+
+    ensure_self_signed_cerificate_fails();
 }
 
 sub test_flags {
