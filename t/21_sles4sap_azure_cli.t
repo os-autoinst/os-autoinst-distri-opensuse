@@ -59,6 +59,17 @@ subtest '[az_group_name_get]' => sub {
     ok((any { /Arlecchino/ } @$res), 'Correct result decoding');
 };
 
+subtest '[az_group_name_get] query' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '{"Arlecchino": "Truffaldino"}'; });
+
+    my $res = az_group_name_get(query => 'MASCHERA');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /--query.*MASCHERA/ } @calls), 'Correct composition of the query argument');
+};
+
 subtest '[az_group_delete]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
