@@ -132,6 +132,7 @@ sub run {
         $variables{IBSM_VPC_NAME} = get_var('QESAPDEPLOY_IBSM_VPC_NAME', '');
         $variables{IBSM_SUBNET_NAME} = get_var('QESAPDEPLOY_IBSM_SUBNET_NAME', '');
         $variables{IBSM_SUBNET_REGION} = get_var('QESAPDEPLOY_IBSM_SUBNET_REGION', '');
+        $variables{IBSM_NCC_HUB} = get_var('QESAPDEPLOY_IBSM_NCC_HUB', '');
     }
 
     if (($provider_setting eq 'AZURE' && get_var('QESAPDEPLOY_IBSM_VNET') && get_var('QESAPDEPLOY_IBSM_RG')) ||
