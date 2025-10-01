@@ -46,6 +46,8 @@ sub run {
     record_info("skopeo version", script_output("skopeo --version"));
     record_info("skopeo package version", script_output("rpm -q skopeo"));
 
+    switch_to_user;
+
     # Download skopeo sources
     my $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
     patch_sources "skopeo", "v$skopeo_version", "systemtest";
