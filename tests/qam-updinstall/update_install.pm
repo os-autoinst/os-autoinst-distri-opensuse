@@ -252,7 +252,7 @@ sub run {
         my %patch_bins = %bins;
         my (@patch_l2, @patch_l3, @patch_unsupported, @update_conflicts);
         my @conflicts = is_sle('<=12-SP5') ? @conflicting_packages_sle12 : @conflicting_packages;
-        foreach (split(/,/, get_var('UPDATE_ADD_CONFLICT'))) {
+        foreach (split(/,/, get_var('UPDATE_ADD_CONFLICT', ''))) {
             push(@conflicts, $_);
         }
         # Make sure on SLE 15+ zyppper 1.14+ with '--force-resolution --solver-focus Update' patched binaries are installed
