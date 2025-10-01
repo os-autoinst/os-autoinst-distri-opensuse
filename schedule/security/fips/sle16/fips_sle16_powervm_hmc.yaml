@@ -1,6 +1,6 @@
 name: fips_ker_mode_powervm
 description:    >
-    This is for the FIPS tests in KER mode on the pvm_hmc backend for SLE 16.
+    This is for the FIPS tests in ENV,KER mode on the pvm_hmc backend for SLE 16.
 schedule:
     - installation/bootloader
     - installation/agama_reboot
