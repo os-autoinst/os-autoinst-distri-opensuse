@@ -3229,7 +3229,7 @@ For system that uses rsyslog to manage log facility, kernel log by default is no
 stored on persistent storage. In order to enable persistent kernel log, loading
 imklog.so module and specifying desired log file in config file /etc/rsyslog.conf
 should be performed. Arguments service, config and log provide flexibility to use
-different log management appliances. 
+different log management appliances.
 =cut
 
 sub enable_persistent_kernel_log {
@@ -3260,7 +3260,7 @@ By default only those kernel logs level of which is lower than default value wil
 be printed out onto serial console. If user prefers to have all kernel messages
 printed out onto serial console, ignore_loglevel, loglvl or guest_loglvl setting
 should be put onto kernel command line and setting /proc/sys/kernel/printk should
-have value like 8 which is greater than the highest kernel log level. 
+have value like 8 which is greater than the highest kernel log level.
 =cut
 
 sub enable_console_kernel_log {
