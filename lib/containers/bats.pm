@@ -286,7 +286,7 @@ EOF
 
     delegate_controllers;
 
-    if (check_var("ENABLE_SELINUX", "0") && script_output("getenforce") eq "Enforcing") {
+    if (check_var("SELINUX_ENFORCE", "0") && script_output("getenforce") eq "Enforcing") {
         record_info("Disabling SELinux");
         run_command "sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config";
         run_command "setenforce 0";
