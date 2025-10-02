@@ -1174,7 +1174,8 @@ sub load_consoletests {
     return unless consolestep_is_applicable();
     loadtest 'console/prjconf_excluded_rpms' if is_livesystem;
     loadtest "console/system_prepare" unless is_opensuse;
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
+    loadtest 'console/post_installation' if is_updates_tests && !get_var('QAM_MINIMAL') && !is_jeos;
+    loadtest 'qa_automation/patch_and_reboot' if is_jeos;
     loadtest 'console/apparmor' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/check_network";
     loadtest "console/system_state";
@@ -2343,7 +2344,8 @@ sub load_system_prepare_tests {
         if (is_transactional) {
             loadtest 'transactional/install_updates';
         } else {
-            loadtest 'qa_automation/patch_and_reboot';
+            loadtest 'console/post_installation' if !is_jeos;
+            loadtest 'qa_automation/patch_and_reboot' if is_jeos;
         }
     }
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
