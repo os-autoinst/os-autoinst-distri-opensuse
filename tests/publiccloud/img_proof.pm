@@ -14,9 +14,7 @@ use Path::Tiny;
 use Mojo::JSON;
 use publiccloud::utils qw(is_ondemand is_hardened);
 use publiccloud::ssh_interactive 'select_host_console';
-use version_utils 'is_sle';
 use File::Basename 'basename';
-use upload_system_log 'upload_supportconfig_log';
 
 sub patch_json {
     my ($file) = @_;
@@ -154,13 +152,7 @@ sub run {
         upload_logs('/tmp/rpm_qa.txt');
         $instance->run_ssh_command(cmd => 'sudo journalctl -b > /tmp/journalctl_b.txt', no_quote => 1);
         upload_logs('/tmp/journalctl_b.txt');
-    }
-
-    if (is_hardened() && !check_var('SCAP_REPORT', 'skip')) {
-        # Upload SCAP profile used by img-proof
-        my $url = "https://ftp.suse.com/pub/projects/security/oval/suse.linux.enterprise.15.xml.gz";
-        assert_script_run("curl --fail -LO $url");
-        upload_logs("suse.linux.enterprise.15.xml.gz");
+        die('img_proof failed');
     }
 }
 
@@ -172,7 +164,6 @@ sub cleanup {
         assert_script_run('tar -zcvf img_proof_results.tar.gz img_proof_results');
         upload_logs('img_proof_results.tar.gz', failok => 1);
     }
-    upload_supportconfig_log();
     return 1;
 }
 
