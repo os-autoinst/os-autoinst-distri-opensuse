@@ -51,7 +51,8 @@ sub run {
 
     assert_script_run "mkdir -p /sapmnt '$sap_dir/SYS'";
     assert_script_run "mount -t $proto '$sapmnt_base' /sapmnt && mkdir -p /sapmnt/'$subdir' && umount /sapmnt";
-    assert_script_run "mount -t $proto '$usrsapsys_base' '$sap_dir/SYS' && mkdir -p '$sap_dir/SYS/$subdir' && umount '$sap_dir/SYS'";
+    # chmod -R 0777 added to avoid "error 13" during installation, as per SAP KB: https://me.sap.com/notes/0002589600
+    assert_script_run "mount -t $proto '$usrsapsys_base' '$sap_dir/SYS' && mkdir -p '$sap_dir/SYS/$subdir' && chmod -R 0777 $sap_dir && umount '$sap_dir/SYS'";
     assert_script_run "echo '$sapmnt_base/$subdir /sapmnt $proto defaults,bg 0 0' >> /etc/fstab";
     assert_script_run "echo '$usrsapsys_base/$subdir $sap_dir/SYS $proto defaults,bg 0 0' >> /etc/fstab";
 
