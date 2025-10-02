@@ -18,7 +18,7 @@ use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot prepare_whitelist_environment);
 use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
 use LTP::WhiteList;
-use publiccloud::utils qw(is_byos is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
+use publiccloud::utils qw(is_byos is_ondemand is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
@@ -252,7 +252,8 @@ sub prepare_instance {
     my ($self, $args) = @_;
     unless ($args->{my_provider} && $args->{my_instance}) {
         $args->{my_provider} = $self->provider_factory();
-        $args->{my_instance} = $args->{my_provider}->create_instance(check_guestregister => is_openstack ? 0 : 1);
+        $args->{my_instance} = $args->{my_provider}->create_instance();
+        $args->{my_instance}->wait_for_guestregister() if (is_ondemand());
     }
     return ($args->{my_provider}, $args->{my_instance});
 }

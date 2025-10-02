@@ -196,8 +196,8 @@ sub upload_boot_diagnostics {
     my $project = $self->get_terraform_output('.project.value');
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
     return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
-    unless (defined($instance_id) && defined($region)) {
-        record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on gce, undefined instance or region');
+    unless (defined($instance_id) && defined($region) && defined($availability_zone)) {
+        record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on gce, undefined instance or region or availability zone');
         return;
     }
     my $dt = DateTime->now;
