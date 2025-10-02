@@ -45,6 +45,7 @@ sub run {
     # Filter which tests will run using KSELFTEST_TESTS
     my @tests = @{get_var_array('KSELFTEST_TESTS')};
     @tests = @all_tests unless @tests;
+    chomp @tests;
 
     # Filter which tests will *NOT* run using KSELFTEST_SKIP
     my @skip = map { s/^\s+|\s+$//gr } @{get_var_array('KSELFTEST_SKIP')};
@@ -63,7 +64,7 @@ sub run {
         $tests = "--collection $collection";
     } else {
         record_info("Running Tests", join("\n", @tests));
-        $tests .= "--test $_ " for @tests;
+        $tests = join(' ', map { "--test $_" } @tests);
     }
 
     validate_kconfig($collection);
