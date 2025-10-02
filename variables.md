@@ -39,7 +39,6 @@ BCI_OS_VERSION | string | | Set the environment variable OS_VERSION to this valu
 BOOTLOADER | string | grub2 | Which bootloader is used by the image or will be selected during installation, e.g. `grub2`, `grub2-bls`, `systemd-boot`
 BTRFS | boolean | false | Indicates btrfs filesystem. Deprecated, use FILESYSTEM instead.
 BUILD | string  |       | Indicates build number of the product under test.
-BUILDAH_STORAGE_DRIVER | string | | Storage driver used for buildah: vfs or overlay.
 CASEDIR | string | | Path to the directory which contains tests.
 CHECK_RELEASENOTES | boolean | false | Loads `installation/releasenotes` test module.
 CHECKSUM_* | string | | SHA256 checksum of the * medium. E.g. CHECKSUM_ISO_1 for ISO_1.
