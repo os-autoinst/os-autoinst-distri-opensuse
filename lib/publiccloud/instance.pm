@@ -326,18 +326,19 @@ sub wait_for_guestregister {
         if ($out =~ m/inactive$/) {
             diag("guestregister inactive");
             $self->upload_log($log, log_name => $name);
-            return time() - $start_time;
+            return 1;
         }
         elsif ($out =~ m/failed$/) {
             diag("guestregister failed");
-            $out = $self->run_ssh_command(cmd => 'sudo systemctl status guestregister', quiet => 1);
-            $self->upload_log($log, log_name => $name);
-            return time() - $start_time;
+            # we have some cases where it is known that guestregister service will fail
+            # ( e.g. when we testing images not published on Market hence w/o product codes)
+            return 1 if (get_var('PUBLIC_CLOUD_IGNORE_GUESTREGISTER_FAILURE'));
+            die('guestregister failed');
         }
         elsif ($out =~ m/active$/) {
             diag("guestregister active");
-            $self->upload_log($log, log_name => $name);
             die "guestregister should not be active on BYOS" if (is_byos);
+            $self->upload_log($log, log_name => $name);
         }
 
         if (time() - $last_info > 10) {
@@ -347,7 +348,6 @@ sub wait_for_guestregister {
         sleep 1;
     }
     diag("guestregister timeout");
-    $self->upload_log($log, log_name => $name);
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
