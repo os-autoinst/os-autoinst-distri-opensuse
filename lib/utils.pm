@@ -1006,7 +1006,10 @@ sub zypper_search {
         @fields = ('status', 'name', 'type', 'version', 'arch', 'repository');
     }
 
-    my $output = script_output("zypper -in se $params");
+    my ($ret, $output) = cmd_run("zypper -n se $params");
+
+    die 'zypper search failed unexpectedly'
+      unless defined($ret) && ($ret == 0 || $ret == 104);
     return parse_zypper_table($output, \@fields);
 }
 
