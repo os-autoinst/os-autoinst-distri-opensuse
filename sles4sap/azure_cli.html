@@ -105,7 +105,15 @@
 
 <pre><code>my $ret = az_group_name_get();</code></pre>
 
-<p>Get the name of all existing Resource Group in the current subscription</p>
+<p>Get the name of all existing Resource Group in the current subscription. By defailt the output is an array of strings. Output can be modified using <b>$args{query}</b>.</p>
+
+<dl>
+
+<dt id="query---Modify-output-filter-using-jmespath-query.-Default:-.name"><b>query</b> - Modify output filter using jmespath query. Default: &#39;[].name&#39;</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="az_group_delete">az_group_delete</h2>
 
@@ -791,7 +799,7 @@
 
 <h2 id="az_nic_get">az_nic_get</h2>
 
-<p>Get the NIC data from NIC ID</p>
+<p>Get the NIC data from NIC ID using &#39;az network nic show&#39;</p>
 
 <dl>
 
