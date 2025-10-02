@@ -44,7 +44,7 @@ sub run {
 
     # Avoid unnecessary load on IBS by holding back all test runs except 15-SP7, so that registry.suse.de can load the images into the cache
     # This is a temporary workaround until https://progress.opensuse.org/issues/189813 is done.
-    sleep(300) unless check_var('HOST_VERSION', '15-SP7');
+    sleep(150 + rand(150)) unless (get_var("CASEDIR") || check_var('HOST_VERSION', '15-SP7'));
 
     die "Pulling container image '$image' timed out. Likely a new build is already being prepared. Look for a new build and ignore this test run.\n"
       if script_run("timeout 300 $engine pull -q $image", timeout => 330) == 124;
