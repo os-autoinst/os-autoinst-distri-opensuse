@@ -43,6 +43,9 @@ sub run {
 
     $self->setup_pkgs(@pkgs);
 
+    # Prevent https://github.com/containers/skopeo/issues/2718
+    run_command "sed -i '/sigstore-staging:/d' /etc/containers/registries.d/default.yaml";
+
     record_info("skopeo version", script_output("skopeo --version"));
     record_info("skopeo package version", script_output("rpm -q skopeo"));
 
