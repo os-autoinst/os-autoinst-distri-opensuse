@@ -19,6 +19,7 @@ use utils qw(OPENQA_FTP_URL type_line_svirt save_svirt_pty);
 use ntlm_auth;
 use version_utils qw(is_agama);
 use autoyast qw(expand_agama_profile parse_dud_parameter);
+use Yam::Agama::LiveIso qw(read_iso_info record_agama_info);
 
 sub set_svirt_domain_elements {
     my ($svirt) = shift;
@@ -81,6 +82,13 @@ sub set_svirt_domain_elements {
 
 sub run {
     my $svirt = select_console('svirt', await_console => 0);
+
+    if (is_agama) {
+        my $info = read_iso_info();
+        $info =~ /^Image.version:\s+(?<major_version>\d+\.\w+)\./m;
+        set_var("AGAMA_VERSION", $+{'major_version'});
+        record_agama_info();
+    }
 
     record_info('free -h', $svirt->get_cmd_output('free -h'));
     record_info('virsh freecell --all', $svirt->get_cmd_output('virsh freecell --all'));

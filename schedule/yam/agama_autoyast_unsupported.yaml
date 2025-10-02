@@ -4,6 +4,5 @@ description: >
   Agama abort installation using unsupported AutoYaST elements.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/patch_agama_tests
   - yam/agama/agama

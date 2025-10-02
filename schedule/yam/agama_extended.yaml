@@ -6,7 +6,6 @@ description: >
     - Install packages gvim,rpm-build via profile.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/patch_agama_tests
   - yam/agama/agama
   - installation/grub_test

@@ -5,7 +5,6 @@ description: >
   A headless system is just boot to multi-user.target without a graphical environment.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/validate_headless
   - yam/agama/patch_agama_tests
   - yam/agama/agama
