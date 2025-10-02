@@ -65,9 +65,11 @@ sub validate_gmail_imap {
 sub ensure_self_signed_cerificate_fails {
     # Check self-signed certificate, expecting to fail.
     # Prepare the env
+    my $ca_tmpl = 'ca.tmpl';
+    my $server_tmpl = 'server.tmpl';
     assert_script_run('mkdir -p /root/cert && cd $_');
-    assert_script_run('wget --quiet ' . data_url('security/gnutls/ca.tmpl'));
-    assert_script_run('wget --quiet ' . data_url('security/gnutls/server.tmpl'));
+    assert_script_run('curl -f ' . data_url("security/gnutls/$ca_tmpl") . " -o $ca_tmpl");
+    assert_script_run('curl -f ' . data_url("security/gnutls/$server_tmpl") . " -o $server_tmpl");
 
     # setup CA
     assert_script_run('certtool --generate-privkey > ca-key.pem');
