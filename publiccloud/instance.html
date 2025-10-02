@@ -102,7 +102,7 @@
 
 <pre><code>wait_for_guestregister([timeout =&gt; 300]);</code></pre>
 
-<p>Run command <code>systemctl is-active guestregister</code> on the instance in a loop and wait till guestregister is ready. If guestregister finish with state failed, a soft-failure will be recorded. If guestregister will not finish within <code>timeout</code> seconds, job dies. In case of BYOS images we checking that service is inactive and quit Returns the time needed to wait for the guestregister to complete. <code>wait_for_guestregister</code> is called inside <code>create_instance()</code>, enabled by <code>check_guestregister</code></p>
+<p>Run command <code>systemctl is-active guestregister</code> on the instance in a loop and wait till guestregister is ready. If guestregister finish with state failed, a soft-failure will be recorded. If guestregister will not finish within <code>timeout</code> seconds, job dies. In case of BYOS images we checking that service is inactive and quit Returns the time needed to wait for the guestregister to complete. <code>wait_for_guestregister</code> is called just after <code>create_instance()</code></p>
 
 <h2 id="update_instance_ip">update_instance_ip</h2>
 
