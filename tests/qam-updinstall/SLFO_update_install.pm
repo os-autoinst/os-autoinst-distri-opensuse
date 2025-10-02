@@ -68,6 +68,7 @@ sub run {
 
     my @patches = get_patch($incident_id, $repos);
     record_info "Patches", "@patches";
+    die 'No patch found!' unless scalar(@patches);
 
     for my $patch (@patches) {
         my @update_conflicts;
