@@ -8,10 +8,10 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(ensure_serialdev_permissions);
 use power_action_utils qw(power_action);
 use Utils::Backends qw(is_hyperv);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_community_jeos is_tumbleweed is_wsl);
 use bootloader_setup qw(change_grub_config grep_grub_settings grub_mkconfig set_framebuffer_resolution set_extrabootparams_grub_conf);
 
-our @EXPORT = qw(expect_mount_by_uuid set_grub_gfxmode reboot_image);
+our @EXPORT = qw(expect_mount_by_uuid set_grub_gfxmode reboot_image is_translations_preinstalled);
 
 sub expect_mount_by_uuid {
     return !(!is_hyperv && is_sle('<15-sp2'));
@@ -35,6 +35,10 @@ sub set_grub_gfxmode {
     set_framebuffer_resolution;
     set_extrabootparams_grub_conf;
     grub_mkconfig;
+}
+
+sub is_translations_preinstalled {
+    return is_community_jeos || is_sle('=12-sp5') || (!is_tumbleweed && is_wsl);
 }
 
 1;
