@@ -1,0 +1,28 @@
+---
+name: create_hdd_16.0
+description:    >
+    Maintainer: qa-c@suse.de.
+    SLES 16.0 HDD creation for container tests in product QA
+conditional_schedule:
+    bootloader:
+        ARCH:
+            's390x':
+                - installation/bootloader_start
+    fips:
+        FIPS:
+            '1':
+                - fips/fips_setup
+    svirt_upload_assets:
+        ARCH:
+            's390x':
+                - shutdown/svirt_upload_assets
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - containers/install_updates
+    - '{{fips}}'
+    - containers/bci_prepare
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
+    - '{{svirt_upload_assets}}'
