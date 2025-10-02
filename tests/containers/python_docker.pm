@@ -137,7 +137,6 @@ sub test ($target) {
         DOCKER_TEST_API_VERSION => $api_version,
         # Fix docker-py test issues with datetimes on different timezones by using UTC
         TZ => "UTC",
-        UNKNOWN_DOCKER_SSH_HOST => "ssh://hola:123",
     );
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
     my $pytest_args = "-vv --capture=tee-sys -o junit_logging=all --junit-xml $target.xml $ignore $deselect";
