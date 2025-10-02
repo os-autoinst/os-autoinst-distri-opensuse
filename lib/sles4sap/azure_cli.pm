@@ -14,6 +14,7 @@ use Exporter qw(import);
 use Mojo::JSON qw(decode_json);
 use Regexp::Common qw(net);
 use NetAddr::IP;
+use Mojo::Base -signatures;
 use utils qw(write_sut_file);
 
 
@@ -104,8 +105,7 @@ Create an Azure resource group in a specific region
 =back
 =cut
 
-sub az_group_create {
-    my (%args) = @_;
+sub az_group_create(%args) {
     foreach (qw(name region)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     # Create a resource group to contain all deployed resources
@@ -119,14 +119,22 @@ sub az_group_create {
 
     my $ret = az_group_name_get();
 
-Get the name of all existing Resource Group in the current subscription
+Get the name of all existing Resource Group in the current subscription.
+By defailt the output is an array of strings.
+Output can be modified using B<$args{query}>.
 
+=over
+
+=item B<query> - Modify output filter using jmespath query. Default: '[].name'
+
+=back
 =cut
 
-sub az_group_name_get {
+sub az_group_name_get(%args) {
+    $args{query} //= '[].name';
     my $az_cmd = join(' ',
         'az group list',
-        '--query "[].name"',
+        "--query \"$args{query}\"",
         '-o json');
     return decode_json(script_output($az_cmd));
 }
@@ -146,8 +154,7 @@ Delete a resource group with a specific name
 =back
 =cut
 
-sub az_group_delete {
-    my (%args) = @_;
+sub az_group_delete(%args) {
     croak("Argument < name > missing") unless $args{name};
     $args{timeout} //= 60;
     my $az_cmd = join(' ',
@@ -185,8 +192,7 @@ Create a virtual network
 =back
 =cut
 
-sub az_network_vnet_create {
-    my (%args) = @_;
+sub az_network_vnet_create(%args) {
     foreach (qw(resource_group region vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     # Only set default value for ranges if the caller
@@ -242,8 +248,7 @@ Update a Subnet
 =back
 =cut
 
-sub az_network_vnet_subnet_update {
-    my (%args) = @_;
+sub az_network_vnet_subnet_update(%args) {
     foreach (qw(resource_group snet vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -280,8 +285,7 @@ some query result in the function to die on decode_json.
 =back
 =cut
 
-sub az_network_vnet_get {
-    my (%args) = @_;
+sub az_network_vnet_get(%args) {
     croak("Argument < resource_group > missing") unless $args{resource_group};
     $args{query} //= '[].name';
 
@@ -309,8 +313,7 @@ Create a network security group
 =back
 =cut
 
-sub az_network_nsg_create {
-    my (%args) = @_;
+sub az_network_nsg_create(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -344,8 +347,7 @@ Just few parameters are configurable here, like the port number
 =back
 =cut
 
-sub az_network_nsg_rule_create {
-    my (%args) = @_;
+sub az_network_nsg_rule_create(%args) {
     foreach (qw(resource_group nsg name port)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -388,8 +390,7 @@ Create an IPv4 public IP resource
 =back
 =cut
 
-sub az_network_publicip_create {
-    my (%args) = @_;
+sub az_network_publicip_create(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{sku} //= 'Standard';
@@ -422,8 +423,7 @@ Return an IPv4 public IP address from its name
 =back
 =cut
 
-sub az_network_publicip_get {
-    my (%args) = @_;
+sub az_network_publicip_get(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     my $az_cmd = join(' ', 'az network public-ip show',
@@ -457,8 +457,7 @@ Create a NAT Gateway
 =back
 =cut
 
-sub az_network_nat_gateway_create {
-    my (%args) = @_;
+sub az_network_nat_gateway_create(%args) {
     foreach (qw(resource_group region name public_ip)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -510,8 +509,7 @@ SKU Standard (and not Basic) is needed to get some Metrics
 =back
 =cut
 
-sub az_network_lb_create {
-    my (%args) = @_;
+sub az_network_lb_create(%args) {
     foreach (qw(resource_group name vnet snet backend frontend_ip_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -561,8 +559,7 @@ Create a load balancer health probe.
 =back
 =cut
 
-sub az_network_lb_probe_create {
-    my (%args) = @_;
+sub az_network_lb_probe_create(%args) {
     foreach (qw(resource_group lb_name name port)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{protocol} //= 'Tcp';
@@ -613,8 +610,7 @@ Configure the load balancer behavior.
 =back
 =cut
 
-sub az_network_lb_rule_create {
-    my (%args) = @_;
+sub az_network_lb_rule_create(%args) {
     foreach (qw(resource_group lb_name hp_name frontend_ip backend name port)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{protocol} //= 'Tcp';
@@ -657,8 +653,7 @@ Create an availability set. Later on VM can be assigned to it.
 =back
 =cut
 
-sub az_vm_as_create {
-    my (%args) = @_;
+sub az_vm_as_create(%args) {
     foreach (qw(resource_group name region)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -685,8 +680,7 @@ List all availability set in a resource group.
 =back
 =cut
 
-sub az_vm_as_list {
-    my (%args) = @_;
+sub az_vm_as_list(%args) {
     croak("Argument < resource_group > missing") unless $args{resource_group};
     my $az_cmd = join(' ', 'az vm availability-set list',
         '--resource-group', $args{resource_group},
@@ -709,8 +703,7 @@ Show all the details of an availability set. For the moment it only show and doe
 =back
 =cut
 
-sub az_vm_as_show {
-    my (%args) = @_;
+sub az_vm_as_show(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -738,8 +731,7 @@ Create an image out of a .vhd disk in Azure storage.
 =back
 =cut
 
-sub az_img_from_vhd_create {
-    my (%args) = @_;
+sub az_img_from_vhd_create(%args) {
     foreach (qw(resource_group name source)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     my $az_cmd = join(' ', 'az image create',
@@ -797,8 +789,7 @@ Create a virtual machine
 =back
 =cut
 
-sub az_vm_create {
-    my (%args) = @_;
+sub az_vm_create(%args) {
     foreach (qw(resource_group name image)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -849,8 +840,7 @@ Return a decoded json hash according to the provided jmespath query
 =back
 =cut
 
-sub az_vm_list {
-    my (%args) = @_;
+sub az_vm_list(%args) {
     croak("Argument < resource_group > missing") unless $args{resource_group};
     $args{query} //= '[].name';
 
@@ -886,8 +876,7 @@ Json output looks like:
 =back
 =cut
 
-sub az_vm_instance_view_get {
-    my (%args) = @_;
+sub az_vm_instance_view_get(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     my $az_cmd = join(' ',
@@ -929,8 +918,7 @@ It returns the total ammount of time spent waiting or function kills the test on
 =back
 =cut
 
-sub az_vm_wait_running {
-    my (%args) = @_;
+sub az_vm_wait_running(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{timeout} //= 300;
@@ -977,8 +965,7 @@ Open a port on an existing VM
 =back
 =cut
 
-sub az_vm_openport {
-    my (%args) = @_;
+sub az_vm_openport(%args) {
     foreach (qw(resource_group name port)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1010,8 +997,7 @@ Wait cloud-init completion on a running VM
 =back
 =cut
 
-sub az_vm_wait_cloudinit {
-    my (%args) = @_;
+sub az_vm_wait_cloudinit(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{username} //= 'cloudadmin';
@@ -1045,8 +1031,7 @@ Get the NIC ID of the first NIC of a given VM
 =back
 =cut
 
-sub az_nic_id_get {
-    my (%args) = @_;
+sub az_nic_id_get(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1060,7 +1045,7 @@ sub az_nic_id_get {
 
 =head2 az_nic_get
 
-Get the NIC data from NIC ID
+Get the NIC data from NIC ID using 'az network nic show'
 
 =over
 
@@ -1071,8 +1056,7 @@ Get the NIC data from NIC ID
 =back
 =cut
 
-sub az_nic_get {
-    my (%args) = @_;
+sub az_nic_get(%args) {
     foreach (qw(nic_id filter)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1098,8 +1082,7 @@ Get the NIC name from NIC ID
 =back
 =cut
 
-sub az_nic_name_get {
-    my (%args) = @_;
+sub az_nic_name_get(%args) {
     croak('Argument < nic_id > missing') unless $args{nic_id};
     return az_nic_get(nic_id => $args{nic_id}, filter => 'name');
 }
@@ -1119,8 +1102,7 @@ Get the name of the first IpConfig of a NIC from a NIC ID
 =back
 =cut
 
-sub az_ipconfig_name_get {
-    my (%args) = @_;
+sub az_ipconfig_name_get(%args) {
     croak('Argument < nic_id > missing') unless $args{nic_id};
 
     return az_nic_get(nic_id => $args{nic_id}, filter => 'ipConfigurations[0].name');
@@ -1149,8 +1131,7 @@ Change the IpConfig to use a static IP
 =back
 =cut
 
-sub az_ipconfig_update {
-    my (%args) = @_;
+sub az_ipconfig_update(%args) {
     foreach (qw(resource_group ipconfig_name nic_name ip)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1184,8 +1165,7 @@ Delete a specific IpConfig to use a static IP
 =back
 =cut
 
-sub az_ipconfig_delete {
-    my (%args) = @_;
+sub az_ipconfig_delete(%args) {
     foreach (qw(resource_group ipconfig_name nic_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1220,8 +1200,7 @@ Add the IpConfig to a LB address pool
 =back
 =cut
 
-sub az_ipconfig_pool_add {
-    my (%args) = @_;
+sub az_ipconfig_pool_add(%args) {
     foreach (qw(resource_group lb_name address_pool ipconfig_name nic_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{timeout} //= 60;
@@ -1254,8 +1233,7 @@ Enable diagnostic log for a specific VM
 =back
 =cut
 
-sub az_vm_diagnostic_log_enable {
-    my (%args) = @_;
+sub az_vm_diagnostic_log_enable(%args) {
     foreach (qw(resource_group storage_account vm_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1290,8 +1268,7 @@ Return a list of diagnostic file paths on the JumpHost
 =back
 =cut
 
-sub az_vm_diagnostic_log_get {
-    my (%args) = @_;
+sub az_vm_diagnostic_log_get(%args) {
     croak("Argument < resource_group > missing") unless $args{resource_group};
 
     my @diagnostic_log_files;
@@ -1326,8 +1303,7 @@ Create a storage account
 =back
 =cut
 
-sub az_storage_account_create {
-    my (%args) = @_;
+sub az_storage_account_create(%args) {
     foreach (qw(resource_group region name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1364,8 +1340,7 @@ Create network peering
 =back
 =cut
 
-sub az_network_peering_create {
-    my (%args) = @_;
+sub az_network_peering_create(%args) {
     foreach (qw(name source_rg source_vnet target_rg target_vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1406,8 +1381,7 @@ Return HASH representing existing net peering
 =back
 =cut
 
-sub az_network_peering_list {
-    my (%args) = @_;
+sub az_network_peering_list(%args) {
     foreach (qw(resource_group vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{query} //= '[].name';
@@ -1442,8 +1416,7 @@ Delete a specific network peering
 =back
 =cut
 
-sub az_network_peering_delete {
-    my (%args) = @_;
+sub az_network_peering_delete(%args) {
     foreach (qw(name resource_group vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{timeout} //= bmwqemu::scale_timeout(300);
@@ -1480,8 +1453,7 @@ Arguments B<size_gb> and B<source> are mutually exclusive.
 =back
 =cut
 
-sub az_disk_create {
-    my (%args) = @_;
+sub az_disk_create(%args) {
     foreach ('resource_group', 'name') { croak("Argument < $_ > missing") unless $args{$_}; }
     croak "Arguments 'size_gb' and 'source' are mutually exclusive" if $args{size_gb} and $args{source};
     croak "Argument 'size_gb' or 'source' has to be specified" unless $args{size_gb} or $args{source};
@@ -1520,8 +1492,7 @@ Function returns `az` command exit code.
 =back
 =cut
 
-sub az_resource_delete {
-    my (%args) = @_;
+sub az_resource_delete(%args) {
     croak "Mandatory argument 'resource_group' missing" unless $args{resource_group};
     croak "Arguments 'name' and 'ids' are mutually exclusive" if $args{ids} and $args{name};
     croak "Argument 'name' or 'ids' has to be specified" unless $args{ids} or $args{name};
@@ -1560,8 +1531,7 @@ Returns decoded json structure if json format is requested, otherwise whole outp
 =back
 =cut
 
-sub az_resource_list {
-    my (%args) = @_;
+sub az_resource_list(%args) {
     my @az_command = ('az resource list');
     push(@az_command, "--resource-group $args{resource_group}") if $args{resource_group};
     push(@az_command, "--query \"$args{query}\"") if $args{query};
@@ -1599,8 +1569,7 @@ B<Arguments:>
 =back
 =cut
 
-sub az_validate_uuid_pattern {
-    my (%args) = @_;
+sub az_validate_uuid_pattern(%args) {
     croak "Mandatory argument 'uuid' missing" unless $args{uuid};
     my $pattern = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$';
     return $args{uuid} if ($args{uuid} =~ /$pattern/i);
@@ -1631,8 +1600,7 @@ Uploads file to a storage container.
 =back
 =cut
 
-sub az_storage_blob_upload {
-    my (%args) = @_;
+sub az_storage_blob_upload(%args) {
     foreach ('container_name', 'storage_account_name', 'file') {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
@@ -1690,8 +1658,7 @@ B<Return value:>
 =back
 =cut
 
-sub az_storage_blob_lease_acquire {
-    my (%args) = @_;
+sub az_storage_blob_lease_acquire(%args) {
     foreach ('container_name', 'storage_account_name', 'blob_name') {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
@@ -1736,8 +1703,7 @@ List information about storage blob(s) specified by B<storage_account_name>, B<c
 =back
 =cut
 
-sub az_storage_blob_list {
-    my (%args) = @_;
+sub az_storage_blob_list(%args) {
     foreach ('container_name', 'storage_account_name') {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
@@ -1774,8 +1740,7 @@ Update properties of storage blob. Returns az cli command exit code.
 =back
 =cut
 
-sub az_storage_blob_update {
-    my (%args) = @_;
+sub az_storage_blob_update(%args) {
     foreach ('container_name', 'account_name', 'name') {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
@@ -1808,8 +1773,7 @@ Output can be modified using B<query> argument.
 =back
 =cut
 
-sub az_keyvault_list {
-    my (%args) = @_;
+sub az_keyvault_list(%args) {
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     $args{query} //= '[].name';
 
@@ -1839,8 +1803,7 @@ Output can be modified using B<query> argument.
 =back
 =cut
 
-sub az_keyvault_secret_list {
-    my (%args) = @_;
+sub az_keyvault_secret_list(%args) {
     croak "Missing mandatory argument: 'vault_name'" unless $args{vault_name};
     $args{query} //= '[].name';
 
@@ -1880,8 +1843,7 @@ Output can be modified using B<query> argument.
 =back
 =cut
 
-sub az_keyvault_secret_show {
-    my (%args) = @_;
+sub az_keyvault_secret_show(%args) {
     croak 'Argument "id" cannot be used together with "name" and "vault_name".'
       if $args{id} and grep(/name|vault_name/, keys %args);
     croak 'Missing mandatory argument: id' if !$args{id} and !grep(/name|vault_name/, keys %args);
@@ -1922,8 +1884,7 @@ Check if specified resource group exists. Returns B<true> or B<false>.
 =back
 =cut
 
-sub az_group_exists {
-    my (%args) = @_;
+sub az_group_exists(%args) {
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     return script_output("az group exists --resource-group $args{resource_group}", quiet => $args{quiet});
 }
