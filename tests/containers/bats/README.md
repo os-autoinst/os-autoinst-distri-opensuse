@@ -20,7 +20,6 @@ The tests rely on some variables:
 | `BATS_PACKAGE` | `aardvark-dns` `buildah` `conmon` `netavark` `podman` `runc` `skopeo` |
 | `BATS_TESTS` | Run only the specified tests |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
-| `BUILDAH_STORAGE_DRIVER` | Storage driver used for buildah: `vfs` or `overlay` |
 | `ENABLE_SELINUX` | Set to `0` to put SELinux in permissive mode |
 | `GITHUB_PATCHES` | List of github PR id's containing upstream test patches |
 | `GITHUB_REPO` | Repo & branch in the form `[<GITHUB_ORG>]#<BRANCH>` |
