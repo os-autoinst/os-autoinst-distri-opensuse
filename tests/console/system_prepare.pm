@@ -16,7 +16,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use zypper;
-use version_utils qw(is_sle is_agama);
+use version_utils qw(is_sle is_agama is_tumbleweed);
 use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
@@ -65,6 +65,15 @@ sub run {
             my @unique_addons = uniq @my_addons;
             my $addons = join(",", @unique_addons);
             register_addons_cmd($addons);
+        }
+    }
+
+    # This workaround is intentionally guarded for Tumbleweed only - SLE must never ever accept that as a workaround
+    if (is_tumbleweed) {
+        my $nss_systemd = script_run('if [ -f /usr/etc/nsswitch.conf -a -f /etc/nsswitch.conf ]; then grep passwd.*systemd /etc/nsswitch.conf; fi');
+        if ($nss_systemd) {
+            assert_script_run('rm /etc/nsswitch.conf');
+            record_soft_failure("boo#1250513 - /etc/nsswitch.conf does not handle nss_systemd");
         }
     }
 
