@@ -119,6 +119,7 @@ sub run {
             logname => 'qesap_exec_ansible.log.txt',
             timeout => 3600,
             verbose => 1);
+
         my $find_cmd = join(' ',
             'timeout', '10',
             'find', '-P', '-O3',
@@ -128,21 +129,12 @@ sub run {
             '-print', '2>/dev/null;',
             '[', '$?', '-ne', '124', ']',
             '||', 'echo', '"Command find timed out"');
-        my $ansible_output = script_output("cat $ret[1]");
-        my $reference;
-        my $desc_known_issue;
 
-        foreach my $ansible_line (split /\n/, $ansible_output) {
-            chomp $ansible_line;
-            if ($ansible_line =~ qr/\[OSADO\]\[softfail\] ([a-zA-Z]+#\S+) (.*)/) {
-                $reference = $1;
-                $desc_known_issue = $2;
-                record_soft_failure("$reference - $desc_known_issue");
-            }
-        }
         for my $log (split(/\n/, script_output($find_cmd))) {
             parse_extra_log("XUnit", $log);
         }
+        qesap_ansible_softfail(logfile => $ret[1]);
+
         if ($ret[0]) {
             if (check_var('IS_MAINTENANCE', '1')) {
                 die("TEAM-9068 Ansible failed. Retry not supported for IBSM updates\n ret[0]: $ret[0]");

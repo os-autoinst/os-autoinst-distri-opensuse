@@ -69,6 +69,7 @@ our @EXPORT = qw(
   qesap_prepare_env
   qesap_execute
   qesap_terraform_conditional_retry
+  qesap_ansible_softfail
   qesap_ansible_cmd
   qesap_ansible_script_output_file
   qesap_ansible_script_output
@@ -793,6 +794,12 @@ sub qesap_get_ansible_roles_dir {
 
 =item B<PROVIDER> - Cloud provider name, used to optionally activate AWS credential code
 
+=item B<REGION> - only needed when provider value is EC2
+
+=item B<OPENQA_VARIABLES> -
+
+=item B<ONLY_CONFIGURE> -
+
 =back
 =cut
 
@@ -848,7 +855,40 @@ sub qesap_prepare_env {
     push(@log_files, $hana_vars) if (script_run("test -e $hana_vars") == 0);
     qesap_upload_logs(failok => 1);
     die("Qesap deployment returned non zero value during 'configure' phase.") if $exec_rc[0];
-    return;
+}
+
+=head3 qesap_ansible_softfail
+
+    qesap_ansible_softfail(logfile => '/tmp/ansible.log.txt' )
+
+    Call record_soft_failure if a conventional message is detected in the ansible log
+    from qe-sap-deployment (check the README of it).
+    This function does not return anything.
+
+=over
+
+=item B<LOGFILE> - Filename of the log produced by 'qesap.py ansible'
+
+=back
+=cut
+
+sub qesap_ansible_softfail {
+    my (%args) = @_;
+    croak 'Missing mandatory logfile argument' unless $args{logfile};
+    # use grep as the log is huge
+    my $ansible_output = script_output(
+        'grep -E "\[OSADO\]\[softfail\] ([a-zA-Z]+#\S+) (.*)" ' . $args{logfile},
+        proceed_on_failure => 1);
+    my $reference;
+    foreach my $ansible_line (split /\n/, $ansible_output) {
+        chomp $ansible_line;
+        if ($ansible_line =~ qr/\[OSADO\]\[softfail\] ([a-zA-Z]+#\S+) (.*)/) {
+            # Using a variable named $reference is needed to pass test-soft_failure-no-reference.
+            # Refer to CONTRIBUTING.md
+            $reference = $1;
+            record_soft_failure("$reference - $2");
+        }
+    }
 }
 
 =head3 qesap_ansible_get_playbook

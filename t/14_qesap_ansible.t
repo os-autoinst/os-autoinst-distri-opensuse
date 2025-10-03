@@ -501,7 +501,6 @@ subtest '[qesap_ansible_fetch_file] fail' => sub {
     dies_ok { qesap_ansible_fetch_file(provider => 'SAND', host => 'SALT', remote_path => '/WIND') } "Expected to die for an internal error";
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-
 };
 
 subtest '[qesap_ansible_fetch_file] integration' => sub {
@@ -533,6 +532,25 @@ subtest '[qesap_ansible_reg_module] wrong arguments' => sub {
     dies_ok { qesap_ansible_reg_module(reg => '') } "Empty argument";
     dies_ok { qesap_ansible_reg_module(reg => 'CRAB') } "Only one argument instead of exactly 2";
     dies_ok { qesap_ansible_reg_module(reg => 'CRAB,ALGAE,SPONGE') } "Too much arguments";
+};
+
+subtest '[qesap_ansible_softfail]' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+    my $rec;
+
+    $qesap->redefine(record_soft_failure => sub { $rec = $_[0]; });
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return '[OSADO][softfail] bsc#123456789 Here a generic message with some explanations.'; });
+
+    qesap_ansible_softfail(logfile => 'PUFFER FISH');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    note("rec:$rec");
+    ok((any { /grep -E.*PUFFER FISH/ } @calls), 'grep called on the log file');
+    like($rec, qr/bsc#1234.*-.*explanations/, 'softfail format');
 };
 
 done_testing;
