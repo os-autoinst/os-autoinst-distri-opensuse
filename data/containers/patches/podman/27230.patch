@@ -1,0 +1,22 @@
+From 3a98b6dc0ec8c7337911893f779db3ec843f2917 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 3 Oct 2025 13:51:06 +0200
+Subject: [PATCH] test: Wait for killed container to avoid leak
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/system/130-kill.bats | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/test/system/130-kill.bats b/test/system/130-kill.bats
+index 685eb80265..8a50ba2f53 100644
+--- a/test/system/130-kill.bats
++++ b/test/system/130-kill.bats
+@@ -114,6 +114,7 @@ load helpers
+     run_podman run --rm -d --name $cname $IMAGE top
+     run_podman kill $cname
+     is "$output" $cname
++    run_podman ? wait $cname
+ }
+ 
+ # bats test_tags=ci:parallel

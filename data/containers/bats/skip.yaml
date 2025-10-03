@@ -199,12 +199,14 @@ podman:
   # https://github.com/containers/podman/pull/26921 is needed to drop socat
   # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
   # https://github.com/containers/podman/pull/27152 is needed for 030-run
+  # https://github.com/containers/podman/pull/27230 is needed for 130-kill
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26017
     - 26798
     - 26934
     - 27152
+    - 27230
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     - 200-pod.bats::pod resource limits
@@ -212,7 +214,6 @@ podman:
     BATS_IGNORE_USER_LOCAL:
     - 252-quadlet.bats::quadlet kube - start error
     BATS_IGNORE_USER_REMOTE:
-    - 130-kill.bats::podman kill - print IDs or raw input
   sle-16.0:
     GITHUB_PATCHES:
     - 25792
@@ -223,13 +224,13 @@ podman:
     - 26798
     - 26920
     - 26921
+    - 27230
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     - 200-pod.bats::pod resource limits
     BATS_IGNORE_ROOT_REMOTE:
     BATS_IGNORE_USER_LOCAL:
     BATS_IGNORE_USER_REMOTE:
-    - 130-kill.bats::podman kill - print IDs or raw input
   sle-15-SP7:
     GITHUB_PATCHES:
     - 21875
@@ -237,6 +238,7 @@ podman:
     - 25792
     - 25942
     - 26920
+    - 27230
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     BATS_IGNORE_ROOT_REMOTE:
@@ -249,6 +251,7 @@ podman:
     - 25792
     - 25942
     - 26920
+    - 27230
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     BATS_IGNORE_ROOT_REMOTE:
