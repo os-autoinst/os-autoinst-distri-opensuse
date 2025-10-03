@@ -4,19 +4,15 @@ description: >
   SLE15SP4+ with luk2 encrypt and encrypt with tpm2 devices
 vars:
   AUTOYAST_PREPARE_PROFILE: 1
-  AUTOYAST: autoyast_sle15/autoyast_btrfs_luks2.xml
-  DESKTOP: gnome
+  AUTOYAST: autoyast_sle15/autoyast_txtmode_btrfs_luks2.xml
 schedule:
   - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
   - installation/boot_encrypt
   - installation/first_boot
-  - autoyast/console
   - security/tpm2/tpm2_env_setup
   - security/luks2/unlock_luks2_vol_tpm2
-  - autoyast/autoyast_reboot
-  - installation/grub_test
-  - installation/first_boot
+  - console/console_reboot
 test_data:
   <<: !include test_data/yast/autoyast/profiles/btrfs.yaml
