@@ -41,6 +41,7 @@
           <li><a href="#qesap_get_terraform_dir">qesap_get_terraform_dir</a></li>
           <li><a href="#qesap_get_ansible_roles_dir">qesap_get_ansible_roles_dir</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
+          <li><a href="#qesap_ansible_softfail">qesap_ansible_softfail</a></li>
           <li><a href="#qesap_ansible_get_playbook">qesap_ansible_get_playbook</a></li>
           <li><a href="#qesap_ansible_cmd">qesap_ansible_cmd</a></li>
           <li><a href="#qesap_ansible_script_output_file">qesap_ansible_script_output_file</a></li>
@@ -388,6 +389,34 @@ Returns only result, failure handling has to be done by calling method.</code></
 <dl>
 
 <dt id="PROVIDER---Cloud-provider-name-used-to-optionally-activate-AWS-credential-code"><b>PROVIDER</b> - Cloud provider name, used to optionally activate AWS credential code</dt>
+<dd>
+
+</dd>
+<dt id="REGION---only-needed-when-provider-value-is-EC2"><b>REGION</b> - only needed when provider value is EC2</dt>
+<dd>
+
+</dd>
+<dt id="OPENQA_VARIABLES"><b>OPENQA_VARIABLES</b> -</dt>
+<dd>
+
+</dd>
+<dt id="ONLY_CONFIGURE"><b>ONLY_CONFIGURE</b> -</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_ansible_softfail">qesap_ansible_softfail</h3>
+
+<pre><code>qesap_ansible_softfail(logfile =&gt; &#39;/tmp/ansible.log.txt&#39; )
+
+Call record_soft_failure if a conventional message is detected in the ansible log
+from qe-sap-deployment (check the README of it).
+This function does not return anything.</code></pre>
+
+<dl>
+
+<dt id="LOGFILE---Filename-of-the-log-produced-by-qesap.py-ansible"><b>LOGFILE</b> - Filename of the log produced by &#39;qesap.py ansible&#39;</dt>
 <dd>
 
 </dd>
