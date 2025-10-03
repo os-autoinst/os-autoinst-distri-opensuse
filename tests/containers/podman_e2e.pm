@@ -30,9 +30,6 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     select_serial_terminal;
 
-    record_info "info", script_output("podman info -f json");
-    record_info("OCI runtime", script_output("$oci_runtime --version"));
-
     # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1248988 - catatonit missing in /usr/libexec/podman/
     run_command "cp -f /usr/bin/catatonit /usr/libexec/podman/catatonit";
     # rootless user needed for these tests
@@ -43,8 +40,10 @@ sub setup {
     run_command "echo /var/lib/empty:/run/secrets >> /etc/containers/mounts.conf";
 
     $version = script_output q(podman --version | awk '{ print $3 }');
-    record_info "version", $version;
     $version = "v$version";
+    record_info("version", $version);
+    record_info("info", script_output("podman info -f json"));
+    record_info("OCI runtime", script_output("$oci_runtime --version"));
 
     # Download podman sources
     patch_sources "podman", $version, "test/e2e";
