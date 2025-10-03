@@ -10,6 +10,7 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLED/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
+      <!-- Modules for SLE Server, SAP, HA, everything but Desktop -->
       % unless ($check_var->('SLE_PRODUCT', 'sled')) {
         % if ($is_ltss) {
       <listentry>
@@ -78,7 +79,42 @@
         <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
+      <!-- Multi-Linux Manager Client Tools for SLE 15, not sure where it's needed, but on SAP yes -->
+      <listentry>
+        <name>sle-module-multi-linux-manage-client-tools:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-multi-linux-manage-client-tools:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/MultiLinuxManagerTools/SLE-15/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-multi-linux-manage-client-tools:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-multi-linux-manage-client-tools:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/MultiLinuxManagerTools/SLE-15/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-transactional-server:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-transactional-server:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Transactional-Server/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-transactional-server:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-transactional-server:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Transactional-Server/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      <!-- Module for SAP-Business-One only on x86_64 SLES from 15-SP4 to 15-SP7 -->
+      % if ($check_var->('ARCH', 'x86_64') and !$check_var->('SAP_QAM', '1') and ($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6') or $check_var->('VERSION', '15-SP7'))) {
+      <listentry>
+        <name>sle-module-sap-business-one:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-sap-business-one:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-SAP-Business-One/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-sap-business-one:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-sap-business-one:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-SAP-Business-One/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
       % }
+      % }
+      <!-- Modules for SLE Desktop only until first condition -->
       <listentry>
         <name><%= uc $get_var->('SLE_PRODUCT') %>:<%= $get_var->('VERSION') %>::pool</name>
         <alias><%= uc $get_var->('SLE_PRODUCT') %>:<%= $get_var->('VERSION') %>::pool</alias>
@@ -119,17 +155,8 @@
         <alias>sle-module-development-tools:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      <listentry>
-        <name>sle-module-transactional-server:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-module-transactional-server:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Transactional-Server/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>sle-module-transactional-server:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-module-transactional-server:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Transactional-Server/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      % if (($check_var->('VERSION', '15-SP1') or $check_var->('VERSION', '15-SP2') or $check_var->('VERSION', '15-SP3'))) {
+      <!-- Module for Python 2 on 15-SP2 & SP3 -->
+      % if (($check_var->('VERSION', '15-SP2') or $check_var->('VERSION', '15-SP3'))) {
       <listentry>
         <name>sle-module-python2:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-python2:<%= $get_var->('VERSION') %>::pool</alias>
@@ -141,6 +168,7 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Python2/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
+      <!-- Module for Python 3 on 15-SP4 and never -->
       % if (($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6') or $check_var->('VERSION', '15-SP7'))) {
       <listentry>
         <name>sle-module-python3:<%= $get_var->('VERSION') %>::pool</name>
@@ -153,6 +181,20 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Python3/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
+      <!-- Systems Management Module on SLES, SLED, SAP 15-SP6 and 15-SP7 -->
+      % if ($check_var->('VERSION', '15-SP6') or $check_var->('VERSION', '15-SP7')) {
+      <listentry>
+        <name>sle-module-systems-management:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-systems-management:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Systems-Management/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-systems-management:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-systems-management:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Systems-Management/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+      % }
+      <!-- Module for Workstation Extension only on x86_64 SLES & SLED -->
       % if ($check_var->('ARCH', 'x86_64') and !$check_var->('HA_QAM', '1')) {
       <listentry>
         <name>sle-we:<%= $get_var->('VERSION') %>::pool</name>
@@ -165,18 +207,7 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-WE/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % if ($check_var->('ARCH', 'x86_64') and !$check_var->('SAP_QAM', '1') and ($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6') or $check_var->('VERSION', '15-SP7'))) {
-      <listentry>
-        <name>sle-module-sap-business-one:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-module-sap-business-one:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-SAP-Business-One/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>sle-module-sap-business-one:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-module-sap-business-one:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-SAP-Business-One/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      % }
+      <!-- HA & SAP specific modules, not resent on SLED -->
       % if ($check_var->('HA_QAM', '1')) {
       <listentry>
         <name>sle-ha:<%= $get_var->('VERSION') %>::pool</name>
@@ -201,19 +232,6 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-SAP-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % if ($check_var->('VERSION', '15-SP6') or $check_var->('VERSION', '15-SP7')) {
-      <listentry>
-        <name>sle-module-systems-management:<%= $get_var->('VERSION') %>::pool</name>
-	<alias>sle-module-systems-management:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Systems-Management/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-	<name>sle-module-systems-management:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-module-systems-management:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Systems-Management/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      % }
-
     </add_on_products>
   </add-on>
   <bootloader>
