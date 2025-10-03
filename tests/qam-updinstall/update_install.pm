@@ -82,6 +82,8 @@ my @conflicting_packages = (
     # docker-stable cannot be used alongside docker. see docker-stable.spec
     'docker-stable', 'docker-stable-bash-completion', 'docker-stable-zsh-completion', 'docker-zsh-completion',
     'libica-openssl1_1-tools', 'libica-devel', 'libica-devel-static',
+    'cyrus-sasl-bdb-ntlm', 'cyrus-sasl-bdb-otp', 'cyrus-sasl-saslauthd-bdb', 'cyrus-sasl-otp',
+    'cyrus-sasl-ntlm', 'cyrus-sasl-bdb-devel', 'cyrus-sasl-sqlauxprop',
     'kernel-firmware-nvidia-gspx-G06-cuda', 'nvidia-open-driver-G06-signed-cuda-kmp-default',
     'nv-prefer-signed-open-driver', 'nvidia-open-driver-G06-signed-cuda-kmp-azure',
     'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
