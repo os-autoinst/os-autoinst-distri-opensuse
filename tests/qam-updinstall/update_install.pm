@@ -82,6 +82,8 @@ my @conflicting_packages = (
     # docker-stable cannot be used alongside docker. see docker-stable.spec
     'docker-stable', 'docker-stable-bash-completion', 'docker-stable-zsh-completion', 'docker-zsh-completion',
     'libica-openssl1_1-tools', 'libica-devel', 'libica-devel-static',
+    'cyrus-sasl-bdb-ntlm', 'cyrus-sasl-bdb-otp', 'cyrus-sasl-saslauthd-bdb', 'cyrus-sasl-otp',
+    'cyrus-sasl-ntlm', 'cyrus-sasl-bdb-devel', 'cyrus-sasl-sqlauxprop',
     'kernel-firmware-nvidia-gspx-G06-cuda', 'nvidia-open-driver-G06-signed-cuda-kmp-default',
     'nv-prefer-signed-open-driver', 'nvidia-open-driver-G06-signed-cuda-kmp-azure',
     'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
@@ -293,13 +295,11 @@ sub run {
             }
         }
 
-        if ($patch_info =~ /Status\s+: needed/) {
-            # separate binaries from this one patch based on patch info
-            for my $b (@l2) { push(@patch_l2, $b) if grep($b eq $_, @conflict_names) && grep($b ne $_, @blocked_packages); }
-            for my $b (@l3) { push(@patch_l3, $b) if grep($b eq $_, @conflict_names) && grep($b ne $_, @blocked_packages); }
-            for my $b (@unsupported) { push(@patch_unsupported, $b) if grep($b eq $_, @conflict_names); }
-            %patch_bins = map { $_ => ${bins}{$_} } (@patch_l2, @patch_l3);
-        }
+        # separate binaries from this one patch based on patch info
+        for my $b (@l2) { push(@patch_l2, $b) if grep($b eq $_, @conflict_names) && grep($b ne $_, @blocked_packages); }
+        for my $b (@l3) { push(@patch_l3, $b) if grep($b eq $_, @conflict_names) && grep($b ne $_, @blocked_packages); }
+        for my $b (@unsupported) { push(@patch_unsupported, $b) if grep($b eq $_, @conflict_names); }
+        %patch_bins = map { $_ => ${bins}{$_} } (@patch_l2, @patch_l3);
 
         disable_test_repositories($repos_count);
 
@@ -429,7 +429,7 @@ sub run {
         record_info 'Reboot after patch', "system is bootable after patch $patch";
         reboot_and_login;
 
-        if ($patch_info =~ /Status\s+: needed/) {
+        if ($patch_info =~ /Status\s+: needed/ && script_run("grep '$patch already installed' zypper_$patch.log") == 1) {
             # After and only if the patches have been applied and the new binaries
             # have been installed, check the version again and based on that
             # determine if the update was succesfull.
