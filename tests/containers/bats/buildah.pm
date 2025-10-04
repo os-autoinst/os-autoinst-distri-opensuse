@@ -65,12 +65,28 @@ sub enable_docker {
     record_info("docker version", script_output("docker version"));
 }
 
+# Run conformance tests that compare the output of buildah against Docker's BuildKit
+sub test_conformance {
+    run_command 'export GOPATH=$HOME/go';
+    run_command 'export PATH=$PATH:$GOPATH/bin';
+    run_command 'go install gotest.tools/gotestsum@v1.13.0';
+    run_command 'cp /usr/bin/busybox-static tests/conformance/testdata/mount-targets/true';
+    run_command 'docker rmi -f $(docker images -q) || true';
+    run_command 'gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/... |& tee conformance.txt', timeout => 1200;
+    my $version = script_output "buildah version --json | jq -Mr .version";
+    patch_junit "buildah", $version, "conformance.xml";
+    parse_extra_log(XUnit => "conformance.xml");
+    upload_logs("conformance.txt");
+}
+
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
     my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.24 libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
     push @pkgs, "qemu-linux-user" if (is_tumbleweed || is_sle('>=15-SP6'));
+    # Packages needed for conformance tests
+    push @pkgs, "busybox-static docker-buildx libbtrfs-devel" unless is_sle;
 
     $self->setup_pkgs(@pkgs);
 
@@ -101,6 +117,8 @@ sub run {
     switch_to_root;
 
     $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
+
+    test_conformance unless is_sle;
 
     die "buildah tests failed" if ($errors);
 }
