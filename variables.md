@@ -359,6 +359,7 @@ PUBLIC_CLOUD_GOOGLE_PROJECT_ID | string | "" | GCP only, used to specify the pro
 PUBLIC_CLOUD_HDD2_SIZE | integer | "" | If set, the instance will have an additional disk with the given capacity in GB
 PUBLIC_CLOUD_HDD2_TYPE | string | "" | If PUBLIC_CLOUD_ADDITIONAL_DISK_SIZE is set, this defines the additional disk type (optional). The required value depends on the cloud service provider.
 PUBLIC_CLOUD_IGNORE_EMPTY_REPO | boolean | false | Ignore empty maintenance update repos
+PUBLIC_CLOUD_IGNORE_GUESTREGISTER_FAILURE | boolean | false | Ignore failure in publiccloud::instance::wait_for_guestregister. NOTE: variable is applicable only for PAYG images because for BYOS we suppose to skip this function call
 PUBLIC_CLOUD_IMAGE_ID | string | "" | The image ID we start the instance from
 PUBLIC_CLOUD_IMAGE_LOCATION | string | "" | The URL where the image gets downloaded from. The name of the image gets extracted from this URL.
 PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project
