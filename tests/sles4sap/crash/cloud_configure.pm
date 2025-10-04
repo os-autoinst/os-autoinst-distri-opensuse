@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Public Cloud - VM Configuration and Registration
-# This module connects to the Azure VM via SSH and performs:
+# This module connects to the VM via SSH and performs:
 # - SSH availability check
 # - Host key scan and trust
 # - (Optional) IBSM repo addition for maintenance update testing
@@ -73,13 +73,16 @@ sub run {
 
     my $vm_ip = get_required_var('VM_IP');
     my $ssh_cmd = get_required_var('SSH_CMD');
-    my $rg = get_required_var('RG');
-    my $vm = get_required_var('VM_NAME');
 
-    my $wt = az_vm_wait_running(
-        resource_group => $rg,
-        name => $vm,
-        timeout => 1200);
+    if (get_required_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
+        my $rg = get_required_var('RG');
+        my $vm = get_required_var('VM_NAME');
+        az_vm_wait_running(
+            resource_group => $rg,
+            name => $vm,
+            timeout => 1200);
+    }
+
     my $start_time = time();
     while ((time() - $start_time) < 300) {
         my $ret = script_run("nc -vz -w 1 $vm_ip 22", quiet => 1);
@@ -100,7 +103,6 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    az_group_delete(name => get_var('DEPLOY_PREFIX', 'clne') . get_current_job_id(), timeout => 600);
     $self->SUPER::post_fail_hook;
 }
 

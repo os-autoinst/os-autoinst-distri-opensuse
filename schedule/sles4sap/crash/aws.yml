@@ -1,9 +1,9 @@
 ---
 name: sles4sap_cloud_crash
 description: |
-  crash scenario with one machine for azure
+  crash scenario with one machine for aws
 schedule:
-    - sles4sap/crash/azure_deploy
+    - sles4sap/crash/aws_deploy
     - sles4sap/crash/cloud_configure
     - sles4sap/crash/cloud_crash
     - sles4sap/crash/cloud_destroy

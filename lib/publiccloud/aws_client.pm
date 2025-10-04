@@ -35,6 +35,7 @@ sub init {
     my ($self, %params) = @_;
 
     my $data = get_credentials(url_suffix => 'aws.json');
+    record_info("data", $data);
 
     assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
     define_secret_variable("AWS_ACCESS_KEY_ID", $data->{access_key_id});
