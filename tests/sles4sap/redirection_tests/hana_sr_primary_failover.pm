@@ -9,7 +9,7 @@ use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use hacluster qw(wait_for_idle_cluster wait_until_resources_started show_cluster_parameter);
 use sles4sap::sap_host_agent qw(saphostctrl_list_instances );
 use sles4sap::database_hana;

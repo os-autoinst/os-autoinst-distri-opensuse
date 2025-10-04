@@ -10,7 +10,7 @@ use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use hacluster qw(execute_crm_resource_refresh_and_check);
 use sles4sap::sap_deployment_automation_framework::deployment qw(load_os_env_variables get_sdaf_instance_id);
 use saputils;

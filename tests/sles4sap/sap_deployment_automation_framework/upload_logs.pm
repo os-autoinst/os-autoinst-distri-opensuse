@@ -17,7 +17,7 @@
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
-use sles4sap::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);
+use sles4sap::console_redirection::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);
 use testapi;
 
 sub test_flags {

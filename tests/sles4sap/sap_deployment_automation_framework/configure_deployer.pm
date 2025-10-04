@@ -17,7 +17,7 @@
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use sles4sap::sap_deployment_automation_framework::deployment;
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
 

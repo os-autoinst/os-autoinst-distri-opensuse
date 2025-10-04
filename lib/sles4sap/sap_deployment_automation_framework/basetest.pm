@@ -17,7 +17,7 @@ use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az
 use sles4sap::sap_deployment_automation_framework::deployment_connector;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::sap_deployment_automation_framework::inventory_tools;
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 
 our @EXPORT = qw(full_cleanup $serial_regexp_playbook);
 our $serial_regexp_playbook = 0;

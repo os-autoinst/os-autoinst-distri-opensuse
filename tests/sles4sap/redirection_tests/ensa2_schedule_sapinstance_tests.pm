@@ -11,7 +11,7 @@ use warnings FATAL => 'all';
 use testapi;
 use main_common 'loadtest';
 use serial_terminal qw(select_serial_terminal);
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use hacluster;
 
 =head1 SYNOPSIS

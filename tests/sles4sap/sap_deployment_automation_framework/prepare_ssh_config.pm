@@ -10,7 +10,7 @@ use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use sles4sap::azure_cli qw(az_keyvault_list);
 use sles4sap::sap_deployment_automation_framework::inventory_tools;
 use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_ssh_key_from_keyvault);

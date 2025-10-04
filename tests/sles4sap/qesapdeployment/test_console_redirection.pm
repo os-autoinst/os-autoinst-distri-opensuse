@@ -7,7 +7,7 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use sles4sap::qesap::qesapdeployment;
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use YAML::PP;
 
 sub run {

@@ -9,7 +9,7 @@ use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 package ensa2_setup_Netweaver_WebGUI_access;
 use testapi;
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use sles4sap::console_redirection::redirection_data_tools;
 use sles4sap::sap_host_agent qw(saphostctrl_list_instances);
 use sles4sap::sapcontrol qw(sapcontrol);
