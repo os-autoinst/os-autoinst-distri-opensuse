@@ -137,6 +137,9 @@ sub run {
     $self->check_hanasr_attr;
     $self->check_landscape;
     assert_script_run 'cs_clusterstate';
+
+    # Check getting crm configuration by <sid>adm
+    check_crm_nonroot($sapadm);
 }
 
 1;
