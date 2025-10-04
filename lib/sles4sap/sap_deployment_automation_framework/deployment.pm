@@ -21,7 +21,7 @@ use utils qw(write_sut_file file_content_replace);
 use Scalar::Util 'looks_like_number';
 use Mojo::JSON qw(decode_json);
 use publiccloud::utils qw(get_credentials);
-use sles4sap::azure_cli qw(az_keyvault_secret_list az_keyvault_secret_show);
+use sles4sap::azure_cli qw(az_keyvault_secret_list az_keyvault_secret_show az_network_peering_delete);
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
   homedir
   deployment_dir

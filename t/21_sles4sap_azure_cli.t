@@ -1152,4 +1152,53 @@ subtest '[az_group_exists] Compose command' => sub {
     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
 };
 
+subtest '[az_network_nic_list] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+
+    az_network_nic_list(resource_group => 'Pantalone');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network nic list/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--query "\[].name"/, @calls), 'Check for default query');
+};
+
+subtest '[az_network_nic_list] Optional args' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+
+    az_network_nic_list(resource_group => 'Pantalone', query => '[].calzini');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok(grep(/--query "\[].calzini"/, @calls), 'Check for optional argument "--query"');
+};
+
+
+subtest '[az_network_vnet_show] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+
+    az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network vnet show/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+};
+
+subtest '[az_network_vnet_show] Optional arg' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+
+    az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini', query => 'id');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok(grep(/--query "id"/, @calls), 'Check for argument "--query"');
+};
+
 done_testing;

@@ -11,6 +11,7 @@ package sles4sap::sap_deployment_automation_framework::naming_conventions;
 use strict;
 use warnings;
 use testapi;
+use Mojo::Base -signatures;
 use Exporter qw(import);
 use Carp qw(croak);
 use mmapi qw(get_current_job_id);
@@ -45,6 +46,7 @@ our @EXPORT = qw(
   get_sdaf_inventory_path
   get_sut_sshkey_path
   get_sizing_filename
+  get_ibsm_peering_name
 );
 
 =head2 %sdaf_region_matrix
@@ -439,4 +441,16 @@ sub get_sizing_filename {
     get_var('SDAF_DEPLOYMENT_SCENARIO') =~ 'ensa' ?
       return 'custom_sizes_S4HANA.json' :    # Customized for S4Hana deployment - required for ENSA2
       return 'custom_sizes_default.json';    # Minimal Hana sizing - good for sindgle DB, HanaSR or standard NW 7.5 setup
+}
+
+=head2 get_ibsm_peering_name
+
+    get_ibsm_peering_name();
+
+Returns ibsm peering name in format 'SDAF-<source_VNET>-<target_VNET>'
+
+=cut
+
+sub get_ibsm_peering_name (%args) {
+    return "SDAF-$args{source_vnet}-$args{target_vnet}";
 }
