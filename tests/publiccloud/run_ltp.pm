@@ -230,8 +230,6 @@ sub run {
 
     $self->prepare_kirk($instance);
 
-    $self->upload_runtest($instance, $provider);
-
     $self->printk_loglevel($instance);
 
     my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($provider, $instance);
@@ -325,13 +323,6 @@ sub prepare_kirk {
     record_info("KIRK_GIT_HASH", "$ghash");
     my $venv = install_in_venv($kirk_virtualenv, pip_packages => "asyncssh msgpack");
     venv_activate($venv);
-}
-
-sub upload_runtest {
-    my ($self, $instance, $provider) = @_;
-    assert_script_run('curl ' . data_url('publiccloud/ltp_runtest') . ' -o publiccloud');
-    $instance->scp("publiccloud", 'remote:/tmp/publiccloud', 9999);
-    $instance->ssh_assert_script_run(cmd => "sudo mv /tmp/publiccloud /opt/ltp/runtest/publiccloud");
 }
 
 sub printk_loglevel {
