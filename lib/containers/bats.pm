@@ -75,21 +75,7 @@ sub install_git {
 }
 
 sub install_ncat {
-    # Upstream tests use Nmap's ncat but this is a problematic tool for multiple reasons:
-    # - Behaviour breaks between versions. See https://nmap.org/changelog.html#7.96
-    # - Nmap changed license and both Fedora & openSUSE won't ship new versions
-    # Tumbleweed has ncat 7.95 and SLES 16.0 has 7.92. These versions are unlikely to change
-    if (is_tumbleweed) {
-        if (is_aarch64) {
-            run_command "zypper addrepo http://download.opensuse.org/ports/aarch64/tumbleweed/repo/non-oss/ non-oss";
-        } elsif (is_ppc64le) {
-            run_command "zypper addrepo https://download.opensuse.org/repositories/openSUSE:/Factory:/PowerPC:/NonFree/standard/openSUSE:Factory:PowerPC:NonFree.repo";
-        } elsif (is_s390x) {
-            run_command "zypper addrepo http://download.opensuse.org/ports/zsystems/tumbleweed/repo/non-oss/ non-oss";
-        } else {
-            run_command "zypper addrepo http://download.opensuse.org/tumbleweed/repo/non-oss/ non-oss";
-        }
-    } elsif (is_sle('<16')) {
+    if (is_sle('<16')) {
         # This repo has ncat 7.94
         run_command "zypper addrepo https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo";
     }
