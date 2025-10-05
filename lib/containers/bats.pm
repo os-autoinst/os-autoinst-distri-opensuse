@@ -96,9 +96,6 @@ sub install_bats {
     run_command "mkdir -pm 0750 /etc/sudoers.d/";
     run_command "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
-
-    assert_script_run "curl -o /usr/local/bin/bats_ignore_notok " . data_url("containers/bats/ignore_notok.py");
-    assert_script_run "chmod +x /usr/local/bin/bats_ignore_notok";
 }
 
 sub configure_oci_runtime {
@@ -177,9 +174,6 @@ sub patch_logfile {
     die "BATS failed!" if (script_run("test -e $tapfile") != 0);
 
     @ignore_tests = uniq sort @ignore_tests;
-
-    my $ignore_tests = join(' ', map { "\"$_\"" } @ignore_tests);
-    assert_script_run "bats_ignore_notok $tapfile $ignore_tests" if (@ignore_tests);
     patch_junit $package, $version, $xmlfile, @ignore_tests;
 }
 
