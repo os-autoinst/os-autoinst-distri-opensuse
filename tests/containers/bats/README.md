@@ -35,7 +35,7 @@ NOTES
 
 ### Summary of the `BATS_IGNORE` variables
 
-These are defined in [skip.yaml](../../../data/containers/bats/skip.yaml)
+These are defined in [patches.yaml](../../../data/containers/patches.yaml)
 
 | variable | description | aardvark | buildah | conmon | netavark | podman | runc | skopeo |
 |---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|

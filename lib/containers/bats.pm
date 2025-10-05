@@ -97,8 +97,8 @@ sub install_bats {
     run_command "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
 
-    assert_script_run "curl -o /usr/local/bin/bats_skip_notok " . data_url("containers/bats/skip_notok.py");
-    assert_script_run "chmod +x /usr/local/bin/bats_skip_notok";
+    assert_script_run "curl -o /usr/local/bin/bats_ignore_notok " . data_url("containers/bats/ignore_notok.py");
+    assert_script_run "chmod +x /usr/local/bin/bats_ignore_notok";
 }
 
 sub configure_oci_runtime {
@@ -157,28 +157,28 @@ sub enable_modules {
 }
 
 sub patch_junit {
-    my ($package, $version, $xmlfile, $skip_tests) = @_;
+    my ($package, $version, $xmlfile, $ignore_tests) = @_;
     my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
 
-    my @passed = split /\n/, script_output "patch_junit $xmlfile '$package $version $os_version' $skip_tests";
+    my @passed = split /\n/, script_output "patch_junit $xmlfile '$package $version $os_version' $ignore_tests";
     foreach my $pass (@passed) {
         record_info("PASS", $pass);
     }
 }
 
 sub patch_logfile {
-    my ($log_file, $xmlfile, @skip_tests) = @_;
+    my ($tapfile, $xmlfile, @ignore_tests) = @_;
 
     my $package = get_required_var("BATS_PACKAGE");
     my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
 
-    die "BATS failed!" if (script_run("test -e $log_file") != 0);
+    die "BATS failed!" if (script_run("test -e $tapfile") != 0);
 
-    @skip_tests = uniq sort @skip_tests;
+    @ignore_tests = uniq sort @ignore_tests;
 
-    my $skip_tests = join(' ', map { "\"$_\"" } @skip_tests);
-    assert_script_run "bats_skip_notok $log_file $skip_tests" if (@skip_tests);
-    patch_junit $package, $version, $xmlfile, $skip_tests;
+    my $ignore_tests = join(' ', map { "\"$_\"" } @ignore_tests);
+    assert_script_run "bats_ignore_notok $tapfile $ignore_tests" if (@ignore_tests);
+    patch_junit $package, $version, $xmlfile, $ignore_tests;
 }
 
 # /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
@@ -390,7 +390,7 @@ sub bats_post_hook {
 }
 
 sub bats_tests {
-    my ($log_file, $_env, $skip_tests, $timeout) = @_;
+    my ($tapfile, $_env, $ignore_tests, $timeout) = @_;
     my %env = %{$_env};
 
     my $package = get_required_var("BATS_PACKAGE");
@@ -424,29 +424,29 @@ sub bats_tests {
     my $cmd = "env $env bats --report-formatter junit --tap -T $tests";
     # With podman we must use its own hack/bats instead of calling bats directly
     if ($package eq "podman") {
-        my $args = ($log_file =~ /root/) ? "--root" : "--rootless";
-        $args .= " --remote" if ($log_file =~ /remote/);
+        my $args = ($tapfile =~ /root/) ? "--root" : "--rootless";
+        $args .= " --remote" if ($tapfile =~ /remote/);
         $cmd = "env $env hack/bats -t -T $args";
         $cmd .= " $tests" if ($tests ne $tests_dir{podman});
     }
-    my $xmlfile = "$log_file.xml";
-    $log_file .= ".tap.txt";
-    $cmd .= " | tee -a $log_file";
+    my $xmlfile = "$tapfile.xml";
+    $tapfile .= ".tap.txt";
+    $cmd .= " | tee -a $tapfile";
 
-    run_command "echo $log_file .. > $log_file";
+    run_command "echo $tapfile .. > $tapfile";
     push @commands, $cmd;
     my $ret = script_run($cmd, timeout => $timeout);
     script_run "mv report.xml $xmlfile";
 
     unless (get_var("BATS_TESTS")) {
-        my @skip_tests = ();
-        push @skip_tests, @{$settings->{$skip_tests}} if ($settings->{$skip_tests});
-        push @skip_tests, @{$settings->{BATS_IGNORE}} if ($settings->{BATS_IGNORE});
-        patch_logfile($log_file, $xmlfile, @skip_tests);
+        my @ignore_tests = ();
+        push @ignore_tests, @{$settings->{$ignore_tests}} if ($settings->{$ignore_tests});
+        push @ignore_tests, @{$settings->{BATS_IGNORE}} if ($settings->{BATS_IGNORE});
+        patch_logfile($tapfile, $xmlfile, @ignore_tests);
     }
 
     parse_extra_log(XUnit => $xmlfile);
-    upload_logs($log_file);
+    upload_logs($tapfile);
 
     script_run("sudo rm -rf $tmp_dir", timeout => 300, proceed_on_failure => 1);
 
@@ -457,8 +457,8 @@ sub bats_settings {
     my $package = shift;
     my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
 
-    assert_script_run "curl -o /tmp/skip.yaml " . data_url("containers/bats/skip.yaml");
-    my $text = script_output("cat /tmp/skip.yaml", quiet => 1);
+    assert_script_run "curl -o /tmp/patches.yaml " . data_url("containers/patches.yaml");
+    my $text = script_output("cat /tmp/patches.yaml", quiet => 1);
     my $yaml = YAML::PP->new()->load_string($text);
 
     return $yaml->{$package}{$os_version};
