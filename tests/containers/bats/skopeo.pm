@@ -12,8 +12,9 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use Utils::Architectures qw(is_s390x is_x86_64);
 use containers::bats;
-use version_utils qw(is_sle);
+use version_utils;
 
+my $skopeo_version;
 
 sub run_tests {
     my %params = @_;
@@ -34,12 +35,25 @@ sub run_tests {
     return bats_tests($log_file, \%env, $skip_tests, 800);
 }
 
+sub test_integration {
+    run_command 'export GOPATH=$HOME/go';
+    run_command 'export PATH=$PATH:$GOPATH/bin';
+    run_command 'go install gotest.tools/gotestsum@v1.13.0';
+    # We can't use openSUSE's distribution-registry because the tests need registry v2 instead of v3
+    run_command 'podman run --rm -v /usr/local/bin:/target:rw,z registry:2 cp -v /bin/registry /target/';
+    run_command '(cd integration; SKOPEO_BINARY=/usr/bin/skopeo gotestsum --junitfile ../integration.xml --format standard-verbose -- |& tee ../integration.txt )', timeout => 300;
+    patch_junit "skopeo", $skopeo_version, "integration.xml";
+    parse_extra_log(XUnit => "integration.xml");
+    upload_logs("integration.txt");
+}
+
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(apache2-utils openssl podman squashfs skopeo);
+    my @pkgs = qw(apache2-utils go1.24 openssl podman squashfs skopeo);
     push @pkgs, "fakeroot" unless (is_sle('>=16.0') || (is_sle(">=15-SP6") && is_s390x));
+    push @pkgs, qw(libgpgme-devel) if (is_tumbleweed && is_x86_64);
 
     $self->setup_pkgs(@pkgs);
 
@@ -52,18 +66,16 @@ sub run {
     switch_to_user;
 
     # Download skopeo sources
-    my $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
+    $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
     patch_sources "skopeo", "v$skopeo_version", "systemtest";
-
-    # Upstream script gets GOARCH by calling `go env GOARCH`.  Drop go dependency for this only use of go
-    my $goarch = script_output "podman version -f '{{.OsArch}}' | cut -d/ -f2";
-    run_command "sed -i 's/arch=.*/arch=$goarch/' systemtest/010-inspect.bats";
 
     my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
 
     switch_to_root;
 
     $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
+
+    test_integration if (is_tumbleweed && is_x86_64);
 
     die "skopeo tests failed" if ($errors);
 }
