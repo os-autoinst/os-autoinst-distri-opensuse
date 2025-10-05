@@ -513,6 +513,7 @@ sub bats_tests {
         podman => "test/system",
         runc => "tests/integration",
         skopeo => "systemtest",
+        umoci => "test",
     );
 
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
@@ -583,7 +584,7 @@ sub patch_sources {
     }
 
     my $github_org = "containers";
-    if ($package eq "runc") {
+    if ($package =~ /runc|umoci/) {
         $github_org = "opencontainers";
     } elsif ($package =~ /buildx|cli|compose|docker/) {
         $github_org = "docker";

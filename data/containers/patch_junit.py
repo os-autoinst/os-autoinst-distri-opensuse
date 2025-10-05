@@ -15,7 +15,7 @@ from typing import Dict, List
 
 
 # Use "(root|user)-(local|remote)" prefix in testsuite based on the filename
-BATS_PACKAGES = r"(?:aardvark|buildah|conmon|netavark|podman|runc|skopeo)"
+BATS_PACKAGES = r"(?:aardvark|buildah|conmon|netavark|podman|runc|skopeo|umoci)"
 PREFIX = re.compile(
     rf"({BATS_PACKAGES}(?:-(?:crun|runc))?(?:-(?:root|user))?(?:-(?:local|remote))?)\.xml$"
 )
