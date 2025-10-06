@@ -94,8 +94,7 @@ sub run {
     foreach my $target (@targets) {
         run_command "env $env make $target &> $target.txt || true", timeout => 1800;
         script_run "mv report.xml $target.xml";
-        my $xfails = join(' ', map { "\"$_\"" } @xfails);
-        patch_junit "podman", $version, "$target.xml", $xfails;
+        patch_junit "podman", $version, "$target.xml", @xfails;
         parse_extra_log(XUnit => "$target.xml");
         upload_logs("$target.txt");
     }
