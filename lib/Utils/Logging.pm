@@ -392,7 +392,7 @@ sub record_avc_selinux_alerts {
         return;
     }
 
-    if (script_run('grep -q selinux /sys/kernel/security/lsm 2> /dev/null') != 0) {
+    if (script_run('test -d /sys/fs/selinux') != 0) {
         return;
     }
 
