@@ -88,7 +88,7 @@ sub ensure_self_signed_cerificate_fails {
     else {
         die('Certificate should be invalid');
     }
-    assert_script_run('killall gnutls-serv');
+    assert_script_run('kill $(pidof gnutls-serv)');
 }
 
 sub run {
