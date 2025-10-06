@@ -28,7 +28,7 @@ Note: These jobs are scheduled only for the x86_64 architecture.
 | Product / Testsuite | `docker_testsuite` | `podman_e2e` | `podman_e2e_crun` |
 |:---:|:---:|:---:|
 | openSUSE Tumbleweed | [![tw_dl]][tw_d] | [![tw_pl]][tw_p] | [![tw_pcl]][tw_pc] |
-| SLES 16.0           | [![logo]][s16_d] | [![logo]][s16_p] | |
+| SLES 16.0           | [![logo]][s16_d] | | |
 
 Notes:
 - `docker_testsuite` tests `docker-compose` & `docker-py`
@@ -46,4 +46,3 @@ Notes:
 [tw_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e_crun
 
 [s16_d]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=docker_testsuite
-[s16_p]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=podman_e2e
