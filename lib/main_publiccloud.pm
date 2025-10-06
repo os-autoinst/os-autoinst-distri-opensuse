@@ -50,6 +50,9 @@ sub load_maintenance_publiccloud_tests {
         loadtest "publiccloud/instance_overview", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests($args);
+        } elsif (get_var('PUBLIC_CLOUD_BTRFS')) {
+            loadtest 'publiccloud/btrfs', run_args => $args;
+            loadtest 'publiccloud/snapper', run_args => $args;
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
@@ -96,6 +99,7 @@ sub load_publiccloud_consoletests {
 
 my $should_use_runargs = sub {
     my @public_cloud_variables = qw(
+      PUBLIC_CLOUD_BTRFS
       PUBLIC_CLOUD_CONSOLE_TESTS
       PUBLIC_CLOUD_CONTAINERS
       PUBLIC_CLOUD_SMOKETEST
@@ -141,6 +145,9 @@ sub load_latest_publiccloud_tests {
             loadtest "publiccloud/instance_overview", run_args => $args;
             if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
                 load_publiccloud_consoletests($args);
+            } elsif (get_var('PUBLIC_CLOUD_BTRFS')) {
+                loadtest 'publiccloud/btrfs', run_args => $args;
+                loadtest 'publiccloud/snapper', run_args => $args;
             }
             elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
                 die "ConfigError: The provider is not supported\n" unless (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE') && is_sle('15-SP4+'));
