@@ -94,6 +94,9 @@ sub run {
         $instance->ssh_assert_script_run("! systemctl is-enabled wicked", fail_message => "wicked must be disabled");
     }
 
+    # dump list of packages
+    $instance->run_ssh_command(cmd => 'rpm -qa | sort');
+
     # package installation test
     my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);
     unless ($ret) {
