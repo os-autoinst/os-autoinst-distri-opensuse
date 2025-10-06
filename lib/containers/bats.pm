@@ -91,7 +91,7 @@ sub install_bats {
 
     run_command "curl $curl_opts https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -";
     run_command "bash bats-core-$bats_version/install.sh /usr/local";
-    script_run("rm -rf bats-core-$bats_version", proceed_on_failure => 1);
+    script_run("rm -rf bats-core-$bats_version", timeout => 0);
 
     run_command "mkdir -pm 0750 /etc/sudoers.d/";
     run_command "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
@@ -344,7 +344,7 @@ sub bats_post_hook {
     assert_script_run "mkdir -p $log_dir || true";
     assert_script_run "cd $log_dir";
 
-    script_run("rm -rf $test_dir", timeout => 300, proceed_on_failure => 1) unless ($test_dir eq "/var/tmp/");
+    script_run("rm -rf $test_dir", timeout => 0) unless ($test_dir eq "/var/tmp/");
 
     collect_calltraces;
     collect_coredumps;
@@ -448,7 +448,7 @@ sub bats_tests {
     parse_extra_log(XUnit => $xmlfile);
     upload_logs($tapfile);
 
-    script_run("sudo rm -rf $tmp_dir", timeout => 300, proceed_on_failure => 1);
+    script_run("sudo rm -rf $tmp_dir", timeout => 0);
 
     return ($ret);
 }
