@@ -93,8 +93,7 @@ sub run {
         run_command "env $env make $target &> $target.txt || true", timeout => 1800;
         script_run "mv report.xml $target.xml";
         my $xfails = join(' ', map { "\"$_\"" } @xfails);
-        assert_script_run "patch_junit $target.xml $xfails";
-        patch_junit "podman", $version, "$target.xml";
+        patch_junit "podman", $version, "$target.xml", $xfails;
         parse_extra_log(XUnit => "$target.xml");
         upload_logs("$target.txt");
     }
