@@ -157,8 +157,10 @@ sub enable_modules {
 }
 
 sub patch_junit {
-    my ($package, $version, $xmlfile, $ignore_tests) = @_;
+    my ($package, $version, $xmlfile, @ignore_tests) = @_;
     my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
+
+    my $ignore_tests = join(' ', map { "\"$_\"" } @ignore_tests);
 
     my @passed = split /\n/, script_output "patch_junit $xmlfile '$package $version $os_version' $ignore_tests";
     foreach my $pass (@passed) {
@@ -178,7 +180,7 @@ sub patch_logfile {
 
     my $ignore_tests = join(' ', map { "\"$_\"" } @ignore_tests);
     assert_script_run "bats_ignore_notok $tapfile $ignore_tests" if (@ignore_tests);
-    patch_junit $package, $version, $xmlfile, $ignore_tests;
+    patch_junit $package, $version, $xmlfile, @ignore_tests;
 }
 
 # /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space

@@ -81,20 +81,20 @@ sub run {
         # Fixed in podman 5.6.1:
         # https://bugzilla.suse.com/show_bug.cgi?id=1249050 - podman passes volume options as bind mount options to runtime
         push @xfails, (
-            'localintegration::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
-            'remoteintegration::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
-            'localintegration::[It] Podman run with volumes podman named volume copyup',
-            'remoteintegration::[It] Podman run with volumes podman named volume copyup',
+            'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
+            'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
         );
     }
 
-    my @targets = split('\s+', get_var('PODMAN_TARGETS', 'localintegration remoteintegration'));
+    # Skip remoteintegration on SLES as it panics with:
+    # Too many RemoteSocket collisions [PANICKED] Test Panicked
+    my $default_targets = "localintegration";
+    $default_targets .= " remoteintegration" unless is_sle;
+    my @targets = split('\s+', get_var('PODMAN_TARGETS', $default_targets));
     foreach my $target (@targets) {
         run_command "env $env make $target &> $target.txt || true", timeout => 1800;
         script_run "mv report.xml $target.xml";
-        my $xfails = join(' ', map { "\"$_\"" } @xfails);
-        assert_script_run "patch_junit $target.xml $xfails";
-        patch_junit "podman", $version, "$target.xml";
+        patch_junit "podman", $version, "$target.xml", @xfails;
         parse_extra_log(XUnit => "$target.xml");
         upload_logs("$target.txt");
     }
