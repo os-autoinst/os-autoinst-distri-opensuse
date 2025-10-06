@@ -55,7 +55,7 @@ sub run {
         record_info('Xen version', $instance->ssh_script_output('xen-detect'));
     }
 
-    my $test_package = get_var('TEST_PACKAGE', 'jq');
+    my $test_package = get_var('TEST_PACKAGE', 'socat');
     $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
