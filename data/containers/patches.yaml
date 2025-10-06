@@ -200,6 +200,7 @@ podman:
   # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
   # https://github.com/containers/podman/pull/27152 is needed for 030-run
   # https://github.com/containers/podman/pull/27230 is needed for 130-kill
+  # https://github.com/containers/podman/pull/27233 is needed for 130-kill
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26017
@@ -207,6 +208,7 @@ podman:
     - 26934
     - 27152
     - 27230
+    - 27233
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     - 200-pod.bats::pod resource limits
@@ -225,6 +227,7 @@ podman:
     - 26920
     - 26921
     - 27230
+    - 27233
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     - 200-pod.bats::pod resource limits
@@ -239,6 +242,7 @@ podman:
     - 25942
     - 26920
     - 27230
+    - 27233
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     BATS_IGNORE_ROOT_REMOTE:
@@ -252,6 +256,7 @@ podman:
     - 25942
     - 26920
     - 27230
+    - 27233
     BATS_IGNORE:
     BATS_IGNORE_ROOT_LOCAL:
     BATS_IGNORE_ROOT_REMOTE:
