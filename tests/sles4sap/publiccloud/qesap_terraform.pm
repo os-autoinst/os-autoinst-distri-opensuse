@@ -94,9 +94,12 @@ sub run {
         set_var('IBSM_RG', '') unless (get_var('IBSM_RG'));
         set_var('IBSM_VNET', '') unless (get_var('IBSM_VNET'));
     } elsif (is_gce()) {
+        die "Pering with NCC and using network_peering cannot be both active in the same config"
+          if ((get_var('IBSM_VPC_NAME') || get_var('IBSM_SUBNET_NAME') || get_var('IBSM_SUBNET_REGION')) && get_var('IBSM_NCC_HUB'));
         set_var('IBSM_VPC_NAME', '') unless (get_var('IBSM_VPC_NAME'));
         set_var('IBSM_SUBNET_NAME', '') unless (get_var('IBSM_SUBNET_NAME'));
         set_var('IBSM_SUBNET_REGION', '') unless (get_var('IBSM_SUBNET_REGION'));
+        set_var('IBSM_NCC_HUB', '') unless (get_var('IBSM_NCC_HUB'));
     } elsif (is_ec2()) {
         set_var('IBSM_PRJ_TAG', '') unless (get_var('IBSM_PRJ_TAG'));
     }
