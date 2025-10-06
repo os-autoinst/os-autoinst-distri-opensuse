@@ -55,7 +55,7 @@ sub run {
         record_info('Xen version', $instance->ssh_script_output('xen-detect'));
     }
 
-    my $test_package = get_var('TEST_PACKAGE', 'jq');
+    my $test_package = get_var('TEST_PACKAGE', 'socat');
     $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
@@ -93,6 +93,9 @@ sub run {
         $instance->ssh_assert_script_run("! systemctl is-active wicked", fail_message => "wicked must not be active");
         $instance->ssh_assert_script_run("! systemctl is-enabled wicked", fail_message => "wicked must be disabled");
     }
+
+    # dump list of packages
+    $instance->run_ssh_command(cmd => 'rpm -qa | sort');
 
     # package installation test
     my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);
