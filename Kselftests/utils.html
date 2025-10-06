@@ -26,7 +26,7 @@
 
 <p>Post process a single generic selftest output file that can be written from any runner into a single valid KTAP output for openQA with the known issues correctly tagged.</p>
 
-<p><code>logfile</code> path to the file from the runner <code>collection</code> the selftest collection to parse (e.g. `bpf`, `livepatch`, `cgroup`, etc) <code>test</code> the subtest name to parse <code>test_index</code> the current index of the test</p>
+<p><code>logfile</code> path to the file from the runner <code>collection</code> the selftest collection to parse (e.g. `bpf`, `livepatch`, `cgroup`, etc) <code>test</code> the subtest name to parse <code>test_index</code> the current index of the test <code>ktap</code> the initial KTAP header array</p>
 
 <p>Returns the KTAP output, the number of soft and hardfails</p>
 
