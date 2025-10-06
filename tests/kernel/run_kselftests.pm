@@ -69,9 +69,10 @@ sub run {
 
     validate_kconfig($collection);
 
-    my $stamp = "OpenQA::run_kselftest.pm";
+    my $stamp = 'OpenQA::run_kselftest.pm';
     my $timeout = get_var('KSELFTEST_TIMEOUT') // 300;
-    my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh --per-test-log $tests";
+    my $single = @tests > 1 ? '--per-test-log' : '';
+    my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh $single $tests";
     $runner .= " | tee -a \$HOME/summary.tap; echo $stamp END";
 
     script_run("echo '$stamp BEGIN' > /dev/kmsg");
