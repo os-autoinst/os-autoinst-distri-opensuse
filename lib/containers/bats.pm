@@ -440,12 +440,12 @@ sub bats_tests {
     my $ret = script_run($cmd, timeout => $timeout);
     script_run "mv report.xml $xmlfile";
 
+    my @ignore_tests = ();
     unless (get_var("BATS_TESTS")) {
-        my @ignore_tests = ();
         push @ignore_tests, @{$settings->{$ignore_tests}} if ($settings->{$ignore_tests});
         push @ignore_tests, @{$settings->{BATS_IGNORE}} if ($settings->{BATS_IGNORE});
-        patch_logfile($tapfile, $xmlfile, @ignore_tests);
     }
+    patch_logfile($tapfile, $xmlfile, @ignore_tests);
 
     parse_extra_log(XUnit => $xmlfile);
     upload_logs($tapfile);
