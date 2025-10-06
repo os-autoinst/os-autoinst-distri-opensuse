@@ -83,6 +83,7 @@ C<logfile> path to the file from the runner
 C<collection> the selftest collection to parse (e.g. `bpf`, `livepatch`, `cgroup`, etc)
 C<test> the subtest name to parse
 C<test_index> the current index of the test
+C<ktap> the initial KTAP header array
 
 Returns the KTAP output, the number of soft and hardfails
 
@@ -110,7 +111,7 @@ sub post_process_single {
     my ($test_name, $sanitized_test_name) = get_sanitized_test_name($args{test});
     my $parser = Kselftests::parser::factory($args{collection}, $sanitized_test_name);
 
-    my @ktap = @{$args{output} //= ["TAP version 13", "1..1", "# selftests: $args{collection}: $sanitized_test_name"]};
+    my @ktap = @{$args{ktap} //= ["TAP version 13", "1..1", "# selftests: $args{collection}: $sanitized_test_name"]};
     my $hardfails = 0;
     my $softfails = 0;
     for my $test_ln (@log) {
@@ -212,6 +213,7 @@ sub post_process {
             collection => $args{collection},
             test => $test,
             test_index => $test_index,
+            ktap => [],
         );
         push(@full_ktap, @{$ktap});
         $softfails += $s;
