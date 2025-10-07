@@ -35,6 +35,10 @@ conditional_schedule:
         FLAVOR:
             'JeOS-for-kvm-and-xen-Updates':
                 - qa_automation/patch_and_reboot
+            'Minimal-VM-for-kvm-and-xen-Updates-Staging':
+                - qa_automation/patch_and_reboot
+            'Minimal-VM-for-kvm-and-xen-Updates-Increments':
+                - qa_automation/patch_and_reboot
     wizard:
         FIRST_BOOT_CONFIG:
             'wizard':
