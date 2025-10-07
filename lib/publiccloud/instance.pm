@@ -454,7 +454,7 @@ sub wait_for_ssh {
     if (isok($exit_code)) {
         if ($args{systemup_check}) {
             # SSH host key is not checked and master socket is not used
-            my $ssh_opts = $self->ssh_opts() . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none';
+            my $ssh_opts = $self->ssh_opts() . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none -o ConnectTimeout=10';
             while (($duration = time() - $start_time) < $args{timeout}) {
                 # timeout recalculated removing consumed time until now
                 # We don't support password authentication so it would just block the terminal
