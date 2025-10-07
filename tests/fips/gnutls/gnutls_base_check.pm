@@ -12,7 +12,7 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
-use version_utils qw(is_tumbleweed is_leap is_sle is_transactional);
+use version_utils qw(is_tumbleweed is_leap is_sle is_transactional is_jeos);
 use transactional qw(trup_call process_reboot);
 
 sub install_gnutls {
@@ -21,7 +21,9 @@ sub install_gnutls {
         trup_call('pkg install gnutls');
         process_reboot(trigger => 1);
     } else {
-        zypper_call('in gnutls');
+        my @pkgs = qw(gnutls);
+        push @pkgs, 'sysvinit-tools' if is_jeos && is_sle('<16.0');
+        zypper_call("in @pkgs");
     }
 
     my $current_ver = script_output("rpm -q --qf '%{version}\n' gnutls");
