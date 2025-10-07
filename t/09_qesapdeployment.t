@@ -1294,4 +1294,29 @@ subtest '[qesap_terraform_ansible_deploy_retry] reboot timeout Ansible failures'
     ok $qesap_execute_calls eq 3, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 3)";
 };
 
+subtest '[create_cidr_from_ip]' => sub {
+    my $ret;
+    # ipv4 => /32
+    $ret = qesap_create_cidr_from_ip(ip => '195.0.0.10');
+    note("ipv4 result: $ret");
+    ok($ret eq '195.0.0.10/32', 'IPv4 mask');
+
+    # ipv6 => /128
+    $ret = qesap_create_cidr_from_ip(ip => '2001:db8::1');
+    note("ipv6 result: $ret");
+    ok($ret eq '2001:db8::1/128', 'IPv6 mask');
+
+    # replace existing mask
+    $ret = qesap_create_cidr_from_ip(ip => '195.0.0.10/24');
+    note("Strip old mask result: $ret");
+    ok($ret eq '195.0.0.10/32', 'Existing mask is removed');
+
+    # invalid ip with proceed_on_failure => undef
+    $ret = qesap_create_cidr_from_ip(ip => 'not_an_ip', proceed_on_failure => 1);
+    ok(!defined $ret, 'Invalid IP returns undef when proceed_on_failure is true');
+
+    # invalid IP without proceed_on_failure => dies
+    dies_ok { qesap_create_cidr_from_ip(ip => 'still_not_an_ip') } 'Dies on invalid IP without proceed_on_failure';
+};
+
 done_testing;
