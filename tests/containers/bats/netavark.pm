@@ -16,6 +16,8 @@ use version_utils qw(is_sle);
 my $netavark;
 
 sub run_tests {
+    return 0 if check_var("BATS_IGNORE", "all");
+
     my %env = (
         NETAVARK => $netavark,
     );
@@ -30,10 +32,11 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = qw(aardvark-dns cargo firewalld iproute2 make protobuf-devel netavark);
-    push @pkgs, "ncat" if is_sle;
     push @pkgs, is_sle("<16") ? qw(dbus-1) : qw(dbus-1-daemon);
 
     $self->setup_pkgs(@pkgs);
+
+    install_ncat if is_sle;
 
     $netavark = script_output "rpm -ql netavark | grep podman/netavark";
     record_info("netavark version", script_output("$netavark --version"));
