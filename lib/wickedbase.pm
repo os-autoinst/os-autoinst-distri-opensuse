@@ -295,8 +295,8 @@ sub reset_wicked {
     assert_script_run("netconfig -f update");
 
     # Restart services
-    assert_script_run('rcwickedd restart');
-    assert_script_run('rcwicked restart');
+    systemctl('restart wickedd');
+    systemctl('restart wicked');
 }
 
 
