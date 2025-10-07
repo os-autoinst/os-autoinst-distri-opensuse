@@ -113,14 +113,22 @@ sub validate
 sub validate_cuda
 {
     zypper_call('install -l cmake git cuda-toolkit vulkan-devel freeglut-devel Mesa-libEGL-devel', timeout => 1200);
+
     # Compiler smoke test with a simple hello_world program
     assert_script_run('curl -s -o hello_world.cu ' . data_url('cuda/hello_world.cu'));
     assert_script_run('/usr/local/cuda/bin/nvcc -rdc=true -o hello_world hello_world.cu');
     record_info('CUDA Sample', script_output('./hello_world'));
+
+    # Query the GPU capabilities
+    my $query = script_output('nvidia-smi --query-gpu=compute_cap --format=csv');
+    my @lines = split(/\n/, $query);
+    my $compute_cap = $lines[-1] =~ s/\.//gr;
+    die 'Empty compute cap' if $compute_cap eq '';
+
     # Build NVIDIA/cuda-samples
     assert_script_run('git clone --depth 1 --single-branch --branch master https://github.com/NVIDIA/cuda-samples.git');
     assert_script_run('mkdir cuda-samples/build; cd $_');
-    assert_script_run('cmake .. -DCMAKE_CUDA_COMPILER_TOOLKIT_ROOT=/usr/local/cuda -DCMAKE_CUDA_ARCHITECTURES=native -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc');
+    assert_script_run("cmake .. -DCMAKE_CUDA_COMPILER_TOOLKIT_ROOT=/usr/local/cuda -DCMAKE_CUDA_ARCHITECTURES=$compute_cap -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc");
     assert_script_run('make -j$(nproc)', 3000);
     record_info('CUDA Sample', script_output('./Samples/0_Introduction/clock/clock'));
 }
