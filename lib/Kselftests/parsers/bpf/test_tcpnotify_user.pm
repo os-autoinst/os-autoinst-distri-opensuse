@@ -17,6 +17,8 @@ sub parse_line {
     my ($self, $test_ln) = @_;
     if ($test_ln =~ /# PASSED!/) {
         return "# ok 1 test_tcpnotify_user";
+    } elsif ($test_ln =~ /# FAILED:/) {
+        return "# not ok 1 test_tcpnotify_user";
     }
     return undef;
 }

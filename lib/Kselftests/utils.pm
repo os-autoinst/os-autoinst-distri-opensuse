@@ -119,7 +119,7 @@ sub post_process_single {
         if (!$test_ln) {
             next;
         }
-        if ($test_ln =~ /^# not ok (\d+) (.*?)\s*(?=#|$)/) {
+        if ($test_ln =~ /^#?\s?not\sok\s(\d+)\s(.*?)\s*(?=#|$)/) {
             my $subtest_idx = $1;
             my $subtest_name = $2;
             my $wl_entry = $whitelist->find_whitelist_entry($env, $args{collection}, $subtest_name);
