@@ -29,6 +29,7 @@ use Utils::Architectures;
 our @EXPORT = qw(
   bats_post_hook
   bats_tests
+  install_ncat
   mount_tmp_vartmp
   patch_junit
   patch_sources
@@ -229,12 +230,6 @@ sub setup_pkgs {
 
     enable_modules if is_sle("<16");
 
-    my $install_ncat = 0;
-    if (grep { $_ eq "ncat" } @pkgs) {
-        $install_ncat = 1;
-        @pkgs = grep { $_ ne "ncat" } @pkgs;
-    }
-
     # Install tests dependencies
     my $oci_runtime = get_var("OCI_RUNTIME", "");
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
@@ -245,8 +240,6 @@ sub setup_pkgs {
     run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 600;
 
     configure_oci_runtime $oci_runtime;
-
-    install_ncat if $install_ncat;
 
     return if $rebooted;
 
