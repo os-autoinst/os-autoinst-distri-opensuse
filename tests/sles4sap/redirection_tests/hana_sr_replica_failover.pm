@@ -9,7 +9,7 @@ use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use sles4sap::database_hana;
 use sles4sap::sap_host_agent qw(saphostctrl_list_instances);
 use sles4sap::sapcontrol qw(sapcontrol_process_check sap_show_status_info);

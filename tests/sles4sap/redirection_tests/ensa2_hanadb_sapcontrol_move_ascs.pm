@@ -11,7 +11,7 @@ use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use hacluster qw(check_cluster_state wait_until_resources_started wait_for_idle_cluster crm_check_resource_location);
 use sles4sap::sap_deployment_automation_framework::deployment qw(load_os_env_variables get_sdaf_instance_id);
 use saputils;

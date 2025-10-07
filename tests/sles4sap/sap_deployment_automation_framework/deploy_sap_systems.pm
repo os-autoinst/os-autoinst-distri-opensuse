@@ -12,7 +12,7 @@ use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner load_os_env_variables sdaf_execute_deployment az_login sdaf_deployment_reused);
 use sles4sap::sap_deployment_automation_framework::configure_sap_systems_tfvars qw(create_sap_systems_tfvars);
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
 

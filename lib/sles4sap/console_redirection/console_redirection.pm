@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-package sles4sap::console_redirection;
+package sles4sap::console_redirection::console_redirection;
 use strict;
 use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);

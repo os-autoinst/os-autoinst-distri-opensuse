@@ -10,7 +10,7 @@ use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 use warnings FATAL => 'all';
 use testapi;
 use main_common 'loadtest';
-use sles4sap::console_redirection;
+use sles4sap::console_redirection::console_redirection;
 use sles4sap::database_hana qw(find_hana_resource_name);
 use saputils qw(calculate_hana_topology get_primary_node get_failover_node);
 use hacluster qw(set_cluster_parameter);
