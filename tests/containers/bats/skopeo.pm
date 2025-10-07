@@ -10,20 +10,19 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use Utils::Architectures qw(is_s390x is_x86_64);
+use Utils::Architectures;
 use containers::bats;
 use version_utils;
 
 my $skopeo_version;
+# Default quay.io/libpod/registry:2 image used by the tests only has amd64 image
+my $registry = "registry.opensuse.org/opensuse/registry:2";
 
 sub run_tests {
     my %params = @_;
     my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
 
     return 0 if check_var($skip_tests, "all");
-
-    # Default quay.io/libpod/registry:2 image used by the test only has amd64 image
-    my $registry = is_x86_64 ? "" : "docker.io/library/registry:2";
 
     my %env = (
         SKOPEO_BINARY => "/usr/bin/skopeo",
@@ -39,8 +38,9 @@ sub test_integration {
     run_command 'export GOPATH=$HOME/go';
     run_command 'export PATH=$PATH:$GOPATH/bin';
     run_command 'go install gotest.tools/gotestsum@v1.13.0';
-    # We can't use openSUSE's distribution-registry because the tests need registry v2 instead of v3
-    run_command 'podman run --rm -v /usr/local/bin:/target:rw,z registry:2 cp -v /bin/registry /target/';
+    # We can't use openSUSE's distribution-registry package because the tests need registry v2 instead of v3
+    # so extract this binary from a publicly available OCI image
+    run_command "podman run --rm -v /usr/local/bin:/target:rw,z --entrypoint /bin/cp $registry /bin/registry /target/";
     run_command '(cd integration; SKOPEO_BINARY=/usr/bin/skopeo gotestsum --junitfile ../integration.xml --format standard-verbose -- |& tee ../integration.txt )', timeout => 300;
     patch_junit "skopeo", $skopeo_version, "integration.xml";
     parse_extra_log(XUnit => "integration.xml");
@@ -53,6 +53,7 @@ sub run {
 
     my @pkgs = qw(apache2-utils go1.24 openssl podman squashfs skopeo);
     push @pkgs, "fakeroot" unless (is_sle('>=16.0') || (is_sle(">=15-SP6") && is_s390x));
+    # Packages needed for Golang integration tests
     push @pkgs, qw(libgpgme-devel) if (is_tumbleweed && is_x86_64);
 
     $self->setup_pkgs(@pkgs);
