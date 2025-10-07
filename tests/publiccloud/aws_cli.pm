@@ -25,7 +25,8 @@ sub run {
 
     # If 'aws' is preinstalled, we test that version
     if (script_run("which aws") != 0) {
-        add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef));
+        # Public Cloud module is not needed since SLE 16 to install aws cli
+        add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef)) unless (is_sle('16+'));
         add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
         zypper_call 'in aws-cli jq';
     }
