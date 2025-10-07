@@ -38,7 +38,7 @@ sub load_maintenance_publiccloud_tests {
         loadtest('publiccloud/run_ltp', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
-        loadtest('publiccloud/suspending', run_args => $args);
+        loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
         loadtest('publiccloud/ahb', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
@@ -127,7 +127,7 @@ sub load_latest_publiccloud_tests {
         loadtest("publiccloud/registration", run_args => $args);
         if (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
             loadtest('publiccloud/cloud_netconfig', run_args => $args);
-            loadtest('publiccloud/suspending', run_args => $args);
+            loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
         } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
             loadtest('publiccloud/ahb', run_args => $args);
         } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
