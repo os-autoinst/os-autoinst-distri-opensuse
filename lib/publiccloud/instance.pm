@@ -737,6 +737,22 @@ sub check_cloudinit() {
     }
 }
 
+sub enable_kdump() {
+    my ($self) = @_;
+
+    $self->ssh_assert_script_run(q(sudo sed -i "/^GRUB_CMDLINE_LINUX_DEFAULT/ s/\\\\\\"$/ crashkernel=256M,high crashkernel=128M,low \\\\\\"/" /etc/default/grub));
+    $self->ssh_assert_script_run('sudo grub2-mkconfig -o /boot/grub2/grub.cfg');
+
+    if ($self->ssh_script_run('sudo grep -q "^KDUMP_CRASHKERNEL=" /etc/sysconfig/kdump') == 0) {
+        $self->ssh_assert_script_run(q(sudo sed -i "/^KDUMP_CRASHKERNEL/ s/\\\\\\"$/ crashkernel=256M,high crashkernel=128M,low \\\\\\"/" /etc/sysconfig/kdump));
+    } else {
+        $self->ssh_assert_script_run(q(echo "KDUMP_CRASHKERNEL=\"crashkernel=256M,high crashkernel=128M,low\"" | sudo tee -a /etc/sysconfig/kdump));
+    }
+
+    $self->ssh_assert_script_run('sudo systemctl enable kdump.service');
+    $self->softreboot();
+}
+
 =head2 measure_boottime
 
     measure_boottime();
