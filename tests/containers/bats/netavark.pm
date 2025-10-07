@@ -16,6 +16,8 @@ use version_utils qw(is_sle);
 my $netavark;
 
 sub run_tests {
+    return 0 if check_var("BATS_IGNORE", "all");
+
     my %env = (
         NETAVARK => $netavark,
     );
