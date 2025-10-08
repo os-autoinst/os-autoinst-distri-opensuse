@@ -177,7 +177,7 @@ sub test_container_runtimes {
 
     record_info('Test docker');
     $instance->ssh_assert_script_run("sudo rm -f /root/.docker/config.json");    # workaround for https://bugzilla.suse.com/show_bug.cgi?id=1231185
-    $instance->ssh_assert_script_run("sudo zypper install -y docker", timeout => 300);
+    $instance->ssh_assert_script_run("sudo zypper install -y docker", timeout => 600);
     $instance->ssh_assert_script_run("sudo systemctl start docker.service");
     record_info("systemctl status docker.service", $instance->ssh_script_output("systemctl status docker.service"));
     $instance->ssh_script_retry("sudo docker pull $image", retry => 3, delay => 60, timeout => 600);
