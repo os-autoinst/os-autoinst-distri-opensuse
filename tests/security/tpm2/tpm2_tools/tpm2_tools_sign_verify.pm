@@ -1,11 +1,9 @@
-# Copyright 2020-2022 SUSE LLC
+# Copyright 2020-2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: Per TPM2 stack, we would like to add the tpm2-tools tests,
-#          from sles15sp2, update tpm2.0-tools to the stable 4 release
-#          this test module will cover sign and verify function.
+# Summary: Verify TPM2 asymmetric sign/verify, persistent key reuse and PCR policy signing
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#64905, poo#105732, tc#1742297
+# Tags: poo#64905, poo#105732, poo#202523, tc#1742297
 
 use base 'opensusebasetest';
 use testapi;
@@ -17,23 +15,48 @@ sub run {
     my $tpm_suffix = '';
     $tpm_suffix = '-T tabrmd' if (get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0');
 
-    # Sign and verify with the TPM using the endorsement hierarchy
-    my $test_dir = "tpm2_tools_sign_verify";
-    my $prim_ctx = "primary.ctx";
-    my $rsa_priv = "rsa.priv";
-    my $rsa_pub = "rsa.pub";
-    my $msg_dat = "message.dat";
-    my $rsa_ctx = "rsa.ctx";
-    my $sig_rsa = "sig.rsa";
-    assert_script_run "mkdir $test_dir";
-    assert_script_run "cd $test_dir";
-    assert_script_run "tpm2_createprimary -C e -c $prim_ctx $tpm_suffix";
-    assert_script_run "tpm2_create -G rsa -u $rsa_pub -r $rsa_priv -C $prim_ctx $tpm_suffix";
-    assert_script_run "tpm2_load -C $prim_ctx -u $rsa_pub -r $rsa_priv -c $rsa_ctx $tpm_suffix";
-    assert_script_run "echo \"my message\" > $msg_dat";
-    assert_script_run "tpm2_sign -c $rsa_ctx -g sha256 -o $sig_rsa $msg_dat $tpm_suffix";
-    assert_script_run "tpm2_verifysignature -c $rsa_ctx -g sha256 -s $sig_rsa -m $msg_dat $tpm_suffix";
-    assert_script_run "cd";
+    my $wd = "tpm2_tools_sign_verify";
+    assert_script_run "mkdir -p $wd && cd $wd";
+
+    # --- RSA sign/verify ---
+    record_info('RSA', 'RSA signing and verification');
+    assert_script_run "tpm2_createprimary -C e -c primary.ctx $tpm_suffix";
+    assert_script_run "tpm2_create -G rsa -u rsa.pub -r rsa.priv -C primary.ctx $tpm_suffix";
+    assert_script_run "tpm2_load -C primary.ctx -u rsa.pub -r rsa.priv -c rsa.ctx $tpm_suffix";
+    assert_script_run "echo 'test message' > msg.dat";
+    assert_script_run "tpm2_sign -c rsa.ctx -g sha256 -o sig.rsa msg.dat $tpm_suffix";
+    assert_script_run "tpm2_verifysignature -c rsa.ctx -g sha256 -s sig.rsa -m msg.dat $tpm_suffix";
+
+    # --- ECC sign/verify ---
+    record_info('ECC', 'ECC signing and verification');
+    assert_script_run "tpm2_create -G ecc -u ecc.pub -r ecc.priv -C primary.ctx $tpm_suffix";
+    assert_script_run "tpm2_load -C primary.ctx -u ecc.pub -r ecc.priv -c ecc.ctx $tpm_suffix";
+    assert_script_run "tpm2_sign -c ecc.ctx -g sha256 -o sig.ecc msg.dat $tpm_suffix";
+    assert_script_run "tpm2_verifysignature -c ecc.ctx -g sha256 -s sig.ecc -m msg.dat $tpm_suffix";
+
+    # --- Persistent handle test ---
+    record_info('PERSIST', 'Persistent signing key reuse');
+    assert_script_run "tpm2_evictcontrol -C o -c rsa.ctx 0x81010003 $tpm_suffix";
+    validate_script_output "tpm2_readpublic -c 0x81010003 $tpm_suffix", sub { /type:.*rsa/s };
+    assert_script_run "tpm2_sign -c 0x81010003 -g sha256 -o sig.persist msg.dat $tpm_suffix";
+    assert_script_run "tpm2_verifysignature -c 0x81010003 -g sha256 -s sig.persist -m msg.dat $tpm_suffix";
+
+    # --- PCR-bound key test ---
+    record_info('PCR', 'PCR-bound key signing');
+    assert_script_run "tpm2_pcrread sha256:7 $tpm_suffix -o pcr.bin";
+    assert_script_run "tpm2_createpolicy --policy-pcr -l sha256:7 -f pcr.bin -L policy.digest $tpm_suffix";
+    assert_script_run "tpm2_create -G rsa -u pcr.pub -r pcr.priv -C primary.ctx -L policy.digest $tpm_suffix";
+    assert_script_run "tpm2_load -C primary.ctx -u pcr.pub -r pcr.priv -c pcr.ctx $tpm_suffix";
+    assert_script_run "tpm2_startauthsession --policy-session -S session.ctx $tpm_suffix";
+    assert_script_run "tpm2_policypcr -S session.ctx -l sha256:7 -f pcr.bin $tpm_suffix";
+    assert_script_run "tpm2_sign -c pcr.ctx -g sha256 -o sig.pcr -p session:session.ctx msg.dat $tpm_suffix";
+    assert_script_run "tpm2_flushcontext session.ctx $tpm_suffix";
+    assert_script_run "tpm2_verifysignature -c pcr.ctx -g sha256 -s sig.pcr -m msg.dat $tpm_suffix";
+
+    # --- Cleanup ---
+    record_info('CLEANUP', 'Clearing persistent handles and context');
+    script_run "tpm2_evictcontrol -C o -c 0x81010003 $tpm_suffix";
+    script_run "cd / && rm -rf $wd";
 }
 
 1;
