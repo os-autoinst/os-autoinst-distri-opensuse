@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Test all encrypt ciphers of ecryptfs
@@ -15,6 +15,9 @@ use Utils::Architectures;
 sub ecryptfs_mount {
     my ($cipher) = @_;
     my $passwd = 'testpasswd';
+
+    # quick check: if FIPS is enabled the return value of the command will be 0
+    my $fips_status = script_run('grep 1 /proc/sys/crypto/fips_enabled');
 
     assert_script_run('mkdir .private private');
     my $script = "mount -t ecryptfs -o key=passphrase:passphrase_passwd=$passwd ./.private ./private | tee /dev/$serialdev";
@@ -31,9 +34,9 @@ sub ecryptfs_mount {
     enter_cmd('no');
 
     # The mount failed should be expected in fips kernel mode
-    if (get_var('FIPS_ENABLED') && !get_var('FIPS_ENV_MODE')) {
+    if ((get_var('FIPS_ENABLED') && !get_var('FIPS_ENV_MODE')) || ($fips_status == 0)) {
         wait_serial('Operation not permitted', 10) || die 'eCryptfs test failed in FIPS mode';
-        record_info('FIPS kernel mode', "the mount failed is expected in fips kernel mode");
+        record_info('FIPS kernel mode', "the mount failed is expected in FIPS kernel mode");
         assert_script_run 'rm -r .private private';
         return;
     }
