@@ -9,12 +9,12 @@
 
 use base "consoletest";
 use testapi;
-use version_utils qw(is_jeos);
+use version_utils qw(is_community_jeos is_jeos);
 use serial_terminal qw(select_serial_terminal);
 
 sub run {
     select_serial_terminal();
-    unless (check_var('FLAVOR', 'JeOS-for-AArch64') || check_var('FLAVOR', 'JeOS-for-RPi')) {
+    unless (is_community_jeos()) {
         assert_script_run 'grep -E -x "^solver.onlyRequires ?= ?true" /etc/zypp/zypp.conf';
         assert_script_run 'grep -E -x "^rpm.install.excludedocs ?= ?yes" /etc/zypp/zypp.conf';
     }
