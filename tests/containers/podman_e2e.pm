@@ -50,9 +50,6 @@ sub setup {
     # This test fails with:
     # Command exited 125 as expected, but did not emit 'failed to connect: dial tcp: lookup '
     run_command "rm -f test/e2e/image_scp_test.go";
-
-    assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
-    assert_script_run "chmod +x /usr/local/bin/patch_junit";
 }
 
 sub run {

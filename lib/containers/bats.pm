@@ -219,8 +219,6 @@ sub setup_pkgs {
     }
 
     install_bats if get_var("BATS_PACKAGE");
-    assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
-    assert_script_run "chmod +x /usr/local/bin/patch_junit";
 
     enable_modules if is_sle("<16");
 
@@ -238,6 +236,9 @@ sub setup_pkgs {
     return if $rebooted;
 
     install_git;
+
+    assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
+    assert_script_run "chmod +x /usr/local/bin/patch_junit";
 
     # Add IP to /etc/hosts
     my $iface = script_output "ip -4 --json route list match default | jq -Mr '.[0].dev'";
