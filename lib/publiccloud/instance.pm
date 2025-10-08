@@ -921,7 +921,7 @@ sub do_systemd_analyze_time {
 
 sub upload_supportconfig_log {
     my ($self, %args) = @_;
-    my $timeout = 600 + (is_sle('=12-SP5') ? 800 : 0);
+    my $timeout = 600 + (is_sle('=12-SP5') ? 1400 : 0);
     my $start = time();
     my $logs = "/var/tmp/scc_supportconfig";
     # Eventual comma-separated tokens list to exclude
@@ -930,7 +930,7 @@ sub upload_supportconfig_log {
     $exclude = undef if ($exclude eq '-');
     $exclude = "-x " . $exclude if ($exclude);
     # poo#187440 Workaround applied inject newline in ssh supportconfig to prevent hang cases, while bsc#1250310 open
-    my $cmd = "echo | timeout -s INT $timeout sudo supportconfig -R " . dirname($logs) . " -B supportconfig $exclude";
+    my $cmd = "echo | timeout --preserve-status -k 60 $timeout sudo supportconfig -R " . dirname($logs) . " -B supportconfig $exclude";
     my $err = $self->ssh_script_run($cmd, timeout => ($timeout + 180));
     if (isok($err)) {
         $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txz", timeout => 0);
@@ -938,7 +938,7 @@ sub upload_supportconfig_log {
         record_info('supportconfig done', "OK: duration " . (time() - $start) . "s. Log $logs.txz" . (($exclude) ? " - Excluded: $exclude" : ''));
         return 1;
     } else {
-        record_info('FAILED supportconfig', 'Failed after: ' . (time() - $start) . "sec.\n $err", result => 'fail');
+        record_info('FAILED supportconfig', 'Failed after: ' . (time() - $start) . "sec.", result => 'fail');
         return;
     }
 }

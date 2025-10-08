@@ -217,7 +217,7 @@ sub _upload_logs {
             $self->{run_args}->{my_instance}->upload_log($instance_log, failok => 1, log_name => $instance_log . ".txt");
         }
         # collect supportconfig logs, only when test failed:
-        $self->{run_args}->{my_instance}->upload_supportconfig_log() if ($self->{result} eq 'fail');
+        $self->{run_args}->{my_instance}->upload_supportconfig_log() if ($self->{result} && $self->{result} eq 'fail');
     } else {
         diag($start_text . 'instance unavailable or run_args undefined (ref.: $self->{run_args}->{my_instance}). Possible that the test died before the instance was created.');
         return;
