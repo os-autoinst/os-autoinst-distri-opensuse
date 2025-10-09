@@ -1,0 +1,460 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap/aws_cli.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#aws_import_key_pair">aws_import_key_pair</a></li>
+      <li><a href="#aws_create_vpc">aws_create_vpc</a></li>
+      <li><a href="#aws_get_vpc_id">aws_get_vpc_id</a></li>
+      <li><a href="#aws_create_security_group">aws_create_security_group</a></li>
+      <li><a href="#aws_get_security_group_id">aws_get_security_group_id</a></li>
+      <li><a href="#aws_create_subnet">aws_create_subnet</a></li>
+      <li><a href="#aws_get_subnet_id">aws_get_subnet_id</a></li>
+      <li><a href="#aws_create_internet_gateway">aws_create_internet_gateway</a></li>
+      <li><a href="#aws_get_internet_gateway_id">aws_get_internet_gateway_id</a></li>
+      <li><a href="#aws_attach_internet_gateway">aws_attach_internet_gateway</a></li>
+      <li><a href="#aws_create_route_table">aws_create_route_table</a></li>
+      <li><a href="#aws_associate_route_table">aws_associate_route_table</a></li>
+      <li><a href="#aws_create_route">aws_create_route</a></li>
+      <li><a href="#aws_authorize_security_group_ingress">aws_authorize_security_group_ingress</a></li>
+      <li><a href="#aws_create_vm">aws_create_vm</a></li>
+      <li><a href="#aws_get_vm_id">aws_get_vm_id</a></li>
+      <li><a href="#aws_wait_instance_status_ok">aws_wait_instance_status_ok</a></li>
+      <li><a href="#aws_get_ip_address">aws_get_ip_address</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap/aws_cli.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library to compose and run AWS cli commands.</p>
+
+<h2 id="aws_import_key_pair">aws_import_key_pair</h2>
+
+<pre><code>aws_import_key_pair($ssh_key, $pub_key_path);</code></pre>
+
+<p>Import an SSH public key pair into AWS EC2 for instance authentication</p>
+
+<dl>
+
+<dt id="ssh_key---name-to-assign-to-the-imported-key-pair-in-AWS"><b>$ssh_key</b> - name to assign to the imported key pair in AWS</dt>
+<dd>
+
+</dd>
+<dt id="pub_key_path---filesystem-path-to-the-public-key-file"><b>$pub_key_path</b> - filesystem path to the public key file</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_create_vpc">aws_create_vpc</h2>
+
+<pre><code>my $vpc_id = aws_create_vpc($region, $cidr, $job_id);</code></pre>
+
+<p>Create a new AWS VPC with a specified CIDR block and tag it with the OpenQA job ID</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-to-create-the-VPC"><b>$region</b> - AWS region where to create the VPC</dt>
+<dd>
+
+</dd>
+<dt id="cidr---CIDR-block-for-the-VPC-e.g.-10.0.0.0-16"><b>$cidr</b> - CIDR block for the VPC (e.g., &#39;10.0.0.0/16&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-for-tagging"><b>$job_id</b> - OpenQA job identifier for tagging</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the VPC ID</p>
+
+<h2 id="aws_get_vpc_id">aws_get_vpc_id</h2>
+
+<pre><code>my $vpc_id = aws_get_vpc_id($region, $job_id);</code></pre>
+
+<p>Retrieve the VPC ID associated with a specific OpenQA job</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-the-VPC-is-located"><b>$region</b> - AWS region where the VPC is located</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-VPC"><b>$job_id</b> - OpenQA job identifier used to tag the VPC</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the VPC ID</p>
+
+<h2 id="aws_create_security_group">aws_create_security_group</h2>
+
+<pre><code>my $sg_id = aws_create_security_group($region, $group_name, $description, $vpc_id);</code></pre>
+
+<p>Create an AWS security group within a VPC and tag it with the OpenQA job ID</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-to-create-the-security-group"><b>$region</b> - AWS region where to create the security group</dt>
+<dd>
+
+</dd>
+<dt id="group_name---name-for-the-security-group"><b>$group_name</b> - name for the security group</dt>
+<dd>
+
+</dd>
+<dt id="description---description-of-the-security-group-purpose"><b>$description</b> - description of the security group purpose</dt>
+<dd>
+
+</dd>
+<dt id="vpc_id---ID-of-the-VPC-where-the-security-group-will-be-created"><b>$vpc_id</b> - ID of the VPC where the security group will be created</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-VPC1"><b>$job_id</b> - OpenQA job identifier used to tag the VPC</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the security group ID</p>
+
+<h2 id="aws_get_security_group_id">aws_get_security_group_id</h2>
+
+<pre><code>my $sg_id = aws_get_security_group_id($region, $job_id);</code></pre>
+
+<p>Retrieve the security group ID associated with a specific OpenQA job</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-the-security-group-is-located"><b>$region</b> - AWS region where the security group is located</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-security-group"><b>$job_id</b> - OpenQA job identifier used to tag the security group</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the security group ID</p>
+
+<h2 id="aws_create_subnet">aws_create_subnet</h2>
+
+<pre><code>my $subnet_id = aws_create_subnet($region, $cidr, $vpc_id);</code></pre>
+
+<p>Create a subnet within a VPC with a specified CIDR block and tag it with the OpenQA job ID</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-to-create-the-subnet"><b>$region</b> - AWS region where to create the subnet</dt>
+<dd>
+
+</dd>
+<dt id="cidr---CIDR-block-for-the-subnet-e.g.-10.0.1.0-24"><b>$cidr</b> - CIDR block for the subnet (e.g., &#39;10.0.1.0/24&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="vpc_id---ID-of-the-VPC-where-the-subnet-will-be-created"><b>$vpc_id</b> - ID of the VPC where the subnet will be created</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-security-group1"><b>$job_id</b> - OpenQA job identifier used to tag the security group</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the subnet ID</p>
+
+<h2 id="aws_get_subnet_id">aws_get_subnet_id</h2>
+
+<pre><code>my $subnet_id = aws_get_subnet_id($region, $job_id);</code></pre>
+
+<p>Retrieve the subnet ID associated with a specific OpenQA job</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-the-subnet-is-located"><b>$region</b> - AWS region where the subnet is located</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-subnet"><b>$job_id</b> - OpenQA job identifier used to tag the subnet</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the subnet ID</p>
+
+<h2 id="aws_create_internet_gateway">aws_create_internet_gateway</h2>
+
+<pre><code>my $igw_id = aws_create_internet_gateway($region);</code></pre>
+
+<p>Create an internet gateway and tag it with the OpenQA job ID</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-to-create-the-internet-gateway"><b>$region</b> - AWS region where to create the internet gateway</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-security-group2"><b>$job_id</b> - OpenQA job identifier used to tag the security group</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the internet gateway ID</p>
+
+<h2 id="aws_get_internet_gateway_id">aws_get_internet_gateway_id</h2>
+
+<pre><code>my $igw_id = aws_get_internet_gateway_id($region, $job_id);</code></pre>
+
+<p>Retrieve the internet gateway ID associated with a specific OpenQA job</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-the-internet-gateway-is-located"><b>$region</b> - AWS region where the internet gateway is located</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-internet-gateway"><b>$job_id</b> - OpenQA job identifier used to tag the internet gateway</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the internet gateway ID</p>
+
+<h2 id="aws_attach_internet_gateway">aws_attach_internet_gateway</h2>
+
+<pre><code>aws_attach_internet_gateway($vpc_id, $igw_id, $region);</code></pre>
+
+<p>Attach an internet gateway to a VPC</p>
+
+<dl>
+
+<dt id="vpc_id---ID-of-the-VPC-to-attach-the-gateway-to"><b>$vpc_id</b> - ID of the VPC to attach the gateway to</dt>
+<dd>
+
+</dd>
+<dt id="igw_id---ID-of-the-internet-gateway-to-attach"><b>$igw_id</b> - ID of the internet gateway to attach</dt>
+<dd>
+
+</dd>
+<dt id="region---AWS-region-where-the-resources-are-located"><b>$region</b> - AWS region where the resources are located</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_create_route_table">aws_create_route_table</h2>
+
+<pre><code>my $route_table_id = aws_create_route_table($region, $vpc_id);</code></pre>
+
+<p>Create a route table within a VPC</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-to-create-the-route-table"><b>$region</b> - AWS region where to create the route table</dt>
+<dd>
+
+</dd>
+<dt id="vpc_id---ID-of-the-VPC-where-the-route-table-will-be-created"><b>$vpc_id</b> - ID of the VPC where the route table will be created</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the route table ID</p>
+
+<h2 id="aws_associate_route_table">aws_associate_route_table</h2>
+
+<pre><code>aws_associate_route_table($subnet_id, $route_table_id, $region);</code></pre>
+
+<p>Associate a route table with a subnet</p>
+
+<dl>
+
+<dt id="subnet_id---ID-of-the-subnet-to-associate"><b>$subnet_id</b> - ID of the subnet to associate</dt>
+<dd>
+
+</dd>
+<dt id="route_table_id---ID-of-the-route-table-to-associate"><b>$route_table_id</b> - ID of the route table to associate</dt>
+<dd>
+
+</dd>
+<dt id="region---AWS-region-where-the-resources-are-located1"><b>$region</b> - AWS region where the resources are located</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_create_route">aws_create_route</h2>
+
+<pre><code>aws_create_route($route_table_id, $destination_cidr_block, $igw_id, $region);</code></pre>
+
+<p>Create a route in a route table pointing to an internet gateway</p>
+
+<dl>
+
+<dt id="route_table_id---ID-of-the-route-table-where-to-create-the-route"><b>$route_table_id</b> - ID of the route table where to create the route</dt>
+<dd>
+
+</dd>
+<dt id="destination_cidr_block---destination-CIDR-block-for-the-route-e.g.-0.0.0.0-0-for-default-route"><b>$destination_cidr_block</b> - destination CIDR block for the route (e.g., &#39;0.0.0.0/0&#39; for default route)</dt>
+<dd>
+
+</dd>
+<dt id="igw_id---ID-of-the-internet-gateway-as-the-route-target"><b>$igw_id</b> - ID of the internet gateway as the route target</dt>
+<dd>
+
+</dd>
+<dt id="region---AWS-region-where-the-resources-are-located2"><b>$region</b> - AWS region where the resources are located</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_authorize_security_group_ingress">aws_authorize_security_group_ingress</h2>
+
+<pre><code>aws_authorize_security_group_ingress($sg_id, $protocol, $port, $cidr, $region);</code></pre>
+
+<p>Add an ingress rule to a security group allowing traffic from a specific CIDR block</p>
+
+<dl>
+
+<dt id="sg_id---ID-of-the-security-group-to-modify"><b>$sg_id</b> - ID of the security group to modify</dt>
+<dd>
+
+</dd>
+<dt id="protocol---protocol-for-the-rule-e.g.-tcp-udp-icmp"><b>$protocol</b> - protocol for the rule (e.g., &#39;tcp&#39;, &#39;udp&#39;, &#39;icmp&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="port---port-number-or-port-range-for-the-rule"><b>$port</b> - port number or port range for the rule</dt>
+<dd>
+
+</dd>
+<dt id="cidr---CIDR-block-allowed-to-access-e.g.-0.0.0.0-0-for-all"><b>$cidr</b> - CIDR block allowed to access (e.g., &#39;0.0.0.0/0&#39; for all)</dt>
+<dd>
+
+</dd>
+<dt id="region---AWS-region-where-the-security-group-is-located1"><b>$region</b> - AWS region where the security group is located</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_create_vm">aws_create_vm</h2>
+
+<pre><code>my $instance_id = aws_create_vm($instance_type, $image_id, $subnet_id, $sg_id, $ssh_key, $region);</code></pre>
+
+<p>Launch an EC2 instance with specified configuration and tag it with the OpenQA job ID</p>
+
+<dl>
+
+<dt id="instance_type---EC2-instance-type-e.g.-t2.micro-m5.large"><b>$instance_type</b> - EC2 instance type (e.g., &#39;t2.micro&#39;, &#39;m5.large&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="image_id---AMI-ID-to-use-for-the-instance"><b>$image_id</b> - AMI ID to use for the instance</dt>
+<dd>
+
+</dd>
+<dt id="subnet_id---ID-of-the-subnet-where-to-launch-the-instance"><b>$subnet_id</b> - ID of the subnet where to launch the instance</dt>
+<dd>
+
+</dd>
+<dt id="sg_id---ID-of-the-security-group-to-assign-to-the-instance"><b>$sg_id</b> - ID of the security group to assign to the instance</dt>
+<dd>
+
+</dd>
+<dt id="ssh_key---name-of-the-SSH-key-pair-for-instance-access"><b>$ssh_key</b> - name of the SSH key pair for instance access</dt>
+<dd>
+
+</dd>
+<dt id="region---AWS-region-where-to-launch-the-instance"><b>$region</b> - AWS region where to launch the instance</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-internet-gateway1"><b>$job_id</b> - OpenQA job identifier used to tag the internet gateway</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the instance ID</p>
+
+<h2 id="aws_get_vm_id">aws_get_vm_id</h2>
+
+<pre><code>my $instance_id = aws_get_vm_id($region, $job_id);</code></pre>
+
+<p>Retrieve the EC2 instance ID associated with a specific OpenQA job</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-the-instance-is-located"><b>$region</b> - AWS region where the instance is located</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-instance"><b>$job_id</b> - OpenQA job identifier used to tag the instance</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the instance ID</p>
+
+<h2 id="aws_wait_instance_status_ok">aws_wait_instance_status_ok</h2>
+
+<pre><code>aws_wait_instance_status_ok($instance_id);</code></pre>
+
+<p>Wait for an EC2 instance to reach &#39;running&#39; state with a timeout of 600 seconds</p>
+
+<dl>
+
+<dt id="instance_id---ID-of-the-instance-to-monitor"><b>$instance_id</b> - ID of the instance to monitor</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_get_ip_address">aws_get_ip_address</h2>
+
+<pre><code>my $ip = aws_get_ip_address($instance_id);</code></pre>
+
+<p>Retrieve the public IP address of an EC2 instance</p>
+
+<dl>
+
+<dt id="instance_id---ID-of-the-instance"><b>$instance_id</b> - ID of the instance</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>Returns the public IP address</p>
+
+
+</body>
+
+</html>
+
+
