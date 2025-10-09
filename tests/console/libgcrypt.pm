@@ -24,7 +24,7 @@ sub run {
     if (script_run("rpm -q libgcrypt-devel") == 1) {
         zypper_call "-v in gcc libgcrypt-devel", timeout => 1000;
     }
-
+    ensure_serialdev_permissions;
     select_console 'user-console';
     assert_script_run("test -f ~/data/libgcrypt-selftest.c || curl --create-dirs -o ~/data/libgcrypt-selftest.c " . data_url('libgcrypt-selftest.c'), 90);
     assert_script_run("gcc ~/data/libgcrypt-selftest.c -lgcrypt -o libgcrypt-selftest");
