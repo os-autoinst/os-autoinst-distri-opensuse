@@ -28,6 +28,9 @@ sub run {
     my @lines;
     my $out;
 
+    my $had_issue = 0;
+    my $unknown_issue = 0;
+
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
     # check if liburing2 is installed and eventually install it
     $pkgs .= " liburing2" if script_run('rpm -q liburing2');
@@ -91,16 +94,21 @@ sub run {
         push @timeouts, $line =~ /<([\w\-\.]+\.t)>/g;
     }
     if (@timeouts) {
+        $had_issue = 1;
         record_info("Timed-out Tests", join(", ", @timeouts));
+
+        my %env_timeout = (%{$environment}, retval => 'undefined');
+
         for my $testname (@timeouts) {
             unless ($whitelist->override_known_failures(
                     $self,
-                    $environment,
+                    \%env_timeout,
                     'liburing',
                     $testname
             )) {
                 record_info("Unexpected Timeout", "$testname timed out", result => 'fail');
                 $self->{result} = 'fail';
+                $unknown_issue = 1;
             }
         }
     }
@@ -111,18 +119,28 @@ sub run {
         push @failures, $line =~ /<([\w\-\.]+\.t)>/g;
     }
     if (@failures) {
+        $had_issue = 1;
         record_info("Failed Tests", join(", ", @failures));
+
+        my %env_fail = (%{$environment}, retval => 1);
+
         for my $failure (@failures) {
             unless ($whitelist->override_known_failures(
                     $self,
-                    $environment,
+                    \%env_fail,
                     'liburing',
                     $failure
             )) {
                 record_info("Unexpected Failure", "$failure failed", result => 'fail');
                 $self->{result} = 'fail';
+                $unknown_issue = 1;
             }
         }
+    }
+
+    if ($had_issue && !$unknown_issue) {
+        $self->result('softfail');
+        record_info("Known issues only", "All timeouts/failures matched known issues", result => 'softfail');
     }
 }
 
