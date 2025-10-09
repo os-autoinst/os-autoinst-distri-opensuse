@@ -378,6 +378,7 @@ PUBLIC_CLOUD_MAX_INSTANCES | integer | 1 | Allows the test to call "create_insta
 PUBLIC_CLOUD_NAMESPACE | string | "" | The Public Cloud Namespace name that will be used to compose the full credentials URL together with `PUBLIC_CLOUD_CREDENTIALS_URL`.
 PUBLIC_CLOUD_NEW_INSTANCE_TYPE | string | "t3a.large" | Specify the new instance type to check bsc#1205002 in EC2
 PUBLIC_CLOUD_NO_TEARDOWN | boolean | false | Do not tear the instance down.
+PUBLIC_CLOUD_EXTRATESTS | boolean | false | Schedule setting - Run extra tests for PublicCloud
 PUBLIC_CLOUD_FUNCTIONAL | boolean | false | Schedule the functional test suite.
 PUBLIC_CLOUD_ENABLE_KDUMP | boolean | false | Enable kdump
 PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled. This variable should be enabled only sle15SP4 and above.
@@ -404,6 +405,7 @@ PUBLIC_CLOUD_SKIP_MU | boolean | false | Run tests without downloading/applying 
 PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
 PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
 PUBLIC_CLOUD_SUPPORTCONFIG_EXCLUDE | string | "" | List of comma-separated features to exclude from 'supportconfig' execution
+PUBLIC_CLOUD_SMOKETEST | boolean | false | Scheduling setting - Run instance smoke tests
 PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root path to terraform directory
 PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file (from the `data/` directory) instead the CSP default
 PUBLIC_CLOUD_TERRAFORM_RUNNER | string | "tofu" | Override terraform runner container. Can be either "tofu" or "terraform".
