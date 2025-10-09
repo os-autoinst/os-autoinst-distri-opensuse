@@ -16,17 +16,19 @@ use base "opensusebasetest";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_opensuse);
+use serial_terminal qw(select_serial_terminal);
 use registration;
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
     assert_script_run "rpm -q libgcrypt20";
     if (script_run("rpm -q libgcrypt-devel") == 1) {
         zypper_call "-v in gcc libgcrypt-devel", timeout => 1000;
     }
-
-    select_console 'user-console';
-    assert_script_run("test -f ~/data/libgcrypt-selftest.c || curl --create-dirs -o ~/data/libgcrypt-selftest.c " . data_url('libgcrypt-selftest.c'), 90);
+    ensure_serialdev_permissions;
+    # 0 -> 'False' means login as plain user
+    select_serial_terminal(0);
+    assert_script_run("test -f ~/data/libgcrypt-selftest.c || curl --remote-name --create-dirs --output-dir ~/data " . data_url('libgcrypt-selftest.c'), 90);
     assert_script_run("gcc ~/data/libgcrypt-selftest.c -lgcrypt -o libgcrypt-selftest");
     validate_script_output("./libgcrypt-selftest", sub { /libgcrypt selftest successful/ });
 

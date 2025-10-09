@@ -31,7 +31,10 @@ sub setup {
     select_serial_terminal;
 
     # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1248988 - catatonit missing in /usr/libexec/podman/
-    run_command "cp -f /usr/bin/catatonit /usr/libexec/podman/catatonit" if (script_run("test -f /usr/libexec/podman/catatonit") != 0);
+    if (is_sle) {
+        my $libdir = is_sle("<16") ? "lib" : "libexec";
+        run_command "ln -f /usr/bin/catatonit /usr/$libdir/podman/catatonit";
+    }
     # rootless user needed for these tests
     run_command "useradd -m containers";
     run_command "usermod --add-subuids 100000-165535 containers";
@@ -50,9 +53,6 @@ sub setup {
     # This test fails with:
     # Command exited 125 as expected, but did not emit 'failed to connect: dial tcp: lookup '
     run_command "rm -f test/e2e/image_scp_test.go";
-
-    assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
-    assert_script_run "chmod +x /usr/local/bin/patch_junit";
 }
 
 sub run {

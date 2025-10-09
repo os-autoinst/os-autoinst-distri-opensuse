@@ -182,11 +182,6 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    if ($self->{runtime} eq 'podman') {
-        select_console 'log-console';
-        script_run "podman version | tee /dev/$serialdev";
-        script_run "podman info --debug | tee /dev/$serialdev";
-    }
     $self->SUPER::post_fail_hook;
 }
 
