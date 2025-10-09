@@ -86,11 +86,15 @@ sub prepare_virtual_env {
             zypper_call("in saltbundlepy-base venv-salt-minion");
             assert_script_run("mkdir -p ./bci/bin");
             assert_script_run("ln -s /usr/lib/venv-salt-minion/bin/activate ./$virtualenv");
-        } elsif ($version !~ /15\.[1-3]/) {
+        } elsif ($version =~ /15\.[4-7]/) {
             $python = 'python3.11';
             $pip = 'pip3.11';
-            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout) unless ($host_distri =~ /opensuse/);
+            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout)
+              unless ($host_distri =~ /opensuse/);
             push @packages, qw(git-core python311);
+        } elsif (is_sle('16+')) {
+            # Python 3.13 is the default vers. for SLE 16.0
+            push @packages, qw(git-core python313);
         }
         zypper_call("--quiet in " . join(' ', @packages), timeout => $install_timeout);
     } else {
@@ -130,7 +134,8 @@ sub run {
     prepare_virtual_env($version, $sp, $host_distri) if get_var('BCI_PREPARE');
 
     # Ensure LTSS subscription is active when testing LTSS containers.
-    validate_script_output("SUSEConnect -l", qr/.*LTSS.*Activated/, fail_message => "Host requires LTSS subscription for LTSS container") if (get_var('CONTAINER_IMAGE_TO_TEST') =~ /ltss/i);
+    validate_script_output("SUSEConnect -l", qr/.*LTSS.*Activated/, fail_message => "Host requires LTSS subscription for LTSS container")
+      if (get_var('CONTAINER_IMAGE_TO_TEST') =~ /ltss/i || is_sle('<16'));
 
     update_test_repos if (get_var('BCI_TESTS_REPO'));
 
