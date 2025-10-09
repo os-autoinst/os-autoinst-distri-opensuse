@@ -102,7 +102,7 @@ sub run {
                     'liburing',
                     $testname
             )) {
-                $self->result('softfail');
+                $self->result('softfail') if ($self->result() ne 'fail');
             } else {
                 record_info("Unexpected Timeout", "$testname timed out", result => 'fail');
                 $self->result('fail');
@@ -127,7 +127,7 @@ sub run {
                     'liburing',
                     $failure
             )) {
-                $self->result('softfail');
+                $self->result('softfail') if ($self->result() ne 'fail');
             } else {
                 record_info("Unexpected Failure", "$failure failed", result => 'fail');
                 $self->result('fail');
