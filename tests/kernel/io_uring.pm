@@ -105,7 +105,7 @@ sub run {
                 $self->result('softfail');
             } else {
                 record_info("Unexpected Timeout", "$testname timed out", result => 'fail');
-                $self->{result} = 'fail';
+                $self->result('fail');
             }
         }
     }
@@ -130,7 +130,7 @@ sub run {
                 $self->result('softfail');
             } else {
                 record_info("Unexpected Failure", "$failure failed", result => 'fail');
-                $self->{result} = 'fail';
+                $self->result('fail');
             }
         }
     }
