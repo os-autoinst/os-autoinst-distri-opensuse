@@ -18,7 +18,7 @@ sub run {
     select_console 'install-shell';
 
     # https://progress.opensuse.org/issues/185122
-    zypper_call("ar -f -G https://openqa.suse.de/assets/repo/SLES-" . get_var('VERSION') . "-" . get_var('ARCH') . "-Build" . get_var('BUILD') . "?ssl_verify=no install");
+    zypper_call("ar -f -G https://download.suse.de/ibs/SUSE:/SLFO:/Products:/SLES:/" . get_var('VERSION') . ":/PUBLISH/product/repo/SLES-" . get_var('VERSION') . "-" . get_var('ARCH') . "/?ssl_verify=no install");
     zypper_call("in -y mkdud");
     assert_script_run("mkdir -p tmp/dud/root");
     assert_script_run("curl -o tmp/dud/root/autoinst.json $profile_url");
