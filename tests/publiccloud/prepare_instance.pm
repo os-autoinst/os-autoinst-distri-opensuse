@@ -45,6 +45,7 @@ sub run {
 
     $instance->network_speed_test();
     $instance->check_cloudinit() if (is_cloudinit_supported);
+    $instance->enable_kdump() if (get_var('PUBLIC_CLOUD_ENABLE_KDUMP'));
 
     # ssh-tunnel settings
     prepare_ssh_tunnel($instance) if (is_tunneled());
