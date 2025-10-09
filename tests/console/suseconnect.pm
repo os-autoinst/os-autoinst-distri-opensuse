@@ -26,7 +26,7 @@ sub run {
     select_serial_terminal;
 
     # Make sure to start with de-registered system. In case the system is not registered this command will fail
-    assert_script_run "SUSEConnect -d || SUSEConnect --cleanup";
+    assert_script_run "SUSEConnect -d || SUSEConnect --cleanup", 180;
     assert_script_run "SUSEConnect --status-text";
 
     zypper_call('lr', exitcode => [0, 6]);
