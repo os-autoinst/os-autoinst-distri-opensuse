@@ -351,6 +351,7 @@ sub run {
 
     poweron_host;
 
+    reset_consoles;
     select_console 'sol', await_console => 0;
 
     if (is_disk_image) {
