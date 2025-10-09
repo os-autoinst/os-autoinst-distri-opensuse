@@ -542,8 +542,7 @@ sub upload_boot_diagnostics {
     my $asset_path = "/tmp/console-$time.txt";
     script_run("timeout 110 az vm boot-diagnostics get-boot-log $names | jq -Mr '.' > $asset_path", timeout => 120);
     if (script_output("du $asset_path | cut -f1") < 8) {
-        record_soft_failure("poo#155116 - The console log is empty.");
-        record_info($asset_path, script_output("cat $asset_path"));
+        record_info("EMPTY", "The console log is empty. `cat $asset_path`:\n" . script_output("cat $asset_path"));
     } else {
         upload_logs($asset_path, failok => 1);
     }
