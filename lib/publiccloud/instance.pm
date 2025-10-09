@@ -946,17 +946,21 @@ sub upload_supportconfig_log {
     $exclude = undef if ($exclude eq '-');
     $exclude = "-x " . $exclude if ($exclude);
     # poo#187440 Workaround applied inject newline in ssh supportconfig to prevent hang cases, while bsc#1250310 open
-    my $cmd = "echo | timeout --preserve-status -k 60 $timeout sudo supportconfig -R " . dirname($logs) . " -B supportconfig $exclude";
-    my $err = $self->ssh_script_run($cmd, timeout => ($timeout + 180));
-    if (isok($err)) {
+    my $cmd = "echo | sudo timeout --foreground --kill-after 60s $timeout supportconfig -R " . dirname($logs) . " -B supportconfig $exclude > $logs.txt 2>&1";
+    local $@;
+    my $res = eval { $self->ssh_script_run($cmd, timeout => ($timeout + 120)) };
+    if (isok($res) && !$@) {
         $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txz", timeout => 0);
         $self->upload_log("$logs.txz", failok => 1, timeout => 180);
         record_info('supportconfig done', "OK: duration " . (time() - $start) . "s. Log $logs.txz" . (($exclude) ? " - Excluded: $exclude" : ''));
-        return 1;
     } else {
-        record_info('FAILED supportconfig', 'Failed after: ' . (time() - $start) . "sec.", result => 'fail');
-        return;
+        # screen output features list only
+        $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txt", timeout => 0);
+        $self->upload_log("$logs.txt", failok => 1, timeout => 90);
+        record_info('FAILED supportconfig', 'Failed after: ' . (time() - $start) . 'sec.', result => 'fail');
     }
+    # Never fail
+    return 1;
 }
 
 sub wait_for_state {
