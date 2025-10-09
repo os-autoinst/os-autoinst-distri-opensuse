@@ -639,8 +639,12 @@ sub load_jeos_tests {
 
     load_boot_tests();
     if (check_var('FIRST_BOOT_CONFIG', 'combustion')) {
-        loadtest 'microos/verify_setup';
-        loadtest 'microos/image_checks';
+        if (get_var('LTP_COMMAND_FILE', '')) {
+            loadtest "installation/first_boot";
+        } else {
+            loadtest 'microos/verify_setup';
+            loadtest 'microos/image_checks';
+        }
     } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
         loadtest "installation/first_boot";
         loadtest 'jeos/verify_cloudinit';
@@ -652,20 +656,19 @@ sub load_jeos_tests {
 
     }
 
-    loadtest "jeos/record_machine_id";
     loadtest "console/force_scheduled_tasks";
     # this test case also disables grub timeout
     loadtest "jeos/host_config" unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
-    unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE')) {
+    unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE') || get_var('CONTAINER_RUNTIMES')) {
+        loadtest "jeos/record_machine_id";
         # jeos/diskusage as of now works only with BTRFS
         loadtest "jeos/diskusage" if get_var('FILESYSTEM', 'btrfs') =~ /btrfs/;
         loadtest "jeos/build_key";
         loadtest "console/prjconf_excluded_rpms";
-    }
-    unless (get_var('CONTAINER_RUNTIMES')) {
         loadtest "console/journal_check";
         loadtest "microos/libzypp_config";
     }
+
     if (is_sle) {
         loadtest "console/suseconnect_scc";
         loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
