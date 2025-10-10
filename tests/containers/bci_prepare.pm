@@ -89,12 +89,14 @@ sub prepare_virtual_env {
         } elsif ($version =~ /15\.[4-7]/) {
             $python = 'python3.11';
             $pip = 'pip3.11';
-            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout)
-              unless ($host_distri =~ /opensuse/);
+            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             push @packages, qw(git-core python311);
-        } elsif (is_sle('16+')) {
+        } elsif ($version =~ /16/) {
             # Python 3.13 is the default vers. for SLE 16.0
             push @packages, qw(git-core python313);
+        } elsif ($version =~ /tumbleweed/) {
+            # In TW we would like to test the latest version
+            push @packages, qw(git-core python3);
         }
         zypper_call("--quiet in " . join(' ', @packages), timeout => $install_timeout);
     } else {
