@@ -65,7 +65,7 @@ EOF
     record_info("sysconfig", script_output("cat /etc/sysconfig/docker"));
     if (is_sle("<16")) {
         # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1248755
-        run_command "export DOCKER_HOST=tcp://127.0.0.1:2376 DOCKER_TLS_VERIFY=1";
+        run_command "export DOCKER_HOST=tcp://localhost:2375 DOCKER_TLS_VERIFY=1";
         run_command "echo 0 > /etc/docker/suse-secrets-enable";
     }
     systemctl "enable docker";
