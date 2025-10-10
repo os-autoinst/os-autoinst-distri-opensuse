@@ -36,6 +36,8 @@ sub run {
     send_key 'spc', wait_screen_change => 1;
     send_key_until_needlematch 'inst-bootloader-systemd-boot-selected', 'down' if is_bootloader_sdboot;
     send_key_until_needlematch 'inst-bootloader-grub2-bls-selected', 'down' if is_bootloader_grub2_bls;
+    send_key_until_needlematch 'inst-bootloader-grub2-efi-selected', 'up' if is_bootloader_grub2 && check_var('UEFI', 1);
+    send_key_until_needlematch 'inst-bootloader-grub2-selected', 'up' if is_bootloader_grub2 && check_var('UEFI', 0);
     send_key 'ret', wait_screen_change => 1;    # Select the option
 
     unless (get_var('KEEP_GRUB_TIMEOUT')) {
@@ -47,7 +49,14 @@ sub run {
         send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right', 20, 2;
         assert_screen 'installation-bootloader-options';
         # Uncheck the "automatically boot" checkbox
-        send_key 'alt-a', wait_screen_change => 1;
+        if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
+            send_key 'alt-a', wait_screen_change => 1;
+        } else {
+            send_key 'alt-t';
+            wait_still_screen(1);
+            type_string "-1";
+            send_key 'ret' if check_var('VIDEOMODE', 'text');
+        }
     }
 
     save_screenshot;
