@@ -338,6 +338,11 @@ sub run {
         my $version = get_var('VERSION');
         assert_script_run("grub2-set-default 'SLES ${version}, with Xen hypervisor'");
         my $serial_console = get_serial_console;
+        # If the default grub configuration does not include a XEN replace option, add an empty placeholder
+        my $grub_cfg = script_output('cat /etc/default/grub');
+        unless ($grub_cfg =~ /GRUB_CMDLINE_LINUX_XEN_REPLACE_DEFAULT/) {
+            assert_script_run('echo GRUB_CMDLINE_LINUX_XEN_REPLACE_DEFAULT=\"\" >> /etc/default/grub');
+        }
         add_grub_xen_replace_cmdline_settings("console=${serial_console},115200n", update_grub => 1);
     }
 
