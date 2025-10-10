@@ -23,7 +23,7 @@ PREFIX = re.compile(
 
 def get_xfails(args: List[str]) -> Dict[str, List[str]]:
     """
-    Transform list of known failures into a dict keyed by testsuite
+    Transform list of known failures into a dict keyed by class
     to hold a set of testcases with empty being all tests
     """
     xfails: Dict[str, List[str]] = {}
@@ -73,17 +73,18 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
             # We don't do this before because we need to prepend the prefix above
             # and we don't skip on "not failures" because we want to signal if an
             # expected failure passed.
-            if suitename not in xfails:
+            xfails_key = classname
+            if xfails_key not in xfails:
                 continue
 
             casename = testcase.get("name")  # type: ignore
             # Skip if not an expected failure
-            if xfails[suitename] and casename not in xfails[suitename]:
+            if xfails[xfails_key] and casename not in xfails[xfails_key]:
                 continue
 
             failure = testcase.find("failure")
             if failure is None:
-                if xfails[suitename]:
+                if xfails[xfails_key]:
                     # This test was expected to fail but passed
                     print(prefix + suitename, casename)
                 continue
