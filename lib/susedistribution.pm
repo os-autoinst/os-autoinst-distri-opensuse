@@ -347,13 +347,12 @@ sub ensure_installed {
     wait_still_screen 1;
     send_key("alt-f4");    # close terminal
 
-    if (check_screen 'terminal-close-window', timeout => 30) {
-        wait_screen_change {
-            testapi::assert_and_click('terminal-close-window');
-        };
-    }
+    assert_screen([qw(terminal-close-window generic-desktop)]);
 
-    assert_screen 'generic-desktop';
+    if (match_has_tag('terminal-close-window')) {
+        click_lastmatch;
+        assert_screen 'generic-desktop';
+    }
 }
 
 =head2 script_sudo
