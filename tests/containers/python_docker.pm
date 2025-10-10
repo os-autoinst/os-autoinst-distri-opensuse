@@ -68,8 +68,9 @@ EOF
         run_command "export DOCKER_HOST=tcp://localhost:2375 DOCKER_TLS_VERIFY=1";
         run_command "echo 0 > /etc/docker/suse-secrets-enable";
     }
-    systemctl "enable docker";
-    systemctl "restart docker";
+    run_command "mv -f /etc/docker/daemon.json /etc/docker/daemon.json.bak";
+    run_command "systemctl enable docker";
+    run_command "systemctl restart docker";
     record_info("docker info", script_output("docker info"));
 
     # Setup docker credentials helpers
@@ -111,16 +112,6 @@ sub test ($target) {
 
     # Used by pytest to ignore individual tests
     my @deselect = ();
-    push @deselect, (
-        # This test with websockets is broken
-        "tests/integration/api_container_test.py::AttachContainerTest::test_run_container_reading_socket_ws",
-        # These 3 tests fail because our patches force log-opts max-file & max-size:
-        "tests/integration/api_container_test.py::CreateContainerTest::test_valid_log_driver_and_log_opt",
-        "tests/integration/api_container_test.py::CreateContainerTest::test_valid_no_config_specified",
-        "tests/integration/api_container_test.py::CreateContainerTest::test_valid_no_log_driver_specified",
-        # Flaky test
-        "tests/integration/api_container_test.py::AttachContainerTest::test_attach_no_stream"
-    );
     if (is_sle("<16")) {
         push @deselect, (
             # These tests fail due to https://bugzilla.suse.com/show_bug.cgi?id=1248755
@@ -128,7 +119,7 @@ sub test ($target) {
             "tests/unit/client_test.py::ClientTest::test_pool_size_unix",
             "tests/unit/client_test.py::FromEnvTest::test_default_pool_size_from_env_unix",
             "tests/unit/client_test.py::FromEnvTest::test_pool_size_from_env_unix",
-            "tests/unit/api_test.py::UnixSocketStreamTest::test_early_stream_response"
+            "tests/unit/api_test.py::UnixSocketStreamTest::test_early_stream_response",
         );
     }
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
@@ -141,9 +132,18 @@ sub test ($target) {
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
     my $pytest_args = "-vv --capture=tee-sys -o junit_logging=all --junit-xml $target.xml $ignore $deselect";
 
+    # For these tests we use the concept of expected failures instead of deselecting them which prevents them from running
+    my @xfails = ();
+    push @xfails, (
+        # Flaky test
+        "tests.integration.api_container_test.AttachContainerTest::test_attach_no_stream",
+        # This test with websockets is broken
+        "tests.integration.api_container_test.AttachContainerTest::test_run_container_reading_socket_ws",
+    );
+
     run_command "$env pytest $pytest_args tests/$target &> $target.txt || true", timeout => 3600;
 
-    patch_junit "docker-py", $version, "$target.xml";
+    patch_junit "docker-py", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml");
     upload_logs("$target.txt");
 }
@@ -166,6 +166,7 @@ sub run {
 sub cleanup() {
     script_run "unset DOCKER_HOST";
     script_run q(sed -ri 's/^(DOCKER_OPTS)=.*/\1=""/' /etc/sysconfig/docker);
+    script_run "mv /etc/docker/daemon.json.bak /etc/docker/daemon.json";
 }
 
 sub post_fail_hook {
