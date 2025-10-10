@@ -94,7 +94,7 @@ sub prepare_virtual_env {
         } elsif ($version =~ /16/) {
             # Python 3.13 is the default vers. for SLE 16.0
             push @packages, qw(git-core python313);
-        } elsif ($version =~ /tumbleweed/) {
+        } elsif ($version =~ /Tumbleweed/) {
             # In TW we would like to test the latest version
             push @packages, qw(git-core python3);
         }
