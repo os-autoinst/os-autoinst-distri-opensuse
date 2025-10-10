@@ -718,7 +718,8 @@ sub ensure_default_net_is_active {
 sub add_guest_to_hosts {
     my ($hostname, $address) = @_;
     assert_script_run "sed -i '/ $hostname /d' /etc/hosts";
-    my $ret = assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+    assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+    my $ret = 0;
     record_info("Content of /etc/hosts", script_output("cat /etc/hosts"));
     return $ret;
 }
