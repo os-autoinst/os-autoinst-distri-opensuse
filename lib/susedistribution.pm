@@ -345,14 +345,8 @@ sub ensure_installed {
     quit_packagekit;
     zypper_call "in $pkglist";
     wait_still_screen 1;
+    enter_cmd "exit";    # exit su
     send_key("alt-f4");    # close terminal
-
-    if (check_screen 'terminal-close-window', timeout => 30) {
-        wait_screen_change {
-            testapi::assert_and_click('terminal-close-window');
-        };
-    }
-
     assert_screen 'generic-desktop';
 }
 
