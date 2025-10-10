@@ -308,7 +308,8 @@ sub register_guest_name {
         my $hostname = $_ . '.' . $guest_matrix{$_}{domainname};
         if ($args{usedns}) {
             if (script_run("timeout --kill-after=1 --signal=9 15 $ssh_command root\@$guest_matrix{$_}{ipaddr} ls") == 0) {
-                $temp = assert_script_run("timeout --kill-after=1 --signal=9 15 $ssh_command root\@$guest_matrix{$_}{ipaddr} \"echo -e $hostname > /etc/hostname\;hostnamectl hostname $hostname;sync\"");
+                assert_script_run("timeout --kill-after=1 --signal=9 15 $ssh_command root\@$guest_matrix{$_}{ipaddr} \"echo -e $hostname > /etc/hostname\;hostnamectl hostname $hostname;sync\"");
+                $temp = 0;
             }
             else {
                 enter_cmd("clear", wait_still_screen => 3);
@@ -353,7 +354,8 @@ sub manage_guest_service {
     foreach (keys %guest_matrix) {
         my $temp = 1;
         if (script_run("timeout --kill-after=1 --signal=9 15 $ssh_command root\@$guest_matrix{$_}{ipaddr} ls") == 0) {
-            $temp = assert_script_run("timeout --kill-after=1 --signal=9 30 $ssh_command root\@$guest_matrix{$_}{ipaddr} \"systemctl $args{operation} $args{unit}\"");
+            assert_script_run("timeout --kill-after=1 --signal=9 30 $ssh_command root\@$guest_matrix{$_}{ipaddr} \"systemctl $args{operation} $args{unit}\"");
+            $temp = 0;
         }
         else {
             enter_cmd("clear", wait_still_screen => 3);
