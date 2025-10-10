@@ -16,7 +16,7 @@ use utils qw(
   type_string_very_slow
   zypper_call
 );
-use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse is_hyperv is_plasma6 is_public_cloud is_agama);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_hyperv is_plasma6 is_public_cloud is_agama);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm default_gui_terminal);
 use Utils::Backends;
 
@@ -353,7 +353,7 @@ sub ensure_installed {
         };
     }
 
-    assert_screen 'generic-desktop' if is_opensuse;
+    assert_screen 'generic-desktop';
 }
 
 =head2 script_sudo
