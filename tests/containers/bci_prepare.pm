@@ -67,7 +67,7 @@ sub prepare_virtual_env {
         trup_call('pkg in skopeo tar git jq');
         reboot_on_changes;
     } elsif ($host_distri =~ /opensuse|sles/) {
-        my @packages = ('jq', 'skopeo');
+        my @packages = ('jq', 'skopeo', 'git-core');
         # Avoid PackageKit to conflict about lock with zypper
         script_run("timeout 20 pkcon quit");
         # Wait for any zypper tasks in the background to finish
