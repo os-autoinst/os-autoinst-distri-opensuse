@@ -198,8 +198,8 @@ sub init_desktop_runner {
     $timeout //= 30;
     my $hotkey = desktop_runner_hotkey;
 
-    # Force krunner to run single words as shell command (see also kde#477794)
-    $program .= ' ;' if (is_plasma6 && $program !~ /\s/);
+    # Force krunner to run the input as shell command (see also kde#477794)
+    $program .= ' ;' if is_plasma6;
 
     send_key($hotkey);
 
