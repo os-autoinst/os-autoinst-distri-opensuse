@@ -1,6 +1,0 @@
-name: test_image
-description: >
-  Test installation and boot of Elemental ISO/HDD image.
-  Maintainer: unified-core@suse.com, ldevulder@suse.com
-schedule:
-  - elemental3/test_image

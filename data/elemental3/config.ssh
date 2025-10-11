@@ -1,0 +1,3 @@
+UserKnownHostsFile /dev/null
+CheckHostIP no
+StrictHostKeyChecking no
