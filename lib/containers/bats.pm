@@ -199,7 +199,7 @@ EOF
 sub setup_pkgs {
     my ($self, @pkgs) = @_;
 
-    push @commands, "### RUN AS root";
+    @commands = ("### RUN AS root");
 
     if (get_var("TEST_REPOS", "")) {
         if (script_run("zypper lr | grep -q SUSE_CA")) {

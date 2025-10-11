@@ -11,6 +11,7 @@ use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
+use Utils::Architectures qw(is_x86_64);
 use containers::common qw(install_packages);
 use containers::bats;
 
@@ -44,7 +45,9 @@ sub test ($target) {
         # This test fails on v2.39.2 at least
         EXCLUDE_E2E_TESTS => 'TestWatchMultiServices',
     );
-    my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
+    # Fails on non-x86_64 with: "exec /transform: exec format error"
+    $env{EXCLUDE_E2E_TESTS} .= "|TestConvertAndTransformList" unless is_x86_64;
+    my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
     run_command "$env make $target |& tee $target.txt || true", timeout => 3600;
 
