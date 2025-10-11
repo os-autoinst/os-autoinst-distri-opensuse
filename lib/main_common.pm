@@ -97,6 +97,7 @@ our @EXPORT = qw(
   load_virtualization_tests
   load_x11tests
   load_hypervisor_tests
+  load_sles16_mu_virt_tests
   load_yast2_gui_tests
   load_zdup_tests
   logcurrentenv
@@ -111,6 +112,7 @@ our @EXPORT = qw(
   rescuecdstep_is_applicable
   set_defaults_for_username_and_password
   set_mu_virt_vars
+  set_sles16_mu_virt_vars
   setup_env
   snapper_is_applicable
   ssh_key_import
@@ -2525,6 +2527,41 @@ sub set_mu_virt_vars {
     bmwqemu::save_vars();
 }
 
+sub set_sles16_mu_virt_vars {
+    # SLES16 MU testing only supports staging mode
+    # - FLAVOR contains "staging" AND INCIDENT_REPO is set → Staging mode
+
+    if (get_var('FLAVOR', '') =~ /staging/i && get_var('INCIDENT_REPO')) {
+        # Staging mode: Use dedicated virt staging profile for KVM patterns
+        set_var('INST_AUTO', 'virtualization/agama_virt_auto/sle_virt_default_staging.jsonnet');
+        diag("Staging mode detected (FLAVOR contains staging and INCIDENT_REPO is set): using virtualization/agama_virt_auto/sle_virt_default_staging.jsonnet for installation");
+    } else {
+        # No valid mode detected, exit test immediately
+        die("SLES16 MU test requires staging mode - FLAVOR must contain 'staging' with INCIDENT_REPO set");
+    }
+
+    # Set guest configuration variables for parallel installation
+    set_sles16_mu_guest_vars();
+
+    # Save vars
+    bmwqemu::save_vars();
+}
+
+sub set_sles16_mu_guest_vars {
+    # Set SLES16 guest configuration variables - only staging mode supported
+    my $install_type = get_var('SLES16_MU_INSTALL_TYPE', 'online');    # Default to online
+
+    set_var('SLES16_MU_TEST_MODE', 'staging');
+    set_var('SLES16_MU_INSTALL_TYPE', $install_type);
+
+    # Set default control variables if not explicitly set (borrowing SLES15 approach)
+    set_var('ENABLE_HOST_INSTALLATION', '1') unless get_var('ENABLE_HOST_INSTALLATION');
+    set_var('ENABLE_VM_INSTALL', '1') unless get_var('ENABLE_VM_INSTALL');
+
+    diag("SLES16 MU variables configured: test_mode=staging, install_type=$install_type, host_install=" .
+          get_var('ENABLE_HOST_INSTALLATION') . ", vm_install=" . get_var('ENABLE_VM_INSTALL'));
+}
+
 sub load_hypervisor_tests {
     return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
 
@@ -2641,6 +2678,41 @@ sub load_hypervisor_tests {
         loadtest "virt_autotest/login_console";
         loadtest "virt_autotest/parallel_guest_migration_destination";
     }
+}
+
+sub load_sles16_mu_virt_tests {
+    # Currently only KVM/QEMU supported with Agama installer
+    # Xen testing will return in SLES16.2
+    return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
+
+    diag("SLES16 MU Virt: Loading SLES16 MU virtualization test suite (staging mode only)");
+
+    # Set SLES16 MU virtualization variables
+    set_sles16_mu_virt_vars();
+
+    # Host installation phase
+    if (check_var('ENABLE_HOST_INSTALLATION', 1)) {
+        # Load SLES16 host installation sequence
+        if (get_var("IPXE")) {
+            loadtest "installation/ipxe_install";
+        }
+        loadtest "installation/agama_reboot";
+        loadtest "virt_autotest/login_console";
+        loadtest "installation/bridge_br0";
+        # For SLES16 MU tests, repositories are already configured during agama installation
+        # Run zypper_lr to verify installed repositories
+        loadtest "console/zypper_lr";
+    }
+
+    # Guest installation phase
+    if (check_var('ENABLE_VM_INSTALL', 1)) {
+        # Parallel guest installation using the enhanced prepare_guests
+        loadtest "virtualization/universal/prepare_guests";
+        # Wait for all guest installations to complete
+        loadtest "virtualization/universal/waitfor_guests";
+    }
+
+    diag("SLES16 MU Loaded: Test suite loaded for staging mode");
 }
 
 sub load_extra_tests_syscontainer {
