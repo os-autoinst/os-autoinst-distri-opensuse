@@ -56,6 +56,7 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/xfsprepare", run_args => $args;
         } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
             loadtest "publiccloud/smoketest";
+            loadtest "publiccloud/selinux" if (is_sle("16.0+"));
             # flavor_check is concentrated on checking things which make sense only for image which is registered
             # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
             loadtest "publiccloud/flavor_check" if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
@@ -147,6 +148,7 @@ sub load_latest_publiccloud_tests {
                 load_container_tests();
             } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
                 loadtest "publiccloud/smoketest", run_args => $args;
+                loadtest "publiccloud/selinux" if (is_sle("16.0+"));
                 # flavor_check is concentrated on checking things which make sense only for image which is registered
                 # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
                 loadtest "publiccloud/flavor_check", run_args => $args if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
