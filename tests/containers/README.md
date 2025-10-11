@@ -23,18 +23,20 @@ These are defined in [skip.yaml](../../data/containers/bats/skip.yaml)
 
 ## openQA jobs
 
-Note: These jobs are scheduled only for the x86_64 architecture.
-
-| Product / Testsuite | `docker_testsuite` | `podman_e2e` | `podman_e2e_crun` |
-|:---:|:---:|:---:|
-| openSUSE Tumbleweed | [![tw_dl]][tw_d] | [![tw_pl]][tw_p] | [![tw_pcl]][tw_pc] |
-| SLES 16.0           | [![logo]][s16_d] | | |
+| Testsuite / Product | openSUSE Tumbleweed | Tumbleweed (aarch64) | SLES 16.0 |
+|:---:|:---:|:---:|:---|
+| `docker_testsuite`  | [![tw_dl]][tw_d]    | [![twa_dl]][twa_d] | [![logo]][s16_d] |
+| `podman_e2e`        | [![tw_pl]][tw_p]    | | |
+| `podman_e2e_crun`   | [![tw_pcl]][tw_pc]  | | |
 
 Notes:
 - `docker_testsuite` tests `docker-compose` & `docker-py`
 - `podman_e2e` tests `podman-py` & `podman` (e2e)
 
 [logo]: bats/logo.svg
+
+[twa_dl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_testsuite
+[twa_d]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_testsuite
 
 [tw_dl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
 [tw_d]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
