@@ -62,6 +62,7 @@ our @EXPORT = qw(
   zypper_install_remote
   zypper_install_available_remote
   wait_quit_zypper_pc
+  detect_worker_ip
 );
 
 # Check if we are a BYOS test run
@@ -825,6 +826,35 @@ sub wait_quit_zypper_pc {
         delay => $delay,
         retry => $retry,
     );
+}
+
+=head2 detect_worker_ip
+
+    detect_worker_ip($proceed_on_failure)
+
+    Detects the current openQA worker's public IPs (ipv4/6) and returns them as
+    an array of suitable CIDR strings(/32 or /128 for ipv4/6, respectively).
+    The function uses http://checkip.amazonaws.com and falls back to https://ifconfig.me
+    if the first attempt fails.
+    Optionally accepts proceed_on_failure => 1 to return undef instead of dying.
+
+    Return:
+    - Array of CIDR strings, if found
+    - empty array otherwise
+
+=cut
+
+sub detect_worker_ip {
+    my (%args) = @_;
+    for my $url ('http://checkip.amazonaws.com', 'https://ifconfig.me') {
+        my $ip = script_output("curl -q -fsS --max-time 10 $url",
+            timeout => 15, proceed_on_failure => 1);
+        $ip =~ s/^\s+|\s+$//g;
+        next unless $ip;
+        return $ip;
+    }
+    return undef if $args{proceed_on_failure};
+    die "Worker IP could not be determined";
 }
 
 1;

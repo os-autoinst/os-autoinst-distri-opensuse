@@ -16,6 +16,7 @@ use serial_terminal 'select_serial_terminal';
 use mmapi 'get_current_job_id';
 use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
+use publiccloud::utils 'detect_worker_ip';
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
@@ -53,7 +54,7 @@ sub run {
     $create_security_group .= " --tag-specifications 'ResourceType=security-group,Tags=[$tag]'";
     assert_script_run($create_security_group, 180);
     my $security_group_id = script_output("aws ec2 describe-security-groups --filters Name=group-name,Values=$security_group_name --query 'SecurityGroups[*].GroupId' --output=text", 180);
-    my $worker_public_ip = script_output('curl -q http://checkip.amazonaws.com');
+    my $worker_public_ip = detect_worker_ip();
     assert_script_run("aws ec2 authorize-security-group-ingress --group-id $security_group_id --protocol tcp --port 22 --cidr $worker_public_ip/32");
 
     my $run_instances = "aws ec2 run-instances --image-id $image_id --count 1 --security-group-ids $security_group_id --instance-type t2.micro --key-name $ssh_key";

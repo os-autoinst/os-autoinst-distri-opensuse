@@ -37,7 +37,7 @@ use Scalar::Util 'looks_like_number';
 use File::Basename;
 use utils qw(file_content_replace script_retry);
 use version_utils 'is_sle';
-use publiccloud::utils qw(get_credentials);
+use publiccloud::utils qw(get_credentials detect_worker_ip);
 use sles4sap::qesap::aws;
 use sles4sap::qesap::azure;
 use sles4sap::qesap::utils;
@@ -89,6 +89,7 @@ our @EXPORT = qw(
   qesap_import_instances
   qesap_aws_delete_leftover_tgw_attachments
   qesap_terraform_ansible_deploy_retry
+  qesap_create_cidr_from_ip
 );
 
 =head1 DESCRIPTION
@@ -1852,6 +1853,40 @@ sub qesap_ansible_error_detection {
     }
     record_info('ANSIBLE ISSUE', $error_message) unless $ret_code eq 0;
     return $ret_code;
+}
+
+=head2 qesap_create_cidr_from_ip
+
+    qesap_create_cidr_from_ip( proceed_on_failure )
+
+    Takes an IP as argument and returns the CIDR string that
+    denotes this specific ip (adds /32 mask for ipv4, /128 for ipv6).
+    Return:
+     - CIDR notation for the provided IP
+     - undef if IP can't be validated and proceed_on_failure is true
+
+=over
+
+=item B<IP> - The ip to convert to CIDR
+
+=back
+=cut
+
+sub qesap_create_cidr_from_ip {
+    my (%args) = @_;
+    my $ip = $args{ip} // '';
+    $ip =~ s/^\s+|\s+$//g;
+    $ip =~ s{/\d+\s*$}{};
+
+    my $v4 = $ip =~ /^(?:\d{1,3}\.){3}\d{1,3}$/;
+    my $v6 = !$v4 && $ip =~ /^[0-9A-Fa-f:]+$/ && $ip =~ /:/;
+
+    unless ($v4 || $v6) {
+        return undef if $args{proceed_on_failure};
+        die "The provided IP could not be validated: $ip";
+    }
+
+    return $v4 ? "$ip/32" : "$ip/128";
 }
 
 1;

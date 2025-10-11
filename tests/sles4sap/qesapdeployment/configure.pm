@@ -6,7 +6,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::azure_client;
-use publiccloud::utils qw(get_ssh_private_key_path);
+use publiccloud::utils qw(get_ssh_private_key_path detect_worker_ip);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
@@ -54,6 +54,8 @@ sub run {
         $variables{OS_VER} = $provider->get_image_id();
     }
     $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if ($provider_setting eq 'EC2');
+
+    $variables{WORKER_IP} = qesap_create_cidr_from_ip(ip => detect_worker_ip());
 
     $variables{USE_SAPCONF} = get_var('QESAPDEPLOY_USE_SAPCONF', 'false');
     $variables{USE_SR_ANGI} = get_var('QESAPDEPLOY_USE_SAP_HANA_SR_ANGI', 'false');
