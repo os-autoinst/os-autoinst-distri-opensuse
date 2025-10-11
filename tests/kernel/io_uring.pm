@@ -92,15 +92,20 @@ sub run {
     }
     if (@timeouts) {
         record_info("Timed-out Tests", join(", ", @timeouts));
+
+        my %env_timeout = (%{$environment}, retval => 'undefined');
+
         for my $testname (@timeouts) {
-            unless ($whitelist->override_known_failures(
+            if ($whitelist->override_known_failures(
                     $self,
-                    $environment,
+                    \%env_timeout,
                     'liburing',
                     $testname
             )) {
+                $self->result('softfail') if ($self->result() ne 'fail');
+            } else {
                 record_info("Unexpected Timeout", "$testname timed out", result => 'fail');
-                $self->{result} = 'fail';
+                $self->result('fail');
             }
         }
     }
@@ -112,15 +117,20 @@ sub run {
     }
     if (@failures) {
         record_info("Failed Tests", join(", ", @failures));
+
+        my %env_fail = (%{$environment}, retval => 1);
+
         for my $failure (@failures) {
-            unless ($whitelist->override_known_failures(
+            if ($whitelist->override_known_failures(
                     $self,
-                    $environment,
+                    \%env_fail,
                     'liburing',
                     $failure
             )) {
+                $self->result('softfail') if ($self->result() ne 'fail');
+            } else {
                 record_info("Unexpected Failure", "$failure failed", result => 'fail');
-                $self->{result} = 'fail';
+                $self->result('fail');
             }
         }
     }
