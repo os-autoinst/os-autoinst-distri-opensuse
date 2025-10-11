@@ -2,6 +2,10 @@
 description: 'Main JeOS test suite. Maintainer: qa-c@suse.de.'
 name: 'jeos-main@64bit-virtio-vga ( qemu )'
 conditional_schedule:
+    reset_locale:
+        JEOSINSTLANG:
+            'de_DE':
+                - jeos/reset_locale
     bootloader:
         MACHINE:
             '64bit-virtio-vga':
@@ -33,6 +37,7 @@ schedule:
     - jeos/host_config
     - jeos/diskusage
     - jeos/build_key
+    - '{{reset_locale}}'
     - console/prjconf_excluded_rpms
     - console/journal_check
     - microos/libzypp_config
