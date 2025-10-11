@@ -4,5 +4,4 @@ description: >
   Test suite triggers installation medium integrity check and verifies that is successful by checking logs.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/validate/validate_medium_integrity

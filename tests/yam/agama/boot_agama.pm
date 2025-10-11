@@ -14,6 +14,7 @@ use Utils::Backends;
 use Mojo::Util 'trim';
 use File::Basename;
 use Yam::Agama::agama_base 'upload_agama_logs';
+use Yam::Agama::LiveIso qw(read_iso_info record_agama_info);
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../installation';
@@ -80,6 +81,11 @@ sub run {
         $self->bootloader_pvm::boot_pvm();
         return;
     }
+
+    my $info = read_iso_info();
+    $info =~ /^Image.version:\s+(?<major_version>\d+\.\w+)\./m;
+    set_var("AGAMA_VERSION", $+{'major_version'});
+    record_agama_info();
 
     my $grub_menu = $testapi::distri->get_grub_menu_agama();
     my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
