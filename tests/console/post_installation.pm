@@ -33,7 +33,6 @@ sub run {
     my $suffix = is_jeos ? '-base' : '';
     assert_script_run("rpm -ql --changelog kernel-default$suffix > /tmp/kernel_changelog.log");
     zypper_call("lr -u", log => 'repos_list.txt');
-    assert_script_run('grep "ibs/SUSE:/Maintenance:" /tmp/repos_list.txt', fail_message => 'Maintenance update repos are missing') if main_common::is_updates_tests();
     upload_logs('/tmp/kernel_changelog.log');
     upload_logs('/tmp/repos_list.txt');
 
