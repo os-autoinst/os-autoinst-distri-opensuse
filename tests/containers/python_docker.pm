@@ -49,7 +49,7 @@ openssl req -new -x509 -days 7 -key ca-key.pem -sha256 -subj "/CN=CA" -out ca.pe
 # Create server cert & key
 openssl genrsa -out key.pem 4096
 openssl req -new -key key.pem -subj "/CN=\$(hostname)" -out server.csr
-openssl x509 -req -days 7 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile <(printf "subjectAltName=DNS:\$(hostname),IP:127.0.0.1,IP:$ip_addr")
+openssl x509 -req -days 7 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile <(printf "subjectAltName=DNS:\$(hostname),DNS:localhost,IP:127.0.0.1,IP:$ip_addr")
 cp ca.pem cert.pem key.pem /etc/docker/
 # Create client server & key
 openssl genrsa -out key.pem 4096
