@@ -216,7 +216,7 @@ sub test_flags {
     return {fatal => 0};
 }
 
-sub run_post_fail {
+sub post_fail_hook {
     my ($self, $msg) = @_;
     $self->get_new_serial_output();
     $self->fail_if_running();
