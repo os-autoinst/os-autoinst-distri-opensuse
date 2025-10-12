@@ -13,7 +13,6 @@ use serial_terminal qw(select_serial_terminal);
 use version_utils;
 use utils;
 use Utils::Architectures qw(is_x86_64);
-use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::bats;
 
 my $api_version;
@@ -29,9 +28,7 @@ sub deb_arch ($arch) {
 sub setup {
     my $self = shift;
 
-    add_suseconnect_product(get_addon_fullname('python3')) if (is_sle('>=15-SP4') && is_sle("<16"));
-    my $python3 = is_sle("<16") ? "python311" : "python3";
-    my @pkgs = qq(docker jq make $python3 $python3-docker $python3-paramiko $python3-pytest $python3-pytest-timeout);
+    my @pkgs = qq(docker jq make python3 python3-docker python3-paramiko python3-pytest python3-pytest-timeout);
     $self->setup_pkgs(@pkgs);
 
     assert_script_run "cd /root";
@@ -47,9 +44,7 @@ sub setup {
     run_command "curl -sSLo /usr/local/bin/docker-credential-pass $url";
     run_command "chmod +x /usr/local/bin/docker-credential-pass";
 
-    # Transform "python311" into "python3.11" and leave "python3" as is
-    $python3 =~ s/^python3(\d{2})$/python3.$1/;
-    $version = script_output "$python3 -c 'import docker; print(docker.__version__)'";
+    $version = script_output "python3 -c 'import docker; print(docker.__version__)'";
     record_info("docker-py version", $version);
 
     patch_sources "docker-py", $version, "tests";
