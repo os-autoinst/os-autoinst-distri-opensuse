@@ -61,11 +61,11 @@ EOF
     write_sut_file('/tmp/gencerts', $gencerts);
     assert_script_run "bash -x /tmp/gencerts";
 
-    run_command q(sed -ri 's,^(DOCKER_OPTS)=.*,\1="--tlsverify --tlscacert=/etc/docker/ca.pem --tlscert=/etc/docker/cert.pem --tlskey=/etc/docker/key.pem -H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock",' /etc/sysconfig/docker);
+    run_command q(sed -ri 's,^(DOCKER_OPTS)=.*,\1="--tlsverify --tlscacert=/etc/docker/ca.pem --tlscert=/etc/docker/cert.pem --tlskey=/etc/docker/key.pem -H 0.0.0.0:2376 -H unix:///var/run/docker.sock",' /etc/sysconfig/docker);
     record_info("sysconfig", script_output("cat /etc/sysconfig/docker"));
     if (is_sle("<16")) {
         # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1248755
-        run_command "export DOCKER_HOST=tcp://localhost:2375 DOCKER_TLS_VERIFY=1";
+        run_command "export DOCKER_HOST=tcp://127.0.0.1:2376 DOCKER_TLS_VERIFY=1";
         run_command "echo 0 > /etc/docker/suse-secrets-enable";
     }
     run_command "mv -f /etc/docker/daemon.json /etc/docker/daemon.json.bak";
