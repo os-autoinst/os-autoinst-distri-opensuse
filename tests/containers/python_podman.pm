@@ -20,14 +20,11 @@ my $version;
 sub setup {
     my $self = shift;
 
-    my $python3 = "python3";
-    my @pkgs = qq(jq make podman $python3 $python3-fixtures $python3-podman $python3-pytest $python3-requests-mock);
+    my @pkgs = qq(jq make podman python3 python3-fixtures python3-podman python3-pytest python3-requests-mock);
     $self->setup_pkgs(@pkgs);
 
     systemctl "enable --now podman.socket";
-    # Transform "python311" into "python3.11" and leave "python3" as is
-    $python3 =~ s/^python3(\d{2})$/python3.$1/;
-    $version = script_output "$python3 -c 'import podman; print(podman.__version__)'";
+    $version = script_output "python3 -c 'import podman; print(podman.__version__)'";
     $version = "v$version";
     record_info("podman-py version", $version);
 
