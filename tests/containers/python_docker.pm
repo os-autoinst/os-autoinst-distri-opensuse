@@ -35,39 +35,6 @@ sub setup {
     $self->setup_pkgs(@pkgs);
 
     assert_script_run "cd /root";
-
-    my $iface = script_output "ip -4 --json route list match default | jq -Mr '.[0].dev'";
-    my $ip_addr = script_output "ip -4 --json addr show $iface | jq -Mr '.[0].addr_info[0].local'";
-
-    # Follow https://docs.docker.com/engine/security/protect-access/
-    my $gencerts = <<"EOF";
-set -e
-set -x
-# Create self-signed CA
-openssl genrsa -out ca-key.pem 4096
-openssl req -new -x509 -days 7 -key ca-key.pem -sha256 -subj "/CN=CA" -out ca.pem
-# Create server cert & key
-openssl genrsa -out key.pem 4096
-openssl req -new -key key.pem -subj "/CN=\$(hostname)" -out server.csr
-openssl x509 -req -days 7 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile <(printf "subjectAltName=DNS:\$(hostname),IP:127.0.0.1,IP:$ip_addr")
-cp ca.pem cert.pem key.pem /etc/docker/
-# Create client server & key
-openssl genrsa -out key.pem 4096
-openssl req -new -key key.pem -subj "/CN=docker-client" -out client.csr
-openssl x509 -req -days 7 -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out cert.pem -extfile <(printf "extendedKeyUsage=clientAuth")
-mkdir -m 700 /root/.docker/ || true
-mv ca.pem cert.pem key.pem /root/.docker/
-EOF
-    write_sut_file('/tmp/gencerts', $gencerts);
-    assert_script_run "bash -x /tmp/gencerts";
-
-    run_command q(sed -ri 's,^(DOCKER_OPTS)=.*,\1="--tlsverify --tlscacert=/etc/docker/ca.pem --tlscert=/etc/docker/cert.pem --tlskey=/etc/docker/key.pem -H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock",' /etc/sysconfig/docker);
-    record_info("sysconfig", script_output("cat /etc/sysconfig/docker"));
-    if (is_sle("<16")) {
-        # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1248755
-        run_command "export DOCKER_HOST=tcp://localhost:2375 DOCKER_TLS_VERIFY=1";
-        run_command "echo 0 > /etc/docker/suse-secrets-enable";
-    }
     run_command "mv -f /etc/docker/daemon.json /etc/docker/daemon.json.bak";
     run_command "systemctl enable docker";
     run_command "systemctl restart docker";
@@ -112,16 +79,6 @@ sub test ($target) {
 
     # Used by pytest to ignore individual tests
     my @deselect = ();
-    if (is_sle("<16")) {
-        push @deselect, (
-            # These tests fail due to https://bugzilla.suse.com/show_bug.cgi?id=1248755
-            "tests/unit/client_test.py::ClientTest::test_default_pool_size_unix",
-            "tests/unit/client_test.py::ClientTest::test_pool_size_unix",
-            "tests/unit/client_test.py::FromEnvTest::test_default_pool_size_from_env_unix",
-            "tests/unit/client_test.py::FromEnvTest::test_pool_size_from_env_unix",
-            "tests/unit/api_test.py::UnixSocketStreamTest::test_early_stream_response",
-        );
-    }
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
 
     my %env = (
@@ -156,17 +113,13 @@ sub run {
 
     select_serial_terminal;
     test $_ foreach (qw(unit integration));
-    # This test fails on SLES 15 due to https://bugzilla.suse.com/show_bug.cgi?id=1248755
-    if (is_sle(">=16.0") || is_tumbleweed) {
-        run_command "export DOCKER_HOST=ssh://root@127.0.0.1";
-        test "ssh";
-    }
+    run_command "export DOCKER_HOST=ssh://root@127.0.0.1";
+    test "ssh";
 }
 
 sub cleanup() {
     script_run "unset DOCKER_HOST";
-    script_run q(sed -ri 's/^(DOCKER_OPTS)=.*/\1=""/' /etc/sysconfig/docker);
-    script_run "mv /etc/docker/daemon.json.bak /etc/docker/daemon.json";
+    script_run "mv -f /etc/docker/daemon.json.bak /etc/docker/daemon.json";
 }
 
 sub post_fail_hook {
