@@ -5,6 +5,7 @@ In addition to the [BATS](bats/) tests we currently have tests for:
 
 | project | tests |
 | --- | --- |
+| [docker-cli](docker_cli.pm) | https://github.com/docker/cli/tree/master/e2e |
 | [docker-compose](docker_compose.pm) | https://github.com/docker/compose/tree/main/pkg/e2e |
 | [docker-py](python_runtime.pm) | https://github.com/docker/docker-py/tree/main/tests |
 | [podman-py](python_runtime.pm) | https://github.com/containers/podman-py/tree/main/podman/tests |
@@ -28,10 +29,6 @@ These are defined in [skip.yaml](../../data/containers/bats/skip.yaml)
 | `docker_testsuite`  | [![tw_dl]][tw_d]    | [![twa_dl]][twa_d] | [![logo]][s16_d] |
 | `podman_e2e`        | [![tw_pl]][tw_p]    | | |
 | `podman_e2e_crun`   | [![tw_pcl]][tw_pc]  | | |
-
-Notes:
-- `docker_testsuite` tests `docker-compose` & `docker-py`
-- `podman_e2e` tests `podman-py` & `podman` (e2e)
 
 [logo]: bats/logo.svg
 

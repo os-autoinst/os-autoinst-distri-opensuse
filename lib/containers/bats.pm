@@ -475,7 +475,7 @@ sub patch_sources {
     my $github_org = "containers";
     if ($package eq "runc") {
         $github_org = "opencontainers";
-    } elsif ($package =~ /compose|docker/) {
+    } elsif ($package =~ /cli|docker|compose/) {
         $github_org = "docker";
     }
 
