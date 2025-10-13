@@ -18,13 +18,6 @@ use containers::bats;
 my $api_version;
 my $version;
 
-# Translate RPM arch to Go arch
-sub deb_arch ($arch) {
-    return "amd64" if $arch eq "x86_64";
-    return "arm64" if $arch eq "aarch64";
-    return $arch;
-}
-
 sub setup {
     my $self = shift;
 
@@ -39,7 +32,7 @@ sub setup {
 
     # Setup docker credentials helpers
     my $credstore_version = "v0.9.3";
-    my $arch = deb_arch(get_var("ARCH"));
+    my $arch = go_arch(get_var("ARCH"));
     my $url = "https://github.com/docker/docker-credential-helpers/releases/download/$credstore_version/docker-credential-pass-$credstore_version.linux-$arch";
     run_command "curl -sSLo /usr/local/bin/docker-credential-pass $url";
     run_command "chmod +x /usr/local/bin/docker-credential-pass";

@@ -29,6 +29,7 @@ use Utils::Architectures;
 our @EXPORT = qw(
   bats_post_hook
   bats_tests
+  go_arch
   install_ncat
   mount_tmp_vartmp
   patch_junit
@@ -60,6 +61,14 @@ sub run_command {
     } else {
         assert_script_run $cmd, %args;
     }
+}
+
+# Translate RPM arch to Go arch
+sub go_arch {
+    my $arch = shift;
+    return "amd64" if $arch eq "x86_64";
+    return "arm64" if $arch eq "aarch64";
+    return $arch;
 }
 
 sub install_git {
@@ -466,7 +475,7 @@ sub patch_sources {
     my $github_org = "containers";
     if ($package eq "runc") {
         $github_org = "opencontainers";
-    } elsif ($package =~ /compose|docker/) {
+    } elsif ($package =~ /cli|docker|compose/) {
         $github_org = "docker";
     }
 
