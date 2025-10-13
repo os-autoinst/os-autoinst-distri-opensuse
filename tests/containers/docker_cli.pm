@@ -49,7 +49,6 @@ sub setup {
     run_command 'ln -s /usr /usr/local/go';
 
     my $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
-    run_command "echo $ip_addr \$(hostname) >> /etc/hosts";
     run_command "echo $ip_addr notary-server >> /etc/hosts";
     run_command "echo $ip_addr evil-notary-server >> /etc/hosts";
     run_command "echo 127.0.0.1 registry >> /etc/hosts";
