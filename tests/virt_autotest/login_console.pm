@@ -93,6 +93,7 @@ sub setup_br0 {
     save_screenshot;
     if (defined(wait_serial('DONE', timeout => 30))) {
         record_info("BR0 set up successfully", script_output("ip a"));
+    }
     else {
         record_info("Fail to set up BR0", "", result => 'fail');
     }
