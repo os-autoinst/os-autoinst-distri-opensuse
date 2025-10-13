@@ -250,8 +250,7 @@ sub setup_pkgs {
     assert_script_run "chmod +x /usr/local/bin/patch_junit";
 
     # Add IP to /etc/hosts
-    my $iface = script_output "ip -4 --json route list match default | jq -Mr '.[0].dev'";
-    my $ip_addr = script_output "ip -4 --json addr show $iface | jq -Mr '.[0].addr_info[0].local'";
+    my $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
     assert_script_run "echo $ip_addr \$(hostname) >> /etc/hosts";
 
     # Enable SSH
