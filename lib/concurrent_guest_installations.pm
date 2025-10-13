@@ -35,6 +35,7 @@ use testapi;
 use IPC::Run;
 use virt_utils;
 use virt_autotest_base;
+use virt_autotest::utils qw(check_guest_health);
 use virt_autotest::domain_management_utils;
 use XML::Simple;
 use Data::Dumper;
@@ -266,18 +267,23 @@ sub save_guest_installations_assets {
     return $self;
 }
 
-#Remove guests having unsuccessful installations according to setting KEEP_NORMAL_GUEST.
+#Shut down guests if KEEP_GUEST_SHUTOFF is set after health checking. Remove guests
+#having unsuccessful installations according to setting KEEP_NORMAL_GUEST. List out
+#all guests on system at the end.
 sub clean_up_guests {
     my $self = shift;
 
     $self->reveal_myself;
-    if (get_var('KEEP_NORMAL_GUEST', '')) {
-        my @abnormal_guests = ();
-        foreach (keys %guest_instances) {
-            push(@abnormal_guests, $guest_instances{$_}->{guest_name}) if ($guest_instances{$_}->{guest_installation_result} ne 'PASSED');
+    foreach (keys %guest_instances) {
+        if ($guest_instances{$_}->{guest_installation_result} eq 'PASSED') {
+            check_guest_health($_);
+            virt_autotest::domain_management_utils::shutdown_guest(guest => $_) if (get_var('KEEP_GUEST_SHUTOFF', ''));
         }
-        virt_autotest::domain_management_utils::remove_guest(guest => join(" ", @abnormal_guests)) if (scalar(@abnormal_guests) > 0);
+        else {
+            virt_autotest::domain_management_utils::remove_guest(guest => $_) if (get_var('KEEP_NORMAL_GUEST', ''));
+        }
     }
+    virt_autotest::domain_management_utils::show_guest;
     return $self;
 }
 

@@ -8,6 +8,7 @@
 
 use File::Basename;
 use testapi;
+use Utils::Logging qw(upload_coredumps);
 use virt_utils 'clean_up_red_disks';
 use base 'reboot_and_wait_up';
 use virt_autotest::utils;
@@ -65,7 +66,7 @@ sub post_fail_hook {
         }
         else {
             #host online upgrade
-            $self->upload_coredumps;
+            upload_coredumps;
             save_screenshot;
 
             virt_utils::collect_host_and_guest_logs;
