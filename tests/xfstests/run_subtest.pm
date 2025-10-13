@@ -90,8 +90,7 @@ sub override_known_failures {
     $self->record_resultfile('dmesg', "$targs->{dmesg}", %args) if defined($targs->{dmesg});
 
     if ($targs->{status} =~ /SOFTFAILED/) {
-        $self->{result} = 'softfail';
-        $self->record_resultfile('softfail', "$targs->{failinfo}", %args) if defined($targs->{failinfo});
+        $self->record_soft_failure_result($targs->{failinfo}, force_status => 1, %args) if defined($targs->{failinfo});
         $self->record_resultfile('bugzilla', "$targs->{bugzilla}", %args) if defined($targs->{bugzilla});
     }
     else {
@@ -216,15 +215,10 @@ sub test_flags {
     return {fatal => 0};
 }
 
-sub run_post_fail {
-    my ($self, $msg) = @_;
-    $self->get_new_serial_output();
-    $self->fail_if_running();
-    $self->override_known_failures() if $self->{result} eq 'fail';
+sub post_fail_hook {
+    my ($self) = @_;
 
-    if ($msg =~ qr/died/) {
-        die $msg . "\n";
-    }
+    $self->override_known_failures() if $self->{result} eq 'fail';
 }
 
 1;
