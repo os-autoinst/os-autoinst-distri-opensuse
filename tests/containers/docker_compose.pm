@@ -12,7 +12,6 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
 use Utils::Architectures qw(is_x86_64);
-use containers::common qw(install_packages);
 use containers::bats;
 
 my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
