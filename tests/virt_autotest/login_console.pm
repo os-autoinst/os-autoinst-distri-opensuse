@@ -70,7 +70,7 @@ sub setup_br0 {
     #    script_run("cat /etc/NetworkManager/system-connections/my-br0.nmconnection");
     #    script_run("cat /etc/NetworkManager/system-connections/*slave.nmconnection");
     #    record_info("End of debug", "");
-    record_info("setting up br0 over sol console", script_output("rpm -q virt-bridge-setup"));
+    record_info("BR0 setting up over sol console", script_output("rpm -q virt-bridge-setup"));
     select_console 'sol', await_console => 1;
     send_key 'ret' if check_screen('sol-console-wait-typing-ret');
     if (check_screen('text-login')) {
@@ -82,16 +82,20 @@ sub setup_br0 {
     assert_screen "text-logged-in-root";
     enter_cmd("virt-bridge-setup -m --stp no -d");
     save_screenshot;
-    enter_cmd("nmcli con; echo DONE > /dev/$serialdev");
-    save_screenshot;
-    enter_cmd("ip a");
-    save_screenshot;
-    sleep 30;
-    enter_cmd("ip a");
-    save_screenshot;
+    sleep 20;
     enter_cmd("nmcli con");
     save_screenshot;
-    record_info("End", "of setting up br0 on sol console");
+    enter_cmd("ip a");
+    save_screenshot;
+    reset_consoles;
+    use_ssh_serial_console;
+    enter_cmd("nmcli con; echo DONE > /dev/$serialdev");
+    save_screenshot;
+    if (defined(wait_serial('DONE', timeout => 30))) {
+        record_info("BR0 set up successfully", script_output("ip a"));
+    else {
+        record_info("Fail to set up BR0", "", result => 'fail');
+    }
 }
 
 #Explanation for parameters introduced to facilitate offline host upgrade:
