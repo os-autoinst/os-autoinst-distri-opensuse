@@ -16,7 +16,6 @@ requires 'Date::Parse';
 requires 'DateTime';
 requires 'Digest::file';
 requires 'Exporter';
-requires 'Feature::Compat::Try';
 requires 'File::Basename';
 requires 'File::Copy';
 requires 'File::Find';
