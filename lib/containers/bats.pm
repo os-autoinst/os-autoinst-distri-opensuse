@@ -474,6 +474,8 @@ sub patch_sources {
         $github_org = "opencontainers";
     } elsif ($package =~ /buildx|cli|compose|docker/) {
         $github_org = "docker";
+    } elsif ($package =~ /moby/) {
+        $github_org = "moby";
     }
 
     # Support these cases for GITHUB_REPO: [<GITHUB_ORG>]#BRANCH
