@@ -9,6 +9,7 @@
 use base "consoletest";
 use testapi;
 use utils;
+use Utils::Logging qw(upload_coredumps);
 use ipmi_backend_utils qw(reconnect_when_ssh_console_broken);
 use Utils::Architectures;
 use virt_autotest::common;
@@ -58,7 +59,7 @@ sub post_fail_hook {
         reconnect_when_ssh_console_broken;
         alp_workloads::kvm_workload_utils::enter_kvm_container_sh if is_alp;
     }
-    $self->upload_coredumps;
+    upload_coredumps;
     upload_logs("/var/log/clean_up_virt_logs.log");
     upload_logs("/var/log/guest_console_monitor.log");
     script_run("rm -f -r /var/log/clean_up_virt_logs.log /var/log/guest_console_monitor.log");

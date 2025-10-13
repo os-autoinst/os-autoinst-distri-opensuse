@@ -31,7 +31,7 @@ use IO::File;
 use List::Util;
 use Carp;
 use IO::Scalar;
-use List::Util qw(first);
+use Utils::Logging qw(upload_coredumps);
 use testapi;
 use utils;
 use ipmi_backend_utils qw(reconnect_when_ssh_console_broken);
@@ -3333,7 +3333,7 @@ sub post_fail_hook {
     save_screenshot;
     virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log /emergency_mode /agama_installation_logs", "_guest_installation");
     save_screenshot;
-    $self->upload_coredumps;
+    upload_coredumps;
     save_screenshot;
     return $self;
 }
