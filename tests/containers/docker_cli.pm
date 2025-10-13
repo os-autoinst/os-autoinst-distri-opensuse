@@ -32,7 +32,7 @@ sub setup {
     run_command "systemctl restart docker";
     record_info("docker info", script_output("docker info"));
 
-    run_command "docker run -d --name registry -p 5000:5000 registry:2";
+    run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 
     # Install test dependencies
     $arch = go_arch(get_var("ARCH"));
