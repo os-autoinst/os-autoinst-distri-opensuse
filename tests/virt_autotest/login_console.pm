@@ -225,9 +225,6 @@ sub login_to_console {
         send_key 'ret';
     }
 
-    # julie: Setup br0
-    setup_br0 if is_sle('16+') and !is_s390x and get_var('SETUP_BR0_WITH_VIRT_BRIDGE_SETUP');
-
     # Set ssh console timeout for virt tests on ipmi backend machines
     # it will make ssh serial console alive even with long time command
     # For SLE15 and TW autoyast installation, sshd configurations have been created in its autoyast profiles
@@ -262,6 +259,9 @@ sub login_to_console {
     # double-check xen role for xen host
     double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE'));
     check_kvm_modules if is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE');
+
+    # julie: Setup br0
+    setup_br0 if is_sle('16+') and !is_s390x and get_var('SETUP_BR0_WITH_VIRT_BRIDGE_SETUP_TOOL');
     check_host_health();
 }
 
