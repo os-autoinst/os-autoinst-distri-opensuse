@@ -57,6 +57,43 @@ sub config_ssh_client {
     script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " >> $ssh_dir/authorized_keys");
 }
 
+sub setup_br0 {
+    # julie debug
+    #    record_info("Julie debug begin", "");
+    #    script_run("nmcli con");
+    #    script_run("ip a");
+    #    script_run("cat /etc/NetworkManager/system-connections/my-br0.nmconnection");
+    #    script_run("journalctl -e | tail -30");
+    #    script_run("nmcli con");
+    #    script_run("ip a");
+    #    script_run("ls -l");
+    #    script_run("cat /etc/NetworkManager/system-connections/my-br0.nmconnection");
+    #    script_run("cat /etc/NetworkManager/system-connections/*slave.nmconnection");
+    #    record_info("End of debug", "");
+    record_info("setting up br0 over sol console", script_output("rpm -q virt-bridge-setup"));
+    select_console 'sol', await_console => 1;
+    send_key 'ret' if check_screen('sol-console-wait-typing-ret');
+    if (check_screen('text-login')) {
+        enter_cmd "root";
+        assert_screen "password-prompt";
+        type_password;
+        send_key 'ret';
+    }
+    assert_screen "text-logged-in-root";
+    enter_cmd("virt-bridge-setup -m --stp no -d");
+    save_screenshot;
+    enter_cmd("nmcli con; echo DONE > /dev/$serialdev");
+    save_screenshot;
+    enter_cmd("ip a");
+    save_screenshot;
+    sleep 30;
+    enter_cmd("ip a");
+    save_screenshot;
+    enter_cmd("nmcli con");
+    save_screenshot;
+    record_info("End", "of setting up br0 on sol console");
+}
+
 #Explanation for parameters introduced to facilitate offline host upgrade:
 #OFFLINE_UPGRADE indicates whether host upgrade is offline which needs reboot
 #the host and upgrade from installation media. Please refer to this document:
@@ -188,6 +225,9 @@ sub login_to_console {
         send_key 'ret';
     }
 
+    # julie: Setup br0
+    setup_br0 if is_sle('16+') and !is_s390x and get_var('SETUP_BR0_WITH_VIRT_BRIDGE_SETUP');
+
     # Set ssh console timeout for virt tests on ipmi backend machines
     # it will make ssh serial console alive even with long time command
     # For SLE15 and TW autoyast installation, sshd configurations have been created in its autoyast profiles
@@ -217,6 +257,7 @@ sub login_to_console {
         assert_script_run('swapon --fixpgsz');
         assert_script_run('getconf PAGESIZE');
     }
+
 
     # double-check xen role for xen host
     double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE'));
