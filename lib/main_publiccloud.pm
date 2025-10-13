@@ -67,6 +67,8 @@ sub load_maintenance_publiccloud_tests {
         } elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
             die "ConfigError: Either the provider is not supported or SLE version is old!\n" unless (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE') && is_sle('15-SP4+'));
             loadtest "publiccloud/nvidia", run_args => $args;
+        } elsif (get_var('PUBLIC_CLOUD_EXTRATESTS')) {
+            loadtest "publiccloud/selinux" if (is_sle("16.0+"));
         }
 
         loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
@@ -97,6 +99,7 @@ my $should_use_runargs = sub {
       PUBLIC_CLOUD_CONSOLE_TESTS
       PUBLIC_CLOUD_CONTAINERS
       PUBLIC_CLOUD_SMOKETEST
+      PUBLIC_CLOUD_EXTRATESTS
       PUBLIC_CLOUD_AZURE_NFS_TEST
       PUBLIC_CLOUD_NVIDIA
       PUBLIC_CLOUD_FUNCTIONAL
@@ -156,6 +159,8 @@ sub load_latest_publiccloud_tests {
                 loadtest "publiccloud/xfsprepare", run_args => $args;
             } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
                 loadtest("publiccloud/azure_nfs", run_args => $args);
+            } elsif (get_var('PUBLIC_CLOUD_EXTRATESTS')) {
+                loadtest "publiccloud/selinux" if (is_sle("16.0+"));
             }
             loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
         }
