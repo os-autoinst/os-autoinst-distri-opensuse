@@ -112,7 +112,7 @@ sub test_lc_collate {
     my $dataset_expected_output = script_output("cut -d, -f$column_expected_output $locale.csv | tail -n +2");
 
     validate_script_output(
-        "cut -d, -f$column_input $locale.csv | tail -n +2 | LC_COLLATE=$locale sort",
+        "cut -d, -f$column_input $locale.csv | tail -n +2 | LC_ALL=$locale LC_CTYPE=$locale LC_COLLATE=$locale sort",
         sub {
             my $out = $_;
             $out =~ s/\r//g;
@@ -172,7 +172,7 @@ sub test_lc_monetary {
     my $expected_output = script_output("cat $locale.csv");
 
     validate_script_output(
-        "LC_MONETARY=$locale locale currency_symbol",
+        "LC_ALL=$locale LC_CTYPE=$locale LC_MONETARY=$locale locale currency_symbol",
         sub { m/$expected_output/ },
         title => "LC_MONETARY currency_symbol",
         fail_message => "Expected currency symbol '$expected_output' not found, got '$_'"
@@ -196,7 +196,7 @@ sub test_lc_time {
     for my $i (0 .. $#lines) {
         my ($epoch, $fmt, $expected) = split $sep, $lines[$i], 3;
 
-        my $cmd = qq{LC_ALL= LC_TIME=$locale TZ=UTC date -u -d '\@$epoch' +"$fmt"};
+        my $cmd = qq{LC_ALL=$locale LC_CTYPE=$locale LC_TIME=$locale TZ=UTC date -u -d '\@$epoch' +"$fmt"};
 
         validate_script_output(
             $cmd,
