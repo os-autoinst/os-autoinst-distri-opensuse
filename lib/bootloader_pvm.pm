@@ -25,6 +25,7 @@ use Utils::Backends;
 use YuiRestClient;
 use ntlm_auth;
 use autoyast qw(parse_dud_parameter);
+use Yam::Agama::LiveIso qw(read_live_iso);
 
 our @EXPORT = qw(
   boot_pvm
@@ -223,6 +224,8 @@ Decide whether job is booting a pvm_hmc backend system or a spvm via Novalink on
 =cut
 
 sub boot_pvm {
+    read_live_iso() if (is_agama);
+
     if (is_spvm) {
         boot_spvm();
     } elsif (is_pvm_hmc) {

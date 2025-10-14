@@ -4,6 +4,5 @@ description: >
   Generate DUD file from JSONNET template using import_agama_profile call for a later Agama unattended installation.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/import_agama_profile
   - yam/agama/generate_dud
