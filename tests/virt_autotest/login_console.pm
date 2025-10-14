@@ -69,16 +69,18 @@ sub setup_br0 {
     }
     assert_screen "text-logged-in-root";
     enter_cmd("virt-bridge-setup -m --stp no -d");
+    wait_still_screen 10;
     save_screenshot;
-    sleep 20;
     # For debugging failure
     enter_cmd("nmcli con");
-    save_screenshot;
     enter_cmd("ip a");
     save_screenshot;
     enter_cmd("cat /etc/NetworkManager/system-connections/my-br0.nmconnection");
     save_screenshot;
     enter_cmd("cat /etc/NetworkManager/system-connections/*slave.nmconnection");
+    wait_still_screen 5;
+    enter_cmd("nmcli con show br0 | grep stp");
+    wait_still_screen 5;
     save_screenshot;
     # End of debug
     use_ssh_serial_console;
