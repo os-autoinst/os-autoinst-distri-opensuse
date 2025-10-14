@@ -182,11 +182,17 @@ sub install_selected_from_git {
 sub install_from_git {
     my $timeout = (is_aarch64 || is_s390x) ? 7200 : 1440;
     my $prefix = get_ltproot();
+    my $dir = get_var('LTP_GIT_DIR', '');
+
+    if ($dir) {
+        record_info("dir", $dir);
+        $dir = "-C $dir";
+    }
 
     prepare_ltp_git;
-    assert_script_run 'make -j$(getconf _NPROCESSORS_ONLN)', timeout => $timeout;
+    assert_script_run "make $dir -j\$(getconf _NPROCESSORS_ONLN)", timeout => $timeout;
     script_run 'export CREATE_ENTRIES=1';
-    assert_script_run 'make install', timeout => 360;
+    assert_script_run "make $dir install", timeout => 360;
     assert_script_run "find $prefix -name '*.run-test' > "
       . get_ltp_openposix_test_list_file();
 
@@ -475,6 +481,11 @@ name or whatever else Git will accept. Usually this is set to a release, such as
 20160920, which will cause that release to be used. If not set, then the default
 clone action will be performed, which probably means the latest master branch
 will be used.
+
+=head2 LTP_GIT_DIR
+
+Compile from git only selected directory (speedup for debugging). Requires
+INSTALL_LTP=git.
 
 =head2 LTP_GIT_URL
 
