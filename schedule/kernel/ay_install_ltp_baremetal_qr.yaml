@@ -1,0 +1,15 @@
+---
+name: ay_install_ltp_baremetal_qr
+schedule:
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - autoyast/autoyast_reboot
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - kernel/install_ltp
+  - kernel/shutdown_ltp
