@@ -129,6 +129,26 @@ sub update_test_repos {
     assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/BCI-tests");
 }
 
+sub check_container_signature {
+    my $engines = get_required_var('CONTAINER_RUNTIMES');
+    my $engine;
+    if ($engines =~ /podman|k3s/) {
+        $engine = 'podman';
+    } elsif ($engines =~ /docker/) {
+        $engine = 'docker';
+    } else {
+        record_soft_failure("Could not verify container image: No valid container engines defined in CONTAINER_RUNTIMES variable!");
+        return;
+    }
+
+    my $image = get_var('CONTAINER_IMAGE_TO_TEST');
+    record_info('Image signature', "Checking signature of $image");
+
+    my $cosign_image = "registry.suse.com/suse/cosign";
+    my $sign_key_path = "/usr/share/pki/containers/suse-container-key.pem";
+    assert_script_run("$engine run --rm -it $cosign_image verify --key $sign_key_path --allow-insecure-registry=true $image", timeout => 300);
+}
+
 sub run {
     select_serial_terminal;
     my ($version, $sp, $host_distri) = get_os_release;
@@ -146,6 +166,8 @@ sub run {
     # For BCI tests using podman, buildah package is also needed
     # buildah is not present in any sle-micro, including 6.2
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/ && $host_distri !~ /micro/i);
+
+    check_container_signature() if (get_var('CONTAINER_IMAGE_TO_TEST'));
 }
 
 sub test_flags {
