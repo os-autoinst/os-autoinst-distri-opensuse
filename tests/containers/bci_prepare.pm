@@ -147,10 +147,10 @@ sub check_container_signature {
     my $cosign_image = "registry.suse.com/suse/cosign";
 
     my $options = "--key /usr/share/pki/containers/suse-container-key.pem";
-    $options .= " --allow-insecure-registry=true"; # ignore invalid cert for registry.suse.de
-    $options .= " --insecure-ignore-tlog=true"; # ignore missing transparency log entries for registry.suse.de
+    $options .= " --allow-insecure-registry=true";    # ignore invalid cert for registry.suse.de
+    $options .= " --insecure-ignore-tlog=true";    # ignore missing transparency log entries for registry.suse.de
 
-    assert_script_run("$engine run --rm -it $cosign_image verify $options $image", timeout => 300);
+    assert_script_run("$engine run --rm -qit $cosign_image verify $options $image", timeout => 300);
 }
 
 sub run {
