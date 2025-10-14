@@ -79,7 +79,8 @@ sub setup_br0 {
     save_screenshot;
     enter_cmd("cat /etc/NetworkManager/system-connections/*slave.nmconnection");
     wait_still_screen 5;
-    enter_cmd("nmcli con show br0 | grep stp");
+    enter_cmd("nmcli con show my-br0 | grep stp");
+    enter_cmd("ip -d l show br0");
     wait_still_screen 5;
     save_screenshot;
     # End of debug
