@@ -4,6 +4,7 @@ description:    >
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
+    - security/polkit_rules
     - security/libserf/libserf
     - security/ecryptfs/ecryptfs
     - security/smartcard/version_check
