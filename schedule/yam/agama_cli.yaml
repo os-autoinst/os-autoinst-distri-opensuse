@@ -4,7 +4,6 @@ description: >
   Perform a default installation using only Agama CLI.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/import_agama_profile
   - yam/agama/agama_cli
   - installation/grub_test

@@ -22,6 +22,7 @@ use registration;
 use utils 'shorten_url';
 use version_utils qw(is_agama is_sle is_tumbleweed is_opensuse);
 use autoyast qw(parse_dud_parameter);
+use Yam::Agama::LiveIso qw(read_live_iso);
 
 use backend::console_proxy;
 
@@ -301,6 +302,8 @@ sub run {
 
     select_console 'x3270';
     my $s3270 = console('x3270');
+
+    read_live_iso() if (is_agama);
 
     # Define memory to behave the same way as other archs
     # and to have the same configuration through all s390 guests
