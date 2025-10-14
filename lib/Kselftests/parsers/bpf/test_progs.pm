@@ -20,10 +20,10 @@ sub parse_line {
     if ($test_ln =~ /(?:^#\s)?#\S+\s+(\S+):(OK|FAIL|SKIP)$/) {
         my ($description, $st) = ($1, $2);
         my $normalized;
-        if ($st eq 'PASS') {
-            $normalized = "# ok $test_idx $description";
-        } elsif ($st eq 'FAIL') {
+        if ($st eq 'FAIL') {
             $normalized = "# not ok $test_idx $description";
+        } elsif ($st eq 'OK') {
+            $normalized = "# ok $test_idx $description";
         } else {
             $normalized = "# ok $test_idx $description # SKIP";
         }
