@@ -45,12 +45,6 @@ sub run {
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
 
-    # Set SELinux in permissive mode, as there is an issue with setfiles
-    # It will be removed as soon as the issue will be fixed
-    assert_script_run("setenforce Permissive");
-    validate_script_output("sestatus | grep 'Current mode:'",
-        sub { m/permissive/ });
-
     # Create directories
     assert_script_run("mkdir -p $sysext_dir");
 
