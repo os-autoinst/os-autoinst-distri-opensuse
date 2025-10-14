@@ -58,16 +58,6 @@ sub config_ssh_client {
 }
 
 sub setup_br0 {
-    # julie debug
-    #    record_info("Julie debug begin", "");
-    #    script_run("nmcli con");
-    #    script_run("ip a");
-    #    script_run("cat /etc/NetworkManager/system-connections/my-br0.nmconnection");
-    #    script_run("journalctl -e | tail -30");
-    #    script_run("nmcli con");
-    #    script_run("ip a");
-    #    script_run("ls -l");
-    #    record_info("End of debug", "");
     record_info("BR0 setting up over sol console", script_output("rpm -q virt-bridge-setup"));
     select_console 'sol', await_console => 1;
     send_key 'ret' if check_screen('sol-console-wait-typing-ret');
