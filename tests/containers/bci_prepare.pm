@@ -137,11 +137,11 @@ sub check_container_signature {
     } elsif ($engines =~ /docker/) {
         $engine = 'docker';
     } else {
-        die('Could not verify container image: No valid container engines defined in CONTAINER_RUNTIMES variable!');
+        die('No valid container engines defined in CONTAINER_RUNTIMES variable!');
         return;
     }
 
-    my $image = get_var('CONTAINER_IMAGE_TO_TEST');
+    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
     record_info('Image signature', "Checking signature of $image");
 
     my $cosign_image = "registry.suse.com/suse/cosign";
@@ -151,6 +151,7 @@ sub check_container_signature {
     $options .= " --registry-cacert=/SUSE_Trust_Root.crt.pem";    # include SUSE CA for registry.suse.de
     $options .= " --insecure-ignore-tlog=true";    # ignore missing transparency log entries for registry.suse.de
 
+    script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 2);
     assert_script_run("$engine run --rm -q $engine_options $cosign_image verify $options $image", timeout => 300);
 }
 
@@ -172,7 +173,7 @@ sub run {
     # buildah is not present in any sle-micro, including 6.2
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/ && $host_distri !~ /micro/i);
 
-    check_container_signature() if (get_var('CONTAINER_IMAGE_TO_TEST'));
+    check_container_signature() if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var("CONTAINERS_SKIP_SIGNATURE", "0") != 1);
 }
 
 sub test_flags {
