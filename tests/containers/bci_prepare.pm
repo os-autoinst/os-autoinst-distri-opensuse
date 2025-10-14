@@ -137,7 +137,7 @@ sub check_container_signature {
     } elsif ($engines =~ /docker/) {
         $engine = 'docker';
     } else {
-        record_soft_failure("Could not verify container image: No valid container engines defined in CONTAINER_RUNTIMES variable!");
+        die('Could not verify container image: No valid container engines defined in CONTAINER_RUNTIMES variable!');
         return;
     }
 
@@ -150,7 +150,7 @@ sub check_container_signature {
     $options .= " --allow-insecure-registry=true";    # ignore invalid cert for registry.suse.de
     $options .= " --insecure-ignore-tlog=true";    # ignore missing transparency log entries for registry.suse.de
 
-    assert_script_run("$engine run --rm -qit $cosign_image verify $options $image", timeout => 300);
+    assert_script_run("$engine run --rm -q $cosign_image verify $options $image", timeout => 300);
 }
 
 sub run {
