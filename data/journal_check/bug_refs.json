@@ -887,9 +887,9 @@
         "type": "bug"
     },
     "bsc#1231458": {
-        "description": "Failed to start Platform Persistent Storage Archival|systemd-pstore.*Failed",
+        "description": "Failed to start Platform Persistent Storage Archival|systemd-pstore.*Failed|crypto_comp_decompress failed",
         "products": {
-            "sle-micro": ["6.2"]
+            "sle-micro": ["6.1", "6.2"]
         },
         "type": "bug"
     },
