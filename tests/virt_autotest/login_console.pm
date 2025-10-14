@@ -58,6 +58,8 @@ sub config_ssh_client {
 }
 
 sub setup_br0 {
+    script_output("zypper info virt-manager");
+    script_output("zypper se virt-manager");
     record_info("BR0 setting up over sol console", script_output("rpm -q virt-bridge-setup"));
     select_console 'sol', await_console => 1;
     send_key 'ret' if check_screen('sol-console-wait-typing-ret');
