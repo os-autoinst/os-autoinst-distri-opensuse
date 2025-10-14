@@ -66,6 +66,7 @@
       <li><a href="#qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</a></li>
       <li><a href="#qesap_terraform_ansible_deploy_retry">qesap_terraform_ansible_deploy_retry</a></li>
       <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
+      <li><a href="#qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/qesap/qesapdeployment.pm</h1>
@@ -862,6 +863,24 @@ Return:
 <dl>
 
 <dt id="ERROR_LOG---error-log-filename1"><b>ERROR_LOG</b> - error log filename</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</h2>
+
+<pre><code>qesap_create_cidr_from_ip( proceed_on_failure )
+
+Takes an IP as argument and returns the CIDR string that
+denotes this specific ip (adds /32 mask for ipv4, /128 for ipv6).
+Return:
+ - CIDR notation for the provided IP
+ - undef if IP can&#39;t be validated and proceed_on_failure is true</code></pre>
+
+<dl>
+
+<dt id="IP---The-ip-to-convert-to-CIDR"><b>IP</b> - The ip to convert to CIDR</dt>
 <dd>
 
 </dd>

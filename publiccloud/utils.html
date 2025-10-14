@@ -36,6 +36,7 @@
       <li><a href="#zypper_install_remote">zypper_install_remote</a></li>
       <li><a href="#zypper_install_available_remote">zypper_install_available_remote</a></li>
       <li><a href="#wait_quit_zypper_pc">wait_quit_zypper_pc</a></li>
+      <li><a href="#detect_worker_ip">detect_worker_ip</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/utils.pm</h1>
@@ -187,6 +188,20 @@
 );</code></pre>
 
 <p>Wait until no background zypper-related processes are running on the remote instance. Uses <code>retry_ssh_command</code> for polling. Returns on success; dies after retries are exhausted.</p>
+
+<h2 id="detect_worker_ip">detect_worker_ip</h2>
+
+<pre><code>detect_worker_ip($proceed_on_failure)
+
+Detects the current openQA worker&#39;s public IPs (ipv4/6) and returns them as
+an array of suitable CIDR strings(/32 or /128 for ipv4/6, respectively).
+The function uses http://checkip.amazonaws.com and falls back to https://ifconfig.me
+if the first attempt fails.
+Optionally accepts proceed_on_failure =&gt; 1 to return undef instead of dying.
+
+Return:
+- Array of CIDR strings, if found
+- empty array otherwise</code></pre>
 
 
 </body>
