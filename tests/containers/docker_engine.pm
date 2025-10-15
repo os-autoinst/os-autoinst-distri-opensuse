@@ -10,7 +10,9 @@
 use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils;
 use utils;
+use Utils::Architectures;
 use containers::bats;
 
 my $version;
@@ -97,6 +99,10 @@ sub run {
         # Flaky tests
         "github.com/docker/docker/integration/service::TestServicePlugin",
     );
+    push @xfails, (
+        # These tests use amd64 images:
+        "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
+    ) unless (is_x86_64);
 
     my $tags = "apparmor selinux seccomp pkcs11";
     foreach my $dir (@test_dirs) {
