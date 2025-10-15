@@ -58,8 +58,6 @@ sub config_ssh_client {
 }
 
 sub setup_br0 {
-    script_output("zypper info virt-manager");
-    script_output("zypper se virt-manager");
     record_info("BR0 setting up over sol console", script_output("rpm -q virt-bridge-setup"));
     select_console 'sol', await_console => 1;
     send_key 'ret' if check_screen('sol-console-wait-typing-ret');
@@ -78,12 +76,14 @@ sub setup_br0 {
     enter_cmd("ip a");
     save_screenshot;
     enter_cmd("cat /etc/NetworkManager/system-connections/my-br0.nmconnection");
+    wait_still_screen 2;
     save_screenshot;
     enter_cmd("cat /etc/NetworkManager/system-connections/*slave.nmconnection");
-    wait_still_screen 5;
+    wait_still_screen 2;
+    save_screenshot;
     enter_cmd("nmcli con show my-br0 | grep stp");
-    enter_cmd("ip -d l show br0");
-    wait_still_screen 5;
+    enter_cmd("ip -d l show br0 | grep stp");
+    wait_still_screen 2;
     save_screenshot;
     # End of debug
     use_ssh_serial_console;
