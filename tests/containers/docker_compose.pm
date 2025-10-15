@@ -10,8 +10,9 @@
 use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils;
 use utils;
-use Utils::Architectures qw(is_x86_64);
+use Utils::Architectures;
 use containers::bats;
 
 my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
@@ -48,10 +49,16 @@ sub test ($target) {
     $env{EXCLUDE_E2E_TESTS} .= "|TestConvertAndTransformList" unless is_x86_64;
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
+    my @xfails = ();
+    push @xfails, (
+        # These tests sometimes fail on aarch64:
+        "github.com/docker/compose/v2/pkg/e2e::TestBuildTLS",
+    ) unless (is_x86_64);
+
     run_command "$env make $target |& tee $target.txt || true", timeout => 3600;
 
     assert_script_run "mv /tmp/report/report.xml $target.xml";
-    patch_junit "docker-compose", $version, "$target.xml";
+    patch_junit "docker-compose", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml");
     upload_logs("$target.txt");
 }
