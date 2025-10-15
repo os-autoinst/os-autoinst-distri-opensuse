@@ -8,7 +8,6 @@
 use base qw(opensusebasetest);
 use testapi;
 use lockapi;
-use experimental qw(switch);
 use network_utils qw(get_default_dns is_running_in_isolated_network set_resolv);
 use serial_terminal qw(select_serial_terminal);
 use transactional qw(trup_call);
@@ -72,14 +71,9 @@ sub run {
     my $rancher_version = get_required_var('RANCHER_VERSION');
     assert_script_run("cd $distro_dir");
     foreach my $test (split(/,/, get_required_var('TESTS_TO_RUN'))) {
-        my $opts;
-
         # Specific options are needed for some tests
-        given ($test) {
-            when ('deployrancher') {
-                $opts = "-tags=$test -certManagerVersion $certmanager_version -chartsVersion $rancher_version -chartsRepoName rancher -chartsRepoUrl $rancher_url -chartsArgs $rancher_args";
-            }
-        }
+        my $opts;
+        $opts = "-tags=$test -certManagerVersion $certmanager_version -chartsVersion $rancher_version -chartsRepoName rancher -chartsRepoUrl $rancher_url -chartsArgs $rancher_args" if ($test eq 'deployrancher');
 
         record_info("$test", "Execute '$test' test with options '$opts'");
         assert_script_run("go test -timeout=45m -v -count=1 ./entrypoint/$test/... $opts", 3600);
@@ -90,7 +84,7 @@ sub run {
 
     # This is used to avoid a sporadic crash with previous
     #  'barrier_wait' when master stopped too quickly
-    sleep(15);
+    mutex_wait('wait_nodes');
 
     # Delete all created barrier
     barrier_destroy('BARRIER_K8S_VALIDATION');

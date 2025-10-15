@@ -10,7 +10,6 @@
 
 use base qw(opensusebasetest);
 use testapi;
-use experimental qw(switch);
 use transactional qw(trup_call);
 use serial_terminal qw(select_serial_terminal);
 use Mojo::File qw(path);
@@ -63,14 +62,8 @@ sub run {
     assert_script_run("chmod 755 $config_file");
 
     # Define architecture for the system extensions
-    given ($arch) {
-        when ('aarch64') {
-            $sysext_arch = 'arm64';
-        }
-        when ('x86_64') {
-            $sysext_arch = 'x86-64';
-        }
-    }
+    $sysext_arch = 'arm64' if ($arch eq 'aarch64');
+    $sysext_arch = 'x86-64' if ($arch eq 'x86_64');
 
     # Get the system extensions list
     # NOTE: '/' is mandatory at the end of $sysext_path!

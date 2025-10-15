@@ -27,7 +27,9 @@ sub run {
     # Create a final mutex to signal all jobs that barriers are ready to use
     # Must be used with mutex_wait() before any barrier_wait() calls in the jobs
     # Taken from ha/barriers_init
-    mutex_create('barriers_ready');
+    # Create also a 'wait_nodes' mutex to sync the shutdown of all servers
+    mutex_create($_) foreach ('barriers_ready', 'wait_nodes');
+
 
     # Wait for all children to start
     # Children are server/test suites that use the PARALLEL_WITH variable

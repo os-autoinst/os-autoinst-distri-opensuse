@@ -8,7 +8,6 @@
 use base qw(opensusebasetest);
 use testapi;
 use lockapi;
-use experimental qw(switch);
 use serial_terminal qw(select_serial_terminal);
 use utils qw(exec_and_insert_password systemctl);
 use mm_network qw(configure_hostname);
@@ -33,12 +32,8 @@ sub wait_kubectl_cmd {
 
     while ($ret = script_run('which kubectl', ($args{timeout} / 10))) {
         my $timerun = time - $starttime;
-        if ($timerun < $args{timeout}) {
-            sleep 5;
-        }
-        else {
-            die("kubectl command did not appear within $args{timeout} seconds!");
-        }
+        die("kubectl command did not appear within $args{timeout} seconds!") if ($timerun >= $args{timeout});
+        sleep 5;
     }
 
     # Return the command status
@@ -72,13 +67,11 @@ sub wait_k8s_state {
       )
     {
         my $timerun = time - $starttime;
-        if ($timerun < $args{timeout}) {
-            sleep 10;
-        }
-        else {
+        if ($timerun >= $args{timeout}) {
             record_info('K8s failed state', script_output("$chk_cmd"));
             die("K8s cluster did not start within $args{timeout} seconds!");
         }
+        sleep 10;
     }
 
     # Return the command status
@@ -100,14 +93,8 @@ sub prepare_test_framework {
 
     # Define architecture
     my $arch;
-    given ($args{arch}) {
-        when ('aarch64') {
-            $arch = 'arm64';
-        }
-        when ('x86_64') {
-            $arch = 'amd64';
-        }
-    }
+    $arch = 'arm64' if ($args{arch} eq 'aarch64');
+    $arch = 'amd64' if ($args{arch} eq 'x86_64');
 
     # Get some informations from the cluster
     my ($k8s_version) = script_output('kubectl version') =~ /[Ss]erver.*:\s*(.*)/;
@@ -135,8 +122,13 @@ sub prepare_test_framework {
     # Tells the master that it can download the files
     barrier_wait('FILES_READY');
 
+    # mutex_lock/unlock are used to avoid a sporadic crash with
+    #  next 'barrier_wait' when master stopped too quickly
+    mutex_lock('wait_nodes');
+
     # Wait for tests to be executed on master node
     barrier_wait('TEST_FRAMEWORK_DONE');
+    mutex_unlock('wait_nodes');
 }
 
 sub run {
@@ -173,14 +165,8 @@ sub run {
     # Start K8s server
     # NOTE: autostart fails here because we changed some parameters in the config file
     my $k8s_svc;
-    given ($k8s) {
-        when ('k3s') {
-            $k8s_svc = 'k3s';
-        }
-        when ('rke2') {
-            $k8s_svc = 'rke2-server';
-        }
-    }
+    $k8s_svc = 'k3s' if ($k8s eq 'k3s');
+    $k8s_svc = 'rke2-server' if ($k8s eq 'rke2');
     systemctl("start $k8s_svc", timeout => $timeout);
 
     # Wait for kubectl command to be available
