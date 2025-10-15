@@ -16,7 +16,7 @@ const (
 	polkitRulesDir = "/etc/polkit-1/rules.d/"
 	testRuleFile   = "/etc/polkit-1/rules.d/42-integration-test.rules"
 	newHostname    = "polkit-test-hostname"
-	tapOutputFile  = "polkit_rules.tap"
+	tapOutputFile  = "results.tap"
 	testUser       = "bernhard"
 )
 
@@ -233,7 +233,7 @@ func restoreHostname(hostname string, t *tap.TAPRunner) {
 
 	// This command needs to be run with sudo because the test might have failed,
 	// leaving the system in a state where root is required.
-	result := utils.RunCommandTimeout(utils.MediumTimeout, "sudo", "hostnamectl", "set-hostname", hostname)
+	result := utils.RunCommandTimeout(utils.MediumTimeout, "hostnamectl", "set-hostname", hostname)
 	if result.Error != nil {
 		diagnostic := fmt.Sprintf("Failed to restore original hostname '%s'\nExit code: %d\nError: %v\nStdout: %s\nStderr: %s",
 			hostname, result.ExitCode, result.Error, result.Stdout, result.Stderr)

@@ -24,12 +24,15 @@ sub run {
     assert_script_run 'mkdir utils tap && mv utils.go utils/ && mv tap.go tap/';
 
     # run test and generate result file
-    assert_script_run("chmod +x ./runtest && ./runtest && mv results.tap /tmp");
+    assert_script_run("chmod +x ./runtest && ./runtest && mv results.tap /tmp/polkit_rules.tap");
 
     #cleanup after test
     assert_script_run("cd ~ && rm -rf testPolkit");
-    parse_extra_log('TAP', '/tmp/results.tap');
+    parse_extra_log('TAP', '/tmp/polkit_rules.tap');
 }
 
+sub test_flags {
+    return {always_rollback => 1};
+}
 
 1;
