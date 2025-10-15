@@ -25,7 +25,7 @@ sub setup {
     run_command "mv -f /etc/docker/daemon.json{,.bak}";
     run_command "mv -f /etc/sysconfig/docker{,.bak}";
     # The tests use both network & Unix socket
-    run_command 'echo DOCKER_OPTS="-H 0.0.0.0:2375 -H unix:///var/run/docker.sock --insecure-registry registry:5000 --experimental" > /etc/sysconfig/docker';
+    run_command q(echo 'DOCKER_OPTS="-H 0.0.0.0:2375 -H unix:///var/run/docker.sock --insecure-registry registry:5000 --experimental"' > /etc/sysconfig/docker);
     # The tests assume the legacy builder
     run_command "mv /usr/lib/docker/cli-plugins/docker-buildx{,.bak}";
     run_command "systemctl enable docker";
