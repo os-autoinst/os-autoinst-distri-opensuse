@@ -64,6 +64,10 @@ sub setup_br0 {
     script_run("./virt-bridge-setup.py add --stp no");
     script_run("ip a");
     script_run("nmcli con");
+    script_run("cat /etc/NetworkManager/system-connections/c-mybr0.nmconnection");
+    script_run("cat /etc/NetworkManager/system-connections/c-mybr0-port-eno1.nmconnection");
+    script_run("nmcli con show c-mybr0 | grep stp");
+    script_run("ip -d l show mybr0 | grep stp");
     record_info("BR0 set up successfully", script_output("ip a"));
 }
 
