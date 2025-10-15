@@ -129,8 +129,4 @@ sub post_run_hook {
     bats_post_hook;
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;
