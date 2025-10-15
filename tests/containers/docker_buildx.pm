@@ -29,7 +29,7 @@ sub setup {
     run_command q(echo 'DOCKER_OPTS="-H 0.0.0.0:2375 -H unix:///var/run/docker.sock --experimental"' > /etc/sysconfig/docker);
     run_command "systemctl enable docker";
     run_command "systemctl restart docker";
-    record_info("docker info", script_output("docker info"));
+    record_info "docker info", script_output("docker info");
 
     # We need gotestsum to parse "go test" and create JUnit XML output
     run_command 'export GOPATH=$HOME/go';
@@ -41,6 +41,7 @@ sub setup {
     run_command 'cp /usr/lib/docker/cli-plugins/docker-compose /usr/local/bin/compose';
 
     $version = script_output q(/usr/lib/docker/cli-plugins/docker-buildx version | awk '{ print $3 }');
+    record_info "docker-buildx version", $version;
 
     patch_sources "buildx", $version, "tests";
 }

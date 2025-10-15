@@ -52,6 +52,7 @@ sub setup {
     $version = script_output "docker version --format '{{.Client.Version}}'";
     $version =~ s/-ce$//;
     $version = "v$version";
+    record_info "docker version", $version;
 
     patch_sources "moby", $version, "e2e";
 
