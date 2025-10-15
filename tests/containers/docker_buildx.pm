@@ -10,7 +10,9 @@
 use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils;
 use utils;
+use Utils::Architectures;
 use containers::bats;
 
 my $version;
@@ -59,6 +61,10 @@ sub run {
         "github.com/docker/buildx/tests::TestIntegration/TestVersion/worker=remote",
         "github.com/docker/buildx/tests::TestIntegration",
     );
+    push @xfails, (
+        # These tests fail on aarch64
+        "github.com/docker/buildx/tests::TestIntegration/TestBuildAnnotations/worker=remote",
+    ) if (is_aarch64);
 
     run_command "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests |& tee buildx.txt", timeout => 1200;
 
