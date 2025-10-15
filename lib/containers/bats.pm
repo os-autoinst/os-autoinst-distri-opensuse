@@ -333,7 +333,7 @@ sub collect_coredumps {
 
 sub collect_calltraces {
     # Collect all traces
-    my $traces = script_output(q(dmesg | awk '/Call Trace:/ { trace = 1 } trace { print } /<\/TASK>/ { trace = 0; print "" }'));
+    my $traces = script_output(q(dmesg | awk '/(Call Trace:|-+\[ cut here \]-+)/ { trace = 1 } trace { print } /<\/TASK>/ { trace = 0; print "" }'));
 
     foreach my $trace (split /\n\n+/, $traces) {
         record_info("TRACE", $trace);
