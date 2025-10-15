@@ -173,7 +173,12 @@ sub run {
     # buildah is not present in any sle-micro, including 6.2
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/ && $host_distri !~ /micro/i);
 
-    check_container_signature() if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var("CONTAINERS_SKIP_SIGNATURE", "0") != 1);
+    my $host_version = get_var("HOST_VERSION", get_required_var("VERSION"));    # VERSION is the version of the container, not the host.
+    check_container_signature()
+      if (get_var('CONTAINER_IMAGE_TO_TEST')
+        && get_var("CONTAINERS_SKIP_SIGNATURE", "0") != 1
+        && $host_version =~ "15-SP7|16\..*|slem-6\.1"
+      );
 }
 
 sub test_flags {
