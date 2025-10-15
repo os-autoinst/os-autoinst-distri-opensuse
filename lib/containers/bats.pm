@@ -73,14 +73,12 @@ sub go_arch {
 
 sub install_git {
     # We need git 2.47.0+ to use `--ours` with `git apply -3`
-    if (is_sle) {
-        my $version = get_var("VERSION");
-        if (is_sle('<16')) {
-            $version =~ s/-/_/;
-            $version = "SLE_$version";
-        }
-        run_command "sudo zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
+    my $version = get_var("VERSION");
+    if (is_sle('<16')) {
+        $version =~ s/-/_/;
+        $version = "SLE_$version";
     }
+    run_command "sudo zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
     run_command "sudo zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
 }
 
@@ -238,13 +236,13 @@ sub setup_pkgs {
     }
     push @pkgs, qw(jq xz);
     @pkgs = uniq sort @pkgs;
+    push @pkgs, "git" unless is_sle;
     run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 600;
+    install_git unless is_tumbleweed;
 
     configure_oci_runtime $oci_runtime;
 
     return if $rebooted;
-
-    install_git;
 
     assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
     assert_script_run "chmod +x /usr/local/bin/patch_junit";
