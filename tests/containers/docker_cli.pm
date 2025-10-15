@@ -10,10 +10,11 @@
 use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils;
 use utils;
+use Utils::Architectures;
 use containers::bats;
 
-my $arch;
 my $version;
 
 sub setup {
@@ -35,11 +36,12 @@ sub setup {
     run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 
     # Install test dependencies
-    $arch = go_arch(get_var("ARCH"));
-    my $notary_version = "v0.6.1";
-    my $url = "https://github.com/theupdateframework/notary/releases/download/$notary_version/notary-Linux-$arch";
-    run_command "curl -sSLo /usr/local/bin/notary $url";
-    run_command "chmod +x /usr/local/bin/notary";
+    if (is_x86_64) {
+        my $notary_version = "v0.6.1";
+        my $url = "https://github.com/theupdateframework/notary/releases/download/$notary_version/notary-Linux-amd64";
+        run_command "curl -sSLo /usr/local/bin/notary $url";
+        run_command "chmod +x /usr/local/bin/notary";
+    }
 
     # We need gotestsum to parse "go test" and create JUnit XML output
     run_command 'export GOPATH=$HOME/go';
@@ -84,6 +86,8 @@ sub run {
     $self->setup;
     select_serial_terminal;
 
+    my $arch = go_arch(get_var("ARCH"));
+
     my %env = (
         DOCKER_CONTENT_TRUST => "",
         TEST_DOCKER_HOST => "localhost:2375",
@@ -98,6 +102,12 @@ sub run {
         "github.com/docker/cli/e2e/container::TestTrustedCreateFromBadTrustServer",
         "github.com/docker/cli/e2e/container::TestTrustedRunFromBadTrustServer",
     );
+    # These require notary which is currently shipped for x86_64 only
+    push @xfails, (
+        "github.com/docker/cli/e2e/image::TestPushWithContentTrustReleasesDelegationOnly",
+        "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsAllFirstLevelRolesWeHaveKeysFor",
+        "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths",
+    ) unless (is_x86_64);
 
     patch_junit "cli", $version, "cli.xml", @xfails;
     parse_extra_log(XUnit => "cli.xml");
