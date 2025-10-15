@@ -25,7 +25,7 @@ sub setup {
 
     systemctl "enable docker";
     systemctl "restart docker";
-    record_info("docker info", script_output("docker info"));
+    record_info "docker info", script_output("docker info");
 
     # Some tests need this file
     run_command "mkdir /root/.docker";
@@ -33,7 +33,7 @@ sub setup {
 
     $version = script_output "$docker_compose version | awk '{ print \$4 }'";
     $version = "v$version";
-    record_info("docker-compose version", $version);
+    record_info "docker-compose version", $version;
 
     patch_sources "compose", $version, "pkg/e2e";
 }

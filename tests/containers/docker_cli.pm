@@ -31,7 +31,7 @@ sub setup {
     run_command "mv /usr/lib/docker/cli-plugins/docker-buildx{,.bak}";
     run_command "systemctl enable docker";
     run_command "systemctl restart docker";
-    record_info("docker info", script_output("docker info"));
+    record_info "docker info", script_output("docker info");
 
     run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 
@@ -58,6 +58,7 @@ sub setup {
     $version = script_output "docker version --format '{{.Client.Version}}'";
     $version =~ s/-ce$//;
     $version = "v$version";
+    record_info "docker version", $version;
 
     patch_sources "cli", $version, "e2e";
 
@@ -109,7 +110,7 @@ sub run {
         "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths",
     ) unless (is_x86_64);
 
-    patch_junit "cli", $version, "cli.xml", @xfails;
+    patch_junit "docker", $version, "cli.xml", @xfails;
     parse_extra_log(XUnit => "cli.xml");
     upload_logs("cli.txt");
 }

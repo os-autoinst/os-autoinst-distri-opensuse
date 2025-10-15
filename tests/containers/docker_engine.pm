@@ -52,6 +52,7 @@ sub setup {
     $version = script_output "docker version --format '{{.Client.Version}}'";
     $version =~ s/-ce$//;
     $version = "v$version";
+    record_info "docker version", $version;
 
     patch_sources "moby", $version, "e2e";
 
@@ -77,11 +78,6 @@ sub setup {
     # Preload Docker images used for testing
     my $frozen_images = script_output q(grep -oE '[[:alnum:]./_-]+:[[:alnum:]._-]+@sha256:[0-9a-f]{64}' Dockerfile | xargs echo);
     run_command "contrib/download-frozen-image-v2.sh /docker-frozen-images $frozen_images", timeout => 180;
-
-    # Tests use an older cli version for tests
-    my $arch = get_var("ARCH");
-    my $cliversion = script_output q(sed -n '/DOCKERCLI_INTEGRATION_VERSION=/s/.*=v//p' Dockerfile);
-    run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /usr/local/bin/ --strip-components 1 docker/docker";
 }
 
 sub run {
@@ -109,7 +105,7 @@ sub run {
         my $report = $dir =~ s|/|-|gr;
         run_command "pushd $dir";
         run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", timeout => 600;
-        patch_junit "cli", $version, "$report.xml", @xfails;
+        patch_junit "docker", $version, "$report.xml", @xfails;
         parse_extra_log(XUnit => "$report.xml");
         run_command "popd";
     }
