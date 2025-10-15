@@ -58,6 +58,16 @@ sub config_ssh_client {
 }
 
 sub setup_br0 {
+    record_info("br0 setting up", "");
+    assert_script_run("wget https://raw.githubusercontent.com/aginies/virt-bridge-setup/refs/heads/main/virt-bridge-setup.py");
+    script_run("chmod a+x virt-bridge-setup.py");
+    script_run("./virt-bridge-setup.py add --stp no");
+    script_run("ip a");
+    script_run("nmcli con");
+    record_info("BR0 set up successfully", script_output("ip a"));
+}
+
+sub setup_br0_backup {
     record_info("BR0 setting up over sol console", script_output("rpm -q virt-bridge-setup"));
     select_console 'sol', await_console => 1;
     send_key 'ret' if check_screen('sol-console-wait-typing-ret');
