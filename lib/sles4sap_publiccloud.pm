@@ -536,6 +536,8 @@ sub cleanup_resource {
         }
         sleep 30;
     }
+    # Show the status of resource after cleanup resource
+    record_info('Cluster status after cleanup resource', $self->run_cmd(cmd => $crm_mon_cmd));
 }
 
 =head2 check_takeover
@@ -1393,6 +1395,13 @@ sub wait_for_cluster {
             if (is_sle('=12-SP5') && $crm_output =~ /TimeoutError/) {
                 record_soft_failure('bsc#1233026 - Error occurred, see previous output: Proceeding despite failure.');
                 return;
+            }
+            # Call cleanup_resource only if $crm_ok is false
+            if ($hanasr_ready && !$crm_ok) {
+                $self->cleanup_resource();
+                record_soft_failure("jsc#TEAM-10642 SAPHanaSR-ScaleUp-PerfOpt failed in 'Cluster is not ready after specified retries'");
+                $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
+                return if (check_crm_output(input => $crm_output));
             }
             die('Cluster is not ready after specified retries.');
         }
