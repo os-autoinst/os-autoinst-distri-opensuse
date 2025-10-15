@@ -77,11 +77,6 @@ sub setup {
     # Preload Docker images used for testing
     my $frozen_images = script_output q(grep -oE '[[:alnum:]./_-]+:[[:alnum:]._-]+@sha256:[0-9a-f]{64}' Dockerfile | xargs echo);
     run_command "contrib/download-frozen-image-v2.sh /docker-frozen-images $frozen_images", timeout => 180;
-
-    # Tests use an older cli version for tests
-    my $arch = get_var("ARCH");
-    my $cliversion = script_output q(sed -n '/DOCKERCLI_INTEGRATION_VERSION=/s/.*=v//p' Dockerfile);
-    run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /usr/local/bin/ --strip-components 1 docker/docker";
 }
 
 sub run {
