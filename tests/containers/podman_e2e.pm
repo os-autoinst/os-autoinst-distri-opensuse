@@ -83,6 +83,8 @@ sub run {
         push @xfails, (
             'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
             'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
+            # Fails with "registry.access.redhat.com/*openshift*"
+            'Libpod Suite::[It] Podman search podman search with wildcards',
         );
     }
 
