@@ -16,7 +16,7 @@ const (
 	polkitRulesDir = "/etc/polkit-1/rules.d/"
 	testRuleFile   = "/etc/polkit-1/rules.d/42-integration-test.rules"
 	newHostname    = "polkit-test-hostname"
-	tapOutputFile  = "results.tap"
+	tapOutputFile  = "polkit_rules.tap"
 	testUser       = "bernhard"
 )
 
