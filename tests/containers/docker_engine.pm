@@ -105,7 +105,7 @@ sub run {
         my $report = $dir =~ s|/|-|gr;
         run_command "pushd $dir";
         run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", timeout => 600;
-        patch_junit "cli", $version, "$report.xml", @xfails;
+        patch_junit "docker", $version, "$report.xml", @xfails;
         parse_extra_log(XUnit => "$report.xml");
         run_command "popd";
     }

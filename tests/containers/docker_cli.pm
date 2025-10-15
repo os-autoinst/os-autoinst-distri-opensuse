@@ -110,7 +110,7 @@ sub run {
         "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths",
     ) unless (is_x86_64);
 
-    patch_junit "cli", $version, "cli.xml", @xfails;
+    patch_junit "docker", $version, "cli.xml", @xfails;
     parse_extra_log(XUnit => "cli.xml");
     upload_logs("cli.txt");
 }
