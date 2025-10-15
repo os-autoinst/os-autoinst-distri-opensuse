@@ -76,15 +76,16 @@ sub run {
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
     # mapping of known expected failures
-    my @xfails = ();
+    my @xfails = (
+        # Fails with "registry.access.redhat.com/*openshift*"
+        'Libpod Suite::[It] Podman search podman search with wildcards',
+    );
     unless (is_tumbleweed) {
         # Fixed in podman 5.6.1:
         # https://bugzilla.suse.com/show_bug.cgi?id=1249050 - podman passes volume options as bind mount options to runtime
         push @xfails, (
             'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
             'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
-            # Fails with "registry.access.redhat.com/*openshift*"
-            'Libpod Suite::[It] Podman search podman search with wildcards',
         );
     }
 
