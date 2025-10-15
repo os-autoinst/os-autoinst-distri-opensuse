@@ -73,6 +73,7 @@ sub go_arch {
 
 sub install_git {
     # We need git 2.47.0+ to use `--ours` with `git apply -3`
+    return if (script_run("test -f /etc/zypp/repos.d/Kernel_tools.repo") == 0);
     my $version = get_var("VERSION");
     if (is_sle('<16')) {
         $version =~ s/-/_/;
