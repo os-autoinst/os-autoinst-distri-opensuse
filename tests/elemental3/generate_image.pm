@@ -25,12 +25,13 @@ sub run {
     my $sysext_path = get_required_var('SYSEXT_PATH');
     my $k8s = get_required_var('K8S');
     my $hdd_size = get_var('HDDSIZEGB', '30');
-    my $img_filename = "elemental-$build-$arch";
+    my $img_filename = "elemental-$build-$arch.qcow2";
     my $shared_dir = '/root/shared';
     my $config_file = "$shared_dir/config.sh";
     my $sysext_root = "$shared_dir/sysexts";
     my $sysext_dir = "$sysext_root/etc/extensions";
     my $overlay = "$shared_dir/sysexts.tar.gz";
+    my $device = '/dev/nbd0';
     my $sysext_arch;
     my $rke2_sysext_found;
     my @sysexts;
@@ -90,33 +91,28 @@ sub run {
     # Get the system extensions
     foreach my $sysext (@sysexts) {
         assert_script_run(
-            "curl -v -o ${sysext_dir}/${sysext} ${sysext_path}/${sysext}",
+            "curl -v -f -o ${sysext_dir}/${sysext} ${sysext_path}/${sysext}",
             300);
     }
 
     # Package the system extensions
     assert_script_run("tar cvaf $overlay -C $sysext_root .");
 
-    # Create a raw image and mount it as a loop device
-    assert_script_run(
-        "qemu-img create -f raw $shared_dir/$img_filename.raw ${hdd_size}G");
-    my $device =
-      script_output("losetup --find --show $shared_dir/$img_filename.raw");
-
-    # Generate RAW image
     record_info('QCOW2', 'Generate and upload QCOW2 image');
+
+    # Create a raw image and mount it
+    assert_script_run("qemu-img create -f qcow2 $shared_dir/$img_filename ${hdd_size}G");
+    assert_script_run('modprobe nbd');
+    assert_script_run("qemu-nbd -c $device $shared_dir/$img_filename");
+
+    # Generate OS image
     assert_script_run(
         "elemental3ctl --debug install --os-image $image --overlay tar://$overlay --config $config_file --target $device",
         $timeout
     );
 
-    # Generate and upload QCOW2 image
-    assert_script_run("losetup -d $device");
-    assert_script_run(
-        "qemu-img convert -c -p -f raw -O qcow2 $shared_dir/$img_filename.raw $shared_dir/$img_filename.qcow2",
-        $timeout
-    );
-    upload_asset("$shared_dir/$img_filename.qcow2", 1);
+    # Upload QCOW2 image
+    upload_asset("$shared_dir/$img_filename", 1);
 }
 
 sub test_flags {
