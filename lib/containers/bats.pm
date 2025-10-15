@@ -208,23 +208,6 @@ sub setup_pkgs {
 
     @commands = ("### RUN AS root");
 
-    if (get_var("TEST_REPOS", "")) {
-        if (script_run("zypper lr | grep -q SUSE_CA")) {
-            run_command "zypper addrepo --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo";
-        }
-        if (script_run("rpm -q ca-certificates-suse")) {
-            run_command "zypper --gpg-auto-import-keys -n install ca-certificates-suse";
-        }
-
-        foreach my $repo (split(/\s+/, get_var("TEST_REPOS", ""))) {
-            run_command "zypper addrepo $repo";
-        }
-    }
-
-    foreach my $pkg (split(/\s+/, get_var("TEST_PACKAGES", ""))) {
-        run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";
-    }
-
     install_bats if get_var("BATS_PACKAGE");
 
     enable_modules if is_sle("<16");
@@ -242,29 +225,52 @@ sub setup_pkgs {
 
     configure_oci_runtime $oci_runtime;
 
-    return if $rebooted;
-
-    assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
-    assert_script_run "chmod +x /usr/local/bin/patch_junit";
+    if (script_run("test -f /usr/local/bin/patch_junit")) {
+        assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
+        assert_script_run "chmod +x /usr/local/bin/patch_junit";
+    }
 
     # Add IP to /etc/hosts
-    my $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
-    assert_script_run "echo $ip_addr \$(hostname) >> /etc/hosts";
+    if (script_run("grep -q \$(hostname) /etc/hosts")) {
+        my $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
+        assert_script_run "echo $ip_addr \$(hostname) >> /etc/hosts";
+    }
 
     # Enable SSH
     my $algo = "ed25519";
-    systemctl 'enable --now sshd';
-    assert_script_run "ssh-keygen -t $algo -N '' -f ~/.ssh/id_$algo";
-    assert_script_run "cat ~/.ssh/id_$algo.pub >> ~/.ssh/authorized_keys";
-    assert_script_run "ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts";
-    # Persist SSH connections
-    # https://docs.docker.com/engine/security/protect-access/#ssh-tips
-    my $ssh_config = <<'EOF';
+    if (script_run("test -f ~/.ssh/id_$algo.pub")) {
+        systemctl 'enable --now sshd';
+        assert_script_run "ssh-keygen -t $algo -N '' -f ~/.ssh/id_$algo";
+        assert_script_run "cat ~/.ssh/id_$algo.pub >> ~/.ssh/authorized_keys";
+        assert_script_run "ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts";
+        # Persist SSH connections
+        # https://docs.docker.com/engine/security/protect-access/#ssh-tips
+        my $ssh_config = <<'EOF';
 ControlMaster     auto
 ControlPath       ~/.ssh/control-%C
 ControlPersist    yes
 EOF
-    write_sut_file('/root/.ssh/config', $ssh_config);
+        write_sut_file('/root/.ssh/config', $ssh_config);
+    }
+
+    return if $rebooted;
+
+    if (get_var("TEST_REPOS", "")) {
+        if (script_run("zypper lr | grep -q SUSE_CA")) {
+            run_command "zypper addrepo --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo";
+        }
+        if (script_run("rpm -q ca-certificates-suse")) {
+            run_command "zypper --gpg-auto-import-keys -n install ca-certificates-suse";
+        }
+
+        foreach my $repo (split(/\s+/, get_var("TEST_REPOS", ""))) {
+            run_command "zypper addrepo $repo";
+        }
+    }
+
+    foreach my $pkg (split(/\s+/, get_var("TEST_PACKAGES", ""))) {
+        run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";
+    }
 
     delegate_controllers;
 
