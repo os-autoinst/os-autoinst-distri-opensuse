@@ -60,11 +60,13 @@ use serial_terminal qw( select_serial_terminal );
 use mmapi qw( get_current_job_id );
 use sles4sap::ibsm qw( ibsm_network_peering_azure_delete );
 use sles4sap::ipaddr2 qw(
+  ipaddr2_bastion_pubip
   ipaddr2_infra_destroy
   ipaddr2_azure_resource_group
   ipaddr2_cleanup
   ipaddr2_logs_collect
-  ipaddr2_cloudinit_logs);
+  ipaddr2_logs_cloudinit
+  ipaddr2_ssh_intrusion_detection);
 
 sub run {
     my ($self) = @_;
@@ -74,14 +76,18 @@ sub run {
 
     select_serial_terminal;
 
+    my $bastion_ip = ipaddr2_bastion_pubip();
+
+    ipaddr2_ssh_intrusion_detection(bastion_ip => $bastion_ip);
+    ipaddr2_logs_cloudinit(bastion_ip => $bastion_ip) unless (check_var('IPADDR2_CLOUDINIT', 0));
+    ipaddr2_logs_collect(bastion_ip => $bastion_ip);
+
     if (my $ibsm_rg = get_var('IBSM_RG')) {
         ibsm_network_peering_azure_delete(
             sut_rg => ipaddr2_azure_resource_group(),
             sut_vnet => get_current_job_id(),
             ibsm_rg => $ibsm_rg);
     }
-    ipaddr2_cloudinit_logs() unless (check_var('IPADDR2_CLOUDINIT', 0));
-    ipaddr2_logs_collect();
     ipaddr2_infra_destroy();
 }
 
