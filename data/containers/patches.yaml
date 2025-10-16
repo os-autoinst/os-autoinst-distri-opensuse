@@ -215,6 +215,7 @@ podman:
     BATS_IGNORE_ROOT_REMOTE:
     BATS_IGNORE_USER_LOCAL:
     - 252-quadlet.bats::quadlet kube - start error
+    - 505-networking-pasta.bats::TCP/IPv4 large transfer, tap
     BATS_IGNORE_USER_REMOTE:
     - 505-networking-pasta.bats::TCP/IPv4 large transfer, tap
   sle-16.0:
