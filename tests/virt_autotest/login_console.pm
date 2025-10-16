@@ -64,7 +64,7 @@ sub setup_br0 {
     script_run("./virt-bridge-setup.py add --stp no");
     script_run("ip a");
     enter_cmd("ip a; echo DONE > /dev/$serialdev");
-    reset_console unless defined(wait_serial 'DONE', timeout => 30);
+    reset_console unless defined(wait_serial 'DONE', timeout => 10);
     script_run("nmcli con");
     script_run("cat /etc/NetworkManager/system-connections/c-mybr0.nmconnection");
     script_run("cat /etc/NetworkManager/system-connections/c-mybr0-port-*.nmconnection");
