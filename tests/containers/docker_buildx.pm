@@ -74,14 +74,13 @@ sub run {
     upload_logs("buildx.txt");
 }
 
-sub cleanup() {
-    script_run 'rm -vf /usr/local/bin/{buildx,compose}';
+sub cleanup {
     script_run "mv -f /etc/docker/daemon.json{.bak,}";
     script_run "mv -f /etc/sysconfig/docker{.bak,}";
     script_run 'docker rm -vf $(docker ps -aq)';
-    script_run "docker volume prune -a -f";
-    script_run "docker system prune -a -f";
+    script_run "docker system prune -a -f --volumes";
     systemctl "restart docker";
+    script_run 'rm -vf /usr/local/bin/{buildx,compose}';
 }
 
 sub post_fail_hook {

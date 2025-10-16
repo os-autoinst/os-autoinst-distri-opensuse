@@ -112,16 +112,14 @@ sub run {
     upload_logs("/var/tmp/report.txt");
 }
 
-sub cleanup() {
-    script_run 'docker rm -vf $(docker ps -aq)';
-    script_run 'docker rmi -f $(docker images -q)';
-    script_run "docker volume prune -a -f";
-    script_run "docker system prune -a -f";
-    script_run "mv -f /etc/docker/daemon.json{.bak,}";
+sub cleanup {
+    script_run "rm -f /usr/local/bin/{ctr,ping}";
     script_run "mv -f /etc/sysconfig/docker{.bak,}";
     script_run "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
-    script_run "rm -f /root/go/bin/docker";
+    script_run 'docker rm -vf $(docker ps -aq)';
+    script_run "docker system prune -a -f --volumes";
     systemctl "restart docker";
+    script_run "mv -f /etc/docker/daemon.json{.bak,}";
 }
 
 sub post_fail_hook {

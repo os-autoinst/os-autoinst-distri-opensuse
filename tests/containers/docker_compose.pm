@@ -77,13 +77,20 @@ sub run {
     test $_ foreach (@targets);
 }
 
+sub cleanup {
+    script_run 'docker rm -vf $(docker ps -aq)';
+    script_run "docker system prune -a -f --volumes";
+}
+
 sub post_fail_hook {
     my ($self) = @_;
+    cleanup;
     bats_post_hook;
 }
 
 sub post_run_hook {
     my ($self) = @_;
+    cleanup;
     bats_post_hook;
 }
 

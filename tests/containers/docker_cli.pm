@@ -115,17 +115,16 @@ sub run {
     upload_logs("cli.txt");
 }
 
-sub cleanup() {
-    script_run "docker rm -vf registry";
+sub cleanup {
     script_run "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose down -v --rmi all";
     script_run "docker swarm leave -f";
-    script_run "docker rmi -f \$(docker images -q)";
-    script_run "docker volume prune -a -f";
-    script_run "docker system prune -a -f";
     script_run "mv -f /etc/docker/daemon.json{.bak,}";
     script_run "mv -f /etc/sysconfig/docker{.bak,}";
     script_run "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
+    script_run 'docker rm -vf $(docker ps -aq)';
+    script_run "docker system prune -a -f --volumes";
     systemctl "restart docker";
+    script_run "rm -f /usr/local/bin/notary";
 }
 
 sub post_fail_hook {

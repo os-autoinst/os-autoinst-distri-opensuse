@@ -105,9 +105,13 @@ sub run {
     test "ssh";
 }
 
-sub cleanup() {
+sub cleanup {
     script_run "unset DOCKER_HOST";
-    script_run "mv -f /etc/docker/daemon.json.bak /etc/docker/daemon.json";
+    script_run "mv -f /etc/docker/daemon.json{.bak,}";
+    script_run 'docker rm -vf $(docker ps -aq)';
+    script_run "docker system prune -a -f --volumes";
+    systemctl "restart docker";
+    script_run "rm -f /usr/local/bin/{docker-credential-pass,pass}";
 }
 
 sub post_fail_hook {
