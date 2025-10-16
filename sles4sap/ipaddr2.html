@@ -29,7 +29,7 @@
       <li><a href="#ipaddr2_cluster_sanity">ipaddr2_cluster_sanity</a></li>
       <li><a href="#ipaddr2_os_connectivity_sanity">ipaddr2_os_connectivity_sanity</a></li>
       <li><a href="#ipaddr2_cloudinit_sanity">ipaddr2_cloudinit_sanity</a></li>
-      <li><a href="#ipaddr2_cloudinit_logs">ipaddr2_cloudinit_logs</a></li>
+      <li><a href="#ipaddr2_logs_cloudinit">ipaddr2_logs_cloudinit</a></li>
       <li><a href="#ipaddr2_os_network_sanity">ipaddr2_os_network_sanity</a></li>
       <li><a href="#ipaddr2_os_ssh_sanity">ipaddr2_os_ssh_sanity</a></li>
       <li><a href="#ipaddr2_ssh_bastion_assert_script_run">ipaddr2_ssh_bastion_assert_script_run</a></li>
@@ -63,6 +63,7 @@
       <li><a href="#ipaddr2_cleanup">ipaddr2_cleanup</a></li>
       <li><a href="#ipaddr2_logs_collect_cmds">ipaddr2_logs_collect_cmds</a></li>
       <li><a href="#ipaddr2_logs_collect">ipaddr2_logs_collect</a></li>
+      <li><a href="#ipaddr2_ssh_intrusion_detection">ipaddr2_ssh_intrusion_detection</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ipaddr2.pm</h1>
@@ -321,9 +322,9 @@
 </dd>
 </dl>
 
-<h2 id="ipaddr2_cloudinit_logs">ipaddr2_cloudinit_logs</h2>
+<h2 id="ipaddr2_logs_cloudinit">ipaddr2_logs_cloudinit</h2>
 
-<pre><code>ipaddr2_cloudinit_logs()</code></pre>
+<pre><code>ipaddr2_logs_cloudinit()</code></pre>
 
 <p>Print on the terminal some cloud-init related logs</p>
 
@@ -925,6 +926,23 @@
 <dl>
 
 <dt id="bastion_ip---Public-IP-address-of-the-bastion.-Calculated-if-not-provided.-Providing-it-as-an-argument-is-recommended-to-avoid-having-to-query-Azure-to-get-it35"><b>bastion_ip</b> - Public IP address of the bastion. Calculated if not provided. Providing it as an argument is recommended to avoid having to query Azure to get it.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ipaddr2_ssh_intrusion_detection">ipaddr2_ssh_intrusion_detection</h2>
+
+<pre><code>  my $ret = ipaddr2_ssh_intrusion_detection();
+
+Analyze sshd logs for failed login attempts using journalctl.
+Verifies that sshd logs do not contain login attempts from unexpected public IP addresses.
+Report any external IP is found.
+return 0 if no problem detected.</code></pre>
+
+<dl>
+
+<dt id="bastion_ip---Public-IP-of-the-bastion-host"><b>bastion_ip</b> - Public IP of the bastion host.</dt>
 <dd>
 
 </dd>
