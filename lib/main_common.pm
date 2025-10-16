@@ -250,7 +250,7 @@ sub opensuse_welcome_applicable {
     my $desktop = shift // get_var('DESKTOP', '');
     # No libqt5-qtwebengine on ppc64/ppc64le and s390 on anything older than Tumbleweed
     # Tumbleweed has switched to a gnome-tour/gtk based implementation
-    return 0 if !is_tumbleweed && get_var('ARCH') =~ /ppc64|s390/;
+    return 0 if !is_tumbleweed && get_var('ARCH', '') =~ /ppc64|s390/;
     # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2 XFCE only
     # starting with Leap 15.3 opensuse-welcome is enabled on supported DEs not just XFCE
     return 0 unless is_tumbleweed || is_leap(">=15.3");
