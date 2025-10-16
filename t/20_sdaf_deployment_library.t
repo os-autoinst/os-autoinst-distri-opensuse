@@ -572,4 +572,22 @@ subtest '[sdaf_upload_logs]' => sub {
     ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
 };
 
+subtest '[get_workload_resource_group]' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    $ms_sdaf->noop('record_info');
+    $ms_sdaf->redefine(az_group_name_get => sub { return ['Resource_group']; });
+
+    is get_workload_resource_group(deployment_id => '123'), 'Resource_group', 'Return exactly one RG';
+};
+
+subtest '[get_workload_resource_group]' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    $ms_sdaf->noop('record_info');
+    $ms_sdaf->redefine(az_group_name_get => sub { return []; });
+    dies_ok { get_workload_resource_group(deployment_id => '123') } 'Fail with empty result';
+
+    $ms_sdaf->redefine(az_group_name_get => sub { return ['First_result', 'Oh_no-second_one']; });
+    dies_ok { get_workload_resource_group(deployment_id => '123') } 'Fail with more than one results';
+};
+
 done_testing;

@@ -21,7 +21,7 @@ use utils qw(write_sut_file file_content_replace);
 use Scalar::Util 'looks_like_number';
 use Mojo::JSON qw(decode_json);
 use publiccloud::utils qw(get_credentials);
-use sles4sap::azure_cli qw(az_keyvault_secret_list az_keyvault_secret_show);
+use sles4sap::azure_cli qw(az_keyvault_secret_list az_keyvault_secret_show az_group_name_get);
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
   homedir
   deployment_dir
@@ -55,6 +55,7 @@ our @EXPORT = qw(
   validate_components
   get_fencing_mechanism
   sdaf_upload_logs
+  get_workload_resource_group
 );
 
 our $output_log_file = '';
@@ -1139,6 +1140,31 @@ sub get_fencing_mechanism {
     my %supported_fencing_values = (msi => 'AFA', sbd => 'ISCSI', asd => 'ASD');
     die "Fencing type '$fencing_type' is not supported" unless grep /^$fencing_type$/, keys(%supported_fencing_values);
     return ($supported_fencing_values{$fencing_type});
+}
+
+=head2 get_workload_resource_group
+
+    get_workload_resource_group(deployment_id=>'1234');
+
+Finds and returns resource group belonging to the tests workload zone.
+
+B<Value conversion:>
+
+=over
+
+=item * B<deployment_id> =>  Test/deployment ID
+
+=back
+
+=cut
+
+sub get_workload_resource_group {
+    my (%args) = @_;
+    croak 'Missing mandatory argument "$args{deployment_id}"' unless $args{deployment_id};
+    my $query = "[?contains(name, 'workload') && contains(name, '$args{deployment_id}')].name";
+    my $groups = az_group_name_get(query => $query);
+    die "Zero or more than one resource groups found:\n" . join("\n", @$groups) unless (@$groups == 1);
+    return $groups->[0];
 }
 
 =head3 sdaf_upload_logs
