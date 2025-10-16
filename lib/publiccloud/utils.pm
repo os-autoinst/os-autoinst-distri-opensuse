@@ -14,6 +14,7 @@ use Mojo::UserAgent;
 use Mojo::URL;
 use Mojo::JSON 'encode_json';
 use Carp qw(croak);
+use Socket qw(AF_INET AF_INET6 inet_pton);
 
 use strict;
 use warnings;
@@ -839,22 +840,23 @@ sub wait_quit_zypper_pc {
     Optionally accepts proceed_on_failure => 1 to return undef instead of dying.
 
     Return:
-    - Array of CIDR strings, if found
-    - empty array otherwise
+    - worker ip, if retrieved
+    - undef otherwise (if proceed_on_failure is set)
 
 =cut
 
 sub detect_worker_ip {
     my (%args) = @_;
+    my $ip;
     for my $url ('http://checkip.amazonaws.com', 'https://ifconfig.me') {
-        my $ip = script_output("curl -q -fsS --max-time 10 $url",
+        $ip = script_output("curl -q -fsS --max-time 10 $url",
             timeout => 15, proceed_on_failure => 1);
         $ip =~ s/^\s+|\s+$//g;
-        next unless $ip;
+        next unless $ip && (inet_pton(AF_INET, $ip) || inet_pton(AF_INET6, $ip));
         return $ip;
     }
     return undef if $args{proceed_on_failure};
-    die "Worker IP could not be determined";
+    die "Worker IP could not be determined - return was $ip";
 }
 
 1;

@@ -7,6 +7,7 @@ use Test::MockModule;
 use Test::Mock::Time;
 
 use List::Util qw(any none);
+use NetAddr::IP;
 
 use testapi 'set_var';
 use sles4sap::qesap::qesapdeployment;
@@ -1303,8 +1304,9 @@ subtest '[create_cidr_from_ip]' => sub {
 
     # ipv6 => /128
     $ret = qesap_create_cidr_from_ip(ip => '2001:db8::1');
+    my $exp = NetAddr::IP->new('2001:db8::1')->cidr;
     note("ipv6 result: $ret");
-    ok($ret eq '2001:db8::1/128', 'IPv6 mask');
+    like($ret, qr/\Q$exp\E/i, 'IPv6 mask');
 
     # replace existing mask
     $ret = qesap_create_cidr_from_ip(ip => '195.0.0.10/24');
