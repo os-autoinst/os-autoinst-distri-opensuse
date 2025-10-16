@@ -43,13 +43,13 @@ schedule:
   - console/tar
   - console/ruby
   - console/tcpdump
-  - console/sssd_389ds_functional
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
   version_specific:
     VERSION:
       15-SP7:
+        - console/sssd_389ds_functional
         - console/rabbitmq
         - console/chrony
         - console/openssl_nodejs
@@ -59,6 +59,7 @@ conditional_schedule:
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP6:
+        - console/sssd_389ds_functional
         - console/rabbitmq
         - console/chrony
         - console/openssl_nodejs
@@ -68,6 +69,7 @@ conditional_schedule:
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP5:
+        - console/sssd_389ds_functional
         - console/rabbitmq
         - console/chrony
         - console/openssl_nodejs
@@ -76,6 +78,7 @@ conditional_schedule:
         - console/ansible
         - '{{arch_specific}}'
       15-SP4:
+        - console/sssd_389ds_functional
         - console/rabbitmq
         - console/chrony
         - console/openssl_nodejs
@@ -84,6 +87,7 @@ conditional_schedule:
         - console/ansible
         - '{{arch_specific}}'
       15-SP3:
+        - console/sssd_389ds_functional
         - console/rabbitmq
         - console/chrony
         - console/openssl_nodejs
@@ -91,6 +95,7 @@ conditional_schedule:
         - console/redis
         - '{{arch_specific}}'
       15-SP2:
+        - console/sssd_389ds_functional
         - console/rabbitmq
         - console/chrony
         - console/openssl_nodejs
@@ -100,6 +105,7 @@ conditional_schedule:
       12-SP5:
         - console/openssl_nodejs
         - '{{arch_specific}}'
+        - '{{sssd_12SP5_arch_specific}}'
   arch_specific:
     ARCH:
       x86_64:
@@ -129,3 +135,9 @@ conditional_schedule:
       15-SP2:
         - console/firewalld
         - console/lshw
+  sssd_12SP5_arch_specific:
+    ARCH:
+      x86_64:
+        - console/sssd_389ds_functional
+      s390x:
+        - console/sssd_389ds_functional
