@@ -57,13 +57,14 @@ our @EXPORT = qw(
   ipaddr2_test_master_vm
   ipaddr2_test_other_vm
   ipaddr2_cloudinit_create
-  ipaddr2_cloudinit_logs
+  ipaddr2_logs_cloudinit
   ipaddr2_azure_resource_group
   ipaddr2_network_peering_create
   ipaddr2_patch_system
   ipaddr2_repos_add_server_to_hosts
   ipaddr2_cleanup
   ipaddr2_logs_collect
+  ipaddr2_ssh_intrusion_detection
 );
 
 use constant DEPLOY_PREFIX => 'ip2t';
@@ -1038,9 +1039,9 @@ sub ipaddr2_cloudinit_sanity {
     }
 }
 
-=head2 ipaddr2_cloudinit_logs
+=head2 ipaddr2_logs_cloudinit
 
-    ipaddr2_cloudinit_logs()
+    ipaddr2_logs_cloudinit()
 
 Print on the terminal some cloud-init related logs
 
@@ -1053,7 +1054,7 @@ Print on the terminal some cloud-init related logs
 =back
 =cut
 
-sub ipaddr2_cloudinit_logs {
+sub ipaddr2_logs_cloudinit {
     my (%args) = @_;
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
@@ -2282,7 +2283,7 @@ sub ipaddr2_cleanup {
     $args{cloudinit} //= 1;
 
     ipaddr2_deployment_logs() if ($args{diagnostic} == 1);
-    ipaddr2_cloudinit_logs() unless ($args{cloudinit} == 0);
+    ipaddr2_logs_cloudinit() unless ($args{cloudinit} == 0);
     if ($args{ibsm_rg}) {
         ibsm_network_peering_azure_delete(
             sut_rg => ipaddr2_azure_resource_group(),
@@ -2370,12 +2371,14 @@ sub ipaddr2_logs_collect {
     my $local_file;
     my %log_data;
     my $remote_file;
+    my $timeout;
 
     # Iterate over all the logs
     foreach my $log (ipaddr2_logs_collect_cmds()) {
         $scp_ret = 0;
 
         if (defined $log->{remote_log} && $log->{remote_log} == 1) {
+            $timeout = $log->{timeout} // 300;
             # Iterate through each remote VM to generate and collect logs.
             foreach my $id (1 .. 2) {
                 $vm_addr = USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $id);
@@ -2384,15 +2387,15 @@ sub ipaddr2_logs_collect {
                 %log_data = %{$log->{f_log}->($id)};
                 $remote_file = $log_data{file};
 
-                # Step 1: Execute command on the remote VM to generate the log file, if there is a command to run.
+                # Execute command on the remote VM to generate the log file, if there is a command to run.
                 ipaddr2_ssh_internal(
                     id => $id,
                     bastion_ip => $args{bastion_ip},
                     no_assert => 1,
-                    timeout => 300,
+                    timeout => $timeout,
                     cmd => $log_data{cmd}) if (defined $log_data{cmd});
 
-                # Step 2: Download the generated file from the remote VM to the local worker.
+                # Download the generated file from the remote VM to the local worker.
                 my ($filename) = $remote_file =~ m|/([^/]+)$|;
                 $filename //= $remote_file;    # Fallback
                 $local_file = "$worker_tmp_dir/$filename";
@@ -2406,7 +2409,7 @@ sub ipaddr2_logs_collect {
                         '-J', $bastion_ssh_addr,
                         "$vm_addr:$remote_file", $local_file));
 
-                # Step 3: If download was successful or file is local, upload the local file to openQA.
+                # If download was successful or file is local, upload the local file to openQA.
                 upload_logs($local_file) if ($scp_ret == 0);
             }
         } else {
@@ -2416,5 +2419,95 @@ sub ipaddr2_logs_collect {
         }
     }
 }
+
+=head2 ipaddr2_ssh_intrusion_detection
+
+    my $ret = ipaddr2_ssh_intrusion_detection();
+
+  Analyze sshd logs for failed login attempts using journalctl.
+  Verifies that sshd logs do not contain login attempts from unexpected public IP addresses.
+  Report any external IP is found.
+  return 0 if no problem detected.
+
+=over
+
+=item B<bastion_ip> - Public IP of the bastion host.
+
+=back
+=cut
+
+sub ipaddr2_ssh_intrusion_detection {
+    my (%args) = @_;
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    my $attempts;
+    my $total_attempts = 0;
+    my %users;
+    my %ips;
+    my %report;
+    my @suspicious_ips;
+    my %allowed_ips = map { $_ => 1 } (
+        $args{bastion_ip},
+        ipaddr2_get_internal_vm_private_ip(id => 1),
+        ipaddr2_get_internal_vm_private_ip(id => 2),
+    );
+    my $cmd = 'sudo journalctl -u sshd | grep "Connection closed by" || true';
+
+    my @log_outputs;
+
+    push @log_outputs, {
+        bastion => ipaddr2_ssh_bastion_script_output(bastion_ip => $args{bastion_ip}, cmd => $cmd)};
+
+    foreach my $id (1 .. 2) {
+        push @log_outputs, {
+            ipaddr2_get_internal_vm_name(id => $id) =>
+              ipaddr2_ssh_internal_output(id => $id,
+                bastion_ip => $args{bastion_ip}, cmd => $cmd)};
+    }
+
+    foreach my $log_hash_ref (@log_outputs) {
+        while (my ($vm_name, $log_output) = each %$log_hash_ref) {
+            $attempts = 0;
+            %users = ();
+            %ips = ();
+
+            foreach my $line (split /\n/, $log_output) {
+                # Regex to capture user and IP for both 'authenticating user' and 'invalid user'
+                if ($line =~ /Connection closed by (?:authenticating|invalid) user (\S+) (\S+)/) {
+                    my ($user, $ip) = ($1, $2);
+                    $users{$user}++;
+                    $ips{$ip}++;
+                    $attempts++;
+                }
+            }
+
+            $report{$vm_name}{attempts} = $attempts;
+            $report{$vm_name}{users} = [keys %users];
+            $report{$vm_name}{ips} = [keys %ips];
+
+            next if $attempts == 0;
+            record_info("SSHD Log Analysis for $vm_name",
+                "Found $report{$vm_name}{attempts} login attempts. Users: @{$report{$vm_name}{users}}. IPs: @{$report{$vm_name}{ips}}");
+            $total_attempts += $attempts;
+            foreach my $ip (@{$report{$vm_name}{ips}}) {
+                my $ip_obj = NetAddr::IP::Lite->new($ip);
+                # Flag any IP that is not in the allowed list and is not a private address.
+                #if ($ip_obj && !$ip_obj->is_private() && !$allowed_ips{$ip}) {
+                if ($ip_obj && !$allowed_ips{$ip}) {
+                    push @suspicious_ips, $ip;
+                }
+            }
+        }
+    }
+    return 0 unless $total_attempts > 0;
+
+    if (@suspicious_ips) {
+        record_info(
+            "INTRUSION ATTEMPT DETECTED:" .
+              "Unexpected external login attempts found from IPs: " . join(', ', @suspicious_ips));
+    }
+    return $total_attempts;
+}
+
 
 1;
