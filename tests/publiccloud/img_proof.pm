@@ -92,7 +92,8 @@ sub run {
     $instance = $args->{my_instance};
     $provider = $args->{my_provider};
 
-    if (is_hardened) {
+    # SLES 16 doesn't have AppArmor and stores ssh configuration in /usr/etc
+    if (is_hardened && is_sle("<16")) {
         # Fix permissions for /etc/ssh/sshd_config
         # https://bugzilla.suse.com/show_bug.cgi?id=1219100
         $instance->ssh_assert_script_run('sudo chmod 600 /etc/ssh/sshd_config');
