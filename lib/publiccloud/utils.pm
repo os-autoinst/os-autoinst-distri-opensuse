@@ -212,7 +212,7 @@ sub registercloudguest {
     # Check what version of registercloudguest binary we use, chost images have none pre-installed
     my $version = $instance->ssh_script_output(cmd => 'rpm -q --queryformat "%{VERSION}\n" cloud-regionsrv-client', proceed_on_failure => 1);
     if ($version =~ /cloud-regionsrv-client is not installed/) {
-        die 'cloud-regionsrv-client should not be installed' if !is_container_host;
+        die 'cloud-regionsrv-client should be installed' if !is_container_host;
     }
 
     my $cmd_time = time();
