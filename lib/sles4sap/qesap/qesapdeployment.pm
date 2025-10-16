@@ -78,7 +78,6 @@ our @EXPORT = qw(
   qesap_create_ansible_section
   qesap_remote_hana_public_ips
   qesap_wait_for_ssh
-  qesap_cluster_log_cmds
   qesap_cluster_logs
   qesap_upload_crm_report
   qesap_supportconfig_logs
@@ -90,6 +89,7 @@ our @EXPORT = qw(
   qesap_aws_delete_leftover_tgw_attachments
   qesap_terraform_ansible_deploy_retry
   qesap_create_cidr_from_ip
+  qesap_ssh_intrusion_detection
 );
 
 =head1 DESCRIPTION
@@ -1377,9 +1377,16 @@ sub qesap_upload_supportconfig_logs {
 
   List of commands to collect logs from a deployed cluster
 
+=over
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=back
 =cut
 
 sub qesap_cluster_log_cmds {
+    my (%args) = @_;
+    croak "Missing mandatory 'provider' argument" unless $args{provider};
     # Many logs does not need to be in this list as collected with `crm report` as:
     # `crm status`, `crm configure show`, `journalctl -b`,
     # `systemctl status sbd`, `corosync.conf` and `csync2`
@@ -1417,13 +1424,13 @@ sub qesap_cluster_log_cmds {
             Output => 'rpm-qa.txt',
         }
     );
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+    if ($args{provider} eq 'EC2') {
         push @log_list, {
             Cmd => 'cat ~/.aws/config > aws_config.txt',
             Output => 'aws_config.txt',
         };
     }
-    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    elsif ($args{provider} eq 'AZURE') {
         push @log_list, {
             Cmd => 'cat /var/log/cloud-init.log > azure_cloud_init_log.txt',
             Output => 'azure_cloud_init_log.txt',
@@ -1443,36 +1450,32 @@ sub qesap_cluster_logs {
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my $inventory = qesap_get_inventory(provider => $provider);
 
-    if (script_run("test -e $inventory", 60) == 0)
-    {
-        foreach my $host ('hana[0]', 'hana[1]') {
-            foreach my $cmd (qesap_cluster_log_cmds()) {
-                my $log_filename = "$host-$cmd->{Output}";
-                # remove square brackets
-                $log_filename =~ s/[\[\]"]//g;
-                my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
-                    provider => $provider,
-                    host => $host,
-                    failok => 1,
-                    root => 1,
-                    path => '/tmp/',
-                    out_path => '/tmp/ansible_script_output/',
-                    file => $log_filename);
-                upload_logs($out, failok => 1);
-            }
-            # Upload crm report
-            qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
+    # return != 0 means no inventory
+    return if (script_run("test -e $inventory", 60));
+    foreach my $host ('hana[0]', 'hana[1]') {
+        foreach my $cmd (qesap_cluster_log_cmds(provider => $provider)) {
+            my $log_filename = "$host-$cmd->{Output}";
+            $log_filename =~ s/[\[\]"]//g;
+            my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
+                provider => $provider,
+                host => $host,
+                failok => 1,
+                root => 1,
+                path => '/tmp/',
+                out_path => '/tmp/ansible_script_output/',
+                file => $log_filename);
+            upload_logs($out, failok => 1);
         }
-
-        # Collect logs in iscsi service node if there is.
-        qesap_save_y2logs(provider => $provider, host => 'iscsi[0]', failok => 1) if (script_run("grep -q 'iscsi' $inventory") == 0);
+        # Upload crm report
+        qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
     }
+
+    # Collect logs in iscsi service node if there is.
+    qesap_save_y2logs(provider => $provider, host => 'iscsi[0]', failok => 1) if (script_run("grep -q 'iscsi' $inventory") == 0);
 
     if ($provider eq 'AZURE') {
         my @diagnostic_logs = qesap_az_diagnostic_log();
-        foreach (@diagnostic_logs) {
-            push(@log_files, $_);
-        }
+        push(@log_files, $_) foreach (@diagnostic_logs);
         qesap_upload_logs();
     }
 }
@@ -1540,11 +1543,10 @@ sub qesap_supportconfig_logs {
     croak "Missing mandatory argument 'provider'" unless $args{provider};
     my $inventory = qesap_get_inventory(provider => $args{provider});
 
-    if (script_run("test -e $inventory", 60) == 0)
-    {
-        foreach my $host ('hana[0]', 'hana[1]') {
-            qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
-        }
+    # return != 0 means no inventory
+    return if (script_run("test -e $inventory", 60));
+    foreach my $host ('hana[0]', 'hana[1]') {
+        qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
     }
 }
 
@@ -1887,6 +1889,67 @@ sub qesap_create_cidr_from_ip {
     }
 
     return $v4 ? "$ip/32" : "$ip/128";
+}
+
+=head3 qesap_ssh_intrusion_detection
+
+  Search and report relevant messages from the journal.
+
+=over
+
+=item B<PROVIDER> - cloud provider name as from PUBLIC_CLOUD_PROVIDER setting
+
+=back
+=cut
+
+sub qesap_ssh_intrusion_detection {
+    my (%args) = @_;
+    croak "Missing mandatory 'provider' argument" unless $args{provider};
+    my $inventory = qesap_get_inventory(provider => $args{provider});
+    my $attempts;
+    my %users;
+    my %ips;
+    my %report;
+    my $log_filename;
+
+    # return != 0 means no inventory
+    return if (script_run("test -e $inventory", 60));
+    foreach my $host ('hana[0]', 'hana[1]') {
+        $log_filename = "$host-intrusion-log.txt";
+        $log_filename =~ s/[\[\]"]//g;
+        my $out_file = qesap_ansible_script_output_file(
+            cmd => 'journalctl -u sshd | grep \"Connection closed by\" || true',
+            provider => $args{provider},
+            host => $host,
+            failok => 1,
+            root => 1,
+            path => '/tmp/',
+            out_path => '/tmp/ansible_script_output/',
+            file => $log_filename);
+        upload_logs($out_file, failok => 1);
+        my $output = script_output("cat $out_file");
+        $attempts = 0;
+        %users = ();
+        %ips = ();
+
+        foreach my $line (split /\n/, $output) {
+            # Regular expression to capture user and IP for both 'authenticating user' and 'invalid user'
+            if ($line =~ /Connection closed by (?:authenticating|invalid) user (\S+) (\S+)/) {
+                my ($user, $ip) = ($1, $2);
+                $users{$user}++;
+                $ips{$ip}++;
+                $attempts++;
+            }
+        }
+
+        $report{$host}{attempts} = $attempts;
+        $report{$host}{users} = [keys %users];
+        $report{$host}{ips} = [keys %ips];
+
+        next if $attempts == 0;
+        record_info("SSHD Log Analysis for $host",
+            "Found $report{$host}{attempts} login attempts. Users: @{$report{$host}{users}}. IPs: @{$report{$host}{ips}}");
+    }
 }
 
 1;
