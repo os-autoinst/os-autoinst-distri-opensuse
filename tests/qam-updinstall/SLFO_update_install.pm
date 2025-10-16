@@ -43,8 +43,16 @@ sub get_patch {
 
 sub reboot_and_login {
     prepare_system_shutdown;
-    power_action('reboot');
-    opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200);
+    my $textmode = 1;
+    if (systemctl('is-enabled display-manager', ignore_failure => 1) == 0 && !is_s390x) {
+        $textmode = 0;
+        power_action('reboot');
+        set_var('DESKTOP', 'gnome', reload_needles => 1);
+    }
+    else {
+        power_action('reboot');
+    }
+    opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200, textmode => $textmode);
     select_serial_terminal;
 }
 
