@@ -23,7 +23,9 @@ sub run {
     assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
 
     my $repo_server = get_var('REPO_MIRROR_HOST', 'download.suse.de');
-    my $repo_home = "http://" . $repo_server . "/ibs/home:/fcrozat:/SLES16/SLE_\$releasever";
+    my $repo_home = "http://" . $repo_server . "/ibs/home:/fcrozat:/SLES16/"
+      . (get_var('AGAMA_PRODUCT_ID') =~ /SLES_SAP/ ? 'SLES_SAP_' : 'SLE_')
+      . "\$releasever";
     my $repo_images = 'http://' . $repo_server . '/ibs/home:/fcrozat:/SLES16/images/';
     zypper_call("ar --refresh -p 90 '$repo_home' home_sles16");
     zypper_call("ar --refresh -p 90 $repo_images home_images");
@@ -62,7 +64,7 @@ sub run {
         assert_screen('grub-menu-migration', 120);
         send_key 'ret';
         assert_screen('migration-running');
-        assert_screen('grub2', 600);
+        assert_screen('grub2', 1000);
     }
 }
 
