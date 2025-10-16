@@ -64,7 +64,7 @@ sub setup_br0 {
     script_run("./virt-bridge-setup.py add --stp no");
     # SSH session will break for a while on some machines(eg. kermit, scooter)
     enter_cmd("ip a; echo DONE > /dev/$serialdev");
-    if (defined(wait_serial 'DONE', timeout => 10)) {
+    unless (defined(wait_serial 'DONE', timeout => 10)) {
         reset_consoles;
         select_console('root-console');
     }
