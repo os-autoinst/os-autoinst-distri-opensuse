@@ -4,7 +4,6 @@ description: >
   Perform interactive installation with extensions and software pattern selection for s390x without custom url.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/import_agama_profile
   - yam/agama/patch_agama_tests
   - yam/agama/agama

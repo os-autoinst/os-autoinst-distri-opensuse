@@ -16,14 +16,7 @@ sub run {
     set_var('AGAMA_PROFILE', $profile_url);
 
     select_console 'install-shell';
-
-    if (!check_var('AGAMA_PROFILE_LOAD', '0')) {
-        my $command = get_var('AGAMA_VERSION') >= '16' ?
-          "agama config load $profile_url" : "agama profile import $profile_url";
-
-        assert_script_run($command, timeout => 300);
-    }
-
+    assert_script_run("agama config load $profile_url", timeout => 300) if (!check_var('AGAMA_PROFILE_LOAD', '0'));
 }
 
 1;
