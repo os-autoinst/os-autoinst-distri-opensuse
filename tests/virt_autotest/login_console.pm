@@ -62,9 +62,12 @@ sub setup_br0 {
     assert_script_run("wget https://raw.githubusercontent.com/aginies/virt-bridge-setup/refs/heads/main/virt-bridge-setup.py");
     script_run("chmod a+x virt-bridge-setup.py");
     script_run("./virt-bridge-setup.py add --stp no");
-    script_run("ip a");
+    # SSH session will break for a while on some machines(eg. kermit, scooter)
     enter_cmd("ip a; echo DONE > /dev/$serialdev");
-    reset_console unless defined(wait_serial 'DONE', timeout => 10);
+    if (defined(wait_serial 'DONE', timeout => 10)) {
+        reset_consoles;
+        select_console('root-console');
+    }
     script_run("nmcli con");
     script_run("cat /etc/NetworkManager/system-connections/c-mybr0.nmconnection");
     script_run("cat /etc/NetworkManager/system-connections/c-mybr0-port-*.nmconnection");
