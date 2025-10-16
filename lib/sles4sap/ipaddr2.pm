@@ -2333,11 +2333,12 @@ sub ipaddr2_logs_collect_cmds {
         {
             name => 'supportconfig',
             remote_log => 1,
+            timeout => 600,
             f_log => sub {
                 my $id = shift;
                 my $file = "supportconfig_$id";
                 return {
-                    cmd => "sudo supportconfig -R /var/tmp -B $file -x AUDIT && sudo chmod 0755 $file",
+                    cmd => "sudo supportconfig -R /var/tmp -B $file -x AUDIT && sudo chmod 0755 /var/tmp/scc_$file.txz",
                     file => "/var/tmp/scc_$file.txz"}; }
         },
         {f_log => sub { return {file => SSH_LOG}; }},
