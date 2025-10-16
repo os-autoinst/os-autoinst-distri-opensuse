@@ -15,7 +15,7 @@
       <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200</xen_append>
       <xen_kernel_append>dom0_max_vcpus=4 dom0_mem=8192M,max:8192M loglvl=all guest_loglvl=all</xen_kernel_append>
     </global>
-    <loader_type>grub2</loader_type>
+    <loader_type>default</loader_type>
   </bootloader>
   <general>
     <ask-list config:type="list"/>
@@ -140,6 +140,16 @@
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
+        % if ($check_var->('IPXE_UEFI', '1') or $check_var->('UEFI', '1')) {
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <mount>/boot/efi</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <size>512M</size>
+        </partition>
+        % }
         <partition>
           <create config:type="boolean">true</create>
           <crypt_fs config:type="boolean">false</crypt_fs>
