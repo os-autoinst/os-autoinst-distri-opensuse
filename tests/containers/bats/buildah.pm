@@ -67,9 +67,7 @@ sub enable_docker {
 
 # Run conformance tests that compare the output of buildah against Docker's BuildKit
 sub test_conformance {
-    run_command 'export GOPATH=$HOME/go';
-    run_command 'export PATH=$PATH:$GOPATH/bin';
-    run_command 'go install gotest.tools/gotestsum@v1.13.0';
+    install_gotestsum;
     run_command 'cp /usr/bin/busybox-static tests/conformance/testdata/mount-targets/true';
     run_command 'docker rmi -f $(docker images -q) || true';
     run_command 'gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/... |& tee conformance.txt', timeout => 1200;

@@ -22,6 +22,7 @@ sub setup {
     my $self = shift;
     my @pkgs = qw(containerd-ctr distribution-registry docker go1.24 make);
     $self->setup_pkgs(@pkgs);
+    install_gotestsum;
 
     # The tests assume a vanilla configuration
     run_command "mv -f /etc/docker/daemon.json{,.bak}";
@@ -33,11 +34,6 @@ sub setup {
     run_command "systemctl enable docker";
     run_command "systemctl restart docker";
     record_info "docker info", script_output("docker info");
-
-    # We need gotestsum to parse "go test" and create JUnit XML output
-    run_command 'export GOPATH=$HOME/go';
-    run_command 'export PATH=$GOPATH/bin:/usr/local/bin:$PATH';
-    run_command 'go install gotest.tools/gotestsum@v1.13.0';
 
     # We need ping from GNU inetutils
     run_command 'docker run --rm -it -v /usr/local/bin:/target:rw,z debian sh -c "apt update; apt install -y inetutils-ping; cp -v /bin/ping* /target"', timeout => 120;

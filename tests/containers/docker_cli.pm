@@ -21,6 +21,7 @@ sub setup {
     my $self = shift;
     my @pkgs = qw(docker docker-compose go1.24 jq make);
     $self->setup_pkgs(@pkgs);
+    install_gotestsum;
 
     # The tests assume a vanilla configuration
     run_command "mv -f /etc/docker/daemon.json{,.bak}";
@@ -43,10 +44,6 @@ sub setup {
         run_command "chmod +x /usr/local/bin/notary";
     }
 
-    # We need gotestsum to parse "go test" and create JUnit XML output
-    run_command 'export GOPATH=$HOME/go';
-    run_command 'export PATH=$PATH:$GOPATH/bin';
-    run_command 'go install gotest.tools/gotestsum@v1.13.0';
     # Some tests have /usr/local/go/bin/go hard-coded
     run_command 'ln -s /usr /usr/local/go';
 
