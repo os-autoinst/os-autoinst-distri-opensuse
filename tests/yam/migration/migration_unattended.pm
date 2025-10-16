@@ -9,11 +9,10 @@
 use base "opensusebasetest";
 use testapi;
 use grub_utils 'grub_test';
-use migration 'disable_installation_repos';
 use power_action_utils 'power_action';
-use utils qw(zypper_call reconnect_mgmt_console upload_folders);
+use utils qw(zypper_call reconnect_mgmt_console script_retry upload_folders);
 use Utils::Architectures 'is_s390x';
-use registration;
+use registration 'de_register_extensions';
 
 sub run {
     my $self = shift;
@@ -38,12 +37,7 @@ sub run {
     script_run('for s in $(zypper -t ls | grep _Module_' . "$version" . ' | sed -e \'s,|.*,,g\'); do zypper modifyservice --disable $s; done');
 
     # deacivate unwanted/unsupported extensions before doing migration
-    if (get_var('SCC_SUBTRACTIONS')) {
-        foreach (split(',', get_var('SCC_SUBTRACTIONS'))) {
-            my $extension = get_addon_fullname($_);
-            remove_suseconnect_product($extension);
-        }
-    }
+    de_register_extensions(get_var('SCC_SUBTRACTIONS')) if get_var('SCC_SUBTRACTIONS');
 
     # upload logs to know system state before migration
     upload_logs("/boot/grub2/grub.cfg", failok => 1);
@@ -53,7 +47,7 @@ sub run {
         assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         enter_cmd '/usr/sbin/run_migration';
         reset_consoles;
-        reconnect_mgmt_console;
+        reconnect_mgmt_console(timeout => 600);
     } else {
         # disable timeout for migration grub menu
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
@@ -61,7 +55,7 @@ sub run {
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
         assert_screen('grub-menu-migration', 120);
         send_key 'ret';
-        assert_screen('migration-running');
+        assert_screen('migration-running', 120);
         assert_screen('grub2', 600);
     }
 }

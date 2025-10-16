@@ -22,6 +22,7 @@ use transactional;
 our @EXPORT = qw(
   add_suseconnect_product
   remove_suseconnect_product
+  de_register_extensions
   cleanup_registration
   register_product
   assert_registration_screen_present
@@ -234,6 +235,24 @@ sub remove_suseconnect_product {
     $arch //= get_required_var('ARCH');
     $params //= '';
     script_retry("SUSEConnect $debug_flag -d -p $name/$version/$arch $params", retry => 5, delay => 60, timeout => 180);
+}
+
+=head2 de_register_extensions
+
+    de_register_extensions($extensions);
+
+Wrapper for SUSEConnect -d -p $extension
+The parameter $extensions is a comma separated list of extensions.
+=cut
+
+sub de_register_extensions {
+    my ($extensions) = @_;
+    my $status = script_output('suseconnect --status-text');
+    foreach my $item (split(',', $extensions)) {
+        my $extension = get_addon_fullname($item);
+        my $extension_version_arch = qx{echo "$status" | grep '$extension' | tr -d '()'};
+        script_retry("SUSEConnect -d -p $extension_version_arch", retry => 5, delay => 60, timeout => 180);
+    }
 }
 
 =head2 cleanup_registration
