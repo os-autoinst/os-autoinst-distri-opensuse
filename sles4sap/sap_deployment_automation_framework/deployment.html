@@ -38,7 +38,8 @@
       <li><a href="#sdaf_register_byos">sdaf_register_byos</a></li>
       <li><a href="#sdaf_deployment_reused">sdaf_deployment_reused</a></li>
       <li><a href="#validate_components">validate_components</a></li>
-      <li><a href="#get_fencing_mechanism">get_fencing_mechanism</a>
+      <li><a href="#get_fencing_mechanism">get_fencing_mechanism</a></li>
+      <li><a href="#get_workload_resource_group">get_workload_resource_group</a>
         <ul>
           <li><a href="#sdaf_upload_logs">sdaf_upload_logs</a></li>
         </ul>
@@ -526,6 +527,21 @@ tee - writes output also into the log file</code></pre>
 
 </li>
 <li><p><b>asd</b> =&gt; &#39;ASD&#39; - Azure shared disk based SBD device</p>
+
+</li>
+</ul>
+
+<h2 id="get_workload_resource_group">get_workload_resource_group</h2>
+
+<pre><code>get_workload_resource_group(deployment_id=&gt;&#39;1234&#39;);</code></pre>
+
+<p>Finds and returns resource group belonging to the tests workload zone.</p>
+
+<p><b>Value conversion:</b></p>
+
+<ul>
+
+<li><p><b>deployment_id</b> =&gt; Test/deployment ID</p>
 
 </li>
 </ul>

@@ -45,6 +45,7 @@
       <li><a href="#az_nic_id_get">az_nic_id_get</a></li>
       <li><a href="#az_nic_get">az_nic_get</a></li>
       <li><a href="#az_nic_name_get">az_nic_name_get</a></li>
+      <li><a href="#az_nic_list">az_nic_list</a></li>
       <li><a href="#az_ipconfig_name_get">az_ipconfig_name_get</a></li>
       <li><a href="#az_ipconfig_update">az_ipconfig_update</a></li>
       <li><a href="#az_ipconfig_delete">az_ipconfig_delete</a></li>
@@ -55,6 +56,7 @@
       <li><a href="#az_network_peering_create">az_network_peering_create</a></li>
       <li><a href="#az_network_peering_list">az_network_peering_list</a></li>
       <li><a href="#az_network_peering_delete">az_network_peering_delete</a></li>
+      <li><a href="#az_network_peering_exists">az_network_peering_exists</a></li>
       <li><a href="#az_disk_create">az_disk_create</a></li>
       <li><a href="#az_resource_delete">az_resource_delete</a></li>
       <li><a href="#az_resource_list">az_resource_list</a></li>
@@ -67,6 +69,16 @@
       <li><a href="#az_keyvault_secret_list">az_keyvault_secret_list</a></li>
       <li><a href="#az_keyvault_secret_show">az_keyvault_secret_show</a></li>
       <li><a href="#az_group_exists">az_group_exists</a></li>
+      <li><a href="#az_network_vnet_show">az_network_vnet_show</a></li>
+      <li><a href="#az_network_dns_zone_create">az_network_dns_zone_create</a></li>
+      <li><a href="#az_network_dns_zone_delete">az_network_dns_zone_delete</a></li>
+      <li><a href="#az_network_dns_zone_list">az_network_dns_zone_list</a></li>
+      <li><a href="#az_network_dns_add_record">az_network_dns_add_record</a></li>
+      <li><a href="#az_network_dns_link_create">az_network_dns_link_create</a></li>
+      <li><a href="#az_network_dns_link_delete">az_network_dns_link_delete</a></li>
+      <li><a href="#az_network_dns_link_list">az_network_dns_link_list</a></li>
+      <li><a href="#az_network_dns_links_cleanup">az_network_dns_links_cleanup</a></li>
+      <li><a href="#az_network_dns_zones_cleanup">az_network_dns_zones_cleanup</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -105,7 +117,7 @@
 
 <pre><code>my $ret = az_group_name_get();</code></pre>
 
-<p>Get the name of all existing Resource Group in the current subscription. By defailt the output is an array of strings. Output can be modified using <b>$args{query}</b>.</p>
+<p>Get the name of all existing Resource Group in the current subscription. By default the output is an array of strings. Output can be modified using <b>$args{query}</b>.</p>
 
 <dl>
 
@@ -829,6 +841,24 @@
 </dd>
 </dl>
 
+<h2 id="az_nic_list">az_nic_list</h2>
+
+<pre><code>az_nic_list(resource_group=&gt;&#39;resource group name&#39; [, query=&gt;&#39;[].name&#39;]);</code></pre>
+
+<p>Returns <b>ARRAYREF</b> with all nic names located in resource group. Output can be modified using <b>$args{query}</b>.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="query-Modify-output-filter-using-jmespath-query.-Default:-value"><b>query</b> Modify output filter using jmespath query. Default: value</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="az_ipconfig_name_get">az_ipconfig_name_get</h2>
 
 <pre><code>my $ipconfig_name = az_ipconfig_name_get(
@@ -1079,6 +1109,28 @@
 
 </dd>
 <dt id="timeout---Optional-Timeout-for-the-assert_script_run-command"><b>timeout</b> - (Optional) Timeout for the assert_script_run command</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_peering_exists">az_network_peering_exists</h2>
+
+<pre><code>az_network_peering_exists(resource_group=&gt;&#39;openqa-rg&#39;, vnet=&gt;&#39;openqa-this-vnet&#39;, name=&gt;&#39;openqa-fromVNET-toVNET&#39;);</code></pre>
+
+<p>Returns 1 (true) if peering resource exists, 0 (false) if it was not found.</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-that-contain-vnet-source-of-the-peering2"><b>resource_group</b> - existing resource group that contain vnet source of the peering</dt>
+<dd>
+
+</dd>
+<dt id="vnet---existing-vnet-in-resource_group-used-as-source-of-the-peering2"><b>vnet</b> - existing vnet in resource_group, used as source of the peering</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-the-existing-the-network-peering-to-search-for"><b>name</b> - name of the existing the network peering to search for</dt>
 <dd>
 
 </dd>
@@ -1375,7 +1427,7 @@ identifiers for Azure resources.</code></pre>
 <dd>
 
 </dd>
-<dt id="query-Modify-output-filter-using-jmespath-query.-Default:-value"><b>query</b> Modify output filter using jmespath query. Default: value</dt>
+<dt id="query-Modify-output-filter-using-jmespath-query.-Default:-value1"><b>query</b> Modify output filter using jmespath query. Default: value</dt>
 <dd>
 
 </dd>
@@ -1397,11 +1449,225 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name1"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
 <dt id="quiet-Turn-off-verbosity-if-defined"><b>quiet</b> Turn off verbosity if defined</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_vnet_show">az_network_vnet_show</h2>
+
+<pre><code>az_network_vnet_show(resource_group=&gt;&#39;resource group name&#39;, name=&gt;&#39;vnet01&#39; [, query=&gt;&#39;[].name&#39;]);</code></pre>
+
+<p>Returns <b>HASHREF</b> with all NIC names located in resource group. Output can be modified using <b>$args{query}</b>.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name2"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="name-VNET-name"><b>name</b> VNET name</dt>
+<dd>
+
+</dd>
+<dt id="query-Modify-output-filter-using-jmespath-query.-Default:-undefined"><b>query</b> Modify output filter using jmespath query. Default: undefined</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_dns_zone_create">az_network_dns_zone_create</h2>
+
+<pre><code>az_network_dns_zone_create(resource_group=&gt;&#39;resource group name&#39;, name=&gt;&#39;default.com&#39;);</code></pre>
+
+<p>Creates private DNS zone within specified <b>resource_group</b>.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name3"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="name-Private-DNS-zone-name"><b>name</b> Private DNS zone name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_dns_zone_delete">az_network_dns_zone_delete</h2>
+
+<pre><code>az_network_dns_zone_delete(resource_group=&gt;&#39;resource group name&#39;, zone_name=&gt;&#39;default.com&#39;);</code></pre>
+
+<p>Deletes private DNS zone within <b>resource_group</b> specified by <b>zone_name</b>.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name4"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="zone_name-Private-DNS-zone-name"><b>zone_name</b> Private DNS zone name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_dns_zone_list">az_network_dns_zone_list</h2>
+
+<pre><code>az_network_dns_zone_list(resource_group=&gt;&#39;resource group name&#39;);</code></pre>
+
+<p>Returns private DNS zone list as an <b>ARRAYREF</b> existing within specified <b>resource_group</b>.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name5"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="query-Modify-output-filter-using-jmespath-query.-Default:-.name"><b>query</b> Modify output filter using jmespath query. Default: [].name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_dns_add_record">az_network_dns_add_record</h2>
+
+<pre><code>az_network_dns_add_record(
+    resource_group=&gt;&#39;resource group name&#39;,
+    zone_name=&gt;&#39;opensuse.org&#39;,
+    record_name=&gt;&#39;openqa&#39;,
+    ip_addr=&gt;&#39;192.168.1.5&#39;
+);</code></pre>
+
+<p>Creates a DNS record inside Private DNS zone <b>$args{zone_name}</b>.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name6"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="zone_name-Private-DNS-zone-name1"><b>zone_name</b> Private DNS zone name</dt>
+<dd>
+
+</dd>
+<dt id="record_name-Private-DNS-zone-record-name"><b>record_name</b> Private DNS zone record name</dt>
+<dd>
+
+</dd>
+<dt id="ip_addr-DNS-record-IPv4-address"><b>ip_addr</b> DNS record IPv4 address</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_dns_link_create">az_network_dns_link_create</h2>
+
+<pre><code>az_network_dns_link_create(
+    resource_group=&gt;&#39;resource group name&#39;,
+    zone_name=&#39;opensuse.org&#39;,
+    vnet=&gt;&#39;vnet_rg&#39;,
+    name=&gt;&#39;link_to_rg_vnet&#39;
+);</code></pre>
+
+<p>Creates private DNS zone link between VNET and DNS zone.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name7"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="zone_name-Private-DNS-zone-name2"><b>zone_name</b> Private DNS zone name</dt>
+<dd>
+
+</dd>
+<dt id="vnet-VNET-name"><b>vnet</b> VNET name</dt>
+<dd>
+
+</dd>
+<dt id="name-DNS-link-resource-name"><b>name</b> DNS link resource name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_dns_link_delete">az_network_dns_link_delete</h2>
+
+<pre><code>az_network_dns_link_delete(
+    resource_group=&gt;&#39;resource group name&#39;,
+    zone_name=&#39;opensuse.org&#39;,
+    link_name=&gt;&#39;link_to_rg_vnet&#39;
+);</code></pre>
+
+<p>Deletes private DNS link between VNET and DNS zone.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name8"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="zone_name-Private-DNS-zone-name3"><b>zone_name</b> Private DNS zone name</dt>
+<dd>
+
+</dd>
+<dt id="link_name-DNS-link-resource-name"><b>link_name</b> DNS link resource name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_dns_link_list">az_network_dns_link_list</h2>
+
+<pre><code>az_network_dns_link_list(resource_group=&gt;&#39;resource group name&#39;, zone_name=&#39;opensuse.org&#39;, query=&gt;&#39;[].id&#39;);</code></pre>
+
+<p>Lists private DNS links withing specified <b>resource_group</b> and <b>zone_name</b>. Result is returned as <b>ARRAYREF</b>.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name9"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="zone_name-Private-DNS-zone-name4"><b>zone_name</b> Private DNS zone name</dt>
+<dd>
+
+</dd>
+<dt id="query-Modify-output-filter-using-jmespath-query.-Default:-.name1"><b>query</b> Modify output filter using jmespath query. Default: [].name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_dns_links_cleanup">az_network_dns_links_cleanup</h2>
+
+<pre><code>az_network_dns_links_cleanup(resource_group=&gt;&#39;resource group name&#39;);</code></pre>
+
+<p>Searches and deletes all DNS links within specified <b>resource_group</b>. Intended for cleanup to remove nested resource.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name10"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_network_dns_zones_cleanup">az_network_dns_zones_cleanup</h2>
+
+<pre><code>az_network_dns_zones_cleanup(resource_group=&gt;&#39;resource group name&#39;);</code></pre>
+
+<p>Searches and deletes all DNS zones within specified <b>resource_group</b>.</p>
+
+<dl>
+
+<dt id="resource_group-Resource-group-name11"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
