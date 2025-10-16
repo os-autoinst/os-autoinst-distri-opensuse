@@ -35,9 +35,7 @@ sub run_tests {
 }
 
 sub test_integration {
-    run_command 'export GOPATH=$HOME/go';
-    run_command 'export PATH=$PATH:$GOPATH/bin';
-    run_command 'go install gotest.tools/gotestsum@v1.13.0';
+    install_gotestsum;
     # We can't use openSUSE's distribution-registry package on SLES so extract this binary from the OCI image
     # Note: registry:latest with v3 fails unlike library/registry:3
     run_command "podman run --rm -v /usr/local/bin:/target:rw,z --user root --entrypoint /bin/cp $registry /bin/registry /target/";

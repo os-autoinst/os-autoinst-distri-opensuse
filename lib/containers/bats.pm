@@ -30,6 +30,7 @@ our @EXPORT = qw(
   bats_post_hook
   bats_tests
   go_arch
+  install_gotestsum
   install_ncat
   mount_tmp_vartmp
   patch_junit
@@ -81,6 +82,14 @@ sub install_git {
     }
     run_command "sudo zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
     run_command "sudo zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
+}
+
+sub install_gotestsum {
+    # We need gotestsum to parse "go test" and create JUnit XML output
+    return if (script_run("command -v gotestsum") == 0);
+    run_command 'export GOPATH=$HOME/go';
+    run_command 'export PATH=$GOPATH/bin:$PATH';
+    run_command 'go install gotest.tools/gotestsum@v1.13.0';
 }
 
 sub install_ncat {

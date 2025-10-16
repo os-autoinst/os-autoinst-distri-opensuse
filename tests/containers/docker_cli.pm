@@ -21,6 +21,7 @@ sub setup {
     my $self = shift;
     my @pkgs = qw(docker docker-compose go1.24 jq make);
     $self->setup_pkgs(@pkgs);
+    install_gotestsum;
 
     # The tests assume a vanilla configuration
     run_command "mv -f /etc/docker/daemon.json{,.bak}";
@@ -43,10 +44,6 @@ sub setup {
         run_command "chmod +x /usr/local/bin/notary";
     }
 
-    # We need gotestsum to parse "go test" and create JUnit XML output
-    run_command 'export GOPATH=$HOME/go';
-    run_command 'export PATH=$PATH:$GOPATH/bin';
-    run_command 'go install gotest.tools/gotestsum@v1.13.0';
     # Some tests have /usr/local/go/bin/go hard-coded
     run_command 'ln -s /usr /usr/local/go';
 
@@ -115,17 +112,16 @@ sub run {
     upload_logs("cli.txt");
 }
 
-sub cleanup() {
-    script_run "docker rm -vf registry";
+sub cleanup {
     script_run "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose down -v --rmi all";
     script_run "docker swarm leave -f";
-    script_run "docker rmi -f \$(docker images -q)";
-    script_run "docker volume prune -a -f";
-    script_run "docker system prune -a -f";
     script_run "mv -f /etc/docker/daemon.json{.bak,}";
     script_run "mv -f /etc/sysconfig/docker{.bak,}";
     script_run "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
+    script_run 'docker rm -vf $(docker ps -aq)';
+    script_run "docker system prune -a -f --volumes";
     systemctl "restart docker";
+    script_run "rm -f /usr/local/bin/notary";
 }
 
 sub post_fail_hook {

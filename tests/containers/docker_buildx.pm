@@ -21,6 +21,7 @@ sub setup {
     my $self = shift;
     my @pkgs = qw(buildkit distribution-registry docker docker-buildx docker-compose go1.24);
     $self->setup_pkgs(@pkgs);
+    install_gotestsum;
 
     # The tests assume a vanilla configuration
     run_command "mv -f /etc/docker/daemon.json{,.bak}";
@@ -30,11 +31,6 @@ sub setup {
     run_command "systemctl enable docker";
     run_command "systemctl restart docker";
     record_info "docker info", script_output("docker info");
-
-    # We need gotestsum to parse "go test" and create JUnit XML output
-    run_command 'export GOPATH=$HOME/go';
-    run_command 'export PATH=$GOPATH/bin:$PATH';
-    run_command 'go install gotest.tools/gotestsum@v1.13.0';
 
     # The tests expect the plugins to be in PATH without the "docker-" prefix
     run_command 'cp /usr/lib/docker/cli-plugins/docker-buildx /usr/local/bin/buildx';
@@ -74,14 +70,13 @@ sub run {
     upload_logs("buildx.txt");
 }
 
-sub cleanup() {
-    script_run 'rm -vf /usr/local/bin/{buildx,compose}';
+sub cleanup {
     script_run "mv -f /etc/docker/daemon.json{.bak,}";
     script_run "mv -f /etc/sysconfig/docker{.bak,}";
     script_run 'docker rm -vf $(docker ps -aq)';
-    script_run "docker volume prune -a -f";
-    script_run "docker system prune -a -f";
+    script_run "docker system prune -a -f --volumes";
     systemctl "restart docker";
+    script_run 'rm -vf /usr/local/bin/{buildx,compose}';
 }
 
 sub post_fail_hook {
