@@ -950,12 +950,12 @@ sub upload_supportconfig_log {
     local $@;
     my $res = eval { $self->ssh_script_run($cmd, timeout => ($timeout + 120)) };
     if (isok($res) && !$@) {
-        $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txz", timeout => 0);
+        $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txz");
         $self->upload_log("$logs.txz", failok => 1, timeout => 180);
         record_info('supportconfig done', "OK: duration " . (time() - $start) . "s. Log $logs.txz" . (($exclude) ? " - Excluded: $exclude" : ''));
     } else {
         # screen output features list only
-        $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txt", timeout => 0);
+        $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txt");
         $self->upload_log("$logs.txt", failok => 1, timeout => 90);
         record_info('FAILED supportconfig', 'Failed after: ' . (time() - $start) . 'sec.', result => 'fail');
     }
