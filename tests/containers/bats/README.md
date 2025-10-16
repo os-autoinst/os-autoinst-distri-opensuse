@@ -11,6 +11,8 @@ This directory contains [BATS framework](https://github.com/bats-core/bats-core)
 | [runc](runc.pm) | https://github.com/opencontainers/runc/tree/main/tests/integration |
 | [skopeo](skopeo.pm) | https://github.com/containers/skopeo/tree/main/systemtest |
 
+Note: For buildah we also run the [conformance tests](https://github.com/containers/buildah/blob/main/tests/conformance/README.md)
+
 Library code is found in [lib/containers/bats.pm](../../../lib/containers/bats.pm)
 
 The tests rely on some variables:
