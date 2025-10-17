@@ -23,14 +23,7 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    # The tests assume a vanilla configuration
-    run_command "mv -f /etc/docker/daemon.json{,.bak}";
-    run_command "mv -f /etc/sysconfig/docker{,.bak}";
-    # The tests use both network & Unix socket
-    run_command q(echo 'DOCKER_OPTS="-H 0.0.0.0:2375 -H unix:///var/run/docker.sock --experimental"' > /etc/sysconfig/docker);
-    run_command "systemctl enable docker";
-    run_command "systemctl restart docker";
-    record_info "docker info", script_output("docker info");
+    configure_docker;
 
     # The tests expect the plugins to be in PATH without the "docker-" prefix
     run_command 'cp /usr/lib/docker/cli-plugins/docker-buildx /usr/local/bin/buildx';
@@ -71,11 +64,7 @@ sub run {
 }
 
 sub cleanup {
-    script_run "mv -f /etc/docker/daemon.json{.bak,}";
-    script_run "mv -f /etc/sysconfig/docker{.bak,}";
-    script_run 'docker rm -vf $(docker ps -aq)';
-    script_run "docker system prune -a -f --volumes";
-    systemctl "restart docker";
+    cleanup_docker;
     script_run 'rm -vf /usr/local/bin/{buildx,compose}';
 }
 

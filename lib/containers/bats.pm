@@ -29,6 +29,8 @@ use Utils::Architectures;
 our @EXPORT = qw(
   bats_post_hook
   bats_tests
+  cleanup_docker
+  configure_docker
   go_arch
   install_gotestsum
   install_ncat
@@ -45,6 +47,7 @@ my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/";
 my $rebooted = 0;
 my $settings;
+my $ip_addr;
 
 my @commands = ();
 
@@ -62,6 +65,54 @@ sub run_command {
     } else {
         assert_script_run $cmd, %args;
     }
+}
+
+sub configure_docker {
+    my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000";
+    my $port = 2375;
+    if (get_var("DOCKER_TLS")) {
+        $port++;
+        my $ca_cert = "ca.pem";
+        my $ca_key = "ca-key.pem";
+        my $req = "cert.csr";
+        my $cert = "cert.pem";
+        my $key = "key.pem";
+        my $opts = "-req -days 7 -sha256 -in $req -CA $ca_cert -CAkey $ca_key -CAcreateserial -out $cert";
+
+        # Create self-signed CA
+        run_command "openssl genrsa -out $ca_key 4096";
+        run_command qq(openssl req -new -x509 -days 7 -key $ca_key -sha256 -subj "/CN=CA" -out $ca_cert);
+        # Create server cert & key
+        run_command "openssl genrsa -out $key 4096";
+        run_command qq(openssl req -new -key $key -subj "/CN=\$(hostname)" -out $req);
+        run_command "openssl x509 $opts -extfile <(echo extendedKeyUsage=serverAuth) -extfile <(echo subjectAltName=DNS:\$(hostname),DNS:localhost,IP:$ip_addr,IP:127.0.0.1)";
+        run_command "cp -f $ca_cert $cert $key /etc/docker/";
+        # Create client server & key
+        run_command "openssl genrsa -out $key 4096";
+        run_command qq(openssl req -new -key $key -subj "/CN=client" -out $req);
+        run_command "openssl x509 $opts -extfile <(echo extendedKeyUsage=clientAuth)";
+        run_command "mkdir -m 700 ~/.docker/ || true";
+        run_command "mv -f $ca_cert $cert $key ~/.docker/";
+        $docker_opts .= " --tlsverify --tlscacert=/etc/docker/$ca_cert --tlscert=/etc/docker/$cert --tlskey=/etc/docker/$key";
+    }
+    $docker_opts .= " -H 0.0.0.0:$port";
+    run_command "mv /etc/sysconfig/docker{,.bak}";
+    run_command "mv /etc/docker/daemon.json{,.bak}";
+    run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
+    run_command "systemctl restart docker";
+    run_command "export DOCKER_HOST=tcp://localhost:$port";
+    run_command "export DOCKER_TLS_VERIFY=1" if get_var("DOCKER_TLS");
+    record_info "docker info", script_output("docker info");
+}
+
+sub cleanup_docker {
+    script_run "mv -f /etc/docker/daemon.json{.bak,}";
+    script_run "mv -f /etc/sysconfig/docker{.bak,}";
+    script_run 'docker rm -vf $(docker ps -aq)';
+    script_run "docker volume prune -a -f";
+    script_run "docker system prune -a -f";
+    script_run "unset DOCKER_HOST DOCKER_TLS_VERIFY";
+    systemctl "restart docker";
 }
 
 # Translate RPM arch to Go arch
@@ -242,7 +293,7 @@ sub setup_pkgs {
 
     # Add IP to /etc/hosts
     if (script_run("grep -q \$(hostname) /etc/hosts")) {
-        my $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
+        $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
         assert_script_run "echo $ip_addr \$(hostname) >> /etc/hosts";
     }
 
@@ -530,7 +581,7 @@ sub patch_sources {
             # ignore missing files.
             my $file = basename($url);
             my $apply_cmd = "git apply -3 --ours $file";
-            $apply_cmd .= " || git apply -3 --ours --include '$tests_dir/*' $file";
+            $apply_cmd .= " || git apply -3 --ours --include '$tests_dir/*' $file" if $tests_dir;
             run_command $apply_cmd;
         }
     }

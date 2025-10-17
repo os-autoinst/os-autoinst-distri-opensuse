@@ -24,16 +24,10 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    # The tests assume a vanilla configuration
-    run_command "mv -f /etc/docker/daemon.json{,.bak}";
-    run_command "mv -f /etc/sysconfig/docker{,.bak}";
-    # The tests use both network & Unix socket
-    run_command 'echo DOCKER_OPTS="-H 0.0.0.0:2375 -H unix:///var/run/docker.sock --insecure-registry registry:5000" > /etc/sysconfig/docker';
+    configure_docker;
+
     # The tests assume the legacy builder
-    run_command "mv /usr/lib/docker/cli-plugins/docker-buildx{,.bak}";
-    run_command "systemctl enable docker";
-    run_command "systemctl restart docker";
-    record_info "docker info", script_output("docker info");
+    run_command "mv -f /usr/lib/docker/cli-plugins/docker-buildx{,.bak}";
 
     # We need ping from GNU inetutils
     run_command 'docker run --rm -it -v /usr/local/bin:/target:rw,z debian sh -c "apt update; apt install -y inetutils-ping; cp -v /bin/ping* /target"', timeout => 120;
@@ -50,7 +44,7 @@ sub setup {
     $version = "v$version";
     record_info "docker version", $version;
 
-    patch_sources "moby", $version, "e2e";
+    patch_sources "moby", $version, "integration";
 
     # Build test helpers
     run_command "cp -f vendor.mod go.mod || true";
@@ -110,12 +104,8 @@ sub run {
 
 sub cleanup {
     script_run "rm -f /usr/local/bin/{ctr,ping}";
-    script_run "mv -f /etc/sysconfig/docker{.bak,}";
     script_run "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
-    script_run 'docker rm -vf $(docker ps -aq)';
-    script_run "docker system prune -a -f --volumes";
-    systemctl "restart docker";
-    script_run "mv -f /etc/docker/daemon.json{.bak,}";
+    cleanup_docker;
 }
 
 sub post_fail_hook {
