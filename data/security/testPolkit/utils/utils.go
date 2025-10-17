@@ -67,6 +67,8 @@ func RunCommandTimeout(timeout time.Duration, command ...string) *CommandResult 
 	outPipe, _ := cmd.StdoutPipe()
 	errPipe, _ := cmd.StderrPipe()
 
+	// asincronously read stdout and stderr to our buffer
+	// so we get something even if the command is killed by timeout
 	go func() {
 		io.Copy(&errBuf, errPipe)
 		io.Copy(&outBuf, outPipe)
