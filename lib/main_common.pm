@@ -250,7 +250,7 @@ sub opensuse_welcome_applicable {
     my $desktop = shift // get_var('DESKTOP', '');
     # No libqt5-qtwebengine on ppc64/ppc64le and s390 on anything older than Tumbleweed
     # Tumbleweed has switched to a gnome-tour/gtk based implementation
-    return 0 if !is_tumbleweed && get_var('ARCH') =~ /ppc64|s390/;
+    return 0 if !is_tumbleweed && get_var('ARCH', '') =~ /ppc64|s390/;
     # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2 XFCE only
     # starting with Leap 15.3 opensuse-welcome is enabled on supported DEs not just XFCE
     return 0 unless is_tumbleweed || is_leap(">=15.3");
@@ -1178,7 +1178,8 @@ sub load_consoletests {
     return unless consolestep_is_applicable();
     loadtest 'console/prjconf_excluded_rpms' if is_livesystem;
     loadtest "console/system_prepare" unless is_opensuse;
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && !get_var('QAM_MINIMAL');
+    loadtest 'console/post_installation' if is_updates_tests && !(get_var('QAM_MINIMAL') || get_var('UPGRADE') || is_jeos);
+    loadtest 'qa_automation/patch_and_reboot' if get_var('UPGRADE') || is_jeos;
     loadtest 'console/apparmor' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/check_network";
     loadtest "console/system_state";
@@ -2347,7 +2348,8 @@ sub load_system_prepare_tests {
         if (is_transactional) {
             loadtest 'transactional/install_updates';
         } else {
-            loadtest 'qa_automation/patch_and_reboot';
+            loadtest 'console/post_installation' if is_updates_tests && !(get_var('UPGRADE') || is_jeos);
+            loadtest 'qa_automation/patch_and_reboot' if get_var('UPGRADE') || is_jeos;
         }
     }
     loadtest 'console/integration_services' if is_hyperv || is_vmware;
