@@ -1,0 +1,88 @@
+# schedule tests for coverage measurement ;
+# when you add a test, you need to fill out the last
+# section about coverage targets as well
+
+name:  measure test coverage for selected text mode utils
+description: >
+    Maintainer: amanzini
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_uefi
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - coverage/coverage_setup
+  - network/snmp
+  - console/dig
+  - console/cpio
+  - console/curl_https
+  - console/curl_ipv6
+  - console/gd
+  - console/lshw
+  - console/nano
+  - console/nftables
+  - console/nginx
+  - console/ping
+  - console/perf
+  - console/pciutils
+  - console/sysctl
+  - console/tar
+  - console/tcpdump
+  - console/unzip
+  - console/valkey
+  - console/vim
+  - coverage/coverage_report
+test_data:
+  # these packages are needed by the tests, we need to install them early to instrument them
+  extra_packages:
+    - bind-utils  # for dig test
+    - bzip2  # for tar test
+    - cpio
+    - curl
+    - cpupower
+    - gd
+    - iputils  # for ping
+    - lshw
+    - nano
+    - nftables
+    - nginx
+    - perf
+    - procps
+    - powertop
+    - unzip
+    - net-snmp
+    - tar
+    - tcpdump
+    - valkey
+    - wget    # to download the test data
+    - vim
+  # the following section is an array of binaries that we want to instrument
+  coverage_targets:
+    - /usr/bin/cpio
+    - /usr/bin/curl
+    - /usr/bin/giftogd2
+    - /usr/bin/gd2togif
+    - /usr/bin/ping
+    - /usr/sbin/lshw
+    - /usr/bin/nano
+    - /usr/sbin/nft
+    - /sbin/nginx
+    - /sbin/sysctl
+    - /usr/bin/cpupower
+    - /usr/sbin/powertop
+    - /usr/bin/perf
+    - /usr/bin/unzip
+    - /usr/bin/vmstat
+    - /usr/bin/snmpget
+    - /usr/bin/snmpset
+    - /usr/bin/snmpusm
+    - /usr/bin/tar
+    - /usr/bin/dig
+    - /usr/sbin/tcpdump
+    - /usr/bin/valkey-cli
+    - /usr/bin/vim-nox11
