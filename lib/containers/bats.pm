@@ -69,6 +69,7 @@ sub run_command {
 
 sub configure_docker {
     my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000";
+    $docker_opts .= " --experimental" if get_var("DOCKER_EXPERIMENTAL");
     my $port = 2375;
     if (get_var("DOCKER_TLS")) {
         $port++;
@@ -393,7 +394,7 @@ sub collect_coredumps {
 
 sub collect_calltraces {
     # Collect all traces
-    my $traces = script_output(q(dmesg | awk '/(Call Trace:|-+\[ cut here \]-+)/ { trace = 1 } trace { print } /<\/TASK>/ { trace = 0; print "" }'));
+    my $traces = script_output(q(dmesg | awk '/(Call Trace:|-+\[ cut here \]-+)/ { trace = 1 } trace { print } /(<\/TASK>|-+\[ end trace)/ { trace = 0; print "" }'));
 
     foreach my $trace (split /\n\n+/, $traces) {
         record_info("TRACE", $trace);
