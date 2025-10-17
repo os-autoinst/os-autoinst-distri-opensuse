@@ -56,7 +56,8 @@ sub run {
         fully_patch_system;
     }
 
-    my $suffix = is_jeos ? '-base' : '';
+    # Minimal-VM.s390x images are supported only by kernel-default
+    my $suffix = (is_jeos && !is_s390x) ? '-base' : '';
     assert_script_run("rpm -ql --changelog kernel-default$suffix > /tmp/kernel_changelog.log");
     zypper_call("lr -u", log => 'repos_list.txt');
     upload_logs('/tmp/kernel_changelog.log');
