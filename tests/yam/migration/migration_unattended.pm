@@ -37,7 +37,7 @@ sub run {
     # disable repos of the product to migrate from due to proxySCC is not serving SLES 15 SP*
     my $version = get_var('VERSION_UPGRADE_FROM');
     $version =~ s/-/_/;
-    script_run('for s in $(zypper -t ls | grep _Module_' . "$version" . ' | sed -e \'s,|.*,,g\'); do zypper modifyservice --disable $s; done');
+    script_run('for s in $(zypper -t ls | grep ' . "$version" . ' | sed -e \'s,|.*,,g\'); do zypper modifyservice --disable $s; done');
 
     # deacivate unwanted/unsupported extensions before doing migration
     if (get_var('SCC_SUBTRACTIONS')) {
