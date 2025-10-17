@@ -23,12 +23,10 @@ sub setup {
     my @pkgs = qw(docker docker-compose jq go1.24 make);
     $self->setup_pkgs(@pkgs);
 
-    systemctl "enable docker";
-    systemctl "restart docker";
-    record_info "docker info", script_output("docker info");
+    configure_docker;
 
     # Some tests need this file
-    run_command "mkdir /root/.docker";
+    run_command "mkdir /root/.docker || true";
     run_command "touch /root/.docker/config.json";
 
     $version = script_output "$docker_compose version | awk '{ print \$4 }'";
@@ -78,8 +76,7 @@ sub run {
 }
 
 sub cleanup {
-    script_run 'docker rm -vf $(docker ps -aq)';
-    script_run "docker system prune -a -f --volumes";
+    cleanup_docker;
 }
 
 sub post_fail_hook {
