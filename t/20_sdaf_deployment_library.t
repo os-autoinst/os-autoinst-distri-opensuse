@@ -362,7 +362,7 @@ subtest '[sdaf_execute_playbook] Command execution' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @calls;
     $ms_sdaf->redefine(script_run => sub { push(@calls, $_[0]); return 0; });
-    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs deployment_dir));
+    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs playbook_dir));
     set_var('SAP_SID', 'QES');
     set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', undef);
 
@@ -386,7 +386,7 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
 
     $ms_sdaf->redefine(script_run => sub { return; });
     $ms_sdaf->redefine(log_command_output => sub { push(@calls, $_[1]); return 0; });
-    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs deployment_dir));
+    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs playbook_dir));
     set_var('SAP_SID', 'QES');
 
     my %verbosity_levels = (
@@ -401,6 +401,25 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
         sdaf_execute_playbook(playbook_filename => 'playbook_01_os_base_config.yaml', sdaf_config_root_dir => '/tmp/SDAF/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS');
         ok(grep(/$verbosity_levels{$level}/, @calls), "Append '$verbosity_levels{$level}' with verbosity parameter: '$level'");
     }
+
+    undef_variables();
+};
+
+subtest '[sdaf_execute_playbook] Add extra argument' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my @calls;
+    $ms_sdaf->redefine(script_run => sub { push(@calls, $_[0]); return 0; });
+    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs playbook_dir));
+    set_var('SAP_SID', 'QES');
+    set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', undef);
+
+    sdaf_execute_playbook(
+        playbook_filename    => 'playbook_01_os_base_config.yaml',
+        sdaf_config_root_dir => '/tmp/SDAF/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS',
+        additional_args      => { another => 'one' }
+    );
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /--another="one"/ } @calls), 'Command contains "--ssh-common-args" parameter');
 
     undef_variables();
 };
