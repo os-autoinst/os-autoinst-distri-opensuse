@@ -530,7 +530,7 @@ sub patch_sources {
             # ignore missing files.
             my $file = basename($url);
             my $apply_cmd = "git apply -3 --ours $file";
-            $apply_cmd .= " || git apply -3 --ours --include '$tests_dir/*' $file";
+            $apply_cmd .= " || git apply -3 --ours --include '$tests_dir/*' $file" if $tests_dir;
             run_command $apply_cmd;
         }
     }
