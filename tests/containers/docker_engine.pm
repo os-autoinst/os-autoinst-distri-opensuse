@@ -50,7 +50,7 @@ sub setup {
     $version = "v$version";
     record_info "docker version", $version;
 
-    patch_sources "moby", $version, "e2e";
+    patch_sources "moby", $version, "integration";
 
     # Build test helpers
     run_command "cp -f vendor.mod go.mod || true";
