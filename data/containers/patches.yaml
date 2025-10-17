@@ -103,6 +103,12 @@ buildah:
     - bud.bats::bud-git-context-subdirectory
     - run.bats::Check if containers run with correct open files/processes limits
     BATS_IGNORE_USER:
+buildx:
+  # Note on patches:
+  # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
+  opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 3475
 compose:
   # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM

@@ -29,7 +29,8 @@ sub setup {
     run_command 'cp /usr/lib/docker/cli-plugins/docker-buildx /usr/local/bin/buildx';
     run_command 'cp /usr/lib/docker/cli-plugins/docker-compose /usr/local/bin/compose';
 
-    $version = script_output q(/usr/lib/docker/cli-plugins/docker-buildx version | awk '{ print $3 }');
+    $version = script_output q(/usr/lib/docker/cli-plugins/docker-buildx version | awk '{ print $2 }');
+    $version = "v$version" if ($version !~ /^v/);
     record_info "docker-buildx version", $version;
 
     patch_sources "buildx", $version, "tests";
@@ -46,11 +47,7 @@ sub run {
     );
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
-    my @xfails = (
-        # These tests fail because they need multiple workers
-        "github.com/docker/buildx/tests::TestIntegration/TestVersion/worker=remote",
-        "github.com/docker/buildx/tests::TestIntegration",
-    );
+    my @xfails = ();
     push @xfails, (
         # These tests fail on aarch64
         "github.com/docker/buildx/tests::TestIntegration/TestBuildAnnotations/worker=remote",
