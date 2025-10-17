@@ -43,11 +43,6 @@
       }
     ]
   },
-  "software": {
-      patterns: [
-         'base'
-      ]
-  },
   "network": {
     "connections": [
       {
