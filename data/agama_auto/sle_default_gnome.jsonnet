@@ -4,9 +4,9 @@
     registrationCode: '{{SCC_REGCODE}}'
   },
   software: {
-    patterns: [
-      'gnome'
-    ]
+    patterns: {
+      add: ['gnome']
+    }
   },
   bootloader: {
     stopOnBootMenu: true,

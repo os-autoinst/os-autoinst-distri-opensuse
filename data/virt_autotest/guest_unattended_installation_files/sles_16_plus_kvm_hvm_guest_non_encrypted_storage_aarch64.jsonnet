@@ -44,9 +44,9 @@
     ]
   },
   "software": {
-      patterns: [
-         'base'
-      ]
+    patterns: {
+      add: ['base']
+    }
   },
   "network": {
     "connections": [
