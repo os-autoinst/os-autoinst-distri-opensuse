@@ -517,6 +517,13 @@
         },
         "type": "bug"
     },
+    "bsc#1252028": {
+        "description": "PAM: Authentication failure for root from.*",
+        "products": {
+            "sle-micro": ["6.1"]
+        },
+        "type": "ignore"
+    },
     "bsc#1231455": {
         "description": "systemd.* Failed to start SETroubleshoot daemon for processing new SELinux denial logs\\.",
         "products": {
