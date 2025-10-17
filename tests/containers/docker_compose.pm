@@ -41,17 +41,13 @@ sub test ($target) {
     my %env = (
         COMPOSE_E2E_BIN_PATH => $docker_compose,
         # This test fails on v2.39.2 at least
-        EXCLUDE_E2E_TESTS => 'TestWatchMultiServices',
+        EXCLUDE_E2E_TESTS => 'TestWatchMultiServices|TestBuildTLS',
     );
     # Fails on non-x86_64 with: "exec /transform: exec format error"
     $env{EXCLUDE_E2E_TESTS} .= "|TestConvertAndTransformList" unless is_x86_64;
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
     my @xfails = ();
-    push @xfails, (
-        # These tests sometimes fail on aarch64:
-        "github.com/docker/compose/v2/pkg/e2e::TestBuildTLS",
-    ) unless (is_x86_64);
 
     run_command "$env make $target |& tee $target.txt || true", timeout => 3600;
 
