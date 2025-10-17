@@ -82,7 +82,7 @@ sub configure_docker {
 
         # Create self-signed CA
         run_command "openssl genrsa -out $ca_key 4096";
-        run_command qq(openssl req -new -x509 -days 7 -key $ca_key -sha256 -subj "/CN=CA" -out $ca_cert);
+        run_command qq(openssl req -new -x509 -days 7 -key $ca_key -sha256 -subj "/CN=CA" -out $ca_cert -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign");
         # Create server cert & key
         run_command "openssl genrsa -out $key 4096";
         run_command qq(openssl req -new -key $key -subj "/CN=\$(hostname)" -out $req);
@@ -95,6 +95,8 @@ sub configure_docker {
         run_command "mkdir -m 700 ~/.docker/ || true";
         run_command "mv -f $ca_cert $cert $key ~/.docker/";
         $docker_opts .= " --tlsverify --tlscacert=/etc/docker/$ca_cert --tlscert=/etc/docker/$cert --tlskey=/etc/docker/$key";
+        run_command "cp /etc/docker/ca.pem /etc/pki/trust/anchors/";
+        run_command "update-ca-certificates";
     }
     $docker_opts .= " -H 0.0.0.0:$port";
     run_command "mv /etc/sysconfig/docker{,.bak}";

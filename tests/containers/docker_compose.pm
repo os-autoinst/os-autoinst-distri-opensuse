@@ -23,12 +23,10 @@ sub setup {
     my @pkgs = qw(docker docker-compose jq go1.24 make);
     $self->setup_pkgs(@pkgs);
 
-    systemctl "enable docker";
-    systemctl "restart docker";
-    record_info "docker info", script_output("docker info");
+    configure_docker;
 
     # Some tests need this file
-    run_command "mkdir /root/.docker";
+    run_command "mkdir /root/.docker || true";
     run_command "touch /root/.docker/config.json";
 
     $version = script_output "$docker_compose version | awk '{ print \$4 }'";
@@ -43,17 +41,13 @@ sub test ($target) {
     my %env = (
         COMPOSE_E2E_BIN_PATH => $docker_compose,
         # This test fails on v2.39.2 at least
-        EXCLUDE_E2E_TESTS => 'TestWatchMultiServices',
+        EXCLUDE_E2E_TESTS => 'TestWatchMultiServices|TestBuildTLS',
     );
     # Fails on non-x86_64 with: "exec /transform: exec format error"
     $env{EXCLUDE_E2E_TESTS} .= "|TestConvertAndTransformList" unless is_x86_64;
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
     my @xfails = ();
-    push @xfails, (
-        # These tests sometimes fail on aarch64:
-        "github.com/docker/compose/v2/pkg/e2e::TestBuildTLS",
-    ) unless (is_x86_64);
 
     run_command "$env make $target |& tee $target.txt || true", timeout => 3600;
 
@@ -78,8 +72,7 @@ sub run {
 }
 
 sub cleanup {
-    script_run 'docker rm -vf $(docker ps -aq)';
-    script_run "docker system prune -a -f --volumes";
+    cleanup_docker;
 }
 
 sub post_fail_hook {

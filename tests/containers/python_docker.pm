@@ -24,11 +24,7 @@ sub setup {
     my @pkgs = qq(docker jq make python3 python3-docker python3-paramiko python3-pytest python3-pytest-timeout);
     $self->setup_pkgs(@pkgs);
 
-    assert_script_run "cd /root";
-    run_command "mv -f /etc/docker/daemon.json /etc/docker/daemon.json.bak";
-    run_command "systemctl enable docker";
-    run_command "systemctl restart docker";
-    record_info("docker info", script_output("docker info"));
+    configure_docker;
 
     # Setup docker credentials helpers
     my $credstore_version = "v0.9.3";
@@ -66,11 +62,17 @@ sub test ($target) {
     my $ignore = join " ", map { "--ignore=$_" } @ignore;
 
     # Used by pytest to ignore individual tests
-    my @deselect = ();
+    # Format: "FILE::CLASS::FUNCTION"
+    my @deselect = (
+        # These tests will fail if DOCKER_HOST is set
+        "tests/unit/client_test.py::FromEnvTest::test_default_pool_size_from_env_unix",
+        "tests/unit/client_test.py::FromEnvTest::test_pool_size_from_env_unix",
+    );
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
 
     my %env = (
         DOCKER_TEST_API_VERSION => $api_version,
+        REQUESTS_CA_BUNDLE => "/etc/ssl/ca-bundle.pem",
         # Fix docker-py test issues with datetimes on different timezones by using UTC
         TZ => "UTC",
     );
@@ -106,11 +108,7 @@ sub run {
 }
 
 sub cleanup {
-    script_run "unset DOCKER_HOST";
-    script_run "mv -f /etc/docker/daemon.json{.bak,}";
-    script_run 'docker rm -vf $(docker ps -aq)';
-    script_run "docker system prune -a -f --volumes";
-    systemctl "restart docker";
+    cleanup_docker;
     script_run "rm -f /usr/local/bin/{docker-credential-pass,pass}";
 }
 
