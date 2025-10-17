@@ -24,11 +24,7 @@ sub setup {
     my @pkgs = qq(docker jq make python3 python3-docker python3-paramiko python3-pytest python3-pytest-timeout);
     $self->setup_pkgs(@pkgs);
 
-    assert_script_run "cd /root";
-    run_command "mv -f /etc/docker/daemon.json /etc/docker/daemon.json.bak";
-    run_command "systemctl enable docker";
-    run_command "systemctl restart docker";
-    record_info("docker info", script_output("docker info"));
+    configure_docker;
 
     # Setup docker credentials helpers
     my $credstore_version = "v0.9.3";
@@ -106,11 +102,7 @@ sub run {
 }
 
 sub cleanup {
-    script_run "unset DOCKER_HOST";
-    script_run "mv -f /etc/docker/daemon.json{.bak,}";
-    script_run 'docker rm -vf $(docker ps -aq)';
-    script_run "docker system prune -a -f --volumes";
-    systemctl "restart docker";
+    cleanup_docker;
     script_run "rm -f /usr/local/bin/{docker-credential-pass,pass}";
 }
 
