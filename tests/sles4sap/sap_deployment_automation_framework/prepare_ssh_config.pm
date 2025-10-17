@@ -13,8 +13,9 @@ use serial_terminal qw(select_serial_terminal);
 use sles4sap::console_redirection;
 use sles4sap::azure_cli qw(az_keyvault_list);
 use sles4sap::sap_deployment_automation_framework::inventory_tools;
-use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_ssh_key_from_keyvault);
+use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_ssh_key_from_keyvault get_workload_resource_group);
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id);
 
 sub run {
     my ($self, $run_args) = @_;
@@ -23,6 +24,8 @@ sub run {
     my $sdaf_region_code = convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
     my $sap_sid = get_required_var('SAP_SID');
     my $workload_vnet_code = get_workload_vnet_code();
+    my $workload_rg = get_workload_resource_group(deployment_id => find_deployment_id());
+    my $workload_key_vault = ${az_keyvault_list(resource_group => $workload_rg)}[0];
 
     my $jump_host_user = get_required_var('REDIRECT_DESTINATION_USER');
     my $jump_host_ip = get_required_var('REDIRECT_DESTINATION_IP');
@@ -33,6 +36,7 @@ sub run {
 
     # Connect serial to Deployer VM to get inventory file
     connect_target_to_serial();
+    sdaf_ssh_key_from_keyvault(key_vault => $workload_key_vault, target_file => $private_key_src_path);
 
     my $inventory_data = read_inventory_file($inventory_path);
     # From now on all commands will be executed on worker VM
