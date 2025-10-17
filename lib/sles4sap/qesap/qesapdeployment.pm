@@ -32,6 +32,7 @@ use warnings;
 use Carp qw(croak);
 use Mojo::JSON qw(decode_json);
 use YAML::PP;
+use NetAddr::IP;
 use Exporter 'import';
 use Scalar::Util 'looks_like_number';
 use File::Basename;
@@ -1878,15 +1879,12 @@ sub qesap_create_cidr_from_ip {
     $ip =~ s/^\s+|\s+$//g;
     $ip =~ s{/\d+\s*$}{};
 
-    my $v4 = $ip =~ /^(?:\d{1,3}\.){3}\d{1,3}$/;
-    my $v6 = !$v4 && $ip =~ /^[0-9A-Fa-f:]+$/ && $ip =~ /:/;
+    # NetAddr objects add the appropriate v4 or v6 mask automatically
+    my $ret = NetAddr::IP->new($ip);
 
-    unless ($v4 || $v6) {
-        return undef if $args{proceed_on_failure};
-        die "The provided IP could not be validated: $ip";
-    }
-
-    return $v4 ? "$ip/32" : "$ip/128";
+    return $ret->cidr if ($ret);
+    return undef if $args{proceed_on_failure};
+    die "The provided IP could not be validated: $ip";
 }
 
 1;

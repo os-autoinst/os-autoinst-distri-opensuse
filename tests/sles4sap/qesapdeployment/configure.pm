@@ -55,7 +55,8 @@ sub run {
     }
     $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if ($provider_setting eq 'EC2');
 
-    $variables{WORKER_IP} = qesap_create_cidr_from_ip(ip => detect_worker_ip());
+    my $worker_ip = qesap_create_cidr_from_ip(ip => detect_worker_ip(proceed_on_failure => 1), proceed_on_failure => 1);
+    $variables{WORKER_IP} = $worker_ip || '';
 
     $variables{USE_SAPCONF} = get_var('QESAPDEPLOY_USE_SAPCONF', 'false');
     $variables{USE_SR_ANGI} = get_var('QESAPDEPLOY_USE_SAP_HANA_SR_ANGI', 'false');
