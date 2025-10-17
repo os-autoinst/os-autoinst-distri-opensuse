@@ -29,7 +29,8 @@ sub setup {
     run_command 'cp /usr/lib/docker/cli-plugins/docker-buildx /usr/local/bin/buildx';
     run_command 'cp /usr/lib/docker/cli-plugins/docker-compose /usr/local/bin/compose';
 
-    $version = script_output q(/usr/lib/docker/cli-plugins/docker-buildx version | awk '{ print $3 }');
+    $version = script_output q(/usr/lib/docker/cli-plugins/docker-buildx version | awk '{ print $2 }');
+    $version = "v$version" if ($version !~ /^v/);
     record_info "docker-buildx version", $version;
 
     patch_sources "buildx", $version, "tests";
