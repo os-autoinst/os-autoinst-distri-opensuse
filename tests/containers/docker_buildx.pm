@@ -47,11 +47,7 @@ sub run {
     );
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
-    my @xfails = (
-        # These tests fail because they need multiple workers
-        "github.com/docker/buildx/tests::TestIntegration/TestVersion/worker=remote",
-        "github.com/docker/buildx/tests::TestIntegration",
-    );
+    my @xfails = ();
     push @xfails, (
         # These tests fail on aarch64
         "github.com/docker/buildx/tests::TestIntegration/TestBuildAnnotations/worker=remote",
