@@ -95,6 +95,8 @@ sub configure_docker {
         run_command "mkdir -m 700 ~/.docker/ || true";
         run_command "mv -f $ca_cert $cert $key ~/.docker/";
         $docker_opts .= " --tlsverify --tlscacert=/etc/docker/$ca_cert --tlscert=/etc/docker/$cert --tlskey=/etc/docker/$key";
+        run_command "cp /etc/docker/ca.pem /etc/pki/trust/anchors/";
+        run_command "update-ca-certificates";
     }
     $docker_opts .= " -H 0.0.0.0:$port";
     run_command "mv /etc/sysconfig/docker{,.bak}";

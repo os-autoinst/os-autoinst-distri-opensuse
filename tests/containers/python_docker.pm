@@ -72,6 +72,7 @@ sub test ($target) {
 
     my %env = (
         DOCKER_TEST_API_VERSION => $api_version,
+        REQUESTS_CA_BUNDLE => "/etc/ssl/ca-bundle.pem",
         # Fix docker-py test issues with datetimes on different timezones by using UTC
         TZ => "UTC",
     );
