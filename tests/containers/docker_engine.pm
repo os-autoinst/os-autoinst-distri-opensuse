@@ -20,7 +20,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker go1.24 make);
+    my @pkgs = qw(containerd-ctr distribution-registry docker glibc-devel go1.24 make);
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
@@ -69,10 +69,13 @@ sub setup {
     my $frozen_images = script_output q(grep -oE '[[:alnum:]./_-]+:[[:alnum:]._-]+@sha256:[0-9a-f]{64}' Dockerfile | xargs echo);
     run_command "contrib/download-frozen-image-v2.sh /docker-frozen-images $frozen_images", timeout => 180;
 
-    # Tests use an older cli version for tests
-    my $arch = get_var("ARCH");
-    my $cliversion = script_output q(sed -n '/DOCKERCLI_INTEGRATION_VERSION=/s/.*=v//p' Dockerfile);
-    run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /usr/local/bin/ --strip-components 1 docker/docker";
+    if (grep { $_ eq "integration-cli" } @test_dirs) {
+        # integration-cli tests need an older cli version
+        my $arch = get_var("ARCH");
+        my $cliversion = get_var("DOCKER_CLIVERSION", script_output q(sed -n '/DOCKERCLI_INTEGRATION_VERSION=/s/.*=v//p' Dockerfile));
+        run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /usr/local/bin/ --strip-components 1 docker/docker";
+        run_command "chmod -x /usr/local/bin/docker";
+    }
 }
 
 sub run {
@@ -98,8 +101,12 @@ sub run {
     my $tags = "apparmor selinux seccomp pkcs11";
     foreach my $dir (@test_dirs) {
         my $report = $dir =~ s|/|-|gr;
+        if ($dir eq "integration-cli") {
+            run_command "chmod +x /usr/local/bin/docker";
+            run_command "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
+        }
         run_command "pushd $dir";
-        run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", timeout => 600;
+        run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", timeout => 900;
         patch_junit "docker", $version, "$report.xml", @xfails;
         parse_extra_log(XUnit => "$report.xml");
         run_command "popd";
@@ -108,7 +115,7 @@ sub run {
 }
 
 sub cleanup {
-    script_run "rm -f /usr/local/bin/{ctr,ping}";
+    script_run "rm -f /usr/local/bin/{ctr,docker,ping}";
     script_run "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
     cleanup_docker;
 }
