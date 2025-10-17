@@ -19,6 +19,7 @@ The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
+| `DOCKER_EXPERIMENTAL` | Enable experimental features in Docker |
 | `DOCKER_TLS` | Enable TLS in Docker as documented [here](https://docs.docker.com/engine/security/protect-access/) |
 | `GITHUB_PATCHES` | List of github PR id's containing upstream test patches |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |

@@ -69,6 +69,7 @@ sub run_command {
 
 sub configure_docker {
     my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000";
+    $docker_opts .= " --experimental" if get_var("DOCKER_EXPERIMENTAL");
     my $port = 2375;
     if (get_var("DOCKER_TLS")) {
         $port++;
