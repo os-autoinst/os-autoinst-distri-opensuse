@@ -368,7 +368,7 @@ subtest '[sdaf_execute_playbook] Command execution' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @calls;
     $ms_sdaf->redefine(script_run => sub { push(@calls, $_[0]); return 0; });
-    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs deployment_dir));
+    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs playbook_dir));
     set_var('SAP_SID', 'QES');
     set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', undef);
 
@@ -392,7 +392,7 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
 
     $ms_sdaf->redefine(script_run => sub { return; });
     $ms_sdaf->redefine(log_command_output => sub { push(@calls, $_[1]); return 0; });
-    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs deployment_dir));
+    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs playbook_dir));
     set_var('SAP_SID', 'QES');
 
     my %verbosity_levels = (
