@@ -46,7 +46,7 @@ sub run {
     my $instance = $self->{my_instance} = $args->{my_instance};
 
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
-    $self->check_avc() unless (is_sle_micro('=5.1'));
+    $self->check_avc();
 
     # Check that xen-tools-domU is available
     if (is_ec2() && $instance->ssh_script_output('systemd-detect-virt') =~ /xen/) {
