@@ -47,8 +47,13 @@ subtest override_known_failures => sub {
     set_var('LTP_KNOWN_ISSUES_LOCAL' => 'test_known_issues.json');
     my $self = Test::MockObject->new();
     my $msg;
-    $self->mock('record_soft_failure_result' => sub { shift; $msg = shift });
     $self->{result} = 'not_set';
+    $self->mock('record_soft_failure_result' => sub {
+            my $test = shift;
+            $msg = shift;
+
+            $test->{result} = 'softfail';
+    });
 
     my $known_issues_json = {
         testsuite_01 => {
