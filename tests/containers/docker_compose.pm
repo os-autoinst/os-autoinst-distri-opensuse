@@ -23,8 +23,7 @@ sub setup {
     my @pkgs = qw(docker docker-compose jq go1.24 make);
     $self->setup_pkgs(@pkgs);
 
-    # docker-compose needs to be patched upstream to support SELinux
-    configure_docker(selinux => 0, tls => 1);
+    configure_docker(selinux => is_sle ? 0 : 1, tls => 1);
 
     # Some tests need this file
     run_command "mkdir /root/.docker || true";
@@ -35,8 +34,9 @@ sub setup {
     record_info "docker-compose version", $version;
 
     patch_sources "compose", $version, "pkg/e2e";
-}
 
+    run_command "chcon -Rt svirt_sandbox_file_t ./pkg/e2e/fixtures" unless is_sle;
+}
 
 sub test ($target) {
     my %env = (
@@ -49,6 +49,12 @@ sub test ($target) {
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
     my @xfails = ();
+    push @xfails, (
+        # These tests fails with SELinux
+        "github.com/docker/compose/v2/pkg/e2e::TestConvertAndTransformList",
+        "github.com/docker/compose/v2/pkg/e2e::TestConvertAndTransformList/helm_charts",
+        "github.com/docker/compose/v2/pkg/e2e::TestConvertAndTransformList/kubernetes_manifests",
+    ) unless is_sle;
 
     run_command "$env make $target |& tee $target.txt || true", timeout => 3600;
 
