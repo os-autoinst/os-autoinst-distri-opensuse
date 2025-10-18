@@ -19,7 +19,9 @@ local version = '{{VERSION}}';
     hashedPassword: true
   },
   software: {
-    patterns: ['base', 'minimal_base'],
+    patterns: {
+      add: ['base', 'minimal_base']
+    },
     extraRepositories: [
       {
         alias: 'SLES::16.0::product',
