@@ -150,16 +150,19 @@ docker-py:
   # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
   # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
   # https://github.com/docker/docker-py/pull/3366 - test: Skip from_env_unix tests if DOCKER_HOST is network socket
+  # https://github.com/docker/docker-py/pull/3367 - tests/integration: Make the tests runnable on SELinux enabled daemon
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 3290
     - 3354
     - 3366
+    - 3367
   sle-16.0:
     GITHUB_PATCHES:
     - 3290
     - 3354
     - 3366
+    - 3367
   sle-15-SP7:
     GITHUB_PATCHES:
     - 3199
