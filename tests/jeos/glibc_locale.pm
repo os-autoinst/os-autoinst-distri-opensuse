@@ -27,6 +27,7 @@ use testapi;
 use utils qw(zypper_call clear_console ensure_serialdev_permissions);
 use version_utils qw(is_opensuse is_sle is_tumbleweed is_leap);
 use power_action_utils qw(power_action);
+use jeos qw(is_translations_preinstalled);
 
 ## Define test data
 my $suse_lang_conf = '/etc/sysconfig/language';
@@ -233,7 +234,7 @@ sub run {
     my ($self) = @_;
     # C<$lang_ref> denotes what kind of lang setting is expected from test suite perspective
     # sle15+ does not enable locale change during firstboot
-    my $lang_ref = get_var('JEOSINSTLANG', 'en_US');
+    my $lang_ref = (is_translations_preinstalled() && !get_var("JEOSINSTLANG_FORCE_LANG_EN_US", 0)) ? get_var('JEOSINSTLANG', 'en_US') : 'en_US';
     my $lang_new_short = ((get_required_var('TEST') =~ /de_DE/) && (is_sle('<15'))) ? 'en_US' : 'de_DE';
     my $rc_expected_data = {
         ROOT_USES_LANG => 'ctype',
