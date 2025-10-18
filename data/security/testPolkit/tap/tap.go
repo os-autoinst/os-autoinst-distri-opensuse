@@ -1,5 +1,7 @@
 package tap
 
+// a very simple test suite runner
+
 import (
 	"fmt"
 	"log"
@@ -15,8 +17,9 @@ type TestCase struct {
 
 // TAPRunner handles TAP output formatting and file writing
 type TAPRunner struct {
-	file      *os.File
-	testCases map[int]TestCase
+	file        *os.File
+	testCases   map[int]TestCase
+	currentStep int
 }
 
 // NewTAPRunner creates a new TAP writer and test runner
@@ -26,7 +29,7 @@ func NewTAPRunner(filename string, testCases map[int]TestCase) (*TAPRunner, erro
 		return nil, err
 	}
 
-	writer := &TAPRunner{
+	tr := &TAPRunner{
 		file:      file,
 		testCases: testCases,
 	}
@@ -35,67 +38,68 @@ func NewTAPRunner(filename string, testCases map[int]TestCase) (*TAPRunner, erro
 	fmt.Fprintf(file, "%s ..\n", filename)
 	fmt.Fprintf(file, "1..%d\n", len(testCases))
 
-	return writer, nil
+	return tr, nil
 }
 
 // RunTests executes all the test cases when the function is not nil
-func (w *TAPRunner) RunTests() {
-	for i := 1; i <= len(w.testCases); i++ {
-		tc := w.testCases[i]
-		if tc.TestFunc != nil {
-			if !tc.TestFunc(w) {
-				return // Stop on first failure
-			}
+func (t *TAPRunner) RunTests() {
+	for i := 1; i <= len(t.testCases); i++ {
+		tc := t.testCases[i]
+		if tc.TestFunc == nil {
+			continue // nothing to do
+		}
+		prevStep := t.currentStep
+		result := tc.TestFunc(t)
+		// give message if function didn't call Fail() or Pass()
+		if t.currentStep == prevStep {
+			log.Printf("ERROR: Missing FAIL or PASS in step function %d - %s", prevStep, tc.Description)
+			return
+		}
+		if !result {
+			return // Stop on first failure
 		}
 	}
 }
 
 // Close closes the TAP writer
-func (w *TAPRunner) Close() error {
-	return w.file.Close()
+func (t TAPRunner) Close() error {
+	return t.file.Close()
 }
 
 // Pass writes a passing test result
-func (w *TAPRunner) Pass(testNum int) {
-	description := w.testCases[testNum].Description
-	fmt.Fprintf(w.file, "ok %d - %s\n", testNum, description)
-	log.Printf("PASS: Test %d - %s", testNum, description)
+func (t *TAPRunner) Pass() bool {
+	t.currentStep++
+	description := t.testCases[t.currentStep].Description
+	fmt.Fprintf(t.file, "ok %d - %s\n", t.currentStep, description)
+	log.Printf("PASS: Test %d - %s", t.currentStep, description)
+	return true
 }
 
 // Fail writes a failing test result with diagnostic information
-func (w *TAPRunner) Fail(testNum int, diagnostic string) {
-	description := w.testCases[testNum].Description
-	fmt.Fprintf(w.file, "not ok %d - %s\n", testNum, description)
+func (t *TAPRunner) Fail(diagnostic string) bool {
+	t.currentStep++
+	description := t.testCases[t.currentStep].Description
+	fmt.Fprintf(t.file, "not ok %d - %s\n", t.currentStep, description)
 	if diagnostic != "" {
 		// TAP diagnostics are prefixed with #
 		lines := strings.Split(diagnostic, "\n")
 		for _, line := range lines {
 			if strings.TrimSpace(line) != "" {
-				fmt.Fprintf(w.file, "# %s\n", line)
+				fmt.Fprintf(t.file, "# %s\n", line)
 			}
 		}
 	}
-	log.Printf("FAIL: Test %d - %s", testNum, description)
+	log.Printf("FAIL: Test %d - %s", t.currentStep, description)
 	if diagnostic != "" {
 		log.Printf("DIAGNOSTIC: %s", diagnostic)
 	}
-}
-
-// Skip writes a skipped test result
-func (w *TAPRunner) Skip(testNum int, reason string) {
-	description := w.testCases[testNum].Description
-	fmt.Fprintf(w.file, "ok %d - %s # SKIP %s\n", testNum, description, reason)
-	log.Printf("SKIP: Test %d - %s (reason: %s)", testNum, description, reason)
+	return false
 }
 
 // Bail writes a bail out message and exits
-func (w *TAPRunner) Bail(reason string) {
-	fmt.Fprintf(w.file, "Bail out! %s\n", reason)
-	w.Close()
+func (t *TAPRunner) Bail(reason string) bool {
+	fmt.Fprintf(t.file, "Bail out! %s\n", reason)
+	t.Close()
 	log.Fatalf("BAIL OUT: %s", reason)
-}
-
-// WriteComment writes a comment line to the TAP output
-func (w *TAPRunner) WriteComment(comment string) {
-	fmt.Fprintf(w.file, "# %s\n", comment)
+	return false
 }

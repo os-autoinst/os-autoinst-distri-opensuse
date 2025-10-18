@@ -14,17 +14,16 @@ use serial_terminal 'select_serial_terminal';
 sub run {
     select_serial_terminal;
 
+    my @files = qw(runtest go.mod testPolkit.go utils/utils.go tap/tap.go);
     # install go and download test files
     zypper_call 'in go';
-    my @files = qw(runtest go.mod main.go utils/utils.go tap/tap.go);
-    assert_script_run("mkdir -p ~/testPolkit && cd ~/testPolkit");
-    foreach my $file (@files) {
-        assert_script_run "curl -O -v --create-dirs " . data_url("security/testPolkit/$file");
-    }
+    assert_script_run 'mkdir -p ~/testPolkit && cd ~/testPolkit';
+    my $url = data_url("security/testPolkit/");
+    assert_script_run 'curl -s --create-dirs ' . join ' ', map { "-O $url/$_" } @files;
     assert_script_run 'mkdir utils tap && mv utils.go utils/ && mv tap.go tap/';
 
     # run test and generate result file
-    assert_script_run("chmod +x ./runtest && ./runtest && mv results.tap /tmp/polkit_rules.tap");
+    assert_script_run("chmod +x ./runtest && ./runtest && mv testPolkit.tap /tmp/polkit_rules.tap");
 
     #cleanup after test
     assert_script_run("cd ~ && rm -rf testPolkit");

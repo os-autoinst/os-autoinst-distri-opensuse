@@ -16,7 +16,7 @@ const (
 	polkitRulesDir = "/etc/polkit-1/rules.d/"
 	testRuleFile   = "/etc/polkit-1/rules.d/42-integration-test.rules"
 	newHostname    = "polkit-test-hostname"
-	tapOutputFile  = "results.tap"
+	tapOutputFile  = "testPolkit.tap"
 	testUser       = "bernhard"
 )
 
@@ -73,36 +73,30 @@ func checkPermissions(t *tap.TAPRunner) bool {
 
 	info, err := os.Stat(polkitRulesDir)
 	if err != nil {
-		t.Bail(fmt.Sprintf("Could not stat %s: %v", polkitRulesDir, err))
-		return false
+		return t.Bail(fmt.Sprintf("Could not stat %s: %v", polkitRulesDir, err))
 	}
 
 	stat, ok := info.Sys().(*syscall.Stat_t)
 	if !ok {
-		t.Bail(fmt.Sprintf("Could not get file stat for %s", polkitRulesDir))
-		return false
+		return t.Bail(fmt.Sprintf("Could not get file stat for %s", polkitRulesDir))
 	}
 
 	// Check owner is root (uid 0)
 	if stat.Uid != 0 {
-		t.Fail(1, fmt.Sprintf("Owner of %s is not root (UID 0). Found UID: %d", polkitRulesDir, stat.Uid))
-		return false
+		return t.Fail(fmt.Sprintf("Owner of %s is not root (UID 0). Found UID: %d", polkitRulesDir, stat.Uid))
 	}
 
 	// Check group is polkitd
 	polkitdGroup, err := user.LookupGroup("polkitd")
 	if err != nil {
-		t.Fail(2, fmt.Sprintf("Could not look up group 'polkitd': %v. This test requires the 'polkitd' group to exist.", err))
-		return false
+		return t.Fail(fmt.Sprintf("Could not look up group 'polkitd': %v. This test requires the 'polkitd' group to exist.", err))
 	}
 	polkitdGid, _ := strconv.Atoi(polkitdGroup.Gid)
 	if stat.Gid != uint32(polkitdGid) {
-		t.Fail(2, fmt.Sprintf("Group of %s is not 'polkitd'. Expected GID: %d, Found GID: %d", polkitRulesDir, polkitdGid, stat.Gid))
-		return false
+		return t.Fail(fmt.Sprintf("Group of %s is not 'polkitd'. Expected GID: %d, Found GID: %d", polkitRulesDir, polkitdGid, stat.Gid))
 	}
 
-	t.Pass(2)
-	return true
+	return t.Pass()
 }
 
 // saveOriginalHostname saves the original hostname
@@ -111,12 +105,12 @@ func saveOriginalHostname(t *tap.TAPRunner) (string, bool) {
 
 	originalHostname, err := os.Hostname()
 	if err != nil {
-		t.Fail(1, fmt.Sprintf("Could not get original hostname: %v", err))
+		t.Fail(fmt.Sprintf("Could not get original hostname: %v", err))
 		return "", false
 	}
 
 	log.Println("Original hostname is:", originalHostname)
-	t.Pass(1)
+	t.Pass()
 	return originalHostname, true
 }
 
@@ -125,8 +119,7 @@ func addRuleAndRestart(t *tap.TAPRunner) bool {
 	log.Println("- Adding test polkit rule to", testRuleFile)
 
 	if err := os.WriteFile(testRuleFile, []byte(polkitRule), 0644); err != nil {
-		t.Fail(3, fmt.Sprintf("Failed to write polkit rule file: %v. Make sure you are running this test as root.", err))
-		return false
+		return t.Fail(fmt.Sprintf("Failed to write polkit rule file: %v. Make sure you are running this test as root.", err))
 	}
 
 	log.Println("Restarting polkit service...")
@@ -134,12 +127,10 @@ func addRuleAndRestart(t *tap.TAPRunner) bool {
 	if result.Error != nil {
 		diagnostic := fmt.Sprintf("Exit code: %d\nError: %v\nStdout: %s\nStderr: %s",
 			result.ExitCode, result.Error, result.Stdout, result.Stderr)
-		t.Fail(3, diagnostic)
-		return false
+		return t.Fail(diagnostic)
 	}
 
-	t.Pass(3)
-	return true
+	return t.Pass()
 }
 
 // changeHostnameWithAuth attempts to change hostname (should succeed with polkit rule)
@@ -150,12 +141,10 @@ func changeHostnameWithAuth(t *tap.TAPRunner) bool {
 	if result.Error != nil {
 		diagnostic := fmt.Sprintf("Exit code: %d\nError: %v\nStdout: %s\nStderr: %s",
 			result.ExitCode, result.Error, result.Stdout, result.Stderr)
-		t.Fail(4, diagnostic)
-		return false
+		return t.Fail(diagnostic)
 	}
 
-	t.Pass(4)
-	return true
+	return t.Pass()
 }
 
 // verifyHostnameChanged verifies that the hostname was actually changed
@@ -164,31 +153,34 @@ func verifyHostnameChanged(t *tap.TAPRunner) bool {
 
 	currentHostname, _ := os.Hostname()
 	if currentHostname != newHostname {
-		t.Fail(5, fmt.Sprintf("Hostname was not changed. Expected '%s', but found '%s'", newHostname, currentHostname))
-		return false
+		return t.Fail(fmt.Sprintf("Hostname was not changed. Expected '%s', but found '%s'", newHostname, currentHostname))
 	}
 
-	t.Pass(5)
-	return true
+	return t.Pass()
 }
 
 // removeRuleAndRestart removes the polkit rule and restarts the service
 func removeRuleAndRestart(t *tap.TAPRunner) bool {
 	log.Println("- Removing test polkit rule and restarting service.")
 
-	cleanupRuleFile() // Clean up now to test the next step
+	// Clean up now to test the next step
+	log.Println("Cleaning up test rule file:", testRuleFile)
+	if err := os.Remove(testRuleFile); err != nil {
+		// Log as a warning because the file might have been removed already.
+		log.Printf("WARN: Could not remove test rule file %s: %v", testRuleFile, err)
+	} else {
+		log.Println("Test rule file removed.")
+	}
 
 	log.Println("Restarting polkit service...")
 	result := utils.RunCommandTimeout(utils.MediumTimeout, "systemctl", "restart", "polkit")
 	if result.Error != nil {
 		diagnostic := fmt.Sprintf("Exit code: %d\nError: %v\nStdout: %s\nStderr: %s",
 			result.ExitCode, result.Error, result.Stdout, result.Stderr)
-		t.Fail(6, diagnostic)
-		return false
+		return t.Fail(diagnostic)
 	}
 
-	t.Pass(6)
-	return true
+	return t.Pass()
 }
 
 // changeHostnameShouldFail attempts to change hostname (should fail without polkit rule)
@@ -199,18 +191,13 @@ func changeHostnameShouldFail(t *tap.TAPRunner) bool {
 	// The command will either timeout or return an error.
 	result := utils.RunCommandTimeout(utils.ShortTimeout, "sudo", "-u", testUser, "hostnamectl", "set-hostname", "should-fail-hostname")
 	if result.Error == nil {
-		t.Fail(7, "Changing hostname succeeded when it should have failed")
-		return false
+		return t.Fail("Changing hostname succeeded when it should have failed")
 	}
 
-	if result.ExitCode == -1 {
-		t.Pass(7)
-	} else {
-		t.Fail(7, fmt.Sprintf("Unexpected exit code: %d error : %s", result.ExitCode, result.Error))
-		return false
+	if result.ExitCode != -1 {
+		return t.Fail(fmt.Sprintf("Unexpected exit code: %d error : %s", result.ExitCode, result.Error))
 	}
-
-	return true
+	return t.Pass()
 }
 
 // verifyHostnameUnchanged verifies that the hostname was NOT changed in the previous step
@@ -219,38 +206,24 @@ func verifyHostnameUnchanged(t *tap.TAPRunner) bool {
 
 	currentHostname, _ := os.Hostname()
 	if currentHostname != newHostname {
-		t.Fail(8, fmt.Sprintf("Hostname was changed when it should not have been. Expected '%s', but found '%s'", newHostname, currentHostname))
-		return false
+		return t.Fail(fmt.Sprintf("Hostname was changed when it should not have been. Expected '%s', but found '%s'", newHostname, currentHostname))
 	}
-
-	t.Pass(8)
-	return true
+	return t.Pass()
 }
 
 // restoreHostname restores the machine's original hostname
 func restoreHostname(hostname string, t *tap.TAPRunner) {
 	log.Println("- Restoring original hostname to", hostname)
 
-	// This command needs to be run with sudo because the test might have failed,
-	// leaving the system in a state where root is required.
+	// This command needs to be run because the test might have failed,
+	// leaving the system in a state where permissions are messed up.
 	result := utils.RunCommandTimeout(utils.MediumTimeout, "hostnamectl", "set-hostname", hostname)
 	if result.Error != nil {
 		diagnostic := fmt.Sprintf("Failed to restore original hostname '%s'\nExit code: %d\nError: %v\nStdout: %s\nStderr: %s",
 			hostname, result.ExitCode, result.Error, result.Stdout, result.Stderr)
-		t.Fail(9, diagnostic)
+		t.Fail(diagnostic)
 		log.Printf("ERROR: Please restore hostname manually to: %s", hostname)
 	} else {
-		t.Pass(9)
-	}
-}
-
-// cleanupRuleFile removes the test rule file.
-func cleanupRuleFile() {
-	log.Println("Cleaning up test rule file:", testRuleFile)
-	if err := os.Remove(testRuleFile); err != nil {
-		// Log as a warning because the file might have been removed already.
-		log.Printf("WARN: Could not remove test rule file %s: %v", testRuleFile, err)
-	} else {
-		log.Println("Test rule file removed.")
+		t.Pass()
 	}
 }
