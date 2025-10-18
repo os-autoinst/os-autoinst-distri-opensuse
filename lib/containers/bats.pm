@@ -70,6 +70,8 @@ sub run_command {
 sub configure_docker {
     my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn";
     $docker_opts .= " --experimental" if get_var("DOCKER_EXPERIMENTAL");
+    # SELinux is not enabled by default due to https://bugzilla.opensuse.org/show_bug.cgi?id=1252290
+    $docker_opts .= " --selinux-enabled" if get_var("DOCKER_SELINUX");
     my $port = 2375;
     if (get_var("DOCKER_TLS")) {
         $port++;
