@@ -84,10 +84,10 @@ sub prepare_parmfile {
     if (get_var('AUTOYAST')) {
         my $url;
         if (get_var('AUTOYAST_PREPARE_PROFILE')) {
-            $url = is_opensuse ? get_var('AUTOYAST') : shorten_url(get_var('AUTOYAST'));
+            $url = get_var('AUTOYAST');
         }
         else {
-            $url = is_opensuse ? data_url(get_var('AUTOYAST')) : shorten_url(data_url(get_var('AUTOYAST')));
+            $url = data_url(get_var('AUTOYAST'));
         }
         $params .= " autoyast=" . $url;
         set_var('AUTOYAST', $url);
