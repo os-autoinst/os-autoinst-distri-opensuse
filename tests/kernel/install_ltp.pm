@@ -344,6 +344,9 @@ sub run {
         my $version = get_var('VERSION');
         assert_script_run("grub2-set-default 'SLES ${version}, with Xen hypervisor'");
         my $serial_console = get_serial_console;
+        # If there is no grub entry on default installation we need to add empty one
+        my $no_grub_entry = script_run('grep GRUB_CMDLINE_LINUX_XEN_REPLACE_DEFAULT /etc/default/grub');
+        assert_script_run('echo GRUB_CMDLINE_LINUX_XEN_REPLACE_DEFAULT=\"\" >> /etc/default/grub') if $no_grub_entry;
         add_grub_xen_replace_cmdline_settings("console=${serial_console},115200n", update_grub => 1);
     }
 
