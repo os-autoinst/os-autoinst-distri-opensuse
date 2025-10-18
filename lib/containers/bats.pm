@@ -105,7 +105,8 @@ sub configure_docker {
     run_command "systemctl restart docker";
     run_command "export DOCKER_HOST=tcp://localhost:$port";
     run_command "export DOCKER_TLS_VERIFY=1" if get_var("DOCKER_TLS");
-    record_info "docker info", script_output("docker info");
+    record_info "docker version", script_output("docker version -f json | jq -Mr");
+    record_info "docker info", script_output("docker info -f json | jq -Mr");
 }
 
 sub cleanup_docker {
