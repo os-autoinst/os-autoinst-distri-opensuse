@@ -68,7 +68,7 @@ sub run_command {
 }
 
 sub configure_docker {
-    my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000";
+    my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn";
     $docker_opts .= " --experimental" if get_var("DOCKER_EXPERIMENTAL");
     my $port = 2375;
     if (get_var("DOCKER_TLS")) {
@@ -98,7 +98,7 @@ sub configure_docker {
         run_command "cp /etc/docker/ca.pem /etc/pki/trust/anchors/";
         run_command "update-ca-certificates";
     }
-    $docker_opts .= " -H 0.0.0.0:$port";
+    $docker_opts .= " -H tcp://0.0.0.0:$port";
     run_command "mv /etc/sysconfig/docker{,.bak}";
     run_command "mv /etc/docker/daemon.json{,.bak}";
     run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
