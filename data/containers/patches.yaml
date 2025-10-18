@@ -149,14 +149,17 @@ docker-py:
   # https://github.com/docker/docker-py/pull/3231 - Bump default API version to 1.44 (Moby 25.0)
   # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
   # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
+  # https://github.com/docker/docker-py/pull/3366 - test: Skip from_env_unix tests if DOCKER_HOST is network socket
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 3290
     - 3354
+    - 3366
   sle-16.0:
     GITHUB_PATCHES:
     - 3290
     - 3354
+    - 3366
   sle-15-SP7:
     GITHUB_PATCHES:
     - 3199
@@ -164,6 +167,7 @@ docker-py:
     - 3206
     - 3231
     - 3290
+    - 3366
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic

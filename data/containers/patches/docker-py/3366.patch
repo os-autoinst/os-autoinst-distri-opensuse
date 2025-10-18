@@ -1,0 +1,35 @@
+From cf97720bd35c718552e60c8c4f085bc94744e054 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 18 Oct 2025 11:32:43 +0200
+Subject: [PATCH] test: Skip from_env_unix tests if DOCKER_HOST is network
+ socket
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/unit/client_test.py | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/tests/unit/client_test.py b/tests/unit/client_test.py
+index 60a6d5c0f5..5ba712d240 100644
+--- a/tests/unit/client_test.py
++++ b/tests/unit/client_test.py
+@@ -188,7 +188,8 @@ def test_from_env_without_timeout_uses_default(self):
+         assert client.api.timeout == DEFAULT_TIMEOUT_SECONDS
+ 
+     @pytest.mark.skipif(
+-        IS_WINDOWS_PLATFORM, reason='Unix Connection Pool only on Linux'
++        os.environ.get('DOCKER_HOST', '').startswith('tcp://') or IS_WINDOWS_PLATFORM,
++        reason='Requires a Unix socket'
+     )
+     @mock.patch("docker.transport.unixconn.UnixHTTPConnectionPool")
+     def test_default_pool_size_from_env_unix(self, mock_obj):
+@@ -219,7 +220,8 @@ def test_default_pool_size_from_env_win(self, mock_obj):
+                                          )
+ 
+     @pytest.mark.skipif(
+-        IS_WINDOWS_PLATFORM, reason='Unix Connection Pool only on Linux'
++        os.environ.get('DOCKER_HOST', '').startswith('tcp://') or IS_WINDOWS_PLATFORM,
++        reason='Requires a Unix socket'
+     )
+     @mock.patch("docker.transport.unixconn.UnixHTTPConnectionPool")
+     def test_pool_size_from_env_unix(self, mock_obj):
