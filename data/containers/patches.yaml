@@ -171,6 +171,12 @@ docker-py:
     - 3231
     - 3290
     - 3366
+moby:
+  # Note on patches:
+  # https://github.com/moby/moby/pull/51219 - integration/container: Make tests runnable on SELinux enabled daemon
+  opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 51219
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
