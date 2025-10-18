@@ -1295,7 +1295,7 @@ subtest '[qesap_terraform_ansible_deploy_retry] reboot timeout Ansible failures'
     ok $qesap_execute_calls eq 3, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 3)";
 };
 
-subtest '[create_cidr_from_ip]' => sub {
+subtest '[qesap_create_cidr_from_ip]' => sub {
     my $ret;
     # ipv4 => /32
     $ret = qesap_create_cidr_from_ip(ip => '195.0.0.10');
@@ -1319,6 +1319,37 @@ subtest '[create_cidr_from_ip]' => sub {
 
     # invalid IP without proceed_on_failure => dies
     dies_ok { qesap_create_cidr_from_ip(ip => 'still_not_an_ip') } 'Dies on invalid IP without proceed_on_failure';
+};
+
+subtest '[qesap_ssh_intrusion_detection]' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; return 0; });
+
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return <<'LOG';
+2025-09-02T11:59:20.291296+0000 vmhana02 sshd[143121]: Connection closed by authenticating user root 1.2.3.4 port 42 [preauth]
+2025-09-02T12:04:21.002220+0000 vmhana02 sshd[160619]: Connection closed by invalid user debian 1.2.3.4 port 42 [preauth]
+2025-09-02T12:04:23.503717+0000 vmhana02 sshd[160801]: Connection closed by invalid user debian 1.2.3.4 port 42 [preauth]
+LOG
+    });
+
+    $qesap->redefine(upload_logs => sub { note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(qesap_ansible_script_output_file => sub {
+            my (%args) = @_;
+            push @calls, "ANSIBLE:" . $args{cmd};
+            note("\n ###--> out_path : $args{out_path}");
+            note("\n ###--> file : $args{file}");
+            return 'BOUBLE_FILE.txt'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    qesap_ssh_intrusion_detection(provider => 'NEMO');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok 1;
 };
 
 done_testing;
