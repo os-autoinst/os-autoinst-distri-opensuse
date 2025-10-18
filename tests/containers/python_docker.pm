@@ -63,11 +63,7 @@ sub test ($target) {
 
     # Used by pytest to ignore individual tests
     # Format: "FILE::CLASS::FUNCTION"
-    my @deselect = (
-        # These tests will fail if DOCKER_HOST is set
-        "tests/unit/client_test.py::FromEnvTest::test_default_pool_size_from_env_unix",
-        "tests/unit/client_test.py::FromEnvTest::test_pool_size_from_env_unix",
-    );
+    my @deselect = ();
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
 
     my %env = (
