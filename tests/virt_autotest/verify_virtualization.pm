@@ -17,12 +17,14 @@ use utils;
 use version_utils;
 use virt_autotest::utils;
 use Utils::Architectures;
+use Utils::Logging qw(upload_coredumps);
 use virt_utils;
 use virt_autotest::virtual_network_utils;
 use virt_autotest::domain_management_utils;
 use mm_network qw(is_networkmanager);
 
 tie our %guest_matrix, 'Tie::IxHash', ();
+our @guest_list = ();
 
 sub run {
     my $self = shift;
@@ -33,6 +35,7 @@ sub run {
     $self->verify_hypervisor;
     $self->verify_network;
     $self->verify_registration;
+    $self->verify_guest_number;
     $self->verify_guest_network;
     $self->verify_guest_storage;
     return $self;
@@ -104,6 +107,23 @@ sub verify_registration {
     return $self;
 }
 
+sub verify_guest_number {
+    my $self = shift;
+
+    record_info("Show all guests", script_output("virsh list --all", proceed_on_failure => 1));
+    my $guest_in_number = scalar split(/\|/, get_var('UNIFIED_GUEST_LIST', get_var('GUEST_LIST', '')));
+    @guest_list = split(/\n/, script_output("virsh list --all --name | grep -v Domain-0 | grep .", proceed_on_failure => 1));
+    my $guest_on_system = scalar @guest_list;
+    if ($guest_in_number == 0) {
+        record_info("No guest expected", "No guest expected from setting UNIFIED_GUEST_LIST or GUEST_LIST");
+    }
+    else {
+        die("No guest found on system") if ($guest_on_system == 0);
+        record_info("Guest number incorrect", "There are $guest_on_system guests found on system but $guest_in_number are expected", result => 'fail') if ($guest_on_system != $guest_in_number);
+    }
+    return $self;
+}
+
 sub verify_guest_network {
     my ($self, %args) = @_;
     $args{confdir} //= '/var/lib/libvirt/images';
@@ -118,11 +138,9 @@ sub verify_guest_network {
     }
 
     my $ret = 0;
-    my $count = 0;
-    if (get_var('GUEST_LIST') or get_var('UNIFIED_GUEST_LIST') or get_var('DOWNLOAD_GUEST_ASSETS')) {
-        foreach my $guest (split(/\n/, script_output("virsh list --all --name | grep -v Domain-0 | grep .", proceed_on_failure => 1))) {
+    if (scalar @guest_list > 0) {
+        foreach my $guest (@guest_list) {
             save_screenshot;
-            $count += 1;
             # Retrieve guest network config and populate into $guest_matrix{$guest}
             tie my %single_guest_matrix, 'Tie::IxHash', (macaddr => '', ipaddr => '', nettype => '', netname => '', netmode => '', staticip => 'no');
             $guest_matrix{$guest} = \%single_guest_matrix;
@@ -189,7 +207,7 @@ sub verify_guest_network {
             }
             $ret |= $temp;
         }
-        die("Guest network verificatin failed") if ($ret != 0 or $count == 0);
+        die("Guest network verificatin failed") if ($ret != 0);
     }
     return $self;
 }
@@ -199,18 +217,16 @@ sub verify_guest_storage {
     $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa');
 
     my $ret = 0;
-    my $count = 0;
     my $ssh_command = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i $args{keyfile}";
-    if (get_var('GUEST_LIST') or get_var('UNIFIED_GUEST_LIST') or get_var('DOWNLOAD_GUEST_ASSETS')) {
-        foreach my $guest (split(/\n/, script_output("virsh list --all --name | grep -v Domain-0 | grep .", proceed_on_failure => 1))) {
+    if (scalar @guest_list > 0) {
+        foreach my $guest (@guest_list) {
             save_screenshot;
-            $count += 1;
             if (script_run("timeout --kill-after=1 --signal=9 20 $ssh_command root\@$guest_matrix{$guest}{ipaddr} \"echo VIRTUALIZATION > /tmp/test_guest_storage && rm -f -r /tmp/test_guest_storage\"") != 0) {
                 record_info("Failed storage on guest $guest", "Storage test failed on guest $guest_matrix{$guest}{ipaddr}", result => 'fail');
                 $ret |= 1;
             }
         }
-        die("Guest storage verificatin failed") if ($ret != 0 or $count == 0);
+        die("Guest storage verificatin failed") if ($ret != 0);
     }
     return $self;
 }
@@ -228,7 +244,7 @@ sub post_fail_hook {
     script_run("iptables -L -n -v > /var/log/iptables_rules");
     virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log", "_verify_virtualization");
     save_screenshot;
-    $self->upload_coredumps;
+    upload_coredumps;
     save_screenshot;
     return $self;
 }
