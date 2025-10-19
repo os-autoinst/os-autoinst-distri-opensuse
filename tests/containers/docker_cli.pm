@@ -25,9 +25,6 @@ sub setup {
 
     configure_docker;
 
-    # The tests assume the legacy builder
-    run_command "mv -f /usr/lib/docker/cli-plugins/docker-buildx{,.bak}";
-
     run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 
     # Install test dependencies
@@ -110,7 +107,6 @@ sub cleanup {
     script_run "docker rm -vf registry";
     script_run "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose down -v --rmi all";
     script_run "docker swarm leave -f";
-    script_run "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
     cleanup_docker;
     script_run "rm -f /usr/local/bin/notary";
 }
