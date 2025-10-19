@@ -26,9 +26,6 @@ sub setup {
 
     configure_docker;
 
-    # The tests assume the legacy builder
-    run_command "mv -f /usr/lib/docker/cli-plugins/docker-buildx{,.bak}";
-
     # We need ping from GNU inetutils
     run_command 'docker run --rm -it -v /usr/local/bin:/target:rw,z debian sh -c "apt update; apt install -y inetutils-ping; cp -v /bin/ping* /target"', timeout => 120;
     record_info "ping version", script_output("ping --version");
@@ -73,8 +70,7 @@ sub setup {
         # integration-cli tests need an older cli version
         my $arch = get_var("ARCH");
         my $cliversion = get_var("DOCKER_CLIVERSION", script_output q(sed -n '/DOCKERCLI_INTEGRATION_VERSION=/s/.*=v//p' Dockerfile));
-        run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /usr/local/bin/ --strip-components 1 docker/docker";
-        run_command "chmod -x /usr/local/bin/docker";
+        run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /var/tmp --strip-components 1 docker/docker";
     }
 }
 
@@ -84,10 +80,15 @@ sub run {
     $self->setup;
     select_serial_terminal;
 
+    my $firewall_backend = script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
+    record_info "firewall backend", $firewall_backend;
+    my $test_no_firewalld = ($firewall_backend eq "iptables") ? "true" : "";
+
     my %env = (
+        DOCKER_FIREWALL_BACKEND => $firewall_backend,
+        DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
         TZ => "UTC",
     );
-    my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
     my @xfails = (
         # Flaky tests
@@ -101,10 +102,8 @@ sub run {
     my $tags = "apparmor selinux seccomp pkcs11";
     foreach my $dir (@test_dirs) {
         my $report = $dir =~ s|/|-|gr;
-        if ($dir eq "integration-cli") {
-            run_command "chmod +x /usr/local/bin/docker";
-            run_command "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
-        }
+        $env{TEST_CLIENT_BINARY} = "/var/tmp/docker" if ($dir eq "integration-cli");
+        my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
         run_command "pushd $dir";
         run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", timeout => 900;
         patch_junit "docker", $version, "$report.xml", @xfails;
@@ -115,8 +114,7 @@ sub run {
 }
 
 sub cleanup {
-    script_run "rm -f /usr/local/bin/{ctr,docker,ping}";
-    script_run "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
+    script_run "rm -f /usr/local/bin/{ctr,docker,ping} /var/tmp/docker";
     cleanup_docker;
 }
 
