@@ -70,8 +70,7 @@ sub setup {
         # integration-cli tests need an older cli version
         my $arch = get_var("ARCH");
         my $cliversion = get_var("DOCKER_CLIVERSION", script_output q(sed -n '/DOCKERCLI_INTEGRATION_VERSION=/s/.*=v//p' Dockerfile));
-        run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /usr/local/bin/ --strip-components 1 docker/docker";
-        run_command "chmod -x /usr/local/bin/docker";
+        run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /var/tmp --strip-components 1 docker/docker";
     }
 }
 
@@ -90,7 +89,6 @@ sub run {
         DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
         TZ => "UTC",
     );
-    my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
     my @xfails = (
         # Flaky tests
@@ -104,9 +102,8 @@ sub run {
     my $tags = "apparmor selinux seccomp pkcs11";
     foreach my $dir (@test_dirs) {
         my $report = $dir =~ s|/|-|gr;
-        if ($dir eq "integration-cli") {
-            run_command "chmod +x /usr/local/bin/docker";
-        }
+        $env{TEST_CLIENT_BINARY} = "/var/tmp/docker" if ($dir eq "integration-cli");
+        my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
         run_command "pushd $dir";
         run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", timeout => 900;
         patch_junit "docker", $version, "$report.xml", @xfails;
@@ -117,7 +114,7 @@ sub run {
 }
 
 sub cleanup {
-    script_run "rm -f /usr/local/bin/{ctr,docker,ping}";
+    script_run "rm -f /usr/local/bin/{ctr,docker,ping} /var/tmp/docker";
     cleanup_docker;
 }
 
