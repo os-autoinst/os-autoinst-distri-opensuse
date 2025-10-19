@@ -60,6 +60,7 @@ sub setup {
     } else {
         # Adapted from https://build.opensuse.org/projects/openSUSE:Factory/packages/docker/files/docker-integration.sh
         @test_dirs = split(/\n/, script_output(qq(go list -test -f '{{- if ne .ForTest "" -}}{{- .Dir -}}{{- end -}}' ./integration/... | sed "s,^\$(pwd)/,," | grep -vxE '($ignore_dirs)')));
+        push @test_dirs, "integration-cli" if is_x86_64;
     }
 
     # Preload Docker images used for testing
@@ -98,6 +99,22 @@ sub run {
         # These tests use amd64 images:
         "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
     ) unless (is_x86_64);
+    push @xfails, (
+        # These tests are expected to fail in the deprecated integration-cli tests
+        "github.com/docker/docker/integration-cli::TestDockerCLIAttachSuite",
+        "github.com/docker/docker/integration-cli::TestDockerCLIAttachSuite/TestAttachAfterDetach",
+        "github.com/docker/docker/integration-cli::TestDockerCLIAttachSuite/TestAttachDetach",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRestartSuite",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRestartSuite/TestRestartDisconnectedContainer",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRestartSuite/TestRestartPolicyAfterRestart",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRestartSuite/TestRestartPolicyOnFailure",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRestartSuite/TestRestartWithVolumes",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRmiSuite",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRmiSuite/TestRmiContainerImageNotFound",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRmiSuite/TestRmiForceWithExistingContainers",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRmiSuite/TestRmiImageIDForceWithRunningContainersAndMultipleTags",
+        "github.com/docker/docker/integration-cli::TestDockerCLIRmiSuite/TestRmiUntagHistoryLayer",
+    ) if (grep { $_ eq "integration-cli" } @test_dirs);
 
     my $tags = "apparmor selinux seccomp pkcs11";
     foreach my $dir (@test_dirs) {
