@@ -84,7 +84,13 @@ sub run {
     $self->setup;
     select_serial_terminal;
 
+    my $firewall_backend = script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
+    record_info "firewall backend", $firewall_backend;
+    my $test_no_firewalld = ($firewall_backend eq "iptables") ? "true" : "";
+
     my %env = (
+        DOCKER_FIREWALL_BACKEND => $firewall_backend,
+        DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
         TZ => "UTC",
     );
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
