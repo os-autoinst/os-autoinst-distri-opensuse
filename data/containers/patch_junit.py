@@ -104,12 +104,27 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
                 int(ts.get("failures", "0")) for ts in root.findall("testsuite")
             )
             root.set("failures", str(total_failures))
-        attribs = dict(
-            zip("package version distri release build arch".split(), info.split())
-        )
-        # str.removesuffix() was added to Python 3.8
-        attribs["name"] = os.path.basename(file)[: -len(".xml")]
-        root.attrib.update(attribs)
+
+        # Add metadata information like package version, etc
+        keys = ["package", "version", "distri", "release", "build", "arch"]
+        values = info.split()
+
+        # Set testsuites name attribute
+        # Note: str.removesuffix() was added to Python 3.8
+        root.set("name", os.path.basename(file)[: -len(".xml")])
+
+        # Create or find <properties> under <testsuites>
+        props = root.find("properties")
+        if props is None:
+            # Insert <properties> as the first child (before <testsuite>)
+            props = ET.Element("properties")
+            root.insert(0, props)
+
+        # Add metadata as <property name="..." value="..."/>
+        for key, value in zip(keys, values):
+            prop = ET.SubElement(props, "property")
+            prop.set("name", key)
+            prop.set("value", value)
 
     tree.write(file, encoding="utf-8", xml_declaration=True)
 
