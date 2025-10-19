@@ -26,9 +26,6 @@ sub setup {
 
     configure_docker;
 
-    # The tests assume the legacy builder
-    run_command "mv -f /usr/lib/docker/cli-plugins/docker-buildx{,.bak}";
-
     # We need ping from GNU inetutils
     run_command 'docker run --rm -it -v /usr/local/bin:/target:rw,z debian sh -c "apt update; apt install -y inetutils-ping; cp -v /bin/ping* /target"', timeout => 120;
     record_info "ping version", script_output("ping --version");
@@ -109,7 +106,6 @@ sub run {
         my $report = $dir =~ s|/|-|gr;
         if ($dir eq "integration-cli") {
             run_command "chmod +x /usr/local/bin/docker";
-            run_command "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
         }
         run_command "pushd $dir";
         run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", timeout => 900;
@@ -122,7 +118,6 @@ sub run {
 
 sub cleanup {
     script_run "rm -f /usr/local/bin/{ctr,docker,ping}";
-    script_run "mv -f /usr/lib/docker/cli-plugins/docker-buildx{.bak,}";
     cleanup_docker;
 }
 
