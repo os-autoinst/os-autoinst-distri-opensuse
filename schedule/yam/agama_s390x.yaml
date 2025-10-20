@@ -8,6 +8,11 @@ schedule:
   - yam/agama/agama
   - boot/reconnect_mgmt_console
   - installation/first_boot
+  - yam/validate/validate_selinux
   - yam/validate/validate_base_product
   - yam/validate/validate_product
+  - yam/validate/validate_connectivity
   - yam/validate/validate_first_user
+  - yam/validate/validate_snapshots
+  - yam/validate/validate_registered_products
+  - console/validate_repos
