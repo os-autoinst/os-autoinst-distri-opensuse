@@ -36,6 +36,12 @@ sub run {
     # Create Dockerfile with VOLUME defined
     assert_script_run("echo -e 'FROM registry.opensuse.org/opensuse/busybox:latest\\nVOLUME /$test_dir' > $test_dir/Dockerfile");
 
+    if ($runtime eq "docker") {
+        my $selinux_enabled = script_run("test -d /sys/fs/selinux") == 0;
+        # Apply fix suggested in docker-run(1)
+        assert_script_run("chcon -Rt svirt_sandbox_file_t test_dir") if $selinux_enabled;
+    }
+
     # Build image
     assert_script_run("$runtime build -t $test_image -f $test_dir/Dockerfile $test_dir/");
 
