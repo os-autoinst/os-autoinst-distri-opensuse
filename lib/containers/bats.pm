@@ -73,7 +73,8 @@ sub configure_docker {
     $args{selinux} //= get_var("DOCKER_SELINUX", 0);
     $args{tls} //= get_var("DOCKER_TLS", 0);
 
-    my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn";
+    my $registry = get_var("REGISTRY", "3.126.238.126:5000");
+    my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn --registry-mirror http://$registry";
     $docker_opts .= " --experimental" if $args{experimental};
     $docker_opts .= " --selinux-enabled" if $args{selinux};
     my $port = 2375;
