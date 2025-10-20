@@ -13,6 +13,7 @@ use sles4sap::qesap::aws;
 sub run {
     select_serial_terminal;
 
+    qesap_ssh_intrusion_detection(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     my @ansible_ret = qesap_execute(
         cmd => 'ansible',
         cmd_options => '-d',
