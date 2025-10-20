@@ -112,8 +112,10 @@ buildx:
 compose:
   # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
+  # https://github.com/docker/compose/pull/13297 - test: Make tests runnable on SELinux enabled daemon
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
+    - 13297
   sle-16.0:
     GITHUB_PATCHES:
     - 13214
