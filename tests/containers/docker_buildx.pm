@@ -23,7 +23,7 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    configure_docker;
+    configure_docker(selinux => 1, tls => 1);
 
     # The tests expect the plugins to be in PATH without the "docker-" prefix
     run_command 'cp /usr/lib/docker/cli-plugins/docker-buildx /usr/local/bin/buildx';

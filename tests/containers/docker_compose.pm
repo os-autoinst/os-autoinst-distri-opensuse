@@ -23,7 +23,8 @@ sub setup {
     my @pkgs = qw(docker docker-compose jq go1.24 make);
     $self->setup_pkgs(@pkgs);
 
-    configure_docker;
+    # docker-compose needs to be patched upstream to support SELinux
+    configure_docker(selinux => 0, tls => 1);
 
     # Some tests need this file
     run_command "mkdir /root/.docker || true";

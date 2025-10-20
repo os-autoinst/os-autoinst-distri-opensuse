@@ -23,7 +23,7 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    configure_docker;
+    configure_docker(selinux => 1, tls => 0);
 
     run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 
@@ -90,6 +90,7 @@ sub run {
         # Expected failures from Docker Content Trust
         "github.com/docker/cli/e2e/container::TestTrustedCreateFromBadTrustServer",
         "github.com/docker/cli/e2e/container::TestTrustedRunFromBadTrustServer",
+        "github.com/docker/cli/e2e/global::TestTLSVerify",
     );
     # These require notary which is currently shipped for x86_64 only
     push @xfails, (

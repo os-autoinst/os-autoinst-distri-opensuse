@@ -24,7 +24,7 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    configure_docker;
+    configure_docker(selinux => 1, tls => 0);
 
     # We need ping from GNU inetutils
     run_command 'docker run --rm -it -v /usr/local/bin:/target:rw,z debian sh -c "apt update; apt install -y inetutils-ping; cp -v /bin/ping* /target"', timeout => 120;
