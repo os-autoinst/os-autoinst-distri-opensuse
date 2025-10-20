@@ -66,7 +66,11 @@
       <li><a href="#qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</a></li>
       <li><a href="#qesap_terraform_ansible_deploy_retry">qesap_terraform_ansible_deploy_retry</a></li>
       <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
-      <li><a href="#qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</a></li>
+      <li><a href="#qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</a>
+        <ul>
+          <li><a href="#qesap_ssh_intrusion_detection">qesap_ssh_intrusion_detection</a></li>
+        </ul>
+      </li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/qesap/qesapdeployment.pm</h1>
@@ -723,6 +727,14 @@ Return total time of retry loop in case of pass.</code></pre>
 
 <pre><code>List of commands to collect logs from a deployed cluster</code></pre>
 
+<dl>
+
+<dt id="PROVIDER---Cloud-provider-name-used-to-find-the-inventory6"><b>PROVIDER</b> - Cloud provider name, used to find the inventory</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h3 id="qesap_cluster_logs">qesap_cluster_logs</h3>
 
 <pre><code>Collect logs from a deployed cluster.
@@ -881,6 +893,18 @@ Return:
 <dl>
 
 <dt id="IP---The-ip-to-convert-to-CIDR"><b>IP</b> - The ip to convert to CIDR</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_ssh_intrusion_detection">qesap_ssh_intrusion_detection</h3>
+
+<pre><code>Search and report relevant messages from the journal.</code></pre>
+
+<dl>
+
+<dt id="PROVIDER---cloud-provider-name-as-from-PUBLIC_CLOUD_PROVIDER-setting1"><b>PROVIDER</b> - cloud provider name as from PUBLIC_CLOUD_PROVIDER setting</dt>
 <dd>
 
 </dd>
