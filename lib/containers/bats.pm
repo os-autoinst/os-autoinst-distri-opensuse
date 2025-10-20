@@ -68,12 +68,16 @@ sub run_command {
 }
 
 sub configure_docker {
+    my (%args) = @_;
+    $args{experimental} //= get_var("DOCKER_EXPERIMENTAL", 0);
+    $args{selinux} //= get_var("DOCKER_SELINUX", 0);
+    $args{tls} //= get_var("DOCKER_TLS", 0);
+
     my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn";
-    $docker_opts .= " --experimental" if get_var("DOCKER_EXPERIMENTAL");
-    # SELinux is not enabled by default due to https://bugzilla.opensuse.org/show_bug.cgi?id=1252290
-    $docker_opts .= " --selinux-enabled" if get_var("DOCKER_SELINUX");
+    $docker_opts .= " --experimental" if $args{experimental};
+    $docker_opts .= " --selinux-enabled" if $args{selinux};
     my $port = 2375;
-    if (get_var("DOCKER_TLS")) {
+    if ($args{tls}) {
         $port++;
         my $ca_cert = "ca.pem";
         my $ca_key = "ca-key.pem";
@@ -104,9 +108,10 @@ sub configure_docker {
     run_command "mv /etc/sysconfig/docker{,.bak}";
     run_command "mv /etc/docker/daemon.json{,.bak}";
     run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
+    record_info "DOCKER_OPTS", $docker_opts;
     run_command "systemctl restart docker";
     run_command "export DOCKER_HOST=tcp://localhost:$port";
-    run_command "export DOCKER_TLS_VERIFY=1" if get_var("DOCKER_TLS");
+    run_command "export DOCKER_TLS_VERIFY=1" if $args{tls};
     record_info "docker version", script_output("docker version -f json | jq -Mr");
     record_info "docker info", script_output("docker info -f json | jq -Mr");
 }
