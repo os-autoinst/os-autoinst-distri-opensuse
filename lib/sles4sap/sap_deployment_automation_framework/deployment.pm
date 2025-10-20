@@ -1193,11 +1193,11 @@ sub sdaf_upload_logs {
 
     record_info('Uploading crm report log');
     script_run("sudo crm report -E /var/log/ha-cluster-bootstrap.log $crm_report_log", timeout => 300);
-    upload_logs("${crm_report_log}.tar.gz");
+    upload_logs("${crm_report_log}.tar.gz", failok => 1);
 
     record_info('Uploading crm configure log');
     record_info('crm configure show', 'Failed to run "crm configure show"', result => 'fail') if (script_run("sudo crm configure show > $crm_cfg_log", timeout => 120));
-    upload_logs("$crm_cfg_log");
+    upload_logs("$crm_cfg_log", failok => 1);
 
     # Upload zypper log
     upload_logs('/var/log/zypper.log', log_name => "$autotest::current_test->{name}-${hostname}_zypper.log", failok => 1);
@@ -1215,7 +1215,7 @@ sub sdaf_upload_logs {
     my $nw_log = script_run("ls /var/tmp/$sap_sid | grep $sap_sid");
     if (!script_run("ls /var/tmp/$sap_sid | grep $sap_sid")) {
         my $nw_log = script_output("ls /var/tmp/$sap_sid | grep $sap_sid | grep 'zip'");
-        upload_logs("/var/tmp/$sap_sid/$nw_log");
+        upload_logs("/var/tmp/$sap_sid/$nw_log", failok => 1);
     }
 
     # Uploading supportconfig log (it is time consuming so it is conditional)
@@ -1225,7 +1225,7 @@ sub sdaf_upload_logs {
         # Sometimes the tar ball is scc_${hostname}_xxx-xxx-xxx-*.txz
         if (!script_run("ls /var/log/scc_${hostname}*.txz")) {
             my $supportconfig_log = script_output("ls /var/log/scc_${hostname}*.txz");
-            upload_logs("$supportconfig_log");
+            upload_logs("$supportconfig_log", failok => 1);
         }
     } else {
         record_info('Skipped uploading supportconfig log');
