@@ -17,7 +17,8 @@ use version_utils qw(is_sle_micro check_version);
 use Mojo::JSON 'j';
 use List::Util 'sum';
 
-sub check_avc {
+# Check for AVC denials and uploads them
+sub report_avc {
     my ($self) = @_;
 
     my $instance = $self->{my_instance};
@@ -30,12 +31,15 @@ sub check_avc {
     assert_script_run("scp " . $instance->username() . "@" . $instance->public_ip . ":ausearch.txt ausearch.txt");
     upload_logs("ausearch.txt");
 
-    # TODO: Uncomment once all ongoing issues are resolved. For now there will be only a record_info
-    #die "SELinux access denials on first boot";
-    my @avc = split(/\n/, $avc);
-    for my $row (@avc) {
-        $row =~ s/^\s+|\s+$//g;
-        record_info("AVC denial", $row, result => 'fail') unless ($row eq '');
+    ## On SLEM 6.0+ we aim for no AVC denials
+    return if (is_sle_micro('<6.0'));
+    if ($avc) {
+        my @avc = split(/\n/, $avc);
+        for my $row (@avc) {
+            $row =~ s/^\s+|\s+$//g;
+            record_info("AVC denial", $row, result => 'fail') if ($row);
+        }
+        die "AVC denials detected";
     }
 }
 
@@ -46,7 +50,7 @@ sub run {
     my $instance = $self->{my_instance} = $args->{my_instance};
 
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
-    $self->check_avc() unless (is_sle_micro('=5.1'));
+    $self->report_avc() unless (is_sle_micro('=5.1'));
 
     # Check that xen-tools-domU is available
     if (is_ec2() && $instance->ssh_script_output('systemd-detect-virt') =~ /xen/) {
