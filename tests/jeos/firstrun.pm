@@ -16,7 +16,7 @@ use version_utils qw(is_wsl is_jeos is_sle is_tumbleweed is_leap is_opensuse is_
   is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_grub2_bls has_selinux_by_default is_community_jeos is_sles4sap);
 use Utils::Architectures;
 use Utils::Backends;
-use jeos qw(expect_mount_by_uuid);
+use jeos qw(expect_mount_by_uuid is_translations_preinstalled);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions enter_cmd_slow);
 use serial_terminal 'prepare_serial_console';
 use Utils::Logging qw(record_avc_selinux_alerts);
@@ -35,20 +35,22 @@ sub post_fail_hook {
 sub verify_user_info {
     my (%args) = @_;
     my $is_root = $args{user_is_root};
-    my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
+    my $lang = get_var('JEOSINSTLANG', 'en_US');
 
     my %tz_data = ('en_US' => 'UTC', 'de_DE' => 'Europe/Berlin');
     assert_script_run("timedatectl | awk '\$1 ~ /Time/ { print \$3 }' | grep ^" . $tz_data{$lang} . "\$");
 
     my %locale_data = ('en_US' => 'en_US.UTF-8', 'de_DE' => 'de_DE.UTF-8');
-    assert_script_run("locale | tr -d \\'\\\" | awk -F= '\$1 ~ /LC_CTYPE/ { print \$2 }' | grep ^" . $locale_data{$lang} . "\$");
+    my $locale_lang = (is_translations_preinstalled() && !get_var("JEOSINSTLANG_FORCE_LANG_EN_US", 0)) ? $lang : 'en_US';
+    assert_script_run("locale | tr -d \\'\\\" | awk -F= '\$1 ~ /LC_CTYPE/ { print \$2 }' | grep ^" . $locale_data{$locale_lang} . "\$");
 
     my %keymap_data = ('en_US' => 'us', 'de_DE' => 'de');
     assert_script_run("awk -F= '\$1 ~ /KEYMAP/ { print \$2 }' /etc/vconsole.conf | grep ^" . $keymap_data{$lang} . "\$");
 
     my %lang_data = ('en_US' => 'For bug reporting', 'de_DE' => 'Eine Anleitung zum Melden');
     # User has locale defined in firstboot, root always defaults to POSIX (i.e. English)
-    my $proglang = $is_root ? 'en_US' : $lang;
+    my $proglang = (is_translations_preinstalled() && !get_var("JEOSINSTLANG_FORCE_LANG_EN_US", 0)) ? $lang : 'en_US';
+    $proglang = $is_root ? 'en_US' : $proglang;
     assert_script_run("ldd --help | grep '^" . $lang_data{$proglang} . "'");
 
     return if $is_root;
@@ -201,7 +203,7 @@ sub create_user_in_ui {
 
 sub run {
     my ($self) = @_;
-    my $lang = is_sle('15+') ? 'en_US' : get_var('JEOSINSTLANG', 'en_US');
+    my $lang = get_var('JEOSINSTLANG', 'en_US');
     # For 'en_US' pick 'en_US', for 'de_DE' select 'de_DE'
     my %locale_key = ('en_US' => 'e', 'de_DE' => 'd');
     # For 'en_US' pick 'us', for 'de_DE' select 'de'
@@ -242,9 +244,10 @@ sub run {
     # kiwi-templates-JeOS images except of 12sp5 and community jeos are build w/o translations
     # jeos-firstboot >= 0.0+git20200827.e920a15 locale warning dialog has been removed
     # system locale is present in WSL with jeos-firstboot except in WSL Tumbleweed
-    if (is_community_jeos || is_sle('=12-sp5') || (!is_tumbleweed && is_wsl)) {
+    if (is_translations_preinstalled()) {
+        my $language_to_choose = get_var('JEOSINSTLANG_FORCE_LANG_EN_US', 0) ? 'en_US' : $lang;
         assert_screen 'jeos-locale', 300;
-        send_key_until_needlematch "jeos-system-locale-$lang", $locale_key{$lang}, 51;
+        send_key_until_needlematch "jeos-system-locale-$language_to_choose", $locale_key{$language_to_choose}, 51;
         send_key 'ret';
     }
 
@@ -411,6 +414,7 @@ sub run {
         $con->attach_to_running();
     }
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
+
 
     type_string('1234%^&*()qwerty');
     assert_screen("keymap-letter-data-$lang");
