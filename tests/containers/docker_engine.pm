@@ -9,7 +9,7 @@
 
 use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
-use serial_terminal qw(select_serial_terminal);
+use serial_terminal;
 use version_utils;
 use utils;
 use Utils::Architectures;
@@ -20,9 +20,8 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker glibc-devel go1.24 make);
+    my @pkgs = qw(containerd-ctr distribution-registry docker docker-rootless-extras glibc-devel go1.24 make selinux-tools);
     $self->setup_pkgs(@pkgs);
-    install_gotestsum;
 
     configure_docker(selinux => 1, tls => 0);
 
@@ -33,13 +32,30 @@ sub setup {
     # Tests use "ctr"
     run_command "cp /usr/sbin/containerd-ctr /usr/local/bin/ctr";
 
-    # Unprivileged user for rootless docker tests
-    run_command "useradd --create-home --gid docker unprivilegeduser";
-
     $version = script_output "docker version --format '{{.Client.Version}}'";
     $version =~ s/-ce$//;
     $version = "v$version";
     record_info "docker version", $version;
+
+    run_command "ln -s /var/tmp/docker-frozen-images /";
+    if (get_var("DOCKER_ROOTLESS")) {
+        run_command "modprobe br_netfilter || true";
+        # Create an alias for bernhard as "unprivilegeduser" which is hard-coded in the tests
+        assert_script_run "useradd -Mo -u \$(id -u $testapi::username) -g \$(id -g $testapi::username) unprivilegeduser";
+        assert_script_run "ln -s /home/$testapi::username /home/unprivilegeduser";
+        assert_script_run "echo 'unprivilegeduser ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers.d/nopasswd";
+
+        switch_to_user;
+
+        # https://docs.docker.com/engine/security/rootless/
+        run_command "dockerd-rootless-setuptool.sh install";
+        run_command "systemctl --user enable --now docker";
+        run_command "export DOCKER_HOST=unix:///run/user/\$(id -u)/docker.sock";
+        record_info "rootless", script_output("docker info -f json");
+        run_command 'export PATH=$PATH:/usr/sbin:/sbin';
+    }
+
+    install_gotestsum;
 
     patch_sources "moby", $version, "integration";
 
@@ -64,7 +80,7 @@ sub setup {
 
     # Preload Docker images used for testing
     my $frozen_images = script_output q(grep -oE '[[:alnum:]./_-]+:[[:alnum:]._-]+@sha256:[0-9a-f]{64}' Dockerfile | xargs echo);
-    run_command "contrib/download-frozen-image-v2.sh /docker-frozen-images $frozen_images", timeout => 180;
+    run_command "contrib/download-frozen-image-v2.sh /var/tmp/docker-frozen-images $frozen_images", timeout => 180;
 
     if (grep { $_ eq "integration-cli" } @test_dirs) {
         # integration-cli tests need an older cli version
@@ -78,7 +94,6 @@ sub run {
     my $self = shift;
     select_serial_terminal;
     $self->setup;
-    select_serial_terminal;
 
     my $firewall_backend = script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
     record_info "firewall backend", $firewall_backend;
@@ -86,6 +101,7 @@ sub run {
 
     my %env = (
         DOCKER_FIREWALL_BACKEND => $firewall_backend,
+        DOCKER_ROOTLESS => get_var("DOCKER_ROOTLESS", ""),
         DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
         TZ => "UTC",
     );
@@ -114,6 +130,12 @@ sub run {
 }
 
 sub cleanup {
+    if (get_var("DOCKER_ROOTLESS")) {
+        select_user_serial_terminal;
+        script_run "dockerd-rootless-setuptool.sh uninstall";
+        script_run "rootlesskit rm -rf ~/.local/share/docker";
+    }
+    select_serial_terminal;
     script_run "rm -f /usr/local/bin/{ctr,docker,ping} /var/tmp/docker";
     cleanup_docker;
 }
