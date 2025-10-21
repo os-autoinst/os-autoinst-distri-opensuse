@@ -20,6 +20,7 @@ The tests rely on some variables:
 | variable | description |
 | --- | --- |
 | `DOCKER_EXPERIMENTAL` | Enable experimental features in Docker |
+| `DOCKER_ROOTLESS` | Enable rootless Docker tests |
 | `DOCKER_SELINUX` | Enable SELinux in Docker daemon |
 | `DOCKER_TLS` | Enable TLS in Docker as documented [here](https://docs.docker.com/engine/security/protect-access/) |
 | `GITHUB_PATCHES` | List of github PR id's containing upstream test patches |

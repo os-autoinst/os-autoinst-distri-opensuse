@@ -173,10 +173,6 @@ sub install_bats {
     run_command "curl $curl_opts https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -";
     run_command "bash bats-core-$bats_version/install.sh /usr/local";
     script_run("rm -rf bats-core-$bats_version", timeout => 0);
-
-    run_command "mkdir -pm 0750 /etc/sudoers.d/";
-    run_command "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
-    assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
 }
 
 sub configure_oci_runtime {
@@ -282,6 +278,12 @@ sub setup_pkgs {
     @commands = ("### RUN AS root");
 
     install_bats if get_var("BATS_PACKAGE");
+
+    if (script_run("test -f /etc/sudoers.d/usrlocal")) {
+        assert_script_run "mkdir -pm 0750 /etc/sudoers.d/";
+        assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
+        assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
+    }
 
     enable_modules if is_sle("<16");
 
