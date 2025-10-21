@@ -17,30 +17,27 @@ use version_utils qw(is_sle_micro check_version);
 use Mojo::JSON 'j';
 use List::Util 'sum';
 
-# Check for AVC denials and uploads them
+# Check for Access Vector Cache (AVC) denials and uploads them
 sub report_avc {
     my ($self) = @_;
 
     my $instance = $self->{my_instance};
-    # Read the Access Vector Cache to check for SELinux denials
+    # Read the AVC to check for SELinux denials
     my $avc = $instance->ssh_script_output(cmd => 'sudo ausearch -ts boot -m avc --format raw', proceed_on_failure => 1, ssh_opts => '-t -o ControlPath=none');
-    record_info("AVC at boot", $avc);
 
     ## Gain better formatted logs and upload them for further investigation
     $instance->ssh_script_run(cmd => 'sudo ausearch -ts boot -m avc > ausearch.txt', ssh_opts => '-t -o ControlPath=none'); # ausearch fails if there are no matches
     assert_script_run("scp " . $instance->username() . "@" . $instance->public_ip . ":ausearch.txt ausearch.txt");
     upload_logs("ausearch.txt");
 
-    ## On SLEM 6.0+ we aim for no AVC denials
-    return if (is_sle_micro('<6.0'));
-    if ($avc) {
-        my @avc = split(/\n/, $avc);
-        for my $row (@avc) {
-            $row =~ s/^\s+|\s+$//g;
-            record_info("AVC denial", $row, result => 'fail') if ($row);
-        }
-        die "AVC denials detected";
+    ## Report all found AVCs
+    my @avc = split(/\n/, $avc);
+    for my $row (@avc) {
+        $row =~ s/^\s+|\s+$//g;
+        record_info("AVC denial", $row, result => 'fail') if ($row);
     }
+    # On SLEM 6.0+ we aim for no AVC denials
+    die "AVC denials detected" if ($avc && is_sle_micro('>=6.0'));
 }
 
 sub run {
