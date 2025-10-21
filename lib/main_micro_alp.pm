@@ -342,6 +342,7 @@ sub load_slem_on_pc_tests {
             loadtest("publiccloud/ssh_interactive_end", run_args => $args);
         } else {
             loadtest "publiccloud/check_services", run_args => $args;
+            loadtest("publiccloud/slem_upgrade_next", run_args => $args) if (get_var('PUBLIC_CLOUD_MIGRATE_SLEM'));
             loadtest("publiccloud/slem_basic", run_args => $args);
         }
     }
