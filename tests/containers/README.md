@@ -32,7 +32,8 @@ These are defined in [skip.yaml](../../data/containers/bats/skip.yaml)
 
 | Testsuite / Product | openSUSE Tumbleweed | Tumbleweed (aarch64) | SLES 16.0 |
 |:---:|:---:|:---:|:---|
-| `docker_testsuite`  | [![tw_dl]][tw_d]    | [![twa_dl]][twa_d] | [![logo]][s16_d] |
+| `docker_testsuite`  | [![tw_dl]][tw_d]    | [![twa_dl]][twa_d]   | [![logo]][s16_d] |
+| `docker_rootless`   | [![tw_drl]][tw_dr]  | [![twa_drl]][twa_dr] | |
 | `podman_e2e`        | [![tw_pl]][tw_p]    | | |
 | `podman_e2e_crun`   | [![tw_pcl]][tw_pc]  | | |
 
@@ -43,6 +44,12 @@ These are defined in [skip.yaml](../../data/containers/bats/skip.yaml)
 
 [tw_dl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
 [tw_d]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
+
+[twa_drl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_rootless_testsuite
+[twa_dr]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_rootless_testsuite
+
+[tw_drl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_rootless_testsuite
+[tw_dr]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
 
 [tw_pl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e
 [tw_p]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e
