@@ -338,6 +338,8 @@ sub prepare_logging {
 
 sub prepare_ltp_cmd {
     my ($self, $instance, $provider, $reset_cmd, $ltp_command, $skip_tests, $env) = @_;
+    my $exec_timeout = get_var('LTP_EXEC_TIMEOUT', 1200);
+    my $suite_timeout = get_var('LTP_SUITE_TIMEOUT', 9600);
 
     my $sut = ':user=' . $instance->username;
     $sut .= ':sudo=1';
@@ -348,8 +350,8 @@ sub prepare_ltp_cmd {
     my $python_exec = get_python_exec();
     my $cmd = "$python_exec kirk ";
     $cmd .= '--verbose ';
-    $cmd .= '--exec-timeout=1200 ';
-    $cmd .= '--suite-timeout=5400 ';
+    $cmd .= '--exec-timeout=' . $exec_timeout . ' ';
+    $cmd .= '--suite-timeout=' . $suite_timeout . ' ';
     $cmd .= '--run-suite ' . $ltp_command . ' ';
     $cmd .= '--skip-tests \'' . $skip_tests . '\' ' if $skip_tests;
     $cmd .= '--sut=ssh' . $sut . ' ';
