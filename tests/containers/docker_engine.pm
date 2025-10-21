@@ -51,7 +51,7 @@ sub setup {
         run_command "dockerd-rootless-setuptool.sh install";
         run_command "systemctl --user enable --now docker";
         run_command "export DOCKER_HOST=unix:///run/user/\$(id -u)/docker.sock";
-        record_info "rootless", script_output("docker info -f json");
+        record_info "rootless", script_output("docker info -f json | jq -Mr");
         run_command 'export PATH=$PATH:/usr/sbin:/sbin';
     }
 
@@ -114,6 +114,22 @@ sub run {
         # These tests use amd64 images:
         "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
     ) unless (is_x86_64);
+    push @xfails, (
+        # These tests fail as rootless:
+        "github.com/docker/docker/integration/build::TestCgroupNamespacesBuild",
+        "github.com/docker/docker/integration/build::TestCgroupNamespacesBuildDaemonHostMode",
+        "github.com/docker/docker/integration/container::TestCgroupNamespacesRun",
+        "github.com/docker/docker/integration/container::TestCgroupNamespacesRunDaemonHostMode",
+        "github.com/docker/docker/integration/container::TestCgroupNamespacesRunHostMode",
+        "github.com/docker/docker/integration/container::TestCgroupNamespacesRunOlderClient",
+        "github.com/docker/docker/integration/container::TestCgroupNamespacesRunPrivateMode",
+        "github.com/docker/docker/integration/container::TestCgroupNamespacesRunPrivilegedAndPrivate",
+        "github.com/docker/docker/integration/container::TestContainerBindMountRecursivelyReadOnly",
+        "github.com/docker/docker/integration/container::TestContainerNetworkMountsNoChown",
+        "github.com/docker/docker/integration/container::TestPIDModeHost",
+        "github.com/docker/docker/integration/container::TestPrivilegedHostDevices",
+        "github.com/docker/docker/integration/container::TestRunWithAlternativeContainerdShim",
+    ) if get_var("DOCKER_ROOTLESS");
 
     my $tags = "apparmor selinux seccomp pkcs11";
     foreach my $dir (@test_dirs) {
