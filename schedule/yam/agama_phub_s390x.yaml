@@ -12,3 +12,4 @@ schedule:
   - yam/validate/validate_registered_products
   - yam/validate/validate_registered_addons
   - yam/validate/validate_installed_patterns
+  - console/validate_repos

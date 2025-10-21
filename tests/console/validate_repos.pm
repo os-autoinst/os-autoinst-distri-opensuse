@@ -18,7 +18,7 @@ sub run {
     select_console 'root-console';
 
     my %expected_repos = map { $_->{alias} => 1 } @{$test_data->{repos}};
-    my @actual_aliases = split(/\n/, script_output("zypper -n lr --uri | awk \'NR>6 {print \$3}\'"));
+    my @actual_aliases = split(/\n/, script_output("zypper -n lr --uri | awk \'NR>4 && \$1 ~ /[0-9]/ {print \$3}\'"));
     my $unexpected_aliases = '';
     my @skip_aliases = (
         qr/home_images/,
