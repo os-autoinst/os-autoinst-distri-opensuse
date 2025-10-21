@@ -44,6 +44,7 @@ sub setup {
         assert_script_run "useradd -Mo -u \$(id -u $testapi::username) -g \$(id -g $testapi::username) unprivilegeduser";
         assert_script_run "ln -s /home/$testapi::username /home/unprivilegeduser";
         assert_script_run "echo 'unprivilegeduser ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers.d/nopasswd";
+        assert_script_run "systemctl stop docker";
 
         switch_to_user;
 
