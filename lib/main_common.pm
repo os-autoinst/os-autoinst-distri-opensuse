@@ -1376,8 +1376,8 @@ sub load_x11tests {
         loadtest "x11/gedit";
     }
     # Need remove firefox tests in our migration tests from old Leap releases, keep them only in 15.2 and newer.
-    loadtest "x11/firefox" unless (is_leap && is_upgrade() && check_version('<15.2', get_var('ORIGINAL_VERSION'), qr/\d{2,}\.\d/));
-    if (is_opensuse && !get_var("OFW") && is_qemu && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live) {
+    loadtest "x11/firefox" unless ((is_leap && is_upgrade() && check_version('<15.2', get_var('ORIGINAL_VERSION'), qr/\d{2,}\.\d/)) || is_32bit);
+    if (is_opensuse && !get_var("OFW") && is_qemu && !check_var('FLAVOR', 'Rescue-CD') && !is_kde_live && !is_32bit) {
         loadtest "x11/firefox_audio";
     }
     if (chromiumstep_is_applicable() && !(is_staging() || is_livesystem)) {
