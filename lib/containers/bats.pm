@@ -115,6 +115,10 @@ sub configure_docker {
     run_command "export DOCKER_TLS_VERIFY=1" if $args{tls};
     record_info "docker version", script_output("docker version -f json | jq -Mr");
     record_info "docker info", script_output("docker info -f json | jq -Mr");
+    my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
+    record_info "WARNINGS daemon", $warnings if $warnings;
+    $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
+    record_info "WARNINGS client", $warnings if $warnings;
 }
 
 sub cleanup_docker {

@@ -52,6 +52,10 @@ sub setup {
         run_command "systemctl --user enable --now docker";
         run_command "export DOCKER_HOST=unix:///run/user/\$(id -u)/docker.sock";
         record_info "rootless", script_output("docker info -f json | jq -Mr");
+        my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
+        record_info "WARNINGS daemon", $warnings if $warnings;
+        $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
+        record_info "WARNINGS client", $warnings if $warnings;
         run_command 'export PATH=$PATH:/usr/sbin:/sbin';
     }
 
