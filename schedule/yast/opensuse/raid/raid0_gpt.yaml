@@ -25,7 +25,7 @@ schedule:
   - installation/authentication/disable_autologin
   - installation/authentication/default_user_simple_pwd
   - installation/installation_overview
-  - installation/bootloader_settings/disable_boot_menu_timeout
+  - installation/configure_bls
   - installation/launch_installation
   - installation/confirm_installation
   - installation/performing_installation/perform_installation
