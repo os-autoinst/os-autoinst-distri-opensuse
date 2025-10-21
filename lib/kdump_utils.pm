@@ -40,7 +40,7 @@ sub install_transactional_kernel_debuginfo {
 
 sub install_kernel_debuginfo {
     return install_transactional_kernel_debuginfo if is_transactional;
-    my $import_gpg = get_var('BUILD') =~ /^MR:/ ? '--gpg-auto-import-keys' : '';
+    my $import_gpg = ((get_var('BUILD') =~ /^MR:/) || (get_var('FLAVOR') =~ /Updates-Staging/)) ? '--gpg-auto-import-keys' : '';
     zypper_call "$import_gpg ref";
     return undef if get_var('SKIP_KERNEL_DEBUGINFO');
     my $debuginfo = determine_kernel_debuginfo_package;
@@ -74,7 +74,11 @@ sub prepare_for_kdump_sle {
         for my $i (split(/,/, get_var('MAINT_TEST_REPO'))) {
             next unless $i;
             $i =~ s/\/$//;    # Delete / at the end of url
-            $i =~ s/$/_debug/;
+            if (is_sle('<16')) {
+                $i =~ s/$/_debug/;
+            } else {
+                $i =~ s/$/-Debug/;
+            }
             $counter++;
             zypper_call("--no-gpg-checks ar -f $i 'DEBUG_$counter'");
         }
