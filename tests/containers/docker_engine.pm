@@ -48,6 +48,7 @@ sub setup {
         run_command "dockerd-rootless-setuptool.sh install";
         run_command "systemctl --user enable --now docker";
         run_command "export DOCKER_HOST=unix:///run/user/\$(id -u)/docker.sock";
+        record_info "docker status", script_output("systemctl status --user docker", proceed_on_failure => 1);
         record_info "rootless", script_output("docker info -f json | jq -Mr");
         my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
         record_info "WARNINGS daemon", $warnings if $warnings;
