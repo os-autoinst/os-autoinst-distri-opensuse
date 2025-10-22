@@ -19,10 +19,10 @@ sub run {
     # to update: $ curl -O --output-dir data/security/secureboot https://raw.githubusercontent.com/ilmanzo/autograph-pls/main/parsesign.go
     assert_script_run 'curl -O ' . data_url('security/secureboot/parsesign.go');
     assert_script_run('go build parsesign.go');
-    my $expected_keylength = get_required_var('ARCH') =~ /s390x|ppc64le/ ? 4096 : 2048;
     record_info '/boot/ directory:', script_output('ls -l /boot/');
     $self->{$image_name} = get_boot_image_name();
     record_info 'Current kernel image and cmdline:', $self->{$image_name} . ' ' . script_output 'cat /proc/cmdline';
+    my $expected_keylength = get_expected_keylength();
     validate_script_output('./parsesign ' . $self->{$image_name}, sub { /Key size calculation: $expected_keylength bits/ });
     assert_script_run 'rm parsesign parsesign.go';    # cleanup
 }
@@ -45,6 +45,13 @@ sub get_boot_image_name {
     );
     return $kernel_paths{$arch} if exists $kernel_paths{$arch};
     die "Unsupported architecture: $arch";
+}
+
+# on any staging builds we always expect 2048 bits keys
+# on release builds, for s390x and ppc64le we expect 4096 bits keys
+sub get_expected_keylength {
+    return 2048 if get_var('STAGING');
+    return get_required_var('ARCH') =~ /s390x|ppc64le/ ? 4096 : 2048;
 }
 
 sub post_fail_hook {
