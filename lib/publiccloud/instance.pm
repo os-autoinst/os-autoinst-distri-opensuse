@@ -156,7 +156,14 @@ sub _prepare_ssh_cmd {
 
 =head2 ssh_script_run
 
-    ssh_script_run($cmd [, timeout => $timeout] [, fail_message => $fail_message] [,quiet => $quiet] [,ssh_opts => $ssh_opts] [,username => $username])
+    ssh_script_run($cmd [, timeout => $timeout] [,quiet => $quiet] [,ssh_opts => $ssh_opts] [,username => $username][, ignore_timeout_failure => $ignore_timeout_failure])
+
+    C<timeout> - TTL for command execution measured in seconds . After that period of time execution will be aborded
+    C<quiet> - avoid recording serial_results ( value pass to script_run call)
+    C<ssh_opts> - additional ssh options passed to ssh
+    C<username> - username used for ssh tunnel
+    C<ignore_timeout_failure> - in case waiting longer than timeout normally script_run will die. Setting this parameter to true
+        will avoid such failure
 
 Runs a command C<cmd> via ssh on the publiccloud instance and returns the return code.
 =cut
@@ -164,10 +171,23 @@ Runs a command C<cmd> via ssh on the publiccloud instance and returns the return
 sub ssh_script_run {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    $args{ignore_timeout_failure} //= 0;
     my $ssh_cmd = $self->_prepare_ssh_cmd(%args);
+    $args{timeout} //= SSH_TIMEOUT;
+    if ($args{ignore_timeout_failure}) {
+        my $external_timeout = $args{timeout};
+        # $args{timeout} will be passed into script_run so it needs to be bigger than value used by timeout command
+        # otherwise script_run will die faster than timeout needs to kill running command. Giving 20 second buffer looks safe enough
+        $args{timeout} = $args{timeout} + 20;
+        # timeout is executed with '-k 10' which means that after trying to gracefully shutdown running command for 10 seconds it will
+        # start just to kill the process. Taking into account that internal timeout for script_run is longer for 20 seconds
+        # kernel has 10 seconds to proceed with killing the process
+        $ssh_cmd = "timeout --foreground -k 10s $external_timeout " . $ssh_cmd;
+    }
     delete($args{cmd});
     delete($args{ssh_opts});
     delete($args{username});
+    delete($args{ignore_timeout_failure});
     return script_run($ssh_cmd, %args);
 }
 
@@ -291,7 +311,7 @@ sub upload_check_logs_tar {
     return 1 unless (scalar(@logs) > 0);
     # Upload existing logs to openqa  UI
     $cmd = "sudo tar -czvf $remote_tar " . join(" ", @logs);
-    $res = $self->ssh_script_run(cmd => $cmd, proceed_on_failure => 1);
+    $res = $self->ssh_script_run(cmd => $cmd, ignore_timeout_failure => 1);
     $self->upload_log("$remote_tar", log_name => basename($remote_tar), failok => 1) if ($res == 0);
     return 1;
 }
@@ -504,7 +524,7 @@ sub wait_for_ssh {
         while (($duration = time() - $start_time) < $args{timeout}) {
             # After the instance is resumed from hibernation the SSH can freeze
             my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10';
-            $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => $args{timeout} - $duration, proceed_on_failure => 1);
+            $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => $args{timeout} - $duration, ignore_timeout_failure => 1);
             last if isok($exit_ssh);
             sleep $delay;
         }
@@ -522,7 +542,7 @@ sub wait_for_ssh {
         if (!get_var('PUBLIC_CLOUD_SLES4SAP') and $args{logs}) {
             #Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
             $self->ssh_script_run('sudo journalctl -b --no-pager > /tmp/journalctl.log',
-                timeout => 360, proceed_on_failure => 1, username => $args{username}, quiet => 1);
+                timeout => 360, ignore_timeout_failure => 1, username => $args{username}, quiet => 1);
             $self->upload_log('/tmp/journalctl.log', failok => 1);
         }    # endif
     }    # endif
