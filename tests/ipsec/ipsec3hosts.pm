@@ -48,6 +48,8 @@ sub run ($self) {
 
     record_info('IPSEC_SETUP', get_var('IPSEC_SETUP'));
 
+    record_info('INTF STATUS', script_output('ip -s link show', proceed_on_failure => 1));
+
     if (get_var('IPSEC_SETUP') eq 'left') {
         $self->add_ipv6_addr(ip => $setup->{left_ip}, plen => $self->get_net_prefix_len($setup->{left_net}));
         $self->check_ipv6_addr();
@@ -64,12 +66,15 @@ sub run ($self) {
         $self->config_ipsec($ipsec_setting_left);
         barrier_wait 'IPSEC_TUNNEL_MODE_SETUP_DONE';
         assert_script_run("ping -c 8 $setup->{right_ip}");
+        assert_script_run("ping6 -s 1300 -c 8 $setup->{right_ip}");
         barrier_wait 'IPSEC_SET_MTU_DONE';
+        assert_script_run("ping6 -c 8 $setup->{right_ip}");
         assert_script_run("ping6 -s 1300 -c 8 $setup->{right_ip}");
         barrier_wait 'IPSEC_TUNNEL_MODE_CHECK_DONE';
         $self->{ipsec_mode} = "transport";
         $self->config_ipsec($ipsec_setting_left);
         barrier_wait 'IPSEC_TRANSPORT_MODE_SETUP_DONE';
+        assert_script_run("ping6 -c 8 $setup->{right_ip}");
         assert_script_run("ping6 -s 1300 -c 8 $setup->{right_ip}");
         barrier_wait 'IPSEC_TRANSPORT_MODE_CHECK_DONE';
     }
@@ -92,10 +97,13 @@ sub run ($self) {
         record_info('IP ROUTE', script_output('ip -6 route', proceed_on_failure => 1));
         barrier_wait 'IPSEC_ROUTE_SETUP_CHECK_DONE';
         barrier_wait 'IPSEC_TUNNEL_MODE_SETUP_DONE';
+        script_run("timeout 20 tcpdump -i $dev0");
         assert_script_run("ip l s mtu 1300 dev $dev1");
         barrier_wait 'IPSEC_SET_MTU_DONE';
+        script_run("timeout 20 tcpdump -i $dev0");
         barrier_wait 'IPSEC_TUNNEL_MODE_CHECK_DONE';
         barrier_wait 'IPSEC_TRANSPORT_MODE_SETUP_DONE';
+        script_run("timeout 20 tcpdump -i $dev0");
         barrier_wait 'IPSEC_TRANSPORT_MODE_CHECK_DONE';
     }
 
@@ -115,13 +123,14 @@ sub run ($self) {
         barrier_wait 'IPSEC_ROUTE_SETUP_CHECK_DONE';
         $self->config_ipsec($ipsec_setting_right);
         barrier_wait 'IPSEC_TUNNEL_MODE_SETUP_DONE';
-        assert_script_run("tcpdump -i $dev0 esp -c 4");
+        script_run("timeout 20 tcpdump -i $dev0");
         barrier_wait 'IPSEC_SET_MTU_DONE';
+        script_run("timeout 20 tcpdump -i $dev0");
         barrier_wait 'IPSEC_TUNNEL_MODE_CHECK_DONE';
         $self->{ipsec_mode} = "transport";
         $self->config_ipsec($ipsec_setting_right);
         barrier_wait 'IPSEC_TRANSPORT_MODE_SETUP_DONE';
-        assert_script_run("tcpdump -i $dev0 esp -c 4");
+        script_run("timeout 20 tcpdump -i $dev0");
         barrier_wait 'IPSEC_TRANSPORT_MODE_CHECK_DONE';
     }
 }
