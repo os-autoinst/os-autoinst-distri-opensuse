@@ -19,7 +19,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(docker docker-compose go1.24 jq make);
+    my @pkgs = qw(docker docker-buildx docker-compose go1.24);
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
