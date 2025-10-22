@@ -6,6 +6,7 @@ schedule:
     - yam/agama/agama_auto
     - installation/grub_test
     - installation/first_boot
+    - console/zypper_lr
     - security/mokutil_sign
     - console/system_prepare
     - console/hostname
