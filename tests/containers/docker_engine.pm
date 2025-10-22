@@ -38,24 +38,8 @@ sub setup {
     record_info "docker version", $version;
 
     run_command "ln -s /var/tmp/docker-frozen-images /";
-    if (get_var("DOCKER_ROOTLESS")) {
-        run_command "modprobe br_netfilter || true";
-        run_command "systemctl stop docker";
 
-        switch_to_user;
-
-        # https://docs.docker.com/engine/security/rootless/
-        run_command "dockerd-rootless-setuptool.sh install";
-        run_command "systemctl --user enable --now docker";
-        run_command "export DOCKER_HOST=unix:///run/user/\$(id -u)/docker.sock";
-        record_info "docker status", script_output("systemctl status --user docker", proceed_on_failure => 1);
-        record_info "rootless", script_output("docker info -f json | jq -Mr");
-        my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
-        record_info "WARNINGS daemon", $warnings if $warnings;
-        $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
-        record_info "WARNINGS client", $warnings if $warnings;
-        run_command 'export PATH=$PATH:/usr/sbin:/sbin';
-    }
+    configure_rootless_docker if get_var("DOCKER_ROOTLESS");
 
     install_gotestsum;
 
@@ -135,11 +119,7 @@ sub run {
 }
 
 sub cleanup {
-    if (get_var("DOCKER_ROOTLESS")) {
-        select_user_serial_terminal;
-        script_run "dockerd-rootless-setuptool.sh uninstall";
-        script_run "rootlesskit rm -rf ~/.local/share/docker";
-    }
+    cleanup_rootless_docker if get_var("DOCKER_ROOTLESS");
     select_serial_terminal;
     script_run "rm -f /usr/local/bin/{ctr,docker,ping} /var/tmp/docker";
     cleanup_docker;
