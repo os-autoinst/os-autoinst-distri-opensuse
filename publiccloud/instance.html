@@ -54,7 +54,14 @@
 
 <h2 id="ssh_script_run">ssh_script_run</h2>
 
-<pre><code>ssh_script_run($cmd [, timeout =&gt; $timeout] [, fail_message =&gt; $fail_message] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+<pre><code>ssh_script_run($cmd [, timeout =&gt; $timeout] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username][, ignore_timeout_failure =&gt; $ignore_timeout_failure])
+
+C&lt;timeout&gt; - TTL for command execution measured in seconds . After that period of time execution will be aborded
+C&lt;quiet&gt; - avoid recording serial_results ( value pass to script_run call)
+C&lt;ssh_opts&gt; - additional ssh options passed to ssh
+C&lt;username&gt; - username used for ssh tunnel
+C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally script_run will die. Setting this parameter to true
+    will avoid such failure</code></pre>
 
 <p>Runs a command <code>cmd</code> via ssh on the publiccloud instance and returns the return code.</p>
 
