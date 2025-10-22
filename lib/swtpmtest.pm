@@ -88,7 +88,7 @@ sub swtpm_verify {
 
     # Check the vm guest is up via listening to the port 22
     assert_script_run("wget --quiet " . data_url("swtpm/ssh_port_chk_script") . " -P $image_path");
-    assert_script_run("bash $image_path/ssh_port_chk_script", timeout => 200);
+    assert_script_run("bash $image_path/ssh_port_chk_script", timeout => is_aarch64 ? 400 : 200);
 
     # Generate an SSH key and copy it into the VM
     my $ip_addr = script_output("ip n | awk '/192\\.168\\.122/ {print \$1}'");
