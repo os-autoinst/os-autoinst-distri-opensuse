@@ -11,7 +11,9 @@
     sshPublicKey: 'enable ssh',
   },
   software: {
-    patterns: ['sles_sap_HADB', 'sles_sap_HAAPP', 'sles_sap_DB', 'sles_sap_APP', 'selinux'],
+    patterns: {
+      add: ['sles_sap_HADB', 'sles_sap_HAAPP', 'sles_sap_DB', 'sles_sap_APP', 'selinux']
+    },
   },
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
