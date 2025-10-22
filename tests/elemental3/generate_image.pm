@@ -105,6 +105,9 @@ sub run {
     assert_script_run('modprobe nbd');
     assert_script_run("qemu-nbd -c $device $shared_dir/$img_filename");
 
+    # Set SELinux in permissive mode, as there is an issue with enforcing mode and Elemental3 doesn't support it yet
+    assert_script_run("setenforce permissive");
+
     # Generate OS image
     assert_script_run(
         "elemental3ctl --debug install --os-image $image --overlay tar://$overlay --config $config_file --target $device",
