@@ -22,7 +22,10 @@ use version_utils qw(is_sle is_jeos has_selinux);
 use Utils::Architectures;
 
 sub cleanup {
-    systemctl 'stop mariadb';
+    my $mariadb = (is_sle '<15-SP4') ? 'mysql' : 'mariadb';
+    my $db      = 'test_mariadb';
+    script_run("$mariadb -u root -e 'DROP DATABASE IF EXISTS $db'");
+    systemctl "stop $mariadb";
     systemctl 'stop mariadb@node1.service';
     systemctl 'stop mariadb@node2.service';
 }
@@ -47,6 +50,17 @@ sub run {
     systemctl "status $mariadb", expect_false => 1, fail_message => 'mariadb should be disabled by default';
     systemctl "start $mariadb", timeout => 300;
     systemctl "is-active $mariadb";
+
+    record_info("Version", script_output("$mariadb --version"));
+
+    my $db    = 'test_mariadb';
+    my $table = 'kv';
+    assert_script_run qq($mariadb -u root -e "CREATE DATABASE IF NOT EXISTS \\`$db\\`;");
+    assert_script_run qq($mariadb -u root -D $db -e "CREATE TABLE IF NOT EXISTS $table (k VARCHAR(64) PRIMARY KEY, v VARCHAR(64));");
+    assert_script_run qq($mariadb -u root -D $db -e "INSERT INTO $table (k,v) VALUES ('probe','ok') ON DUPLICATE KEY UPDATE v='ok';");
+    assert_script_run qq($mariadb -u root -D $db -e "SHOW TABLES LIKE '$table'\\G");
+    record_info("Table", script_output(qq($mariadb -t -u root -D $db -e "SELECT k, v FROM $table;")));
+    validate_script_output qq($mariadb -Nse "SELECT v FROM $table WHERE k='probe';" $db), sub { m/^ok\s*$/ };
 
     # Test multiple instance configuration
     # It is not supported in sle12sp2 and sle12sp3
