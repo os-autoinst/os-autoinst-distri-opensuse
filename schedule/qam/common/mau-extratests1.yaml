@@ -48,6 +48,16 @@ schedule:
 conditional_schedule:
   version_specific:
     VERSION:
+      '16.0':
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - console/ansible
+        - qe-core/systemd/journal_remote
+        - '{{arch_specific}}'
       15-SP7:
         - console/sssd_389ds_functional
         - console/rabbitmq
@@ -114,6 +124,10 @@ conditional_schedule:
         - '{{sle15}}'
   sle15:
     VERSION:
+      '16.0':
+        - console/firewalld
+        - console/lshw
+        - console/dpdk
       15-SP7:
         - console/firewalld
         - console/lshw
