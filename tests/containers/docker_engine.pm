@@ -20,7 +20,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker docker-rootless-extras glibc-devel go1.24 make selinux-tools);
+    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.24 rootlesskit selinux-tools);
     $self->setup_pkgs(@pkgs);
 
     configure_docker(selinux => 1, tls => 0);
