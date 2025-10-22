@@ -19,6 +19,8 @@ sub run {
     assert_script_run 'curl -O ' . data_url('security/secureboot/parsesign.go');
     assert_script_run('go build parsesign.go');
     my $expected_keylength = get_required_var('ARCH') =~ /s390x|ppc64le/ ? 4096 : 2048;
+    record_info '/boot/ directory:', script_output('ls -l /boot/');
+    record_info 'Current kernel:', script_output 'cat /proc/cmdline';
     validate_script_output('./parsesign ' . get_boot_image_name(), sub { /Key size calculation: $expected_keylength bits/ });
     assert_script_run 'rm parsesign parsesign.go';    # cleanup
 }
@@ -34,5 +36,12 @@ sub get_boot_image_name {
     return '/boot/' . $kernel_paths{$arch} if exists $kernel_paths{$arch};
     die "Unsupported architecture: $arch";
 }
+
+sub post_fail_hook {
+    my ($self) = shift;
+    upload_logs get_boot_image_name();
+    $self->SUPER::post_fail_hook;
+}
+
 
 1;
