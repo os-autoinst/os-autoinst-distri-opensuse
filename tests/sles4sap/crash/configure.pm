@@ -79,6 +79,9 @@ sub run {
 
         my $vm_ip = aws_get_ip_address(aws_get_vm_id(get_required_var('PUBLIC_CLOUD_REGION'), $job_id));
     }
+    else {
+        $vm_ip = get_required_var('VM_IP');
+    }
 
     my $ssh_cmd = get_required_var('SSH_CMD');
 
