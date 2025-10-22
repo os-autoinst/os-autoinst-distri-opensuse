@@ -40,11 +40,7 @@ sub setup {
     run_command "ln -s /var/tmp/docker-frozen-images /";
     if (get_var("DOCKER_ROOTLESS")) {
         run_command "modprobe br_netfilter || true";
-        # Create an alias for bernhard as "unprivilegeduser" which is hard-coded in the tests
-        assert_script_run "useradd -Mo -u \$(id -u $testapi::username) -g \$(id -g $testapi::username) unprivilegeduser";
-        assert_script_run "ln -s /home/$testapi::username /home/unprivilegeduser";
-        assert_script_run "echo 'unprivilegeduser ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers.d/nopasswd";
-        assert_script_run "systemctl stop docker";
+        run_command "systemctl stop docker";
 
         switch_to_user;
 
@@ -63,6 +59,9 @@ sub setup {
     install_gotestsum;
 
     patch_sources "moby", $version, "integration";
+
+    # "unprivilegeduser" is hard-coded in the tests
+    run_command qq(find -name '*.go' -exec sed -i 's/"unprivilegeduser"/"$testapi::username"/g' {} +) if get_var("DOCKER_ROOTLESS");
 
     # Build test helpers
     run_command "cp -f vendor.mod go.mod || true";
