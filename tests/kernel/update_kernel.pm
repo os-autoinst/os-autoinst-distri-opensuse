@@ -473,6 +473,32 @@ sub boot_to_console {
       unless is_sle('<12');
 }
 
+sub install_requirements {
+    my @requirements = qw(
+      rasdaemon
+      libnvme1
+      nvme-cli
+      rdma-core
+      rdma-ndd
+      librdmacm1
+      blktrace
+      bpftrace
+      bcc-tools
+      libbcc0
+      tcpdump
+      kdump
+      crash
+      makedumpfile
+      nfs-client
+      nfs-kernel-server
+      open-iscsi
+      multipath-tools
+      liburing2
+    );
+
+    install_package(join(' ', @requirements));
+}
+
 sub run {
     my $self = shift;
     my $kernel_package = get_kernel_flavor;
@@ -490,6 +516,9 @@ sub run {
     } else {
         boot_to_console($self);
     }
+
+    # Install requirements for SLE 16 staging tests
+    install_requirements if check_var('FLAVOR', 'Online-Kernel-Utils-Updates-Staging');
 
     # SLE Micro RT 5.1 image contains both kernel flavors, we need to remove kernel-default
     if (is_sle_micro('=5.1') && check_var('SLE_PRODUCT', 'slert')) {
