@@ -72,12 +72,6 @@ sub run {
     set_var("MAIN_ADDRESS_RANGE", $maintenance_vars{main_address_range});
     set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
 
-    set_var("SLES4SAP_WORKER_IP", qesap_create_cidr_from_ip(ip => detect_worker_ip(proceed_on_failure => 1), proceed_on_failure => 1));
-
-    # Select console on the host (not the PC instance) to reset 'TUNNELED',
-    # otherwise select_serial_terminal() will be failed
-    select_host_console();
-    select_serial_terminal();
 
     # Collect OpenQA variables and default values
     set_var_output('NODE_COUNT', 1) unless ($ha_enabled);
@@ -105,6 +99,18 @@ sub run {
     } elsif (is_ec2()) {
         set_var('IBSM_PRJ_TAG', '') unless (get_var('IBSM_PRJ_TAG'));
     }
+
+    # Select console on the host (not the PC instance) to reset 'TUNNELED',
+    # otherwise select_serial_terminal() will be failed
+    select_host_console();
+    select_serial_terminal();
+
+    # has to be after select_serial_terminal as detect_worker_ip
+    # needs it.
+    set_var("SLES4SAP_WORKER_IP",
+        qesap_create_cidr_from_ip(
+            ip => detect_worker_ip(proceed_on_failure => 1),
+            proceed_on_failure => 1));
 
     my $deployment_name = deployment_name();
     # Create a QESAP_DEPLOYMENT_NAME variable so it includes the random
