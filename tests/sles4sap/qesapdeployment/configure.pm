@@ -119,7 +119,7 @@ sub run {
         }
     }
 
-    $variables{ANSIBLE_ROLES} = qesap_get_ansible_roles_dir();
+    $variables{ANSIBLE_ROLES} = qesap_ansible_get_roles_dir();
     $variables{HANA_INSTALL_MODE} = get_var('QESAPDEPLOY_HANA_INSTALL_MODE', 'standard');
 
     # Default to empty string is intentional:

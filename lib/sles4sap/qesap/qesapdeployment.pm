@@ -66,7 +66,7 @@ our @EXPORT = qw(
   qesap_get_nodes_number
   qesap_get_nodes_names
   qesap_get_terraform_dir
-  qesap_get_ansible_roles_dir
+  qesap_ansible_get_roles_dir
   qesap_prepare_env
   qesap_execute
   qesap_terraform_conditional_retry
@@ -159,9 +159,10 @@ sub qesap_get_variables {
     Writes "ansible" section into yaml configuration file.
     $args{ansible_section} defines section(key) name.
     $args{section_content} defines content of names section.
-        Example:
-            @playbook_list = ("pre-cluster.yaml", "cluster_sbd_prep.yaml");
-            qesap_create_ansible_section(ansible_section=>'create', section_content=>\@playbook_list);
+
+    Example:
+        @playbook_list = ("pre-cluster.yaml", "cluster_sbd_prep.yaml");
+        qesap_create_ansible_section(ansible_section=>'create', section_content=>\@playbook_list);
 
 =cut
 
@@ -175,7 +176,6 @@ sub qesap_create_ansible_section {
 
     assert_script_run("test -e $yaml_config_path",
         fail_message => "Yaml config file '$yaml_config_path' does not exist.");
-
     my $raw_file = script_output("cat $yaml_config_path");
     my $yaml_data = $ypp->load_string($raw_file);
 
@@ -767,13 +767,13 @@ sub qesap_get_terraform_dir {
     return join('/', $paths{terraform_dir}, lc $args{provider});
 }
 
-=head3 qesap_get_ansible_roles_dir
+=head3 qesap_ansible_get_roles_dir
 
     Return the path where sap-linuxlab/community.sles-for-sap
     has been installed
 =cut
 
-sub qesap_get_ansible_roles_dir {
+sub qesap_ansible_get_roles_dir {
     my %paths = qesap_get_file_paths();
     return $paths{roles_dir_path};
 }
@@ -947,7 +947,7 @@ sub qesap_ansible_cmd {
     $args{filter} //= 'all';
     $args{timeout} //= bmwqemu::scale_timeout(90);
     $args{failok} //= 0;
-    my $verbose = $args{verbose} ? ' -vvvv' : '';
+    my $verbose = $args{verbose} ? ' -vv' : '';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     record_info('Ansible cmd:', "Run on '$args{filter}' node\ncmd: '$args{cmd}'");
@@ -998,6 +998,8 @@ sub qesap_ansible_cmd {
 
 =item B<FILE> - result file name
 
+=item B<REMOTE_PATH> - Path to save file in the remote (without file name)
+
 =item B<OUT_PATH> - path to save result file locally (without file name)
 
 =item B<USER> - user on remote host, default to 'cloudadmin'
@@ -1006,13 +1008,11 @@ sub qesap_ansible_cmd {
 
 =item B<FAILOK> - if not set, Ansible failure result in die
 
-=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vv', default is 0.
 
 =item B<TIMEOUT> - max expected execution time, default 180sec.
     Same timeout is used both for the execution of script_output.yaml and for the fetch_file.
     Timeout of the same amount is started two times.
-
-=item B<REMOTE_PATH> - Path to save file in the remote (without file name)
 
 =back
 =cut
@@ -1025,7 +1025,7 @@ sub qesap_ansible_script_output_file {
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
     $args{verbose} //= 0;
-    my $verbose = $args{verbose} ? '-vvvv' : '';
+    my $verbose = $args{verbose} ? '-vv' : '';
     $args{remote_path} //= '/tmp/';
     $args{out_path} //= '/tmp/ansible_script_output/';
     $args{file} //= 'testout.txt';
@@ -1149,7 +1149,7 @@ sub qesap_ansible_script_output {
 
 =item B<OUT_PATH> - path to save file locally (without file name)
 
-=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vv', default is 0.
 
 =back
 =cut
@@ -1164,7 +1164,7 @@ sub qesap_ansible_fetch_file {
     $args{out_path} //= '/tmp/ansible_script_output/';
     $args{file} //= 'testout.txt';
     $args{verbose} //= 0;
-    my $verbose = $args{verbose} ? '-vvvv' : '';
+    my $verbose = $args{verbose} ? '-vv' : '';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $fetch_playbook = 'fetch_file.yaml';
@@ -1462,7 +1462,7 @@ sub qesap_cluster_logs {
                 host => $host,
                 failok => 1,
                 root => 1,
-                path => '/tmp/',
+                remote_path => '/tmp/',
                 out_path => '/tmp/ansible_script_output/',
                 file => $log_filename);
             upload_logs($out, failok => 1);
@@ -1916,37 +1916,40 @@ sub qesap_ssh_intrusion_detection {
         $log_filename = "$host-intrusion-log.txt";
         $log_filename =~ s/[\[\]"]//g;
         my $out_file = qesap_ansible_script_output_file(
-            cmd => 'journalctl -u sshd | grep \"Connection closed by\" || true',
+            cmd => 'journalctl -u sshd | grep \"Connection closed by\"',
             provider => $args{provider},
             host => $host,
             failok => 1,
             root => 1,
-            path => '/tmp/',
+            verbose => 1,
+            remote_path => '/tmp/',
             out_path => '/tmp/ansible_script_output/',
             file => $log_filename);
-        upload_logs($out_file, failok => 1);
-        my $output = script_output("cat $out_file");
-        $attempts = 0;
-        %users = ();
-        %ips = ();
+        unless (script_run("test -e $out_file")) {
+            upload_logs($out_file, failok => 1);
+            my $output = script_output("cat $out_file");
+            $attempts = 0;
+            %users = ();
+            %ips = ();
 
-        foreach my $line (split /\n/, $output) {
-            # Regular expression to capture user and IP for both 'authenticating user' and 'invalid user'
-            if ($line =~ /Connection closed by (?:authenticating|invalid) user (\S+) (\S+)/) {
-                my ($user, $ip) = ($1, $2);
-                $users{$user}++;
-                $ips{$ip}++;
-                $attempts++;
+            next if $attempts == 0;
+
+            foreach my $line (split /\n/, $output) {
+                # Regular expression to capture user and IP for both 'authenticating user' and 'invalid user'
+                if ($line =~ /Connection closed by (?:authenticating|invalid) user (\S+) (\S+)/) {
+                    my ($user, $ip) = ($1, $2);
+                    $users{$user}++;
+                    $ips{$ip}++;
+                    $attempts++;
+                }
             }
+
+            $report{$host}{attempts} = $attempts;
+            $report{$host}{users} = [keys %users];
+            $report{$host}{ips} = [keys %ips];
+            record_info("SSHD Log Analysis for $host",
+                "Found $report{$host}{attempts} login attempts. Users: @{$report{$host}{users}}. IPs: @{$report{$host}{ips}}");
         }
-
-        $report{$host}{attempts} = $attempts;
-        $report{$host}{users} = [keys %users];
-        $report{$host}{ips} = [keys %ips];
-
-        next if $attempts == 0;
-        record_info("SSHD Log Analysis for $host",
-            "Found $report{$host}{attempts} login attempts. Users: @{$report{$host}{users}}. IPs: @{$report{$host}{ips}}");
     }
 }
 

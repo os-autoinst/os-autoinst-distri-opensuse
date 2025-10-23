@@ -80,7 +80,7 @@ subtest '[qesap_ansible_cmd] verbose' => sub {
     qesap_ansible_cmd(cmd => 'FINDING', provider => 'OCEAN', verbose => 1);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /.*ansible.*-vvvv.*/ } @calls), "Expected verbosity in ansible command");
+    ok((any { /.*ansible.*-vv.*/ } @calls), "Expected verbosity in ansible command");
 };
 
 subtest '[qesap_ansible_cmd] failok and pass' => sub {

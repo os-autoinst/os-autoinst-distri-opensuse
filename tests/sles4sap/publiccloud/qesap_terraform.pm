@@ -180,7 +180,7 @@ sub run {
     # has been cloned.
     # Not all the conf.yaml used by this file needs it but
     # it is just easier to define it here for all.
-    set_var("ANSIBLE_ROLES", qesap_get_ansible_roles_dir());
+    set_var("ANSIBLE_ROLES", qesap_ansible_get_roles_dir());
     my $reg_mode = 'registercloudguest';    # Use registercloudguest by default
     if (get_var('QESAP_SCC_NO_REGISTER')) {
         $reg_mode = 'noreg';
