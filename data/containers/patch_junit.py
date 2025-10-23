@@ -40,7 +40,10 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
     """
     Patch XML with dict of expected failures
     """
-    tree = ET.parse(file)
+    try:
+        tree = ET.parse(file)
+    except ET.ParseError as err:
+        sys.exit(f"ERROR: {err}")
     root = tree.getroot()
 
     prefix = ""
