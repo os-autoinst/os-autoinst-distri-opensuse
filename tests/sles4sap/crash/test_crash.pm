@@ -12,58 +12,26 @@ use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';
 use sles4sap::azure_cli;
 use sles4sap::aws_cli;
+use sles4sap::crash;
 use publiccloud::instance;
 use utils;
 use publiccloud::ssh_interactive;
-
-=head2 softrestart
-    softrestart(instance => $instance [, timeout => 600]);
-Does a soft restart of the given C<instance> by running the command C<shutdown -r>.
-=cut
-
-sub softrestart {
-    my (%args) = @_;
-    $args{timeout} //= 600;
-    die "Missing mandatory argument 'instance'" unless $args{instance};
-
-    $args{instance}->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1', ssh_opts => '-o StrictHostKeyChecking=no');
-    sleep 60;
-    my $start_time = time();
-
-    # wait till ssh disappear
-    my $out = $args{instance}->wait_for_ssh(timeout => $args{timeout}, wait_stop => 1, 'cloudadmin');
-    # ok ssh port closed
-    record_info("Shutdown failed", "WARNING: while stopping the system, ssh port still open after timeout,\nreporting: $out")
-      if (defined $out);    # not ok port still open
-
-    my $shutdown_time = time() - $start_time;
-    $args{instance}->wait_for_ssh(timeout => $args{timeout} - $shutdown_time, 'cloudadmin', 0);
-}
 
 sub run {
     my ($self) = @_;
 
     # Crash test
-    my $vm_ip;
-    my $cloud_provider_name = get_required_var('PUBLIC_CLOUD_PROVIDER');
-
-    if ($cloud_provider_name eq 'EC2') {
-        my $aws_prefix = get_var('DEPLOY_PREFIX', 'clne');
-        my $job_id = $aws_prefix . get_current_job_id();
-        $vm_ip = aws_get_ip_address(instance_id => aws_vm_get_id(region => get_required_var('PUBLIC_CLOUD_REGION'), job_id => $job_id));
-    }
-    if ($cloud_provider_name eq 'AZURE') {
-        $vm_ip = get_required_var('VM_IP');
-    }
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $vm_ip = crash_pubip(provider => $provider, region => get_var('PUBLIC_CLOUD_REGION'));
 
     my %usernames = (
         AZURE => 'cloudadmin',
         EC2 => 'ec2-user'
     );
-    my $username = $usernames{$cloud_provider_name} or die "Unsupported cloud provider: $cloud_provider_name";
+    my $username = $usernames{$provider} or die "Unsupported cloud provider: $provider";
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => $username);
     select_host_console();
-    softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), instance => $instance);
+    crash_softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), instance => $instance);
 
     my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
@@ -85,7 +53,7 @@ sub run {
         die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
     }
 
-    softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), instance => $instance);
+    crash_softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), instance => $instance);
     select_serial_terminal;
     wait_serial(qr/\#/, timeout => 600);
 
@@ -120,6 +88,14 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
+
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    if ($provider eq 'AZURE') {
+        crash_destroy_azure();
+    }
+    elsif ($provider eq 'EC2') {
+        crash_destroy_aws(region => get_required_var('PUBLIC_CLOUD_REGION'));
+    }
     $self->SUPER::post_fail_hook;
 }
 
