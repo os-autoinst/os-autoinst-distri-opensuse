@@ -15,7 +15,7 @@ from typing import Dict, List
 
 
 # Use "(root|user)-(local|remote)" prefix in testsuite based on the filename
-BATS_PACKAGES = r"(?:aardvark|buildah|conmon|netavark|podman|runc|skopeo)"
+BATS_PACKAGES = r"(?:aardvark|buildah|conmon|netavark|podman|runc|skopeo|umoci)"
 PREFIX = re.compile(
     rf"({BATS_PACKAGES}(?:-(?:crun|runc))?(?:-(?:root|user))?(?:-(?:local|remote))?)\.xml$"
 )
@@ -40,7 +40,10 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
     """
     Patch XML with dict of expected failures
     """
-    tree = ET.parse(file)
+    try:
+        tree = ET.parse(file)
+    except ET.ParseError as err:
+        sys.exit(f"ERROR: {err}")
     root = tree.getroot()
 
     prefix = ""

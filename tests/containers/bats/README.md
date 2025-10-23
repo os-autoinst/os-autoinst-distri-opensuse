@@ -10,6 +10,7 @@ This directory contains [BATS framework](https://github.com/bats-core/bats-core)
 | [podman](podman.pm) | https://github.com/containers/podman/tree/main/test/system |
 | [runc](runc.pm) | https://github.com/opencontainers/runc/tree/main/tests/integration |
 | [skopeo](skopeo.pm) | https://github.com/containers/skopeo/tree/main/systemtest |
+| [umoci](umoci.pm) | https://github.com/opencontainers/umoci/tree/main/test |
 
 Note: For buildah we also run the [conformance tests](https://github.com/containers/buildah/blob/main/tests/conformance/README.md)
 
@@ -39,15 +40,15 @@ NOTES
 
 These are defined in [patches.yaml](../../../data/containers/patches.yaml)
 
-| variable | description | aardvark | buildah | conmon | netavark | podman | runc | skopeo |
-|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| `BATS_IGNORE` | Skip tests on ALL scenarios              |✅|✅|✅|✅|✅|✅|✅|
-| `BATS_IGNORE_ROOT` | Skip tests for root user            |  |✅|✅|  |✅|✅|✅|
-| `BATS_IGNORE_USER` | Skip tests for rootless             |  |✅|✅|  |✅|✅|✅|
-| `BATS_IGNORE_ROOT_LOCAL` | Skip tests for root / local   |  |  |  |  |✅|  |  |
-| `BATS_IGNORE_ROOT_REMOTE` | Skip tests for root / remote |  |  |  |  |✅|  |  |
-| `BATS_IGNORE_USER_LOCAL` | Skip tests for user / local   |  |  |  |  |✅|  |  |
-| `BATS_IGNORE_USER_REMOTE` | Skip tests for user / remote |  |  |  |  |✅|  |  |
+| variable | description | aardvark | buildah | conmon | netavark | podman | runc | skopeo | umoci |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `BATS_IGNORE` | Skip tests on ALL scenarios              |✅|✅|✅|✅|✅|✅|✅|✅|
+| `BATS_IGNORE_ROOT` | Skip tests for root user            |  |✅|✅|  |✅|✅|✅|✅|
+| `BATS_IGNORE_USER` | Skip tests for rootless             |  |✅|✅|  |✅|✅|✅|✅|
+| `BATS_IGNORE_ROOT_LOCAL` | Skip tests for root / local   |  |  |  |  |✅|  |  |  |
+| `BATS_IGNORE_ROOT_REMOTE` | Skip tests for root / remote |  |  |  |  |✅|  |  |  |
+| `BATS_IGNORE_USER_LOCAL` | Skip tests for user / local   |  |  |  |  |✅|  |  |  |
+| `BATS_IGNORE_USER_REMOTE` | Skip tests for user / remote |  |  |  |  |✅|  |  |  |
 
 NOTES
  - The special value `all` may be used to skip all tests.
@@ -248,10 +249,3 @@ openSUSE Tumbleweed with crun as `OCI_RUNTIME`
 ## Tools
 
 - [susebats](https://github.com/ricardobranco777/susebats)
-
-## TODO
-
-| package | tests |
-| --- | --- |
-| podman-tui | https://github.com/containers/podman-tui/tree/main/test |
-| umoci | https://github.com/opencontainers/umoci/tree/main/test |

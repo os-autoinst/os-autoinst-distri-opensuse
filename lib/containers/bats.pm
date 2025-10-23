@@ -275,12 +275,10 @@ sub patch_junit {
 }
 
 sub patch_logfile {
-    my ($tapfile, $xmlfile, @ignore_tests) = @_;
+    my ($xmlfile, @ignore_tests) = @_;
 
     my $package = get_required_var("BATS_PACKAGE");
     my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
-
-    die "BATS failed!" if (script_run("test -e $tapfile") != 0);
 
     @ignore_tests = uniq sort @ignore_tests;
     patch_junit $package, $version, $xmlfile, @ignore_tests;
@@ -513,6 +511,7 @@ sub bats_tests {
         podman => "test/system",
         runc => "tests/integration",
         skopeo => "systemtest",
+        umoci => "test",
     );
 
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
@@ -540,7 +539,7 @@ sub bats_tests {
     }
     my $xmlfile = "$tapfile.xml";
     $tapfile .= ".tap.txt";
-    $cmd .= " | tee -a $tapfile";
+    $cmd .= " </dev/null | tee -a $tapfile";
 
     run_command "echo $tapfile .. > $tapfile";
     push @commands, $cmd;
@@ -552,10 +551,12 @@ sub bats_tests {
         push @ignore_tests, @{$settings->{$ignore_tests}} if ($settings->{$ignore_tests});
         push @ignore_tests, @{$settings->{BATS_IGNORE}} if ($settings->{BATS_IGNORE});
     }
-    patch_logfile($tapfile, $xmlfile, @ignore_tests);
-
-    parse_extra_log(XUnit => $xmlfile);
     upload_logs($tapfile);
+    # Strip control chars from XML as they aren't quoted and we can't quote them as valid XML 1.1
+    # because it's not supported in most XML libraries anyway. See https://bugs.python.org/issue43703
+    assert_script_run("LC_ALL=C sed -i 's/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]//g' $xmlfile") if ($package eq "umoci");
+    patch_logfile($xmlfile, @ignore_tests);
+    parse_extra_log(XUnit => $xmlfile);
 
     script_run("sudo rm -rf $tmp_dir", timeout => 0);
 
@@ -583,7 +584,7 @@ sub patch_sources {
     }
 
     my $github_org = "containers";
-    if ($package eq "runc") {
+    if ($package =~ /runc|umoci/) {
         $github_org = "opencontainers";
     } elsif ($package =~ /buildx|cli|compose|docker/) {
         $github_org = "docker";
