@@ -122,6 +122,12 @@ resource "azurerm_public_ip" "openqa-publicip" {
   resource_group_name = azurerm_resource_group.openqa-group.name
   allocation_method   = "Static"
   count               = var.instance_count
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service[*].hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_network_interface" "openqa-nic" {
@@ -136,6 +142,12 @@ resource "azurerm_network_interface" "openqa-nic" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = element(azurerm_public_ip.openqa-publicip[*].id, count.index)
   }
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service[*].hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_image" "image" {
@@ -152,6 +164,12 @@ resource "azurerm_image" "image" {
     size_gb  = var.root-disk-size 
     storage_type = "Standard_LRS"
   }
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service[*].hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_linux_virtual_machine" "openqa-vm" {
@@ -216,6 +234,12 @@ resource "azurerm_virtual_machine_data_disk_attachment" "default" {
   virtual_machine_id = element(azurerm_linux_virtual_machine.openqa-vm[*].id, count.index)
   lun                = "1"
   caching            = "ReadWrite"
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service[*].hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_managed_disk" "ssd_disk" {
@@ -226,6 +250,12 @@ resource "azurerm_managed_disk" "ssd_disk" {
   storage_account_type = var.extra-disk-type
   create_option        = "Empty"
   disk_size_gb         = var.extra-disk-size
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service[*].hex, 0)
+  }, var.tags)
 }
 
 
