@@ -275,12 +275,10 @@ sub patch_junit {
 }
 
 sub patch_logfile {
-    my ($tapfile, $xmlfile, @ignore_tests) = @_;
+    my ($xmlfile, @ignore_tests) = @_;
 
     my $package = get_required_var("BATS_PACKAGE");
     my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
-
-    die "BATS failed!" if (script_run("test -e $tapfile") != 0);
 
     @ignore_tests = uniq sort @ignore_tests;
     patch_junit $package, $version, $xmlfile, @ignore_tests;
@@ -553,10 +551,9 @@ sub bats_tests {
         push @ignore_tests, @{$settings->{$ignore_tests}} if ($settings->{$ignore_tests});
         push @ignore_tests, @{$settings->{BATS_IGNORE}} if ($settings->{BATS_IGNORE});
     }
-    patch_logfile($tapfile, $xmlfile, @ignore_tests);
-
-    parse_extra_log(XUnit => $xmlfile);
     upload_logs($tapfile);
+    patch_logfile($xmlfile, @ignore_tests);
+    parse_extra_log(XUnit => $xmlfile);
 
     script_run("sudo rm -rf $tmp_dir", timeout => 0);
 
