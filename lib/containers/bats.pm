@@ -540,7 +540,7 @@ sub bats_tests {
     }
     my $xmlfile = "$tapfile.xml";
     $tapfile .= ".tap.txt";
-    $cmd .= " | tee -a $tapfile";
+    $cmd .= " </dev/null | tee -a $tapfile";
 
     run_command "echo $tapfile .. > $tapfile";
     push @commands, $cmd;
