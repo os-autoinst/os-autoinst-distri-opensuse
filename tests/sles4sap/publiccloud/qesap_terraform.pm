@@ -30,7 +30,7 @@ use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instance;
 use publiccloud::instances;
-use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos);
+use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos detect_worker_ip);
 use sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
@@ -71,6 +71,8 @@ sub run {
     my %maintenance_vars = ibsm_calculate_address_range(slot => get_required_var('WORKER_ID'));
     set_var("MAIN_ADDRESS_RANGE", $maintenance_vars{main_address_range});
     set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
+
+    set_var("SLES4SAP_WORKER_IP", qesap_create_cidr_from_ip(ip => detect_worker_ip(proceed_on_failure => 1), proceed_on_failure => 1));
 
     # Select console on the host (not the PC instance) to reset 'TUNNELED',
     # otherwise select_serial_terminal() will be failed
