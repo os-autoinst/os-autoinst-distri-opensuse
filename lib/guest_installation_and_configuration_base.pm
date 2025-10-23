@@ -290,7 +290,7 @@ sub prepare_ssh_key {
     my $self = shift;
 
     $self->reveal_myself;
-    if (!((script_run("[[ -f $_host_params{ssh_key_file}.pub ]] && [[ -f $_host_params{ssh_key_file}.pub.bak ]]") == 0) and (script_run("cmp $_host_params{ssh_key_file}.pub $_host_params{ssh_key_file}.pub.bak") == 0))) {
+    if (!((script_run("[[ -f $_host_params{ssh_key_file}.pub ]] && [[ -f $_host_params{ssh_key_file}.pub.bak ]]") == 0) and (script_run("cp $_host_params{ssh_key_file}.pub $_host_params{ssh_key_file}.pub.bak") == 0))) {
         assert_script_run("rm -f -r $_host_params{ssh_key_file}*");
         assert_script_run("ssh-keygen -t rsa -f $_host_params{ssh_key_file} -q -P \"\" <<<y");
         assert_script_run("cp $_host_params{ssh_key_file}.pub $_host_params{ssh_key_file}.pub.bak");
