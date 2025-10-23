@@ -42,7 +42,8 @@
       <li><a href="#az_vm_wait_running">az_vm_wait_running</a></li>
       <li><a href="#az_vm_openport">az_vm_openport</a></li>
       <li><a href="#az_vm_wait_cloudinit">az_vm_wait_cloudinit</a></li>
-      <li><a href="#az_nic_id_get">az_nic_id_get</a></li>
+      <li><a href="#az_nic_get_id">az_nic_get_id</a></li>
+      <li><a href="#az_nic_create">az_nic_create</a></li>
       <li><a href="#az_nic_get">az_nic_get</a></li>
       <li><a href="#az_nic_name_get">az_nic_name_get</a></li>
       <li><a href="#az_nic_list">az_nic_list</a></li>
@@ -789,9 +790,9 @@
 </dd>
 </dl>
 
-<h2 id="az_nic_id_get">az_nic_id_get</h2>
+<h2 id="az_nic_get_id">az_nic_get_id</h2>
 
-<pre><code>my $nic_id = az_nic_id_get(
+<pre><code>my $nic_id = az_nic_get_id(
     resource_group =&gt; &#39;openqa-rg&#39;,
     name =&gt; &#39;openqa-vm&#39;)</code></pre>
 
@@ -803,7 +804,39 @@
 <dd>
 
 </dd>
-<dt id="name---name-of-an-existing-VM2"><b>name</b> - name of an existing VM</dt>
+<dt id="name---name-of-an-existing-NIC"><b>name</b> - name of an existing NIC</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_nic_create">az_nic_create</h2>
+
+<p>Create a NIC</p>
+
+<dl>
+
+<dt id="resource_group---existing-resource-group-where-to-search-for-a-specific-NIC1"><b>resource_group</b> - existing resource group where to search for a specific NIC</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-NIC"><b>name</b> - name for the NIC</dt>
+<dd>
+
+</dd>
+<dt id="vnet---existing-VNET"><b>vnet</b> - existing VNET</dt>
+<dd>
+
+</dd>
+<dt id="subnet---existing-SUBNET"><b>subnet</b> - existing SUBNET</dt>
+<dd>
+
+</dd>
+<dt id="nsg---existing-Network-security-group"><b>nsg</b> - existing Network security group</dt>
+<dd>
+
+</dd>
+<dt id="pubip_name---existing-public-ip-name"><b>pubip_name</b> - existing public ip name</dt>
 <dd>
 
 </dd>
@@ -815,7 +848,7 @@
 
 <dl>
 
-<dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_id_get"><b>nic_id</b> - existing NIC ID (eg. from az_nic_id_get)</dt>
+<dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_get_id"><b>nic_id</b> - existing NIC ID (eg. from az_nic_get_id)</dt>
 <dd>
 
 </dd>
@@ -835,7 +868,7 @@
 
 <dl>
 
-<dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_id_get1"><b>nic_id</b> - existing NIC ID (eg. from az_nic_id_get)</dt>
+<dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_get_id1"><b>nic_id</b> - existing NIC ID (eg. from az_nic_get_id)</dt>
 <dd>
 
 </dd>
@@ -869,7 +902,7 @@
 
 <dl>
 
-<dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_id_get2"><b>nic_id</b> - existing NIC ID (eg. from az_nic_id_get)</dt>
+<dt id="nic_id---existing-NIC-ID-eg.-from-az_nic_get_id2"><b>nic_id</b> - existing NIC ID (eg. from az_nic_get_id)</dt>
 <dd>
 
 </dd>
