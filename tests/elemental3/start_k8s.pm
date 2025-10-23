@@ -93,7 +93,7 @@ sub prepare_test_framework {
 
     # Define architecture
     my $arch;
-    $arch = 'arm64' if ($args{arch} eq 'aarch64');
+    $arch = 'arm' if ($args{arch} eq 'aarch64');
     $arch = 'amd64' if ($args{arch} eq 'x86_64');
 
     # Get some informations from the cluster
