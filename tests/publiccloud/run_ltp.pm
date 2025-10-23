@@ -354,7 +354,8 @@ sub prepare_ltp_cmd {
     $cmd .= '--suite-timeout=' . $suite_timeout . ' ';
     $cmd .= '--run-suite ' . $ltp_command . ' ';
     $cmd .= '--skip-tests \'' . $skip_tests . '\' ' if $skip_tests;
-    $cmd .= '--sut=ssh' . $sut . ' ';
+    $cmd .= '--sut default:com=ssh ';
+    $cmd .= '--com=ssh' . $sut . ' ';
     $cmd .= '--env ' . $env . ' ' if ($env);
     return $cmd;
 }
