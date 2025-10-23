@@ -28,6 +28,7 @@
       <li><a href="#select_backend_console">select_backend_console</a></li>
       <li><a href="#double_check_xen_role">double_check_xen_role</a></li>
       <li><a href="#check_kvm_modules">check_kvm_modules</a></li>
+      <li><a href="#download_installation_iso">download_installation_iso</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -108,6 +109,14 @@
 <h2 id="check_kvm_modules">check_kvm_modules</h2>
 
 <p>Check whether kvm moduldes are successfully loaded on running system.</p>
+
+<h2 id="download_installation_iso">download_installation_iso</h2>
+
+<p>Download installation ISO to local directory with caching and error handling. Based on existing download_vm_import_disks pattern with proper retry logic.</p>
+
+<pre><code>my $local_path = download_installation_iso($iso_url, $target_dir);</code></pre>
+
+<p>Returns local path on success, undef on failure.</p>
 
 
 </body>
