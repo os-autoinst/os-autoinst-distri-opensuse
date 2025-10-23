@@ -535,7 +535,7 @@ sub wait_for_ssh {
         unless (isok($exit_code)) {
             # validate sshd_config configuration file and verbose ssh debugging
             my $debug = script_output("ssh " . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'sudo sshd -t && echo sshd OK || echo sshd config error'", timeout => 90, proceed_on_failure => 1) . "\n";
-            $debug .= script_output("ssh -vvv" . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'ls -lR /etc/ssh'", timeout => 90, proceed_on_failure => 1) . "\n";
+            $debug .= script_output("ssh -vvv " . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'ls -lR /etc/ssh'", timeout => 90, proceed_on_failure => 1) . "\n";
             record_info('SSH CHECK', "Check ssh on error\n" . $debug, result => 'fail');
         }
         # Log upload
