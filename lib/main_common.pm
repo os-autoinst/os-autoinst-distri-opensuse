@@ -309,8 +309,8 @@ sub replace_opensuse_repos_tests {
 sub is_updates_tests {
     my $flavor = get_var('FLAVOR');
     return 0 unless $flavor;
-    # Incidents might be also Incidents-Gnome or Incidents-Kernel
-    return $flavor =~ /-Updates/ || $flavor =~ /-Incidents/;
+    # Incidents might be also Incidents-Gnome or Incidents-Kernel or Online-Increments(for sle16)
+    return $flavor =~ /-Updates|-Incidents|Online-Increments/;
 }
 
 sub is_migration_tests {
