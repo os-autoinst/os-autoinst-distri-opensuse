@@ -8,13 +8,13 @@
 package sles4sap::azure_cli;
 use strict;
 use warnings FATAL => 'all';
-use testapi;
+use Mojo::Base -signatures;
 use Carp qw(croak);
 use Exporter qw(import);
 use Mojo::JSON qw(decode_json);
 use Regexp::Common qw(net);
 use NetAddr::IP;
-use Mojo::Base -signatures;
+use testapi;
 use utils qw(write_sut_file);
 
 
@@ -53,7 +53,8 @@ our @EXPORT = qw(
   az_vm_wait_running
   az_vm_diagnostic_log_enable
   az_vm_diagnostic_log_get
-  az_nic_id_get
+  az_nic_create
+  az_nic_get_id
   az_nic_name_get
   az_nic_list
   az_ipconfig_name_get
@@ -1026,9 +1027,9 @@ sub az_vm_wait_cloudinit(%args) {
     assert_script_run($az_cmd, timeout => ($args{timeout} + 300));
 }
 
-=head2 az_nic_id_get
+=head2 az_nic_get_id
 
-    my $nic_id = az_nic_id_get(
+    my $nic_id = az_nic_get_id(
         resource_group => 'openqa-rg',
         name => 'openqa-vm')
 
@@ -1038,12 +1039,12 @@ Get the NIC ID of the first NIC of a given VM
 
 =item B<resource_group> - existing resource group where to search for a specific NIC
 
-=item B<name> - name of an existing VM
+=item B<name> - name of an existing NIC
 
 =back
 =cut
 
-sub az_nic_id_get(%args) {
+sub az_nic_get_id(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1055,13 +1056,48 @@ sub az_nic_id_get(%args) {
     return script_output($az_cmd);
 }
 
+=head2 az_nic_create
+
+Create a NIC
+
+=over
+
+=item B<resource_group> - existing resource group where to search for a specific NIC
+
+=item B<name> - name for the NIC
+
+=item B<vnet> - existing VNET
+
+=item B<subnet> - existing SUBNET
+
+=item B<nsg> - existing Network security group
+
+=item B<pubip_name> - existing public ip name
+
+=back
+=cut
+
+sub az_nic_create(%args) {
+    foreach (qw(resource_group name vnet subnet nsg pubip_name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    assert_script_run(join(' ', 'az network nic create',
+            '--resource-group', $args{resource_group},
+            '--name', $args{name},
+            '--vnet-name', $args{vnet},
+            '--subnet', $args{subnet},
+            '--network-security-group', $args{nsg},
+            '--private-ip-address-version IPv4',
+            '--public-ip-address', $args{pubip_name}));
+}
+
 =head2 az_nic_get
 
 Get the NIC data from NIC ID using 'az network nic show'
 
 =over
 
-=item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
+=item B<nic_id> - existing NIC ID (eg. from az_nic_get_id)
 
 =item B<filter> - query filter
 
@@ -1089,7 +1125,7 @@ Get the NIC name from NIC ID
 
 =over
 
-=item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
+=item B<nic_id> - existing NIC ID (eg. from az_nic_get_id)
 
 =back
 =cut
@@ -1132,7 +1168,7 @@ Get the name of the first IpConfig of a NIC from a NIC ID
 
 =over
 
-=item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
+=item B<nic_id> - existing NIC ID (eg. from az_nic_get_id)
 
 =back
 =cut
