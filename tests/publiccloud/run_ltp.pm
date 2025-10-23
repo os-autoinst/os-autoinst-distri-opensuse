@@ -347,15 +347,20 @@ sub prepare_ltp_cmd {
     $sut .= ':host=' . $instance->public_ip;
     $sut .= ':reset_cmd=\'' . $reset_cmd . '\'';
 
+    my $env_prefix = '';
+    if (defined $env && $env ne '') {
+        my @vars = split /:/, $env;
+        $env_prefix = join(' ', @vars) . ' ';
+    }
+
     my $python_exec = get_python_exec();
-    my $cmd = "$python_exec kirk ";
+    my $cmd = "$env_prefix$python_exec kirk ";
     $cmd .= '--verbose ';
     $cmd .= '--exec-timeout=' . $exec_timeout . ' ';
     $cmd .= '--suite-timeout=' . $suite_timeout . ' ';
     $cmd .= '--run-suite ' . $ltp_command . ' ';
     $cmd .= '--skip-tests \'' . $skip_tests . '\' ' if $skip_tests;
     $cmd .= '--sut=ssh' . $sut . ' ';
-    $cmd .= '--env ' . $env . ' ' if ($env);
     return $cmd;
 }
 
