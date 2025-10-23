@@ -491,6 +491,8 @@ Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
 XFSTEST_MKFS_OPTION | string | | BTRFS only, value=<options-in-mkfs>. Set the options in mkfs.btrfs. And also set it in xfstests runtime option BTRFS_MKFS_OPTIONS.
 XFSTESTS_LOGDEV | boolean | 0 | XFS only, value=0/1. enable log device in testing xfs
+XFSTESTS_LOOP_DEVICE | boolean | 0 | Create loop device for testing
+XFSTESTS_ZONE_DEVICE | boolean | 0 | Create zoned device for testing
 XFSTESTS_XFS_REPAIR | boolean | 0 | XFS only, value=0/1. enable TEST_XFS_REPAIR_REBUILD=1 in xfstests log file local.config
 XFSTESTS_NFS_VERSION | string | 4.1 | NFS only, version of test target NFS. What's special is that set it with TLS-<nfsversion> will enable NFS over kTLS. And set it with krb5[pi]-<nfsversion> will enable NFS with kerberos5 mount option during tests
 XFSTESTS_NFS_SERVER | boolean | | NFS multimation test only, mandatory. To tag this test job for NFS server in a NFS multimachine test. NFS test in a multimachine test either a client or a server.
