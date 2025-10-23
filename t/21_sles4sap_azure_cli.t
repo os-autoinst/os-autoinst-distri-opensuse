@@ -538,11 +538,11 @@ subtest '[az_vm_wait_cloudinit]' => sub {
     ok((any { /az vm run-command create/ } @calls), 'Correct composition of the main command');
 };
 
-subtest '[az_nic_id_get]' => sub {
+subtest '[az_nic_get_id]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Eugenia'; });
-    my $res = az_nic_id_get(
+    my $res = az_nic_get_id(
         resource_group => 'Arlecchino',
         name => 'Truffaldino');
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -560,6 +560,21 @@ subtest '[az_nic_name_get]' => sub {
     ok((any { /az network nic show/ } @calls), 'Correct composition of the main command');
     ok((any { /--query.*name/ } @calls), 'Correct filter');
     ok(($res eq 'Eugenia'), 'Correct return');
+};
+
+subtest '[az_nic_create]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    az_nic_create(
+        resource_group => 'Arlecchino',
+        name => 'Fabrizio',
+        vnet => 'Pulcinella',
+        subnet => 'Colombina',
+        nsg => 'Pantalone',
+        pubip_name => 'Ottone');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network nic create/ } @calls), 'Correct composition of the main command');
 };
 
 subtest '[az_ipconfig_name_get]' => sub {
