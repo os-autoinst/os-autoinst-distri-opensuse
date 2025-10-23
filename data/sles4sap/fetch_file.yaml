@@ -12,7 +12,7 @@
 
   - name: Print remote file size
     debug:
-      msg: "File size: {{ logfile_stats.stat.size }} bytes."
+      msg: "File size: {{ logfile_stats.stat.size | default('UNKNOWN') }} bytes."
 
   - name: Download the remote file
     ansible.posix.synchronize:
