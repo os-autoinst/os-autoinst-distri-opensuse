@@ -37,7 +37,7 @@ sub prepare_parmfile {
     my ($repo) = @_;
     my $params = '';
     $params .= " " . get_var('S390_NETWORK_PARAMS');
-    $params .= " " . get_var('EXTRABOOTPARAMS');
+    $params .= " " . get_var('EXTRABOOTPARAMS') if get_var('EXTRABOOTPARAMS');
 
     $params .= remote_install_bootmenu_params unless (get_var('AGAMA'));
 
@@ -57,7 +57,7 @@ sub prepare_parmfile {
             $params .= $root_line;
 
             # add mandatory boot params
-            $params .= ' cio_ignore=all,!condev,!0.0.0150';
+            $params .= ' cio_ignore=all,!condev,!0.0.0150,!0.0.0160';
             $params .= ' hvc_iucv=8';
             $params .= " live.password=$testapi::password";
 
