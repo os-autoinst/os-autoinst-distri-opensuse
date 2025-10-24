@@ -63,8 +63,14 @@ sub prepare_console {
 sub prepare_extensions {
     my $self = shift;
 
-    zypper_call("install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change suseconnect-ng");
-    virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => get_var('SCC_REGEXTS', ''));
+    my $zypper_args = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change suseconnect-ng";
+    if (is_s390x) {
+        lpar_cmd("zypper $zypper_args");
+    }
+    else {
+        zypper_call($zypper_args);
+        virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => get_var('SCC_REGEXTS', ''));
+    }
 }
 
 sub prepare_packages {
