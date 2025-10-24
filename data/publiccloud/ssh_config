@@ -6,3 +6,6 @@ HostKeyAlgorithms +ssh-rsa
 IdentityFile %SSH_KEY%
 LogLevel VERBOSE
 PasswordAuthentication no
+ConnectTimeout 15
+ServerAliveInterval 5
+ServerAliveCountMax 5
