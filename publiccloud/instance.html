@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#run_ssh_command">run_ssh_command</a></li>
       <li><a href="#retry_ssh_command">retry_ssh_command</a></li>
+      <li><a href="#apply_cmd_timeout-_apply_cmd_timeout-args-ssh_cmd---wraps-ssh_cmd-within-timeout-call-which-will-make-sure-graceful-and-unconditional-interruption-after-defined-period-of-time">_apply_cmd_timeout _apply_cmd_timeout($args, $ssh_cmd) - wraps $ssh_cmd within timeout call which will make sure graceful and unconditional interruption after defined period of time</a></li>
       <li><a href="#ssh_script_run">ssh_script_run</a></li>
       <li><a href="#ssh_assert_script_run">ssh_assert_script_run</a></li>
       <li><a href="#ssh_script_output">ssh_script_output</a></li>
@@ -52,6 +53,13 @@
 
 <p>This function is deprecated. Please use ssh_script_retry instead.</p>
 
+<h2 id="apply_cmd_timeout-_apply_cmd_timeout-args-ssh_cmd---wraps-ssh_cmd-within-timeout-call-which-will-make-sure-graceful-and-unconditional-interruption-after-defined-period-of-time">_apply_cmd_timeout _apply_cmd_timeout($args, $ssh_cmd) - wraps $ssh_cmd within timeout call which will make sure graceful and unconditional interruption after defined period of time</h2>
+
+<pre><code>C&lt;args&gt; - reference to args hash. it is important to pass reference so function can modify timeout passed to script_run by the caller
+            to make sure it is bigger than value defined in timeout command which suppose to kill what script_run needs to execute
+C&lt;ssh_cmd&gt; - reference to string containing command which will be executed by script_run. function will tweak it to include timeout call
+            which will kill underlying command after time defined by args{timeout}</code></pre>
+
 <h2 id="ssh_script_run">ssh_script_run</h2>
 
 <pre><code>ssh_script_run($cmd [, timeout =&gt; $timeout] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username][, ignore_timeout_failure =&gt; $ignore_timeout_failure])
@@ -85,7 +93,7 @@ C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally s
 
 <h2 id="scp">scp</h2>
 
-<pre><code>scp($from, $to, timeout =&gt; 90);</code></pre>
+<pre><code>scp($from, $to[, timeout =&gt; 90]);</code></pre>
 
 <p>Use scp to copy a file from or to this instance. A url starting with <code>remote:</code> is replaced with the IP from this instance. E.g. a call to copy the file <i>/var/log/cloudregister</i> to <i>/tmp</i> looks like: <code>&lt;&lt;$instance-</code>scp(&#39;remote:/var/log/cloudregister&#39;, &#39;/tmp&#39;);&gt;&gt;&gt;</p>
 
