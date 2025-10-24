@@ -289,11 +289,9 @@ podman:
 podman-py:
   # Note on patches:
   # https://github.com/containers/podman-py/pull/572 - tests: Fix tests to reflect removal of rw as default option
-  # https://github.com/containers/podman-py/pull/575 - tests: Fix deprecation warning for utcfromtimestamp()
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 572
-    - 575
 runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/4825 is needed for cgroups
