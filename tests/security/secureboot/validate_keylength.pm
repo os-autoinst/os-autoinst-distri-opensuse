@@ -47,11 +47,12 @@ sub get_boot_image_name {
     die "Unsupported architecture: $arch";
 }
 
-# on any staging builds we always expect 2048 bits keys
-# on release builds, for s390x and ppc64le we expect 4096 bits keys
+# on x86_64 and aarch64 we expect 2048 bits keys
+# for s390x and ppc64le we expect 4096 bits keys (except for kernel staging builds)
 sub get_expected_keylength {
-    return 2048 if get_var('STAGING');
-    return get_required_var('ARCH') =~ /s390x|ppc64le/ ? 4096 : 2048;
+    return '2048' unless get_required_var('ARCH') =~ /s390x|ppc64le/;
+    return '(2048|4096)' if get_var('STAGING');
+    return '4096';
 }
 
 sub post_fail_hook {
