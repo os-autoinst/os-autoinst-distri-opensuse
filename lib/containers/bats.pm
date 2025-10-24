@@ -167,11 +167,12 @@ sub configure_rootless_docker {
 }
 
 sub cleanup_docker {
+    my $timeout = 300;
     script_run "mv -f /etc/docker/daemon.json{.bak,}";
     script_run "mv -f /etc/sysconfig/docker{.bak,}";
-    script_run 'docker rm -vf $(docker ps -aq)';
-    script_run "docker volume prune -a -f";
-    script_run "docker system prune -a -f";
+    script_run 'docker rm -vf $(docker ps -aq)', timeout => $timeout;
+    script_run "docker volume prune -a -f", timeout => $timeout;
+    script_run "docker system prune -a -f", timeout => $timeout;
     script_run "unset DOCKER_HOST DOCKER_TLS_VERIFY";
     systemctl "restart docker";
 }
