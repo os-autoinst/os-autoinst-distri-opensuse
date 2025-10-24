@@ -352,7 +352,7 @@ sub wait_for_guestregister {
             diag("guestregister failed");
             # we have some cases where it is known that guestregister service will fail
             # ( e.g. when we testing images not published on Market hence w/o product codes)
-            return 1 if (get_var('PUBLIC_CLOUD_IGNORE_GUESTREGISTER_FAILURE'));
+            return 1 if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
             die('guestregister failed');
         }
         elsif ($out =~ m/active$/) {

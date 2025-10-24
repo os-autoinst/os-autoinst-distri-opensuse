@@ -57,7 +57,7 @@ sub run {
     }
 
     my $test_package = get_var('TEST_PACKAGE', 'socat');
-    $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
+    $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600) unless get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-add-ssh-keys');
@@ -98,14 +98,16 @@ sub run {
     # dump list of packages
     $instance->run_ssh_command(cmd => 'rpm -qa | sort');
 
-    # package installation test
-    my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);
-    unless ($ret) {
-        die("Testing package \'$test_package\' is already installed, choose a different package!");
+    unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
+        # package installation test
+        my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);
+        unless ($ret) {
+            die("Testing package \'$test_package\' is already installed, choose a different package!");
+        }
+        $instance->run_ssh_command(cmd => 'sudo transactional-update -n pkg install ' . $test_package, timeout => 600);
+        $instance->softreboot();
+        $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package);
     }
-    $instance->run_ssh_command(cmd => 'sudo transactional-update -n pkg install ' . $test_package, timeout => 600);
-    $instance->softreboot();
-    $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package);
 
     # cockpit test
     $instance->run_ssh_command(cmd => '! curl localhost:9090');
@@ -114,9 +116,11 @@ sub run {
     $instance->run_ssh_command(cmd => 'curl http://localhost:9090');
     $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep active');
 
-    # additional tr-up tests
-    $instance->run_ssh_command(cmd => 'sudo transactional-update -n up', timeout => 360);
-    $instance->softreboot();
+    unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
+        # additional tr-up tests
+        $instance->run_ssh_command(cmd => 'sudo transactional-update -n up', timeout => 360);
+        $instance->softreboot();
+    }
 
     # SELinux tests
     my $getenforce = $instance->ssh_script_output('sudo getenforce');

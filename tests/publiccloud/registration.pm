@@ -25,7 +25,7 @@ sub run {
 
     wait_quit_zypper_pc($args->{my_instance});
 
-    registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION') || get_var('PUBLIC_CLOUD_IGNORE_GUESTREGISTER_FAILURE'));
+    registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
     register_addons_in_pc($args->{my_instance});
     # Since SLE 15 SP6 CHOST images don't have curl and we need it for testing
     if (is_sle('>15-SP5') && is_container_host()) {
