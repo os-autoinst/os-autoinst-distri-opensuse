@@ -1,0 +1,4 @@
+---
+crypttab:
+  num_devices_encrypted: 2
+<<: !include test_data/yast/encryption/default_enc_luks2.yaml
