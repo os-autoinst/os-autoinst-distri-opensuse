@@ -394,7 +394,7 @@ sub aws_authorize_security_group_ingress {
 
 =head2 aws_create_vm
 
-    my $instance_id = aws_create_vm($instance_type, $image_id, $subnet_id, $sg_id, $ssh_key, $region);
+    my $instance_id = aws_create_vm($instance_type, $image_name, $subnet_id, $sg_id, $ssh_key, $region);
 
 Launch an EC2 instance with specified configuration and tag it with the OpenQA job ID
 
@@ -402,7 +402,7 @@ Launch an EC2 instance with specified configuration and tag it with the OpenQA j
 
 =item B<$instance_type> - EC2 instance type (e.g., 't2.micro', 'm5.large')
 
-=item B<$image_id> - AMI ID to use for the instance
+=item B<$image_name> - Name to use for the instance
 
 =item B<$subnet_id> - ID of the subnet where to launch the instance
 
@@ -420,12 +420,30 @@ Returns the instance ID
 =cut
 
 sub aws_create_vm {
-    my ($instance_type, $image_id, $subnet_id, $sg_id, $ssh_key, $region, $job_id) = @_;
-    return script_output(
-        "aws ec2 run-instances --image-id $image_id --count 1 --subnet-id $subnet_id --associate-public-ip-address " .
-          "--security-group-ids $sg_id --instance-type $instance_type" .
-          " --tag-specifications 'ResourceType=instance,Tags=[{Key=OpenQAJobVm,Value='$job_id'}]'" .
-          " --query 'Instances[0].InstanceId' --key-name $ssh_key --output text", 240);
+    my ($instance_type, $image_name, $subnet_id, $sg_id, $ssh_key, $region, $job_id) = @_;
+
+    # 679593333241 ( aws-marketplace )
+    my $ownerId = get_var('PUBLIC_CLOUD_EC2_ACCOUNT_ID', '679593333241');
+    my $image_id = script_output(join(' ',
+            'aws ec2 describe-images',
+            "--filters 'Name=name,Values=" . $image_name . "-*'",
+            "--owners '$ownerId'",
+            "--query 'Images[?Name != `ecs`]|[0].ImageId'",
+            '--output=text'), 240);
+
+    die("Image name:$image_name Owner:$ownerId --> Image ID:$image_id") if ($image_id eq 'None');
+    return script_output(join(' ',
+            'aws ec2 run-instances',
+            "--image-id $image_id",
+            '--count 1',
+            "--subnet-id $subnet_id",
+            '--associate-public-ip-address',
+            "--security-group-ids $sg_id",
+            "--instance-type $instance_type",
+            "--tag-specifications 'ResourceType=instance,Tags=[{Key=OpenQAJobVm,Value='$job_id'}]'",
+            "--query 'Instances[0].InstanceId'",
+            "--key-name $ssh_key",
+            '--output text'), 240);
 }
 
 =head2 aws_get_vm_id
