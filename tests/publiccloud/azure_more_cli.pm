@@ -95,8 +95,9 @@ sub run {
       get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
     my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     my $created_by = "$openqa_url/t$job_id";
+    my $custodian_ttl = calculate_custodian_ttl($openqa_ttl);
     my $tags = "openqa-cli-test-tag=$job_id openqa_created_by=$created_by openqa_ttl=$openqa_ttl";
-    $tags .= " openqa_var_server=$openqa_url openqa_var_job_id=$job_id";
+    $tags .= " openqa_var_server=$openqa_url openqa_var_job_id=$job_id custodian_ttl=$custodian_ttl";
     my $location = "southeastasia";
     my $sshkey = "~/.ssh/id_rsa.pub";
 
