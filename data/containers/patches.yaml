@@ -286,12 +286,6 @@ podman:
     BATS_IGNORE_ROOT_REMOTE:
     BATS_IGNORE_USER_LOCAL:
     BATS_IGNORE_USER_REMOTE:
-podman-py:
-  # Note on patches:
-  # https://github.com/containers/podman-py/pull/572 - tests: Fix tests to reflect removal of rw as default option
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 572
 runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/4825 is needed for cgroups
