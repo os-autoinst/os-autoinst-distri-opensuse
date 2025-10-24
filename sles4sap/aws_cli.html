@@ -364,7 +364,7 @@
 
 <h2 id="aws_create_vm">aws_create_vm</h2>
 
-<pre><code>my $instance_id = aws_create_vm($instance_type, $image_id, $subnet_id, $sg_id, $ssh_key, $region);</code></pre>
+<pre><code>my $instance_id = aws_create_vm($instance_type, $image_name, $subnet_id, $sg_id, $ssh_key, $region);</code></pre>
 
 <p>Launch an EC2 instance with specified configuration and tag it with the OpenQA job ID</p>
 
@@ -374,7 +374,7 @@
 <dd>
 
 </dd>
-<dt id="image_id---AMI-ID-to-use-for-the-instance"><b>$image_id</b> - AMI ID to use for the instance</dt>
+<dt id="image_name---Name-to-use-for-the-instance"><b>$image_name</b> - Name to use for the instance</dt>
 <dd>
 
 </dd>
