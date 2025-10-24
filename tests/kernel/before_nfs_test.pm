@@ -10,6 +10,7 @@ use testapi;
 use serial_terminal "select_serial_terminal";
 use utils;
 use lockapi;
+use version_utils;
 
 sub prepare_bond {
     my $cfg = " /etc/sysconfig/network/ifcfg-bond0";
@@ -40,6 +41,7 @@ sub run {
     my $role = get_required_var('ROLE');
 
     select_serial_terminal;
+    permit_root_ssh_in_sol unless is_sle('16+');
     systemctl 'stop ' . $self->firewall;
     set_hostname(get_var("HOSTNAME", "susetest"));
 

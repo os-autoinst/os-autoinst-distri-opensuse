@@ -61,9 +61,27 @@ sub run {
     my $kernel_nfs4_2 = 0;
     my $kernel_nfsd_v3 = 0;
     my $kernel_nfsd_v4 = 0;
-    my $client = get_var('CLIENT_NODE', 'client-node00');
+
+    if (get_var('PARALLEL_WITH') eq 'ibtest-master') {
+        record_info("nfs_client code to execute");
+    } else {
+    my $client; # = get_var('CLIENT_NODE', 'client-node00');
 
     select_serial_terminal();
+my $wanted_hostname;
+my $ip = script_output("hostname -I | awk '{print \$1}'");
+
+if ($ip eq '10.168.192.68') {
+    $wanted_hostname = 'tails-1';
+    set_hostname(get_var('HOSTNAME', $wanted_hostname));
+    $client = '10.168.192.0/24';
+}
+elsif ($ip eq '10.168.192.67') {
+    $wanted_hostname = 'sonic-1';
+    set_hostname(get_var('HOSTNAME', $wanted_hostname));
+    $client = '10.168.192.0/24';
+}
+
     record_info("hostname", script_output("hostname"));
 
     my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/nfs/shared_nfs3');
@@ -107,6 +125,8 @@ sub run {
     }
 
     record_info("EXPORTS", script_output("cat /etc/exports"));
+    assert_script_run("exportfs -r");
+    assert_script_run("exportfs -v");
 
     systemctl("enable rpcbind --now");
     systemctl("is-active rpcbind");
@@ -179,6 +199,7 @@ sub run {
     }
 
     record_info("NFS stat for server", script_output("nfsstat -s"));
+    }
 }
 
 sub test_flags {
