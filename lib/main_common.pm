@@ -2548,11 +2548,15 @@ sub set_mu_virt_vars {
         } else {
             # OSD SUTs use ipxe way
             my $mirror_http = 'http://' . get_required_var('OPENQA_HOSTNAME') . '/assets/repo/fixed/';
-            $mirror_http .= 'SLE-' . get_required_var('VERSION');
-            if (is_sle('15+')) {
-                $mirror_http .= '-Full-' . get_required_var('ARCH') . '-GM-Media1/';
-            } elsif (is_sle('12+')) {
-                $mirror_http .= '-Server-DVD-' . get_required_var('ARCH') . '-GM-DVD1/';
+            if (is_sle('16+')) {
+                $mirror_http .= 'SLES-' . get_required_var('VERSION') . '-Online-' . get_required_var('ARCH') . '-GM.install/';
+            } else {
+                $mirror_http .= 'SLE-' . get_required_var('VERSION');
+                if (is_sle('15+')) {
+                    $mirror_http .= '-Full-' . get_required_var('ARCH') . '-GM-Media1/';
+                } elsif (is_sle('12+')) {
+                    $mirror_http .= '-Server-DVD-' . get_required_var('ARCH') . '-GM-DVD1/';
+                }
             }
             set_var('MIRROR_HTTP', $mirror_http);
         }
