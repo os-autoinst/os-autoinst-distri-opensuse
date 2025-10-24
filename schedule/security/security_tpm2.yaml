@@ -23,6 +23,9 @@ conditional_schedule:
         DISTRI:
             sle:
                 - security/tpm2/keylime/keylime
+        VERSION:
+            Tumbleweed:
+                - security/tpm2/keylime/rust_keylime
     fips_setup:
         FIPS_ENABLED:
             1:
