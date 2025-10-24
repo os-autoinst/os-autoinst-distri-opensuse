@@ -72,18 +72,18 @@ sub ensure_system_ready_and_register {
 
 sub run {
     my ($self) = @_;
-
-    if (get_required_var('PUBLIC_CLOUD_PROVIDER') eq 'EC2') {
-        my $aws_prefix = get_var('DEPLOY_PREFIX', 'clne');
-        my $job_id = $aws_prefix . get_current_job_id();
-
-        my $vm_ip = aws_get_ip_address(aws_get_vm_id(get_required_var('PUBLIC_CLOUD_REGION'), $job_id));
-    }
-    else {
-        $vm_ip = get_required_var('VM_IP');
-    }
-
+    my $prefix = get_var('DEPLOY_PREFIX', 'clne');
     my $ssh_cmd = get_required_var('SSH_CMD');
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $job_id = $prefix . get_current_job_id();
+    my $vm_ip = '';
+
+    if ($provider eq 'EC2') {
+        $vm_ip = aws_get_ip_address(aws_get_vm_id(get_required_var('PUBLIC_CLOUD_REGION'), $job_id));
+    }
+    elsif ($provider eq 'AZURE') {
+        $vm_ip = az_network_publicip_get(resource_group => $job_id, name => $prefix . "-pub_ip");
+    }
 
     if (get_required_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
         my $rg = get_required_var('RG');
