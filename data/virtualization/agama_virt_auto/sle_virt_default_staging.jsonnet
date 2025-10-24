@@ -22,7 +22,8 @@ local urls = if repo != '' then std.split(repo, ',') else [];
   },
   software: {
     packages: [
-      'xauth'
+      'xauth',
+      'xmlstarlet'
     ],
     patterns: [
       'base',
