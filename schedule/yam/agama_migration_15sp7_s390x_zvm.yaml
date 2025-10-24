@@ -1,0 +1,20 @@
+---
+name: agama_migration_sles_15sp7
+description: >
+  Migration from SLES 15SP7 on s390x zVM.
+schedule:
+  - yam/migration/setup_upgrade_env
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - console/system_prepare
+  - console/hostname
+  - yam/migration/restore_upgrade_env
+  - yam/migration/migration_unattended
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_product
+  - console/validate_repos
