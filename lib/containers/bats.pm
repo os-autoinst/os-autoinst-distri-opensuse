@@ -30,6 +30,7 @@ our @EXPORT = qw(
   bats_post_hook
   bats_tests
   cleanup_docker
+  cleanup_podman
   cleanup_rootless_docker
   configure_docker
   configure_rootless_docker
@@ -181,6 +182,15 @@ sub cleanup_rootless_docker {
     select_user_serial_terminal;
     script_run "dockerd-rootless-setuptool.sh uninstall";
     script_run "rootlesskit rm -rf ~/.local/share/docker";
+}
+
+sub cleanup_podman {
+    my $timeout = 300;
+    script_run 'podman rm -vf $(podman ps -aq)', timeout => $timeout;
+    script_run "podman volume prune -f", timeout => $timeout;
+    script_run "podman system prune -a -f", timeout => $timeout;
+    my $user = get_var("ROOTLESS") ? "--user" : "";
+    script_run "systemctl $user stop podman.socket";
 }
 
 # Translate RPM arch to Go arch
