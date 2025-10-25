@@ -1164,7 +1164,7 @@ sub qesap_ansible_fetch_file {
     $args{out_path} //= '/tmp/ansible_script_output/';
     $args{file} //= 'testout.txt';
     $args{verbose} //= 0;
-    my $verbose = $args{verbose} ? '-vvvv' : '';
+    my $verbose = $args{verbose} ? '-vv' : '';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $fetch_playbook = 'fetch_file.yaml';
@@ -1921,32 +1921,35 @@ sub qesap_ssh_intrusion_detection {
             host => $host,
             failok => 1,
             root => 1,
+            verbose => 1,
             path => '/tmp/',
             out_path => '/tmp/ansible_script_output/',
             file => $log_filename);
-        upload_logs($out_file, failok => 1);
-        my $output = script_output("cat $out_file");
-        $attempts = 0;
-        %users = ();
-        %ips = ();
+        unless (script_run("test -e $out_file")) {
+            upload_logs($out_file, failok => 1);
+            my $output = script_output("cat $out_file");
+            $attempts = 0;
+            %users = ();
+            %ips = ();
 
-        foreach my $line (split /\n/, $output) {
-            # Regular expression to capture user and IP for both 'authenticating user' and 'invalid user'
-            if ($line =~ /Connection closed by (?:authenticating|invalid) user (\S+) (\S+)/) {
-                my ($user, $ip) = ($1, $2);
-                $users{$user}++;
-                $ips{$ip}++;
-                $attempts++;
+            foreach my $line (split /\n/, $output) {
+                # Regular expression to capture user and IP for both 'authenticating user' and 'invalid user'
+                if ($line =~ /Connection closed by (?:authenticating|invalid) user (\S+) (\S+)/) {
+                    my ($user, $ip) = ($1, $2);
+                    $users{$user}++;
+                    $ips{$ip}++;
+                    $attempts++;
+                }
             }
+
+            $report{$host}{attempts} = $attempts;
+            $report{$host}{users} = [keys %users];
+            $report{$host}{ips} = [keys %ips];
+
+            next if $attempts == 0;
+            record_info("SSHD Log Analysis for $host",
+                "Found $report{$host}{attempts} login attempts. Users: @{$report{$host}{users}}. IPs: @{$report{$host}{ips}}");
         }
-
-        $report{$host}{attempts} = $attempts;
-        $report{$host}{users} = [keys %users];
-        $report{$host}{ips} = [keys %ips];
-
-        next if $attempts == 0;
-        record_info("SSHD Log Analysis for $host",
-            "Found $report{$host}{attempts} login attempts. Users: @{$report{$host}{users}}. IPs: @{$report{$host}{ips}}");
     }
 }
 
