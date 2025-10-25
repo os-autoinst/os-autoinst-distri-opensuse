@@ -363,7 +363,7 @@ sub plugin_vf_device {
                 $vf->{vm_bdf} = script_output "ssh root\@$vm \"if [ -e /sys/devices/pci-0/pci????:?? ]; then grep -H '$vf->{vm_mac}' /sys/devices/pci-0/*/*/net/*/address | cut -d '/' -f6; else grep -H '$vf->{vm_mac}' /sys/devices/*/*/net/*/address | cut -d '/' -f5; fi\"";
             }
             #Julie debug
-            if ($vf->{vm_bdf}) {
+            unless ($vf->{vm_bdf}) {
                 record_info("BDF $vm", script_output("ssh root\@$vm \"grep -r '$vf->{vm_mac}' /sys/devices/\""));
                 record_info("ip a", script_output("ssh root\@$vm 'ip a'"));
             }
