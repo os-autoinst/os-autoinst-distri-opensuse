@@ -367,6 +367,8 @@ ControlPath       ~/.ssh/control-%C
 ControlPersist    yes
 EOF
         write_sut_file('/root/.ssh/config', $ssh_config);
+        assert_script_run "cp -r /root/.ssh /home/$testapi::username";
+        assert_script_run "chown -R $testapi::username /home/$testapi::username/.ssh";
     }
 
     return if $rebooted;
