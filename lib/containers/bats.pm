@@ -578,8 +578,7 @@ sub bats_settings {
     my $package = shift;
     my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
 
-    assert_script_run "curl -o /tmp/patches.yaml " . data_url("containers/patches.yaml");
-    my $text = script_output("cat /tmp/patches.yaml", quiet => 1);
+    my $text = script_output("curl " . data_url("containers/patches.yaml"), quiet => 1);
     my $yaml = YAML::PP->new()->load_string($text);
 
     return $yaml->{$package}{$os_version};
