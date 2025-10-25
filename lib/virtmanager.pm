@@ -5,7 +5,7 @@ use warnings;
 use version_utils 'is_sle';
 
 our @ISA = qw(Exporter);
-our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
+our @EXPORT = qw(launch_virtmanager start_virtmanager_in_x11 connection_details create_vnet create_new_pool
   create_new_volume create_netinterface delete_netinterface create_guest powercycle
   detect_login_screen select_guest close_guest establish_connection);
 
@@ -17,6 +17,117 @@ sub launch_virtmanager {
         send_key 'ret';
         assert_screen 'virt-manager';
     }
+}
+
+# Start virt-manager using SSH X11 forwarding (gui=1)
+# This works for all backends: QEMU, bare-metal, IPMI, generalhw, etc.
+# The SSH console is configured with gui=1 parameter in lib/susedistribution.pm
+# which triggers SSH X11 forwarding (-X flag), allowing GUI apps to run headless
+#
+# CRITICAL REQUIREMENTS:
+# 1. Must call this from correct console: 'root-ssh' (has gui=1) for ikvm/ipmi/spvm/pvm_hmc backends
+# 2. SSH server must have 'xauth' package installed
+# 3. SSH server must have X11Forwarding=yes in sshd_config
+sub start_virtmanager_in_x11 {
+    record_info('virt-manager', 'Starting virt-manager via SSH X11 forwarding');
+    
+    # Check if xauth is installed (required for SSH X11 forwarding)
+    my $xauth_installed = script_run('which xauth') == 0;
+    
+    # Check if DISPLAY is set (indicates SSH X11 forwarding is working)
+    my $display = script_output('echo "$DISPLAY"', proceed_on_failure => 1);
+    
+    # If either xauth is missing or DISPLAY is not set, we need to fix it
+    if (!$xauth_installed || $display !~ /\S/) {
+        record_info('X11 Issue', "xauth installed: " . ($xauth_installed ? 'yes' : 'no') . ", DISPLAY: '$display'");
+        
+        # Install xauth if missing
+        if (!$xauth_installed) {
+            record_info('Installing xauth', 'Installing xauth package for SSH X11 forwarding...');
+            assert_script_run('zypper -n in xauth', timeout => 300);
+            record_info('Installed', 'xauth installed successfully');
+        }
+        
+        # Reconnect to the SAME console to re-establish SSH with X11 forwarding
+        # This is necessary because DISPLAY is set during SSH connection establishment
+        my $current_console = current_console();
+        my $target_console = get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ ? 'root-ssh' : 'root-console';
+        
+        record_info('Reconnecting', "Current: " . ($current_console // 'unknown') . ", Target: $target_console");
+        
+        # Force reconnection by switching away and back
+        reset_consoles();
+        select_console($target_console, await_console => 0);
+        sleep 5;
+        
+        # Verify DISPLAY is now set
+        $display = script_output('echo "$DISPLAY"', proceed_on_failure => 1);
+        record_info('DISPLAY after reconnect', "DISPLAY=$display");
+        
+        if ($display !~ /\S/) {
+            # Last resort: show all diagnostic info
+            my $env_info = script_output('env | grep -E "DISPLAY|XAUTHORITY|SSH" || echo "No relevant env vars"', proceed_on_failure => 1);
+            record_info('Environment', $env_info);
+            
+            my $console_info = script_output('tty', proceed_on_failure => 1);
+            record_info('TTY', $console_info);
+            
+            die "SSH X11 forwarding failed - DISPLAY is still not set after reconnection. Console: $target_console";
+        }
+    }
+    
+    record_info('X11 Ready', "DISPLAY=$display - SSH X11 forwarding is working");
+    
+    # Check if virt-manager package is installed
+    my $vm_pkg_check = script_run('rpm -q virt-manager');
+    if ($vm_pkg_check != 0) {
+        record_soft_failure('virt-manager package not installed');
+    } else {
+        my $vm_version = script_output('rpm -q virt-manager', proceed_on_failure => 1);
+        record_info('Package', "virt-manager installed: $vm_version");
+    }
+    
+    # Check libvirt connection before starting GUI
+    my $libvirt_check = script_run('virsh list --all > /dev/null 2>&1', timeout => 10);
+    if ($libvirt_check == 0) {
+        record_info('libvirt', 'libvirt connection successful');
+    } else {
+        record_soft_failure('libvirt connection failed - may affect virt-manager');
+    }
+    
+    # Launch virt-manager directly via command line in the current SSH console
+    # No need to switch consoles or use desktop runners
+    # DISPLAY is automatically set by SSH X11 forwarding
+    record_info('Launch', 'Executing: virt-manager');
+    enter_cmd "virt-manager";
+    
+    # Give it a moment to start
+    sleep 3;
+    
+    # Check if virt-manager process is running
+    my $vm_process = script_run('pgrep -f virt-manager', timeout => 10);
+    if ($vm_process == 0) {
+        my $vm_pid = script_output('pgrep -f virt-manager', proceed_on_failure => 1);
+        record_info('Process', "virt-manager process started successfully (PID: $vm_pid)");
+        
+        # Check virt-manager log for errors
+        my $vm_log = script_output('journalctl -t virt-manager --since "10 seconds ago" 2>/dev/null || echo "No journal entries"', 
+                                   proceed_on_failure => 1, timeout => 10);
+        if ($vm_log =~ /(error|failed|cannot)/i) {
+            record_soft_failure("virt-manager log contains warnings: $vm_log");
+        }
+    } else {
+        record_soft_failure('virt-manager process not found - may have failed to start');
+        
+        # Try to get error messages from stderr
+        my $dmesg_check = script_output('dmesg | tail -20', proceed_on_failure => 1);
+        record_info('dmesg', $dmesg_check);
+    }
+    
+    # Establish connection to hypervisor
+    record_info('Connection', 'Attempting to establish hypervisor connection');
+    establish_connection();
+    record_info('Success', 'virt-manager started and connected successfully');
 }
 
 # got to a specific tab in connection details
