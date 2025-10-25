@@ -165,8 +165,8 @@
   <login_settings/>
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
-    <backend>wicked</backend>
     % if ($get_var->('VERSION') ge '15-SP4') {
+    <backend>wicked</backend>
     <virt_bridge_proposal config:type="boolean">true</virt_bridge_proposal>
     % } else {
     <interfaces config:type="list">
