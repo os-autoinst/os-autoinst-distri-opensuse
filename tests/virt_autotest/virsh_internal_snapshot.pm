@@ -18,6 +18,12 @@ sub run_test {
     #Snapshots are supported on KVM VM Host Servers only
     return unless is_kvm_host;
 
+    # Ensure xmlstarlet is installed
+    if (script_run("which xmlstarlet") != 0) {
+        record_info("Installing xmlstarlet", "xmlstarlet not found, installing it now");
+        zypper_call("in xmlstarlet");
+    }
+
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
             record_info "Skip internal snapshot on $guest", "SEV/SEV-ES guest $guest does not support internal snapshot";
