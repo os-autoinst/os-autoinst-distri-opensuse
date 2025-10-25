@@ -42,6 +42,11 @@ sub setup {
     # Make /run/secrets directory available on containers
     run_command "echo /var/lib/empty:/run/secrets >> /etc/containers/mounts.conf";
 
+    if (get_var("ROOTLESS")) {
+        switch_to_user;
+        run_command "systemctl --user start podman.socket";
+    }
+
     $version = script_output q(podman --version | awk '{ print $3 }');
     $version = "v$version";
     record_info("version", $version);
@@ -58,9 +63,7 @@ sub setup {
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
-
     $self->setup;
-    select_serial_terminal;
 
     assert_script_run "cd /var/tmp/podman";
 
@@ -80,14 +83,15 @@ sub run {
         # Fails with "registry.access.redhat.com/*openshift*"
         'Libpod Suite::[It] Podman search podman search with wildcards',
     );
-    unless (is_tumbleweed) {
+    push @xfails, (
         # Fixed in podman 5.6.1:
         # https://bugzilla.suse.com/show_bug.cgi?id=1249050 - podman passes volume options as bind mount options to runtime
-        push @xfails, (
-            'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
-            'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
-        );
-    }
+        'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
+        'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
+    ) unless (is_tumbleweed);
+    push @xfails, (
+        'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
+    ) if (get_var("ROOTLESS"));
 
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
@@ -104,10 +108,12 @@ sub run {
 }
 
 sub post_fail_hook {
+    cleanup_podman;
     bats_post_hook;
 }
 
 sub post_run_hook {
+    cleanup_podman;
     bats_post_hook;
 }
 
