@@ -23,7 +23,12 @@ sub setup {
     my @pkgs = qq(jq make podman python3 python3-fixtures python3-podman python3-pytest python3-requests-mock);
     $self->setup_pkgs(@pkgs);
 
-    systemctl "enable --now podman.socket";
+    if (get_var("ROOTLESS")) {
+        switch_to_user;
+        run_command "systemctl --user enable --now podman.socket";
+        assert_script_run "cd /";
+    }
+
     $version = script_output "python3 -c 'import podman; print(podman.__version__)'";
     $version = "v$version";
     record_info("podman-py version", $version);
@@ -40,9 +45,14 @@ sub test ($target) {
     my @deselect = ();
     push @deselect, (
         # This test depends on an image available only for x86_64
-        "podman/tests/integration/test_manifests.py::ManifestsIntegrationTest::test_manifest_crud"
+        "podman/tests/integration/test_manifests.py::ManifestsIntegrationTest::test_manifest_crud",
     ) unless is_x86_64;
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
+
+    my @xfails = ();
+    push @xfails, (
+        "podman.tests.integration.test_container_create.ContainersIntegrationTest::test_container_devices",
+    ) if (get_var("ROOTLESS"));
 
     my %env = ();
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
@@ -50,28 +60,26 @@ sub test ($target) {
 
     run_command "$env pytest $pytest_args podman/tests/$target &> $target.txt || true", timeout => 3600;
 
-    patch_junit "podman-py", $version, "$target.xml";
+    patch_junit "podman-py", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml");
     upload_logs("$target.txt");
 }
 
 sub run {
     my $self = shift;
-
     select_serial_terminal;
     $self->setup;
 
-    select_serial_terminal;
     test $_ foreach (qw(unit integration));
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
+    cleanup_podman;
     bats_post_hook;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
+    cleanup_podman;
     bats_post_hook;
 }
 
