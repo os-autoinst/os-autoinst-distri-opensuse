@@ -39,14 +39,14 @@ sub setup {
 
     run_command "ln -s /var/tmp/docker-frozen-images /";
 
-    configure_rootless_docker if get_var("DOCKER_ROOTLESS");
+    configure_rootless_docker if get_var("ROOTLESS");
 
     install_gotestsum;
 
     patch_sources "moby", $version, "integration";
 
     # "unprivilegeduser" is hard-coded in the tests
-    run_command qq(find -name '*.go' -exec sed -i 's/"unprivilegeduser"/"$testapi::username"/g' {} +) if get_var("DOCKER_ROOTLESS");
+    run_command qq(find -name '*.go' -exec sed -i 's/"unprivilegeduser"/"$testapi::username"/g' {} +) if get_var("ROOTLESS");
 
     # Build test helpers
     run_command "cp -f vendor.mod go.mod || true";
@@ -90,7 +90,7 @@ sub run {
 
     my %env = (
         DOCKER_FIREWALL_BACKEND => $firewall_backend,
-        DOCKER_ROOTLESS => get_var("DOCKER_ROOTLESS", ""),
+        DOCKER_ROOTLESS => get_var("ROOTLESS", ""),
         DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
         TZ => "UTC",
     );
@@ -119,7 +119,7 @@ sub run {
 }
 
 sub cleanup {
-    cleanup_rootless_docker if get_var("DOCKER_ROOTLESS");
+    cleanup_rootless_docker if get_var("ROOTLESS");
     select_serial_terminal;
     script_run "rm -f /usr/local/bin/{ctr,docker,ping} /var/tmp/docker";
     cleanup_docker;
