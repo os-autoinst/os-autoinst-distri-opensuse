@@ -14,7 +14,9 @@ use virtmanager;
 
 sub run_test {
     my ($self) = @_;
-    select_console 'root-console';
+    # For bare-metal/IPMI backends, use 'root-ssh' which has gui=1 for X11 forwarding
+    my $console = get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ ? 'root-ssh' : 'root-console';
+    select_console $console;
 
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
 
@@ -25,10 +27,8 @@ sub run_test {
         remove_additional_disks($guest);
     }
 
-    #x11_start_program 'virt-manager';
-    enter_cmd "virt-manager";
-
-    establish_connection();
+    # Start virt-manager with SSH X11 forwarding
+    start_virtmanager_in_x11();
 
     wait_screen_change { send_key 'ctrl-q'; };
 }

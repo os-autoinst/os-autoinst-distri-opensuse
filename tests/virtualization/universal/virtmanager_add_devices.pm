@@ -15,10 +15,8 @@ use virtmanager;
 sub run_test {
     my ($self) = @_;
 
-    #x11_start_program 'virt-manager';
-    enter_cmd "virt-manager";
-
-    establish_connection();
+    # Start virt-manager with SSH X11 forwarding
+    start_virtmanager_in_x11();
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         unless ($guest =~ m/hvm/i) {

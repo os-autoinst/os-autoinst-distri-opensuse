@@ -12,13 +12,16 @@ use utils;
 use virtmanager;
 
 sub run_test {
-    select_console 'root-console';
+    # For bare-metal/IPMI backends, we need to use 'root-ssh' which has gui=1 for X11 forwarding
+    # For other backends, 'root-console' works fine
+    my $console = get_var('BACKEND', '') =~ /ikvm|ipmi|spvm|pvm_hmc/ ? 'root-ssh' : 'root-console';
+    
+    # Install virt-manager
+    select_console $console;
     zypper_call '-t in virt-manager', exitcode => [0, 4, 102, 103, 106];
 
-    #x11_start_program 'virt-manager';
-    enter_cmd "virt-manager";
-
-    establish_connection();
+    # Start virt-manager with SSH X11 forwarding
+    start_virtmanager_in_x11();
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "VM $guest will be turned off and then on again";
