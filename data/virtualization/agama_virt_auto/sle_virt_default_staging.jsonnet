@@ -21,7 +21,9 @@ local urls = if repo != '' then std.split(repo, ',') else [];
     sshPublicKey: '{{_SECRET_RSA_PUB_KEY}}'
   },
   software: {
-    packages: [],
+    packages: [
+      'xauth'
+    ],
     patterns: [
       'base',
       'kvm_server',
