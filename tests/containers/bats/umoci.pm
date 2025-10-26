@@ -10,6 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils;
 use containers::bats;
 
 sub run_tests {
@@ -38,7 +39,12 @@ sub run {
     my @pkgs = qw(attr diffutils file go1.24 go-md2man jq libcap-progs make moreutils python313-xattr runc skopeo umoci);
     $self->setup_pkgs(@pkgs);
 
-    run_command "zypper addrepo https://download.opensuse.org/repositories/home:/cyphar:/containers/openSUSE_Tumbleweed/home:cyphar:containers.repo";
+    my $os_version = "openSUSE_Tumbleweed";
+    if (is_sle) {
+        $os_version = get_var("VERSION");
+        $os_version =~ s/-SP/./;
+    }
+    run_command "zypper addrepo https://download.opensuse.org/repositories/home:/cyphar:/containers/$os_version/home:cyphar:containers.repo";
     run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change go-mtree";
 
     my $umoci_version = script_output("umoci --version | awk '{ print \$3; exit }'");

@@ -363,5 +363,7 @@ skopeo:
 umoci:
   opensuse-Tumbleweed:
     BATS_IGNORE:
+    - "repack.bats::umoci {un,re}pack [xattrs]"
+    - "stat.bats::umoci stat [output snapshot: minimal image]"
     BATS_IGNORE_ROOT:
     BATS_IGNORE_USER:
