@@ -30,6 +30,7 @@ our @EXPORT = qw(
   bats_post_hook
   bats_tests
   cleanup_docker
+  cleanup_podman
   cleanup_rootless_docker
   configure_docker
   configure_rootless_docker
@@ -181,6 +182,15 @@ sub cleanup_rootless_docker {
     select_user_serial_terminal;
     script_run "dockerd-rootless-setuptool.sh uninstall";
     script_run "rootlesskit rm -rf ~/.local/share/docker";
+}
+
+sub cleanup_podman {
+    my $timeout = 300;
+    script_run 'podman rm -vf $(podman ps -aq)', timeout => $timeout;
+    script_run "podman volume prune -f", timeout => $timeout;
+    script_run "podman system prune -a -f", timeout => $timeout;
+    my $user = get_var("ROOTLESS") ? "--user" : "";
+    script_run "systemctl $user stop podman.socket";
 }
 
 # Translate RPM arch to Go arch
@@ -357,6 +367,8 @@ ControlPath       ~/.ssh/control-%C
 ControlPersist    yes
 EOF
         write_sut_file('/root/.ssh/config', $ssh_config);
+        assert_script_run "cp -r /root/.ssh /home/$testapi::username";
+        assert_script_run "chown -R $testapi::username /home/$testapi::username/.ssh";
     }
 
     return if $rebooted;
@@ -568,8 +580,7 @@ sub bats_settings {
     my $package = shift;
     my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
 
-    assert_script_run "curl -o /tmp/patches.yaml " . data_url("containers/patches.yaml");
-    my $text = script_output("cat /tmp/patches.yaml", quiet => 1);
+    my $text = script_output("curl " . data_url("containers/patches.yaml"), quiet => 1);
     my $yaml = YAML::PP->new()->load_string($text);
 
     return $yaml->{$package}{$os_version};
