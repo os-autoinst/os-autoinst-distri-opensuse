@@ -72,25 +72,14 @@ sub run_command {
 
 sub switch_to_root {
     select_serial_terminal;
-
     push @commands, "### RUN AS root";
     run_command "cd $test_dir";
 }
 
 sub switch_to_user {
-    my $user = $testapi::username;
-
-    if (script_run("grep $user /etc/passwd") != 0) {
-        my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
-        assert_script_run "useradd -m -G $serial_group $user";
-        assert_script_run "echo '${user}:$testapi::password' | chpasswd";
-        ensure_serialdev_permissions;
-    }
-
-    assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
-
     select_user_serial_terminal();
     push @commands, "### RUN AS user";
+    run_command "cd $test_dir";
 }
 
 sub configure_docker {
