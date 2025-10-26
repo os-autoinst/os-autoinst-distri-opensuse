@@ -220,6 +220,7 @@ podman:
   # https://github.com/containers/podman/pull/26921 is needed to drop socat
   # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
   # https://github.com/containers/podman/pull/27152 is needed for 030-run
+  # https://github.com/containers/podman/pull/27030 - test/e2e: fix podman run default mask test with crun 1.24
   # https://github.com/containers/podman/pull/27230 is needed for 130-kill
   # https://github.com/containers/podman/pull/27233 is needed for 130-kill
   opensuse-Tumbleweed:
@@ -227,6 +228,7 @@ podman:
     - 26017
     - 26798
     - 26934
+    - 27030
     - 27152
     - 27230
     - 27233
