@@ -20,6 +20,7 @@ sub run_tests {
 
     my %env = (
         SOURCE_IMAGE => "/var/tmp/image",
+        SOURCE_TAG => "latest",
         UMOCI => "/usr/bin/umoci",
     );
 
@@ -46,7 +47,7 @@ sub run {
 
     switch_to_user;
 
-    run_command 'skopeo copy docker://registry.opensuse.org/opensuse/tumbleweed:latest oci:/var/tmp/image';
+    run_command 'skopeo copy docker://registry.opensuse.org/opensuse/tumbleweed:latest oci:/var/tmp/image:latest';
 
     patch_sources "umoci", $umoci_version, "test";
     run_command 'git submodule update --init hack/docker-meta-scripts';
