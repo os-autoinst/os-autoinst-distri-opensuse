@@ -95,8 +95,9 @@ sub run {
 
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
+    # Also skip it for rootless podman for now
     my $default_targets = "localintegration";
-    $default_targets .= " remoteintegration" unless is_sle;
+    $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS"));
     my @targets = split('\s+', get_var('PODMAN_TARGETS', $default_targets));
     foreach my $target (@targets) {
         run_command "env $env make $target &> $target.txt || true", timeout => 1800;

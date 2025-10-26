@@ -32,10 +32,12 @@ These are defined in [skip.yaml](../../data/containers/bats/skip.yaml)
 
 | Testsuite / Product | openSUSE Tumbleweed | Tumbleweed (aarch64) | SLES 16.0 |
 |:---:|:---:|:---:|:---|
-| `docker_testsuite`  | [![tw_dl]][tw_d]    | [![twa_dl]][twa_d]   | [![logo]][s16_d] |
-| `docker_rootless`   | [![tw_drl]][tw_dr]  | [![twa_drl]][twa_dr] | |
-| `podman_e2e`        | [![tw_pl]][tw_p]    | | |
-| `podman_e2e_crun`   | [![tw_pcl]][tw_pc]  | | |
+| `docker_testsuite`         | [![tw_dl]][tw_d]     | [![twa_dl]][twa_d]   | [![logo]][s16_d] |
+| `docker_rootless`          | [![tw_drl]][tw_dr]   | [![twa_drl]][twa_dr] | |
+| `podman_e2e`               | [![tw_pl]][tw_p]     | | |
+| `podman_e2e_crun`          | [![tw_pcl]][tw_pc]   | | |
+| `podman_rootless_e2e`      | [![tw_prl]][tw_pr]   | | |
+| `podman_rootless_e2e_crun` | [![tw_prcl]][tw_prc] | | |
 
 [logo]: bats/logo.svg
 
@@ -56,5 +58,11 @@ These are defined in [skip.yaml](../../data/containers/bats/skip.yaml)
 
 [tw_pcl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e_crun
 [tw_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e_crun
+
+[tw_prl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e
+[tw_pr]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e
+
+[tw_prcl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e_crun
+[tw_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e_crun
 
 [s16_d]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=docker_testsuite
