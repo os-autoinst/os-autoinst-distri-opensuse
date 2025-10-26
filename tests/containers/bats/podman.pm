@@ -38,8 +38,7 @@ sub run_tests {
 
     run_command 'kill %1; kill -9 %1 || true' if ($remote);
 
-    run_command 'podman rm -vf $(podman ps -aq --external) || true';
-    run_command "podman system reset -f";
+    cleanup_podman;
 
     return ($ret);
 }
