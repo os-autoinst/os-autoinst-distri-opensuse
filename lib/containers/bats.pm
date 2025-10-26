@@ -186,10 +186,11 @@ sub cleanup_rootless_docker {
 
 sub cleanup_podman {
     my $timeout = 300;
-    script_run 'podman rm -vf $(podman ps -aq)', timeout => $timeout;
+    script_run 'podman rm -vf $(podman ps -aq --external)', timeout => $timeout;
     script_run "podman volume prune -f", timeout => $timeout;
     script_run "podman system prune -a -f", timeout => $timeout;
-    my $user = get_var("ROOTLESS") ? "--user" : "";
+    script_run "podman system reset -f";
+    my $user = (script_output("id -u") ne "0") ? "--user" : "";
     script_run "systemctl $user stop podman.socket";
 }
 
