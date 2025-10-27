@@ -3,8 +3,8 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Packages: python3-docker & python3-podman
-# Summary: Test podman & docker python packages
+# Packages: podman
+# Summary: Test podman e2e
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest', -signatures;
