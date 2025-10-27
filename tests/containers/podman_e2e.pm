@@ -92,6 +92,26 @@ sub run {
     push @xfails, (
         'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     ) if (get_var("ROOTLESS"));
+    # These tests fail as rootless only
+    my @rootless_remote_xfails = (
+        'Libpod Suite::[It] Podman build podman build http proxy test',
+        'Libpod Suite::[It] Podman build podman build relay exit code to process',
+        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file= falls back to containers.conf',
+        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file=image',
+        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file=none',
+        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file=path',
+        'Libpod Suite::[It] Podman prune podman system image prune unused images',
+        'Libpod Suite::[It] Podman prune podman system prune --build clean up after terminated build',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file --hosts-file= falls back to containers.conf',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file --hosts-file=image',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file --hosts-file=none',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file --hosts-file=path',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file should fail with --no-hosts',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file works with pod without an infra-container',
+        'Libpod Suite::[It] Verify podman containers.conf usage base_hosts_file in containers.conf base_hosts_file=none should not use any hosts files',
+'Libpod Suite::[It] Verify podman containers.conf usage base_hosts_file in containers.conf base_hosts_file=image should use the hosts file from the container image',
+'Libpod Suite::[It] Verify podman containers.conf usage base_hosts_file in containers.conf base_hosts_file=path should use the hosts file from the file path',
+    );
 
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
@@ -101,6 +121,7 @@ sub run {
     foreach my $target (@targets) {
         run_command "env $env make $target &> $target.txt || true", timeout => 1800;
         script_run "mv report.xml $target.xml";
+        push @xfails, @rootless_remote_xfails if ($target eq "remoteintegration" && get_var("ROOTLESS"));
         patch_junit "podman", $version, "$target.xml", @xfails;
         parse_extra_log(XUnit => "$target.xml");
         upload_logs("$target.txt");
