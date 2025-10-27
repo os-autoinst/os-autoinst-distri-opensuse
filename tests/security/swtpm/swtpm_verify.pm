@@ -16,7 +16,8 @@ use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal if !(get_var('MACHINE') =~ /RPi4/);
-    if (is_sle('=15-SP6')) {
+    # skip test on 15-SP6 when FIPS is enabled due to bsc#1242989
+    if (is_sle('=15-SP6') && get_var('FIPS_ENABLED')) {
         record_soft_failure('SKIPPING TEST; poo#179729 bsc#1242989');
         return;
     }
