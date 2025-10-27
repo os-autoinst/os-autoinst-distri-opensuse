@@ -156,7 +156,8 @@ sub check_instance_unregistered {
     return if ($out =~ /No repositories defined/m);
 
     for (split('\n', $out)) {
-        if ($_ =~ /^\s?\d+/ && $_ !~ /SUSE_Maintenance/) {
+        # bsc#1252277 - The NVIDIA repos are added by SUSEConnect but not removed
+        if ($_ =~ /^\s?\d+/ && $_ !~ /SUSE_Maintenance|:NVIDIA-/) {
             record_info('zypper lr', $out);
             die($error);
         }
