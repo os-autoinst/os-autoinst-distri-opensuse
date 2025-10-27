@@ -14,6 +14,10 @@ schedule:
   - fips/openssl/openssl_tlsv1_3
   - fips/openssh/openssh_fips
   - console/libgcrypt
+  - console/apache_ssl
+  - console/nginx
+  - console/sshd
+  - console/ssh_cleanup
 conditional_schedule:
   enable_tpm2:
     ARCH:
