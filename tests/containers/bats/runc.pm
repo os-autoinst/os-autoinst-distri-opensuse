@@ -54,7 +54,7 @@ sub run {
     record_info("helpers", $helpers);
     run_command "make $helpers || true";
 
-    unless (get_var("BATS_TESTS")) {
+    unless (get_var("RUN_TESTS")) {
         # Skip this test due to https://bugzilla.suse.com/show_bug.cgi?id=1247568
         run_command "rm -f tests/integration/no_pivot.bats" if is_ppc64le;
         # Skip this test due to https://bugzilla.suse.com/show_bug.cgi?id=1247567

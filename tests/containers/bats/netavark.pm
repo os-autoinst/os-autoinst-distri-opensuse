@@ -57,7 +57,7 @@ sub run {
         run_command "cp target/debug/netavark-connection-tester bin/";
     }
 
-    unless (get_var("BATS_TESTS")) {
+    unless (get_var("RUN_TESTS")) {
         run_command "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
     }
 

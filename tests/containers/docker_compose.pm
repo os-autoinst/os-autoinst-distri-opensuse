@@ -68,7 +68,7 @@ sub run {
     assert_script_run "cd /var/tmp/compose";
     run_command 'PATH=$PATH:/var/tmp/compose/bin/build';
 
-    my @targets = split('\s+', get_var("DOCKER_COMPOSE_TARGETS", "e2e-compose e2e-compose-standalone"));
+    my @targets = split(/\s+/, get_var("RUN_TESTS", "e2e-compose e2e-compose-standalone"));
     test $_ foreach (@targets);
 }
 

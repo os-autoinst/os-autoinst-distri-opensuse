@@ -20,12 +20,12 @@ The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
-| `BATS_PACKAGE` | `aardvark-dns` `buildah` `conmon` `netavark` `podman` `runc` `skopeo` |
-| `BATS_TESTS` | Run only the specified tests |
+| `BATS_PACKAGE` | `aardvark-dns` `buildah` `conmon` `netavark` `podman` `runc` `skopeo` `umoci` |
 | `BATS_VERSION` | Version of [bats](https://github.com/bats-core/bats-core) to use |
 | `GITHUB_PATCHES` | List of github PR id's containing upstream test patches |
 | `GITHUB_REPO` | Repo & branch in the form `[<GITHUB_ORG>]#<BRANCH>` |
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
+| `RUN_TESTS` | Run only the specified tests |
 | `SELINUX_ENFORCE` | Set to `0` to put SELinux in permissive mode |
 | `TEST_PACKAGES` | List of optional package URL's |
 | `TEST_REPOS` | List of optional test repositories |
@@ -57,7 +57,7 @@ NOTES
 ## Workflow
 
 - To debug SELinux issues you may check the audit log & clone a job with `ENABLE_SELINUX=0`
-- To debug individual tests you may clone a job with `BATS_TESTS`
+- To debug individual tests you may clone a job with `RUN_TESTS`
 - You can also test individual tests from the latest version in the `main` branch with `BATS_URL=main`
 - The BATS output is collected in the log files with the `.tap.txt` extension
 - The commands are collected in a log file ending with `-commands.txt`
