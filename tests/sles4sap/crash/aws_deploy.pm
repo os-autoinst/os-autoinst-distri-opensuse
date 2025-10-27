@@ -88,7 +88,7 @@ The test uses a /28 network (16 IPs) which provides sufficient addresses for bas
 
 =cut
 
-use base 'publiccloud::basetest';
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use publiccloud::utils;
 use mmapi 'get_current_job_id';

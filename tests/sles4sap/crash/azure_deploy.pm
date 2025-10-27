@@ -11,7 +11,7 @@
 # - VM creation from image or VHD blob
 # It saves VM public IP and SSH command into job variables
 
-use base 'publiccloud::basetest';
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use publiccloud::utils;
 use mmapi 'get_current_job_id';
