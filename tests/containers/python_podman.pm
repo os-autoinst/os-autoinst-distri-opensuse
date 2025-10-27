@@ -70,7 +70,11 @@ sub run {
     select_serial_terminal;
     $self->setup;
 
-    test $_ foreach (qw(unit integration));
+    my $default_targets = "unit integration";
+    my @targets = split(/\s+/, get_var('RUN_TESTS', $default_targets));
+    foreach my $target (@targets) {
+        test $target;
+    }
 }
 
 sub post_fail_hook {

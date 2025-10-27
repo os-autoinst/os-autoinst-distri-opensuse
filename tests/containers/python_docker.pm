@@ -98,9 +98,12 @@ sub run {
     $self->setup;
 
     select_serial_terminal;
-    test $_ foreach (qw(unit integration));
-    run_command "export DOCKER_HOST=ssh://root@127.0.0.1";
-    test "ssh";
+    my $default_targets = "unit integration ssh";
+    my @targets = split(/\s+/, get_var('RUN_TESTS', $default_targets));
+    foreach my $target (@targets) {
+        run_command "export DOCKER_HOST=ssh://root@127.0.0.1" if ($target eq "ssh");
+        test $target;
+    }
 }
 
 sub cleanup {
