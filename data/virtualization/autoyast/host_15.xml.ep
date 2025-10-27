@@ -167,21 +167,21 @@
   <login_settings/>
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
-    % if ($get_var->('KUBEVIRT_TEST') || $get_var->('WORKER_CLASS') =~ /virt-mm-baremetal-ipmi/) {
+    % if ($get_var->('VERSION') ge '15-SP4') {
     <backend>wicked</backend>
     <virt_bridge_proposal config:type="boolean">true</virt_bridge_proposal>
-% } else {
-<interfaces config:type="list">
-  <interface>
-    <device>br0</device>
-    <bootproto>dhcp</bootproto>
-    <bridge>yes</bridge>
-    <bridge_forwarddelay>0</bridge_forwarddelay>
-    <bridge_ports>eth0 eth1</bridge_ports>
-    <bridge_stp>off</bridge_stp>
-    <startmode>auto</startmode>
-  </interface>
-</interfaces>
+    % } else {
+    <interfaces config:type="list">
+      <interface>
+        <device>br0</device>
+        <bootproto>dhcp</bootproto>
+        <bridge>yes</bridge>
+        <bridge_forwarddelay>0</bridge_forwarddelay>
+        <bridge_ports><%= $get_var->('BRIDGE_PORT', 'eth0') %></bridge_ports>
+        <bridge_stp>off</bridge_stp>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
   % }
   </networking>
   <ntp-client>
