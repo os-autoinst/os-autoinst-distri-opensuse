@@ -1439,8 +1439,13 @@ sub change_grub_config {
     $update_grub //= 0;
     $new //= '';
     $search = "/$search/" if defined $search;
-    my $bootloader_config = (is_bootloader_grub2) ? GRUB_DEFAULT_FILE : BLS_DEFAULT_FILE;
-    assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' $bootloader_config");
+
+    if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
+        die "Unsupported option $search on BLS" unless $search == "GRUB_CMDLINE_LINUX_DEFAULT";
+        assert_script_run("sed -ie 's/${old}/${new}/${modifiers}' " . BLS_DEFAULT_FILE);
+    } else {
+        assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
+    }
 
     if ($update_grub && is_bootloader_grub2) {
         grub_mkconfig();
@@ -1462,14 +1467,13 @@ C<$search> if set, bypass default grub cmdline variable.
 =cut
 
 sub add_grub_cmdline_settings {
-    my $search_variable = (is_bootloader_grub2) ? GRUB_CMDLINE_VAR : '';
     my $needs_quote = (is_bootloader_grub2) ? '"' : '';
     my $add = shift;
     my %args = testapi::compat_args(
         {
             add => $add,
             update_grub => 0,
-            search => '^' . $search_variable,
+            search => '^' . GRUB_CMDLINE_VAR,
         },
         ['update_grub', 'search'],
         @_
