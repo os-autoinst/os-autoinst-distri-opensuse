@@ -60,7 +60,7 @@ sub setup {
         "plugin.*",
     );
     my $ignore_dirs = join "|", map { "integration/$_" } @ignore_dirs;
-    if (my $test_dirs = get_var("DOCKER_TEST_DIRS", "")) {
+    if (my $test_dirs = get_var("RUN_TESTS", "")) {
         @test_dirs = split(/,/, $test_dirs);
     } else {
         # Adapted from https://build.opensuse.org/projects/openSUSE:Factory/packages/docker/files/docker-integration.sh

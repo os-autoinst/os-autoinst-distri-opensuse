@@ -117,7 +117,7 @@ sub run {
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
     my $default_targets = "localintegration";
     $default_targets .= " remoteintegration" unless is_sle;
-    my @targets = split('\s+', get_var('PODMAN_TARGETS', $default_targets));
+    my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
         run_command "env $env make $target &> $target.txt || true", timeout => 1800;
         script_run "mv report.xml $target.xml";

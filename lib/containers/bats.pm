@@ -526,7 +526,7 @@ sub bats_tests {
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
     my @tests;
-    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
+    foreach my $test (split(/\s+/, get_var("RUN_TESTS", ""))) {
         $test .= ".bats" unless $test =~ /\.bats$/;
         push @tests, "$tests_dir{$package}/$test";
     }
@@ -550,7 +550,7 @@ sub bats_tests {
     script_run "mv report.xml $xmlfile";
 
     my @ignore_tests = ();
-    unless (get_var("BATS_TESTS")) {
+    unless (get_var("RUN_TESTS")) {
         push @ignore_tests, @{$settings->{$ignore_tests}} if ($settings->{$ignore_tests});
         push @ignore_tests, @{$settings->{BATS_IGNORE}} if ($settings->{BATS_IGNORE});
     }
