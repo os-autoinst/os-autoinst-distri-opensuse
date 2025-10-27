@@ -25,7 +25,7 @@ sub run {
     my $dom = XML::LibXML::Document->new('1.0', 'utf-8');
     my $root = $dom->createElement('testsuites');
     $dom->setDocumentElement($root);
-    my $result_files = script_output('find /root/BCI-tests -type f -name "junit_*.xml"');
+    my $result_files = script_output('find /root/BCI-tests -maxdepth 2 -type f -name "junit_*.xml"');
     record_info('Files', $result_files);
     # Dump xml contents to a location where we can access later using data_url
     for my $file (split(/\n/, $result_files)) {
