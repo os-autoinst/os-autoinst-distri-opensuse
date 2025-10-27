@@ -1181,7 +1181,7 @@ sub load_consoletests {
     loadtest 'console/prjconf_excluded_rpms' if is_livesystem;
     loadtest "console/system_prepare" unless is_opensuse;
     loadtest 'console/post_installation' if is_updates_tests && !(get_var('QAM_MINIMAL') || get_var('UPGRADE') || is_jeos);
-    loadtest 'qa_automation/patch_and_reboot' if get_var('UPGRADE') || is_jeos;
+    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests && (get_var('UPGRADE') || is_jeos);
     loadtest 'console/apparmor' if is_updates_tests && !get_var('QAM_MINIMAL');
     loadtest "console/check_network";
     loadtest "console/system_state";
@@ -2350,7 +2350,7 @@ sub load_system_prepare_tests {
         if (is_transactional) {
             loadtest 'transactional/install_updates';
         } else {
-            loadtest 'console/post_installation' if is_updates_tests && !(get_var('UPGRADE') || is_jeos);
+            loadtest 'console/post_installation' if !(get_var('UPGRADE') || is_jeos);
             loadtest 'qa_automation/patch_and_reboot' if get_var('UPGRADE') || is_jeos;
         }
     }
