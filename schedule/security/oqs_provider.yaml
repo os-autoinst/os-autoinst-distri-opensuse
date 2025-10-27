@@ -5,5 +5,4 @@ schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/consoletest_setup
-    - security/test_repo_setup
     - security/oqs_provider_openssl
