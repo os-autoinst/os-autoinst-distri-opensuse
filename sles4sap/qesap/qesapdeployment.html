@@ -39,7 +39,7 @@
           <li><a href="#qesap_get_nodes_number">qesap_get_nodes_number</a></li>
           <li><a href="#qesap_get_nodes_names">qesap_get_nodes_names</a></li>
           <li><a href="#qesap_get_terraform_dir">qesap_get_terraform_dir</a></li>
-          <li><a href="#qesap_get_ansible_roles_dir">qesap_get_ansible_roles_dir</a></li>
+          <li><a href="#qesap_ansible_get_roles_dir">qesap_ansible_get_roles_dir</a></li>
           <li><a href="#qesap_prepare_env">qesap_prepare_env</a></li>
           <li><a href="#qesap_ansible_softfail">qesap_ansible_softfail</a></li>
           <li><a href="#qesap_ansible_get_playbook">qesap_ansible_get_playbook</a></li>
@@ -113,9 +113,10 @@ Returns hash with openqa variable key/value pairs.</code></pre>
 <pre><code>Writes &quot;ansible&quot; section into yaml configuration file.
 $args{ansible_section} defines section(key) name.
 $args{section_content} defines content of names section.
-    Example:
-        @playbook_list = (&quot;pre-cluster.yaml&quot;, &quot;cluster_sbd_prep.yaml&quot;);
-        qesap_create_ansible_section(ansible_section=&gt;&#39;create&#39;, section_content=&gt;\@playbook_list);</code></pre>
+
+Example:
+    @playbook_list = (&quot;pre-cluster.yaml&quot;, &quot;cluster_sbd_prep.yaml&quot;);
+    qesap_create_ansible_section(ansible_section=&gt;&#39;create&#39;, section_content=&gt;\@playbook_list);</code></pre>
 
 <h3 id="qesap_venv_cmd_exec">qesap_venv_cmd_exec</h3>
 
@@ -372,7 +373,7 @@ It is useful if test would like to call terraform</code></pre>
 </dd>
 </dl>
 
-<h3 id="qesap_get_ansible_roles_dir">qesap_get_ansible_roles_dir</h3>
+<h3 id="qesap_ansible_get_roles_dir">qesap_ansible_get_roles_dir</h3>
 
 <pre><code>Return the path where sap-linuxlab/community.sles-for-sap
 has been installed</code></pre>
@@ -508,6 +509,10 @@ remotely executed command.</code></pre>
 <dd>
 
 </dd>
+<dt id="REMOTE_PATH---Path-to-save-file-in-the-remote-without-file-name"><b>REMOTE_PATH</b> - Path to save file in the remote (without file name)</dt>
+<dd>
+
+</dd>
 <dt id="OUT_PATH---path-to-save-result-file-locally-without-file-name"><b>OUT_PATH</b> - path to save result file locally (without file name)</dt>
 <dd>
 
@@ -524,15 +529,11 @@ remotely executed command.</code></pre>
 <dd>
 
 </dd>
-<dt id="VERBOSE---1-result-in-ansible-playbook-to-be-called-with--vvvv-default-is-0"><b>VERBOSE</b> - 1 result in ansible-playbook to be called with &#39;-vvvv&#39;, default is 0.</dt>
+<dt id="VERBOSE---1-result-in-ansible-playbook-to-be-called-with--vv-default-is-0"><b>VERBOSE</b> - 1 result in ansible-playbook to be called with &#39;-vv&#39;, default is 0.</dt>
 <dd>
 
 </dd>
 <dt id="TIMEOUT---max-expected-execution-time-default-180sec.-Same-timeout-is-used-both-for-the-execution-of-script_output.yaml-and-for-the-fetch_file.-Timeout-of-the-same-amount-is-started-two-times"><b>TIMEOUT</b> - max expected execution time, default 180sec. Same timeout is used both for the execution of script_output.yaml and for the fetch_file. Timeout of the same amount is started two times.</dt>
-<dd>
-
-</dd>
-<dt id="REMOTE_PATH---Path-to-save-file-in-the-remote-without-file-name"><b>REMOTE_PATH</b> - Path to save file in the remote (without file name)</dt>
 <dd>
 
 </dd>
@@ -639,7 +640,7 @@ Return the local path of the downloaded file.</code></pre>
 <dd>
 
 </dd>
-<dt id="VERBOSE---1-result-in-ansible-playbook-to-be-called-with--vvvv-default-is-01"><b>VERBOSE</b> - 1 result in ansible-playbook to be called with &#39;-vvvv&#39;, default is 0.</dt>
+<dt id="VERBOSE---1-result-in-ansible-playbook-to-be-called-with--vv-default-is-01"><b>VERBOSE</b> - 1 result in ansible-playbook to be called with &#39;-vv&#39;, default is 0.</dt>
 <dd>
 
 </dd>
