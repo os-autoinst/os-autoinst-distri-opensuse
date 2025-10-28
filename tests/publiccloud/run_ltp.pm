@@ -242,8 +242,9 @@ sub run {
 
     $self->dump_kernel_config($instance);
     record_info('LTP START', 'Command launch');
-    script_run($cmd_run_ltp, timeout => get_var('LTP_TIMEOUT', 30 * 60));
-    record_info('LTP END', 'tests done');
+    my $kirk_exit_code = script_run($cmd_run_ltp, timeout => get_var('LTP_TIMEOUT', 30 * 60));
+    record_info('LTP END', 'krik finished with ' . $kirk_exit_code);
+    die('kirk failed') if ($kirk_exit_code);
 }
 
 sub prepare_instance {
