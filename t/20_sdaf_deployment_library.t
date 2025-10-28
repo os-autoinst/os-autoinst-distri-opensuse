@@ -565,10 +565,10 @@ subtest '[sdaf_upload_logs]' => sub {
     Test::MockModule->new('basetest');
     $autotest::current_test = new basetest;
 
-    set_var('SUPPORTCONGFIG', undef);
+    set_var('SUPPORTCONFIG', undef);
     ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
 
-    set_var('SUPPORTCONGFIG', '1');
+    set_var('SUPPORTCONFIG', '1');
     ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
 };
 

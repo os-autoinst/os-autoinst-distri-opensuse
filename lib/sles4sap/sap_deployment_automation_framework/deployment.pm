@@ -1219,7 +1219,7 @@ sub sdaf_upload_logs {
     }
 
     # Uploading supportconfig log (it is time consuming so it is conditional)
-    if (get_var('SUPPORTCONGFIG')) {
+    if (get_var('SUPPORTCONFIG')) {
         record_info('Uploading supportconfig log');
         script_run("sudo supportconfig -B $hostname", timeout => 1800);
         # Sometimes the tar ball is scc_${hostname}_xxx-xxx-xxx-*.txz

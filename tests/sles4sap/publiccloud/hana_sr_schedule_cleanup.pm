@@ -45,7 +45,7 @@ sub run {
     # Direct schedule of qesap_cleanup is not possible
     # due to the fact that hana_sr_schedule_cleanup is scheduled
     # with other test modules that are also using loadtest
-    loadtest('sles4sap/publiccloud/qesap_cleanup', name => "Cleanup resources", run_args => $run_args, @_);
+    loadtest('sles4sap/publiccloud/qesap_cleanup', name => "Cleanup_resources", run_args => $run_args, @_);
 }
 
 1;
