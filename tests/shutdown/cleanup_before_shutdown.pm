@@ -51,6 +51,7 @@ END_SCRIPT
     # Proceed with dhcp cleanup on qemu backend only.
     # Cleanup is made, because if same hdd image used in multimachine scenario
     # on several nodes, the dhcp clients use same DUID and cause conflicts on dhcpd server.
+    # Also cleanup machine-id to avoid duplicate ipv6 link local address in mutli-machine setup.
     if (is_qemu || is_svirt_except_s390x) {
         my $network_status = script_output('systemctl status network');
         # Do dhcp cleanup for wicked
@@ -62,6 +63,8 @@ END_SCRIPT
             assert_script_run('rm -f /var/lib/wicked/{duid,lease-*}.xml');
         }
         script_run("echo -n '' > /etc/hostname") if get_var('RESET_HOSTNAME');
+
+        assert_script_run('truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id');
     }
     # Make some information available on common systems to help debug shutdown issues.
     if (get_var('DESKTOP', '') =~ qr/gnome|kde/) {
