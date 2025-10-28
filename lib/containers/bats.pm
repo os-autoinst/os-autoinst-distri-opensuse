@@ -79,7 +79,7 @@ sub switch_to_root {
 sub switch_to_user {
     select_user_serial_terminal();
     push @commands, "### RUN AS user";
-    run_command "cd $test_dir";
+    run_command "cd /var/tmp";
 }
 
 sub configure_docker {
