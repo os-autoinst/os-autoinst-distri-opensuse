@@ -2,15 +2,21 @@ name: agama_create_hdd_textmode_ext4_mok_enroll
 description:    >
     Install sle16 via agama auto and publish qcow2 images
 schedule:
-    - yam/agama/boot_agama
-    - yam/agama/agama_auto
-    - installation/grub_test
-    - installation/first_boot
-    - console/zypper_lr
-    - security/mokutil_sign
-    - console/system_prepare
-    - console/hostname
-    - console/force_scheduled_tasks
-    - shutdown/grub_set_bootargs
-    - shutdown/cleanup_before_shutdown
-    - shutdown/shutdown
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/zypper_lr
+  - security/mokutil_sign
+  - console/system_prepare
+  - '{{patch_reboot}}'
+  - console/hostname
+  - console/force_scheduled_tasks
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+conditional_schedule:
+  patch_reboot:
+    FLAVOR:
+      'Online-Increments':
+        - qa_automation/patch_and_reboot
