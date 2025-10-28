@@ -180,7 +180,6 @@ sub qesap_ansible_create_section {
 
     my %paths = qesap_get_file_paths();
     my $yaml_config_path = $paths{qesap_conf_trgt};
-
     assert_script_run("test -e $yaml_config_path",
         fail_message => "Yaml config file '$yaml_config_path' does not exist.");
 

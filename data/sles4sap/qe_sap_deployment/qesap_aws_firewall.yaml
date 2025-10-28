@@ -35,26 +35,6 @@ ansible:
     sap_hana_install_sid: 'HQ0'
     sap_hana_install_instance_number: '00'
     sap_hana_install_update_firewall: true
-    sap_hana_install_firewall:
-      - { port: [
-         '1128-1129/tcp',
-         '43{{ sap_hana_install_number }}/tcp',
-         '5050/tcp',
-         '9090-9093/tcp',
-         '3{{ sap_hana_install_number }}00-3{{ sap_hana_install_number }}90/tcp',
-         '30105/tcp',
-         '30107/tcp',
-         '30140/tcp',
-         '4{{ sap_hana_install_number }}01-4{{ sap_hana_install_number }}02/tcp',
-         '4{{ sap_hana_install_number }}06/tcp',
-         '4{{ sap_hana_install_number }}12/tcp',
-         '4{{ sap_hana_install_number }}14/tcp',
-         '4{{ sap_hana_install_number }}40/tcp',
-         '5{{ sap_hana_install_number }}00/tcp',
-         '5{{ sap_hana_install_number }}13-5{{ sap_hana_install_number }}14/tcp',
-         '51000/tcp',
-         '64997/tcp'
-        ], state: 'enabled' }
     sap_domain: 'qe-test.example.com'
     primary_site: 'goofy'
     secondary_site: 'miky'
