@@ -26,7 +26,6 @@ sub setup {
     if (get_var("ROOTLESS")) {
         switch_to_user;
         run_command "systemctl --user enable --now podman.socket";
-        assert_script_run "cd /";
     }
 
     $version = script_output "python3 -c 'import podman; print(podman.__version__)'";

@@ -44,7 +44,7 @@ sub setup {
 
     if (get_var("ROOTLESS")) {
         switch_to_user;
-        run_command "systemctl --user start podman.socket";
+        run_command "podman system service --timeout=0 &";
     }
 
     $version = script_output q(podman --version | awk '{ print $3 }');
@@ -133,11 +133,13 @@ sub run {
 
 sub post_fail_hook {
     cleanup_podman;
+    run_command 'kill %1; kill -9 %1 || true';
     bats_post_hook;
 }
 
 sub post_run_hook {
     cleanup_podman;
+    run_command 'kill %1; kill -9 %1 || true';
     bats_post_hook;
 }
 
