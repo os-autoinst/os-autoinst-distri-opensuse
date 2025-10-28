@@ -340,6 +340,7 @@ PUBLIC_CLOUD_CLOUD_INIT | boolean | false | If this is true custom `cloud-config
 PUBLIC_CLOUD_CONFIDENTIAL_VM | boolean | false | GCE Confidential VM instance
 PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
 PUBLIC_CLOUD_CONTAINERS | boolean | false | If set, containers tests are added to the job.
+PUBLIC_CLOUD_HIMMELBLAU | boolean | false | Scheduling variable for running the himmelblau tests.
 PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY | string | "" | Name for public cloud registry for the container images used on kubernetes tests.
 PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository in CSP
 PUBLIC_CLOUD_CREDENTIALS_URL | string | "" | Base URL where to get the credentials from. This will be used to compose the full URL together with `PUBLIC_CLOUD_NAMESPACE`.

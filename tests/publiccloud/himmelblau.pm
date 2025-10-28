@@ -7,7 +7,7 @@
 # notice and this notice are preserved.  This file is offered as-is,
 # without any warranty.
 
-# Summary: Create VM in Azure using azure-cli binary
+# Summary: Test the himmelblau identity provider package
 # Maintainer: qa-c team <qa-c@suse.de>
 
 use base 'opensusebasetest';
