@@ -1810,7 +1810,6 @@ sub load_extra_tests_console {
     loadtest 'console/sssd_samba' unless (is_sle("<15") || is_sle(">=15-sp2") || is_leap('>=15.2') || is_tumbleweed);
     loadtest 'console/wpa_supplicant' unless (!is_x86_64 || is_sle('<15') || is_leap('<15.1') || is_jeos || is_public_cloud);
     loadtest 'console/python_scientific' unless (is_sle("<15"));
-    loadtest "console/parsec" if is_tumbleweed;
     loadtest "console/perl_bootloader" unless (is_public_cloud() || is_bootloader_sdboot || is_bootloader_grub2_bls);
 }
 
