@@ -94,6 +94,7 @@ sub run {
     ) if (get_var("ROOTLESS"));
     # These tests fail as rootless only
     my @rootless_remote_xfails = (
+        'Libpod Suite::[It] Podman build podman build --build-context: Mixed source',
         'Libpod Suite::[It] Podman build podman build --build-context: URL source',
         'Libpod Suite::[It] Podman build podman build http proxy test',
         'Libpod Suite::[It] Podman build podman build relay exit code to process',
