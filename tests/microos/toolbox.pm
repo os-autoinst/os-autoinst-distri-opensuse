@@ -58,7 +58,13 @@ sub toolbox_has_repos {
 sub run {
     my ($self) = @_;
     select_console 'root-console';
+
     $self->create_user;
+    # Give user access to credentials so it can run toolbox
+    trup_call 'pkg in acl';
+    process_reboot(trigger => 1);
+    select_console 'root-console';
+    assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle_micro;
 
     my $toolbox_image_to_test = get_var('CONTAINER_IMAGE_TO_TEST');
 
