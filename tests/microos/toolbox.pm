@@ -127,7 +127,7 @@ sub run {
         } else {
             assert_script_run 'toolbox -r -- zypper -n ref', timeout => 300;
         }
-        if (script_run('toolbox -- zypper -n up 2>&1 | tee /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
+        if (script_run('toolbox -r -- zypper -n up 2>&1 | tee /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
             upload_logs('/var/tmp/toolbox_zypper_up.txt');
             die "zypper up failed within toolbox";
         }
