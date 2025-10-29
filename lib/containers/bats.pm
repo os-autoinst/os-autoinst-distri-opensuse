@@ -179,8 +179,6 @@ sub cleanup_podman {
     script_run "podman volume prune -f", timeout => $timeout;
     script_run "podman system prune -a -f", timeout => $timeout;
     script_run "podman system reset -f";
-    my $user = (script_output("id -u") ne "0") ? "--user" : "";
-    script_run "systemctl $user stop podman.socket";
 }
 
 # Translate RPM arch to Go arch
