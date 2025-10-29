@@ -226,7 +226,9 @@ sub sles4sap_cleanup {
     type_string('', terminate_with => 'ETX');
 
     qesap_cluster_logs();
-    qesap_supportconfig_logs(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    if ((defined $self->{result}) && ($self->{result} eq 'fail')) {
+        qesap_supportconfig_logs(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    }
     qesap_upload_logs();
     upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut.log.txt');
 
