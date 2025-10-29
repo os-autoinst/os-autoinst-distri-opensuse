@@ -76,13 +76,19 @@ sub run {
     }
 }
 
-sub post_fail_hook {
+sub cleanup {
     cleanup_podman;
+    my $user = get_var("ROOTLESS") ? "--user" : "";
+    script_run "systemctl $user stop podman.socket";
+}
+
+sub post_fail_hook {
+    cleanup;
     bats_post_hook;
 }
 
 sub post_run_hook {
-    cleanup_podman;
+    cleanup;
     bats_post_hook;
 }
 
