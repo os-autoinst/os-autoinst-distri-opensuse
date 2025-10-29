@@ -14,13 +14,19 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'permit_root_ssh';
 use power_action_utils 'power_action';
+use version_utils 'is_bootloader_grub2';
 
 sub run {
     select_serial_terminal;
 
-    # Modify the grub timeout to 1 second, then OS can autoboot after reset
-    assert_script_run("sed -i 's/GRUB_TIMEOUT=.*\$/GRUB_TIMEOUT=1/' /etc/default/grub");
-    assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+    if (is_bootloader_grub2) {
+        # Modify the grub timeout to 1 second, then OS can autoboot after reset
+        assert_script_run("sed -i 's/GRUB_TIMEOUT=.*\$/GRUB_TIMEOUT=1/' /etc/default/grub");
+        assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+    } else {
+        # Setting the timeout to 0 under bls means instantly boot instead of waiting
+        assert_script_run("sdbootutil set-timeout 0");
+    }
 
     # Disable the firewalld so that we can access the vm via ssh for later tests
     assert_script_run("systemctl disable firewalld");
