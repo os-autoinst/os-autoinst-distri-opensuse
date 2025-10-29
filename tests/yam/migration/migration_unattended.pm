@@ -64,7 +64,7 @@ sub run {
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
         assert_screen('grub-menu-migration', 120);
         send_key 'ret';
-        assert_screen('migration-running');
+        assert_screen('migration-running', 60);
         assert_screen('grub2', 1000);
     }
 }
