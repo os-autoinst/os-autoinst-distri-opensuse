@@ -230,9 +230,9 @@ sub install_kubevirt_packages {
         record_info("Patch kubevirt-operator to suse.de");
 
         if ($pkgs_from_incident_repo < 1) {
-            die "No kubevirt packages were installed from incident repositary.";
+            die "No kubevirt packages were installed from incident repository.";
         } else {
-            record_info("$pkgs_from_incident_repo package(s) installed from incident repositary.", script_output("zypper lr -u; zypper se -s $virt_manifests_pkgs $virt_tests_pkg"));
+            record_info("$pkgs_from_incident_repo package(s) installed from incident repository.", script_output("zypper lr -u; zypper se -s $virt_manifests_pkgs $virt_tests_pkg"));
         }
     } else {
         $virt_manifests_repo = get_var('VIRT_MANIFESTS_REPO');
@@ -241,22 +241,23 @@ sub install_kubevirt_packages {
         transactional::enter_trup_shell(global_options => '--drop-if-no-change') if (is_transactional);
 
         zypper_call("lr -d");
-        zypper_call("ar $virt_tests_repo Virt-Tests-Repo");
         zypper_call("ar $virt_manifests_repo Virt-Manifests-Repo") if ($virt_manifests_repo);
+        zypper_call("ar $virt_tests_repo Virt-Tests-Repo") if ($virt_tests_repo);
         zypper_call("--gpg-auto-import-keys ref");
-
-        $search_manifests = $virt_manifests_pkgs =~ s/\s+/\\\|/gr;
 
         if ($virt_manifests_repo) {
             zypper_call("in -f -r Virt-Manifests-Repo $virt_manifests_pkgs");
-        } elsif (script_run("rpmquery $virt_manifests_pkgs")) {
-            if (is_transactional || script_run("zypper se -r SLE-Module-Containers${os_version}-Updates $virt_manifests_pkgs | grep -w '$search_manifests'")) {
-                zypper_call("in -f $virt_manifests_pkgs");
-            } else {
-                zypper_call("in -f -r SLE-Module-Containers${os_version}-Updates $virt_manifests_pkgs");
-            }
+        } else {
+            zypper_call("in -f $virt_manifests_pkgs");
         }
-        zypper_call("in -f -r Virt-Tests-Repo $virt_tests_pkg");
+
+        if ($virt_tests_repo) {
+            zypper_call("in -f -r Virt-Tests-Repo $virt_tests_pkg");
+        } else {
+            zypper_call("in -f $virt_tests_pkg");
+        }
+
+        record_info('Installed kubevirt package version', script_output("zypper lr -u; zypper se -s $virt_manifests_pkgs $virt_tests_pkg"));
     }
 
     # Install Longhorn dependencies
@@ -288,8 +289,6 @@ sub install_kubevirt_packages {
     assert_script_run('cpan install Config::Tiny <<<yes', timeout => 300) if (script_run('cpan -l <<<yes | grep Config::Tiny') == 1);
 
     transactional::exit_trup_shell_and_reboot() if (is_transactional);
-
-    record_info('Installed kubevirt package version', script_output('rpm -qa |grep -E "containerized|kubevirt|virt-test"'));
 
     # Enable iscsid service
     systemctl('enable --now iscsid', timeout => 180) if ($kubevirt_ver ge "0.50.0");
