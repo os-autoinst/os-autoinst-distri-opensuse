@@ -1,0 +1,27 @@
+---
+name: mau-virt-increments-installation
+description: >
+  Maintainer: qe-virt@suse.de
+  SLES 16.0 virtualization packages increment testing (with host installation)
+  This schedule includes full OS installation via Agama before running virtualization tests.
+  All 4 platforms: x86_64, aarch64, s390x, ppc64le
+conditional_schedule:
+  boot_s390x:
+    ARCH:
+      's390x':
+        - installation/bootloader_zkvm
+schedule:
+  - '{{boot_s390x}}'
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/hostname
+  - qa_automation/patch_and_reboot
+  - qemu/info
+  - qemu/qemu
+  - qemu/kvm
+  - console/journal_check
+  - console/coredump_collect
+  - shutdown/shutdown
