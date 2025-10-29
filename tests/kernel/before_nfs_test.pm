@@ -44,6 +44,7 @@ sub run {
     set_hostname(get_var("HOSTNAME", "susetest"));
 
     prepare_bond if get_var('NFS_BOND') == "1";
+    barrier_wait("NFS_BEFORE_TEST_DONE");
 }
 
 sub test_flags {
