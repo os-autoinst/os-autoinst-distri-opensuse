@@ -1866,7 +1866,7 @@ sub load_rollback_tests {
 }
 
 sub load_extra_tests_himmelblau {
-    loadtest("console/azure_himmelblau");
+    loadtest("publiccloud/himmelblau");
 }
 
 sub load_extra_tests_filesystem {
