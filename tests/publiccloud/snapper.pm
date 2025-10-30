@@ -144,16 +144,10 @@ sub run {
     my $instance = $args->{my_instance};
 
     quit_packagekit() unless (is_sle_micro());
-    zypper_call("in snapper policycoreutils-python-utils");
-
-    assert_script_run(qq{semanage permissive -a snapperd_t});
-    record_soft_failure("bsc#1251801 snapperd is not working properly with SELinux enforcing");
+    zypper_call("in snapper");
 
     $self->test_snapper_undochange();
     $self->test_snapper_rollback($instance);
-
-    assert_script_run(qq{semanage permissive -d snapperd_t});
-    record_soft_failure("bsc#1251801 snapperd is not working properly with SELinux enforcing");
 }
 
 sub test_flags {
