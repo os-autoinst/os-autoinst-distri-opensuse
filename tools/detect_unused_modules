@@ -76,5 +76,9 @@ done | \
     # running on a development job group https://openqa.suse.de/group_overview/616
     grep -v 'velociraptor_client_event_collect' |\
 
-    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin|wicked|sles4sap/|s390x_tests/)' \
+    grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls|qa_automation/|hpc/|slepos/|caasp/stack_admin|wicked|sles4sap/|s390x_tests/)' |\
+
+    # Public Cloud App Images tests are loaded dynamically with a hash variable
+    grep -v 'publiccloud/app-images/' \
+
     && { exit 1; } || { exit 0; }
