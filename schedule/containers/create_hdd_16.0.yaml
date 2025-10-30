@@ -23,6 +23,7 @@ schedule:
     - containers/install_updates
     - '{{fips}}'
     - containers/bci_prepare
+    - containers/k3s_helm_install
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
     - '{{svirt_upload_assets}}'
