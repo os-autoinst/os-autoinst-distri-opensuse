@@ -34,6 +34,10 @@ my @conflicting_packages = (
     'coreutils-single',
 );
 
+# We may need to skip installing some packages based on test requirements
+# see example at poo#191485
+my @skipped_pkgs = qw(kernel-kvmsmall kernel-kvmsmall-devel);
+
 sub get_patch {
     my ($incident_id, $repos) = @_;
     $repos =~ tr/,/ /;
@@ -107,6 +111,10 @@ sub run {
                 # remove the conflicting package from list which is used for preinstall
                 @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
             }
+        }
+
+        for my $pkg (@skipped_pkgs) {
+            @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
         }
 
         disable_test_repositories($repos_count);
