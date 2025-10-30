@@ -2448,7 +2448,8 @@ sub get_virt_features_definition {
             modules => ['virtualization/universal/virtmanager_init', 'virtualization/universal/virtmanager_offon', 'virtualization/universal/virtmanager_add_devices', 'virtualization/universal/virtmanager_rm_devices'],
         },
         ENABLE_HOTPLUGGING => {
-            modules => ['virtualization/universal/hotplugging_guest_preparation', 'virtualization/universal/hotplugging_network_interfaces', 'virtualization/universal/hotplugging_HDD', 'virtualization/universal/hotplugging_vCPUs', 'virtualization/universal/hotplugging_memory', 'virtualization/universal/hotplugging_cleanup'],
+		#julie:            modules => ['virtualization/universal/hotplugging_guest_preparation', 'virtualization/universal/hotplugging_network_interfaces', 'virtualization/universal/hotplugging_HDD', 'virtualization/universal/hotplugging_vCPUs', 'virtualization/universal/hotplugging_memory', 'virtualization/universal/hotplugging_cleanup'],
+            modules => ['virtualization/universal/hotplugging_guest_preparation'],
         },
         ENABLE_SNAPSHOTS => {
             modules => ['virt_autotest/virsh_internal_snapshot', 'virt_autotest/virsh_external_snapshot'],
