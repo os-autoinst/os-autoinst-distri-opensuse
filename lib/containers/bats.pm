@@ -49,7 +49,6 @@ our @EXPORT = qw(
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/";
 my $rebooted = 0;
-my $settings;
 my $ip_addr;
 
 my @commands = ();
@@ -560,20 +559,14 @@ sub bats_tests {
     return ($ret);
 }
 
-sub bats_settings {
-    my $package = shift;
-    my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
-
-    my $text = script_output("curl " . data_url("containers/patches.yaml"), quiet => 1);
-    my $yaml = YAML::PP->new()->load_string($text);
-
-    return $yaml->{$package}{$os_version};
-}
-
 sub patch_sources {
     my ($package, $branch, $tests_dir) = @_;
 
-    $settings = bats_settings $package;
+    my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
+    my $text = script_output("curl " . data_url("containers/patches.yaml"), quiet => 1);
+    my $yaml = YAML::PP->new()->load_string($text);
+    my $settings = $yaml->{$package}{$os_version};
+
     my @patches = split(/\s+/, get_var("GITHUB_PATCHES", ""));
     if (!@patches && defined $settings->{GITHUB_PATCHES}) {
         @patches = @{$settings->{GITHUB_PATCHES}};
