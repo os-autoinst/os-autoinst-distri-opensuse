@@ -2449,7 +2449,7 @@ sub get_virt_features_definition {
         },
         ENABLE_HOTPLUGGING => {
 		#julie:            modules => ['virtualization/universal/hotplugging_guest_preparation', 'virtualization/universal/hotplugging_network_interfaces', 'virtualization/universal/hotplugging_HDD', 'virtualization/universal/hotplugging_vCPUs', 'virtualization/universal/hotplugging_memory', 'virtualization/universal/hotplugging_cleanup'],
-            modules => ['virtualization/universal/hotplugging_guest_preparation'],
+            modules => ['virtualization/universal/hotplugging_guest_preparation', 'virtualization/universal/hotplugging_network_interfaces'],
         },
         ENABLE_SNAPSHOTS => {
             modules => ['virt_autotest/virsh_internal_snapshot', 'virt_autotest/virsh_external_snapshot'],
