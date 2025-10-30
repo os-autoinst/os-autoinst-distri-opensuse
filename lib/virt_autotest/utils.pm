@@ -719,8 +719,8 @@ sub create_guest {
             record_info("Boot Firmware", "Guest $name configured for EFI sev_es boot");
         }
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
-        $virtinstall .= " --memorybacking $memory_backing" unless ($launch_security eq '');
-        $virtinstall .= " --launchSecurity $launch_security" unless ($memory_backing eq '');
+        $virtinstall .= " --memorybacking $memory_backing" unless ($memory_backing eq '');
+        $virtinstall .= " --launchSecurity $launch_security" unless ($launch_security eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
         record_info("$name", "Creating $name guests:\n$virtinstall");
         script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";    # true required because & terminator is not allowed
