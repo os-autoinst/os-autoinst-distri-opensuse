@@ -263,23 +263,11 @@ sub enable_modules {
 sub patch_junit {
     my ($package, $version, $xmlfile, @ignore_tests) = @_;
     my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
-
     my $ignore_tests = join(' ', map { "\"$_\"" } @ignore_tests);
-
     my @passed = split /\n/, script_output "patch_junit $xmlfile '$package $version $os_version' $ignore_tests";
     foreach my $pass (@passed) {
         record_info("PASS", $pass);
     }
-}
-
-sub patch_logfile {
-    my ($xmlfile, @ignore_tests) = @_;
-
-    my $package = get_required_var("BATS_PACKAGE");
-    my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
-
-    @ignore_tests = uniq sort @ignore_tests;
-    patch_junit $package, $version, $xmlfile, @ignore_tests;
 }
 
 # /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
@@ -551,7 +539,8 @@ sub bats_tests {
     # Strip control chars from XML as they aren't quoted and we can't quote them as valid XML 1.1
     # because it's not supported in most XML libraries anyway. See https://bugs.python.org/issue43703
     assert_script_run("LC_ALL=C sed -i 's/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]//g' $xmlfile") if ($package eq "umoci");
-    patch_logfile($xmlfile, @ignore_tests);
+    my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
+    patch_junit $package, $version, $xmlfile, @ignore_tests;
     parse_extra_log(XUnit => $xmlfile);
 
     script_run("sudo rm -rf $tmp_dir", timeout => 0);
