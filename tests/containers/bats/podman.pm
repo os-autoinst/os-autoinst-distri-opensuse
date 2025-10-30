@@ -10,7 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils;
 use Utils::Architectures;
 use containers::bats;
 
@@ -18,9 +18,7 @@ my $oci_runtime = "";
 
 sub run_tests {
     my %params = @_;
-    my ($rootless, $remote, $skip_tests) = ($params{rootless}, $params{remote}, $params{skip_tests});
-
-    return 0 if check_var($skip_tests, "all");
+    my ($rootless, $remote) = ($params{rootless}, $params{remote});
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
@@ -34,7 +32,28 @@ sub run_tests {
 
     run_command "podman system service --timeout=0 &" if ($remote);
 
-    my $ret = bats_tests($log_file, \%env, $skip_tests, 5000);
+    my @xfails = ();
+    if ($rootless) {
+        if (!$remote) {
+            push @xfails, (
+                # These fail for user/local on Tumbleweed
+                "252-quadlet.bats::quadlet kube - start error",
+            ) unless (is_sle);
+        }
+        push @xfails, (
+            # These fail for user on SLES 16.0 & Tumbleweed
+            "505-networking-pasta.bats::TCP/IPv4 large transfer, tap",
+        ) unless (is_sle("<16"));
+    } else {
+        if (!$remote) {
+            push @xfails, (
+                # These fail for root/local on SLES 16.0 & Tumbleweed
+                "200-pod.bats::pod resource limits",
+            ) unless (is_sle("<16"));
+        }
+    }
+
+    my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
 
     run_command 'kill %1; kill -9 %1 || true' if ($remote);
 
@@ -104,20 +123,20 @@ sub run {
     my $errors = 0;
     unless (check_var("BATS_IGNORE_USER", "all")) {
         # user / local
-        $errors += run_tests(rootless => 1, remote => 0, skip_tests => 'BATS_IGNORE_USER_LOCAL');
+        $errors += run_tests(rootless => 1, remote => 0) unless check_var('BATS_IGNORE_USER_LOCAL', 'all');
 
         # user / remote
-        $errors += run_tests(rootless => 1, remote => 1, skip_tests => 'BATS_IGNORE_USER_REMOTE');
+        $errors += run_tests(rootless => 1, remote => 1) unless check_var('BATS_IGNORE_USER_REMOTE', 'all');
     }
 
     switch_to_root;
 
     unless (check_var("BATS_IGNORE_ROOT", "all")) {
         # root / local
-        $errors += run_tests(rootless => 0, remote => 0, skip_tests => 'BATS_IGNORE_ROOT_LOCAL');
+        $errors += run_tests(rootless => 0, remote => 0) unless check_var('BATS_IGNORE_ROOT_LOCAL', 'all');
 
         # root / remote
-        $errors += run_tests(rootless => 0, remote => 1, skip_tests => 'BATS_IGNORE_ROOT_REMOTE');
+        $errors += run_tests(rootless => 0, remote => 1) unless check_var('BATS_IGNORE_ROOT_REMOTE', 'all');
     }
 
     die "podman tests failed" if ($errors);

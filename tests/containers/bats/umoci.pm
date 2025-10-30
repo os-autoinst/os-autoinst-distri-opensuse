@@ -15,9 +15,7 @@ use containers::bats;
 
 sub run_tests {
     my %params = @_;
-    my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
-
-    return if ($skip_tests eq "all");
+    my $rootless = $params{rootless};
 
     my %env = (
         SOURCE_IMAGE => "/var/tmp/image",
@@ -27,7 +25,12 @@ sub run_tests {
 
     my $log_file = "umoci-" . ($rootless ? "user" : "root");
 
-    my $ret = bats_tests($log_file, \%env, $skip_tests, 1200);
+    my @xfails = (
+        "repack.bats::umoci {un,re}pack [xattrs]",
+        "stat.bats::umoci stat [output snapshot: minimal image]",
+    );
+
+    my $ret = bats_tests($log_file, \%env, \@xfails, 1200);
 
     return ($ret);
 }
@@ -58,11 +61,12 @@ sub run {
     patch_sources "umoci", $umoci_version, "test";
     run_command 'git submodule update --init hack/docker-meta-scripts';
 
-    my $errors = run_tests(rootless => 1, skip_tests => get_var('BATS_SKIP_USER', ''));
+    my $errors = 0;
+    $errors += run_tests(rootless => 1) unless check_var('BATS_SKIP_USER', 'all');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => get_var('BATS_SKIP_ROOT', ''));
+    $errors += run_tests(rootless => 0) unless check_var('BATS_SKIP_ROOT', 'all');
 
     die "umoci tests failed" if ($errors);
 }

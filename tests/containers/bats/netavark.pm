@@ -10,21 +10,25 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils;
 use containers::bats;
-use version_utils qw(is_sle);
 
 my $netavark;
 
 sub run_tests {
-    return 0 if check_var("BATS_IGNORE", "all");
-
     my %env = (
         NETAVARK => $netavark,
     );
 
     my $log_file = "netavark";
 
-    return bats_tests($log_file, \%env, "", 1200);
+    my @xfails = ();
+    push @xfails, (
+        "200-bridge-firewalld.bats",
+        "250-bridge-nftables.bats",
+    ) if (is_sle("<16"));
+
+    return bats_tests($log_file, \%env, \@xfails, 1200);
 }
 
 sub run {
@@ -61,6 +65,7 @@ sub run {
         run_command "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
     }
 
+    return if check_var("BATS_IGNORE", "all");
     my $errors = run_tests;
     die "netavark tests failed" if ($errors);
 }
