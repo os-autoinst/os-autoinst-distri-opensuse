@@ -355,6 +355,7 @@ sub check_failures_in_journal {
     my $failures = "";
     reset_log_cursor if $args{no_cursor} == 1;
     my $cursor = $log_cursors{$machine};
+    record_info("Julie: \$cursor", script_output("echo $cursor")); #julie
     my $cmd = "journalctl --show-cursor ";
     $cmd .= "--cursor='$cursor'" if defined($cursor);
     $cmd .= " > $logfile";
@@ -367,9 +368,11 @@ sub check_failures_in_journal {
 
     # Get the cursor of the journal log file
     unless ($args{no_cursor}) {
+        record_info("Julie: \$logfile", script_output("cat $logfile")); #julie
         $cmd = "grep -oe \'-- cursor: *[^ ]*\' $logfile | cut -d ' ' -f3";
         $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
         $log_cursors{$machine} = script_output("$cmd", type_command => 1);
+        record_info("Julie: \$log_cursors{$machine}", script_output("echo $log_cursors{$machine}")); #julie
     }
 
     # Search warnings from the journal log file
