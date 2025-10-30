@@ -4,23 +4,21 @@
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: conf.yaml template for qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
-#          Deploy on Azure, two node HANA cluster with cloud native MSI fencing.
-provider: 'azure'
+#          Deploy on AWS, two node HANA cluster with cloud native fencing.
+provider: 'aws'
 apiver: 4
 terraform:
   bin: '%TERRAFORM_RUNNER%'
   variables:
-    az_region: '%REGION%'
+    aws_region: '%REGION%'
     deployment_name: '%DEPLOYMENTNAME%'
     os_image: '%OS_VER%'
+    os_owner: '%OS_OWNER%'
     public_key: '%SLES4SAP_PUBSSHKEY%'
+    aws_credentials: '/root/amazon_credentials'
+    hana_instancetype: '%HANA_INSTANCE_TYPE%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
-    vnet_address_range: '%MAIN_ADDRESS_RANGE%'
-    subnet_address_range: '%SUBNET_ADDRESS_RANGE%'
-    hana_cluster_fencing_mechanism: 'native'
-    drbd_cluster_fencing_mechanism: 'native'
-    netweaver_cluster_fencing_mechanism: 'native'
-    iscsi_enabled: false
+    iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
 ansible:
   roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'
@@ -36,6 +34,27 @@ ansible:
     sap_hana_install_master_password: 'DoNotUseThisPassw0rd'
     sap_hana_install_sid: 'HQ0'
     sap_hana_install_instance_number: '00'
+    sap_hana_install_update_firewall: true
+    sap_hana_install_firewall:
+      - { port: [
+         '1128-1129/tcp',
+         '43{{ sap_hana_install_number }}/tcp',
+         '5050/tcp',
+         '9090-9093/tcp',
+         '3{{ sap_hana_install_number }}00-3{{ sap_hana_install_number }}90/tcp',
+         '30105/tcp',
+         '30107/tcp',
+         '30140/tcp',
+         '4{{ sap_hana_install_number }}01-4{{ sap_hana_install_number }}02/tcp',
+         '4{{ sap_hana_install_number }}06/tcp',
+         '4{{ sap_hana_install_number }}12/tcp',
+         '4{{ sap_hana_install_number }}14/tcp',
+         '4{{ sap_hana_install_number }}40/tcp',
+         '5{{ sap_hana_install_number }}00/tcp',
+         '5{{ sap_hana_install_number }}13-5{{ sap_hana_install_number }}14/tcp',
+         '51000/tcp',
+         '64997/tcp'
+        ], state: 'enabled' }
     sap_domain: 'qe-test.example.com'
     primary_site: 'goofy'
     secondary_site: 'miky'
@@ -45,12 +64,12 @@ ansible:
       - %REGISTRATION_PLAYBOOK%.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com' %REG_ARGS%
       - fully-patch-system.yaml
       - pre-cluster.yaml
-      - sap-hana-preconfigure.yaml -e use_reboottimeout=900
+      - sap-hana-preconfigure.yaml
       - sap-hana-storage.yaml
       - sap-hana-download-media.yaml
       - sap-hana-install.yaml
       - sap-hana-system-replication.yaml
       - sap-hana-system-replication-hooks.yaml
-      - sap-hana-cluster.yaml -e azure_identity_management=%AZURE_NATIVE_FENCING_AIM%
+      - sap-hana-cluster.yaml
     destroy:
       - deregister.yaml
