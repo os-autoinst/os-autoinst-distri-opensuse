@@ -17,6 +17,15 @@
     use_connecttimeout: 10
 
   tasks:
+    - name: Check IBSm connection
+      ansible.builtin.command:
+        cmd: "ping -c 4 {{ repo_mirror_host }}"
+      register: ping_output
+
+    - name: Display ping result
+      ansible.builtin.debug:
+        msg: "[{{ inventory_hostname }}] IBSM ({{ repo_mirror_host }}) ping test: {{ ping_output.stdout }}"
+
     - name: Zypper add repo
       community.general.zypper_repository:
         repo: "{{ item }}"
@@ -44,20 +53,6 @@
       environment:
         ZYPP_LOCK_TIMEOUT: 120
       notify: Reboot after patch
-
-    - name: Zypper remove repo
-      community.general.zypper_repository:
-        repo: "{{ item }}"
-        name: "TEST_{{ repo_id }}"
-        disable_gpg_check: true
-        autorefresh: true
-        state: absent
-      loop: "{{ repo_list.split(',') }}"
-      loop_control:
-        index_var: repo_id
-      when: repo_list | length > 0
-      environment:
-        ZYPP_LOCK_TIMEOUT: '120'
 
   handlers:
     - name: Reboot after patch
