@@ -11,8 +11,8 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use Utils::Architectures;
-use containers::bats;
 use version_utils;
+use containers::bats;
 
 my $skopeo_version;
 # Default quay.io/libpod/registry:2 image used by the tests only has amd64 image
@@ -20,9 +20,7 @@ my $registry = "registry.opensuse.org/opensuse/registry:2";
 
 sub run_tests {
     my %params = @_;
-    my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
-
-    return 0 if check_var($skip_tests, "all");
+    my $rootless = $params{rootless};
 
     my %env = (
         SKOPEO_BINARY => "/usr/bin/skopeo",
@@ -31,7 +29,9 @@ sub run_tests {
 
     my $log_file = "skopeo-" . ($rootless ? "user" : "root");
 
-    return bats_tests($log_file, \%env, $skip_tests, 800);
+    my @xfails = ();
+
+    return bats_tests($log_file, \%env, \@xfails, 800);
 }
 
 sub test_integration {
@@ -68,11 +68,12 @@ sub run {
     $skopeo_version = script_output "skopeo --version  | awk '{ print \$3 }'";
     patch_sources "skopeo", "v$skopeo_version", "systemtest";
 
-    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
+    my $errors = 0;
+    $errors += run_tests(rootless => 1) unless check_var('BATS_IGNORE_USER', 'all');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
+    $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
     test_integration if (is_tumbleweed && is_x86_64);
 

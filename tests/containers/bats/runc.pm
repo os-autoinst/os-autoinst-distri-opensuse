@@ -10,15 +10,13 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils;
+use Utils::Architectures;
 use containers::bats;
-use version_utils qw(is_tumbleweed);
-use Utils::Architectures qw(is_ppc64le is_s390x);
 
 sub run_tests {
     my %params = @_;
-    my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
-
-    return 0 if check_var($skip_tests, "all");
+    my $rootless = $params{rootless};
 
     my %env = (
         RUNC_USE_SYSTEMD => "1",
@@ -27,7 +25,13 @@ sub run_tests {
 
     my $log_file = "runc-" . ($rootless ? "user" : "root");
 
-    return bats_tests($log_file, \%env, $skip_tests, 1200);
+    my @xfails = ();
+    push @xfails, (
+        "run.bats::runc run [joining existing container namespaces]",
+        "userns.bats::userns join other container userns",
+    ) if (is_sle("<16") && $rootless);
+
+    return bats_tests($log_file, \%env, \@xfails, 1200);
 }
 
 sub run {
@@ -61,11 +65,12 @@ sub run {
         run_command "rm -f tests/integration/seccomp.bats" if is_s390x;
     }
 
-    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
+    my $errors = 0;
+    $errors += run_tests(rootless => 1) unless check_var('BATS_IGNORE_USER', 'all');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
+    $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
     die "runc tests failed" if ($errors);
 }

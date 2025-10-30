@@ -547,12 +547,8 @@ sub bats_tests {
     my $ret = script_run($cmd, timeout => $timeout);
     script_run "mv report.xml $xmlfile";
 
-    my @ignore_tests = ();
-    unless (get_var("RUN_TESTS")) {
-        push @ignore_tests, @{$settings->{$ignore_tests}} if ($settings->{$ignore_tests});
-        push @ignore_tests, @{$settings->{BATS_IGNORE}} if ($settings->{BATS_IGNORE});
-    }
     upload_logs($tapfile);
+    my @ignore_tests = get_var("RUN_TESTS") ? () : @{$ignore_tests};
     # Strip control chars from XML as they aren't quoted and we can't quote them as valid XML 1.1
     # because it's not supported in most XML libraries anyway. See https://bugs.python.org/issue43703
     assert_script_run("LC_ALL=C sed -i 's/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]//g' $xmlfile") if ($package eq "umoci");

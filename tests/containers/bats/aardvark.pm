@@ -10,14 +10,12 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use version_utils;
 use containers::bats;
-use version_utils qw(is_sle);
 
 my $aardvark = "";
 
 sub run_tests {
-    return 0 if check_var("BATS_IGNORE", "all");
-
     my $netavark = script_output "rpm -ql netavark | grep podman/netavark";
 
     my %env = (
@@ -27,7 +25,12 @@ sub run_tests {
 
     my $log_file = "aardvark";
 
-    return bats_tests($log_file, \%env, "", 800);
+    my @xfails = ();
+    push @xfails, (
+        "100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6",
+    ) if (is_sle("<16"));
+
+    return bats_tests($log_file, \%env, \@xfails, 800);
 }
 
 sub run {
@@ -47,6 +50,7 @@ sub run {
     my $aardvark_version = script_output "$aardvark --version | awk '{ print \$2 }'";
     patch_sources "aardvark-dns", "v$aardvark_version", "test";
 
+    return 0 if check_var("BATS_IGNORE", "all");
     my $errors = run_tests;
     die "ardvark-dns tests failed" if ($errors);
 }

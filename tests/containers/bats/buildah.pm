@@ -10,14 +10,12 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils;
 use containers::bats;
 
 sub run_tests {
     my %params = @_;
-    my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
-
-    return 0 if check_var($skip_tests, "all");
+    my $rootless = $params{rootless};
 
     my $storage_driver = $rootless ? "vfs" : script_output("buildah info --format '{{ .store.GraphDriverName }}'");
     record_info("storage driver", $storage_driver);
@@ -33,7 +31,21 @@ sub run_tests {
 
     my $log_file = "buildah-" . ($rootless ? "user" : "root");
 
-    my $ret = bats_tests($log_file, \%env, $skip_tests, 5000);
+    my @xfails = ();
+    push @xfails, (
+        "bud.bats::bud with --cgroup-parent",
+    ) if (is_sle && !$rootless);
+    push @xfails, (
+        "bud.bats::bud-git-context",
+        "bud.bats::bud-git-context-subdirectory",
+        "bud.bats::bud using gitrepo and branch",
+        "run.bats::Check if containers run with correct open files/processes limits",
+    ) if (is_sle("<16") && !$rootless);
+    push @xfails, (
+        "bud.bats::bud-multiple-platform-no-partial-manifest-list",
+    ) if (is_sle("<15-SP6") && $rootless);
+
+    my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
 
     run_command "buildah prune -a -f";
     cleanup_podman;
@@ -113,11 +125,12 @@ sub run {
     record_info("helpers", $helpers);
     run_command "make $helpers", timeout => 600;
 
-    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
+    my $errors = 0;
+    $errors += run_tests(rootless => 1) unless check_var('BATS_IGNORE_USER', 'all');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
+    $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
     test_conformance unless is_sle;
 
