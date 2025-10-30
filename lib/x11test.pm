@@ -715,9 +715,6 @@ sub exit_firefox_common {
         # confirm "save&quit"
         send_key "ret";
     }
-    if (check_screen("http-server-running", 5)) {
-        send_key "ctrl-c";
-    }
     # wait a sec because xterm-without-focus can match while firefox is being closed
     wait_still_screen 3, 6;
     assert_screen [qw(xterm-left-open xterm-without-focus)];
