@@ -414,9 +414,9 @@ subtest '[sdaf_execute_playbook] Add extra argument' => sub {
     set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', undef);
 
     sdaf_execute_playbook(
-        playbook_filename    => 'playbook_01_os_base_config.yaml',
+        playbook_filename => 'playbook_01_os_base_config.yaml',
         sdaf_config_root_dir => '/tmp/SDAF/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS',
-        additional_args      => { another => 'one' }
+        additional_args => {another => 'one'}
     );
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /--another="one"/ } @calls), 'Command contains "--ssh-common-args" parameter');

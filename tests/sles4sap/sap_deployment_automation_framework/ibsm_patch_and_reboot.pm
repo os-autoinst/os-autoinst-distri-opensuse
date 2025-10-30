@@ -83,19 +83,34 @@ sub run {
     connect_target_to_serial();
     load_os_env_variables();
 
+    # Setup JUnit export
+    my $ansible_cfg = '~/.ansible.cfg';
+#     my $ansible_cfg_content = <<'ansible_cfg';
+# [defaults]
+# callback_whitelist = junit
+#
+# [junit]
+# junit_output_dir = /path/to/junit/reports
+# ansible_cfg
+
+    assert_script_run("rm $ansible_cfg") if !script_run("test -f $ansible_cfg");
+
     # Retrieve playbook and place it to the standard playbook directory
     my $playbook_filename = 'patch_and_reboot.yml';
     my $playbook_file = playbook_dir() . "/$playbook_filename";
+    my $playbook_arguments = {
+        'extra-vars' => 'repo_list=' . join(',', @repo_list),
+        'extra-vars' => 'repo_mirror_host=' . get_required_var('REPO_MIRROR_HOST')};
     my $cmd_playbook_fetch = join(' ', 'curl', '-v', '-fL',
-        data_url("sles4sap/sap_deployment_automation_framework/patch_and_reboot.yml"),
+        data_url("sles4sap/sap_deployment_automation_framework/ansible_playbooks/patch_and_reboot.yml"),
         '-o', $playbook_file);
     assert_script_run($cmd_playbook_fetch);
     record_info('Patching', "All systems are about to be patched using playbook '$playbook_file'");
     # Execute playbook.
     sdaf_execute_playbook(
-        playbook_filename=>$playbook_filename,
-        sdaf_config_root_dir=>$config_root_path,
-        additional_args=>{ 'extra-vars'=>'repo_list=' . join(',', @repo_list) }
+        playbook_filename => $playbook_filename,
+        sdaf_config_root_dir => $config_root_path,
+        additional_args => $playbook_arguments
     );
     record_info('Patching OK', "All systems are patched using playbook '$playbook_file'. Reboot was performed afterwards");
     # disconnect the console
