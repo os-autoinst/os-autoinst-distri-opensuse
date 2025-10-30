@@ -36,7 +36,6 @@ schedule:
     - installation/reboot_after_installation
     - installation/handle_reboot
     - installation/first_boot
-    - kernel/mellanox_config
     - kernel/ibtests_prepare
     - installation/handle_reboot
     - kernel/ibtests
