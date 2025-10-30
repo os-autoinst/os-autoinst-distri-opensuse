@@ -242,6 +242,13 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
             boot_firmware => 'efi',    # EFI version of SLES 15 SP7
         },
+        'sles15sp7efi-snapshot' => {
+            name => 'sles15sp7efi-snapshot',
+            extra_params => '--os-variant sle15-unknown',
+            distro => 'SLE_15',
+            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
+            boot_firmware => 'efi-with-qcow2-based-nvram',    # For efi vm snapshot test
+        },
         sles16efi_online => {
             name => 'sles16efi_online',
             extra_params => '--os-variant sles16',    # Use SLES16 variant
@@ -256,6 +263,14 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             location => 'http://openqa.suse.de/assets/repo/SLES-16.0-Full-x86_64-Build135.5.install/',    # Network location for live OS
             install_url => 'http://openqa.suse.de/assets/repo/SLES-16.0-x86_64-Build135.5/',    # Install repository URL
             boot_firmware => 'efi',    # SLES16 only supports EFI guests, no BIOS support
+        },
+        sles16efi_full_snapshot => {
+            name => 'sles16efi_full_snapshot',
+            extra_params => '--os-variant sles16',    # Use SLES16 variant
+            distro => 'SLE_16',
+            location => 'http://openqa.suse.de/assets/repo/SLES-16.0-Full-x86_64-Build135.5.install/',    # Network location for live OS
+            install_url => 'http://openqa.suse.de/assets/repo/SLES-16.0-x86_64-Build135.5/',    # Install repository URL
+            boot_firmware => 'efi-with-qcow2-based-nvram',    # For efi vm snapshot test
         },
         'sles15sp7-efi-sev-es' => {
             name => 'sles15sp7-efi-sev-es',
@@ -317,8 +332,13 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         }
     } elsif (is_sle('>=16')) {
         # SLES16+ support - only EFI guests are supported, no BIOS guests
-        my @allowed_guests = qw(sles15sp7 sles15sp7efi sles16efi_online sles16efi_full);
         # Both online and full installation types supported for SLES16 EFI guests
+        my @allowed_guests = qw(sles15sp7 sles15sp7efi sles16efi_online sles16efi_full);
+        if (check_var('ENABLE_SEV_SNP', '1')) {
+            @allowed_guests = qw(sles15sp7efi sles16efi_full);
+        } elsif (check_var('ENABLE_SNAPSHOTS', '1')) {
+            @allowed_guests = qw(sles15sp7efi-snapshot sles16efi_full_snapshot);
+        }
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }

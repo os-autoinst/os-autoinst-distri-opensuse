@@ -718,6 +718,14 @@ sub create_guest {
             $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-sev.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no,loader.stateless=yes";
             record_info("Boot Firmware", "Guest $name configured for EFI sev_es boot");
         }
+        if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi-with-qcow2-based-nvram') {
+            # Need to match with SNAPSHOT_NVRAM_TEMPLATE_SRC and SNAPSHOT_NVRAM_TEMPLATE_NEW settings
+            $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,"
+              . "loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-qcow2-vars.bin,"
+              . "nvram.templateFormat=qcow2,hd,bootmenu.enable=yes,menu=on";
+            record_info("Boot Firmware", "Guest $name configured with EFI bootloader and qcow2 based nvram for snapshot test");
+        }
+
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
         $virtinstall .= " --memorybacking $memory_backing" unless ($memory_backing eq '');
         $virtinstall .= " --launchSecurity $launch_security" unless ($launch_security eq '');

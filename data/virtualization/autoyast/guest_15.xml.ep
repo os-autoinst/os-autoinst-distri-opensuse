@@ -217,7 +217,7 @@
     % } else {
       <device>/dev/vda</device>
     % }
-    % if ($vm_name =~ /efi-sev-es/) {
+    % if ($vm_name =~ /efi/) {
       <disklabel>gpt</disklabel>
     % } else {
       <disklabel>msdos</disklabel>
@@ -225,7 +225,7 @@
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
-    % if ($vm_name =~ /efi-sev-es/) {
+    % if ($vm_name =~ /efi/) {
         <partition>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">vfat</filesystem>
