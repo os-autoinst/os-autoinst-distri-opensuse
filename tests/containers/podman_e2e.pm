@@ -78,11 +78,7 @@ sub run {
     );
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
-    # mapping of known expected failures
-    my @xfails = (
-        # Fails with "registry.access.redhat.com/*openshift*"
-        'Libpod Suite::[It] Podman search podman search with wildcards',
-    );
+    my @xfails = ();
     push @xfails, (
         # Fixed in podman 5.6.1:
         # https://bugzilla.suse.com/show_bug.cgi?id=1249050 - podman passes volume options as bind mount options to runtime
@@ -92,7 +88,7 @@ sub run {
     push @xfails, (
         'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     ) if (get_var("ROOTLESS"));
-    # These tests fail as rootless only
+    # These tests fail as rootless/remote only
     my @rootless_remote_xfails = (
         'Libpod Suite::[It] Podman build podman build --build-context: Mixed source',
         'Libpod Suite::[It] Podman build podman build --build-context: URL source',

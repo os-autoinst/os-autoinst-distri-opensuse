@@ -157,6 +157,7 @@ podman:
   # https://github.com/containers/podman/pull/27030 - test/e2e: fix podman run default mask test with crun 1.24
   # https://github.com/containers/podman/pull/27230 is needed for 130-kill
   # https://github.com/containers/podman/pull/27233 is needed for 130-kill
+  # https://github.com/containers/podman/pull/27333 - Eliminate network dependencies in podman search e2e tests with mock registry
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26017
@@ -166,6 +167,7 @@ podman:
     - 27152
     - 27230
     - 27233
+    - 27333
   sle-16.0:
     GITHUB_PATCHES:
     - 25792
