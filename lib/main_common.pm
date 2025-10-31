@@ -2783,6 +2783,7 @@ sub load_sles16_mu_virt_tests {
                     loadtest "virtualization/universal/patch_guests";
                 }
             }
+            loadtest "virtualization/universal/list_guests";  #julie
             loadtest "virtualization/universal/finish";
         }
     }
