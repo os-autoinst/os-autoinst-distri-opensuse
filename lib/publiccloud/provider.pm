@@ -13,7 +13,7 @@ use Mojo::Base -base;
 use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils qw(is_azure is_gce is_ec2 is_hardened get_ssh_private_key_path);
+use publiccloud::utils qw(is_azure is_gce is_ec2 is_hardened get_ssh_private_key_path calculate_custodian_ttl);
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -728,7 +728,8 @@ sub terraform_param_tags
         openqa_ttl => get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300),
         openqa_var_job_id => get_current_job_id(),
         openqa_var_name => get_var(NAME => ''),
-        openqa_var_server => $openqa_var_server
+        openqa_var_server => $openqa_var_server,
+        custodian_ttl => calculate_custodian_ttl($openqa_ttl)
     };
 
     return encode_json($tags);
