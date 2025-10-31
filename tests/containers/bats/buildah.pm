@@ -43,7 +43,7 @@ sub run_tests {
     ) if (is_sle("<16") && !$rootless);
     push @xfails, (
         "bud.bats::bud-multiple-platform-no-partial-manifest-list",
-    ) if (is_sle("<15-SP6") && $rootless);
+    ) if (is_sle("<15-SP6"));
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
 
