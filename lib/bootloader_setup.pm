@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_transactional is_leap_micro is_bootloader_grub2);
+use version_utils;
 use mm_network;
 use Utils::Backends;
 
@@ -76,6 +76,7 @@ my $in_grub_edit = 0;
 use constant GRUB_CFG_FILE => "/boot/grub2/grub.cfg";
 use constant GRUB_DEFAULT_FILE => "/etc/default/grub";
 use constant GRUB_CMDLINE_VAR => "GRUB_CMDLINE_LINUX_DEFAULT";
+use constant BLS_DEFAULT_FILE => "/etc/kernel/cmdline";
 
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
 # 'up' also works in textmode and UEFI menues.
@@ -1439,12 +1440,20 @@ sub change_grub_config {
     $new //= '';
     $search = "/$search/" if defined $search;
 
-    assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
+    if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
+        die "Unsupported option $search on BLS" unless $search == "GRUB_CMDLINE_LINUX_DEFAULT";
+        assert_script_run("sed -ie 's/${old}/${new}/${modifiers}' " . BLS_DEFAULT_FILE);
+    } else {
+        assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
+    }
 
-    if ($update_grub) {
+    if ($update_grub && is_bootloader_grub2) {
         grub_mkconfig();
         upload_logs(GRUB_CFG_FILE, failok => 1);
         upload_logs(GRUB_DEFAULT_FILE, failok => 1);
+    } elsif ($update_grub && (is_bootloader_sdboot || is_bootloader_grub2_bls)) {
+        assert_script_run('sdbootutil update-all-entries');
+        upload_logs(BLS_DEFAULT_FILE, failok => 1);
     }
 }
 
@@ -1458,6 +1467,7 @@ C<$search> if set, bypass default grub cmdline variable.
 =cut
 
 sub add_grub_cmdline_settings {
+    my $needs_quote = (is_bootloader_grub2) ? '"' : '';
     my $add = shift;
     my %args = testapi::compat_args(
         {
@@ -1469,7 +1479,7 @@ sub add_grub_cmdline_settings {
         @_
     );
 
-    change_grub_config('"$', " $add\"", $args{search}, "g", $args{update_grub});
+    change_grub_config($needs_quote . '$', " " . $add . $needs_quote, $args{search}, "g", $args{update_grub});
 }
 
 =head2 add_grub_xen_cmdline_settings
