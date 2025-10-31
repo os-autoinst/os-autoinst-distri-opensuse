@@ -373,8 +373,8 @@ sub check_failures_in_journal {
         record_info("Julie: \$logfile", script_output("$cmd", proceed_on_failure => 1)); #julie
         $cmd = "grep -oe \'-- cursor: *[^ ]*\' $logfile | cut -d ' ' -f3";
         $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
-        $log_cursors{$machine} = script_output("$cmd", type_command => 1);
-        record_info("Julie: \$log_cursors{$machine}", script_output("echo $log_cursors{$machine}", proceed_on_failure => 1)); #julie
+        $log_cursors{$machine} = script_output("$cmd");
+        record_info("Julie: \$log_cursors{$machine}", $log_cursors{$machine}); #julie
     }
 
     # Search warnings from the journal log file
