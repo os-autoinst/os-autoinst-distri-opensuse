@@ -9,7 +9,9 @@ schedule:
 conditional_schedule:
   elemental_test:
     TEST_TYPE:
-      generate_image:
+      generate_with_build_cmd:
+        - elemental3/generate_image
+      generate_with_imstall_cmd:
         - elemental3/generate_image
       k8s_validation:
         - elemental3/init_barriers
