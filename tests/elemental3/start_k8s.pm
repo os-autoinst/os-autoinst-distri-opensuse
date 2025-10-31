@@ -25,7 +25,7 @@ Wait for kubectl command to be available.
 =cut
 
 sub wait_kubectl_cmd {
-    my %args = @_;
+    my (%args) = @_;
     $args{timeout} //= 120;
     my $starttime = time;
     my $ret = undef;
@@ -51,7 +51,7 @@ Returns 0 if cluster is running or croaks on timeout.
 =cut
 
 sub wait_k8s_state {
-    my %args = @_;
+    my (%args) = @_;
     $args{timeout} //= 120;
     my $starttime = time;
     my $ret = undef;
@@ -151,23 +151,27 @@ sub run {
     my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');
     die('No IP defined on the node!') if (!defined $ip || $ip eq '');
 
-    # Update K8s configuration file
-    file_content_replace(
-        "/etc/rancher/$k8s/config.yaml", '--sed-modifier' => 'g',
-        '%NODE_NAME%' => $hostname,
-        '%NODE_IP%' => $ip
-    );
-
     # Split the DNS strings into arrays only if the variable is defined and not empty
     my @default_dns = split(/,/, get_default_dns);
     set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
 
-    # Start K8s server
-    # NOTE: autostart fails here because we changed some parameters in the config file
-    my $k8s_svc;
-    $k8s_svc = 'k3s' if ($k8s eq 'k3s');
-    $k8s_svc = 'rke2-server' if ($k8s eq 'rke2');
-    systemctl("start $k8s_svc", timeout => $timeout);
+    # We may have to modify some settings if a config.yaml file is present
+    # NOTE: We have to invert the return code as it is inverted between Bash and Perl
+    if (!script_run("[[ -s /etc/rancher/$k8s/config.yaml ]]")) {
+        # Update K8s configuration file
+        file_content_replace(
+            "/etc/rancher/$k8s/config.yaml", '--sed-modifier' => 'g',
+            '%NODE_NAME%' => $hostname,
+            '%NODE_IP%' => $ip
+        );
+
+        # Start K8s server
+        # NOTE: autostart fails here because we changed some parameters in the config file
+        my $k8s_svc;
+        $k8s_svc = 'k3s' if ($k8s eq 'k3s');
+        $k8s_svc = 'rke2-server' if ($k8s eq 'rke2');
+        systemctl("start $k8s_svc", timeout => $timeout);
+    }
 
     # Wait for kubectl command to be available
     wait_kubectl_cmd(timeout => $timeout);
