@@ -520,14 +520,6 @@ sub run {
     # Install requirements for SLE 16 staging tests
     install_requirements if check_var('FLAVOR', 'Online-Kernel-Utils-Updates-Staging');
 
-    # SLE Micro RT 5.1 image contains both kernel flavors, we need to remove kernel-default
-    if (is_sle_micro('=5.1') && check_var('SLE_PRODUCT', 'slert')) {
-        trup_call('pkg rm kernel-default');
-        # kernel-rt will be removed with kernel-default, we can't lock it before, we need to install it after
-        trup_call('-c pkg in kernel-rt');
-        reboot_on_changes;
-    }
-
     my $repo = (is_sle_micro('>=6.0') || is_sle('16+')) ? get_var('OS_TEST_REPOS') : get_var('KOTD_REPO');
     my $incident_id = undef;
     my $grub_param = get_var('APPEND_GRUB_PARAMS');

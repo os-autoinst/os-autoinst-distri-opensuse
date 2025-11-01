@@ -47,7 +47,7 @@ sub run {
     my $instance = $self->{my_instance} = $args->{my_instance};
 
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
-    $self->report_avc() unless (is_sle_micro('=5.1'));
+    $self->report_avc();
 
     # Check that xen-tools-domU is available
     if (is_ec2() && $instance->ssh_script_output('systemd-detect-virt') =~ /xen/) {
@@ -125,9 +125,7 @@ sub run {
     # SELinux tests
     my $getenforce = $instance->ssh_script_output('sudo getenforce');
     record_info("SELinux state", $getenforce);
-    if (is_sle_micro('=5.1')) {
-        die "SELinux should be disabled" unless ($getenforce =~ /Disabled/i);
-    } elsif (is_sle_micro('=5.2')) {
+    if (is_sle_micro('=5.2')) {
         die "SELinux should be permissive" unless ($getenforce =~ /Permissive/i);
     } elsif (is_sle_micro('<5.4')) {
         die "SELinux should be permissive" unless ($getenforce =~ /Permissive/i);
