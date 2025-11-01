@@ -17,8 +17,9 @@ use utils;
 use Utils::Architectures;
 use version_utils 'is_sle';
 use lockapi;
-use Utils::Logging 'save_and_upload_log';
+use Utils::Logging;
 use network_utils;
+use mm_network;
 
 sub new {
     my ($class, $args) = @_;
@@ -72,7 +73,7 @@ sub check_ipv6_addr {
     while ($tries > 0 && $no_ip) {
         $no_ip = 0;
         $output = script_output('ip a');
-        if ($output =~ /tentative/) {
+        if (($output !~ /inet6.*fe80/) || ($output =~ /tentative/)) {
             record_info('Waiting for IPv6 ready, still tentative state');
             $no_ip = 1;
         }
@@ -98,6 +99,8 @@ sub pre_run_hook {
     my ($self, $args) = @_;
     select_serial_terminal;
 
+    record_info('/etc/machine-id', script_output('cat /etc/machine-id'));
+
     # disable packagekitd
     quit_packagekit();
     ensure_service_disabled('apparmor');
@@ -112,4 +115,14 @@ sub pre_run_hook {
     $self->SUPER::pre_run_hook;
 }
 
+sub post_fail_hook {
+    my ($self, $args) = @_;
+    export_logs();
+    record_info('INTF STATUS', script_output('ip -s link show', proceed_on_failure => 1));
+}
+sub post_run_hook {
+    my ($self, $args) = @_;
+    export_logs();
+    record_info('INTF STATUS', script_output('ip -s link show', proceed_on_failure => 1));
+}
 1;
