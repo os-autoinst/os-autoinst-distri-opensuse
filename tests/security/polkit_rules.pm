@@ -14,20 +14,19 @@ use serial_terminal 'select_serial_terminal';
 sub run {
     select_serial_terminal;
 
-    my @files = qw(runtest go.mod testPolkit.go utils/utils.go tap/tap.go);
+    my @files = qw(runtest go.mod polkit_test.go utils.go);
     # install go and download test files
-    zypper_call 'in go';
+    zypper_call 'in go gotestsum';
     assert_script_run 'mkdir -p ~/testPolkit && cd ~/testPolkit';
     my $url = data_url("security/testPolkit/");
-    assert_script_run 'curl -s --create-dirs ' . join ' ', map { "-O $url/$_" } @files;
-    assert_script_run 'mkdir utils tap && mv utils.go utils/ && mv tap.go tap/';
+    assert_script_run 'curl -s ' . join ' ', map { "-O $url/$_" } @files;
 
     # run test and generate result file
-    assert_script_run("chmod +x ./runtest && ./runtest && mv testPolkit.tap /tmp/polkit_rules.tap");
+    assert_script_run("chmod +x ./runtest && ./runtest && mv results.xml /tmp/polkit_rules.xml");
 
     #cleanup after test
     assert_script_run("cd ~ && rm -rf testPolkit");
-    parse_extra_log('TAP', '/tmp/polkit_rules.tap');
+    parse_extra_log('XUnit', '/tmp/polkit_rules.xml');
 }
 
 sub test_flags {

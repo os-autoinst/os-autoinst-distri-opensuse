@@ -41,6 +41,14 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# build the go program
-go build -o testPolkit
-exec ./testPolkit
+# ensure gotestsum is installed
+if ! command -v gotestsum &> /dev/null; then
+    echo "gotestsum could not be found, please install it first."
+    exit 1
+fi  
+
+# empty the go test cache to avoid stale results
+go clean -testcache
+# run tests with gotestsum
+exec gotestsum --format=standard-verbose --junitfile results.xml
+
