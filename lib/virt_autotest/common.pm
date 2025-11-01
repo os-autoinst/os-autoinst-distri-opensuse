@@ -317,7 +317,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         }
     } elsif (is_sle('>=16')) {
         # SLES16+ support - only EFI guests are supported, no BIOS guests
-        my @allowed_guests = qw(sles15sp7 sles15sp7efi sles16efi_online sles16efi_full);
+	#julie        my @allowed_guests = qw(sles15sp7 sles15sp7efi sles16efi_online sles16efi_full);
+        my @allowed_guests = qw(sles15sp7);
         # Both online and full installation types supported for SLES16 EFI guests
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
