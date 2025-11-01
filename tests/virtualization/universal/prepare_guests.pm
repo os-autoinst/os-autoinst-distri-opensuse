@@ -148,7 +148,7 @@ sub gen_osinfo {
     my $info_op = $h_version > 15.2 ? "--osinfo" : "--os-variant";
 
     # Clean VM name by removing virtualization type suffixes (order matters: longer matches first)
-    my $clean_name = $vm_name =~ s/(efi_online|efi_full|HVM|PV|-efi-sev-es|efi)$//r;
+    my $clean_name = $vm_name =~ s/(efi_online|efi_full|HVM|PV|-efi-sev-es|efi).*$//r;
 
     # Generate OS identifier based on guest version
     my $info_val;

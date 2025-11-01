@@ -2758,6 +2758,10 @@ sub load_sles16_mu_virt_tests {
         # Host always needs package installation check and install if missing
         loadtest "virtualization/universal/install_update_package";
 
+        #Feature test specific preparation steps on host before vm installation
+        if (check_var('ENABLE_SNAPSHOTS', '1')) {
+            loadtest "virt_autotest/prepare_nvram_for_snapshot";
+        }
     }
 
     # Guest installation phase
