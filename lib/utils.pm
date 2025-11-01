@@ -240,7 +240,8 @@ see boot_grub_item()
 
 sub handle_grub_zvm {
     my ($console) = @_;
-    eval { $console->expect_3270(output_delim => 'GNU GRUB', timeout => 60); };
+    # match either "GNU GRUB" or "Welcome to GRUB!"
+    eval { $console->expect_3270(output_delim => qr/(?i:(?:GNU\s+GRUB|Welcome to GRUB!))/, timeout => 60); };
     if ($@) {
         diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
     }
