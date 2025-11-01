@@ -1162,6 +1162,15 @@ sub create_hana_vars_section {
     $hana_vars{sap_hana_install_instance_number} = get_required_var('INSTANCE_ID');
     $hana_vars{sap_domain} = get_var('SAP_DOMAIN', 'qesap.example.com');
     $hana_vars{use_sap_hana_sr_angi} = get_var('USE_SAP_HANA_SR_ANGI', 'false');
+    if (get_var('SLES4SAP_FIREWALL_PORTS')) {
+        my @ports = ('4{{ sap_hana_install_number }}01-4{{ sap_hana_install_number }}02/tcp');
+        my %config1;
+        $config1{port} = \@ports;
+        $config1{state} = 'enabled';
+        my @configs = (\%config1);
+        $hana_vars{sap_hana_install_firewall} = \@configs;
+        $hana_vars{sap_hana_install_update_firewall} = 'true';
+    }
     my @hana_sites = get_hana_site_names();
     $hana_vars{primary_site} = $hana_sites[0];
     $hana_vars{secondary_site} = $hana_sites[1];

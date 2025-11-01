@@ -234,10 +234,10 @@ sub run {
 
     # Prepare QESAP deployment
     qesap_prepare_env(provider => $provider_setting, region => get_required_var('PUBLIC_CLOUD_REGION'));
-    qesap_create_ansible_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
-    qesap_create_ansible_section(
+    qesap_ansible_create_section(
         ansible_section => 'hana_vars',
         section_content => create_hana_vars_section()) if $ha_enabled;
+    qesap_ansible_create_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
 
     # Clean leftover peerings (Azure only)
     if (is_azure() && get_var('IBSM_RG')) {
