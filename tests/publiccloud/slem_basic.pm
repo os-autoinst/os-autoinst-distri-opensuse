@@ -45,7 +45,6 @@ sub run {
     select_serial_terminal();
 
     my $instance = $self->{my_instance} = $args->{my_instance};
-
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
     $self->report_avc();
 
@@ -110,11 +109,16 @@ sub run {
     }
 
     # cockpit test
-    $instance->run_ssh_command(cmd => '! curl localhost:9090');
-    $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep inactive');
-    $instance->run_ssh_command(cmd => 'curl http://localhost:9090');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep active');
+    if (is_sle_micro('=6.2')) {
+        record_soft_failure('bsc#1252729 - [SLE-Micro][Migration] openQA test fails in slem_basic in cockpit check');
+    } else {
+        # expected not-active
+        $instance->run_ssh_command(cmd => '! curl localhost:9090');
+        $instance->run_ssh_command(cmd => '! systemctl is-active cockpit.service');
+        $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
+        $instance->run_ssh_command(cmd => 'curl http://localhost:9090');
+        $instance->run_ssh_command(cmd => 'systemctl is-active cockpit.service');
+    }
 
     unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
         # additional tr-up tests
