@@ -13,7 +13,7 @@
 # - System reboot
 # This prepares the system for crash testing.
 
-use base 'publiccloud::basetest';
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use utils;
 use sles4sap::azure_cli;
