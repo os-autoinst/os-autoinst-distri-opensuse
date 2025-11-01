@@ -76,7 +76,7 @@ our @EXPORT = qw(
   qesap_ansible_script_output
   qesap_ansible_fetch_file
   qesap_ansible_reg_module
-  qesap_create_ansible_section
+  qesap_ansible_create_section
   qesap_remote_hana_public_ips
   qesap_wait_for_ssh
   qesap_cluster_logs
@@ -154,7 +154,7 @@ sub qesap_get_variables {
     return \%variables;
 }
 
-=head3 qesap_create_ansible_section
+=head3 qesap_ansible_create_section
 
     Writes "ansible" section into yaml configuration file.
     $args{ansible_section} defines section(key) name.
@@ -162,24 +162,34 @@ sub qesap_get_variables {
 
     Example:
         @playbook_list = ("pre-cluster.yaml", "cluster_sbd_prep.yaml");
-        qesap_create_ansible_section(ansible_section=>'create', section_content=>\@playbook_list);
+        qesap_ansible_create_section(ansible_section=>'create', section_content=>\@playbook_list);
 
+=over
+
+=item B<ANSILE_SECTION> - name of the yaml section within the ansible section
+                          usually it is 'create', 'destroy' or 'hana_vars'
+
+=item B<SECTION_CONTENT> - content as a perl hash
+
+=back
 =cut
 
-sub qesap_create_ansible_section {
+sub qesap_ansible_create_section {
     my (%args) = @_;
-    my $ypp = YAML::PP->new;
-    my $section = $args{ansible_section} // 'no_section_provided';
-    my $content = $args{section_content} // {};
+    foreach (qw(ansible_section section_content)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
     my %paths = qesap_get_file_paths();
     my $yaml_config_path = $paths{qesap_conf_trgt};
 
     assert_script_run("test -e $yaml_config_path",
         fail_message => "Yaml config file '$yaml_config_path' does not exist.");
+
+    my $ypp = YAML::PP->new;
     my $raw_file = script_output("cat $yaml_config_path");
     my $yaml_data = $ypp->load_string($raw_file);
 
-    $yaml_data->{ansible}{$section} = $content;
+    die "Missing ansible section in $yaml_config_path" unless $yaml_data->{ansible};
+    $yaml_data->{ansible}{$args{ansible_section}} = $args{section_content};
 
     # write into file
     my $yaml_dumped = $ypp->dump_string($yaml_data);
