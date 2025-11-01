@@ -159,5 +159,12 @@ subtest '[get_ibsm_peering_name]' => sub {
     is get_ibsm_peering_name(source_vnet => 'source', target_vnet => 'target'), 'SDAF-source-target', 'Check naming composition';
 };
 
+subtest '[playbook_dir]' => sub {
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
+    $mock_lib->redefine(deployment_dir => sub { return '/Project/Zeta'; });
+
+    is playbook_dir(), '/Project/Zeta/sap-automation/deploy/ansible', 'Return correct ansible playbook dir path';
+
+};
 
 done_testing;

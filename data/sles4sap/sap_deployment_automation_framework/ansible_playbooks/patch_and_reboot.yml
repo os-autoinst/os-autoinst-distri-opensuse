@@ -1,0 +1,76 @@
+- name: "Apply and patch all SUT hosts"
+  hosts:
+    - "{{ sap_sid | upper }}_DB"
+    - "{{ sap_sid | upper }}_SCS"
+    - "{{ sap_sid | upper }}_ERS"
+    - "{{ sap_sid | upper }}_PAS"
+    - "{{ sap_sid | upper }}_APP"
+    - "{{ sap_sid | upper }}_WEB"
+  become: true
+  become_user: root
+  gather_facts: true
+
+  vars:
+    # Set use_reboottimeout default value to 1200,
+    # as for AWS 'r5b.metal' instance type the reboot elapses at least 800 seconds
+    use_reboottimeout: 1200
+    use_connecttimeout: 10
+
+  tasks:
+    - name: Check IBSm connection
+      ansible.builtin.command:
+        cmd: "ping -c 4 {{ repo_mirror_host }}"
+      register: ping_output
+
+    - name: Display ping result
+      ansible.builtin.debug:
+        msg: "[{{ inventory_hostname }}] IBSM ({{ repo_mirror_host }}) ping test: {{ ping_output.stdout }}"
+
+    - name: Zypper add repo
+      community.general.zypper_repository:
+        repo: "{{ item }}"
+        name: "TEST_{{ repo_id }}"
+        disable_gpg_check: true
+        autorefresh: true
+        state: present
+      loop: "{{ repo_list.split(',') }}"
+      loop_control:
+        index_var: repo_id
+      when: repo_list | length > 0
+      environment:
+        ZYPP_LOCK_TIMEOUT: '120'
+
+    - name: Refresh all repositories
+      community.general.zypper_repository:
+        repo: '*'
+        runrefresh: true
+
+#    - name: Apply all available patches
+#      community.general.zypper:
+#        name: '*'
+#        state: latest
+#        type: patch
+#      environment:
+#        ZYPP_LOCK_TIMEOUT: 120
+#      notify: Reboot after patch
+#
+    - name: Zypper remove repo
+      community.general.zypper_repository:
+        repo: "{{ item }}"
+        name: "TEST_{{ repo_id }}"
+        disable_gpg_check: true
+        autorefresh: true
+        state: absent
+      loop: "{{ repo_list.split(',') }}"
+      loop_control:
+        index_var: repo_id
+      when: repo_list | length > 0
+      environment:
+        ZYPP_LOCK_TIMEOUT: '120'
+#
+#  handlers:
+#    - name: Reboot after patch
+#      ansible.builtin.reboot:
+#        msg: "Reboot initiated by Ansible - after full patch system"
+#        reboot_timeout: "{{ use_reboottimeout | int }}"
+#        connect_timeout: "{{ use_connecttimeout | int }}"
