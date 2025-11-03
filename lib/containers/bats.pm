@@ -584,10 +584,13 @@ sub patch_sources {
 
     $test_dir = "/var/tmp/";
     run_command "cd $test_dir";
-    run_command "git clone https://github.com/$github_org/$package.git", timeout => 300;
+    my $clone_opts = "--quiet";
+    # If we don't have patches to apply, use a faster git-clone
+    $clone_opts .= " --branch $branch --depth=1" unless @patches;
+    run_command "git clone $clone_opts https://github.com/$github_org/$package.git", timeout => 300;
     $test_dir .= $package;
     run_command "cd $test_dir";
-    run_command "git checkout $branch";
+    run_command "git checkout $branch" if @patches;
 
     # We use GITHUB_PATCHES="none" to specify that we don't want to patch anything
     unless (check_var("GITHUB_PATCHES", "none")) {
