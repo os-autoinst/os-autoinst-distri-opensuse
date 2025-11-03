@@ -63,8 +63,10 @@ buildx:
 compose:
   # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
+  # https://github.com/docker/compose/pull/13334 - flaky compose_run_build_once_test
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
+    - 13334
   sle-16.0:
     GITHUB_PATCHES:
     - 13214
