@@ -23,7 +23,6 @@ use containers::common;
 use Utils::Backends qw(is_svirt);
 
 sub run_tests {
-    my $runtime = shift;
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
     record_info('buildah info', script_output("buildah info"));
     record_info('Test', "Pull image $image");
@@ -35,13 +34,9 @@ sub run_tests {
     validate_script_output('buildah containers', sub { /tumbleweed-working-container/ });
     validate_script_output("buildah run $container -- cat /etc/os-release", sub { /openSUSE Tumbleweed/ });
 
-    # When trying to install packages inside the container in Docker, there's a
-    # network failure
-    if ($runtime eq 'podman') {
-        record_info('Test', "Install arbitrary package in the container");
-        assert_script_run("buildah run $container -- zypper in -y perl", timeout => 600);
-        assert_script_run(qq{buildah run $container -- perl -e 'print("Hello World\\n");'});
-    }
+    record_info('Test', "Install arbitrary package in the container");
+    assert_script_run("buildah run $container -- zypper in -y perl", timeout => 600);
+    assert_script_run(qq{buildah run $container -- perl -e 'print("Hello World\\n");'});
 
     record_info('Test', "Add environment variable to the container");
     assert_script_run("buildah config --env foo=bar $container");
@@ -64,10 +59,7 @@ sub run_tests {
     record_info('Test', "Commit image and use it with podman or docker");
     assert_script_run("buildah commit $container newimage", timeout => 300);
     validate_script_output("buildah images", sub { /newimage/ });
-    # There's need to copy the new image to Docker's storage
-    assert_script_run('skopeo copy containers-storage:localhost/newimage:latest docker-daemon:localhost/newimage:latest')
-      if ($runtime eq 'docker');
-    validate_script_output("$runtime run --rm localhost/newimage", sub { /Test shall pass/ });
+    validate_script_output("podman run --rm localhost/newimage", sub { /Test shall pass/ });
 
     record_info('Test', "Create image with new tag");
     assert_script_run("buildah tag newimage newimage:sometag");
@@ -89,31 +81,22 @@ sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
 
-    my $runtime = $args->{runtime};
-
-    record_info('Test', "Install buildah along with $runtime");
     install_buildah_when_needed();
-    if ($runtime eq 'podman') {
-        install_podman_when_needed();
-    } elsif ($runtime eq 'docker') {
-        install_docker_when_needed();
-        zypper_call('install skopeo');
-    }
+    install_podman_when_needed();
     record_info('Version', script_output('buildah --version'));
     record_info('buildah info', script_output("buildah info"));
 
     # Run tests as user
-    if ($runtime eq "podman" && !is_public_cloud && !is_svirt) {
+    if (!is_public_cloud && !is_svirt) {
         select_user_serial_terminal;
         record_info('Test as user');
-        run_tests($runtime);
+        run_tests;
         select_serial_terminal;
     }
 
     # Run tests as root
     record_info('Test as root');
-    run_tests($runtime);
-
+    run_tests;
 }
 
 1;
