@@ -13,7 +13,7 @@ use serial_terminal qw(select_serial_terminal);
 use sles4sap::console_redirection;
 use sles4sap::azure_cli qw(az_keyvault_list);
 use sles4sap::sap_deployment_automation_framework::inventory_tools;
-use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_ssh_key_from_keyvault);
+use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_get_sut_ssh_key);
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 
 sub run {
@@ -34,6 +34,7 @@ sub run {
     # Connect serial to Deployer VM to get inventory file
     connect_target_to_serial();
 
+    sdaf_get_sut_ssh_key(target_file=>$private_key_src_path);
     my $inventory_data = read_inventory_file($inventory_path);
     # From now on all commands will be executed on worker VM
     disconnect_target_from_serial();

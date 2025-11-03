@@ -12,9 +12,9 @@ schedule:
   - sles4sap/sap_deployment_automation_framework/configure_deployer
   # - sles4sap/sap_deployment_automation_framework/deploy_workload_zone
   # - sles4sap/sap_deployment_automation_framework/deploy_sap_systems
+  # - sles4sap/sap_deployment_automation_framework/prepare_ssh_config
   - '{{maintenance_update}}'
   # - sles4sap/sap_deployment_automation_framework/execute_playbooks
-  # - sles4sap/sap_deployment_automation_framework/prepare_ssh_config
   # - sles4sap/redirection_tests/check_hana_database
   # - sles4sap/redirection_tests/check_ensa2_cluster
   # - sles4sap/redirection_tests/check_netweaver
@@ -25,7 +25,8 @@ conditional_schedule:
       1:
         # Configures VNET connection between SDAF SUT network and IBSM
         # - sles4sap/sap_deployment_automation_framework/ibsm_configure
-        - sles4sap/sap_deployment_automation_framework/ibsm_patch_and_reboot
+        #- sles4sap/sap_deployment_automation_framework/ibsm_patch_and_reboot
+        - sles4sap/sap_deployment_automation_framework/ibsm_patch_and_robot
   validate_repos:
     IS_MAINTENANCE:
       1:
