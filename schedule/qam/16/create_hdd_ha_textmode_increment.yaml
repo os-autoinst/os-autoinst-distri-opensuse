@@ -11,8 +11,8 @@ schedule:
   - '{{agama_install}}'
   - installation/first_boot
   - console/system_prepare
-  - qa_automation/patch_and_reboot
   - ha/check_hae_active.py
+  - qa_automation/patch_and_reboot
   - '{{generate_image}}'
 conditional_schedule:
   agama_install:

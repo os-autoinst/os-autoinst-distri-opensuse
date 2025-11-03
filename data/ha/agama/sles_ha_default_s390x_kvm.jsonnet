@@ -22,6 +22,11 @@
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true
   },
+  software: {
+    patterns: {
+      add: ['ha_sles']
+    }
+  },
   scripts: {
     post: [
       {

@@ -25,13 +25,15 @@ def check_suseconnect(self):
 
 def check_product_registration(self):
     '''
-    Check SUT is correctly registered to the SCC proxy. Re-register if it's not registered to
-    the proxy, if it's not registered or if it's missing /etc/SUSEConnect
+    Check SUT is correctly registered to the SCC or SCC proxy. Re-register if it's not registered
     '''
     # Retval 0 means file exists
+    # On sles 16+, /etc/SUSEConnect file is not present as system will register to SCC
+    # by default, the file is seen only when we define parmaeter 'init.register_url'
+    # during installation phase
     etc_suseconnect_exists = (int(script_run("test -f /etc/SUSEConnect")) == 0)
     scc_proxy_reg = False
-    scc_url = get_var("SCC_URL", f"http://all-{get_required_var('BUILD')}.proxy.scc.suse.de")
+    scc_url = get_var("SCC_URL", f"https://scc.suse.com")
 
     if (etc_suseconnect_exists):
         suseconnect_config = script_output("cat /etc/SUSEConnect")
@@ -40,9 +42,9 @@ def check_product_registration(self):
 
     is_registered = any([_["status"] == "Registered" for _ in json.loads(script_output("SUSEConnect --status"))])
     
-    if (not(etc_suseconnect_exists and is_registered and scc_proxy_reg)):
+    if (not is_registered):
         if (not etc_suseconnect_exists):
-            record_soft_failure("bsc#1239316 - Missing /etc/SUSEConnect config file")
+            record_info("bsc#1239316 - Missing /etc/SUSEConnect config file")
 
         if (not scc_proxy_reg):
             record_info('Softfail', "Not registered to the SCC proxy", "result", "softfail")
@@ -73,8 +75,11 @@ def run(self):
     record_info("SCC Status", script_output("SUSEConnect --status"))
     record_info("SCC Extensions", script_output("SUSEConnect --list-extensions"))
 
-    record_info("ha_sles", "Installing 'ha_sles' pattern")
-    perl.utils.zypper_call("in -t pattern ha_sles")
+    # Install pattern 'ha_sles' in case it is not installed by default
+    pattern_ha_sles_exists = (int(script_run("zypper patterns --installed-only | grep ha_sles")) == 0)
+    if (not pattern_ha_sles_exists):
+        record_info('Softfail', "pattern 'ha_sles' is not installed", "result", "softfail")
+        perl.utils.zypper_call("in -t pattern ha_sles")
 
 def test_flags(self):
     return {'fatal': 1, 'milestone': 1}

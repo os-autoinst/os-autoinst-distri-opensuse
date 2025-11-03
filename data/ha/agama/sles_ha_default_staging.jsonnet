@@ -27,6 +27,9 @@ local urls = std.split(repo, ",");
   },
   software: {
     packages: [],
+    patterns: {
+      add: ['ha_sles']
+    },
     extraRepositories:
       if repo != "" then
         [
