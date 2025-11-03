@@ -233,6 +233,16 @@ sub load_publiccloud_tests {
             load_maintenance_publiccloud_tests();
         } elsif (get_var('PUBLIC_CLOUD_HIMMELBLAU')) {
             loadtest('publiccloud/himmelblau');
+        } elsif (get_var('PUBLIC_CLOUD_APP_IMG')) {
+            my $publiccloud_app_img = get_var('PUBLIC_CLOUD_APP_IMG');
+            # This can be improved in the future with a hash like:
+            # app_name => 'publiccloud/app-images/test-to-load'
+            if ($publiccloud_app_img eq 'tomcat') {
+                loadtest('publiccloud/app-images/tomcat');
+            }
+            else {
+                die("Unknown PUBLIC_CLOUD_APP_IMG setting");
+            }
         } else {
             load_latest_publiccloud_tests();
         }
