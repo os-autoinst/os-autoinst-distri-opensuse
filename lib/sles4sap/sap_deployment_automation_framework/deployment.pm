@@ -22,13 +22,14 @@ use Scalar::Util 'looks_like_number';
 use Mojo::JSON qw(decode_json);
 use Mojo::Base -signatures;
 use publiccloud::utils qw(get_credentials);
-use sles4sap::azure_cli qw(az_keyvault_secret_list az_keyvault_secret_show az_group_name_get);
+use sles4sap::azure_cli qw(az_keyvault_secret_list az_keyvault_secret_show az_group_name_get az_keyvault_list);
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 
 our @EXPORT = qw(
   $output_log_file
   az_login
   sdaf_ssh_key_from_keyvault
+  sdaf_get_sut_ssh_key
   serial_console_diag_banner
   set_common_sdaf_os_env
   prepare_sdaf_project
@@ -442,6 +443,26 @@ sub sdaf_ssh_key_from_keyvault {
     }
 
     record_info('SSH KEY', "SSH public key '$target_path/$target_filename' is ready to be used.");
+}
+
+=head2 sdaf_get_sut_ssh_key
+
+    sdaf_get_sut_ssh_key([target_file=>'/path/to/glory/and_happiness']);
+
+Retrieves public and private SUT ssh key from keyvault and sets up permissions.
+
+=over
+
+=item * B<target_file>: Full file path, where to write the public key. Default '~/.ssh/id_rsa'
+
+=back
+=cut
+
+sub sdaf_get_sut_ssh_key {
+    my (%args) = @_;
+    my $workload_resource_group = generate_resource_group_name(deployment_type=>'workload_zone');
+    my $sut_keyvault = ${ az_keyvault_list(resource_group => $workload_resource_group )}[0];
+    sdaf_ssh_key_from_keyvault(key_vault=>$sut_keyvault, target_file=>$args{target_file});
 }
 
 =head2 serial_console_diag_banner
