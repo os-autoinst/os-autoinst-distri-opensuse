@@ -12,18 +12,12 @@ use utils;
 use version_utils;
 use publiccloud::utils;
 use main_common qw(loadtest);
-use testapi qw(check_var get_var get_required_var record_info);
+use testapi qw(check_var get_var);
 use Utils::Architectures qw(is_aarch64 is_s390x);
 use main_containers qw(load_container_tests);
 require bmwqemu;
 
 our @EXPORT = qw(load_publiccloud_tests load_publiccloud_download_repos);
-
-# A hash that defines which test to be loaded based on the input PUBLIC_CLOUD_APP_IMG
-# variable
-my %publiccloud_app_img_tests = (
-    tomcat => "publiccloud/app-images/tomcat.pm",
-);
 
 sub load_maintenance_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
@@ -240,10 +234,15 @@ sub load_publiccloud_tests {
         } elsif (get_var('PUBLIC_CLOUD_HIMMELBLAU')) {
             loadtest('publiccloud/himmelblau');
         } elsif (get_var('PUBLIC_CLOUD_APP_IMG')) {
-            my $publiccloud_app_img = get_required_var('PUBLIC_CLOUD_APP_IMG');
-            loadtest(
-                $publiccloud_app_img_tests{$publiccloud_app_img}
-            );
+            my $publiccloud_app_img = get_var('PUBLIC_CLOUD_APP_IMG');
+            # This can be improved in the future with a hash like:
+            # app_name => 'publiccloud/app-images/test-to-load'
+            if ($publiccloud_app_img eq 'tomcat') {
+                loadtest('publiccloud/app-images/tomcat');
+            }
+            else {
+                die("Unknown PUBLIC_CLOUD_APP_IMG setting");
+            }
         } else {
             load_latest_publiccloud_tests();
         }
