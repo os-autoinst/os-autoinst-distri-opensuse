@@ -106,11 +106,6 @@ sub load_secret_tests {
     loadtest('containers/secret', run_args => $run_args, name => 'secret_' . $run_args->{runtime});
 }
 
-sub load_buildah_tests {
-    my ($run_args) = @_;
-    loadtest('containers/buildah', run_args => $run_args, name => 'buildah_' . $run_args->{runtime});
-}
-
 sub load_image_tests_docker {
     my ($run_args) = @_;
     load_image_test($run_args);
@@ -180,7 +175,7 @@ sub load_host_tests_podman {
         loadtest 'containers/podman_remote' if (is_sle('>=15-SP3') || is_sle_micro('5.5+') || is_tumbleweed);
     }
     # Buildah is not available in SLE Micro, MicroOS and staging projects
-    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
+    loadtest('containers/buildah', run_args => $run_args, name => $run_args->{runtime} . "_buildah") unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_public_cloud || is_transactional);
@@ -206,7 +201,6 @@ sub load_host_tests_docker {
         loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation");
     }
     loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
-    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
