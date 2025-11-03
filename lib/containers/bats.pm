@@ -613,7 +613,7 @@ sub patch_sources {
         run_command $apply_cmd;
     }
 
-    if ($package eq "podman") {
+    if (check_var("BATS_PACKAGE", "podman")) {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";
         assert_script_run q(sed -ri 's/(bats_opts)=.*/\1=(--report-formatter junit)/' hack/bats);
