@@ -73,7 +73,7 @@ sub prepare_virtual_env {
         # Wait for any zypper tasks in the background to finish
         assert_script_run('while pgrep -f zypp; do sleep 1; done', timeout => 300);
         my $version = "$version.$sp";
-        if ($version =~ /12\./) {
+        if ($host_distri =~ /sles/i && $version =~ /12\./) {
             $should_pip_upgrade = 0;
             $should_create_venv = 0;
             $python = 'python3.11';
@@ -89,7 +89,9 @@ sub prepare_virtual_env {
         } elsif ($version =~ /15\.[4-7]/) {
             $python = 'python3.11';
             $pip = 'pip3.11';
-            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            if ($host_distri =~ /sles/i) {
+                script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            }
             push @packages, qw(git-core python311);
         } elsif ($version =~ /16/) {
             # Python 3.13 is the default vers. for SLE 16.0
