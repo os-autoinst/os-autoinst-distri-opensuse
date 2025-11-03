@@ -189,6 +189,11 @@ subtest 'bootloader_tests' => sub {
     set_var('VERSION', 'Staging:F');
     ok get_default_bootloader eq 'grub2-bls', "Tumbleweed/Staging:F on UEFI is grub2-bls";
 
+    set_var('DISTRI', 'sle-micro');
+    set_var('VERSION', '5.5');
+    set_var('FLAVOR', 'Default-Updates');
+    ok get_default_bootloader eq 'grub2', "SLE Micro 5.5 is grub2";
+
     set_var('DISTRI', 'microos');
     set_var('VERSION', 'Tumbleweed');
     set_var('FLAVOR', 'MicroOS-Image-ContainerHost');
