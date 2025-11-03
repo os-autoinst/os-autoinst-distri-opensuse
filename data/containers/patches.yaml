@@ -85,9 +85,6 @@ conmon:
   sle-16.0:
     GITHUB_PATCHES:
     - 579
-    - 597
-    - 602
-    - 603
 docker-py:
   # Note on patches:
   # https://github.com/docker/docker-py/pull/3199 - Bump default API version to 1.43 (Moby 24.0)
