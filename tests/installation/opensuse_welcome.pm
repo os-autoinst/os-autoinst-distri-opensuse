@@ -11,19 +11,23 @@ use base "x11test";
 use testapi;
 use utils;
 use x11utils qw(handle_welcome_screen turn_off_plasma_tooltips);
-use version_utils 'is_upgrade';
+use version_utils qw(is_upgrade is_leap);
 
 sub run {
-    # In case of upgrade scenario, check if opensuse_welcome window has been already deactivated from startup
+    my @tags = qw(generic-desktop opensuse-welcome);
+    push(@tags, qw(gnome-activities opensuse-welcome-gnome40-activities)) if check_var('DESKTOP', 'gnome');
+    assert_screen \@tags;
     if (is_upgrade) {
-        my @tags = qw(generic-desktop opensuse-welcome);
-        push(@tags, qw(gnome-activities opensuse-welcome-gnome40-activities)) if check_var('DESKTOP', 'gnome');
-        assert_screen \@tags;
+        # In case of upgrade scenario, check if opensuse_welcome window has been already deactivated from startup
         if (match_has_tag('opensuse-welcome') || match_has_tag('opensuse-welcome-gnome40-activities')) {
             handle_welcome_screen;
         }
     } else {
-        handle_welcome_screen;
+        if (match_has_tag('generic-desktop') && is_leap('=16.0')) {
+            record_soft_failure("bsc#1252847");
+        } else {
+            handle_welcome_screen;
+        }
     }
 
     # Workaround for boo#1211628
