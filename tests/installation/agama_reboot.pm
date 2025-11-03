@@ -84,10 +84,7 @@ sub run {
     reset_consoles();
     assert_and_click('agama-reboot-after-install');
 
-    # workaround for lack of disable bootloader timeout
-    # https://github.com/openSUSE/agama/issues/1594
-    # simply send space until we hit grub2
-    send_key_until_needlematch("grub2", 'spc', 50, 3);
+    $self->wait_grub;
 
 }
 
