@@ -469,8 +469,7 @@ sub boot_to_console {
     select_console('sol', await_console => 0) if is_ipmi;
     $self->wait_boot;
     select_serial_terminal;
-    assert_script_run('echo 1 >/sys/module/printk/parameters/ignore_loglevel')
-      unless is_sle('<12');
+    setup_kernel_logging;
 }
 
 sub install_requirements {
