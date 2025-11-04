@@ -327,6 +327,10 @@ sub load_container_tests {
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
+    if (is_sle('16.0+') && get_var('FLAVOR', '') =~ /increments|staging/i) {
+        loadtest 'qa_automation/patch_and_reboot';
+    }
+
     if (my $container_tests = get_var('CONTAINER_TESTS', '')) {
         loadtest "containers/$_" foreach (split(',\s*', $container_tests));
         return;
