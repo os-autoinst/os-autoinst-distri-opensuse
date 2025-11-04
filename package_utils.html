@@ -15,6 +15,7 @@
   <li><a href="#DESCRIPTION">DESCRIPTION</a>
     <ul>
       <li><a href="#install_package">install_package</a></li>
+      <li><a href="#uninstall_package">uninstall_package</a></li>
     </ul>
   </li>
 </ul><h1>lib/package_utils.pm</h1>
@@ -28,6 +29,12 @@
 <pre><code>install_package(&#39;kernel-devel&#39; [, trup_packages =&gt; &#39;kernel-default-base] [, zypper_packages =&gt; &#39;kernel-devel&#39;]);</code></pre>
 
 <p><code>packages</code> defines packages to install for both zypper and trup call, Parameters <code>trup_extra</code> and <code>zypper_extra</code> define transactional or zypper specific packages. <code>skip_trup</code> or <code>skip_zypper</code> will return from fucntion, record_info is used if sentence is argument value. <code>trup_reboot</code> parameter will run check_reboot_changes after trup_call, reboot if diff between the current FS and the new snapshot.</p>
+
+<h2 id="uninstall_package">uninstall_package</h2>
+
+<pre><code>uninstall_package(&#39;kernel-devel&#39; [, trup_extra =&gt; &#39;kernel-default-base&#39;] [, zypper_extra =&gt; &#39;kernel-devel&#39;]);</code></pre>
+
+<p><code>packages</code> defines packages to uninstall for both zypper and trup call, Parameters <code>trup_extra</code> and <code>zypper_extra</code> define transactional or zypper specific packages. <code>skip_trup</code> or <code>skip_zypper</code> will return from fucntion, record_info is used if sentence is argument value. <code>trup_continue</code> parameter will add changes to the default snapshot. Without this parameter, any changes in the default snapshot will be discarded and a new snapshot will be created based on the active one. <code>trup_reboot</code> parameter will run check_reboot_changes after trup_call, reboot if diff between the current FS and the new snapshot.</p>
 
 
 </body>
