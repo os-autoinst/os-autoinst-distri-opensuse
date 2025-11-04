@@ -586,13 +586,12 @@ sub patch_sources {
 
     $test_dir = "/var/tmp/";
     run_command "cd $test_dir";
-    my $clone_opts = "--quiet";
+    my $clone_opts = "--quiet --branch $branch";
     # If we don't have patches to apply, use a faster git-clone
-    $clone_opts .= " --branch $branch --depth=1" unless @patches;
+    $clone_opts .= " --depth=1" unless @patches;
     run_command "git clone $clone_opts https://github.com/$github_org/$package.git", timeout => 300;
     $test_dir .= $package;
     run_command "cd $test_dir";
-    run_command "git checkout $branch" if @patches;
 
     foreach my $patch (@patches) {
         my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
