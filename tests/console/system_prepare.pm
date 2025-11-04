@@ -113,6 +113,15 @@ sub run {
         modify_kernel_multiversion("enable");
     }
 
+    # hosts for containers testing should not be registered against proxy SCC
+    # unless they are still in product development phase
+    my $scc_file = '/etc/SUSEConnect';
+    if (get_var('FLAVOR', '') =~ /container-host/i && !get_var('BETA') && script_run(qq|grep -qE "^url:.*proxy" $scc_file 2> /dev/null|) == 0) {
+        assert_script_run('SUSEConnect -d');
+        assert_script_run("rm -f $scc_file");
+        assert_script_run(sprintf('SUSEConnect -r %s', get_required_var('SCC_REGCODE')));
+    }
+
     assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true', timeout => 200 if get_var('COLLECT_COREDUMPS');
 
     # stop and disable PackageKit
