@@ -64,7 +64,7 @@ END_SCRIPT
         }
         script_run("echo -n '' > /etc/hostname") if get_var('RESET_HOSTNAME');
 
-        assert_script_run('truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id');
+        assert_script_run('truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id') unless is_sle('<=15-SP2');
     }
     # Make some information available on common systems to help debug shutdown issues.
     if (get_var('DESKTOP', '') =~ qr/gnome|kde/) {
