@@ -23,6 +23,11 @@
     hashedPassword: true,
     sshPublicKey: 'enable ssh',
   },
+  software: {
+    patterns: {
+      add: ['ha_sles']
+    }
+  },
   scripts: {
     post: [
       {
