@@ -204,6 +204,23 @@ sub load_publiccloud_download_repos {
     loadtest 'shutdown/shutdown';
 }
 
+sub load_publiccloud_appimg_tests {
+    my $args = OpenQA::Test::RunArgs->new();
+    my $publiccloud_app_img = get_var('PUBLIC_CLOUD_APP_IMG');
+    loadtest "publiccloud/prepare_instance", run_args => $args;
+    loadtest("publiccloud/registration", run_args => $args);
+    loadtest "publiccloud/instance_overview", run_args => $args;
+
+    # This can be improved in the future with a hash like:
+    # app_name => 'publiccloud/app-images/test-to-load'
+    if ($publiccloud_app_img eq 'tomcat') {
+        loadtest('publiccloud/app-images/tomcat', run_args => $args);
+    }
+    else {
+        die("Unknown PUBLIC_CLOUD_APP_IMG setting");
+    }
+}
+
 =head2 load_publiccloud_tests
 
 C<load_publiccloud_tests> schedules the test jobs for the variety of groups.
@@ -234,15 +251,7 @@ sub load_publiccloud_tests {
         } elsif (get_var('PUBLIC_CLOUD_HIMMELBLAU')) {
             loadtest('publiccloud/himmelblau');
         } elsif (get_var('PUBLIC_CLOUD_APP_IMG')) {
-            my $publiccloud_app_img = get_var('PUBLIC_CLOUD_APP_IMG');
-            # This can be improved in the future with a hash like:
-            # app_name => 'publiccloud/app-images/test-to-load'
-            if ($publiccloud_app_img eq 'tomcat') {
-                loadtest('publiccloud/app-images/tomcat');
-            }
-            else {
-                die("Unknown PUBLIC_CLOUD_APP_IMG setting");
-            }
+            load_publiccloud_appimg_tests;
         } else {
             load_latest_publiccloud_tests();
         }
