@@ -610,7 +610,7 @@ sub run {
         reboot_on_changes;
     } elsif (!get_var('KGRAFT')) {
         power_action('reboot', textmode => 1);
-        reconnect_mgmt_console if is_pvm;
+        reconnect_mgmt_console if is_pvm || is_ipmi;
         $self->wait_boot if get_var('LTP_BAREMETAL');
     }
 }
