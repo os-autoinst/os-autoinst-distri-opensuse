@@ -45,7 +45,6 @@ sub run {
     select_serial_terminal();
 
     my $instance = $self->{my_instance} = $args->{my_instance};
-
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
     $self->report_avc();
 
@@ -110,11 +109,19 @@ sub run {
     }
 
     # cockpit test
-    $instance->run_ssh_command(cmd => '! curl localhost:9090');
-    $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep inactive');
-    $instance->run_ssh_command(cmd => 'curl http://localhost:9090');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep active');
+    if (is_sle_micro('=6.2')) {
+        # On SLEM 6.2 cockpit is enabled. It's under discussion if this is correct, see bsc#1252729
+        $instance->run_ssh_command(cmd => 'systemctl is-enabled cockpit.socket');
+        $instance->run_ssh_command(cmd => 'curl --no-progress-meter http://localhost:9090');
+        $instance->run_ssh_command(cmd => 'systemctl is-active cockpit.service');
+    } else {
+        # expected not-active
+        $instance->run_ssh_command(cmd => '! curl --no-progress-meter localhost:9090');
+        $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
+        $instance->run_ssh_command(cmd => '! systemctl is-active cockpit.service');
+        $instance->run_ssh_command(cmd => 'curl --no-progress-meter http://localhost:9090');
+        $instance->run_ssh_command(cmd => 'systemctl is-active cockpit.service');
+    }
 
     unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
         # additional tr-up tests
