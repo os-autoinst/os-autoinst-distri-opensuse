@@ -28,6 +28,7 @@ use Digest::MD5 qw(md5_hex);
 use Utils::Systemd qw(systemctl);
 use Utils::Logging qw(save_and_upload_log record_avc_selinux_alerts);
 use Carp qw(croak);
+use network_utils qw(iface);
 
 our @EXPORT = qw(
   $instance_password
@@ -570,7 +571,7 @@ Adds the IP address and the hostname of SUT to F</etc/hosts>. Croaks on failure.
 =cut
 
 sub add_hostname_to_hosts {
-    my $netdevice = get_var('SUT_NETDEVICE', 'eth0');
+    my $netdevice = get_var('SUT_NETDEVICE', iface());
     assert_script_run "echo \$(ip -4 addr show dev $netdevice | sed -rne '/inet/s/[[:blank:]]*inet ([0-9\\.]*).*/\\1/p') \$(hostname) >> /etc/hosts";
 }
 
