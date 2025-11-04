@@ -22,7 +22,7 @@
           <li><a href="#qesap_get_file_paths">qesap_get_file_paths</a></li>
           <li><a href="#qesap_create_folder_tree">qesap_create_folder_tree</a></li>
           <li><a href="#qesap_get_variables">qesap_get_variables</a></li>
-          <li><a href="#qesap_create_ansible_section">qesap_create_ansible_section</a></li>
+          <li><a href="#qesap_ansible_create_section">qesap_ansible_create_section</a></li>
           <li><a href="#qesap_venv_cmd_exec">qesap_venv_cmd_exec</a></li>
           <li><a href="#qesap_py">qesap_py</a></li>
           <li><a href="#qesap_pip">qesap_pip</a></li>
@@ -108,7 +108,7 @@ SPDX-License-Identifier: FSFAP</code></pre>
 searches for values in OpenQA defined variables.
 Returns hash with openqa variable key/value pairs.</code></pre>
 
-<h3 id="qesap_create_ansible_section">qesap_create_ansible_section</h3>
+<h3 id="qesap_ansible_create_section">qesap_ansible_create_section</h3>
 
 <pre><code>Writes &quot;ansible&quot; section into yaml configuration file.
 $args{ansible_section} defines section(key) name.
@@ -116,7 +116,19 @@ $args{section_content} defines content of names section.
 
 Example:
     @playbook_list = (&quot;pre-cluster.yaml&quot;, &quot;cluster_sbd_prep.yaml&quot;);
-    qesap_create_ansible_section(ansible_section=&gt;&#39;create&#39;, section_content=&gt;\@playbook_list);</code></pre>
+    qesap_ansible_create_section(ansible_section=&gt;&#39;create&#39;, section_content=&gt;\@playbook_list);</code></pre>
+
+<dl>
+
+<dt id="ANSILE_SECTION---name-of-the-yaml-section-within-the-ansible-section-usually-it-is-create-destroy-or-hana_vars"><b>ANSILE_SECTION</b> - name of the yaml section within the ansible section usually it is &#39;create&#39;, &#39;destroy&#39; or &#39;hana_vars&#39;</dt>
+<dd>
+
+</dd>
+<dt id="SECTION_CONTENT---content-as-a-perl-hash"><b>SECTION_CONTENT</b> - content as a perl hash</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h3 id="qesap_venv_cmd_exec">qesap_venv_cmd_exec</h3>
 
