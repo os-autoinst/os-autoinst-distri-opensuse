@@ -22,6 +22,10 @@
       <li><a href="#find_pods-Find-pods-using-kubectl-queries">find_pods Find pods using kubectl queries</a></li>
       <li><a href="#wait_for_k8s_job_complete-Wait-until-the-job-is-complete">wait_for_k8s_job_complete Wait until the job is complete</a></li>
       <li><a href="#validate_pod_logs-Validates-that-the-logs-contains-a-text">validate_pod_logs Validates that the logs contains a text</a></li>
+      <li><a href="#get_pod_name">get_pod_name</a></li>
+      <li><a href="#get_pod_logs">get_pod_logs</a></li>
+      <li><a href="#get_namespace_events">get_namespace_events</a></li>
+      <li><a href="#gather_k8s_logs">gather_k8s_logs</a></li>
     </ul>
   </li>
 </ul><h1>lib/containers/k8s.pm</h1>
@@ -41,6 +45,31 @@
 <h2 id="wait_for_k8s_job_complete-Wait-until-the-job-is-complete">wait_for_k8s_job_complete Wait until the job is complete</h2>
 
 <h2 id="validate_pod_logs-Validates-that-the-logs-contains-a-text">validate_pod_logs Validates that the logs contains a text</h2>
+
+<h2 id="get_pod_name">get_pod_name</h2>
+
+<pre><code>Gets the full Pod name based on a Label and the Value of that Label.
+e.g. get_pod_logs(&quot;component&quot;, &quot;nginx&quot;)
+
+We are getting the Pods by label instead of other methods as that makes it re-usable regardless of
+Workload type, e.g. Deployments, StatefulSets, Jobs and etc. </code></pre>
+
+<h2 id="get_pod_logs">get_pod_logs</h2>
+
+<pre><code>get_pod_logs($pod_name)
+e.g. get_pod_logs(&quot;postgrest-7f9d46ff77-87hj4&quot;)
+
+Gets the logs from a Pod running on Kubernetes and uploads them to the OpenQA Job.</code></pre>
+
+<h2 id="get_namespace_events">get_namespace_events</h2>
+
+<pre><code>Gets the Events from the currently active Kubernetes Namespace and uploads them to the OpenQA Job.</code></pre>
+
+<h2 id="gather_k8s_logs">gather_k8s_logs</h2>
+
+<pre><code>gather_k8s_logs($label, @list_of_components)
+
+Gets Events, general Pod status and specific Pod logs and uploads them to the OpenQA Job.</code></pre>
 
 
 </body>
