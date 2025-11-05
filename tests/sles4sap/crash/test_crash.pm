@@ -50,7 +50,7 @@ sub run {
     if ($cloud_provider_name eq 'EC2') {
         my $aws_prefix = get_var('DEPLOY_PREFIX', 'clne');
         my $job_id = $aws_prefix . get_current_job_id();
-        $vm_ip = aws_get_ip_address(aws_get_vm_id(get_required_var('PUBLIC_CLOUD_REGION'), $job_id));
+        $vm_ip = aws_get_ip_address(instance_id => aws_vm_get_id(region => get_required_var('PUBLIC_CLOUD_REGION'), job_id => $job_id));
     }
     if ($cloud_provider_name eq 'AZURE') {
         $vm_ip = get_required_var('VM_IP');
