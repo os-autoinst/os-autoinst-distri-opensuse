@@ -74,10 +74,7 @@ sub run {
         curl -f -v " . autoinst_url . "/data/slenkins/ssh/authorized_keys > /root/.ssh/authorized_keys
         cp /root/.ssh/authorized_keys /home/testuser/.ssh/authorized_keys
         chown -R testuser /home/testuser/.ssh
-        chmod 600 /root/.ssh/*
-        chmod 700 /root/.ssh
-        chmod 600 /home/testuser/.ssh/*
-        chmod 700 /home/testuser/.ssh
+        chmod go-rwx -R /root/.ssh /home/testuser/.ssh
         systemctl disable $firewallservice
         systemctl stop $firewallservice
         systemctl restart sshd
