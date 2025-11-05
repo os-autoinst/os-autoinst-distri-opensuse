@@ -623,6 +623,34 @@ subtest '[qesap_ansible_create_section]' => sub {
     #     - DEB
     #   something: 'true'
     like($yaml_data, qr/- PEACH/, 'List test');
+    @calls = ();
+
+    my %data4;
+    my @ports = ('4{{ sap_hana_install_number }}01-4{{ sap_hana_install_number }}02/tcp');
+    my %config1;
+    $config1{port} = \@ports;
+    $config1{state} = 'true';
+    my @configs = (\%config1);
+    $data4{sap_hana_install_firewall} = \@configs;
+    qesap_ansible_create_section(
+        ansible_section => 'hana_vars',
+        section_content => \%data4);
+    # Expected YAML content
+    # ansible:
+    #   hana_vars:
+    #     sap_hana_install_firewall:
+    #       - port:
+    #          - 4{{ sap_hana_install_number }}01-4{{ sap_hana_install_number }}02/tcp
+    #         state: enabled
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("YAML_PATH:$yaml_path YAML_DATA:$yaml_data");
+
+    my $ypp = YAML::PP->new;
+    my $data = $ypp->load_string($yaml_data);
+    ok(($data->{ansible}), 'Top key is ansible');
+    ok(($data->{ansible}{hana_vars}), 'Next key is hana_var');
+    ok(($data->{ansible}{hana_vars}{sap_hana_install_firewall}), 'First added key sap_hana_install_firewall');
+    ok(($data->{ansible}{hana_vars}{sap_hana_install_firewall}[0]{port}), 'First element has key port');
 };
 
 done_testing;
