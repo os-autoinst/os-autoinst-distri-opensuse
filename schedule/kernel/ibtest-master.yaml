@@ -11,7 +11,6 @@ vars:
     IPXE: 1
     IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de
     IPXE_CONSOLE: ttyS1,115200
-    MLX_PROTOCOL: 1
     PATTERNS: base,minimal
     SCC_ADDONS: sdk
 schedule:
@@ -34,8 +33,7 @@ schedule:
     - installation/await_install
     - installation/logs_from_installation_system
     - installation/reboot_after_installation
-    - installation/handle_reboot
-    - installation/first_boot
+    - kernel/update_kernel
     - kernel/ibtests_prepare
     - installation/handle_reboot
     - kernel/ibtests
