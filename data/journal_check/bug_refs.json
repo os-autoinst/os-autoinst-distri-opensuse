@@ -867,7 +867,8 @@
         "description": "sshd-session.*(error|fatal).*(mm_reap: preauth child terminated|mm_request_receive: read: Broken pipe|mm_request_receive: read: Connection reset by peer)",
         "products": {
             "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "sle": ["16.0"]
         },
         "type": "bug"
     },
