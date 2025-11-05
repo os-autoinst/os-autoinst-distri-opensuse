@@ -36,7 +36,7 @@ sub run {
     assert_script_run("curl -v -o $ssh_dir/config " . data_url('elemental3/config.ssh'));
     assert_script_run("curl -v -o /tmp/id_ssh " . data_url('elemental3/id_ssh'));
     assert_script_run("base64 -d /tmp/id_ssh > $ssh_dir/id_rsa");
-    assert_script_run("chmod 700 $ssh_dir && chmod 600 $ssh_dir/*");
+    assert_script_run("chmod -R go-rwx $ssh_dir");
 
     # Clone test framework repository
     git_clone(
