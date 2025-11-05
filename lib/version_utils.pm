@@ -944,8 +944,8 @@ or greater than the second one, respectively.
 sub package_version_cmp {
     my ($ver1, $ver2) = @_;
 
-    my @chunks1 = split(/-/, $ver1);
-    my @chunks2 = split(/-/, $ver2);
+    my @chunks1 = split(/[+-]/, $ver1);
+    my @chunks2 = split(/[+-]/, $ver2);
     my $chunk_cnt = $#chunks1 > $#chunks2 ? scalar @chunks1 : scalar @chunks2;
 
     for (my $cid = 0; $cid < $chunk_cnt; $cid++) {
