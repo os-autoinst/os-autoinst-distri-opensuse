@@ -291,7 +291,7 @@ sub run {
         send_key 'ret';
     }
 
-    if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
+    if ((is_bootloader_sdboot || is_bootloader_grub2_bls) && !is_wsl) {
         send_key_until_needlematch 'jeos-fde-option-enroll-recovery-key', 'down' unless check_screen('jeos-fde-option-enroll-recovery-key', 1);
         send_key 'ret';
 
@@ -367,7 +367,7 @@ sub run {
     }
 
 
-    if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
+    if ((is_bootloader_sdboot || is_bootloader_grub2_bls) && !is_wsl) {
         # Verify that /etc/issue shows the recovery key
         wait_serial(qr/^Recovery key:\s+(([a-z]+-)+[a-z]+)/m) or die 'The encryption recovery key is missing';
     }
