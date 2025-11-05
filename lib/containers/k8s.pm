@@ -21,7 +21,7 @@ use version_utils qw(is_sle is_microos is_public_cloud is_transactional is_sle_m
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
 
-our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
+our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log get_pod_logs gather_k8s_logs);
 
 sub check_k3s {
     record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
@@ -227,6 +227,74 @@ Validates that the logs contains a text
 sub validate_pod_log {
     my ($pod, $text) = @_;
     validate_script_output("kubectl logs $pod 2>&1", qr/$text/, timeout => 180);
+}
+
+=head2 get_pod_name
+
+    Gets the full Pod name based on a Label and the Value of that Label.
+    e.g. get_pod_logs("component", "nginx")
+
+    We are getting the Pods by label instead of other methods as that makes it re-usable regardless of
+    Workload type, e.g. Deployments, StatefulSets, Jobs and etc. 
+
+=cut
+
+sub get_pod_name {
+    my ($label, $value) = @_;
+    return script_output("kubectl get pods --no-headers -l $label=$value -o custom-columns=':metadata.name'");
+}
+
+
+=head2 get_pod_logs
+
+    get_pod_logs($pod_name)
+    e.g. get_pod_logs("postgrest-7f9d46ff77-87hj4")
+
+    Gets the logs from a Pod running on Kubernetes and uploads them to the OpenQA Job.
+
+=cut
+
+sub get_pod_logs {
+    my ($pod_name) = @_;
+    my $logfile = "/tmp/$pod_name.txt";
+
+    assert_script_run("kubectl logs pods/$pod_name --all-containers=true > $logfile", timeout => 180, title => "$pod_name logs", fail_message => "Error getting $pod_name logs!");
+    upload_logs("$logfile");
+}
+
+=head2 get_namespace_events
+
+    Gets the Events from the currently active Kubernetes Namespace and uploads them to the OpenQA Job.
+
+=cut
+
+sub get_namespace_events {
+    my $logfile = "/tmp/namespace_events.txt";
+    assert_script_run("kubectl events > $logfile", timeout => 120, title => "K8s Events", fail_message => "Error getting K8s Events!");
+    upload_logs("$logfile");
+}
+
+=head2 gather_k8s_logs
+
+    gather_k8s_logs($label, @list_of_components)
+
+    Gets Events, general Pod status and specific Pod logs and uploads them to the OpenQA Job.
+
+=cut
+
+sub gather_k8s_logs {
+    my $label = shift;
+    my (@components) = @_;
+
+    script_run("kubectl get pods > /tmp/k8s_pods.txt");
+    upload_logs("/tmp/k8s_pods.txt");
+    get_namespace_events();
+
+    foreach my $component (@components) {
+        my $pod_name = get_pod_name($label, $component);
+        get_pod_logs($pod_name);
+    }
+
 }
 
 1;

@@ -18,15 +18,15 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
 use containers::helm;
-use containers::k8s qw(install_kubectl install_helm);
+use containers::k8s qw(install_kubectl install_helm gather_k8s_logs);
 
 our $release_name = "privateregistry";
+our @private_registry_components = qw(core jobservice portal registry database redis trivy);
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @private_registry_components = qw(core jobservice portal registry database redis trivy);
     my $test_image = "registry.suse.com/bci/bci-busybox";
     my $test_chart = "dummy_chart";
 
@@ -54,7 +54,6 @@ sub run {
         my $traefik_pod = script_output("kubectl get pods -n kube-system --no-headers -l app.kubernetes.io/name=traefik -o custom-columns=':metadata.name'");
         validate_script_output_retry("kubectl get pod $traefik_pod -n kube-system --no-headers -o 'jsonpath={.status.conditions[?(@.type==\"Ready\")].status}'", qr/True/, title => "Traefik readiness");
     }
-
 
     # Get the webui credentials & ingress url
     my $registry_password = script_output("kubectl get secrets $release_name-harbor-core --template={{.data.HARBOR_ADMIN_PASSWORD}} | base64 -d -w 0");
@@ -85,6 +84,7 @@ sub post_fail_hook {
     my ($self) = @_;
     script_run('tar -capf /tmp/containers-logs.tar.xz /var/log/pods $(find /var/lib/rancher/k3s -name \*.log -name \*.toml)');
     upload_logs("/tmp/containers-logs.tar.xz");
+    gather_k8s_logs('component', @private_registry_components);
     script_run("helm delete $release_name");
 }
 

@@ -18,7 +18,9 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
 use containers::helm;
-use containers::k8s qw(install_kubectl install_helm);
+use containers::k8s qw(install_kubectl install_helm gather_k8s_logs);
+
+our @rmt_components = qw(front app db);
 
 sub run {
     my ($self) = @_;
@@ -34,6 +36,7 @@ sub run {
     my $rmtapp = $rmts[0];
     # Wait for app to be running for at most 10 minutes
     validate_script_output_retry("kubectl get pods", sub { m/rmt-app.* .* Running .*/ }, retry => 20, delay => 30);
+
     # Wait for rmt to sync all repos for 1h
     validate_script_output_retry("kubectl logs $rmtapp", sub { m/All repositories have already been enabled/ }, retry => 60, delay => 30);
     assert_script_run("kubectl exec $rmtapp -- rmt-cli repos list");
@@ -44,6 +47,7 @@ sub post_fail_hook {
     my ($self) = @_;
     script_run('tar -capf /tmp/containers-logs.tar.xz /var/log/pods $(find /var/lib/rancher/k3s -name \*.log -name \*.toml)');
     upload_logs("/tmp/containers-logs.tar.xz");
+    gather_k8s_logs('component', @rmt_components);
     script_run("helm delete rmt");
 }
 
