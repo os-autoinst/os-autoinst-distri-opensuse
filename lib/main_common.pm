@@ -2601,13 +2601,13 @@ sub set_sles16_mu_virt_vars {
     # SLES16 MU testing only supports staging mode
     # - FLAVOR contains "staging" AND INCIDENT_REPO is set → Staging mode
 
-    if (get_var('FLAVOR', '') =~ /staging/i && get_var('INCIDENT_REPO')) {
+    if (get_var('FLAVOR', '') =~ /staging/i && (get_var('INCIDENT_REPO') or get_var('BUILD', '') =~ /none/i)) {
         # Staging mode: Use dedicated virt staging profile for KVM patterns
         set_var('INST_AUTO', 'virtualization/agama_virt_auto/sle_virt_default_staging.jsonnet');
-        diag("Staging mode detected (FLAVOR contains staging and INCIDENT_REPO is set): using virtualization/agama_virt_auto/sle_virt_default_staging.jsonnet for installation");
+        diag("Staging mode detected (FLAVOR contains staging): using virtualization/agama_virt_auto/sle_virt_default_staging.jsonnet for installation");
     } else {
         # No valid mode detected, exit test immediately
-        die("SLES16 MU test requires staging mode - FLAVOR must contain 'staging' with INCIDENT_REPO set");
+        die("SLES16 MU test requires staging mode - FLAVOR must contain 'staging'");
     }
 
     # Parse BUILD variable and set UPDATE_PACKAGE (format example: BUILD=:345:qemu)
