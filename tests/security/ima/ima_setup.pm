@@ -36,8 +36,7 @@ sub run {
 
     # Reboot to make settings work
     power_action('reboot', textmode => 1);
-    my $boot_method = ((is_aarch64 && is_sle('>=16')) ? 'wait_boot_past_bootloader' : 'wait_boot');
-    $self->$boot_method;
+    $self->wait_boot;
     select_serial_terminal;
 }
 
