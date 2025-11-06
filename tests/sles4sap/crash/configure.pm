@@ -79,7 +79,7 @@ sub run {
     my $vm_ip = '';
 
     if ($provider eq 'EC2') {
-        $vm_ip = aws_get_ip_address(aws_get_vm_id(get_required_var('PUBLIC_CLOUD_REGION'), $job_id));
+        $vm_ip = aws_get_ip_address(instance_id => aws_vm_get_id(region => get_required_var('PUBLIC_CLOUD_REGION'), job_id => $job_id));
     }
     elsif ($provider eq 'AZURE') {
         $vm_ip = az_network_publicip_get(resource_group => $job_id, name => $prefix . "-pub_ip");
