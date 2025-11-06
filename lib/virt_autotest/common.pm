@@ -417,6 +417,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp7 => {
             vm_name => 'sles-15.7_openQA-virtualization-maintenance',
         },
+        'sles16.0' => {
+            vm_name => 'sles-16.0_openQA-virtualization-maintenance',
+        },
     );
     %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
 }
