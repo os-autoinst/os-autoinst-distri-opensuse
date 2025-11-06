@@ -1,11 +1,58 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Check that deployed resource in the cloud are as expected
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Verifie that the cloud resources and guest OS are correctly configured after deployment.
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-use Mojo::JSON qw(decode_json);
+=head1 NAME
+
+cloud_netconfig/sanity.pm - Sanity check for the cloud-netconfig test environment
+
+=head1 DESCRIPTION
+
+This module performs a sanity check on the environment created by C<deploy.pm>.
+It verifies that the Azure infrastructure and the guest OS network
+configuration are in the expected state before running functional tests.
+
+The main goal is to ensure that the complex network setup (one NIC with three
+IP configurations) has been correctly applied and is recognized by both the
+cloud provider and the guest operating system.
+
+The test performs the following checks:
+
+=over 4
+
+=item * Verifies that the Azure resource group and virtual machine are running.
+
+=item * Checks that the VM is accessible via SSH.
+
+=item * Confirms that the C<cloud-netconfig> package is installed and the service is active within the guest OS.
+
+=item * Inspects the C<eth0> network interface inside the VM to ensure it has exactly three IPv4 addresses.
+
+=item * Queries the Azure metadata service from within the VM to confirm
+        that the cloud provider also reports three IP configurations for the interface.
+
+=back
+
+=head1 VARIABLES
+
+=over 4
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider. Currently, only 'AZURE' is supported for this test.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
 use Mojo::Base 'publiccloud::basetest';
+use Mojo::JSON qw(decode_json);
 use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
