@@ -769,7 +769,7 @@ sub check_cluster_state {
     # We may want to check cluster state without stopping the test
     my $cmd_sub = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
 
-    $cmd_sub->("$crm_mon_cmd");
+    $cmd_sub->("$crm_mon_cmd", 180);
     if (is_sle '12-sp3+') {
         # Add sleep as command 'crm_mon' outputs 'Inactive resources:' instead of 'no inactive resources' on 12-sp5
         sleep 5;
