@@ -114,6 +114,7 @@ sub load_kernel_tests {
             is_opensuse) {
             loadtest_kernel 'install_klp_product';
         }
+        shutdown_ltp();
     }
     elsif (get_var('INSTALL_KLP_PRODUCT')) {
         loadtest_kernel 'boot_ltp';
