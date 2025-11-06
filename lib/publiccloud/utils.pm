@@ -25,6 +25,7 @@ use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_o
 use transactional qw(reboot_on_changes trup_call process_reboot);
 use registration qw(get_addon_fullname add_suseconnect_product %ADDONS_REGCODE);
 use maintenance_smelt qw(is_embargo_update);
+use Data::Dumper;
 
 # Indicating if the openQA port has been already allowed via SELinux policies
 my $openqa_port_allowed = 0;
@@ -66,6 +67,7 @@ our @EXPORT = qw(
   wait_quit_zypper_pc
   detect_worker_ip
   upload_asset_on_remote
+  zypper_call_remote
 );
 
 # Check if we are a BYOS test run
@@ -460,20 +462,19 @@ Transactional systems like SLE micro used C<transactional_update up> and reboot.
 
 sub ssh_update_transactional_system {
     my ($instance) = @_;
-    my $cmd_time = time();
-    my $cmd = "sudo transactional-update -n up";
     my $cmd_name = "transactional update";
-    # first run, possible update of packager
-    my $ret = $instance->ssh_script_run(cmd => $cmd, timeout => 1500);
-    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-    record_info($cmd_name, 'The command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
-    die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102 && $ret != 103);
-    # second run, full system update
-    $cmd_time = time();
-    $ret = $instance->ssh_script_run(cmd => $cmd, timeout => 6000);
-    $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-    record_info($cmd_name, 'The second command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
-    die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102);
+    my @t = (1500, 6000);
+    my $code = 103;
+    # 1st run, possible update of packager
+    # 2nd run, full system update
+    for (0 .. 1) {
+        my $cmd_time = time();
+        # run "sudo transactional-update -n up";
+        my $ret = $instance->zypper_call_remote(timeout => $t[$_]);
+        record_info($cmd_name, 'The command ' . $cmd_name . ' took ' . (time() - $cmd_time) . ' seconds.');
+        die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102 && $ret != $code);
+        $code = 0;
+    }
 }
 
 =head2 get_python_exec
@@ -884,5 +885,113 @@ sub upload_asset_on_remote {
     my $mv_cmd = $prefix . "mv /tmp/$filename $destination_path";
     $instance->ssh_assert_script_run($mv_cmd);
 }
+
+
+=head2 zypper_call_remote
+
+zypper_call_remote($instance, $cmd, %args)
+
+Remote package management.
+To run on a remote public cloud vm instance a non-interative system manager
+zypper or a transactional-update package command (depending on 'DISTRI'),
+accepting in input the subcommand, then composing the full command to run.
+Free command input also allowed, skipping pre-composition,
+  when 'zypper' or 'transactional-update' already present in input;
+  useful when needing to run a complex one-liner or pipeline package management command.
+
+Parameters:
+  $instance: pointer to publiccloud instance class;
+  $cmd|$args{cmd}: default:'update'; subcommand of zypper or tr-up package management to run
+    OR free full command line, including zypper/tr-up command;
+  %args: dictionary of the arguments defined in input, like: (argument => value, ...):
+    $args{log}: full-path-filename, to save output for upload;
+    $args{global_options}: global options before subcommand, default '-n', as by documentation;
+    $args{environment}: eventual in-line shell pre-setting (i.e. "LANG=C zypper lr ...");
+    $args{proceed_on_failure}: default=0: works as assertion; 1: doesn't stop on error.
+    $args{retry}: to trigger remote retries on error, by default (0) inactve.
+    Included all the $args{...} of run_ssh_command()/retry_ssh_command(), form lib/publiccloud/instance.pm.
+
+Return, same as run_ssh_command(): rc_only=1 [default], as script_run; rc_only=0, as script_output.
+
+=cut
+
+sub zypper_call_remote {
+    my $instance = shift;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    return unless ($instance);
+
+    # preset
+    $args{rc_only} //= 1;
+    $args{retry} //= 0;
+    $args{proceed_on_failure} //= 0;
+    $args{global_options} //= '-n';
+    $args{environment} //= '';
+    my $log = $args{log};
+    my $printer = ($log) ? "| tee $log; ( exit \${PIPESTATUS[0]} )" : '';
+    my $subcmd = $args{cmd};
+    my $command;
+    my $ret;
+
+    # compose command
+    # accept full command line (expert) entry, skipping next helper pre-composition,
+    $command = $subcmd if ($subcmd =~ /((^|\b)transactional-update\b)(?![-\/])/ || $subcmd =~ /((^|\b)zypper\b)(?![-\/])/);
+    # compose tran-up command
+    $command = zypper_trup_composer(%args) if (!$command && is_transactional);
+    # compose zypper command; default 'update'
+    $subcmd //= 'up';
+    $command = "sudo $args{environment} zypper $args{global_options} " . $subcmd unless ($command);
+    # cmd setup
+    $args{cmd} = $command . $printer;
+    # remove extra-args
+    delete($args{environment});
+    delete($args{global_option});
+    delete($args{log});
+
+    # run command
+    diag("zypper_call_remote: $command\n args: " . Dumper(%args));
+    if ($args{retry} > 1) {
+        $ret = $instance->retry_ssh_command(%args);
+    } else {
+        $ret = $instance->run_ssh_command(%args);
+    }
+
+    # result
+    if ($args{rc_only}) {
+        croak("ERROR zypper remote: $command\n exit: $ret") unless (($ret // -1) == 0 || $args{proceed_on_failure});
+    }
+    #
+    if (is_transactional) {
+        my ($t, $t_up);
+        ($t, $t_up) = $instance->softreboot(get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT')) if ($ret == 0);
+        croak("ERROR tr-up remote: reboot failed") unless ($t_up || $args{proceed_on_failure});
+    }
+    $instance->upload_log($log) if ($log);
+    record_info("zypper remote", "Command: $command \nResult: $ret " . ($log ? "\nOutput in: $log" : ''));
+    return $ret;
+}
+
+sub zypper_trup_composer {
+    # transactional package command composer for zypper remote
+    my %args = @_;
+    my $subcmd = $args{cmd};
+    my $trup = "sudo $args{environment} transactional-update $args{global_options} ";
+    return $trup unless ($subcmd);    # default: update
+
+    # validate package command
+    my @transact_package_cmd = qw(update up dist-upgrade dup patch register migration pkg);
+    my @cmd = grep { $subcmd =~ /\b$_\b/ } @transact_package_cmd;
+    unless (scalar @cmd) {
+        # no package-command found, but normal zypper list commands shall proceed
+        return;
+    } elsif ($cmd[0] eq 'pkg') {
+        # validate sub-command
+        my @transact_package_subcmd = qw(install in remove rm update up);
+        my @cmd = grep { $subcmd =~ /\b$_\b/ } @transact_package_subcmd;
+        croak("ERROR: wrong transactional package sub-command\n" . $subcmd) unless (scalar @cmd);
+    }
+    my $command = $trup . $subcmd;
+    return $command;
+}
+
 
 1;
