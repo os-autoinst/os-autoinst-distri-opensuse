@@ -137,8 +137,9 @@ sub get_solutions {
 
     tune_baseline('/path/to/baseline_file');
 
-Replaces in a baseline pattern file the values of B<fs.file-max> or of the TMPFS on B</dev/shm> for the existing
-value prepended by B<~~>. This makes the matching not exact, and instead checks against a 5% deviation of the value.
+Replaces in a baseline pattern file the values of B<fs.file-max> or
+of the TMPFS on B</dev/shm> for the existing value prepended by B<~~>.
+This makes the matching not exact, and instead checks against a 5% deviation of the value.
 This is useful in some tests.
 
 =cut

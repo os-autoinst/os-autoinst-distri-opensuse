@@ -1046,7 +1046,8 @@ sub create_playbook_section_list {
     }
 
     unless ($args{registration} eq 'noreg') {
-        # Add "fully patch system" module after registration module and before test start/configuration modules.
+        # Add "fully patch system" module after registration module
+        # and before test start/configuration modules.
         # Temporary moved inside noreg condition to avoid test without Ansible to fails.
         # To be properly addressed in the caller and fully-patch-system can be placed back out of the if.
         push @playbook_list, 'fully-patch-system.yaml';

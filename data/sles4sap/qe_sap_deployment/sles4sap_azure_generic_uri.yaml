@@ -7,7 +7,7 @@
 #   Settings are meant to be controlled via OpenQA variables and managed by test:
 #   tests/sles4sap/publiccloud/qesap_ansible.pm
 provider: 'azure'
-apiver: 3
+apiver: 4
 terraform:
   variables:
     # GENERAL VARIABLES #
@@ -45,6 +45,3 @@ ansible:
     - '%HANA_SAR%'
     - '%HANA_CLIENT_SAR%'
     - '%HANA_SAPCAR%'
-  destroy:
-    - deregister.yaml
-

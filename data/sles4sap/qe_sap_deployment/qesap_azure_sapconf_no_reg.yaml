@@ -5,7 +5,7 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Generic yaml template for use with qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
 provider: 'azure'
-apiver: 3
+apiver: 4
 terraform:
   bin: '%TERRAFORM_RUNNER%'
   variables:
@@ -34,16 +34,16 @@ ansible:
     primary_site: 'goofy'
     secondary_site: 'miky'
     use_sap_hana_sr_angi: '%USE_SR_ANGI%'
-  create:
-    - fully-patch-system.yaml
-    - pre-cluster.yaml
-    - sap-hana-preconfigure.yaml -e use_sapconf=true -e use_reboottimeout=900
-    - cluster_sbd_prep.yaml
-    - sap-hana-storage.yaml
-    - sap-hana-download-media.yaml
-    - sap-hana-install.yaml
-    - sap-hana-system-replication.yaml
-    - sap-hana-system-replication-hooks.yaml
-    - sap-hana-cluster.yaml
-  destroy:
+  sequences:
+    create:
+      - fully-patch-system.yaml
+      - pre-cluster.yaml
+      - sap-hana-preconfigure.yaml -e use_sapconf=true -e use_reboottimeout=900
+      - cluster_sbd_prep.yaml
+      - sap-hana-storage.yaml
+      - sap-hana-download-media.yaml
+      - sap-hana-install.yaml
+      - sap-hana-system-replication.yaml
+      - sap-hana-system-replication-hooks.yaml
+      - sap-hana-cluster.yaml
 

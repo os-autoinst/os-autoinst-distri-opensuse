@@ -237,7 +237,13 @@ sub run {
     qesap_ansible_create_section(
         ansible_section => 'hana_vars',
         section_content => create_hana_vars_section()) if $ha_enabled;
-    qesap_ansible_create_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
+    qesap_ansible_create_section(
+        ansible_section => 'create',
+        section_content => $ansible_playbooks) if @$ansible_playbooks;
+    my @ansible_playbook_destroy = ('destroy.yaml');
+    qesap_ansible_create_section(
+        ansible_section => 'destroy',
+        section_content => \@ansible_playbook_destroy) if @$ansible_playbooks;
 
     # Clean leftover peerings (Azure only)
     if (is_azure() && get_var('IBSM_RG')) {
