@@ -206,10 +206,6 @@ sub export_logs {
     if ($utils::IN_ZYPPER_CALL) {
         upload_solvertestcase_logs();
     }
-
-    my $audit_log = "/var/log/audit/audit_log.txt";
-    script_run("cp /var/log/audit/audit.log $audit_log");
-    upload_logs("$audit_log", failok => 1);
 }
 
 =head2 problem_detection
@@ -288,9 +284,28 @@ sub problem_detection {
         clear_console;
     }
 
-    script_run 'tar cvvJf problem_detection_logs.tar.xz *';
+    # Mounts
+    save_and_upload_log("findmnt -o TARGET,SOURCE,FSTYPE,VFS-OPTIONS,FS-OPTIONS,PROPAGATION", "findmnt.txt", {screenshot => 1, noupload => 1});
+
+    # Snapper info
+    save_and_upload_log("snapper --no-dbus list --disable-used-space", "snapper-list.txt", {screenshot => 1, noupload => 1});
+
+    # Include generally useful log files as-is. Nonexisting files will be ignored.
+    my @logs = qw(/var/log/audit/audit.log /var/log/snapper.log /var/log/transactional-update.log
+      /var/log/zypper.log /var/log/zypp/history);
+
+    script_run("cp -v --parents @logs .");
+
+    script_run('tar cvvJf problem_detection_logs.tar.xz *');
     upload_logs('problem_detection_logs.tar.xz', failok => 1);
-    enter_cmd "popd";
+    enter_cmd("popd");
+
+    # Upload small (< 64KiB) files in the ESP
+    script_run('find /boot/efi -size -64k -type f -print0 | xargs -0 tar cavf esp-config.tar.gz');
+    upload_logs('esp-config.tar.gz', failok => 1);
+
+    # Upload BLS state as seen by bootctl
+    save_and_upload_log("bootctl status; bootctl list", "bootctl.txt");
 }
 
 =head2 upload_solvertestcase_logs
