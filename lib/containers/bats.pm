@@ -399,6 +399,9 @@ EOF
     select_serial_terminal;
 
     assert_script_run "mount --make-rshared /tmp" if (script_run("findmnt -no FSTYPE /tmp") == 0);
+
+    record_info "LSM", script_output("cat /sys/kernel/security/lsm", proceed_on_failure => 1);
+    record_info "SELinux", script_output("cat /sys/fs/selinux/enforce", proceed_on_failure => 1) unless is_sle("<16");
 }
 
 sub collect_coredumps {
