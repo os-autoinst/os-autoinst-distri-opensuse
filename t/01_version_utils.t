@@ -177,7 +177,7 @@ subtest 'has_selinux' => sub {
 };
 
 subtest 'bootloader_tests' => sub {
-    use version_utils qw(get_default_bootloader);
+    use version_utils qw(get_default_bootloader get_bootloader);
 
     set_var('DISTRI', 'opensuse');
     set_var('FLAVOR', 'Server-DVD');
@@ -228,6 +228,10 @@ subtest 'bootloader_tests' => sub {
     set_var('UPGRADE', 1);
     ok get_default_bootloader eq 'grub2', "Old Microos UEFI is grub2";
     set_var('UPGRADE', 0);
+
+    set_var('WSL_VERSION', '10');
+    ok get_bootloader eq 'wsl', "WSL uses a custom bootloader";
+    set_var('WSL_VERSION', undef);
 
     set_var('BOOTLOADER', 'does-not-exist');
     dies_ok { get_default_bootloader } "Bootloader variable set, non existant bootloader, causes failure";

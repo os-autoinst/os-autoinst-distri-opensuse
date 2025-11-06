@@ -874,6 +874,7 @@ sub get_bootloader {
     my $bootloader = get_var('BOOTLOADER');
     return $bootloader if $bootloader;
 
+    return 'wsl' if is_wsl;
     return 'grub2' if !check_var('UEFI', 1);
     return 'grub2' if is_upgrade;
     return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
