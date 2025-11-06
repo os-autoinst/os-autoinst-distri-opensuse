@@ -46,10 +46,14 @@ sub run {
 
     if (is_x86_64) {
         is_qemu_preinstalled or install_qemu('qemu-x86');
-        enter_cmd "qemu-system-x86_64 -nographic";
+        enter_cmd "qemu-system-x86_64";
         assert_screen 'qemu-no-bootable-device', 60;
     }
     elsif (is_ppc64le) {
+	    #if (is_sle_micro('=6.2')) {
+	    #record_soft_failure('workaround for poo#193099');
+	    #install_qemu('patterns-micro-kvm_host');
+	    #}
         is_qemu_preinstalled or install_qemu('qemu-ppc');
         record_soft_failure('workaround for bsc#1230042 - plan to remove this workaround until PPC images test on PowerVM');
         enter_cmd "qemu-system-ppc64 -vga none -nographic";
