@@ -1,0 +1,17 @@
+---
+name: qam-gnome
+schedule:
+- boot/boot_to_desktop
+- console/prepare_test_data
+- console/consoletest_setup
+- x11/gnome_control_center
+- x11/gnome_terminal
+- x11/gnome_music
+- x11/gedit
+- x11/glxgears
+- x11/nautilus
+- x11/desktop_mainmenu
+- x11/reboot_gnome
+- shutdown/cleanup_before_shutdown
+- shutdown/shutdown
+...
