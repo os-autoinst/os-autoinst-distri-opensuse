@@ -44,8 +44,8 @@ sub run {
                 record_info("Patching $guest");
 
                 # For SLES16+, repositories are already configured during agama installation
-                # Only add repositories for older versions
-                unless (is_sle('16+')) {
+                # Only add repositories for older versions or VMWare and HyperV guests
+                unless (is_sle('16+') && !check_var('REGRESSION', 'vmware') && !check_var('REGRESSION', 'hyperv')) {
                     ssh_add_test_repositories "$guest";
                 }
 
