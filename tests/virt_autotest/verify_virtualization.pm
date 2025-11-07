@@ -127,13 +127,13 @@ sub verify_guest_number {
 sub verify_guest_network {
     my ($self, %args) = @_;
     $args{confdir} //= '/var/lib/libvirt/images';
-    $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa');
+    $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519');
 
     record_info("List virtual networks", script_output("virsh net-list --all"));
     record_info("List guests", script_output("virsh list --all"));
     my $ssh_command = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i $args{keyfile}";
     if (script_run("ls $args{keyfile}") != 0) {
-        assert_script_run("clear && ssh-keygen -b 2048 -t rsa -q -N \"\" -f $args{keyfile} <<< y");
+        assert_script_run("clear && ssh-keygen -b 2048 -t ed25519 -q -N \"\" -f $args{keyfile} <<< y");
         assert_script_run("chmod 600 $args{keyfile} $args{keyfile}.pub");
     }
 
@@ -214,7 +214,7 @@ sub verify_guest_network {
 
 sub verify_guest_storage {
     my ($self, %args) = @_;
-    $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa');
+    $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519');
 
     my $ret = 0;
     my $ssh_command = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i $args{keyfile}";

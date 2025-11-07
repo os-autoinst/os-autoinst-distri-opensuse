@@ -340,17 +340,18 @@ sub reset_log_cursor {
 # value '1' means searching in the entire journal output(also including previous boots)
 # keywords: only "Coredump" and "Call trace" have been included so far
 # Work flow:
-# - save journal output to a tmp file
-# - get cursor from the saved file unless you'd like to search in the entire journals
+# - print journals, begin from the cursor, or from the beginning if no_cursor => 1
+# - save journal output to a tmp file and mark a new cursor at the end
 # - grep each keywords in the saved file
 # - if keywords are found, give warnings and upload the saved log
+# - get the new cursor from the end of the output and save it in a global variable
 sub check_failures_in_journal {
     return unless is_x86_64 and (is_sle or is_opensuse);
     my ($machine, %args) = @_;
     $machine //= 'localhost';
     $args{no_cursor} //= 0;
 
-    # Save journal log to a tmp file
+    # Save journal log to a tmp file with a cursor
     my $logfile = "/tmp/journalctl-$machine.log";
     my $failures = "";
     reset_log_cursor if $args{no_cursor} == 1;
@@ -358,7 +359,7 @@ sub check_failures_in_journal {
     my $cmd = "journalctl --show-cursor ";
     $cmd .= "--cursor='$cursor'" if defined($cursor);
     $cmd .= " > $logfile";
-    $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
+    $cmd = "ssh -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
     if (script_run($cmd) != 0) {
         $failures = "Fail to get journal logs from $machine";
         record_info("Warning", "$failures when checking its health", result => 'softfail');
@@ -367,8 +368,10 @@ sub check_failures_in_journal {
 
     # Get the cursor of the journal log file
     unless ($args{no_cursor}) {
+        $cmd = "cat $logfile";
+        $cmd = "ssh -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
         $cmd = "grep -oe \'-- cursor: *[^ ]*\' $logfile | cut -d ' ' -f3";
-        $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
+        $cmd = "ssh -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
         $log_cursors{$machine} = script_output("$cmd", type_command => 1);
     }
 
@@ -376,7 +379,7 @@ sub check_failures_in_journal {
     my @warnings = ('Started Process Core Dump', 'Call Trace');
     foreach (@warnings) {
         $cmd = "grep '$_' $logfile";
-        $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
+        $cmd = "ssh -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
         $failures .= "\"$_\" in journals on $machine \n" if script_run("$cmd") == 0;
     }
 
@@ -439,6 +442,7 @@ sub check_guest_health {
             record_info("Healthy guest!", "$vm looks good so far!");
         } else {
             record_info("Possible network inaccessibility", "Unable to access outside network from $vm!", result => 'fail');
+            script_run("ssh root\@$vm 'ip r'");
         }
     }
     else {
@@ -526,16 +530,20 @@ sub download_script {
 sub ssh_setup {
     my $default_ssh_key = shift;
 
-    $default_ssh_key //= (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa" : "/var/testvirt.net/.ssh/id_rsa";
+    $default_ssh_key //= is_sle('16+') ? "/root/.ssh/id_ed25519" : "/root/.ssh/id_rsa";
     my $dt = DateTime->now;
     my $comment = "openqa-" . $dt->mdy . "-" . $dt->hms('-') . get_var('NAME');
     if (script_run("[[ -s $default_ssh_key ]]") != 0) {
         my $default_ssh_key_dir = dirname($default_ssh_key);
         script_run("mkdir -p $default_ssh_key_dir");
-        assert_script_run "ssh-keygen -t rsa -P '' -C '$comment' -f $default_ssh_key";
-        record_info("Created ssh rsa key in $default_ssh_key successfully.");
+        if (is_sle('16+')) {
+            assert_script_run "ssh-keygen -P '' -C '$comment' -f $default_ssh_key";
+        } else {
+            assert_script_run "ssh-keygen -t rsa -P '' -C '$comment' -f $default_ssh_key";
+        }
+        record_info("Created ssh key in $default_ssh_key successfully.");
     } else {
-        record_info("Skip ssh rsa key recreation in $default_ssh_key, which exists.");
+        record_info("Skip ssh key recreation in $default_ssh_key, which exists.");
     }
     assert_script_run("ls `dirname $default_ssh_key`");
     save_screenshot;
@@ -547,16 +555,15 @@ sub ssh_copy_id {
     my $username = $args{username} // 'root';
     my $authorized_keys = $args{authorized_keys} // '.ssh/authorized_keys';
     my $scp = $args{scp} // 0;
-    my $mode = is_sle('=11-sp4') ? '' : '-f';
     my $default_ssh_key = $args{default_ssh_key};
-    $default_ssh_key //= (!(get_var('VIRT_AUTOTEST'))) ? "/root/.ssh/id_rsa.pub" : "/var/testvirt.net/.ssh/id_rsa.pub";
+    $default_ssh_key //= is_sle('16+') ? "/root/.ssh/id_ed25519.pub" : "/root/.ssh/id_rsa.pub";
     script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
     assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";
     if (script_run("ssh -o PreferredAuthentications=publickey -o ControlMaster=no $username\@$guest hostname") != 0) {
         # Our client key is not authorized, we have to type password with evry command
         my $options = "-o PreferredAuthentications=password,keyboard-interactive -o ControlMaster=no";
         unless ($scp == 1) {
-            exec_and_insert_password("ssh-copy-id $options $mode -i $default_ssh_key $username\@$guest");
+            exec_and_insert_password("ssh-copy-id $options -i $default_ssh_key $username\@$guest");
         } else {
             exec_and_insert_password("ssh $options $username\@$guest 'mkdir .ssh' || true");
             exec_and_insert_password("scp $options $default_ssh_key $username\@$guest:'$authorized_keys'");

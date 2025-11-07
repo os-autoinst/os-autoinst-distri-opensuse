@@ -19,7 +19,7 @@ local urls = if repo != '' then std.split(repo, ',') else [];
   root: {
     password: '$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/',
     hashedPassword: true,
-    sshPublicKey: '{{_SECRET_RSA_PUB_KEY}}'
+    sshPublicKey: '{{_SECRET_ED25519_PUB_KEY}}'
   },
   software: {
     packages: [],

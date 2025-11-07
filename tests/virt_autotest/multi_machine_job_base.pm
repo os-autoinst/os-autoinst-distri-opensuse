@@ -88,8 +88,13 @@ sub setup_passwordless_ssh_login {
     my ($self, $ip_addr) = @_;
 
     croak("Missing ssh host ip!") unless $ip_addr;
-    assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa <<< y');
-    exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub root\@$ip_addr");
+    if (is_sle('16+')) {
+        assert_script_run('ssh-keygen -b 2048 -t ed25519 -q -N "" -f ~/.ssh/id_ed25519 <<< y');
+        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519.pub root\@$ip_addr");
+    } else {
+        assert_script_run('ssh-keygen -b 2048 -t rsa -q -N "" -f ~/.ssh/id_rsa <<< y');
+        exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pub root\@$ip_addr");
+    }
 }
 
 1;
