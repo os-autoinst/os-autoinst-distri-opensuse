@@ -293,13 +293,8 @@ sub az_network_vnet_subnet_update(%args) {
     push @az_cmd_list, '--resource-group', $args{resource_group};
     push @az_cmd_list, '--vnet-name', $args{vnet};
     push @az_cmd_list, '--name', $args{snet};
+    push @az_cmd_list, '--nat-gateway', $args{nat_gateway} if ($args{nat_gateway});
 
-    # at the moment nat_gateway is optional,
-    # so without this argument the command is
-    # executed anyway, but probably it will not do so much.
-    if ($args{nat_gateway}) {
-        push @az_cmd_list, '--nat-gateway', $args{nat_gateway};
-    }
     assert_script_run(join(' ', @az_cmd_list));
 }
 
@@ -2432,5 +2427,148 @@ sub az_role_definition_list {
     return decode_json(script_output($az_cmd));
 }
 
+# ----------------------
+
+
+=head2 qesap_az_setup_native_fencing_permissions
+
+    qesap_az_setup_native_fencing_permissions(vmname=>$vm_name,
+        resource_group=>$resource_group);
+
+    Sets up managed identity (MSI) by enabling system assigned identity and
+    role 'Virtual Machine Contributor'
+
+=over
+
+=item B<VM_NAME> - VM name
+
+=item B<RESOURCE_GROUP> - resource group resource belongs to
+
+=back
+=cut
+
+sub qesap_az_setup_native_fencing_permissions {
+    my (%args) = @_;
+    foreach ('vm_name', 'resource_group') {
+        croak "Missing argument: '$_'" unless defined($args{$_});
+    }
+
+    # Enable system assigned identity
+    my $id = az_vm_identity_assign(name => $args{vm_name}, resource_group => $args{resource_group});
+
+    # Assign role
+    my $subscription_id = az_account_show();
+    my $role_id = az_role_definition_list(name => "Linux Fence Agent Role");
+    my $az_cmd = join(' ', 'az role assignment create',
+        '--only-show-errors',
+        '--assignee-object-id', $id,
+        '--assignee-principal-type ServicePrincipal',
+        "--role '$role_id'",
+        "--scope '/subscriptions/$subscription_id/resourceGroups/$args{resource_group}'");
+    assert_script_run($az_cmd);
+}
+
+=head2 qesap_az_create_sas_token
+
+Generate a SAS URI token for a storage container of choice
+
+Return the token string
+
+=over
+
+=item B<STORAGE> - Storage account name used fur the --account-name argument in az commands
+
+=item B<CONTAINER> - container name within the storage account
+
+=item B<KEYNAME> - name of the access key within the storage account
+
+=item B<PERMISSION> - access permissions. Syntax is what documented in
+                      'az storage container generate-sas --help'.
+                      Some of them of interest: (a)dd (c)reate (d)elete (e)xecute (l)ist (m)ove (r)ead (w)rite.
+                      Default is 'r'
+
+=item B<LIFETIME> - life time of the token in minutes, default is 10min
+
+=back
+=cut
+
+sub qesap_az_create_sas_token {
+    my (%args) = @_;
+    foreach (qw(storage container keyname)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{lifetime} //= 10;
+    $args{permission} //= 'r';
+    croak "$args{permission} : not supported permission in openQA" unless ($args{permission} =~ /^(?:r|l|rl|lr)$/);
+
+    # Generated command is:
+    #
+    # az storage container generate-sas  --account-name <STORAGE_NAME> \
+    #     --account-key $(az storage account keys list --account-name <STORAGE_NAME> --query "[?contains(keyName,'<KEY_NAME>')].value" -o tsv) \
+    #     --name <CONTAINER_NAME> \
+    #     --permissions r \
+    #     --expiry $(date -u -d "10 minutes" '+%Y-%m-%dT%H:%MZ')
+    my $account_name = "--account-name $args{storage}";
+    my $cmd_keys = join(' ',
+        'az storage account keys list',
+        $account_name,
+        '--query', "\"[?contains(keyName,'" . $args{keyname} . "')].value\"",
+        '-o tsv'
+    );
+    my $cmd_expiry = join(' ', 'date', '-u', '-d', "\"$args{lifetime} minutes\"", "'+%Y-%m-%dT%H:%MZ'");
+    my $cmd = join(' ',
+        'az storage container generate-sas',
+        $account_name,
+        '--account-key', '$(', $cmd_keys, ')',
+        '--name', $args{container},
+        '--permission', $args{permission},
+        '--expiry', '$(', $cmd_expiry, ')',
+        '-o', 'tsv');
+    record_info('GENERATE-SAS', $cmd);
+    return script_output($cmd);
+}
+
+=head2 qesap_az_list_container_files
+
+Returns a list of the files that exist inside a given path in a given container
+in Azure storage.
+
+Generated command looks like this:
+
+az storage blob list 
+--account-name <account_name> 
+--container-name <container_name> 
+--sas-token "<my_token>" 
+--prefix <path_inside_container> 
+--query "[].{name:name}" --output tsv
+
+=over
+
+=item B<STORAGE> - Storage account name used fur the --account-name argument in az commands
+
+=item B<CONTAINER> - container name within the storage account
+
+=item B<TOKEN> - name of the SAS token to access the account (needs to have l permission)
+
+=item B<PREFIX> - the local path inside the container (to list file inside a folder named 'dir', this would be 'dir')
+
+=back
+=cut
+
+sub qesap_az_list_container_files {
+    my (%args) = @_;
+    foreach (qw(storage container token prefix)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    my $cmd = join(' ',
+        'az storage blob list',
+        '--account-name', $args{storage},
+        '--container-name', $args{container},
+        '--sas-token', "'$args{token}'",
+        '--prefix', $args{prefix},
+        '--query "[].{name:name}" --output tsv');
+    my $ret = script_output($cmd);
+    if ($ret && $ret ne ' ') {
+        my @files = split(/\n/, $ret);
+        return join(',', @files);
+    }
+    croak 'The list azure files command output is empty or undefined.';
+}
 
 1;
