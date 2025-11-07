@@ -156,6 +156,7 @@ podman:
   # https://github.com/containers/podman/pull/27030 - test/e2e: fix podman run default mask test with crun 1.24
   # https://github.com/containers/podman/pull/27230 is needed for 130-kill
   # https://github.com/containers/podman/pull/27233 is needed for 130-kill
+  # https://github.com/containers/podman/pull/27463 - test/system: Update test to handle new error message from runc 1.3.3
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26017
@@ -165,6 +166,7 @@ podman:
     - 27152
     - 27230
     - 27233
+    - 27463
   sle-16.0:
     GITHUB_PATCHES:
     - 25792
