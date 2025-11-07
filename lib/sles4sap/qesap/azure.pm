@@ -313,18 +313,7 @@ Return a list of diagnostic file paths on the JumpHost
 =cut
 
 sub qesap_az_diagnostic_log {
-    my @diagnostic_log_files;
-    my $rg = qesap_az_get_resource_group();
-    my $vm_data = decode_json(script_output("az vm list --resource-group $rg --query '[].{id:id,name:name}' -o json"));
-    my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
-    foreach (@{$vm_data}) {
-        record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
-        my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
-        # Ignore the return code, so also miss the pipefail setting
-        script_run(join(' ', $az_get_logs_cmd, $_->{id}, '&>', $boot_diagnostics_log));
-        push(@diagnostic_log_files, $boot_diagnostics_log);
-    }
-    return @diagnostic_log_files;
+    return az_vm_diagnostic_log_get(resource_group => qesap_az_get_resource_group());
 }
 
 1;

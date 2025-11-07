@@ -327,13 +327,14 @@ subtest '[qesap_az_diagnostic_log] no VMs' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     # Configure vm list to return no VMs
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return '[]'; });
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '[]'; });
 
     my @log_files = qesap_az_diagnostic_log();
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /az vm list.*/ } @calls), 'Proper base command for vm list');
-    ok((any { /.*--resource-group DENTIST.*/ } @calls), 'Proper resource group in vm list');
+    ok((any { /.*-g DENTIST.*/ } @calls), 'Proper resource group in vm list');
     ok((any { /.*-o json.*/ } @calls), 'Proper output format in vm list');
     ok((scalar @log_files == 0), 'No returned logs');
 };
@@ -345,8 +346,9 @@ subtest '[qesap_az_diagnostic_log] one VMs' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     # Configure vm list to return no VMs
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return '[{"name": "NEMO", "id": "MARLIN"}]'; });
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; });
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '[{"name": "NEMO", "id": "MARLIN"}]'; });
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
     my @log_files = qesap_az_diagnostic_log();
 
@@ -354,7 +356,7 @@ subtest '[qesap_az_diagnostic_log] one VMs' => sub {
     ok((any { /az vm boot-diagnostics get-boot-log.*/ } @calls), 'Proper base command for vm boot-diagnostics get-boot-log');
     ok((any { /.*--ids MARLIN.*/ } @calls), 'Proper id in boot-diagnostics');
     ok((any { /.*boot-diagnostics_NEMO.*/ } @calls), 'Proper output file in boot-diagnostics');
-    ok((scalar @log_files == 1), 'Exactly one returned logs for one VM');
+    ok((scalar @log_files == 1), 'Expected exactly 1 returned logs for one VM and get ' . scalar @log_files);
 };
 
 done_testing;

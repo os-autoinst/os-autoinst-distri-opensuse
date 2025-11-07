@@ -176,6 +176,28 @@ sub az_group_delete(%args) {
     assert_script_run($az_cmd, timeout => $args{timeout});
 }
 
+=head2 az_group_exists
+
+    az_group_exists(name => 'resource group name' [, quiet=>'pssst!']);
+
+Check if specified resource group exists.
+Returns whatever 'az group exist' is returning
+that usually is string B<true> or B<false>.
+
+=over
+
+=item B<name> Resource group name
+
+=item B<quiet> Turn off script_output verbosity if defined
+
+=back
+=cut
+
+sub az_group_exists(%args) {
+    croak "Missing mandatory argument: 'name'" unless $args{name};
+    return script_output("az group exists --resource-group $args{name}", quiet => $args{quiet});
+}
+
 =head2 az_network_vnet_create
 
     az_network_vnet_create(
@@ -775,6 +797,10 @@ Create a virtual machine
 
 =item B<image> - OS image name
 
+=item B<attach_os_disk> - argument for --attach-os-disk
+
+=item B<os_type> - OS type
+
 =item B<vnet> - optional name of the Virtual Network where to place the VM
 
 =item B<snet> - optional name of the SubNet where to connect the VM
@@ -799,28 +825,28 @@ Create a virtual machine
 
 =item B<security_type> - is used force a specific value for '--security-type'
 
+=item B<tags> - reference to a list of tags to apply to the VM
+
 =back
 =cut
 
 sub az_vm_create(%args) {
-    foreach (qw(resource_group name image)) {
+    foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
+    croak("At least one between argument < image > or < attach_os_disk > are needed") unless ($args{image} || $args{attach_os_disk});
 
     my @vm_create = ('az vm create');
-
     push @vm_create, '--resource-group', $args{resource_group};
     push @vm_create, '-n', $args{name};
-    push @vm_create, '--image', $args{image};
+    push @vm_create, '--image', $args{image} if $args{image};
+    push @vm_create, '--attach-os-disk', $args{attach_os_disk} if $args{attach_os_disk};
     push @vm_create, '--public-ip-address';
     push @vm_create, $args{public_ip} ? $args{public_ip} : '""';
-
     $args{size} //= 'Standard_B1s';
     push @vm_create, '--size', $args{size};
-
     push @vm_create, '-l', $args{region} if $args{region};
     push @vm_create, '--availability-set', $args{availability_set} if $args{availability_set};
-
     push @vm_create, '--admin-username', $args{username} if $args{username};
     push @vm_create, '--nsg', $args{nsg} if $args{nsg};
     push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
@@ -833,6 +859,8 @@ sub az_vm_create(%args) {
     } else {
         push @vm_create, '--authentication-type ssh --generate-ssh-keys';
     }
+    push @vm_create, '--os-type', $args{os_type} if $args{os_type};
+    push @vm_create, '--tags', join(' ', @{$args{tags}}) if $args{tags};
 
     assert_script_run(join(' ', @vm_create), timeout => 900);
 }
@@ -1967,26 +1995,6 @@ sub az_keyvault_secret_show(%args) {
 
     return decode_json(script_output(join(' ', @az_cmd))) if $args{output} eq 'json';
     return script_output(join(' ', @az_cmd));
-}
-
-=head2 az_group_exists
-
-    az_group_exists(resource_group=>'resource group name' [, quiet=>'pssst!']);
-
-Check if specified resource group exists. Returns B<true> or B<false>.
-
-=over
-
-=item B<resource_group> Resource group name
-
-=item B<quiet> Turn off verbosity if defined
-
-=back
-=cut
-
-sub az_group_exists(%args) {
-    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
-    return script_output("az group exists --resource-group $args{resource_group}", quiet => $args{quiet});
 }
 
 =head2 az_network_vnet_show
