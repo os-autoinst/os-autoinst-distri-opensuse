@@ -17,6 +17,15 @@ conditional_schedule:
         - boot/boot_to_desktop
       'ppc64le':
         - boot/boot_to_desktop
+  kvm:
+    ARCH:
+      # nested kvm is not yet available on ppc64le
+      'x86_64':
+        - qemu/kvm
+      'aarch64':
+        - qemu/kvm
+      's390x':
+        - qemu/kvm
 schedule:
   - '{{boot}}'
   - console/system_prepare
@@ -24,7 +33,7 @@ schedule:
   - qa_automation/patch_and_reboot
   - qemu/info
   - qemu/qemu
-  - qemu/kvm
+  - '{{kvm}}'
   - console/journal_check
   - console/coredump_collect
   - shutdown/shutdown
