@@ -52,14 +52,11 @@ sub record_agama_info {
 }
 
 sub read_live_iso {
-    # Needed until bsc#1251987 is fixed
-    if (get_var('FLAVOR') eq "agama-installer") {
-        my $info = read_iso_info();
-        my $pkgs = parse_agama_packages();
-        $info =~ /^Image.version:\s+(?<major_version>\d+\.\w+)\./m;
-        set_var("AGAMA_VERSION", $+{'major_version'});
-        record_agama_info($info, $pkgs, $+{'major_version'});
-    }
+    my $info = read_iso_info();
+    my $pkgs = parse_agama_packages();
+    $info =~ /^Image.version:\s+(?<major_version>\d+\.\w+)\./m;
+    set_var("AGAMA_VERSION", $+{'major_version'});
+    record_agama_info($info, $pkgs, $+{'major_version'});
 }
 
 1;
