@@ -1,0 +1,155 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap/crash.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#crash_deploy_name">crash_deploy_name</a></li>
+      <li><a href="#crash_deploy_azure">crash_deploy_azure</a></li>
+      <li><a href="#crash_deploy_aws">crash_deploy_aws</a></li>
+      <li><a href="#crush_pubip">crush_pubip</a></li>
+      <li><a href="#crash_system_ready">crash_system_ready</a></li>
+      <li><a href="#crash_softrestart">crash_softrestart</a></li>
+      <li><a href="#crash_destroy_azure">crash_destroy_azure</a></li>
+      <li><a href="#crash_destroy_aws">crash_destroy_aws</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap/crash.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library to manage cloud crash tests</p>
+
+<h2 id="crash_deploy_name">crash_deploy_name</h2>
+
+<pre><code>my $name = crash_deploy_name();</code></pre>
+
+<p>Return the deploy name. Azure use it as resource group name</p>
+
+<h2 id="crash_deploy_azure">crash_deploy_azure</h2>
+
+<p>Run the Azure deployment for the crash test</p>
+
+<dl>
+
+<dt id="region---existing-resource-group"><b>region</b> - existing resource group</dt>
+<dd>
+
+</dd>
+<dt id="os---existing-Load-balancer-NAME"><b>os</b> - existing Load balancer NAME</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_deploy_aws">crash_deploy_aws</h2>
+
+<p>Run the AWS deployment for the crash test Returns the instance ID</p>
+
+<dl>
+
+<dt id="region---existing-resource-group1"><b>region</b> - existing resource group</dt>
+<dd>
+
+</dd>
+<dt id="image_name---OS-image-name"><b>image_name</b> - OS image name</dt>
+<dd>
+
+</dd>
+<dt id="image_owner---OS-image-owner"><b>image_owner</b> - OS image owner</dt>
+<dd>
+
+</dd>
+<dt id="instance_type---Instance-type-of-the-VM"><b>instance_type</b> - Instance type of the VM</dt>
+<dd>
+
+</dd>
+<dt id="ssh_pub_key---ssh-public-key-to-be-uploaded-in-the-VM"><b>ssh_pub_key</b> - ssh public key to be uploaded in the VM</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crush_pubip">crush_pubip</h2>
+
+<p>Get the deployment public IP of the VM. Die if an unsupported csp name is provided.</p>
+
+<dl>
+
+<dt id="provider---Cloud-provider-name-using-same-format-of-PUBLIC_CLOUD_PROVIDER-setting"><b>provider</b> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting</dt>
+<dd>
+
+</dd>
+<dt id="region-deployment-region"><b>region</b> deployment region</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_system_ready">crash_system_ready</h2>
+
+<pre><code>Polls C&lt;systemctl is-system-running&gt; via SSH for up to 5 minutes.
+If C&lt;reg_code&gt; is provided, registers the system using C&lt;registercloudguest&gt; and verifies with C&lt;SUSEConnect -s&gt;.</code></pre>
+
+<dl>
+
+<dt id="reg_code-Registration-code"><b>reg_code</b> Registration code.</dt>
+<dd>
+
+</dd>
+<dt id="ssh_command-SSH-command-for-registration"><b>ssh_command</b> SSH command for registration.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_softrestart">crash_softrestart</h2>
+
+<pre><code>crash_softrestart(instance =&gt; $instance [, timeout =&gt; 600]);</code></pre>
+
+<p>Does a soft restart of the given <code>instance</code> by running the command <code>shutdown -r</code>.</p>
+
+<dl>
+
+<dt id="instance-instance-of-the-PC-class"><b>instance</b> instance of the PC class.</dt>
+<dd>
+
+</dd>
+<dt id="timeout"><b>timeout</b></dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_destroy_azure">crash_destroy_azure</h2>
+
+<p>Delete the Azure deployment</p>
+
+<h2 id="crash_destroy_aws">crash_destroy_aws</h2>
+
+<p>Delete the AWS deployment</p>
+
+<dl>
+
+<dt id="region-region-where-the-deployment-has-been-deployed-in-AWS"><b>region</b> region where the deployment has been deployed in AWS</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+
