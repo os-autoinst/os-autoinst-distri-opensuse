@@ -1539,4 +1539,17 @@ subtest '[az_role_definition_list]' => sub {
     ok(($ret eq 'Pantalone'), 'Ret is the expected value, of type string');
 };
 
+subtest '[az_role_assignment_create]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+    az_role_assignment_create(
+        vm_id => '123456',
+        role_id => 'aaa-bbb-ccc',
+        subscription_id => 'f0123-a0123',
+        resource_group => 'hanasr-jobid12345');
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az role assignment create/ } @calls), 'Correct composition of the main command');
+};
+
 done_testing;

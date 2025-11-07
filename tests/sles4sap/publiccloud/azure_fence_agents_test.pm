@@ -97,8 +97,8 @@ sub run {
         push @bashrc_vars, "export SPN_APPLICATION_ID=$spn_application_id";
         push @bashrc_vars, "export SPN_APP_PASSWORD=$spn_application_password";
 
-        my $tenant_id = qesap_az_get_tenant_id(subscription_id => $subscription_id);
-        die 'Tenant ID is required in case of Azure SPN fencing' unless $tenant_id;
+        my $tenant_id = az_account_show(query => 'tenantId');
+        die "Returned output '$tenant_id' does not match ID pattern" unless (az_validate_uuid_pattern(uuid => $tenant_id));
         push @bashrc_vars, "export TENANT_ID=$tenant_id";
 
         push @fence_agent_cmd_list,
