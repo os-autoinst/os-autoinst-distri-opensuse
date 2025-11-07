@@ -440,7 +440,7 @@ sub destroy_orphaned_peerings {
     my $result = 0;
     for my $peering (@{$disconnected_peerings}) {
         # Do not delete peering if group it belongs to still exists
-        next if az_group_exists(resource_group => $peering->{workload_resource_group}, quiet => 'yes') eq 'true';
+        next if az_group_exists(name => $peering->{workload_resource_group}, quiet => 'yes') eq 'true';
         my $ret = az_network_peering_delete(
             resource_group => $deployer_resource_group,
             vnet => $vnet_name,

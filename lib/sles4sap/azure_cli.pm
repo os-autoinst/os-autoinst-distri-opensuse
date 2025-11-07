@@ -25,6 +25,7 @@ Library to compose and run Azure cli commands
 
 our @EXPORT = qw(
   az_version
+  az_account_show
   az_group_create
   az_group_name_get
   az_group_delete
@@ -53,6 +54,7 @@ our @EXPORT = qw(
   az_vm_wait_running
   az_vm_diagnostic_log_enable
   az_vm_diagnostic_log_get
+  az_vm_identity_assign
   az_nic_create
   az_nic_get_id
   az_nic_name_get
@@ -86,6 +88,7 @@ our @EXPORT = qw(
   az_network_dns_link_delete
   az_network_dns_link_list
   az_network_dns_links_cleanup
+  az_role_definition_list
 );
 
 
@@ -174,6 +177,28 @@ sub az_group_delete(%args) {
         'az group delete',
         '--name', $args{name}, '-y');
     assert_script_run($az_cmd, timeout => $args{timeout});
+}
+
+=head2 az_group_exists
+
+    az_group_exists(name => 'resource group name' [, quiet=>'pssst!']);
+
+Check if specified resource group exists.
+Returns whatever 'az group exist' is returning
+that usually is string B<true> or B<false>.
+
+=over
+
+=item B<name> Resource group name
+
+=item B<quiet> Turn off script_output verbosity if defined
+
+=back
+=cut
+
+sub az_group_exists(%args) {
+    croak "Missing mandatory argument: 'name'" unless $args{name};
+    return script_output("az group exists --resource-group $args{name}", quiet => $args{quiet});
 }
 
 =head2 az_network_vnet_create
@@ -775,6 +800,10 @@ Create a virtual machine
 
 =item B<image> - OS image name
 
+=item B<attach_os_disk> - argument for --attach-os-disk
+
+=item B<os_type> - OS type
+
 =item B<vnet> - optional name of the Virtual Network where to place the VM
 
 =item B<snet> - optional name of the SubNet where to connect the VM
@@ -799,28 +828,28 @@ Create a virtual machine
 
 =item B<security_type> - is used force a specific value for '--security-type'
 
+=item B<tags> - reference to a list of tags to apply to the VM
+
 =back
 =cut
 
 sub az_vm_create(%args) {
-    foreach (qw(resource_group name image)) {
+    foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
+    croak("At least one between argument < image > or < attach_os_disk > are needed") unless ($args{image} || $args{attach_os_disk});
 
     my @vm_create = ('az vm create');
-
     push @vm_create, '--resource-group', $args{resource_group};
     push @vm_create, '-n', $args{name};
-    push @vm_create, '--image', $args{image};
+    push @vm_create, '--image', $args{image} if $args{image};
+    push @vm_create, '--attach-os-disk', $args{attach_os_disk} if $args{attach_os_disk};
     push @vm_create, '--public-ip-address';
     push @vm_create, $args{public_ip} ? $args{public_ip} : '""';
-
     $args{size} //= 'Standard_B1s';
     push @vm_create, '--size', $args{size};
-
     push @vm_create, '-l', $args{region} if $args{region};
     push @vm_create, '--availability-set', $args{availability_set} if $args{availability_set};
-
     push @vm_create, '--admin-username', $args{username} if $args{username};
     push @vm_create, '--nsg', $args{nsg} if $args{nsg};
     push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
@@ -833,6 +862,8 @@ sub az_vm_create(%args) {
     } else {
         push @vm_create, '--authentication-type ssh --generate-ssh-keys';
     }
+    push @vm_create, '--os-type', $args{os_type} if $args{os_type};
+    push @vm_create, '--tags', join(' ', @{$args{tags}}) if $args{tags};
 
     assert_script_run(join(' ', @vm_create), timeout => 900);
 }
@@ -896,7 +927,8 @@ sub az_vm_instance_view_get(%args) {
         'az vm get-instance-view',
         '--name', $args{name},
         '--resource-group', $args{resource_group},
-        '--query "instanceView.statuses[1].[code,displayStatus]"');
+        '--query "instanceView.statuses[1].[code,displayStatus]"',
+        '-o json');
     return decode_json(script_output($az_cmd));
 }
 
@@ -1322,7 +1354,6 @@ sub az_vm_diagnostic_log_enable(%args) {
     assert_script_run($az_cmd);
 }
 
-
 =head2 az_vm_diagnostic_log_get
 
     my $list_of_logs = az_vm_diagnostic_log_get(resource_group => 'openqa-rg')
@@ -1351,6 +1382,41 @@ sub az_vm_diagnostic_log_get(%args) {
           script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
     }
     return @diagnostic_log_files;
+}
+
+=head2 az_vm_identity_assign
+
+    az_vm_identity_assign(name=>$vm_name,
+        resource_group=>$resource_group);
+
+    Enable managed service identity on the named VM.
+    It is first step to authenticate and interact with other Azure services.
+    Used in setup managed identity (MSI).
+    Return a validated systemAssignedIdentity ID or die.
+
+=over
+
+=item B<name> - VM name
+
+=item B<resource_group> - resource group resource belongs to
+
+=back
+=cut
+
+sub az_vm_identity_assign {
+    my (%args) = @_;
+    foreach ('name', 'resource_group') {
+        croak "Missing argument: '$_'" unless defined($args{$_});
+    }
+
+    my $id = script_output(join(' ', 'az vm identity assign',
+            '--only-show-errors',
+            "-g '$args{resource_group}'",
+            "-n '$args{name}'",
+            "--query 'systemAssignedIdentity'",
+            '-o tsv'));
+    die "Returned '$id' does not match ID pattern" if (!az_validate_uuid_pattern(uuid => $id));
+    return $id;
 }
 
 =head2 az_storage_account_create
@@ -1969,26 +2035,6 @@ sub az_keyvault_secret_show(%args) {
     return script_output(join(' ', @az_cmd));
 }
 
-=head2 az_group_exists
-
-    az_group_exists(resource_group=>'resource group name' [, quiet=>'pssst!']);
-
-Check if specified resource group exists. Returns B<true> or B<false>.
-
-=over
-
-=item B<resource_group> Resource group name
-
-=item B<quiet> Turn off verbosity if defined
-
-=back
-=cut
-
-sub az_group_exists(%args) {
-    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
-    return script_output("az group exists --resource-group $args{resource_group}", quiet => $args{quiet});
-}
-
 =head2 az_network_vnet_show
 
     az_network_vnet_show(resource_group=>'resource group name', name=>'vnet01' [, query=>'[].name']);
@@ -2280,7 +2326,7 @@ Searches and deletes all DNS zones within specified B<resource_group>.
 
 sub az_network_dns_zones_cleanup {
     my (%args) = @_;
-    croak 'Missing mandatory argument: "$args{resource_group}"' unless $args{resource_group};
+    croak 'Missing mandatory argument: <resource_group>' unless $args{resource_group};
     my @zones = @{az_network_dns_zone_list(resource_group => $args{resource_group})};
 
     for my $zone (@zones) {
@@ -2288,4 +2334,191 @@ sub az_network_dns_zones_cleanup {
     }
 }
 
+=head2 az_account_show
+
+
+Get account informations, by default the ID. By default the output is an strings.
+Output can be modified using B<$args{query}>.
+
+=over
+
+=item B<query> - Modify output filter using jmespath query. Default: 'id'
+
+=back
+=cut
+
+sub az_account_show {
+    my (%args) = @_;
+    $args{query} //= 'id';
+    my $az_cmd = join(' ', 'az account show',
+        "--query '$args{query}'",
+        '-o json');
+    return decode_json(script_output($az_cmd));
+}
+
+=head2
+
+List and return details about named role
+
+=over
+
+=item B<name> Name of the role
+
+=back
+=cut
+
+sub az_role_definition_list {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: <name>' unless $args{name};
+    $args{query} //= '[].id';
+    my $az_cmd = join(' ', 'az role definition list',
+        "--name '$args{name}'",
+        "--query '$args{query}'",
+        '-o json');
+    return decode_json(script_output($az_cmd));
+}
+
+# ----------------------
+
+
+=head2 qesap_az_setup_native_fencing_permissions
+
+    qesap_az_setup_native_fencing_permissions(vmname=>$vm_name,
+        resource_group=>$resource_group);
+
+    Sets up managed identity (MSI) by enabling system assigned identity and
+    role 'Virtual Machine Contributor'
+
+=over
+
+=item B<VM_NAME> - VM name
+
+=item B<RESOURCE_GROUP> - resource group resource belongs to
+
+=back
+=cut
+
+sub qesap_az_setup_native_fencing_permissions {
+    my (%args) = @_;
+    foreach ('vm_name', 'resource_group') {
+        croak "Missing argument: '$_'" unless defined($args{$_});
+    }
+
+    # Enable system assigned identity
+    my $id = az_vm_identity_assign(name => $args{vm_name}, resource_group => $args{resource_group});
+
+    # Assign role
+    my $subscription_id = az_account_show();
+    my $role_id = az_role_definition_list(name => "Linux Fence Agent Role");
+    my $az_cmd = join(' ', 'az role assignment create',
+        '--only-show-errors',
+        '--assignee-object-id', $id,
+        '--assignee-principal-type ServicePrincipal',
+        "--role '$role_id'",
+        "--scope '/subscriptions/$subscription_id/resourceGroups/$args{resource_group}'");
+    assert_script_run($az_cmd);
+}
+
+=head2 qesap_az_create_sas_token
+
+Generate a SAS URI token for a storage container of choice
+
+Return the token string
+
+=over
+
+=item B<STORAGE> - Storage account name used fur the --account-name argument in az commands
+
+=item B<CONTAINER> - container name within the storage account
+
+=item B<KEYNAME> - name of the access key within the storage account
+
+=item B<PERMISSION> - access permissions. Syntax is what documented in
+                      'az storage container generate-sas --help'.
+                      Some of them of interest: (a)dd (c)reate (d)elete (e)xecute (l)ist (m)ove (r)ead (w)rite.
+                      Default is 'r'
+
+=item B<LIFETIME> - life time of the token in minutes, default is 10min
+
+=back
+=cut
+
+sub qesap_az_create_sas_token {
+    my (%args) = @_;
+    foreach (qw(storage container keyname)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{lifetime} //= 10;
+    $args{permission} //= 'r';
+    croak "$args{permission} : not supported permission in openQA" unless ($args{permission} =~ /^(?:r|l|rl|lr)$/);
+
+    # Generated command is:
+    #
+    # az storage container generate-sas  --account-name <STORAGE_NAME> \
+    #     --account-key $(az storage account keys list --account-name <STORAGE_NAME> --query "[?contains(keyName,'<KEY_NAME>')].value" -o tsv) \
+    #     --name <CONTAINER_NAME> \
+    #     --permissions r \
+    #     --expiry $(date -u -d "10 minutes" '+%Y-%m-%dT%H:%MZ')
+    my $account_name = "--account-name $args{storage}";
+    my $cmd_keys = join(' ',
+        'az storage account keys list',
+        $account_name,
+        '--query', "\"[?contains(keyName,'" . $args{keyname} . "')].value\"",
+        '-o tsv'
+    );
+    my $cmd_expiry = join(' ', 'date', '-u', '-d', "\"$args{lifetime} minutes\"", "'+%Y-%m-%dT%H:%MZ'");
+    my $cmd = join(' ',
+        'az storage container generate-sas',
+        $account_name,
+        '--account-key', '$(', $cmd_keys, ')',
+        '--name', $args{container},
+        '--permission', $args{permission},
+        '--expiry', '$(', $cmd_expiry, ')',
+        '-o', 'tsv');
+    record_info('GENERATE-SAS', $cmd);
+    return script_output($cmd);
+}
+
+=head2 qesap_az_list_container_files
+
+Returns a list of the files that exist inside a given path in a given container
+in Azure storage.
+
+Generated command looks like this:
+
+az storage blob list 
+--account-name <account_name> 
+--container-name <container_name> 
+--sas-token "<my_token>" 
+--prefix <path_inside_container> 
+--query "[].{name:name}" --output tsv
+
+=over
+
+=item B<STORAGE> - Storage account name used fur the --account-name argument in az commands
+
+=item B<CONTAINER> - container name within the storage account
+
+=item B<TOKEN> - name of the SAS token to access the account (needs to have l permission)
+
+=item B<PREFIX> - the local path inside the container (to list file inside a folder named 'dir', this would be 'dir')
+
+=back
+=cut
+
+sub qesap_az_list_container_files {
+    my (%args) = @_;
+    foreach (qw(storage container token prefix)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    my $cmd = join(' ',
+        'az storage blob list',
+        '--account-name', $args{storage},
+        '--container-name', $args{container},
+        '--sas-token', "'$args{token}'",
+        '--prefix', $args{prefix},
+        '--query "[].{name:name}" --output tsv');
+    my $ret = script_output($cmd);
+    if ($ret && $ret ne ' ') {
+        my @files = split(/\n/, $ret);
+        return join(',', @files);
+    }
+    croak 'The list azure files command output is empty or undefined.';
+}
 1;
