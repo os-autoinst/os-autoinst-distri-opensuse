@@ -23,6 +23,28 @@ ssl._create_default_https_context = ssl._create_unverified_context
 class TimeoutError(Exception):
     pass
 
+# wrapper script arguments parser
+def init_argparser():
+    parser = argparse.ArgumentParser(description='The Usage of create_host_bridge.py')
+    parser.add_argument(
+        'excluded_macs',
+        help='Excluded NIC MAC list for bridge creation, for example "mac1,mac2"',
+        metavar="excluded_macs",
+        type=str
+    )
+
+    args = parser.parse_args()
+    if not args.excluded_macs:
+        excluded_macs = []
+    else:
+        excluded_macs = [
+            mac.strip()
+            for mac in args.excluded_macs.split(',')
+            if mac.strip()
+        ]
+
+    return excluded_macs
+
 
 class NetworkManagerClient:
     def __init__(self):
@@ -389,11 +411,13 @@ def runCMD(cmd, timeout=300, realtime=True):
     return (ret_code, msg)
 
 
+excluded_macs = init_argparser()
+logger.debug("NIC MAC to be excluded from bridge creation: %s " % excluded_macs)
 
 active_interfaces = getAllActiveInterfacesInfo()
 logger.debug("Active Interfaces: %s" % active_interfaces)
 
-interface, ipaddr = getValidInterfaceInfo(active_interfaces, [])
+interface, ipaddr = getValidInterfaceInfo(active_interfaces, excluded_macs)
 if not interface:
     logger.error("No valid interface or bridge, please check hypervisor")
     sys.exit(2)
