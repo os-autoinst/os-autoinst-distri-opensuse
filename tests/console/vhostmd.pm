@@ -11,7 +11,7 @@
 # check status one more time
 # - Run "cat /dev/shm/vhostmd0" (if device exists)
 # - Check system logs for vhostmd messages
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

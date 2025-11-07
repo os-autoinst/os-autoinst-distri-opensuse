@@ -8,7 +8,7 @@
 # - Collect running process list
 # - Collect system load average
 # - Upload the gatherings to the job's logs
-# Maintainer: Zaoliang Luo <zluo@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;

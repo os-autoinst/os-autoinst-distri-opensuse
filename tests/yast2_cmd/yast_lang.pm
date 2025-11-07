@@ -6,7 +6,7 @@
 # Package: yast2-country
 # Summary: yast language test
 # List languages, set default and secondary languages
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

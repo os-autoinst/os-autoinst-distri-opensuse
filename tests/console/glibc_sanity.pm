@@ -12,7 +12,7 @@
 # - Install package providing "libc.so.6()(64bit)"
 # - Check "/lib64/libc.so.6" for "GNU C Library"
 # - Check "/lib64/libc.so.6" for "x86_64-suse-linux" (or whatever arch is set)
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;

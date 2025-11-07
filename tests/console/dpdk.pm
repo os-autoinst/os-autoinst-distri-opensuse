@@ -15,7 +15,7 @@
 #    - run dpdk-testpmd  (we get error like 'EAL FATAL; unsupported cpu type' on qemu, this is different than on physical machine and requires a different setup)
 #    - systemctl 'restart ovs-vswitchd' (failed at moment, assume that is related to unsuccessful binding of kernel module to network device)
 #
-# Maintainer: Zaoliang Luo <zluo@suse.de>, qe-core team SUSE
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

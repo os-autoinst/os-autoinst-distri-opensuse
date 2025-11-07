@@ -7,7 +7,7 @@
 # Summary: Check that an interface is configured and show some network info
 # - check from logs that an interface is already configured, if NETWORK_INIT_PARAM is set
 # - get some info using 'ip addr'
-# Maintainer: Zaoliang Luo <zluo@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;

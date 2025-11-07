@@ -8,7 +8,7 @@
 # - Check basic functionality of iotop
 # - Run iotop in background and create some load
 # - Make sure load is detected in the report
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;

@@ -9,7 +9,7 @@
 #   the structure
 # - Using zypper, check if patterns are installed, following rules defined in
 #   the structure
-# Maintainer: Zaoliang Luo <zluo@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;

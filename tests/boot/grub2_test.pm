@@ -10,7 +10,7 @@
 #           - fips
 #           - password
 #           - with UEFI (secureboot enabled by default)
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'opensusebasetest';
 use testapi;
