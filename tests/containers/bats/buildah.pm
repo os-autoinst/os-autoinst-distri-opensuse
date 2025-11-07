@@ -33,6 +33,9 @@ sub run_tests {
 
     my @xfails = ();
     push @xfails, (
+        "add.bats::add https retry ca"
+    ) if (is_sle(">16"));
+    push @xfails, (
         "bud.bats::bud with --cgroup-parent",
     ) if (is_sle && !$rootless);
     push @xfails, (
