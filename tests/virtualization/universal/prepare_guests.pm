@@ -41,7 +41,7 @@ sub create_agama_profile {
     # Get the Agama configuration template
     my $profile = get_test_data($config_path);
 
-    # Expand Agama secrets ({{_SECRET_RSA_PUB_KEY}} and {{_SECRET_RSA_PRIV_KEY}})
+    # Expand Agama secrets ({{_SECRET_ED25519_PUB_KEY}} and {{_SECRET_ED25519_PRIV_KEY}})
     $profile = expand_agama_secrets($profile);
     record_info("SSH Key Injection", "Expanded Agama secrets for SSH public key authentication");
 

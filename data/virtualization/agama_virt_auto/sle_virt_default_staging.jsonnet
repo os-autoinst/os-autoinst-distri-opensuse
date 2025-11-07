@@ -18,7 +18,7 @@ local urls = if repo != '' then std.split(repo, ',') else [];
   root: {
     password: '$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/',
     hashedPassword: true,
-    sshPublicKey: '{{_SECRET_RSA_PUB_KEY}}'
+    sshPublicKey: '{{_SECRET_ED25519_PUB_KEY}}'
   },
   software: {
     packages: [
@@ -74,20 +74,19 @@ local urls = if repo != '' then std.split(repo, ',') else [];
           mkdir -p -m 700 /root/.ssh
           
           # Write private key (use 9A as newline placeholder, same as host_15.xml.ep)
-          cat > /root/.ssh/id_rsa << 'EOF'
-          {{_SECRET_RSA_PRIV_KEY}}
+          cat > /root/.ssh/id_ed25519 << 'EOF'
+          {{_SECRET_ED25519_PRIV_KEY}}
           EOF
           # Use perl for more reliable newline replacement (sed may have issues in some shells)
-          perl -pi -e 's/9A/\n/g' /root/.ssh/id_rsa
-          chmod 600 /root/.ssh/id_rsa
+          perl -pi -e 's/9A/\n/g' /root/.ssh/id_ed25519
+          chmod 600 /root/.ssh/id_ed25519
           
           # Write public key (for reference, Agama may have already created this)
-          echo '{{_SECRET_RSA_PUB_KEY}}' > /root/.ssh/id_rsa.pub
+          echo '{{_SECRET_ED25519_PUB_KEY}}' > /root/.ssh/id_ed25519.pub
           
           # Configure SSH client settings
           cat > /root/.ssh/config << 'EOF'
           StrictHostKeyChecking no
-          HostKeyAlgorithms ssh-rsa,ssh-ed25519
           PreferredAuthentications publickey,password
           EOF
           chmod 600 /root/.ssh/config
