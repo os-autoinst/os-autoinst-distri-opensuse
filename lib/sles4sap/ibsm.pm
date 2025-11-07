@@ -164,7 +164,8 @@ This function is symmetrical to ibsm_network_peering_azure_create.
 
 =item B<sut_rg> - Azure resource group of the SUT
 
-=item B<sut_vnet> - substring in the SUT vnet. Optional and only needed if only one specific VNET has to be considered. Most of the time it is get_current_job_id()
+=item B<sut_vnet> - substring in the SUT vnet. Optional and only needed if only one specific VNET
+                    has to be considered. Most of the time it is get_current_job_id()
 
 =item B<timeout> - default is 5 mins
 
@@ -176,7 +177,7 @@ This function is symmetrical to ibsm_network_peering_azure_create.
 sub ibsm_network_peering_azure_delete {
     my (%args) = @_;
     foreach (qw(sut_rg ibsm_rg)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    $args{timeout} //= bmwqemu::scale_timeout(300);
+    $args{timeout} //= 300;
 
     my %vnet_names;
     my @peerings = (

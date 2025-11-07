@@ -44,6 +44,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
+use sles4sap::azure_cli;
 
 use constant DEPLOY_PREFIX => 'clne';
 
@@ -55,8 +56,7 @@ sub run {
 
     select_serial_terminal;
 
-    my $rg = DEPLOY_PREFIX . get_current_job_id();
-    assert_script_run("az group delete --name $rg -y", timeout => 600);
+    az_group_delete(name => DEPLOY_PREFIX . get_current_job_id(), timeout => 600);
 }
 
 sub test_flags {

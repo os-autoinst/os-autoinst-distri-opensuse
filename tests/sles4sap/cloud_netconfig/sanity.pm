@@ -72,12 +72,10 @@ sub run {
     my $az_cmd;
 
     # Check that the resource group exist
-    $az_cmd = join(' ',
-        'az group list',
-        '--query "[].name"',
-        '-o tsv',
-        "| grep $rg");
-    assert_script_run($az_cmd);
+    my $res = az_group_name_get();
+    my $count = grep(/$rg/, @$res);
+    die "There are not exactly one but $count resource groups with name $rg" unless $count eq 1;
+
 
     # Check that the VM is running (from the point of view of the CSP)
     $az_cmd = join(' ',
@@ -95,7 +93,6 @@ sub run {
 
     my $vm_ip;
     my $ssh_cmd;
-    my $ret;
 
     $vm_ip = az_network_publicip_get(resource_group => $rg, name => DEPLOY_PREFIX . "-pub_ip-1");
     $ssh_cmd = 'ssh ' . $vm_user . '@' . $vm_ip;
@@ -132,7 +129,7 @@ sub run {
 
     # now check the content of data returned by the CSP API is like
     # what has been configured for this deployment
-    my $res = decode_json(script_output("$curl_cmd | python3 -m json.tool"));
+    $res = decode_json(script_output("$curl_cmd | python3 -m json.tool"));
     # Count the elements in the "ipAddress" list
     my $num_ip_configs = 0;
     foreach my $ip_address (@{$res->[0]->{ipv4}->{ipAddress}}) {

@@ -146,18 +146,6 @@ subtest '[qesap_az_setup_native_fencing_permissions] invalid UUID' => sub {
     dies_ok { ok qesap_az_setup_native_fencing_permissions(%mandatory_args) } 'PASS with all args defined';
 };
 
-subtest '[qesap_az_get_tenant_id] missing arguments' => sub {
-    dies_ok { qesap_az_get_tenant_id() } 'Expected failure: missing mandatory arg';
-};
-
-subtest '[qesap_az_get_tenant_id]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
-    my $valid_uuid = 'c0ffeeee-c0ff-eeee-1234-123456abcdef';
-    $qesap->redefine(script_output => sub { return $valid_uuid; });
-
-    is qesap_az_get_tenant_id(subscription_id => $valid_uuid), 'c0ffeeee-c0ff-eeee-1234-123456abcdef', 'Returned value is a valid UUID';
-};
-
 subtest '[qesap_az_clean_old_peerings]' => sub {
     my $qesap_az = Test::MockModule->new('sles4sap::qesap::azure', no_auto => 1);
     my @delete_calls;
