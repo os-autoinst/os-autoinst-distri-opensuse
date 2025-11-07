@@ -71,7 +71,6 @@ configuration file generated after discovery.
 =cut
 
 sub run {
-    return record_info('Skip iscsi_client_setup', 'Module skipped on older versions of SLES. Use ha/iscsi_client instead') if (is_sle('<16'));
     my $iscsi_server = get_var('USE_SUPPORT_SERVER') ? 'ns' : get_required_var('ISCSI_SERVER');
 
     select_serial_terminal;
@@ -81,7 +80,8 @@ sub run {
     # udevd and the one configured in the system may differ in
     # scenarios where console/hostname is also scheduled which
     # can lead to issues later with some HA resources. We need to
-    # do this before iSCSI and watchdog setup
+    # do this before iSCSI and watchdog setup.
+    # Keep it running for SLES 12/15 in case hostname is changed
     systemctl 'restart systemd-udevd.service';
 
     # Perform a ping size check to several hosts which need to be accessible while
@@ -89,16 +89,21 @@ sub run {
     ping_size_check(testapi::host_ip());
     ping_size_check($iscsi_server);
 
-    record_info 'iscsi initiator pre configuration', script_output('cat /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
-    record_info 'rpm-qf', script_output('rpm -qf /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
-
     # open-iscsi & iscsiuio
     zypper_call 'in open-iscsi' if (script_run('rpm -q open-iscsi'));
     record_info 'iscsi initiator pre configuration', script_output('cat /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
     record_info 'rpm-qf', script_output('rpm -qf /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
     record_info('open-iscsi version', script_output('rpm -q open-iscsi'));
 
-    assert_script_run '/sbin/iscsi-gen-initiatorname -f';
+    # Generate a new initiatorname for each SUT in case some pre tasks created the same name
+    if (is_sle('>=15')) {
+        assert_script_run '/sbin/iscsi-gen-initiatorname -f';
+    }
+    else {
+        # For sle12, the initiatorname can't be changed via '/sbin/iscsi-gen-initiatorname'
+        # Use below workaround to generate a new one
+        assert_script_run qq(echo "InitiatorName=`/sbin/iscsi-iname`" | tee /etc/iscsi/initiatorname.iscsi);
+    }
     record_info 'iscsi initiator after forcing regeneration', script_output('cat /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
     systemctl 'enable --now iscsid';
     record_info('iscsid status', script_output('systemctl status iscsid'));
@@ -109,7 +114,8 @@ sub run {
     record_info('node_name', $node_name);
 
     # Change node.startup to automatic
-    my $iscsi_conf = "/var/lib/iscsi/nodes/$node_name/*/default";
+    my $iscsi_dir = is_sle('>=16') ? "/var/lib/iscsi" : "/etc/iscsi";
+    my $iscsi_conf = "$iscsi_dir/nodes/$node_name/*/default";
     assert_script_run "ls -l $iscsi_conf";
     file_content_replace($iscsi_conf, 'node.startup = manual' => 'node.startup = automatic');
     record_info('iscsi startup', script_output("grep node.startup $iscsi_conf"));
