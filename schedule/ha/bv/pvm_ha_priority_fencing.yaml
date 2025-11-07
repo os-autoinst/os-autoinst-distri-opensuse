@@ -31,7 +31,9 @@ schedule:
   - '{{barrier_init}}'
   - installation/bootloader
   - installation/agama_reboot
+  - '{{grub_test}}'
   - installation/first_boot
+  - console/zypper_lr
   - console/system_prepare
   - ha/check_hae_active.py
   - ha/wait_barriers
@@ -54,6 +56,10 @@ conditional_schedule:
     HA_CLUSTER_INIT:
       yes:
         - ha/barrier_init
+  grub_test:
+    STAGING:
+      1:
+        - installation/grub_test
   cluster_setup:
     HA_CLUSTER_INIT:
       yes:
