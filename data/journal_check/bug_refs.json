@@ -779,7 +779,7 @@
         "type": "bug"
     },
     "bsc#1234013": {
-        "description": "sshd-session.*: error: mm_reap: preauth child terminated by signal 15",
+        "description": "sshd-session.*: error: mm_reap:.*child terminated by signal 15",
         "products": {
             "sle-micro": ["6.2"],
             "microos": ["Tumbleweed"]
