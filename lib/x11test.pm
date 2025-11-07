@@ -16,11 +16,12 @@ use Config::Tiny;
 use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities default_gui_terminal);
+use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities default_gui_terminal turn_off_gnome_screensaver);
 use POSIX 'strftime';
 use mm_network;
 use Utils::Logging qw(export_healthcheck_basic select_log_console export_logs_basic export_logs_desktop record_avc_selinux_alerts);
 use serial_terminal 'select_serial_terminal';
+use lockapi 'mutex_wait';
 
 sub post_run_hook {
     my ($self) = @_;
@@ -1137,6 +1138,99 @@ sub verify_firefox_print_output {
 sub cleanup_firefox_print {
     assert_script_run "rm -rf /home/$username/ffprint/*";
     send_key 'ctrl-d';
+    assert_screen 'generic-desktop';
+}
+
+# MM network check: try to ping the gateway, the client and the internet
+sub ensure_client_reachable {
+    assert_script_run('ping -c 1 10.0.2.2');
+    assert_script_run('ping -c 1 10.0.2.102');
+    assert_script_run('curl conncheck.opensuse.org');
+}
+
+sub x11_server_preparation {
+    my ($self, $file) = @_;
+    select_console 'root-console';
+    set_hostname(get_var('HOSTNAME') // 'server');
+    setup_static_mm_network('10.0.2.101/24');
+
+    ensure_client_reachable();
+
+    # Permit ssh login as root
+    assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
+    assert_script_run("systemctl restart sshd");
+
+    assert_script_run "chmod a+rw /dev/snd/*";
+
+    # create volume
+    assert_script_run("podman volume create xauthority");
+    assert_script_run("podman volume create xsocket");
+    assert_script_run("podman volume create pasocket");
+
+    # create a pod
+    assert_script_run("podman pod create --name wallboard-pod");
+}
+
+# MM network check: try to ping the gateway, and the server
+sub ensure_server_reachable {
+    assert_script_run('ping -c 1 10.0.2.2');
+    assert_script_run('ping -c 1 10.0.2.101');
+}
+
+sub x11_client_preparation {
+    my ($self, $file) = @_;
+    # Setup static NETWORK
+    $self->configure_static_ip_nm('10.0.2.102/24');
+
+    x11_start_program('xterm');
+    turn_off_gnome_screensaver;
+
+    mutex_wait("x11_container_ready");
+    ensure_server_reachable();
+
+    # ssh login to the x11 server
+    enter_cmd('ssh root@10.0.2.101');
+    assert_screen 'ssh-login', 60;
+    enter_cmd "yes";
+    assert_screen 'password-prompt', 60;
+    type_password();
+    send_key "ret";
+    assert_screen 'ssh-login-ok';
+
+    my $opts = "-e DISPLAY=:0 -e XAUTHORITY=/home/user/xauthority/.xauth -e PULSE_SERVER=/var/run/pulse/native -v xauthority:/home/user/xauthority:rw -v pasocket:/var/run/pulse/ -v xsocket:/tmp/.X11-unix:rw";
+    # pulseaudio image url and firefox kiosk url are joined together by a space
+    # split the string by space
+    my ($pacontainerpath, $ffcontainerpath) = split(/\s+/, get_var("CONTAINER_IMAGE_TO_TEST", 'registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/kiosk/pulseaudio:17 registry.suse.de/suse/sle-15-sp6/update/cr/totest/images/suse/kiosk/firefox-esr:esr'));
+    # pull and start pulseaudio container
+    enter_cmd("podman pull $pacontainerpath --tls-verify=false", 300);
+    assert_screen("podman-pa-pull-done");
+    enter_cmd("podman run -d --pod wallboard-pod $opts -v /run/udev/data:/run/udev/data:rw --name pulseaudio-container --privileged $pacontainerpath bash -c 'chown root:audio /dev/snd/*; /usr/bin/pulseaudio -vvv --log-target=stderr'");
+    assert_screen("podman-pa-run");
+
+    # pull and start firefox container
+    enter_cmd("podman pull $ffcontainerpath --tls-verify=false", 300);
+    assert_screen("podman-ff-pull-done");
+    my $ff_url = "https://freesound.org/people/kevp888/sounds/796468/";
+    if (check_var('REMOTE_DESKTOP_TYPE', 'x11_podman_extra_client')) {
+        $ff_url = "https://browserbench.org/JetStream2.0/";
+    }
+    enter_cmd("podman run -d --pod wallboard-pod -e URL=$ff_url $opts --user 1000 --name wallboard-container --security-opt=no-new-privileges $ffcontainerpath");
+}
+
+sub stop_containers {
+    # stop container
+    enter_cmd("podman stop wallboard-container");
+    assert_screen("wallboard-container-stopped");
+    enter_cmd("podman stop pulseaudio-container");
+    assert_screen("pa-container-stopped");
+    enter_cmd("podman stop x11-init-container");
+    assert_screen("x11-container-stopped");
+
+    # stop ssh
+    enter_cmd "exit";
+
+    # exit xterm
+    send_key "alt-f4";
     assert_screen 'generic-desktop';
 }
 1;
