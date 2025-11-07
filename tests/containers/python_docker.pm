@@ -83,6 +83,9 @@ sub test ($target) {
         # This test with websockets is broken
         "tests.integration.api_container_test.AttachContainerTest::test_run_container_reading_socket_ws",
     );
+    push @xfails, (
+        "tests.unit.api_build_test.BuildTest::test_set_auth_headers_with_dict_and_no_auth_configs",
+    ) if (is_sle(">16"));
 
     run_command "$env pytest $pytest_args tests/$target &> $target.txt || true", timeout => 3600;
 
