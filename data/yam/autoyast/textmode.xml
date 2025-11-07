@@ -42,11 +42,39 @@
     <networking>
         <keep_install_network config:type="boolean">true</keep_install_network>
     </networking>
+    <firewall config:type="map">
+        <default_zone>public</default_zone>
+        <enable_firewall config:type="boolean">true</enable_firewall>
+        <log_denied_packets>off</log_denied_packets>
+        <start_firewall config:type="boolean">true</start_firewall>
+        <zones config:type="list">
+            <zone config:type="map">
+                <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+                <interfaces config:type="list">
+                    <interface>eth0</interface>
+                </interfaces>
+                <masquerade config:type="boolean">false</masquerade>
+                <name>public</name>
+                <ports config:type="list"/>
+                <protocols config:type="list"/>
+                <services config:type="list">
+                    <service>dhcpv6-client</service>
+                    <service>ssh</service>
+                    <service>vnc-server</service>
+                </services>
+                <short>Public</short>
+                <target>default</target>
+            </zone>
+        </zones>
+    </firewall>
     <software>
         <products config:type="list">
             <product>SLES</product>
         </products>
-	<patterns t="list">
+        <packages config:type="list">
+            <package>openssh</package>
+        </packages>        
+      	<patterns t="list">
             <pattern>apparmor</pattern>
             <pattern>base</pattern>
             <pattern>enhanced_base</pattern>
@@ -54,6 +82,13 @@
             <pattern>yast2_basis</pattern>
         </patterns>
     </software>
+    <services-manager>
+        <services>
+            <enable config:type="list">
+                <service>sshd</service>
+            </enable>
+        </services>
+    </services-manager>
     <users config:type="list">
         <user>
             <fullname>Bernhard M. Wiedemann</fullname>
