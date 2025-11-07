@@ -1,8 +1,44 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: destroy all the resources in the cloud
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Destroy all cloud resources created for the test scenario.
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+cloud_netconfig/destroy.pm - Destroy cloud resources for the cloud-netconfig test
+
+=head1 DESCRIPTION
+
+This module is the final cleanup step for the C<cloud-netconfig> test scenario.
+Its sole purpose is to destroy all the Azure resources that were provisioned by
+C<deploy.pm> to ensure no resources are left running after the test completes.
+
+The module performs the following action:
+
+=over 4
+
+=item * Identifies the Azure resource group associated with the current test job.
+
+=item * Executes the C<az group delete> command to delete the entire resource group
+
+=back
+
+=head1 VARIABLES
+
+=over 4
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider. Currently, only 'AZURE' is supported for this test.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
