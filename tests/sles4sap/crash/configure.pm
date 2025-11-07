@@ -13,85 +13,26 @@
 # - System reboot
 # This prepares the system for crash testing.
 
-use base 'publiccloud::basetest';
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use utils;
 use sles4sap::azure_cli;
 use sles4sap::aws_cli;
+use sles4sap::crash;
 use serial_terminal 'select_serial_terminal';
-use mmapi 'get_current_job_id';
-
-=head2 ensure_system_ready_and_register
-
-    Polls C<systemctl is-system-running> via SSH for up to 5 minutes.
-     If C<reg_code> is provided, registers the system using C<registercloudguest> and verifies with C<SUSEConnect -s>.
-
-=over
-
-=item B<%args> Hash with:
-
-=back
-
-=over
-
-=item B<reg_code> Registration code.
-
-=item B<ssh_command> SSH command for registration.
-
-=back
-
-=cut
-
-sub ensure_system_ready_and_register {
-    my (%args) = @_;
-    my $start_time = time();
-    my $ret;
-
-    while ((time() - $start_time) < 300) {
-        $ret = script_run(join(' ', $args{ssh_command}, 'sudo', 'systemctl is-system-running'));
-        last unless $ret;
-        sleep 10;
-    }
-    if ($args{reg_code}) {
-        script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'), 200);
-        script_run(join(' ', $args{ssh_command}, 'sudo registercloudguest --clean'), 200);
-
-        my $rc = 1;
-        my $attempt = 0;
-
-        while ($rc != 0 && $attempt < 4) {
-            $rc = script_run("$args{ssh_command} sudo registercloudguest --force-new -r $args{reg_code} -e testing\@suse.com", 600);
-            record_info('REGISTER CODE', $rc);
-            $attempt++;
-        }
-        die "registercloudguest failed after $attempt attempts with exit $rc" unless ($rc == 0);
-        assert_script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'));
-    }
-
-}
 
 sub run {
     my ($self) = @_;
-    my $prefix = get_var('DEPLOY_PREFIX', 'clne');
-    my $ssh_cmd = get_required_var('SSH_CMD');
+
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my $job_id = $prefix . get_current_job_id();
-    my $vm_ip = '';
+    my $ssh_cmd;
+    my $vm_ip = crash_pubip(provider => $provider, region => get_var('PUBLIC_CLOUD_REGION'));
 
     if ($provider eq 'EC2') {
-        $vm_ip = aws_get_ip_address(instance_id => aws_vm_get_id(region => get_required_var('PUBLIC_CLOUD_REGION'), job_id => $job_id));
+        $ssh_cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ec2-user\@$vm_ip";
     }
     elsif ($provider eq 'AZURE') {
-        $vm_ip = az_network_publicip_get(resource_group => $job_id, name => $prefix . "-pub_ip");
-    }
-
-    if (get_required_var('PUBLIC_CLOUD_PROVIDER') eq 'AZURE') {
-        my $rg = get_required_var('RG');
-        my $vm = get_required_var('VM_NAME');
-        az_vm_wait_running(
-            resource_group => $rg,
-            name => $vm,
-            timeout => 1200);
+        $ssh_cmd = 'ssh cloudadmin@' . $vm_ip;
     }
 
     my $start_time = time();
@@ -102,10 +43,9 @@ sub run {
     }
 
     assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
-    record_info('SSH', 'VM reachable with SSH');
-
-    ensure_system_ready_and_register(reg_code => get_var('SCC_REGCODE_SLES4SAP'), ssh_command => $ssh_cmd);
-    record_info('Done', 'Test finished');
+    crash_system_ready(
+        reg_code => get_var('SCC_REGCODE_SLES4SAP'),
+        ssh_command => $ssh_cmd);
 }
 
 sub test_flags {
