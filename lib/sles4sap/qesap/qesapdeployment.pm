@@ -1414,6 +1414,10 @@ sub qesap_cluster_log_cmds {
             Output => 'hdbinst.log.txt',
         },
         {
+            Cmd => '(cd /var/tmp ; tar -zcf - hdb_* *.trc)',
+            Output => 'hdb_hdblcm_install.tar.gz',
+        },
+        {
             Cmd => 'cat /var/tmp/hdblcm.log',
             Output => 'hdblcm.log.txt',
         },
