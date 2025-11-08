@@ -221,7 +221,7 @@ sub install_ncat {
 }
 
 sub install_bats {
-    my $bats_version = get_var("BATS_VERSION", "1.11.1");
+    my $bats_version = get_var("BATS_VERSION", "1.13.0");
 
     run_command "curl $curl_opts https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -";
     run_command "bash bats-core-$bats_version/install.sh /usr/local";
