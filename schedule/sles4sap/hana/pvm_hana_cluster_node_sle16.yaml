@@ -42,6 +42,7 @@ schedule:
   - installation/agama_reboot
   - installation/grub_test
   - installation/first_boot
+  - console/zypper_lr
   - ha/wait_barriers
   - console/system_prepare
   - console/consoletest_setup
