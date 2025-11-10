@@ -40,6 +40,12 @@ sub run {
 
         ($f->{cmd}) ? assert_script_run($f->{cmd}) : die "Get command failure";
 
+        if (is_sle('>=16')) {
+            # skipping audit check on SLE 16 due to bsc#1247246
+            record_soft_failure('SKIPPING TEST; bsc#1247246');
+            next;
+        }
+
         # We do not check the exact file hash here, but to ensure the audit
         # record existed
         assert_script_run("ausearch -m INTEGRITY_RULE |grep '$f->{file}.*hash='");
