@@ -84,8 +84,6 @@ sub run {
     reset_consoles();
     assert_and_click('agama-reboot-after-install');
 
-    $self->wait_grub;
-
 }
 
 =head2 post_fail_hook
