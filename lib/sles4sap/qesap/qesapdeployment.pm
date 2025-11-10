@@ -176,7 +176,8 @@ sub qesap_get_variables {
 
 sub qesap_ansible_create_section {
     my (%args) = @_;
-    foreach (qw(ansible_section section_content)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    foreach (qw(ansible_section section_content)) {
+        croak "Missing mandatory $_ argument" unless $args{$_}; }
 
     my %paths = qesap_get_file_paths();
     my $yaml_config_path = $paths{qesap_conf_trgt};
@@ -188,7 +189,11 @@ sub qesap_ansible_create_section {
     my $yaml_data = $ypp->load_string($raw_file);
 
     die "Missing ansible section in $yaml_config_path" unless $yaml_data->{ansible};
-    $yaml_data->{ansible}{$args{ansible_section}} = $args{section_content};
+    if ($yaml_data->{apiver} && (int($yaml_data->{apiver}) >= 4) && (grep { $_ eq $args{ansible_section} } ('create', 'destroy', 'test'))) {
+        $yaml_data->{ansible}{sequences}{$args{ansible_section}} = $args{section_content};
+    } else {
+        $yaml_data->{ansible}{$args{ansible_section}} = $args{section_content};
+    }
 
     # write into file
     my $yaml_dumped = $ypp->dump_string($yaml_data);

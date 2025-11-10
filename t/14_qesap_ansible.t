@@ -553,7 +553,7 @@ subtest '[qesap_ansible_softfail]' => sub {
     like($rec, qr/bsc#1234.*-.*explanations/, 'softfail format');
 };
 
-subtest '[qesap_ansible_create_section]' => sub {
+subtest '[qesap_ansible_create_section] single string in a generic section' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
 
     $qesap->redefine(qesap_get_file_paths => sub {
@@ -588,7 +588,28 @@ subtest '[qesap_ansible_create_section]' => sub {
     #   KRILL: KATTY
     #   something: 'true'
     like($yaml_data, qr/KRILL: KATTY/, 'Simple string test');
-    @calls = ();
+};
+
+subtest '[qesap_ansible_create_section] dictionary in a generic section' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
+            $paths{qesap_conf_filename} = '/SPLASH';
+            return (%paths);
+    });
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'ansible:
+    something: "true"';
+    });
+    $qesap->redefine(autoinst_url => sub { return 'http://REEF' });
+    my $yaml_path;
+    my $yaml_data;
+    $qesap->redefine(save_tmp_file => sub { $yaml_path = $_[0]; $yaml_data = $_[1] });
 
     my %data2;
     $data2{GILL} = 'GERALD';
@@ -605,7 +626,28 @@ subtest '[qesap_ansible_create_section]' => sub {
     #     GILL: GERALD
     #   something: 'true'
     like($yaml_data, qr/GILL: GERALD/, 'Hash test');
-    @calls = ();
+};
+
+subtest '[qesap_ansible_create_section] list in a generic section' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
+            $paths{qesap_conf_filename} = '/SPLASH';
+            return (%paths);
+    });
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'ansible:
+    something: "true"';
+    });
+    $qesap->redefine(autoinst_url => sub { return 'http://REEF' });
+    my $yaml_path;
+    my $yaml_data;
+    $qesap->redefine(save_tmp_file => sub { $yaml_path = $_[0]; $yaml_data = $_[1] });
 
     my @data3 = qw(PEACH PERL DEB);
     qesap_ansible_create_section(
@@ -623,7 +665,28 @@ subtest '[qesap_ansible_create_section]' => sub {
     #     - DEB
     #   something: 'true'
     like($yaml_data, qr/- PEACH/, 'List test');
-    @calls = ();
+};
+
+subtest '[qesap_ansible_create_section] complex data structure in a generic section' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
+            $paths{qesap_conf_filename} = '/SPLASH';
+            return (%paths);
+    });
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'ansible:
+    something: "true"';
+    });
+    $qesap->redefine(autoinst_url => sub { return 'http://REEF' });
+    my $yaml_path;
+    my $yaml_data;
+    $qesap->redefine(save_tmp_file => sub { $yaml_path = $_[0]; $yaml_data = $_[1] });
 
     my %data4;
     my @ports = ('4{{ sap_hana_install_number }}01-4{{ sap_hana_install_number }}02/tcp');
@@ -651,6 +714,87 @@ subtest '[qesap_ansible_create_section]' => sub {
     ok(($data->{ansible}{hana_vars}), 'Next key is hana_var');
     ok(($data->{ansible}{hana_vars}{sap_hana_install_firewall}), 'First added key sap_hana_install_firewall');
     ok(($data->{ansible}{hana_vars}{sap_hana_install_firewall}[0]{port}), 'First element has key port');
+};
+
+subtest '[qesap_ansible_create_section] list of playbooks in create section without apiver' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
+            $paths{qesap_conf_filename} = '/SPLASH';
+            return (%paths);
+    });
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'ansible:
+    something: "true"';
+    });
+    $qesap->redefine(autoinst_url => sub { return 'http://REEF' });
+    my $yaml_path;
+    my $yaml_data;
+    $qesap->redefine(save_tmp_file => sub { $yaml_path = $_[0]; $yaml_data = $_[1] });
+
+    my @data3 = qw(PEACH PERL DEB);
+    qesap_ansible_create_section(
+        ansible_section => 'create',
+        section_content => \@data3);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("YAML_PATH:$yaml_path YAML_DATA:$yaml_data");
+    # Expected YAML content
+    # ---
+    # ansible:
+    #   create:
+    #     - PEACH
+    #     - PERL
+    #     - DEB
+    #   something: 'true'
+    like($yaml_data, qr/- PEACH/, 'List test');
+};
+
+subtest '[qesap_ansible_create_section] list of playbooks in create section with apiver 4' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+
+    $qesap->redefine(qesap_get_file_paths => sub {
+            my %paths;
+            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
+            $paths{qesap_conf_filename} = '/SPLASH';
+            return (%paths);
+    });
+    my @calls;
+    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return 'apiver: 4
+ansible:
+  something: "true"';
+    });
+    $qesap->redefine(autoinst_url => sub { return 'http://REEF' });
+    my $yaml_path;
+    my $yaml_data;
+    $qesap->redefine(save_tmp_file => sub { $yaml_path = $_[0]; $yaml_data = $_[1] });
+
+    my @data3 = qw(PEACH PERL DEB);
+    qesap_ansible_create_section(
+        ansible_section => 'create',
+        section_content => \@data3);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("YAML_PATH:$yaml_path YAML_DATA:$yaml_data");
+    # Expected YAML content
+    # ---
+    # ansible:
+    #   sequences:
+    #     create:
+    #       - PEACH
+    #       - PERL
+    #       - DEB
+    #   something: 'true'
+    like($yaml_data, qr/- PEACH/, 'List test');
+    like($yaml_data, qr/sequences:/, 'Create: added under sequences:');
 };
 
 done_testing;
