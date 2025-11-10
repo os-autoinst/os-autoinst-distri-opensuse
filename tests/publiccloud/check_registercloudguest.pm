@@ -212,7 +212,7 @@ sub test_container_runtimes {
 sub cleanup_instance {
     my ($instance) = @_;
     record_info('Removing registration data');
-    $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
+    $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean", timeout => 180);
     check_instance_unregistered($instance);
 }
 
