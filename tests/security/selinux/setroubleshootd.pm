@@ -29,7 +29,9 @@ sub ensure_setroubleshootd_cannot_be_directly_run_as_root {
 # ensure service is inactive; then after restart should be active, and inactive again after some time
 sub validate_service_restart {
     validate_script_output('systemctl is-active setroubleshootd.service', sub { m/inactive/ }, proceed_on_failure => 1);
-    validate_script_output('systemctl restart setroubleshootd;systemctl is-active setroubleshootd.service;sleep 15;systemctl is-active setroubleshootd.service', sub { m/active.*inactive/s }, proceed_on_failure => 1);
+    validate_script_output('systemctl restart setroubleshootd; systemctl is-active setroubleshootd.service', sub { m/active/s }, proceed_on_failure => 1);
+    script_retry("journalctl  --lines 10 | grep 'setroubleshootd.service: Deactivated successfully'", retry => 10, delay => 3, fail_message => 'setroubleshootd took too long to stop');
+    validate_script_output('systemctl is-active setroubleshootd.service', sub { m/inactive/s }, proceed_on_failure => 1);
 }
 
 sub validate_invocation_via_polkit {
