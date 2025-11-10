@@ -28,16 +28,12 @@ use List::Util qw(first pairmap uniq);
 use qam;
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use Utils::Architectures qw(is_s390x);
+use Utils::Architectures qw(is_s390x is_aarch64);
 
 my @conflicting_packages = (
     'coreutils-single',
-    'nv-prefer-signed-open-driver',
-    'nvidia-open-signed-kmp',
     'nvidia-open-driver-G06-signed-kmp-default',
-    'nvidia-open-driver-G06-signed-kmp-64kb',
     'nvidia-open-driver-G06-signed-cuda-kmp-default',
-    'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
     'nvidia-open-driver-G06-signed-cuda-default-devel',
     'ImageMagick-config-7-upstream-limited',
     'ImageMagick-config-7-upstream-open',
@@ -45,6 +41,12 @@ my @conflicting_packages = (
     'ImageMagick-config-7-upstream-websafe',
     'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
 );
+
+push(@conflicting_packages, (
+        'nv-prefer-signed-open-driver',
+        'nvidia-open-driver-G06-signed-64kb-devel',
+        'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
+)) if is_aarch64;
 
 # We may need to skip installing some packages based on test requirements
 # see example at poo#191485
