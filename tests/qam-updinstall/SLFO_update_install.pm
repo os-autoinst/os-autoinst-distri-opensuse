@@ -35,9 +35,10 @@ my @conflicting_packages = (
     'nv-prefer-signed-open-driver',
     'nvidia-open-signed-kmp',
     'nvidia-open-driver-G06-signed-kmp-default',
+    'nvidia-open-driver-G06-signed-kmp-64kb',
     'nvidia-open-driver-G06-signed-cuda-kmp-default',
-    'nvidia-open-driver-G06-signed-cuda-default-devel',
     'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
+    'nvidia-open-driver-G06-signed-cuda-default-devel',
 );
 
 # We may need to skip installing some packages based on test requirements
