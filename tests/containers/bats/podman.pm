@@ -41,13 +41,14 @@ sub run_tests {
             ) unless (is_sle);
         }
         push @xfails, (
-            # These fail for user on SLES 16.0 & Tumbleweed
+            # These sometimes fail for user on SLES 16.0 & Tumbleweed
             "505-networking-pasta.bats::TCP/IPv4 large transfer, tap",
         ) unless (is_sle("<16"));
     } else {
         if (!$remote) {
             push @xfails, (
                 # These fail for root/local on SLES 16.0 & Tumbleweed
+                # due to https://github.com/containers/podman/issues/27246
                 "200-pod.bats::pod resource limits",
             ) unless (is_sle("<16"));
         }

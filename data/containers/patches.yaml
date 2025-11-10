@@ -202,27 +202,15 @@ podman:
     - 27233
 runc:
   # Note on patches:
-  # https://github.com/opencontainers/runc/pull/4825 is needed for cgroups
   # https://github.com/opencontainers/runc/pull/4893 is needed for ppc64le issue fixed in runc 1.3.2
   opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 4825
   sle-16.0:
     GITHUB_PATCHES:
-    - 4825
     - 4893
   sle-15-SP7:
-    GITHUB_PATCHES:
-    - 4825
   sle-15-SP6:
-    GITHUB_PATCHES:
-    - 4825
   sle-15-SP5:
-    GITHUB_PATCHES:
-    - 4825
   sle-15-SP4:
-    GITHUB_PATCHES:
-    - 4825
 skopeo:
   opensuse-Tumbleweed:
   sle-16.0:
