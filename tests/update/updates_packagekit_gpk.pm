@@ -21,11 +21,11 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_leap);
-use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver turn_off_gnome_suspend);
+use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver turn_off_gnome_suspend default_gui_terminal);
 use serial_terminal 'select_serial_terminal';
 
 sub setup_system {
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
 
     if (check_var("DESKTOP", "gnome")) {
         turn_off_gnome_screensaver;
@@ -54,7 +54,7 @@ sub close_pop_up_windows {
 sub tell_packagekit_to_quit {
     # tell the PackageKit daemon to stop in order to next load with new libzypp
     # this is different from quit_packagekit
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     script_run("pkcon quit");
     send_key("ctrl-d");
 }

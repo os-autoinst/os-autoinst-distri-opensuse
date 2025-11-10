@@ -561,7 +561,7 @@ sub setup_mail_account {
 # https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
 sub prepare_firefox_autoconfig {
     my ($self) = @_;
-    start_root_shell_in_xterm;
+    select_console 'root-console';
 
     # Enable AutoConfig by pointing to a cfg file
     type_string(
@@ -588,9 +588,7 @@ pref("trailhead.firstrun.branches", "nofirstrun-empty");
 EOF
 });
 
-    save_screenshot;
-    # Close the xterm with root shell
-    enter_cmd "killall xterm";
+    select_console 'x11';
 }
 
 # start clean firefox with one suse.com tab, visit pages which trigger pop-up so they will not pop again
