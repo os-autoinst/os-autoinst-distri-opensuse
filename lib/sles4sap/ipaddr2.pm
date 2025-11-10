@@ -52,6 +52,7 @@ our @EXPORT = qw(
   ipaddr2_scc_check
   ipaddr2_scc_register
   ipaddr2_scc_addons
+  ipaddr2_billing_model_get
   ipaddr2_crm_move
   ipaddr2_crm_clear
   ipaddr2_wait_for_takeover
@@ -1556,6 +1557,45 @@ sub ipaddr2_scc_register(%args) {
         bastion_ip => $args{bastion_ip});
 }
 
+=head2 ipaddr2_billing_model_get
+
+    my $is_byos_or_payg = ipaddr2_billing_model_get(id => 1);
+
+Return the billing model of th erunning image, between BYOS and PAYG,
+internally calling instance-flavor-check
+
+=over
+
+=item B<id> - VM id where to install and configure the web server
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_billing_model_get(%args) {
+    croak("Argument < id > missing") unless $args{id};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    # Check for image type with instance-flavor-check
+    my $ret = ipaddr2_ssh_internal(id => $args{id},
+        cmd => 'sudo instance-flavor-check',
+        bastion_ip => $args{bastion_ip},
+        no_assert => 1);
+
+    if ($ret eq 10) {
+        # Valid instance metadata verified successfully
+        return 'PAYG';
+    } elsif (($ret eq 11) || ($ret eq 12)) {
+        # 11 : Not valid instance metadata verified successfully
+        # 12 : We could not reliably determine the flavor of the instance. The instance is labeled as BYOS
+        return 'BYOS';
+    }
+    die "Invalid instance-flavor-check ret:$ret";
+}
+
 =head2 ipaddr2_configure_web_server
 
     ipaddr2_configure_web_server(id => 1);
@@ -2250,6 +2290,55 @@ sub ipaddr2_cleanup(%args) {
     my @cmds = ipaddr2_logs_collect_cmds();
 
 Returns a list of commands to collect logs from the ipaddr2 cluster.
+
+The returned value is a list of hashrefs, where each hashref defines a log collection task.
+This data structure is consumed by C<ipaddr2_logs_collect> to perform the actual log gathering.
+
+Each element in the C<@log_list> array is a hash reference with the following structure:
+
+=over
+
+=item B<name>       - (Optional) A string that provides a human-readable name
+                      for the log being collected (e.g., 'crm_report').
+                      ipaddr2_logs_collect, does not actually use this key value.
+
+=item B<remote_log> - (Optional) A boolean flag.
+                      If set to C<1>, it indicates that the log file resides on the remote VMs (the internal cluster nodes).
+                      The C<ipaddr2_logs_collect> function will then iterate through each cluster node
+                      to execute the log collection.
+                      If this key is omitted or set to C<0>, the log is assumed to be on the local openQA worker.
+
+=item B<timeout>    - (Optional) An integer specifying the timeout in seconds for the log generation command.
+                      Defaults to 300 seconds if not provided.
+
+=item B<f_log>      - A subroutine reference that, when executed, composes and returns a hash of instructions for log collection.
+                      This subroutine itself does not execute any commands; its sole purpose is to define
+                      *what* to collect and *how*. When called by the C<ipaddr2_logs_collect> function,
+                      it returns a hash containing C<file> and optionally C<cmd>.
+                                       - If C<remote_log> is true, this subroutine is called with the VM's numerical ID
+                                         (e.g., 1 or 2) as its argument.
+                                       - If C<remote_log> is false or not present, it is called without arguments.
+
+The hash reference returned by C<f_log> has the following keys:
+
+=over
+
+=item B<file> - The absolute path to the log file on the target machine (either the remote VM or the local worker).
+                This file will be downloaded (if remote) and then uploaded to openQA.
+
+=item B<cmd> - (Optional) A string containing a shell command to be executed on the target machine
+               to generate the log file before collection. If this key is not present, it is assumed the log file already exists.
+
+=back
+
+=back
+
+For example, the 'crm_report' entry defines a remote log. The C<ipaddr2_logs_collect> function
+will connect to each internal VM, execute C<sudo crm report /var/log/crm_report_1> (for VM 1),
+and then download the resulting C</var/log/crm_report_1.tar.gz> file.
+In contrast, the entry for C<SSH_LOG> defines a local log, and the function will simply
+upload the file from the worker's filesystem.
+
 =cut
 
 sub ipaddr2_logs_collect_cmds {
@@ -2259,8 +2348,12 @@ sub ipaddr2_logs_collect_cmds {
             remote_log => 1,
             f_log => sub {
                 my $id = shift;
+                my $file = "/tmp/cloudregister_$id.txt";
                 return {
-                    file => '/var/log/cloudregister'}; }
+                    cmd => "cp /var/log/cloudregister $file",
+                    file => $file
+                };
+            }
         },
         {
             name => 'crm_report',
