@@ -31,6 +31,7 @@ buildah:
   # Note on patches:
   # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
+  # https://github.com/containers/buildah/pull/6271 - Update "bud with --cpu-shares" test, and rename it
   # https://github.com/containers/buildah/pull/6380 is needed to solve SELinux issue with crun
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
@@ -42,10 +43,12 @@ buildah:
     GITHUB_PATCHES:
     - 5495
     - 6226
+    - 6271
   sle-15-SP6:
     GITHUB_PATCHES:
     - 5495
     - 6226
+    - 6271
   sle-15-SP5:
     GITHUB_PATCHES:
     - 5495
