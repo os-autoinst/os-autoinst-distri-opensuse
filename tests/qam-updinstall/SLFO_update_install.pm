@@ -32,6 +32,12 @@ use Utils::Architectures qw(is_s390x);
 
 my @conflicting_packages = (
     'coreutils-single',
+    'nv-prefer-signed-open-driver',
+    'nvidia-open-signed-kmp',
+    'nvidia-open-driver-G06-signed-kmp-default',
+    'nvidia-open-driver-G06-signed-cuda-kmp-default',
+    'nvidia-open-driver-G06-signed-cuda-default-devel',
+    'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
 );
 
 # We may need to skip installing some packages based on test requirements
