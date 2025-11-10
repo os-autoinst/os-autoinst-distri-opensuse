@@ -1401,8 +1401,8 @@ sub wait_for_cluster {
             }
             # Call cleanup_resource if $hanasr_ready or $crm_ok is false
             if (!$hanasr_ready || !$crm_ok) {
-                $self->cleanup_resource();
                 record_soft_failure("jsc#TEAM-10642 SAPHanaSR-ScaleUp-PerfOpt failed in 'Cluster is not ready after specified retries'");
+                $self->cleanup_resource();
                 $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
                 return if (check_crm_output(input => $crm_output));
             }
