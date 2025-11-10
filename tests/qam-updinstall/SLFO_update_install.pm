@@ -35,9 +35,10 @@ my @conflicting_packages = (
     'nv-prefer-signed-open-driver',
     'nvidia-open-signed-kmp',
     'nvidia-open-driver-G06-signed-kmp-default',
+    'nvidia-open-driver-G06-signed-kmp-64kb',
     'nvidia-open-driver-G06-signed-cuda-kmp-default',
-    'nvidia-open-driver-G06-signed-cuda-default-devel',
     'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
+    'nvidia-open-driver-G06-signed-cuda-default-devel',
 );
 
 # We may need to skip installing some packages based on test requirements
@@ -108,7 +109,7 @@ sub run {
 
         # Make a list of the conflicting binaries in this patch
         my @patch_conflicts = uniq pairmap {
-            map { $_ =~ /(^\s+(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?!srcpackage:)(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
+            map { $_ =~ /(^\s+(?!srcpackage:)(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?!srcpackage:)(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
         print "Conflicting packages: @patch_conflicts\n";
 
         for my $pkg (@patch_conflicts) {
