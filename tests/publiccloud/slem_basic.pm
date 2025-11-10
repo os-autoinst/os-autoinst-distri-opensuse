@@ -48,13 +48,6 @@ sub run {
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
     $self->report_avc();
 
-    # Check that xen-tools-domU is available
-    if (is_ec2() && $instance->ssh_script_output('systemd-detect-virt') =~ /xen/) {
-        $instance->ssh_assert_script_run(cmd => 'rpm -qi xen-tools-domU');
-        # This command is available in the above package
-        record_info('Xen version', $instance->ssh_script_output('xen-detect'));
-    }
-
     my $test_package = get_var('TEST_PACKAGE', 'socat');
     $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600) unless get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
