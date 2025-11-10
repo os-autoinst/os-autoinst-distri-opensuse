@@ -37,8 +37,18 @@ sub gpg_test {
     my $email = "user\@suse.de";
     my $egg_file = 'egg';
 
-    # GPG Key Generation
+    # NTP Time Sync (poo#191983)
+    if (!is_sle('<=12')) {
+        my $ntp_command = 'timedatectl status | grep "synchronized: yes"';
+        my $ntp_status = script_run($ntp_command);
+        if ($ntp_status != 0) {
+            record_info('Time Sync', 'System clock is not synchronized; Starting NTP.');
+            assert_script_run('timedatectl set-ntp true');
+            script_retry($ntp_command, retry => 10, delay => 4, fail_message => 'Failed to synchronize clock');
+        }
+    }
 
+    # GPG Key Generation
     # Generating key pair
     if ($gpg_ver ge 2.1) {
         # Preparing a config file for gpg --batch option
