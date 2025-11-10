@@ -109,7 +109,7 @@ sub run {
 
         # Make a list of the conflicting binaries in this patch
         my @patch_conflicts = uniq pairmap {
-            map { $_ =~ /(^\s+(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?!srcpackage:)(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
+            map { $_ =~ /(^\s+(?!srcpackage:)(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?!srcpackage:)(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
         print "Conflicting packages: @patch_conflicts\n";
 
         for my $pkg (@patch_conflicts) {
