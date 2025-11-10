@@ -1358,7 +1358,7 @@ sub load_x11tests {
     }
     # first module after login or startup to check prerequisites
     loadtest "x11/desktop_runner";
-    loadtest "x11/setup";
+    loadtest "x11/setup" unless (is_opensuse && get_var('DESKTOP', '') =~ /gnome/);
     if (xfcestep_is_applicable()) {
         loadtest "x11/xfce4_terminal";
     }
