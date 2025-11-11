@@ -71,7 +71,7 @@ sub run {
         push @skipped, $exclude if $exclude;
         my $test_exclude = join(' ', @skipped);
 
-        assert_script_run("echo TEST_EXCLUDE=\"$test_exclude\" > test/config.local");
+        assert_script_run("echo 'TEST_EXCLUDE=\"$test_exclude\"' > test/config.local");
         record_info(
             "Exclude",
             "Excluding tests: $test_exclude",
