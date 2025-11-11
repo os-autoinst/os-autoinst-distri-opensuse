@@ -136,6 +136,94 @@ subtest "[sles4sap_cleanup] no need to clean" => sub {
     ok($ret eq 0, "Expected return 0 ret:$ret");
 };
 
+subtest "[sles4sap_cleanup] SUPPORTCONFIG=0 => never collect, even on FAIL" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
+    $sles4sap_publiccloud->redefine(type_string => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
+    my $support_calls = 0;
+    $sles4sap_publiccloud->redefine(qesap_supportconfig_logs => sub {
+            $support_calls++;
+            return;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(qesap_execute => sub { return (0, 0); });
+
+    my $self = sles4sap_publiccloud->new();
+    # Simulate FAIL result and SUPPORTCONFIG=0 (should still skip)
+    $self->{result} = 'fail';
+    set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
+    set_var('SUPPORTCONFIG', '0');
+
+    my $ret = $self->sles4sap_cleanup();
+
+    set_var('SUPPORTCONFIG', undef);
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    ok($ret eq 0, "Cleanup returns 0");
+    is($support_calls, 0, "supportconfig logs NOT collected when SUPPORTCONFIG=0 even on FAIL");
+};
+
+subtest "[sles4sap_cleanup] SUPPORTCONFIG=1 => always collect (PASS case)" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
+    $sles4sap_publiccloud->redefine(type_string => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
+    my $support_calls = 0;
+    $sles4sap_publiccloud->redefine(qesap_supportconfig_logs => sub {
+            $support_calls++;
+            return;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(qesap_execute => sub { return (0, 0); });
+
+    my $self = sles4sap_publiccloud->new();
+    # PASS case (no explicit fail), but SUPPORTCONFIG=1 => must collect
+    set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
+    set_var('SUPPORTCONFIG', '1');
+
+    my $ret = $self->sles4sap_cleanup();
+
+    set_var('SUPPORTCONFIG', undef);
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    ok($ret eq 0, "Cleanup returns 0");
+    is($support_calls, 1, "supportconfig logs collected when SUPPORTCONFIG=1 (PASS case)");
+};
+
+subtest "[sles4sap_cleanup] SUPPORTCONFIG unset + FAIL => collect" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
+    $sles4sap_publiccloud->redefine(type_string => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(upload_logs => sub { return; });
+    $sles4sap_publiccloud->redefine(qesap_cluster_logs => sub { return; });
+    my $support_calls = 0;
+    $sles4sap_publiccloud->redefine(qesap_supportconfig_logs => sub {
+            $support_calls++;
+            return;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(qesap_execute => sub { return (0, 0); });
+
+    my $self = sles4sap_publiccloud->new();
+    # Unset SUPPORTCONFIG and set FAIL result => must collect
+    $self->{result} = 'fail';
+    set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
+    set_var('SUPPORTCONFIG', undef);
+
+    my $ret = $self->sles4sap_cleanup();
+
+    set_var('PUBLIC_CLOUD_PROVIDER', undef);
+
+    ok($ret eq 0, "Cleanup returns 0");
+    is($support_calls, 1, "supportconfig logs collected when SUPPORTCONFIG is unset and result=fail");
+};
+
 subtest "[is_hana_online]" => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
