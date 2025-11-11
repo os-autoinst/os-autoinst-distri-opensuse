@@ -194,27 +194,33 @@ subtest '[az_login] Get credentials from OpenQA settings' => sub {
 
 subtest '[sdaf_cleanup] Test correct usage' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my $files_deleted;
-    $ms_sdaf->noop(qw(record_info script_output deployment_dir resource_group_exists));
+    $ms_sdaf->noop(qw(record_info
+          script_output
+          deployment_dir
+          resource_group_exists));
     $ms_sdaf->redefine(generate_resource_group_name => sub { return 'ResourceGroup'; });
     $ms_sdaf->redefine(sdaf_execute_remover => sub { return 0; });
-    $ms_sdaf->redefine(assert_script_run => sub { $files_deleted = 1; return 1; });
+    $ms_sdaf->redefine(script_run => sub { return 0; });
 
-    ok sdaf_cleanup(), 'Pass with correct usage';
-    is $files_deleted, 1, 'Function must delete files at the end';
+    my %cleanup_results = %{sdaf_cleanup()};
+    ok(!$cleanup_results{remover_failed}, 'Remover passes with correct usage');
+    is($cleanup_results{file_cleanup}, 'pass', 'File cleanup passes with correct usage');
 };
 
 subtest '[sdaf_cleanup] Test remover script failures' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my $files_deleted;
-
-    $ms_sdaf->noop(qw(record_info script_output deployment_dir resource_group_exists));
-    $ms_sdaf->redefine(generate_resource_group_name => sub { return 'ResourceGroup'; });
-    $ms_sdaf->redefine(assert_script_run => sub { $files_deleted = 1; return; });
+    my $force_group_delete;
+    $ms_sdaf->noop(qw( record_info script_output deployment_dir generate_resource_group_name ));
+    $ms_sdaf->redefine(resource_group_exists => sub { return 'yes'; });
+    $ms_sdaf->redefine(sdaf_destroy_resources => sub { $force_group_delete = 1; });
     $ms_sdaf->redefine(sdaf_execute_remover => sub { return 1; });
+    $ms_sdaf->redefine(script_run => sub { return 0; });
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
 
-    dies_ok { sdaf_cleanup() } 'Test failing remover script';
-    is $files_deleted, 1, 'Function must delete files after remover failure';
+    my %cleanup_results = %{sdaf_cleanup()};
+    ok($cleanup_results{remover_failed}, 'Remover passes with correct usage');
+    ok($force_group_delete, 'Function must delete resource groups after remover failure');
+    is($cleanup_results{file_cleanup}, 'pass', 'File cleanup must run even after remover failure');
 };
 
 subtest '[sdaf_execute_remover] Check command line arguments' => sub {
