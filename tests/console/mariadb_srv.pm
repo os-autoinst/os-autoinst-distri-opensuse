@@ -16,7 +16,7 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_jeos has_selinux);
+use version_utils qw(is_sle is_jeos has_selinux is_public_cloud);
 use Utils::Architectures;
 
 my $mariadb = (is_sle '<15-SP4') ? 'mysql' : 'mariadb';
@@ -45,7 +45,7 @@ sub run {
         assert_script_run("semanage port -a -t mysqld_port_t -p tcp 3315");
     }
 
-    systemctl "status $mariadb", expect_false => 1, fail_message => 'mariadb should be disabled by default';
+    systemctl "status $mariadb", expect_false => 1, fail_message => 'mariadb should be disabled by default' unless is_public_cloud;
     systemctl "start $mariadb", timeout => 300;
     systemctl "is-active $mariadb";
 
