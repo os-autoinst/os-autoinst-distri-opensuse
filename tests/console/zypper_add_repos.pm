@@ -25,6 +25,16 @@ sub run {
     my $untrusted = $prefix eq 'untrusted' ? '-G' : '';
     for my $url (split(/,/, $val)) {
         zypper_call("ar $untrusted -c -f $url $prefix$i");
+        # https://progress.opensuse.org/issues/192163
+        # On Leap Incidents get the content of http.*Maintenance:/@INCIDENTNR@/
+        # if Backports is found add the repo
+        if (check_var('FLAVOR', 'DVD-Incidents')) {
+            (my $url_ID = $url) =~ s/openSUSE_Leap.*//;
+            my $update_repos = script_output(qq(curl -s $url_ID | awk -F'"' '/_Update/ {print \$4}'));
+            foreach my $dir (grep /Backports/, split /\n/, $update_repos) {
+                zypper_call("ar $untrusted -c -f $url_ID$dir backports$i");
+            }
+        }
         ++$i;
     }
 }
