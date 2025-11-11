@@ -215,6 +215,10 @@ sub load_publiccloud_appimg_tests {
     # app_name => 'publiccloud/app-images/test-to-load'
     if ($publiccloud_app_img eq 'tomcat') {
         loadtest('publiccloud/app-images/tomcat', run_args => $args);
+    } elsif ($publiccloud_app_img eq 'mariadb') {
+        loadtest("publiccloud/ssh_interactive_start", run_args => $args);
+        loadtest('console/mariadb_srv', run_args => $args);
+        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     } elsif ($publiccloud_app_img eq 'postgresql') {
         loadtest("publiccloud/ssh_interactive_start", run_args => $args);
         loadtest('console/postgresql_server', run_args => $args);
