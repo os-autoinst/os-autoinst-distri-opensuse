@@ -50,7 +50,14 @@ sub check_strategy_instantly {
     select_console('root-console');
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
-    process_reboot(expected_grub => 1);
+    my $expected_grub = 1;
+    my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
+    my $output = wait_serial($regex, timeout => $args{timeout}) or die "transactional-update didn't finish";
+    if ($output =~ $regex) {
+        $expected_grub = ($1 eq "soft-reboot") ? 0 : 1;
+        record_info($1, "'$1'");
+    }
+    process_reboot(expected_grub => $expected_grub);
     rbm_call "get-strategy | grep instantly";
 }
 
