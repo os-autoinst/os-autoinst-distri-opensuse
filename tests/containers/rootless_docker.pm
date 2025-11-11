@@ -38,13 +38,6 @@ sub run {
 
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
 
-    # NOTE: Remove this when 15-SP3 is EOL
-    my $subuid_start = get_user_subuid($user);
-    if ($subuid_start eq '') {
-        $subuid_start = 200000;
-        my $subuid_range = $subuid_start + 65535;
-        assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
-    }
     assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
     assert_script_run "grep $user /etc/subgid", fail_message => "subgid range not assigned for $user";
 
@@ -70,13 +63,6 @@ sub run {
 
     # Like above, but the other way around: Delete the files left by the regular user.
     assert_script_run 'rm -rf /tmp/script*';
-}
-
-sub get_user_subuid {
-    my ($user) = shift;
-    my $start_range = script_output("awk -F':' '\$1 == \"$user\" {print \$2}' /etc/subuid",
-        proceed_on_failure => 1);
-    return $start_range;
 }
 
 sub cleanup {
