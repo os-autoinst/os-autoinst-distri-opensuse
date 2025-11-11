@@ -1358,13 +1358,13 @@ sub load_x11tests {
     }
     # first module after login or startup to check prerequisites
     loadtest "x11/desktop_runner";
-    loadtest "x11/setup";
+    loadtest "x11/setup" unless (is_opensuse && get_var('DESKTOP', '') =~ /gnome/);
     if (xfcestep_is_applicable()) {
         loadtest "x11/xfce4_terminal";
     }
     loadtest "x11/xterm";
     loadtest "locale/keymap_or_locale_x11";
-    loadtest "x11/sshxterm" unless get_var("LIVETEST");
+    loadtest "x11/sshxterm" unless (get_var("LIVETEST") || (is_opensuse && get_var('DESKTOP', '') =~ /gnome/));
     if (gnomestep_is_applicable()) {
         load_system_update_tests();
         loadtest "x11/gnome_control_center";
