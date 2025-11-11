@@ -13,6 +13,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_tumbleweed';
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 sub run {
     my $testuser = "testuser";
@@ -34,7 +35,7 @@ sub run {
 
     # Turn to x11 and start "xterm"
     select_console("x11");
-    x11_start_program("xterm");
+    x11_start_program(default_gui_terminal());
     become_root;
 
     # Run "# yast2 users" to create a user
@@ -71,14 +72,12 @@ sub run {
     # "It will be truncated to 8 characters."
     # If no, check the user was created successfully
     assert_screen("Yast2-Users-Add-User-Created");
+
+    # close yast
     wait_screen_change { send_key "alt-o" };
 
-    clear_console;
-    assert_screen("root-console-x11");
+    close_gui_terminal;
 
-    # Exit x11 and turn to console
-    send_key "alt-f4";
-    assert_screen("generic-desktop");
     select_console("root-console");
     send_key "ctrl-c";
     clear_console;
