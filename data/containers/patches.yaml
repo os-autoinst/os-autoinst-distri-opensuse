@@ -210,9 +210,17 @@ runc:
     - 4825
     - 4893
   sle-15-SP7:
+    GITHUB_PATCHES:
+    - 4825
   sle-15-SP6:
+    GITHUB_PATCHES:
+    - 4825
   sle-15-SP5:
+    GITHUB_PATCHES:
+    - 4825
   sle-15-SP4:
+    GITHUB_PATCHES:
+    - 4825
 skopeo:
   opensuse-Tumbleweed:
   sle-16.0:
