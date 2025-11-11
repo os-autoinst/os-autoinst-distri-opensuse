@@ -46,6 +46,9 @@ my $ssh_opt = join(' ',
     '-o ConnectionAttempts=3',    # Retry connecting before failing
 );
 
+# File is used to mark redirected host. Helps later returning to original VM.
+my $redirection_file = '/tmp/redirection_active';
+
 =head2 handle_login_prompt
 
     handle_login_prompt();
@@ -119,6 +122,8 @@ sub connect_target_to_serial {
         record_info('Redirect ON', "Console is already redirected to:" . script_output('hostname', quiet => 1));
         return 1;
     }
+    # Store machine ID of worker VM
+    my $origin_id = script_output('cat /etc/machine-id');
 
     # Save original value for 'AUTOINST_URL_HOSTNAME', and point requests to localhost
     # https://github.com/os-autoinst/os-autoinst/blob/master/doc/backend_vars.asciidoc
@@ -139,6 +144,8 @@ sub connect_target_to_serial {
     );
     enter_cmd $ssh_cmd;
     handle_login_prompt($args{ssh_user});
+    # Create file with worker VM id on redirected machine.
+    assert_script_run("echo '$origin_id' > $redirection_file");
 
     my $redirection_active = check_serial_redirection();
     if ($args{fail_ok} && !$redirection_active) {
@@ -178,26 +185,24 @@ sub disconnect_target_from_serial {
 
     check_serial_redirection();
 
-Checks if serial redirection is currently active by comparing worker VM machine id against id returned
-from serial console. VM ID is collected by opening 'log-console' which is not redirected.
+Checks for active serial redirection. This is done by comparing worker machine id stored in B<$redirection_file> with
+current machine id from B</etc/machine-id>.
+Redirection file B<$redirection_file> is created by B<connect_target_to_serial()> function after accessing target VM and
+stores original worker VM ID.
+Redirection is  B<active> if B<$redirection_file> exists and machine IDs do not match.
+Redirection is  B<inactive> if B<$redirection_file> does not exist or machine IDs match.
 
 =cut
 
 sub check_serial_redirection {
     # Do not select serial console if it is already done. This avoids log pollution and speeds up process.
-    if (is_serial_terminal()) {
+    unless (is_serial_terminal()) {
         select_serial_terminal();
         set_serial_term_prompt();
     }
 
-    # check machine ID under serial console
-    my $current_id = script_output('cat /etc/machine-id', quiet => 1);
-    # Switch 'log-console' (which is not redirected) to check machine ID on worker
-    select_console('log-console');
-    my $redirection_status = script_run("grep $current_id /etc/machine-id", quiet => 1);
-    select_serial_terminal();
-    set_serial_term_prompt();
-    return $redirection_status;
+    return 0 if script_run("test -f $redirection_file") || !script_run("diff /etc/machine-id $redirection_file");
+    return script_run("diff /etc/machine-id $redirection_file");
 }
 
 1;
