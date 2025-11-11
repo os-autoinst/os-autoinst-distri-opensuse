@@ -26,15 +26,14 @@ schedule:
   - console/lshw
   - console/nano
   - console/nftables
+  - console/tracepath
+  - console/traceroute
   - console/nginx
-  - console/ping
-  - console/perf
   - console/pciutils
   - console/sysctl
   - console/tar
   - console/tcpdump
   - console/unzip
-  - console/valkey
   - console/vim
   - coverage/coverage_report
 test_data:
@@ -46,19 +45,18 @@ test_data:
     - curl
     - cpupower
     - gd
-    - iputils  # for ping
+    - iputils  # for ping and tracepath
     - lshw
     - nano
     - nftables
     - nginx
-    - perf
     - procps
     - powertop
     - unzip
     - net-snmp
     - tar
     - tcpdump
-    - valkey
+    - traceroute
     - wget    # to download the test data
     - vim
   # the following section is an array of binaries that we want to instrument
@@ -67,7 +65,6 @@ test_data:
     - /usr/bin/curl
     - /usr/bin/giftogd2
     - /usr/bin/gd2togif
-    - /usr/bin/ping
     - /usr/sbin/lshw
     - /usr/bin/nano
     - /usr/sbin/nft
@@ -75,7 +72,6 @@ test_data:
     - /sbin/sysctl
     - /usr/bin/cpupower
     - /usr/sbin/powertop
-    - /usr/bin/perf
     - /usr/bin/unzip
     - /usr/bin/vmstat
     - /usr/bin/snmpget
@@ -83,6 +79,7 @@ test_data:
     - /usr/bin/snmpusm
     - /usr/bin/tar
     - /usr/bin/dig
+    - /usr/bin/tracepath
+    - /usr/sbin/traceroute
     - /usr/sbin/tcpdump
-    - /usr/bin/valkey-cli
     - /usr/bin/vim-nox11

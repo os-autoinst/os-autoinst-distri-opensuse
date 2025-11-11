@@ -67,7 +67,7 @@ sub run {
 
     # sets up the environment for coverage
     assert_script_run 'export LOG_DIR=/var/coverage/data';
-    assert_script_run 'export PIN_ROOT=/usr/lib64/coverage-tools/pin-root';
+    assert_script_run 'export PIN_ROOT=/usr/lib64/coverage-tools/pin';
     assert_script_run "mkdir -m 0777 -p \$LOG_DIR";
 
     # wrap the binaries that will be instrumented for 'coverage'
@@ -75,7 +75,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

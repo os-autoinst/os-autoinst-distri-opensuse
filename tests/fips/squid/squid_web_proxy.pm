@@ -11,10 +11,13 @@
 use base 'consoletest';
 use testapi;
 use utils qw(systemctl);
+use version_utils 'is_sle';
 
 sub configure_squid {
     # configure squid as a web proxy cache
     assert_script_run 'curl ' . data_url('squid/squid_authdigest.conf') . ' -o /etc/squid/squid.conf';
+    # on Tumbleweed the auth helper path is different
+    assert_script_run 'sed -i "s|/usr/lib/squid/digest_file_auth|/usr/libexec/squid/digest_file_auth|" /etc/squid/squid.conf' unless is_sle();
     # digest is for proxyuser:proxypassword with realm SUSE
     assert_script_run 'echo "proxyuser:SUSE:7935d7d2f866548295f9b3c5400b97e6" > /etc/squid/passwd.txt';
     systemctl('restart squid', timeout => 600);

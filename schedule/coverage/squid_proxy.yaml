@@ -1,0 +1,31 @@
+# schedule tests for coverage measurement ;
+# when you add a test, you need to fill out the last
+# section about coverage targets as well
+
+name:  measure test coverage for selected text mode utils
+description: >
+    Maintainer: amanzini
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_uefi
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - coverage/coverage_setup
+  - fips/squid/squid_init
+  - fips/squid/squid_web_proxy
+  - fips/squid/squid_reverse_proxy
+  - coverage/coverage_report
+test_data:
+  # these packages are needed by the tests, we need to install them early to instrument them
+  extra_packages:
+    - wget    # to download the test data
+    - squid
+  # the following section is an array of binaries that we want to instrument
+  coverage_targets:
+    - /usr/sbin/squid
