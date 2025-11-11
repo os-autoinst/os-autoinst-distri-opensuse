@@ -38,7 +38,7 @@ sub gpg_test {
     my $egg_file = 'egg';
 
     # NTP Time Sync (poo#191983)
-    if (!is_sle('<=12')) {
+    if (is_sle('>12') && is_sle('<=15') && is_s390x ) {
         my $ntp_command = 'timedatectl status | grep "synchronized: yes"';
         my $ntp_status = script_run($ntp_command);
         if ($ntp_status != 0) {
