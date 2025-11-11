@@ -46,6 +46,7 @@ sub client {
 
     barrier_wait('NFS_STRESS_NG_START');
 
+    my $result = 0;
     foreach my $path (@paths) {
         assert_script_run('cd ' . $path);
         my $ret = script_run($run_stress_ng, timeout => $stressor_timeout * 100);
@@ -53,13 +54,19 @@ sub client {
         if ($ret == 0) {
             record_info('stress-ng', "return: 0 (success), path: $path");
         } elsif ($ret == 2) {
-            record_info('stress-ng', "return: 2 (stressor failed), path: $path");
+            record_info('stress-ng', "return: 2 (stressor failed), path: $path", result => 'fail');
         } else {
-            record_info('stress-ng', "return: $ret (other failure), path: $path");
+            record_info('stress-ng', "return: $ret (other failure), path: $path", result => 'fail');
         }
+
+        $result = $ret if ($ret > $result);
     }
 
     barrier_wait('NFS_STRESS_NG_END');
+
+    if ($result != 0) {
+        die "stress-ng reported failures (max exit code: $result)";
+    }
 
     select_serial_terminal;
     script_run('nfsstat');
