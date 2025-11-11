@@ -39,12 +39,16 @@ sub gpg_test {
 
     # NTP Time Sync (poo#191983)
     if (!is_sle('<=12')) {
-        my $ntp_command = 'timedatectl status | grep "synchronized: yes"';
-        my $ntp_status = script_run($ntp_command);
-        if ($ntp_status != 0) {
-            record_info('Time Sync', 'System clock is not synchronized; Starting NTP.');
-            assert_script_run('timedatectl set-ntp true');
-            script_retry($ntp_command, retry => 20, delay => 5, fail_message => 'Failed to synchronize clock');
+        if (is_jeos) {
+            assert_script_run('chronyc -a makestep | grep -E "^200 OK"');
+        } else {
+            my $ntp_command = 'timedatectl status | grep "synchronized: yes"';
+            my $ntp_status = script_run($ntp_command);
+            if ($ntp_status != 0) {
+                record_info('Time Sync', 'System clock is not synchronized; Starting NTP.');
+                assert_script_run('timedatectl set-ntp true');
+                script_retry($ntp_command, retry => 20, delay => 5, fail_message => 'Failed to synchronize clock');
+            }
         }
     }
 
