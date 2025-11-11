@@ -1248,7 +1248,7 @@ subtest '[create_hana_vars_section] firewall' => sub {
     set_var('_HANA_MASTER_PW', '>>>_HANA_MASTER_PW---VALUE<<<');
     set_var('INSTANCE_SID', '>>>INSTANCE_SID---VALUE<<<');
     set_var('INSTANCE_ID', '>>>INSTANCE_ID---VALUE<<<');
-    set_var('SLES4SAP_FIREWALL_PORTS', 1);
+    set_var('SLES4SAP_FIREWALL_PORTS', 'true');
 
     my $ret = create_hana_vars_section();
 
