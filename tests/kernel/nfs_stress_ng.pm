@@ -28,7 +28,7 @@ sub client {
     my $local_nfs3_async = "/home/localNFS3async";
     my $local_nfs4_async = "/home/localNFS4async";
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
-    my $run_stress_ng = "stress-ng --sequential -1 --timeout $stressor_timeout --class filesystem";
+    my $run_stress_ng = "stress-ng --verbose --sequential -1 --timeout $stressor_timeout --class filesystem";
     my @paths = ($local_nfs3, $local_nfs4, $local_nfs3_async, $local_nfs4_async);
 
     # in case this is SLE15 we need packagehub for stress-ng, let's enable it
