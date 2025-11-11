@@ -23,6 +23,7 @@ sub server {
 }
 
 sub client {
+    my ($self) = @_;
     my $local_nfs3 = "/home/localNFS3";
     my $local_nfs4 = "/home/localNFS4";
     my $local_nfs3_async = "/home/localNFS3async";
@@ -65,7 +66,8 @@ sub client {
     barrier_wait('NFS_STRESS_NG_END');
 
     if ($result != 0) {
-        die "stress-ng reported failures (max exit code: $result)";
+        record_info('stress-ng', "Failures detected", result => 'fail');
+        $self->result('fail');
     }
 
     select_serial_terminal;
@@ -73,14 +75,15 @@ sub client {
 }
 
 sub run {
+    my ($self) = @_;
     select_serial_terminal;
 
     my $role = get_required_var('ROLE');
 
     if ($role eq 'nfs_client') {
-        client;
+        $self->client;
     } else {
-        server;
+        $self->server;
     }
 }
 
