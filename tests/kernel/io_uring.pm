@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Executes liburing testing suite
@@ -85,53 +85,31 @@ sub run {
         proceed_on_failure => 1
     );
 
-    # search for timed out tests
-    my @timeouts;
+    my @issues;
     for my $line ($out =~ /Tests timed out \(\d+\):.*/mg) {
-        push @timeouts, $line =~ /<([\w\-\.]+\.t)>/g;
+        push @issues, map { {name => $_, retval => 'undefined', type => 'timeout'} } $line =~ /<([\w\-\.]+\.t)>/g;
     }
-    if (@timeouts) {
-        record_info("Timed-out Tests", join(", ", @timeouts));
-
-        my %env_timeout = (%{$environment}, retval => 'undefined');
-
-        for my $testname (@timeouts) {
-            if ($whitelist->override_known_failures(
-                    $self,
-                    \%env_timeout,
-                    'liburing',
-                    $testname
-            )) {
-                $self->result('softfail');
-            } else {
-                record_info("Unexpected Timeout", "$testname timed out", result => 'fail');
-                $self->{result} = 'fail';
-            }
-        }
-    }
-
-    # search for failed tests and known issues
-    my @failures;
     for my $line ($out =~ /Tests failed \(\d+\):.*/mg) {
-        push @failures, $line =~ /<([\w\-\.]+\.t)>/g;
+        push @issues, map { {name => $_, retval => 1, type => 'failure'} } $line =~ /<([\w\-\.]+\.t)>/g;
     }
-    if (@failures) {
-        record_info("Failed Tests", join(", ", @failures));
 
-        my %env_fail = (%{$environment}, retval => 1);
+    if (@issues) {
+        my @names = map { $_->{name} } @issues;
+        record_info("Failed/Timed-out tests", join(", ", @names));
 
-        for my $failure (@failures) {
-            if ($whitelist->override_known_failures(
-                    $self,
-                    \%env_fail,
-                    'liburing',
-                    $failure
-            )) {
-                $self->result('softfail');
-            } else {
-                record_info("Unexpected Failure", "$failure failed", result => 'fail');
-                $self->{result} = 'fail';
+        my @unexpected;
+        for my $test (@issues) {
+            $environment->{retval} = $test->{retval};
+            next if $whitelist->override_known_failures($self, $environment, 'liburing', $test->{name});
+            push @unexpected, $test;
+        }
+
+        if (@unexpected) {
+            for my $test (@unexpected) {
+                my $msg = "$test->{type}: $test->{name}";
+                record_info("Unexpected $test->{type}", $msg, result => 'fail');
             }
+            $self->result('fail');
         }
     }
 }
