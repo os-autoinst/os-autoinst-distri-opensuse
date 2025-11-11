@@ -35,6 +35,7 @@ sub run {
 
     # Turn to x11 and start "xterm"
     select_console("x11");
+    ensure_installed('yast2-users');
     x11_start_program(default_gui_terminal());
     become_root;
 
