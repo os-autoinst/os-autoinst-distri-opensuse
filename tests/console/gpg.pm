@@ -44,7 +44,7 @@ sub gpg_test {
         if ($ntp_status != 0) {
             record_info('Time Sync', 'System clock is not synchronized; Starting NTP.');
             assert_script_run('timedatectl set-ntp true');
-            script_retry($ntp_command, retry => 10, delay => 4, fail_message => 'Failed to synchronize clock');
+            script_retry($ntp_command, retry => 20, delay => 5, fail_message => 'Failed to synchronize clock');
         }
     }
 
