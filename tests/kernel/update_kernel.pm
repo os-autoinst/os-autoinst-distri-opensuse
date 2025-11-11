@@ -493,6 +493,7 @@ sub install_requirements {
       open-iscsi
       multipath-tools
       liburing2
+      net-tools
     );
 
     install_package(join(' ', @requirements));
