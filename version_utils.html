@@ -69,6 +69,7 @@
       <li><a href="#is_openstack">is_openstack</a></li>
       <li><a href="#is_leap_migration">is_leap_migration</a></li>
       <li><a href="#is_tunneled">is_tunneled</a></li>
+      <li><a href="#is_community_jeos">is_community_jeos</a></li>
       <li><a href="#is_bootloader_grub2">is_bootloader_grub2</a></li>
       <li><a href="#is_bootloader_sdboot">is_bootloader_sdboot</a></li>
       <li><a href="#is_bootloader_grub2_bls">is_bootloader_grub2_bls</a></li>
@@ -79,7 +80,6 @@
       <li><a href="#package_version_cmp">package_version_cmp</a></li>
       <li><a href="#is_quarterly_iso">is_quarterly_iso</a></li>
       <li><a href="#get_version_id">get_version_id</a></li>
-      <li><a href="#is_community_jeos">is_community_jeos</a></li>
       <li><a href="#has_selinux_by_default">has_selinux_by_default</a></li>
       <li><a href="#is_agama">is_agama</a></li>
     </ul>
@@ -342,6 +342,10 @@
 
 <p>Returns true if TUNNELED is set to 1</p>
 
+<h2 id="is_community_jeos">is_community_jeos</h2>
+
+<p>Returns true for tests using the images built by the &quot;JeOS&quot; package on OBS</p>
+
 <h2 id="is_bootloader_grub2">is_bootloader_grub2</h2>
 
 <p>Returns true if the SUT uses GRUB2 as bootloader</p>
@@ -385,10 +389,6 @@
 <p>Get SLES version from VERSION_ID in /etc/os-release. This subroutine also supports performing query on remote machine if dst_machine is given specific ip address or fqdn text of the remote machine. If <code>dst_machine</code> is given it will run on the remote as <b>root</b>. To run it as another user, <code>dst_machine</code> can be also specified as [user@]hostname.</p>
 
 <p>The default location that contains VERSION_ID is file /etc/os-release if nothing else is passed in to argument verid_file.</p>
-
-<h2 id="is_community_jeos">is_community_jeos</h2>
-
-<p>Returns true for tests using the images built by the &quot;JeOS&quot; package on OBS</p>
 
 <h2 id="has_selinux_by_default">has_selinux_by_default</h2>
 
