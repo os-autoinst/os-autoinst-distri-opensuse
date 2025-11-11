@@ -210,6 +210,9 @@ subtest 'bootloader_tests' => sub {
     set_var('FLAVOR', 'MicroOS-Image');
     ok get_default_bootloader eq 'grub2', "MicroOS-Image image is grub2";
 
+    set_var('FLAVOR', 'JeOS-for-RISCV');
+    ok get_default_bootloader eq 'grub2', "JeOS-for-RISCV image is grub2";
+
     set_var('DISTRI', 'opensuse');
     set_var('FLAVOR', 'Server-DVD');
     set_var('UPGRADE', 1);
