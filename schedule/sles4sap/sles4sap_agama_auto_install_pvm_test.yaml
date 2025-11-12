@@ -10,6 +10,7 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - console/system_prepare
+  - '{{patch_and_reboot}}'
   - console/consoletest_setup
   - console/check_os_release
   - console/hostname
@@ -63,3 +64,7 @@ conditional_schedule:
       yes:
         - installation/handle_reboot
         - installation/first_boot
+  patch_and_reboot:
+    INCREMENTS:
+      1:
+        - qa_automation/patch_and_reboot
