@@ -17,7 +17,7 @@ use utils qw(
   zypper_call
 );
 use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_hyperv is_plasma6 is_public_cloud is_agama);
-use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm default_gui_terminal);
+use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm default_gui_terminal close_gui_terminal);
 use Utils::Backends;
 
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_USER_TERMINAL_DEFAULT_DEVICE SERIAL_USER_TERMINAL_DEFAULT_PORT);
@@ -345,14 +345,7 @@ sub ensure_installed {
     quit_packagekit;
     zypper_call "in $pkglist";
     wait_still_screen 1;
-    send_key("alt-f4");    # close terminal
-
-    assert_screen([qw(terminal-close-window generic-desktop)]);
-
-    if (match_has_tag('terminal-close-window')) {
-        click_lastmatch;
-        assert_screen 'generic-desktop';
-    }
+    close_gui_terminal;
 }
 
 =head2 script_sudo
