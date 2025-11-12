@@ -25,6 +25,7 @@ use version_utils;
 
 my $kirk_virtualenv = 'kirk-virtualenv';
 our $root_dir = '/root';
+our $ltp_timeout = get_var('LTP_TIMEOUT', 12600);
 
 sub should_fully_build_ltp_from_git {
     return get_var('PUBLIC_CLOUD_LTP_GIT_FULL_BUILD', 0);    # 1 if env var is set, otherwise 0
@@ -242,7 +243,8 @@ sub run {
 
     $self->dump_kernel_config($instance);
     record_info('LTP START', 'Command launch');
-    my $kirk_exit_code = script_run($cmd_run_ltp, timeout => get_var('LTP_TIMEOUT', 30 * 60));
+    # $ltp_timeout is also used for --suite-timeout so we need give kirk some time to try to kill itself before trying to kill it
+    my $kirk_exit_code = script_run($cmd_run_ltp, timeout => $ltp_timeout + 60);
     record_info('LTP END', 'krik finished with ' . $kirk_exit_code);
     die('kirk failed') if ($kirk_exit_code);
 }
@@ -340,7 +342,6 @@ sub prepare_logging {
 sub prepare_ltp_cmd {
     my ($self, $instance, $provider, $reset_cmd, $ltp_command, $skip_tests, $env) = @_;
     my $exec_timeout = get_var('LTP_EXEC_TIMEOUT', 1200);
-    my $suite_timeout = get_var('LTP_SUITE_TIMEOUT', 9600);
 
     my $sut = ':user=' . $instance->username;
     $sut .= ':sudo=1';
@@ -352,7 +353,7 @@ sub prepare_ltp_cmd {
     my $cmd = "$python_exec kirk ";
     $cmd .= '--verbose ';
     $cmd .= '--exec-timeout=' . $exec_timeout . ' ';
-    $cmd .= '--suite-timeout=' . $suite_timeout . ' ';
+    $cmd .= '--suite-timeout=' . $ltp_timeout . ' ';
     $cmd .= '--run-suite ' . $ltp_command . ' ';
     $cmd .= '--skip-tests \'' . $skip_tests . '\' ' if $skip_tests;
     $cmd .= '--sut default:com=ssh ';
