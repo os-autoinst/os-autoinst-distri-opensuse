@@ -26,7 +26,7 @@ sub run {
         barrier_create("KDUMP_WICKED_TEMP", $nodes);
         barrier_create("KDUMP_MULTIMACHINE", $nodes);
     }
-    record_info("barriers initializoped");
+    record_info("barriers initialized");
 }
 
 sub test_flags {
