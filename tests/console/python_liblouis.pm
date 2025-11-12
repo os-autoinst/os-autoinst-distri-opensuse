@@ -11,6 +11,7 @@ use base "x11test";
 use testapi;
 use version_utils;
 use utils "zypper_call";
+use x11utils 'default_gui_terminal';
 
 sub run {
     my ($self) = @_;
@@ -24,7 +25,7 @@ sub run {
     if (is_tumbleweed || is_leap) {
         zypper_call("install liblouis-tools");
         select_console('x11');
-        x11_start_program('xterm');
+        x11_start_program(default_gui_terminal);
         assert_script_run q(echo 'abcdefghijklmnopqrstuvwxyz' | lou_translate -f unicode.dis,en-chardefs.cti > braille_result1.txt);
         assert_script_run q(echo 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' | lou_translate -f unicode.dis,en-chardefs.cti > braille_result2.txt);
         assert_script_run q(echo ' !"#$%()*+-./:;<=>?@[\\]_{}~123456790'"'" | lou_translate -f unicode.dis,en-chardefs.cti > braille_result3.txt);
@@ -32,7 +33,7 @@ sub run {
     elsif (is_sle(">=12")) {
         zypper_call("install python3-louis");
         select_console('x11');
-        x11_start_program('xterm');
+        x11_start_program(default_gui_terminal);
         assert_script_run("curl -O " . data_url("console/python_liblouis.py"));
         assert_script_run("python3 python_liblouis.py");
     }
