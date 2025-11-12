@@ -15,7 +15,7 @@ use base 'x11test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use x11utils 'ensure_unlocked_desktop';
+use x11utils qw(ensure_unlocked_desktop default_gui_terminal);
 use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 use Utils::Architectures 'is_aarch64';
@@ -49,7 +49,7 @@ sub designer_qt5 {
 
 sub compile_qt5 {
     ensure_installed "gcc gcc-c++ libQt5Core-devel libQt5Gui-devel libQt5Network-devel libQt5Widgets-devel", timeout => 400;
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     assert_script_run 'cd data';
     assert_script_run 'tar xvf libqt5-qtbase.tar.gz';
     assert_script_run 'cd libqt5-qtbase';
