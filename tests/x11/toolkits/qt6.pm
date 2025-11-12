@@ -9,6 +9,7 @@
 use base 'x11test';
 use version_utils 'is_sle';
 use testapi;
+use x11utils 'default_gui_terminal';
 
 sub run {
 
@@ -18,7 +19,7 @@ sub run {
     }
 
     select_console 'x11';
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     assert_script_run 'cd data/toolkits';
 
     assert_script_run 'make qt6';
