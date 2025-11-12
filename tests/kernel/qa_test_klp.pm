@@ -14,7 +14,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use registration;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_sle_micro);
 use transactional;
 use package_utils;
 
@@ -36,7 +36,7 @@ sub run {
     if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
         my $devel_pack = 'kernel-devel';
 
-        if (check_var('SLE_PRODUCT', 'slert')) {
+        if (check_var('SLE_PRODUCT', 'slert') && !(is_sle_micro('6.2+') || is_sle('16+'))) {
             $devel_pack = 'kernel-devel-rt';
         }
 

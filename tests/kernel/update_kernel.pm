@@ -76,7 +76,12 @@ sub update_kernel {
     fully_patch_system;
 
     if (check_var('SLE_PRODUCT', 'slert')) {
-        install_package('kernel-devel-rt', skip_trup => 'There is no kernel-devel-rt available on transactional system.');
+        if (is_sle_micro('6.2+') || is_sle('16+')) {
+            install_package('kernel-devel');
+        }
+        else {
+            install_package('kernel-devel-rt', skip_trup => 'There is no kernel-devel-rt available on transactional system.');
+        }
     }
     elsif (get_var('COCO')) {
         zypper_call('in kernel-devel-coco');
