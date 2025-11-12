@@ -224,6 +224,9 @@ sub load_publiccloud_appimg_tests {
         loadtest('console/postgresql_server', run_args => $args);
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
+    elsif ($publiccloud_app_img eq 'php') {
+        loadtest('publiccloud/app-images/php', run_args => $args);
+    }
     else {
         die("Unknown PUBLIC_CLOUD_APP_IMG setting");
     }
