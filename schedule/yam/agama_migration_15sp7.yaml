@@ -15,5 +15,6 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_migration_logs
+  - yam/validate/validate_connectivity
   - yam/validate/validate_product
   - console/validate_repos
