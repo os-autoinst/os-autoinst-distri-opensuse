@@ -22,6 +22,7 @@ use utils;
 use Utils::Backends 'is_remote_backend';
 use power_action_utils 'power_action';
 use y2snapper_common qw(y2snapper_close_snapper_module);
+use x11utils 'default_gui_terminal';
 
 sub y2snapper_create_snapshot {
     my ($self, $name, $user_data) = @_;
@@ -42,7 +43,7 @@ sub y2snapper_create_snapshot {
 sub run {
     my $self = shift;
     # Start an xterm as root
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
     script_run "cd";
 
