@@ -348,22 +348,22 @@ sub handle_uefi_boot_disk_workaround {
     save_screenshot;
     wait_screen_change { send_key 'ret' };
     # <sles> or <opensuse>
-    send_key_until_needlematch [qw(tianocore-select_opensuse_or_sles tianocore-select_boot)], 'up';
+    send_key_until_needlematch 'tianocore-select_boot', 'up';
     save_screenshot;
     wait_screen_change { send_key 'ret' };
-    # efi file, first check shim.efi exist or not
+    # efi file, first check shim.efi or bootx64.efi exist or not
     my $counter = 10;
-    my $shim_efi_found = 1;
-    while (!check_screen('tianocore-select_shim_efi', 2)) {
+    my $boot_efi_found = 1;
+    while (!check_screen('tianocore-select_boot_efi', 2)) {
         wait_screen_change {
             send_key 'up';
         };
         if (!$counter--) {
-            $shim_efi_found = 0;
+            $boot_efi_found = 0;
             last;
         }
     }
-    if ($shim_efi_found == 1) {
+    if ($boot_efi_found == 1) {
         wait_screen_change { send_key 'ret' };
     } else {
         send_key_until_needlematch [qw(tianocore-select_grubaa64_efi tianocore-select_bootaa64_efi)], 'up';
@@ -484,8 +484,11 @@ sub wait_grub_to_boot_on_local_disk {
     my $switch_key = (is_opensuse && get_var('LIVECD')) || get_var('AGAMA') ? 'down' : 'up';
     send_key_until_needlematch 'inst-bootmenu-boot-harddisk', "$switch_key";
     boot_local_disk;
-    my @tags = qw(grub2 tianocore-mainmenu tianocore-bootmenu);
+    my @tags = qw(tianocore-mainmenu tianocore-bootmenu);
     push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
+    push @tags, 'grub2' if is_bootloader_grub2;
+    push @tags, 'grub2-bls' if is_bootloader_grub2_bls;
+    push @tags, 'systemd-boot' if is_bootloader_sdboot;
 
     # Workaround for poo#118336
     if (is_ppc64le && is_qemu) {
@@ -521,7 +524,7 @@ sub wait_grub_to_boot_on_local_disk {
     }
     if (match_has_tag('tianocore-mainmenu')) {
         opensusebasetest::handle_uefi_boot_disk_workaround();
-        check_screen('encrypted-disk-password-prompt', 10);
+        assert_screen(\@tags, 90);
     }
     if (match_has_tag('encrypted-disk-password-prompt')) {
         unlock_bootloader;
@@ -660,6 +663,7 @@ sub handle_pxeboot {
 }
 
 sub grub_select {
+    save_screenshot;
     if ((my $grub_nondefault = get_var('GRUB_BOOT_NONDEFAULT', 0)) gt 0) {
         my $menu = $grub_nondefault * 2 + 1;
         bmwqemu::fctinfo("Boot non-default grub option $grub_nondefault (menu item $menu)");
@@ -945,8 +949,7 @@ sub wait_boot {
         assert_screen 'systemd-boot', 300;
         send_key('ret');
     } elsif (is_bootloader_grub2_bls) {
-        assert_screen('grub2-bls', 300);
-        send_key('ret');
+        $self->handle_grub(bootloader_time => $bootloader_time, in_grub => $in_grub);
     } else {
         die 'Unknown bootloader';
     }
