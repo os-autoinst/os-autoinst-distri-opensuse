@@ -15,12 +15,13 @@
 use base 'x11test';
 use testapi;
 use utils;
+use x11utils 'default_gui_terminal';
 
 sub run {
     select_console('root-console');
     zypper_call('in texlive-latexdiff-bin', timeout => 1800);
     select_console('x11');
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
 
     assert_script_run 'mkdir texlive';
     assert_script_run 'latexdiff data/texlive/original.tex data/texlive/modify.tex > texlive/difference.tex';
