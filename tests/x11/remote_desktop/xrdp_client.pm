@@ -14,6 +14,7 @@ use version_utils ':VERSION';
 use lockapi;
 use mmapi;
 use mm_tests;
+use x11utils 'default_gui_terminal';
 
 sub run {
     my $self = shift;
@@ -25,7 +26,7 @@ sub run {
     ensure_installed('remmina');
 
     # Disable Remmina news before launch Remmina
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     my $pref_dir = '~/.config/remmina';
     assert_script_run "mkdir -p $pref_dir";
     assert_script_run 'echo -e "[remmina_news]\\nperiodic_rmnews_last_get=$(date +%s)" >> ' . $pref_dir . '/remmina.pref';
