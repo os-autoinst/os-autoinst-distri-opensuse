@@ -24,6 +24,7 @@ use base "x11test";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use x11utils;
 
 sub run {
     select_serial_terminal;
@@ -58,7 +59,7 @@ sub run {
     # display one reference pdf on screen and check if it looks correct
     # skip this when there is no gv installed
     select_console "x11";
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
 
     if (!$gv_missing) {
         script_run "gv $reference", 0;
@@ -76,7 +77,7 @@ sub run {
     # cleanup temporary files
     script_run "rm -f $gs_log $reference $gs_script";
 
-    # close xterm
+    # close terminal
     send_key "alt-f4";
 }
 
