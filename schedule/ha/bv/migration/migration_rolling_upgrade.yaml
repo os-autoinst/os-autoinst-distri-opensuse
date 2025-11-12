@@ -67,7 +67,7 @@ schedule:
   - console/hostname
   - ha/ha_sle15_workarounds
   - ha/firewall_disable
-  - ha/iscsi_client
+  - ha/iscsi_client_setup
   - ha/watchdog
   - '{{cluster_setup}}'
   - ha/check_hawk
