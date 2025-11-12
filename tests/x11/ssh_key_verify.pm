@@ -10,7 +10,7 @@
 
 use base 'y2_installbase';
 use testapi;
-use x11utils 'default_gui_terminal';
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 sub run {
     x11_start_program(default_gui_terminal());
