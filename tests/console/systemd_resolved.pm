@@ -13,6 +13,7 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use network_utils;
 
 sub clean_up {
     assert_script_run("rm /etc/resolv.conf");
@@ -21,27 +22,30 @@ sub clean_up {
     assert_script_run("mv /etc/resolv.conf{.bak,}");
     assert_script_run("rm /etc/nsswitch.conf");
     systemctl 'disable --now systemd-resolved', timeout => 30;
-    zypper_call 'rm systemd-resolved';
-    systemctl 'restart NetworkManager', timeout => 30;
+    zypper_call 'rm systemd-resolved nss-mdns';
+    systemctl 'restart NetworkManager' if is_nm_used();
+    systemctl 'restart wicked.service' if is_wicked_used();
 
 }
 
 sub run {
     select_serial_terminal;
 
-    zypper_call 'in systemd-resolved';
-    systemctl 'stop NetworkManager', timeout => 30;
+    zypper_call 'in systemd-resolved nss-mdns';
+    systemctl 'stop NetworkManager' if is_nm_used();
+    systemctl 'stop wicked.service' if is_wicked_used();
     assert_script_run("mv /etc/resolv.conf{,.bak}");
     # Add workaround for bsc#1248501
-    assert_script_run("touch /usr/share/dbus-1/system.d/org.freedesktop.resolve1.conf");
-    systemctl 'enable --now systemd-resolved', timeout => 30;
+    my $file = '/usr/share/dbus-1/system.d/org.freedesktop.resolve1.conf';
+    assert_script_run("touch $file") if (!-f $file);
+    systemctl 'enable --now systemd-resolved';
     assert_script_run 'ln -s /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf';
-    assert_script_run "cp /usr/etc/nsswitch.conf /etc/nsswitch.conf";
+    assert_script_run "cp /usr/etc/nsswitch.conf /etc/nsswitch.conf" if (!-f '/etc/nsswitch.conf');
     assert_script_run "sed -i 's/^hosts:.*files/hosts: files resolve [!UNAVAIL=return]/' /etc/nsswitch.conf";
     script_run 'cat /etc/nsswitch.conf';
-    systemctl 'start NetworkManager', timeout => 30;
+    systemctl 'start NetworkManager' if (script_run('rpm -q NetworkManager') == 0);
+    systemctl 'start wicked.service' if (script_run('rpm -q wicked') == 0);
     validate_script_output("resolvectl status", sub { m/Global/ });
-    validate_script_output("resolvectl query www.suse.com", sub { m/\d+\.\d+\.\d+\.\d+/ });
 
     # Test systemd-resolved with DNSOverTLS and DNSSEC
     assert_script_run("touch /etc/systemd/resolved.conf.d/dnssec.conf");
@@ -59,6 +63,7 @@ sub run {
     validate_script_output("resolvectl query go.dnscheck.tools", sub { m/Data is authenticated: yes/ });
     # Validate systemd-resolved with DNSOverTLS
     validate_script_output("resolvectl query go.dnscheck.tools", sub { m/Data was acquired via local or encrypted transport: yes/ });
+    validate_script_output("resolvectl query www.suse.com", sub { m/\d+\.\d+\.\d+\.\d+/ });
 }
 
 sub post_run_hook {

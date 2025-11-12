@@ -60,6 +60,7 @@ schedule:
 - console/apache_ssl
 - console/apache_nss
 - console/postgresql_server
+- console/systemd_resolved
 - console/orphaned_packages_check
 - console/coredump_collect
 ...
