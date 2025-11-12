@@ -12,10 +12,11 @@ use base "x11test";
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use x11utils 'default_gui_terminal';
 
 sub run {
     # Prepare test files
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
 
     my @applications = (
         ['image/jpeg', 'org.gnome.Loupe.desktop'],
@@ -30,7 +31,7 @@ sub run {
         clear_application_environment();
     }
 
-    # clear the xterm
+    # clear the terminal
     send_key 'alt-f4';
 
 }
