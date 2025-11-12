@@ -49,7 +49,7 @@ sub run {
 
     ensure_installed('gedit');
     # download test text file from x11 data directory
-    x11_start_program("xterm");
+    x11_start_program(default_gui_terminal);
     enter_cmd("wget " . autoinst_url . "/data/x11/gb18030/{double,four,gb18030-2022}.txt");
 
     enter_cmd("gsettings set org.gnome.gedit.preferences.encodings candidate-encodings \"['GB18030', 'UTF-8']\"");

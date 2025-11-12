@@ -12,10 +12,11 @@
 
 use base "x11test";
 use testapi;
+use x11utils;
 
 sub remove_pkg {
     my @packages = qw(pidgin);
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
 
     # Remove packages
     assert_script_sudo "zypper -n rm @packages", 180;
