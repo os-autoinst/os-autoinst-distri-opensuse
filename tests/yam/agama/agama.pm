@@ -36,8 +36,16 @@ sub run {
     my $reboot_page = $testapi::distri->get_reboot();
     my $spec = "spec.txt";
     my $tap = "tap.txt";
-    my $reporters = "--test-reporter=spec --test-reporter=tap --test-reporter-destination=/tmp/$spec --test-reporter-destination=/tmp/$tap";
-    my $node_cmd = "node --enable-source-maps $reporters /usr/share/agama/system-tests/${test}.js $test_options";
+    my $node_cmd = "node" .
+      " --enable-source-maps" .
+      " --test-reporter=spec" .
+      " --test-reporter=tap" .
+      " --test-reporter-destination=/tmp/$spec" .
+      " --test-reporter-destination=/tmp/$tap" .
+      " /usr/share/agama/system-tests/${test}.js" .
+      " --product-version " . get_required_var('VERSION') .
+      " --agama-version " . get_required_var('AGAMA_VERSION') .
+      " $test_options";
 
     record_info("node cmd", $node_cmd);
     my $ret = script_run($node_cmd, timeout => 2400);

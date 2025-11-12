@@ -49,14 +49,21 @@ sub create_image {
     }
     my $dockerfile;
     my $pkgs = "openssh curl libvirt-client";
+    $pkgs .= " libcurl4" if is_sle('>=16.0');
 
     if (is_sle) {
         unless ($tag) {
-            $tag = "registry.suse.com/suse/";
-            my ($v, $sp) = get_os_release;
-            $tag .= is_sle('<15') ? "sles${v}sp$sp" : "sle${v}:${v}.$sp";
+            $tag = 'registry.suse.com/';
+            if (is_sle('>=16.0')) {
+                $tag .= 'bci/bci-base:' . get_var('VERSION');
+            }
+            else {
+                my ($v, $sp) = get_os_release;
+                $tag .= is_sle('<15') ? "suse/sles${v}sp$sp" : "suse/sle${v}:${v}.$sp";
+            }
         }
         record_info($tag);
+
 
         #Create Dockerfile for sle and opensuse
         $dockerfile = <<'EOT';

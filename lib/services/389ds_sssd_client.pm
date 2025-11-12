@@ -8,7 +8,7 @@
 # Maintainer: QE Security <none@suse.de>
 
 package services::389ds_sssd;
-use base 'opensusebasetest';
+use base 'consoletest';
 use testapi;
 use utils;
 use warnings;

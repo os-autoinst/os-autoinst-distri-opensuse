@@ -6,7 +6,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::azure_client;
-use publiccloud::utils qw(get_ssh_private_key_path);
+use publiccloud::utils qw(get_ssh_private_key_path detect_worker_ip);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration qw(get_addon_fullname scc_version %ADDONS_REGCODE);
@@ -55,6 +55,9 @@ sub run {
     }
     $variables{OS_OWNER} = get_var('QESAPDEPLOY_CLUSTER_OS_OWNER', 'amazon') if ($provider_setting eq 'EC2');
 
+    my $worker_ip = qesap_create_cidr_from_ip(ip => detect_worker_ip(proceed_on_failure => 1), proceed_on_failure => 1);
+    $variables{WORKER_IP} = $worker_ip || '';
+
     $variables{USE_SAPCONF} = get_var('QESAPDEPLOY_USE_SAPCONF', 'false');
     $variables{USE_SR_ANGI} = get_var('QESAPDEPLOY_USE_SAP_HANA_SR_ANGI', 'false');
     $variables{SLES4SAP_PUBSSHKEY} = get_ssh_private_key_path() . '.pub';
@@ -94,6 +97,7 @@ sub run {
     $variables{HANA_SAR} = get_required_var('QESAPDEPLOY_SAPCAR');
     $variables{HANA_CLIENT_SAR} = get_required_var('QESAPDEPLOY_IMDB_CLIENT');
     $variables{HANA_SAPCAR} = get_required_var('QESAPDEPLOY_IMDB_SERVER');
+    $variables{HANA_FIREWALL} = check_var('QESAPDEPLOY_HANA_FIREWALL', 1) ? 'true' : 'false';
     $variables{ANSIBLE_REMOTE_PYTHON} = get_var('QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
     $variables{FENCING} = get_var('QESAPDEPLOY_FENCING', 'sbd');
     if ($provider_setting eq 'GCE') {
@@ -116,7 +120,7 @@ sub run {
         }
     }
 
-    $variables{ANSIBLE_ROLES} = qesap_get_ansible_roles_dir();
+    $variables{ANSIBLE_ROLES} = qesap_ansible_get_roles_dir();
     $variables{HANA_INSTALL_MODE} = get_var('QESAPDEPLOY_HANA_INSTALL_MODE', 'standard');
 
     # Default to empty string is intentional:

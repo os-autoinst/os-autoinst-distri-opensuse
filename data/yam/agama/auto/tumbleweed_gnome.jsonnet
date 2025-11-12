@@ -3,9 +3,9 @@
     id: '{{AGAMA_PRODUCT_ID}}'
   },
   software: {
-    patterns: [
-      'gnome'
-    ]
+    patterns: {
+      add: ['gnome']
+    },
   },
   user: {
     fullName: 'Bernhard M. Wiedemann',

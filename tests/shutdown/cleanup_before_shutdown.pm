@@ -51,6 +51,7 @@ END_SCRIPT
     # Proceed with dhcp cleanup on qemu backend only.
     # Cleanup is made, because if same hdd image used in multimachine scenario
     # on several nodes, the dhcp clients use same DUID and cause conflicts on dhcpd server.
+    # Also cleanup machine-id to avoid duplicate ipv6 link local address in mutli-machine setup.
     if (is_qemu || is_svirt_except_s390x) {
         my $network_status = script_output('systemctl status network');
         # Do dhcp cleanup for wicked
@@ -62,6 +63,8 @@ END_SCRIPT
             assert_script_run('rm -f /var/lib/wicked/{duid,lease-*}.xml');
         }
         script_run("echo -n '' > /etc/hostname") if get_var('RESET_HOSTNAME');
+
+        assert_script_run('truncate -s 0 /etc/machine-id /var/lib/dbus/machine-id') unless is_sle('<=15-SP2');
     }
     # Make some information available on common systems to help debug shutdown issues.
     if (get_var('DESKTOP', '') =~ qr/gnome|kde/) {
@@ -71,6 +74,9 @@ END_SCRIPT
         # Before updating this value again, check the system logs
         assert_script_run(q{systemctl restart systemd-journald}, 120);
     }
+
+    # Rest the timestamp of the last update notification (boo#1253141)
+    assert_script_run("rm -f ~$testapi::username/.local/state/discovernotifierstaterc") if is_plasma6;
 }
 
 sub post_fail_hook {

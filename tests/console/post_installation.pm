@@ -18,7 +18,7 @@ use testapi;
 use utils qw(zypper_call quit_packagekit);
 use serial_terminal qw(select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
-use version_utils qw(is_sle is_jeos);
+use version_utils qw(is_sle);
 
 sub run {
     select_serial_terminal;
@@ -30,9 +30,9 @@ sub run {
 
     add_suseconnect_product(get_addon_fullname('phub')) if check_var('PATTERNS', 'all') && is_sle('15-SP6+') && is_sle('<16');
 
-    my $suffix = is_jeos ? '-base' : '';
-    assert_script_run("rpm -ql --changelog kernel-default$suffix > /tmp/kernel_changelog.log");
+    assert_script_run("rpm -ql --changelog --whatprovides kernel > /tmp/kernel_changelog.log");
     zypper_call("lr -u", log => 'repos_list.txt');
+    assert_script_run('grep "ibs/SUSE:/Maintenance:" /tmp/repos_list.txt', fail_message => 'Maintenance update repos are missing') if main_common::is_updates_tests() && is_sle;
     upload_logs('/tmp/kernel_changelog.log');
     upload_logs('/tmp/repos_list.txt');
 

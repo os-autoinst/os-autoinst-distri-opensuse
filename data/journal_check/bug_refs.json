@@ -59,7 +59,8 @@
         "products": {
             "sle-micro": [ "5.0", "5.1", "5.2", "5.3" , "5.4" , "5.5", "6.0", "6.1", "6.2"],
             "leap-micro": [ "5.2", "5.3", "5.4", "5.5" ],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "sle": ["16.0"]
         },
         "type": "ignore"
     },
@@ -517,6 +518,13 @@
         },
         "type": "bug"
     },
+    "bsc#1252028": {
+        "description": "PAM: Authentication failure for root from.*",
+        "products": {
+            "sle-micro": ["6.1"]
+        },
+        "type": "ignore"
+    },
     "bsc#1231455": {
         "description": "systemd.* Failed to start SETroubleshoot daemon for processing new SELinux denial logs\\.",
         "products": {
@@ -771,7 +779,7 @@
         "type": "bug"
     },
     "bsc#1234013": {
-        "description": "sshd-session.*: error: mm_reap: preauth child terminated by signal 15",
+        "description": "sshd-session.*: error: mm_reap:.*child terminated by signal 15",
         "products": {
             "sle-micro": ["6.2"],
             "microos": ["Tumbleweed"]
@@ -860,7 +868,8 @@
         "description": "sshd-session.*(error|fatal).*(mm_reap: preauth child terminated|mm_request_receive: read: Broken pipe|mm_request_receive: read: Connection reset by peer)",
         "products": {
             "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "microos":  ["Tumbleweed"],
+            "sle": ["16.0"]
         },
         "type": "bug"
     },
@@ -887,9 +896,9 @@
         "type": "bug"
     },
     "bsc#1231458": {
-        "description": "Failed to start Platform Persistent Storage Archival|systemd-pstore.*Failed",
+        "description": "Failed to start Platform Persistent Storage Archival|systemd-pstore.*Failed|crypto_comp_decompress failed",
         "products": {
-            "sle-micro": ["6.2"]
+            "sle-micro": ["6.1", "6.2"]
         },
         "type": "bug"
     },

@@ -4,7 +4,6 @@ description: >
   Perform interactive installation with PackageHub and software pattern selection.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/patch_agama_tests
   - yam/agama/import_agama_profile
   - yam/agama/agama

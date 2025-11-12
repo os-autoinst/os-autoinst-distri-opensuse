@@ -1,0 +1,94 @@
+From 0fa4c10ee454ec478b7029f7a0d4dce81e88e4ec Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 18 Oct 2025 21:04:04 +0200
+Subject: [PATCH] tests/integration: Make the tests runnable on SELinux enabled
+ daemon
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/integration/api_container_test.py     | 21 ++++++++++++++++-----
+ tests/integration/models_containers_test.py |  4 ++--
+ 2 files changed, 18 insertions(+), 7 deletions(-)
+
+diff --git a/tests/integration/api_container_test.py b/tests/integration/api_container_test.py
+index 21c2f35797..e780a3f3d4 100644
+--- a/tests/integration/api_container_test.py
++++ b/tests/integration/api_container_test.py
+@@ -570,7 +570,10 @@ def test_create_with_mounts(self):
+         mount = docker.types.Mount(
+             type="bind", source=self.mount_origin, target=self.mount_dest
+         )
+-        host_config = self.client.create_host_config(mounts=[mount])
++        host_config = self.client.create_host_config(
++            mounts=[mount],
++            security_opt=["label=disable"],
++        )
+         container = self.run_container(
+             TEST_IMG, ['ls', self.mount_dest],
+             host_config=host_config
+@@ -587,7 +590,10 @@ def test_create_with_mounts_ro(self):
+             type="bind", source=self.mount_origin, target=self.mount_dest,
+             read_only=True
+         )
+-        host_config = self.client.create_host_config(mounts=[mount])
++        host_config = self.client.create_host_config(
++            mounts=[mount],
++            security_opt=["label=disable"],
++        )
+         container = self.run_container(
+             TEST_IMG, ['ls', self.mount_dest],
+             host_config=host_config
+@@ -604,7 +610,10 @@ def test_create_with_volume_mount(self):
+             type="volume", source=helpers.random_name(),
+             target=self.mount_dest, labels={'com.dockerpy.test': 'true'}
+         )
+-        host_config = self.client.create_host_config(mounts=[mount])
++        host_config = self.client.create_host_config(
++            mounts=[mount],
++            security_opt=["label=disable"],
++        )
+         container = self.client.create_container(
+             TEST_IMG, ['true'], host_config=host_config,
+         )
+@@ -693,7 +702,8 @@ def run_with_volume(self, ro, *args, **kwargs):
+                         'ro': ro,
+                     },
+                 },
+-                network_mode='none'
++                network_mode='none',
++                security_opt=["label=disable"],
+             ),
+             **kwargs
+         )
+@@ -710,7 +720,8 @@ def run_with_volume_propagation(self, ro, propagation, *args, **kwargs):
+                         'propagation': propagation
+                     },
+                 },
+-                network_mode='none'
++                network_mode='none',
++                security_opt=["label=disable"],
+             ),
+             **kwargs
+         )
+diff --git a/tests/integration/models_containers_test.py b/tests/integration/models_containers_test.py
+index 8727455932..0dc5a43828 100644
+--- a/tests/integration/models_containers_test.py
++++ b/tests/integration/models_containers_test.py
+@@ -48,7 +48,7 @@ def test_run_with_volume(self):
+ 
+         container = client.containers.run(
+             "alpine", "sh -c 'echo \"hello\" > /insidecontainer/test'",
+-            volumes=[f"{path}:/insidecontainer"],
++            volumes=[f"{path}:/insidecontainer:z"],
+             detach=True
+         )
+         self.tmp_containers.append(container.id)
+@@ -57,7 +57,7 @@ def test_run_with_volume(self):
+         name = "container_volume_test"
+         out = client.containers.run(
+             "alpine", "cat /insidecontainer/test",
+-            volumes=[f"{path}:/insidecontainer"],
++            volumes=[f"{path}:/insidecontainer:z"],
+             name=name
+         )
+         self.tmp_containers.append(name)

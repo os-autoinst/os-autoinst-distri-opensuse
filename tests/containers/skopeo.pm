@@ -17,13 +17,10 @@ use containers::common qw(install_packages);
 
 # Set a variable for test working directory
 my $workdir = '/tmp/test';
-my $runtime = "";
 
 sub run {
     # Required packages
     my @packages = qw(skopeo jq);
-    my ($self, $args) = @_;
-    $runtime = $args->{runtime};
 
     select_serial_terminal() unless is_vmware;    # Select most suitable text console
 
@@ -96,7 +93,7 @@ sub run {
 
     ######### Spin-up an instance of the latest Registry
     my $registry_image = is_opensuse ? "registry.opensuse.org/opensuse/registry:latest" : "registry.suse.com/suse/registry:latest";
-    assert_script_run("$runtime run --rm -d -p 5050:5000 --name skopeo-registry $registry_image",
+    assert_script_run("podman run --rm -d -p 5050:5000 --name skopeo-registry $registry_image",
         fail_message => "Failed to start local registry container");
 
     ######### Wait until the registry is up
@@ -135,8 +132,8 @@ sub cleanup {
     script_run "rm -rf $workdir";
 
     record_info('Cleanup Registry', 'Remove local image Registry');
-    script_run "$runtime stop skopeo-registry";
-    script_run "$runtime rm -vf skopeo-registry";
+    script_run "podman stop skopeo-registry";
+    script_run "podman rm -vf skopeo-registry";
 }
 
 sub post_run_hook {

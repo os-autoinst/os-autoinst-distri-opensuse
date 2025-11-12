@@ -7,7 +7,7 @@
 #   Settings are meant to be controlled via OpenQA variables and managed by test:
 #   tests/sles4sap/publiccloud/qesap_ansible.pm
 provider: 'aws'
-apiver: 3
+apiver: 4
 terraform:
   variables:
     # GENERAL VARIABLES #
@@ -18,6 +18,8 @@ terraform:
     aws_credentials: '/root/amazon_credentials'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
     os_owner: '%SLES4SAP_OS_OWNER%'
+    vpc_address_range: '%MAIN_ADDRESS_RANGE%'
+    ibsm_project_tag: '%IBSM_PRJ_TAG%'
 
     # HANA
     hana_count: '%NODE_COUNT%'

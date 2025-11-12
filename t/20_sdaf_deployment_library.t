@@ -36,13 +36,7 @@ subtest '[prepare_sdaf_project]' => sub {
 
     my @git_commands;
     my %vnet_checks;
-
-    # Workaround for SDAF bug https://github.com/Azure/sap-automation/issues/617
-    $ms_sdaf->redefine(file_content_replace => sub { return; });
-    $ms_sdaf->redefine(record_soft_failure => sub { return; });
-
-    $ms_sdaf->redefine(record_info => sub { return; });
-    $ms_sdaf->redefine(git_clone => sub { return; });
+    $ms_sdaf->noop(qw(record_info git_clone));
     $ms_sdaf->redefine(get_workload_vnet_code => sub { return 'SAP04'; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
     $ms_sdaf->redefine(script_output => sub { return "v4\nv5"; });
@@ -82,17 +76,12 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
     my $tfvars_file = 'Azure_SAP_Automated_Deployment/WORKSPACES/DEPLOYER/LAB-SECE-DEP05-INFRASTRUCTURE/LAB-SECE-DEP05-INFRASTRUCTURE.tfvars';
     my @mkdir_commands;
 
-    # Workaround for SDAF bug https://github.com/Azure/sap-automation/issues/617
-    $ms_sdaf->redefine(file_content_replace => sub { return; });
-    $ms_sdaf->redefine(record_soft_failure => sub { return; });
-
-    $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->noop(qw(record_info git_clone));
     $ms_sdaf->redefine(script_output => sub { return "v4\nv5"; });
     $ms_sdaf->redefine(assert_script_run => sub { push(@mkdir_commands, $_[0]) if grep(/mkdir/, @_); return 1; });
     $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
     $ms_sdaf->redefine(get_tfvars_path => sub { return $tfvars_file; });
     $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
-    $ms_sdaf->redefine(git_clone => sub { return; });
     $ms_sdaf->redefine(get_workload_vnet_code => sub { return 'SAP04'; });
 
     set_var('SDAF_GIT_AUTOMATION_REPO', 'https://github.com/Azure/sap-automation/tree/main');
@@ -109,9 +98,8 @@ subtest '[prepare_sdaf_project] Check directory creation' => sub {
 subtest '[serial_console_diag_banner] ' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @printed_lines;
+    $ms_sdaf->noop(qw(wait_serial));
     $ms_sdaf->redefine(enter_cmd => sub { push(@printed_lines, $_[0]); return 1; });
-    $ms_sdaf->redefine(wait_serial => sub { return 1; });
-
     serial_console_diag_banner('Module: deploy_sdaf.pm');
     note("Banner:\n" . join("\n", @printed_lines));
     ok(grep(/Module: deploy_sdaf.pm/, @printed_lines), 'Banner must include message');
@@ -172,11 +160,9 @@ subtest '[az_login] Get credentials from server' => sub {
     my $env_variable_file_content;
     my %credentrials = (client_id => 'Potato', client_secret => 'Patata', tenant_id => 'Zemiak', subscription_id => 'Batata');
 
-    $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->noop(qw(record_info assert_script_run script_output));
     $ms_sdaf->redefine(get_credentials => sub { return \%credentrials; });
     $ms_sdaf->redefine(write_sut_file => sub { $env_variable_file_content = $_[1]; });
-    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(script_output => sub { return 'Brambora'; });
 
     az_login();
     ok($env_variable_file_content =~ /export ARM_SUBSCRIPTION_ID=Batata/, 'File contains subscription id');
@@ -193,10 +179,8 @@ subtest '[az_login] Get credentials from OpenQA settings' => sub {
     set_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID', 'Peruna');
 
     my $env_variable_file_content;
-    $ms_sdaf->redefine(record_info => sub { return; });
+    $ms_sdaf->noop(qw(record_info assert_script_run script_output));
     $ms_sdaf->redefine(write_sut_file => sub { $env_variable_file_content = $_[1]; });
-    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(script_output => sub { return 'Brambora'; });
 
     az_login();
     ok($env_variable_file_content =~ /export ARM_SUBSCRIPTION_ID=Peruna/, 'File contains subscription id');
@@ -210,33 +194,33 @@ subtest '[az_login] Get credentials from OpenQA settings' => sub {
 
 subtest '[sdaf_cleanup] Test correct usage' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my $files_deleted;
-
+    $ms_sdaf->noop(qw(record_info
+          script_output
+          deployment_dir
+          resource_group_exists));
     $ms_sdaf->redefine(generate_resource_group_name => sub { return 'ResourceGroup'; });
-    $ms_sdaf->redefine(resource_group_exists => sub { return 'yes it does'; });
-    $ms_sdaf->redefine(record_info => sub { return 1; });
     $ms_sdaf->redefine(sdaf_execute_remover => sub { return 0; });
-    $ms_sdaf->redefine(assert_script_run => sub { $files_deleted = 1; return 1; });
-    $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/deployment'; });
+    $ms_sdaf->redefine(script_run => sub { return 0; });
 
-    ok sdaf_cleanup(), 'Pass with correct usage';
-    is $files_deleted, 1, 'Function must delete files at the end';
+    my %cleanup_results = %{sdaf_cleanup()};
+    ok(!$cleanup_results{remover_failed}, 'Remover passes with correct usage');
+    is($cleanup_results{file_cleanup}, 'pass', 'File cleanup passes with correct usage');
 };
 
 subtest '[sdaf_cleanup] Test remover script failures' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my $files_deleted;
-
-    $ms_sdaf->redefine(generate_resource_group_name => sub { return 'ResourceGroup'; });
-    $ms_sdaf->redefine(resource_group_exists => sub { return 'yes it does'; });
-    $ms_sdaf->redefine(sdaf_execute_remover => sub { return '0'; });
-    $ms_sdaf->redefine(record_info => sub { return 1; });
-    $ms_sdaf->redefine(assert_script_run => sub { $files_deleted = 1; return; });
-    $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/deployment'; });
-
+    my $force_group_delete;
+    $ms_sdaf->noop(qw( record_info script_output deployment_dir generate_resource_group_name ));
+    $ms_sdaf->redefine(resource_group_exists => sub { return 'yes'; });
+    $ms_sdaf->redefine(sdaf_destroy_resources => sub { $force_group_delete = 1; });
     $ms_sdaf->redefine(sdaf_execute_remover => sub { return 1; });
-    dies_ok { sdaf_cleanup() } 'Test failing remover script';
-    is $files_deleted, 1, 'Function must delete files after remover failure';
+    $ms_sdaf->redefine(script_run => sub { return 0; });
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
+
+    my %cleanup_results = %{sdaf_cleanup()};
+    ok($cleanup_results{remover_failed}, 'Remover passes with correct usage');
+    ok($force_group_delete, 'Function must delete resource groups after remover failure');
+    is($cleanup_results{file_cleanup}, 'pass', 'File cleanup must run even after remover failure');
 };
 
 subtest '[sdaf_execute_remover] Check command line arguments' => sub {
@@ -244,14 +228,17 @@ subtest '[sdaf_execute_remover] Check command line arguments' => sub {
 
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @script_run_calls;
-    $ms_sdaf->redefine(upload_logs => sub { return; });
-    $ms_sdaf->redefine(resource_group_exists => sub { return 'yes'; });
-    $ms_sdaf->redefine(generate_resource_group_name => sub { return 'WhiteBase'; });
-    $ms_sdaf->redefine(log_dir => sub { return '/Principality/of'; });
-    $ms_sdaf->redefine(deployment_dir => sub { return '/Principality/of/Zeon'; });
-    $ms_sdaf->redefine(sdaf_scripts_dir => sub { return '/Earth/Federation'; });
-    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(record_info => sub { return 0; });
+
+    $ms_sdaf->noop(qw(
+          record_info
+          upload_logs
+          assert_script_run
+          resource_group_exists
+          log_dir
+          deployment_dir
+          sdaf_scripts_dir
+          generate_resource_group_name)
+    );
     $ms_sdaf->redefine(script_run => sub { push @script_run_calls, $_[0] if grep /remover/, $_[0]; return 0; });
     $ms_sdaf->redefine(get_os_variable => sub {
             return '/some/path/LAB-SECE-SAP04-INFRASTRUCTURE-6453.tfvars' if $_[0] eq 'workload_zone_parameter_file';
@@ -277,19 +264,21 @@ subtest '[sdaf_execute_remover] Check command line arguments' => sub {
 
 subtest '[sdaf_execute_deployment] Test expected failures' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(export_credentials => sub { return 'S3cret'; });
-    $ms_sdaf->redefine(script_run => sub { return 0; });
-    $ms_sdaf->redefine(record_info => sub { return 1; });
-    $ms_sdaf->redefine(upload_logs => sub { return 1; });
-    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
-    $ms_sdaf->redefine(get_sdaf_deployment_command => sub { return '/execute/some/script.sh --important-option NotReallyImportant'; });
-    $ms_sdaf->redefine(log_command_output => sub { return '/execute/some/script.sh --important-option NotReallyImportant >> log.file'; });
+    $ms_sdaf->noop(
+        qw(upload_logs
+          assert_script_run
+          log_dir
+          script_run
+          record_info
+          export_credentials
+          get_sdaf_deployment_command
+          log_command_output
+        )
+    );
 
     my @invalid_deployment_types = ('sap_sys', 'orkload', 'workload', 'zone', 'system', 'sap_system ', ' sap_system', '', ' ');
     dies_ok { sdaf_execute_deployment(deployment_type => $_) } "Fail with incorrect deployment type: '$_'" foreach @invalid_deployment_types;
 
-    $ms_sdaf->redefine(script_run => sub { return 1; });
     # Function must not fail with croak if command fails.
     my $croak_executed = 0;
     $ms_sdaf->redefine(croak => sub { $croak_executed = 1; die(); });
@@ -301,19 +290,14 @@ subtest '[sdaf_execute_deployment] Test generated SDAF deployment command' => su
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $sdaf_command_no_log;
 
-    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(export_credentials => sub { return 'S3cret'; });
     $ms_sdaf->redefine(script_run => sub { return 0; });
-    $ms_sdaf->redefine(record_info => sub { return 0; });
-    $ms_sdaf->redefine(upload_logs => sub { return 0; });
-    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
     $ms_sdaf->redefine(sdaf_scripts_dir => sub { return '/tmp/deployment'; });
     $ms_sdaf->redefine(get_os_variable => sub { return '/some/path/LAB-SECE-SAP04-INFRASTRUCTURE-6453.tfvars' });
-    $ms_sdaf->redefine(set_os_variable => sub { return 1 });
 
     # Capture command without logging part
     $ms_sdaf->redefine(log_command_output => sub { $sdaf_command_no_log = $_[1]; return; });
 
+    $ms_sdaf->noop(qw(assert_script_run export_credentials record_info upload_logs log_dir set_os_variable));
     # Check if all required parameters are present including any form of value if required
     my @workload_zone_cmdline = ('^/tmp/deployment/install_workloadzone.sh\s',
         '\s--parameterfile\s.*(\s|$)',
@@ -344,19 +328,22 @@ subtest '[sdaf_execute_deployment] Test generated SDAF deployment command' => su
 
 subtest '[sdaf_execute_deployment] Test "retry" functionality' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(record_info => sub { return 1; });
-    $ms_sdaf->redefine(upload_logs => sub { return 0; });
-    $ms_sdaf->redefine(export_credentials => sub { return; });
-    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
-    $ms_sdaf->redefine(sdaf_scripts_dir => sub { return '/tmp/deployment'; });
     $ms_sdaf->redefine(get_os_variable => sub { return '/some/path/LAB-SECE-SAP04-INFRASTRUCTURE-6453.tfvars' });
-    $ms_sdaf->redefine(set_os_variable => sub { return 1 });
-    $ms_sdaf->redefine(log_command_output => sub { return; });
     $ms_sdaf->redefine(get_sdaf_deployment_command => sub { return 'dd if=/dev/zero of=/dev/sda'; });
     my $retry = 0;
     $ms_sdaf->redefine(script_run => sub { $retry++; print $retry; return 0 if $retry == 3; return 1 });
 
+    $ms_sdaf->noop(
+        qw(assert_script_run
+          record_info
+          upload_logs
+          export_credentials
+          log_dir
+          sdaf_scripts_dir
+          set_os_variable
+          log_command_output
+        )
+    );
     ok sdaf_execute_deployment(deployment_type => 'workload_zone', retries => 3);
 };
 
@@ -380,14 +367,8 @@ subtest '[sdaf_execute_playbook] Fail with missing mandatory arguments' => sub {
 subtest '[sdaf_execute_playbook] Command execution' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @calls;
-
-    $ms_sdaf->redefine(upload_logs => sub { return; });
-    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
-    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
-    $ms_sdaf->redefine(record_info => sub { return; });
     $ms_sdaf->redefine(script_run => sub { push(@calls, $_[0]); return 0; });
-
+    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs deployment_dir));
     set_var('SAP_SID', 'QES');
     set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', undef);
 
@@ -409,14 +390,9 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @calls;
 
-    $ms_sdaf->redefine(upload_logs => sub { return; });
-    $ms_sdaf->redefine(log_dir => sub { return '/tmp/openqa_logs'; });
-    $ms_sdaf->redefine(assert_script_run => sub { return 0; });
-    $ms_sdaf->redefine(deployment_dir => sub { return '/tmp/SDAF'; });
-    $ms_sdaf->redefine(record_info => sub { return; });
     $ms_sdaf->redefine(script_run => sub { return; });
     $ms_sdaf->redefine(log_command_output => sub { push(@calls, $_[1]); return 0; });
-
+    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs deployment_dir));
     set_var('SAP_SID', 'QES');
 
     my %verbosity_levels = (
@@ -437,13 +413,9 @@ subtest '[sdaf_execute_playbook] Command verbosity' => sub {
 
 subtest '[sdaf_ssh_key_from_keyvault] Test exceptions' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    $ms_sdaf->redefine(homedir => sub { return '/home/Amuro'; });
     my $croak_message;
     $ms_sdaf->redefine(croak => sub { $croak_message = $_[0]; note("\n  -->  $_[0]"); die; });
-    $ms_sdaf->redefine(assert_script_run => sub { return; });
-    $ms_sdaf->redefine(script_run => sub { return 1; });
-    $ms_sdaf->redefine(record_info => sub { return });
-    $ms_sdaf->redefine(az_keyvault_secret_show => sub { return 'lol'; });
+    $ms_sdaf->noop(qw(assert_script_run homedir record_info az_keyvault_secret_show script_run));
 
     # Exception is handled by 'az_keyvault_secret_list'
     dies_ok { sdaf_ssh_key_from_keyvault() } 'Croak with missing $args{key_vault}';
@@ -463,12 +435,11 @@ subtest '[sdaf_ssh_key_from_keyvault] Verify executed commands' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @assert_script_run;
     my @script_run;
-    $ms_sdaf->redefine(homedir => sub { return '/home/Amuro'; });
     $ms_sdaf->redefine(az_keyvault_secret_list => sub { return ['Amuro']; });
-    $ms_sdaf->redefine(az_keyvault_secret_show => sub { return; });
     $ms_sdaf->redefine(assert_script_run => sub { push @assert_script_run, $_[0]; return; });
     $ms_sdaf->redefine(script_run => sub { push @script_run, $_[0]; return; });
-    $ms_sdaf->redefine(record_info => sub { return });
+
+    $ms_sdaf->noop(qw(homedir record_info az_keyvault_secret_show));
 
     sdaf_ssh_key_from_keyvault(key_vault => 'SCV-70 White Base');
     note("\n --> " . join("\n --> ", @assert_script_run));
@@ -503,6 +474,7 @@ subtest '[register_byos] Test exceptions' => sub {
     $ms_sdaf->redefine(ansible_execute_command => sub { return; });
     $ms_sdaf->redefine(assert_script_run => sub { return; });
     $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
+    $ms_sdaf->noop(qw(ansible_execute_command assert_script_run));
 
     my %mandatory_args = (sdaf_config_root_dir => '/fun/', scc_reg_code => 'HAHA', sap_sid => 'LOL');
 
@@ -518,8 +490,8 @@ subtest '[register_byos] Command check' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @commands;
     $ms_sdaf->redefine(ansible_execute_command => sub { @commands = @_; return; });
-    $ms_sdaf->redefine(assert_script_run => sub { return; });
     $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ms_sdaf->noop(qw(assert_script_run));
 
     my %mandatory_args = (sdaf_config_root_dir => '/fun/', scc_reg_code => 'HAHA', sap_sid => 'LOL');
     sdaf_register_byos(%mandatory_args);
@@ -594,20 +566,34 @@ subtest '[sdaf_upload_logs]' => sub {
         hostname => 'QAS-hostname',
         sap_sid => 'QAS'
     );
+    $ms_sdaf->noop(qw(record_info script_run script_output upload_logs));
 
-    $ms_sdaf->redefine(record_info => sub { return; });
-    $ms_sdaf->redefine(script_run => sub { return; });
-    $ms_sdaf->redefine(script_output => sub { return 'log_file'; });
-    $ms_sdaf->redefine(upload_logs => sub { return; });
-
-    my $basetest = Test::MockModule->new('basetest');
+    Test::MockModule->new('basetest');
     $autotest::current_test = new basetest;
 
-    set_var('SUPPORTCONGFIG', undef);
+    set_var('SUPPORTCONFIG', undef);
     ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
 
-    set_var('SUPPORTCONGFIG', '1');
+    set_var('SUPPORTCONFIG', '1');
     ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
+};
+
+subtest '[get_workload_resource_group]' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    $ms_sdaf->noop('record_info');
+    $ms_sdaf->redefine(az_group_name_get => sub { return ['Resource_group']; });
+
+    is get_workload_resource_group(deployment_id => '123'), 'Resource_group', 'Return exactly one RG';
+};
+
+subtest '[get_workload_resource_group]' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    $ms_sdaf->noop('record_info');
+    $ms_sdaf->redefine(az_group_name_get => sub { return []; });
+    dies_ok { get_workload_resource_group(deployment_id => '123') } 'Fail with empty result';
+
+    $ms_sdaf->redefine(az_group_name_get => sub { return ['First_result', 'Oh_no-second_one']; });
+    dies_ok { get_workload_resource_group(deployment_id => '123') } 'Fail with more than one results';
 };
 
 done_testing;

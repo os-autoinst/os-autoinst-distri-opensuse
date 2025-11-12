@@ -1243,6 +1243,24 @@ subtest '[create_hana_vars_section]' => sub {
     ok %$ret{sap_hana_install_sid} eq '>>>INSTANCE_SID---VALUE<<<';
 };
 
+subtest '[create_hana_vars_section] firewall' => sub {
+    set_var('HANA_MEDIA', '>>>HANA_MEDIA---VALUE<<<');
+    set_var('_HANA_MASTER_PW', '>>>_HANA_MASTER_PW---VALUE<<<');
+    set_var('INSTANCE_SID', '>>>INSTANCE_SID---VALUE<<<');
+    set_var('INSTANCE_ID', '>>>INSTANCE_ID---VALUE<<<');
+    set_var('SLES4SAP_FIREWALL_PORTS', 1);
+
+    my $ret = create_hana_vars_section();
+
+    set_var('HANA_MEDIA', undef);
+    set_var('_HANA_MASTER_PW', undef);
+    set_var('INSTANCE_SID', undef);
+    set_var('INSTANCE_ID', undef);
+    set_var('SLES4SAP_FIREWALL_PORTS', undef);
+
+    ok %$ret{sap_hana_install_update_firewall} eq 'true';
+};
+
 subtest "[get_replication_info]" => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
 

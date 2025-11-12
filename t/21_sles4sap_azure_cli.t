@@ -538,11 +538,11 @@ subtest '[az_vm_wait_cloudinit]' => sub {
     ok((any { /az vm run-command create/ } @calls), 'Correct composition of the main command');
 };
 
-subtest '[az_nic_id_get]' => sub {
+subtest '[az_nic_get_id]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Eugenia'; });
-    my $res = az_nic_id_get(
+    my $res = az_nic_get_id(
         resource_group => 'Arlecchino',
         name => 'Truffaldino');
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -560,6 +560,21 @@ subtest '[az_nic_name_get]' => sub {
     ok((any { /az network nic show/ } @calls), 'Correct composition of the main command');
     ok((any { /--query.*name/ } @calls), 'Correct filter');
     ok(($res eq 'Eugenia'), 'Correct return');
+};
+
+subtest '[az_nic_create]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    az_nic_create(
+        resource_group => 'Arlecchino',
+        name => 'Fabrizio',
+        vnet => 'Pulcinella',
+        subnet => 'Colombina',
+        nsg => 'Pantalone',
+        pubip_name => 'Ottone');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az network nic create/ } @calls), 'Correct composition of the main command');
 };
 
 subtest '[az_ipconfig_name_get]' => sub {
@@ -1150,6 +1165,191 @@ subtest '[az_group_exists] Compose command' => sub {
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az group exists/ } @calls), 'Correct composition of the main command');
     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+};
+
+subtest '[az_nic_list] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+
+    az_nic_list(resource_group => 'Pantalone');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network nic list/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--query "\[].name"/, @calls), 'Check for default query');
+};
+
+subtest '[az_nic_list] Optional args' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+
+    az_nic_list(resource_group => 'Pantalone', query => '[].calzini');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok(grep(/--query "\[].calzini"/, @calls), 'Check for optional argument "--query"');
+};
+
+
+subtest '[az_network_vnet_show] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+
+    az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network vnet show/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+};
+
+subtest '[az_network_vnet_show] Optional arg' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+
+    az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini', query => 'id');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok(grep(/--query "id"/, @calls), 'Check for argument "--query"');
+};
+
+subtest '[az_network_dns_zone_create] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_network_dns_zone_create(resource_group => 'Pantalone', name => 'calzini');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network private-dns zone create/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+};
+
+subtest '[az_network_dns_zone_delete] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_network_dns_zone_delete(resource_group => 'Pantalone', zone_name => 'calzini');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network private-dns zone delete/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+    ok(grep(/--yes/, @calls), 'Autoapprove option "--yes"');
+};
+
+subtest '[az_network_dns_add_record] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_network_dns_add_record(
+        resource_group => 'Pantalone',
+        zone_name => 'opensuse.org',
+        record_name => 'openqa',
+        ip_addr => '192.168.1.5'
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network private-dns record-set a add-record/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
+    ok(grep(/--record-set-name openqa/, @calls), 'Check for argument "--record-set-name"');
+    ok(grep(/--ipv4-address 192.168.1.5/, @calls), 'Check for argument "--ipv4-address"');
+};
+
+subtest '[az_network_dns_link_create] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_network_dns_link_create(
+        resource_group => 'Pantalone',
+        zone_name => 'opensuse.org',
+        vnet => 'vnet_rg',
+        name => 'link_to_rg_vnet'
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network private-dns link vnet create/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
+    ok(grep(/--virtual-network vnet_rg/, @calls), 'Check for argument "--virtual-network"');
+    ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
+    ok(grep(/--registration-enabled true/, @calls), 'Check for argument "--auto-registration"');
+};
+
+subtest '[az_network_dns_zone_list] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
+
+    az_network_dns_zone_list(resource_group => 'Pantalone');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network private-dns zone list/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--query "\[].name"/, @calls), 'Check for default argument "--query" value');
+};
+
+subtest '[az_network_dns_zone_list] check custom query' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
+
+    az_network_dns_zone_list(resource_group => 'Pantalone', query => '[].id');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok(grep(/--query "\[].id"/, @calls), 'Check for custom argument "--query" value');
+};
+
+subtest '[az_network_dns_link_list] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
+
+    az_network_dns_link_list(resource_group => 'Pantalone', zone_name => 'opensuse.org');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network private-dns link vnet list/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
+    ok(grep(/--query "\[].name"/, @calls), 'Check for custom argument "--query" value');
+};
+
+subtest '[az_network_dns_link_list] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
+
+    az_network_dns_link_list(resource_group => 'Pantalone', zone_name => 'opensuse.org', query => '[].id');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok(grep(/--query "\[].id"/, @calls), 'Check for custom argument "--query" value');
+};
+
+subtest '[az_network_dns_link_delete] Compose command' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+
+    az_network_dns_link_delete(
+        resource_group => 'Pantalone',
+        zone_name => 'opensuse.org',
+        link_name => 'link_to_rg_vnet'
+    );
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az network private-dns link vnet delete/ } @calls), 'Correct composition of the main command');
+    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
+    ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
+    ok(grep(/--yes/, @calls), 'Check for autoapprove argument "--yes"');
 };
 
 done_testing;

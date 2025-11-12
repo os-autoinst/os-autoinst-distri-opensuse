@@ -154,9 +154,48 @@ sub _prepare_ssh_cmd {
     return $ssh_cmd;
 }
 
+
+=head2 _apply_cmd_timeout
+    _apply_cmd_timeout($args, $ssh_cmd) - wraps $ssh_cmd within timeout call which will make sure graceful and unconditional interruption
+      after defined period of time
+
+    C<args> - reference to args hash. it is important to pass reference so function can modify timeout passed to script_run by the caller
+                to make sure it is bigger than value defined in timeout command which suppose to kill what script_run needs to execute
+    C<ssh_cmd> - reference to string containing command which will be executed by script_run. function will tweak it to include timeout call
+                which will kill underlying command after time defined by args{timeout}
+
+=cut
+
+sub _apply_cmd_timeout {
+
+    my ($self, $args, $ssh_cmd) = @_;
+
+    $args->{ignore_timeout_failure} //= 0;
+    $args->{timeout} //= SSH_TIMEOUT;
+
+    if ($args->{ignore_timeout_failure}) {
+        my $external_timeout = $args->{timeout};
+        # $args{timeout} will be passed into script_run so it needs to be bigger than value used by timeout command
+        # otherwise script_run will die faster than timeout needs to kill running command. Giving 20 second buffer looks safe enough
+        $args->{timeout} = $args->{timeout} + 20;
+        # timeout is executed with '-k 10' which means that after trying to gracefully shutdown running command for 10 seconds it will
+        # start just to kill the process. Taking into account that internal timeout for script_run is longer for 20 seconds
+        # kernel has 10 seconds to proceed with killing the process
+        $$ssh_cmd = "timeout --foreground -k 10s $external_timeout " . $$ssh_cmd;
+    }
+    delete($args->{ignore_timeout_failure});
+}
+
 =head2 ssh_script_run
 
-    ssh_script_run($cmd [, timeout => $timeout] [, fail_message => $fail_message] [,quiet => $quiet] [,ssh_opts => $ssh_opts] [,username => $username])
+    ssh_script_run($cmd [, timeout => $timeout] [,quiet => $quiet] [,ssh_opts => $ssh_opts] [,username => $username][, ignore_timeout_failure => $ignore_timeout_failure])
+
+    C<timeout> - TTL for command execution measured in seconds . After that period of time execution will be aborded
+    C<quiet> - avoid recording serial_results ( value pass to script_run call)
+    C<ssh_opts> - additional ssh options passed to ssh
+    C<username> - username used for ssh tunnel
+    C<ignore_timeout_failure> - in case waiting longer than timeout normally script_run will die. Setting this parameter to true
+        will avoid such failure
 
 Runs a command C<cmd> via ssh on the publiccloud instance and returns the return code.
 =cut
@@ -165,6 +204,7 @@ sub ssh_script_run {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     my $ssh_cmd = $self->_prepare_ssh_cmd(%args);
+    $self->_apply_cmd_timeout(\%args, \$ssh_cmd);
     delete($args{cmd});
     delete($args{ssh_opts});
     delete($args{username});
@@ -228,7 +268,7 @@ sub ssh_script_retry {
 
 =head2 scp
 
-    scp($from, $to, timeout => 90);
+    scp($from, $to[, timeout => 90]);
 
 Use scp to copy a file from or to this instance. A url starting with
 C<remote:> is replaced with the IP from this instance. E.g. a call to copy
@@ -250,6 +290,8 @@ sub scp {
 
     my $ssh_cmd = sprintf('scp %s "%s" "%s"', $ssh_opts, $from, $to);
 
+    $self->_apply_cmd_timeout(\%args, \$ssh_cmd);
+
     return script_run($ssh_cmd, %args);
 }
 
@@ -265,9 +307,11 @@ sub upload_log {
     my ($self, $remote_file, %args) = @_;
     my $tmpdir = script_output_retry('mktemp -d');
     my $dest = $tmpdir . '/' . basename($remote_file);
+    $args{failok} //= 0;
+    $args{ignore_timeout_failure} = 1 if ($args{failok});
     my $ret = $self->scp('remote:' . $remote_file, $dest, %args);
     upload_logs($dest, %args) if (defined($ret) && $ret == 0);
-    assert_script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
+    script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
 
 =head2 upload_check_logs_tar
@@ -291,7 +335,7 @@ sub upload_check_logs_tar {
     return 1 unless (scalar(@logs) > 0);
     # Upload existing logs to openqa  UI
     $cmd = "sudo tar -czvf $remote_tar " . join(" ", @logs);
-    $res = $self->ssh_script_run(cmd => $cmd, proceed_on_failure => 1);
+    $res = $self->ssh_script_run(cmd => $cmd, ignore_timeout_failure => 1);
     $self->upload_log("$remote_tar", log_name => basename($remote_tar), failok => 1) if ($res == 0);
     return 1;
 }
@@ -332,7 +376,7 @@ sub wait_for_guestregister {
             diag("guestregister failed");
             # we have some cases where it is known that guestregister service will fail
             # ( e.g. when we testing images not published on Market hence w/o product codes)
-            return 1 if (get_var('PUBLIC_CLOUD_IGNORE_GUESTREGISTER_FAILURE'));
+            return 1 if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
             die('guestregister failed');
         }
         elsif ($out =~ m/active$/) {
@@ -504,7 +548,7 @@ sub wait_for_ssh {
         while (($duration = time() - $start_time) < $args{timeout}) {
             # After the instance is resumed from hibernation the SSH can freeze
             my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10';
-            $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => $args{timeout} - $duration, proceed_on_failure => 1);
+            $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => $args{timeout} - $duration, ignore_timeout_failure => 1);
             last if isok($exit_ssh);
             sleep $delay;
         }
@@ -515,14 +559,14 @@ sub wait_for_ssh {
         unless (isok($exit_code)) {
             # validate sshd_config configuration file and verbose ssh debugging
             my $debug = script_output("ssh " . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'sudo sshd -t && echo sshd OK || echo sshd config error'", timeout => 90, proceed_on_failure => 1) . "\n";
-            $debug .= script_output("ssh -vvv" . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'ls -lR /etc/ssh'", timeout => 90, proceed_on_failure => 1) . "\n";
+            $debug .= script_output("ssh -vvv " . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'ls -lR /etc/ssh'", timeout => 90, proceed_on_failure => 1) . "\n";
             record_info('SSH CHECK', "Check ssh on error\n" . $debug, result => 'fail');
         }
         # Log upload
         if (!get_var('PUBLIC_CLOUD_SLES4SAP') and $args{logs}) {
             #Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
             $self->ssh_script_run('sudo journalctl -b --no-pager > /tmp/journalctl.log',
-                timeout => 360, proceed_on_failure => 1, username => $args{username}, quiet => 1);
+                timeout => 360, ignore_timeout_failure => 1, username => $args{username}, quiet => 1);
             $self->upload_log('/tmp/journalctl.log', failok => 1);
         }    # endif
     }    # endif
@@ -941,22 +985,22 @@ sub upload_supportconfig_log {
     my $start = time();
     my $logs = "/var/tmp/scc_supportconfig";
     # Eventual comma-separated tokens list to exclude
+    # Excluding AUDIT due to bsc#1250310
     my $exclude = get_var('PUBLIC_CLOUD_SUPPORTCONFIG_EXCLUDE', 'AUDIT');
     # To remove exclusions, _EXCLUDE='-'
     $exclude = undef if ($exclude eq '-');
     $exclude = "-x " . $exclude if ($exclude);
-    # poo#187440 Workaround applied inject newline in ssh supportconfig to prevent hang cases, while bsc#1250310 open
-    my $cmd = "echo | timeout --preserve-status -k 60 $timeout sudo supportconfig -R " . dirname($logs) . " -B supportconfig $exclude";
-    my $err = $self->ssh_script_run($cmd, timeout => ($timeout + 180));
-    if (isok($err)) {
-        $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txz", timeout => 0);
-        $self->upload_log("$logs.txz", failok => 1, timeout => 180);
+    my $cmd = "echo | sudo supportconfig -R " . dirname($logs) . " -B supportconfig $exclude > $logs.txt 2>&1";
+    my $res = $self->ssh_script_run($cmd, timeout => $timeout, ignore_timeout_failure => 1);
+    $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txz", ignore_timeout_failure => 1);
+    $self->upload_log("$logs.txz", failok => 1, timeout => 180);
+    if (isok($res)) {
         record_info('supportconfig done', "OK: duration " . (time() - $start) . "s. Log $logs.txz" . (($exclude) ? " - Excluded: $exclude" : ''));
-        return 1;
     } else {
-        record_info('FAILED supportconfig', 'Failed after: ' . (time() - $start) . "sec.", result => 'fail');
-        return;
+        record_info('FAILED supportconfig', 'Failed after: ' . (time() - $start) . 'sec.', result => 'fail');
     }
+    # Never fail
+    return 1;
 }
 
 sub wait_for_state {

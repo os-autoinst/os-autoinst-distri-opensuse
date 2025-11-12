@@ -127,7 +127,7 @@
       <timeout config:type="integer">8</timeout>
       <trusted_grub>false</trusted_grub>
     </global>
-    <loader_type>grub2</loader_type>
+    <loader_type>default</loader_type>
   </bootloader>
   <general>
     <ask-list config:type="list"/>
@@ -217,10 +217,25 @@
     % } else {
       <device>/dev/vda</device>
     % }
+    % if ($vm_name =~ /efi/) {
+      <disklabel>gpt</disklabel>
+    % } else {
       <disklabel>msdos</disklabel>
+    % }
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
+    % if ($vm_name =~ /efi/) {
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <partition_id t="integer">259</partition_id>
+          <mount>/boot/efi</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <size>512M</size>
+        </partition>
+    % }
         <partition>
           <create config:type="boolean">true</create>
           <filesystem config:type="symbol">btrfs</filesystem>
@@ -353,7 +368,7 @@
 #!/bin/bash
 mkdir -p -m 700 /root/.ssh
 echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> >> /root/.ssh/authorized_keys
-chmod 600 /root/.ssh/authorized_key
+chmod 600 /root/.ssh/authorized_keys
 ]]></source>
 </script>
 <script>

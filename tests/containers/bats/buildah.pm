@@ -10,14 +10,12 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils;
 use containers::bats;
 
 sub run_tests {
     my %params = @_;
-    my ($rootless, $skip_tests) = ($params{rootless}, $params{skip_tests});
-
-    return 0 if check_var($skip_tests, "all");
+    my $rootless = $params{rootless};
 
     my $storage_driver = $rootless ? "vfs" : script_output("buildah info --format '{{ .store.GraphDriverName }}'");
     record_info("storage driver", $storage_driver);
@@ -33,11 +31,27 @@ sub run_tests {
 
     my $log_file = "buildah-" . ($rootless ? "user" : "root");
 
-    my $ret = bats_tests($log_file, \%env, $skip_tests, 5000);
+    my @xfails = ();
+    push @xfails, (
+        "add.bats::add https retry ca"
+    ) if (is_sle(">=16"));
+    push @xfails, (
+        "bud.bats::bud with --cgroup-parent",
+    ) if (is_sle && !$rootless);
+    push @xfails, (
+        "bud.bats::bud-git-context",
+        "bud.bats::bud-git-context-subdirectory",
+        "bud.bats::bud using gitrepo and branch",
+        "run.bats::Check if containers run with correct open files/processes limits",
+    ) if (is_sle("<16") && !$rootless);
+    push @xfails, (
+        "bud.bats::bud-multiple-platform-no-partial-manifest-list",
+    ) if (is_sle("<15-SP6"));
 
-    run_command 'podman rm -vf $(podman ps -aq --external) || true';
-    run_command "podman system reset -f";
+    my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
+
     run_command "buildah prune -a -f";
+    cleanup_podman;
 
     return ($ret);
 }
@@ -61,15 +75,17 @@ sub enable_docker {
         run_command "ip6tables -I DOCKER-USER -j ACCEPT";
     }
 
-    record_info("docker info", script_output("docker info"));
-    record_info("docker version", script_output("docker version"));
+    record_info("docker info", script_output("docker info -f json | jq -Mr"));
+    my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
+    record_info("WARNINGS daemon", $warnings) if $warnings;
+    $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
+    record_info("WARNINGS client", $warnings) if $warnings;
+    record_info("docker version", script_output("docker version -f json | jq -Mr"));
 }
 
 # Run conformance tests that compare the output of buildah against Docker's BuildKit
 sub test_conformance {
-    run_command 'export GOPATH=$HOME/go';
-    run_command 'export PATH=$PATH:$GOPATH/bin';
-    run_command 'go install gotest.tools/gotestsum@v1.13.0';
+    install_gotestsum;
     run_command 'cp /usr/bin/busybox-static tests/conformance/testdata/mount-targets/true';
     run_command 'docker rmi -f $(docker images -q) || true';
     run_command 'gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/... |& tee conformance.txt', timeout => 1200;
@@ -112,11 +128,12 @@ sub run {
     record_info("helpers", $helpers);
     run_command "make $helpers", timeout => 600;
 
-    my $errors = run_tests(rootless => 1, skip_tests => 'BATS_IGNORE_USER');
+    my $errors = 0;
+    $errors += run_tests(rootless => 1) unless check_var('BATS_IGNORE_USER', 'all');
 
     switch_to_root;
 
-    $errors += run_tests(rootless => 0, skip_tests => 'BATS_IGNORE_ROOT');
+    $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
     test_conformance unless is_sle;
 

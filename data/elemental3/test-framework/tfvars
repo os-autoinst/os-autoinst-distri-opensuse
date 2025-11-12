@@ -1,0 +1,8 @@
+arch="%ARCH%"
+access_key="%ACCESS_KEY%"
+aws_user="root"
+create_lb=true
+node_os="slemicro"
+no_of_server_nodes=1
+no_of_worker_nodes=0
+%K8S%_version="%K8S_VERSION%"

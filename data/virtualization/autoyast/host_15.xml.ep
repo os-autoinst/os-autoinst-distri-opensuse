@@ -123,6 +123,8 @@
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
       <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200</xen_append>
       <xen_kernel_append><%= $check_var->('IPMI_HW', 'AMD') ? "" : "dom0_max_vcpus=4 dom0_mem=8192M,max:8192M" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
+      % } elsif ($check_var->('ENABLE_SEV_ES', '1')) {
+      <append>splash=silent amd_iommu=on mem_encrypt=on kvm_amd.sev=1</append>
       % } else {
       <append>splash=silent <%= $check_var->('IPMI_HW', 'AMD') ? "" : "intel_iommu=on" %></append>
       % }
@@ -165,21 +167,21 @@
   <login_settings/>
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
-    % if ($get_var->('KUBEVIRT_TEST') && $get_var->('WORKER_CLASS') =~ /virt-mm-baremetal-ipmi/) {
+    % if ($get_var->('VERSION') ge '15-SP4') {
     <backend>wicked</backend>
     <virt_bridge_proposal config:type="boolean">true</virt_bridge_proposal>
-% } else {
-<interfaces config:type="list">
-  <interface>
-    <device>br0</device>
-    <bootproto>dhcp</bootproto>
-    <bridge>yes</bridge>
-    <bridge_forwarddelay>0</bridge_forwarddelay>
-    <bridge_ports>eth0 eth1</bridge_ports>
-    <bridge_stp>off</bridge_stp>
-    <startmode>auto</startmode>
-  </interface>
-</interfaces>
+    % } else {
+    <interfaces config:type="list">
+      <interface>
+        <device>br0</device>
+        <bootproto>dhcp</bootproto>
+        <bridge>yes</bridge>
+        <bridge_forwarddelay>0</bridge_forwarddelay>
+        <bridge_ports><%= $get_var->('BRIDGE_PORT', 'eth0') %></bridge_ports>
+        <bridge_stp>off</bridge_stp>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
   % }
   </networking>
   <ntp-client>
@@ -274,6 +276,9 @@
       <package>guestfs-tools</package>
       % if ($get_var->('VERSION') gt '15-SP5') {
       <package>libvirt-daemon-proxy</package>
+      % }
+      % if ($check_var->('ENABLE_SEV_ES', '1')) {
+      <package>sevctl</package>
       % }
     </packages>
     <products config:type="list">

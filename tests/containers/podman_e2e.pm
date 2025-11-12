@@ -3,8 +3,8 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Packages: python3-docker & python3-podman
-# Summary: Test podman & docker python packages
+# Packages: podman
+# Summary: Test podman e2e
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest', -signatures;
@@ -42,6 +42,11 @@ sub setup {
     # Make /run/secrets directory available on containers
     run_command "echo /var/lib/empty:/run/secrets >> /etc/containers/mounts.conf";
 
+    if (get_var("ROOTLESS")) {
+        switch_to_user;
+        run_command "podman system service --timeout=0 &";
+    }
+
     $version = script_output q(podman --version | awk '{ print $3 }');
     $version = "v$version";
     record_info("version", $version);
@@ -58,9 +63,7 @@ sub setup {
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
-
     $self->setup;
-    select_serial_terminal;
 
     assert_script_run "cd /var/tmp/podman";
 
@@ -76,24 +79,53 @@ sub run {
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
     # mapping of known expected failures
-    my @xfails = ();
-    unless (is_tumbleweed) {
+    my @xfails = (
+        # Fails with "registry.access.redhat.com/*openshift*"
+        'Libpod Suite::[It] Podman search podman search with wildcards',
+    );
+    push @xfails, (
         # Fixed in podman 5.6.1:
         # https://bugzilla.suse.com/show_bug.cgi?id=1249050 - podman passes volume options as bind mount options to runtime
-        push @xfails, (
-            'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
-            'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
-        );
-    }
+        'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
+        'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
+    ) unless (is_tumbleweed);
+    push @xfails, (
+        'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
+    ) if (get_var("ROOTLESS"));
+    # These tests fail as rootless only
+    my @rootless_remote_xfails = (
+        'Libpod Suite::[It] Podman build podman build --build-context: Mixed source',
+        'Libpod Suite::[It] Podman build podman build --build-context: URL source',
+        'Libpod Suite::[It] Podman build podman build http proxy test',
+        'Libpod Suite::[It] Podman build podman build relay exit code to process',
+        'Libpod Suite::[It] Podman build podman remote test container/docker file is not at root of context dir',
+        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file= falls back to containers.conf',
+        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file=image',
+        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file=none',
+        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file=path',
+        'Libpod Suite::[It] Podman prune podman system image prune unused images',
+        'Libpod Suite::[It] Podman prune podman system prune --build clean up after terminated build',
+        'Libpod Suite::[It] Podman run podman run user capabilities test with image',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file --hosts-file= falls back to containers.conf',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file --hosts-file=image',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file --hosts-file=none',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file --hosts-file=path',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file should fail with --no-hosts',
+        'Libpod Suite::[It] Podman run podman run with --hosts-file works with pod without an infra-container',
+        'Libpod Suite::[It] Verify podman containers.conf usage base_hosts_file in containers.conf base_hosts_file=none should not use any hosts files',
+'Libpod Suite::[It] Verify podman containers.conf usage base_hosts_file in containers.conf base_hosts_file=image should use the hosts file from the container image',
+'Libpod Suite::[It] Verify podman containers.conf usage base_hosts_file in containers.conf base_hosts_file=path should use the hosts file from the file path',
+    );
 
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
     my $default_targets = "localintegration";
     $default_targets .= " remoteintegration" unless is_sle;
-    my @targets = split('\s+', get_var('PODMAN_TARGETS', $default_targets));
+    my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
         run_command "env $env make $target &> $target.txt || true", timeout => 1800;
         script_run "mv report.xml $target.xml";
+        push @xfails, @rootless_remote_xfails if ($target eq "remoteintegration" && get_var("ROOTLESS"));
         patch_junit "podman", $version, "$target.xml", @xfails;
         parse_extra_log(XUnit => "$target.xml");
         upload_logs("$target.txt");
@@ -101,10 +133,14 @@ sub run {
 }
 
 sub post_fail_hook {
+    cleanup_podman;
+    run_command 'kill %1; kill -9 %1 || true';
     bats_post_hook;
 }
 
 sub post_run_hook {
+    cleanup_podman;
+    run_command 'kill %1; kill -9 %1 || true';
     bats_post_hook;
 }
 

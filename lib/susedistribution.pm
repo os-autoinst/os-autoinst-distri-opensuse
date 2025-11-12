@@ -16,7 +16,7 @@ use utils qw(
   type_string_very_slow
   zypper_call
 );
-use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse is_hyperv is_plasma6 is_public_cloud is_agama);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_hyperv is_plasma6 is_public_cloud is_agama);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm default_gui_terminal);
 use Utils::Backends;
 
@@ -198,8 +198,8 @@ sub init_desktop_runner {
     $timeout //= 30;
     my $hotkey = desktop_runner_hotkey;
 
-    # Force krunner to run single words as shell command (see also kde#477794)
-    $program .= ' ;' if (is_plasma6 && $program !~ /\s/);
+    # Force krunner to run the input as shell command (see also kde#477794)
+    $program .= ' ;' if is_plasma6;
 
     send_key($hotkey);
 
@@ -347,13 +347,12 @@ sub ensure_installed {
     wait_still_screen 1;
     send_key("alt-f4");    # close terminal
 
-    if (check_screen 'terminal-close-window', timeout => 30) {
-        wait_screen_change {
-            testapi::assert_and_click('terminal-close-window');
-        };
-    }
+    assert_screen([qw(terminal-close-window generic-desktop)]);
 
-    assert_screen 'generic-desktop' if is_opensuse;
+    if (match_has_tag('terminal-close-window')) {
+        click_lastmatch;
+        assert_screen 'generic-desktop';
+    }
 }
 
 =head2 script_sudo

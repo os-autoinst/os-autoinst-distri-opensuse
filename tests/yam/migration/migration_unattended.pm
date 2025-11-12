@@ -23,7 +23,9 @@ sub run {
     assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
 
     my $repo_server = get_var('REPO_MIRROR_HOST', 'download.suse.de');
-    my $repo_home = "http://" . $repo_server . "/ibs/home:/fcrozat:/SLES16/SLE_\$releasever";
+    my $repo_home = "http://" . $repo_server . "/ibs/home:/fcrozat:/SLES16/"
+      . (get_var('AGAMA_PRODUCT_ID') =~ /SLES_SAP/ ? 'SLES_SAP_' : 'SLE_')
+      . "\$releasever";
     my $repo_images = 'http://' . $repo_server . '/ibs/home:/fcrozat:/SLES16/images/';
     zypper_call("ar --refresh -p 90 '$repo_home' home_sles16");
     zypper_call("ar --refresh -p 90 $repo_images home_images");
@@ -35,13 +37,14 @@ sub run {
     # disable repos of the product to migrate from due to proxySCC is not serving SLES 15 SP*
     my $version = get_var('VERSION_UPGRADE_FROM');
     $version =~ s/-/_/;
-    script_run('for s in $(zypper -t ls | grep _Module_' . "$version" . ' | sed -e \'s,|.*,,g\'); do zypper modifyservice --disable $s; done');
+    script_run('for s in $(zypper -t ls | grep ' . "$version" . ' | sed -e \'s,|.*,,g\'); do zypper modifyservice --disable $s; done');
 
     # deacivate unwanted/unsupported extensions before doing migration
     if (get_var('SCC_SUBTRACTIONS')) {
-        foreach (split(',', get_var('SCC_SUBTRACTIONS'))) {
-            my $extension = get_addon_fullname($_);
-            remove_suseconnect_product($extension);
+        foreach my $addon (split(',', get_var('SCC_SUBTRACTIONS'))) {
+            my $extension = get_addon_fullname($addon);
+            # NVIDIA Compute is not versioned by SP
+            remove_suseconnect_product($extension, (($addon eq 'nvidia') ? '15' : ()));
         }
     }
 
@@ -53,7 +56,7 @@ sub run {
         assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         enter_cmd '/usr/sbin/run_migration';
         reset_consoles;
-        reconnect_mgmt_console;
+        reconnect_mgmt_console(timeout => 600);
     } else {
         # disable timeout for migration grub menu
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
@@ -61,8 +64,8 @@ sub run {
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
         assert_screen('grub-menu-migration', 120);
         send_key 'ret';
-        assert_screen('migration-running');
-        assert_screen('grub2', 600);
+        assert_screen('migration-running', 60);
+        assert_screen('grub2', 1000);
     }
 }
 

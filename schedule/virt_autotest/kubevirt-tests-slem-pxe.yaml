@@ -14,7 +14,7 @@ vars:
   PATTERNS: default,kvm
   MAX_JOB_TIME: 10800
 schedule:
-  - "{{install_preparation}}"
+  - '{{install_preparation}}'
   - '{{barrier_setup}}'
   - '{{bootup_and_install}}'
   - '{{kubevirt_tests}}'
@@ -30,6 +30,7 @@ conditional_schedule:
   bootup_and_install:
     RUN_TEST_ONLY:
       0:
+        - virt_autotest/wipe_disks
         - installation/ipxe_install
         - microos/selfinstall
         - console/suseconnect_scc

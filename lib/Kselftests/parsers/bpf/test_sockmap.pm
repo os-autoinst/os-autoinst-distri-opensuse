@@ -17,7 +17,7 @@ our $test_idx = 1;
 
 sub parse_line {
     my ($self, $test_ln) = @_;
-    if ($test_ln =~ /^#\s#\d+\/[\d|\s]\d+?\s(.*):(OK|FAIL)/) {
+    if ($test_ln =~ /^#\s#\s?\d+\/\s?\d+\s(.*):(OK|FAIL)$/) {
         my ($description, $st) = ($1, $2);
         my $normalized;
         if ($st eq 'OK') {

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <addons config:type="list">
+      <addon>
+        <name>sle-module-basesystem</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-server-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-python3</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-systems-management</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-web-scripting</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-containers</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-public-cloud</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-legacy</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-development-tools</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-certifications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-ha</name>
+        <reg_code>{{SCC_REGCODE_HA}}</reg_code>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>PackageHub</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+    </addons>
+  </suse_register>
+  <general>
+    <cio_ignore t="boolean">false</cio_ignore>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+    </mode>
+  </general>
+  <bootloader>
+    <global>
+      <cpu_mitigations>auto</cpu_mitigations>
+      <gfxmode>auto</gfxmode>
+      <hiddenmenu>false</hiddenmenu>
+      <os_prober>false</os_prober>
+      <secure_boot>false</secure_boot>
+      <terminal>console</terminal>
+      <timeout t="integer">0</timeout>
+      <trusted_grub>false</trusted_grub>
+      <update_nvram>true</update_nvram>
+      <xen_kernel_append>crashkernel=147M\&lt;4G</xen_kernel_append>
+    </global>
+  </bootloader>
+  <networking>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+  </networking>
+  <services-manager config:type="map">
+    <services config:type="map">
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <firewall config:type="map">
+    <default_zone>public</default_zone>
+    <enable_firewall config:type="boolean">true</enable_firewall>
+    <log_denied_packets>off</log_denied_packets>
+    <start_firewall config:type="boolean">true</start_firewall>
+    <zones config:type="list">
+      <zone config:type="map">
+        <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+        <interfaces config:type="list">
+          <interface>eth0</interface>
+        </interfaces>
+        <masquerade config:type="boolean">false</masquerade>
+        <name>public</name>
+        <ports config:type="list"/>
+        <protocols config:type="list"/>
+        <services config:type="list">
+          <service>dhcpv6-client</service>
+          <service>ssh</service>
+          <service>tigervnc</service>
+          <service>tigervnc-https</service>
+        </services>
+        <short>Public</short>
+        <target>default</target>
+      </zone>
+    </zones>
+  </firewall>
+  <software>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+    <packages config:type="list">
+      <package>openssh</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>apparmor</pattern>
+      <pattern>base</pattern>
+      <pattern>enhanced_base</pattern>
+      <pattern>minimal_base</pattern>
+      <pattern>yast2_basis</pattern>
+    </patterns>
+  </software>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>{{PASSWORD}}</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <user_password>{{PASSWORD}}</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+</profile>

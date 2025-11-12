@@ -4,13 +4,16 @@ schedule:
 - autoyast/prepare_profile
 - installation/bootloader_start
 - autoyast/installation
+- autoyast/console
+- autoyast/login
+- autoyast/repos
 - console/yast2_vnc
 - console/force_scheduled_tasks
 - shutdown/grub_set_bootargs
 - autoyast/autoyast_reboot
 - installation/handle_reboot
 - installation/first_boot
-- qa_automation/patch_and_reboot
+- qam-updinstall/update_install
 - kernel/nvidia
 - console/system_prepare
 - x11/window_system

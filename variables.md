@@ -51,6 +51,7 @@ CONTAINERS_UNTESTED_IMAGES | boolean | false | Whether to use `untested_images` 
 CONTAINERS_CRICTL_VERSION | string | v1.23.0 | The version of CriCtl tool.
 CONTAINERS_NERDCTL_VERSION | string | 0.16.1 | The version of NerdCTL tool.
 CONTAINERS_DOCKER_FLAVOUR | string | | Flavour of docker to install. Valid options are `stable` or undefined (for standard docker package)
+CONTAINERS_SKIP_SIGNATURE | string | | Skip image signature checks in BCI tests
 HELM_CHART | string | | Helm chart under test. See `main_containers.pm` for supported chart types |
 HELM_CONFIG | string | | Additional configuration file for helm |
 HELM_FULL_REGISTRY_PATH | string | Full path to the registry images used by the helm chart. e.g. `my.registry.com/myteam/secret_project`. Only necessary when using non-publicly available container images. | 
@@ -138,11 +139,13 @@ LIVE_UPGRADE | boolean | false | If set, boots the live media and starts the bui
 LIVETEST | boolean | false | Indicates test of live system.
 LTP_COMMAND_FILE | string | | The LTP test command file (e.g. syscalls, cve)
 LTP_COMMAND_EXCLUDE | string | | This regex is used to exclude tests from LTP command file.
+LTP_EXEC_TIMEOUT | integer | 1200 |Used to define --exec-timeout value passed to kirk
 LTP_KNOWN_ISSUES | string | | Used to specify a url for a json file with well known LTP issues. If an error occur which is listed, then the result is overwritten with softfailure.
 LTP_REPO | string | | The repo which will be added and is used to install LTP package.
 LTP_RUN_NG_BRANCH | string | master | Define the branch of the LTP_RUN_NG_REPO.
-LTP_RUN_NG_REPO | string | https://github.com/metan-ucw/runltp-ng.git | Define the runltp-ng repo to be used. Default in publiccloud/run_ltp.pm is the upstream master branch from https://github.com/metan-ucw/runltp-ng.git.
+LTP_RUN_NG_REPO | string | https://github.com/linux-test-project/kirk.git | Define the runltp-ng repo to be used.
 LTP_PC_RUNLTP_ENV | string | empty | Contains eventual internal environment new parameters for `runltp-ng`, defined with the `--env` option, initialized in a column-separated string format: "PAR1=xxx:PAR2=yyy:...". By default it is empty, undefined.
+LTP_SUITE_TIMEOUT | integer | 9600 |Used to define --suite-timeout value passed to kirk
 LTP_TAINT_EXPECTED | integer | 0x80019801 | Bitmask of expected kernel taint flags.
 LVM | boolean | false | Use lvm for partitioning.
 LVM_THIN_LV | boolean | false | Use thin provisioning logical volumes for partitioning,
@@ -331,12 +334,14 @@ PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID | string | "" | Used to create the service ac
 PUBLIC_CLOUD_AZURE_AITL_VER | string | undef | Define version of Azure Image Testing for Linux (AITL) used in testing
 PUBLIC_CLOUD_AZ_API | string | "http://169.254.169.254/metadata/instance/compute" | For Azure, it is the metadata API endpoint.
 PUBLIC_CLOUD_AZ_API_VERSION | string | "2021-02-01" | For Azure, it is the API version used whe querying metadata API.
+PUBLIC_CLOUD_BTRFS | boolean | false | If set, it schedules `publiccloud/btrfs` job.
 PUBLIC_CLOUD_BUILD | string | "" | The image build number. Used only when we use custom built image.
 PUBLIC_CLOUD_BUILD_KIWI | string | "" | The image kiwi build number. Used only when we use custom built image.
 PUBLIC_CLOUD_CLOUD_INIT | boolean | false | If this is true custom `cloud-config` will be attached to the instance.
 PUBLIC_CLOUD_CONFIDENTIAL_VM | boolean | false | GCE Confidential VM instance
 PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
 PUBLIC_CLOUD_CONTAINERS | boolean | false | If set, containers tests are added to the job.
+PUBLIC_CLOUD_HIMMELBLAU | boolean | false | Scheduling variable for running the himmelblau tests.
 PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY | string | "" | Name for public cloud registry for the container images used on kubernetes tests.
 PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository in CSP
 PUBLIC_CLOUD_CREDENTIALS_URL | string | "" | Base URL where to get the credentials from. This will be used to compose the full URL together with `PUBLIC_CLOUD_NAMESPACE`.
@@ -359,7 +364,7 @@ PUBLIC_CLOUD_GOOGLE_PROJECT_ID | string | "" | GCP only, used to specify the pro
 PUBLIC_CLOUD_HDD2_SIZE | integer | "" | If set, the instance will have an additional disk with the given capacity in GB
 PUBLIC_CLOUD_HDD2_TYPE | string | "" | If PUBLIC_CLOUD_ADDITIONAL_DISK_SIZE is set, this defines the additional disk type (optional). The required value depends on the cloud service provider.
 PUBLIC_CLOUD_IGNORE_EMPTY_REPO | boolean | false | Ignore empty maintenance update repos
-PUBLIC_CLOUD_IGNORE_GUESTREGISTER_FAILURE | boolean | false | Ignore failure in publiccloud::instance::wait_for_guestregister. NOTE: variable is applicable only for PAYG images because for BYOS we suppose to skip this function call
+PUBLIC_CLOUD_IGNORE_UNREGISTERED | boolean | false | Ignore any failure related to the fact that system is unregistered.
 PUBLIC_CLOUD_IMAGE_ID | string | "" | The image ID we start the instance from
 PUBLIC_CLOUD_IMAGE_LOCATION | string | "" | The URL where the image gets downloaded from. The name of the image gets extracted from this URL.
 PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project
@@ -378,8 +383,10 @@ PUBLIC_CLOUD_MAX_INSTANCES | integer | 1 | Allows the test to call "create_insta
 PUBLIC_CLOUD_NAMESPACE | string | "" | The Public Cloud Namespace name that will be used to compose the full credentials URL together with `PUBLIC_CLOUD_CREDENTIALS_URL`.
 PUBLIC_CLOUD_NEW_INSTANCE_TYPE | string | "t3a.large" | Specify the new instance type to check bsc#1205002 in EC2
 PUBLIC_CLOUD_NO_TEARDOWN | boolean | false | Do not tear the instance down.
+PUBLIC_CLOUD_EXTRATESTS | boolean | false | Schedule setting - Run extra tests for PublicCloud
 PUBLIC_CLOUD_FUNCTIONAL | boolean | false | Schedule the functional test suite.
 PUBLIC_CLOUD_ENABLE_KDUMP | boolean | false | Enable kdump
+PUBLIC_CLOUD_MIGRATE_SLEM | boolean | false | Enable module for SL micro 6.x version upgrade to higher
 PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled. This variable should be enabled only sle15SP4 and above.
 PUBLIC_CLOUD_PERF_COLLECT | boolean | 1 | To enable `boottime` measures collection, at end of `create_instance` routine.
 PUBLIC_CLOUD_PERF_DB | string | "perf_2" | defines the bucket in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
@@ -404,6 +411,7 @@ PUBLIC_CLOUD_SKIP_MU | boolean | false | Run tests without downloading/applying 
 PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
 PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
 PUBLIC_CLOUD_SUPPORTCONFIG_EXCLUDE | string | "" | List of comma-separated features to exclude from 'supportconfig' execution
+PUBLIC_CLOUD_SMOKETEST | boolean | false | Scheduling setting - Run instance smoke tests
 PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root path to terraform directory
 PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file (from the `data/` directory) instead the CSP default
 PUBLIC_CLOUD_TERRAFORM_RUNNER | string | "tofu" | Override terraform runner container. Can be either "tofu" or "terraform".
@@ -486,6 +494,8 @@ Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
 XFSTEST_MKFS_OPTION | string | | BTRFS only, value=<options-in-mkfs>. Set the options in mkfs.btrfs. And also set it in xfstests runtime option BTRFS_MKFS_OPTIONS.
 XFSTESTS_LOGDEV | boolean | 0 | XFS only, value=0/1. enable log device in testing xfs
+XFSTESTS_LOOP_DEVICE | boolean | 0 | Create loop device for testing
+XFSTESTS_ZONE_DEVICE | boolean | 0 | Create zoned device for testing
 XFSTESTS_XFS_REPAIR | boolean | 0 | XFS only, value=0/1. enable TEST_XFS_REPAIR_REBUILD=1 in xfstests log file local.config
 XFSTESTS_NFS_VERSION | string | 4.1 | NFS only, version of test target NFS. What's special is that set it with TLS-<nfsversion> will enable NFS over kTLS. And set it with krb5[pi]-<nfsversion> will enable NFS with kerberos5 mount option during tests
 XFSTESTS_NFS_SERVER | boolean | | NFS multimation test only, mandatory. To tag this test job for NFS server in a NFS multimachine test. NFS test in a multimachine test either a client or a server.

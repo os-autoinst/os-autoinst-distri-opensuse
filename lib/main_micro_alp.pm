@@ -314,7 +314,7 @@ sub load_slem_on_pc_tests {
         # SLEM basic test
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/prepare_instance", run_args => $args);
-        loadtest("publiccloud/registration", run_args => $args);
+        loadtest("publiccloud/registration", run_args => $args) unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
         # 2 next modules of pubcloud needed for sle-micro incidents/repos verification
         if (get_var('PUBLIC_CLOUD_QAM', 0)) {
             loadtest("publiccloud/transfer_repos", run_args => $args) unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
@@ -342,6 +342,7 @@ sub load_slem_on_pc_tests {
             loadtest("publiccloud/ssh_interactive_end", run_args => $args);
         } else {
             loadtest "publiccloud/check_services", run_args => $args;
+            loadtest("publiccloud/slem_upgrade_next", run_args => $args) if (get_var('PUBLIC_CLOUD_MIGRATE_SLEM'));
             loadtest("publiccloud/slem_basic", run_args => $args);
         }
     }

@@ -23,6 +23,7 @@ sub init {
 
 sub configure_insecure_registries {
     my ($self) = shift;
+    return if (script_run("grep -q insecure-registries /etc/docker/daemon.json") == 0);
     my $registry = registry_url();
     # The debug output is messing with terminal in migration tests
     my $debug = (get_var('UPGRADE')) ? 'false' : 'true';

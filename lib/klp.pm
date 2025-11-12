@@ -402,8 +402,9 @@ sub verify_klp_pkg_patch_is_active {
     # Verify that the livepatch module has been properly signed by
     # checking the kernel for TAINT_UNSIGNED_MODULE tainting.
     # TAINT_UNSIGNED_MODULE is represented by bit 13 within the
-    # kernel's tainted bitmask.
-    if (is_kernel_tainted(0x2000)) {
+    # kernel's tainted bitmask. Staging livepatches are not signed,
+    # skip the check.
+    if (get_var('FLAVOR', '') !~ m/-Staging$/ && is_kernel_tainted(0x2000)) {
         die "The kernel has been tainted with TAINT_UNSIGNED_MODULE";
     }
 }

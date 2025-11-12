@@ -67,13 +67,13 @@ sub prepare_virtual_env {
         trup_call('pkg in skopeo tar git jq');
         reboot_on_changes;
     } elsif ($host_distri =~ /opensuse|sles/) {
-        my @packages = ('jq', 'skopeo');
+        my @packages = ('jq', 'skopeo', 'git-core');
         # Avoid PackageKit to conflict about lock with zypper
         script_run("timeout 20 pkcon quit");
         # Wait for any zypper tasks in the background to finish
         assert_script_run('while pgrep -f zypp; do sleep 1; done', timeout => 300);
         my $version = "$version.$sp";
-        if ($version =~ /12\./) {
+        if ($host_distri =~ /sles/i && $version =~ /12\./) {
             $should_pip_upgrade = 0;
             $should_create_venv = 0;
             $python = 'python3.11';
@@ -89,12 +89,16 @@ sub prepare_virtual_env {
         } elsif ($version =~ /15\.[4-7]/) {
             $python = 'python3.11';
             $pip = 'pip3.11';
-            script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout)
-              unless ($host_distri =~ /opensuse/);
+            if ($host_distri =~ /sles/i) {
+                script_retry("SUSEConnect -p sle-module-python3/$version/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
+            }
             push @packages, qw(git-core python311);
-        } elsif (is_sle('16+')) {
+        } elsif ($version =~ /16/) {
             # Python 3.13 is the default vers. for SLE 16.0
             push @packages, qw(git-core python313);
+        } elsif ($version =~ /Tumbleweed/) {
+            # In TW we would like to test the latest version
+            push @packages, qw(git-core python3);
         }
         zypper_call("--quiet in " . join(' ', @packages), timeout => $install_timeout);
     } else {
@@ -127,6 +131,32 @@ sub update_test_repos {
     assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/BCI-tests");
 }
 
+sub check_container_signature {
+    my $engines = get_required_var('CONTAINER_RUNTIMES');
+    my $engine;
+    if ($engines =~ /podman|k3s/) {
+        $engine = 'podman';
+    } elsif ($engines =~ /docker/) {
+        $engine = 'docker';
+    } else {
+        die('No valid container engines defined in CONTAINER_RUNTIMES variable!');
+        return;
+    }
+
+    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
+    record_info('Image signature', "Checking signature of $image");
+
+    my $cosign_image = "registry.suse.com/suse/cosign";
+
+    my $engine_options = "-v /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem:/SUSE_Trust_Root.crt.pem:ro";
+    my $options = "--key /usr/share/pki/containers/suse-container-key.pem";
+    $options .= " --registry-cacert=/SUSE_Trust_Root.crt.pem";    # include SUSE CA for registry.suse.de
+    $options .= " --insecure-ignore-tlog=true";    # ignore missing transparency log entries for registry.suse.de
+
+    script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 2);
+    assert_script_run("$engine run --rm -q $engine_options $cosign_image verify $options $image", timeout => 300);
+}
+
 sub run {
     select_serial_terminal;
     my ($version, $sp, $host_distri) = get_os_release;
@@ -135,7 +165,7 @@ sub run {
 
     # Ensure LTSS subscription is active when testing LTSS containers.
     validate_script_output("SUSEConnect -l", qr/.*LTSS.*Activated/, fail_message => "Host requires LTSS subscription for LTSS container")
-      if (get_var('CONTAINER_IMAGE_TO_TEST') =~ /ltss/i || is_sle('<16'));
+      if (get_var('CONTAINER_IMAGE_TO_TEST') =~ /ltss/i && ($version !~ /16/));
 
     update_test_repos if (get_var('BCI_TESTS_REPO'));
 
@@ -144,6 +174,13 @@ sub run {
     # For BCI tests using podman, buildah package is also needed
     # buildah is not present in any sle-micro, including 6.2
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/ && $host_distri !~ /micro/i);
+
+    my $host_version = get_var("HOST_VERSION", get_required_var("VERSION"));    # VERSION is the version of the container, not the host.
+    check_container_signature()
+      if (get_var('CONTAINER_IMAGE_TO_TEST')
+        && get_var("CONTAINERS_SKIP_SIGNATURE", "0") != 1
+        && $host_version =~ "15-SP7|16\..*|slem-6\.1"
+      );
 }
 
 sub test_flags {

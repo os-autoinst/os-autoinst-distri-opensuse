@@ -18,3 +18,13 @@ repos:
     enabled: 'No'
     filter: name
     URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/16.0/%ARCH%/product_source/
+  - name: NVIDIA-GPU-Compute-Toolkit-CUDA
+    alias: SUSE_Linux_Enterprise_Server_%ARCH%:NVIDIA-GPU-Compute-Toolkit-CUDA
+    uri: https://developer.download.nvidia.com/compute/cuda/repos/sles15/%ARCH%
+    enabled: 'No'
+    filter: name
+  - name: NVIDIA-Graphics-Drivers
+    alias: SUSE_Linux_Enterprise_Server_%ARCH%:NVIDIA-Graphics-Drivers
+    uri: https://download.nvidia.com/suse/sle16
+    enabled: 'No'
+    filter: name

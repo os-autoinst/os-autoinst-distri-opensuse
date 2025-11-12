@@ -1,0 +1,74 @@
+From ee043729a0b6d7c313d1fa33d024cc7ae765f77a Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 18 Oct 2025 21:54:13 +0200
+Subject: [PATCH] integration/container: Make tests runnable on SELinux enabled
+ daemon
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ integration/container/mounts_linux_test.go | 10 +++++-----
+ integration/container/run_linux_test.go    |  6 +++---
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/integration/container/mounts_linux_test.go b/integration/container/mounts_linux_test.go
+index 3ef2bf74dc161..023b761933a0c 100644
+--- a/integration/container/mounts_linux_test.go
++++ b/integration/container/mounts_linux_test.go
+@@ -361,7 +361,7 @@ func TestContainerVolumesMountedAsSlave(t *testing.T) {
+ 	topCmd := []string{"top"}
+ 
+ 	apiClient := testEnv.APIClient()
+-	containerID := container.Run(ctx, t, apiClient, container.WithTty(true), container.WithMount(slaveMount), container.WithCmd(topCmd...))
++	containerID := container.Run(ctx, t, apiClient, container.WithTty(true), container.WithMount(slaveMount), container.WithCmd(topCmd...), container.WithSecurityOpt("label=disable"))
+ 
+ 	// Bind mount tmpDir2/ onto tmpDir1/mnt1. If mount propagates inside
+ 	// container then contents of tmpDir2/slave-testfile should become
+@@ -608,15 +608,15 @@ func TestContainerBindMountRecursivelyReadOnly(t *testing.T) {
+ 	apiClient := testEnv.APIClient()
+ 
+ 	containers := []string{
+-		container.Run(ctx, t, apiClient, container.WithMount(ro), container.WithCmd(roVerifier...)),
+-		container.Run(ctx, t, apiClient, container.WithBindRaw(roAsStr), container.WithCmd(roVerifier...)),
++		container.Run(ctx, t, apiClient, container.WithMount(ro), container.WithCmd(roVerifier...), container.WithSecurityOpt("label=disable")),
++		container.Run(ctx, t, apiClient, container.WithBindRaw(roAsStr), container.WithCmd(roVerifier...), container.WithSecurityOpt("label=disable")),
+ 
+-		container.Run(ctx, t, apiClient, container.WithMount(nonRecursive), container.WithCmd(nonRecursiveVerifier...)),
++		container.Run(ctx, t, apiClient, container.WithMount(nonRecursive), container.WithCmd(nonRecursiveVerifier...), container.WithSecurityOpt("label=disable")),
+ 	}
+ 
+ 	if rroSupported {
+ 		containers = append(containers,
+-			container.Run(ctx, t, apiClient, container.WithMount(forceRecursive), container.WithCmd(forceRecursiveVerifier...)),
++			container.Run(ctx, t, apiClient, container.WithMount(forceRecursive), container.WithCmd(forceRecursiveVerifier...), container.WithSecurityOpt("label=disable")),
+ 		)
+ 	}
+ 
+diff --git a/integration/container/run_linux_test.go b/integration/container/run_linux_test.go
+index e0264520f6c82..7bdd7d3aec5c6 100644
+--- a/integration/container/run_linux_test.go
++++ b/integration/container/run_linux_test.go
+@@ -422,13 +422,13 @@ func TestCgroupRW(t *testing.T) {
+ 		},
+ 		{
+ 			name: "writable",
+-			ops:  []func(*container.TestContainerConfig){container.WithSecurityOpt("writable-cgroups")},
++			ops:  []func(*container.TestContainerConfig){container.WithSecurityOpt("writable-cgroups"), container.WithSecurityOpt("label=disable")},
+ 			// no err msg, because this is correct key=bool
+ 			expectedExitCode: 0,
+ 		},
+ 		{
+ 			name: "writable=true",
+-			ops:  []func(*container.TestContainerConfig){container.WithSecurityOpt("writable-cgroups=true")},
++			ops:  []func(*container.TestContainerConfig){container.WithSecurityOpt("writable-cgroups=true"), container.WithSecurityOpt("label=disable")},
+ 			// no err msg, because this is correct key=value
+ 			expectedExitCode: 0,
+ 		},
+@@ -445,7 +445,7 @@ func TestCgroupRW(t *testing.T) {
+ 		},
+ 		{
+ 			name:           "writable=1",
+-			ops:            []func(*container.TestContainerConfig){container.WithSecurityOpt("writable-cgroups=1")},
++			ops:            []func(*container.TestContainerConfig){container.WithSecurityOpt("writable-cgroups=1"), container.WithSecurityOpt("label=disable")},
+ 			expectedErrMsg: `Error response from daemon: invalid --security-opt 2: "writable-cgroups=1"`,
+ 		},
+ 		{

@@ -17,9 +17,16 @@ our $test_idx = 1;
 
 sub parse_line {
     my ($self, $test_ln) = @_;
-    if ($test_ln =~ /(?:^#\s)?#\S+\s+(\S+):FAIL$/) {
+    if ($test_ln =~ /(?:^#\s)?#\S+\s+(\S+):(OK|FAIL|SKIP)$/) {
         my ($description, $st) = ($1, $2);
-        my $normalized = "# not ok $test_idx $description";
+        my $normalized;
+        if ($st eq 'FAIL') {
+            $normalized = "# not ok $test_idx $description";
+        } elsif ($st eq 'OK') {
+            $normalized = "# ok $test_idx $description";
+        } else {
+            $normalized = "# ok $test_idx $description # SKIP";
+        }
         $test_idx++;
         return $normalized;
     }

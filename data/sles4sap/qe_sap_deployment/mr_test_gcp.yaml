@@ -7,7 +7,7 @@
 #   Settings are meant to be controlled via OpenQA variables and managed by test:
 #   tests/sles4sap/publiccloud/qesap_ansible.pm
 provider: 'gcp'
-apiver: 3
+apiver: 4
 terraform:
   variables:
     # GENERAL VARIABLES #
@@ -18,6 +18,13 @@ terraform:
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
     gcp_credentials_file: '/root/google_credentials.json'
+
+    # IBSm network peering
+    ip_cidr_range: '%MAIN_ADDRESS_RANGE%'
+    ibsm_vpc_name: '%IBSM_VPC_NAME%'
+    ibsm_subnet_name: '%IBSM_SUBNET_NAME%'
+    ibsm_subnet_region: '%IBSM_SUBNET_REGION%'
+    ibsm_hub_name: '%IBSM_NCC_HUB%'
 
     # HANA
     hana_count: '%NODE_COUNT%'

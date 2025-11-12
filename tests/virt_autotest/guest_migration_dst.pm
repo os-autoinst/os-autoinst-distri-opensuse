@@ -11,6 +11,7 @@ use base multi_machine_job_base;
 use testapi;
 use lockapi;
 use mmapi;
+use Utils::Logging qw(upload_coredumps);
 use upload_system_log 'upload_supportconfig_log';
 use virt_autotest::utils qw(is_xen_host is_kvm_host upload_virt_logs);
 use version_utils 'is_sle';
@@ -56,7 +57,7 @@ sub run {
     }
     my $logs = "/var/log/libvirt /var/log/messages $xen_logs";
     upload_virt_logs($logs, "guest-migration-dst-logs");
-    $self->upload_coredumps;
+    upload_coredumps;
     upload_system_log::upload_supportconfig_log();
     script_run("rm -rf scc_* nts_*");
     save_screenshot;

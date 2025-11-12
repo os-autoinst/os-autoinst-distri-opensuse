@@ -234,6 +234,30 @@ sub create_loop_device_by_rootsize {
     return @loop_dev_size;
 }
 
+# Create zoned device when enable XFSTESTS_ZONE_DEVICE in openQA
+sub create_zoned_device {
+    my @zone_dev_size;
+    my $ZONE_CREATER = '/opt/nullblk-zoned.sh';
+
+    # Get nullblk-zone.sh
+    assert_script_run("curl -o $ZONE_CREATER " . data_url('xfstests/nullblk-zoned.sh'));
+    assert_script_run("chmod a+x $ZONE_CREATER");
+
+    script_run("for i in {1..6}; do $ZONE_CREATER 4096 256 4 16; done");
+    assert_script_run("mkfs.btrfs -f /dev/nullb0");
+    set_var('XFSTESTS_TEST_DEV', '/dev/nullb0');
+    set_var('XFSTESTS_SCRATCH_DEV_POOL', '/dev/nullb1 /dev/nullb2 /dev/nullb3 /dev/nullb4 /dev/nullb5');
+    script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
+    script_run("echo 'export TEST_DEV=/dev/nullb0' >> $CONFIG_FILE");
+    script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
+    script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
+    script_run("echo 'export DUMP_CORRUPT_FS=1' >> $CONFIG_FILE");
+    script_run("echo 'export DUMP_COMPRESSOR=gzip' >> $CONFIG_FILE") if (script_run('which gzip') == 0);
+    script_run("echo 'export SCRATCH_DEV_POOL=\"/dev/nullb1 /dev/nullb2 /dev/nullb3 /dev/nullb4 /dev/nullb5\"' >> $CONFIG_FILE");
+    foreach (0 .. 5) { push(@zone_dev_size, '5120M'); }
+    return @zone_dev_size;
+}
+
 sub set_config {
     script_run("echo export KEEP_DMESG=yes >> $CONFIG_FILE");
     if (get_var('XFSTESTS_XFS_REPAIR')) {
@@ -557,6 +581,7 @@ sub run {
     # by default we use /home partition spaces for test, and don't need this setting
     my $device = get_var('XFSTESTS_DEVICE');
     my $loopdev = get_var('XFSTESTS_LOOP_DEVICE');
+    my $zonedev = get_var('XFSTESTS_ZONE_DEVICE');
 
     my $filesystem = get_required_var('XFSTESTS');
     my %para;
@@ -606,6 +631,9 @@ sub run {
             $para{size} = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
             $para{size} = str_to_mb($para{size});
             post_env_info(create_loop_device_by_rootsize(\%para));
+        }
+        elsif ($zonedev) {
+            post_env_info(create_zoned_device());
         }
         else {
             my $home_size = script_output("df -h | grep home | awk -F \" \" \'{print \$2}\'");

@@ -284,22 +284,15 @@ type Config struct {
 
 // SignatureValidation holds validation results for signature fields
 type SignatureValidation struct {
-	HasCommonName       bool
-	HasCountryName      bool
-	HasLocalityName     bool
-	HasOrganizationName bool
-	HasEmailAddress     bool
-	CommonName          string
-	CountryName         string
-	LocalityName        string
-	OrganizationName    string
-	EmailAddress        string
+	HasCommonName   bool
+	HasEmailAddress bool
+	CommonName      string
+	EmailAddress    string
 }
 
 // IsValid returns true if all required certificate fields are present
 func (sv SignatureValidation) IsValid() bool {
-	return sv.HasCommonName && sv.HasCountryName && sv.HasLocalityName &&
-		sv.HasOrganizationName && sv.HasEmailAddress
+	return sv.HasCommonName && sv.HasEmailAddress
 }
 
 // ASN1Element represents a parsed ASN.1 element for display
@@ -335,6 +328,7 @@ func (sp *SignatureParser) FindValidSignature() (*asn1.RawValue, int, error) {
 	// Search backwards for 0x30 0x82 pattern
 	for i := len(sp.data) - 2; i >= 0; i-- {
 		if sp.data[i] == 0x30 && sp.data[i+1] == 0x82 {
+			fmt.Printf("Found potential ASN.1 signature at offset %d, attempting to parse...\n", i)
 			// Safety check before creating buffer slice
 			if i >= len(sp.data) {
 				continue
@@ -375,17 +369,13 @@ func (sp *SignatureParser) validateSignatureFields(data []byte) SignatureValidat
 
 // findFieldsInASN1 recursively searches for certificate fields
 func (sp *SignatureParser) findFieldsInASN1(data []byte, validation *SignatureValidation) {
-	sp.findFieldsInASN1WithDepth(data, validation, 0)
+	sp.findFieldsInASN1WithDepth(data, validation, 0, 0)
 }
 
 // findFieldsInASN1WithDepth recursively searches for certificate fields with depth tracking
-func (sp *SignatureParser) findFieldsInASN1WithDepth(data []byte, validation *SignatureValidation, depth int) {
+func (sp *SignatureParser) findFieldsInASN1WithDepth(data []byte, validation *SignatureValidation, depth int, baseOffset int) {
 	// Prevent infinite recursion
-	if depth > MaxRecursionDepth {
-		return
-	}
-	// Safety check for nil or empty data
-	if data == nil || len(data) == 0 {
+	if depth > MaxRecursionDepth || len(data) < 2 {
 		return
 	}
 
@@ -393,7 +383,7 @@ func (sp *SignatureParser) findFieldsInASN1WithDepth(data []byte, validation *Si
 	elementCount := 0
 
 	for offset < len(data) && elementCount < MaxElementsPerLevel {
-		element, bytesRead, err := parseASN1Element(data[offset:], 0, offset)
+		element, bytesRead, err := parseASN1Element(data[offset:], depth, baseOffset+offset)
 		if err != nil {
 			break
 		}
@@ -401,26 +391,26 @@ func (sp *SignatureParser) findFieldsInASN1WithDepth(data []byte, validation *Si
 		// Check if this is an OID we're looking for
 		if element.Tag == TagObjectID && element.Length > 0 {
 			// Bounds check for OID content slice
-			start := offset + element.HeaderLen
-			end := start + element.Length
-			if start < 0 || end < 0 || start >= len(data) || end > len(data) || start > end {
+			start := offset + element.HeaderLen // This is relative to data[offset:]
+			end := start + element.Length       // This is also relative to data[offset:]
+			if start < 0 || end < 0 || start > len(data[offset:]) || end > len(data[offset:]) || start > end {
 				break
 			}
-			content := data[start:end]
+			content := data[offset:][start:end]
 			oid := parseOID(content)
 
 			// Look for the value immediately following this OID
 			valueOffset := offset + bytesRead
 			if valueOffset < len(data) {
-				valueElement, _, err := parseASN1Element(data[valueOffset:], 0, valueOffset)
+				valueElement, _, err := parseASN1Element(data[valueOffset:], 0, baseOffset+valueOffset)
 				if err == nil && !valueElement.IsCompound && valueElement.Length > 0 {
 					// Bounds check for value content slice
 					valueStart := valueOffset + valueElement.HeaderLen
-					valueEnd := valueStart + valueElement.Length
-					if valueStart < 0 || valueEnd < 0 || valueStart >= len(data) || valueEnd > len(data) || valueStart > valueEnd {
+					valueEnd := valueStart + valueElement.Length // These are relative to the parent `data` slice
+					if valueStart < 0 || valueEnd < 0 || valueStart > len(data) || valueEnd > len(data) || valueStart > valueEnd {
 						continue
 					}
-					valueBytes := data[valueStart:valueEnd]
+					valueBytes := data[valueStart:valueEnd] // This slice is from the parent `data`
 					valueContent := string(valueBytes)
 
 					sp.setValidationField(validation, oid, valueContent)
@@ -435,11 +425,11 @@ func (sp *SignatureParser) findFieldsInASN1WithDepth(data []byte, validation *Si
 				// Additional bounds check for recursive content slice
 				recursiveStart := offset + contentStart
 				recursiveEnd := recursiveStart + element.Length
-				if recursiveStart < 0 || recursiveEnd < 0 || recursiveStart >= len(data) || recursiveEnd > len(data) || recursiveStart > recursiveEnd {
+				if recursiveStart < 0 || recursiveEnd < 0 || recursiveStart > len(data) || recursiveEnd > len(data) || recursiveStart > recursiveEnd {
 					continue
 				}
 				content := data[recursiveStart:recursiveEnd]
-				sp.findFieldsInASN1WithDepth(content, validation, depth+1)
+				sp.findFieldsInASN1WithDepth(content, validation, depth+1, baseOffset+offset+contentStart)
 			}
 		}
 
@@ -454,15 +444,6 @@ func (sp *SignatureParser) setValidationField(validation *SignatureValidation, o
 	case OIDCommonName:
 		validation.HasCommonName = true
 		validation.CommonName = value
-	case OIDCountryName:
-		validation.HasCountryName = true
-		validation.CountryName = value
-	case OIDLocalityName:
-		validation.HasLocalityName = true
-		validation.LocalityName = value
-	case OIDOrganizationName:
-		validation.HasOrganizationName = true
-		validation.OrganizationName = value
 	case OIDEmailAddress:
 		validation.HasEmailAddress = true
 		validation.EmailAddress = value
@@ -474,12 +455,7 @@ func (sp *SignatureParser) setValidationField(validation *SignatureValidation, o
 // when found, returns the keySize
 func (sp *SignatureParser) calculateKeySize(data []byte, depth int) int {
 	// Prevent infinite recursion
-	if depth > MaxRecursionDepth {
-		return 0
-	}
-
-	// Safety check for nil or empty data
-	if data == nil || len(data) == 0 {
+	if depth > MaxRecursionDepth || len(data) < 2 {
 		return 0
 	}
 
@@ -533,9 +509,6 @@ func (dr DisplayResults) Print() {
 	fmt.Println("========================================")
 	fmt.Println("Signature Validation:")
 	dr.printField("Common Name", dr.Validation.HasCommonName, dr.Validation.CommonName)
-	dr.printField("Country Name", dr.Validation.HasCountryName, dr.Validation.CountryName)
-	dr.printField("Locality Name", dr.Validation.HasLocalityName, dr.Validation.LocalityName)
-	dr.printField("Organization Name", dr.Validation.HasOrganizationName, dr.Validation.OrganizationName)
 	dr.printField("Email Address", dr.Validation.HasEmailAddress, dr.Validation.EmailAddress)
 
 	if dr.Validation.IsValid() {
@@ -570,8 +543,8 @@ func (ad ASN1Displayer) parseAndDisplayASN1(data []byte, depth int, baseOffset i
 		return errors.New("maximum recursion depth exceeded")
 	}
 
-	// Safety check for nil or empty data
-	if data == nil || len(data) == 0 {
+	// Safety check for empty data
+	if len(data) == 0 {
 		return nil
 	}
 
@@ -693,174 +666,45 @@ func (fh FileHandler) SaveToFile(data []byte, filename string) error {
 	return nil
 }
 
+// oidCategory defines a group of OIDs for display.
+type oidCategory struct {
+	name string
+	oids []string
+}
+
+// algorithmCategories organizes all supported OIDs into logical groups.
+var algorithmCategories = []oidCategory{
+	{"RSA Signature Algorithms", []string{"1.2.840.113549.1.1.1", "1.2.840.113549.1.1.2", "1.2.840.113549.1.1.4", "1.2.840.113549.1.1.5", "1.2.840.113549.1.1.10", "1.2.840.113549.1.1.11", "1.2.840.113549.1.1.12", "1.2.840.113549.1.1.13", "1.2.840.113549.1.1.14", "1.2.840.113549.1.1.15", "1.2.840.113549.1.1.16"}},
+	{"ECDSA Signature Algorithms", []string{"1.2.840.10045.2.1", "1.2.840.10045.4.1", "1.2.840.10045.4.3.1", "1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4"}},
+	{"DSA Signature Algorithms", []string{"1.2.840.10040.4.1", "1.2.840.10040.4.3", "2.16.840.1.101.3.4.3.1", "2.16.840.1.101.3.4.3.2"}},
+	{"EdDSA Algorithms", []string{"1.3.101.112", "1.3.101.113"}},
+	{"Hash Algorithms", []string{"1.2.840.113549.2.5", "1.3.14.3.2.26", "2.16.840.1.101.3.4.2.1", "2.16.840.1.101.3.4.2.2", "2.16.840.1.101.3.4.2.3", "2.16.840.1.101.3.4.2.4", "2.16.840.1.101.3.4.2.5", "2.16.840.1.101.3.4.2.6", "2.16.840.1.101.3.4.2.7", "2.16.840.1.101.3.4.2.8", "2.16.840.1.101.3.4.2.9", "2.16.840.1.101.3.4.2.10", "2.16.840.1.101.3.4.2.11", "2.16.840.1.101.3.4.2.12"}},
+	{"Elliptic Curves", []string{"1.2.840.10045.3.1.1", "1.2.840.10045.3.1.7", "1.3.132.0.34", "1.3.132.0.35", "1.3.132.0.10", "1.2.840.10045.3.1.2", "1.2.840.10045.3.1.3", "1.2.840.10045.3.1.4", "1.2.840.10045.3.1.5", "1.2.840.10045.3.1.6"}},
+	{"Post-Quantum Algorithms", []string{"2.16.840.1.101.3.4.3.17", "2.16.840.1.101.3.4.3.18", "2.16.840.1.101.3.4.3.19", "1.3.6.1.4.1.2.267.12.4.4", "1.3.6.1.4.1.2.267.12.6.5", "2.16.840.1.101.3.4.3.20", "2.16.840.1.101.3.4.3.21", "2.16.840.1.101.3.4.3.22"}},
+	{"GOST Algorithms (Russian)", []string{"1.2.643.2.2.19", "1.2.643.7.1.1.1.1", "1.2.643.7.1.1.1.2", "1.2.643.2.2.3", "1.2.643.7.1.1.3.2", "1.2.643.7.1.1.3.3", "1.2.643.2.2.9", "1.2.643.7.1.1.2.2", "1.2.643.7.1.1.2.3", "1.2.643.2.2.21", "1.2.643.7.1.1.5.1", "1.2.643.7.1.1.5.2"}},
+	{"Chinese SM Algorithms", []string{"1.2.156.10197.1.301", "1.2.156.10197.1.401", "1.2.156.10197.1.104.1", "1.2.156.10197.1.104.2"}},
+	{"Japanese Camellia Algorithms", []string{"1.2.392.200011.61.1.1.1.2", "1.2.392.200011.61.1.1.1.3", "1.2.392.200011.61.1.1.1.4"}},
+	{"Microsoft Specific", []string{"1.3.6.1.4.1.311.2.1.4", "1.3.6.1.4.1.311.2.1.15", "1.3.6.1.4.1.311.10.3.6", "1.3.6.1.4.1.311.10.3.1", "1.3.6.1.4.1.311.10.3.4", "1.3.6.1.4.1.311.20.2.2", "1.3.6.1.4.1.311.21.19", "1.3.6.1.4.1.311.21.20"}},
+	{"FIDO/WebAuthn", []string{"1.3.6.1.4.1.45724.1.1.4", "1.3.6.1.4.1.45724.2.1.1", "1.3.101.110", "1.3.101.111"}},
+	{"PKCS#7/CMS Content Types", []string{"1.2.840.113549.1.7.1", "1.2.840.113549.1.7.2", "1.2.840.113549.1.7.3", "1.2.840.113549.1.7.4", "1.2.840.113549.1.7.5", "1.2.840.113549.1.7.6"}},
+	{"Distinguished Name Attributes", []string{"2.5.4.3", "2.5.4.4", "2.5.4.5", "2.5.4.6", "2.5.4.7", "2.5.4.8", "2.5.4.9", "2.5.4.10", "2.5.4.11", "2.5.4.12", "2.5.4.42", "2.5.4.43", "2.5.4.44", "2.5.4.46", "2.5.4.65", "1.2.840.113549.1.9.1"}},
+}
+
 // listSupportedAlgorithms displays all supported cryptographic algorithms and OIDs
 func listSupportedAlgorithms() {
 	fmt.Println("=== SUPPORTED CRYPTOGRAPHIC ALGORITHMS AND OIDs ===")
-	fmt.Println()
 
-	fmt.Println("📋 RSA Signature Algorithms:")
-	rsaOids := []string{
-		"1.2.840.113549.1.1.1", "1.2.840.113549.1.1.2", "1.2.840.113549.1.1.4",
-		"1.2.840.113549.1.1.5", "1.2.840.113549.1.1.10", "1.2.840.113549.1.1.11",
-		"1.2.840.113549.1.1.12", "1.2.840.113549.1.1.13", "1.2.840.113549.1.1.14",
-		"1.2.840.113549.1.1.15", "1.2.840.113549.1.1.16",
-	}
-	for _, oid := range rsaOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🔐 ECDSA Signature Algorithms:")
-	ecdsaOids := []string{
-		"1.2.840.10045.2.1", "1.2.840.10045.4.1", "1.2.840.10045.4.3.1",
-		"1.2.840.10045.4.3.2", "1.2.840.10045.4.3.3", "1.2.840.10045.4.3.4",
-	}
-	for _, oid := range ecdsaOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🔑 DSA Signature Algorithms:")
-	dsaOids := []string{
-		"1.2.840.10040.4.1", "1.2.840.10040.4.3", "2.16.840.1.101.3.4.3.1", "2.16.840.1.101.3.4.3.2",
-	}
-	for _, oid := range dsaOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🆕 EdDSA Algorithms:")
-	eddsaOids := []string{"1.3.101.112", "1.3.101.113"}
-	for _, oid := range eddsaOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n#️⃣ Hash Algorithms:")
-	hashOids := []string{
-		"1.2.840.113549.2.5", "1.3.14.3.2.26", "2.16.840.1.101.3.4.2.1",
-		"2.16.840.1.101.3.4.2.2", "2.16.840.1.101.3.4.2.3", "2.16.840.1.101.3.4.2.4",
-		"2.16.840.1.101.3.4.2.5", "2.16.840.1.101.3.4.2.6", "2.16.840.1.101.3.4.2.7",
-		"2.16.840.1.101.3.4.2.8", "2.16.840.1.101.3.4.2.9", "2.16.840.1.101.3.4.2.10",
-		"2.16.840.1.101.3.4.2.11", "2.16.840.1.101.3.4.2.12",
-	}
-	for _, oid := range hashOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n📐 Elliptic Curves:")
-	curveOids := []string{
-		"1.2.840.10045.3.1.1", "1.2.840.10045.3.1.7", "1.3.132.0.34",
-		"1.3.132.0.35", "1.3.132.0.10", "1.2.840.10045.3.1.2",
-		"1.2.840.10045.3.1.3", "1.2.840.10045.3.1.4", "1.2.840.10045.3.1.5",
-		"1.2.840.10045.3.1.6",
-	}
-	for _, oid := range curveOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🔮 Post-Quantum Algorithms:")
-	pqOids := []string{
-		"2.16.840.1.101.3.4.3.17", "2.16.840.1.101.3.4.3.18", "2.16.840.1.101.3.4.3.19",
-		"1.3.6.1.4.1.2.267.12.4.4", "1.3.6.1.4.1.2.267.12.6.5",
-		"2.16.840.1.101.3.4.3.20", "2.16.840.1.101.3.4.3.21", "2.16.840.1.101.3.4.3.22",
-	}
-	for _, oid := range pqOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🇷🇺 GOST Algorithms (Russian):")
-	gostOids := []string{
-		"1.2.643.2.2.19", "1.2.643.7.1.1.1.1", "1.2.643.7.1.1.1.2",
-		"1.2.643.2.2.3", "1.2.643.7.1.1.3.2", "1.2.643.7.1.1.3.3",
-		"1.2.643.2.2.9", "1.2.643.7.1.1.2.2", "1.2.643.7.1.1.2.3",
-		"1.2.643.2.2.21", "1.2.643.7.1.1.5.1", "1.2.643.7.1.1.5.2",
-	}
-	for _, oid := range gostOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🇨🇳 Chinese SM Algorithms:")
-	smOids := []string{
-		"1.2.156.10197.1.301", "1.2.156.10197.1.401",
-		"1.2.156.10197.1.104.1", "1.2.156.10197.1.104.2",
-	}
-	for _, oid := range smOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🇯🇵 Japanese Camellia Algorithms:")
-	camelliaOids := []string{
-		"1.2.392.200011.61.1.1.1.2", "1.2.392.200011.61.1.1.1.3", "1.2.392.200011.61.1.1.1.4",
-	}
-	for _, oid := range camelliaOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🏢 Microsoft Specific:")
-	msOids := []string{
-		"1.3.6.1.4.1.311.2.1.4", "1.3.6.1.4.1.311.2.1.15", "1.3.6.1.4.1.311.10.3.6",
-		"1.3.6.1.4.1.311.10.3.1", "1.3.6.1.4.1.311.10.3.4", "1.3.6.1.4.1.311.20.2.2",
-		"1.3.6.1.4.1.311.21.19", "1.3.6.1.4.1.311.21.20",
-	}
-	for _, oid := range msOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🔐 FIDO/WebAuthn:")
-	fidoOids := []string{
-		"1.3.6.1.4.1.45724.1.1.4", "1.3.6.1.4.1.45724.2.1.1",
-		"1.3.101.110", "1.3.101.111",
-	}
-	for _, oid := range fidoOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n📦 PKCS#7/CMS Content Types:")
-	pkcs7Oids := []string{
-		"1.2.840.113549.1.7.1", "1.2.840.113549.1.7.2", "1.2.840.113549.1.7.3",
-		"1.2.840.113549.1.7.4", "1.2.840.113549.1.7.5", "1.2.840.113549.1.7.6",
-	}
-	for _, oid := range pkcs7Oids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
-		}
-	}
-
-	fmt.Println("\n🏷️  Distinguished Name Attributes:")
-	dnOids := []string{
-		"2.5.4.3", "2.5.4.4", "2.5.4.5", "2.5.4.6", "2.5.4.7", "2.5.4.8",
-		"2.5.4.9", "2.5.4.10", "2.5.4.11", "2.5.4.12", "2.5.4.42", "2.5.4.43",
-		"2.5.4.44", "2.5.4.46", "2.5.4.65", "1.2.840.113549.1.9.1",
-	}
-	for _, oid := range dnOids {
-		if name, exists := oidNames[oid]; exists {
-			fmt.Printf("  %s → %s\n", oid, name)
+	for _, category := range algorithmCategories {
+		fmt.Printf("\n%s:\n", category.name)
+		for _, oid := range category.oids {
+			if name, exists := oidNames[oid]; exists {
+				fmt.Printf("  %s → %s\n", oid, name)
+			}
 		}
 	}
 
 	fmt.Printf("\nTotal supported OIDs: %d\n", len(oidNames))
-	fmt.Println("\nℹ️  This tool searches for ASN.1 signature structures in binary files")
+	fmt.Println("\nThis tool searches for ASN.1 signature structures in binary files")
 	fmt.Println("   and validates the presence of required certificate fields.")
 }
 

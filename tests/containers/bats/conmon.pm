@@ -10,14 +10,12 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(is_tumbleweed);
+use version_utils;
 use containers::bats;
 
 sub run_tests {
     my %params = @_;
-    my ($rootless, $oci_runtime, $skip_tests) = ($params{rootless}, $params{oci_runtime}, $params{skip_tests});
-
-    return 0 if check_var($skip_tests, "all");
+    my ($rootless, $oci_runtime) = ($params{rootless}, $params{oci_runtime});
 
     my %env = (
         CONMON_BINARY => "/usr/bin/conmon",
@@ -26,20 +24,17 @@ sub run_tests {
 
     my $log_file = "conmon-$oci_runtime-" . ($rootless ? "user" : "root");
 
-    return bats_tests($log_file, \%env, $skip_tests, 800);
+    my @xfails = ();
+
+    return bats_tests($log_file, \%env, \@xfails, 800);
 }
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @oci_runtimes = ();
     my @pkgs = qw(conmon socat);
-    if (my $oci_runtime = get_var("OCI_RUNTIME")) {
-        push @oci_runtimes, $oci_runtime;
-    } else {
-        push @oci_runtimes, is_tumbleweed ? qw(crun runc) : qw(runc);
-    }
+    my @oci_runtimes = split(/\s+/, get_var("OCI_RUNTIME", is_sle ? "runc" : "crun runc"));
     push @pkgs, @oci_runtimes;
 
     $self->setup_pkgs(@pkgs);
@@ -55,14 +50,18 @@ sub run {
 
     my $errors = 0;
 
-    foreach my $oci_runtime (@oci_runtimes) {
-        $errors += run_tests(rootless => 1, oci_runtime => $oci_runtime, skip_tests => 'BATS_IGNORE_USER');
+    unless (check_var("BATS_IGNORE_USER", "all")) {
+        foreach my $oci_runtime (@oci_runtimes) {
+            $errors += run_tests(rootless => 1, oci_runtime => $oci_runtime);
+        }
     }
 
     switch_to_root;
 
-    foreach my $oci_runtime (@oci_runtimes) {
-        $errors += run_tests(rootless => 0, oci_runtime => $oci_runtime, skip_tests => 'BATS_IGNORE_ROOT');
+    unless (check_var("BATS_IGNORE_USER", "all")) {
+        foreach my $oci_runtime (@oci_runtimes) {
+            $errors += run_tests(rootless => 0, oci_runtime => $oci_runtime);
+        }
     }
 
     die "conmon tests failed" if ($errors);

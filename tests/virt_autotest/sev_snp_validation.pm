@@ -466,6 +466,12 @@ sub check_sev_snp_on_guest {
     my $guest_name = $args{guest_name};
     my $guest_type = 'unknown';    # Will be set to 'sev-snp' if verification passes
 
+    # SEV-SNP requires UEFI support - skip guests that don't have 'efi' in their name
+    if ($guest_name !~ /efi/) {
+        record_info("SEV-SNP Skip Guest", "Skipping SEV-SNP test for guest $guest_name - SEV-SNP requires UEFI (guest name must contain 'efi')", result => 'ok');
+        return 1;    # Return success but skip the test
+    }
+
     record_info("Check SEV-SNP on guest", "Verifying SEV-SNP support status on guest $guest_name");
 
     # Configure guest for SEV-SNP if not already configured

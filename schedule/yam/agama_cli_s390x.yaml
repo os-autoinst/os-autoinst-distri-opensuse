@@ -4,7 +4,6 @@ description: >
   Perform CLI installation with Agama for s390x.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/import_agama_profile
   - yam/agama/agama_cli
   - boot/reconnect_mgmt_console

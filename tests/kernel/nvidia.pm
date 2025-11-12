@@ -11,7 +11,7 @@ use testapi;
 use utils;
 use nvidia_utils;
 use serial_terminal qw(select_serial_terminal);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_sle_micro);
 
 sub run
 {
@@ -23,8 +23,10 @@ sub run
     nvidia_utils::validate();
     nvidia_utils::validate_cuda() if is_sle;
 
-    nvidia_utils::install(reboot => 1);
-    nvidia_utils::validate();
+    if (is_sle('15-SP6+') || is_sle_micro('6.0+')) {
+        nvidia_utils::install(reboot => 1);
+        nvidia_utils::validate();
+    }
 }
 
 1;

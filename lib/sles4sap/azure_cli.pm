@@ -8,13 +8,13 @@
 package sles4sap::azure_cli;
 use strict;
 use warnings FATAL => 'all';
-use testapi;
+use Mojo::Base -signatures;
 use Carp qw(croak);
 use Exporter qw(import);
 use Mojo::JSON qw(decode_json);
 use Regexp::Common qw(net);
 use NetAddr::IP;
-use Mojo::Base -signatures;
+use testapi;
 use utils qw(write_sut_file);
 
 
@@ -31,6 +31,7 @@ our @EXPORT = qw(
   az_group_exists
   az_network_vnet_create
   az_network_vnet_get
+  az_network_vnet_show
   az_network_vnet_subnet_update
   az_network_nsg_create
   az_network_nsg_rule_create
@@ -52,8 +53,10 @@ our @EXPORT = qw(
   az_vm_wait_running
   az_vm_diagnostic_log_enable
   az_vm_diagnostic_log_get
-  az_nic_id_get
+  az_nic_create
+  az_nic_get_id
   az_nic_name_get
+  az_nic_list
   az_ipconfig_name_get
   az_ipconfig_update
   az_ipconfig_delete
@@ -66,6 +69,7 @@ our @EXPORT = qw(
   az_network_peering_create
   az_network_peering_list
   az_network_peering_delete
+  az_network_peering_exists
   az_disk_create
   az_resource_delete
   az_resource_list
@@ -73,6 +77,15 @@ our @EXPORT = qw(
   az_keyvault_list
   az_keyvault_secret_list
   az_keyvault_secret_show
+  az_network_dns_zone_create
+  az_network_dns_zone_list
+  az_network_dns_zone_delete
+  az_network_dns_zones_cleanup
+  az_network_dns_add_record
+  az_network_dns_link_create
+  az_network_dns_link_delete
+  az_network_dns_link_list
+  az_network_dns_links_cleanup
 );
 
 
@@ -120,7 +133,7 @@ sub az_group_create(%args) {
     my $ret = az_group_name_get();
 
 Get the name of all existing Resource Group in the current subscription.
-By defailt the output is an array of strings.
+By default the output is an array of strings.
 Output can be modified using B<$args{query}>.
 
 =over
@@ -1014,9 +1027,9 @@ sub az_vm_wait_cloudinit(%args) {
     assert_script_run($az_cmd, timeout => ($args{timeout} + 300));
 }
 
-=head2 az_nic_id_get
+=head2 az_nic_get_id
 
-    my $nic_id = az_nic_id_get(
+    my $nic_id = az_nic_get_id(
         resource_group => 'openqa-rg',
         name => 'openqa-vm')
 
@@ -1026,12 +1039,12 @@ Get the NIC ID of the first NIC of a given VM
 
 =item B<resource_group> - existing resource group where to search for a specific NIC
 
-=item B<name> - name of an existing VM
+=item B<name> - name of an existing NIC
 
 =back
 =cut
 
-sub az_nic_id_get(%args) {
+sub az_nic_get_id(%args) {
     foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
@@ -1043,13 +1056,48 @@ sub az_nic_id_get(%args) {
     return script_output($az_cmd);
 }
 
+=head2 az_nic_create
+
+Create a NIC
+
+=over
+
+=item B<resource_group> - existing resource group where to search for a specific NIC
+
+=item B<name> - name for the NIC
+
+=item B<vnet> - existing VNET
+
+=item B<subnet> - existing SUBNET
+
+=item B<nsg> - existing Network security group
+
+=item B<pubip_name> - existing public ip name
+
+=back
+=cut
+
+sub az_nic_create(%args) {
+    foreach (qw(resource_group name vnet subnet nsg pubip_name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    assert_script_run(join(' ', 'az network nic create',
+            '--resource-group', $args{resource_group},
+            '--name', $args{name},
+            '--vnet-name', $args{vnet},
+            '--subnet', $args{subnet},
+            '--network-security-group', $args{nsg},
+            '--private-ip-address-version IPv4',
+            '--public-ip-address', $args{pubip_name}));
+}
+
 =head2 az_nic_get
 
 Get the NIC data from NIC ID using 'az network nic show'
 
 =over
 
-=item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
+=item B<nic_id> - existing NIC ID (eg. from az_nic_get_id)
 
 =item B<filter> - query filter
 
@@ -1077,7 +1125,7 @@ Get the NIC name from NIC ID
 
 =over
 
-=item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
+=item B<nic_id> - existing NIC ID (eg. from az_nic_get_id)
 
 =back
 =cut
@@ -1085,6 +1133,29 @@ Get the NIC name from NIC ID
 sub az_nic_name_get(%args) {
     croak('Argument < nic_id > missing') unless $args{nic_id};
     return az_nic_get(nic_id => $args{nic_id}, filter => 'name');
+}
+
+=head2 az_nic_list
+
+    az_nic_list(resource_group=>'resource group name' [, query=>'[].name']);
+
+Returns B<ARRAYREF> with all nic names located in resource group. Output can be modified using B<$args{query}>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<query> Modify output filter using jmespath query. Default: value
+
+=back
+=cut
+
+sub az_nic_list {
+    my (%args) = @_;
+    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
+    $args{query} //= '[].name';
+    return
+      decode_json(script_output("az network nic list --resource-group $args{resource_group} --query \"$args{query}\""));
 }
 
 =head2 az_ipconfig_name_get
@@ -1097,7 +1168,7 @@ Get the name of the first IpConfig of a NIC from a NIC ID
 
 =over
 
-=item B<nic_id> - existing NIC ID (eg. from az_nic_id_get)
+=item B<nic_id> - existing NIC ID (eg. from az_nic_get_id)
 
 =back
 =cut
@@ -1426,6 +1497,35 @@ sub az_network_peering_delete(%args) {
         '--resource-group', $args{resource_group},
         '--vnet-name', $args{vnet});
     return script_run($az_cmd, timeout => $args{timeout});
+}
+
+=head2 az_network_peering_exists
+
+    az_network_peering_exists(resource_group=>'openqa-rg', vnet=>'openqa-this-vnet', name=>'openqa-fromVNET-toVNET');
+
+
+Returns 1 (true) if peering resource exists, 0 (false) if it was not found.
+
+=over
+
+=item B<resource_group> - existing resource group that contain vnet source of the peering
+
+=item B<vnet> - existing vnet in resource_group, used as source of the peering
+
+=item B<name> - name of the existing the network peering to search for
+
+=back
+=cut
+
+sub az_network_peering_exists (%args) {
+    foreach (qw(name resource_group vnet)) {
+        croak("Argument < $_ > missing") unless $args{$_};
+    }
+    return (az_network_peering_list(
+            resource_group => $args{resource_group},
+            vnet => $args{vnet},
+            query => "[?name=='$args{name}'] | length(@)"
+    ));
 }
 
 =head2 az_disk_create
@@ -1887,6 +1987,305 @@ Check if specified resource group exists. Returns B<true> or B<false>.
 sub az_group_exists(%args) {
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     return script_output("az group exists --resource-group $args{resource_group}", quiet => $args{quiet});
+}
+
+=head2 az_network_vnet_show
+
+    az_network_vnet_show(resource_group=>'resource group name', name=>'vnet01' [, query=>'[].name']);
+
+Returns B<HASHREF> with all NIC names located in resource group. Output can be modified using B<$args{query}>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<name> VNET name
+
+=item B<query> Modify output filter using jmespath query. Default: undefined
+
+=back
+=cut
+
+sub az_network_vnet_show {
+    my (%args) = @_;
+    my @mandatory_args = qw(resource_group name);
+    foreach (@mandatory_args) {
+        croak "Missing mandatory argument: '$_'" unless $args{$_};
+    }
+    my @cmd = ('az network vnet show', "--resource-group $args{resource_group}", "--name $args{name}");
+    push @cmd, "--query \"$args{query}\"" if $args{query};
+
+    return decode_json(script_output(join(' ', @cmd)));
+}
+
+=head2 az_network_dns_zone_create
+
+    az_network_dns_zone_create(resource_group=>'resource group name', name=>'default.com');
+
+Creates private DNS zone within specified B<resource_group>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<name> Private DNS zone name
+
+=back
+=cut
+
+sub az_network_dns_zone_create {
+    my (%args) = @_;
+    foreach ('resource_group', 'name') { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
+    my @cmd = ('az network private-dns zone create', "--resource-group $args{resource_group}", "--name $args{name}");
+
+    return assert_script_run(join(' ', @cmd));
+}
+
+=head2 az_network_dns_zone_delete
+
+    az_network_dns_zone_delete(resource_group=>'resource group name', zone_name=>'default.com');
+
+Deletes private DNS zone within B<resource_group> specified by B<zone_name>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<zone_name> Private DNS zone name
+
+=back
+=cut
+
+sub az_network_dns_zone_delete {
+    my (%args) = @_;
+    foreach ('resource_group', 'zone_name') { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
+    my @cmd = ('az network private-dns zone delete',
+        "--resource-group $args{resource_group}",
+        "--name $args{zone_name}",
+        '--yes');
+
+    return assert_script_run(join(' ', @cmd));
+}
+
+=head2 az_network_dns_zone_list
+
+    az_network_dns_zone_list(resource_group=>'resource group name');
+
+Returns private DNS zone list as an B<ARRAYREF> existing within specified B<resource_group>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<query> Modify output filter using jmespath query. Default: [].name
+
+=back
+=cut
+
+sub az_network_dns_zone_list {
+    my (%args) = @_;
+    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
+    $args{query} //= '[].name';
+    return decode_json(
+        script_output("az network private-dns zone list --resource-group $args{resource_group} --query \"$args{query}\"")
+    );
+}
+
+=head2 az_network_dns_add_record
+
+    az_network_dns_add_record(
+        resource_group=>'resource group name',
+        zone_name=>'opensuse.org',
+        record_name=>'openqa',
+        ip_addr=>'192.168.1.5'
+    );
+
+Creates a DNS record inside Private DNS zone B<$args{zone_name}>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<zone_name> Private DNS zone name
+
+=item B<record_name> Private DNS zone record name
+
+=item B<ip_addr> DNS record IPv4 address
+
+=back
+=cut
+
+sub az_network_dns_add_record {
+    my (%args) = @_;
+    my @mandatory_args = qw(resource_group zone_name record_name ip_addr);
+    foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
+    my @cmd = (' ',
+        'az network private-dns record-set a add-record',    # 'a' here is not a typo
+        "--resource-group $args{resource_group}",
+        "--zone-name $args{zone_name}",
+        "--record-set-name $args{record_name}",
+        "--ipv4-address $args{ip_addr}"
+    );
+
+    return assert_script_run(join(' ', @cmd));
+}
+
+=head2 az_network_dns_link_create
+
+    az_network_dns_link_create(
+        resource_group=>'resource group name',
+        zone_name='opensuse.org',
+        vnet=>'vnet_rg',
+        name=>'link_to_rg_vnet'
+    );
+
+Creates private DNS zone link between VNET and DNS zone.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<zone_name> Private DNS zone name
+
+=item B<vnet> VNET name
+
+=item B<name> DNS link resource name
+
+=back
+=cut
+
+sub az_network_dns_link_create {
+    my (%args) = @_;
+    my @mandatory_args = qw(resource_group zone_name vnet name);
+    foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
+    my @cmd = (' ',
+        'az network private-dns link vnet create',
+        "--resource-group $args{resource_group}",
+        "--zone-name $args{zone_name}",
+        "--virtual-network $args{vnet}",
+        "--name $args{name}",
+        '--registration-enabled true'    # This updates all VMs A records immediately
+    );
+
+    return assert_script_run(join(' ', @cmd));
+}
+
+=head2 az_network_dns_link_delete
+
+    az_network_dns_link_delete(
+        resource_group=>'resource group name',
+        zone_name='opensuse.org',
+        link_name=>'link_to_rg_vnet'
+    );
+
+Deletes private DNS link between VNET and DNS zone.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<zone_name> Private DNS zone name
+
+=item B<link_name> DNS link resource name
+
+=back
+=cut
+
+sub az_network_dns_link_delete {
+    my (%args) = @_;
+    my @mandatory_args = qw(resource_group zone_name link_name);
+    foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
+    my @cmd = (' ',
+        'az network private-dns link vnet delete',
+        "--resource-group $args{resource_group}",
+        "--zone-name $args{zone_name}",
+        "--name $args{link_name}",
+        '--yes'    # autoconfirm
+    );
+
+    return assert_script_run(join(' ', @cmd));
+}
+
+=head2 az_network_dns_link_list
+
+    az_network_dns_link_list(resource_group=>'resource group name', zone_name='opensuse.org', query=>'[].id');
+
+Lists private DNS links withing specified B<resource_group> and B<zone_name>. Result is returned as B<ARRAYREF>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=item B<zone_name> Private DNS zone name
+
+=item B<query> Modify output filter using jmespath query. Default: [].name
+
+=back
+=cut
+
+sub az_network_dns_link_list {
+    my (%args) = @_;
+    $args{query} //= '[].name';
+    my @mandatory_args = qw(resource_group zone_name);
+    foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
+    my @cmd = (' ',
+        'az network private-dns link vnet list',
+        "--resource-group $args{resource_group}",
+        "--zone-name $args{zone_name}",
+        "--query \"$args{query}\""
+    );
+
+    return decode_json(script_output(join(' ', @cmd)));
+}
+
+=head2 az_network_dns_links_cleanup
+
+    az_network_dns_links_cleanup(resource_group=>'resource group name');
+
+Searches and deletes all DNS links within specified B<resource_group>. Intended for cleanup to remove nested resource.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=back
+=cut
+
+sub az_network_dns_links_cleanup {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: "$args{resource_group}"' unless $args{resource_group};
+    my @zones = @{az_network_dns_zone_list(resource_group => $args{resource_group})};
+
+    for my $zone (@zones) {
+        my @links = @{az_network_dns_link_list(resource_group => $args{resource_group}, zone_name => $zone)};
+        az_network_dns_link_delete(
+            resource_group => $args{resource_group}, zone_name => $zone, link_name => $_) foreach @links;
+        record_info('DNS cleanup',
+            "Following Private DNS links were deleted from DNS zone '$zone'\n" . join("\n", @links));
+    }
+}
+
+=head2 az_network_dns_zones_cleanup
+
+    az_network_dns_zones_cleanup(resource_group=>'resource group name');
+
+Searches and deletes all DNS zones within specified B<resource_group>.
+
+=over
+
+=item B<resource_group> Resource group name
+
+=back
+=cut
+
+sub az_network_dns_zones_cleanup {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: "$args{resource_group}"' unless $args{resource_group};
+    my @zones = @{az_network_dns_zone_list(resource_group => $args{resource_group})};
+
+    for my $zone (@zones) {
+        az_network_dns_zone_delete(resource_group => $args{resource_group}, zone_name => $zone);
+    }
 }
 
 1;

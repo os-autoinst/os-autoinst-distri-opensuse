@@ -7,7 +7,7 @@
 # Summary: basic tracepath test
 # - install iputils if not installed
 # - check and record version
-# - run tracepath to opensuse.org and save logs
+# - run tracepath to loopback and save logs
 # - ensure log file exists and is not empty
 # - ensure tracepath reached destination
 # Maintainer: QE Core <qe-core@suse.de>
@@ -21,8 +21,7 @@ use version_utils 'is_opensuse';
 sub run {
     select_serial_terminal;
     my $log = 'tracepath.log';
-    #Targetting WORKER_HOSTNAME on o3 due to firewall strict rules
-    my $target = is_opensuse() ? get_required_var('WORKER_HOSTNAME') : 'opensuse.org';
+    my $target = '127.0.0.1';
 
     zypper_call('in iputils') if (script_run('rpm -q iputils'));
     record_info("Version", script_output("rpm -q --qf '%{version}' iputils"));

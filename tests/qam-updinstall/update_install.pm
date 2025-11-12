@@ -252,7 +252,7 @@ sub run {
 
     for my $patch (@patches) {
         my %patch_bins = %bins;
-        my (@patch_l2, @patch_l3, @patch_unsupported, @update_conflicts);
+        my (@patch_l2, @patch_l3, @patch_unsupported, @update_conflicts, $patch_info_status);
         my @conflicts = is_sle('<=12-SP5') ? @conflicting_packages_sle12 : @conflicting_packages;
         foreach (split(/,/, get_var('UPDATE_ADD_CONFLICT', ''))) {
             push(@conflicts, $_);
@@ -338,10 +338,13 @@ sub run {
                     sle12_zypp_resolve("zypper -v in -l $single_package", "prepare_${patch}_${single_package}.log", get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_PREINSTALL', 1));
                 }
 
-                # Store version of installed binaries before update.
-                $patch_bins{$single_package}->{old} = get_installed_bin_version($single_package, 'old') if $patch_info =~ /Status\s+: needed/;
-
                 enable_test_repositories($repos_count);
+
+                $patch_info_status = script_output("zypper -n info -t patch $patch|grep Status");
+                record_info "Patch status", "$patch_info_status";
+
+                # Store version of installed binaries before update.
+                $patch_bins{$single_package}->{old} = get_installed_bin_version($single_package, 'old') if $patch_info_status !~ /Status\s+: applied/;
 
                 # Patch binaries already installed.
                 record_info 'Conflict install', "Install patch $patch with conflicting $single_package";
@@ -353,7 +356,7 @@ sub run {
                 }
 
                 # Store version of installed binaries after update.
-                $patch_bins{$single_package}->{new} = get_installed_bin_version($single_package, 'new') if $patch_info =~ /Status\s+: needed/;
+                $patch_bins{$single_package}->{new} = get_installed_bin_version($single_package, 'new') if $patch_info_status !~ /Status\s+: applied/;
 
                 record_info 'Conflict rollback', "Rollback patch $patch with conflicting $single_package";
                 assert_script_run("snapper rollback $rollback_number") if is_sle('12-sp3+');
@@ -366,8 +369,9 @@ sub run {
         if (scalar(keys %installable)) {
             record_info 'Preinstall', 'Install affected packages before update repo is enabled';
             if ($solver_focus) {
-                zypper_call("in -l $solver_focus" . join(' ', keys %installable), exitcode => [0, 102, 103], log => "prepare_$patch.log", timeout => 1500);
+                zypper_call("--ignore-unknown in -l $solver_focus" . join(' ', keys %installable), exitcode => [0, 102, 103], log => "prepare_$patch.log", timeout => 1500);
                 die "Package scriptlet failed, check log prepare_${patch}." if (script_run("grep 'scriptlet failed, exit status' /tmp/prepare_${patch}.log") == 0);
+                record_soft_failure "poo#1234 Preinstalled package is missing, check log prepare_${patch}." if (script_run("grep 'not found in package names' /tmp/prepare_${patch}.log") == 0);
             }
             else {
                 my $packages = join(' ', keys %installable);
@@ -375,15 +379,18 @@ sub run {
             }
         }
 
-        if ($patch_info =~ /Status\s+: needed/) {
+        enable_test_repositories($repos_count);
+
+        $patch_info_status = script_output("zypper -n info -t patch $patch|grep Status");
+        record_info "Patch status", "$patch_info_status";
+
+        if ($patch_info_status !~ /Status\s+: applied/) {
             # Store the version of the installed binaries before the update.
             for my $bin (keys %patch_bins) {
                 next if grep($bin eq $_, @update_conflicts);
                 $patch_bins{$bin}->{old} = get_installed_bin_version($bin, 'old');
             }
         }
-
-        enable_test_repositories($repos_count);
 
         # Patch binaries already installed.
         my $patch_replacefiles = get_var('UPDATE_PATCH_ENABLE_REPLACEFILES') ? '--replacefiles' : '';
@@ -431,7 +438,7 @@ sub run {
         record_info 'Reboot after patch', "system is bootable after patch $patch";
         reboot_and_login;
 
-        if ($patch_info =~ /Status\s+: needed/ && script_run("grep '$patch already installed' zypper_$patch.log") == 1) {
+        if ($patch_info_status_status !~ /Status\s+: applied/ && script_run("grep '$patch already installed' /tmp/zypper_$patch.log") == 1) {
             # After and only if the patches have been applied and the new binaries
             # have been installed, check the version again and based on that
             # determine if the update was succesfull.

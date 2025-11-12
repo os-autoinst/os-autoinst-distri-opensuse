@@ -39,6 +39,7 @@ our @EXPORT = qw(
   is_xen_host
   is_kvm_host
   is_sles_mu_virt_test
+  is_sles16_mu_virt_test
   is_monolithic_libvirtd
   turn_on_libvirt_debugging_log
   restart_libvirtd
@@ -190,9 +191,15 @@ sub is_hyperv_virtualization {
     return get_var("REGRESSION", '') =~ /hyperv/;
 }
 
-# Return 1 if it is SLES MU virt test, otherwise return 0
+# Return 1 if it is SLES MU virt test (SLES15 and earlier), otherwise return 0
 sub is_sles_mu_virt_test {
-    return is_sle && get_var('REGRESSION', '') =~ /xen|kvm|qemu|hyperv|vmware/ && !get_var("VIRT_AUTOTEST");
+    return is_sle && !is_sle('>=16') && get_var('REGRESSION', '') =~ /xen|kvm|qemu|hyperv|vmware/ && !get_var("VIRT_AUTOTEST");
+}
+
+# Return 1 if it is SLES16 MU virt test, otherwise return 0
+sub is_sles16_mu_virt_test {
+    return is_sle('>=16') && get_var('REGRESSION', '') =~ /xen|kvm|qemu|hyperv|vmware/ && !get_var("VIRT_AUTOTEST");
+    # Note: Xen will be tested from SLES16.2
 }
 
 #return 1 if it is a fv guest judging by name
@@ -577,6 +584,8 @@ sub create_guest {
 
     my $name = $guest->{name};
     my $location = $guest->{location};
+    my $iso_url = $guest->{iso_url};
+    my $install_url = $guest->{install_url};
     my $autoyast = $guest->{autoyast};
     my $macaddress = $guest->{macaddress};
     my $on_reboot = $guest->{on_reboot} // "restart";    # configurable on_reboot policy
@@ -586,27 +595,140 @@ sub create_guest {
     my $maxmemory = $guest->{maxmemory} // $memory + 1536;    # use by default just a bit more, so that we don't waste memory but still use the functionality
     my $vcpus = $guest->{vcpus} // "2";
     my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
+    my $launch_security = $guest->{launch_security} // '';
+    my $memory_backing = $guest->{memory_backing} // '';
     my $extra_args = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
     $extra_args = trim($extra_args);
+
+    # Handle installation method: SLES16 online uses ISO download, sle16 full use network location too
+    my $install_method = "location";    # Default to network installation (preserves SLES12/15 behavior)
+    my $install_source = $location;    # Default source (preserves SLES12/15 behavior)
+
+    # SLES16-specific ISO download logic (only when all conditions are met)
+    # Simplified SLES16 installation configuration
+    if (is_sles16_mu_virt_test() &&
+        $name =~ /sles16/i &&
+        $guest->{distro} && $guest->{distro} eq 'SLE_16') {
+
+        # For SLES16, determine installation method based on available configuration
+        if (defined($iso_url)) {
+            # Try ISO download and extraction for --install method
+            my $local_iso_path = download_installation_iso($iso_url);
+            my $extract_result = $local_iso_path ? extract_kernel_initrd_from_iso($local_iso_path, $name) : undef;
+
+            if ($extract_result) {
+                $install_method = "install";
+                $install_source = $extract_result;
+                record_info("SLES16 Install", "Using --install method with extracted kernel/initrd");
+            } else {
+                my $error_msg = $local_iso_path ? "Kernel extraction failed" : "ISO download failed";
+                record_info("SLES16 Error", "$error_msg for online installation", result => 'fail');
+                die "SLES16 guest $name: $error_msg. Online installation cannot proceed.";
+            }
+        } elsif (defined($location)) {
+            # Use network location (full installation tree)
+            $install_method = "location";
+            $install_source = $location;
+            record_info("SLES16 Network", "Using network location: $location");
+        } else {
+            die "SLES16 guest $name requires either iso_url or location to be defined";
+        }
+    }
 
     if ($method eq 'virt-install') {
         send_key 'ret';    # Make some visual separator
 
         # Run unattended installation for selected guest
-        my ($autoyastURL, $diskformat, $virtinstall);
-        $autoyastURL = $autoyast;
+        my ($autoinstall_url, $diskformat, $virtinstall);
+        $autoinstall_url = $autoyast;    # Can be autoyast XML or Agama jsonnet URL
         $diskformat = get_var("VIRT_QEMU_DISK_FORMAT") // "qcow2";
-        $extra_args = "autoyast=$autoyastURL $extra_args";
+
+        # For SLES16 MU virtualization tests, use inst.auto instead of autoyast parameter (Agama format)
+        if (is_sles16_mu_virt_test() && $name =~ /sles16/i) {
+            # SLES16 uses Agama installer - adjust parameters based on installation method
+            my $sles16_args = "inst.auto=$autoinstall_url";
+
+            if ($install_method eq "install") {
+                # ISO installation: use inst.finish=reboot for automatic restart
+                $sles16_args .= " inst.finish=reboot";
+            } elsif ($install_method eq "location") {
+                # Network installation: add live root and install_url parameters (matching reference)
+                $sles16_args .= " root=live:$install_source/LiveOS/squashfs.img";
+                # Use install_url from guest configuration if available
+                if (defined($install_url)) {
+                    $sles16_args .= " inst.install_url=$install_url";
+                }
+                $sles16_args .= " inst.finish=reboot";
+            }
+
+            # Combine with existing extra_args from environment variables
+            $extra_args = "$sles16_args $extra_args";
+            my $method_info = $install_method eq "install" ? "ISO with inst.finish=reboot" : "network with install source";
+            record_info("SLES16 Guest", "Creating SLES16 guest with Agama inst.auto ($method_info)");
+        } else {
+            # Traditional guests use autoyast
+            $extra_args = "autoyast=$autoinstall_url $extra_args";
+        }
         $extra_args = trim($extra_args);
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
-        $virtinstall .= " --network bridge=br0 --autostart --location=$location --wait -1";
+        $virtinstall .= " --network bridge=br0 --autostart";
+
+        # Add installation source based on method
+        if ($install_method eq "cdrom") {
+            $virtinstall .= " --cdrom $install_source";
+            record_info("Install Method", "Using CD-ROM installation: $install_source");
+        } elsif ($install_method eq "install") {
+            # Use --install method with extracted kernel and initrd
+            my $kernel_path = $install_source->{kernel};
+            my $initrd_path = $install_source->{initrd};
+            my $iso_path = $install_source->{iso_path};
+
+            $virtinstall .= " --install kernel=$kernel_path,initrd=$initrd_path";
+
+            # For SLES16, add root=live: parameter using squashfs.img URL instead of full ISO
+            if (is_sles16_mu_virt_test() && $name =~ /sles16/i && defined($iso_url)) {
+                # Convert ISO URL to squashfs.img URL for better memory efficiency
+                my $squashfs_url = $iso_url;
+                $squashfs_url =~ s/\/iso\//\/repo\//;    # Change /iso/ to /repo/
+                $squashfs_url =~ s/\.iso$/\/LiveOS\/squashfs.img/;    # Replace .iso with /LiveOS/squashfs.img
+                $extra_args = "root=live:$squashfs_url $extra_args";
+                record_info("SLES16 Root Live", "Added root=live parameter with squashfs.img: $squashfs_url");
+            }
+
+            record_info("Install Method", "Using --install with kernel: $kernel_path, initrd: $initrd_path");
+        } else {
+            # For SLES16 network installation, use format with explicit kernel/initrd paths
+            if (is_sles16_mu_virt_test() && $name =~ /sles16/i) {
+                $virtinstall .= " --location $install_source,kernel=boot/x86_64/loader/linux,initrd=boot/x86_64/loader/initrd";
+                record_info("Install Method", "Using SLES16 network location with explicit kernel/initrd");
+            } else {
+                $virtinstall .= " --location=$install_source";
+                record_info("Install Method", "Using network location: $install_source");
+            }
+        }
+
+        $virtinstall .= " --wait -1";
         # Configure boot firmware based on guest configuration
         if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi') {
             $virtinstall .= " --boot firmware=efi";
             record_info("Boot Firmware", "Guest $name configured for EFI boot");
         }
+        if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi_sev_es') {
+            $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-sev.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no,loader.stateless=yes";
+            record_info("Boot Firmware", "Guest $name configured for EFI sev_es boot");
+        }
+        if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi-with-qcow2-based-nvram') {
+            # Need to match with SNAPSHOT_NVRAM_TEMPLATE_SRC and SNAPSHOT_NVRAM_TEMPLATE_NEW settings
+            $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,"
+              . "loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-qcow2-vars.bin,"
+              . "nvram.templateFormat=qcow2,hd,bootmenu.enable=yes,menu=on";
+            record_info("Boot Firmware", "Guest $name configured with EFI bootloader and qcow2 based nvram for snapshot test");
+        }
+
         $virtinstall .= " --events on_reboot=$on_reboot" unless ($on_reboot eq '');
+        $virtinstall .= " --memorybacking $memory_backing" unless ($memory_backing eq '');
+        $virtinstall .= " --launchSecurity $launch_security" unless ($launch_security eq '');
         $virtinstall .= " --extra-args '$extra_args'" unless ($extra_args eq '');
         record_info("$name", "Creating $name guests:\n$virtinstall");
         script_run "$virtinstall >> ~/virt-install_$name.txt 2>&1 & true";    # true required because & terminator is not allowed
@@ -691,9 +813,11 @@ sub ensure_online {
             if (script_run("ssh $guest ip r s | grep default") != 0) {
                 assert_script_run("ssh $guest ip r a default via $hypervisor");
             }
-            # Check if we can ping hypervizor from the guest
+            # Check if we can ping hypervisor/gateway from the guest (dynamic gateway detection for bridged networking)
             unless ($skip_ping == 1) {
-                die "Pinging hypervisor failed for $guest" if (script_retry("ssh $guest ping -c 3 $hypervisor", delay => 1, retry => 10, timeout => 90) != 0);
+                # For bridged networking, use guest's actual default gateway instead of hardcoded hypervisor IP
+                my $gateway_test = "ssh $guest 'ping -c 3 \$(ip route | grep default | awk \"{print \\\$3}\" | head -1)' 2>/dev/null || ssh $guest ping -c 3 $hypervisor";
+                die "Pinging gateway/hypervisor failed for $guest" if (script_retry($gateway_test, delay => 1, retry => 10, timeout => 90) != 0);
             }
             # Check also if name resolution works - restart libvirtd if not
             if (script_run("ssh $guest ping -c 3 -w 120 $dns_host", timeout => 180) != 0) {
@@ -718,9 +842,9 @@ sub ensure_default_net_is_active {
 sub add_guest_to_hosts {
     my ($hostname, $address) = @_;
     assert_script_run "sed -i '/ $hostname /d' /etc/hosts";
-    my $ret = assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
+    assert_script_run "echo '$address $hostname # virtualization' >> /etc/hosts";
     record_info("Content of /etc/hosts", script_output("cat /etc/hosts"));
-    return $ret;
+    return 0;
 }
 
 # Remove additional disks from the given guest. We remove all disks that match the given pattern or 'vd[b-z]' if no pattern is given
@@ -1643,6 +1767,114 @@ sub check_kvm_modules {
         }
     }
     record_info("KVM", "kvm modules are loaded!");
+}
+
+sub extract_kernel_initrd_from_iso {
+    my ($iso_path, $guest_name) = @_;
+
+    my $extract_dir = "/var/lib/libvirt/images/${guest_name}";
+    my $mount_point = "/mnt/iso_extract_$$";
+
+    # Create directories and mount ISO
+    script_run("mkdir -p $extract_dir $mount_point");
+    if (script_run("mount -o loop,ro '$iso_path' $mount_point") != 0) {
+        record_info("ISO Mount Failed", "Cannot mount ISO: $iso_path", result => 'fail');
+        script_run("rmdir $mount_point");
+        return undef;
+    }
+
+    # SLES16 specific paths
+    my %files = (
+        kernel => "boot/x86_64/loader/linux",
+        initrd => "boot/x86_64/loader/initrd"
+    );
+
+    # Extract both files in one operation
+    my $success = 1;
+    for my $type (keys %files) {
+        my $src = "$mount_point/$files{$type}";
+        my $dst_name = ($type eq 'kernel') ? 'linux' : $type;    # Keep 'linux' naming for kernel
+        my $dst = "$extract_dir/$dst_name";
+
+        if (script_run("cp '$src' '$dst'") != 0) {
+            record_info("Extract Failed", "Cannot copy $type from ISO", result => 'fail');
+            $success = 0;
+            last;
+        }
+    }
+
+    # Cleanup mount
+    script_run("umount $mount_point && rmdir $mount_point");
+
+    return $success ? {
+        kernel => "$extract_dir/linux",
+        initrd => "$extract_dir/initrd",
+        iso_path => $iso_path
+    } : undef;
+}
+
+=head2 download_installation_iso
+
+Download installation ISO to local directory with caching and error handling.
+Based on existing download_vm_import_disks pattern with proper retry logic.
+
+    my $local_path = download_installation_iso($iso_url, $target_dir);
+
+Returns local path on success, undef on failure.
+
+=cut
+
+sub download_installation_iso {
+    my ($iso_url, $target_dir) = @_;
+
+    $target_dir //= "/var/lib/libvirt/images";
+
+    # Validate URL accessibility first (same as download_vm_import_disks)
+    unless (head($iso_url)) {
+        record_info("ISO URL Check Failed", "URL is not accessible: $iso_url", result => 'softfail');
+        return undef;
+    }
+
+    # Extract filename from URL
+    my $iso_filename = basename($iso_url);
+    my $local_iso_path = "$target_dir/$iso_filename";
+
+    # Create target directory if needed
+    script_run("mkdir -p $target_dir");
+
+    # Check if ISO already exists locally
+    if (script_run("test -f $local_iso_path") == 0) {
+        record_info("ISO Cache Hit", "Using existing ISO: $local_iso_path");
+        return $local_iso_path;
+    }
+
+    # Check available disk space before download
+    my $available_space = script_output("df -BM $target_dir | tail -1 | awk '{print \$4}' | sed 's/M//'");
+    record_info("ISO Download", "Downloading $iso_url to $local_iso_path (Available space: ${available_space}MB)");
+
+    # Download ISO using retry logic (same pattern as download_vm_import_disks)
+    my $download_cmd = "curl -L --connect-timeout 60 --max-time 1800 '$iso_url' -o '$local_iso_path'";
+
+    my $download_success = eval {
+        script_retry($download_cmd, retry => 2, delay => 10, timeout => 1800, die => 1);
+        return 1;
+    };
+
+    if ($download_success && script_run("test -f $local_iso_path") == 0) {
+        # Verify downloaded file is not empty
+        my $file_size = script_output("stat -c%s '$local_iso_path'");
+        if ($file_size > 1024) {    # At least 1KB
+            record_info("ISO Download Success", "Downloaded $iso_filename ($file_size bytes)");
+            return $local_iso_path;
+        } else {
+            record_info("ISO Download Failed", "Downloaded file is too small: $file_size bytes", result => 'softfail');
+            script_run("rm -f '$local_iso_path'");    # Clean up invalid file
+        }
+    } else {
+        record_info("ISO Download Failed", "Download command failed for: $iso_url", result => 'softfail');
+    }
+
+    return undef;
 }
 
 1;

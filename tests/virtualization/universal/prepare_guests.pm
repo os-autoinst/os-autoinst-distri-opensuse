@@ -20,9 +20,70 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use File::Copy 'copy';
 use File::Path 'make_path';
+use virt_autotest::utils qw(is_sles16_mu_virt_test);
+use autoyast qw(expand_agama_secrets);
 
-sub create_profile {
+sub create_agama_profile {
     my ($vm_name, $arch, $mac, $ip) = @_;
+
+    # Determine the appropriate Agama configuration for SLES16 guests
+    # Note: Full vs Online difference is handled by virt-install location parameter,
+    # not by different Agama configurations
+    # Only staging mode is supported
+    my $test_mode = 'staging';
+
+    # Select appropriate Agama configuration file (only staging supported)
+    my $agama_config_file = "sle_virt_guest_staging.jsonnet";
+    my $config_path = "virtualization/agama_virt_auto/$agama_config_file";
+
+    record_info("SLES16 Agama Profile", "Using config: $agama_config_file for guest: $vm_name");
+
+    # Get the Agama configuration template
+    my $profile = get_test_data($config_path);
+
+    # Expand Agama secrets ({{_SECRET_RSA_PUB_KEY}} and {{_SECRET_RSA_PRIV_KEY}})
+    $profile = expand_agama_secrets($profile);
+    record_info("SSH Key Injection", "Expanded Agama secrets for SSH public key authentication");
+
+    # Replace placeholders with actual values needed by Agama jsonnet
+
+    # Set Agama product ID for SLES16
+    my $agama_product_id = get_var('AGAMA_PRODUCT_ID', 'SLES');
+    $profile =~ s/\{\{AGAMA_PRODUCT_ID\}\}/$agama_product_id/g;
+
+    # Handle SCC registration for SLES16
+    if (my $scc_code = get_var("SCC_REGCODE")) {
+        $profile =~ s/\{\{SCC_REGCODE\}\}/$scc_code/g;
+    }
+
+    # Handle password and SUT_IP for IP reporting script
+    my $sut_ip = get_required_var("SUT_IP");
+    $profile =~ s/\{\{PASS\}\}/$testapi::password/g;
+    $profile =~ s/\{\{SUT_IP\}\}/$sut_ip/g;
+    $profile =~ s/\{\{GUEST\}\}/$vm_name/g;
+
+    # Handle repositories - only staging mode supported
+    my $incident_repo = get_var('INCIDENT_REPO', '');
+    $profile =~ s/\{\{INCIDENT_REPO\}\}/$incident_repo/g;
+    record_info("Staging Repos", "Using INCIDENT_REPO: $incident_repo") if $incident_repo;
+
+    # Save the generated Agama profile
+    my $profile_filename = "${vm_name}_agama.jsonnet";
+    save_tmp_file($profile_filename, $profile);
+
+    # Copy profile to ulogs directory for debugging
+    make_path('ulogs');
+    copy(hashed_string($profile_filename), "ulogs/$profile_filename");
+
+    record_info("Agama Profile Generated", "Created profile: $profile_filename");
+
+    return autoinst_url . "/files/$profile_filename";
+}
+
+sub create_autoyast_profile {
+    my ($vm_name, $arch, $mac, $ip) = @_;
+
+    # Original autoyast profile creation logic
     my $version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r;
     my $path = $version >= 15 ? "virtualization/autoyast/guest_15.xml.ep" : "virtualization/autoyast/guest_12.xml.ep";
     my $scc_code = get_required_var("SCC_REGCODE");
@@ -40,13 +101,14 @@ sub create_profile {
     $profile =~ s/\{\{CA_STR\}\}/$ca_str/g;
     $profile =~ s/\{\{PASS\}\}/$testapi::password/g;
     $profile =~ s/\{\{SUT_IP\}\}/$sut_ip/g;
-    # Change bootloader to grub2-efi for UEFI boot if this specific guest should use UEFI
-    # Check the guest configuration from virt_autotest::common
+
+    # Handle EFI boot configuration for UEFI guests
     my %guests = %virt_autotest::common::guests;
     if (exists $guests{$vm_name} && exists $guests{$vm_name}->{boot_firmware} && $guests{$vm_name}->{boot_firmware} eq 'efi') {
         $profile =~ s/<loader_type>grub2<\/loader_type>/<loader_type>grub2-efi<\/loader_type>/;
         record_info("UEFI Config", "Modified autoyast profile for $vm_name to use grub2-efi for UEFI boot");
     }
+
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
     my $incident_repos = "";
     $incident_repos = get_var('INCIDENT_REPO', '') if ($vm_name eq $host_os_version || $vm_name eq "${host_os_version}PV" || $vm_name eq "${host_os_version}HVM");
@@ -66,21 +128,48 @@ sub create_profile {
     return autoinst_url . "/files/$vm_name.xml";
 }
 
+sub create_profile {
+    my ($vm_name, $arch, $mac, $ip) = @_;
+
+    # Intelligent profile selection: use Agama for SLES16 MU tests, autoyast for others
+    if (is_sles16_mu_virt_test() && $vm_name =~ /sles16/i) {
+        record_info("Profile Selection", "Using Agama profile for SLES16 guest: $vm_name");
+        return create_agama_profile($vm_name, $arch, $mac, $ip);
+    } else {
+        record_info("Profile Selection", "Using AutoYaST profile for guest: $vm_name");
+        return create_autoyast_profile($vm_name, $arch, $mac, $ip);
+    }
+}
+
 sub gen_osinfo {
     my ($vm_name) = @_;
     my $h_version = get_var("VERSION") =~ s/-SP/./r;
     my $g_version = $vm_name =~ /sp/ ? $vm_name =~ s/\D*(\d+)sp(\d)\D*/$1.$2/r : $vm_name =~ s/\D*(\d+)\D*/$1/r;
     my $info_op = $h_version > 15.2 ? "--osinfo" : "--os-variant";
-    my $info_val = $g_version > 12.5 ? $vm_name =~ s/HVM|PV|efi//r =~ s/sles/sle/r : $vm_name =~ s/PV|HVM|efi//r;
-    if ($h_version == 12.3) {
-        $info_val = "sle15-unknown" if ($g_version > 15.1);
-        $info_val = "sles12-unknown" if ($g_version == 12.5);
-    } elsif ($h_version == 12.4) {
-        $info_val = "sle15-unknown" if ($g_version > 15.2);
-    } elsif ($h_version == 15) {
-        $info_val = "sle15-unknown" if ($g_version > 15.1);
+
+    # Clean VM name by removing virtualization type suffixes (order matters: longer matches first)
+    my $clean_name = $vm_name =~ s/(efi_online|efi_full|HVM|PV|-efi-sev-es|efi).*$//r;
+
+    # Generate OS identifier based on guest version
+    my $info_val;
+    if ($g_version >= 16) {
+        # SLES16 series: keep sles prefix, support SP versions
+        # sles16efi_online -> sles16
+        # sles16sp1efi -> sles16sp1
+        # sles16sp2efi_full -> sles16sp2
+        $info_val = $clean_name;    # Keep original sles16[spX] format
+    } elsif ($g_version > 12.5) {
+        $info_val = $clean_name =~ s/sles/sle/r;    # SLES15: convert sles->sle
+    } else {
+        $info_val = $clean_name;    # SLES12: keep as-is
     }
-    # Return osinfo parameters (--osinfo/--variant OSNAME) for virt-install depends on supported status on different host os versions.
+
+    # Handle host/guest version compatibility issues
+    if ($h_version == 12.3 && $g_version > 15.1) { $info_val = "sle15-unknown"; }
+    if ($h_version == 12.3 && $g_version == 12.5) { $info_val = "sles12-unknown"; }
+    if ($h_version == 12.4 && $g_version > 15.2) { $info_val = "sle15-unknown"; }
+    if ($h_version == 15 && $g_version > 15.1) { $info_val = "sle15-unknown"; }
+
     return "$info_op $info_val";
 }
 

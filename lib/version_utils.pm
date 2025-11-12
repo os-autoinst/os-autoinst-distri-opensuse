@@ -837,6 +837,15 @@ sub is_tunneled {
     return get_var('TUNNELED', 0);
 }
 
+=head2 is_community_jeos
+
+Returns true for tests using the images built by the "JeOS" package on OBS
+=cut
+
+sub is_community_jeos {
+    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|armv9|RISCV|RPi)/);
+}
+
 =head2 is_bootloader_grub2
 
 Returns true if the SUT uses GRUB2 as bootloader
@@ -874,11 +883,15 @@ sub get_bootloader {
     my $bootloader = get_var('BOOTLOADER');
     return $bootloader if $bootloader;
 
+    return 'wsl' if is_wsl;
     return 'grub2' if !check_var('UEFI', 1);
     return 'grub2' if is_upgrade;
-    return 'systemd-boot' if is_microos && !(get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
-    return 'grub2-bls' if check_var('VERSION', 'Staging:F');
-    return 'grub2';
+    return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
+    return 'grub2' if is_community_jeos;
+    return 'grub2' if is_slowroll;
+    return 'grub2' if is_sle || is_leap || is_sle_micro;
+    return 'systemd-boot' if is_microos;
+    return 'grub2-bls';
 }
 
 =head2 get_default_bootloader
@@ -942,8 +955,8 @@ or greater than the second one, respectively.
 sub package_version_cmp {
     my ($ver1, $ver2) = @_;
 
-    my @chunks1 = split(/-/, $ver1);
-    my @chunks2 = split(/-/, $ver2);
+    my @chunks1 = split(/[+-]/, $ver1);
+    my @chunks2 = split(/[+-]/, $ver2);
     my $chunk_cnt = $#chunks1 > $#chunks2 ? scalar @chunks1 : scalar @chunks2;
 
     for (my $cid = 0; $cid < $chunk_cnt; $cid++) {
@@ -1027,15 +1040,6 @@ sub php_version {
         $php_ver = '8';
     }
     ($php, $php_pkg, $php_ver);
-}
-
-=head2 is_community_jeos
-
-Returns true for tests using the images built by the "JeOS" package on OBS
-=cut
-
-sub is_community_jeos {
-    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|armv9|RISCV|RPi)/);
 }
 
 =head2 has_selinux_by_default

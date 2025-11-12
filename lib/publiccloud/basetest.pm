@@ -213,7 +213,7 @@ sub _upload_logs {
         diag($start_text . 'Valid instance $self->{run_args}->{my_instance};');
         my @instance_logs = ('/var/log/cloudregister', '/etc/hosts', '/var/log/zypper.log', '/etc/zypp/credentials.d/SCCcredentials');
         for my $instance_log (@instance_logs) {
-            $self->{run_args}->{my_instance}->ssh_script_run("sudo chmod a+r " . $instance_log, timeout => 0, quiet => 1, proceed_on_failure => 1);
+            $self->{run_args}->{my_instance}->ssh_script_run("sudo chmod a+r " . $instance_log, quiet => 1, ignore_timeout_failure => 1);
             $self->{run_args}->{my_instance}->upload_log($instance_log, failok => 1, log_name => $instance_log . ".txt");
         }
         # collect supportconfig logs, only when test failed:

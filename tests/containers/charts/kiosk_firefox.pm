@@ -14,7 +14,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils;
 use containers::helm;
-use containers::k8s qw(install_helm);
+use containers::k8s qw(install_helm gather_k8s_logs);
 
 sub run {
     my ($self) = @_;
@@ -60,6 +60,7 @@ sub post_run_hook {
 }
 
 sub post_fail_hook {
+    gather_k8s_logs('app.kubernetes.io/name', 'kiosk');
     cleanup();
 }
 

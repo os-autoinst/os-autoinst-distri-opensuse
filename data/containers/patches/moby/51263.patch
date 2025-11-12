@@ -1,0 +1,138 @@
+From 9b9f4462c72616d1a00e23d0073f6238d5d9ddf5 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Tue, 21 Oct 2025 18:59:32 +0200
+Subject: [PATCH] integration: Skip some tests as rootless
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ integration/build/build_cgroupns_linux_test.go   | 2 ++
+ integration/container/mounts_linux_test.go       | 2 ++
+ integration/container/pidmode_linux_test.go      | 1 +
+ integration/container/run_cgroupns_linux_test.go | 6 ++++++
+ integration/container/run_linux_test.go          | 2 ++
+ 5 files changed, 13 insertions(+)
+
+diff --git a/integration/build/build_cgroupns_linux_test.go b/integration/build/build_cgroupns_linux_test.go
+index 1a247a4bafc2d..186150996af71 100644
+--- a/integration/build/build_cgroupns_linux_test.go
++++ b/integration/build/build_cgroupns_linux_test.go
+@@ -71,6 +71,7 @@ func TestCgroupNamespacesBuild(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
+ 	skip.If(t, !requirement.CgroupNamespacesEnabled())
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 
+@@ -84,6 +85,7 @@ func TestCgroupNamespacesBuildDaemonHostMode(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
+ 	skip.If(t, !requirement.CgroupNamespacesEnabled())
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 
+diff --git a/integration/container/mounts_linux_test.go b/integration/container/mounts_linux_test.go
+index 3d5c157d8ad4b..c1789f7279e3f 100644
+--- a/integration/container/mounts_linux_test.go
++++ b/integration/container/mounts_linux_test.go
+@@ -34,6 +34,7 @@ const testNonExistingPlugin = "this-plugin-does-not-exist"
+ func TestContainerNetworkMountsNoChown(t *testing.T) {
+ 	// chown only applies to Linux bind mounted volumes; must be same host to verify
+ 	skip.If(t, testEnv.IsRemoteDaemon)
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := setupTest(t)
+ 
+@@ -549,6 +550,7 @@ func TestContainerBindMountReadOnlyDefault(t *testing.T) {
+ func TestContainerBindMountRecursivelyReadOnly(t *testing.T) {
+ 	skip.If(t, testEnv.IsRemoteDaemon)
+ 	skip.If(t, versions.LessThan(testEnv.DaemonAPIVersion(), "1.44"), "requires API v1.44")
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := setupTest(t)
+ 
+diff --git a/integration/container/pidmode_linux_test.go b/integration/container/pidmode_linux_test.go
+index 48f499383c180..8fb01d6779917 100644
+--- a/integration/container/pidmode_linux_test.go
++++ b/integration/container/pidmode_linux_test.go
+@@ -15,6 +15,7 @@ import (
+ func TestPIDModeHost(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	hostPid, err := os.Readlink("/proc/1/ns/pid")
+ 	assert.NilError(t, err)
+diff --git a/integration/container/run_cgroupns_linux_test.go b/integration/container/run_cgroupns_linux_test.go
+index b644958480d24..9f0554775539c 100644
+--- a/integration/container/run_cgroupns_linux_test.go
++++ b/integration/container/run_cgroupns_linux_test.go
+@@ -44,6 +44,7 @@ func TestCgroupNamespacesRun(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
+ 	skip.If(t, !requirement.CgroupNamespacesEnabled())
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 
+@@ -71,6 +72,7 @@ func TestCgroupNamespacesRunDaemonHostMode(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
+ 	skip.If(t, !requirement.CgroupNamespacesEnabled())
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 
+@@ -84,6 +86,7 @@ func TestCgroupNamespacesRunHostMode(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
+ 	skip.If(t, !requirement.CgroupNamespacesEnabled())
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 
+@@ -97,6 +100,7 @@ func TestCgroupNamespacesRunPrivateMode(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
+ 	skip.If(t, !requirement.CgroupNamespacesEnabled())
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 
+@@ -110,6 +114,7 @@ func TestCgroupNamespacesRunPrivilegedAndPrivate(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
+ 	skip.If(t, !requirement.CgroupNamespacesEnabled())
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 
+@@ -135,6 +140,7 @@ func TestCgroupNamespacesRunOlderClient(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
+ 	skip.If(t, !requirement.CgroupNamespacesEnabled())
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 
+diff --git a/integration/container/run_linux_test.go b/integration/container/run_linux_test.go
+index 1c47b5b9000ca..76a862d7453be 100644
+--- a/integration/container/run_linux_test.go
++++ b/integration/container/run_linux_test.go
+@@ -132,6 +132,7 @@ func TestPrivilegedHostDevices(t *testing.T) {
+ 	// so needs to be same host.
+ 	skip.If(t, testEnv.IsRemoteDaemon)
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := setupTest(t)
+ 	apiClient := testEnv.APIClient()
+@@ -204,6 +205,7 @@ func TestRunConsoleSize(t *testing.T) {
+ func TestRunWithAlternativeContainerdShim(t *testing.T) {
+ 	skip.If(t, testEnv.IsRemoteDaemon)
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
++	skip.If(t, testEnv.IsRootless, "scenario doesn't work with rootless mode")
+ 
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 

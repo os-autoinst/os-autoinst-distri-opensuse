@@ -13,7 +13,6 @@ use serial_terminal qw(select_serial_terminal);
 use version_utils;
 use utils;
 use Utils::Architectures qw(is_x86_64);
-use registration qw(add_suseconnect_product get_addon_fullname);
 use containers::bats;
 
 my $version;
@@ -21,15 +20,15 @@ my $version;
 sub setup {
     my $self = shift;
 
-    add_suseconnect_product(get_addon_fullname('python3')) if (is_sle('>=15-SP4') && is_sle("<16"));
-    my $python3 = is_sle("<16") ? "python311" : "python3";
-    my @pkgs = qq(jq make podman $python3 $python3-fixtures $python3-podman $python3-pytest $python3-requests-mock);
+    my @pkgs = qq(jq make podman python3 python3-fixtures python3-podman python3-pytest python3-requests-mock);
     $self->setup_pkgs(@pkgs);
 
-    systemctl "enable --now podman.socket";
-    # Transform "python311" into "python3.11" and leave "python3" as is
-    $python3 =~ s/^python3(\d{2})$/python3.$1/;
-    $version = script_output "$python3 -c 'import podman; print(podman.__version__)'";
+    if (get_var("ROOTLESS")) {
+        switch_to_user;
+        run_command "systemctl --user enable --now podman.socket";
+    }
+
+    $version = script_output "python3 -c 'import podman; print(podman.__version__)'";
     $version = "v$version";
     record_info("podman-py version", $version);
 
@@ -45,9 +44,14 @@ sub test ($target) {
     my @deselect = ();
     push @deselect, (
         # This test depends on an image available only for x86_64
-        "podman/tests/integration/test_manifests.py::ManifestsIntegrationTest::test_manifest_crud"
+        "podman/tests/integration/test_manifests.py::ManifestsIntegrationTest::test_manifest_crud",
     ) unless is_x86_64;
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
+
+    my @xfails = ();
+    push @xfails, (
+        "podman.tests.integration.test_container_create.ContainersIntegrationTest::test_container_devices",
+    ) if (get_var("ROOTLESS"));
 
     my %env = ();
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
@@ -55,28 +59,36 @@ sub test ($target) {
 
     run_command "$env pytest $pytest_args podman/tests/$target &> $target.txt || true", timeout => 3600;
 
-    patch_junit "podman-py", $version, "$target.xml";
+    patch_junit "podman-py", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml");
     upload_logs("$target.txt");
 }
 
 sub run {
     my $self = shift;
-
     select_serial_terminal;
     $self->setup;
 
-    select_serial_terminal;
-    test $_ foreach (qw(unit integration));
+    my $default_targets = "unit integration";
+    my @targets = split(/\s+/, get_var('RUN_TESTS', $default_targets));
+    foreach my $target (@targets) {
+        test $target;
+    }
+}
+
+sub cleanup {
+    cleanup_podman;
+    my $user = get_var("ROOTLESS") ? "--user" : "";
+    script_run "systemctl $user stop podman.socket";
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
+    cleanup;
     bats_post_hook;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
+    cleanup;
     bats_post_hook;
 }
 

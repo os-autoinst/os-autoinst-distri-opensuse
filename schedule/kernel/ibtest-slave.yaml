@@ -2,26 +2,37 @@ name:           ibtest-slave
 description:    >
     The slave node for the infiniband testsuite (hpc-testing)
 vars:
-    AGAMA: 1
-    AGAMA_PRODUCT_ID: SLES
-    INST_AUTO: yam/agama/auto/sles_default.jsonnet
     DESKTOP: textmode
     GRUB_TIMEOUT: 300
     IBTESTS: 1
+    IBTEST_GITBRANCH: master
+    IBTEST_GITTREE: https://github.com/SUSE/hpc-testing.git
     IBTEST_ROLE: IBTEST_SLAVE
     IPXE: 1
     IPXE_HTTPSERVER: http://baremetal-support.qa.suse.de
     IPXE_CONSOLE: ttyS1,115200
-    MLX_PROTOCOL: 1
-    PARALLEL_WITH: ibtest-master
     PATTERNS: base,minimal
     SCC_ADDONS: sdk
 schedule:
     - installation/ipxe_install
-    - installation/agama_reboot
-    - installation/grub_test
-    - installation/first_boot
-    - kernel/mellanox_config
+    - installation/welcome
+    - installation/scc_registration
+    - installation/addon_products_sle
+    - installation/system_role
+    - installation/partitioning
+    - installation/partitioning_finish
+    - installation/installer_timezone
+    - installation/user_settings
+    - installation/user_settings_root
+    - installation/resolve_dependency_issues
+    - installation/installation_overview
+    - installation/disable_grub_graphics
+    - installation/disable_grub_timeout
+    - installation/start_install
+    - installation/await_install
+    - installation/logs_from_installation_system
+    - installation/reboot_after_installation
+    - kernel/update_kernel
     - kernel/ibtests_prepare
     - installation/handle_reboot
     - kernel/ibtests

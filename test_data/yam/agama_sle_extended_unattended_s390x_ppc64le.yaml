@@ -1,0 +1,29 @@
+---
+hostname: suselinux
+files:
+  - path: '/usr/local/share/dummy.xml'
+    mode: '644'
+    owner: 'root'
+    sha256sum: '5f925f748a27b757853767477ec0e0e6f04b1727f3607c7f622a2a1e4bd2a0e5'
+repos:
+  - name: SLE-Product-SLES-%VERSION%
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Build%BUILD%/
+    enabled: 'Yes'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%-Debug
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%-Debug
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Debug-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-SLES-%VERSION%-Source
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:SLE-Product-SLES-%VERSION%-Source
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Source-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: science
+    alias: science
+    uri: https://download.opensuse.org/repositories/science/16.0/
+    enabled: 'Yes'
+    filter: name
+bootloader_timeout: '15'

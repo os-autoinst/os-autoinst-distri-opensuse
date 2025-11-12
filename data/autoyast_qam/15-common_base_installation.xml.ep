@@ -54,7 +54,7 @@
         <alias>15-SP3-ERICSSON-Updates</alias>
       </listentry>
       % }
-      % if ($get_var->('FLAVOR') =~ m/TERADATA/) {
+      % if ($get_var->('EXTRA_CUSTOMER_REPOS')) {
         % for my $extra_repo (@$extra_repos) {
       <listentry>
         <name><%= $extra_repo->{name} %></name>

@@ -23,7 +23,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed is_leap is_opensuse);
 use Utils::Architectures qw(is_x86_64 is_aarch64);
-use bootloader_setup qw(change_grub_config);
+use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use network_utils 'iface';
 
@@ -92,7 +92,7 @@ sub run {
     select_serial_terminal;
     # Enable IOMMU
     if (is_x86_64) {
-        change_grub_config('=\"[^\"]*', '& iommu=pt intel_iommu=on)', 'GRUB_CMDLINE_LINUX_DEFAULT', '', 1);
+        add_grub_cmdline_settings('iommu=pt intel_iommu=on', update_grub => 1);
         power_action('reboot', textmode => 1);
         $self->wait_boot;
         select_serial_terminal;

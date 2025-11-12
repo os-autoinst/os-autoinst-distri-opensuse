@@ -13,7 +13,7 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call permit_root_ssh);
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_bootloader_grub2);
 use power_action_utils 'power_action';
 
 sub run {
@@ -28,9 +28,14 @@ sub run {
     zypper_call("in tpm-quote-tools") if is_sle('<16');
     assert_script_run("systemctl enable tcsd");
 
-    # Modify the grub setting with "grub timeout=1"
-    assert_script_run("sed -i 's/GRUB_TIMEOUT=.*\$/GRUB_TIMEOUT=1/' /etc/default/grub");
-    assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+    if (is_bootloader_grub2) {
+        # Modify the grub setting with "grub timeout=1"
+        assert_script_run("sed -i 's/GRUB_TIMEOUT=.*\$/GRUB_TIMEOUT=1/' /etc/default/grub");
+        assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
+    } else {
+        # Setting the timeout to 0 under bls means instantly boot instead of waiting
+        assert_script_run("sdbootutil set-timeout 0");
+    }
 
     # Disable the firewalld so that we can access the vm via ssh for later tests
     assert_script_run("systemctl disable firewalld");

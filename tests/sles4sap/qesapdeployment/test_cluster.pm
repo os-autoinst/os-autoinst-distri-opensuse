@@ -18,8 +18,7 @@ sub run {
         cmd => 'crm status',
         provider => $provider_setting,
         host => '"hana[0]"',
-        root => 1
-    );
+        root => 1);
     record_info("crm status", $crm_status);
     if (cluster_status_matches_regex($crm_status)) {
         record_info('Retry', 'Found issue, do crm resource cleanup and retry');
@@ -29,8 +28,7 @@ sub run {
             cmd => 'crm status',
             provider => $provider_setting,
             host => '"hana[0]"',
-            root => 1
-        );
+            root => 1);
         record_info('Retry crm status', $crm_status);
         die 'Cluster resources throwing errors' if cluster_status_matches_regex($crm_status);
     }

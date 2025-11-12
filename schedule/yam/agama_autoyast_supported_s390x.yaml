@@ -4,7 +4,6 @@ description: >
   Agama installation with backwards compatibility with AutoYaST using only supported AutoYaST elements.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/patch_agama_tests
   - yam/agama/agama
   - boot/reconnect_mgmt_console

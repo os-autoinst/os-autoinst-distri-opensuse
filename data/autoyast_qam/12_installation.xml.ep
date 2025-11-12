@@ -61,6 +61,15 @@
         <alias>12-SP3-TERADATA-Updates</alias>
       </listentry>
       % }
+      % if ($get_var->('EXTRA_CUSTOMER_REPOS')) {
+        % for my $extra_repo (@$extra_repos) {
+      <listentry>
+        <name><%= $extra_repo->{name} %></name>
+        <alias><%= $extra_repo->{name} %></alias>
+        <media_url><%= $extra_repo->{url} %></media_url>
+      </listentry>
+        % }
+      % }
     </add_on_products>
   </add-on>
   % if ($check_var->('ARCH', 's390x')) {

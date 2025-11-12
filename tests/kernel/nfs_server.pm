@@ -111,6 +111,7 @@ sub run {
     systemctl("enable rpcbind --now");
     systemctl("is-active rpcbind");
     systemctl("enable nfs-server --now");
+    systemctl("restart nfs-server");
     systemctl("is-active nfs-server");
 
     record_info("RPC", script_output("rpcinfo"));

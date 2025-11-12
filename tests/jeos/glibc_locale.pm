@@ -27,6 +27,7 @@ use testapi;
 use utils qw(zypper_call clear_console ensure_serialdev_permissions);
 use version_utils qw(is_opensuse is_sle is_tumbleweed is_leap);
 use power_action_utils qw(power_action);
+use jeos qw(is_translations_preinstalled);
 
 ## Define test data
 my $suse_lang_conf = '/etc/sysconfig/language';
@@ -112,7 +113,7 @@ sub test_lc_collate {
     my $dataset_expected_output = script_output("cut -d, -f$column_expected_output $locale.csv | tail -n +2");
 
     validate_script_output(
-        "cut -d, -f$column_input $locale.csv | tail -n +2 | LC_COLLATE=$locale sort",
+        "cut -d, -f$column_input $locale.csv | tail -n +2 | LC_ALL=$locale LC_CTYPE=$locale LC_COLLATE=$locale sort",
         sub {
             my $out = $_;
             $out =~ s/\r//g;
@@ -172,7 +173,7 @@ sub test_lc_monetary {
     my $expected_output = script_output("cat $locale.csv");
 
     validate_script_output(
-        "LC_MONETARY=$locale locale currency_symbol",
+        "LC_ALL=$locale LC_CTYPE=$locale LC_MONETARY=$locale locale currency_symbol",
         sub { m/$expected_output/ },
         title => "LC_MONETARY currency_symbol",
         fail_message => "Expected currency symbol '$expected_output' not found, got '$_'"
@@ -196,7 +197,7 @@ sub test_lc_time {
     for my $i (0 .. $#lines) {
         my ($epoch, $fmt, $expected) = split $sep, $lines[$i], 3;
 
-        my $cmd = qq{LC_ALL= LC_TIME=$locale TZ=UTC date -u -d '\@$epoch' +"$fmt"};
+        my $cmd = qq{LC_ALL=$locale LC_CTYPE=$locale LC_TIME=$locale TZ=UTC date -u -d '\@$epoch' +"$fmt"};
 
         validate_script_output(
             $cmd,
@@ -233,7 +234,7 @@ sub run {
     my ($self) = @_;
     # C<$lang_ref> denotes what kind of lang setting is expected from test suite perspective
     # sle15+ does not enable locale change during firstboot
-    my $lang_ref = get_var('JEOSINSTLANG', 'en_US');
+    my $lang_ref = (is_translations_preinstalled() && !get_var("JEOSINSTLANG_FORCE_LANG_EN_US", 0)) ? get_var('JEOSINSTLANG', 'en_US') : 'en_US';
     my $lang_new_short = ((get_required_var('TEST') =~ /de_DE/) && (is_sle('<15'))) ? 'en_US' : 'de_DE';
     my $rc_expected_data = {
         ROOT_USES_LANG => 'ctype',

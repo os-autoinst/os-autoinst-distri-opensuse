@@ -106,11 +106,6 @@ sub load_secret_tests {
     loadtest('containers/secret', run_args => $run_args, name => 'secret_' . $run_args->{runtime});
 }
 
-sub load_buildah_tests {
-    my ($run_args) = @_;
-    loadtest('containers/buildah', run_args => $run_args, name => 'buildah_' . $run_args->{runtime});
-}
-
 sub load_image_tests_docker {
     my ($run_args) = @_;
     load_image_test($run_args);
@@ -169,10 +164,9 @@ sub load_host_tests_podman {
     # IPv6 is not available on Azure
     loadtest 'containers/podman_ipv6' if (is_public_cloud && is_sle('>=15-SP5') && !is_azure);
     loadtest 'containers/podman_netavark' unless (is_staging || is_ppc64le);
-    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
+    loadtest 'containers/skopeo' unless (is_sle('<15') || is_sle_micro('<5.5'));
     loadtest 'containers/podman_quadlet' unless (is_staging || is_leap("<16") || is_sle("<16") || is_sle_micro("<6.1"));
     load_secret_tests($run_args);
-    load_volume_tests($run_args);
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_openstack || is_public_cloud) {
@@ -180,7 +174,8 @@ sub load_host_tests_podman {
         loadtest 'containers/podman_remote' if (is_sle('>=15-SP3') || is_sle_micro('5.5+') || is_tumbleweed);
     }
     # Buildah is not available in SLE Micro, MicroOS and staging projects
-    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
+    loadtest('containers/buildah', run_args => $run_args, name => $run_args->{runtime} . "_buildah") unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
+    load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_public_cloud || is_transactional);
@@ -205,8 +200,6 @@ sub load_host_tests_docker {
     unless (is_transactional || is_public_cloud || is_sle('<15-SP4') || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
         loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation");
     }
-    loadtest('containers/skopeo', run_args => $run_args, name => $run_args->{runtime} . "_skopeo") unless (is_sle('<15') || is_sle_micro('<5.5'));
-    load_buildah_tests($run_args) unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
@@ -321,9 +314,6 @@ sub load_helm_chart_tests {
 sub load_container_tests {
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
-    # Workaround while we use 15.99 for SLE 16 maintenance
-    set_var('VERSION', '16.0') if (check_var('VERSION', '15.99'));
-
     if (get_var('CONTAINER_UPDATE_HOST')) {
         update_host_and_publish_hdd();
         return;
@@ -334,6 +324,10 @@ sub load_container_tests {
         loadtest 'installation/bootloader_zkvm' if is_s390x;
         # On Public Cloud we're already booted in the SUT
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
+    }
+
+    if (is_sle('16.0+') && get_var('FLAVOR', '') =~ /increments|staging/i) {
+        loadtest 'qa_automation/patch_and_reboot';
     }
 
     if (my $container_tests = get_var('CONTAINER_TESTS', '')) {

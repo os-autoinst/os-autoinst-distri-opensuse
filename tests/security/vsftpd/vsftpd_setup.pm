@@ -1,14 +1,14 @@
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
-# Summary: Test vsftpd with ssl enabled
+# Summary: Test vsftpd with SSL enabled
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#108614, tc#1769978
 
 use base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils qw(is_sle);
+use version_utils 'is_sle';
 
 sub run {
     my $vsftpd_path = '/etc/vsftpd';
@@ -24,11 +24,11 @@ sub run {
 
     select_console 'root-console';
 
-    # Install vsftpd, expect for Tumbleweed
+    # Install vsftpd; `expect` for Tumbleweed
     zypper_call("in vsftpd expect openssl wget");
 
     # https://bugzilla.suse.com/show_bug.cgi?id=1246224
-    assert_script_run('setsebool -P ftpd_full_access 1') unless is_sle('<16');
+    assert_script_run('setsebool -P ftpd_full_access 1') if is_sle('16+');
 
     # Create self-signed certificate
     assert_script_run("(test -d $vsftpd_path || mkdir $vsftpd_path) && cd $vsftpd_path");

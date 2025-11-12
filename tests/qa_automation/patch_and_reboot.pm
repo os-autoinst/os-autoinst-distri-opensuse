@@ -40,6 +40,7 @@ sub run {
 
     add_suseconnect_product(get_addon_fullname('phub')) if check_var('PATTERNS', 'all') && is_sle('15-SP6+') && is_sle('<16');
     add_test_repositories;
+    record_info('zypper lr', script_output('zypper lr --uri'));
 
     # JeOS is a bootable image and doesn't have installation where we can install
     #   updates as for SLE DVD installation, so we need to update manually.
@@ -56,8 +57,7 @@ sub run {
         fully_patch_system;
     }
 
-    my $suffix = is_jeos ? '-base' : '';
-    assert_script_run("rpm -ql --changelog kernel-default$suffix > /tmp/kernel_changelog.log");
+    assert_script_run("rpm -ql --changelog --whatprovides kernel > /tmp/kernel_changelog.log");
     zypper_call("lr -u", log => 'repos_list.txt');
     upload_logs('/tmp/kernel_changelog.log');
     upload_logs('/tmp/repos_list.txt');

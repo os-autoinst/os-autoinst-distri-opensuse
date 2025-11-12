@@ -50,6 +50,9 @@ sub load_maintenance_publiccloud_tests {
         loadtest "publiccloud/instance_overview", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests($args);
+        } elsif (get_var('PUBLIC_CLOUD_BTRFS')) {
+            loadtest 'publiccloud/btrfs', run_args => $args;
+            loadtest 'publiccloud/snapper', run_args => $args;
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
@@ -67,6 +70,8 @@ sub load_maintenance_publiccloud_tests {
         } elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
             die "ConfigError: Either the provider is not supported or SLE version is old!\n" unless (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE') && is_sle('15-SP4+'));
             loadtest "publiccloud/nvidia", run_args => $args;
+        } elsif (get_var('PUBLIC_CLOUD_EXTRATESTS')) {
+            loadtest "publiccloud/selinux" if (is_sle("16.0+"));
         }
 
         loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
@@ -94,9 +99,11 @@ sub load_publiccloud_consoletests {
 
 my $should_use_runargs = sub {
     my @public_cloud_variables = qw(
+      PUBLIC_CLOUD_BTRFS
       PUBLIC_CLOUD_CONSOLE_TESTS
       PUBLIC_CLOUD_CONTAINERS
       PUBLIC_CLOUD_SMOKETEST
+      PUBLIC_CLOUD_EXTRATESTS
       PUBLIC_CLOUD_AZURE_NFS_TEST
       PUBLIC_CLOUD_NVIDIA
       PUBLIC_CLOUD_FUNCTIONAL
@@ -138,6 +145,9 @@ sub load_latest_publiccloud_tests {
             loadtest "publiccloud/instance_overview", run_args => $args;
             if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
                 load_publiccloud_consoletests($args);
+            } elsif (get_var('PUBLIC_CLOUD_BTRFS')) {
+                loadtest 'publiccloud/btrfs', run_args => $args;
+                loadtest 'publiccloud/snapper', run_args => $args;
             }
             elsif (check_var('PUBLIC_CLOUD_NVIDIA', 1)) {
                 die "ConfigError: The provider is not supported\n" unless (check_var('PUBLIC_CLOUD_PROVIDER', 'GCE') && is_sle('15-SP4+'));
@@ -156,6 +166,8 @@ sub load_latest_publiccloud_tests {
                 loadtest "publiccloud/xfsprepare", run_args => $args;
             } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
                 loadtest("publiccloud/azure_nfs", run_args => $args);
+            } elsif (get_var('PUBLIC_CLOUD_EXTRATESTS')) {
+                loadtest "publiccloud/selinux" if (is_sle("16.0+"));
             }
             loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
         }
@@ -192,6 +204,31 @@ sub load_publiccloud_download_repos {
     loadtest 'shutdown/shutdown';
 }
 
+sub load_publiccloud_appimg_tests {
+    my $args = OpenQA::Test::RunArgs->new();
+    my $publiccloud_app_img = get_var('PUBLIC_CLOUD_APP_IMG');
+    loadtest "publiccloud/prepare_instance", run_args => $args;
+    loadtest("publiccloud/registration", run_args => $args);
+    loadtest "publiccloud/instance_overview", run_args => $args;
+
+    # This can be improved in the future with a hash like:
+    # app_name => 'publiccloud/app-images/test-to-load'
+    if ($publiccloud_app_img eq 'tomcat') {
+        loadtest('publiccloud/app-images/tomcat', run_args => $args);
+    } elsif ($publiccloud_app_img eq 'mariadb') {
+        loadtest("publiccloud/ssh_interactive_start", run_args => $args);
+        loadtest('console/mariadb_srv', run_args => $args);
+        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+    } elsif ($publiccloud_app_img eq 'postgresql') {
+        loadtest("publiccloud/ssh_interactive_start", run_args => $args);
+        loadtest('console/postgresql_server', run_args => $args);
+        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
+    }
+    else {
+        die("Unknown PUBLIC_CLOUD_APP_IMG setting");
+    }
+}
+
 =head2 load_publiccloud_tests
 
 C<load_publiccloud_tests> schedules the test jobs for the variety of groups.
@@ -219,6 +256,10 @@ sub load_publiccloud_tests {
             load_publiccloud_download_repos();
         } elsif (get_var('PUBLIC_CLOUD_QAM')) {
             load_maintenance_publiccloud_tests();
+        } elsif (get_var('PUBLIC_CLOUD_HIMMELBLAU')) {
+            loadtest('publiccloud/himmelblau');
+        } elsif (get_var('PUBLIC_CLOUD_APP_IMG')) {
+            load_publiccloud_appimg_tests();
         } else {
             load_latest_publiccloud_tests();
         }

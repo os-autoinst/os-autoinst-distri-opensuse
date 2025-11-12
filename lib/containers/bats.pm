@@ -29,6 +29,13 @@ use Utils::Architectures;
 our @EXPORT = qw(
   bats_post_hook
   bats_tests
+  cleanup_docker
+  cleanup_podman
+  cleanup_rootless_docker
+  configure_docker
+  configure_rootless_docker
+  go_arch
+  install_gotestsum
   install_ncat
   mount_tmp_vartmp
   patch_junit
@@ -42,7 +49,7 @@ our @EXPORT = qw(
 my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/";
 my $rebooted = 0;
-my $settings;
+my $ip_addr;
 
 my @commands = ();
 
@@ -62,17 +69,143 @@ sub run_command {
     }
 }
 
+sub switch_to_root {
+    select_serial_terminal;
+    push @commands, "### RUN AS root";
+    run_command "cd $test_dir";
+}
+
+sub switch_to_user {
+    select_user_serial_terminal();
+    push @commands, "### RUN AS user";
+    run_command "cd /var/tmp";
+}
+
+sub configure_docker {
+    my (%args) = @_;
+    $args{experimental} //= get_var("DOCKER_EXPERIMENTAL", 0);
+    $args{selinux} //= get_var("DOCKER_SELINUX", 0);
+    $args{tls} //= get_var("DOCKER_TLS", 0);
+
+    my $registry = get_var("REGISTRY", "3.126.238.126:5000");
+    my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn --registry-mirror http://$registry";
+    $docker_opts .= " --experimental" if $args{experimental};
+    $docker_opts .= " --selinux-enabled" if $args{selinux};
+    my $port = 2375;
+    if ($args{tls}) {
+        $port++;
+        my $ca_cert = "ca.pem";
+        my $ca_key = "ca-key.pem";
+        my $req = "cert.csr";
+        my $cert = "cert.pem";
+        my $key = "key.pem";
+        my $opts = "-req -days 7 -sha256 -in $req -CA $ca_cert -CAkey $ca_key -CAcreateserial -out $cert";
+
+        # Create self-signed CA
+        run_command "openssl genrsa -out $ca_key 4096";
+        run_command qq(openssl req -new -x509 -days 7 -key $ca_key -sha256 -subj "/CN=CA" -out $ca_cert -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign");
+        # Create server cert & key
+        run_command "openssl genrsa -out $key 4096";
+        run_command qq(openssl req -new -key $key -subj "/CN=\$(hostname)" -out $req);
+        run_command "openssl x509 $opts -extfile <(echo extendedKeyUsage=serverAuth) -extfile <(echo subjectAltName=DNS:\$(hostname),DNS:localhost,IP:$ip_addr,IP:127.0.0.1)";
+        run_command "cp -f $ca_cert $cert $key /etc/docker/";
+        # Create client server & key
+        run_command "openssl genrsa -out $key 4096";
+        run_command qq(openssl req -new -key $key -subj "/CN=client" -out $req);
+        run_command "openssl x509 $opts -extfile <(echo extendedKeyUsage=clientAuth)";
+        run_command "mkdir -m 700 ~/.docker/ || true";
+        run_command "mv -f $ca_cert $cert $key ~/.docker/";
+        $docker_opts .= " --tlsverify --tlscacert=/etc/docker/$ca_cert --tlscert=/etc/docker/$cert --tlskey=/etc/docker/$key";
+        run_command "cp /etc/docker/ca.pem /etc/pki/trust/anchors/";
+        run_command "update-ca-certificates";
+    }
+    $docker_opts .= " -H tcp://0.0.0.0:$port";
+    run_command "mv /etc/sysconfig/docker{,.bak}";
+    run_command "mv /etc/docker/daemon.json{,.bak}";
+    run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
+    record_info "DOCKER_OPTS", $docker_opts;
+    run_command "systemctl restart docker";
+    run_command "export DOCKER_HOST=tcp://localhost:$port";
+    run_command "export DOCKER_TLS_VERIFY=1" if $args{tls};
+    record_info "docker status", script_output("systemctl status docker", proceed_on_failure => 1);
+    record_info "docker version", script_output("docker version -f json | jq -Mr");
+    record_info "docker info", script_output("docker info -f json | jq -Mr");
+    my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
+    record_info "WARNINGS daemon", $warnings if $warnings;
+    $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
+    record_info "WARNINGS client", $warnings if $warnings;
+}
+
+sub configure_rootless_docker {
+    run_command "modprobe br_netfilter || true";
+    run_command "systemctl stop docker || true";
+
+    switch_to_user;
+
+    # https://docs.docker.com/engine/security/rootless/
+    run_command "dockerd-rootless-setuptool.sh install";
+    run_command "systemctl --user enable --now docker";
+    run_command "export DOCKER_HOST=unix:///run/user/\$(id -u)/docker.sock";
+    record_info "docker status", script_output("systemctl status --user docker", proceed_on_failure => 1);
+    record_info "rootless", script_output("docker info -f json | jq -Mr");
+    my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
+    record_info "WARNINGS daemon", $warnings if $warnings;
+    $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
+    record_info "WARNINGS client", $warnings if $warnings;
+    run_command 'export PATH=$PATH:/usr/sbin:/sbin';
+}
+
+sub cleanup_docker {
+    my $timeout = 300;
+    script_run "mv -f /etc/docker/daemon.json{.bak,}";
+    script_run "mv -f /etc/sysconfig/docker{.bak,}";
+    script_run 'docker rm -vf $(docker ps -aq)', timeout => $timeout;
+    script_run "docker volume prune -a -f", timeout => $timeout;
+    script_run "docker system prune -a -f", timeout => $timeout;
+    script_run "unset DOCKER_HOST DOCKER_TLS_VERIFY";
+    systemctl "restart docker";
+}
+
+sub cleanup_rootless_docker {
+    select_user_serial_terminal;
+    script_run "dockerd-rootless-setuptool.sh uninstall";
+    script_run "rootlesskit rm -rf ~/.local/share/docker";
+}
+
+sub cleanup_podman {
+    my $timeout = 300;
+    script_run 'podman rm -vf $(podman ps -aq --external)', timeout => $timeout;
+    script_run "podman volume prune -f", timeout => $timeout;
+    script_run "podman system prune -a -f", timeout => $timeout;
+    script_run "podman system reset -f";
+}
+
+# Translate RPM arch to Go arch
+sub go_arch {
+    my $arch = shift;
+    return "amd64" if $arch eq "x86_64";
+    return "arm64" if $arch eq "aarch64";
+    return $arch;
+}
+
 sub install_git {
     # We need git 2.47.0+ to use `--ours` with `git apply -3`
-    if (is_sle) {
-        my $version = get_var("VERSION");
-        if (is_sle('<16')) {
-            $version =~ s/-/_/;
-            $version = "SLE_$version";
-        }
-        run_command "sudo zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
+    return if (script_run("test -f /etc/zypp/repos.d/Kernel_tools.repo") == 0);
+    my $version = get_var("VERSION");
+    if (is_sle('<16')) {
+        $version =~ s/-/_/;
+        $version = "SLE_$version";
     }
+    run_command "sudo zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
     run_command "sudo zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
+}
+
+sub install_gotestsum {
+    # We need gotestsum to parse "go test" and create JUnit XML output
+    return if (script_run("command -v gotestsum") == 0);
+    run_command 'export GOPATH=$HOME/go';
+    run_command 'export PATH=$GOPATH/bin:$PATH';
+    run_command 'go install gotest.tools/gotestsum@v1.13.0';
 }
 
 sub install_ncat {
@@ -88,15 +221,11 @@ sub install_ncat {
 }
 
 sub install_bats {
-    my $bats_version = get_var("BATS_VERSION", "1.11.1");
+    my $bats_version = get_var("BATS_VERSION", "1.13.0");
 
     run_command "curl $curl_opts https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -";
     run_command "bash bats-core-$bats_version/install.sh /usr/local";
     script_run("rm -rf bats-core-$bats_version", timeout => 0);
-
-    run_command "mkdir -pm 0750 /etc/sudoers.d/";
-    run_command "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
-    assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
 }
 
 sub configure_oci_runtime {
@@ -111,29 +240,6 @@ sub configure_oci_runtime {
     run_command "mkdir -p /etc/containers/containers.conf.d";
     run_command 'echo -e "[engine]\nruntime=\"' . $oci_runtime . '\"" > /etc/containers/containers.conf.d/engine.conf';
     record_info("OCI runtime", script_output("$oci_runtime --version"));
-}
-
-sub switch_to_root {
-    select_serial_terminal;
-
-    push @commands, "### RUN AS root";
-    run_command "cd $test_dir";
-}
-
-sub switch_to_user {
-    my $user = $testapi::username;
-
-    if (script_run("grep $user /etc/passwd") != 0) {
-        my $serial_group = script_output "stat -c %G /dev/$testapi::serialdev";
-        assert_script_run "useradd -m -G $serial_group $user";
-        assert_script_run "echo '${user}:$testapi::password' | chpasswd";
-        ensure_serialdev_permissions;
-    }
-
-    assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
-
-    select_user_serial_terminal();
-    push @commands, "### RUN AS user";
 }
 
 sub delegate_controllers {
@@ -157,25 +263,11 @@ sub enable_modules {
 sub patch_junit {
     my ($package, $version, $xmlfile, @ignore_tests) = @_;
     my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
-
     my $ignore_tests = join(' ', map { "\"$_\"" } @ignore_tests);
-
     my @passed = split /\n/, script_output "patch_junit $xmlfile '$package $version $os_version' $ignore_tests";
     foreach my $pass (@passed) {
         record_info("PASS", $pass);
     }
-}
-
-sub patch_logfile {
-    my ($tapfile, $xmlfile, @ignore_tests) = @_;
-
-    my $package = get_required_var("BATS_PACKAGE");
-    my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
-
-    die "BATS failed!" if (script_run("test -e $tapfile") != 0);
-
-    @ignore_tests = uniq sort @ignore_tests;
-    patch_junit $package, $version, $xmlfile, @ignore_tests;
 }
 
 # /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
@@ -199,7 +291,62 @@ EOF
 sub setup_pkgs {
     my ($self, @pkgs) = @_;
 
-    push @commands, "### RUN AS root";
+    @commands = ("### RUN AS root");
+
+    install_bats if get_var("BATS_PACKAGE");
+
+    if (script_run("test -f /etc/sudoers.d/usrlocal")) {
+        assert_script_run "mkdir -pm 0750 /etc/sudoers.d/";
+        assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
+        assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
+    }
+
+    enable_modules if is_sle("<16");
+
+    # Install tests dependencies
+    my $oci_runtime = get_var("OCI_RUNTIME", "");
+    if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
+        push @pkgs, $oci_runtime;
+    }
+    push @pkgs, qw(jq xz);
+    @pkgs = uniq sort @pkgs;
+    push @pkgs, "git" unless is_sle;
+    run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 600;
+    install_git unless is_tumbleweed;
+
+    configure_oci_runtime $oci_runtime;
+
+    if (script_run("test -f /usr/local/bin/patch_junit")) {
+        assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
+        assert_script_run "chmod +x /usr/local/bin/patch_junit";
+    }
+
+    # Add IP to /etc/hosts
+    if (script_run("grep -q \$(hostname) /etc/hosts")) {
+        $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
+        assert_script_run "echo $ip_addr \$(hostname) >> /etc/hosts";
+    }
+
+    # Enable SSH
+    my $algo = "ed25519";
+    if (script_run("test -f ~/.ssh/id_$algo.pub")) {
+        systemctl 'enable --now sshd';
+        assert_script_run "ssh-keygen -t $algo -N '' -f ~/.ssh/id_$algo";
+        assert_script_run "cat ~/.ssh/id_$algo.pub >> ~/.ssh/authorized_keys";
+        assert_script_run "ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts";
+        # Persist SSH connections
+        # https://docs.docker.com/engine/security/protect-access/#ssh-tips
+        my $ssh_config = <<'EOF';
+ControlMaster     auto
+ControlPath       ~/.ssh/control-%C
+ControlPersist    yes
+EOF
+        write_sut_file('/root/.ssh/config', $ssh_config);
+        assert_script_run "cp -r /root/.ssh /home/$testapi::username";
+        assert_script_run "chown -R $testapi::username /home/$testapi::username/.ssh";
+    }
+
+    return if $rebooted;
 
     if (get_var("TEST_REPOS", "")) {
         if (script_run("zypper lr | grep -q SUSE_CA")) {
@@ -217,48 +364,6 @@ sub setup_pkgs {
     foreach my $pkg (split(/\s+/, get_var("TEST_PACKAGES", ""))) {
         run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";
     }
-
-    install_bats if get_var("BATS_PACKAGE");
-
-    enable_modules if is_sle("<16");
-
-    # Install tests dependencies
-    my $oci_runtime = get_var("OCI_RUNTIME", "");
-    if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
-        push @pkgs, $oci_runtime;
-    }
-    push @pkgs, qw(jq xz);
-    @pkgs = uniq sort @pkgs;
-    run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 600;
-
-    configure_oci_runtime $oci_runtime;
-
-    return if $rebooted;
-
-    install_git;
-
-    assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
-    assert_script_run "chmod +x /usr/local/bin/patch_junit";
-
-    # Add IP to /etc/hosts
-    my $iface = script_output "ip -4 --json route list match default | jq -Mr '.[0].dev'";
-    my $ip_addr = script_output "ip -4 --json addr show $iface | jq -Mr '.[0].addr_info[0].local'";
-    assert_script_run "echo $ip_addr \$(hostname) >> /etc/hosts";
-
-    # Enable SSH
-    my $algo = "ed25519";
-    systemctl 'enable --now sshd';
-    assert_script_run "ssh-keygen -t $algo -N '' -f ~/.ssh/id_$algo";
-    assert_script_run "cat ~/.ssh/id_$algo.pub >> ~/.ssh/authorized_keys";
-    assert_script_run "ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts";
-    # Persist SSH connections
-    # https://docs.docker.com/engine/security/protect-access/#ssh-tips
-    my $ssh_config = <<'EOF';
-ControlMaster     auto
-ControlPath       ~/.ssh/control-%C
-ControlPersist    yes
-EOF
-    write_sut_file('/root/.ssh/config', $ssh_config);
 
     delegate_controllers;
 
@@ -294,6 +399,9 @@ EOF
     select_serial_terminal;
 
     assert_script_run "mount --make-rshared /tmp" if (script_run("findmnt -no FSTYPE /tmp") == 0);
+
+    record_info "LSM", script_output("cat /sys/kernel/security/lsm", proceed_on_failure => 1);
+    record_info "SELinux", script_output("cat /sys/fs/selinux/enforce", proceed_on_failure => 1) unless is_sle("<16");
 }
 
 sub collect_coredumps {
@@ -320,7 +428,7 @@ sub collect_coredumps {
 
 sub collect_calltraces {
     # Collect all traces
-    my $traces = script_output(q(dmesg | awk '/Call Trace:/ { trace = 1 } trace { print } /<\/TASK>/ { trace = 0; print "" }'));
+    my $traces = script_output(q(dmesg | awk '/(Call Trace:|-+\[ cut here \]-+)/ { trace = 1 } trace { print } /(<\/TASK>|-+\[ end trace)/ { trace = 0; print "" }'));
 
     foreach my $trace (split /\n\n+/, $traces) {
         record_info("TRACE", $trace);
@@ -394,6 +502,7 @@ sub bats_tests {
         podman => "test/system",
         runc => "tests/integration",
         skopeo => "systemtest",
+        umoci => "test",
     );
 
     my $tmp_dir = script_output "mktemp -du -p /var/tmp test.XXXXXX";
@@ -405,7 +514,7 @@ sub bats_tests {
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
     my @tests;
-    foreach my $test (split(/\s+/, get_var("BATS_TESTS", ""))) {
+    foreach my $test (split(/\s+/, get_var("RUN_TESTS", ""))) {
         $test .= ".bats" unless $test =~ /\.bats$/;
         push @tests, "$tests_dir{$package}/$test";
     }
@@ -421,53 +530,49 @@ sub bats_tests {
     }
     my $xmlfile = "$tapfile.xml";
     $tapfile .= ".tap.txt";
-    $cmd .= " | tee -a $tapfile";
+    $cmd .= " </dev/null | tee -a $tapfile";
 
     run_command "echo $tapfile .. > $tapfile";
     push @commands, $cmd;
     my $ret = script_run($cmd, timeout => $timeout);
     script_run "mv report.xml $xmlfile";
 
-    my @ignore_tests = ();
-    unless (get_var("BATS_TESTS")) {
-        push @ignore_tests, @{$settings->{$ignore_tests}} if ($settings->{$ignore_tests});
-        push @ignore_tests, @{$settings->{BATS_IGNORE}} if ($settings->{BATS_IGNORE});
-    }
-    patch_logfile($tapfile, $xmlfile, @ignore_tests);
-
-    parse_extra_log(XUnit => $xmlfile);
     upload_logs($tapfile);
+    my @ignore_tests = get_var("RUN_TESTS") ? () : @{$ignore_tests};
+    # Strip control chars from XML as they aren't quoted and we can't quote them as valid XML 1.1
+    # because it's not supported in most XML libraries anyway. See https://bugs.python.org/issue43703
+    assert_script_run("LC_ALL=C sed -i 's/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]//g' $xmlfile") if ($package eq "umoci");
+    my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
+    patch_junit $package, $version, $xmlfile, @ignore_tests;
+    parse_extra_log(XUnit => $xmlfile);
 
     script_run("sudo rm -rf $tmp_dir", timeout => 0);
 
     return ($ret);
 }
 
-sub bats_settings {
-    my $package = shift;
-    my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
-
-    assert_script_run "curl -o /tmp/patches.yaml " . data_url("containers/patches.yaml");
-    my $text = script_output("cat /tmp/patches.yaml", quiet => 1);
-    my $yaml = YAML::PP->new()->load_string($text);
-
-    return $yaml->{$package}{$os_version};
-}
-
 sub patch_sources {
     my ($package, $branch, $tests_dir) = @_;
 
-    $settings = bats_settings $package;
+    my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
+    my $text = script_output("curl " . data_url("containers/patches.yaml"), quiet => 1);
+    my $yaml = YAML::PP->new()->load_string($text);
+    my $settings = $yaml->{$package}{$os_version};
+
     my @patches = split(/\s+/, get_var("GITHUB_PATCHES", ""));
     if (!@patches && defined $settings->{GITHUB_PATCHES}) {
         @patches = @{$settings->{GITHUB_PATCHES}};
     }
+    # We use GITHUB_PATCHES="none" to specify that we don't want to patch anything
+    @patches = () if check_var("GITHUB_PATCHES", "none");
 
     my $github_org = "containers";
-    if ($package eq "runc") {
+    if ($package =~ /runc|umoci/) {
         $github_org = "opencontainers";
-    } elsif ($package =~ /compose|docker/) {
+    } elsif ($package =~ /buildx|cli|compose|docker/) {
         $github_org = "docker";
+    } elsif ($package =~ /moby/) {
+        $github_org = "moby";
     }
 
     # Support these cases for GITHUB_REPO: [<GITHUB_ORG>]#BRANCH
@@ -484,34 +589,33 @@ sub patch_sources {
 
     $test_dir = "/var/tmp/";
     run_command "cd $test_dir";
-    run_command "git clone https://github.com/$github_org/$package.git", timeout => 300;
+    my $clone_opts = "--quiet --branch $branch";
+    # If we don't have patches to apply, use a faster git-clone
+    $clone_opts .= " --depth=1" unless @patches;
+    run_command "git clone $clone_opts https://github.com/$github_org/$package.git", timeout => 300;
     $test_dir .= $package;
     run_command "cd $test_dir";
-    run_command "git checkout $branch";
 
-    # We use GITHUB_PATCHES="none" to specify that we don't want to patch anything
-    unless (check_var("GITHUB_PATCHES", "none")) {
-        foreach my $patch (@patches) {
-            my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
-            record_info("patch", $url);
-            if ($patch =~ /^\d+$/) {
-                push @commands, "curl $curl_opts -O $url";
-                assert_script_run "curl -O " . data_url("containers/patches/$package/$patch.patch");
-            } else {
-                run_command "curl $curl_opts -O $url", timeout => 900;
-            }
-            # Some patches (e.g., podman's 25942) fail to apply cleanly due to missing files so
-            # try `git apply` first and if it fails use `--include` to restrict the patch scope
-            # to the package tests directory.  Remove this when `git-apply` has a new option to
-            # ignore missing files.
-            my $file = basename($url);
-            my $apply_cmd = "git apply -3 --ours $file";
-            $apply_cmd .= " || git apply -3 --ours --include '$tests_dir/*' $file";
-            run_command $apply_cmd;
+    foreach my $patch (@patches) {
+        my $url = ($patch =~ /^\d+$/) ? "https://github.com/$github_org/$package/pull/$patch.patch" : $patch;
+        record_info("patch", $url);
+        if ($patch =~ /^\d+$/) {
+            push @commands, "curl $curl_opts -O $url";
+            assert_script_run "curl -O " . data_url("containers/patches/$package/$patch.patch");
+        } else {
+            run_command "curl $curl_opts -O $url", timeout => 900;
         }
+        # Some patches (e.g., podman's 25942) fail to apply cleanly due to missing files so
+        # try `git apply` first and if it fails use `--include` to restrict the patch scope
+        # to the package tests directory.  Remove this when `git-apply` has a new option to
+        # ignore missing files.
+        my $file = basename($url);
+        my $apply_cmd = "git apply -3 --ours $file";
+        $apply_cmd .= " || git apply -3 --ours --include '$tests_dir/*' $file" if $tests_dir;
+        run_command $apply_cmd;
     }
 
-    if ($package eq "podman") {
+    if (check_var("BATS_PACKAGE", "podman")) {
         my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
         run_command "curl $curl_opts -o hack/bats $hack_bats";
         assert_script_run q(sed -ri 's/(bats_opts)=.*/\1=(--report-formatter junit)/' hack/bats);

@@ -4,7 +4,6 @@ description: >
   Perform Agama unattended installation with offline medium, and register the system after installation.
 schedule:
   - yam/agama/boot_agama
-  - yam/agama/agama_arrange
   - yam/agama/patch_agama_tests
   - yam/agama/agama
   - installation/grub_test

@@ -1,11 +1,28 @@
 ---
-- hosts: all
+- name: "Run command and save output"
+  hosts: all
   vars:
     cmd: ''
     remote_path: '/tmp/'
     out_file: 'testout.txt'
     failok: no
   tasks:
-  - name: 'Run cmd'
-    shell: "{{ cmd }} > {{ remote_path }}{{ out_file }}"
-    ignore_errors: "{{ failok }}"
+    - name: 'Run cmd and capture output'
+      ansible.builtin.shell: "{{ cmd }}"
+      register: command_output
+      ignore_errors: "{{ failok }}"  # This is controlled by the calling script
+
+    - name: 'Save output to remote file'
+      ansible.builtin.copy:
+        content: "{{ command_output.stdout }}"
+        dest: "{{ remote_path }}{{ out_file }}"
+        mode: '0644'
+
+    - name: 'Check that the file is there'
+      ansible.builtin.stat:
+        path: "{{ remote_path }}{{ out_file }}"
+      register: file_stats
+
+    - name: 'Print file stats for debugging'
+      ansible.builtin.debug:
+        var: file_stats.stat

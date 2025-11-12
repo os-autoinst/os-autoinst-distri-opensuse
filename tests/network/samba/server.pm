@@ -39,7 +39,8 @@ sub run {
 
     record_info 'access';
     assert_script_run "rpcclient -U '$username%$password' -c srvinfo localhost";
-    validate_script_output "net share -S localhost -U '$username%$password'", sub { $_ =~ m/profiles/ && $_ =~ m/users/ && $_ =~ m/groups/ };
+    validate_script_output "net share -S localhost -U '$username%$password'", sub { $_ =~ m/profiles/ && $_ =~ m/users/ };
+    validate_script_output "net share -S localhost -U '$username%$password'", sub { $_ =~ m/groups/ } if (is_sle('<16'));
 
     record_info 'delete user';
     assert_script_run "smbpasswd -x $username";

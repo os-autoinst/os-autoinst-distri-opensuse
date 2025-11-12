@@ -53,11 +53,11 @@ sub run {
     assert_script_run("loginctl");
     my $is_wayland = (script_run('loginctl show-session $(loginctl | grep $(whoami) | awk \'{print $1 }\') -p Type | grep wayland') == 0);
     send_key 'alt-f4';
-    if ($is_wayland && is_leap('<15.4')) {
-        assert_screen 'without_screensharing';
-        record_soft_failure 'boo#1137569 - screen sharing not yet supported on wayland';
-    } else {
-        assert_screen 'with_screensharing';
+    assert_screen [qw(with_screensharing without_screensharing)];
+    if (match_has_tag 'without_screensharing') {
+        record_info 'bsc#1211492';
+    }
+    else {
         is_sle("15-sp4+") ? record_info('gnome-remote-desktop present and the screen sharing are present') : record_info('vino present', 'Vino and the screen sharing are present');
     }
     send_key 'ctrl-q';

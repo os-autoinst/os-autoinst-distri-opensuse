@@ -50,7 +50,7 @@ use base 'concurrent_guest_installations';
 use testapi;
 use Carp;
 use Utils::Backends;
-use virt_autotest::utils qw(check_guest_health select_backend_console);
+use virt_autotest::utils qw(select_backend_console);
 use virt_autotest::domain_management_utils;
 
 sub run {
@@ -83,13 +83,15 @@ sub run {
     }
 
     $self->concurrent_guest_installations_run(\%store_of_guests);
-    check_guest_health($_) foreach (@guest_names);
-    virt_autotest::domain_management_utils::shutdown_guest(guest => join(" ", split(/\|/, get_required_var('UNIFIED_GUEST_LIST')))) if (get_var('KEEP_GUEST_SHUTOFF'));
+    $self->clean_up_guests;
     return $self;
 }
 
 sub test_flags {
-    return {fatal => 0};
+    return {
+        fatal => 0,
+        no_rollback => 1
+    };
 }
 
 sub post_fail_hook {

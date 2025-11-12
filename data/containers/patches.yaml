@@ -7,107 +7,69 @@ aardvark-dns:
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 623
-    BATS_IGNORE:
   sle-16.0:
     GITHUB_PATCHES:
     - 581
     - 619
     - 623
-    BATS_IGNORE:
   sle-15-SP7:
     GITHUB_PATCHES:
     - 519
     - 581
     - 623
-    BATS_IGNORE:
-    - 100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6
   sle-15-SP6:
     GITHUB_PATCHES:
     - 519
     - 581
     - 623
-    BATS_IGNORE:
-    - 100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6
   sle-15-SP5:
     GITHUB_PATCHES:
     - 519
     - 581
     - 623
-    BATS_IGNORE:
-    - 100-basic-name-resolution.bats::basic container - dns itself on container with ipaddress v6
 buildah:
   # Note on patches:
   # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
+  # https://github.com/containers/buildah/pull/6271 - Update "bud with --cpu-shares" test, and rename it
   # https://github.com/containers/buildah/pull/6380 is needed to solve SELinux issue with crun
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 6380
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
   sle-16.0:
     GITHUB_PATCHES:
     - 6226
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    - bud.bats::bud with --cgroup-parent
-    BATS_IGNORE_USER:
   sle-15-SP7:
     GITHUB_PATCHES:
     - 5495
     - 6226
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    - bud.bats::bud-git-context
-    - bud.bats::bud-git-context-subdirectory
-    - bud.bats::bud using gitrepo and branch
-    - bud.bats::bud with --cgroup-parent
-    - run.bats::Check if containers run with correct open files/processes limits
-    BATS_IGNORE_USER:
+    - 6271
   sle-15-SP6:
     GITHUB_PATCHES:
     - 5495
     - 6226
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    - bud.bats::bud-git-context
-    - bud.bats::bud-git-context-subdirectory
-    - bud.bats::bud using gitrepo and branch
-    - bud.bats::bud with --cgroup-parent
-    - run.bats::Check if containers run with correct open files/processes limits
-    BATS_IGNORE_USER:
+    - 6271
   sle-15-SP5:
     GITHUB_PATCHES:
     - 5495
     - 6226
-    BATS_IGNORE:
-    - bud.bats::bud-multiple-platform-no-partial-manifest-list
-    BATS_IGNORE_ROOT:
-    - bud.bats::bud using gitrepo and branch
-    - bud.bats::bud with --cgroup-parent
-    - bud.bats::bud-git-context
-    - bud.bats::bud-git-context-subdirectory
-    - run.bats::Check if containers run with correct open files/processes limits
-    BATS_IGNORE_USER:
   sle-15-SP4:
     GITHUB_PATCHES:
     - 5495
     - 6226
-    BATS_IGNORE:
-    - bud.bats::bud-multiple-platform-no-partial-manifest-list
-    BATS_IGNORE_ROOT:
-    - bud.bats::bud using gitrepo and branch
-    - bud.bats::bud with --cgroup-parent
-    - bud.bats::bud-git-context
-    - bud.bats::bud-git-context-subdirectory
-    - run.bats::Check if containers run with correct open files/processes limits
-    BATS_IGNORE_USER:
+buildx:
+  # Note on patches:
+  # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
+  opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 3475
 compose:
   # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
+  # https://github.com/docker/compose/pull/13334 - flaky compose_run_build_once_test
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
+    - 13334
   sle-16.0:
     GITHUB_PATCHES:
     - 13214
@@ -123,18 +85,9 @@ conmon:
     - 597
     - 602
     - 603
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
   sle-16.0:
     GITHUB_PATCHES:
     - 579
-    - 597
-    - 602
-    - 603
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
 docker-py:
   # Note on patches:
   # https://github.com/docker/docker-py/pull/3199 - Bump default API version to 1.43 (Moby 24.0)
@@ -143,14 +96,20 @@ docker-py:
   # https://github.com/docker/docker-py/pull/3231 - Bump default API version to 1.44 (Moby 25.0)
   # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
   # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
+  # https://github.com/docker/docker-py/pull/3366 - test: Skip from_env_unix tests if DOCKER_HOST is network socket
+  # https://github.com/docker/docker-py/pull/3367 - tests/integration: Make the tests runnable on SELinux enabled daemon
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 3290
     - 3354
+    - 3366
+    - 3367
   sle-16.0:
     GITHUB_PATCHES:
     - 3290
     - 3354
+    - 3366
+    - 3367
   sle-15-SP7:
     GITHUB_PATCHES:
     - 3199
@@ -158,33 +117,31 @@ docker-py:
     - 3206
     - 3231
     - 3290
+    - 3366
+moby:
+  # Note on patches:
+  # https://github.com/moby/moby/pull/51219 - integration/container: Make tests runnable on SELinux enabled daemon
+  # https://github.com/moby/moby/pull/51263 - integration: Skip some tests as rootless
+  opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 51219
+    - 51263
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
   opensuse-Tumbleweed:
-    BATS_IGNORE:
   sle-16.0:
     GITHUB_PATCHES:
     - 1191
-    BATS_IGNORE:
   sle-15-SP7:
     GITHUB_PATCHES:
     - 1191
-    BATS_IGNORE:
-    - 200-bridge-firewalld.bats
-    - 250-bridge-nftables.bats
   sle-15-SP6:
     GITHUB_PATCHES:
     - 1191
-    BATS_IGNORE:
-    - 200-bridge-firewalld.bats
-    - 250-bridge-nftables.bats
   sle-15-SP5:
     GITHUB_PATCHES:
     - 1191
-    BATS_IGNORE:
-    - 200-bridge-firewalld.bats
-    - 250-bridge-nftables.bats
 podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
@@ -199,23 +156,20 @@ podman:
   # https://github.com/containers/podman/pull/26921 is needed to drop socat
   # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
   # https://github.com/containers/podman/pull/27152 is needed for 030-run
+  # https://github.com/containers/podman/pull/27030 - test/e2e: fix podman run default mask test with crun 1.24
   # https://github.com/containers/podman/pull/27230 is needed for 130-kill
   # https://github.com/containers/podman/pull/27233 is needed for 130-kill
+  # https://github.com/containers/podman/pull/27463 - test/system: Update test to handle new error message from runc 1.3.3
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26017
     - 26798
     - 26934
+    - 27030
     - 27152
     - 27230
     - 27233
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT_LOCAL:
-    - 200-pod.bats::pod resource limits
-    BATS_IGNORE_ROOT_REMOTE:
-    BATS_IGNORE_USER_LOCAL:
-    - 252-quadlet.bats::quadlet kube - start error
-    BATS_IGNORE_USER_REMOTE:
+    - 27463
   sle-16.0:
     GITHUB_PATCHES:
     - 25792
@@ -229,119 +183,50 @@ podman:
     - 26934
     - 27230
     - 27233
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT_LOCAL:
-    - 200-pod.bats::pod resource limits
-    BATS_IGNORE_ROOT_REMOTE:
-    BATS_IGNORE_USER_LOCAL:
-    BATS_IGNORE_USER_REMOTE:
+    - 27463
   sle-15-SP7:
     GITHUB_PATCHES:
     - 21875
     - 24068
-    - 25792
     - 25942
     - 26920
     - 27230
     - 27233
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT_LOCAL:
-    BATS_IGNORE_ROOT_REMOTE:
-    BATS_IGNORE_USER_LOCAL:
-    BATS_IGNORE_USER_REMOTE:
   sle-15-SP6:
     GITHUB_PATCHES:
     - 21875
     - 24068
-    - 25792
     - 25942
     - 26920
     - 27230
     - 27233
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT_LOCAL:
-    BATS_IGNORE_ROOT_REMOTE:
-    BATS_IGNORE_USER_LOCAL:
-    BATS_IGNORE_USER_REMOTE:
-podman-py:
-  # Note on patches:
-  # https://github.com/containers/podman-py/pull/572 - tests: Fix tests to reflect removal of rw as default option
-  # https://github.com/containers/podman-py/pull/575 - tests: Fix deprecation warning for utcfromtimestamp()
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 572
-    - 575
 runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/4825 is needed for cgroups
   # https://github.com/opencontainers/runc/pull/4893 is needed for ppc64le issue fixed in runc 1.3.2
   opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 4825
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
   sle-16.0:
     GITHUB_PATCHES:
     - 4825
     - 4893
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
   sle-15-SP7:
     GITHUB_PATCHES:
     - 4825
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
-    - run.bats::runc run [joining existing container namespaces]
-    - userns.bats::userns join other container userns
   sle-15-SP6:
     GITHUB_PATCHES:
     - 4825
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
-    - run.bats::runc run [joining existing container namespaces]
-    - userns.bats::userns join other container userns
   sle-15-SP5:
     GITHUB_PATCHES:
     - 4825
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
-    - run.bats::runc run [joining existing container namespaces]
-    - userns.bats::userns join other container userns
   sle-15-SP4:
     GITHUB_PATCHES:
     - 4825
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
-    - run.bats::runc run [joining existing container namespaces]
-    - userns.bats::userns join other container userns
 skopeo:
   opensuse-Tumbleweed:
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
   sle-16.0:
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
   sle-15-SP7:
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
   sle-15-SP6:
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
   sle-15-SP5:
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
   sle-15-SP4:
-    BATS_IGNORE:
-    BATS_IGNORE_ROOT:
-    BATS_IGNORE_USER:
+umoci:
+  opensuse-Tumbleweed:

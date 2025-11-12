@@ -107,7 +107,7 @@ sub run {
 
     test_ayp_url unless get_var('IPXE_STATIC');
     my $test_data = get_test_suite_data();
-    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed import-untrusted-gpg-key);
+    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed import-untrusted-gpg-key error-show-details);
 
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
     my @expected_warnings;
@@ -309,6 +309,9 @@ sub run {
         }
         elsif (match_has_tag 'expired-gpg-key') {
             send_key 'alt-y';
+        }
+        elsif (match_has_tag 'error-show-details') {
+            send_key 'alt-d';
         }
         elsif (match_has_tag('reboot_now')) {
             send_key 'alt-o';

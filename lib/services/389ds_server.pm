@@ -8,7 +8,7 @@
 # Maintainer: QE Security <none@suse.de>
 
 package services::389ds_server;
-use base "opensusebasetest";
+use base 'consoletest';
 use testapi;
 use utils;
 use warnings;
@@ -17,6 +17,7 @@ use opensslca;
 use network_utils 'iface';
 use Utils::Architectures 'is_s390x';
 use Utils::Systemd qw(disable_and_stop_service systemctl);
+use version_utils qw(has_selinux is_sle);
 
 my $local_name = '389ds';
 my $remote_name = 'sssdclient';
@@ -27,21 +28,28 @@ sub install_service {
     zypper_call("in 389-ds openssl");
 }
 
-# The function below covers all required steps for 389ds server's configuration
-sub config_service {
+# move ssh server to another port on s390x architecture
+sub workaround_CC_s390x {
     my $server_ip = get_var('SERVER_IP', '10.0.2.101');
     my $client_ip = get_var('CLIENT_IP', '10.0.2.102');
-    if (is_s390x) {
-        my $ssh_port = '2222';
-        assert_script_run("ip addr add $server_ip/24 dev " . iface);
-        assert_script_run("echo \"$server_ip server master\" >> /etc/hosts");
-        assert_script_run("echo 'ListenAddress 0.0.0.0' >> /etc/ssh/sshd_config");
-        assert_script_run("echo \"Port $ssh_port\" >> /etc/ssh/sshd_config");
-        systemctl('restart sshd');
-        disable_and_stop_service('firewalld', ignore_failure => 1);
-        disable_and_stop_service('apparmor', ignore_failure => 1);
-    }
+    my $ssh_port = '2222';
+    my $sshd_conf_file = is_sle('>=16') ? '/etc/ssh/sshd_config.d/root.conf' : '/etc/ssh/sshd_config';
+    assert_script_run "ip addr add $server_ip/24 dev " . iface;
+    assert_script_run "echo \"$server_ip server master\" >> /etc/hosts";
+    assert_script_run "echo 'ListenAddress 0.0.0.0' >> $sshd_conf_file";
+    assert_script_run "echo \"Port $ssh_port\" >> $sshd_conf_file";
+    # on SELINUX enabled system, we need to add new port type to avoid sshd start failure
+    assert_script_run "semanage port -a -t ssh_port_t -p tcp $ssh_port" if has_selinux;
+    systemctl('restart sshd');
+    disable_and_stop_service('firewalld', ignore_failure => 1);
+    disable_and_stop_service('apparmor', ignore_failure => 1);
+}
 
+# The function below covers all required steps for 389ds server's configuration
+sub config_service {
+    # Permit ssh/scp from client as root
+    permit_root_ssh();
+    workaround_CC_s390x if is_s390x;
     # Start a local instance with basic configuration file
     assert_script_run("wget --quiet " . data_url("389ds/instance.inf") . " -O /tmp/instance.inf");
     assert_script_run("sed -i 's/\{\{PASSWORD\}\}/$testapi::password/g' /tmp/instance.inf");
@@ -114,8 +122,6 @@ sub config_service {
     # Set the ldap_uri with LDAP over SSL (LDAPS) Certificate
     assert_script_run("sed -i 's/^ldap_uri =.*\$/ldap_uri = ldaps:\\/\\/$local_name.example.com/' /tmp/sssd.conf");
 
-    # Permit ssh/scp from client as root
-    permit_root_ssh();
 }
 
 sub enable_service {

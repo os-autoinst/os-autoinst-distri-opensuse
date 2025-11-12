@@ -95,7 +95,7 @@ subtest '[qesap_az_get_resource_group] die when job_id is undef' => sub {
     # Ensure QESAP_DEPLOYMENT_IMPORT is not set
     set_var('QESAP_DEPLOYMENT_IMPORT', undef);
 
-    dies_ok { qesap_az_get_resource_group() } 'croaks when job_id is not defined';
+    dies_ok { qesap_az_get_resource_group() } 'Die when job_id is not defined';
 };
 
 subtest '[qesap_az_setup_native_fencing_permissions] missing argument' => sub {

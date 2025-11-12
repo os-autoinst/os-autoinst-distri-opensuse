@@ -15,7 +15,7 @@ from typing import Dict, List
 
 
 # Use "(root|user)-(local|remote)" prefix in testsuite based on the filename
-BATS_PACKAGES = r"(?:aardvark|buildah|conmon|netavark|podman|runc|skopeo)"
+BATS_PACKAGES = r"(?:aardvark|buildah|conmon|netavark|podman|runc|skopeo|umoci)"
 PREFIX = re.compile(
     rf"({BATS_PACKAGES}(?:-(?:crun|runc))?(?:-(?:root|user))?(?:-(?:local|remote))?)\.xml$"
 )
@@ -23,7 +23,7 @@ PREFIX = re.compile(
 
 def get_xfails(args: List[str]) -> Dict[str, List[str]]:
     """
-    Transform list of known failures into a dict keyed by testsuite
+    Transform list of known failures into a dict keyed by class
     to hold a set of testcases with empty being all tests
     """
     xfails: Dict[str, List[str]] = {}
@@ -40,7 +40,10 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
     """
     Patch XML with dict of expected failures
     """
-    tree = ET.parse(file)
+    try:
+        tree = ET.parse(file)
+    except ET.ParseError as err:
+        sys.exit(f"ERROR: {err}")
     root = tree.getroot()
 
     prefix = ""
@@ -73,17 +76,18 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
             # We don't do this before because we need to prepend the prefix above
             # and we don't skip on "not failures" because we want to signal if an
             # expected failure passed.
-            if suitename not in xfails:
+            xfails_key = classname
+            if xfails_key not in xfails:
                 continue
 
             casename = testcase.get("name")  # type: ignore
             # Skip if not an expected failure
-            if xfails[suitename] and casename not in xfails[suitename]:
+            if xfails[xfails_key] and casename not in xfails[xfails_key]:
                 continue
 
             failure = testcase.find("failure")
             if failure is None:
-                if xfails[suitename]:
+                if xfails[xfails_key]:
                     # This test was expected to fail but passed
                     print(prefix + suitename, casename)
                 continue
@@ -103,12 +107,27 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
                 int(ts.get("failures", "0")) for ts in root.findall("testsuite")
             )
             root.set("failures", str(total_failures))
-        attribs = dict(
-            zip("package version distri release build arch".split(), info.split())
-        )
-        # str.removesuffix() was added to Python 3.8
-        attribs["name"] = os.path.basename(file)[: -len(".xml")]
-        root.attrib.update(attribs)
+
+        # Add metadata information like package version, etc
+        keys = ["package", "version", "distri", "release", "build", "arch"]
+        values = info.split()
+
+        # Set testsuites name attribute
+        # Note: str.removesuffix() was added to Python 3.8
+        root.set("name", os.path.basename(file)[: -len(".xml")])
+
+        # Create or find <properties> under <testsuites>
+        props = root.find("properties")
+        if props is None:
+            # Insert <properties> as the first child (before <testsuite>)
+            props = ET.Element("properties")
+            root.insert(0, props)
+
+        # Add metadata as <property name="..." value="..."/>
+        for key, value in zip(keys, values):
+            prop = ET.SubElement(props, "property")
+            prop.set("name", key)
+            prop.set("value", value)
 
     tree.write(file, encoding="utf-8", xml_declaration=True)
 

@@ -13,6 +13,8 @@
     hashedPassword: true,
   },
   software: {
-    patterns: ['gnome']
+    patterns: {
+      add: ['gnome']
+    }
   }
 }

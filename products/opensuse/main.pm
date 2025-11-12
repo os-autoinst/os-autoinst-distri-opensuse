@@ -366,7 +366,7 @@ else {
         if (is_upgrade && get_var('PATCH_BEFORE_MIGRATION')) {
             boot_hdd_image;
             loadtest 'migration/patch_and_reboot_system';
-            loadtest 'migration/reboot_to_upgrade';
+            loadtest 'migration/reboot_to_upgrade' unless get_var('OPENSUSE_MIGRATION_TOOL');
         }
         load_zdup_tests();
     }

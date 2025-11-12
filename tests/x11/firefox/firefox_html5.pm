@@ -36,6 +36,7 @@ sub run {
         send_key 'alt-tab';    #Switch to firefox
     }
     $self->exit_firefox;
-    send_key_until_needlematch("generic-desktop", "alt-f4", 6, 5);
+    send_key_until_needlematch ["generic-desktop", "confirm-close-window"], "alt-f4", 6, 5;
+    send_key 'ret' if match_has_tag 'confirm-close-window';
 }
 1;

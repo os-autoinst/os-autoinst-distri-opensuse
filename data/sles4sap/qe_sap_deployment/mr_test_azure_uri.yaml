@@ -7,7 +7,7 @@
 #   Settings are meant to be controlled via OpenQA variables and managed by test:
 #   tests/sles4sap/publiccloud/qesap_ansible.pm
 provider: 'azure'
-apiver: 3
+apiver: 4
 terraform:
   variables:
     # GENERAL VARIABLES #
@@ -16,6 +16,7 @@ terraform:
     admin_user: 'cloudadmin'
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image_uri: '%SLES4SAP_OS_IMAGE_NAME%'
+    allowed_ssh_cidr_csv: '%SLES4SAP_WORKER_IP%'
 
     # HANA
     hana_count: '%NODE_COUNT%'

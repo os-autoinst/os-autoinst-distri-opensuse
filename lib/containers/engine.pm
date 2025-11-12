@@ -233,17 +233,18 @@ Asserts that everything was cleaned up unless c<assert> is set to 0.
 
 sub cleanup_system_host {
     my ($self) = @_;
-    $self->_engine_assert_script_run("ps -q | xargs -r " . $self->runtime . " stop", 180);
+    my $timeout = 300;
+    $self->_engine_script_run("ps -q | xargs -r " . $self->runtime . " stop", $timeout);
 
     # all containers should be stopped before running prune
     # https://github.com/containers/podman/issues/19038
     if ($self->runtime eq 'podman') {
         # retry because on older hosts there can be remnants that take some time before they are cleaned
         $self->_engine_script_retry("rm --force --all", timeout => 120, retry => 3, delay => 60);
-        $self->_engine_script_run("system prune -f --external", timeout => 300);
+        $self->_engine_script_run("system prune -f --external", timeout => $timeout);
     }
-    $self->_engine_script_run("volume prune -f", timeout => 300);
-    $self->_engine_script_run("system prune -a -f", timeout => 300);
+    $self->_engine_script_run("volume prune -f", timeout => $timeout);
+    $self->_engine_script_run("system prune -a -f", timeout => $timeout);
 }
 
 1;

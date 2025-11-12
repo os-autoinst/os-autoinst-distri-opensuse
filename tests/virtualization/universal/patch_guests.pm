@@ -12,7 +12,7 @@ use testapi;
 use qam 'ssh_add_test_repositories';
 use utils;
 use virt_autotest::common;
-#use version_utils;
+use version_utils 'is_sle';
 #use virt_autotest::kernel;
 use virt_autotest::utils;
 
@@ -37,11 +37,18 @@ sub run {
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
     my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
     foreach my $guest (@guests) {
-        if ($guest eq $host_os_version || $guest eq "${host_os_version}TD" || $guest eq "${host_os_version}PV" || $guest eq "${host_os_version}HVM" || $guest eq "${host_os_version}ES") {
-            if (check_var('PATCH_WITH_ZYPPER', '1')) {
+        # Match guests by prefix to handle various suffixes (efi, TD, PV, HVM, ES, _online, _full, etc.)
+        if ($guest =~ /^${host_os_version}(?:TD|PV|HVM|ES|efi|_online|_full|$)/) {
+            if (check_var('PATCH_WITH_ZYPPER', '1') || check_var('PATCH_ON_GUEST', '1')) {
                 assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err -tx|sort -o /tmp/${guest}_dmesg_err_before.txt");
                 record_info("Patching $guest");
-                ssh_add_test_repositories "$guest";
+
+                # For SLES16+, repositories are already configured during agama installation
+                # Only add repositories for older versions
+                unless (is_sle('16+')) {
+                    ssh_add_test_repositories "$guest";
+                }
+
                 ssh_fully_patch_system "$guest";
                 reboot_guest($guest);
                 assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err -tx|sort|comm -23 - /tmp/${guest}_dmesg_err_before.txt > /tmp/${guest}_dmesg_err.txt");
@@ -49,8 +56,24 @@ sub run {
                 assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err > /tmp/${guest}_dmesg_err.txt");
             }
             if (my $pkg = get_var("UPDATE_PACKAGE")) {
+                # Enhanced package handling for SLES16 MU and other maintenance tests
+                # Check if package is installed and from TEST_ repository
+                my $is_installed = script_run("ssh root\@$guest 'rpm -q $pkg'") == 0;
+                my $from_test_repo = script_run("ssh root\@$guest 'zypper if $pkg | grep -qE \"Repository.*TEST_[0-9]+\"'") == 0;
+
+                unless ($is_installed && $from_test_repo) {
+                    # Package either not installed or not from TEST_ repository - install it
+                    record_info("Install Package on $guest", "Installing $pkg from TEST repository on $guest");
+                    assert_script_run("ssh root\@$guest 'zypper -n in $pkg'", timeout => 300);
+
+                    my $version = script_output("ssh root\@$guest 'rpm -q $pkg'");
+                    record_info("Package Installed on $guest", "$pkg installed on $guest: $version");
+                }
+
+                # Wait for purge-kernels service to complete and validate package
                 script_retry("ssh root\@$guest ! systemctl is-active purge-kernels.service", retry => 5);
                 validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
+                record_info("Package Validated on $guest", "$pkg validated on $guest: from TEST repository and up-to-date");
             }
             if (script_run("[[ -s /tmp/${guest}_dmesg_err.txt ]]") == 0) {
                 upload_logs("/tmp/${guest}_dmesg_err_before.txt") if (script_run("[[ -s /tmp/${guest}_dmesg_err_before.txt ]]") == 0); #in case err can't filtered out automatically

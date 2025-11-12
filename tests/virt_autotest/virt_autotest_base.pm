@@ -15,6 +15,7 @@ use XML::Writer;
 use IO::File;
 use virt_utils;
 use Utils::Architectures;
+use Utils::Logging qw(upload_coredumps);
 use virt_autotest::utils;
 use upload_system_log;
 use virt_autotest::utils qw(upload_virt_logs);
@@ -284,7 +285,7 @@ sub post_fail_hook {
     }
     save_screenshot;
 
-    $self->upload_coredumps;
+    upload_coredumps;
     save_screenshot;
 }
 1;

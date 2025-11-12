@@ -17,6 +17,7 @@ use power_action_utils 'power_action';
 use lockapi;
 use mmapi;
 use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
+use mm_network;
 
 our $master;
 our $slave;
@@ -113,9 +114,11 @@ sub run {
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$slave");
     script_run("/usr/bin/clear");
 
-    assert_script_run('nmcli device set ib0 managed no');
-    assert_script_run('nmcli device set ib1 managed no');
-    sleep(3);
+    if (is_networkmanager) {
+        assert_script_run('nmcli device set ib0 managed no');
+        assert_script_run('nmcli device set ib1 managed no');
+        sleep(3);
+    }
     assert_script_run('ip link set up dev ib0');
     assert_script_run('ip link set up dev ib1');
 

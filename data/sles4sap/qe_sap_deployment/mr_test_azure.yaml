@@ -7,7 +7,7 @@
 #   Settings are meant to be controlled via OpenQA variables and managed by test:
 #   tests/sles4sap/publiccloud/qesap_ansible.pm
 provider: 'azure'
-apiver: 3
+apiver: 4
 terraform:
   variables:
     # GENERAL VARIABLES
@@ -21,6 +21,8 @@ terraform:
     # IBSM VARIABLES
     ibsm_rg: '%IBSM_RG%'
     ibsm_vnet_name: '%IBSM_VNET%'
+    # IP FILTERING VARIABLE
+    allowed_ssh_cidr_csv: '%SLES4SAP_WORKER_IP%'
 
     # HANA
     hana_count: '%NODE_COUNT%'

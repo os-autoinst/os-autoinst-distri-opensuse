@@ -128,7 +128,8 @@ sub run {
         return;
     }
 
-    if (get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu')) {
+    my $efi_vars_have_nosb = get_var('UEFI_PFLASH_VARS', '') =~ /nosb/i;
+    if (!$efi_vars_have_nosb && get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu')) {
         $self->tianocore_disable_secureboot;
     }
     if ((get_var("ZDUP") && !is_jeos) || (get_var('ONLINE_MIGRATION') && check_var('BOOTFROM', 'd'))) {

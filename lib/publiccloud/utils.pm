@@ -14,6 +14,7 @@ use Mojo::UserAgent;
 use Mojo::URL;
 use Mojo::JSON 'encode_json';
 use Carp qw(croak);
+use Socket qw(AF_INET AF_INET6 inet_pton);
 
 use strict;
 use warnings;
@@ -62,6 +63,7 @@ our @EXPORT = qw(
   zypper_install_remote
   zypper_install_available_remote
   wait_quit_zypper_pc
+  detect_worker_ip
 );
 
 # Check if we are a BYOS test run
@@ -211,7 +213,7 @@ sub registercloudguest {
     # Check what version of registercloudguest binary we use, chost images have none pre-installed
     my $version = $instance->ssh_script_output(cmd => 'rpm -q --queryformat "%{VERSION}\n" cloud-regionsrv-client', proceed_on_failure => 1);
     if ($version =~ /cloud-regionsrv-client is not installed/) {
-        die 'cloud-regionsrv-client should not be installed' if !is_container_host;
+        die 'cloud-regionsrv-client should be installed' if !is_container_host;
     }
 
     my $cmd_time = time();
@@ -825,6 +827,36 @@ sub wait_quit_zypper_pc {
         delay => $delay,
         retry => $retry,
     );
+}
+
+=head2 detect_worker_ip
+
+    detect_worker_ip($proceed_on_failure)
+
+    Detects the current openQA worker's public IPs (ipv4/6) and returns them as
+    an array of suitable CIDR strings(/32 or /128 for ipv4/6, respectively).
+    The function uses http://checkip.amazonaws.com and falls back to https://ifconfig.me
+    if the first attempt fails.
+    Optionally accepts proceed_on_failure => 1 to return undef instead of dying.
+
+    Return:
+    - worker ip, if retrieved
+    - undef otherwise (if proceed_on_failure is set)
+
+=cut
+
+sub detect_worker_ip {
+    my (%args) = @_;
+    my $ip;
+    for my $url ('http://checkip.amazonaws.com', 'https://ifconfig.me') {
+        $ip = script_output("curl -q -fsS --max-time 10 $url",
+            timeout => 15, proceed_on_failure => 1);
+        $ip =~ s/^\s+|\s+$//g;
+        next unless $ip && (inet_pton(AF_INET, $ip) || inet_pton(AF_INET6, $ip));
+        return $ip;
+    }
+    return undef if $args{proceed_on_failure};
+    die "Worker IP could not be determined - return was $ip";
 }
 
 1;

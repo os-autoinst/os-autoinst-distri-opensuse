@@ -17,26 +17,27 @@ use version_utils qw(is_sle_micro check_version);
 use Mojo::JSON 'j';
 use List::Util 'sum';
 
-sub check_avc {
+# Check for Access Vector Cache (AVC) denials and uploads them
+sub report_avc {
     my ($self) = @_;
 
     my $instance = $self->{my_instance};
-    # Read the Access Vector Cache to check for SELinux denials
+    # Read the AVC to check for SELinux denials
     my $avc = $instance->ssh_script_output(cmd => 'sudo ausearch -ts boot -m avc --format raw', proceed_on_failure => 1, ssh_opts => '-t -o ControlPath=none');
-    record_info("AVC at boot", $avc);
 
     ## Gain better formatted logs and upload them for further investigation
     $instance->ssh_script_run(cmd => 'sudo ausearch -ts boot -m avc > ausearch.txt', ssh_opts => '-t -o ControlPath=none'); # ausearch fails if there are no matches
     assert_script_run("scp " . $instance->username() . "@" . $instance->public_ip . ":ausearch.txt ausearch.txt");
     upload_logs("ausearch.txt");
 
-    # TODO: Uncomment once all ongoing issues are resolved. For now there will be only a record_info
-    #die "SELinux access denials on first boot";
+    ## Report all found AVCs
     my @avc = split(/\n/, $avc);
     for my $row (@avc) {
         $row =~ s/^\s+|\s+$//g;
-        record_info("AVC denial", $row, result => 'fail') unless ($row eq '');
+        record_info("AVC denial", $row, result => 'fail') if ($row);
     }
+    # On SLEM 6.0+ we aim for no AVC denials
+    die "AVC denials detected" if ($avc && is_sle_micro('>=6.0'));
 }
 
 sub run {
@@ -44,19 +45,11 @@ sub run {
     select_serial_terminal();
 
     my $instance = $self->{my_instance} = $args->{my_instance};
-
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
-    $self->check_avc() unless (is_sle_micro('=5.1'));
-
-    # Check that xen-tools-domU is available
-    if (is_ec2() && $instance->ssh_script_output('systemd-detect-virt') =~ /xen/) {
-        $instance->ssh_assert_script_run(cmd => 'rpm -qi xen-tools-domU');
-        # This command is available in the above package
-        record_info('Xen version', $instance->ssh_script_output('xen-detect'));
-    }
+    $self->report_avc();
 
     my $test_package = get_var('TEST_PACKAGE', 'socat');
-    $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
+    $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600) unless get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-add-ssh-keys');
@@ -97,32 +90,42 @@ sub run {
     # dump list of packages
     $instance->run_ssh_command(cmd => 'rpm -qa | sort');
 
-    # package installation test
-    my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);
-    unless ($ret) {
-        die("Testing package \'$test_package\' is already installed, choose a different package!");
+    unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
+        # package installation test
+        my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);
+        unless ($ret) {
+            die("Testing package \'$test_package\' is already installed, choose a different package!");
+        }
+        $instance->run_ssh_command(cmd => 'sudo transactional-update -n pkg install ' . $test_package, timeout => 600);
+        $instance->softreboot();
+        $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package);
     }
-    $instance->run_ssh_command(cmd => 'sudo transactional-update -n pkg install ' . $test_package, timeout => 600);
-    $instance->softreboot();
-    $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package);
 
     # cockpit test
-    $instance->run_ssh_command(cmd => '! curl localhost:9090');
-    $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep inactive');
-    $instance->run_ssh_command(cmd => 'curl http://localhost:9090');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep active');
+    if (is_sle_micro('=6.2')) {
+        # On SLEM 6.2 cockpit is enabled. It's under discussion if this is correct, see bsc#1252729
+        $instance->run_ssh_command(cmd => 'systemctl is-enabled cockpit.socket');
+        $instance->run_ssh_command(cmd => 'curl --no-progress-meter http://localhost:9090');
+        $instance->run_ssh_command(cmd => 'systemctl is-active cockpit.service');
+    } else {
+        # expected not-active
+        $instance->run_ssh_command(cmd => '! curl --no-progress-meter localhost:9090');
+        $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
+        $instance->run_ssh_command(cmd => '! systemctl is-active cockpit.service');
+        $instance->run_ssh_command(cmd => 'curl --no-progress-meter http://localhost:9090');
+        $instance->run_ssh_command(cmd => 'systemctl is-active cockpit.service');
+    }
 
-    # additional tr-up tests
-    $instance->run_ssh_command(cmd => 'sudo transactional-update -n up', timeout => 360);
-    $instance->softreboot();
+    unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
+        # additional tr-up tests
+        $instance->run_ssh_command(cmd => 'sudo transactional-update -n up', timeout => 360);
+        $instance->softreboot();
+    }
 
     # SELinux tests
     my $getenforce = $instance->ssh_script_output('sudo getenforce');
     record_info("SELinux state", $getenforce);
-    if (is_sle_micro('=5.1')) {
-        die "SELinux should be disabled" unless ($getenforce =~ /Disabled/i);
-    } elsif (is_sle_micro('=5.2')) {
+    if (is_sle_micro('=5.2')) {
         die "SELinux should be permissive" unless ($getenforce =~ /Permissive/i);
     } elsif (is_sle_micro('<5.4')) {
         die "SELinux should be permissive" unless ($getenforce =~ /Permissive/i);

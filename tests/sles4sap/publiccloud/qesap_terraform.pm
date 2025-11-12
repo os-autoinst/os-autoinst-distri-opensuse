@@ -30,7 +30,7 @@ use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instance;
 use publiccloud::instances;
-use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos);
+use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos detect_worker_ip);
 use sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
@@ -72,10 +72,6 @@ sub run {
     set_var("MAIN_ADDRESS_RANGE", $maintenance_vars{main_address_range});
     set_var("SUBNET_ADDRESS_RANGE", $maintenance_vars{subnet_address_range});
 
-    # Select console on the host (not the PC instance) to reset 'TUNNELED',
-    # otherwise select_serial_terminal() will be failed
-    select_host_console();
-    select_serial_terminal();
 
     # Collect OpenQA variables and default values
     set_var_output('NODE_COUNT', 1) unless ($ha_enabled);
@@ -103,6 +99,18 @@ sub run {
     } elsif (is_ec2()) {
         set_var('IBSM_PRJ_TAG', '') unless (get_var('IBSM_PRJ_TAG'));
     }
+
+    # Select console on the host (not the PC instance) to reset 'TUNNELED',
+    # otherwise select_serial_terminal() will be failed
+    select_host_console();
+    select_serial_terminal();
+
+    # has to be after select_serial_terminal as detect_worker_ip
+    # needs it.
+    set_var("SLES4SAP_WORKER_IP",
+        qesap_create_cidr_from_ip(
+            ip => detect_worker_ip(proceed_on_failure => 1),
+            proceed_on_failure => 1));
 
     my $deployment_name = deployment_name();
     # Create a QESAP_DEPLOYMENT_NAME variable so it includes the random
@@ -172,7 +180,7 @@ sub run {
     # has been cloned.
     # Not all the conf.yaml used by this file needs it but
     # it is just easier to define it here for all.
-    set_var("ANSIBLE_ROLES", qesap_get_ansible_roles_dir());
+    set_var("ANSIBLE_ROLES", qesap_ansible_get_roles_dir());
     my $reg_mode = 'registercloudguest';    # Use registercloudguest by default
     if (get_var('QESAP_SCC_NO_REGISTER')) {
         $reg_mode = 'noreg';
@@ -226,10 +234,16 @@ sub run {
 
     # Prepare QESAP deployment
     qesap_prepare_env(provider => $provider_setting, region => get_required_var('PUBLIC_CLOUD_REGION'));
-    qesap_create_ansible_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
-    qesap_create_ansible_section(
+    qesap_ansible_create_section(
         ansible_section => 'hana_vars',
         section_content => create_hana_vars_section()) if $ha_enabled;
+    qesap_ansible_create_section(
+        ansible_section => 'create',
+        section_content => $ansible_playbooks) if @$ansible_playbooks;
+    my @ansible_playbook_destroy = ('destroy.yaml');
+    qesap_ansible_create_section(
+        ansible_section => 'destroy',
+        section_content => \@ansible_playbook_destroy) if @$ansible_playbooks;
 
     # Clean leftover peerings (Azure only)
     if (is_azure() && get_var('IBSM_RG')) {

@@ -115,6 +115,11 @@ subtest 'package_version_cmp' => sub {
         '5.3.18-198.1.g6b7890d < 5.3.18-200.1.g3e09edd ');
     ok(package_version_cmp('5.3.18-200.1.g3e09edd ', '5.3.18-198.1.g6b7890d') > 0,
         '5.3.18-200.1.g3e09edd > 5.3.18-198.1.g6b7890d');
+
+    ok(package_version_cmp('1.2.10+20250410', '1.2.9+20250110') > 0, '1.2.10+20250410 > 1.2.9+20250110');
+    ok(package_version_cmp('1.2.9+20250110', '1.2.10+20250410') < 0, '1.2.9+20250110 < 1.2.10+20250410');
+    ok(package_version_cmp('1.2.10+20250410', '1.2.9') > 0, '1.2.10+20250410 > 1.2.9');
+    ok(package_version_cmp('1.2.9', '1.2.10+20250410') < 0, '1.2.9 < 1.2.10+20250410');
 };
 
 subtest 'has_selinux_by_default' => sub {
@@ -172,7 +177,7 @@ subtest 'has_selinux' => sub {
 };
 
 subtest 'bootloader_tests' => sub {
-    use version_utils qw(get_default_bootloader);
+    use version_utils qw(get_default_bootloader get_bootloader);
 
     set_var('DISTRI', 'opensuse');
     set_var('FLAVOR', 'Server-DVD');
@@ -181,13 +186,18 @@ subtest 'bootloader_tests' => sub {
     ok get_default_bootloader eq 'grub2', "Tumbleweed no UEFI is grub2";
 
     set_var('UEFI', '1');
-    ok get_default_bootloader eq 'grub2', "Tumbleweed on UEFI is grub2";
+    ok get_default_bootloader eq 'grub2-bls', "Tumbleweed on UEFI is grub2-bls";
 
     set_var('VERSION', 'Slowroll');
     ok get_default_bootloader eq 'grub2', "Slowroll on UEFI is grub2";
 
     set_var('VERSION', 'Staging:F');
     ok get_default_bootloader eq 'grub2-bls', "Tumbleweed/Staging:F on UEFI is grub2-bls";
+
+    set_var('DISTRI', 'sle-micro');
+    set_var('VERSION', '5.5');
+    set_var('FLAVOR', 'Default-Updates');
+    ok get_default_bootloader eq 'grub2', "SLE Micro 5.5 is grub2";
 
     set_var('DISTRI', 'microos');
     set_var('VERSION', 'Tumbleweed');
@@ -200,9 +210,11 @@ subtest 'bootloader_tests' => sub {
     set_var('FLAVOR', 'MicroOS-Image');
     ok get_default_bootloader eq 'grub2', "MicroOS-Image image is grub2";
 
+    set_var('FLAVOR', 'JeOS-for-RISCV');
+    ok get_default_bootloader eq 'grub2', "JeOS-for-RISCV image is grub2";
+
     set_var('DISTRI', 'opensuse');
     set_var('FLAVOR', 'Server-DVD');
-
     set_var('UPGRADE', 1);
     ok get_default_bootloader eq 'grub2', "Upgrading Tumbleweed on UEFI is grub2";
     set_var('UPGRADE', undef);
@@ -219,6 +231,10 @@ subtest 'bootloader_tests' => sub {
     set_var('UPGRADE', 1);
     ok get_default_bootloader eq 'grub2', "Old Microos UEFI is grub2";
     set_var('UPGRADE', 0);
+
+    set_var('WSL_VERSION', '10');
+    ok get_bootloader eq 'wsl', "WSL uses a custom bootloader";
+    set_var('WSL_VERSION', undef);
 
     set_var('BOOTLOADER', 'does-not-exist');
     dies_ok { get_default_bootloader } "Bootloader variable set, non existant bootloader, causes failure";

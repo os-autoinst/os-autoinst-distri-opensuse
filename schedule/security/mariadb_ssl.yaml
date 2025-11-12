@@ -13,7 +13,7 @@ conditional_schedule:
             s390x:
                 - installation/bootloader_zkvm
             ppc64le:
-                - installation/bootloader
+                - installation/bootloader_start
     setup_multimachine:
         ARCH:
             aarch64:

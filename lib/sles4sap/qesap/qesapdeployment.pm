@@ -32,12 +32,13 @@ use warnings;
 use Carp qw(croak);
 use Mojo::JSON qw(decode_json);
 use YAML::PP;
+use NetAddr::IP;
 use Exporter 'import';
 use Scalar::Util 'looks_like_number';
 use File::Basename;
 use utils qw(file_content_replace script_retry);
 use version_utils 'is_sle';
-use publiccloud::utils qw(get_credentials);
+use publiccloud::utils qw(get_credentials detect_worker_ip);
 use sles4sap::qesap::aws;
 use sles4sap::qesap::azure;
 use sles4sap::qesap::utils;
@@ -65,7 +66,7 @@ our @EXPORT = qw(
   qesap_get_nodes_number
   qesap_get_nodes_names
   qesap_get_terraform_dir
-  qesap_get_ansible_roles_dir
+  qesap_ansible_get_roles_dir
   qesap_prepare_env
   qesap_execute
   qesap_terraform_conditional_retry
@@ -75,10 +76,9 @@ our @EXPORT = qw(
   qesap_ansible_script_output
   qesap_ansible_fetch_file
   qesap_ansible_reg_module
-  qesap_create_ansible_section
+  qesap_ansible_create_section
   qesap_remote_hana_public_ips
   qesap_wait_for_ssh
-  qesap_cluster_log_cmds
   qesap_cluster_logs
   qesap_upload_crm_report
   qesap_supportconfig_logs
@@ -89,6 +89,8 @@ our @EXPORT = qw(
   qesap_import_instances
   qesap_aws_delete_leftover_tgw_attachments
   qesap_terraform_ansible_deploy_retry
+  qesap_create_cidr_from_ip
+  qesap_ssh_intrusion_detection
 );
 
 =head1 DESCRIPTION
@@ -152,32 +154,46 @@ sub qesap_get_variables {
     return \%variables;
 }
 
-=head3 qesap_create_ansible_section
+=head3 qesap_ansible_create_section
 
     Writes "ansible" section into yaml configuration file.
     $args{ansible_section} defines section(key) name.
     $args{section_content} defines content of names section.
-        Example:
-            @playbook_list = ("pre-cluster.yaml", "cluster_sbd_prep.yaml");
-            qesap_create_ansible_section(ansible_section=>'create', section_content=>\@playbook_list);
 
+    Example:
+        @playbook_list = ("pre-cluster.yaml", "cluster_sbd_prep.yaml");
+        qesap_ansible_create_section(ansible_section=>'create', section_content=>\@playbook_list);
+
+=over
+
+=item B<ANSILE_SECTION> - name of the yaml section within the ansible section
+                          usually it is 'create', 'destroy' or 'hana_vars'
+
+=item B<SECTION_CONTENT> - content as a perl hash
+
+=back
 =cut
 
-sub qesap_create_ansible_section {
+sub qesap_ansible_create_section {
     my (%args) = @_;
-    my $ypp = YAML::PP->new;
-    my $section = $args{ansible_section} // 'no_section_provided';
-    my $content = $args{section_content} // {};
+    foreach (qw(ansible_section section_content)) {
+        croak "Missing mandatory $_ argument" unless $args{$_}; }
+
     my %paths = qesap_get_file_paths();
     my $yaml_config_path = $paths{qesap_conf_trgt};
-
     assert_script_run("test -e $yaml_config_path",
         fail_message => "Yaml config file '$yaml_config_path' does not exist.");
 
+    my $ypp = YAML::PP->new;
     my $raw_file = script_output("cat $yaml_config_path");
     my $yaml_data = $ypp->load_string($raw_file);
 
-    $yaml_data->{ansible}{$section} = $content;
+    die "Missing ansible section in $yaml_config_path" unless $yaml_data->{ansible};
+    if ($yaml_data->{apiver} && (int($yaml_data->{apiver}) >= 4) && (grep { $_ eq $args{ansible_section} } ('create', 'destroy', 'test'))) {
+        $yaml_data->{ansible}{sequences}{$args{ansible_section}} = $args{section_content};
+    } else {
+        $yaml_data->{ansible}{$args{ansible_section}} = $args{section_content};
+    }
 
     # write into file
     my $yaml_dumped = $ypp->dump_string($yaml_data);
@@ -765,13 +781,13 @@ sub qesap_get_terraform_dir {
     return join('/', $paths{terraform_dir}, lc $args{provider});
 }
 
-=head3 qesap_get_ansible_roles_dir
+=head3 qesap_ansible_get_roles_dir
 
     Return the path where sap-linuxlab/community.sles-for-sap
     has been installed
 =cut
 
-sub qesap_get_ansible_roles_dir {
+sub qesap_ansible_get_roles_dir {
     my %paths = qesap_get_file_paths();
     return $paths{roles_dir_path};
 }
@@ -945,7 +961,7 @@ sub qesap_ansible_cmd {
     $args{filter} //= 'all';
     $args{timeout} //= bmwqemu::scale_timeout(90);
     $args{failok} //= 0;
-    my $verbose = $args{verbose} ? ' -vvvv' : '';
+    my $verbose = $args{verbose} ? ' -vv' : '';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     record_info('Ansible cmd:', "Run on '$args{filter}' node\ncmd: '$args{cmd}'");
@@ -996,6 +1012,8 @@ sub qesap_ansible_cmd {
 
 =item B<FILE> - result file name
 
+=item B<REMOTE_PATH> - Path to save file in the remote (without file name)
+
 =item B<OUT_PATH> - path to save result file locally (without file name)
 
 =item B<USER> - user on remote host, default to 'cloudadmin'
@@ -1004,13 +1022,11 @@ sub qesap_ansible_cmd {
 
 =item B<FAILOK> - if not set, Ansible failure result in die
 
-=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vv', default is 0.
 
 =item B<TIMEOUT> - max expected execution time, default 180sec.
     Same timeout is used both for the execution of script_output.yaml and for the fetch_file.
     Timeout of the same amount is started two times.
-
-=item B<REMOTE_PATH> - Path to save file in the remote (without file name)
 
 =back
 =cut
@@ -1023,7 +1039,7 @@ sub qesap_ansible_script_output_file {
     $args{failok} //= 0;
     $args{timeout} //= bmwqemu::scale_timeout(180);
     $args{verbose} //= 0;
-    my $verbose = $args{verbose} ? '-vvvv' : '';
+    my $verbose = $args{verbose} ? '-vv' : '';
     $args{remote_path} //= '/tmp/';
     $args{out_path} //= '/tmp/ansible_script_output/';
     $args{file} //= 'testout.txt';
@@ -1147,7 +1163,7 @@ sub qesap_ansible_script_output {
 
 =item B<OUT_PATH> - path to save file locally (without file name)
 
-=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vvvv', default is 0.
+=item B<VERBOSE> - 1 result in ansible-playbook to be called with '-vv', default is 0.
 
 =back
 =cut
@@ -1162,7 +1178,7 @@ sub qesap_ansible_fetch_file {
     $args{out_path} //= '/tmp/ansible_script_output/';
     $args{file} //= 'testout.txt';
     $args{verbose} //= 0;
-    my $verbose = $args{verbose} ? '-vvvv' : '';
+    my $verbose = $args{verbose} ? '-vv' : '';
 
     my $inventory = qesap_get_inventory(provider => $args{provider});
     my $fetch_playbook = 'fetch_file.yaml';
@@ -1352,14 +1368,14 @@ sub qesap_upload_supportconfig_logs {
         filter => "\"$args{host}\"",
         host_keys_check => 1,
         verbose => 1,
-        timeout => bmwqemu::scale_timeout(7200),
+        timeout => bmwqemu::scale_timeout(600),
         failok => $args{failok});
     qesap_ansible_cmd(cmd => "sudo chmod 755 /var/tmp/scc_$log_filename.txz",
         provider => $args{provider},
         filter => "\"$args{host}\"",
         host_keys_check => 1,
         verbose => 1,
-        timeout => bmwqemu::scale_timeout(7200),
+        timeout => bmwqemu::scale_timeout(60),
         failok => $args{failok});
     my $local_path = qesap_ansible_fetch_file(provider => $args{provider},
         host => $args{host},
@@ -1376,9 +1392,16 @@ sub qesap_upload_supportconfig_logs {
 
   List of commands to collect logs from a deployed cluster
 
+=over
+
+=item B<PROVIDER> - Cloud provider name, used to find the inventory
+
+=back
 =cut
 
 sub qesap_cluster_log_cmds {
+    my (%args) = @_;
+    croak "Missing mandatory 'provider' argument" unless $args{provider};
     # Many logs does not need to be in this list as collected with `crm report` as:
     # `crm status`, `crm configure show`, `journalctl -b`,
     # `systemctl status sbd`, `corosync.conf` and `csync2`
@@ -1394,6 +1417,10 @@ sub qesap_cluster_log_cmds {
         {
             Cmd => 'cat /var/tmp/hdbinst.log',
             Output => 'hdbinst.log.txt',
+        },
+        {
+            Cmd => '(cd /var/tmp ; tar -zcf - hdb_* *.trc)',
+            Output => 'hdb_hdblcm_install.tar.gz',
         },
         {
             Cmd => 'cat /var/tmp/hdblcm.log',
@@ -1416,13 +1443,13 @@ sub qesap_cluster_log_cmds {
             Output => 'rpm-qa.txt',
         }
     );
-    if (check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+    if ($args{provider} eq 'EC2') {
         push @log_list, {
             Cmd => 'cat ~/.aws/config > aws_config.txt',
             Output => 'aws_config.txt',
         };
     }
-    elsif (check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE')) {
+    elsif ($args{provider} eq 'AZURE') {
         push @log_list, {
             Cmd => 'cat /var/log/cloud-init.log > azure_cloud_init_log.txt',
             Output => 'azure_cloud_init_log.txt',
@@ -1442,36 +1469,32 @@ sub qesap_cluster_logs {
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
     my $inventory = qesap_get_inventory(provider => $provider);
 
-    if (script_run("test -e $inventory", 60) == 0)
-    {
-        foreach my $host ('hana[0]', 'hana[1]') {
-            foreach my $cmd (qesap_cluster_log_cmds()) {
-                my $log_filename = "$host-$cmd->{Output}";
-                # remove square brackets
-                $log_filename =~ s/[\[\]"]//g;
-                my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
-                    provider => $provider,
-                    host => $host,
-                    failok => 1,
-                    root => 1,
-                    path => '/tmp/',
-                    out_path => '/tmp/ansible_script_output/',
-                    file => $log_filename);
-                upload_logs($out, failok => 1);
-            }
-            # Upload crm report
-            qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
+    # return != 0 means no inventory
+    return if (script_run("test -e $inventory", 60));
+    foreach my $host ('hana[0]', 'hana[1]') {
+        foreach my $cmd (qesap_cluster_log_cmds(provider => $provider)) {
+            my $log_filename = "$host-$cmd->{Output}";
+            $log_filename =~ s/[\[\]"]//g;
+            my $out = qesap_ansible_script_output_file(cmd => $cmd->{Cmd},
+                provider => $provider,
+                host => $host,
+                failok => 1,
+                root => 1,
+                remote_path => '/tmp/',
+                out_path => '/tmp/ansible_script_output/',
+                file => $log_filename);
+            upload_logs($out, failok => 1);
         }
-
-        # Collect logs in iscsi service node if there is.
-        qesap_save_y2logs(provider => $provider, host => 'iscsi[0]', failok => 1) if (script_run("grep -q 'iscsi' $inventory") == 0);
+        # Upload crm report
+        qesap_upload_crm_report(host => $host, provider => $provider, failok => 1);
     }
+
+    # Collect logs in iscsi service node if there is.
+    qesap_save_y2logs(provider => $provider, host => 'iscsi[0]', failok => 1) if (script_run("grep -q 'iscsi' $inventory") == 0);
 
     if ($provider eq 'AZURE') {
         my @diagnostic_logs = qesap_az_diagnostic_log();
-        foreach (@diagnostic_logs) {
-            push(@log_files, $_);
-        }
+        push(@log_files, $_) foreach (@diagnostic_logs);
         qesap_upload_logs();
     }
 }
@@ -1539,11 +1562,10 @@ sub qesap_supportconfig_logs {
     croak "Missing mandatory argument 'provider'" unless $args{provider};
     my $inventory = qesap_get_inventory(provider => $args{provider});
 
-    if (script_run("test -e $inventory", 60) == 0)
-    {
-        foreach my $host ('hana[0]', 'hana[1]') {
-            qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
-        }
+    # return != 0 means no inventory
+    return if (script_run("test -e $inventory", 60));
+    foreach my $host ('hana[0]', 'hana[1]') {
+        qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
     }
 }
 
@@ -1852,6 +1874,101 @@ sub qesap_ansible_error_detection {
     }
     record_info('ANSIBLE ISSUE', $error_message) unless $ret_code eq 0;
     return $ret_code;
+}
+
+=head2 qesap_create_cidr_from_ip
+
+    qesap_create_cidr_from_ip( proceed_on_failure )
+
+    Takes an IP as argument and returns the CIDR string that
+    denotes this specific ip (adds /32 mask for ipv4, /128 for ipv6).
+    Return:
+     - CIDR notation for the provided IP
+     - undef if IP can't be validated and proceed_on_failure is true
+
+=over
+
+=item B<IP> - The ip to convert to CIDR
+
+=back
+=cut
+
+sub qesap_create_cidr_from_ip {
+    my (%args) = @_;
+    my $ip = $args{ip} // '';
+    $ip =~ s/^\s+|\s+$//g;
+    $ip =~ s{/\d+\s*$}{};
+
+    # NetAddr objects add the appropriate v4 or v6 mask automatically
+    my $ret = NetAddr::IP->new($ip);
+
+    return $ret->cidr if ($ret);
+    return undef if $args{proceed_on_failure};
+    die "The provided IP could not be validated: $ip";
+}
+
+=head3 qesap_ssh_intrusion_detection
+
+  Search and report relevant messages from the journal.
+
+=over
+
+=item B<PROVIDER> - cloud provider name as from PUBLIC_CLOUD_PROVIDER setting
+
+=back
+=cut
+
+sub qesap_ssh_intrusion_detection {
+    my (%args) = @_;
+    croak "Missing mandatory 'provider' argument" unless $args{provider};
+    my $inventory = qesap_get_inventory(provider => $args{provider});
+    my $attempts;
+    my %users;
+    my %ips;
+    my %report;
+    my $log_filename;
+
+    # return != 0 means no inventory
+    return if (script_run("test -e $inventory", 60));
+    foreach my $host ('hana[0]', 'hana[1]') {
+        $log_filename = "$host-intrusion-log.txt";
+        $log_filename =~ s/[\[\]"]//g;
+        my $out_file = qesap_ansible_script_output_file(
+            cmd => 'journalctl -u sshd | grep \"Connection closed by\"',
+            provider => $args{provider},
+            host => $host,
+            failok => 1,
+            root => 1,
+            verbose => 1,
+            remote_path => '/tmp/',
+            out_path => '/tmp/ansible_script_output/',
+            file => $log_filename);
+        unless (script_run("test -e $out_file")) {
+            upload_logs($out_file, failok => 1);
+            my $output = script_output("cat $out_file");
+            $attempts = 0;
+            %users = ();
+            %ips = ();
+
+            next if $attempts == 0;
+
+            foreach my $line (split /\n/, $output) {
+                # Regular expression to capture user and IP for both 'authenticating user' and 'invalid user'
+                if ($line =~ /Connection closed by (?:authenticating|invalid) user (\S+) (\S+)/) {
+                    my ($user, $ip) = ($1, $2);
+                    $users{$user}++;
+                    $ips{$ip}++;
+                    $attempts++;
+                }
+            }
+
+            $report{$host}{attempts} = $attempts;
+            $report{$host}{users} = [keys %users];
+            $report{$host}{ips} = [keys %ips];
+            record_info("SSHD Log Analysis for $host",
+                "Found $report{$host}{attempts} login attempts. Users: @{$report{$host}{users}}. IPs: @{$report{$host}{ips}}");
+        }
+    }
 }
 
 1;

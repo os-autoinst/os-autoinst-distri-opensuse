@@ -101,7 +101,6 @@ conditional_schedule:
         VERSION:
             'Tumbleweed':
                 - console/systemd_resolved
-                - console/parsec
                 - console/systemd_rpm_macros
                 - console/vsftpd
                 - console/year_2038_detection

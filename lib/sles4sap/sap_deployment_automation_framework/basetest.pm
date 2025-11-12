@@ -13,13 +13,14 @@ use strict;
 use warnings;
 use testapi;
 use Exporter qw(import);
-use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables $output_log_file sdaf_upload_logs);
+use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::deployment_connector;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::sap_deployment_automation_framework::inventory_tools;
 use sles4sap::console_redirection;
+use sles4sap::azure_cli;
 
-our @EXPORT = qw(full_cleanup $serial_regexp_playbook);
+our @EXPORT = qw(full_cleanup $serial_regexp_playbook ibsm_data_collect _sdaf_ibsm_teardown);
 our $serial_regexp_playbook = 0;
 
 =head1 SYNOPSIS
@@ -78,12 +79,15 @@ sub full_cleanup {
 
     # Trigger SDAF remover script to destroy 'workload zone' and 'sap systems' resources
     # Clean up all config files, keys, etc.. on deployer VM
+    my %cleanup_results;
     if ($redirection_works) {
         load_os_env_variables();
         az_login();
-        sdaf_cleanup();
+        _sdaf_ibsm_teardown() if get_var('IS_MAINTENANCE');
+        %cleanup_results = %{sdaf_cleanup()};
         disconnect_target_from_serial();    # Exist Deployer console since we are about to destroy it
     }
+
     # Do not make cleanup fail here, we still need to destroy deployer VM and its resources.
     record_info('SUT cleanup', 'Failed to set up redirection, skipping SDAF cleanup scripts.') unless $redirection_works;
 
@@ -101,11 +105,130 @@ sub full_cleanup {
             die('Delete orphaned peerings failed, please check log and delete manually');
         }
     }
+    # Report cleanup failures
+    if ($cleanup_results{remover_failed} or ($cleanup_results{file_cleanup} eq 'fail')) {
+        die('Some of the cleanup tasks failed, please check logs for details.');
+    }
+}
+
+=head2 _sdaf_ibsm_teardown
+
+
+    _sdaf_ibsm_teardown();
+
+All existing peerings are deleted in 3 attempts. Function does not croak/die. Only reports about failure and
+lets other cleanup procedures to continue.
+
+=cut
+
+sub _sdaf_ibsm_teardown {
+    my $peerings = ibsm_data_collect();
+    for my $peering_type (keys %{$peerings}) {
+        my $peering_data = $peerings->{$peering_type};
+        my $attempt = 1;
+
+
+        record_info('PEERING DEL', <<"record_info"
+Following network peering will be deleted:
+Peering: $peering_data->{peering_name}
+Resource group: $peering_data->{source_resource_group}
+record_info
+        );
+
+        while ($peering_data->{exists}) {
+            record_info("Attempt #$attempt");
+            az_network_peering_delete(
+                name => $peering_data->{peering_name},
+                resource_group => $peering_data->{source_resource_group},
+                vnet => $peering_data->{source_vnet},
+                timeout => '120'
+            );
+            # 5 seconds between API calls
+            sleep 5;
+            # Check if peering was deleted
+            $peering_data->{exists} = az_network_peering_exists(
+                resource_group => $peering_data->{source_resource_group},
+                vnet => $peering_data->{source_vnet},
+                name => $peering_data->{peering_name}
+            );
+            # exit loop after 3rd attempt
+            last if $attempt == 3;
+            $attempt++;
+        }
+        if ($peering_data->{exists}) {
+            # only set `record_info` to fail, let the rest of cleanup continue.
+            record_info(
+                'DELETE FAIL', "Deleting peering '$peering_data->{peering_name}' failed after $attempt attempts",
+                result => 'fail'
+            );
+        }
+        else {
+            record_info('DELETE PASS', "Deleting peering '$peering_data->{peering_name}' successful");
+        }
+    }
+    my $workload_resource_group = get_workload_resource_group(deployment_id => find_deployment_id());
+    az_network_dns_links_cleanup(resource_group => $workload_resource_group);
+    az_network_dns_zones_cleanup(resource_group => $workload_resource_group);
+}
+
+=head2 ibsm_data_collect
+
+    ibsm_data_collect();
+
+
+Collects information about existing network peerings between B<IBSM mirror VNET> and B<test workload zone VNET>.
+Returns B<HASHREF> with all data collected in following format:
+
+{ peering_type = {
+    peering_name => 'peering_name',
+    source_resource_group => 'source_resource_group_name',
+    target_resource_group => 'target_resource_group_name',
+    source_vnet => 'source_vnet_game',
+    target_vnet => 'target_vnet_game',
+    exists => '<0/1>'
+  }
+}
+
+=cut
+
+sub ibsm_data_collect {
+    my $ibsm_rg = get_required_var('IBSM_RG');
+    my $ibsm_vnet_name = ${az_network_vnet_get(resource_group => $ibsm_rg)}[0];
+    my $workload_resource_group = get_workload_resource_group(deployment_id => find_deployment_id());
+    my $workload_vnet_name = ${az_network_vnet_get(resource_group => $workload_resource_group)}[0];
+    my $ibsm_peering_name = get_ibsm_peering_name(source_vnet => $ibsm_vnet_name, target_vnet => $workload_vnet_name);
+    my $workload_peering_name = get_ibsm_peering_name(source_vnet => $workload_vnet_name, target_vnet => $ibsm_vnet_name);
+
+    my %peerings = (
+        ibsm_peering => {
+            peering_name => $ibsm_peering_name,
+            source_resource_group => $ibsm_rg,
+            target_resource_group => $workload_resource_group,
+            source_vnet => $ibsm_vnet_name,
+            target_vnet => $workload_vnet_name,
+            exists => az_network_peering_exists(
+                resource_group => $ibsm_rg,
+                vnet => $ibsm_vnet_name,
+                name => $ibsm_peering_name)
+        },
+        workload_peering => {
+            peering_name => $workload_peering_name,
+            source_resource_group => $workload_resource_group,
+            target_resource_group => $ibsm_rg,
+            source_vnet => $workload_vnet_name,
+            target_vnet => $ibsm_vnet_name,
+            exists => az_network_peering_exists(
+                resource_group => $workload_resource_group,
+                vnet => $workload_vnet_name,
+                name => $workload_peering_name)
+        }
+    );
+    return (\%peerings);
 }
 
 sub post_fail_hook {
     my ($self, $run_args) = @_;
-    # Flag for uploading SUT losgs if sdaf_execute_playbook() failed
+    # Flag for uploading SUT logs if sdaf_execute_playbook() failed
     my $upload_SUT_logs = $serial_regexp_playbook;
 
     record_info('Post fail', 'Executing post fail hook');

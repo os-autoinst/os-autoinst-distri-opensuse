@@ -38,6 +38,7 @@ our @EXPORT = qw(
   get_default_pkg
   install_from_repo
   prepare_whitelist_environment
+  setup_kernel_logging
 );
 
 sub loadtest_kernel {
@@ -532,6 +533,25 @@ sub prepare_whitelist_environment {
     };
 
     return $environment;
+}
+
+# NOTE: root is expected
+sub setup_kernel_logging {
+    my $grub_param = 'ignore_loglevel';
+
+    # /sys/module/printk/parameters/ignore_loglevel was added to mainline in v3.2-rc1 in
+    # 0eca6b7c78fd ("printk: add module parameter ignore_loglevel to control ignore_loglevel").
+    # Therefore SLE11-SP4 doesn't support it (but it supports ignore_loglevel
+    # as an early kernel command-line parameter => ok to add it to grub).
+    script_run('echo 1 >/sys/module/printk/parameters/ignore_loglevel')
+      unless is_sle('<12');
+
+    if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
+        script_run('echo 1 > /sys/module/printk/parameters/time');
+        $grub_param .= ' printk.time=1';
+    }
+
+    return $grub_param;
 }
 
 1;

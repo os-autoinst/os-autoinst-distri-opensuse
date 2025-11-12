@@ -16,8 +16,7 @@ sub run {
     script_output("
         mkdir /root/.ssh
         curl -f -v " . autoinst_url . "/data/slenkins/ssh/id_rsa > /root/.ssh/id_rsa
-        chmod 600 /root/.ssh/*
-        chmod 700 /root/.ssh
+        chmod -R go-rwx /root/.ssh
 
         # slenkins-engine is required for /usr/lib/slenkins/lib/slenkins-functions.sh below
         zypper -n --no-gpg-checks in " . get_var('SLENKINS_CONTROL') . " slenkins-engine slenkins

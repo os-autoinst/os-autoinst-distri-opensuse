@@ -29,7 +29,9 @@ sub upload_agama_logs {
     save_and_upload_log('journalctl -b > /tmp/journal.log', "/tmp/journal.log", {timeout => 60});
 
     # logs from the UI saved by default to this path
-    upload_logs("/root/Downloads/agama-logs.tar.gz", log_name => 'agama-logs-from-ui.tar.gz', failok => 1);
+    if (script_run("test -f /root/Downloads/agama-logs.tar.gz") == 0) {
+        upload_logs("/root/Downloads/agama-logs.tar.gz", log_name => 'agama-logs-from-ui.tar.gz');
+    }
 }
 
 sub upload_browser_automation_dumps {

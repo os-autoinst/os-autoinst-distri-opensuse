@@ -64,7 +64,7 @@ sub run {
     $instance_type = $instance_type_remote;
     $instance_id = $instance_id_remote;
     # Wait for failover to finish and check resource locations
-    record_info('Fail wait', 'Waiting for failover to complete');
+    record_info('Failover wait', 'Waiting for failover to complete');
     wait_for_idle_cluster;
     crm_check_resource_location(resource => "grp_$sap_sid\_$instance_type$instance_id", wait_for_target => $physical_hostname);
     barrier_wait('ENSA_FAILOVER_DONE');    # sync nodes
@@ -77,7 +77,7 @@ sub run {
             sleep 300;
             record_info "sleep 300s for 12-SP5";
         }
-        record_info('Failover', "Executing 'HAFailoverToNode'. Failover from $physical_hostname to remote site");
+        record_info('Failback', "Executing 'HAFailoverToNode'. Failover from $physical_hostname to remote site");
         sapcontrol(webmethod => 'HAFailoverToNode', instance_id => $instance_id, sidadm => $sidadm,
             additional_args => "\"\"");
     }
@@ -87,8 +87,9 @@ sub run {
     $instance_id = $instance_id_original;
 
     # Wait for failover to finish and check resource locations
-    record_info('Fail wait', 'Waiting for failover to complete');
-    crm_check_resource_location(resource => "grp_$sap_sid\_$instance_type$instance_id", wait_for_target => $physical_hostname);
+    record_info('Failback wait', 'Waiting for failover to complete');
+    wait_for_idle_cluster;
+    crm_check_resource_location(resource => "grp_$sap_sid\_$instance_type$instance_id", wait_for_target => $physical_hostname, timeout => 360);
     barrier_wait('ENSA_ORIGINAL_STATE');    # sync nodes
                                             # Final checks
     $self->webmethod_checks($instance_id);

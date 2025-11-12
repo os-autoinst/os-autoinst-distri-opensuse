@@ -469,8 +469,34 @@ sub boot_to_console {
     select_console('sol', await_console => 0) if is_ipmi;
     $self->wait_boot;
     select_serial_terminal;
-    assert_script_run('echo 1 >/sys/module/printk/parameters/ignore_loglevel')
-      unless is_sle('<12');
+    setup_kernel_logging;
+}
+
+sub install_requirements {
+    my @requirements = qw(
+      rasdaemon
+      libnvme1
+      nvme-cli
+      rdma-core
+      rdma-ndd
+      librdmacm1
+      blktrace
+      bpftrace
+      bcc-tools
+      libbcc0
+      tcpdump
+      kdump
+      crash
+      makedumpfile
+      nfs-client
+      nfs-kernel-server
+      open-iscsi
+      multipath-tools
+      liburing2
+      net-tools
+    );
+
+    install_package(join(' ', @requirements));
 }
 
 sub run {
@@ -491,15 +517,11 @@ sub run {
         boot_to_console($self);
     }
 
-    # SLE Micro RT 5.1 image contains both kernel flavors, we need to remove kernel-default
-    if (is_sle_micro('=5.1') && check_var('SLE_PRODUCT', 'slert')) {
-        trup_call('pkg rm kernel-default');
-        # kernel-rt will be removed with kernel-default, we can't lock it before, we need to install it after
-        trup_call('-c pkg in kernel-rt');
-        reboot_on_changes;
-    }
+    # Install requirements for SLE 16 staging tests
+    install_requirements if check_var('FLAVOR', 'Online-Kernel-Utils-Updates-Staging');
 
-    my $repo = is_sle_micro('>=6.0') ? get_var('OS_TEST_REPOS') : get_var('KOTD_REPO');
+    my $repo = get_var('KOTD_REPO');
+    $repo = get_var('OS_TEST_REPOS') if (!defined($repo) && (is_sle_micro('>=6.0') || (is_sle('16+'))));
     my $incident_id = undef;
     my $grub_param = get_var('APPEND_GRUB_PARAMS');
 
@@ -589,7 +611,7 @@ sub run {
         reboot_on_changes;
     } elsif (!get_var('KGRAFT')) {
         power_action('reboot', textmode => 1);
-        reconnect_mgmt_console if is_pvm;
+        reconnect_mgmt_console if is_pvm || is_ipmi;
         $self->wait_boot if get_var('LTP_BAREMETAL');
     }
 }

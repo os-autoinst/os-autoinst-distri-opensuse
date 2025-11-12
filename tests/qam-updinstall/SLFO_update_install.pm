@@ -32,7 +32,18 @@ use Utils::Architectures qw(is_s390x);
 
 my @conflicting_packages = (
     'coreutils-single',
+    'nv-prefer-signed-open-driver',
+    'nvidia-open-signed-kmp',
+    'nvidia-open-driver-G06-signed-kmp-default',
+    'nvidia-open-driver-G06-signed-kmp-64kb',
+    'nvidia-open-driver-G06-signed-cuda-kmp-default',
+    'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
+    'nvidia-open-driver-G06-signed-cuda-default-devel',
 );
+
+# We may need to skip installing some packages based on test requirements
+# see example at poo#191485
+my @skipped_pkgs = qw(kernel-kvmsmall kernel-kvmsmall-devel);
 
 sub get_patch {
     my ($incident_id, $repos) = @_;
@@ -43,8 +54,16 @@ sub get_patch {
 
 sub reboot_and_login {
     prepare_system_shutdown;
-    power_action('reboot');
-    opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200);
+    my $textmode = 1;
+    if (systemctl('is-enabled display-manager', ignore_failure => 1) == 0 && !is_s390x) {
+        $textmode = 0;
+        power_action('reboot');
+        set_var('DESKTOP', 'gnome', reload_needles => 1);
+    }
+    else {
+        power_action('reboot');
+    }
+    opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200, textmode => $textmode);
     select_serial_terminal;
 }
 
@@ -90,7 +109,7 @@ sub run {
 
         # Make a list of the conflicting binaries in this patch
         my @patch_conflicts = uniq pairmap {
-            map { $_ =~ /(^\s+(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?!srcpackage:)(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
+            map { $_ =~ /(^\s+(?!srcpackage:)(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?!srcpackage:)(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
         print "Conflicting packages: @patch_conflicts\n";
 
         for my $pkg (@patch_conflicts) {
@@ -99,6 +118,10 @@ sub run {
                 # remove the conflicting package from list which is used for preinstall
                 @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
             }
+        }
+
+        for my $pkg (@skipped_pkgs) {
+            @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
         }
 
         disable_test_repositories($repos_count);
@@ -125,7 +148,8 @@ sub run {
 
         # Install released binaries present in patch
         record_info 'Preinstall', 'Install affected packages before update repo is enabled';
-        zypper_call("in -l @patch_conflicts", exitcode => [0, 102, 103, 104], log => "prepare_$patch.log", timeout => 1500);
+        zypper_call("--ignore-unknown in -l --force-resolution --solver-focus Update @patch_conflicts", exitcode => [0, 102, 103, 104], log => "prepare_$patch.log", timeout => 1500);
+        record_soft_failure "poo#1234 Preinstalled package is missing, check log prepare_${patch}." if (script_run("grep 'not found in package names' /tmp/prepare_${patch}.log") == 0);
 
         enable_test_repositories($repos_count);
 

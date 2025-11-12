@@ -51,3 +51,13 @@ repos:
     uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Source-Build%BUILD%/
     enabled: 'No'
     filter: name
+  - name: NVIDIA-GPU-Compute-Toolkit-CUDA
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:NVIDIA-GPU-Compute-Toolkit-CUDA
+    uri: https://developer.download.nvidia.com/compute/cuda/repos/sles15/%ARCH%
+    enabled: 'No'
+    filter: name
+  - name: NVIDIA-Graphics-Drivers
+    alias: SUSE_Linux_Enterprise_Server_%VERSION%_%ARCH%:NVIDIA-Graphics-Drivers
+    uri: https://download.nvidia.com/suse/sle16
+    enabled: 'No'
+    filter: name

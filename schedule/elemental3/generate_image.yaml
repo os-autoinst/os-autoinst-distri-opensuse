@@ -1,7 +1,0 @@
-name: generate_image
-description: >
-  Test container image and extract Elemental ISO/HDD image.
-  Maintainer: unified-core@suse.com, ldevulder@suse.com
-schedule:
-  - microos/disk_boot
-  - elemental3/generate_image

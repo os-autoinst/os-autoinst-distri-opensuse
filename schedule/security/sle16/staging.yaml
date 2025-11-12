@@ -1,0 +1,31 @@
+name: Agama staging smoke tests
+description: >
+  Run some FIPS smoke tests in staging
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - fips/fips_setup
+  - '{{enable_tpm2}}'
+  - security/selinux/selinux_smoke
+  - fips/mozilla_nss/nss_smoke
+  - fips/gnutls/gnutls_base_check
+  - fips/openssl/openssl_fips_alglist
+  - fips/openssl/openssl_tlsv1_3
+  - fips/openssh/openssh_fips
+  - console/libgcrypt
+  - console/apache_ssl
+  - console/nginx
+  - console/sshd
+  - console/ssh_cleanup
+conditional_schedule:
+  enable_tpm2:
+    ARCH:
+      x86_64:
+        - security/tpm2/tpm2_env_setup
+        - security/tpm2/tpm2_engine/tpm2_engine_info
+        - security/tpm2/tpm2_engine/tpm2_engine_rsa_operation
+      aarch64:
+        - security/tpm2/tpm2_env_setup
+        - security/tpm2/tpm2_engine/tpm2_engine_info
+        - security/tpm2/tpm2_engine/tpm2_engine_rsa_operation

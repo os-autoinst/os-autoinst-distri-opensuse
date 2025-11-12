@@ -156,7 +156,8 @@ sub check_instance_unregistered {
     return if ($out =~ /No repositories defined/m);
 
     for (split('\n', $out)) {
-        if ($_ =~ /^\s?\d+/ && $_ !~ /SUSE_Maintenance/) {
+        # bsc#1252277 - The NVIDIA repos are added by SUSEConnect but not removed
+        if ($_ =~ /^\s?\d+/ && $_ !~ /SUSE_Maintenance|:NVIDIA-/) {
             record_info('zypper lr', $out);
             die($error);
         }
@@ -211,7 +212,7 @@ sub test_container_runtimes {
 sub cleanup_instance {
     my ($instance) = @_;
     record_info('Removing registration data');
-    $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
+    $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean", timeout => 180);
     check_instance_unregistered($instance);
 }
 

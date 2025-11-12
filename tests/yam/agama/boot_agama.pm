@@ -14,6 +14,7 @@ use Utils::Backends;
 use Mojo::Util 'trim';
 use File::Basename;
 use Yam::Agama::agama_base 'upload_agama_logs';
+use Yam::Agama::LiveIso qw(read_live_iso);
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../installation';
@@ -43,11 +44,13 @@ sub prepare_boot_params {
           generate_json_profile($inst_auto) :
           expand_agama_profile($inst_auto);
         set_var('INST_AUTO', $profile_url);
-        push @params, "inst.auto=\"$profile_url\"", "inst.finish=stop";
+        push @params, "inst.auto=\"$profile_url\"", 'inst.finish=stop';
     }
     push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('SCC_URL') && get_var('FLAVOR') =~ /^(Online.*|agama-installer)$/;
 
-    push @params, "inst.install_url=" . get_var("INST_INSTALL_URL") if get_var('INST_INSTALL_URL');
+    push @params, 'inst.install_url=' . get_var('INST_INSTALL_URL') if get_var('INST_INSTALL_URL');
+
+    push @params, 'inst.self_update=' . get_var('INST_SELF_UPDATE') if get_var('INST_SELF_UPDATE');
 
     # add extra boot params along with the default ones
     push @params, split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
@@ -80,6 +83,8 @@ sub run {
         $self->bootloader_pvm::boot_pvm();
         return;
     }
+
+    read_live_iso();
 
     my $grub_menu = $testapi::distri->get_grub_menu_agama();
     my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
