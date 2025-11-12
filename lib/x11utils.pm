@@ -38,6 +38,7 @@ our @EXPORT = qw(
   start_root_shell_in_xterm
   x11_start_program_xterm
   default_gui_terminal
+  close_gui_terminal
   handle_gnome_activities
 );
 
@@ -634,6 +635,22 @@ sub default_gui_terminal {
     return "konsole" if check_var('DESKTOP', 'kde');
     return "xfce4-terminal" if check_var('DESKTOP', 'xfce');
     return "xterm";
+}
+
+=head2 close_gui_terminal
+
+    close_gui_terminal()
+
+Closes the currently focused window, if its a terminal like kgx, it would handle the close window prompt
+
+=cut
+
+sub close_gui_terminal {
+    send_key_until_needlematch([qw(terminal-close-window generic-desktop)], 'alt-f4', 5, 10);
+    if (match_has_tag('terminal-close-window')) {
+        click_lastmatch;
+        assert_screen 'generic-desktop';
+    }
 }
 
 =head2 handle_gnome_activities
