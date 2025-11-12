@@ -437,18 +437,19 @@ sub check_guest_health {
     }
     if ($vmstate eq "ok") {
         $failures = caller 0 eq 'validate_system_health' ? check_failures_in_journal($vm, no_cursor => 1) : check_failures_in_journal($vm);
-        return 'fail' if $failures;
-        if (script_run("ssh root\@$vm 'ping -c3 www.opensuse.org'") == 0 or script_run("ssh root\@$vm 'ping -c3 www.qemu.org'") == 0) {
+        if (script_run("ssh root\@$vm 'ping -c3 8.8.8.8'") == 0) {
             record_info("Healthy guest!", "$vm looks good so far!");
         } else {
             record_info("Possible network inaccessibility", "Unable to access outside network from $vm!", result => 'fail');
-            script_run("ssh root\@$vm 'ip r'");
+            $failures .= " Unable to access outside network from $vm!";
+            my $vm_route = script_output("ssh root\@$vm 'ip r'", proceed_on_failure => 1);
+            record_info("Missing default route", $vm_route, result => 'fail') unless $vm_route =~ /default/;
         }
     }
     else {
         record_info("Skip check_failures_in_journal for $vm", "$vm is not in desired state judged by either virsh or xl tool stack", result => 'softfail');
     }
-    return 'pass';
+    $failures ? return 'fail' : return 'pass';
 }
 
 #ammend the output of the command to an existing log file

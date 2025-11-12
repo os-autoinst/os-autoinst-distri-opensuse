@@ -12,18 +12,26 @@ lspci
 echo ""
 ip a
 echo ""
-nmcli con
+ip r
 echo ""
-ls -l /etc/sysconfig/network/
+ping -c3 www.opensuse.org
 echo ""
-if [ -d /etc/sysconfig/network/ ]; then
-   for FILE in /etc/sysconfig/network/ifcfg-*; do echo $FILE; cat $FILE; done
-fi
+ping -c3 www.qemu.org
 echo ""
-ls -l /etc/NetworkManager/system-connections/
-echo ""
-if [ -d /etc/NetworkManager/system-connections/ ]; then
-  for FILE in /etc/NetworkManager/system-connections/*; do echo "$FILE"; cat "$FILE"; done
+if command -v nmcli &> /dev/null; then
+  nmcli con show
+  echo ""
+  ls -l /etc/NetworkManager/system-connections/
+  echo ""
+  if [ -d /etc/NetworkManager/system-connections/ ]; then
+    for FILE in /etc/NetworkManager/system-connections/*; do echo "$FILE"; cat "$FILE"; done
+  fi
+else
+  ls -l /etc/sysconfig/network/
+  echo ""
+  if [ -d /etc/sysconfig/network/ ]; then
+    for FILE in /etc/sysconfig/network/ifcfg-*; do echo $FILE; cat $FILE; echo ""; done
+  fi
 fi
 echo ""
 lsmod | grep -e vf -e virt -e kvm -e xen -e pci

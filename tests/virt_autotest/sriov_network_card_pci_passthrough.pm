@@ -117,6 +117,7 @@ sub run_test {
 
         #unplug the first vf from vm
         unplug_vf_from_vm($guest, $vfs[0]);
+        check_guest_health($guest);
         assert_script_run("virsh nodedev-reattach $vfs[0]->{host_id}", 60);
         record_info("Reattach VF to host", "vm=$guest \nvf=$vfs[0]->{host_id}");
         save_network_device_status_logs($guest, "3-after_hot_unplug_$vfs[0]->{host_id}");
@@ -143,6 +144,7 @@ sub run_test {
         #unplug the remaining vf(s) from vm
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
             unplug_vf_from_vm($guest, $vfs[$i]);
+            check_guest_health($guest);
             assert_script_run("virsh nodedev-reattach $vfs[$i]->{host_id}", 60);
             record_info("Reattach VF to host", "vm=$guest \nvf=$vfs[$i]->{host_id}");
             save_network_device_status_logs($guest, $passthru_vf_count + 4 + $i . "-after_hot_unplug_$vfs[$i]->{host_id}");
