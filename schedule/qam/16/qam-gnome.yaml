@@ -2,12 +2,18 @@
 name: qam-gnome
 schedule:
 - boot/boot_to_desktop
+- console/system_prepare
+- console/check_network
+- console/system_state
 - console/prepare_test_data
 - console/consoletest_setup
-- x11/gnome_control_center
+- x11/desktop_runner
+- x11/ssh_default_term
 - x11/gnome_terminal
+- x11/gnome_control_center
 - x11/gnome_music
 - x11/gedit
+- x11/firefox
 - x11/glxgears
 - x11/nautilus
 - x11/desktop_mainmenu
