@@ -23,6 +23,7 @@ use Utils::Backends 'is_remote_backend';
 use power_action_utils 'power_action';
 use y2snapper_common qw(y2snapper_close_snapper_module);
 use x11utils 'default_gui_terminal';
+use version_utils;
 
 sub y2snapper_create_snapshot {
     my ($self, $name, $user_data) = @_;
@@ -66,11 +67,16 @@ sub run {
     record_info 'Snapshot created', 'booting the system into created snapshot';
     power_action('reboot', keepconsole => 1);
     $self->wait_grub(bootloader_time => 350);
-    send_key_until_needlematch("boot-menu-snapshot", 'down', 11, 5);
-    send_key 'ret';
-    $self->{in_wait_boot} = 0;
-    # On slow VMs we press down key before snapshots list is on screen
-    wait_screen_change { assert_screen 'boot-menu-snapshots-list' };
+
+    if (is_bootloader_grub2) {
+        send_key_until_needlematch("boot-menu-snapshot", 'down', 11, 5);
+        send_key 'ret';
+        $self->{in_wait_boot} = 0;
+        # On slow VMs we press down key before snapshots list is on screen
+        wait_screen_change { assert_screen 'boot-menu-snapshots-list' };
+    }
+    # for non bls, if wait_grub worked, we should be already on the list
+    # of snapshots, and all there is left, is to look for the one we need
 
     send_key_until_needlematch("snap-bootloader-comment", 'down', 11, 5);
     save_screenshot;
