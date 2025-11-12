@@ -16,7 +16,7 @@ use Config::Tiny;
 use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities default_gui_terminal);
+use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities default_gui_terminal close_gui_terminal);
 use POSIX 'strftime';
 use mm_network;
 use Utils::Logging qw(export_healthcheck_basic select_log_console export_logs_basic export_logs_desktop record_avc_selinux_alerts);
@@ -965,7 +965,7 @@ sub gnote_start_with_new_note {
 sub configure_static_ip_nm {
     my ($self, $ip) = @_;
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
 
     # Dynamic get network interface names
@@ -977,7 +977,7 @@ sub configure_static_ip_nm {
     assert_script_run "nmcli device disconnect '$niName'";
     assert_script_run "nmcli connection up wired ifname '$niName'";
     enter_cmd "exit";
-    wait_screen_change { send_key 'alt-f4' };
+    close_gui_terminal;
 }
 
 # Open the firewall port of xdmcp service
