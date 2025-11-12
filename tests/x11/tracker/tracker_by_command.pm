@@ -19,9 +19,10 @@ use base "x11test";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);
+use x11utils 'default_gui_terminal';
 
 sub run {
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     if (is_sle('<12-SP2')) {
         script_run "tracker-search newfile";
     }
