@@ -15,6 +15,7 @@ use version_utils qw(is_jeos is_desktop_installed is_leap is_opensuse);
 use x11utils qw(turn_off_screensaver);
 use Utils::Backends 'is_pvm';
 use Utils::Architectures 'is_aarch64';
+use x11utils 'default_gui_terminal';
 
 sub run {
     my ($self) = @_;
@@ -27,7 +28,7 @@ sub run {
     if (get_var('ZDUP_IN_X')) {
         turn_off_screensaver;
 
-        x11_start_program('xterm');
+        x11_start_program(default_gui_terminal);
         become_root;
     }
     else {
