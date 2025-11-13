@@ -241,7 +241,7 @@ sub run {
     qesap_ansible_create_section(
         ansible_section => 'create',
         section_content => $ansible_playbooks) if @$ansible_playbooks;
-    my @ansible_playbook_destroy = ('destroy.yaml');
+    my @ansible_playbook_destroy = ('deregister.yaml');
     qesap_ansible_create_section(
         ansible_section => 'destroy',
         section_content => \@ansible_playbook_destroy) if @$ansible_playbooks;
