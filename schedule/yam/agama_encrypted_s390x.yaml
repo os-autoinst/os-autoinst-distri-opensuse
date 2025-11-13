@@ -1,7 +1,7 @@
 ---
-name: agama full disk encryption for s390x
+name: agama_encrypted_s390x
 description: >
-  Perform full disk encryption installation with agama.
+  Perform installation with encrypted filesystem on s390x.
 schedule:
   - yam/agama/boot_agama
   - yam/agama/import_agama_profile
