@@ -39,6 +39,7 @@ buildah:
   sle-16.0:
     GITHUB_PATCHES:
     - 6226
+    - 6271
   sle-15-SP7:
     GITHUB_PATCHES:
     - 5495
