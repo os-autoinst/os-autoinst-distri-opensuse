@@ -440,14 +440,17 @@ sub check_guest_health {
         if (script_run("ssh root\@$vm 'ping -c3 8.8.8.8'") == 0) {
             record_info("Healthy guest!", "$vm looks good so far!");
         } else {
-            record_info("Possible network inaccessibility", "Unable to access outside network from $vm!", result => 'fail');
-            $failures .= " Unable to access outside network from $vm!";
+            my $fail_msg = "Unable to access outside network from $vm";
+            record_info("Possible network inaccessibility", "$fail_msg!", result => 'fail');
+            record_soft_failure("$fail_msg, please track it in poo#192382");
+            $failures .= $fail_msg;
             my $vm_route = script_output("ssh root\@$vm 'ip r'", proceed_on_failure => 1);
             record_info("Missing default route", $vm_route, result => 'fail') unless $vm_route =~ /default/;
         }
     }
     else {
-        record_info("Skip check_failures_in_journal for $vm", "$vm is not in desired state judged by either virsh or xl tool stack", result => 'softfail');
+        record_info("Skip check_failures_in_journal for $vm", "$vm is in an ambiguous state judged by either virsh or xl tool stack", result => 'fail');
+        record_soft_failure("Ambiguous $vm, please track it in poo#192382");
     }
     $failures ? return 'fail' : return 'pass';
 }
