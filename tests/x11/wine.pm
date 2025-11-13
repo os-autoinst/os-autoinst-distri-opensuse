@@ -12,7 +12,7 @@
 
 use base 'x11test';
 use testapi;
-use x11utils 'default_gui_terminal';
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 sub run {
     select_console 'x11';
@@ -33,7 +33,7 @@ EOF
         assert_screen 'wine-timer', 600;
     }
     wait_screen_change { send_key 'alt-f4' };    # closes wine
-    send_key 'alt-f4';    # closes the terminal
+    close_gui_terminal;
 }
 
 1;
