@@ -180,6 +180,7 @@ sub run {
       if (get_var('CONTAINER_IMAGE_TO_TEST')
         && get_var("CONTAINERS_SKIP_SIGNATURE", "0") != 1
         && $host_version =~ "15-SP7|16\..*|slem-6\.1"
+        && get_var("FLAVOR") !~ /BCI-Repo-Updates/
       );
 }
 
