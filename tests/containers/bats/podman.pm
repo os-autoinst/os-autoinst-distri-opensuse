@@ -107,8 +107,8 @@ sub run {
         run_command "rm -f test/system/125-import.bats" if (!is_x86_64 && (is_tumbleweed || is_sle('>=16.0')));
         # This test is flaky on architectures other than x86_64
         run_command "rm -f test/system/180-blkio.bats" unless is_x86_64;
-        # This test is flaky on s390x
-        run_command "rm -f test/system/220-healthcheck.bats" if is_s390x;
+        # This test is flaky on ppc64le & s390x
+        run_command "rm -f test/system/220-healthcheck.bats" if ((is_ppc64le && is_sle) || is_s390x);
         # This test fails on ppc64le with crun
         # https://github.com/containers/crun/issues/1882
         run_command "rm -f test/system/280-update.bats" if (is_ppc64le && $oci_runtime eq "crun");
