@@ -24,7 +24,7 @@ use x11utils qw(close_gui_terminal default_gui_terminal);
 
 sub verify_rrd_image {
     my $rrdtool_image = shift;
-    my $defaut_terminal = default_gui_terminal;
+    my $defaut_terminal = (is_sle) ? "xterm" : default_gui_terminal;
     send_key("alt-f2");
     enter_cmd("eog /tmp/rrdtool/${rrdtool_image}.png");
     assert_screen "rrdtool_image_${rrdtool_image}";
