@@ -88,7 +88,11 @@ sub run {
     record_info 'Snapshot found', 'Waiting to boot the system';
     # boot into the snapshot
     # do not try to search for the grub menu again as we are already here
-    $self->wait_boot(textmode => $is_textmode, in_grub => 1);
+    if (is_bootloader_grub2) {
+        $self->wait_boot(textmode => $is_textmode, in_grub => 1);
+    } else {
+        $self->wait_boot_past_bootloader(textmode => $is_textmode);
+    }
     # request reboot again to ensure we will end up in the original system
     record_info 'Desktop reached', 'Now return system to original state with a reboot';
     power_action('reboot', keepconsole => 1);
