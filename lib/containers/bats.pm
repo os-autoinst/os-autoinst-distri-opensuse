@@ -221,11 +221,11 @@ sub install_ncat {
 }
 
 sub install_bats {
-    my $bats_version = get_var("BATS_VERSION", "v1.13.0");
+    my $bats_version = get_var("BATS_VERSION", "1.13.0");
 
-    run_command "git clone --quiet --branch $bats_version --depth 1 https://github.com/bats-core/bats-core.git", timeout => 300;
-    run_command "bash bats-core/install.sh /usr/local";
-    script_run "rm -rf bats-core", timeout => 0;
+    run_command "curl $curl_opts https://github.com/bats-core/bats-core/archive/refs/tags/v$bats_version.tar.gz | tar -zxf -", timeout => 180;
+    run_command "bash bats-core-$bats_version/install.sh /usr/local";
+    script_run("rm -rf bats-core-$bats_version", timeout => 0);
 }
 
 sub configure_oci_runtime {
