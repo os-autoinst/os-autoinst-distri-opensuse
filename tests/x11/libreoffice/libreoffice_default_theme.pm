@@ -21,6 +21,7 @@ use base "x11test";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 sub check_lo_theme {
     x11_start_program('ooffice');
@@ -46,21 +47,21 @@ sub run {
     $self->check_lo_theme;
 
     # Set LO GUI toolkit var to none
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     assert_script_run 'export OOO_FORCE_DESKTOP="none"';
     enter_cmd "cd";
     clear_console;
     enter_cmd "echo \$OOO_FORCE_DESKTOP";
     assert_screen 'ooffice-change-guitoolkit';
-    send_key 'alt-f4';    # Quit xterm
+    close_gui_terminal;    # Quit xterm
 
     # Check LO default theme on none standard GUI toolkit var
     $self->check_lo_theme;
 
     # Unset LO GUI toolkit var
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     assert_script_run 'unset OOO_FORCE_DESKTOP';
-    send_key 'alt-f4';    # Quit xterm
+    close_gui_terminal;    # Quit terminal
 }
 
 1;
