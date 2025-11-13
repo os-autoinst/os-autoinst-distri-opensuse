@@ -15,6 +15,7 @@ use testapi;
 use utils;
 use x11utils qw(handle_login handle_logout handle_welcome_screen default_gui_terminal);
 use main_common 'opensuse_welcome_applicable';
+use version_utils;
 
 sub ensure_multi_user_target {
     enter_cmd "systemctl isolate multi-user.target";
@@ -86,7 +87,7 @@ sub run {
     script_run "mv /etc/sysconfig/displaymanager.bak /etc/sysconfig/displaymanager";
     assert_script_run "~$username/data/delete_users $users_to_create";
     script_run "clear";
-    assert_script_run "rcxdm restart";
+    assert_script_run "systemctl restart display-manager";
     # Wait for gdm to be started before selecting x11-console
     wait_still_screen 10;
     select_console 'x11';
