@@ -9,6 +9,7 @@ schedule:
   - installation/agama_reboot
   - installation/grub_test
   - installation/first_boot
+  - console/zypper_lr
   - console/system_prepare
   - '{{patch_and_reboot}}'
   - console/consoletest_setup
