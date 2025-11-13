@@ -226,9 +226,14 @@ sub sles4sap_cleanup {
     type_string('', terminate_with => 'ETX');
 
     qesap_cluster_logs();
-    if ((defined $self->{result}) && ($self->{result} eq 'fail')) {
+
+    # setting SUPPORTCONFIG=0 will skip supportconfig log collection in both PASS and FAIL jobs
+    # setting SUPPORTCONFIG=1 will collect supportconfig logs in both PASS and FAIL jobs
+    # not setting SUPPORTCONFIG at all will only collect logs in case of failure
+    if (!check_var('SUPPORTCONFIG', '0') && (get_var('SUPPORTCONFIG') || (($self->{result} // '') eq 'fail'))) {
         qesap_supportconfig_logs(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     }
+
     qesap_upload_logs();
     upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut.log.txt');
 
