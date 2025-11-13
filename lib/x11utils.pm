@@ -646,10 +646,20 @@ Closes the currently focused window, if its a terminal like kgx, it would handle
 =cut
 
 sub close_gui_terminal {
-    send_key_until_needlematch([qw(terminal-close-window generic-desktop)], 'alt-f4', 5, 10);
-    if (match_has_tag('terminal-close-window')) {
-        click_lastmatch;
-        assert_screen 'generic-desktop';
+    my $counter = 5;
+    my @tags = ("terminal-unfocused", "terminal-close-window", "generic-desktop");
+    while ($counter--) {
+        send_key_until_needlematch(\@tags, 'alt-f4', 5, 10);
+        if (match_has_tag('terminal-close-window')) {
+            click_lastmatch;
+            assert_screen 'generic-desktop';
+            last;
+        }
+        if (match_has_tag("terminal-unfocused")) {
+            click_lastmatch;
+            next;
+        }
+        last if match_has_tag('generic-desktop');
     }
 }
 
