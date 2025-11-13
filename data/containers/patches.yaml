@@ -147,7 +147,6 @@ podman:
   # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
   # https://github.com/containers/podman/pull/24068 is needed for 271-tcp-cors-server
-  # https://github.com/containers/podman/pull/25792 is needed for 080-pause
   # https://github.com/containers/podman/pull/25858 is needed for 161-volume-quotas
   # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
@@ -173,7 +172,6 @@ podman:
     - 27463
   sle-16.0:
     GITHUB_PATCHES:
-    - 25792
     - 25858
     - 25918
     - 25942
