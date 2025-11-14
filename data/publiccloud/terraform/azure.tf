@@ -234,12 +234,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "default" {
   virtual_machine_id = element(azurerm_linux_virtual_machine.openqa-vm[*].id, count.index)
   lun                = "1"
   caching            = "ReadWrite"
-
-  tags = merge({
-    openqa_created_by   = var.name
-    openqa_created_date = timestamp()
-    openqa_created_id   = element(random_id.service[*].hex, 0)
-  }, var.tags)
 }
 
 resource "azurerm_managed_disk" "ssd_disk" {
