@@ -111,6 +111,8 @@ sub run {
     # test files to $testapi::username just to be on the safe side
     assert_script_run "chown -R $testapi::username $path";
 
+    # Close Gui terminal, generic-desktop should be clean, no windows
+    close_gui_terminal;
     assert_screen "generic-desktop";
     barrier_wait("HAWK_GUI_CPU_TEST_FINISH_$cluster_name");
 
