@@ -112,6 +112,7 @@ sub create_host_bridge_nm {
         my $download_script = "curl -s -o ~/$script_name $script_url";
         script_output($download_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         my $execute_script = "chmod +x ~/$script_name && python3 ~/$script_name";
+        $execute_script .= ' ' . (get_var('EXCLUDED_BR_NICS', '') ? get_var('EXCLUDED_BR_NICS') : '""');
         script_output($execute_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         save_screenshot;
         # Re-establish the SSH connection, poo#187197

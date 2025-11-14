@@ -379,6 +379,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp7 => {
             name => 'sles15sp7',
         },
+        'sles16.0' => {
+            name => 'sles16.0',
+        },
     );
     %guests = get_var('TERADATA') ? %guests{"sles${guest_version}TD"} : (get_var('INCIDENT_REPO') =~ /LTSS-Extended-Security/) ? %guests{"sles${guest_version}ES"} : %guests{"sles${guest_version}"};
 

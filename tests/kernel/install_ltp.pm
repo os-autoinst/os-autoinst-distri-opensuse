@@ -19,7 +19,7 @@ use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use repo_tools 'add_qa_head_repo';
 use upload_system_log;
-use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional is_sle_micro);
+use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumbleweed is_rt is_transactional is_sle_micro is_bootloader_grub2_bls);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
@@ -328,11 +328,11 @@ sub run {
 
     $grub_param .= ' console=hvc0' if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
-    if (!is_sle('<12') && defined $grub_param) {
+    if (!is_sle('<12') && defined $grub_param && !is_bootloader_grub2_bls) {
         add_grub_cmdline_settings($grub_param, update_grub => 1);
     }
 
-    add_custom_grub_entries if (is_sle('12+') || is_opensuse || is_transactional) && !is_jeos;
+    add_custom_grub_entries if (is_sle('12+') || is_opensuse || is_transactional) && !is_jeos && !is_bootloader_grub2_bls;
 
     if (is_xen_host) {
         my $version = get_var('VERSION');

@@ -68,7 +68,7 @@ local urls = if repo != '' then std.split(repo, ',') else [];
           systemctl enable sshd
           echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
           sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
-          echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > $sshd_config_file
+          echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 120" > $sshd_config_file
           
           # 2. Setup SSH client keys and config - configure client after server
           mkdir -p -m 700 /root/.ssh

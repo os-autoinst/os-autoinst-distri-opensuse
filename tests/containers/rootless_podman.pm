@@ -31,7 +31,7 @@ sub run {
     my $user = $testapi::username;
 
     # Workaround for https://progress.opensuse.org/issues/186834
-    script_run "touch /etc/SUSEConnect" unless (is_sle(">16") || is_tumbleweed);
+    script_run "touch /etc/SUSEConnect" unless (is_sle(">=16") || is_tumbleweed);
 
     my $podman = $self->containers_factory('podman');
 

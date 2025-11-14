@@ -1,7 +1,7 @@
 ---
-name: agama full disk encryption
+name: agama_encrypted
 description: >
-  Perform full disk encryption installation with agama.
+  Perform installation with encrypted system.
 schedule:
   - yam/agama/boot_agama
   - yam/agama/import_agama_profile

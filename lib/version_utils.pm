@@ -837,6 +837,15 @@ sub is_tunneled {
     return get_var('TUNNELED', 0);
 }
 
+=head2 is_community_jeos
+
+Returns true for tests using the images built by the "JeOS" package on OBS
+=cut
+
+sub is_community_jeos {
+    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|armv9|RISCV|RPi)/);
+}
+
 =head2 is_bootloader_grub2
 
 Returns true if the SUT uses GRUB2 as bootloader
@@ -875,11 +884,11 @@ sub get_bootloader {
     return $bootloader if $bootloader;
 
     return 'wsl' if is_wsl;
-    return 'grub2' if !check_var('UEFI', 1);
-    return 'grub2' if is_upgrade;
-    return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
-    return 'grub2' if is_slowroll;
     return 'grub2' if is_sle || is_leap || is_sle_micro;
+    return 'grub2' if !check_var('UEFI', 1);
+    return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
+    return 'grub2' if is_community_jeos;
+    return 'grub2' if is_slowroll;
     return 'systemd-boot' if is_microos;
     return 'grub2-bls';
 }
@@ -1030,15 +1039,6 @@ sub php_version {
         $php_ver = '8';
     }
     ($php, $php_pkg, $php_ver);
-}
-
-=head2 is_community_jeos
-
-Returns true for tests using the images built by the "JeOS" package on OBS
-=cut
-
-sub is_community_jeos {
-    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|armv9|RISCV|RPi)/);
 }
 
 =head2 has_selinux_by_default

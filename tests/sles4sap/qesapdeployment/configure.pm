@@ -97,7 +97,7 @@ sub run {
     $variables{HANA_SAR} = get_required_var('QESAPDEPLOY_SAPCAR');
     $variables{HANA_CLIENT_SAR} = get_required_var('QESAPDEPLOY_IMDB_CLIENT');
     $variables{HANA_SAPCAR} = get_required_var('QESAPDEPLOY_IMDB_SERVER');
-    $variables{HANA_FIREWALL} = check_var('QESAPDEPLOY_HANA_FIREWALL', 1) ? 'true' : 'false';
+    $variables{HANA_FIREWALL} = get_var('QESAPDEPLOY_HANA_FIREWALL', 'false');
     $variables{ANSIBLE_REMOTE_PYTHON} = get_var('QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
     $variables{FENCING} = get_var('QESAPDEPLOY_FENCING', 'sbd');
     if ($provider_setting eq 'GCE') {

@@ -493,6 +493,7 @@ sub install_requirements {
       open-iscsi
       multipath-tools
       liburing2
+      net-tools
     );
 
     install_package(join(' ', @requirements));
@@ -519,7 +520,8 @@ sub run {
     # Install requirements for SLE 16 staging tests
     install_requirements if check_var('FLAVOR', 'Online-Kernel-Utils-Updates-Staging');
 
-    my $repo = (is_sle_micro('>=6.0') || is_sle('16+')) ? get_var('OS_TEST_REPOS') : get_var('KOTD_REPO');
+    my $repo = get_var('KOTD_REPO');
+    $repo = get_var('OS_TEST_REPOS') if (!defined($repo) && (is_sle_micro('>=6.0') || (is_sle('16+'))));
     my $incident_id = undef;
     my $grub_param = get_var('APPEND_GRUB_PARAMS');
 

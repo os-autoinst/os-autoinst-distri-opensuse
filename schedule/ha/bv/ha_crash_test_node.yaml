@@ -36,7 +36,6 @@ schedule:
   - console/consoletest_setup
   - console/check_os_release
   - console/hostname
-  - ha/iscsi_client
   - ha/iscsi_client_setup
   - ha/watchdog
   - '{{cluster_setup}}'

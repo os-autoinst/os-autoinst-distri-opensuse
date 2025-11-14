@@ -1,12 +1,52 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: remove one of the 3 IpConfigs using az and check that
-#          clodu-netconfig is able to apply changes in the OS
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Tests cloud-netconfig
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-use Mojo::JSON qw(decode_json);
+=head1 NAME
+
+cloud_netconfig/test.pm - Test cloud-netconfig network interface removal
+
+=head1 DESCRIPTION
+
+This module tests the C<cloud-netconfig> service's ability to dynamically
+update the guest OS's network configuration in response to changes made on the
+cloud provider. In particular check that cloud-netconfig correctly removes
+a network interface after its deletion on the cloud provider.
+
+The test performs the following actions:
+
+=over 4
+
+=item * Deletes a secondary IP configuration ('ipconfig2') from the VM's network interface using the Azure CLI.
+
+=item * Polls the Azure metadata endpoint from within the VM to confirm the cloud-side change is visible.
+
+=item * Polls the VM's network interface (C<eth0>) to verify that the IP address associated with the deleted configuration (C<10.1.0.5>) has been removed by C<cloud-netconfig>.
+
+=back
+
+This ensures that C<cloud-netconfig> is correctly monitoring for and applying network configuration changes from the cloud environment.
+
+=head1 VARIABLES
+
+=over 4
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider. Currently, only 'AZURE' is supported for this test.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
 use Mojo::Base 'publiccloud::basetest';
+use Mojo::JSON qw(decode_json);
 use testapi;
 use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';

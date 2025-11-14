@@ -39,3 +39,5 @@ conditional_schedule:
                 - virt_autotest/esxi_open_vm_tools
             15-SP7:
                 - virt_autotest/esxi_open_vm_tools
+            '16.0':
+                - virt_autotest/esxi_open_vm_tools

@@ -12,6 +12,7 @@ use testapi;
 use utils;
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
+use x11utils 'close_gui_terminal';
 
 sub run {
     clear_console;
@@ -24,7 +25,7 @@ sub run {
 
     if (get_var('ZDUP_IN_X')) {
         # For ZDUP_IN_X, let a DE specific module take care of the reboot.
-        send_key 'alt-f4';
+        close_gui_terminal;
     } else {
         # switch to root-console (in case we are in X)
         select_console 'root-console';

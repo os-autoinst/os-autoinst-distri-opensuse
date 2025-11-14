@@ -10,7 +10,7 @@ schedule:
   - console/hostname
   - ha/ha_sle15_workarounds
   - ha/firewall_disable
-  - ha/iscsi_client
+  - ha/iscsi_client_setup
   - ha/watchdog
   - sles4sap/patterns
   - ha/ha_cluster_join

@@ -24,6 +24,7 @@
 # ANSIBLE_REMOTE_PYTHON - define python version to be used for qe-sap-deployment (default '/usr/bin/python3')
 # PUBLIC_CLOUD_IMAGE_LOCATION - needed by get_blob_uri
 # HANA_NAMESPACE - used to configure the Azure credentials involved in obtaining the HANA media
+# SLES4SAP_FIREWALL_PORTS - if set to 'true' enable the firewall configuration during the HANA installation playbook
 
 use base 'sles4sap_publiccloud_basetest';
 use testapi;
@@ -237,7 +238,13 @@ sub run {
     qesap_ansible_create_section(
         ansible_section => 'hana_vars',
         section_content => create_hana_vars_section()) if $ha_enabled;
-    qesap_ansible_create_section(ansible_section => 'create', section_content => $ansible_playbooks) if @$ansible_playbooks;
+    qesap_ansible_create_section(
+        ansible_section => 'create',
+        section_content => $ansible_playbooks) if @$ansible_playbooks;
+    my @ansible_playbook_destroy = ('deregister.yaml');
+    qesap_ansible_create_section(
+        ansible_section => 'destroy',
+        section_content => \@ansible_playbook_destroy) if @$ansible_playbooks;
 
     # Clean leftover peerings (Azure only)
     if (is_azure() && get_var('IBSM_RG')) {

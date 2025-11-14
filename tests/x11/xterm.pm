@@ -16,6 +16,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     select_console 'x11';
+    ensure_installed('xterm');
     $self->test_terminal('xterm');
 }
 

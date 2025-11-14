@@ -37,7 +37,7 @@ use testapi;
 use utils;
 use Utils::Architectures;
 use version_utils qw(is_leap is_opensuse is_sle is_tumbleweed);
-use x11utils qw(handle_relogin turn_off_gnome_screensaver);
+use x11utils qw(handle_relogin turn_off_screensaver default_gui_terminal);
 
 sub tweak_startupapp_menu {
     my ($self) = shift;
@@ -117,13 +117,11 @@ sub restore_status_auto_save_session {
 sub run {
     my ($self) = @_;
     assert_screen "generic-desktop";
+    my $default_gui_terminal = default_gui_terminal;
 
-    # turn off screensaver
-    x11_start_program('xterm');
-    turn_off_gnome_screensaver;
-    send_key 'alt-f4';
+    turn_off_screensaver;
 
-    #add xterm to startup application
+    #add default terminal to startup application
     $self->tweak_startupapp_menu;
     assert_and_click "tweak-startapp-add";
     assert_screen "tweak-startapp-applist";
@@ -131,21 +129,25 @@ sub run {
         assert_and_click "startupApp-searching";
         wait_still_screen 2, 4;
         assert_screen "focused-on-search";
-        type_string 'xterm';
+        # Gnome console is actually kgx when lauching, but is not found by that name
+        # in the gnome tweaks app
+        my $app = ($default_gui_terminal eq 'kgx') ? "console" : default_gui_terminal;
+        type_string $app;
         wait_still_screen 2, 4;
     }
     else {
-        send_key_until_needlematch "applicationstart-xterm", "down";
+        send_key_until_needlematch "applicationstart-$default_gui_terminal", "down";
     }
     send_key_until_needlematch 'tweak-addapp-2startup', 'tab';
     send_key 'ret';
-    assert_screen "startapp-xterm-added";
+    assert_screen "startapp-$default_gui_terminal-added";
     send_key "alt-f4";
     wait_still_screen;
     send_key "alt-f4";
 
     handle_relogin;
-    assert_screen [qw(xterm xterm-without-focus)];
+    my @tags = ($default_gui_terminal, "xterm-without-focus");
+    assert_screen \@tags;
     if (match_has_tag 'xterm-without-focus') {
         record_soft_failure("poo#66099 - xterm not focused with GNOME 3.36+ https://gitlab.gnome.org/GNOME/mutter/-/issues/1207");
         # focus it
@@ -153,12 +155,12 @@ sub run {
         assert_screen 'xterm';
     }
     send_key "esc";
-    assert_and_click "xterm-close-window";
+    assert_and_click "$default_gui_terminal-close-window";
     assert_screen "generic-desktop";
 
     #remove xterm from startup application
     $self->tweak_startupapp_menu;
-    assert_screen "startapp-xterm-added";
+    assert_screen "startapp-$default_gui_terminal-added";
     assert_and_click "startapp-delete";
     wait_still_screen 2, 4;
     send_key "alt-f4";

@@ -74,15 +74,14 @@ sub handle_secureboot {
     if (is_sle('>=16') && is_aarch64) {
         record_info('SecureBoot', "Calling aarch64-specific handler to $action Secure Boot (bsc#1189988)");
         _set_secure_boot_aarch64($self, enable => $enable_flag);
-        $self->wait_boot_past_bootloader(textmode => 1);
     } else {
         record_info('SecureBoot', "Calling standard handler to $action Secure Boot (bsc#1189988)");
         $self->wait_grub(bootloader_time => 200);
         # The original tianocore_disable_secureboot uses 're_enable' to enable.
         my $legacy_action = $enable_flag ? 're_enable' : undef;
         $self->tianocore_disable_secureboot($legacy_action);
-        $self->wait_boot(textmode => 1);
     }
+    $self->wait_boot(textmode => 1);
 }
 
 1;

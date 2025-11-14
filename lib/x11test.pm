@@ -16,7 +16,7 @@ use Config::Tiny;
 use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities default_gui_terminal turn_off_gnome_screensaver);
+use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities default_gui_terminal close_gui_terminal turn_off_gnome_screensaver);
 use POSIX 'strftime';
 use mm_network;
 use Utils::Logging qw(export_healthcheck_basic select_log_console export_logs_basic export_logs_desktop record_avc_selinux_alerts);
@@ -146,14 +146,14 @@ sub clean_shotwell {
 # upload libreoffice specified file into /home/$username/Documents
 sub upload_libreoffice_specified_file {
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     assert_script_run('wget ' . autoinst_url . "/data/x11/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
     assert_script_run("cd /home/$username/Documents && ls -l");
     # extract the files directly in /home/berhard/Documents, no need to write whole path in libreoffice_open_specified_file
     assert_script_run('tar -xjvf ooo-test-doc-types.tar.bz2 --strip-components 1');
     # delete the archive, to keep the order for already existing needles
     assert_script_run('rm ooo-test-doc-types.tar.bz2');
-    send_key "alt-f4";
+    close_gui_terminal;
     wait_still_screen;
 
 }
@@ -161,20 +161,20 @@ sub upload_libreoffice_specified_file {
 # cleanup libreoffcie specified file from test vm
 sub cleanup_libreoffice_specified_file {
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     assert_script_run("rm -f /home/$username/Documents/{cs,ooo-test-doc-types,template,test}*");
     assert_script_run("ls -l /home/$username/Documents");
-    send_key "alt-f4";
+    close_gui_terminal;
     wait_still_screen;
 
 }
 
 # cleanup libreoffice recent open file to make sure libreoffice clean
 sub cleanup_libreoffice_recent_file {
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     assert_script_run("rm -rf /home/$username/.config/libreoffice/");
     wait_still_screen;
-    send_key "alt-f4";
+    close_gui_terminal;
     x11_start_program('libreoffice');
     wait_still_screen 3;
     assert_screen("welcome-to-libreoffice");
@@ -562,7 +562,7 @@ sub setup_mail_account {
 # https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
 sub prepare_firefox_autoconfig {
     my ($self) = @_;
-    start_root_shell_in_xterm;
+    select_console 'root-console';
 
     # Enable AutoConfig by pointing to a cfg file
     type_string(
@@ -589,9 +589,7 @@ pref("trailhead.firstrun.branches", "nofirstrun-empty");
 EOF
 });
 
-    save_screenshot;
-    # Close the xterm with root shell
-    enter_cmd "killall xterm";
+    select_console 'x11';
 }
 
 # start clean firefox with one suse.com tab, visit pages which trigger pop-up so they will not pop again
@@ -968,7 +966,7 @@ sub gnote_start_with_new_note {
 sub configure_static_ip_nm {
     my ($self, $ip) = @_;
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
 
     # Dynamic get network interface names
@@ -980,7 +978,7 @@ sub configure_static_ip_nm {
     assert_script_run "nmcli device disconnect '$niName'";
     assert_script_run "nmcli connection up wired ifname '$niName'";
     enter_cmd "exit";
-    wait_screen_change { send_key 'alt-f4' };
+    close_gui_terminal;
 }
 
 # Open the firewall port of xdmcp service

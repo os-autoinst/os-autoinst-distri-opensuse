@@ -74,6 +74,9 @@ END_SCRIPT
         # Before updating this value again, check the system logs
         assert_script_run(q{systemctl restart systemd-journald}, 120);
     }
+
+    # Rest the timestamp of the last update notification (boo#1253141)
+    assert_script_run("rm -f ~$testapi::username/.local/state/discovernotifierstaterc") if is_plasma6;
 }
 
 sub post_fail_hook {

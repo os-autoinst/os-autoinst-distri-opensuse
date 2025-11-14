@@ -3,7 +3,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary:  Deploy a vm in aws.
+# Summary: Deploy a vm in aws.
 
 
 =head1 SYNOPSIS
@@ -79,8 +79,6 @@ B<Test flow:>
 
 11. Retrieves public IP address and establishes SSH connection
 
-12. Sets SSH_CMD variable for use by subsequent test modules
-
 B<Notes:>
 
 All created resources are tagged with OpenQA job ID for easy identification and cleanup.
@@ -88,14 +86,13 @@ The test uses a /28 network (16 IPs) which provides sufficient addresses for bas
 
 =cut
 
-use base 'publiccloud::basetest';
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use publiccloud::utils;
-use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
-use utils;
-use version_utils;
+use utils qw(script_retry);
 use sles4sap::aws_cli;
+use sles4sap::crash;
 
 
 sub run {
@@ -104,59 +101,27 @@ sub run {
     die('AWS is the only CSP supported for this test')
       unless check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
 
-    my $aws_prefix = get_var('DEPLOY_PREFIX', 'clne');
-    my $job_id = $aws_prefix . get_current_job_id();
-
     select_serial_terminal;
-
     my $provider = $self->provider_factory();
-
     my $os_ver;
     if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
         $os_ver = $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
     } else {
         $os_ver = $provider->get_image_id();
     }
-
-    record_info("OS", $os_ver);
     assert_script_run('rm ~/.ssh/config');
-    my $ssh_key = "openqa-cli-test-key-$job_id";
-    aws_ssh_key_pair_import(ssh_key => $ssh_key, pub_key_path => $provider->ssh_key . ".pub");
 
-    my $region = get_var('PUBLIC_CLOUD_REGION');
-    my $vpc_id = aws_vpc_create(region => $region, cidr => "10.0.0.0/28", job_id => $job_id);
-    my $sg_id = aws_security_group_create(region => $region, group_name => "crash-aws", description => 'crash aws security group', vpc_id => $vpc_id, job_id => $job_id);
-    my $subnet_id = aws_subnet_create(region => $region, cidr => '10.0.0.0/28', vpc_id => $vpc_id, job_id => $job_id);
-    my $igw_id = aws_internet_gateway_create(region => $region, job_id => $job_id);
-    aws_internet_gateway_attach(vpc_id => $vpc_id, igw_id => $igw_id, region => $region);
-
-    # SSH connection
-    my $route_table_id = aws_route_table_create(region => $region, vpc_id => $vpc_id);
-    aws_route_table_associate(subnet_id => $subnet_id, route_table_id => $route_table_id, region => $region);
-    aws_route_create(route_table_id => $route_table_id,
-        destination_cidr_block => '0.0.0.0/0',
-        igw_id => $igw_id,
-        region => $region);
-    aws_security_group_authorize_ingress(sg_id => $sg_id, protocol => 'tcp', port => 22, cidr => "0.0.0.0/0", region => $region);
-
-    #create vm
-    my $instance_id = aws_vm_create(
-        instance_type => get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE'),
+    my $instance_id = crash_deploy_aws(
+        region => get_var('PUBLIC_CLOUD_REGION'),
         image_name => $os_ver,
         # 679593333241 ( aws-marketplace )
-        owner => get_var('PUBLIC_CLOUD_EC2_ACCOUNT_ID', '679593333241'),
-        subnet_id => $subnet_id,
-        sg_id => $sg_id,
-        ssh_key => $ssh_key,
-        region => $region,
-        job_id => $job_id);
-    aws_vm_wait_status_ok(instance_id => $instance_id);
+        image_owner => get_var('PUBLIC_CLOUD_EC2_ACCOUNT_ID', '679593333241'),
+        ssh_pub_key => $provider->ssh_key . ".pub",
+        instance_type => get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE'));
 
     my $ip_address = aws_get_ip_address(instance_id => $instance_id);
     my $ssh_cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ec2-user\@$ip_address";
     script_retry("$ssh_cmd hostnamectl", 90, delay => 15, retry => 12);
-    set_var('SSH_CMD', $ssh_cmd);
-    record_info('Done', 'Test finished');
 }
 
 sub test_flags {

@@ -210,10 +210,13 @@ subtest 'bootloader_tests' => sub {
     set_var('FLAVOR', 'MicroOS-Image');
     ok get_default_bootloader eq 'grub2', "MicroOS-Image image is grub2";
 
+    set_var('FLAVOR', 'JeOS-for-RISCV');
+    ok get_default_bootloader eq 'grub2', "JeOS-for-RISCV image is grub2";
+
     set_var('DISTRI', 'opensuse');
     set_var('FLAVOR', 'Server-DVD');
     set_var('UPGRADE', 1);
-    ok get_default_bootloader eq 'grub2', "Upgrading Tumbleweed on UEFI is grub2";
+    ok get_default_bootloader eq 'grub2-bls', "Upgrading Tumbleweed on UEFI is grub2-bls";
     set_var('UPGRADE', undef);
 
     set_var('UEFI', '0');
@@ -226,7 +229,7 @@ subtest 'bootloader_tests' => sub {
     ok get_default_bootloader eq 'systemd-boot', "Microos on UEFI is systemd-boot";
 
     set_var('UPGRADE', 1);
-    ok get_default_bootloader eq 'grub2', "Old Microos UEFI is grub2";
+    ok get_default_bootloader eq 'systemd-boot', "Microos upgrades on UEFI is systemd-boot";
     set_var('UPGRADE', 0);
 
     set_var('WSL_VERSION', '10');

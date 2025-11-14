@@ -226,9 +226,14 @@ sub sles4sap_cleanup {
     type_string('', terminate_with => 'ETX');
 
     qesap_cluster_logs();
-    if ((defined $self->{result}) && ($self->{result} eq 'fail')) {
+
+    # setting SUPPORTCONFIG=0 will skip supportconfig log collection in both PASS and FAIL jobs
+    # setting SUPPORTCONFIG=1 will collect supportconfig logs in both PASS and FAIL jobs
+    # not setting SUPPORTCONFIG at all will only collect logs in case of failure
+    if (!check_var('SUPPORTCONFIG', '0') && (get_var('SUPPORTCONFIG') || (($self->{result} // '') eq 'fail'))) {
         qesap_supportconfig_logs(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
     }
+
     qesap_upload_logs();
     upload_logs('/var/tmp/ssh_sut.log', failok => 1, log_name => 'ssh_sut.log.txt');
 
@@ -1046,7 +1051,8 @@ sub create_playbook_section_list {
     }
 
     unless ($args{registration} eq 'noreg') {
-        # Add "fully patch system" module after registration module and before test start/configuration modules.
+        # Add "fully patch system" module after registration module
+        # and before test start/configuration modules.
         # Temporary moved inside noreg condition to avoid test without Ansible to fails.
         # To be properly addressed in the caller and fully-patch-system can be placed back out of the if.
         push @playbook_list, 'fully-patch-system.yaml';
@@ -1162,7 +1168,7 @@ sub create_hana_vars_section {
     $hana_vars{sap_hana_install_instance_number} = get_required_var('INSTANCE_ID');
     $hana_vars{sap_domain} = get_var('SAP_DOMAIN', 'qesap.example.com');
     $hana_vars{use_sap_hana_sr_angi} = get_var('USE_SAP_HANA_SR_ANGI', 'false');
-    $hana_vars{sap_hana_install_update_firewall} = 'true' if (get_var('SLES4SAP_FIREWALL_PORTS'));
+    $hana_vars{sap_hana_install_update_firewall} = get_var('SLES4SAP_FIREWALL_PORTS', 'false');
     my @hana_sites = get_hana_site_names();
     $hana_vars{primary_site} = $hana_sites[0];
     $hana_vars{secondary_site} = $hana_sites[1];
@@ -1401,8 +1407,8 @@ sub wait_for_cluster {
             }
             # Call cleanup_resource if $hanasr_ready or $crm_ok is false
             if (!$hanasr_ready || !$crm_ok) {
-                $self->cleanup_resource();
                 record_soft_failure("jsc#TEAM-10642 SAPHanaSR-ScaleUp-PerfOpt failed in 'Cluster is not ready after specified retries'");
+                $self->cleanup_resource();
                 $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
                 return if (check_crm_output(input => $crm_output));
             }

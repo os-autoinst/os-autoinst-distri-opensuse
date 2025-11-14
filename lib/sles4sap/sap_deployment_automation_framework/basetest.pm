@@ -79,11 +79,12 @@ sub full_cleanup {
 
     # Trigger SDAF remover script to destroy 'workload zone' and 'sap systems' resources
     # Clean up all config files, keys, etc.. on deployer VM
+    my %cleanup_results;
     if ($redirection_works) {
         load_os_env_variables();
         az_login();
         _sdaf_ibsm_teardown() if get_var('IS_MAINTENANCE');
-        sdaf_cleanup();
+        %cleanup_results = %{sdaf_cleanup()};
         disconnect_target_from_serial();    # Exist Deployer console since we are about to destroy it
     }
 
@@ -103,6 +104,10 @@ sub full_cleanup {
         if ($ret) {
             die('Delete orphaned peerings failed, please check log and delete manually');
         }
+    }
+    # Report cleanup failures
+    if ($cleanup_results{remover_failed} or ($cleanup_results{file_cleanup} eq 'fail')) {
+        die('Some of the cleanup tasks failed, please check logs for details.');
     }
 }
 

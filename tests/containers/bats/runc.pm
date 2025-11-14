@@ -27,6 +27,8 @@ sub run_tests {
 
     my @xfails = ();
     push @xfails, (
+        # These tests fail due to:
+        # https://github.com/opencontainers/runc/issues/4732
         "run.bats::runc run [joining existing container namespaces]",
         "userns.bats::userns join other container userns",
     ) if (is_sle("<16") && $rootless);

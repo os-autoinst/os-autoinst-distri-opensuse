@@ -10,10 +10,11 @@ use base 'x11test';
 use testapi;
 use version_utils 'is_leap';
 use utils 'systemctl';
+use x11utils;
 
 sub run() {
     my ($self) = @_;
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
     systemctl 'start postgresql';
     wait_screen_change { script_run 'su postgres', 0 };

@@ -10,6 +10,15 @@ conditional_schedule:
     ARCH:
       's390x':
         - installation/bootloader_zkvm
+  kvm:
+    ARCH:
+      # nested kvm is not yet available on ppc64le
+      'x86_64':
+        - qemu/kvm
+      'aarch64':
+        - qemu/kvm
+      's390x':
+        - qemu/kvm
 schedule:
   - '{{boot_s390x}}'
   - yam/agama/boot_agama
@@ -21,7 +30,7 @@ schedule:
   - qa_automation/patch_and_reboot
   - qemu/info
   - qemu/qemu
-  - qemu/kvm
+  - '{{kvm}}'
   - console/journal_check
   - console/coredump_collect
   - shutdown/shutdown

@@ -33,6 +33,9 @@ sub run_tests {
 
     my @xfails = ();
     push @xfails, (
+        "add.bats::add https retry ca"
+    ) if (is_sle(">=16"));
+    push @xfails, (
         "bud.bats::bud with --cgroup-parent",
     ) if (is_sle && !$rootless);
     push @xfails, (
@@ -54,13 +57,13 @@ sub run_tests {
 }
 
 sub enable_docker {
-    run_command 'systemctl enable --now docker';
-    run_command "usermod -aG docker $testapi::username";
-
     # Needed to avoid:
     # WARNING: COMMAND_FAILED: '/sbin/iptables -t nat -F DOCKER' failed: iptables: No chain/target/match by that name.
     # See https://bugzilla.suse.com/show_bug.cgi?id=1196801
     run_command 'systemctl restart firewalld';
+
+    run_command 'systemctl enable --now docker';
+    run_command "usermod -aG docker $testapi::username";
 
     # Running podman as root with docker installed may be problematic as netavark uses nftables
     # while docker still uses iptables.

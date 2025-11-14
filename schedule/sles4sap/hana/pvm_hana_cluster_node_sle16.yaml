@@ -42,6 +42,7 @@ schedule:
   - installation/agama_reboot
   - installation/grub_test
   - installation/first_boot
+  - console/zypper_lr
   - ha/wait_barriers
   - console/system_prepare
   - console/consoletest_setup
@@ -49,7 +50,6 @@ schedule:
   - console/hostname
   - ha/ha_sle15_workarounds
   - ha/firewall_disable
-  - ha/iscsi_client
   - ha/iscsi_client_setup
   - ha/setup_hosts_and_luns
   - ha/watchdog

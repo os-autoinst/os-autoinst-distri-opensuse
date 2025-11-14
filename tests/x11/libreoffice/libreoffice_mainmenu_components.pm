@@ -51,6 +51,7 @@ use base "x11test";
 use testapi;
 use utils;
 use version_utils qw(is_sle is_tumbleweed);
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 # open desktop mainmenu and click office
 sub open_mainmenu {
@@ -88,9 +89,9 @@ sub select_base_and_cleanup {
     send_key "ctrl-q";    #close base
 
     # clean the test database file
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     assert_script_run "find /home/$username -name testdatabase.odb | xargs rm";
-    send_key 'alt-f4';
+    close_gui_terminal;
 }
 
 sub run {
@@ -145,12 +146,12 @@ sub run {
     if (match_has_tag 'base-install') {
         send_key 'esc';
         send_key 'esc';
-        x11_start_program('xterm');
+        x11_start_program(default_gui_terminal());
         script_run("gsettings set org.gnome.desktop.session idle-delay 0", 0);    #value=0 means never blank screen
         become_root;
         zypper_call("in libreoffice-base", timeout => 900);
         script_run("gsettings set org.gnome.desktop.session idle-delay 900", 0);    #default value=900
-        send_key 'alt-f4';
+        close_gui_terminal;
         $self->open_overview();
         type_string "base";
     }
