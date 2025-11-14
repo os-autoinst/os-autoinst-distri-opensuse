@@ -20,6 +20,7 @@ use y2_module_guitest 'launch_yast2_module_x11';
 use x11utils qw(turn_off_gnome_screensaver default_gui_terminal);
 use serial_terminal qw(select_serial_terminal);
 use Utils::Systemd qw(systemctl);
+use x11utils qw(close_gui_terminal);
 
 use base 'consoletest';
 
@@ -592,6 +593,7 @@ sub adminer_setup {
         send_key "ret";
     }
     wait_still_screen(stilltime => 3, timeout => 30);
+    close_gui_terminal;
     # Exit xterm
     if (is_tumbleweed()) {
         send_key_until_needlematch("generic-desktop", 'alt-f4', 6, 5);
@@ -674,8 +676,7 @@ sub yast2_apparmor_is_enabled {
 # Yast2 Apparmor clean up
 sub yast2_apparmor_cleanup {
     # Exit x11 and turn to console
-    send_key "alt-f4";
-    assert_screen("generic-desktop");
+    close_gui_terminal;
     select_console("root-console");
     send_key "ctrl-c";
     clear_console;
