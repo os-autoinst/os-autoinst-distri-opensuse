@@ -103,6 +103,12 @@ resource "azurerm_public_ip" "openqa-publicip" {
   resource_group_name = azurerm_resource_group.openqa-group.name
   allocation_method   = "Dynamic"
   count               = var.instance_count
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_network_interface" "openqa-nic" {
@@ -117,6 +123,12 @@ resource "azurerm_network_interface" "openqa-nic" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = element(azurerm_public_ip.openqa-publicip.*.id, count.index)
   }
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 ## storage and NFS share
@@ -129,6 +141,12 @@ resource "azurerm_storage_account" "openqa-group" {
   account_replication_type  = "LRS"
   account_kind              = "FileStorage"
   enable_https_traffic_only = false
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_storage_account_network_rules" "openqa-group" {
