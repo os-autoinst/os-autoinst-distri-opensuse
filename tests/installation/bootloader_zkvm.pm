@@ -32,10 +32,7 @@ sub set_svirt_domain_elements {
         my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
         my $cmdline = get_var('VIRSH_CMDLINE') . $ntlm_p . " ";
         if (is_agama) {
-            $cmdline .= " root=live:http://" . get_var('OPENQA_HOSTNAME') .
-              ((get_var('FLAVOR') eq "Full") ?
-                  "/assets/repo/" . get_required_var('REPO_0') . "/LiveOS/squashfs.img" :
-                  "/assets/iso/" . get_required_var('ISO'));
+            $cmdline .= " root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/repo/" . get_required_var('REPO_0') . "/LiveOS/squashfs.img";
             $cmdline .= " live.password=$testapi::password";
             # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
             $cmdline .= ' ' . get_var('AGAMA_NETWORK_PARAMS') if get_var('AGAMA_NETWORK_PARAMS');
