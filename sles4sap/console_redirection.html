@@ -65,7 +65,7 @@
 
 <pre><code>check_serial_redirection();</code></pre>
 
-<p>Checks if serial redirection is currently active by comparing worker VM machine id against id returned from serial console. VM ID is collected by opening &#39;log-console&#39; which is not redirected.</p>
+<p>Checks for active serial redirection. This is done by comparing worker machine id stored in <b>$redirection_file</b> with current machine id from <b>/etc/machine-id</b>. Redirection file <b>$redirection_file</b> is created by <b>connect_target_to_serial()</b> function after accessing target VM and stores original worker VM ID. Redirection is <b>active</b> if <b>$redirection_file</b> exists and machine IDs do not match. Redirection is <b>inactive</b> if <b>$redirection_file</b> does not exist or machine IDs match.</p>
 
 
 </body>
