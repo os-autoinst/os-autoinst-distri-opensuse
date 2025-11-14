@@ -68,7 +68,7 @@ sub run {
     }
     # Make sure screen changed before calling handle_login function (for slow workers)
     wait_still_screen;
-    handle_login($user, 1);
+    handle_login(myuser => $user, user_selected => 1);
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     # verify correct user is logged in
     x11_start_program('xterm');

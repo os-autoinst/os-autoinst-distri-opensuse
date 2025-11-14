@@ -44,7 +44,7 @@ sub logout_and_login {
     my $test_user = $login_user // $username;
     my $test_pw = $login_pw // $newpwd;
     handle_logout;
-    handle_login($test_user, 0, $test_pw);
+    handle_login(myuser => $test_user, mypwd => $test_pw);
 }
 
 sub switch_user {

@@ -254,7 +254,7 @@ sub handle_additional_polkit_windows {
 
 =head2 handle_login
 
- handle_login($myuser, $user_selected);
+ handle_login(myuser => $myuser, user_selected => 1);
 
 Log the user in using the displaymanager.
 When C<$myuser> is set, this user will be used for login.
@@ -265,15 +265,15 @@ user has already been selected before this function was called.
 
 Example:
 
-  handle_login('user1', 1);
+  handle_login(myuser => 'user1', user_selected => 1);
 
 =cut
 
 sub handle_login {
-    my ($myuser, $user_selected, $mypwd) = @_;
-    $myuser //= $username;
-    $mypwd //= $testapi::password;
-    $user_selected //= 0;
+    my (%args) = @_;
+    my $myuser = $args{myuser} // $username;
+    my $mypwd = $args{mypwd} // $testapi::password;
+    my $user_selected = $args{user_selected} // 0;
 
     wait_still_screen 3;
     save_screenshot();
@@ -318,7 +318,12 @@ sub handle_login {
     handle_additional_polkit_windows($mypwd) if check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 15);
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
-        send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc', 5, 10;
+        if ($args{custom_generic_desktop}) {
+            send_key_until_needlematch $args{custom_generic_desktop}, 'esc', 5, 10;
+        }
+        else {
+            send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc', 5, 10;
+        }
     }
 }
 
@@ -355,8 +360,9 @@ First logs out and the log in via C<handle_logout()> and C<handle_login()>
 =cut
 
 sub handle_relogin {
+    my (%args) = @_;
     handle_logout;
-    handle_login;
+    handle_login(%args);
 }
 
 =head2 select_user_gnome

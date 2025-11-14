@@ -131,7 +131,7 @@ sub run {
         assert_screen "focused-on-search";
         # Gnome console is actually kgx when lauching, but is not found by that name
         # in the gnome tweaks app
-        my $app = ($default_gui_terminal eq 'kgx') ? "console" : default_gui_terminal;
+        my $app = ($default_gui_terminal eq 'kgx') ? "console" : ($default_gui_terminal eq 'gnome-terminal') ? 'terminal' : default_gui_terminal;
         type_string $app;
         wait_still_screen 2, 4;
     }
@@ -145,7 +145,7 @@ sub run {
     wait_still_screen;
     send_key "alt-f4";
 
-    handle_relogin;
+    handle_relogin(custom_generic_desktop => 'gnome-terminal');
     my @tags = ($default_gui_terminal, "xterm-without-focus");
     assert_screen \@tags;
     if (match_has_tag 'xterm-without-focus') {
