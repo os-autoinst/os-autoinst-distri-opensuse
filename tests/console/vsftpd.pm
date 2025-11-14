@@ -18,7 +18,7 @@
 # - Create a lock for vsftpd suite
 # - If HOSTNAME contains "client", run "run.sh" script
 # - Unlock vsftpd barrier
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

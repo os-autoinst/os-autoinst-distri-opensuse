@@ -12,7 +12,7 @@
 #            - create some custom rules to allow connections in one direction only (client to server)
 #            - test again connectivity, expecting client to server to work, and the other way around to fail
 #
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 #
 # Network Architecture:
 # -------------+-----------------------------+------------------------------------------------------------------------10.0.2.0/24

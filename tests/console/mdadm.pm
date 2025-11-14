@@ -8,7 +8,7 @@
 # - Fetch mdadm.sh from datadir
 # - Execute bash mdadm.sh |& tee mdadm.log
 # - Upload mdadm.log
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

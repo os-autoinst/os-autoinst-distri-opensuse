@@ -19,7 +19,7 @@
 # - Send ret or ctrl-x to boot system
 # - Compare boot parameters with parameters obtained by serial, unless it is
 # live image
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 package bootloader;
 

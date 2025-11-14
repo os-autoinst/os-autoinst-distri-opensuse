@@ -16,7 +16,7 @@
 #  33d32
 #  <     sync; sleep 3
 ######################################################
-# Maintainer: rfan1 <richard.fan@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

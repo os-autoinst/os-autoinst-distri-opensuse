@@ -9,7 +9,7 @@
 #          - Apply patches to the sources
 #          - Run the crypto and tls tests.
 #          - List eventually skipped and failed test
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

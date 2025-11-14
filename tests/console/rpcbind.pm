@@ -10,7 +10,7 @@
 # - Enable and start rpcbind, nfs-server and check
 # - Mount nfs point, check test file
 # - Umount nfs
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

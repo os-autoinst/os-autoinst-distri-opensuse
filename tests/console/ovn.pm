@@ -15,7 +15,7 @@
 #    - Makes use of network namespaces to test basic
 #        connectivity between the ports
 #
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>, QE Core <qe-core@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;

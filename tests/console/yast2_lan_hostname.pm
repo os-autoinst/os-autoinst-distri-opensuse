@@ -5,7 +5,7 @@
 
 # Package: yast2-network
 # Summary: yast2 lan hostname via DHCP test https://bugzilla.suse.com/show_bug.cgi?id=984890
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use parent "y2_module_consoletest";
 use testapi;

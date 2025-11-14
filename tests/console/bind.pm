@@ -22,7 +22,7 @@
 # Official docu below, look for version specific README in /usr/src/packages/BUILD/bind-*/bin/tests/system
 # https://gitlab.isc.org/isc-projects/bind9/-/blob/main/bin/tests/system/README.md
 #
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

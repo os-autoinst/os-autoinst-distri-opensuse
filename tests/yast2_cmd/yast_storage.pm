@@ -6,7 +6,7 @@
 # Package: yast2-storage
 # Summary: yast storage test
 # List disks and list partitions
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

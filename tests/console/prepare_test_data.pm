@@ -8,7 +8,7 @@
 # - Run "cpio -id < test.data"
 # - Delete the downloaded CPIO archive again
 # - Run "ls -al data"
-# Maintainer: Zaoliang Luo <zluo@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;
