@@ -17,12 +17,16 @@ use testapi;
 use utils;
 use Utils::Architectures;
 use version_utils 'is_sle';
+use x11utils qw(close_gui_terminal);
 
 sub quit_firefox {
     send_key "alt-f4";
-    assert_screen([qw(firefox-save-and-quit generic-desktop)]);
+    assert_screen([qw(firefox-save-and-quit generic-desktop xterm)]);
     if (match_has_tag 'firefox-save-and-quit') {
         assert_and_click("firefox-click-close-tabs");
+    }
+    if (match_has_tag 'xterm') {
+        close_gui_terminal;
     }
 }
 
@@ -155,8 +159,9 @@ sub run {
     assert_screen("firefox-confirm-fips_enabled");
     send_key "esc";    # Quit device manager
 
-    # Close Firefox
+    # Close Firefox and terminal
     quit_firefox;
+    close_gui_terminal;
 
     # Add more time for aarch64 due to worker performance problem
     my $waittime = 60;

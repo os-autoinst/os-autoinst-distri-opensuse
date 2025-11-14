@@ -10,6 +10,7 @@
 use base 'opensusebasetest';
 use testapi;
 use utils 'zypper_call';
+use x11utils qw(close_gui_terminal);
 
 sub run {
     select_console 'root-console';
@@ -80,7 +81,7 @@ sub run {
 
     # Clean up
     send_key 'alt-o';
-    send_key 'alt-f4';
+    close_gui_terminal;
 }
 
 1;
