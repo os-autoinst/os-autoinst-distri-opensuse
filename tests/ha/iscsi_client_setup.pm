@@ -89,22 +89,37 @@ sub run {
     ping_size_check(testapi::host_ip());
     ping_size_check($iscsi_server);
 
-    # open-iscsi & iscsiuio
-    zypper_call 'in open-iscsi' if (script_run('rpm -q open-iscsi'));
     record_info 'iscsi initiator pre configuration', script_output('cat /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
     record_info 'rpm-qf', script_output('rpm -qf /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
+
+    # open-iscsi & iscsiuio
+    zypper_call 'in open-iscsi' if (script_run('rpm -q open-iscsi'));
+    record_info 'iscsi initiator configuration', script_output('cat /etc/iscsi/initiatorname.iscsi');
+    record_info 'rpm-qf', script_output('rpm -qf /etc/iscsi/initiatorname.iscsi');
     record_info('open-iscsi version', script_output('rpm -q open-iscsi'));
+    my $old_initator_name = script_output("cat /etc/iscsi/initiatorname.iscsi | cut -d '=' -f 2");
 
     # Generate a new initiatorname for each SUT in case some pre tasks created the same name
-    if (is_sle('>=15')) {
+    # For sle15sp2 and older versions, the initiatorname can't be changed via '/sbin/iscsi-gen-initiatorname'
+    # Use below workaround to generate a new one, we need to apply it for upgrade from sle15sp2 to sle15sp3
+    if (is_sle('>=15-SP3') && !check_var('ORIGIN_SYSTEM_VERSION', '15-SP2')) {
         assert_script_run '/sbin/iscsi-gen-initiatorname -f';
     }
     else {
-        # For sle12, the initiatorname can't be changed via '/sbin/iscsi-gen-initiatorname'
-        # Use below workaround to generate a new one
         assert_script_run qq(echo "InitiatorName=`/sbin/iscsi-iname`" | tee /etc/iscsi/initiatorname.iscsi);
     }
-    record_info 'iscsi initiator after forcing regeneration', script_output('cat /etc/iscsi/initiatorname.iscsi', proceed_on_failure => 1);
+    record_info 'iscsi initiator after forcing regeneration', script_output('cat /etc/iscsi/initiatorname.iscsi');
+    my $new_initator_name = script_output("cat /etc/iscsi/initiatorname.iscsi | cut -d '=' -f 2");
+    die "Initator name $old_initator_name is not changed" if $old_initator_name eq $new_initator_name;
+
+    # Save multipath wwids file as we may need it to blacklist iSCSI devices later
+    if (get_var('MULTIPATH')) {
+        my $mpconf = '/etc/multipath.conf';
+        my $mpwwid = '/etc/multipath/wwids';
+        my $mptmp = '/tmp/multipath-wwids';
+        script_run "cp $mpwwid $mptmp.orig";
+    }
+
     systemctl 'enable --now iscsid';
     record_info('iscsid status', script_output('systemctl status iscsid'));
 
@@ -132,6 +147,18 @@ sub run {
     # Check iSCSI devices are there or fail if missing. Check more than once, as serial terminal
     # could run commands faster than SUT is able to access the devices
     script_retry('ls /dev/disk/by-path/ip-*', timeout => $default_timeout, retry => 5, delay => 10, fail_message => 'No iSCSI devices!');
+
+    # Blacklist iSCSI devices in multipath. Otherwise HA tests cannot use them directly
+    if (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i)) {
+        assert_script_run "cp $mpwwid $mptmp.new";
+        assert_script_run "echo 'blacklist {' >> $mpconf";
+        # diff returns 1 when files are different, so we do not assert this call
+        my $retval = script_run "diff $mptmp.orig $mptmp.new | sed -n -e 's|/||g' -e 's/> /    wwid /p' >> $mpconf";
+        die "Failed to diff [$mptmp.orig] and [$mptmp.new]" unless ($retval == 0 || $retval == 1);
+        assert_script_run "echo '}' >> $mpconf";
+        assert_script_run "cat $mpconf";
+        systemctl('restart multipathd');
+    }
 }
 
 1;
