@@ -25,12 +25,12 @@
         {
           "name": "log",
           "count": 1,
-          "disk_type": "UltraSSD_LRS",
-          "size_gb": 128,
+          "disk_type": "PremiumV2_LRS",
+          "size_gb": 64,
           "caching": "None",
           "write_accelerator": false,
-          "disk_iops_read_write": 1800,
-          "disk_mbps_read_write": 250,
+          "disk_iops_read_write": 3000,
+          "disk_mbps_read_write": 275,
           "lun_start": 9
         },
         {
