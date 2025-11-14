@@ -105,6 +105,8 @@ sub update_kernel {
             trup_call("patch");
             # Reboot system after patch, to make sure that further checks are done on updated system
             reboot_on_changes;
+        } elsif (get_var('FLAVOR') =~ /-Increments/) {
+            fully_patch_system;
         } else {
             zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1400);
         }
