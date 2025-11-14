@@ -22,7 +22,7 @@ sub run {
 
     # Softdog module needs to be loaded
     # Note: 'grep -q' is not always working, because it can exits with RC=141 due to the pipe...
-    enter_cmd "dmesg | grep -i $module";
+    script_run "dmesg | grep -i $module";
     assert_script_run "lsmod | grep $module";
 
     # Keep the screenshot for this test
