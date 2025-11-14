@@ -95,8 +95,13 @@ sub update_kernel {
     my $patches = '';
     $patches = get_patches($incident_id, $repo);
 
-    if ($incident_id && !($patches)) {
-        die "Patch isn't needed";
+    if (!$patches) {
+        if (get_var('FLAVOR') =~ /-Increments/) {
+            $self->record_soft_failure_result('There are no relevant updates.');
+            return;
+        }
+
+        die "Patch isn't needed" if $incident_id;
     }
     else {
         # Use single patch or patch list
@@ -105,8 +110,6 @@ sub update_kernel {
             trup_call("patch");
             # Reboot system after patch, to make sure that further checks are done on updated system
             reboot_on_changes;
-        } elsif (get_var('FLAVOR') =~ /-Increments/) {
-            fully_patch_system;
         } else {
             zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1400);
         }
