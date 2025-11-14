@@ -107,17 +107,34 @@ subtest '[crash_deploy_aws]' => sub {
     ok((any { /run-instance/ } @calls), 'Run VM');
 };
 
-subtest '[crash_destroy_aws]' => sub {
+subtest '[crash_destroy_aws] all pass' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     my @calls;
     my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
-    $aws->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $aws->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $aws->redefine(script_output => sub { push @calls, $_[0]; return 'LactariusTorminosus'; });
 
-    crash_destroy_aws(region => 'SclerodermaCitrinum');
+    my $ret = crash_destroy_aws(region => 'SclerodermaCitrinum');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 delete-.*/ } @calls), 'Delete something');
+    ok(($ret eq 0), "Expected ret:0 and get $ret");
 };
+
+subtest '[crash_destroy_aws] all fail' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    my @calls;
+    my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $aws->redefine(script_run => sub { push @calls, $_[0]; return 42; });
+    $aws->redefine(script_output => sub { push @calls, $_[0]; return 'LactariusTorminosus'; });
+
+    my $ret = crash_destroy_aws(region => 'SclerodermaCitrinum');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /aws ec2 delete-.*/ } @calls), 'Delete something');
+    ok(($ret eq 42), "Expected ret:42 and get $ret");
+};
+
 done_testing;

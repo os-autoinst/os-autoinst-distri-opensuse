@@ -45,14 +45,15 @@ subtest '[aws_vpc_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Rocky'; });
-    $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $awscli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
 
-    aws_vpc_delete(
+    my $ret = aws_vpc_delete(
         region => 'GranMax',
         vpc_id => 'Hijet');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 delete-vpc/ } @calls), 'Command delete-vpc');
+    ok(($ret eq 42), "Return expected 42 get $ret");
 };
 
 
@@ -79,13 +80,14 @@ subtest '[aws_security_group_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'Clarity'; });
-    $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $awscli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
 
-    aws_security_group_delete(region => 'Cosmo', job_id => 'Civic');
+    my $ret = aws_security_group_delete(region => 'Cosmo', job_id => 'Civic');
 
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 delete-security-group/ } @calls), 'Command delete-security-group');
+    ok(($ret eq 42), "Return expected 42 get $ret");
 };
 
 
@@ -170,16 +172,17 @@ subtest '[aws_subnet_get_id]' => sub {
 subtest '[aws_subnet_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     my @calls;
-    $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $awscli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'subnet-123'; });
 
-    aws_subnet_delete(
+    my $ret = aws_subnet_delete(
         region => 'Beat',
         job_id => '67890'
     );
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 delete-subnet/ } @calls), 'Command delete-subnets');
+    ok(($ret eq 42), "Return expected 42 get $ret");
 };
 
 subtest '[aws_internet_gateway_create]' => sub {
@@ -232,15 +235,23 @@ subtest '[aws_internet_gateway_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'igw-123'; });
-    $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    my $script_run_count = 0;
+    $awscli->redefine(script_run => sub {
+            push @calls, $_[0];
+            $script_run_count++;
+            return $script_run_count == 1 ? 0 : 42;
+    });
 
-    aws_internet_gateway_delete(
+    my $ret = aws_internet_gateway_delete(
         vpc_id => 'vpc-12345',
         job_id => '67890',
         region => 'Ascot');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /aws ec2 detach-internet-gateway/ } @calls), 'Command detach-internet-gateway');
     ok((any { /aws ec2 delete-internet-gateway/ } @calls), 'Command delete-internet-gateway');
+    ok(($ret eq 42), "Return expected 42 get $ret");
+    is($script_run_count, 2, "script_run called twice");
 };
 
 subtest '[aws_route_table_create]' => sub {
@@ -277,12 +288,19 @@ subtest '[aws_route_table_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     my @calls;
     $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'MX-5Miata Altezza'; });
-    $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    my $script_run_count = 0;
+    $awscli->redefine(script_run => sub {
+            push @calls, $_[0];
+            $script_run_count++;
+            return $script_run_count == 1 ? 0 : 42;
+    });
 
-    aws_route_table_delete(vpc_id => 'Supra', region => 'HondaNSX');
+    my $ret = aws_route_table_delete(vpc_id => 'Supra', region => 'HondaNSX');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 delete-route-table/ } @calls), 'Command delete-route-table');
+    ok(($ret eq 42), "Return expected 42 get $ret");
+    is($script_run_count, 2, "script_run called twice");
 };
 
 subtest '[aws_route_create]' => sub {
@@ -373,9 +391,14 @@ subtest '[aws_get_ip_address]' => sub {
 subtest '[aws_vm_terminate]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     my @calls;
-    $awscli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    my $script_run_count = 0;
+    $awscli->redefine(script_run => sub {
+            push @calls, $_[0];
+            $script_run_count++;
+            return $script_run_count == 1 ? 0 : 42;
+    });
 
-    aws_vm_terminate(
+    my $ret = aws_vm_terminate(
         region => 'us-west-1',
         instance_id => 'i-12345'
     );
@@ -383,6 +406,8 @@ subtest '[aws_vm_terminate]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 terminate-instances/ } @calls), 'Command terminate-instances');
     ok((any { /aws ec2 wait instance-terminated/ } @calls), 'Command wait instance-terminated');
+    ok(($ret eq 42), "Return expected 42 get $ret");
+    is($script_run_count, 2, "script_run called twice");
 };
 
 done_testing;

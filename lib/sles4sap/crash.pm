@@ -347,26 +347,33 @@ Delete the AWS deployment
 
 sub crash_destroy_aws(%args) {
     croak "Missing mandatory argument 'region'" unless $args{region};
+    my %ret;
     my $job_id = crash_deploy_name();
 
     my $instance_id = aws_vm_get_id(region => $args{region}, job_id => $job_id);
     my $vpc_id = aws_vpc_get_id(region => $args{region}, job_id => $job_id);
 
     # Terminate instance and wait
-    aws_vm_terminate(region => $args{region}, instance_id => $instance_id);
+    $ret{vm} = aws_vm_terminate(region => $args{region}, instance_id => $instance_id);
 
     # Delete all resources
-    aws_security_group_delete(region => $args{region}, job_id => $job_id);
-    aws_subnet_delete(region => $args{region}, job_id => $job_id);
+    $ret{sg} = aws_security_group_delete(region => $args{region}, job_id => $job_id);
+    $ret{subnet} = aws_subnet_delete(region => $args{region}, job_id => $job_id);
 
-    aws_internet_gateway_delete(
+    $ret{ig} = aws_internet_gateway_delete(
         vpc_id => $vpc_id,
         job_id => $job_id,
         region => $args{region});
-    aws_route_table_delete(region => $args{region}, vpc_id => $vpc_id);
+    $ret{rt} = aws_route_table_delete(region => $args{region}, vpc_id => $vpc_id);
 
     # Delete everything else (AWS handles dependencies automatically if we wait)
-    aws_vpc_delete(region => $args{region}, vpc_id => $vpc_id);
+    $ret{vpc} = aws_vpc_delete(region => $args{region}, vpc_id => $vpc_id);
+
+    foreach my $key (keys %ret) {
+        # return the first not zero
+        return $ret{$key} if $ret{$key};
+    }
+    return 0;
 }
 
 1;
