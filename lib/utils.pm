@@ -1967,8 +1967,10 @@ sub reconnect_mgmt_console {
         if (is_ipmi) {
             select_console 'sol', await_console => 0;
             assert_screen([qw(qa-net-selection prague-pxe-menu nue-ipxe-menu grub2)], 300);
-            # boot to hard disk is default
-            send_key 'ret';
+            if ($args{grub_expected_twice}) {
+                check_screen 'grub2', 60;
+                wait_screen_change { send_key 'ret' };
+            }
         }
     }
     elsif (is_aarch64) {
@@ -1976,7 +1978,10 @@ sub reconnect_mgmt_console {
             select_console 'sol', await_console => 0;
             # aarch64 baremetal machine takes longer to boot than 5 minutes
             assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 600);
-            send_key 'ret';
+            if ($args{grub_expected_twice}) {
+                check_screen 'grub2', 60;
+                wait_screen_change { send_key 'ret' };
+            }
         }
     }
     else {
