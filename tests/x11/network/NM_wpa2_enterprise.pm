@@ -12,6 +12,7 @@ use base 'x11test';
 use testapi;
 use utils;
 use Utils::Logging 'save_and_upload_systemd_unit_log';
+use x11utils qw(close_gui_terminal default_gui_terminal);
 
 sub run {
     my $self = shift;
@@ -20,7 +21,7 @@ sub run {
     $self->enter_NM_credentials;
     $self->handle_polkit_root_auth;
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
     # disable IPv4 and IPv6 so NM thinks we are online even without dhcp
     $self->NM_disable_ip;

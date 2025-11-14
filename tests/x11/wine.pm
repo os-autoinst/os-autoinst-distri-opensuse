@@ -12,6 +12,7 @@
 
 use base 'x11test';
 use testapi;
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 sub run {
     select_console 'x11';
@@ -19,7 +20,7 @@ sub run {
     # requires .NET because on startup wine asks if it should install a
     # wine-mono package
     ensure_installed 'wine wine-mono', timeout => 360;
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     my $cmd = <<'EOF';
 wget http://keir.net/download/timer.zip
 unzip timer.zip
@@ -31,8 +32,8 @@ EOF
         send_key 'esc';
         assert_screen 'wine-timer', 600;
     }
-    wait_screen_change { send_key 'alt-f4' };
-    send_key 'alt-f4';
+    wait_screen_change { send_key 'alt-f4' };    # closes wine
+    close_gui_terminal;
 }
 
 1;

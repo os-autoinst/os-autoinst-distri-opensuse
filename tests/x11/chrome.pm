@@ -12,6 +12,7 @@ use base "x11test";
 use testapi;
 use Utils::Architectures;
 use utils;
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 sub install_google_repo_key {
     become_root;
@@ -48,12 +49,11 @@ sub run {
     my $chrome_url = "https://dl.google.com/linux/direct/google-chrome-stable_current_$arch.rpm";
     select_console('x11');
     mouse_hide;
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     install_google_repo_key;
     zypper_call "in $chrome_url";
     save_screenshot;
-    # closing xterm
-    send_key "alt-f4";
+    close_gui_terminal;
     avoid_async_keyring_popups;
     preserve_privacy_of_non_human_openqa_workers;
     assert_and_click 'chrome-default-browser-query';

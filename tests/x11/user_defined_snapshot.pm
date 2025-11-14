@@ -22,6 +22,8 @@ use utils;
 use Utils::Backends 'is_remote_backend';
 use power_action_utils 'power_action';
 use y2snapper_common qw(y2snapper_close_snapper_module);
+use x11utils 'default_gui_terminal';
+use version_utils;
 
 sub y2snapper_create_snapshot {
     my ($self, $name, $user_data) = @_;
@@ -41,8 +43,9 @@ sub y2snapper_create_snapshot {
 
 sub run {
     my $self = shift;
+    select_console 'x11';
     # Start an xterm as root
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
     script_run "cd";
 
@@ -65,11 +68,16 @@ sub run {
     record_info 'Snapshot created', 'booting the system into created snapshot';
     power_action('reboot', keepconsole => 1);
     $self->wait_grub(bootloader_time => 350);
-    send_key_until_needlematch("boot-menu-snapshot", 'down', 11, 5);
-    send_key 'ret';
-    $self->{in_wait_boot} = 0;
-    # On slow VMs we press down key before snapshots list is on screen
-    wait_screen_change { assert_screen 'boot-menu-snapshots-list' };
+
+    if (is_bootloader_grub2) {
+        send_key_until_needlematch("boot-menu-snapshot", 'down', 11, 5);
+        send_key 'ret';
+        $self->{in_wait_boot} = 0;
+        # On slow VMs we press down key before snapshots list is on screen
+        wait_screen_change { assert_screen 'boot-menu-snapshots-list' };
+    }
+    # for non bls, if wait_grub worked, we should be already on the list
+    # of snapshots, and all there is left, is to look for the one we need
 
     send_key_until_needlematch("snap-bootloader-comment", 'down', 11, 5);
     save_screenshot;
@@ -80,7 +88,11 @@ sub run {
     record_info 'Snapshot found', 'Waiting to boot the system';
     # boot into the snapshot
     # do not try to search for the grub menu again as we are already here
-    $self->wait_boot(textmode => $is_textmode, in_grub => 1);
+    if (is_bootloader_grub2) {
+        $self->wait_boot(textmode => $is_textmode, in_grub => 1);
+    } else {
+        $self->wait_boot_past_bootloader(textmode => $is_textmode);
+    }
     # request reboot again to ensure we will end up in the original system
     record_info 'Desktop reached', 'Now return system to original state with a reboot';
     power_action('reboot', keepconsole => 1);
