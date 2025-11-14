@@ -118,11 +118,11 @@ sub aws_vpc_get_id(%args) {
 
 =head2 aws_vpc_delete
 
-    aws_vpc_delete(
+    my $ret = aws_vpc_delete(
         region => 'us-west',
         vpc_id => 'vpc-456');
 
-Delete the VPC
+Delete the VPC, do not assert but return the exit code of the command.
 
 =over
 
@@ -137,7 +137,7 @@ sub aws_vpc_delete(%args) {
     foreach (qw(region vpc_id)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    assert_script_run(join(' ',
+    return script_run(join(' ',
             'aws ec2 delete-vpc',
             '--vpc-id', $args{vpc_id},
             '--region', $args{region}));
@@ -189,16 +189,14 @@ sub aws_security_group_create(%args) {
 
 =head2 aws_security_group_delete
 
-    my $sg_id = aws_security_group_delete(
+    my $ret = aws_security_group_delete(
         region => 'uswest',
         group_name => 'something',
         description => 'be or not to be',
         vpc_id => 'vpc123456',
         job_is => '7890');
 
-Create an AWS security group within a VPC and tag it with the OpenQA job ID
-
-Returns the security group ID
+Delete the security group, do not assert but return the exit code of the command.
 
 =over
 
@@ -213,7 +211,7 @@ sub aws_security_group_delete(%args) {
     foreach (qw(region job_id)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    assert_script_run(join(' ',
+    return script_run(join(' ',
             'aws ec2 delete-security-group',
             '--group-id', aws_security_group_get_id(region => $args{region}, job_id => $args{job_id}),
             '--region', $args{region}));
@@ -366,12 +364,12 @@ sub aws_subnet_get_id(%args) {
 
 =head2 aws_subnet_delete
 
-    aws_subnet_delete(
+    my $ret = aws_subnet_delete(
         region => 'us-west-1',
         job_id => '67890'
     );
 
-Delete subnet
+Delete the subnet, do not assert but return the exit code of the command.
 
 =over
 
@@ -386,7 +384,7 @@ sub aws_subnet_delete(%args) {
     foreach (qw(region job_id)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
-    assert_script_run(join(' ',
+    return script_run(join(' ',
             'aws ec2 delete-subnet',
             '--subnet-id', aws_subnet_get_id(region => $args{region}, job_id => $args{job_id}),
             '--region', $args{region}));
@@ -497,13 +495,13 @@ sub aws_internet_gateway_attach(%args) {
 
 =head2 aws_internet_gateway_delete
 
-    aws_internet_gateway_delete(
+    my $ret = aws_internet_gateway_delete(
         job_id => '6789',
         vpc_id => 'vpc-12345',
         region => 'us-west-1'
     );
 
-Delete internet gateway
+Delete the internet gateway, do not assert but return the exit code of the command.
 
 =over
 
@@ -520,14 +518,15 @@ sub aws_internet_gateway_delete(%args) {
     foreach (qw(region vpc_id job_id)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
-
+    my $ret;
     my $igw_id = aws_internet_gateway_get_id(region => $args{region}, job_id => $args{job_id});
-    assert_script_run(join(' ',
+    $ret = script_run(join(' ',
             'aws ec2 detach-internet-gateway',
             '--vpc-id', $args{vpc_id},
             '--internet-gateway-id', $igw_id,
             '--region', $args{region}));
-    assert_script_run(join(' ',
+    return $ret if ($ret != 0);
+    return script_run(join(' ',
             'aws ec2 delete-internet-gateway',
             '--internet-gateway-id', $igw_id,
             '--region', $args{region}));
@@ -601,12 +600,12 @@ sub aws_route_table_associate(%args) {
 
 =head2 aws_route_table_delete
 
-    aws_route_table_delete(
+    my $ret = aws_route_table_delete(
         vpc_id => 'subnet-12345',
         region => 'us-west-1'
     );
 
-Delete a route table
+Delete the route table(s), do not assert but return the first non-zero exit code of the commands, or 0 on success.
 
 =over
 
@@ -627,10 +626,14 @@ sub aws_route_table_delete(%args) {
             "--query 'RouteTables[?Associations[0].Main!=\`true\`].RouteTableId'",
             '--output text',
             '--region', $args{region}));
-    assert_script_run(join(' ',
-            'aws ec2 delete-route-table',
-            '--route-table-id', $_,
-            '--region', $args{region})) for split(/\s+/, $rtb_ids);
+    for my $id (split(/\s+/, $rtb_ids)) {
+        my $ret = script_run(join(' ',
+                'aws ec2 delete-route-table',
+                '--route-table-id', $id,
+                '--region', $args{region}));
+        return $ret if $ret;
+    }
+    return 0;
 }
 
 =head2 aws_route_create
@@ -821,12 +824,12 @@ sub aws_get_ip_address(%args) {
 
 =head2 aws_vm_terminate
 
-    aws_vm_terminate(
+    my $ret = aws_vm_terminate(
         region => 'us-west-1',
         instance_id => 'i-12345'
     );
 
-Terminate an EC2 instance and wait for it to be terminated.
+Terminate an EC2 instance and wait for it to be terminated, do not assert but return the exit code of the command.
 
 =over
 
@@ -842,12 +845,14 @@ sub aws_vm_terminate(%args) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
 
+    my $ret;
     # Terminate instance and wait
-    assert_script_run(join(' ',
+    $ret = script_run(join(' ',
             'aws ec2 terminate-instances',
             '--instance-ids', $args{instance_id},
             '--region', $args{region}));
-    assert_script_run(join(' ',
+    return $ret if ($ret != 0);
+    return script_run(join(' ',
             'aws ec2 wait instance-terminated',
             '--instance-ids', $args{instance_id},
             '--region', $args{region}), timeout => 300);
