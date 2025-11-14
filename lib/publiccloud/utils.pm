@@ -992,10 +992,10 @@ sub calculate_custodian_ttl {
     # UTC time
     my $now = gmtime;
     my $expiration_time = $now + $ttl_in_seconds;
-    
+
     # convert to proper format
     my $custodian_expiration_date = $expiration_time->strftime("%Y-%m-%dT%H:%M:%SZ");
-    
+
     return $custodian_expiration_date;
 }
 

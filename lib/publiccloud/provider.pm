@@ -724,8 +724,9 @@ sub terraform_param_tags
     my $openqa_var_server = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     # Remove the http:// https:// and/or the slash at the end
     $openqa_var_server =~ s@^https?://|/$@@gm;
+    my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
     my $tags = {
-        openqa_ttl => get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300),
+        openqa_ttl => $openqa_ttl,
         openqa_var_job_id => get_current_job_id(),
         openqa_var_name => get_var(NAME => ''),
         openqa_var_server => $openqa_var_server,
