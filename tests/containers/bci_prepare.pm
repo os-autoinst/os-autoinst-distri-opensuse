@@ -140,7 +140,6 @@ sub check_container_signature {
         $engine = 'docker';
     } else {
         die('No valid container engines defined in CONTAINER_RUNTIMES variable!');
-        return;
     }
 
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
@@ -150,8 +149,10 @@ sub check_container_signature {
 
     my $engine_options = "-v /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem:/SUSE_Trust_Root.crt.pem:ro";
     my $options = "--key /usr/share/pki/containers/suse-container-key.pem";
-    $options .= " --registry-cacert=/SUSE_Trust_Root.crt.pem";    # include SUSE CA for registry.suse.de
-    $options .= " --insecure-ignore-tlog=true";    # ignore missing transparency log entries for registry.suse.de
+    if ($image =~ "registry.suse.de") {
+        $options .= " --registry-cacert=/SUSE_Trust_Root.crt.pem";    # include SUSE CA for registry.suse.de
+        $options .= " --insecure-ignore-tlog=true";    # ignore missing transparency log entries for registry.suse.de
+    }
 
     script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 2);
     assert_script_run("$engine run --rm -q $engine_options $cosign_image verify $options $image", timeout => 300);
@@ -180,7 +181,6 @@ sub run {
       if (get_var('CONTAINER_IMAGE_TO_TEST')
         && get_var("CONTAINERS_SKIP_SIGNATURE", "0") != 1
         && $host_version =~ "15-SP7|16\..*|slem-6\.1"
-        && get_var("FLAVOR") !~ /BCI-Repo-Updates/
       );
 }
 
