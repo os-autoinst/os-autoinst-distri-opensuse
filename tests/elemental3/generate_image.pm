@@ -16,6 +16,57 @@ use Mojo::File qw(path);
 use utils qw(file_content_replace);
 use Utils::Architectures qw(is_aarch64);
 
+sub sysext_gen {
+    my $sysext_path = get_required_var('SYSEXT_PATH');
+    my $shared_dir = '/root/shared';
+    my $config_file = "$shared_dir/config.sh";
+    my $sysext_root = "$shared_dir/sysexts";
+    my $sysext_dir = "$sysext_root/etc/extensions";
+    my $overlay = "$shared_dir/sysexts.tar.gz";
+    my $sysext_arch;
+    my @sysexts;
+
+    # Create directories
+    assert_script_run("mkdir -p $sysext_dir");
+
+    # Define architecture for the system extensions
+    $sysext_arch = 'arm64' if ($args{arch} eq 'aarch64');
+    $sysext_arch = 'x86-64' if ($args{arch} eq 'x86_64');
+
+    # Get the system extensions list
+    # NOTE: '/' is mandatory at the end of $sysext_path!
+    my @list = split(
+        /[\r\n]+/,
+        script_output(
+            "curl -s ${sysext_path}/ | sed -n 's/.*href=\"\\(.*_${sysext_arch}.raw\\)\">.*/\\1/p'"
+        )
+    );
+
+    # Clean the list
+    foreach (sort @list) {
+        if ($_ =~ /$args{k8s}/) {
+            # Keep only the first K8s version found (the lower version)
+            # Higher versions can be used in another upgrade test
+            next if $k8s_sysext_found;
+            $k8s_sysext_found = 1;
+        }
+        push @sysexts, $_;
+    }
+
+    # Get the system extensions
+    foreach my $sysext (@sysexts) {
+        assert_script_run(
+            "curl -v -f -o ${sysext_dir}/${sysext} ${sysext_path}/${sysext}",
+            300);
+    }
+
+    # Package the system extensions
+    assert_script_run("tar cvaf $overlay -C $sysext_root .");
+
+    # Return systemd-sysexts file name
+    return ($overlay, $sysext_dir);
+}
+
 sub build_cmd {
     my (%args) = @_;
     my $build_dir = '/root/build';
@@ -70,22 +121,22 @@ sub build_cmd {
     return ("$args{img_filename}.qcow2");
 }
 
-sub install_cmd {
+sub build_iso_cmd {
     my (%args) = @_;
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
-    my $sysext_path = get_required_var('SYSEXT_PATH');
-    my $config_file = "$shared_dir/config.sh";
+    my $krnlcmdline = get_var('KERNEL_CMD_LINE');
+    my $isocmdline = get_var('ISO_CMD_LINE');
     my $shared_dir = '/root/shared';
-    my $sysext_root = "$shared_dir/sysexts";
-    my $sysext_dir = "$sysext_root/etc/extensions";
-    my $overlay = "$shared_dir/sysexts.tar.gz";
-    my $device = '/dev/nbd0';
-    my $sysext_arch;
-    my $k8s_sysext_found;
-    my @sysexts;
+    my $config_file = "$shared_dir/config.sh";
+    my $iso_config_file = "$shared_dir/config-iso.sh";
+    my $device = get_var('INSTALL_DISK', '/dev/vda');
 
-    # Create directories
-    assert_script_run("mkdir -p $sysext_dir");
+    # Configure the systemd sysexts
+    record_info('SYSEXT', 'Download and configure systemd system extensions');
+    my ($overlay, $sysext_dir) = sysext_gen();
+
+    # Keep only Elemental sysexts for the ISO overlay
+    script_run("find $sysext_dir -type f ! -name 'elemental*' -exec rm -f {} \\;");
 
     # OS configuration script
     assert_script_run(
@@ -100,40 +151,60 @@ sub install_cmd {
     );
     assert_script_run("chmod 755 $config_file");
 
-    # Define architecture for the system extensions
-    $sysext_arch = 'arm64' if ($args{arch} eq 'aarch64');
-    $sysext_arch = 'x86-64' if ($args{arch} eq 'x86_64');
+    # ISO configuration script
+    assert_script_run(
+        "curl -v -o $iso_config_file "
+          . data_url('elemental3/' . path($iso_config_file)->basename)
+    );
+    assert_script_run("chmod 755 $iso_config_file");
 
-    # Get the system extensions list
-    # NOTE: '/' is mandatory at the end of $sysext_path!
-    my @list = split(
-        /[\r\n]+/,
-        script_output(
-            "curl -s ${sysext_path}/ | sed -n 's/.*href=\"\\(.*_${sysext_arch}.raw\\)\">.*/\\1/p'"
-        )
+    record_info('ISO', 'Generate and upload ISO image');
+
+    # Generate OS image
+    #   "elemental3ctl --debug build-installer \\
+    #      --type iso \\
+    assert_script_run(
+        "elemental3ctl --debug build-iso \\
+           --output . \\
+           --name $args{img_filename} \\
+           --os-image $image \\
+           --cmdline '$isocmdline' \\
+           --config $iso_config_file \\
+           --overlay oci://$ctl_oci \\
+           --install-overlay dir://$overlay_dir \\
+           --install-config $config_file \\
+           --install-cmdline '$krnlcmdline' \\
+           --install-target $device",
+        $args{timeout}
     );
 
-    # Clean the list
-    foreach (sort @list) {
-        if ($_ =~ /$args{k8s}/) {
+    # Return ISO image
+    return ("$args{img_filename}.iso");
+}
 
-            # Keep only the first K8s version found (the lower version)
-            # Higher versions can be used in another upgrade test
-            next if $k8s_sysext_found;
-            $k8s_sysext_found = 1;
-        }
-        push @sysexts, $_;
-    }
+sub install_cmd {
+    my (%args) = @_;
+    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
+    my $shared_dir = '/root/shared';
+    my $config_file = "$shared_dir/config.sh";
+    my $device = '/dev/nbd0';
+    my $k8s_sysext_found;
 
-    # Get the system extensions
-    foreach my $sysext (@sysexts) {
-        assert_script_run(
-            "curl -v -f -o ${sysext_dir}/${sysext} ${sysext_path}/${sysext}",
-            300);
-    }
+    record_info('SYSEXT', 'Download and configure systemd system extensions');
+    my $overlay = sysext_gen();
 
-    # Package the system extensions
-    assert_script_run("tar cvaf $overlay -C $sysext_root .");
+    # OS configuration script
+    assert_script_run(
+        "curl -v -o $config_file "
+          . data_url('elemental3/' . path($config_file)->basename)
+    );
+    file_content_replace(
+        $config_file,
+        '--sed-modifier' => 'g',
+        '%TEST_PASSWORD%' => $args{rootpwd},
+        '%K8S%' => $args{k8s}
+    );
+    assert_script_run("chmod 755 $config_file");
 
     record_info('QCOW2', 'Generate and upload QCOW2 image');
 
@@ -174,7 +245,7 @@ sub run {
     # Add Unified Core repository and install Elemental package
     trup_call("run zypper addrepo --check --refresh $repo_to_test elemental");
     trup_call('--continue run zypper --gpg-auto-import-keys refresh');
-    trup_call('--continue pkg install elemental3 elemental3ctl');
+    trup_call('--continue pkg install elemental3 elemental3ctl squashfs mtools xorriso');
     trup_call('apply');
 
     # Set SELinux in permissive mode, as there is an issue with enforcing mode and Elemental3 doesn't support it yet
@@ -189,7 +260,17 @@ sub run {
         build => $build,
         repo_to_test => $repo_to_test,
         img_filename => $img_filename
-    ) if check_var('TEST_TYPE', 'generate_with_build_cmd');
+    ) if check_var('ELEMENTAL_CMD', 'build');
+
+    $out_file = build_iso_cmd(
+        timeout => $timeout,
+        k8s => $k8s,
+        rootpwd => $rootpwd,
+        build => $build,
+        repo_to_test => $repo_to_test,
+        img_filename => $img_filename
+    ) if check_var('ELEMENTAL_CMD', 'build_iso');
+
     $out_file = install_cmd(
         timeout => $timeout,
         arch => $arch,
@@ -199,9 +280,9 @@ sub run {
         build => $build,
         repo_to_test => $repo_to_test,
         img_filename => $img_filename
-    ) if check_var('TEST_TYPE', 'generate_with_install_cmd');
+    ) if check_var('ELEMENTAL_CMD', 'install');
 
-    # Upload QCOW2 image
+    # Upload OS image
     upload_asset("$out_file", 1);
 }
 
