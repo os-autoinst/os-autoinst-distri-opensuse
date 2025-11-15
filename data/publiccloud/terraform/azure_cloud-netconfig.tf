@@ -102,6 +102,12 @@ resource "azurerm_public_ip" "openqa-publicip" {
   resource_group_name = azurerm_resource_group.openqa-group.name
   allocation_method   = "Dynamic"
   count               = var.instance_count
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_network_interface" "openqa-nic" {
@@ -123,6 +129,12 @@ resource "azurerm_network_interface" "openqa-nic" {
     private_ip_address_version  = "IPv4"
     private_ip_address_allocation = "Dynamic"
   }
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_public_ip" "openqa-secondary-publicip" {
@@ -131,6 +143,12 @@ resource "azurerm_public_ip" "openqa-secondary-publicip" {
   resource_group_name = azurerm_resource_group.openqa-group.name
   allocation_method   = "Dynamic"
   count               = var.instance_count
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_network_interface" "openqa-secondary-nic" {
