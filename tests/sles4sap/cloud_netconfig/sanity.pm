@@ -72,12 +72,10 @@ sub run {
     my $az_cmd;
 
     # Check that the resource group exist
-    $az_cmd = join(' ',
-        'az group list',
-        '--query "[].name"',
-        '-o tsv',
-        "| grep $rg");
-    assert_script_run($az_cmd);
+    my $res = az_group_name_get();
+    my $count = grep(/$rg/, @$res);
+    die "There are not exactly one but $count resource groups with name $rg" unless $count eq 1;
+
 
     # Check that the VM is running (from the point of view of the CSP)
     $az_cmd = join(' ',
