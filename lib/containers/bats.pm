@@ -255,9 +255,9 @@ sub delegate_controllers {
 sub enable_modules {
     add_suseconnect_product(get_addon_fullname('desktop'));
     add_suseconnect_product(get_addon_fullname('sdk'));
-    add_suseconnect_product(get_addon_fullname('python3')) if is_sle('>=15-SP4');
+    add_suseconnect_product(get_addon_fullname('python3'));
     # Needed for criu, fakeroot & qemu-linux-user
-    add_suseconnect_product(get_addon_fullname('phub'));
+    add_suseconnect_product(get_addon_fullname('phub')) if check_var("BATS_PACKAGE", "buildah");
 }
 
 sub patch_junit {
