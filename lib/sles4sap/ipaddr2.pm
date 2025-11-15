@@ -52,6 +52,7 @@ our @EXPORT = qw(
   ipaddr2_scc_check
   ipaddr2_scc_register
   ipaddr2_scc_addons
+  ipaddr2_billing_model_get
   ipaddr2_crm_move
   ipaddr2_crm_clear
   ipaddr2_wait_for_takeover
@@ -1554,6 +1555,45 @@ sub ipaddr2_scc_register(%args) {
         cmd => "sudo $args{scc_endpoint} $forcenew -r \"$args{scc_code}\"",
         timeout => 360,
         bastion_ip => $args{bastion_ip});
+}
+
+=head2 ipaddr2_billing_model_get
+
+    my $is_byos_or_payg = ipaddr2_billing_model_get(id => 1);
+
+Return the billing model of th erunning image, between BYOS and PAYG,
+internally calling instance-flavor-check
+
+=over
+
+=item B<id> - VM id where to install and configure the web server
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_billing_model_get(%args) {
+    croak("Argument < id > missing") unless $args{id};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    # Check for image type with instance-flavor-check
+    my $ret = ipaddr2_ssh_internal(id => $args{id},
+        cmd => 'sudo instance-flavor-check',
+        bastion_ip => $args{bastion_ip},
+        no_assert => 1);
+
+    if ($ret eq 10) {
+        # Valid instance metadata verified successfully
+        return 'PAYG';
+    } elsif (($ret eq 11) || ($ret eq 12)) {
+        # 11 : Not valid instance metadata verified successfully
+        # 12 : We could not reliably determine the flavor of the instance. The instance is labeled as BYOS
+        return 'BYOS';
+    }
+    die "Invalid instance-flavor-check ret:$ret";
 }
 
 =head2 ipaddr2_configure_web_server

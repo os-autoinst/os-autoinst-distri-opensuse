@@ -1344,4 +1344,18 @@ subtest '[ipaddr2_ssh_intrusion_detection] no lines in the journal' => sub {
     ok(($ret == 0), "Ret:$ret expected to be 0");
 };
 
+subtest '[ipaddr2_billing_model_get]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            return 10;
+    });
+
+    my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(($ret eq 'PAYG'), "Ret:'$ret' expected to be 'PAYG'");
+};
+
 done_testing;
