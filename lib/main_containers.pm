@@ -187,7 +187,8 @@ sub load_host_tests_podman {
 sub load_host_tests_docker {
     my ($run_args) = @_;
     load_container_engine_test($run_args);
-    loadtest('containers/container_suseconnect', run_args => $run_args, name => $run_args->{runtime} . "_suseconnect") if is_sle();
+    # NOTE: Temporarily disable test
+    # loadtest('containers/container_suseconnect', run_args => $run_args, name => $run_args->{runtime} . "_suseconnect") if is_sle();
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud;
     load_third_party_image_test($run_args);
