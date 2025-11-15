@@ -16,7 +16,7 @@ sub run {
     # Set default root password
     $testapi::password = get_required_var('TEST_PASSWORD');
 
-    # For UC OS image boot
+    # For raw OS image boot
     if (check_var('IMAGE_TYPE', 'disk')) {
         # Wait for GRUB and select default entry
         $self->wait_grub(bootloader_time => 300);
@@ -25,8 +25,38 @@ sub run {
         save_screenshot();
     }
 
+    # For iso OS image boot: the OS needs to be installed first!
+    if (check_var('IMAGE_TYPE', 'iso')) {
+        # Wait for boot
+        # Bypass Grub on aarch64 as it can take too long to match the first grub2 needle
+        if (is_aarch64) {
+            $self->wait_boot_past_bootloader(textmode => 1);
+            sleep bmwqemu::scale_timeout(30);
+        } else {
+            $self->wait_boot(textmode => 1);
+        }
+
+        # OS installation is done automatically as well as the reboot after installation
+        # We just have to wait for the VM to reboot
+
+        # Select SUT for bootloader
+        select_console('sut');
+
+        # Wait for GRUB
+        $self->wait_grub();
+
+        # Choose entry to test
+        # send_key_until_needlematch($state->{tag}, 'down');
+        send_key('ret', wait_screen_change => 1);
+        wait_still_screen(timeout => 120);
+        save_screenshot();
+    }
+
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
+
+    # Check the installed OS
+    assert_script_run('cat /etc/os-release');
 
     # Record boot
     record_info('OS boot', 'Successfully booted!');
