@@ -262,6 +262,14 @@ sub save_guest_installations_assets {
         delete $guest_installations_done[$_index] if ($guest_instances{$_element}->{guest_installation_result} ne 'PASSED');
     }
     @guest_installations_done = grep { defined $_ } @guest_installations_done;
+
+    my @_guest_names = split(/\|/, get_required_var('UNIFIED_GUEST_LIST'));
+    my @_guest_ip_addresses = ('') x scalar(@_guest_names);
+    while (my ($_index, $_element) = each(@_guest_names)) {
+        $_guest_ip_addresses[$_index] = $guest_instances{$_element}->{guest_ipaddr};
+    }
+    set_var('UNIFIED_GUEST_IPADDRS', join('|', @_guest_ip_addresses));
+
     $self->{success_guest_list} = \@guest_installations_done;
     $self->virt_autotest_base::upload_guest_assets;
     return $self;
