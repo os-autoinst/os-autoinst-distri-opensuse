@@ -54,10 +54,12 @@ buildah:
     GITHUB_PATCHES:
     - 5495
     - 6226
+    - 6271
   sle-15-SP4:
     GITHUB_PATCHES:
     - 5495
     - 6226
+    - 6271
 buildx:
   # Note on patches:
   # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
