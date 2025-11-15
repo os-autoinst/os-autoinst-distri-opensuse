@@ -235,9 +235,10 @@ sub test_network_interface {
     # Configure network interface for non-SLES 16+ guests
     # Note: SLES 16 guest names include: sles16efi_online, sles16efi_full, sles-16
     if ($guest !~ /sles-?16|sle-?16/i) {
-        # Create complete network configuration file with BOOTPROTO and STARTMODE
+        # Create network configuration file with BOOTPROTO='dhcp'.
+        # STARTMODE='manual' is the default.
+        # Don't set it 'auto' to avoid the interface becomes the default route after rebooting
         assert_script_run("ssh root\@$guest \"echo BOOTPROTO=\\'dhcp\\' > /etc/sysconfig/network/ifcfg-$nic\"");
-        assert_script_run("ssh root\@$guest \"echo STARTMODE=\\'auto\\' >> /etc/sysconfig/network/ifcfg-$nic\"");
         # Bring up the network interface first
         assert_script_run("ssh root\@$guest ip link set $nic up");
         # Wait for the interface to be in UP state

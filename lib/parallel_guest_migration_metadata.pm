@@ -91,8 +91,8 @@ tie our %_guest_migration_matrix_xen, 'Tie::IxHash', (
 tie our %_guest_migration_matrix, 'Tie::IxHash', (kvm => \%_guest_migration_matrix_kvm, xen => \%_guest_migration_matrix_xen);
 
 our %_host_params = (
-    'ssh_command' => 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('HOST_SSH_KEYFILE', '/root/.ssh/id_rsa'), # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
-    'ssh_keyfile' => get_var('HOST_SSH_KEYFILE', '/root/.ssh/id_rsa'),    # Customized ssh key file for host communication
+    'ssh_command' => 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('HOST_SSH_KEYFILE', '/root/.ssh/id_ed25519'), # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
+    'ssh_keyfile' => get_var('HOST_SSH_KEYFILE', '/root/.ssh/id_ed25519'),    # Customized ssh key file for host communication
     'external_nfsshare' => get_var('EXTERNAL_NFS_SHARE', ''),    # External NFS share to be used for guest migration
     'host_nfsshare' => get_var('HOST_NFS_SHARE', '/home/virt'),    # NFS share on source host for guest migration
     'source_imgpath' => get_var('SOURCE_IMAGE_PATH', '/var/lib/libvirt/images'),    # The folder in which guest assets are stored
@@ -103,8 +103,8 @@ our %_host_params = (
 );
 
 our %_guest_params = (
-    'ssh_command' => 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa'), # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
-    'ssh_keyfile' => get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa'),    # Customized ssh key file for guest communication
+    'ssh_command' => 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519'), # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
+    'ssh_keyfile' => get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519'),    # Customized ssh key file for guest communication
     'dns_domainname' => get_var('GUEST_DNS_DOMAINNAME', 'testvirt.net'),    # Domain suffix to be used for guest communication
     'use_dns' => get_var('GUEST_USE_DNS', 0),    # Whether use DNS/FQDN (1 or 0)
     'check_ipaddr' => get_var('GUEST_CHECK_IPADDR', 1)    #Whether check ip first before or after doing some operations

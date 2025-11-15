@@ -290,7 +290,7 @@ sub register_guest_name {
     my (%args) = @_;
     $args{guest} //= '';
     $args{ipaddr} //= '';
-    $args{keyfile} //= '/root/.ssh/id_rsa';
+    $args{keyfile} //= '/root/.ssh/id_ed25519';
     $args{usedns} //= 0;
     $args{domainname} //= '';
     croak("Guest and ip address must be given") if (!$args{guest} or !$args{ipaddr});
@@ -302,7 +302,7 @@ sub register_guest_name {
         $guest_matrix{(split(/ /, $args{guest}))[$_]}{domainname} = (split(/ /, $args{domainname}))[$_];
     }
 
-    my $ssh_command = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa');
+    my $ssh_command = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519');
     foreach (keys %guest_matrix) {
         my $temp = 1;
         my $hostname = $_ . '.' . $guest_matrix{$_}{domainname};
@@ -341,7 +341,7 @@ sub manage_guest_service {
     my (%args) = @_;
     $args{guest} //= '';
     $args{ipaddr} //= '';
-    $args{keyfile} //= '/root/.ssh/id_rsa';
+    $args{keyfile} //= '/root/.ssh/id_ed25519';
     $args{operation} //= 'status';
     $args{unit} //= 'default.target';
     croak("Guest and ip aaddress must be given") if (!$args{guest} or !$args{ipaddr});
@@ -350,7 +350,7 @@ sub manage_guest_service {
     my %guest_matrix = ();
     $guest_matrix{(split(/ /, $args{guest}))[$_]}{ipaddr} = (split(/ /, $args{ipaddr}))[$_] foreach (0 .. scalar(split(/ /, $args{guest})) - 1);
 
-    my $ssh_command = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_rsa');
+    my $ssh_command = 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ' . get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519');
     foreach (keys %guest_matrix) {
         my $temp = 1;
         if (script_run("timeout --kill-after=1 --signal=9 15 $ssh_command root\@$guest_matrix{$_}{ipaddr} ls") == 0) {

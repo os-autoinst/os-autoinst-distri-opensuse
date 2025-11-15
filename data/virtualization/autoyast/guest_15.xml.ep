@@ -368,6 +368,7 @@
 #!/bin/bash
 mkdir -p -m 700 /root/.ssh
 echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> >> /root/.ssh/authorized_keys
+echo <%= $get_var->('_SECRET_ED25519_PUB_KEY') %> >> /root/.ssh/authorized_keys
 chmod 600 /root/.ssh/authorized_keys
 ]]></source>
 </script>

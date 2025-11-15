@@ -12,7 +12,7 @@
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true,
-    sshPublicKey: '{{_SECRET_RSA_PUB_KEY}}'
+    sshPublicKey: '{{_SECRET_ED25519_PUB_KEY}}'
   },
   storage: {
     drives: [
@@ -90,10 +90,10 @@
         content: |||
           #!/usr/bin/env bash
           mkdir -p -m 700 /root/.ssh
-          echo '{{_SECRET_RSA_PRIV_KEY}}' > /root/.ssh/id_rsa
-          sed -i 's/CR/\n/g' /root/.ssh/id_rsa
-          chmod 600 /root/.ssh/id_rsa
-          echo '{{_SECRET_RSA_PUB_KEY}}' > /root/.ssh/id_rsa.pub
+          echo '{{_SECRET_ED25519_PRIV_KEY}}' > /root/.ssh/id_ed25519
+          sed -i 's/CR/\n/g' /root/.ssh/id_ed25519
+          chmod 600 /root/.ssh/id_ed25519
+          echo '{{_SECRET_ED25519_PUB_KEY}}' > /root/.ssh/id_ed25519.pub
         |||
       }
     ]

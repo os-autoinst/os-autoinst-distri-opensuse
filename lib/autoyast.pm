@@ -768,7 +768,7 @@ sub adjust_user_password {
 
 sub expand_agama_secrets {
     my ($profile) = @_;
-    my @vars = qw(_SECRET_RSA_PRIV_KEY _SECRET_RSA_PUB_KEY);
+    my @vars = qw(_SECRET_ED25519_PRIV_KEY _SECRET_ED25519_PUB_KEY);
     for my $var (@vars) {
         next unless my ($value) = get_var($var);
         $profile =~ s/\{\{$var\}\}/$value/g;
