@@ -46,6 +46,10 @@ local urls = if repo != '' then std.split(repo, ',') else [];
       {
         answer: 'Trust',
         class: 'software.import_gpg'
+      },
+      {
+        answer: 'Yes',
+        class: 'load.retry'
       }
     ]
   },
