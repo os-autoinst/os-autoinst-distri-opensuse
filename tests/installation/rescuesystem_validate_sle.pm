@@ -9,12 +9,22 @@
 
 use base "opensusebasetest";
 use testapi;
+use version_utils qw (is_sle);
 
 sub run {
+    my $cmd;
     my $hdddev = check_var('VIRSH_VMM_FAMILY', 'xen') ? 'xvda2' : 'vda2';
+
+    if (is_sle(">=16.0") && check_var('AGAMA_GRUB_SELECTION', 'rescue_system')) {
+        assert_screen 'inst-console';
+        select_console 'install-shell';
+        $cmd = "cat /mnt/etc/os-release | grep -oP \"(?<=PRETTY_NAME=).*\"";
+    }
+    else {
+        $cmd = "cat /mnt/etc/SuSE-release";
+    }
     assert_script_run "mount /dev/$hdddev /mnt";
-    enter_cmd "cat /mnt/etc/SuSE-release > /dev/$serialdev";
-    wait_serial("SUSE Linux Enterprise Server", 10) || die "Not SLES found";
+    validate_script_output($cmd, sub { m/SUSE Linux Enterprise Server.*/ });
 }
 
 sub test_flags {
