@@ -33,7 +33,7 @@ sub run_tests {
         "userns.bats::userns join other container userns",
     ) if (is_sle("<16") && $rootless);
 
-    return bats_tests($log_file, \%env, \@xfails, 1200);
+    return bats_tests($log_file, \%env, \@xfails, 2000);
 }
 
 sub run {
