@@ -36,11 +36,10 @@ tests/network/setup_multimachine.pm @pdostal
 lib/Utils/Logging.pm @pdostal
 
 # HPC
-lib/hpc/ @b10n1k @schlad
-tests/hpc/ @b10n1k @schlad
-data/hpc/ @b10n1k @schlad
-schedule/hpc/ @b10n1k @schlad
-tests/publiccloud/nvidia.pm @b10n1k
+lib/hpc/ @schlad
+tests/hpc/ @schlad
+data/hpc/ @schlad
+schedule/hpc/ @schlad
 
 # QE-SAP
 data/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
