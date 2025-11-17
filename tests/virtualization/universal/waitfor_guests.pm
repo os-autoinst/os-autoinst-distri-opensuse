@@ -26,6 +26,15 @@ sub screenshot_vnc_guests {
     }
 }
 
+sub access_vm_profiles {
+    record_info("Vm profile accessibility check...");
+    foreach my $guest (values %virt_autotest::common::guests) {
+        record_info("VM profile accessibility", $guest->{name});
+        my $_cmd = "curl -v -L -f " . $guest->{autoyast};
+        script_run("$_cmd");
+    }
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -118,6 +127,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     screenshot_vnc_guests();
+    access_vm_profiles();
     collect_virt_system_logs();
     $self->SUPER::post_fail_hook;
 }
