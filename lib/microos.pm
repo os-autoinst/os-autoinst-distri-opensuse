@@ -40,16 +40,20 @@ sub microos_login {
 # Process reboot with an option to trigger it
 sub microos_reboot {
     my $trigger = shift // 0;
+    # aka expected_grub from process_reboot
+    my $bootloader_expected = shift // 1;
     power_action('reboot', observe => !$trigger, keepconsole => 1);
 
     # sol console has to be selected for ipmi backend before asserting grub needle.
     select_console 'sol', await_console => 0 if is_ipmi();
     # No grub bootloader on xen-pv
-    # grub2 needle is unreliable (stalls during timeout) - poo#28648
-    assert_screen 'grub2', 300 if is_bootloader_grub2;
-    assert_screen 'systemd-boot', 300 if is_bootloader_sdboot;
-    send_key('ret') unless get_var('KEEP_GRUB_TIMEOUT');
-    unlock_if_encrypted if need_unlock_after_bootloader;
+    if ($bootloader_expected) {
+        # grub2 needle is unreliable (stalls during timeout) - poo#28648
+        assert_screen 'grub2', 300 if is_bootloader_grub2;
+        assert_screen 'systemd-boot', 300 if is_bootloader_sdboot;
+        send_key('ret') unless get_var('KEEP_GRUB_TIMEOUT');
+        unlock_if_encrypted if need_unlock_after_bootloader;
+    }
     microos_login;
 }
 
