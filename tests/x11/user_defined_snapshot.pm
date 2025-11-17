@@ -43,7 +43,6 @@ sub y2snapper_create_snapshot {
 
 sub run {
     my $self = shift;
-    select_console 'x11';
     # Start an xterm as root
     x11_start_program(default_gui_terminal);
     become_root;
