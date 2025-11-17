@@ -47,7 +47,7 @@ sub run {
     assert_script_run('docker ps');
 
     # Install AWS cli
-    my $aws_version = '2.17.63';
+    my $aws_version = '2.31.36';
     # Download and import the AWS public PGP key
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/aws.asc -o /tmp/aws.asc', autoinst_url()));
     assert_script_run('gpg --import /tmp/aws.asc');
