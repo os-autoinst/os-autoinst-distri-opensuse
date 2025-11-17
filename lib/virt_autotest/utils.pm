@@ -597,7 +597,26 @@ sub create_guest {
     my $location = $guest->{location};
     my $iso_url = $guest->{iso_url};
     my $install_url = $guest->{install_url};
+
     my $autoyast = $guest->{autoyast};
+    # Add debug info to test guest profile accessibility before installing vms
+    my $_cmd = "curl -v -f -L $autoyast";
+    if (script_run("$_cmd") != 0) {
+        save_screenshot;
+        record_info("VM $name guest profile is NOT accessible",
+            "Link: $autoyast", result => 'fail');
+        script_run("ip a");
+        script_run("ip route show");
+        script_run("ping -c 5 " . get_required_var("WORKER_HOSTNAME"));
+        script_run("ping -c 5 " . get_required_var("OPENQA_URL"));
+        save_screenshot;
+        die "VM $name guest profile is NOT accessible";
+    } else {
+        save_screenshot;
+        record_info("VM $name guest profile is accessible",
+            "Link: $autoyast, output is:\n" . script_output("$_cmd"));
+    }
+
     my $macaddress = $guest->{macaddress};
     my $on_reboot = $guest->{on_reboot} // "restart";    # configurable on_reboot policy
     my $extra_params = $guest->{extra_params} // "";    # extra-parameters
