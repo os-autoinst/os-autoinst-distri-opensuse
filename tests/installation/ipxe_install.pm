@@ -136,10 +136,7 @@ sub set_bootscript_agama {
     my $host = get_required_var('SUT_IP');
     my $arch = get_required_var('ARCH');
     my $mirror_http = get_required_var('MIRROR_HTTP');
-    my $openqa_hostname = get_var('OPENQA_HOSTNAME', 'openqa.suse.de');
-    my $agama_iso = get_required_var('ISO');
-    my $agama_live_iso = get_var("AGAMA_LIVE_ISO_URL", "http://$openqa_hostname/assets/iso/$agama_iso");
-    my $install = "root=live:$agama_live_iso live.password=$testapi::password";
+    my $install = "root=live:$mirror_http/LiveOS/squashfs.img live.password=$testapi::password";
     my $kernel = "$mirror_http/boot/$arch/loader/linux";
     my $initrd = "$mirror_http/boot/$arch/loader/initrd";
 
