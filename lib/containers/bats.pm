@@ -257,7 +257,7 @@ sub enable_modules {
     add_suseconnect_product(get_addon_fullname('sdk'));
     add_suseconnect_product(get_addon_fullname('python3'));
     # Needed for criu, fakeroot & qemu-linux-user
-    add_suseconnect_product(get_addon_fullname('phub')) if check_var("BATS_PACKAGE", "buildah");
+    add_suseconnect_product(get_addon_fullname('phub')) if (check_var("BATS_PACKAGE", "buildah") || check_var("BATS_PACKAGE", "skopeo"));
 }
 
 sub patch_junit {
