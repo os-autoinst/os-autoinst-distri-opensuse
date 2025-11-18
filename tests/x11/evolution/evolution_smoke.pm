@@ -32,7 +32,7 @@ sub run {
     select_console 'x11';
 
     mouse_hide(1);
-    x11_start_program('xterm -e "gsettings set org.gnome.desktop.session idle-delay 0"', valid => 0);
+    turn_off_screensaver;
 
     assert_screen "generic-desktop";
 
