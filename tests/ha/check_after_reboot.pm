@@ -165,9 +165,6 @@ sub run {
     # in that case
     select_console 'root-console' if (get_var('HDDVERSION'));
 
-    # Remove iptable rules in node 1 when testing qnetd/qdevice in multicast
-    assert_script_run "iptables -F && iptables -X" if (is_node(1) && check_var('QDEVICE_TEST_ROLE', 'client') && !get_var('HA_UNICAST'));
-
     # Workaround network timeout issue during upgrade
     check_iscsi_failure if (get_var('HDDVERSION'));
 
@@ -247,6 +244,8 @@ sub run {
     # Record pacemaker status
     systemctl 'status pacemaker', timeout => $default_timeout;
 
+    # Remove iptable rules in node 1 when testing qnetd/qdevice in multicast
+    assert_script_run "iptables -F && iptables -X" if (is_node(1) && check_var('QDEVICE_TEST_ROLE', 'client') && !get_var('HA_UNICAST'));
     # Wait for resources to be started
     if (is_sles4sap) {
         if (check_var('CLUSTER_NAME', 'hana') && check_var('AUTOMATED_REGISTER', 'false')) {
@@ -259,7 +258,7 @@ sub run {
         barrier_wait("HANA_RA_RESTART_${cluster_name}_NODE${node_index}") if check_var('CLUSTER_NAME', 'hana');
         wait_until_resources_started(timeout => 900);
     } else {
-        wait_until_resources_started;
+        wait_until_resources_started(timeout => 900);
     }
 
     # And check for the state of the whole cluster
