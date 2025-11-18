@@ -15,6 +15,7 @@ schedule:
   - console/prepare_test_data
   - console/consoletest_setup
   - console/hostname
+  - x11/xterm
   - console/setup_libyui_running_system
   - x11/disable_screensaver
   - yast2_gui/yast2_system_settings
