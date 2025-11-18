@@ -96,7 +96,7 @@ sub run {
 
     # Some aach64 JeOS jobs take too long to match the first grub2 needle.
     # By pressing a random key, we stop the grub timeout
-    send_key 'backspace' if (is_aarch64 && is_sle_micro('6.0+') || is_jeos);
+    send_key 'backspace' if (is_aarch64 && (is_sle_micro('6.0+') || is_jeos));
 
     if (get_var('FLAVOR') =~ /VMware-Updates/) {
         # VMware guests have a short GRUB timeout, which can cause issues with needle matching.
