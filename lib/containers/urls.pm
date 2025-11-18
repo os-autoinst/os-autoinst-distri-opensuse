@@ -56,13 +56,6 @@ my %sles_containers = (
         },
         available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
     },
-    '15-SP3' => {
-        released => sub { 'registry.suse.com/suse/ltss/sle15.3/sle15:15.3' },
-        totest => sub {
-            'registry.suse.de/suse/sle-15-sp3/update/bci/images/suse/ltss/sle15.3/sle15:latest';
-        },
-        available_arch => ['x86_64', 'aarch64', 'ppc64le', 's390x']
-    },
     '15-SP4' => {
         released => sub { 'registry.suse.com/suse/ltss/sle15.4/sle15:15.4' },
         totest => sub {

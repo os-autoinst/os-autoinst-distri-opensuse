@@ -83,13 +83,6 @@ sub run {
         assert_script_run "grep '^${serial_group}:.*:${user}\$' /etc/group || (chown $user /dev/$testapi::serialdev && gpasswd -a $user $serial_group)";
     }
 
-    # NOTE: Remove this hack when 15-SP3 is EOL
-    my $subuid_start = get_user_subuid($user);
-    if ($subuid_start eq '') {
-        $subuid_start = 200000;
-        my $subuid_range = $subuid_start + 65535;
-        assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
-    }
     assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
     assert_script_run "grep $user /etc/subgid", fail_message => "subgid range not assigned for $user";
     assert_script_run "setfacl -m u:$user:r /etc/zypp/credentials.d/*" if is_sle;
@@ -117,6 +110,7 @@ sub run {
     test_container_image(image => $image, runtime => $podman);
     build_and_run_image(base => $image, runtime => $podman);
     test_zypper_on_container($podman, $image);
+    my $subuid_start = get_user_subuid($user);
     verify_userid_on_container($image, $subuid_start);
     $podman->cleanup_system_host();
 
