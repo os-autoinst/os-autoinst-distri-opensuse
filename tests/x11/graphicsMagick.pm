@@ -22,6 +22,9 @@ sub run {
     select_console "x11";
     x11_start_program(default_gui_terminal);
 
+    my $tmp = script_output 'mktemp -d';
+    assert_script_run("pushd $tmp");
+
     record_info("INFO", "Step 1. Runs command line tests");
     assert_script_run "wget --quiet " . data_url('graphicsmagick/test.sh') . " -O test.sh";
     assert_script_run "chmod +x test.sh";
@@ -50,6 +53,9 @@ sub run {
     enter_cmd "gm convert noise_blur_10.png HISTOGRAM:- | gm display -";
     assert_screen('open_an_image_histogram', 90);
     send_key 'alt-f4';
+
+    assert_script_run("popd");
+    assert_script_run("rm -rf $tmp");
 
     close_gui_terminal;
 }
