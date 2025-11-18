@@ -116,29 +116,32 @@ sub upload_img {
     # because we passing all needed info via params anyway
     assert_script_run('echo " " > /root/.ec2utils.conf');
 
-    assert_script_run("ec2uploadimg --access-id \$AWS_ACCESS_KEY_ID -s \$AWS_SECRET_ACCESS_KEY "
-          . "--backing-store ssd "
-          . "--grub2 "
-          . "--machine '" . $img_arch . "' "
-          . "-n '" . $self->prefix . '-' . $img_name . "' "
-          . "--virt-type hvm --sriov-support "
-          . ((is_byos() || get_var('PUBLIC_CLOUD_SLES4SAP')) ? '' : '--use-root-swap ')
-          . '--ena-support '
-          . "--verbose "
-          . "--regions '" . $self->provider_client->region . "' "
-          . "--ssh-key-pair '" . $self->ssh_key_pair . "' "
-          . "--private-key-file " . SSH_KEY_PEM . " "
-          . "-d 'OpenQA upload image' "
-          . "--wait-count 3 "
-          . "--ec2-ami '" . $helper_ami_id . "' "
-          . "--type '" . $instance_type . "' "
-          . "--user '" . $self->provider_client->username . "' "
-          . "--boot-mode '" . get_var('PUBLIC_CLOUD_EC2_BOOT_MODE', 'uefi-preferred') . "' "
-          . ($sec_group ? "--security-group-ids '" . $sec_group . "' " : '')
-          . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' " : '')
-          . "'$file'",
-        timeout => 60 * 60
-    );
+    my @ec2_cmd = ('ec2uploadimg',
+        '--access-id \$AWS_ACCESS_KEY_ID -s \$AWS_SECRET_ACCESS_KEY',
+        '--backing-store ssd',
+        '--grub2',
+        '--machine', "'$img_arch'",
+        '-n', $self->prefix . '-' . $img_name,
+        '--virt-type hvm',
+        '--sriov-support',
+        '--ena-support',
+        '--verbose',
+        '--regions', $self->provider_client->region,
+        '--ssh-key-pair', $self->ssh_key_pair,
+        '--private-key-file', SSH_KEY_PEM,
+        "-d 'OpenQA upload image'",
+        '--wait-count 3',
+        "--ec2-ami '$helper_ami_id'",
+        '--type', $instance_type,
+        '--user', $self->provider_client->username,
+        '--boot-mode', get_var('PUBLIC_CLOUD_EC2_BOOT_MODE', 'uefi-preferred'));
+
+    push @ec2_cmd, '--use-root-swap' unless ((get_var('PUBLIC_CLOUD_SLES4SAP')) || (is_byos()));
+    push @ec2_cmd, "--security-group-ids '$sec_group'" if ($sec_group);
+    push @ec2_cmd, "--vpc-subnet-id '$vpc_subnet'" if ($vpc_subnet);
+    push @ec2_cmd, "'$file'";
+
+    assert_script_run(join(' ', @ec2_cmd), timeout => 60 * 60);
 
     my $ami = $self->find_img($img_name);
     die("Cannot find image after upload!") unless $ami;
