@@ -204,7 +204,6 @@ sub load_host_tests_docker {
     unless (is_transactional || is_public_cloud || is_sle('<15-SP4') || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
         loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation");
     }
-    load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
     # The docker-rootless-extras package is only available on SLES 15-SP4+
@@ -213,6 +212,7 @@ sub load_host_tests_docker {
         # select_user_serial_terminal is broken on public cloud
         loadtest 'containers/rootless_docker' unless (is_public_cloud);
     }
+    load_volume_tests($run_args);
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
         loadtest 'containers/validate_btrfs';

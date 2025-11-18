@@ -127,11 +127,23 @@ sub run {
     test $runtime;
     $engine->cleanup_system_host();
 
-    if ($runtime eq "podman" && !is_public_cloud && !is_svirt && !is_transactional) {
-        record_info "rootless";
-        select_user_serial_terminal();
-        test $runtime;
+    # select_user_serial_terminal() is broken on these:
+    return if (is_public_cloud || is_svirt || is_transactional);
+
+    record_info "rootless";
+    select_user_serial_terminal();
+
+    # The docker-rootless-extras package is only available on SLES 15-SP4+
+    # while the docker-stable-rootless-extras is available on SLES 16.0+
+    if ($runtime eq "docker") {
+        return unless (is_tumbleweed || is_leap || is_sle && (is_sle('>=16') || is_sle('>=15-SP4') && !check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")));
+        assert_script_run "dockerd-rootless-setuptool.sh install";
+        assert_script_run "systemctl --user enable --now docker";
     }
+
+    test $runtime;
+
+    script_run "dockerd-rootless-setuptool.sh uninstall" if ($runtime eq "docker");
 }
 
 1;
