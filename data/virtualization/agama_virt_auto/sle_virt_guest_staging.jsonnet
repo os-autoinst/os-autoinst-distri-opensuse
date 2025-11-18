@@ -71,9 +71,14 @@ local urls = if repo != '' then std.split(repo, ',') else [];
         |||
       },
       {
-        name: 'report_ip_address',
-        chroot: false,
+        name: 'Setup service for report_vm_ip_to_host.service on every VM reboot',
+        chroot: true,
         content: |||
+          #!/usr/bin/env bash
+          SHELL_SCRIPT='/usr/local/bin/report_vm_ip_to_host.sh'
+          SERVICE_FILE='/etc/systemd/system/report_vm_ip_to_host.service'
+          
+          cat << EOF > $SHELL_SCRIPT
           #!/usr/bin/env bash
           # Report IP address to test host using guest name
           # Try eth0 first (most common), then fallback to first available interface
@@ -82,6 +87,26 @@ local urls = if repo != '' then std.split(repo, ',') else [];
           logger "SLES16 Guest {{GUEST}} IP is written into file: $(cat /root/{{GUEST}} 2>/dev/null || echo 'FAILED')"
           curl -k -u root:{{PASS}} -T /root/{{GUEST}} sftp://{{SUT_IP}}/tmp/guests_ip/ --ftp-create-dirs
           exit 0
+          EOF
+          
+          chmod a+x $SHELL_SCRIPT
+          
+          cat << EOF > $SERVICE_FILE
+          [Unit]
+          Description=Report vm ip to host After Every Reboot
+          After=network-online.target
+          
+          [Service]
+          Type=oneshot
+          ExecStart=$SHELL_SCRIPT
+          RemainAfterExit=true
+          User=root
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          
+          systemctl enable report_vm_ip_to_host.service
         |||
       }
     ]
