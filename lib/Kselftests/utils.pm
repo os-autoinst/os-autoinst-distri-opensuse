@@ -53,6 +53,12 @@ sub install_from_repo
     zypper_call("ar -p 1 -f $repo kselftests");
     zypper_call("--gpg-auto-import-keys ref");
     zypper_call("install -y kselftests kernel-devel");
+
+    # When using the `kselftests` package from a repository, make sure the KMP subpackage containing the test kernel modules
+    # were built against the same kernel version the SUT is currently running.
+    my $kver = script_output('uname -r | grep -oP "\.g[0-9A-Za-z]{7}"');
+    my $kmpver = script_output('zypper info kselftests-kmp-default | grep Version | awk "{print $3}" | grep -oP "\.g[0-9A-Za-z]{7}"');
+    die 'Kernel and KMP versions mismatch' unless $kver eq $kmpver;
 }
 
 sub get_sanitized_test_name {
