@@ -119,9 +119,6 @@ sub client {
             record_info('stress-ng', "Detected failed or untrustworthy metrics on path: $path", result => 'fail');
             $result = 1;
         }
-        # TEMP
-        upload_logs($yaml, failok => 1);
-        upload_logs($log, failok => 1);
     }
 
     barrier_wait('NFS_STRESS_NG_END');
