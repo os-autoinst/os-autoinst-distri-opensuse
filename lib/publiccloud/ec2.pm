@@ -122,7 +122,7 @@ sub upload_img {
           . "--machine '" . $img_arch . "' "
           . "-n '" . $self->prefix . '-' . $img_name . "' "
           . "--virt-type hvm --sriov-support "
-          . (is_byos() ? '' : '--use-root-swap ')
+          . ((is_byos() || get_var('PUBLIC_CLOUD_SLES4SAP')) ? '' : '--use-root-swap ')
           . '--ena-support '
           . "--verbose "
           . "--regions '" . $self->provider_client->region . "' "
