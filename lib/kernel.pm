@@ -12,7 +12,7 @@ use base Exporter;
 use testapi;
 use strict;
 use utils;
-use version_utils qw(is_sle is_transactional);
+use version_utils qw(is_sle is_sle_micro is_transactional);
 use transactional;
 use warnings;
 
@@ -30,9 +30,12 @@ sub remove_kernel_packages {
     my @devpacks;
 
     if (check_var('SLE_PRODUCT', 'slert')) {
+        my $src_rt = 'kernel-source-rt';
+
+        $src_rt = 'kernel-source' if (is_sle('16+') || is_sle_micro('6.2+'));
         # workaround for bsc1227773
         @packages = qw(kernel-rt);
-        @devpacks = qw(kernel-rt-devel kernel-source-rt);
+        @devpacks = ('kernel-rt-devel', $src_rt);
     }
     elsif (get_kernel_flavor eq 'kernel-64kb') {
         @packages = qw(kernel-64kb*);
