@@ -21,6 +21,10 @@ conditional_schedule:
                 - x11/gimp
                 - x11/hexchat
                 - x11/vlc
+    key_repeat_disable:
+        DISTRI:
+            sle:
+                - x11/setup
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -30,7 +34,7 @@ schedule:
     - console/prepare_test_data
     - console/consoletest_setup
     - x11/desktop_runner
-    - x11/setup
+    - '{{key_repeat_disable}}'
     - x11/xterm
     - x11/sshxterm
     - x11/gnome_control_center

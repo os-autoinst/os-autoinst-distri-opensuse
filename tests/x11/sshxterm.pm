@@ -20,6 +20,7 @@ use utils;
 sub run {
     my ($self) = @_;
     mouse_hide(1);
+    ensure_installed("xterm xauth");
     x11_start_program('xterm');
     enter_cmd("ssh -o StrictHostKeyChecking=no -XC root\@localhost xterm");
     assert_screen "ssh-second-xterm";
