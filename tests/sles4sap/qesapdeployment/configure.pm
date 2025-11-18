@@ -16,12 +16,6 @@ use sles4sap::ibsm;
 
 sub run {
     my ($self) = @_;
-    # Workaround for 'TEAM-10520 - Console redirection timing out sporadically'.
-    # Preselect 'log-console' to login earlier before doing deployment.
-    # This will avoid sporadic issue of 'backend got TERM' when doing select_console('log-console') at the first time after deployment.
-    # After deployment if 'backend got TERM' happened test case will exceed MAX_JOB_TIME and 'post_fail_hook' will not be invoked.
-    record_info('Workaround: TEAM-10520');
-    select_console('log-console');
     select_serial_terminal;
 
     # Init all the PC gears (ssh keys)
