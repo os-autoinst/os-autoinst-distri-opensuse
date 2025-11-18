@@ -46,7 +46,9 @@ sub client {
     my $local_nfs4 = "/home/localNFS4";
     my $local_nfs4_async = "/home/localNFS4async";
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
-    my @paths = ($local_nfs4, $local_nfs4_async);
+    # allow to override the default exports
+    my $exports = get_var('NFS_STRESS_EXPORTS');
+    my @paths = $exports ? split(/\s*,\s*|\s+/, $exports) : ($local_nfs4, $local_nfs4_async);
 
     # in case this is SLE we need packagehub for stress-ng, let's enable it
     if (is_sle) {
