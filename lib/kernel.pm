@@ -62,15 +62,17 @@ sub remove_kernel_packages {
     if (check_var('SLE_PRODUCT', 'slert')) {
         # workaround for bsc1227773
         @packages = qw(kernel-rt);
-        @devpacks = qw(kernel-rt-devel kernel-source-rt);
+        @devpacks = ('kernel-rt-devel');
     }
     elsif (get_kernel_flavor eq 'kernel-64kb') {
         @packages = qw(kernel-64kb*);
     }
     else {
         @packages = qw(kernel-default);
-        @devpacks = qw(kernel-default-devel kernel-macros kernel-source);
+        @devpacks = qw(kernel-default-devel kernel-macros);
     }
+
+    push @devpacks, get_kernel_source_flavor;
 
     # SLE12 and SLE12SP1 has xen kernel
     if (is_sle('<=12-SP1')) {

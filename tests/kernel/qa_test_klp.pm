@@ -17,6 +17,7 @@ use registration;
 use version_utils 'is_sle';
 use transactional;
 use package_utils;
+use kernel;
 
 sub run {
     if (get_var('AZURE')) {
@@ -34,11 +35,7 @@ sub run {
     install_package('autoconf automake gcc git make');
 
     if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
-        my $devel_pack = 'kernel-devel';
-
-        if (check_var('SLE_PRODUCT', 'slert')) {
-            $devel_pack = 'kernel-devel-rt';
-        }
+        my $devel_pack = get_kernel_devel_flavor;
 
         # Force recommended packages to pull in kernel-default-devel, etc.
         install_package("--recommends $devel_pack", trup_continue => 1);

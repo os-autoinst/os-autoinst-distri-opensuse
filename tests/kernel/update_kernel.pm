@@ -72,21 +72,11 @@ sub prepare_kernel {
 
 sub update_kernel {
     my ($self, $repo, $incident_id) = @_;
+    my $devel_pack = get_kernel_devel_flavor;
 
     fully_patch_system;
-
-    if (check_var('SLE_PRODUCT', 'slert')) {
-        install_package('kernel-devel-rt', skip_trup => 'There is no kernel-devel-rt available on transactional system.');
-    }
-    elsif (get_var('COCO')) {
-        zypper_call('in kernel-devel-coco');
-    }
-    elsif (get_var('KERNEL_64KB')) {
-        zypper_call('in kernel-64kb-devel');
-    }
-    elsif (is_sle('12+')) {
-        zypper_call('in kernel-devel');
-    }
+    install_package($devel_pack) if (!is_sle('<12') &&
+        !(check_var('SLE_PRODUCT', 'slert') && is_sle_micro('<6.2')));
 
     $self->add_update_repos($repo);
     zypper_call("ref");
@@ -219,12 +209,7 @@ sub install_lock_kernel {
         'kernel-source-rt' => $src_version
     );
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
-        push @packages, "kernel-devel-rt";
-    }
-    else {
-        push @packages, "kernel-devel";
-    }
+    push @packages, get_kernel_devel_flavor;
 
     # add explicit version to each package
     foreach my $package (@packages) {
@@ -315,10 +300,7 @@ sub prepare_kgraft {
     fully_patch_system;
 
     my $kernel_name = 'kernel-' . $$incident_klp_pkg{kflavor};
-    my $src_name = 'kernel-source';
-
-    $src_name .= '-' . $$incident_klp_pkg{kflavor}
-      unless $$incident_klp_pkg{kflavor} eq 'default';
+    my $src_name = get_kernel_source_flavor;
 
     $self->enable_update_repos(1) if get_var('FLAVOR') =~ /-Updates-Staging/ && !get_var('NO_DISABLE_REPOS');
     my $kernel_version = find_version($kernel_name, $$incident_klp_pkg{kver});
@@ -342,15 +324,10 @@ sub prepare_kgraft {
 
 sub downgrade_kernel {
     my $kver = shift;
-    my $kernel_package = 'kernel-default';
-    my $src_package = 'kernel-source';
+    my $kernel_package = get_kernel_flavor;
+    my $src_package = get_kernel_source_flavor;
 
     fully_patch_system;
-
-    if (check_var('SLE_PRODUCT', 'slert')) {
-        $kernel_package = 'kernel-rt';
-        $src_package = 'kernel-source-rt';
-    }
 
     my $kernel_version = find_version($kernel_package, $kver);
     my $src_version = find_version($src_package, $kver);
@@ -443,11 +420,12 @@ sub update_kgraft {
 sub install_kotd {
     my $repo = shift;
     my $kernel_flavor = get_kernel_flavor;
+    my $devel_flavor = get_kernel_devel_flavor;
     fully_patch_system;
     remove_kernel_packages;
     zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
     install_package("-r KOTD $kernel_flavor", trup_continue => 1);
-    install_package('kernel-devel', trup_continue => 1);
+    install_package($devel_flavor, trup_continue => 1);
 }
 
 sub update_kgraft_under_load {
