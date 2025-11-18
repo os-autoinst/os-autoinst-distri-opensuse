@@ -29,6 +29,7 @@ our @EXPORT = qw(
   crash_pubip
   crash_system_ready
   crash_softrestart
+  crash_wait_back
   crash_destroy_azure
   crash_destroy_aws
 );
@@ -116,6 +117,7 @@ sub crash_deploy_azure(%args) {
         username => USER,
         region => $args{region});
     $vm_create_args{security_type} = 'Standard' if is_sle('<=12-SP5');
+    $vm_create_args{timeout} = 1200;
     az_vm_create(%vm_create_args);
 
     az_vm_wait_running(
@@ -235,7 +237,6 @@ sub crash_pubip(%args) {
     return $vm_ip;
 }
 
-
 =head2 crash_system_ready
 
     Polls C<systemctl is-system-running> via SSH for up to 5 minutes.
@@ -320,6 +321,51 @@ sub crash_softrestart(%args) {
         0);
 }
 
+=head2 crash_wait_back
+
+  crash_wait_back(vm_ip => '1.2.3.4');
+
+Wait until SUT is back again polling port 22 on the given IP.
+Then list for failed services and die if find one.
+
+=over
+
+=item B<vm_ip> Public IP address of the SUT, can be calculated by crash_pubip
+
+=item B<username> Public IP address of the SUT, can be calculated by crash_pubip
+
+=back
+=cut
+
+sub crash_wait_back(%args) {
+    foreach (qw(vm_ip username)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my ($duration, $exit_code);
+    my $done = 0;
+    my $start_time = time();
+    while (($duration = time() - $start_time) < 300) {
+        $exit_code = script_run('nc -vz -w 1 ' . $args{vm_ip} . ' 22', quiet => 1);
+        if ($exit_code == 0) {
+            $done = 1;
+            last;
+        }
+        sleep 10;
+    }
+    die "No reply from $args{vm_ip} after $duration" unless ($done);
+
+    my $services_output = script_output(join(' ',
+            'ssh',
+            '-F /dev/null',
+            '-o ControlMaster=no',
+            '-o StrictHostKeyChecking=no',
+            '-o UserKnownHostsFile=/dev/null',
+            $args{username} . '@' . $args{vm_ip},
+            'sudo systemctl --failed --no-pager --plain'), 100);
+    my @failed_units = grep { /^\S+\.(service|socket|target|mount|timer)\s/ } split /\n/, $services_output;
+    record_info('Failed services', 'Status : ' . join(' ', @failed_units));
+    die "Found failed services:\n$services_output" if @failed_units;
+}
 
 =head2 crash_destroy_azure
 

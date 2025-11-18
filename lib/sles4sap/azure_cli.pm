@@ -799,6 +799,8 @@ Create a virtual machine
 
 =item B<security_type> - is used force a specific value for '--security-type'
 
+=item B<timeout> - timeout of command execution, default 900
+
 =back
 =cut
 
@@ -806,7 +808,7 @@ sub az_vm_create(%args) {
     foreach (qw(resource_group name image)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-
+    $args{timeout} //= 900;
     my @vm_create = ('az vm create');
 
     push @vm_create, '--resource-group', $args{resource_group};
@@ -834,7 +836,7 @@ sub az_vm_create(%args) {
         push @vm_create, '--authentication-type ssh --generate-ssh-keys';
     }
 
-    assert_script_run(join(' ', @vm_create), timeout => 900);
+    assert_script_run(join(' ', @vm_create), timeout => $args{timeout});
 }
 
 =head2 az_vm_list
