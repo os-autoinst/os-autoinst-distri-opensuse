@@ -93,11 +93,11 @@
 
 <h2 id="aws_vpc_delete">aws_vpc_delete</h2>
 
-<pre><code>aws_vpc_delete(
+<pre><code>my $ret = aws_vpc_delete(
     region =&gt; &#39;us-west&#39;,
     vpc_id =&gt; &#39;vpc-456&#39;);</code></pre>
 
-<p>Delete the VPC</p>
+<p>Delete the VPC, do not assert but return the exit code of the command.</p>
 
 <dl>
 
@@ -150,16 +150,14 @@
 
 <h2 id="aws_security_group_delete">aws_security_group_delete</h2>
 
-<pre><code>my $sg_id = aws_security_group_delete(
+<pre><code>my $ret = aws_security_group_delete(
     region =&gt; &#39;uswest&#39;,
     group_name =&gt; &#39;something&#39;,
     description =&gt; &#39;be or not to be&#39;,
     vpc_id =&gt; &#39;vpc123456&#39;,
     job_is =&gt; &#39;7890&#39;);</code></pre>
 
-<p>Create an AWS security group within a VPC and tag it with the OpenQA job ID</p>
-
-<p>Returns the security group ID</p>
+<p>Delete the security group, do not assert but return the exit code of the command.</p>
 
 <dl>
 
@@ -280,12 +278,12 @@
 
 <h2 id="aws_subnet_delete">aws_subnet_delete</h2>
 
-<pre><code>aws_subnet_delete(
+<pre><code>my $ret = aws_subnet_delete(
     region =&gt; &#39;us-west-1&#39;,
     job_id =&gt; &#39;67890&#39;
 );</code></pre>
 
-<p>Delete subnet</p>
+<p>Delete the subnet, do not assert but return the exit code of the command.</p>
 
 <dl>
 
@@ -369,13 +367,13 @@
 
 <h2 id="aws_internet_gateway_delete">aws_internet_gateway_delete</h2>
 
-<pre><code>aws_internet_gateway_delete(
+<pre><code>my $ret = aws_internet_gateway_delete(
     job_id =&gt; &#39;6789&#39;,
     vpc_id =&gt; &#39;vpc-12345&#39;,
     region =&gt; &#39;us-west-1&#39;
 );</code></pre>
 
-<p>Delete internet gateway</p>
+<p>Delete the internet gateway, do not assert but return the exit code of the command.</p>
 
 <dl>
 
@@ -442,12 +440,12 @@
 
 <h2 id="aws_route_table_delete">aws_route_table_delete</h2>
 
-<pre><code>aws_route_table_delete(
+<pre><code>my $ret = aws_route_table_delete(
     vpc_id =&gt; &#39;subnet-12345&#39;,
     region =&gt; &#39;us-west-1&#39;
 );</code></pre>
 
-<p>Delete a route table</p>
+<p>Delete the route table(s), do not assert but return the first non-zero exit code of the commands, or 0 on success.</p>
 
 <dl>
 
@@ -597,12 +595,12 @@
 
 <h2 id="aws_vm_terminate">aws_vm_terminate</h2>
 
-<pre><code>aws_vm_terminate(
+<pre><code>my $ret = aws_vm_terminate(
     region =&gt; &#39;us-west-1&#39;,
     instance_id =&gt; &#39;i-12345&#39;
 );</code></pre>
 
-<p>Terminate an EC2 instance and wait for it to be terminated.</p>
+<p>Terminate an EC2 instance and wait for it to be terminated, do not assert but return the exit code of the command.</p>
 
 <dl>
 
