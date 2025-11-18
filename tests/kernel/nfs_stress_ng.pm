@@ -15,6 +15,33 @@ use utils;
 use registration;
 use version_utils 'is_sle';
 
+sub check_nfs_mounts {
+    my @paths = @_;
+
+    my $output = script_output("mount");
+
+    my @mounts;
+    foreach my $line (split /\n/, $output) {
+        # match only nfs mount lines
+        next unless $line =~ /\btype\s+nfs\d?\b/;
+
+        # capture the mountpoint /path from the line
+        push @mounts, $1 if $line =~ /\son\s+(\/\S+)\s+type/;
+    }
+
+    # ensure each element of @paths is an active NFS mount on the client, otherwise fail
+    foreach my $required (@paths) {
+        unless (grep { $_ eq $required } @mounts) {
+            record_info("Missing mount",
+                "Required NFS mount '$required' not mounted",
+                result => 'fail');
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 sub parse_stress_ng_log {
     my ($file) = @_;
     my $out = script_output("cat $file 2>/dev/null || echo ''");
@@ -48,7 +75,14 @@ sub client {
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
     # allow to override the default exports
     my $exports = get_var('NFS_STRESS_EXPORTS');
-    my @paths = $exports ? split(/\s*,\s*|\s+/, $exports) : ($local_nfs4, $local_nfs4_async);
+    my @paths = $exports ? split(/,/, $exports) : ($local_nfs4, $local_nfs4_async);
+
+    if (!check_nfs_mounts(@paths)) {
+        $self->result('fail');
+        barrier_wait('NFS_STRESS_NG_START');
+        barrier_wait('NFS_STRESS_NG_END');
+        return;
+    }
 
     # in case this is SLE we need packagehub for stress-ng, let's enable it
     if (is_sle) {
@@ -119,6 +153,10 @@ sub post_fail_hook {
     upload_logs('/tmp/stress-ng*.yaml', failok => 1);
     upload_logs('/tmp/stress-ng*.log', failok => 1);
     $self->SUPER::post_fail_hook;
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;
