@@ -478,29 +478,39 @@ sub boot_to_console {
 }
 
 sub install_requirements {
-    my @requirements = qw(
-      rasdaemon
-      libnvme1
-      nvme-cli
-      rdma-core
-      rdma-ndd
-      librdmacm1
-      blktrace
-      bpftrace
-      bcc-tools
-      libbcc0
-      tcpdump
-      kdump
-      crash
-      makedumpfile
-      nfs-client
-      nfs-kernel-server
-      open-iscsi
-      multipath-tools
-      liburing2
-      net-tools
-    );
+    my @requirements;
+    my $flavor = get_var('FLAVOR');
 
+    if ($flavor =~ /Utils/) {
+        @requirements = qw(
+          rasdaemon
+          libnvme1
+          nvme-cli
+          rdma-core
+          rdma-ndd
+          librdmacm1
+          blktrace
+          bpftrace
+          bcc-tools
+          libbcc0
+          tcpdump
+          kdump
+          crash
+          makedumpfile
+          nfs-client
+          nfs-kernel-server
+          open-iscsi
+          multipath-tools
+          liburing2
+          net-tools
+        );
+    } elsif ($flavor =~ /Nvidia/) {
+        @requirements = qw(nvidia-open-driver-G06-signed-cuda-kmp-default);
+    } else {
+        record_info("Requirements", "There are no special requirements for $flavor");
+        return;
+    }
+    record_info("Requirements", "Installing requirements for $flavor");
     install_package(join(' ', @requirements));
 }
 
@@ -523,7 +533,7 @@ sub run {
     }
 
     # Install requirements for SLE 16 staging tests
-    install_requirements if check_var('FLAVOR', 'Online-Kernel-Utils-Updates-Staging');
+    install_requirements if get_var('FLAVOR') =~ /Updates-Staging/;
 
     my $repo = get_var('KOTD_REPO');
     $repo = get_var('OS_TEST_REPOS') if (!defined($repo) && (is_sle_micro('>=6.0') || (is_sle('16+'))));
