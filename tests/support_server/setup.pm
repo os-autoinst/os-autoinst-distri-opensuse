@@ -358,8 +358,6 @@ sub setup_iscsi_server {
     # Add the targetcli package
     zypper_ar("http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/$arch/product/", name => 'sles12sp3-pool');
     zypper_ar("http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/$arch/update", name => 'sles12sp3-update');
-    # Accept new repository keys if changed
-    zypper_call('--gpg-auto-import-keys ref');
     zypper_call('in targetcli');
 
     # If no LUN number is specified we must die!
