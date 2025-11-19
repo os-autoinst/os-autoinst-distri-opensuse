@@ -48,6 +48,9 @@ sub run ($self) {
 
     record_info('IPSEC_SETUP', get_var('IPSEC_SETUP'));
 
+    record_info('nmcli connect status', script_output('nmcli c'));
+    record_info('nmcli device status', script_output('nmcli device s'));
+    record_info('ip status', script_output('ip a'));
     record_info('INTF STATUS', script_output('ip -s link show', proceed_on_failure => 1));
 
     if (get_var('IPSEC_SETUP') eq 'left') {

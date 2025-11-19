@@ -1246,15 +1246,7 @@ helper function to restart network
 
 sub restart_network {
     if (is_qemu && systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
-        my $state = check_nm_connectivity(1);
-
-        if (!($state =~ /full/)) {
-            systemctl('restart NetworkManager');
-        }
-
-        if ($state =~ /full/) {
             my @devs = split("\n", script_output('nmcli device'));
-
             foreach my $indx (keys @devs) {
                 my $line = $devs[$indx];
 
@@ -1271,7 +1263,7 @@ sub restart_network {
                 # Try to connect if interface status is disconnected.
                 script_run 'nmcli device connect ' . $dev if ($line =~ /disconnected/);
 
-                next if !($line =~ /\bconnected\b/);
+                next if !(($line =~ /\bconnected\b/) || ($line =~ /\bconnecting\b/));
 
                 # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
                 script_run("nmcli general logging level DEBUG");
@@ -1280,7 +1272,7 @@ sub restart_network {
                 record_info("Logs", script_output("cat /var/log/nmcli_logs"));
                 assert_script_run 'nmcli device connect ' . $dev;
             }
-        }
+
         check_nm_connectivity();
     } else {
         assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";

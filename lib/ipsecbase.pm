@@ -100,6 +100,9 @@ sub pre_run_hook {
     select_serial_terminal;
 
     record_info('/etc/machine-id', script_output('cat /etc/machine-id'));
+    record_info('nmcli connect status', script_output('nmcli c'));
+    record_info('nmcli device status', script_output('nmcli device s'));
+    record_info('ip status', script_output('ip a'));
 
     # disable packagekitd
     quit_packagekit();
