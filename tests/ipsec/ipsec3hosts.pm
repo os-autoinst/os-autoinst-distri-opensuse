@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2023 SUSE LLC
+# Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary:  Basic preparation before any IPSec test
