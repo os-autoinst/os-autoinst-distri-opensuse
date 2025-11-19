@@ -24,7 +24,7 @@ use testapi;
 use Utils::Backends;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_sle is_public_cloud is_transactional is_sle_micro is_jeos);
+use version_utils qw(is_sle is_public_cloud is_transactional is_sle_micro is_jeos is_opensuse);
 use utils qw(zypper_call package_upgrade_check);
 use transactional qw(trup_call process_reboot);
 
@@ -38,7 +38,7 @@ sub gpg_test {
     my $egg_file = 'egg';
 
     # NTP Time Sync (poo#191983)
-    if (!is_sle('<=12')) {
+    if (is_sle('>12') && is_sle('<16') && !is_opensuse) {
         if (is_jeos) {
             assert_script_run('chronyc -a makestep | grep -E "^200 OK"');
         } else {
