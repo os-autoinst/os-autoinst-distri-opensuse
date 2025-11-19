@@ -56,9 +56,12 @@ sub install_from_repo
 
     # When using the `kselftests` package from a repository, make sure the KMP subpackage containing the test kernel modules
     # were built against the same kernel version the SUT is currently running.
-    my $kver = script_output('uname -r | grep -oP "\.g[0-9A-Za-z]{7}"');
-    my $kmpver = script_output('zypper info kselftests-kmp-default | grep Version | awk "{print $3}" | grep -oP "\.g[0-9A-Za-z]{7}"');
-    die 'Kernel and KMP versions mismatch' unless $kver eq $kmpver;
+    my ($kver) = script_output('uname -r') =~ /(.*)-\w*/;
+    my ($kmpver) = script_output("rpm -q --qf '%{VERSION}\n' kselftests-kmp-default") =~ /\d*_k(.*)/;
+    die 'Could not extract kernel or KMP suffix' unless defined $kver && defined $kmpver;
+    $kver =~ s/_/-/g;
+    $kmpver =~ s/_/-/g;
+    die "Kernel and KMP versions mismatch: $kver != $kmpver" if $kver ne $kmpver;
 }
 
 sub get_sanitized_test_name {
