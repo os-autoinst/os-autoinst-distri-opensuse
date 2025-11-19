@@ -95,11 +95,6 @@ sub run {
 
     select_serial_terminal;
 
-    if (get_var 'WORKAROUND_BSC1247463') {
-        record_info('!! Workaround !!', 'Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1247463');
-        zypper_call 'in openssl-3';
-    }
-
     # For installation only. FIPS has already been setup during installation
     # (DVD installer booted with fips=1), so we only do verification here.
     if (get_var("FIPS_INSTALLATION")) {

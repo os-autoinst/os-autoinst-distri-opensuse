@@ -5,6 +5,9 @@ schedule:
   - yam/agama/agama_auto
   - installation/grub_test
   - installation/first_boot
+  - console/zypper_lr
+  - console/system_prepare
+  - '{{patch_reboot}}'
   - console/console_reboot
   - console/validate_lvm
   - console/validate_encrypt
@@ -16,3 +19,8 @@ test_data:
   crypttab:
     num_devices_encrypted: 1
   <<: !include test_data/yast/encryption/default_enc_luks2.yaml
+conditional_schedule:
+  patch_reboot:
+    FLAVOR:
+      'Online-Increments':
+        - qa_automation/patch_and_reboot
