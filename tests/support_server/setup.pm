@@ -356,8 +356,8 @@ sub setup_iscsi_server {
     my $iscsi_port = get_var('ISCSI_PORT', '3260');
 
     # Add the targetcli package
-    zypper_ar("https://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/$arch/product/", name => 'sles12sp3-pool');
-    zypper_ar("https://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/$arch/update", name => 'sles12sp3-update');
+    zypper_ar("http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/$arch/product/", name => 'sles12sp3-pool');
+    zypper_ar("http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/$arch/update", name => 'sles12sp3-update');
     # Accept new repository keys if changed
     zypper_call('--gpg-auto-import-keys ref');
     zypper_call('in targetcli');
