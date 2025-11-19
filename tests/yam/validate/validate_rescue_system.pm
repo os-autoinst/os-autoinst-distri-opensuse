@@ -11,7 +11,7 @@ use testapi;
 use scheduler 'get_test_suite_data';
 
 sub run {
-    assert_screen 'inst-console';
+    assert_screen('inst-console', 60);
     select_console 'install-shell';
     my $test_data = get_test_suite_data();
     my @needed_tools = @{$test_data->{tools}};
