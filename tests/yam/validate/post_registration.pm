@@ -11,7 +11,8 @@ sub run {
     select_console 'root-console';
     assert_script_run "SUSEConnect -s | grep 'Not Registered'";
     assert_script_run "SUSEConnect --status-text";
-    assert_script_run "SUSEConnect -r " . get_var('SCC_REGCODE') . " --url " . get_var('SCC_URL'), 180;
+    my $url_paras = get_var('SCC_URL') ? " --url " . get_var('SCC_URL') : '';
+    assert_script_run "SUSEConnect -r " . get_var('SCC_REGCODE') . $url_paras, 180;
     assert_script_run "SUSEConnect --status-text | grep -v 'Not Registered'";
     assert_script_run "zypper lr | grep SLE-Product-SLES-" . get_var('VERSION');
     assert_script_run "SUSEConnect --list-extensions";
