@@ -133,7 +133,7 @@ sub run {
         validate_script_output('cat /etc/ld.so.conf', $ld_conf_regex);
     }
     else {
-        validate_script_output('cat /etc/ld.so.conf', sub { $_ !~ m/$ld_conf_regex/ });
+        validate_script_output('cat /etc/ld.so.conf', sub { $_ =~ m/$ld_conf_regex/ });
     }
 
     schedule_tests('openposix', "_glibc-$libver");
@@ -145,7 +145,7 @@ sub run {
         validate_script_output('ldd $(which echo)', $ldd_regex);
     }
     else {
-        validate_script_output('ldd $(which echo)', sub { $_ !~ m/$ldd_regex/ });
+        validate_script_output('ldd $(which echo)', sub { $_ =~ m/$ldd_regex/ });
     }
 
     # Run tests again with the next untested glibc version
