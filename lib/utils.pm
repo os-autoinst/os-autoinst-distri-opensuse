@@ -1246,41 +1246,33 @@ helper function to restart network
 
 sub restart_network {
     if (is_qemu && systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
-        my $state = check_nm_connectivity(1);
+        my @devs = split("\n", script_output('nmcli device'));
+        foreach my $indx (keys @devs) {
+            my $line = $devs[$indx];
 
-        if (!($state =~ /full/)) {
-            systemctl('restart NetworkManager');
-        }
-
-        if ($state =~ /full/) {
-            my @devs = split("\n", script_output('nmcli device'));
-
-            foreach my $indx (keys @devs) {
-                my $line = $devs[$indx];
-
-                if (!($line =~ /^([a-z0-9_-]+)/i)) {
-                    record_info('nmcli output error', 'device id did not match: ' . $devs[$indx], result => 'fail');
-                    next;
-                }
-                my $dev = $1;
-
-                next if ($indx == 0 && $dev eq 'DEVICE');
-                next if ($dev eq 'lo');
-
-                # poo#184165 By default sle16 qcow created in openqa will not bring up all interface automaticly.
-                # Try to connect if interface status is disconnected.
-                script_run 'nmcli device connect ' . $dev if ($line =~ /disconnected/);
-
-                next if !($line =~ /\bconnected\b/);
-
-                # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
-                script_run("nmcli general logging level DEBUG");
-                assert_script_run("nmcli -w 120 device disconnect $dev");
-                script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
-                record_info("Logs", script_output("cat /var/log/nmcli_logs"));
-                assert_script_run 'nmcli device connect ' . $dev;
+            if (!($line =~ /^([a-z0-9_-]+)/i)) {
+                record_info('nmcli output error', 'device id did not match: ' . $devs[$indx], result => 'fail');
+                next;
             }
+            my $dev = $1;
+
+            next if ($indx == 0 && $dev eq 'DEVICE');
+            next if ($dev eq 'lo');
+
+            # poo#184165 By default sle16 qcow created in openqa will not bring up all interface automaticly.
+            # Try to connect if interface status is disconnected.
+            script_run 'nmcli device connect ' . $dev if ($line =~ /disconnected/);
+
+            next if !(($line =~ /\bconnected\b/) || ($line =~ /\bconnecting\b/));
+
+            # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
+            script_run("nmcli general logging level DEBUG");
+            assert_script_run("nmcli -w 120 device disconnect $dev");
+            script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
+            record_info("Logs", script_output("cat /var/log/nmcli_logs"));
+            assert_script_run 'nmcli device connect ' . $dev;
         }
+
         check_nm_connectivity();
     } else {
         assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
