@@ -355,6 +355,10 @@ sub setup_iscsi_server {
     my $iscsi_ip = get_var('ISCSI_PORTAL_IP', '10.0.2.1');
     my $iscsi_port = get_var('ISCSI_PORT', '3260');
 
+    # QCOW images are really mess
+    # So it's better to cleanup all forgoten repositories
+    zypper_call('removerepo --all');
+
     # Add the targetcli package
     zypper_ar("http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/$arch/product", name => 'sles12sp3-pool');
     zypper_ar("http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/$arch/update", name => 'sles12sp3-update');
