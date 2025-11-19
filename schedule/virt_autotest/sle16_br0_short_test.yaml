@@ -1,0 +1,12 @@
+name:          sle16_br0_short_test
+description:    >
+  Virtualization br0 set up test with virt-bridge-setup package
+schedule:
+  - '{{host_installation}}'
+  - virt_autotest/login_console
+conditional_schedule:
+  host_installation:
+    DO_NOT_INSTALL_HOST:
+      0:
+        - installation/ipxe_install
+        - installation/agama_reboot
