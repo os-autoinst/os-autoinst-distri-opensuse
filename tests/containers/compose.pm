@@ -23,7 +23,7 @@ use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use registration;
 use utils;
 use containers::common;
-use version_utils qw(is_sle_micro is_transactional);
+use version_utils qw(is_sle_micro is_transactional is_vmware);
 
 sub basic_test {
     my ($runtime, $rootless) = @_;
@@ -89,12 +89,13 @@ sub run {
     basic_test($runtime, 0);
 
     if ($runtime eq "podman") {
-        if (is_transactional) {
+        if (is_transactional || is_vmware) {
             select_console "user-console";
         } else {
             select_user_serial_terminal();
         }
         basic_test($runtime, 1);
+        select_serial_terminal;
     }
 
     $engine->cleanup_system_host();
