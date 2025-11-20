@@ -38,7 +38,7 @@ sub gpg_test {
     my $egg_file = 'egg';
 
     # NTP Time Sync (poo#191983)
-    if (!is_sle('<=12')) {
+    if (is_sle('15+')) {
         my $chrony_status = systemctl("is-active chronyd", ignore_failure => 1);
         systemctl('start chronyd') if $chrony_status;
         assert_script_run('chronyc -a makestep | grep -E "^200 OK"');
