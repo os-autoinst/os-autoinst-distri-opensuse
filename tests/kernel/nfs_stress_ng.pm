@@ -4,7 +4,11 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run stress-ng on NFS
-#    Should run after nfs_client/server.
+#    This module validates NFS client/server functionality by running
+#    filesystem-class stress-ng tests against mounted NFS exports.
+#    The module expects a multi-machine setup with roles 'nfs_client'
+#    and 'nfs_server' and should be scheduled after after nfs_client,
+#    nfs_server modules.
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base "opensusebasetest";
@@ -157,3 +161,64 @@ sub test_flags {
 }
 
 1;
+
+=head1 Description
+
+This module runs filesystem-class C<stress-ng> workloads against NFS
+mounts in a multi-machine openQA setup. It is intended to validate both
+basic NFS functionality and filesystem stability under load.
+
+The module operates in two roles:
+
+=over 4
+
+=item * C<nfs_client> - verifies required NFS mounts, installs C<stress-ng>,
+runs the workload on each export, parses the generated metrics, and records
+the results.
+
+=item * C<nfs_server> - synchronizes with the client through barriers and
+prints NFS statistics (C<nfsstat -s>) after the workload completes.
+
+Before executing any stress tests, the client ensures that all required
+mount points - either the default NFS paths or those provided via
+C<NFS_STRESS_EXPORTS> - are present and mounted as real NFS filesystems.
+
+=back
+
+Metrics are parsed from the C<stress-ng> C<--metrics-brief> output. Any
+failing or untrustworthy metrics are treated as test failures.
+
+=head1 Configuration
+
+The following openQA variables control the behavior of this module:
+
+=head2 ROLE
+
+Required. Must be either C<nfs_client> or C<nfs_server>. Determines
+which execution path is taken.
+
+=head2 NFS_STRESS_EXPORTS
+
+Optional. Comma-separated list of client-side mount points where
+C<stress-ng> will be executed. Example:
+
+  '/home/localNFS3,/home/localNFS4'
+
+If not set, the defaults
+
+=over 4
+
+=item * C</home/localNFS4>
+=item * C</home/localNFS4async>
+
+=back
+
+are used.
+
+=head2 NFS_STRESS_NG_TIMEOUT
+
+Optional. Timeout (in seconds) for the C<stress-ng> workload. Defaults to 3.
+
+This value is passed directly to the C<--timeout> argument of C<stress-ng>.
+
+=cut
