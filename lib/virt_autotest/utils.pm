@@ -722,6 +722,8 @@ sub create_guest {
         $virtinstall .= " --wait -1";
         # Configure boot firmware based on guest configuration
         if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi') {
+            # Use standard EFI firmware for installation
+            # Note: For SLES16 kernel tests, Secure Boot will be disabled after installation
             $virtinstall .= " --boot firmware=efi";
             record_info("Boot Firmware", "Guest $name configured for EFI boot");
         }
