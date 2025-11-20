@@ -28,7 +28,7 @@ sub run {
 }
 
 sub install_packages {
-    my $required_packages = 'NetworkManager hostapd';
+    my $required_packages = 'NetworkManager hostapd openssl';
     enter_cmd 'echo "# installing required packages"';
     quit_packagekit;
     zypper_call("in $required_packages");
