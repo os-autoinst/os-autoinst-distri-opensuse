@@ -112,7 +112,7 @@ sub post_run_hook {
 
 1;
 
-=head1 Discussion
+=head1 Description
 
 This module executes Linux Kernel Selftests (kselftests) inside openQA.
 It supports running tests either from the in-tree git repository or from

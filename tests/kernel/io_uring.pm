@@ -120,7 +120,7 @@ sub test_flags {
 
 1;
 
-=head1 Discussion
+=head1 Description
 
 Test module to run liburing testing suite.
 

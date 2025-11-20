@@ -29,6 +29,6 @@ sub test_flags {
 
 1;
 
-=head1 Discussion
+=head1 Description
 
 Smoke test for a small selection of BCC tools.
