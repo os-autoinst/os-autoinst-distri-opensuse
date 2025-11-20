@@ -506,6 +506,8 @@ sub install_requirements {
         );
     } elsif ($flavor =~ /Nvidia/) {
         @requirements = qw(nvidia-open-driver-G06-signed-cuda-kmp-default);
+    } elsif ($flavor =~ /Base/) {
+        @requirements = qw(kdump);
     } else {
         record_info("Requirements", "There are no special requirements for $flavor");
         return;
