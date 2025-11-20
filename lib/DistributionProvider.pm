@@ -23,6 +23,7 @@ use Distribution::Opensuse::Leap::42;
 use Distribution::Opensuse::Leap::15;
 use Distribution::Opensuse::Leap::16Latest;
 use Distribution::Opensuse::Tumbleweed;
+use Distribution::Opensuse::AgamaTumbleweed;
 use Distribution::Opensuse::AgamaDevel;
 
 use testapi;
@@ -48,6 +49,7 @@ sub provide {
     return Distribution::Opensuse::Leap::15->new() if is_leap('15.0+');
     return Distribution::Opensuse::Leap::42->new() if is_leap('42.0+');
     return Distribution::Opensuse::AgamaDevel->new() if is_opensuse() && get_var('VERSION', '') =~ /agama/;
+    return Distribution::Opensuse::AgamaTumbleweed->new() if is_opensuse() && is_agama();
     return Distribution::Opensuse::Tumbleweed->new();
 }
 
