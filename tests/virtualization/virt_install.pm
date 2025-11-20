@@ -9,10 +9,11 @@
 
 use base 'x11test';
 use testapi;
+use x11utils 'default_gui_terminal';
 
 sub run {
     ensure_installed('virt-install');
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
     script_run('virt-install --name TESTING --osinfo detect=on,require=off --memory 512 --disk none --boot cdrom --graphics vnc &', 0);
     save_screenshot;
