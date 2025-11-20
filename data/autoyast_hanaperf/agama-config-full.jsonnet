@@ -16,11 +16,12 @@
     },
   },
   product: {
-    id: 'SLES_SAP',
+    id: '{{AGAMA_PRODUCT_ID}}',
   },
   storage: {
     drives: [
       {
+        search: '/dev/disk/by-id/{{OSDISK}}',
         partitions: [
           { search: '*', delete: true },
           { generate: 'default' },
