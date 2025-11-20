@@ -15,8 +15,7 @@
 
 use base "x11test";
 use testapi;
-use utils;
-use x11utils;
+use x11utils 'default_gui_terminal';
 
 sub run {
     my ($self) = @_;
@@ -24,7 +23,7 @@ sub run {
     mouse_hide(1);
     ensure_installed("xauth");
     x11_start_program($gui_term);
-    enter_cmd("ssh -o StrictHostKeyChecking=no -XC localhost $gui_term");
+    enter_cmd("ssh -o StrictHostKeyChecking=no -XC root\@localhost $gui_term");
     assert_screen "ssh-second-$gui_term", 30;
     $self->set_standard_prompt();
     $self->enter_test_text('ssh-X-forwarding', cmd => 1);
