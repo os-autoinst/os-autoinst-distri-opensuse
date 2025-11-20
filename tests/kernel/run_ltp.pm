@@ -487,7 +487,7 @@ sub run_post_fail {
 
 1;
 
-=head1 Discussion
+=head1 Description
 
 This module executes a single LTP test case specified by LTP::TestInfo which
 is passed to run. This module is dynamically scheduled by boot_ltp at runtime.

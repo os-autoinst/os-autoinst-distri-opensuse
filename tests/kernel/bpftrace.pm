@@ -100,7 +100,7 @@ sub test_flags {
 
 1;
 
-=head1 Discussion
+=head1 Description
 
 First we check that we can list tracepoints and that a common
 tracepoint is available.

@@ -38,7 +38,7 @@ sub run {
     upload_logs($tar);
 }
 
-=head1 Discussion
+=head1 Description
 
 The /proc and /sys directories contain lots of useful information which is
 only available on a running system or in a crash dump. In order to get this
