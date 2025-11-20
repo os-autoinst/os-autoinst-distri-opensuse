@@ -19,6 +19,7 @@ use x11utils 'default_gui_terminal';
 
 sub run {
     my ($self) = @_;
+    select_console 'x11';
     my $gui_term = default_gui_terminal();
     mouse_hide(1);
     ensure_installed("xauth");
