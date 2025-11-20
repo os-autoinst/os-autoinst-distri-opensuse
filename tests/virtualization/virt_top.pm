@@ -9,15 +9,16 @@
 
 use base 'x11test';
 use testapi;
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 
 sub run {
     ensure_installed('virt-top');
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
     script_run('virt-top', 0);
     assert_screen 'virt-top';
-    send_key 'alt-f4';
+    close_gui_terminal;
 }
 
 1;
