@@ -36,7 +36,7 @@ schedule:
     - x11/desktop_runner
     - '{{key_repeat_disable}}'
     - x11/xterm
-    - x11/sshxterm
+    - x11/ssh_default_term
     - x11/gnome_control_center
     - x11/gnome_terminal
     - x11/gedit
