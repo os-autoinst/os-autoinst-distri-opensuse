@@ -92,28 +92,15 @@ sub run {
     push @xfails, (
         'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     ) if (get_var("ROOTLESS"));
-    # These tests fail as rootless only
-    my @rootless_remote_xfails = (
-        'Libpod Suite::[It] Podman build podman build relay exit code to process',
-        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file= falls back to containers.conf',
-        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file=image',
-        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file=none',
-        'Libpod Suite::[It] Podman pod create podman create pod with --hosts-file --hosts-file=path',
-        'Libpod Suite::[It] Podman prune podman system image prune unused images',
-        'Libpod Suite::[It] Podman prune podman system prune --build clean up after terminated build',
-        'Libpod Suite::[It] Podman run memory podman run memory test on oomkilled container',
-        'Libpod Suite::[It] Podman run podman run with --hosts-file --hosts-file= falls back to containers.conf',
-    );
 
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
     my $default_targets = "localintegration";
-    $default_targets .= " remoteintegration" unless is_sle;
+    $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS"));
     my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
         run_command "env $env make $target &> $target.txt || true", timeout => 1800;
         script_run "mv report.xml $target.xml";
-        push @xfails, @rootless_remote_xfails if ($target eq "remoteintegration" && get_var("ROOTLESS"));
         patch_junit "podman", $version, "$target.xml", @xfails;
         parse_extra_log(XUnit => "$target.xml");
         upload_logs("$target.txt");
