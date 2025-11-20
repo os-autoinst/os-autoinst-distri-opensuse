@@ -12,16 +12,11 @@ use testapi;
 use Utils::Architectures;
 use utils;
 use virt_autotest::utils qw(restart_libvirtd);
+use x11utils qw(default_gui_terminal close_gui_terminal);
+
 
 sub run {
-    x11_start_program('xterm');
-    send_key 'alt-f10';
-    become_root;
-    quit_packagekit;
-    if (zypper_call('se yast2-vm', exitcode => [0, 104]) == 104) {
-        record_soft_failure 'bsc#1083398 - YaST2-virtualization provides wrong components for SLED';
-        zypper_call 'in yast2-vm';
-    }
+    ensure_installed('yast2-vm');
     y2_module_guitest::launch_yast2_module_x11('virtualization');
     # select everything
     if (is_x86_64) {
@@ -44,14 +39,13 @@ sub run {
     # close the xterm
     send_key 'alt-f4';
     # now need to start libvirtd
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     wait_screen_change { send_key 'alt-f10' };
     become_root;
     restart_libvirtd;
     wait_screen_change { send_key 'ret' };
     send_key 'ret';
-    # close the xterm
-    send_key 'alt-f4';
+    close_gui_terminal;
 }
 
 sub test_flags {
