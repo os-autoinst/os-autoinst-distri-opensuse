@@ -24,20 +24,18 @@ sub check_nfs_mounts {
 
     my $output = script_output("mount");
 
-    my @mounts;
+    my %mounts;
     foreach my $line (split /\n/, $output) {
-        # match only nfs mount lines
-        next unless $line =~ /\btype\s+nfs\d?\b/;
-
-        # capture the mountpoint /path from the line
-        push @mounts, $1 if $line =~ /\son\s+(\/\S+)\s+type/;
+        # extract mountpoint path and filesystem type
+        $mounts{$1} = $2 if $line =~ /\son\s+(\/\S+)\s+type\s+(\S+)/;
     }
 
-    # ensure each element of @paths is an active NFS mount on the client, otherwise fail
+    # ensure each element of @paths is an active NFS mount on the client,
+    # and is indeed of nfs type, otherwise fail
     foreach my $required (@paths) {
-        unless (grep { $_ eq $required } @mounts) {
-            record_info("Missing mount",
-                "Required NFS mount '$required' not mounted",
+        unless (exists $mounts{$required} && $mounts{$required} =~ /^nfs\d?/) {
+            record_info("Missing or wrong type",
+                "Required NFS mount '$required' is " . ($mounts{$required} // "not mounted"),
                 result => 'fail');
             return 0;
         }
