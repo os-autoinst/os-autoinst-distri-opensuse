@@ -9,7 +9,7 @@
 
 use base 'x11test';
 use testapi;
-use x11utils 'default_gui_terminal';
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 sub run {
     ensure_installed('virt-install');
@@ -24,7 +24,7 @@ sub run {
     }
     wait_still_screen;
     # Close or at least deactivate the current window in case it would cover vncviewer later
-    send_key 'alt-f4';
+    close_gui_terminal;
     wait_still_screen;
     x11_start_program('vncviewer :0', target_match => 'virtman-gnome_virt-install', match_timeout => 100);
     # closing all windows
