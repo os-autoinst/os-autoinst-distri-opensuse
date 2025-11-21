@@ -25,6 +25,7 @@ use Carp qw(croak);
 use Data::Dumper;
 use XML::Simple;
 use serial_terminal qw(select_serial_terminal set_serial_prompt serial_term_prompt);
+use Utils::Backends 'is_pvm';
 
 our @EXPORT = qw(
   $crm_mon_cmd
@@ -731,7 +732,7 @@ sub ha_export_logs {
 
     # HANA hdbnsutil logs
     if (check_var('CLUSTER_NAME', 'hana')) {
-        script_run 'tar -zcf /tmp/trace.tgz $(find /hana/shared -name nameserver_*.trc)';
+        script_run 'tar -zcf /tmp/trace.tgz $(find /hana/shared -name nameserver_*.trc)', timeout => 300;
         upload_logs('/tmp/trace.tgz', failok => 1);
     }
 }
@@ -1613,12 +1614,19 @@ to C<select_console 'root-console'> will not work as the console could be "dirty
 messages obscuring the root prompt. This function will pre-select the console without
 asserting anything on the screen, clear it, and then select it normally.
 
+On PVM setup, serial connection may lose if jobs running too long from ssh termial, so
+re-connect it after switching back to root-console
 =cut
 
 sub prepare_console_for_fencing {
-    select_console 'root-console', await_console => 0;
-    send_key 'ctrl-l';
-    send_key 'ret';
+    if (is_pvm) {
+        reset_consoles;
+    }
+    else {
+        select_console 'root-console', await_console => 0;
+        send_key 'ctrl-l';
+        send_key 'ret';
+    }
     select_console 'root-console';
 }
 
