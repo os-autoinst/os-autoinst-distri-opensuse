@@ -26,6 +26,15 @@ sub screenshot_vnc_guests {
     }
 }
 
+sub access_vm_profiles {
+    record_info("Vm profile accessibility check...");
+    foreach my $guest (values %virt_autotest::common::guests) {
+        record_info("VM profile accessibility", $guest->{name});
+        my $_cmd = "curl -v -L -f " . $guest->{autoyast};
+        script_run("$_cmd");
+    }
+}
+
 sub run {
     my $self = shift;
     select_console('root-console');
@@ -79,17 +88,7 @@ sub run {
     }
 
     # Update guests hash with IP/macaddress and add guests to /etc/hosts
-    foreach my $guest (@guests) {
-        my $guest_ip = script_output("cat /tmp/guests_ip/$guest");
-        # Update the guests hash with the current IP address for migration testing
-        $virt_autotest::common::guests{$guest}{ip} = "$guest_ip";
-        # Update the guests hash with the guest macaddress
-        my $guest_mac = script_output("virsh domiflist $guest | awk 'NR>2 {print \$5}'");
-        $virt_autotest::common::guests{$guest}{macaddress} = "$guest_mac";
-        record_info("$guest networking", "$guest IP: $guest_ip MAC: $guest_mac");
-        # Fill the current pairs of hostname & address to the /etc/hosts file
-        add_guest_to_hosts($guest, $guest_ip);
-    }
+    update_guests_ip_mac();
 
     # Check address information in /etc/hosts file
     assert_script_run 'virsh list --all';
@@ -109,7 +108,7 @@ sub run {
         }
         record_info("Starting guests", "Starting all guests");
         start_guests();
-        ensure_online $_, skip_ssh => 1, ping_delay => 45 foreach (@guests);
+        ensure_online $_, skip_ssh => 1, ping_delay => 15 foreach (@guests);
     }
     assert_script_run('virsh list --all');
     wait_still_screen 1;
@@ -118,6 +117,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     screenshot_vnc_guests();
+    access_vm_profiles();
     collect_virt_system_logs();
     $self->SUPER::post_fail_hook;
 }

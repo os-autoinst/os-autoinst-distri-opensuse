@@ -77,6 +77,7 @@ our @EXPORT = qw(
   import_guest
   ssh_copy_id
   add_guest_to_hosts
+  update_guests_ip_mac
   ensure_default_net_is_active
   remove_additional_disks
   remove_additional_nic
@@ -597,7 +598,26 @@ sub create_guest {
     my $location = $guest->{location};
     my $iso_url = $guest->{iso_url};
     my $install_url = $guest->{install_url};
+
     my $autoyast = $guest->{autoyast};
+    # Add debug info to test guest profile accessibility before installing vms
+    my $_cmd = "curl -v -f -L $autoyast";
+    if (script_run("$_cmd") != 0) {
+        save_screenshot;
+        record_info("VM $name guest profile is NOT accessible",
+            "Link: $autoyast", result => 'fail');
+        script_run("ip a");
+        script_run("ip route show");
+        script_run("ping -c 5 " . get_required_var("WORKER_HOSTNAME"));
+        script_run("ping -c 5 " . get_required_var("OPENQA_URL"));
+        save_screenshot;
+        die "VM $name guest profile is NOT accessible";
+    } else {
+        save_screenshot;
+        record_info("VM $name guest profile is accessible",
+            "Link: $autoyast, output is:\n" . script_output("$_cmd"));
+    }
+
     my $macaddress = $guest->{macaddress};
     my $on_reboot = $guest->{on_reboot} // "restart";    # configurable on_reboot policy
     my $extra_params = $guest->{extra_params} // "";    # extra-parameters
@@ -858,6 +878,22 @@ sub add_guest_to_hosts {
     return 0;
 }
 
+# Update guests hash with IP/macaddress and add guests to /etc/hosts
+sub update_guests_ip_mac {
+    my @guests = keys %virt_autotest::common::guests;
+    foreach my $guest (@guests) {
+        my $guest_ip = script_output("cat /tmp/guests_ip/$guest");
+        # Update the guests hash with the current IP address for migration testing
+        $virt_autotest::common::guests{$guest}{ip} = "$guest_ip";
+        # Update the guests hash with the guest macaddress
+        my $guest_mac = script_output("virsh domiflist $guest | awk 'NR>2 {print \$5}'");
+        $virt_autotest::common::guests{$guest}{macaddress} = "$guest_mac";
+        record_info("$guest networking", "$guest IP: $guest_ip MAC: $guest_mac");
+        # Fill the current pairs of hostname & address to the /etc/hosts file
+        add_guest_to_hosts($guest, $guest_ip);
+    }
+}
+
 # Remove additional disks from the given guest. We remove all disks that match the given pattern or 'vd[b-z]' if no pattern is given
 sub remove_additional_disks {
     my $guest = $_[0];
@@ -967,6 +1003,31 @@ sub wait_guests_shutdown {
 # Start all guests and wait until they are online
 sub start_guests {
     script_run("virsh start '$_'") foreach (keys %virt_autotest::common::guests);
+
+    # IP could change compared to last time, only observed in sle16 MU test for sle16 vms
+    if (is_sles16_mu_virt_test) {
+        assert_script_run("rm -rf /tmp/guests_ip/sles16*");
+        assert_script_run("ls -l /tmp/guests_ip/");
+        my @wait_reboot = keys %virt_autotest::common::guests;
+        my $count = 0;
+        my $retry = 30;
+        while ($count++ < $retry) {
+            @wait_reboot = grep { script_run("test -f /tmp/guests_ip/$_") != 0 } @wait_reboot;
+
+            # If all guests report IP, exit the loop
+            last if @wait_reboot == 0;
+            sleep 10;
+            # If retry number is reached the test will fail
+            if ($count == $retry) {
+                record_info("Failed: timeout", "Timeout waiting for rebooting of @wait_reboot");
+                die;
+            }
+        }
+        assert_script_run("ls -l /tmp/guests_ip/");
+        update_guests_ip_mac();
+    }
+
+    # Check by ssh port open or not
     wait_guest_online($_) foreach (keys %virt_autotest::common::guests);
 }
 
