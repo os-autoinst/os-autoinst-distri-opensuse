@@ -50,10 +50,8 @@ sub install_from_git
 
 sub install_from_repo
 {
-    my $repo = get_var('KSELFTEST_REPO', '');
-    zypper_call("ar -p 1 -f $repo kselftests");
-    zypper_call("--gpg-auto-import-keys ref");
-    zypper_call("install -y kselftests kernel-devel");
+    zypper_ar(get_required_var('KSELFTEST_REPO'), name => 'kselftests', priority => 1, no_gpg_check => 1);
+    zypper_call('in kselftests kernel-devel');
 
     # When using the `kselftests` package from a repository, make sure the KMP subpackage containing the test kernel modules
     # were built against the same kernel version the SUT is currently running.
@@ -70,7 +68,7 @@ sub install_dependencies
     my ($collection) = @_;
 
     if (is_sle()) {
-        add_qa_head_repo(priority => 100);
+        add_qa_head_repo;
         add_suseconnect_product(get_addon_fullname('phub'));
     }
 
