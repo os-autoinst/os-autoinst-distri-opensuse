@@ -31,7 +31,7 @@ sub run {
 
     # Clone the terraform and ansible files from the gitlab
     my $work_dir = '~/deployment/';
-    # Get the code for the Trento deployment
+    # Get the code for the plan-b deployment
     my $gitlab_repo = get_var('GITLAB_REPO', 'gitlab.suse.de/jkohoutek/plan-b');
 
     # The usage of a variable with a different name is to
