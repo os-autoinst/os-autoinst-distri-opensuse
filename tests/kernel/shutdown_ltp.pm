@@ -44,6 +44,9 @@ sub run {
 
     upload_system_logs();
 
+    # Also cleanup machine-id to avoid duplicate ipv6 link local address in mutli-machine setup.
+    script_run('echo -n >/etc/machine-id');
+
     power_action('poweroff');
 }
 
