@@ -16,55 +16,28 @@ use Mojo::File qw(path);
 use utils qw(file_content_replace);
 use Utils::Architectures qw(is_aarch64);
 
-sub sysext_gen {
-    my $sysext_path = get_required_var('SYSEXT_PATH');
+sub get_sysext {
     my $shared_dir = '/root/shared';
-    my $config_file = "$shared_dir/config.sh";
-    my $sysext_root = "$shared_dir/sysexts";
-    my $sysext_dir = "$sysext_root/etc/extensions";
-    my $overlay = "$shared_dir/sysexts.tar.gz";
-    my $sysext_arch;
-    my @sysexts;
+    my $overlay_dir = "$shared_dir/overlays";
+    my $sysext_dir = "$overlay_dir/etc/extensions";
+    my $ctl_oci;
 
     # Create directories
     assert_script_run("mkdir -p $sysext_dir");
 
-    # Define architecture for the system extensions
-    $sysext_arch = 'arm64' if ($args{arch} eq 'aarch64');
-    $sysext_arch = 'x86-64' if ($args{arch} eq 'x86_64');
-
-    # Get the system extensions list
-    # NOTE: '/' is mandatory at the end of $sysext_path!
-    my @list = split(
-        /[\r\n]+/,
-        script_output(
-            "curl -s ${sysext_path}/ | sed -n 's/.*href=\"\\(.*_${sysext_arch}.raw\\)\">.*/\\1/p'"
-        )
-    );
-
-    # Clean the list
-    foreach (sort @list) {
-        if ($_ =~ /$args{k8s}/) {
-            # Keep only the first K8s version found (the lower version)
-            # Higher versions can be used in another upgrade test
-            next if $k8s_sysext_found;
-            $k8s_sysext_found = 1;
-        }
-        push @sysexts, $_;
-    }
-
     # Get the system extensions
-    foreach my $sysext (@sysexts) {
+    foreach my $img (split(/,/, get_required_var('SYSEXT_IMAGES_TO_TEST'))) {
         assert_script_run(
-            "curl -v -f -o ${sysext_dir}/${sysext} ${sysext_path}/${sysext}",
-            300);
+            "elemental3ctl --debug unpack-image \\
+               --image ${img} \\
+               --platform linux/amd64 \\
+               --target ${sysext_dir}"
+        );
+        $ctl_oci = $img if ($img =~ /\/elemental3ctl:/);
     }
-
-    # Package the system extensions
-    assert_script_run("tar cvaf $overlay -C $sysext_root .");
 
     # Return systemd-sysexts file name
-    return ($overlay, $sysext_dir);
+    return ($overlay_dir, $ctl_oci);
 }
 
 sub build_cmd {
@@ -107,13 +80,21 @@ sub build_cmd {
 
     # Generate OS image
     assert_script_run(
-        "elemental3 --debug build --image-type raw --config-dir $build_dir --output uc_image.raw",
+        "elemental3 \\
+           --debug build \\
+           --image-type raw \\
+           --config-dir $build_dir \\
+           --output uc_image.raw",
         $args{timeout}
     );
 
     # Convert RAW to QCOW2
     assert_script_run(
-        "qemu-img convert -p -f raw -O qcow2 uc_image.raw ./$args{img_filename}.qcow2",
+        "qemu-img convert \\
+           -p -f raw \\
+           -O qcow2 \\
+           uc_image.raw \\
+           ./$args{img_filename}.qcow2",
         $args{timeout}
     );
 
@@ -133,10 +114,10 @@ sub build_iso_cmd {
 
     # Configure the systemd sysexts
     record_info('SYSEXT', 'Download and configure systemd system extensions');
-    my ($overlay, $sysext_dir) = sysext_gen();
+    my ($overlay_dir, $ctl_oci) = get_sysext();
 
-    # Keep only Elemental sysexts for the ISO overlay
-    script_run("find $sysext_dir -type f ! -name 'elemental*' -exec rm -f {} \\;");
+    # Extract elemental3ctl sysext name
+    my $ctl_sysext = script_output("openssl passwd -6 $args{rootpwd}");
 
     # OS configuration script
     assert_script_run(
@@ -191,7 +172,7 @@ sub install_cmd {
     my $k8s_sysext_found;
 
     record_info('SYSEXT', 'Download and configure systemd system extensions');
-    my $overlay = sysext_gen();
+    my ($overlay_dir) = get_sysext();
 
     # OS configuration script
     assert_script_run(
@@ -209,13 +190,22 @@ sub install_cmd {
     record_info('QCOW2', 'Generate and upload QCOW2 image');
 
     # Create a raw image and mount it
-    assert_script_run("qemu-img create -f qcow2 $shared_dir/$args{img_filename}.qcow2 ${hddsize}G");
+    assert_script_run(
+        "qemu-img create \\
+           -f qcow2 \\
+           $shared_dir/$args{img_filename}.qcow2 \\
+           $args{hddsize}G"
+    );
     assert_script_run('modprobe nbd');
     assert_script_run("qemu-nbd -c $device $shared_dir/$args{img_filename}.qcow2");
 
     # Generate OS image
     assert_script_run(
-        "elemental3ctl --debug install --os-image $image --overlay tar://$overlay --config $config_file --target $device",
+        "elemental3ctl --debug install \\
+           --os-image $image \\
+           --overlay dir://$overlay_dir \\
+           --config $config_file \\
+           --target $device",
         $args{timeout}
     );
 
