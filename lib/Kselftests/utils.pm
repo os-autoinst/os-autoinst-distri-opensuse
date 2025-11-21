@@ -81,7 +81,7 @@ sub install_dependencies
         }
         zypper_ar($netutils_repo);
         zypper_call('in qa_test_netperf') if is_sle;
-        zypper_call('in net-tools-deprecated ipv6toolkit netsniff-ng ndisc6');
+        zypper_call('in net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 smcroute dropwatch');
     }
 }
 
