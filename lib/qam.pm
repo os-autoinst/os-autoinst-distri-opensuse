@@ -12,7 +12,7 @@ use base "Exporter";
 use Exporter;
 
 use testapi;
-use utils qw(zypper_call handle_screen zypper_repos upload_y2logs);
+use utils qw(zypper_call handle_screen zypper_patches zypper_repos upload_y2logs);
 use JSON;
 use List::Util qw(max uniq);
 use version_utils qw(is_sle is_transactional);
@@ -21,9 +21,6 @@ our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
   add_extra_customer_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables add_repo_if_not_present
   has_published_assets get_test_repos);
-use constant ZYPPER_PACKAGE_COL => 1;
-use constant OLD_ZYPPER_STATUS_COL => 4;
-use constant ZYPPER_STATUS_COL => 5;
 
 sub capture_state {
     my ($state, $y2logs) = @_;
@@ -215,20 +212,12 @@ sub get_patches {
     $repo =~ tr/,/ /;
 
     # Search for patches by incident, exclude not needed
-    my $patches = script_output("zypper patches -r $repo");
+    my $patches = zypper_patches("-r $repo");
     my @patch_list;
-    my $status_col = ZYPPER_STATUS_COL;
 
-    if (is_sle('<12-SP2')) {
-        $status_col = OLD_ZYPPER_STATUS_COL;
-    }
-
-    for my $line (split /\n/, $patches) {
-        my @tokens = split /\s*\|\s*/, $line;
-        next if $#tokens < max(ZYPPER_PACKAGE_COL, $status_col);
-        my $packname = $tokens[ZYPPER_PACKAGE_COL];
-        push @patch_list, $packname if $packname =~ m/$incident_id/ &&
-          'needed' eq lc $tokens[$status_col];
+    for my $item (@$patches) {
+        push @patch_list, $item->{name} if 'needed' eq lc $item->{status} &&
+          (!defined($incident_id) || $item->{name} =~ m/$incident_id/);
     }
 
     return join(' ', @patch_list);

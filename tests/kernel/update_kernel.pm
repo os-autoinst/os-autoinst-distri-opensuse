@@ -72,21 +72,23 @@ sub prepare_kernel {
 
 sub update_kernel {
     my ($self, $repo, $incident_id) = @_;
+    my $devel_pack = 'kernel-devel';
 
     fully_patch_system;
 
     if (check_var('SLE_PRODUCT', 'slert')) {
-        install_package('kernel-devel-rt', skip_trup => 'There is no kernel-devel-rt available on transactional system.');
+        $devel_pack = 'kernel-devel-rt'
+          unless is_sle('16+') || is_sle_micro('6.2+');
     }
     elsif (get_var('COCO')) {
-        zypper_call('in kernel-devel-coco');
+        $devel_pack = 'kernel-devel-coco';
     }
     elsif (get_var('KERNEL_64KB')) {
-        zypper_call('in kernel-64kb-devel');
+        $devel_pack = 'kernel-64kb-devel';
     }
-    elsif (is_sle('12+')) {
-        zypper_call('in kernel-devel');
-    }
+
+    install_package($devel_pack) if (!is_sle('<12') &&
+        !(check_var('SLE_PRODUCT', 'slert') && is_sle_micro('<6.2')));
 
     $self->add_update_repos($repo);
     zypper_call("ref");
@@ -219,7 +221,7 @@ sub install_lock_kernel {
         'kernel-source-rt' => $src_version
     );
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
+    if (check_var('SLE_PRODUCT', 'slert') && !(is_sle('16+') || is_sle_micro('6.2+'))) {
         push @packages, "kernel-devel-rt";
     }
     else {
@@ -317,8 +319,11 @@ sub prepare_kgraft {
     my $kernel_name = 'kernel-' . $$incident_klp_pkg{kflavor};
     my $src_name = 'kernel-source';
 
-    $src_name .= '-' . $$incident_klp_pkg{kflavor}
-      unless $$incident_klp_pkg{kflavor} eq 'default';
+    if ($$incident_klp_pkg{kflavor} ne 'default' &&
+        !($$incident_klp_pkg{kflavor} eq 'rt' &&
+            (is_sle('16+') || is_sle_micro('6.2+')))) {
+        $src_name .= '-' . $$incident_klp_pkg{kflavor};
+    }
 
     $self->enable_update_repos(1) if get_var('FLAVOR') =~ /-Updates-Staging/ && !get_var('NO_DISABLE_REPOS');
     my $kernel_version = find_version($kernel_name, $$incident_klp_pkg{kver});
@@ -349,7 +354,8 @@ sub downgrade_kernel {
 
     if (check_var('SLE_PRODUCT', 'slert')) {
         $kernel_package = 'kernel-rt';
-        $src_package = 'kernel-source-rt';
+        $src_package = 'kernel-source-rt'
+          unless is_sle('16+') || is_sle_micro('6.2+');
     }
 
     my $kernel_version = find_version($kernel_package, $kver);
