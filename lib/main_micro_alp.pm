@@ -206,6 +206,7 @@ sub load_common_tests {
     loadtest 'microos/image_checks' if (is_image || is_selfinstall);
     loadtest 'microos/one_line_checks';
     loadtest 'microos/services_enabled';
+    loadtest 'transactional/disable_timers' if is_transactional;
     # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
     loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER');
     loadtest 'console/perl_bootloader' unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
@@ -223,7 +224,6 @@ sub load_common_tests {
 
 
 sub load_transactional_tests {
-    loadtest 'transactional/disable_timers';
     loadtest 'transactional/filesystem_ro';
     loadtest 'transactional/trup_smoke';
     loadtest 'microos/patterns' if is_sle_micro;
