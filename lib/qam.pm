@@ -216,8 +216,8 @@ sub get_patches {
     my @patch_list;
 
     for my $item (@$patches) {
-        push @patch_list, $item->{name} if $item->{name} =~ m/$incident_id/ &&
-          'needed' eq lc $item->{status};
+        push @patch_list, $item->{name} if 'needed' eq lc $item->{status} &&
+          (!defined($incident_id) || $item->{name} =~ m/$incident_id/);
     }
 
     return join(' ', @patch_list);
