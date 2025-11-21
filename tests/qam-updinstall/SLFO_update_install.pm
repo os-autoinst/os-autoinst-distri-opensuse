@@ -32,6 +32,7 @@ use Utils::Architectures qw(is_s390x);
 
 my @conflicting_packages = (
     'coreutils-single',
+    'kernel-default-base',
     'nv-prefer-signed-open-driver',
     'nvidia-open-signed-kmp',
     'nvidia-open-driver-G06-signed-kmp-default',
