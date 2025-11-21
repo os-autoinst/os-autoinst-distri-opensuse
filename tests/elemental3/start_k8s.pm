@@ -157,13 +157,20 @@ sub run {
 
     # We may have to modify some settings if a config.yaml file is present
     # NOTE: We have to invert the return code as it is inverted between Bash and Perl
-    if (!script_run("[[ -s /etc/rancher/$k8s/config.yaml ]]")) {
+    my $config_yaml = "/etc/rancher/$k8s/config.yaml";
+    if (!script_run("[[ -s $config_yaml ]]")) {
         # Update K8s configuration file
         file_content_replace(
-            "/etc/rancher/$k8s/config.yaml", '--sed-modifier' => 'g',
+            "$config_yaml", '--sed-modifier' => 'g',
             '%NODE_NAME%' => $hostname,
             '%NODE_IP%' => $ip
         );
+
+        # Update SELinux policy if needed
+        if (!script_run("grep -q '^selinux:.*true\$' $config_yaml")) {
+            record_info('SELinux detected', "Updating SELinux policy for $k8s");
+            assert_script_run('semodule -i /usr/share/selinux/packages/rke2.pp');
+        }
 
         # Start K8s server
         # NOTE: autostart fails here because we changed some parameters in the config file
