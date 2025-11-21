@@ -1364,7 +1364,9 @@ sub load_x11tests {
     }
     loadtest "x11/xterm";
     loadtest "locale/keymap_or_locale_x11";
-    loadtest "x11/ssh_default_term" unless (get_var("LIVETEST"));
+    loadtest "x11/ssh_default_term" unless (get_var("LIVETEST") || (is_leap("<=15.6") && gnomestep_is_applicable));
+    # This workaround is needed due to https://bugzilla.opensuse.org/show_bug.cgi?id=1254120
+    loadtest "x11/sshxterm" if (is_leap("<=15.6") && gnomestep_is_applicable);
     if (gnomestep_is_applicable()) {
         load_system_update_tests();
         loadtest "x11/gnome_control_center";
