@@ -87,8 +87,6 @@ like other base class or testapi module  Avoid using get_var/set_var at this lev
                     }
         };
 
-
-
 =over 1
 
 =item B<input_format> - format of the 'SAPHanaSR-showAttr --format='
@@ -101,89 +99,83 @@ like other base class or testapi module  Avoid using get_var/set_var at this lev
 
 sub calculate_hana_topology {
     my (%args) = @_;
-    croak('calculate_hana_topology [ERROR] Argument <input> missing') unless $args{input};
+    croak('Argument <input> missing') unless $args{input};
     my $input_format = $args{input_format} // 'script';    # output format of the SAPHanaSR-showAttr
-    croak("calculate_hana_topology [ERROR] Argument <input_format: $input_format > is not known") unless ($input_format eq 'script' or $input_format eq 'json');
-    my %topology;    # Final topology for return
-    my $topology_json;    # JSON encoded topology
+    croak("Argument <input_format: $input_format > is not known") unless ($input_format eq 'script' or $input_format eq 'json');
+
+    return decode_json($args{input}) if ($input_format eq 'json');
+
+    # Parsing raw script format output
+    my @all_lines = split('\n', $args{input});
+    my @hosts_parameters = map { s,Hosts/,,; s,",,g; $_ } grep { /^Hosts/ } @all_lines;
+    my @globals_parameters = map { s,Global/,,; s,",,g; $_ } grep { /^Global/ } @all_lines;
+    my @resources_parameters = map { s,Resource/,,; s,",,g; $_ } grep { /^Resource/ } @all_lines;
+
+    my @all_hosts = uniq map { (split('/', $_))[0] } @hosts_parameters;
+    my @all_globals = uniq map { (split('/', $_))[0] } @globals_parameters;
+    my @all_resources = uniq map { (split('/', $_))[0] } @resources_parameters;
+
     my %script_topology;    # Raw topology read in 'script' format
-
-    if ($input_format eq 'json') {
-        $topology_json = $args{input};
-    } else {
-        # Parsing raw script format output
-        my @all_lines = split('\n', $args{input});
-        my @hosts_parameters = map { s,Hosts/,,; s,",,g; $_ } grep { /^Hosts/ } @all_lines;
-        my @globals_parameters = map { s,Global/,,; s,",,g; $_ } grep { /^Global/ } @all_lines;
-        my @resources_parameters = map { s,Resource/,,; s,",,g; $_ } grep { /^Resource/ } @all_lines;
-
-        my @all_hosts = uniq map { (split('/', $_))[0] } @hosts_parameters;
-        my @all_globals = uniq map { (split('/', $_))[0] } @globals_parameters;
-        my @all_resources = uniq map { (split('/', $_))[0] } @resources_parameters;
-
-        for my $host (@all_hosts) {
-            # Only takes parameter and value for lines about one specific host at time
-            my %host_parameter = map {
-                my ($node, $parameter, $value) = split(/[\/=]/, $_);
-                if ($host eq $node) { ($parameter, $value) } else { () }
-            } @hosts_parameters;
-            $script_topology{$host} = \%host_parameter;
-        }
-
-        for my $global (@all_globals) {
-            # Takes parameter and value per line in Global
-            my %global_parameter = map {
-                my ($node, $parameter, $value) = split(/[\/=]/, $_);
-                ($parameter, $value);
-            } @globals_parameters;
-            $script_topology{$global} = \%global_parameter;
-        }
-
-        # Remapping from old raw structure output of the 'SAPHana-showAttr --format=script' which is
-        # filled to the `$script_topology` from which it's mapped to the new structure to the '$topology'
-        # Key `Resource` is dynamic and could be mapped directly
-        for my $resource (@all_resources) {
-            # Takes parameter and value per line in resource
-            my %resource_parameter = map {
-                my ($node, $parameter, $value) = split(/[\/=]/, $_);
-                ($parameter, $value);
-            } @resources_parameters;
-            $topology{Resource}{$resource} = \%resource_parameter;
-        }
-
-        for my $host (@all_hosts) {
-            # New structure introduces key 'Site' to which some values are moved and have keys renamed
-            # or left defined but empty if it's not defined originally
-            my $sth_site = $script_topology{$host}->{site};
-            if (defined $sth_site) {
-                $topology{Site}{$sth_site}{mns} = $host;
-                if (defined $script_topology{$host}->{op_mode}) { $topology{Site}{$sth_site}{opMode} = $script_topology{$host}->{op_mode} }
-                if (defined $script_topology{$host}->{srmode}) { $topology{Site}{$sth_site}{srMode} = $script_topology{$host}->{srmode} }
-                if (defined $script_topology{$host}->{sync_state}) { $topology{Site}{$sth_site}{srPoll} = $script_topology{$host}->{sync_state} }
-                # Unfortunately, the new structure lack the key 'node_state' completely, so we need use the
-                # new key 'lss' which represents the state of the cluster '4' mean OK '1' means FAILED
-                if (defined $script_topology{$host}->{node_state}) {
-                    $topology{Site}{$sth_site}{lss} = ($script_topology{$host}->{node_state} eq 'online' or $script_topology{$host}->{node_state} =~ /[1-9]+/) ? '4' : '1';
-                }
-            }
-            # New structure rename key 'Hosts' to the 'Host' and also get keys renamed
-            # or left defined but empty if it's not defined originally
-            if (defined $script_topology{$host}->{vhost}) { $topology{Host}{$host}{vhost} = $script_topology{$host}->{vhost} }
-            if (defined $sth_site) { $topology{Host}{$host}{site} = $sth_site }
-            if (defined $script_topology{$host}->{srah}) { $topology{Host}{$host}{srah} = $script_topology{$host}->{srah} }
-            if (defined $script_topology{$host}->{clone_state}) { $topology{Host}{$host}{clone_state} = $script_topology{$host}->{clone_state} }
-            if (defined $script_topology{$host}->{score}) { $topology{Host}{$host}{score} = $script_topology{$host}->{score} }
-            if (defined $script_topology{$host}->{version}) { $topology{Host}{$host}{version} = $script_topology{$host}->{version} }
-        }
-        # New structure of key 'Global' with renamed keys
-        if (defined $script_topology{global}->{'cib-time'}) { $topology{Global}{global}{'cib-last-written'} = $script_topology{global}->{'cib-time'} }
-        if (defined $script_topology{global}->{maintenance}) { $topology{Global}{global}{'maintenance-mode'} = $script_topology{global}->{maintenance} }
-
-        # We encode to the JSON to be sure that output is always same
-        $topology_json = encode_json(\%topology);
+    for my $host (@all_hosts) {
+        # Only takes parameter and value for lines about one specific host at time
+        my %host_parameter = map {
+            my ($node, $parameter, $value) = split(/[\/=]/, $_);
+            if ($host eq $node) { ($parameter, $value) } else { () }
+        } @hosts_parameters;
+        $script_topology{$host} = \%host_parameter;
     }
-    my $hana_topology = decode_json($topology_json);
-    return $hana_topology;
+
+    for my $global (@all_globals) {
+        # Takes parameter and value per line in Global
+        my %global_parameter = map {
+            my ($node, $parameter, $value) = split(/[\/=]/, $_);
+            ($parameter, $value);
+        } @globals_parameters;
+        $script_topology{$global} = \%global_parameter;
+    }
+
+    # Final topology for return
+    my %topology;
+    # Remapping from old raw structure output of the 'SAPHana-showAttr --format=script' which is
+    # filled to the `$script_topology` from which it is mapped to the new structure to the '$topology'
+    # Key `Resource` is dynamic and could be mapped directly
+    for my $resource (@all_resources) {
+        # Takes parameter and value per line in resource
+        my %resource_parameter = map {
+            my ($node, $parameter, $value) = split(/[\/=]/, $_);
+            ($parameter, $value);
+        } @resources_parameters;
+        $topology{Resource}{$resource} = \%resource_parameter;
+    }
+
+    for my $host (@all_hosts) {
+        # New structure introduces key 'Site' to which some values are moved and have keys renamed
+        # or left defined but empty if it is not defined originally
+        my $sth_site = $script_topology{$host}->{site};
+        if (defined $sth_site) {
+            $topology{Site}{$sth_site}{mns} = $host;
+            if (defined $script_topology{$host}->{op_mode}) { $topology{Site}{$sth_site}{opMode} = $script_topology{$host}->{op_mode} }
+            if (defined $script_topology{$host}->{srmode}) { $topology{Site}{$sth_site}{srMode} = $script_topology{$host}->{srmode} }
+            if (defined $script_topology{$host}->{sync_state}) { $topology{Site}{$sth_site}{srPoll} = $script_topology{$host}->{sync_state} }
+            # The new structure lack the key 'node_state', so we need use the
+            # new key 'lss' which represents the state of the cluster '4' mean OK '1' means FAILED
+            if (defined $script_topology{$host}->{node_state}) {
+                $topology{Site}{$sth_site}{lss} = ($script_topology{$host}->{node_state} eq 'online' or $script_topology{$host}->{node_state} =~ /[1-9]+/) ? '4' : '1';
+            }
+        }
+        # New structure rename key 'Hosts' to the 'Host' and also get keys renamed
+        # or left defined but empty if it is not defined originally
+        $topology{Host}{$host}{vhost} = $script_topology{$host}->{vhost} if (defined $script_topology{$host}->{vhost});
+        $topology{Host}{$host}{site} = $sth_site if (defined $sth_site);
+        $topology{Host}{$host}{srah} = $script_topology{$host}->{srah} if (defined $script_topology{$host}->{srah});
+        $topology{Host}{$host}{clone_state} = $script_topology{$host}->{clone_state} if (defined $script_topology{$host}->{clone_state});
+        $topology{Host}{$host}{score} = $script_topology{$host}->{score} if (defined $script_topology{$host}->{score});
+        $topology{Host}{$host}{version} = $script_topology{$host}->{version} if (defined $script_topology{$host}->{version});
+    }
+    # New structure of key 'Global' with renamed keys
+    $topology{Global}{global}{'cib-last-written'} = $script_topology{global}->{'cib-time'} if (defined $script_topology{global}->{'cib-time'});
+    $topology{Global}{global}{'maintenance-mode'} = $script_topology{global}->{maintenance} if (defined $script_topology{global}->{maintenance});
+    return \%topology;
 }
 
 =head2 check_hana_topology
@@ -209,7 +201,7 @@ sub calculate_hana_topology {
 
 sub check_hana_topology {
     my (%args) = @_;
-    croak('check_hana_topology [ERROR] Argument <input> missing') unless $args{input};
+    croak('Argument <input> missing') unless $args{input};
     my $topology = $args{input};
     # Now node_state_match is 'lss' score: 4 OK, 3 INFO, 2 WARN, 1 DOWN, 0 FATAL
     # For legacy purpose, if set to 'online' or on pacemaker >= 2.1.7 to timestamps like '1739798309'
