@@ -30,13 +30,7 @@ sub run {
 
     my $collection = get_required_var('KSELFTEST_COLLECTION');
     $self->{collection} = $collection;
-    if (get_var('KSELFTEST_FROM_GIT', 0)) {
-        install_from_git($collection);
-        assert_script_run("cd ./tools/testing/selftests/kselftest_install");
-    } else {
-        install_from_repo();
-        assert_script_run("cd /usr/share/kselftests");
-    }
+    install_kselftests($collection);
 
     # At this point, CWD has the file 'kselftest-list.txt' listing all the available tests
     my @all_tests = split(/\n/, script_output("./run_kselftest.sh --list | grep '^$collection'"));
