@@ -272,7 +272,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             install_url => 'http://openqa.suse.de/assets/repo/SLES-16.0-x86_64-Build135.5/',    # Install repository URL
             boot_firmware => 'efi-with-qcow2-based-nvram',    # For efi vm snapshot test
         },
-        'sles15sp7-efi-sev-es' => {
+        sles15sp7-efi-sev-es => {
             name => 'sles15sp7-efi-sev-es',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',

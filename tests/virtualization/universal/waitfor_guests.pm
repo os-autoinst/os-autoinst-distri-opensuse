@@ -96,6 +96,21 @@ sub run {
     assert_script_run "cat /etc/hosts";
 
     record_info("All guests installed", "Guest installation completed");
+    
+    # For SLES16 kernel testing: disable Secure Boot after installation to avoid shim signature issues
+    # Development kernel builds may not have valid Secure Boot signatures
+    if (get_var('UPDATE_PACKAGE', '') =~ /^kernel-/) {
+        my @sles16_guests = grep { /^sles16/ } @guests;
+        if (@sles16_guests) {
+            record_info("Disable Secure Boot", "Disabling Secure Boot for SLES16 guests for kernel testing");
+            foreach my $guest (@sles16_guests) {
+                # Use virt-xml to modify the boot configuration: set loader.secure=no
+                assert_script_run("virt-xml $guest --edit --boot loader.secure=no", timeout => 120);
+                record_info("Modified $guest", "Secure Boot disabled for kernel testing");
+            }
+        }
+    }
+    
     if (is_sle('>15') && get_var("KVM")) {
         # Adding the PCI bridges requires the guests to be shutdown
         record_info("shutdown guests", "Shutting down all guests");
