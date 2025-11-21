@@ -1,0 +1,49 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: openssl post-quantum cryptography DSA
+# desc: Verifies OpenSSL DSA with post-quantum algorithms
+# steps:
+# - 1. TLS 1.3 Handshake (Hybrid KEMs)
+#   - Check: Verify algorithm is listed in openssl list -tls-groups.
+#   - Generate a temporary Ed25519 server certificate.
+#   - Start openssl s_server in background, enforcing the specific hybrid group, loading base provider, and setting @SECLEVEL=0.
+#   - Run openssl s_client connecting to localhost, forcing the same group and TLS 1.3.
+#   - Parse output to confirm the handshake succeeded and the specific PQC group was negotiated.
+# - 2. KEM Lifecycle (Pure & Hybrid)
+#   - KeyGen: Generate Private Key in DER format (skips if CLI KeyGen is unsupported).
+#   - Extract: Derive Public Key in DER format.
+#   - Encap: Run pkeyutl -encap with Public Key to generate Ciphertext and Shared Secret A.
+#   - Decap: Run pkeyutl -decap with Private Key and Ciphertext to recover Shared Secret B.
+#   - Assert: Verify Shared Secret A matches Shared Secret B exactly.
+# - 3. Digital Signatures (ML-DSA & SLH-DSA)
+#   - KeyGen: Generate Private Key in DER format.
+#   - Extract: Derive Public Key in DER format.
+#   - Sign: Run pkeyutl -sign on a text message.
+#   - Verify (Valid): Run pkeyutl -verify with the original message; expect success.
+#   - Verify (Invalid): Run pkeyutl -verify with a tampered message; expect failure.
+# author: <andrea.manzini@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: no errors raised, connection succeed
+# platform: SLE16
+# tags: security post-quantum-crypto openssl python
+# ---
+# METADATA_END
+
+set -e
+
+# Check for a metadata flag (-m or --metadata) as the first argument.
+if [[ "$1" == "-m" || "$1" == "--metadata" ]]; then
+    # If the flag is present, use awk to parse this script file ($0).
+    # It finds the line with '# METADATA_START', starts printing every
+    # subsequent line, and stops after hitting '# METADATA_END'.
+    # This extracts the metadata block without including the markers themselves.
+    awk '/# METADATA_END/{exit} f{print substr($0,3)}; /# METADATA_START/{f=1}' "$0"
+    exit 0
+fi
+
+# If the metadata flag is not provided, run the tests as usual.
+
+# run tests with pytest and generate junit xml results
+pytest openssl_pqc_test.py --junitxml=results.xml
+
