@@ -126,6 +126,7 @@ sub run {
         my $num_luns = (split(/:/, $cluster))[2];
         my $lun_list_file = "$mountpt/$dir_id/$cluster_name-lun.list";
         my $index = get_var('ISCSI_LUN_INDEX', 0);
+        $index = 0 if (check_var('ISCSI_LUN_INDEX', 'ondemand'));
 
         assert_script_run "rm -f $lun_list_file ; touch $lun_list_file";
 
@@ -136,6 +137,8 @@ sub run {
                 $lun = script_output 'echo \|$(ls ' . $lun . ')\|';
                 $lun =~ /\|([^\|]+)\|/;
                 $lun = $1;
+                # Skip cleanup of LUNs when using On Demand targets
+                next if (check_var('ISCSI_LUN_INDEX', 'ondemand'));
                 # Need more time due to low performance on hmc_ppc64le workers
                 # Even with "ls $lun" returns 0 command 'dd' still reports sporadic error like:
                 #  "dd: failed to open '/xxx/*-lun-41': No such device or address"
