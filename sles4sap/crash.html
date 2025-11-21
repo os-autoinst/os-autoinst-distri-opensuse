@@ -20,6 +20,7 @@
       <li><a href="#crush_pubip">crush_pubip</a></li>
       <li><a href="#crash_system_ready">crash_system_ready</a></li>
       <li><a href="#crash_softrestart">crash_softrestart</a></li>
+      <li><a href="#crash_wait_back">crash_wait_back</a></li>
       <li><a href="#crash_destroy_azure">crash_destroy_azure</a></li>
       <li><a href="#crash_destroy_aws">crash_destroy_aws</a></li>
     </ul>
@@ -126,6 +127,24 @@ If C&lt;reg_code&gt; is provided, registers the system using C&lt;registercloudg
 
 </dd>
 <dt id="timeout"><b>timeout</b></dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_wait_back">crash_wait_back</h2>
+
+<pre><code>crash_wait_back(vm_ip =&gt; &#39;1.2.3.4&#39;);</code></pre>
+
+<p>Wait until SUT is back again polling port 22 on the given IP. Then list for failed services and die if find one.</p>
+
+<dl>
+
+<dt id="vm_ip-Public-IP-address-of-the-SUT-can-be-calculated-by-crash_pubip"><b>vm_ip</b> Public IP address of the SUT, can be calculated by crash_pubip</dt>
+<dd>
+
+</dd>
+<dt id="username-Public-IP-address-of-the-SUT-can-be-calculated-by-crash_pubip"><b>username</b> Public IP address of the SUT, can be calculated by crash_pubip</dt>
 <dd>
 
 </dd>
