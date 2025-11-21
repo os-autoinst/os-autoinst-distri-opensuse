@@ -15,13 +15,34 @@ use utils;
 use lockapi;
 use network_utils;
 
+sub setup_ipv4_underlay_left {
+    my ($self) = @_;
+    my $dev = iface();
+    assert_script_run("ip addr add 10.0.0.1/24 dev $dev");
+    assert_script_run("ip route add 10.0.1.0/24 via 10.0.0.254");
+}
+
+sub setup_ipv4_underlay_right {
+    my ($self) = @_;
+    my $dev = iface();
+    assert_script_run("ip addr add 10.0.1.1/24 dev $dev");
+    assert_script_run("ip route add 10.0.0.0/24 via 10.0.1.254");
+}
+
+sub setup_ipv4_underlay_middle {
+    my ($self) = @_;
+    my ($dev0, $dev1) = split("\n", iface(2));
+    assert_script_run("ip addr add 10.0.0.254/24 dev $dev0");
+    assert_script_run("ip addr add 10.0.1.254/24 dev $dev1");
+}
+
 sub setup_l2tp_left {
     my ($self, $setup) = @_;
 
-    # L2TPv3 tunnel (LEFT -> RIGHT)
+    # L2TPv3 tunnel (LEFT -> RIGHT) using IPv4 encapsulation
     assert_script_run(
         "ip l2tp add tunnel tunnel_id 2001 peer_tunnel_id 2002 " .
-          "encap ip6 local 2001:1:1:1::2 remote 2002:1:1:1::2"
+          "encap ip local 10.0.0.1 remote 10.0.1.1"
     );
 
     assert_script_run(
@@ -34,7 +55,6 @@ sub setup_l2tp_left {
 
     barrier_wait('L2TP_SETUP_DONE');
 
-    # L2TP connectivity tests
     assert_script_run("ping6 -c 3 $setup->{l2tp_right_ip}");
     assert_script_run("ping6 -I $setup->{l2tp_left_lo} -c 3 $setup->{l2tp_right_lo}");
 
@@ -57,10 +77,10 @@ sub setup_l2tp_middle {
 sub setup_l2tp_right {
     my ($self, $setup) = @_;
 
-    # L2TPv3 tunnel (RIGHT -> LEFT)
+    # L2TPv3 tunnel (RIGHT → LEFT) using IPv4 encapsulation
     assert_script_run(
         "ip l2tp add tunnel tunnel_id 2002 peer_tunnel_id 2001 " .
-          "encap ip6 local 2002:1:1:1::2 remote 2001:1:1:1::2"
+          "encap ip local 10.0.1.1 remote 10.0.0.1"
     );
 
     assert_script_run(
@@ -87,20 +107,31 @@ sub run {
     my $role = get_required_var('IPSEC_SETUP');
 
     my $setup = {
-        # L2TPv3 point-to-point tunnel addresses
+        # L2TP P2P tunnel addresses (IPv6)
         l2tp_left_ip => "fc00:1::1",
         l2tp_right_ip => "fc00:1::2",
 
-        # Loopback behind tunnel (kernel selftest style)
+        # Loopback behind tunnel
         l2tp_left_lo => "fc00:101::1",
         l2tp_right_lo => "fc00:101::2",
     };
 
     record_info("L2TP role", $role);
 
-    if ($role eq 'left') { $self->setup_l2tp_left($setup); }
-    if ($role eq 'middle') { $self->setup_l2tp_middle($setup); }
-    if ($role eq 'right') { $self->setup_l2tp_right($setup); }
+    if ($role eq 'left') {
+        $self->setup_ipv4_underlay_left();
+        $self->setup_l2tp_left($setup);
+    }
+
+    if ($role eq 'middle') {
+        $self->setup_ipv4_underlay_middle();
+        $self->setup_l2tp_middle($setup);
+    }
+
+    if ($role eq 'right') {
+        $self->setup_ipv4_underlay_right();
+        $self->setup_l2tp_right($setup);
+    }
 }
 
 1;
@@ -123,6 +154,6 @@ creates an IPv6-encapsulated L2TPv3 tunnel between the LEFT and RIGHT
 nodes, assigns point-to-point virtual tunnel addresses, configures
 loopback-style addresses behind the tunnel, and verifies bidirectional
 connectivity using ICMPv6. The ROUTER node passively observes tunnel
-traffic.:wq
+traffic.
 
 =cut
