@@ -98,7 +98,7 @@ sub prepare_test_framework {
 
     # Get some informations from the cluster
     my ($k8s_version) = script_output('kubectl version') =~ /[Ss]erver.*:\s*(.*)/;
-    my $fqdn = script_output('hostname -f');
+    my $fqdn = script_output('hostnamectl hostname');
     my $k8s_yaml = "/etc/rancher/$args{k8s}/$args{k8s}.yaml";
     my $k8s_config = script_output("sed 's/127\.0\.0\.1/$fqdn/g' $k8s_yaml | base64 -w0");
 
@@ -133,7 +133,6 @@ sub prepare_test_framework {
 
 sub run {
     my $arch = get_required_var('ARCH');
-    my $hostname = get_var('HOSTNAME', 'localhost');
     my $k8s = get_required_var('K8S');
 
     # Set default root password
@@ -146,6 +145,7 @@ sub run {
     select_serial_terminal();
 
     # Set hostname and get IP address
+    my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
     configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
 
     my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');

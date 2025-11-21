@@ -46,7 +46,7 @@ sub run {
 
     # Record network info
     record_info('Network configuration',
-        script_output('hostname; echo; ip a; echo; ip route; echo; cat /etc/hosts'));
+        script_output('hostnamectl hostname; echo; ip a; echo; ip route; echo; cat /etc/hosts'));
 
     # Wait for all nodes
     barrier_wait('NETWORK_CHECK_DONE');
