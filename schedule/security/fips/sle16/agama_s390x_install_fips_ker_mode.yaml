@@ -3,9 +3,8 @@ name: agama_install_fips_ker_mode
 description: >
   Perform interactive installation with agama and FIPS=1
 schedule:
-  - yam/agama/boot_agama
-  - yam/agama/agama_auto
-  - installation/grub_test
+  - installation/bootloader_zkvm
+  - installation/agama_reboot
   - installation/first_boot
   - fips/fips_setup
   - shutdown/cleanup_before_shutdown
