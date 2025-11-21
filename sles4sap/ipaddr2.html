@@ -921,6 +921,46 @@
 
 <p>Returns a list of commands to collect logs from the ipaddr2 cluster.</p>
 
+<p>The returned value is a list of hashrefs, where each hashref defines a log collection task. This data structure is consumed by <code>ipaddr2_logs_collect</code> to perform the actual log gathering.</p>
+
+<p>Each element in the <code>@log_list</code> array is a hash reference with the following structure:</p>
+
+<dl>
+
+<dt id="name---Optional-A-string-that-provides-a-human-readable-name-for-the-log-being-collected-e.g.-crm_report-.-ipaddr2_logs_collect-does-not-actually-use-this-key-value"><b>name</b> - (Optional) A string that provides a human-readable name for the log being collected (e.g., &#39;crm_report&#39;). ipaddr2_logs_collect, does not actually use this key value.</dt>
+<dd>
+
+</dd>
+<dt id="remote_log---Optional-A-boolean-flag.-If-set-to-1-it-indicates-that-the-log-file-resides-on-the-remote-VMs-the-internal-cluster-nodes-.-The-ipaddr2_logs_collect-function-will-then-iterate-through-each-cluster-node-to-execute-the-log-collection.-If-this-key-is-omitted-or-set-to-0-the-log-is-assumed-to-be-on-the-local-openQA-worker"><b>remote_log</b> - (Optional) A boolean flag. If set to <code>1</code>, it indicates that the log file resides on the remote VMs (the internal cluster nodes). The <code>ipaddr2_logs_collect</code> function will then iterate through each cluster node to execute the log collection. If this key is omitted or set to <code>0</code>, the log is assumed to be on the local openQA worker.</dt>
+<dd>
+
+</dd>
+<dt id="timeout---Optional-An-integer-specifying-the-timeout-in-seconds-for-the-log-generation-command.-Defaults-to-300-seconds-if-not-provided"><b>timeout</b> - (Optional) An integer specifying the timeout in seconds for the log generation command. Defaults to 300 seconds if not provided.</dt>
+<dd>
+
+</dd>
+<dt id="f_log---A-subroutine-reference-that-when-executed-composes-and-returns-a-hash-of-instructions-for-log-collection.-This-subroutine-itself-does-not-execute-any-commands-its-sole-purpose-is-to-define-what-to-collect-and-how-.-When-called-by-the-ipaddr2_logs_collect-function-it-returns-a-hash-containing-file-and-optionally-cmd.---If-remote_log-is-true-this-subroutine-is-called-with-the-VMs-numerical-ID-e.g.-1-or-2-as-its-argument.---If-remote_log-is-false-or-not-present-it-is-called-without-arguments"><b>f_log</b> - A subroutine reference that, when executed, composes and returns a hash of instructions for log collection. This subroutine itself does not execute any commands; its sole purpose is to define *what* to collect and *how*. When called by the <code>ipaddr2_logs_collect</code> function, it returns a hash containing <code>file</code> and optionally <code>cmd</code>. - If <code>remote_log</code> is true, this subroutine is called with the VM&#39;s numerical ID (e.g., 1 or 2) as its argument. - If <code>remote_log</code> is false or not present, it is called without arguments.</dt>
+<dd>
+
+<p>The hash reference returned by <code>f_log</code> has the following keys:</p>
+
+<dl>
+
+<dt id="file---The-absolute-path-to-the-log-file-on-the-target-machine-either-the-remote-VM-or-the-local-worker-.-This-file-will-be-downloaded-if-remote-and-then-uploaded-to-openQA"><b>file</b> - The absolute path to the log file on the target machine (either the remote VM or the local worker). This file will be downloaded (if remote) and then uploaded to openQA.</dt>
+<dd>
+
+</dd>
+<dt id="cmd---Optional-A-string-containing-a-shell-command-to-be-executed-on-the-target-machine-to-generate-the-log-file-before-collection.-If-this-key-is-not-present-it-is-assumed-the-log-file-already-exists"><b>cmd</b> - (Optional) A string containing a shell command to be executed on the target machine to generate the log file before collection. If this key is not present, it is assumed the log file already exists.</dt>
+<dd>
+
+</dd>
+</dl>
+
+</dd>
+</dl>
+
+<p>For example, the &#39;crm_report&#39; entry defines a remote log. The <code>ipaddr2_logs_collect</code> function will connect to each internal VM, execute <code>sudo crm report /var/log/crm_report_1</code> (for VM 1), and then download the resulting <code>/var/log/crm_report_1.tar.gz</code> file. In contrast, the entry for <code>SSH_LOG</code> defines a local log, and the function will simply upload the file from the worker&#39;s filesystem.</p>
+
 <h2 id="ipaddr2_logs_collect">ipaddr2_logs_collect</h2>
 
 <pre><code>ipaddr2_logs_collect();</code></pre>
