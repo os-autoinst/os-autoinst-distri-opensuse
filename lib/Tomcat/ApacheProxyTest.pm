@@ -36,7 +36,9 @@ EOF
     assert_script_run('a2enmod proxy');
     assert_script_run('a2enmod proxy_http');
     systemctl('restart apache2');
-
+    # bsc#1253707 set the booleans that allow httpd_can_network_connect
+    # with semanage boolean
+    assert_script_run('semanage boolean -m --on httpd_can_network_connect');
     assert_script_run('curl -L http://localhost/examples/ | grep websocket');
 }
 
