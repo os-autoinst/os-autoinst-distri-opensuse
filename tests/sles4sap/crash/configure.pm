@@ -14,12 +14,9 @@
 # This prepares the system for crash testing.
 
 use Mojo::Base 'publiccloud::basetest';
-use testapi;
-use utils;
-use sles4sap::azure_cli;
-use sles4sap::aws_cli;
-use sles4sap::crash;
 use serial_terminal 'select_serial_terminal';
+use testapi;
+use sles4sap::crash;
 
 sub run {
     my ($self) = @_;
@@ -54,6 +51,13 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    if ($provider eq 'AZURE') {
+        crash_destroy_azure();
+    }
+    elsif ($provider eq 'EC2') {
+        crash_destroy_aws(region => get_required_var('PUBLIC_CLOUD_REGION'));
+    }
     $self->SUPER::post_fail_hook;
 }
 

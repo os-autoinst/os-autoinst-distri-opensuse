@@ -3,19 +3,14 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary:  Executes a crash scenario on cloud provider.
+# Summary: executes a crash scenario on cloud provider.
 
 use Mojo::Base 'publiccloud::basetest';
-use testapi;
-use mmapi 'get_current_job_id';
 use serial_terminal 'select_serial_terminal';
-use version_utils 'is_sle';
-use sles4sap::azure_cli;
-use sles4sap::aws_cli;
-use sles4sap::crash;
+use testapi;
 use publiccloud::instance;
-use utils;
 use publiccloud::ssh_interactive;
+use sles4sap::crash;
 
 sub run {
     my ($self) = @_;
@@ -65,21 +60,7 @@ sub run {
         username => $username);
 
     record_info('Wait until', 'Wait until SUT is back again');
-    my $delay = 10;
-    my $start_time = time();
-    my ($duration, $exit_code, $sshout, $sysout);
-    while (($duration = time() - $start_time) < 300) {
-        $exit_code = script_run('nc -vz -w 1 ' . $vm_ip . ' 22', quiet => 1);
-        last if ($instance->isok($exit_code));    # ssh port open ok
-
-        sleep $delay;
-    }
-
-    my $remote = '-F /dev/null -o ControlMaster=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ' . $username . '@' . $vm_ip;
-    my $services_output = script_output(join(' ', 'ssh', $remote, 'sudo systemctl --failed --no-pager --plain'), 100);
-    record_info('Failed services', "Status : $services_output");
-    my @failed_units = grep { /^\S+\.(service|socket|target|mount|timer)\s/ } split /\n/, $services_output;
-    die "Found failed services:\n$services_output" if @failed_units;
+    crash_wait_back(vm_ip => $vm_ip, username => $username);
 }
 
 sub test_flags {

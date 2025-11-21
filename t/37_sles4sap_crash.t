@@ -137,4 +137,41 @@ subtest '[crash_destroy_aws] all fail' => sub {
     ok(($ret eq 42), "Expected ret:42 and get $ret");
 };
 
+subtest '[crash_wait_back]' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    my @calls;
+    $crash->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $crash->redefine(script_output => sub { push @calls, $_[0]; return ''; });
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    crash_wait_back(vm_ip => 'SchizophyllumCommune', username => 'TricholomaSulphureum');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /nc.*Schizophyllum.*22/ } @calls), 'Call nc with provided mushroom');
+};
+
+subtest '[crash_wait_back] no nc' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    my @calls;
+    $crash->redefine(script_run => sub { push @calls, $_[0]; return 1; });
+    $crash->redefine(script_output => sub { push @calls, $_[0]; return ''; });
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    dies_ok { crash_wait_back(vm_ip => 'SchizophyllumCommune', username => 'TricholomaSulphureum') };
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
+subtest '[crash_wait_back] failed services' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    my @calls;
+    $crash->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $crash->redefine(script_output => sub { push @calls, $_[0]; return 'SuillusGranulatus.service '; });
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    dies_ok { crash_wait_back(vm_ip => 'SchizophyllumCommune', username => 'TricholomaSulphureum') };
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
 done_testing;
