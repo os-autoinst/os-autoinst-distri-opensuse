@@ -36,7 +36,7 @@ sub run {
     my $max_retries = 7;
     for (1 .. $max_retries) {
         eval {
-            validate_script_output('curl -f -v https://httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?httpbin.org["]? matched, }, timeout => 90, proceed_on_failure => 1, quiet => 1);
+            validate_script_output('curl -f -v https://httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?httpbin.org["]? matche[ds], }, timeout => 90, proceed_on_failure => 1, quiet => 1);
         };
         last unless ($@);
         diag "curl -f -v https://eu.httpbin.org/get failed: $@";
