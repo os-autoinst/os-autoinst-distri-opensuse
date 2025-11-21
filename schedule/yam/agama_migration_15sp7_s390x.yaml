@@ -12,7 +12,6 @@ schedule:
   - console/system_prepare
   - console/hostname
   - yam/migration/migration_unattended
-  - boot/reconnect_mgmt_console
   - installation/first_boot
   - yam/validate/validate_migration_logs
   - yam/validate/validate_connectivity
