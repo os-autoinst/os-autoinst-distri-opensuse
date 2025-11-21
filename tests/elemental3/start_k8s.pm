@@ -98,7 +98,7 @@ sub prepare_test_framework {
 
     # Get some informations from the cluster
     my ($k8s_version) = script_output('kubectl version') =~ /[Ss]erver.*:\s*(.*)/;
-    my $fqdn = script_output('hostname -f');
+    my $fqdn = script_output('hostnamectl hostname');
     my $k8s_yaml = "/etc/rancher/$args{k8s}/$args{k8s}.yaml";
     my $k8s_config = script_output("sed 's/127\.0\.0\.1/$fqdn/g' $k8s_yaml | base64 -w0");
 
