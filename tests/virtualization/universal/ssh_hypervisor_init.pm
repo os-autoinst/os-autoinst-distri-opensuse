@@ -28,7 +28,7 @@ sub run {
     virt_autotest::utils::ssh_setup();
 
     # Configure the Master socket
-    assert_script_run qq(echo -e "StrictHostKeyChecking no\\nHostKeyAlgorithms ssh-rsa" > ~/.ssh/config);
+    assert_script_run qq(echo -e "StrictHostKeyChecking no\\nHostKeyAlgorithms ssh-ed25519,ssh-rsa" > ~/.ssh/config);
 
     # Exchange SSH keys
     assert_script_run "ssh-keyscan $hypervisor > ~/.ssh/known_hosts";
@@ -39,7 +39,7 @@ sub run {
 
     # Copy that also for normal user
     assert_script_run "install -o $testapi::username -g users -m 0700 -d /home/$testapi::username/.ssh";
-    assert_script_run "install -o $testapi::username -g users -m 0600 ~/.ssh/config ~/.ssh/id_rsa ~/.ssh/id_rsa.pub ~/.ssh/known_hosts /home/$testapi::username/.ssh/";
+    assert_script_run "install -o $testapi::username -g users -m 0600 ~/.ssh/config ~/.ssh/id_* ~/.ssh/known_hosts /home/$testapi::username/.ssh/";
 
     virt_autotest::utils::install_default_packages();
 
