@@ -55,3 +55,5 @@ ansible:
       - sap-hana-cluster.yaml
     destroy:
       - deregister.yaml
+    test:
+    - hana_prevalidate.yaml -e node_name=hana

@@ -13,6 +13,13 @@ sub run {
     my ($self) = @_;
     my $provider_setting = get_required_var('PUBLIC_CLOUD_PROVIDER');
 
+    my @ret = qesap_execute(
+        cmd => 'ansible',
+        cmd_options => join(' ', '--profile', '-s', 'test'),
+        logname => 'qesap_exec_ansible_test.log.txt',
+        timeout => 300);
+    record_info('ANSIBLE RESULT', "ret0:$ret[0] ret1:$ret[1]");
+
     qesap_ansible_cmd(cmd => 'ls -lai /hana/', provider => $provider_setting, filter => 'hana');
     my $crm_status = qesap_ansible_script_output(
         cmd => 'crm status',
