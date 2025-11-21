@@ -29,7 +29,6 @@ sub run {
 
     # Clone the terraform and ansible files from the gitlab
     my $work_dir = '~/deployment';
-    # Get the code for the Trento deployment
 
     # The usage of a variable with a different name is to
     # be able to overwrite the token when manually triggering

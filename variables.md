@@ -272,33 +272,6 @@ ZYPPER_WHITELISTED_ORPHANS | string | empty | Whitelist expected orphaned packag
 PREPARE_TEST_DATA_TIMEOUT | integer | 300 | Download assets in the prepare_test_data module timeout
 ZFS_REPOSITORY | string | | Optional repository used to test zfs from
 TRANSACTIONAL_UPDATE_PATCH | boolean | false | Use `zypper patch` when true and `zypper up` when false.
-TRENTO_HELM_VERSION | string | 3.8.2 | Helm version of the JumpHost
-TRENTO_CYPRESS_VERSION | string | 9.6.1 | used as tag for the docker.io/cypress/included registry.
-TRENTO_VM_IMAGE | string | SUSE:sles-sap-15-sp3-byos:gen2:latest | used as --image parameter during the Azure VM creation
-TRENTO_VERSION | string | (implicit 1.0.0) | Optional. Used as reference version string for the installed Trento
-TRENTO_REGISTRY_CHART | string | registry.suse.com/trento/trento-server | Helm chart registry
-TRENTO_REGISTRY_CHART_VERSION | string |  | Optional. Tag for the chart image
-TRENTO_REGISTRY_IMAGE_RUNNER | string |  | Optional. Overwrite the trento-runner image in the helm chart
-TRENTO_REGISTRY_IMAGE_RUNNER_VERSION | string |  | Optional. Version tag for the trento-runner image
-TRENTO_REGISTRY_IMAGE_WANDA | string |  | Optional. Overwrite the trento-wanda image in the helm chart
-TRENTO_REGISTRY_IMAGE_WANDA_VERSION | string |  | Optional. Version tag for the trento-wand image
-TRENTO_REGISTRY_IMAGE_WEB | string |  | Optional. Overwrite the trento-web image in the helm chart
-TRENTO_REGISTRY_IMAGE_WEB_VERSION | string |  | Optional. Version tag for the trento-web image
-TRENTO_GITLAB_REPO | string | gitlab.suse.de/qa-css/trento | Repository for the deployment scripts
-TRENTO_GITLAB_BRANCH | string | master | Branch to use in the deployment script repository
-TRENTO_GITLAB_TOKEN | string | from SECRET_TRENTO_GITLAB_TOKEN | Force the use of a custom token
-TRENTO_DEPLOY_VER | string | | Force the Trento deployment script to be used from a release
-TRENTO_AGENT_REPO | string | https://dist.suse.de/ibs/Devel:/SAP:/trento:/factory/SLE_15_SP3/x86_64 | Repository where to get the trento-agent installer
-TRENTO_AGENT_RPM | string | | Trento-agent rpm file name
-TRENTO_EXT_DEPLOY_IP | string | | Public IP of a Trento web instance not deployed by openQA
-TRENTO_WEB_PASSWORD | string | | Trento web password for the admin user. If not provided, random generated one.
-TRENTO_QESAPDEPLOY_CLUSTER_OS_VER | string | | OS for nodes in SAP cluster.
-TRENTO_QESAPDEPLOY_HANA_ACCOUNT | string | | Azure blob server account for the SAP installers for the qe-sap-deployment hana_media.yaml.
-TRENTO_QESAPDEPLOY_HANA_CONTAINER | string | | Azure blob server container for the qe-sap-deployment hana_media.yaml.
-TRENTO_QESAPDEPLOY_HANA_KEYNAME | string | | Azure blob server key name used to generate the SAS URI token for the qe-sap-deployment hana_media.yaml.
-TRENTO_QESAPDEPLOY_SAPCAR | string | | SAPCAR file name for the qe-sap-deployment hana_media.yaml.
-TRENTO_QESAPDEPLOY_IMDB_SERVER | string | | IMDB_SERVER file name for the qe-sap-deployment hana_media.yaml.
-TRENTO_QESAPDEPLOY_IMDB_CLIENT | string | | IMDB_CLIENT file name for the qe-sap-deployment hana_media.yaml.
 QESAP_CONFIG_FILE | string | | filename (of relative path) of the config YAML file for the qesap.py script, within `sles4sap/qe_sap_deployment/` subfolder in `data`.
 QESAP_DEPLOYMENT_DIR | string | /root/qe-sap-deployment | JumpHost folder where to install the qe-sap-deployment code
 QESAP_ROLES_DIR | string | /root/community.sles-for-sap | JumpHost folder where to install the community.sles-for-sap code
