@@ -4,7 +4,11 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run stress-ng on NFS
-#    Should run after nfs_client/server.
+#    This module validates NFS client/server functionality by running
+#    filesystem-class stress-ng tests against mounted NFS exports.
+#    The module expects a multi-machine setup with roles 'nfs_client'
+#    and 'nfs_server' and should be scheduled after after nfs_client,
+#    nfs_server modules.
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base "opensusebasetest";
@@ -14,6 +18,31 @@ use lockapi;
 use utils;
 use registration;
 use version_utils 'is_sle';
+
+sub check_nfs_mounts {
+    my @paths = @_;
+
+    my $output = script_output("mount");
+
+    my %mounts;
+    foreach my $line (split /\n/, $output) {
+        # extract mountpoint path and filesystem type
+        $mounts{$1} = $2 if $line =~ /\son\s+(\/\S+)\s+type\s+(\S+)/;
+    }
+
+    # ensure each element of @paths is an active NFS mount on the client,
+    # and is indeed of nfs type, otherwise fail
+    foreach my $required (@paths) {
+        unless (exists $mounts{$required} && $mounts{$required} =~ /^nfs\d?/) {
+            record_info("Missing or wrong type",
+                "Required NFS mount '$required' is " . ($mounts{$required} // "not mounted"),
+                result => 'fail');
+            return 0;
+        }
+    }
+
+    return 1;
+}
 
 sub parse_stress_ng_log {
     my ($file) = @_;
@@ -46,7 +75,16 @@ sub client {
     my $local_nfs4 = "/home/localNFS4";
     my $local_nfs4_async = "/home/localNFS4async";
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
-    my @paths = ($local_nfs4, $local_nfs4_async);
+    # allow to override the default exports
+    my $exports = get_var('NFS_STRESS_EXPORTS');
+    my @paths = $exports ? split(/,/, $exports) : ($local_nfs4, $local_nfs4_async);
+
+    if (!check_nfs_mounts(@paths)) {
+        $self->result('fail');
+        barrier_wait('NFS_STRESS_NG_START');
+        barrier_wait('NFS_STRESS_NG_END');
+        return;
+    }
 
     # in case this is SLE we need packagehub for stress-ng, let's enable it
     if (is_sle) {
@@ -83,9 +121,6 @@ sub client {
             record_info('stress-ng', "Detected failed or untrustworthy metrics on path: $path", result => 'fail');
             $result = 1;
         }
-        # TEMP
-        upload_logs($yaml, failok => 1);
-        upload_logs($log, failok => 1);
     }
 
     barrier_wait('NFS_STRESS_NG_END');
@@ -119,4 +154,69 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 1;
+
+=head1 Description
+
+This module runs filesystem-class C<stress-ng> workloads against NFS
+mounts in a multi-machine openQA setup. It is intended to validate both
+basic NFS functionality and filesystem stability under load.
+
+The module operates in two roles:
+
+=over 4
+
+=item * C<nfs_client> - verifies required NFS mounts, installs C<stress-ng>,
+runs the workload on each export, parses the generated metrics, and records
+the results.
+
+=item * C<nfs_server> - synchronizes with the client through barriers and
+prints NFS statistics (C<nfsstat -s>) after the workload completes.
+
+Before executing any stress tests, the client ensures that all required
+mount points - either the default NFS paths or those provided via
+C<NFS_STRESS_EXPORTS> - are present and mounted as real NFS filesystems.
+
+=back
+
+Metrics are parsed from the C<stress-ng> C<--metrics-brief> output. Any
+failing or untrustworthy metrics are treated as test failures.
+
+=head1 Configuration
+
+The following openQA variables control the behavior of this module:
+
+=head2 ROLE
+
+Required. Must be either C<nfs_client> or C<nfs_server>. Determines
+which execution path is taken.
+
+=head2 NFS_STRESS_EXPORTS
+
+Optional. Comma-separated list of client-side mount points where
+C<stress-ng> will be executed. Example:
+
+  '/home/localNFS3,/home/localNFS4'
+
+If not set, the defaults
+
+=over 4
+
+=item * C</home/localNFS4>
+=item * C</home/localNFS4async>
+
+=back
+
+are used.
+
+=head2 NFS_STRESS_NG_TIMEOUT
+
+Optional. Timeout (in seconds) for the C<stress-ng> workload. Defaults to 3.
+
+This value is passed directly to the C<--timeout> argument of C<stress-ng>.
+
+=cut
