@@ -1230,7 +1230,7 @@ subtest '[ipaddr2_logs_collect]' => sub {
     note("\n  UPLOAD CALLS -->  " . join("\n  UPLOAD CALLS -->  ", @upload_calls));
     note("\n  -->  " . join("\n  -->  ", @calls));
 
-    is(scalar @ssh_calls, 6, "ipaddr2_ssh_internal called 6 times (3 log files * 2 VM)");
+    is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal called 8 times (4 log files * 2 VM)");
     is(scalar @upload_calls, 10, "upload_logs called 8 times (4 log files * 2 VM + 2 ssh local logs)");
 
     ok((any { /crm report/ } @ssh_calls), "crm report command called");
