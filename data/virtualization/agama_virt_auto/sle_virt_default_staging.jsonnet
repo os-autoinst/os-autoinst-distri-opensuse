@@ -55,6 +55,24 @@ local urls = if repo != '' then std.split(repo, ',') else [];
     ]
   },
   scripts: {
+    pre: [
+      {
+        name: "erase-disks",
+        content: |||
+          #!/bin/sh
+          disks=$(lsblk -n -l -o NAME -d -e 7,11,254);
+          for disk in $disks;do
+              echo "Wiping /dev/$disk..."
+              wipefs -af /dev/$disk
+              sync
+              parted -s /dev/$disk mklabel gpt
+              sync
+          done
+          echo "All disks are wiped out."
+          lsblk
+        |||
+      }
+    ],
     post: [
       {
         name: 'config_ssh',
