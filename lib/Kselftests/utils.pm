@@ -111,11 +111,13 @@ sub post_process_single {
     # Avoid timeouts if the log is too big by reading it locally
     my @log;
     upload_asset($args{logfile});
-    open(my $logfile, '<', "assets_private/" . basename($args{logfile})) or die("Can't open $args{logfile}");
+    my $logfile_path = "assets_private/" . basename($args{logfile});
+    open(my $logfile, '<', $logfile_path) or die("Can't open $args{logfile}");
     while (my $ln = <$logfile>) {
         push(@log, $ln);
     }
     close($logfile);
+    unlink $logfile_path;
 
     my ($test_name, $sanitized_test_name) = get_sanitized_test_name($args{test});
     my $parser = Kselftests::parser::factory($args{collection}, $sanitized_test_name);
