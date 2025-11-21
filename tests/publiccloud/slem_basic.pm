@@ -10,7 +10,7 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use publiccloud::utils qw(is_byos is_azure is_ec2 registercloudguest);
+use publiccloud::utils qw(is_byos is_azure is_ec2 registercloudguest zypper_remote_call);
 use publiccloud::ssh_interactive 'select_host_console';
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle_micro check_version);
@@ -49,7 +49,7 @@ sub run {
     $self->report_avc();
 
     my $test_package = get_var('TEST_PACKAGE', 'socat');
-    $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600) unless get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED');
+    $instance->zypper_remote_call(cmd => 'zypper lr -d', timeout => 600) unless get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
     $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-add-ssh-keys');

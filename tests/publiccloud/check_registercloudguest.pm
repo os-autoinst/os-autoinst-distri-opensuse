@@ -113,6 +113,7 @@ sub run {
     # It might take a bit for the system to remove the repositories
     foreach my $i (1 .. 4) {
         last if ($instance->ssh_script_output(cmd => 'LANG=C zypper -t lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"', timeout => 300) == 0);
+        # last if ($instance->zypper_remote_call(cmd => '[[ `LANG=C zypper lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"` = 0 ]]', timeout => 300) == 0);
         sleep 15;
     }
     check_instance_unregistered($instance, 'The list of zypper repositories is not empty.');
@@ -137,13 +138,9 @@ sub run {
 
 sub check_instance_registered {
     my ($instance) = @_;
-    if ($instance->ssh_script_output(cmd => 'LANG=C zypper -t lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"', timeout => 300) == 0) {
-        record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper -t lr ||:'));
-        die('The list of zypper repositories is empty.');
-    }
-    if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0) {
-        die('Directory /etc/zypp/credentials.d/ is empty.');
-    }
+    my $ret = $instance->zypper_remote_call(cmd => 'zypper lr| grep -E "^\s?[[:digit:]]+\s\|"');
+    die('Directory /etc/zypp/credentials.d/ is empty.')
+      if ($instance->ssh_script_output(cmd => 'sudo ls /etc/zypp/credentials.d/ | wc -l') == 0);
 }
 
 sub check_instance_unregistered {
@@ -152,7 +149,7 @@ sub check_instance_unregistered {
         my $creds_output = $instance->ssh_script_output(cmd => 'sudo ls -la /etc/zypp/credentials.d/');
         die("/etc/zypp/credentials.d/ is not empty:\n" . $creds_output);
     }
-    my $out = $instance->ssh_script_output(cmd => 'zypper -t lr ||:', timeout => 300);
+    my $out = $instance->ssh_script_output(cmd => 'zypper lr ||:', timeout => 300);
     return if ($out =~ /No repositories defined/m);
 
     for (split('\n', $out)) {
@@ -178,7 +175,8 @@ sub test_container_runtimes {
 
     record_info('Test docker');
     $instance->ssh_assert_script_run("sudo rm -f /root/.docker/config.json");    # workaround for https://bugzilla.suse.com/show_bug.cgi?id=1231185
-    $instance->ssh_assert_script_run("sudo zypper install -y docker", timeout => 600);
+
+    $instance->zypper_remote_call("sudo zypper install -y docker", timeout => 600);
     $instance->ssh_assert_script_run("sudo systemctl start docker.service");
     record_info("systemctl status docker.service", $instance->ssh_script_output("systemctl status docker.service"));
     $instance->ssh_script_retry("sudo docker pull $image", retry => 3, delay => 60, timeout => 600);
@@ -194,7 +192,7 @@ sub test_container_runtimes {
             record_info('permissions #1', 'permissions when libcontainers-common is missing');
             $instance->ssh_script_run('sudo stat /etc/containers/registries.conf');
             $instance->ssh_script_run('sudo rm -rf /etc/containers/registries.conf');
-            $instance->ssh_assert_script_run("sudo zypper -n install libcontainers-common");
+            $instance->zypper_remote_call("sudo zypper -n install libcontainers-common");
             record_info('permissions #2', 'The previous registries.conf has been removed, then libcontainers-common was installed');
             $instance->ssh_script_run('sudo stat /etc/containers/registries.conf');
             cleanup_instance($instance);
@@ -204,7 +202,7 @@ sub test_container_runtimes {
         }
         $instance->ssh_script_run('sudo chmod 644 /etc/containers/registries.conf');
     }
-    $instance->ssh_assert_script_run("sudo zypper install -y podman", timeout => 240);
+    $instance->zypper_remote_call("sudo zypper install -y podman", timeout => 240);
     $instance->ssh_script_retry("podman --debug pull $image", retry => 3, delay => 60, timeout => 600);
     return 0;
 }

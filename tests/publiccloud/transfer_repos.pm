@@ -12,9 +12,10 @@ use Mojo::Base 'publiccloud::basetest';
 use registration;
 use testapi;
 use utils;
+use publiccloud::utils qw(zypper_remote_call);
 use publiccloud::ssh_interactive "select_host_console";
 use maintenance_smelt qw(is_embargo_update);
-use version_utils qw(is_sle_micro);
+use version_utils qw(is_sle_micro is_transactional);
 
 sub run {
     my ($self, $args) = @_;
@@ -26,8 +27,11 @@ sub run {
 
     assert_script_run('du -sh ~/repos');
     my $timeout = 2400;
-    $instance->retry_ssh_command(cmd => "which rsync || sudo zypper -n in rsync", timeout => 420, retry => 6, delay => 60);
-
+    my $err = $instance->ssh_script_run(cmd => "which rsync") // -1;
+    if ($err > 0) {
+        my $cmd = (is_transactional) ? "sudo transactional-update -n in rsync" : "sudo zypper -n in rsync";
+        $instance->zypper_remote_call(cmd => $cmd, timeout => 420, retry => 6, delay => 60);
+    }
     # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
     # Those two variables contain list of repositories separated by comma
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
@@ -75,17 +79,17 @@ sub run {
     if (is_sle_micro(">=6.0")) {
         my $counter = 0;
         for my $repo (@repos) {
-            $instance->ssh_assert_script_run("sudo zypper ar -p10 " . $repodir . $repo . " ToTest_$counter");
+            $instance->zypper_remote_call("sudo zypper ar -p10 " . $repodir . $repo . " ToTest_$counter");
             $counter += 1;
         }
     }
     else {
         $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://download.suse.de/ibs/,$repodir,g' '{}' \\;");
-        $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec zypper ar -p10 '{}' \\;");
+        $instance->zypper_remote_call("sudo find $repodir -name *.repo -exec zypper ar -p10 '{}' \\;");
         $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec echo '{}' \\;");
     }
 
-    $instance->ssh_assert_script_run("zypper lr -P");
+    $instance->zypper_remote_call("zypper lr -P");
 }
 
 sub test_flags {

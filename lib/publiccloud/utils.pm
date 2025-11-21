@@ -66,6 +66,7 @@ our @EXPORT = qw(
   wait_quit_zypper_pc
   detect_worker_ip
   upload_asset_on_remote
+  zypper_remote_call
 );
 
 # Check if we are a BYOS test run
@@ -476,6 +477,7 @@ sub ssh_update_transactional_system {
     die "$cmd_name failed with $ret" if ($ret != 0 && $ret != 102);
 }
 
+
 =head2 get_python_exec
 
 get_python_exec()
@@ -883,6 +885,94 @@ sub upload_asset_on_remote {
     my $prefix = $elevated ? 'sudo ' : '';
     my $mv_cmd = $prefix . "mv /tmp/$filename $destination_path";
     $instance->ssh_assert_script_run($mv_cmd);
+}
+
+
+=head2 zypper_remote_call
+
+    zypper_remote_call($command [, exitcode => $exitcode] [, timeout => $timeout];
+
+Function wrapping zypper or transactional-update command for remote execution via ssh; not for tunneling.
+Implements lib/utils::zypper_call, dedicated to publiccloud instances, but the input command is totally up to the user, 
+simply expecting zypper or transactional-update commands present, being some zypper commands allowed in transactionals.
+Unlike 'zypper_call', here the zypper_log_packages preparation is skipped.
+
+Usage example:
+    $instance->zypper_remote_call("LANG=C sudo zypper -n up", exitcode => [0,102,103], timeout => 300);
+
+=cut
+
+sub zypper_remote_call {
+    my $instance = shift;
+    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
+    my $command = $args{cmd};
+    # check command line:
+    my $type = $command =~ (/((^|\b)zypper\b)(?![-\/])/) ? 1 :
+      ($command =~ /((^|\b)transactional-update\b)(?![-\/])/) ? 2 : 0;
+    die("ERROR: unexpected command: " . $command) unless ($type);
+    #
+    $args{rc_only} = 1;
+    $args{timeout} //= 700;
+    my $exit = $args{exitcode} || [0];
+    my $retry = $args{retry} // 1;
+    my $delay = $args{delay} // 5;
+    my $proceed = $args{proceed_on_failure} // 0;
+    my $log = "/var/log/zypper.log";
+    my $ret;
+    #
+    delete $args{exitcode};
+    delete $args{retry};
+    delete $args{delay};
+    # retry loop
+    for (1 .. $retry) {
+        # pause on next
+        sleep($delay) if (defined($ret));
+        $ret = $instance->run_ssh_command(%args);
+        die "FAILED: timeout after " . $args{timeout} . " sec." unless defined($ret);
+        last if ($ret == 0);
+        # check exit codes
+        if ($ret == 4 && $type == 1) {
+            if ($instance->ssh_script_run(qq[sudo grep "Error code.*502" $log]) == 0) {
+                die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
+            }
+            elsif ($instance->ssh_script_run(qq[sudo grep "Solverrun finished with an ERROR" $log] == 0)) {
+                my $search_conflicts = q[sudo awk 'BEGIN {print "Processing conflicts - ",NR; group=0}
+                    /Solverrun finished with an ERROR/,/statistics/{ 
+                    print group"|", $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ }; }' ] . $log;
+                my $conflicts = $instance->ssh_script_output($search_conflicts);
+                record_info("Conflict", $conflicts, result => 'fail');
+                diag "Package conflicts found, not retrying anymore" if $conflicts;
+                last;
+            }
+            next;
+        }
+        last;
+    }
+    # failed result management
+    unless (grep { $_ == $ret } @$exit) {
+        $instance->upload_log($log);
+        my $msg = qq['$command' failed with code $ret];
+        if ($ret == 104) {
+            $msg .= " (ZYPPER_EXIT_INF_CAP_NOT_FOUND)\n\nRelated zypper logs:\n";
+            $instance->ssh_script_run(qq[sudo tac $log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep -E '(SolverRequester.cc|THROW|CAUGHT)' > /tmp/z104.txt]);
+            $msg .= $instance->ssh_script_output('cat /tmp/z104.txt');
+        }
+        elsif ($ret == 107) {
+            $msg .= " (ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED)\n\nRelated zypper logs:\n";
+            $instance->ssh_script_run(qq[sudo tac $log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep -E 'RpmPostTransCollector.cc(executeScripts):.* scriptlet failed, exit status' > /tmp/z107.txt]);
+            $msg .= $instance->ssh_script_output('cat /tmp/z107.txt') . "\n\n";
+        }
+        else {
+            $instance->ssh_script_run(qq[sudo tac $log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep 'Exception.cc' > /tmp/zlog.txt]);
+            $msg .= "\n\nRelated zypper logs:\n";
+            $msg .= $instance->ssh_script_output('cat /tmp/zlog.txt');
+        }
+        die $msg unless ($proceed);
+        record_info("zypper error", $msg, result => 'fail');
+    }
+    $instance->softreboot() if ($type == 2 && $ret == 0);
+    record_info("zypper remote call", "Command: $command \nResult: $ret");
+    return $ret;
 }
 
 1;
