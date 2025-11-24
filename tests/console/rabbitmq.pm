@@ -15,18 +15,19 @@ use serial_terminal qw(select_serial_terminal);
 
 sub run {
     select_serial_terminal;
-    zypper_call 'in rabbitmq-server go wget';
+    zypper_call 'in rabbitmq-server go curl';
     systemctl 'start rabbitmq-server';
     systemctl 'status rabbitmq-server';
-    my $cmd = <<'EOF';
+    my $curl_opts = "--retry 1 --retry-max-time 60 -D - -O";
+    my $cmd = <<EOF;
 mkdir rabbitmq
 cd rabbitmq
-wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/go/send.go
+curl $curl_opts https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/go/send.go
 go mod init amqp-go
 go get github.com/rabbitmq/amqp091-go
 go mod tidy
 go run send.go
-wget https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/go/receive.go
+curl $curl_opts https://raw.githubusercontent.com/rabbitmq/rabbitmq-tutorials/master/go/receive.go
 EOF
     assert_script_run($_) foreach (split /\n/, $cmd);
     enter_cmd('timeout 2 go run receive.go');
