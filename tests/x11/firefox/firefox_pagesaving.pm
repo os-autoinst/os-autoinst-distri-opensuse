@@ -12,7 +12,7 @@
 # - Download the opened page (save as)
 # - Exit firefox
 # - Open xterm
-# - Run "ls Downloads/|grep "Internet for people, not profit"
+# - Run "ls Downloads/|grep -Ei "(mozilla)|(\.html|_files)"
 # - Delete downloaded page
 # - Exit xterm
 # Maintainer: wnereiz <wnereiz@gmail.com>
@@ -23,8 +23,14 @@ use x11utils 'default_gui_terminal';
 
 sub run {
     my ($self) = @_;
-    $self->start_firefox_with_profile;
 
+    # ensure a clean Downloads directory
+    x11_start_program(default_gui_terminal());
+    wait_still_screen 3;
+    assert_script_run 'rm -rf ~/Downloads/*';
+    send_key "ctrl-d";
+
+    $self->start_firefox_with_profile;
     $self->firefox_open_url('http://www.mozilla.org/en-US', assert_loaded_url => 'firefox-pagesaving-load');
     send_key "ctrl-s";
     assert_screen 'firefox-pagesaving-saveas';
@@ -38,9 +44,9 @@ sub run {
     x11_start_program(default_gui_terminal());
     send_key "ctrl-l";
     wait_still_screen 3;
-    # look for file name "Internet for people, not profit",
-    # if mozilla changes the title save the file with custom name
-    assert_script_run 'ls Downloads/|grep "Internet for people, not profit"';
+    # look for file with "mozilla or Internet for people, not profit"
+    # in its name
+    assert_script_run 'ls Downloads/|grep -Ei "(mozilla)|(Internet for people, not profit)"';
     assert_script_run 'rm -rf Downloads/*';
     send_key "ctrl-d";
 }
