@@ -208,6 +208,15 @@ sub run {
             $guest->{autoyast} = create_profile($guest->{name}, "x86_64", $guest->{macaddress}, $guest->{ip});
             record_info("$guest->{autoyast}");
             $guest->{osinfo} = gen_osinfo($guest->{name});
+
+            # For SLES16 VMs with kernel update, disable secure boot
+            if ($guest->{name} =~ /sles16/i && get_var("UPDATE_PACKAGE", "") =~ /kernel/) {
+                if ($guest->{boot_firmware} && $guest->{boot_firmware} =~ /^efi/) {
+                    $guest->{boot_firmware_disable_secure} = 1;
+                    record_info("Secure Boot", "Disabling secure boot for $guest->{name} due to kernel update");
+                }
+            }
+
             create_guest($guest, $method);
         } elsif ($method eq "import") {
             # Download the diskimage. Note: this could be merged with download_image.pm at some point

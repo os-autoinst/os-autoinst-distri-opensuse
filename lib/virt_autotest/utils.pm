@@ -742,8 +742,14 @@ sub create_guest {
         $virtinstall .= " --wait -1";
         # Configure boot firmware based on guest configuration
         if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi') {
-            $virtinstall .= " --boot firmware=efi";
-            record_info("Boot Firmware", "Guest $name configured for EFI boot");
+            # Check if secure boot should be disabled (e.g., for SLES16 with kernel update)
+            if ($guest->{boot_firmware_disable_secure}) {
+                $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-code.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no";
+                record_info("Boot Firmware", "Guest $name configured for EFI boot with secure boot disabled");
+            } else {
+                $virtinstall .= " --boot firmware=efi";
+                record_info("Boot Firmware", "Guest $name configured for EFI boot");
+            }
         }
         if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi_sev_es') {
             $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-sev.bin,loader.readonly=yes,loader.type=pflash,loader.secure=no,loader.stateless=yes";
