@@ -15,7 +15,7 @@
 #   - Save screenshot
 # - Check network status (using ip command)
 # - Save screenshot
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;

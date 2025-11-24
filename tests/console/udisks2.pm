@@ -6,7 +6,7 @@
 # Package: cdrkit-cdrtools-compat udisks2 util-linux mkisofs
 # Summary: Simple tests for udisks2 using udisksctl checking status,
 # block device information and loop-setup.
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base 'consoletest';
 use testapi;

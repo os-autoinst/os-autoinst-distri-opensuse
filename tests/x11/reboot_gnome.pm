@@ -7,7 +7,7 @@
 # Summary: Reboot GNOME with or without authentication and ensure proper boot
 # - Call system reboot, keep console
 # - Wait until system fully boots (bootloader, login prompt)
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "opensusebasetest";
 use testapi;

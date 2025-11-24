@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Add phub extension for required dependecnies
-# Maintainer: Jozef Pupava <jpupava@suse.cz>
+# Maintainer: QE Core <qe-core@suse.de>
 
 use base "consoletest";
 use testapi;
