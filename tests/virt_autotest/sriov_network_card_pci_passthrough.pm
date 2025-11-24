@@ -28,11 +28,14 @@ use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface
 
 our $log_dir = "/tmp/sriov_pcipassthru";
 our $vm_xml_save_dir = "/tmp/download_vm_xml";
+our @host_pfs;
 
 sub run_test {
     my $self = shift;
 
     #set up ssh, packages and iommu on host
+    check_host_health;
+    script_run("journalctl --cursor-file /tmp/cursor.txt -u NetworkManager | grep -e 'timeout' -e 'failure' -e 'failed to acquire D-Bus name' -e 'critical'") if is_sle('16+');
     prepare_host();
 
     #clean up test logs
@@ -42,7 +45,6 @@ sub run_test {
     save_guests_xml_for_change($vm_xml_save_dir);
 
     #get the SR-IOV device BDF and interface
-    my @host_pfs;
     @host_pfs = find_sriov_ethernet_devices();
 
     #get/set necessary variables for test
@@ -153,6 +155,13 @@ sub run_test {
         script_run "lspci | grep Ethernet";
         save_screenshot;
 
+    }
+
+    # Turn off SR-IOV
+    foreach (@host_pfs) {
+        record_info("Turn off SR-IOV", "@host_pfs");
+        script_run("echo 0 > /sys/bus/pci/devices/0000:$_/sriov_numvfs");
+        script_run("lspci | grep Ethernet");
     }
 
     #upload network device related logs
@@ -307,6 +316,12 @@ sub detach_vf_from_host {
     $device_bdf =~ s/[:\.]/_/g;
     my $device_id = script_output "virsh nodedev-list | grep $device_bdf";
 
+    # Show the NM status on host to see if it is fine
+    if (is_sle('16+')) {
+        script_run("nmcli con");
+        script_run("journalctl --cursor-file /tmp/cursor.txt -u NetworkManager | grep -e 'timeout' -e 'failure' -e 'failed to acquire D-Bus name' -e 'critical'");
+    }
+
     #detach from host
     assert_script_run "virsh nodedev-detach $device_id";
     record_info("Detach VF from host", "$device_id");
@@ -334,7 +349,10 @@ sub plugin_vf_device {
     #attach device to vm
     assert_script_run "virsh -d 1 attach-device $vm $vf->{host_id}.xml --persistent";
 
-    #get the mac address and bdf by parsing the domain xml
+    # We used to get the mac address and bdf by parsing the domain xml
+    # But we found it was not always the case that the BDF is consistent with the domain xml
+    # Since there is no way to identify the BDF of the plugged VF inside the domain
+    # Now we only get MAC here
     #tips: there may be multiple interfaces and multiple hostdev devices in the guest
     my $nics_count = script_output "virsh dumpxml $vm --inactive | grep -c \"<interface.*type='hostdev'\"";
     my $devs_xml = script_output "virsh dumpxml $vm --inactive | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
@@ -351,33 +369,18 @@ sub plugin_vf_device {
             #get mac address
             $nic_xml =~ /\<mac.*address='(.*)'/;
             $vf->{vm_mac} = $1;
-
-            #get bdf for guests on KVM
-            $nic_xml =~ s/\<source.*\<\/source\>//s;
-            if ($nic_xml =~ /bus='(\w+)'.*slot='(\w+)'.*function='(\w+)'/) {
-                my ($bus, $slot, $func) = ($1, $2, $3);
-                $vf->{vm_bdf} = $bus . ":" . $slot . "." . $func;
-            }
-
-            #have to get bdf by other means for guests on XEN
-            #pv & fv guest differs a bit in directory archeteture
-            else {
-                $vf->{vm_bdf} = script_output "ssh root\@$vm \"if [ -e /sys/devices/pci-0/pci????:?? ]; then grep -H '$vf->{vm_mac}' /sys/devices/pci-0/*/*/net/*/address | cut -d '/' -f6; else grep -H '$vf->{vm_mac}' /sys/devices/*/*/net/*/address | cut -d '/' -f5; fi\"";
-            }
-            die "NO BDF is found for $vf->{vm_mac} within $vm!" unless $vf->{vm_bdf};
             last;
-
         }
         else {
             $devs_xml =~ s/\<interface.*?type='hostdev'.*?\<\/interface\>//s;
         }
     }
 
-    #print the vf device
-    $vf->{vm_bdf} =~ /[a-z\d]+:[a-z\d]+[.:][a-z\d]+/;    #bdf has different format in guests on KVM and XEN
-    assert_script_run "ssh root\@$vm \"lspci -vvv -s $vf->{vm_bdf}\"";
+    # Print the vf device
+    validate_script_output("ssh root\@$vm \"lspci\"", sub { m/Virtual Function/ });
+    # TBD. found empty output here sporadically, not locate the root cause yet
     $vf->{vm_nic} = script_output "ssh root\@$vm \"grep '$vf->{vm_mac}' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nbdf='$vf->{vm_bdf}'   mac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
+    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nmac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
     if ($vf->{vm_nic} eq '') {
         script_output "ssh root\@$vm \"for FILE in /sys/class/net/*/address; do echo \\\$FILE; cat \\\$FILE; done\"";    #for debug
         die "Fail to get NIC in $vm: nic='$vf->{vm_nic}'";
@@ -389,10 +392,10 @@ sub plugin_vf_device {
 sub unplug_vf_from_vm {
     my ($vm, $vf) = @_;
 
-    record_info("Unplug VF from vm", "$vf->{host_id} \nGuest: $vm \nbdf='$vf->{vm_bdf}'   mac='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
+    record_info("Unplug VF from vm", "$vf->{host_id} \nGuest: $vm \nmac='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
 
     #bring the nic down
-    script_run("ssh root\@$vm 'ifdown $vf->{vm_nic}'", 300);
+    script_run("ssh root\@$vm 'ip l set dev $vf->{vm_nic} down'", 300);
 
     #detach vf from guest
     my $vf_xml_file = "vf_in_vm.xml";
@@ -431,12 +434,47 @@ sub post_fail_hook {
     my $self = shift;
 
     diag("Module sriov_network_card_pci_passthrough post fail hook starts.");
+    # List guests meanwhile check if the host is available
+    enter_cmd "virsh list --all; echo DONE > /dev/$serialdev";
+    unless (defined(wait_serial 'DONE', timeout => 30)) {
+        record_info("SOL console", "");
+        reset_consoles;
+        select_console 'sol', await_console => 1;
+        send_key 'ret' if check_screen('sol-console-wait-typing-ret');
+        if (check_screen('text-login')) {
+            enter_cmd "root";
+            assert_screen "password-prompt";
+            type_password;
+            send_key 'ret';
+        }
+        assert_screen "text-logged-in-root";
+        enter_cmd("date");
+        enter_cmd("journalctl --no-pager | tail -18");
+        wait_still_screen 1;
+        save_screenshot;
+        if (is_sle('16+')) {
+            enter_cmd("systemctl status NetworkManager --no-pager");
+            wait_still_screen 1;
+            save_screenshot;
+        }
+        # Any NM comman will hung at here, and restarting NM is unhelpful, even make the host hung
+        # So determine not to run them here to keep the host sol console vailable
+        return;
+    }
+
     foreach (keys %virt_autotest::common::guests) {
         save_network_device_status_logs($_, "post_fail_hook");
         script_run("timeout 20 ssh root\@$_ 'dmesg' >> $log_dir/dmesg_$_ 2>&1");
         check_guest_health($_);
     }
     virt_autotest::utils::upload_virt_logs($log_dir, "network_device_status");
+
+    # Turn off SR-IOV to save IPs
+    foreach (@host_pfs) {
+        record_info("Turn off SR-IOV", "@host_pfs");
+        script_run("echo 0 > /sys/bus/pci/devices/0000:$_/sriov_numvfs");
+        script_run("lspci | grep Ethernet");
+    }
     $self->SUPER::post_fail_hook;
     restore_original_guests($vm_xml_save_dir);
 
