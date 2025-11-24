@@ -334,7 +334,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         # SLES16+ support - only EFI guests are supported, no BIOS guests
         # Both online and full installation types supported for SLES16 EFI guests
         my @allowed_guests = qw(sles15sp7 sles15sp7efi sles16efi_online sles16efi_full);
-        if (check_var('ENABLE_SEV_SNP', '1')) {
+        if (check_var('ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH', '1')) {
+            @allowed_guests = qw(sles15sp7efi sles16efi_online);
+        } elsif (check_var('ENABLE_SEV_SNP', '1')) {
             @allowed_guests = qw(sles15sp7efi sles16efi_full);
         } elsif (check_var('ENABLE_SNAPSHOTS', '1')) {
             @allowed_guests = qw(sles15sp7efi-snapshot sles16efi_full_snapshot);
