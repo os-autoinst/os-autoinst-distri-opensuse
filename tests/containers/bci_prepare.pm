@@ -78,7 +78,7 @@ sub prepare_virtual_env {
             $should_create_venv = 0;
             $python = 'python3.11';
             $pip = 'pip3.11';
-            @packages = ('jq');
+            @packages = ('jq', 'git');
             # PackageHub is needed for jq
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             zypper_call("ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/Update:/Products:/SaltBundle:/Update/standard/ saltbundle");
