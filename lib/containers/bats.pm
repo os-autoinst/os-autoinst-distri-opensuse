@@ -422,24 +422,21 @@ sub collect_coredumps {
 
     foreach my $line (@lines) {
         my ($pid, $exe) = split /\s+/, $line;
-        my $cmd = basename($exe);
+
         # The runc seccomp SCMP_ACT_KILL test uses mkdir so a core file is expected
-        next if ($package eq "runc" && $cmd eq "mkdir");
-        my $core = "core.$cmd.$pid.core";
+        next if ($package eq "runc" && basename($exe) eq "mkdir");
 
         # Dumping and compressing coredumps may take some time
-        my $out = script_output("coredumpctl -o $core dump $pid", timeout => 300, proceed_on_failure => 1);
+        my $out = script_output("coredumpctl info $pid", timeout => 300, proceed_on_failure => 1);
         record_info("COREDUMP", $out);
+
         if ($backtrace) {
-            my $gdb_script = '-ex "thread apply all bt full" -ex quit';
-            record_info("BACKTRACE", script_output(qq{gdb --batch $exe -c $core $gdb_script}, timeout => 300, proceed_on_failure => 1));
+            my $gdb_script = '-batch -ex "thread apply all bt full" -ex quit';
+            record_info("BACKTRACE", script_output(qq{coredumpctl debug --debugger-arguments='$gdb_script'}, timeout => 300, proceed_on_failure => 1));
         }
 
-        # Remove it so we don't process it again
-        my $dump = script_output("coredumpctl info $pid | awk '\$1 == \"Storage:\" { print \$2 }'", proceed_on_failure => 1);
-        script_run "rm -f $dump";
-
-        script_run("xz -9v $core", 300);
+        my ($dump) = $out =~ /^\s*Storage:\s*(\S+)/m;
+        script_run "mv $dump .", timeout => 300;
     }
 }
 
