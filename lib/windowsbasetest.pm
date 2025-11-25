@@ -180,7 +180,7 @@ sub windows_server_login_Administrator {
 sub windows_login {
     my $self = shift;
 
-    assert_screen 'windows-login-screen', 3600;
+    assert_screen 'windows-login-screen', 600;
     send_key_until_needlematch 'windows-login', 'esc';
     type_password;
     send_key 'ret';
