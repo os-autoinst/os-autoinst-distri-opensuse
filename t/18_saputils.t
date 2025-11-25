@@ -12,20 +12,23 @@ use saputils;
 use hacluster;
 
 subtest '[calculate_hana_topology] invalid output' => sub {
-    my $saputils = Test::MockModule->new('saputils', no_auto => 1);
-    $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $topology = calculate_hana_topology(input => 'PUFFI');
+
+    note('Parsed input looks like :\n' . Dumper($topology) . '\n');
     ok keys %$topology == 0, 'No entry in topology if SAPHanaSR-showAttr has nothing';
 };
 
 subtest '[calculate_hana_topology] minimal 2 nodes' => sub {
     my $saputils = Test::MockModule->new('saputils', no_auto => 1);
     $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
     my $topology = calculate_hana_topology(input => 'Global/global/cib-time="Thu Feb  1 18:33:56 2024"
 Global/global/maintenance="false"
 Sites/site_b/b="SOK"
 Hosts/vmhana01/vhost="AAAAAAA"
 Hosts/vmhana02/vhost="BBBBBBB"');
+
+    note('Parsed input looks like :\n' . Dumper($topology) . '\n');
     ok keys %{$topology->{Host}} == 2, 'Output is about exactly 2 hosts';
     ok((any { qr/vmhana01/ } keys %{$topology->{Host}}), 'External hash has key vmhana01');
     ok((any { qr/vmhana02/ } keys %{$topology->{Host}}), 'External hash has key vmhana02');
@@ -98,12 +101,17 @@ subtest '[calculate_hana_topology_json] internal keys' => sub {
         like($value->{mns}, qr/vmhana0/, 'Site->site_[a-b]->mns shoud be like vmhana0? and is ' . $value->{mns});
     }
     # how to access one inner value in one shot
-    ok(($topology->{Host}->{vmhana02}->{site} eq 'site_b'), 'Expected site of vmhana02 should be site_b and is ' . $topology->{Host}->{vmhana02}->{site});
-    ok(($topology->{Site}->{site_b}->{srPoll} eq 'SOK'), 'Expected maped sync_state of site_b should be SOK and is ' . $topology->{Site}->{site_b}->{srPoll});
+    ok(($topology->{Host}->{vmhana02}->{site} eq 'site_b'),
+        'Expected site of vmhana02 should be site_b and is ' . $topology->{Host}->{vmhana02}->{site} // 'UNKNOWN');
+    ok(($topology->{Site}->{site_b}->{srPoll} eq 'SOK'),
+        'Expected maped sync_state of site_b should be SOK and is ' . $topology->{Site}->{site_b}->{srPoll} // 'UNKNOWN');
 
     # Resources
-    ok(($topology->{Resource}->{msl_SAPHana_HH1_HDB10}->{'is-managed'} eq 'true'), 'Expected value of Resource->msl_SAPHana_HH1_HDB10->is-managed should be true and is ' . $topology->{Resource}->{msl_SAPHana_HH1_HDB10}->{'is-managed'});
+    ok(($topology->{Resource}->{msl_SAPHana_HH1_HDB10}->{'is-managed'} eq 'true'),
+        'Expected value of Resource->msl_SAPHana_HH1_HDB10->is-managed should be true and is ' .
+          $topology->{Resource}->{msl_SAPHana_HH1_HDB10}->{'is-managed'} // 'UNKNOWN');
 };
+
 subtest '[check_hana_topology] healthy cluster' => sub {
     my $saputils = Test::MockModule->new('saputils', no_auto => 1);
     $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -284,9 +292,7 @@ subtest '[check_hana_topology] invalid input' => sub {
     my $saputils = Test::MockModule->new('saputils', no_auto => 1);
     $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $topology = calculate_hana_topology(input => 'Balamb Garden');
-
-    my $topology_ready = check_hana_topology(input => $topology);
+    my $topology_ready = check_hana_topology(input => calculate_hana_topology(input => 'Balamb Garden'));
 
     ok(($topology_ready == 0), 'invalid input leads to the return of 0');
 };
@@ -298,16 +304,20 @@ subtest '[check_crm_output] input argument is mandatory' => sub {
 subtest '[check_crm_output] no starting no failed' => sub {
     my $saputils = Test::MockModule->new('saputils', no_auto => 1);
     $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
     my $ret = check_crm_output(input => 'PUFFI');
-    ok $ret eq 1, "Ret:$ret has to be 1";
+
+    ok(($ret eq 1), "Ret:$ret has to be 1");
 };
 
 subtest '[check_crm_output] starting and failed' => sub {
     my $saputils = Test::MockModule->new('saputils', no_auto => 1);
     $saputils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
     my $ret = check_crm_output(input => '
         :  Starting
         Failed Resource Actions:');
+
     ok $ret eq 0, "Ret:$ret has to be 0";
 };
 
@@ -336,7 +346,10 @@ subtest '[get_primary_node] starting and failed' => sub {
             }
         }
     };
-    is get_primary_node(topology_data => $mock_input), 'vmhana01', 'Return correct primary node name';
+
+    my $ret = get_primary_node(topology_data => $mock_input);
+
+    ok(($ret eq 'vmhana01'), "Ret:$ret has to be 'vmhana01'");
 };
 
 subtest '[get_failover_node] starting and failed' => sub {
@@ -364,7 +377,10 @@ subtest '[get_failover_node] starting and failed' => sub {
             }
         }
     };
-    is get_failover_node(topology_data => $mock_input), 'vmhana02', 'Return correct primary node name';
+
+    my $ret = get_failover_node(topology_data => $mock_input);
+
+    ok(($ret eq 'vmhana02'), "Ret:$ret has to be 'vmhana02'");
 };
 
 subtest '[execute_failover] Execute sapcontrol failover' => sub {
