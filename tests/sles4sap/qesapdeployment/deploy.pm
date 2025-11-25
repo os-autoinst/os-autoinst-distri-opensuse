@@ -56,13 +56,12 @@ sub run {
         '-iname', "*.xml");
     for my $log (split(/\n/, script_output($find_cmd))) {
         parse_extra_log("XUnit", $log);
-        #enter_cmd("rm $log");
+        enter_cmd("rm $log");
     }
     if ($ret[0]) {
         record_info("Retry to deploy terraform + ansible");
-        if (qesap_terraform_ansible_deploy_retry(error_log => $ret[1], provider => $provider)) {
-            die "Retry failed, original ansible return: $ret[0]";
-        }
+        die "Retry failed, original ansible return: $ret[0]"
+          if (qesap_terraform_ansible_deploy_retry(error_log => $ret[1], provider => $provider));
     }
 }
 
