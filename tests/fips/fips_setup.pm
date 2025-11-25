@@ -1,4 +1,4 @@
-# Copyright 2025 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup fips mode for further testing:
@@ -20,6 +20,7 @@ use Utils::Backends 'is_pvm';
 use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional is_microos);
 use security::vendoraffirmation;
+use security::certification;
 
 my @vars = ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GNUTLS_FORCE_FIPS_MODE');
 
@@ -86,6 +87,11 @@ sub install_fips {
         # When using FIPS in env mode on >= 15-SP6, we need the command
         # update-crypto-policies, otherwise some tests will fail.
         zypper_call("in crypto-policies-scripts") if is_sle('>=15-SP6');
+        # Test Certification module on 15-SP7 only
+        if (check_var('FIPS_USE_CERT_MODULE', '1') && is_sle('=15-SP7')) {
+            install_certification_pkgs;
+            check_installed_certification_pkgs;
+        }
     }
     return;
 }
