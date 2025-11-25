@@ -13,6 +13,7 @@ use utils;
 use mmapi;
 use Data::Dumper;
 use Carp;
+use version_utils 'is_sle';
 
 sub get_var_from_parent {
     my ($self, $var) = @_;
