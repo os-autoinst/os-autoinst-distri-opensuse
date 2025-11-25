@@ -435,6 +435,10 @@ sub collect_coredumps {
             record_info("BACKTRACE", script_output(qq{gdb --batch $exe -c $core $gdb_script}, timeout => 300, proceed_on_failure => 1));
         }
 
+        # Remove it so we don't process it again
+        my $dump = script_output("coredumpctl info $pid | awk '\$1 == \"Storage:\" { print \$2 }'", proceed_on_failure => 1);
+        script_run "rm -f $dump";
+
         script_run("xz -9v $core", 300);
     }
 }
