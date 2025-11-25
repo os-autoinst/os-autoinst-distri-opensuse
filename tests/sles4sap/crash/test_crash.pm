@@ -59,6 +59,8 @@ sub run {
         ssh_opts => '-E /var/tmp/ssh_sut.log -fn -o ServerAliveInterval=2',
         username => $username);
 
+    # wait for reboot
+    sleep 5;
     record_info('Wait until', 'Wait until SUT is back again');
     crash_wait_back(vm_ip => $vm_ip, username => $username);
 }
