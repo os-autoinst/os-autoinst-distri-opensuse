@@ -91,7 +91,7 @@ sub update_kernel {
             return;
         }
 
-        die "Patch isn't needed" if $incident_id;
+        die "Patch isn't needed";
     }
     else {
         # Use single patch or patch list
