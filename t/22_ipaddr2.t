@@ -1230,7 +1230,7 @@ subtest '[ipaddr2_logs_collect]' => sub {
     note("\n  UPLOAD CALLS -->  " . join("\n  UPLOAD CALLS -->  ", @upload_calls));
     note("\n  -->  " . join("\n  -->  ", @calls));
 
-    is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal called 8 times (4 log files * 2 VM)");
+    is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal called " . (scalar @ssh_calls) . " and expected 8 times (4 log files * 2 VM)");
     is(scalar @upload_calls, 10, "upload_logs called 8 times (4 log files * 2 VM + 2 ssh local logs)");
 
     ok((any { /crm report/ } @ssh_calls), "crm report command called");
@@ -1342,6 +1342,20 @@ subtest '[ipaddr2_ssh_intrusion_detection] no lines in the journal' => sub {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
     ok(($ret == 0), "Ret:$ret expected to be 0");
+};
+
+subtest '[ipaddr2_billing_model_get]' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, $_[0];
+            return 10;
+    });
+
+    my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(($ret eq 'PAYG'), "Ret:'$ret' expected to be 'PAYG'");
 };
 
 done_testing;

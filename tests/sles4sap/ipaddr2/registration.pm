@@ -65,6 +65,7 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_scc_addons
   ipaddr2_scc_check
   ipaddr2_scc_register
+  ipaddr2_billing_model_get
   ipaddr2_repo_refresh
   ipaddr2_repo_list
   ipaddr2_bastion_pubip
@@ -82,26 +83,23 @@ sub run {
     # registration was eventually performed by the cloudinit script
     # and no need to be performed here.
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
-        # Check if reg code is provided or not, PAYG does not need it
-        if (get_var('SCC_REGCODE_SLES4SAP')) {
-            foreach (1 .. 2) {
-                # Check if somehow the image is already registered or not
-                my $is_registered = ipaddr2_scc_check(
+        foreach (1 .. 2) {
+            my $type = ipaddr2_billing_model_get(id => $_, bastion_ip => $bastion_ip);
+            # Check if somehow the image is already registered or not
+            my $is_registered = ipaddr2_scc_check(
+                bastion_ip => $bastion_ip,
+                id => $_);
+            record_info('REG INITIAL', "type:$type is_registered:$is_registered");
+            if (($is_registered ne 1) || ($type eq 'BYOS')) {
+                # Conditionally register the SLES for SAP instance.
+                # Registration is attempted only if the instance is not currently registered and a
+                # registration code ('SCC_REGCODE_SLES4SAP') is available.
+                my %reg_args = (
                     bastion_ip => $bastion_ip,
-                    id => $_);
-                record_info('is_registered', "$is_registered");
-                if ($is_registered ne 1) {
-
-                    # Conditionally register the SLES for SAP instance.
-                    # Registration is attempted only if the instance is not currently registered and a
-                    # registration code ('SCC_REGCODE_SLES4SAP') is available.
-                    my %reg_args = (
-                        bastion_ip => $bastion_ip,
-                        id => $_,
-                        scc_code => get_required_var('SCC_REGCODE_SLES4SAP'));
-                    $reg_args{scc_endpoint} = get_var('PUBLIC_CLOUD_SCC_ENDPOINT') if (get_var('PUBLIC_CLOUD_SCC_ENDPOINT'));
-                    ipaddr2_scc_register(%reg_args);
-                }
+                    id => $_,
+                    scc_code => get_required_var('SCC_REGCODE_SLES4SAP'));
+                $reg_args{scc_endpoint} = get_var('PUBLIC_CLOUD_SCC_ENDPOINT') if (get_var('PUBLIC_CLOUD_SCC_ENDPOINT'));
+                ipaddr2_scc_register(%reg_args);
             }
         }
         # Optionally register addons
