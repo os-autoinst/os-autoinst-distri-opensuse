@@ -406,6 +406,14 @@ EOF
 
 sub collect_coredumps {
     my $package = get_var("BATS_PACKAGE", "");
+    my $backtrace = get_var("COREDUMP_BACKTRACE");
+
+    if ($backtrace) {
+        script_run "sed -i s/enabled=0/enabled=1/ /etc/zypp/repos.d/*-[Dd]ebug.repo";
+        script_run "zypper -n refresh", timeout => 300;
+        script_run "zypper -n install -y gdb", timeout => 300;
+        script_run "echo 'set debuginfod enabled on' > ~/.gdbinit";
+    }
 
     script_run('coredumpctl list > coredumpctl.txt');
 
@@ -414,14 +422,19 @@ sub collect_coredumps {
 
     foreach my $line (@lines) {
         my ($pid, $exe) = split /\s+/, $line;
-        $exe = basename($exe);
+        my $cmd = basename($exe);
         # The runc seccomp SCMP_ACT_KILL test uses mkdir so a core file is expected
-        next if ($package eq "runc" && $exe eq "mkdir");
-        my $core = "core.$exe.$pid.core";
+        next if ($package eq "runc" && $cmd eq "mkdir");
+        my $core = "core.$cmd.$pid.core";
 
         # Dumping and compressing coredumps may take some time
         my $out = script_output("coredumpctl -o $core dump $pid", timeout => 300, proceed_on_failure => 1);
         record_info("COREDUMP", $out);
+        if ($backtrace) {
+            my $gdb_script = '-ex "thread apply all bt full" -ex quit';
+            record_info("BACKTRACE", script_output(qq{gdb --batch $exe -c $core $gdb_script}, timeout => 300, proceed_on_failure => 1));
+        }
+
         script_run("xz -9v $core", 300);
     }
 }
