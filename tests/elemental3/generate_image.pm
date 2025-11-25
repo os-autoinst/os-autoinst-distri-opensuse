@@ -22,6 +22,8 @@ sub get_sysext {
     my $sysext_dir = "$overlay_dir/etc/extensions";
     my $ctl_oci;
 
+    record_info('SYSEXT', 'Download and configure systemd system extensions');
+
     # Create directories
     assert_script_run("mkdir -p $sysext_dir");
 
@@ -113,7 +115,6 @@ sub build_iso_cmd {
     my $device = get_var('INSTALL_DISK', '/dev/vda');
 
     # Configure the systemd sysexts
-    record_info('SYSEXT', 'Download and configure systemd system extensions');
     my ($overlay_dir, $ctl_oci) = get_sysext();
 
     # Extract elemental3ctl sysext name
@@ -142,10 +143,9 @@ sub build_iso_cmd {
     record_info('ISO', 'Generate and upload ISO image');
 
     # Generate OS image
-    #   "elemental3ctl --debug build-installer \\
-    #      --type iso \\
     assert_script_run(
-        "elemental3ctl --debug build-iso \\
+        "elemental3ctl --debug build-installer \\
+           --type iso \\
            --output . \\
            --name $args{img_filename} \\
            --os-image $image \\
@@ -171,7 +171,7 @@ sub install_cmd {
     my $device = '/dev/nbd0';
     my $k8s_sysext_found;
 
-    record_info('SYSEXT', 'Download and configure systemd system extensions');
+    # Configure the systemd sysexts
     my ($overlay_dir) = get_sysext();
 
     # OS configuration script
