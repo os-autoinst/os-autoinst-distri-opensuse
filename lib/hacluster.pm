@@ -1538,6 +1538,7 @@ sub generate_lun_list {
     my $target_ip_port = script_output("ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null");
     my $dev_by_path = '/dev/disk/by-path';
     my $index = get_var('ISCSI_LUN_INDEX', 0);
+    $index = 0 if (check_var('ISCSI_LUN_INDEX', 'ondemand'));
 
     my $cluster_infos = get_cluster_info();
     my $cluster_name = $cluster_infos->{cluster_name};

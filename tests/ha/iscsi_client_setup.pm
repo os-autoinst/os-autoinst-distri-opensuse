@@ -12,6 +12,7 @@ use Utils::Backends qw(is_remote_backend);
 use utils qw(zypper_call systemctl ping_size_check file_content_replace script_retry);
 use testapi;
 use hacluster;
+use mmapi qw(get_parents get_current_job_id);
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(is_sle package_version_cmp);
 
@@ -66,9 +67,29 @@ configuration file generated after discovery.
 
 =item * ISCSI_SERVER: IP address or FQHN of the iSCSI server.
 
+=item * ISCSI_LUN_INDEX: if set to C<ondemand>, module will request a number of LUNs to the iSCSI server to be
+created on demand. If set to any other value, module will try to connect to a target matching C<openqa>.
+
+=item * CLUSTER_INFOS: when B<ISCSI_LUN_INDEX> is set to C<ondemand>, module extracts number of LUNs to request from
+this setting.
+
+=item * NFS_SUPPORT_SHARE: path to NFS share used to share information between nodes.
+
+=item * OPENQA_HOSTNAME: fully qualified name of the openQA instance where the job was scheduled. Used to request the
+iSCSI target and LUNs.
+
 =back
 
 =cut
+
+sub request_luns {
+    my (%args) = @_;
+    foreach (qw(instance jobid numluns)) { die "request_luns: missing [$_] argument" unless $args{$_} }
+    zypper_call 'in nfs-client';    # Make sure nfs-client is installed
+    assert_script_run 'mount -t nfs ' . get_required_var('NFS_SUPPORT_SHARE') . ' /mnt';
+    assert_script_run "mkdir /mnt/ondemand/$args{instance}_$args{jobid}_$args{numluns}";
+    assert_script_run 'umount /mnt';
+}
 
 sub run {
     my $iscsi_server = get_var('USE_SUPPORT_SERVER') ? 'ns' : get_required_var('ISCSI_SERVER');
@@ -123,7 +144,22 @@ sub run {
     systemctl 'enable --now iscsid';
     record_info('iscsid status', script_output('systemctl status iscsid'));
 
-    my $iqn_node_name = script_output("iscsiadm -m discovery -t st -p '$iscsi_server'|grep 'openqa'");
+    my $iqn_search_string = 'openqa';    # Search iqn names that match 'openqa' by default
+    if (check_var('ISCSI_LUN_INDEX', 'ondemand')) {
+        # Special value on ISCSI_LUN_INDEX means that we need to request iSCSI LUNs on demand.
+        # in that case, iqn will match to node 1's job id
+        $iqn_search_string = is_node(1) ? get_current_job_id : (get_parents)->[0];
+        die 'Got non-numeric job id' unless ($iqn_search_string =~ m/^\d+$/);
+        # Only node 1 will request the LUNs. Number of LUNs to request is the third element in CLUSTER_INFOS
+        request_luns(jobid => $iqn_search_string, instance => get_required_var('OPENQA_HOSTNAME'),
+            numluns => (split(/:/, get_required_var('CLUSTER_INFOS')))[2]) if is_node(1);
+        # Dynamic LUNs provisioning can take some time. We check and wait for up to 10 minutes:
+        # 20 retries every 30 seconds = 600 seconds
+        script_retry("iscsiadm -m discovery -t st -p '$iscsi_server'|grep -q '$iqn_search_string'", retry => 20,
+            fail_message => "Did not see iSCSI target matching [$iqn_search_string] for 10 minutes");
+    }
+
+    my $iqn_node_name = script_output("iscsiadm -m discovery -t st -p '$iscsi_server'|grep '$iqn_search_string'");
     record_info('iscsi_iqn_node_name', $iqn_node_name);
     my ($node_name) = $iqn_node_name =~ /(\S+)$/;
     record_info('node_name', $node_name);
