@@ -835,7 +835,7 @@ sub sdaf_destroy_resources(%args) {
       grep(/^$args{deployment_type}$/, qw(sap_system workload_zone));
 
     my $resource_name = generate_resource_group_name(deployment_type => $args{deployment_type});
-    my $resource_present = az_group_exists(resource_group => $resource_name);
+    my $resource_present = az_group_exists(name => $resource_name);
     # No need to delete resource if there is none.
     return unless $resource_present eq 'true';
     az_group_delete(name => $resource_name, timeout => 1800);
