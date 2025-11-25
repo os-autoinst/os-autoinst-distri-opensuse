@@ -542,6 +542,8 @@
 
 <p>Some HA tests modules will cause a node to fence. In these cases, the tests will need to assert a <b>grub2</b> or <b>bootmenu</b> screen, so the modules will need to select the <code>root-console</code> before any calls to <code>assert_screen</code>. On some systems, a simple call to <code>select_console &#39;root-console&#39;</code> will not work as the console could be &quot;dirty&quot; with messages obscuring the root prompt. This function will pre-select the console without asserting anything on the screen, clear it, and then select it normally.</p>
 
+<p>On PVM setup, serial connection may lose if jobs running too long from ssh termial, so re-connect it after switching back to root-console</p>
+
 <h2 id="crm_get_failcount">crm_get_failcount</h2>
 
 <pre><code>crm_get_failcount(crm_resource=&gt;&#39;ASCS_00&#39; [, assert_result=&gt;&#39;true&#39;]);</code></pre>
