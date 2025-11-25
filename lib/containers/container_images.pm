@@ -120,8 +120,8 @@ sub test_opensuse_based_image {
             unless (is_unreleased_sle) {
                 my $cmd = "container-suseconnect";
                 record_info("$cmd version", script_output("$runtime run --rm -i $image $cmd --version"));
-                # Since SLES 16.0, both docker & podman no longer automount credentials by default
-                my $mount = is_sle("16.0+") ? "-v /etc/zypp/credentials.d/SCCcredentials:/etc/zypp/credentials.d/SCCcredentials:ro,z" : "";
+                # Since SLES 16.0 (and SLEM 6.2), both docker & podman no longer automount credentials by default
+                my $mount = (is_sle("16.0+") || is_sle_micro("6.2+")) ? "-v /etc/zypp/credentials.d/SCCcredentials:/etc/zypp/credentials.d/SCCcredentials:ro,z" : "";
                 validate_script_output_retry("$runtime run --rm $mount $image $cmd lp", sub { m/.*All available products.*/ }, retry => 5, delay => 60, timeout => 300);
                 validate_script_output_retry("$runtime run --rm $mount $image $cmd lm", sub { m/.*All available modules.*/ }, retry => 5, delay => 60, timeout => 300);
             }
