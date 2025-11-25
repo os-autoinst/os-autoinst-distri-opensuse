@@ -154,7 +154,8 @@ sub load_host_tests_podman {
     unless (is_staging || is_transactional || is_sle("<15-sp4")) {
         loadtest('containers/registry', run_args => $run_args, name => $run_args->{runtime} . "_registry");
     }
-    loadtest('containers/container_suseconnect', run_args => $run_args, name => $run_args->{runtime} . "_suseconnect") if is_sle("15-sp6+");
+    # container_suseconnect requires access to IBS and thus cannot run in PublicCloud (poo#193090)
+    loadtest('containers/container_suseconnect', run_args => $run_args, name => $run_args->{runtime} . "_suseconnect") if (is_sle("15-sp6+") && !is_public_cloud);
     loadtest 'containers/podman_bci_systemd';
     loadtest 'containers/podman_pods';
     # CNI is the default network backend on SLEM<6 and SLES<15-SP6. It is still available on later products as a dependency for docker.
