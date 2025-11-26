@@ -96,7 +96,8 @@ sub post_run_hook {
         ($ktap, $softfails, $hardfails) = post_process_single(collection => $self->{collection}, test => $tests[0]);
     }
 
-    write_sut_file('/tmp/kselftest.tap.txt', join("\n", @{$ktap}));
+    chomp @{$ktap};
+    write_sut_file('/tmp/kselftest.tap.txt', join("\n", grep { /\S/ } @{$ktap}));
     parse_extra_log(KTAP => '/tmp/kselftest.tap.txt');
 
     if ($softfails > 0 && $hardfails == 0) {
