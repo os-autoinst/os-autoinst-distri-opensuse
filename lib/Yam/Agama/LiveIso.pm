@@ -52,6 +52,7 @@ sub record_agama_info {
 }
 
 sub read_live_iso {
+    return unless get_var('ISO');
     my $info = read_iso_info();
     my $pkgs = parse_agama_packages();
     $info =~ /^Image.version:\s+(?<major_version>\d+\.\w+)\./m;
