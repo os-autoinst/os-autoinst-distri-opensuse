@@ -286,10 +286,12 @@ subtest '[az_vm_as_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_vm_as_create(
         resource_group => 'Arlecchino',
         name => 'Truffaldino',
         region => 'Pulcinella');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az vm availability-set create/ } @calls), 'Correct composition of the main command');
 };
@@ -298,7 +300,9 @@ subtest '[az_vm_as_list]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return; });
+
     az_vm_as_list(resource_group => 'Arlecchino');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az vm availability-set list/ } @calls), 'Correct composition of the main command');
 };
@@ -307,8 +311,10 @@ subtest '[az_vm_as_show]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_vm_as_show(resource_group => 'Arlecchino',
         name => 'Truffaldino');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az vm availability-set show/ } @calls), 'Correct composition of the main command');
 };
@@ -317,10 +323,12 @@ subtest '[az_vm_create]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_vm_create(
         resource_group => 'Arlecchino',
         name => 'Truffaldino',
         image => 'Mirandolina');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az vm create/ } @calls), 'Correct composition of the main command');
 };
@@ -329,11 +337,13 @@ subtest '[az_vm_create] with public IP' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_vm_create(
         resource_group => 'Arlecchino',
         name => 'Truffaldino',
         image => 'Mirandolina',
         public_ip => 'Fulgenzio');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /--public-ip-address Fulgenzio/ } @calls), 'custom Public IP address');
     ok((none { /--public-ip-address ""/ } @calls), 'not force empty Public IP address');
@@ -346,14 +356,15 @@ subtest '[az_vm_create] with no public IP' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_vm_create(
         resource_group => 'Arlecchino',
         name => 'Truffaldino',
         image => 'Mirandolina');
     note("\n  -->  " . join("\n  -->  ", @calls));
+
     ok((any { /--public-ip-address ""/ } @calls), 'empty Public IP address');
 };
-
 
 subtest '[az_vm_create] with empty public IP' => sub {
     # The user can in theory provide a public_ip
@@ -363,13 +374,34 @@ subtest '[az_vm_create] with empty public IP' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+
     az_vm_create(
         resource_group => 'Arlecchino',
         name => 'Truffaldino',
         image => 'Mirandolina',
         public_ip => '""');
+
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /--public-ip-address ""/ } @calls), 'empty Public IP address');
+};
+
+subtest '[az_vm_create] SDAF mix' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    my @tags = ('Balanzone', 'CapitanSpaventa');
+
+    az_vm_create(
+        resource_group => 'Arlecchino',
+        name => 'Truffaldino',
+        attach_os_disk => 'Mirandolina',
+        size => 'Stenterello',
+        os_type => 'Tartaglia',
+        tags => \@tags);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az vm create/ } @calls), 'Correct composition of the main command');
+    ok((any { /.*--tags Balanzone CapitanSpaventa/ } @calls), 'Correct composition of tags');
 };
 
 subtest '[az_vm_list]' => sub {
@@ -538,6 +570,20 @@ subtest '[az_vm_wait_cloudinit]' => sub {
     ok((any { /az vm run-command create/ } @calls), 'Correct composition of the main command');
 };
 
+subtest '[az_vm_identity_assign]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '00000000-0000-0000-0000-000000000000'; });
+
+    my $id = az_vm_identity_assign(
+        resource_group => 'Arlecchino',
+        name => 'Truffaldino');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /az vm identity assign/ } @calls), 'Correct composition of the main command');
+    ok(($id eq '00000000-0000-0000-0000-000000000000'), 'Correct returned id');
+};
+
 subtest '[az_nic_get_id]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
@@ -704,7 +750,6 @@ subtest '[az_vm_diagnostic_log_get]' => sub {
     az_vm_diagnostic_log_get(resource_group => 'Arlecchino');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-
     ok((any { /az vm boot-diagnostics get-boot-log/ } @calls), 'Correct composition of the main command');
     ok((any { /--ids 0001.*tee.*Truffaldino\.txt/ } @calls), 'Correct composition of the --id for the first VM');
     ok((any { /--ids 0002.*tee.*Mirandolina\.txt/ } @calls), 'Correct composition of the --id for the second VM');
@@ -721,9 +766,7 @@ subtest '[az_storage_account_create]' => sub {
         name => 'Cassandro');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-
     ok((any { /az storage account create/ } @calls), 'Correct composition of the main command');
-
 };
 
 subtest '[az_network_peering_create]' => sub {
@@ -914,10 +957,12 @@ subtest '[az_resource_list] Check command composition' => sub {
     $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
 
     az_resource_list();
+
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az resource list/ } @calls), 'Correct composition of the main command');
 
     az_resource_list(resource_group => 'Carlo', query => '[].Goldoni');
+
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /--resource-group Carlo/ } @calls), 'Check for --resource-group option.');
     ok((any { /--query \"\[].Goldoni\"/ } @calls), 'Check for --query option.');
@@ -928,6 +973,7 @@ subtest '[az_resource_list] Check return values' => sub {
     $azcli->redefine(script_output => sub { return '["Carlo", "Goldoni"]'; });
 
     my $output = az_resource_list();
+
     note("\n --> " . join("\n --> ", join(' ', @$output)));
     is join(' ', @$output), 'Carlo Goldoni', 'Check json based output';
 };
@@ -1158,13 +1204,14 @@ subtest '[az_keyvault_secret_show] Calling with "name" and "vault_name" argument
 subtest '[az_group_exists] Compose command' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return; });
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return 'Arlecchino'; });
 
-    az_group_exists(resource_group => 'Pantalone');
+    my $ret = az_group_exists(name => 'Pantalone');
 
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az group exists/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+    ok((grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"'), 'Correct argument about resource group name');
+    ok(($ret eq 'Arlecchino'), "Correct return code: expect 'Arlecchino' get '$ret'");
 };
 
 subtest '[az_nic_list] Compose command' => sub {
@@ -1350,6 +1397,30 @@ subtest '[az_network_dns_link_delete] Compose command' => sub {
     ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
     ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
     ok(grep(/--yes/, @calls), 'Check for autoapprove argument "--yes"');
+};
+
+subtest '[az_account_show]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '"00000000-0000-0000-0000-000000000000"'; });
+
+    my $ret = az_account_show();
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az account show/ } @calls), 'Correct composition of the main command');
+    ok(($ret eq '00000000-0000-0000-0000-000000000000'), 'Ret is the expected value, of type string');
+};
+
+subtest '[az_role_definition_list]' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '"Pantalone"'; });
+
+    my $ret = az_role_definition_list(name => 'Pulcinella');
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az role definition list/ } @calls), 'Correct composition of the main command');
+    ok(($ret eq 'Pantalone'), 'Ret is the expected value, of type string');
 };
 
 done_testing;

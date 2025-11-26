@@ -25,6 +25,7 @@ Library to compose and run Azure cli commands
 
 our @EXPORT = qw(
   az_version
+  az_account_show
   az_group_create
   az_group_name_get
   az_group_delete
@@ -53,6 +54,7 @@ our @EXPORT = qw(
   az_vm_wait_running
   az_vm_diagnostic_log_enable
   az_vm_diagnostic_log_get
+  az_vm_identity_assign
   az_nic_create
   az_nic_get_id
   az_nic_name_get
@@ -86,6 +88,7 @@ our @EXPORT = qw(
   az_network_dns_link_delete
   az_network_dns_link_list
   az_network_dns_links_cleanup
+  az_role_definition_list
 );
 
 
@@ -174,6 +177,28 @@ sub az_group_delete(%args) {
         'az group delete',
         '--name', $args{name}, '-y');
     assert_script_run($az_cmd, timeout => $args{timeout});
+}
+
+=head2 az_group_exists
+
+    az_group_exists(name => 'resource group name' [, quiet=>'pssst!']);
+
+Check if specified resource group exists.
+Returns whatever 'az group exist' is returning
+that usually is string B<true> or B<false>.
+
+=over
+
+=item B<name> Resource group name
+
+=item B<quiet> Turn off script_output verbosity if defined
+
+=back
+=cut
+
+sub az_group_exists(%args) {
+    croak "Missing mandatory argument: 'name'" unless $args{name};
+    return script_output("az group exists --resource-group $args{name}", quiet => $args{quiet});
 }
 
 =head2 az_network_vnet_create
@@ -775,6 +800,10 @@ Create a virtual machine
 
 =item B<image> - OS image name
 
+=item B<attach_os_disk> - argument for --attach-os-disk
+
+=item B<os_type> - OS type
+
 =item B<vnet> - optional name of the Virtual Network where to place the VM
 
 =item B<snet> - optional name of the SubNet where to connect the VM
@@ -801,28 +830,29 @@ Create a virtual machine
 
 =item B<timeout> - timeout of command execution, default 900
 
+=item B<tags> - reference to a list of tags to apply to the VM
+
 =back
 =cut
 
 sub az_vm_create(%args) {
-    foreach (qw(resource_group name image)) {
+    foreach (qw(resource_group name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
     $args{timeout} //= 900;
-    my @vm_create = ('az vm create');
+    croak("At least one between argument < image > or < attach_os_disk > are needed") unless ($args{image} || $args{attach_os_disk});
 
+    my @vm_create = ('az vm create');
     push @vm_create, '--resource-group', $args{resource_group};
     push @vm_create, '-n', $args{name};
-    push @vm_create, '--image', $args{image};
+    push @vm_create, '--image', $args{image} if $args{image};
+    push @vm_create, '--attach-os-disk', $args{attach_os_disk} if $args{attach_os_disk};
     push @vm_create, '--public-ip-address';
     push @vm_create, $args{public_ip} ? $args{public_ip} : '""';
-
     $args{size} //= 'Standard_B1s';
     push @vm_create, '--size', $args{size};
-
     push @vm_create, '-l', $args{region} if $args{region};
     push @vm_create, '--availability-set', $args{availability_set} if $args{availability_set};
-
     push @vm_create, '--admin-username', $args{username} if $args{username};
     push @vm_create, '--nsg', $args{nsg} if $args{nsg};
     push @vm_create, '--custom-data', $args{custom_data} if $args{custom_data};
@@ -835,6 +865,8 @@ sub az_vm_create(%args) {
     } else {
         push @vm_create, '--authentication-type ssh --generate-ssh-keys';
     }
+    push @vm_create, '--os-type', $args{os_type} if $args{os_type};
+    push @vm_create, '--tags', join(' ', @{$args{tags}}) if $args{tags};
 
     assert_script_run(join(' ', @vm_create), timeout => $args{timeout});
 }
@@ -898,7 +930,8 @@ sub az_vm_instance_view_get(%args) {
         'az vm get-instance-view',
         '--name', $args{name},
         '--resource-group', $args{resource_group},
-        '--query "instanceView.statuses[1].[code,displayStatus]"');
+        '--query "instanceView.statuses[1].[code,displayStatus]"',
+        '-o json');
     return decode_json(script_output($az_cmd));
 }
 
@@ -1324,7 +1357,6 @@ sub az_vm_diagnostic_log_enable(%args) {
     assert_script_run($az_cmd);
 }
 
-
 =head2 az_vm_diagnostic_log_get
 
     my $list_of_logs = az_vm_diagnostic_log_get(resource_group => 'openqa-rg')
@@ -1353,6 +1385,41 @@ sub az_vm_diagnostic_log_get(%args) {
           script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
     }
     return @diagnostic_log_files;
+}
+
+=head2 az_vm_identity_assign
+
+    az_vm_identity_assign(name=>$vm_name,
+        resource_group=>$resource_group);
+
+    Enable managed service identity on the named VM.
+    It is first step to authenticate and interact with other Azure services.
+    Used in setup managed identity (MSI).
+    Return a validated systemAssignedIdentity ID or die.
+
+=over
+
+=item B<name> - VM name
+
+=item B<resource_group> - resource group resource belongs to
+
+=back
+=cut
+
+sub az_vm_identity_assign {
+    my (%args) = @_;
+    foreach ('name', 'resource_group') {
+        croak "Missing argument: '$_'" unless defined($args{$_});
+    }
+
+    my $id = script_output(join(' ', 'az vm identity assign',
+            '--only-show-errors',
+            "-g '$args{resource_group}'",
+            "-n '$args{name}'",
+            "--query 'systemAssignedIdentity'",
+            '-o tsv'));
+    die "Returned '$id' does not match ID pattern" if (!az_validate_uuid_pattern(uuid => $id));
+    return $id;
 }
 
 =head2 az_storage_account_create
@@ -1971,26 +2038,6 @@ sub az_keyvault_secret_show(%args) {
     return script_output(join(' ', @az_cmd));
 }
 
-=head2 az_group_exists
-
-    az_group_exists(resource_group=>'resource group name' [, quiet=>'pssst!']);
-
-Check if specified resource group exists. Returns B<true> or B<false>.
-
-=over
-
-=item B<resource_group> Resource group name
-
-=item B<quiet> Turn off verbosity if defined
-
-=back
-=cut
-
-sub az_group_exists(%args) {
-    croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
-    return script_output("az group exists --resource-group $args{resource_group}", quiet => $args{quiet});
-}
-
 =head2 az_network_vnet_show
 
     az_network_vnet_show(resource_group=>'resource group name', name=>'vnet01' [, query=>'[].name']);
@@ -2282,12 +2329,57 @@ Searches and deletes all DNS zones within specified B<resource_group>.
 
 sub az_network_dns_zones_cleanup {
     my (%args) = @_;
-    croak 'Missing mandatory argument: "$args{resource_group}"' unless $args{resource_group};
+    croak 'Missing mandatory argument: <resource_group>' unless $args{resource_group};
     my @zones = @{az_network_dns_zone_list(resource_group => $args{resource_group})};
 
     for my $zone (@zones) {
         az_network_dns_zone_delete(resource_group => $args{resource_group}, zone_name => $zone);
     }
 }
+
+=head2 az_account_show
+
+
+Get account informations, by default the ID. By default the output is an strings.
+Output can be modified using B<$args{query}>.
+
+=over
+
+=item B<query> - Modify output filter using jmespath query. Default: 'id'
+
+=back
+=cut
+
+sub az_account_show {
+    my (%args) = @_;
+    $args{query} //= 'id';
+    my $az_cmd = join(' ', 'az account show',
+        "--query '$args{query}'",
+        '-o json');
+    return decode_json(script_output($az_cmd));
+}
+
+=head2
+
+List and return details about named role
+
+=over
+
+=item B<name> Name of the role
+
+=back
+=cut
+
+sub az_role_definition_list {
+    my (%args) = @_;
+    croak 'Missing mandatory argument: <name>' unless $args{name};
+    $args{query} //= '[].id';
+    my $az_cmd = join(' ', 'az role definition list',
+        "--name '$args{name}'",
+        "--query '$args{query}'",
+        '-o json');
+    return decode_json(script_output($az_cmd));
+}
+
 
 1;
