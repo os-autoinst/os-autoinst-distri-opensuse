@@ -28,6 +28,8 @@ sub disable_selinux {
 sub run {
     my ($self) = @_;
     select_serial_terminal;
+    record_info('uname', script_output('uname -a'));
+    record_info('os-release', script_output('cat /etc/os-release'));
     my $update_timeout = 1200;
 
     my ($version, $sp, $host_distri) = get_os_release;
