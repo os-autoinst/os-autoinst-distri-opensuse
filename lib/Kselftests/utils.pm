@@ -159,7 +159,12 @@ sub post_process_single {
     my ($test_name, $sanitized_test_name) = get_sanitized_test_name($args{test});
     my $parser = Kselftests::parser::factory($args{collection}, $sanitized_test_name);
 
-    my @ktap = @{$args{ktap} //= ["TAP version 13", "1..1", "# selftests: $args{collection}: $sanitized_test_name"]};
+    my @ktap = ();
+    if (defined $args{ktap}) {
+        @ktap = @{$args{ktap}};
+    } elsif ($log[0] !~ /^TAP version/) {
+        @ktap = ("TAP version 13", "1..1", "# selftests: $args{collection}: $sanitized_test_name");
+    }
     my $hardfails = 0;
     my $softfails = 0;
     for my $test_ln (@log) {
