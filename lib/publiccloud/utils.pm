@@ -233,12 +233,10 @@ sub register_addons_in_pc {
     my ($instance) = @_;
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $remote = $instance->username . '@' . $instance->public_ip;
-    # Workaround for bsc#1245220
-    my $env = is_sle("=15-SP3") ? "ZYPP_CURL2=1" : "";
-    my $cmd = "sudo $env zypper -n --gpg-auto-import-keys ref";
-    my $ret = $instance->ssh_script_run(cmd => $cmd, timeout => 300);
+    my $zcmd = "--gpg-auto-import-keys ref";
+    my $ret = $instance->zypper_call_remote(cmd => $zcmd, exitcode => [0, 6], timeout => 300);
     die 'No enabled repos defined: bsc#1245651' if $ret == 6;    # from zypper man page: ZYPPER_EXIT_NO_REPOS
-    $instance->ssh_script_retry(cmd => $cmd, timeout => 300, retry => 3, delay => 120);
+    $instance->zypper_call_remote(cmd => $zcmd, timeout => 300, retry => 6, delay => 200);
     for my $addon (@addons) {
         next if ($addon =~ /^\s+$/);
         register_addon($remote, $addon);
@@ -933,12 +931,12 @@ sub zypper_call_remote {
             if ($instance->ssh_script_run(qq[sudo grep "Error code.*502" $log]) == 0) {
                 die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
             }
-            elsif ($instance->ssh_script_run(qq[sudo grep "Solverrun finished with an ERROR" $log] == 0)) {
-                my $search_conflicts = q[sudo awk 'BEGIN {print "Processing conflicts - ",NR; group=0}
+            elsif ($instance->ssh_script_run(qq[sudo grep "Solverrun finished with an ERROR" $log]) == 0) {
+                my $search_conflicts = q[sudo awk '
                     /Solverrun finished with an ERROR/,/statistics/{ 
-                    print group"|", $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ }; }' ] . $log;
+                    print group"|", $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ } }' ] . $log;
                 my $conflicts = $instance->ssh_script_output($search_conflicts);
-                record_info("Conflict", $conflicts, result => 'fail');
+                record_info("Conflicts", $conflicts, result => 'fail');
                 diag "Package conflicts found, not retrying anymore" if $conflicts;
                 last;
             }
@@ -949,6 +947,7 @@ sub zypper_call_remote {
     # Result management
     my $command = $args{cmd};
     unless (grep { $_ == $ret } @$exit_codes) {
+        $instance->ssh_script_run(qq[sudo chmod o+r $log]);
         $instance->upload_log($log);
         my $msg = qq[$command failed with code: $ret];
         if ($ret == 104) {
