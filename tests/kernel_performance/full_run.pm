@@ -45,7 +45,7 @@ sub full_run {
         my $hoststatus = get($selperf_machine_status_getapi . $hostname . "/");
         record_info($hostname, $hoststatus);
     }
-
+    assert_script_run("systemctl enable qaperf.service");
     assert_script_run("/usr/share/qa/qaset/qaset reset");
     assert_script_run("/usr/share/qa/qaset/run/performance-run.upload_Beijing");
     while (1) {
