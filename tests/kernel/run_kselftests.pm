@@ -49,7 +49,10 @@ sub run {
         # Remove tests that are in @skip
         @tests = grep { !$skip{$_} } @tests;
     }
+
+    # Save the tests that are going to be run to the object so they can be later post-processed.
     $self->{tests} = [@tests];
+    die 'No tests to run.' unless @tests > 0;
 
     my $test_opt = @tests > 1 ? '--per-test-log' : '';
     if (@selected == @available) {
