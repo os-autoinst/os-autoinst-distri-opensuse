@@ -46,7 +46,17 @@ sub run {
     }
     elsif ($tag eq 'drbd_passive') {
         $resource = 'drbd_passive';
-        $fs_lun = '/dev/drbd_passive' if is_node(1);
+
+        # For sle16 MU, /dev/drbd_passive is not generated, /dev/drbd0 replace it.
+        # So we need to add this workaround here.
+        # See more detail in https://bugzilla.suse.com/show_bug.cgi?id=1247534#c23
+        if (is_node(1)) {
+            if (script_run('ls -la /dev/drbd_passive') != 0 && is_sle('>=16')) {
+                $fs_lun = '/dev/drbd0';
+            } else {
+                $fs_lun = '/dev/drbd_passive';
+            }
+        }
         $fs_type = 'xfs';
     }
     elsif ($tag eq 'drbd_active') {
