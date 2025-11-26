@@ -37,6 +37,7 @@
       <li><a href="#zypper_install_available_remote">zypper_install_available_remote</a></li>
       <li><a href="#wait_quit_zypper_pc">wait_quit_zypper_pc</a></li>
       <li><a href="#detect_worker_ip">detect_worker_ip</a></li>
+      <li><a href="#instance-zypper_call_remote">$instance-&gt;zypper_call_remote</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/utils.pm</h1>
@@ -202,6 +203,14 @@ Optionally accepts proceed_on_failure =&gt; 1 to return undef instead of dying.
 Return:
 - worker ip, if retrieved
 - undef otherwise (if proceed_on_failure is set)</code></pre>
+
+<h2 id="instance-zypper_call_remote">$instance-&gt;zypper_call_remote</h2>
+
+<pre><code>$instance-&gt;zypper_call_remote($command [, exitcode =&gt; $exitcode] [, timeout =&gt; $timeout];</code></pre>
+
+<p>Function wrapping zypper command for remote execution via ssh; not for tunnelling. Implements similar routine as lib/utils::zypper_call_remote, but for remote execution on publiccloud instances.</p>
+
+<p>Usage example: $instance-&gt;zypper_call_remote(&quot;up&quot;, exitcode =&gt; [0,102,103], timeout =&gt; 300);</p>
 
 
 </body>
