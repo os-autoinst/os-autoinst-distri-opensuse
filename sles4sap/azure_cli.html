@@ -18,6 +18,7 @@
       <li><a href="#az_group_create">az_group_create</a></li>
       <li><a href="#az_group_name_get">az_group_name_get</a></li>
       <li><a href="#az_group_delete">az_group_delete</a></li>
+      <li><a href="#az_group_exists">az_group_exists</a></li>
       <li><a href="#az_network_vnet_create">az_network_vnet_create</a></li>
       <li><a href="#az_network_vnet_subnet_update">az_network_vnet_subnet_update</a>
         <ul>
@@ -53,6 +54,7 @@
       <li><a href="#az_ipconfig_pool_add">az_ipconfig_pool_add</a></li>
       <li><a href="#az_vm_diagnostic_log_enable">az_vm_diagnostic_log_enable</a></li>
       <li><a href="#az_vm_diagnostic_log_get">az_vm_diagnostic_log_get</a></li>
+      <li><a href="#az_vm_identity_assign">az_vm_identity_assign</a></li>
       <li><a href="#az_storage_account_create">az_storage_account_create</a></li>
       <li><a href="#az_network_peering_create">az_network_peering_create</a></li>
       <li><a href="#az_network_peering_list">az_network_peering_list</a></li>
@@ -69,7 +71,6 @@
       <li><a href="#az_keyvault_list">az_keyvault_list</a></li>
       <li><a href="#az_keyvault_secret_list">az_keyvault_secret_list</a></li>
       <li><a href="#az_keyvault_secret_show">az_keyvault_secret_show</a></li>
-      <li><a href="#az_group_exists">az_group_exists</a></li>
       <li><a href="#az_network_vnet_show">az_network_vnet_show</a></li>
       <li><a href="#az_network_dns_zone_create">az_network_dns_zone_create</a></li>
       <li><a href="#az_network_dns_zone_delete">az_network_dns_zone_delete</a></li>
@@ -80,6 +81,8 @@
       <li><a href="#az_network_dns_link_list">az_network_dns_link_list</a></li>
       <li><a href="#az_network_dns_links_cleanup">az_network_dns_links_cleanup</a></li>
       <li><a href="#az_network_dns_zones_cleanup">az_network_dns_zones_cleanup</a></li>
+      <li><a href="#az_account_show">az_account_show</a></li>
+      <li><a href="#"></a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -141,6 +144,24 @@
 
 </dd>
 <dt id="timeout---timeout-default-60"><b>timeout</b> - timeout, default 60</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_group_exists">az_group_exists</h2>
+
+<pre><code>az_group_exists(name =&gt; &#39;resource group name&#39; [, quiet=&gt;&#39;pssst!&#39;]);</code></pre>
+
+<p>Check if specified resource group exists. Returns whatever &#39;az group exist&#39; is returning that usually is string <b>true</b> or <b>false</b>.</p>
+
+<dl>
+
+<dt id="name-Resource-group-name"><b>name</b> Resource group name</dt>
+<dd>
+
+</dd>
+<dt id="quiet-Turn-off-script_output-verbosity-if-defined"><b>quiet</b> Turn off script_output verbosity if defined</dt>
 <dd>
 
 </dd>
@@ -616,6 +637,14 @@
 <dd>
 
 </dd>
+<dt id="attach_os_disk---argument-for---attach-os-disk"><b>attach_os_disk</b> - argument for --attach-os-disk</dt>
+<dd>
+
+</dd>
+<dt id="os_type---OS-type"><b>os_type</b> - OS type</dt>
+<dd>
+
+</dd>
 <dt id="vnet---optional-name-of-the-Virtual-Network-where-to-place-the-VM"><b>vnet</b> - optional name of the Virtual Network where to place the VM</dt>
 <dd>
 
@@ -661,6 +690,10 @@
 
 </dd>
 <dt id="timeout---timeout-of-command-execution-default-900"><b>timeout</b> - timeout of command execution, default 900</dt>
+<dd>
+
+</dd>
+<dt id="tags---reference-to-a-list-of-tags-to-apply-to-the-VM"><b>tags</b> - reference to a list of tags to apply to the VM</dt>
 <dd>
 
 </dd>
@@ -1033,6 +1066,28 @@
 <dl>
 
 <dt id="resource_group---existing-resource-group-where-to-search-for-a-specific-VM3"><b>resource_group</b> - existing resource group where to search for a specific VM</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_vm_identity_assign">az_vm_identity_assign</h2>
+
+<pre><code>az_vm_identity_assign(name=&gt;$vm_name,
+    resource_group=&gt;$resource_group);
+
+Enable managed service identity on the named VM.
+It is first step to authenticate and interact with other Azure services.
+Used in setup managed identity (MSI).
+Return a validated systemAssignedIdentity ID or die.</code></pre>
+
+<dl>
+
+<dt id="name---VM-name"><b>name</b> - VM name</dt>
+<dd>
+
+</dd>
+<dt id="resource_group---resource-group-resource-belongs-to"><b>resource_group</b> - resource group resource belongs to</dt>
 <dd>
 
 </dd>
@@ -1478,24 +1533,6 @@ identifiers for Azure resources.</code></pre>
 </dd>
 </dl>
 
-<h2 id="az_group_exists">az_group_exists</h2>
-
-<pre><code>az_group_exists(resource_group=&gt;&#39;resource group name&#39; [, quiet=&gt;&#39;pssst!&#39;]);</code></pre>
-
-<p>Check if specified resource group exists. Returns <b>true</b> or <b>false</b>.</p>
-
-<dl>
-
-<dt id="resource_group-Resource-group-name1"><b>resource_group</b> Resource group name</dt>
-<dd>
-
-</dd>
-<dt id="quiet-Turn-off-verbosity-if-defined"><b>quiet</b> Turn off verbosity if defined</dt>
-<dd>
-
-</dd>
-</dl>
-
 <h2 id="az_network_vnet_show">az_network_vnet_show</h2>
 
 <pre><code>az_network_vnet_show(resource_group=&gt;&#39;resource group name&#39;, name=&gt;&#39;vnet01&#39; [, query=&gt;&#39;[].name&#39;]);</code></pre>
@@ -1504,7 +1541,7 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name2"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name1"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
@@ -1526,7 +1563,7 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name3"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name2"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
@@ -1544,7 +1581,7 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name4"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name3"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
@@ -1562,7 +1599,7 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name5"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name4"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
@@ -1585,7 +1622,7 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name6"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name5"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
@@ -1616,7 +1653,7 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name7"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name6"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
@@ -1646,7 +1683,7 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name8"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name7"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
@@ -1668,7 +1705,7 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name9"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name8"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
@@ -1690,7 +1727,7 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name10"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name9"><b>resource_group</b> Resource group name</dt>
 <dd>
 
 </dd>
@@ -1704,7 +1741,31 @@ identifiers for Azure resources.</code></pre>
 
 <dl>
 
-<dt id="resource_group-Resource-group-name11"><b>resource_group</b> Resource group name</dt>
+<dt id="resource_group-Resource-group-name10"><b>resource_group</b> Resource group name</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="az_account_show">az_account_show</h2>
+
+<p>Get account informations, by default the ID. By default the output is an strings. Output can be modified using <b>$args{query}</b>.</p>
+
+<dl>
+
+<dt id="query---Modify-output-filter-using-jmespath-query.-Default:-id"><b>query</b> - Modify output filter using jmespath query. Default: &#39;id&#39;</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id=""></h2>
+
+<p>List and return details about named role</p>
+
+<dl>
+
+<dt id="name-Name-of-the-role"><b>name</b> Name of the role</dt>
 <dd>
 
 </dd>
