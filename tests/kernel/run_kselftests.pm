@@ -33,13 +33,13 @@ sub run {
     install_kselftests($collection);
 
     # At this point, CWD has the file 'kselftest-list.txt' listing all the available tests
-    my @all_tests = split(/\n/, script_output("./run_kselftest.sh --list | grep '^$collection'"));
-    record_info("Available Tests", join("\n", @all_tests));
+    my @available = split(/\n/, script_output("./run_kselftest.sh --list | grep '^$collection'"));
+    record_info("Available Tests", join("\n", @available));
 
     # Filter which tests will run using KSELFTEST_TESTS
-    my @tests = @{get_var_array('KSELFTEST_TESTS')};
-    @tests = @all_tests unless @tests;
-    chomp @tests;
+    my @selected = @{get_var_array('KSELFTEST_TESTS')};
+    chomp @selected;
+    @tests = @selected ? @selected : @available;
 
     # Filter which tests will *NOT* run using KSELFTEST_SKIP
     my @skip = map { s/^\s+|\s+$//gr } @{get_var_array('KSELFTEST_SKIP')};
@@ -51,14 +51,15 @@ sub run {
     }
     $self->{tests} = [@tests];
 
-    # Run specific tests if the arrays have different lengths
-    my $tests = '';
-    if (@tests == @all_tests) {
-        record_info("Running Collection", $collection);
-        $tests = "--collection $collection";
+    my $test_opt = @tests > 1 ? '--per-test-log' : '';
+    if (@selected == @available) {
+        $test_opt .= " --collection $collection";
     } else {
         record_info("Running Tests", join("\n", @tests));
-        $tests = join(' ', map { "--test $_" } @tests);
+        $test_opt .= ' ' . join(' ', map { "--test $_" } @tests);
+    }
+    if (@skip && script_output('./run_kselftest.sh -h') =~ m/--skip/) {
+        $test_opt .= ' ' . join(' ', map { "--skip $_" } @skip);
     }
 
     validate_kconfig($collection);
@@ -66,8 +67,7 @@ sub run {
     my $stamp = 'OpenQA::run_kselftest.pm';
     my $timeout = get_var('KSELFTEST_TIMEOUT') // 300;
     my $test_timeout = get_var('KSELFTEST_TEST_TIMEOUT') ? "--override-timeout " . get_var('KSELFTEST_TEST_TIMEOUT') : '';
-    my $single = @tests > 1 ? '--per-test-log' : '';
-    my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh $test_timeout $single $tests";
+    my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh $test_timeout $test_opt";
     $runner .= " | tee -a \$HOME/summary.tap; echo $stamp END";
     my $env = get_var('KSELFTEST_ENV') // '';
     $runner = $env . " $runner";
