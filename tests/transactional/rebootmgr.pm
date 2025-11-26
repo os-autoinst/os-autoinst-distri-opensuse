@@ -44,18 +44,23 @@ sub rbm_set_window {
     rbm_call "set-window \$(date -d $time +%T) $duration";
 }
 
+sub is_soft_reboot_requested {
+    my $expected_grub = 1;
+    my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
+    my $output = wait_serial($regex, timeout => $args{timeout}) or die "Could not capture reboot type";
+    if ($output =~ $regex) {
+        $expected_grub = ($1 eq "soft-reboot") ? 0 : 1;
+        record_info($1, "'$1'");
+    }
+    return $expected_grub;
+}
+
 #1 Test instant reboot
 sub check_strategy_instantly {
     my $expected_grub = 1;
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
-    my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
-    my $output = wait_serial($regex, timeout => $args{timeout}) or die "transactional-update didn't finish";
-    if ($output =~ $regex) {
-        $expected_grub = ($1 eq "soft-reboot") ? 0 : 1;
-        record_info($1, "'$1'");
-    }
-    process_reboot(expected_grub => $expected_grub);
+    process_reboot(expected_grub => is_soft_reboot_requested());
     rbm_call "get-strategy | grep instantly";
 }
 
@@ -66,8 +71,7 @@ sub check_strategy_maint_window {
     # Trigger reboot during maint-window
     rbm_set_window '-5minutes', '20m';
     trup_call "reboot pkg install" . rpmver('feature');
-    process_reboot(expected_grub => 1);
-
+    process_reboot(expected_grub => is_soft_reboot_requested());
     # Trigger reboot and wait for maintenance window
     rbm_set_window '+2minutes', '1m';
     rbm_call 'reboot';
