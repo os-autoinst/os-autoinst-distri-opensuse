@@ -45,19 +45,28 @@ sub rbm_set_window {
     rbm_call "set-window \$(date -d $time +%T) $duration";
 }
 
+# Soft reboot only triggers a full reboot when installing a new kernel
+# update of the bootloader or any command like rollback, grub.cfg, bootloader, run or shell
+sub is_soft_reboot_requested {
+    my $soft_reboot_requested;
+    my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
+    my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
+    if ($output =~ $regex) {
+        $soft_reboot_requested = ($1 eq "soft-reboot") ? 1 : 0;
+        record_info("Reboot strategy: $1");
+    }
+    return $soft_reboot_requested;
+}
+
 #1 Test instant reboot
 sub check_strategy_instantly {
     select_console('root-console');
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
-    my $expected_grub = 1;
-    my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
-    my $output = wait_serial($regex, timeout => $args{timeout}) or die "transactional-update didn't finish";
-    if ($output =~ $regex) {
-        $expected_grub = ($1 eq "soft-reboot") ? 0 : 1;
-        record_info($1, "'$1'");
-    }
-    process_reboot(expected_grub => $expected_grub);
+
+    my $expect_bootloader = !is_soft_reboot_requested();
+    process_reboot(expected_grub => $expect_bootloader, trigger => !$expect_bootloader);
+
     rbm_call "get-strategy | grep instantly";
 }
 
@@ -69,7 +78,9 @@ sub check_strategy_maint_window {
     # Trigger reboot during maint-window
     rbm_set_window '-5minutes', '20m';
     trup_call "reboot pkg install" . rpmver('feature');
-    process_reboot(expected_grub => 1);
+
+    my $expect_bootloader = !is_soft_reboot_requested();
+    process_reboot(expected_grub => $expect_bootloader, trigger => !$expect_bootloader);
 
     # Trigger reboot and wait for maintenance window
     rbm_set_window '+2minutes', '1m';
