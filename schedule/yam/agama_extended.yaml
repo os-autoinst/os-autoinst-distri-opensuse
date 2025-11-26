@@ -7,6 +7,7 @@ description: >
 schedule:
   - yam/agama/boot_agama
   - yam/agama/patch_agama_tests
+  - yam/validate/validate_self_update
   - yam/agama/agama
   - installation/grub_test
   - installation/first_boot
