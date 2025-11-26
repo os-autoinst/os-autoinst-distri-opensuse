@@ -13,17 +13,17 @@ use base 'consoletest';
 use testapi;
 use bootloader_setup qw(add_grub_cmdline_settings change_grub_config);
 use power_action_utils 'power_action';
-use serial_terminal 'select_serial_terminal';
 use transactional qw(trup_call process_reboot);
 use utils qw(zypper_call reconnect_mgmt_console);
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends 'is_pvm';
-use Utils::Architectures 'is_aarch64';
+use Utils::Architectures qw(is_aarch64 is_ppc64le);
 use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional is_microos);
 use security::vendoraffirmation;
 
 my @vars = ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MODE', 'NSS_FIPS', 'GNUTLS_FORCE_FIPS_MODE');
 
-sub reboot_and_select_serial_term {
+sub reboot_and_login {
     my $self = shift;
 
     is_transactional ? process_reboot(trigger => 1) : power_action('reboot', textmode => 1, keepconsole => is_pvm);
@@ -33,7 +33,7 @@ sub reboot_and_select_serial_term {
     } else {
         $self->wait_boot if !is_transactional;
     }
-    select_serial_terminal;
+    is_ppc64le() ? select_console('root-console') : select_serial_terminal();
     return;
 }
 
@@ -42,7 +42,7 @@ sub enable_fips {
 
     if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
         assert_script_run("fips-mode-setup --enable", timeout => 120);
-        $self->reboot_and_select_serial_term;
+        $self->reboot_and_login;
     } else {
         # on SL Micro 6.0+ we only need to reboot, no need to manually change grub.
         if (is_sle_micro('<6.0')) {
@@ -51,7 +51,7 @@ sub enable_fips {
         } else {
             add_grub_cmdline_settings('fips=1', update_grub => 1) unless (is_sle_micro || is_microos);
         }
-        $self->reboot_and_select_serial_term;
+        $self->reboot_and_login;
     }
     return;
 }
@@ -93,7 +93,7 @@ sub install_fips {
 sub run {
     my ($self) = @_;
 
-    select_serial_terminal;
+    is_ppc64le() ? select_console('root-console') : select_serial_terminal();
 
     # For installation only. FIPS has already been setup during installation
     # (DVD installer booted with fips=1), so we only do verification here.
@@ -115,7 +115,7 @@ sub run {
             assert_script_run "update-crypto-policies --set FIPS";
         }
 
-        $self->reboot_and_select_serial_term;
+        $self->reboot_and_login;
         record_info 'ENV Mode', 'FIPS environment mode (for single modules) configured!';
     } else {
         install_fips;
