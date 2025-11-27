@@ -104,8 +104,6 @@ sub run {
         # jump to logins, alt-shift-d does not rotate between multiple places :(
         wait_still_screen(3);
         send_key 'alt-shift-f';
-        send_key 'alt-shift-f';
-        send_key "alt-shift-$key";
     }
     send_key_until_needlematch 'firefox-saved-logins-button', "alt-shift-$key", 6, 2;
     wait_still_screen 3;
