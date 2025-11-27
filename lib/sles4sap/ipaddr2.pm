@@ -2375,7 +2375,7 @@ sub ipaddr2_logs_collect_cmds {
         {
             name => 'supportconfig',
             remote_log => 1,
-            timeout => 600,
+            timeout => 1200,
             f_log => sub {
                 my $id = shift;
                 my $file = "supportconfig_$id";
