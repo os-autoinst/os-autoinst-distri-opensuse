@@ -26,6 +26,7 @@ sub install_klp_product {
     my $arch = get_required_var('ARCH');
     my $version = get_required_var('VERSION');
     my $livepatch_repo = get_var('REPO_SLE_MODULE_LIVE_PATCHING');
+    my $mirror_host = get_var('REPO_MIRROR_HOST', 'download.suse.de');
     my $release_override;
     my $lp_product;
     my $lp_module;
@@ -49,8 +50,8 @@ sub install_klp_product {
         zypper_ar("$utils::OPENQA_HTTP_URL/$livepatch_repo", name => "repo-live-patching");
     }
     elsif (is_sle('<16')) {
-        zypper_ar("http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/", name => "kgraft-pool");
-        zypper_ar("$release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/", name => "kgraft-update");
+        zypper_ar("http://$mirror_host/ibs/SUSE/Products/$lp_module/$version/$arch/product/", name => "kgraft-pool");
+        zypper_ar("$release_override http://$mirror_host/ibs/SUSE/Updates/$lp_module/$version/$arch/update/", name => "kgraft-update");
     }
 
     my $livepatch_pack = 'kernel-default-livepatch';
