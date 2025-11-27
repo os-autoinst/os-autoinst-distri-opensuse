@@ -48,7 +48,7 @@ sub run {
     # Now we add the test repositories and do a system update
     add_test_repositories;
     record_info('Updates', script_output('zypper lu'));
-    update_system;
+    update_system unless get_var('DISABLE_UPDATE_WITH_PATCH');
 
     # after update, clean the audit log to make sure there aren't any leftovers that were already fixed
     # see poo#169090

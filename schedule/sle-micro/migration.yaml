@@ -10,6 +10,8 @@ conditional_schedule:
         - boot/boot_to_desktop
       'x86_64':
         - microos/disk_boot
+      'ppc64le':
+        - microos/disk_boot
       'aarch64':
         - microos/disk_boot
   live_patching:
