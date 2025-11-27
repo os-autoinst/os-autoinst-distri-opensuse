@@ -283,6 +283,7 @@ sub update_host_and_publish_hdd {
         loadtest 'boot/boot_to_desktop';
         loadtest 'containers/update_host';
         loadtest 'containers/bci_prepare';
+        loadtest 'containers/k3s_helm_install' if get_var('VERSION', '') =~ /Leap16/;
     }
     loadtest 'shutdown/cleanup_before_shutdown' if is_s390x;
     loadtest 'shutdown/shutdown';
