@@ -46,6 +46,7 @@ sub load_config_tests {
     loadtest 'transactional/install_updates' if (is_sle_micro && is_released);
     loadtest 'containers/k3s_helm_install' if (get_var('CONTAINER_UPDATE_HOST') && is_sle_micro('6.0+') && (is_x86_64 || is_aarch64));
     loadtest 'containers/bci_prepare' if (get_var('CONTAINER_UPDATE_HOST') && get_var('BCI_PREPARE'));
+    loadtest 'microos/services_enabled' if is_transactional;
 }
 
 sub load_boot_from_disk_tests {
@@ -204,7 +205,6 @@ sub load_common_tests {
     loadtest 'microos/libzypp_config';
     loadtest 'microos/image_checks' if (is_image || is_selfinstall);
     loadtest 'microos/one_line_checks';
-    loadtest 'microos/services_enabled' if is_transactional;
     # MicroOS -old images use wicked, but cockpit-wicked is no longer supported in TW
     loadtest 'microos/cockpit_service' unless (is_microos('Tumbleweed') && is_staging) || (is_microos('Tumbleweed') && get_var('HDD_1', '') =~ /-old/) || !get_var('SCC_REGISTER');
     loadtest 'console/perl_bootloader' unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
