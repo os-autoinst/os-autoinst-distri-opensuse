@@ -37,9 +37,12 @@ sub run {
     record_info("Available Tests", join("\n", @available));
 
     # Filter which tests will run using KSELFTEST_TESTS
-    my @selected = @{get_var_array('KSELFTEST_TESTS')};
-    chomp @selected;
-    @tests = @selected ? @selected : @available;
+    my @selected = @available;
+    if (get_var('KSELFTEST_TESTS')) {
+        @selected = @{get_var_array('KSELFTEST_TESTS')};
+        chomp @selected;
+    }
+    my @tests = @selected;
 
     # Filter which tests will *NOT* run using KSELFTEST_SKIP
     my @skip = map { s/^\s+|\s+$//gr } @{get_var_array('KSELFTEST_SKIP')};
