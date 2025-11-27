@@ -14,7 +14,15 @@ use transactional qw(trup_call);
 use serial_terminal qw(select_serial_terminal);
 use Mojo::File qw(path);
 use utils qw(file_content_replace);
-use Utils::Architectures qw(is_aarch64);
+
+=head2 get_sysext
+
+ get_sysext( timeout => <value> );
+
+Get systemd system extensions from SYSEXT_IMAGES_TO_TEST list and
+prepare them to be used by elemental tool.
+
+=cut
 
 sub get_sysext {
     my $shared_dir = '/root/shared';
@@ -33,7 +41,8 @@ sub get_sysext {
             "elemental3ctl --debug unpack-image \\
                --image ${img} \\
                --platform linux/amd64 \\
-               --target ${sysext_dir}"
+               --target ${sysext_dir}",
+            $args{timeout}
         );
         $ctl_oci = $img if ($img =~ /\/elemental3ctl:/);
     }
@@ -41,6 +50,16 @@ sub get_sysext {
     # Return systemd-sysexts file name
     return ($overlay_dir, $ctl_oci);
 }
+
+=head2 build_cmd
+
+ build_cmd( hddsize => <value>, k8s => <value>, timeout => <value>,
+            rootpwd => <value> );
+
+Create an OS image with `build` command by using the specified
+release-manifest.
+
+=cut
 
 sub build_cmd {
     my (%args) = @_;
@@ -104,7 +123,18 @@ sub build_cmd {
     return ("$args{img_filename}.qcow2");
 }
 
-sub build_iso_cmd {
+=head2 build_installer_cmd
+
+ build_installer cmd( img_filename => <value>, k8s => <value>,
+                      rootpwd => <value>, timeout => <value>,
+                      type => <value> );
+
+Create an OS image with `build-installer` command by using the specified
+containerized OS image.
+
+=cut
+
+sub build_installer_cmd {
     my (%args) = @_;
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
     my $krnlcmdline = get_var('KERNEL_CMD_LINE');
@@ -115,10 +145,7 @@ sub build_iso_cmd {
     my $device = get_var('INSTALL_DISK', '/dev/vda');
 
     # Configure the systemd sysexts
-    my ($overlay_dir, $ctl_oci) = get_sysext();
-
-    # Extract elemental3ctl sysext name
-    my $ctl_sysext = script_output("openssl passwd -6 $args{rootpwd}");
+    my ($overlay_dir, $ctl_oci) = get_sysext($args{timeout});
 
     # OS configuration script
     assert_script_run(
@@ -145,7 +172,7 @@ sub build_iso_cmd {
     # Generate OS image
     assert_script_run(
         "elemental3ctl --debug build-installer \\
-           --type iso \\
+           --type $args{type} \\
            --output . \\
            --name $args{img_filename} \\
            --os-image $image \\
@@ -163,6 +190,17 @@ sub build_iso_cmd {
     return ("$args{img_filename}.iso");
 }
 
+=head2 install_cmd
+
+ install_cmd( hddsize => <value>, img_filename => <value>,
+              k8s => <value>, rootpwd => <value>,
+              timeout => <value> );
+
+Create an OS image with `build-installer` command by using the specified
+containerized OS image.
+
+=cut
+
 sub install_cmd {
     my (%args) = @_;
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
@@ -172,7 +210,7 @@ sub install_cmd {
     my $k8s_sysext_found;
 
     # Configure the systemd sysexts
-    my ($overlay_dir) = get_sysext();
+    my ($overlay_dir) = get_sysext($args{timeout});
 
     # OS configuration script
     assert_script_run(
@@ -220,14 +258,12 @@ sub run {
     my $rootpwd = get_required_var('TEST_PASSWORD');
     my $build = get_required_var('BUILD');
     my $repo_to_test = get_required_var('REPO_TO_TEST');
-    my $img_filename = "elemental-$build-$arch";
+    my $img_filename = get_required_var('IMG_NAME');
+    my $timeout = 900;
     my $out_file;
 
     # Clean image filename (useful for cloned jobs)
     $img_filename =~ tr/\/#/_/;
-
-    # Define timeouts based on the architecture
-    my $timeout = (is_aarch64) ? 960 : 480;
 
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
@@ -250,16 +286,17 @@ sub run {
         build => $build,
         repo_to_test => $repo_to_test,
         img_filename => $img_filename
-    ) if check_var('ELEMENTAL_CMD', 'build');
+    ) if check_var('TESTED_CMD', 'build');
 
-    $out_file = build_iso_cmd(
+    $out_file = build_installer_cmd(
         timeout => $timeout,
         k8s => $k8s,
+        type => 'iso',
         rootpwd => $rootpwd,
         build => $build,
         repo_to_test => $repo_to_test,
         img_filename => $img_filename
-    ) if check_var('ELEMENTAL_CMD', 'build_iso');
+    ) if check_var('TESTED_CMD', 'build_installer_iso');
 
     $out_file = install_cmd(
         timeout => $timeout,
@@ -270,7 +307,7 @@ sub run {
         build => $build,
         repo_to_test => $repo_to_test,
         img_filename => $img_filename
-    ) if check_var('ELEMENTAL_CMD', 'install');
+    ) if check_var('TESTED_CMD', 'install');
 
     # Upload OS image
     upload_asset("$out_file", 1);

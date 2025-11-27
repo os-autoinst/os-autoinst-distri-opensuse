@@ -64,9 +64,6 @@ sub run {
     record_info('env file', script_output("cat $env_file"));
     record_info('tfvars file', script_output("cat $tfvars_file"));
 
-    # SELinux
-    # ausearch -ts boot -m avc,user_avc,selinux_err,user_selinux_err
-
     # Run tests
     # TODO: add a better way to define options to pass to the tests?
     # Maybe like this: TESTS_TO_RUN=validatecluster|-selinux true,deployrancher

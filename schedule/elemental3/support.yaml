@@ -9,10 +9,10 @@ schedule:
   - '{{elemental_test}}'
 conditional_schedule:
   generate_image:
-    ELEMENTAL_CMD:
+    TESTED_CMD:
       build:
         - elemental3/generate_image
-      build_iso:
+      build_installer_iso:
         - elemental3/generate_image
       install:
         - elemental3/generate_image
