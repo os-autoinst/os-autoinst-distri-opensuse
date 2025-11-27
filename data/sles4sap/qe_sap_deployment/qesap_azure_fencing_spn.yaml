@@ -56,3 +56,5 @@ ansible:
       - sap-hana-cluster.yaml -e azure_identity_management=%AZURE_NATIVE_FENCING_AIM% -e spn_application_id=%AZURE_NATIVE_FENCING_APP_ID% -e spn_application_password=%AZURE_NATIVE_FENCING_APP_PASSWORD%
     destroy:
       - deregister.yaml
+    test:
+    - hana_prevalidate.yaml -e node_name=hana

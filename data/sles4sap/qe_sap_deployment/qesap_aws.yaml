@@ -5,6 +5,7 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: conf.yaml template for qe-sap-deployment project: https://github.com/SUSE/qe-sap-deployment
 #          Deploy on AWS, two node HANA cluster with cloud native fencing.
+#          Deployment using default for fencing that is native
 provider: 'aws'
 apiver: 4
 terraform:
@@ -53,3 +54,5 @@ ansible:
       - sap-hana-cluster.yaml
     destroy:
       - deregister.yaml
+    test:
+    - hana_prevalidate.yaml -e node_name=hana

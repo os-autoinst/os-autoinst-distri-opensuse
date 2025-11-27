@@ -46,4 +46,5 @@ ansible:
       - sap-hana-system-replication.yaml
       - sap-hana-system-replication-hooks.yaml
       - sap-hana-cluster.yaml
-
+    test:
+    - hana_prevalidate.yaml -e node_name=hana
