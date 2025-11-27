@@ -815,14 +815,14 @@ sub get_console_info {
 
 =head2 activate_console
 
-  activate_console($console [, [ensure_tty_selected => 0|1] [, skip_set_standard_prompt => 0|1] [, skip_setterm => 0|1] [, timeout => $timeout]])
+  activate_console($console [, [ensure_tty_selected => 0|1] [, skip_set_standard_prompt => 0|1] [, skip_setterm => 0|1] [, skip_disable_key_repeat => 0|1] [, timeout => $timeout]])
 
 Callback whenever a console is selected for the first time. Accepts arguments
 provided to select_console().
 
-C<skip_set_standard_prompt> and C<skip_setterm> arguments skip respective routines,
-e.g. if you want select_console() without addition console setup. Then, at some
-point, you should set it on your own.
+C<skip_set_standard_prompt>, C<skip_setterm> and C<skip_disable_key_repeat>
+arguments skip respective routines, e.g. if you want select_console() without
+addition console setup. Then, at some point, you should set it on your own.
 
 Option C<ensure_tty_selected> ensures TTY is selected.
 
@@ -895,6 +895,15 @@ sub activate_console {
         unless ($args{skip_set_standard_prompt}) {
             $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
             assert_screen $console;
+        }
+        unless ($args{skip_disable_key_repeat}) {
+            if (exists &distribution::disable_key_repeat) {
+                $self->disable_key_repeat();
+            }
+            # backward compatibility for os-autoinst below interface version 48
+            else {
+                enter_cmd('kbdrate -s -d99999');
+            }
         }
     }
     elsif ($type =~ /^(virtio-terminal|sut-serial)$/) {
