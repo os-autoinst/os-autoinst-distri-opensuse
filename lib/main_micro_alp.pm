@@ -46,7 +46,7 @@ sub load_config_tests {
     loadtest 'transactional/install_updates' if (is_sle_micro && is_released);
     loadtest 'containers/k3s_helm_install' if (get_var('CONTAINER_UPDATE_HOST') && is_sle_micro('6.0+') && (is_x86_64 || is_aarch64));
     loadtest 'containers/bci_prepare' if (get_var('CONTAINER_UPDATE_HOST') && get_var('BCI_PREPARE'));
-    loadtest 'microos/services_enabled' if is_transactional;
+    loadtest 'microos/services_enabled' if (is_transactional && !(check_var("FLAVOR", "Container-Image-Updates")));
 }
 
 sub load_boot_from_disk_tests {
