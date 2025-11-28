@@ -240,7 +240,7 @@ sub crash_pubip(%args) {
 =head2 crash_system_ready
 
     Polls C<systemctl is-system-running> via SSH for up to 5 minutes.
-    If C<reg_code> is provided, registers the system using C<registercloudguest> and verifies with C<SUSEConnect -s>.
+    If C<reg_code> is provided, registers the system and verifies with C<SUSEConnect -s>.
 
 =over
 
@@ -248,11 +248,15 @@ sub crash_pubip(%args) {
 
 =item B<ssh_command> SSH command for registration.
 
+=item B<scc_endpoint> The way of doing registration, SUSEConnect or registercloudguest.
+
 =back
 =cut
 
 sub crash_system_ready(%args) {
     croak "Missing mandatory argument 'ssh_command'" unless $args{ssh_command};
+    $args{scc_endpoint} //= 'registercloudguest';
+
     my $ret;
 
     my $start_time = time();
@@ -264,17 +268,19 @@ sub crash_system_ready(%args) {
     return unless ($args{reg_code});
 
     script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'), 200);
-    script_run(join(' ', $args{ssh_command}, 'sudo registercloudguest --clean'), 200);
+    script_run(join(' ', $args{ssh_command}, "sudo $args{scc_endpoint} --clean"), 200);
 
     my $rc = 1;
     my $attempt = 0;
 
+    my $forcenew = ($args{scc_endpoint} eq 'registercloudguest') ? '--force-new' : '';
+
     while ($rc != 0 && $attempt < 4) {
-        $rc = script_run("$args{ssh_command} sudo registercloudguest --force-new -r $args{reg_code} -e testing\@suse.com", 600);
+        $rc = script_run("$args{ssh_command} sudo $args{scc_endpoint} $forcenew -r $args{reg_code} -e testing\@suse.com", 600);
         record_info('REGISTER CODE', $rc);
         $attempt++;
     }
-    die "registercloudguest failed after $attempt attempts with exit $rc" unless ($rc == 0);
+    die "Registration failed after $attempt attempts with exit $rc" unless ($rc == 0);
     assert_script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'));
 }
 
@@ -341,18 +347,17 @@ sub crash_wait_back(%args) {
     foreach (qw(vm_ip username)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    my ($duration, $exit_code);
     my $done = 0;
     my $start_time = time();
-    while (($duration = time() - $start_time) < 300) {
-        $exit_code = script_run('nc -vz -w 1 ' . $args{vm_ip} . ' 22', quiet => 1);
+    while ((time() - $start_time) < 300) {
+        my $exit_code = script_run('nc -vz -w 1 ' . $args{vm_ip} . ' 22', quiet => 1);
         if ($exit_code == 0) {
             $done = 1;
             last;
         }
         sleep 10;
     }
-    die "No reply from $args{vm_ip} after $duration" unless ($done);
+    die "No reply from $args{vm_ip}" unless ($done);
 
     my $services_output = script_output(join(' ',
             'ssh',
