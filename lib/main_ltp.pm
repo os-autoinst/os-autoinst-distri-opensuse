@@ -59,24 +59,11 @@ sub load_kernel_tests {
             get_var('ASSET_CHANGE_KERNEL_RPM')) {
             loadtest_kernel 'change_kernel';
         }
-        if (get_var('FLAVOR', '') =~ /Incidents-Kernel|Updates-Staging|Increments|Maintenance-KOTD/) {
-            loadtest_kernel 'update_kernel';
-        }
-
-        # transactional needs to first run install_ltp due broken grub menu
-        # counting detection in add_custom_grub_entries():
-        # Test died: Unexpected number of grub entries: 5, expected: 3 at lib/bootloader_setup.pm line 166.
-        my $needs_update = is_transactional && (get_var('FLAVOR', '') =~ /-Staging|-Updates/);
-
-        if ($needs_update && get_var('KGRAFT')) {
+        if (get_var('FLAVOR', '') =~ /Incidents-Kernel|Updates-Staging|Increments|Maintenance-KOTD|(Default-qcow|Base-RT)-Updates/) {
             loadtest_kernel 'update_kernel';
         }
 
         loadtest_kernel 'install_ltp';
-
-        if ($needs_update && !get_var('KGRAFT')) {
-            loadtest 'transactional/install_updates';
-        }
 
         if (get_var('LIBC_LIVEPATCH')) {
             die 'LTP_COMMAND_FILE and LIBC_LIVEPATCH are mutually exclusive'
