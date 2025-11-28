@@ -6,6 +6,7 @@ schedule:
   - yam/agama/agama_auto
   - installation/grub_test
   - installation/first_boot
+  - security/installation/enable_repos
   - console/zypper_lr
   - console/system_prepare
   - '{{patch_reboot}}'

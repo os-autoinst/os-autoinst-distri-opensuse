@@ -3,17 +3,19 @@
 # Copyright 2021 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: After installation, enable all repository on a Full-QR system.
+# Summary: After installation, enable all repository on a Full flavor system.
 # Maintainer: QE Security <none@suse.de>
 
 use base 'consoletest';
 use testapi;
 use utils 'zypper_call';
+use Utils::Architectures qw(is_ppc64le);
 use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_serial_terminal;
-    zypper_call('mr -e -a') if check_var('FLAVOR', 'Full-QR') || check_var('FLAVOR', 'Full');
+    return unless check_var('FLAVOR', 'Full-QR') || check_var('FLAVOR', 'Full');
+    is_ppc64le() ? select_console('root-console') : select_serial_terminal();
+    zypper_call('mr -e -a');
 }
 
 sub test_flags {

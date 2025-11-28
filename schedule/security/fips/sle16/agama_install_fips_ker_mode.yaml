@@ -7,6 +7,7 @@ schedule:
   - yam/agama/agama_auto
   - installation/grub_test
   - installation/first_boot
+  - security/installation/enable_repos
   - fips/fips_setup
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
