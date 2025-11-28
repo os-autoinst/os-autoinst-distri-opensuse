@@ -17,6 +17,7 @@ use mmapi 'get_current_job_id';
 use utils qw(zypper_call script_retry);
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
+use publiccloud::utils qw(calculate_custodian_ttl);
 
 sub run {
     my ($self, $args) = @_;
@@ -40,8 +41,9 @@ sub run {
     my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) + get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
     my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     my $created_by = "$openqa_url/t$job_id";
+    my $custodian_ttl = calculate_custodian_ttl($openqa_ttl);
     my $tags = "openqa-cli-test-tag=$job_id openqa_created_by=$created_by openqa_ttl=$openqa_ttl";
-    $tags .= " openqa_var_server=$openqa_url openqa_var_job_id=$job_id";
+    $tags .= " openqa_var_server=$openqa_url openqa_var_job_id=$job_id custodian_ttl=$custodian_ttl";
 
     # Configure default location
     assert_script_run("az configure --defaults location=southeastasia");
