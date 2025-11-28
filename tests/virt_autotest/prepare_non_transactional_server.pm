@@ -22,6 +22,7 @@ use Utils::Systemd;
 use Utils::Backends qw(get_serial_console);
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
+use virt_utils;
 
 sub run {
     my $self = shift;
@@ -63,8 +64,14 @@ sub prepare_console {
 sub prepare_extensions {
     my $self = shift;
 
-    zypper_call("install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change suseconnect-ng");
-    virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => get_var('SCC_REGEXTS', ''));
+    my $zypper_args = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change suseconnect-ng";
+    if (is_s390x) {
+        lpar_cmd("zypper $zypper_args");
+    }
+    else {
+        zypper_call($zypper_args);
+        virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => get_var('SCC_REGEXTS', ''));
+    }
 }
 
 sub prepare_packages {
@@ -76,21 +83,24 @@ sub prepare_packages {
     }
 
     # install additional packages from product repositories
-    zypper_call("--gpg-auto-import-keys refresh");
+    my $zypper_refresh = "--gpg-auto-import-keys refresh";
+    is_s390x ? lpar_cmd("zypper $zypper_refresh") : zypper_call($zypper_refresh);
     if (get_var('INSTALL_PRODUCT_PACKAGES', '')) {
         my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
-        $cmd = $cmd . " $_" foreach (split(/,/, get_var('INSTALL_PRODUCT_PACKAGES', '')));
-        $cmd = $cmd . " systemd-coredump" if get_var('COLLECT_COREDUMPS');
-        zypper_call($cmd);
+        $cmd .= " --no-confirm agama-cli sshpass ignition" if is_s390x;
+        $cmd .= " $_" foreach (split(/,/, get_var('INSTALL_PRODUCT_PACKAGES', '')));
+        $cmd .= " systemd-coredump" if get_var('COLLECT_COREDUMPS');
+        is_s390x ? lpar_cmd("zypper $cmd") : zypper_call($cmd);
         save_screenshot;
     }
     # install auxiliary packages from additional repositories to facilitate automation, for example screen and etc.
-    install_extra_packages;
+    install_extra_packages if (!is_s390x);
 }
 
 sub prepare_bootloader {
     my $self = shift;
 
+    return if is_s390x;
     my $serialconsole = get_serial_console();
     if (script_run("grep -E \"\\s+linux\\s+/boot/.*console=$serialconsole,115200\" /boot/grub2/grub.cfg") != 0) {
         ipmi_backend_utils::add_kernel_options(kernel_opts => "console=tty console=$serialconsole,115200");
@@ -108,6 +118,7 @@ sub prepare_services {
 sub prepare_reboot {
     my $self = shift;
 
+    return if is_s390x;
     if (is_reboot_needed) {
         process_reboot(trigger => 1);
     }
