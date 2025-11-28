@@ -1034,6 +1034,7 @@ sub check_device_available {
     my ($dev, $tout) = @_;
     my $ret;
     my $tries = bmwqemu::scale_timeout($tout ? int($tout / 2) : 10);
+    my $tries_drbd0 = $tries;
 
     die "Must provide a device for check_device_available" unless (defined $dev);
 
@@ -1042,6 +1043,15 @@ sub check_device_available {
         sleep 2;
     }
 
+    # According to https://bugzilla.suse.com/show_bug.cgi?id=1247534#c23
+    # /dev/drbd_passive will not be generated for sle16, so we also need to check /dev/drbd0
+    if (is_sle('>=16') && $ret != 0) {
+        while ($tries_drbd0 and $ret = script_run "ls -la /dev/drbd0") {
+            --$tries_drbd0;
+            sleep 2;
+        }
+        die "Device $dev not found" unless ($tries_drbd0 > 0 or $ret == 0);
+    }
     _test_var_defined $ret;
     die "Device $dev not found" unless ($tries > 0 or $ret == 0);
     return $ret;
