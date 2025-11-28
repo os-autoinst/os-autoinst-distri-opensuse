@@ -48,6 +48,7 @@ cat > ${etc_rancher}/${k8s_distri}/config.yaml <<EOF
 write-kubeconfig-mode: "0644"
 node-name: %NODE_NAME%
 node-external-ip: %NODE_IP%
+selinux: true
 EOF
 
 # Create a pseudo-sudo command (for testing purposes only!)

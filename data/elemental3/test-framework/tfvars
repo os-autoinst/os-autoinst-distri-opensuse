@@ -6,3 +6,4 @@ node_os="slemicro"
 no_of_server_nodes=1
 no_of_worker_nodes=0
 %K8S%_version="%K8S_VERSION%"
+server_flags="selinux: true\n"

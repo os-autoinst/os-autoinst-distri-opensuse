@@ -65,6 +65,8 @@ sub run {
     record_info('tfvars file', script_output("cat $tfvars_file"));
 
     # Run tests
+    # TODO: add a better way to define options to pass to the tests?
+    # Maybe like this: TESTS_TO_RUN=validatecluster|-selinux true,deployrancher
     my $rancher_url = 'https://releases.rancher.com/server-charts/stable';
     my $rancher_args = 'bootstrapPassword=rancherpassword,replicas=1';
     my $certmanager_version = get_required_var('CERTMANAGER_VERSION');
@@ -73,7 +75,18 @@ sub run {
     foreach my $test (split(/,/, get_required_var('TESTS_TO_RUN'))) {
         # Specific options are needed for some tests
         my $opts;
-        $opts = "-tags=$test -certManagerVersion $certmanager_version -chartsVersion $rancher_version -chartsRepoName rancher -chartsRepoUrl $rancher_url -chartsArgs $rancher_args" if ($test eq 'deployrancher');
+
+        # Rancher Manager options
+        $opts = "-tags=$test \\
+                 -certManagerVersion $certmanager_version \\
+                 -chartsVersion $rancher_version \\
+                 -chartsRepoName rancher \\
+                 -chartsRepoUrl $rancher_url \\
+                 -chartsArgs $rancher_args" if ($test eq 'deployrancher');
+
+        # Add SELinux test in cluster validation
+        # NOTE: disable for now, as ECM test framework needs to be adapted
+        # $opts = "-selinux true" if ($test eq 'validatecluster');
 
         record_info("$test", "Execute '$test' test with options '$opts'");
         assert_script_run("go test -timeout=45m -v -count=1 ./entrypoint/$test/... $opts", 3600);
