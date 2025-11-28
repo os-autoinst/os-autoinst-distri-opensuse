@@ -36,4 +36,5 @@ schedule:
     - kernel/update_kernel
     - kernel/ibtests_prepare
     - installation/handle_reboot
+    - boot/boot_to_desktop
     - kernel/ibtests
