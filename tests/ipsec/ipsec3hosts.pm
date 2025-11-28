@@ -12,7 +12,7 @@
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base 'ipsecbase';
+use Mojo::Base 'Kernel::net_tests';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

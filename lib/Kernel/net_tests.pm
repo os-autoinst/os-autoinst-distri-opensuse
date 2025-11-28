@@ -56,6 +56,19 @@ sub add_ipv6_route {
     assert_script_run("ip -6 route add $args{dst} via $args{via}");
 }
 
+sub add_ipv4_addr {
+    my ($self, %args) = @_;
+    $args{dev} ||= iface();
+    $args{plen} ||= 24;
+    my $cidr = "$args{ip}/$args{plen}";
+    assert_script_run("ip addr add $cidr dev $args{dev}");
+}
+
+sub add_ipv4_route {
+    my ($self, %args) = @_;
+    assert_script_run("ip route add $args{dst} via $args{via}");
+}
+
 sub destroy_test_barriers {
     my ($self) = @_;
     barrier_destroy('IPSEC_IP_SETUP_DONE');
@@ -66,6 +79,8 @@ sub destroy_test_barriers {
     barrier_destroy('IPSEC_TUNNEL_MODE_CHECK_DONE');
     barrier_destroy('IPSEC_TRANSPORT_MODE_SETUP_DONE');
     barrier_destroy('IPSEC_TRANSPORT_MODE_CHECK_DONE');
+    barrier_destroy('L2TP_SETUP_DONE');
+    barrier_destroy('L2TP_TESTS_DONE');
 }
 
 sub check_ipv6_addr {
@@ -96,10 +111,9 @@ sub config_ipsec {
 }
 
 sub pre_run_hook {
+    my ($self, $args) = @_;
 
     mutex_wait 'support_server_ready';
-
-    my ($self, $args) = @_;
     select_serial_terminal;
 
     record_info('/etc/machine-id', script_output('cat /etc/machine-id'));

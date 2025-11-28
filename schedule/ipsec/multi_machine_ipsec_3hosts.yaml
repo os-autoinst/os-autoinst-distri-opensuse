@@ -13,3 +13,4 @@ schedule:
   - '{{bootmenu}}'
   - boot/boot_to_desktop
   - ipsec/ipsec3hosts
+  - ipsec/l2tp3hosts
