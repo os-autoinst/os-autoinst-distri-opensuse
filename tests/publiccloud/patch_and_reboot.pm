@@ -38,7 +38,7 @@ sub run {
     if (is_sle_micro) {
         ssh_update_transactional_system($args->{my_instance});
     } else {
-        ssh_fully_patch_system($remote);
+        ssh_fully_patch_system($remote, $args->{my_instance});
     }
     record_info('UNAME', $args->{my_instance}->ssh_script_output(cmd => 'uname -a'));
     $args->{my_instance}->ssh_assert_script_run(cmd => 'rpm -qa > /tmp/rpm-qa.txt');
