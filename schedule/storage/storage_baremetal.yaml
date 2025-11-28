@@ -1,0 +1,45 @@
+---
+name: Storage on Baremetal
+description:    >
+    Maintainer: schlad
+    Tests creating storage set-up and testing various things like: NFS
+    2 machines with one acting as a taget and the other as a client
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    DESKTOP: textmode
+    MLX_PROTOCOL: 1
+    INSTALL_LTP: from_repo
+    LTP_PKG: ltp
+    LTP_BAREMETAL: 1
+    LTP_DONE_BARRIER: NFS_LTP_CLIENT_DONE
+
+conditional_schedule:
+    nfs_barriers:
+        ROLE:
+            nfs_server:
+                - kernel/nfs_barriers
+    nfs_test:
+        ROLE:
+            nfs_server:
+                - kernel/nfs_server
+            nfs_client:
+                - kernel/nfs_client
+    ltp_server_wait:
+        ROLE:
+            nfs_server:
+                - kernel/ltp_wait_for_client
+schedule:
+    - '{{nfs_barriers}}'
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - kernel/before_nfs_test
+    - '{{nfs_test}}'
+    - kernel/nfs_stress_ng
+    - kernel/before_ltp_nfs_test
+    - kernel/install_ltp
+    - '{{ltp_server_wait}}'

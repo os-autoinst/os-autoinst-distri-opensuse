@@ -15,6 +15,8 @@ use testapi;
 use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
+use Utils::Backends 'is_ipmi';
+use Kernel::net_tests 'get_ipv4_addresses';
 
 sub copy_file {
     my ($flag, $nfs_mount, $file) = @_;
@@ -24,7 +26,29 @@ sub copy_file {
 sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
-    my $server_node = get_var('SERVER_NODE', 'server-node00');
+    my $server_node = get_var('SERVER_NODE');
+    # Baremetal/ipmi multimachine jobs commonly provide peer IPs via IBTEST_IP*
+    # and not DNS-resolvable hostnames.
+    if (is_ipmi) {
+        my $ip1 = get_var('IBTEST_IP1');
+        my $ip2 = get_var('IBTEST_IP2');
+        my $detected_ipv4 = get_ipv4_addresses();
+        my @local_ips = map { @$_ } values %$detected_ipv4;
+
+        if (grep { $_ eq $ip1 } @local_ips) {
+            $server_node = $ip2;
+        } elsif (grep { $_ eq $ip2 } @local_ips) {
+            $server_node = $ip1;
+        } else {
+            @local_ips = sort @local_ips;
+            record_info("IP mapping", "local_ips=@local_ips ib1=$ip1 ib2=$ip2", result => 'fail');
+            die "Unable to map server node: local host does not have IBTEST_IP1 or IBTEST_IP2";
+        }
+        @local_ips = sort @local_ips;
+        record_info("IP mapping", "local_ips=@local_ips peer=$server_node");
+    } else {
+        $server_node //= 'server-node00';
+    }
 
     zypper_call("in nfs-client");
 
@@ -50,7 +74,15 @@ sub run {
     $kernel_nfsd_v4 = 1 unless script_run('zgrep "CONFIG_NFSD_V4=[my]" /proc/config.gz');
 
     barrier_wait("NFS_SERVER_ENABLED");
-    record_info("showmount", script_output("showmount -e $server_node"));
+    assert_script_run("ping -c3 $server_node");
+    record_info("ip a", script_output("ip a", proceed_on_failure => 1));
+    record_info("RPC ping", script_output("rpcinfo -t $server_node portmapper", proceed_on_failure => 1));
+    my $mountd_ready = script_retry("rpcinfo -t $server_node mountd", retry => 12, delay => 5, timeout => 30);
+    die "mountd not reachable on $server_node" if $mountd_ready != 0;
+    record_info("debug", "Sleeping before showmount for manual SSH inspection");
+    my $showmount_ok = script_retry("showmount -e $server_node", retry => 12, delay => 10, timeout => 30);
+    die "showmount failed for $server_node" if $showmount_ok != 0;
+    record_info("showmount", script_output("showmount -e $server_node", proceed_on_failure => 1));
 
     if ($kernel_nfs3 == 1) {
         record_info('INFO', 'Kernel has support for NFSv3');

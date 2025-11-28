@@ -10,6 +10,7 @@ use 5.018;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use lockapi 'barrier_wait';
 use LTP::utils;
 use power_action_utils 'power_action';
 use upload_system_log;
@@ -47,6 +48,12 @@ sub run {
 
     upload_system_logs();
     check_kernel_package(get_kernel_flavor()) if get_var('INSTALL_LTP');
+
+    my $done_barrier = get_var('LTP_DONE_BARRIER');
+    if ($done_barrier) {
+        record_info('LTP done', "Signaling barrier $done_barrier");
+        barrier_wait($done_barrier);
+    }
 
     # Also cleanup machine-id to avoid duplicate ipv6 link local address in mutli-machine setup.
     script_run('echo -n >/etc/machine-id');

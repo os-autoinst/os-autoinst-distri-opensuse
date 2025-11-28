@@ -1,11 +1,12 @@
 # SUSE's openQA tests
 #
-# Copyright 2016-2022 SUSE LLC
+# Copyright 2016-2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: This module installs the LTP (Linux Test Project) and then reboots.
-# Maintainer: Richard palethorpe <rpalethorpe@suse.com>
-# Usage details are at the end of this file.
+# Summary: This module installs the LTP (Linux Test Project), prepares the system
+# and the LTP environment (including dependencies), and then optionally reboots.
+# Maintainer: QE Kernel <kernel-qa@suse.de>
+
 use 5.018;
 use base 'opensusebasetest';
 use File::Basename 'basename';
@@ -348,7 +349,7 @@ sub run {
         reboot_on_changes;
     }
 
-    setup_network;
+    setup_network unless get_var('LTP_SKIP_NETWORK_SETUP');
 
     # we don't run LVM tests in 32bit, thus not generating the runtest file
     # for 32 bit packages
@@ -498,6 +499,11 @@ Append custom group entries with appended group param via
 add_custom_grub_entries().
 
 =head2 SLES CONFIGURATION
+
+=head2 LTP_SKIP_NETWORK_SETUP
+
+Skip network setup when required. Multimachine tests typically should have more elaborate
+test setup as the one offered by setup_network()
 
 =head3 install_ltp+sle+Online
 

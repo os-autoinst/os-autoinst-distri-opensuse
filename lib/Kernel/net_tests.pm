@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2025 SUSE LLC
+# Copyright 2023-2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 # Summary: Generic network base module for multimachine tests (IPsec, L2TP, etc.)
 # Maintainer: Kernel QE <kernel-qa@suse.de>
@@ -22,6 +22,8 @@ use network_utils;
 use mm_network;
 
 our @EXPORT_OK = qw(
+  get_ipv4_addresses
+  get_ipv6_addresses
   get_net_prefix_len
   add_ipv6_addr
   add_ipv6_route
@@ -39,9 +41,72 @@ our @EXPORT_OK = qw(
 =head1 SYNOPSIS
 
 Networking helper utilities for multimachine openQA tests involving
-IPsec, L2TP, routing, and general tunnel configuration.
+IPsec, L2TP, routing, as well as LTP NFS multi-machine tests and general
+tunnel and network interfaces configuration.
 
 =cut
+
+#
+=head2 get_ipv4_addresses
+
+ my $ips_by_if = get_ipv4_addresses();
+
+Return global IPv4 addresses grouped by interface as a hashref:
+
+ {
+   eno1 => ['10.168.192.67'],
+   br0  => ['172.16.0.10', '172.16.0.11'],
+ }
+
+Interface names are keys and each value is an arrayref of IPv4 addresses
+without prefix length.
+
+=cut
+
+sub get_ipv4_addresses {
+    my $output = script_output("ip -4 -o addr show scope global", proceed_on_failure => 1);
+    my %ips_by_if;
+
+    for my $line (split(/\n/, $output)) {
+        my ($ifname, $cidr) = $line =~ /^\d+:\s+(\S+)\s+inet\s+(\d+\.\d+\.\d+\.\d+\/\d+)/;
+        next unless $ifname && $cidr;
+        my ($ip) = split('/', $cidr, 2);
+        push @{$ips_by_if{$ifname}}, $ip if defined $ip && $ip ne '';
+    }
+
+    return \%ips_by_if;
+}
+
+#
+=head2 get_ipv6_addresses
+
+ my $ips_by_if = get_ipv6_addresses();
+
+Return global IPv6 addresses grouped by interface as a hashref:
+
+ {
+   eno1 => ['2a07:de40:a102:5::1'],
+   br0  => ['2001:db8::10', '2001:db8::11'],
+ }
+
+Interface names are keys and each value is an arrayref of IPv6 addresses
+without prefix length.
+
+=cut
+
+sub get_ipv6_addresses {
+    my $output = script_output("ip -6 -o addr show scope global", proceed_on_failure => 1);
+    my %ips_by_if;
+
+    for my $line (split(/\n/, $output)) {
+        my ($ifname, $cidr) = $line =~ /^\d+:\s+(\S+)\s+inet6\s+([0-9a-fA-F:]+\/\d+)/;
+        next unless $ifname && $cidr;
+        my ($ip) = split('/', $cidr, 2);
+        push @{$ips_by_if{$ifname}}, $ip if defined $ip && $ip ne '';
+    }
+
+    return \%ips_by_if;
+}
 
 
 =head2 get_net_prefix_len
