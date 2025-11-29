@@ -6,3 +6,4 @@ schedule:
     - support_server/setup
     - ipsec/barrier_init
     - support_server/wait_children
+    - ipsec/barrier_destroy

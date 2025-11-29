@@ -26,19 +26,23 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package l2tp3hosts;
-use Mojo::Base 'Kernel::net_tests';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use lockapi;
 use network_utils;
+use Kernel::net_tests qw(
+  add_ipv4_addr
+  add_ipv4_route
+);
 
 sub run_left {
     my ($self, $setup) = @_;
     my $dev = iface(0);
 
-    $self->add_ipv4_addr(ip => $setup->{left_ip4}, dev => $dev);
-    $self->add_ipv4_route(
+    add_ipv4_addr(ip => $setup->{left_ip4}, dev => $dev);
+    add_ipv4_route(
         dst => "$setup->{right_ip4}/32",
         via => $setup->{middle_ip4_01}
     );
@@ -64,10 +68,10 @@ sub run_left {
     );
 
     # Loopback endpoints for test
-    $self->add_ipv4_addr(ip => $setup->{lo_v4_left}, plen => 32, dev => 'lo');
+    add_ipv4_addr(ip => $setup->{lo_v4_left}, plen => 32, dev => 'lo');
 
     # Route the right-side loopback via the L2TP tunnel
-    $self->add_ipv4_route(
+    add_ipv4_route(
         dst => "$setup->{lo_v4_right}/32",
         via => $setup->{l2tp4_right}
     );
@@ -90,8 +94,8 @@ sub run_middle {
     assert_script_run("sysctl -w net.ipv4.conf.all.rp_filter=0");
     assert_script_run("sysctl -w net.ipv4.conf.default.rp_filter=0");
 
-    $self->add_ipv4_addr(ip => $setup->{middle_ip4_01}, dev => $dev0);
-    $self->add_ipv4_addr(ip => $setup->{middle_ip4_02}, dev => $dev1);
+    add_ipv4_addr(ip => $setup->{middle_ip4_01}, dev => $dev0);
+    add_ipv4_addr(ip => $setup->{middle_ip4_02}, dev => $dev1);
 
     assert_script_run("ip link set $dev0 up");
     assert_script_run("ip link set $dev1 up");
@@ -110,8 +114,8 @@ sub run_right {
     my ($self, $setup) = @_;
     my $dev = iface(0);
 
-    $self->add_ipv4_addr(ip => $setup->{right_ip4}, dev => $dev);
-    $self->add_ipv4_route(
+    add_ipv4_addr(ip => $setup->{right_ip4}, dev => $dev);
+    add_ipv4_route(
         dst => "$setup->{left_ip4}/32",
         via => $setup->{middle_ip4_02}
     );
@@ -137,10 +141,10 @@ sub run_right {
     );
 
     # Loopback endpoints for test
-    $self->add_ipv4_addr(ip => $setup->{lo_v4_right}, plen => 32, dev => 'lo');
+    add_ipv4_addr(ip => $setup->{lo_v4_right}, plen => 32, dev => 'lo');
 
     # Route the left-side loopback via the L2TP tunnel
-    $self->add_ipv4_route(
+    add_ipv4_route(
         dst => "$setup->{lo_v4_left}/32",
         via => $setup->{l2tp4_left}
     );
