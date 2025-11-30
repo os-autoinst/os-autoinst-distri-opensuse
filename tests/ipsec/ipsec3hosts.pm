@@ -90,8 +90,8 @@ sub run_left {
     dump_ipsec_debug();
 
     record_info("Test05: mode transport", "Ping...");
-    #assert_script_run("ping6 -c 8 $setup->{right_ip}");
-    #assert_script_run("ping6 -s 1300 -c 8 $setup->{right_ip}");
+    assert_script_run("ping6 -c 8 $setup->{right_ip}");
+    assert_script_run("ping6 -s 1300 -c 8 $setup->{right_ip}");
 
     barrier_wait('IPSEC_TRANSPORT_MODE_CHECK_DONE');
 }
