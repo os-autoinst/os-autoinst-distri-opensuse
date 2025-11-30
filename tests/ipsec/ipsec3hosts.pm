@@ -26,11 +26,13 @@ use Kernel::net_tests qw(
   check_ipv6_addr
   config_ipsec
   dump_ipsec_debug
+  validate_tcpdump
 );
 
 sub run_left {
     my ($self, $setup) = @_;
 
+    # hash for the ipsec config
     my $ipsec_setting_left = {
         local_ip => $setup->{left_ip},
         remote_ip => $setup->{right_ip},
@@ -42,10 +44,12 @@ sub run_left {
         ip => $setup->{left_ip},
         plen => get_net_prefix_len(net => $setup->{left_net})
     );
-
     check_ipv6_addr();
+
     barrier_wait('IPSEC_IP_SETUP_DONE');
 
+    # first traffic test/check. At this point it should be possible to
+    # ping the middle. So ping the middle router interface on the same subnet
     record_info("Test01: connectivity", "Ping router/middle host");
     script_retry("ping -c 1 $setup->{middle_ip_01}", retry => 5);
     record_info('IP NEIGHBOR', script_output('ip neighbor show'));
@@ -60,37 +64,49 @@ sub run_left {
     record_info('IP ADDRESS', script_output('ip a'));
     record_info('IP ROUTE', script_output('ip -6 route'));
 
+    # second test/check. Routs added, at this point it should be possible to
+    # ping the right and the net interface in the middle from the other subnet
     record_info("Test02: connectivity", "Ping router/middle host and right host");
     script_retry("ping -c 1 $setup->{middle_ip_01}", retry => 5);
     script_retry("ping -c 1 $setup->{right_ip}", retry => 5);
 
     barrier_wait('IPSEC_ROUTE_SETUP_CHECK_DONE');
 
+    # apply ipsec configs
     config_ipsec(%$ipsec_setting_left);
 
     barrier_wait('IPSEC_TUNNEL_MODE_SETUP_DONE');
     dump_ipsec_debug();
 
-    record_info("Test03: mode tunel", "Ping...");
+    # third tests using ipsec. Basic check to see if it's possible to
+    # ping the right using ipsec encryption. Default MTU-size packages as well
+    # as 1300 MTU size
+    record_info("Test03: mode tunnel", "Ping over ipsec");
     assert_script_run("ping -c 8 $setup->{right_ip}");
     assert_script_run("ping6 -s 1300 -c 8 $setup->{right_ip}");
 
     barrier_wait('IPSEC_SET_MTU_DONE');
 
-    # middle/router lowers the MTU to 1300
-    record_info("Test04: MTU", "MTU on the middle lowered");
+    # fourth test/check. Here the middle/router lowers the MTU to 1300. The left host
+    # still sends packets using the default MTU, so oversized packets should trigger
+    # Path MTU Discovery (PMTUD). The test verifies that ICMPv6 Packet-Too-Big
+    # messages are handled correctly and the sender adjusts to the lower MTU
+    record_info("Test04: MTU", "MTU size in the middle decreased");
     assert_script_run("ping6 -c 8 $setup->{right_ip}");
     assert_script_run("ping6 -s 1300 -c 20 $setup->{right_ip}");
 
     barrier_wait('IPSEC_TUNNEL_MODE_CHECK_DONE');
 
+    # mode changed from tunnel to transport
     config_ipsec(%$ipsec_setting_left, mode => 'transport');
 
     barrier_wait('IPSEC_TRANSPORT_MODE_SETUP_DONE');
+    #dump the xfrm to see if correct mode is there
     dump_ipsec_debug();
 
-    record_info("Test05: mode transport", "Ping...");
-
+    # fifth test. Corresponding test as the 04 however the transport mode
+    # is being used
+    record_info("Test05: mode transport", "Use transport mode of ipsec");
     assert_script_run("ping6 -c 8 $setup->{right_ip}");
     assert_script_run("ping6 -s 1300 -c 8 $setup->{right_ip}");
 
@@ -102,16 +118,9 @@ sub run_middle {
 
     my ($dev0, $dev1) = split("\n", iface(2));
 
-    record_info('MIDDLE: DEV0', "$dev0");
-    record_info('MIDDLE: DEV1', "$dev1");
-
     assert_script_run("sysctl net.ipv6.conf.all.forwarding=1");
     assert_script_run("ip link set $dev0 up");
     assert_script_run("ip link set $dev1 up");
-
-    record_info('MIDDLE: NMCLI C', script_output('nmcli c'));
-
-    record_info('MIDDLE: IP ADDRESS', script_output('ip a'));
 
     add_ipv6_addr(
         ip => $setup->{middle_ip_01},
@@ -127,6 +136,8 @@ sub run_middle {
 
     check_ipv6_addr();
 
+    # basic connectivity checks. At this point it should be possible
+    # to ping left and right from the the middle
     script_retry("ping -c 1 $setup->{left_ip}", retry => 5);
     script_retry("ping -c 1 $setup->{right_ip}", retry => 5);
 
@@ -140,16 +151,126 @@ sub run_middle {
 
     barrier_wait('IPSEC_ROUTE_SETUP_CHECK_DONE');
     barrier_wait('IPSEC_TUNNEL_MODE_SETUP_DONE');
-    script_run("timeout 20 tcpdump -i $dev0");
+
+    # Test03
+    record_info("Test03: mode tunnel", "Ping over ipsec");
+    # We expect here (at least):
+    # ESP
+    # spi 0x26c44388
+
+    # validate first net device
+    my $dump;
+    $dump = script_output(
+        "timeout 10 tcpdump -i $dev0 -n",
+        timeout => 12,
+        proceed_on_failure => 1
+    );
+    validate_tcpdump(
+        dump => $dump,
+        check => ['esp'],
+        spi => "0x26c44388",
+        dev => $dev0,
+    );
+
+    # validate second net device
+    $dump = script_output(
+        "timeout 10 tcpdump -i $dev1 -n",
+        timeout => 12,
+        proceed_on_failure => 1
+    );
+    validate_tcpdump(
+        dump => $dump,
+        check => ['esp'],
+        spi => "0x26c44388",
+        dev => $dev1,
+    );
 
     assert_script_run("ip link set mtu 1300 dev $dev1");
 
     barrier_wait('IPSEC_SET_MTU_DONE');
-    script_run("timeout 20 tcpdump -i $dev0");
+
+    # Test04
+    record_info("Test04: MTU", "MTU size in the middle decreased");
+    # We expect here (at least):
+    # ESP
+    # spi 0x26c44388
+    # packet too big
+    # ICMP6, Packet Too Big
+
+    # validate first net device; here we check for pmtud
+    $dump = script_output(
+        "timeout 15 tcpdump -i $dev0 -n",
+        timeout => 17,
+        proceed_on_failure => 1
+    );
+    validate_tcpdump(
+        dump => $dump,
+        check => ['esp', 'pmtud'],
+        spi => "0x26c44388",
+        mtu => 1300,
+        dev => $dev0,
+    );
+
+    # validate second net device; here pmtud won't be present
+    $dump = script_output(
+        "timeout 15 tcpdump -i $dev1 -n",
+        timeout => 17,
+        proceed_on_failure => 1
+    );
+    validate_tcpdump(
+        dump => $dump,
+        check => ['esp'],
+        spi => "0x26c44388",
+        dev => $dev1,
+    );
 
     barrier_wait('IPSEC_TUNNEL_MODE_CHECK_DONE');
     barrier_wait('IPSEC_TRANSPORT_MODE_SETUP_DONE');
-    script_run("timeout 20 tcpdump -i $dev0");
+
+    # TODO:
+    # The same IPs are currently used as both tunnel endpoints and
+    # communicating hosts. Because the outer IPv6 header is identical
+    # in both modes, tcpdump cannot distinguish tunnel from transport
+    # mode. To validate this properly, the topology must use:
+    #
+    #   - host IPs inside each subnet (e.g. ::A, ::B)
+    #   - tunnel endpoint IPs used only for XFRM src/dst
+    #
+    # With subnet-based selectors, tunnel-mode packets would originate
+    # from the tunnel endpoints, while transport-mode packets would come
+    # from host IPs. Only then can tcpdump validation differentiate modes.
+
+    # Test05
+    record_info("Test05: mode transport", "Use transport mode of ipsec");
+    # We expect here (for now):
+    # ESP
+    # spi 0x26c44388
+
+    # validate first net device
+    $dump = script_output(
+        "timeout 10 tcpdump -i $dev0 -n",
+        timeout => 12,
+        proceed_on_failure => 1
+    );
+    validate_tcpdump(
+        dump => $dump,
+        check => ['esp'],
+        spi => "0x26c44388",
+        dev => $dev0,
+    );
+
+    # validate second net device
+    $dump = script_output(
+        "timeout 10 tcpdump -i $dev1 -n",
+        timeout => 12,
+        proceed_on_failure => 1
+    );
+    validate_tcpdump(
+        dump => $dump,
+        check => ['esp'],
+        spi => "0x26c44388",
+        dev => $dev1,
+    );
 
     barrier_wait('IPSEC_TRANSPORT_MODE_CHECK_DONE');
 }
@@ -157,6 +278,7 @@ sub run_middle {
 sub run_right {
     my ($self, $setup) = @_;
 
+    # hash for the ipsec config
     my $ipsec_setting_right = {
         local_ip => $setup->{right_ip},
         remote_ip => $setup->{left_ip},
@@ -174,6 +296,8 @@ sub run_right {
     check_ipv6_addr();
     barrier_wait('IPSEC_IP_SETUP_DONE');
 
+    # basic connectivity check. Here it should be possible to ping
+    # middle, the network interface from the same subnet as the right one
     script_retry("ping -c 1 $setup->{middle_ip_02}", retry => 5);
 
     record_info('IP NEIGHBOR', script_output('ip neighbor show'));
@@ -188,11 +312,15 @@ sub run_right {
     record_info('IP ADDRESS', script_output('ip a'));
     record_info('IP ROUTE', script_output('ip -6 route'));
 
+    # basic connectivity check. Routes are set, so it should be possible
+    # to ping middle network interface from the other subnet as well as
+    # the left one
     script_retry("ping -c 1 $setup->{middle_ip_02}", retry => 5);
     script_retry("ping -c 1 $setup->{left_ip}", retry => 5);
 
     barrier_wait('IPSEC_ROUTE_SETUP_CHECK_DONE');
 
+    # applying ipsec config
     config_ipsec(%$ipsec_setting_right);
 
     barrier_wait('IPSEC_TUNNEL_MODE_SETUP_DONE');
@@ -205,6 +333,7 @@ sub run_right {
 
     barrier_wait('IPSEC_TUNNEL_MODE_CHECK_DONE');
 
+    # switching the ipsec mode to transport
     config_ipsec(%$ipsec_setting_right, mode => 'transport');
 
     barrier_wait('IPSEC_TRANSPORT_MODE_SETUP_DONE');

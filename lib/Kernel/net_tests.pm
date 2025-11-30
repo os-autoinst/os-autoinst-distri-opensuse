@@ -31,6 +31,8 @@ our @EXPORT_OK = qw(
   config_ipsec
   dump_ipsec_debug
   flush_xfrm
+  validate_ipsec_tcpdump
+  validate_tcpdump
 );
 
 =head1 SYNOPSIS
@@ -297,6 +299,93 @@ sub dump_ipsec_debug {
     record_info('IPsec state', $state);
     record_info('IPsec policy', $policy);
     record_info('IPv6 routes', $routes);
+}
+
+=head2 validate_ipsec_tcpdump
+
+ validate_ipsec_tcpdump($dump, $setup, $devname);
+
+Validate that tcpdump output on a given device contains ESP packets
+with the expected SPI.
+
+=cut
+
+sub validate_ipsec_tcpdump {
+    my ($dump) = @_;
+
+    record_info("Validating tcpdump");
+
+    # expected SPI from Kernel::net_tests::build_ipsec_params defaults
+    my $expected_spi = "0x26c44388";
+
+    my $found_spi = ($dump =~ /ESP\(spi=$expected_spi/i);
+
+    unless ($found_spi) {
+        record_info("FAIL", "Missing expected ESP SPI $expected_spi in tcpdump",
+            result => 'fail');
+    }
+    record_info('tcpdump', $dump);
+}
+
+=head2 validate_tcpdump
+
+ validate_tcpdump(
+     dump  => $dump,
+     check => 'esp' | ['esp','pmtud'],
+     spi   => '0x12345678',
+     mtu   => 1300,
+     dev   => 'ens4'
+ );
+
+Validate tcpdump output for expected IPsec traffic patterns.
+
+Supported checks:
+
+- C<esp>:   Verify that ESP packets are present and match the expected SPI.
+- C<pmtud>: Verify that ICMPv6 Packet Too Big messages appear with the expected MTU.
+
+If multiple checks are requested, all of them must be found in the dump.
+Missing patterns cause the test to fail via C<record_info(..., result => 'fail')>.
+
+=cut
+
+sub validate_tcpdump {
+    my (%args) = @_;
+
+    my $dump = $args{dump};
+    my $checks = $args{check};    # arrayref ['esp', 'pmtud']
+    my $expected_spi = $args{spi};    # expected SPI
+    my $mtu = $args{mtu};    # expected MTU
+    my $dev = $args{dev};    # optional
+
+    # Normalize: allow single scalar check => 'esp'
+    $checks = [$checks] unless ref $checks eq 'ARRAY';
+
+    record_info("Validating tcpdump on $dev (checks: " . join(',', @$checks) . ")");
+
+    foreach my $check (@$checks) {
+
+        if ($check eq 'esp') {
+            my $found_spi = ($dump =~ /ESP\(spi=$expected_spi/i);
+
+            unless ($found_spi) {
+                record_info("FAIL", "Missing expected ESP SPI $expected_spi in tcpdump",
+                    result => 'fail');
+            }
+        }
+
+        elsif ($check eq 'pmtud') {
+            unless ($dump =~ /ICMP6.*packet too big.*mtu\s*$mtu/i) {
+                record_info("FAIL", "Missing ICMPv6 Packet Too Big (mtu=$mtu)", result => 'fail');
+            }
+        }
+
+        else {
+            record_info("FAIL", "Unknown tcpdump check '$check'", result => 'fail');
+        }
+    }
+
+    record_info("tcpdump", $dump);
 }
 
 1;
