@@ -79,7 +79,7 @@ sub run_left {
 
     # middle/router lowers the MTU to 1300
     record_info("Test04: MTU", "MTU on the middle lowered");
-    sleep(99999999);
+    #sleep(99999999);
     assert_script_run("ping6 -c 8 $setup->{right_ip}");
     assert_script_run("ping6 -s 1300 -c 20 $setup->{right_ip}");
 
@@ -248,10 +248,14 @@ sub pre_run_hook {
     my ($self) = @_;
     mutex_wait 'support_server_ready';
     select_serial_terminal;
+    record_info('/etc/machine-id', script_output('cat /etc/machine-id'));
+    record_info('nmcli connect status', script_output('nmcli c'));
+    record_info('nmcli device status', script_output('nmcli device s'));
+    record_info('ip status', script_output('ip a'));
     quit_packagekit();
     ensure_service_disabled('apparmor');
     ensure_service_disabled($self->firewall);
-    ensure_service_disabled('NetworkManager');
+    #ensure_service_disabled('NetworkManager');
 }
 
 sub post_run_hook {
