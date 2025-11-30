@@ -104,13 +104,16 @@ sub run_middle {
 
     my ($dev0, $dev1) = split("\n", iface(2));
 
+    record_info('MIDDLE: DEV0', "$dev0");
+    record_info('MIDDLE: DEV1', "$dev1");
+
     assert_script_run("sysctl net.ipv6.conf.all.forwarding=1");
     assert_script_run("ip link set $dev0 up");
     assert_script_run("ip link set $dev1 up");
 
-    #record_info('NMCLI C', script_output('nmcli c'));
+    record_info('MIDDLE: NMCLI C', script_output('nmcli c'));
 
-    record_info('IP ADDRESS', script_output('ip a'));
+    record_info('MIDDLE: IP ADDRESS', script_output('ip a'));
 
     add_ipv6_addr(
         ip => $setup->{middle_ip_01},
