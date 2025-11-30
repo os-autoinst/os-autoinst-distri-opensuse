@@ -258,6 +258,9 @@ sub pre_run_hook {
     quit_packagekit();
     ensure_service_disabled('apparmor');
     ensure_service_disabled($self->firewall);
+    set_hostname(get_var('HOSTNAME', 'susetest'));
+
+    zypper_call('install tcpdump');
     #ensure_service_disabled('NetworkManager');
 }
 
