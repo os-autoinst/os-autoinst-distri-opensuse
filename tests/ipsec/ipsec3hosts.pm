@@ -79,6 +79,7 @@ sub run_left {
 
     # middle/router lowers the MTU to 1300
     record_info("Test04: MTU", "MTU on the middle lowered");
+    sleep(99999999);
     assert_script_run("ping6 -c 8 $setup->{right_ip}");
     assert_script_run("ping6 -s 1300 -c 20 $setup->{right_ip}");
 
@@ -90,6 +91,8 @@ sub run_left {
     dump_ipsec_debug();
 
     record_info("Test05: mode transport", "Ping...");
+
+    #sleep(99999999);
     assert_script_run("ping6 -c 8 $setup->{right_ip}");
     assert_script_run("ping6 -s 1300 -c 8 $setup->{right_ip}");
 
@@ -104,6 +107,8 @@ sub run_middle {
     assert_script_run("sysctl net.ipv6.conf.all.forwarding=1");
     assert_script_run("ip link set $dev0 up");
     assert_script_run("ip link set $dev1 up");
+
+    #record_info('NMCLI C', script_output('nmcli c'));
 
     record_info('IP ADDRESS', script_output('ip a'));
 
@@ -120,6 +125,11 @@ sub run_middle {
     );
 
     check_ipv6_addr();
+    #record_info('NMCLI C', script_output('nmcli c'));
+
+    # temp workaround; likely get rid of any netowrk manager and use ip
+    #script_run("nmcli device connect $dev0");
+    #script_run("nmcli device connect $dev1");
 
     script_retry("ping -c 1 $setup->{left_ip}", retry => 5);
     script_retry("ping -c 1 $setup->{right_ip}", retry => 5);
@@ -134,18 +144,15 @@ sub run_middle {
 
     barrier_wait('IPSEC_ROUTE_SETUP_CHECK_DONE');
     barrier_wait('IPSEC_TUNNEL_MODE_SETUP_DONE');
-
     script_run("timeout 20 tcpdump -i $dev0");
 
     assert_script_run("ip link set mtu 1300 dev $dev1");
 
     barrier_wait('IPSEC_SET_MTU_DONE');
-
     script_run("timeout 20 tcpdump -i $dev0");
 
     barrier_wait('IPSEC_TUNNEL_MODE_CHECK_DONE');
     barrier_wait('IPSEC_TRANSPORT_MODE_SETUP_DONE');
-
     script_run("timeout 20 tcpdump -i $dev0");
 
     barrier_wait('IPSEC_TRANSPORT_MODE_CHECK_DONE');
@@ -244,12 +251,13 @@ sub pre_run_hook {
     quit_packagekit();
     ensure_service_disabled('apparmor');
     ensure_service_disabled($self->firewall);
+    ensure_service_disabled('NetworkManager');
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    record_info('nmcli connect status', script_output('nmcli c'));
-    record_info('nmcli device status', script_output('nmcli device s'));
+    #record_info('nmcli connect status', script_output('nmcli c'));
+    #record_info('nmcli device status', script_output('nmcli device s'));
     record_info('ip status', script_output('ip a'));
     #export_logs();
     record_info('INTF STATUS', script_output('ip -s link show', proceed_on_failure => 1));

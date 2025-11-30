@@ -257,17 +257,27 @@ sub install_ipsec_policies {
 sub config_ipsec {
     my (%args) = @_;
 
+    # Flush if required
+    flush_xfrm();
+
     # Extract IPsec parameters (already combined from %params and overrides)
     my %p = build_ipsec_params(%args);
 
-    # Flush if required
-    flush_xfrm() if $p{flush};
-
     # Install both directions of SA
-    install_ipsec_state(%p, %args);
+    install_ipsec_state(
+        %p,
+        local_ip => $args{local_ip},
+        remote_ip => $args{remote_ip},
+    );
 
     # Install selectors/policies
-    install_ipsec_policies(%p, %args);
+    install_ipsec_policies(
+        %p,
+        local_ip => $args{local_ip},
+        remote_ip => $args{remote_ip},
+        new_local_net => $args{new_local_net},
+        new_remote_net => $args{new_remote_net},
+    );
 }
 
 =head2 dump_ipsec_debug
