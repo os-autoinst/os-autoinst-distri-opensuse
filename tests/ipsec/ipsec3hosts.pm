@@ -24,6 +24,7 @@ use Kernel::net_tests qw(
   config_ipsec
   dump_ipsec_debug
   validate_tcpdump
+  capture_tcpdump
 );
 
 sub run_left {
@@ -157,11 +158,7 @@ sub run_middle {
 
     # validate first net device
     my $dump;
-    $dump = script_output(
-        "timeout 10 tcpdump -i $dev0 -n",
-        timeout => 12,
-        proceed_on_failure => 1
-    );
+    $dump = capture_tcpdump($dev0);
     validate_tcpdump(
         dump => $dump,
         check => ['esp'],
@@ -170,11 +167,7 @@ sub run_middle {
     );
 
     # validate second net device
-    $dump = script_output(
-        "timeout 10 tcpdump -i $dev1 -n",
-        timeout => 12,
-        proceed_on_failure => 1
-    );
+    $dump = capture_tcpdump($dev1);
     validate_tcpdump(
         dump => $dump,
         check => ['esp'],
@@ -195,11 +188,7 @@ sub run_middle {
     # ICMP6, Packet Too Big
 
     # validate first net device; here we check for pmtud
-    $dump = script_output(
-        "timeout 15 tcpdump -i $dev0 -n",
-        timeout => 17,
-        proceed_on_failure => 1
-    );
+    $dump = capture_tcpdump($dev0, 15);
     validate_tcpdump(
         dump => $dump,
         check => ['esp', 'pmtud'],
@@ -209,11 +198,7 @@ sub run_middle {
     );
 
     # validate second net device; here pmtud won't be present
-    $dump = script_output(
-        "timeout 15 tcpdump -i $dev1 -n",
-        timeout => 17,
-        proceed_on_failure => 1
-    );
+    $dump = capture_tcpdump($dev1);
     validate_tcpdump(
         dump => $dump,
         check => ['esp'],
@@ -244,11 +229,7 @@ sub run_middle {
     # spi 0x26c44388
 
     # validate first net device
-    $dump = script_output(
-        "timeout 10 tcpdump -i $dev0 -n",
-        timeout => 12,
-        proceed_on_failure => 1
-    );
+    $dump = capture_tcpdump($dev0);
     validate_tcpdump(
         dump => $dump,
         check => ['esp'],
@@ -257,11 +238,7 @@ sub run_middle {
     );
 
     # validate second net device
-    $dump = script_output(
-        "timeout 10 tcpdump -i $dev1 -n",
-        timeout => 12,
-        proceed_on_failure => 1
-    );
+    $dump = capture_tcpdump($dev1);
     validate_tcpdump(
         dump => $dump,
         check => ['esp'],

@@ -33,6 +33,7 @@ our @EXPORT_OK = qw(
   flush_xfrm
   validate_ipsec_tcpdump
   validate_tcpdump
+  capture_tcpdump
 );
 
 =head1 SYNOPSIS
@@ -386,6 +387,44 @@ sub validate_tcpdump {
     }
 
     record_info("tcpdump", $dump);
+}
+
+=head2 capture_tcpdump
+
+ capture_tcpdump($dev);
+ capture_tcpdump($dev, $timeout);
+
+Run C<tcpdump> on the given network interface C<$dev> for a limited duration
+(using the C<timeout> command) and return the captured packet output as a
+string.
+
+Arguments:
+
+=over 2
+
+=item *
+C<$dev> - Network interface to capture on (e.g. C<eth0>).
+
+=item *
+C<$timeout> - Optional duration in seconds to run tcpdump (defaults to 10).
+
+=back
+
+The function always uses C<tcpdump -n> (numeric output) and sets
+C<proceed_on_failure => 1> so that failed or empty captures do not abort
+the test module.
+
+=cut
+
+sub capture_tcpdump {
+    my ($dev, $timeout) = @_;
+    $timeout //= 10;
+
+    return script_output(
+        "timeout $timeout tcpdump -i $dev -n",
+        timeout => $timeout + 2,
+        proceed_on_failure => 1
+    );
 }
 
 1;
