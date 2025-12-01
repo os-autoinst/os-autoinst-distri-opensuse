@@ -4,25 +4,6 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Basic setup and functional L2TPv3 connectivity test.
-# Validate L2TPv3 over IPv4 connectivity in a three-host setup by creating
-# an L2TPv3 pseudowire, assigning inner IPv4 tunnel addresses, routing
-# loopback traffic through the tunnel, and verifying end-to-end
-# reachability. The test mirrors the topology and behavior of the
-# Linux kernel L2TP selftests (net/l2tp).
-#
-# Network topology used in this test:
-#
-#   LEFT HOST  <---------->   ROUTER   <----------->  RIGHT HOST
-#    10.1.1.1                10.1.1.2                 10.1.2.1
-#                            10.1.2.2
-#
-#   L2TPv3 tunnel:
-#     LEFT l2tp4: 172.16.1.1  <===================>  172.16.1.2 :l2tp4 RIGHT
-#
-#   Loopback endpoints routed through L2TP:
-#     LEFT lo:  172.16.101.1       <--------------->     172.16.101.2 :lo RIGHT
-#
-#
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 package l2tp3hosts;
@@ -184,3 +165,30 @@ sub run {
 }
 
 1;
+
+=head1 Description
+
+l2tp3hosts - Multimachine IPv4 L2TPv3 functional test validating tunnel
+creation, pseudowire session setup, routing, and end-to-end connectivity
+across a three-host topology.
+
+This module implements a minimal L2TPv3 pseudowire scenario inspired by the
+Linux kernel selftests (net/l2tp).
+
+Network topology used in this test:
+
+   LEFT HOST  <---------->  MIDDLE ROUTER   <----------->  RIGHT HOST
+    10.1.1.1                  10.1.1.2                        10.1.2.1
+                              10.1.2.2
+
+   L2TPv3 tunnel:
+     LEFT l2tp4: 172.16.1.1  <=============>  172.16.1.2 :l2tp4 RIGHT
+
+   Loopback endpoints routed through L2TP:
+     LEFT lo:  172.16.101.1  <=============>  172.16.101.2 :lo RIGHT
+
+
+Traffic to these loopback endpoints is routed through the L2TPv3 pseudowire,
+verifying proper tunnel forwarding, addressing, and encapsulation.
+
+=cut
