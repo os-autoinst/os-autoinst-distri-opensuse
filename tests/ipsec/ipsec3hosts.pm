@@ -3,12 +3,9 @@
 # Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Basic preparation as well as basic testsfor the IPSec
-# Network topology used in this test:
-#
-#   LEFT HOST  <---------->  ROUTER  <----------->  RIGHT HOST
-#   2001:1:1:1::2           2001:1:1:1::1          2002:1:1:1::2
-#                           2002:1:1:1::1
+# Summary: Multimachine IPsec test verifying connectivity, routing,
+#          tunnel/transport mode operation, and PMTUD across a
+#          three-host IPv6 topology.
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
@@ -395,3 +392,49 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+ipsec3hosts - Multimachine IPv6 IPsec test validating routing, ESP traffic,
+PMTUD, and tunnel/transport mode operation across a three-host topology.
+
+This module implements a full three-host IPv6 IPsec test environment:
+
+    LEFT HOST  <---------->  MIDDLE/ROUTER  <----------->  RIGHT HOST
+
+   2001:1:1:1::2            2001:1:1:1::1                 2002:1:1:1::2
+                            2002:1:1:1::1
+
+It is scheduled as part of a multimachine openQA scenario. The test configures
+IPv6 networking, routing, and IPsec on all three hosts and then exercises
+encrypted communication in both tunnel and transport modes.
+
+The overall test flow and thus specific tests are:
+
+Test01:
+    Basic L2/L3 connectivity. Each endpoint must be able to ping the middle
+    router on its local subnet. Verifies addressing, link status, and neighbor
+    discovery.
+
+Test02:
+    Verify routing configuration. After static routes are added, both endpoints
+    must reach each other through the middle router (no IPsec yet). Ensures
+    IPv6 routing is functional.
+
+Test03:
+    IPsec tunnel mode enabled. Traffic from left to right must be encapsulated
+    as ESP. tcpdump on the middle router must show ESP packets on both
+    interfaces. Basic encrypted communication and MTU-sized packets are tested.
+
+Test04:
+    PMTUD with tunnel mode. The middle router reduces MTU to 1300 on one link.
+    Oversized packets must trigger ICMPv6 Packet-Too-Big messages, visible on
+    the incoming interface. The sender must adjust its path MTU and traffic
+    must continue to flow.
+
+Test05:
+    IPsec transport mode. After switching both endpoints from tunnel to
+    transport mode, encrypted communication must continue. Only ESP validation
+    is performed; PMTUD is not expected here.
+
+=cut
