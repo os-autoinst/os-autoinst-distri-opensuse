@@ -16,6 +16,8 @@ use Mojo::URL;
 use Mojo::JSON 'encode_json';
 use Carp qw(croak);
 use Socket qw(AF_INET AF_INET6 inet_pton);
+use Time::Piece;
+use Time::Seconds;
 
 use strict;
 use warnings;
@@ -67,6 +69,7 @@ our @EXPORT = qw(
   detect_worker_ip
   upload_asset_on_remote
   zypper_call_remote
+  calculate_custodian_ttl
 );
 
 # Check if we are a BYOS test run
@@ -885,7 +888,6 @@ sub upload_asset_on_remote {
     $instance->ssh_assert_script_run($mv_cmd);
 }
 
-
 =head2 $instance->zypper_call_remote
 
     $instance->zypper_call_remote($command [, exitcode => $exitcode] [, timeout => $timeout];
@@ -973,4 +975,29 @@ sub zypper_call_remote {
 }
 
 
+=head2 calculate_custodian_ttl {
+
+
+calculate_custodian_ttl($ttl_in_seconds)
+
+This function adds the following tags to public cloud objects: custodian_ttl
+custodian_ttl is calculated by adding the $ttl_in_seconds to the current time and formatting it in ISO 8601
+This tag is needed to compare TTL vs Creation time in Cloud Custodian.
+
+=cut
+
+sub calculate_custodian_ttl {
+    my $ttl_in_seconds = @_;
+
+    # UTC time
+    my $now = gmtime;
+    my $expiration_time = $now + $ttl_in_seconds;
+
+    # convert to proper format
+    my $custodian_expiration_date = $expiration_time->strftime("%Y-%m-%dT%H:%M:%SZ");
+
+    return $custodian_expiration_date;
+}
+
 1;
+
