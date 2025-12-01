@@ -1,0 +1,9 @@
+name:  desktop_browsers
+description:    >
+    Web browser related tests
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - x11/firefox
+    - x11/firefox_audio
+    - x11/chromium

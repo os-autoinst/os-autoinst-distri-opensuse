@@ -1,0 +1,9 @@
+name:  desktop_office
+description:    >
+    Office software related tests
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - x11/ooffice
+    - x11/oomath
+    - x11/oocalc

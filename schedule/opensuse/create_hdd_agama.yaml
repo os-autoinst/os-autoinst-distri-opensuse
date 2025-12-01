@@ -24,6 +24,7 @@ schedule:
     - console/opensuse_repos
     - console/hostname
     - console/textinfo
+    - console/consoletest_setup
     - console/check_selinux_fails
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
