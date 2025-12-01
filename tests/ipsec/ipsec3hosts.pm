@@ -159,21 +159,11 @@ sub run_middle {
     # validate first net device
     my $dump;
     $dump = capture_tcpdump($dev0);
-    validate_tcpdump(
-        dump => $dump,
-        check => ['esp'],
-        spi => "0x26c44388",
-        dev => $dev0,
-    );
+    validate_tcpdump(dump => $dump, check => ['esp'], spi => "0x26c44388", dev => $dev0,);
 
     # validate second net device
     $dump = capture_tcpdump($dev1);
-    validate_tcpdump(
-        dump => $dump,
-        check => ['esp'],
-        spi => "0x26c44388",
-        dev => $dev1,
-    );
+    validate_tcpdump(dump => $dump, check => ['esp'], spi => "0x26c44388", dev => $dev1,);
 
     assert_script_run("ip link set mtu 1300 dev $dev1");
 
@@ -189,22 +179,11 @@ sub run_middle {
 
     # validate first net device; here we check for pmtud
     $dump = capture_tcpdump($dev0, 15);
-    validate_tcpdump(
-        dump => $dump,
-        check => ['esp', 'pmtud'],
-        spi => "0x26c44388",
-        mtu => 1300,
-        dev => $dev0,
-    );
+    validate_tcpdump(dump => $dump, check => ['esp', 'pmtud'], spi => "0x26c44388", mtu => 1300, dev => $dev0,);
 
     # validate second net device; here pmtud won't be present
     $dump = capture_tcpdump($dev1);
-    validate_tcpdump(
-        dump => $dump,
-        check => ['esp'],
-        spi => "0x26c44388",
-        dev => $dev1,
-    );
+    validate_tcpdump(dump => $dump, check => ['esp'], spi => "0x26c44388", dev => $dev1,);
 
     barrier_wait('IPSEC_TUNNEL_MODE_CHECK_DONE');
     barrier_wait('IPSEC_TRANSPORT_MODE_SETUP_DONE');
@@ -230,21 +209,11 @@ sub run_middle {
 
     # validate first net device
     $dump = capture_tcpdump($dev0);
-    validate_tcpdump(
-        dump => $dump,
-        check => ['esp'],
-        spi => "0x26c44388",
-        dev => $dev0,
-    );
+    validate_tcpdump(dump => $dump, check => ['esp'], spi => "0x26c44388", dev => $dev0,);
 
     # validate second net device
     $dump = capture_tcpdump($dev1);
-    validate_tcpdump(
-        dump => $dump,
-        check => ['esp'],
-        spi => "0x26c44388",
-        dev => $dev1,
-    );
+    validate_tcpdump(dump => $dump, check => ['esp'], spi => "0x26c44388", dev => $dev1,);
 
     barrier_wait('IPSEC_TRANSPORT_MODE_CHECK_DONE');
 }
