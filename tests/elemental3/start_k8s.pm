@@ -25,7 +25,7 @@ Wait for kubectl command to be available.
 =cut
 
 sub wait_kubectl_cmd {
-    my %args = @_;
+    my (%args) = @_;
     $args{timeout} //= 120;
     my $starttime = time;
     my $ret = undef;
@@ -51,7 +51,7 @@ Returns 0 if cluster is running or croaks on timeout.
 =cut
 
 sub wait_k8s_state {
-    my %args = @_;
+    my (%args) = @_;
     $args{timeout} //= 120;
     my $starttime = time;
     my $ret = undef;
@@ -98,7 +98,7 @@ sub prepare_test_framework {
 
     # Get some informations from the cluster
     my ($k8s_version) = script_output('kubectl version') =~ /[Ss]erver.*:\s*(.*)/;
-    my $fqdn = script_output('hostname -f');
+    my $fqdn = script_output('hostnamectl hostname');
     my $k8s_yaml = "/etc/rancher/$args{k8s}/$args{k8s}.yaml";
     my $k8s_config = script_output("sed 's/127\.0\.0\.1/$fqdn/g' $k8s_yaml | base64 -w0");
 
@@ -133,7 +133,6 @@ sub prepare_test_framework {
 
 sub run {
     my $arch = get_required_var('ARCH');
-    my $hostname = get_var('HOSTNAME', 'localhost');
     my $k8s = get_required_var('K8S');
 
     # Set default root password
@@ -146,28 +145,40 @@ sub run {
     select_serial_terminal();
 
     # Set hostname and get IP address
+    my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
     configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
 
     my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');
     die('No IP defined on the node!') if (!defined $ip || $ip eq '');
 
-    # Update K8s configuration file
-    file_content_replace(
-        "/etc/rancher/$k8s/config.yaml", '--sed-modifier' => 'g',
-        '%NODE_NAME%' => $hostname,
-        '%NODE_IP%' => $ip
-    );
-
     # Split the DNS strings into arrays only if the variable is defined and not empty
     my @default_dns = split(/,/, get_default_dns);
     set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
 
-    # Start K8s server
-    # NOTE: autostart fails here because we changed some parameters in the config file
-    my $k8s_svc;
-    $k8s_svc = 'k3s' if ($k8s eq 'k3s');
-    $k8s_svc = 'rke2-server' if ($k8s eq 'rke2');
-    systemctl("start $k8s_svc", timeout => $timeout);
+    # We may have to modify some settings if a config.yaml file is present
+    # NOTE: We have to invert the return code as it is inverted between Bash and Perl
+    my $config_yaml = "/etc/rancher/$k8s/config.yaml";
+    if (!script_run("[[ -s $config_yaml ]]")) {
+        # Update K8s configuration file
+        file_content_replace(
+            "$config_yaml", '--sed-modifier' => 'g',
+            '%NODE_NAME%' => $hostname,
+            '%NODE_IP%' => $ip
+        );
+
+        # Update SELinux policy if needed
+        if (!script_run("grep -q '^selinux:.*true\$' $config_yaml")) {
+            record_info('SELinux detected', "Updating SELinux policy for $k8s");
+            assert_script_run('semodule -i /usr/share/selinux/packages/rke2.pp');
+        }
+
+        # Start K8s server
+        # NOTE: autostart fails here because we changed some parameters in the config file
+        my $k8s_svc;
+        $k8s_svc = 'k3s' if ($k8s eq 'k3s');
+        $k8s_svc = 'rke2-server' if ($k8s eq 'rke2');
+        systemctl("start $k8s_svc", timeout => $timeout);
+    }
 
     # Wait for kubectl command to be available
     wait_kubectl_cmd(timeout => $timeout);

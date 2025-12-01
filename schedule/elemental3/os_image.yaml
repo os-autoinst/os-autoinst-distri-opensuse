@@ -11,6 +11,8 @@ conditional_schedule:
     TEST_TYPE:
       test_image:
         - elemental3/start_k8s
+      test_iso:
+        - elemental3/start_k8s
       k8s_validation:
         - elemental3/wait_barriers
         - elemental3/configure_network
