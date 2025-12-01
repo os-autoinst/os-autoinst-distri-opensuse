@@ -38,6 +38,7 @@
       <li><a href="#wait_quit_zypper_pc">wait_quit_zypper_pc</a></li>
       <li><a href="#detect_worker_ip">detect_worker_ip</a></li>
       <li><a href="#instance-zypper_call_remote">$instance-&gt;zypper_call_remote</a></li>
+      <li><a href="#calculate_custodian_ttl">calculate_custodian_ttl {</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/utils.pm</h1>
@@ -211,6 +212,12 @@ Return:
 <p>Function wrapping zypper command for remote execution via ssh; not for tunnelling. Implements similar routine as lib/utils::zypper_call_remote, but for remote execution on publiccloud instances.</p>
 
 <p>Usage example: $instance-&gt;zypper_call_remote(&quot;up&quot;, exitcode =&gt; [0,102,103], timeout =&gt; 300);</p>
+
+<h2 id="calculate_custodian_ttl">calculate_custodian_ttl {</h2>
+
+<p>calculate_custodian_ttl($ttl_in_seconds)</p>
+
+<p>This function adds the following tags to public cloud objects: custodian_ttl custodian_ttl is calculated by adding the $ttl_in_seconds to the current time and formatting it in ISO 8601 This tag is needed to compare TTL vs Creation time in Cloud Custodian.</p>
 
 
 </body>
