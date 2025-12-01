@@ -81,6 +81,10 @@ Requires:       perl(YAML::PP)
 Recommends:     os-autoinst-devel
 # This package is required for Agama profile generation with JSONNET tool, ticket link: https://progress.opensuse.org/issues/175728
 Requires:       golang-github-google-jsonnet
+# Required to get information from Agama isos
+Requires:       isoinfo
+Requires:       jq
+Requires:       gzip
 
 %description
 Metapackage that contains the dependencies of os-autoinst-distri-opensuse.
