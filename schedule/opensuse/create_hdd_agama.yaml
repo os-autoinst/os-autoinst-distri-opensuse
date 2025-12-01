@@ -1,0 +1,29 @@
+name:  create_hdd_agama
+description:    >
+    Install Tumbleweed with agama profile
+conditional_schedule:
+    opensuse_welcome:
+        DESKTOP:
+            gnome:
+                - installation/opensuse_welcome
+            kde:
+                - installation/opensuse_welcome
+            xfce:
+                - installation/opensuse_welcome
+schedule:
+    - yam/agama/boot_agama
+    - yam/agama/agama_auto
+    - installation/grub_test
+    - installation/first_boot
+    - '{{opensuse_welcome}}'
+    - console/force_scheduled_tasks
+    - console/system_prepare
+    - update/zypper_clear_repos
+    - console/zypper_ar
+    - console/zypper_ref
+    - console/opensuse_repos
+    - console/hostname
+    - console/textinfo
+    - console/check_selinux_fails
+    - shutdown/cleanup_before_shutdown
+    - shutdown/shutdown
