@@ -121,7 +121,7 @@ sub configure_docker {
     }
     $docker_opts .= " -H tcp://0.0.0.0:$port";
     run_command "mv /etc/sysconfig/docker{,.bak}";
-    run_command "mv /etc/docker/daemon.json{,.bak}";
+    run_command "mv -f /etc/docker/daemon.json{,.bak}";
     run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
     record_info "DOCKER_OPTS", $docker_opts;
     run_command "systemctl restart docker";
