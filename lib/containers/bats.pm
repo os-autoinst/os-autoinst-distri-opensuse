@@ -94,6 +94,7 @@ sub configure_docker {
         my $url = "https://github.com/docker/compose/releases/download/v$compose_version/docker-compose-linux-$arch";
         run_command "curl -sSLo /usr/lib/docker/cli-plugins/docker-compose $url";
         run_command "chmod +x /usr/lib/docker/cli-plugins/docker-compose";
+        run_command "echo 0 > /etc/docker/suse-secrets-enable";
     }
 
     my $registry = get_var("REGISTRY", "3.126.238.126:5000");
