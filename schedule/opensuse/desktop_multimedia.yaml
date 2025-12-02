@@ -2,10 +2,10 @@ name:  desktop_multimedia
 description:    >
     Tests some multimedia applications
 conditional_schedule:
-  graphicsMagick:
-    STAGING:
-      1:
-        - x11/graphicsMagick
+    graphicsMagick:
+        STAGING:
+            1:
+                - x11/graphicsMagick
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
