@@ -34,12 +34,12 @@ sub get_separate_home_partition_checkbox {
 
 sub select_encrypted_lvm_based_proposal_radiobutton {
     assert_screen(PROPOSAL_SETTINGS_DIALOG);
-    send_key('alt-e');
+    send_key('alt-a');
 }
 
 sub select_lvm_based_proposal_radiobutton {
     assert_screen(PROPOSAL_SETTINGS_DIALOG);
-    send_key('alt-l');
+    send_key('alt-e');
 }
 
 sub press_ok {
