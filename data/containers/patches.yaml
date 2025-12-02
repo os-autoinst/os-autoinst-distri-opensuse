@@ -66,6 +66,18 @@ buildx:
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 3475
+  sle-15-SP7:
+    GITHUB_PATCHES:
+    - 3475
+  sle-15-SP6:
+    GITHUB_PATCHES:
+    - 3475
+  sle-15-SP5:
+    GITHUB_PATCHES:
+    - 3475
+  sle-15-SP4:
+    GITHUB_PATCHES:
+    - 3475
 compose:
   # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
@@ -117,6 +129,10 @@ moby:
     GITHUB_PATCHES:
     - 51219
     - 51263
+  sle-15-SP7:
+  sle-15-SP6:
+  sle-15-SP5:
+  sle-15-SP4:
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic

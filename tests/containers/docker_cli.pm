@@ -19,7 +19,8 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(docker docker-buildx docker-compose go1.24);
+    my @pkgs = qw(docker docker-buildx go1.24);
+    push @pkgs, qw(docker-compose) unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
@@ -98,6 +99,10 @@ sub run {
         "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsAllFirstLevelRolesWeHaveKeysFor",
         "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths",
     ) unless (is_x86_64);
+    # These tests fail on SLES 15-SP7 due to SUSE patch
+    push @xfails, (
+        "github.com/docker/cli/e2e/image::TestBuildFromContextDirectoryWithTag",
+    ) if (is_sle("<16"));
 
     patch_junit "docker", $version, "cli.xml", @xfails;
     parse_extra_log(XUnit => "cli.xml");
