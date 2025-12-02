@@ -12,6 +12,7 @@ use base "x11test";
 use testapi;
 
 sub run {
+    select_console 'x11';
     ensure_installed('inkscape', timeout => 300);
     x11_start_program('inkscape', target_match => [qw(inkscape inkscape-welcome-save inkscape-welcome-boo1241066)]);
     if (match_has_tag('inkscape-welcome-save')) {

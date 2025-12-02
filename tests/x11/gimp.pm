@@ -12,6 +12,7 @@ use base "x11test";
 use testapi;
 
 sub run {
+    select_console 'x11';
     ensure_installed("gimp");
     x11_start_program('gimp', match_timeout => 60);
     # sometimes send_key "alt-f4" doesn't work reliable, so repeat it and exit
