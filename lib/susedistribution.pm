@@ -363,6 +363,7 @@ sub script_sudo {
             $prog .= " > /dev/$testapi::serialdev" unless is_serial_terminal();
         }
     }
+    wait_still_screen(2, 4) if is_aarch64;
     enter_cmd "clear";    # poo#13710
     enter_cmd "su -c \'$prog\'", max_interval => 125;
     handle_password_prompt unless ($testapi::username eq 'root');
