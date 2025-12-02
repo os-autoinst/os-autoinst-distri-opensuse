@@ -93,10 +93,6 @@ conmon:
     - 579
 docker-py:
   # Note on patches:
-  # https://github.com/docker/docker-py/pull/3199 - Bump default API version to 1.43 (Moby 24.0)
-  # https://github.com/docker/docker-py/pull/3203 - integration/commit: Don't check for deprecated fields
-  # https://github.com/docker/docker-py/pull/3206 - Update Ruff, fix some minor issues
-  # https://github.com/docker/docker-py/pull/3231 - Bump default API version to 1.44 (Moby 25.0)
   # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
   # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
   # https://github.com/docker/docker-py/pull/3366 - test: Skip from_env_unix tests if DOCKER_HOST is network socket
@@ -113,14 +109,6 @@ docker-py:
     - 3354
     - 3366
     - 3367
-  sle-15-SP7:
-    GITHUB_PATCHES:
-    - 3199
-    - 3203
-    - 3206
-    - 3231
-    - 3290
-    - 3366
 moby:
   # Note on patches:
   # https://github.com/moby/moby/pull/51219 - integration/container: Make tests runnable on SELinux enabled daemon
