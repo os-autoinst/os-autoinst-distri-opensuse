@@ -17,20 +17,22 @@ use Mojo::Base 'publiccloud::basetest';
 use serial_terminal 'select_serial_terminal';
 use testapi;
 use sles4sap::crash;
+use publiccloud::utils qw(register_addon);
 
 sub run {
     my ($self) = @_;
 
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my $ssh_cmd;
     my $vm_ip = crash_pubip(provider => $provider, region => get_var('PUBLIC_CLOUD_REGION'));
 
+    my $remote_host;
     if ($provider eq 'EC2') {
-        $ssh_cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ec2-user\@$vm_ip";
+        $remote_host = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ec2-user\@$vm_ip";
     }
     elsif ($provider eq 'AZURE') {
-        $ssh_cmd = 'ssh cloudadmin@' . $vm_ip;
+        $remote_host = 'cloudadmin@' . $vm_ip;
     }
+    my $ssh_cmd = "ssh $remote_host";
 
     my $start_time = time();
     while ((time() - $start_time) < 300) {
@@ -42,7 +44,12 @@ sub run {
     assert_script_run("ssh-keyscan $vm_ip | tee -a ~/.ssh/known_hosts");
     crash_system_ready(
         reg_code => get_var('SCC_REGCODE_SLES4SAP'),
-        ssh_command => $ssh_cmd);
+        ssh_command => $ssh_cmd,
+        scc_endpoint => get_var('PUBLIC_CLOUD_SCC_ENDPOINT', undef));
+
+    if (my $addons = get_var('SCC_ADDONS')) {
+        register_addon($remote_host, $_) foreach (split(',', $addons));
+    }
 }
 
 sub test_flags {
