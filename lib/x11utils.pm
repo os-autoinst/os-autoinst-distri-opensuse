@@ -468,6 +468,23 @@ sub turn_off_kde_screensaver {
     turn_off_plasma_screen_energysaver;
 }
 
+=head2 turn_off_xfce_screensaver
+
+  turn_off_xfce_screensaver()
+
+Prevents screen from being locked or turning black while using the xfce
+desktop. Call before tests that are not providing input for a long time, to
+prevent needles from failing.
+
+=cut
+
+sub turn_off_xfce_screensaver {
+    x11_start_program(default_gui_terminal());
+    assert_script_run 'xfconf-query -c xfce4-screensaver -p /saver/enabled -s false -t bool --create';
+    assert_script_run 'xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-enabled -s false --create';
+    script_run 'exit', 0;
+}
+
 =head2 turn_off_gnome_screensaver
 
   turn_off_gnome_screensaver()
@@ -528,6 +545,7 @@ Turns off the screensaver depending on desktop environment
 
 sub turn_off_screensaver {
     return turn_off_kde_screensaver if check_var('DESKTOP', 'kde');
+    return turn_off_xfce_screensaver if check_var('DESKTOP', 'xfce');
     die "Unsupported desktop '" . get_var('DESKTOP', '') . "'" unless check_var('DESKTOP', 'gnome');
     x11_start_program(default_gui_terminal());
     turn_off_gnome_screensaver;
