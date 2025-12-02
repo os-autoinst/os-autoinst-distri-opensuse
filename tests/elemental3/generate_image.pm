@@ -78,6 +78,9 @@ sub build_cmd {
     );
     assert_script_run("tar xzvf $tpl_tar -C $build_dir");
 
+    # Add 'oci://' in release-manifest URI if nothing is set
+    $manifest_uri = 'oci://' . $manifest_uri unless $manifest_uri =~ /:\/\//;
+
     # Configure the build
     my $hashpwd = script_output("openssl passwd -6 $args{rootpwd}");
     file_content_replace(
