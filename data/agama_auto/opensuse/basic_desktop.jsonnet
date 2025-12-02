@@ -16,5 +16,17 @@
     patterns: {
       add: ['basic_desktop']
     }
+  },
+  scripts: {
+    post: [
+      {
+        name: 'enable sshd',
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          systemctl enable sshd
+        |||
+      }
+    ]
   }
 }
