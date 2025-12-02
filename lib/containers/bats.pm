@@ -87,6 +87,15 @@ sub configure_docker {
     $args{selinux} //= get_var("DOCKER_SELINUX", 0);
     $args{tls} //= get_var("DOCKER_TLS", 0);
 
+    # docker-compose is needed for tests but is not available on SLES 15
+    if (is_sle("<16") && script_run("test -f /usr/lib/docker/cli-plugins/docker-compose")) {
+        my $compose_version = "2.40.3";
+        my $arch = get_required_var("ARCH");
+        my $url = "https://github.com/docker/compose/releases/download/v$compose_version/docker-compose-linux-$arch";
+        run_command "curl -sSLo /usr/lib/docker/cli-plugins/docker-compose $url";
+        run_command "chmod +x /usr/lib/docker/cli-plugins/docker-compose";
+    }
+
     my $registry = get_var("REGISTRY", "3.126.238.126:5000");
     my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn --registry-mirror http://$registry";
     $docker_opts .= " --experimental" if $args{experimental};

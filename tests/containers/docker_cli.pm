@@ -19,7 +19,8 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(docker docker-buildx docker-compose go1.24);
+    my @pkgs = qw(docker docker-buildx go1.24);
+    push @pkgs, qw(docker-compose) unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
