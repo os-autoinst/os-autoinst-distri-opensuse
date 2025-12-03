@@ -21,4 +21,3 @@ schedule:
     - console/ssh_cleanup
     - console/sshfs
     - console/mtab
-    - console/nginx
