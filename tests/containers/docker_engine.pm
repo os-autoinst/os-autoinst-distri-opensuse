@@ -103,6 +103,10 @@ sub run {
         # These tests use amd64 images:
         "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
     ) unless (is_x86_64);
+    push @xfails, (
+        # These tests fail as rootless on SLES 15
+        "github.com/docker/docker/integration/container::TestNetworkLoopbackNat",
+    ) if (is_sle("<16"));
 
     my $tags = "apparmor selinux seccomp pkcs11";
     foreach my $dir (@test_dirs) {
