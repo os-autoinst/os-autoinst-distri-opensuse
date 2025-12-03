@@ -6,4 +6,3 @@ schedule:
     - boot/boot_to_desktop
     - x11/wine
     - x11/steam
-    - x11/doom
