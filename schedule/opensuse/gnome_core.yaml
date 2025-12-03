@@ -1,12 +1,14 @@
 name:  gnome_core
 description:    >
-    Core gnome applications
+    Core Gnome desktop applications
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - x11/user_gui_login
     - x11/desktop_runner
+    - x11/desktop_mainmenu
     - locale/keymap_or_locale_x11
+    - x11/gnome_console
     - x11/gnome_control_center
     - x11/gnome_tweak_tool
     - x11/gnome_console
