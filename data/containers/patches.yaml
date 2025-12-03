@@ -66,6 +66,9 @@ buildx:
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 3475
+  sle-16.0:
+    GITHUB_PATCHES:
+    - 3475
 compose:
   # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
@@ -114,6 +117,10 @@ moby:
   # https://github.com/moby/moby/pull/51219 - integration/container: Make tests runnable on SELinux enabled daemon
   # https://github.com/moby/moby/pull/51263 - integration: Skip some tests as rootless
   opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 51219
+    - 51263
+  sle-16.0:
     GITHUB_PATCHES:
     - 51219
     - 51263
