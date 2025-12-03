@@ -1,0 +1,14 @@
+name:           textmode_extra_tests_kernel
+description:    >
+    Extra CLI tests for kernel related things
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/sysctl
+    - console/sysstat
+    - console/kmod
+    - console/perf
+    - console/kdump_and_crash
+    - console/coredump_collect
+    - console/valgrind

@@ -1,0 +1,64 @@
+name:           textmode_extra_tests_networking
+description:    >
+    Extra CLI tests for network related things
+conditional_schedule:
+    yast2_lan_device_settings:
+        ARCH:
+            aarch64:
+                - console/yast2_lan_device_settings
+            ppc64le:
+                - console/yast2_lan_device_settings
+            x86_64:
+                - console/yast2_lan_device_settings
+    snmp:
+        MACHINE:
+            64bit:
+                - network/snmp
+            aarch64:
+                - network/snmp
+            ppc64le:
+                - network/snmp
+            s390x-zVM-vswitch-l2:
+                - network/snmp
+    velociraptor_tests:
+        ARCH:
+            x86_64:
+                - console/velociraptor_client_event_collect
+            aarch64:
+                - console/velociraptor_client_event_collect
+            ppc64le:
+                - console/velociraptor_client_event_collect
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/chrony
+    - console/dnsmasq
+    - console/ping
+    - console/arping
+    - console/traceroute
+    - console/tracepath
+    - console/tcpdump
+    - console/curl_ipv6
+    - console/wget_ipv6
+    - console/dig
+    - console/wireshark_cli
+    - console/openvswitch
+    - console/ovn
+    - console/sshd
+    - console/mta
+    - '{{yast2_lan_device_settings}}'
+    - console/check_default_network_manager
+    - '{{snmp}}'
+    - x11/evolution/evolution_prepare_servers
+    - console/mutt
+    - console/rpcbind
+    - console/firewalld
+    - console/nftables
+    - console/wpa_supplicant
+    - console/systemd_resolved
+    - console/vsftpd
+    - '{{velociraptor_tests}}'
+    - console/sssd_389ds_functional
+    - console/salt
+    - console/ansible
