@@ -1,8 +1,0 @@
-name:  gnome_consoles
-description:    >
-    Test different consoles under gnome
-schedule:
-    - installation/bootloader_start
-    - boot/boot_to_desktop
-    - x11/ssh_default_term
-    - x11/xterm
