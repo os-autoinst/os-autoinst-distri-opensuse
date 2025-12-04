@@ -16,7 +16,7 @@
     hashedPassword: true,
   },
   software: {
-    patterns: []
+    patterns: ['selinux']
   },
   scripts: {
     post: [
