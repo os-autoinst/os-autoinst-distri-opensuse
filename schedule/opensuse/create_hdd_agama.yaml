@@ -20,6 +20,7 @@ schedule:
     - console/system_prepare
     - update/zypper_clear_repos
     - console/zypper_ar
+    - console/zypper_lr
     - console/zypper_ref
     - console/opensuse_repos
     - console/hostname
