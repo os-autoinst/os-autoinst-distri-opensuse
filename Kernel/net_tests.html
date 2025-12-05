@@ -1,0 +1,170 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kernel/net_tests.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#get_net_prefix_len">get_net_prefix_len</a></li>
+      <li><a href="#add_ipv6_addr">add_ipv6_addr</a></li>
+      <li><a href="#add_ipv6_route">add_ipv6_route</a></li>
+      <li><a href="#add_ipv4_addr">add_ipv4_addr</a></li>
+      <li><a href="#add_ipv4_route">add_ipv4_route</a></li>
+      <li><a href="#check_ipv6_addr">check_ipv6_addr</a></li>
+      <li><a href="#flush_xfrm">flush_xfrm</a></li>
+      <li><a href="#build_ipsec_params">build_ipsec_params</a></li>
+      <li><a href="#install_ipsec_state">install_ipsec_state</a></li>
+      <li><a href="#install_ipsec_policies">install_ipsec_policies</a></li>
+      <li><a href="#dump_ipsec_debug">dump_ipsec_debug</a></li>
+      <li><a href="#validate_ipsec_tcpdump">validate_ipsec_tcpdump</a></li>
+      <li><a href="#validate_tcpdump">validate_tcpdump</a></li>
+      <li><a href="#capture_tcpdump">capture_tcpdump</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kernel/net_tests.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Networking helper utilities for multimachine openQA tests involving IPsec, L2TP, routing, and general tunnel configuration.</p>
+
+<h2 id="get_net_prefix_len">get_net_prefix_len</h2>
+
+<pre><code>get_net_prefix_len(net =&gt; &#39;2001:db8::/64&#39;);</code></pre>
+
+<p>Return the prefix length extracted from a <code>address/prefix</code> string. Returns <code>undef</code> if no prefix is present.</p>
+
+<h2 id="add_ipv6_addr">add_ipv6_addr</h2>
+
+<pre><code>add_ipv6_addr(ip =&gt; &#39;2001:db8::1&#39;, dev =&gt; &#39;eth0&#39;, plen =&gt; 64);</code></pre>
+
+<p>Assign an IPv6 address with prefix length to an interface. Defaults: - <code>dev</code>: result of <code>iface()</code> - <code>plen</code>: 64</p>
+
+<h2 id="add_ipv6_route">add_ipv6_route</h2>
+
+<pre><code>add_ipv6_route(dst =&gt; &#39;2001:db8:2::/64&#39;, via =&gt; &#39;2001:db8::1&#39;);</code></pre>
+
+<p>Add an IPv6 route using <code>ip -6 route add</code>.</p>
+
+<h2 id="add_ipv4_addr">add_ipv4_addr</h2>
+
+<pre><code>add_ipv4_addr(ip =&gt; &#39;192.0.2.10&#39;, dev =&gt; &#39;eth0&#39;, plen =&gt; 24);</code></pre>
+
+<p>Assign an IPv4 address with prefix length to an interface. Defaults: - <code>dev</code>: result of <code>iface()</code> - <code>plen</code>: 24</p>
+
+<h2 id="add_ipv4_route">add_ipv4_route</h2>
+
+<pre><code>add_ipv4_route(dst =&gt; &#39;192.0.2.0/24&#39;, via =&gt; &#39;192.0.2.1&#39;);</code></pre>
+
+<p>Add an IPv4 route using <code>ip route add</code>.</p>
+
+<h2 id="check_ipv6_addr">check_ipv6_addr</h2>
+
+<pre><code>check_ipv6_addr();</code></pre>
+
+<p>Wait until the system obtains a usable IPv6 address. The function checks for: - presence of a link-local <code>fe80::</code> address - address no longer in <code>tentative</code> state</p>
+
+<p>Waits up to 50 seconds (10 attempts * 5 seconds).</p>
+
+<h2 id="flush_xfrm">flush_xfrm</h2>
+
+<pre><code>flush_xfrm();</code></pre>
+
+<p>Flush all existing XFRM state and policy entries. Useful when resetting IPsec configuration between test phases.</p>
+
+<h2 id="build_ipsec_params">build_ipsec_params</h2>
+
+<pre><code>my %params = build_ipsec_params(
+    aead  =&gt; q(&#39;rfc4309(ccm(aes))&#39;),
+    replay =&gt; 96,
+);</code></pre>
+
+<p>Return a hash of IPsec/XFRM configuration parameters (crypto algorithm, SPI, keys, replay tag size, etc.). Test authors may override any field.</p>
+
+<h2 id="install_ipsec_state">install_ipsec_state</h2>
+
+<pre><code>install_ipsec_state(
+    %params,
+    local_ip  =&gt; &#39;2001:db8::1&#39;,
+    remote_ip =&gt; &#39;2001:db8::2&#39;,
+);</code></pre>
+
+<p>Install ESP outbound and inbound Security Associations (SAs) using the provided IPsec parameters and tunnel endpoint IPs.</p>
+
+<h2 id="install_ipsec_policies">install_ipsec_policies</h2>
+
+<pre><code>install_ipsec_policies(
+    %params,
+    local_ip       =&gt; &#39;2001:db8::1&#39;,
+    remote_ip      =&gt; &#39;2001:db8::2&#39;,
+    new_local_net  =&gt; &#39;2001:db8:100::/64&#39;,
+    new_remote_net =&gt; &#39;2001:db8:200::/64&#39;,
+);</code></pre>
+
+<p>Install inbound and outbound XFRM policies that link traffic selectors (new_local_net -&gt; new_remote_net) to the IPsec state installed earlier.</p>
+
+<h2 id="dump_ipsec_debug">dump_ipsec_debug</h2>
+
+<pre><code>dump_ipsec_debug();</code></pre>
+
+<p>Record detailed debugging information about IPsec state, policy, and IPv6 routing. Useful for post-failure diagnostics.</p>
+
+<h2 id="validate_ipsec_tcpdump">validate_ipsec_tcpdump</h2>
+
+<pre><code>validate_ipsec_tcpdump($dump, $setup, $devname);</code></pre>
+
+<p>Validate that tcpdump output on a given device contains ESP packets with the expected SPI.</p>
+
+<h2 id="validate_tcpdump">validate_tcpdump</h2>
+
+<pre><code>validate_tcpdump(
+    dump  =&gt; $dump,
+    check =&gt; &#39;esp&#39; | [&#39;esp&#39;,&#39;pmtud&#39;],
+    spi   =&gt; &#39;0x12345678&#39;,
+    mtu   =&gt; 1300,
+    dev   =&gt; &#39;ens4&#39;
+);</code></pre>
+
+<p>Validate tcpdump output for expected IPsec traffic patterns.</p>
+
+<p>Supported checks:</p>
+
+<p>- <code>esp</code>: Verify that ESP packets are present and match the expected SPI. - <code>pmtud</code>: Verify that ICMPv6 Packet Too Big messages appear with the expected MTU.</p>
+
+<p>If multiple checks are requested, all of them must be found in the dump. Missing patterns cause the test to fail via <code>record_info(..., result =</code> &#39;fail&#39;)&gt;.</p>
+
+<h2 id="capture_tcpdump">capture_tcpdump</h2>
+
+<pre><code>capture_tcpdump($dev);
+capture_tcpdump($dev, $timeout);</code></pre>
+
+<p>Run <code>tcpdump</code> on the given network interface <code>$dev</code> for a limited duration (using the <code>timeout</code> command) and return the captured packet output as a string.</p>
+
+<p>Arguments:</p>
+
+<ul>
+
+<li><p><code>$dev</code> - Network interface to capture on (e.g. <code>eth0</code>).</p>
+
+</li>
+<li><p><code>$timeout</code> - Optional duration in seconds to run tcpdump (defaults to 10).</p>
+
+</li>
+</ul>
+
+<p>The function always uses <code>tcpdump -n</code> (numeric output) and sets <code>proceed_on_failure =</code> 1&gt; so that failed or empty captures do not abort the test module.</p>
+
+
+</body>
+
+</html>
+
+
