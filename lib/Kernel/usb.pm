@@ -62,7 +62,7 @@ sub list_usb_devices {
     return \@ret;
 }
 
-=head2
+=head2 check_usb_devices
 
  check_usb_devices();
 
