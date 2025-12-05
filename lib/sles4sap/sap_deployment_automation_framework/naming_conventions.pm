@@ -32,6 +32,7 @@ our @EXPORT = qw(
   $sut_private_key_path
   homedir
   deployment_dir
+  playbook_dir
   log_dir
   sdaf_scripts_dir
   env_variable_file
@@ -165,6 +166,18 @@ sub deployment_dir {
       get_var('DEPLOYMENT_ROOT_DIR', '/tmp') . '/Azure_SAP_Automated_Deployment_' . find_deployment_id();
     assert_script_run("mkdir -p $deployment_dir") if $args{create};
     return $deployment_dir;
+}
+
+=head2 playbook_dir
+
+    playbook_dir();
+
+Returns path to the standard SDAF ansible directory.
+
+=cut
+
+sub playbook_dir {
+    return deployment_dir() . '/sap-automation/deploy/ansible';
 }
 
 =head2 log_dir
