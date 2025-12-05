@@ -40,7 +40,6 @@ sub get_sysext {
         assert_script_run(
             "elemental3ctl --debug unpack-image \\
                --image ${img} \\
-               --platform linux/amd64 \\
                --target ${sysext_dir}",
             $args{timeout}
         );
