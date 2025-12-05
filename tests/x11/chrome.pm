@@ -62,7 +62,11 @@ sub run {
     click_ad_privacy_feature;
     wait_screen_change { send_key 'ctrl-l' };
     enter_cmd 'about:';
-    assert_screen 'google-chrome-about';
+    assert_screen [qw(google-chrome-about make-chrome-faster)];
+    if (match_has_tag 'make-chrome-faster') {
+        click_lastmatch;
+        assert_screen 'google-chrome-about';
+    }
     send_key 'alt-f4';
 }
 

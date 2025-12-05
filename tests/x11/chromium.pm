@@ -34,6 +34,12 @@ sub run {
         assert_screen "chromium-main-window";
     }
 
+    check_screen 'make-chromium-faster', 10;
+    if (match_has_tag 'make-chromium-faster') {
+        click_lastmatch;
+        assert_screen 'chromium-main-window';
+    }
+
     wait_screen_change { send_key 'esc' };    # get rid of popup (or abort loading)
 
     type_address('chrome://version');
