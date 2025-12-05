@@ -7,7 +7,7 @@ schedule:
   - virt_autotest/prepare_non_transactional_server
   - '{{prepare_nvram_for_snapshot}}'
   - virt_autotest/unified_guest_installation
-  - virt_autotest/set_config_as_glue
+  - '{{virt_autotest/set_config_as_glue}}'
   - '{{uefi_guest_verification}}'
   - '{{sev_snp_validation}}'
   - '{{sev_es_guest_verification}}'
@@ -26,6 +26,10 @@ conditional_schedule:
     ENABLE_SNAPSHOT:
       1:
         - virt_autotest/prepare_nvram_for_snapshot
+  set_config_as_glue:
+    SET_CONFIG_AS_GLUE:
+      1:
+        - virt_autotest/set_config_as_glue
   uefi_guest_verification:
     VIRT_UEFI_GUEST_INSTALL:
       1:
