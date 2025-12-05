@@ -443,8 +443,10 @@ sub collect_coredumps {
         record_info("COREDUMP", $out);
 
         if ($backtrace) {
+            # First download debuginfo stuff to avoid polluting BACKTRACE info
+            script_run "coredumpctl debug -A '-ex quit' $pid", timeout => 300;
             my $gdb_script = '-batch -ex "thread apply all bt full" -ex quit';
-            record_info("BACKTRACE", script_output(qq{coredumpctl debug --debugger-arguments='$gdb_script'}, timeout => 300, proceed_on_failure => 1));
+            record_info("BACKTRACE", script_output(qq{coredumpctl debug -A '$gdb_script' $pid}, timeout => 300, proceed_on_failure => 1));
         }
 
         my ($dump) = $out =~ /^\s*Storage:\s*(\S+)/m;
