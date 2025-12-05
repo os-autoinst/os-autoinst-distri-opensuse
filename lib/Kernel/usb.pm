@@ -1,7 +1,7 @@
 # Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-package usb;
+package Kernel::usb;
 
 use base Exporter;
 use Exporter;
