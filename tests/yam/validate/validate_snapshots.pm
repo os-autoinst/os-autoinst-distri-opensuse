@@ -13,6 +13,7 @@ use testapi;
 sub run {
     select_console 'root-console';
 
+    return if get_var('AGAMA_TEST_OPTIONS', '') =~ /root-partition-without-snapshots/;
     script_run("snapper list");
     my $snapper_description = script_output("snapper list --columns description");
     if ($snapper_description =~ /after\sinstallation/) {
