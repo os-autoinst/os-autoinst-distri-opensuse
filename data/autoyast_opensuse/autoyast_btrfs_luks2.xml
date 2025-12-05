@@ -133,4 +133,7 @@
       <username>root</username>
     </user>
   </users>
+  <services-manager>
+    <default_target>graphical</default_target>
+  </services-manager>
 </profile>
