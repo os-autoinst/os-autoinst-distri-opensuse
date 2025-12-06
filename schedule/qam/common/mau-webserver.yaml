@@ -51,7 +51,7 @@ conditional_schedule:
         - console/apache_nss
         - console/django
         - console/nginx
-      tumbleweed:
+      Tumbleweed:
         - console/django
         - console/rails
         - console/nginx

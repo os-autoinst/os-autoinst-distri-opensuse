@@ -1,0 +1,23 @@
+name:  base_os
+description:    >
+    Generic testsuite
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/check_network
+    - console/system_state
+    - console/opensuse_repos
+    - console/zypper_lr
+    - console/zypper_in
+    - console/zypper_log
+    - console/systemd_wo_udev
+    - console/curl_https
+    - console/salt
+    - console/glibc_sanity
+    - console/glibc_tunables
+    - console/vim
+    - console/firewall_enabled
+    - console/sshd
+    - console/ssh_cleanup
+    - console/sshfs
+    - console/mtab

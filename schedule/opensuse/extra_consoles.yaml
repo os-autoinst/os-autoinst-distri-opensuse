@@ -1,0 +1,8 @@
+name:  extra_consoles
+description:    >
+    Test x forwarding and other consoles
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - x11/ssh_default_term
+    - x11/xterm

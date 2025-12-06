@@ -1,0 +1,15 @@
+name:  desktop_browsers
+description:    >
+    Web browser related tests
+conditional_schedule:
+    chrome:
+        VERSION:
+            Tumbleweed:
+                - x11/chrome
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - x11/firefox
+    - x11/firefox_audio
+    - x11/chromium
+    - '{{chrome}}'
