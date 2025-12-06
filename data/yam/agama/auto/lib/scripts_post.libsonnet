@@ -14,5 +14,16 @@
       #!/usr/bin/env bash
       systemctl enable serial-getty@hvc1
     |||
+  },
+  enable_kdump: {
+    name: 'enable kdump',
+    chroot: true,
+    content: |||
+      #!/usr/bin/env bash
+      zypper -n in kdump
+      systemctl enable kdump-commandline.service
+      systemctl enable kdump.service
+      kdumptool commandline -u
+    |||
   }
 }
