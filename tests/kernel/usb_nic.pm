@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use network_utils 'is_wicked_used';
-use usb;
+use Kernel::usb;
 
 sub run {
     my ($self) = @_;
