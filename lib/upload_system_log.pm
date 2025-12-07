@@ -66,11 +66,7 @@ sub upload_system_logs {
 
 sub upload_supportconfig_log {
     my (%args) = @_;
-    if (is_s390x) {
-        $args{file_name} //= "supportconfig";
-    } else {
-        $args{file_name} //= 'supportconfig.' . script_output("date '+%Y%m%d%H%M%S'");
-    }
+    $args{file_name} //= 'supportconfig.' . script_output("date '+%Y%m%d%H%M%S'");
     $args{options} //= '';
     $args{timeout} //= 600;
 
