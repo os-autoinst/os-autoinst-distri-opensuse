@@ -226,9 +226,19 @@ sub handle_sp_in_settings {
 
     # We need small case variable value
     my $var_value = lc(get_required_var("$var_name"));
-    # Add $value_for_sp after release for products like sle15, sle16
-    if ($var_value !~ /sp|fcs/ && $value_for_sp) {
-        $var_value =~ s/(sles-\d+)/$1-$value_for_sp/;
+
+    my ($major_version) = $var_value =~ /sles-(\d+)/;
+    if ($major_version >= 16) {
+        # Follow SLES16+ Major.Minor format
+        if ($var_value !~ /sles-\d+[\.-]\d+/) {
+            $var_value .= "-0";
+        }
+    }
+    else {
+        # Add $value_for_sp after release for products like sle12, sle15
+        if ($var_value !~ /sp|fcs/ && $value_for_sp) {
+            $var_value =~ s/(sles-\d+)/$1-$value_for_sp/;
+        }
     }
     set_var("$var_name", "$var_value");
     bmwqemu::save_vars();
@@ -236,7 +246,15 @@ sub handle_sp_in_settings {
 
 sub handle_sp_in_settings_with_fcs {
     my $var_name = shift;
-    handle_sp_in_settings($var_name, "fcs");
+
+    my $var_value = lc(get_required_var("$var_name"));
+
+    if ($var_value =~ /sles-16/) {
+        handle_sp_in_settings($var_name, "0");
+    }
+    else {
+        handle_sp_in_settings($var_name, "fcs");
+    }
 }
 
 sub handle_sp_in_settings_with_sp0 {
@@ -304,12 +322,29 @@ sub clean_up_red_disks {
 
 sub lpar_cmd {
     my ($cmd, $args) = @_;
+
+    # Ensure $args is a hashref if nothing is passed
+    $args ||= {};
     my $timeout = $args->{timeout} // 300;
+    my $ignore_return_code = $args->{ignore_return_code} // 0;
+
     die 'Command not provided' unless $cmd;
-    $args->{ignore_return_code} ||= 0;
+
     my $ret = console('svirt')->run_cmd($cmd, timeout => $timeout);
-    record_info('INFO', "Command $cmd run on S390X LPAR: SUCESS") if ($ret == 0);
-    die 'Find new failure, please check manually' unless ($args->{ignore_return_code} || !$ret);
+    $ret //= 1;
+
+    if ($ret == 0) {
+        record_info('LPAR_CMD_PASS', "Command finished with RC 0: $cmd");
+    }
+    else {
+        record_info('LPAR_CMD_FAIL', "Command failed with RC $ret: $cmd");
+    }
+
+    die "Find new failure (RC $ret), please check manually for command: $cmd"
+      unless ($ignore_return_code || $ret == 0);
+
+    # Return the captured return code
+    return $ret;
 }
 
 # Guest xml will be uploaded with name format [generated_name_by_this_func].xml
