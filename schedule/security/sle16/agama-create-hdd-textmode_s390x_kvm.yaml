@@ -6,6 +6,7 @@ schedule:
     - installation/bootloader_zkvm
     - installation/agama_reboot
     - installation/first_boot
+    - security/installation/enable_repos
     - console/zypper_lr
     - console/system_prepare
     - console/hostname
