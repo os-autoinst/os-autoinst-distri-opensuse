@@ -3,7 +3,7 @@
 
 grub2_config() {
     file=/etc/default/grub
-    sed -i 's/^\s*GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=15/g' $file
+    sed -i 's/^\s*GRUB_TIMEOUT=.*$/GRUB_TIMEOUT=30/g' $file
     sed -i -r 's/^(\s|#)*GRUB_TERMINAL=.*$/GRUB_TERMINAL="gfxterm console"/g' $file
     sed -i -r 's/^(\s|#)*GRUB_TERMINAL_INPUT=.*$/GRUB_TERMINAL_INPUT="gfxterm console"/g' $file
     sed -i -r 's/^(\s|#)*GRUB_TERMINAL_OUTPUT=.*$/GRUB_TERMINAL_OUTPUT="gfxterm console"/g' $file
