@@ -123,6 +123,7 @@
       <li><a href="#render_autoinst_url">render_autoinst_url</a></li>
       <li><a href="#is_agama_guest">is_agama_guest</a></li>
       <li><a href="#upload_folders">upload_folders</a></li>
+      <li><a href="#cmd_run">cmd_run</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -911,6 +912,12 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>upload_folders(folders =&gt; &#39;absolute path to folder separated by commas&#39;);</code></pre>
 
 <p>Compress folders to files and call upload_logs to upload. The arguments are folders which accept absolute path to folders and store which indicates the absolute path to a folder that stores compressed files</p>
+
+<h2 id="cmd_run">cmd_run</h2>
+
+<pre><code>cmd_run($cmd [, timeout =&gt; $timeout])</code></pre>
+
+<p>Run <i>$cmd</i> in console and wait for its completion. In scalar context, return command exit code. In array context, return tuple (exit code, console output).</p>
 
 
 </body>
