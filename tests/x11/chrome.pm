@@ -44,6 +44,15 @@ sub click_ad_privacy_feature {
     assert_and_click 'google-chrome-ad-privacy-feature-ok';
 }
 
+sub handle_make_faster_popup {
+    check_screen 'make-chrome-faster', 10;
+    if (match_has_tag 'make-chrome-faster') {
+        click_lastmatch;
+        return 1;
+    }
+    return 0;
+}
+
 sub run {
     my $arch = is_i586 ? 'i386' : 'x86_64';
     my $chrome_url = "https://dl.google.com/linux/direct/google-chrome-stable_current_$arch.rpm";
@@ -60,9 +69,12 @@ sub run {
     assert_screen [qw(google-chrome-main-window google-chrome-dont-sign-in)];
     click_lastmatch if match_has_tag('google-chrome-dont-sign-in');
     click_ad_privacy_feature;
+    my $make_faster_popup_seen = handle_make_faster_popup();
     wait_screen_change { send_key 'ctrl-l' };
     enter_cmd 'about:';
-    assert_screen [qw(google-chrome-about make-chrome-faster)];
+    my @tags = qw(google-chrome-about);
+    push @tags, 'make-chrome-faster' unless $make_faster_popup_seen;
+    assert_screen @tags;
     if (match_has_tag 'make-chrome-faster') {
         click_lastmatch;
         assert_screen 'google-chrome-about';
