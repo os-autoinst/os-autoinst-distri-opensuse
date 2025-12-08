@@ -1,7 +1,7 @@
 # Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-package usb;
+package Kernel::usb;
 
 use base Exporter;
 use Exporter;
@@ -62,7 +62,7 @@ sub list_usb_devices {
     return \@ret;
 }
 
-=head2
+=head2 check_usb_devices
 
  check_usb_devices();
 

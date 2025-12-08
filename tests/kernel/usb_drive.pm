@@ -13,7 +13,7 @@ use serial_terminal;
 use utils;
 use package_utils 'install_package';
 use version_utils 'is_sle';
-use usb;
+use Kernel::usb;
 
 sub md5sum {
     my ($file) = @_;
