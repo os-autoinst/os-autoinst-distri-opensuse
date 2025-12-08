@@ -745,7 +745,7 @@ sub cleanup_cloudinit() {
     $self->ssh_assert_script_run('sudo cloud-init clean --logs');
     if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
         $self->ssh_assert_script_run('sudo rm /root/test_cloud-init.txt');
-        $self->zypper_call_remote('rm ed');
+        $self->ssh_assert_script_run('sudo zypper -n rm ed');
     }
 }
 
