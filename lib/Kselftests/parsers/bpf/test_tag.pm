@@ -18,8 +18,9 @@ sub parse_line {
     if ($test_ln =~ /^#\s\S+:\sOK\s(.*)$/) {
         my $n = $1;
         return "# ok 1 test_tag # $n";
+    } else {
+        return $test_ln;
     }
-    return undef;
 }
 
 1;
