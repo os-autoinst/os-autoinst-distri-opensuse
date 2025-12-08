@@ -12,7 +12,10 @@ use Mojo::Base 'x11test', -signatures;
 use testapi;
 use utils;
 
+my $make_faster_popup_seen = 0;
+
 sub type_address ($string) {
+    $make_faster_popup_seen = handle_make_faster_popup() unless $make_faster_popup_seen;
     send_key 'ctrl-l';    # select text in address bar
                           # wait for the urlbar to be in a consistent state
     assert_screen 'chromium-highlighted-urlbar';
@@ -25,6 +28,7 @@ sub run {
     mouse_hide;
     ensure_installed 'chromium';
 
+
     # avoid async keyring popups
     # allow key input before rendering is done, see poo#109737 for details
     x11_start_program('chromium --password-store=basic --allow-pre-commit-input', target_match => [qw(chromium-main-window authentication-required)], match_timeout => 50);
@@ -32,12 +36,6 @@ sub run {
         type_password;
         assert_and_click "unlock";
         assert_screen "chromium-main-window";
-    }
-
-    check_screen 'make-chromium-faster', 10;
-    if (match_has_tag 'make-chromium-faster') {
-        click_lastmatch;
-        assert_screen 'chromium-main-window';
     }
 
     wait_screen_change { send_key 'esc' };    # get rid of popup (or abort loading)
@@ -52,6 +50,15 @@ sub run {
     type_address('https://upload.wikimedia.org/wikipedia/commons/d/d0/OpenSUSE_Logo.svg');
     assert_screen 'chromium-opensuse-logo', 90;
     send_key 'alt-f4';
+}
+
+sub handle_make_faster_popup {
+    check_screen 'make-chromium-faster', 10;
+    if (match_has_tag 'make-chromium-faster') {
+        click_lastmatch;
+        return 1;
+    }
+    return 0;
 }
 
 1;
