@@ -854,12 +854,22 @@ sub _ssh_fully_patch_system_run_patch {
     my $timeout = $args{timeout};
     my $with_solver = $args{with_solver} // 0;
     my $label = $args{label};
+    my $accept_codes = $args{accept_codes};
+    my $instance = $args{instance};
 
     my $solver_opt = $with_solver ? '--debug-solver' : '';
-    my $cmd = "ssh $remote 'sudo zypper -n patch $solver_opt --with-interactive -l'";
-
     my $t0 = time();
-    my $ret = script_run($cmd, $timeout);
+    my $cmd;
+    my $ret;
+
+    if ($instance) {
+        $cmd = "patch $solver_opt --with-interactive -l";
+        $ret = $instance->publiccloud::utils::zypper_call_remote($cmd, exitcode => $accept_codes, timeout => $timeout);
+    }
+    else {
+        $cmd = "ssh $remote 'sudo zypper -n patch $solver_opt --with-interactive -l'";
+        $ret = script_run($cmd, $timeout);
+    }
     record_info('zypper patch', "$label took " . (time() - $t0) . "s (exit $ret)");
     return $ret;
 }
@@ -870,6 +880,7 @@ sub _ssh_fully_patch_system_pass {
     my $timeout = $args{timeout};
     my $label = $args{label};
     my $accept_codes = $args{accept_codes};
+    my $instance = $args{instance};
     my $gen_resolver = $args{gen_resolver};
 
     my $ret = -1;
@@ -878,6 +889,8 @@ sub _ssh_fully_patch_system_pass {
     unless ($gen_resolver) {
         $attempt++;
         $ret = _ssh_fully_patch_system_run_patch(
+            instance => $instance,
+            accept_codes => $accept_codes,
             remote => $remote,
             timeout => $timeout,
             with_solver => $gen_resolver,
@@ -888,6 +901,8 @@ sub _ssh_fully_patch_system_pass {
     if ($gen_resolver || !grep { $_ == $ret } @$accept_codes) {
         $attempt++;
         $ret = _ssh_fully_patch_system_run_patch(
+            instance => $instance,
+            accept_codes => $accept_codes,
             remote => $remote,
             timeout => $timeout,
             with_solver => $gen_resolver,
@@ -910,11 +925,12 @@ the second run will update the system.
 =cut
 
 sub ssh_fully_patch_system {
-    my ($remote) = @_;
+    my ($remote, $instance) = @_;
     my $gen_resolver = get_var('PUBLIC_CLOUD_GEN_RESOLVER', 0);
 
     # First run — allow 103 (zypper updated itself)
     _ssh_fully_patch_system_pass(
+        instance => $instance,
         remote => $remote,
         timeout => 1500,
         label => 'zypper patch (first run)',
@@ -924,6 +940,7 @@ sub ssh_fully_patch_system {
 
     # Second run — system update, only 0/102 allowed
     _ssh_fully_patch_system_pass(
+        instance => $instance,
         remote => $remote,
         timeout => 6000,
         label => 'zypper patch (second run)',
