@@ -14,6 +14,7 @@ use lockapi;
 use Socket qw(inet_ntoa);
 use utils qw(systemctl file_content_replace zypper_call script_retry);
 use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync);
+use mmapi qw(get_current_job_id get_parents);
 
 sub replace_text_in_ha_files {
     my %changes = @_;
@@ -37,8 +38,10 @@ sub run {
     my $nfs_share = get_required_var('NFS_SUPPORT_SHARE');
     my $mountpt = '/support_fs';
     my $cluster_name = get_cluster_name;
-    my $build = join('_', get_required_var('BUILD') =~ m/(\w+)/g);
-    my $dir_id = join('_', $cluster_name, get_required_var('VERSION'), get_required_var('ARCH'), $build);
+
+    my $master_job_id = is_node(1) ? get_current_job_id : (get_parents)->[0];
+    $master_job_id = $master_job_id ? $master_job_id : 'no_master_id';
+    my $dir_id = join('_', $cluster_name, get_required_var('VERSION'), get_required_var('ARCH'), $master_job_id);
     my $testname = get_required_var('TEST');
     my $time_to_wait;
 
