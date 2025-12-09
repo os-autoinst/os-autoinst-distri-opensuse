@@ -23,25 +23,6 @@ sub turn_off_low_disk_warning {
     save_screenshot;
 }
 
-sub b1_wiz_workaround {
-    my ($install_bin, $b1_cfg, $tout) = @_;
-    assert_script_run "curl -f -v -O " . autoinst_url . "/data/sles4sap/b1_workaround.tar.gz";
-    assert_script_run "tar xvf b1_workaround.tar.gz -C /tmp";
-    assert_script_run "chmod +x /tmp/*.sh";
-    my $code_to_inject = <<'EOT';
-        pid_installer=$!
-        sleep 10
-        kill -SIGSTOP $pid_installer
-        cd /tmp/B1ServerTools*
-        cp -f /tmp/*.sh opt/sap/SAPBusinessOne/Common/support/bin
-        kill -SIGCONT $pid_installer
-EOT
-    # format $code_to_inject so shell script runs correctly
-    chomp $code_to_inject;
-    $code_to_inject =~ s/\n/\\\n/g;
-    assert_script_run("sed -i '/pid_installer=\$!/c\\ $code_to_inject' \"/usr/lib/YaST2/bin/b1_inst.sh\"");
-}
-
 sub run {
     my ($self) = @_;
     my $bone;
@@ -78,16 +59,6 @@ sub run {
 
     # initial workaround for 15-SP7 and b1 installer 2505
     $self->b1_workaround_os_version;
-
-    # workaround for broken b1 installer and curl 8.14
-    my $package_version = script_output "rpm -q --qf 'curlver=%{VERSION}\n' curl";
-    $package_version =~ /curlver=([\d\.]+)/;
-    $package_version = $1;
-    die 'Could not determine curl version' unless ($package_version);
-    if (is_sle('>=15-SP4') && package_version_cmp($package_version, '8.14.1') <= 0) {
-        record_soft_failure "jsc#TEAM-10632 - Workaround for Business One due to bsc#1246964 / libcurl update";
-        b1_wiz_workaround;
-    }
 
     # start wizard
     if (check_var('DESKTOP', 'textmode')) {
