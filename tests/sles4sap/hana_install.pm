@@ -91,7 +91,7 @@ sub get_test_summary {
 
 sub restorecon_rootfs {
     # restorecon does not behave too well with btrfs, so exclude /.snapshots in btrfs rootfs
-    my $restorecon_cmd = 'restorecon -R /';
+    my $restorecon_cmd = 'restorecon -i -R /';
     $restorecon_cmd .= ' -e /.snapshots' unless (script_run('test -d /.snapshots'));
     assert_script_run "$restorecon_cmd";
 }
