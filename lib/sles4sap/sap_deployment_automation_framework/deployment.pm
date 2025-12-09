@@ -343,7 +343,7 @@ For detailed variable description check : L<https://learn.microsoft.com/en-us/az
 =item * B<sdaf_tfstate_storage_account>: Storage account residing in library resource group.
 Location for stored tfstate files. Default 'SDAF_TFSTATE_STORAGE_ACCOUNT'
 
-=item * B<sdaf_key_vault>: Key vault name inside Deployer resource group. Default 'SDAF_DEPLYOER_KEY_VAULT'
+=item * B<sdaf_key_vault>: Key vault name inside Deployer resource group. Default 'SDAF_DEPLOYER_KEY_VAULT'
 
 =back
 =cut
@@ -357,7 +357,7 @@ sub set_common_sdaf_os_env {
     $args{sdaf_region_code} //= convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
     $args{sap_sid} //= get_required_var('SAP_SID');
     $args{sdaf_tfstate_storage_account} //= get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT');
-    $args{sdaf_key_vault} //= get_required_var('SDAF_DEPLYOER_KEY_VAULT');
+    $args{sdaf_key_vault} //= get_required_var('SDAF_DEPLOYER_KEY_VAULT');
     my $workload_vnet_code = get_workload_vnet_code();
 
     # This is used later filling up tfvars files.

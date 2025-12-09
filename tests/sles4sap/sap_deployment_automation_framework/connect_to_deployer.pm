@@ -33,7 +33,7 @@ sub run {
     set_var('REDIRECT_DESTINATION_USER', get_var('PUBLIC_CLOUD_USER', 'azureadm'));
     set_var('REDIRECT_DESTINATION_IP', $deployer_ip);    # IP addr to redirect console to
     sdaf_ssh_key_from_keyvault(
-        key_vault => get_required_var('SDAF_DEPLYOER_KEY_VAULT'), target_file => $deployer_private_key_path);
+        key_vault => get_required_var('SDAF_DEPLOYER_KEY_VAULT'), target_file => $deployer_private_key_path);
     serial_console_diag_banner('Module sdaf_redirect_console_to_deployer.pm : end');
 }
 
