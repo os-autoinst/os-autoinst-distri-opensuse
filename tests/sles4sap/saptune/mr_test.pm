@@ -19,6 +19,7 @@ use Utils::Systemd qw(systemctl);
 use mr_test_lib qw(load_mr_tests);
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instances;
+use publiccloud::utils qw(is_publiccloud_sles4sap);
 use sles4sap_publiccloud;
 
 sub reboot_wait {
@@ -61,11 +62,11 @@ sub setup {
     #   Run 'zypper ps -s' to list these programs."
     zypper_call "in python3-rpm", exitcode => [0, 106];
     # Download mr_test and extract it to $HOME
-    assert_script_run "curl -sk $tarball | tar zxf - --strip-components 1" unless get_var('PUBLIC_CLOUD_SLES4SAP');
+    assert_script_run "curl -sk $tarball | tar zxf - --strip-components 1" unless is_publiccloud_sles4sap();
     # Add $HOME to $PATH
     assert_script_run "echo 'export PATH=\$PATH:\$HOME' >> /root/.bashrc";
     # Add '/root' to $PATH for public cloud instance
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+    if (is_publiccloud_sles4sap()) {
         assert_script_run "echo 'export PATH=\$PATH:/root' >> /root/.bashrc";
         assert_script_run('. /root/.bashrc');
     }
@@ -122,7 +123,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+    if (is_publiccloud_sles4sap()) {
         select_host_console(force => 1);
         my $run_args = OpenQA::Test::RunArgs->new();
         $run_args->{my_provider} = $self->{provider};

@@ -20,6 +20,7 @@ use base 'consoletest';
 use LTP::TestInfo 'testinfo';
 use Utils::Backends 'is_pvm_hmc';
 use mr_test_run qw(get_notes get_solutions);
+use publiccloud::utils qw(is_publiccloud_sles4sap);
 
 our @EXPORT = qw(
   load_mr_tests
@@ -66,7 +67,7 @@ sub load_mr_tests {
     #   [debug] ||| finished ssh_interactive_end publiccloud
     #   [debug] ||| starting 1_saptune_notes .../mr_test_run.pm
     #   [debug] ||| finished 1_saptune_notes lib
-    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
+    if (is_publiccloud_sles4sap()) {
         loadtest_mr_test('tests/publiccloud/ssh_interactive_end', run_args => $args);
         loadtest_mr_test('tests/sles4sap/publiccloud/qesap_cleanup', run_args => $args);
     }
