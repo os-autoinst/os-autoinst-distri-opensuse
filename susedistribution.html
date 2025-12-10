@@ -133,11 +133,11 @@
 
 <h2 id="activate_console">activate_console</h2>
 
-<pre><code>activate_console($console [, [ensure_tty_selected =&gt; 0|1] [, skip_set_standard_prompt =&gt; 0|1] [, skip_setterm =&gt; 0|1] [, timeout =&gt; $timeout]])</code></pre>
+<pre><code>activate_console($console [, [ensure_tty_selected =&gt; 0|1] [, skip_set_standard_prompt =&gt; 0|1] [, skip_setterm =&gt; 0|1] [, skip_disable_key_repeat =&gt; 0|1] [, timeout =&gt; $timeout]])</code></pre>
 
 <p>Callback whenever a console is selected for the first time. Accepts arguments provided to select_console().</p>
 
-<p><code>skip_set_standard_prompt</code> and <code>skip_setterm</code> arguments skip respective routines, e.g. if you want select_console() without addition console setup. Then, at some point, you should set it on your own.</p>
+<p><code>skip_set_standard_prompt</code>, <code>skip_setterm</code> and <code>skip_disable_key_repeat</code> arguments skip respective routines, e.g. if you want select_console() without addition console setup. Then, at some point, you should set it on your own.</p>
 
 <p>Option <code>ensure_tty_selected</code> ensures TTY is selected.</p>
 
