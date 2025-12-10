@@ -1490,6 +1490,7 @@ sub pre_run_hook {
     1 if defined $testapi::selected_console;
     $prev_console = $testapi::selected_console;
     record_info(__PACKAGE__ . ':' . 'pre_run_hook' . ' ' . "prev_console=$prev_console");
+    record_info('SELinux Status', script_output('sestatus', proceed_on_failure => 1)) if (has_selinux);
 }
 
 sub post_run_hook {
@@ -1497,6 +1498,7 @@ sub post_run_hook {
     record_info(__PACKAGE__ . ':' . 'post_run_hook' . ' ' . "prev_console=$prev_console");
 
     $self->record_avc_selinux_alerts() if is_sle('16+');
+    record_info('SELinux Status', script_output('sestatus', proceed_on_failure => 1)) if (has_selinux);
     return unless ($prev_console);
     select_console($prev_console, await_console => 0);
     ensure_unlocked_desktop if ($prev_console eq 'x11');
