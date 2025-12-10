@@ -19,11 +19,15 @@ use mmapi;
 use repo_tools 'add_qa_head_repo';
 
 sub run {
+    my ($self) = @_;
     my $role = get_required_var('IBTEST_ROLE');
     my $packages = "rdma-core rdma-ndd iputils";
     my $packages_master = $packages . " git-core bc";
 
-
+    if (!get_var('KGRAFT') && is_sle('<16')) {
+        select_console('sol', await_console => 0);
+        $self->wait_boot;
+    }
     select_serial_terminal;
     permit_root_ssh_in_sol unless is_sle('16+');
 
