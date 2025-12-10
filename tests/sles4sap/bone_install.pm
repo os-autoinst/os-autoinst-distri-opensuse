@@ -12,20 +12,9 @@ use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils qw(file_content_replace zypper_call);
 use Utils::Systemd 'systemctl';
-use version_utils qw(package_version_cmp is_sle);
+use version_utils 'is_sle';
 use POSIX 'ceil';
 use Utils::Logging 'save_and_upload_log';
-
-
-sub b1_workaround_install {
-    my ($install_bin, $b1_cfg, $tout) = @_;
-    assert_script_run "curl -f -v -O " . autoinst_url . "/data/sles4sap/b1_workaround.tar.gz";
-    assert_script_run "curl -f -v -O " . autoinst_url . "/data/sles4sap/b1_installer.sh";
-    assert_script_run "tar xvf b1_workaround.tar.gz -C /tmp";
-    assert_script_run "chmod +x /tmp/*.sh";
-    assert_script_run "chmod +x b1_installer.sh";
-    assert_script_run "./b1_installer.sh $install_bin $b1_cfg", $tout;
-}
 
 sub run {
     my ($self) = @_;
@@ -69,19 +58,8 @@ sub run {
     # initial workaround for 15-SP7 and b1 installer 2502
     $self->b1_workaround_os_version;
 
-    # workaround for broken b1 installer and curl 8.14
-    my $package_version = script_output "rpm -q --qf 'curlver=%{VERSION}\n' curl";
-    $package_version =~ /curlver=([\d\.]+)/;
-    $package_version = $1;
-    die 'Could not determine curl version' unless ($package_version);
-    if (package_version_cmp($package_version, '8.14.1') <= 0) {
-        record_soft_failure "jsc#TEAM-10632 - Workaround for Business One due to bsc#1246964 / libcurl update";
-        # place workaround for curl and b0rken b1 installer
-        b1_workaround_install($install_bin, $b1_cfg, $tout);
-    } else {
-        # Normal install
-        assert_script_run "$install_bin -i silent -f /tmp/$b1_cfg --debug", $tout;
-    }
+    # Install
+    assert_script_run "$install_bin -i silent -f /tmp/$b1_cfg --debug", $tout;
 
     # Upload installations logs
     $self->upload_hana_install_log;
