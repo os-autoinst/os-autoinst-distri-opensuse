@@ -322,17 +322,21 @@ subtest '[ipaddr2_deployment_sanity] Pass' => sub {
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
+    my @vm_list = qw(ip2t-vm-01 ip2t-vm-02 ip2t-vm-bastion);
+    my @vm_waits;
+    $ipaddr2->redefine(az_vm_wait_running => sub {
+            my (%args) = @_;
+            push @vm_waits, $args{name};
+    });
+
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-
-
     $azcli->redefine(script_output => sub {
             push @calls, ['azure_cli', $_[0]];
             # Simulate az cli to return 2 resource groups
             # one for the current jobId Volta and another one
             if ($_[0] =~ /az group list*/) { return '["ip2tVolta","ip2tFermi"]'; }
             # Simulate az cli to return exactly one name for the bastion VM name
-            if ($_[0] =~ /az vm list*/) { return '["ip2t-vm-bastion", "ip2t-vm-01", "ip2t-vm-02"]'; }
-            if ($_[0] =~ /az vm get-instance-view*/) { return '[ "PowerState/running", "VM running" ]'; }
+            if ($_[0] =~ /az vm list*/) { return '["ip2t-vm-bastion", "ip2t-vm-02", "ip2t-vm-01"]'; }
     });
 
     ipaddr2_deployment_sanity();
@@ -341,6 +345,9 @@ subtest '[ipaddr2_deployment_sanity] Pass' => sub {
         note("sles4sap::" . $calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
     ok(($#calls > 0), "There are some command calls");
+
+    my @vm_waits_sorted = sort @vm_waits;
+    is_deeply(\@vm_waits_sorted, \@vm_list, "VM list matches (sorted)");
 };
 
 subtest '[ipaddr2_deployment_sanity] Fails rg num' => sub {
