@@ -1,0 +1,18 @@
+name:  core_kde
+description:    >
+    Core KDE desktop applications
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - x11/user_gui_login
+    - x11/desktop_runner
+    - x11/desktop_mainmenu
+    - locale/keymap_or_locale_x11
+    - x11/konsole
+    - x11/khelpcenter
+    - x11/systemsettings
+    - x11/dolphin
+    - x11/kate
+    - x11/amarok
+    - x11/kontact
+    - x11/reboot_plasma5

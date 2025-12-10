@@ -1,0 +1,85 @@
+name:           textmode_extra_tests_utils
+description:    >
+    Extra CLI tests for network related things
+conditional_schedule:
+    lshw:
+        ARCH:
+            x86_64:
+                - console/lshw
+            ppc64le:
+                - console/lshw
+    sound_tests:
+        ARCH:
+            x86_64:
+                - console/aplay
+                - console/soundtouch
+                - console/wavpack
+            aarch64:
+                - console/aplay
+                - console/soundtouch
+                - console/wavpack
+    steamcmd:
+        ARCH:
+            x86_64:
+                - console/steamcmd
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/prepare_test_data
+    - console/check_os_release
+    - console/year_2038_detection
+    - console/man_pages
+    - console/orphaned_packages_check
+    - console/zypper_info
+    - console/snapper_zypp
+    - console/zypper_extend
+    - console/pam
+    - console/shar
+    - console/update_alternatives
+    - console/rpm
+    - console/pkcon
+    - console/command_not_found
+    - console/openssl_alpn
+    - console/cron
+    - console/syslog
+    - console/cups
+    - console/tuned
+    - console/fwupd
+    - console/ca_certificates_mozilla
+    - console/unzip
+    - console/gpg
+    - console/rsync
+    - console/shells
+    - console/sudo
+    - console/dstat
+    - console/pciutils
+    - console/mdadm
+    - console/systemd_nspawn
+    - console/quota
+    - console/vhostmd
+    - console/rpcbind
+    - console/timezone
+    - console/procps
+    - '{{lshw}}'
+    - console/suse_module_tools
+    - console/aaa_base
+    - console/osinfo_db
+    - '{{sound_tests}}'
+    - console/libvorbis
+    - console/libgpiod
+    - console/libgcrypt
+    - console/gd
+    - appgeo/gdal
+    - console/openqa_review
+    - console/zbar
+    - console/a2ps
+    - console/znc
+    - console/weechat
+    - console/nano
+    - '{{steamcmd}}'
+    - console/libqca2
+    - console/vmstat
+    - console/libjpeg_turbo
+    - console/systemd_rpm_macros
+    - console/journalctl
+    - console/tar
