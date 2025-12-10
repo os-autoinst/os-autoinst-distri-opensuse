@@ -725,9 +725,13 @@
 
 <p>Get some details of a specific VM</p>
 
-<p>Json output looks like:</p>
+<p>Json output of the az cli looks like:</p>
 
-<p>[ &quot;PowerState/running&quot;, &quot;VM running&quot; ]</p>
+<p>[ { &quot;code&quot;: &quot;ProvisioningState/succeeded&quot;, &quot;displayStatus&quot;: &quot;Provisioning succeeded&quot;, &quot;level&quot;: &quot;Info&quot;, &quot;message&quot;: null, &quot;time&quot;: &quot;2025-12-09T13:50:39.894595+00:00&quot; }, { &quot;code&quot;: &quot;PowerState/running&quot;, &quot;displayStatus&quot;: &quot;VM running&quot;, &quot;level&quot;: &quot;Info&quot;, &quot;message&quot;: null, &quot;time&quot;: null } ]</p>
+
+<p>Return value of this function is an arrray like</p>
+
+<p>[ { &quot;code&quot;: &quot;ProvisioningState/succeeded&quot;, &quot;displayStatus&quot;: &quot;Provisioning succeeded&quot;, }, { &quot;code&quot;: &quot;PowerState/running&quot;, &quot;displayStatus&quot;: &quot;VM running&quot;, } ]</p>
 
 <dl>
 
@@ -750,7 +754,7 @@
 
 <p>Get the VM state until status looks like:</p>
 
-<p>[ &quot;PowerState/running&quot;, &quot;VM running&quot; ]</p>
+<p>[ { &quot;code&quot;: &quot;ProvisioningState/succeeded&quot;, &quot;displayStatus&quot;: &quot;Provisioning succeeded&quot;, }, { &quot;code&quot;: &quot;PowerState/running&quot;, &quot;displayStatus&quot;: &quot;VM running&quot;, } ]</p>
 
 <p>or reach timeout.</p>
 
