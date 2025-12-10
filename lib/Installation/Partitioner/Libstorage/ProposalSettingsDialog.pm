@@ -15,6 +15,7 @@ use warnings FATAL => 'all';
 use testapi;
 use parent 'Installation::WizardPage';
 use Installation::Partitioner::ProposeSeparateHomePartitionCheckbox;
+use version_utils qw(is_sle);
 
 use constant {
     PROPOSAL_SETTINGS_DIALOG => 'inst-partition-radio-buttons'
@@ -34,12 +35,14 @@ sub get_separate_home_partition_checkbox {
 
 sub select_encrypted_lvm_based_proposal_radiobutton {
     assert_screen(PROPOSAL_SETTINGS_DIALOG);
-    send_key('alt-a');
+    my $shortcut = is_sle('<=15') ? 'alt-e' : 'alt-a';
+    send_key($shortcut);
 }
 
 sub select_lvm_based_proposal_radiobutton {
     assert_screen(PROPOSAL_SETTINGS_DIALOG);
-    send_key('alt-e');
+    my $shortcut = is_sle('<=15') ? 'alt-l' : 'alt-e';
+    send_key($shortcut);
 }
 
 sub press_ok {
