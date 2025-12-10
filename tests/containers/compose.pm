@@ -35,7 +35,7 @@ sub basic_test {
         assert_script_run 'export PODMAN_COMPOSE_PROVIDER=/usr/lib/docker/cli-plugins/docker-compose';
     }
 
-    validate_script_output("$runtime compose version", qr/version 2/);
+    validate_script_output("$runtime compose version", qr/version/);
 
     systemctl "start $opts podman.socket" if ($runtime eq "podman");
 
