@@ -31,7 +31,8 @@ sub setup {
     run_command "touch /root/.docker/config.json";
 
     $version = script_output "$docker_compose version | awk '{ print \$4 }'";
-    $version = "v$version";
+    # Temporary fix for v5.0.0
+    $version = ($version =~ /dev/) ? "v5.0.0" : "v$version";
     record_info "docker-compose version", $version;
 
     patch_sources "compose", $version, "pkg/e2e";
