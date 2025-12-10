@@ -60,7 +60,7 @@ EOF
 
     record_info('dpdk-hugepages.py -s', script_output('dpdk-hugepages.py -s', proceed_on_failure => 1));
     record_info('dpdk-devbind.py -s', script_output('dpdk-devbind.py -s', proceed_on_failure => 1));
-    my $pci_bus = script_output(q(dpdk-devbind.py  --status-dev net | grep "unused=vfio-pci" | awk '{ print $1 }' | head -n1));
+    my $pci_bus = script_output(q(dpdk-devbind.py  --status-dev net | grep "unused=.*vfio-pci" | awk '{ print $1 }' | head -n1));
     assert_script_run("dpdk-devbind.py -b vfio-pci $pci_bus");
 }
 
