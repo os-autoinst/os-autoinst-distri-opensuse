@@ -14,10 +14,10 @@ use sles4sap::crash;
 subtest '[crash_deploy_azure]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    $crash->redefine(az_vm_wait_running => sub { return; });
     my @calls;
     my $azure = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azure->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $azure->redefine(script_output => sub { push @calls, $_[0]; return '["PowerState/running","VM running"]'; });
 
     crash_deploy_azure(region => 'AmanitaMuscaria', os => 'CortinariusCinnabarinus');
 

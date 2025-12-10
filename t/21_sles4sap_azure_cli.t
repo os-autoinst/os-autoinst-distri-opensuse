@@ -432,22 +432,32 @@ subtest '[az_vm_list] query' => sub {
     ok((any { /--query.*ZAMZAM/ } @calls), 'Correct composition of the --query argument');
 };
 
-subtest '[az_vm_instance_view_get]' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["PowerState/running","VM running"]'; });
-
-    my $res = az_vm_instance_view_get(resource_group => 'Arlecchino', name => 'Mirandolina');
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /az vm get-instance-view/ } @calls), 'Correct composition of the main command');
-    ok((any { /VM running/ } @$res), 'Correct result decoding');
-};
 
 subtest '[az_vm_wait_running] running at first try' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["PowerState/running","VM running"]'; });
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            return <<'END_REPLY';
+[
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+    "level": "Info",
+    "message": null,
+    "time": "2025-12-09T13:50:39.894595+00:00"
+  },
+  {
+    "code": "PowerState/running",
+    "displayStatus": "VM running",
+    "level": "Info",
+    "message": null,
+    "time": null
+  }
+]
+END_REPLY
+    });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $wt = az_vm_wait_running(resource_group => 'Arlecchino',
         name => 'Truffaldino');
@@ -460,21 +470,69 @@ subtest '[az_vm_wait_running] running at first try' => sub {
 subtest '[az_vm_wait_running] running at second try' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    my $is_first = 1;
+    my @outputs;
+    push @outputs, <<'END_REPLY'
+[
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+    "level": "Info",
+    "message": null,
+    "time": "2025-12-09T13:50:39.894595+00:00"
+  },
+  {
+    "code": "PowerState/running",
+    "displayStatus": "VM running",
+    "level": "Info",
+    "message": null,
+    "time": null
+  }
+]
+END_REPLY
+      ;
+    push @outputs, <<'END_REPLY'
+[
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+    "level": "Info",
+    "message": null,
+    "time": "2025-12-09T13:50:39.894595+00:00"
+  },
+  {
+    "code": "PowerState/running",
+    "displayStatus": "VM starting",
+    "level": "Info",
+    "message": null,
+    "time": null
+  }
+]
+END_REPLY
+      ;
+    push @outputs, <<'END_REPLY'
+[
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+    "level": "Info",
+    "message": null,
+    "time": "2025-12-09T13:50:39.894595+00:00"
+  }
+]
+END_REPLY
+      ;
+
     $azcli->redefine(script_output => sub {
             push @calls, $_[0];
-            if ($is_first) {
-                $is_first = 0;
-                return '["PowerState/running","VM starting"]';
-            }
-            return '["PowerState/running","VM running"]'; });
+            return pop @outputs; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $wt = az_vm_wait_running(resource_group => 'Arlecchino',
         name => 'Truffaldino');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     note("--> WT:$wt");
-    ok((scalar @calls == 2), 'Calls az cli twice if return is not running');
+    ok((scalar @calls == 3), 'Calls az cli 3 times until the return value does not contain "VM running"');
     ok($wt > 0), "WT:$wt is greate than 0 as expected.";
 };
 
@@ -484,7 +542,26 @@ subtest '[az_vm_wait_running] never running default timeout' => sub {
     my $is_first = 1;
     $azcli->redefine(script_output => sub {
             push @calls, $_[0];
-            return '["PowerState/running","VM starting"]'; });
+            return <<'END_REPLY';
+[
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+    "level": "Info",
+    "message": null,
+    "time": "2025-12-09T13:50:39.894595+00:00"
+  },
+  {
+    "code": "PowerState/running",
+    "displayStatus": "VM starting",
+    "level": "Info",
+    "message": null,
+    "time": null
+  }
+]
+END_REPLY
+    });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $start_time = time();
     dies_ok {
@@ -503,7 +580,26 @@ subtest '[az_vm_wait_running] never running long timeout' => sub {
     my $is_first = 1;
     $azcli->redefine(script_output => sub {
             push @calls, $_[0];
-            return '["PowerState/running","VM starting"]'; });
+            return <<'END_REPLY';
+[
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+    "level": "Info",
+    "message": null,
+    "time": "2025-12-09T13:50:39.894595+00:00"
+  },
+  {
+    "code": "PowerState/running",
+    "displayStatus": "VM starting",
+    "level": "Info",
+    "message": null,
+    "time": null
+  }
+]
+END_REPLY
+    });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $start_time = time();
     dies_ok {
@@ -523,7 +619,26 @@ subtest '[az_vm_wait_running] never running short' => sub {
     my $is_first = 1;
     $azcli->redefine(script_output => sub {
             push @calls, $_[0];
-            return '["PowerState/running","VM starting"]'; });
+            return <<'END_REPLY';
+[
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+    "level": "Info",
+    "message": null,
+    "time": "2025-12-09T13:50:39.894595+00:00"
+  },
+  {
+    "code": "PowerState/running",
+    "displayStatus": "VM starting",
+    "level": "Info",
+    "message": null,
+    "time": null
+  }
+]
+END_REPLY
+    });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $start_time = time();
     dies_ok {
@@ -1001,7 +1116,7 @@ subtest '[az_storage_blob_lease_acquire] valid UUID' => sub {
     my @calls;
     my $uuid = '521fa121-4e04-448e-a8ec-d17e6b9c5e78';
     $azcli->redefine(script_output => sub { @calls = $_[0]; return $uuid; });
-    $azcli->redefine(record_info => sub { return; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $ret = az_storage_blob_lease_acquire(
         container_name => 'Arlecchino',
@@ -1024,7 +1139,7 @@ subtest '[az_storage_blob_lease_acquire] invalid UUID' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(script_output => sub { @calls = $_[0]; return 'Pantalone'; });
-    $azcli->redefine(record_info => sub { return; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $ret = az_storage_blob_lease_acquire(
         container_name => 'Arlecchino',
@@ -1042,7 +1157,7 @@ subtest '[az_storage_blob_lease_acquire] valid UUID with error ErrorCode' => sub
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(script_output => sub { @calls = $_[0]; return '521fa121-4e04-448e-a8ec-d17e6b9c5e78 ErrorCode'; });
-    $azcli->redefine(record_info => sub { return; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $ret = az_storage_blob_lease_acquire(
         container_name => 'Arlecchino',

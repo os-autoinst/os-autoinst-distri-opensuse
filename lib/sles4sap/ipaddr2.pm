@@ -842,16 +842,10 @@ sub ipaddr2_deployment_sanity {
     die "There are not exactly 3 VMs but " . ($#{$res} + 1) unless ($#{$res} + 1) eq 3;
     die "There are not exactly 1 but $count VMs with name $bastion_vm_name" unless $count eq 1;
 
-    foreach (1 .. 2) {
-        my $vm = ipaddr2_get_internal_vm_name(id => $_);
-        $res = az_vm_instance_view_get(
+    foreach (@$res) {
+        az_vm_wait_running(
             resource_group => $rg,
-            name => $vm);
-        # Expected return is
-        # [ "PowerState/running", "VM running" ]
-        $count = grep(/running/, @$res);
-        # 2 is two occurrence of the word 'running' for one VM
-        die "VM $vm is not fully running" unless $count eq 2;
+            name => $_);
     }
 }
 

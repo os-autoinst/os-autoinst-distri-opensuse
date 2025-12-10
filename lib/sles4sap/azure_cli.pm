@@ -50,7 +50,6 @@ our @EXPORT = qw(
   az_vm_list
   az_vm_openport
   az_vm_wait_cloudinit
-  az_vm_instance_view_get
   az_vm_wait_running
   az_vm_diagnostic_log_enable
   az_vm_diagnostic_log_get
@@ -899,6 +898,7 @@ sub az_vm_list(%args) {
     return decode_json(script_output($az_cmd));
 }
 
+
 =head2 az_vm_instance_view_get
 
     my $res = az_vm_instance_view_get(
@@ -907,12 +907,38 @@ sub az_vm_list(%args) {
 
 Get some details of a specific VM
 
-Json output looks like:
+Json output of the az cli looks like:
 
 [
-  "PowerState/running",
-  "VM running"
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+    "level": "Info",
+    "message": null,
+    "time": "2025-12-09T13:50:39.894595+00:00"
+  },
+  {
+    "code": "PowerState/running",
+    "displayStatus": "VM running",
+    "level": "Info",
+    "message": null,
+    "time": null
+  }
 ]
+
+Return value of this function is an arrray like
+
+[
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+  },
+  {
+    "code": "PowerState/running",
+    "displayStatus": "VM running",
+  }
+]
+
 
 =over
 
@@ -930,9 +956,18 @@ sub az_vm_instance_view_get(%args) {
         'az vm get-instance-view',
         '--name', $args{name},
         '--resource-group', $args{resource_group},
-        '--query "instanceView.statuses[1].[code,displayStatus]"',
+        '--query "instanceView.statuses"',
         '-o json');
-    return decode_json(script_output($az_cmd));
+    my $data = decode_json(script_output($az_cmd));
+
+    # Filter only few relevant keys
+    my @rets = map {
+        {
+            code => $_->{code},
+            displayStatus => $_->{displayStatus},
+        }
+    } @$data;
+    return @rets;
 }
 
 =head2 az_vm_wait_running
@@ -945,8 +980,14 @@ sub az_vm_instance_view_get(%args) {
 Get the VM state until status looks like:
 
 [
-  "PowerState/running",
-  "VM running"
+  {
+    "code": "ProvisioningState/succeeded",
+    "displayStatus": "Provisioning succeeded",
+  },
+  {
+    "code": "PowerState/running",
+    "displayStatus": "VM running",
+  }
 ]
 
 or reach timeout.
@@ -977,17 +1018,27 @@ sub az_vm_wait_running(%args) {
     #  - if the overall timeout is long then sleeps for
     #    a fixed amount of 30secs
     my $sleep_time = $args{timeout} < 60 ? int($args{timeout} / 2) : 30;
-    my $res;
+    my @rets;
     my $count;
     my $start_time = time();
     while (time() - $start_time <= $args{timeout}) {
-        $res = az_vm_instance_view_get(
+        @rets = az_vm_instance_view_get(
             resource_group => $args{resource_group},
             name => $args{name});
-        # Expected return is
-        # [ "PowerState/running", "VM running" ]
-        $count = grep(/running/, @$res);
-        return (time() - $start_time) if ($count eq 2);
+
+        # Check for Provisioning Success (find at least 1 match)
+        my $prov_ok = grep {
+            ($_->{code} // '') =~ /ProvisioningState/ &&
+              ($_->{displayStatus} // '') =~ /succeeded/
+        } @rets;
+
+        # Check for Power Running (find at least 1 match)
+        my $power_ok = grep {
+            ($_->{code} // '') =~ /PowerState/ &&
+              ($_->{displayStatus} // '') =~ /running/
+        } @rets;
+
+        return (time() - $start_time) if ($prov_ok && $power_ok);
         sleep $sleep_time;
     }
     die "VM not running after " . (time() - $start_time) . " seconds";
