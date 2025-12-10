@@ -339,7 +339,7 @@ EOF
         }
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data stop';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_OLDEST';
-        assert_script_run 'initdb -D /tmp/psql';
+        assert_script_run 'initdb --data-checksums -D /tmp/psql';
         assert_script_run 'pg_ctl -D /tmp/psql start';
         if (script_run('pg_ctl -D /tmp/psql status')) {
             record_info('status', 'wait 5s more before status query');
@@ -348,7 +348,7 @@ EOF
         }
         assert_script_run 'pg_ctl -D /tmp/psql stop';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_LATEST';
-        assert_script_run 'initdb -D /var/lib/pgsql/data2';
+        assert_script_run 'initdb --data-checksums -D /var/lib/pgsql/data2';
         assert_script_run 'pg_upgrade -b $PG_OLDEST/bin/ -B $PG_LATEST/bin/ -d /tmp/psql -D /var/lib/pgsql/data2';
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data2 start';
         my $analyze = is_sle('=12-sp2') ? './analyze_new_cluster.sh' : 'vacuumdb --all --analyze-in-stages';
