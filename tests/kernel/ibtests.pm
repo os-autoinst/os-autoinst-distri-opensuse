@@ -78,6 +78,7 @@ sub ibtest_master {
     $args = $args . "--ipoib $ipoib_modes " if $ipoib_modes;
     $args = $args . "--ip1 $ipoib_ip1 --ip2 $ipoib_ip2 ";
 
+    record_info('KERNEL VERSION', script_output('uname -a'));
 
     # pull in the testsuite
     assert_script_run("git clone $hpc_testing --branch $hpc_testing_branch", timeout => $timeout);
