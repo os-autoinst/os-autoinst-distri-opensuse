@@ -5,5 +5,6 @@ description: |
 schedule:
     - sles4sap/crash/azure_deploy
     - sles4sap/crash/configure
+    - sles4sap/crash/patch_and_reboot
     - sles4sap/crash/test_crash
     - sles4sap/crash/destroy

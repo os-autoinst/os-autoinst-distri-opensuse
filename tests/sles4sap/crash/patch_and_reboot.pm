@@ -26,16 +26,31 @@ sub run {
     my $username = $usernames{$provider} or die "Unsupported cloud provider: $provider";
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => $username);
     select_host_console();
+    crash_softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), instance => $instance);
 
-    $instance->run_ssh_command(
-        cmd => 'sudo su -c "echo b > /proc/sysrq-trigger &"',
-        timeout => 10,
-        rc_only => 1,
-        ssh_opts => '-E /var/tmp/ssh_sut.log -fn -o ServerAliveInterval=2',
-        username => $username);
+    my $max_rounds = 5;
+    for my $round (1 .. $max_rounds) {
+        record_info("PATCH $round START", "zypper patch round $round");
+        my $ret = $instance->run_ssh_command(
+            cmd => 'sudo zypper -n patch',
+            timeout => 600,
+            ssh_opts => '-E /var/tmp/ssh_sut.log -o ServerAliveInterval=2',
+            username => $username,
+            proceed_on_failure => 1
+        );
+        record_info("PATCH $round END", "Output:\n$ret");
+        last if $ret =~ /Nothing to do|No updates found/;
+        if ($ret =~ /SCRIPT_FINISHED.*-103-/) {
+            record_info("PATCH $round RE-RUN", "Package manager updated, retrying");
+            next;
+        }
+        die "Patching failed unexpectedly" if $ret =~ /exit code \d+/;
+        die "Exceeded $max_rounds patch attempts" if $round == $max_rounds;
+    }
 
-    record_info('Wait until', 'Wait until SUT is back again');
-    crash_wait_back(vm_ip => $vm_ip, username => $username);
+    crash_softrestart(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), instance => $instance);
+    select_serial_terminal;
+    wait_serial(qr/\#/, timeout => 600);
 }
 
 sub test_flags {
