@@ -13,7 +13,7 @@ use Mojo::Base -base;
 use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils;
+use publiccloud::utils qw(is_azure is_gce is_ec2 is_hardened get_ssh_private_key_path calculate_custodian_ttl);
 use Carp;
 use List::Util qw(max);
 use Data::Dumper;
@@ -493,7 +493,7 @@ sub terraform_apply {
     # 2) Terraform plan
 
     my %vars = ();
-    if (!is_publiccloud_sles4sap()) {
+    if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
         # Some auxiliary variables, requires for fine control and public cloud provider specifics
         for my $key (keys %{$args{vars}}) {
             $vars{$key} = escape_single_quote($args{vars}->{$key});
@@ -618,7 +618,7 @@ sub terraform_apply {
 
     my $output = decode_json(script_output($runner . ' output -json'));
     my ($vms, $ips, $resource_id);
-    if (is_publiccloud_sles4sap()) {
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         foreach my $vm_type ('hana', 'drbd', 'netweaver') {
             push @{$vms}, @{$output->{$vm_type . '_name'}->{value}};
             push @{$ips}, @{$output->{$vm_type . '_public_ip'}->{value}};
