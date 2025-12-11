@@ -1,8 +1,7 @@
 package susedistribution;
+use Mojo::Base -strict, -signatures;
 use base 'distribution';
 use serial_terminal ();
-use strict;
-use warnings;
 use Sys::Hostname qw(hostname);
 use Utils::Architectures;
 use utils qw(
@@ -813,6 +812,28 @@ sub get_console_info {
     return ($name, $user, $type);
 }
 
+=head2 disable_key_repeat_if_applicable
+
+  disable_key_repeat_if_applicable()
+
+Calls disable_key_repeat from the base class implementation if applicable with
+backward-compatible workaround.
+
+s390x excluded due to "kbdrate: Failed waiting for kbd controller!" error.
+
+Applies backward compatibility for os-autoinst below interface version 48.
+=cut
+
+sub disable_key_repeat_if_applicable ($self) {
+    return undef if is_s390x;
+    return $self->disable_key_repeat() if exists &distribution::disable_key_repeat;
+
+    # backward compatible workaround for os-autoinst below interface version
+    # 48. Can be eventually removed if relying on an infrastructure recent
+    # enough.
+    return enter_cmd('kbdrate -s -d99999');
+}
+
 =head2 activate_console
 
   activate_console($console [, [ensure_tty_selected => 0|1] [, skip_set_standard_prompt => 0|1] [, skip_setterm => 0|1] [, skip_disable_key_repeat => 0|1] [, timeout => $timeout]])
@@ -896,15 +917,7 @@ sub activate_console {
             $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
             assert_screen $console;
         }
-        unless ($args{skip_disable_key_repeat}) {
-            if (exists &distribution::disable_key_repeat) {
-                $self->disable_key_repeat();
-            }
-            # backward compatibility for os-autoinst below interface version 48
-            else {
-                enter_cmd('kbdrate -s -d99999');
-            }
-        }
+        $self->disable_key_repeat_if_applicable() unless $args{skip_disable_key_repeat};
     }
     elsif ($type =~ /^(virtio-terminal|sut-serial)$/) {
         serial_terminal::login($user, $self->prompt_for_user($user));

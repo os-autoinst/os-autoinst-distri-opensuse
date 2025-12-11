@@ -413,7 +413,7 @@ sub run {
         send_key('ctrl-^-]');
         $con->attach_to_running();
     }
-    select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1);
+    select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1, skip_disable_key_repeat => 1);
 
 
     type_string('1234%^&*()qwerty');
@@ -427,6 +427,7 @@ sub run {
         wait_still_screen;
     }
     # Manually configure root-console as we skipped some parts in root-console's activation
+    $testapi::distri->disable_key_repeat_if_applicable();
     $testapi::distri->set_standard_prompt('root');
     assert_script_run('setterm -blank 0') unless is_s390x;
 
