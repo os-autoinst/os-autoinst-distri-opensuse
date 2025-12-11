@@ -58,14 +58,20 @@ sub run {
     die 'No tests to run.' unless @tests > 0;
 
     my $test_opt = @tests > 1 ? '--per-test-log' : '';
-    if (@selected == @available) {
+    if (@selected == @available && !@skip) {
+        # No tests were selected nor skipped, run full collection
         $test_opt .= " --collection $collection";
+    } elsif (@selected == @available && @skip) {
+        # No tests were selected but some must be skipped
+        if (script_output('./run_kselftest.sh -h') =~ m/--skip/) {
+            # Use `--skip` if runner allows, this is important for collections that have a high number of tests
+            $test_opt .= " --collection $collection " . join(' ', map { "--skip $_" } @skip);
+        } else {
+            $test_opt .= ' ' . join(' ', map { "--test $_" } @tests);
+        }
     } else {
-        record_info("Running Tests", join("\n", @tests));
+        # Some tests were selected and/or skipped, simply use `--test`
         $test_opt .= ' ' . join(' ', map { "--test $_" } @tests);
-    }
-    if (@skip && script_output('./run_kselftest.sh -h') =~ m/--skip/) {
-        $test_opt .= ' ' . join(' ', map { "--skip $_" } @skip);
     }
 
     validate_kconfig($collection);
