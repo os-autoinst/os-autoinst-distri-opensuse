@@ -31,6 +31,7 @@
       <li><a href="#console_nr">console_nr</a></li>
       <li><a href="#prompt_for_user">prompt_for_user</a></li>
       <li><a href="#get_console_info">get_console_info</a></li>
+      <li><a href="#disable_key_repeat_if_applicable">disable_key_repeat_if_applicable</a></li>
       <li><a href="#activate_console">activate_console</a></li>
       <li><a href="#console_selected">console_selected</a></li>
     </ul>
@@ -130,6 +131,16 @@
 <pre><code>get_console_info($console)</code></pre>
 
 <p>Returns a triplet describing the console: Session privilege level (root/user), username, console type.</p>
+
+<h2 id="disable_key_repeat_if_applicable">disable_key_repeat_if_applicable</h2>
+
+<pre><code>disable_key_repeat_if_applicable()</code></pre>
+
+<p>Calls disable_key_repeat from the base class implementation if applicable with backward-compatible workaround.</p>
+
+<p>s390x excluded due to &quot;kbdrate: Failed waiting for kbd controller!&quot; error.</p>
+
+<p>Applies backward compatibility for os-autoinst below interface version 48.</p>
 
 <h2 id="activate_console">activate_console</h2>
 
