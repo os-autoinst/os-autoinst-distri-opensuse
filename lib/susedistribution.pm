@@ -896,7 +896,9 @@ sub activate_console {
             $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
             assert_screen $console;
         }
-        unless ($args{skip_disable_key_repeat}) {
+        # s390x excluded due to "kbdrate: Failed waiting for kbd controller!"
+        # error
+        unless ($args{skip_disable_key_repeat} || is_s390x) {
             if (exists &distribution::disable_key_repeat) {
                 $self->disable_key_repeat();
             }
