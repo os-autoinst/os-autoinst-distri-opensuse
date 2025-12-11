@@ -21,7 +21,6 @@ use publiccloud::acr;
 use publiccloud::aks;
 use publiccloud::openstack;
 use publiccloud::noprovider;
-use publiccloud::utils qw(is_publiccloud_sles4sap);
 use Data::Dumper;
 use Storable qw(dclone);
 use strict;
@@ -230,7 +229,7 @@ sub _upload_logs {
 sub post_fail_hook {
     my ($self) = @_;
 
-    if (is_publiccloud_sles4sap()) {
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         # This is called explicitly to avoid cyclical imports
         sles4sap_publiccloud::sles4sap_cleanup(
             $self,
@@ -245,7 +244,7 @@ sub post_fail_hook {
 
 sub post_run_hook {
     my ($self) = @_;
-    if (is_publiccloud_sles4sap()) {
+    if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         # SAP/HA Public Cloud test case uses its own cleanup procedure (for example: loadtest qesap_cleanup.pm)
         return;
     }

@@ -14,7 +14,6 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils qw(is_publiccloud_sles4sap);
 use DateTime;
 
 sub init {
@@ -188,7 +187,7 @@ sub terraform_apply {
 
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
     # gce provides full serial log, so extended timeout
-    if (!is_publiccloud_sles4sap() && defined($instance_id)) {
+    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
         if ($instance_id !~ /$self->{resource_name}/) {
             record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail');
         }
@@ -207,7 +206,7 @@ sub upload_boot_diagnostics {
     my $availability_zone = $self->get_terraform_output('.availability_zone.value');
     my $project = $self->get_terraform_output('.project.value');
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
-    return if (is_publiccloud_sles4sap());
+    return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
     unless (defined($instance_id) && defined($region) && defined($availability_zone)) {
         record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on gce, undefined instance or region or availability zone');
         return;

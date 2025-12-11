@@ -879,7 +879,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
 
-    return if is_publiccloud_sles4sap();
+    return if get_var('PUBLIC_CLOUD_SLES4SAP');
     $self->SUPER::post_fail_hook;
 }
 

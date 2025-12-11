@@ -44,7 +44,6 @@ our @EXPORT = qw(
   is_container_host
   is_hardened
   is_cloudinit_supported
-  is_publiccloud_sles4sap
   registercloudguest
   register_addon
   register_openstack
@@ -110,11 +109,6 @@ sub is_hardened() {
 
 sub is_cloudinit_supported {
     return ((is_azure || is_ec2) && !is_sle_micro);
-}
-
-sub is_publiccloud_sles4sap {
-    return 1 if get_var('PUBLIC_CLOUD_SLES4SAP');
-    return is_public_cloud && get_var('FLAVOR') =~ '-SAP-';
 }
 
 # Get the current UTC timestamp as YYYY/mm/dd HH:MM:SS
@@ -1006,3 +1000,4 @@ sub calculate_custodian_ttl {
 }
 
 1;
+

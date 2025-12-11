@@ -16,7 +16,6 @@ use mmapi 'get_current_job_id';
 use utils qw(script_retry script_output_retry);
 use publiccloud::azure_client;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils qw(is_publiccloud_sles4sap);
 use Data::Dumper;
 use DateTime;
 
@@ -523,7 +522,7 @@ sub upload_boot_diagnostics {
     my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
     $instance_id =~ s/.*\/(.*)/$1/;
     my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
-    return if (is_publiccloud_sles4sap());
+    return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
     unless (defined($instance_id) && defined($resource_group)) {
         record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on azure, undefined instance or resource_group');
         return;
