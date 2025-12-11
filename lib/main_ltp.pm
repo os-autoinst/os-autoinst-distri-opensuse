@@ -59,7 +59,7 @@ sub load_kernel_tests {
             get_var('ASSET_CHANGE_KERNEL_RPM')) {
             loadtest_kernel 'change_kernel';
         }
-        if (get_var('FLAVOR', '') =~ /Incidents-Kernel|Updates-Staging|Increments|Maintenance-KOTD|(Default-qcow|Base-RT)-Updates/) {
+        if (get_var('FLAVOR', '') =~ /Incidents-Kernel|Updates-Staging|Increments|Maintenance-KOTD|(Default-qcow|Base-RT|Base-ppc-512)-Updates/) {
             loadtest_kernel 'update_kernel';
         }
 
