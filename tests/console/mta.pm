@@ -17,20 +17,16 @@ sub run {
     select_serial_terminal;
 
     assert_script_run '! rpm -q exim';
-    if (is_sle('>=16')) {
-        zypper_call('in postfix mailx');
-        systemctl 'enable postfix';
-        systemctl 'start postfix';
-    }
-    unless (is_public_cloud()) {
+    if ((is_sle('<16') || is_leap('<16')) && !is_public_cloud) {
         # check if postfix is installed, enabled and running
         assert_script_run 'rpm -q postfix';
         systemctl 'is-enabled postfix';
         script_retry 'systemctl is-active postfix', retry => 3, delay => 10;
         systemctl 'status postfix';
     } else {
-        # Install and start postfix on Public Cloud
-        zypper_call 'in postfix mailx';
+        # Install and start postfix on Public Cloud/SlE 16+/Leap 16+ and Tumbleweed
+        zypper_call('in postfix mailx');
+        systemctl 'enable postfix';
         systemctl 'start postfix';
     }
 
@@ -67,4 +63,3 @@ sub run {
 }
 
 1;
-
