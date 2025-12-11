@@ -17,7 +17,7 @@
 use base "consoletest";
 use testapi;
 use utils 'zypper_call';
-use version_utils qw(is_sle is_public_cloud);
+use version_utils qw(is_sle is_public_cloud is_opensuse);
 use publiccloud::utils qw(is_azure is_byos);
 
 my $test_password = 'Sud0_t3st';
@@ -107,7 +107,7 @@ sub run {
     select_console 'user-console';
     # Check if sudo asks for the root password.
     # On Azure from SLE15 onwards, 'Defaults targetpw' is disabled. There sudo is expected to ask for the user password
-    my $exp_user = (is_azure && is_sle(">=15") || is_sle(">=16")) ? "$testapi::username" : "root";
+    my $exp_user = (is_azure && is_sle(">=15") || is_sle(">=16") || (is_opensuse && check_var('AGAMA', 1))) ? "$testapi::username" : "root";
     # Workaround for the the 15-SP2 images, where the change is not yet applied
     # 15-SP2 will get this change eventually, but it is unknown when the images will be refreshed.
     if (is_azure && is_sle("=15-SP2")) {
