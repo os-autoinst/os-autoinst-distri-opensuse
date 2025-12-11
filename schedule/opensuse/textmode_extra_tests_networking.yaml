@@ -62,3 +62,4 @@ schedule:
     - console/sssd_389ds_functional
     - console/salt
     - console/ansible
+    - console/dpdk
