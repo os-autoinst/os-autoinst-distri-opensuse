@@ -118,7 +118,7 @@ sub create_autoyast_profile {
         ltss_es_code => $ltss_es_products{$version},
         repos => [split(/,/, $incident_repos)],
         check_var => \&check_var,
-        get_var => \&get_required_var
+        get_var => \&get_var
     };
     my $output = Mojo::Template->new(vars => 1)->render($profile, $vars);
     save_tmp_file("$vm_name.xml", $output);
