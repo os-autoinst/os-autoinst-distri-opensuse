@@ -1490,7 +1490,6 @@ sub pre_run_hook {
     1 if defined $testapi::selected_console;
     $prev_console = $testapi::selected_console;
     record_info(__PACKAGE__ . ':' . 'pre_run_hook' . ' ' . "prev_console=$prev_console");
-    record_info('SELinux Status', script_output('sestatus', proceed_on_failure => 1)) if (has_selinux);
 }
 
 sub post_run_hook {
