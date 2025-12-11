@@ -74,7 +74,7 @@ sub run {
     enter_cmd 'about:';
     my @tags = qw(google-chrome-about);
     push @tags, 'make-chrome-faster' unless $make_faster_popup_seen;
-    assert_screen @tags;
+    assert_screen @tags, 60;
     if (match_has_tag 'make-chrome-faster') {
         click_lastmatch;
         assert_screen 'google-chrome-about';
