@@ -80,9 +80,9 @@ sub install_dependencies
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/16.0/network:utilities.repo';
         }
         zypper_ar($netutils_repo);
-        zypper_call('in qa_test_netperf') if is_sle;
-        zypper_call('in net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 smcroute');
-        zypper_call('in dropwatch') unless is_sle('<16');
+        zypper_call('in qa_test_netperf', exitcode => [0, 4]) if is_sle;
+        zypper_call('in net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 smcroute', exitcode => [0, 4]);
+        zypper_call('in dropwatch', exitcode => [0, 4]) unless is_sle('<16');
     }
 }
 
