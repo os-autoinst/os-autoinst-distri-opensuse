@@ -160,7 +160,6 @@ sub load_otherDE_tests {
         loadtest "console/system_prepare";
         loadtest "console/consoletest_setup";
         loadtest "console/hostname";
-        loadtest "update/zypper_clear_repos";
         loadtest "console/install_otherDE_pattern";
         loadtest "console/consoletest_finish";
         loadtest "x11/${de}_reconfigure_openqa";
