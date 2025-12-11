@@ -16,6 +16,7 @@ sub is_registered_and_active {
     my ($product) = @_;
 
     return $product->{status} eq 'Registered' &&
+      $product->{version} eq get_var("VERSION") &&
       $product->{subscription_status} eq 'ACTIVE';
 }
 
@@ -29,11 +30,10 @@ sub run {
     }
 
     for my $product (@{get_test_suite_data()->{products}}) {
-        zypper_call("search -i -t product $product");
-
         unless (is_registered_and_active($map{$product})) {
-            die "Product $product not registered or not active subscription";
+            die "Product $product not registered or not active subscription or has wrong version";
         }
+        zypper_call("search -i -t product $product");
     }
 }
 
