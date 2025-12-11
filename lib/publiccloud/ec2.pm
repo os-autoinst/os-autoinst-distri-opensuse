@@ -11,7 +11,7 @@ package publiccloud::ec2;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
-use publiccloud::utils "is_byos";
+use publiccloud::utils qw(is_byos is_publiccloud_sles4sap);
 use publiccloud::aws_client;
 use publiccloud::ssh_interactive 'select_host_console';
 use DateTime;
@@ -137,7 +137,7 @@ sub upload_img {
         "--user", $self->provider_client->username,
         "--boot-mode", get_var("PUBLIC_CLOUD_EC2_BOOT_MODE", "uefi-preferred"));
 
-    push @ec2_cmd, "--use-root-swap" unless ((get_var("PUBLIC_CLOUD_SLES4SAP")) || (is_byos()));
+    push @ec2_cmd, "--use-root-swap" unless (is_publiccloud_sles4sap() || is_byos());
     push @ec2_cmd, "--security-group-ids '$sec_group'" if ($sec_group);
     push @ec2_cmd, "--vpc-subnet-id '$vpc_subnet'" if ($vpc_subnet);
     push @ec2_cmd, "'$file'";
@@ -164,7 +164,7 @@ sub on_terraform_apply_timeout {
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
     my $instance_id = $self->get_terraform_output('.vm_name.value[]');
-    return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
+    return if (is_publiccloud_sles4sap());
     unless (defined($instance_id)) {
         record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on ec2, undefined instance');
         return;

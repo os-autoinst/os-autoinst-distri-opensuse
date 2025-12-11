@@ -409,7 +409,7 @@ sub update_instance_ip {
     my $timeout = 300;
     my $delay = 5;
 
-    return if (get_var('PUBLIC_CLOUD_SLES4SAP'));
+    return if (is_publiccloud_sles4sap());
 
     my $start_time = time();
     my $public_ip_from_provider = $self->provider->get_public_ip();
@@ -563,7 +563,7 @@ sub wait_for_ssh {
             record_info('SSH CHECK', "Check ssh on error\n" . $debug, result => 'fail');
         }
         # Log upload
-        if (!get_var('PUBLIC_CLOUD_SLES4SAP') and $args{logs}) {
+        if (!is_publiccloud_sles4sap() and $args{logs}) {
             #Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
             $self->ssh_script_run('sudo journalctl -b --no-pager > /tmp/journalctl.log',
                 timeout => 360, ignore_timeout_failure => 1, username => $args{username}, quiet => 1);
