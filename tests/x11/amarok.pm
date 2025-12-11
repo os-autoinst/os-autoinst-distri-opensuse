@@ -12,6 +12,9 @@ use base "x11test";
 use testapi;
 
 sub run {
+    select_console 'user-console';
+    assert_script_run('curl -f ' . autoinst_url . '/data/1d5d9dD.oga -o /tmp/1d5d9dD.oga');
+    select_console 'x11';
     ensure_installed("amarok");
     x11_start_program('amarok');
     assert_screen([qw(test-amarok-new-1 test-amarok-1)]);
@@ -29,7 +32,7 @@ sub run {
     # do not playing audio file as we have not testdata if NICEVIDEO
     if (!get_var("NICEVIDEO")) {
         start_audiocapture;
-        x11_start_program('amarok -l ~/data/1d5d9dD.oga', target_match => 'test-amarok-3');
+        x11_start_program('amarok -l /tmp/1d5d9dD.oga', target_match => 'test-amarok-3');
         assert_recorded_sound('DTMF-159D');
     }
     send_key "ctrl-q";    # really quit (alt-f4 just backgrounds)
