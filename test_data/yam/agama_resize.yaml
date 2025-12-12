@@ -15,9 +15,9 @@ disks:
         size: 1G
       - name: vda4
         type: part
-        size: 25.5G
+        size: 17.5G
         children:
           - name: cr_home
-            size: 25.5G
+            size: 17.5G
             type: crypt
             mountpoint: /home
