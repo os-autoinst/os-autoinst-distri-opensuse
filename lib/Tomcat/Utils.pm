@@ -8,9 +8,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 package Tomcat::Utils;
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_sle';
@@ -37,7 +35,6 @@ sub browse_with_keyboard {
 sub tomcat_setup() {
     my ($self, $version) = @_;
     $version //= '';    # default version is tomcat9
-    select_console('root-console');    # log in to root console
 
     record_info('Initial Setup');
     # we need to disable packagekit because it can block zypper sometimes later
@@ -101,15 +98,6 @@ sub tomcat_manager_test() {
     # curl examples of JSP and Websockets
     assert_script_run('curl --connect-timeout 20 --output jsp localhost:8080/examples/jsp --output websocket 127.0.0.1:8080/examples/websocket', 90);
     assert_script_run('curl -k --connect-timeout 20 --output jsp https://localhost:8443/examples/jsp --output websocket https://127.0.0.1:8443/examples/websocket', 90) if is_sle('>=15-sp4');
-}
-
-# Switch to desktop
-sub switch_to_desktop() {
-
-    # switch to desktop
-    if (!check_var('DESKTOP', 'textmode')) {
-        select_console('x11', await_console => 0);
-    }
 }
 
 1;
