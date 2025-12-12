@@ -332,7 +332,9 @@
 <![CDATA[
 #!/bin/bash
 mkdir -p -m 700 /root/.ssh
+% if ($get_var->('_SECRET_RSA_PUB_KEY')) {
 echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> >> /root/.ssh/authorized_keys
+% }
 chmod 600 /root/.ssh/authorized_keys
 cat > /etc/init.d/after.local<< EOF
 #!/bin/sh

@@ -331,9 +331,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
     } elsif (is_sle('>=16')) {
-        # SLES16+ support - only EFI guests are supported, no BIOS guests
-        # Both online and full installation types supported for SLES16 EFI guests
-        my @allowed_guests = qw(sles16efi_online sles16efi_full);
+        # SLES16 host supports both SLES15 SP7 and SLES16 guests
+        # SLES16 guests only support EFI boot (no BIOS), with online and full installation types
+        my @allowed_guests = qw(sles15sp7 sles15sp7efi sles16efi_online sles16efi_full);
         if (check_var('ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH', '1')) {
             @allowed_guests = qw(sles15sp7efi sles16efi_online);
         } elsif (check_var('ENABLE_SEV_SNP', '1')) {
