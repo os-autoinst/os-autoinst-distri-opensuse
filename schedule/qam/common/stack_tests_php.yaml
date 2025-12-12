@@ -24,3 +24,4 @@ conditional_schedule:
         - console/php_composer
       '16.0':
         - console/apache2_php_fpm
+        - console/nginx_php_fpm
