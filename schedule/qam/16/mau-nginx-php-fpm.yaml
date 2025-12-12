@@ -1,0 +1,9 @@
+---
+name: mau-nginx-php-fpm
+description: FastCGI Process Manager with nginx
+schedule:
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/prepare_test_data
+  - console/nginx_php_fpm
+  - console/zypper_log_packages

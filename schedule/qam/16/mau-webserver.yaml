@@ -13,4 +13,5 @@ schedule:
   - console/postgresql_server
   - console/mariadb_srv
   - console/nginx
+  - console/nginx_php_fpm
   - console/zypper_log_packages
