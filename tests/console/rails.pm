@@ -17,7 +17,7 @@ sub run {
     # need to handle this on our own
     my $cmd = <<'EOF';
 zypper -n in --recommends -C "rubygem(rails)"
-rails new mycoolapp --skip-bundle --skip-test
+rails new mycoolapp --skip-bundle --skip-test --skip-thruster --skip-brakeman --skip-rubocop
 cd mycoolapp
 (rails server -b 0.0.0.0 &)
 for i in {1..100} ; do sleep 0.1; curl -s http://localhost:3000 | grep "<title>Ruby on Rails" && break ; done
