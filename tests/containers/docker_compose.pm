@@ -30,9 +30,7 @@ sub setup {
     run_command "mkdir /root/.docker || true";
     run_command "touch /root/.docker/config.json";
 
-    # https://bugzilla.opensuse.org/show_bug.cgi?id=1254883
-    $version = script_output "rpm -q --queryformat '%{version}' docker-compose";
-    $version = "v$version";
+    $version = script_output qq($docker_compose version | awk '{ print "v"\$4 }');
     record_info "docker-compose version", $version;
 
     patch_sources "compose", $version, "pkg/e2e";
