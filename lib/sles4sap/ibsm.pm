@@ -104,7 +104,7 @@ sub ibsm_network_peering_azure_create {
     my %vnet_names;
     foreach ('ibsm', 'sut') {
         my $res = az_network_vnet_get(resource_group => $args{$_ . '_rg'}, query => '[].name');
-        $vnet_names{$_} = $res->[0];
+        $vnet_names{$_} = @$res[0];
     }
 
     my @peering_name;
@@ -138,7 +138,8 @@ sub ibsm_network_peering_azure_create {
 
 =item B<sut_rg> - Azure resource group of the SUT
 
-=item B<sut_vnet> - substring in the SUT vnet. Optional and only needed if only one specific VNET has to be considered. Most of the time it is get_current_job_id()
+=item B<sut_vnet> - substring in the SUT vnet. Optional and only needed if only one specific VNET
+                    has to be considered. Most of the time it is get_current_job_id()
 
 =item B<timeout> - default is 5 mins
 
@@ -148,21 +149,21 @@ sub ibsm_network_peering_azure_create {
 sub ibsm_network_peering_azure_delete {
     my (%args) = @_;
     foreach (qw(sut_rg ibsm_rg)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
-    $args{timeout} //= bmwqemu::scale_timeout(300);
+    $args{timeout} //= 300;
 
     # Take care to keep all the query to always return a json list, even if of a sigle element,
     # and not a string.
     my $vnet_get_query = '[].name';
     my $res = az_network_vnet_get(resource_group => $args{sut_rg},
         query => $args{sut_vnet} ? "[?contains(name,'" . $args{sut_vnet} . "')].name" : $vnet_get_query);
-    my $sut_vnet = $res->[0];
+    my $sut_vnet = @$res[0];
 
     $res = az_network_vnet_get(resource_group => $args{ibsm_rg},
         query => $vnet_get_query);
-    my $ibsm_vnet = $res->[0];
+    my $ibsm_vnet = @$res[0];
 
     $res = az_network_peering_list(resource_group => $args{sut_rg}, vnet => $sut_vnet);
-    my $peering_name = $res->[0];
+    my $peering_name = @$res[0];
     if (!$peering_name) {
         record_info('NO PEERING',
             "No peering between $args{sut_rg} and resources belonging to the current job to be destroyed!");
