@@ -26,7 +26,8 @@ sub setup {
     configure_docker(selinux => 1, tls => 0);
 
     # We need ping from GNU inetutils
-    run_command 'docker run --rm -it -v /usr/local/bin:/target:rw,z debian sh -c "apt update; apt install -y inetutils-ping; cp -vp /bin/ping* /target"', timeout => 120;
+    my $debian_version = is_sle("<15-SP6") ? "11" : "latest";
+    run_command "docker run --rm -it -v /usr/local/bin:/target:rw,z debian:$debian_version sh -c 'apt update; apt install -y inetutils-ping; cp -vp /bin/ping* /target'", timeout => 120;
     record_info "ping version", script_output("ping --version");
 
     # Tests use "ctr"
