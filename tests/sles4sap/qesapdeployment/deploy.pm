@@ -71,9 +71,11 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
     qesap_cluster_logs();
     qesap_upload_logs();
-    my $inventory = qesap_get_inventory(provider => get_required_var('PUBLIC_CLOUD_PROVIDER'));
+    my $inventory = qesap_get_inventory(provider => $provider);
+    qesap_supportconfig_logs(provider => $provider, inventory => $inventory) unless (check_var('QESAPDEPLOY_SUPPORTCONFIG', '0'));
     qesap_execute(
         cmd => 'ansible',
         cmd_options => '-d',
