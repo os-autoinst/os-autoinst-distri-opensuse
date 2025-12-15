@@ -1,0 +1,19 @@
+---
+name: agama_online_migration_16_s390x.yaml
+description: >
+  Online migration from SLES 16.0 equivalent to system role textmode by zypper.
+schedule:
+  - yam/migration/setup_upgrade_env
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - console/hostname
+  - yam/migration/zypper_migration
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_product
+  - console/validate_repos
