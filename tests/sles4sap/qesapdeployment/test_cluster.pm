@@ -1,8 +1,39 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Test for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Perform basic Pacemaker cluster sanity checks
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+qesapdeployment/test_cluster.pm - Perform basic Pacemaker cluster sanity checks
+
+=head1 DESCRIPTION
+
+Sanity checks on the deployed SAP HANA Pacemaker cluster.
+It uses Ansible to execute 'crm status' and 'crm_mon' on the cluster nodes
+to verify that the cluster is healthy and all resources are in a clean, running state.
+
+First runs a pre-validation playbook ('ansible -s test') and then checks
+the cluster status. If it detects any issues, it attempts to run 'crm resource cleanup'
+and re-checks the status before failing the test.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider, which is required for running Ansible commands
+against the correct inventory.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;

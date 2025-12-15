@@ -1,8 +1,56 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Deployment steps for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Execute the Terraform and Ansible deployment
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+qesapdeployment/deploy.pm - Execute the Terraform and Ansible deployment
+
+=head1 DESCRIPTION
+
+Executes the main deployment logic for the SAP HANA cluster using
+the qe-sap-deployment framework. It runs both the 'terraform' and 'ansible' stages.
+
+Its primary tasks are:
+- Running 'terraform' to create the cloud infrastructure.
+- Running 'ansible' to configure the OS, install HANA, and set up the cluster.
+- Waiting for SSH to become available on the newly created VMs.
+- Handling retries on failure.
+- Configuring Azure native fencing permissions if MSI is specified.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider (e.g., 'AZURE', 'EC2', 'GCE').
+
+=item B<QESAPDEPLOY_TERRAFORM_PARALLEL>
+
+Sets the parallelism level for Terraform operations to speed up infrastructure deployment.
+
+=item B<QESAPDEPLOY_FENCING>
+
+The configured fencing mechanism. Used to check if 'native' fencing is enabled.
+
+=item B<QESAPDEPLOY_AZURE_FENCE_AGENT_CONFIGURATION>
+
+(Azure-specific) The configuration for the native fence agent. Used to check if 'msi' is enabled.
+
+=item B<QESAPDEPLOY_SUPPORTCONFIG>
+
+If set to '0', collecting supportconfig logs on failure is disabled. Defaults to enabled.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;

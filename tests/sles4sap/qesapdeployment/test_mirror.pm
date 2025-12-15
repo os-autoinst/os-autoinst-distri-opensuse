@@ -1,8 +1,54 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Test for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Verify connectivity to the repository mirror
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+qesapdeployment/test_mirror.pm - Verify connectivity to the repository mirror
+
+=head1 DESCRIPTION
+
+Checks if the deployed VMs has been properly configured to be able to use
+the internal repository mirror (IBSm).
+
+It uses Ansible to run 'ping' against the mirror's hostname and then refreshes
+the 'zypper' repositories to ensure that the package manager can communicate
+with the mirrored services.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider.
+
+=item B<QESAPDEPLOY_IBSM_VNET> and B<QESAPDEPLOY_IBSM_RG>
+
+(Azure-specific) VNet and Resource Group of the IBSm. If set, the test logic is executed.
+
+=item B<QESAPDEPLOY_IBSM_PRJ_TAG>
+
+(EC2-specific) The project tag of the IBSm. If set, the test logic is executed.
+
+=item B<QESAPDEPLOY_IBSM_VPC_NAME>, B<IBSM_SUBNET_NAME>, B<IBSM_SUBNET_REGION>, B<IBSM_NCC_HUB>
+
+(GCE-specific) Networking details of the IBSm. If set, the test logic is executed.
+
+=item B<QESAPDEPLOY_DOWNLOAD_HOSTNAME>
+
+The hostname of the repository server (e.g., 'download.suse.de') that is
+redirected to the IBSm. This is the target for the 'ping' command.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;

@@ -1,8 +1,39 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Destroy of qe-sap-deployment deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Destroy the deployed infrastructure
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+qesapdeployment/destroy.pm - Destroy the deployed infrastructure
+
+=head1 DESCRIPTION
+
+Tear down the entire SAP HANA cluster environment created by
+the qe-sap-deployment framework. It ensures that all
+cloud resources are properly removed to avoid orphaned instances and
+unnecessary costs.
+
+It executes 'qesap.py' with the 'ansible -d' and 'terraform -d' commands
+to reverse the deployment process.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider, which is required for SSH intrusion detection
+before teardown.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;

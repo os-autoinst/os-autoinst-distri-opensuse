@@ -1,8 +1,37 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Test for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Test system recovery after a forced crash
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+qesapdeployment/test_crash.pm - Test system recovery after a forced crash
+
+=head1 DESCRIPTION
+
+Tests the resilience of a cluster node by intentionally triggering
+a kernel panic using the 'sysrq-trigger'. It forces one of the HANA nodes to
+crash and reboot. The test then verifies that the node comes back online and
+the system is in a running state by executing commands via Ansible after the
+reboot. This ensures that the VM and its basic services can recover from an
+unexpected failure.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider, which is required for running Ansible commands.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
