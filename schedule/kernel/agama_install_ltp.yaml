@@ -7,6 +7,7 @@ schedule:
     - installation/agama_reboot
     - installation/grub_test
     - installation/first_boot
+    - '{{update_kernel}}'
     - console/system_prepare
     - kernel/install_ltp
     - kernel/shutdown_ltp
@@ -18,3 +19,9 @@ conditional_schedule:
         BACKEND:
             pvm_hmc:
                 - installation/bootloader
+    update_kernel:
+        FLAVOR:
+            Online-Kernel-Baremetal-Increments:
+                - kernel/update_kernel
+            Online-Kernel-Baremetal-Updates-Staging:
+                - kernel/update_kernel
