@@ -409,14 +409,14 @@ sub run {
             }
         }
         else {
-            zypper_call("in -l $patch_replacefiles $solver_focus -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+            zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
         }
 
         # Install binaries newly added by the incident.
         if (scalar @new_binaries) {
             my $new_replacefiles = get_var('UPDATE_NEW_BIN_ENABLE_REPLACEFILES') ? '--replacefiles' : '';
             record_info 'Install new packages', "New packages: @new_binaries";
-            zypper_call("in -l $new_replacefiles $solver_focus @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
+            zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
         }
 
         foreach (@new_binaries_conflicts) {
