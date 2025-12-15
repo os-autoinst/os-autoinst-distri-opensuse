@@ -26,13 +26,13 @@ conditional_schedule:
     VIRT_AUTOTEST:
       '1':
         - virt_autotest/prepare_non_transactional_server
-        #- virt_autotest/unified_guest_installation
+        - virt_autotest/unified_guest_installation
   network_prepare:
     BACKEND:
       qemu:
         - virt_autotest/ssh_serial_pipe 
-        - virt_autotest/prepare_non_transactional_server
-        #- console/hostname
+        - virt_autotest/prepare_guest_upgrade
+        - virt_autotest/do_guest_upgrade
   verify_virtualization:
     VIRT_AUTOTEST:
       '1':
