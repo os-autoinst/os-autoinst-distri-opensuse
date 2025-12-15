@@ -16,6 +16,8 @@ conditional_schedule:
   version_specific:
     VERSION:
       15-SP7:
+        - x11/user_defined_snapshot
+        - x11/libqt5_qtbase
         - texlive/latexdiff
         - texlive/latex2html
         - console/libaom
