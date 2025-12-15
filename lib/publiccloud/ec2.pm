@@ -137,7 +137,7 @@ sub upload_img {
         "--user", $self->provider_client->username,
         "--boot-mode", get_var("PUBLIC_CLOUD_EC2_BOOT_MODE", "uefi-preferred"));
 
-    push @ec2_cmd, "--use-root-swap" unless ((get_var("PUBLIC_CLOUD_SLES4SAP")) || (is_byos()));
+    push @ec2_cmd, "--use-root-swap" unless ((get_var('FLAVOR') =~ '-SAP-') || is_byos());
     push @ec2_cmd, "--security-group-ids '$sec_group'" if ($sec_group);
     push @ec2_cmd, "--vpc-subnet-id '$vpc_subnet'" if ($vpc_subnet);
     push @ec2_cmd, "'$file'";
