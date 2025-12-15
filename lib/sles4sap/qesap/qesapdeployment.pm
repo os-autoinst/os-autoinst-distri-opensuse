@@ -1554,16 +1554,18 @@ sub qesap_save_y2logs {
 
 =item B<PROVIDER> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
 
+=item B<INVENTORY> - Ansible inventory if available
+
 =back
 =cut
 
 sub qesap_supportconfig_logs {
     my (%args) = @_;
     croak "Missing mandatory argument 'provider'" unless $args{provider};
-    my $inventory = qesap_get_inventory(provider => $args{provider});
+    $args{inventory} //= qesap_get_inventory(provider => $args{provider});
 
     # return != 0 means no inventory
-    return if (script_run("test -e $inventory", 60));
+    return if (script_run("test -e $args{inventory}", 60));
     foreach my $host ('hana[0]', 'hana[1]') {
         qesap_upload_supportconfig_logs(host => $host, provider => $args{provider}, failok => 1);
     }
