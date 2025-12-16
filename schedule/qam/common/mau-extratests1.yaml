@@ -6,45 +6,7 @@ schedule:
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/consoletest_setup
-  - console/check_os_release
-  - console/ping
-  - console/arping
-  - console/wireshark_cli
-  - console/traceroute
-  - console/tracepath
-  - console/dig
-  - console/man_pages
-  - console/openvswitch
-  - console/pam
-  - console/sshd
-  - console/update_alternatives
-  - console/rpm
-  - console/slp
-  - console/journalctl
-  - console/journalctlLevels
-  - console/libvorbis
-  - console/krb5
-  - console/command_not_found
-  - console/openssl_alpn
-  - console/autoyast_removed
-  - console/cron
-  - console/syslog
-  - console/mta
-  - console/check_default_network_manager
-  - console/git
-  - console/cups
-  - console/java
-  - console/sqlite3
-  - console/gdb
-  - console/perf
-  - console/sysctl
-  - console/sysstat
-  - console/cpio
-  - console/tar
-  - console/ruby
-  - console/tcpdump
-  - '{{version_specific}}'
-  - console/coredump_collect
+  - console/suseconnect_scc
 conditional_schedule:
   version_specific:
     VERSION:
