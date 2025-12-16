@@ -14,7 +14,7 @@ sub run {
     if (is_sle('15+')) {
         my $expected_needle = check_var('SLES4SAP_MODE', 'sles4sap_wizard') ? "sles4sap-wizard-option-selected" : "sles4sap-wizard-option-not-selected";
         assert_screen [qw(sles4sap-wizard-option-selected sles4sap-wizard-option-not-selected)];
-        if (is_sle('=15-SP4') && check_screen("sles4sap-suggested-partitioning", 10)) {
+        if (is_sle('>=15-SP4') && check_screen("sles4sap-suggested-partitioning", 10)) {
             record_soft_failure("jsc#TEAM-10839 - screen changes in some race condition");
             send_key "alt-b";    # Switch back to previous screen
             wait_still_screen 3;
