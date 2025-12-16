@@ -109,6 +109,18 @@ local urls = if repo != '' then std.split(repo, ',') else [];
           EOF
           chmod 600 /root/.ssh/config
         |||
+      },
+      {
+        name: 'turn_on_modular_libvirt_debug_logging',
+        chroot: true,
+        content: |||
+          for daemon in qemu storage network nodedev secret ; do
+            config_file=/etc/libvirt/virt${daemon}d.conf
+            log_file=/var/log/libvirt/virt${daemon}d.log
+            sed -i "/^[# ]*log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs = \"1:file:${log_file}\"%};\${x;/^\$/{s%%log_outputs = \"1:file:${log_file}\"%;H};x}" $config_file
+            sed -i "/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}" $config_file
+          done
+        |||
       }
     ]
   }
