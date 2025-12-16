@@ -85,7 +85,6 @@ a class.
 
 =cut
 
-our $prev_console;
 our $sapadmin;
 our $sid;
 our $instance;
@@ -414,17 +413,9 @@ sub prepare_profile {
 
     # X11 workaround only on ppc64le
     if (get_var('OFW')) {
-        # 'systemctl restart systemd-logind' is causing the X11 console to move
-        # out of tty2 on SLES4SAP-15, which in turn is causing the change back to
-        # the previous console in post_run_hook() to fail when running on systems
-        # with DESKTOP=gnome, which is a false positive as the test has already
-        # finished by that step. The following prevents post_run_hook from attempting
-        # to return to the console that was set before this test started. For more
-        # info on why X is running in tty2 on SLES4SAP-15, see bsc#1054782
-        $prev_console = undef;
-
         # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical console to
-        # reset and appear in SUT, so need to select 'root-console' again
+        # reset and appear in SUT, so we need to ensure the 'root-console' is selected or switch
+        # to a root session in the serial terminal
         assert_screen(
             [
                 qw(root-console displaymanager displaymanager-password-prompt generic-desktop
@@ -434,8 +425,8 @@ sub prepare_profile {
     }
     else {
         # If running in DESKTOP=gnome, systemd-logind restart may cause the graphical
-        # console to reset and appear in SUT, so need to select 'root-console' again
-        # 'root-console' can be re-selected safely even if DESKTOP=textmode
+        # console to reset and appear in SUT. Switch to the serial terminal regardless
+        # as it can be selected safely even if DESKTOP=textmode
         select_serial_terminal;
     }
 
@@ -1487,20 +1478,17 @@ sub modify_selinux_setenforce {
 
 sub pre_run_hook {
     my ($self) = @_;
-    1 if defined $testapi::selected_console;
-    $prev_console = $testapi::selected_console;
-    record_info(__PACKAGE__ . ':' . 'pre_run_hook' . ' ' . "prev_console=$prev_console");
+    my $prev_console = current_console();
+    select_serial_terminal unless ($prev_console);
+    record_info(__PACKAGE__ . ':pre_run_hook prev_console=[' . $prev_console . '] curr_console=[' . current_console() . ']');
+    record_info('SELinux Status', script_output('sestatus', proceed_on_failure => 1)) if (has_selinux);
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    record_info(__PACKAGE__ . ':' . 'post_run_hook' . ' ' . "prev_console=$prev_console");
-
+    record_info(__PACKAGE__ . ':post_run_hook curr_console=[' . current_console() . ']');
     $self->record_avc_selinux_alerts() if is_sle('16+');
     record_info('SELinux Status', script_output('sestatus', proceed_on_failure => 1)) if (has_selinux);
-    return unless ($prev_console);
-    select_console($prev_console, await_console => 0);
-    ensure_unlocked_desktop if ($prev_console eq 'x11');
 }
 
 sub post_fail_hook {
