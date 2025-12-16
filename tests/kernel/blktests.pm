@@ -14,6 +14,7 @@ use utils;
 use version_utils qw(is_sle);
 use repo_tools 'add_qa_head_repo';
 use Utils::Logging 'export_logs_basic';
+use Kernel::logging 'prepare_kernel_bug_report';
 
 sub prepare_blktests_config {
     my ($devices) = @_;
@@ -70,6 +71,7 @@ sub run {
     foreach my $file (split /\n/, $output) {
         parse_extra_log('XUnit', $file);
     }
+    prepare_kernel_bug_report();
 }
 
 sub test_flags {
