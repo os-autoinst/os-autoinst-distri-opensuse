@@ -1529,12 +1529,13 @@ subtest '[az_account_show]' => sub {
 subtest '[az_role_definition_list]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '"Pantalone"'; });
+    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["Pantalone"]'; });
 
     my $ret = az_role_definition_list(name => 'Pulcinella');
 
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az role definition list/ } @calls), 'Correct composition of the main command');
+    ok((any { /\[\?roleName=='Pulcinella'\]\.id/ } @calls), 'Query uses roleName filter');
     ok(($ret eq 'Pantalone'), 'Ret is the expected value, of type string');
 };
 

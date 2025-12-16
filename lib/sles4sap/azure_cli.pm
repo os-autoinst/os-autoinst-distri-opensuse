@@ -2412,7 +2412,7 @@ sub az_account_show {
 
 =head2
 
-List and return details about named role
+List and return id about named role
 
 =over
 
@@ -2424,13 +2424,14 @@ List and return details about named role
 sub az_role_definition_list {
     my (%args) = @_;
     croak 'Missing mandatory argument: <name>' unless $args{name};
-    $args{query} //= '[].id';
-    my $az_cmd = join(' ', 'az role definition list',
-        "--name '$args{name}'",
-        "--query '$args{query}'",
-        '-o json');
-    return decode_json(script_output($az_cmd));
-}
 
+    my $az_cmd = join(' ', 'az role definition list',
+        "--query \"[?roleName=='$args{name}'].id\"",
+        '-o json');
+
+    my $roleid = decode_json(script_output($az_cmd));
+    croak "Role definition '$args{name}' not found" unless @$roleid;
+    return $roleid->[0];
+}
 
 1;
