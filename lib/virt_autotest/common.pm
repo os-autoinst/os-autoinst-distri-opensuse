@@ -283,7 +283,12 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         }
     );
     # Filter out guests not allowed for the detected SLE version
-    if (is_sle('=12-SP3')) {
+    if (get_var('ALLOWED_GUESTS', '')) {
+        my @allowed_guests = split(',', get_var('ALLOWED_GUESTS'));
+        foreach my $guest (keys %guests) {
+            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
+        }
+    } elsif (is_sle('=12-SP3')) {
         my @allowed_guests = qw(sles12sp3);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
