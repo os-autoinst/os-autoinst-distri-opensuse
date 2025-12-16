@@ -1,8 +1,176 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Configuration steps for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Configure the environment for a qe-sap-deployment test run
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+qesapdeployment/configure.pm - Configure the environment for a qe-sap-deployment test run
+
+=head1 DESCRIPTION
+
+Prepares the environment for deploying an SAP HANA cluster using
+the qe-sap-deployment framework. It gathers all necessary variables from
+openQA settings, calculates dynamic values (like deployment name and IP ranges),
+and generates the configuration files required by Terraform and Ansible.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider (e.g., 'AZURE', 'EC2', 'GCE').
+
+=item B<QESAPDEPLOY_HANA_NAMESPACE>
+
+(Azure-specific) The namespace for the HANA deployment. Defaults to 'sapha'.
+
+=item B<QESAPDEPLOY_TERRAFORM_RUNNER>
+
+The command to run Terraform. Defaults to 'terraform'.
+
+=item B<QESAPDEPLOY_CLUSTER_OS_VER>
+
+The OS version for the cluster nodes. Used if a catalog image is specified.
+
+=item B<PUBLIC_CLOUD_IMAGE_LOCATION>
+
+(Azure-specific) The location of a custom OS image in Azure Blob Storage.
+Used instead of B<QESAPDEPLOY_CLUSTER_OS_VER>.
+
+=item B<QESAPDEPLOY_CLUSTER_OS_OWNER>
+
+(EC2-specific) The owner of the OS image. Defaults to 'amazon'.
+
+=item B<WORKER_IP>
+
+The IP address of the openQA worker, used to calculate CIDR ranges.
+
+=item B<QESAPDEPLOY_USE_SAPCONF>
+
+If 'true', configures the system using sapconf. Defaults to 'false'.
+
+=item B<QESAPDEPLOY_USE_SAP_HANA_SR_ANGI>
+
+If 'true', enables the SAP HANA SR Angi configuration. Defaults to 'false'.
+
+=item B<QESAPDEPLOY_REGISTRATION_PLAYBOOK>
+
+The name of the Ansible playbook for registration. Defaults to 'registration'.
+
+=item B<QESAPDEPLOY_USE_SUSECONNECT>
+
+If set, uses 'SUSEConnect' in the registration playbook.
+
+=item B<SCC_ADDONS>
+
+A comma-separated list of addon products to register (e.g., 'ltss').
+
+=item B<SCC_REGCODE_SLES4SAP>
+
+The registration code for SLES for SAP, required for BYOS images.
+
+=item B<SCC_REGCODE_LTSS>
+
+The registration code for the LTSS addon.
+
+=item B<QESAPDEPLOY_SCC_LTSS_MODULE>
+
+The name of the LTSS module to be enabled.
+
+=item B<QESAPDEPLOY_GOOGLE_PROJECT>
+
+(GCE-specific) The Google Cloud project ID.
+
+=item B<QESAPDEPLOY_HANA_INSTANCE_TYPE>
+
+(EC2-specific) The instance type for HANA VMs. Defaults to 'r6i.xlarge'.
+
+=item B<QESAPDEPLOY_HANA_ACCOUNT>
+
+The storage account for HANA installation media.
+
+=item B<QESAPDEPLOY_HANA_CONTAINER>
+
+The container within the storage account for HANA media.
+
+=item B<QESAPDEPLOY_HANA_KEYNAME>
+
+The key or credential name to access the HANA media storage.
+
+=item B<QESAPDEPLOY_SAPCAR>
+
+The filename of the SAPCAR binary.
+
+=item B<QESAPDEPLOY_IMDB_CLIENT>
+
+The filename of the HANA client SAR file.
+
+=item B<QESAPDEPLOY_IMDB_SERVER>
+
+The filename of the HANA server SAR file.
+
+=item B<QESAPDEPLOY_HANA_FIREWALL>
+
+If 'true', configures a firewall for HANA. Defaults to 'false'.
+
+=item B<QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON>
+
+The path to the Python interpreter on the remote nodes. Defaults to '/usr/bin/python3'.
+
+=item B<QESAPDEPLOY_FENCING>
+
+The fencing mechanism to use (e.g., 'sbd', 'native'). Defaults to 'sbd'.
+
+=item B<QESAPDEPLOY_HANA_DISK_TYPE>
+
+(GCE-specific) The disk type for HANA data and log volumes. Defaults to 'pd-ssd'.
+
+=item B<QESAPDEPLOY_AZURE_FENCE_AGENT_CONFIGURATION>
+
+(Azure-specific) The configuration for the native fence agent ('msi' or 'spn').
+
+=item B<QESAPDEPLOY_AZURE_SPN_APPLICATION_ID> or B<_SECRET_AZURE_SPN_APPLICATION_ID>
+
+(Azure-specific) The application ID for the Service Principal Name used for fencing.
+
+=item B<QESAPDEPLOY_AZURE_SPN_APP_PASSWORD> or B<_SECRET_AZURE_SPN_APP_PASSWORD>
+
+(Azure-specific) The password for the Service Principal Name used for fencing.
+
+=item B<QESAPDEPLOY_HANA_INSTALL_MODE>
+
+The installation mode for HANA. Defaults to 'standard'.
+
+=item B<QESAPDEPLOY_IBSM_VNET> and B<QESAPDEPLOY_IBSM_RG>
+
+(Azure-specific) VNet and Resource Group of the IBSm for network peering.
+
+=item B<QESAPDEPLOY_IBSM_PRJ_TAG>
+
+(EC2-specific) The project tag of the IBSm for network peering.
+
+=item B<QESAPDEPLOY_IBSM_VPC_NAME>, B<QESAPDEPLOY_IBSM_SUBNET_NAME>, B<QESAPDEPLOY_IBSM_SUBNET_REGION>, B<QESAPDEPLOY_IBSM_NCC_HUB>
+
+(GCE-specific) Networking details of the IBSm for peering.
+
+=item B<QESAPDEPLOY_IBSM_IP>
+
+The IP address of the IBSm server, used for repository redirection.
+
+=item B<QESAPDEPLOY_DOWNLOAD_HOSTNAME>
+
+The hostname of the repository server to redirect to the IBSm.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::azure_client;

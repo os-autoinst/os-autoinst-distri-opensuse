@@ -1,8 +1,36 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Test for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Verify serial console redirection to cluster nodes
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+qesapdeployment/test_console_redirection.pm - Verify serial console redirection to cluster nodes
+
+=head1 DESCRIPTION
+
+Tests the ability to talk to SUT using console redirection
+For each host, it establishes a serial console connection,
+runs a basic command ('hostname') to confirm successful redirection, and then
+disconnects.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider, which is required to locate the correct
+Ansible inventory file.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
