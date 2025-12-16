@@ -10,8 +10,11 @@
 use Mojo::Base qw(consoletest);
 use testapi;
 use registration qw(verify_scc investigate_log_empty_license runtime_registration);
+use qam;
 
 sub run {
+    add_test_repositories;
+    fully_patch_system;
     runtime_registration();    # assume it will run in serial terminal
 }
 
