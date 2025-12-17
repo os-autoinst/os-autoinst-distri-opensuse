@@ -142,6 +142,7 @@ sub post_process_single {
     my $env = {
         product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
         arch => get_var('ARCH', ''),
+        kernel => script_output('uname -r'),
     };
     my $whitelist = get_whitelist();
 
@@ -219,6 +220,7 @@ sub post_process {
     my $env = {
         product => get_var('DISTRI', '') . ':' . get_var('VERSION', ''),
         arch => get_var('ARCH', ''),
+        kernel => script_output('uname -r'),
     };
     my $whitelist = get_whitelist();
 
