@@ -153,7 +153,6 @@ podman:
   # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
-  # https://github.com/containers/podman/pull/26798 is needed for 505-networking-pasta
   # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   # https://github.com/containers/podman/pull/26921 is needed to drop socat
   # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
@@ -165,7 +164,6 @@ podman:
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26017
-    - 26798
     - 26934
     - 27030
     - 27152
