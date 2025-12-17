@@ -22,33 +22,20 @@
 # METADATA_END
 
 set -e
+# Source the helper script for argument handling
+source ../lib/helper.sh
 
-# Check for a metadata flag (-m or --metadata) as the first argument.
-if [[ "$1" == "-m" || "$1" == "--metadata" ]]; then
-    # If the flag is present, use awk to parse this script file ($0).
-    # It finds the line with '# METADATA_START', starts printing every
-    # subsequent line, and stops after hitting '# METADATA_END'.
-    # This extracts the metadata block without including the markers themselves.
-    awk '/# METADATA_END/{exit} f{print substr($0,3)}; /# METADATA_START/{f=1}' "$0"
-    exit 0
-fi
+# Define files required for this test
+TEST_FILES=(go.mod polkit_test.go utils.go)
+
+# Delegate argument processing to the helper
+handle_args "$0" "$@"
+
+ensure_root
+ensure_command_available "gotestsum"
 
 # If the metadata flag is not provided, run the tests as usual.
-
-# ensure the program is running as root
-if [ "$(id -u)" -ne 0 ]; then
-    echo "This script must be run as root."
-    exit 1
-fi
-
-# ensure gotestsum is installed
-if ! command -v gotestsum &> /dev/null; then
-    echo "gotestsum could not be found, please install it first."
-    exit 1
-fi  
-
 # empty the go test cache to avoid stale results
 go clean -testcache
 # run tests with gotestsum
 exec gotestsum --format=standard-verbose --junitfile results.xml
-

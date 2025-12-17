@@ -1,8 +1,8 @@
 name: openssl_pqc
-description:    >
-    This is for the OpenSSL post-quantum cryptography test.
+description: >
+  This is for the OpenSSL post-quantum cryptography test.
 schedule:
-    - installation/bootloader_start
-    - boot/boot_to_desktop
-    - console/consoletest_setup
-    - security/post_quantum_crypto/openssl_pqc
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - security/oqa_agnostic/openssl_pqc
