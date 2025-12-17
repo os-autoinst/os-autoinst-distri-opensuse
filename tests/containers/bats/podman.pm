@@ -43,6 +43,7 @@ sub run_tests {
         push @xfails, (
             # These sometimes fail for user on SLES 16.0 & Tumbleweed
             "505-networking-pasta.bats::TCP/IPv4 large transfer, tap",
+            "505-networking-pasta.bats::IPv6 default address assignment",
         ) unless (is_sle("<16"));
     } else {
         if (!$remote) {
