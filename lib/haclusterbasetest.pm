@@ -24,23 +24,18 @@ use Utils::Logging qw(record_avc_selinux_alerts);
 Base class for HA Cluster tests.
 =cut
 
-our $prev_console;
-
 =head2 pre_run_hook
 
     pre_run_hook()
 
 This is one of the test module interfaces C<'pre_run_hook()'>.
-It sets C<'$prev_console'> before running test steps.
+It records which console is set - if any - at the start of the test
+module execution.
 =cut
 
 sub pre_run_hook {
     my ($self) = @_;
-    # perl -c will give a "only used once" message
-    # here and this makes the travis ci tests fail.
-    1 if defined $testapi::selected_console;
-    $prev_console = $testapi::selected_console;
-    record_info(__PACKAGE__ . ':' . 'pre_run_hook' . ' ' . "prev_console=$prev_console");
+    record_info(__PACKAGE__ . ':pre_run_hook curr_console=[' . current_console() . ']');
 }
 
 =head2 post_run_hook
@@ -48,22 +43,14 @@ sub pre_run_hook {
     post_run_hook()
 
 This is one of the test module interfaces C<'post_run_hook()'>.
-It restores/unlocks C<'$prev_console'>, clear the console and ensure that it really got cleareafter.
+It records which console is set at the end of the test module execution
+and collects SELinux alerts if tests runs with B<VERSION> 16.0 or newer
 =cut
 
 sub post_run_hook {
     my ($self) = @_;
-    record_info(__PACKAGE__ . ':' . 'post_run_hook' . ' ' . "prev_console=$prev_console");
-
+    record_info(__PACKAGE__ . ':post_run_hook curr_console=[' . current_console() . ']');
     $self->record_avc_selinux_alerts() if is_sle('16+');
-    return unless ($prev_console);
-    select_console($prev_console, await_console => 0);
-    if ($prev_console eq 'x11') {
-        ensure_unlocked_desktop;
-    }
-    else {
-        $self->clear_and_verify_console;
-    }
 }
 
 =head2 post_fail_hook
