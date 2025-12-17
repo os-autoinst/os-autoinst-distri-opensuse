@@ -6,6 +6,17 @@
     <email/>
     <reg_code>{{SCC_REGCODE}}</reg_code>
   </suse_register>
+  <iscsi-client>
+    <initiatorname>iqn.1996-04.de.suse:01:972154f2547d</initiatorname>
+    <targets config:type="list">
+      <listentry>
+        <portal>10.145.10.3:3260</portal>
+        <target>iqn.2016-02.openqa.de:for.openqa</target>
+        <iface>default</iface>
+        <startup>onboot</startup>
+      </listentry>
+    </targets>
+  </iscsi-client>
   <bootloader>
     <global>
       <timeout config:type="integer">-1</timeout>
@@ -48,29 +59,34 @@ systemLog:
   </timezone>
   <partitioning config:type="list">
     <drive>
-      <type config:type="symbol">CT_DISK</type>
+      <device>/dev/vda</device>
       <use>all</use>
-      <enable_snapshots config:type="boolean">true</enable_snapshots>
       <partitions config:type="list">
         <partition>
-          <mount>swap</mount>
           <create config:type="boolean">true</create>
-          <filesystem config:type="symbol">swap</filesystem>
-          <size>auto</size>
+          <partition_id config:type="integer">263</partition_id>
+          <size>8MiB</size>
         </partition>
         <partition>
-          <create config:type="boolean">true</create>
-          <format config:type="boolean">true</format>
-          <filesystem config:type="symbol">btrfs</filesystem>
           <mount>/</mount>
-          <size>75%</size>
+          <filesystem>btrfs</filesystem>
+          <size>20GiB</size>
         </partition>
         <partition>
-          <create config:type="boolean">true</create>
-          <format config:type="boolean">true</format>
-          <filesystem config:type="symbol">xfs</filesystem>
+          <mount>swap</mount>
+          <filesystem>swap</filesystem>
+          <size>1GiB</size>
+        </partition>
+      </partitions>
+    </drive>
+    <drive>
+      <device>/dev/sda</device>
+      <use>all</use>
+      <partitions config:type="list">
+        <partition>
           <mount>/home</mount>
-          <size>20%</size>
+          <filesystem>btrfs</filesystem>
+          <size>max</size>
         </partition>
       </partitions>
     </drive>
@@ -107,6 +123,7 @@ systemLog:
         <source><![CDATA[
 #!/usr/bin/env bash
 agama questions mode non-interactive
+echo "iqn.1996-04.de.suse:01:972154f2547d" > /etc/iscsi/initiatorname.iscsi
 ]]></source>
       </script>
     </pre-scripts>
