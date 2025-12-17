@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <suse_register>
+    <do_registration config:type="boolean">true</do_registration>
+    <email/>
+    <reg_code>{{SCC_REGCODE}}</reg_code>
+  </suse_register>
+  <iscsi-client>
+    <initiatorname>iqn.1996-04.de.suse:01:972154f2547d</initiatorname>
+    <targets config:type="list">
+      <listentry>
+        <portal>10.145.10.3:3260</portal>
+        <target>iqn.2016-02.openqa.de:for.openqa</target>
+        <iface>default</iface>
+        <startup>onboot</startup>
+      </listentry>
+    </targets>
+  </iscsi-client>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">-1</timeout>
+    </global>
+  </bootloader>
+  <files config:type="list">
+    <file>
+      <file_owner>root</file_owner>
+      <file_permissions>644</file_permissions>
+      <file_path>/usr/local/share/dummy.xml</file_path>
+      <file_location>https://raw.githubusercontent.com/os-autoinst/os-autoinst-distri-opensuse/master/data/yam/autoyast/dummy.xml</file_location>
+    </file>
+    <file>
+      <file_owner>root</file_owner>
+      <file_permissions>644</file_permissions>
+      <file_path>/etc/mongod.conf</file_path>
+      <file_contents><![CDATA[# mongodb config file
+processManagement:
+   fork: true
+net:
+   bindIp: localhost
+   port: 27017
+storage:
+   dbPath: /var/lib/mongo
+systemLog:
+   destination: file
+   path: "/var/log/mongodb/mongod.log"
+   logAppend: true
+]]></file_contents>
+    </file>
+  </files>
+  <keyboard>
+    <keymap>us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US.UTF-8</language>
+  </language>
+  <timezone>
+    <timezone>Europe/Berlin</timezone>
+  </timezone>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/vda</device>
+      <use>all</use>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <partition_id config:type="integer">263</partition_id>
+          <size>8MiB</size>
+        </partition>
+        <partition>
+          <mount>/</mount>
+          <filesystem>btrfs</filesystem>
+          <size>20GiB</size>
+        </partition>
+        <partition>
+          <mount>swap</mount>
+          <filesystem>swap</filesystem>
+          <size>1GiB</size>
+        </partition>
+      </partitions>
+    </drive>
+    <drive>
+      <device>/dev/sda</device>
+      <use>all</use>
+      <partitions config:type="list">
+        <partition>
+          <mount>/home</mount>
+          <filesystem>xfs</filesystem>
+          <size>max</size>
+        </partition>
+      </partitions>
+    </drive>
+  </partitioning>
+  <software>
+    <patterns config:type="list">
+      <pattern>base</pattern>
+      <pattern>minimal_base</pattern>
+    </patterns>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+  </software>
+  <users config:type="list">
+    <user>
+      <fullname>Bernhard M. Wiedemann</fullname>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$A5x/aKtAldy8V2Q5$5tFn6SW808brpHQHJUVgHL0zpI3VSFkIrlr5r1xE0mnHTzJY29S4p.aIUv4xGeXU7Z0FWe/vFaBoKOIEyQgJH1</user_password>
+      <username>bernhard</username>
+    </user>
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <user_password>$6$Viz.6zkOLg.HGiYS$uwvqo4HVVn9/n7UByRDCwf/3h7.jVunrhugXfuxQve7db8kS0Q0flCXajdB/8Odh5tbwfnWf.cT1K8QgWlsci1</user_password>
+      <username>root</username>
+      <authorized_keys config:type="list">
+        <listentry>fake public key to enable sshd and open firewall</listentry>
+      </authorized_keys>
+    </user>
+  </users>
+  <scripts>
+    <pre-scripts config:type="list">
+      <script>
+        <filename>pre.sh</filename>
+        <source><![CDATA[
+#!/usr/bin/env bash
+agama questions mode non-interactive
+echo "iqn.1996-04.de.suse:01:972154f2547d" > /etc/iscsi/initiatorname.iscsi
+]]></source>
+      </script>
+    </pre-scripts>
+    <chroot-scripts config:type="list">
+      <script>
+        <file_name>post.sh</file_name>
+        <chrooted config:type="boolean">true</chrooted>
+        <source><![CDATA[
+#!/usr/bin/env bash
+echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
+]]></source>
+      </script>
+    </chroot-scripts>
+  </scripts>
+</profile>
