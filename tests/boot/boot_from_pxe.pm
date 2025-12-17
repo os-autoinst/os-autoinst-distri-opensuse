@@ -16,7 +16,8 @@ use registration 'registration_bootloader_cmdline';
 use utils qw(type_string_slow type_string_very_slow enter_cmd_slow enter_cmd_very_slow);
 use Utils::Backends;
 use Utils::Architectures;
-use version_utils qw(is_upgrade is_sle);
+use version_utils qw(is_upgrade is_sle is_agama);
+use autoyast qw(expand_agama_profile);
 
 sub run {
     my ($image_path, $image_name, $cmdline);
@@ -117,6 +118,17 @@ sub run {
             send_key_until_needlematch "pxe-$entry-entry", 'down';
             send_key 'tab';
         }
+        elsif (my $agama_auto = get_var('INST_AUTO')) {
+            my $serial_dev = get_var('SERIALDEV', 'ttyS1');
+            my $agama_auto_url = autoyast::expand_agama_profile($agama_auto);
+            $image_name = get_required_var('PXE_PRODUCT_NAME');
+            my $agama_live_squashfs = "http://mirror.suse.cz/install/SLP/$image_name/${arch}/DVD1/LiveOS/squashfs.img";
+            $image_path = "/mounts/dist/install/SLP/$image_name/$arch/DVD1/boot/$arch/loader/linux ";
+            $image_path .= "initrd=/mounts/dist/install/SLP/$image_name/$arch/DVD1/boot/$arch/loader/initrd ";
+            $image_path .= "root=live:$agama_live_squashfs live.password=$testapi::password ";
+            $image_path .= "inst.auto=$agama_auto_url inst.finish=stop ";
+            $image_path .= "Y2DEBUG=1 linuxrc.log=/dev/$serial_dev linuxrc.core=/dev/$serial_dev linuxrc.debug=4,trace console=ttyS0,115200 ";
+        }
         else {
             my $device = (is_ipmi && !get_var('SUT_NETDEVICE_SKIPPED')) ? "?device=$interface" : '';
             my $release = get_var('BETA') ? 'LATEST' : 'GM';
@@ -141,6 +153,16 @@ sub run {
     }
     # Execute installation command on pxe management cmd console
     $is_nvdimm ? type_string_very_slow ${image_path} . " " : type_string_slow ${image_path} . " ";
+
+    if (is_agama) {
+        send_key 'ret';
+        save_screenshot;
+
+        assert_screen 'agama-installer-live-root', 240;
+        record_info('PXE boot successfully, Agama installer start');
+        return;
+    }
+
     bootmenu_default_params(pxe => 1, baud_rate => '115200');
 
     if (is_ipmi && !get_var('AUTOYAST')) {
