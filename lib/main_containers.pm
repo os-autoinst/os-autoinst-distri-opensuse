@@ -408,7 +408,6 @@ sub load_container_tests {
             loadtest 'console/enable_mac' if get_var("SECURITY_MAC");
             load_host_tests_podman($run_args) if (/podman/i);
             load_host_tests_docker($run_args) if (/docker/i);
-            loadtest 'containers/multi_runtime' if (/multi_runtime/i);
             load_host_tests_containerd_crictl() if (/containerd_crictl/i);
             load_host_tests_containerd_nerdctl() if (/containerd_nerdctl/i);
             load_kubectl_tests() if (/kubectl/i);
