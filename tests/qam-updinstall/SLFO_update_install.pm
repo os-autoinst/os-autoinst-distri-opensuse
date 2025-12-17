@@ -43,7 +43,7 @@ my @conflicting_packages = (
 
 # We may need to skip installing some packages based on test requirements
 # see example at poo#191485
-my @skipped_pkgs = qw(kernel-kvmsmall kernel-kvmsmall-devel);
+my @skipped_pkgs = qw(kernel-kvmsmall kernel-kvmsmall-devel kernel-default-base);
 
 sub get_patch {
     my ($incident_id, $repos) = @_;
