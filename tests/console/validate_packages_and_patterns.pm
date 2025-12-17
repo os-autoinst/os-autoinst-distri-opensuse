@@ -62,7 +62,7 @@ sub run {
         repo => $ltss_release_repo ? $ltss_release_repo : 'LTSS',
         installed => 1,
         condition => sub { is_sle('15+') },
-        available => sub { get_var('SCC_REGCODE_LTSS') && script_run('SUSEConnect --list-extensions|grep LTSS.*ALPHA.*Activated') == 1 }
+        available => sub { get_var('SCC_REGCODE_LTSS') && script_run('SUSEConnect --list-extensions|grep LTSS.*Activated') == 0 }
     };
     $software{'update-test-feature'} = {    # See poo#36451
         repo => is_sle('15+') ? 'Basesystem' : 'SLES',
