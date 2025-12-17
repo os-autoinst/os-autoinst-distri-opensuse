@@ -166,7 +166,7 @@ sub run {
 
     # Ensure LTSS subscription is active when testing LTSS containers.
     validate_script_output("SUSEConnect -l", qr/.*LTSS.*Activated/, fail_message => "Host requires LTSS subscription for LTSS container")
-      if (get_var('CONTAINER_IMAGE_TO_TEST') =~ /ltss/i && ($version !~ /16/));
+      if (get_var('CONTAINER_IMAGE_TO_TEST') =~ /ltss/i && ($host_distri =~ /sles/) && ($version !~ /16/));
 
     update_test_repos if (get_var('BCI_TESTS_REPO'));
 
