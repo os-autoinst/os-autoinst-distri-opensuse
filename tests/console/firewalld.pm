@@ -34,6 +34,8 @@ sub pre_test {
     script_run('echo "FIREWALLD_ARGS=--debug" >> /etc/sysconfig/firewalld');
     systemctl('enable firewalld');
     systemctl('restart firewalld');
+    systemctl('status firewalld');
+    sleep 3600;
     assert_script_run("firewall-cmd --set-default-zone=public");
 }
 
