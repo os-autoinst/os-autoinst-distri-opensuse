@@ -315,6 +315,19 @@ sub setup_pkgs {
 
     enable_modules if is_sle("<16");
 
+    if (get_var("TEST_REPOS", "")) {
+        if (script_run("zypper lr | grep -q SUSE_CA")) {
+            run_command "zypper addrepo --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo";
+        }
+        if (script_run("rpm -q ca-certificates-suse")) {
+            run_command "zypper --gpg-auto-import-keys -n install ca-certificates-suse";
+        }
+
+        foreach my $repo (split(/\s+/, get_var("TEST_REPOS", ""))) {
+            run_command "zypper addrepo $repo";
+        }
+    }
+
     # Install tests dependencies
     my $oci_runtime = get_var("OCI_RUNTIME", "");
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
@@ -359,19 +372,6 @@ EOF
     }
 
     return if $rebooted;
-
-    if (get_var("TEST_REPOS", "")) {
-        if (script_run("zypper lr | grep -q SUSE_CA")) {
-            run_command "zypper addrepo --refresh http://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo";
-        }
-        if (script_run("rpm -q ca-certificates-suse")) {
-            run_command "zypper --gpg-auto-import-keys -n install ca-certificates-suse";
-        }
-
-        foreach my $repo (split(/\s+/, get_var("TEST_REPOS", ""))) {
-            run_command "zypper addrepo $repo";
-        }
-    }
 
     foreach my $pkg (split(/\s+/, get_var("TEST_PACKAGES", ""))) {
         run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";
