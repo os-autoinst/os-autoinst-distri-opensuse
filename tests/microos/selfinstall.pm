@@ -18,14 +18,13 @@ use ipmi_backend_utils qw(ipmitool);
 sub run {
     my ($self) = @_;
 
-    if (get_var('NUMDISKS') > 1 && !get_var('INSTALL_DISK_WWN', '')) {
-        assert_screen 'selfinstall-screen', 180;
-        send_key 'down' unless check_screen 'selfinstall-select-drive';
-        assert_screen 'selfinstall-select-drive';
-        send_key 'ret';
-    }
-
     unless (get_var('INSTALL_DISK_WWN')) {
+        if (get_var('NUMDISKS') > 1) {
+            assert_screen 'selfinstall-screen', 180;
+            send_key 'down' unless check_screen 'selfinstall-select-drive';
+            assert_screen 'selfinstall-select-drive';
+            send_key 'ret';
+        }
         assert_screen 'slem-selfinstall-overwrite-drive';
         send_key 'ret';
     }

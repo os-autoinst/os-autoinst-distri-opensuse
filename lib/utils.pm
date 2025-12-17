@@ -23,6 +23,11 @@ use Getopt::Long qw(GetOptionsFromString);
 use File::Basename;
 use XML::LibXML;
 use security::config;
+use JSON;
+use Scalar::Util qw(refaddr);
+use LWP::Simple;
+use LWP::UserAgent;
+use Data::Dumper;
 
 our @EXPORT = qw(
   generate_results
@@ -138,6 +143,8 @@ our @EXPORT = qw(
   upload_folders
   cmd_run
   assert_cmd_run
+  parse_json
+  inspect_existing_issue
 );
 
 our @EXPORT_OK = qw(
@@ -3571,6 +3578,155 @@ sub assert_cmd_run {
     die "Command '$cmd' timed out" unless defined $ret[0];
     die "Command '$cmd' failed" unless $ret[0] == 0;
     return wantarray ? @ret : $ret[0];
+}
+
+=head2 parse_json
+
+  parse_json(json => 'raw json structure reference', visisted => 'visited data
+      structure reference')
+
+Iterate raw json data structure recursively, skip visited data by referring to
+visited data structure and return handled json data reference. Any keys start 
+with underscore will be ignored in iteration, which can be used for comment or
+example. Argument json takes reference of the raw json data structure generate
+by decode_json, visited takes referecne of data structure which records data
+already visited to ensure no indefinite loop in iteration.
+
+=cut
+
+sub parse_json {
+    my %args = @_;
+    $args{json} //= '';
+    $args{visited} //= {};
+    die('JSON structure must be given') if (!$args{json});
+
+    if (ref $args{json}) {
+        my $addr = refaddr($args{json});
+        return if $args{visited}->{$addr};
+        $args{visited}->{$addr} = 1;
+        if (ref $args{json} eq 'HASH') {
+            my %next_hash;
+            while (my ($key, $value) = each(%{$args{json}})) {
+                next if $key =~ /^_/;
+                $next_hash{$key} = parse_json(json => $value, visited => {%{$args{visited}}});
+            }
+            return \%next_hash;
+        }
+        elsif (ref $args{json} eq 'ARRAY') {
+            my @next_array;
+            foreach my $element (@{$args{json}}) {
+                push(@next_array, parse_json(json => $element, visited => {%{$args{visited}}}));
+            }
+            return \@next_array;
+        }
+    }
+    return $args{json};
+}
+
+=head2 inspect_existing_issue
+
+  inspect_existing_issue(issuefile => 'relative path of json files to data folder,
+      localfile => 'absolute path of downloaded local files, issue => 'issues to
+      be inspected separated by double hash ##', distri => 'comma separated issue
+      distri', version => 'comma separated issue version', mode => 'comma separted
+      issue mode')
+
+Inspect whether concerned issues are bug, feature or can be ignore. Only record
+bug as soft failure. Argument issuefile can take mulitple json files separated by
+comma which are used as reference to compare, localfile can take multiple local
+files separated by comma which are corresponding downloaded and stored files from
+issuefile, issue takes issues to be inspected separated by double hash ##. User
+can also use setting JSON_REFERRAL_FILE to pass in comma separated json file path.
+Settings ISSUE_DISTRI, ISSUE_VERSION and ISSUE_MODE can also be used to specify
+the real distri, version and mode with which inspected issue is associated, they
+are separated by comma if multiple values are provided, for example, ISSUE_MODE=
+('transactional', 'traditional'). Key 'modes' is not mandatory in reference file
+data/virt_autotest/existing_issues_referral.json, if it does not exist or empty,
+any mode is matched. User can also pass in by using arguments distri, version and
+mode. Generally speaking, first find a distri match in all products of an issue
+by iteraing disris in ISSUE_DISTRI, second find a version match in all versions
+of a product by iterating versions in ISSUE_VERSION if there is a distri match(
+namley @existing_issue_version is not empty), at the last find a mode match in
+all modes of an issue by iteraing modes in ISSUE_MODE(empty @existing_issue_mode
+means any mode will be matched). There will be a final successful match if issue
+matches description, distri/version and mode all matched. 
+
+=cut
+
+sub inspect_existing_issue {
+    my %args = @_;
+    $args{issuefile} //= get_var('ISSUE_REFERRAL_FILE', 'virt_autotest/existing_issues_referral.json');
+    $args{localfile} //= '/tmp/local_file.json';
+    $args{issue} //= '';
+    $args{distri} //= get_var('ISSUE_DISTRI', get_required_var('DISTRI'));
+    $args{version} //= get_var('ISSUE_VERSION', get_required_var('VERSION'));
+    $args{mode} //= get_var('ISSUE_MODE', (is_transactional ? 'transactional' : 'traditional'));
+    die('Issue file in json and issue to be inspected must be given') if (!$args{issuefile} or !$args{issue});
+
+    my @issuefile = split(',', $args{issuefile});
+    my @localfile = split(',', $args{localfile});
+    @localfile = ($localfile[0]) x scalar @issuefile if (scalar @localfile != scalar @issuefile);
+
+    my $ret = 0;
+    while (my ($index, $file) = each(@issuefile)) {
+        my $json_file_url = data_url($file);
+        my $useragent = LWP::UserAgent->new;
+        $useragent->get($json_file_url) ? getstore($json_file_url, $localfile[$index]) : die("Can not download $localfile[$index] from $json_file_url");
+        chmod 0777, $localfile[$index] or die "Can not change permission to $localfile[$index]";
+
+        my $json_file_content = do {
+            open(my $fh, "<", $localfile[$index]) or die "Could not open $localfile[$index]: $!";
+            local $/;
+            <$fh>;
+        };
+        my $json_file_structure = decode_json($json_file_content);
+        my $parsed_json_file = parse_json(json => $json_file_structure);
+        diag("JSON file $file content:\n" . Dumper($parsed_json_file));
+
+        my @issue_distri = split(',', $args{distri});
+        my @issue_version = split(',', $args{version});
+        my @issue_mode = split(',', $args{mode});
+        my @issues = split('##', $args{issue});
+        my @matched_issues = ();
+        foreach my $existing_issue (keys %$parsed_json_file) {
+            my $buffer = '';
+            foreach my $issue (@issues) {
+                my $existing_issue_description = $parsed_json_file->{$existing_issue}->{description};
+                my @existing_issue_distri = (keys %{$parsed_json_file->{$existing_issue}->{products}});
+                my @existing_issue_version = ();
+                my $version_matched = 0;
+                foreach my $distri (@issue_distri) {
+                    @existing_issue_version = @{$parsed_json_file->{$existing_issue}->{products}->{$distri}} if (grep { $_ eq $distri } @existing_issue_distri);
+                }
+                foreach my $version (@issue_version) {
+                    $version_matched = 1 if (grep { $_ eq $version } @existing_issue_version);
+                }
+                my @existing_issue_mode = ((exists $parsed_json_file->{$existing_issue}->{modes}) ? @{$parsed_json_file->{$existing_issue}->{modes}} : ());
+                my $mode_matched = 0;
+                foreach my $mode (@issue_mode) {
+                    $mode_matched = 1 if (grep { $_ eq $mode } @existing_issue_mode);
+                }
+                $mode_matched = 1 if (!@existing_issue_mode);
+                if (($issue =~ m#$existing_issue_description#img or $existing_issue_description =~ m#$issue#img) and $version_matched and $mode_matched) {
+                    $buffer .= $issue . "\n";
+                    push(@matched_issues, $existing_issue);
+                }
+            }
+            if ($buffer) {
+                if ($parsed_json_file->{$existing_issue}->{type} eq 'feature') {
+                    $ret += 1;
+                    record_info($existing_issue, $buffer);
+                } elsif ($parsed_json_file->{$existing_issue}->{type} eq 'ignore') {
+                    record_info("Ignoring issue:\n$buffer\n");
+                } else {
+                    $ret += 1;
+                    my $reference = "$existing_issue\n$buffer";
+                    record_soft_failure($reference);
+                }
+            }
+        }
+    }
+    return $ret;
 }
 
 1;
