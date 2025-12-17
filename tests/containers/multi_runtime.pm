@@ -22,6 +22,12 @@ my $test_url = "https://registry.opensuse.org/v2/";
 sub run_tests {
     my $ip_version = shift;
 
+    # Get our IP address
+    my $try_addr = ($ip_version == 6) ? "2001:4860:4860::8888" : "8.8.8.8";
+    my $ip_addr = script_output "ip -$ip_version --json route get $try_addr | jq -Mr '.[0].prefsrc'", proceed_on_failure => 1;
+    return unless ($ip_addr =~ /^[0-9]/);
+    $ip_addr = "[$ip_addr]" if ($ip_version == 6);
+
     my $volumes = '-v $HOME/nginx/nginx.conf:/etc/nginx/nginx.conf:ro,z -v $HOME/nginx:/usr/share/nginx/html:ro,z';
     my $curl_opts = "-$ip_version -L";
     my @containers;
@@ -55,10 +61,6 @@ sub run_tests {
         assert_script_run "curl $curl_opts http://localhost:$container->{port}",
           fail_message => "failed IPv$ip_version localhost test for $container->{name}";
     }
-
-    my $iface = script_output "ip -$ip_version --json route list match default | jq -r '.[0].dev'";
-    my $ip_addr = script_output "ip -$ip_version --json addr show $iface | jq -r '.[0].addr_info[0].local'";
-    $ip_addr = "[$ip_addr]" if ($ip_version == 6);
 
     # Test connectivity to all containers on IP address
     for my $container (@containers) {
