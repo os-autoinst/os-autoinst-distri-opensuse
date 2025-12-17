@@ -27,7 +27,7 @@ sub run() {
 
     my ($self) = shift;
     # install and configure tomcat in console
-    turn_off_screensaver;
+    turn_off_screensaver unless (check_var('DESKTOP', 'textmode'));
     Tomcat::Utils->tomcat_setup();
 
     # verify that the tomcat manager works
@@ -45,7 +45,7 @@ sub run() {
     }
 
     # switch to desktop
-    Tomcat::Utils->switch_to_desktop();
+    Tomcat::Utils->switch_to_desktop() unless (check_var('DESKTOP', 'textmode'));
 }
 
 1;
