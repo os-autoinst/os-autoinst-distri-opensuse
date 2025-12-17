@@ -48,7 +48,7 @@ ansible:
       - ibsm.yaml -e ibsm_ip='%IBSM_IP%' -e download_hostname='%DOWNLOAD_HOSTNAME%' -e repos='%REPOS%'
       - fully-patch-system.yaml
       - pre-cluster.yaml
-      - sap-hana-preconfigure.yaml
+      - sap-hana-preconfigure.yaml -e firewall_cfg=%FIREWALL%
       - sap-hana-storage.yaml
       - sap-hana-download-media.yaml
       - sap-hana-install.yaml
