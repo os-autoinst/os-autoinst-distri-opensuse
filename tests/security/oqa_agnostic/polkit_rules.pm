@@ -16,7 +16,6 @@ sub run {
     my $test = security::agnosticTestRunner->new({
             language => 'go',
             name => 'testPolkit',
-            files => 'runtest go.mod polkit_test.go utils.go',
         }
     );
 

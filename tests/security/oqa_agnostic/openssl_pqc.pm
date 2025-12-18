@@ -21,7 +21,6 @@ sub run {
     my $test = security::agnosticTestRunner->new({
             language => 'python',
             name => 'testPostQuantumCrypto',
-            files => 'runtest openssl_pqc_test.py'
         }
     );
     $test->setup()->run_test()->parse_results()->cleanup();
@@ -32,5 +31,3 @@ sub test_flags {
 }
 
 1;
-
-

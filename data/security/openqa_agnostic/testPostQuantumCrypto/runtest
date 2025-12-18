@@ -32,18 +32,16 @@
 
 set -e
 
-# Check for a metadata flag (-m or --metadata) as the first argument.
-if [[ "$1" == "-m" || "$1" == "--metadata" ]]; then
-    # If the flag is present, use awk to parse this script file ($0).
-    # It finds the line with '# METADATA_START', starts printing every
-    # subsequent line, and stops after hitting '# METADATA_END'.
-    # This extracts the metadata block without including the markers themselves.
-    awk '/# METADATA_END/{exit} f{print substr($0,3)}; /# METADATA_START/{f=1}' "$0"
-    exit 0
-fi
+# Source the helper script for argument handling
+source ../lib/helper.sh
+
+# Define files required for this test
+TEST_FILES=(openssl_pqc_test.py)
+
+# Delegate argument processing to the helper
+handle_args "$0" "$@"
 
 # If the metadata flag is not provided, run the tests as usual.
 
 # run tests with pytest and generate junit xml results
 pytest openssl_pqc_test.py --junitxml=results.xml
-
