@@ -417,8 +417,8 @@ sub configure_sev_snp_kernel_parameters {
     record_info('Reboot required', 'Rebooting to apply new parameters');
     power_action('reboot', textmode => 1);
 
-    # Wait for boot completion - robust parameters for systems with/without GRUB menu
-    $self->wait_boot(textmode => 1, bootloader_time => 60, ready_time => 300);
+    # Wait for boot completion - increased timeout for IPMI/SOL console where GRUB can take >180s
+    $self->wait_boot(textmode => 1, bootloader_time => 100, ready_time => 200);
     select_serial_terminal;
 
     # Verify parameters after reboot
