@@ -3,11 +3,27 @@ name: create_hdd_16.0
 description:    >
     Maintainer: qa-c@suse.de.
     SLES 16.0 HDD creation for container tests in product QA
+vars:
+    INST_AUTO: data/containers/agama/sle-container-host.jsonnet
 conditional_schedule:
-    bootloader:
+    boot_64:
+        ARCH:
+            'x86_64':
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+            'aarch64':
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+    boot_ppc:
+        ARCH:
+            'ppc64le':
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+    boot_390:
         ARCH:
             's390x':
-                - installation/bootloader_start
+                - installation/bootloader_zkvm
+                - installation/agama_reboot
     fips:
         FIPS:
             '1':
@@ -21,8 +37,10 @@ conditional_schedule:
             '1':
                 - containers/k3s_helm_install
 schedule:
-    - '{{bootloader}}'
-    - boot/boot_to_desktop
+    - '{{boot_64}}'
+    - '{{boot_390}}'
+    - '{{boot_ppc}}'
+    - installation/first_boot
     - console/system_prepare
     - containers/install_updates
     - '{{fips}}'
