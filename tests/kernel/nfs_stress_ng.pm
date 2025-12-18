@@ -18,6 +18,7 @@ use lockapi;
 use utils;
 use registration;
 use version_utils 'is_sle';
+use repo_tools 'add_qa_head_repo';
 
 sub check_nfs_mounts {
     my @paths = @_;
@@ -88,7 +89,15 @@ sub client {
 
     # in case this is SLE we need packagehub for stress-ng, let's enable it
     if (is_sle) {
-        add_suseconnect_product(get_addon_fullname('phub'));
+        my $modules = get_available_modules();
+        # in early development of sle phub isn't usually available so we use stress-ng
+        # from qa repo
+        if ($modules->{PackageHub}) {
+            add_suseconnect_product(get_addon_fullname('phub'));
+        } else {
+            record_info('Warning', 'stress-ng from QA repo');
+            add_qa_head_repo(priority => 100);
+        }
     }
 
     zypper_call("in stress-ng");
