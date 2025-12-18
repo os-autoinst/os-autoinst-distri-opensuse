@@ -84,7 +84,7 @@ sub prepare_virtual_env {
             zypper_call("ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/Update:/Products:/SaltBundle:/Update/standard/ saltbundle");
             zypper_call("rm python3-pip");
             # venv-salt-minion-3006.0-3.76.2 has .../bin/activate, for the time being, fix to this version
-            zypper_call("in saltbundlepy-base venv-salt-minion-venv-salt-minion-3006.0-3.76.2");
+            zypper_call("in saltbundlepy-base 'venv-salt-minion<3006.0-3.81.1'");
             assert_script_run("mkdir -p ./bci/bin");
             assert_script_run("ln -s /usr/lib/venv-salt-minion/bin/activate ./$virtualenv");
         } elsif ($version =~ /15\.[4-7]/) {
