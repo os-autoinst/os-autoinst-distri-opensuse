@@ -924,7 +924,7 @@ sub remove_additional_nic {
 }
 
 sub collect_virt_system_logs {
-    if (script_run("test -f /var/log/libvirt/*d.log") == 0) {
+    if (script_run("ls /var/log/libvirt/*d.log") == 0) {
         script_run('tar czvf /tmp/libvirt_daemons.tar.gz /var/log/libvirt/*d.log');
         upload_asset("/tmp/libvirt_daemons.tar.gz");
     }
