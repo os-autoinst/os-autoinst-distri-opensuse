@@ -275,6 +275,37 @@ local home_on_iscsi() = {
   ],
 };
 
+local btrfs_without_snapshots() = {
+  "drives": [
+    {
+      "partitions": [
+        {
+          "search": "*",
+          "delete": true
+        },
+        {
+          "filesystem": {
+            "path": "/",
+            "type": {
+              "btrfs": {
+                "snapshots": false
+              }
+            }
+          },
+          "size": "5 GiB"
+        },
+        {
+          "filesystem": {
+            "path": "swap",
+            "type": "swap"
+          },
+          "size": "1 GiB"
+        }
+      ]
+    }
+  ]
+};
+
 {
   home_on_iscsi: home_on_iscsi(),
   lvm: lvm(false),
@@ -300,4 +331,5 @@ local home_on_iscsi() = {
   root_filesystem_ext4: root_filesystem('ext4'),
   root_filesystem_xfs: root_filesystem('xfs'),
   whole_disk_and_boot_unattended: whole_disk_and_boot_unattended(),
+  btrfs_without_snapshots: btrfs_without_snapshots(),
 }
