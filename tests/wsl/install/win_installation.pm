@@ -3,10 +3,10 @@
 # Copyright 2016-2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Windows 10 installation test module
-#    modiffied (only win10 drivers) iso from https://fedoraproject.org/wiki/Windows_Virtio_Drivers is needed
+# Summary: Windows 11 installation test module
+#    modified (only win10 drivers) iso from https://fedoraproject.org/wiki/Windows_Virtio_Drivers is needed
 #    Works only with CDMODEL=ide-cd and QEMUCPU=host or core2duo (maybe other but not qemu64)
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: qa-c <qa-c@suse.de>
 
 use base "windowsbasetest";
 use testapi;
@@ -16,9 +16,9 @@ sub run {
     my $self = shift;
 
     # Press 'spacebar' continuously until installation appears
-    send_key_until_needlematch('windows-unattend-starting', 'spc', 60, 1);
+    send_key_until_needlematch('windows-unattend-starting', '.', 60, 1);
     record_info('Windows firstboot', 'Starting Windows for the first time');
-    wait_still_screen stilltime => 60, timeout => 300;
+    assert_screen('windows-login-screen', 3600);    # Wait for Windows to complete installation
 
     $self->windows_login;
 
