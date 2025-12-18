@@ -1494,6 +1494,7 @@ sub post_run_hook {
 sub post_fail_hook {
     my ($self) = @_;
     record_info(__PACKAGE__ . ':' . 'post_fail_hook');
+    $self->record_avc_selinux_alerts() if is_sle('16+');
 
     # We need to be sure that *ALL* consoles are closed, are SUPER:post_fail_hook
     # does not support virtio/serial console yet

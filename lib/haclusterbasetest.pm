@@ -64,6 +64,7 @@ It saves a screenshot and logs.
 sub post_fail_hook {
     my ($self) = @_;
     record_info(__PACKAGE__ . ':' . 'post_fail_hook');
+    $self->record_avc_selinux_alerts() if is_sle('16+');
 
     # Save a screenshot before trying further measures which might fail
     save_screenshot;
