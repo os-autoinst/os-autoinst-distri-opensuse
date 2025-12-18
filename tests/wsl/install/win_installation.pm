@@ -16,7 +16,7 @@ sub run {
     my $self = shift;
 
     # Press 'spacebar' continuously until installation appears
-    send_key_until_needlematch('windows-unattend-starting', '.', 60, 1);
+    send_key_until_needlematch('windows-unattend-running', '.', 60, 1);
     record_info('Windows firstboot', 'Starting Windows for the first time');
     assert_screen('windows-login-screen', 3600);    # Wait for Windows to complete installation
 
