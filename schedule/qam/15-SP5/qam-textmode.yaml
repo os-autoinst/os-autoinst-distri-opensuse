@@ -26,6 +26,7 @@ schedule:
 - locale/keymap_or_locale
 - console/system_prepare
 - console/chrony
+- console/vim
 - console/check_network
 - console/system_state
 - console/prepare_test_data

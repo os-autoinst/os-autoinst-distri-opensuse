@@ -27,6 +27,7 @@ schedule:
 - console/system_prepare
 - console/check_network
 - console/chrony
+- console/vim
 - console/system_state
 - console/prepare_test_data
 - console/consoletest_setup

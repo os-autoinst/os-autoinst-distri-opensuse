@@ -45,6 +45,7 @@ schedule:
 - console/sshd
 - console/ssh_cleanup
 - console/ncurses
+- console/vim
 - console/yast2_bootloader
 - console/yast2_i
 - console/yast2_lan
