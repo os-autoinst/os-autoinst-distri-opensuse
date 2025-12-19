@@ -5,8 +5,23 @@ description: >
 vars:
   MR_TEST: '%ARCH%'
 schedule:
-  - installation/ipxe_install
+  - '{{ipxe_install}}'
+  - '{{boot_from_pxe}}'
   - installation/agama_reboot
   - support_server/login
+  - '{{staging}}'
   - console/system_prepare
   - sles4sap/saptune/mr_test
+conditional_schedule:
+  ipxe_install:
+    IPXE:
+      1:
+        - installation/ipxe_install
+  boot_from_pxe:
+    PXE:
+      1:
+        - boot/boot_from_pxe
+  staging:
+    STAGING:
+      1:
+        - console/zypper_lr
