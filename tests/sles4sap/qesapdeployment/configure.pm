@@ -112,9 +112,9 @@ The filename of the HANA client SAR file.
 
 The filename of the HANA server SAR file.
 
-=item B<QESAPDEPLOY_HANA_FIREWALL>
+=item B<QESAPDEPLOY_FIREWALL>
 
-If 'true', configures a firewall for HANA. Defaults to 'false'.
+Support 'ignore|enable|disable'. Defaults to 'ignore' that means qe-sap-deployment will leave whatever is in the OS image unchanged.
 
 =item B<QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON>
 
@@ -259,7 +259,8 @@ sub run {
     $variables{HANA_SAR} = get_required_var('QESAPDEPLOY_SAPCAR');
     $variables{HANA_CLIENT_SAR} = get_required_var('QESAPDEPLOY_IMDB_CLIENT');
     $variables{HANA_SAPCAR} = get_required_var('QESAPDEPLOY_IMDB_SERVER');
-    $variables{HANA_FIREWALL} = get_var('QESAPDEPLOY_HANA_FIREWALL', 'false');
+    $variables{FIREWALL} = get_var('QESAPDEPLOY_FIREWALL', 'ignore');
+    $variables{HANA_FIREWALL} = $variables{FIREWALL} eq 'enable' ? 'true' : 'false';
     $variables{ANSIBLE_REMOTE_PYTHON} = get_var('QESAPDEPLOY_ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
     $variables{FENCING} = get_var('QESAPDEPLOY_FENCING', 'sbd');
     if ($provider_setting eq 'GCE') {

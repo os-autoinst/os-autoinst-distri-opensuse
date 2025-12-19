@@ -49,7 +49,7 @@ ansible:
       - ibsm.yaml -e ibsm_ip='%IBSM_IP%' -e download_hostname='%DOWNLOAD_HOSTNAME%' -e repos='%REPOS%'
       - fully-patch-system.yaml
       - pre-cluster.yaml
-      - sap-hana-preconfigure.yaml -e use_reboottimeout=900
+      - sap-hana-preconfigure.yaml -e use_reboottimeout=900 -e firewall_cfg=%FIREWALL%
       - cluster_sbd_prep.yaml
       - sap-hana-storage.yaml
       - sap-hana-download-media.yaml

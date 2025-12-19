@@ -15,7 +15,6 @@ terraform:
     os_image: '%OS_VER%'
     public_key: '%SLES4SAP_PUBSSHKEY%'
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
-    iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     vnet_address_range: '%MAIN_ADDRESS_RANGE%'
     subnet_address_range: '%SUBNET_ADDRESS_RANGE%'
     hana_cluster_fencing_mechanism: 'native'
@@ -47,7 +46,7 @@ ansible:
       - %REGISTRATION_PLAYBOOK%.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com' %REG_ARGS%
       - fully-patch-system.yaml
       - pre-cluster.yaml
-      - sap-hana-preconfigure.yaml -e use_reboottimeout=900
+      - sap-hana-preconfigure.yaml -e use_reboottimeout=900 -e firewall_cfg=%FIREWALL%
       - sap-hana-storage.yaml
       - sap-hana-download-media.yaml
       - sap-hana-install.yaml

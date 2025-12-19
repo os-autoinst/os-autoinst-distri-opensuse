@@ -45,7 +45,7 @@ ansible:
       - %REGISTRATION_PLAYBOOK%.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com' %REG_ARGS%
       - fully-patch-system.yaml
       - pre-cluster.yaml
-      - sap-hana-preconfigure.yaml -e use_sapconf=true
+      - sap-hana-preconfigure.yaml -e use_sapconf=true -e firewall_cfg=%FIREWALL%
       - sap-hana-storage.yaml
       - sap-hana-download-media.yaml
       - sap-hana-install.yaml

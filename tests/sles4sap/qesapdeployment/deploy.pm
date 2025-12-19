@@ -106,6 +106,7 @@ sub run {
         parse_extra_log("XUnit", $log);
         enter_cmd("rm $log");
     }
+    qesap_ansible_softfail(logfile => $ret[1]);
     if ($ret[0]) {
         record_info("Retry to deploy terraform + ansible");
         die "Retry failed, original ansible return: $ret[0]"

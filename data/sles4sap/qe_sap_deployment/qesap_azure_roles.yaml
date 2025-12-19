@@ -44,7 +44,7 @@ ansible:
       - registration_role.yaml -e reg_code='%SCC_REGCODE_SLES4SAP%' -e email_address='testing@suse.com'
       - fully-patch-system.yaml
       - pre-cluster.yaml
-      - sap-hana-preconfigure.yaml -e use_reboottimeout=900
+      - sap-hana-preconfigure.yaml -e use_reboottimeout=900 -e firewall_cfg=%FIREWALL%
       - cluster_sbd_prep.yaml
       - sap-hana-storage.yaml
       - sap-hana-download-media.yaml
