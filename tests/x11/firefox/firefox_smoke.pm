@@ -13,7 +13,7 @@
 
 use base "x11test";
 use testapi;
-use utils 'type_string_slow';
+use x11utils;
 use version_utils 'is_tumbleweed';
 
 sub run {
@@ -24,6 +24,11 @@ sub run {
 
     $self->start_clean_firefox;
 
+    my $filename = "firefox.pdf";
+    save_print_file($filename);
+
+    $self->exit_firefox_common;
+    validate_script_output("file $filename", sub { m/PDF document/ });
     # Exit
     $self->exit_firefox;
 }
