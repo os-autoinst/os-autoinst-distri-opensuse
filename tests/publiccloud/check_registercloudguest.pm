@@ -61,36 +61,8 @@ sub run {
                 die('guestregister.service is not disabled');
             }
 
-            # Temporary transition check:
-            # Azure & GCE images are migrating from regionsrv-enabler-azure.timer to guestregister-lic-watcher.timer.
-            # During the transition, exactly one of these timers must be active (running), but not both.
             if (is_azure() || is_gce()) {
-                my $legacy_t = 'regionsrv-enabler-azure.timer';
-                my $guestregister_lic_watcher_t = 'guestregister-lic-watcher.timer';
-
-                my $legacy_active = $instance->ssh_script_output(
-                    cmd => "systemctl is-active $legacy_t 2>/dev/null || echo not-found",
-                    proceed_on_failure => 1
-                );
-                my $guestregister_lic_watcher_active = $instance->ssh_script_output(
-                    cmd => "systemctl is-active $guestregister_lic_watcher_t 2>/dev/null || echo not-found",
-                    proceed_on_failure => 1
-                );
-
-                my $is_legacy_active = ($legacy_active =~ /^(active)$/m);
-                my $is_guestregister_lic_watcher_active = ($guestregister_lic_watcher_active =~ /^(active)$/m);
-
-                if (is_gce()) {
-                    record_info("gce-timers", "$legacy_t is $legacy_active; $guestregister_lic_watcher_t is $guestregister_lic_watcher_active");
-                    die("$legacy_t should not be active on GCE images") if ($is_legacy_active);
-                } elsif ($is_legacy_active && $is_guestregister_lic_watcher_active) {
-                    die("Both $legacy_t and $guestregister_lic_watcher_t are active; expected exactly one during transition");
-                } elsif (!$is_legacy_active && !$is_guestregister_lic_watcher_active) {
-                    die("Neither $legacy_t nor $guestregister_lic_watcher_t is active; expected exactly one during transition");
-                } else {
-                    my $active = $is_legacy_active ? $legacy_t : $guestregister_lic_watcher_t;
-                    record_info('timer-ok', "Exactly one timer active: $active");
-                }
+                $instance->ssh_assert_script_run(cmd => "systemctl is-enabled guestregister-lic-watcher.timer");
             }
 
             if ($instance->ssh_script_run(cmd => 'sudo test -s /var/log/cloudregister') == 0) {
