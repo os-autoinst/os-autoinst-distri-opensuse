@@ -1,0 +1,9 @@
+---
+name: samba_dc
+description: >
+  Maintainer: qe-sec
+  Install and test samba as a domain controller
+schedule:
+  - boot/boot_to_desktop
+  - network/setup_multimachine
+  - security/samba_dc  # run either client or server depending on the HOSTNAME variable
