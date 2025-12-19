@@ -46,6 +46,7 @@ our @EXPORT = qw(
   process_modules
   runtime_registration
   detect_suseconnect_path
+  get_available_modules
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
   %ADDONS_REGCODE
@@ -1122,6 +1123,36 @@ sub detect_suseconnect_path {
     }
 
     return $ret;
+}
+
+=head2 get_available_modules
+
+ get_available_modules();
+
+Return a hash reference containing the names of all extensions and
+modules reported by C<SUSEConnect --list-extensions>.
+
+The keys of the returned hash are the full product names as reported
+by SUSEConnect (for example C<PackageHub>.
+
+The function fails the test if the SUSEConnect command exits with a
+non-zero status.
+
+=cut
+
+sub get_available_modules {
+    my %modules;
+    my $output = eval { script_output("SUSEConnect  --list-extensions", timeout => 120); };
+
+    die "SUSEConnect --list-extensions failed" if $@;
+
+    for my $line (split /\n/, $output) {
+        next unless $line =~ /^(\S+)\s+/;
+        my $product = $1;
+        $modules{$product} = 1;
+    }
+
+    return \%modules;
 }
 
 1;

@@ -19,7 +19,7 @@ use version_utils qw(is_sle);
 use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
-use registration qw(add_suseconnect_product get_addon_fullname);
+use registration qw(add_suseconnect_product get_addon_fullname get_available_modules);
 
 our @EXPORT = qw(
   install_kselftests
@@ -68,8 +68,12 @@ sub install_dependencies
     my ($collection) = @_;
 
     if (is_sle()) {
+        my $modules = get_available_modules();
+
         add_qa_head_repo;
-        add_suseconnect_product(get_addon_fullname('phub'));
+        if ($modules->{PackageHub}) {
+            add_suseconnect_product(get_addon_fullname('phub'));
+        }
     }
 
     if ($collection eq 'net') {
