@@ -10,7 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap is_plasma6);
-use utils 'assert_and_click_until_screen_change';
+use utils qw(assert_and_click_until_screen_change type_string_slow);
 use Utils::Architectures;
 use Utils::Backends qw(is_pvm is_qemu);
 
@@ -40,6 +40,7 @@ our @EXPORT = qw(
   default_gui_terminal
   close_gui_terminal
   handle_gnome_activities
+  save_print_file
 );
 
 =head1 X11_UTILS
@@ -709,6 +710,29 @@ sub handle_gnome_activities {
         @tags = grep { !/gnome-activities/ } @tags;
         assert_screen \@tags, $timeout;
     }
+}
+
+=head2 save_print_file
+
+ save_print_file($filename)
+
+Run save_print_file in x11: Smoke test of GTK interfacing with CUPS
+
+=cut
+
+sub save_print_file {
+    my ($filename) = @_;
+    send_key "ctrl-p";
+    assert_screen 'gtk-print-dialog';
+
+    # Select 'Print to File' and set PDF format
+    send_key "ret";    # Confirm print
+
+    assert_screen 'pdf_name';
+    send_key 'ctrl-a';
+    send_key 'delete';
+    type_string_slow($filename);
+    send_key "ret";
 }
 
 1;
