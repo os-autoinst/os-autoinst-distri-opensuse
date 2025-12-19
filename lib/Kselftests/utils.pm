@@ -20,6 +20,7 @@ use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
 use registration qw(add_suseconnect_product get_addon_fullname);
+use utils qw(write_sut_file systemctl);
 
 our @EXPORT = qw(
   install_kselftests
@@ -83,6 +84,17 @@ sub install_dependencies
         zypper_call('in qa_test_netperf', exitcode => [0, 4]) if is_sle;
         zypper_call('in net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 smcroute', exitcode => [0, 4]);
         zypper_call('in dropwatch', exitcode => [0, 4]) unless is_sle('<16');
+        if (is_sle('>=16.0')) {
+            # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
+            my $netdevsim_mask = <<"EOF";
+[main]
+plugins=keyfile
+[keyfile]
+unmanaged-devices=driver:netdevsim
+EOF
+            write_sut_file('/etc/NetworkManager/conf.d/99-disable-netdevsim.conf', $netdevsim_mask);
+            systemctl('reload NetworkManager');
+        }
     }
 }
 
