@@ -70,8 +70,7 @@ sub install_klp_product {
           unless (is_sle_micro('=6.0') || is_sle_micro('=6.1')) && $livepatch_pack eq 'kernel-rt-livepatch-6.4.0-10.1';
     }
     elsif (is_sle('16+')) {
-        $livepatch_pack .= "-$kver" if defined($kver);
-        install_package($livepatch_pack);
+        install_package('-t pattern kernel_livepatching');
     } else {
         zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
         zypper_call("mr -e kgraft-update") unless $livepatch_repo;
