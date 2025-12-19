@@ -51,8 +51,7 @@ sub run {
     }
     elsif (is_ppc64le) {
         is_qemu_preinstalled or install_qemu('qemu-ppc');
-        record_soft_failure('workaround for bsc#1230042 - plan to remove this workaround until PPC images test on PowerVM');
-        enter_cmd "qemu-system-ppc64 -vga none -nographic";
+        enter_cmd "qemu-system-ppc64 -nographic";
         assert_screen ['qemu-open-firmware-ready', 'qemu-ppc64-no-trans-mem'], 60;
         if (match_has_tag 'qemu-ppc64-no-trans-mem') {
             # this should only happen on SLE12SP5
