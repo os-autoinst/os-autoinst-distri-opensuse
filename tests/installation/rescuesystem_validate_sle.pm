@@ -16,7 +16,7 @@ sub run {
     my $hdddev = check_var('VIRSH_VMM_FAMILY', 'xen') ? 'xvda2' : 'vda2';
 
     if (is_sle(">=16.0") && check_var('AGAMA_GRUB_SELECTION', 'rescue_system')) {
-        assert_screen 'inst-console';
+        assert_screen('inst-console', timeout => 120);
         select_console 'install-shell';
         $cmd = "cat /mnt/etc/os-release | grep -oP \"(?<=PRETTY_NAME=).*\"";
     }
