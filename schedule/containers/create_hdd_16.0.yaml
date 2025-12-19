@@ -4,7 +4,7 @@ description:    >
     Maintainer: qa-c@suse.de.
     SLES 16.0 HDD creation for container tests in product QA
 vars:
-    INST_AUTO: data/containers/agama/sle-container-host.jsonnet
+    INST_AUTO: containers/agama/sle-container-host.jsonnet
 conditional_schedule:
     boot_64:
         ARCH:
