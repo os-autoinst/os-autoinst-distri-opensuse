@@ -1479,9 +1479,11 @@ sub modify_selinux_setenforce {
 sub pre_run_hook {
     my ($self) = @_;
     my $prev_console = current_console();
-    select_serial_terminal unless ($prev_console);
     record_info(__PACKAGE__ . ':pre_run_hook prev_console=[' . $prev_console . '] curr_console=[' . current_console() . ']');
+    # Switch to serial terminal to collect SELinux status and then return to prev_console
+    select_serial_terminal;
     record_info('SELinux Status', script_output('sestatus', proceed_on_failure => 1)) if (has_selinux);
+    select_console $prev_console if ($prev_console);
 }
 
 sub post_run_hook {
