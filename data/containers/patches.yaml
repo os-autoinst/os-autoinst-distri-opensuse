@@ -161,6 +161,7 @@ podman:
   # https://github.com/containers/podman/pull/27230 is needed for 130-kill
   # https://github.com/containers/podman/pull/27233 is needed for 130-kill
   # https://github.com/containers/podman/pull/27463 - test/system: Update test to handle new error message from runc 1.3.3
+  # https://github.com/containers/podman/pull/27813 - test: Fix --hostuser octal UID test flakiness
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26017
@@ -170,6 +171,7 @@ podman:
     - 27230
     - 27233
     - 27463
+    - 27813
   sle-16.0:
     GITHUB_PATCHES:
     - 25858
