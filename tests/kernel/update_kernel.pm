@@ -86,7 +86,7 @@ sub update_kernel {
     $patches = get_patches($incident_id, $repo);
 
     if (!$patches) {
-        if (get_var('FLAVOR') =~ /-Increments/) {
+        if (get_var('FLAVOR') =~ /-Increments|-Updates$/) {
             $self->record_soft_failure_result('There are no relevant updates.');
             return;
         }
