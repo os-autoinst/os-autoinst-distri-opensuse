@@ -326,8 +326,9 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     } elsif (is_sle('=15-SP7')) {
         my @allowed_guests = qw(sles12sp5 sles15sp6 sles15sp7);
         # For SEV-SNP guest verification, use specific guest sets
+        # Note: SLES 15-SP6 SEV-SNP was Technology Preview (TP) and is not supported as guest on SLES 15-SP7 host
         if (check_var('ENABLE_SEV_SNP', '1')) {
-            @allowed_guests = qw(sles15sp6efi sles15sp7efi);
+            @allowed_guests = qw(sles15sp7efi);
         }
         if (check_var('ENABLE_SEV_ES', '1')) {
             @allowed_guests = qw(sles15sp6-efi-sev-es sles15sp7-efi-sev-es);
