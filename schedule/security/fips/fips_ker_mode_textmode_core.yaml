@@ -24,9 +24,23 @@ schedule:
     - fips/openssl/openssl_pubkey_dsa
     - fips/openssl/openssl_fips_dhparam
     - fips/openssh/openssh_fips
-    - console/libgcrypt
+    - '{{gcrypt_test}}'
     - '{{libica}}'
 conditional_schedule:
+    gcrypt_test:
+        VERSION:
+            15-SP7:
+                - console/libgcrypt
+            15-SP6:
+                - security/libgcrypt_extended_test
+            15-SP5:
+                - console/libgcrypt
+            15-SP4:
+                - console/libgcrypt
+            15-SP3:
+                - console/libgcrypt
+            15-SP2:
+                - console/libgcrypt
     libica:
         ARCH:
             s390x:

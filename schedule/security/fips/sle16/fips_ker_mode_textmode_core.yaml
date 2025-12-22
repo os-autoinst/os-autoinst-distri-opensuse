@@ -23,7 +23,7 @@ schedule:
     - fips/openssl/openssl_pubkey_dsa
     - fips/openssl/openssl_fips_dhparam
     - fips/openssh/openssh_fips
-    - console/libgcrypt
+    - security/libgcrypt_extended_test
     - '{{libica}}'
 conditional_schedule:
     libica:
