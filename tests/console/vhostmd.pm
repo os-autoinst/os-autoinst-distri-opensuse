@@ -20,13 +20,7 @@ use utils qw(systemctl zypper_call);
 
 sub run {
     select_serial_terminal();
-    if (zypper_call('se -x libvirt-libs-11.4.0-160000.3.1', exitcode => [0, 104]) == 104 && check_var('VERSION', '16.0')) {
-        record_soft_failure('bsc#1254360');
-        zypper_call 'in libvirt-11.4.0-160000.2.2 vhostmd';
-    }
-    else {
-        zypper_call 'in libvirt vhostmd';
-    }
+    zypper_call 'in libvirt vhostmd';
 
     # start libvirt hypervisor for vhostmd
     systemctl 'start libvirtd';
