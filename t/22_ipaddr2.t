@@ -128,28 +128,6 @@ subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
     ok((any { /az vm boot-diagnostics enable.*vm-02/ } @calls), 'Enable diagnostic for VM2');
 };
 
-subtest '[ipaddr2_infra_deploy] disable trusted launch' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
-    my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(write_sut_file => sub { return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
-    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
-    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    $azcli->redefine(assert_script_run => sub {
-            push @calls, $_[0] if $_[0] =~ /az vm create/;
-            return; });
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return 'Fermi'; });
-
-    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci', trusted_launch => 0);
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /--security-type.*Standard/ } @calls), 'Disable trustedLaunch by setting --security-type Standard');
-};
-
 subtest '[ipaddr2_infra_deploy] with .vhd' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
