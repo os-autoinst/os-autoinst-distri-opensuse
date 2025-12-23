@@ -56,7 +56,8 @@ sub read_live_iso {
     my $info = read_iso_info();
     my $pkgs = parse_agama_packages();
     $info =~ /^Image.version:\s+(?<major_version>\d+\.\w+)\./m;
-    set_var("AGAMA_VERSION", $+{'major_version'});
+    # Agama version was not available yet on GM medium, so we inject the default value
+    set_var("AGAMA_VERSION", $+{'major_version'} // '17.0');
     record_agama_info($info, $pkgs, $+{'major_version'});
 }
 

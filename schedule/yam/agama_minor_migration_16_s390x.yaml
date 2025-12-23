@@ -1,0 +1,17 @@
+---
+name: agama_minor_migration_16_s390x
+description: >
+  Perform zypper migration for minor releases of SLES 16 s390x
+schedule:
+  - yam/migration/setup_upgrade_env
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - yam/migration/zypper_migration
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_product
+  - console/validate_repos
