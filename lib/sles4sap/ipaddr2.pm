@@ -214,9 +214,6 @@ Create a deployment in Azure designed for this specific test.
                       B<ipaddr2_cloudinit_create>.
                       Presence of this optional argument also enable cloud-init features in various deployment stages.
 
-=item B<trusted_launch> - Enable or disable Trusted Launch. Default 1: Enabled.
-                          If configured to 0 the result in az vm create is executed with '--security-type Standard'
-
 =back
 =cut
 
@@ -224,7 +221,6 @@ sub ipaddr2_infra_deploy(%args) {
     foreach (qw(region os)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{diagnostic} //= 0;
-    $args{trusted_launch} //= 1;
 
     az_version();
 
@@ -350,9 +346,6 @@ sub ipaddr2_infra_deploy(%args) {
         snet => $subnet,
         ssh_pubkey => get_ssh_private_key_path() . '.pub',
         public_ip => "");
-    if (!$args{trusted_launch}) {
-        $vm_create_generic_args{security_type} = 'Standard';
-    }
 
     my %vm_create_internal_args = %vm_create_generic_args;
     $vm_create_internal_args{availability_set} = $as;
