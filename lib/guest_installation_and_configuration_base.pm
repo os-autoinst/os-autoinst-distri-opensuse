@@ -3347,7 +3347,7 @@ sub post_fail_hook {
     $self->reveal_myself;
     $self->upload_guest_installation_logs;
     save_screenshot;
-    virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log /emergency_mode /agama_installation_logs", "_guest_installation");
+    virt_utils::collect_host_and_guest_logs(extra_host_log => '/var/log', extra_guest_log => '/root /var/log /emergency_mode /agama_installation_logs', full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1), token => '_guest_installation');
     save_screenshot;
     upload_coredumps;
     save_screenshot;

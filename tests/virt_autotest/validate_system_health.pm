@@ -40,10 +40,10 @@ sub run {
     # Upload logs on x86_64
     if (get_var('FORCE_UPLOAD_LOGS') || @unhealthy_list != 0) {
         if (get_var('FORCE_UPLOAD_LOGS')) {
-            collect_host_and_guest_logs(join(' ', grep { $_ ne 'host' } keys %health_status), '', '', '_validate_system_health');
+            collect_host_and_guest_logs(guest => join(' ', grep { $_ ne 'host' } keys %health_status), full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1), token => '_validate_system_health');
         }
         else {
-            collect_host_and_guest_logs(join(' ', grep { $_ ne 'host' } @unhealthy_list), '', '', '_validate_system_health');
+            collect_host_and_guest_logs(guest => join(' ', grep { $_ ne 'host' } @unhealthy_list), full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1), token => '_validate_system_health');
         }
         $self->upload_coredumps;
         save_screenshot;

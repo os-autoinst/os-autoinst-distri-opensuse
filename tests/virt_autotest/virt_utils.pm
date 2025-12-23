@@ -624,31 +624,35 @@ sub perform_guest_restart {
 #This subroutine collects desired logs from host and guest, and place them into folder /tmp/virt_logs_residence on host then compress it to /tmp/virt_logs_all.tar.gz
 #Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest for their detailed functionality, implementation and usage
 sub collect_host_and_guest_logs {
-    my ($guest_wanted, $host_extra_logs, $guest_extra_logs, $log_token) = @_;
-    $guest_wanted //= '';
-    $host_extra_logs //= '';
-    $guest_extra_logs //= '';
-    $log_token //= '';
+    my %args = @_;
+    $args{guest} //= '';
+    $args{extra_host_log} //= '';
+    $args{extra_guest_log} //= '';
+    $args{full_supportconfig} //= 1;
+    $args{token} //= '';
+    $args{keep} //= 'false';
+    $args{timeout} //= 3600;
 
+    $args{full_supportconfig} = ($args{full_supportconfig} ? 'true' : 'false');
     my $logs_collector_script_url = data_url("virt_autotest/virt_logs_collector.sh");
-    script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", 180, type_command => 0, proceed_on_failure => 0);
+    script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", timeout => 180, type_command => 0, proceed_on_failure => 0);
     save_screenshot;
-    script_output("chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$host_extra_logs\" -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 3600 / get_var('TIMEOUT_SCALE', 1), type_command => 1, proceed_on_failure => 1);
+    script_output("chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$args{extra_host_log}\" -g \"$args{guest}\" -e \"$args{extra_guest_log}\" -a \"$args{full_supportconfig}\"", timeout => $args{timeout}, type_command => 1, proceed_on_failure => 1);
     save_screenshot;
 
     send_key("ret");
     my $logs_fetching_script_url = data_url("virt_autotest/fetch_logs_from_guest.sh");
     script_output("curl -s -o ~/fetch_logs_from_guest.sh $logs_fetching_script_url", 180, type_command => 0, proceed_on_failure => 0);
     save_screenshot;
-    script_output("chmod +x ~/fetch_logs_from_guest.sh && ~/fetch_logs_from_guest.sh -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 1800, type_command => 1, proceed_on_failure => 1);
+    script_output("chmod +x ~/fetch_logs_from_guest.sh && ~/fetch_logs_from_guest.sh -g \"$args{guest}\" -e \"$args{extra_guest_log}\"", timeout => $args{timeout}, type_command => 1, proceed_on_failure => 1);
     save_screenshot;
 
     send_key("ret");
-    upload_logs("/tmp/virt_logs_all.tar.gz", log_name => "virt_logs_all$log_token.tar.gz", timeout => 600);
-    upload_logs("/var/log/virt_logs_collector.log", log_name => "virt_logs_collector$log_token.log");
-    upload_logs("/var/log/fetch_logs_from_guest.log", log_name => "fetch_logs_from_guest$log_token.log");
+    upload_logs("/tmp/virt_logs_all.tar.gz", log_name => "virt_logs_all$args{token}.tar.gz", timeout => 600);
+    upload_logs("/var/log/virt_logs_collector.log", log_name => "virt_logs_collector$args{token}.log");
+    upload_logs("/var/log/fetch_logs_from_guest.log", log_name => "fetch_logs_from_guest$args{token}.log");
     save_screenshot;
-    script_run("rm -f -r /tmp/virt_logs_all.tar.gz /var/log/virt_logs_collector.log /var/log/fetch_logs_from_guest.log");
+    script_run("rm -f -r /tmp/virt_logs_all.tar.gz /var/log/virt_logs_collector.log /var/log/fetch_logs_from_guest.log") if ($args{keep} eq 'false');
     save_screenshot;
 }
 
