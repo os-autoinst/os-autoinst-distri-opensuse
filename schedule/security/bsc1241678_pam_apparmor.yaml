@@ -1,0 +1,8 @@
+name: bsc1241678
+description:    >
+    This is for testing bsc#1241678.
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - security/bsc1241678_pam_apparmor
