@@ -5,8 +5,6 @@ aardvark-dns:
   # https://github.com/containers/aardvark-dns/pull/619 is needed for dnsmasq issue
   # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
   opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 623
   sle-16.0:
     GITHUB_PATCHES:
     - 581
