@@ -35,7 +35,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 make protobuf-devel netavark);
+    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 iptables make netavark protobuf-devel);
     push @pkgs, is_sle("<16") ? qw(dbus-1) : qw(dbus-1-daemon);
 
     $self->setup_pkgs(@pkgs);
