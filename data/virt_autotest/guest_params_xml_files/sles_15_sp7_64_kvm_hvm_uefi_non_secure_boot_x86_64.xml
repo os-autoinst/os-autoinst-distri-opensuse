@@ -25,7 +25,7 @@
     <guest_installation_extra_args>sshd=1#sshpassword=ROOTPASSWORD#console=ttyS0,115200n8#textmode=1</guest_installation_extra_args>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>http://openqa.suse.de/assets/repo/SLE-15-SP7-Full-x86_64-Build12345-Media1/</guest_installation_media>
+    <guest_installation_media>http://openqa.suse.de/assets/repo/fixed/SLE-15-SP7-Full-x86_64-GM-Media1/</guest_installation_media>
     <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-code.bin,loader.readonly=yes,loader.type=pflash</guest_boot_settings>
     <guest_secure_boot>false</guest_secure_boot>
     <guest_os_variant/>
