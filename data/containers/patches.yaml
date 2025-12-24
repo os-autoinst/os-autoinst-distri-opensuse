@@ -151,20 +151,13 @@ podman:
   # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   # https://github.com/containers/podman/pull/26921 is needed to drop socat
   # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
-  # https://github.com/containers/podman/pull/27152 is needed for 030-run
-  # https://github.com/containers/podman/pull/27030 - test/e2e: fix podman run default mask test with crun 1.24
   # https://github.com/containers/podman/pull/27230 is needed for 130-kill
   # https://github.com/containers/podman/pull/27233 is needed for 130-kill
   # https://github.com/containers/podman/pull/27463 - test/system: Update test to handle new error message from runc 1.3.3
   # https://github.com/containers/podman/pull/27813 - test: Fix --hostuser octal UID test flakiness
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
-    - 26017
     - 26934
-    - 27030
-    - 27152
-    - 27230
-    - 27233
     - 27463
     - 27813
   sle-16.0:
