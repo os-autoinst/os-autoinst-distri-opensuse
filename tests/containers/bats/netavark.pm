@@ -24,7 +24,6 @@ sub run_tests {
 
     my @xfails = ();
     push @xfails, (
-        "200-bridge-firewalld.bats",
         "250-bridge-nftables.bats",
     ) if (is_sle("<16"));
 
@@ -35,7 +34,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 make protobuf-devel netavark);
+    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 iptables make netavark protobuf-devel);
     push @pkgs, is_sle("<16") ? qw(dbus-1) : qw(dbus-1-daemon);
 
     $self->setup_pkgs(@pkgs);
@@ -62,7 +61,10 @@ sub run {
     }
 
     unless (get_var("RUN_TESTS")) {
-        run_command "rm -f test/100-bridge-iptables.bats" if ($firewalld_backend ne "iptables");
+        if ($firewalld_backend ne "iptables") {
+            run_command "rm -f test/100-bridge-iptables.bats";
+            run_command "rm -f test/200-bridge-firewalld.bats";
+        }
     }
 
     return if check_var("BATS_IGNORE", "all");

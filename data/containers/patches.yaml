@@ -189,6 +189,8 @@ podman:
     - 26920
     - 27230
     - 27233
+podman-py:
+  opensuse-Tumbleweed:
 runc:
   opensuse-Tumbleweed:
   sle-16.0:
