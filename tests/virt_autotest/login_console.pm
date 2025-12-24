@@ -57,6 +57,62 @@ sub config_ssh_client {
     script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " >> $ssh_dir/authorized_keys");
 }
 
+sub setup_br0 {
+    record_info("br0 setting up", "");
+    #    assert_script_run("wget https://raw.githubusercontent.com/aginies/virt-bridge-setup/refs/heads/main/virt-bridge-setup.py");
+    #script_run("chmod a+x virt-bridge-setup.py");
+    #script_run("./virt-bridge-setup.py add --stp no");
+    # SSH session will break for a while on some machines(eg. kermit, scooter)
+
+    record_info("BR0 setting up", script_output("rpm -q virt-bridge-setup"));
+    script_run("virt-bridge-setup -m --stp no -d");
+    record_info("IP", script_output("ip a"));
+    enter_cmd("ip a; echo DONE > /dev/$serialdev");
+    unless (defined(wait_serial 'DONE', timeout => 10)) {
+        reset_consoles;
+        select_console('root-console');
+    }
+    script_run("nmcli con");
+    script_run("cat /etc/NetworkManager/system-connections/c-mybr0.nmconnection");
+    script_run("cat /etc/NetworkManager/system-connections/c-mybr0-port-*.nmconnection");
+    script_run("nmcli con show c-mybr0 | grep stp");
+    script_run("ip -d l show mybr0 | grep stp");
+    record_info("br0 set up successfully", script_output("ip a"));
+}
+
+sub setup_br0_backup {
+    #    record_info("BR0 setting up over sol console", script_output("rpm -q virt-bridge-setup"));
+    #    select_console 'sol', await_console => 1;
+    #    send_key 'ret' if check_screen('sol-console-wait-typing-ret');
+    #    if (check_screen('text-login')) {
+    #        enter_cmd "root";
+    #        assert_screen "password-prompt";
+    #        type_password;
+    #        send_key 'ret';
+    #    }
+    #    assert_screen "text-logged-in-root";
+    #    enter_cmd("virt-bridge-setup -m --stp no -d");
+    #wait_still_screen 10;
+    #save_screenshot;
+    # For debugging failure
+    #enter_cmd("nmcli con");
+    #enter_cmd("ip a");
+    #save_screenshot;
+    #enter_cmd("cat /etc/NetworkManager/system-connections/my-br0.nmconnection");
+    #wait_still_screen 2;
+    #save_screenshot;
+    #enter_cmd("cat /etc/NetworkManager/system-connections/*slave.nmconnection");
+    #wait_still_screen 2;
+    #save_screenshot;
+    #enter_cmd("nmcli con show my-br0 | grep stp");
+    #enter_cmd("ip -d l show br0 | grep stp");
+    #wait_still_screen 2;
+    #save_screenshot;
+    ## End of debug
+    #use_ssh_serial_console;
+    #record_info("BR0 set up successfully", script_output("ip a"));
+}
+
 #Explanation for parameters introduced to facilitate offline host upgrade:
 #OFFLINE_UPGRADE indicates whether host upgrade is offline which needs reboot
 #the host and upgrade from installation media. Please refer to this document:
@@ -218,9 +274,13 @@ sub login_to_console {
         assert_script_run('getconf PAGESIZE');
     }
 
+
     # double-check xen role for xen host
     double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE'));
     check_kvm_modules if is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE');
+
+    # julie: Setup br0
+    setup_br0 if is_sle('16+') and !is_s390x and get_var('SETUP_BR0_WITH_VIRT_BRIDGE_SETUP_TOOL');
     check_host_health();
 }
 
