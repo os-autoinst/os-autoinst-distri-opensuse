@@ -23,6 +23,11 @@ use Getopt::Long qw(GetOptionsFromString);
 use File::Basename;
 use XML::LibXML;
 use security::config;
+use Archive::Zip;
+use Archive::Tar;
+use File::Find;
+use IO::Zlib;
+use IO::Socket::INET;
 
 our @EXPORT = qw(
   generate_results
@@ -136,8 +141,7 @@ our @EXPORT = qw(
   render_autoinst_url
   is_agama_guest
   upload_folders
-  cmd_run
-  assert_cmd_run
+  logs_from_worker
 );
 
 our @EXPORT_OK = qw(
@@ -854,22 +858,12 @@ sub _ssh_fully_patch_system_run_patch {
     my $timeout = $args{timeout};
     my $with_solver = $args{with_solver} // 0;
     my $label = $args{label};
-    my $accept_codes = $args{accept_codes};
-    my $instance = $args{instance};
 
     my $solver_opt = $with_solver ? '--debug-solver' : '';
-    my $t0 = time();
-    my $cmd;
-    my $ret;
+    my $cmd = "ssh $remote 'sudo zypper -n patch $solver_opt --with-interactive -l'";
 
-    if ($instance) {
-        $cmd = "patch $solver_opt --with-interactive -l";
-        $ret = $instance->publiccloud::utils::zypper_call_remote($cmd, exitcode => $accept_codes, timeout => $timeout);
-    }
-    else {
-        $cmd = "ssh $remote 'sudo zypper -n patch $solver_opt --with-interactive -l'";
-        $ret = script_run($cmd, $timeout);
-    }
+    my $t0 = time();
+    my $ret = script_run($cmd, $timeout);
     record_info('zypper patch', "$label took " . (time() - $t0) . "s (exit $ret)");
     return $ret;
 }
@@ -880,7 +874,6 @@ sub _ssh_fully_patch_system_pass {
     my $timeout = $args{timeout};
     my $label = $args{label};
     my $accept_codes = $args{accept_codes};
-    my $instance = $args{instance};
     my $gen_resolver = $args{gen_resolver};
 
     my $ret = -1;
@@ -889,8 +882,6 @@ sub _ssh_fully_patch_system_pass {
     unless ($gen_resolver) {
         $attempt++;
         $ret = _ssh_fully_patch_system_run_patch(
-            instance => $instance,
-            accept_codes => $accept_codes,
             remote => $remote,
             timeout => $timeout,
             with_solver => $gen_resolver,
@@ -901,8 +892,6 @@ sub _ssh_fully_patch_system_pass {
     if ($gen_resolver || !grep { $_ == $ret } @$accept_codes) {
         $attempt++;
         $ret = _ssh_fully_patch_system_run_patch(
-            instance => $instance,
-            accept_codes => $accept_codes,
             remote => $remote,
             timeout => $timeout,
             with_solver => $gen_resolver,
@@ -925,12 +914,11 @@ the second run will update the system.
 =cut
 
 sub ssh_fully_patch_system {
-    my ($remote, $instance) = @_;
+    my ($remote) = @_;
     my $gen_resolver = get_var('PUBLIC_CLOUD_GEN_RESOLVER', 0);
 
     # First run — allow 103 (zypper updated itself)
     _ssh_fully_patch_system_pass(
-        instance => $instance,
         remote => $remote,
         timeout => 1500,
         label => 'zypper patch (first run)',
@@ -940,7 +928,6 @@ sub ssh_fully_patch_system {
 
     # Second run — system update, only 0/102 allowed
     _ssh_fully_patch_system_pass(
-        instance => $instance,
         remote => $remote,
         timeout => 6000,
         label => 'zypper patch (second run)',
@@ -1023,10 +1010,7 @@ sub zypper_search {
         @fields = ('status', 'name', 'type', 'version', 'arch', 'repository');
     }
 
-    my ($ret, $output) = cmd_run("zypper -n se $params");
-
-    die 'zypper search failed unexpectedly'
-      unless defined($ret) && ($ret == 0 || $ret == 104);
+    my $output = script_output("zypper -in se $params");
     return parse_zypper_table($output, \@fields);
 }
 
@@ -1268,39 +1252,42 @@ helper function to restart network
 
 sub restart_network {
     if (is_qemu && systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
-        record_info('nmcli device status', script_output('nmcli device s'));
-        my @devs = split("\n", script_output('nmcli device'));
-        foreach my $indx (keys @devs) {
-            my $line = $devs[$indx];
+        my $state = check_nm_connectivity(1);
 
-            if (!($line =~ /^([a-z0-9_-]+)/i)) {
-                record_info('nmcli output error', 'device id did not match: ' . $devs[$indx], result => 'fail');
-                next;
-            }
-            my $dev = $1;
-
-            next if ($indx == 0 && $dev eq 'DEVICE');
-            next if ($dev eq 'lo');
-
-            script_run("nmcli general logging level DEBUG");
-
-            # poo#184165 By default sle16 qcow created in openqa will not bring up all interface automaticly.
-            # Try to connect if interface status is disconnected.
-            script_run('nmcli device connect ' . $dev, timeout => 120) if ($line =~ /disconnected/);
-            script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
-            record_info("Logs", script_output("cat /var/log/nmcli_logs"));
-
-            next if !(($line =~ /\bconnected\b/) || ($line =~ /\bconnecting\b/));
-
-            # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
-            assert_script_run("nmcli -w 120 device disconnect $dev");
-            script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
-            record_info("Logs", script_output("cat /var/log/nmcli_logs"));
-            assert_script_run 'nmcli device connect ' . $dev;
+        if (!($state =~ /full/)) {
+            systemctl('restart NetworkManager');
         }
 
+        if ($state =~ /full/) {
+            my @devs = split("\n", script_output('nmcli device'));
+
+            foreach my $indx (keys @devs) {
+                my $line = $devs[$indx];
+
+                if (!($line =~ /^([a-z0-9_-]+)/i)) {
+                    record_info('nmcli output error', 'device id did not match: ' . $devs[$indx], result => 'fail');
+                    next;
+                }
+                my $dev = $1;
+
+                next if ($indx == 0 && $dev eq 'DEVICE');
+                next if ($dev eq 'lo');
+
+                # poo#184165 By default sle16 qcow created in openqa will not bring up all interface automaticly.
+                # Try to connect if interface status is disconnected.
+                script_run 'nmcli device connect ' . $dev if ($line =~ /disconnected/);
+
+                next if !($line =~ /\bconnected\b/);
+
+                # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
+                script_run("nmcli general logging level DEBUG");
+                assert_script_run("nmcli -w 120 device disconnect $dev");
+                script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
+                record_info("Logs", script_output("cat /var/log/nmcli_logs"));
+                assert_script_run 'nmcli device connect ' . $dev;
+            }
+        }
         check_nm_connectivity();
-        record_info('nmcli device status', script_output('nmcli device s'));
     } else {
         assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
     }
@@ -1986,10 +1973,8 @@ sub reconnect_mgmt_console {
         if (is_ipmi) {
             select_console 'sol', await_console => 0;
             assert_screen([qw(qa-net-selection prague-pxe-menu nue-ipxe-menu grub2)], 300);
-            if ($args{grub_expected_twice}) {
-                check_screen 'grub2', 60;
-                wait_screen_change { send_key 'ret' };
-            }
+            # boot to hard disk is default
+            send_key 'ret';
         }
     }
     elsif (is_aarch64) {
@@ -1997,10 +1982,7 @@ sub reconnect_mgmt_console {
             select_console 'sol', await_console => 0;
             # aarch64 baremetal machine takes longer to boot than 5 minutes
             assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 600);
-            if ($args{grub_expected_twice}) {
-                check_screen 'grub2', 60;
-                wait_screen_change { send_key 'ret' };
-            }
+            send_key 'ret';
         }
     }
     else {
@@ -3477,100 +3459,83 @@ sub upload_folders {
     }
 }
 
-sub _flush_console {
-    my $buf;
-    my $ret = '';
+=head2 logs_from_worker
 
-    while ($buf = wait_serial(qr/.+/s, timeout => 1, quiet => 1, record_output => 1)) {
-        $ret .= $buf;
-    }
+ logs_from_worker(folders => 'absolute path to folder separated by commas', files =>
+     'absolute path to files separated by commas', compalg => 'compression algorithm'
+     , complvl => 'compression level', logfolder => 'ultimate folder to store logs',
+     logfile => 'ultimate log file name without format', testname => 'involved test
+     name', failok => '1 or 0', cleanup => '1 or 0');
 
-    return $ret;
-}
-
-sub _cmd_run_impl {
-    my ($cmd, %args) = @_;
-
-    $args{timeout} //= $bmwqemu::default_timeout;
-    die "Terminator '&' found in cmd_run call. cmd_run can not check script success. Use 'background_script_run' instead."
-      if $cmd =~ m/(?<!\\)&\s*$/;
-
-    if (is_serial_terminal()) {
-        wait_serial(serial_terminal::serial_term_prompt(), no_regex => 1, quiet => 1, timeout => 5) or die 'Terminal not ready';
-    }
-
-    my $marker = hashed_string("CR" . $cmd . $args{timeout});
-    my $preface = "echo $marker";
-    my $delim = "echo $marker-\$?-";
-
-    unless (is_serial_terminal()) {
-        $preface .= " >/dev/$testapi::serialdev";
-        $cmd = "( $cmd ) | tee /dev/$testapi::serialdev";
-        $delim = "echo $marker-\${PIPESTATUS[0]}- >/dev/$testapi::serialdev";
-    }
-
-    $cmd = "$preface; $cmd; $delim";
-    type_string($cmd);
-
-    if (is_serial_terminal()) {
-        wait_serial($cmd, no_regex => 1, timeout => 1, quiet => 1, buffer_size => length($cmd) + 64) or die 'Terminal echo mismatch';
-        type_string("\n");
-    }
-    else {
-        send_key('ret');
-    }
-
-    my $output = wait_serial("$marker-\\d+-", timeout => $args{timeout}, quiet => 1, record_output => 1);
-    $autotest::current_test->take_screenshot() unless is_serial_terminal();
-
-    unless ($output) {
-        wait_serial(qr/$marker\r?\n/s, timeout => 1, quiet => 1);
-        die 'Command timed out';
-    }
-
-    $output =~ m/$marker\n(.*)$marker-(\d+)-/s;
-    return ($2, $1);
-}
-
-=head2 cmd_run
-
- cmd_run($cmd [, timeout => $timeout])
-
-Run I<$cmd> in console and wait for its completion. In scalar context, return
-command exit code. In array context, return tuple (exit code, console output).
-
+Compress folders to files and call upload_logs to upload. The arguments are folders
+which accept absolute path to folders and store which indicates the absolute path to
+a folder that stores compressed files
 =cut
 
-sub cmd_run {
-    my ($cmd, %args) = @_;
-    my $output = "Command: $cmd\n";
-    my @ret;
+sub logs_from_worker {
+    my %args = @_;
+    $args{folders} //= '';
+    $args{files} //= '';
+    $args{comptool} //= 'zip';
+    $args{compalg} //= '';
+    $args{complvl} //= 9;
+    $args{logfolder} //= '/var/log';
+    $args{logfile} //= 'logs';
+    $args{testname} //= '';
+    $args{failok} //= 1;
+    $args{cleanup} //= 1;
+    croak("Absolute path to folders or fiiles must be given") if (!$args{folders} and !$args{files});
 
-    eval {
-        @ret = _cmd_run_impl($cmd, %args);
-    };
-
-    if ($@) {
-        my $log = _flush_console();
-
-        $output .= "Error: $@\n\nConsole output:\n$log";
-        $autotest::current_test->record_resultfile($cmd, $output, result => 'fail');
-        return wantarray ? (undef, undef) : undef;
+    my @logs_from_worker = (split(/,/, $args{folders}), split(/,/, $args{files}));
+    foreach my $log (@logs_from_worker) {
+        $log =~ s|/$|| if ($log ne '/');
+        $log =~ s/\//_/g;
+        $log =~ s/^_+//g if ($log ne '_');
+        $args{logfolder} =~ s|/$|| if ($args{logfolder} ne '/');
+        if ($args{comptool} eq 'zip') {
+            my $logzip = Archive::Zip->new();
+            $args{compalg} = 'COMPRESSION_DEFLATED' if (!$args{compalg});
+            $logzip->desiredCompressionLevel($args{complvl});
+            $logzip->desiredCompressionMethod($args{compalg});
+            if (-f $log) {
+                $logzip->addFile($log, '');
+            }
+            elsif (-d $log) {
+                $logzip->addTree($log, '');
+            }
+            $args{logfile} = "$args{logfile}.zip";
+            if (!$logzip->writeToFileNamed("$args{logfolder}/$args{logfile}") and !$args{failok}) {
+                die("Archive $args{comptool} $log failed");
+            }
+        }
+        elsif ($args{comptool} eq 'tar') {
+            my $logtar = Archive::Tar->new();
+            $args{compalg} = COMPRESS_GZIP if (!$args{compalg});
+            if (-f $log) {
+                $logtar->add_files(($log));
+            }
+            elsif (-d $log) {
+                my @files_to_archive = ();
+                find({
+                        wanted => sub {
+                            push(@files_to_archive, $File::Find::name);
+                        },
+                }, $log);
+                $logtar->add_files(@files_to_archive);
+            }
+            $args{logfile} = "$args{logfile}.tgz" if ($args{compalg} eq COMPRESS_GZIP);
+            $args{logfile} = "$args{logfile}.tbz" if ($args{compalg} eq COMPRESS_BZIP);
+            $args{logfile} = "$args{logfile}.txz" if ($args{compalg} eq COMPRESS_XZ);
+            if (!$logtar->write("$args{logfolder}/$args{logfile}", $args{compalg}) and !$args{failok}) {
+                die("Archive $args{comptool} $log failed");
+            }
+        }
     }
-
-    $output .= "Exit code: ${ret[0]}\n\nConsole output:\n${ret[1]}";
-    $autotest::current_test->record_resultfile($cmd, $output, result => ($args{assert} && $ret[0] != 0) ? 'fail' : 'ok');
-    return wantarray ? @ret : $ret[0];
-}
-
-sub assert_cmd_run {
-    my ($cmd, %args) = @_;
-    $args{assert} = 1;
-    my @ret = cmd_run($cmd, %args);
-
-    die "Command '$cmd' timed out" unless defined $ret[0];
-    die "Command '$cmd' failed" unless $ret[0] == 0;
-    return wantarray ? @ret : $ret[0];
+    my $upname = $args{testname} . '-' . $args{logfile};
+    my $cmd = "curl --form upload=\@$args{logfolder}/$args{logfile} --form upname=$upname ";
+    $cmd .= autoinst_url("/uploadlog/$args{logfile}");
+    system($cmd);
+    unlink "$args{logfolder}/$args{logfile}" if ($args{cleanup});
 }
 
 1;

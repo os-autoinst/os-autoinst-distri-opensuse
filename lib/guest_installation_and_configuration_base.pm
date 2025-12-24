@@ -38,6 +38,7 @@ use ipmi_backend_utils qw(reconnect_when_ssh_console_broken);
 use virt_utils;
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils;
+use virt_autotest::domain_management_utils;
 use version_utils;
 use Utils::Systemd;
 use mm_network;
@@ -292,27 +293,19 @@ sub prepare_ssh_key {
     $self->reveal_myself;
     if (!((script_run("[[ -f $_host_params{ssh_key_file}.pub ]] && [[ -f $_host_params{ssh_key_file}.pub.bak ]]") == 0) and (script_run("cmp $_host_params{ssh_key_file}.pub $_host_params{ssh_key_file}.pub.bak") == 0))) {
         assert_script_run("rm -f -r $_host_params{ssh_key_file}*");
-        assert_script_run("ssh-keygen -f $_host_params{ssh_key_file} -q -P \"\" <<<y");
+        assert_script_run("ssh-keygen -t rsa -f $_host_params{ssh_key_file} -q -P \"\" <<<y");
         assert_script_run("cp $_host_params{ssh_key_file}.pub $_host_params{ssh_key_file}.pub.bak");
     }
     assert_script_run("chmod 600 $_host_params{ssh_key_file} $_host_params{ssh_key_file}.pub");
     $_host_params{ssh_public_key} = script_output("cat $_host_params{ssh_key_file}.pub");
     $_host_params{ssh_private_key} = script_output("cat $_host_params{ssh_key_file}");
-    if (is_sle('16+')) {
-        $_host_params{ssh_command} = "ssh -vvv -o HostKeyAlgorithms=+ssh-ed25519 ";
-    } else {
-        $_host_params{ssh_command} = "ssh -vvv -o HostKeyAlgorithms=+ssh-rsa ";
-    }
+    $_host_params{ssh_command} = "ssh -vvv -o HostKeyAlgorithms=+ssh-rsa ";
     if ($_host_params{host_version_id} eq 'sles' and
         is_sle("<=15-sp5", "$_host_params{host_version_major}-SP$_host_params{host_version_minor}")) {
         $_host_params{ssh_command} .= "-o PubkeyAcceptedKeyTypes=+ssh-rsa ";
     }
     else {
-        if (is_sle('16+')) {
-            $_host_params{ssh_command} .= "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 ";
-        } else {
-            $_host_params{ssh_command} .= "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
-        }
+        $_host_params{ssh_command} .= "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
     }
     $_host_params{ssh_command} .= "-i $_host_params{ssh_key_file} root";
     return $self;
@@ -2007,7 +2000,7 @@ sub config_guest_installation_automation {
 
 Configure [guest_installation_automation_options]. Fill in unattended installation
 file with [guest_installation_media], [guest_secure_boot], [guest_boot_settings],
-[guest_storage_label], [guest_domain_name], [guest_name] and host public ssh key.
+[guest_storage_label], [guest_domain_name], [guest_name] and host public rsa key.
 User can also change [guest_do_registration], [guest_registration_server],
 [guest_registration_username], [guest_registration_password], [guest_registration_code],
 [guest_registration_extensions] and [guest_registration_extensions_codes] which
@@ -2045,7 +2038,7 @@ sub config_guest_unattended_installation {
         assert_script_run("chmod 777  $self->{guest_installation_automation_file}");
 
         if (($self->{guest_version_major} ge 15) and ($self->{guest_version_major} lt 16) and ($self->{guest_os_name} =~ /sles/im)) {
-            my @_guest_installation_media_extensions = ('Module-Basesystem', 'Module-Desktop-Applications', 'Module-Development-Tools', 'Module-Legacy', 'Module-Server-Applications', 'Module-Web-Scripting', 'Module-Python3', 'Product-SLES');
+            my @_guest_installation_media_extensions = ('Module-Basesystem', 'Module-Desktop-Applications', 'Module-Development-Tools', 'Module-Legacy', 'Module-Server-Applications', 'Module-Web-Scripting', 'Module-Systems-Management', 'Module-Python3', 'Product-SLES');
             my $_guest_installation_media_extension_url = '';
             foreach (@_guest_installation_media_extensions) {
                 $_guest_installation_media_extension_url = $self->{guest_installation_media} . '/' . $_;
@@ -2356,33 +2349,6 @@ sub start_guest_installation {
     return $self;
 }
 
-=head2 get_guest_installation_session
-
-  get_guest_installation_session($self)
-
-Get guest installation screen process information and store it in
-[guest_installation_session] which is in the form of 3401.pts-1.vh017.
-
-=cut
-
-sub get_guest_installation_session {
-    my $self = shift;
-
-    $self->reveal_myself;
-    if ($self->{guest_installation_session} ne '') {
-        record_info("Guest $self->{guest_name} installation screen process info had already been known", "$self->{guest_name} $self->{guest_installation_session}");
-        return $self;
-    }
-    my $installation_tty = script_output("tty | awk -F\"/\" \'{print \$3}'", proceed_on_failure => 1);
-    my $installation_tty_num = script_output("tty | awk -F\"/\" \'{print \$4}\'", proceed_on_failure => 1);
-    $installation_tty = $installation_tty . '-' . $installation_tty_num if ($installation_tty_num ne '');
-    #Use grep instead of pgrep to avoid that the latter's case-insensitive search option might not be supported by some obsolete operating systems.
-    my $installation_pid = script_output("ps ax | grep -i \"SCREEN -t $self->{guest_name}\" | grep -v grep | awk \'{print \$1}\'", proceed_on_failure => 1);
-    $self->{guest_installation_session} = (($installation_pid eq '') ? '' : ($installation_pid . ".$installation_tty." . (split(/\./, $_host_params{host_name}))[0]));
-    record_info("Guest $self->{guest_name} installation screen process info", "$self->{guest_name} $self->{guest_installation_session}");
-    return $self;
-}
-
 =head2 terminate_guest_installation_session
 
   terminate_guest_installation_session($self)
@@ -2598,9 +2564,7 @@ using publibc key, because Agama installe shell does support full ssh capability
 sub setup_guest_agama_installation_shell {
     my $self = shift;
 
-    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
-    $_ssh_command_options .= is_sle('16+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 " : "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
-    $_ssh_command_options .= "-i $_host_params{ssh_key_file}";
+    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -i $_host_params{ssh_key_file}";
     $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
     if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
         $self->record_guest_installation_result('FAILED');
@@ -2663,15 +2627,15 @@ sub verify_guest_agama_installation_done {
         wait_still_screen(15);
         if (!check_screen('text-logged-in-root', timeout => 30)) {
             select_backend_console(init => 0);
-            $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
+            (my $_installation_tty, my $_installation_pid, $self->{guest_installation_session}) =
+              virt_autotest::domain_management_utils::get_guest_screen_session(host => $_host_params{host_name}, guest => $self->{guest_name}, sessname => $self->{guest_name}, sessid => $self->{guest_installation_session})
+              if ($self->{guest_installation_session} eq '');
             type_string("reset\n");
             wait_still_screen;
         }
     }
     else {
-        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
-        $_ssh_command_options .= is_sle('16+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 " : "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
-        $_ssh_command_options .= "-i $_host_params{ssh_key_file}";
+        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -i $_host_params{ssh_key_file}";
         while ($_wait_timeout > 0) {
             if (script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"journalctl -u agama | grep \'Install phase done\'\"", timeout => 150) == 0) {
                 record_info("Guest $self->{guest_name} agama install phase done", "Guest $self->{guest_name} ip address is $self->{guest_ipaddr}");
@@ -2700,9 +2664,7 @@ still requires password login.
 sub save_guest_agama_installation_logs {
     my $self = shift;
 
-    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
-    $_ssh_command_options .= is_sle('16+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519" : "-o PubkeyAcceptedAlgorithms=+ssh-rsa";
-    $_ssh_command_options .= " -i $_host_params{ssh_key_file}";
+    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -i $_host_params{ssh_key_file}";
     if ($self->{guest_installation_result} eq 'FAILED' and script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
         if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
             record_info("Can not save agama install logs for guest $self->{guest_name}", "Guest $self->{guest_name} has no ip address $self->{guest_ipaddr}", result => 'fail');
@@ -2724,7 +2686,9 @@ sub save_guest_agama_installation_logs {
         wait_still_screen(15);
         if (!check_screen('text-logged-in-root', timeout => 30)) {
             select_backend_console(init => 0);
-            $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
+            (my $_installation_tty, my $_installation_pid, $self->{guest_installation_session}) =
+              virt_autotest::domain_management_utils::get_guest_screen_session(host => $_host_params{host_name}, guest => $self->{guest_name}, sessname => $self->{guest_name}, sessid => $self->{guest_installation_session})
+              if ($self->{guest_installation_session} eq '');
             type_string("reset\n");
             wait_still_screen;
         }
@@ -2738,9 +2702,7 @@ sub save_guest_agama_installation_logs {
     }
     else {
         record_info("Save guest $self->{guest_name} agama install logs", "Use passwordless ssh login");
-        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
-        $_ssh_command_options .= is_sle('16+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519" : "-o PubkeyAcceptedAlgorithms=+ssh-rsa";
-        $_ssh_command_options .= " -i $_host_params{ssh_key_file}";
+        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAcceptedAlgorithms=+ssh-rsa -i $_host_params{ssh_key_file}";
         script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"mkdir /agama_installation_logs\"", timeout => 150);
         script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"agama logs store -d /agama_installation_logs\"", timeout => 210);
         script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"agama config show > /agama_installation_logs/agama_config.txt\"", timeout => 210);
@@ -2748,7 +2710,8 @@ sub save_guest_agama_installation_logs {
         script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"sync\"", timeout => 150);
         if ($self->{guest_installation_result} ne 'FAILED') {
             record_info("Reboot guest $self->{guest_name} to disk boot", "Saved guest $self->{guest_name} agama installation logs");
-            $self->power_cycle_guest('force') if (script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"reboot --reboot\"", timeout => 210) != 0);
+            virt_autotest::domain_management_utils::power_cycle_guest(guest => $self->{guest_name}, style => 'force')
+              if (script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"reboot --reboot\"", timeout => 210) != 0);
         }
     }
     $self->upload_guest_installation_logs;
@@ -2834,13 +2797,12 @@ sub check_guest_installation_result_via_ssh {
   attach_guest_installation_screen($self)
 
 Attach guest installation screen before monitoring guest installation progress:
-If [guest_installation_session] is not available and no [guest_autoconsole],
-call do_attach_guest_installation_screen_without_sesssion.
-If [guest_installation_session] is not available and has [guest_autoconsole],
-call get_guest_installation_session, then attach based on whether installation
-session is available.
-If [guest_installation_session] is already available,call
-do_attach_guest_installation_screen directly.
+If [guest_installation_session] is not available and no [guest_autoconsole], call
+virt_autotest::domain_management_utils::do_attach_guest_installation_screen_without_sessid.
+If [guest_installation_session] is not available and has [guest_autoconsole], call
+virt_autotest::domain_management_utils::get_guest_screen_session, then attach based
+on whether installation session is available. If [guest_installation_session] is
+already available,call do_attach_guest_installation_screen directly.
 
 =cut
 
@@ -2853,17 +2815,24 @@ sub attach_guest_installation_screen {
     if (($self->{guest_installation_attached} eq 'false') or ($self->{guest_installation_attached} eq '')) {
         if (($self->{guest_installation_session} eq '') and (!($self->has_autoconsole_for_sure))) {
             record_info("Guest $self->{guest_name} has no autoconsole or installation screen process $self->{guest_installation_session} may terminate on reboot/shutoff after installation finishes or at certain stage", "Reconnect by using screen -t $self->{guest_name} virsh console $self->{guest_name}");
-            $self->do_attach_guest_installation_screen_without_session;
+            ($self->{guest_installation_session_config}, $self->{guest_installation_session_command}, $self->{guest_installation_attached}, $self->{guest_installation_result}) =
+              virt_autotest::domain_management_utils::do_attach_guest_screen_without_sessid(guest => $self->{guest_name}, sessid => $self->{guest_installation_session},
+                sessconf => $self->{guest_installation_session_config}, command => $self->{guest_installation_session_command}, logfolder => "$_host_params{common_log_folder}/$self->{guest_name}/");
+            $self->record_guest_installation_result('FAILED') if ($self->{guest_installation_result} eq 'FAILED');
         }
         elsif (($self->{guest_installation_session} eq '') and ($self->has_autoconsole_for_sure)) {
             record_info("Guest $self->{guest_name} has autoconsole but no installation screen session info to attach", "Trying to get installation screen session info");
-            $self->get_guest_installation_session;
+            (my $_installation_tty, my $_installation_pid, $self->{guest_installation_session}) =
+              virt_autotest::domain_management_utils::get_guest_screen_session(host => $_host_params{host_name}, guest => $self->{guest_name}, sessname => $self->{guest_name}, sessid => $self->{guest_installation_session});
             if ($self->{guest_installation_session} eq '') {
                 record_info("Guest $self->{guest_name} has autoconsole but installation process terminated somehow, so can not get its installation screen session info", "Reconnect by using screen -t $self->{guest_name} virsh console $self->{guest_name}");
-                $self->do_attach_guest_installation_screen_without_session;
+                ($self->{guest_installation_session_config}, $self->{guest_installation_session_command}, $self->{guest_installation_attached}, $self->{guest_installation_result}) =
+                  virt_autotest::domain_management_utils::do_attach_guest_screen_without_sessid(guest => $self->{guest_name}, sessid => $self->{guest_installation_session},
+                    sessconf => $self->{guest_installation_session_config}, command => $self->{guest_installation_session_command}, logfolder => "$_host_params{common_log_folder}/$self->{guest_name}/");
+                $self->record_guest_installation_result('FAILED') if ($self->{guest_installation_result} eq 'FAILED');
             }
             else {
-                $self->do_attach_guest_installation_screen_with_session;
+                virt_autotest::domain_management_utils::do_attach_guest_screen_with_sessid(guest => $self->{guest_name}, sessid => $self->{guest_installation_session});
             }
         }
         else {
@@ -2880,11 +2849,12 @@ sub attach_guest_installation_screen {
 
   do_attach_guest_installation_screen($self)
 
-Call do_attach_guest_installation_screen_with_session anyway. Mark
-[guest_installation_attached] as true if needle 'text-logged-in-root' can not be
+Call virt_autotest::domain_management_utils::do_attach_guest_screen_with_sessid anyway.
+Mark [guest_installation_attached] as true if needle 'text-logged-in-root' can not be
 detected. If fails to attach guest installation screen, [guest_installation_session]
-may terminate at reboot/shutoff or be in mysterious state or just broken somehow,
-call do_attach_guest_installation_screen_without_sesssion to re-attach.
+may terminate at reboot/shutoff or be in mysterious state or just broken somehow, call
+virt_autotest::domain_management_utils::do_attach_guest_installation_screen_without_sessid
+to re-attach.
 
 =cut
 
@@ -2892,7 +2862,7 @@ sub do_attach_guest_installation_screen {
     my $self = shift;
 
     $self->reveal_myself;
-    $self->do_attach_guest_installation_screen_with_session;
+    virt_autotest::domain_management_utils::do_attach_guest_screen_with_sessid(guest => $self->{guest_name}, sessid => $self->{guest_installation_session});
     if (!(check_screen('text-logged-in-root'))) {
         $self->{guest_installation_attached} = 'true';
         record_info("Attached $self->{guest_name} installation screen process $self->{guest_installation_session} successfully", "Well done !");
@@ -2904,105 +2874,10 @@ sub do_attach_guest_installation_screen {
         else {
             record_info("Failed to attach $self->{guest_name} installation screen process $self->{guest_installation_session}", "Bad luck ! Try to re-connect by using screen -t $self->{guest_name} virsh console $self->{guest_name}");
         }
-        $self->do_attach_guest_installation_screen_without_session;
-    }
-    return $self;
-}
-
-=head2 do_attach_guest_installation_screen_with_session
-
-  do_attach_guest_installation_screen_with_session($self)
-
-Retry attach [guest_installation_session] and detect needle 'text-logged-in-root'.
-
-=cut
-
-sub do_attach_guest_installation_screen_with_session {
-    my $self = shift;
-
-    $self->reveal_myself;
-    assert_screen('text-logged-in-root');
-    type_string("reset\n");
-    save_screenshot;
-    my $_retry_counter = 3;
-    while (check_screen('text-logged-in-root', timeout => 5)) {
-        if ($_retry_counter gt 0) {
-            wait_screen_change {
-                type_string("screen -d -r $self->{guest_installation_session}\n");
-            };
-            save_screenshot;
-            $_retry_counter--;
-        }
-        else {
-            save_screenshot;
-            last;
-        }
-        save_screenshot;
-    }
-    save_screenshot;
-    return $self;
-}
-
-=head2 do_attach_guest_installation_screen_without_session
-
-  do_attach_guest_installation_screen_without_session($self)
-
-If [guest_installation_session] is already terminated at reboot/shutoff or somehow,
-power it on and retry attaching using [guest_installation_session_command] and
-detect needle 'text-logged-in-root'.Mark it as FAILED if needle 'text-logged-in-root'
-can still be detected and poweron can not bring it back.
-
-=cut
-
-sub do_attach_guest_installation_screen_without_session {
-    my $self = shift;
-
-    $self->reveal_myself;
-    script_run("screen -X -S $self->{guest_installation_session} kill");
-    $self->{guest_installation_session} = '';
-    save_screenshot;
-    $self->power_cycle_guest('poweron');
-    type_string("reset\n");
-    assert_screen('text-logged-in-root');
-    my $_retry_counter = 3;
-    while (check_screen('text-logged-in-root', timeout => 5)) {
-        if ($_retry_counter gt 0) {
-            my $_attach_timestamp = localtime();
-            $_attach_timestamp =~ s/ |:/_/g;
-            my $_guest_installation_log = "$_host_params{common_log_folder}/$self->{guest_name}/$self->{guest_name}" . "_installation_log_" . $_attach_timestamp;
-            $self->{guest_installation_session_config} = script_output("cd ~;pwd") . '/' . $self->{guest_name} . '_installation_screen_config' if ($self->{guest_installation_session_config} eq '');
-            script_run("> $self->{guest_installation_session_config};cat /etc/screenrc > $self->{guest_installation_session_config};sed -in \'/^logfile .*\$/d\' $self->{guest_installation_session_config}");
-            script_run("echo \"logfile $_guest_installation_log\" >> $self->{guest_installation_session_config}");
-         #Use "screen" in the most compatible way, screen -t "title (window's name)" -c "screen configuration file" -L(turn on output logging) "command to run".
-            #The -Logfile option is only supported by more recent operating systems.
-            $self->{guest_installation_session_command} = "screen -t $self->{guest_name} -L -c $self->{guest_installation_session_config} virsh console --force $self->{guest_name}";
-            wait_screen_change {
-                type_string("$self->{guest_installation_session_command}\n");
-            };
-            send_key('ret') for (0 .. 2);
-            save_screenshot;
-            $_retry_counter--;
-            sleep 10;
-        }
-        else {
-            save_screenshot;
-            last;
-        }
-        save_screenshot;
-    }
-    save_screenshot;
-    if (!(check_screen('text-logged-in-root'))) {
-        $self->{guest_installation_attached} = 'true';
-        record_info("Opened guest $self->{guest_name} installation window successfully", "Well done !");
-    }
-    else {
-        $self->{guest_installation_attached} = 'false';
-        record_info("Failed to open guest $self->{guest_name} installation window", "Bad luck !");
-        $self->power_cycle_guest('poweron');
-        if ((script_output("virsh list --all --name | grep $self->{guest_name}", proceed_on_failure => 1) eq '') or (script_output("virsh list --all | grep \"$self->{guest_name}.*running\"", proceed_on_failure => 1) eq '')) {
-            record_info("Guest $self->{guest_name} installation process terminates somehow due to unexpected errors", "Guest disappears or stays at shutoff state even after poweron.Mark it as FAILED", result => 'fail');
-            $self->record_guest_installation_result('FAILED');
-        }
+        ($self->{guest_installation_session_config}, $self->{guest_installation_session_command}, $self->{guest_installation_attached}, $self->{guest_installation_result}) =
+          virt_autotest::domain_management_utils::do_attach_guest_installation_screen_without_sessid(guest => $self->{guest_name}, sessid => $self->{guest_installation_session},
+            sessconf => $self->{guest_installation_session_config}, command => $self->{guest_installation_session_command}, logfolder => "$_host_params{common_log_folder}/$self->{guest_name}/");
+        $self->record_guest_installation_result('FAILED') if ($self->{guest_installation_result} eq 'FAILED');
     }
     return $self;
 }
@@ -3011,9 +2886,9 @@ sub do_attach_guest_installation_screen_without_session {
 
   detach_guest_installation_screen($self)
 
-Detach guest installation screen by calling do_detach_guest_installation_screen.
-Try to get guest installation screen information if [guest_installation_session]
-is not available.
+Detach guest installation screen by calling virt_autotest::domain_management_utils
+::do_detach_guest_screen. Try to get guest installation screen information if
+[guest_installation_session] is not available.
 
 =cut
 
@@ -3024,61 +2899,15 @@ sub detach_guest_installation_screen {
     save_screenshot;
     record_info("Detaching $self->{guest_name} installation screen process $self->{guest_installation_session}", "Trying hard");
     if ($self->{guest_installation_attached} eq 'true') {
-        $self->do_detach_guest_installation_screen;
+        (my $_installation_tty, my $_installation_pid, $self->{guest_installation_session}, $self->{guest_installation_attached}) =
+          virt_autotest::domain_management_utils::do_detach_guest_screen(host => $_host_params{host_name}, guest => $self->{guest_name}, sessname => $self->{guest_name}, sessid => $self->{guest_installation_session});
     }
     else {
         record_info("Guest $self->{guest_name} installation screen process $self->{guest_installation_session} had already been detached", "Good news !");
-        $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
+        (my $_installation_tty, my $_installation_pid, $self->{guest_installation_session}) =
+          virt_autotest::domain_management_utils::get_guest_screen_session(host => $_host_params{host_name}, guest => $self->{guest_name}, sessname => $self->{guest_name}, sessid => $self->{guest_installation_session})
+          if ($self->{guest_installation_session} eq '');
     }
-    return $self;
-}
-
-=head2 do_detach_guest_installation_screen
-
-  do_detach_guest_installation_screen($self)
-
-Retry doing real guest installation screen detach using send_key('ctrl-a-d') and
-detecting needle 'text-logged-in-root'. If either of the needles is detected, this
-means successful detach. If neither of the needle can be detected, recover ssh 
-console by select_console('root-ssh').
-
-=cut
-
-sub do_detach_guest_installation_screen {
-    my $self = shift;
-
-    $self->reveal_myself;
-    wait_still_screen;
-    save_screenshot;
-    my $_retry_counter = 3;
-    while (!(check_screen([qw(text-logged-in-root)], timeout => 5))) {
-        if ($_retry_counter gt 0) {
-            send_key('ctrl-a-d');
-            save_screenshot;
-            type_string("reset\n");
-            wait_still_screen;
-            save_screenshot;
-            $_retry_counter--;
-        }
-        else {
-            last;
-        }
-    }
-    save_screenshot;
-    if (check_screen([qw(text-logged-in-root in-libvirtd-container-bash)], timeout => 5)) {
-        record_info("Detached $self->{guest_name} installation screen process $self->{guest_installation_session} successfully", "Well Done !");
-        $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
-        type_string("reset\n");
-        wait_still_screen;
-    }
-    else {
-        record_info("Failed to detach $self->{guest_name} installation screen process $self->{guest_installation_session}", "Bad luck !");
-        select_backend_console(init => 0);
-        $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
-        type_string("reset\n");
-        wait_still_screen;
-    }
-    $self->{guest_installation_attached} = 'false';
     return $self;
 }
 
@@ -3224,45 +3053,6 @@ sub detach_all_nfs_mounts {
     return $self;
 }
 
-=head2 power_cycle_guest
-
-  power_cycle_guest($self, _power_cycle_style => $_power_cycle_style)
-
-Power cycle guest by force:virsh destroy, grace:virsh shutdown, reboot:virsh
-reboot and poweron:virsh start.
-
-=cut
-
-sub power_cycle_guest {
-    my ($self, $_power_cycle_style) = @_;
-
-    $self->reveal_myself;
-    $_power_cycle_style //= 'grace';
-    my $_guest_name = '';
-    my $_time_out = '600';
-    if ($_power_cycle_style eq 'force') {
-        script_run("virsh destroy $self->{guest_name}");
-    }
-    elsif ($_power_cycle_style eq 'grace') {
-        script_run("virsh shutdown $self->{guest_name}");
-    }
-    elsif ($_power_cycle_style eq 'reboot') {
-        script_run("virsh reboot $self->{guest_name}");
-        return $self;
-    }
-    elsif ($_power_cycle_style eq 'poweron') {
-        script_run("virsh start $self->{guest_name}");
-        return $self;
-    }
-
-    while (($_guest_name ne "$self->{guest_name}") and ($_time_out lt 600)) {
-        $_guest_name = script_output("virsh list --name  --state-shutoff | grep -o $self->{guest_name}", timeout => 30, proceed_on_failure => 1);
-        $_time_out += 5;
-    }
-    script_run("virsh start $self->{guest_name}");
-    return $self;
-}
-
 =head2 modify_guest_params
 
   modify_guest_params($self, $_guest_name, $_guest_option, $_modify_operation)
@@ -3277,7 +3067,7 @@ sub modify_guest_params {
     $self->reveal_myself;
     $_modify_operation //= 'define';
     assert_script_run("virt-xml $_guest_name --edit --print-diff --$_modify_operation $self->{$_guest_option}");
-    $self->power_cycle_guest('force');
+    virt_autotest::domain_management_utils::power_cycle_guest(guest => $self->{guest_name}, style => 'force');
     return $self;
 }
 

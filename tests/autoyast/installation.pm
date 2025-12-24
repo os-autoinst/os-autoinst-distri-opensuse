@@ -39,7 +39,8 @@ use power_action_utils 'power_action';
 
 my $confirmed_licenses = 0;
 my $stage = 'stage1';
-my $maxtime = 2000 * get_var('TIMEOUT_SCALE', 1);    #Max waiting time for stage 1
+my $maxtime = 14400 * get_var('TIMEOUT_SCALE', 1);    #Max waiting time for stage 1
+#my $maxtime = 2000 * get_var('TIMEOUT_SCALE', 1);    #Max waiting time for stage 1
 my $check_time = 50;    #Period to check screen during stage 1 and 2
 
 # Full install with updates can take extremely long time

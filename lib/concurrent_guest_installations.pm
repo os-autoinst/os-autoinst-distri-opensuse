@@ -48,6 +48,8 @@ our %guest_instances = ();
 our %guest_instances_profiles = ();
 #@guest_installations_done stores guest instances names that finish installations
 our @guest_installations_done = ();
+#@guest_instances_passed stores guest instances names that finish installations successfully
+our %guest_instances_passed = ();
 
 #Get guest names from hash argument passed in, for example: foreach my $_element (keys(%_store_of_guests))
 #There is no restriction on the form or format of guest instance name.
@@ -133,7 +135,7 @@ sub monitor_concurrent_guest_installations {
     my $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
     my $_guest_installations_not_the_last = 1;
     my $_monitor_start_time = time();
-    while (time() - $_monitor_start_time <= 7200) {
+    while (time() - $_monitor_start_time <= 14400) {
         foreach (keys %guest_instances) {
             if (!($guest_instances{$_}->is_guest_installation_done)) {
                 $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
@@ -147,7 +149,14 @@ sub monitor_concurrent_guest_installations {
             if ((!(grep { $_ eq $_current_guest_instance } @guest_installations_done)) and ($guest_instances{$_}->is_guest_installation_done)) {
                 push(@guest_installations_done, $_);
                 $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
-                $guest_instances{$_}->collect_guest_installation_logs_via_ssh if ($guest_instances{$_}->{guest_installation_result} ne 'PASSED');
+                if ($guest_instances{$_}->{guest_installation_result} ne 'PASSED') {
+                    $guest_instances{$_}->collect_guest_installation_logs_via_ssh;
+                }
+                else {
+                    my $_guest = $_;
+                    $guest_instances_passed{$_guest} = {};
+                    $guest_instances_passed{$_guest}{$_} = $guest_instances{$_guest}->{$_} foreach (keys %{$guest_instances{$_guest}});
+                }
                 last if ($_guest_installations_left eq 0);
             }
         }
@@ -262,6 +271,14 @@ sub save_guest_installations_assets {
         delete $guest_installations_done[$_index] if ($guest_instances{$_element}->{guest_installation_result} ne 'PASSED');
     }
     @guest_installations_done = grep { defined $_ } @guest_installations_done;
+
+    my @_guest_names = split(/\|/, get_required_var('UNIFIED_GUEST_LIST'));
+    my @_guest_ip_addresses = ('') x scalar(@_guest_names);
+    while (my ($_index, $_element) = each(@_guest_names)) {
+        $_guest_ip_addresses[$_index] = $guest_instances{$_element}->{guest_ipaddr};
+    }
+    set_var('UNIFIED_GUEST_IPADDRS', join('|', @_guest_ip_addresses));
+
     $self->{success_guest_list} = \@guest_installations_done;
     $self->virt_autotest_base::upload_guest_assets;
     return $self;
@@ -284,6 +301,20 @@ sub clean_up_guests {
         }
     }
     virt_autotest::domain_management_utils::show_guest;
+
+    set_var('UNIFIED_NORMAL_GUEST_LIST', join('|', (keys %guest_instances_passed)));
+    my @_guest_ip_addresses = ();
+    push(@_guest_ip_addresses, $guest_instances{$_}->{guest_ipaddr}) foreach (keys %guest_instances);
+    set_var('UNIFIED_GUEST_IPADDRS', join('|', @_guest_ip_addresses));
+    @_guest_ip_addresses = ();
+    push(@_guest_ip_addresses, $guest_instances_passed{$_}->{guest_ipaddr}) foreach (keys %guest_instances_passed);
+    set_var('UNIFIED_NORMAL_GUEST_IPADDRS', join('|', @_guest_ip_addresses));
+    set_var('GUEST_UPGRADE_LIST', get_required_var('UNIFIED_NORMAL_GUEST_LIST')) if (get_var('VIRT_PRJ4_GUEST_UPGRADE'));
+
+    record_info('UNIFIED_GUEST_LIST', get_required_var('UNIFIED_GUEST_LIST'));
+    record_info('UNIFIED_NORMAL_GUEST_LIST', get_required_var('UNIFIED_NORMAL_GUEST_LIST'));
+    record_info('UNIFIED_GUEST_IPADDRS', get_required_var('UNIFIED_GUEST_IPADDRS'));
+    record_info('UNIFIED_NORMAL_GUEST_IPADDRS', get_required_var('UNIFIED_NORMAL_GUEST_IPADDRS'));
     return $self;
 }
 

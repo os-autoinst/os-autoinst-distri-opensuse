@@ -26,7 +26,7 @@
     <guest_installation_extra_args>sshd=1#sshpassword=ROOTPASSWORD#console=ttyS0,115200n8#textmode=1</guest_installation_extra_args>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>http://openqa.suse.de/assets/repo/fixed/SLE-15-SP7-Full-x86_64-GM-Media1/</guest_installation_media>
+    <guest_installation_media>http://openqa.qa2.suse.asia/assets/repo/fixed/SLE-15-SP7-Full-x86_64-GM-Media1/</guest_installation_media>
     <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-ms-code.bin,loader.readonly=yes,loader.type=pflash</guest_boot_settings>
     <guest_secure_boot>true</guest_secure_boot>
     <guest_os_variant/>
@@ -52,7 +52,7 @@
     <guest_serial>pty</guest_serial>
     <guest_parallel/>
     <guest_channel/>
-    <guest_console/>
+    <guest_console>pty,target_type=virtio</guest_console>
     <guest_hostdev/>
     <guest_filesystem/>
     <guest_sound/>
@@ -93,5 +93,5 @@
     <guest_registration_server/>
     <guest_registration_username>www@suse.com</guest_registration_username>
     <guest_registration_password/>
-    <guest_registration_extensions>sle-module-legacy#sle-module-basesystem#sle-module-server-applications#sle-module-desktop-applications#sle-module-web-scripting</guest_registration_extensions>
+    <guest_registration_extensions>sle-module-legacy#sle-module-basesystem#sle-module-server-applications#sle-module-desktop-applications#sle-module-web-scripting#sle-module-development-tools#sle-module-systems-management#sle-module-python3</guest_registration_extensions>
 </guest>

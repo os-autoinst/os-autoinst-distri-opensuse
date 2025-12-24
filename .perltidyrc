@@ -12,4 +12,4 @@
 -bt=2    # no spaces around []
 -sbt=2   # no spaces around {}
 -sct     # stack closing tokens )}
---pack-operator-types='->' # allow chained method calls on one line
+#--pack-operator-types='->' # allow chained method calls on one line
