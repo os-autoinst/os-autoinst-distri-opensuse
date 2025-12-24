@@ -138,6 +138,7 @@ our @EXPORT = qw(
   upload_folders
   cmd_run
   assert_cmd_run
+  save_print_file
 );
 
 our @EXPORT_OK = qw(
@@ -3571,6 +3572,29 @@ sub assert_cmd_run {
     die "Command '$cmd' timed out" unless defined $ret[0];
     die "Command '$cmd' failed" unless $ret[0] == 0;
     return wantarray ? @ret : $ret[0];
+}
+
+=head2 save_print_file
+
+ save_print_file($filename)
+
+Run save_print_file in x11: Smoke test of GTK interfacing with CUPS
+
+=cut
+
+sub save_print_file {
+    my ($filename) = @_;
+    send_key "ctrl-p";
+    assert_screen 'gtk-print-dialog';
+
+    # Select 'Print to File' and set PDF format
+    send_key "ret";    # Confirm print
+
+    assert_screen 'pdf_name';
+    send_key 'ctrl-a';
+    send_key 'delete';
+    type_string_slow($filename);
+    send_key "ret";
 }
 
 1;
