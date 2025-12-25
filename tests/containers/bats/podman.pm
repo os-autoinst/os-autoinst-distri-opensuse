@@ -30,7 +30,7 @@ sub run_tests {
 
     my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local");
 
-    run_command "podman system service --timeout=0 &" if ($remote);
+    run_command "podman system service --timeout=0 &" if (is_sle && $remote);
 
     my @xfails = ();
     if ($rootless) {
@@ -57,7 +57,7 @@ sub run_tests {
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
 
-    run_command 'kill %1; kill -9 %1 || true' if ($remote);
+    run_command 'kill %1; kill -9 %1 || true' if (is_sle && $remote);
 
     cleanup_podman;
 
