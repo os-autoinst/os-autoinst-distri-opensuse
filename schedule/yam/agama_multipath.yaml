@@ -1,0 +1,13 @@
+---
+name: agama multipath
+description: >
+  Perform agama interactive installation with multipath activated.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - console/validate_multipath
+test_data:
+  <<: !include test_data/yast/multipath.yaml
