@@ -177,6 +177,7 @@ podman:
     - 27230
     - 27233
     - 27463
+    - 27760
   sle-15-SP7:
     GITHUB_PATCHES:
     - 21875
@@ -185,6 +186,7 @@ podman:
     - 26920
     - 27230
     - 27233
+    - 27760
   sle-15-SP6:
     GITHUB_PATCHES:
     - 21875
@@ -193,6 +195,7 @@ podman:
     - 26920
     - 27230
     - 27233
+    - 27760
 podman-py:
   opensuse-Tumbleweed:
 runc:
