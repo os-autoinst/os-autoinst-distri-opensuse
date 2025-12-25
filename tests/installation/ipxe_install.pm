@@ -13,7 +13,7 @@ use utils;
 use testapi;
 use bmwqemu;
 use ipmi_backend_utils;
-use version_utils qw(is_upgrade is_tumbleweed is_sle is_leap is_sle_micro is_agama);
+use version_utils qw(is_upgrade is_tumbleweed is_sle is_leap is_sle_micro is_agama is_transactional);
 use bootloader_setup 'prepare_disks';
 use Utils::Architectures;
 use Utils::Backends qw(is_ipmi is_qemu);
@@ -83,8 +83,16 @@ sub set_bootscript {
     if (is_disk_image) {
         $install = "rd.kiwi.install.image=" . get_required_var('MIRROR_HTTP') . "/";
         $install .= get_var('HDD_1') ? get_var('HDD_1') : get_required_var('INSTALL_HDD_IMAGE');
-        $kernel .= "/pxeboot.$distri.$arch-$version.kernel";
-        $initrd .= "/pxeboot.$distri.$arch-$version.initrd";
+        if (is_sle('>=16.1')) {
+            if (is_transactional) {
+                $kernel .= "/pxeboot." . uc($distri) . "S-$version-Transactional.$arch-$version.0.kernel";
+                $initrd .= "/pxeboot." . uc($distri) . "S-$version-Transactional.$arch-$version.0.initrd";
+            }
+        }
+        else {
+            $kernel .= "/pxeboot.$distri.$arch-$version.kernel";
+            $initrd .= "/pxeboot.$distri.$arch-$version.initrd";
+        }
     } elsif ($arch eq 'aarch64') {
         $kernel .= '/boot/aarch64/linux';
         $initrd .= '/boot/aarch64/initrd';
@@ -351,7 +359,7 @@ sub run {
     select_console 'sol', await_console => 0;
 
     if (is_disk_image) {
-        check_screen([qw(load-linux-kernel load-initrd)], 120 / get_var('TIMEOUT_SCALE', 1));
+        check_screen([qw(load-linux-kernel load-initrd)]);
         return;
     }
 

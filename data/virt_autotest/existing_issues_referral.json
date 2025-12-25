@@ -1,0 +1,63 @@
+{
+    "_gh#openSUSE/jeos-firstboot#83": {
+        "_description": "DHCPv4 not supported on 'lo'",
+        "_products": {
+            "_opensuse": ["15.2", "15.3"],
+            "_sle": ["15-SP2", "15-SP3"]
+        },
+        "_type": "bug"
+    },
+    "_bsc#1188270": {
+        "_description": "lan78xx 1-1.1.1:1.0 eth0: No phy led trigger registered for speed\\(-1\\)",
+        "_products": {
+            "_opensuse": ["Tumbleweed", "15.3"]
+        },
+        "_type": "bug"
+    },
+    "_bsc#1022527": {
+        "_description": ".*wickedd.*ni_process_reap.*blocking waitpid.*",
+        "_products": {
+            "_sle-micro": [ "5.0", "5.1", "5.2" ],
+            "_opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "_microos":  ["Tumbleweed"],
+            "_sle": ["15-SP1", "15-SP2", "15-SP3", "15-SP4", "12-SP5"]
+        },
+        "_type": "feature"
+    },
+    "_bsc#1126272": {
+        "_description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
+        "_products": {
+            "_sle-micro": [ "5.0", "5.1", "5.2", "5.3" , "5.4" , "5.5", "6.0", "6.1", "6.2"],
+            "_leap-micro": [ "5.2", "5.3", "5.4", "5.5" ],
+            "_microos":  ["Tumbleweed"],
+            "_sle": ["16.0"]
+        },
+        "_type": "ignore"
+    },
+    "_vmware-cpuid": {
+        "_description": "kernel: core: CPUID marked event:",
+        "_products": {
+            "_sle-micro": [ "5.0", "5.1" ],
+            "_opensuse": ["Tumbleweed", "15.2", "15.3"],
+            "_microos":  ["Tumbleweed"],
+            "_sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
+        },
+        "_type": "ignore"
+    },
+    "bsc#1255178": {
+        "description": "bsc#1255178 Transactional base image has no /etc/issue",
+        "products": {
+            "sle": ["16.1"]
+        },
+        "modes": ["transactional"],
+        "type": "bug"
+    },
+    "bsc#1255476": {
+        "description": "bsc#1255476 No SLES16.1 in os database",
+        "products": {
+            "sle": ["16.1"]
+        },
+        "modes": ["transactional"],
+        "type": "bug"
+    }
+}

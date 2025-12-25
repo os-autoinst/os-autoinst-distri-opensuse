@@ -41,6 +41,8 @@ sub prepare_in_trup_shell {
 sub prepare_on_active_system {
     my $self = shift;
 
+    double_check_xen_role if (is_xen_host and is_sle('>=16.1') and is_disk_image);
+    check_kvm_modules if (is_kvm_host and is_sle('>=16.1') and is_disk_image);
     $self->prepare_services;
 }
 
@@ -53,10 +55,9 @@ sub prepare_extensions {
 sub prepare_packages {
     my $self = shift;
 
-    # Install necessary virtualization client packages
-    my $zypper_install_package = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change virt-install libvirt-client libguestfs0 guestfs-tools";
-    $zypper_install_package .= " yast2-schema-micro" if is_sle_micro('<6.0');
-    zypper_call("$zypper_install_package");
+    # install additional packages from product repositories
+    install_product_software;
+    # install auxiliary packages from additional repositories to facilitate automation, for example screen and etc.
     $self->install_additional_pkgs;
 }
 

@@ -12,8 +12,8 @@ use File::Basename;
 use testapi;
 use Utils::Architectures;
 use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
-use version_utils qw(is_sle is_tumbleweed is_sle_micro is_agama);
-use utils qw(is_ipxe_boot);
+use version_utils qw(is_sle is_tumbleweed is_sle_micro is_agama is_transactional);
+use utils qw(is_ipxe_boot is_disk_image);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd double_check_xen_role check_kvm_modules);
 use IPC::Run;
@@ -219,8 +219,8 @@ sub login_to_console {
     }
 
     # double-check xen role for xen host
-    double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE'));
-    check_kvm_modules if is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE');
+    double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE') and !(is_sle('>=16.1') and is_transactional and is_disk_image));
+    check_kvm_modules if (is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE') and !(is_sle('>=16.1') and is_transactional and is_disk_image));
     check_host_health();
 }
 

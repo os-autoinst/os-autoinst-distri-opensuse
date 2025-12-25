@@ -104,6 +104,7 @@ our @EXPORT = qw(
   select_backend_console
   double_check_xen_role
   check_kvm_modules
+  install_product_software
 );
 
 my %log_cursors;
@@ -1246,7 +1247,7 @@ sub is_registered_system {
     $args{dst_machine} //= 'localhost';
     $args{usetrup} //= 0;
 
-    my $cmd1 = $args{usetrup} == 1 ? "transactional-update register" : "SUSEConnect";
+    my $cmd1 = (($args{usetrup} == 1 or get_var('USE_TRUP')) ? "transactional-update register" : "SUSEConnect");
     $cmd1 .= " --status-text";
     my $cmd2 = $cmd1 . " | grep -i \"Not Registered\"";
     $cmd2 = "ssh root\@$args{dst_machine} " . "\"$cmd2\"" if ($args{dst_machine} ne 'localhost');
@@ -1275,7 +1276,7 @@ sub do_system_registration {
     $args{activate} //= 1;
     $args{usetrup} //= 0;
 
-    my $cmd = $args{usetrup} == 1 ? "transactional-update register" : "SUSEConnect";
+    my $cmd = (($args{usetrup} == 1 or get_var('USE_TRUP')) ? "transactional-update register" : "SUSEConnect");
     $cmd .= $args{activate} == 1 ? " -r " . get_required_var('SCC_REGCODE') . " --url " . get_required_var('SCC_URL') : " -d";
     $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
     script_run($cmd);
@@ -1298,7 +1299,7 @@ sub check_system_registration {
     $args{dst_machine} //= 'localhost';
     $args{usetrup} //= 0;
 
-    my $cmd = $args{usetrup} == 1 ? "transactional-update register" : "SUSEConnect";
+    my $cmd = (($args{usetrup} == 1 or get_var('USE_TRUP')) ? "transactional-update register" : "SUSEConnect");
     $cmd .= " --status-text";
     $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
     record_info("System Registration Status", script_output($cmd, proceed_on_failure => 1));
@@ -1315,9 +1316,10 @@ by default if argument dst_machine is not given any other address, and successfu
 access to dst_machine via ssh should be guaranteed in advance if dst_machine points 
 to a remote machine. Deactivation is also supported if argument activate is given 
 0 explicitly. Multiple extensions or modules can be passed in as a single string 
-separated by space to argument reg_exts to be subscribed one by one. Using
-"transactional-update register" for newer OS like SLE Micro 6.0, which is the more
-preferred way to do registration.
+separated by space to argument reg_exts to be subscribed one by one. Direct using
+"transactional-update register" or "SUSEConnect" depends on the actual situation
+in which this subroutine is called, namely whether already in transactional shell
+, so either is allowed by toggling argument usetrup or setting USE_TRUP.
 
 =cut
 
@@ -1326,6 +1328,7 @@ sub subscribe_extensions_and_modules {
     $args{dst_machine} //= 'localhost';
     $args{activate} //= 1;
     $args{reg_exts} //= '';
+    $args{usetrup} //= 0;
 
     my $registered_system = is_registered_system;
     if (!$registered_system and !$args{activate}) {
@@ -1339,7 +1342,7 @@ sub subscribe_extensions_and_modules {
         }
         else {
             foreach (@to_be_unsubscribed) {
-                my $cmd = is_sle_micro('>=6.0') ? "transactional-update register" : "SUSEConnect";
+                my $cmd = (($args{usetrup} == 1 or get_var('USE_TRUP')) ? "transactional-update register" : "SUSEConnect");
                 $cmd .= " -d -p " . "\$($cmd -l | grep -o \"\\b$_\\/.*\\/.*\\b\")";
                 $cmd = "ssh root\@$args{dst_machine} " . "\'$cmd\'" if ($args{dst_machine} ne 'localhost');
                 script_run($cmd, timeout => 120);
@@ -1352,7 +1355,7 @@ sub subscribe_extensions_and_modules {
         my @to_be_subscribed = split(/ /, $args{reg_exts});
         if (@to_be_subscribed) {
             foreach (@to_be_subscribed) {
-                my $cmd = is_sle_micro('>=6.0') ? "transactional-update register" : "SUSEConnect";
+                my $cmd = (($args{usetrup} == 1 or get_var('USE_TRUP')) ? "transactional-update register" : "SUSEConnect");
                 $cmd .= " -p " . "\$($cmd -l | grep -o \"\\b$_\\/.*\\/.*\\b\")";
                 $cmd = "ssh root\@$args{dst_machine} " . "\'$cmd\'" if ($args{dst_machine} ne 'localhost');
                 script_run($cmd, timeout => 120);
@@ -1953,6 +1956,41 @@ sub download_installation_iso {
     }
 
     return undef;
+}
+
+=head2 install_product_software
+
+  install_product_software(package => 'package1,package2', pattern => 'pattern1
+      ,pattern2')
+
+Install desired packages and patterns from existing product repositories if settings
+INSTALL_PRODUCT_PACKAGES and INSTALL_PRODUCT_PATTERNS are specified with packages and
+patterns separated by comma. User can also specify desired pacakges and patterns by
+passing in arguments package and pattern.
+
+=cut
+
+sub install_product_software {
+    my %args = @_;
+    $args{package} //= get_var('INSTALL_PRODUCT_PACKAGES', '');
+    $args{pattern} //= get_var('INSTALL_PRODUCT_PATTERNS', '');
+
+    zypper_call("--gpg-auto-import-keys refresh");
+    if ($args{package}) {
+        my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
+        $cmd = $cmd . " virt-install libvirt-client libguestfs0 guestfs-tools";
+        $cmd = $cmd . " $_" foreach (split(/,/, $args{package}));
+        $cmd = $cmd . " yast2-schema-micro" if is_sle_micro('<6.0');
+        $cmd = $cmd . " systemd-coredump" if get_var('COLLECT_COREDUMPS');
+        zypper_call($cmd);
+        save_screenshot;
+    }
+    if ($args{pattern}) {
+        my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change -t pattern ";
+        $cmd = $cmd . " $_" foreach (split(/,/, $args{pattern}));
+        zypper_call($cmd);
+        save_screenshot;
+    }
 }
 
 1;

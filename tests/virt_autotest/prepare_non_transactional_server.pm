@@ -76,14 +76,7 @@ sub prepare_packages {
     }
 
     # install additional packages from product repositories
-    zypper_call("--gpg-auto-import-keys refresh");
-    if (get_var('INSTALL_PRODUCT_PACKAGES', '')) {
-        my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
-        $cmd = $cmd . " $_" foreach (split(/,/, get_var('INSTALL_PRODUCT_PACKAGES', '')));
-        $cmd = $cmd . " systemd-coredump" if get_var('COLLECT_COREDUMPS');
-        zypper_call($cmd);
-        save_screenshot;
-    }
+    install_product_software;
     # install auxiliary packages from additional repositories to facilitate automation, for example screen and etc.
     install_extra_packages;
 }

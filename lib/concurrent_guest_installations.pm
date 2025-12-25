@@ -33,6 +33,7 @@ use POSIX 'strftime';
 use File::Basename;
 use testapi;
 use IPC::Run;
+use utils qw(inspect_existing_issue);
 use virt_utils;
 use virt_autotest_base;
 use virt_autotest::utils qw(check_guest_health);
@@ -205,7 +206,14 @@ sub junit_log_provision {
         $_guest_installations_results->{$_}{stop_run} = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
         $_guest_installations_results->{$_}{test_time} = strftime("\%Hh\%Mm\%Ss", gmtime($_guest_installations_results->{$_}{stop_run} - $_guest_installations_results->{$_}{start_run}));
     }
-    $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+    if (inspect_existing_issue(issue => 'bsc#1255178 Transactional base image has no /etc/issue')) {
+        my %osinfo = script_output("cat /etc/os-release") =~ /^([^#]\S+)="?([^"\r\n]+)"?$/gm;
+        %osinfo = map { uc($_) => $osinfo{$_} } keys %osinfo;
+        $self->{"product_tested_on"} = "$osinfo{PRETTY_NAME} $osinfo{VARIANT_ID} $osinfo{VERSION}";
+    }
+    else {
+        $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+    }
     $self->{"product_name"} = ref($self);
     $self->{"package_name"} = ref($self);
     my $_guest_installation_xml_results = virt_autotest_base::generateXML($self, $_guest_installations_results);

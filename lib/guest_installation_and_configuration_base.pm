@@ -603,6 +603,7 @@ sub config_guest_os_variant {
             $self->modify_guest_params($self->{guest_name}, 'guest_os_variant_options');
         }
     }
+    inspect_existing_issue(issue => 'bsc#1255476 No SLES16.1 in os database');
     return $self;
 }
 
