@@ -156,12 +156,14 @@ podman:
   # https://github.com/containers/podman/pull/27463 - test/system: Update test to handle new error message from runc 1.3.3
   # https://github.com/containers/podman/pull/27760 - test/system: remove apk from build
   # https://github.com/containers/podman/pull/27813 - test: Fix --hostuser octal UID test flakiness
+  # https://github.com/containers/podman/pull/27826 - test: Fix PODMAN_BATS_LEAK_CHECK
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26934
     - 27463
     - 27760
     - 27813
+    - 27826
   sle-16.0:
     GITHUB_PATCHES:
     - 25858
