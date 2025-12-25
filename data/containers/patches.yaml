@@ -5,6 +5,11 @@ aardvark-dns:
   # https://github.com/containers/aardvark-dns/pull/619 is needed for dnsmasq issue
   # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
   opensuse-Tumbleweed:
+  sle-16.1:
+    GITHUB_PATCHES:
+    - 581
+    - 619
+    - 623
   sle-16.0:
     GITHUB_PATCHES:
     - 581
@@ -31,6 +36,10 @@ buildah:
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   # https://github.com/containers/buildah/pull/6271 - Update "bud with --cpu-shares" test, and rename it
   opensuse-Tumbleweed:
+  sle-16.1:
+    GITHUB_PATCHES:
+    - 6226
+    - 6271
   sle-16.0:
     GITHUB_PATCHES:
     - 6226
@@ -61,6 +70,9 @@ buildx:
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 3475
+  sle-16.1:
+    GITHUB_PATCHES:
+    - 3475
   sle-16.0:
     GITHUB_PATCHES:
     - 3475
@@ -68,6 +80,9 @@ compose:
   # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
   opensuse-Tumbleweed:
+  sle-16.1:
+    GITHUB_PATCHES:
+    - 13214
   sle-16.0:
     GITHUB_PATCHES:
     - 13214
@@ -83,6 +98,9 @@ conmon:
     - 597
     - 602
     - 603
+  sle-16.1:
+    GITHUB_PATCHES:
+    - 579
   sle-16.0:
     GITHUB_PATCHES:
     - 579
@@ -93,6 +111,12 @@ docker-py:
   # https://github.com/docker/docker-py/pull/3366 - test: Skip from_env_unix tests if DOCKER_HOST is network socket
   # https://github.com/docker/docker-py/pull/3367 - tests/integration: Make the tests runnable on SELinux enabled daemon
   opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 3290
+    - 3354
+    - 3366
+    - 3367
+  sle-16.1:
     GITHUB_PATCHES:
     - 3290
     - 3354
@@ -112,6 +136,10 @@ moby:
     GITHUB_PATCHES:
     - 51219
     - 51263
+  sle-16.1:
+    GITHUB_PATCHES:
+    - 51219
+    - 51263
   sle-16.0:
     GITHUB_PATCHES:
     - 51219
@@ -128,6 +156,9 @@ netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
   opensuse-Tumbleweed:
+  sle-16.1:
+    GITHUB_PATCHES:
+    - 1191
   sle-16.0:
     GITHUB_PATCHES:
     - 1191
@@ -164,6 +195,20 @@ podman:
     - 27760
     - 27813
     - 27826
+  sle-16.1:
+    GITHUB_PATCHES:
+    - 25858
+    - 25918
+    - 25942
+    - 26017
+    - 26798
+    - 26920
+    - 26921
+    - 26934
+    - 27230
+    - 27233
+    - 27463
+    - 27760
   sle-16.0:
     GITHUB_PATCHES:
     - 25858
@@ -200,6 +245,7 @@ podman-py:
   opensuse-Tumbleweed:
 runc:
   opensuse-Tumbleweed:
+  sle-16.1:
   sle-16.0:
   sle-15-SP7:
   sle-15-SP6:
@@ -207,6 +253,7 @@ runc:
   sle-15-SP4:
 skopeo:
   opensuse-Tumbleweed:
+  sle-16.1:
   sle-16.0:
   sle-15-SP7:
   sle-15-SP6:

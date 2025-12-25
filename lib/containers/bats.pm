@@ -208,6 +208,8 @@ sub install_git {
         $version =~ s/-/_/;
         $version = "SLE_$version";
     }
+    # 16.1 is BETA
+    $version = "16.0" if ($version eq "16.1");
     run_command "sudo zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
     run_command "sudo zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
 }
