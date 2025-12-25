@@ -124,6 +124,8 @@
       <li><a href="#is_agama_guest">is_agama_guest</a></li>
       <li><a href="#upload_folders">upload_folders</a></li>
       <li><a href="#cmd_run">cmd_run</a></li>
+      <li><a href="#parse_json">parse_json</a></li>
+      <li><a href="#inspect_existing_issue">inspect_existing_issue</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -918,6 +920,23 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>cmd_run($cmd [, timeout =&gt; $timeout])</code></pre>
 
 <p>Run <i>$cmd</i> in console and wait for its completion. In scalar context, return command exit code. In array context, return tuple (exit code, console output).</p>
+
+<h2 id="parse_json">parse_json</h2>
+
+<pre><code>parse_json(json =&gt; &#39;raw json structure reference&#39;, visisted =&gt; &#39;visited data
+    structure reference&#39;)</code></pre>
+
+<p>Iterate raw json data structure recursively, skip visited data by referring to visited data structure and return handled json data reference. Any keys start with underscore will be ignored in iteration, which can be used for comment or example. Argument json takes reference of the raw json data structure generate by decode_json, visited takes referecne of data structure which records data already visited to ensure no indefinite loop in iteration.</p>
+
+<h2 id="inspect_existing_issue">inspect_existing_issue</h2>
+
+<pre><code>inspect_existing_issue(issuefile =&gt; &#39;relative path of json files to data folder,
+    localfile =&gt; &#39;absolute path of downloaded local files, issue =&gt; &#39;issues to
+    be inspected separated by double hash ##&#39;, distri =&gt; &#39;comma separated issue
+    distri&#39;, version =&gt; &#39;comma separated issue version&#39;, mode =&gt; &#39;comma separted
+    issue mode&#39;)</code></pre>
+
+<p>Inspect whether concerned issues are bug, feature or can be ignore. Only record bug as soft failure. Argument issuefile can take mulitple json files separated by comma which are used as reference to compare, localfile can take multiple local files separated by comma which are corresponding downloaded and stored files from issuefile, issue takes issues to be inspected separated by double hash ##. User can also use setting JSON_REFERRAL_FILE to pass in comma separated json file path. Settings ISSUE_DISTRI, ISSUE_VERSION and ISSUE_MODE can also be used to specify the real distri, version and mode with which inspected issue is associated, they are separated by comma if multiple values are provided, for example, ISSUE_MODE= (&#39;transactional&#39;, &#39;traditional&#39;). Key &#39;modes&#39; is not mandatory in reference file data/virt_autotest/existing_issues_referral.json, if it does not exist or empty, any mode is matched. User can also pass in by using arguments distri, version and mode. Generally speaking, first find a distri match in all products of an issue by iteraing disris in ISSUE_DISTRI, second find a version match in all versions of a product by iterating versions in ISSUE_VERSION if there is a distri match( namley @existing_issue_version is not empty), at the last find a mode match in all modes of an issue by iteraing modes in ISSUE_MODE(empty @existing_issue_mode means any mode will be matched). There will be a final successful match if issue matches description, distri/version and mode all matched.</p>
 
 
 </body>

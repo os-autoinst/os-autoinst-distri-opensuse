@@ -29,6 +29,7 @@
       <li><a href="#double_check_xen_role">double_check_xen_role</a></li>
       <li><a href="#check_kvm_modules">check_kvm_modules</a></li>
       <li><a href="#download_installation_iso">download_installation_iso</a></li>
+      <li><a href="#install_product_software">install_product_software</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -61,7 +62,7 @@
 
 <pre><code>subscribe_extensions_and_modules(dst_machine =&gt; $machine, activate =&gt; 1/0, reg_exts =&gt; $exts)</code></pre>
 
-<p>Any available extensions and modules listed out by SUSEConnect --list-extensions that do not require additional regcode can be subscribe directly by using command SUSEConnect -p [extension or module]. Subscription is to be performed on localhost by default if argument dst_machine is not given any other address, and successful access to dst_machine via ssh should be guaranteed in advance if dst_machine points to a remote machine. Deactivation is also supported if argument activate is given 0 explicitly. Multiple extensions or modules can be passed in as a single string separated by space to argument reg_exts to be subscribed one by one. Using &quot;transactional-update register&quot; for newer OS like SLE Micro 6.0, which is the more preferred way to do registration.</p>
+<p>Any available extensions and modules listed out by SUSEConnect --list-extensions that do not require additional regcode can be subscribe directly by using command SUSEConnect -p [extension or module]. Subscription is to be performed on localhost by default if argument dst_machine is not given any other address, and successful access to dst_machine via ssh should be guaranteed in advance if dst_machine points to a remote machine. Deactivation is also supported if argument activate is given 0 explicitly. Multiple extensions or modules can be passed in as a single string separated by space to argument reg_exts to be subscribed one by one. Direct using &quot;transactional-update register&quot; or &quot;SUSEConnect&quot; depends on the actual situation in which this subroutine is called, namely whether already in transactional shell , so either is allowed by toggling argument usetrup or setting USE_TRUP.</p>
 
 <h2 id="is_sev_es_guest">is_sev_es_guest</h2>
 
@@ -117,6 +118,13 @@
 <pre><code>my $local_path = download_installation_iso($iso_url, $target_dir);</code></pre>
 
 <p>Returns local path on success, undef on failure.</p>
+
+<h2 id="install_product_software">install_product_software</h2>
+
+<pre><code>install_product_software(package =&gt; &#39;package1,package2&#39;, pattern =&gt; &#39;pattern1
+    ,pattern2&#39;)</code></pre>
+
+<p>Install desired packages and patterns from existing product repositories if settings INSTALL_PRODUCT_PACKAGES and INSTALL_PRODUCT_PATTERNS are specified with packages and patterns separated by comma. User can also specify desired pacakges and patterns by passing in arguments package and pattern.</p>
 
 
 </body>
