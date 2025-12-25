@@ -22,10 +22,16 @@ sub run_tests {
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 
+    my $podman = "/usr/bin/podman";
+    $podman .= "-remote" if ($remote);
+
     my %env = (
+        CONTAINERS_HELPER_BINARY_DIR => "/var/tmp/podman/bin",
+        PODMAN_BATS_LEAK_CHECK => "1",
         PODMAN_ROOTLESS_USER => $testapi::username,
-        PODMAN => "/usr/bin/podman",
+        PODMAN => $podman,
         QUADLET => $quadlet,
+        REMOTESYSTEM_TRANSPORT => "unix",
     );
 
     my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local");

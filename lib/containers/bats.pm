@@ -549,13 +549,6 @@ sub bats_tests {
     my $tests = @tests ? join(" ", @tests) : $tests_dir{$package};
 
     my $cmd = "env $env bats --report-formatter junit --tap -T $tests";
-    # With podman we must use its own hack/bats instead of calling bats directly
-    if ($package eq "podman") {
-        my $args = ($tapfile =~ /root/) ? "--root" : "--rootless";
-        $args .= " --remote" if ($tapfile =~ /remote/);
-        $cmd = "env $env hack/bats -t -T $args";
-        $cmd .= " $tests" if ($tests ne $tests_dir{podman});
-    }
     my $xmlfile = "$tapfile.xml";
     $tapfile .= ".tap.txt";
     $cmd .= " </dev/null | tee -a $tapfile";
@@ -641,12 +634,6 @@ sub patch_sources {
         my $apply_cmd = "git apply -3 --ours $file";
         $apply_cmd .= " || git apply -3 --ours --include '$tests_dir/*' $file" if $tests_dir;
         run_command $apply_cmd;
-    }
-
-    if (check_var("BATS_PACKAGE", "podman")) {
-        my $hack_bats = "https://raw.githubusercontent.com/containers/podman/refs/heads/main/hack/bats";
-        run_command "curl $curl_opts -o hack/bats $hack_bats";
-        assert_script_run q(sed -ri 's/(bats_opts)=.*/\1=(--report-formatter junit)/' hack/bats);
     }
 }
 
