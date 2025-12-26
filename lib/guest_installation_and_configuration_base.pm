@@ -1705,7 +1705,7 @@ sub config_guest_installation_automation_registration {
     else {
         $self->{guest_registration_server} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
         assert_script_run("sed -ri \'s/##Do-Registration##/$self->{guest_do_registration}/g;\' $self->{guest_installation_automation_file}");
-        assert_script_run("sed -ri \'s/##Registration-Server##/$self->{guest_registration_server}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s%##Registration-Server##%$self->{guest_registration_server}%g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Registration-UserName##/$self->{guest_registration_username}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Registration-Password##/$self->{guest_registration_password}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Registration-Code##/$self->{guest_registration_code}/g;\' $self->{guest_installation_automation_file}");
