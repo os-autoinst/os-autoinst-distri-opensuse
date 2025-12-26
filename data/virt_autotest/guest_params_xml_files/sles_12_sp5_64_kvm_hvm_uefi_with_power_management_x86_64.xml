@@ -75,7 +75,7 @@
     <guest_memorybacking/>
     <guest_features/>
     <guest_clock/>
-    <guest_power_management>suspend_to_mem.enabled=yes,suspend_to_disk.enabled=yes</guest_power_management>
+    <guest_power_management/>
     <guest_events/>
     <guest_resource/>
     <guest_sysinfo/>
