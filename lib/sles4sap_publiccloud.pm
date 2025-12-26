@@ -1081,7 +1081,12 @@ sub create_playbook_section_list {
 
     # SLES4SAP/HA related playbooks
     if ($args{ha_enabled}) {
-        push @playbook_list, 'pre-cluster.yaml', 'sap-hana-preconfigure.yaml -e use_sapconf=' . get_var('USE_SAPCONF', 'false');
+        push @playbook_list, 'pre-cluster.yaml';
+        my @sap_hana_preconfigure;
+        push @sap_hana_preconfigure, 'sap-hana-preconfigure.yaml';
+        push @sap_hana_preconfigure, '-e use_sapconf=' . get_var('USE_SAPCONF', 'false');
+        push @sap_hana_preconfigure, '-e firewall_cfg=' . get_var('SLES4SAP_FIREWALL', 'ignore');
+        push @playbook_list, join(' ', @sap_hana_preconfigure);
         push @playbook_list, 'cluster_sbd_prep.yaml' if ($args{fencing} eq 'sbd');
         push @playbook_list, qw(
           sap-hana-storage.yaml
