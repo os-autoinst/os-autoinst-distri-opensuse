@@ -8,4 +8,8 @@
         class: "software.import_gpg",
         answer: "Trust"
    },
+   questions_activate_multipath():: {
+        class: "storage.activate_multipath",
+        answer: "yes"
+   },
 }
