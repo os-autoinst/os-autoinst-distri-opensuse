@@ -152,6 +152,14 @@ moby:
     GITHUB_PATCHES:
     - 51219
     - 51263
+  sle-15-SP5:
+    GITHUB_PATCHES:
+    - 51219
+    - 51263
+  sle-15-SP4:
+    GITHUB_PATCHES:
+    - 51219
+    - 51263
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
