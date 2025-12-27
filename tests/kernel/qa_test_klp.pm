@@ -38,7 +38,7 @@ sub run {
         my $devel_pack = get_kernel_devel_flavor;
 
         # Force recommended packages to pull in kernel-default-devel, etc.
-        install_package("--recommends $devel_pack", trup_continue => 1);
+        install_package("--force --recommends $devel_pack", trup_continue => 1);
     }
 
     reboot_on_changes;
