@@ -49,16 +49,16 @@ sub setup {
     run_command "cp -f vendor.sum go.sum || true";
     run_command '(cd testutil/fixtures/plugin/basic; go mod init docker-basic-plugin; go build -o $GOPATH/bin/docker-basic-plugin)';
 
-    # Ignore the tests in these directories in integration/
-    my @ignore_dirs = (
-        "network",
-        "networking",
-        "plugin.*",
-    );
-    my $ignore_dirs = join "|", map { "integration/$_" } @ignore_dirs;
     if (my $test_dirs = get_var("RUN_TESTS", "")) {
         @test_dirs = split(/,/, $test_dirs);
     } else {
+        # Ignore the tests in these directories in integration/
+        my @ignore_dirs = (
+            "network",
+            "networking",
+            "plugin.*",
+        );
+        my $ignore_dirs = join "|", map { "integration/$_" } @ignore_dirs;
         # Adapted from https://build.opensuse.org/projects/openSUSE:Factory/packages/docker/files/docker-integration.sh
         @test_dirs = split(/\n/, script_output(qq(go list -test -f '{{- if ne .ForTest "" -}}{{- .Dir -}}{{- end -}}' ./integration/... | sed "s,^\$(pwd)/,," | grep -vxE '($ignore_dirs)')));
     }
