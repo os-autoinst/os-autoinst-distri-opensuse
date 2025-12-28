@@ -1,0 +1,32 @@
+From a296cb57a8cb88dff7e6f0759ba53c10c244a49f Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sun, 28 Dec 2025 16:12:37 +0100
+Subject: [PATCH] integration: Support iputils ping
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ integration/networking/port_mapping_linux_test.go | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/integration/networking/port_mapping_linux_test.go b/integration/networking/port_mapping_linux_test.go
+index 8796abcd5ad17..462ab3be7f174 100644
+--- a/integration/networking/port_mapping_linux_test.go
++++ b/integration/networking/port_mapping_linux_test.go
+@@ -759,7 +759,7 @@ func TestDirectRoutingOpenPorts(t *testing.T) {
+ 		t.Parallel()
+ 		l3.Hosts["remote"].Do(t, func() {
+ 			t.Helper()
+-			pingRes := icmd.RunCommand(cmd, "--numeric", "--count=1", "--timeout=3", addr)
++			pingRes := icmd.RunCommand(cmd, "-n", "-c1", "-W3", addr)
+ 			assert.Check(t, pingRes.ExitCode == expExit, "%s %s -> out:%s err:%s",
+ 				cmd, addr, pingRes.Stdout(), pingRes.Stderr())
+ 		})
+@@ -880,7 +880,7 @@ func TestAcceptFwMark(t *testing.T) {
+ 		t.Parallel()
+ 		l3.Hosts["remote"].Do(t, func() {
+ 			t.Helper()
+-			pingRes := icmd.RunCommand(cmd, "--numeric", "--count=1", "--timeout=3", addr)
++			pingRes := icmd.RunCommand(cmd, "-n", "-c1", "-W3", addr)
+ 			assert.Check(t, pingRes.ExitCode == expExit, "%s %s -> out:%s err:%s",
+ 				cmd, addr, pingRes.Stdout(), pingRes.Stderr())
+ 		})
