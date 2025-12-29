@@ -59,7 +59,7 @@ sub run {
     # So use root-console for aarch64. See poo#178639
     select_console 'root-console' if (is_aarch64);
 
-    if (is_sle('=16.0')) {
+    if (is_sle('>=16.0')) {
         assert_script_run("setsebool -P httpd_can_network_connect_db 1");
     }
 
