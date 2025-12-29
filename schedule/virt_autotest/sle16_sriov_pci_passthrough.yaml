@@ -1,0 +1,20 @@
+name:          sle16-virt-guest-installation
+description:    >
+  Virtualization guest installation tests including extended feature tests schedule with agama and IPXE
+schedule:
+  - '{{host_installation_or_chained_sriov_test}}'
+conditional_schedule:
+  host_installation_or_chained_sriov_test:
+    DIRECT_CHAINED_VIRT_FEATURE_TEST:
+      0:
+        - installation/ipxe_install
+        - installation/agama_reboot
+        - virt_autotest/login_console
+        - virt_autotest/prepare_non_transactional_server
+      1:
+        - virt_autotest/login_console
+        - virt_autotest/cleanup_service
+        - virt_autotest/download_guest_assets
+        - virt_autotest/restore_guests
+        - virt_autotest/set_config_as_glue
+        - virt_autotest/sriov_network_card_pci_passthrough
