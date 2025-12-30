@@ -628,6 +628,10 @@ sub create_guest {
     my $vcpus = $guest->{vcpus} // "2";
     my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
     my $launch_security = $guest->{launch_security} // '';
+    # Network configuration: supports 'bridge=br0' (public network) or 'network=default' (NAT virtual network)
+    # Set $guest->{network} in common.pm to control network type
+    # Default to 'network=default' (NAT) to conserve public IPs
+    my $network = $guest->{network} // 'network=default';
     my $memory_backing = $guest->{memory_backing} // '';
     my $extra_args = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
     $extra_args = trim($extra_args);
@@ -704,7 +708,8 @@ sub create_guest {
         $extra_args = trim($extra_args);
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
-        $virtinstall .= " --network bridge=br0 --autostart";
+        $virtinstall .= " --network $network --autostart";
+        record_info("Network Config", "Guest $name using network: $network");
 
         # Add installation source based on method
         if ($install_method eq "cdrom") {
@@ -1051,6 +1056,8 @@ sub setup_common_ssh_config {
     if (script_run("grep \"Host \\\*\" $args{ssh_config_file}") ne 0) {
         type_string("cat >> $args{ssh_config_file} <<EOF
 Host *
+    IdentityFile /root/.ssh/id_ed25519
+    IdentityFile /root/.ssh/id_rsa
     UserKnownHostsFile /dev/null
     StrictHostKeyChecking no
     User root

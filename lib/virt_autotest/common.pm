@@ -194,6 +194,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             extra_params => '--os-variant sles12sp4',    # old system compatibility
             distro => 'SLE_12_SP5',
             location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            network => 'bridge=br0',    # Use bridge network for public IP testing
         },
         sles15sp4 => {
             name => 'sles15sp4',
@@ -241,6 +242,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_15',
             location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
             boot_firmware => 'efi',    # EFI version of SLES 15 SP7
+            network => 'bridge=br0',    # Use bridge network for public IP testing
         },
         'sles15sp7efi-snapshot' => {
             name => 'sles15sp7efi-snapshot',
