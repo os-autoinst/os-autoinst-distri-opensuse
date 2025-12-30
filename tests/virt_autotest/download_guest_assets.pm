@@ -17,7 +17,9 @@ sub run {
     my $vm_xml_dir = "/tmp/download_vm_xml";
     # For Unified frame installed guests, use UNIFIED_GUEST_LIST(eg. sles_15_sp7_64_kvm_hvm_uefi) directly
     # For Legacy guests, need to parse the guest list
+    print "julie: UNIFIED_GUEST_LIST=" . get_var('UNIFIED_GUEST_LIST') . "\n";
     my $guest_list = get_var('UNIFIED_GUEST_LIST', get_guest_list());
+    print "julie: \$guest_list=$guest_list\n";
     if (download_guest_assets($guest_list, $vm_xml_dir) eq '0') {
         die "Fatal Error: The guest assets for $guest_list were not downloaded successfully!";
     }

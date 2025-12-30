@@ -375,6 +375,7 @@ sub get_guest_list {
     #get the guest pattern from test suite settings
     #GUEST_PATTERN, GUEST_LIST, or GUEST_LIST is used in different test suites,
     #thus I use GUEST_LIST uniformly.
+    print "julie: at the beginning of get_guest_list() in virt_utils.pm\n";
     if (get_var('GUEST_PATTERN')) {
         set_var('GUEST_LIST', get_var('GUEST_PATTERN'));
     }
