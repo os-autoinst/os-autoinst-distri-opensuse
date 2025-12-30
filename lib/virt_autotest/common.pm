@@ -165,6 +165,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
     }
     %guests = %guests{"sles${guest_version}PV", "sles${guest_version}HVM"} if (get_var('TERADATA'));
 
+    virt_autotest::utils::assign_random_bridge_guest();
+
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %guests = (
         sles12sp3 => {
@@ -354,6 +356,8 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         %guests = ();
     }
     %guests = %guests{"sles$guest_version"} if (get_var('TERADATA'));
+
+    virt_autotest::utils::assign_random_bridge_guest();
 
 } elsif (get_var("REGRESSION", '') =~ /vmware/) {
     %guests = (

@@ -78,6 +78,7 @@ our @EXPORT = qw(
   ssh_copy_id
   add_guest_to_hosts
   update_guests_ip_mac
+  assign_random_bridge_guest
   ensure_default_net_is_active
   remove_additional_disks
   remove_additional_nic
@@ -628,6 +629,10 @@ sub create_guest {
     my $vcpus = $guest->{vcpus} // "2";
     my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
     my $launch_security = $guest->{launch_security} // '';
+    # Network configuration: supports 'bridge=br0' (public network) or 'network=default' (NAT virtual network)
+    # Set $guest->{network} in common.pm to control network type
+    # Default to 'network=default' (NAT) to conserve public IPs
+    my $network = $guest->{network} // 'network=default';
     my $memory_backing = $guest->{memory_backing} // '';
     my $extra_args = get_var("VIRTINSTALL_EXTRA_ARGS", "") . " " . get_var("VIRTINSTALL_EXTRA_ARGS_" . uc($name), "");
     $extra_args = trim($extra_args);
@@ -704,7 +709,8 @@ sub create_guest {
         $extra_args = trim($extra_args);
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
-        $virtinstall .= " --network bridge=br0 --autostart";
+        $virtinstall .= " --network $network --autostart";
+        record_info("Network Config", "Guest $name using network: $network");
 
         # Add installation source based on method
         if ($install_method eq "cdrom") {
@@ -901,6 +907,37 @@ sub update_guests_ip_mac {
     }
 }
 
+=head2 assign_random_bridge_guest
+
+Randomly selects one guest to use bridge network (bridge=br0) for public IP testing.
+This ensures all guests eventually get tested while minimizing public IP consumption.
+
+Override: Set FORCE_BRIDGE_GUEST=<guestname> to force a specific guest for reproducibility.
+
+=cut
+
+sub assign_random_bridge_guest {
+    return unless %virt_autotest::common::guests;
+    my @guest_list = keys %virt_autotest::common::guests;
+    return unless @guest_list;
+
+    # Check for force mode: allow explicit guest selection for reproducibility
+    if (my $forced_guest = get_var('FORCE_BRIDGE_GUEST')) {
+        if (exists $virt_autotest::common::guests{$forced_guest}) {
+            $virt_autotest::common::guests{$forced_guest}{network} = 'bridge=br0';
+            bmwqemu::diag("Forced bridge network for: $forced_guest");
+            return;
+        } else {
+            bmwqemu::diag("Warning: FORCE_BRIDGE_GUEST=$forced_guest not found in guest list");
+        }
+    }
+
+    # Default: random selection
+    my $bridge_guest = $guest_list[int(rand(scalar @guest_list))];
+    $virt_autotest::common::guests{$bridge_guest}{network} = 'bridge=br0';
+    bmwqemu::diag("Bridge network assigned to: $bridge_guest");
+}
+
 # Remove additional disks from the given guest. We remove all disks that match the given pattern or 'vd[b-z]' if no pattern is given
 sub remove_additional_disks {
     my $guest = $_[0];
@@ -1051,6 +1088,8 @@ sub setup_common_ssh_config {
     if (script_run("grep \"Host \\\*\" $args{ssh_config_file}") ne 0) {
         type_string("cat >> $args{ssh_config_file} <<EOF
 Host *
+    IdentityFile /root/.ssh/id_ed25519
+    IdentityFile /root/.ssh/id_rsa
     UserKnownHostsFile /dev/null
     StrictHostKeyChecking no
     User root
