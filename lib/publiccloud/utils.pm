@@ -237,9 +237,8 @@ sub register_addons_in_pc {
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $remote = $instance->username . '@' . $instance->public_ip;
     my $zcmd = "--gpg-auto-import-keys ref";
-    my $ret = $instance->zypper_call_remote(cmd => $zcmd, exitcode => [0, 6, 7], timeout => 300);
+    my $ret = $instance->zypper_call_remote(cmd => $zcmd, exitcode => [0, 6], timeout => 300);
     die 'No enabled repos defined: bsc#1245651' if $ret == 6;    # from zypper man page: ZYPPER_EXIT_NO_REPOS
-    record_info('System management is locked by another application:', $instance->run_ssh_command(cmd => 'sudo pgrep -l zypper')) if $ret == 7;
     $instance->zypper_call_remote(cmd => $zcmd, timeout => 300, retry => 6, delay => 200);
     for my $addon (@addons) {
         next if ($addon =~ /^\s+$/);
