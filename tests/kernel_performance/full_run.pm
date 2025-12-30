@@ -21,11 +21,12 @@ sub full_run {
     my $remote_list = get_var("FULL_LIST");
     my $hostname = script_output "hostname";
     my $runlist = get_var("RUN_LIST");
+    my $sleperf_api_server = get_var('SLEPERF_API_SERVER', '10.200.134.100');
 
-    my $selperf_machine_status_getapi =
-      "http://dashboard.qa2.suse.asia:8889/api/msg_queue/v1/get/qa-apac2.qa-perf.status.automation.machines.progress.";
-    my $selperf_machine_status_popapi =
-      "http://dashboard.qa2.suse.asia:8889/api/msg_queue/v1/pop/qa-apac2.qa-perf.status.automation.machines.progress.";
+    my $sleperf_machine_status_getapi =
+      "http://$sleperf_api_server:8889/api/msg_queue/v1/get/qa-apac2.qa-perf.status.automation.machines.progress.";
+    my $sleperf_machine_status_popapi =
+      "http://$sleperf_api_server:8889/api/msg_queue/v1/pop/qa-apac2.qa-perf.status.automation.machines.progress.";
 
     #setup run list
     assert_script_run("wget -N -P $list_path $remote_list 2>&1");
@@ -41,8 +42,8 @@ sub full_run {
 
     if (get_var('FULLRUN_MONITOR')) {
         # clear host status first
-        get($selperf_machine_status_popapi . $hostname . "/");
-        my $hoststatus = get($selperf_machine_status_getapi . $hostname . "/");
+        get($sleperf_machine_status_popapi . $hostname . "/");
+        my $hoststatus = get($sleperf_machine_status_getapi . $hostname . "/");
         record_info($hostname, $hoststatus);
     }
     assert_script_run("systemctl enable qaperf.service");
@@ -62,7 +63,7 @@ sub full_run {
     }
     if (get_var('FULLRUN_MONITOR')) {
         while () {
-            my $hoststatus = get($selperf_machine_status_getapi . $hostname . "/");
+            my $hoststatus = get($sleperf_machine_status_getapi . $hostname . "/");
             record_info($hostname, $hoststatus);
             if ($hoststatus =~ /Progress: DONE/) {
                 last;
