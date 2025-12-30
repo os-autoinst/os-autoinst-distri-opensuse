@@ -59,7 +59,7 @@ sub run_test {
     virt_autotest::virtual_network_utils::hosts_backup();
 
     #Install required packages
-    zypper_call '-t in iproute2 iptables iputils bind-utils sshpass nmap';
+    zypper_call '-t in iproute2 iptables iputils bind-utils nmap';
 
     #Prepare Guests
     foreach my $guest (keys %virt_autotest::common::guests) {

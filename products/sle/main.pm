@@ -899,6 +899,7 @@ elsif (get_var("VIRT_AUTOTEST")) {
         # Skip reset_partition for s390x due to there just be 42Gib disk space for each s390x LPAR
         loadtest "virt_autotest/reset_partition" if is_x86_64 && get_var('VIRT_PRJ1_GUEST_INSTALL') && !get_var('LTSS');
         loadtest "virt_autotest/reboot_and_wait_up_normal" if !is_registered_sles && get_var('REPO_0_TO_INSTALL');
+        loadtest "virt_autotest/prepare_nvram_for_snapshot" if get_var("ENABLE_SNAPSHOT") && is_x86_64 && get_var("VIRT_UEFI_GUEST_INSTALL");
         loadtest "virt_autotest/download_guest_assets" if get_var("SKIP_GUEST_INSTALL") && is_x86_64;
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {

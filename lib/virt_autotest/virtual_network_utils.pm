@@ -103,7 +103,7 @@ sub create_host_bridge_nm {
     my $host_bridge = "br0";
     my $config_path = "/etc/NetworkManager/system-connections/$host_bridge.nmconnection";
 
-    if (is_sle('=16') && !is_s390x && script_run("[[ -f $config_path ]]") != 0) {
+    if (is_sle('16+') && !is_s390x && script_run("[[ -f $config_path ]]") != 0) {
         # Install required packages python313-psutil and python313-dbus-python
         zypper_call '-t in python313-psutil python313-dbus-python', exitcode => [0, 4, 102, 103, 106];
         my $wait_script = "180";
@@ -506,7 +506,7 @@ sub validate_guest_status {
         #Ensure the ICMP PING responses for the given guest
         die "Error: Ping $guest failed, please check manually!" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => $timeout) ne 0);
         #Ensure the SSH connection for the given guest
-        die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -zv $guest 22", delay => 30, retry => 6, timeout => $timeout) ne 0);
+        die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -4zv $guest 22", delay => 30, retry => 6, timeout => $timeout) ne 0);
     }
 }
 
