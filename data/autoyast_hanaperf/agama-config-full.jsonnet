@@ -12,7 +12,7 @@
   },
   software: {
     patterns: {
-      add: ['sles_sap_HADB', 'sles_sap_HAAPP', 'sles_sap_DB', 'sles_sap_APP', 'selinux']
+      add: ['sles_sap_DB', 'sles_sap_APP']
     },
   },
   product: {
