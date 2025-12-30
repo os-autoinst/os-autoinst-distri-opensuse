@@ -237,8 +237,12 @@ sub register_addons_in_pc {
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $remote = $instance->username . '@' . $instance->public_ip;
     my $zcmd = "--gpg-auto-import-keys ref";
-    my $ret = $instance->zypper_call_remote(cmd => $zcmd, exitcode => [0, 6], timeout => 300);
+    my $ret = $instance->zypper_call_remote(cmd => $zcmd, exitcode => [0, 6, 7], timeout => 300);
     die 'No enabled repos defined: bsc#1245651' if $ret == 6;    # from zypper man page: ZYPPER_EXIT_NO_REPOS
+    if ($ret == 7) {
+        record_info('System management is locked by another application:', $instance->ssh_script_output(cmd => 'sudo pgrep -af "zypper|yast"', proceed_on_failure => 1));
+        wait_quit_zypper_pc($instance);
+    }
     $instance->zypper_call_remote(cmd => $zcmd, timeout => 300, retry => 6, delay => 200);
     for my $addon (@addons) {
         next if ($addon =~ /^\s+$/);
@@ -824,7 +828,7 @@ sub wait_quit_zypper_pc {
 
     # Succeeds (RC 0) only when NO matching processes exist.
     # Using '!' avoids explicit 'exit' and works cleanly with retry_ssh_command.
-    my $cmd = q{pgrep -f "zypper|purge-kernels|rpm" && false || true};
+    my $cmd = q{pgrep -f "zypper|packagekit|purge-kernels|rpm" && false || true};
 
     $instance->retry_ssh_command(
         cmd => $cmd,
