@@ -13,25 +13,20 @@
     <guest_arch>x86_64</guest_arch>
     <guest_name/>
     <guest_domain_name/>
-    <guest_memory>4096,maxmemory=8192</guest_memory>
-    <guest_vcpus>4,maxvcpus=8</guest_vcpus>
+    <guest_memory>2048,maxmemory=4096</guest_memory>
+    <guest_vcpus>2,maxvcpus=4</guest_vcpus>
     <guest_cpumodel>host-model</guest_cpumodel>
     <guest_metadata/>
-    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-qcow2-vars.bin,nvram.templateFormat=qcow2,hd,bootmenu.enable=yes,menu=on</guest_boot_settings>
+    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-vars.bin,hd,bootmenu.enable=yes,menu=on</guest_boot_settings>
     <guest_xpath/>
-    <guest_installation_automation_method>autoagama</guest_installation_automation_method>
-    <guest_installation_automation_platform></guest_installation_automation_platform>
-    <guest_installation_automation_file>sles_16_plus_kvm_hvm_guest_non_encrypted_storage_x86_64.jsonnet</guest_installation_automation_file>
-    <guest_installation_method>directkernel</guest_installation_method>
+    <guest_installation_automation_method>ignition+combustion</guest_installation_automation_method>
+    <guest_installation_automation_platform>metal</guest_installation_automation_platform>
+    <guest_installation_automation_file>ignition_config_non_encrypted_image.ign#combustion_script_all_round</guest_installation_automation_file>
+    <guest_installation_method>import</guest_installation_method>
     <guest_installation_extra_args/>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>http://openqa.suse.de/assets/iso/fixed/SLES-16.0-Online-x86_64-GM.install.iso</guest_installation_media>
-    <guest_installation_fine_grained_media>http://openqa.suse.de/assets/repo/fixed/SLES-16.0-Online-x86_64-GM.install/</guest_installation_fine_grained_media>
-    <guest_installation_fine_grained_repos/>
-    <guest_installation_fine_grained_kernel_args>live.password=novell console=ttyS0,115200 linuxrc.log=/dev/ttyS0 linuxrc.core=/dev/ttyS0 linuxrc.debug=4,trace</guest_installation_fine_grained_kernel_args>
-    <guest_installation_fine_grained_kernel_args_overwrite/>
-    <guest_installation_fine_grained_others/>
+    <guest_installation_media>http://openqa.suse.de/assets/hdd/SLES16-Minimal-VM.x86_64-kvm-and-xen-Build12345.qcow2</guest_installation_media>
     <guest_os_variant>sles16</guest_os_variant>
     <guest_storage_path/>
     <guest_storage_type>disk</guest_storage_type>
@@ -92,8 +87,8 @@
     <guest_noautoconsole>false</guest_noautoconsole>
     <guest_noreboot/>
     <guest_default_target>graphical</guest_default_target>
-    <guest_do_registration>true</guest_do_registration>
-    <guest_registration_server>https://scc.suse.com</guest_registration_server>
+    <guest_do_registration>false</guest_do_registration>
+    <guest_registration_server/>
     <guest_registration_username/>
     <guest_registration_password/>
     <guest_registration_extensions/>
