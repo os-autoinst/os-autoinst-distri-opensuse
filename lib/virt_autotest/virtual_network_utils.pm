@@ -100,7 +100,6 @@ sub get_guest_bridge_src {
 
 # Create a host bridge network interface for sles16 via NetworkManager poo#178708
 sub create_host_bridge_nm {
-    print "julie: at the beginning of create_host_bridge_nm() in lib/ \n";
     my $host_bridge = "br0";
     my $config_path = "/etc/NetworkManager/system-connections/$host_bridge.nmconnection";
 
