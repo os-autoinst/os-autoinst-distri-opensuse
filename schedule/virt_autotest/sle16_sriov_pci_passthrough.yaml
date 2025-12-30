@@ -13,7 +13,7 @@ conditional_schedule:
         - virt_autotest/prepare_non_transactional_server
       1:
         - virt_autotest/login_console
-        - virt_autotest/cleanup_service
+        #- virt_autotest/cleanup_service
         - virt_autotest/download_guest_assets
         - virt_autotest/restore_guests
         - virt_autotest/set_config_as_glue
