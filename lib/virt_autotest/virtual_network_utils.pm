@@ -103,7 +103,7 @@ sub create_host_bridge_nm {
     my $host_bridge = "br0";
     my $config_path = "/etc/NetworkManager/system-connections/$host_bridge.nmconnection";
 
-    if (is_sle('=16') && !is_s390x && script_run("[[ -f $config_path ]]") != 0) {
+    if (is_sle('16+') && !is_s390x && script_run("[[ -f $config_path ]]") != 0) {
         # Install required packages python313-psutil and python313-dbus-python
         zypper_call '-t in python313-psutil python313-dbus-python', exitcode => [0, 4, 102, 103, 106];
         my $wait_script = "180";
