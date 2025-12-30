@@ -23,7 +23,7 @@ sub run_test {
     my ($self) = @_;
 
     # SLES16 has done this in earlier setup
-    unless (is_sle('=16')) {
+    unless (is_sle('16+')) {
         #Prepare VM HOST SERVER Network Interface Configuration
         #for libvirt virtual network testing
         virt_autotest::virtual_network_utils::prepare_network($virt_host_bridge, $based_guest_dir);

@@ -27,13 +27,13 @@ sub run_test {
     die "The default(NAT BASED NETWORK) virtual network does not exist" if (script_run('virsh net-list --all | grep default') != 0);
 
     #Stop named.service, refer to poo#175287
-    systemctl("stop named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1));
+    systemctl("stop named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1) && !get_var('VIRT_UNIFIED_GUEST_INSTALL'));
     #Create NAT BASED NETWORK
     assert_script_run("virsh net-create vnet_nated.xml");
     save_screenshot;
     upload_logs "vnet_nated.xml";
     assert_script_run("rm -rf vnet_nated.xml");
-    if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1)) {
+    if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1) && !get_var('VIRT_UNIFIED_GUEST_INSTALL')) {
         #Resume named.service, refer to poo#175287
         systemctl("start named.service");
         #Enable the listen-on option in named.conf

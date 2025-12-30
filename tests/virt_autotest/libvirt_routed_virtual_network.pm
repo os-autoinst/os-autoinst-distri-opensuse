@@ -28,7 +28,7 @@ sub run_test {
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_routed_clone_cfg_name);
 
     #Stop named.service, refer to poo#175287
-    systemctl("stop named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1));
+    systemctl("stop named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1) && !get_var('VIRT_UNIFIED_GUEST_INSTALL'));
     #Create ROUTED NETWORK
     assert_script_run("virsh net-create vnet_routed.xml");
     assert_script_run("virsh net-create vnet_routed_clone.xml");
@@ -37,7 +37,7 @@ sub run_test {
     upload_logs "vnet_routed_clone.xml";
     assert_script_run("rm -rf vnet_routed.xml vnet_routed_clone.xml");
     #Resume named.service, refer to poo#175287
-    systemctl("start named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1));
+    systemctl("start named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1) && !get_var('VIRT_UNIFIED_GUEST_INSTALL'));
 
     my ($mac1, $mac2, $target1, $target2, $gateway1, $gateway2);
     $target1 = '192.168.130.1';
