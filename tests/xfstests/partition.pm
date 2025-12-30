@@ -134,6 +134,7 @@ sub do_partition_for_xfstests {
     # Create mount points
     script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
     # Setup configure file xfstests/local.config
+    script_run("echo 'export FSTYP=$para{fstype}' >> $CONFIG_FILE");
     script_run("echo 'export TEST_DEV=$test_dev' >> $CONFIG_FILE");
     set_var('XFSTESTS_TEST_DEV', $test_dev);
     script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
@@ -204,6 +205,7 @@ sub create_loop_device_by_rootsize {
     # Create mount points
     script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
     # Setup configure file xfstests/local.config
+    script_run("echo 'export FSTYP=$para{fstype}' >> $CONFIG_FILE");
     script_run("echo 'export TEST_DEV=/dev/loop0' >> $CONFIG_FILE");
     set_var('XFSTESTS_TEST_DEV', '/dev/loop0');
     script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
@@ -268,6 +270,7 @@ sub set_config {
         script_run("echo export TEST_DIR=/opt/nfs/test >> $CONFIG_FILE");
         script_run("echo export SCRATCH_DEV=$NFS_SERVER_IP:/opt/export/scratch >> $CONFIG_FILE");
         script_run("echo export SCRATCH_MNT=/opt/nfs/scratch >> $CONFIG_FILE");
+        script_run("echo export FSTYP=nfs >> $CONFIG_FILE");
         if ($NFS_VERSION =~ 'pnfs') {
             script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.1,minorversion=1\"' >> $CONFIG_FILE");
         }
