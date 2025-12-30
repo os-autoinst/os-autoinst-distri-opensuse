@@ -61,6 +61,7 @@ sub run {
     $self->reveal_myself;
     return if get_var('SKIP_GUEST_INSTALL');
     my @guest_names = split(/\|/, get_required_var('UNIFIED_GUEST_LIST'));
+    record_soft_failure("bsc#1255476 - No SLES16.1 in os database") if (check_var('VERSION', '16.1') && grep { $_ eq 'sles-16-1' } @guest_names);
     my @guest_profiles = split(/\|/, get_required_var('UNIFIED_GUEST_PROFILES'));
     croak("Guest names and profiles must be given to create, configure and install guests.") if ((scalar(@guest_names) eq 0) or (scalar(@guest_profiles) eq 0));
     my %store_of_guests;
