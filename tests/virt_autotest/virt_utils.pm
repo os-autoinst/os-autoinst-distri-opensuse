@@ -417,6 +417,10 @@ sub download_guest_assets {
         for my $i (1 .. @guests) {
             # ASSET_n0: put the guest xml file
             # ASSET_n1: put the guest disk file
+            unless ((get_var("ASSET_${i}0", "")) {
+                record_info('Softfail', "ASSET_${i}0 is empty!", result => 'softfail');
+                next;
+            }
             if (get_var("ASSET_${i}0", "") =~ /$guest_asset_name/) {
 
                 # Download the guest xml file
