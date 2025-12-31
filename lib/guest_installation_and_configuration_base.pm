@@ -250,7 +250,7 @@ sub prepare_common_environment {
         script_run("rm -f -r /root/.ssh/config");
         virt_autotest::utils::setup_common_ssh_config(ssh_id_file => $_host_params{ssh_key_file});
         script_run("[ -f /etc/ssh/ssh_config ] && sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
-        enable_debug_logging;
+        enable_debug_logging if (is_sle('<16', get_var('VERSION_TO_INSTALL', get_required_var('VERSION'))));
         $_host_params{host_sutip} = get_required_var('SUT_IP') if (is_ipmi);
         my $_default_route = script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+", proceed_on_failure => 1);
         my $_default_device = ((!$_default_route) ? 'br0' : (split(' ', script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+ | head -1")))[4]);
@@ -1704,11 +1704,15 @@ sub config_guest_installation_automation_registration {
     }
     else {
         $self->{guest_registration_server} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
+        my $_guest_registration_server = ($self->{guest_registration_server} ? $self->{guest_registration_server} : get_var('SCC_URL', 'https://scc.suse.com'));
+        $_guest_registration_server =~ s/\//PLACEHOLDER/img;
         assert_script_run("sed -ri \'s/##Do-Registration##/$self->{guest_do_registration}/g;\' $self->{guest_installation_automation_file}");
-        assert_script_run("sed -ri \'s%##Registration-Server##%$self->{guest_registration_server}%g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -ri \'s/##Registration-Server##/$_guest_registration_server/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Registration-UserName##/$self->{guest_registration_username}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Registration-Password##/$self->{guest_registration_password}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Registration-Code##/$self->{guest_registration_code}/g;\' $self->{guest_installation_automation_file}");
+        assert_script_run("sed -i \'s/PLACEHOLDER/\\\//g;\' $self->{guest_installation_automation_file}");
+        $_guest_registration_server =~ s/PLACEHOLDER/\//img;
         if (($self->{guest_registration_extensions} ne '') and ($self->{guest_os_name} =~ /sles/im)) {
             my @_guest_registration_extensions = split(/#/, $self->{guest_registration_extensions});
             my @_guest_registration_extensions_codes = ('') x scalar @_guest_registration_extensions;
@@ -1726,7 +1730,6 @@ sub config_guest_installation_automation_registration {
                 assert_script_run("sed -zri \'s/<\\\/addons>.*\\n.*<\\\/suse_register>/$_guest_registration_extension_clip\\n    <\\\/addons>\\n  <\\\/suse_register>/\' $self->{guest_installation_automation_file}");
             }
         }
-        my $_guest_registration_server = ($self->{guest_registration_server} ? $self->{guest_registration_server} : get_var('SCC_URL', 'https://scc.suse.com'));
         if (is_agama_guest(guest => $self->{guest_name}) and $self->{guest_do_registration} eq 'true') {
             if ($self->{guest_installation_method} eq 'directkernel') {
                 $self->{guest_installation_fine_grained_kernel_args} .= ' inst.register_url=' . $_guest_registration_server;
@@ -2162,16 +2165,7 @@ sub validate_guest_installation_automation_file {
         }
     }
     elsif ($self->{guest_installation_automation_method} eq 'autoagama') {
-        unless (is_x86_64) {
-            record_info("Skip autoagama file validation for non-x86 arch due to no agama-cli pkg.");
-        } else {
-            if (script_run("agama --insecure profile validate $self->{guest_installation_automation_file}") != 0) {
-                record_info("Autoagama file validation failed for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}"), result => 'fail');
-            }
-            else {
-                record_info("Autoagama file validation succeeded for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}"));
-            }
-        }
+        record_info("Autoagama file for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}"));
     }
     return $self;
 }

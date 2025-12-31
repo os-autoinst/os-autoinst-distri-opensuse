@@ -22,6 +22,7 @@ use Utils::Systemd;
 use Utils::Backends qw(get_serial_console);
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
+use ipmi_backend_utils qw(set_grub_terminal_and_timeout);
 
 sub run {
     my $self = shift;
@@ -86,6 +87,7 @@ sub prepare_bootloader {
 
     my $serialconsole = get_serial_console();
     if (script_run("grep -E \"\\s+linux\\s+/boot/.*console=$serialconsole,115200\" /boot/grub2/grub.cfg") != 0) {
+        set_grub_terminal_and_timeout;
         ipmi_backend_utils::add_kernel_options(kernel_opts => "console=tty console=$serialconsole,115200");
         set_var('_NEEDS_REBOOTING', 1);
     }

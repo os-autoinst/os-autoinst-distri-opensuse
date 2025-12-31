@@ -29,7 +29,7 @@
     <guest_installation_media>http://openqa.suse.de/assets/iso/SLES-16.1-Online-aarch64-Build12345.install.iso</guest_installation_media>
     <guest_installation_fine_grained_media>http://openqa.suse.de/assets/repo/SLES-16.1-Online-aarch64-Build12345.install/</guest_installation_fine_grained_media>
     <guest_installation_fine_grained_repos/>
-    <guest_installation_fine_grained_kernel_args>live.password=novell console=ttyAMA0,115200 linuxrc.log=/dev/ttyAMA0 linuxrc.core=/dev/ttyAMA0 linuxrc.debug=4,trace ip=dhcp rd.neednet</guest_installation_fine_grained_kernel_args>
+    <guest_installation_fine_grained_kernel_args>live.password=novell console=ttyAMA0,115200 linuxrc.log=/dev/ttyAMA0 linuxrc.core=/dev/ttyAMA0 linuxrc.debug=4,trace ip=dhcp rd.neednet arm64.nompam</guest_installation_fine_grained_kernel_args>
     <guest_installation_fine_grained_kernel_args_overwrite/>
     <guest_installation_fine_grained_others/>
     <guest_os_variant>sles16</guest_os_variant>
@@ -42,7 +42,7 @@
     <guest_storage_backing_format/>
     <guest_storage_others>driver.name=qemu,target.dev=vda,target.bus=virtio,bus=virtio,cache=none</guest_storage_others>
     <guest_network_type>bridge</guest_network_type>
-    <guest_network_mode>host</guest_network_mode>
+    <guest_network_mode>bridge</guest_network_mode>
     <guest_network_device/>
     <guest_network_others/>
     <guest_netaddr/>
