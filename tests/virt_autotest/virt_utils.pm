@@ -410,7 +410,6 @@ sub get_guest_list {
     #get the guest pattern from test suite settings
     #GUEST_PATTERN, GUEST_LIST, or GUEST_LIST is used in different test suites,
     #thus I use GUEST_LIST uniformly.
-    print "julie: at the beginning of get_guest_list() in virt_utils.pm\n";
     if (get_var('GUEST_PATTERN')) {
         set_var('GUEST_LIST', get_var('GUEST_PATTERN'));
     }
@@ -452,7 +451,7 @@ sub download_guest_assets {
         for my $i (1 .. @guests) {
             # ASSET_n0: put the guest xml file
             # ASSET_n1: put the guest disk file
-            unless ((get_var("ASSET_${i}0", "")) {
+            unless (get_var("ASSET_${i}0", "")) {
                 record_info('Softfail', "ASSET_${i}0 is empty!", result => 'softfail');
                 next;
             }
