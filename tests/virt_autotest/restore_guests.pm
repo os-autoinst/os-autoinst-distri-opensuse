@@ -9,7 +9,7 @@ package restore_guests;
 
 use testapi;
 use base "virt_autotest_base";
-use virt_autotest::utils qw(remove_vm restore_downloaded_guests);
+use virt_autotest::utils qw(remove_vm restore_downloaded_guests wait_guest_online);
 use virt_utils qw(get_guest_list);
 
 sub run {
@@ -25,6 +25,8 @@ sub run {
     foreach my $guest (split "\n", $guest_list) {
         if (script_run("ls $downloaded_xml_dir/$guest.xml") == 0) {
             restore_downloaded_guests($guest, $downloaded_xml_dir);
+            assert_script_run "virsh start $guest";
+            wait_guest_online($guest);
         }
     }
 }
