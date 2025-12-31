@@ -81,11 +81,13 @@ sub install_runtime_dependencies {
       exfat-utils
       fuse-exfat
       ibmtss
+      keyutils
       lvm2
       net-tools
       net-tools-deprecated
       ntfsprogs
       numactl
+      openssl
       psmisc
       quota
       squashfs
