@@ -13,7 +13,7 @@ use virt_autotest::utils qw(remove_vm restore_downloaded_guests);
 use virt_utils qw(get_guest_list);
 
 sub run {
-    my $guest_list = get_guest_list();
+    my $guest_list = get_var('UNIFIED_GUEST_LIST') ? get_var('UNIFIED_GUEST_LIST') : get_guest_list();
     my $downloaded_xml_dir = "/tmp/download_vm_xml";
 
     #clean up env
