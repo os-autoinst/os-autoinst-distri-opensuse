@@ -255,7 +255,7 @@ sub is_kvm_host {
 sub is_monolithic_libvirtd {
     record_info('WARNING', 'Libvirt package is not installed', result => 'fail') if (script_run('rpm -q libvirt-libs'));
     unless (is_alp) {
-        return 1 if script_run('systemctl is-enabled libvirtd.service') == 0;
+        return 1 if (script_run('systemctl is-enabled libvirtd.service') == 0);
     }
     return 0;
 }
@@ -298,7 +298,7 @@ sub turn_on_libvirt_debugging_log {
 
     my @libvirt_daemons = is_monolithic_libvirtd ? "libvirtd" : qw(virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtlockd);
     # For details, please refer to poo#137096
-    push @libvirt_daemons, 'virtlogd' if is_kvm_host;
+    push @libvirt_daemons, 'virtlogd' if (is_kvm_host and is_sle('>=15'));
 
     #turn on debug and log filter for libvirt services
     #disable log_level = 1 'debug' as it generage large output
