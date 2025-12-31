@@ -73,6 +73,7 @@ sub instantiate_guests_and_profiles {
         $_guest_profile->{guest_name} = $_element;
         $_guest_profile->{guest_installation_media} = $_store_of_guests{$_element}{INSTALL_MEDIA} if ($_store_of_guests{$_element}{INSTALL_MEDIA} ne '');
         $_guest_profile->{guest_build} = $_store_of_guests{$_element}{INSTALL_BUILD} if ($_store_of_guests{$_element}{INSTALL_BUILD} ne '');
+        $_guest_profile->{guest_registration_server} = $_store_of_guests{$_element}{REG_SERVER} if ($_store_of_guests{$_element}{REG_SERVER} ne '');
         $_guest_profile->{guest_registration_code} = $_store_of_guests{$_element}{REG_CODE};
         $_guest_profile->{guest_registration_extensions_codes} = $_store_of_guests{$_element}{REG_EXTS_CODES};
         $_guest_profile->{guest_installation_fine_grained_media} = $_store_of_guests{$_element}{INSTALL_FINE_GRAINED_MEDIA} if ($_store_of_guests{$_element}{INSTALL_FINE_GRAINED_MEDIA} ne '');

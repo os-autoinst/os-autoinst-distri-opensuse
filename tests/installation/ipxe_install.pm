@@ -218,6 +218,7 @@ sub set_bootscript_agama_cmdline_extra {
     $cmdline_extra .= ' ' . get_var('AGAMA_NETWORK_PARAMS', '');
     # Pass specific CPU parameters for a particular type of tests
     $cmdline_extra .= ' ' . get_var('CPU_BOOTPARAMS', '') if get_var('ALLOW_CPU_BOOTPARAMS', '');
+    $cmdline_extra .= ' arm64.nompam' if (is_aarch64 and get_var('NO_MPAM'));
 
     return $cmdline_extra;
 }
