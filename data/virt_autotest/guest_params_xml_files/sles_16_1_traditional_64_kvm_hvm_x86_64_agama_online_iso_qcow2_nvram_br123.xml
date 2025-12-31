@@ -17,10 +17,10 @@
     <guest_vcpus>2,maxvcpus=4</guest_vcpus>
     <guest_cpumodel>host-model</guest_cpumodel>
     <guest_metadata/>
-    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-vars.bin,hd,bootmenu.enable=yes,menu=on</guest_boot_settings>
+    <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-qcow2-vars.bin,nvram.templateFormat=qcow2,hd,bootmenu.enable=yes,menu=on</guest_boot_settings>
     <guest_xpath/>
     <guest_installation_automation_method>autoagama</guest_installation_automation_method>
-    <guest_installation_automation_platform/>
+    <guest_installation_automation_platform></guest_installation_automation_platform>
     <guest_installation_automation_file>sles_16_plus_kvm_hvm_guest_non_encrypted_storage_x86_64.jsonnet</guest_installation_automation_file>
     <guest_installation_method>directkernel</guest_installation_method>
     <guest_installation_extra_args/>
