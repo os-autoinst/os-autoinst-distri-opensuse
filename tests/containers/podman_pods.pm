@@ -75,10 +75,8 @@ sub run {
     record_info('Test', 'Confirm one pod has been killed');
     assert_script_run('podman pod ps | grep "Exited" | wc -l | grep -q 1');
 
-    if (is_sle('15-SP3+') || is_opensuse()) {
-        record_info('Cleanup', 'Stop pods');
-        assert_script_run('podman play kube --down hello-kubic.yaml');
-    }
+    record_info('Cleanup', 'Stop pods');
+    assert_script_run('podman play kube --down hello-kubic.yaml');
 
     # Kube generate
     record_info('Test', 'Generate the yaml from a pod');
