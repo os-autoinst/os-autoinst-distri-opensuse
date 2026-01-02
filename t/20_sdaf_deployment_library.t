@@ -191,6 +191,25 @@ subtest '[az_login] Get credentials from OpenQA settings' => sub {
     undef_variables;
 };
 
+subtest 'Check credentials' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my %credentrials = (client_id => 'Potato', client_secret => 'Patata', tenant_id => 'Zemiak', subscription_id => 'Batata');
+
+    $ms_sdaf->redefine(export_credentials => sub { return \%credentrials; });
+    $ms_sdaf->redefine(get_required_var => sub { return 'LAB'; });
+    $ms_sdaf->redefine(az_keyvault_secret_list => sub { return ['SecretList']; });
+    $ms_sdaf->redefine(az_keyvault_secret_show => sub { return 'SecretShow'; });
+    $ms_sdaf->redefine(define_secret_variable => sub { return 0; });
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', "$_[0]", ':', "$_[1]")); });
+
+    $ms_sdaf->redefine(script_run => sub { return 0; });
+    ok(check_credentials() == 0, 'Check credentials passed');
+
+    $ms_sdaf->redefine(script_run => sub { return 1; });
+    dies_ok { check_credentials() } 'Check credentials failed on purpose';
+
+    undef_variables;
+};
 
 subtest '[sdaf_cleanup] Test correct usage' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
