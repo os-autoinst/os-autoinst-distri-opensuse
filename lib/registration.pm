@@ -3,6 +3,8 @@
 
 package registration;
 
+use JSON qw(decode_json);
+use Data::Dumper;
 use base Exporter;
 use Exporter;
 use strict;
@@ -1130,7 +1132,7 @@ sub detect_suseconnect_path {
  get_available_modules();
 
 Return a hash reference containing the names of all extensions and
-modules reported by C<SUSEConnect --list-extensions>.
+modules reported by C<SUSEConnect --list-extensions --json>.
 
 The keys of the returned hash are the full product names as reported
 by SUSEConnect (for example C<PackageHub>.
@@ -1142,15 +1144,13 @@ non-zero status.
 
 sub get_available_modules {
     my %modules;
-    my $output = eval { script_output("SUSEConnect  --list-extensions", timeout => 120); };
 
-    die "SUSEConnect --list-extensions failed" if $@;
+    my $json_output = eval { script_output("SUSEConnect  --list-extensions --json", timeout => 120); };
+    die "SUSEConnect --list-extensions --json failed" if $@;
+    record_info('Extensions', $json_output);
 
-    for my $line (split /\n/, $output) {
-        next unless $line =~ /^(\S+)\s+/;
-        my $product = $1;
-        $modules{$product} = 1;
-    }
+    my $output = decode_json($json_output);
+    record_info('Extensions', Dumper($output));
 
     return \%modules;
 }
