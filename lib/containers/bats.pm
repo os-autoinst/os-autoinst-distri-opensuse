@@ -302,18 +302,18 @@ EOF
     write_sut_file('/etc/systemd/system/tmp.mount.d/override.conf', $override_conf);
 }
 
+sub nonewprivs {
+    run_command "zypper ar -f https://download.opensuse.org/repositories/home:/kukuk:/no_new_privs/openSUSE_Tumbleweed/ no_new_privs";
+    run_command "zypper -n --gpg-auto-import-keys install --force-resolution --allow-vendor-change enable-no_new_privs";
+    run_command "systemctl enable --now polkit-agent-helper.socket || true";
+}
+
 sub setup_pkgs {
     my ($self, @pkgs) = @_;
 
     @commands = ("### RUN AS root");
 
     install_bats if get_var("BATS_PACKAGE");
-
-    if (script_run("test -f /etc/sudoers.d/usrlocal")) {
-        assert_script_run "mkdir -pm 0750 /etc/sudoers.d/";
-        assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
-        assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
-    }
 
     enable_modules if is_sle("<16");
 
@@ -374,6 +374,8 @@ EOF
     }
 
     return if $rebooted;
+
+    nonewprivs if get_var("NONEWPRIVS");
 
     foreach my $pkg (split(/\s+/, get_var("TEST_PACKAGES", ""))) {
         run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";

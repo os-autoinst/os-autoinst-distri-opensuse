@@ -1,0 +1,26 @@
+From 7d76d0ca439cda14a9b046403b4deb8495a3e40e Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 2 Jan 2026 17:22:05 +0100
+Subject: [PATCH] test/e2e: Skip privileged container test if NoNewPrivs is set
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/e2e/run_privileged_test.go | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/test/e2e/run_privileged_test.go b/test/e2e/run_privileged_test.go
+index 967168d123b..92c6371491d 100644
+--- a/test/e2e/run_privileged_test.go
++++ b/test/e2e/run_privileged_test.go
+@@ -143,6 +143,11 @@ var _ = Describe("Podman privileged container tests", func() {
+ 			Skip("Can't determine NoNewPrivs")
+ 		}
+ 
++		fields := strings.Fields(cap.OutputToString())
++		if fields[1] != "0" {
++			Skip("NoNewPrivs set")
++		}
++
+ 		session := podmanTest.Podman([]string{"run", BB, "grep", "NoNewPrivs", "/proc/self/status"})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())

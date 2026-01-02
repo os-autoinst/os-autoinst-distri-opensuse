@@ -204,6 +204,7 @@ podman:
   # https://github.com/containers/podman/pull/27760 - test/system: remove apk from build
   # https://github.com/containers/podman/pull/27813 - test: Fix --hostuser octal UID test flakiness
   # https://github.com/containers/podman/pull/27826 - test: Fix PODMAN_BATS_LEAK_CHECK
+  # https://github.com/containers/podman/pull/27846 - test/e2e: Skip privileged container test if NoNewPrivs is set
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26934
@@ -211,6 +212,7 @@ podman:
     - 27760
     - 27813
     - 27826
+    - 27846
   sle-16.1:
     GITHUB_PATCHES:
     - 25858
@@ -259,8 +261,12 @@ podman:
     - 27760
 podman-py:
   opensuse-Tumbleweed:
+  # Note on patches:
+  # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set
 runc:
   opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 5079
   sle-16.1:
   sle-16.0:
   sle-15-SP7:
