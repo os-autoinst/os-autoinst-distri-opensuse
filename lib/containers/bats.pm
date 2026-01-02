@@ -210,8 +210,8 @@ sub install_git {
     }
     # 16.1 is BETA
     $version = "16.0" if ($version eq "16.1");
-    run_command "sudo zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
-    run_command "sudo zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
+    run_command "zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
+    run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
 }
 
 sub install_gotestsum {
@@ -569,7 +569,7 @@ sub bats_tests {
     patch_junit $package, $version, $xmlfile, @ignore_tests;
     parse_extra_log(XUnit => $xmlfile);
 
-    script_run("sudo rm -rf $tmp_dir", timeout => 0);
+    script_run("rm -rf $tmp_dir || true", timeout => 0);
 
     return ($ret);
 }
