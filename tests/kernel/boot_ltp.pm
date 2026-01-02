@@ -41,6 +41,8 @@ sub run {
 
     init_debug;    # calls select_serial_terminal
 
+    run_supportconfig;
+
     # Debug code for poo#81142
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');
     upload_logs('framebuffer.dat.gz', failok => 1);

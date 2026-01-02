@@ -43,6 +43,7 @@ our @EXPORT = qw(
   prepare_whitelist_environment
   setup_kernel_logging
   init_debug
+  run_supportconfig
 );
 
 sub loadtest_kernel {
@@ -571,11 +572,21 @@ sub init_debug {
         install_package('oprofile', trup_reboot => 1);
     }
 
+    if (check_var_array('LTP_DEBUG', 'supportconfig')) {
+        install_package('supportutils', trup_reboot => 1);
+    }
+
     # Initialize VNC console now to avoid login attempts on frozen system
     select_console('root-console');
 
     # required to be last to avoid resetting the preinitialized root-console on transactional systems.
     select_serial_terminal;
+}
+
+sub run_supportconfig {
+    return unless check_var_array('LTP_DEBUG', 'supportconfig');
+    script_run("supportconfig -B ltp", timeout => 1800);
+    upload_logs("/var/log/scc_ltp.txz", failok => 1);
 }
 
 1;
