@@ -259,8 +259,12 @@ podman:
     - 27760
 podman-py:
   opensuse-Tumbleweed:
+  # Note on patches:
+  # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set
 runc:
   opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 5079
   sle-16.1:
   sle-16.0:
   sle-15-SP7:

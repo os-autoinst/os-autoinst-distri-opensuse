@@ -1,0 +1,25 @@
+From 763bec37489386c6b65f7659c3e9c9b486cd3bdb Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 2 Jan 2026 16:59:23 +0100
+Subject: [PATCH] integration: Skip test for new privileges if NoNewPrivs is
+ set
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/integration/capabilities.bats | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/tests/integration/capabilities.bats b/tests/integration/capabilities.bats
+index 4b1c127e026..2cb8b3d5600 100644
+--- a/tests/integration/capabilities.bats
++++ b/tests/integration/capabilities.bats
+@@ -31,6 +31,9 @@ function teardown() {
+ }
+ 
+ @test "runc run with new privileges" {
++	if [ $(awk '/^NoNewPrivs:/ { print $2 }' /proc/self/status) -ne 0 ]; then
++		skip "requires unset NoNewPrivs"
++	fi
+ 	update_config '.process.noNewPrivileges = false'
+ 	runc run test_new_privileges
+ 	[ "$status" -eq 0 ]
