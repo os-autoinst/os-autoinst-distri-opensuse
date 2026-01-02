@@ -32,6 +32,11 @@ sub run {
         export_to_json($tinfo->test_result_export);
     }
 
+    if (check_var_array('LTP_DEBUG', 'supportconfig')) {
+        script_run("supportconfig -B ltp", timeout => 1800);
+        upload_logs("/var/log/scc_ltp.txz", failok => 1);
+    }
+
     script_run('cat /proc/stat');
     script_run('df -h');
     check_kernel_taint($self, has_published_assets() ? 1 : 0);
