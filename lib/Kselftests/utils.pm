@@ -68,7 +68,8 @@ sub install_dependencies
 {
     my ($collection) = @_;
 
-    if (is_sle()) {
+    # cgroup tests do not require phub nor qa repo
+    if (is_sle() && $collection ne 'cgroup') {
         add_qa_head_repo;
         add_suseconnect_product(get_addon_fullname('phub'));
     }
