@@ -309,12 +309,6 @@ sub setup_pkgs {
 
     install_bats if get_var("BATS_PACKAGE");
 
-    if (script_run("test -f /etc/sudoers.d/usrlocal")) {
-        assert_script_run "mkdir -pm 0750 /etc/sudoers.d/";
-        assert_script_run "echo 'Defaults secure_path=\"/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bin\"' > /etc/sudoers.d/usrlocal";
-        assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/nopasswd";
-    }
-
     enable_modules if is_sle("<16");
 
     if (get_var("TEST_REPOS", "")) {
