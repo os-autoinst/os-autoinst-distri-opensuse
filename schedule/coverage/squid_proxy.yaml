@@ -2,7 +2,7 @@
 # when you add a test, you need to fill out the last
 # section about coverage targets as well
 
-name:  measure test coverage for selected text mode utils
+name:  measure test coverage for squid proxy
 description: >
     Maintainer: amanzini
 schedule:
