@@ -55,6 +55,10 @@ sub run {
     select_console('root-console') if get_var('LTP_DEBUG');
     select_serial_terminal;
 
+    if (check_var_array('LTP_DEBUG', 'supportconfig')) {
+        install_package('supportutils', trup_reboot => 1);
+    }
+
     # Debug code for poo#81142
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');
     upload_logs('framebuffer.dat.gz', failok => 1);
