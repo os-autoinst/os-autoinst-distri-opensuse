@@ -201,9 +201,10 @@ subtest '[ipaddr2_internal_key_accept]' => sub {
             push @calls, $_[0];
             if ($_[0] =~ /nc.*22/) { return 0; }
             if ($_[0] =~ /ssh.*accept-new/) { return 0; }
-            return 1; });
+            return 0; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $ret = ipaddr2_internal_key_accept();
 
@@ -222,7 +223,8 @@ subtest '[ipaddr2_internal_key_accept] key_checking' => sub {
             push @calls, $_[0];
             if ($_[0] =~ /nc.*22/) { return 0; }
             if ($_[0] =~ /ssh.*StrictHostKeyChecking/) { return 0; }
-            return 1; });
+            return 0; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(ipaddr2_bastion_ssh_addr => sub { return 'AlessandroArtom@1.2.3.4'; });
 
@@ -253,8 +255,9 @@ subtest '[ipaddr2_internal_key_accept] nc timeout' => sub {
 subtest '[ipaddr2_cluster_create]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     ipaddr2_cluster_create();
 
@@ -269,8 +272,9 @@ subtest '[ipaddr2_cluster_create]' => sub {
 subtest '[ipaddr2_cluster_create] rootless' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Moriondo'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     ipaddr2_cluster_create(rootless => 1);
 
@@ -283,7 +287,7 @@ subtest '[ipaddr2_cluster_check_version]' => sub {
     my @calls;
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
     ipaddr2_cluster_check_version();
 
@@ -443,6 +447,7 @@ subtest '[ipaddr2_internal_key_gen]' => sub {
             push @calls, $_[0];
             return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { push @calls, $_[0]; return 0; });
 
     ipaddr2_internal_key_gen();
 
@@ -469,6 +474,7 @@ subtest '[ipaddr2_internal_key_gen] custom user' => sub {
             push @calls, $_[0];
             return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
     ipaddr2_internal_key_gen(user => 'EliaLocatelli');
 
@@ -484,6 +490,7 @@ subtest '[ipaddr2_internal_key_gen] root' => sub {
             push @calls, $_[0];
             return 'BeniaminoFiammaPubKeyBeniaminoFiammaPubKey'; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
     ipaddr2_internal_key_gen(user => 'root');
 
@@ -948,8 +955,9 @@ subtest '[ipaddr2_os_connectivity_sanity]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
-    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     ipaddr2_os_connectivity_sanity();
 
@@ -961,7 +969,8 @@ subtest '[ipaddr2_test_other_vm]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, ["VM???", $_[0], '']; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, ["VM???", $_[0], '']; return 0; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
             my $out;
@@ -988,7 +997,8 @@ subtest '[ipaddr2_repo_refresh]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     ipaddr2_repo_refresh(id => '2');
 
@@ -1000,7 +1010,8 @@ subtest '[ipaddr2_repo_list]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     ipaddr2_repo_list(id => '2');
 
@@ -1110,8 +1121,9 @@ subtest '[ipaddr2_scc_addons] addons' => sub {
 subtest '[ipaddr2_repos_add_server_to_hosts]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @calls;
-    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     ipaddr2_repos_add_server_to_hosts(ibsm_ip => 7.6.5.4, incident_repos => 'AAAA,BBBB');
 
@@ -1333,7 +1345,7 @@ subtest '[ipaddr2_billing_model_get]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
 
     my @calls;
-    $ipaddr2->redefine(script_run => sub {
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             push @calls, $_[0];
             return 10;
     });

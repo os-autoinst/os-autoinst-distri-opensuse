@@ -1280,7 +1280,8 @@ sub ipaddr2_ssh_internal_cmd(%args) {
     ipaddr2_ssh_internal(id => 2,
         cmd => 'whoami',
         bastion_ip => '4.5.6.7',
-        no_assert => 1);
+        no_assert => 1,
+        retry => 2);
 
 Run a command on one of the two internal VM through the bastion
 using the assert_script_run API
@@ -1300,6 +1301,8 @@ using the assert_script_run API
 =item B<no_assert> - If specified internally use 'script_run' in place of
                      'assert_script_run' and return the exit code.
 
+=item B<retry> - Number of retries in case of failure. Default 1 (no retry)
+
 =back
 =cut
 
@@ -1308,17 +1311,21 @@ sub ipaddr2_ssh_internal(%args) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{timeout} //= 90;
+    $args{retry} //= 1;
 
     my $command = ipaddr2_ssh_internal_cmd(
         id => $args{id},
         bastion_ip => $args{bastion_ip},
         cmd => $args{cmd});
-    if ($args{no_assert}) {
-        return script_run($command, timeout => $args{timeout});
+
+    my $ret = 0;
+    for (1 .. $args{retry}) {
+        $ret = script_run($command, timeout => $args{timeout});
+        return $ret if ($ret == 0);
+        record_info("Failed $_ time", "Command $command failed with exit code $ret");
     }
-    else {
-        assert_script_run($command, timeout => $args{timeout});
-    }
+    die "Command $command failed with exit code $ret" if (!defined $args{no_assert});
+    return $ret;
 }
 
 =head2 ipaddr2_ssh_internal_output
