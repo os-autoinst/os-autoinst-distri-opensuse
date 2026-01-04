@@ -15,7 +15,7 @@
     <guest_domain_name/>
     <guest_memory>2048,maxmemory=4096</guest_memory>
     <guest_vcpus>2,maxvcpus=4</guest_vcpus>
-    <guest_cpumodel>host-model</guest_cpumodel>
+    <guest_cpumodel/>
     <guest_metadata/>
     <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-vars.bin,hd,bootmenu.enable=yes,menu=on</guest_boot_settings>
     <guest_xpath/>
