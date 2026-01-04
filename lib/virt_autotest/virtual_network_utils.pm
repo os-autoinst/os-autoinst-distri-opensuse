@@ -506,7 +506,7 @@ sub validate_guest_status {
         #Ensure the ICMP PING responses for the given guest
         die "Error: Ping $guest failed, please check manually!" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => $timeout) ne 0);
         #Ensure the SSH connection for the given guest
-        die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -zv $guest 22", delay => 30, retry => 6, timeout => $timeout) ne 0);
+        die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -4zv $guest 22", delay => 30, retry => 6, timeout => $timeout) ne 0);
     }
 }
 
