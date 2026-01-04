@@ -1,0 +1,252 @@
+<?xml version="1.0"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on>
+    <add_on_products config:type="list"/>
+  </add-on>
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>  
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <second_stage config:type="boolean">true</second_stage>
+      <final_reboot config:type="boolean">true</final_reboot>
+      <final_halt config:type="boolean">false</final_halt>
+      <final_restart_services config:type="boolean">true</final_restart_services>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">true</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <suse_register>
+    <do_registration config:type="boolean">##Do-Registration##</do_registration>
+    <email>##Registration-UserName##</email>
+    <reg_code>##Registration-Code##</reg_code>
+    <install_updates config:type="boolean">true</install_updates>
+    <addons config:type="list">
+    </addons>
+  </suse_register>
+  <bootloader t="map">
+    <global t="map">
+      <append>console=tty console=ttyAMA0,115200n8 mitigations=auto</append>
+      <cpu_mitigations>auto</cpu_mitigations>
+      <gfxmode>auto</gfxmode>
+      <os_prober>false</os_prober>
+      <serial>serial --unit=0 --speed=115200 --parity=no --word=8</serial>
+      <terminal>serial</terminal>
+      <timeout t="integer">3</timeout>
+    </global>
+    <loader_type>##Boot-Loader-Type##</loader_type>
+  </bootloader>
+  <keyboard>
+    <keyboard_values>
+      <delay/>
+      <discaps config:type="boolean">false</discaps>
+      <numlock>bios</numlock>
+      <rate/>
+    </keyboard_values>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages/>
+  </language>
+  <partitioning>
+    <drive>
+      <device>/dev/vda</device>
+      <disklabel>##Disk-Label##</disklabel>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <networking>
+    <dns>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <domain>##Domain-Name##</domain>
+      <hostname>##Host-Name##</hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+      </interface>
+      <interface>
+        <bootproto>static</bootproto>
+        <broadcast>127.255.255.255</broadcast>
+        <device>lo</device>
+        <firewall>no</firewall>
+        <ipaddr>127.0.0.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
+        <network>127.0.0.0</network>
+        <prefixlen>8</prefixlen>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ipv4_forward config:type="boolean">true</ipv4_forward>
+      <ipv6_forward config:type="boolean">true</ipv6_forward>
+    </routing>
+  </networking>
+  <ssh_import>
+    <import config:type="boolean">true</import>
+    <copy_config config:type="boolean">false</copy_config>
+  </ssh_import>
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">30</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">30</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">30</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">30</timeout>
+    </yesno_messages>
+  </report>
+  <services-manager t="map">
+    <default_target>graphical</default_target>
+    <services t="map">
+      <enable t="list">
+        <service>cron</service>
+        <service>display-manager</service>
+        <service>nscd</service>
+        <service>postfix</service>
+        <service>purge-kernels</service>
+        <service>rollback</service>
+        <service>rsyslog</service>
+        <service>sshd</service>
+        <service>wicked</service>
+        <service>wickedd-auto4</service>
+        <service>wickedd-dhcp4</service>
+        <service>wickedd-dhcp6</service>
+        <service>wickedd-nanny</service>
+        <service>YaST2-Firstboot</service>
+        <service>YaST2-Second-Stage</service>
+      </enable>
+      <disable config:type="list">
+        <service>firewalld</service>
+        <service>apparmor</service>
+      </disable>
+    </services>
+  </services-manager>
+  <software>
+    <install_recommended t="boolean">true</install_recommended>
+    <products config:type="list">
+        <product>SLES</product>
+    </products>
+    <packages config:type="list">
+      <package>snapper</package>
+      <package>sles-release</package>
+      <package>openssh</package>
+      <package>kexec-tools</package>
+      <package>glibc</package>
+      <package>e2fsprogs</package>
+      <package>dosfstools</package>
+      <package>btrfsprogs</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>32bit</pattern>
+      <pattern>Minimal</pattern>
+      <pattern>base</pattern>
+      <pattern>documentation</pattern>
+      <pattern>gnome-basic</pattern>
+      <pattern>x11</pattern>
+      <pattern>yast2</pattern>
+    </patterns>
+  </software>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <timezone>America/New_York</timezone>
+  </timezone>
+  <user_defaults>
+    <expire/>
+    <group>500</group>
+    <groups/>
+    <home>/home</home>
+    <inactive>-1</inactive>
+    <no_groups config:type="boolean">true</no_groups>
+    <shell>/bin/bash</shell>
+    <skel>/etc/skel</skel>
+    <umask>022</umask>
+  </user_defaults>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">true</encrypted>
+      <fullname>root</fullname>
+      <authorized_keys config:type="list">
+        <listentry>##Authorized-Keys##</listentry>
+      </authorized_keys>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>$2a$05$tvuIlgZ.sSzeCvQD6JN84uqsL26g17B7It3pTYPmJa.Qt7L03XjMu</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <scripts>
+    <!-- permit root login, password login and pubkeys login -->
+    <!-- /etc/ssh/sshd_config/sshd_config is the default sshd config file in sles  -->
+    <init-scripts config:type="list">
+      <script>
+        <source><![CDATA[
+sshd_config_file="/etc/ssh/sshd_config"
+if [ ! -f $sshd_config_file ]; then
+    mkdir -p `dirname $sshd_config_file`
+    echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes" > $sshd_config_file
+else
+    keys="PermitRootLogin PubkeyAuthentication PasswordAuthentication"
+    for key in $keys; do
+        sed -i "/^[# ]*$key */{h;s/^[# ]*$key *.*\$/$key yes/};\${x;/^\$/{s//$key yes/;H};x}" $sshd_config_file
+    done
+fi
+[ -d /root/.ssh ] || mkdir -p /root/.ssh; chmod 700 /root/.ssh
+touch /root/.ssh/authorized_keys; chmod 600 /root/.ssh/authorized_keys
+echo "##Authorized-Keys##" >> /root/.ssh/authorized_keys
+]]>
+        </source>
+      </script>
+      <!-- journal_config.sh works on sle15sp6+ guest only -->
+      <script>
+        <filename>journal_config.sh</filename>
+        <source><![CDATA[
+echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-virt-test.conf
+]]>
+        </source>
+      </script>
+    </init-scripts>
+  </scripts>
+</profile>
