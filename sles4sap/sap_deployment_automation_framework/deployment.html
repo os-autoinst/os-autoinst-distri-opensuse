@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#log_command_output">log_command_output</a></li>
       <li><a href="#export_credentials">export_credentials</a></li>
+      <li><a href="#check_credentials">check_credentials</a></li>
       <li><a href="#az_login">az_login</a></li>
       <li><a href="#create_sdaf_os_var_file">create_sdaf_os_var_file</a></li>
       <li><a href="#set_os_variable">set_os_variable</a></li>
@@ -111,6 +112,14 @@ tee - writes output also into the log file</code></pre>
 <p>Exports Azure credentials retrieved from login server defined in. Please note that <b>get_credentials</b> function requires following OpenQA settings: PUBLIC_CLOUD_CREDENTIALS_URL PUBLIC_CLOUD_NAMESPACE _SECRET_PUBLIC_CLOUD_CREDENTIALS_USER _SECRET_PUBLIC_CLOUD_CREDENTIALS_PWD</p>
 
 <p>Credentials can be provided as well using openQA settings: _SECRET_AZURE_SDAF_APP_ID _SECRET_AZURE_SDAF_APP_PASSWORD _SECRET_AZURE_SDAF_TENANT_ID PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID</p>
+
+<h2 id="check_credentials">check_credentials</h2>
+
+<pre><code>check_credentials();</code></pre>
+
+<p>Check credentials: fetch keyvault secrets and compare them with openQA settings _SECRET_AZURE_SDAF_APP_ID (ARM_CLIENT_ID) _SECRET_AZURE_SDAF_APP_PASSWORD (ARM_CLIENT_SECRET) _SECRET_AZURE_SDAF_TENANT_ID (ARM_TENANT_ID) PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID (ARM_SUBSCRIPTION_ID)</p>
+
+<p>NOTE: In order to keep secrets hidden in autoinst-log.txt as well, this function needs to call export_credentials() to get the needed secrets/data directly, please do NOT set secrets related input parameters for check_credentials()</p>
 
 <h2 id="az_login">az_login</h2>
 
