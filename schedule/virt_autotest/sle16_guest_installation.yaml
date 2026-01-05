@@ -68,3 +68,4 @@ conditional_schedule:
     ENABLE_STORAGE:
       1:
         - virtualization/universal/storage
+        - virt_autotest/libvirt_extend_storage_lvm
