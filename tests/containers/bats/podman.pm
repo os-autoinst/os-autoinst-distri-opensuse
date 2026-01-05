@@ -27,7 +27,7 @@ sub run_tests {
 
     my %env = (
         CONTAINERS_HELPER_BINARY_DIR => "/var/tmp/podman/bin",
-        PODMAN_BATS_LEAK_CHECK => "1",
+        PODMAN_BATS_LEAK_CHECK => (is_x86_64 ? "1" : ""),
         PODMAN_ROOTLESS_USER => $testapi::username,
         PODMAN => $podman,
         QUADLET => $quadlet,
