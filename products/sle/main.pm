@@ -13,7 +13,7 @@ use registration;
 use utils;
 use mmapi 'get_parents';
 use version_utils
-  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade is_public_cloud is_openstack);
+  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade is_public_cloud is_openstack is_transactional);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -894,8 +894,13 @@ elsif (get_var("VIRT_AUTOTEST")) {
             }
         }
         loadtest "virt_autotest/login_console";
-        loadtest "virt_autotest/install_package";
-        loadtest "virt_autotest/update_package";
+        if (get_var('VIRT_UNIFIED_GUEST_INSTALL')) {
+            is_transactional ? loadtest "virt_autotest/prepare_transactional_server" : loadtest "virt_autotest/prepare_non_transactional_server";
+        }
+        else {
+            loadtest "virt_autotest/install_package";
+            loadtest "virt_autotest/update_package";
+        }
         # Skip reset_partition for s390x due to there just be 42Gib disk space for each s390x LPAR
         loadtest "virt_autotest/reset_partition" if is_x86_64 && get_var('VIRT_PRJ1_GUEST_INSTALL') && !get_var('LTSS');
         loadtest "virt_autotest/reboot_and_wait_up_normal" if !is_registered_sles && get_var('REPO_0_TO_INSTALL');
