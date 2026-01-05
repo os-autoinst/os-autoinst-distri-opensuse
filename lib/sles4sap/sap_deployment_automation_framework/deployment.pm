@@ -18,7 +18,7 @@ use Carp qw(croak);
 use Utils::Git qw(git_clone);
 use File::Basename;
 use Regexp::Common qw(net);
-use utils qw(write_sut_file file_content_replace);
+use utils qw(write_sut_file file_content_replace define_secret_variable);
 use Scalar::Util 'looks_like_number';
 use Mojo::JSON qw(decode_json);
 use publiccloud::utils qw(get_credentials);
@@ -38,6 +38,7 @@ use sles4sap::sap_deployment_automation_framework::naming_conventions qw(
 our @EXPORT = qw(
   $output_log_file
   az_login
+  check_credentials
   sdaf_ssh_key_from_keyvault
   serial_console_diag_banner
   set_common_sdaf_os_env
@@ -177,6 +178,67 @@ sub export_credentials {
     # Source file and load variables
     assert_script_run("source $temp_file");
     return ($data);
+}
+
+=head2 check_credentials
+
+    check_credentials();
+
+Check credentials: fetch keyvault secrets and compare them with openQA settings
+  _SECRET_AZURE_SDAF_APP_ID (ARM_CLIENT_ID)
+  _SECRET_AZURE_SDAF_APP_PASSWORD (ARM_CLIENT_SECRET)
+  _SECRET_AZURE_SDAF_TENANT_ID (ARM_TENANT_ID)
+  PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID (ARM_SUBSCRIPTION_ID)
+
+NOTE:
+    In order to keep secrets hidden in autoinst-log.txt as well, this function
+    needs to call export_credentials() to get the needed secrets/data directly,
+    please do NOT set secrets related input parameters for check_credentials()
+=cut
+
+sub check_credentials {
+    my $result = 0;
+    my $tmpfile = '/tmp/output';
+
+    my $data = export_credentials();
+    my %credentials = (
+        ARM_CLIENT_ID => $data->{client_id},
+        ARM_CLIENT_SECRET => $data->{client_secret},
+        ARM_TENANT_ID => $data->{tenant_id},
+        ARM_SUBSCRIPTION_ID => $data->{subscription_id}
+    );
+    my $env = get_required_var('SDAF_ENV_CODE');
+    my %query = (
+        ARM_CLIENT_ID => "${env}-client-id",
+        ARM_CLIENT_SECRET => "${env}-client-secret",
+        ARM_TENANT_ID => "${env}-tenant-id",
+        ARM_SUBSCRIPTION_ID => "${env}-subscription-id"
+    );
+
+    for my $key (keys %credentials) {
+        my @secret_ids = @{az_keyvault_secret_list(
+                vault_name => get_required_var('SDAF_DEPLOYER_KEY_VAULT'), query => "\"[?ends_with(name, \'$query{$key}\')].id\"")};
+        croak "Multiple or no secrets found: \n" . join("\n", @secret_ids) unless @secret_ids == 1;
+
+        az_keyvault_secret_show(
+            id => $secret_ids[0],
+            query => 'value',
+            output => 'tsv',
+            save_to_file => "$tmpfile");
+
+        # Keep secrets hidden in serial output
+        define_secret_variable('SECRET_VARIABLE', $credentials{$key});
+        if (script_run("grep \$SECRET_VARIABLE $tmpfile > /dev/null 2>&1")) {
+            record_info("Check $key", "check_credentials failed on $key\n", result => 'softfail');
+            $result = 1;
+        }
+        else {
+            record_info("Check $key", "check_credentials passed on $key\n");
+        }
+    }
+
+    die "check_credentials failed\n" if $result;
+    return $result;
 }
 
 =head2 az_login

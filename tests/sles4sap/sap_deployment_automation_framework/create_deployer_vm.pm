@@ -17,7 +17,7 @@
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 use sles4sap::sap_deployment_automation_framework::deployment
-  qw(serial_console_diag_banner az_login sdaf_deployment_reused);
+  qw(serial_console_diag_banner az_login sdaf_deployment_reused check_credentials);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(get_deployer_ip no_cleanup_tag);
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(generate_deployer_name);
 use sles4sap::azure_cli qw(az_disk_create);
@@ -51,6 +51,10 @@ sub run {
     push @deployment_tags, no_cleanup_tag() . "=1" if get_var('SDAF_RETAIN_DEPLOYMENT');
 
     az_login();
+
+    # Fetch keyvault secrets and compare them with openQA settings
+    check_credentials();
+
     record_info('VM create', "Creating deployer vm with parameters:\n
     Resource group: $deployer_resource_group\n
     VM name: $new_deployer_vm_name\n
