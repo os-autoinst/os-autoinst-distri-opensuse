@@ -75,7 +75,7 @@ sub update_kernel {
     my $devel_pack = get_kernel_devel_flavor;
 
     fully_patch_system;
-    install_package($devel_pack) if (!is_sle('<12') &&
+    install_package("--recommends $devel_pack") if (!is_sle('<12') &&
         !(check_var('SLE_PRODUCT', 'slert') && is_sle_micro('<6.2')));
 
     $self->add_update_repos($repo);
@@ -222,7 +222,7 @@ sub install_lock_kernel {
 
     # install and lock needed kernel
     enter_trup_shell(global_options => '-c') if is_transactional;
-    zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
+    zypper_call("in --recommends " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
     zypper_call("al " . join(' ', @lpackages));
     exit_trup_shell if is_transactional;
 }
@@ -425,7 +425,7 @@ sub install_kotd {
     remove_kernel_packages;
     zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
     install_package("-r KOTD $kernel_flavor", trup_continue => 1);
-    install_package($devel_flavor, trup_continue => 1);
+    install_package("--recommends $devel_flavor", trup_continue => 1);
 }
 
 sub update_kgraft_under_load {
