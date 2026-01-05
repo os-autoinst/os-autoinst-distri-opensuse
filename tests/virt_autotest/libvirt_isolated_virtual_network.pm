@@ -25,14 +25,14 @@ sub run_test {
     virt_autotest::virtual_network_utils::download_network_cfg($vnet_isolated_cfg_name);
 
     #Stop named.service, refer to poo#175287
-    systemctl("stop named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1));
+    systemctl("stop named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1) && !get_var('VIRT_UNIFIED_GUEST_INSTALL'));
     #Create ISOLATED NETWORK
     assert_script_run("virsh net-create vnet_isolated.xml");
     save_screenshot;
     upload_logs "vnet_isolated.xml";
     assert_script_run("rm -rf vnet_isolated.xml");
     #Resume named.service, refer to poo#175287
-    systemctl("start named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1));
+    systemctl("start named.service") if (is_sle('=15-SP7') && check_var('VIRT_AUTOTEST', 1) && !get_var('VIRT_UNIFIED_GUEST_INSTALL'));
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         record_info "$guest", "ISOLATED NETWORK for $guest";
