@@ -176,6 +176,7 @@ schedule:
     - console/rust
     - console/shells
     - console/sudo
+    - console/run0
     - console/dstat
     - x11/evolution/evolution_prepare_servers
     - console/mutt
