@@ -1,4 +1,4 @@
-From 9885e651d57fe3b0da7a677374a36cb745739e58 Mon Sep 17 00:00:00 2001
+From 8d3ac1a1f6a343b89542e3d64aafa20860642e38 Mon Sep 17 00:00:00 2001
 From: Ricardo Branco <rbranco@suse.de>
 Date: Thu, 25 Dec 2025 19:06:22 +0100
 Subject: [PATCH] test: Fix PODMAN_BATS_LEAK_CHECK
@@ -7,18 +7,19 @@ This variable is set by hack/bats and it fails if PODMAN_CMD is unset.
 
 Signed-off-by: Ricardo Branco <rbranco@suse.de>
 ---
- test/system/helpers.bash | 2 ++
- 1 file changed, 2 insertions(+)
+ test/system/helpers.bash | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/test/system/helpers.bash b/test/system/helpers.bash
-index f9df5b8404c..0bc8fd29ce8 100644
+index f9df5b8404c..2f568611764 100644
 --- a/test/system/helpers.bash
 +++ b/test/system/helpers.bash
-@@ -251,6 +251,8 @@ function defer-assertion-failures() {
+@@ -251,6 +251,9 @@ function defer-assertion-failures() {
  function basic_teardown() {
      echo "# [teardown]" >&2
  
 +    PODMAN_CMD=("${PODMAN}")
++    add_podman_args PODMAN_CMD
 +
      # Free any ports reserved by our test
      if [[ -d $PORT_LOCK_DIR ]]; then
