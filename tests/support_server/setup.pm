@@ -138,6 +138,7 @@ sub setup_networks {
 sub setup_dns_server {
     return if $dns_server_set;
 
+    zypper_call('in bind bind-utils') if get_var('HDD_1') =~ /sles15sp7/;
     my $named_url = autoinst_url . '/data/supportserver/named';
     $setup_script .= qq@
         sed -i -e '/^NETCONFIG_DNS_FORWARDER=/ s/=.*/="bind"/' \\
@@ -165,6 +166,11 @@ sub setup_dns_server {
         @;
     }
 
+    $setup_script .= qq@
+        firewall-cmd --add-service=dns --permanent
+        firewall-cmd --reload
+        sed -i -e '/^NAMED_ARGS=/ s/=.*/="-4"/' /etc/sysconfig/named
+        @ if (get_var('HDD_1') =~ /sles15sp7/);
     # Start services
     $setup_script .= "
         netconfig update -f
@@ -238,6 +244,7 @@ sub dhcpd_conf_generation {
 sub setup_dhcp_server {
     my ($dns, $pxe, $mtu) = @_;
     return if $dhcp_server_set;
+    zypper_call('in dhcp-server') if get_var('HDD_1') =~ /sles15sp7/;
     my $net_conf = parse_network_configuration();
 
     $setup_script .= "systemctl stop dhcpd\n";
@@ -265,7 +272,11 @@ sub setup_dhcp_server {
 sub setup_ssh_server {
     return if $ssh_server_set;
 
-    $setup_script .= "yast2 firewall services add zone=EXT service=service:sshd\n";
+    my $firewall_cmd
+      = get_var('HDD_1') =~ /sles15sp7/
+      ? "firewall-cmd --add-service=ssh --permanent;firewall-cmd --reload"
+      : "yast2 firewall services add zone=EXT service=service:sshd";
+    $setup_script .= "$firewall_cmd\n";
     $setup_script .= "systemctl restart sshd\n";
     $setup_script .= "systemctl status sshd\n";
 
@@ -274,10 +285,17 @@ sub setup_ssh_server {
 
 sub setup_ntp_server {
     return if $ntp_server_set;
-
-    $setup_script .= "yast2 firewall services add zone=EXT service=service:ntp\n";
-    $setup_script .= "echo 'server pool.ntp.org' >> /etc/ntp.conf\n";
-    $setup_script .= "systemctl restart ntpd\n";
+    if (get_var('HDD_1') =~ /sles15sp7/) {
+        zypper_call('in chrony');
+        $setup_script .= "firewall-cmd --add-service=ntp --permanent;firewall-cmd --reload\n";
+        $setup_script .= "echo 'server pool.ntp.org' >> /etc/chrony.conf\n";
+        $setup_script .= "systemctl restart chronyd\n";
+    }
+    else {
+        $setup_script .= "yast2 firewall services add zone=EXT service=service:ntp\n";
+        $setup_script .= "echo 'server pool.ntp.org' >> /etc/ntp.conf\n";
+        $setup_script .= "systemctl restart ntpd\n";
+    }
 
     $ntp_server_set = 1;
 }
@@ -350,7 +368,11 @@ sub setup_iscsi_server {
     die "detection of disk for iSCSI LUN failed" unless $hdd_lun;
 
     # Needed if a firewall is configured
-    script_run 'yast2 firewall services add zone=EXT service=service:target', 200;
+    my $target_cmd
+      = get_var('HDD_1') =~ /sles15sp7/
+      ? "firewall-cmd --add-port=3260/tcp --permanent;firewall-cmd --reload"
+      : "yast2 firewall services add zone=EXT service=service:target";
+    script_run "$target_cmd", 200;
 
     # Create the iSCSI LUN
     script_run "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
@@ -365,6 +387,29 @@ sub setup_iscsi_server {
 
     # The easiest way (really!?) to configure LIO is with YaST
     # Code grab and adapted from tests/iscsi/iscsi_server.pm
+    if (get_var('HDD_1') =~ /sles15sp7/) {
+        zypper_call('in yast2-iscsi-lio-server');
+        my $server_iqn = "iqn.2016-02.de.openqa:132";
+        my $server_tpg = "/iscsi/$server_iqn/tpg1";
+        assert_script_run("targetcli /iscsi create $server_iqn");
+        assert_script_run("targetcli $server_tpg/portals/ delete 0.0.0.0 3260");
+        assert_script_run("targetcli $server_tpg/portals/ create 10.0.2.1 3260");
+        for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
+            assert_script_run("targetcli /backstores/block create name=block_backend_$num_lun dev=$hdd_lun$num_lun");
+            assert_script_run("targetcli $server_tpg/luns create /backstores/block/block_backend_$num_lun");
+        }
+        assert_script_run("targetcli $server_tpg set attribute authentication=0");
+        assert_script_run("targetcli $server_tpg set attribute generate_node_acls=1");
+        assert_script_run("targetcli $server_tpg set attribute cache_dynamic_acls=1");
+        assert_script_run("targetcli $server_tpg set attribute demo_mode_write_protect=0");
+        assert_script_run('targetcli saveconfig');
+        record_info('target list', script_output('targetcli ls'));
+        systemctl('enable target');
+        systemctl('restart target');
+        select_console 'root-console';
+        $iscsi_server_set = 1;
+        return;
+    }
     script_run("yast2 iscsi-lio-server; echo yast2-iscsi-lio-server-status-\$? > /dev/$serialdev", 0);
     assert_screen 'iscsi-target-overview-service-tab', 60;
     send_key 'alt-t';    # go to target tab
