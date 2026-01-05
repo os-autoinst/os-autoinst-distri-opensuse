@@ -19,13 +19,17 @@ use sles4sap::crash;
 sub run {
     my ($self) = @_;
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my $region = get_required_var('PUBLIC_CLOUD_REGION');
 
     select_serial_terminal;
     if ($provider eq 'AZURE') {
         crash_destroy_azure();
     }
     elsif ($provider eq 'EC2') {
-        crash_destroy_aws(region => get_required_var('PUBLIC_CLOUD_REGION'));
+        crash_destroy_aws(region => $region);
+    }
+    elsif ($provider eq 'GCE') {
+        crash_destroy_gcp(region => $region, zone => $region . '-' . get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE'));
     }
 }
 
