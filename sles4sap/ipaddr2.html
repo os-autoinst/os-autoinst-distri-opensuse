@@ -455,7 +455,8 @@
 <pre><code>ipaddr2_ssh_internal(id =&gt; 2,
     cmd =&gt; &#39;whoami&#39;,
     bastion_ip =&gt; &#39;4.5.6.7&#39;,
-    no_assert =&gt; 1);</code></pre>
+    no_assert =&gt; 1,
+    retry =&gt; 2);</code></pre>
 
 <p>Run a command on one of the two internal VM through the bastion using the assert_script_run API</p>
 
@@ -478,6 +479,10 @@
 
 </dd>
 <dt id="no_assert---If-specified-internally-use-script_run-in-place-of-assert_script_run-and-return-the-exit-code"><b>no_assert</b> - If specified internally use &#39;script_run&#39; in place of &#39;assert_script_run&#39; and return the exit code.</dt>
+<dd>
+
+</dd>
+<dt id="retry---Number-of-retries-in-case-of-failure.-Default-1-no-retry"><b>retry</b> - Number of retries in case of failure. Default 1 (no retry)</dt>
 <dd>
 
 </dd>
