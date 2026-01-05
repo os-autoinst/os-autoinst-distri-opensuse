@@ -1091,7 +1091,12 @@ sub create_playbook_section_list {
         push @playbook_list, qw(
           sap-hana-storage.yaml
           sap-hana-download-media.yaml
-          sap-hana-install.yaml
+        );
+        my @sap_hana_install = ('sap-hana-install.yaml');
+        push @sap_hana_install, '-e enable_community_sap_roles=true'
+          if check_var('USE_UPSTREAM_ROLES', 1);
+        push @playbook_list, join(' ', @sap_hana_install);
+        push @playbook_list, qw(
           sap-hana-system-replication.yaml
           sap-hana-system-replication-hooks.yaml
         );
