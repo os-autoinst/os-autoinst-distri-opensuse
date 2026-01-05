@@ -40,9 +40,12 @@ sub prepare_boot_params {
     # add default boot params
     if (my $inst_auto = get_var('INST_AUTO')) {
         create_file_as_profile_companion() if get_var('AGAMA_PROFILE_OPTIONS') =~ /files=true/;
-        my $profile_url = ($inst_auto =~ /\.libsonnet/) ?
-          generate_json_profile($inst_auto) :
-          expand_agama_profile($inst_auto);
+        my $profile_url = $inst_auto;
+        unless ($inst_auto =~ /usb:\/\//) {
+            ($inst_auto =~ /\.libsonnet/) ?
+              generate_json_profile($inst_auto) :
+              expand_agama_profile($inst_auto);
+        }
         set_var('INST_AUTO', $profile_url);
         push @params, "inst.auto=\"$profile_url\"", 'inst.finish=stop';
     }
