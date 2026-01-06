@@ -20,7 +20,7 @@ sub run {
 
     if (is_sle) {
         unless (is_phub_ready) {
-            record_soft_failure("poo#194023 PackageHub not available - skipping BPF test");
+            record_soft_failure("PackageHub not available - skipping BPF test");
             return;
         }
         add_suseconnect_product(get_addon_fullname('phub'));    # For clang
