@@ -16,6 +16,7 @@ conditional_schedule:
         - kernel/nfs_stress_ng
         - kernel/kdump_over_nfs
       nfs_client:
+        - console/add_phub_extension
         - kernel/nfs_client
         - kernel/nfs_stress_ng
         - kernel/kdump_over_nfs
