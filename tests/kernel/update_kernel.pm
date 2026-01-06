@@ -25,26 +25,6 @@ use LTP::utils;
 use transactional;
 use package_utils;
 
-sub check_kernel_package {
-    my $kernel_name = shift;
-
-    enter_trup_shell(global_options => '-c') if is_transactional;
-    script_run('shopt -s nullglob');
-    script_run('ls -1 /boot/vmlinu[xz]* /boot/[Ii]mage*');
-    script_run('shopt -u nullglob');
-    # Only check versioned kernels in livepatch tests. Some old kernel
-    # packages install /boot/vmlinux symlink but don't set package ownership.
-    my $glob = get_var('KGRAFT', 0) ? '-*' : '*';
-    my $cmd = 'shopt -s nullglob; rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob . ' /boot/[Ii]mage' . $glob;
-    my $packs = script_output($cmd);
-    exit_trup_shell if is_transactional;
-
-    for my $packname (split /\s+/, $packs) {
-        die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
-          if $packname ne $kernel_name;
-    }
-}
-
 # kernel-azure is never released in pool, first release is in updates.
 # Fix the chicken & egg problem manually.
 sub first_azure_release {
