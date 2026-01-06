@@ -57,8 +57,7 @@ sub run_test {
     assert_script_run("virsh net-destroy vnet_isolated");
     save_screenshot;
 
-    #After finished all virtual network test, need to restore file /etc/hosts from backup
-    virt_autotest::virtual_network_utils::hosts_restore();
+    #After finished all virtual network test, VM IP could have changed compared to backup /etc/hosts, so do not restore it
 }
 
 sub post_fail_hook {
