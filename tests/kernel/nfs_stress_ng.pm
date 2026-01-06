@@ -75,6 +75,7 @@ sub client {
     my $local_nfs4 = "/home/localNFS4";
     my $local_nfs4_async = "/home/localNFS4async";
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
+    my $exclude = get_var('NFS_STRESS_NG_EXCLUDE');
     # allow to override the default exports
     my $exports = get_var('NFS_STRESS_EXPORTS');
     my @paths = $exports ? split(/,/, $exports) : ($local_nfs4, $local_nfs4_async);
@@ -108,6 +109,11 @@ sub client {
         my $run_stress_ng = "stress-ng --verbose --sequential -1 --timeout $stressor_timeout " .
           "--class filesystem " .
           "--metrics-brief --yaml $yaml --log-file $log";
+
+        if ($exclude) {
+            $run_stress_ng .= " --exclude $exclude";
+            record_info('Excluding stressor:', "$exclude");
+        }
 
         my $ret = script_run($run_stress_ng, timeout => $stressor_timeout * 100);
 
@@ -218,5 +224,16 @@ are used.
 Optional. Timeout (in seconds) for the C<stress-ng> workload. Defaults to 3.
 
 This value is passed directly to the C<--timeout> argument of C<stress-ng>.
+
+=cut
+
+=head2 NFS_STRESS_NG_EXCLUDE
+
+Optional. One or more C<stress-ng> stressors to exclude from execution.
+
+The value is passed directly to the C<stress-ng --exclude> option and
+may contain a single stressor name or a comma-separated list of names.
+Excluded stressors are not run, even if they belong to the selected
+C<filesystem> stressor class.
 
 =cut
