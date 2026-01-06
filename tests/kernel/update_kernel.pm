@@ -170,6 +170,7 @@ sub override_shim {
 sub install_lock_kernel {
     my $kernel_version = shift;
     my $src_version = shift;
+    my $kernel_package = get_kernel_flavor;
 
     # Pre-Boothole (CVE 2020-10713) kernel compatibility workaround.
     # Machines with SecureBoot enabled will refuse to boot old kernels
@@ -179,8 +180,7 @@ sub install_lock_kernel {
     }
 
     # remove all kernel related packages from system
-    my @packages = remove_kernel_packages();
-    my @lpackages = @packages;
+    my @lpackages = remove_kernel_packages();
     my %packver = (
         'kernel-devel' => $src_version,
         'kernel-devel-rt' => $src_version,
@@ -189,7 +189,11 @@ sub install_lock_kernel {
         'kernel-source-rt' => $src_version
     );
 
-    push @packages, get_kernel_devel_flavor;
+    my @packages = ($kernel_package, get_kernel_devel_flavor,
+        get_kernel_source_flavor);
+
+    push @packages, 'kernel-macros' if $kernel_package eq 'kernel-default';
+    push @lpackages, @packages;
 
     # add explicit version to each package
     foreach my $package (@packages) {
@@ -480,11 +484,6 @@ sub run {
 
     $self->{repos} = {};
 
-    unless (get_var('KERNEL_FLAVOR')) {
-        $kernel_package = 'kernel-default-base' if is_sle('<12');
-        $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
-    }
-
     if (((is_ipmi || is_pvm) && get_var('LTP_BAREMETAL')) || is_transactional) {
         # System is already booted after installation, just switch terminal
         select_serial_terminal;
@@ -547,34 +546,15 @@ sub run {
 
         kgraft_state;
     }
-    elsif (get_var('AZURE')) {
-        $kernel_package = 'kernel-azure';
-
-        if (get_var('AZURE_FIRST_RELEASE')) {
-            $self->first_azure_release($repo);
-        }
-        else {
-            $self->prepare_kernel($kernel_package);
-            $self->update_kernel($repo, $incident_id);
-        }
-    }
-    elsif (get_var('KERNEL_BASE')) {
-        $kernel_package = 'kernel-default-base';
-        $self->prepare_kernel($kernel_package);
-        $self->update_kernel($repo, $incident_id);
-    }
-    elsif (get_var('COCO')) {
-        $kernel_package = 'kernel-coco';
-        $self->prepare_kernel($kernel_package);
-        $self->update_kernel($repo, $incident_id);
-    }
-    elsif (get_var('KERNEL_64KB')) {
-        $kernel_package = 'kernel-64kb';
-        $self->prepare_kernel($kernel_package);
-        $self->update_kernel($repo, $incident_id);
+    elsif (get_var('AZURE_FIRST_RELEASE')) {
+        $self->first_azure_release($repo);
     }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
+    }
+    elsif ($kernel_package ne get_initial_kernel_flavor) {
+        $self->prepare_kernel($kernel_package);
+        $self->update_kernel($repo, $incident_id);
     }
     else {
         $self->update_kernel($repo, $incident_id);
