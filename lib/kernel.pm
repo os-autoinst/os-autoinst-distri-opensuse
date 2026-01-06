@@ -18,13 +18,30 @@ use warnings;
 
 our @EXPORT = qw(
   remove_kernel_packages
+  get_initial_kernel_flavor
   get_kernel_flavor
   get_kernel_source_flavor
   get_kernel_devel_flavor
 );
 
+# Kernel flavor preinstalled on the boot disk
+sub get_initial_kernel_flavor {
+    my $kernel_package = 'kernel-default';
+
+    $kernel_package = 'kernel-default-base' if is_sle('<12');
+    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
+    return $kernel_package;
+}
+
+# Kernel flavor that needs to be installed before running tests
 sub get_kernel_flavor {
-    return get_var('KERNEL_FLAVOR', 'kernel-default');
+    my $kernel_package = get_initial_kernel_flavor();
+
+    $kernel_package = 'kernel-default-base' if get_var('KERNEL_BASE');
+    $kernel_package = 'kernel-azure' if get_var('AZURE');
+    $kernel_package = 'kernel-coco' if get_var('COCO');
+    $kernel_package = 'kernel-64kb' if get_var('KERNEL_64KB');
+    return get_var('KERNEL_FLAVOR', $kernel_package);
 }
 
 sub get_kernel_source_flavor {
