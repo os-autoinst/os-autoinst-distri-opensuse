@@ -11,13 +11,11 @@
 use 5.018;
 use base 'opensusebasetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use LTP::utils;
 use version_utils qw(is_jeos is_sle is_sle_micro);
 use utils 'assert_secureboot_status';
 use kdump_utils;
-use package_utils;
 
 sub run {
     my ($self) = @_;
@@ -41,19 +39,7 @@ sub run {
         $self->wait_boot(ready_time => 1800);
     }
 
-    if (check_var_array('LTP_DEBUG', 'crashdump')) {
-        select_serial_terminal;
-        configure_service(yast_interface => 'cli');
-    }
-
-    if (check_var_array('LTP_DEBUG', 'oprofile')) {
-        select_serial_terminal;
-        install_package('oprofile', trup_reboot => 1);
-    }
-
-    # Initialize VNC console now to avoid login attempts on frozen system
-    select_console('root-console') if get_var('LTP_DEBUG');
-    select_serial_terminal;
+    init_debug;    # calls select_serial_terminal
 
     # Debug code for poo#81142
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');
