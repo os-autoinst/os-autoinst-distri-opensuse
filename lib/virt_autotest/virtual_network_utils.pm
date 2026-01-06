@@ -67,6 +67,8 @@ our @EXPORT
   check_guest_network_config
   check_guest_network_address
   config_network_device_policy
+  get_vm_ip_with_nmap
+  find_vm_primary_nic_info
   );
 
 sub get_virtual_network_data {
@@ -136,15 +138,7 @@ sub check_guest_ip {
 
     # ensure guest is still alive
     if (script_output("virsh domstate $guest") eq "running") {
-        my $mac_guest = script_output("virsh domiflist $guest | grep $net | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-        my $gi_guest = '';
-        if (is_alp) {
-            $gi_guest = get_guest_ip_from_vnet_with_mac($mac_guest, $net);
-        } else {
-            my $syslog_cmd = "journalctl --no-pager | grep DHCPACK";
-            script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
-            $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
+        my $gi_guest = get_vm_ip_with_nmap($guest, source => $net);
         setup_vm_simple_dns_with_ip($guest, $gi_guest);
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
         die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
@@ -174,26 +168,93 @@ sub check_guest_module {
     }
 }
 
+=head2 get_vm_ip_with_nmap
+
+  get_vm_ip_with_nmap(vm_name[, source => 'vm_vif_src'])
+
+Query the IP of the VM via nmap.
+It allows to specify the source of the vif, to query IP for. If 'vm_vif_src'
+is not provided, it will use the default one based on `find_vm_primary_nic_info`.
+
+It supports all types of vif that we use in VT test, namely br0,br123,default/other vnet.
+=cut
+
+sub get_vm_ip_with_nmap {
+    my ($vm, %args) = @_;
+    my $vif_src = $args{source} // '';
+
+    my $vif_type = '';
+    if (!$vif_src) {
+        # If not passed in, use default primary one
+        ($vif_type, $vif_src) = find_vm_primary_nic_info($vm);
+    } else {
+        $vif_type = script_output("virsh domiflist $vm | grep \"$vif_src\" | gawk '{print \$2}'");
+    }
+
+    # Get bridge name for vnet
+    my $vif_src_bridge = $vif_src;
+    if ($vif_type eq "network") {
+        $vif_src_bridge = script_output("virsh net-dumpxml $vif_src |xmlstarlet sel -t -v //bridge/\@name");
+    }
+
+    my $target_subnet = script_output("ip route show all | grep \"$vif_src_bridge\" | awk \'{print \$1}\' | grep -v default");
+    my $vm_mac = script_output("virsh domiflist $vm | grep \"$vif_src\" | gawk '{print \$5}'");
+    # Nmap result has capitalized MAC
+    $vm_mac = uc($vm_mac);
+    my $vm_ip = '';
+    my $scan_log = "/tmp/nmap_scan_result_${vm}_$$.xml";
+    script_retry("nmap -T4 -sn $target_subnet -oX $scan_log | grep -i $vm_mac", timeout => 180, delay => 10, retry => 30, die => 1);
+    $vm_ip = script_output("xmlstarlet sel -t -v '//host[./address[\@addr=\"$vm_mac\"]]/address[\@addrtype=\"ipv4\"]/\@addr' $scan_log");
+    record_info("Scanned IP in $target_subnet", script_output("cat $scan_log"));
+    assert_script_run("rm -f $scan_log");
+    die "No IP assigned for $vm from $target_subnet via src $vif_src type $vif_type" if (!$vm_ip);
+
+    record_info("Found IP for $vm: vif src $vif_src, vif type $vif_type, IP $vm_ip");
+    return $vm_ip;
+}
+
 sub save_guest_ip {
     my ($guest, %args) = @_;
     my $name = $args{name};
 
     # If we don't know guest's address or the address is wrong so the guest is not responding to ICMP
     if (script_run("grep $guest /etc/hosts") != 0 || script_retry("ping -c3 $guest", delay => 6, retry => 30, die => 0) != 0) {
-        assert_script_run "virsh domiflist $guest";
-        my $mac_guest = script_output("virsh domiflist $guest | grep $name | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-        my $gi_guest = '';
-        if (is_alp) {
-            $gi_guest = get_guest_ip_from_vnet_with_mac($mac_guest, $name);
-        } else {
-            my $syslog_cmd = is_sle('=11-sp4') ? 'grep DHCPACK /var/log/messages' : 'journalctl --no-pager | grep DHCPACK';
-            script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
-            $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
+        my $gi_guest = get_vm_ip_with_nmap($guest, source => $name);
         setup_vm_simple_dns_with_ip($guest, $gi_guest);
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
         die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
     }
+}
+
+=head2 find_vm_primary_nic_info
+
+  find_vm_primary_nic_info(guest[, exclude_net => 'exclude_net'])
+
+Find the guest's primary NIC type and source based on `virsh domiflist guest` output.
+Primary NIC is the one, before doing hotplugging or virtual network test. Based on our
+code logic, it will search from type bridge to type network. The first available one is
+the one.
+
+Return: ($type, $source), eg ('bridge', 'br123'), ('bridge', 'br0'), ('network', 'default')
+=cut
+
+sub find_vm_primary_nic_info {
+    my ($guest, %args) = @_;
+    my $exclude_net = $args{exclude_net} // '';
+    # virtual network tests use vnet name "vnet_*"
+    $exclude_net = "vnet_" if (!$exclude_net);
+
+    my $_primary_nic_type = 'bridge';
+    my $_primary_nic_src = '';
+    # Search type=bridge NIC first
+    $_primary_nic_src = script_output("virsh domiflist $guest | grep bridge | grep -v -E \"$exclude_net\" | gawk '{print \$3}' | head -1", proceed_on_failure => 1);
+    # If no, search type=network NIC
+    if (!$_primary_nic_src) {
+        $_primary_nic_src = script_output("virsh domiflist $guest | grep network | grep -v -E \"$exclude_net\" | gawk '{print \$3}' | head -1");
+        $_primary_nic_type = 'network';
+    }
+    record_info("Primary NIC for $guest is: type $_primary_nic_type, source $_primary_nic_src", script_output("virsh domiflist $guest;ip r show"));
+    return ($_primary_nic_type, $_primary_nic_src);
 }
 
 sub test_network_interface {
@@ -215,9 +276,17 @@ sub test_network_interface {
     }
 
     record_info("Network test", "testing $mac");
-    check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
 
-    save_guest_ip("$guest", name => $net);
+    # For sle15 and lower guests, it needs to set up /etc/sysconfig/network/ifcfg-xx to let the attached NIC get IP.
+    # So, it needs to have IP/VM mapping for primary NIC to execute further steps to test the target virtual network.
+    # For sle16+ guests, NM can let it automatically get IP without further set up.
+    # All guests should already have the mapping, unless it is not created earlier,
+    # but from other ways, eg virt-clone in libvirt_routed_virtual_network.
+    # Set up IP/VM mapping for primary NIC in /etc/hosts, if not exist or not reachable with outdated one.
+    if (script_run("grep $guest /etc/hosts") != 0 || script_retry("ping -c3 $guest", delay => 6, retry => 10, die => 0) != 0) {
+        my ($primary_vif_type, $primary_vif_src) = find_vm_primary_nic_info($guest, exclude_net => "$net");
+        check_guest_ip("$guest", net => $primary_vif_src);
+    }
 
     # Configure the network interface to use DHCP configuration
     #flag SRIOV test as it need not restart network service
