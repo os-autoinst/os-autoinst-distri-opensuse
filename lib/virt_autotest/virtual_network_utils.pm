@@ -67,6 +67,7 @@ our @EXPORT
   check_guest_network_config
   check_guest_network_address
   config_network_device_policy
+  get_vm_ip_with_nmap
   );
 
 sub get_virtual_network_data {
@@ -174,6 +175,21 @@ sub check_guest_module {
     }
 }
 
+sub get_vm_ip_with_nmap {
+    my ($vm) = @_;
+
+    my $_target_subnet = '';
+    my $_source_bridge = 'br0';
+    $_source_bridge = 'br123' if (script_run("virsh domiflist $vm | grep br123") == 0);
+    $_target_subnet = script_output("ip route show all | grep $_source_bridge | awk \'{print \$1}\' | grep -v default");
+    my $_vm_mac = script_output("virsh domiflist $vm | grep $_source_bridge | gawk '{print \$5}'");
+    script_run("nmap -T4 -sn $_target_subnet -oX /tmp/nmap_scan_result", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
+    record_info("Scanned IP in $_target_subnet", script_output("cat /tmp/nmap_scan_result"));
+    my $_vm_ip = script_output("xmlstarlet sel -t -v //address/\@addr -n /tmp/nmap_scan_result | grep -i $_vm_mac -B1 | grep -iv $_vm_mac", proceed_on_failure => 0);
+    assert_script_run("rm /tmp/nmap_scan_result");
+    return $_vm_ip;
+}
+
 sub save_guest_ip {
     my ($guest, %args) = @_;
     my $name = $args{name};
@@ -185,6 +201,8 @@ sub save_guest_ip {
         my $gi_guest = '';
         if (is_alp) {
             $gi_guest = get_guest_ip_from_vnet_with_mac($mac_guest, $name);
+        } elsif (is_sle('16+')) {
+            $gi_guest = get_vm_ip_with_nmap($guest);
         } else {
             my $syslog_cmd = is_sle('=11-sp4') ? 'grep DHCPACK /var/log/messages' : 'journalctl --no-pager | grep DHCPACK';
             script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
