@@ -277,6 +277,11 @@ sub run {
         configure_service(yast_interface => 'cli');
     }
 
+    if (get_var('LTP_COMMAND_FILE') && check_var_array('LTP_DEBUG', 'oprofile')) {
+        select_serial_terminal;
+        install_package('oprofile', trup_reboot => 1);
+    }
+
     # Initialize VNC console now to avoid login attempts on frozen system
     select_console('root-console') if get_var('LTP_DEBUG');
     select_serial_terminal;
