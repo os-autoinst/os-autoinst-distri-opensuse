@@ -243,10 +243,10 @@ sub find_vm_primary_nic_info {
     my $_primary_nic_type = 'bridge';
     my $_primary_nic_src = '';
     # Search type=bridge NIC first
-    my $_primary_nic_src = script_output("virsh domiflist $guest | grep bridge | grep -v $exclude_net | gawk '{print \$3}' | head -1");
+    $_primary_nic_src = script_output("virsh domiflist $guest | grep bridge | grep -v $exclude_net | gawk '{print \$3}' | head -1");
     # If no, search type=network NIC
     if (!$_primary_nic_src) {
-        my $_primary_nic_src = script_output("virsh domiflist $guest | grep network | grep -v $exclude_net | gawk '{print \$3}' | head -1");
+        $_primary_nic_src = script_output("virsh domiflist $guest | grep network | grep -v $exclude_net | gawk '{print \$3}' | head -1");
         die "No matching network for $guest!" if (!$_primary_nic_src);
         $_primary_nic_type = 'network';
     }
