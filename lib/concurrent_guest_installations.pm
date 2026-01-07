@@ -78,6 +78,8 @@ sub instantiate_guests_and_profiles {
         $_guest_profile->{guest_registration_extensions_codes} = $_store_of_guests{$_element}{REG_EXTS_CODES};
         $_guest_profile->{guest_installation_fine_grained_media} = $_store_of_guests{$_element}{INSTALL_FINE_GRAINED_MEDIA} if ($_store_of_guests{$_element}{INSTALL_FINE_GRAINED_MEDIA} ne '');
         $_guest_profile->{guest_installation_fine_grained_repos} = $_store_of_guests{$_element}{INSTALL_FINE_GRAINED_REPOS} if ($_store_of_guests{$_element}{INSTALL_FINE_GRAINED_REPOS} ne '');
+        $_guest_profile->{guest_network_type} = $_store_of_guests{$_element}{NETWORK_TYPE} if ($_store_of_guests{$_element}{NETWORK_TYPE} ne '');
+        $_guest_profile->{guest_network_mode} = $_store_of_guests{$_element}{NETWORK_MODE} if ($_store_of_guests{$_element}{NETWORK_MODE} ne '');
         $guest_instances_profiles{$_element} = $_guest_profile;
         diag "Guest $_element is going to use profile" . Dumper($guest_instances_profiles{$_element});
     }
