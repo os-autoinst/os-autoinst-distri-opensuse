@@ -8,6 +8,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_leap';
 
 sub run {
     select_serial_terminal;
@@ -25,7 +26,9 @@ sub run {
 
     # NVIDIA repo needs new signing key, see poo#163094
     my $sign_key = get_var('BUILD') =~ /openSUSE-repos/ ? '--gpg-auto-import-keys' : '';
-    zypper_call("$sign_key in -l -t patch " . get_var('INCIDENT_PATCH'), exitcode => [0, 102, 103], timeout => 1400);
+    my $patch_id = is_leap('>=16') ? script_output("zypper lp | grep " . get_var('INCIDENT_PATCH') . " | awk '{print \$3}'") : get_var('INCIDENT_PATCH');
+
+    zypper_call("$sign_key in -l -t patch " . $patch_id, exitcode => [0, 102, 103], timeout => 1400);
 }
 
 sub test_flags {
