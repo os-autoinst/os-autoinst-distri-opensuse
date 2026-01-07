@@ -1,4 +1,4 @@
-# Copyright 2019 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test ssh with krb5 authentication - client
@@ -16,14 +16,6 @@ use krb5crypt;    # Import public variables
 sub run {
     select_console 'root-console';
 
-    foreach my $i ('GSSAPIAuthentication', 'GSSAPIDelegateCredentials') {
-        if (is_sle('>=16')) {
-            assert_script_run "echo $i yes >> /etc/ssh/ssh_config.d/10-gssapi.conf";
-        } else {
-            assert_script_run "sed -i 's/^.*$i .*\$/$i yes/' /etc/ssh/ssh_config";
-        }
-    }
-
     mutex_wait('CONFIG_READY_SSH_SERVER');
 
     script_run("kinit -p $tst |& tee /dev/$serialdev", 0);
@@ -36,7 +28,9 @@ sub run {
 
     # Try connecting to server
     my $ssherr = "ssh login failed";
-    script_run("ssh -v -o StrictHostKeyChecking=no $tst\@$dom_server |& tee /dev/$serialdev", 0);
+    # -K Enables GSSAPI-based authentication and forwarding (delegation)
+    # of GSSAPI credentials to the server
+    script_run("ssh -K -v -o StrictHostKeyChecking=no $tst\@$dom_server |& tee /dev/$serialdev", 0);
     wait_serial "$tst\@.*~>" || die $ssherr;
     validate_script_output "hostname", sub { m/krb5server/ };
 
