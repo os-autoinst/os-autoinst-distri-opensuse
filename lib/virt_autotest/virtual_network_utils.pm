@@ -215,6 +215,26 @@ sub save_guest_ip {
     }
 }
 
+# Find a vm's primary NIC's related bridge name.
+# Primary NIC is the one, before doing hotplugging or virtual network test.
+# Supports direct host bridge, or vnet.
+sub find_vm_primary_net_bridge {
+    my ($guest, %args) = @_;
+    my $exclude_net = $args{exclude_net};
+
+    my $_primary_net_br = '';
+    # Search type=bridge NIC first
+    my $_primary_net_br = script_output("virsh domiflist $guest | grep bridge | grep -v $exclude_net | gawk '{print \$3}' | head -1");
+    # If no, search type=network NIC, but need to further find out its bridge
+    if (!$_primary_net_br) {
+        my $_primary_net = script_output("virsh domiflist $guest | grep network | grep -v $exclude_net | gawk '{print \$3}' | head -1");
+        die "No network for $guest!" if (!$_primary_net);
+        $_primary_net_br = script_output("virsh net-dumpxml $_primary_net |xmlstarlet sel -t -v //bridge/\@name");
+    }
+    record_info("Primary net bridge for $guest is $_primary_net_br", script_output("virsh domiflist $guest;ip r show"));
+    return $_primary_net_br;
+}
+
 sub test_network_interface {
     my ($guest, %args) = @_;
     my $net = $args{net};
@@ -240,9 +260,9 @@ sub test_network_interface {
     # So, it needs to have IP/VM mapping for primary NIC to execute further steps to test the target virtual network.
     # For sle16+ guests, NM can let it automatically get IP without further set up.
     # All guests should already have this, unless it is not created earlier, but from `virt-clone`(eg libvirt_routed_virtual_network).
-    my $_primary_net = script_output("virsh domiflist $guest | gawk '{print \$3}' | grep -v -E \"Source|$net|\^\$\" | head -1");
-    record_info("Primary net for $guest: $_primary_net");
-    save_guest_ip("$guest", name => $_primary_net);
+    my $primary_net_br = find_vm_primary_net_bridge($guest, exclude_net => "$net");
+    record_info("Primary net for $guest: $primary_net_br");
+    save_guest_ip("$guest", name => $primary_net_br);
 
     # Configure the network interface to use DHCP configuration
     #flag SRIOV test as it need not restart network service
