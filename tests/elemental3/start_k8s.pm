@@ -27,12 +27,13 @@ Wait for kubectl command to be available.
 sub wait_kubectl_cmd {
     my (%args) = @_;
     $args{timeout} //= 120;
+    $timeout = bmwqemu::scale_timeout($args{timeout});
     my $starttime = time;
     my $ret = undef;
 
-    while ($ret = script_run('which kubectl', ($args{timeout} / 10))) {
+    while ($ret = script_run('which kubectl', $timeout / 10)) {
         my $timerun = time - $starttime;
-        die("kubectl command did not appear within $args{timeout} seconds!") if ($timerun >= $args{timeout});
+        die("kubectl command did not appear within $timeout seconds!") if ($timerun >= $timeout);
         sleep 5;
     }
 
@@ -53,6 +54,7 @@ Returns 0 if cluster is running or croaks on timeout.
 sub wait_k8s_state {
     my (%args) = @_;
     $args{timeout} //= 120;
+    $timeout = bmwqemu::scale_timeout($args{timeout});
     my $starttime = time;
     my $ret = undef;
     my $chk_cmd = 'kubectl get pod -A 2>&1';
@@ -62,14 +64,13 @@ sub wait_k8s_state {
     while (
         $ret = script_run(
             "! ($chk_cmd | grep -E -i -v -q '$args{regex}')",
-            ($args{timeout} / 10)
+            $timeout / 10
         )
       )
     {
-        my $timerun = time - $starttime;
-        if ($timerun >= $args{timeout}) {
-            record_info('K8s failed state', script_output("$chk_cmd"));
-            die("K8s cluster did not start within $args{timeout} seconds!");
+        if (time - $starttime >= $timeout) {
+            record_info('K8s failed state', script_output("$chk_cmd", proceed_on_failure => 1));
+            die("K8s cluster did not start within $timeout seconds!");
         }
         sleep 10;
     }
@@ -77,6 +78,35 @@ sub wait_k8s_state {
     # Return the command status
     die('Check did not return a defined value!') unless defined $ret;
     return $ret;
+}
+
+=head2 wait_nodes_ready
+
+ wait_nodes_ready( [ timeout => <value> ] );
+
+Wait for up to B<$timeout> seconds until K8s nodes are ready.
+Returns 0 if nodes are ready or croaks on timeout.
+
+=cut
+
+sub wait_nodes_ready {
+    my (%args) = @_;
+    $args{timeout} //= 120;
+    $timeout = bmwqemu::scale_timeout($args{timeout});
+    my $starttime = time;
+    my $chk_cmd = 'kubectl get nodes 2>&1';
+    my $out = ' NotReady ';    # Spaces are needed for the next regex to work!
+
+    while ($out =~ m/\s+NotReady\s+/s) {
+        $out = script_output("$chk_cmd", proceed_on_failure => 1);
+        if (time - $starttime >= $timeout) {
+            record_info('K8s nodes state', script_output("$chk_cmd", proceed_on_failure => 1));
+            die("K8s nodes not ready within $timeout seconds!");
+        }
+        sleep 10;
+    }
+
+    return 0;
 }
 
 =head2 prepare_test_framework
@@ -189,9 +219,11 @@ sub run {
     # Record K8s status (we want all, stderr as well)
     record_info('K8s status', script_output('kubectl get pod -A 2>&1'));
 
-    # Record K8s version/node
-    record_info('K8s version/node',
-        script_output('kubectl version; kubectl get nodes'));
+    # Wait until node(s) is/are in Ready state
+    wait_nodes_ready(timeout => $timeout);
+
+    # Record K8s version/nodes
+    record_info('K8s version/nodes', script_output('kubectl version; kubectl get nodes'));
 
     # Check toolkit version
     record_info('Elemental version', script_output('elemental3ctl version'));
