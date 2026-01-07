@@ -13,6 +13,7 @@ use utils;
 use LTP::utils;
 use power_action_utils 'power_action';
 use upload_system_log;
+use kernel;
 use qam;
 
 sub export_to_json {
@@ -45,6 +46,7 @@ sub run {
     }
 
     upload_system_logs();
+    check_kernel_package(get_kernel_flavor()) if get_var('INSTALL_LTP');
 
     # Also cleanup machine-id to avoid duplicate ipv6 link local address in mutli-machine setup.
     script_run('echo -n >/etc/machine-id');

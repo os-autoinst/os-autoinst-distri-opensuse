@@ -27,6 +27,7 @@ use rpi 'enable_tpm_slb9670';
 use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
 use Utils::Backends 'get_serial_console';
+use kernel;
 use transactional;
 
 sub add_we_repo_if_available {
@@ -354,6 +355,7 @@ sub run {
     }
 
     (is_jeos && is_sle('>15')) && zypper_call 'in system-user-bin system-user-daemon';
+    check_kernel_package(get_kernel_flavor()) if $cmd_file;
 
     # boot_ltp will schedule the tests and shutdown_ltp if there is a command
     # file
