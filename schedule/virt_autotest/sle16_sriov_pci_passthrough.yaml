@@ -13,8 +13,14 @@ conditional_schedule:
         - virt_autotest/prepare_non_transactional_server
       1:
         - virt_autotest/login_console
+        - '{{install_or_download_guest}}'
+        - virt_autotest/set_config_as_glue
+        - virt_autotest/sriov_network_card_pci_passthrough
+  install_or_download_guest:
+    SKIP_GUEST_INSTALL:
+      0:
+        - virt_autotest/unified_guest_installation
+      1:
         #- virt_autotest/cleanup_service
         - virt_autotest/download_guest_assets
         - virt_autotest/restore_guests
-        - virt_autotest/set_config_as_glue
-        - virt_autotest/sriov_network_card_pci_passthrough
