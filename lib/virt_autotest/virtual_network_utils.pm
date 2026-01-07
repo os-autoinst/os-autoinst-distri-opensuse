@@ -185,7 +185,7 @@ sub get_vm_ip_with_nmap {
     my $vif_type = '';
     if (!$vif_src) {
         # If not passed in, use default primary one
-        ($vif_type, $vif_src) = find_vm_primary_nic_info($guest);
+        ($vif_type, $vif_src) = find_vm_primary_nic_info($vm);
     } else {
         $vif_type = script_output("virsh domiflist $vm | grep \"$vif_src\" | gawk '{print \$2}'", proceed_on_failure => 0);
     }
