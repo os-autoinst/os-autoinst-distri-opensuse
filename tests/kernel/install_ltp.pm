@@ -12,7 +12,6 @@ use File::Basename 'basename';
 use LWP::Simple 'head';
 
 use testapi;
-use serial_terminal 'select_serial_terminal';
 use registration;
 use utils;
 use bootloader_setup qw(add_custom_grub_entries add_grub_cmdline_settings);
@@ -28,7 +27,6 @@ use rpi 'enable_tpm_slb9670';
 use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
 use Utils::Backends 'get_serial_console';
-use kdump_utils;
 use transactional;
 
 sub add_we_repo_if_available {
@@ -272,14 +270,7 @@ sub run {
 
     enable_tpm_slb9670 if ($is_ima && get_var('MACHINE') =~ /RPi/);
 
-    if (get_var('LTP_COMMAND_FILE') && check_var_array('LTP_DEBUG', 'crashdump')) {
-        select_serial_terminal;
-        configure_service(yast_interface => 'cli');
-    }
-
-    # Initialize VNC console now to avoid login attempts on frozen system
-    select_console('root-console') if get_var('LTP_DEBUG');
-    select_serial_terminal;
+    init_debug;    # calls select_serial_terminal
 
     $grub_param = setup_kernel_logging;
     export_ltp_env;

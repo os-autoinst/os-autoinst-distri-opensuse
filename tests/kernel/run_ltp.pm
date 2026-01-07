@@ -557,9 +557,10 @@ E.g.: key=value,key2="value with spaces",key3='another value with spaces'
 Comma separated list of debug features to enable during test run.
 - C<oprofile>: Collect system-wide oprofile during each test. QEMUCPU=host may
   be required.
-- C<tcpdump>: Capture all packets sent or received during each test.
 - C<crashdump>: Save kernel crashdump on test timeout.
 - C<tasktrace>: Print backtrace of all processes and show blocked tasks
+- C<tcpdump>: Capture all packets sent or received during each test.
+- C<supportconfig>: Run supportconfig after boot and before shutdown.
 
 =head2 LTP_REBOOT_AFTER_TEST
 
