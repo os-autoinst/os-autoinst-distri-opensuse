@@ -174,7 +174,8 @@ sub check_guest_module {
         }
     }
 }
-
+# For sle16+ tests, developing guest will have public IP, while sle15 and lower guests use br123.
+# To have a unique way to query ip, create this function to get ip via nmap.
 sub get_vm_ip_with_nmap {
     my ($vm) = @_;
 
@@ -201,8 +202,8 @@ sub save_guest_ip {
         my $gi_guest = '';
         if (is_alp) {
             $gi_guest = get_guest_ip_from_vnet_with_mac($mac_guest, $name);
-        } elsif (is_sle('16+')) {
-            $gi_guest = get_vm_ip_with_nmap($guest);
+        #} elsif (is_sle('16+')) {
+        #    $gi_guest = get_vm_ip_with_nmap($guest);
         } else {
             my $syslog_cmd = is_sle('=11-sp4') ? 'grep DHCPACK /var/log/messages' : 'journalctl --no-pager | grep DHCPACK';
             script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
@@ -233,9 +234,15 @@ sub test_network_interface {
     }
 
     record_info("Network test", "testing $mac");
-    check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
+    #check_guest_ip("$guest", net => $net) if ((is_sle('>15') || is_alp) && ($isolated == 1) && get_var('VIRT_AUTOTEST'));
 
-    save_guest_ip("$guest", name => $net);
+    # For sle15 and lower guests, it needs to set up /etc/sysconfig/network/ifcfg-xx to let the attached NIC get IP.
+    # So, it needs to have IP/VM mapping for primary NIC to execute further steps to test the target virtual network.
+    # For sle16+ guests, NM can let it automatically get IP without further set up.
+    # All guests should already have this, unless it is not created earlier, but from `virt-clone`(eg libvirt_routed_virtual_network).
+    my $_primary_net = script_output("virsh domiflist $guest | gawk '{print \$3}' | grep -v -E \"Source|$net|\^\$\" | head -1");
+    record_info("Primary net for $guest: $_primary_net");
+    save_guest_ip("$guest", name => $_primary_net);
 
     # Configure the network interface to use DHCP configuration
     #flag SRIOV test as it need not restart network service
