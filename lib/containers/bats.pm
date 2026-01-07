@@ -81,6 +81,42 @@ sub switch_to_user {
     run_command "cd /var/tmp";
 }
 
+sub install_docker_compose {
+    my $compose_version = "2.40.3";
+    my $arch = get_required_var("ARCH");
+    my $url = "https://github.com/docker/compose/releases/download/v$compose_version/docker-compose-linux-$arch";
+    run_command "curl -sSLo /usr/lib/docker/cli-plugins/docker-compose $url";
+    run_command "chmod +x /usr/lib/docker/cli-plugins/docker-compose";
+    run_command "echo 0 > /etc/docker/suse-secrets-enable";
+}
+
+sub configure_docker_tls {
+    my $ca_cert = "ca.pem";
+    my $ca_key = "ca-key.pem";
+    my $req = "cert.csr";
+    my $cert = "cert.pem";
+    my $key = "key.pem";
+    my $opts = "-req -days 7 -sha256 -in $req -CA $ca_cert -CAkey $ca_key -CAcreateserial -out $cert";
+
+    # Create self-signed CA
+    run_command "openssl genrsa -out $ca_key 4096";
+    run_command qq(openssl req -new -x509 -days 7 -key $ca_key -sha256 -subj "/CN=CA" -out $ca_cert -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign");
+    # Create server cert & key
+    run_command "openssl genrsa -out $key 4096";
+    run_command qq(openssl req -new -key $key -subj "/CN=\$(hostname)" -out $req);
+    run_command "openssl x509 $opts -extfile <(echo extendedKeyUsage=serverAuth) -extfile <(echo subjectAltName=DNS:\$(hostname),DNS:localhost,IP:$ip_addr,IP:127.0.0.1)";
+    run_command "cp -f $ca_cert $cert $key /etc/docker/";
+    # Create client server & key
+    run_command "openssl genrsa -out $key 4096";
+    run_command qq(openssl req -new -key $key -subj "/CN=client" -out $req);
+    run_command "openssl x509 $opts -extfile <(echo extendedKeyUsage=clientAuth)";
+    run_command "mkdir -m 700 ~/.docker/ || true";
+    run_command "mv -f $ca_cert $cert $key ~/.docker/";
+    $docker_opts .= " --tlsverify --tlscacert=/etc/docker/$ca_cert --tlscert=/etc/docker/$cert --tlskey=/etc/docker/$key";
+    run_command "cp /etc/docker/ca.pem /etc/pki/trust/anchors/";
+    run_command "update-ca-certificates";
+}
+
 sub configure_docker {
     my (%args) = @_;
     $args{experimental} //= get_var("DOCKER_EXPERIMENTAL", 0);
@@ -88,14 +124,7 @@ sub configure_docker {
     $args{tls} //= get_var("DOCKER_TLS", 0);
 
     # docker-compose is needed for tests but is not available on SLES 15
-    if (is_sle("<16") && script_run("test -f /usr/lib/docker/cli-plugins/docker-compose")) {
-        my $compose_version = "2.40.3";
-        my $arch = get_required_var("ARCH");
-        my $url = "https://github.com/docker/compose/releases/download/v$compose_version/docker-compose-linux-$arch";
-        run_command "curl -sSLo /usr/lib/docker/cli-plugins/docker-compose $url";
-        run_command "chmod +x /usr/lib/docker/cli-plugins/docker-compose";
-        run_command "echo 0 > /etc/docker/suse-secrets-enable";
-    }
+    install_docker_compose if (is_sle("<16") && script_run("test -f /usr/lib/docker/cli-plugins/docker-compose"));
 
     run_command "export DOCKER_BUILDKIT=1" if is_sle("<16");
 
@@ -106,30 +135,7 @@ sub configure_docker {
     my $port = 2375;
     if ($args{tls}) {
         $port++;
-        my $ca_cert = "ca.pem";
-        my $ca_key = "ca-key.pem";
-        my $req = "cert.csr";
-        my $cert = "cert.pem";
-        my $key = "key.pem";
-        my $opts = "-req -days 7 -sha256 -in $req -CA $ca_cert -CAkey $ca_key -CAcreateserial -out $cert";
-
-        # Create self-signed CA
-        run_command "openssl genrsa -out $ca_key 4096";
-        run_command qq(openssl req -new -x509 -days 7 -key $ca_key -sha256 -subj "/CN=CA" -out $ca_cert -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign");
-        # Create server cert & key
-        run_command "openssl genrsa -out $key 4096";
-        run_command qq(openssl req -new -key $key -subj "/CN=\$(hostname)" -out $req);
-        run_command "openssl x509 $opts -extfile <(echo extendedKeyUsage=serverAuth) -extfile <(echo subjectAltName=DNS:\$(hostname),DNS:localhost,IP:$ip_addr,IP:127.0.0.1)";
-        run_command "cp -f $ca_cert $cert $key /etc/docker/";
-        # Create client server & key
-        run_command "openssl genrsa -out $key 4096";
-        run_command qq(openssl req -new -key $key -subj "/CN=client" -out $req);
-        run_command "openssl x509 $opts -extfile <(echo extendedKeyUsage=clientAuth)";
-        run_command "mkdir -m 700 ~/.docker/ || true";
-        run_command "mv -f $ca_cert $cert $key ~/.docker/";
-        $docker_opts .= " --tlsverify --tlscacert=/etc/docker/$ca_cert --tlscert=/etc/docker/$cert --tlskey=/etc/docker/$key";
-        run_command "cp /etc/docker/ca.pem /etc/pki/trust/anchors/";
-        run_command "update-ca-certificates";
+        configure_docker_tls;
     }
     $docker_opts .= " -H tcp://0.0.0.0:$port";
     run_command "mv /etc/sysconfig/docker{,.bak}";
@@ -305,7 +311,7 @@ EOF
 sub nonewprivs {
     run_command "zypper ar -f https://download.opensuse.org/repositories/home:/kukuk:/no_new_privs/openSUSE_Tumbleweed/ no_new_privs";
     run_command "zypper -n --gpg-auto-import-keys install --force-resolution --allow-vendor-change enable-no_new_privs";
-    run_command "systemctl enable --now polkit-agent-helper.socket || true";
+    run_command "systemctl enable --now polkit-agent-helper.socket";
 }
 
 sub setup_pkgs {
