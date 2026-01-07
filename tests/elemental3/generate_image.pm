@@ -81,11 +81,10 @@ sub build_cmd {
     $manifest_uri = 'oci://' . $manifest_uri unless $manifest_uri =~ /:\/\//;
 
     # Configure the build
-    my $hashpwd = script_output("openssl passwd -6 $args{rootpwd}");
     file_content_replace(
         "$build_dir/butane.yaml",
         '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => $hashpwd,
+        '%TEST_PASSWORD%' => $args{rootpwd},
         '%K8S%' => $args{k8s}
     );
     file_content_replace(
@@ -276,15 +275,15 @@ sub run {
     trup_call('--continue pkg install elemental3 elemental3ctl squashfs mtools xorriso');
     trup_call('apply');
 
-    # Set SELinux in permissive mode, as there is an issue with enforcing mode and Elemental3 doesn't support it yet
-    assert_script_run("setenforce permissive");
+    # Use a crypted password
+    my $hashpwd = script_output("openssl passwd -6 $rootpwd");
 
     # Create HDD image with different commands
     $out_file = build_cmd(
         timeout => $timeout,
         k8s => $k8s,
         hddsize => $hddsize,
-        rootpwd => $rootpwd,
+        rootpwd => $hashpwd,
         build => $build,
         repo_to_test => $repo_to_test,
         img_filename => $img_filename
@@ -294,7 +293,7 @@ sub run {
         timeout => $timeout,
         k8s => $k8s,
         type => 'iso',
-        rootpwd => $rootpwd,
+        rootpwd => $hashpwd,
         build => $build,
         repo_to_test => $repo_to_test,
         img_filename => $img_filename
@@ -305,7 +304,7 @@ sub run {
         arch => $arch,
         k8s => $k8s,
         hddsize => $hddsize,
-        rootpwd => $rootpwd,
+        rootpwd => $hashpwd,
         build => $build,
         repo_to_test => $repo_to_test,
         img_filename => $img_filename

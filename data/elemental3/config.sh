@@ -10,7 +10,7 @@ declare k8s_distri="%K8S%"
 grub2-editenv /boot/grubenv set timeout=-1
 
 # Setting root passwd
-echo "%TEST_PASSWORD%" | passwd root --stdin
+sed -i '/^root:/s|^root:\*:\(.*\)|root:%TEST_PASSWORD%:\1|' /etc/shadow
 
 # Allow root ssh access (for testing purposes only!)
 echo "PermitRootLogin yes" > /etc/ssh/sshd_config.d/root_access.conf
