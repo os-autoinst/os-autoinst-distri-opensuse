@@ -26,7 +26,7 @@ sub run {
         if (script_run("ls $downloaded_xml_dir/$guest.xml") == 0) {
             restore_downloaded_guests($guest, $downloaded_xml_dir);
             assert_script_run "virsh start $guest";
-            wait_guest_online($guest);
+	    #julie            wait_guest_online($guest);
         }
     }
 }

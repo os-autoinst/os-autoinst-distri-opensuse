@@ -186,12 +186,11 @@ sub save_guest_ip {
         if (is_alp) {
             $gi_guest = get_guest_ip_from_vnet_with_mac($mac_guest, $name);
         } else {
-            my $syslog_cmd = is_sle('=11-sp4') ? 'grep DHCPACK /var/log/messages' : 'journalctl --no-pager | grep DHCPACK';
+            my $syslog_cmd = 'journalctl --no-pager | grep DHCPACK';
             script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
             $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
         }
         setup_vm_simple_dns_with_ip($guest, $gi_guest);
-        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
         die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
     }
 }

@@ -86,6 +86,7 @@ our @EXPORT = qw(
   is_guest_online
   ensure_online
   wait_guest_online
+  get_vm_ip_with_nmap
   restore_downloaded_guests
   save_original_guest_xmls
   restore_original_guests
@@ -2030,6 +2031,23 @@ sub install_product_software {
         zypper_call($cmd);
         save_screenshot;
     }
+}
+
+# For sle16+ tests, developing guest will have public IP, while sle15 and lower guests use br123.
+# To have a unique way to query ip, create this function to get ip via nmap.
+sub get_vm_ip_with_nmap {
+    my ($vm) = @_;
+
+    my $_target_subnet = '';
+    my $_source_bridge = 'br0';
+    $_source_bridge = 'br123' if (script_run("virsh domiflist $vm | grep br123") == 0);
+    $_target_subnet = script_output("ip route show all | grep $_source_bridge | awk \'{print \$1}\' | grep -v default");
+    my $_vm_mac = script_output("virsh domiflist $vm | grep $_source_bridge | gawk '{print \$5}'");
+    script_run("nmap -T4 -sn $_target_subnet -oX /tmp/nmap_scan_result", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
+    record_info("Scanned IP in $_target_subnet", script_output("cat /tmp/nmap_scan_result"));
+    my $_vm_ip = script_output("xmlstarlet sel -t -v //address/\@addr -n /tmp/nmap_scan_result | grep -i $_vm_mac -B1 | grep -iv $_vm_mac", proceed_on_failure => 0);
+    assert_script_run("rm /tmp/nmap_scan_result");
+    return $_vm_ip;
 }
 
 1;

@@ -290,7 +290,8 @@ sub prepare_guest_for_sriov_passthrough {
     }
 
     #passwordless access to guest
-    save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
+    #julie save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
+    get_vm_ip_with_nmap($vm);
 
     # Enable udev debug logs
     my $udev_conf_file = "/etc/udev/udev.conf";
