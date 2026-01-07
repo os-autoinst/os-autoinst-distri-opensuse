@@ -10,8 +10,7 @@ local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 local answers_lib = import 'lib/answers.libsonnet';
 
-function(activate_multipath=false,
-         bootloader=true,
+function(bootloader=true,
          bootloader_timeout=false,
          bootloader_extra_kernel_params='',
          dasd=false,
@@ -19,6 +18,7 @@ function(activate_multipath=false,
          files=false,
          iscsi=false,
          localization='',
+         multipath_activate=false,
          packages='',
          patterns='',
          patterns_to_add='',
@@ -69,11 +69,11 @@ function(activate_multipath=false,
             [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
             [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
           },
-          [if decrypt_password != '' || registration_packagehub || activate_multipath  then 'questions']: {
+          [if decrypt_password != '' || registration_packagehub || multipath_activate  then 'questions']: {
             answers: std.prune([
               if decrypt_password != '' then answers_lib.questions_decrypt(decrypt_password),
               if registration_packagehub then answers_lib.questions_import_gpg(),
-              if activate_multipath then answers_lib.questions_activate_multipath(),
+              if multipath_activate then answers_lib.questions_activate_multipath(),
             ]),
           },
           [if storage != '' then 'storage']: storage_lib[storage],
