@@ -27,10 +27,9 @@ sub run {
     save_screenshot;
 
     # Enter database dir
-    wait_screen_change { type_string 'fips_xca' };
-    send_key 'enter';
+    type_string 'fips_xca';
+    send_key 'ret';
     wait_still_screen 2;
-    save_screenshot;
 
     # Enter the password, that will be used to encrypt the private keys
     type_string("$testapi::password");
@@ -61,7 +60,7 @@ sub run {
     send_key 'alt-g';
     wait_still_screen 2;
     save_screenshot;
-    send_key 'enter';
+    send_key 'ret';
     wait_still_screen 2;
     send_key 'alt-o';
     wait_still_screen 2;
