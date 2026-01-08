@@ -199,6 +199,8 @@ sub get_vm_ip_with_nmap {
 
     my $target_subnet = script_output("ip route show all | grep \"$vif_src_bridge\" | awk \'{print \$1}\' | grep -v default", proceed_on_failure => 0);
     my $vm_mac = script_output("virsh domiflist $vm | grep \"$vif_src\" | gawk '{print \$5}'", proceed_on_failure => 0);
+    # Nmap result has capitalized MAC
+    $vm_mac = uc($vm_mac);
     my $max_retry = 10;
     my $vm_ip = '';
     my $scan_log = "/tmp/nmap_scan_result";
