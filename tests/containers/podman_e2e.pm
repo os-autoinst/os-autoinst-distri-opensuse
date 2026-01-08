@@ -82,6 +82,7 @@ sub run {
     my @xfails = (
         # Fails with "registry.access.redhat.com/*openshift*"
         'Libpod Suite::[It] Podman search podman search with wildcards',
+        'Libpod Suite::[It] Podman run memory podman run memory test on oomkilled container',
     );
     push @xfails, (
         # Fixed in podman 5.6.1:
