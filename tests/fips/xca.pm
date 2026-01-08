@@ -28,8 +28,8 @@ sub run {
 
     # Enter database dir
     type_string 'fips_xca';
-    send_key 'ret';
-    wait_still_screen 2;
+    wait_screen_change { send_key 'ret' };
+    save_screenshot;
 
     # Enter the password, that will be used to encrypt the private keys
     type_string("$testapi::password");
@@ -48,7 +48,7 @@ sub run {
     wait_still_screen 2;
     save_screenshot;
     send_key 'tab';
-    send_key 'ret';
+    wait_screen_change { send_key 'ret' };
     assert_and_click('xca_create_internal_name');
     # internal name for the certificate
     type_string 'susetest';
