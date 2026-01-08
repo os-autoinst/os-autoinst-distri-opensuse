@@ -1,4 +1,4 @@
-From 0ed32ebd10bf571f556a952666ceb9a4f4de286a Mon Sep 17 00:00:00 2001
+From 174e02ae5545361683b163e79a19fc524a843b12 Mon Sep 17 00:00:00 2001
 From: Ricardo Branco <rbranco@suse.de>
 Date: Sat, 20 Dec 2025 23:20:08 +0100
 Subject: [PATCH] test: Fix --hostuser octal UID test flakiness
@@ -12,14 +12,14 @@ new user IDs start with 1000.
 
 Signed-off-by: Ricardo Branco <rbranco@suse.de>
 ---
- test/system/030-run.bats | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ test/system/030-run.bats | 30 ++++++++++++++----------------
+ 1 file changed, 14 insertions(+), 16 deletions(-)
 
 diff --git a/test/system/030-run.bats b/test/system/030-run.bats
-index 82d8eaa3f84..c94b8ab2597 100644
+index 82d8eaa3f84..158b8658639 100644
 --- a/test/system/030-run.bats
 +++ b/test/system/030-run.bats
-@@ -939,17 +939,15 @@ EOF
+@@ -939,30 +939,28 @@ EOF
      run_podman 1 run --rm $IMAGE grep $user /etc/passwd
      run_podman run --hostuser=$user --rm $IMAGE grep $user /etc/passwd
  
@@ -30,15 +30,37 @@ index 82d8eaa3f84..c94b8ab2597 100644
 -    if test -n "$octal_user"; then
 -        read octal_username octal_userid <<< $octal_user
 -        run_podman run --user=$octal_username --hostuser=$octal_username --rm $IMAGE id -u
-+    # test uid if octal
-+    octal_userid=$(id -u)
-+    if [[ $octal_userid =~ ^[0-7]+$ ]]; then
+-        is "$output" "$octal_userid"
++    # Use the rootless user ID which is likely to be octal on CI as new user IDs start with 1000.
++    userid=$(id -u)
++    if [[ $userid =~ ^[0-7]+$ ]]; then
 +        run_podman run --user=$user --hostuser=$user --rm $IMAGE id -u
-         is "$output" "$octal_userid"
++        is "$output" "$userid"
      fi
  
 -    user=$(id -u)
-+    user=$octal_userid
+-
+-    userspec=$(id -un):$(id -g)
+-    run_podman run --hostuser=$user --user $userspec --rm $IMAGE sh -c 'echo $(id -un):$(id -g)'
++    group=$(id -gn)
++    groupid=$(id -g)
++    userspec=$user:$groupid
++    run_podman run --hostuser=$userid --user $userspec --rm $IMAGE sh -c 'echo $(id -un):$(id -g)'
+     is "$output" "$userspec"
  
-     userspec=$(id -un):$(id -g)
-     run_podman run --hostuser=$user --user $userspec --rm $IMAGE sh -c 'echo $(id -un):$(id -g)'
+-    run_podman run --hostuser=$user --user $userspec --group-entry="$(id -gn):x:$(id -g):" --rm $IMAGE sh -c 'echo $(id -un):$(id -gn)'
+-    is "$output" "$(id -un):$(id -gn)"
++    run_podman run --hostuser=$userid --user $userspec --group-entry="$group:x:$groupid:" --rm $IMAGE sh -c 'echo $(id -un):$(id -gn)'
++    is "$output" "$user:$group"
+ 
+-    run_podman 126 run --hostuser=$user --user "$(id -un):$(id -gn)" --rm $IMAGE sh -c 'echo $(id -un):$(id -gn)'
++    run_podman 126 run --hostuser=$userid --user "$user:$group" --rm $IMAGE sh -c 'echo $(id -un):$(id -gn)'
+     is "$output" "Error:.* no matching entries in group file"
+ 
+-    run_podman run --hostuser=$user --rm $IMAGE grep $user /etc/passwd
+-    run_podman run --hostuser=$user --user $user --rm $IMAGE grep $user /etc/passwd
++    run_podman run --hostuser=$userid --rm $IMAGE grep $userid /etc/passwd
++    run_podman run --hostuser=$userid --user $userid --rm $IMAGE grep $userid /etc/passwd
+     user=bogus
+     run_podman 126 run --hostuser=$user --rm $IMAGE grep $user /etc/passwd
+ }
