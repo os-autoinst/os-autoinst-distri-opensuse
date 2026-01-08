@@ -24,7 +24,7 @@ use testapi;
 use virt_autotest::common;
 use version_utils qw(is_sle);
 use virt_autotest::utils;
-use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
+use virt_autotest::virtual_network_utils qw(save_guest_ip setup_vm_simple_dns_with_ip test_network_interface);
 
 our $log_dir = "/tmp/sriov_pcipassthru";
 our $vm_xml_save_dir = "/tmp/download_vm_xml";
