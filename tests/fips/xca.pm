@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: xca basic tests in FIPS mode
@@ -28,7 +28,7 @@ sub run {
 
     # Enter database dir
     wait_screen_change { type_string 'fips_xca' };
-    assert_and_click('xca_database_save');
+    send_key 'enter';
     wait_still_screen 2;
     save_screenshot;
 
@@ -45,38 +45,36 @@ sub run {
     # Create new certificate
     send_key 'alt-n';
     wait_still_screen 2;
-    save_screenshot;
     send_key 'alt-o';
     wait_still_screen 2;
     save_screenshot;
     send_key 'tab';
     send_key 'ret';
-    assert_and_click('xca_create_initernal_name');
-
-    # Enter the internal name for the certificate
-    type_string('susetest');
+    assert_and_click('xca_create_internal_name');
+    # internal name for the certificate
+    type_string 'susetest';
+    # countryName
+    send_key 'tab';
+    type_string 'DE';
 
     # Generate a new key
     send_key 'alt-g';
     wait_still_screen 2;
     save_screenshot;
-    # press enter to generate key.
-    # Key generation can take some time on a busy system
-    send_key 'ret', wait_screen_change => 1;
-    wait_still_screen 10;
-    save_screenshot;
-    send_key 'alt-o', wait_screen_change => 1;
-    assert_and_click('ok_to_create_certificate');
+    send_key 'enter';
+    wait_still_screen 2;
+    send_key 'alt-o';
+    wait_still_screen 2;
 
     # The certificate contains no extensions, you may apply the
     # extensions of one of the templates to define the purpose
     # of the certificate
+    send_key 'alt-o';
     assert_and_click('xca_continue_rollout');
     wait_still_screen 2;
     if (check_screen('xca_fips_error_digital', 10)) {
         record_soft_failure('bsc#1198370: error:060800C8:digital envelope routines:EVP_DigestInit_ex:disabled for FIPS');
     }
-    send_key 'alt-o';
     assert_screen('certificate_create_complete');
 
     # Clean up
