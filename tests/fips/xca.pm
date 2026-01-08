@@ -73,6 +73,7 @@ sub run {
     wait_still_screen 2;
     if (check_screen('xca_fips_error_digital', 10)) {
         record_soft_failure('bsc#1198370: error:060800C8:digital envelope routines:EVP_DigestInit_ex:disabled for FIPS');
+        send_key 'alt-o';
     }
     assert_screen('certificate_create_complete');
 
