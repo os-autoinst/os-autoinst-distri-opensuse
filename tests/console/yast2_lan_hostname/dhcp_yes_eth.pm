@@ -7,7 +7,7 @@
 # Summary: Verify that correct value is stored in network config when
 # setting hostname via DHCP to 'yes: <ethernet network interface>' in
 # YaST2 lan module (https://bugzilla.suse.com/show_bug.cgi?id=984890)
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use parent 'yast2_lan_hostname_base';
 use testapi;

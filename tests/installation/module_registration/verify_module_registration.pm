@@ -7,7 +7,7 @@
 #          during graphical installation and that only default ones
 #          are selected.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use scheduler 'get_test_suite_data';

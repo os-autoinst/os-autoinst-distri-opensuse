@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Select existing partition(s) for upgrade
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use testapi;

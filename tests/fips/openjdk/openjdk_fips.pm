@@ -8,7 +8,7 @@
 #          FIPS 140-3: make OpenJDK be able to use the NSS certified crypto
 #          Test case GET "Supported Cipher Suites and list all crypto providers
 # Tags: poo#112034
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "opensusebasetest";
 use testapi;

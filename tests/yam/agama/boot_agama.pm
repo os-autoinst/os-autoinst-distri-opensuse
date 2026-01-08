@@ -3,7 +3,7 @@
 
 # Summary: Boot to agama adding bootloader kernel parameters and expecting web ui up and running.
 # At the moment redirecting to legacy handling for remote architectures booting.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "installbasetest";
 

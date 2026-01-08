@@ -5,7 +5,7 @@
 #
 # Summary: Edit suggested partitioning proposal and encrypt the partitions specified in test data.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use parent 'y2_installbase';
 use testapi;

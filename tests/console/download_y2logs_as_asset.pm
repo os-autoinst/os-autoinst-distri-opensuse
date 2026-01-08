@@ -6,7 +6,7 @@
 # Summary: Downloads y2logs ASSET_1 file, created by
 # upload_y2logs_as_asset.pm in parent job.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "opensusebasetest";
 use testapi;

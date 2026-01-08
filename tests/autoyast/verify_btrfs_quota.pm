@@ -5,7 +5,7 @@
 #
 # Summary: Verify that quota is set and corresponds to the expected limit for the required subvolumes.
 # The list of subvolumes and expected quota limit are stored in 'test_data'.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'basetest';
 use testapi;

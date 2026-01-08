@@ -14,7 +14,7 @@
 #           proxy_user: PROXY_USER
 #           proxy_password: PROXY_PASSWORD
 #           proxy_auth: ntlm
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "consoletest";
 use testapi;

@@ -9,7 +9,7 @@ Library for non-destructive testing using yast2 lan.
 # SPDX-License-Identifier: FSFAP
 
 # Summary: YaST logic on Network Restart while no config changes were made
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 # Tags: fate#318787 poo#11450
 
 package y2lan_restart_common;

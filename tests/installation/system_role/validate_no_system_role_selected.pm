@@ -4,7 +4,7 @@
 # Summary: Test module to validate that no system role is pre-selected in
 # openSUSE.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use Test::Assert 'assert_null';

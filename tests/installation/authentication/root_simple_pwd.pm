@@ -6,7 +6,7 @@
 # Summary: Enter simple password for root in YaST interactive
 # installation and accept corresponding warning pop-up
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use Test::Assert ':all';

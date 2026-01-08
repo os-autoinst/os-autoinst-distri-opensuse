@@ -5,7 +5,7 @@
 
 # Package: yast2-snapper snapper
 # Summary: yast2 snapper test for ncurses
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base qw(y2snapper_common y2_module_consoletest);
 

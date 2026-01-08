@@ -6,7 +6,7 @@
 #   - Handle registration (gpg key, nvidia validation, registration server,
 #   repositories, beta, products, addons)
 # - Otherwise, skip registration
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use parent "y2_installbase";
 

@@ -3,7 +3,7 @@
 
 # Summary: Boot the installed system from hard disk instead of
 # booting again from the installation media.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "installbasetest";
 use Utils::Architectures qw(is_aarch64);

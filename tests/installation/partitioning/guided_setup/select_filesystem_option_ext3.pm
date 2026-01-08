@@ -3,7 +3,7 @@
 #
 # Summary: The test module selects Ext3 Filesystem for Root Partition on
 # Filesystem Options Screen of Guided Setup.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use parent 'y2_installbase';
 

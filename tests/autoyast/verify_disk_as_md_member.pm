@@ -11,7 +11,7 @@
 #             1. Number of partitions on MD RAID;
 #             2. RAID level;
 #             3. Mount points for MD partitions.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use testapi;
 use base 'basetest';

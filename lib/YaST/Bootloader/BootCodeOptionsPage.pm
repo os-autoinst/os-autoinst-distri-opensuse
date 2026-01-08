@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods for Boot Code Options tab
 # in Boot Loader Settings.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::Bootloader::BootCodeOptionsPage;
 use parent 'Installation::Navigation::NavigationBase';

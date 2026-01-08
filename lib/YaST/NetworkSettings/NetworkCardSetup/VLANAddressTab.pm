@@ -7,7 +7,7 @@
 # YaST2 lan module dialog, when VLAN is selected to be configured. The Tab
 # contains all the same elements as the common Address Tab, but with some
 # additional elements that are specific for VLAN.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::NetworkSettings::NetworkCardSetup::VLANAddressTab;
 use strict;

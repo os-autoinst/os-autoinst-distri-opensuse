@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: feature [ECO] zypper: more advanced $releasever handling
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 # Tags: tc#1480297, fate#318354
 
 use base "consoletest";

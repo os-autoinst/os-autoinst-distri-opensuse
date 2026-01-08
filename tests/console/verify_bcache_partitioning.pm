@@ -12,7 +12,7 @@
 # Scenarios covered:
 # - Verify that certain values are set correctly in a bcache setup after installation.
 # - Write operation in a backing device can be performed and validate that cache is working watching the cache hits.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "opensusebasetest";
 use testapi;
