@@ -78,7 +78,7 @@ sub run_test {
             next;
         }
         record_info("Test $guest");
-        setup_vm_simple_dns_with_ip($vm, get_vm_ip_with_nmap($vm));
+        setup_vm_simple_dns_with_ip($guest, get_vm_ip_with_nmap($guest));
         check_guest_health($guest);
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
