@@ -203,7 +203,7 @@ sub get_vm_ip_with_nmap {
     my $vm_ip = '';
     my $scan_log = "/tmp/nmap_scan_result";
     script_retry("nmap -T4 -sn $target_subnet -oX $scan_log | grep $vm_mac", timeout =>180, delay => 10, retry => 30, die => 1);
-    $vm_ip = script_output("xmlstarlet sel -t -v '//host[./address[\@addr="$vm_mac"]]/address[\@addrtype="ipv4"]/\@addr' $scan_log");
+    $vm_ip = script_output("xmlstarlet sel -t -v '//host[./address[\@addr=\"$vm_mac\"]]/address[\@addrtype=\"ipv4\"]/\@addr' $scan_log");
 
 #    while ($max_retry-- > 0) {
 #        assert_script_run("rm -f $scan_log");
