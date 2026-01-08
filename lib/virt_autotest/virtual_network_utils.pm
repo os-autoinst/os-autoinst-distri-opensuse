@@ -138,15 +138,16 @@ sub check_guest_ip {
 
     # ensure guest is still alive
     if (script_output("virsh domstate $guest") eq "running") {
-        my $mac_guest = script_output("virsh domiflist $guest | grep $net | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
-        my $gi_guest = '';
-        if (is_alp) {
-            $gi_guest = get_guest_ip_from_vnet_with_mac($mac_guest, $net);
-        } else {
-            my $syslog_cmd = "journalctl --no-pager | grep DHCPACK";
-            script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
-            $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
-        }
+#        my $mac_guest = script_output("virsh domiflist $guest | grep $net | grep -oE \"[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}\"");
+#        my $gi_guest = '';
+#        if (is_alp) {
+#            $gi_guest = get_guest_ip_from_vnet_with_mac($mac_guest, $net);
+#        } else {
+#            my $syslog_cmd = "journalctl --no-pager | grep DHCPACK";
+#            script_retry "$syslog_cmd | grep $mac_guest | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"", delay => 90, retry => 9, timeout => 90;
+#            $gi_guest = script_output("$syslog_cmd | grep $mac_guest | tail -1 | grep -oE \"([0-9]{1,3}[\.]){3}[0-9]{1,3}\"");
+#        }
+        my $gi_guest = get_vm_ip_with_nmap($guest, source => $net);
         setup_vm_simple_dns_with_ip($guest, $gi_guest);
         script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
         die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
@@ -175,9 +176,9 @@ sub check_guest_module {
         }
     }
 }
-# For sle16+ tests, developing guest will have public IP, while sle15 and lower guests use br123.
+# For sle16+ developing product tests, there are vms using public ip(br0) or local private net ip(br123).
 # MU guests may use default vnet or public IP.
-# To have a unique way to query ip, create this function to get ip via nmap.
+# To have a unique way to query ip for the 3 ways, create this function to get ip via nmap.
 sub get_vm_ip_with_nmap {
     my ($vm, %args) = @_;
     my $vif_src = $args{source};
@@ -193,15 +194,26 @@ sub get_vm_ip_with_nmap {
     # Get bridge name for vnet
     my $vif_src_bridge = $vif_src;
     if ($vif_type eq "network") {
-        $vif_src_bridge = script_output("virsh net-dumpxml $vif_src |xmlstarlet sel -t -v //bridge/\@name");
+        $vif_src_bridge = script_output("virsh net-dumpxml $vif_src |xmlstarlet sel -t -v //bridge/\@name", proceed_on_failure => 0);
     }
 
-    my $target_subnet = script_output("ip route show all | grep \"$vif_src_bridge\" | awk \'{print \$1}\' | grep -v default");
-    my $vm_mac = script_output("virsh domiflist $vm | grep \"$vif_src\" | gawk '{print \$5}'");
-    script_run("nmap -T4 -sn $target_subnet -oX /tmp/nmap_scan_result", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
-    record_info("Scanned IP in $target_subnet", script_output("cat /tmp/nmap_scan_result"));
-    my $vm_ip = script_output("xmlstarlet sel -t -v //address/\@addr -n /tmp/nmap_scan_result | grep -i $vm_mac -B1 | grep -iv $vm_mac", proceed_on_failure => 0);
-    assert_script_run("rm /tmp/nmap_scan_result");
+    my $target_subnet = script_output("ip route show all | grep \"$vif_src_bridge\" | awk \'{print \$1}\' | grep -v default", proceed_on_failure => 0);
+    my $vm_mac = script_output("virsh domiflist $vm | grep \"$vif_src\" | gawk '{print \$5}'", proceed_on_failure => 0);
+    my $max_retry = 10;
+    my $vm_ip = '';
+    my $scan_log = "/tmp/nmap_scan_result";
+    while ($max_retry-- > 0) {
+        assert_script_run("rm -f $scan_log");
+        script_run("nmap -T4 -sn $target_subnet -oX $scan_log", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
+        #$vm_ip = script_output("xmlstarlet sel -t -v //address/\@addr -n $scan_log | grep -i $vm_mac -B1 | grep -iv $vm_mac");
+        $vm_ip = script_output("xmlstarlet sel -t -v '//host[./address[\@addr="$vm_mac"]]/address[\@addrtype="ipv4"]/\@addr' $scan_log");
+        last if $vm_ip;
+        sleep 30;
+    }
+    record_info("Scanned IP in $target_subnet", script_output("cat $scan_log"));
+    assert_script_run("rm -f $scan_log");
+    die "No IP assigned for $vm from $target_subnet via src $vif_src type $vif_type" if (!$vm_ip);
+
     record_info("Found IP for $vm: vif src $vif_src, vif type $vif_type, IP $vm_ip");
     return $vm_ip;
 }
