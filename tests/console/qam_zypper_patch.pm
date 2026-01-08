@@ -28,6 +28,9 @@ sub run {
     my $sign_key = get_var('BUILD') =~ /openSUSE-repos/ ? '--gpg-auto-import-keys' : '';
     my $patch_id = is_leap('>=16') ? script_output("zypper lp | grep " . get_var('INCIDENT_PATCH') . " | awk '{print \$3}' | uniq") : get_var('INCIDENT_PATCH');
 
+    my $patch_info = script_output("zypper -n info -t patch $patch_id", 200);
+    record_info "$patch_id", "$patch_info";
+
     zypper_call("$sign_key in -l -t patch " . $patch_id, exitcode => [0, 102, 103], timeout => 1400);
 }
 
