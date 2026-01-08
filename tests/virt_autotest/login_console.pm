@@ -234,6 +234,7 @@ sub run {
         record_info('Kernel parameters', script_output('cat /proc/cmdline'));
         record_info('NIC', script_output('ip a'));
     }
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
 }
 
 sub post_fail_hook {

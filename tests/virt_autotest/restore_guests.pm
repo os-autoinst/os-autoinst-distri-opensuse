@@ -29,6 +29,7 @@ sub run {
 	    #julie            wait_guest_online($guest);
         }
     }
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
 }
 
 sub post_fail_hook {

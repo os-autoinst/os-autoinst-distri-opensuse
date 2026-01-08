@@ -23,6 +23,7 @@ sub run {
     if (download_guest_assets($guest_list, $vm_xml_dir) eq '0') {
         die "Fatal Error: The guest assets for $guest_list were not downloaded successfully!";
     }
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
 }
 
 sub test_flags {

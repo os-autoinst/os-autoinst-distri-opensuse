@@ -35,6 +35,7 @@ sub run_test {
 
     #set up ssh, packages and iommu on host
     check_host_health;
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
     script_run("journalctl --cursor-file /tmp/cursor.txt -u NetworkManager | grep -e 'timeout' -e 'failure' -e 'failed to acquire D-Bus name' -e 'critical'") if is_sle('16+');
     prepare_host();
 
@@ -52,6 +53,7 @@ sub run_test {
 
     # Back up /etc/resolv.conf as it will refresh by creating VFs
     assert_script_run("cp /etc/resolv.conf /etc/resolv_before_enable_vf.conf");
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
 
     record_info("Before enable VF", script_output("ip a"));
     script_run("ip r");
@@ -78,7 +80,9 @@ sub run_test {
             next;
         }
         record_info("Test $guest");
+        record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
         setup_vm_simple_dns_with_ip($guest, get_vm_ip_with_nmap($guest));
+	record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
         check_guest_health($guest);
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
@@ -186,6 +190,7 @@ sub prepare_host {
 
     #enable pciback debug logs
     script_run "echo \"module xen_pciback +p\" > /sys/kernel/debug/dynamic_debug/control" if is_xen_host;
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
 
 }
 
