@@ -355,8 +355,8 @@ sub setup_pkgs {
     }
 
     # Add IP to /etc/hosts
+    $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
     if (script_run("grep -q \$(hostname) /etc/hosts")) {
-        $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
         assert_script_run "echo $ip_addr \$(hostname) >> /etc/hosts";
     }
 
