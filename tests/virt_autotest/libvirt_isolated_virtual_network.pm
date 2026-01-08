@@ -58,8 +58,10 @@ sub run_test {
     save_screenshot;
 
     #After finished all virtual network test, need to restore file /etc/hosts from backup
-    virt_autotest::virtual_network_utils::hosts_restore();
+    #virt_autotest::virtual_network_utils::hosts_restore();
     #TODO: VM IP changed
+    
+    #After finished all virtual network test, VM IP could have changed compared to backup /etc/hosts, so just use it
 }
 
 sub post_fail_hook {
