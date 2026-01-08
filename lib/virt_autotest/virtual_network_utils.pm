@@ -202,14 +202,17 @@ sub get_vm_ip_with_nmap {
     my $max_retry = 10;
     my $vm_ip = '';
     my $scan_log = "/tmp/nmap_scan_result";
-    while ($max_retry-- > 0) {
-        assert_script_run("rm -f $scan_log");
-        script_run("nmap -T4 -sn $target_subnet -oX $scan_log", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
-        #$vm_ip = script_output("xmlstarlet sel -t -v //address/\@addr -n $scan_log | grep -i $vm_mac -B1 | grep -iv $vm_mac");
-        $vm_ip = script_output("xmlstarlet sel -t -v '//host[./address[\@addr="$vm_mac"]]/address[\@addrtype="ipv4"]/\@addr' $scan_log");
-        last if $vm_ip;
-        sleep 30;
-    }
+    script_retry("nmap -T4 -sn $target_subnet -oX $scan_log | grep $vm_mac", timeout =>180, delay => 10, retry => 30, die => 1);
+    $vm_ip = script_output("xmlstarlet sel -t -v '//host[./address[\@addr="$vm_mac"]]/address[\@addrtype="ipv4"]/\@addr' $scan_log");
+
+#    while ($max_retry-- > 0) {
+#        assert_script_run("rm -f $scan_log");
+#        script_run("nmap -T4 -sn $target_subnet -oX $scan_log", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
+#        #$vm_ip = script_output("xmlstarlet sel -t -v //address/\@addr -n $scan_log | grep -i $vm_mac -B1 | grep -iv $vm_mac");
+#        $vm_ip = script_output("xmlstarlet sel -t -v '//host[./address[\@addr="$vm_mac"]]/address[\@addrtype="ipv4"]/\@addr' $scan_log");
+#        last if $vm_ip;
+#        sleep 30;
+#    }
     record_info("Scanned IP in $target_subnet", script_output("cat $scan_log"));
     assert_script_run("rm -f $scan_log");
     die "No IP assigned for $vm from $target_subnet via src $vif_src type $vif_type" if (!$vm_ip);
