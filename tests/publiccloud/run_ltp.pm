@@ -22,6 +22,7 @@ use publiccloud::utils qw(is_byos is_ondemand is_gce registercloudguest register
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
+use Utils::Architectures qw(is_aarch64);
 
 my $kirk_virtualenv = 'kirk-virtualenv';
 our $root_dir = '/root';
@@ -318,7 +319,15 @@ sub prepare_kirk {
     if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
         record_info('VM type', $instance->run_ssh_command(cmd => '! systemd-detect-virt')) unless is_gce;
     } else {
-        record_info('VM type', $instance->run_ssh_command(cmd => 'systemd-detect-virt'));
+        my $output = $instance->ssh_script_output(cmd => 'systemd-detect-virt', proceed_on_failure => 1);
+        record_info('VM type', $output);
+
+        if (($output eq "none") && is_gce && is_aarch64 && (is_sle_micro("=6.0") || is_sle_micro("=6.1"))) {
+            record_soft_failure("bsc#1256376 - systemd-detect-virt none on GCE SLE Micro 6.0 aarch64") if is_sle_micro('=6.0');
+            record_soft_failure("bsc#1256377 - systemd-detect-virt none on GCE SLE Micro 6.1 aarch64") if is_sle_micro('=6.1');
+        } else {
+            $instance->ssh_assert_script_run('systemd-detect-virt');
+        }
     }
     assert_script_run("cd kirk");
     my $ghash = script_output("git rev-parse HEAD", proceed_on_failure => 1);
