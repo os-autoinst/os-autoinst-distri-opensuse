@@ -15,7 +15,7 @@
 # - Check the network status for each device (if network was restarted after
 # changes made)
 # - Delete all created devices
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 # Tags: fate#318787 poo#11450
 
 use base 'y2_installbase';

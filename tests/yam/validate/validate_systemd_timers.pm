@@ -8,7 +8,7 @@
 # 2. verify that the file is created in the interval of time expected
 # 3. verify that the on-shot timer is not listed anymore
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "consoletest";
 use testapi;

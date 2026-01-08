@@ -11,7 +11,7 @@
 #    - It is active;
 #    - Its properties are correct.
 #    - Storing and restoring for binary backups of LUKS header and keyslot areas.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package validate_encrypt;
 use base "opensusebasetest";

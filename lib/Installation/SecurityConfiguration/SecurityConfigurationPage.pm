@@ -5,7 +5,7 @@
 
 # Summary: The module provides interface to act on the
 #          Security Configuration page.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::SecurityConfiguration::SecurityConfigurationPage;
 use parent 'Installation::Navigation::NavigationBase';

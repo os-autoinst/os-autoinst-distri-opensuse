@@ -5,7 +5,7 @@
 
 # Summary: Handles that Agama is up and running in a generic way, delegating further testing
 # to other test modules or proper web automation tool. It acts only as a synchronization point.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Yam::Agama::Pom::AgamaUpAndRunningPage;
 use strict;

@@ -6,7 +6,7 @@
 # Summary: Add rmt configuration test and basic configuration via
 #    rmt-wizard, import RMT data and repos from one folder which
 #    stored RMT export data, then verify the imported data can list
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use testapi;
 use base 'consoletest';

@@ -5,7 +5,7 @@
 
 # Summary: Ensure the service keep inactive & disabled after set on tree-based
 # interface and abort to accept the setting for yast2 dns-server
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "y2_module_consoletest";
 use testapi qw(save_screenshot select_console);

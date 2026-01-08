@@ -5,7 +5,7 @@
 
 # Summary: Verify that users are imported and not created when a system is re-installed with autoyast
 # by checking for non-existence of .bashrc in /var/lib/{gdm,empty,polkit,nobody,pulseaudio}.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'consoletest';
 use testapi;

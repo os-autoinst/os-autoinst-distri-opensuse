@@ -6,7 +6,7 @@
 # Summary: Handles Licence Agreement dialog in YaST Firstboot Configuration
 # when applying custom configuration.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_firstboot_basetest';
 use scheduler 'get_test_suite_data';

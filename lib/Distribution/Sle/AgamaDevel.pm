@@ -5,7 +5,7 @@
 
 # Summary: Agama Devel distribution (not really a real distribution!)
 # for integration tests using the current state of code at GitHub for Agama.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Distribution::Sle::AgamaDevel;
 use strict;

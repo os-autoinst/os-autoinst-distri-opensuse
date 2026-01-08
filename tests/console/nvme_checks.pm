@@ -15,7 +15,7 @@
 # - Issue a Read command both using the helper and manually
 # - Compare it to what we have with a regular dd
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "installbasetest";
 use testapi;

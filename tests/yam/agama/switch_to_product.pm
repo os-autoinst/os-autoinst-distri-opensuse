@@ -3,7 +3,7 @@
 
 # Summary: Switch VERSION to the auto installed system name and
 #          reset consoles for gnome desktop/
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base Yam::Agama::agama_base;
 use testapi qw(reset_consoles get_var set_var);

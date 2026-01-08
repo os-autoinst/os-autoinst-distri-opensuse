@@ -10,7 +10,7 @@
 #           in Chinese.
 #        3. Run rmt-cli sync and ensure the output is in Chinese.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use testapi;
 use base 'x11test';

@@ -6,7 +6,7 @@
 # Summary: Validate that the hostname is set properly by Agama.
 # Check hostname against test data or default value from DHCP "localhost"
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "consoletest";
 use testapi;

@@ -8,7 +8,7 @@
 # On s390x regression test, the reboot_gnome module will fail for firewall
 # with this service change, we can make it work.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package services::firewall;
 use base 'opensusebasetest';

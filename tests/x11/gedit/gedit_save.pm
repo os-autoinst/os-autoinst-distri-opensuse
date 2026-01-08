@@ -15,7 +15,7 @@
 # - Save and quit gedit
 # - Launch gedit, open text test file and check
 # - Exit gedit, erase test file
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 # Tags: tc#1436121
 
 use base "x11test";

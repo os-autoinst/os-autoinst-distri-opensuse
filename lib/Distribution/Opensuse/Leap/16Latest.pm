@@ -6,7 +6,7 @@
 # Summary: The class represents current (i.e. latest) SLE 16 distribution and
 # provides access to its features.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Distribution::Opensuse::Leap::16Latest;
 use parent Distribution::Opensuse::AgamaDevel;

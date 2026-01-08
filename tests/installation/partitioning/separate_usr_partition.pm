@@ -7,7 +7,7 @@
 # accept warning about root device too small for snapshots and create new
 # partition for /usr.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use parent 'y2_installbase';
 use scheduler 'get_test_suite_data';

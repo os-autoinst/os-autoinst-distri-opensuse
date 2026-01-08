@@ -8,7 +8,7 @@
 #    test basic configuration via rmt-wizard, test disconnect RMT
 #    via import RMT data and repos from an existing RMT server,
 #    then verify enabled repos are shown on new RMT server.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use testapi;
 use base 'x11test';

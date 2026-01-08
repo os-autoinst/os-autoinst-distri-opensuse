@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods for Expert Partitioner
 # Page.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::ExpertPartitionerPage;
 use strict;

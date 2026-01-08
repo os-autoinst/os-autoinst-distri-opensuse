@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods for
 # Firstboot Keyboard Layout Configuration
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::Firstboot::KeyboardLayoutPage;
 use parent 'Installation::Navigation::NavigationBase';

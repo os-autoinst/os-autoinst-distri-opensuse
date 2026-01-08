@@ -7,7 +7,7 @@
 # Covered scenarios:
 # - Validate that hard disk encryption(LUKS) is not activated on the configured partitioning
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "installbasetest";
 use scheduler 'get_test_suite_data';

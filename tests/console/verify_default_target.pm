@@ -6,7 +6,7 @@
 # Package: systemd
 # Summary: Test module to verify that actual default target corresponds to the
 # expected one.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use testapi;
 use base 'basetest';

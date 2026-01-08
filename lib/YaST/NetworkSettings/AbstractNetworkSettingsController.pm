@@ -5,7 +5,7 @@
 
 # Summary: The abstract class introduces interface to business actions and
 # common actions for all the Network Settings Controllers.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::NetworkSettings::AbstractNetworkSettingsController;
 use strict;

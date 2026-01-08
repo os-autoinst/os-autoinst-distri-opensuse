@@ -5,7 +5,7 @@
 
 # Summary: The module provides interface to the Add New ZFCP Device dialog
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::DiskActivation::AddZFCPDevicePage;
 use parent 'Installation::Navigation::NavigationBase';

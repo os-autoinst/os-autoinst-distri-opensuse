@@ -12,7 +12,7 @@
 # install progress
 # - If USEIMAGES is set, check desktop install type (either kde, gnome or
 # textmode)
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use lockapi;
