@@ -295,8 +295,10 @@ sub test_network_interface {
     # For sle16+ guests, NM can let it automatically get IP without further set up.
     # All guests should already have the mapping, unless it is not created earlier, 
     # but from other ways, eg virt-clone in libvirt_routed_virtual_network.
-    my ($primary_vif_type, $primary_vif_src) = find_vm_primary_nic_info($guest, exclude_net => "$net");
-    save_guest_ip("$guest", name => $primary_vif_src);
+    if (script_run("grep $guest /etc/hosts") != 0 || script_retry("ping -c3 $guest", delay => 6, retry => 10, die => 0) != 0) {
+        my ($primary_vif_type, $primary_vif_src) = find_vm_primary_nic_info($guest, exclude_net => "$net");
+        check_guest_ip("$guest", net => $primary_vif_src);
+    }
 
     # Configure the network interface to use DHCP configuration
     #flag SRIOV test as it need not restart network service
