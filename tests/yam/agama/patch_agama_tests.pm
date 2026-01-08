@@ -6,12 +6,19 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base Yam::Agama::patch_agama_base;
-use testapi qw(assert_script_run get_required_var select_console);
+use testapi qw(assert_script_run get_required_var select_console script_run);
 
 sub run {
     select_console 'install-shell';
+    my $agama_test = get_required_var("AGAMA_TEST");
     my ($repo, $branch) = split /#/, get_required_var('YUPDATE_GIT');
-    assert_script_run("AGAMA_TEST=" . get_required_var('AGAMA_TEST') . " yupdate patch $repo $branch", timeout => 60);
+    my $destination = "/usr/share/agama/system-tests";
+
+    script_run("curl -L -o dist.tar.gz https://github.com/$repo/releases/download/tag-$branch/dist.tar.gz");
+    script_run("tar -xzf dist.tar.gz");
+    script_run("mkdir -p $destination");
+    script_run("cp dist/vendor.js $destination");
+    script_run("cp dist/$agama_test* $destination");
 }
 
 1;
