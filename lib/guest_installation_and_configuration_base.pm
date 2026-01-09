@@ -292,7 +292,7 @@ sub prepare_ssh_key {
     $self->reveal_myself;
     record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
     # Use the unified ssh keys, or guests can't be reused by different hosts
-    unless (script_run("[[ -f $_host_params{ssh_key_file}.pub ]]")) {
+    unless (script_run("[[ -f $_host_params{ssh_key_file}.pub ]]") == 0) {
         assert_script_run("ssh-keygen -f $_host_params{ssh_key_file} -q -P \"\" <<<y");
     }
     assert_script_run("chmod 600 $_host_params{ssh_key_file} $_host_params{ssh_key_file}.pub");
