@@ -290,13 +290,14 @@ sub prepare_ssh_key {
     my $self = shift;
 
     $self->reveal_myself;
-    if (!((script_run("[[ -f $_host_params{ssh_key_file}.pub ]] && [[ -f $_host_params{ssh_key_file}.pub.bak ]]") == 0) and (script_run("cmp $_host_params{ssh_key_file}.pub $_host_params{ssh_key_file}.pub.bak") == 0))) {
-        assert_script_run("rm -f -r $_host_params{ssh_key_file}*");
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
+    # Use the unified ssh keys, or guests can't be reused by different hosts
+    unless (script_run("[[ -f $_host_params{ssh_key_file}.pub ]]")) {
         assert_script_run("ssh-keygen -f $_host_params{ssh_key_file} -q -P \"\" <<<y");
-        assert_script_run("cp $_host_params{ssh_key_file}.pub $_host_params{ssh_key_file}.pub.bak");
     }
     assert_script_run("chmod 600 $_host_params{ssh_key_file} $_host_params{ssh_key_file}.pub");
     $_host_params{ssh_public_key} = script_output("cat $_host_params{ssh_key_file}.pub");
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
     $_host_params{ssh_private_key} = script_output("cat $_host_params{ssh_key_file}");
     if (is_sle('16+')) {
         $_host_params{ssh_command} = "ssh -vvv -o HostKeyAlgorithms=+ssh-ed25519 ";
