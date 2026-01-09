@@ -12,11 +12,20 @@ use utils;
 use lockapi;
 use mmapi 'wait_for_children';
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_sle';
+use registration 'add_suseconnect_product';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in openldap2_5 openldap2-client');
+    my $ldap_server_ver = "openldap2_5";
+
+    if (is_sle('>=16.0')) {
+        $ldap_server_ver = "openldap2_6";
+        add_suseconnect_product('PackageHub', undef, undef, undef, 300, 1);
+    }
+
+    zypper_call("in $ldap_server_ver openldap2-client");
     assert_script_run qq(sed -i 's/server/ldapserver/g' /etc/hosts);
     assert_script_run qq(sed -i 's/client/ldapclient/g' /etc/hosts);
 
