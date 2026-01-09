@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods for YaST module
 # Kernel Settings Page.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::SystemSettings::KernelSettingsTab;
 use strict;

@@ -6,7 +6,7 @@
 # Summary: The class introduces business actions for License Agreement page
 #          in YaST Firstboot for openSUSE.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::License::Opensuse::Firstboot::LicenseAgreementController;
 use parent 'Installation::License::AbstractLicenseAgreementController';

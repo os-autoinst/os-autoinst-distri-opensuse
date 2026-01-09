@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods for Formatting Options
 # Page of Expert Partitioner, which are unique for LibstorageNG. All the common
 # methods are described in the parent class.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::LibstorageNG::FormattingOptionsPage;
 use strict;

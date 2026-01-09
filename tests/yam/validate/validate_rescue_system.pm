@@ -4,7 +4,7 @@
 # Summary: Validate rescue system
 # - Reads test data with needed tools and masked services
 # - Validates that tools are available and services are masked
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "consoletest";
 use testapi;

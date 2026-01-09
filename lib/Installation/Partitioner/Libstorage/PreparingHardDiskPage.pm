@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods for Preparing Hard Disk
 # Page of Expert Partitioner that are unique for Libstorage.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::Libstorage::PreparingHardDiskPage;
 use strict;

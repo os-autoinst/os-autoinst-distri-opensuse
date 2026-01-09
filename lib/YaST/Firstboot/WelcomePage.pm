@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods for Welcome dialog
 # in YaST Firstboot Configuration.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::Firstboot::WelcomePage;
 use parent 'Installation::Navigation::NavigationBase';

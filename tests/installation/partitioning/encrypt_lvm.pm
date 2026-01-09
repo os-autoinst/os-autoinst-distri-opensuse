@@ -5,7 +5,7 @@
 
 # Summary: The test module creates an encrypted partition with LVM and verifies
 # that it is shown in the partitioning list.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use parent 'y2_installbase';
 use warnings FATAL => 'all';

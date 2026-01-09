@@ -5,7 +5,7 @@
 
 # Summary: Verify Warning Dialog for boot partition with too small size
 # to contain kernel.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use testapi;

@@ -8,7 +8,7 @@
 # The checkbox is extracted to the separate package as several pages contain
 # it, but different shortcut is used for selecting.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::ProposeSeparateHomeVolumeCheckbox;
 use strict;

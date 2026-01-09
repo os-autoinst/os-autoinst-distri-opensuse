@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods for YaST Firstboot
 # NTP Configuration page
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::Firstboot::NTPConfigurationPage;
 use parent 'Installation::Navigation::NavigationBase';

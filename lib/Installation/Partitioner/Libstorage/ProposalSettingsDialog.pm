@@ -7,7 +7,7 @@
 # Dialog that appears after pressing an appropriate button on Suggested
 # Partitioning Page.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::Libstorage::ProposalSettingsDialog;
 use strict;

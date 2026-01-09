@@ -5,7 +5,7 @@
 
 # Summary: Decompress y2log files, as given in test data and parse for failures.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "opensusebasetest";
 use testapi;

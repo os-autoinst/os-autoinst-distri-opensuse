@@ -3,7 +3,7 @@
 
 # Summary: Patch Agama on Live Medium using yupdate in order to copy
 # integration test from GitHub.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base Yam::Agama::patch_agama_base;
 use testapi qw(assert_script_run get_required_var select_console);

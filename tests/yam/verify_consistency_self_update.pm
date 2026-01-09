@@ -3,7 +3,7 @@
 # Summary: Update the system using the specified repo and then
 #          open and close YaST2 control center using both Qt and Ncurses interfaces.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "consoletest";
 use testapi;

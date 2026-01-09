@@ -5,7 +5,7 @@
 #
 # Summary: Set environmental variables which differ between the products involved in the upgrade
 # with the possibility to restore it later.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "opensusebasetest";
 use testapi;

@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods for Address Tab in YaST2
 # lan module dialog.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::NetworkSettings::NetworkCardSetup::AddressTab;
 use strict;
