@@ -262,7 +262,7 @@ sub register_openstack {
 # Validation for update repos
 sub validate_repo {
     my ($maintrepo) = @_;
-    if (is_sle_micro('>=6.0')) {
+    if (is_sle_micro('>=6.0') || is_sle('>=16')) {
         record_info("Product Increments", "Can't validate repository");
         return 1;
     }
@@ -1000,4 +1000,3 @@ sub calculate_custodian_ttl {
 }
 
 1;
-
