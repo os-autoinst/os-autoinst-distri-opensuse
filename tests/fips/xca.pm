@@ -60,15 +60,13 @@ sub run {
     send_key 'alt-g';
     wait_still_screen 2;
     save_screenshot;
-    send_key 'ret';
-    wait_still_screen 2;
-    send_key 'alt-o';
-    wait_still_screen 2;
+    # Key generation can take some time on a busy system
+    send_key 'ret', wait_screen_change => 1;
+    wait_still_screen 5;
+    save_screenshot;
+    send_key 'alt-o', wait_screen_change => 1;
 
-    # The certificate contains no extensions, you may apply the
-    # extensions of one of the templates to define the purpose
-    # of the certificate
-    wait_screen_change { 'alt-o' };
+    send_key 'alt-o', wait_screen_change => 1;
     assert_and_click('xca_continue_rollout');
     wait_still_screen 2;
     if (check_screen('xca_fips_error_digital', 10)) {
