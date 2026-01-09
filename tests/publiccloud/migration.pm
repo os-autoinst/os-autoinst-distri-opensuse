@@ -65,8 +65,8 @@ sub run {
 
     #Create repo
     record_info('Creating local repo');
-    $instance->run_ssh_command(cmd => "sudo zypper in -y createrepo", timeout => 1000);
-    $instance->run_ssh_command(cmd => "mkdir -p $tmp_repo/rpm/noarch $tmp_repo/rpm/x86_64");
+    $instance->ssh_assert_script_run(cmd => "sudo zypper in -y createrepo", timeout => 1000);
+    $instance->ssh_assert_script_run(cmd => "mkdir -p $tmp_repo/rpm/noarch $tmp_repo/rpm/x86_64");
 
     #Upload scp the rpm packages and repokey to public cloud
     record_info('SCP repokey and rpm');
@@ -75,19 +75,18 @@ sub run {
     $instance->scp("/tmp/$act_rpm", 'remote:' . "$tmp_repo/rpm/noarch/$act_rpm", 1000);
     $instance->scp("/tmp/$pc_rpm", 'remote:' . "/tmp/$pc_rpm", 1000);
 
-    $instance->run_ssh_command(cmd => "cd $tmp_repo;createrepo -v .");
-    $instance->run_ssh_command(cmd =>
+    $instance->ssh_assert_script_run(cmd => "cd $tmp_repo;createrepo -v .");
+    $instance->ssh_assert_script_run(cmd =>
           "sudo zypper addrepo --gpgcheck-allow-unsigned $tmp_repo SLES15-Migration-latest; sudo zypper lr -u"
     );
 
     # Upload distro_migration.log
     $instance->upload_log("/system-root/var/log/distro_migration.log", failok => 1);
     record_info("Import $remote_repo_key");
-    $instance->run_ssh_command(cmd => "sudo rpm --import /tmp/$repo_key", proceed_on_failure => 0);
+    $instance->ssh_assert_script_run(cmd => "sudo rpm --import /tmp/$repo_key");
     record_info("installs SLE15-Migration and suse-migration-sle15-activation");
-    $instance->run_ssh_command(cmd =>
-          "sudo zypper in -y --from SLES15-Migration-latest SLES15-Migration suse-migration-sle15-activation",
-        proceed_on_failure => 0
+    $instance->ssh_assert_script_run(cmd =>
+          "sudo zypper in -y --from SLES15-Migration-latest SLES15-Migration suse-migration-sle15-activation"
     );
 
     # Include debug mode
@@ -100,7 +99,7 @@ sub run {
     }
 
     record_info('Remove repo');
-    $instance->run_ssh_command(cmd => "sudo zypper rr SLES15-Migration-latest", proceed_on_failure => 0);
+    $instance->ssh_assert_script_run(cmd => "sudo zypper rr SLES15-Migration-latest");
 
     record_info('system reboots');
     my ($shutdown_time, $startup_time) = $instance->softreboot(
@@ -112,7 +111,7 @@ sub run {
     # migration finished and instance rebooted
     record_info('Migration Status', 'Checking the migration succeed');
 
-    my $product_version = $instance->run_ssh_command(cmd => 'cat /etc/os-release');
+    my $product_version = $instance->ssh_script_output(cmd => 'cat /etc/os-release');
     record_info('Product Version', $product_version);
 
     my $migrated_version = 'N/A';
@@ -127,7 +126,7 @@ sub run {
             timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 400)
         );
 
-        my $product_version = $instance->run_ssh_command(cmd => 'cat /etc/os-release');
+        my $product_version = $instance->ssh_script_output(cmd => 'cat /etc/os-release');
         record_info('Additional reboot success and reachable', $product_version);
     }
 }

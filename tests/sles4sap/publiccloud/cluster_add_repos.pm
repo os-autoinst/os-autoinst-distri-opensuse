@@ -34,14 +34,14 @@ sub run {
             # tricky quoting: the echoed @content needs to be inside double quotes " "
             # and newline separator is single quoted so won't be interpreted by Perl
             my $command = 'echo -e "' . join('\n', @content) . qq{" | sudo tee /etc/zypp/repos.d/$reponame.repo};
-            $instance->run_ssh_command(cmd => $command, username => 'cloudadmin');
+            $instance->ssh_assert_script_run(cmd => $command, username => 'cloudadmin');
         }
         $count++;
     }
     foreach my $instance (@{$self->{instances}}) {
         next if ($instance->{'instance_id'} !~ m/vmhana/);
         $self->wait_for_zypper(instance => $instance);
-        $instance->run_ssh_command(cmd => 'sudo zypper -n ref', username => 'cloudadmin', timeout => 1500);
+        $instance->ssh_assert_script_run(cmd => 'sudo zypper -n ref', username => 'cloudadmin', timeout => 1500);
     }
 }
 

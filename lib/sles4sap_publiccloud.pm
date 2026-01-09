@@ -5,7 +5,7 @@
 #
 # Summary: Library used for SLES4SAP public cloud deployment and tests
 #
-# Note: Subroutines executing commands on remote host (using "run_cmd" or "run_ssh_command") require
+# Note: Subroutines executing commands on remote host (using "run_cmd" or "ssh_script_run") require
 # to have $self->{my_instance} defined.
 # $self->{my_instance} defines what is the target instance to execute code on. It is acquired from
 # data located in "@instances" and produced by deployment test modules.
@@ -97,7 +97,7 @@ our @EXPORT = qw(
 
 =item B<runas> - pre-pend the command with su to execute it as specific user
 
-=item B<...> - pass through all other arguments supported by run_ssh_command
+=item B<...> - pass through all other arguments supported by ssh_script_run
 
 =back
 =cut
@@ -119,9 +119,16 @@ sub run_cmd {
 
     $self->{my_instance}->update_instance_ip();
     $self->{my_instance}->wait_for_ssh(timeout => $timeout);
-    my $out = $self->{my_instance}->run_ssh_command(cmd => "sudo $cmd", timeout => $timeout, %args);
-    record_info("$title output - $self->{my_instance}->{instance_id}", $out) unless ($timeout == 0 or $args{quiet} or $args{rc_only});
-    return $out;
+    if ($args{rc_only}) {
+        delete($args{rc_only});
+        record_info("LEGACY", "rc_only flag will be obsolete soon please try to avoid use of it");
+        return $self->{my_instance}->ssh_script_run(cmd => "sudo $cmd", timeout => $timeout, %args);
+    }
+    else {
+        my $out = $self->{my_instance}->ssh_script_output(cmd => "sudo $cmd", timeout => $timeout, %args);
+        record_info("$title output - $self->{my_instance}->{instance_id}", $out) unless ($args{quiet});
+        return $out;
+    }
 }
 
 =head2 run_cmd_retry
@@ -381,16 +388,16 @@ sub wait_hana_node_up {
     my $start_time = time();
     my $out;
     while ((time() - $start_time) < $args{timeout}) {
-        $out = $instance->run_ssh_command(
+        $out = $instance->ssh_script_output(
             cmd => 'sudo systemctl is-system-running',
             timeout => 5,
             proceed_on_failure => 1);
         return if ($out =~ m/running/);
         if ($out =~ m/degraded/) {
-            my $failed_service = $instance->run_ssh_command(cmd => 'sudo systemctl --failed', timeout => 600, proceed_on_failure => 1);
+            my $failed_service = $instance->ssh_script_output(cmd => 'sudo systemctl --failed', timeout => 600, proceed_on_failure => 1);
             if ($out =~ /degraded/ && $failed_service =~ /guestregister/) {
                 record_soft_failure('bsc#1238152 - Restart guestregister service');
-                $instance->run_ssh_command(cmd => 'sudo systemctl restart guestregister.service', timeout => 600, proceed_on_failure => 1);
+                $instance->ssh_script_run(cmd => 'sudo systemctl restart guestregister.service', timeout => 600, ignore_timeout_failure => 1);
             }
         }
         record_info('WAIT_FOR_SYSTEM', "System state: $out");
@@ -442,7 +449,7 @@ sub stop_hana {
         $self->{my_instance}->update_instance_ip();
         $self->{my_instance}->wait_for_ssh(timeout => $timeout, scan_ssh_host_key => 1);
 
-        $self->{my_instance}->run_ssh_command(cmd => 'sudo su -c sync', timeout => $timeout);
+        $self->{my_instance}->ssh_assert_script_run(cmd => 'sudo su -c sync', timeout => $timeout);
 
         # Create a local copy of ssh_opts and extend it for the crash command.
         # Extension is on top of values defined in the current instance class $self->{my_instance}->ssh_opts
@@ -451,16 +458,12 @@ sub stop_hana {
         # -n is about stdin redirection and it is needed by -f to work
         my $crash_ssh_opts = $self->{my_instance}->ssh_opts . ' -fn -o ServerAliveInterval=2';
 
-        $self->{my_instance}->run_ssh_command(
+        $self->{my_instance}->ssh_script_run(
             cmd => $cmd,
-            # This timeout is to ensure the run_ssh_command is executed in a reasonable amount of time.
+            # This timeout is to ensure the ssh_script_run is executed in a reasonable amount of time.
             # It is not about how much time the crash is expected to take in the SUT.
-            # Also consider that internally run_ssh_command is using this value for two different guard mechanisms.
+            # Also consider that internally ssh_script_run is using this value for two different guard mechanisms.
             timeout => 10,
-            # This test does not care about output,
-            # setting this in conjunction with timeout >0 result in the internal implementation of
-            # run_ssh_command to use script_run
-            rc_only => 1,
             ssh_opts => $crash_ssh_opts);
 
         # Wait till SSH port 22 disappear
@@ -1435,14 +1438,14 @@ sub wait_for_cluster {
 
 =over
 
-=item B<$instance> - The instance object on which the Zypper command is executed. This object must have the run_ssh_command method implemented.
+=item B<$instance> - The instance object on which the Zypper command is executed. This object must have the ssh_script_run method implemented.
 
 =item B<max_retries> - The maximum number of times the function will retry checking if Zypper is locked. Default is 10.
 
 =item B<retry_delay> - The number of seconds to wait between retries. Default is 20 seconds.
 
 =item B<timeout> - The number of seconds to wait before aborting zypper ref
-
+ssh_script_run
 =item B<runas> - If 'runas' defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.
 
 =back
@@ -1458,10 +1461,9 @@ sub wait_for_zypper {
     my $retry = 0;
 
     while ($retry < $args{max_retries}) {
-        my $ret = $args{instance}->run_ssh_command(cmd => 'sudo zypper ref',
+        my $ret = $args{instance}->ssh_script_run(cmd => 'sudo zypper ref',
             username => $args{runas},
-            proceed_on_failure => 1,
-            rc_only => 1,
+            ignore_timeout_failure => 1,
             quiet => 1,
             timeout => $args{timeout});
         if ($ret == 7) {
@@ -1484,7 +1486,7 @@ sub wait_for_zypper {
 
 =over
 
-=item B<$instance> - The instance object on which the Zypper command is executed. This object must have the run_ssh_command method implemented.
+=item B<$instance> - The instance object on which the Zypper command is executed. This object must have the ssh_script_run method implemented.
 
 =item B<runas> - If 'runas' defined, command will be executed as specified user, otherwise it will be executed as cloudadmin.
 
@@ -1496,10 +1498,9 @@ sub check_zypper_ref {
     my %args = @_;
     $args{runas} //= 'cloudadmin';
 
-    my $ret = $self->{my_instance}->run_ssh_command(cmd => 'sudo zypper ref',
+    my $ret = $self->{my_instance}->ssh_script_run(cmd => 'sudo zypper ref',
         username => $args{runas},
-        proceed_on_failure => 1,
-        rc_only => 1,
+        ignore_timeout_failure => 1,
         quiet => 1,
         timeout => $args{timeout});
     if ($ret == 4) {

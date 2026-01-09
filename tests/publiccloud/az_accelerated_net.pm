@@ -27,8 +27,8 @@ sub prepare_vms {
     foreach my $instance (@instances) {
         record_info('Instance', 'Instance ' . $instance->instance_id . ' created');
         record_info('Iperf', 'Install IPerf binaries in VM');
-        $instance->run_ssh_command(cmd => "sudo zypper -n ar --no-gpgcheck $repo net_perf");
-        $instance->run_ssh_command(cmd => "sudo zypper -n in -r net_perf iperf");
+        $instance->ssh_assert_script_run(cmd => "sudo zypper -n ar --no-gpgcheck $repo net_perf");
+        $instance->ssh_assert_script_run(cmd => "sudo zypper -n in -r net_perf iperf");
     }
 
     return \@instances;
@@ -86,9 +86,9 @@ ethtool |grep vf_ must show numbers different than 0 if SR-IOV is enabled.
 sub check_sriov {
     my ($self, $instance) = @_;
     record_info('sr-iov', 'Checking SRIOV feature for instance ' . $instance->instance_id);
-    my $lspci_output = $instance->run_ssh_command(cmd => "sudo lspci");
-    $instance->run_ssh_command(cmd => 'sudo zypper -n in ethtool') if is_container_host();
-    my $ethtool_output = $instance->run_ssh_command(cmd => "sudo ethtool -S eth0 | grep vf_");
+    my $lspci_output = $instance->ssh_script_output(cmd => "sudo lspci");
+    $instance->ssh_script_output(cmd => 'sudo zypper -n in ethtool') if is_container_host();
+    my $ethtool_output = $instance->ssh_script_output(cmd => "sudo ethtool -S eth0 | grep vf_");
     record_info('lspci', $lspci_output);
     record_info('ethtool', $ethtool_output);
     if (($lspci_output =~ m/Mellanox/) && ($ethtool_output !~ m/^\s+vf_rx_bytes: 0$/)) {
@@ -108,12 +108,11 @@ test on the client side. The test runs TEST_TIME seconds.
 sub run_test {
     my ($self, $client, $server) = @_;
     record_info('server', 'Start IPERF in server ' . $server->public_ip);
-    $server->run_ssh_command(cmd => 'nohup iperf3 -s -D &', no_quote => 1);
+    $server->ssh_assert_script_run(cmd => 'nohup iperf3 -s -D &', no_quote => 1);
     sleep 60;    # Wait 60 seconds so that the server starts up safely and the clinet can connect to it
     record_info('client', 'Start IPERF in client');
     my $ttime = get_required_var('TEST_TIME');
-    my $output = $client->run_ssh_command(cmd => 'iperf3 -t ' . $ttime . ' -c ' . $server->{private_ip}, timeout => $ttime * 3);
-    record_info('RESULTS', $output);
+    record_info('RESULTS', $client->ssh_script_output(cmd => 'iperf3 -t ' . $ttime . ' -c ' . $server->{private_ip}, timeout => $ttime * 3));
 }
 
 
@@ -139,4 +138,3 @@ Test module to run performance test on Azure with accelerated network (SRIOV). T
 image to start the VMs, Azure can't enable accelerated network at start time. Therefore, the only
 way to do this is to enable it stopping the VM and starting it again.
 More info here: https://goo.gl/3SGkMX
-

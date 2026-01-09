@@ -41,10 +41,10 @@ sub run {
     # get instance resource group
     my $resource_group_command = "curl -s -H Metadata:true --noproxy \"*\" \"$azure_endpoint/resourceGroupName?api-version=$api_version&format=text\"";
     my $vm_name_command = "hostname -s";
-    my $resource_group = $instance->run_ssh_command(cmd => $resource_group_command);
-    my $vm_name = $instance->run_ssh_command(cmd => $vm_name_command);
+    my $resource_group = $instance->ssh_script_output(cmd => $resource_group_command);
+    my $vm_name = $instance->ssh_script_output(cmd => $vm_name_command);
     my $curl_command = "curl -s -H Metadata:true --noproxy \"*\" \"$azure_endpoint?api-version=$api_version\" | cut -d\, -f5-5  | cut -d\: -f 2";
-    my $license_type = $instance->run_ssh_command(cmd => $curl_command);
+    my $license_type = $instance->ssh_assert_script_run(cmd => $curl_command);
     # loop over the different license types
     foreach my $license_type_change (@license_types) {
         # update license type to license_type_change
@@ -52,7 +52,7 @@ sub run {
         assert_script_run($update_license_command);
         # sleep for 2 min, so license type changes and timer/service re runs
         sleep 120;
-        my $instance_license_type = $instance->run_ssh_command(cmd => $curl_command);
+        my $instance_license_type = $instance->ssh_script_output(cmd => $curl_command);
         die("Wrong license type: $instance_license_type instead of expected: $license_type_change") if ($instance_license_type ne "\"$license_type_change\"");
         record_info("CHECK OK", "License type has the expected value $instance_license_type");
     }

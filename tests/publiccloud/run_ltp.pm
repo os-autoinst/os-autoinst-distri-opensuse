@@ -58,9 +58,9 @@ sub prepare_ltp_git {
 
     my $ltp_build_timeout = 5 * 60;
 
-    $instance->run_ssh_command("rm -rf $ltp_dir");
-    $instance->run_ssh_command("git clone --depth 1 -b $repo_branch $repo_url $ltp_dir");
-    $instance->run_ssh_command(
+    $instance->ssh_assert_script_run("rm -rf $ltp_dir");
+    $instance->ssh_assert_script_run("git clone --depth 1 -b $repo_branch $repo_url $ltp_dir");
+    $instance->ssh_assert_script_run(
         cmd => "cd $ltp_dir && make autotools && $configure $extra_flags",
         timeout => $ltp_build_timeout
     );
@@ -74,7 +74,7 @@ sub fully_build_ltp_from_git {
 
     $self->install_build_deps($instance);
     $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
-    $instance->run_ssh_command(
+    $instance->ssh_assert_script_run(
         cmd => "cd $ltp_dir && make -j\$(getconf _NPROCESSORS_ONLN) && sudo make install",
         timeout => $ltp_build_timeout
     );
@@ -92,7 +92,7 @@ sub partially_build_ltp_from_git {
     $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
 
     foreach my $subdir (get_submodules_to_rebuild()) {
-        $instance->run_ssh_command(
+        $instance->ssh_assert_script_run(
             cmd => "cd $ltp_dir/testcases/$subdir && make -j\$(getconf _NPROCESSORS_ONLN) && sudo make install",
             timeout => $ltp_subdir_build_timeout
         );
@@ -108,7 +108,7 @@ sub partially_build_ltp_from_git_modules_install {
 
     $self->install_build_deps($instance);
     $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
-    $instance->run_ssh_command(
+    $instance->ssh_assert_script_run(
         cmd => "sudo make -C $ltp_dir -j\$(getconf _NPROCESSORS_ONLN) modules-install",
         timeout => $ltp_subdir_build_timeout
     );
@@ -186,13 +186,13 @@ sub dump_kernel_config
 {
     my ($self, $instance) = @_;
 
-    record_info("uname -a", $instance->run_ssh_command(cmd => "uname -a"));
+    record_info("uname -a", $instance->ssh_script_output(cmd => "uname -a"));
 
-    my $uname_r = $instance->run_ssh_command(cmd => "uname -r");
+    my $uname_r = $instance->ssh_script_output(cmd => "uname -r");
     chomp $uname_r;
 
-    record_info("KERNEL CONFIG", $instance->run_ssh_command(cmd => "cat /boot/config-$uname_r"));
-    record_info("ver_linux", $instance->run_ssh_command("/opt/ltp/ver_linux"));
+    record_info("KERNEL CONFIG", $instance->ssh_script_output(cmd => "cat /boot/config-$uname_r"));
+    record_info("ver_linux", $instance->ssh_script_output("/opt/ltp/ver_linux"));
 }
 
 sub run {
@@ -314,10 +314,10 @@ sub prepare_kirk {
     my $kirk_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     record_info('LTP RUNNER REPO', "Repo: " . $kirk_repo . "\nBranch: " . $kirk_branch);
     script_retry("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo", retry => 5, delay => 60, timeout => 300);
-    $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
-    record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
+    $instance->ssh_assert_script_run(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
+    record_info('Kernel info', $instance->ssh_script_output(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
     if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
-        record_info('VM type', $instance->run_ssh_command(cmd => '! systemd-detect-virt')) unless is_gce;
+        record_info('VM type', $instance->ssh_script_output(cmd => '! systemd-detect-virt')) unless is_gce;
     } else {
         my $output = $instance->ssh_script_output(cmd => 'systemd-detect-virt', proceed_on_failure => 1);
         record_info('VM type', $output);
@@ -394,11 +394,11 @@ sub gen_ltp_env {
     my ($self, $instance, $ltp_pkg) = @_;
     my $ltp_version = get_var('LTP_RELEASE', 'master');
     unless (should_partially_build_ltp_from_git() || should_fully_build_ltp_from_git()) {
-        $ltp_version = $instance->run_ssh_command(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg));
+        $ltp_version = $instance->ssh_script_output(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg));
     }
     $self->{ltp_env} = prepare_whitelist_environment();
     $self->{ltp_env}->{arch} = get_var('PUBLIC_CLOUD_ARCH', get_required_var("ARCH"));
-    $self->{ltp_env}->{kernel} = $instance->run_ssh_command(cmd => 'uname -r');
+    $self->{ltp_env}->{kernel} = $instance->ssh_script_output(cmd => 'uname -r');
     $self->{ltp_env}->{ltp_version} = $ltp_version;
 
     record_info("LTP Environment", Dumper($self->{ltp_env}));

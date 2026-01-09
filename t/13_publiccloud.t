@@ -289,7 +289,7 @@ subtest '[kill_packagekit] pkcon quit fails -> stop/disable/mask' => sub {
 subtest '[get_installed_packages_remote] parses rpm -q output and preserves original order subset' => sub {
     my $inst = Test::MockObject->new;
     my @seen;
-    $inst->mock('run_ssh_command', sub {
+    $inst->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @seen, \%args;
             return "bash|curl|package zzz is not installed|git|package nope is not installed|";
@@ -314,7 +314,7 @@ subtest '[get_available_packages_remote] filters out already installed, parses z
             return ['bash'];
     });
 
-    $inst->mock('run_ssh_command', sub {
+    $inst->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @ssh_calls, \%args;
             return join("\n",
@@ -350,7 +350,7 @@ subtest '[get_available_packages_remote] returns [] when all already installed' 
             return [@$pkgs];
     });
 
-    $inst->mock('run_ssh_command', sub { $called++ });
+    $inst->mock('ssh_script_output', sub { $called++ });
 
     my $got = publiccloud::utils::get_available_packages_remote($inst, [qw(a b)]);
     is_deeply $got, [], 'empty when nothing to check';
@@ -360,7 +360,7 @@ subtest '[get_available_packages_remote] returns [] when all already installed' 
 subtest '[zypper_add_repo_remote] passes correct cmd and timeout' => sub {
     my $inst = Test::MockObject->new;
     my @seen;
-    $inst->mock('run_ssh_command', sub { push @seen, \@_; return 0 });
+    $inst->mock('ssh_assert_script_run', sub { push @seen, \@_; return 0 });
 
     publiccloud::utils::zypper_add_repo_remote($inst, 'repo-name', 'http://example.test/repo');
 
@@ -374,7 +374,7 @@ subtest '[zypper_add_repo_remote] passes correct cmd and timeout' => sub {
 subtest '[zypper_remove_repo_remote] passes correct cmd and timeout' => sub {
     my $inst = Test::MockObject->new;
     my @seen;
-    $inst->mock('run_ssh_command', sub { push @seen, \@_; return 0 });
+    $inst->mock('ssh_assert_script_run', sub { push @seen, \@_; return 0 });
 
     publiccloud::utils::zypper_remove_repo_remote($inst, 'repo-name');
 
@@ -391,7 +391,7 @@ subtest '[zypper_install_remote] non-transactional uses zypper in with list/str 
 
     my $inst = Test::MockObject->new;
     my @seen;
-    $inst->mock('run_ssh_command', sub { my ($self, %a) = @_; push @seen, \%a; return 0 });
+    $inst->mock('ssh_assert_script_run', sub { my ($self, %a) = @_; push @seen, \%a; return 0 });
     $inst->mock('softreboot', sub { die "should not softreboot in non-transactional" });
 
     publiccloud::utils::zypper_install_remote($inst, [qw(curl git)]);
@@ -412,7 +412,7 @@ subtest '[zypper_install_remote] transactional uses t-u pkg install and softrebo
     my @runs;
     my $rebooted = 0;
 
-    $inst->mock('run_ssh_command', sub { my ($self, %a) = @_; push @runs, \%a; return 0 });
+    $inst->mock('ssh_assert_script_run', sub { my ($self, %a) = @_; push @runs, \%a; return 0 });
     $inst->mock('softreboot', sub { $rebooted++ });
 
     publiccloud::utils::zypper_install_remote($inst, [qw(x y)]);

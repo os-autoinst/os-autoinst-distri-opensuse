@@ -36,70 +36,6 @@ has region => undef;    # provider region, filled by provider::terraform_apply
 has provider => undef, weak => 1;    # back reference to the provider
 has ssh_opts => '';
 
-=head2 run_ssh_command
-
-    run_ssh_command(cmd => 'command'[, timeout => 90][, ssh_opts =>'..'][, username => 'XXX'][, no_quote => 0][, rc_only => 0]);
-
-Runs a command C<cmd> via ssh in the given VM. Retrieves the output.
-If the command retrieves not zero, an exception is thrown.
-Timeout can be set by C<timeout> or 90 sec by default.
-C<<proceed_on_failure=>1>> allows to proceed with validation when C<cmd> is
-failing (return non-zero exit code)
-By default, the command is passed in single quotes to SSH.
-To avoid quoting use C<<no_quote=>1>>.
-With C<<ssh_opts=>'...'>> you can overwrite all default ops which are in
-C<<$instance->ssh_opts>>.
-Use argument C<username> to specify a different username then
-C<<$instance->username()>>.
-Use argument C<rc_only> to only check for the return code of the command.
-=cut
-
-sub run_ssh_command {
-    my $self = shift;
-    my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
-    die('Argument <cmd> missing') unless ($args{cmd});
-    $args{ssh_opts} //= $self->ssh_opts();
-    $args{username} //= $self->username();
-    $args{timeout} //= SSH_TIMEOUT;
-    $args{quiet} //= 1;
-    $args{no_quote} //= 0;
-    my $rc_only = $args{rc_only} // 0;
-    my $timeout = $args{timeout};
-    # Increase the hard timeout for script_run and script_output,
-    # otherwise possible error from 'timeout $args{timeout} ...'
-    # is not correctly processed, expecially in conjunction with proceed_on_failure
-    $args{timeout} += 20 unless ($args{timeout} == 0);
-
-    my $cmd = $args{cmd};
-    unless ($args{no_quote}) {
-        $cmd =~ s/'/'"'"'/g;
-        $cmd = "'$cmd'";
-    }
-
-    my $ssh_cmd = sprintf('ssh %s "%s@%s" -- %s', $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
-    $ssh_cmd = "timeout $timeout $ssh_cmd" if ($timeout > 0);
-    record_info('SSH CMD', $ssh_cmd);
-
-    delete($args{cmd});
-    delete($args{no_quote});
-    delete($args{ssh_opts});
-    delete($args{username});
-    delete($args{rc_only});
-    if ($args{timeout} == 0) {
-        # Run the command and don't wait for it - no output nor returncode here
-        script_run($ssh_cmd, %args);
-    }
-    elsif ($rc_only) {
-        $args{quiet} = 0;
-        # Run the command and return only the returncode here
-        return script_run($ssh_cmd, %args);
-    }
-    else {
-        # Run the command, wait for it and return the output
-        return script_output($ssh_cmd, %args);
-    }
-}
-
 =head2 retry_ssh_command
 
     ssh_script_retry(command[, retry => 3][, delay => 10][, timeout => 90][, ssh_opts =>'..'][, username => 'XXX'][, no_quote => 0]);
@@ -120,14 +56,12 @@ This function is deprecated. Please use ssh_script_retry instead.
 sub retry_ssh_command {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
-    $args{rc_only} = 1;
-    $args{timeout} //= 90;    # Timeout before we cancel the command
     my $tries = delete $args{retry} // 3;
     my $delay = delete $args{delay} // 10;
     my $cmd = delete $args{cmd};
 
     for (my $try = 0; $try < $tries; $try++) {
-        my $rc = $self->run_ssh_command(cmd => $cmd, %args);
+        my $rc = $self->ssh_script_run(cmd => $cmd, %args);
         return $rc if (defined $rc && $rc == 0);
         sleep($delay);
     }
@@ -144,8 +78,8 @@ sub _prepare_ssh_cmd {
 
     my $cmd = $args{cmd};
     unless ($args{no_quote}) {
-        $cmd =~ s/'/\'/g;    # Espace ' character
-        $cmd = "\$'$cmd'";
+        $cmd =~ s/'/'"'"'/g;
+        $cmd = "'$cmd'";
     }
 
     my $log = '/var/tmp/ssh_sut.log';
@@ -208,6 +142,7 @@ sub ssh_script_run {
     delete($args{cmd});
     delete($args{ssh_opts});
     delete($args{username});
+    $args{quiet} //= 1;
     return script_run($ssh_cmd, %args);
 }
 
@@ -222,6 +157,7 @@ sub ssh_assert_script_run {
     my $self = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     my $ssh_cmd = $self->_prepare_ssh_cmd(%args);
+    $self->_apply_cmd_timeout(\%args, \$ssh_cmd);
     delete($args{cmd});
     delete($args{ssh_opts});
     delete($args{username});
@@ -243,6 +179,7 @@ sub ssh_script_output {
     delete($args{cmd});
     delete($args{ssh_opts});
     delete($args{username});
+    $args{quiet} //= 1;
     my $output = script_output($ssh_cmd, %args);
     # Filter the output ending from "Connection to ($HOST) closed."
     $output =~ s/Connection to .* closed\.$//;
@@ -361,10 +298,10 @@ sub wait_for_guestregister {
     my $name = $autotest::current_test->{name} . '-cloudregister.log.txt';
 
     # Check what version of registercloudguest binary we use
-    $self->run_ssh_command(cmd => "rpm -qa cloud-regionsrv-client", proceed_on_failure => 1);
+    $self->ssh_script_run(cmd => "rpm -qa cloud-regionsrv-client", ignore_timeout_failure => 1);
     record_info('CHECK guestregister', 'guestregister check');
     while (time() - $start_time < $args{timeout}) {
-        my $out = $self->run_ssh_command(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
+        my $out = $self->ssh_script_output(cmd => 'sudo systemctl is-active guestregister', proceed_on_failure => 1, quiet => 1);
         # guestregister is expected to be inactive because it runs only once
         # the tests match the expected string at end of the cmd output
         if ($out =~ m/inactive$/) {
@@ -728,15 +665,15 @@ sub network_speed_test() {
     my $rmt_host = "smt-" . lc(get_required_var('PUBLIC_CLOUD_PROVIDER')) . ".susecloud.net";
 
     $cmd = "grep \"$rmt_host\" /etc/hosts";
-    $ret = $self->run_ssh_command(cmd => $cmd, proceed_on_failure => 1);
+    $ret = $self->ssh_script_run(cmd => $cmd, ignore_timeout_failure => 1);
     record_info("RMT_HOST", printf('$ %s\n%s', $cmd, $ret));
 
     $cmd = "ping -c3 1.1.1.1";
-    $ret = $self->run_ssh_command(cmd => $cmd, proceed_on_failure => 1);
+    $ret = $self->ssh_script_run(cmd => $cmd, ignore_timeout_failure => 1);
     record_info("PING", printf('$ %s\n%s', $cmd, $ret));
 
     $cmd = "curl -w '$write_out' -o /dev/null -v https://$rmt_host/";
-    $ret = $self->run_ssh_command(cmd => $cmd, proceed_on_failure => 1);
+    $ret = $self->ssh_script_run(cmd => $cmd, ignore_timeout_failure => 1);
     record_info("CURL", printf('$ %s\n%s', $cmd, $ret));
 }
 
@@ -834,8 +771,8 @@ sub measure_boottime() {
     record_info("WARN", "High overall value:" . $ret->{analyze}->{overall}, result => 'fail') if ($ret->{analyze}->{overall} >= 3600.0);
 
     # Collect kernel version
-    $ret->{kernel_release} = $instance->run_ssh_command(cmd => 'uname -r', proceed_on_failure => 1);
-    $ret->{kernel_version} = $instance->run_ssh_command(cmd => 'uname -v', proceed_on_failure => 1);
+    $ret->{kernel_release} = $instance->ssh_script_output(cmd => 'uname -r', proceed_on_failure => 1);
+    $ret->{kernel_version} = $instance->ssh_script_output(cmd => 'uname -v', proceed_on_failure => 1);
 
     $Data::Dumper::Sortkeys = 1;
     my $dir = "/var/log";
@@ -962,7 +899,7 @@ sub do_systemd_analyze_time {
     # calling systemd-analyze time & blame
     # guestregister check executed in create_instances
     while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
-        $output = $instance->run_ssh_command(cmd => 'systemd-analyze time', proceed_on_failure => 1);
+        $output = $instance->ssh_script_output(cmd => 'systemd-analyze time', proceed_on_failure => 1);
         sleep 5;
     }
 
@@ -973,7 +910,7 @@ sub do_systemd_analyze_time {
     }
     push @ret, extract_analyze_time($output);
 
-    $output = $instance->run_ssh_command(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
+    $output = $instance->ssh_script_output(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
     push @ret, extract_blame_time($output);
 
     return @ret;
