@@ -235,20 +235,20 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp7',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
+            location => 'http://openqa.suse.de/assets/repo/fixed/SLE-15-SP7-Full-x86_64-GM-Media1/',
         },
         sles15sp7efi => {
             name => 'sles15sp7efi',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
+            location => 'http://openqa.suse.de/assets/repo/fixed/SLE-15-SP7-Full-x86_64-GM-Media1/',
             boot_firmware => 'efi',    # EFI version of SLES 15 SP7
         },
         'sles15sp7efi-snapshot' => {
             name => 'sles15sp7efi-snapshot',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
+            location => 'http://openqa.suse.de/assets/repo/fixed/SLE-15-SP7-Full-x86_64-GM-Media1/',
             boot_firmware => 'efi-with-qcow2-based-nvram',    # For efi vm snapshot test
         },
         sles16efi_online => {
@@ -278,7 +278,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             name => 'sles15sp7-efi-sev-es',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
+            location => 'http://openqa.suse.de/assets/repo/fixed/SLE-15-SP7-Full-x86_64-GM-Media1/',
             boot_firmware => 'efi_sev_es',    # sev_es
             launch_security => 'sev,policy=0x06',    # sev_es
             memory_backing => 'locked=on',    # sev_es
