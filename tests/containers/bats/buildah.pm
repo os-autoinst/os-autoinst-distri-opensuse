@@ -135,7 +135,8 @@ sub run {
 
     $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
-    test_conformance unless is_sle;
+    # Run conformance tests only on Tumbleweed until SLES 16.1 catches up to v1.42.2+
+    test_conformance unless (is_sle || get_var("RUN_TESTS"));
 
     die "buildah tests failed" if ($errors);
 }
