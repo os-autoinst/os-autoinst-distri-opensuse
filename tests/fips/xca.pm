@@ -68,7 +68,7 @@ sub run {
     # The certificate contains no extensions, you may apply the
     # extensions of one of the templates to define the purpose
     # of the certificate
-    send_key 'alt-o';
+    wait_screen_change { 'alt-o' };
     assert_and_click('xca_continue_rollout');
     wait_still_screen 2;
     if (check_screen('xca_fips_error_digital', 10)) {
@@ -78,7 +78,7 @@ sub run {
     assert_screen('certificate_create_complete');
 
     # Clean up
-    send_key 'alt-o';
+    wait_screen_change { send_key 'alt-o' };
     close_gui_terminal;
 }
 
