@@ -244,8 +244,8 @@ sub register_addons_in_pc {
         next if ($addon =~ /^\s+$/);
         register_addon($remote, $addon);
     }
-    record_info('repos (lr)', $instance->run_ssh_command(cmd => "sudo zypper lr"));
-    record_info('repos (ls)', $instance->run_ssh_command(cmd => "sudo zypper ls"));
+    record_info('repos (lr)', $instance->ssh_script_output(cmd => "sudo zypper lr"));
+    record_info('repos (ls)', $instance->ssh_script_output(cmd => "sudo zypper ls"));
 }
 
 sub register_openstack {
@@ -675,7 +675,7 @@ sub get_installed_packages_remote {
     my $pkg_list = join(' ', @$packages_ref);
     my $cmd = "rpm -q --qf '%{NAME}|' $pkg_list 2>/dev/null";
 
-    my $output = $instance->run_ssh_command(
+    my $output = $instance->ssh_script_output(
         cmd => $cmd,
         proceed_on_failure => 1
     );
@@ -709,7 +709,7 @@ sub get_available_packages_remote {
     return [] unless @not_installed;
 
     my $pkg_list = join(' ', @not_installed);
-    my $output = $instance->run_ssh_command(
+    my $output = $instance->ssh_script_output(
         cmd => "zypper -x info $pkg_list 2>/dev/null",
         proceed_on_failure => 1
     );
@@ -733,7 +733,7 @@ It uses the `-fG` options to add the repository as a GPG-verified repository.
 
 sub zypper_add_repo_remote {
     my ($instance, $repo_name, $repo_url) = @_;
-    $instance->run_ssh_command(
+    $instance->ssh_script_run(
         cmd => "sudo zypper -n addrepo -fG $repo_url $repo_name",
         timeout => 600
     );
@@ -750,7 +750,7 @@ It uses the `-n` option to run the command non-interactively.
 
 sub zypper_remove_repo_remote {
     my ($instance, $repo_name) = @_;
-    $instance->run_ssh_command(
+    $instance->ssh_script_run(
         cmd => "sudo zypper -n removerepo $repo_name",
         timeout => 600
     );
@@ -772,13 +772,13 @@ sub zypper_install_remote {
     my $pkg_str = join(' ', @pkg_list);
 
     if (is_transactional) {
-        $instance->run_ssh_command(
+        $instance->ssh_script_run(
             cmd => "sudo transactional-update -n pkg install --no-recommends $pkg_str",
             timeout => 900
         );
         $instance->softreboot();
     } else {
-        $instance->run_ssh_command(
+        $instance->ssh_script_run(
             cmd => "sudo zypper -n in --no-recommends $pkg_str",
             timeout => 600
         );
