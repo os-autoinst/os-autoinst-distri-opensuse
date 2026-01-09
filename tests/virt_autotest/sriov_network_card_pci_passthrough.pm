@@ -81,9 +81,6 @@ sub run_test {
         }
         record_info("Test $guest");
         record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
-        setup_vm_simple_dns_with_ip($guest, get_vm_ip_with_nmap($guest));
-	record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
-        check_guest_health($guest);
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
 
@@ -297,7 +294,8 @@ sub prepare_guest_for_sriov_passthrough {
 
     #passwordless access to guest
     #julie save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
-    get_vm_ip_with_nmap($vm);
+    check_var('VM_BRIDGE', 'br123') ? save_guest_ip($vm, name => "br123") : setup_vm_simple_dns_with_ip($vm, get_vm_ip_with_nmap($vm));
+    check_guest_health($vm);
 
     # Enable udev debug logs
     my $udev_conf_file = "/etc/udev/udev.conf";
