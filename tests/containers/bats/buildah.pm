@@ -47,11 +47,6 @@ sub run_tests {
     push @xfails, (
         "bud.bats::bud-multiple-platform-no-partial-manifest-list",
     ) if (is_sle("<15-SP6"));
-    push @xfails, (
-        # Fails with:
-        # Error: path "/var/tmp/storage-run-0" exists and it is not writeable only by the current user
-        "chroot.bats::chroot with overlay root",
-    ) unless (is_sle);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
 
