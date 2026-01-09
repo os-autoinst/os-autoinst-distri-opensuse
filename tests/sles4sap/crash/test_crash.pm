@@ -27,10 +27,9 @@ sub run {
     my $instance = publiccloud::instance->new(public_ip => $vm_ip, username => $username);
     select_host_console();
 
-    $instance->run_ssh_command(
+    $instance->ssh_script_run(
         cmd => 'sudo su -c "echo b > /proc/sysrq-trigger &"',
         timeout => 10,
-        rc_only => 1,
         ssh_opts => '-E /var/tmp/ssh_sut.log -fn -o ServerAliveInterval=2',
         username => $username);
 
