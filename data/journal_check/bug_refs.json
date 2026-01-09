@@ -1026,7 +1026,7 @@
     "bsc#1215405": {
         "description": "setroubleshoot.*(SELinux is preventing systemd-tmpfile from using the mac_admin capability.*|failed to retrieve rpm info for path '/run/systemd/userdb/io.systemd.Machine')",
         "products": {
-            "sle-micro": ["6.2"]
+            "sle-micro": ["6.1", "6.2"]
         },
         "type": "bug"
     }
