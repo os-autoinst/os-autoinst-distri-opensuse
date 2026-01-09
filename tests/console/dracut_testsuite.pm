@@ -19,20 +19,27 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
     select_serial_terminal;
+
+    my $repo_name_pattern = "Basesystem.*Source";
+    if (is_sle '>=16.0') {
+        $repo_name_pattern = "SLE-Product.*Source";
+    }
+
     my $dracut_test = get_var('DRACUT_TEST');
     # phub for ShellCheck package
     add_suseconnect_product(get_addon_fullname('phub'));
     # install build and testsuite dependencies
     zypper_call('in cargo rust nbd dbus-broker strace rpm-build dhcp-server dhcp-client dash asciidoc libkmod-devel git qemu-kvm qemu tgt iscsiuio open-iscsi ShellCheck tree');
-    assert_script_run 'for r in `zypper lr|awk \'/Basesystem.*Source-Pool/ {print $5}\'`;do zypper mr -e --refresh $r;done';
+
+    assert_script_run "for r in `zypper lr|awk \'/$repo_name_pattern/ {print \$5}\'`;do zypper mr -e --refresh \$r;done";
     zypper_call('si dracut');
-    assert_script_run 'for r in `zypper lr|awk \'/Basesystem.*Source-Pool/ {print $5}\'`;do zypper mr -d --no-refresh $r;done';
+    assert_script_run "for r in `zypper lr|awk \'/$repo_name_pattern/ {print \$5}\'`;do zypper mr -d --no-refresh \$r;done";
     my $version = script_output(q(rpm -q dracut|awk -F"[-.]" '{print$2}'|cut -c2-3));
     assert_script_run('mkdir /tmp/logs');
     assert_script_run('cd /usr/src/packages/SPECS');
     assert_script_run('rpmbuild -bc dracut.spec');
     if ($dracut_test) {
-        assert_script_run("cd /usr/src/packages/BUILD/dracut-*/test/$dracut_test && ll");
+        assert_script_run("cd -- \$(find /usr/src/packages/BUILD/ -type d -name $dracut_test) && ll");
         assert_script_run("make V=1 clean setup run |& tee /tmp/logs/$dracut_test.log", 600);
     }
     else {
@@ -40,7 +47,7 @@ sub run {
         push(@tests, qw(TEST-63-DRACUT-CPIO TEST-98-GETARG)) if ($version > 49);
         push(@tests, qw(TEST-15-BTRFSRAID)) if is_sle('15-sp5+');
         foreach (@tests) {
-            assert_script_run("cd /usr/src/packages/BUILD/dracut-*/test/$_ && ll");
+            assert_script_run("cd -- \$(find /usr/src/packages/BUILD/ -type d -name $_) && ll");
             record_info("$_", "$_");
             assert_script_run("make V=1 clean setup run |& tee /tmp/logs/$_.log", 3000);
         }
