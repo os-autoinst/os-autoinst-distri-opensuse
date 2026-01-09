@@ -57,7 +57,9 @@ sub run {
     # check whether average system load is below treshold
     # wait until the load gets below 0.2
     select_console 'root-console';
-    my $cmd = qq(for i in {1..100}; do read -d' ' load </proc/loadavg; uptime > /dev/$serialdev; if [ "\${load/./}" -le 2 ]; then echo 'LOAD_OK' > /dev/$serialdev; break; fi; sleep 6; done);
+    # 6s per iteration -> 10min by default
+    my $iterations = 100 * get_var('TIMEOUT_SCALE', 1);
+    my $cmd = qq(for i in {1..${iterations}}; do read -d' ' load </proc/loadavg; uptime > /dev/$serialdev; if [ "\${load/./}" -le 2 ]; then echo 'LOAD_OK' > /dev/$serialdev; break; fi; sleep 6; done);
     enter_cmd("( $cmd )\&");
     wait_serial('LOAD_OK', timeout => 600, no_regex => 1) or die 'System average load was not settled after taking snapshots';
 }
