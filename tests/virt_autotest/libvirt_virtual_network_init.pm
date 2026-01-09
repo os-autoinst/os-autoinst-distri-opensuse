@@ -63,8 +63,9 @@ sub run_test {
 
     #Prepare Guests
     foreach my $guest (keys %virt_autotest::common::guests) {
-        my $guest_bridge_source = virt_autotest::virtual_network_utils::get_guest_bridge_src($guest);
-        record_info('GUEST_BRIDGE_SOURCE', "Found the $guest bridge source: " . $guest_bridge_source);
+        my ($primary_vif_type, $primary_vif_src) = find_vm_primary_nic_info($guest);
+        record_info('Source of guest network', "Found the $guest network source: " . $primary_vif_src);
+
         #Archive deployed Guests
         #NOTE: Keep Archive deployed Guests for restore_guests func
         assert_script_run("virsh dumpxml $guest > /tmp/$guest.xml");
@@ -73,7 +74,7 @@ sub run_test {
         #NOTE: Required all guests keep running status
         #Ensures the SSH connection and ICMP PING responses is workable for given guest system
         validate_guest_status($guest);
-        save_guest_ip($guest, name => "br123");
+        save_guest_ip($guest);
         virt_autotest::utils::ssh_copy_id($guest);
 
         # SLES16 guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
