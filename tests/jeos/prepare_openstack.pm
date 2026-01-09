@@ -23,12 +23,12 @@ sub run {
     $args->{instance_host_alias} = 'sut';
 
     # instance settings
-    $instance->run_ssh_command(cmd => q[sudo sed -i 's/^no.*ssh-rsa/ssh-rsa/' /root/.ssh/authorized_keys], no_quote => 1);
-    $instance->run_ssh_command(cmd => q[sudo cat /root/.ssh/authorized_keys]);
-    $instance->run_ssh_command(cmd => qq[sudo mkdir -p /home/$testapi::username/.ssh/]);
-    $instance->run_ssh_command(cmd => qq[sudo install -m 600 /root/.ssh/authorized_keys /home/$testapi::username/.ssh/authorized_keys]);
-    $instance->run_ssh_command(cmd => qq[sudo chown $testapi::username:users /home/$testapi::username/.ssh/authorized_keys]);
-    $instance->run_ssh_command(cmd => qq[rpm -q cloud-init]);
+    $instance->ssh_script_run(cmd => q[sudo sed -i 's/^no.*ssh-rsa/ssh-rsa/' /root/.ssh/authorized_keys], no_quote => 1);
+    $instance->ssh_script_run(cmd => q[sudo cat /root/.ssh/authorized_keys]);
+    $instance->ssh_script_run(cmd => qq[sudo mkdir -p /home/$testapi::username/.ssh/]);
+    $instance->ssh_script_run(cmd => qq[sudo install -m 600 /root/.ssh/authorized_keys /home/$testapi::username/.ssh/authorized_keys]);
+    $instance->ssh_script_run(cmd => qq[sudo chown $testapi::username:users /home/$testapi::username/.ssh/authorized_keys]);
+    $instance->ssh_script_run(cmd => qq[rpm -q cloud-init]);
     $instance->ssh_opts("");
     # helper VM settings
     assert_script_run(sprintf(q(echo -e 'Host %s\n  Hostname %s' >> ~/.ssh/config), $args->{instance_host_alias}, $instance->public_ip));
