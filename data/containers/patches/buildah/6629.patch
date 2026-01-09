@@ -1,0 +1,24 @@
+From 0791fa3f9457cae476cbfc92a24f830a17b7f3ae Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 9 Jan 2026 18:49:26 +0100
+Subject: [PATCH] tests: Skip chroot overlay test if STORAGE_DRIVER is overlay
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/chroot.bats | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/tests/chroot.bats b/tests/chroot.bats
+index 652ea3b0081..2da6d8fa972 100644
+--- a/tests/chroot.bats
++++ b/tests/chroot.bats
+@@ -120,6 +120,9 @@ load helpers
+   if [ "$(id -u)" -ne 0 ]; then
+     skip "expects to already be root"
+   fi
++  if test "$STORAGE_DRIVER" = "overlay"; then
++    skip "skipping test because \$STORAGE_DRIVER = $STORAGE_DRIVER"
++  fi
+   _prefetch docker.io/library/busybox
+   cp -v ${TEST_SOURCES}/containers.conf ${TEST_SCRATCH_DIR}/containers.conf
+   chmod ugo+r ${TEST_SCRATCH_DIR}/containers.conf
