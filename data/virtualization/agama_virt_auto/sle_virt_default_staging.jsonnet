@@ -104,6 +104,7 @@ local urls = if repo != '' then std.split(repo, ',') else [];
           
           # Configure SSH client settings
           # Use the unified 01-virt-test.conf for virt tests which helps locate ssh config changes
+          mkdir -p /etc/ssh/ssh_config.d
           cat > /etc/ssh/ssh_config.d/01-virt-test.conf << 'EOF'
           StrictHostKeyChecking no
           UserKnownHostsFile /dev/null

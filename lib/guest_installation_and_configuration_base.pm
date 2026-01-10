@@ -250,6 +250,11 @@ sub prepare_common_environment {
 	#        script_run("rm -f -r /root/.ssh/config");
 	#        virt_autotest::utils::setup_common_ssh_config(ssh_id_file => $_host_params{ssh_key_file});
 	#        script_run("[ -f /etc/ssh/ssh_config ] && sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
+	record_info('Julie debug', script_output("ssh -G root\@localhost", proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('ssh -v root@127.0.0.1', proceed_on_failure => 1));
         enable_debug_logging if (is_sle('<16', get_var('VERSION_TO_INSTALL', get_required_var('VERSION'))));
         $_host_params{host_sutip} = get_required_var('SUT_IP') if (is_ipmi);
         my $_default_route = script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+", proceed_on_failure => 1);
@@ -3181,10 +3186,10 @@ sub collect_guest_installation_logs_via_ssh {
     $self->get_guest_ipaddr;
     if ((script_run("nmap $self->{guest_ipaddr} -PN -p ssh | grep -i open") eq 0) and ($self->{guest_ipaddr} ne '') and ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT')) {
         record_info('Julie debug', script_output("ssh -G $self->{guest_ipaddr}", proceed_on_failure => 1));
-	record_info('Julie debug', script_output("ssh -v $self->{guest_ipaddr}", proceed_on_failure => 1));;
 	record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
 	record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
 	record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
+	record_info('Julie debug', script_output("ssh -v $self->{guest_ipaddr} 2>&1 | tee ssh_v.log", proceed_on_failure => 1));;
         record_info("Guest $self->{guest_name} has ssh port open on ip address $self->{guest_ipaddr}.", "Try to collect logs via ssh but may fail.Open ssh port does not mean good ssh connection.");
         script_retry($_host_params{ssh_command} . "\@$self->{guest_ipaddr} \"save_y2logs /tmp/$self->{guest_name}_y2logs.tar.gz\"", timeout => 180, retry => 3);
         script_run("scp -r -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$self->{guest_ipaddr}:/tmp/$self->{guest_name}_y2logs.tar.gz $self->{guest_log_folder}");
@@ -3352,6 +3357,7 @@ sub post_fail_hook {
     my $self = shift;
 
     $self->reveal_myself;
+    upload_logs("ssh_v.log", failok => 1);
     $self->upload_guest_installation_logs;
     save_screenshot;
     virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log /emergency_mode /agama_installation_logs", "_guest_installation");

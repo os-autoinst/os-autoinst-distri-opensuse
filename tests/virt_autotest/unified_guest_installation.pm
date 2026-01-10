@@ -63,6 +63,10 @@ sub run {
     record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519', proceed_on_failure => 1));
     record_info('Julie debug', script_output('ls -l /root/.ssh/', proceed_on_failure => 1));
     record_info('Julie debug', script_output('ssh-keygen -y -f /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    record_info('Julie debug', script_output("ssh -G $self->{guest_ipaddr}", proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
     return if get_var('SKIP_GUEST_INSTALL');
     my @guest_names = split(/\|/, get_required_var('UNIFIED_GUEST_LIST'));
     my @guest_profiles = split(/\|/, get_required_var('UNIFIED_GUEST_PROFILES'));
@@ -93,6 +97,7 @@ sub run {
     record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519', proceed_on_failure => 1));
     record_info('Julie debug', script_output('ls -l /root/.ssh/', proceed_on_failure => 1));
     record_info('Julie debug', script_output('ssh-keygen -y -f /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    upload_logs("ssh_v.log", failok => 1);
     $self->clean_up_guests;
     return $self;
 }

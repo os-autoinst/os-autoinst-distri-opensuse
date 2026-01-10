@@ -80,8 +80,11 @@
         name: "Configure_ssh_client",
         content: |||
           #!/usr/bin/env bash
-          ssh_config_file="/etc/ssh/ssh_config.d/01-virt-test.conf"
+          ssh_config_dir="/etc/ssh/ssh_config.d"
+          mkdir -p $ssh_config_dir
+          ssh_config_file="$ssh_config_dir/01-virt-test.conf"
           echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null\nLogLevel ERROR" > $ssh_config_file
+          chmod 644 "$ssh_config_file"
         |||
       },
       {
