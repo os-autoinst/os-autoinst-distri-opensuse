@@ -250,11 +250,11 @@ sub prepare_common_environment {
 	#        script_run("rm -f -r /root/.ssh/config");
 	#        virt_autotest::utils::setup_common_ssh_config(ssh_id_file => $_host_params{ssh_key_file});
 	#        script_run("[ -f /etc/ssh/ssh_config ] && sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
+	record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
 	record_info('Julie debug', script_output("ssh -G root\@localhost", proceed_on_failure => 1));
     record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
     record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
     record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
-    record_info('Julie debug', script_output('ssh -v root@127.0.0.1', proceed_on_failure => 1));
         enable_debug_logging if (is_sle('<16', get_var('VERSION_TO_INSTALL', get_required_var('VERSION'))));
         $_host_params{host_sutip} = get_required_var('SUT_IP') if (is_ipmi);
         my $_default_route = script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+", proceed_on_failure => 1);
@@ -2262,8 +2262,10 @@ sub guest_installation_run {
     my $self = shift;
 
     $self->reveal_myself;
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
     $self->prepare_guest_installation(@_);
     $self->start_guest_installation;
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
     return $self;
 }
 
@@ -3185,6 +3187,7 @@ sub collect_guest_installation_logs_via_ssh {
     $self->reveal_myself;
     $self->get_guest_ipaddr;
     if ((script_run("nmap $self->{guest_ipaddr} -PN -p ssh | grep -i open") eq 0) and ($self->{guest_ipaddr} ne '') and ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT')) {
+	record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
         record_info('Julie debug', script_output("ssh -G $self->{guest_ipaddr}", proceed_on_failure => 1));
 	record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
 	record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
