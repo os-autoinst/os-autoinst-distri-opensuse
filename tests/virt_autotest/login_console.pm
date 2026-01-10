@@ -238,6 +238,10 @@ sub run {
     record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519', proceed_on_failure => 1));
     record_info('Julie debug', script_output('ls -l /root/.ssh/', proceed_on_failure => 1));
     record_info('Julie debug', script_output('ssh-keygen -y -f /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    record_info('Julie debug', script_output("ssh -G $self->{guest_ipaddr}", proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
 }
 
 sub post_fail_hook {
