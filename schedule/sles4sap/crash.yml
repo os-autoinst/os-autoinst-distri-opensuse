@@ -1,0 +1,19 @@
+---
+name: sles4sap_cloud_crash
+description: |
+  crash scenario with one machine for aws
+schedule:
+    - '{{deploy}}'
+    - sles4sap/crash/configure
+    - sles4sap/crash/patch_and_reboot
+    - sles4sap/crash/test_crash
+    - sles4sap/crash/destroy
+conditional_schedule:
+    deploy:
+        PUBLIC_CLOUD_PROVIDER:
+            AZURE:
+                - sles4sap/crash/azure_deploy
+            EC2:
+                - sles4sap/crash/aws_deploy
+            GCE:
+                - sles4sap/crash/gcp_deploy
