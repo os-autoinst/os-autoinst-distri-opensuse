@@ -82,7 +82,7 @@
         name: "ssh_config",
         content: |||
           #!/usr/bin/env bash
-          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /etc/ssh/ssh_config.d/01-qe-virtualization-functional.conf
+          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null\nLogLevel ERROR" > /etc/ssh/ssh_config.d/01-qe-virtualization-functional.conf
         |||
       },
       {

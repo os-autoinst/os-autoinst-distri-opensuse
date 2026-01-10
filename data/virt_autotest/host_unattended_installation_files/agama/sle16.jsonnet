@@ -81,7 +81,7 @@
         content: |||
           #!/usr/bin/env bash
           ssh_config_file="/etc/ssh/ssh_config.d/01-virt-test.conf"
-          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > $ssh_config_file
+          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null\nLogLevel ERROR" > $ssh_config_file
         |||
       },
       {
