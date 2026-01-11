@@ -59,6 +59,14 @@ sub run {
     select_backend_console(init => 0);
 
     $self->reveal_myself;
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('ls -l /root/.ssh/', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('ssh-keygen -y -f /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    record_info('Julie debug', script_output("ssh -G root\@localhost", proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
     return if get_var('SKIP_GUEST_INSTALL');
     my @guest_names = split(/\|/, get_required_var('UNIFIED_GUEST_LIST'));
     my @guest_profiles = split(/\|/, get_required_var('UNIFIED_GUEST_PROFILES'));
@@ -85,6 +93,11 @@ sub run {
     }
 
     $self->concurrent_guest_installations_run(\%store_of_guests);
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('ls -l /root/.ssh/', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('ssh-keygen -y -f /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    upload_logs("ssh_v.log", failok => 1);
     $self->clean_up_guests;
     return $self;
 }
@@ -99,6 +112,10 @@ sub test_flags {
 sub post_fail_hook {
     my $self = shift;
 
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('ls -l /root/.ssh/', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('ssh-keygen -y -f /root/.ssh/id_ed25519', proceed_on_failure => 1));
     $self->reveal_myself;
     $self->SUPER::post_fail_hook;
     return $self;

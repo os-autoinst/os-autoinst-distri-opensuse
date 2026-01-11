@@ -234,7 +234,11 @@ sub do_local_initialization {
     }
     elsif ($_role eq 'children') {
         if (script_run("ls $_guest_params{ssh_keyfile}") != 0) {
-            assert_script_run("clear && ssh-keygen -b 2048 -t rsa -q -N \"\" -f $_guest_params{ssh_keyfile} <<< y");
+            if (is_sle('16+')) {
+                assert_script_run("clear && ssh-keygen -b 2048 -t ed25519 -q -N \"\" -f $_guest_params{ssh_keyfile} <<< y");
+            } else {
+                assert_script_run("clear && ssh-keygen -b 2048 -t rsa -q -N \"\" -f $_guest_params{ssh_keyfile} <<< y");
+            }
             assert_script_run("chmod 600 $_guest_params{ssh_keyfile} $_guest_params{ssh_keyfile}.pub");
         }
         set_var('GUEST_SSH_PUBLIC_KEY', script_output("cat $_guest_params{ssh_keyfile}.pub"));
@@ -319,15 +323,20 @@ either host (1) or guest (0) on which operation will be done and whether die
 sub config_ssh_pubkey_auth {
     my ($self, %args) = @_;
     $args{_addr} //= '';
-    $args{_keyfile} //= '/root/.ssh/id_rsa';
+    $args{_keyfile} //= is_sle('16+') ? '/root/.ssh/id_ed25519' : '/root/.ssh/id_rsa';
     $args{_overwrite} //= 0;
     $args{_host} //= 1;
     $args{_die} //= 0;
     croak("The address of ssh connnection must be given") if (!$args{_addr});
 
-    setup_common_ssh_config(ssh_id_file => $args{_keyfile});
+    # ssh config files are configured during host installation for both Dev + MU tests
+    #    setup_common_ssh_config(ssh_id_file => $args{_keyfile});
     if ($args{_overwrite} == 1 or script_run("ls $args{_keyfile}") != 0) {
-        assert_script_run("clear && ssh-keygen -b 2048 -t rsa -q -N \"\" -f $args{_keyfile} <<< y");
+        if (is_sle('16+')) {
+            assert_script_run("clear && ssh-keygen -b 2048 -t ed25519 -q -N \"\" -f $args{_keyfile} <<< y");
+        } else {
+            assert_script_run("clear && ssh-keygen -b 2048 -t rsa -q -N \"\" -f $args{_keyfile} <<< y");
+        }
         assert_script_run("chmod 600 $args{_keyfile} $args{_keyfile}.pub");
     }
     my $_ret = 0;

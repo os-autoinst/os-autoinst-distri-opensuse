@@ -103,11 +103,15 @@ local urls = if repo != '' then std.split(repo, ',') else [];
           echo '{{_SECRET_ED25519_PUB_KEY}}' > /root/.ssh/id_ed25519.pub
           
           # Configure SSH client settings
-          cat > /root/.ssh/config << 'EOF'
+          # Use the unified 01-virt-test.conf for virt tests which helps locate ssh config changes
+          mkdir -p /etc/ssh/ssh_config.d
+          cat > /etc/ssh/ssh_config.d/01-virt-test.conf << 'EOF'
           StrictHostKeyChecking no
+          UserKnownHostsFile /dev/null
           PreferredAuthentications publickey,password
+          LogLevel ERROR
           EOF
-          chmod 600 /root/.ssh/config
+          chmod 600 /etc/ssh/ssh_config.d/01-virt-test.conf
         |||
       },
       {

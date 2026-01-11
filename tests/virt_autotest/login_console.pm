@@ -234,6 +234,17 @@ sub run {
         record_info('Kernel parameters', script_output('cat /proc/cmdline'));
         record_info('NIC', script_output('ip a'));
     }
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('ls -l /root/.ssh/', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('ssh-keygen -y -f /root/.ssh/id_ed25519', proceed_on_failure => 1));
+    record_info('Julie debug', script_output("ssh -G root\@localhost", proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
+    record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
+    # Upload agama script logs
+    script_run("tar zcfv /tmp/agama_script_logs.tar.gz /var/log/agama-installation/scripts/*");
+    upload_logs("/tmp/agama_script_logs.tar.gz", failok => 1);
 }
 
 sub post_fail_hook {

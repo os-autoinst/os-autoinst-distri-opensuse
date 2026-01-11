@@ -24,7 +24,7 @@ use testapi;
 use virt_autotest::common;
 use version_utils qw(is_sle);
 use virt_autotest::utils;
-use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
+use virt_autotest::virtual_network_utils qw(save_guest_ip setup_vm_simple_dns_with_ip test_network_interface);
 
 our $log_dir = "/tmp/sriov_pcipassthru";
 our $vm_xml_save_dir = "/tmp/download_vm_xml";
@@ -35,6 +35,7 @@ sub run_test {
 
     #set up ssh, packages and iommu on host
     check_host_health;
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
     script_run("journalctl --cursor-file /tmp/cursor.txt -u NetworkManager | grep -e 'timeout' -e 'failure' -e 'failed to acquire D-Bus name' -e 'critical'") if is_sle('16+');
     prepare_host();
 
@@ -52,6 +53,7 @@ sub run_test {
 
     # Back up /etc/resolv.conf as it will refresh by creating VFs
     assert_script_run("cp /etc/resolv.conf /etc/resolv_before_enable_vf.conf");
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
 
     record_info("Before enable VF", script_output("ip a"));
     script_run("ip r");
@@ -78,7 +80,7 @@ sub run_test {
             next;
         }
         record_info("Test $guest");
-        check_guest_health($guest);
+        record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
 
@@ -185,6 +187,7 @@ sub prepare_host {
 
     #enable pciback debug logs
     script_run "echo \"module xen_pciback +p\" > /sys/kernel/debug/dynamic_debug/control" if is_xen_host;
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
 
 }
 
@@ -290,7 +293,9 @@ sub prepare_guest_for_sriov_passthrough {
     }
 
     #passwordless access to guest
-    save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
+    #julie save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
+    check_var('VM_BRIDGE', 'br123') ? save_guest_ip($vm, name => "br123") : setup_vm_simple_dns_with_ip($vm, get_vm_ip_with_nmap($vm));
+    check_guest_health($vm);
 
     # Enable udev debug logs
     my $udev_conf_file = "/etc/udev/udev.conf";

@@ -31,6 +31,7 @@ sub run {
     select_console 'sol', await_console => 0;
     use_ssh_serial_console;
     fufill_guests_in_setting;
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
 }
 
 1;

@@ -15,10 +15,15 @@ use virt_utils;
 sub run {
     # download vm image and xml file from NFS location to skip installing guest
     my $vm_xml_dir = "/tmp/download_vm_xml";
-    my $guest_list = get_guest_list();
+    # For Unified frame installed guests, use UNIFIED_GUEST_LIST(eg. sles_15_sp7_64_kvm_hvm_uefi) directly
+    # For Legacy guests, need to parse the guest list
+    # Curiously, if "$guest_list = get_var('UNIFIED_GUEST_LIST', get_guest_list())" is used, get_guest_list() is always run whatever UNIFIED_GUEST_LIST is.
+    my $guest_list = get_var('UNIFIED_GUEST_LIST') ? get_var('UNIFIED_GUEST_LIST') : get_guest_list();
+
     if (download_guest_assets($guest_list, $vm_xml_dir) eq '0') {
         die "Fatal Error: The guest assets for $guest_list were not downloaded successfully!";
     }
+    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub'));
 }
 
 sub test_flags {
