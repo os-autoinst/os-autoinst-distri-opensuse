@@ -3187,12 +3187,6 @@ sub collect_guest_installation_logs_via_ssh {
     $self->reveal_myself;
     $self->get_guest_ipaddr;
     if ((script_run("nmap $self->{guest_ipaddr} -PN -p ssh | grep -i open") eq 0) and ($self->{guest_ipaddr} ne '') and ($self->{guest_ipaddr} ne 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT')) {
-	record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
-        record_info('Julie debug', script_output("ssh -G $self->{guest_ipaddr}", proceed_on_failure => 1));
-	record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
-	record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
-	record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
-	record_info('Julie debug', script_output("ssh -v $self->{guest_ipaddr} 2>&1 | tee ssh_v.log", proceed_on_failure => 1));;
         record_info("Guest $self->{guest_name} has ssh port open on ip address $self->{guest_ipaddr}.", "Try to collect logs via ssh but may fail.Open ssh port does not mean good ssh connection.");
         script_retry($_host_params{ssh_command} . "\@$self->{guest_ipaddr} \"save_y2logs /tmp/$self->{guest_name}_y2logs.tar.gz\"", timeout => 180, retry => 3);
         script_run("scp -r -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$self->{guest_ipaddr}:/tmp/$self->{guest_name}_y2logs.tar.gz $self->{guest_log_folder}");
@@ -3201,6 +3195,12 @@ sub collect_guest_installation_logs_via_ssh {
         record_info("Guest $self->{guest_name} has no ssh connection available at all.Not able to collect logs from it via ssh", "Guest ip address is $self->{guest_ipaddr}");
     }
     script_run("virsh dumpxml $self->{guest_name} > $self->{guest_log_folder}/virsh_dumpxml_$self->{guest_name}.xml");
+	record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
+        record_info('Julie debug', script_output("ssh -G $self->{guest_ipaddr}", proceed_on_failure => 1));
+	record_info('Julie debug', script_output('cat ~/.ssh/config', proceed_on_failure => 1));
+	record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
+	record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
+	record_info('Julie debug', script_output("ssh -v $self->{guest_ipaddr} 2>&1 | tee ssh_v.log", proceed_on_failure => 1));;
     script_run("rm -f -r $_host_params{common_log_folder}/unattended*");
     return $self;
 }

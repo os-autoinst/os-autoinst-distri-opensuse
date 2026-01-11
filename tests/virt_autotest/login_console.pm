@@ -243,7 +243,7 @@ sub run {
     record_info('Julie debug', script_output('cat /etc/ssh/ssh_config.d/01-virt-test.conf', proceed_on_failure => 1));
     record_info('Julie debug', script_output('cat /etc/ssh/ssh_config', proceed_on_failure => 1));
     # Upload agama script logs
-    script_run("tar cfxv /tmp/agama_script_logs.tar.gz /var/log/agama-installation/scripts/*"); 
+    script_run("tar zcfv /tmp/agama_script_logs.tar.gz /var/log/agama-installation/scripts/*");
     upload_logs("/tmp/agama_script_logs.tar.gz", failok => 1);
 }
 
