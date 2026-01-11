@@ -2265,7 +2265,6 @@ sub guest_installation_run {
     record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
     $self->prepare_guest_installation(@_);
     $self->start_guest_installation;
-    record_info('Julie debug', script_output('cat /root/.ssh/id_ed25519.pub', proceed_on_failure => 1));
     return $self;
 }
 
