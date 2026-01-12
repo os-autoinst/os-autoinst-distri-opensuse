@@ -13,7 +13,7 @@
     <guest_arch>x86_64</guest_arch>
     <guest_name/>
     <guest_domain_name/>
-    <guest_memory>2048,maxmemory=4096</guest_memory>
+    <guest_memory>4096,maxmemory=8192</guest_memory>
     <guest_vcpus>2,maxvcpus=4</guest_vcpus>
     <guest_cpumodel>host-model</guest_cpumodel>
     <guest_metadata/>
