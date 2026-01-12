@@ -1911,10 +1911,10 @@ sub config_guest_provision_combustion {
     $_ssh_public_key =~ s/\//PLACEHOLDER/img;
     assert_script_run("sed -i \'s/##Authorized-Keys##/$_ssh_public_key/g\' $_combustion_config");
     assert_script_run("sed -i \'s/##FQDN##/$self->{guest_name}\\.$self->{guest_domain_name}/g\' $_combustion_config");
-    my $_scc_regcode = get_required_var('SCC_REGCODE');
+    my $_scc_regcode = ($self->{guest_registration_code} ? $self->{guest_registration_code} : get_required_var('SCC_REGCODE'));
     $_scc_regcode =~ s/\//PLACEHOLDER/img;
     assert_script_run("sed -i \'s/##Registration-Code##/$_scc_regcode/g\' $_combustion_config");
-    my $_scc_url = get_var("SCC_URL", "https://scc.suse.com");
+    my $_scc_url = ($self->{guest_registration_server} ? $self->{guest_registration_server} : get_var("SCC_URL", "https://scc.suse.com"));
     $_scc_url =~ s/\//PLACEHOLDER/img;
     assert_script_run("sed -i \'s/##Registration-Server##/$_scc_url/g\' $_combustion_config");
     assert_script_run("sed -i \'s/PLACEHOLDER/\\\//g;\' $_combustion_config");
