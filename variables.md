@@ -352,6 +352,7 @@ PUBLIC_CLOUD_LTP | boolean | false | If set, the run_ltp test module is added to
 PUBLIC_CLOUD_LTP_GIT_FULL_BUILD | boolean | false | If set, ltp is built from github source rather than ltp repo installation
 PUBLIC_CLOUD_LTP_GIT_BUILD | boolean | false | If set, ltp is built partially from github source on top of ltp repo installation
 PUBLIC_CLOUD_LTP_BUILD_MODULES | boolean | false | If set, ltp is built partially from github source on top of ltp repo installation through modules-install
+PUBLIC_CLOUD_LTP_SKIP_SYSTEMD_DETECT_VIRT | boolean | false | If set, ltp test will not validate systemd_detect_virt
 PUBLIC_CLOUD_MAX_INSTANCES | integer | 1 | Allows the test to call "create_instance" subroutine within lib/publiccloud/provider.md a limited amount of times. If set to 0 or undef, it allows an unlimited amount of calls.
 PUBLIC_CLOUD_NAMESPACE | string | "" | The Public Cloud Namespace name that will be used to compose the full credentials URL together with `PUBLIC_CLOUD_CREDENTIALS_URL`.
 PUBLIC_CLOUD_NEW_INSTANCE_TYPE | string | "t3a.large" | Specify the new instance type to check bsc#1205002 in EC2

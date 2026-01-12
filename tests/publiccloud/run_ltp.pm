@@ -18,7 +18,7 @@ use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot prepare_whitelist_environment);
 use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
 use LTP::WhiteList;
-use publiccloud::utils qw(is_byos is_ondemand is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
+use publiccloud::utils qw(is_byos is_ondemand is_azure is_ec2 is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
@@ -38,6 +38,52 @@ sub should_partially_build_ltp_from_git {
 
 sub should_partially_build_ltp_from_git_modules_install {
     return get_var('PUBLIC_CLOUD_LTP_BUILD_MODULES', 0);    # 1 if env var is set, otherwise 0
+}
+
+sub should_test_systemd_detect_virt {
+    return !get_var('PUBLIC_CLOUD_LTP_SKIP_SYSTEMD_DETECT_VIRT', 0);    # 1 if env var is set, otherwise 0
+}
+
+sub test_systemd_detect_virt_metal {
+    my ($self, $instance) = @_;
+
+    if (is_gce) {
+        record_soft_failure('bsc#1244449 - systemd-detect-virt returns 0 in GCE bare metal instances');
+        return;
+    }
+
+    $instance->ssh_assert_script_run('! systemd-detect-virt');
+}
+
+sub test_systemd_detect_virt_virtualized {
+    my ($self, $instance) = @_;
+
+    my $expected = "";
+
+    if (is_ec2) {
+        $expected = "amazon";
+    } elsif (is_azure) {
+        $expected = "microsoft";
+    } elsif (is_gce) {
+        $expected = "google";
+    } else {
+        die "Unknown public cloud provider";
+    }
+
+    my $output = $instance->ssh_script_output('systemd-detect-virt', proceed_on_failure => 1);
+    record_info("VM type", $output);
+    die("systemd-detect-virt did not return expected virtualization type") unless ($output =~ m/$expected/);
+    $instance->ssh_assert_script_run('systemd-detect-virt');
+}
+
+sub test_systemd_detect_virt {
+    my ($self, $instance) = @_;
+
+    if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
+        $self->test_systemd_detect_virt_metal($instance);
+    } else {
+        $self->test_systemd_detect_virt_virtualized($instance);
+    }
 }
 
 sub install_build_deps {
@@ -316,19 +362,9 @@ sub prepare_kirk {
     script_retry("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo", retry => 5, delay => 60, timeout => 300);
     $instance->run_ssh_command(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->run_ssh_command(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
-    if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
-        record_info('VM type', $instance->run_ssh_command(cmd => '! systemd-detect-virt')) unless is_gce;
-    } else {
-        my $output = $instance->ssh_script_output(cmd => 'systemd-detect-virt', proceed_on_failure => 1);
-        record_info('VM type', $output);
 
-        if (($output eq "none") && is_gce && is_aarch64 && (is_sle_micro("=6.0") || is_sle_micro("=6.1"))) {
-            record_soft_failure("bsc#1256376 - systemd-detect-virt none on GCE SLE Micro 6.0 aarch64") if is_sle_micro('=6.0');
-            record_soft_failure("bsc#1256377 - systemd-detect-virt none on GCE SLE Micro 6.1 aarch64") if is_sle_micro('=6.1');
-        } else {
-            $instance->ssh_assert_script_run('systemd-detect-virt');
-        }
-    }
+    $self->test_systemd_detect_virt($instance) if $self->should_test_systemd_detect_virt();
+
     assert_script_run("cd kirk");
     my $ghash = script_output("git rev-parse HEAD", proceed_on_failure => 1);
     set_var("LTP_RUN_NG_GIT_HASH", $ghash);
