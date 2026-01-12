@@ -42,7 +42,6 @@ our @EXPORT = qw(
   qesap_az_get_resource_group
   qesap_az_clean_old_peerings
   qesap_az_setup_native_fencing_permissions
-  qesap_az_get_tenant_id
   qesap_az_create_sas_token
   qesap_az_list_container_files
   qesap_az_diagnostic_log
@@ -157,48 +156,18 @@ sub qesap_az_setup_native_fencing_permissions {
     }
 
     # Enable system assigned identity
-    my $vm_id = script_output(join(' ',
-            'az vm identity assign',
-            '--only-show-errors',
-            "-g '$args{resource_group}'",
-            "-n '$args{vm_name}'",
-            "--query 'systemAssignedIdentity'",
-            '-o tsv'));
-    die "Returned output '$vm_id' does not match ID pattern" if (!az_validate_uuid_pattern(uuid => $vm_id));
+    my $vm_id = az_vm_identity_assign(name => $args{vm_name}, resource_group => $args{resource_group});
 
     # Assign role
     my $subscription_id = script_output('az account show --query "id" -o tsv');
     my $role_id = az_role_definition_list(name => "Linux Fence Agent Role");
-    my $az_cmd = join(' ', 'az role assignment',
-        'create --only-show-errors',
-        "--assignee-object-id $vm_id",
+    my $az_cmd = join(' ', 'az role assignment create',
+        '--only-show-errors',
+        '--assignee-object-id', $vm_id,
         '--assignee-principal-type ServicePrincipal',
         "--role '$role_id'",
         "--scope '/subscriptions/$subscription_id/resourceGroups/$args{resource_group}'");
     assert_script_run($az_cmd);
-}
-
-=head2 qesap_az_get_tenant_id
-
-    qesap_az_get_tenant_id( subscription_id => $subscription_id )
-
-    Returns tenant ID related to the specified subscription ID.
-
-=over
-
-=item B<SUBSCRIPTION_ID> - valid azure subscription
-
-=back
-=cut
-
-sub qesap_az_get_tenant_id {
-    my (%args) = @_;
-    croak 'Missing < subscription_id > argument' unless $args{subscription_id};
-    my $az_cmd = 'az account show --only-show-errors';
-    $az_cmd .= " --subscription $args{subscription_id} --query 'tenantId' -o tsv";
-    my $tenant_id = script_output($az_cmd);
-    die "Returned output '$tenant_id' does not match ID pattern" unless (az_validate_uuid_pattern(uuid => $tenant_id));
-    return $tenant_id;
 }
 
 =head2 qesap_az_create_sas_token
@@ -313,18 +282,7 @@ Return a list of diagnostic file paths on the JumpHost
 =cut
 
 sub qesap_az_diagnostic_log {
-    my @diagnostic_log_files;
-    my $rg = qesap_az_get_resource_group();
-    my $vm_data = decode_json(script_output("az vm list --resource-group $rg --query '[].{id:id,name:name}' -o json"));
-    my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
-    foreach (@{$vm_data}) {
-        record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
-        my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
-        # Ignore the return code, so also miss the pipefail setting
-        script_run(join(' ', $az_get_logs_cmd, $_->{id}, '&>', $boot_diagnostics_log));
-        push(@diagnostic_log_files, $boot_diagnostics_log);
-    }
-    return @diagnostic_log_files;
+    return az_vm_diagnostic_log_get(resource_group => qesap_az_get_resource_group());
 }
 
 1;
