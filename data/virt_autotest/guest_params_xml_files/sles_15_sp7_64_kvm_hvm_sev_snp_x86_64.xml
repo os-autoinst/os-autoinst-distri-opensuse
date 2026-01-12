@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <guest>
     <guest_os_name>sles</guest_os_name>
-    <guest_version>16.0</guest_version>
-    <guest_version_major>16</guest_version_major>
-    <guest_version_minor>0</guest_version_minor>
+    <guest_version>15-sp7</guest_version>
+    <guest_version_major>15</guest_version_major>
+    <guest_version_minor>7</guest_version_minor>
     <guest_os_word_length>64</guest_os_word_length>
     <guest_build/>
     <host_hypervisor_uri/>
@@ -20,20 +20,15 @@
     <guest_boot_settings>loader=/usr/share/qemu/ovmf-x86_64-sev.bin,hd,bootmenu.enable=yes,menu=on,loader_ro=yes,loader_type=rom</guest_boot_settings>
     <guest_secure_boot>true</guest_secure_boot>
     <guest_xpath/>
-    <guest_installation_automation_method>autoagama</guest_installation_automation_method>
-    <guest_installation_automation_platform></guest_installation_automation_platform>
-    <guest_installation_automation_file>sles_16_plus_kvm_hvm_guest_non_encrypted_storage_x86_64.jsonnet</guest_installation_automation_file>
-    <guest_installation_method>directkernel</guest_installation_method>
-    <guest_installation_extra_args/>
+    <guest_installation_automation_method>autoyast</guest_installation_automation_method>
+    <guest_installation_automation_platform/>
+    <guest_installation_automation_file>sles_15_plus_kvm_hvm_guest_graphical_x86_64.xml</guest_installation_automation_file>
+    <guest_installation_method>location</guest_installation_method>
+    <guest_installation_extra_args>sshd=1#sshpassword=ROOTPASSWORD#console=ttyS0,115200n8#textmode=1</guest_installation_extra_args>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>http://openqa.suse.de/assets/iso/fixed/SLES-16.0-Online-x86_64-GM.install.iso</guest_installation_media>
-    <guest_installation_fine_grained_media>http://openqa.suse.de/assets/repo/fixed/SLES-16.0-Online-x86_64-GM.install/</guest_installation_fine_grained_media>
-    <guest_installation_fine_grained_repos/>
-    <guest_installation_fine_grained_kernel_args>live.password=novell console=ttyS0,115200 linuxrc.log=/dev/ttyS0 linuxrc.core=/dev/ttyS0 linuxrc.debug=4,trace</guest_installation_fine_grained_kernel_args>
-    <guest_installation_fine_grained_kernel_args_overwrite/>
-    <guest_installation_fine_grained_others/>
-    <guest_os_variant>sles16</guest_os_variant>
+    <guest_installation_media>http://openqa.suse.de/assets/repo/fixed/SLE-15-SP7-Full-x86_64-GM-Media1/</guest_installation_media>
+    <guest_os_variant>sle15sp7</guest_os_variant>
     <guest_storage_path/>
     <guest_storage_type>disk</guest_storage_type>
     <guest_storage_format>qcow2</guest_storage_format>
@@ -85,6 +80,7 @@
     <guest_resource/>
     <guest_sysinfo/>
     <guest_qemu_command/>
+    <guest_launchSecurity/>
     <guest_autostart/>
     <guest_transient/>
     <guest_destroy_on_exit/>
@@ -92,9 +88,9 @@
     <guest_noautoconsole>false</guest_noautoconsole>
     <guest_noreboot/>
     <guest_default_target>graphical</guest_default_target>
-    <guest_do_registration>true</guest_do_registration>
-    <guest_registration_server>https://scc.suse.com</guest_registration_server>
-    <guest_registration_username/>
+    <guest_do_registration>false</guest_do_registration>
+    <guest_registration_server/>
+    <guest_registration_username>www@suse.com</guest_registration_username>
     <guest_registration_password/>
-    <guest_registration_extensions/>
+    <guest_registration_extensions>sle-module-legacy#sle-module-basesystem#sle-module-server-applications#sle-module-desktop-applications#sle-module-web-scripting</guest_registration_extensions>
 </guest>
