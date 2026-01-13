@@ -467,7 +467,7 @@ subtest '[wait_quit_zypper_pc] uses defaults and expected command' => sub {
 
     is scalar(@calls), 1, 'one call to retry_ssh_command';
     is $calls[0]->{cmd},
-      q{pgrep -f "zypper|purge-kernels|rpm" && false || true},
+      q{pgrep -f "zypper|packagekit|purge-kernels|rpm" && false || true},
       'expected pgrep/false/true command';
     is $calls[0]->{timeout}, 20, 'default timeout=20';
     is $calls[0]->{delay}, 10, 'default delay=10';
@@ -488,7 +488,7 @@ subtest '[wait_quit_zypper_pc] honors custom timeout/delay/retry' => sub {
         timeout => 5, delay => 2, retry => 3);
 
     is $seen->{cmd},
-      q{pgrep -f "zypper|purge-kernels|rpm" && false || true},
+      q{pgrep -f "zypper|packagekit|purge-kernels|rpm" && false || true},
       'same command with custom args';
     is $seen->{timeout}, 5, 'custom timeout applied';
     is $seen->{delay}, 2, 'custom delay applied';
@@ -496,7 +496,7 @@ subtest '[wait_quit_zypper_pc] honors custom timeout/delay/retry' => sub {
 };
 
 subtest '[wait_quit_zypper_pc] succeeds on 5th attempt (4 fail + 1 success)' => sub {
-    my $expected_cmd = q{pgrep -f "zypper|purge-kernels|rpm" && false || true};
+    my $expected_cmd = q{pgrep -f "zypper|packagekit|purge-kernels|rpm" && false || true};
 
     my $inst = Test::MockObject->new;
     my $calls = 0;
@@ -524,7 +524,7 @@ subtest '[wait_quit_zypper_pc] succeeds on 5th attempt (4 fail + 1 success)' => 
 };
 
 subtest '[wait_quit_zypper_pc] times out after 5 failures' => sub {
-    my $expected_cmd = q{pgrep -f "zypper|purge-kernels|rpm" && false || true};
+    my $expected_cmd = q{pgrep -f "zypper|packagekit|purge-kernels|rpm" && false || true};
 
     my $inst = Test::MockObject->new;
     my $calls = 0;
