@@ -54,6 +54,7 @@ CONTAINERS_DOCKER_FLAVOUR | string | | Flavour of docker to install. Valid optio
 CONTAINERS_SKIP_SIGNATURE | string | | Skip image signature checks in BCI tests
 HELM_CHART | string | | Helm chart under test. See `main_containers.pm` for supported chart types |
 HELM_CONFIG | string | | Additional configuration file for helm |
+HELM_LOGIN | string | Comma-separated list of login information if required for a registry, e.g. `registry.suse.de:username:password,registry.suse.de:geekotest:notsecret`
 HELM_FULL_REGISTRY_PATH | string | Full path to the registry images used by the helm chart. e.g. `my.registry.com/myteam/secret_project`. Only necessary when using non-publicly available container images. | 
 CPU_BUGS | boolean | | Into Mitigations testing
 DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xfce`, `lxde`. Does NOT prescribe installation mode. Installation is controlled by `VIDEOMODE` setting
