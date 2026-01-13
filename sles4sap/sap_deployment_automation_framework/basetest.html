@@ -16,7 +16,7 @@
     <ul>
       <li><a href="#full_cleanup">full_cleanup</a></li>
       <li><a href="#sdaf_ibsm_teardown">_sdaf_ibsm_teardown</a></li>
-      <li><a href="#ibsm_data_collect">ibsm_data_collect</a></li>
+      <li><a href="#sdaf_ibsm_data_collect">sdaf_ibsm_data_collect</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/basetest.pm</h1>
@@ -50,9 +50,9 @@
 
 <p>All existing peerings are deleted in 3 attempts. Function does not croak/die. Only reports about failure and lets other cleanup procedures to continue.</p>
 
-<h2 id="ibsm_data_collect">ibsm_data_collect</h2>
+<h2 id="sdaf_ibsm_data_collect">sdaf_ibsm_data_collect</h2>
 
-<pre><code>ibsm_data_collect();</code></pre>
+<pre><code>sdaf_ibsm_data_collect();</code></pre>
 
 <p>Collects information about existing network peerings between <b>IBSM mirror VNET</b> and <b>test workload zone VNET</b>. Returns <b>HASHREF</b> with all data collected in following format:</p>
 
