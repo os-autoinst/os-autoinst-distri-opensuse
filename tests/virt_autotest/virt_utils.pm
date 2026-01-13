@@ -441,7 +441,6 @@ sub download_guest_assets {
 
     # clean up vm stuff
     script_run "[ -d $vm_xml_dir ] && rm -rf $vm_xml_dir; mkdir -p $vm_xml_dir";
-    my $disk_image_dir = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vm_disk_dir";
     script_run "[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/" if get_var('VIRT_NEW_GUEST_MIGRATION_SOURCE');
 
     # check if vm xml files have been uploaded
@@ -452,6 +451,10 @@ sub download_guest_assets {
         for my $i (1 .. @guests) {
             # ASSET_n0: put the guest xml file
             # ASSET_n1: put the guest disk file
+            unless (get_var("ASSET_${i}0", "")) {
+                record_info('Softfail', "ASSET_${i}0 is empty!", result => 'softfail');
+                next;
+            }
             if (get_var("ASSET_${i}0", "") =~ /$guest_asset_name/) {
 
                 # Download the guest xml file

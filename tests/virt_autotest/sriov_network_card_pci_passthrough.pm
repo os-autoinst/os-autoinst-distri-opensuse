@@ -78,7 +78,6 @@ sub run_test {
             next;
         }
         record_info("Test $guest");
-        check_guest_health($guest);
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
 
@@ -115,7 +114,7 @@ sub run_test {
         save_network_device_status_logs($guest, "2-after_hotplug_$vfs[0]->{host_id}");
         #check the networking of the plugged interface
         #use br123 as ssh connection
-        test_network_interface($guest, gateway => $gateway, mac => $vfs[0]->{vm_mac}, net => 'br123');
+        test_network_interface($guest, gateway => $gateway, mac => $vfs[0]->{vm_mac});
 
         #unplug the first vf from vm
         unplug_vf_from_vm($guest, $vfs[0]);
@@ -128,7 +127,7 @@ sub run_test {
         #test network after reboot as dhcp lease spends time
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
             plugin_vf_device($guest, $vfs[$i]);
-            test_network_interface($guest, gateway => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123') if $i == 1;
+            test_network_interface($guest, gateway => $gateway, mac => $vfs[$i]->{vm_mac}) if $i == 1;
             save_network_device_status_logs($guest, $i + 3 . "-after_hotplug_$vfs[$i]->{host_id}");
         }
 
@@ -140,7 +139,7 @@ sub run_test {
 
         #check the remaining vf(s) inside vm
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
-            test_network_interface($guest, gateway => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123');
+            test_network_interface($guest, gateway => $gateway, mac => $vfs[$i]->{vm_mac});
         }
 
         #unplug the remaining vf(s) from vm
@@ -290,7 +289,8 @@ sub prepare_guest_for_sriov_passthrough {
     }
 
     #passwordless access to guest
-    save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
+    save_guest_ip($vm);
+    check_guest_health($vm);
 
     # Enable udev debug logs
     my $udev_conf_file = "/etc/udev/udev.conf";
