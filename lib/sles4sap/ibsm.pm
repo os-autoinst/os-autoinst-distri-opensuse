@@ -115,7 +115,7 @@ sub ibsm_network_peering_azure_create {
         source_rg => $args{sut_rg}, source_vnet => $vnet_names{sut},
         target_rg => $args{ibsm_rg}, target_vnet => $vnet_names{ibsm});
     record_info('PEERING SUCCESS ' . join('-', @peering_name),
-        "Peering from $args{sut_rg}.$vnet_names{sut} server was successful");
+        "Peering from $args{sut_rg}.$vnet_names{sut} SUT was successful");
 
     @peering_name = ();
     push @peering_name, $args{name_prefix} if ($args{name_prefix});
@@ -140,6 +140,8 @@ sub ibsm_network_peering_azure_create {
 
 =item B<sut_vnet> - substring in the SUT vnet. Optional and only needed if only one specific VNET has to be considered. Most of the time it is get_current_job_id()
 
+=item B<query> - valid jmespath https://jmespath.org/ (default: '[].name'), optional
+
 =item B<timeout> - default is 5 mins
 
 =back
@@ -149,6 +151,7 @@ sub ibsm_network_peering_azure_delete {
     my (%args) = @_;
     foreach (qw(sut_rg ibsm_rg)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{timeout} //= bmwqemu::scale_timeout(300);
+    $args{query} //= '[].name';
 
     # Take care to keep all the query to always return a json list, even if of a sigle element,
     # and not a string.
@@ -161,7 +164,7 @@ sub ibsm_network_peering_azure_delete {
         query => $vnet_get_query);
     my $ibsm_vnet = $res->[0];
 
-    $res = az_network_peering_list(resource_group => $args{sut_rg}, vnet => $sut_vnet);
+    $res = az_network_peering_list(resource_group => $args{sut_rg}, vnet => $sut_vnet, query => $args{query});
     my $peering_name = $res->[0];
     if (!$peering_name) {
         record_info('NO PEERING',
@@ -182,8 +185,8 @@ sub ibsm_network_peering_azure_delete {
         record_info('NO PEERING',
             "No peering between SUT and IBSM - maybe it wasn't created, or the resources have been destroyed.");
     }
+    $res = az_network_peering_list(resource_group => $args{ibsm_rg}, vnet => $ibsm_vnet, query => $args{query});
 
-    $res = az_network_peering_list(resource_group => $args{ibsm_rg}, vnet => $ibsm_vnet);
     $peering_name = $res->[0];
     record_info("Destroying IBSM->SUT peering '$peering_name'");
     my $target_ret = az_network_peering_delete(
@@ -197,7 +200,7 @@ sub ibsm_network_peering_azure_delete {
         record_info('Peering deletion SUCCESS', 'The peering was successfully destroyed');
         return;
     }
-    die("Peering destruction FAIL: There may be leftover peering connections, please check - jsc#7487");
+    record_info('Peering destruction FAIL: There may be leftover peering connections, please check - jsc#7487', result => 'fail');
 }
 
 1;
