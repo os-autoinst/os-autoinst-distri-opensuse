@@ -228,7 +228,9 @@ sub check_credentials {
 
         # Keep secrets hidden in serial output
         define_secret_variable('SECRET_VARIABLE', $credentials{$key});
-        if (script_run("grep \$SECRET_VARIABLE $tmpfile > /dev/null 2>&1")) {
+        # Use echo/grep/cat to ignore the " and/or ' added in $SECRET_VARIABLE when using worker settings
+        # For example: handle "123-456-789"/'123-456-789', the correct one is 123-456-789
+        if (script_run("echo \$SECRET_VARIABLE | grep `cat $tmpfile` > /dev/null 2>&1")) {
             record_info("Check $key", "check_credentials failed on $key\n", result => 'softfail');
             $result = 1;
         }
