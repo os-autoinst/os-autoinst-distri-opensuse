@@ -14,6 +14,8 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#get_vm_ip_with_nmap">get_vm_ip_with_nmap</a></li>
+      <li><a href="#find_vm_primary_nic_info">find_vm_primary_nic_info</a></li>
       <li><a href="#config_domain_resolver">config_domain_resolver</a></li>
       <li><a href="#write_network_bridge_device_config">write_network_bridge_device_config</a></li>
       <li><a href="#write_network_bridge_device_ifcfg">write_network_bridge_device_ifcfg</a></li>
@@ -26,6 +28,22 @@
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/virtual_network_utils.pm</h1>
+
+<h2 id="get_vm_ip_with_nmap">get_vm_ip_with_nmap</h2>
+
+<pre><code>get_vm_ip_with_nmap(vm_name[, source =&gt; &#39;vm_vif_src&#39;])</code></pre>
+
+<p>Query the IP of the VM via nmap. It allows to specify the source of the vif, to query IP for. If &#39;vm_vif_src&#39; is not provided, it will use the default one based on `find_vm_primary_nic_info`.</p>
+
+<p>It supports all types of vif that we use in VT test, namely br0,br123,default/other vnet.</p>
+
+<h2 id="find_vm_primary_nic_info">find_vm_primary_nic_info</h2>
+
+<pre><code>find_vm_primary_nic_info(guest[, exclude_net =&gt; &#39;exclude_net&#39;])</code></pre>
+
+<p>Find the guest&#39;s primary NIC type and source based on `virsh domiflist guest` output. Primary NIC is the one, before doing hotplugging or virtual network test. Based on our code logic, it will search from type bridge to type network. The first available one is the one.</p>
+
+<p>Return: ($type, $source), eg (&#39;bridge&#39;, &#39;br123&#39;), (&#39;bridge&#39;, &#39;br0&#39;), (&#39;network&#39;, &#39;default&#39;)</p>
 
 <h2 id="config_domain_resolver">config_domain_resolver</h2>
 
