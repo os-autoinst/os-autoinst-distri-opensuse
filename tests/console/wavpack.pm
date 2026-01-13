@@ -28,7 +28,7 @@ use registration qw(cleanup_registration register_product add_suseconnect_produc
 sub run {
     select_serial_terminal;
     # development module needed for dependencies, released products are tested with sdk module
-    if (is_sle() && !main_common::is_updates_tests()) {
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         cleanup_registration;
         register_product;
         add_suseconnect_product('sle-module-desktop-applications');
@@ -58,7 +58,7 @@ sub run {
     assert_script_run("wvgain -s Noise.wv 2>&1 | grep -Pzo \"replaygain_track_gain = \\+11.06 dB(.|\\n)*replaygain_track_peak = 0.126251\"");
 
     # unregister SDK
-    if (is_sle() && !main_common::is_updates_tests()) {
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         remove_suseconnect_product(get_addon_fullname('sdk'));
     }
 }
