@@ -14,6 +14,7 @@ use transactional;
 use utils;
 use version_utils 'is_tumbleweed';
 use Utils::Backends 'is_pvm';
+use serial_terminal 'select_serial_terminal';
 
 # Optionally skip exit status check in case immediate reboot is expected
 sub rbm_call {
@@ -65,6 +66,7 @@ sub check_strategy_maint_window {
     rbm_set_window '+2minutes', '1m';
     rbm_call 'reboot';
     rbm_check_status 2;
+    select_console('root-console');
     die "System should be rebooting" unless wait_screen_change(undef, 180);
     process_reboot;
 
@@ -77,7 +79,7 @@ sub check_strategy_maint_window {
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     get_utt_packages;
 
