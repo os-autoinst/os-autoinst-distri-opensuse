@@ -296,13 +296,8 @@ sub load_helm_chart_tests {
     return if ($runtimes =~ /k8s/);
 
     my $chart = get_required_var('HELM_CHART');
-    my $spr_credentials_defined = !!(
-        get_var('SCC_REGISTRY', 0)
-        && get_var('SCC_PROXY_USERNAME', 0)
-        && get_var('SCC_PROXY_PASSWORD', 0)
-    );
 
-    loadtest 'containers/scc_login_to_registry' if (is_sle() && $spr_credentials_defined);
+    loadtest 'containers/helm_login' if (get_var('HELM_LOGIN'));
     my $host_version = get_var("HOST_VERSION", get_required_var("VERSION"));    # VERSION is the version of the container, not the host.
     if ($chart =~ m/rmt-helm$/) {
         loadtest 'containers/charts/rmt' if ($host_version =~ "15-SP[4,5,6,7]|16\..*|slem-.*");
