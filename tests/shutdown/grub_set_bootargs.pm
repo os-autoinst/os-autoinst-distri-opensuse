@@ -16,9 +16,10 @@
 use base 'y2_installbase';
 use testapi;
 use Utils::Architectures;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_console('root-console');
+    select_serial_terminal;
     my @cmds;
     push @cmds, "source /etc/default/grub";
     push @cmds, 'new_cmdline=`echo $GRUB_CMDLINE_LINUX_DEFAULT | sed \'s/\(^\| \)quiet\($\| \)/ /\'`';
