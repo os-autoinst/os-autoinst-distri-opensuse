@@ -15,7 +15,7 @@
 #   SPACE_LIMIT
 # - Run snapper at least couple of times to ensure it cleans up properly
 # - Cleanup
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'btrfs_test';
 use testapi;

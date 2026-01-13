@@ -5,7 +5,7 @@
 
 # Summary: Test scenario which configures Kdump with a YaST module
 # and checks configuration without rebooting the system.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "y2_module_consoletest";
 

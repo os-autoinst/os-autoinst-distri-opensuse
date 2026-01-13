@@ -11,7 +11,7 @@
 #  issue with the live installer has been found and is worked around while
 #  recording a reference to the bug.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "installbasetest";
 use testapi;

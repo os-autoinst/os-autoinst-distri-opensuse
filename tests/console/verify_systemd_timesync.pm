@@ -7,7 +7,7 @@
 #          - Check if yast-timer configuration file exists and contains expected values.
 #          - Check configured time synchronization server address.
 #          - Check the message logs for "One time synchronization" occurrence.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use testapi;

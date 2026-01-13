@@ -5,7 +5,7 @@
 
 # Summary: Check registered system and addons status
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package services::registered_addons;
 use base 'opensusebasetest';

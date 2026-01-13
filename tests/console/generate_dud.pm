@@ -7,7 +7,7 @@
 # Summary: Generate DUD dynamically using mkdud and xml file where variables
 # are expanded for the corresponding product/build.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "opensusebasetest";
 use testapi;

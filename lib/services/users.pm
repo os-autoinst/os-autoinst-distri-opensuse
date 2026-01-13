@@ -11,7 +11,7 @@
 #   3.Restore current user's password to ensure won't be block by later test.
 # After migration:
 #   4.Switch Bernhard and new user.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package services::users;
 use base "x11test";

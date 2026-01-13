@@ -6,7 +6,7 @@
 # Summary: The class introduces business actions for the Overview Page
 #          of the installer.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::InstallationSettings::InstallationSettingsController;
 use strict;

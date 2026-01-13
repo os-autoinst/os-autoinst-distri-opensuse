@@ -7,7 +7,7 @@
 # - Check if hostname matches the one defined on EXPECTED_INSTALL_HOSTNAME or is
 # "install"
 # - Save screenshot
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 # Tags: pr#11456, fate#319639
 
 use base 'y2_installbase';

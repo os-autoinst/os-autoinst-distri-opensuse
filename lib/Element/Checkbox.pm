@@ -5,7 +5,7 @@
 
 # Summary: The class introduces checkbox as a UI element with its accessing
 # methods.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Element::Checkbox;
 use strict;

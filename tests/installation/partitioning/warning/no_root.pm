@@ -5,7 +5,7 @@
 
 # Summary: Verify "There is no device mounted at '/'" Error Dialog is
 # shown when saving partitioner settings with no root mounted.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use testapi;

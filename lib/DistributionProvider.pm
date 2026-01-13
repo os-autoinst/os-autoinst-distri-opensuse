@@ -6,7 +6,7 @@
 # Summary: A library that provides the certain distribution depending on the
 # version of the product that is specified for a Test Suite.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package DistributionProvider;
 use strict;

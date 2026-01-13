@@ -10,7 +10,7 @@ This module provides common subroutines for YaST2 modules in graphical and text 
 
 # Summary: This module provides common subroutines for YaST Firstboot Configuration
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package y2_firstboot_basetest;
 

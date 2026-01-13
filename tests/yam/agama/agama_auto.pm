@@ -3,7 +3,7 @@
 
 # Summary: Wait for unattended installation to finish,
 # reboot and reach login prompt.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base Yam::Agama::agama_base;
 

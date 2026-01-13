@@ -5,7 +5,7 @@
 
 # Package: snapper
 # Summary: Verify that essential snapshots cannot be deleted, see https://jira.suse.com/browse/SLE-3804
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "consoletest";
 use testapi;

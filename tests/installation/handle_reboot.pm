@@ -7,7 +7,7 @@
 # Reconnect management-consoles on remote backends and then process GRUB.
 # The solution is implemented to use in declarative scheduling to reduce
 # usage of complex conditions.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "opensusebasetest";
 use grub_utils qw(grub_test);

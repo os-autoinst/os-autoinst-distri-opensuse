@@ -9,7 +9,7 @@
 # Tumbleweed distribution, and only if it behaves different in Sle12 then it
 # should be overriden here.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Distribution::Sle::12;
 use strict;

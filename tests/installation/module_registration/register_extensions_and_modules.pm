@@ -6,7 +6,7 @@
 # Summary: Register Application module
 #          in "Extension and Module Selection" dialog
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use testapi qw(save_screenshot get_required_var);

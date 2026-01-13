@@ -6,7 +6,7 @@
 # Summary: Upload the logs compressed in logs_from_installation_system as asset,
 # so they can be parsed after reboot in the test suite "logs_from_installation_system"
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "opensusebasetest";
 use testapi;

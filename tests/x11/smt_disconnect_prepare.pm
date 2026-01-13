@@ -5,7 +5,7 @@
 
 # Package: nfs-kernel-server nfs-client iproute2 SUSEConnect
 # Summary: Do some prepare for internal and external SMT on disconnect SMT case
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base "x11test";
 use testapi;

@@ -8,7 +8,7 @@
 # - Define the timeout value conditioned to some system variables
 # - If VIRSH_VMM_TYPE is defined as "linux", check serial for 'Welcome to SUSE Linux'
 # - Otherwise, wait for boot with determined timeout
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'bootbasetest';
 use testapi;

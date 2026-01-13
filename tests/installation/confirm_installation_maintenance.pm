@@ -7,7 +7,7 @@
 #          there is an update of a non-free license package, accepts the extra license popup
 #          that will appear before the confirm installation popup.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use testapi;

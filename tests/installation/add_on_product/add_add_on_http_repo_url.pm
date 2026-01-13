@@ -6,7 +6,7 @@
 # Summary: Add a new add-on specifying repo URL, in particular HTTP URL for HA.
 # Pre-requisite: no more add-ons has been added before this one.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use base 'y2_installbase';
 use testapi 'get_var';

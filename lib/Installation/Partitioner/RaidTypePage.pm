@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods for Raid Type Page in
 # Add RAID wizard, that are common for all the versions of the page (e.g. for
 # both Libstorage and Libstorage-NG).
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::RaidTypePage;
 use strict;

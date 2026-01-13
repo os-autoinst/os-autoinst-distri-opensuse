@@ -5,7 +5,7 @@
 
 # Summary: Handles role selection for partitions/logical volumes
 # using Expert Partitioner.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::RolePage;
 use parent 'Installation::Navigation::NavigationBase';
