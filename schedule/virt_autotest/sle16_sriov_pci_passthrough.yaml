@@ -1,0 +1,27 @@
+name:          sle16_sriov_pci_passthrough_chained_tests
+description:   Virtualization sriov pci-passthrough chained tests. >
+               The parant is a host installation test, and the children are sriov tests >
+               with downloading guest assets uploaded by previous guest installation tests >
+               or installing a fresh guest.
+schedule:
+  - '{{host_installation_or_chained_sriov_test}}'
+conditional_schedule:
+  host_installation_or_chained_sriov_test:
+    DIRECT_CHAINED_VIRT_FEATURE_TEST:
+      0:
+        - installation/ipxe_install
+        - installation/agama_reboot
+        - virt_autotest/login_console
+        - virt_autotest/prepare_non_transactional_server
+      1:
+        - virt_autotest/login_console
+        - '{{install_or_download_guest}}'
+        - virt_autotest/set_config_as_glue
+        - virt_autotest/sriov_network_card_pci_passthrough
+  install_or_download_guest:
+    SKIP_GUEST_INSTALL:
+      0:
+        - virt_autotest/unified_guest_installation
+      1:
+        - virt_autotest/download_guest_assets
+        - virt_autotest/restore_guests

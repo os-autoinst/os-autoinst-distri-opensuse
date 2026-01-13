@@ -245,11 +245,6 @@ sub prepare_common_environment {
         disable_and_stop_service('named.service', ignore_failure => 1);
         script_run("rm -f -r $_host_params{common_log_folder}");
         assert_script_run("mkdir -p $_host_params{common_log_folder}");
-        my @stuff_to_backup = ('/root/.ssh/config', '/etc/ssh/ssh_config', '/etc/hosts');
-        virt_autotest::utils::backup_file(\@stuff_to_backup);
-        script_run("rm -f -r /root/.ssh/config");
-        virt_autotest::utils::setup_common_ssh_config(ssh_id_file => $_host_params{ssh_key_file});
-        script_run("[ -f /etc/ssh/ssh_config ] && sed -i -r -n \'s/^.*IdentityFile.*\$/#&/\' /etc/ssh/ssh_config");
         enable_debug_logging if (is_sle('<16', get_var('VERSION_TO_INSTALL', get_required_var('VERSION'))));
         $_host_params{host_sutip} = get_required_var('SUT_IP') if (is_ipmi);
         my $_default_route = script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+", proceed_on_failure => 1);
@@ -290,10 +285,9 @@ sub prepare_ssh_key {
     my $self = shift;
 
     $self->reveal_myself;
-    if (!((script_run("[[ -f $_host_params{ssh_key_file}.pub ]] && [[ -f $_host_params{ssh_key_file}.pub.bak ]]") == 0) and (script_run("cmp $_host_params{ssh_key_file}.pub $_host_params{ssh_key_file}.pub.bak") == 0))) {
-        assert_script_run("rm -f -r $_host_params{ssh_key_file}*");
+    # Use the unified ssh keys, or guests can't be reused by different hosts
+    unless (script_run("[[ -f $_host_params{ssh_key_file}.pub ]]") == 0) {
         assert_script_run("ssh-keygen -f $_host_params{ssh_key_file} -q -P \"\" <<<y");
-        assert_script_run("cp $_host_params{ssh_key_file}.pub $_host_params{ssh_key_file}.pub.bak");
     }
     assert_script_run("chmod 600 $_host_params{ssh_key_file} $_host_params{ssh_key_file}.pub");
     $_host_params{ssh_public_key} = script_output("cat $_host_params{ssh_key_file}.pub");

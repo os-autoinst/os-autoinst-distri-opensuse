@@ -221,7 +221,6 @@ sub save_guest_ip {
     if (script_run("grep $guest /etc/hosts") != 0 || script_retry("ping -c3 $guest", delay => 6, retry => 30, die => 0) != 0) {
         my $gi_guest = get_vm_ip_with_nmap($guest, source => $name);
         setup_vm_simple_dns_with_ip($guest, $gi_guest);
-        script_retry("nmap $guest -PN -p ssh | grep open", delay => 30, retry => 6, timeout => 60) if ($guest =~ m/sles-11/i);
         die "Ping $guest failed !" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => 60) ne 0);
     }
 }

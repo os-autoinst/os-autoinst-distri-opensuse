@@ -80,8 +80,11 @@
         name: "Configure_ssh_client",
         content: |||
           #!/usr/bin/env bash
-          ssh_config_file="/etc/ssh/ssh_config.d/01-virt-test.conf"
-          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > $ssh_config_file
+          ssh_config_dir="/etc/ssh/ssh_config.d"
+          mkdir -p $ssh_config_dir
+          ssh_config_file="$ssh_config_dir/01-virt-test.conf"
+          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null\nLogLevel ERROR" > $ssh_config_file
+          chmod 644 "$ssh_config_file"
         |||
       },
       {
@@ -91,7 +94,8 @@
           #!/usr/bin/env bash
           mkdir -p -m 700 /root/.ssh
           echo '{{_SECRET_ED25519_PRIV_KEY}}' > /root/.ssh/id_ed25519
-          sed -i 's/CR/\n/g' /root/.ssh/id_ed25519
+          # Replace '9A' with carriage and return as openqa setting doesn't allow a value in multiple lines
+          sed -i 's/9A/\n/g' /root/.ssh/id_ed25519
           chmod 600 /root/.ssh/id_ed25519
           echo '{{_SECRET_ED25519_PUB_KEY}}' > /root/.ssh/id_ed25519.pub
         |||
