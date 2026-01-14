@@ -207,6 +207,7 @@ sub check_credentials {
         ARM_TENANT_ID => $data->{tenant_id},
         ARM_SUBSCRIPTION_ID => $data->{subscription_id}
     );
+
     my $env = get_required_var('SDAF_ENV_CODE');
     my %query = (
         ARM_CLIENT_ID => "${env}-client-id",
@@ -232,6 +233,7 @@ sub check_credentials {
         # For example: handle "123-456-789"/'123-456-789', the correct one is 123-456-789
         if (script_run("echo \$SECRET_VARIABLE | grep `cat $tmpfile` > /dev/null 2>&1")) {
             record_info("Check $key", "check_credentials failed on $key\n", result => 'softfail');
+            record_info("Check $key", "");
             $result = 1;
         }
         else {
