@@ -40,7 +40,7 @@ sub run {
         record_soft_failure("boo#1226676: kdump not yet implemented with sdbootutil");
     }
     else {
-        action('kdump', 'Regenerate kdump');
+        action('kdump', 'Regenerate kdump') if is_sle_micro;
     }
     action('cleanup', 'Run cleanup', 0);
 }
