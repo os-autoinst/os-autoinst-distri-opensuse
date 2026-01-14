@@ -12,7 +12,7 @@ use base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
-use utils qw(file_content_replace zypper_call);
+use utils qw(file_content_replace zypper_call script_retry);
 use Utils::Systemd 'systemctl';
 use version_utils qw(is_sle has_selinux);
 use POSIX 'ceil';
@@ -93,7 +93,8 @@ sub restorecon_rootfs {
     # restorecon does not behave too well with btrfs, so exclude /.snapshots in btrfs rootfs
     my $restorecon_cmd = 'restorecon -i -R /';
     $restorecon_cmd .= ' -e /.snapshots' unless (script_run('test -d /.snapshots'));
-    assert_script_run "$restorecon_cmd";
+    # Use script_retry to workaround bsc#1255385 liked issue
+    script_retry("$restorecon_cmd", timeout => 180, retry => 3);
 }
 
 sub run {
