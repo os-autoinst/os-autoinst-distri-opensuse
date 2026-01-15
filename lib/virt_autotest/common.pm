@@ -38,90 +38,90 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             autoyast => 'autoyast_xen/sles15sp2HVM_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sle15sp1',    # sle15sp2 is unknown on 12.3
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
         sles15sp2PV => {
             name => 'sles15sp2PV',
             autoyast => 'autoyast_xen/sles15sp2PV_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sle15sp1',    # sle15sp2 is unknown on 12.3
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
         sles15sp3PV => {
             name => 'sles15sp3PV',
             autoyast => 'autoyast_xen/sles15sp3PV_PRG.xml',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp3HVM => {
             name => 'sles15sp3HVM',
             autoyast => 'autoyast_xen/sles15sp3HVM_PRG.xml',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
         },
         sles12sp5HVM => {
             name => 'sles12sp5HVM',
             autoyast => 'autoyast_xen/sles12sp5HVM_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant sles12sp4',    # old system compatibility
             distro => 'SLE_12_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
         },
         sles12sp5PV => {
             name => 'sles12sp5PV',
             autoyast => 'autoyast_xen/sles12sp5PV_PRG.xml',
             extra_params => '--connect xen:/// --virt-type xen --paravirt --os-variant sles12sp4',    # old system compatibility
             distro => 'SLE_12_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
         },
         sles15sp4PV => {
             name => 'sles15sp4PV',
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
             distro => 'SLE_15_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp4HVM => {
             name => 'sles15sp4HVM',
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
             distro => 'SLE_15_SP4',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp5PV => {
             name => 'sles15sp5PV',
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
             distro => 'SLE_15_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp5HVM => {
             name => 'sles15sp5HVM',
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
             distro => 'SLE_15_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp6PV => {
             name => 'sles15sp6PV',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
         },
         sles15sp6HVM => {
             name => 'sles15sp6HVM',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
         },
         sles15sp7PV => {
             name => 'sles15sp7PV',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
         },
         sles15sp7HVM => {
             name => 'sles15sp7HVM',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP7-Full-GM/x86_64/DVD1/',
         }
     );
     # Filter out guests not allowed for the detected SLE version
@@ -174,59 +174,59 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             autoyast => 'autoyast_kvm/sles12sp3_PRG.xml',
             extra_params => '--os-variant sles12sp3',
             distro => 'SLE_12_SP3',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-12-SP3-Server-GM/x86_64/DVD1/',
         },
         sles15sp2 => {
             name => 'sles15sp2',
             autoyast => 'autoyast_kvm/sles15sp2_PRG.xml',
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade (originally sle15sp2)
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
         sles15sp3 => {
             name => 'sles15sp3',
             autoyast => 'autoyast_kvm/sles15sp3_PRG.xml',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
         },
         sles12sp5 => {
             name => 'sles12sp5',
             autoyast => 'autoyast_kvm/sles12sp5_PRG.xml',
             extra_params => '--os-variant sles12sp4',    # old system compatibility
             distro => 'SLE_12_SP5',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-12-SP5-Server-LATEST/x86_64/DVD1/',
         },
         sles15sp4 => {
             name => 'sles15sp4',
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP4-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp5 => {
             name => 'sles15sp5',
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP5-Full-LATEST/x86_64/DVD1/',
         },
         sles15sp6 => {
             name => 'sles15sp6',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
         },
         sles15sp6efi => {
             name => 'sles15sp6efi',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
             boot_firmware => 'efi',    # EFI version of SLES 15 SP6
         },
         'sles15sp6-efi-sev-es' => {
             name => 'sles15sp6-efi-sev-es',
             extra_params => '--os-variant sle15-unknown',
             distro => 'SLE_15',
-            location => 'http://mirror.suse.cz/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
+            location => 'http://download.suse.de/install/SLP/SLE-15-SP6-Full-GM/x86_64/DVD1/',
             boot_firmware => 'efi_sev_es',    # sev_es
             launch_security => 'sev,policy=0x06',    # sev_es
             memory_backing => 'locked=on',    # sev_es
