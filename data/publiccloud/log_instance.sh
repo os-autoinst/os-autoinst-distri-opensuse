@@ -11,31 +11,133 @@ OUTPUT_DIR=/tmp/log_instance/"$INSTANCE_ID"
 LOCK=${OUTPUT_DIR}/.lock
 CNT_FILE=${OUTPUT_DIR}/.cnt
 PID_FILE=${OUTPUT_DIR}/pid
+EC2_DMESG_PID_FILE=${OUTPUT_DIR}/pid.ec2_dmesg
 SSH_OPTS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=ERROR"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+KMP_MERGE="$SCRIPT_DIR/kmp_merge"
+
+ec2_is_running()
+{
+    [ -f "$PID_FILE" ] || return 1
+    kill -0 "$(cat "$PID_FILE")" 2>/dev/null
+}
+
+ec2_dmesg_is_running() {
+    [ -f "$EC2_DMESG_PID_FILE" ] || return 1
+    kill -0 "$(cat "$EC2_DMESG_PID_FILE")" 2>/dev/null
+}
+
+ec2_start_dmesg() {
+    inc_unique_counter
+
+    # shellcheck disable=2086
+    nohup ssh $SSH_OPTS "ec2-user@${HOST}" -- sudo dmesg -c -w \
+        > "${OUTPUT_DIR}/${CNT}_dmesg.log" 2>&1 &
+
+    echo $! > "$EC2_DMESG_PID_FILE"
+}
+
+ec2_stop_dmesg() {
+    if ! ec2_dmesg_is_running; then
+        rm -f "$EC2_DMESG_PID_FILE"
+        return 0
+    fi
+
+    kill "$(cat "$EC2_DMESG_PID_FILE")" 2>/dev/null || true
+    rm -f "$EC2_DMESG_PID_FILE"
+}
+
+trim_crlf_edges() {
+    local f="$1"
+
+    # trim leading CR/LF
+    while [ -s "$f" ]; do
+        first_hex=$(head -c 1 "$f" | od -An -tx1 | tr -d ' \n')
+        case "$first_hex" in
+            0a|0d)
+                tail -c +2 "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+
+    # trim trailing CR/LF
+    while [ -s "$f" ]; do
+        last_hex=$(tail -c 1 "$f" | od -An -tx1 | tr -d ' \n')
+        case "$last_hex" in
+            0a|0d)
+                truncate -s -1 "$f"
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+}
+
+ec2_read_serial() {
+    local cur="${OUTPUT_DIR}/ec2.cur"
+    local out="${OUTPUT_DIR}/serial.out"
+    local last_snapshot="${OUTPUT_DIR}/serial.last_snapshot"
+
+    aws ec2 get-console-output \
+        --instance-id "$INSTANCE_ID" \
+        --latest \
+        --query Output \
+        --output text \
+        > "$cur" 2>>"${OUTPUT_DIR}/stderr" || return 0
+
+    local unix_timestamp formatted_timestamp
+    unix_timestamp=$(date +%s)
+
+    # UTC ISO-8601 with Z suffix
+    formatted_timestamp=$(date -u -d "@$unix_timestamp" +"%Y-%m-%dT%H:%M:%SZ")
+
+    trim_crlf_edges "$cur"
+
+    if [ -f "$last_snapshot" ]; then
+        if cmp -s "$cur" "$last_snapshot"; then
+            rm -f "$cur"
+            return 0
+        fi
+    fi
+
+    cp "$cur" "$last_snapshot"
+
+    if ! [ -f "$out" ]; then
+        mv "$cur" "$out"
+        return 0
+    fi
+
+    local inject
+    inject=$'\n<<< CUTOFF '"$formatted_timestamp"$' >>>s\n'
+
+    "$KMP_MERGE" "$out" "$cur" "$inject" > "${out}.tmp" && mv "${out}.tmp" "$out" && rm -f "$cur"
+}
 
 ec2_start_log()
 {
-    inc_unique_counter
-    set +e
-    aws ec2 get-console-output --instance-id "$INSTANCE_ID" --output text > "${OUTPUT_DIR}/${CNT}_get_console_output_start.log"
-    set -e
-    # shellcheck disable=2086
-    nohup ssh $SSH_OPTS "ec2-user@${HOST}" -- sudo dmesg -c -w > "${OUTPUT_DIR}/${CNT}_dmesg.log" 2>&1 &
+    ec2_dmesg_is_running || ec2_start_dmesg
+
+    ec2_is_running && exit 2
+    ( while true; do ec2_read_serial; sleep 30; done; ) &
     echo $! > "$PID_FILE"
 }
 
 ec2_stop_log()
 {
-    read_unique_counter
-    set +e
-    aws ec2 get-console-output --instance-id "$INSTANCE_ID" --output text > "${OUTPUT_DIR}/${CNT}_get_console_output_stop.log"
-    set -e
-    if [ -f "$PID_FILE" ]; then
-      kill -9 "$(< "$PID_FILE")" || echo "Process already stopped"
-      rm "$PID_FILE"
+    ec2_is_running || true
+    if ec2_is_running; then
+        kill "$(cat "$PID_FILE")" 2>/dev/null || true
+        rm -f "$PID_FILE"
     fi
+    rm -f "${OUTPUT_DIR}/ec2.cur"
+    rm -f "${OUTPUT_DIR}/serial.last_snapshot"
+    rm -f "${CNT_FILE}"
+    ec2_stop_dmesg
 }
-
 
 gce_read_serial()
 {
