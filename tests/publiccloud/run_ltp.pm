@@ -386,7 +386,10 @@ sub cleanup {
     }
 
     if (script_run("test -f $root_dir/log_instance.sh") == 0) {
-        script_run($root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance}), timeout => 600);
+        my $log_instance_stop_command = $root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance});
+        my $log_instance_stop_output = script_output($log_instance_stop_command, timeout => 600, proceed_on_failure => 1);
+        record_info($log_instance_stop_command, $log_instance_stop_output);
+
         script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
         upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
     }
