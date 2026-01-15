@@ -1,5 +1,7 @@
 use strict;
 use warnings;
+# Just a warning about using experimental feature for Perl <5.38
+no warnings 'experimental::class';
 use Test::Mock::Time;
 use Test::More;
 use Test::Exception;
@@ -471,23 +473,6 @@ subtest '[sdaf_ssh_key_from_keyvault] Verify executed commands' => sub {
     ok(grep(//, @assert_script_run), 'Validate ssh key');
 };
 
-subtest '[playbook_settings] Verify playbook order' => sub {
-    my @components = ('db_install', 'db_ha', 'nw_pas', 'nw_aas', 'nw_ensa');
-    my @playbook_list = map { $_->{playbook_filename} } @{playbook_settings(components => \@components)};
-
-    is $playbook_list[0], 'pb_get-sshkey.yaml', 'Playbook #1 must be: pb_get-sshkey.yaml';
-    is $playbook_list[1], 'playbook_00_validate_parameters.yaml', 'Playbook #2 must be: playbook_00_validate_parameters.yaml';
-    is $playbook_list[2], 'playbook_01_os_base_config.yaml', 'Playbook #3 must be: playbook_01_os_base_config.yaml';
-    is $playbook_list[3], 'playbook_02_os_sap_specific_config.yaml', 'Playbook #4 must be: playbook_02_os_sap_specific_config.yaml';
-    is $playbook_list[4], 'playbook_03_bom_processing.yaml', 'Playbook #5 must be: playbook_03_bom_processing.yaml';
-    is $playbook_list[5], 'playbook_04_00_00_db_install.yaml', 'Playbook #6 must be: playbook_04_00_00_db_install.yaml';
-    is $playbook_list[6], 'playbook_05_00_00_sap_scs_install.yaml', 'Playbook #7 must be: playbook_05_00_00_sap_scs_install.yaml';
-    is $playbook_list[7], 'playbook_05_01_sap_dbload.yaml', 'Playbook #8 must be: playbook_05_01_sap_dbload.yaml';
-    is $playbook_list[8], 'playbook_04_00_01_db_ha.yaml', 'Playbook #9 must be: playbook_04_00_01_db_ha.yaml';
-    is $playbook_list[9], 'playbook_05_02_sap_pas_install.yaml', 'Playbook #10 must be: playbook_05_02_sap_pas_install.yaml';
-    is $playbook_list[10], 'playbook_05_03_sap_app_install.yaml', 'Playbook #11 must be: playbook_05_03_sap_app_install.yaml';
-};
-
 subtest '[register_byos] Test exceptions' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->redefine(ansible_execute_command => sub { return; });
@@ -613,6 +598,40 @@ subtest '[get_workload_resource_group]' => sub {
 
     $ms_sdaf->redefine(az_group_name_get => sub { return ['First_result', 'Oh_no-second_one']; });
     dies_ok { get_workload_resource_group(deployment_id => '123') } 'Fail with more than one results';
+};
+
+subtest '[playbook_settings] Test return values' => sub {
+    my @components = ('db_install', 'db_ha', 'nw_pas', 'nw_aas', 'nw_ensa');
+    my @expected_list = qw(
+      pb_get-sshkey.yaml
+      playbook_00_validate_parameters.yaml
+      playbook_01_os_base_config.yaml
+      playbook_02_os_sap_specific_config.yaml
+      playbook_03_bom_processing.yaml
+      playbook_04_00_00_db_install.yaml
+      playbook_05_00_00_sap_scs_install.yaml
+      playbook_05_01_sap_dbload.yaml
+      playbook_04_00_01_db_ha.yaml
+      playbook_05_02_sap_pas_install.yaml
+      playbook_05_03_sap_app_install.yaml
+      playbook_06_00_acss_registration.yaml
+    );
+    my $playbook = PlaybookSettings->new();
+    $playbook->set(@components);
+    # method `get` is expected to return nex playbook in the list
+    my $index = 1;
+    for my $playbook_filename (@expected_list) {
+        is $playbook->get->{playbook_filename}, $playbook_filename, "Playbook no. $index must be: $playbook_filename";
+        $index++;
+    }
+    is $playbook->get->{playbook_filename}, undef, 'Method returns "undef" after all playbooks are served';
+    dies_ok { $playbook->set(@components) } "Fail if method 'set' is executed more than once.";
+};
+
+subtest '[playbook_settings] Test return values' => sub {
+    my @components = ('db_install');
+    my $playbook = PlaybookSettings->new();
+    dies_ok { $playbook->set(@components) } "Fail if method 'set' is executed more than once.";
 };
 
 done_testing;

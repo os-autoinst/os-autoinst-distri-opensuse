@@ -62,7 +62,6 @@ sub run {
     # Skip module if existing deployment is being re-used
     return if sdaf_deployment_reused();
 
-    serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : start');
     my $sap_sid = get_required_var('SAP_SID');
     my $sdaf_config_root_dir = get_sdaf_config_path(
         deployment_type => 'sap_system',
@@ -76,11 +75,8 @@ sub run {
     my @setup = split(/,/, get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
     validate_components(components => \@setup);
 
-    # List of playbooks (and their options) to be executed.
-    # Playbook description is here as well: https://learn.microsoft.com/en-us/azure/sap/automation/run-ansible?tabs=linux
-    my @execute_playbooks = @{playbook_settings(components => \@setup)};
-    my @playbook_list = map { $_->{playbook_filename} } @execute_playbooks;
-
+    my $playbook_class = PlaybookSettings->new();
+    my @playbook_list = @{$playbook_class->set(@setup)};
     record_info('Playbook list', "Following playbooks will be executed:\n" . join("\n", @playbook_list));
 
     connect_target_to_serial();
@@ -88,12 +84,11 @@ sub run {
     # Some playbooks use azure cli
     az_login();
 
-    for my $playbook_options (@execute_playbooks) {
-        $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 1;
+    my $playbook_options = $playbook_class->get();
+    while ($playbook_options->{playbook_filename}) {
+        # Playbook 'playbook_03_bom_processing.yaml' is supposed to be executed after maintenance update test
+        last if ($playbook_options->{playbook_filename} eq 'playbook_03_bom_processing.yaml');
         sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
-        $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 0;
-
-        # tasks needed to be run after playbook 'pb_get-sshkey.yaml'
         if ($playbook_options->{playbook_filename} =~ /pb_get-sshkey/) {
             # Check if SSH key was created by playbook
             record_info('File check', "Check if SSH key '$sut_private_key_path' was created by SDAF");
@@ -106,10 +101,10 @@ sub run {
                 scc_reg_code => get_required_var('SCC_REGCODE_SLES4SAP'))
               if is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION');
         }
-
+        # request next playbook settings
+        $playbook_options = $playbook_class->get();
     }
     disconnect_target_from_serial();
-    serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : stop');
 }
 
 1;
