@@ -18,7 +18,7 @@ use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot prepare_whitelist_environment);
 use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
 use LTP::WhiteList;
-use publiccloud::utils qw(is_byos is_ondemand is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
+use publiccloud::utils;
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;

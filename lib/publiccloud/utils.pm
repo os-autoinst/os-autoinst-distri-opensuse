@@ -63,7 +63,6 @@ our @EXPORT = qw(
   zypper_remove_repo_remote
   get_installed_packages_remote
   get_available_packages_remote
-  zypper_install_remote
   zypper_install_available_remote
   wait_quit_zypper_pc
   detect_worker_ip
@@ -723,7 +722,7 @@ sub get_available_packages_remote {
 
     # Return only those that are in the original not-installed list
     my @result = grep { $available{$_} } @not_installed;
-    return \@result;
+    return join(' ', @result);
 }
 
 =head2 zypper_add_repo_remote
@@ -760,41 +759,12 @@ sub zypper_remove_repo_remote {
     );
 }
 
-=head2 zypper_install_remote
-
-zypper_install_remote($instance, $packages)
-
-This function installs the specified packages on the remote instance using zypper.
-It handles both transactional updates and regular zypper installations based on the system type.
-
-=cut
-
-sub zypper_install_remote {
-    my ($instance, $packages) = @_;
-
-    my @pkg_list = ref($packages) eq 'ARRAY' ? @$packages : ($packages);
-    my $pkg_str = join(' ', @pkg_list);
-
-    if (is_transactional) {
-        $instance->ssh_assert_script_run(
-            cmd => "sudo transactional-update -n pkg install --no-recommends $pkg_str",
-            timeout => 900
-        );
-        $instance->softreboot();
-    } else {
-        $instance->ssh_assert_script_run(
-            cmd => "sudo zypper -n in --no-recommends $pkg_str",
-            timeout => 600
-        );
-    }
-}
-
 =head2 zypper_install_available_remote
 
 zypper_install_available_remote($instance, $packages_ref)
 
 This function checks which packages from the provided list are available for installation on the remote instance.
-If any packages are available, it installs them using zypper_install_remote.
+If any packages are available, it installs them using zypper_call_remote.
 
 =cut
 
@@ -802,7 +772,7 @@ sub zypper_install_available_remote {
     my ($instance, $packages_ref) = @_;
     my $available_ref = get_available_packages_remote($instance, $packages_ref);
     return unless @$available_ref;
-    zypper_install_remote($instance, $available_ref);
+    zypper_call_remote($instance, "install --no-recommends " . $available_ref);
 }
 
 =head2 wait_quit_zypper_pc
@@ -894,7 +864,7 @@ sub upload_asset_on_remote {
 
 =head2 $instance->zypper_call_remote
 
-    $instance->zypper_call_remote($command [, exitcode => $exitcode] [, timeout => $timeout];
+    $instance->zypper_call_remote(cmd => $cmd [, exitcode => $exitcode] [, timeout => $timeout];
 
 Function wrapping zypper command for remote execution via ssh; not for tunnelling.
 Implements similar routine as lib/utils::zypper_call_remote, but for remote execution on publiccloud instances.
@@ -908,7 +878,7 @@ sub zypper_call_remote {
     my $instance = shift;
     my %args = testapi::compat_args({cmd => undef}, ['cmd'], @_);
     $args{rc_only} = 1;
-    $args{timeout} //= 700;
+    $args{timeout} //= is_transactional() ? 900 : 700;
     die "Invalid value 'timeout' = 0" unless ($args{timeout});
     die "Empty 'cmd' argument in zypper call" unless ($args{cmd});
     die "Exit code is from PIPESTATUS[0], not grep" if $args{cmd} =~ /^((?!`).)*\| ?grep/;
@@ -917,10 +887,14 @@ sub zypper_call_remote {
     my $retry = $args{retry} // 1;
     my $delay = $args{delay} // 5;
     my $proceed = $args{proceed_on_failure} // 0;
-    my $zcmd = $args{cmd};
+    my $cmd = $args{cmd};
     # full command to run in ssh
-    $args{cmd} = "sudo zypper -n $zcmd";
-    #
+    if (is_transactional) {
+        $cmd = "sudo transactional-update -n pkg " . $cmd;
+    } else {
+        $cmd = "sudo zypper -n " . $cmd;
+    }
+    delete $args{cmd};
     delete $args{exitcode};
     delete $args{retry};
     delete $args{delay};
@@ -930,7 +904,7 @@ sub zypper_call_remote {
         # pause on next
         sleep($delay) if (defined($ret));
         # remote execution
-        $ret = $instance->ssh_script_run(%args);
+        $ret = $instance->ssh_script_run(cmd => $cmd, %args);
         last if ($ret == 0);
         # check exit codes
         if ($ret == 4) {
@@ -950,12 +924,10 @@ sub zypper_call_remote {
         }
         last;
     }
-    # Result management
-    my $command = $args{cmd};
     unless (grep { $_ == $ret } @$exit_codes) {
         $instance->ssh_script_run(qq[sudo chmod o+r $log]);
         $instance->upload_log($log);
-        my $msg = qq[$command failed with code: $ret];
+        my $msg = qq[$cmd failed with code: $ret];
         if ($ret == 104) {
             $msg .= " (ZYPPER_EXIT_INF_CAP_NOT_FOUND)\n\nRelated zypper logs:\n";
             $instance->ssh_script_run(qq[sudo tac $log | grep -F -m1 -B100000 "Hi, me zypper" | tac | grep -E '(SolverRequester.cc|THROW|CAUGHT)' > /tmp/z104.txt]);
@@ -974,7 +946,8 @@ sub zypper_call_remote {
         die $msg unless ($proceed);
         record_info("zypper error", $msg, result => 'fail');
     }
-    record_info("zypper remote call", "Command: $command \nResult: $ret");
+    record_info("zypper remote call", "Command: $cmd \nResult: $ret");
+    $instance->softreboot() if is_transactional();
     return $ret;
 }
 
