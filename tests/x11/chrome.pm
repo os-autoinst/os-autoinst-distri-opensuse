@@ -68,7 +68,8 @@ sub run {
     assert_and_click 'chrome-default-browser-query';
     assert_screen [qw(google-chrome-main-window google-chrome-dont-sign-in)];
     click_lastmatch if match_has_tag('google-chrome-dont-sign-in');
-    click_ad_privacy_feature;
+    assert_screen [qw(google-chrome-main-window google-chrome-ad-privacy-feature-more make-chrome-faster)];
+    click_ad_privacy_feature if match_has_tag('google-chrome-ad-privacy-feature-more');
     my $make_faster_popup_seen = handle_make_faster_popup();
     wait_screen_change { send_key 'ctrl-l' };
     enter_cmd 'about:';
