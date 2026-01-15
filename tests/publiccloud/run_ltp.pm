@@ -129,11 +129,14 @@ sub get_ltp_rpm
 sub instance_log_args
 {
     my ($provider, $instance) = @_;
+    my $region = $provider->{provider_client}->region;
+    $region .= "-" . $provider->get_terraform_output('.availability_zone.value') if is_gce();
+
     return sprintf('"%s" "%s" "%s" "%s"',
         get_required_var('PUBLIC_CLOUD_PROVIDER'),
         $instance->instance_id,
         $instance->public_ip,
-        $provider->{provider_client}->region);
+        $region);
 }
 
 sub upload_ltp_logs
