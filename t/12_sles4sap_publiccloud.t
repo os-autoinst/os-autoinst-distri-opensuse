@@ -24,7 +24,7 @@ subtest "[run_cmd]" => sub {
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
     my @calls;
-    $mock_pc->mock('run_ssh_command', sub {
+    $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
             return 'BABUUUUUUUUM' });
@@ -303,7 +303,7 @@ subtest "[stop_hana] crash" => sub {
     my $self = sles4sap_publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
-    $mock_pc->mock('run_ssh_command', sub {
+    $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
             return 'BABUUUUUUUUM' });
@@ -331,7 +331,7 @@ subtest "[stop_hana] crash wait_hana_node_up running" => sub {
     my $self = sles4sap_publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
-    $mock_pc->mock('run_ssh_command', sub {
+    $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
             return 'running' if ($args{cmd} =~ /is-system-running/);
@@ -361,7 +361,7 @@ subtest "[stop_hana] crash wait_hana_node_up degradated" => sub {
     my $self = sles4sap_publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
-    $mock_pc->mock('run_ssh_command', sub {
+    $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
             return 'degradated' if ($args{cmd} =~ /is-system-running/);
@@ -1028,7 +1028,7 @@ subtest '[wait_for_zypper] zypper unlocked at first try' => sub {
     my $self = sles4sap_publiccloud->new();
     my $pc_instance = Test::MockModule->new('publiccloud::instance');
     my $instance = publiccloud::instance->new();
-    $pc_instance->redefine(run_ssh_command => sub { return 0; });
+    $pc_instance->redefine(ssh_script_run => sub { return 0; });
 
     lives_ok { $self->wait_for_zypper(instance => $instance) } 'Zypper was not locked, command succeeded without retries';
 };
@@ -1041,7 +1041,7 @@ subtest '[wait_for_zypper] zypper fails at first try with non 7 rc' => sub {
     $sles4sap_publiccloud->redefine(record_info => sub {
             note(join(' ', 'RECORD_INFO -->', @_));
     });
-    $pc_instance->redefine(run_ssh_command => sub { return 1; });
+    $pc_instance->redefine(ssh_script_run => sub { return 1; });
 
     lives_ok { $self->wait_for_zypper(instance => $instance) } 'Zypper command failed with a non-locking issue and did not retry';
 };
@@ -1054,7 +1054,7 @@ subtest '[wait_for_zypper] zypper fails at first try with 7 rc but pass at secon
     my $attempt = 0;
     my @record_infos;
 
-    $pc_instance->redefine(run_ssh_command => sub {
+    $pc_instance->redefine(ssh_script_run => sub {
             return $attempt++ ? 0 : 7;    # return 7 on first call, 0 on second
     });
     $sles4sap_publiccloud->redefine(record_info => sub {
@@ -1071,7 +1071,7 @@ subtest '[wait_for_zypper] zypper fails always with 7 rc' => sub {
     my $instance = publiccloud::instance->new();
     my @record_infos;
 
-    $pc_instance->redefine(run_ssh_command => sub { return 7; });
+    $pc_instance->redefine(ssh_script_run => sub { return 7; });
     $sles4sap_publiccloud->redefine(record_info => sub {
             note(join(' ', 'RECORD_INFO -->', @_));
     });

@@ -151,9 +151,9 @@ sub run {
 
     # fail, if at least one test failed
     if ($img_proof->{fail} > 0) {
-        $instance->run_ssh_command(cmd => 'rpm -qa > /tmp/rpm_qa.txt', no_quote => 1);
+        $instance->ssh_assert_script_run(cmd => 'rpm -qa > /tmp/rpm_qa.txt', no_quote => 1);
         upload_logs('/tmp/rpm_qa.txt');
-        $instance->run_ssh_command(cmd => 'sudo journalctl -b > /tmp/journalctl_b.txt', no_quote => 1);
+        $instance->ssh_assert_script_run(cmd => 'sudo journalctl -b > /tmp/journalctl_b.txt', no_quote => 1);
         upload_logs('/tmp/journalctl_b.txt');
         die('img_proof failed');
     }

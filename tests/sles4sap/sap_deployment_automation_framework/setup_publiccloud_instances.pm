@@ -70,8 +70,8 @@ sub run {
         # Check connected user and verify `ssh_script_run` working
         die 'Check if connected user is "azureadm"' if $instance->ssh_script_run(cmd => 'whoami | grep azureadm');
 
-        # Check system status and test 'run_ssh_command' function
-        $instance->run_ssh_command(cmd => 'systemctl is-system-running');
+        # Check system status and test 'ssh_script_run' function
+        $instance->ssh_assert_script_run(cmd => 'systemctl is-system-running');
 
         # Check NTP service and verify 'ssh_assert_script_run' function
         $instance->ssh_assert_script_run(cmd => 'systemctl is-active chronyd');

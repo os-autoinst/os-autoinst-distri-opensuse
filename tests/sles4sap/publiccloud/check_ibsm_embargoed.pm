@@ -24,9 +24,9 @@ sub run() {
         next if $maintrepo =~ /^\s*$/;
         # validate_repo returns 0 if an embargoed update is found, so it's reversed to enter the loop
         if (!validate_repo($maintrepo)) {
-            $instance->run_ssh_command(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
+            $instance->ssh_assert_script_run(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
                 username => 'cloudadmin');
-            my $rc = $instance->run_ssh_command(cmd => "sudo zypper -n ref TEST_$count", username => 'cloudadmin', timeout => 1500, rc_only => 1);
+            my $rc = $instance->ssh_script_run(cmd => "sudo zypper -n ref TEST_$count", username => 'cloudadmin', timeout => 1500);
             die "EMBARGOED REPOSITORY IN IBSM: $maintrepo" if !$rc;
             $count++;
         }

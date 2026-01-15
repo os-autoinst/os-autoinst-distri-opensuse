@@ -31,12 +31,12 @@ sub run {
     my $max_rounds = 5;
     for my $round (1 .. $max_rounds) {
         record_info("PATCH $round START", "zypper patch round $round");
-        my $ret = $instance->run_ssh_command(
+        my $ret = $instance->ssh_script_run(
             cmd => 'sudo zypper -n patch',
             timeout => 600,
             ssh_opts => '-E /var/tmp/ssh_sut.log -o ServerAliveInterval=2',
             username => $username,
-            proceed_on_failure => 1
+            ignore_timeout_failure => 1
         );
         record_info("PATCH $round END", "Output:\n$ret");
         last if $ret =~ /Nothing to do|No updates found/;
