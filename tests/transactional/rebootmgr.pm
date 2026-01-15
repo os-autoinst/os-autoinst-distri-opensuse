@@ -47,6 +47,7 @@ sub rbm_set_window {
 
 #1 Test instant reboot
 sub check_strategy_instantly {
+    select_console('root-console');
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
     process_reboot(expected_grub => 1);
@@ -55,6 +56,7 @@ sub check_strategy_instantly {
 
 #2 Test maint-window strategy
 sub check_strategy_maint_window {
+    select_console('root-console');
     rbm_call "set-strategy maint-window";
 
     # Trigger reboot during maint-window
@@ -66,7 +68,6 @@ sub check_strategy_maint_window {
     rbm_set_window '+2minutes', '1m';
     rbm_call 'reboot';
     rbm_check_status 2;
-    select_console('root-console');
     die "System should be rebooting" unless wait_screen_change(undef, 180);
     process_reboot;
 
