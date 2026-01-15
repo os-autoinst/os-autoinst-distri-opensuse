@@ -27,6 +27,7 @@ use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_o
 use transactional qw(reboot_on_changes trup_call process_reboot);
 use registration qw(get_addon_fullname add_suseconnect_product %ADDONS_REGCODE);
 use maintenance_smelt qw(is_embargo_update);
+use LTP::install qw(get_maybe_build_dependencies);
 
 # Indicating if the openQA port has been already allowed via SELinux policies
 my $openqa_port_allowed = 0;
@@ -52,7 +53,6 @@ our @EXPORT = qw(
   get_ssh_private_key_path
   permit_root_login
   prepare_ssh_tunnel
-  kill_packagekit
   allow_openqa_port_selinux
   ssh_update_transactional_system
   create_script_file
@@ -61,8 +61,6 @@ our @EXPORT = qw(
   get_python_exec
   zypper_add_repo_remote
   zypper_remove_repo_remote
-  get_installed_packages_remote
-  get_available_packages_remote
   zypper_install_available_remote
   wait_quit_zypper_pc
   detect_worker_ip
@@ -236,12 +234,8 @@ sub register_addons_in_pc {
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $remote = $instance->username . '@' . $instance->public_ip;
     my $zcmd = "--gpg-auto-import-keys ref";
-    my $ret = $instance->zypper_call_remote(cmd => $zcmd, exitcode => [0, 6, 7], timeout => 300);
+    my $ret = $instance->zypper_call_remote(cmd => $zcmd, exitcode => [0, 6], timeout => 300);
     die 'No enabled repos defined: bsc#1245651' if $ret == 6;    # from zypper man page: ZYPPER_EXIT_NO_REPOS
-    if ($ret == 7) {
-        record_info('System management is locked by another application:', $instance->ssh_script_output(cmd => 'sudo pgrep -af "zypper|yast"', proceed_on_failure => 1));
-        wait_quit_zypper_pc($instance);
-    }
     $instance->zypper_call_remote(cmd => $zcmd, timeout => 300, retry => 6, delay => 200);
     for my $addon (@addons) {
         next if ($addon =~ /^\s+$/);
@@ -418,17 +412,6 @@ sub prepare_ssh_tunnel {
     # Create log file for ssh tunnel
     my $ssh_sut = '/var/tmp/ssh_sut.log';
     assert_script_run "touch $ssh_sut; chmod 777 $ssh_sut";
-}
-
-sub kill_packagekit {
-    my ($instance) = @_;
-    my $ret = $instance->ssh_script_run(cmd => "sudo pkcon quit", timeout => 120);
-    if ($ret) {
-        # Older versions of systemd don't support "disable --now"
-        $instance->ssh_script_run(cmd => "sudo systemctl stop packagekitd");
-        $instance->ssh_script_run(cmd => "sudo systemctl disable packagekitd");
-        $instance->ssh_script_run(cmd => "sudo systemctl mask packagekitd");
-    }
 }
 
 
@@ -769,10 +752,10 @@ If any packages are available, it installs them using zypper_call_remote.
 =cut
 
 sub zypper_install_available_remote {
-    my ($instance, $packages_ref) = @_;
-    my $available_ref = get_available_packages_remote($instance, $packages_ref);
-    return unless @$available_ref;
-    zypper_call_remote($instance, "install --no-recommends " . $available_ref);
+    my ($instance) = @_;
+    my $available = get_available_packages_remote($instance, get_maybe_build_dependencies());
+    return unless ($available && $available =~ /\S/);
+    zypper_call_remote($instance, "install --no-recommends " . $available);
 }
 
 =head2 wait_quit_zypper_pc
@@ -888,6 +871,7 @@ sub zypper_call_remote {
     my $delay = $args{delay} // 5;
     my $proceed = $args{proceed_on_failure} // 0;
     my $cmd = $args{cmd};
+    my $wait_quit_zypper = $args{wait_quit_zypper} // 1;
     # full command to run in ssh
     if (is_transactional) {
         $cmd = "sudo transactional-update -n pkg " . $cmd;
@@ -900,6 +884,7 @@ sub zypper_call_remote {
     delete $args{delay};
     # retry loop
     my $ret;
+    wait_quit_zypper_pc($instance) if $wait_quit_zypper;
     for (1 .. $retry) {
         # pause on next
         sleep($delay) if (defined($ret));
