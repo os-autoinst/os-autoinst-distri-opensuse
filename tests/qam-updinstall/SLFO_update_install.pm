@@ -39,6 +39,7 @@ my @conflicting_packages = (
     'nvidia-open-driver-G06-signed-cuda-kmp-default',
     'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
     'nvidia-open-driver-G06-signed-cuda-default-devel',
+    'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
 );
 
 # We may need to skip installing some packages based on test requirements
