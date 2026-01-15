@@ -91,6 +91,11 @@ sub run {
         validate_script_output('sestatus', sub { m/SELinux status: .*$expected_state/ }, fail_message => $fail_msg);
 
         $self->set_sestatus('permissive', 'minimum') unless has_selinux();
+        if (is_sle('=15-SP6') || is_sle('=15-SP7')) {
+            # https://progress.opensuse.org/issues/194768
+            assert_script_run("semanage fcontext -a -t lib_t '/usr/lib(64)?/systemd/libsystemd.+'");
+            assert_script_run("restorecon -vR /usr/lib/systemd /usr/lib64/systemd");
+        }
     }
 }
 

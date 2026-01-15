@@ -10,6 +10,7 @@ use power_action_utils "power_action";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils 'is_sle';
 
 sub run {
     my ($self) = shift;
@@ -44,6 +45,11 @@ sub run {
 
     # clean up: remove all local customizations
     assert_script_run("semanage fcontext -D");
+    if (is_sle('=15-SP6') || is_sle('=15-SP7')) {
+        # https://progress.opensuse.org/issues/194768
+        assert_script_run("semanage fcontext -a -t lib_t '/usr/lib(64)?/systemd/libsystemd.+'");
+        assert_script_run("restorecon -vR /usr/lib/systemd /usr/lib64/systemd");
+    }
 }
 
 1;
