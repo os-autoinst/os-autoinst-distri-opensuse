@@ -53,9 +53,8 @@ sub run {
     record_info('DMS Versions', $versions_info);
 
     #Refresh and Update
-    $instance->ssh_assert_script_run('sudo zypper ref; sudo zypper -n up', timeout => 1000);
-
-    sleep 90;    # wait for a bit for zypper to be available
+    zypper_remote_call($instance, cmd => 'ref');
+    zypper_remote_call($instance, cmd => 'up', timeout => 1000);
 
     record_info('wget repokey and rpms');
     assert_script_run("wget $repo_key_url -O /tmp/$repo_key", 180);
@@ -65,7 +64,7 @@ sub run {
 
     #Create repo
     record_info('Creating local repo');
-    $instance->ssh_assert_script_run(cmd => "sudo zypper in -y createrepo", timeout => 1000);
+    zypper_call_remote($instance, cmd => "in -y createrepo", timeout => 600);
     $instance->ssh_assert_script_run(cmd => "mkdir -p $tmp_repo/rpm/noarch $tmp_repo/rpm/x86_64");
 
     #Upload scp the rpm packages and repokey to public cloud
@@ -76,17 +75,18 @@ sub run {
     $instance->scp("/tmp/$pc_rpm", 'remote:' . "/tmp/$pc_rpm", 1000);
 
     $instance->ssh_assert_script_run(cmd => "cd $tmp_repo;createrepo -v .");
-    $instance->ssh_assert_script_run(cmd =>
-          "sudo zypper addrepo --gpgcheck-allow-unsigned $tmp_repo SLES15-Migration-latest; sudo zypper lr -u"
+    zypper_remote_call($instance, cmd =>
+          "addrepo --gpgcheck-allow-unsigned $tmp_repo SLES15-Migration-latest"
     );
+    zypper_remote_call($instance, cmd => "lr -u");
 
     # Upload distro_migration.log
     $instance->upload_log("/system-root/var/log/distro_migration.log", failok => 1);
     record_info("Import $remote_repo_key");
     $instance->ssh_assert_script_run(cmd => "sudo rpm --import /tmp/$repo_key");
     record_info("installs SLE15-Migration and suse-migration-sle15-activation");
-    $instance->ssh_assert_script_run(cmd =>
-          "sudo zypper in -y --from SLES15-Migration-latest SLES15-Migration suse-migration-sle15-activation"
+    zypper_call_remote($instance, cmd =>
+          "in -y --from SLES15-Migration-latest SLES15-Migration suse-migration-sle15-activation"
     );
 
     # Include debug mode

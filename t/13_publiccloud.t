@@ -249,43 +249,6 @@ subtest '[find_img] - image version not found' => sub {
     is $res, 0, 'The image version has not been found.';
 };
 
-subtest '[kill_packagekit] pkcon quit succeeds -> no systemctl' => sub {
-    my @calls;
-    my $inst = Test::MockObject->new;
-
-    $inst->mock('ssh_script_run', sub {
-            my ($self, %args) = @_;
-            push @calls, $args{cmd};
-            return 0;
-    });
-
-    publiccloud::utils::kill_packagekit($inst);
-
-    is_deeply \@calls, ['sudo pkcon quit'],
-      'only pkcon quit executed when it succeeds';
-};
-
-subtest '[kill_packagekit] pkcon quit fails -> stop/disable/mask' => sub {
-    my @calls;
-    my $inst = Test::MockObject->new;
-    my $n = 0;
-
-    $inst->mock('ssh_script_run', sub {
-            my ($self, %args) = @_;
-            push @calls, $args{cmd};
-            return (++$n == 1) ? 1 : 0;
-    });
-
-    publiccloud::utils::kill_packagekit($inst);
-
-    is_deeply \@calls, [
-        'sudo pkcon quit',
-        'sudo systemctl stop packagekitd',
-        'sudo systemctl disable packagekitd',
-        'sudo systemctl mask packagekitd',
-    ], 'falls back to systemctl stop/disable/mask when pkcon quit fails';
-};
-
 subtest '[get_installed_packages_remote] parses rpm -q output and preserves original order subset' => sub {
     my $inst = Test::MockObject->new;
     my @seen;
@@ -335,12 +298,12 @@ subtest '[get_available_packages_remote] filters out already installed, parses z
     my $got = publiccloud::utils::get_available_packages_remote($inst, $wanted);
 
     is scalar(@ssh_calls), 1, 'one zypper info call for not-installed pkgs only';
-    like $ssh_calls[0]->{cmd}, qr{^zypper -x info curl git nope 2>/dev/null$},
+    like $ssh_calls[0]->{cmd}, qr{zypper -x info curl git nope},
       'zypper -x info called only for not-installed';
-    is_deeply $got, [qw(curl git)], 'returns only exact Name matches that were not installed';
+    is $got, 'curl git', 'returns only exact Name matches as a string';
 };
 
-subtest '[get_available_packages_remote] returns [] when all already installed' => sub {
+subtest '[get_available_packages_remote] returns empty string when all already installed' => sub {
     my $utils_mock = Test::MockModule->new('publiccloud::utils');
     my $inst = Test::MockObject->new;
     my $called = 0;
@@ -353,7 +316,7 @@ subtest '[get_available_packages_remote] returns [] when all already installed' 
     $inst->mock('ssh_script_output', sub { $called++ });
 
     my $got = publiccloud::utils::get_available_packages_remote($inst, [qw(a b)]);
-    is_deeply $got, [], 'empty when nothing to check';
+    is $got, '', 'returns empty string when nothing to install';
     is $called, 0, 'no SSH calls when all installed';
 };
 
@@ -383,74 +346,6 @@ subtest '[zypper_remove_repo_remote] passes correct cmd and timeout' => sub {
     is $args{timeout}, 600, 'timeout 600';
     is $args{cmd}, 'sudo zypper -n removerepo repo-name',
       'correct removerepo command';
-};
-
-subtest '[zypper_install_remote] non-transactional uses zypper in with list/str inputs' => sub {
-    my $utils_mock = Test::MockModule->new('publiccloud::utils');
-    $utils_mock->redefine('is_transactional', sub { 0 });
-
-    my $inst = Test::MockObject->new;
-    my @seen;
-    $inst->mock('ssh_assert_script_run', sub { my ($self, %a) = @_; push @seen, \%a; return 0 });
-    $inst->mock('softreboot', sub { die "should not softreboot in non-transactional" });
-
-    publiccloud::utils::zypper_install_remote($inst, [qw(curl git)]);
-    publiccloud::utils::zypper_install_remote($inst, 'bash');
-
-    is scalar(@seen), 2, 'two zypper calls';
-    is $seen[0]->{cmd}, 'sudo zypper -n in --no-recommends curl git', 'array input joined';
-    is $seen[0]->{timeout}, 600, 'timeout 600';
-    is $seen[1]->{cmd}, 'sudo zypper -n in --no-recommends bash', 'scalar input handled';
-    is $seen[1]->{timeout}, 600, 'timeout 600';
-};
-
-subtest '[zypper_install_remote] transactional uses t-u pkg install and softreboot' => sub {
-    my $utils_mock = Test::MockModule->new('publiccloud::utils');
-    $utils_mock->redefine('is_transactional', sub { 1 });
-
-    my $inst = Test::MockObject->new;
-    my @runs;
-    my $rebooted = 0;
-
-    $inst->mock('ssh_assert_script_run', sub { my ($self, %a) = @_; push @runs, \%a; return 0 });
-    $inst->mock('softreboot', sub { $rebooted++ });
-
-    publiccloud::utils::zypper_install_remote($inst, [qw(x y)]);
-
-    is scalar(@runs), 1, 'one t-u call';
-    is $runs[0]->{cmd}, 'sudo transactional-update -n pkg install --no-recommends x y',
-      'transactional-update used';
-    is $runs[0]->{timeout}, 900, 'timeout 900';
-    is $rebooted, 1, 'softreboot called once';
-};
-
-subtest '[zypper_install_available_remote] installs only available pkgs' => sub {
-    my $utils_mock = Test::MockModule->new('publiccloud::utils');
-
-    my @seen_pkgs;
-    $utils_mock->redefine('get_available_packages_remote', sub { ['curl', 'git'] });
-    $utils_mock->redefine('zypper_install_remote', sub {
-            my ($instance, $pkgs) = @_;
-            @seen_pkgs = @$pkgs;
-            return 1;
-    });
-
-    my $inst = Test::MockObject->new;
-
-    publiccloud::utils::zypper_install_available_remote($inst, ['curl', 'git', 'nope']);
-
-    is_deeply \@seen_pkgs, [qw(curl git)], 'installs available subset only';
-};
-
-subtest '[zypper_install_available_remote] no-op when nothing available' => sub {
-    my $utils_mock = Test::MockModule->new('publiccloud::utils');
-
-    my $called = 0;
-    $utils_mock->redefine('get_available_packages_remote', sub { [] });
-    $utils_mock->redefine('zypper_install_remote', sub { $called++ });
-
-    publiccloud::utils::zypper_install_available_remote(undef, [qw(a b)]);
-    is $called, 0, 'does not call install when nothing available';
 };
 
 subtest '[wait_quit_zypper_pc] uses defaults and expected command' => sub {

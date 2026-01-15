@@ -12,7 +12,7 @@ use Mojo::Base 'publiccloud::basetest';
 use registration;
 use testapi;
 use utils qw(ssh_fully_patch_system);
-use publiccloud::utils qw(kill_packagekit ssh_update_transactional_system is_cloudinit_supported permit_root_login);
+use publiccloud::utils qw(ssh_update_transactional_system is_cloudinit_supported permit_root_login);
 use publiccloud::ssh_interactive qw(select_host_console);
 use version_utils qw(is_sle_micro);
 
@@ -23,8 +23,6 @@ sub run {
     my $cmd_time = time();
     my $ref_timeout = check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE') ? 3600 : 240;
     my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
-    # pkcon not present on SLE-micro
-    kill_packagekit($args->{my_instance}) unless (is_sle_micro);
 
     # Record package list before fully patch system
     if (get_var('SAVE_LIST_OF_PACKAGES')) {
