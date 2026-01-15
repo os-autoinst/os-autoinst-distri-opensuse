@@ -13,6 +13,7 @@ schedule:
   - console/hostname
   - yam/migration/migration_unattended
   - installation/first_boot
+  - yam/validate/validate_registered_products
   - yam/validate/validate_migration_logs
   - yam/validate/validate_connectivity
   - yam/validate/validate_product
