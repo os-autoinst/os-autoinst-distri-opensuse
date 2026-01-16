@@ -130,7 +130,7 @@ sub instance_log_args
 {
     my ($provider, $instance) = @_;
     my $region = $provider->{provider_client}->region;
-    $region .= "-" . $provider->get_terraform_output('.availability_zone.value') if is_gce();
+    $region .= "-" . $provider->{provider_client}->availability_zone if is_gce();
 
     return sprintf('"%s" "%s" "%s" "%s"',
         get_required_var('PUBLIC_CLOUD_PROVIDER'),
