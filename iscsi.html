@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/iscsi.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#iscsi_discovery">iscsi_discovery</a></li>
+      <li><a href="#iscsi_login">iscsi_login</a></li>
+      <li><a href="#iscsi_logout">iscsi_logout</a></li>
+      <li><a href="#tgt_show">tgt_show</a></li>
+      <li><a href="#tgt_new_lun">tgt_new_lun</a></li>
+      <li><a href="#tgt_update_lun_params">tgt_update_lun_params</a></li>
+      <li><a href="#tgt_auth_all">tgt_auth_all</a></li>
+      <li><a href="#lio_show">lio_show</a></li>
+      <li><a href="#lio_new_target">lio_new_target</a></li>
+      <li><a href="#lio_new_lun">lio_new_lun</a></li>
+      <li><a href="#lio_new_portal">lio_new_portal</a></li>
+      <li><a href="#lio_auth_all">lio_auth_all</a></li>
+      <li><a href="#lio_update_lun_attr">lio_update_lun_attr</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/iscsi.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library for easy use of iSCSI server and client tools</p>
+
+<h2 id="iscsi_discovery">iscsi_discovery</h2>
+
+<pre><code>iscsi_discovery( $target );</code></pre>
+
+<p>Runs <code>iscsiadm -m discovery -t st -p $target</code> in the SUT, to discover iSCSI targets on the <b>$target</b> which could be IP address or host name</p>
+
+<h2 id="iscsi_login">iscsi_login</h2>
+
+<pre><code>iscsi_login( $iqn, $target );</code></pre>
+
+<p>Runs <code>iscsiadm -m node --targetname $iqn -p $target -l</code> in the SUT, to login client to the iSCSI IQN <b>$iqn</b> on the iSCSI server <b>$target</b></p>
+
+<h2 id="iscsi_logout">iscsi_logout</h2>
+
+<pre><code>iscsi_logout( $iqn, $target);</code></pre>
+
+<p>Runs <code>iscsiadm -m node --targetname $iqn -p $target -u</code> in the SUT, to logout client from the iSCSI IQN <b>$iqn</b> on the iSCSI server <b>$target</b></p>
+
+<h2 id="tgt_show">tgt_show</h2>
+
+<pre><code>tgt_show();</code></pre>
+
+<p>Usable only with TGTD iSCSI server Runs the <code>tgtadm --lld iscsi --op show --mode target</code> in the SUT, to show up configured iSCSI LUNs</p>
+
+<h2 id="tgt_new_lun">tgt_new_lun</h2>
+
+<pre><code>tgt_new_lun( $tid, $lun, $device );</code></pre>
+
+<p>Usable only with TGTD iSCSI server Runs <code>tgtadm --lld iscsi --op new --mode logicalunit --tid $tid --lun $lun -b $device</code> in the SUT, to add new LUN <b>$lun</b> from device <b>$device</b> to the existing TARGET with ID <b>$tid</b></p>
+
+<h2 id="tgt_update_lun_params">tgt_update_lun_params</h2>
+
+<pre><code>tgt_update_lun_params( $tid, $lun, $params );</code></pre>
+
+<p>Usable only with TGTD iSCSI server Runs <code>tgtadm --lld iscsi --op update --mode logicalunit --tid $tid --lun $lun --params $params</code> in the SUT, updates parameters <b>$params</b> of existing LUN <b>$lun</b> on iSCSI target ID <b>$tid</b></p>
+
+<h2 id="tgt_auth_all">tgt_auth_all</h2>
+
+<pre><code>tgt_auth_all( $tid );</code></pre>
+
+<p>Usable only with TGTD iSCSI server Runs <code>tgtadm --lld iscsi --op bind --mode target --tid $tid -I ALL</code> in the SUT, to allow all clients to use list of targets <b>$tid</b> on the iSCSI server</p>
+
+<h2 id="lio_show">lio_show</h2>
+
+<pre><code>lio_show();</code></pre>
+
+<p>Usable only on the LIO iSCSI server Runs <code>targetcli ls iscsi</code> in the SUT to show up configured iSCSI LUNs</p>
+
+<h2 id="lio_new_target">lio_new_target</h2>
+
+<pre><code>lio_new_target( $tid, $iqn );</code></pre>
+
+<p>Usable only on the LIO iSCSI server Runs <code>targetcli /iscsi create $iqn:$tid</code> in the SUT, Creates new iSCSI target on LIO iSCSI server with IQN <b>$iqn</b> and ID <b>$tid</b></p>
+
+<h2 id="lio_new_lun">lio_new_lun</h2>
+
+<pre><code>lio_new_lun( $tid, $iqn, $device );</code></pre>
+
+<p>Usable only on the LIO iSCSI server Creates new back store from the device <b>$device</b> (full path to) and assign it to the new LUN on target with IQN <b>$iqn</b> and ID <b>$tid</b></p>
+
+<h2 id="lio_new_portal">lio_new_portal</h2>
+
+<pre><code>lio_new_portal( $tid, $iqn, $ip, $port );</code></pre>
+
+<p>Usable only on the LIO iSCSI server Assign IP address <b>$ip</b> and port <b>$post</b> to the LUN on target with IQN <b>$iqn</b> and ID <b>$tid</b></p>
+
+<h2 id="lio_auth_all">lio_auth_all</h2>
+
+<pre><code>lio_auth_all( $tid, $iqn );</code></pre>
+
+<p>Usable only on the LIO iSCSI server Allow access to all clients to use target IQN <b>$iqn</b> with ID <b>$tid</b> on the LIO iSCSI server</p>
+
+<h2 id="lio_update_lun_attr">lio_update_lun_attr</h2>
+
+<pre><code>lio_update_lun_attr( $tid, $iqn, $attribute );</code></pre>
+
+<p>Usable only on the LIO iSCSI server Update attribute <code>$attribute</code> on the IQN <b>$iqn</b> with ID <b>$tid</b> on the LIO iSCSI server</p>
+
+
+</body>
+
+</html>
+
+
