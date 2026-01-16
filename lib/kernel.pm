@@ -12,19 +12,38 @@ use base Exporter;
 use testapi;
 use strict;
 use utils;
+use package_utils;
 use version_utils qw(is_sle is_sle_micro is_transactional);
 use transactional;
 use warnings;
 
 our @EXPORT = qw(
   remove_kernel_packages
+  get_initial_kernel_flavor
   get_kernel_flavor
   get_kernel_source_flavor
   get_kernel_devel_flavor
+  check_kernel_package
 );
 
+# Kernel flavor preinstalled on the boot disk
+sub get_initial_kernel_flavor {
+    my $kernel_package = 'kernel-default';
+
+    $kernel_package = 'kernel-default-base' if is_sle('<12');
+    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
+    return $kernel_package;
+}
+
+# Kernel flavor that needs to be installed before running tests
 sub get_kernel_flavor {
-    return get_var('KERNEL_FLAVOR', 'kernel-default');
+    my $kernel_package = get_initial_kernel_flavor();
+
+    $kernel_package = 'kernel-default-base' if get_var('KERNEL_BASE');
+    $kernel_package = 'kernel-azure' if get_var('AZURE');
+    $kernel_package = 'kernel-coco' if get_var('COCO');
+    $kernel_package = 'kernel-64kb' if get_var('KERNEL_64KB');
+    return get_var('KERNEL_FLAVOR', $kernel_package);
 }
 
 sub get_kernel_source_flavor {
@@ -56,41 +75,33 @@ sub get_kernel_devel_flavor {
 }
 
 sub remove_kernel_packages {
-    my @packages;
-    my @devpacks;
-
-    if (check_var('SLE_PRODUCT', 'slert')) {
-        # workaround for bsc1227773
-        @packages = qw(kernel-rt);
-        @devpacks = ('kernel-rt-devel');
-    }
-    elsif (get_kernel_flavor eq 'kernel-64kb') {
-        @packages = qw(kernel-64kb*);
-    }
-    else {
-        @packages = qw(kernel-default);
-        @devpacks = qw(kernel-default-devel kernel-macros);
-    }
-
-    push @devpacks, get_kernel_source_flavor;
-
-    # SLE12 and SLE12SP1 has xen kernel
-    if (is_sle('<=12-SP1')) {
-        push @packages, qw(kernel-xen kernel-xen-devel);
-    }
-
+    my @packages = map { $_->{name} } @{zypper_search('-i kernel')};
+    @packages = grep { m/^kernel-(?!firmware)/ } @packages;
     my @rmpacks = @packages;
-    push @rmpacks, @devpacks unless is_transactional;
     push @rmpacks, "multipath-tools"
       if is_sle('>=15-SP3') and !get_var('KGRAFT');
 
-    if (is_transactional) {
-        trup_call 'pkg remove ' . join(' ', @rmpacks);
-    } else {
-        zypper_call('-n rm ' . join(' ', @rmpacks), exitcode => [0, 104]);
-    }
+    uninstall_package(join(' ', @rmpacks));
+    return @packages;
+}
 
-    return (@packages, @devpacks);
+# Check that only the given kernel flavor is installed
+sub check_kernel_package {
+    my $kernel_name = shift;
+
+    enter_trup_shell(global_options => '-c') if is_transactional;
+    script_run("bash -O nullglob -c 'ls -1 /boot/vmlinu[xz]* /boot/[Ii]mage*'");
+    # Only check versioned kernels in livepatch tests. Some old kernel
+    # packages install /boot/vmlinux symlink but don't set package ownership.
+    my $glob = get_var('KGRAFT', 0) ? '-*' : '*';
+    my $cmd = "bash -O nullglob -c 'rpm -qf --qf \"%{NAME}\\n\" /boot/vmlinu[xz]$glob /boot/[Ii]mage$glob'";
+    my $packs = script_output($cmd);
+    exit_trup_shell if is_transactional;
+
+    for my $packname (split /\s+/, $packs) {
+        die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
+          if $packname ne $kernel_name;
+    }
 }
 
 1;

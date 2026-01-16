@@ -16,6 +16,7 @@ use LTP::utils;
 use version_utils qw(is_jeos is_sle is_sle_micro);
 use utils 'assert_secureboot_status';
 use kdump_utils;
+use kernel;
 
 sub run {
     my ($self) = @_;
@@ -47,6 +48,7 @@ sub run {
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');
     upload_logs('framebuffer.dat.gz', failok => 1);
 
+    check_kernel_package(get_kernel_flavor());
     assert_secureboot_status(1) if (get_var('SECUREBOOT'));
 
     log_versions;
