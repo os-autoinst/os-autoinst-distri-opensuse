@@ -31,7 +31,8 @@ sub update_package {
     $update_pkg_cmd = $update_pkg_cmd . " 2>&1 | tee /tmp/update_virt_rpms.log ";
     if (is_s390x) {
         lpar_cmd("$update_pkg_cmd");
-        upload_asset "/tmp/update_virt_rpms.log", 1, 1;
+        upload_asset("/tmp/update_virt_rpms.log", 1, 1);
+        lpar_cmd("rm -f /tmp/update_virt_rpms.log");
     }
     else {
         $self->execute_script_run($update_pkg_cmd, 7200);
@@ -63,7 +64,7 @@ sub run {
 
     #workaround of bsc#1177790
     #disable DNSSEC validation as it is turned on by default but the forwarders donnot support it, refer to bsc#1177790
-    if (is_sle('>=12-sp5')) {
+    if (is_sle('<16')) {
         if (is_s390x) {
             lpar_cmd("sed -i 's/#dnssec-validation auto;/dnssec-validation no;/g' /etc/named.conf");
             lpar_cmd("grep 'dnssec-validation' /etc/named.conf");
@@ -74,6 +75,14 @@ sub run {
             script_run "systemctl restart named";
         }
         save_screenshot;
+    }
+
+    # Validate SCC registration for SLES16+ on s390x LPAR
+    if (is_s390x && is_sle('>=16')) {
+        record_info('SCC Check', 'Verifying SCC registration status on s390x LPAR');
+        # grep ACTIVE will return 0 if found (success), or 1 if not found (fail).
+        # lpar_cmd will die if the return code is not 0, satisfying the verification requirement.
+        lpar_cmd("SUSEConnect -s | grep ACTIVE");
     }
 
 }

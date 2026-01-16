@@ -266,10 +266,10 @@ sub post_fail_hook {
 
     #FOR S390X LPAR
     if (is_s390x) {
-        #collect and upload supportconfig log from S390X LPAR
+        #collect and upload required logs from S390X LPAR
         virt_utils::lpar_cmd("supportconfig -B supportconfig", {timeout => 600});
-        upload_logs("/var/log/scc_supportconfig.txz");
-        upload_logs("/tmp/s390x_guest_install_test.tar.bz2");
+        upload_asset("/var/log/scc_supportconfig.txz", 1, 1);
+        upload_asset("/tmp/s390x_guest_install_test.tar.bz2", 1, 1);
         virt_utils::lpar_cmd("rm -f /var/log/scc_supportconfig.*;rm -rf /tmp/s390x_guest_install_test.*");
         return;
     }
