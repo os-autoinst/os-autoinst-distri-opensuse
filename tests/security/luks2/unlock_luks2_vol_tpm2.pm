@@ -12,7 +12,7 @@ use utils qw(quit_packagekit zypper_call);
 use Utils::Backends 'is_pvm';
 use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_bootloader_grub2_bls);
 
 
 sub run {
@@ -23,7 +23,7 @@ sub run {
     zypper_call('in expect jq');
 
     # Get all usable LUKS volumes
-    my @luks_volumes = split /\n/, script_output q(awk '!/^#/ && NF && /x-initrd.attach/ {print $1}' /etc/crypttab);
+    my @luks_volumes = split /\n/, script_output q(lsblk -J | jq -r '.blockdevices[] | .. | .children? // empty | .[] | select(.type == "crypt") | .name');
 
     # Verify all volumes are LUKS2
     for my $volume (@luks_volumes) {
@@ -37,7 +37,8 @@ sub run {
     assert_script_run q(sed -i 's/x-initrd.attach/x-initrd.attach,tpm2-device=auto/g' /etc/crypttab);
 
     # Regenerate the initrd.
-    assert_script_run('dracut -f');
+    my $initrd_regenerate_cmd = is_bootloader_grub2_bls ? 'sdbootutil mkinitrd' : 'dracut -f';
+    assert_script_run($initrd_regenerate_cmd);
 
     # reboot to make new initrd effective
     power_action('reboot', textmode => 1, keepconsole => is_pvm());

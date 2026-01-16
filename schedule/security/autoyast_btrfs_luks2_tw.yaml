@@ -17,6 +17,3 @@ schedule:
   - console/zypper_ref
   - security/tpm2/tpm2_env_setup
   - security/luks2/unlock_luks2_vol_tpm2
-  - autoyast/autoyast_reboot
-  - installation/grub_test
-  - installation/first_boot
