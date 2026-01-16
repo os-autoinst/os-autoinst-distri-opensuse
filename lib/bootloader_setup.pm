@@ -55,6 +55,7 @@ our @EXPORT = qw(
   ensure_shim_import
   GRUB_CFG_FILE
   GRUB_DEFAULT_FILE
+  modify_grub_parameters_grub2_bls
   add_grub_cmdline_settings
   add_grub_xen_replace_cmdline_settings
   change_grub_config
@@ -246,6 +247,27 @@ sub boot_grub_item {
     }
     save_screenshot;
     grub_key_enter;
+}
+
+=head2 modify_grub_parameters_grub2_bls
+
+    modify_grub_parameters_grub2_bls()
+
+For grub2-bls bootloader, update /etc/kernel/cmdline contents by appending
+the desired custom kernel parameters taken in C<GRUB_ARGS>, and call
+sdbootutil to update the grub entry for the currently running kernel, which
+persists through reboots.
+
+=cut
+
+sub modify_grub_parameters_grub2_bls {
+    my $args = get_var('GRUB_ARGS');
+    $args =~ s/,/ /g;
+
+    assert_script_run("sed -i 's/\$/ $args/' /etc/kernel/cmdline");
+    script_output("cat /etc/kernel/cmdline");
+    record_info('modifying grub entry using the updated /etc/kernel/cmdline');
+    assert_script_run('sdbootutil update-entry $(uname -r)');
 }
 
 sub get_scsi_id {

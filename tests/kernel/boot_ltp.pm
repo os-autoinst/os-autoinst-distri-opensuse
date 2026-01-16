@@ -13,7 +13,10 @@ use base 'opensusebasetest';
 use testapi;
 use Utils::Backends;
 use LTP::utils;
-use version_utils qw(is_jeos is_sle is_sle_micro);
+use version_utils qw(is_jeos is_sle is_sle_micro is_bootloader_grub2_bls);
+use bootloader_setup qw(modify_grub_parameters_grub2_bls);
+use power_action_utils 'power_action';
+use serial_terminal qw(select_serial_terminal);
 use utils 'assert_secureboot_status';
 use kdump_utils;
 
@@ -36,6 +39,16 @@ sub run {
     else {
         record_info('INFO', 'normal boot or boot with params');
         # during install_ltp, the second boot may take longer than usual
+        $self->wait_boot(ready_time => 1800);
+    }
+
+    # if we need to test with modified grub parameters
+    if (get_var('GRUB_ARGS') && is_bootloader_grub2_bls()) {
+
+        select_serial_terminal;
+        modify_grub_parameters_grub2_bls();
+
+        power_action('reboot', textmode => 1);
         $self->wait_boot(ready_time => 1800);
     }
 
