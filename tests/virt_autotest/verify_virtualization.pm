@@ -92,7 +92,7 @@ sub verify_network {
     }
     record_info("IP address", script_output("ip addr show"));
     record_info("IP routes", script_output("ip route show all"));
-    record_info("Content of /etc/resolv.conf", script_output("cat /etc/resolv.conf"));
+    record_info("Content of /etc/resolv.conf", script_output("cat /etc/resolv.conf", proceed_on_failure => 1));
     return $self;
 }
 
