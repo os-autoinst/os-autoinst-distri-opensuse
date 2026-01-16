@@ -1,26 +1,27 @@
-# Copyright 2015-2021 SUSE LLC
+# Copyright 2015-2026 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: supportserver and supportserver generator implementation
+# Summary: support server and support server generator implementation
 # - Configure a static network at "10.0.2.1" and check if it is working
-# - Configure network and enable nat
-# - Setup dhcp server if necessary
-# - Setup pxe server if necessary
-# - Setup tftp server if necessary
-# - Setup http server if necessary
-# - Setup dns server if necessary
+# - Configure network and enable NAT
+# - Setup DHCP server if necessary
+# - Setup PXE server if necessary
+# - Setup TFTP server if necessary
+# - Setup HTTP server if necessary
+# - Setup DNS server if necessary
 # - Setup autoyast tests if necessary
-# - Setup ntp server if necessary
-# - Setup xvnc server if necessary
-# - Setup ssh server if necessary
-# - Setup xdmcp server if necessary
-# - Setup iscsi server if necessary
-# - Setup iscsi target server if necessary
+# - Setup NTP server if necessary
+# - Setup XVNC server if necessary
+# - Setup SSH server if necessary
+# - Setup XDMCP server if necessary
+# - Setup iSCSI LIO server if necessary
+# - Setup iSCSI tgtd server if necessary
 # - Setup stunnel server if necessary
-# - Setup mariadb server if necessary
-# - Setup nfs server if necessary
+# - Setup MariaDB server if necessary
+# - Setup NFS server if necessary
 # - Create locks for each server created
 # Maintainer: Pavel Sladek <psladek@suse.com>
+#             Jan Kohoutek <jkohoutek@suse.com>
 
 use base 'basetest';
 use lockapi;
@@ -32,7 +33,8 @@ use mm_tests;
 use opensusebasetest 'firewall';
 use registration 'scc_version';
 use iscsi;
-use version_utils 'is_opensuse';
+use y2_module_basetest;
+use version_utils qw(is_opensuse check_os_release);
 use virt_autotest::utils qw(is_vmware_virtualization is_hyperv_virtualization);
 
 my $pxe_server_set = 0;
@@ -45,8 +47,11 @@ my $ntp_server_set = 0;
 my $xvnc_server_set = 0;
 my $ssh_server_set = 0;
 my $xdmcp_server_set = 0;
-my $iscsi_server_set = 0;
+my $iscsi_lio_server_set = 0;
 my $iscsi_tgt_server_set = 0;
+my $aytests_set = 0;
+my $stunnel_server_set = 0;
+my $mariadb_server_set = 0;
 my $nfs_server_set = 0;
 
 my $setup_script;
@@ -76,6 +81,7 @@ sub setup_pxe_server {
 
 sub setup_http_server {
     return if $http_server_set;
+    record_info 'HTTP server setup';
 
     $setup_script .= "systemctl stop apache2\n";
     $setup_script .= "curl -f -v " . autoinst_url . "/data/supportserver/http/apache2  >/etc/sysconfig/apache2\n";
@@ -86,12 +92,14 @@ sub setup_http_server {
 
 sub setup_ftp_server {
     return if $ftp_server_set;
+    record_info 'FTP server setup';
 
     $ftp_server_set = 1;
 }
 
 sub setup_tftp_server {
     return if $tftp_server_set;
+    record_info 'TFTP server setup';
     # atftpd is available only on older products (e.g.: present on SLE-12, gone on SLE-15)
     # FIXME: other options besides RPMs atftp, tftp not considered. For SLE-15 this is enough.
     my $tftp_service = script_output("rpm --quiet -q atftp && echo atftpd || echo tftp", type_command => 1);
@@ -137,6 +145,7 @@ sub setup_networks {
 
 sub setup_dns_server {
     return if $dns_server_set;
+    record_info 'DNS server setup';
 
     my $named_url = autoinst_url . '/data/supportserver/named';
     $setup_script .= qq@
@@ -204,7 +213,7 @@ sub dhcpd_conf_generation {
         $setup_script .= "  range  " . ip_in_subnet($net_conf->{$network}, 15) . "  " . ip_in_subnet($net_conf->{$network}, 100) . ";\n";
         $setup_script .= "  default-lease-time 14400;\n";
         $setup_script .= "  max-lease-time 172800;\n";
-        # dhcp clients have to use MTU 1380 to be able pass GRE Tunnel
+        # DHCP clients have to use MTU 1380 to be able pass GRE Tunnel
         $setup_script .= "  option interface-mtu $mtu;\n";
         $setup_script .= "  option domain-name \"openqa.test\";\n";
         if ($dns) {
@@ -219,11 +228,11 @@ sub dhcpd_conf_generation {
             }
         }
         if ($pxe) {
-            # Only atftpd can handle subdirs, tftp (>= SLE-15) cannot.
+            # Only atftpd can handle subdirs, TFTP (>= SLE-15) cannot.
             # setup_pxe.sh (see sub setup_pxe_server() above) will take care
             # to actually install pxelinux.0 correctly.
             #
-            # FIXME: again, other TFTP servers besides atftpd, tftp not considered.
+            # FIXME: again, other TFTP servers besides atftpd, TFTP not considered.
             my $pxe_loader = script_output(
                 "rpm --quiet -q atftp && echo '/boot/pxelinux.0' || echo 'pxelinux.0'",
                 type_command => 1);
@@ -238,6 +247,7 @@ sub dhcpd_conf_generation {
 sub setup_dhcp_server {
     my ($dns, $pxe, $mtu) = @_;
     return if $dhcp_server_set;
+    record_info 'DHCP server setup';
     my $net_conf = parse_network_configuration();
 
     $setup_script .= "systemctl stop dhcpd\n";
@@ -264,6 +274,7 @@ sub setup_dhcp_server {
 
 sub setup_ssh_server {
     return if $ssh_server_set;
+    record_info 'SSH server setup';
 
     $setup_script .= "yast2 firewall services add zone=EXT service=service:sshd\n";
     $setup_script .= "systemctl restart sshd\n";
@@ -274,6 +285,7 @@ sub setup_ssh_server {
 
 sub setup_ntp_server {
     return if $ntp_server_set;
+    record_info 'NTP server setup';
 
     $setup_script .= "yast2 firewall services add zone=EXT service=service:ntp\n";
     $setup_script .= "echo 'server pool.ntp.org' >> /etc/ntp.conf\n";
@@ -284,6 +296,7 @@ sub setup_ntp_server {
 
 sub setup_xvnc_server {
     return if $xvnc_server_set;
+    record_info 'XVNC server setup';
 
     if (check_var('REMOTE_DESKTOP_TYPE', 'persistent_vnc')) {
         zypper_call('ar http://openqa.suse.de/assets/repo/fixed/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1/ sles12sp3dvd1_repo');
@@ -317,6 +330,7 @@ sub setup_xvnc_server {
 
 sub setup_xdmcp_server {
     return if $xdmcp_server_set;
+    record_info 'XDMCP server setup';
 
     if (check_var('REMOTE_DESKTOP_TYPE', 'xdmcp_xdm')) {
         assert_script_run "sed -i -e 's|^DISPLAYMANAGER=.*|DISPLAYMANAGER=\"xdm\"|' /etc/sysconfig/displaymanager";
@@ -332,8 +346,18 @@ sub setup_xdmcp_server {
     $xdmcp_server_set = 1;
 }
 
-sub setup_iscsi_server {
-    return if $iscsi_server_set;
+sub setup_iscsi_lio_server {
+    # Setup of the iSCSI LIO server by 'targercli' from lib/iscsi.pm
+    return if $iscsi_lio_server_set;
+    record_info 'iSCSI LIO server setup';
+    # Add the targetcli package now used for the iSCSI server configuration
+    zypper_call('--no-refresh install targetcli');
+
+    # Get the iSCSI server settings
+    my $iscsi_iqn = get_var('ISCSI_IQN', 'iqn.2016-02.de.openqa');
+    my $iscsi_identifier = get_var('ISCSI_IDENTIFIER', '132');
+    my $iscsi_ip = get_var('ISCSI_PORTAL_IP', '10.0.2.1');
+    my $iscsi_port = get_var('ISCSI_PORT', '3260');
 
     # If no LUN number is specified we must die!
     my $num_luns = get_required_var('NUMLUNS');
@@ -343,16 +367,17 @@ sub setup_iscsi_server {
 
     # Integer part of the LUN size is keep and can't be lesser than 1GB
     my $lun_size = int($hdd_lun_size / $num_luns);
-    die "iSCSI LUN cannot be lesser than 1GB!" if ($lun_size < 1);
+    die 'iSCSI LUN cannot be less than 1GB!' if ($lun_size < 1);
 
     # Are we using virtio or virtio-scsi?
     my $hdd_lun = script_output "ls /dev/[sv]db";
-    die "detection of disk for iSCSI LUN failed" unless $hdd_lun;
+    die 'detection of disk for iSCSI LUN failed' unless $hdd_lun;
 
     # Needed if a firewall is configured
+    # FIXME: remove the `yast` dependency
     script_run 'yast2 firewall services add zone=EXT service=service:target', 200;
 
-    # Create the iSCSI LUN
+    # Create partitions on devices for the iSCSI LUNs
     script_run "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";
     my $start = 0;
     my $size = 0;
@@ -363,98 +388,49 @@ sub setup_iscsi_server {
         script_run "parted --script $hdd_lun mkpart primary ${start}MiB ${size}";
     }
 
-    # The easiest way (really!?) to configure LIO is with YaST
-    # Code grab and adapted from tests/iscsi/iscsi_server.pm
-    script_run("yast2 iscsi-lio-server; echo yast2-iscsi-lio-server-status-\$? > /dev/$serialdev", 0);
-    assert_screen 'iscsi-target-overview-service-tab', 60;
-    send_key 'alt-t';    # go to target tab
-    assert_screen 'iscsi-target-overview-empty-target-tab';
-    send_key 'alt-a';    # add target
-    assert_screen 'iscsi-target-overview-add-target-tab';
-
-    # Wait for the Identifier field to change from 'test' value to the correct one
-    # We could simply use a 'sleep' here but it's less good
-    wait_screen_change(undef, 10);
-
-    # Select Target field
-    send_key 'alt-t';
-    wait_still_screen 3;
-
-    # Change Target value
-    for (1 .. 40) { send_key 'backspace'; }
-    type_string 'iqn.2016-02.de.openqa';
-    wait_still_screen 3;
-
-    # Select Identifier field
-    send_key 'alt-f';
-    wait_still_screen 3;
-
-    # Change Identifier value
-    for (1 .. 40) { send_key 'backspace'; }
-    wait_still_screen 3;
-    type_string '132';
-    wait_still_screen 3;
-
-    # Un-check Use Authentication
-    send_key 'alt-u';
-    wait_still_screen 3;
+    # Creation of the iSCSI target
+    lio_new_target($iscsi_identifier, $iscsi_iqn);
 
     # Add LUNs
     for (my $num_lun = 1; $num_lun <= $num_luns; $num_lun++) {
-        send_key 'alt-a';
-
-        # Send alt-p until LUN path is selected
-        send_key_until_needlematch 'iscsi-target-LUN-path-selected', 'alt-p', 6, 5;
-        type_string "$hdd_lun$num_lun";
-        assert_screen 'iscsi-target-LUN-support-server';
-        send_key 'alt-o';
-        wait_still_screen 3;
+        lio_new_lun($iscsi_identifier, $iscsi_iqn, $hdd_lun . $num_lun);
     }
-    assert_screen 'iscsi-target-overview';
-    send_key 'alt-n';
-    assert_screen('iscsi-target-client-setup', 120);
-    send_key 'alt-n';
-    wait_still_screen 3;
 
-    # No client configured, it's "normal"
-    send_key 'alt-y';
-    assert_screen 'iscsi-target-overview-target-tab';
-
-    # iSCSI LIO configuguration is finished
-    send_key 'alt-f';
-    wait_serial('yast2-iscsi-lio-server-status-0', 90) || die "'yast2 iscsi-lio-server' didn't finish";
+    # Add the Portal IP
+    lio_new_portal($iscsi_identifier, $iscsi_iqn, $iscsi_ip, $iscsi_port);
 
     # Now we need to enable iSCSI Demo Mode
     # With this mode, we don't need to manage iSCSI initiators
     # It's OK for a test/QA system, but of course not for a production one!
-    systemctl('stop target');
-    my $cmd = "sed -i -e '/\\/demo_mode_write_protect\$/s/^echo 1/echo 0/'
-                       -e '/\\/cache_dynamic_acls\$/s/^echo 0/echo 1/'
-                       -e '/\\/generate_node_acls\$/s/^echo 0/echo 1/'
-                       -e '/\\/authentication\$/s/^echo 1/echo 0/' /etc/target/lio_setup.sh";
-    $cmd =~ s/\n/ /g;
-    script_run($cmd);
-    systemctl('enable --now target');
-    select_console 'root-console';
+    lio_auth_all($iscsi_identifier, $iscsi_iqn);
 
-    $iscsi_server_set = 1;
+    # Start and enable iSCSI Target in systemctl
+    systemctl('enable --now target');
+
+    # Print iSCSI Target configuration to the console
+    lio_show;
+
+    $iscsi_lio_server_set = 1;
 }
 
 sub setup_iscsi_tgt_server {
+    # Setup of the iSCSI server by 'tgtadm' from lib/iscsi.pm
+    # Support multipath iSCSI setup if ISCSI_MULTIPATH is set
     return if $iscsi_tgt_server_set;
+    record_info 'iSCSI TGT server setup';
 
     systemctl 'start tgtd';
 
-    # Configure default iscsi iqn
-    my $iqn = get_var("ISCSI_IQN", "iqn.2016-02.de.openqa");
+    # Configure default iSCSI IQN
+    my $iscsi_iqn = get_var("ISCSI_IQN", "iqn.2016-02.de.openqa");
 
-    # Get device for iscsi export
+    # Get device for iSCSI export
     my $device = script_output "ls /dev/[sv]db";
     die "detection of disk for iSCSI LUN failed" unless $device;
 
-    # Create new iqn target with target id 1
-    tgt_new_target(1, $iqn);
-    # Add device lun 1 to target with id 1
+    # Create new IQN target with target id 1
+    tgt_new_target(1, $iscsi_iqn);
+    # Add device LUN 1 to target with id 1
     tgt_new_lun(1, 1, "$device");
     # Export same device three times with same scsi_id for multipath test
     if (get_var('ISCSI_MULTIPATH')) {
@@ -470,12 +446,14 @@ sub setup_iscsi_tgt_server {
     }
     # Authorize all clients
     tgt_auth_all(1);
-    # Show details about configured iscsi server
+    # Show details about configured iSCSI server
     tgt_show;
     $iscsi_tgt_server_set = 1;
 }
 
 sub setup_aytests {
+    return if $aytests_set;
+    record_info 'AYTESTS server setup';
     # install the aytests-tests package and export the tests over http
     my $aytests_repo = get_var("AYTESTS_REPO_BRANCH", 'master');
     $setup_script .= "
@@ -502,9 +480,12 @@ sub setup_aytests {
 
     systemctl restart apache2;
     ";
+    $aytests_set = 1;
 }
 
 sub setup_stunnel_server {
+    return if $stunnel_server_set;
+    record_info 'STUNNEL server setup';
     zypper_call('in stunnel');
     configure_stunnel(1);
     assert_script_run 'mkdir -p ~/.vnc/';
@@ -516,16 +497,19 @@ sub setup_stunnel_server {
         assert_script_run "grep 'stunnel:.*FIPS mode enabled' /var/log/messages";
     }
     $disable_firewall = 1;
+    $stunnel_server_set = 1;
 }
 
 sub setup_mariadb_server {
+    return if $mariadb_server_set;
+    record_info 'MariaDB server setup';
     my $ip = '10.0.2.%';
     my $passwd = 'suse';
 
     zypper_call('in mariadb');
     systemctl('start mysql');
 
-    # Enter mysql command to grant the access privileges to root
+    # Enter MySQL command to grant the access privileges to root
     enter_cmd_slow "mysql";
     assert_screen 'mariadb-monitor-opened';
     enter_cmd_slow "SELECT User, Host FROM mysql.user WHERE Host <> \'localhost\';";
@@ -536,9 +520,12 @@ sub setup_mariadb_server {
     wait_still_screen 2;
     systemctl('restart mysql');
     $disable_firewall = 1;
+    $mariadb_server_set = 1;
 }
 
 sub setup_nfs_server {
+    return if $nfs_server_set;
+    record_info 'NFS server setup';
     my $nfs_mount = "/nfs/shared";
     my $nfs_permissions = "rw,sync,no_root_squash";
 
@@ -559,10 +546,15 @@ sub setup_nfs_server {
     systemctl("restart nfs-server");
     systemctl("restart rpcbind");
     systemctl("is-active nfs-server -a rpcbind");
+    $nfs_server_set = 1;
 }
 
+sub _install_packages {
+    my @packages = qw(apache2 tftp dhcp-server bind xrdp targetcli python3-targetcli-fb);
+    zypper_install_available(@packages);
+}
 sub run {
-    # Persist DHCP configuration for VMware & HyperV virtualization smoketests
+    # Persist DHCP configuration for VMware & HyperV virtualisation smoke tests
     unless (is_vmware_virtualization || is_hyperv_virtualization) {
         configure_static_network('10.0.2.1/24');
     }
@@ -571,7 +563,28 @@ sub run {
     my %server_roles = map { $_ => 1 } @server_roles;
     my $mtu = get_var('MM_MTU', 1380);
 
+    # -----> BEGIN OF THE ORIGINAL SLE 12 SP3 SUPPORT SERVER BACKWARD COMPATIBILITY BLOCK
+    # This is backward compatibility workaround to override the past when probably
+    # someone mess up directly with QCOW images instead of regeneration of them
+    # and could be removed when this ancient 12SP3 image is no longer used
 
+    if (check_os_release('12.3', 'VERSION_ID')) {
+
+        # Get the Support server architecture
+        my $cpu_arch = get_var('ARCH');
+
+        # So messed up, that someone add x86_64 repo to the AARCH64 image
+        zypper_call('removerepo 1') if $cpu_arch eq 'aarch64';
+
+        # Adding back the pool and updates repositories which should be registered
+        zypper_ar("http://download.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3/$cpu_arch/product", name => 'sles12sp3-pool');
+        zypper_ar("http://download.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3/$cpu_arch/update", name => 'sles12sp3-update');
+        zypper_call('lr -u');
+
+    }
+    # -----> END OF SLE 12 SP3 BACKWARD COMPATIBILITY BLOCK
+
+    # Networks setup
     setup_networks($mtu);
     # Wait until all nodes boot first
     if (get_var 'SLENKINS_CONTROL') {
@@ -628,7 +641,7 @@ sub run {
     }
 
     if (exists $server_roles{iscsi}) {
-        setup_iscsi_server();
+        setup_iscsi_lio_server();
     }
     if (exists $server_roles{iscsi_tgt}) {
         setup_iscsi_tgt_server();
