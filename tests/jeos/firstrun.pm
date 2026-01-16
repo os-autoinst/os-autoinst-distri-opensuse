@@ -427,7 +427,7 @@ sub run {
         wait_still_screen;
     }
     # Manually configure root-console as we skipped some parts in root-console's activation
-    $testapi::distri->disable_key_repeat_if_applicable();
+    $testapi::distri->disable_key_repeat_if_applicable() unless current_console() =~ /ssh/;
     $testapi::distri->set_standard_prompt('root');
     assert_script_run('setterm -blank 0') unless is_s390x;
 
