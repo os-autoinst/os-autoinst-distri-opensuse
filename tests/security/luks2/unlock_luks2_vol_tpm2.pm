@@ -23,7 +23,7 @@ sub run {
     zypper_call('in expect jq');
 
     # Get all usable LUKS volumes
-    my @luks_volumes = split /\n/, script_output q(awk '!/^#/ && NF && /x-initrd.attach/ {print $1}' /etc/crypttab);
+    my @luks_volumes = split /\n/, script_output q(lsblk -J | jq -r '.blockdevices[] | .. | .children? // empty | .[] | select(.type == "crypt") | .name');
 
     # Verify all volumes are LUKS2
     for my $volume (@luks_volumes) {
