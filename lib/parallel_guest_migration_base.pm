@@ -226,7 +226,7 @@ sub do_local_initialization {
     (($_localip eq '' or $_localip eq '127.0.0.1' or $_localip eq '::1 127.0.0.1') and (is_sle('15+') or !is_sle)) ? set_var('LOCAL_IPADDR', (split(/ /, script_output("hostname -I", type_command => 1)))[0]) : set_var('LOCAL_IPADDR', $_localip);
     if (get_var('SUT_IP') =~ script_output("hostname")) {
         $_localfqdn = get_var('SUT_IP');
-    else {
+    } else {
         $_localfqdn = script_output("hostname -f", type_command => 1) if script_run("hostname -f") == 0;
     }
     (($_localfqdn eq '' or $_localfqdn eq 'localhost') and (is_sle('15+') or !is_sle)) ? set_var('LOCAL_FQDN', (split(/ /, script_output("hostname -A", type_command => 1)))[0]) : set_var('LOCAL_FQDN', $_localfqdn);
