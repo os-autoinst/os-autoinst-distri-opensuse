@@ -31,7 +31,7 @@ ec2_stop_log()
     aws ec2 get-console-output --instance-id "$INSTANCE_ID" --output text > "${OUTPUT_DIR}/${CNT}_get_console_output_stop.log"
     set -e
     if [ -f "$PID_FILE" ]; then
-      kill -9 "$(< "$PID_FILE")"
+      kill -9 "$(< "$PID_FILE")" || echo "Process already stopped"
       rm "$PID_FILE"
     fi
 }
@@ -119,7 +119,7 @@ azure_stop_log()
     az vm boot-diagnostics get-boot-log --ids "$INSTANCE_ID" > "${OUTPUT_DIR}/$CNT""_boot_log_stop.txt" 2>&1
     set -e
     if [ -f "$PID_FILE" ]; then
-      kill -9 "$(< "$PID_FILE")"
+      kill -9 "$(< "$PID_FILE")" || echo "Process already stopped"
       rm "$PID_FILE"
     fi
 }
