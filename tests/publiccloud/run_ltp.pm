@@ -16,9 +16,9 @@ use Mojo::File;
 use Mojo::JSON;
 use Mojo::UserAgent;
 use LTP::utils qw(get_ltproot prepare_whitelist_environment);
-use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
+use LTP::install qw(get_required_build_dependencies get_submodules_to_rebuild);
 use LTP::WhiteList;
-use publiccloud::utils qw(is_byos is_ondemand is_gce registercloudguest register_openstack install_in_venv get_python_exec venv_activate zypper_install_remote zypper_install_available_remote zypper_add_repo_remote);
+use publiccloud::utils;
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 use version_utils;
@@ -43,8 +43,8 @@ sub should_partially_build_ltp_from_git_modules_install {
 sub install_build_deps {
     my ($self, $instance) = @_;
 
-    zypper_install_remote($instance, [get_required_build_dependencies()]);
-    zypper_install_available_remote($instance, [get_maybe_build_dependencies()]);
+    zypper_call_remote($instance, cmd => "install --no-recommends " . join(' ', get_required_build_dependencies()));
+    zypper_install_available_remote($instance);
 }
 
 sub prepare_ltp_git {
@@ -278,7 +278,7 @@ sub install_ltp {
     my ($self, $instance, $ltp_repo_name, $ltp_repo_url, $ltp_package_name) = @_;
 
     zypper_add_repo_remote($instance, $ltp_repo_name, $ltp_repo_url);
-    zypper_install_remote($instance, $ltp_package_name);
+    zypper_call_remote($instance, cmd => "install --no-recommends " . $ltp_package_name);
 }
 
 sub prepare_skip_tests {

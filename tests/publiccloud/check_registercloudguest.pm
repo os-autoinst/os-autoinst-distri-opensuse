@@ -112,7 +112,7 @@ sub run {
     cleanup_instance($instance);
     # It might take a bit for the system to remove the repositories
     foreach my $i (1 .. 4) {
-        last if ($instance->ssh_script_output(cmd => 'LANG=C zypper -t lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"', timeout => 300) == 0);
+        last if ($instance->ssh_script_output(cmd => 'zypper -t lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"', timeout => 300) == 0);
         sleep 15;
     }
     check_instance_unregistered($instance, 'The list of zypper repositories is not empty.');
@@ -137,7 +137,7 @@ sub run {
 
 sub check_instance_registered {
     my ($instance) = @_;
-    if ($instance->ssh_script_output(cmd => 'LANG=C zypper -t lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"', timeout => 300) == 0) {
+    if ($instance->ssh_script_output(cmd => 'zypper -t lr | awk "/^\s?[[:digit:]]+/{c++} END {print c}"', timeout => 300) == 0) {
         record_info('zypper lr', $instance->ssh_script_output(cmd => 'zypper -t lr ||:'));
         die('The list of zypper repositories is empty.');
     }
@@ -158,7 +158,7 @@ sub check_instance_unregistered {
     for (split('\n', $out)) {
         # bsc#1252277 - The NVIDIA repos are added by SUSEConnect but not removed
         if ($_ =~ /^\s?\d+/ && $_ !~ /SUSE_Maintenance|:NVIDIA-/) {
-            record_info('zypper lr', $out);
+            record_info('UNEXPECTED REPO URL', $out);
             die($error);
         }
     }
