@@ -35,10 +35,10 @@ buildah:
   # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   # https://github.com/containers/buildah/pull/6271 - Update "bud with --cpu-shares" test, and rename it
-  # https://github.com/containers/buildah/pull/6629 - tests: Skip chroot overlay test if STORAGE_DRIVER is overlay
+  # https://github.com/containers/buildah/pull/6636 - chroot.bats(chroot with overlay root): ensure we can overlay
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
-    - 6629
+    - 6636
   sle-16.1:
     GITHUB_PATCHES:
     - 6226
