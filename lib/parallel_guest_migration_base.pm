@@ -224,7 +224,11 @@ sub do_local_initialization {
     set_var('LOCAL_FQDN', $_localfqdn);
     $_localip = script_output("ip route get 1.1.1.1 | grep -oP 'src \\K\\S+'", type_command => 1);
     (($_localip eq '' or $_localip eq '127.0.0.1' or $_localip eq '::1 127.0.0.1') and (is_sle('15+') or !is_sle)) ? set_var('LOCAL_IPADDR', (split(/ /, script_output("hostname -I", type_command => 1)))[0]) : set_var('LOCAL_IPADDR', $_localip);
-    $_localfqdn = script_output("hostname -f", type_command => 1) if (script_retry("hostname -f", option => '--kill-after=1 --signal=9', delay => 1, retry => 60) == 0);
+    if (get_var('SUT_IP') =~ script_output("hostname")) {
+        $_localfqdn = get_var('SUT_IP');
+    else {
+        $_localfqdn = script_output("hostname -f", type_command => 1) if script_run("hostname -f") == 0;
+    }
     (($_localfqdn eq '' or $_localfqdn eq 'localhost') and (is_sle('15+') or !is_sle)) ? set_var('LOCAL_FQDN', (split(/ /, script_output("hostname -A", type_command => 1)))[0]) : set_var('LOCAL_FQDN', $_localfqdn);
     save_screenshot;
     my $_role = $self->get_parallel_role;
