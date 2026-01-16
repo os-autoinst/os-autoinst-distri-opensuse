@@ -16,6 +16,7 @@ use Carp qw( croak );
 use Exporter qw(import);
 use sles4sap::azure_cli;
 use sles4sap::aws_cli;
+use sles4sap::gcp_cli;
 use version_utils qw(is_sle);
 
 =head1 SYNOPSIS
@@ -26,12 +27,17 @@ Library to manage cloud crash tests
 our @EXPORT = qw(
   crash_deploy_azure
   crash_deploy_aws
+  crash_deploy_gcp
   crash_pubip
+  crash_get_username
+  crash_get_instance
+  crash_cleanup
   crash_system_ready
   crash_softrestart
   crash_wait_back
   crash_destroy_azure
   crash_destroy_aws
+  crash_destroy_gcp
 );
 
 use constant DEPLOY_PREFIX => 'crash';
@@ -204,6 +210,82 @@ sub crash_deploy_aws(%args) {
     return $instance_id;
 }
 
+=head2 crash_deploy_gcp
+
+Run the GCP deployment for the crash test
+
+=over
+
+=item B<region> - GCP region
+
+=item B<zone> - GCP zone (e.g., 'us-central1-a')
+
+=item B<project> - GCP project ID
+
+=item B<version> - OS version
+
+=item B<image_project> - image project name
+
+=item B<machine_type> - machine type (e.g., 'n1-standard-2')
+
+=item B<ssh_key> - ssh_key file
+
+=back
+=cut
+
+sub crash_deploy_gcp(%args) {
+    foreach (qw(region zone project image image_project version machine_type ssh_key)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $job_id = crash_deploy_name();
+    my $region = $args{region};
+
+    my $network_name = $job_id . '-network';
+    gcp_network_create(
+        project => $args{project},
+        name => $network_name);
+
+    my $subnet_name = $job_id . '-subnet';
+    gcp_subnet_create(
+        project => $args{project},
+        region => $region,
+        name => $subnet_name,
+        network => $network_name,
+        cidr => '10.0.0.0/24');
+
+    my $firewall_name = $job_id . '-allow-ssh';
+    gcp_firewall_rule_create(
+        project => $args{project},
+        name => $firewall_name,
+        network => $network_name,
+        port => 22);
+
+    my $ip_name = $job_id . '-ip';
+    gcp_external_ip_create(
+        project => $args{project},
+        region => $region,
+        name => $ip_name);
+
+    my $vm_name = $job_id . '-vm';
+    gcp_vm_create(
+        project => $args{project},
+        zone => $args{zone},
+        name => $vm_name,
+        image => $args{image},
+        image_project => $args{image_project},
+        machine_type => $args{machine_type},
+        network => $network_name,
+        subnet => $subnet_name,
+        address => $ip_name,
+        ssh_key => $args{ssh_key},
+        timeout => 1200);
+
+    gcp_vm_wait_running(
+        zone => $args{zone},
+        name => $vm_name,
+        timeout => 1200);
+}
+
 =head2 crush_pubip
 
 Get the deployment public IP of the VM. Die if an
@@ -231,10 +313,111 @@ sub crash_pubip(%args) {
             resource_group => crash_deploy_name(),
             name => DEPLOY_PREFIX . "-pub_ip");
     }
+    elsif ($args{provider} eq 'GCE') {
+        my $zone = $args{region} . '-' . get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE');
+        $vm_ip = gcp_public_ip_get(
+            zone => $zone,
+            name => crash_deploy_name() . '-vm');
+    }
     else {
         die "Not supported provider '$args{provider}'";
     }
     return $vm_ip;
+}
+
+=head2 crash_get_username
+
+    my $username = crash_get_username(provider => 'GCE');
+
+Get the username for SSH login based on cloud provider
+
+=over
+
+=item B<provider> - Cloud provider name (EC2, AZURE, GCE)
+
+=back
+=cut
+
+sub crash_get_username(%args) {
+    croak("Argument < provider > missing") unless $args{provider};
+
+    my %usernames = (
+        GCE => 'cloudadmin',
+        AZURE => 'cloudadmin',
+        EC2 => 'ec2-user',
+    );
+
+    die "Unsupported cloud provider: $args{provider}" unless $usernames{$args{provider}};
+    return $usernames{$args{provider}};
+}
+
+=head2 crash_get_instance
+
+    my $instance = crash_get_instance(
+        provider => 'GCE',
+        region => 'us-central1');
+
+Create and return a publiccloud::instance object for the crash test VM
+
+=over
+
+=item B<provider> - Cloud provider name (EC2, AZURE, GCE)
+
+=item B<region> - Cloud region
+
+=back
+=cut
+
+sub crash_get_instance(%args) {
+    foreach (qw(provider region)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $vm_ip = crash_pubip(provider => $args{provider}, region => $args{region});
+    my $username = crash_get_username(provider => $args{provider});
+
+    require publiccloud::instance;
+    my $instance = publiccloud::instance->new(
+        public_ip => $vm_ip,
+        username => $username
+    );
+
+    return $instance;
+}
+
+=head2 crash_cleanup
+
+    crash_cleanup(
+        provider => 'GCE',
+        region => 'us-central1');
+
+Clean up cloud resources for crash test
+
+=over
+
+=item B<provider> - Cloud provider name (EC2, AZURE, GCE)
+
+=item B<region> - Cloud region
+
+=back
+=cut
+
+sub crash_cleanup(%args) {
+    foreach (qw(provider region)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    if ($args{provider} eq 'AZURE') {
+        crash_destroy_azure();
+    }
+    elsif ($args{provider} eq 'EC2') {
+        crash_destroy_aws(region => $args{region});
+    }
+    elsif ($args{provider} eq 'GCE') {
+        my $zone = $args{region} . '-' . get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE');
+        crash_destroy_gcp(zone => $zone, region => $args{region});
+    }
+    else {
+        die "Unsupported provider: $args{provider}";
+    }
 }
 
 =head2 crash_system_ready
@@ -423,6 +606,58 @@ sub crash_destroy_aws(%args) {
     foreach my $key (keys %ret) {
         # return the first not zero
         return $ret{$key} if $ret{$key};
+    }
+    return 0;
+}
+
+
+=head2 crash_destroy_gcp
+
+Delete the GCP deployment
+
+=over
+
+=item B<zone> - GCP zone where the deployment was created
+
+=item B<region> - GCP region
+
+=back
+=cut
+
+sub crash_destroy_gcp(%args) {
+    foreach (qw(zone region)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my %ret;
+    my $job_id = crash_deploy_name();
+    my $region = $args{zone};
+    $region =~ s/-[a-z]$//;
+
+    record_info('GCP CLEANUP', "Deleting GCP resources for job: $job_id");
+
+    $ret{vm} = gcp_vm_terminate(
+        zone => $args{zone},
+        name => $job_id . '-vm');
+
+    $ret{ip} = gcp_external_ip_delete(
+        region => $region,
+        name => $job_id . '-ip');
+
+    $ret{firewall} = gcp_firewall_rule_delete(
+        name => $job_id . '-allow-ssh');
+
+    $ret{subnet} = gcp_subnet_delete(
+        region => $region,
+        name => $job_id . '-subnet');
+
+    $ret{network} = gcp_network_delete(
+        name => $job_id . '-network');
+
+    foreach my $key (keys %ret) {
+        if ($ret{$key}) {
+            record_info("Failure in $key", "Failed to destory $key");
+            return $ret{$key};
+        }
     }
     return 0;
 }
