@@ -154,16 +154,7 @@ sub install_docker_when_needed {
     systemctl('start docker', timeout => 180);
     systemctl('is-active docker');
     systemctl('status docker', timeout => 120);
-    if ($host_os =~ /sle|opensuse|micro/) {
-        install_oci_runtime("docker");
-        if (script_run("docker info -f '{{.SecurityOptions}}' | grep -q selinux")) {
-            record_soft_failure('bsc#1252290 - docker comes without SELinux support enabled by default');
-            if (script_run('test -d /sys/fs/selinux') == 0) {
-                assert_script_run q(sed -i '/DOCKER_OPTS/s/"$/ --selinux-enabled"/' /etc/sysconfig/docker);
-                systemctl('restart docker');
-            }
-        }
-    }
+    install_oci_runtime("docker") if ($host_os =~ /sle|opensuse|micro/);
     record_info('docker', script_output('docker info'));
     my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
     record_info("WARNINGS daemon", $warnings) if $warnings;
