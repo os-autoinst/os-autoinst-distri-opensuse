@@ -224,7 +224,8 @@ sub do_local_initialization {
     set_var('LOCAL_FQDN', $_localfqdn);
     $_localip = script_output("ip route get 1.1.1.1 | grep -oP 'src \\K\\S+'", type_command => 1);
     (($_localip eq '' or $_localip eq '127.0.0.1' or $_localip eq '::1 127.0.0.1') and (is_sle('15+') or !is_sle)) ? set_var('LOCAL_IPADDR', (split(/ /, script_output("hostname -I", type_command => 1)))[0]) : set_var('LOCAL_IPADDR', $_localip);
-    if (get_var('SUT_IP') =~ script_output("hostname")) {
+    # Use SUT_IP directly to get FQDN as `hostname` can hardly work on some machines(eg. bare-metal2)
+    if (get_var('SUT_IP') !~ /^\d+(\.\d+){3}$/) {
         $_localfqdn = get_var('SUT_IP');
     } else {
         $_localfqdn = script_output("hostname -f", type_command => 1) if script_run("hostname -f") == 0;
