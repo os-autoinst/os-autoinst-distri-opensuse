@@ -1171,7 +1171,16 @@ sub create_guest_network {
     my $_ret = 1;
     my $_uri = "--connect=" . virt_autotest::domain_management_utils::construct_uri(driver => $args{_driver}, transport => $args{_transport}, user => $args{_user}, host => $args{_host}, port => $args{_port}, path => $args{_path}, extra => $args{_extra});
     my @_guest_network_configured = ();
-    my @_defintfs = split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", type_command => 1, proceed_on_failure => 1));
+    my @_defintfsi = ();
+    # Use SUT_NETDEVICE to determine the master interface on some machines, or iptable will break the test
+    if get_var("SUT_NETDEVICE", "") {
+	my $target_mac = get_var("SUT_NETDEVICE");
+        my $iface = script_output("ip -br link show | grep -i '$target_mac' | awk '{print \$1}'", type_command => 1);
+        $iface =~ s/^\s+|\s+$//g;
+        push @_defintfsi, $iface;
+    } else {
+        @_defintfsi = split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", type_command => 1, proceed_on_failure => 1));
+    }
     while (my ($_intfidx, $_defintf) = each(@_defintfs)) {
         if ($_intfidx == 0) {
             $_ret = script_run("iptables --table nat --append POSTROUTING --out-interface $_defintf -j MASQUERADE");
