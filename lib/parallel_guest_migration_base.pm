@@ -222,9 +222,14 @@ sub do_local_initialization {
     my $_localfqdn = '';
     set_var('LOCAL_IPADDR', $_localip);
     set_var('LOCAL_FQDN', $_localfqdn);
-    $_localip = script_output("hostname -i | cut -d' ' -f 2", type_command => 1) if (script_retry("hostname -i", option => '--kill-after=1 --signal=9', delay => 1, retry => 60) == 0);
+    $_localip = script_output("ip route get 1.1.1.1 | grep -oP 'src \\K\\S+'", type_command => 1);
     (($_localip eq '' or $_localip eq '127.0.0.1' or $_localip eq '::1 127.0.0.1') and (is_sle('15+') or !is_sle)) ? set_var('LOCAL_IPADDR', (split(/ /, script_output("hostname -I", type_command => 1)))[0]) : set_var('LOCAL_IPADDR', $_localip);
-    $_localfqdn = script_output("hostname -f", type_command => 1) if (script_retry("hostname -f", option => '--kill-after=1 --signal=9', delay => 1, retry => 60) == 0);
+    # Use SUT_IP directly to get FQDN as `hostname` can hardly work on some machines(eg. bare-metal2)
+    if (get_var('SUT_IP') !~ /^\d+(\.\d+){3}$/) {
+        $_localfqdn = get_var('SUT_IP');
+    } else {
+        $_localfqdn = script_output("hostname -f", type_command => 1) if script_run("hostname -f") == 0;
+    }
     (($_localfqdn eq '' or $_localfqdn eq 'localhost') and (is_sle('15+') or !is_sle)) ? set_var('LOCAL_FQDN', (split(/ /, script_output("hostname -A", type_command => 1)))[0]) : set_var('LOCAL_FQDN', $_localfqdn);
     save_screenshot;
     my $_role = $self->get_parallel_role;
@@ -1166,7 +1171,16 @@ sub create_guest_network {
     my $_ret = 1;
     my $_uri = "--connect=" . virt_autotest::domain_management_utils::construct_uri(driver => $args{_driver}, transport => $args{_transport}, user => $args{_user}, host => $args{_host}, port => $args{_port}, path => $args{_path}, extra => $args{_extra});
     my @_guest_network_configured = ();
-    my @_defintfs = split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", type_command => 1, proceed_on_failure => 1));
+    my @_defintfsi = ();
+    # Use SUT_NETDEVICE to determine the master interface on some machines, or iptable will break the test
+    if get_var("SUT_NETDEVICE", "") {
+	my $target_mac = get_var("SUT_NETDEVICE");
+        my $iface = script_output("ip -br link show | grep -i '$target_mac' | awk '{print \$1}'", type_command => 1);
+        $iface =~ s/^\s+|\s+$//g;
+        push @_defintfsi, $iface;
+    } else {
+        @_defintfsi = split(/\n/, script_output("ip route show default | grep -i dhcp | awk \'{print \$5}\'", type_command => 1, proceed_on_failure => 1));
+    }
     while (my ($_intfidx, $_defintf) = each(@_defintfs)) {
         if ($_intfidx == 0) {
             $_ret = script_run("iptables --table nat --append POSTROUTING --out-interface $_defintf -j MASQUERADE");
