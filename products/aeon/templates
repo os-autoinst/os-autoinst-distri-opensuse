@@ -1,0 +1,55 @@
+#!/usr/share/openqa/script/load_templates
+#
+## Aeon Machines, Products, TestSuites and JobTemplates
+#
+## use load_templates to load the file into the database
+#
+{
+  JobTemplates => [
+                    {
+                      group_name => "Aeon",
+                      machine => { name => "qemu64-uefi" },
+                      prio => 50,
+                      product => {
+                        arch    => "x86_64",
+                        distri  => "aeon",
+                        flavor  => "IMAGE",
+                        group   => "aeon-RC3-IMAGE",
+                        version => "RC3",
+                      },
+                      test_suite => { name => "aeon_tests" },
+                    },
+                  ],
+  Machines     => [
+                    {
+                      backend => "qemu",
+                      name => "qemu64-uefi",
+                      settings => [
+                        { key => "GFXPAYLOAD", value => "1024x768" },
+                        { key => "HDDSIZEGB", value => 20 },
+                        { key => "QEMUCPU", value => "qemu64" },
+                        { key => "UEFI", value => 1 },
+                        { key => "NUMDISKS", value => 2 },
+                      ],
+                    },
+                  ],
+  Products     => [
+                    {
+                      arch     => "x86_64",
+                      distri   => "aeon",
+                      flavor   => "IMAGE",
+                      settings => [
+                        { key => "SHUTDOWN_NEEDS_AUTH", value => 0 },
+                      ],
+                      version  => "RC3",
+                    },
+                  ],
+  TestSuites   => [
+                    {
+                      name => "aeon_tests",
+                      settings => [
+                        { key => "DESKTOP", value => "gnome" }
+                      ],
+                    },
+                  ],
+}
