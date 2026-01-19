@@ -173,6 +173,9 @@ sub run {
     # The ready to install button is at the bottom of the page on lowres screen
     # Normally it's on the side
 
+    assert_and_click('agama-overview-tab');
+    wait_still_screen 5;
+
     assert_and_click('agama-install-button');
     wait_still_screen 5;
 
