@@ -17,12 +17,17 @@
       <li><a href="#crash_deploy_name">crash_deploy_name</a></li>
       <li><a href="#crash_deploy_azure">crash_deploy_azure</a></li>
       <li><a href="#crash_deploy_aws">crash_deploy_aws</a></li>
+      <li><a href="#crash_deploy_gcp">crash_deploy_gcp</a></li>
       <li><a href="#crush_pubip">crush_pubip</a></li>
+      <li><a href="#crash_get_username">crash_get_username</a></li>
+      <li><a href="#crash_get_instance">crash_get_instance</a></li>
+      <li><a href="#crash_cleanup">crash_cleanup</a></li>
       <li><a href="#crash_system_ready">crash_system_ready</a></li>
       <li><a href="#crash_softrestart">crash_softrestart</a></li>
       <li><a href="#crash_wait_back">crash_wait_back</a></li>
       <li><a href="#crash_destroy_azure">crash_destroy_azure</a></li>
       <li><a href="#crash_destroy_aws">crash_destroy_aws</a></li>
+      <li><a href="#crash_destroy_gcp">crash_destroy_gcp</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/crash.pm</h1>
@@ -81,6 +86,42 @@
 </dd>
 </dl>
 
+<h2 id="crash_deploy_gcp">crash_deploy_gcp</h2>
+
+<p>Run the GCP deployment for the crash test</p>
+
+<dl>
+
+<dt id="region---GCP-region"><b>region</b> - GCP region</dt>
+<dd>
+
+</dd>
+<dt id="zone---GCP-zone-e.g.-us-central1-a"><b>zone</b> - GCP zone (e.g., &#39;us-central1-a&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="project---GCP-project-ID"><b>project</b> - GCP project ID</dt>
+<dd>
+
+</dd>
+<dt id="version---OS-version"><b>version</b> - OS version</dt>
+<dd>
+
+</dd>
+<dt id="image_project---image-project-name"><b>image_project</b> - image project name</dt>
+<dd>
+
+</dd>
+<dt id="machine_type---machine-type-e.g.-n1-standard-2"><b>machine_type</b> - machine type (e.g., &#39;n1-standard-2&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="ssh_key---ssh_key-file"><b>ssh_key</b> - ssh_key file</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="crush_pubip">crush_pubip</h2>
 
 <p>Get the deployment public IP of the VM. Die if an unsupported csp name is provided.</p>
@@ -92,6 +133,60 @@
 
 </dd>
 <dt id="region-deployment-region"><b>region</b> deployment region</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_get_username">crash_get_username</h2>
+
+<pre><code>my $username = crash_get_username(provider =&gt; &#39;GCE&#39;);</code></pre>
+
+<p>Get the username for SSH login based on cloud provider</p>
+
+<dl>
+
+<dt id="provider---Cloud-provider-name-EC2-AZURE-GCE"><b>provider</b> - Cloud provider name (EC2, AZURE, GCE)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_get_instance">crash_get_instance</h2>
+
+<pre><code>my $instance = crash_get_instance(
+    provider =&gt; &#39;GCE&#39;,
+    region =&gt; &#39;us-central1&#39;);</code></pre>
+
+<p>Create and return a publiccloud::instance object for the crash test VM</p>
+
+<dl>
+
+<dt id="provider---Cloud-provider-name-EC2-AZURE-GCE1"><b>provider</b> - Cloud provider name (EC2, AZURE, GCE)</dt>
+<dd>
+
+</dd>
+<dt id="region---Cloud-region"><b>region</b> - Cloud region</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_cleanup">crash_cleanup</h2>
+
+<pre><code>crash_cleanup(
+    provider =&gt; &#39;GCE&#39;,
+    region =&gt; &#39;us-central1&#39;);</code></pre>
+
+<p>Clean up cloud resources for crash test</p>
+
+<dl>
+
+<dt id="provider---Cloud-provider-name-EC2-AZURE-GCE2"><b>provider</b> - Cloud provider name (EC2, AZURE, GCE)</dt>
+<dd>
+
+</dd>
+<dt id="region---Cloud-region1"><b>region</b> - Cloud region</dt>
 <dd>
 
 </dd>
@@ -165,6 +260,22 @@ If C&lt;reg_code&gt; is provided, registers the system and verifies with C&lt;SU
 <dl>
 
 <dt id="region-region-where-the-deployment-has-been-deployed-in-AWS"><b>region</b> region where the deployment has been deployed in AWS</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_destroy_gcp">crash_destroy_gcp</h2>
+
+<p>Delete the GCP deployment</p>
+
+<dl>
+
+<dt id="zone---GCP-zone-where-the-deployment-was-created"><b>zone</b> - GCP zone where the deployment was created</dt>
+<dd>
+
+</dd>
+<dt id="region---GCP-region1"><b>region</b> - GCP region</dt>
 <dd>
 
 </dd>

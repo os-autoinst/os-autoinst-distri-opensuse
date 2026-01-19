@@ -1,0 +1,358 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/sles4sap/gcp_cli.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#gcp_network_create">gcp_network_create</a></li>
+      <li><a href="#gcp_network_delete">gcp_network_delete</a></li>
+      <li><a href="#gcp_subnet_create">gcp_subnet_create</a></li>
+      <li><a href="#gcp_subnet_delete">gcp_subnet_delete</a></li>
+      <li><a href="#gcp_firewall_rule_create">gcp_firewall_rule_create</a></li>
+      <li><a href="#gcp_firewall_rule_delete">gcp_firewall_rule_delete</a></li>
+      <li><a href="#gcp_external_ip_create">gcp_external_ip_create</a></li>
+      <li><a href="#gcp_external_ip_delete">gcp_external_ip_delete</a></li>
+      <li><a href="#gcp_vm_create">gcp_vm_create</a></li>
+      <li><a href="#gcp_vm_wait_running">gcp_vm_wait_running</a></li>
+      <li><a href="#gcp_vm_terminate">gcp_vm_terminate</a></li>
+      <li><a href="#gcp_public_ip_get">gcp_public_ip_get</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/sles4sap/gcp_cli.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Library to compose and run GCP gcloud cli commands.</p>
+
+<h2 id="gcp_network_create">gcp_network_create</h2>
+
+<pre><code>gcp_network_create(
+    project =&gt; &#39;my-project&#39;,
+    name =&gt; &#39;my-network&#39;);</code></pre>
+
+<p>Create a new GCP VPC network</p>
+
+<dl>
+
+<dt id="project---GCP-project-ID"><b>project</b> - GCP project ID</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-VPC-network"><b>name</b> - name for the VPC network</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_network_delete">gcp_network_delete</h2>
+
+<pre><code>my $ret = gcp_network_delete(name =&gt; &#39;my-network&#39;);</code></pre>
+
+<p>Delete a VPC network. Does not assert but returns the exit code.</p>
+
+<dl>
+
+<dt id="name---name-of-the-VPC-network-to-delete"><b>name</b> - name of the VPC network to delete</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_subnet_create">gcp_subnet_create</h2>
+
+<pre><code>gcp_subnet_create(
+    project =&gt; &#39;my-project&#39;,
+    region =&gt; &#39;us-central1&#39;,
+    name =&gt; &#39;my-subnet&#39;,
+    network =&gt; &#39;my-network&#39;,
+    cidr =&gt; &#39;10.0.0.0/24&#39;);</code></pre>
+
+<p>Create a subnet within a VPC network</p>
+
+<dl>
+
+<dt id="project---GCP-project-ID1"><b>project</b> - GCP project ID</dt>
+<dd>
+
+</dd>
+<dt id="region---GCP-region-e.g.-us-central1"><b>region</b> - GCP region (e.g., &#39;us-central1&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-subnet"><b>name</b> - name for the subnet</dt>
+<dd>
+
+</dd>
+<dt id="network---name-of-the-VPC-network"><b>network</b> - name of the VPC network</dt>
+<dd>
+
+</dd>
+<dt id="cidr---CIDR-range-for-the-subnet-e.g.-10.0.0.0-24"><b>cidr</b> - CIDR range for the subnet (e.g., &#39;10.0.0.0/24&#39;)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_subnet_delete">gcp_subnet_delete</h2>
+
+<pre><code>my $ret = gcp_subnet_delete(
+    region =&gt; &#39;us-central1&#39;,
+    name =&gt; &#39;my-subnet&#39;);</code></pre>
+
+<p>Delete a subnet. Does not assert but returns the exit code.</p>
+
+<dl>
+
+<dt id="region---GCP-region"><b>region</b> - GCP region</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-the-subnet-to-delete"><b>name</b> - name of the subnet to delete</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_firewall_rule_create">gcp_firewall_rule_create</h2>
+
+<pre><code>gcp_firewall_rule_create(
+    project =&gt; &#39;my-project&#39;,
+    name =&gt; &#39;allow-ssh&#39;,
+    network =&gt; &#39;my-network&#39;,
+    port =&gt; 22);</code></pre>
+
+<p>Create a firewall rule to allow inbound traffic on a specific port</p>
+
+<dl>
+
+<dt id="project---GCP-project-ID2"><b>project</b> - GCP project ID</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-firewall-rule"><b>name</b> - name for the firewall rule</dt>
+<dd>
+
+</dd>
+<dt id="network---name-of-the-VPC-network1"><b>network</b> - name of the VPC network</dt>
+<dd>
+
+</dd>
+<dt id="port---port-number-to-allow-e.g.-22-for-SSH"><b>port</b> - port number to allow (e.g., 22 for SSH)</dt>
+<dd>
+
+</dd>
+<dt id="protocol---Optional.-By-default-is-tcp"><b>protocol</b> - Optional. By default is tcp</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_firewall_rule_delete">gcp_firewall_rule_delete</h2>
+
+<pre><code>my $ret = gcp_firewall_rule_delete(name =&gt; &#39;allow-ssh&#39;);</code></pre>
+
+<p>Delete a firewall rule. Does not assert but returns the exit code.</p>
+
+<dl>
+
+<dt id="name---name-of-the-firewall-rule-to-delete"><b>name</b> - name of the firewall rule to delete</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_external_ip_create">gcp_external_ip_create</h2>
+
+<pre><code>gcp_external_ip_create(
+    project =&gt; &#39;my-project&#39;,
+    region =&gt; &#39;us-central1&#39;,
+    name =&gt; &#39;my-ip&#39;);</code></pre>
+
+<p>Reserve an external static IP address</p>
+
+<dl>
+
+<dt id="project---GCP-project-ID3"><b>project</b> - GCP project ID</dt>
+<dd>
+
+</dd>
+<dt id="region---GCP-region1"><b>region</b> - GCP region</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-external-IP-address"><b>name</b> - name for the external IP address</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_external_ip_delete">gcp_external_ip_delete</h2>
+
+<pre><code>my $ret = gcp_external_ip_delete(
+    region =&gt; &#39;us-central1&#39;,
+    name =&gt; &#39;my-ip&#39;);</code></pre>
+
+<p>Release an external IP address. Does not assert but returns the exit code.</p>
+
+<dl>
+
+<dt id="region---GCP-region2"><b>region</b> - GCP region</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-the-external-IP-address-to-delete"><b>name</b> - name of the external IP address to delete</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_vm_create">gcp_vm_create</h2>
+
+<pre><code>gcp_vm_create(
+    project =&gt; &#39;my-project&#39;,
+    zone =&gt; &#39;us-central1-a&#39;,
+    name =&gt; &#39;my-vm&#39;,
+    image =&gt; &#39;sles-sap-$version&#39;,
+    image_prject =&gt; &#39;cloud&#39;,
+    machine_type =&gt; &#39;n1-standard-2&#39;,
+    network =&gt; &#39;my-network&#39;,
+    subnet =&gt; &#39;my-subnet&#39;,
+    address =&gt; &#39;my-ip&#39;,
+    ssh_key =&gt; &#39;ssh public key file);</code></pre>
+
+<p>Create a VM instance</p>
+
+<dl>
+
+<dt id="project---GCP-project-ID4"><b>project</b> - GCP project ID</dt>
+<dd>
+
+</dd>
+<dt id="zone---GCP-zone-e.g.-us-central1-a"><b>zone</b> - GCP zone (e.g., &#39;us-central1-a&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-VM-instance"><b>name</b> - name for the VM instance</dt>
+<dd>
+
+</dd>
+<dt id="image---image-name"><b>image</b> - image name</dt>
+<dd>
+
+</dd>
+<dt id="image_project---image-project-name"><b>image_project</b> - image project name</dt>
+<dd>
+
+</dd>
+<dt id="machine_type---machine-type-e.g.-n1-standard-2"><b>machine_type</b> - machine type (e.g., &#39;n1-standard-2&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="network---name-of-the-VPC-network2"><b>network</b> - name of the VPC network</dt>
+<dd>
+
+</dd>
+<dt id="subnet---name-of-the-subnet"><b>subnet</b> - name of the subnet</dt>
+<dd>
+
+</dd>
+<dt id="address---name-of-the-external-IP-address-to-assign"><b>address</b> - name of the external IP address to assign</dt>
+<dd>
+
+</dd>
+<dt id="ssh_key---SSH-public-key-file-to-add-to-the-VM"><b>ssh_key</b> - SSH public key file to add to the VM</dt>
+<dd>
+
+</dd>
+<dt id="timeout---optional-timeout-for-the-command-default-900"><b>timeout</b> - optional, timeout for the command (default 900)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_vm_wait_running">gcp_vm_wait_running</h2>
+
+<pre><code>gcp_vm_wait_running(
+    zone =&gt; &#39;us-central1-a&#39;,
+    name =&gt; &#39;my-vm&#39;,
+    timeout =&gt; 300);</code></pre>
+
+<p>Wait for a VM instance to reach RUNNING state</p>
+
+<dl>
+
+<dt id="zone---GCP-zone"><b>zone</b> - GCP zone</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-the-VM-instance"><b>name</b> - name of the VM instance</dt>
+<dd>
+
+</dd>
+<dt id="timeout---optional-timeout-in-seconds-default-300"><b>timeout</b> - optional, timeout in seconds (default 300)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_vm_terminate">gcp_vm_terminate</h2>
+
+<pre><code>my $ret = gcp_vm_terminate(
+    zone =&gt; &#39;us-central1-a&#39;,
+    name =&gt; &#39;my-vm&#39;);</code></pre>
+
+<p>Delete a VM instance. Does not assert but returns the exit code.</p>
+
+<dl>
+
+<dt id="zone---GCP-zone1"><b>zone</b> - GCP zone</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-the-VM-instance-to-delete"><b>name</b> - name of the VM instance to delete</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_public_ip_get">gcp_public_ip_get</h2>
+
+<pre><code>my $ip = gcp_public_ip_get(
+    project =&gt; &#39;my-project&#39;,
+    zone =&gt; &#39;us-central1-a&#39;,
+    name =&gt; &#39;my-vm&#39;);</code></pre>
+
+<p>Get the external (public) IP address of a VM instance</p>
+
+<dl>
+
+<dt id="project---GCP-project-ID5"><b>project</b> - GCP project ID</dt>
+<dd>
+
+</dd>
+<dt id="zone---GCP-zone2"><b>zone</b> - GCP zone</dt>
+<dd>
+
+</dd>
+<dt id="name---name-of-the-VM-instance1"><b>name</b> - name of the VM instance</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+
