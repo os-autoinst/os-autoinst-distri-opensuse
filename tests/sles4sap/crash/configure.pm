@@ -32,6 +32,9 @@ sub run {
     elsif ($provider eq 'AZURE') {
         $remote_host = 'cloudadmin@' . $vm_ip;
     }
+    elsif ($provider eq 'GCE') {
+        $remote_host = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no cloudadmin\@$vm_ip";
+    }
     my $ssh_cmd = "ssh $remote_host";
 
     my $start_time = time();
@@ -59,12 +62,8 @@ sub test_flags {
 sub post_fail_hook {
     my ($self) = shift;
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    if ($provider eq 'AZURE') {
-        crash_destroy_azure();
-    }
-    elsif ($provider eq 'EC2') {
-        crash_destroy_aws(region => get_required_var('PUBLIC_CLOUD_REGION'));
-    }
+    my $region = get_required_var('PUBLIC_CLOUD_REGION');
+    crash_cleanup(provider => $provider, region => $region);
     $self->SUPER::post_fail_hook;
 }
 
