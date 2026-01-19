@@ -391,6 +391,7 @@ sub wait_hana_node_up {
         $out = $instance->ssh_script_output(
             cmd => 'sudo systemctl is-system-running',
             timeout => 5,
+            ignore_timeout_failure => 1,
             proceed_on_failure => 1);
         return if ($out =~ m/running/);
         if ($out =~ m/degraded/) {
