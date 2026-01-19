@@ -147,6 +147,7 @@ sub setup_dns_server {
     return if $dns_server_set;
     record_info 'DNS server setup';
 
+    zypper_call('in bind bind-utils') if check_os_release('15.7', 'VERSION_ID');
     my $named_url = autoinst_url . '/data/supportserver/named';
     $setup_script .= qq@
         sed -i -e '/^NETCONFIG_DNS_FORWARDER=/ s/=.*/="bind"/' \\
@@ -173,6 +174,11 @@ sub setup_dns_server {
             sed -i '/^options/a\\   response-policy { zone "rpz"; };' /etc/named.conf
         @;
     }
+    $setup_script .= qq@
+        firewall-cmd --add-service=dns --permanent
+        firewall-cmd --reload
+        sed -i -e '/^NAMED_ARGS=/ s/=.*/="-4"/' /etc/sysconfig/named
+        @ if check_os_release('15.7', 'VERSION_ID');
 
     # Start services
     $setup_script .= "
@@ -248,6 +254,7 @@ sub setup_dhcp_server {
     my ($dns, $pxe, $mtu) = @_;
     return if $dhcp_server_set;
     record_info 'DHCP server setup';
+    zypper_call('in dhcp-server') if check_os_release('15.7', 'VERSION_ID');
     my $net_conf = parse_network_configuration();
 
     $setup_script .= "systemctl stop dhcpd\n";
@@ -276,7 +283,11 @@ sub setup_ssh_server {
     return if $ssh_server_set;
     record_info 'SSH server setup';
 
-    $setup_script .= "yast2 firewall services add zone=EXT service=service:sshd\n";
+    my $firewall_cmd
+      = check_os_release('15.7', 'VERSION_ID')
+      ? "firewall-cmd --add-service=ssh --permanent;firewall-cmd --reload"
+      : "yast2 firewall services add zone=EXT service=service:sshd";
+    $setup_script .= "$firewall_cmd\n";
     $setup_script .= "systemctl restart sshd\n";
     $setup_script .= "systemctl status sshd\n";
 
@@ -286,10 +297,17 @@ sub setup_ssh_server {
 sub setup_ntp_server {
     return if $ntp_server_set;
     record_info 'NTP server setup';
-
-    $setup_script .= "yast2 firewall services add zone=EXT service=service:ntp\n";
-    $setup_script .= "echo 'server pool.ntp.org' >> /etc/ntp.conf\n";
-    $setup_script .= "systemctl restart ntpd\n";
+    if (check_os_release('15.7', 'VERSION_ID')) {
+        zypper_call('in chrony');
+        $setup_script .= "firewall-cmd --add-service=ntp --permanent;firewall-cmd --reload\n";
+        $setup_script .= "echo 'server pool.ntp.org' >> /etc/chrony.conf\n";
+        $setup_script .= "systemctl restart chronyd\n";
+    }
+    else {
+        $setup_script .= "yast2 firewall services add zone=EXT service=service:ntp\n";
+        $setup_script .= "echo 'server pool.ntp.org' >> /etc/ntp.conf\n";
+        $setup_script .= "systemctl restart ntpd\n";
+    }
 
     $ntp_server_set = 1;
 }
@@ -351,7 +369,9 @@ sub setup_iscsi_lio_server {
     return if $iscsi_lio_server_set;
     record_info 'iSCSI LIO server setup';
     # Add the targetcli package now used for the iSCSI server configuration
-    zypper_call('--no-refresh install targetcli');
+    my $targetcli_pkg = 'targetcli';
+    $targetcli_pkg = 'python3-targetcli-fb' if check_os_release('15.7', 'VERSION_ID');
+    zypper_call("--no-refresh install $targetcli_pkg");
 
     # Get the iSCSI server settings
     my $iscsi_iqn = get_var('ISCSI_IQN', 'iqn.2016-02.de.openqa');
@@ -375,7 +395,11 @@ sub setup_iscsi_lio_server {
 
     # Needed if a firewall is configured
     # FIXME: remove the `yast` dependency
-    script_run 'yast2 firewall services add zone=EXT service=service:target', 200;
+    my $target_cmd
+      = check_os_release('15.7', 'VERSION_ID')
+      ? "firewall-cmd --add-port=3260/tcp --permanent;firewall-cmd --reload"
+      : "yast2 firewall services add zone=EXT service=service:target";
+    script_run "$target_cmd", 200;
 
     # Create partitions on devices for the iSCSI LUNs
     script_run "parted --align optimal --wipesignatures --script $hdd_lun mklabel gpt";

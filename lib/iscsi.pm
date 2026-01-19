@@ -225,6 +225,7 @@ Assign IP address B<$ip> and port B<$post> to the LUN on target with IQN B<$iqn>
 sub lio_new_portal {
     my ($tid, $iqn, $ip, $port) = @_;
     # Adds the LIO iSCSI server portal IP and port
+    assert_script_run("targetcli /iscsi/$iqn:$tid/tpg1/portals delete 0.0.0.0 ip_port=$port") if check_os_release('15.7', 'VERSION_ID');
     assert_script_run("targetcli /iscsi/$iqn:$tid/tpg1/portals create $ip ip_port=$port");
 }
 
