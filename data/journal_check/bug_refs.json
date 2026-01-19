@@ -1029,5 +1029,26 @@
             "sle-micro": ["6.1", "6.2"]
         },
         "type": "bug"
+    },
+    "transactional-update-journal-errors-snapshot": {
+        "description": "transactional-update.*zypper up.*snapshot failed with exit code 8",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "ignore"
+    },
+    "transactional-update-journal-errors-interactive": {
+        "description": "transactional-update.*Use '--interactive' for manual problem resolution",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "ignore"
+    },
+    "transactional-update-journal-errors-snapshot-rm": {
+        "description": "transactional-update.*Removing snapshot.*",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "ignore"
     }
 }
