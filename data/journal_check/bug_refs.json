@@ -1050,5 +1050,12 @@
             "microos":  ["Tumbleweed"]
         },
         "type": "ignore"
+    },
+    "boo#1256934": {
+        "description": "transactional-update.*Garbage after device path end, ignoring",
+        "products": {
+            "microos":  ["Tumbleweed"]
+        },
+        "type": "bug"
     }
 }
