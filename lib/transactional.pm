@@ -91,12 +91,12 @@ sub process_reboot {
 
     # Switch to root-console as we need VNC to check for grub and for login prompt
     my $prev_console = current_console();
-    select_console 'root-console', await_console => 0;
+    select_console 'root-console', await_console => 0 unless ($prev_console eq 'root-console');
 
     handle_first_grub if ($args{automated_rollback});
 
     if (!is_s390x && (is_microos || is_sle_micro('<6.0'))) {
-        microos_reboot $args{trigger};
+        microos_reboot($args{trigger}, $args{expected_grub});
         record_kernel_audit_messages();
     } elsif (is_backend_s390x) {
         prepare_system_shutdown;
