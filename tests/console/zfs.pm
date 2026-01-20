@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: zfs util-linux
@@ -13,7 +13,8 @@
 # - Test .zfs/snapshot for correct snapshots
 # - Test snapshot transfer (tank->dozer)
 # - Test if the module and filesystems survive a reboot
-# Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
+# - Run upstream ZFS tests
+# Maintainer: Felix Niederwanger <felix.niederwanger@suse.de> & Ricardo Branco <rbranco@suse.de>
 
 use base 'consoletest';
 use testapi;
@@ -126,6 +127,29 @@ sub reboot {
     power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => 300);
     select_serial_terminal();
+}
+
+sub upstream_tests {
+    my @patterns = qw(devel_C_C++ devel_rpm_build);
+    my @pkgs = qw(kernel-devel ksh libattr-devel libffi-devel libudev-devel ncompress openssl-3-devel python3-cffi python3-devel zfs-devel);
+
+    zypper_call "install -t pattern " . join(" ", @patterns);
+    zypper_call "install . " . join(" ", @pkgs);
+
+    my $version = script_output "rpm -q --queryformat '%{VERSION}' zfs";
+    script_retry("curl -sL https://github.com/openzfs/zfs/releases/download/zfs-$version/zfs-$version.tar.gz | tar -zxf -", retry => 5, delay => 60, timeout => 300);
+    assert_script_run "cd zfs-$version";
+    assert_script_run "./configure", timeout => 300;
+    assert_script_run "make pkg-utils", timeout => 300;
+    zypper_call "install zfs-test-*.rpm";
+
+    my $user = $testapi::username;
+    assert_script_run "echo '$user ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/50-$user";
+
+    select_user_serial_terminal;
+
+    script_run "/usr/share/zfs/zfs-tests.sh -v | tee /var/tmp/zfs-test.txt", timeout => 12000;
+    upload_logs "/var/tmp/zfs-test.txt";
 }
 
 sub run {
@@ -301,6 +325,8 @@ sub run {
     assert_script_run('! stat /tank/Big_Buck_Bunny_8_seconds_bird_clip.ogv');
     # Celebrate successful test run :-)
     script_run("echo -e 'Congarts! zfs test completed sucessfully\n.~~~~.\ni====i_\n|cccc|_)\n|cccc|   hjw\n -==-'");
+
+    $self->upstream_tests;
 }
 
 sub post_fail_hook {
