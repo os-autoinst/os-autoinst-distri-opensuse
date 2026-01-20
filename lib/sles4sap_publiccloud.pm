@@ -390,7 +390,8 @@ sub wait_hana_node_up {
     while ((time() - $start_time) < $args{timeout}) {
         $out = $instance->ssh_script_output(
             cmd => 'sudo systemctl is-system-running',
-            timeout => 5,
+            # timeout must be enough for ssh handshake to not kill the test
+            timeout => 30,
             proceed_on_failure => 1);
         return if ($out =~ m/running/);
         if ($out =~ m/degraded/) {
