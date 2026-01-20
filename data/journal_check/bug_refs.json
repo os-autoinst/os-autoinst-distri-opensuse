@@ -1120,7 +1120,7 @@
         "type": "bug"
     },
     "bsc#1215405": {
-        "description": "setroubleshoot.*(SELinux is preventing .*(rebootmgrd|NetworkManager|sshd).* from.* access.*icastats_0.*|failed to retrieve rpm info for path '/dev/shm/icastats_0')",
+        "description": "setroubleshoot.*(SELinux is preventing .*(rebootmgrd|NetworkManager|sshd).* from.* access.*icastats_0.*|failed to retrieve rpm info for path '/dev/shm/icastats_0')|setroubleshoot.*(SELinux is preventing systemd-tmpfile from using the mac_admin capability.*|failed to retrieve rpm info for path '/run/systemd/userdb/io.systemd.Machine')",
         "products": {
             "sle-micro": [
                 "5.4",
@@ -1932,16 +1932,6 @@
         "products": {
             "microos": [
                 "Tumbleweed"
-            ]
-        },
-        "type": "bug"
-    },
-    "bsc#1215405": {
-        "description": "setroubleshoot.*(SELinux is preventing systemd-tmpfile from using the mac_admin capability.*|failed to retrieve rpm info for path '/run/systemd/userdb/io.systemd.Machine')",
-        "products": {
-            "sle-micro": [
-                "6.1",
-                "6.2"
             ]
         },
         "type": "bug"
