@@ -1,0 +1,18 @@
+---
+name: agama_extensions_and_patterns_minor_migration_16
+description: >
+  Perform zypper migration for minor releases of SLES16+HA
+schedule:
+  - yam/migration/setup_upgrade_env
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - yam/migration/zypper_migration
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_product
+  - yam/validate/validate_registered_products
+  - yam/validate/validate_installed_patterns
+  - console/validate_repos
