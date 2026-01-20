@@ -341,7 +341,11 @@ sub load_slem_on_pc_tests {
         } else {
             loadtest "publiccloud/check_services", run_args => $args;
             loadtest("publiccloud/slem_upgrade_next", run_args => $args) if (get_var('PUBLIC_CLOUD_MIGRATE_SLEM'));
-            loadtest("publiccloud/slem_basic", run_args => $args);
+            if (get_var("TEST") =~ /img_proof/) {
+                loadtest("publiccloud/img_proof", run_args => $args);
+            } else {
+                loadtest("publiccloud/slem_basic", run_args => $args);
+            }
         }
     }
 }
