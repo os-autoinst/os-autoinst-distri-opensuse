@@ -13,7 +13,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
 use repo_tools 'add_qa_head_repo';
-use Utils::Logging 'export_logs_basic';
+use Utils::Logging qw(export_logs_basic save_and_upload_log);
 
 sub prepare_blktests_config {
     my ($devices) = @_;
@@ -39,6 +39,7 @@ sub run {
     my $trtypes = get_var('BLKTESTS_TRTYPES');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
+    save_and_upload_log('rpm -qi kernel-default', 'kernel_bug_report.txt');
 
     #QA repo is added with lower prio in order to avoid possible problems
     #with some packages provided in both, tested product and qa repo; example: fio
@@ -80,8 +81,6 @@ sub post_fail_hook {
     my ($self) = @_;
     select_serial_terminal;
     export_logs_basic;
-    script_run('rpm -qi kernel-default > /tmp/kernel_info');
-    upload_logs('/tmp/kernel_info');
 }
 
 1;
