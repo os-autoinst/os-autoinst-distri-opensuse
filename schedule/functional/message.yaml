@@ -33,5 +33,6 @@ conditional_schedule:
 schedule:
     - boot/boot_to_desktop
     - x11/window_system
+    - x11/setup
     - '{{sle_tests}}'
     - '{{opensuse_tests}}'

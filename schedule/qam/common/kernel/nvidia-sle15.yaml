@@ -17,5 +17,6 @@ schedule:
 - kernel/nvidia
 - console/system_prepare
 - x11/window_system
+- x11/setup
 - x11/glxgears
 - shutdown/shutdown

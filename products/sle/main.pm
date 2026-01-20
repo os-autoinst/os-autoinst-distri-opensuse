@@ -1165,6 +1165,7 @@ else {
         }
         else {
             loadtest 'x11/window_system';
+            loadtest 'x11/setup';
             loadtest 'x11/disable_screensaver';
             loadtest 'x11/thunderbird/thunderbird_install';
             loadtest 'x11/thunderbird/thunderbird_imap';

@@ -6,6 +6,7 @@ description: >
 schedule:
     - boot/boot_to_desktop
     - x11/window_system
+    - x11/setup
     - x11/disable_screensaver
     - x11/firefox/firefox_printing_testpage
     - x11/firefox/firefox_printing_alignment

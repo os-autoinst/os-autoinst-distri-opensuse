@@ -4,6 +4,7 @@ schedule:
 - boot/boot_to_desktop
 - fips/fips_setup
 - x11/window_system
+- x11/setup
 - console/consoletest_setup
 - x11/brasero/brasero_launch
 - x11/gnome_documents

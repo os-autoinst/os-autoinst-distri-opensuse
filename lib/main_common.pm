@@ -2184,30 +2184,32 @@ sub load_x11_remote {
 }
 
 
+sub load_common_x11_setup {
+    loadtest "boot/boot_to_desktop";
+    loadtest "x11/window_system";
+    loadtest "x11/setup";
+}
+
 sub load_common_x11 {
     # Used by QAM testing
     if (check_var("REGRESSION", "installation")) {
         load_x11_installation;
     }
     elsif (check_var("REGRESSION", "gnome")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "x11/window_system";
+        load_common_x11_setup();
         load_x11_gnome();
     }
     elsif (check_var("REGRESSION", "documentation")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "x11/window_system";
+        load_common_x11_setup();
         load_x11_documentation();
     }
     elsif (check_var("REGRESSION", "other")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "x11/window_system";
+        load_common_x11_setup();
         loadtest "console/consoletest_setup";
         load_x11_other();
     }
     elsif (check_var("REGRESSION", "firefox")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "x11/window_system";
+        load_common_x11_setup();
         loadtest 'x11/disable_screensaver';
         load_x11_webbrowser();
     }
@@ -2218,14 +2220,12 @@ sub load_common_x11 {
             loadtest 'microos/disk_boot';
         }
         else {
-            loadtest 'boot/boot_to_desktop';
-            loadtest "x11/window_system";
+            load_common_x11_setup();
         }
         load_x11_remote();
     }
     elsif (check_var("REGRESSION", "piglit")) {
-        loadtest "boot/boot_to_desktop";
-        loadtest "x11/window_system";
+        load_common_x11_setup();
         loadtest "x11/disable_screensaver";
         loadtest "x11/piglit/piglit";
     }

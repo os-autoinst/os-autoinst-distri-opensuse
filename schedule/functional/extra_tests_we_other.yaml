@@ -6,6 +6,7 @@ name:        x11-desktopapps-other
 schedule:
     - boot/boot_to_desktop
     - x11/window_system
+    - x11/setup
     - console/consoletest_setup
     - x11/brasero/brasero_launch
     - x11/totem/totem_launch

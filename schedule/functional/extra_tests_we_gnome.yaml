@@ -4,6 +4,7 @@ name: extra tests we gnome or desktopapps gnome
 schedule:
     - boot/boot_to_desktop
     - x11/window_system
+    - x11/setup
     - x11/gdm_session_switch
     - x11/gnomecase/nautilus_cut_file
     - x11/gnomecase/nautilus_permission

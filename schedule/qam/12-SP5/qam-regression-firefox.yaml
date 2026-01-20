@@ -3,6 +3,7 @@ name: qam-regression-firefox
 schedule:
 - boot/boot_to_desktop
 - x11/window_system
+- x11/setup
 - x11/disable_screensaver
 - x11/firefox/firefox_smoke
 - x11/firefox/firefox_urlsprotocols
