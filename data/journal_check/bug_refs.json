@@ -2,1059 +2,1973 @@
     "gh#openSUSE/jeos-firstboot#83": {
         "description": "DHCPv4 not supported on 'lo'",
         "products": {
-            "opensuse": ["15.2", "15.3"],
-            "sle": ["15-SP2", "15-SP3"]
+            "opensuse": [
+                "15.2",
+                "15.3"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3"
+            ]
         },
         "type": "bug"
     },
     "gh#OSInside/kiwi#1867": {
         "description": "Failed to find module 'br_netfilter'",
         "products": {
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3"
+            ]
         },
         "type": "bug"
     },
     "bsc#1188270": {
         "description": "lan78xx 1-1.1.1:1.0 eth0: No phy led trigger registered for speed\\(-1\\)",
         "products": {
-            "opensuse": ["Tumbleweed", "15.3"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.3"
+            ]
         },
         "type": "bug"
     },
     "bsc#1188237": {
         "description": "kevent 4 may have been dropped",
         "products": {
-            "opensuse": ["15.3", "15.4", "15.5"]
+            "opensuse": [
+                "15.3",
+                "15.4",
+                "15.5"
+            ]
         },
         "type": "bug"
     },
     "bsc#1188238": {
         "description": "BCM: Reset failed \\(-110\\)|hci0: command .* tx timeout",
         "products": {
-            "opensuse": ["Tumbleweed", "15.3", "15.4"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.3",
+                "15.4"
+            ]
         },
         "type": "bug"
     },
     "bsc#1188444": {
         "description": "Bootloader left irq enabled: bank 1 irq 9",
         "products": {
-            "opensuse": ["15.2"]
+            "opensuse": [
+                "15.2"
+            ]
         },
         "type": "bug"
     },
     "bsc#1022527": {
         "description": ".*wickedd.*ni_process_reap.*blocking waitpid.*",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP1", "15-SP2", "15-SP3", "15-SP4", "12-SP5"]
+            "sle-micro": [
+                "5.0",
+                "5.1",
+                "5.2"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP1",
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "12-SP5"
+            ]
         },
         "type": "feature"
     },
     "bsc#1126272": {
         "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" , "5.4" , "5.5", "6.0", "6.1", "6.2"],
-            "leap-micro": [ "5.2", "5.3", "5.4", "5.5" ],
-            "microos":  ["Tumbleweed"],
-            "sle": ["16.0"]
+            "sle-micro": [
+                "5.0",
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "16.0"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1022525|bsc#1177461": {
         "description": ".*rpcbind.*cannot(.*open file.*rpcbind.xdr.*|.*open file.*portmap.xdr.*|.*save any registration.*)",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5" ],
-            "leap-micro": ["5.2", "5.3"],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "5.0",
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5"
+            ],
+            "leap-micro": [
+                "5.2",
+                "5.3"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1184970": {
         "description": ".*rpc\\.statd.*Failed to open directory sm.*|.*Failed to stat \/var\/lib\/nfs\/sm: No such file or directory",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2"],
-            "leap-micro": ["5.2"],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "5.0",
+                "5.1",
+                "5.2"
+            ],
+            "leap-micro": [
+                "5.2"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1182500": {
         "description": "Failed to transition into init label 'system_u:system_r:init_t:s0'",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5" ],
-            "leap-micro": [ "5.2" ],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "5.0",
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5"
+            ],
+            "leap-micro": [
+                "5.2"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1194903": {
         "description": "Failed to start One time configuration for iscsid.service",
         "products": {
-            "sle-micro": [ "5.2", "5.3" ],
-            "leap-micro": [ "5.2" ]
+            "sle-micro": [
+                "5.2",
+                "5.3"
+            ],
+            "leap-micro": [
+                "5.2"
+            ]
         },
         "type": "bug"
     },
     "bsc#1178033": {
         "description": "kernel: ITS@0x8080000: Unable to locate ITS domain handle",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5", "6.0" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle-micro": [
+                "5.0",
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6"
+            ]
         },
         "type": "bug"
     },
     "bsc#1177695": {
         "description": "kernel: parport_pc: `none' invalid for parameter `dma'",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1177693": {
         "description": "kernel: intel_powerclamp: CPU does not support MWAIT",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1190401": {
         "description": "Lines of type 'g' don't take a GECOS field",
         "products": {
-            "sle-micro": [ "5.1" ]
+            "sle-micro": [
+                "5.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1190662": {
         "description": "/etc/udev/rules.d/41-.*Failed to write ATTR",
         "products": {
-            "sle-micro": [ "5.1", "5.2", "5.3", "5.4" , "5.5" ]
+            "sle-micro": [
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1182961": {
         "description": "could not read from '/sys/module/pcc_cpufreq/initstate': No such device",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1177028": {
         "description": "Started bpfilter",
         "products": {
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "sle": ["15-SP2", "15-SP3"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3"
+            ]
         },
         "type": "bug"
     },
     "bsc#1187618": {
         "description": "systemd-vconsole-setup.service",
         "products": {
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5"
+            ]
         },
         "type": "bug"
     },
     "bsc#1187613": {
         "description": "kernel: Grant table initialized",
         "products": {
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1032323": {
         "description": "Initialization of hypfs failed|The hardware system does not support hypfs",
         "products": {
-            "sle-micro": [ "5.1", "5.2", "5.3" ]
+            "sle-micro": [
+                "5.1",
+                "5.2",
+                "5.3"
+            ]
         },
         "type": "bug"
     },
     "bsc#1188215": {
         "description": "Failed to start Create missing directories from rpmdb",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3" ],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "5.0",
+                "5.1",
+                "5.2",
+                "5.3"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "boo#1188729": {
         "description": "socfpga_setup_ocram_self_refresh: Unable to find mmio-sram in dtb",
         "products": {
-            "opensuse": ["Tumbleweed", "15.3"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.3"
+            ]
         },
         "type": "bug"
     },
     "bsc#1191951": {
         "description": "kernel: wait_for_initramfs\\(\\) called before rootfs_initcalls",
         "products": {
-            "sle": ["15-SP4"]
+            "sle": [
+                "15-SP4"
+            ]
         },
         "type": "bug"
     },
     "bsc#1191575": {
         "description": "kernel: ACPI: SRAT not present|kernel: ARM_SMCCC_ARCH_WORKAROUND_1 missing from firmware|kernel: ACPI PPTT: No PPTT table found, CPU and cache topology may be inaccurate|kernel: cacheinfo: Unable to detect cache hierarchy for CPU|kernel: hrtimer: interrupt took.*ns|kernel: ACPI PPTT: PPTT table found, but unable to locate core.*\\)",
         "products": {
-            "sle": ["15-SP4", "15-SP5", "15-SP6"]
+            "sle": [
+                "15-SP4",
+                "15-SP5",
+                "15-SP6"
+            ]
         },
         "type": "bug"
     },
     "boo#1193426": {
         "description": "libapparmor.*: Can't create cache directory '/var/cache/apparmor/.*': Read-only file system",
         "products": {
-            "opensuse": ["Tumbleweed", "15.4", "15.5", "15.6"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.4",
+                "15.5",
+                "15.6"
+            ]
         },
         "type": "bug"
     },
     "bsc#1197679": {
         "description": "route ipv4 0.0.0.0/0 via.*dev eth0#2 type unicast table main scope universe protocol dhcp covered by a ipv4:dhcp lease",
         "products": {
-            "sle": ["15-SP4", "15-SP5", "15-SP6", "15-SP7"]
+            "sle": [
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7"
+            ]
         },
         "type": "bug"
     },
     "bsc#1202608": {
         "description": "Cannot find 'dmidecode' in path: No such file or directory",
         "products": {
-            "sle-micro": ["5.3"]
+            "sle-micro": [
+                "5.3"
+            ]
         },
         "type": "bug"
     },
     "bsc#1211719": {
         "description": "kernel: sclp_sd: Store Data request failed \\(eq=2, di=3, response=0x40f0, flags=0x00, status=0, rc=-5\\)",
         "products": {
-            "sle": ["15-SP5", "15-SP6", "15-SP7"]
+            "sle": [
+                "15-SP5",
+                "15-SP6",
+                "15-SP7"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1211721": {
         "description": "kernel: The sched.sched_.* sysctl was moved to debugfs in kernel 5.13 for CPU scheduler debugging only. This sysctl will be removed in a future SLE release.",
         "products": {
-            "sle": ["15-SP6", "15-SP5"]
+            "sle": [
+                "15-SP6",
+                "15-SP5"
+            ]
         },
         "type": "bug"
-    }, 
+    },
     "bsc#1186742": {
         "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.*' already present",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3",
+                "15.4"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1188238": {
         "description": "Bluetooth: hci0: command 0x0c03 tx timeout|Bluetooth: hci0: BCM: Reset failed (-110)",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1245376": {
         "description": "kernel: watchdog: watchdog0: watchdog did not stop!|Failed to send WATCHDOG=1 notification message: Connection refused",
         "products": {
-            "sle-micro": ["6.2"],
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "6.2"
+            ],
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1248738": {
         "description": "kernel: PCI: OF: of_root node is NULL, cannot create PCI host bridge node",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "feature"
     },
     "apci-bridge": {
         "description": "fail to add MMCONFIG information, can't access extended (PCI|.*configuration) space under this bridge|PCI: System does not support PCI",
         "products": {
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3",
+                "16.0",
+                "16.1"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "printk": {
         "description": "kernel: printk: systemd:.*output lines suppressed due to ratelimiting",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3"
+            ]
         },
         "type": "ignore"
     },
     "boot-marker": {
         "description": "-- Boot\\s+\\w+\\s+--|-- Reboot --",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3"
+            ]
         },
         "type": "ignore"
     },
     "vmware-cpuid": {
         "description": "kernel: core: CPUID marked event:",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3",
+                "16.0",
+                "16.1"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "hyperv-timer": {
         "description": ".*Found PM-Timer Bug on the chipset. Due to workarounds for a bug.*|.*Unstable clock detected, switching default tracing clock to \"global\".*|If you want to keep using the local clock, then add:|\"trace_clock=local\"| on the kernel command line|.*this clock source is slow. Consider trying other clock sources.*",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3",
+                "16.0",
+                "16.1"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "hyperv-mouse": {
         "description": "kernel: psmouse serio1: trackpoint: failed to get extended button data, assuming 3 buttons",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3",
+                "16.0",
+                "16.1"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "xen-trim-btrfs-on-mechaninal-drive": {
         "description": "kernel: BTRFS warning.*: failed to trim.*, last error -512",
         "products": {
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0"
+            ]
         },
         "type": "ignore"
     },
     "health-check-typo": {
         "description": "health-checker/fail.sh check\" failed|Failed to start MicroOS Health Checker|Machine didn't come up correct, do a rollback",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2" ],
-            "leap-micro": ["5.2", "5.3", "5.4", "5.5", "6.0", "6.1" ],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "5.0",
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "ignore"
     },
     "health-check": {
         "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback",
         "products": {
-            "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.0", "6.1", "6.2"],
-            "leap-micro": ["6.0", "6.1" ]
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "6.0",
+                "6.1"
+            ]
         },
         "type": "ignore"
     },
     "chrony": {
         "description": "chronyd.*Received KoD RATE from|System clock wrong by.*|System clock was stepped by.*",
         "products": {
-            "sle-micro": [ "5.0", "5.1" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
+            "sle-micro": [
+                "5.0",
+                "5.1"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3",
+                "16.0",
+                "16.1"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1219229": {
         "description": "chronyd.*Could not add source.*",
         "products": {
-            "sle-micro": [ "6.0" ]
+            "sle-micro": [
+                "6.0"
+            ]
         },
         "type": "ignore"
     },
     "ssh-connection-close": {
         "description": "error: kex_exchange_identification: (Connection closed by remote host|read: Connection reset by peer)",
         "products": {
-            "sle-micro": [ "5.0", "5.1", "5.2", "5.3", "5.4", "5.5", "6.0" ],
-            "opensuse": ["Tumbleweed", "15.2", "15.3", "15.4", "15.5"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6"]
+            "sle-micro": [
+                "5.0",
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "15.2",
+                "15.3",
+                "15.4",
+                "15.5"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6"
+            ]
         },
         "type": "ignore"
     },
     "no-config-drive": {
         "description": "Timed out waiting for device (/dev/disk/by-label/ignition|/dev/combustion/config|/UUID=)|dev-combustion-config.device: Job dev-combustion-config.device/start timed out.",
         "products": {
-            "leap-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"],
-            "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
-            "microos":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
-            "opensuse":  ["Tumbleweed", "Slowroll", "Slowroll:Staging"],
-            "sle": ["15-SP6", "15-SP7", "16.0"]
+            "leap-micro": [
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1"
+            ],
+            "sle-micro": [
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "microos": [
+                "Tumbleweed",
+                "Slowroll",
+                "Slowroll:Staging"
+            ],
+            "opensuse": [
+                "Tumbleweed",
+                "Slowroll",
+                "Slowroll:Staging"
+            ],
+            "sle": [
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "dmi-firmware-failed": {
         "description": "kernel: dmi: Firmware registration failed",
         "products": {
-            "sle": ["12-SP5"]
+            "sle": [
+                "12-SP5"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1187591": {
         "description": "hibernation: the secret key is invalid",
         "products": {
-            "opensuse": ["Tumbleweed", "15.3"],
-            "sle": ["15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.3"
+            ],
+            "sle": [
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0"
+            ]
         },
         "type": "ignore"
     },
     "boo#1196335": {
         "description": "Failed to start Load kdump kernel and initrd",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"],
-            "sle-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle-micro": [
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1195060": {
         "description": "Failed to start Load kdump kernel early on startup",
         "products": {
-            "sle-micro": ["5.1", "5.2", "5.3", "5.5"]
+            "sle-micro": [
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.5"
+            ]
         },
         "type": "bug"
     },
     "bsc#1199163": {
         "description": "Directory '.*.hdmi' with parent 'vc4-hdmi.* already present",
         "products": {
-            "sle": ["15-SP3", "15-SP4"]
+            "sle": [
+                "15-SP3",
+                "15-SP4"
+            ]
         },
         "type": "bug"
     },
     "boo#1196618": {
         "description": "error -110 whilst initialising SD card",
         "products": {
-            "opensuse": ["Tumbleweed", "15.4", "15.5"]
+            "opensuse": [
+                "Tumbleweed",
+                "15.4",
+                "15.5"
+            ]
         },
         "type": "bug"
     },
     "boo#1203899": {
         "description": "NetworkManager.*kill child process 'helper'.* failed due to unexpected return value -1 by waitpid",
         "products": {
-            "sle-micro": ["5.4" , "5.5"]
+            "sle-micro": [
+                "5.4",
+                "5.5"
+            ]
         },
         "type": "bug"
     },
     "bsc#1200490": {
         "description": "Unable to open /dev/kvm: No such file or directory",
         "products": {
-            "sle-micro": ["5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
-            "leap-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1"]
+            "sle-micro": [
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1202014": {
         "description": "NetworkManager.*failed due to unexpected return value -1 by waitpid",
         "products": {
-            "sle-micro": [ "5.3" ]
+            "sle-micro": [
+                "5.3"
+            ]
         },
         "type": "bug"
     },
     "bsc#1215375": {
         "description": "Failed to lookup EFI memory descriptor for 0x000000003f.*0",
         "products": {
-            "sle-micro": [ "5.1", "5.2" ]
+            "sle-micro": [
+                "5.1",
+                "5.2"
+            ]
         },
         "type": "bug"
     },
     "bsc#1207300": {
         "description": "virtio_gpu virtio.*drm_plane_enable_fb_damage_clips\\(\\) not called",
         "products": {
-            "sle": ["15-SP5" , "15-SP6"]
+            "sle": [
+                "15-SP5",
+                "15-SP6"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1204794": {
         "description": "haveged.service: Failed with result 'exit-code'",
         "products": {
-            "sle": ["15-SP4", "15-SP5", "15-SP6"]
+            "sle": [
+                "15-SP4",
+                "15-SP5",
+                "15-SP6"
+            ]
         },
         "type": "bug"
     },
     "no-caching-mode-page-found": {
         "description": "kernel: sd 0:0:0:0: \\[sda\\] No Caching mode page found|kernel: sd 0:0:0:0: \\[sda\\] Assuming drive cache: write through",
         "products": {
-            "sle": ["15-SP4"]
+            "sle": [
+                "15-SP4"
+            ]
         },
         "type": "ignore"
     },
     "boo#1209063": {
         "description": "Failed to start OpenSSH Daemon.",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "boo#1215367": {
         "description": "pam_wtmpdb\\(login:session\\): Failed to execute statement: database is locked",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1218471": {
         "description": "pam_wtmpdb\\(login:session\\): (Failed to execute statement|Updating logout time failed): database is locked",
         "products": {
-            "sle-micro": ["6.0", "6.1", "6.2"]
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1231391": {
         "description": "pam_wtmpdb\\(login:session\\): (open_database_rw:.*unable to open database file|Cannot get ID from open session!)",
         "products": {
-            "sle-micro": ["6.0", "6.1"],
-            "leap-micro": ["6.0", "6.1"]
+            "sle-micro": [
+                "6.0",
+                "6.1"
+            ],
+            "leap-micro": [
+                "6.0",
+                "6.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1252028": {
         "description": "PAM: Authentication failure for root from.*",
         "products": {
-            "sle-micro": ["6.1"]
+            "sle-micro": [
+                "6.1"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1231455": {
         "description": "systemd.* Failed to start SETroubleshoot daemon for processing new SELinux denial logs\\.",
         "products": {
-            "sle-micro": ["5.5", "6.0"],
-            "leap-micro": ["5.5", "6.0"]
+            "sle-micro": [
+                "5.5",
+                "6.0"
+            ],
+            "leap-micro": [
+                "5.5",
+                "6.0"
+            ]
         },
         "type": "bug"
     },
     "boo#1215368": {
         "description": "systemctl: invalid option -- '\\.'",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1215377": {
         "description": "plugin /usr/sbin/sedispatch terminated unexpectedly",
         "products": {
-            "sle-micro": ["5.4" , "5.5", "6.0", "6.1", "6.2"],
-            "leap-micro": [ "5.5", "6.0", "6.1"]
+            "sle-micro": [
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "5.5",
+                "6.0",
+                "6.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1223259": {
         "description": "sedispatch.*Connection Error.*Failed to connect to socket /run/dbus/system_bus_socket: Connection refused.*",
         "products": {
-            "sle-micro": ["6.0", "6.1", "6.2"],
-            "leap-micro": ["6.0", "6.1"]
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "6.0",
+                "6.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1215378": {
         "description": "(libvirtd|virtqemud).*: error from service: GDBus.Error:org.freedesktop.(login1.OperationInProgress: The operation inhibition has been requested for is already running|systemd1.ShuttingDown: Refusing activation, D-Bus is shutting down|DBus.Error.NoReply: Message recipient disconnected from message bus without replying)",
         "products": {
-            "sle-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
-            "leap-micro": ["5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"]
+            "sle-micro": [
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ]
         },
         "type": "bug"
     },
     "bsc#1215405": {
-        "description": "setroubleshoot.*(SELinux is preventing .*(rebootmgrd|NetworkManager|sshd).* from.* access.*icastats_0.*|failed to retrieve rpm info for path '/dev/shm/icastats_0')",
+        "description": "setroubleshoot.*(SELinux is preventing .*(rebootmgrd|NetworkManager|sshd).* from.* access.*icastats_0.*|failed to retrieve rpm info for path '/dev/shm/icastats_0')|setroubleshoot.*(SELinux is preventing systemd-tmpfile from using the mac_admin capability.*|failed to retrieve rpm info for path '/run/systemd/userdb/io.systemd.Machine')",
         "products": {
-            "sle-micro": ["5.4" , "5.5", "6.0"],
-            "leap-micro": ["5.4" , "5.5", "6.0"]
+            "sle-micro": [
+                "5.4",
+                "5.5",
+                "6.0"
+            ],
+            "leap-micro": [
+                "5.4",
+                "5.5",
+                "6.0"
+            ]
         },
         "type": "bug"
     },
     "bsc#1205931": {
         "description": "setroubleshoot.*SELinux is preventing .*rebootmgrd from.* access.*on the file cpuinfo.*",
         "products": {
-            "sle-micro": ["5.4" , "5.5", "6.0"],
-            "leap-micro": [ "5.5" ]
+            "sle-micro": [
+                "5.4",
+                "5.5",
+                "6.0"
+            ],
+            "leap-micro": [
+                "5.5"
+            ]
         },
         "type": "bug"
     },
     "bsc#1220361": {
         "description": "setroubleshoot.*SELinux is preventing agetty from using the checkpoint_restore capability.*",
         "products": {
-            "sle-micro": ["5.5"]
+            "sle-micro": [
+                "5.5"
+            ]
         },
         "type": "bug"
     },
     "bsc#1227930": {
         "description": "setroubleshoot.*.SELinux is preventing firewalld from ('read, write' accesses on the file icastats_0|read access on the chr_file).*",
         "products": {
-            "sle-micro": ["6.0"]
+            "sle-micro": [
+                "6.0"
+            ]
         },
         "type": "bug"
     },
     "bsc#1229146": {
         "description": "Job cockpit-ws-user\\.service/stop deleted to break ordering cycle starting with basic\\.target/stop",
         "products": {
-            "sle-micro": ["6.1"],
-            "leap-micro": ["6.1"]
+            "sle-micro": [
+                "6.1"
+            ],
+            "leap-micro": [
+                "6.1"
+            ]
         },
         "type": "bug"
     },
     "system-clock-wrong": {
         "description": "System clock wrong by .*",
         "products": {
-            "microos":  ["Tumbleweed"],
-            "sle": ["12-SP5", "15", "15-SP1", "15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"],
-            "sle-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
-            "leap-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"]
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "12-SP5",
+                "15",
+                "15-SP1",
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ],
+            "sle-micro": [
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ]
         },
         "type": "ignore"
     },
     "detected-falseticket": {
         "description": "Detected falseticker .*",
         "products": {
-            "microos":  ["Tumbleweed"],
-            "sle": ["12-SP5", "15", "15-SP1", "15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"],
-            "sle-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
-            "leap-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"]
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "12-SP5",
+                "15",
+                "15-SP1",
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ],
+            "sle-micro": [
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ]
         },
         "type": "ignore"
     },
     "ntp-no-majority": {
         "description": "Can't synchronise: no majority",
         "products": {
-            "microos":  ["Tumbleweed"],
-            "sle": ["12-SP5", "15", "15-SP1", "15-SP2", "15-SP3", "15-SP4", "15-SP5", "15-SP6", "15-SP7", "16.0"],
-            "sle-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"],
-            "leap-micro": ["5.1", "5.2", "5.3", "5.4" , "5.5", "6.0", "6.1", "6.2"]
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "12-SP5",
+                "15",
+                "15-SP1",
+                "15-SP2",
+                "15-SP3",
+                "15-SP4",
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ],
+            "sle-micro": [
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "5.1",
+                "5.2",
+                "5.3",
+                "5.4",
+                "5.5",
+                "6.0",
+                "6.1",
+                "6.2"
+            ]
         },
         "type": "ignore"
     },
     "boo#1212970": {
         "description": "systemd-vconsole-setup\\[.*\\]: /usr/bin/setfont failed with exit status 71.*",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.0"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle-micro": [
+                "6.0"
+            ]
         },
         "type": "bug"
     },
-    "bsc#1215380" : {
+    "bsc#1215380": {
         "description": "Failed to start Entropy Daemon based on the HAVEGE algorithm.",
         "products": {
-            "sle-micro": ["5.3"],
-            "leap-micro": ["5.3"]
+            "sle-micro": [
+                "5.3"
+            ],
+            "leap-micro": [
+                "5.3"
+            ]
         },
         "type": "bug"
     },
     "bsc#1216196": {
         "description": "qgroup reserved space leaked",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.0", "6.1"],
-            "leap-micro": ["6.0", "6.1"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle-micro": [
+                "6.0",
+                "6.1"
+            ],
+            "leap-micro": [
+                "6.0",
+                "6.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1215383": {
         "description": "pam_lastlog2\\(.*\\): User 'bernhard' not found \\(101\\)",
         "products": {
-            "sle-micro": ["6.0"],
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "6.0"
+            ],
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1217231": {
         "description": "systemd-cryptsetup.*Failed to deactivate|systemd.*Timed out waiting for device /UUID.*",
         "products": {
-            "sle-micro": ["6.0"]
+            "sle-micro": [
+                "6.0"
+            ]
         },
         "type": "bug"
     },
     "bsc#1230472": {
         "description": "Failed to start selfinstallbootloader.service",
         "products": {
-            "sle-micro": ["6.1", "6.2"],
-            "leap-micro": ["6.1"]
+            "sle-micro": [
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "6.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1231457": {
         "description": "vas: API is supported only with radix page tables|SED: plpks not available|NX-GZIP is not supported|ibmvscsi.*couldn't initialize crq|ibmvscsi.*probe with driver ibmvscsi failed",
         "products": {
-            "sle-micro": ["6.1", "6.2"],
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "sle-micro": [
+                "6.1",
+                "6.2"
+            ],
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1217773": {
         "description": "Unable to send container stderr message to parent Broken pipe",
         "products": {
-            "sle-micro": ["5.1", "5.4"]
+            "sle-micro": [
+                "5.1",
+                "5.4"
+            ]
         },
         "type": "bug"
     },
     "bsc#1218181": {
         "description": "Device luks is still in use|Device luks is not active\\.|Job.* deleted to break ordering cycle starting with.*",
         "products": {
-            "sle-micro": ["6.0", "6.1", "6.2"],
-            "leap-micro": ["6.0", "6.1"]
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "6.0",
+                "6.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1230314": {
         "description": "kernel: SED: plpks not available",
-	"products": {
-            "sle-micro": ["6.1", "6.2"],
-            "leap-micro": ["6.1"]
+        "products": {
+            "sle-micro": [
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "6.1"
+            ]
         },
         "type": "ignore"
     },
     "Truncating stdout of dmi_memory_id": {
         "description": "Truncating stdout of 'dmi_memory_id' up to .* byte",
         "products": {
-            "sle": ["15-SP6", "15-SP7", "16.0"]
+            "sle": [
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "skip watchdog check": {
         "description": "clocksource: Long readout interval, skipping watchdog check:.*$",
         "products": {
-            "sle": ["15-SP6", "15-SP7", "16.0"],
-            "opensuse": ["Tumbleweed"]
+            "sle": [
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ],
+            "opensuse": [
+                "Tumbleweed"
+            ]
         },
         "type": "ignore"
     },
     "combustion_test_prepare": {
         "description": "combustion: test_prepare function ran OK",
         "products": {
-            "sle": ["15-SP5","15-SP6","15-SP7","16.0"],
-            "sle-micro": ["5.4","5.5", "6.0"],
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "sle": [
+                "15-SP5",
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ],
+            "sle-micro": [
+                "5.4",
+                "5.5",
+                "6.0"
+            ],
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1221504": {
         "description": "bluetoothd.*Failed to (reset Adv Monitors|clear UUIDs|add UUID): Failed",
         "products": {
-            "opensuse": ["15.6"],
-            "sle": ["15-SP6"]
+            "opensuse": [
+                "15.6"
+            ],
+            "sle": [
+                "15-SP6"
+            ]
         },
         "type": "bug"
     },
     "skip elemental systemd-journal check": {
         "description": "Failed to resolve group 'systemd-journal': No such process",
         "products": {
-            "sle-micro": ["6.0"]
+            "sle-micro": [
+                "6.0"
+            ]
         },
         "type": "ignore"
     },
     "skip elemental register check": {
         "description": "Failed to start (e|E)lemental (r|R)egister",
         "products": {
-            "sle-micro": ["6.0"]
+            "sle-micro": [
+                "6.0"
+            ]
         },
         "type": "ignore"
     },
     "minimal vm cloud image - gpt": {
-        "description": "kernel: GPT:(Primary header thinks Alt. header is not at the end of the disk.|Alternate GPT header not at the end of the disk.|\\s+Use GNU Parted to correct GPT errors.|\\d+ != \\d+)",
+        "description": "kernel: GPT:(Primary header thinks Alt. header is not at the end of the disk.|Alternate GPT header not at the end of the disk.|\\s+Use GNU Parted to correct GPT errors.|GPT:\\d+ != \\d+)",
         "products": {
-            "sle": ["15-SP6", "15-SP7", "16.0"],
-            "opensuse": ["Tumbleweed"]
+            "sle": [
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ],
+            "opensuse": [
+                "Tumbleweed"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1228559": {
         "description": "kernel: I/O error, dev fd0|kernel: piix4_smbus",
         "products": {
-            "sle-micro": ["6.0", "6.1", "6.2"],
-            "leap-micro": ["6.0", "6.1", "6.2"]
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ]
         },
         "type": "bug"
     },
     "bsc#1234013": {
         "description": "sshd-session.*: error: mm_reap:.*child terminated by signal 15",
         "products": {
-            "sle-micro": ["6.2"],
-            "microos": ["Tumbleweed"]
+            "sle-micro": [
+                "6.2"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "boo#1228854": {
         "description": "Failed to start Monitoring of LVM2 mirrors, snapshots etc\\. using dmeventd or progress polling\\.",
         "products": {
-            "opensuse": ["Tumbleweed"]
+            "opensuse": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "boo#1227908": {
         "description": "Option builtin_af_unix line \\d+ is obsolete - using /sbin/audisp-af_unix|Option builtin line \\d+ is obsolete - update it",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "sle": ["16.0"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "bug"
     },
     "boo#1229139": {
         "description": "amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "sle": ["16.0"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1225914": {
         "description": "Audit daemon is low on disk space for logging",
         "products": {
-            "sle": ["15-SP6", "15-SP7", "16.0"]
+            "sle": [
+                "15-SP6",
+                "15-SP7",
+                "16.0"
+            ]
         },
         "type": "bug"
     },
     "wicked-warning": {
         "description": "wicked.*: Interface wait time \\(30s\\) reached",
         "products": {
-            "sle": ["15-SP6", "15-SP7"]
+            "sle": [
+                "15-SP6",
+                "15-SP7"
+            ]
         },
         "type": "ignore"
     },
     "boo#1227081": {
         "description": "Activation request for 'org\\.freedesktop\\.nm_dispatcher' failed\\.",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.2"],
-            "sle":  ["16.0"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle-micro": [
+                "6.2"
+            ],
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "vmware-RETBleed": {
         "description": "kernel: RETBleed: WARNING: Spectre v2 mitigation leaves CPU vulnerable to RETBleed attacks, data leaks possible!|Speculative Return Stack Overflow: (IBPB-extending microcode not applied|WARNING: See .* for mitigation options)",
         "products": {
-            "sle": ["15-SP6", "15-SP7", "16.0"],
-            "sle-micro": ["6.0", "6.1", "6.2"]
+            "sle": [
+                "15-SP6",
+                "15-SP7",
+                "16.0",
+                "16.1"
+            ],
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1215516": {
         "description": "kernel: kvm: RT requires X86_FEATURE_CONSTANT_TSC",
         "products": {
-            "sle-micro": ["6.1", "6.2"],
-            "leap-micro": ["6.1"]
+            "sle-micro": [
+                "6.1",
+                "6.2"
+            ],
+            "leap-micro": [
+                "6.1"
+            ]
         },
         "type": "bug"
     },
     "Spectre-V2-LFENCE": {
         "description": "kernel: Spectre V2 : Spectre mitigation: LFENCE not serializing, switching to generic retpoline",
         "products": {
-            "sle-micro": ["5.1", "5.2"],
-            "sle": ["15-SP3"]
+            "sle-micro": [
+                "5.1",
+                "5.2"
+            ],
+            "sle": [
+                "15-SP3"
+            ]
         },
         "type": "ignore"
     },
     "sshd": {
         "description": "pam_lastlog2\\(sshd:session\\).*database is locked|fatal: mm_request_receive: read: Connection reset by peer",
         "products": {
-            "sle-micro": ["6.0", "6.1", "6.2"]
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ]
         },
         "type": "ignore"
     },
     "boo#1229935": {
         "description": "sshd-session.*(error|fatal).*(mm_reap: preauth child terminated|mm_request_receive: read: Broken pipe|mm_request_receive: read: Connection reset by peer)",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"],
-            "sle": ["16.0"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle": [
+                "16.0"
+            ]
         },
         "type": "bug"
     },
     "boo#1245608": {
         "description": "basic hdkf.*hkdf_extract failed with -22",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1240431": {
         "description": "Activation request for 'org.fedoraproject.Setroubleshootd'",
         "products": {
-            "sle-micro": ["6.2"]
+            "sle-micro": [
+                "6.2"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1240138": {
         "description": "SELinux is preventing btrfs from using the sys_admin capability",
         "products": {
-            "sle-micro": ["6.2"]
+            "sle-micro": [
+                "6.2"
+            ]
         },
         "type": "bug"
     },
     "bsc#1231458": {
         "description": "Failed to start Platform Persistent Storage Archival|systemd-pstore.*Failed|crypto_comp_decompress failed",
         "products": {
-            "sle-micro": ["6.1", "6.2"]
+            "sle-micro": [
+                "6.1",
+                "6.2"
+            ]
         },
         "type": "bug"
     },
     "bsc#1242592": {
         "description": "Race condition on shutdown causes pam_wtmpdb to be closed before it can write event to DB",
         "products": {
-            "sle-micro": ["6.0", "6.1", "6.2"],
-            "sle": ["16.0"]
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "sle": [
+                "16.0"
+            ]
         },
         "type": "ignore"
     },
     "rpc.idmapd": {
         "description": "rpc.idmapd.*(Setting log level to 0|libnfsidmap: Unable to determine the NFSv4 domain|exiting on signal 15)",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "dracut-no-logger": {
         "description": "No '\/dev\/log' or 'logger' included for syslog logging",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.2"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle-micro": [
+                "6.2"
+            ]
         },
         "type": "ignore"
     },
     "tpm-auth-session": {
         "description": "kernel: tpm tpm0: auth session is active",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "ppc64le-power10-secvar-sysfs-nosb": {
         "description": "kernel: secvar-sysfs: Failed to retrieve secvar operations",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "ppc64le-power10-no-sed": {
         "description": "kernel: SED: plpks not available",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "ppc64le-power10-no-sriov-hw": {
         "description": "kernel: pci .*: No hypervisor support for SR-IOV on this device, IOV BARs disabled",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "block-dm-0-deprecated": {
         "description": "kernel: block dm-0: the capability attribute has been deprecated",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0"
+            ]
         },
         "type": "ignore"
     },
     "boo#1245786": {
         "description": "Failed to start Update import-pubring.gpg with keys from rpmdb",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "bsc#1236723": {
         "description": "hv_storvsc.*: tag#\\d+ cmd 0x5a status: scsi 0x2 srb 0x86 host 0xc0000001",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1246862": {
         "description": "hcnscan:error code 5, Failed to load bonding module|hcn-init-NetworkManager.service: Failed with result 'exit-code'|Failed to start hybrid virtual network scan and config for NetworkManager",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "bug"
     },
     "bsc#1238885": {
         "description": "kernel: Could not retrieve perf counters \\(-19\\)",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0"
+            ]
         },
         "type": "ignore"
     },
     "replenish-aarch74": {
         "description": "kernel: sched: DL replenish lagged too much",
         "products": {
-            "sle": ["16.0"]
+            "sle": [
+                "16.0"
+            ]
         },
         "type": "ignore"
     },
     "vmware-firmware-bug": {
         "description": ".*APIC (ID|id) mismatch",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.0","6.1","6.2"],
-            "sle": ["16.0"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "sle": [
+                "16.0"
+            ]
         },
         "type": "ignore"
     },
     "vmware-smbus-base-uninitialized": {
         "description": "SMBus base address uninitialized - upgrade BIOS",
         "products": {
-            "opensuse": ["Tumbleweed"],
-            "microos":  ["Tumbleweed"],
-            "sle-micro": ["6.0","6.1","6.2"],
-            "sle": ["16.0"]
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle-micro": [
+                "6.0",
+                "6.1",
+                "6.2"
+            ],
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
         },
         "type": "ignore"
     },
     "bsc#1254368": {
         "description": "Random seed file '/boot/efi/loader/random-seed' is world accessible",
         "products": {
-            "microos":  ["Tumbleweed"]
-        },
-        "type": "bug"
-    },
-    "bsc#1215405": {
-        "description": "setroubleshoot.*(SELinux is preventing systemd-tmpfile from using the mac_admin capability.*|failed to retrieve rpm info for path '/run/systemd/userdb/io.systemd.Machine')",
-        "products": {
-            "sle-micro": ["6.1", "6.2"]
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
     "transactional-update-journal-errors-snapshot": {
         "description": "transactional-update.*zypper up.*snapshot failed with exit code 8",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "ignore"
     },
     "transactional-update-journal-errors-interactive": {
         "description": "transactional-update.*Use '--interactive' for manual problem resolution",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "ignore"
     },
     "transactional-update-journal-errors-snapshot-rm": {
         "description": "transactional-update.*Removing snapshot.*",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "ignore"
     },
     "boo#1256934": {
         "description": "transactional-update.*Garbage after device path end, ignoring",
         "products": {
-            "microos":  ["Tumbleweed"]
+            "microos": [
+                "Tumbleweed"
+            ]
         },
         "type": "bug"
     },
