@@ -96,9 +96,10 @@ sub cleanup_redis {
     foreach my $role (values %ROLES) {
         assert_script_run($REDIS_CLI_CMD{$role} . " flushall");
     }
+    my $redis_conf_dir = script_output("redis-cli config get dir | tail -n 1") // '/';
     assert_script_run($killall_redis_server_cmd);
     assert_script_run($remove_test_db_file_cmd);
-    assert_script_run("find / -type f -name 'dump.rdb' -print -exec rm -f {} + || true", timeout => 180);
+    assert_script_run("find $redis_conf_dir -type f -name 'dump.rdb' -print -exec rm -f {} + || true", timeout => 180);
 }
 
 sub upload_redis_logs {
