@@ -10,6 +10,7 @@ use base 'opensusebasetest';
 use testapi;
 use lockapi;
 use mmapi;
+use version_utils 'check_os_release';
 
 # This tells the module whether the test is running in a supportserver or in node1
 sub is_not_supportserver_scenario {
@@ -209,7 +210,8 @@ sub run {
     return if is_not_supportserver_scenario;
 
     # For getting informations from iSCSI server
-    my $target_iqn = script_output 'lio_node --listtargetnames 2>/dev/null';
+    my $tgt_cmd = check_os_release('15.7', 'VERSION_ID') ? "targetcli ls iscsi | grep iqn | awk '{print \$2}'" : "lio_node --listtargetnames";
+    my $target_iqn = script_output "$tgt_cmd 2>/dev/null";
     my $target_ip_port = script_output "ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null";
     my $dev_by_path = '/dev/disk/by-path';
     my $index = get_var('ISCSI_LUN_INDEX', 0);
