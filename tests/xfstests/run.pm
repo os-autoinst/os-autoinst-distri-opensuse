@@ -119,10 +119,9 @@ sub run {
 
     # Generate xfstests blacklist
     my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist($TEST_RANGES, $GROUPLIST, $FSTYPE));
+    my $whitelist;
     if (my $issues = get_var('XFSTESTS_KNOWN_ISSUES')) {
-        my $whitelist = LTP::WhiteList->new($issues);
-        my %skipped = map { $_ => 1 } $whitelist->list_skipped_tests($whitelist_env, $TEST_SUITE);
-        %black_list = (%black_list, %skipped);
+        $whitelist = LTP::WhiteList->new($issues);
     }
 
     my $subtest_num = scalar @tests;
@@ -131,7 +130,7 @@ sub run {
         # trim testname
         $test =~ s/^\s+|\s+$//g;
         # Skip tests inside blacklist
-        if (exists($black_list{$test})) {
+        if (exists($black_list{$test}) || ($whitelist && $whitelist->is_test_disabled($whitelist_env, $TEST_SUITE, $test))) {
             next;
         }
         my $targs = OpenQA::Test::RunArgs->new();
