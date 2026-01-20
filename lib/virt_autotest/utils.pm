@@ -61,6 +61,7 @@ our @EXPORT = qw(
   ssh_setup
   setup_common_ssh_config
   add_alias_in_ssh_config
+  get_default_ssh_keyfile
   install_default_packages
   parse_subnet_address_ipv4
   backup_file
@@ -534,10 +535,24 @@ sub download_script {
     script_run($cmd);
 }
 
+=head2 get_default_ssh_keyfile
+
+Get the default SSH key file path based on SLE version.
+Returns ed25519 key for SLE 16+ (RSA+SHA1 is disabled by default),
+and RSA key for SLE 15 and below.
+Optional parameter: 'pubkey' => 1 to get the public key file path.
+=cut
+
+sub get_default_ssh_keyfile {
+    my (%args) = @_;
+    my $keyfile = is_sle('16+') ? '/root/.ssh/id_ed25519' : '/root/.ssh/id_rsa';
+    return $args{pubkey} ? "$keyfile.pub" : $keyfile;
+}
+
 sub ssh_setup {
     my $default_ssh_key = shift;
 
-    $default_ssh_key //= is_sle('16+') ? "/root/.ssh/id_ed25519" : "/root/.ssh/id_rsa";
+    $default_ssh_key //= get_default_ssh_keyfile();
     my $dt = DateTime->now;
     my $comment = "openqa-" . $dt->mdy . "-" . $dt->hms('-') . get_var('NAME');
     if (script_run("[[ -s $default_ssh_key ]]") != 0) {
@@ -563,7 +578,7 @@ sub ssh_copy_id {
     my $authorized_keys = $args{authorized_keys} // '.ssh/authorized_keys';
     my $scp = $args{scp} // 0;
     my $default_ssh_key = $args{default_ssh_key};
-    $default_ssh_key //= is_sle('16+') ? "/root/.ssh/id_ed25519.pub" : "/root/.ssh/id_rsa.pub";
+    $default_ssh_key //= get_default_ssh_keyfile(pubkey => 1);
     script_retry "nmap $guest -PN -p ssh | grep open", delay => 15, retry => 12;
     assert_script_run "ssh-keyscan $guest >> ~/.ssh/known_hosts";
     if (script_run("ssh -o PreferredAuthentications=publickey -o ControlMaster=no $username\@$guest hostname") != 0) {
