@@ -8,7 +8,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use y2_module_basetest;
-use version_utils 'is_opensuse';
+use version_utils qw(is_opensuse check_os_release);
 
 sub _remove_installation_media_and_add_network_repos {
     # this is supposed to run during SUPPORTSERVER_GENERATOR
@@ -37,7 +37,10 @@ sub _remove_installation_media_and_add_network_repos {
 }
 
 sub _install_packages {
-    my @packages = qw(apache2 tftp dhcp-server bind yast2-iscsi-lio-server xrdp);
+    my @packages = qw(apache2 tftp dhcp-server bind xrdp);
+    my $lio_pkg = check_os_release('12', 'VERSION_ID')
+      ? 'targetcli' : 'python3-targetcli-fb';
+    push(@packages, $lio_pkg);
     zypper_call("in " . join(" ", @packages));
 }
 
