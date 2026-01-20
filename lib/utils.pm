@@ -386,6 +386,14 @@ sub unlock_if_encrypted {
         handle_grub_zvm($console);
         unlock_zvm_disk($console);
     }
+    elsif (check_var('FDE_UNLOCK_METHOD', 'TPM_PIN')) {
+        assert_screen("encrypted-disk-tpm-pin-prompt", 200);
+        my $pin = get_var('FDE_UNLOCK_TPM_PIN', $password);
+        type_password $pin;
+        save_screenshot;
+        send_key "ret";
+        wait_still_screen 15;
+    }
     else {
         assert_screen("encrypted-disk-password-prompt", 200);
         type_password $password;
@@ -1192,11 +1200,11 @@ without LVM configuration (cr_swap,cr_home etc).
 
 sub need_unlock_after_bootloader {
     my $is_enc_cc_s390x = check_var('SYSTEM_ROLE', 'Common_Criteria') && check_var('FULL_LVM_ENCRYPT', '1') && is_s390x;
-
+    my $method = get_var('FDE_UNLOCK_METHOD', 'TPM');
     my $need_unlock_after_bootloader = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0')) || $is_enc_cc_s390x;
     return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
-    # MicroOS with sdboot supports automatic TPM based unlocking.
-    return 0 if is_microos && (is_bootloader_sdboot || is_bootloader_grub2_bls) && get_var('QEMUTPM');
+    # MicroOS with sdboot or grub2-bls supports automatic TPM based unlocking (as long as no additional PIN is set).
+    return 0 if is_microos && (is_bootloader_sdboot || is_bootloader_grub2_bls) && get_var('QEMUTPM') && $method eq 'TPM';
     return 1;
 }
 
