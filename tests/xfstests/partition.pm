@@ -449,7 +449,7 @@ END
 }
 
 sub setup_krb5 {
-    script_run('hostname localhost');
+    script_run('hostnamectl set-hostname susetest@SUSETEST.COM');
     my $content = <<END;
 includedir  /etc/krb5.conf.d
 
@@ -490,8 +490,8 @@ END
     script_run('kdb5_util create -s -P susetest -r SUSETEST.COM');
     script_run('systemctl start krb5kdc kadmind; systemctl enable krb5kdc kadmind');
     script_run('echo -e "susetest\nsusetest" | kadmin.local -q "addprinc root/admin@SUSETEST.COM"');
-    script_run('kadmin.local -q "addprinc -randkey nfs/$(hostname -f)@SUSETEST.COM"');
-    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab nfs/$(hostname -f)@SUSETEST.COM"');
+    script_run('kadmin.local -q "addprinc -randkey nfs/susetest@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab nfs/susetest@SUSETEST.COM"');
 
     #create fsgqa/fsgqa2 users for some xfstests
     script_run('kadmin.local -q "addprinc -randkey fsgqa@SUSETEST.COM"');
@@ -501,12 +501,12 @@ END
 
     #verify the key
     script_run('klist -kte /etc/krb5.keytab');
-    script_run('kadmin.local -q "getprinc nfs/$(hostname -f)@SUSETEST.COM"');
+    script_run('kadmin.local -q "getprinc nfs/susetest@SUSETEST.COM"');
 
     #get kerberos ticket and check
-    script_run('kinit -k host/$(hostname -f)@SUSETEST.COM');
+    script_run('kinit -k host/susetest@SUSETEST.COM');
     script_run('klist');
-    script_run('kinit -k nfs/$(hostname -f)@SUSETEST.COM');
+    script_run('kinit -k nfs/susetest@SUSETEST.COM');
     script_run('klist');
 
     script_run("systemctl restart nfs-idmapd");
