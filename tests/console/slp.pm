@@ -16,7 +16,7 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(zypper_call systemctl script_retry);
+use utils qw(zypper_call systemctl script_retry validate_script_output_retry);
 use Utils::Systemd 'disable_and_stop_service';
 use Utils::Logging 'save_and_upload_log';
 use version_utils qw(is_tumbleweed is_sle);
@@ -68,7 +68,7 @@ sub run {
     # Deregister one NTP service and find the other one
     assert_script_run 'slptool deregister ntp://tik.cesnet.cz:123,en,65535';
     assert_script_run 'slptool findsrvs ntp';
-    assert_script_run 'if [[ $(slptool findsrvs ntp | grep -c "tik\|tak" | cut -d, -f1 | sort | uniq ) = "1" ]]; then echo "One remaining NTP announcement was found"; else false; fi';
+    validate_script_output_retry('slptool findsrvs ntp | grep -c "tik\|tak" | wc -l', sub { m/\s*1$/ }, retry => 10, delay => 5);
 
     # Turn off slpd
     systemctl 'stop slpd';
