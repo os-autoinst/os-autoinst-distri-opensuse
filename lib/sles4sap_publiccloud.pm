@@ -1100,10 +1100,11 @@ sub create_playbook_section_list {
         push @sap_hana_install, '-e enable_community_sap_roles=true'
           if check_var('USE_UPSTREAM_ROLES', 1);
         push @playbook_list, join(' ', @sap_hana_install);
-        push @playbook_list, qw(
-          sap-hana-system-replication.yaml
-          sap-hana-system-replication-hooks.yaml
-        );
+        my @sap_hana_system_replication = ('sap-hana-system-replication.yaml');
+        push @sap_hana_system_replication, '-e enable_community_sap_roles=true'
+          if check_var('USE_UPSTREAM_ROLES', 1);
+        push @playbook_list, join(' ', @sap_hana_system_replication);
+        push @playbook_list, 'sap-hana-system-replication-hooks.yaml';
         push @playbook_list, $hana_cluster_playbook;
     }
     return (\@playbook_list);
