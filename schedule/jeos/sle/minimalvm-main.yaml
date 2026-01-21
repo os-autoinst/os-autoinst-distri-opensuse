@@ -76,7 +76,6 @@ schedule:
     - console/apache
     - console/dns_srv
     - console/postgresql_server
-    - console/shibboleth
     - console/apache_ssl
     - console/hostname
     - console/installation_snapshots
