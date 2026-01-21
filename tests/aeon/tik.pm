@@ -1,11 +1,12 @@
-# Copyright 2014-2018 SUSE LLC
+# Copyright 2014-2026 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 use Mojo::Base 'basetest';
 use testapi;
 
 sub run {
-    my $encryption_passphrase = 'the encryption passphrase';
+    # Use the common password as passphrase
+    my $encryption_passphrase = $testapi::password;
 
     # wait for welcome screen to appear, this can take a while
     assert_screen 'tik-welcome', 600;
