@@ -31,9 +31,4 @@ repos:
     uri: https://download.nvidia.com/suse/sle16
     enabled: 'No'
     filter: name
-  - name: science
-    alias: science
-    uri: https://download.opensuse.org/repositories/science/16.0/
-    enabled: 'Yes'
-    filter: name
 bootloader_timeout: '15'
