@@ -31,7 +31,7 @@ sub run {
     send_key 'tab';
     send_key 'tab';
     send_key 'ret';
-    
+
     # User setup
     assert_screen 'aeon-firstboot-aboutyou';
     type_string $testapi::username;
