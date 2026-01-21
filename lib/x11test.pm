@@ -998,11 +998,16 @@ sub check_desktop_runner {
     x11_start_program('true', target_match => 'generic-desktop', no_wait => 1);
 }
 
+sub get_session_type {
+    script_output("loginctl show-session \$(loginctl list-sessions | awk '/$testapi::username/ {print \$1};') -p Type | cut -f2 -d=", undef, type_command => 1);
+    set_var('UI_SESSION_TYPE', $session_type);
+}
+
 sub disable_key_repeat {
     my $cmd = 'xset -r';
-    my $in_wayland = get_var('UI_SESSION_TYPE', '') =~ /wayland/;
+    my $in_wayland = get_var('UI_SESSION_TYPE', get_session_type()) =~ /wayland/;
     my $in_gnome = get_var('DESKTOP', '') ne 'gnome' && !get_var('GNOME');
-    return record_info('ERROR', "Unable to disable key repetition. Consider to add a desktop environment specific solution to prevent key repetition errors.") if $in_wayland && !$in_gnome;
+    return record_info('ERROR', "Unable to disable key repetition. Consider to add a desktop environment specific solution to prevent key repetition errors. Found in_wayland '$in_wayland' and in_gnome '$in_gnome'") if $in_wayland && !$in_gnome;
     my $cmd = $in_wayland && $in_gnome ? 'gsettings set org.gnome.desktop.peripherals.keyboard repeat false' : 'xset -r';
     x11_start_program($cmd, target_match => 'generic-desktop', no_wait => 1);
 }
