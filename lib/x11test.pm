@@ -999,7 +999,12 @@ sub check_desktop_runner {
 }
 
 sub disable_key_repeat {
-    x11_start_program('xset -r', target_match => 'generic-desktop', no_wait => 1);
+    my $cmd = 'xset -r';
+    my $in_wayland = get_var('UI_SESSION_TYPE', '') =~ /wayland/;
+    my $in_gnome = get_var('DESKTOP', '') ne 'gnome' && !get_var('GNOME');
+    return record_info('ERROR', "Unable to disable key repetition. Consider to add a desktop environment specific solution to prevent key repetition errors.") if $in_wayland && !$in_gnome;
+    my $cmd = $in_wayland && $in_gnome ? 'gsettings set org.gnome.desktop.peripherals.keyboard repeat false' : 'xset -r';
+    x11_start_program($cmd, target_match => 'generic-desktop', no_wait => 1);
 }
 
 # Start one of the libreoffice components, close any first-run dialogs

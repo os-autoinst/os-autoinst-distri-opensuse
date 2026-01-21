@@ -22,6 +22,7 @@ sub run {
     );
 
     if ($session_type) {
+        set_var('UI_SESSION_TYPE', $session_type);
         record_info("$session_type", "Current session type is $session_type");
     } else {
         die('Session type is not defined');
