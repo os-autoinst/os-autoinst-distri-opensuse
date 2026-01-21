@@ -97,7 +97,11 @@ sub cleanup_redis {
         assert_script_run($REDIS_CLI_CMD{$role} . " flushall");
     }
     my $redis_conf_dir = script_output("redis-cli config get dir | tail -n 1") // '/';
-    assert_script_run($killall_redis_server_cmd);
+
+    # Gracefully stop redis instance, stopping redis replica first
+    assert_script_run($REDIS_CLI_CMD{$ROLES{REPLICA}} . " shutdown");
+    assert_script_run($REDIS_CLI_CMD{$ROLES{MASTER}} . " shutdown");
+
     assert_script_run($remove_test_db_file_cmd);
     assert_script_run("find $redis_conf_dir -type f -name 'dump.rdb' -print -exec rm -f {} + || true", timeout => 180);
 }
