@@ -25,26 +25,6 @@ use LTP::utils;
 use transactional;
 use package_utils;
 
-sub check_kernel_package {
-    my $kernel_name = shift;
-
-    enter_trup_shell(global_options => '-c') if is_transactional;
-    script_run('shopt -s nullglob');
-    script_run('ls -1 /boot/vmlinu[xz]* /boot/[Ii]mage*');
-    script_run('shopt -u nullglob');
-    # Only check versioned kernels in livepatch tests. Some old kernel
-    # packages install /boot/vmlinux symlink but don't set package ownership.
-    my $glob = get_var('KGRAFT', 0) ? '-*' : '*';
-    my $cmd = 'shopt -s nullglob; rpm -qf --qf "%{NAME}\n" /boot/vmlinu[xz]' . $glob . ' /boot/[Ii]mage' . $glob;
-    my $packs = script_output($cmd);
-    exit_trup_shell if is_transactional;
-
-    for my $packname (split /\s+/, $packs) {
-        die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
-          if $packname ne $kernel_name;
-    }
-}
-
 # kernel-azure is never released in pool, first release is in updates.
 # Fix the chicken & egg problem manually.
 sub first_azure_release {
@@ -190,6 +170,7 @@ sub override_shim {
 sub install_lock_kernel {
     my $kernel_version = shift;
     my $src_version = shift;
+    my $kernel_package = get_kernel_flavor;
 
     # Pre-Boothole (CVE 2020-10713) kernel compatibility workaround.
     # Machines with SecureBoot enabled will refuse to boot old kernels
@@ -199,8 +180,7 @@ sub install_lock_kernel {
     }
 
     # remove all kernel related packages from system
-    my @packages = remove_kernel_packages();
-    my @lpackages = @packages;
+    my @lpackages = remove_kernel_packages();
     my %packver = (
         'kernel-devel' => $src_version,
         'kernel-devel-rt' => $src_version,
@@ -209,7 +189,11 @@ sub install_lock_kernel {
         'kernel-source-rt' => $src_version
     );
 
-    push @packages, get_kernel_devel_flavor;
+    my @packages = ($kernel_package, get_kernel_devel_flavor,
+        get_kernel_source_flavor);
+
+    push @packages, 'kernel-macros' if $kernel_package eq 'kernel-default';
+    push @lpackages, @packages;
 
     # add explicit version to each package
     foreach my $package (@packages) {
@@ -500,11 +484,6 @@ sub run {
 
     $self->{repos} = {};
 
-    unless (get_var('KERNEL_FLAVOR')) {
-        $kernel_package = 'kernel-default-base' if is_sle('<12');
-        $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
-    }
-
     if (((is_ipmi || is_pvm) && get_var('LTP_BAREMETAL')) || is_transactional) {
         # System is already booted after installation, just switch terminal
         select_serial_terminal;
@@ -567,34 +546,15 @@ sub run {
 
         kgraft_state;
     }
-    elsif (get_var('AZURE')) {
-        $kernel_package = 'kernel-azure';
-
-        if (get_var('AZURE_FIRST_RELEASE')) {
-            $self->first_azure_release($repo);
-        }
-        else {
-            $self->prepare_kernel($kernel_package);
-            $self->update_kernel($repo, $incident_id);
-        }
-    }
-    elsif (get_var('KERNEL_BASE')) {
-        $kernel_package = 'kernel-default-base';
-        $self->prepare_kernel($kernel_package);
-        $self->update_kernel($repo, $incident_id);
-    }
-    elsif (get_var('COCO')) {
-        $kernel_package = 'kernel-coco';
-        $self->prepare_kernel($kernel_package);
-        $self->update_kernel($repo, $incident_id);
-    }
-    elsif (get_var('KERNEL_64KB')) {
-        $kernel_package = 'kernel-64kb';
-        $self->prepare_kernel($kernel_package);
-        $self->update_kernel($repo, $incident_id);
+    elsif (get_var('AZURE_FIRST_RELEASE')) {
+        $self->first_azure_release($repo);
     }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
+    }
+    elsif ($kernel_package ne get_initial_kernel_flavor) {
+        $self->prepare_kernel($kernel_package);
+        $self->update_kernel($repo, $incident_id);
     }
     else {
         $self->update_kernel($repo, $incident_id);
