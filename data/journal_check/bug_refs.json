@@ -1981,5 +1981,14 @@
             ]
         },
         "type": "ignore"
+    },
+    "poo#195269": {
+        "description": "transactional-update.*Argument resolves to no package: libtukit4",
+        "products": {
+            "microos": [
+                "Tumbleweed"
+            ]
+        },
+        "type": "ignore"
     }
 }
