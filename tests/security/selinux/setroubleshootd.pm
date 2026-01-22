@@ -76,7 +76,7 @@ sub check_sealert() {
     while ($retries--) {
         $sealert_l_output = script_output "sealert -l '*'";
         $sealert_a_output = script_output "sealert -a /var/log/audit/audit.log";
-        last if valid_sealert_output($sealert_a_output) || valid_sealert_output($sealert_l_output);
+        last if valid_sealert_output($sealert_a_output) && valid_sealert_output($sealert_l_output);
         sleep 1;
     }
     die "sealert -l '*' Does not validate" unless $retries;
@@ -87,11 +87,6 @@ sub check_sealert() {
     } else {
         die "alert event ID not found";
     }
-    # https://bugzilla.suse.com/show_bug.cgi?id=1237388
-    # run same validations against specific ID output
-    record_soft_failure('bsc#1237388 -- sealert -l ID') unless valid_sealert_output(script_output "sealert -l $local_id", proceed_on_failure => 1);
-    # we should find deny message in journal as well
-    record_soft_failure('bsc#1237388 - journalctl') if script_run "journalctl -u setroubleshootd.service | grep 'SELinux is preventing runcon from using the transition access'";
 }
 
 sub run {
