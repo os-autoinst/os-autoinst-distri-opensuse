@@ -23,6 +23,8 @@ sub run {
         send_key('ret');
     }
     wait_still_screen;
+    send_key 'alt-f4';
+    assert_and_click('close-virt-viewer');
     # Close or at least deactivate the current window in case it would cover vncviewer later
     close_gui_terminal;
     wait_still_screen;
