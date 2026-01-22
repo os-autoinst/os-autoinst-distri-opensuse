@@ -76,7 +76,7 @@ sub check_sealert() {
     while ($retries--) {
         $sealert_l_output = script_output "sealert -l '*'";
         $sealert_a_output = script_output "sealert -a /var/log/audit/audit.log";
-        last if valid_sealert_output($sealert_a_output) || valid_sealert_output($sealert_l_output);
+        last if valid_sealert_output($sealert_a_output) && valid_sealert_output($sealert_l_output);
         sleep 1;
     }
     die "sealert -l '*' Does not validate" unless $retries;
