@@ -1163,7 +1163,7 @@ sub load_console_server_tests {
     loadtest "console/apache";
     loadtest "console/dns_srv";
     loadtest "console/postgresql_server" unless (is_leap('<15.0'));
-    loadtest "console/shibboleth" unless (is_jeos);
+    loadtest "console/shibboleth" if (is_sle && !is_jeos);
     if (!is_staging && (is_opensuse || get_var('ADDONS', '') =~ /wsm/ || get_var('SCC_ADDONS', '') =~ /wsm/)) {
         # TODO test on SLE https://progress.opensuse.org/issues/31972
         loadtest "console/mariadb_odbc" if is_opensuse;
