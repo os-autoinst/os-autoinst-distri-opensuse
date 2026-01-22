@@ -32,7 +32,6 @@ sub run {
     my $resource_group = "openqa-aitl-$job_id";
     my $subscription_id = $provider->provider_client->subscription;
 
-    my $aitl_client_version = get_required_var("PUBLIC_CLOUD_AZURE_AITL_VER");
     my $aitl_image_gallery = "test_image_gallery";
     my $aitl_image_version = "latest";
     my $aitl_job_name = "openqa-aitl-$job_id";
@@ -46,11 +45,24 @@ sub run {
     my $tags = "openqa-aitl=$job_id openqa_created_by=$created_by openqa_var_server=$openqa_url";
 
     my $timeout //= get_var('PUBLIC_CLOUD_AITL_TIMEOUT', 3600 * 1.5);
-    my $aitl_job = "python3.11 /tmp/aitl.py job";
+
+    my $aitl_image = get_var(
+        'PUBLIC_CLOUD_AZURE_AITL_IMAGE',
+        'registry.opensuse.org/devel/opensuse/qa/qac/containers/15.6/aitl-lisa:leap'
+    );
+
+    assert_script_run("podman pull $aitl_image");
+
+    my $aitl_job = "podman run --rm " .
+      "-v /root/.azure:/root/.azure " .
+      "-v /tmp:/tmp " .
+      "$aitl_image " .
+      " job";
+
     my $monitoring = "{RUNNING:length([?@=='RUNNING']),QUEUED:length([?@=='QUEUED']),ASSIGNED:length([?@=='ASSIGNED']),FAILED:length([?@=='FAILED'])}";
 
-    # Get the AITL script
-    assert_script_run("curl https://raw.githubusercontent.com/microsoft/lisa/refs/tags/$aitl_client_version/microsoft/utils/aitl/aitl.py -o /tmp/aitl.py");
+    # Sanity check the container can execute AITL
+    assert_script_run("$aitl_job --help");
 
     # Create Resource group in $region
     assert_script_run("az group create -n $resource_group -l $region --tags '$tags'");
