@@ -48,7 +48,7 @@ sub setup {
     # Build test helpers
     run_command "cp -f vendor.mod go.mod || true";
     run_command "cp -f vendor.sum go.sum || true";
-    run_command '(cd testutil/fixtures/plugin/basic; go mod init docker-basic-plugin; go build -o $GOPATH/bin/docker-basic-plugin)';
+    run_command '(cd testutil/fixtures/plugin/basic && go mod init docker-basic-plugin && go build -o $GOPATH/bin/docker-basic-plugin) || true';
 
     if (my $test_dirs = get_var("RUN_TESTS", "")) {
         @test_dirs = split(/,/, $test_dirs);
