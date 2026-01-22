@@ -13,9 +13,9 @@
                       product => {
                         arch    => "x86_64",
                         distri  => "aeon",
-                        flavor  => "IMAGE",
-                        group   => "aeon-RC3-IMAGE",
-                        version => "RC3",
+                        flavor  => "Installer",
+                        group   => "aeon-Installer",
+                        version => "*",
                       },
                       test_suite => { name => "aeon_tests" },
                     },
@@ -37,11 +37,11 @@
                     {
                       arch     => "x86_64",
                       distri   => "aeon",
-                      flavor   => "IMAGE",
+                      flavor   => "Installer",
                       settings => [
                         { key => "SHUTDOWN_NEEDS_AUTH", value => 0 },
                       ],
-                      version  => "RC3",
+                      version  => "*",
                     },
                   ],
   TestSuites   => [
