@@ -20,8 +20,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(distribution-registry glibc-devel go1.24 selinux-tools);
-    push @pkgs, qw(nftables-devel) unless is_sle;
+    my @pkgs = qw(distribution-registry glibc-devel go1.24 nftables-devel selinux-tools);
     push @pkgs, qw(containerd-ctr docker docker-buildx docker-rootless-extras rootlesskit) unless get_var("DOCKER_CE");
     $self->setup_pkgs(@pkgs);
 
@@ -89,6 +88,7 @@ sub run {
     my $test_no_firewalld = ($firewall_backend eq "iptables") ? "true" : "";
 
     my %env = (
+        DEST => "/var/tmp/moby",
         DOCKER_FIREWALL_BACKEND => $firewall_backend,
         DOCKER_ROOTLESS => get_var("ROOTLESS", ""),
         DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
