@@ -30,7 +30,8 @@ sub setup {
 
     $version = script_output "docker version --format '{{.Client.Version}}'";
     $version =~ s/-ce$//;
-    $version = "v$version";
+    # Docker v29 changed tag format
+    $version = ($version =~ /^2[1-8]/) ? "v$version" : "docker-v$version";
     record_info "docker version", $version;
 
     run_command "ln -s /var/tmp/docker-frozen-images /";
