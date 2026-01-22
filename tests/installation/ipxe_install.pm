@@ -295,7 +295,7 @@ sub set_bootscript_cmdline_extra {
 sub set_bootscript_image_config {
 
     my $cmdline_image_config =
-      " rd.kiwi.install.pxe rd.kiwi.install.pxe.curl_options=--retry,3,--retry-delay,3,--speed-limit,2048"
+      " rd.kiwi.install.pxe rd.break=pre-mount rd.kiwi.debug.break=pre-install"
       . " rd.debug rd.memdebug=5 rd.udev.debug rd.kiwi.debug rd.kiwi.term rd.kiwi.install.pass.bootparam ";
     if (get_var("FIRST_BOOT_CONFIG")) {
         $cmdline_image_config .= " rd.kiwi.oem.installdevice=";
