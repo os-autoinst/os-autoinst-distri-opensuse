@@ -190,7 +190,7 @@ sub install_lock_kernel {
     );
 
     my @packages = ($kernel_package, get_kernel_devel_flavor,
-        get_kernel_source_flavor);
+        get_kernel_devel_libs, get_kernel_source_flavor);
 
     push @packages, 'kernel-macros' if $kernel_package eq 'kernel-default';
     push @lpackages, @packages;
@@ -206,7 +206,7 @@ sub install_lock_kernel {
 
     # install and lock needed kernel
     enter_trup_shell(global_options => '-c') if is_transactional;
-    zypper_call("in --recommends " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
+    zypper_call("in " . join(' ', @packages), exitcode => [0, 102, 103, 104], timeout => 1400);
     zypper_call("al " . join(' ', @lpackages));
     exit_trup_shell if is_transactional;
 }

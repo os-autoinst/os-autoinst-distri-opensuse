@@ -23,6 +23,7 @@ our @EXPORT = qw(
   get_kernel_flavor
   get_kernel_source_flavor
   get_kernel_devel_flavor
+  get_kernel_devel_libs
   check_kernel_package
 );
 
@@ -69,6 +70,16 @@ sub get_kernel_devel_flavor {
     }
     elsif (get_var('COCO')) {
         $devel_pack = 'kernel-devel-coco';
+    }
+
+    return $devel_pack;
+}
+
+sub get_kernel_devel_libs {
+    my $devel_pack = 'kernel-default-devel';
+
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        $devel_pack = 'kernel-rt-devel';
     }
 
     return $devel_pack;
