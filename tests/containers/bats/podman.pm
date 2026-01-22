@@ -116,9 +116,6 @@ sub run {
         run_command "rm -f test/system/180-blkio.bats" unless is_x86_64;
         # This test is flaky on ppc64le & s390x
         run_command "rm -f test/system/220-healthcheck.bats" if ((is_ppc64le && is_sle) || is_s390x);
-        # This test fails on ppc64le with crun
-        # https://github.com/containers/crun/issues/1882
-        run_command "rm -f test/system/280-update.bats" if (is_ppc64le && $oci_runtime eq "crun");
         # This test is flaky and will fail if system is "full"
         run_command "rm -f test/system/320-system-df.bats";
         # This tests needs criu, available only on Tumbleweed
