@@ -19,8 +19,11 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(docker docker-buildx go1.24);
-    push @pkgs, qw(docker-compose) unless is_sle("<16");
+    my @pkgs = qw(go1.24);
+    unless (get_var("DOCKER_CE")) {
+        push @pkgs, qw(docker docker-buildx);
+        push @pkgs, qw(docker-compose) unless is_sle("<16");
+    }
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
@@ -55,8 +58,8 @@ sub setup {
     run_command "cp vendor.sum go.sum";
 
     # Trust this certificate to test notary
-    run_command "cp e2e/testdata/notary/root-ca.cert /etc/pki/trust/anchors/";
-    run_command "update-ca-certificates";
+    my $test_notary = script_run("test -f e2e/testdata/notary/root-ca.cert") == 0;
+    run_command "cp -f e2e/testdata/notary/root-ca.cert /etc/pki/trust/anchors/ && update-ca-certificates" if $test_notary;
 
     # We don't test Docker Content Trust
     run_command "rm -rf e2e/trust";
@@ -67,7 +70,9 @@ sub setup {
     # Init Docker Swarm
     run_command "docker swarm init --advertise-addr $ip_addr";
     # Init Docker Compose
-    run_command "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose up --build -d registry notary-server evil-notary-server";
+    my $services = "registry";
+    $services .= " notary-server evil-notary-server" if $test_notary;
+    run_command "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose up --build -d $services";
 }
 
 sub run {

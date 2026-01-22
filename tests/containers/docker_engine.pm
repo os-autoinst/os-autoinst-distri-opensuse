@@ -20,13 +20,14 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.24 rootlesskit selinux-tools);
+    my @pkgs = qw(distribution-registry glibc-devel go1.24 selinux-tools);
+    push @pkgs, qw(containerd-ctr docker docker-buildx docker-rootless-extras rootlesskit) unless get_var("DOCKER_CE");
     $self->setup_pkgs(@pkgs);
 
     configure_docker(selinux => 1, tls => 0);
 
     # Tests use "ctr"
-    run_command "cp /usr/sbin/containerd-ctr /usr/local/bin/ctr";
+    run_command "cp /usr/sbin/containerd-ctr /usr/local/bin/ctr" unless get_var("DOCKER_CE");
 
     $version = script_output "docker version --format '{{.Client.Version}}'";
     $version =~ s/-ce$//;
