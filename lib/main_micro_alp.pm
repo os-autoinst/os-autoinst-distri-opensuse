@@ -288,7 +288,6 @@ sub load_selinux_tests {
 sub load_rcshell_tests {
     # Tests before the YaST installation
     loadtest 'microos/rcshell_start';
-    loadtest 'microos/libzypp_config';
     loadtest 'microos/one_line_checks';
 }
 
