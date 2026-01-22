@@ -123,7 +123,7 @@ sub qesap_az_clean_old_peerings {
     my %peerings = qesap_az_get_active_peerings(rg => $args{rg}, vnet => $args{vnet});
 
     while (my ($key, $value) = each %peerings) {
-        if (qesap_is_job_finished(job_id => $value)) {
+        if (qesap_is_job_finished(job_id => $value) && $key !~ /SDAF/i) {
             record_info('Leftover Peering', "$key is leftover from a finished job. Attempting to delete...");
             az_network_peering_delete(
                 name => $key,
