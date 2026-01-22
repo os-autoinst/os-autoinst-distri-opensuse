@@ -10,7 +10,7 @@
 # $self->{my_instance} defines what is the target instance to execute code on. It is acquired from
 # data located in "@instances" and produced by deployment test modules.
 
-package sles4sap_publiccloud;
+package sles4sap::sles4sap_publiccloud;
 
 use base 'publiccloud::basetest';
 use strict;

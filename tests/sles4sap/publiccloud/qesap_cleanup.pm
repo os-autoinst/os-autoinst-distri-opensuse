@@ -2,13 +2,13 @@
 #
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Cleanup cloud resources meant to be used with multimodule setup with qe-sap-deployment project.
 # https://github.com/SUSE/qe-sap-deployment
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 =head1 NAME
 
-qesap_cleanup.pm - Cleans up the cloud resources.
+sles4sap/publiccloud/qesap_cleanup.pm - Cleans up the cloud resources.
 
 =head1 DESCRIPTION
 
@@ -35,7 +35,7 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap_publiccloud_basetest';
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use testapi;
 
 

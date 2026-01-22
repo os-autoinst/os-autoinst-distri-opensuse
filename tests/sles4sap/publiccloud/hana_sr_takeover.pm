@@ -1,11 +1,11 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for performing database takeover using various methods on "master" HANA database.
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 =head1 NAME
 
-hana_sr_takeover.pm - Performs a HANA database takeover.
+sles4sap/publiccloud/hana_sr_takeover.pm - Performs a HANA database takeover.
 
 =head1 DESCRIPTION
 
@@ -37,9 +37,9 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap_publiccloud_basetest';
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use testapi;
-use sles4sap_publiccloud;
+use sles4sap::sles4sap_publiccloud;
 use publiccloud::utils;
 use hacluster qw($crm_mon_cmd);
 use serial_terminal 'select_serial_terminal';

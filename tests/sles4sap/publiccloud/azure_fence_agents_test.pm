@@ -6,7 +6,7 @@
 
 =head1 NAME
 
-azure_fence_agents_test.pm - Test module for azure stonith based fencing agent
+sles4sap/publiccloud/azure_fence_agents_test.pm - Test module for azure stonith based fencing agent
 
 =head1 DESCRIPTION
 
@@ -31,16 +31,6 @@ Specifies the public cloud provider. Must be set to 'AZURE' for this test.
 
 Specifies the Azure fence agent configuration method. Can be 'msi' or 'spn'.
 
-=item B<_SECRET_AZURE_SPN_APPLICATION_ID>
-
-The application ID for the Service Principal Name (SPN) used by the fencing agent.
-Required when B<AZURE_FENCE_AGENT_CONFIGURATION> is 'spn'.
-
-=item B<_SECRET_AZURE_SPN_APP_PASSWORD>
-
-The application password for the Service Principal Name (SPN) used by the fencing agent.
-Required when B<AZURE_FENCE_AGENT_CONFIGURATION> is 'spn'.
-
 =back
 
 =head1 MAINTAINER
@@ -49,10 +39,10 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap_publiccloud_basetest';
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use serial_terminal 'select_serial_terminal';
 use testapi;
-use sles4sap_publiccloud;
+use sles4sap::sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
 use Data::Dumper;
