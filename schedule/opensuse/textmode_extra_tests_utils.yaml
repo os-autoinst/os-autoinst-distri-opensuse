@@ -68,6 +68,7 @@ schedule:
     - console/libvorbis
     - console/libgpiod
     - console/libgcrypt
+    - console/libxslt
     - console/gd
     - appgeo/gdal
     - console/openqa_review
