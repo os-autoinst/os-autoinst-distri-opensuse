@@ -84,7 +84,8 @@ Requires:       golang-github-google-jsonnet
 # Required to get information from Agama isos
 Requires:       mkisofs
 Requires:       jq
-Requires:       gzip
+Requires:       /usr/bin/gzip
+Suggests:       gzip
 
 %description
 Metapackage that contains the dependencies of os-autoinst-distri-opensuse.
