@@ -1984,7 +1984,9 @@ sub reconnect_mgmt_console {
     elsif (is_x86_64) {
         if (is_ipmi) {
             select_console 'sol', await_console => 0;
-            assert_screen([qw(qa-net-selection prague-pxe-menu nue-ipxe-menu grub2)], 300);
+            my $screen_to_match = [qw(qa-net-selection prague-pxe-menu nue-ipxe-menu grub2)];
+            push @$screen_to_match, 'linux-login' if (get_var('WORKER_CLASS') =~ /ipmi-nvdimm/);
+            assert_screen($screen_to_match, 300);
             if ($args{grub_expected_twice}) {
                 check_screen 'grub2', 60;
                 wait_screen_change { send_key 'ret' };
