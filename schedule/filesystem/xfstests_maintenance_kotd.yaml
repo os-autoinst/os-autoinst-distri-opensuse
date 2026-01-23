@@ -1,0 +1,10 @@
+---
+name: 'xfstests@kotd'
+description:    >
+  Maintainer: An Long <lan@suse.com>
+  xfstests test suite for KOTD
+schedule:
+    - boot/boot_to_desktop
+    - xfstests/install
+    - xfstests/partition
+    - xfstests/run
