@@ -828,15 +828,64 @@ sub upload_asset_on_remote {
     $instance->ssh_assert_script_run($mv_cmd);
 }
 
-=head2 $instance->zypper_call_remote
+=head2 zypper_call_remote
 
-    $instance->zypper_call_remote(cmd => $cmd [, exitcode => $exitcode] [, timeout => $timeout];
+    zypper_call_remote($instance, cmd => $cmd, [%args]);
 
-Function wrapping zypper command for remote execution via ssh; not for tunnelling.
-Implements similar routine as lib/utils::zypper_call_remote, but for remote execution on publiccloud instances.
+Executes a C<zypper> or C<transactional-update> command on a remote C<$instance> via SSH.
+The function automatically handles command prefixing (adding sudo and non-interactive flags),
+retries on specific network/solver failures, and parses logs for detailed error reporting.
 
-Usage example:
-    $instance->zypper_call_remote("up", exitcode => [0,102,103], timeout => 300);
+=over 4
+
+=item B<cmd> => $string
+
+The zypper subcommand and arguments (e.g., C<'install -y vim'>). Do not include C<sudo> 
+or C<-n>, as these are added automatically. B<Note:> Piping to C<grep> is forbidden 
+to ensure exit codes are captured correctly.
+
+=item B<timeout> => $int
+
+Command timeout in seconds. Defaults to B<900> for transactional systems and 
+B<700> for standard systems. Must be greater than 0.
+
+=item B<exitcode> => $arrayref
+
+A list of exit codes to be treated as success. Defaults to C<[0]>.
+
+=item B<retry> => $int
+
+Number of times to attempt the command if it fails. Defaults to C<1>.
+
+=item B<delay> => $int
+
+Seconds to wait between retries. Defaults to C<5>.
+
+=item B<proceed_on_failure> => $boolean
+
+If set to C<1>, the function will record a failure in the test results but will
+not C<die>. Defaults to C<0>.
+
+=item B<wait_quit_zypper> => $boolean
+
+If set to C<1> (default), it calls C<wait_quit_zypper_pc> to wait for any 
+running zypper processes to terminate before starting. This effectively 
+eliminates the need for manual handling of B<exit code 7> (ZYPPER_EXIT_INTERFACE_LOCKED), 
+which occurs when zypper cannot acquire the execution lock because it is 
+held by another process.
+
+=back
+
+=head3 Transactional Systems
+If C<is_transactional()> is true, the command is prefixed with C<transactional-update -n pkg>.
+Additionally, a C<softreboot()> is triggered automatically upon success to apply changes.
+
+=head3 Error Handling
+On failure, the function:
+1. Uploads C</var/log/zypper.log> to the test results.
+2. Specifically checks for known issues like B<bsc#1070851> (502 errors).
+3. Parses logs for Solver Conflicts (Exit 4), Missing Capabilities (Exit 104), or
+   RPM scriptlet failures (Exit 107) and reports them via C<record_info>.
 
 =cut
 
