@@ -15,12 +15,14 @@ schedule:
   - security/boot_disk
   - security/stig/upload_stig_logs
   - security/stig/validate_stig_rules_applied_by_yast
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
 test_data:
   stig_rules_applied_by_yast:
     CCE-85719-3:
       name: Encrypt Partitions
       sles_ref: SLES-15-010330
-      result: notchecked
+      result: pass
     CCE-85639-3:
       name: Ensure /home Located On Separate Partition
       sles_ref: SLES-15-040200
@@ -40,7 +42,7 @@ test_data:
     CCE-83275-8:
       name: Set the UEFI Boot Loader Password
       sles_ref: SLES-15-010200
-      result: notapplicable
+      result: fail
     CCE-83274-1:
       name: Set Boot Loader Password in grub2 (non-UEFI)
       sles_ref: SLES-15-010190
