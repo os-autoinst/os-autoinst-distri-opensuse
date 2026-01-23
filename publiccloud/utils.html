@@ -35,7 +35,12 @@
       <li><a href="#zypper_remove_repo_remote">zypper_remove_repo_remote</a></li>
       <li><a href="#wait_quit_zypper_pc">wait_quit_zypper_pc</a></li>
       <li><a href="#detect_worker_ip">detect_worker_ip</a></li>
-      <li><a href="#instance-zypper_call_remote">$instance-&gt;zypper_call_remote</a></li>
+      <li><a href="#zypper_call_remote">zypper_call_remote</a>
+        <ul>
+          <li><a href="#Transactional-Systems-If-is_transactional-is-true-the-command-is-prefixed-with-transactional-update--n-pkg.-Additionally-a-softreboot-is-triggered-automatically-upon-success-to-apply-changes">Transactional Systems If is_transactional() is true, the command is prefixed with transactional-update -n pkg. Additionally, a softreboot() is triggered automatically upon success to apply changes.</a></li>
+          <li><a href="#Error-Handling-On-failure-the-function:-1.-Uploads-var-log-zypper.log-to-the-test-results.-2.-Specifically-checks-for-known-issues-like-bsc-1070851-502-errors-.-3.-Parses-logs-for-Solver-Conflicts-Exit-4-Missing-Capabilities-Exit-104-or-RPM-scriptlet-failures-Exit-107-and-reports-them-via-record_info">Error Handling On failure, the function: 1. Uploads /var/log/zypper.log to the test results. 2. Specifically checks for known issues like bsc#1070851 (502 errors). 3. Parses logs for Solver Conflicts (Exit 4), Missing Capabilities (Exit 104), or RPM scriptlet failures (Exit 107) and reports them via record_info.</a></li>
+        </ul>
+      </li>
       <li><a href="#calculate_custodian_ttl">calculate_custodian_ttl {</a></li>
     </ul>
   </li>
@@ -191,13 +196,61 @@ Return:
 - worker ip, if retrieved
 - undef otherwise (if proceed_on_failure is set)</code></pre>
 
-<h2 id="instance-zypper_call_remote">$instance-&gt;zypper_call_remote</h2>
+<h2 id="zypper_call_remote">zypper_call_remote</h2>
 
-<pre><code>$instance-&gt;zypper_call_remote(cmd =&gt; $cmd [, exitcode =&gt; $exitcode] [, timeout =&gt; $timeout];</code></pre>
+<pre><code>zypper_call_remote($instance, cmd =&gt; $cmd, [%args]);</code></pre>
 
-<p>Function wrapping zypper command for remote execution via ssh; not for tunnelling. Implements similar routine as lib/utils::zypper_call_remote, but for remote execution on publiccloud instances.</p>
+<p>Executes a <code>zypper</code> or <code>transactional-update</code> command on a remote <code>$instance</code> via SSH. The function automatically handles command prefixing (adding sudo and non-interactive flags), retries on specific network/solver failures, and parses logs for detailed error reporting.</p>
 
-<p>Usage example: $instance-&gt;zypper_call_remote(&quot;up&quot;, exitcode =&gt; [0,102,103], timeout =&gt; 300);</p>
+<dl>
+
+<dt id="cmd-string"><b>cmd</b> =&gt; $string</dt>
+<dd>
+
+<p>The zypper subcommand and arguments (e.g., <code>&#39;install -y vim&#39;</code>). Do not include <code>sudo</code> or <code>-n</code>, as these are added automatically. <b>Note:</b> Piping to <code>grep</code> is forbidden to ensure exit codes are captured correctly.</p>
+
+</dd>
+<dt id="timeout-int"><b>timeout</b> =&gt; $int</dt>
+<dd>
+
+<p>Command timeout in seconds. Defaults to <b>900</b> for transactional systems and <b>700</b> for standard systems. Must be greater than 0.</p>
+
+</dd>
+<dt id="exitcode-arrayref"><b>exitcode</b> =&gt; $arrayref</dt>
+<dd>
+
+<p>A list of exit codes to be treated as success. Defaults to <code>[0]</code>.</p>
+
+</dd>
+<dt id="retry-int"><b>retry</b> =&gt; $int</dt>
+<dd>
+
+<p>Number of times to attempt the command if it fails. Defaults to <code>1</code>.</p>
+
+</dd>
+<dt id="delay-int"><b>delay</b> =&gt; $int</dt>
+<dd>
+
+<p>Seconds to wait between retries. Defaults to <code>5</code>.</p>
+
+</dd>
+<dt id="proceed_on_failure-boolean"><b>proceed_on_failure</b> =&gt; $boolean</dt>
+<dd>
+
+<p>If set to <code>1</code>, the function will record a failure in the test results but will not <code>die</code>. Defaults to <code>0</code>.</p>
+
+</dd>
+<dt id="wait_quit_zypper-boolean"><b>wait_quit_zypper</b> =&gt; $boolean</dt>
+<dd>
+
+<p>If set to <code>1</code> (default), it calls <code>wait_quit_zypper_pc</code> to wait for any running zypper processes to terminate before starting. This effectively eliminates the need for manual handling of <b>exit code 7</b> (ZYPPER_EXIT_INTERFACE_LOCKED), which occurs when zypper cannot acquire the execution lock because it is held by another process.</p>
+
+</dd>
+</dl>
+
+<h3 id="Transactional-Systems-If-is_transactional-is-true-the-command-is-prefixed-with-transactional-update--n-pkg.-Additionally-a-softreboot-is-triggered-automatically-upon-success-to-apply-changes">Transactional Systems If <code>is_transactional()</code> is true, the command is prefixed with <code>transactional-update -n pkg</code>. Additionally, a <code>softreboot()</code> is triggered automatically upon success to apply changes.</h3>
+
+<h3 id="Error-Handling-On-failure-the-function:-1.-Uploads-var-log-zypper.log-to-the-test-results.-2.-Specifically-checks-for-known-issues-like-bsc-1070851-502-errors-.-3.-Parses-logs-for-Solver-Conflicts-Exit-4-Missing-Capabilities-Exit-104-or-RPM-scriptlet-failures-Exit-107-and-reports-them-via-record_info">Error Handling On failure, the function: 1. Uploads <code>/var/log/zypper.log</code> to the test results. 2. Specifically checks for known issues like <b>bsc#1070851</b> (502 errors). 3. Parses logs for Solver Conflicts (Exit 4), Missing Capabilities (Exit 104), or RPM scriptlet failures (Exit 107) and reports them via <code>record_info</code>.</h3>
 
 <h2 id="calculate_custodian_ttl">calculate_custodian_ttl {</h2>
 
