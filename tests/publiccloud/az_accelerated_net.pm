@@ -12,7 +12,7 @@ use base "publiccloud::basetest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use publiccloud::utils qw(is_container_host);
+use publiccloud::utils qw(zypper_call_remote is_container_host);
 
 =head2 prepare_vm
 
@@ -27,8 +27,8 @@ sub prepare_vms {
     foreach my $instance (@instances) {
         record_info('Instance', 'Instance ' . $instance->instance_id . ' created');
         record_info('Iperf', 'Install IPerf binaries in VM');
-        $instance->ssh_assert_script_run(cmd => "sudo zypper -n ar --no-gpgcheck $repo net_perf");
-        $instance->ssh_assert_script_run(cmd => "sudo zypper -n in -r net_perf iperf");
+        zypper_call_remote($instance, cmd => "ar --no-gpgcheck $repo net_perf");
+        zypper_call_remote($instance, cmd => "in -r net_perf iperf");
     }
 
     return \@instances;
@@ -87,7 +87,7 @@ sub check_sriov {
     my ($self, $instance) = @_;
     record_info('sr-iov', 'Checking SRIOV feature for instance ' . $instance->instance_id);
     my $lspci_output = $instance->ssh_script_output(cmd => "sudo lspci");
-    $instance->ssh_script_output(cmd => 'sudo zypper -n in ethtool') if is_container_host();
+    zypper_call_remote($instance, cmd => 'in ethtool') if is_container_host();
     my $ethtool_output = $instance->ssh_script_output(cmd => "sudo ethtool -S eth0 | grep vf_");
     record_info('lspci', $lspci_output);
     record_info('ethtool', $ethtool_output);

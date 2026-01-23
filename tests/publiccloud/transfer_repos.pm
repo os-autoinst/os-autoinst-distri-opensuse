@@ -15,6 +15,7 @@ use utils;
 use publiccloud::ssh_interactive "select_host_console";
 use maintenance_smelt qw(is_embargo_update);
 use version_utils qw(is_sle_micro);
+use publiccloud::utils qw(zypper_call_remote);
 
 sub run {
     my ($self, $args) = @_;
@@ -75,7 +76,7 @@ sub run {
     if (is_sle_micro(">=6.0")) {
         my $counter = 0;
         for my $repo (@repos) {
-            $instance->ssh_assert_script_run("sudo zypper ar -p10 " . $repodir . $repo . " ToTest_$counter");
+            zypper_call_remote($instance, cmd => "ar -p10 " . $repodir . $repo . " ToTest_$counter");
             $counter += 1;
         }
     }
@@ -85,7 +86,7 @@ sub run {
         $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec echo '{}' \\;");
     }
 
-    $instance->ssh_assert_script_run("zypper lr -P");
+    zypper_call_remote($instance, cmd => "lr -P");
 }
 
 sub test_flags {
