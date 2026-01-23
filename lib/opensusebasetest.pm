@@ -684,7 +684,8 @@ sub grub_select {
         push @tags, 'linux-login' if check_var('DESKTOP', 'textmode');
         push @tags, 'displaymanager' if check_var('DESKTOP', 'gnome');
 
-        assert_screen(\@tags);
+        my $timeout = is_sle_micro && is_ppc64le && is_qemu ? 60 : 30;
+        assert_screen(\@tags, $timeout);
 
         if (match_has_tag 'grub2') {
             send_key 'ret';
