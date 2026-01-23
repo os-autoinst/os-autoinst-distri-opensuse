@@ -329,6 +329,8 @@ sub setup_docker_ce {
     run_command q(echo -e 'ExecStart=\nExecStart=/usr/bin/dockerd $DOCKER_OPTS' >> /etc/systemd/system/docker.service.d/sysconfig.conf);
     run_command "systemctl daemon-reload";
     run_command "systemctl enable --now docker";
+    # Some tests have /var/run/docker/containerd hard-coded
+    run_command "ln -s /run/containerd /run/docker/";
 }
 
 sub setup_pkgs {
