@@ -3082,6 +3082,8 @@ used afterwards by using $SECRET.
 
 sub define_secret_variable {
     my ($var_name, $var_value) = @_;
+    @_ = ($var_name, "==== MASKED VALUE ====");    # Mask the value for traceback
+
     script_run("set -a");
     script_run("read -sp '$var_name: ' $var_name", 0);
     type_password($var_value . "\n");
