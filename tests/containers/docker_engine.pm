@@ -20,8 +20,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(distribution-registry glibc-devel go1.24 selinux-tools);
-    push @pkgs, qw(nftables-devel) unless is_sle;
+    my @pkgs = qw(distribution-registry glibc-devel go1.24 nftables-devel selinux-tools);
     push @pkgs, qw(containerd-ctr docker docker-buildx docker-rootless-extras rootlesskit) unless get_var("DOCKER_CE");
     $self->setup_pkgs(@pkgs);
 
@@ -65,6 +64,7 @@ sub setup {
         # Adapted from https://build.opensuse.org/projects/openSUSE:Factory/packages/docker/files/docker-integration.sh
         @test_dirs = split(/\n/, script_output(qq(go list -test -f '{{- if ne .ForTest "" -}}{{- .Dir -}}{{- end -}}' ./integration/... | sed "s,^\$(pwd)/,," | grep -vxE '($ignore_dirs)')));
     }
+    record_info("test_dirs", join(" ", @test_dirs));
 
     # Preload Docker images used for testing
     my $frozen_images = script_output q(grep -oE '[[:alnum:]./_-]+:[[:alnum:]._-]+@sha256:[0-9a-f]{64}' Dockerfile | xargs echo);
@@ -88,6 +88,7 @@ sub run {
     my $test_no_firewalld = ($firewall_backend eq "iptables") ? "true" : "";
 
     my %env = (
+        DEST => "/var/tmp/moby",
         DOCKER_FIREWALL_BACKEND => $firewall_backend,
         DOCKER_ROOTLESS => get_var("ROOTLESS", ""),
         DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
