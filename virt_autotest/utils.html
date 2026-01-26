@@ -14,6 +14,7 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#get_default_ssh_keyfile">get_default_ssh_keyfile</a></li>
       <li><a href="#assign_random_bridge_guest">assign_random_bridge_guest</a></li>
       <li><a href="#check_port_state">check_port_state</a></li>
       <li><a href="#is_registered_system">is_registered_system</a></li>
@@ -34,6 +35,10 @@
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
+
+<h2 id="get_default_ssh_keyfile">get_default_ssh_keyfile</h2>
+
+<p>Get the default SSH key file path based on SLE version. Returns ed25519 key for SLE 16+ (RSA+SHA1 is disabled by default), and RSA key for SLE 15 and below. Optional parameter: &#39;pubkey&#39; =&gt; 1 to get the public key file path.</p>
 
 <h2 id="assign_random_bridge_guest">assign_random_bridge_guest</h2>
 
