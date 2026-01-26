@@ -28,7 +28,8 @@ sub run {
     # For iso OS image boot: the OS needs to be installed first!
     if (check_var('IMAGE_TYPE', 'iso')) {
         # Wait for OS installer boot
-        $self->wait_boot_past_bootloader(textmode => 1);
+        assert_screen('grub-unifiedcore_installer', timeout => 120);
+        wait_still_screen;
 
         # OS installation is done automatically as well as the reboot after installation
         # We just have to wait for the VM to reboot
