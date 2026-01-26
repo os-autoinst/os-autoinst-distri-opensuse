@@ -119,7 +119,7 @@ Returns true if called on jeos
 =cut
 
 sub is_jeos {
-    return get_var('FLAVOR', '') =~ /(JeOS|Minimal-VM)/;
+    return get_var('FLAVOR', '') =~ /(JeOS|Minimal-VM)/ || get_var('MINIMAL_VM');
 }
 
 =head2 is_vmware
@@ -425,8 +425,10 @@ Returns true if called on a transactional server
 =cut
 
 sub is_transactional {
+  print("Here, check check\n");
     return 1 if (is_microos || is_sle_micro || is_leap_micro);
     return 1 if (is_alp && get_var('FLAVOR') !~ /NonTransactional/);
+    return 1 if (get_var('FLAVOR', '') =~ /transactional/i);
     return check_var('SYSTEM_ROLE', 'serverro') || get_var('TRANSACTIONAL_SERVER');
 }
 
