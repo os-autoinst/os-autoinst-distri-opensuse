@@ -364,7 +364,7 @@ sub run {
         return;
     }
 
-    if (get_var('WORKER_CLASS') =~ /ipmi-nvdimm/) {
+    if (get_var('WORKER_CLASS') =~ /(ipmi-nvdimm.+region-nue|region-nue.+ipmi-nvdimm)/) {
         assert_screen 'nue-ipxe-menu', 600;
         my $sut_ip = inet_ntoa(inet_aton(get_required_var('SUT_IP')));
         wait_screen_change { send_key 'i' };

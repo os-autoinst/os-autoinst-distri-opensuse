@@ -5,7 +5,7 @@ description: >
 vars:
   MR_TEST: '%ARCH%'
 schedule:
-  - boot/boot_from_pxe
+  - installation/bootloader_start
   - installation/welcome
   - installation/scc_registration
   - installation/addon_products_sle
