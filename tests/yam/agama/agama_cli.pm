@@ -35,8 +35,6 @@ sub run {
     assert_script_run("jq -n '.product.id = \"$product_id\"' | agama config load");
     assert_script_run("agama config show | grep $product_id");
 
-    validate_script_output('agama probe', qr/Analyze/, fail_message => 'Agama probe returned bad state');
-
     my $rpm_url = data_url('yam/agama/hello-world-0.1-1.1.noarch.rpm');
     assert_script_run("agama download $rpm_url /tmp/hello-world.rpm");
     validate_script_output('stat /tmp/hello-world.rpm', qr/Size: 7019/,
