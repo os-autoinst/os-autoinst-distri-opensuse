@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2025 SUSE LLC
+# Copyright SUSE LLC and contributors
 # SPDX-License-Identifier: FSFAP
 
 # Summary: The class represents Aeon RC3 distribution and provides access to

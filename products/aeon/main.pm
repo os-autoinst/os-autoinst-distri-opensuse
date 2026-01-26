@@ -1,3 +1,12 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC and contributors
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Entry point for testing Aeon installation and initial setup
+
+# Maintainer: Jan-Willem Harmannij <jwharmannij at gmail com>
+
 use strict;
 use warnings;
 use needle;

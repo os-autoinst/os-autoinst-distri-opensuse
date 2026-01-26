@@ -1,5 +1,11 @@
-# Copyright 2014-2026 SUSE LLC
-# SPDX-License-Identifier: GPL-2.0-or-later
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC and contributors
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Test Aeon first boot and initial setup after installation
+
+# Maintainer: Jan-Willem Harmannij <jwharmannij at gmail com>
 
 use Mojo::Base 'basetest';
 use testapi;
