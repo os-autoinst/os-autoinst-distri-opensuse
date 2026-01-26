@@ -15,7 +15,9 @@ use base 'Exporter';
 use Exporter;
 use strict;
 use warnings;
+use feature 'state';
 use testapi;
+use JSON qw(decode_json);
 use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 download_script);
 use Utils::Systemd 'get_started_systemd_services';
 use Mojo::File 'path';
@@ -395,6 +397,129 @@ my %avc_record = (
     end => undef
 );
 
+sub _avc_products_apply {
+    my ($products) = @_;
+
+    return 1 if !defined $products;
+
+    my $distri = get_required_var('DISTRI');
+    my $version = get_required_var('VERSION');
+    my $arch = get_required_var('ARCH');
+
+    if (exists $products->{distri}) {
+        my %allow = map { $_ => 1 } @{$products->{distri}};
+        return 0 if !$allow{$distri};
+    }
+
+    if (exists $products->{version}) {
+        my %allow = map { $_ => 1 } @{$products->{version}};
+        return 0 if !$allow{$version};
+    }
+
+    if (exists $products->{arch}) {
+        my %allow = map { $_ => 1 } @{$products->{arch}};
+        return 0 if !$allow{$arch};
+    }
+
+    return 1;
+}
+
+sub _avc_ctx_match {
+    my ($want, $got, $mode) = @_;
+    $want //= '';
+    $got //= '';
+    $mode //= 'exact';
+
+    return 0 if $want eq '';
+
+    return ($want eq $got) if $mode eq 'exact';
+
+    if ($mode eq 'prefix') {
+        my $want_colons = ($want =~ tr/:/:/);
+        if ($want_colons < 3) {
+            return ($got eq $want) || (index($got, $want . ':') == 0);
+        }
+        return ($want eq $got);
+    }
+
+    return ($want eq $got);
+}
+
+sub _avc_parse_line {
+    my ($ln) = @_;
+    my @events;
+
+    return \@events if !defined $ln;
+    return \@events if $ln !~ /\bavc:\s+denied\b/i;
+
+    my ($perm_blob) = $ln =~ /\{\s*([^}]+?)\s*\}/;
+    my ($scontext) = $ln =~ /\bscontext=([^\s]+)/;
+    my ($tcontext) = $ln =~ /\btcontext=([^\s]+)/;
+    my ($tclass) = $ln =~ /\btclass=([^\s]+)/;
+
+    return \@events if !$perm_blob || !$scontext || !$tcontext || !$tclass;
+
+    my @perms = grep { length($_) } split(/\s+/, $perm_blob);
+    for my $p (@perms) {
+        push @events, {
+            permission => $p,
+            scontext => $scontext,
+            tcontext => $tcontext,
+            tclass => $tclass,
+        };
+    }
+
+    return \@events;
+}
+
+sub _load_avc_whitelist {
+    state $cached;
+    return $cached if defined $cached;
+
+    my $file = sprintf(
+        "%s/data/avc_check/avc_whitelist.json",
+        get_var('CASEDIR')
+    );
+
+    open(my $fh, '<', $file)
+      or die "Can't open AVC whitelist '$file': $!";
+
+    local $/ = undef;
+    my $json = <$fh>;
+    close $fh;
+
+    my $whitelist = decode_json($json);
+    return $cached = $whitelist;
+}
+
+sub _avc_is_permitted {
+    my ($ev, $whitelist) = @_;
+
+    for my $entry (@$whitelist) {
+        if (exists $entry->{products}) {
+            next if !_avc_products_apply($entry->{products});
+        }
+
+        next if ($entry->{permission} // '') ne ($ev->{permission} // '');
+
+        my $mode = $entry->{match}->{context_mode} // 'exact';
+
+        next if !_avc_ctx_match($entry->{scontext}, $ev->{scontext}, $mode);
+
+        if (exists $entry->{tcontext}) {
+            next if !_avc_ctx_match($entry->{tcontext}, $ev->{tcontext}, $mode);
+        }
+
+        if (exists $entry->{tclass}) {
+            next if ($entry->{tclass} // '') ne ($ev->{tclass} // '');
+        }
+
+        return 1;
+    }
+
+    return 0;
+}
+
 =head2 record_avc_selinux_alerts
 
 List AVCs that have been recorded during a runtime of a test module that executes this function
@@ -403,35 +528,59 @@ List AVCs that have been recorded during a runtime of a test module that execute
 
 sub record_avc_selinux_alerts {
     my $self = shift;
-    if (current_console() !~ /root|log/) {
-        return;
-    }
 
-    if (script_run('test -d /sys/fs/selinux') != 0) {
-        return;
-    }
+    return if (current_console() !~ /root|log/);
+    return if (script_run('test -d /sys/fs/selinux') != 0);
 
-    my @logged = split(/\n/, script_output('ausearch -m avc,user_avc,selinux_err,user_selinux_err -r', timeout => 300, proceed_on_failure => 1));
+    my @logged = split(/\n/, script_output('ausearch -m avc,user_avc,selinux_err,user_selinux_err -r',
+            timeout => 300, proceed_on_failure => 1));
 
-    # no new messages are registered
     if (scalar @logged <= $avc_record{start}) {
         record_info('AVC', 'No AVCs were recorded');
         return;
     }
 
-
     $avc_record{end} = scalar @logged - 1;
     my @avc = @logged[$avc_record{start} .. $avc_record{end}];
     $avc_record{start} = $avc_record{end} + 1;
 
-    if (@avc) {
-        if (get_var('AVC_FAIL_ON_DENIALS', 0)) {
-            record_info('AVC', join("\n", @avc), result => 'fail');
-            if ($self->{post_fail_hook_running} == 0) {
-                $self->result('fail');
+    return if !@avc;
+
+    my $whitelist = _load_avc_whitelist();
+
+    my (@permitted_raw, @unpermitted_raw);
+
+    for my $ln (@avc) {
+        my $events = _avc_parse_line($ln);
+
+        if (!@$events) {
+            push @unpermitted_raw, $ln;
+            next;
+        }
+
+        my $all_permitted = 1;
+        for my $ev (@$events) {
+            if (!_avc_is_permitted($ev, $whitelist)) {
+                $all_permitted = 0;
+                last;
             }
+        }
+
+        if ($all_permitted) {
+            push @permitted_raw, $ln;
         } else {
-            record_info('AVC', join("\n", @avc), result => 'softfail');
+            push @unpermitted_raw, $ln;
+        }
+    }
+
+    if (@unpermitted_raw) {
+        my $fail_on_denials = get_var('AVC_FAIL_ON_DENIALS', 0);
+
+        my $result = $fail_on_denials ? 'fail' : 'softfails';
+        record_info('AVC (unpermitted)', join("\n", @unpermitted_raw), result => $result);
+
+        if ($fail_on_denials && ($self->{post_fail_hook_running} == 0)) {
+            $self->result('fail');
         }
     }
 }
