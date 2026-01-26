@@ -504,7 +504,7 @@ sub uefi_bootmenu_params {
         # sle 12-sp5 has no load_video
         # if there is a healthchecker, skip it
         my $gfx = 2;
-        if (is_leap_micro || is_microos || is_sle_micro) {
+        if (is_leap_micro || is_microos || is_sle_micro || (is_jeos && is_transactional)) {
             $gfx += 5;
         } elsif (is_sle('=12-SP5')) {
             ;
