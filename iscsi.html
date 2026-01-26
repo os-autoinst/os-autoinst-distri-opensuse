@@ -18,100 +18,202 @@
       <li><a href="#iscsi_login">iscsi_login</a></li>
       <li><a href="#iscsi_logout">iscsi_logout</a></li>
       <li><a href="#tgt_show">tgt_show</a></li>
+      <li><a href="#tgt_new_target">tgt_new_target</a></li>
       <li><a href="#tgt_new_lun">tgt_new_lun</a></li>
       <li><a href="#tgt_update_lun_params">tgt_update_lun_params</a></li>
       <li><a href="#tgt_auth_all">tgt_auth_all</a></li>
-      <li><a href="#lio_show">lio_show</a></li>
-      <li><a href="#lio_new_target">lio_new_target</a></li>
-      <li><a href="#lio_new_lun">lio_new_lun</a></li>
-      <li><a href="#lio_new_portal">lio_new_portal</a></li>
+      <li><a href="#lio_show_all">lio_show_all</a></li>
+      <li><a href="#lio_show_target">lio_show_target</a></li>
+      <li><a href="#lio_show_backstores">lio_show_backstores</a></li>
+      <li><a href="#lio_show_iqn">lio_show_iqn</a></li>
+      <li><a href="#lio_target_create">lio_target_create</a></li>
+      <li><a href="#lio_target_delete">lio_target_delete</a></li>
+      <li><a href="#lio_lun_create">lio_lun_create</a></li>
+      <li><a href="#lio_lun_set_attr">lio_lun_set_attr</a></li>
+      <li><a href="#lio_portal_create">lio_portal_create</a></li>
+      <li><a href="#lio_portal_delete">lio_portal_delete</a></li>
       <li><a href="#lio_auth_all">lio_auth_all</a></li>
-      <li><a href="#lio_update_lun_attr">lio_update_lun_attr</a></li>
+      <li><a href="#lio_global_get">lio_global_get</a></li>
+      <li><a href="#lio_global_set">lio_global_set</a></li>
     </ul>
   </li>
 </ul><h1>lib/iscsi.pm</h1>
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
-<p>Library for easy use of iSCSI server and client tools</p>
+<p>Library for easy use of iSCSI server and client tools.</p>
 
 <h2 id="iscsi_discovery">iscsi_discovery</h2>
 
 <pre><code>iscsi_discovery( $target );</code></pre>
 
-<p>Runs <code>iscsiadm -m discovery -t st -p $target</code> in the SUT, to discover iSCSI targets on the <b>$target</b> which could be IP address or host name</p>
+<p>Runs <code>iscsiadm -m discovery -t st -p $target</code> in the SUT to discover iSCSI targets on the <b>$target</b> which could be IP address or host name.</p>
 
 <h2 id="iscsi_login">iscsi_login</h2>
 
 <pre><code>iscsi_login( $iqn, $target );</code></pre>
 
-<p>Runs <code>iscsiadm -m node --targetname $iqn -p $target -l</code> in the SUT, to login client to the iSCSI IQN <b>$iqn</b> on the iSCSI server <b>$target</b></p>
+<p>Runs <code>iscsiadm -m node --targetname $iqn -p $target -l</code> in the SUT to login client to the iSCSI IQN <b>$iqn</b> on the iSCSI server <b>$target</b></p>
 
 <h2 id="iscsi_logout">iscsi_logout</h2>
 
 <pre><code>iscsi_logout( $iqn, $target);</code></pre>
 
-<p>Runs <code>iscsiadm -m node --targetname $iqn -p $target -u</code> in the SUT, to logout client from the iSCSI IQN <b>$iqn</b> on the iSCSI server <b>$target</b></p>
+<p>Runs <code>iscsiadm -m node --targetname $iqn -p $target -u</code> in the SUT to logout client from the iSCSI IQN <b>$iqn</b> on the iSCSI server <b>$target</b></p>
 
 <h2 id="tgt_show">tgt_show</h2>
 
 <pre><code>tgt_show();</code></pre>
 
-<p>Usable only with TGTD iSCSI server Runs the <code>tgtadm --lld iscsi --op show --mode target</code> in the SUT, to show up configured iSCSI LUNs</p>
+<p>Usable only with TGTD iSCSI server.</p>
+
+<p>Runs the <code>tgtadm --lld iscsi --op show --mode target</code> in the SUT, to show up configured iSCSI LUNs.</p>
+
+<h2 id="tgt_new_target">tgt_new_target</h2>
+
+<pre><code>tgt_new_target( $tid, $iqn );</code></pre>
+
+<p>Usable only with TGTD iSCSI server.</p>
+
+<p>Runs <code>tgtadm --lld iscsi --op new --mode target --tid <b>$tid</b> -T <b>$iqn</b></code> in the SUT, to add new LUN <b>$lun</b> from device <b>$device</b> to the existing TARGET with ID <b>$tid</b></p>
 
 <h2 id="tgt_new_lun">tgt_new_lun</h2>
 
 <pre><code>tgt_new_lun( $tid, $lun, $device );</code></pre>
 
-<p>Usable only with TGTD iSCSI server Runs <code>tgtadm --lld iscsi --op new --mode logicalunit --tid $tid --lun $lun -b $device</code> in the SUT, to add new LUN <b>$lun</b> from device <b>$device</b> to the existing TARGET with ID <b>$tid</b></p>
+<p>Usable only with TGTD iSCSI server.</p>
+
+<p>Runs <code>tgtadm --lld iscsi --op new --mode logicalunit --tid $tid --lun $lun -b $device</code> in the SUT, to add new LUN <b>$lun</b> from device <b>$device</b> to the existing TARGET with ID <b>$tid</b></p>
 
 <h2 id="tgt_update_lun_params">tgt_update_lun_params</h2>
 
 <pre><code>tgt_update_lun_params( $tid, $lun, $params );</code></pre>
 
-<p>Usable only with TGTD iSCSI server Runs <code>tgtadm --lld iscsi --op update --mode logicalunit --tid $tid --lun $lun --params $params</code> in the SUT, updates parameters <b>$params</b> of existing LUN <b>$lun</b> on iSCSI target ID <b>$tid</b></p>
+<p>Usable only with TGTD iSCSI server.</p>
+
+<p>Runs <code>tgtadm --lld iscsi --op update --mode logicalunit --tid $tid --lun $lun --params $params</code> in the SUT, to update parameters <b>$params</b> of existing LUN <b>$lun</b> on iSCSI target ID <b>$tid</b></p>
 
 <h2 id="tgt_auth_all">tgt_auth_all</h2>
 
 <pre><code>tgt_auth_all( $tid );</code></pre>
 
-<p>Usable only with TGTD iSCSI server Runs <code>tgtadm --lld iscsi --op bind --mode target --tid $tid -I ALL</code> in the SUT, to allow all clients to use list of targets <b>$tid</b> on the iSCSI server</p>
+<p>Usable only with TGTD iSCSI server.</p>
 
-<h2 id="lio_show">lio_show</h2>
+<p>Runs <code>tgtadm --lld iscsi --op bind --mode target --tid $tid -I ALL</code> in the SUT, to allow all clients to use list of targets <b>$tid</b> on the iSCSI server.</p>
 
-<pre><code>lio_show();</code></pre>
+<h2 id="lio_show_all">lio_show_all</h2>
 
-<p>Usable only on the LIO iSCSI server Runs <code>targetcli ls iscsi</code> in the SUT to show up configured iSCSI LUNs</p>
+<pre><code>lio_show_all();</code></pre>
 
-<h2 id="lio_new_target">lio_new_target</h2>
+<p>Usable only on the LIO iSCSI server.</p>
 
-<pre><code>lio_new_target( $tid, $iqn );</code></pre>
+<p>Runs <code>targetcli ls</code> in the SUT.</p>
 
-<p>Usable only on the LIO iSCSI server Runs <code>targetcli /iscsi create $iqn:$tid</code> in the SUT, Creates new iSCSI target on LIO iSCSI server with IQN <b>$iqn</b> and ID <b>$tid</b></p>
+<p>Returns the whole LIO iSCSI server configuration.</p>
 
-<h2 id="lio_new_lun">lio_new_lun</h2>
+<h2 id="lio_show_target">lio_show_target</h2>
 
-<pre><code>lio_new_lun( $tid, $iqn, $device );</code></pre>
+<pre><code>lio_show_target();</code></pre>
 
-<p>Usable only on the LIO iSCSI server Creates new back store from the device <b>$device</b> (full path to) and assign it to the new LUN on target with IQN <b>$iqn</b> and ID <b>$tid</b></p>
+<p>Usable only on the LIO iSCSI server.</p>
 
-<h2 id="lio_new_portal">lio_new_portal</h2>
+<p>Runs <code>targetcli ls iscsi</code> in the SUT.</p>
 
-<pre><code>lio_new_portal( $tid, $iqn, $ip, $port );</code></pre>
+<p>Returns the iSCSI targets configuration from the LIO iSCSI server.</p>
 
-<p>Usable only on the LIO iSCSI server Assign IP address <b>$ip</b> and port <b>$post</b> to the LUN on target with IQN <b>$iqn</b> and ID <b>$tid</b></p>
+<h2 id="lio_show_backstores">lio_show_backstores</h2>
+
+<pre><code>lio_show_backstores();</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Runs <code>targetcli ls backstores</code> in SUT.</p>
+
+<p>Returns the list of back stores on the LIO iSCSI server.</p>
+
+<h2 id="lio_show_iqn">lio_show_iqn</h2>
+
+<pre><code>lio_show_iqn();</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Returns the existing targets on the LIO iSCSI server if any.</p>
+
+<h2 id="lio_target_create">lio_target_create</h2>
+
+<pre><code>lio_target_create( $tid, $iqn );</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Runs <code>targetcli /iscsi create $iqn:$tid</code> in the SUT.</p>
+
+<p>Creates new iSCSI target on LIO iSCSI server with IQN <b>$iqn</b> and ID <b>$tid</b>.</p>
+
+<h2 id="lio_target_delete">lio_target_delete</h2>
+
+<pre><code>lio_target_delete( $tid, $iqn );</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Runs <code>targetcli /iscsi delete $iqn:$tid</code> in the SUT.</p>
+
+<p>Remove the whole iSCSI target IQN <b>$iqn</b> and ID <b>$tid</b> from LIO iSCSI server including all of it LUNs and portals and unlink back stores from it.</p>
+
+<h2 id="lio_lun_create">lio_lun_create</h2>
+
+<pre><code>lio_lun_create( $tid, $iqn, $device );</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Creates new back store from the device <b>$device</b> (in full path) and link it to the newly created LUN on target IQN <b>$iqn</b> , ID <b>$tid</b></p>
+
+<h2 id="lio_lun_set_attr">lio_lun_set_attr</h2>
+
+<pre><code>lio_lun_set_attr( $tid, $iqn, $attr );</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Set the attribute <b>$attr</b> of the LUN on the LIO iSCSI server.</p>
+
+<h2 id="lio_portal_create">lio_portal_create</h2>
+
+<pre><code>lio_portal_create( $tid, $iqn, $ip, $port );</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Assign IP address <b>$ip</b> and port <b>$post</b> to the LUN network portal on iSCSI target with IQN <b>$iqn</b> and ID <b>$tid</b></p>
+
+<h2 id="lio_portal_delete">lio_portal_delete</h2>
+
+<pre><code>lio_portal_delete( $tid, $iqn, $ip, $port );</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Removes the network portal on IP address <b>$ip</b> and port <b>$post</b> from the iSCSI target IQN <b>$iqn</b> and ID <b>$tid</b></p>
 
 <h2 id="lio_auth_all">lio_auth_all</h2>
 
 <pre><code>lio_auth_all( $tid, $iqn );</code></pre>
 
-<p>Usable only on the LIO iSCSI server Allow access to all clients to use target IQN <b>$iqn</b> with ID <b>$tid</b> on the LIO iSCSI server</p>
+<p>Usable only on the LIO iSCSI server.</p>
 
-<h2 id="lio_update_lun_attr">lio_update_lun_attr</h2>
+<p>Allow access from all clients to the iSCSI target IQN <b>$iqn</b> with ID <b>$tid</b></p>
 
-<pre><code>lio_update_lun_attr( $tid, $iqn, $attribute );</code></pre>
+<h2 id="lio_global_get">lio_global_get</h2>
 
-<p>Usable only on the LIO iSCSI server Update attribute <code>$attribute</code> on the IQN <b>$iqn</b> with ID <b>$tid</b> on the LIO iSCSI server</p>
+<pre><code>lio_global_get( $global_pref );</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Returns the value of the global preference <b>global_pref</b> in LIO iSCSI server.</p>
+
+<h2 id="lio_global_set">lio_global_set</h2>
+
+<pre><code>lio_global_set( $global_pref, $gp_value );</code></pre>
+
+<p>Usable only on the LIO iSCSI server.</p>
+
+<p>Set the global preference <b>$global_pref</b> to the value <b>$gp_value</b> in LIO iSCSI server.</p>
 
 
 </body>
