@@ -5,6 +5,7 @@
     content: |||
       #!/usr/bin/env bash
       echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
+      systemctl enable sshd
     |||
   },
   add_serial_console_hvc1: {
