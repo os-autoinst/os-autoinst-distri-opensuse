@@ -83,6 +83,7 @@ sub prepare_virtual_env {
             script_retry("SUSEConnect -p PackageHub/12.5/$arch", delay => 60, retry => 3, timeout => $scc_timeout);
             zypper_call("ar -f http://download.suse.de/ibs/SUSE:/SLE-12:/Update:/Products:/SaltBundle:/Update/standard/ saltbundle");
             zypper_call("rm python3-pip");
+            zypper_call("al python3-pip");
             # venv-salt-minion-3006.0-3.76.2 has .../bin/activate, for the time being, fix to this version
             # lock the package in case system update
             zypper_call("in saltbundlepy-base 'venv-salt-minion<3006.0-3.81.1'");
