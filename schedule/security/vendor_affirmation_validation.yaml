@@ -4,6 +4,7 @@ description: >
 schedule:
     - installation/bootloader_start
     - security/boot_disk
+    - '{{register_system}}'
     - fips/fips_setup
     - fips/openssl/openssl_fips_hash
     - fips/gnutls/gnutls_base_check
@@ -16,3 +17,7 @@ conditional_schedule:
         ARCH:
             s390x:
                 - fips/libica
+    register_system:
+        DISTRI:
+            sle-micro:
+                - console/suseconnect_scc
