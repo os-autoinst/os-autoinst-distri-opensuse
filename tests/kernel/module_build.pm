@@ -16,7 +16,8 @@ use utils;
 
 sub run {
     select_serial_terminal;
-    zypper_call "in kernel-default-devel";
+    # kernel live patch scenario has devel package already installed
+    zypper_call "in kernel-default-devel" unless get_var('KGRAFT');
     # Prepare module sources
     assert_script_run("curl -L -v " . autoinst_url . "/data/kernel/module > module.data && cpio -id < module.data && rm module.data");
     assert_script_run "cd data";
