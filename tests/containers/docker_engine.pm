@@ -20,7 +20,8 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(distribution-registry glibc-devel go1.24 nftables-devel selinux-tools);
+    my @pkgs = qw(distribution-registry glibc-devel go1.25 selinux-tools);
+    push @pkgs, qw(nftables-devel) unless is_sle("<15-SP5");
     push @pkgs, qw(containerd-ctr docker docker-buildx docker-rootless-extras rootlesskit) unless get_var("DOCKER_CE");
     $self->setup_pkgs(@pkgs);
 
@@ -87,13 +88,16 @@ sub run {
     record_info "firewall backend", $firewall_backend;
     my $test_no_firewalld = ($firewall_backend eq "iptables") ? "true" : "";
 
+    my $docker_dest = "/var/tmp/moby/bundles/tmp";
+    run_command "mkdir -p $docker_dest";
+
     my %env = (
+        DOCKER_INTEGRATION_DAEMON_DEST => $docker_dest,
         DOCKER_FIREWALL_BACKEND => $firewall_backend,
-        DOCKER_ROOTLESS => get_var("ROOTLESS", ""),
         DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
+        DOCKER_ROOTLESS => get_var("ROOTLESS", ""),
         TZ => "UTC",
     );
-    $env{DEST} = "/var/tmp/moby" if get_var("DOCKER_CE");
 
     my @xfails = (
         # Flaky tests

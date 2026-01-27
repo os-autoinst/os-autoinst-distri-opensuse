@@ -40,7 +40,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(glibc-devel-static go1.24 libseccomp-devel make runc);
+    my @pkgs = qw(glibc-devel-static go1.25 libseccomp-devel make runc);
     push @pkgs, "criu" if is_tumbleweed;
 
     $self->setup_pkgs(@pkgs);

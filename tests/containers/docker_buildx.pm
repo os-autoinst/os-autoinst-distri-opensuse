@@ -21,7 +21,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(distribution-registry go1.24);
+    my @pkgs = qw(distribution-registry go1.25);
     unless (get_var("DOCKER_CE")) {
         push @pkgs, qw(docker docker-buildx);
         push @pkgs, qw(docker-compose) unless is_sle("<16");

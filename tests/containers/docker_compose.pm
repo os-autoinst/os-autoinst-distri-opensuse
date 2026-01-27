@@ -20,7 +20,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(go1.24 make);
+    my @pkgs = qw(go1.25 make);
     push @pkgs, qw(docker docker-buildx docker-compose) unless get_var("DOCKER_CE");
     $self->setup_pkgs(@pkgs);
 

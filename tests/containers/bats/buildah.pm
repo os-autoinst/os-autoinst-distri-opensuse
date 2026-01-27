@@ -99,7 +99,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.24 libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
+    my @pkgs = qw(buildah docker git-daemon glibc-devel-static go1.25 libgpgme-devel libseccomp-devel make openssl podman selinux-tools);
     push @pkgs, "qemu-linux-user" if (is_tumbleweed || is_sle('>=15-SP6'));
     # Packages needed for conformance tests
     push @pkgs, "busybox-static docker-buildx libbtrfs-devel" unless is_sle;

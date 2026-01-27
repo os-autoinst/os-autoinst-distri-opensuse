@@ -39,7 +39,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(attr diffutils file go1.24 go-md2man jq libcap-progs make moreutils python313-xattr runc skopeo umoci);
+    my @pkgs = qw(attr diffutils file go1.25 go-md2man jq libcap-progs make moreutils python313-xattr runc skopeo umoci);
     $self->setup_pkgs(@pkgs);
 
     my $os_version = "openSUSE_Tumbleweed";
