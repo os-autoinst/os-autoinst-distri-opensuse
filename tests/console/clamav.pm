@@ -43,12 +43,6 @@ sub run {
     zypper_call('in clamav');
     zypper_call('info clamav');
 
-    # only skip on maintenance if FIPS is enabled
-    if (is_sle('>=15-SP6') && check_var('FIPS_ENABLED', '1') && (check_var('BETA', '0') || !get_var('BETA'))) {
-        record_info('SKIPPING TEST', "Skipping test due to bsc#1221954");
-        return;
-    }
-
     # Create a random file
     assert_script_run "dd if=/dev/urandom of=/usr/local/bin/maybeavirus bs=1M count=1";
     assert_script_run "chmod +x /usr/local/bin/maybeavirus";
