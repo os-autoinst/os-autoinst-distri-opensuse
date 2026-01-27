@@ -9,6 +9,7 @@
 
 use Mojo::Base 'basetest';
 use testapi;
+use utils;
 
 sub run {
     # Use the common password as passphrase
