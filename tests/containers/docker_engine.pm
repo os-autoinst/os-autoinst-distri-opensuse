@@ -20,7 +20,8 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(distribution-registry glibc-devel go1.25 nftables-devel selinux-tools);
+    my @pkgs = qw(distribution-registry glibc-devel go1.25 selinux-tools);
+    push @pkgs, qw(nftables-devel) unless is_sle("<15-SP5");
     push @pkgs, qw(containerd-ctr docker docker-buildx docker-rootless-extras rootlesskit) unless get_var("DOCKER_CE");
     $self->setup_pkgs(@pkgs);
 
