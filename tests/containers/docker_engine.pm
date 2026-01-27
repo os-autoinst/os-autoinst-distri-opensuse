@@ -93,7 +93,7 @@ sub run {
         DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
         TZ => "UTC",
     );
-    $env->{DEST} = "/var/tmp/moby" if get_var("DOCKER_CE");
+    $env{DEST} = "/var/tmp/moby" if get_var("DOCKER_CE");
 
     my @xfails = (
         # Flaky tests
