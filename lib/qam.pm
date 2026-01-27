@@ -206,13 +206,14 @@ sub advance_installer_window {
 
 # Get list of patches
 sub get_patches {
-    my ($incident_id, $repo) = @_;
+    my ($incident_id, $repo, $args) = @_;
 
-    # Replace comma by space, repositories must be divided by space
-    $repo =~ tr/,/ /;
+    # Split repo list into multiple arguments
+    $repo =~ s/,/ -r /g;
+    $args //= '';
 
     # Search for patches by incident, exclude not needed
-    my $patches = zypper_patches("-r $repo");
+    my $patches = zypper_patches("-r $repo $args");
     my @patch_list;
 
     for my $item (@$patches) {

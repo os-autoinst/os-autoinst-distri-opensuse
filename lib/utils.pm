@@ -1084,18 +1084,21 @@ into an array of hashes.
 
 sub zypper_patches {
     my $params = shift // '';
+    my $cmd;
     my @fields;
 
     if (is_sle('<12-SP2')) {
+        $cmd = "pch";
         @fields = ('repository', 'name', 'version', 'category', 'status');
     } else {
+        $cmd = "lp -a";
         @fields = ('repository', 'name', 'category', 'severity',
             'interactive', 'status');
         push @fields, 'since' if is_sle('15+');
         push @fields, 'summary';
     }
 
-    my $output = script_output("zypper pch $params", 300);
+    my $output = script_output("zypper $cmd $params", 300);
     return parse_zypper_table($output, \@fields);
 }
 
