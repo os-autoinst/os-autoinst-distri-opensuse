@@ -98,6 +98,9 @@ sub run {
     my @xfails = (
         # Flaky tests
         "github.com/docker/docker/integration/service::TestServicePlugin",
+        # Testing configuration fails because of the SUSE secrets patch
+        "github.com/docker/docker/integration/daemon::TestDaemonConfigFeatures",
+        "github.com/docker/docker/integration/daemon::TestDaemonConfigValidation",
     );
     push @xfails, (
         # These tests use amd64 images:
@@ -106,9 +109,6 @@ sub run {
     push @xfails, (
         # These tests fail as rootless on SLES 15
         "github.com/docker/docker/integration/container::TestNetworkLoopbackNat",
-        # Testing configuration fails because of the SUSE secrets patch
-        "github.com/docker/docker/integration/daemon::TestDaemonConfigFeatures",
-        "github.com/docker/docker/integration/daemon::TestDaemonConfigValidation",
     ) if (is_sle("<16"));
 
     my $tags = "apparmor selinux seccomp pkcs11";
