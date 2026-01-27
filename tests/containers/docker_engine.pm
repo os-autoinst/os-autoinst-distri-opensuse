@@ -88,19 +88,16 @@ sub run {
     my $test_no_firewalld = ($firewall_backend eq "iptables") ? "true" : "";
 
     my %env = (
-        DEST => "/var/tmp/moby",
         DOCKER_FIREWALL_BACKEND => $firewall_backend,
         DOCKER_ROOTLESS => get_var("ROOTLESS", ""),
         DOCKER_TEST_NO_FIREWALLD => $test_no_firewalld,
         TZ => "UTC",
     );
+    $env->{DEST} = "/var/tmp/moby" if get_var("DOCKER_CE");
 
     my @xfails = (
         # Flaky tests
         "github.com/docker/docker/integration/service::TestServicePlugin",
-        # Testing configuration fails because of the SUSE secrets patch
-        "github.com/docker/docker/integration/daemon::TestDaemonConfigFeatures",
-        "github.com/docker/docker/integration/daemon::TestDaemonConfigValidation",
     );
     push @xfails, (
         # These tests use amd64 images:
