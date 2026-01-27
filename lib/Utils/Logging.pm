@@ -576,7 +576,7 @@ sub record_avc_selinux_alerts {
     if (@unpermitted_raw) {
         my $fail_on_denials = get_var('AVC_FAIL_ON_DENIALS', 0);
 
-        my $result = $fail_on_denials ? 'fail' : 'softfails';
+        my $result = $fail_on_denials ? 'fail' : 'softfail';
         record_info('AVC (unpermitted)', join("\n", @unpermitted_raw), result => $result);
 
         if ($fail_on_denials && ($self->{post_fail_hook_running} == 0)) {
