@@ -49,7 +49,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(apache2-utils go1.24 openssl podman squashfs skopeo);
+    my @pkgs = qw(apache2-utils go1.25 openssl podman squashfs skopeo);
     push @pkgs, "fakeroot" unless (is_sle('>=16.0') || (is_sle(">=15-SP6") && is_s390x));
     # Packages needed for Golang integration tests
     push @pkgs, qw(libgpgme-devel) if (is_tumbleweed && is_x86_64);
