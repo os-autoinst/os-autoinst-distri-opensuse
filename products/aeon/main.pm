@@ -22,9 +22,11 @@ use main_common;
 
 init_main();
 
-my $distri = testapi::get_required_var('CASEDIR') . '/lib/susedistribution.pm';
+my $casedir = testapi::get_required_var('CASEDIR');
+my $distri = $casedir . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(DistributionProvider->provide());
+testapi::set_var('NEEDLES_DIR', $casedir . '/products/opensuse/needles');
 
 loadtest 'aeon/tik';
 loadtest 'aeon/firstboot';
