@@ -8,6 +8,7 @@
 # Playbooks can be found in SDAF repo: https://github.com/Azure/sap-automation/tree/main/deploy/ansible
 
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use sles4sap::sap_deployment_automation_framework::ansible;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection qw(connect_target_to_serial disconnect_target_from_serial);
@@ -73,27 +74,24 @@ sub run {
     my $sut_private_key_path = get_sut_sshkey_path(config_root_path => $sdaf_config_root_dir);
     # setup = combination of all components chosen for installation
     # Leave OpenQA setting mandatory without default value to keep it consistent across all test modules.
-    my @setup = split(/,/, get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
-    validate_components(components => \@setup);
-
-    # List of playbooks (and their options) to be executed.
-    # Playbook description is here as well: https://learn.microsoft.com/en-us/azure/sap/automation/run-ansible?tabs=linux
-    my @execute_playbooks = @{playbook_settings(components => \@setup)};
-    my @playbook_list = map { $_->{playbook_filename} } @execute_playbooks;
-
-    record_info('Playbook list', "Following playbooks will be executed:\n" . join("\n", @playbook_list));
+    my @components = split(/,/, get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
+    validate_components(components => \@components);
 
     connect_target_to_serial();
     load_os_env_variables();
     # Some playbooks use azure cli
     az_login();
 
-    for my $playbook_options (@execute_playbooks) {
-        $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 1;
-        sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
-        $sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook = 0;
+    my $playbook_setup = sles4sap::sap_deployment_automation_framework::ansible->new();
+    my $playbook_list = $playbook_setup->set(\@components);
+    record_info('Playbook list', "Following playbooks will be executed:\n" .
+          join("\n", map($_->{playbook_filename}, @$playbook_list)));
 
-        # tasks needed to be run after playbook 'pb_get-sshkey.yaml'
+    # Get first playbook settings
+    my $playbook_options = $playbook_setup->get();
+    while ($playbook_options->{playbook_filename}) {
+        sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
+        # Tasks needed to be run after playbook 'pb_get-sshkey.yaml'
         if ($playbook_options->{playbook_filename} =~ /pb_get-sshkey/) {
             # Check if SSH key was created by playbook
             record_info('File check', "Check if SSH key '$sut_private_key_path' was created by SDAF");
@@ -107,7 +105,10 @@ sub run {
               if is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION');
         }
 
+        # Get next playbook settings
+        $playbook_options = $playbook_setup->get();
     }
+
     disconnect_target_from_serial();
     serial_console_diag_banner('Module sdaf_deploy_hanasr.pm : stop');
 }
