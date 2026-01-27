@@ -1,11 +1,13 @@
 import louis
 
-with open("braille_result1.txt", 'w') as braille_result1:
-  print(louis.translate(["unicode.dis","en-chardefs.cti"], "abcdefghijklmnopqrstuvwxyz")[0], file=braille_result1)
+ctb_file = 'en-ueb-g1.ctb'
 
-with open("braille_result2.txt", 'w') as braille_result2:
-  print(louis.translate(["unicode.dis","en-chardefs.cti"], "ABCDEFGHIJKLMNOPQRSTUVWXYZ")[0], file=braille_result2)
+with open("braille_result_lowercase.txt", 'w') as braille_result_lowercase:
+  print(louis.translate(["unicode.dis",ctb_file], "abcdefghijklmnopqrstuvwxyz")[0], file=braille_result_lowercase)
 
-symbols = ' !"#$%()*+-./:;<=>?@[\]_{}~123456790'+"'" 
-with open("braille_result3.txt", 'w') as braille_result3:
-  print(louis.translate(["unicode.dis","en-chardefs.cti"], symbols)[0], file=braille_result3)
+with open("braille_result_uppercase.txt", 'w') as braille_result_uppercase:
+  print(louis.translate(["unicode.dis",ctb_file], "ABCDEFGHIJKLMNOPQRSTUVWXYZ")[0], file=braille_result_uppercase)
+
+symbols = ' !"#$%()*+-./:;<=>?@[\\]_{}~123456790'+"'"
+with open("braille_result_symbols.txt", 'w') as braille_result_symbols:
+  print(louis.translate(["unicode.dis",ctb_file], symbols)[0], file=braille_result_symbols)
