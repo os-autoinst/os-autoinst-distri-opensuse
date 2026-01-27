@@ -1,8 +1,9 @@
 name: crypt_krb5kdc
 description:    >
-    This is for crypt_krb5kdc test
+  This is for crypt_krb5kdc test
 schedule:
-    - boot/boot_to_desktop
-    - console/consoletest_setup
-    - security/krb5/krb5_crypt_prepare
-    - security/krb5/krb5_crypt_setup_kdc
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - security/krb5/krb5_crypt_prepare
+  - security/krb5/krb5_crypt_setup_kdc
