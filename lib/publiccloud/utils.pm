@@ -929,9 +929,7 @@ sub zypper_call_remote {
                 die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
             }
             elsif ($instance->ssh_script_run(qq[sudo grep "Solverrun finished with an ERROR" $log]) == 0) {
-                my $search_conflicts = q[sudo awk '
-                    /Solverrun finished with an ERROR/,/statistics/{ 
-                    print group"|", $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ } }' ] . $log;
+                my $search_conflicts = q[sudo awk '/Solverrun finished with an ERROR/,/statistics/{ print group"|", $0; if ($0 ~ /statistics/ ){ print "EOL"; group++ } }' ] . $log;
                 my $conflicts = $instance->ssh_script_output($search_conflicts);
                 record_info("Conflicts", $conflicts, result => 'fail');
                 diag "Package conflicts found, not retrying anymore" if $conflicts;
