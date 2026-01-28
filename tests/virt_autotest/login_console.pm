@@ -200,6 +200,10 @@ sub login_to_console {
         }
     }
 
+    # Wait for system to be fully up and SSH port available before switching to SSH console
+    # This ensures bare-metal systems have time to complete boot and network initialization
+    die "SSH port not available, system may not be ready" unless (check_port_state(get_required_var('SUT_IP'), 22, 120, 10));
+
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
 
