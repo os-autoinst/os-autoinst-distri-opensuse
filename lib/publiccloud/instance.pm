@@ -292,6 +292,19 @@ sub wait_for_guestregister_not_active {
     $args{timeout} //= 300;
     my $start_time = time();
     my $last_info = 0;
+    record_info("enter wait_for_guestregister_not_active", is_byos ? "BYOS" : "On-Demand");
+
+    record_info('CHECK if guestregister exists', $self->ssh_script_output(
+            cmd => 'sudo systemctl list-units | grep guestregister',
+            proceed_on_failure => 1,
+            quiet => 1
+    ));
+
+    record_info('CHECK guestregister status', $self->ssh_script_output(
+            cmd => 'sudo systemctl status guestregister',
+            proceed_on_failure => 1,
+            quiet => 1
+    ));
 
     while (time() - $start_time < $args{timeout}) {
         my $rc = $self->ssh_script_run(
