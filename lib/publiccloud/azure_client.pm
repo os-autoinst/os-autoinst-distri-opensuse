@@ -47,7 +47,7 @@ sub init {
 
 sub az_login {
     my ($self) = @_;
-    my $login_cmd = "while ! az login --service-principal -u \$ARM_CLIENT_ID -p \$ARM_CLIENT_SECRET -t \$ARM_TENANT_ID; do sleep 10; done";
+    my $login_cmd = "while ! az login --service-principal -u \$ARM_CLIENT_ID -p \$ARM_CLIENT_SECRET -t \$ARM_TENANT_ID -o none 1>/dev/null 2>&1; do sleep 10; done";
 
     assert_script_run($login_cmd, timeout => 5 * 60);
 }

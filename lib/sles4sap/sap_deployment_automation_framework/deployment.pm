@@ -288,7 +288,7 @@ L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?ta
 
 sub az_login {
     my $credentials = export_credentials();
-    my $login_cmd = 'while ! az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} -t ${ARM_TENANT_ID}; do sleep 10; done';
+    my $login_cmd = 'while ! az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} -t ${ARM_TENANT_ID} -o none 1>/dev/null 2>&1; do sleep 10; done';
     assert_script_run($login_cmd, timeout => 30);
     record_info('AZ login', "Subscription id: $credentials->{subscription_id}");
     return ($credentials->{subscription_id});
