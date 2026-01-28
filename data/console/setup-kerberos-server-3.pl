@@ -519,7 +519,12 @@ sub setup_kdc
     print STDERR "setup_kdc\n";
     if (!$ldapdb)
     {
-        open(KDB5CREATE, "|/usr/lib/mit/sbin/kdb5_util create -r $realm -s")
+        my $kdb5_util = -x "/usr/lib/mit/sbin/kdb5_util" ? "/usr/lib/mit/sbin/kdb5_util"
+                : -x "/usr/sbin/kdb5_util"      ? "/usr/sbin/kdb5_util"
+                : die "kdb5_util not found on this system!";
+
+        print "Using kdb5_util: $kdb5_util\n";
+        open(KDB5CREATE, "|$kdb5_util create -r $realm -s")
           or die "Can not execute kdb5_util: $!";
 
         print KDB5CREATE "$adminpw\n";
@@ -581,31 +586,35 @@ EOF
     ##############################################################################
     ## some kadmin magics
     ##############################################################################
+    my $kadmin = -x "/usr/lib/mit/sbin/kadmin.local" ? "/usr/lib/mit/sbin/kadmin.local"
+                : -x "/usr/sbin/kadmin.local"      ? "/usr/sbin/kadmin.local"
+                : die "kadmin.local not found on this system!";
 
-    open(KADMIN, "|/usr/lib/mit/sbin/kadmin.local -q 'addprinc admin/admin\@$realm'")
+    print "Using kadmin.local: $kadmin\n";
+    open(KADMIN, "|$kadmin -q 'addprinc admin/admin\@$realm'")
       or die "Can not execute kadmin.local: $!";
     print KADMIN "$adminpw\n";
     print KADMIN "$adminpw\n";
 
     close(KADMIN);
 
-    open(KADMIN, "|/usr/lib/mit/sbin/kadmin.local -q 'ktadd -k /var/lib/kerberos/krb5kdc/kadm5.keytab kadmin/admin kadmin/changepw'")
+    open(KADMIN, "|$kadmin -q 'ktadd -k /var/lib/kerberos/krb5kdc/kadm5.keytab kadmin/admin kadmin/changepw'")
       or die "Can not execute kadmin.local: $!";
 
     close(KADMIN);
 
-    open(KADMIN, "|/usr/lib/mit/sbin/kadmin.local -q 'addprinc -randkey host/$hostname.$domain'")
+    open(KADMIN, "|$kadmin -q 'addprinc -randkey host/$hostname.$domain'")
       or die "Can not execute kadmin.local: $!";
 
-    open(KADMIN, "|/usr/lib/mit/sbin/kadmin.local -q 'addprinc -randkey host/$hostname'")
+    open(KADMIN, "|$kadmin -q 'addprinc -randkey host/$hostname'")
       or die "Can not execute kadmin.local: $!";
 
     close(KADMIN);
 
-    open(KADMIN, "|/usr/lib/mit/sbin/kadmin.local -q 'ktadd host/$hostname.$domain'")
+    open(KADMIN, "|$kadmin -q 'ktadd host/$hostname.$domain'")
       or die "Can not execute kadmin.local: $!";
 
-    open(KADMIN, "|/usr/lib/mit/sbin/kadmin.local -q 'ktadd host/$hostname'")
+    open(KADMIN, "|$kadmin -q 'ktadd host/$hostname'")
       or die "Can not execute kadmin.local: $!";
 
     close(KADMIN);
@@ -643,7 +652,13 @@ sub kadmin
         eval "\$kcmd = \"$cmd\"";
         print "################ execute:$kcmd ###################\n";
         #open(KADMIN, "|/usr/lib/mit/sbin/kadmin -p admin/admin\@$realm -q '$kcmd'")
-        open(KADMIN, "|/usr/lib/mit/sbin/kadmin.local -q '$kcmd'")
+       my $kadmin = -x "/usr/lib/mit/sbin/kadmin.local" ? "/usr/lib/mit/sbin/kadmin.local"
+                : -x "/usr/sbin/kadmin.local"      ? "/usr/sbin/kadmin.local"
+                : die "kadmin.local not found on this system!";
+
+        print "Using kadmin.local: $kadmin\n";
+
+        open(KADMIN, "|$kadmin -q '$kcmd'")
           or die "Can not execute kadmin.local: $!";
 
         #print KADMIN "$adminpw\n";
@@ -678,7 +693,11 @@ sub config_y2kc
 ##############################################################################
 sub config_sshd
 {
-    open(SSHD, "</etc/ssh/sshd_config")
+   my $sshd_config= -e "/etc/ssh/sshd_config" ? "/etc/ssh/sshd_config"
+                : -e "/usr/etc/ssh/sshd_config"      ? "/usr/etc/ssh/sshd_config"
+                : die "sshd_config not found on this system!";
+
+    open(SSHD, "<$sshd_config")
       or die "Can not open file: $!";
 
     my @sshd = <SSHD>;
@@ -716,7 +735,7 @@ sub config_sshd
         push(@new_sshd, "GSSAPICleanupCredentials yes\n");
     }
 
-    open(SSHD, ">/etc/ssh/sshd_config")
+    open(SSHD, ">$sshd_config")
       or die "Can not open file: $!";
 
     print SSHD @new_sshd;
@@ -732,7 +751,11 @@ sub config_sshd
 ##############################################################################
 sub config_ssh
 {
-    open(SSH, "</etc/ssh/ssh_config")
+    my $ssh_config = -e "/etc/ssh/ssh_config" ? "/etc/ssh/ssh_config"
+                : -e "/usr/etc/ssh/ssh_config" ? "/usr/etc/ssh/ssh_config"
+                : die "ssh_config file not found!";
+	
+    open(SSH, "<$ssh_config")
       or die "Can not open file: $!";
 
     my @ssh = <SSH>;
@@ -770,7 +793,7 @@ sub config_ssh
         push(@new_ssh, "GSSAPIDelegateCredentials yes\n");
     }
 
-    open(SSH, ">/etc/ssh/ssh_config")
+    open(SSH, ">$ssh_config")
       or die "Can not open file: $!";
 
     print SSH @new_ssh;
