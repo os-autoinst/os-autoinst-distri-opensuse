@@ -26,32 +26,12 @@ sub run {
     # Turn to x11 and start 'xterm'
     select_console('x11');
     x11_start_program('xterm');
-
-    # Load 'SLE15' content if the system is sle, otherwise opensuse
     my $system = is_sle() ? "sle15" : "opensuse";
     my $content_to_load = "/usr/share/xml/scap/ssg/content/ssg-$system-ds.xml";
 
     # Start scap-workbench
     record_info('Start scap-workbench');
     enter_cmd("scap-workbench $content_to_load &");
-    # Customize profile
-    record_info('Customize profile');
-    wait_still_screen();
-    wait_screen_change {
-        assert_and_click('scap-workbench-Customize', timeout => 180);
-    };
-    # close the customization dialog
-    wait_screen_change {
-        assert_and_click('scap-workbench-Customize-Profile-OK', timeout => 180);
-    };
-    # close the right panel that should appear displaying the customized profile.
-    # if it's not present, select first element in order to show it
-    if (!check_screen 'scap-workbench-Customize-OK') {
-        send_key 'tab';
-    }
-    wait_screen_change {
-        assert_and_click('scap-workbench-Customize-OK', timeout => 180);
-    };
     wait_still_screen();
     # Scan system
     record_info('Scan system');
@@ -70,6 +50,10 @@ sub run {
     # Firefox will be started automatically
     assert_screen('scap-workbench-OpenSCAP-Evaluation-Report', timeout => 180);
     assert_and_click('scap-workbench-OpenSCAP-Evaluation-Report-Close');
+
+    if (check_screen('scap-workbench-Diagnostics-Close', timeout => 10)) {
+        assert_and_click('scap-workbench-Diagnostics-Close', timeout => 60);
+    }
 
     # Save Results after 'Scan': XCCDF, ARF, HTML
     record_info('Generate scan files');
@@ -112,7 +96,21 @@ sub run {
     }
 
     # Turn to root console
-    select_console('root-console');
+    select_console 'root-console';
+    assert_script_run 'cd /home/bernhard/';
+
+    my $profile = 'xccdf_org.ssgproject.content_profile_' . is_sle() ? 'anssi_bp28_minimal' : 'standard';
+    my %remed_steps = (
+        bash => 'remediation.sh',
+        ansible => 'remediation.yml',
+        puppet => 'remediation.pp'
+    );
+
+    # for each remediation type, generate the remediation file using oscap
+    foreach my $type (keys %remed_steps) {
+        record_info("Generate $type remediation file");
+        assert_script_run("oscap xccdf generate --profile $profile fix --fix-type $type --output $remed_steps{$type} $content_to_load");
+    }
 
     # Check the 'Scan' 'report' files are saved: XCCDF, ARF, HTML
     # Check the 'Remediate' files are saved: bash, ansible, puppet
@@ -121,10 +119,11 @@ sub run {
         "ssg-$system-ds-arf.xml",
         "ssg-$system-ds-xccdf.report.html",
         'remediation.sh',
-        'remediation.pp'
+        'remediation.pp',
+        'remediation.yml'
     );
     foreach my $file (@files) {
-        assert_script_run("ls /home/bernhard/ | grep $file");
+        assert_script_run("ls $file");
     }
 }
 
