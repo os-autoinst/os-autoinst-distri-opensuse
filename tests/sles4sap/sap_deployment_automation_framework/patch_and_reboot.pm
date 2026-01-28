@@ -147,12 +147,17 @@ file_content
 
     assert_script_run("tar -cvzf $log_dir/ibsm_patch_and_reboot.zip $log_dir/*");
     upload_logs("$log_dir/ibsm_patch_and_reboot.zip");
-    record_info('Robot upload', 'Uploading robot framework log files as openQA test assets.');
-    upload_asset("$log_dir/log.html");
-    upload_asset("$log_dir/report.html");
+    # Robot logs - uploaded as log files
+    my @robot_logs = split("\n", script_output("ls $log_dir | grep ssh_"));
+    record_info('Log upload', "Uploading robot log files:\n" . join("\n", @robot_logs));
+    upload_logs("$log_dir/$_", log_name => "$_.txt") foreach @robot_logs;
+    # List of log files to collect
+    my @robot_assets = split("\n", script_output("ls $log_dir | grep .htm"));
+    record_info('Asset upload', "Uploading robot log files:\n" . join("\n", @robot_assets));
+    upload_asset($_) foreach @robot_assets;
     parse_extra_log(XUnit => "$log_dir/xunit_result.xml");
-    disconnect_target_from_serial;
 
+    disconnect_target_from_serial;
     die 'Robot test suite failed. Check logs for details.' if $pabot_rc;
 }
 
