@@ -47,6 +47,7 @@ sub run {
         $instance->wait_for_guestregister();
     }
     register_addons_in_pc($instance);
+    $instance->wait_for_guestregister_not_active() if (is_ondemand());
 
     my $versions_info = sprintf("Target version : %s\n DMS package: %s\n Activation package: %s\n PC package: %s",
         $target_version, $dms_rpm, $act_rpm, $pc_rpm);

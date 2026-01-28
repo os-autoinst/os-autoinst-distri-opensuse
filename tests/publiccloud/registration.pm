@@ -27,6 +27,7 @@ sub run {
 
     registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
     register_addons_in_pc($args->{my_instance});
+    $args->{my_instance}->wait_for_guestregister_not_active() if (is_ondemand());
     # Double confirm system is correctly registered, and quit earlier if anything wrong
     # see bsc#1253777, we may need have to rerun the failed job in this case
     record_info('Check registration status');

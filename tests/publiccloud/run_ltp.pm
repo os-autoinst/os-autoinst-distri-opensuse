@@ -259,6 +259,7 @@ sub prepare_instance {
         $args->{my_provider} = $self->provider_factory();
         $args->{my_instance} = $args->{my_provider}->create_instance();
         $args->{my_instance}->wait_for_guestregister() if (is_ondemand());
+        $args->{my_instance}->wait_for_guestregister_not_active() if (is_ondemand());
     }
     return ($args->{my_provider}, $args->{my_instance});
 }

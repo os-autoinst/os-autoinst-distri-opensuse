@@ -277,6 +277,44 @@ sub upload_check_logs_tar {
     return 1;
 }
 
+=head2 wait_for_guestregister_not_active
+
+    wait_for_guestregister_not_active([timeout => 300]);
+
+Run command C<! systemctl is-active guestregister> on the instance in a loop and
+wait till guestregister is not active. If guestregister will not finish within C<timeout> seconds, job dies.
+
+Returns the time needed to wait for the guestregister to be not active.
+=cut
+
+sub wait_for_guestregister_not_active {
+    my ($self, %args) = @_;
+    $args{timeout} //= 300;
+    my $start_time = time();
+    my $last_info = 0;
+
+    while (time() - $start_time < $args{timeout}) {
+        my $rc = $self->ssh_script_run(
+            cmd => '! sudo systemctl is-active guestregister',
+            proceed_on_failure => 1,
+            quiet => 1
+        );
+
+        record_info("DEBUG NEW FUNCTION!!!", $rc);
+
+        return 1 if $rc == 0;
+
+        if (time() - $last_info > 10) {
+            record_info('WAIT', 'Wait for guest register to be disabled');
+            $last_info = time();
+        }
+        sleep 1;
+    }
+
+    diag("guestregister disabled timeout");
+    die("guestregister disabled didn't end in expected timeout=$args{timeout}");
+}
+
 =head2 wait_for_guestregister
 
     wait_for_guestregister([timeout => 300]);
