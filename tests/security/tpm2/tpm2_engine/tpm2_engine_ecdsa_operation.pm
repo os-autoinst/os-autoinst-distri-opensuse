@@ -1,4 +1,4 @@
-# Copyright 2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Per TPM2 stack, we would like to add the tpm2-tss-engine,
@@ -6,7 +6,7 @@
 #          We have several test modules, this test module will cover
 #          ECDSA operations.
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#64902, tc#1742298
+# Tags: poo#64902, tc#1742298, poo#195065
 
 use base 'opensusebasetest';
 use testapi;
@@ -15,33 +15,19 @@ use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal;
-
-    # only skip if FIPS is enabled
-    if (check_var('FIPS_ENABLED', '1')) {
-        record_info('SKIPPING TEST', "ECDSA is not supported in FIPS mode.");
-        return;
-    }
-
-    # ECDSA operations
-    # There is an known issue bsc#1159508
-    # Please use the command below to carry out the tests
-    my $test_dir = "tpm2_engine_ecdsa_sign";
-    my $test_file = "data";
-    my $my_key = "mykey";
-    my $my_sig = "mysig";
-    assert_script_run "mkdir $test_dir";
-    assert_script_run "cd $test_dir";
-    assert_script_run "echo tpm2test > $test_file";
-    assert_script_run "tpm2tss-genkey -a ecdsa -s 2048 $my_key";
-    my $extra_opts = is_sle('<=15-SP5') ? "-engine tpm2tss -inform engine" : "-provider tpm2";
-    assert_script_run "openssl ec $extra_opts -in $my_key -pubout -outform pem -out $my_key.pub";
-    assert_script_run "sha256sum $test_file | cut -d ' ' -f 1 | base64 -d > $test_file.hash";
-    assert_script_run "openssl pkeyutl -engine tpm2tss -keyform engine -inkey $my_key -sign -in $test_file.hash -out $my_sig";
-    validate_script_output "openssl pkeyutl -engine tpm2tss -keyform engine -inkey $my_key -verify -in $test_file.hash -sigfile $my_sig", sub {
-        m
-            /Signature\sVerified\sSuccessfully/
-    };
-    assert_script_run "cd";
+    my $test_dir = "/tmp/tpm2_engine_ecdsa_sign";
+    my $data_file = "$test_dir/data";
+    my $key = "$test_dir/mykey";
+    my $sig = "$test_dir/mysig";
+    my $hash = "$test_dir/data.hash";
+    my $openssl_opts = is_sle('<=15-SP5') ? "-engine tpm2tss -inform engine" : "-provider tpm2";
+    assert_script_run "mkdir -p $test_dir";
+    assert_script_run "echo tpm2test > $data_file";
+    assert_script_run "tpm2tss-genkey -a ecdsa -s 2048 $key";
+    assert_script_run "openssl ec $openssl_opts -in $key -pubout -outform pem -out $key.pub";
+    assert_script_run "openssl dgst -sha256 -binary $data_file > $hash";
+    assert_script_run "openssl pkeyutl -engine tpm2tss -keyform engine -inkey $key -sign -in $hash -out $sig";
+    validate_script_output("openssl pkeyutl -engine tpm2tss -keyform engine -inkey $key -verify -in $hash -sigfile $sig", sub { /Signature\s+Verified\s+Successfully/ });
 }
 
 1;
