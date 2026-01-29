@@ -21,6 +21,7 @@ The tests rely on some variables:
 | --- | --- |
 | `DOCKER_CE` | Test upstream Docker Community Edition |
 | `DOCKER_EXPERIMENTAL` | Enable experimental features in Docker |
+| `DOCKER_MIN_API_VERSION` | Docker minimum API version |
 | `DOCKER_SELINUX` | Enable SELinux in Docker daemon |
 | `DOCKER_TLS` | Enable TLS in Docker as documented [here](https://docs.docker.com/engine/security/protect-access/) |
 | `GITHUB_PATCHES` | List of github PR id's containing upstream test patches |
