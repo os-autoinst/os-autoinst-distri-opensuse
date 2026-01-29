@@ -18,7 +18,7 @@ sub run {
     return unless is_s390x();
     select_serial_terminal;
 
-    my $repo_url = "http://download.suse.de/ibs/SUSE:/SLFO:/Main:/Build/standard/";
+    my $repo_url = "http://download.suse.de/ibs/SUSE:/SLFO:/Main/standard/";
     if (is_sle('<16')) {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product('sle-module-development-tools');
