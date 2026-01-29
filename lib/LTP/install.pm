@@ -16,6 +16,7 @@ use version_utils qw(is_sle is_rt);
 use File::Basename 'basename';
 use Utils::Architectures;
 use utils;
+use LTP::utils;
 
 our @EXPORT = qw(
   get_required_build_dependencies
@@ -49,27 +50,29 @@ sub get_required_build_dependencies {
 
 sub get_maybe_build_dependencies {
     my @maybe_deps = qw(
-      gcc-32bit
-      kernel-default-devel-32bit
       keyutils-devel
-      keyutils-devel-32bit
       libacl-devel
-      libacl-devel-32bit
-      libaio-devel-32bit
       libcap-devel
-      libcap-devel-32bit
       libmnl-devel
       libnuma-devel
-      libnuma-devel-32bit
       libselinux-devel
-      libselinux-devel-32bit
       libtirpc-devel
-      libtirpc-devel-32bit
     );
 
+    push @maybe_deps, qw(
+      gcc-32bit
+      kernel-default-devel-32bit
+      keyutils-devel-32bit
+      libacl-devel-32bit
+      libaio-devel-32bit
+      libcap-devel-32bit
+      libnuma-devel-32bit
+      libselinux-devel-32bit
+      libtirpc-devel-32bit
+    ) if want_ltp_32bit;
     # libopenssl-devel-32bit is blocked by dependency mess on SLE-12 and we
     # don't use it anyway...
-    push @maybe_deps, 'libopenssl-devel-32bit' if !is_sle('<15');
+    push @maybe_deps, 'libopenssl-devel-32bit' if (want_ltp_32bit && !is_sle('<15'));
 
     return @maybe_deps;
 }
