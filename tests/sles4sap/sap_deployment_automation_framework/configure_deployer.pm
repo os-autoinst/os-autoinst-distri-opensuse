@@ -55,6 +55,11 @@ sub run {
     record_info("Terraform $1", $tf_version_out);
     record_info('Jumphost ready');
 
+    # Check if resource disk is mounted for early failure
+    my $mount_out = script_output('findmnt /mnt');
+    record_info('Check disk', "Checking if temporary resource disk is present:\n$mount_out");
+    die 'Temporary resource disk not mounted at /mnt: ' . script_output('mount') unless ($mount_out =~ /mnt/);
+
     # Do not leave connection hanging around between modules.
     disconnect_target_from_serial();
     serial_console_diag_banner('Module sdaf_deployer_setup.pm : end');
