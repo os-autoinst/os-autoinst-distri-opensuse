@@ -138,7 +138,6 @@ moby:
   # https://github.com/moby/moby/pull/51794 - integration: Support iputils ping
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
-    - 51219
     - 51263
     - 51794
   sle-16.1:
