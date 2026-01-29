@@ -233,10 +233,10 @@ sub run {
     unless (is_s390x) {
         record_info('Kernel parameters', script_output('cat /proc/cmdline'));
         record_info('NIC', script_output('ip a'));
+        # Upload agama script logs
+        script_run("tar zcfv /tmp/host_agama_installation_script_logs.tar.gz /var/log/agama-installation/scripts/*");
+        upload_logs("/tmp/host_agama_installation_script_logs.tar.gz", failok => 1);
     }
-    # Upload agama script logs
-    script_run("tar zcfv /tmp/host_agama_installation_script_logs.tar.gz /var/log/agama-installation/scripts/*");
-    upload_logs("/tmp/host_agama_installation_script_logs.tar.gz", failok => 1);
 }
 
 sub post_fail_hook {
