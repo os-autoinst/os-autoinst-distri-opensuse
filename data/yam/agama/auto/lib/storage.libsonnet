@@ -99,7 +99,7 @@ local whole_disk_and_boot_unattended() = {
     },
   ],
   boot: {
-    configure: 'true',
+    configure: true,
     device: 'boot-disk',
   },
 };
