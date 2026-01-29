@@ -111,14 +111,20 @@ docker-py:
   # Note on patches:
   # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
   # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
+  # https://github.com/docker/docker-py/pull/3362 - test/integration: don't check for deprecated Networks field
   # https://github.com/docker/docker-py/pull/3366 - test: Skip from_env_unix tests if DOCKER_HOST is network socket
   # https://github.com/docker/docker-py/pull/3367 - tests/integration: Make the tests runnable on SELinux enabled daemon
+  # https://github.com/docker/docker-py/pull/3372 - test_connect_with_ipv6_address: enable IPv6
+  # https://github.com/docker/docker-py/pull/3373 - test_create_with_ipv6_address: enable IPv6
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 3290
     - 3354
+    - 3362
     - 3366
     - 3367
+    - 3372
+    - 3373
   sle-16.1:
     GITHUB_PATCHES:
     - 3290
