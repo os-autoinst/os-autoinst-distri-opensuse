@@ -257,7 +257,7 @@ sub run {
     select_serial_terminal;
 
     configure_alloy if is_sle('>=16');
-    if (is_sle('>16') || is_sle("<=15-SP7")) {
+    if (is_sle('>16.1') || is_sle("<=15-SP7")) {
         # Configure Exporters
         configure_ha_exporter if get_var('HA_CLUSTER');
         configure_hanadb_exporter(rsc_id => $rsc_id, instance_sid => $instance_sid) if get_var('HANA');
