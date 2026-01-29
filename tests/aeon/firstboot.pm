@@ -66,12 +66,6 @@ sub run {
     # Installing the default applications takes a while.
     # Press 'ctrl' every 60 seconds for 30 minutes to avoid the screen lock.
     send_key_until_needlematch 'aeon-firstboot-done', 'ctrl', 30, 60;
-
-    # Dismiss the final screen
-    send_key 'ret';
-
-    wait_still_screen 1;
-    save_screenshot;
 }
 
 1;

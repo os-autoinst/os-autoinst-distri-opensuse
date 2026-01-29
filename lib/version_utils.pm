@@ -327,7 +327,7 @@ Check if distribution is Aeon
 =cut
 
 sub is_aeon {
-    return check_var('DISTRI', 'aeon') ? 1 : 0;
+    return !!get_var('DISTRI', 'aeon');
 }
 
 =head2 is_selfinstall

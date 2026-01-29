@@ -41,7 +41,7 @@ sub run {
     assert_screen 'tik-set-encryption-passphrase-2';
     type_string $encryption_passphrase;
     send_key 'ret';
-    wait_still_screen 3;
+    assert_screen 'tik-set-encryption-passphrase-3';
 
     # repeat the passphrase
     type_string $encryption_passphrase;
