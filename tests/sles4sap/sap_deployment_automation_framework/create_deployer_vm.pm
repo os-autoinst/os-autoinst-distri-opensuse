@@ -37,7 +37,7 @@ sub run {
 
     my $deployer_resource_group = get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
     my $snapshot_source_disk = get_var('SDAF_DEPLOYER_SNAPSHOT', 'deployer_snapshot_latest');
-    my $deployer_vm_size = get_var('SDAF_DEPLOYER_MACHINE', 'Standard_B2als_v2');    # Small VM to control costs
+    my $deployer_vm_size = get_var('SDAF_DEPLOYER_MACHINE', 'Standard_D2ds_v4');    # Small VM to control costs
     my $new_deployer_vm_name = generate_deployer_name();
     my $deployer_disk_name = "$new_deployer_vm_name\_OS";
 
