@@ -353,7 +353,7 @@ sub setup_pkgs {
         }
 
         foreach my $repo (split(/\s+/, get_var("TEST_REPOS", ""))) {
-            run_command "zypper addrepo $repo";
+            run_command "zypper addrepo --refresh $repo || true";
         }
     }
 
