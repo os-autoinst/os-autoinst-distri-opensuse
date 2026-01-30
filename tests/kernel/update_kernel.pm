@@ -351,12 +351,13 @@ sub start_heavy_load {
 
 sub update_kgraft {
     my ($self, $incident_klp_pkg, $repo, $incident_id) = @_;
+    my $args;
 
     $self->enable_update_repos(1);
 
     # Get patch list related to incident
-    my $patches = '';
-    $patches = get_patches($incident_id, $repo);
+    $args = '--issue="live patch"' if get_var('FLAVOR') =~ m/-Increments$|(Default-qcow|Base-RT|Base-ppc-512)-Updates$/;
+    my $patches = get_patches($incident_id, $repo, $args);
 
     if ($incident_id && !($patches)) {
         die "Patch isn't needed";
@@ -370,8 +371,8 @@ sub update_kgraft {
         # warm up system
         sleep 15;
 
-        if (is_sle) {
-            zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 2100);
+        if (is_sle || is_sle_micro('6.2+')) {
+            install_package("-t patch $patches", timeout => 2100);
         } elsif (is_sle_micro) {
             trup_call('pkg in kernel-livepatch-$(uname -r | sed s/\\\./_/g)');
         } else {
