@@ -1,10 +1,41 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Deployment steps for qe-sap-deployment
+# Summary: Clean up old network peerings on Azure
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap_publiccloud_basetest';
+=head1 NAME
+
+sles4sap/publiccloud/clean_leftover_peerings.pm - Clean up old network peerings on Azure
+
+=head1 DESCRIPTION
+
+This module cleans up old network peerings in the specified Azure Resource Group.
+
+Its primary tasks are:
+
+- Check if the provider is Azure.
+- Verify `IBSM_RG` variable is set.
+- Retrieve the VNet name for the resource group.
+- Delete old peerings associated with the Resource Group and VNet.
+
+=head1 SETTINGS
+
+=over
+
+=item B<IBSM_RG>
+
+The Azure Resource Group containing the IBSM (Internal Build Service Mirror). Required.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use testapi;
 use sles4sap::qesap::azure qw(qesap_az_clean_old_peerings);
 use publiccloud::utils qw(is_azure);

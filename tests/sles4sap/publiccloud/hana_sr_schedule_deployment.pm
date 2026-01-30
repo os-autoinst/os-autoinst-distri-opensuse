@@ -1,11 +1,11 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for scheduling qesap-deployment related modules.
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 =head1 NAME
 
-hana_sr_schedule_deployment.pm - Schedules the deployment of the test environment.
+sles4sap/publiccloud/hana_sr_schedule_deployment.pm - Schedules the deployment of the test environment.
 
 =head1 DESCRIPTION
 
@@ -49,7 +49,7 @@ QE-SAP <qe-sap@suse.de>
 
 package hana_sr_schedule_deployment;
 
-use base 'sles4sap_publiccloud_basetest';
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use testapi;
 use main_common 'loadtest';
 use publiccloud::utils 'is_azure';

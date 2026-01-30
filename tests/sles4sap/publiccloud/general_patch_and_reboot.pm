@@ -3,12 +3,43 @@
 # Copyright 2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: zypper
 # Summary: Refresh repositories, apply patches and reboot
-#
-# Maintainer: qa-c <qa-c@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap_publiccloud_basetest';
+=head1 NAME
+
+sles4sap/publiccloud/general_patch_and_reboot.pm - Refresh repositories, apply patches and reboot
+
+=head1 DESCRIPTION
+
+Refreshes repositories, applies all patches, and reboots the system.
+This is targeted at instances matching 'vmhana'.
+
+Its primary tasks are:
+
+- Connect to each 'vmhana' instance.
+- Kill PackageKit to release locks.
+- Refresh repositories (`zypper ref`).
+- Fully patch the system.
+- Reboot the instance.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_REBOOT_TIMEOUT>
+
+Timeout for the system reboot. Defaults to 600.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use testapi;
 use registration;
 use utils;

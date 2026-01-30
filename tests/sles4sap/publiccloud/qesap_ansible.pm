@@ -2,17 +2,17 @@
 #
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Execute ansible deployment using qe-sap-deployment project.
 # https://github.com/SUSE/qe-sap-deployment
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 =head1 NAME
 
-qesap_ansible.pm - Executes the Ansible deployment for the test environment.
+sles4sap/publiccloud/qesap_ansible.pm - Executes the Ansible deployment for the test environment.
 
 =head1 DESCRIPTION
 
-This module runs the Ansible playbook from the 'qe-sap-deployment' project to
+This module runs the Ansible playbook from the qe-sap-deployment project to
 configure the test environment. It handles the main configuration of the virtual
 machines deployed in the previous steps.
 
@@ -29,32 +29,10 @@ known issues and collecting logs.
 
 (Required) Specifies the public cloud provider (e.g., 'AZURE', 'EC2').
 
-=item B<HA_CLUSTER>
-
-(Required) A boolean value indicating whether a High Availability cluster is being deployed.
-
-=item B<SAVE_LIST_OF_PACKAGES>
-
-If set to '1', a list of all installed RPM packages is saved before the Ansible
-deployment for later comparison.
-
 =item B<QESAP_DEPLOYMENT_IMPORT>
 
 If set to '1', the Ansible deployment is skipped, assuming that an existing,
 already configured infrastructure is being used.
-
-=item B<IS_MAINTENANCE>
-
-If set to '1', the retry logic on deployment failure is disabled.
-
-=item B<FENCING_MECHANISM>
-
-If set to 'native' on Azure, this setting is used in conjunction with
-B<AZURE_FENCE_AGENT_CONFIGURATION> to configure native fencing permissions.
-
-=item B<AZURE_FENCE_AGENT_CONFIGURATION>
-
-Specifies the Azure fence agent configuration method (e.g., 'msi').
 
 =item B<QESAP_DEPLOYMENT_EXPORT>
 
@@ -69,6 +47,28 @@ This variable is set by the module to disable cleanup if B<QESAP_DEPLOYMENT_EXPO
 
 This variable is set by the module to disable cleanup on failure if B<QESAP_DEPLOYMENT_EXPORT> is enabled.
 
+=item B<HA_CLUSTER>
+
+(Required) A boolean value indicating whether a High Availability cluster is being deployed.
+
+=item B<SAVE_LIST_OF_PACKAGES>
+
+If set to '1', a list of all installed RPM packages is saved before the Ansible
+deployment for later comparison.
+
+=item B<IS_MAINTENANCE>
+
+If set to '1', the retry logic on deployment failure is disabled.
+
+=item B<FENCING_MECHANISM>
+
+If set to 'native' on Azure, this setting is used in conjunction with
+B<AZURE_FENCE_AGENT_CONFIGURATION> to configure native fencing permissions.
+
+=item B<AZURE_FENCE_AGENT_CONFIGURATION>
+
+Specifies the Azure fence agent configuration method (e.g., 'msi').
+
 =back
 
 =head1 MAINTAINER
@@ -77,10 +77,10 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap_publiccloud_basetest';
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use testapi;
 use publiccloud::utils;
-use sles4sap_publiccloud;
+use sles4sap::sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
 use serial_terminal 'select_serial_terminal';

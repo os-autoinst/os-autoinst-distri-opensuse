@@ -1,11 +1,11 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module schedules cleanup at the end of the test queue.
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 =head1 NAME
 
-hana_sr_schedule_cleanup.pm - Schedules the cleanup test module.
+sles4sap/publiccloud/hana_sr_schedule_cleanup.pm - Schedules the cleanup test module.
 
 =head1 DESCRIPTION
 
@@ -15,7 +15,7 @@ also use 'loadtest' to schedule tests.
 
 =head1 SETTINGS
 
-This module does not have any specific settings. It passes the test run arguments to the scheduled cleanup module.
+This module does not require any specific configuration variables for its core functionality. It passes the test run arguments to the scheduled cleanup module.
 
 =head1 MAINTAINER
 
@@ -25,7 +25,7 @@ QE-SAP <qe-sap@suse.de>
 
 package hana_sr_schedule_cleanup;
 
-use base 'sles4sap_publiccloud_basetest';
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use testapi;
 use main_common 'loadtest';
 

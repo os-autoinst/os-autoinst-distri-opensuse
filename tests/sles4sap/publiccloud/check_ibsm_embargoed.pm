@@ -4,7 +4,38 @@
 # Summary: Checks for embargoed updates on IBSM
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap_publiccloud_basetest';
+=head1 NAME
+
+sles4sap/publiccloud/check_ibsm_embargoed.pm - Checks for embargoed updates on IBSM
+
+=head1 DESCRIPTION
+
+Checks for embargoed updates on the Internal Build Service Mirror (IBSM).
+
+Its primary tasks are:
+
+- Retrieve the list of repositories from C<INCIDENT_REPO>.
+- For each repository, validate if it is potentially embargoed.
+- If so, attempt to add and refresh the repository on the instance.
+- Fail the test if an embargoed repository is successfully refreshed.
+
+=head1 SETTINGS
+
+=over
+
+=item B<INCIDENT_REPO>
+
+A comma-separated list of repository URLs to check.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use publiccloud::utils "validate_repo";
 use testapi;
 

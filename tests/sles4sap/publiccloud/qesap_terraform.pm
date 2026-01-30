@@ -1,38 +1,208 @@
-# SUSE's openQA tests
-#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
+
 # Summary: Deploy public cloud infrastructure using terraform using qe-sap-deployment project.
-# https://github.com/SUSE/qe-sap-deployment
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-# Available OpenQA parameters:
-# HA_CLUSTER - Enables HA/Hana cluster scenario
-# NODE_COUNT - number of nodes to deploy. Needs to be >1 for cluster usage.
-# PUBLIC_CLOUD_INSTANCE_TYPE - VM size, sets terraform 'vm_size' parameter
-# USE_SAPCONF - (true/false) set 'false' to use saptune
-# FENCING_MECHANISM - (sbd/native) choose fencing mechanism
-# ISCSI_ENABLED - (true/false) choose if to deploy iscsi server
-# QESAP_SCC_NO_REGISTER - define variable in openqa to skip SCC registration via ANSIBLE
-# HANA_MEDIA - Hana install media directory
-# HANA_ACCOUNT - Azure Storage name
-# HANA_CONTAINER - Azure Container name
-# HANA_KEYNAME - Azure key name in the Storage to generate SAS URI token used by hana_media in qe-sap-deployment
-# _HANA_MASTER_PW (mandatory) - Hana master PW (secret)
-# INSTANCE_SID - SAP Sid
-# INSTANCE_ID - SAP instance id
-# ANSIBLE_REMOTE_PYTHON - define python version to be used for qe-sap-deployment (default '/usr/bin/python3')
-# PUBLIC_CLOUD_IMAGE_LOCATION - needed by get_blob_uri
-# HANA_NAMESPACE - used to configure the Azure credentials involved in obtaining the HANA media
-# SLES4SAP_FIREWALL_PORTS - if set to 'true' enable the firewall configuration during the HANA installation playbook
+=head1 NAME
 
-use base 'sles4sap_publiccloud_basetest';
+sles4sap/publiccloud/qesap_terraform.pm - Deploy public cloud infrastructure using terraform.
+
+=head1 DESCRIPTION
+
+Deploy public cloud infrastructure using terraform using qe-sap-deployment project.
+https://github.com/SUSE/qe-sap-deployment
+
+Its primary tasks are:
+
+- Calculate network ranges.
+- Initialize provider.
+- Handle IBSM network peering variables.
+- Prepare qe-sap-deployment python environment.
+- Create Ansible playbook sections (HANA vars, create, destroy).
+- Execute Terraform deployment (with retries).
+- Wait for instances and verify hostnames.
+- Setup native fencing permissions if applicable.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_IMAGE_LOCATION>
+
+Needed by get_blob_uri.
+
+=item B<PUBLIC_CLOUD_INSTANCE_TYPE>
+
+VM size, sets terraform 'vm_size' parameter.
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+(Required) Cloud provider (e.g., AZURE, EC2, GCE).
+
+=item B<PUBLIC_CLOUD_RESOURCE_GROUP>
+
+Resource group name.
+
+=item B<PUBLIC_CLOUD_REGION>
+
+(Required) Cloud region.
+
+=item B<QESAP_SCC_NO_REGISTER>
+
+Define variable in openqa to skip SCC registration via ANSIBLE.
+
+=item B<QESAP_DEPLOYMENT_NAME>
+
+Name of the deployment.
+
+=item B<QESAP_FORCE_SUSECONNECT>
+
+Force usage of SUSEConnect.
+
+=item B<HANASR_TERRAFORM_PARALLEL>
+
+Terraform parallel options.
+
+=item B<HA_CLUSTER>
+
+Enables HA/Hana cluster scenario.
+
+=item B<NODE_COUNT>
+
+Number of nodes to deploy. Needs to be >1 for cluster usage.
+
+=item B<USE_SAPCONF>
+
+(true/false) set 'false' to use saptune.
+
+=item B<FENCING_MECHANISM>
+
+(sbd/native) choose fencing mechanism.
+
+=item B<ISCSI_ENABLED>
+
+(true/false) choose if to deploy iscsi server.
+
+=item B<HANA_MEDIA>
+
+Hana install media directory.
+
+=item B<HANA_ACCOUNT>
+
+Azure Storage name.
+
+=item B<HANA_CONTAINER>
+
+Azure Container name.
+
+=item B<HANA_KEYNAME>
+
+Azure key name in the Storage to generate SAS URI token used by hana_media in qe-sap-deployment.
+
+=item B<_HANA_MASTER_PW>
+
+(mandatory) Hana master PW (secret).
+
+=item B<HANA_NAMESPACE>
+
+Used to configure the Azure credentials involved in obtaining the HANA media.
+
+=item B<INSTANCE_SID>
+
+SAP Sid.
+
+=item B<INSTANCE_ID>
+
+SAP instance id.
+
+=item B<ANSIBLE_REMOTE_PYTHON>
+
+Define python version to be used for qe-sap-deployment (default '/usr/bin/python3').
+
+=item B<SLES4SAP_FIREWALL_PORTS>
+
+If set to 'true' enable the firewall configuration during the HANA installation playbook.
+
+=item B<WORKER_ID>
+
+(Required) Used to calculate network ranges.
+
+=item B<PTF_ACCOUNT>
+
+Azure storage account for PTF.
+
+=item B<PTF_CONTAINER>
+
+Azure container for PTF.
+
+=item B<PTF_KEYNAME>
+
+Azure keyname for PTF.
+
+=item B<AZURE_FENCE_AGENT_CONFIGURATION>
+
+Configuration for Azure fence agent (msi/spn).
+
+=item B<SCC_REGCODE_SLES4SAP>
+
+Registration code for SLES4SAP (BYOS).
+
+=item B<SCC_ADDONS>
+
+Comma separated list of addons.
+
+=item B<IBSM_IP>
+
+IBSM IP address.
+
+=item B<REPO_MIRROR_HOST>
+
+Repository mirror hostname.
+
+=item B<IBSM_RG>
+
+IBSM Resource Group (Azure).
+
+=item B<IBSM_VNET>
+
+IBSM VNet (Azure).
+
+=item B<IBSM_VPC_NAME>
+
+IBSM VPC Name (GCE).
+
+=item B<IBSM_SUBNET_NAME>
+
+IBSM Subnet Name (GCE).
+
+=item B<IBSM_SUBNET_REGION>
+
+IBSM Subnet Region (GCE).
+
+=item B<IBSM_NCC_HUB>
+
+IBSM NCC Hub (GCE).
+
+=item B<IBSM_PRJ_TAG>
+
+IBSM Project Tag (EC2).
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use base 'sles4sap::sles4sap_publiccloud_basetest';
 use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos detect_worker_ip);
-use sles4sap_publiccloud;
+use sles4sap::sles4sap_publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
 use sles4sap::azure_cli;
