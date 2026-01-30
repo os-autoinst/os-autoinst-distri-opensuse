@@ -111,6 +111,14 @@
             sed -i "/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}" $config_file
           done
         |||
+      },
+      {
+        name: "enable_sshd",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          systemctl enable sshd.service
+        |||
       }
     ]
   }
