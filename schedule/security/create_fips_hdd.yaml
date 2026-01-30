@@ -7,6 +7,7 @@ schedule:
   - console/consoletest_setup
   - fips/fips_setup
   - shutdown/shutdown
+  - '{{svirt_upload}}'
 conditional_schedule:
   bootloader:
     ARCH:
@@ -14,3 +15,7 @@ conditional_schedule:
         - installation/bootloader_zkvm
       ppc64le:
         - installation/bootloader_start
+  svirt_upload:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
