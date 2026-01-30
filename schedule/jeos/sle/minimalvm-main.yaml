@@ -14,6 +14,11 @@ conditional_schedule:
             'svirt-hyperv2022':
                 - installation/bootloader_hyperv
                 - installation/bootloader_uefi
+            'svirt-hyperv2025-uefi':
+                - installation/bootloader_hyperv
+            'svirt-hyperv2025':
+                - installation/bootloader_hyperv
+                - installation/bootloader_uefi
             'svirt-vmware':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
