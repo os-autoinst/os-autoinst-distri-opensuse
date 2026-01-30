@@ -206,4 +206,5 @@ schedule:
     - console/valgrind
     - console/sssd_389ds_functional
     - console/tcpdump
+    - console/libxslt
     - console/zypper_log_packages

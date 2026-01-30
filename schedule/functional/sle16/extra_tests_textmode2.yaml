@@ -33,5 +33,6 @@ schedule:
     - console/consoletest_finish
     - console/zypper_log_packages
     - console/rabbitmq
+    - console/libxslt
     - network/samba/samba_adcli
     - shutdown/shutdown

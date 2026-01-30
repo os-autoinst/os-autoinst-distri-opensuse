@@ -56,6 +56,7 @@ conditional_schedule:
         - console/golang
         - console/redis
         - console/ansible
+        - console/libxslt
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP7:
@@ -66,6 +67,7 @@ conditional_schedule:
         - console/golang
         - console/redis
         - console/ansible
+        - console/libxslt
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP6:
@@ -76,6 +78,7 @@ conditional_schedule:
         - console/golang
         - console/redis
         - console/ansible
+        - console/libxslt
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP5:
@@ -86,6 +89,7 @@ conditional_schedule:
         - console/golang
         - console/redis
         - console/ansible
+        - console/libxslt
         - '{{arch_specific}}'
       15-SP4:
         - console/sssd_389ds_functional
@@ -95,6 +99,7 @@ conditional_schedule:
         - console/golang
         - console/redis
         - console/ansible
+        - console/libxslt
         - '{{arch_specific}}'
       15-SP3:
         - console/sssd_389ds_functional
