@@ -82,7 +82,10 @@ buildx:
 compose:
   # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
+  # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
   opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 13564
   sle-16.1:
     GITHUB_PATCHES:
     - 13214
