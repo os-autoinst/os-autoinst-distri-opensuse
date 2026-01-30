@@ -120,6 +120,7 @@ docker-py:
   # https://github.com/docker/docker-py/pull/3367 - tests/integration: Make the tests runnable on SELinux enabled daemon
   # https://github.com/docker/docker-py/pull/3372 - test_connect_with_ipv6_address: enable IPv6
   # https://github.com/docker/docker-py/pull/3373 - test_create_with_ipv6_address: enable IPv6
+  # https://github.com/docker/docker-py/pull/3380 - integration: Remove test_build_squash tests
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 3261
@@ -130,6 +131,7 @@ docker-py:
     - 3367
     - 3372
     - 3373
+    - 3380
   sle-16.1:
     GITHUB_PATCHES:
     - 3290
