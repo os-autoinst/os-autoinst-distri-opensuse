@@ -27,7 +27,7 @@ Wait for kubectl command to be available.
 sub wait_kubectl_cmd {
     my (%args) = @_;
     $args{timeout} //= 120;
-    $timeout = bmwqemu::scale_timeout($args{timeout});
+    my $timeout = bmwqemu::scale_timeout($args{timeout});
     my $starttime = time;
     my $ret = undef;
 
