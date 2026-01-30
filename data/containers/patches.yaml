@@ -112,6 +112,7 @@ conmon:
     - 579
 docker-py:
   # Note on patches:
+  # https://github.com/docker/docker-py/pull/3261 - Bump default API version to 1.45 (Moby 26.0/26.1)
   # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
   # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
   # https://github.com/docker/docker-py/pull/3362 - test/integration: don't check for deprecated Networks field
@@ -121,6 +122,7 @@ docker-py:
   # https://github.com/docker/docker-py/pull/3373 - test_create_with_ipv6_address: enable IPv6
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
+    - 3261
     - 3290
     - 3354
     - 3362
