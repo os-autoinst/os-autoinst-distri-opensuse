@@ -40,7 +40,7 @@ sub validate_mounting_option {
 }
 
 sub run {
-    my $test_data = get_test_suite_data;
+    my $test_data = get_test_suite_data();
     select_console 'root-console';
 
     foreach my $disk (@{$test_data->{disks}}) {

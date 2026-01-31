@@ -181,7 +181,7 @@ sub post_fail_hook {
     cleanup;
 }
 
-sub test_flags () {
+sub test_flags {
     return {always_rollback => 1};
 }
 

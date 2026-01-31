@@ -16,7 +16,7 @@ use repo_tools 'validate_repo_properties';
 use scheduler 'get_test_suite_data';
 
 sub run {
-    my $test_data = get_test_suite_data;
+    my $test_data = get_test_suite_data();
     select_console 'root-console';
 
     foreach my $repo (keys %{$test_data->{dud_repos}}) {

@@ -10,6 +10,7 @@
 use base "x11test";
 use testapi;
 use version_utils;
+use serial_terminal;
 use utils "zypper_call";
 
 sub run {
