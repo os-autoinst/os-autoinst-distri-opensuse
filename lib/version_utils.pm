@@ -26,6 +26,7 @@ use constant {
           is_micro
           is_alp
           is_agama
+          is_aeon
           is_selfinstall
           is_gnome_next
           is_jeos
@@ -318,6 +319,15 @@ sub is_alp {
 
     # Version check
     return check_version($query, $version, qr/\d{1,}\.\d/);
+}
+
+=head2 is_aeon
+
+Check if distribution is Aeon
+=cut
+
+sub is_aeon {
+    return !!get_var('DISTRI', 'aeon');
 }
 
 =head2 is_selfinstall
