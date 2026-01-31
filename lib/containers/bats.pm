@@ -140,6 +140,10 @@ sub configure_docker {
     $docker_opts .= " -H tcp://0.0.0.0:$port";
     run_command "mv -f /etc/sysconfig/docker{,.bak} || true";
     run_command "mv -f /etc/docker/daemon.json{,.bak} || true";
+    if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
+        my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
+        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > /etc/docker/daemon.json);
+    }
     run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
     record_info "DOCKER_OPTS", $docker_opts;
     run_command "systemctl restart docker";
@@ -160,6 +164,12 @@ sub configure_rootless_docker {
     run_command "systemctl stop docker || true";
 
     switch_to_user;
+
+    if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
+        run_command 'mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/docker';
+        my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
+        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \${XDG_CONFIG_HOME:-\$HOME/.config}/docker/daemon.json);
+    }
 
     # https://docs.docker.com/engine/security/rootless/
     run_command "dockerd-rootless-setuptool.sh install";
@@ -353,7 +363,7 @@ sub setup_pkgs {
         }
 
         foreach my $repo (split(/\s+/, get_var("TEST_REPOS", ""))) {
-            run_command "zypper addrepo $repo";
+            run_command "zypper addrepo --refresh $repo || true";
         }
     }
 

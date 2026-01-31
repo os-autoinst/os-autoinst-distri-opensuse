@@ -56,9 +56,9 @@ sub setup {
         @test_dirs = split(/,/, $test_dirs);
     } else {
         # Ignore the tests in these directories in integration/
+        # as they fail in the current openQA setup
         my @ignore_dirs = (
-            "network",
-            "networking",
+            "network.*",
             "plugin.*",
         );
         my $ignore_dirs = join "|", map { "integration/$_" } @ignore_dirs;
@@ -103,6 +103,15 @@ sub run {
         # Flaky tests
         "github.com/docker/docker/integration/service::TestServicePlugin",
     );
+    push @xfails, (
+        # We don't yet support CDI
+        "github.com/moby/moby/v2/integration/container::TestEtcCDI",
+        # These fail on Docker v29:
+        "github.com/moby/moby/v2/integration/image::TestImagePullNonExisting",
+        "github.com/moby/moby/v2/integration/image::TestImagePullNonExisting/asdfasdf",
+        "github.com/moby/moby/v2/integration/image::TestImagePullNonExisting/library/asdfasdf",
+        "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
+    ) unless (is_sle);
     push @xfails, (
         # These tests use amd64 images:
         "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",

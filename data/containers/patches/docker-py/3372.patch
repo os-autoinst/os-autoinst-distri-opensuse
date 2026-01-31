@@ -1,0 +1,22 @@
+From 1d882c58113f9d831593ded11d49961cbec1c7ee Mon Sep 17 00:00:00 2001
+From: Rob Murray <rob.murray@docker.com>
+Date: Sun, 23 Nov 2025 17:11:08 +0000
+Subject: [PATCH] test_connect_with_ipv6_address: enable IPv6
+
+Signed-off-by: Rob Murray <rob.murray@docker.com>
+---
+ tests/integration/api_network_test.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/tests/integration/api_network_test.py b/tests/integration/api_network_test.py
+index ce2e8ea4c3..908b00b2bc 100644
+--- a/tests/integration/api_network_test.py
++++ b/tests/integration/api_network_test.py
+@@ -384,6 +384,7 @@ def test_connect_with_ipv4_address(self):
+     @requires_api_version('1.22')
+     def test_connect_with_ipv6_address(self):
+         net_name, net_id = self.create_network(
++            enable_ipv6=True,
+             ipam=IPAMConfig(
+                 driver='default',
+                 pool_configs=[

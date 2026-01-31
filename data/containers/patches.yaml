@@ -82,7 +82,10 @@ buildx:
 compose:
   # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
+  # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
   opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 13564
   sle-16.1:
     GITHUB_PATCHES:
     - 13214
@@ -109,16 +112,26 @@ conmon:
     - 579
 docker-py:
   # Note on patches:
+  # https://github.com/docker/docker-py/pull/3261 - Bump default API version to 1.45 (Moby 26.0/26.1)
   # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
   # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
+  # https://github.com/docker/docker-py/pull/3362 - test/integration: don't check for deprecated Networks field
   # https://github.com/docker/docker-py/pull/3366 - test: Skip from_env_unix tests if DOCKER_HOST is network socket
   # https://github.com/docker/docker-py/pull/3367 - tests/integration: Make the tests runnable on SELinux enabled daemon
+  # https://github.com/docker/docker-py/pull/3372 - test_connect_with_ipv6_address: enable IPv6
+  # https://github.com/docker/docker-py/pull/3373 - test_create_with_ipv6_address: enable IPv6
+  # https://github.com/docker/docker-py/pull/3380 - integration: Remove test_build_squash tests
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
+    - 3261
     - 3290
     - 3354
+    - 3362
     - 3366
     - 3367
+    - 3372
+    - 3373
+    - 3380
   sle-16.1:
     GITHUB_PATCHES:
     - 3290
@@ -136,11 +149,12 @@ moby:
   # https://github.com/moby/moby/pull/51219 - integration/container: Make tests runnable on SELinux enabled daemon
   # https://github.com/moby/moby/pull/51263 - integration: Skip some tests as rootless
   # https://github.com/moby/moby/pull/51794 - integration: Support iputils ping
+  # https://github.com/moby/moby/pull/51970 - Skip some tests as rootless when SELinux is enabled
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
-    - 51219
     - 51263
     - 51794
+    - 51970
   sle-16.1:
     GITHUB_PATCHES:
     - 51219
