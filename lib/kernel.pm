@@ -89,8 +89,9 @@ sub remove_kernel_packages {
     my @packages = map { $_->{name} } @{zypper_search('-i kernel')};
     @packages = grep { m/^kernel-(?!firmware)/ } @packages;
     my @rmpacks = @packages;
-    push @rmpacks, "multipath-tools"
-      if is_sle('>=15-SP3') and !get_var('KGRAFT');
+
+    push @rmpacks, 'multipath-tools'
+      if !get_var('KGRAFT') and scalar @{zypper_search('-i --match-exact multipath-tools')};
 
     uninstall_package(join(' ', @rmpacks));
     return @packages;
