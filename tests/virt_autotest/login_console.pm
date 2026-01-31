@@ -229,10 +229,22 @@ sub run {
     $self->login_to_console;
 
     config_ssh_client if get_var('VIRT_AUTOTEST') and !is_agama and !get_var('AUTOYAST') and !is_s390x;
+    # Make the primary interface always be the default route
+    if (is_sle('16+') and get_var('SKIP_HOST_BRIDGE_SETUP', '') and get_var("SUT_PRIMARY_MAC", "") and (get_var("VIRT_NEW_GUEST_MIGRATION_SOURCE", "") or get_var("VIRT_NEW_GUEST_MIGRATION_DESTINATION", ''))) {
+        my $target_mac = get_var("SUT_PRIMARY_MAC");
+        my $iface = script_output("ip -br link show | grep -i '$target_mac' | awk '{print \$1}'", type_command => 1);
+        $iface =~ s/^\s+|\s+$//g;
+        my $gateway = script_output("ip route show default | head -n 1 | awk '{print \$3}'");
+        my $ip = script_output("ip -4 addr show $iface | grep -oP 'inet \\K[\\d.]+'");
+        my $net = script_output("ip route show dev $iface | grep 'proto kernel' | awk '{print \$1}'");
+        script_run("ip route replace default via $gateway dev $iface metric 50");
+        script_run("ip route replace $net dev $iface src $ip metric 50");
+    }
+
     # To check if the environment are correct before tests begin
     unless (is_s390x) {
         record_info('Kernel parameters', script_output('cat /proc/cmdline'));
-        record_info('NIC', script_output('ip a'));
+        record_info('NIC', script_output('ip a ; echo "" ; ip r'));
     }
     # Upload agama script logs
     script_run("tar zcfv /tmp/host_agama_installation_script_logs.tar.gz /var/log/agama-installation/scripts/*");
