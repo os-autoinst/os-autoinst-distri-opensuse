@@ -42,7 +42,7 @@ sub verify_agama_auto_install_done_cmdline {
     # so we need to make sure the installation has completed from command line.
     my $timeout = get_var('AGAMA_INSTALL_TIMEOUT', '480');
     while ($timeout > 0) {
-        if (script_run("journalctl -u agama | grep 'Install phase done'") == 0) {
+        if (script_run("journalctl -u agama | grep 'storage: Finishing Snapper configuration'") == 0) {
             record_info("agama install phase done");
             return;
         }

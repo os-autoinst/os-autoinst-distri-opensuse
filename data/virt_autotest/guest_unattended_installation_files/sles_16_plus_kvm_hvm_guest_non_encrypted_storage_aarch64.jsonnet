@@ -23,44 +23,6 @@
     "hashedPassword": true,
     "sshPublicKey": "##Authorized-Keys##"
   },
-  legacyAutoyastStorage: [
-      {
-         "device": "/dev/vda",
-         "disklabel": "##Disk-Label##",
-         "enable_snapshots": true,
-         "initialize": true,
-         use: "all"
-      }
-  ],
-  "storage": {
-    "drives": [
-      {
-        "partitions": [
-          { "filesystem": { "path": "/" } },
-          { "filesystem": { "path": "/home" } },
-          { "filesystem": { "path": "swap" } }
-        ]
-      }
-    ]
-  },
-  "network": {
-    "connections": [
-      {
-        "id": "Wired Connection",
-        "method4": "auto",
-        "method6": "auto",
-        "ignoreAutoDns": false,
-        "status": "up",
-        "autoconnect": true,
-        "dnsSearchlist": [
-          "##Domain-Name##",
-          "suse.de",
-          "suse.asia",
-          "opensuse.org"
-        ]
-      }
-    ]
-  },
   scripts: {
     post: [
       {
@@ -84,6 +46,7 @@
           #!/usr/bin/env bash
           mkdir -p /etc/ssh/ssh_config.d
           echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /etc/ssh/ssh_config.d/01-qe-virtualization-functional.conf
+          systemctl enable sshd.service
         |||
       },
       {

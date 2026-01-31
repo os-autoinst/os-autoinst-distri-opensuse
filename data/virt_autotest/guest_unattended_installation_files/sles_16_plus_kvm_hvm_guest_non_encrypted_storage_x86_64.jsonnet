@@ -23,44 +23,6 @@
     "hashedPassword": true,
     "sshPublicKey": "##Authorized-Keys##"
   },
-  legacyAutoyastStorage: [
-      {
-         "device": "/dev/vda",
-         "disklabel": "##Disk-Label##",
-         "enable_snapshots": true,
-         "initialize": true,
-         use: "all"
-      }
-  ],
-  "storage": {
-    "drives": [
-      {
-        "partitions": [
-          { "filesystem": { "path": "/" } },
-          { "filesystem": { "path": "/home" } },
-          { "filesystem": { "path": "swap" } }
-        ]
-      }
-    ]
-  },
-  "network": {
-    "connections": [
-      {
-        "id": "Wired Connection",
-        "method4": "auto",
-        "method6": "auto",
-        "ignoreAutoDns": false,
-        "status": "up",
-        "autoconnect": true,
-        "dnsSearchlist": [
-          "##Domain-Name##",
-          "suse.de",
-          "suse.asia",
-          "opensuse.org"
-        ]
-      }
-    ]
-  },
   scripts: {
     post: [
       {
@@ -76,6 +38,7 @@
         content: |||
           #!/usr/bin/env bash
           echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes\nPermitEmptyPasswords no\nTCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
+          systemctl enable sshd.service
         |||
       },
       {

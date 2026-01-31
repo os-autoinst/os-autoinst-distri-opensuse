@@ -759,6 +759,31 @@ EOL
     record_info('VM Boot', "Waiting for guest to become available...");
     virt_autotest::utils::wait_guest_online($guest_name, 60, 1);
 
+    # Workaround for agama installation where repos may not be properly initialized (bsc#1257201)
+    # Force refresh repos once after guest is online to ensure zypper works correctly
+    record_info('Repo Refresh', "Refreshing repositories on guest $guest_name");
+    my $refresh_result = execute_over_ssh(
+        address => $guest_name,
+        command => "zypper --non-interactive --gpg-auto-import-keys refresh",
+        assert => 0,
+        timeout => 300
+    );
+    if ($refresh_result == 6) {
+        record_soft_failure("bsc#1257201 zypper refresh failed on guest $guest_name, forcing repo refresh");
+        execute_over_ssh(
+            address => $guest_name,
+            command => "zypper --non-interactive refs --force",
+            assert => 0,
+            timeout => 120
+        );
+        execute_over_ssh(
+            address => $guest_name,
+            command => "zypper --non-interactive --gpg-auto-import-keys refresh",
+            assert => 0,
+            timeout => 300
+        );
+    }
+
     return 1;
 }
 
