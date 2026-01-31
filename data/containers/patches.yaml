@@ -110,6 +110,10 @@ conmon:
   sle-16.0:
     GITHUB_PATCHES:
     - 579
+containerd:
+  opensuse-Tumbleweed:
+  sle-16.1:
+  sle-16.0:
 docker-py:
   # Note on patches:
   # https://github.com/docker/docker-py/pull/3261 - Bump default API version to 1.45 (Moby 26.0/26.1)

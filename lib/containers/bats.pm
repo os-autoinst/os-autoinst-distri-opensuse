@@ -638,6 +638,8 @@ sub patch_sources {
         $github_org = "docker";
     } elsif ($package =~ /moby/) {
         $github_org = "moby";
+    } elsif ($package =~ /containerd/) {
+        $github_org = "containerd";
     }
 
     # Support these cases for GITHUB_REPO: [<GITHUB_ORG>]#BRANCH
