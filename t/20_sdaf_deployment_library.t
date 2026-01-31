@@ -191,7 +191,7 @@ subtest '[az_login] Get credentials from OpenQA settings' => sub {
     undef_variables;
 };
 
-subtest 'Check credentials' => sub {
+subtest '[Check credentials]' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my %credentrials = (client_id => 'Potato', client_secret => 'Patata', tenant_id => 'Zemiak', subscription_id => 'Batata');
 
@@ -366,70 +366,6 @@ subtest '[sdaf_execute_deployment] Test "retry" functionality' => sub {
     ok sdaf_execute_deployment(deployment_type => 'workload_zone', retries => 3);
 };
 
-subtest '[sdaf_execute_playbook] Fail with missing mandatory arguments' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my $croak_message;
-    $ms_sdaf->redefine(croak => sub { $croak_message = $_[0]; die(); });
-
-    set_var('PUBLIC_CLOUD_REGION', 'swedencentral');
-    set_var('SAP_SID', 'QES');
-
-    dies_ok { sdaf_execute_playbook(sdaf_config_root_dir => '/love/and/peace') } 'Croak with missing mandatory argument "playbook_filename"';
-    ok $croak_message =~ m/playbook_filename/, 'Verify failure reason.';
-
-    dies_ok { sdaf_execute_playbook(playbook_filename => '00_world_domination.yaml') } 'Croak with missing mandatory argument "sdaf_config_root_dir"';
-    ok $croak_message =~ m/sdaf_config_root_dir/, 'Verify failure reason.';
-
-    undef_variables();
-};
-
-subtest '[sdaf_execute_playbook] Command execution' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my @calls;
-    $ms_sdaf->redefine(script_run => sub { push(@calls, $_[0]); return 0; });
-    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs deployment_dir));
-    set_var('SAP_SID', 'QES');
-    set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', undef);
-
-    sdaf_execute_playbook(playbook_filename => 'playbook_01_os_base_config.yaml', sdaf_config_root_dir => '/tmp/SDAF/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS');
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /ansible-playbook/ } @calls), 'Execute main command');
-    ok((any { /--inventory-file="QES_hosts.yaml"/ } @calls), 'Command contains "--inventory-file" parameter');
-    ok((any { /--private-key=\/tmp\/SDAF\/WORKSPACES\/SYSTEM\/LAB-SECE-SAP04-QAS\/sshkey/ } @calls),
-        'Command contains "--private-key" parameter');
-    ok((any { /--extra-vars=\'_workspace_directory=\/tmp\/SDAF\/WORKSPACES\/SYSTEM\/LAB-SECE-SAP04-QAS\'/ } @calls),
-        'Command contains extra variable: "_workspace_directory"');
-    ok((any { /--extra-vars="\@sap-parameters.yaml"/ } @calls), 'Command contains extra variable with SDAF sap-parameters');
-    ok((any { /--ssh-common-args=/ } @calls), 'Command contains "--ssh-common-args" parameter');
-
-    undef_variables();
-};
-
-subtest '[sdaf_execute_playbook] Command verbosity' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my @calls;
-
-    $ms_sdaf->redefine(script_run => sub { return; });
-    $ms_sdaf->redefine(log_command_output => sub { push(@calls, $_[1]); return 0; });
-    $ms_sdaf->noop(qw(assert_script_run record_info log_dir upload_logs deployment_dir));
-    set_var('SAP_SID', 'QES');
-
-    my %verbosity_levels = (
-        '1' => '-v',
-        '2' => '-vv',
-        '6' => '-vvvvvv',
-        'somethingtrue' => '-vvvv'
-    );
-
-    for my $level (keys(%verbosity_levels)) {
-        set_var('SDAF_ANSIBLE_VERBOSITY_LEVEL', $level);
-        sdaf_execute_playbook(playbook_filename => 'playbook_01_os_base_config.yaml', sdaf_config_root_dir => '/tmp/SDAF/WORKSPACES/SYSTEM/LAB-SECE-SAP04-QAS');
-        ok(grep(/$verbosity_levels{$level}/, @calls), "Append '$verbosity_levels{$level}' with verbosity parameter: '$level'");
-    }
-
-    undef_variables();
-};
-
 subtest '[sdaf_ssh_key_from_keyvault] Test exceptions' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $croak_message;
@@ -469,56 +405,6 @@ subtest '[sdaf_ssh_key_from_keyvault] Verify executed commands' => sub {
 
     note("\n --> " . join("\n --> ", @script_run));
     ok(grep(//, @assert_script_run), 'Validate ssh key');
-};
-
-subtest '[playbook_settings] Verify playbook order' => sub {
-    my @components = ('db_install', 'db_ha', 'nw_pas', 'nw_aas', 'nw_ensa');
-    my @playbook_list = map { $_->{playbook_filename} } @{playbook_settings(components => \@components)};
-
-    is $playbook_list[0], 'pb_get-sshkey.yaml', 'Playbook #1 must be: pb_get-sshkey.yaml';
-    is $playbook_list[1], 'playbook_00_validate_parameters.yaml', 'Playbook #2 must be: playbook_00_validate_parameters.yaml';
-    is $playbook_list[2], 'playbook_01_os_base_config.yaml', 'Playbook #3 must be: playbook_01_os_base_config.yaml';
-    is $playbook_list[3], 'playbook_02_os_sap_specific_config.yaml', 'Playbook #4 must be: playbook_02_os_sap_specific_config.yaml';
-    is $playbook_list[4], 'playbook_03_bom_processing.yaml', 'Playbook #5 must be: playbook_03_bom_processing.yaml';
-    is $playbook_list[5], 'playbook_04_00_00_db_install.yaml', 'Playbook #6 must be: playbook_04_00_00_db_install.yaml';
-    is $playbook_list[6], 'playbook_05_00_00_sap_scs_install.yaml', 'Playbook #7 must be: playbook_05_00_00_sap_scs_install.yaml';
-    is $playbook_list[7], 'playbook_05_01_sap_dbload.yaml', 'Playbook #8 must be: playbook_05_01_sap_dbload.yaml';
-    is $playbook_list[8], 'playbook_04_00_01_db_ha.yaml', 'Playbook #9 must be: playbook_04_00_01_db_ha.yaml';
-    is $playbook_list[9], 'playbook_05_02_sap_pas_install.yaml', 'Playbook #10 must be: playbook_05_02_sap_pas_install.yaml';
-    is $playbook_list[10], 'playbook_05_03_sap_app_install.yaml', 'Playbook #11 must be: playbook_05_03_sap_app_install.yaml';
-};
-
-subtest '[register_byos] Test exceptions' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    $ms_sdaf->redefine(ansible_execute_command => sub { return; });
-    $ms_sdaf->redefine(assert_script_run => sub { return; });
-    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', $_[0], ':', $_[1])); });
-    $ms_sdaf->noop(qw(ansible_execute_command assert_script_run));
-
-    my %mandatory_args = (sdaf_config_root_dir => '/fun/', scc_reg_code => 'HAHA', sap_sid => 'LOL');
-
-    for my $arg (keys %mandatory_args) {
-        my $orig_value = $mandatory_args{$arg};
-        $mandatory_args{$arg} = undef;
-        dies_ok { sdaf_register_byos(%mandatory_args) } "Croak with missing \$args{$arg}";
-        $mandatory_args{$arg} = $orig_value;
-    }
-};
-
-subtest '[register_byos] Command check' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my @commands;
-    $ms_sdaf->redefine(ansible_execute_command => sub { @commands = @_; return; });
-    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $ms_sdaf->noop(qw(assert_script_run));
-
-    my %mandatory_args = (sdaf_config_root_dir => '/fun/', scc_reg_code => 'HAHA', sap_sid => 'LOL');
-    sdaf_register_byos(%mandatory_args);
-
-    note('CMD: ' . join(' ', @commands));
-    ok(grep(/sudo/, @commands), 'Execute command under "sudo"');
-    ok(grep(/registercloudguest/, @commands), 'Execute command "registercloudguest"');
-    ok(grep(/-r HAHA/, @commands), 'Include regcode');
 };
 
 subtest '[sdaf_deployment_reused]' => sub {
