@@ -466,6 +466,7 @@ sub load_tests {
     } elsif (check_var('EXTRA', 'selinux')) {
         load_selinux_tests;
     } else {
+        print("I should be here as well!\n");
         load_common_tests;
         load_transactional_tests unless is_zvm;
     }
