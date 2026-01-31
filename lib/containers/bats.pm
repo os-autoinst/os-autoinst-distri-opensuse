@@ -292,10 +292,11 @@ sub enable_modules {
 }
 
 sub patch_junit {
-    my ($package, $version, $xmlfile, @ignore_tests) = @_;
+    my ($package, $version, $xmlfile, @xfails) = @_;
     my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
-    my $ignore_tests = join(' ', map { "\"$_\"" } @ignore_tests);
-    my @passed = split /\n/, script_output "patch_junit $xmlfile '$package $version $os_version' $ignore_tests";
+    @xfails = uniq sort @xfails;
+    my $xfails = join(' ', map { "\"$_\"" } @xfails);
+    my @passed = split /\n/, script_output "patch_junit $xmlfile '$package $version $os_version' $xfails";
     foreach my $pass (@passed) {
         record_info("PASS", $pass);
     }
@@ -557,7 +558,7 @@ sub bats_post_hook {
 }
 
 sub bats_tests {
-    my ($tapfile, $_env, $ignore_tests, $timeout) = @_;
+    my ($tapfile, $_env, $xfails, $timeout) = @_;
     my %env = %{$_env};
 
     my $package = get_required_var("BATS_PACKAGE");
@@ -600,12 +601,12 @@ sub bats_tests {
     script_run "mv report.xml $xmlfile";
 
     upload_logs($tapfile);
-    my @ignore_tests = get_var("RUN_TESTS") ? () : @{$ignore_tests};
+    my @xfails = get_var("RUN_TESTS") ? () : @{$xfails};
     # Strip control chars from XML as they aren't quoted and we can't quote them as valid XML 1.1
     # because it's not supported in most XML libraries anyway. See https://bugs.python.org/issue43703
     assert_script_run("LC_ALL=C sed -i 's/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]//g' $xmlfile") if ($package eq "umoci");
     my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
-    patch_junit $package, $version, $xmlfile, @ignore_tests;
+    patch_junit $package, $version, $xmlfile, @xfails;
     parse_extra_log(XUnit => $xmlfile);
 
     script_run("rm -rf $tmp_dir || true", timeout => 0);

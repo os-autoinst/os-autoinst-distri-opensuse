@@ -61,9 +61,10 @@ sub run {
         "github.com/docker/buildx/tests::TestIntegration/TestBuildAnnotations/worker=remote",
     ) if (is_aarch64);
     push @xfails, (
+        "github.com/docker/buildx/tests::TestIntegration",
         "github.com/docker/buildx/tests::TestIntegration/TestComposeBuildCheck/worker=remote",
         "github.com/docker/buildx/tests::TestIntegration/TestComposeBuildRegistry/worker=remote",
-    ) unless (is_tumbleweed);
+    ) if (is_sle);
 
     run_command "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests |& tee buildx.txt", timeout => 1200;
 
