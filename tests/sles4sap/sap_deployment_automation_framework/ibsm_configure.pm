@@ -63,6 +63,9 @@ sub test_flags {
 }
 
 sub run {
+    # Skip module if existing deployment is being re-used
+    return if sdaf_deployment_reused();
+
     unless (get_var('IS_MAINTENANCE')) {
         # Just a safeguard for case the module is in schedule without 'IS_MAINTENANCE' OpenQA setting being set
         record_info('MAINTENANCE OFF', 'OpenQA setting "IS_MAINTENANCE" is disabled, skipping IBSm setup');

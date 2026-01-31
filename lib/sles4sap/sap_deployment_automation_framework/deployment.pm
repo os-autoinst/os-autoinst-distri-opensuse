@@ -13,6 +13,9 @@ use warnings;
 use version;
 use testapi;
 use Mojo::Base -signatures;
+use feature 'class';
+# Just a warning about using experimental feature for Perl <5.38
+no warnings 'experimental::class';
 use Exporter qw(import);
 use Carp qw(croak);
 use Utils::Git qw(git_clone);
@@ -58,6 +61,7 @@ our @EXPORT = qw(
   get_fencing_mechanism
   sdaf_upload_logs
   get_workload_resource_group
+
 );
 
 our $output_log_file = '';
@@ -938,6 +942,8 @@ If undefined, it will use standard output without adding any B<-v> flag. See fun
 
 sub sdaf_execute_playbook {
     my (%args) = @_;
+    my $playbook = \$sles4sap::sap_deployment_automation_framework::basetest::serial_regexp_playbook1;
+    $$playbook = 1;
     $args{timeout} //= 1800;    # Most playbooks take more than default 90s
     $args{sap_sid} //= get_required_var('SAP_SID');
     $args{verbosity_level} //= get_var('SDAF_ANSIBLE_VERBOSITY_LEVEL');
@@ -965,6 +971,7 @@ sub sdaf_execute_playbook {
     upload_logs($output_log_file);
     die "Execution of playbook failed with RC: $rc" if $rc;
     record_info('Playbook OK', "Playbook execution finished: $playbook_file");
+    $$playbook = 0;
 }
 
 =head2 sdaf_ansible_verbosity_level
@@ -1053,68 +1060,97 @@ sub ansible_execute_command {
     return script_output(join(' ', @cmd, "--args=\"$args{command}\""), proceed_on_failure => $args{proceed_on_failure});
 }
 
-=head2 playbook_settings
+=head2 PlaybookSettings
 
-    playbook_settings(components=>['db_install', 'db_ha']);
+    my $playbooks = PlaybookSettings()->new();
+    $playbook->set(@components);
+    $playbook->get();
 
-Display simple command outputs from all DB hosts using B<ansible> command.
+Class used for handling list of playbook settings for further execution by sdaf_execute_playbook().
+Playbook description is here as well: https://learn.microsoft.com/en-us/azure/sap/automation/run-ansible?tabs=linux
+
+=head2 METHODS
+
+=head3 set(@components)
+
+Method Creates list of playbook settings according to B<@components> that are to be installed.
+Method can be called only once, otherwise it will die. This is to prevent resetting playbook order accidentally.
+Returns full data structure of settings compiled in B<ARRAYREF> format.
+Example:
+[
+  {playbook_filename => 'playbook_name_A.yaml', timeout => 120},
+  {playbook_filename => 'playbook_name_B.yaml', timeout => 90}
+]
 
 =over
 
 =item * B<components>: B<ARRAYREF> of components that should be installed
 
 =back
+
+=head3 get()
+
+Purpose of this method is to serve the caller playbook name and settings which are to be executed
+in correct order. Method is supposed to be called in a loop until all playbooks are returned.
+Once there are no playbooks left, structure with undefined values is returned.
+
 =cut
 
-sub playbook_settings {
-    my (%args) = @_;
-    # General playbooks that must be run in all scenarios
-    my @playbooks = (
-        # Fetches SSH key from Workload zone keyvault for accesssing SUTs
-        {playbook_filename => 'pb_get-sshkey.yaml', timeout => 90},
-        # Validate parameters
-        {playbook_filename => 'playbook_00_validate_parameters.yaml', timeout => 120},
-        # Base operating system configuration
-        {playbook_filename => 'playbook_01_os_base_config.yaml'});
-
-    # DB installation pulls in SAP specific configuration
-    if (grep /db_install/, @{$args{components}}) {
-        # SAP-specific operating system configuration
-        push @playbooks, {playbook_filename => 'playbook_02_os_sap_specific_config.yaml'};
-        # SAP Bill of Materials processing - this also mounts install media storage
-        push @playbooks, {playbook_filename => 'playbook_03_bom_processing.yaml', timeout => 7200};
-        # SAP HANA database installation
-        push @playbooks, {playbook_filename => 'playbook_04_00_00_db_install.yaml', timeout => 3600};
+class PlaybookSettings {
+    my @playbooks;
+    my $playbooks_set;
+    method set(@components) {
+        # This is to prevent accidentally resetting playbook list, executing incorrect one
+        die('Method "must be executed only once per OpenQA test suite"') if $playbooks_set;
+        # General playbooks that must be run in all scenarios
+        @playbooks = (
+            # Fetches SSH key from Workload zone keyvault for accesssing SUTs
+            {playbook_filename => 'pb_get-sshkey.yaml', timeout => 90},
+            # Validate parameters
+            {playbook_filename => 'playbook_00_validate_parameters.yaml', timeout => 120},
+            # Base operating system configuration
+            {playbook_filename => 'playbook_01_os_base_config.yaml'}
+        );
+        # DB installation pulls in SAP specific configuration
+        if (grep /db_install/, @components) {
+            # SAP-specific operating system configuration
+            push @playbooks, {playbook_filename => 'playbook_02_os_sap_specific_config.yaml'};
+            # SAP Bill of Materials processing - this also mounts install media storage
+            push @playbooks, {playbook_filename => 'playbook_03_bom_processing.yaml', timeout => 7200};
+            # SAP HANA database installation
+            push @playbooks, {playbook_filename => 'playbook_04_00_00_db_install.yaml', timeout => 3600};
+        }
+        # playbooks required for all nw* scenarios
+        if (grep /nw/, @components) {
+            # SAP ASCS installation, including ENSA if specified in tfvars
+            push @playbooks, {playbook_filename => 'playbook_05_00_00_sap_scs_install.yaml', timeout => 7200};
+            # Execute database import
+            push @playbooks, {playbook_filename => 'playbook_05_01_sap_dbload.yaml', timeout => 7200};
+        }
+        # Run HA related playbooks at the end as it can mix up node order ###
+        if (grep /db_ha/, @components) {
+            # SAP HANA high-availability configuration
+            push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 3600};
+        }
+        # playbooks required for all nw* scenarios
+        if (grep /nw/, @components) {
+            # SAP primary application server installation
+            push @playbooks, {playbook_filename => 'playbook_05_02_sap_pas_install.yaml', timeout => 7200};
+            # SAP additional application server installation
+            push @playbooks, {playbook_filename => 'playbook_05_03_sap_app_install.yaml', timeout => 3600};
+        }
+        if (grep /nw_ensa/, @components) {
+            # Configure ENSA cluster
+            push @playbooks, {playbook_filename => 'playbook_06_00_acss_registration.yaml', timeout => 1800};
+        }
+        $playbooks_set = 1;
+        return (\@playbooks);
     }
-
-    # playbooks required for all nw* scenarios
-    if (grep /nw/, @{$args{components}}) {
-        # SAP ASCS installation, including ENSA if specified in tfvars
-        push @playbooks, {playbook_filename => 'playbook_05_00_00_sap_scs_install.yaml', timeout => 7200};
-        # Execute database import
-        push @playbooks, {playbook_filename => 'playbook_05_01_sap_dbload.yaml', timeout => 7200};
+    method get() {
+        return shift(@playbooks) if @playbooks;
+        # Return proper empty structure so the caller can still do get->{playbook_filename}
+        return {playbook_filename => undef};
     }
-
-    # Run HA related playbooks at the end as it can mix up node order ###
-    if (grep /db_ha/, @{$args{components}}) {
-        # SAP HANA high-availability configuration
-        push @playbooks, {playbook_filename => 'playbook_04_00_01_db_ha.yaml', timeout => 3600};
-    }
-
-    # playbooks required for all nw* scenarios
-    if (grep /nw/, @{$args{components}}) {
-        # SAP primary application server installation
-        push @playbooks, {playbook_filename => 'playbook_05_02_sap_pas_install.yaml', timeout => 7200};
-        # SAP additional application server installation
-        push @playbooks, {playbook_filename => 'playbook_05_03_sap_app_install.yaml', timeout => 3600};
-    }
-
-    if (grep /nw_ensa/, @{$args{components}}) {
-        # Configure ENSA cluster
-        push @playbooks, {playbook_filename => 'playbook_06_00_acss_registration.yaml', timeout => 1800};
-    }
-
-    return (\@playbooks);
 }
 
 =head2 sdaf_register_byos
