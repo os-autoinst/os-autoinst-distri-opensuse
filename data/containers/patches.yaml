@@ -149,10 +149,12 @@ moby:
   # https://github.com/moby/moby/pull/51219 - integration/container: Make tests runnable on SELinux enabled daemon
   # https://github.com/moby/moby/pull/51263 - integration: Skip some tests as rootless
   # https://github.com/moby/moby/pull/51794 - integration: Support iputils ping
+  # https://github.com/moby/moby/pull/51970 - Skip some tests as rootless when SELinux is enabled
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 51263
     - 51794
+    - 51970
   sle-16.1:
     GITHUB_PATCHES:
     - 51219
