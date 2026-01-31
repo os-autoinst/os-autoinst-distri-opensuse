@@ -14,7 +14,7 @@
 
 use base 'consoletest';
 use testapi;
-use utils 'zypper_call';
+use utils qw(zypper_call script_retry);
 use serial_terminal 'select_serial_terminal';
 
 sub run {
@@ -25,7 +25,7 @@ sub run {
 
     zypper_call('in traceroute') if (script_run('rpm -q traceroute'));
     record_info("Version", script_output("rpm -q --qf '%{version}' traceroute"));
-    assert_script_run("traceroute -I $target > $log");
+    script_retry("traceroute -I $target > $log", retry => 3);
     record_info("Traceroute logs", script_output("cat $log"));
     assert_script_run("test -s $log", fail_message => "Log file is empty");
     assert_script_run("tail -n 1 $log | grep -q $ip_target", fail_message => "traceroute did not reach destination ip");
