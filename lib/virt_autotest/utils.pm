@@ -2029,7 +2029,15 @@ sub install_product_software {
     $args{package} //= get_var('INSTALL_PRODUCT_PACKAGES', '');
     $args{pattern} //= get_var('INSTALL_PRODUCT_PATTERNS', '');
 
-    zypper_call("--gpg-auto-import-keys refresh");
+    # Workaround for agama installation where repos may not be properly initialized
+    my $refresh_ret = script_run("zypper -n --gpg-auto-import-keys refresh", 300);
+    if ($refresh_ret == 6) {
+        record_soft_failure("bsc#1257201 zypper refresh failed with exit code 6, forcing repo refresh");
+        assert_script_run("zypper -n refs --force", 120);
+        zypper_call("--gpg-auto-import-keys refresh");
+    } elsif ($refresh_ret != 0) {
+        die "'zypper -n --gpg-auto-import-keys refresh' failed with code $refresh_ret";
+    }
     if ($args{package}) {
         my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
         $cmd = $cmd . " virt-install libvirt-client libguestfs0 guestfs-tools";
