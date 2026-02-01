@@ -152,9 +152,9 @@ moby:
   # https://github.com/moby/moby/pull/51970 - Skip some tests as rootless when SELinux is enabled
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
+    - 51219
     - 51263
     - 51794
-    - 51970
   sle-16.1:
     GITHUB_PATCHES:
     - 51219
