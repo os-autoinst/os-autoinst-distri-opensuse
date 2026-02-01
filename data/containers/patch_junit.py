@@ -53,16 +53,26 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
     except IndexError:
         pass
 
+    # str.removesuffix() was added to Python 3.8
+    basename = os.path.basename(file)[: -len(".xml")]
+
     for testsuite in root.findall("testsuite"):
-        # Prepend prefix to the suite name
         suitename = testsuite.get("name")  # type: ignore
         if not suitename:
             continue
+        # Prevent openQA from deduplicating results for suite names.
         if prefix:
+            # BATS uses the test filename as the suite name. There is no
+            # namespace, so we prepend the prefix
             testsuite.set("name", prefix + suitename)
+        elif testsuite.get("package") is not None:
+            # Ginkgo stores the structural test hierarchy in the 'package'
+            # attribute, while the suite name is only a label
+            testsuite.set("name", basename)
         else:
-            # str.removesuffix() was added to Python 3.8
-            testsuite.set("name", os.path.basename(file)[: -len(".xml")])
+            # On gotestsum & pytest the suite name is a structured namespace.
+            # To keep the hierarchy intact we insert the basename at the top
+            testsuite.set("name", f"{basename}::{suitename}")
 
         failures = int(testsuite.get("failures", "0"))
         adjusted = failures
@@ -113,8 +123,7 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
         values = info.split()
 
         # Set testsuites name attribute
-        # Note: str.removesuffix() was added to Python 3.8
-        root.set("name", os.path.basename(file)[: -len(".xml")])
+        root.set("name", basename)
 
         # Create or find <properties> under <testsuites>
         props = root.find("properties")
