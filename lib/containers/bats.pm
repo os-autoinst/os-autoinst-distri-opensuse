@@ -296,10 +296,12 @@ sub patch_junit {
     my $os_version = join(' ', get_var("DISTRI"), get_var("VERSION"), get_var("BUILD"), get_var("ARCH"));
     @xfails = uniq sort @xfails;
     my $xfails = join(' ', map { "\"$_\"" } @xfails);
+    script_run "cp $xmlfile $xmlfile.orig";
     my @passed = split /\n/, script_output "patch_junit $xmlfile '$package $version $os_version' $xfails";
     foreach my $pass (@passed) {
         record_info("PASS", $pass);
     }
+    script_run "diff $xmlfile.orig $xmlfile ; rm -f $xmlfile.orig";
 }
 
 # /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
