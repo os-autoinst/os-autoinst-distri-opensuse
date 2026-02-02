@@ -130,6 +130,7 @@ def patch_xml(file: str, info: str, xfails: Dict[str, List[str]]) -> None:
         if props is None:
             # Insert <properties> as the first child (before <testsuite>)
             props = ET.Element("properties")
+            props.tail = "\n\t"
             root.insert(0, props)
 
         # Add metadata as <property name="..." value="..."/>
