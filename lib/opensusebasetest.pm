@@ -574,14 +574,14 @@ sub reconnect_s390 {
         sleep 2 if is_s390x;
         type_line_svirt "root", expect => qr/Passwor[dt]/;
         type_line_svirt "$testapi::password";
-        type_line_svirt "systemctl is-active network", expect => 'active';
+        type_line_svirt "systemctl is-active network", expect => qr/^active\s*$/m;
         if ($enable_root_ssh eq 1) {
             record_info('Enable root ssh login');
             type_line_svirt "mkdir -p /etc/ssh/sshd_config.d";
             type_line_svirt "echo 'PermitRootLogin yes' \\> /etc/ssh/sshd_config.d/root.conf";
             type_line_svirt "systemctl restart sshd";
         }
-        type_line_svirt 'systemctl is-active sshd', expect => 'active';
+        type_line_svirt 'systemctl is-active sshd', expect => qr/^active\s*$/m;
 
         # make sure we can reach the SSH server in the SUT, try up to 1 min (12 * 5s)
         my $retries = 12;
