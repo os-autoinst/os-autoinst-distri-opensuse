@@ -19,7 +19,6 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use Utils::Architectures 'is_s390x';
 use version_utils qw(is_opensuse is_tumbleweed is_sle);
 use registration 'add_suseconnect_product';
 use feature 'signatures';
@@ -28,7 +27,7 @@ no warnings 'experimental::signatures';
 sub install_dependencies($container_engine) {
 
     zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16'));
-    zypper_call("in sssd sssd-ldap openldap2-client $container_engine");
+    zypper_call("in sssd sssd-ldap openldap2-client sshpass $container_engine");
     systemctl("enable --now $container_engine") if ($container_engine eq "docker");
     return $container_engine;
 }
@@ -82,21 +81,15 @@ sub configure_sssd_client ($container_engine) {
     systemctl("enable --now sssd.service");
 }
 
-sub change_and_verify_password ($typing_speed, $user, $old_pass, $new_pass) {
-
-    enter_cmd("ssh -oStrictHostKeyChecking=no $user\@localhost", max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd($old_pass, max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd("echo -e \"$old_pass\\n$new_pass\\n$new_pass\" | passwd", max_interval => $typing_speed, wait_still_screen => 1);
-    enter_cmd('exit', max_interval => $typing_speed, wait_still_screen => 1);
+sub change_and_verify_password ($user, $old_pass, $new_pass) {
+    # Change password
+    assert_script_run("sshpass -p '$old_pass' ssh -o StrictHostKeyChecking=no $user\@localhost 'echo -e \"$old_pass\\n$new_pass\\n$new_pass\" | passwd'");
 
     # Verify password change
     validate_script_output("ldapwhoami -x -H ldap://ldapserver -D uid=$user,ou=users,dc=sssdtest,dc=com -w $new_pass", sub { m/$user/ });
 
     # Verify login with new password
-    enter_cmd("ssh -oStrictHostKeyChecking=no $user\@localhost", max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd($new_pass, max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd('echo "Password changed successfully!" > /tmp/passwd_change_verified', max_interval => $typing_speed, wait_still_screen => 1);
-    enter_cmd('exit', max_interval => $typing_speed, wait_still_screen => 1);
+    assert_script_run("sshpass -p '$new_pass' ssh -o StrictHostKeyChecking=no $user\@localhost 'echo \"Password changed successfully!\" > /tmp/passwd_change_verified'");
     validate_script_output('cat /tmp/passwd_change_verified', sub { m/Password changed successfully/ });
 }
 
@@ -118,56 +111,46 @@ sub run ($self) {
     #remote user authentification test
     assert_script_run("pam-config -a --sss --mkhomedir");
 
-    my $typing_speed = is_s390x ? utils::VERY_SLOW_TYPING_SPEED : 150;
-    run_online_tests($container_engine, $typing_speed);
-    run_offline_tests($container_engine, $typing_speed);
+    run_online_tests($container_engine);
+    run_offline_tests($container_engine);
 }
 
-sub run_online_tests ($container_engine, $typing_speed) {
+sub run_online_tests ($container_engine) {
     select_console 'root-console';
 
-    user_test($typing_speed);
+    user_test();
 
     # Change password of remote user 'alice'
-    change_and_verify_password($typing_speed, 'alice', 'open5use', 'n0vell88');
+    change_and_verify_password('alice', 'open5use', 'n0vell88');
 
     # Sudo run a command as another user
     assert_script_run("echo 'Defaults !targetpw' >/etc/sudoers.d/notargetpw");
-    enter_cmd('ssh -oStrictHostKeyChecking=no mary@localhost', max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd('open5use', max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd('echo open5use|sudo -S -l > /tmp/sudouser', max_interval => $typing_speed, wait_still_screen => 1);
-    enter_cmd('exit', max_interval => $typing_speed, wait_still_screen => 1);
+    assert_script_run("sshpass -p 'open5use' ssh -o StrictHostKeyChecking=no mary\@localhost 'echo open5use | sudo -S -l > /tmp/sudouser'");
     validate_script_output('cat /tmp/sudouser', sub { m#/usr/bin/cat# });
 
     assert_script_run(qq(su -c 'echo "file read only by owner alice" > hello && chmod 600 hello' -l alice));
-    sudo_user_test($typing_speed);
+    sudo_user_test();
 
     # Change back password of remote user 'alice'
-    change_and_verify_password($typing_speed, 'alice', 'n0vell88', 'open5use');
+    change_and_verify_password('alice', 'n0vell88', 'open5use');
 }
 
-sub run_offline_tests ($container_engine, $typing_speed) {
+sub run_offline_tests ($container_engine) {
 
     assert_script_run("$container_engine stop ds389_container");
 
     validate_script_output("id alice", sub { m/uid=9998\(alice\)/ });
-    user_test($typing_speed);
-    sudo_user_test($typing_speed);
+    user_test();
+    sudo_user_test();
 }
 
-sub user_test ($typing_speed) {
-    enter_cmd('ssh -oStrictHostKeyChecking=no mary@localhost', max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd('open5use', max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd('whoami > /tmp/mary', max_interval => $typing_speed, wait_still_screen => 1);
-    enter_cmd('exit', max_interval => $typing_speed, wait_still_screen => 1);
+sub user_test {
+    assert_script_run("sshpass -p 'open5use' ssh -o StrictHostKeyChecking=no mary\@localhost 'whoami > /tmp/mary'");
     validate_script_output('cat /tmp/mary', sub { m/mary/ });
 }
 
-sub sudo_user_test ($typing_speed) {
-    enter_cmd('ssh -oStrictHostKeyChecking=no mary@localhost', max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd('open5use', max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd('echo open5use|sudo -S -u alice /usr/bin/cat /home/alice/hello > /tmp/readonly', max_interval => $typing_speed, wait_still_screen => 5);
-    enter_cmd('exit', max_interval => $typing_speed, wait_still_screen => 1);
+sub sudo_user_test {
+    assert_script_run("sshpass -p 'open5use' ssh -o StrictHostKeyChecking=no mary\@localhost 'echo open5use | sudo -S -u alice /usr/bin/cat /home/alice/hello > /tmp/readonly'");
     validate_script_output('cat /tmp/readonly', sub { m/file read only by owner alice/ });
 }
 sub test_flags {
