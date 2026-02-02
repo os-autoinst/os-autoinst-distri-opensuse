@@ -33,7 +33,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(conmon socat);
+    my @pkgs = qw(binutils conmon podman socat);
     my @oci_runtimes = split(/\s+/, get_var("OCI_RUNTIME", is_sle ? "runc" : "crun runc"));
     push @pkgs, @oci_runtimes;
 
