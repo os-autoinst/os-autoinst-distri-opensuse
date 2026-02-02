@@ -95,15 +95,7 @@ compose:
 conmon:
   # Note on patches:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
-  # https://github.com/containers/conmon/pull/597 - Really run the container in the 04-runtime.bats.
-  # https://github.com/containers/conmon/pull/602 - Add more tests for --stdin and --exec.
-  # https://github.com/containers/conmon/pull/603 - Add tests for --exec-attach
   opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 579
-    - 597
-    - 602
-    - 603
   sle-16.1:
     GITHUB_PATCHES:
     - 579
