@@ -32,12 +32,7 @@
       <li><a href="#sdaf_execute_remover">sdaf_execute_remover</a></li>
       <li><a href="#sdaf_cleanup">sdaf_cleanup</a></li>
       <li><a href="#sdaf_destroy_resources">sdaf_destroy_resources</a></li>
-      <li><a href="#sdaf_execute_playbook">sdaf_execute_playbook</a></li>
-      <li><a href="#sdaf_ansible_verbosity_level">sdaf_ansible_verbosity_level</a></li>
       <li><a href="#get_sdaf_instance_id">get_sdaf_instance_id</a></li>
-      <li><a href="#ansible_execute_command">ansible_execute_command</a></li>
-      <li><a href="#playbook_settings">playbook_settings</a></li>
-      <li><a href="#sdaf_register_byos">sdaf_register_byos</a></li>
       <li><a href="#sdaf_deployment_reused">sdaf_deployment_reused</a></li>
       <li><a href="#validate_components">validate_components</a></li>
       <li><a href="#get_fencing_mechanism">get_fencing_mechanism</a></li>
@@ -391,50 +386,6 @@ tee - writes output also into the log file</code></pre>
 </li>
 </ul>
 
-<h2 id="sdaf_execute_playbook">sdaf_execute_playbook</h2>
-
-<pre><code>sdaf_execute_playbook(
-    playbook_filename=&gt;&#39;playbook_04_00_01_db_ha.yaml&#39;,
-    sdaf_config_root_dir=&gt;&#39;/path/to/joy/and/happiness/&#39;
-    sap_sid=&gt;&#39;ABC&#39;,
-    timeout=&gt;&#39;42&#39;,
-    verbosity_level=&gt;&#39;3&#39;
-    );</code></pre>
-
-<p>Execute playbook specified by <b>playbook_filename</b> and record command output in separate log file. Verbosity level of <b>ansible-playbook</b> is controlled by openQA parameter <b>SDAF_ANSIBLE_VERBOSITY_LEVEL</b>. If undefined, it will use standard output without adding any <b>-v</b> flag. See function <b>sdaf_execute_playbook</b> for details.</p>
-
-<ul>
-
-<li><p><b>playbook_filename</b>: Filename of the playbook to be executed.</p>
-
-</li>
-<li><p><b>sdaf_config_root_dir</b>: SDAF Config directory containing SUT ssh keys</p>
-
-</li>
-<li><p><b>sap_sid</b>: SAP system ID. Default &#39;SAP_SID&#39;</p>
-
-</li>
-<li><p><b>timeout</b>: Timeout for executing playbook. Passed into asset_script_run. Default: 1800s</p>
-
-</li>
-<li><p><b>$verbosity_level</b>: Change default verbosity value by either anything equal to &#39;true&#39; or int between 1-6. Default: false</p>
-
-</li>
-</ul>
-
-<h2 id="sdaf_ansible_verbosity_level">sdaf_ansible_verbosity_level</h2>
-
-<pre><code>sdaf_ansible_verbosity_level($verbosity_level);</code></pre>
-
-<p>Returns string that is to be used as verbosity parameter <b>-v</b> for &#39;ansible-playbook&#39; command. This is controlled by positional argument <b>$verbosity_level</b>. Values can specify verbosity level using integer up to 6 (max supported by ansible) or just set to anything equal to <b>&#39;true&#39;</b> which will default to <b>-vvvv</b>. Value <b>-vvvv</b> should be enough to debug network connection problems according to ansible documentation: <a href="https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-v">https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html#cmdoption-ansible-playbook-v</a></p>
-
-<ul>
-
-<li><p><b>$verbosity_level</b>: Change default verbosity value by either anything equal to &#39;true&#39; or int between 1-6. Default: false</p>
-
-</li>
-</ul>
-
 <h2 id="get_sdaf_instance_id">get_sdaf_instance_id</h2>
 
 <pre><code>get_sdaf_instance_id(pattern=&gt;[&#39;SCS&#39;, &#39;ERS&#39;, &#39;PAS&#39;]);</code></pre>
@@ -444,67 +395,6 @@ tee - writes output also into the log file</code></pre>
 <ul>
 
 <li><p><b>pattern</b>: SDAF SAP Central Services pattern</p>
-
-</li>
-</ul>
-
-<h2 id="ansible_execute_command">ansible_execute_command</h2>
-
-<pre><code>ansible_execute_command(
-    command=&gt;&#39;rm -Rf /&#39;, host_group=&gt;&#39;QES_SCS&#39;, sdaf_config_root_dir=&gt;&#39;/some/path&#39; , sap_sid=&gt;&#39;CAT&#39;);</code></pre>
-
-<p>Execute command on host group using ansible. Returns execution output.</p>
-
-<ul>
-
-<li><p><b>sdaf_config_root_dir</b>: SDAF Config directory containing SUT ssh keys</p>
-
-</li>
-<li><p><b>sap_sid</b>: SAP system ID. Default &#39;SAP_SID&#39;</p>
-
-</li>
-<li><p><b>host_group</b>: Host group name from inventory file</p>
-
-</li>
-<li><p><b>command</b>: Command to be executed</p>
-
-</li>
-<li><p><b>verbose</b>: verbose ansible output</p>
-
-</li>
-<li><p><b>proceed_on_failure</b>: proceed on failure setting</p>
-
-</li>
-</ul>
-
-<h2 id="playbook_settings">playbook_settings</h2>
-
-<pre><code>playbook_settings(components=&gt;[&#39;db_install&#39;, &#39;db_ha&#39;]);</code></pre>
-
-<p>Display simple command outputs from all DB hosts using <b>ansible</b> command.</p>
-
-<ul>
-
-<li><p><b>components</b>: <b>ARRAYREF</b> of components that should be installed</p>
-
-</li>
-</ul>
-
-<h2 id="sdaf_register_byos">sdaf_register_byos</h2>
-
-<pre><code>sdaf_register_byos(sdaf_config_root_dir=&gt;&#39;/stairway/to_heaven&#39;, scc_reg_code=&gt;&#39;CODE-XYZ&#39;, sap_sid=&#39;PRD&#39;);</code></pre>
-
-<p>Performs SCC registration on BYOS image using <b>registercloudguest</b> method.</p>
-
-<ul>
-
-<li><p><b>sdaf_config_root_dir</b>: SDAF root configuration directory</p>
-
-</li>
-<li><p><b>scc_reg_code</b>: SCC registration code</p>
-
-</li>
-<li><p><b>sap_sid</b>: SAP system ID</p>
 
 </li>
 </ul>
