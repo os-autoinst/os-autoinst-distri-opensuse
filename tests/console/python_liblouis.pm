@@ -23,9 +23,9 @@ sub run {
     record_info("Translating", "Making the translations into braille");
     if (is_tumbleweed || is_leap) {
         zypper_call("install liblouis-tools");
-        assert_script_run q(echo 'abcdefghijklmnopqrstuvwxyz' | lou_translate -f unicode.dis,en-chardefs.cti > braille_result_lowercase.txt);
-        assert_script_run q(echo 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' | lou_translate -f unicode.dis,en-chardefs.cti > braille_result_uppercase.txt);
-        assert_script_run q(echo ' !"#$%()*+-./:;<=>?@[\\]_{}~123456790'"'" | lou_translate -f unicode.dis,en-chardefs.cti > braille_result_symbol.txt);
+        assert_script_run q(echo 'abcdefghijklmnopqrstuvwxyz' | lou_translate -f unicode.dis,en-ueb-g1.ctb > braille_result_lowercase.txt);
+        assert_script_run q(echo 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' | lou_translate -f unicode.dis,en-ueb-g1.ctb > braille_result_uppercase.txt);
+        assert_script_run q(echo ' !"#$%()*+-./:;<=>?@[\\]_{}~123456790'"'" | lou_translate -f unicode.dis,en-ueb-g1.ctb > braille_result_symbol.txt);
     }
     elsif (is_sle(">=12")) {
         zypper_call("install python3-louis");
@@ -48,7 +48,7 @@ sub run {
     assert_script_run("curl -O " . data_url("console/braille_expected_uppercase.txt"));
     $output = script_output("diff -u braille_expected_uppercase.txt braille_result_uppercase.txt | tail -n 2", proceed_on_failure => 1);
     if ($output ne '') {
-        die("\nUppercase translation does not match!\n");
+        record_soft_failure("\nUppercase translation does not match! - bsc#1195435\n");
     }
     else {
         record_info("Uppercase OK", "Uppercase translation is correct");
