@@ -1368,7 +1368,7 @@ sub qesap_upload_supportconfig_logs {
         filter => "\"$args{host}\"",
         host_keys_check => 1,
         verbose => 1,
-        timeout => bmwqemu::scale_timeout(600),
+        timeout => bmwqemu::scale_timeout(1200),
         failok => $args{failok});
     qesap_ansible_cmd(cmd => "sudo chmod 755 /var/tmp/scc_$log_filename.txz",
         provider => $args{provider},
