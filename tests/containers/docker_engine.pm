@@ -52,7 +52,7 @@ sub setup {
     run_command "cp -f vendor.sum go.sum || true";
     run_command '(cd testutil/fixtures/plugin/basic && go mod init docker-basic-plugin && go build -o $GOPATH/bin/docker-basic-plugin) || true';
 
-    if (my $test_dirs = get_var("RUN_TESTS", "")) {
+    if (my $test_dirs = get_var("TARGETS", "")) {
         @test_dirs = split(/,/, $test_dirs);
     } else {
         # Ignore the tests in these directories in integration/
@@ -98,6 +98,9 @@ sub run {
         DOCKER_ROOTLESS => get_var("ROOTLESS", ""),
         TZ => "UTC",
     );
+
+    my $run_tests = get_var("RUN_TESTS");
+    $env{TEST_FILTER} = $run_tests if $run_tests;
 
     my @xfails = (
         # Flaky tests
