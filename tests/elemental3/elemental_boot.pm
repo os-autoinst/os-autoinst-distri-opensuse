@@ -26,7 +26,7 @@ sub run {
     }
 
     # For iso OS image boot: the OS needs to be installed first!
-    if (check_var('IMAGE_TYPE', 'iso')) {
+    if (check_var('IMAGE_TYPE', 'iso') || check_var('IMAGE_TYPE', 'raw')) {
         # Wait for OS installer boot
         assert_screen('grub-unifiedcore_installer', timeout => 120);
         wait_still_screen;
