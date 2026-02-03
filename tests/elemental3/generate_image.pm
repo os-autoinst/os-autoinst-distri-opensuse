@@ -50,22 +50,25 @@ sub get_sysext {
     return ($overlay_dir, $ctl_oci);
 }
 
-=head2 build_cmd
+=head2 build_customize
 
- build_cmd( hddsize => <value>, k8s => <value>, timeout => <value>,
-            rootpwd => <value> );
+ build_customize( hddsize => <value>, k8s => <value>, timeout => <value>,
+                  rootpwd => <value> );
 
 Create an OS image with `build` command by using the specified
 release-manifest.
 
 =cut
 
-sub build_cmd {
+sub customize_cmd {
     my (%args) = @_;
     my $build_dir = '/root/build';
-    my $tpl_tar = "$build_dir/build-tpl.tar.gz";
+    my $device = get_var('INSTALL_DISK', '/dev/vda');
     my $krnlcmdline = get_var('KERNEL_CMD_LINE');
     my $manifest_uri = get_required_var('RELEASE_MANIFEST_URI');
+    my $out = "$args{img_filename}.iso";
+    my $tpl_tar = "$build_dir/build-tpl.tar.gz";
+    my $type = get_required_var('IMAGE_TYPE');
 
     # Create directories
     assert_script_run("mkdir -p $build_dir");
@@ -81,6 +84,7 @@ sub build_cmd {
     $manifest_uri = 'oci://' . $manifest_uri unless $manifest_uri =~ /:\/\//;
 
     # Configure the build
+    $out = "$args{img_filename}.qcow2" if ($type =~ m/raw/);
     file_content_replace(
         "$build_dir/butane.yaml",
         '--sed-modifier' => 'g',
@@ -91,6 +95,7 @@ sub build_cmd {
         "$build_dir/install.yaml",
         '--sed-modifier' => 'g',
         '%HDDSIZE%' => $args{hddsize},
+        '%INSTALL_DISK%' => $device,
         '%KERNEL_CMD_LINE%' => $krnlcmdline
     );
     file_content_replace(
@@ -103,25 +108,29 @@ sub build_cmd {
     # Generate OS image
     assert_script_run(
         "elemental3 \\
-           --debug build \\
-           --image-type raw \\
+           --debug customize \\
+           --type $type \\
            --config-dir $build_dir \\
-           --output uc_image.raw",
+           --output uc_image.$type",
         $args{timeout}
     );
 
-    # Convert RAW to QCOW2
-    assert_script_run(
-        "qemu-img convert \\
-           -p -f raw \\
-           -O qcow2 \\
-           uc_image.raw \\
-           ./$args{img_filename}.qcow2",
-        $args{timeout}
-    );
+    # Convert RAW to QCOW2 if needed
+    if ($type =~ m/raw/) {
+        assert_script_run(
+            "qemu-img convert \\
+               -p -f raw \\
+               -O qcow2 \\
+               uc_image.$type \\
+               ./$out",
+            $args{timeout}
+        );
+    } elsif ($type =~ m/iso/) {
+        assert_script_run("mv uc_image.$type '$out'");
+    }
 
     # Return HDD image
-    return ("$args{img_filename}.qcow2");
+    return ($out);
 }
 
 =head2 build_installer_cmd
@@ -269,6 +278,9 @@ sub run {
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
 
+    # NOTE: there is not enough space on /tmp, so we need to change TMPDIR.
+    assert_script_run("mkdir -p /root/tmp && export TMPDIR=/root/tmp");
+
     # Add Unified Core repository and install Elemental package
     trup_call("run zypper addrepo --check --refresh $repo_to_test elemental");
     trup_call('--continue run zypper --gpg-auto-import-keys refresh');
@@ -279,7 +291,7 @@ sub run {
     my $hashpwd = script_output("openssl passwd -6 $rootpwd");
 
     # Create HDD image with different commands
-    $out_file = build_cmd(
+    $out_file = customize_cmd(
         timeout => $timeout,
         k8s => $k8s,
         hddsize => $hddsize,
@@ -287,7 +299,7 @@ sub run {
         build => $build,
         repo_to_test => $repo_to_test,
         img_filename => $img_filename
-    ) if check_var('TESTED_CMD', 'build');
+    ) if check_var('TESTED_CMD', 'customize');
 
     $out_file = build_installer_cmd(
         timeout => $timeout,

@@ -10,7 +10,7 @@ schedule:
 conditional_schedule:
   generate_image:
     TESTED_CMD:
-      build:
+      customize:
         - elemental3/generate_image
       build_installer_iso:
         - elemental3/generate_image
