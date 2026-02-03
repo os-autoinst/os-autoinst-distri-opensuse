@@ -50,7 +50,7 @@ sub run {
     $run_args->{instances} = $self->{instances} = $instances;
     publiccloud::instances::set_instances(@$instances);
 
-    # This is required for `lib/sles4sap_publiccloud.pm`
+    # This is required for `lib/sles4sap/publiccloud.pm`
     $run_args->{site_a} = $run_args->{instances}[0];
     $run_args->{site_b} = $run_args->{instances}[1];
 

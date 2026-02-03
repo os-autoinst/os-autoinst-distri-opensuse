@@ -10,7 +10,7 @@
 # $self->{my_instance} defines what is the target instance to execute code on. It is acquired from
 # data located in "@instances" and produced by deployment test modules.
 
-package sles4sap::sles4sap_publiccloud;
+package sles4sap::publiccloud;
 
 use base 'publiccloud::basetest';
 use strict;
@@ -454,7 +454,7 @@ sub stop_hana {
 
         # Create a local copy of ssh_opts and extend it for the crash command.
         # Extension is on top of values defined in the current instance class $self->{my_instance}->ssh_opts
-        # which in HanaSR tests are set with default values in sles4sap_publiccloud_basetest::set_cli_ssh_opts.
+        # which in HanaSR tests are set with default values in sles4sap::publiccloud_basetest::set_cli_ssh_opts.
         # -f requests ssh to go to background just before command execution
         # -n is about stdin redirection and it is needed by -f to work
         my $crash_ssh_opts = $self->{my_instance}->ssh_opts . ' -fn -o ServerAliveInterval=2';

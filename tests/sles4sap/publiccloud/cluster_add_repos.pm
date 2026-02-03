@@ -39,8 +39,8 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap::sles4sap_publiccloud_basetest';
-use sles4sap::sles4sap_publiccloud;
+use base 'sles4sap::publiccloud_basetest';
+use sles4sap::publiccloud;
 use qam;
 use testapi;
 

@@ -231,7 +231,7 @@ sub post_fail_hook {
 
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         # This is called explicitly to avoid cyclical imports
-        sles4sap::sles4sap_publiccloud::sles4sap_cleanup(
+        sles4sap::publiccloud::sles4sap_cleanup(
             $self,
             cleanup_called => $self->{cleanup_called} // undef,
             ansible_present => 0

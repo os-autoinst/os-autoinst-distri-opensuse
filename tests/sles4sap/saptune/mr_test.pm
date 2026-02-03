@@ -64,7 +64,7 @@ use Utils::Systemd qw(systemctl);
 use mr_test_lib qw(load_mr_tests);
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instances;
-use sles4sap::sles4sap_publiccloud;
+use sles4sap::publiccloud;
 
 sub reboot_wait {
     my ($self) = @_;
@@ -147,7 +147,7 @@ sub setup {
 sub run {
     my ($self, $run_args) = @_;
 
-    # This test module is using sles4sap and not sles4sap_publiccloud_basetest
+    # This test module is using sles4sap and not sles4sap::publiccloud_basetest
     # as base class. ansible_present is propagated here
     # to a different context than usual
     $self->{ansible_present} = 1 if ($run_args->{ansible_present});

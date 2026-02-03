@@ -196,13 +196,13 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap::sles4sap_publiccloud_basetest';
+use base 'sles4sap::publiccloud_basetest';
 use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instance;
 use publiccloud::instances;
 use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos detect_worker_ip);
-use sles4sap::sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
 use sles4sap::azure_cli;

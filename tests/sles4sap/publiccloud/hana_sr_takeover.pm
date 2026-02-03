@@ -37,9 +37,9 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap::sles4sap_publiccloud_basetest';
+use base 'sles4sap::publiccloud_basetest';
 use testapi;
-use sles4sap::sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use publiccloud::utils;
 use hacluster qw($crm_mon_cmd);
 use serial_terminal 'select_serial_terminal';

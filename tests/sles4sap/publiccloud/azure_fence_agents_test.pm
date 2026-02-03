@@ -39,10 +39,10 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap::sles4sap_publiccloud_basetest';
+use base 'sles4sap::publiccloud_basetest';
 use serial_terminal 'select_serial_terminal';
 use testapi;
-use sles4sap::sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
 use Data::Dumper;

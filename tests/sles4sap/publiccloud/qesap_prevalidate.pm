@@ -42,10 +42,10 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap::sles4sap_publiccloud_basetest';
+use base 'sles4sap::publiccloud_basetest';
 use testapi;
 use publiccloud::utils;
-use sles4sap::sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {

@@ -34,8 +34,8 @@ QE-SAP <qe-sap@suse.de>
 
 package hana_sr_schedule_primary_tests;
 
-use base 'sles4sap::sles4sap_publiccloud_basetest';
-use sles4sap::sles4sap_publiccloud;
+use base 'sles4sap::publiccloud_basetest';
+use sles4sap::publiccloud;
 use testapi;
 use main_common 'loadtest';
 
