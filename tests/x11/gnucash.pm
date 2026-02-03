@@ -19,6 +19,7 @@ sub run {
     my @gnucash_tags = qw(gnucash gnucash-tip-close gnucash-assistant-close);
     x11_start_program('gnucash', target_match => \@gnucash_tags);
     if (match_has_tag('gnucash-tip-close')) {
+        assert_and_click('gnucash-tip-close');
         send_key 'esc';
         assert_screen([qw(gnucash gnucash-assistant-close)]);
     }
