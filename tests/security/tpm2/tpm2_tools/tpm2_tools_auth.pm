@@ -1,11 +1,9 @@
-# Copyright 2020-2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
-# Summary: Per TPM2 stack, we would like to add the tpm2-tools tests,
-#          from sles15sp2, update tpm2.0-tools to the stable 4 release
-#          this test module will cover auth tests.
+# Summary: Auth tests for the TPM2 stack
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#64905, poo#105732, tc#1742297
+# Tags: poo#64905, poo#105732, tc#1742297, poo#195086
 
 use base 'opensusebasetest';
 use testapi;
@@ -14,23 +12,23 @@ use serial_terminal 'select_serial_terminal';
 sub run {
     select_serial_terminal;
 
-    # Modify authorization for a loadable transient object
     my $test_dir = "tpm2_tools_auth";
-    my $prim_ctx = "prim.ctx";
-    my $key_priv = "key.priv";
-    my $key_pub = "key.pub";
-    my $key_name = "key.name";
-    my $ket_ctx = "key.ctx";
+    my $prim_ctx = "$test_dir/prim.ctx";
+    my $key_priv = "$test_dir/key.priv";
+    my $key_pub = "$test_dir/key.pub";
+    my $key_name = "$test_dir/key.name";
+    my $key_ctx = "$test_dir/key.ctx";
 
-    my $tpm_suffix = '';
-    $tpm_suffix = '-T tabrmd' if (get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0');
+    my $use_tabrmd = get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0';
+    my $tpm_suffix = $use_tabrmd ? '-T tabrmd' : '';
 
-    assert_script_run "mkdir $test_dir";
-    assert_script_run "cd $test_dir";
+    assert_script_run "mkdir -p $test_dir";
+
+    # Modify authorization for a loadable transient object
     assert_script_run "tpm2_createprimary -Q -C o -c $prim_ctx $tpm_suffix";
     assert_script_run "tpm2_create -Q -g sha256 -G aes -u $key_pub -r $key_priv -C $prim_ctx $tpm_suffix";
-    assert_script_run "tpm2_load -C $prim_ctx -u $key_pub -r $key_priv -n $key_name -c $ket_ctx $tpm_suffix";
-    assert_script_run "tpm2_changeauth -c $ket_ctx -C $prim_ctx -r $key_priv newkeyauth $tpm_suffix";
+    assert_script_run "tpm2_load -C $prim_ctx -u $key_pub -r $key_priv -n $key_name -c $key_ctx $tpm_suffix";
+    assert_script_run "tpm2_changeauth -c $key_ctx -C $prim_ctx -r $key_priv newkeyauth $tpm_suffix";
     assert_script_run "tpm2_clear $tpm_suffix";
 
     # Modify authorization for a NV Index Requires Extended Session Support
@@ -59,7 +57,6 @@ sub run {
     assert_script_run "tpm2_changeauth -c o -p $new_pass $newer_pass $tpm_suffix";
     assert_script_run "tpm2_changeauth -c e -p $new_pass $newer_pass $tpm_suffix";
     assert_script_run "tpm2_changeauth -c l -p $new_pass $newer_pass $tpm_suffix";
-    assert_script_run "cd";
 }
 
 1;
