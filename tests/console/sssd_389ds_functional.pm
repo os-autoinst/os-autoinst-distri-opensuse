@@ -20,12 +20,11 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_opensuse is_tumbleweed is_sle);
-use registration 'add_suseconnect_product';
+use registration qw(add_suseconnect_product get_addon_fullname);
 use feature 'signatures';
 no warnings 'experimental::signatures';
 
 sub install_dependencies($container_engine) {
-
     zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16'));
     zypper_call("in sssd sssd-ldap openldap2-client sshpass $container_engine");
     systemctl("enable --now $container_engine") if ($container_engine eq "docker");
@@ -98,6 +97,8 @@ sub run ($self) {
 
     my $container_engine = "podman";
     if (is_sle('<16')) {
+        # on 15.x we need packagehub for sshpass, let's enable it
+        add_suseconnect_product(get_addon_fullname('phub'));
         $container_engine = "docker" if is_sle("<15-SP5");
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
