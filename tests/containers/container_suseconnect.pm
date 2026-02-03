@@ -47,7 +47,6 @@ sub run {
     assert_script_run("$runtime_name pull $base_image");
 
     my $scc_credentials_path = "/etc/zypp/credentials.d/SCCcredentials";
-    my $suseconnect_path = detect_suseconnect_path();
 
     my @repos = get_test_repos();
     my $incident_repos_urls = join(',', @repos);
@@ -58,14 +57,17 @@ sub run {
 
     $container_name = "suseconnect-test-$runtime_name";
 
-    my $run_cmd = "$runtime_name run -d " .
-      "-e ADDITIONAL_MODULES=sle-module-desktop-applications,sle-module-development-tools " .
-      "-v $scc_credentials_path:/etc/zypp/credentials.d/SCCcredentials " .
-      "-v $suseconnect_path:/etc/SUSEConnect " .
-      "--name $container_name " .
-      "$base_image sleep infinity";
+    my @run_cmd = ("$runtime_name run -d");
+    push @run_cmd, ("--name $container_name",
+        "-e ADDITIONAL_MODULES=sle-module-desktop-applications,sle-module-development-tools",
+        "-v $scc_credentials_path:/etc/zypp/credentials.d/SCCcredentials");
+    if (get_var('SCC_URL')) {
+        my $suseconnect_path = detect_suseconnect_path();
+        push @run_cmd, ("-v $suseconnect_path:/etc/SUSEConnect");
+    }
+    push @run_cmd, ("$base_image sleep infinity");
 
-    assert_script_run($run_cmd);
+    assert_script_run(join(' ', @run_cmd));
 
     if ($incident_repos_urls) {
         assert_script_run("$runtime_name cp ./add-incidents-repos.sh $container_name:/usr/local/bin/add-incidents-repos.sh");
