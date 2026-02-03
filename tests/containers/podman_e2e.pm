@@ -90,6 +90,11 @@ sub run {
         'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
         'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
     ) unless (is_tumbleweed);
+    # https://github.com/containers/podman/issues/28014
+    push @xfails, (
+        'Libpod Suite::[It] Podman logs podman logs partial log lines: json-file',
+        'Libpod Suite::[It] Podman logs podman logs partial log lines: k8s-file',
+    ) unless (is_sle);
     push @xfails, (
         'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     ) if (get_var("ROOTLESS"));
