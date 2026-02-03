@@ -21,7 +21,7 @@ use sles4sap::console_redirection;
 use sles4sap::azure_cli;
 use sles4sap::ibsm qw(ibsm_network_peering_azure_delete);
 
-our @EXPORT = qw(full_cleanup $serial_regexp_playbook sdaf_ibsm_data_collect _sdaf_ibsm_teardown);
+our @EXPORT = qw(full_cleanup $serial_regexp_playbook sdaf_ibsm_data_collect sdaf_ibsm_teardown);
 our $serial_regexp_playbook = 0;
 
 =head1 SYNOPSIS
@@ -84,7 +84,6 @@ sub full_cleanup {
     if ($redirection_works) {
         load_os_env_variables();
         az_login();
-        _sdaf_ibsm_teardown() if get_var('IS_MAINTENANCE');
         %cleanup_results = %{sdaf_cleanup()};
         disconnect_target_from_serial();    # Exist Deployer console since we are about to destroy it
     }
@@ -112,17 +111,17 @@ sub full_cleanup {
     }
 }
 
-=head2 _sdaf_ibsm_teardown
+=head2 sdaf_ibsm_teardown
 
 
-    _sdaf_ibsm_teardown();
+    sdaf_ibsm_teardown();
 
 All existing peerings are deleted in 3 attempts. Function does not croak/die. Only reports about failure and
 lets other cleanup procedures to continue.
 
 =cut
 
-sub _sdaf_ibsm_teardown {
+sub sdaf_ibsm_teardown {
     my $attempt = 1;
     my $peering_data = sdaf_ibsm_data_collect();
     my $id = find_deployment_id();

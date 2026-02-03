@@ -27,6 +27,7 @@ Test Tags   ${HOSTNAME}  IBSM  Maintenance Update  Azure  SDAF
 *** Variables ***
 ${USERNAME}   azureadm
 ${REPO_MIRROR_HOST}  dist.suse.de
+${REPO_ID}  ${EMPTY}
 
 *** Test Cases ***
 Test SSH tunnel
@@ -59,10 +60,18 @@ Make system up to date without maintenance repositories
 Apply all maintenance updates and reboot
     [Documentation]  Add maintenance update repository, patch the system and reboot.
     ${repo_id}=  Get Repo ID  ${INCIDENT_REPO}
-    Remote Command   sudo zypper addrepo ${INCIDENT_REPO} ${repo_id}
+    Log    Indicent repository ID: ${repo_id}
+    Set Suite Variable    ${REPO_ID}  ${repo_id}
+    Remote Command   sudo zypper addrepo ${INCIDENT_REPO} ${REPO_ID}
     Remote Command   sudo zypper refresh  timeout=300
     Remote Command   sudo zypper update -y  timeout=600
     Reboot And Connect
+
+Remove maintenance repository
+    [Documentation]  Remove maintenance repository
+...     Removing repository will prevent zypper failure after IBSm peering is torn down and repository is not available anymore
+    Remote Command   sudo zypper removerepo ${REPO_ID}
+    Remote Command   sudo zypper refresh  timeout=300
 
 *** Keywords ***
 Open SSH To SUT
