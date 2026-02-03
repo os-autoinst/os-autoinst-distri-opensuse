@@ -1,4 +1,4 @@
-# Copyright 2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Per TPM2 stack, we would like to add the tpm2-tss-engine,
@@ -21,15 +21,13 @@ sub run {
     systemctl 'is-active tpm2-abrmd';
 
     if (is_sle('<15-SP6')) {
-        validate_script_output('openssl engine -t -c tpm2tss', sub {
-                m/^\(tpm2tss\)\s+TPM2-TSS engine for OpenSSL/m; }
-        );
+        validate_script_output 'openssl engine -t -c tpm2tss', sub { m/^\(tpm2tss\)\s+TPM2-TSS engine for OpenSSL/m; };
     } else {
         # Test the modern TPM2 provider
-        validate_script_output('openssl list -providers', sub {
-                m/^Providers:\n\s+default\n\s+name:\s+OpenSSL Default Provider\n(?:.*\n)*?\s+status:\s+active/m }
-        );
-
+        my $output = script_output('openssl list -providers');
+        die "default provider missing\n" unless $output =~ /^\s*default\n/m;
+        die "default provider name wrong or missing\n" unless $output =~ /^\s+name:\s+OpenSSL Default Provider/m;
+        die "default provider not active\n" unless $output =~ /^\s+status:\s+active/m;
     }
 }
 
