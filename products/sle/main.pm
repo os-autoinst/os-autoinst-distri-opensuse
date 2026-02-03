@@ -31,6 +31,7 @@ BEGIN {
 }
 use utils;
 use main_common;
+use main_micro_alp;
 use main_ltp_loader 'load_kernel_tests';
 use main_pods;
 use known_bugs;
@@ -675,8 +676,12 @@ if (is_jeos) {
     if (is_openstack) {
         load_jeos_openstack_tests();
         return 1;
+    } elsif (is_transactional) {
+        main_micro_alp::load_tests;
+        return 1;
+    } else {
+        load_jeos_tests();
     }
-    load_jeos_tests();
 }
 
 # load the tests in the right order
