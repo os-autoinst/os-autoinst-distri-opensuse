@@ -23,11 +23,10 @@ schedule:
   - console/curl_https
   - console/curl_ipv6
   - console/gd
-  # - console/git # temporarily disabled due to test failure
   - console/lshw
   - console/nano
-  - console/run0
   - console/nftables
+  - console/run0
   - console/tracepath
   - console/traceroute
   - console/nginx
@@ -37,6 +36,7 @@ schedule:
   - console/tcpdump
   - console/unzip
   - console/vim
+  - console/wavpack
   - coverage/coverage_report
 test_data:
   # these packages are needed by the tests, we need to install them early to instrument them
@@ -47,7 +47,6 @@ test_data:
     - curl
     - cpupower
     - gd
-    # - git-core # temporarily disabled due to test failure
     - iputils  # for ping and tracepath
     - lshw
     - nano
@@ -61,6 +60,7 @@ test_data:
     - tar
     - tcpdump
     - traceroute
+    - wavpack
     - wget    # to download the test data
     - vim
   # the following section is an array of binaries that we want to instrument
@@ -70,7 +70,6 @@ test_data:
     - /usr/bin/curl
     - /usr/bin/dig
     - /usr/bin/giftogd2
-    # - /usr/bin/git # temporarily disabled due to test failure
     - /usr/bin/gd2togif
     - /usr/bin/nano
     - /usr/bin/run0
@@ -78,7 +77,6 @@ test_data:
     - /usr/bin/snmpset
     - /usr/bin/snmpusm
     - /usr/bin/tar
-    - /usr/bin/unzip
     - /usr/bin/tracepath
     - /usr/bin/vim-nox11
     - /usr/bin/vmstat
@@ -87,5 +85,8 @@ test_data:
     - /usr/sbin/lshw
     - /usr/sbin/nft
     - /usr/sbin/powertop
-    - /usr/sbin/traceroute
     - /usr/sbin/tcpdump
+    - /usr/sbin/traceroute
+    - /usr/bin/unzip
+    - /usr/bin/wavpack
+    - /usr/bin/wvunpack
