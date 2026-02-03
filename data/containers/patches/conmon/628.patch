@@ -1,22 +1,26 @@
-From ef95cee6a26f56323e892ce23e157718f044d3b6 Mon Sep 17 00:00:00 2001
+From 3bb1a4eb01959dc0bb444074a17f1305d0631dcc Mon Sep 17 00:00:00 2001
 From: Ricardo Branco <rbranco@suse.de>
 Date: Mon, 2 Feb 2026 10:47:21 +0100
 Subject: [PATCH] Skip test if RUNTIME_BINARY is not runc
 
+Also rename the test to reflect the fact that it uses runc
+
 Signed-off-by: Ricardo Branco <rbranco@suse.de>
 ---
- test/04-runtime.bats | 3 +++
- 1 file changed, 3 insertions(+)
+ test/04-runtime.bats | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/test/04-runtime.bats b/test/04-runtime.bats
-index 14d864ee..f8e37ff3 100644
+index 14d864ee..60cc07b1 100644
 --- a/test/04-runtime.bats
 +++ b/test/04-runtime.bats
-@@ -93,6 +93,9 @@ teardown() {
+@@ -92,7 +92,10 @@ teardown() {
+     assert "${output}" =~ "\"pid\": $CONTAINER_PID"
  }
  
- @test "runtime: runtime error with _OCI_SYNCPIPE defined" {
-+    if ! [[ $RUNTIME_BINARY =~ runc ]]; then
+-@test "runtime: runtime error with _OCI_SYNCPIPE defined" {
++@test "runtime: runc error with _OCI_SYNCPIPE defined" {
++    if [[ $(basename "$RUNTIME_BINARY") != "runc" ]]; then
 +        skip "test requires runc"
 +    fi
      # This trailing " results in wrong config.json. We expect the runtime
