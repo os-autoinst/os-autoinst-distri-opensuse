@@ -238,7 +238,7 @@ sub run {
     $self->printk_loglevel($instance);
 
     assert_script_run('curl ' . data_url('publiccloud/kmp_merge.c') . ' -o kmp_merge.c');
-    assert_script_run('gcc -O3 -Wall -Wextra -std=c11 -o /root/kmp_merge kmp_merge.c');
+    assert_script_run('gcc -Wall -Wextra -std=c11 -o /root/kmp_merge kmp_merge.c');
     assert_script_run('rm -f kmp_merge.c');
 
     my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($provider, $instance);

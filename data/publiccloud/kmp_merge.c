@@ -11,81 +11,96 @@
  * INJECT is taken from argv as a literal string (no escape processing).
  */
 
+#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 static unsigned char *read_file(const char *path, size_t *len)
 {
     FILE *f = fopen(path, "rb");
-    if (!f) { perror(path); exit(1); }
+    if (!f)
+        err(1, "%s", path);
 
-    if (fseek(f, 0, SEEK_END) != 0) { perror("fseek"); exit(1); }
-    long size = ftell(f);
-    if (size < 0) { perror("ftell"); exit(1); }
-    rewind(f);
+    struct stat st;
+    if (fstat(fileno(f), &st) != 0)
+        err(1, "fstat");
 
+    if (st.st_size < 0)
+        errx(1, "negative file size");
+
+    size_t size = (size_t)st.st_size;
     unsigned char *buf = NULL;
+
     if (size > 0) {
-        buf = (unsigned char *)malloc((size_t)size);
-        if (!buf) { perror("malloc"); exit(1); }
-        if (fread(buf, 1, (size_t)size, f) != (size_t)size) {
-            perror("fread");
-            exit(1);
-        }
+        buf = malloc(size);
+        if (!buf)
+            err(1, "malloc");
+        if (fread(buf, 1, size, f) != size)
+            err(1, "fread");
     }
 
     fclose(f);
-    *len = (size_t)size;
+    *len = size;
     return buf;
 }
 
-static int *compute_prefix_function(const unsigned char *pattern, int psize)
+/*
+ * Prefix function:
+ * pi[i] = length of longest proper prefix of pattern[0..i]
+ *         that is also a suffix ending at i
+ */
+static size_t *compute_prefix_function(const unsigned char *pattern, size_t psize)
 {
-    if (psize <= 0) return NULL;
+    if (psize == 0)
+        return NULL;
 
-    int *pi = (int *)malloc(sizeof(int) * (size_t)psize);
-    if (!pi) return NULL;
+    size_t *pi = malloc(sizeof(size_t) * psize);
+    if (!pi)
+        return NULL;
 
-    int k = -1;
-    pi[0] = -1;
-
-    for (int i = 1; i < psize; i++) {
-        while (k > -1 && pattern[k + 1] != pattern[i])
-            k = pi[k];
-        if (pattern[i] == pattern[k + 1])
+    pi[0] = 0;
+    for (size_t i = 1; i < psize; i++) {
+        size_t k = pi[i - 1];
+        while (k > 0 && pattern[i] != pattern[k])
+            k = pi[k - 1];
+        if (pattern[i] == pattern[k])
             k++;
         pi[i] = k;
     }
+
     return pi;
 }
 
-/* Returns length of longest suffix(target) that equals prefix(pattern). */
+/* Returns length of longest suffix(target) matching prefix(pattern). */
 static size_t kmp_overlap_end(
     const unsigned char *target, size_t tsize,
     const unsigned char *pattern, size_t psize
 )
 {
-    if (tsize == 0 || psize == 0) return 0;
+    if (tsize == 0 || psize == 0)
+        return 0;
 
-    /* Only the last min(tsize, psize) bytes can participate in an end-overlap. */
     size_t window = (tsize < psize) ? tsize : psize;
     const unsigned char *t = target + (tsize - window);
 
-    int *pi = compute_prefix_function(pattern, (int)psize);
-    if (!pi) return 0;
+    size_t *pi = compute_prefix_function(pattern, psize);
+    if (!pi)
+        return 0;
 
-    int k = -1;
+    size_t k = 0;
     for (size_t i = 0; i < window; i++) {
-        while (k > -1 && pattern[k + 1] != t[i])
-            k = pi[k];
-        if (pattern[k + 1] == t[i])
+        while (k > 0 && t[i] != pattern[k])
+            k = pi[k - 1];
+        if (t[i] == pattern[k])
             k++;
-        /* do NOT reset k on full match. */
     }
 
     free(pi);
-    return (size_t)(k + 1);
+    return k;
 }
 
 int main(int argc, char **argv)
@@ -95,11 +110,14 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    if (argc == 4 && strlen(argv[3]) > 65536)
+        errx(1, "INJECT too large; use file/stdin");
+
     const unsigned char *inject = NULL;
     size_t inject_len = 0;
     if (argc == 4) {
         inject = (const unsigned char *)argv[3];
-        inject_len = strlen(argv[3]);
+        inject_len = strlen(argv[3]); /* text-only by design */
     }
 
     size_t lenA = 0, lenB = 0;
@@ -108,15 +126,14 @@ int main(int argc, char **argv)
 
     size_t overlap = kmp_overlap_end(A, lenA, B, lenB);
 
-    /* Always print whole A */
-    if (lenA) fwrite(A, 1, lenA, stdout);
+    if (lenA)
+        fwrite(A, 1, lenA, stdout);
 
-    /* If no overlap, optionally inject text */
     if (overlap == 0 && inject && inject_len)
         fwrite(inject, 1, inject_len, stdout);
 
-    /* Then print B without duplicated prefix */
-    if (lenB) fwrite(B + overlap, 1, lenB - overlap, stdout);
+    if (lenB)
+        fwrite(B + overlap, 1, lenB - overlap, stdout);
 
     free(A);
     free(B);
