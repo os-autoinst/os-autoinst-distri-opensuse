@@ -15,24 +15,20 @@ use utils;
 use Utils::Architectures;
 use containers::bats;
 
-my $docker_buildx = get_var("DOCKER_CE") ? "/usr/libexec/docker/cli-plugins/docker-buildx" : "/usr/lib/docker/cli-plugins/docker-buildx";
-my $docker_compose = get_var("DOCKER_CE") ? "/usr/libexec/docker/cli-plugins/docker-compose" : "/usr/lib/docker/cli-plugins/docker-compose";
 my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(distribution-registry go1.25);
-    unless (get_var("DOCKER_CE")) {
-        push @pkgs, qw(docker docker-buildx);
-        push @pkgs, qw(docker-compose) unless is_sle("<16");
-    }
-    push @pkgs, qw(buildkit) unless is_sle("<16");
+    my @pkgs = qw(distribution-registry docker docker-buildx go1.25);
+    push @pkgs, qw(buildkit docker-compose) unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
     configure_docker(selinux => 1, tls => 1);
 
     # The tests expect the plugins to be in PATH without the "docker-" prefix
+    my $docker_buildx = "/usr/lib/docker/cli-plugins/docker-buildx";
+    my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
     run_command "cp $docker_buildx /usr/local/bin/buildx";
     run_command "cp $docker_compose /usr/local/bin/compose";
 

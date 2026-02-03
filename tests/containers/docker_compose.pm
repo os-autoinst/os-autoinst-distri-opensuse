@@ -15,13 +15,12 @@ use utils;
 use Utils::Architectures;
 use containers::bats;
 
-my $docker_compose = get_var("DOCKER_CE") ? "/usr/libexec/docker/cli-plugins/docker-compose" : "/usr/lib/docker/cli-plugins/docker-compose";
+my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
 my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(go1.25 make);
-    push @pkgs, qw(docker docker-buildx docker-compose) unless get_var("DOCKER_CE");
+    my @pkgs = qw(docker docker-buildx docker-compose go1.25 make);
     $self->setup_pkgs(@pkgs);
 
     # docker-compose needs to be patched upstream to support SELinux
