@@ -62,7 +62,7 @@ sub run {
 
     unless (get_var("RUN_TESTS")) {
         # Skip this test due to https://bugzilla.suse.com/show_bug.cgi?id=1247568
-        run_command "rm -f tests/integration/no_pivot.bats" if is_ppc64le;
+        run_command "rm -f tests/integration/no_pivot.bats" if (is_ppc64le && is_sle);
         # Skip this test due to https://bugzilla.suse.com/show_bug.cgi?id=1247567
         run_command "rm -f tests/integration/seccomp.bats" if is_s390x;
     }

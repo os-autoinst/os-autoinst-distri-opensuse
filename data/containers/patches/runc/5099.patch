@@ -1,0 +1,27 @@
+From 71cf97b71a11dd7e496a87f8ec0386fbca9831a0 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Tue, 3 Feb 2026 15:51:32 +0100
+Subject: [PATCH] Update `busybox:glibc` in integration tests for ppc64le
+
+Needed to fix https://github.com/opencontainers/runc/issues/4836
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/integration/get-images.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tests/integration/get-images.sh b/tests/integration/get-images.sh
+index 09d2809affa..cc6c4cbe5dc 100755
+--- a/tests/integration/get-images.sh
++++ b/tests/integration/get-images.sh
+@@ -79,8 +79,8 @@ arm64)
+ 
+ ppc64le)
+ 	# https://github.com/docker-library/busybox/tree/dist-ppc64le
+-	# https://github.com/docker-library/busybox/tree/ddb1ced9350261eb7aa6d117052d04a5ad8dd1b7/latest/glibc/ppc64le
+-	url="https://github.com/docker-library/busybox/raw/ddb1ced9350261eb7aa6d117052d04a5ad8dd1b7/latest/glibc/ppc64le/rootfs.tar.gz"
++	# https://github.com/docker-library/busybox/raw/403811e3da78b5ad4d8356f99d78e9b4e1997a60/latest/glibc/ppc64le/
++	url="https://github.com/docker-library/busybox/raw/403811e3da78b5ad4d8356f99d78e9b4e1997a60/latest/glibc/ppc64le/rootfs.tar.gz"
+ 	;;
+ 
+ riscv64)

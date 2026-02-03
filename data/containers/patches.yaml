@@ -280,9 +280,11 @@ podman-py:
 runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set
+  # https://github.com/opencontainers/runc/pull/5099 - Update busybox:glibc in integration tests for ppc64le only
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 5079
+    - 5099
   sle-16.1:
   sle-16.0:
   sle-15-SP7:
