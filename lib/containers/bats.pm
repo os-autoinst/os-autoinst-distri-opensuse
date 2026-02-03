@@ -328,24 +328,6 @@ sub nonewprivs {
     run_command "systemctl enable --now polkit-agent-helper.socket";
 }
 
-sub setup_docker_ce {
-    # https://github.com/docker/docker-ce-packaging/issues/1293
-    run_command "zypper addrepo https://download.docker.com/linux/fedora/docker-ce.repo";
-    run_command q(sed -i 's/\$releasever/43/g' /etc/zypp/repos.d/docker-ce-*.repo);
-    # This fake RPM provides libcgroup & libseccomp
-    assert_script_run "curl -o /tmp/docker-ce-deps.rpm " . data_url("containers/docker-ce-deps-1-1.noarch.rpm");
-    assert_script_run "zypper --no-gpg-checks -n install /tmp/docker-ce-deps.rpm";
-    my @docker_ce = qw(containerd.io docker-ce docker-ce-cli docker-ce-rootless-extras docker-buildx-plugin docker-compose-plugin libcgroup3 libseccomp2);
-    run_command "zypper --gpg-auto-import-keys -n install @docker_ce", timeout => 300;
-    run_command "mkdir -p /etc/systemd/system/docker.service.d";
-    run_command q(echo -e '[Service]\nEnvironmentFile=-/etc/sysconfig/docker' > /etc/systemd/system/docker.service.d/sysconfig.conf);
-    run_command q(echo -e 'ExecStart=\nExecStart=/usr/bin/dockerd $DOCKER_OPTS' >> /etc/systemd/system/docker.service.d/sysconfig.conf);
-    run_command "systemctl daemon-reload";
-    run_command "systemctl enable --now docker";
-    # Some tests have /var/run/docker/containerd hard-coded
-    run_command "ln -s /run/containerd /run/docker/";
-}
-
 sub setup_pkgs {
     my ($self, @pkgs) = @_;
 
@@ -354,8 +336,6 @@ sub setup_pkgs {
     install_bats if get_var("BATS_PACKAGE");
 
     enable_modules if is_sle("<16");
-
-    setup_docker_ce if (get_var("DOCKER_CE") && script_run("test -f /etc/zypp/repos.d/docker-ce-stable.repo"));
 
     if (get_var("TEST_REPOS", "")) {
         if (script_run("zypper lr | grep -q SUSE_CA")) {

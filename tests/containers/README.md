@@ -20,7 +20,6 @@ The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
-| `DOCKER_CE` | Test upstream Docker Community Edition |
 | `DOCKER_EXPERIMENTAL` | Enable experimental features in Docker |
 | `DOCKER_MIN_API_VERSION` | Docker minimum API version |
 | `DOCKER_SELINUX` | Enable SELinux in Docker daemon |
