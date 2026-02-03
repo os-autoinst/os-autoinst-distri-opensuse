@@ -66,7 +66,13 @@ test_node_version(){
   # Run the tests on the source using the installed binary
   pushd "/usr/src/packages/SOURCES"
     quilt setup "../SPECS/nodejs$VERSION.spec"
-    pushd "$SOURCE_DIR"
+      local ACTUAL_DIR
+      ACTUAL_DIR=$(cd /usr/src/packages/SOURCES/ && find . -maxdepth 1 -type d -name "nodejs*" -print -quit)
+      if [ "$OS_VERSION" = "SLE_16.0" ]; then
+        pushd "$ACTUAL_DIR/$SOURCE_DIR"
+      else 
+        pushd "$SOURCE_DIR"
+      fi
       quilt push -a
       if [[ "$VERSION" -eq 18 && -e /root/crypto_rsa_dsa.patch ]]; then
         patch test/parallel/test-crypto-rsa-dsa.js < /root/crypto_rsa_dsa.patch
@@ -92,7 +98,11 @@ main(){
   export OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file
 
   # Install dependencies to apply source patches and run tests
-  zypper -n in quilt rpm-build  libopenssl1_1-hmac
+  zypper -n in quilt rpm-build
+
+  if [ "$OS_VERSION" != "SLE_16.0" ]; then
+    zypper -n in libopenssl1_1-hmac
+  fi
 
   if [ "$OS_VERSION" = "SLE_12_SP5" ]; then
     zypper -n in openssl-1_1
