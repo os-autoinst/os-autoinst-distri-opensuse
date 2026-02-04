@@ -8,6 +8,7 @@
 
 use base "consoletest";
 use testapi;
+use main_micro_alp;
 use version_utils qw(is_sle_micro);
 use Utils::Architectures qw(is_aarch64);
 use microos "microos_login";

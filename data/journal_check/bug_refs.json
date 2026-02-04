@@ -487,6 +487,9 @@
             ],
             "microos": [
                 "Tumbleweed"
+            ],
+            "sle": [
+                "16.1"
             ]
         },
         "type": "ignore"
@@ -1402,6 +1405,9 @@
             ],
             "microos": [
                 "Tumbleweed"
+            ],
+            "sle": [
+                "16.1"
             ]
         },
         "type": "bug"
@@ -1427,6 +1433,9 @@
             "leap-micro": [
                 "6.0",
                 "6.1"
+            ],
+            "sle": [
+                "16.1"
             ]
         },
         "type": "bug"
@@ -1440,6 +1449,9 @@
             ],
             "leap-micro": [
                 "6.1"
+            ],
+            "sle": [
+                "16.1"
             ]
         },
         "type": "ignore"
@@ -1564,6 +1576,9 @@
             ],
             "microos": [
                 "Tumbleweed"
+            ],
+            "sle": [
+                "16.1"
             ]
         },
         "type": "bug"

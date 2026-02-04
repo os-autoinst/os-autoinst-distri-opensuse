@@ -1,0 +1,24 @@
+name:           sle16_transactional_installation_virt
+description:    >
+    Maintainer: Nan Zhang <nan.zhang@suse.com>, qe-virt@suse.de
+    SLE 16 ISO installation with virtualization patterns (kvm) and virtualization tests with qemu/kvm.
+schedule:
+    - installation/bootloader_uefi
+    - microos/selfinstall
+    - transactional/host_config
+    - console/suseconnect_scc
+    - microos/services_enabled
+    - transactional/disable_timers
+    - qemu/info
+    - qemu/qemu
+    - '{{qemu_kvm}}'
+    - console/journal_check
+    - console/coredump_collect
+    - shutdown/shutdown
+conditional_schedule:
+    qemu_kvm:
+        ARCH:
+            x86_64:
+                - qemu/kvm
+            aarch64:
+                - qemu/kvm
