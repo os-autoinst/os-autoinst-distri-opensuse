@@ -97,11 +97,12 @@ sub run ($self) {
 
     my $container_engine = "podman";
     if (is_sle('<16')) {
-        # on 15.x we need packagehub for sshpass, let's enable it
-        add_suseconnect_product(get_addon_fullname('phub'));
         $container_engine = "docker" if is_sle("<15-SP5");
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
+    # we need packagehub for sshpass, let's enable it
+    add_suseconnect_product(get_addon_fullname('phub'));
+
     install_dependencies($container_engine);
     setup_389ds_container($container_engine);
     configure_sssd_client($container_engine);
