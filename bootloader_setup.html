@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#add_custom_grub_entries">add_custom_grub_entries</a></li>
       <li><a href="#boot_grub_item">boot_grub_item</a></li>
+      <li><a href="#modify_grub_parameters_grub2_bls">modify_grub_parameters_grub2_bls</a></li>
       <li><a href="#get_linuxrc_boot_params">get_linuxrc_boot_params</a></li>
       <li><a href="#grep_grub_settings">grep_grub_settings</a></li>
       <li><a href="#grep_grub_cmdline_settings">grep_grub_cmdline_settings</a></li>
@@ -80,6 +81,12 @@ boot_grub_item(3);</code></pre>
 <p>Boot the default kernel recovery mode (selected in the &quot;Advanced options ...&quot;):</p>
 
 <pre><code>boot_grub_item(2, 2);</code></pre>
+
+<h2 id="modify_grub_parameters_grub2_bls">modify_grub_parameters_grub2_bls</h2>
+
+<pre><code>modify_grub_parameters_grub2_bls()</code></pre>
+
+<p>For grub2-bls bootloader, update /etc/kernel/cmdline contents by appending the desired custom kernel parameters taken in <code>GRUB_ARGS</code>, and call sdbootutil to update the grub entry for the currently running kernel, which persists through reboots.</p>
 
 <h2 id="get_linuxrc_boot_params">get_linuxrc_boot_params</h2>
 
