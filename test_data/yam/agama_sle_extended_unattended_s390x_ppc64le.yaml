@@ -21,4 +21,9 @@ repos:
     uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-%ARCH%-Source-Build%BUILD%/
     enabled: 'No'
     filter: name
+  - name: science
+    alias: science
+    uri: https://download.opensuse.org/repositories/science/16.0/
+    enabled: 'Yes'
+    filter: name
 bootloader_timeout: '15'
