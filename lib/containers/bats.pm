@@ -398,7 +398,7 @@ EOF
     nonewprivs if get_var("NONEWPRIVS");
 
     foreach my $pkg (split(/\s+/, get_var("TEST_PACKAGES", ""))) {
-        run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install $pkg";
+        run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install --force-resolution --allow-vendor-change $pkg || rpm -ivh --force --nodeps $pkg";
     }
 
     delegate_controllers;
