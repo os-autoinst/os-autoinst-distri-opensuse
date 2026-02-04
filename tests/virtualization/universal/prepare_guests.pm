@@ -22,6 +22,7 @@ use File::Copy 'copy';
 use File::Path 'make_path';
 use virt_autotest::utils qw(is_sles16_mu_virt_test);
 use autoyast qw(expand_agama_secrets);
+use db_utils qw(is_ok_url);
 
 sub create_agama_profile {
     my ($vm_name, $arch, $mac, $ip) = @_;
@@ -173,10 +174,57 @@ sub gen_osinfo {
     return "$info_op $info_val";
 }
 
+# Pre-flight URL validation (2 retries, 5s delay, 10s timeout)
+# Validates installation sources and patch repos before virt-install
+sub validate_guest_urls {
+    my %errors = (install => [], repo => []);
+
+    # 1. Validate guest installation URLs
+    for my $g (values %virt_autotest::common::guests) {
+        for my $key (qw(location iso_url install_url)) {
+            my $url = $g->{$key} or next;
+            my $check_url = ($key eq 'iso_url') ? $url : "${url}boot/";
+            unless (is_ok_url($check_url, retry => 2, delay => 5, timeout => 10)) {
+                push @{$errors{install}}, "$g->{name}.$key: $url";
+            }
+        }
+    }
+
+    # 2. Validate INCIDENT_REPO (MU test patch repositories)
+    if (my $repos = get_var('INCIDENT_REPO')) {
+        for my $repo (split /,/, $repos) {
+            next unless $repo;
+            unless (is_ok_url("${repo}repodata/", retry => 2, delay => 5, timeout => 10)) {
+                push @{$errors{repo}}, $repo;
+            }
+        }
+    }
+
+    # Report errors by category
+    my @all_errors;
+    if (@{$errors{install}}) {
+        my $msg = "[Installation Source] Unreachable or empty:\n  " . join("\n  ", @{$errors{install}});
+        record_info("Install FAIL", $msg, result => 'fail');
+        push @all_errors, $msg;
+    }
+    if (@{$errors{repo}}) {
+        my $msg = "[INCIDENT_REPO] Unreachable or empty:\n  " . join("\n  ", @{$errors{repo}});
+        record_info("Repo FAIL", $msg, result => 'fail');
+        push @all_errors, $msg;
+    }
+
+    die "URL validation failed:\n" . join("\n\n", @all_errors) if @all_errors;
+    record_info("URL OK", scalar(keys %virt_autotest::common::guests) . " guests validated");
+}
+
 sub run {
     # Use serial terminal, unless defined otherwise. The unless will go away once we are certain this is stable
     #    select_serial_terminal unless get_var('_VIRT_SERIAL_TERMINAL', 1) == 0;
     select_console('root-console');
+
+    # Pre-flight check: validate all installation URLs before virt-install
+    validate_guest_urls();
+
     # Note: TBD for modular libvirt. See poo#129086 for detail.
     restart_libvirtd;
     assert_script_run('for i in $(virsh list --name|grep -v Domain-0);do virsh destroy $i;done');
