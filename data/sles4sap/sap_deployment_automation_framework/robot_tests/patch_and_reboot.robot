@@ -104,10 +104,10 @@ Reboot And Connect
 ...     *retries:* Repository mirror URL
 ...     *retry_delay:* Repository mirror URL
     [Arguments]  ${retries}=12  ${retry_delay}=20
-    Set Client Configuration    timeout=120s
+    Set Client Configuration    timeout=300s
     Write  sudo shutdown -r +1
     Write    sudo tail -f /var/log/messages
-    ${output}=  Read Until Regexp  rebooting
+    ${output}=  Read Until Regexp  reboot
     Log    ${output}
     Sleep    30
     Wait Until Keyword Succeeds    ${retries}x    ${retry_delay}s    Open SSH To SUT
