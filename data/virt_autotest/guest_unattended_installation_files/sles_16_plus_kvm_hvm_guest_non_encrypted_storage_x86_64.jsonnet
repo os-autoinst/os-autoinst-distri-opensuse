@@ -23,22 +23,26 @@
     "hashedPassword": true,
     "sshPublicKey": "##Authorized-Keys##"
   },
-  legacyAutoyastStorage: [
-      {
-         "device": "/dev/vda",
-         "disklabel": "##Disk-Label##",
-         "enable_snapshots": true,
-         "initialize": true,
-         use: "all"
-      }
-  ],
   "storage": {
     "drives": [
       {
         "partitions": [
-          { "filesystem": { "path": "/" } },
-          { "filesystem": { "path": "/home" } },
-          { "filesystem": { "path": "swap" } }
+          {
+            "search": { "ifNotFound": "skip" },
+            "delete": true
+          },
+          {
+            "filesystem": { "path": "/" },
+            "size": { "min": "20 GiB" }
+          },
+          {
+            "filesystem": { "path": "swap" },
+            "size": "4 GiB"
+          },
+          {
+            "filesystem": { "path": "/home" },
+            "size": "6 GiB"
+          }
         ]
       }
     ]
@@ -59,7 +63,8 @@
           "opensuse.org"
         ]
       }
-    ]
+    ],
+    "state": {}
   },
   scripts: {
     post: [
@@ -91,6 +96,14 @@
         content: |||
           #!/usr/bin/env bash
           echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-qe-virtualization-functional.conf
+        |||
+      },
+      {
+        name: "enable_sshd",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          systemctl enable sshd.service
         |||
       }
     ]
