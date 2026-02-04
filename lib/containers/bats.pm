@@ -589,7 +589,7 @@ sub bats_tests {
     assert_script_run("LC_ALL=C sed -i 's/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]//g' $xmlfile") if ($package eq "umoci");
     my $version = script_output "rpm -q --queryformat '%{VERSION}' $package";
     patch_junit $package, $version, $xmlfile, @xfails;
-    parse_extra_log(XUnit => $xmlfile);
+    parse_extra_log(XUnit => $xmlfile, timeout => 180);
 
     script_run("rm -rf $tmp_dir || true", timeout => 0);
 
