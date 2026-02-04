@@ -321,7 +321,7 @@ sub run {
         type_password;
         send_key "ret";
         # Disk encryption is gonna take time
-        assert_screen 're-encrypt-finished', 720 unless is_sle_micro('>=6.2');
+        assert_screen 're-encrypt-finished', 720 unless is_sle_micro('>=6.2') || is_sle('>=16');
     }
 
     if (is_wsl || is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {

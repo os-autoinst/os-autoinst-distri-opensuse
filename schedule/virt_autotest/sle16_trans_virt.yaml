@@ -1,0 +1,56 @@
+name:           sle16_transactional_virtualization
+description:    >
+    Maintainer: Nan Zhang <nan.zhang@suse.com>, qe-virt@suse.de
+    SLE 16 uses default raw/qcow2 images as virtualization host, and it runs qemu/kvm as emulator.
+schedule:
+    - '{{boot_image}}'
+    - transactional/host_config
+    - console/suseconnect_scc
+    - '{{service_tests}}'
+    - qemu/info
+    - qemu/qemu
+    - '{{qemu_kvm}}'
+    - console/journal_check
+    - console/coredump_collect
+    - shutdown/shutdown
+conditional_schedule:
+    boot_image:
+        ARCH:
+            x86_64:
+                - '{{boot_and_run}}'
+            aarch64:
+                - microos/disk_boot
+            ppc64le:
+                - microos/disk_boot
+            s390x:
+                - installation/bootloader_start
+                - boot/boot_to_desktop
+    service_tests:
+        ARCH:
+            x86_64:
+                - microos/services_enabled
+                - transactional/disable_timers
+            aarch64:
+                - microos/services_enabled
+                - transactional/disable_timers
+            s390x:
+                - microos/services_enabled
+                - transactional/disable_timers
+                - microos/rebuild_initrd
+    qemu_kvm:
+        ARCH:
+            x86_64:
+                - qemu/kvm
+            aarch64:
+                - qemu/kvm
+            s390x:
+                - qemu/kvm
+    boot_and_run:
+        FLAVOR:
+            Transactional-Base:
+                - microos/disk_boot
+            Transactional-Base-qcow:
+                - microos/disk_boot
+            Transactional-Base-encrypted:
+                - installation/bootloader_uefi
+                - jeos/firstrun

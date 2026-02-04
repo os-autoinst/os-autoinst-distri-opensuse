@@ -41,7 +41,7 @@ use lockapi 'mutex_wait';
 use bootloader_setup;
 use registration;
 use utils;
-use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall is_sle_micro is_leap_micro is_bootloader_sdboot is_bootloader_grub2_bls);
+use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall is_sle_micro is_leap_micro is_bootloader_sdboot is_bootloader_grub2_bls is_transactional);
 use Utils::Backends qw(is_ipmi);
 
 # hint: press shift-f10 trice for highest debug level
@@ -154,10 +154,13 @@ sub run {
             send_key_until_needlematch("boot-live-" . get_var("DESKTOP"), 'down', 11, 3);
         } elsif (get_var("AGAMA")) {
             select_bootmenu_option;
+        } elsif (is_sle('>=16') && is_transactional) {
+            goto INST_BOOTMENU;
         } elsif (!(is_jeos || ((is_sle_micro || is_leap_micro) && !is_selfinstall)) && !is_microos('VMX')) {
             send_key_until_needlematch('inst-oninstallation', 'down', 11, 0.5);
         }
     }
+  INST_BOOTMENU:
 
     uefi_bootmenu_params;
 

@@ -8,12 +8,13 @@
 
 use base 'consoletest';
 use testapi;
+use transactional;
 use utils;
 use virt_autotest::common;
 use virt_autotest::esxi_utils;
 use Time::Local;
 use Utils::Backends qw(is_qemu is_svirt);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_transactional);
 use package_utils 'install_package';
 
 my $ssh_vm;
@@ -137,6 +138,7 @@ sub do_networking_tests {
     if (check_var('DISTRI', 'sle')) {
         # If nmap is not installed, install it
         install_package('nmap') if (script_run('command -v nmap'));
+        transactional::process_reboot(trigger => 1) if (is_transactional);
         die "SSH is not reachable" if (script_retry("nmap $vm_ip -PN -p ssh | grep open", delay => 10, retry => 12, timeout => 360) != 0);
     }
 

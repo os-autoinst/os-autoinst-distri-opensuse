@@ -521,12 +521,12 @@ sub uefi_bootmenu_params {
     # The main branch should be used only for bootable pre-installed images that contain already full
     # grub2 configuration
     my $linux = 0;
-    if (get_var('BOOT_HDD_IMAGE') && (is_jeos || is_leap_micro || is_microos || is_sle_micro)) {
+    if (get_var('BOOT_HDD_IMAGE') && (is_jeos || is_transactional)) {
         # there is always a blank line
         # sle 12-sp5 has no load_video
         # if there is a healthchecker, skip it
         my $gfx = 2;
-        if (is_leap_micro || is_microos || is_sle_micro || (is_jeos && is_transactional)) {
+        if (is_transactional || (is_jeos && is_transactional)) {
             $gfx += 5;
         } elsif (is_sle('=12-SP5')) {
             ;
