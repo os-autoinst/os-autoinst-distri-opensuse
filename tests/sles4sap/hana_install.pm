@@ -146,7 +146,6 @@ sub run {
             assert_script_run 'semanage boolean -m --on unconfined_service_transition_to_unconfined_user';
             assert_script_run 'semanage permissive -a snapper_grub_plugin_t';
         }
-        restorecon_rootfs();
     }
 
     # Add host's IP to /etc/hosts
@@ -273,10 +272,6 @@ sub run {
     }
     assert_script_run "df -h";
 
-    # Run restorecon again on SLES for SAP 16.0 and newer as we have created and mounted new
-    # FS since the last run
-    restorecon_rootfs() if has_selinux;
-
     # hdblcm is used for installation, verify if it exists.
     # hdblcm can be provided from the external with HANA_HDBLCM
     # variable, that is a relative path to /sapinst
@@ -294,6 +289,7 @@ sub run {
       --hostname=$(hostname) --db_mode=multiple_containers --db_isolation=low --restrict_max_mem=n
       --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production
     );
+    push @hdblcm_args, "--nostart" if has_selinux;
     push @hdblcm_args, "--userid=" . get_var('SIDADM_UID', '1001');
     push @hdblcm_args,
       "--components=" . get_var("HDBLCM_COMPONENTS", 'server'),
@@ -333,7 +329,17 @@ sub run {
     save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
 
     # On SLES for SAP 16.0 and newer, we need to do further SELinux setup for HANA
-    restorecon_rootfs() if has_selinux;
+    if (has_selinux) {
+        restorecon_rootfs();
+        # SAP admin
+        $sapadm = $self->set_sap_info($sid, $instid);
+        # Connect SAP account
+        $self->user_change;
+        # Start Hana
+        assert_script_run('HDB start', timeout => 180);
+        # Disconnect SAP account
+        $self->reset_user_change;
+    }
 
     # Quick check of block/filesystem devices after installation
     assert_script_run 'mount';
