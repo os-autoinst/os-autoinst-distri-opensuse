@@ -29,7 +29,7 @@ our @EXPORT = qw(cleanup import_context);
     $self->cleanup(%args)
 
 Cleanup method intended to be called at the end of tests or in C<post_fail_hook>.
-Mostly a wrapper around C<sles4sap::publiccloud::sles4sap_cleanup> which will:
+Mostly a wrapper around C<sles4sap::publiccloud::deployment_cleanup> which will:
 
 =over
 
@@ -54,7 +54,7 @@ Unless any of these has been executed previously.
 sub cleanup {
     my ($self, $args) = @_;
 
-    my $res = sles4sap_cleanup(
+    my $res = deployment_cleanup(
         $self,
         cleanup_called => $self->{cleanup_called},
         ansible_present => $self->{ansible_present}

@@ -62,7 +62,7 @@ our @EXPORT = qw(
   azure_fencing_agents_playbook_args
   display_full_status
   list_cluster_nodes
-  sles4sap_cleanup
+  deployment_cleanup
   is_hana_database_online
   get_hana_database_status
   is_primary_node_online
@@ -197,7 +197,7 @@ sub get_promoted_hostname {
     return join('', @master);
 }
 
-=head2 sles4sap_cleanup
+=head2 deployment_cleanup
 
     Clean up Network peering and qesap deployment
     This method does not internally die and try to execute
@@ -213,7 +213,7 @@ sub get_promoted_hostname {
 =back
 =cut
 
-sub sles4sap_cleanup {
+sub deployment_cleanup {
     my ($self, %args) = @_;
     record_info(
         'Cleanup',
