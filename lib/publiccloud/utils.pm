@@ -232,10 +232,13 @@ sub register_addons_in_pc {
     my ($instance) = @_;
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $remote = $instance->username . '@' . $instance->public_ip;
-    my $zcmd = "--gpg-auto-import-keys ref";
-    my $ret = $instance->zypper_call_remote(cmd => $zcmd, exitcode => [0, 6], timeout => 300);
+    # Using zypper_call_remote here appends `transactional-update -n pkg` and it
+    # fails with invalid syntax and causes registration failures.
+    #
+    # TODO: this is a hotfix. We need to fix the `zypper_call_remote` itself
+    # as transactional-update does not support repo actions => poo#195920)
+    my $ret = $instance->ssh_script_run(cmd => "sudo zypper -n --gpg-auto-import-keys ref");
     die 'No enabled repos defined: bsc#1245651' if $ret == 6;    # from zypper man page: ZYPPER_EXIT_NO_REPOS
-    $instance->zypper_call_remote(cmd => $zcmd, timeout => 300, retry => 6, delay => 200);
     for my $addon (@addons) {
         next if ($addon =~ /^\s+$/);
         register_addon($remote, $addon);
