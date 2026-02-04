@@ -999,6 +999,14 @@ sub collect_virt_system_logs {
         record_info "Directory /var/log/xen/ does not exist.";
     }
 
+    if (script_run("ls ~/virt-install_*") == 0) {
+        script_run('tar czvf /tmp/virt-install.tar.gz ~/virt-install_*');
+        upload_logs("/tmp/virt-install.tar.gz");
+    }
+    else {
+        record_info "Files for ~/virt-install_* does not exist.";
+    }
+
     assert_script_run("journalctl -b > /tmp/journalctl-b.txt");
     upload_logs("/tmp/journalctl-b.txt");
 
