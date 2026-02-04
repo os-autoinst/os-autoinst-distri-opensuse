@@ -11,6 +11,7 @@ use testapi;
 use lockapi;
 use mm_network qw(configure_hostname setup_static_mm_network);
 use serial_terminal qw(select_serial_terminal);
+use utils qw(systemctl);
 
 sub run {
     my $hostname = get_required_var('HOSTNAME');
@@ -38,11 +39,14 @@ sub run {
     # Set the hostname
     configure_hostname($hostname);
 
+    # Restart sshd on the nodes
+    systemctl('restart sshd') unless $is_server;
+
     # Wait for all nodes to be synced
     barrier_wait('NETWORK_SETUP_DONE');
 
     # Ping test: ensure that all nodes are able to join the master
-    script_run('ping -M do -s 0 -c 5 10.0.2.100') unless $is_server;
+    assert_script_run('ping -M do -s 0 -c 5 10.0.2.100') unless $is_server;
 
     # Record network info
     record_info('Network configuration',

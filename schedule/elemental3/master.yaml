@@ -1,0 +1,10 @@
+name: master
+description: |
+  - Run distros-test-framework K8s tests
+  Maintainer: unified-core@suse.com, ldevulder@suse.com
+schedule:
+  - microos/disk_boot
+  - elemental3/init_barriers
+  - elemental3/wait_barriers
+  - elemental3/configure_network
+  - elemental3/test_framework

@@ -188,7 +188,7 @@ sub run {
     # We may have to modify some settings if a config.yaml file is present
     # NOTE: We have to invert the return code as it is inverted between Bash and Perl
     my $config_yaml = "/etc/rancher/$k8s/config.yaml";
-    if (!script_run("[[ -s $config_yaml ]]")) {
+    if (!check_var('TESTED_CMD', 'customize')) {
         # Update K8s configuration file
         file_content_replace(
             "$config_yaml", '--sed-modifier' => 'g',
@@ -201,14 +201,17 @@ sub run {
             record_info('SELinux detected', "Updating SELinux policy for $k8s");
             assert_script_run('semodule -i /usr/share/selinux/packages/rke2.pp');
         }
-
-        # Start K8s server
-        # NOTE: autostart fails here because we changed some parameters in the config file
-        my $k8s_svc;
-        $k8s_svc = 'k3s' if ($k8s eq 'k3s');
-        $k8s_svc = 'rke2-server' if ($k8s eq 'rke2');
-        systemctl("start $k8s_svc", timeout => $timeout);
+    } else {
+        assert_script_run("echo -e 'node-name: $hostname\nnode-external-ip: $ip' >> $config_yaml");
     }
+
+    # Start K8s server
+    # NOTE: autostart fails here because we changed some parameters in the config file
+    my $k8s_svc;
+    $k8s_svc = 'k3s' if ($k8s eq 'k3s');
+    $k8s_svc = 'rke2-server' if ($k8s eq 'rke2');
+    systemctl("stop $k8s_svc", timeout => $timeout);
+    systemctl("start $k8s_svc", timeout => $timeout);
 
     # Wait for kubectl command to be available
     wait_kubectl_cmd(timeout => $timeout);
