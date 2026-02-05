@@ -1,4 +1,4 @@
-# Copyright 2026 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test that TPM is present and is working fine.
