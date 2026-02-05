@@ -57,6 +57,7 @@ sub verify_user_info {
 
     if (script_run('rpm -q system-group-wheel') == 0) {
         if (!get_var('WIZARD_SKIP_USER') && script_run('groups | grep -qw wheel') && (is_sle('16+') || is_sle_micro('6.2+'))) {
+            my $username = get_username();
             die "bsc#1241215 - User $username should be added to wheel group by default";
         }
     } else {
@@ -132,6 +133,15 @@ sub verify_partition_label {
     script_output('sfdisk -l') =~ m/Disklabel type:\s+$label/ or die "Wrong partion label found, expected '$label'";
 }
 
+sub verify_esp_size {
+    my $cmd = q[for d in $(lsblk -rno NAME -dpe 11,7 ); do parted -m -s "$d" unit "kiB" print 2> /dev/null | awk -F: '/esp/ { print $4 }'; done];
+    my $esp_size = script_output($cmd, proceed_on_failure => 1);
+
+    if ((my $expected = get_var('ESP_MINPART_SIZE')) > int($esp_size)) {
+        die "Detected ESP is only ${esp_size} large, expected >= ${expected}kiB";
+    }
+}
+
 sub verify_selinux {
     if (has_selinux_by_default) {
         my $mode = is_sle('>=16.0') && is_sles4sap() ? 'permissive' : 'enforcing';
@@ -151,6 +161,7 @@ sub verify_selinux {
 }
 
 sub create_user_in_terminal {
+    my $username = get_username();
     if (script_run("getent passwd $username") == 0) {
         record_info('user', sprintf("%s has already been created", script_output("getent passwd $username")));
         return;
@@ -159,6 +170,8 @@ sub create_user_in_terminal {
         die "User $username should have been created but is missing.";
     }
 
+    my $realname = get_realname();
+    my $password = get_password();
     assert_script_run "useradd -m $username -c '$realname'";
     assert_script_run "echo $username:$password | chpasswd";
     $user_created = 1;
@@ -186,8 +199,10 @@ sub create_user_in_ui {
         return;
     }
 
+    my $username = get_username();
     assert_screen_change { type_string $username };
     send_key "down";
+    my $realname = get_realname();
     assert_screen_change { type_string $realname };
     assert_screen_change { send_key "down" } if match_has_tag('jeos-create-non-root-with-group');
     assert_screen 'jeos-create-non-root-check';
@@ -228,7 +243,7 @@ sub run {
 
     # https://github.com/openSUSE/jeos-firstboot/pull/82 welcome dialog is shown on all consoles
     # and configuration continues on console where *Start* has been pressed
-    unless (is_leap('<15.4') || is_sle('<15-sp4')) {
+    unless (is_sle('=12-sp5')) {
         assert_screen 'jeos-init-config-screen', $initial_screen_timeout;
         # Without this 'ret' sometimes won't get to the dialog
         wait_still_screen;
@@ -324,7 +339,7 @@ sub run {
         assert_screen 're-encrypt-finished', 720 unless is_sle_micro('>=6.2') || is_sle('>=16');
     }
 
-    if (is_wsl || is_tumbleweed || is_microos || is_sle_micro('>6.0') || is_leap_micro('>6.0') || is_sle('>=16')) {
+    unless (is_sle('<16') || is_sle_micro('<6.1')) {
         if (!is_wsl) {
             assert_screen 'jeos-ssh-enroll-or-not', 120;
 
@@ -361,7 +376,7 @@ sub run {
         send_key 'ret';
     }
 
-    if (is_generalhw && is_aarch64 && !is_leap("<15.4") && !is_tumbleweed) {
+    if (is_generalhw && is_aarch64 && !is_tumbleweed) {
         assert_screen 'jeos-please-configure-wifi';
         send_key 'n';
     }
@@ -457,12 +472,13 @@ sub run {
     }
 
     # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0, so tw and Leap 15.2+ are fine
-    verify_mounts unless is_leap('<15.2') && is_aarch64;
+    verify_mounts unless is_aarch64;
 
     verify_hypervisor unless is_generalhw;
     verify_norepos unless is_opensuse;
     verify_bsc if (is_jeos && !is_transactional);
     verify_partition_label;
+    verify_esp_size if (is_jeos && (is_x86_64 || is_aarch64) && !is_community_jeos && !check_var('FLAVOR', 'JeOS-for-RaspberryPi'));
     verify_selinux;
 }
 
