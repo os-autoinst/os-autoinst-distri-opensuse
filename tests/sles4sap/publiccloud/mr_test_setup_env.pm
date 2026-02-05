@@ -27,7 +27,7 @@ sub run {
     my $mr_test_tar = 'mr_test-master.tar.gz';
     my $instance = $run_args->{my_instance};
 
-    # This test module is using publiccloud::basetest and not sles4sap_publiccloud_basetest
+    # This test module is using publiccloud::basetest and not sles4sap::publiccloud_basetest
     # as base class. ansible_present is propagated here
     # to a different context than usual
     $self->{ansible_present} = 1 if ($run_args->{ansible_present});

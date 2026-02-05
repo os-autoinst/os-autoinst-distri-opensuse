@@ -6,7 +6,7 @@
 # Summary: Base test providing cleanup, post fail and post run hooks for tests using qe-sap-deployment project.
 # https://github.com/SUSE/qe-sap-deployment
 
-package sles4sap_publiccloud_basetest;
+package sles4sap::publiccloud_basetest;
 
 use Mojo::Base 'publiccloud::basetest';
 use strict;
@@ -15,7 +15,7 @@ use Exporter 'import';
 use Carp qw(croak);
 use testapi;
 use sles4sap::qesap::qesapdeployment;
-use sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use publiccloud::utils qw(get_ssh_private_key_path);
 
 our @EXPORT = qw(cleanup import_context);
@@ -29,7 +29,7 @@ our @EXPORT = qw(cleanup import_context);
     $self->cleanup(%args)
 
 Cleanup method intended to be called at the end of tests or in C<post_fail_hook>.
-Mostly a wrapper around C<sles4sap_publiccloud::sles4sap_cleanup> which will:
+Mostly a wrapper around C<sles4sap::publiccloud::deployment_cleanup> which will:
 
 =over
 
@@ -54,7 +54,7 @@ Unless any of these has been executed previously.
 sub cleanup {
     my ($self, $args) = @_;
 
-    my $res = sles4sap_cleanup(
+    my $res = deployment_cleanup(
         $self,
         cleanup_called => $self->{cleanup_called},
         ansible_present => $self->{ansible_present}

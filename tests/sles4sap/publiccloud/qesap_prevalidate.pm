@@ -2,14 +2,50 @@
 #
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Check qe-sap-deployment health before start using it.
-# https://github.com/SUSE/qe-sap-deployment
+#
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap_publiccloud_basetest';
+=head1 NAME
+
+sles4sap/publiccloud/qesap_prevalidate.pm - Pre-validation of the deployed environment.
+
+=head1 DESCRIPTION
+
+This module performs health checks on the deployed 'qe-sap-deployment' environment
+before proceeding with the main tests. It ensures that the instances are reachable
+and that the High Availability (HA) cluster, if enabled, is in a healthy state.
+
+Its primary tasks are:
+
+- Check SSH connectivity to all instances.
+- Verify `zypper ref` executes without errors.
+- Record the version of `SAPHanaSR-showAttr`.
+- Wait for the cluster nodes to sync.
+- Identify the Primary and Secondary HANA sites.
+- Verify the overall readiness of the cluster (nodes online, no failed resources).
+
+=head1 SETTINGS
+
+=over
+
+=item B<HA_CLUSTER>
+
+A boolean value indicating whether a High Availability cluster is being tested.
+If false or 0, cluster-specific checks are skipped.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use base 'sles4sap::publiccloud_basetest';
 use testapi;
 use publiccloud::utils;
-use sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {

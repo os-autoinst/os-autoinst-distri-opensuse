@@ -11,15 +11,15 @@ use Mojo::JSON qw(encode_json decode_json);
 use Data::Dumper;
 
 use publiccloud::instance;
-use sles4sap_publiccloud;
+use sles4sap::publiccloud;
 
 subtest "[run_cmd] missing cmd" => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     dies_ok { $self->run_cmd() } 'Expected failure: missing mandatory argument cmd';
 };
 
 subtest "[run_cmd]" => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
 
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
@@ -30,7 +30,7 @@ subtest "[run_cmd]" => sub {
             return 'BABUUUUUUUUM' });
     $self->{my_instance} = $mock_pc;
     $self->{my_instance}->{instance_id} = 'Yondu';
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my $ret = $self->run_cmd(cmd => 'babum');
@@ -38,10 +38,10 @@ subtest "[run_cmd]" => sub {
     ok $ret eq 'BABUUUUUUUUM';
 };
 
-subtest "[sles4sap_cleanup] no args and all pass" => sub {
-    # sles4sap_cleanup is called with no args
+subtest "[deployment_cleanup] no args and all pass" => sub {
+    # deployment_cleanup is called with no args
     # it result in only to perform terraform destroy
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     my $unlock_terminal = 0;
     $sles4sap_publiccloud->redefine(type_string => sub { $unlock_terminal = 1; });
@@ -55,10 +55,10 @@ subtest "[sles4sap_cleanup] no args and all pass" => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return (0, 0); });
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
 
-    my $ret = $self->sles4sap_cleanup();
+    my $ret = $self->deployment_cleanup();
 
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -68,8 +68,8 @@ subtest "[sles4sap_cleanup] no args and all pass" => sub {
     ok($unlock_terminal eq 1, "ETX called at the beginning to eventually unlock the terminal");
 };
 
-subtest "[sles4sap_cleanup] ansible and all pass" => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+subtest "[deployment_cleanup] ansible and all pass" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(type_string => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
@@ -82,10 +82,10 @@ subtest "[sles4sap_cleanup] ansible and all pass" => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return (0, 0); });
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
 
-    my $ret = $self->sles4sap_cleanup(ansible_present => 1);
+    my $ret = $self->deployment_cleanup(ansible_present => 1);
 
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -94,8 +94,8 @@ subtest "[sles4sap_cleanup] ansible and all pass" => sub {
     ok($ret eq 0, "Expected return 0 ret:$ret");
 };
 
-subtest "[sles4sap_cleanup] terraform to be called even if ansible fails" => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+subtest "[deployment_cleanup] terraform to be called even if ansible fails" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(type_string => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
@@ -113,10 +113,10 @@ subtest "[sles4sap_cleanup] terraform to be called even if ansible fails" => sub
                 return (0, 0);
             }
     });
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
 
-    my $ret = $self->sles4sap_cleanup(ansible_present => 1);
+    my $ret = $self->deployment_cleanup(ansible_present => 1);
 
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -125,19 +125,19 @@ subtest "[sles4sap_cleanup] terraform to be called even if ansible fails" => sub
     ok($ret eq 1, "Expected return 1 ret:$ret");
 };
 
-subtest "[sles4sap_cleanup] no need to clean" => sub {
+subtest "[deployment_cleanup] no need to clean" => sub {
     # No args result in only terraform destroy to be called
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $self = sles4sap_publiccloud->new();
-    my $ret = $self->sles4sap_cleanup(cleanup_called => 1);
+    my $self = sles4sap::publiccloud->new();
+    my $ret = $self->deployment_cleanup(cleanup_called => 1);
 
     ok($ret eq 0, "Expected return 0 ret:$ret");
 };
 
-subtest "[sles4sap_cleanup] SUPPORTCONFIG=0 => never collect, even on FAIL" => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+subtest "[deployment_cleanup] SUPPORTCONFIG=0 => never collect, even on FAIL" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(type_string => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
@@ -151,13 +151,13 @@ subtest "[sles4sap_cleanup] SUPPORTCONFIG=0 => never collect, even on FAIL" => s
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(qesap_execute => sub { return (0, 0); });
 
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     # Simulate FAIL result and SUPPORTCONFIG=0 (should still skip)
     $self->{result} = 'fail';
     set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
     set_var('SUPPORTCONFIG', '0');
 
-    my $ret = $self->sles4sap_cleanup();
+    my $ret = $self->deployment_cleanup();
 
     set_var('SUPPORTCONFIG', undef);
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
@@ -166,8 +166,8 @@ subtest "[sles4sap_cleanup] SUPPORTCONFIG=0 => never collect, even on FAIL" => s
     is($support_calls, 0, "supportconfig logs NOT collected when SUPPORTCONFIG=0 even on FAIL");
 };
 
-subtest "[sles4sap_cleanup] SUPPORTCONFIG=1 => always collect (PASS case)" => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+subtest "[deployment_cleanup] SUPPORTCONFIG=1 => always collect (PASS case)" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(type_string => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
@@ -181,12 +181,12 @@ subtest "[sles4sap_cleanup] SUPPORTCONFIG=1 => always collect (PASS case)" => su
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(qesap_execute => sub { return (0, 0); });
 
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     # PASS case (no explicit fail), but SUPPORTCONFIG=1 => must collect
     set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
     set_var('SUPPORTCONFIG', '1');
 
-    my $ret = $self->sles4sap_cleanup();
+    my $ret = $self->deployment_cleanup();
 
     set_var('SUPPORTCONFIG', undef);
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
@@ -195,8 +195,8 @@ subtest "[sles4sap_cleanup] SUPPORTCONFIG=1 => always collect (PASS case)" => su
     is($support_calls, 1, "supportconfig logs collected when SUPPORTCONFIG=1 (PASS case)");
 };
 
-subtest "[sles4sap_cleanup] SUPPORTCONFIG unset + FAIL => collect" => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+subtest "[deployment_cleanup] SUPPORTCONFIG unset + FAIL => collect" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(select_host_console => sub { return; });
     $sles4sap_publiccloud->redefine(type_string => sub { return; });
     $sles4sap_publiccloud->redefine(qesap_upload_logs => sub { return; });
@@ -210,13 +210,13 @@ subtest "[sles4sap_cleanup] SUPPORTCONFIG unset + FAIL => collect" => sub {
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(qesap_execute => sub { return (0, 0); });
 
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     # Unset SUPPORTCONFIG and set FAIL result => must collect
     $self->{result} = 'fail';
     set_var('PUBLIC_CLOUD_PROVIDER', 'FRUTTOLO');
     set_var('SUPPORTCONFIG', undef);
 
-    my $ret = $self->sles4sap_cleanup();
+    my $ret = $self->deployment_cleanup();
 
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
 
@@ -225,7 +225,7 @@ subtest "[sles4sap_cleanup] SUPPORTCONFIG unset + FAIL => collect" => sub {
 };
 
 subtest "[is_hana_online]" => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $sles4sap_publiccloud->redefine(run_cmd => sub {
@@ -259,7 +259,7 @@ Hint based routing site:
 END
     });
 
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
     my $ret = $self->is_hana_online();
     set_var('SAP_SIDADM', undef);
@@ -267,7 +267,7 @@ END
 };
 
 subtest "[stop_hana]" => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
     my @calls;
@@ -276,7 +276,7 @@ subtest "[stop_hana]" => sub {
             push @calls, $args{cmd};
             return; }
     );
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
     $self->{my_instance} = $mock_pc;
@@ -291,7 +291,7 @@ subtest "[stop_hana]" => sub {
 
 subtest "[stop_hana] crash" => sub {
     my @calls;
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(type_string => sub { note(join(' ', 'TYPED -->', @_)); });
     $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
@@ -300,7 +300,7 @@ subtest "[stop_hana] crash" => sub {
     $sles4sap_publiccloud->redefine(wait_serial => sub { return; });
     $sles4sap_publiccloud->redefine(script_run => sub { push @calls, $_[0]; return 1; });
 
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
     $mock_pc->mock('ssh_script_output', sub {
@@ -320,7 +320,7 @@ subtest "[stop_hana] crash wait_hana_node_up running" => sub {
     # simulate system that, after the crash, immediately
     # return 'running' in the polling loop within wait_hana_node_up
     my @calls;
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(type_string => sub { note(join(' ', 'TYPED -->', @_)); });
     $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
@@ -328,7 +328,7 @@ subtest "[stop_hana] crash wait_hana_node_up running" => sub {
     $sles4sap_publiccloud->redefine(wait_serial => sub { return; });
     $sles4sap_publiccloud->redefine(script_run => sub { push @calls, $_[0]; return 1; });
 
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
     $mock_pc->mock('ssh_script_output', sub {
@@ -350,7 +350,7 @@ subtest "[stop_hana] crash wait_hana_node_up degradated" => sub {
     # simulate system that, after the crash,
     # never return 'running' in the polling loop within wait_hana_node_up
     my @calls;
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(type_string => sub { note(join(' ', 'TYPED -->', @_)); });
     $sles4sap_publiccloud->redefine(wait_for_sync => sub { return; });
@@ -358,7 +358,7 @@ subtest "[stop_hana] crash wait_hana_node_up degradated" => sub {
     $sles4sap_publiccloud->redefine(wait_serial => sub { return; });
     $sles4sap_publiccloud->redefine(script_run => sub { push @calls, $_[0]; return 1; });
 
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
     $mock_pc->mock('ssh_script_output', sub {
@@ -376,8 +376,8 @@ subtest "[stop_hana] crash wait_hana_node_up degradated" => sub {
 };
 
 subtest "[setup_sbd_delay_publiccloud]" => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { return; });
     $sles4sap_publiccloud->redefine(sbd_delay_formula => sub { return 30; });
     my @calls;
@@ -392,8 +392,8 @@ subtest "[setup_sbd_delay_publiccloud]" => sub {
 };
 
 subtest "[setup_sbd_delay_publiccloud] with different values" => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { return; });
     $sles4sap_publiccloud->redefine(cloud_file_content_replace => sub { return; });
     $sles4sap_publiccloud->redefine(croak => sub { die; });
@@ -483,10 +483,10 @@ subtest '[azure_fencing_agents_playbook_args] SPN setup' => sub {
 
 
 subtest '[list_cluster_nodes]' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     my @instances = ('Captain_hook', 'CaptainHarlock');
     $self->{instances} = \@instances;
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my @calls;
@@ -506,10 +506,10 @@ subtest '[list_cluster_nodes]' => sub {
 
 
 subtest '[list_cluster_nodes] failure' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     my @instances = ('Captain_hook', 'CaptainHarlock');
     $self->{instances} = \@instances;
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my @calls;
@@ -525,8 +525,8 @@ subtest '[list_cluster_nodes] failure' => sub {
 
 
 subtest '[is_hana_database_online]' => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 0; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
@@ -542,8 +542,8 @@ subtest '[is_hana_database_online]' => sub {
 
 
 subtest '[is_hana_database_online] with status online' => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 1; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
@@ -559,8 +559,8 @@ subtest '[is_hana_database_online] with status online' => sub {
 
 
 subtest '[is_primary_node_online]' => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     my $res = "";
     $sles4sap_publiccloud->redefine(run_cmd => sub { die "this system is not a system replication site" });
     $sles4sap_publiccloud->redefine(record_info => sub { return; });
@@ -576,8 +576,8 @@ subtest '[is_primary_node_online]' => sub {
 
 
 subtest '[is_primary_node_online]' => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(run_cmd => sub { return 'mode: PRIMARY'; });
     $sles4sap_publiccloud->redefine(record_info => sub { return; });
     set_var('INSTANCE_SID', 'INSTANCE_SIDTEST');
@@ -589,8 +589,8 @@ subtest '[is_primary_node_online]' => sub {
 
 subtest '[get_hana_topology]' => sub {
     my @calls;
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my %test_topology = (
         Host => {
@@ -636,9 +636,9 @@ subtest '[get_hana_topology]' => sub {
 
 subtest '[get_hana_topology_angi' => sub {
     my @calls;
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     set_var('USE_SAP_HANA_SR_ANGI', 'true');
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my %test_topology = (
         Host => {
@@ -679,9 +679,9 @@ subtest '[get_hana_topology_angi' => sub {
 };
 
 subtest '[get_hana_topology] bad output' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     my @calls;
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my %empty_topology = ();
     $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%empty_topology; });
@@ -701,9 +701,9 @@ subtest '[get_hana_topology] bad output' => sub {
 
 
 subtest '[check_takeover]' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     $self->{my_instance}->{instance_id} = 'Yondu';
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     my @calls;
     my %test_topology = (
         Host => {
@@ -751,9 +751,9 @@ subtest '[check_takeover]' => sub {
 
 
 subtest '[check_takeover] fail in showAttr' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     $self->{my_instance}->{instance_id} = 'Yondu';
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
@@ -774,9 +774,9 @@ subtest '[check_takeover] fail in showAttr' => sub {
 
 
 subtest '[check_takeover] missing fields in SAPHanaSR-showAttr' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     $self->{my_instance}->{instance_id} = 'vmhana01';
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
@@ -809,9 +809,9 @@ END
 
 
 subtest '[check_takeover] fail if DB online' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     $self->{my_instance}->{instance_id} = 'Yondu';
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 1 });
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
@@ -821,9 +821,9 @@ subtest '[check_takeover] fail if DB online' => sub {
 
 
 subtest '[check_takeover] fail if primary online' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     $self->{my_instance}->{instance_id} = 'Yondu';
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
@@ -874,7 +874,7 @@ subtest '[create_playbook_section_list] ha_enabled => 0' => sub {
 
 
 subtest '[create_playbook_section_list] fencing => azure native msi' => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(fencing => 'native', fence_type => 'msi');
@@ -886,7 +886,7 @@ subtest '[create_playbook_section_list] fencing => azure native msi' => sub {
 
 
 subtest '[create_playbook_section_list] fencing => azure native spn' => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(fencing => 'native', fence_type => 'spn', spn_application_id => '123', spn_application_password => 'abc');
@@ -907,7 +907,7 @@ subtest '[create_playbook_section_list] registration => noreg' => sub {
 
 
 subtest '[create_playbook_section_list] registration => suseconnect' => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(registration => 'suseconnect');
@@ -918,7 +918,7 @@ subtest '[create_playbook_section_list] registration => suseconnect' => sub {
 
 
 subtest '[create_playbook_section_list] ptf' => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(
@@ -945,9 +945,9 @@ subtest '[create_playbook_section_list] IBSm' => sub {
 
 
 subtest '[enable_replication]' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     $self->{my_instance}->{instance_id} = 'vmhana01';
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0; });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -1025,7 +1025,7 @@ subtest '[get_hana_site_names] values from settings' => sub {
 };
 
 subtest '[wait_for_zypper] zypper unlocked at first try' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     my $pc_instance = Test::MockModule->new('publiccloud::instance');
     my $instance = publiccloud::instance->new();
     $pc_instance->redefine(ssh_script_run => sub { return 0; });
@@ -1034,10 +1034,10 @@ subtest '[wait_for_zypper] zypper unlocked at first try' => sub {
 };
 
 subtest '[wait_for_zypper] zypper fails at first try with non 7 rc' => sub {
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     my $pc_instance = Test::MockModule->new('publiccloud::instance');
     my $instance = publiccloud::instance->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud');
     $sles4sap_publiccloud->redefine(record_info => sub {
             note(join(' ', 'RECORD_INFO -->', @_));
     });
@@ -1047,8 +1047,8 @@ subtest '[wait_for_zypper] zypper fails at first try with non 7 rc' => sub {
 };
 
 subtest '[wait_for_zypper] zypper fails at first try with 7 rc but pass at second retry' => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
-    my $self = sles4sap_publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud');
+    my $self = sles4sap::publiccloud->new();
     my $pc_instance = Test::MockModule->new('publiccloud::instance');
     my $instance = publiccloud::instance->new();
     my $attempt = 0;
@@ -1065,8 +1065,8 @@ subtest '[wait_for_zypper] zypper fails at first try with 7 rc but pass at secon
 };
 
 subtest '[wait_for_zypper] zypper fails always with 7 rc' => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud');
     my $pc_instance = Test::MockModule->new('publiccloud::instance');
     my $instance = publiccloud::instance->new();
     my @record_infos;
@@ -1080,8 +1080,8 @@ subtest '[wait_for_zypper] zypper fails always with 7 rc' => sub {
 };
 
 subtest '[wait_for_idle] command passes at first try' => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud');
     my @calls;
     $sles4sap_publiccloud->redefine(run_cmd => sub { my ($self, %args) = @_; push @calls, $args{cmd}; return 0; });
     $sles4sap_publiccloud->redefine(record_info => sub {
@@ -1095,8 +1095,8 @@ subtest '[wait_for_idle] command passes at first try' => sub {
 };
 
 subtest '[wait_for_idle] command fails with rc 124, passes at second try' => sub {
-    my $self = sles4sap_publiccloud->new();
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud');
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud');
     my $failed = 0;
     my @calls;
     $sles4sap_publiccloud->redefine(run_cmd => sub {
@@ -1179,20 +1179,20 @@ subtest '[wait_for_sync] all pass' => sub {
     # Hosts/vmhana02/version="1.02.03.04"
     # Hosts/vmhana02/vhost="vmhana02"
 
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $stability_counter = 0;
     $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
     # return of get_hana_topology does no matter so much as we stub the check_hana_topology
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return; });
     $sles4sap_publiccloud->redefine(check_hana_topology => sub { $stability_counter++; return 1; });
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     $self->wait_for_sync();
     ok($stability_counter >= 5, "stability_counter : $stability_counter should be greater or equal than 5");
 };
 
 subtest '[wait_for_sync] never ok' => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $stability_counter = 0;
     $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
@@ -1200,12 +1200,12 @@ subtest '[wait_for_sync] never ok' => sub {
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return; });
     $sles4sap_publiccloud->redefine(check_hana_topology => sub { $stability_counter++; return 0; });
     $sles4sap_publiccloud->redefine(run_cmd => sub { return "Marko Ramius"; });
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     dies_ok { $self->wait_for_sync() };
 };
 
 subtest '[wait_for_sync] one not ok reset the counter' => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $stability_counter = 0;
     # return of get_hana_topology does no matter so much as we stub the check_hana_topology
@@ -1215,7 +1215,7 @@ subtest '[wait_for_sync] one not ok reset the counter' => sub {
     # tested code will start counting back from zero
     # so in total the tested code should look 4 + 5 = 9 times.
     $sles4sap_publiccloud->redefine(check_hana_topology => sub { $stability_counter++; return $stability_counter == 4 ? 0 : 1; });
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     $self->wait_for_sync();
     ok($stability_counter >= 9, "stability_counter : $stability_counter should be more than 9.");
 };
@@ -1253,7 +1253,7 @@ subtest '[wait_for_sync] all pass with Pacemaker >= 2.1.7' => sub {
     # ...
     # Hosts/vmhana02/node_state="1712205541"
 
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $stability_counter = 0;
     $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '2.1.9'; });
@@ -1267,13 +1267,13 @@ subtest '[wait_for_sync] all pass with Pacemaker >= 2.1.7' => sub {
             $node_state_match = $args{node_state_match};
             $stability_counter++;
             return 1; });
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     $self->wait_for_sync();
     ok($node_state_match =~ /[1-9][0-9]+/ or $node_state_match eq '4', 'node_state_match : ' . $node_state_match . ' is expected to be 4 or an integer');
 };
 
 subtest '[wait_for_cluster]' => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
     my @calls;
@@ -1294,7 +1294,7 @@ subtest '[wait_for_cluster]' => sub {
             return 1; });
     $sles4sap_publiccloud->redefine(check_crm_output => sub { return 1; });
 
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
 
     $self->wait_for_cluster();
 
@@ -1306,10 +1306,10 @@ subtest '[wait_for_cluster]' => sub {
 };
 
 subtest '[saphanasr_showAttr_version]' => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $sles4sap_publiccloud->redefine(run_cmd => sub { return 'hello-world-1.2.3.4-12345.6.78.9.end'; });
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
 
     my $ret = $self->saphanasr_showAttr_version();
     ok $ret eq '1.2.3.4';
@@ -1350,7 +1350,7 @@ subtest '[create_hana_vars_section] firewall' => sub {
 };
 
 subtest "[get_replication_info]" => sub {
-    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap_publiccloud', no_auto => 1);
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
 
     my $cmd_output = <<'END';
 online: true
@@ -1362,7 +1362,7 @@ END
     $sles4sap_publiccloud->redefine(run_cmd => sub { return $cmd_output; });
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $self = sles4sap_publiccloud->new();
+    my $self = sles4sap::publiccloud->new();
     set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
     my $result = $self->get_replication_info();
     set_var('SAP_SIDADM', undef);

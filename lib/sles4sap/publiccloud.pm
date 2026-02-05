@@ -10,7 +10,7 @@
 # $self->{my_instance} defines what is the target instance to execute code on. It is acquired from
 # data located in "@instances" and produced by deployment test modules.
 
-package sles4sap_publiccloud;
+package sles4sap::publiccloud;
 
 use base 'publiccloud::basetest';
 use strict;
@@ -62,7 +62,7 @@ our @EXPORT = qw(
   azure_fencing_agents_playbook_args
   display_full_status
   list_cluster_nodes
-  sles4sap_cleanup
+  deployment_cleanup
   is_hana_database_online
   get_hana_database_status
   is_primary_node_online
@@ -197,7 +197,7 @@ sub get_promoted_hostname {
     return join('', @master);
 }
 
-=head2 sles4sap_cleanup
+=head2 deployment_cleanup
 
     Clean up Network peering and qesap deployment
     This method does not internally die and try to execute
@@ -213,7 +213,7 @@ sub get_promoted_hostname {
 =back
 =cut
 
-sub sles4sap_cleanup {
+sub deployment_cleanup {
     my ($self, %args) = @_;
     record_info(
         'Cleanup',
@@ -454,7 +454,7 @@ sub stop_hana {
 
         # Create a local copy of ssh_opts and extend it for the crash command.
         # Extension is on top of values defined in the current instance class $self->{my_instance}->ssh_opts
-        # which in HanaSR tests are set with default values in sles4sap_publiccloud_basetest::set_cli_ssh_opts.
+        # which in HanaSR tests are set with default values in sles4sap::publiccloud_basetest::set_cli_ssh_opts.
         # -f requests ssh to go to background just before command execution
         # -n is about stdin redirection and it is needed by -f to work
         my $crash_ssh_opts = $self->{my_instance}->ssh_opts . ' -fn -o ServerAliveInterval=2';

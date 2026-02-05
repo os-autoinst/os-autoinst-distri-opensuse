@@ -2,12 +2,12 @@
 #
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
+# Summary: Test module for performing database events on secondary HANA database site.
 # Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary: Test module for performing database stop using various methods on secondary HANA database site.
 
 =head1 NAME
 
-hana_sr_test_secondary.pm - Tests the secondary (replica) HANA database node.
+sles4sap/publiccloud/hana_sr_test_secondary.pm - Tests the secondary (replica) HANA database node.
 
 =head1 DESCRIPTION
 
@@ -41,9 +41,9 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap_publiccloud_basetest';
+use base 'sles4sap::publiccloud_basetest';
 use testapi;
-use sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use serial_terminal 'select_serial_terminal';
 use Time::HiRes 'sleep';
 

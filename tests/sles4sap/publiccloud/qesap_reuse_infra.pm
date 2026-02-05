@@ -2,15 +2,59 @@
 #
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Reuse qe-sap-deployment infrastructure preserved from previous test run.
-# https://github.com/SUSE/qe-sap-deployment
+#
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap_publiccloud_basetest';
+=head1 NAME
+
+sles4sap/publiccloud/qesap_reuse_infra.pm - Reuse existing infrastructure.
+
+=head1 DESCRIPTION
+
+This module allows reusing an existing cloud infrastructure from a previous test run,
+identified by B<QESAP_DEPLOYMENT_IMPORT>. It imports the instance data, disables
+cleanup to preserve the environment, and configures necessary variables for the
+current test execution.
+
+Its primary tasks are:
+
+- Disable cleanup (sets B<QESAP_NO_CLEANUP> and B<QESAP_NO_CLEANUP_ON_FAILURE>).
+- Unset B<QESAP_DEPLOYMENT_EXPORT> to prevent inheritance issues.
+- Set B<SAP_SIDADM> based on B<INSTANCE_SID>.
+- Import instance data using the test ID from B<QESAP_DEPLOYMENT_IMPORT>.
+- Initialize the provider and instance data structures.
+
+=head1 SETTINGS
+
+=over
+
+=item B<QESAP_DEPLOYMENT_IMPORT>
+
+(Required) The Test ID of the previous run from which to import the infrastructure.
+
+=item B<QESAP_NO_CLEANUP>
+
+If this variable is set to a true value, the cleanup process will be skipped.
+This module explicitly sets it to '1' to preserve imported infrastructure.
+
+=item B<INSTANCE_SID>
+
+The SAP System ID, used to determine the `sidadm` username.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use base 'sles4sap::publiccloud_basetest';
 use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use serial_terminal 'select_serial_terminal';
-use sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use sles4sap::qesap::qesapdeployment;
 
 sub test_flags {

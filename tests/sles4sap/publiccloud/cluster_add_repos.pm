@@ -1,11 +1,46 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Deployment steps for qe-sap-deployment
+# Summary: Add incident repositories to HANA cluster instances
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap_publiccloud_basetest';
-use sles4sap_publiccloud;
+=head1 NAME
+
+sles4sap/publiccloud/cluster_add_repos.pm - Add incident repositories to HANA cluster instances
+
+=head1 DESCRIPTION
+
+This module adds maintenance repositories to the HANA cluster instances (matching 'vmhana').
+
+Its primary tasks are:
+
+- Retrieve the list of test repositories (from C<INCIDENT_REPO>).
+- Filter out repositories that are not uploaded to IBSM (e.g., Development-Tools, Desktop-Applications).
+- For each HANA instance, create a repository file in C</etc/zypp/repos.d/>.
+- Refresh zypper on all modified instances.
+
+=head1 SETTINGS
+
+=over
+
+=item B<INCIDENT_REPO>
+
+Comma-separated list of repository URLs to add.
+
+=item B<REPO_PRIORITY>
+
+Optional priority to set for the added repositories.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use base 'sles4sap::publiccloud_basetest';
+use sles4sap::publiccloud;
 use qam;
 use testapi;
 

@@ -304,7 +304,7 @@ sub translate_hosts_data {
 
     sdaf_create_instances(inventory_content=>HASHREF);
 
-Creates and returns  B<$instances> class which is a main component of F<lib/sles4sap_publiccloud.pm> and
+Creates and returns  B<$instances> class which is a main component of F<lib/sles4sap/publiccloud.pm> and
 general public cloud libraries F</lib/publiccloud/*>.
 Check SDAF inventory file example in B<SYNOPSIS>
 
