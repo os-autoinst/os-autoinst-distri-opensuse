@@ -2,16 +2,16 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>lib/sles4sap_publiccloud_basetest.pm</title>
+<title>lib/sles4sap/publiccloud_basetest.pm</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel='stylesheet' href='./style.css' />
+<link rel='stylesheet' href='../style.css' />
 </head>
 
 <body>
 
 
 
-<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#DESCRIPTION">DESCRIPTION</a>
     <ul>
       <li><a href="#cleanup">cleanup</a></li>
@@ -19,7 +19,7 @@
       <li><a href="#set_cli_ssh_opts">set_cli_ssh_opts</a></li>
     </ul>
   </li>
-</ul><h1>lib/sles4sap_publiccloud_basetest.pm</h1>
+</ul><h1>lib/sles4sap/publiccloud_basetest.pm</h1>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
@@ -29,7 +29,7 @@
 
 <pre><code>$self-&gt;cleanup(%args)</code></pre>
 
-<p>Cleanup method intended to be called at the end of tests or in <code>post_fail_hook</code>. Mostly a wrapper around <code>sles4sap_publiccloud::sles4sap_cleanup</code> which will:</p>
+<p>Cleanup method intended to be called at the end of tests or in <code>post_fail_hook</code>. Mostly a wrapper around <code>sles4sap::publiccloud::deployment_cleanup</code> which will:</p>
 
 <ul>
 

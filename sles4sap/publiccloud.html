@@ -2,22 +2,22 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>lib/sles4sap_publiccloud.pm</title>
+<title>lib/sles4sap/publiccloud.pm</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link rel='stylesheet' href='./style.css' />
+<link rel='stylesheet' href='../style.css' />
 </head>
 
 <body>
 
 
 
-<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#DESCRIPTION">DESCRIPTION</a>
     <ul>
       <li><a href="#run_cmd-run_cmd-cmd-command-runas-user-timeout-60">run_cmd run_cmd(cmd =&gt; &#39;command&#39;, [runas =&gt; &#39;user&#39;, timeout =&gt; 60]);</a></li>
       <li><a href="#run_cmd_retry-run_cmd_retry-cmd-command-retry-3-timeout-60-delay-10">run_cmd_retry run_cmd_retry(cmd =&gt; &#39;command&#39;, [retry =&gt; 3, timeout =&gt; 60, delay =&gt; 10]);</a></li>
       <li><a href="#get_promoted_hostname-get_promoted_hostname">get_promoted_hostname() get_promoted_hostname();</a></li>
-      <li><a href="#sles4sap_cleanup">sles4sap_cleanup</a></li>
+      <li><a href="#deployment_cleanup">deployment_cleanup</a></li>
       <li><a href="#get_hana_topology-Parses-command-output-returns-hash-of-hashes-containing-values-for-each-host">get_hana_topology Parses command output, returns hash of hashes containing values for each host.</a></li>
       <li><a href="#is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</a></li>
       <li><a href="#is_hana_resource_running-is_hana_resource_running-quiet-0">is_hana_resource_running is_hana_resource_running([quiet =&gt; 0]);</a></li>
@@ -54,7 +54,7 @@
       <li><a href="#wait_for_idle">wait_for_idle</a></li>
     </ul>
   </li>
-</ul><h1>lib/sles4sap_publiccloud.pm</h1>
+</ul><h1>lib/sles4sap/publiccloud.pm</h1>
 
 <h1 id="DESCRIPTION">DESCRIPTION</h1>
 
@@ -125,7 +125,7 @@ retried for C&lt;retry&gt; times, with C&lt;delay&gt; seconds of interval in bet
 
 <pre><code>Checks and returns hostname of HANA promoted node according to crm shell output.</code></pre>
 
-<h2 id="sles4sap_cleanup">sles4sap_cleanup</h2>
+<h2 id="deployment_cleanup">deployment_cleanup</h2>
 
 <pre><code>Clean up Network peering and qesap deployment
 This method does not internally die and try to execute
