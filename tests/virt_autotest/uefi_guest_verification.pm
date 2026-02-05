@@ -104,8 +104,10 @@ sub regen_efi_secret_key {
 
 sub check_guest_pmsuspend_enabled {
     my $self = shift;
-
-    $self->do_guest_pmsuspend($_, 'mem') foreach (keys %virt_autotest::common::guests);
+    foreach (keys %virt_autotest::common::guests) {
+        record_soft_failure("Bug bsc#1257492: qemu-guest-agent is not installed by default. We have workaround to install it in jsonnet.") if ($_ =~ /sles-16-1/i);
+        $self->do_guest_pmsuspend($_, 'mem');
+    }
     if (is_kvm_host) {
         foreach (keys %virt_autotest::common::guests) {
             if (is_sle('>=15') and ($_ =~ /12-sp5/img)) {
