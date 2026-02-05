@@ -20,8 +20,6 @@ sub run {
 
     select_console('root-console');
 
-    assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
-
     # install the migration image and active it
     my $migration_tool = is_s390x ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
     zypper_call("--gpg-auto-import-keys -n in $migration_tool");
