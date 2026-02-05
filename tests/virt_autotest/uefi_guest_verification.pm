@@ -32,7 +32,7 @@ sub run_test {
     # No machine type on aarch64 supports power management, or secure boot
     return $self if (is_aarch64);
 
-    if (is_sle('=16')) {
+    if (is_sle('>=15-SP7')) {
         $self->check_guest_secure_boot($_) foreach (keys %virt_autotest::common::guests);
         #$self->check_guest_uefi_boot($_) foreach (keys %virt_autotest::common::guests);
     }
