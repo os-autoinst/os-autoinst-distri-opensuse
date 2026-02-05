@@ -9,7 +9,7 @@
 
 use base "consoletest";
 use testapi;
-use version_utils qw(is_community_jeos is_jeos is_sle_micro is_microos);
+use version_utils qw(is_community_jeos is_jeos);
 use serial_terminal qw(select_serial_terminal);
 use Utils::Logging 'tar_and_upload_log';
 
@@ -17,8 +17,10 @@ my $zypp_conf_dir;
 
 sub run {
     select_serial_terminal();
-    $zypp_conf_dir = (is_sle_micro || is_jeos) ? '/etc/zypp/' : '/usr/etc/zypp/';
-    if (is_microos) {
+    my $zypp_econf = !script_run("rpm -q --provides libzypp | grep 'libzypp(econf)'");
+    $zypp_conf_dir = $zypp_econf ? '/usr/etc/zypp/' : '/etc/zypp/';
+
+    if ($zypp_econf) {
         assert_script_run('rpm -q zypp-excludedocs zypp-no-multiversion zypp-no-recommends');
     }
 
@@ -35,7 +37,7 @@ sub post_fail_hook {
     foreach my $dir (@dirs) {
         push @backup_dirs, $dir if !script_run("test -d $dir");
     }
-    tar_and_upload_log("@backup_dirs", "/tmp/zypp_conf_dir.tar.bz2", gzip => 1);
+    tar_and_upload_log("@backup_dirs", "/tmp/zypp_conf_dir.tar.bz2", {gzip => 1}) if @backup_dirs;
 }
 
 1;
