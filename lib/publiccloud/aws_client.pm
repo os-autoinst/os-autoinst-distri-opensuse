@@ -11,6 +11,7 @@ package publiccloud::aws_client;
 use Mojo::Base -base;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 use publiccloud::utils;
 
 has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
@@ -39,6 +40,11 @@ sub init {
     assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
     define_secret_variable("AWS_ACCESS_KEY_ID", $data->{access_key_id});
     define_secret_variable("AWS_SECRET_ACCESS_KEY", $data->{secret_access_key});
+    # This is a workaround for `aws-cli` test on SLES16 until the 'flake' container accepts above environment variables
+    if (is_sle('=16')) {
+        assert_script_run('mkdir ~/.aws');
+        assert_script_run('printf "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY\nregion=$AWS_DEFAULT_REGION\n" > ~/.aws/credentials');
+    }
 
     # Disable pager (see poo#133226 - EC2: WARNING: terminal is not fully functional)
     assert_script_run('export AWS_PAGER=""');
@@ -48,7 +54,7 @@ sub init {
     # AWS STS is the secure token service, which is used for those credentials
     $self->aws_account_id(script_output("aws sts get-caller-identity | jq -r '.Account'"));
     die("Cannot get the UserID") unless ($self->aws_account_id);
-    die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->aws_account_id =~ /^\d{12}$/;
+    die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->aws_account_id =~ /^\d{12}$/m;
 }
 
 =head2 get_container_image_full_name
