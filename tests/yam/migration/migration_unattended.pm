@@ -22,14 +22,6 @@ sub run {
 
     assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
 
-    my $repo_server = get_var('REPO_MIRROR_HOST', 'download.suse.de');
-    my $repo_home = "http://" . $repo_server . "/ibs/home:/fcrozat:/SLES16/"
-      . (get_var('AGAMA_PRODUCT_ID') =~ /SLES_SAP/ ? 'SLES_SAP_' : 'SLE_')
-      . "\$releasever";
-    my $repo_images = 'http://' . $repo_server . '/ibs/home:/fcrozat:/SLES16/images/';
-    zypper_call("ar --refresh -p 90 '$repo_home' home_sles16");
-    zypper_call("ar --refresh -p 90 $repo_images home_images");
-
     # install the migration image and active it
     my $migration_tool = is_s390x ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
     zypper_call("--gpg-auto-import-keys -n in $migration_tool");
