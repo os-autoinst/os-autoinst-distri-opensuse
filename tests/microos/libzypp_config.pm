@@ -18,6 +18,10 @@ my $zypp_conf_dir;
 sub run {
     select_serial_terminal();
     $zypp_conf_dir = (is_sle_micro || is_jeos) ? '/etc/zypp/' : '/usr/etc/zypp/';
+    if (is_microos) {
+        assert_script_run('rpm -q zypp-excludedocs zypp-no-multiversion zypp-no-recommends');
+    }
+
     unless (is_community_jeos()) {
         assert_script_run 'grep -E -R -x "^solver.onlyRequires ?= ?true" ' . $zypp_conf_dir;
         assert_script_run 'grep -E -R -x "^rpm.install.excludedocs ?= ?yes" ' . $zypp_conf_dir;
