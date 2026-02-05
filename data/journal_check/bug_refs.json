@@ -99,7 +99,7 @@
         "type": "feature"
     },
     "bsc#1126272": {
-        "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session",
+        "description": "Failed unmounting \/\\S+\\.|-- Reboot --|pam_systemd.*Failed to release session|pam_systemd.*Failed to issue.*varlink call: io.systemd.Login.NoSuchSession",
         "products": {
             "sle-micro": [
                 "5.0",
