@@ -63,6 +63,7 @@ use sles4sap::console_redirection;
 use sles4sap::console_redirection::redirection_data_tools;
 use sles4sap::sap_deployment_automation_framework::deployment qw(get_workload_resource_group sdaf_ssh_key_from_keyvault);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id);
+use sles4sap::sap_deployment_automation_framework::basetest qw(sdaf_ibsm_teardown);
 
 sub test_flags {
     return {fatal => 1};
@@ -158,6 +159,8 @@ file_content
     parse_extra_log(XUnit => "$log_dir/xunit_result.xml");
 
     disconnect_target_from_serial;
+    record_info('IBSm Destroy', 'Destroying IBSm peering to release resources as soon as possible.');
+    sdaf_ibsm_teardown();
     die 'Robot test suite failed. Check logs for details.' if $pabot_rc;
 }
 
