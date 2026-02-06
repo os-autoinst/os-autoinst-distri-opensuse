@@ -33,6 +33,7 @@ schedule:
     - installation/logs_from_installation_system
     - installation/reboot_after_installation
     - kernel/update_kernel
+    - boot/boot_to_desktop
     - kernel/ibtests_prepare
     - installation/handle_reboot
     - boot/boot_to_desktop
