@@ -8,25 +8,34 @@
 
 use base "opensusebasetest";
 use testapi;
-use grub_utils 'grub_test';
-use migration 'disable_installation_repos';
 use power_action_utils 'power_action';
 use utils qw(zypper_call reconnect_mgmt_console upload_folders);
 use Utils::Architectures 'is_s390x';
 use registration;
+use version_utils qw(is_sle);
 
 sub run {
     my $self = shift;
 
     select_console('root-console');
 
+    if (is_sle('>16.0')) {
+        my $repo_server = "https://download.opensuse.org/repositories/home:/marcus.schaefer:/dms/";
+        my $repo_url = $repo_server . "SLE_" . (get_var('VERSION_UPGRADE_FROM') =~ s/-/_/gr);
+
+        assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
+        zypper_call("ar --refresh -p 90 '$repo_url' Migration");
+    }
+
     # install the migration image and active it
     my $migration_tool = is_s390x ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
     zypper_call("--gpg-auto-import-keys -n in $migration_tool");
 
-    # disable repos of the product to migrate from due to proxySCC is not serving SLES 15 SP*
-    my $version = get_var('VERSION_UPGRADE_FROM');
-    $version =~ s/-/_/;
+    if (is_sle('>16.0')) {
+        zypper_call("rr Migration");
+        record_soft_failure 'bsc#1254800';
+        assert_script_run('echo migration_product: SLES/16.1/x86_64 > /etc/sle-migration-service.yml');
+    }
 
     # deacivate unwanted/unsupported extensions before doing migration
     if (get_var('SCC_SUBTRACTIONS')) {
