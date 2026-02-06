@@ -200,6 +200,17 @@ sub login_to_console {
         }
     }
 
+    # Ensure SSH port is open before switching to SSH console.
+    # On slow bare-metal machines (e.g. zoe, jayne), sshd may not be ready
+    # even though the login screen is already visible on SOL console.
+    # Two-stage check: fast polling first, then slower retries. Max 5 min total.
+    my $sut_ip = get_required_var('SUT_IP');
+    unless (check_port_state($sut_ip, 22, 24, 5)    # Stage 1: every 5s  for 2 min
+        || check_port_state($sut_ip, 22, 6, 30))    # Stage 2: every 30s for 3 min
+    {
+        die "SSH port not available on $sut_ip after 5min, system may not be ready";
+    }
+
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
 
