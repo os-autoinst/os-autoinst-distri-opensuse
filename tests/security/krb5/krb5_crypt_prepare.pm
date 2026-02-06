@@ -1,4 +1,4 @@
-# Copyright 2019-2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Prepare environment for cryptographic function testing of krb5
@@ -94,7 +94,7 @@ EOF
     assert_script_run("source /etc/profile.d/krb5.sh");
 
     my $algo = is_sle('<15-SP6') ? "aes256-cts-hmac-sha1-96" : "aes256-cts-hmac-sha384-192";
-    my $krb5_conf = '/etc/krb5.conf';
+    my $krb5_conf = is_sle('<16.1') ? '/etc/krb5.conf' : '/usr/etc/krb5.conf';
     assert_script_run "cat $krb5_conf";
     assert_script_run(
         "echo \"\$(cat <<EOF
