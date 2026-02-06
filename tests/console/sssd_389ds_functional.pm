@@ -20,7 +20,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_opensuse is_tumbleweed is_sle);
-use registration qw(add_suseconnect_product get_addon_fullname);
+use registration qw(add_suseconnect_product get_addon_fullname register_product cleanup_registration);
 use feature 'signatures';
 no warnings 'experimental::signatures';
 
@@ -97,6 +97,13 @@ sub run ($self) {
 
     my $container_engine = "podman";
     if (is_sle('<16')) {
+        # https://progress.opensuse.org/issues/195848 https://progress.opensuse.org/issues/131498#note-5
+        if (get_var('FLAVOR') =~ /-TERADATA$/ && check_var('VERSION', '15-SP4')) {
+            register_product;
+            assert_script_run('SUSEConnect -p PackageHub/15.4/x86_64');
+            zypper_call('in sshpass');
+            cleanup_registration;
+        }
         $container_engine = "docker" if is_sle("<15-SP5");
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
     }
