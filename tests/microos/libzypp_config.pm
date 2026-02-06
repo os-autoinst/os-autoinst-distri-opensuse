@@ -11,18 +11,33 @@ use base "consoletest";
 use testapi;
 use version_utils qw(is_community_jeos is_jeos);
 use serial_terminal qw(select_serial_terminal);
+use Utils::Logging 'tar_and_upload_log';
+
+my $zypp_conf_dir;
 
 sub run {
     select_serial_terminal();
-    unless (is_community_jeos()) {
-        assert_script_run 'grep -E -x "^solver.onlyRequires ?= ?true" /etc/zypp/zypp.conf';
-        assert_script_run 'grep -E -x "^rpm.install.excludedocs ?= ?yes" /etc/zypp/zypp.conf';
+    my $zypp_econf = !script_run("rpm -q --provides libzypp | grep 'libzypp(econf)'");
+    $zypp_conf_dir = $zypp_econf ? '/usr/etc/zypp/' : '/etc/zypp/';
+
+    if ($zypp_econf) {
+        assert_script_run('rpm -q zypp-excludedocs zypp-no-multiversion zypp-no-recommends');
     }
-    assert_script_run sprintf('grep -E -x "^multiversion ?=%s" /etc/zypp/zypp.conf', is_jeos ? ' ?provides:multiversion\(kernel\)' : '');
+
+    unless (is_community_jeos()) {
+        assert_script_run 'grep -E -R -x "^solver.onlyRequires ?= ?true" ' . $zypp_conf_dir;
+        assert_script_run 'grep -E -R -x "^rpm.install.excludedocs ?= ?yes" ' . $zypp_conf_dir;
+    }
+    assert_script_run sprintf('grep -E -R -x "^multiversion ?=%s" ' . $zypp_conf_dir, is_jeos ? ' ?provides:multiversion\(kernel\)' : '');
 }
 
 sub post_fail_hook {
-    upload_logs '/etc/zypp/zypp.conf';
+    my @dirs = ('/usr/etc/zypp', '/etc/zypp');
+    my @backup_dirs;
+    foreach my $dir (@dirs) {
+        push @backup_dirs, $dir if !script_run("test -d $dir");
+    }
+    tar_and_upload_log("@backup_dirs", "/tmp/zypp_conf_dir.tar.bz2", {gzip => 1}) if @backup_dirs;
 }
 
 1;
