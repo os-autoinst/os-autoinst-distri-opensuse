@@ -16,28 +16,16 @@ sub run {
     # Set default root password
     $testapi::password = get_required_var('TEST_PASSWORD');
 
-    # For raw OS image boot
-    if (check_var('IMAGE_TYPE', 'disk')) {
-        # Wait for GRUB and select default entry
-        $self->wait_grub(bootloader_time => 300);
-        send_key('ret', wait_screen_change => 1);
-        wait_still_screen(timeout => 120);
-        save_screenshot();
-    }
+    # Wait for OS installer boot
+    assert_screen('grub-unifiedcore_installer', timeout => 120);
+    wait_still_screen;
 
-    # For iso OS image boot: the OS needs to be installed first!
-    if (check_var('IMAGE_TYPE', 'iso') || check_var('IMAGE_TYPE', 'raw')) {
-        # Wait for OS installer boot
-        assert_screen('grub-unifiedcore_installer', timeout => 120);
-        wait_still_screen;
+    # OS installation is done automatically as well as the reboot after installation
+    # We just have to wait for the VM to reboot
+    $self->wait_grub(bootloader_time => bmwqemu::scale_timeout(300));
 
-        # OS installation is done automatically as well as the reboot after installation
-        # We just have to wait for the VM to reboot
-        $self->wait_grub(bootloader_time => bmwqemu::scale_timeout(300));
-
-        # OS deployment done
-        record_info('OS deployment', 'Successfully installed!');
-    }
+    # OS deployment done
+    record_info('OS deployment', 'Successfully installed!');
 
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
