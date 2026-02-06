@@ -78,7 +78,7 @@ conditional_schedule:
                 - '{{steamcmd}}'
                 - console/libqca2
                 - console/vmstat
-                - console/kdump_and_crash
+                - kernel/kdump
                 - console/ansible
                 - console/libgit2
     validate_packages_and_patterns:
