@@ -103,6 +103,11 @@ sub select_product {
     } else {    # Default to TW
         send_key_until_needlematch('agama-product-tumbleweed', 'down');
         assert_and_click('agama-product-tumbleweed');
+        # New agama version has the Select button inside the same container
+        # We need to click on an empty space so we can press arrow down
+        mouse_set(850, 630);
+        mouse_click;
+        send_key_until_needlematch('agama-product-select', 'down');
     }
     assert_and_click('agama-product-select');
 }
