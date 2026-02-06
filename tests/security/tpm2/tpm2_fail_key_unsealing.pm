@@ -1,4 +1,4 @@
-# Copyright 2023 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: TPM2 scenario where boot components are updated, failing LUKS key unsealing.
@@ -6,14 +6,15 @@
 # `fdectl tpm-authorize`.
 #
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#134984
+# Tags: poo#134984, poo#195071
 
 use base 'opensusebasetest';
 use testapi;
 use transactional 'process_reboot';
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_console('root-console');
+    select_serial_terminal;
 
     # Modify boot component
     assert_script_run(
