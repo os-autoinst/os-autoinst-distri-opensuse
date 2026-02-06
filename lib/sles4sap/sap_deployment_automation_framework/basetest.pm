@@ -84,6 +84,7 @@ sub full_cleanup {
     if ($redirection_works) {
         load_os_env_variables();
         az_login();
+        sdaf_ibsm_teardown() if get_var('IS_MAINTENANCE');
         %cleanup_results = %{sdaf_cleanup()};
         disconnect_target_from_serial();    # Exist Deployer console since we are about to destroy it
     }
