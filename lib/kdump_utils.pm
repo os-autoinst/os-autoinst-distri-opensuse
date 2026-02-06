@@ -110,7 +110,7 @@ sub install_kernel_debuginfo_via_repo {
     zypper_call("rr debuginfo");
 }
 
-sub disable_packagekitd {
+sub install_required_packages {
     return if is_transactional;
     quit_packagekit;
     my @pkgs = qw(kdump);
@@ -127,7 +127,7 @@ sub prepare_for_kdump {
     my %args = @_;
     $args{test_type} //= '';
 
-    disable_packagekitd;
+    install_required_packages;
     return if ($args{test_type} eq 'before');
 
     # add debuginfo channels
