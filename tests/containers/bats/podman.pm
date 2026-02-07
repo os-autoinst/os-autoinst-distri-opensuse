@@ -60,6 +60,11 @@ sub run_tests {
             ) unless (is_sle("<16"));
         }
     }
+    push @xfails, (
+        # Sporadic issue fixed in
+        # https://github.com/containers/podman/commit/f172ff789b14226b51cea39f9373e7de2a35905a
+        "550-pause-process.bats::podman system migrate works with conmon being killed",
+    ) if (is_ppc64le && !is_sle);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
 
