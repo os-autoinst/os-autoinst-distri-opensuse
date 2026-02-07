@@ -1,0 +1,49 @@
+From c90f247e3483b95f9b445057a206c7afa56991a2 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 7 Feb 2026 18:08:25 +0100
+Subject: [PATCH] download-frozen-image-v2.sh: Use --retry with curl
+
+Transient errors like HTTP 429 must be retried.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ contrib/download-frozen-image-v2.sh | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/contrib/download-frozen-image-v2.sh b/contrib/download-frozen-image-v2.sh
+index 4cf6790304d51..7f0fe89f3581f 100755
+--- a/contrib/download-frozen-image-v2.sh
++++ b/contrib/download-frozen-image-v2.sh
+@@ -60,6 +60,8 @@ registryBase='https://registry-1.docker.io'
+ authBase='https://auth.docker.io'
+ authService='registry.docker.io'
+ 
++curlRetry='7'
++
+ # https://github.com/moby/moby/issues/33700
+ fetch_blob() {
+ 	local token="$1"
+@@ -73,6 +75,7 @@ fetch_blob() {
+ 	local curlArgs=("$@")
+ 
+ 	curl -L -S "${curlArgs[@]}" \
++		--retry "$curlRetry" \
+ 		-H "Authorization: Bearer $token" \
+ 		"$registryBase/v2/$image/blobs/$digest" \
+ 		-o "$targetFile" \
+@@ -278,6 +281,7 @@ while [ $# -gt 0 ]; do
+ 
+ 	manifestJson="$(
+ 		curl -fsSL \
++			--retry "$curlRetry" \
+ 			-H "Authorization: Bearer $token" \
+ 			-H 'Accept: application/vnd.oci.image.manifest.v1+json' \
+ 			-H 'Accept: application/vnd.oci.image.index.v1+json' \
+@@ -322,6 +326,7 @@ while [ $# -gt 0 ]; do
+ 							# get second level single manifest
+ 							submanifestJson="$(
+ 								curl -fsSL \
++									--retry "$curlRetry" \
+ 									-H "Authorization: Bearer $token" \
+ 									-H 'Accept: application/vnd.oci.image.manifest.v1+json' \
+ 									-H 'Accept: application/vnd.oci.image.index.v1+json' \

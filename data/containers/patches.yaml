@@ -149,41 +149,49 @@ moby:
   # https://github.com/moby/moby/pull/51263 - integration: Skip some tests as rootless
   # https://github.com/moby/moby/pull/51794 - integration: Support iputils ping
   # https://github.com/moby/moby/pull/51970 - Skip some tests as rootless when SELinux is enabled
+  # https://github.com/moby/moby/pull/52016 - download-frozen-image-v2.sh: Use --retry with curl
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 51219
     - 51263
     - 51794
+    - 52016
   sle-16.1:
     GITHUB_PATCHES:
     - 51219
     - 51263
     - 51794
+    - 52016
   sle-16.0:
     GITHUB_PATCHES:
     - 51219
     - 51263
     - 51794
+    - 52016
   sle-15-SP7:
     GITHUB_PATCHES:
     - 51219
     - 51263
     - 51794
+    - 52016
   sle-15-SP6:
     GITHUB_PATCHES:
     - 51219
     - 51263
     - 51794
+    - 52016
   sle-15-SP5:
     GITHUB_PATCHES:
     - 51219
     - 51263
     - 51794
+    - 52016
   sle-15-SP4:
     GITHUB_PATCHES:
     - 51219
     - 51263
     - 51794
+    - 52016
 netavark:
   # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
