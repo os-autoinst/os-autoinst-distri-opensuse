@@ -34,6 +34,7 @@ our @EXPORT = qw(
   cleanup_rootless_docker
   configure_docker
   configure_rootless_docker
+  configure_podman_mirror
   go_arch
   install_gotestsum
   install_ncat
@@ -182,6 +183,17 @@ sub configure_rootless_docker {
     $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
     record_info "WARNINGS client", $warnings if $warnings;
     run_command 'export PATH=$PATH:/usr/sbin:/sbin';
+}
+
+sub configure_podman_mirror {
+    my $registry = get_var("REGISTRY", "3.126.238.126:5000");
+    my $conf = <<'EOF';
+[[registry]]
+prefix = "docker.io"
+location = "$registry"
+insecure = true
+EOF
+    write_sut_file("/etc/containers/registries.conf.d/777-mirror.conf", $conf);
 }
 
 sub cleanup_docker {
