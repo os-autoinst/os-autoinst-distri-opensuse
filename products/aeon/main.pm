@@ -26,7 +26,8 @@ my $casedir = testapi::get_required_var('CASEDIR');
 my $distri = $casedir . '/lib/susedistribution.pm';
 require $distri;
 testapi::set_distribution(DistributionProvider->provide());
-testapi::set_var('NEEDLES_DIR', $casedir . '/products/opensuse/needles');
+
+return 1 if load_yaml_schedule;
 
 loadtest 'aeon/tik';
 loadtest 'aeon/firstboot';
