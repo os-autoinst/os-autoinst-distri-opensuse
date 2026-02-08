@@ -60,7 +60,7 @@ sub test ($target) {
     run_command "$env pytest $pytest_args podman/tests/$target &> $target.txt || true", timeout => 3600;
 
     patch_junit "podman-py", $version, "$target.xml", @xfails;
-    parse_extra_log(XUnit => "$target.xml", timeout => 180);
+    parse_extra_log(XUnit => "$target.xml");
     upload_logs("$target.txt");
 }
 

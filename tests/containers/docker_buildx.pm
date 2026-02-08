@@ -65,7 +65,7 @@ sub run {
     run_command "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests |& tee buildx.txt", timeout => 1200;
 
     patch_junit "docker-buildx", $version, "buildx.xml", @xfails;
-    parse_extra_log(XUnit => "buildx.xml", timeout => 180);
+    parse_extra_log(XUnit => "buildx.xml");
     upload_logs("buildx.txt");
 }
 
