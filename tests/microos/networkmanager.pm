@@ -45,12 +45,12 @@ sub restore_config {
 # double check what DNS-Manager is currently used by NetworkManger
 sub dns_mgr {
     my $RcManager = script_output_retry(
-'dbus-send --system --print-reply --dest=org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.DBus.Properties.Get string:org.freedesktop.NetworkManager.DnsManager string:RcManager',
+        'busctl get-property org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.NetworkManager.DnsManager RcManager',
         delay => 5,
         retry => 3
     );
     my $mode = script_output_retry(
-'dbus-send --system --print-reply --dest=org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.DBus.Properties.Get string:org.freedesktop.NetworkManager.DnsManager string:Mode',
+        'busctl get-property org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.NetworkManager.DnsManager Mode',
         delay => 5,
         retry => 3
     );
