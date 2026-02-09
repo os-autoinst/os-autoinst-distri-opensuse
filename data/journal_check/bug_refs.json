@@ -1944,8 +1944,11 @@
         "type": "ignore"
     },
     "bsc#1254368": {
-        "description": "Random seed file '/boot/efi/loader/random-seed' is world accessible",
+        "description": "(Random seed file '.*'|Mount point '/boot/efi').*is world accessible, which is a security hole",
         "products": {
+            "opensuse": [
+                "Tumbleweed"
+            ],
             "microos": [
                 "Tumbleweed"
             ]
