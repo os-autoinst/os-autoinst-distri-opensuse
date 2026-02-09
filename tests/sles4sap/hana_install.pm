@@ -336,23 +336,11 @@ sub run {
         # Connect SAP account
         $self->user_change;
         # Start Hana
-        assert_script_run('HDB start', timeout => 180);
+        assert_script_run('HDB start', timeout => 300);
         # Disconnect SAP account
         $self->reset_user_change;
     }
 
-<<<<<<< HEAD
-=======
-    # SAP admin
-    $sapadm = $self->set_sap_info($sid, $instid);
-    # Connect SAP admin account
-    $self->user_change;
-    # Start Hana
-    assert_script_run('HDB start');
-    # Disconnect SAP account
-    $self->reset_user_change;
-
->>>>>>> 076f96a4cc (Reduce number of restorecon calls in hana_install)
     # Quick check of block/filesystem devices after installation
     assert_script_run 'mount';
     assert_script_run 'lvs -ao +devices';
