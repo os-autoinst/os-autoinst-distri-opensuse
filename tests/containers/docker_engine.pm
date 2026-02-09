@@ -20,7 +20,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.25 rootlesskit selinux-tools);
+    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.25 rootlesskit selinux-tools skopeo);
     push @pkgs, qw(nftables-devel) unless is_sle("<15-SP5");
     $self->setup_pkgs(@pkgs);
 
@@ -35,6 +35,8 @@ sub setup {
     $version = ($version =~ /^2[1-8]/) ? "v$version" : "docker-v$version";
     record_info "docker version", $version;
 
+    # Used by skopeo in containers/download-frozen-image.sh
+    configure_podman_mirror;
     run_command "ln -s /var/tmp/docker-frozen-images /";
 
     configure_rootless_docker if get_var("ROOTLESS");
@@ -68,7 +70,8 @@ sub setup {
 
     # Preload Docker images used for testing
     my $frozen_images = script_output q(grep -oE '[[:alnum:]./_-]+:[[:alnum:]._-]+@sha256:[0-9a-f]{64}' Dockerfile | xargs echo);
-    run_command "contrib/download-frozen-image-v2.sh /var/tmp/docker-frozen-images $frozen_images", timeout => 180;
+    assert_script_run "curl -o contrib/download-frozen-image-v2.sh " . data_url("containers/download-frozen-image.sh");
+    run_command "contrib/download-frozen-image-v2.sh /var/tmp/docker-frozen-images $frozen_images", timeout => 300;
 
     if (grep { $_ eq "integration-cli" } @test_dirs) {
         # integration-cli tests need an older cli version

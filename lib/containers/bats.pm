@@ -187,11 +187,15 @@ sub configure_rootless_docker {
 
 sub configure_podman_mirror {
     my $registry = get_var("REGISTRY", "3.126.238.126:5000");
-    my $conf = <<'EOF';
+    my $conf = <<"EOF";
 [[registry]]
 prefix = "docker.io"
-location = "$registry"
-insecure = true
+location = "docker.io"
+
+  [[registry.mirror]]
+    prefix = "docker.io"
+    location = "$registry"
+    insecure = true
 EOF
     write_sut_file("/etc/containers/registries.conf.d/777-mirror.conf", $conf);
 }
