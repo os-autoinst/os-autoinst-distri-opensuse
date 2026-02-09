@@ -2499,9 +2499,9 @@ sub load_host_installation_modules {
 }
 
 sub set_mu_virt_vars {
-    # Set UPDATE_PACKAGE based on BUILD(format example, BUILD=:33310:dtb-armv7l)
+    # Set UPDATE_PACKAGE based on BUILD(format example, BUILD=:33310:dtb-armv7l or BUILD=:smelt:33310:dtb-armv7l)
     my $BUILD = get_required_var('BUILD');
-    $BUILD =~ /^:(\d+):([^:]+)$/im;
+    $BUILD =~ /^:(?:smelt:)?(\d+):([^:]+)$/im;
 
     die "BUILD value is $BUILD, but does not match required format." if (!$2);
     my $_pkg = $2;
