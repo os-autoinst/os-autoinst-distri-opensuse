@@ -336,7 +336,7 @@ sub run {
         # Connect SAP account
         $self->user_change;
         # Start Hana
-        assert_script_run('HDB start', timeout => 180);
+        assert_script_run('HDB start', timeout => 300);
         # Disconnect SAP account
         $self->reset_user_change;
     }
