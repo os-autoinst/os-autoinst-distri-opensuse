@@ -44,7 +44,8 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
         loadtest("publiccloud/bsc_1205002", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest("publiccloud/check_registercloudguest", run_args => $args);
+        # NOTE: Skipped on 15-SP5 until https://bugzilla.opensuse.org/show_bug.cgi?id=1257756 is really resolved.
+        loadtest("publiccloud/check_registercloudguest", run_args => $args) unless is_sle("==15-SP5");
     } else {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview", run_args => $args;
