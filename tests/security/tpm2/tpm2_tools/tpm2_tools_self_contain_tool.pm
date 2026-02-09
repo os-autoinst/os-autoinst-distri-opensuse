@@ -1,66 +1,70 @@
-# Copyright 2020-2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Per TPM2 stack, we would like to add the tpm2-tools tests,
 #          from sles15sp2, update tpm2.0-tools to the stable 4 release
 #          this test module will cover self contained tool.
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#64905, poo#105732, tc#1742297
+# Tags: poo#64905, poo#105732, tc#1742297, poo#195086
 
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use utils 'systemctl';
 
 sub run {
     select_serial_terminal;
 
-    my $tpm_suffix = '';
-    $tpm_suffix = '-T tabrmd' if (get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0');
+    my $use_tabrmd = get_var('QEMUTPM', 0) != 1 || get_var('QEMUTPM_VER', '') ne '2.0';
+    my $tpm_suffix = $use_tabrmd ? '-T tabrmd' : '';
 
-    # Display PCR values
-    validate_script_output "systemctl status tpm2-abrmd.service", sub { m/Active:\sactive/ };
-    # List the supported PCR
+    my $test_dir = 'tpm2_tools';
+    my $rand_file = "$test_dir/random.out";
+    my $data_file = "$test_dir/data.txt";
+    my $hash_file = "$test_dir/ticket.bin";
+    my $nv_index = '0x1500016';
+
+    assert_script_run "mkdir -p $test_dir";
+
+    systemctl 'is-active tpm2-abrmd.service';
+
+    # List supported PCR banks
     validate_script_output "tpm2_pcrread $tpm_suffix", sub {
         m/
-             sha1.*
-             sha256.*
-             sha384.*
-             sha512.*/sx
+            sha1.*
+            sha256.*
+            sha384.*
+            sha512.*
+        /sx
     };
 
-    # Retrieves random bytes from the TPM
-    my $test_dir = "tpm2_tools";
-    my $test_file = "random.out";
-    assert_script_run "mkdir $test_dir";
-    assert_script_run "cd $test_dir";
-    assert_script_run "tpm2_getrandom -o $test_file 64 $tpm_suffix";
-    validate_script_output "ls -l $test_file|awk '{print $5}'", sub { m/64/ };
+    # Get random bytes from TPM
+    assert_script_run "tpm2_getrandom -o $rand_file 64 $tpm_suffix";
+    validate_script_output "stat -c \%s $rand_file", sub { m/^64$/ };
 
     # Hash a file with sha1 hash algorithm and save the hash and ticket to a file
-    my $test_data = "data.txt";
-    my $hash_file = "ticket.bin";
-    assert_script_run "echo test > $test_data";
-    assert_script_run "tpm2_hash -C e -g sha1 -t $hash_file $test_data $tpm_suffix";
+    assert_script_run "echo test > $data_file";
+    assert_script_run "tpm2_hash -C e -g sha1 -t $hash_file $data_file $tpm_suffix";
 
     # Define a TPM Non-Volatile (NV) index
-    my $nv_val = "0x1500016";
-    validate_script_output "tpm2_nvdefine $nv_val -C 0x40000001 -s 32 -a 0x2000A $tpm_suffix", sub { m/nv-index:\s$nv_val/ };
+    validate_script_output "tpm2_nvdefine $nv_index -C 0x40000001 -s 32 -a 0x2000A $tpm_suffix", sub { m/nv-index:\s$nv_index/ };
 
-    # Display all defined Non-Volatile (NV)s indices
-    # from tpm_tools 5.3+ attribute is output with fixed endianness, so it's displayed in the same way as set in the command
-    # we match both to support also old versions
+    # Verify NV index attributes
+    # From tpm_tools 5.3+ attribute is output with fixed endianness, so it's displayed in the same way as set in the command
+    # We match both to support old versions
     validate_script_output "tpm2_nvreadpublic $tpm_suffix", sub {
-        m/ value:\s0x(A000200|2000A).*
-           size:\s32.*/sx
+        m/
+            value:\s0x(A000200|2000A).*
+            size:\s32.*
+        /sx
     };
 
-    # Undefine the nv index
-    assert_script_run "tpm2_nvundefine $nv_val $tpm_suffix";
+    # Clean up NV index
+    assert_script_run "tpm2_nvundefine $nv_index $tpm_suffix";
 
-    # Clears lockout, endorsement and owner hierarchy authorization values
+    # Clear TPM and ensure no NV indices remain
     assert_script_run "tpm2_clear $tpm_suffix";
-    validate_script_output "tpm2_nvreadpublic $tpm_suffix|wc -l", sub { m/0/ };
-    assert_script_run "cd";
+    validate_script_output "tpm2_nvreadpublic $tpm_suffix | wc -l", sub { m/0/ };
 }
 
 1;
