@@ -62,7 +62,7 @@ sub test ($target) {
 
     assert_script_run "mv /tmp/report/report.xml $target.xml";
     patch_junit "docker-compose", $version, "$target.xml", @xfails;
-    parse_extra_log(XUnit => "$target.xml");
+    parse_extra_log(XUnit => "$target.xml", timeout => 180);
     upload_logs("$target.txt");
 }
 

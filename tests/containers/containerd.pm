@@ -52,7 +52,7 @@ sub run {
 
     patch_junit "containerd", $version, "containerd.xml", @xfails;
 
-    parse_extra_log(XUnit => "containerd.xml");
+    parse_extra_log(XUnit => "containerd.xml", timeout => 180);
     upload_logs("containerd.txt");
 }
 
