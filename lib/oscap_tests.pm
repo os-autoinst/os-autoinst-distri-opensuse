@@ -427,10 +427,10 @@ sub uload_log_file {
 
     if (script_run "! [[ -e $file_name ]]") {
         $file_name =~ s/\s//g;    # remove whitespaces
-        script_run "p7zip -k $file_name";
-        if (script_run "! [[ -e $file_name.7z ]]") {
-            upload_logs($file_name . ".7z", timeout => 600);
-            script_run "rm $file_name.7z";
+        script_run "tar cJf $file_name.tar.xz $file_name";
+        if (script_run "! [[ -e $file_name.tar.xz ]]") {
+            upload_logs($file_name . ".tar.xz", timeout => 600);
+            script_run "rm $file_name.tar.xz";
         }
     }
 }
@@ -943,7 +943,7 @@ sub oscap_security_guide_setup {
     }
 
     zypper_call('ref -s', timeout => 180);
-    zypper_call('in openscap-utils scap-security-guide p7zip', timeout => 180);
+    zypper_call('in openscap-utils scap-security-guide', timeout => 180);
     set_ds_file();
 
     $f_ssg_ds = is_sle ? $f_ssg_sle_ds : $f_ssg_tw_ds;
