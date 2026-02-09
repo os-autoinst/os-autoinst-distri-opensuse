@@ -80,10 +80,9 @@ sub run {
 
     run_command "gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root |& tee containerd.txt", timeout => 600;
 
-    my @xfails = ();
-    push @xfails, (
+    my @xfails = (
         "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
-    ) if (is_sle);
+    );
 
     patch_junit "containerd", $version, "containerd.xml", @xfails;
 
