@@ -16,6 +16,35 @@ use utils qw(file_content_replace);
 use Utils::Architectures qw(is_aarch64);
 use Mojo::File qw(path);
 
+=head2 kubectl_cmd
+
+ kubectl_cmd( cmd => <value> [, timeout => <value> ] );
+
+Checks for up to B<$timeout> seconds whether kubectl command is executed.
+Returns 0 if command is successful or croaks on timeout.
+
+=cut
+
+sub kubectl_cmd {
+    my (%args) = @_;
+    $args{timeout} //= 120;
+    $timeout = bmwqemu::scale_timeout($args{timeout});
+    my $starttime = time;
+    my $ret = undef;
+
+    while ($ret = script_run("kubectl $args{cmd}", $timeout / 10)) {
+        if (time - $starttime >= $timeout) {
+            record_info('kubectl failed command: ', script_output("kubectl $args{cmd}", proceed_on_failure => 1));
+            die("kubectl command timed out after $timeout seconds!");
+        }
+        sleep 5;
+    }
+
+    # Return the command status
+    die('Check did not return a defined value!') unless defined $ret;
+    return $ret;
+}
+
 =head2 wait_kubectl_cmd
 
  wait_kubectl_cmd( [ timeout => <value> ] );
@@ -32,8 +61,7 @@ sub wait_kubectl_cmd {
     my $ret = undef;
 
     while ($ret = script_run('which kubectl', $timeout / 10)) {
-        my $timerun = time - $starttime;
-        die("kubectl command did not appear within $timeout seconds!") if ($timerun >= $timeout);
+        die("kubectl command did not appear within $timeout seconds!") if (time - $starttime >= $timeout);
         sleep 5;
     }
 
@@ -59,7 +87,7 @@ sub wait_k8s_state {
     my $ret = undef;
     my $chk_cmd = 'kubectl get pod -A 2>&1';
 
-    die('A regex should be defined!') if (!defined $args{regex} || $args{regex} eq '');
+    die('A regex should be defined!') unless (defined $args{regex} && $args{regex} ne '');
 
     while (
         $ret = script_run(
@@ -179,7 +207,7 @@ sub run {
     configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
 
     my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');
-    die('No IP defined on the node!') if (!defined $ip || $ip eq '');
+    die('No IP defined on the node!') unless (defined $ip && $ip ne '');
 
     # Split the DNS strings into arrays only if the variable is defined and not empty
     my @default_dns = split(/,/, get_default_dns);
@@ -188,7 +216,7 @@ sub run {
     # We may have to modify some settings if a config.yaml file is present
     # NOTE: We have to invert the return code as it is inverted between Bash and Perl
     my $config_yaml = "/etc/rancher/$k8s/config.yaml";
-    if (!check_var('TESTED_CMD', 'customize')) {
+    unless (check_var('TESTED_CMD', 'customize')) {
         # Update K8s configuration file
         file_content_replace(
             "$config_yaml", '--sed-modifier' => 'g',
@@ -197,7 +225,7 @@ sub run {
         );
 
         # Update SELinux policy if needed
-        if (!script_run("grep -q '^selinux:.*true\$' $config_yaml")) {
+        unless (script_run("grep -q '^selinux:.*true\$' $config_yaml")) {
             record_info('SELinux detected', "Updating SELinux policy for $k8s");
             assert_script_run('semodule -i /usr/share/selinux/packages/rke2.pp');
         }
@@ -230,6 +258,12 @@ sub run {
 
     # Check toolkit version
     record_info('Elemental version', script_output('elemental3ctl version'));
+
+    # Check that test namespace has been created (only for images built from release-manifest)
+    if (check_var('TESTED_CMD', 'customize')) {
+        kubectl_cmd(cmd => 'get namespace openqa-ns', timeout => $timeout);
+        record_info('Test Namespace creation', 'Namespace created!');
+    }
 
     # Only in multi-nodes configuration
     prepare_test_framework(arch => $arch, k8s => $k8s) if (get_var('PARALLEL_WITH'));

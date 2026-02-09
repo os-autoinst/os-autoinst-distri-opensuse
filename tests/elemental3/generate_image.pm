@@ -50,12 +50,12 @@ sub get_sysext {
     return ($overlay_dir, $ctl_oci);
 }
 
-=head2 build_customize
+=head2 customize_cmd
 
- build_customize( hddsize => <value>, k8s => <value>, timeout => <value>,
+ customize_cmd( hddsize => <value>, k8s => <value>, timeout => <value>,
                   rootpwd => <value> );
 
-Create an OS image with `build` command by using the specified
+Create an OS image with `customize` command by using the specified
 release-manifest.
 
 =cut
@@ -63,6 +63,7 @@ release-manifest.
 sub customize_cmd {
     my (%args) = @_;
     my $build_dir = '/root/build';
+    my $crypto_policy = get_var('CRYPTO_POLICY');
     my $device = get_var('INSTALL_DISK', '/dev/vda');
     my $krnlcmdline = get_var('KERNEL_CMD_LINE');
     my $manifest_uri = get_required_var('RELEASE_MANIFEST_URI');
@@ -94,6 +95,7 @@ sub customize_cmd {
     file_content_replace(
         "$build_dir/install.yaml",
         '--sed-modifier' => 'g',
+        '%CRYPTO_POLICY%' => $crypto_policy,
         '%HDDSIZE%' => $args{hddsize},
         '%INSTALL_DISK%' => $device,
         '%KERNEL_CMD_LINE%' => $krnlcmdline
@@ -214,6 +216,7 @@ containerized OS image.
 sub install_cmd {
     my (%args) = @_;
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
+    my $krnlcmdline = get_var('KERNEL_CMD_LINE');
     my $shared_dir = '/root/shared';
     my $config_file = "$shared_dir/config.sh";
     my $device = '/dev/nbd0';
@@ -250,6 +253,7 @@ sub install_cmd {
     # Generate OS image
     assert_script_run(
         "elemental3ctl --debug install \\
+           --cmdline '$krnlcmdline' \\
            --os-image $image \\
            --overlay dir://$overlay_dir \\
            --config $config_file \\
