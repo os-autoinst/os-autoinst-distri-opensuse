@@ -100,7 +100,7 @@ sub run {
     ) if (is_sle("<16"));
 
     patch_junit "docker", $version, "cli.xml", @xfails;
-    parse_extra_log(XUnit => "cli.xml");
+    parse_extra_log(XUnit => "cli.xml", timeout => 180);
     upload_logs("cli.txt");
 }
 
