@@ -527,7 +527,7 @@ sub bats_post_hook {
     script_run('systemctl list-unit-files > systemctl_units.txt');
     script_run('uname -a > uname.txt');
     script_run('journalctl -b > journalctl-b.txt', timeout => 120);
-    script_run('tar zcf containers-conf.tgz $(find /etc/containers /usr/share/containers -type f)');
+    script_run('tar zcf containers-conf.tgz $(find /etc/containerd /etc/containers /etc/docker /usr/share/containers -type f)');
 
     for my $ip_version (4, 6) {
         script_run("ip -j -$ip_version addr | jq -Mr > ip$ip_version-addr.txt");
