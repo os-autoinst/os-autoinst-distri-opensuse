@@ -27,7 +27,8 @@ sub run {
     if (zypper_call('se -t srcpackage nodejs', exitcode => [0, 104]) == 104) {
         record_info('Source package not found', 'Enable the Source Pool');
         set_var('ENABLE_SRC_REPO', 1);
-        $source_repo = script_output(q{zypper lr | grep Source-Pool | awk -F '|' '/Web_and_Scripting_Module/ {print $2}'});
+        $source_repo = script_output(q{zypper lr | grep Source-Pool | awk -F '|' '/Web_and_Scripting_Module/ {print $2}'}) if (is_sle('<16.0'));
+        $source_repo = script_output(q{zypper lr | grep Source | awk -F '|' '/SLE-Product-SLES/ {print $2}'}) if (is_sle('>=16.0'));
         zypper_call("mr -e $source_repo", exitcode => [0, 3]);
     }
     assert_script_run 'wget --quiet ' . data_url('qam/crypto_rsa_dsa.patch') unless get_var('FLAVOR') =~ /TERADATA/ || is_sle('=12-sp5') || is_sle('=15-sp4');
