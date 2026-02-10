@@ -1,4 +1,4 @@
-name:           sle16_transactional_virtualization
+name:           sle16_trans_virt
 description:    >
     Maintainer: Nan Zhang <nan.zhang@suse.com>, qe-virt@suse.de
     SLE 16 uses default raw/qcow2 images as virtualization host, and it runs qemu/kvm as emulator.
