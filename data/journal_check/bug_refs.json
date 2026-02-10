@@ -821,7 +821,9 @@
             "opensuse": [
                 "Tumbleweed",
                 "Slowroll",
-                "Slowroll:Staging"
+                "Slowroll:Staging",
+                "16.0",
+                "16.1"
             ],
             "sle": [
                 "15-SP6",
@@ -1478,7 +1480,9 @@
                 "16.1"
             ],
             "opensuse": [
-                "Tumbleweed"
+                "Tumbleweed",
+                "16.0",
+                "16.1"
             ]
         },
         "type": "ignore"
@@ -1547,7 +1551,9 @@
                 "16.1"
             ],
             "opensuse": [
-                "Tumbleweed"
+                "Tumbleweed",
+                "16.0",
+                "16.1"
             ]
         },
         "type": "ignore"
@@ -1609,7 +1615,9 @@
         "description": "amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled",
         "products": {
             "opensuse": [
-                "Tumbleweed"
+                "Tumbleweed",
+                "16.0",
+                "16.1"
             ],
             "sle": [
                 "16.0",
