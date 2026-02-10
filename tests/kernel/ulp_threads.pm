@@ -44,7 +44,8 @@ sub run {
     $parent = $1;
 
     install_package($packname);
-    assert_script_run("kill -s USR1 $pid; wait $parent");
+    assert_script_run("kill -s USR1 $pid");
+    assert_script_run("wait $parent");
 }
 
 1;
