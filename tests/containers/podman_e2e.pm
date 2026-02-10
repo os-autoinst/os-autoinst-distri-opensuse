@@ -102,8 +102,8 @@ sub run {
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
     my $default_targets = "localintegration";
-    # XXX: Temporarily turn this off for the time being until unknown openQA parsing issue is solved.
-    # $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS"));
+    # For some reason this is failing with runc
+    $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS") || !get_var("OCI_RUNTIME"));
     my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
         run_command "env $env make $target &> $target.txt || true", timeout => 1800;
