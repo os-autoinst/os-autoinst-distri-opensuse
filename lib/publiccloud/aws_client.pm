@@ -41,8 +41,9 @@ sub init {
     define_secret_variable("AWS_ACCESS_KEY_ID", $data->{access_key_id});
     define_secret_variable("AWS_SECRET_ACCESS_KEY", $data->{secret_access_key});
     # This is a workaround for `aws-cli` test on SLES16 until the 'flake' container accepts above environment variables
-    if (is_sle('=16')) {
+    if (is_sle('>=16')) {
         assert_script_run('mkdir ~/.aws');
+        # CAVE: Use the bash environment variables to prevent credential leaks.
         assert_script_run('printf "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY\nregion=$AWS_DEFAULT_REGION\n" > ~/.aws/credentials');
     }
 

@@ -20,7 +20,7 @@ use publiccloud::utils 'detect_worker_ip';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use publiccloud::utils qw(calculate_custodian_ttl);
 
-my $silent = (is_sle('=16')) ? '%silent' : '';
+my $silent = (is_sle('>=16')) ? '%silent' : '';
 
 sub run {
     my ($self, $args) = @_;

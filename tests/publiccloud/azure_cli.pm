@@ -19,7 +19,7 @@ use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use publiccloud::utils qw(calculate_custodian_ttl);
 
-my $silent = (is_sle('=16')) ? '%silent' : '';
+my $silent = (is_sle('>=16')) ? '%silent' : '';
 
 sub run {
     my ($self, $args) = @_;
@@ -30,8 +30,8 @@ sub run {
     if (script_run("which az") != 0) {
         # Public Cloud module is not needed since SLE 16 to install azure cli
         add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef)) unless (is_sle('16+'));
-        add_suseconnect_product(get_addon_fullname('phub')) if (is_sle('=12-sp5') or is_sle('=16'));
-        my $pkgs = (is_sle('=16')) ? 'az-cli-cmd jq python-susepubliccloudinfo' : 'azure-cli jq python3-susepubliccloudinfo';
+        add_suseconnect_product(get_addon_fullname('phub')) if (is_sle('=12-sp5') or is_sle('>=16'));
+        my $pkgs = (is_sle('>=16')) ? 'az-cli-cmd jq python-susepubliccloudinfo' : 'azure-cli jq python3-susepubliccloudinfo';
         zypper_call("in $pkgs");
     }
     assert_script_run('az version');
