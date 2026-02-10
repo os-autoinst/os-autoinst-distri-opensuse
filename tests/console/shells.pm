@@ -27,9 +27,7 @@ use version_utils qw(is_leap is_sle);
 
 sub run() {
     select_serial_terminal();
-    my @packages = qw(tcsh);
-    # zsh not available on SLES16 (bsc#1238873)
-    push @packages, qw(zsh) unless (is_sle("16+"));
+    my @packages = qw(tcsh zsh);
     # ksh does not build for Leap 15.x on aarch64, so, skip it
     push @packages, qw(ksh) unless (is_leap('15.0+') and is_aarch64);
     zypper_call("in @packages");
