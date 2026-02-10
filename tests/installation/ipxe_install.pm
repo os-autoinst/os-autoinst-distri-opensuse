@@ -85,8 +85,8 @@ sub set_bootscript {
         $install .= get_var('HDD_1') ? get_var('HDD_1') : get_required_var('INSTALL_HDD_IMAGE');
         if (is_sle('>=16.1')) {
             if (is_transactional) {
-                $kernel .= "/pxeboot." . uc($distri) . "S-$version-Transactional.$arch-$version.0.kernel";
-                $initrd .= "/pxeboot." . uc($distri) . "S-$version-Transactional.$arch-$version.0.initrd";
+                $kernel .= "/pxeboot." . uc($distri) . "S-$version-Immutable.$arch-$version.0.kernel";
+                $initrd .= "/pxeboot." . uc($distri) . "S-$version-Immutable.$arch-$version.0.initrd";
             }
         }
         else {
