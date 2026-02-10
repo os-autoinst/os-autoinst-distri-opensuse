@@ -8,29 +8,23 @@
 
 use base 'opensusebasetest';
 use testapi;
+use package_utils;
 use version_utils;
+use utils;
 
 sub run {
     my ($self, $tinfo) = @_;
 
     die 'ulp_threads must be scheduled by ulp_openposix' unless defined($tinfo);
 
+    my $libver = $tinfo->{glibc_versions}[$tinfo->{run_id}];
     my $packname = $tinfo->{packname};
-    # Use package version without release substring
-    my $packver = $tinfo->{packver} =~ s/-.*$//r;
     my $threadcount = get_var('ULP_THREAD_COUNT', 1000);
     my $threadsleep = get_var('ULP_THREAD_SLEEP', 100);
-    my $livepatch_list;
 
-    if (is_transactional()) {
-        script_run("find /var/livepatches/");
-        $livepatch_list = script_output("find /var/livepatches/$packname/$packver/lp -name '*.so'");
-    }
-    else {
-        $livepatch_list = script_output("rpm -ql $packname");
-    }
-
-    assert_script_run('export LD_PRELOAD=/usr/lib64/libpulp.so.0');
+    uninstall_package($packname) if scalar @{zypper_search("-i $packname")};
+    install_package("--oldpackage glibc-$libver", trup_continue => 1,
+        trup_reboot => 1);
 
     # Do not use background_script_run() here. The actual test runs inside
     # a subprocess and we need to read the target PID from test output.
@@ -49,11 +43,7 @@ sub run {
     die 'Failed to parse test PID' unless $parent =~ m/PID:(\d+)\./;
     $parent = $1;
 
-    for my $patch (split /\n/, $livepatch_list) {
-        assert_script_run("time ulp trigger -r 100 --timeout 200 '$patch'",
-            timeout => 600) if $patch =~ m/\.so$/;
-    }
-
+    install_package($packname);
     assert_script_run("kill -s USR1 $pid; wait $parent");
 }
 
