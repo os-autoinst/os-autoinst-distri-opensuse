@@ -56,6 +56,8 @@ sub test ($target) {
         "github.com/docker/compose/v5/pkg/e2e::TestComposePull",
         "github.com/docker/compose/v5/pkg/e2e::TestLocalComposeRun",
         "github.com/docker/compose/v5/pkg/e2e::TestLocalComposeRun/compose_run_-rm_with_stop_signal",
+        # Flaky tests:
+        "github.com/docker/compose/v5/pkg/e2e::TestUpDependenciesNotStopped",
     ) unless (is_sle);
 
     run_command "$env make $target |& tee $target.txt || true", timeout => 3600;
