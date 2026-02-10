@@ -2644,7 +2644,7 @@ sub verify_guest_agama_installation_done {
             return $self;
         }
         while ($_wait_timeout > 0) {
-            enter_cmd("timeout --kill-after=1 --signal=9 120 journalctl -u agama | grep -E \\\"Install phase done|Installation finished|Finishing Snapper configuration\\\"", timeout => 150);
+            enter_cmd("timeout --kill-after=1 --signal=9 120 journalctl -u agama -u agama-web-server.service| grep -E \\\"Install phase done|Installation finished\\\"", timeout => 150);
             wait_still_screen(20);
             $_wait_timeout -= 20;
         }
@@ -2662,7 +2662,7 @@ sub verify_guest_agama_installation_done {
         $_ssh_command_options .= is_sle('16+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 " : "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
         $_ssh_command_options .= "-i $_host_params{ssh_key_file}";
         while ($_wait_timeout > 0) {
-            if (script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"journalctl -u agama | grep -E \\\"Install phase done|Installation finished|Finishing Snapper configuration\\\"\"", timeout => 150) == 0) {
+            if (script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"journalctl -u agama -u agama-web-server.service | grep -E \\\"Install phase done|Installation finished\\\"\"", timeout => 150) == 0) {
                 record_info("Guest $self->{guest_name} agama install phase done", "Guest $self->{guest_name} ip address is $self->{guest_ipaddr}");
                 $self->record_guest_installation_result('AGAMA_INSTALL_PHASE_DONE');
                 return $self;
