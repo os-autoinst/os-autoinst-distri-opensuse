@@ -93,6 +93,9 @@ sub parse_schedule_module {
         # Iterate over variables in the condition
         foreach my $var (keys %{$condition}) {
             my $val = get_var($var);
+            # Allow using undefined test variables with special value
+            # to be able to say "If variable X is not defined or has value of 0"
+            $val = 0 if ((!defined $val) && $condition->{$var}->{0});
             next if (!defined $val);
             # If value of the variable matched the conditions
             # Iterate over the list of the modules to be loaded
