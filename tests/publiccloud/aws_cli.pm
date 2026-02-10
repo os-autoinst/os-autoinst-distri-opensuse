@@ -20,6 +20,8 @@ use publiccloud::utils 'detect_worker_ip';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use publiccloud::utils qw(calculate_custodian_ttl);
 
+my $silent = (is_sle('>=16')) ? '%silent' : '';
+
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
@@ -37,7 +39,7 @@ sub run {
 
     # 013907871322 is the official SUSE account ID
     my $ownerId = get_var('PUBLIC_CLOUD_EC2_ACCOUNT_ID', '013907871322');
-    my $image_id = script_output("aws ec2 describe-images --filters 'Name=name,Values=suse-sles-15-sp6-v*-x86_64' 'Name=state,Values=available' --owners '$ownerId' --query 'Images[?Name != `ecs`]|[0].ImageId' --output=text", 240);
+    my $image_id = script_output("aws $silent ec2 describe-images --filters 'Name=name,Values=suse-sles-15-sp6-v*-x86_64' 'Name=state,Values=available' --owners '$ownerId' --query 'Images[?Name != `ecs`]|[0].ImageId' --output=text", 240);
     record_info("EC2 AMI", "EC2 AMI query: " . $image_id);
 
     my $ssh_key = "openqa-cli-test-key-$job_id";
@@ -55,7 +57,7 @@ sub run {
     my $create_security_group = "aws ec2 create-security-group --group-name $security_group_name --description 'aws_cli openqa test security group'";
     $create_security_group .= " --tag-specifications 'ResourceType=security-group,Tags=[$tag]'";
     assert_script_run($create_security_group, 180);
-    my $security_group_id = script_output("aws ec2 describe-security-groups --filters Name=group-name,Values=$security_group_name --query 'SecurityGroups[*].GroupId' --output=text", 180);
+    my $security_group_id = script_output("aws $silent ec2 describe-security-groups --filters Name=group-name,Values=$security_group_name --query 'SecurityGroups[*].GroupId' --output=text", 180);
     my $worker_public_ip = detect_worker_ip();
     assert_script_run("aws ec2 authorize-security-group-ingress --group-id $security_group_id --protocol tcp --port 22 --cidr $worker_public_ip/32");
 
@@ -63,13 +65,13 @@ sub run {
     $run_instances .= " --tag-specifications 'ResourceType=instance,Tags=[$tag]' 'ResourceType=volume,Tags=[$tag]'";
     assert_script_run($run_instances, 240);
     assert_script_run("aws ec2 describe-instances --filters 'Name=tag:openqa-cli-test-tag,Values=$job_id'", 90);
-    my $instance_id = script_output("aws ec2 describe-instances --filters 'Name=tag:openqa-cli-test-tag,Values=$job_id' --output=text --query 'Reservations[*].Instances[*].InstanceId'", 90);
+    my $instance_id = script_output("aws $silent ec2 describe-instances --filters 'Name=tag:openqa-cli-test-tag,Values=$job_id' --output=text --query 'Reservations[*].Instances[*].InstanceId'", 90);
 
     # Wait until the instance is really running
     script_retry("aws ec2 describe-instances --instance-ids $instance_id --query 'Reservations[*].Instances[*].State.Name' --output text | grep 'running'", 90, delay => 15, retry => 12);
 
     # Check that the machine is reachable via ssh
-    my $ip_address = script_output("aws ec2 describe-instances --instance-ids $instance_id --query 'Reservations[*].Instances[*].PublicIpAddress' --output text", 90);
+    my $ip_address = script_output("aws $silent ec2 describe-instances --instance-ids $instance_id --query 'Reservations[*].Instances[*].PublicIpAddress' --output text", 90);
     script_retry("ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ec2-user\@$ip_address hostnamectl", 90, delay => 15, retry => 12);
 }
 
@@ -81,7 +83,7 @@ sub cleanup {
     my $security_group_name = "openqa-cli-test-sg-$job_id";
     my $ssh_key = "openqa-cli-test-key-$job_id";
 
-    my $instance_id = script_output("aws ec2 describe-instances --filters 'Name=tag:openqa-cli-test-tag,Values=$job_id' --output=text --query 'Reservations[*].Instances[*].InstanceId'", timeout => 90, proceed_on_failure => 1);
+    my $instance_id = script_output("aws $silent ec2 describe-instances --filters 'Name=tag:openqa-cli-test-tag,Values=$job_id' --output=text --query 'Reservations[*].Instances[*].InstanceId'", timeout => 90, proceed_on_failure => 1);
     record_info("InstanceId", "InstanceId: " . $instance_id);
 
     if ($assert) {
