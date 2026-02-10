@@ -22,10 +22,15 @@ conditional_schedule:
         ARCH:
             x86_64:
                 - console/steamcmd
+    consoletest_setup:
+        AGAMA:
+            0:
+                - console/consoletest_setup
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/prepare_test_data
+    - '{{consoletest_setup}}'
     - console/check_os_release
     - console/year_2038_detection
     - console/man_pages

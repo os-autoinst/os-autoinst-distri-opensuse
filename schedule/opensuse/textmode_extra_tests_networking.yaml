@@ -28,10 +28,15 @@ conditional_schedule:
                 - console/velociraptor_client_event_collect
             ppc64le:
                 - console/velociraptor_client_event_collect
+    consoletest_setup:
+        AGAMA:
+            0:
+                - console/consoletest_setup
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
     - console/prepare_test_data
+    - '{{consoletest_setup}}'
     - console/chrony
     - console/dnsmasq
     - console/ping
