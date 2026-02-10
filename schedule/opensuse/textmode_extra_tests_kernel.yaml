@@ -9,6 +9,6 @@ schedule:
     - console/sysstat
     - console/kmod
     - console/perf
-    - console/kdump_and_crash
+    - kernel/kdump
     - console/coredump_collect
     - console/valgrind

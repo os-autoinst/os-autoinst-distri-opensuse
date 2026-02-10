@@ -110,7 +110,7 @@ sub install_kernel_debuginfo_via_repo {
     zypper_call("rr debuginfo");
 }
 
-sub disable_packagekitd {
+sub install_required_packages {
     return if is_transactional;
     quit_packagekit;
     my @pkgs = qw(kdump);
@@ -127,7 +127,7 @@ sub prepare_for_kdump {
     my %args = @_;
     $args{test_type} //= '';
 
-    disable_packagekitd;
+    install_required_packages;
     return if ($args{test_type} eq 'before');
 
     # add debuginfo channels
@@ -261,7 +261,7 @@ sub determine_crash_memory {
 # Activate kdump using command line tools
 sub activate_kdump_cli {
     set_kdump_config('KDUMP_SAVEDIR', get_var('KDUMP_SAVEDIR')) if get_var('KDUMP_SAVEDIR');
-    if (is_sle('16+')) {
+    if (is_sle('16+') || is_opensuse) {
         # Enable fadump in configuration file if requested
         set_kdump_config("KDUMP_FADUMP", "true") if get_var('FADUMP');
 
