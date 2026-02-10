@@ -68,6 +68,9 @@ sub setup {
     }
     record_info("test_dirs", join(" ", @test_dirs));
 
+    run_command "mkdir ~/.docker || true";
+    run_command "echo {} > ~/.docker/config.json";
+
     # Preload Docker images used for testing
     my $frozen_images = script_output q(grep -oE '[[:alnum:]./_-]+:[[:alnum:]._-]+@sha256:[0-9a-f]{64}' Dockerfile | xargs echo);
     assert_script_run "curl -o contrib/download-frozen-image-v2.sh " . data_url("containers/download-frozen-image.sh");
