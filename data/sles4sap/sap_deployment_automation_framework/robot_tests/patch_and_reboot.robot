@@ -1,5 +1,5 @@
 *** Settings ***
-Documentation   Apply maintenance update and reboot.
+Documentation   Apply maintenance patches and reboot.
 ...
 ...     = Maintainer =
 ...     QE-SAP <qe-sap@suse.de>
@@ -28,6 +28,7 @@ Test Tags   ${HOSTNAME}  IBSM  Maintenance Update  Azure  SDAF
 ${USERNAME}   azureadm
 ${REPO_MIRROR_HOST}  dist.suse.de
 ${REPO_ID}  ${EMPTY}
+${ZYPPER_PATCH_CMD}  sudo zypper patch -y --with-interactive -l --with-optional timeout=600
 
 *** Test Cases ***
 Test SSH tunnel
@@ -52,9 +53,9 @@ Make system up to date without maintenance repositories
     ${zypper_update}=  Get Match Count    ${pending_updates}    zypper
     IF    ${zypper_update}
         Log  Zypper update available
-        Remote Command   sudo zypper update -y  timeout=600
+        Remote Command   ${ZYPPER_PATCH_CMD}
     END
-    Remote Command   sudo zypper update -y  timeout=600
+    Remote Command   ${ZYPPER_PATCH_CMD}
     Reboot And Connect
 
 Apply all maintenance updates and reboot
@@ -64,7 +65,7 @@ Apply all maintenance updates and reboot
     Set Suite Variable    ${REPO_ID}  ${repo_id}
     Remote Command   sudo zypper addrepo ${INCIDENT_REPO} ${REPO_ID}
     Remote Command   sudo zypper refresh  timeout=300
-    Remote Command   sudo zypper update -y  timeout=600
+    Remote Command   ${ZYPPER_PATCH_CMD}
     Reboot And Connect
 
 Remove maintenance repository
