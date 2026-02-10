@@ -32,6 +32,10 @@
             "delete": true
           },
           {
+            "filesystem": { path: '/boot/efi', type: 'vfat' },
+            "size": '512MB'
+          },
+          {
             "filesystem": { "path": "/" },
             "size": { "min": "20 GiB" }
           },

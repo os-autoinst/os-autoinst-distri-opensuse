@@ -19,6 +19,10 @@
       {
         partitions: [
           {
+            filesystem: { path: '/boot/efi', type: 'vfat' },
+            size: '512MB'
+          },
+          {
             filesystem: { path: '/' },
             size: '120 GiB'
           },
