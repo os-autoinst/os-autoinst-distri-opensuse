@@ -73,6 +73,7 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/nvidia", run_args => $args;
         } elsif (get_var('PUBLIC_CLOUD_EXTRATESTS')) {
             loadtest "publiccloud/selinux" if (is_sle("16.0+"));
+            loadtest "publiccloud/gcp_google_guest_agent" if (is_sle("16.0+"));
         }
 
         loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
@@ -169,6 +170,7 @@ sub load_latest_publiccloud_tests {
                 loadtest("publiccloud/azure_nfs", run_args => $args);
             } elsif (get_var('PUBLIC_CLOUD_EXTRATESTS')) {
                 loadtest "publiccloud/selinux" if (is_sle("16.0+"));
+                loadtest "publiccloud/gcp_google_guest_agent" if (is_sle("16.0+"));
             }
             loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
         }
