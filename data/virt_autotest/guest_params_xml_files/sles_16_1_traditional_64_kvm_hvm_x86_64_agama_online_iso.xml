@@ -23,7 +23,7 @@
     <guest_installation_automation_platform/>
     <guest_installation_automation_file>sles_16_plus_kvm_hvm_guest_non_encrypted_storage_x86_64.jsonnet</guest_installation_automation_file>
     <guest_installation_method>directkernel</guest_installation_method>
-    <guest_installation_extra_args/>
+    <guest_installation_extra_args>self_update=0</guest_installation_extra_args>
     <guest_installation_wait/>
     <guest_installation_method_others/>
     <guest_installation_media>http://openqa.suse.de/assets/iso/SLES-16.1-Online-x86_64-Build12345.install.iso</guest_installation_media>
