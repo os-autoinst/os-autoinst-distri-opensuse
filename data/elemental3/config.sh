@@ -6,9 +6,6 @@ set -xe
 declare etc_rancher="/etc/rancher"
 declare k8s_distri="%K8S%"
 
-# Disable Grub timeout
-grub2-editenv /boot/grubenv set timeout=-1
-
 # Setting root passwd
 sed -i '/^root:/s|^root:\*:\(.*\)|root:%TEST_PASSWORD%:\1|' /etc/shadow
 
