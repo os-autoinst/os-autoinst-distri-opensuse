@@ -10,7 +10,7 @@ use base "opensusebasetest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging qw(export_logs_basic upload_coredumps);
-use version_utils qw(is_sle_micro);
+use version_utils qw(is_sle_micro is_sle);
 
 sub run {
     select_serial_terminal;
@@ -19,7 +19,7 @@ sub run {
     # display running RT processes, expected to see FF - SCHED_FIFO or RR - SCHED_RR processes
     validate_script_output("ps -e -o pid,start_time,pri,cls,command", sub { m/FF|RR/ });
     # is realtime ?
-    if (!is_sle_micro('=6.2')) {
+    if (!is_sle_micro('=6.2') && !is_sle('16.1+')) {
         validate_script_output("cat /sys/kernel/realtime", sub { m/1/ });
     }
     # check kernel in procfs
