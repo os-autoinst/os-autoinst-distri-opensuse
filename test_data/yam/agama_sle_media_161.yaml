@@ -1,0 +1,20 @@
+---
+os_release:
+  NAME: "SLES"
+  PRETTY_NAME: "SUSE Linux Enterprise Server %VERSION%"
+  VARIANT: "Enterprise Server"
+  VARIANT_ID: "server"
+  VERSION_ID: "%VERSION%"
+  ID: "sles"
+  ID_LIKE: "suse opensuse"
+  CPE_NAME: "cpe:/o:suse:sles:16:%VERSION%"
+  SUSE_SUPPORT_PRODUCT: "SUSE Linux Enterprise Server"
+repos:
+  - name: Installation
+    alias: Installation
+    uri: dvd:/install
+    enabled: 'No'
+    filter: alias
+selinux:
+  status: enabled
+  mode: enforcing
