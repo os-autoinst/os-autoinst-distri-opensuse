@@ -401,6 +401,11 @@ sub run {
     my $test_result_export = $tinfo->test_result_export;
     my $test = $tinfo->test;
     my %env = %{$test_result_export->{environment}};
+    my $strace_log = "/tmp/$test->{name}.strace.txt";
+
+    if (check_var_array('LTP_DEBUG', 'strace')) {
+        $test->{command} = "strace -o $strace_log -f $test->{command}";
+    }
 
     $env{retval} = 'undefined';
     $self->{ltp_env} = \%env;
@@ -454,6 +459,7 @@ sub run {
         die "Timed out waiting for LTP test case which may still be running or the OS may have crashed!";
     }
 
+    upload_logs($strace_log) if (check_var_array('LTP_DEBUG', 'strace'));
     script_run('vmstat -w');
 
     # reboot unless TCONF or last test
@@ -561,6 +567,7 @@ Comma separated list of debug features to enable during test run.
 - C<tasktrace>: Print backtrace of all processes and show blocked tasks
 - C<tcpdump>: Capture all packets sent or received during each test.
 - C<supportconfig>: Run supportconfig after boot and before shutdown.
+- C<strace>: Run tests with strace and upload log of each test.
 
 =head2 LTP_REBOOT_AFTER_TEST
 
