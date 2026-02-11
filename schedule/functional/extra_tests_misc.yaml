@@ -8,6 +8,10 @@ conditional_schedule:
         DISTRI:
             opensuse:
                 - console/ndctl
+                - console/libaom
+                - console/supportutils
+                - console/rabbitmq
+                - console/redis
                 - x11/ghostscript
 schedule:
     - installation/bootloader_start
@@ -21,4 +25,6 @@ schedule:
     - console/perf
     - '{{tw_tests}}'
     - console/dpdk
+    - console/zziplib
+    - console/cpio
     - console/zypper_log_packages

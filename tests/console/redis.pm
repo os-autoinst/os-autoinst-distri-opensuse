@@ -17,11 +17,11 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry validate_script_output_retry);
 use registration qw(add_suseconnect_product get_addon_fullname);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed);
 
 # https://jira.suse.com/browse/PED-11976
 my @redis_versions = is_sle('=15-SP7') ? ("valkey-compat-redis") : ("redis");
-push(@redis_versions, 'redis7') unless is_sle('<=15-sp4') || is_sle('>15-sp6');
+push(@redis_versions, 'redis7') unless is_sle('<=15-sp4') || is_sle('>15-sp6') || is_tumbleweed;
 my %ROLES = (
     MASTER => 'MASTER',
     REPLICA => 'REPLICA',
