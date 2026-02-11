@@ -19,7 +19,7 @@ use Utils::Architectures;
 use serial_terminal qw(select_serial_terminal prepare_serial_console);
 
 sub run {
-    prepare_serial_console();
+    prepare_serial_console() if is_ppc64le();
     select_serial_terminal();
     my @cmds;
     push @cmds, "source /etc/default/grub";
