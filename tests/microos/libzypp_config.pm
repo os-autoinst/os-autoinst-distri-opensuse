@@ -9,7 +9,7 @@
 
 use base "consoletest";
 use testapi;
-use version_utils qw(is_community_jeos is_jeos);
+use version_utils qw(is_community_jeos is_jeos is_transactional);
 use serial_terminal qw(select_serial_terminal);
 use Utils::Logging 'tar_and_upload_log';
 
@@ -28,7 +28,7 @@ sub run {
         assert_script_run 'grep -E -R -x "^solver.onlyRequires ?= ?true" ' . $zypp_conf_dir;
         assert_script_run 'grep -E -R -x "^rpm.install.excludedocs ?= ?yes" ' . $zypp_conf_dir;
     }
-    assert_script_run sprintf('grep -E -R -x "^multiversion ?=%s" ' . $zypp_conf_dir, is_jeos ? ' ?provides:multiversion\(kernel\)' : '');
+    assert_script_run sprintf('grep -E -R -x "^multiversion ?=%s" ' . $zypp_conf_dir, (is_jeos && !is_transactional) ? ' ?provides:multiversion\(kernel\)' : '');
 }
 
 sub post_fail_hook {
