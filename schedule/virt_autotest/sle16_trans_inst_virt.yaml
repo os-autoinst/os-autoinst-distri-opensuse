@@ -1,4 +1,4 @@
-name:           sle16_transactional_installation_virt
+name:           sle16_trans_inst_virt
 description:    >
     Maintainer: Nan Zhang <nan.zhang@suse.com>, qe-virt@suse.de
     SLE 16 ISO installation with virtualization patterns (kvm) and virtualization tests with qemu/kvm.
