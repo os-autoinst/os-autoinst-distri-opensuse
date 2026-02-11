@@ -19,6 +19,10 @@ sub run {
 
     # https://progress.opensuse.org/issues/185122
     zypper_call("ar -f -G https://download.suse.de/ibs/SUSE:/SLFO:/Products:/SLES:/" . get_var('VERSION') . ":/PUBLISH/product/repo/SLES-" . get_var('VERSION') . "-" . get_var('ARCH') . "/?ssl_verify=no install");
+    # temporal pointing a new ticket: https://progress.opensuse.org/issues/195371.
+    # repo needed to install mkdud, the previous repo still needed for installation
+    # of other packages. Remove it after verified on Beta.
+    zypper_call("ar -f -G  https://download.suse.de/ibs/home:/epaolantonio:/main_mkdud/standard/" . "/?ssl_verify=no install_mkdud");
     zypper_call("in -y mkdud");
     assert_script_run("mkdir -p tmp/dud/root");
     assert_script_run("curl -o tmp/dud/root/autoinst.json $profile_url");
