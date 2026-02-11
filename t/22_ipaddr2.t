@@ -1178,15 +1178,26 @@ subtest '[ipaddr2_cleanup] ibsm_rg' => sub {
     $ipaddr2->redefine(ipaddr2_infra_destroy => sub { $infra_destroy_called = 1; });
     $ipaddr2->redefine(ipaddr2_azure_resource_group => sub { return 'Fermi'; });
     $ipaddr2->redefine(get_current_job_id => sub { return 42; });
-    my $ibsm_called = 0;
-    $ipaddr2->redefine(ibsm_network_peering_azure_delete => sub { $ibsm_called = 1; });
+    my %ibsm_args;
+    $ipaddr2->redefine(ibsm_network_peering_azure_delete => sub {
+            my (%args) = @_;
+            %ibsm_args = %args;
+            return;
+    });
 
     ipaddr2_cleanup(ibsm_rg => 'Volta');
 
     ok(($deployment_logs_called eq 0), "ipaddr2_deployment_logs not called");
     ok(($cloudinit_logs_called eq 1), "ipaddr2_cloudinit called");
     ok(($infra_destroy_called eq 1), "ipaddr2_infra_destroy called");
-    ok(($ibsm_called eq 1), "ibsm_network_peering_azure_delete called");
+
+    my %expected_ibsm_args = (
+        sut_rg => 'Fermi',
+        sut_vnet => 42,
+        ibsm_rg => 'Volta',
+        name_prefix => 'ip2t'
+    );
+    is_deeply(\%ibsm_args, \%expected_ibsm_args, "ibsm_network_peering_azure_delete called with expected arguments");
 };
 
 subtest '[ipaddr2_cleanup] ipaddr2_deployment_logs' => sub {
