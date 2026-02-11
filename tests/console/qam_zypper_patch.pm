@@ -26,7 +26,7 @@ sub run {
 
     # NVIDIA repo needs new signing key, see poo#163094
     my $sign_key = get_var('BUILD') =~ /openSUSE-repos/ ? '--gpg-auto-import-keys' : '';
-    my $patch_id = is_leap('>=16') ? script_output("zypper lp | grep " . get_var('INCIDENT_PATCH') . " | awk '{print \$3}' | uniq") : get_var('INCIDENT_PATCH');
+    my $patch_id = is_leap('>=16') ? script_output("zypper lp -a | grep " . get_var('INCIDENT_PATCH') . " | awk '{print \$3}' | uniq") : get_var('INCIDENT_PATCH');
 
     my $patch_info = script_output("zypper -n info -t patch $patch_id", 200);
     record_info "$patch_id", "$patch_info";
