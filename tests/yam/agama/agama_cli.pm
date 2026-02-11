@@ -40,13 +40,13 @@ sub run {
     validate_script_output('stat /tmp/hello-world.rpm', qr/Size: 7019/,
         fail_message => 'Downloaded file does not match expected size');
 
+    script_run('agama events > /tmp/agama_events.log 2>&1 &', timeout => 0);
     agama_config_edit(":\%s/bernhard/jose/g");
     assert_script_run('agama config show | grep jose');
     agama_config_edit(":\%s/jose/bernhard/g");
 
-    script_run('agama events > /tmp/agama_events.log 2>&1 &', timeout => 0);
-    validate_script_output('cat /tmp/agama_events.log', qr/ClientConnected/,
-        fail_message => 'Agama connected event not shown');
+    validate_script_output('cat /tmp/agama_events.log', qr/ProgressChanged/,
+        fail_message => 'Agama ProgressChanged event not shown');
 
     script_run('agama auth login', timeout => 0);
     enter_cmd("$testapi::password");
