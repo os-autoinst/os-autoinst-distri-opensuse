@@ -21,7 +21,9 @@ sub run {
     $zypp_conf_dir = $zypp_econf ? '/usr/etc/zypp/' : '/etc/zypp/';
 
     if ($zypp_econf) {
-        assert_script_run('rpm -q zypp-excludedocs zypp-no-multiversion zypp-no-recommends');
+        my @packages = qw(zypp-excludedocs zypp-no-recommends);
+        push @packages, 'zypp-no-multiversion' unless (is_jeos && !is_transactional);
+        assert_script_run("rpm -q @packages");
     }
 
     unless (is_community_jeos()) {
