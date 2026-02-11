@@ -339,7 +339,7 @@ sub run {
         assert_screen 're-encrypt-finished', 720 unless is_sle_micro('>=6.2') || is_sle('>=16');
     }
 
-    unless (is_sle('<16') || is_sle_micro('<6.1')) {
+    unless (is_sle('<16') || is_sle_micro('<6.1') || is_leap('<16')) {
         if (!is_wsl) {
             assert_screen 'jeos-ssh-enroll-or-not', 120;
 
