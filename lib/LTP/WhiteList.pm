@@ -77,6 +77,9 @@ sub find_whitelist_entry {
     }
     else {
         return unless defined $suite->{'*'};
+        if ($test eq 'xfstests_blacklist') {
+            return join(',', map { $_->{$test} } @{$suite->{'*'}}) if grep { defined $_->{$test} } @{$suite->{'*'}};
+        }
         @issues = grep { $_->{test} && $test =~ m/$_->{test}/ } @{$suite->{'*'}};
     }
 
