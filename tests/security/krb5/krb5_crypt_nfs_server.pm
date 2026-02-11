@@ -11,9 +11,10 @@ use utils;
 use lockapi;
 use mmapi;
 use krb5crypt;    # Import public variables
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     zypper_call("in nfs-kernel-server nfs-client");
 
@@ -31,16 +32,15 @@ sub run {
     assert_script_run "kadmin -p $adm -w $pass_a -q 'ktadd nfs/$dom_server'";
     systemctl("restart rpc-svcgssd nfs-server");
 
-    mutex_create('CONFIG_READY_NFS_SERVER');
-
-    # Waiting for the finishd of krb5 client
-    my $children = get_children();
-    mutex_wait('TEST_DONE_NFS_CLIENT', (keys %$children)[0]);
-    mutex_create('TEST_DONE_NFS_SERVER');
+    # signal the NFS client we are ready
+    barrier_wait('KRB5_NFS_SERVER_READY');
+    # wait for the client to finish the test before exiting, otherwise it may
+    barrier_wait('KRB5_NFS_TEST_DONE');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {fatal => 1};
 }
+
 
 1;
