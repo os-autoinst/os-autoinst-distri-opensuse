@@ -41,7 +41,7 @@ sub run() {
             systemctl 'start postfix';
         }
         zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);
-        zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
+        zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if (is_jeos || is_sle('>=16'));
     }
 
     # Configure dovecot for sle16 and tumbleweed, see https://progress.opensuse.org/issues/182768
