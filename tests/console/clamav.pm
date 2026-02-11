@@ -27,13 +27,16 @@ use Utils::Architectures;
 use utils;
 use version_utils qw(is_jeos is_opensuse is_sle);
 
+my $test_dir = "/var/lib/clamav/eicar_test_files";
+
 sub scan_and_parse {
-    my $re = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
-    my $cmd = shift;
+    my ($cmd) = @_;
     my $log_file = "$cmd.log";
 
-    script_run "$cmd -i --log=$log_file eicar_test_files", 300;
-    validate_script_output("cat $log_file", sub { $re });
+    script_run "$cmd -i --log=$log_file $test_dir", 300;
+    validate_script_output "cat $log_file", sub {
+        /Infected files:\s+3/ && /Eicar.*FOUND/;
+    };
     script_run "rm -f $log_file";
 }
 
@@ -106,11 +109,11 @@ sub run {
     }
 
     # test 3 different file formats containing the EICAR signature
-    assert_script_run "mkdir eicar_test_files";
-    my $rel_path;
+    assert_script_run "mkdir -p $test_dir";
     for my $ext (qw(pdf txt zip)) {
-        $rel_path = "eicar_test_files/eicar.$ext";
-        assert_script_run("curl -o $rel_path " . data_url("$rel_path"));
+        my $asset = "eicar_test_files/eicar.$ext";
+        my $dest = "$test_dir/eicar.$ext";
+        assert_script_run("curl -f -o $dest " . data_url($asset));
     }
 
     scan_and_parse "clamscan";
