@@ -63,7 +63,6 @@ our @EXPORT = qw(
   zypper_remove_repo_remote
   wait_quit_zypper_pc
   detect_worker_ip
-  upload_asset_on_remote
   zypper_call_remote
   calculate_custodian_ttl
   pc_data_url
@@ -806,30 +805,6 @@ sub detect_worker_ip {
     }
     return undef if $args{proceed_on_failure};
     die "Worker IP could not be determined - return was $ip";
-}
-
-sub upload_asset_on_remote {
-    my (%args) = @_;
-
-    my $instance = $args{instance};
-    my $source_data_url_path = $args{source_data_url_path};
-    my $destination_path = $args{destination_path};
-    my $elevated = $args{elevated} // 0;
-
-    die 'Missing instance' unless $instance;
-    die 'Missing source_data_url_path' unless $source_data_url_path;
-    die 'Missing destination_path' unless $destination_path;
-
-    my $filename = basename($source_data_url_path);
-
-    my $curl_cmd = "curl " . data_url($source_data_url_path) . " -o ./$filename";
-    assert_script_run($curl_cmd);
-
-    $instance->scp("./$filename", "remote:/tmp/$filename");
-
-    my $prefix = $elevated ? 'sudo ' : '';
-    my $mv_cmd = $prefix . "mv /tmp/$filename $destination_path";
-    $instance->ssh_assert_script_run($mv_cmd);
 }
 
 =head2 zypper_call_remote

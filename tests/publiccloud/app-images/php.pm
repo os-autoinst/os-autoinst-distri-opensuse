@@ -42,19 +42,8 @@ sub prepare_assets {
     my $instance = $self->{run_args}->{my_instance};
     my $htdocs_path = "/srv/www/htdocs/hello-suse";
     $instance->ssh_assert_script_run("sudo mkdir -p $htdocs_path");
-    upload_asset_on_remote(
-        instance => $instance,
-        source_data_url_path => "publiccloud/app_images/php/index.php",
-        destination_path => "$htdocs_path/index.php",
-        elevated => 1
-    );
-
-    upload_asset_on_remote(
-        instance => $instance,
-        source_data_url_path => "publiccloud/app_images/php/start-dev-server.sh",
-        destination_path => $start_dev_server_script_path,
-        elevated => 1
-    );
+    $instance->ssh_assert_script_run("sudo curl -sLo $htdocs_path/index.php " . pc_data_url("publiccloud/app_images/php/index.php"));
+    $instance->ssh_assert_script_run("sudo curl -sLo $start_dev_server_script_path " . pc_data_url("publiccloud/app_images/php/start-dev-server.sh"));
     $instance->ssh_assert_script_run("sudo chmod +x $start_dev_server_script_path");
 }
 
