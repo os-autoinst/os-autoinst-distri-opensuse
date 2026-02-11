@@ -905,8 +905,14 @@ sub zypper_call_remote {
     my $retry = $args{retry} // 1;
     my $delay = $args{delay} // 5;
     my $proceed = $args{proceed_on_failure} // 0;
-    my $cmd = "sudo zypper -n " . $args{cmd};
+    my $cmd = $args{cmd};
     my $wait_quit_zypper = $args{wait_quit_zypper} // 1;
+    # full command to run in ssh
+    if (is_transactional) {
+        $cmd = "sudo transactional-update -n pkg " . $cmd;
+    } else {
+        $cmd = "sudo zypper -n " . $cmd;
+    }
     delete $args{cmd};
     delete $args{exitcode};
     delete $args{retry};
