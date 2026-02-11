@@ -43,7 +43,15 @@ sub should_partially_build_ltp_from_git_modules_install {
 sub install_build_deps {
     my ($self, $instance) = @_;
 
-    zypper_call_remote($instance, cmd => "install --no-recommends " . join(' ', get_required_build_dependencies()));
+    if (is_transactional) {
+        $instance->ssh_assert_script_run(
+            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', join(' ', get_required_build_dependencies())),
+            timeout => 300
+        );
+        $instance->softreboot();
+    } else {
+        zypper_call_remote($instance, cmd => "install --no-recommends " . join(' ', get_required_build_dependencies()));
+    }
     zypper_install_available_remote($instance);
 }
 
@@ -281,7 +289,15 @@ sub install_ltp {
     my ($self, $instance, $ltp_repo_name, $ltp_repo_url, $ltp_package_name) = @_;
 
     zypper_add_repo_remote($instance, $ltp_repo_name, $ltp_repo_url);
-    zypper_call_remote($instance, cmd => "install --no-recommends " . $ltp_package_name);
+    if (is_transactional) {
+        $instance->ssh_assert_script_run(
+            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', $ltp_package_name),
+            timeout => 300
+        );
+        $instance->softreboot();
+    } else {
+        zypper_call_remote($instance, cmd => "install --no-recommends " . $ltp_package_name);
+    }
 }
 
 sub prepare_skip_tests {
@@ -425,7 +441,15 @@ sub zypper_install_available_remote {
     my ($instance) = @_;
     my $available = get_available_packages_remote($instance, [get_maybe_build_dependencies()]);
     return unless ($available && $available =~ /\S/);
-    zypper_call_remote($instance, "install --no-recommends " . $available);
+    if (is_transactional) {
+        $instance->ssh_assert_script_run(
+            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', $available),
+            timeout => 300
+        );
+        $instance->softreboot();
+    } else {
+        zypper_call_remote($instance, "install --no-recommends " . $available);
+    }
 }
 
 1;
