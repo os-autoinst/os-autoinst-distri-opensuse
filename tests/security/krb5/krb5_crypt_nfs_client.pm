@@ -11,12 +11,13 @@ use utils;
 use lockapi;
 use mmapi;
 use krb5crypt;    # Import public variables
+use version_utils 'is_sle';
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_console 'root-console';
-
-    mutex_wait('CONFIG_READY_NFS_SERVER');
-
+    select_serial_terminal;
+    assert_script_run("source /etc/profile.d/krb5.sh") if is_sle('<16');
+    barrier_wait('KRB5_NFS_SERVER_READY');
     # Add principal for NFS service and add it to client's keytable
     assert_script_run "kadmin -p $adm -w $pass_a -q 'addprinc -randkey nfs/$dom_client'";
     assert_script_run "kadmin -p $adm -w $pass_a -q 'ktadd nfs/$dom_client'";
@@ -38,12 +39,12 @@ sub run {
         assert_script_run "touch $nfs_mntdir/$nfs_fname";
         assert_script_run "umount $nfs_mntdir";
     }
-
-    mutex_create('TEST_DONE_NFS_CLIENT');
+    barrier_wait('KRB5_NFS_TEST_DONE');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {fatal => 1};
 }
+
 
 1;

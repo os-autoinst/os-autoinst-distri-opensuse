@@ -11,22 +11,21 @@ use utils;
 use lockapi;
 use mmapi;
 use krb5crypt;    # Import public variables
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
-    mutex_wait('CONFIG_READY_KRB5_KDC');
+    barrier_wait('KRB5_KDC_READY');
     krb5_init;
 
     # Add secret key in keytab file
     assert_script_run "kadmin -p $adm -w $pass_a -q 'addprinc -randkey host/$dom_server'";
     assert_script_run "kadmin -p $adm -w $pass_a -q 'ktadd host/$dom_server'";
-    mutex_create('CONFIG_READY_KRB5_SERVER');
 
-    # Waiting for the finishd of krb5 client
-    my $children = get_children();
-    mutex_wait('TEST_DONE_CLIENT', (keys %$children)[0]);
-    mutex_create('TEST_DONE_SERVER');
+    # signal the client we are ready
+    barrier_wait('KRB5_SERVER_READY');
+
 }
 
 sub test_flags {

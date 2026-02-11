@@ -11,13 +11,13 @@ use utils;
 use lockapi;
 use mmapi;
 use krb5crypt;    # Import public variables
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_console 'root-console';
-
-    mutex_wait('CONFIG_READY_KRB5_SERVER');
+    select_serial_terminal;
+    barrier_wait('KRB5_KDC_READY');
+    barrier_wait('KRB5_SERVER_READY');
     krb5_init;
-    mutex_create('TEST_DONE_CLIENT');
 }
 
 sub test_flags {
