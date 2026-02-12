@@ -36,7 +36,7 @@ use utils 'zypper_call';
 use apachetest qw(setup_apache2 setup_pgsqldb test_pgsql destroy_pgsqldb postgresql_cleanup);
 use Utils::Systemd 'systemctl';
 use Utils::Architectures 'is_aarch64';
-use version_utils qw(is_leap is_sle php_version);
+use version_utils qw(php_version has_selinux);
 
 sub run {
     my $self = shift;
@@ -59,7 +59,7 @@ sub run {
     # So use root-console for aarch64. See poo#178639
     select_console 'root-console' if (is_aarch64);
 
-    if (is_sle('>=16.0')) {
+    if (has_selinux) {
         assert_script_run("setsebool -P httpd_can_network_connect_db 1");
     }
 

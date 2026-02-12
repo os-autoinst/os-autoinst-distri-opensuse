@@ -6,7 +6,6 @@ schedule:
   - boot/boot_to_desktop
   - console/prepare_test_data
   - console/php_version
-  - console/php_pcre
   - console/php_mysql
   - console/php_postgresql
   - console/php_timezone
@@ -15,12 +14,22 @@ conditional_schedule:
   version_specific:
     VERSION:
       15-SP7:
+        - console/php_pcre
         - console/php_composer
       15-SP6:
+        - console/php_pcre
         - console/php_composer
       15-SP5:
+        - console/php_pcre
         - console/php_composer
       15-SP4:
+        - console/php_pcre
         - console/php_composer
       '16.0':
+        - console/php_pcre
+        - console/apache2_php_fpm
+      '16.1':
+        - console/php_pcre
+        - console/apache2_php_fpm
+      Tumbleweed:
         - console/apache2_php_fpm
