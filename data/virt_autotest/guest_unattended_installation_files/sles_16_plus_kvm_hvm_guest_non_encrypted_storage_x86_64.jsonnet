@@ -23,8 +23,12 @@
     "hashedPassword": true,
     "sshPublicKey": "##Authorized-Keys##"
   },
-  // Workaround for bsc#1257492
   "software": {
+      "patterns": {
+        "add": ["base", "enhanced_base"],
+        "remove": ["patterns-microos-hardware", "patterns-sles-hardware"]
+      },
+      // Workaround for bsc#1257492
       "packages": [
         'qemu-guest-agent'
       ]

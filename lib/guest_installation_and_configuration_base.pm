@@ -2636,7 +2636,9 @@ already marked as 'FAILED' for this case in setup_guest_agama_installation_shell
 sub verify_guest_agama_installation_done {
     my $self = shift;
 
-    my $_wait_timeout = get_var('AGAMA_INSTALL_TIMEOUT', 600);
+    # It takes longer to install a guest for an online installation since sle16.1 Beta1
+    # Previous 600s is not enough
+    my $_wait_timeout = get_var('AGAMA_INSTALL_TIMEOUT', 720);
     my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     if ($self->{guest_installation_result} eq 'FAILED') {
         if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
