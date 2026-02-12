@@ -23,6 +23,10 @@ sub run {
     # repo needed to install mkdud, the previous repo still needed for installation
     # of other packages. Remove it after verified on Beta.
     zypper_call("ar -f -G  https://download.suse.de/ibs/home:/epaolantonio:/main_mkdud/standard/" . "/?ssl_verify=no install_mkdud");
+    if (get_var('FLAVOR') =~ /Online/) {
+        record_soft_failure 'bsc#1254163 - In case of failure the repo disable step is skipped';
+        zypper_call("mr -d self-update-0");
+    }
     zypper_call("in -y mkdud");
     assert_script_run("mkdir -p tmp/dud/root");
     assert_script_run("curl -o tmp/dud/root/autoinst.json $profile_url");
