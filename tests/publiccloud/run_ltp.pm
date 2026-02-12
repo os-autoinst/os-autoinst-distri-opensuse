@@ -206,8 +206,7 @@ sub dump_kernel_config
     record_info("ver_linux", $instance->ssh_script_output("/opt/ltp/ver_linux"));
 }
 
-sub install_runtime_deps
-{
+sub install_runtime_deps {
     my ($self, $instance) = @_;
 
     # ar, readelf is in binutils
