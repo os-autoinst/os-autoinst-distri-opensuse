@@ -63,9 +63,9 @@ our @EXPORT = qw(
   zypper_remove_repo_remote
   wait_quit_zypper_pc
   detect_worker_ip
-  upload_asset_on_remote
   zypper_call_remote
   calculate_custodian_ttl
+  pc_data_url
 );
 
 # Check if we are a BYOS test run
@@ -807,30 +807,6 @@ sub detect_worker_ip {
     die "Worker IP could not be determined - return was $ip";
 }
 
-sub upload_asset_on_remote {
-    my (%args) = @_;
-
-    my $instance = $args{instance};
-    my $source_data_url_path = $args{source_data_url_path};
-    my $destination_path = $args{destination_path};
-    my $elevated = $args{elevated} // 0;
-
-    die 'Missing instance' unless $instance;
-    die 'Missing source_data_url_path' unless $source_data_url_path;
-    die 'Missing destination_path' unless $destination_path;
-
-    my $filename = basename($source_data_url_path);
-
-    my $curl_cmd = "curl " . data_url($source_data_url_path) . " -o ./$filename";
-    assert_script_run($curl_cmd);
-
-    $instance->scp("./$filename", "remote:/tmp/$filename");
-
-    my $prefix = $elevated ? 'sudo ' : '';
-    my $mv_cmd = $prefix . "mv /tmp/$filename $destination_path";
-    $instance->ssh_assert_script_run($mv_cmd);
-}
-
 =head2 zypper_call_remote
 
     zypper_call_remote($instance, cmd => $cmd, [%args]);
@@ -964,7 +940,7 @@ sub zypper_call_remote {
 }
 
 
-=head2 calculate_custodian_ttl {
+=head2 calculate_custodian_ttl
 
 
 calculate_custodian_ttl($ttl_in_seconds)
@@ -986,6 +962,31 @@ sub calculate_custodian_ttl {
     my $custodian_expiration_date = $expiration_time->strftime("%Y-%m-%dT%H:%M:%SZ");
 
     return $custodian_expiration_date;
+}
+
+=head2 pc_data_url
+
+  pc_data_url($path);
+
+returns the URL to download osado artifact much like testapi::data_url
+
+Note: Use with curl -L to follow redirects.
+
+=cut
+
+sub pc_data_url {
+    my $path = shift;
+    # Note: We can't use CASEDIR because internally is a local path in vars.json
+    my $git_url = get_required_var("TEST_GIT_URL");
+    my $commit = get_required_var("TEST_GIT_HASH");
+
+    # Strip .git suffix
+    $git_url =~ s{\.git$}{};
+
+    return "$git_url/raw/$commit/data/$path" if ($git_url =~ m{^https?://(?:www\.)?github\.com});
+    return "$git_url/-/raw/$commit/$path" if ($git_url =~ m{^https?://(?:www\.)?gitlab\.});
+    # Assume Gitea (used by src.suse.de & src.opensuse.org)
+    return "$git_url/src/commit/$commit/$path";
 }
 
 1;

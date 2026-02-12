@@ -11,6 +11,7 @@ use base 'consoletest';
 use testapi;
 use utils;
 use publiccloud::ssh_interactive 'select_host_console';
+use publiccloud::utils 'pc_data_url';
 
 
 sub run {
@@ -35,15 +36,12 @@ sub run {
         delay => 60
     );
 
-    # 3. Try a different example .war page. First we download it into the worker,
-    # then scp it to the instance.
-    assert_script_run(
-        'curl '
-          . data_url('publiccloud/hello-suse.war')
-          . ' -o ./hello-suse.war'
+    # 3. Try a different example .war page.
+    $instance->ssh_assert_script_run(
+        'sudo curl -sL '
+          . pc_data_url('publiccloud/hello-suse.war')
+          . ' -o /usr/share/tomcat/webapps/hello-suse.war'
     );
-    $instance->scp("./hello-suse.war", "remote:/tmp/hello-suse.war");
-    $instance->ssh_assert_script_run("sudo mv /tmp/hello-suse.war /usr/share/tomcat/webapps/hello-suse.war");
     $instance->ssh_script_retry(
         "curl -f -s http://localhost:8080/hello-suse/ | grep \"Hello\ SUSE\"",
         retry => 10,
