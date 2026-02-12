@@ -206,6 +206,30 @@ sub dump_kernel_config
     record_info("ver_linux", $instance->ssh_script_output("/opt/ltp/ver_linux"));
 }
 
+sub install_runtime_deps
+{
+    my ($self, $instance) = @_;
+
+    # ar, readelf is in binutils
+    my @runtime_deps = qw(
+      binutils
+      bzip2
+      gcc
+      gdb
+      unzip
+    );
+
+    if (is_transactional) {
+        $instance->ssh_assert_script_run(
+            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', join(' ', @runtime_deps)),
+            timeout => 300
+        );
+        $instance->softreboot();
+    } else {
+        zypper_call_remote($instance, cmd => "install --no-recommends " . join(' ', @runtime_deps));
+    }
+}
+
 sub run {
     my ($self, $args) = @_;
     my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
@@ -229,6 +253,9 @@ sub run {
 
     my $ltp_dir = '/tmp/ltp';
     my $ltp_prefix = '/opt/ltp';
+
+    $self->install_runtime_deps($instance);
+
     if (should_fully_build_ltp_from_git()) {
         $self->fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
     } else {
