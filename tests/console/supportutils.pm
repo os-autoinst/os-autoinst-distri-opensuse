@@ -16,10 +16,11 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use upload_system_log 'upload_supportconfig_log';
 use version_utils 'is_sle';
+use utils 'zypper_call';
 
 sub run {
     select_serial_terminal;
-    select_console 'root-console';
+    zypper_call('in supportutils') if script_run('rpm -q supportutils');
     my $options = get_var('SUPPORTCOFIG_OPTIONS', '');
     assert_script_run "rm -rf /var/log/nts_* /var/log/scc_* ||:";
     upload_supportconfig_log(file_name => 'test', options => $options, timeout => 2000);
