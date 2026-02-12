@@ -186,7 +186,7 @@ sub get_promoted_hostname {
 
     my $resource_output = $self->run_cmd(cmd => 'crm resource status ' . $hana_resource, quiet => 1);
     record_info('crm out', $resource_output);
-    my @master = $resource_output =~ /:\s(\S+)\sMaster/g;
+    my @master = $resource_output =~ /:\s(\S+)\s(?:Master|Promoted)/g;
     if (scalar @master != 1) {
         diag("Master database not found or command returned abnormal output.\n
         Check 'crm resource status' command output below:\n");
