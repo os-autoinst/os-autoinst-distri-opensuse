@@ -209,7 +209,8 @@ sub set_bootscript_agama_cmdline_extra {
     if (is_ipmi) {
         my $ipxe_console = get_required_var('IPXE_CONSOLE');
         my $sol_console = (split(/,/, $ipxe_console))[0];
-        $cmdline_extra .= "console=$ipxe_console linuxrc.log=/dev/$sol_console linuxrc.core=/dev/$sol_console linuxrc.debug=4,trace ";
+        # linuxrc is removed from agama
+        $cmdline_extra .= "console=$ipxe_console inst.debug ";
     }
 
     # Support passing EXTRA_PXE_CMDLINE and EXTRABOOTPARAMS to bootscripts (inherited from set_bootscript_cmdline_extra)

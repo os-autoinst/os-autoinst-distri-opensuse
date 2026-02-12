@@ -29,7 +29,7 @@
     <guest_installation_media>http://openqa.suse.de/assets/iso/SLES-16.1-Online-aarch64-Build12345.install.iso</guest_installation_media>
     <guest_installation_fine_grained_media>http://openqa.suse.de/assets/repo/SLES-16.1-Online-aarch64-Build12345.install/</guest_installation_fine_grained_media>
     <guest_installation_fine_grained_repos/>
-    <guest_installation_fine_grained_kernel_args>live.password=novell console=ttyAMA0,115200 linuxrc.log=/dev/ttyAMA0 linuxrc.core=/dev/ttyAMA0 linuxrc.debug=4,trace ip=dhcp rd.neednet arm64.nompam</guest_installation_fine_grained_kernel_args>
+    <guest_installation_fine_grained_kernel_args>live.password=novell console=ttyAMA0,115200 inst.debug ip=dhcp rd.neednet arm64.nompam</guest_installation_fine_grained_kernel_args>
     <guest_installation_fine_grained_kernel_args_overwrite/>
     <guest_installation_fine_grained_others/>
     <guest_os_variant>sles16</guest_os_variant>
