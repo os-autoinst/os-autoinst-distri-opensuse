@@ -83,7 +83,6 @@ conditional_schedule:
         - '{{fwupd}}'
         - console/rust
         - console/gcc
-        - console/a2ps
         - console/ndctl
         - console/curl_ipv6
         - console/wget_ipv6
@@ -102,7 +101,6 @@ conditional_schedule:
         - '{{fwupd}}'
         - console/rust
         - console/gcc
-        - console/a2ps
         - console/ndctl
         - console/curl_ipv6
         - console/wget_ipv6
