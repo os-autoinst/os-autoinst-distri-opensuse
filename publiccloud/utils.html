@@ -41,7 +41,8 @@
           <li><a href="#Error-Handling-On-failure-the-function:-1.-Uploads-var-log-zypper.log-to-the-test-results.-2.-Specifically-checks-for-known-issues-like-bsc-1070851-502-errors-.-3.-Parses-logs-for-Solver-Conflicts-Exit-4-Missing-Capabilities-Exit-104-or-RPM-scriptlet-failures-Exit-107-and-reports-them-via-record_info">Error Handling On failure, the function: 1. Uploads /var/log/zypper.log to the test results. 2. Specifically checks for known issues like bsc#1070851 (502 errors). 3. Parses logs for Solver Conflicts (Exit 4), Missing Capabilities (Exit 104), or RPM scriptlet failures (Exit 107) and reports them via record_info.</a></li>
         </ul>
       </li>
-      <li><a href="#calculate_custodian_ttl">calculate_custodian_ttl {</a></li>
+      <li><a href="#calculate_custodian_ttl">calculate_custodian_ttl</a></li>
+      <li><a href="#pc_data_url">pc_data_url</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/utils.pm</h1>
@@ -252,11 +253,19 @@ Return:
 
 <h3 id="Error-Handling-On-failure-the-function:-1.-Uploads-var-log-zypper.log-to-the-test-results.-2.-Specifically-checks-for-known-issues-like-bsc-1070851-502-errors-.-3.-Parses-logs-for-Solver-Conflicts-Exit-4-Missing-Capabilities-Exit-104-or-RPM-scriptlet-failures-Exit-107-and-reports-them-via-record_info">Error Handling On failure, the function: 1. Uploads <code>/var/log/zypper.log</code> to the test results. 2. Specifically checks for known issues like <b>bsc#1070851</b> (502 errors). 3. Parses logs for Solver Conflicts (Exit 4), Missing Capabilities (Exit 104), or RPM scriptlet failures (Exit 107) and reports them via <code>record_info</code>.</h3>
 
-<h2 id="calculate_custodian_ttl">calculate_custodian_ttl {</h2>
+<h2 id="calculate_custodian_ttl">calculate_custodian_ttl</h2>
 
 <p>calculate_custodian_ttl($ttl_in_seconds)</p>
 
 <p>This function adds the following tags to public cloud objects: custodian_ttl custodian_ttl is calculated by adding the $ttl_in_seconds to the current time and formatting it in ISO 8601 This tag is needed to compare TTL vs Creation time in Cloud Custodian.</p>
+
+<h2 id="pc_data_url">pc_data_url</h2>
+
+<pre><code>pc_data_url($path);</code></pre>
+
+<p>returns the URL to download osado artifact much like testapi::data_url</p>
+
+<p>Note: Use with curl -L to follow redirects.</p>
 
 
 </body>
