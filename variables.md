@@ -90,6 +90,7 @@ FULLURL | string | | Full url to the factory repo. Is relevant for openSUSE only
 FULL_LVM_ENCRYPT | boolean | false | Enables/indicates encryption using lvm. boot partition may or not be encrypted, depending on the product default behavior.
 FUNCTION | string | | Specifies SUT's role for MM test suites. E.g. Used to determine which SUT acts as target/server and initiator/client for iscsi test suite
 GNU_COMPILERS_HPC_VERSION | string | | Define the gnu-N-compilers-hpc version to be tested.
+GRUB_ARGS | string | | A comma separated list of extra boot options, to be used to modify the currently booted grub entry without adding a new entry.
 GRUB_PARAM | string | | A semicolon-separated list of extra boot options. Adds 2 grub meny entries per each item in main grub (2nd entry is the "Advanced options ..." submenu). See `add_custom_grub_entries()`.
 GRUB_BOOT_NONDEFAULT | boolean | false | Boot grub menu entry added by `add_custom_grub_entries` (having setup `GRUB_PARAM=debug_pagealloc=on;ima_policy=tcb;slub_debug=FZPU`, `GRUB_BOOT_NONDEFAULT=1` selects 3rd entry, which contains `debug_pagealloc=on`, `GRUB_BOOT_NONDEFAULT=2` selects 5th entry, which contains `ima_policy=tcb`). NOTE: ARCH=s390x on BACKEND=s390x is not supported. See `boot_grub_item()`, `handle_grub()`.
 GRUB_SELECT_FIRST_MENU | integer | | Select grub menu entry in main grub menu, used together with GRUB_SELECT_SECOND_MENU. GRUB_BOOT_NONDEFAULT has higher preference when both set. NOTE: ARCH=s390x on BACKEND=s390x is not supported. See `boot_grub_item()`, `handle_grub()`.

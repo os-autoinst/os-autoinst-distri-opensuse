@@ -664,6 +664,16 @@ sub handle_pxeboot {
 
 sub grub_select {
     save_screenshot;
+
+    # If GRUB_ARGS is defined, we are modifying the default grub entry with
+    # the provided extra kernel parameters and rebooting, so just select
+    # default entry and return.
+    # so far this is implemented only for grub2-bls bootloader.
+    if (get_var('GRUB_ARGS') && is_bootloader_grub2_bls) {
+        set_var('GRUB_BOOT_NONDEFAULT', undef);
+        set_var('GRUB_SELECT_FIRST_MENU', undef);
+    }
+
     if ((my $grub_nondefault = get_var('GRUB_BOOT_NONDEFAULT', 0)) gt 0) {
         my $menu = $grub_nondefault * 2 + 1;
         bmwqemu::fctinfo("Boot non-default grub option $grub_nondefault (menu item $menu)");
