@@ -575,7 +575,7 @@ sub uefi_bootmenu_params {
     }
 
     # flag, in order to skip more movement in grub2 submenu in case of powerPC
-    $in_grub_edit = 1 if (get_var('OFW') && is_sle_micro);
+    $in_grub_edit = 1 if (get_var('OFW') && (is_sle_micro || is_jeos));
 
     # jump to linux kernel bootparams
     wait_screen_change(sub {
