@@ -450,6 +450,7 @@ END
 
 sub setup_krb5 {
     script_run('hostname localhost');
+    script_run('echo "127.0.0.1 localhost localhost.localdomain" >> /etc/hosts');
     my $content = <<END;
 includedir  /etc/krb5.conf.d
 
@@ -490,8 +491,8 @@ END
     script_run('kdb5_util create -s -P susetest -r SUSETEST.COM');
     script_run('systemctl start krb5kdc kadmind; systemctl enable krb5kdc kadmind');
     script_run('echo -e "susetest\nsusetest" | kadmin.local -q "addprinc root/admin@SUSETEST.COM"');
-    script_run('kadmin.local -q "addprinc -randkey nfs/$(hostname -f)@SUSETEST.COM"');
-    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab nfs/$(hostname -f)@SUSETEST.COM"');
+    script_run('kadmin.local -q "addprinc -randkey nfs/localhost@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab nfs/localhost@SUSETEST.COM"');
 
     #create fsgqa/fsgqa2 users for some xfstests
     script_run('kadmin.local -q "addprinc -randkey fsgqa@SUSETEST.COM"');
@@ -501,16 +502,17 @@ END
 
     #verify the key
     script_run('klist -kte /etc/krb5.keytab');
-    script_run('kadmin.local -q "getprinc nfs/$(hostname -f)@SUSETEST.COM"');
+    script_run('kadmin.local -q "getprinc nfs/localhost@SUSETEST.COM"');
 
     #get kerberos ticket and check
-    script_run('kinit -k host/$(hostname -f)@SUSETEST.COM');
+    script_run('kinit -k host/localhost@SUSETEST.COM');
     script_run('klist');
-    script_run('kinit -k nfs/$(hostname -f)@SUSETEST.COM');
+    script_run('kinit -k nfs/localhost@SUSETEST.COM');
     script_run('klist');
 
     script_run("systemctl restart nfs-idmapd");
     script_run("systemctl restart rpc-gssd");
+    script_run("sleep 10");
 }
 
 sub setup_nfs_server {
@@ -524,6 +526,8 @@ sub setup_nfs_server {
     elsif ($nfsversion =~ 'krb5') {
         setup_krb5($nfsversion);
         assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,no_subtree_check,no_root_squash,sec=krb5:krb5i:krb5p,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,no_subtree_check,no_root_squash,sec=krb5:krb5i:krb5p,fsid=2)\' >> /etc/exports');
+        script_run("sed -i 's/RPCGSSDARGS=\"/RPCGSSDARGS=\"-vvv /' /etc/sysconfig/nfs");
+        script_run("systemctl daemon-reload");
     }
     else {
         assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
