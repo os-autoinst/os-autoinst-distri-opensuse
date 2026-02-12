@@ -126,7 +126,7 @@ sub junit_log_params_provision {
     my $stop_time = $self->{"stop_run"};
     $self->{"test_time"} = strftime("\%H:\%M:\%S", gmtime($stop_time - $start_time));
     if (!version_utils::is_alp) {
-        $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+        $self->{"product_tested_on"} = script_output(q@cat /etc/os-release |grep PRETTY_NAME | sed 's/PRETTY_NAME=//'@);
     } else {
         alp_workloads::kvm_workload_utils::exit_kvm_container;
         $self->{"product_tested_on"} = script_output(q@cat /etc/os-release |grep PRETTY_NAME | sed 's/PRETTY_NAME=//'@);

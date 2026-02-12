@@ -194,7 +194,7 @@ function collect_system_log_and_diagnosis() {
 	local retry_times=0
 	while [[ ${retry_times} -lt 2 ]] && [[ ${ret_result} -ne 0 ]];
 	do
-	   if [[ ${target_type} == "host" && `cat /etc/issue` =~ oracle|rhel|red.*hat|fedora ]] || [[ ${target_type} == "guest" && ${target_transformed} =~ oracle|rhel|fedora ]];then
+	   if [[ ${target_type} == "host" && `cat /etc/os-release` =~ oracle|rhel|red.*hat|fedora ]] || [[ ${target_type} == "guest" && ${target_transformed} =~ oracle|rhel|fedora ]];then
 	      ${sshpass_ssh_cmd} rm -f -r ${logs_folder}/*sosreport*
 	      echo -e "${sshpass_ssh_cmd} mkdir -p ${logs_folder}"
 	      echo -e "${sshpass_ssh_cmd} sosreport --batch --debug -v --alloptions --all-logs -z xz --tmp-dir ${logs_folder}"

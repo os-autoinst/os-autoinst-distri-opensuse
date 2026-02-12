@@ -1656,7 +1656,7 @@ sub create_junit_log {
     my $_start_time = $self->{start_run};
     my $_stop_time = $self->{stop_run};
     $self->{test_time} = strftime("\%H:\%M:\%S", gmtime($_stop_time - $_start_time));
-    $self->{product_tested_on} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"", type_command => 1, proceed_on_failure => 1);
+    $self->{"product_tested_on"} = script_output(q@cat /etc/os-release |grep PRETTY_NAME | sed 's/PRETTY_NAME=//'@);
     $self->{product_name} = ref($self);
     $self->{package_name} = ref($self);
 
