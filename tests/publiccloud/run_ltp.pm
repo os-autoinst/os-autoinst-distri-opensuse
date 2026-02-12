@@ -294,6 +294,7 @@ sub install_ltp {
             cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', $ltp_package_name),
             timeout => 300
         );
+        $instance->run_ssh_command(cmd => "sudo transactional-update -n pkg install $ltp_package_name", timeout => 900);
         $instance->softreboot();
     } else {
         zypper_call_remote($instance, cmd => "install --no-recommends " . $ltp_package_name);
