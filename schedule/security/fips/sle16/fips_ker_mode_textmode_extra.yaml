@@ -41,3 +41,4 @@ schedule:
     - console/nginx
     - console/gdb
     - console/sysctl
+    - console/clamav
