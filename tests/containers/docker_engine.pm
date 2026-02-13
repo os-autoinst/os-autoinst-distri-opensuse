@@ -111,10 +111,7 @@ sub run {
     push @xfails, (
         # We don't yet support CDI
         "github.com/moby/moby/v2/integration/container::TestEtcCDI",
-        # These fail on Docker v29:
-        "github.com/moby/moby/v2/integration/image::TestImagePullNonExisting",
-        "github.com/moby/moby/v2/integration/image::TestImagePullNonExisting/asdfasdf",
-        "github.com/moby/moby/v2/integration/image::TestImagePullNonExisting/library/asdfasdf",
+        # This fails on Docker v29:
         "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
     ) unless (is_sle);
     push @xfails, (
