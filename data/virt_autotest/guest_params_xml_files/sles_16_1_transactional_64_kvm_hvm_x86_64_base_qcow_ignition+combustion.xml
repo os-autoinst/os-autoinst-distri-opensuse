@@ -26,8 +26,7 @@
     <guest_installation_extra_args/>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <!-- Need to update medium URL after images are ready on OSD -->
-    <guest_installation_media>http://vh012.qa2.suse.asia/assets/hdd/SLES-16.1-Transactional.x86_64-Base-qcow-Build12345.qcow2</guest_installation_media>
+    <guest_installation_media>http://openqa.suse.de/assets/hdd/SLES-16.1-Immutable.x86_64-Base-qcow-Build12345.qcow2</guest_installation_media>
     <guest_os_variant>sles16</guest_os_variant>
     <guest_storage_path/>
     <guest_storage_type>disk</guest_storage_type>
