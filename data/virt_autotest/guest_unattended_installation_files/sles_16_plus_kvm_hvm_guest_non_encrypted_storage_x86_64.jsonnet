@@ -24,14 +24,27 @@
     "sshPublicKey": "##Authorized-Keys##"
   },
   "software": {
-      "patterns": {
-        "add": ["base", "enhanced_base"],
-        "remove": ["patterns-microos-hardware", "patterns-sles-hardware"]
-      },
-      // Workaround for bsc#1257492
-      "packages": [
-        'qemu-guest-agent'
+    "patterns": {
+      "add": ["base", "enhanced_base"],
+      "remove": [
+        "patterns-microos-hardware", 
+        "patterns-sles-hardware"
       ]
+    },
+    // Workaround for bsc#1257492
+    "packages": [
+      'qemu-guest-agent'
+    ]
+    // it took 30 minutes to install these packages
+    // installation always fail due to timeout
+    // these packages are not supposed to be in use in our test
+    // we can add any of them back if necessary
+    "remove": [
+      "kernel-firmware-nvidia",
+      "kernel-firmware-ath11k",
+      "kernel-firmware-iwlwifi",
+      "kernel-firmware-amdgpu"
+    ]
   },
   "storage": {
     "drives": [
