@@ -936,4 +936,21 @@ subtest '[get_fencing_type] ' => sub {
     is get_fencing_type, $_, "Return correct fencing type '$_'" foreach @tested_keys;
 };
 
+subtest '[generate_lun_list]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @results = ();
+    $hacluster->redefine(script_run => sub { push @results, $_[0]; });
+    my $tgt_ip_port = '10.0.0.2:3260';
+    $hacluster->redefine(script_output => sub { return $tgt_ip_port; });
+    my $iqn = 'iqn.2026-02.unit.test';
+    $hacluster->redefine(lio_show_iqn => sub { return $iqn; });
+    my $numluns = 3;
+    set_var('CLUSTER_INFOS', 'cluster:2:' . $numluns);
+    generate_lun_list();
+    set_var('CLUSTER_INFOS', undef);
+    note("\n --> " . join("\n --> ", @results));
+    ok(@results == $numluns, 'Correct number of LUNs');
+    foreach my $i (0 .. 2) { ok($results[$i] =~ /.+$tgt_ip_port.+$iqn-lun\-$i/, "Correct LUN path [$i]"); }
+};
+
 done_testing;
