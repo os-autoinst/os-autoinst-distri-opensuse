@@ -18,12 +18,17 @@ my $zypp_conf_dir;
 sub run {
     select_serial_terminal();
     my $zypp_econf = !script_run("rpm -q --provides libzypp | grep 'libzypp(econf)'");
-    $zypp_conf_dir = $zypp_econf ? '/usr/etc/zypp/' : '/etc/zypp/';
+    my $zypp_etc = !script_run("test -f /etc/zypp/zypp.conf");
 
-    if ($zypp_econf) {
+    if ($zypp_econf && !$zypp_etc) {
+        $zypp_conf_dir = '/usr/etc/zypp/';
+
         my @packages = qw(zypp-excludedocs zypp-no-recommends);
         push @packages, 'zypp-no-multiversion' unless (is_jeos && !is_transactional);
         assert_script_run("rpm -q @packages");
+
+    } else {
+        $zypp_conf_dir = '/etc/zypp/';
     }
 
     unless (is_community_jeos()) {
