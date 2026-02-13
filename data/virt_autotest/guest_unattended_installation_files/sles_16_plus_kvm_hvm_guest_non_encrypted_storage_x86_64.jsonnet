@@ -34,7 +34,7 @@
     // Workaround for bsc#1257492
     "packages": [
       'qemu-guest-agent'
-    ]
+    ],
     // it took 30 minutes to install these packages
     // installation always fail due to timeout
     // these packages are not supposed to be in use in our test
