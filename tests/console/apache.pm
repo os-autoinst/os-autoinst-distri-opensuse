@@ -17,16 +17,26 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_jeos has_selinux);
 
+my $config_snippet = <<'EOF';
+[main]
+# Install documentation, overrides zypp-excludedocs
+rpm.install.excludedocs = no
+EOF
+
 sub run {
     select_serial_terminal;
 
     # On SLES12-SP5 apache2 and apache2-tls13 are supported
     my $apache2 = get_var('APACHE2_PKG', "apache2");
+    my $zypp_econf = !script_run("rpm -q --provides libzypp | grep 'libzypp(econf)'");
 
     # installation of docs and manpages is excluded in zypp.conf
     # enable full package installation, and clean up previous apache2 deployment
     if (is_jeos) {
-        assert_script_run('sed -ie \'s/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/\' /etc/zypp/zypp.conf');
+        my $command = $zypp_econf ? "cat > /etc/zypp/zypp.conf.d/override-excludedocs <<'END'\n$config_snippet\nEND\n( exit \$?)" :
+          'sed -ie \'s/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/\' /etc/zypp/zypp.conf';
+
+        assert_script_run($command);
         zypper_call('rm apache2', exitcode => [0, 104]);
     }
 
@@ -192,7 +202,10 @@ sub run {
 
     # Revert zypp.conf changes on JeOS
     if (is_jeos) {
-        assert_script_run('sed -ie \'s/rpm.install.excludedocs = no/rpm.install.excludedocs = yes/\' /etc/zypp/zypp.conf');
+        my $command = $zypp_econf ? "rm /etc/zypp/zypp.conf.d/override-excludedocs" :
+          'sed -ie \'s/rpm.install.excludedocs = no/rpm.install.excludedocs = yes/\' /etc/zypp/zypp.conf';
+
+        assert_script_run($command);
     }
 }
 
