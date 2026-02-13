@@ -64,9 +64,12 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 <h2 id="ibsm_network_peering_azure_create">ibsm_network_peering_azure_create</h2>
 
-<pre><code>ibsm_network_peering_azure_create(ibsm_rg =&gt; &#39;IBSmMyRg&#39;);</code></pre>
+<pre><code>ibsm_network_peering_azure_create(
+    ibsm_rg =&gt; &#39;IBSmRg&#39;,
+    sut_rg =&gt; &#39;SUTRg&#39;,
+    name_prefix =&gt; &#39;something&#39;);</code></pre>
 
-<p>Create bidirectional network peering in Azure</p>
+<p>Create two peering in Azure. Given two resource group names, this function first calculate two peering names. The caller can provide a prefix but name also contain the vnet names from the two resource groups.</p>
 
 <dl>
 
@@ -86,7 +89,12 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 <h3 id="ibsm_network_peering_azure_delete">ibsm_network_peering_azure_delete</h3>
 
-<pre><code>Delete all the network peering between the two provided deployments.</code></pre>
+<pre><code>ibsm_network_peering_azure_delete(
+    ibsm_rg =&gt; &#39;IBSmRg&#39;,
+    sut_rg =&gt; &#39;SUTRg&#39;,
+    name_prefix =&gt; &#39;something&#39;);</code></pre>
+
+<p>Delete the two network peerings between the two provided deployments. This function is symmetrical to ibsm_network_peering_azure_create.</p>
 
 <dl>
 
@@ -102,11 +110,11 @@ SPDX-License-Identifier: FSFAP</code></pre>
 <dd>
 
 </dd>
-<dt id="query---valid-jmespath-https:-jmespath.org-default:-.name-optional"><b>query</b> - valid jmespath https://jmespath.org/ (default: &#39;[].name&#39;), optional</dt>
+<dt id="timeout---default-is-5-mins"><b>timeout</b> - default is 5 mins</dt>
 <dd>
 
 </dd>
-<dt id="timeout---default-is-5-mins"><b>timeout</b> - default is 5 mins</dt>
+<dt id="name_prefix---allow-the-user-to-prepend-name-prefix-to-the-peering-name-to-be-deleted"><b>name_prefix</b> - allow the user to prepend name prefix to the peering name to be deleted</dt>
 <dd>
 
 </dd>
