@@ -134,7 +134,7 @@ sub sdaf_ibsm_teardown {
             sut_rg => $peering_data->{workload_peering}{source_resource_group},
             sut_vnet => $peering_data->{workload_peering}{source_vnet},
             ibsm_rg => $peering_data->{ibsm_peering}{source_resource_group},
-            query => "[?contains(name,'" . $id . "') && contains(name, 'SDAF') ].name");
+            name_prefix => 'SDAF');
 
         # Sleep 5 seconds between API calls
         sleep 5;

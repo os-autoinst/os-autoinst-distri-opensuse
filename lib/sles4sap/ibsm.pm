@@ -80,11 +80,28 @@ sub ibsm_calculate_address_range {
     );
 }
 
+sub _get_peering_name {
+    my ($prefix, $src_vnet, $dst_vnet) = @_;
+    return join('-', ($prefix ? $prefix : ()), $src_vnet, $dst_vnet);
+}
+
+sub _get_vnet_name {
+    my (%args) = @_;
+    my $res = az_network_vnet_get(%args);
+    die "Expected exactly one VNET name for resource group $args{resource_group} but found " . scalar(@$res) if scalar(@$res) != 1;
+    return $res->[0];
+}
+
 =head2 ibsm_network_peering_azure_create
 
-    ibsm_network_peering_azure_create(ibsm_rg => 'IBSmMyRg');
+    ibsm_network_peering_azure_create(
+        ibsm_rg => 'IBSmRg',
+        sut_rg => 'SUTRg',
+        name_prefix => 'something');
 
-Create bidirectional network peering in Azure
+Create two peering in Azure. Given two resource group names,
+this function first calculate two peering names.
+The caller can provide a prefix but name also contain the vnet names from the two resource groups.
 
 =over
 
@@ -102,35 +119,38 @@ sub ibsm_network_peering_azure_create {
     foreach (qw(ibsm_rg sut_rg)) { croak("Argument < $_ > missing") unless $args{$_}; }
 
     my %vnet_names;
-    foreach ('ibsm', 'sut') {
-        my $res = az_network_vnet_get(resource_group => $args{$_ . '_rg'}, query => '[].name');
-        $vnet_names{$_} = $res->[0];
+    my @peerings = (
+        {src => 'sut_rg', dst => 'ibsm_rg'},
+        {src => 'ibsm_rg', dst => 'sut_rg'}
+    );
+
+    foreach my $p (@peerings) {
+        # Retrieve VNET names from Azure. Use argument names ('sut_rg', 'ibsm_rg') as key to same them.
+        foreach my $rg_arg (values %$p) {
+            $vnet_names{$rg_arg} //= _get_vnet_name(resource_group => $args{$rg_arg}, query => '[].name');
+        }
+
+        # Generate the unique name for the peering based on the source and destination VNETs.
+        my $name = _get_peering_name($args{name_prefix}, $vnet_names{$p->{src}}, $vnet_names{$p->{dst}});
+
+        # Create the network peering in the specified direction.
+        az_network_peering_create(name => $name,
+            source_rg => $args{$p->{src}}, source_vnet => $vnet_names{$p->{src}},
+            target_rg => $args{$p->{dst}}, target_vnet => $vnet_names{$p->{dst}});
+        record_info('PEERING SUCCESS ' . $name,
+            "Peering from $args{$p->{src}}.$vnet_names{$p->{src}} to $args{$p->{dst}}.$vnet_names{$p->{dst}} was successful");
     }
-
-    my @peering_name;
-    push @peering_name, $args{name_prefix} if ($args{name_prefix});
-    push @peering_name, $vnet_names{sut};
-    push @peering_name, $vnet_names{ibsm};
-    az_network_peering_create(name => join('-', @peering_name),
-        source_rg => $args{sut_rg}, source_vnet => $vnet_names{sut},
-        target_rg => $args{ibsm_rg}, target_vnet => $vnet_names{ibsm});
-    record_info('PEERING SUCCESS ' . join('-', @peering_name),
-        "Peering from $args{sut_rg}.$vnet_names{sut} SUT was successful");
-
-    @peering_name = ();
-    push @peering_name, $args{name_prefix} if ($args{name_prefix});
-    push @peering_name, $vnet_names{ibsm};
-    push @peering_name, $vnet_names{sut};
-    az_network_peering_create(name => join('-', @peering_name),
-        source_rg => $args{ibsm_rg}, source_vnet => $vnet_names{ibsm},
-        target_rg => $args{sut_rg}, target_vnet => $vnet_names{sut});
-    record_info('PEERING SUCCESS ' . join('-', @peering_name),
-        "Peering from $args{ibsm_rg}.$vnet_names{ibsm} server was successful");
 }
 
 =head3 ibsm_network_peering_azure_delete
 
-    Delete all the network peering between the two provided deployments.
+    ibsm_network_peering_azure_delete(
+        ibsm_rg => 'IBSmRg',
+        sut_rg => 'SUTRg',
+        name_prefix => 'something');
+
+Delete the two network peerings between the two provided deployments.
+This function is symmetrical to ibsm_network_peering_azure_create.
 
 =over
 
@@ -140,9 +160,9 @@ sub ibsm_network_peering_azure_create {
 
 =item B<sut_vnet> - substring in the SUT vnet. Optional and only needed if only one specific VNET has to be considered. Most of the time it is get_current_job_id()
 
-=item B<query> - valid jmespath https://jmespath.org/ (default: '[].name'), optional
-
 =item B<timeout> - default is 5 mins
+
+=item B<name_prefix> - allow the user to prepend name prefix to the peering name to be deleted
 
 =back
 =cut
@@ -151,52 +171,58 @@ sub ibsm_network_peering_azure_delete {
     my (%args) = @_;
     foreach (qw(sut_rg ibsm_rg)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
     $args{timeout} //= bmwqemu::scale_timeout(300);
-    $args{query} //= '[].name';
 
-    # Take care to keep all the query to always return a json list, even if of a sigle element,
-    # and not a string.
-    my $vnet_get_query = '[].name';
-    my $res = az_network_vnet_get(resource_group => $args{sut_rg},
-        query => $args{sut_vnet} ? "[?contains(name,'" . $args{sut_vnet} . "')].name" : $vnet_get_query);
-    my $sut_vnet = $res->[0];
+    my %vnet_names;
+    my @peerings = (
+        {src => 'sut_rg', dst => 'ibsm_rg'},
+        {src => 'ibsm_rg', dst => 'sut_rg'}
+    );
 
-    $res = az_network_vnet_get(resource_group => $args{ibsm_rg},
-        query => $vnet_get_query);
-    my $ibsm_vnet = $res->[0];
+    my %rets = (sut_rg => 0, ibsm_rg => 0);
+    foreach my $p (@peerings) {
+        # Retrieve both src and dst VNET names from Azure.
+        # The SUT VNET might require specific filtering based on 'sut_vnet'.
+        # We use the argument name ('sut_rg', 'ibsm_rg') as key to save them.
+        foreach my $rg_arg (values %$p) {
+            if (!$vnet_names{$rg_arg}) {
+                # Determine the appropriate JMESPath query for fetching the VNET name.
+                my $query = ($rg_arg eq 'sut_rg' && $args{sut_vnet}) ? "[?contains(name,'" . $args{sut_vnet} . "')].name" : '[].name';
+                $vnet_names{$rg_arg} = _get_vnet_name(resource_group => $args{$rg_arg}, query => $query);
+            }
+            else {
+                record_info("VNET:$vnet_names{$rg_arg}");
+            }
+        }
 
-    $res = az_network_peering_list(resource_group => $args{sut_rg}, vnet => $sut_vnet, query => $args{query});
-    my $peering_name = $res->[0];
-    if (!$peering_name) {
-        record_info('NO PEERING',
-            "No peering between $args{sut_rg} and resources belonging to the current job to be destroyed!");
-        return;
-    }
+        # Reconstruct the expected peering name to ensure we precisely identify the correct resource.
+        my $expected_name = _get_peering_name($args{name_prefix}, $vnet_names{$p->{src}}, $vnet_names{$p->{dst}});
 
-    my $source_ret = 0;
-    record_info("Destroying SUT->IBSM peering '$peering_name'");
-    if ($args{sut_rg}) {
-        $source_ret = az_network_peering_delete(
+        # List peerings matching the expected name to verify existence and uniqueness.
+        my $res = az_network_peering_list(
+            resource_group => $args{$p->{src}},
+            vnet => $vnet_names{$p->{src}},
+            query => "[?contains(name, '$expected_name')].name");
+        if (!@$res) {
+            # Missing peerings on the IBSm side are logged but skipped to allow cleanup to proceed.
+            record_info('NO PEERING', "No peering from $args{$p->{src}} to $args{$p->{dst}} found - skipping deletion.");
+            next;
+        }
+
+        # Safety check: die if more than one matching peering is found to prevent accidental deletion of unrelated resources.
+        die "Expected exactly one peering named '$expected_name' but found " . scalar(@$res) if scalar(@$res) != 1;
+        my $peering_name = $res->[0];
+
+        record_info("Destroying peering '$peering_name' from $args{$p->{src}} to $args{$p->{dst}}");
+        # Perform the actual deletion of the identified peering resource in Azure.
+        $rets{$p->{src}} = az_network_peering_delete(
             name => $peering_name,
-            resource_group => $args{sut_rg},
-            vnet => $sut_vnet,
+            resource_group => $args{$p->{src}},
+            vnet => $vnet_names{$p->{src}},
             timeout => $args{timeout});
     }
-    else {
-        record_info('NO PEERING',
-            "No peering between SUT and IBSM - maybe it wasn't created, or the resources have been destroyed.");
-    }
-    $res = az_network_peering_list(resource_group => $args{ibsm_rg}, vnet => $ibsm_vnet, query => $args{query});
 
-    $peering_name = $res->[0];
-    record_info("Destroying IBSM->SUT peering '$peering_name'");
-    my $target_ret = az_network_peering_delete(
-        name => $peering_name,
-        resource_group => $args{ibsm_rg},
-        vnet => $ibsm_vnet,
-        timeout => $args{timeout});
-
-    record_info("source_ret:'$source_ret' target_ret:'$target_ret'");
-    if ($source_ret == 0 && $target_ret == 0) {
+    record_info("source_ret:'$rets{sut_rg}' target_ret:'$rets{ibsm_rg}'");
+    if ($rets{sut_rg} == 0 && $rets{ibsm_rg} == 0) {
         record_info('Peering deletion SUCCESS', 'The peering was successfully destroyed');
         return;
     }

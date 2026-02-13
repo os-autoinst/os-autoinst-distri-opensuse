@@ -33,8 +33,9 @@ subtest '[ibsm_network_peering_azure_create]' => sub {
 
     $ibsm->redefine(az_network_vnet_get => sub {
             my (%args) = @_;
-            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}', query => '$args{query}')");
-            return ['VNET' . $args{resource_group}]; });
+            my $ret = 'VNET' . $args{resource_group};
+            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}', query => '$args{query}') --> return [ $ret ]");
+            return [$ret]; });
     my @peering_names;
     $ibsm->redefine(az_network_peering_create => sub {
             my (%args) = @_;
@@ -55,8 +56,9 @@ subtest '[ibsm_network_peering_azure_create] with name' => sub {
 
     $ibsm->redefine(az_network_vnet_get => sub {
             my (%args) = @_;
-            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}', query => '$args{query}')");
-            return ['VNET' . $args{resource_group}]; });
+            my $ret = 'VNET' . $args{resource_group};
+            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}', query => '$args{query}') --> return [ $ret ]");
+            return [$ret]; });
     my @peering_names;
     $ibsm->redefine(az_network_peering_create => sub {
             my (%args) = @_;
@@ -115,23 +117,31 @@ subtest '[ibsm_network_peering_azure_delete]' => sub {
 
     $ibsm->redefine(az_network_vnet_get => sub {
             my (%args) = @_;
-            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}', query => '$args{query}')");
-            return ['VNET' . $args{resource_group}]; });
+            my $ret = 'VNET' . $args{resource_group};
+            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}', query => '$args{query}') --> return [ $ret ]");
+            return [$ret]; });
     $ibsm->redefine(az_network_peering_list => sub {
             my (%args) = @_;
-            note(" --> az_network_peering_list(resource_group => '$args{resource_group}', vnet => '$args{vnet}')");
+            my @az_args;
+            push @az_args, "resource_group => '$args{resource_group}'";
+            push @az_args, "vnet => '$args{vnet}'";
+            push @az_args, "query => '$args{query}'" if $args{query};
+            note(' --> az_network_peering_list(' . join(', ', @az_args) . ')');
             # The function is calling the az cli with "[?contains(name,'" . $args{sut_vnet} . "')].name" or '[].name'
             # that both return a json list, even if usually only of one element.
             return ['PEERING' . $args{resource_group}]; });
     my $peering_delete = 0;
-    $ibsm->redefine(az_network_peering_delete => sub { $peering_delete = 1; return 0; });
+    $ibsm->redefine(az_network_peering_delete => sub {
+            my (%args) = @_;
+            note(" --> az_network_peering_delete(name => '$args{name}', resource_group => '$args{resource_group}', vnet => '$args{vnet}')");
+            $peering_delete = 1; return 0; });
     $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     ibsm_network_peering_azure_delete(sut_rg => 'PICCIONE', ibsm_rg => 'COLOMBA');
     ok($peering_delete eq 1), 'az_network_peering_delete called';
 };
 
-subtest '[ibsm_network_peering_azure_delete] az integrate' => sub {
+subtest '[ibsm_network_peering_azure_delete] including az_cli code layer' => sub {
     my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
     $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -157,6 +167,279 @@ subtest '[ibsm_network_peering_azure_delete] az integrate' => sub {
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /.*SR: az network vnet peering delete.*/ } @calls), 'There is at least 1 "az network vnet peering delete" (there should be exactly 2).');
     ok((any { /.*SR: az network vnet peering delete.*name GABBIANO / } @calls), 'There is at least 1 call with peering name GABBIANO.');
+};
+
+subtest '[ibsm_network_peering_azure_delete] error handling' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ibsm->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            my $ret = 'VNET' . $args{resource_group};
+            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}', query => '$args{query}') --> return [ $ret ]");
+            return [$ret]; });
+
+    # Empty list on SUT side (should return early)
+    $ibsm->redefine(az_network_peering_list => sub {
+            my (%args) = @_;
+            my @az_args;
+            push @az_args, "resource_group => '$args{resource_group}'";
+            push @az_args, "vnet => '$args{vnet}'";
+            push @az_args, "query => '$args{query}'" if $args{query};
+            note(' --> az_network_peering_list(' . join(', ', @az_args) . ')');
+            note(" --> az_network_peering_list(resource_group => '$args{resource_group}', vnet => '$args{vnet}') --> return []");
+            return []; });
+    lives_ok { ibsm_network_peering_azure_delete(sut_rg => 'SUT', ibsm_rg => 'IBSM') } 'Graceful exit if SUT peering not found';
+
+    # Multiple elements (should die)
+    $ibsm->redefine(az_network_peering_list => sub {
+            my (%args) = @_;
+            note(" --> az_network_peering_list(resource_group => '$args{resource_group}', vnet => '$args{vnet}') --> return ['PEERING1', 'PEERING2']");
+            my @az_args;
+            push @az_args, "resource_group => '$args{resource_group}'";
+            push @az_args, "vnet => '$args{vnet}'";
+            push @az_args, "query => '$args{query}'" if $args{query};
+            note(' --> az_network_peering_list(' . join(', ', @az_args) . ')');
+            return ['PEERING1', 'PEERING2']; });
+    dies_ok { ibsm_network_peering_azure_delete(sut_rg => 'SUT', ibsm_rg => 'IBSM') } 'Die if multiple peerings found';
+};
+
+subtest '[ibsm_network_peering_azure_create/_delete] symmetry' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+
+    $ibsm->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            my $ret = 'VNET' . $args{resource_group};
+            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}', query => '$args{query}') --> return [ $ret ]");
+            return [$ret]; });
+
+    my @peering_names;
+    $ibsm->redefine(az_network_peering_create => sub {
+            my (%args) = @_;
+            push @peering_names, $args{name};
+            note(" --> az_network_peering_create(name => '$args{name}, source_rg => '$args{source_rg}, source_vnet => '$args{source_vnet}', target_rg => '$args{target_rg},  target_vnet => '$args{target_vnet}')");
+            return;
+    });
+
+    $ibsm->redefine(az_network_peering_list => sub {
+            my (%args) = @_;
+            my @az_args;
+            push @az_args, "resource_group => '$args{resource_group}'";
+            push @az_args, "vnet => '$args{vnet}'";
+            push @az_args, "query => '$args{query}'" if $args{query};
+            # Extract target name from JMESPath query: "[?contains(name, 'EXPECTED_NAME')].name" or "[?name=='EXPECTED_NAME'].name"
+            if ($args{query} =~ /(?:contains\(name, '|name=='|name\s+==\s+')([^']+)'/) {
+                my $target = $1;
+                my @matches = grep { $_ eq $target } @peering_names;
+                note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> Found ' . scalar(@matches) . " matches for '$target'");
+                return [@matches];
+            }
+            note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> []');
+            return [];
+    });
+
+    $ibsm->redefine(az_network_peering_delete => sub {
+            my (%args) = @_;
+            note(" --> az_network_peering_delete(name => '$args{name}', resource_group => '$args{resource_group}', vnet => '$args{vnet}')");
+            my $initial_count = scalar @peering_names;
+            @peering_names = grep { $_ ne $args{name} } @peering_names;
+            die "Peering '$args{name}' not found in internal list" if scalar @peering_names == $initial_count;
+            note("Mock az_network_peering_delete: Remaining peerings: [" . join(', ', @peering_names) . "]");
+            return 0;
+    });
+
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    note("--- Create Peerings ---");
+    ibsm_network_peering_azure_create(ibsm_rg => 'COLIBRI', sut_rg => 'PASSEROTTO');
+    is(scalar @peering_names, 2, 'Two peerings were created');
+
+    note("--- Delete Peerings ---");
+    ibsm_network_peering_azure_delete(ibsm_rg => 'COLIBRI', sut_rg => 'PASSEROTTO');
+    is(scalar @peering_names, 0, 'All peerings were successfully deleted');
+};
+
+subtest '[ibsm_network_peering_azure_create/_delete] symmetry with prefix' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+    $ibsm->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            my $ret = 'VNET' . $args{resource_group};
+            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}', query => '$args{query}') --> return [ $ret ]");
+            return [$ret]; });
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @peering_names;
+    $ibsm->redefine(az_network_peering_create => sub {
+            my (%args) = @_;
+            push @peering_names, $args{name};
+            note(" --> az_network_peering_create(name => '$args{name}, source_rg => '$args{source_rg}, source_vnet => '$args{source_vnet}', target_rg => '$args{target_rg},  target_vnet => '$args{target_vnet}')");
+    });
+
+    $ibsm->redefine(az_network_peering_list => sub {
+            my (%args) = @_;
+            my @az_args;
+            push @az_args, "resource_group => '$args{resource_group}'";
+            push @az_args, "vnet => '$args{vnet}'";
+            push @az_args, "query => '$args{query}'" if $args{query};
+            # Extract target name from JMESPath query
+            if ($args{query} =~ /(?:contains\(name, '|name=='|name\s+==\s+')([^']+)'/) {
+                my $target = $1;
+                my @matches = grep { $_ eq $target } @peering_names;
+                note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> Found ' . scalar(@matches) . " matches for '$target'");
+                return [@matches];
+            }
+            note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> []');
+            return [];
+    });
+
+    $ibsm->redefine(az_network_peering_delete => sub {
+            my (%args) = @_;
+            note(" --> az_network_peering_delete(name => '$args{name}', resource_group => '$args{resource_group}', vnet => '$args{vnet}')");
+            @peering_names = grep { $_ ne $args{name} } @peering_names;
+            return 0;
+    });
+
+    note("--- Testing symmetry with prefix 'SDAF' ---");
+    ibsm_network_peering_azure_create(ibsm_rg => 'COLIBRI', sut_rg => 'PASSEROTTO', name_prefix => 'RONDINE');
+    ok((grep { /^RONDINE-VNETPASSEROTTO-VNETCOLIBRI$/ } @peering_names), 'Expected peering name with prefix found');
+
+    ibsm_network_peering_azure_delete(ibsm_rg => 'COLIBRI', sut_rg => 'PASSEROTTO', name_prefix => 'RONDINE');
+    is(scalar @peering_names, 0, 'Symmetry verified with prefix');
+};
+
+subtest '[ibsm_network_peering_azure_create] dies if one VNET failure' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Test _create dies if one VNET is missing
+    $ibsm->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            if ($args{resource_group} eq 'COLIBRI') {
+                note(" --> az_network_vnet_get(resource_group => '$args{resource_group}') --> return []");
+                return [];
+            }
+            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}') --> return [VNET$args{resource_group}]");
+            return ['VNET' . $args{resource_group}];
+    });
+
+    my @deleted;
+    $ibsm->redefine(az_network_peering_delete => sub {
+            my (%args) = @_;
+            push @deleted, $args{name};
+            return 0;
+    });
+
+    $ibsm->redefine(az_network_peering_list => sub {
+            my (%args) = @_;
+            my @az_args;
+            push @az_args, "resource_group => '$args{resource_group}'";
+            push @az_args, 'vnet => ' . ("'$args{vnet}'" // 'undef');
+            push @az_args, "query => '$args{query}'" if $args{query};
+
+            if ($args{vnet} && $args{query} =~ /(?:contains\(name, '|name=='|name\s+==\s+')([^']+)'/) {
+                if ($1 eq 'VNETPASSEROTTO-') {
+                    # If IBSM VNET (COLIBRI) is missing, expected_name for SUT->IBSM will be 'VNETPASSEROTTO-'
+                    note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> [VNETPASSEROTTO-VNETCOLIBRI]');
+                    return ['VNETPASSEROTTO-VNETCOLIBRI'];
+                }
+            }
+            note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> []');
+            return [];
+    });
+
+    dies_ok { ibsm_network_peering_azure_create(ibsm_rg => 'COLIBRI', sut_rg => 'PASSEROTTO') }
+    'ibsm_network_peering_azure_create dies if one VNET is missing';
+};
+
+subtest '[ibsm_network_peering_azure_delete] dies if one VNET failure' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Test _create dies if one VNET is missing
+    $ibsm->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            if ($args{resource_group} eq 'COLIBRI') {
+                note(" --> az_network_vnet_get(resource_group => '$args{resource_group}') --> return []");
+                return [];
+            }
+            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}') --> return [VNET$args{resource_group}]");
+            return ['VNET' . $args{resource_group}];
+    });
+
+    my @deleted;
+    $ibsm->redefine(az_network_peering_delete => sub {
+            my (%args) = @_;
+            push @deleted, $args{name};
+            return 0;
+    });
+
+    $ibsm->redefine(az_network_peering_list => sub {
+            my (%args) = @_;
+            my @az_args;
+            push @az_args, "resource_group => '$args{resource_group}'";
+            push @az_args, 'vnet => ' . ("'$args{vnet}'" // 'undef');
+            push @az_args, "query => '$args{query}'" if $args{query};
+
+            if ($args{vnet} && $args{query} =~ /(?:contains\(name, '|name=='|name\s+==\s+')([^']+)'/) {
+                if ($1 eq 'VNETPASSEROTTO-') {
+                    # If IBSM VNET (COLIBRI) is missing, expected_name for SUT->IBSM will be 'VNETPASSEROTTO-'
+                    note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> [VNETPASSEROTTO-VNETCOLIBRI]');
+                    return ['VNETPASSEROTTO-VNETCOLIBRI'];
+                }
+            }
+            note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> []');
+            return [];
+    });
+
+
+    # Test _delete with one VNET missing
+    dies_ok { ibsm_network_peering_azure_delete(ibsm_rg => 'COLIBRI', sut_rg => 'PASSEROTTO') }
+    'ibsm_network_peering_azure_delete dies if one VNET is missing';
+};
+
+
+subtest '[ibsm_network_peering_azure_delete] peering list failure' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Test _create dies if one VNET is missing
+    $ibsm->redefine(az_network_vnet_get => sub {
+            my (%args) = @_;
+            note(" --> az_network_vnet_get(resource_group => '$args{resource_group}') --> return [VNET$args{resource_group}]");
+            return ['VNET' . $args{resource_group}];
+    });
+
+    my @deleted;
+    $ibsm->redefine(az_network_peering_delete => sub {
+            my (%args) = @_;
+            push @deleted, $args{name};
+            return 0;
+    });
+
+    $ibsm->redefine(az_network_peering_list => sub {
+            my (%args) = @_;
+            my @az_args;
+            push @az_args, "resource_group => '$args{resource_group}'";
+            push @az_args, 'vnet => ' . ("'$args{vnet}'" // 'undef');
+            push @az_args, "query => '$args{query}'" if $args{query};
+
+            if ($args{vnet} && $args{query} =~ /(?:contains\(name, '|name=='|name\s+==\s+')([^']+)'/) {
+                if ($1 eq 'VNETCOLIBRI-VNETPASSEROTTO') {
+                    note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> [VNETCOLIBRI-VNETPASSEROTTO]');
+                    return ['VNETCOLIBRI-VNETPASSEROTTO'];
+                }
+            }
+            note(' --> az_network_peering_list(' . join(', ', @az_args) . ') --> []');
+            return [];
+    });
+
+
+    # Test _delete with one VNET missing
+    @deleted = ();
+    lives_ok { ibsm_network_peering_azure_delete(sut_rg => 'PASSEROTTO', ibsm_rg => 'COLIBRI') }
+    'ibsm_network_peering_azure_delete lives even if one VNET is missing';
+
+    is(scalar @deleted, 1, 'Only one peering deleted when IBSM VNET is missing');
+    is($deleted[0], 'VNETCOLIBRI-VNETPASSEROTTO', 'Deleted the listed peering VNETCOLIBRI-VNETPASSEROTTO');
 };
 
 done_testing;

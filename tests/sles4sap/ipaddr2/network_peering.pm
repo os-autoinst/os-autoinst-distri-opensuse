@@ -57,10 +57,10 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal qw( select_serial_terminal );
 use sles4sap::ipaddr2 qw(
-  ipaddr2_network_peering_create
   ipaddr2_repos_add_server_to_hosts
   ipaddr2_cleanup
-  ipaddr2_logs_collect);
+  ipaddr2_logs_collect
+  ipaddr2_network_peering_create);
 
 sub run {
     my ($self) = @_;

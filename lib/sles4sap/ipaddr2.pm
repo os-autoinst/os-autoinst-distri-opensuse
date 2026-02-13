@@ -62,6 +62,7 @@ our @EXPORT = qw(
   ipaddr2_logs_cloudinit
   ipaddr2_azure_resource_group
   ipaddr2_network_peering_create
+  ipaddr2_network_peering_delete
   ipaddr2_patch_system
   ipaddr2_repos_add_server_to_hosts
   ipaddr2_cleanup
@@ -2058,6 +2059,28 @@ sub ipaddr2_network_peering_create(%args) {
         name_prefix => DEPLOY_PREFIX);
 }
 
+=head2 ipaddr2_network_peering_delete
+
+    ipaddr2_network_peering_delete(ibsm_rg => 'IBSmMyRg');
+
+Remove the IBSm network peering if present.
+
+=over
+
+=item B<ibsm_rg> - Optionally delete the network peering to IBSs, from setting IBSM_RG
+
+=back
+=cut
+
+sub ipaddr2_network_peering_delete(%args) {
+    croak 'Missing mandatory argument < ibsm_rg >' unless $args{ibsm_rg};
+    ibsm_network_peering_azure_delete(
+        sut_rg => ipaddr2_azure_resource_group(),
+        sut_vnet => get_current_job_id(),
+        ibsm_rg => $args{ibsm_rg},
+        name_prefix => DEPLOY_PREFIX);
+}
+
 =head2 ipaddr2_repos_add_server_to_hosts
 
     ipaddr2_repos_add_server_to_hosts(
@@ -2273,7 +2296,8 @@ sub ipaddr2_cleanup(%args) {
         ibsm_network_peering_azure_delete(
             sut_rg => ipaddr2_azure_resource_group(),
             sut_vnet => get_current_job_id(),
-            ibsm_rg => $args{ibsm_rg});
+            ibsm_rg => $args{ibsm_rg},
+            name_prefix => DEPLOY_PREFIX);
     }
     ipaddr2_infra_destroy();
 }
