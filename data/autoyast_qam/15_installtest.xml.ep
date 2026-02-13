@@ -19,6 +19,18 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
         % }
+        % unless ($is_ltss) {
+      <listentry>
+        <name>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::pool</name>
+        <alias>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::pool</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Packagehub-Subpackages/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
+      <listentry>
+        <name>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::update</name>
+        <alias>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::update</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Packagehub-Subpackages/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
+      </listentry>
+        % }
       <listentry>
         <name>sle-module-containers:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-module-containers:<%= $get_var->('VERSION') %>::pool</alias>
@@ -58,16 +70,6 @@
         <name>sle-module-web-scripting:<%= $get_var->('VERSION') %>::update</name>
         <alias>sle-module-web-scripting:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Web-Scripting/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::pool</name>
-        <alias>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::pool</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Packagehub-Subpackages/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/]]></media_url>
-      </listentry>
-      <listentry>
-        <name>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::update</name>
-        <alias>sle-module-packagehub-subpackages:<%= $get_var->('VERSION') %>::update</alias>
-        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Packagehub-Subpackages/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       <listentry>
         <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</name>
