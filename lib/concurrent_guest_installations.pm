@@ -34,6 +34,7 @@ use File::Basename;
 use testapi;
 use IPC::Run;
 use utils qw(inspect_existing_issue);
+use version_utils qw(is_sle);
 use virt_utils;
 use virt_autotest_base;
 use virt_autotest::utils qw(check_guest_health);
