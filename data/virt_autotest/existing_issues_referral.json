@@ -59,5 +59,13 @@
         },
         "modes": ["transactional"],
         "type": "bug"
+    },
+    "bsc#1257977": {
+        "description": "bsc#1257977 No /etc/issue after OS agama installation",
+        "products": {
+            "sle": ["16.1"]
+        },
+        "modes": ["traditional"],
+        "type": "bug"
     }
 }

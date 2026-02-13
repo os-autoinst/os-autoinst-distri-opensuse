@@ -209,7 +209,7 @@ sub junit_log_provision {
         $_guest_installations_results->{$_}{stop_run} = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
         $_guest_installations_results->{$_}{test_time} = strftime("\%Hh\%Mm\%Ss", gmtime($_guest_installations_results->{$_}{stop_run} - $_guest_installations_results->{$_}{start_run}));
     }
-    if (inspect_existing_issue(issue => 'bsc#1255178 Transactional base image has no /etc/issue')) {
+    if (inspect_existing_issue(issue => 'bsc#1255178 Transactional base image has no /etc/issue##bsc#1257977 No /etc/issue after OS agama installation')) {
         my %osinfo = script_output("cat /etc/os-release") =~ /^([^#]\S+)="?([^"\r\n]+)"?$/gm;
         %osinfo = map { uc($_) => $osinfo{$_} } keys %osinfo;
         $self->{"product_tested_on"} = "$osinfo{PRETTY_NAME} $osinfo{VARIANT_ID} $osinfo{VERSION}";
