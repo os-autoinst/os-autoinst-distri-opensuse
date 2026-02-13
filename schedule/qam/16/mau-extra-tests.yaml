@@ -16,3 +16,4 @@ schedule:
   - x11/evolution/evolution_prepare_servers
   - console/mutt
   - network/samba/server
+  - console/networkmanager
