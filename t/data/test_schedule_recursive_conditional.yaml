@@ -8,7 +8,17 @@ conditional_schedule:
             'foo':
                 - foo/test1
                 - '{{cond2}}'
+    undefined_variable_fallback:
+        VARIABLE_UNDEFINED:
+            0:
+                -  fallback/undefined
+    undefined_variable_fallback_wrong_value:
+        VARIABLE_UNDEFINED:
+            1:
+                -  mustnot/be
 schedule:
     - bar/test0
     - '{{cond1}}'
     - bar/test3
+    - '{{undefined_variable_fallback}}'
+    - '{{undefined_variable_fallback_wrong_value}}'

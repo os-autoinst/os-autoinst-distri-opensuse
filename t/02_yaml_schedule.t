@@ -74,17 +74,21 @@ subtest 'parse_yaml_test_schedule_recursive_conditional' => sub {
     @modules = scheduler::parse_schedule($schedule);
     ok $modules[0] eq 'bar/test0', "Basic scheduling";
     ok $modules[1] eq 'bar/test3', "Basic scheduling";
+    ok $modules[2] eq 'fallback/undefined', "Undefined variable fallback scheduling";
     set_var('VAR1', 'foo');
     @modules = scheduler::parse_schedule($schedule);
     ok $modules[0] eq 'bar/test0', "Basic scheduling";
     ok $modules[1] eq 'foo/test1', "Conditional scheduling";
     ok $modules[2] eq 'bar/test3', "Basic scheduling";
+    ok $modules[3] eq 'fallback/undefined', "Undefined variable fallback scheduling";
     set_var('VAR2', 'foo');
     @modules = scheduler::parse_schedule($schedule);
     ok $modules[0] eq 'bar/test0', "Basic scheduling";
     ok $modules[1] eq 'foo/test1', "Conditional scheduling";
     ok $modules[2] eq 'foo/test2', "Recursive conditional scheduling";
     ok $modules[3] eq 'bar/test3', "Basic scheduling";
+    ok $modules[4] eq 'fallback/undefined', "Undefined variable fallback scheduling";
+    ok @modules eq 5, "Undefined variable with wrong value not scheduled";
 };
 
 subtest 'merge default schedules with flows and individual schedules' => sub {
