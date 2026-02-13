@@ -64,11 +64,11 @@ sub check_guest_bootloader {
 sub check_guest_bootcurrent {
     my ($self, $guest_name) = @_;
 
-    record_info("Booted os checking on $guest_name", "Booted os should be sles if $guest_name is installed as such judging by /etc/issue");
+    record_info("Booted os checking on $guest_name", "Booted os should be sles if $guest_name is installed as such judging by /etc/os-release");
     my $ssh_command_prefix = "ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     my $current_boot_entry = script_output("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i BootCurrent | grep -oE [[:digit:]]+");
     assert_script_run("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i \"BootOrder: $current_boot_entry\"");
-    assert_script_run("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i Boot$current_boot_entry.*sles") if (script_output("$ssh_command_prefix root\@$guest_name cat /etc/issue | grep -io \"SUSE Linux Enterprise Server.*\"", proceed_on_failure => 1) ne '');
+    assert_script_run("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i Boot$current_boot_entry.*sles") if (script_output("$ssh_command_prefix root\@$guest_name cat /etc/os-release | grep -io \"SUSE Linux Enterprise Server.*\"", proceed_on_failure => 1) ne '');
     return $self;
 }
 

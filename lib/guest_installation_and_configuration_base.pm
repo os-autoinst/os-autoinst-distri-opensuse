@@ -2636,7 +2636,9 @@ already marked as 'FAILED' for this case in setup_guest_agama_installation_shell
 sub verify_guest_agama_installation_done {
     my $self = shift;
 
-    my $_wait_timeout = get_var('AGAMA_INSTALL_TIMEOUT', 600);
+    # It takes longer to install a guest for an online installation since sle16.1 Beta1
+    # Previous 600s is not enough
+    my $_wait_timeout = get_var('AGAMA_INSTALL_TIMEOUT', 720);
     my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     if ($self->{guest_installation_result} eq 'FAILED') {
         if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
@@ -2736,6 +2738,12 @@ sub save_guest_agama_installation_logs {
         script_run("timeout --kill-after=1 --signal=9 180 scp -r $_ssh_command_options root\@$self->{guest_ipaddr}:/agama_installation_logs/{agama-logs.tar.gz,agama_config.txt} $self->{guest_log_folder}", timeout => 210);
         script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"sync\"", timeout => 150);
         if ($self->{guest_installation_result} ne 'FAILED') {
+            # Julie: post-script took much longer since 16.1, actually installation did not finish 
+	    # Debug: wait 20 minutes here to see what happened
+	    for (1 .. 20) {
+	        script_run("Going to reboot guest ....");
+                sleep 60;	    
+	    }
             record_info("Reboot guest $self->{guest_name} to disk boot", "Saved guest $self->{guest_name} agama installation logs");
             $self->power_cycle_guest('force') if (script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"reboot --reboot\"", timeout => 210) != 0);
         }

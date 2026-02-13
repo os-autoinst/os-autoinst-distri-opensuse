@@ -34,6 +34,7 @@ use File::Basename;
 use testapi;
 use IPC::Run;
 use utils qw(inspect_existing_issue);
+use version_utils qw(is_sle);
 use virt_utils;
 use virt_autotest_base;
 use virt_autotest::utils qw(check_guest_health);
@@ -209,7 +210,7 @@ sub junit_log_provision {
         $_guest_installations_results->{$_}{stop_run} = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
         $_guest_installations_results->{$_}{test_time} = strftime("\%Hh\%Mm\%Ss", gmtime($_guest_installations_results->{$_}{stop_run} - $_guest_installations_results->{$_}{start_run}));
     }
-    if (inspect_existing_issue(issue => 'bsc#1255178 Transactional base image has no /etc/issue')) {
+    if (is_sle('16.1+') or inspect_existing_issue(issue => 'bsc#1255178 Transactional base image has no /etc/issue')) {
         my %osinfo = script_output("cat /etc/os-release") =~ /^([^#]\S+)="?([^"\r\n]+)"?$/gm;
         %osinfo = map { uc($_) => $osinfo{$_} } keys %osinfo;
         $self->{"product_tested_on"} = "$osinfo{PRETTY_NAME} $osinfo{VARIANT_ID} $osinfo{VERSION}";
