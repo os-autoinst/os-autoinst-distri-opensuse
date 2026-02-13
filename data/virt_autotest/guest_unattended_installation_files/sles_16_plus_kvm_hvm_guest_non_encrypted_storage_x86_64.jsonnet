@@ -93,15 +93,19 @@
     ],
     "state": {}
   },
+  "hostname": {
+    "static": "##Host-Name##.##Domain-Name##"
+  },
   scripts: {
     post: [
+      /*
       {
         name: "persistent_hostname",
         content: |||
           #!/usr/bin/env bash
           echo -e "##Host-Name##.##Domain-Name##" > /etc/hostname
         |||
-      },
+      }, */
       {
         name: "sshd_config",
         chroot: true,
