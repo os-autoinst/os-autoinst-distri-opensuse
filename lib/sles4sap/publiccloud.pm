@@ -1184,6 +1184,7 @@ sub create_hana_vars_section {
     $hana_vars{sap_domain} = get_var('SAP_DOMAIN', 'qesap.example.com');
     $hana_vars{use_sap_hana_sr_angi} = get_var('USE_SAP_HANA_SR_ANGI', 'false');
     $hana_vars{sap_hana_install_update_firewall} = get_var('SLES4SAP_FIREWALL_PORTS', 'false');
+    $hana_vars{firewall_cfg} = get_var('SLES4SAP_FIREWALL', 'ignore');
     my @hana_sites = get_hana_site_names();
     $hana_vars{primary_site} = $hana_sites[0];
     $hana_vars{secondary_site} = $hana_sites[1];
