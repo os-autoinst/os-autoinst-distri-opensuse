@@ -177,7 +177,9 @@ NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
 NVIDIA_REPO | string | '' | Define the external repo for NVIDIA driver.
 NVIDIA_CUDA_REPO | string | '' | Define the external repo for NVIDIA cuda.
+NVIDIA_DRIVER_BRANCH | string | 'G06' | Define NVIDIA driver branch (G06, G07).
 NVIDIA_EXPECTED_GPU_REGEX | string | '' | Define which GPU should the test expect.
+NVIDIA_FIRST_RELEASE | boolean | false | Install NVIDIA driver directly from maintenance update repository for kernel tests.
 OCI_RUNTIME | string | '' | Define the OCI runtime to use in container tests, if set.
 OPENSHIFT_CONFIG_REPO | string | '' | Git repo of the OpenShift configuration and packages needed by tests/containers/openshift_setup.pm. 
 OPT_KERNEL_PARAMS | string | Specify optional kernel command line parameters on bootloader settings page of the installer.

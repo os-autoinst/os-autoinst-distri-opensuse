@@ -23,7 +23,31 @@ our @EXPORT = qw(
   install
   validate
   validate_cuda
+  get_nvidia_driver
 );
+
+
+=head2 get_nvidia_driver
+
+ get_nvidia_driver(install([ variant => 'cuda' ]);
+
+Get NVIDIA driver name based on driver branch and variant.
+The default is G06 driver branch and non cuda variant.
+
+=cut
+
+sub get_nvidia_driver {
+    my %args = @_;
+    my $branch = get_var('NVIDIA_DRIVER_BRANCH', 'G06');
+    my $driver;
+
+    if ($args{variant} eq 'cuda') {
+        $driver = "nvidia-open-driver-${branch}-signed-cuda-kmp-default";
+    } else {
+        $driver = "nvidia-open-driver-${branch}-signed-kmp-default";
+    }
+    return $driver;
+}
 
 =head2 install
 
@@ -47,8 +71,8 @@ serial_terminal and opensusebasetest.
 sub install
 {
     my %args = @_;
-    my $variant_std = 'nvidia-open-driver-G06-signed-kmp-default';
-    my $variant_cuda = 'nvidia-open-driver-G06-signed-cuda-kmp-default';
+    my $variant_std = get_nvidia_driver;
+    my $variant_cuda = get_nvidia_driver(variant => 'cuda');
     my $variant;
     my $reboot = $args{reboot} // 0;
 
@@ -76,7 +100,8 @@ sub install
         $workaround = "nvidia-persistenced == $version";
         record_soft_failure("bsc#1249098 - workaround for Nvidia driver dependency issue");
     }
-    zypper_call("install -l nvidia-compute-utils-G06 == $version $workaround");
+    my $branch = get_var('NVIDIA_DRIVER_BRANCH', 'G06');
+    zypper_call("install -l nvidia-compute-utils-$branch == $version $workaround");
 
     exit_trup_shell if is_transactional;
 

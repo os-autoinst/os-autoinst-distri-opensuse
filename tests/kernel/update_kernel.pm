@@ -24,6 +24,7 @@ use Utils::Backends;
 use LTP::utils;
 use transactional;
 use package_utils;
+use nvidia_utils;
 
 # kernel-azure is never released in pool, first release is in updates.
 # Fix the chicken & egg problem manually.
@@ -36,6 +37,14 @@ sub first_azure_release {
     zypper_call("ref");
     zypper_call("in -l kernel-azure", exitcode => [0, 100, 101, 102, 103], timeout => 700);
     zypper_call('in kernel-devel');
+}
+
+sub first_nvidia_release {
+    my ($self, $repo) = @_;
+
+    fully_patch_system;
+    $self->add_update_repos($repo);
+    install_package(nvidia_utils::get_nvidia_driver(variant => 'cuda'));
 }
 
 sub prepare_kernel {
@@ -469,7 +478,8 @@ sub install_requirements {
           net-tools
         );
     } elsif ($flavor =~ /Nvidia/) {
-        @requirements = qw(nvidia-open-driver-G06-signed-cuda-kmp-default);
+        return if get_var('NVIDIA_FIRST_RELEASE');
+        @requirements = nvidia_utils::get_nvidia_driver(variant => 'cuda');
     } elsif ($flavor =~ /Base/) {
         @requirements = qw(kdump);
     } else {
@@ -550,6 +560,9 @@ sub run {
     }
     elsif (get_var('AZURE_FIRST_RELEASE')) {
         $self->first_azure_release($repo);
+    }
+    elsif (get_var('NVIDIA_FIRST_RELEASE')) {
+        $self->first_nvidia_release($repo);
     }
     elsif (get_var('KOTD_REPO')) {
         install_kotd($repo);
@@ -635,3 +648,8 @@ install new kernel using the simplified installation method.
 
 Skip temporarily disabling update repos after they have been added. This
 means that they will be used during preparatory system update.
+
+=head3 NVIDIA_FIRST_RELEASE
+
+When NVIDIA_FIRST_RELEASE evaluates to true, install nvidia driver directly
+from incident repository and update system.
