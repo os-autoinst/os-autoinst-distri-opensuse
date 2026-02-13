@@ -25,7 +25,8 @@ use Carp qw(croak);
 use Data::Dumper;
 use XML::Simple;
 use serial_terminal qw(select_serial_terminal set_serial_prompt serial_term_prompt);
-use Utils::Backends 'is_pvm';
+use Utils::Backends qw(is_pvm);
+use iscsi qw(lio_show_iqn);
 
 our @EXPORT = qw(
   $crm_mon_cmd
@@ -1544,7 +1545,7 @@ This generates the information that nodes need to use iSCSI. This is stored in
 =cut
 
 sub generate_lun_list {
-    my $target_iqn = script_output('lio_node --listtargetnames 2>/dev/null');
+    my $target_iqn = lio_show_iqn();
     my $target_ip_port = script_output("ls /sys/kernel/config/target/iscsi/${target_iqn}/tpgt_1/np 2>/dev/null");
     my $dev_by_path = '/dev/disk/by-path';
     my $index = get_var('ISCSI_LUN_INDEX', 0);
