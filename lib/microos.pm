@@ -11,7 +11,7 @@ use Exporter;
 use strict;
 use warnings;
 use testapi;
-use utils qw(need_unlock_after_bootloader unlock_if_encrypted inspect_existing_issue);
+use utils qw(need_unlock_after_bootloader unlock_if_encrypted);
 use version_utils qw(is_microos is_selfinstall is_bootloader_grub2 is_bootloader_sdboot);
 use power_action_utils 'power_action';
 use Utils::Architectures qw(is_aarch64);
@@ -22,8 +22,7 @@ our @EXPORT = qw(microos_reboot microos_login);
 # Assert login prompt and login as root
 sub microos_login {
     my $login_timeout = (is_aarch64 || is_selfinstall) ? 300 : 150;
-    my $has_issue = inspect_existing_issue(issue => 'bsc#1255178 Transactional base image has no /etc/issue');
-    $has_issue ? assert_screen 'linux-login', $login_timeout : assert_screen 'linux-login-microos', $login_timeout;
+    assert_screen [qw(linux-login-microos linux-login)], $login_timeout;
 
     if (is_microos 'VMX') {
         # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
