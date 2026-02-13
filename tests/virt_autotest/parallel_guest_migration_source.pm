@@ -192,7 +192,7 @@ sub guest_migration_test {
             my $test_stop_time = $test_start_time;
             $self->pre_guest_migration(guest => $guest, virttool => $virttool, first => (($testindex == 0) ? 1 : 0));
             $ret = $self->do_guest_migration(guest => $guest, test => $test, command => $command, offline => $offline);
-            collect_host_and_guest_logs($guest, '/var/log', '/var/log', "_$guest" . "_$test") if ($ret != 0 and get_var('INTERVAL_LOG', ''));
+            collect_host_and_guest_logs(guest => $guest, extra_host_log => '/var/log', extra_guest_log => '/var/log', full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1), token => "_$guest" . "_$test") if ($ret != 0 and get_var('INTERVAL_LOG', ''));
 
             barrier_wait("DO_GUEST_MIGRATION_DONE_$counter");
 
