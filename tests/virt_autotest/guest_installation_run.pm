@@ -22,13 +22,8 @@ sub get_script_run {
         $pre_test_cmd .= "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
     }
     else {
-        my $prd_version = script_output("cat /etc/issue");
-        if ($prd_version =~ m/SUSE Linux Enterprise Server 11/) {
-            $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-standalone-run";
-        }
-        else {
-            $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
-        }
+        my $prd_version = script_output(q@cat /etc/os-release |grep VERSION | sed 's/VERSION=//'@);
+        $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
     }
     # testsuite setting pre-handling for no service pack products
     handle_sp_in_settings_with_fcs("GUEST_PATTERN");
