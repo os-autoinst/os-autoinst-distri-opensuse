@@ -106,15 +106,14 @@ For instance, depending on the value of DISTRI setting we can schedule an ordere
                   - installation/addon_products_sle
 ```
 
-While checking for values of `0` and `1` is possible, `0` is also a fallback for undefined test settings,
-as special value to express more complex conditions, e.g  if a job doesn't have `FOO` in its settings, module
-`bar/baz` would be scheduled:
+A special key `+undefined` is a fallback to schedule modules when its corresponding test variable is undefined,
+e.g  if a job doesn't have `FOO` in its settings, module `bar/baz` would be scheduled:
 
 ```yaml
   conditional_schedule:
       needed_module:
           FOO:
-              0:
+              '+undefined':
                   - bar/baz
 ```
 
