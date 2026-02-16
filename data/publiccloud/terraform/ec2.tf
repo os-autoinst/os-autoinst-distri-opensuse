@@ -88,6 +88,10 @@ variable "ssh_public_key" {
   default = "/root/.ssh/id_ed25519.pub"
 }
 
+data "aws_iam_instance_profile" "ec2_cloudwatch" {
+  name       = "OpenQAEC2CloudWatchLogsRole" 
+}
+
 resource "random_id" "service" {
   count = var.instance_count
   keepers = {
@@ -110,6 +114,8 @@ resource "aws_instance" "openqa" {
   availability_zone      = var.availability_zone
   subnet_id              = var.subnet_id
   ipv6_address_count     = var.ipv6_address_count
+
+  iam_instance_profile = data.aws_iam_instance_profile.ec2_cloudwatch.name
 
   tags = merge({
     openqa_created_by   = var.name
