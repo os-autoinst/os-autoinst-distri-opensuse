@@ -11,7 +11,7 @@
 use base 'opensusebasetest';
 use testapi;
 use lockapi;
-use Socket qw(inet_ntoa);
+use Socket qw(getaddrinfo getnameinfo NI_NUMERICHOST);
 use utils qw(systemctl file_content_replace zypper_call script_retry);
 use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync);
 use mmapi qw(get_current_job_id get_parents);
@@ -30,8 +30,11 @@ sub iscsi_server_ip {
     my ($host) = @_;
     return $host if ($host =~ /^\d+\.\d+\.\d+\.\d+$/);    # Arg it's already IPv4
     return $host if ($host =~ /^[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+$/);    # Arg it's IPv6
-    my $packed_ip = gethostbyname($host);
-    return inet_ntoa($packed_ip);
+    my ($error, $ip) = getaddrinfo($host);
+    die "Error in Name resolution: [$host] - [$error]" if ($error);
+    ($error, $ip) = getnameinfo($ip->{addr}, NI_NUMERICHOST);
+    die "Error in Name Info: [$host] - [$error]" if ($error);
+    return $ip;
 }
 
 sub run {
