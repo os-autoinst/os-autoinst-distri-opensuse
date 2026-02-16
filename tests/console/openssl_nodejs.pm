@@ -31,6 +31,12 @@ sub run {
         $source_repo = script_output(q{zypper lr | grep Source | awk -F '|' '/SLE-Product-SLES/ {print $2}'}) if (is_sle('>=16.0'));
         zypper_call("mr -e $source_repo", exitcode => [0, 3]);
     }
+    # Add staging update debug repo on nodejs update
+    if (check_var('FLAVOR', 'Online-Updates-Staging') && get_var('BUILD') =~ /:nodejs/) {
+        my $incident_repo = get_var('INCIDENT_REPO');
+        chop $incident_repo if $incident_repo =~ /\/$/;
+        zypper_call("ar -f $incident_repo-Source/ TEST_0_Source");
+    }
     assert_script_run 'wget --quiet ' . data_url('qam/crypto_rsa_dsa.patch') unless get_var('FLAVOR') =~ /TERADATA/ || is_sle('=12-sp5') || is_sle('=15-sp4');
     assert_script_run 'wget --quiet ' . data_url('console/test_openssl_nodejs.sh');
     assert_script_run 'chmod +x test_openssl_nodejs.sh';
