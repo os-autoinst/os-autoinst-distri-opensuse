@@ -24,7 +24,7 @@ conditional_schedule:
                 - console/steamcmd
     consoletest_setup:
         AGAMA:
-            0:
+            +undefined:
                 - console/consoletest_setup
 schedule:
     - installation/bootloader_start
