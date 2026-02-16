@@ -283,6 +283,10 @@ L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?ta
 =cut
 
 sub az_login {
+    # This is to remove telemetry messages which can mangle JSON outputs.
+    assert_script_run(
+        'az config set core.survey_message=false core.collect_telemetry=no --only-show-errors --output json'
+    );
     my $credentials = export_credentials();
     my $login_cmd = 'while ! az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} -t ${ARM_TENANT_ID} -o none 1>/dev/null 2>&1; do sleep 10; done';
     assert_script_run($login_cmd, timeout => 30);

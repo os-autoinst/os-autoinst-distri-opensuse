@@ -49,8 +49,6 @@ sub run {
 
     # Add no cleanup tag if the deployment should be kept after test finished
     push @deployment_tags, no_cleanup_tag() . "=1" if get_var('SDAF_RETAIN_DEPLOYMENT');
-    # This is to remove telemetry messages which can mangle outputs.
-    assert_script_run('az config set core.collect_telemetry=no');
     az_login();
 
     # Fetch keyvault secrets and compare them with openQA settings
