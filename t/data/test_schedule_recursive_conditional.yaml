@@ -10,7 +10,7 @@ conditional_schedule:
                 - '{{cond2}}'
     undefined_variable_fallback:
         VARIABLE_UNDEFINED:
-            0:
+            '+undefined':
                 -  fallback/undefined
     undefined_variable_fallback_wrong_value:
         VARIABLE_UNDEFINED:

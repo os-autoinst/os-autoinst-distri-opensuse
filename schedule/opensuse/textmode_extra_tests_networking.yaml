@@ -30,7 +30,7 @@ conditional_schedule:
                 - console/velociraptor_client_event_collect
     consoletest_setup:
         AGAMA:
-            0:
+            +undefined:
                 - console/consoletest_setup
 schedule:
     - installation/bootloader_start
