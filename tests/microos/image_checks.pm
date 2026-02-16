@@ -34,7 +34,7 @@ sub run {
     # Verify that there is no unpartitioned space left
     # 0 sectors is default and expected value in most of the images
     my $left_sectors = 0;
-    if ((is_sle_micro("6.2+") || is_leap_micro("6.2+") || (is_jeos && is_transactional)) && is_aarch64 && !(get_var('FLAVOR', '') =~ /qcow/i) && !check_var('FROM_VERSION', '6.1')) {
+    if ((is_sle_micro("6.2+") || is_leap_micro("6.2+") || (is_jeos && is_transactional)) && is_aarch64 && !(get_var('FLAVOR', '') =~ /kvm-and-xen|qcow/i) && !check_var('FROM_VERSION', '6.1')) {
         $left_sectors = 6144;
     } elsif ((is_sle_micro("=6.1") || is_leap_micro("=6.1") || check_var('FROM_VERSION', '6.1')) && is_aarch64 && (get_var('FLAVOR', '') =~ /selfinstall/i)) {
         $left_sectors = 4062;
