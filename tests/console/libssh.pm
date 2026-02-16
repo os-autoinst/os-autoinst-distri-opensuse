@@ -62,6 +62,11 @@ sub create_image {
                 $tag .= is_sle('<15') ? "suse/sles${v}sp$sp" : "suse/sle${v}:${v}.$sp";
             }
         }
+        if (is_sle('=16.0')) {
+            record_info('poo#187827, need to remove once after GM');
+            ensure_ca_certificates_suse_installed;
+            $tag = 'registry.suse.de/suse/slfo/products/sles/16.0/test/containerfile/bci/bci-base:16.0';
+        }
         record_info($tag);
 
 
@@ -128,12 +133,18 @@ sub run {
     set_serial_prompt('# ') if is_serial_terminal;
     assert_script_run("test -f /.dockerenv");    #verify inside container
     assert_script_run("ssh-keyscan susetest >> /root/.ssh/known_hosts");
-    validate_script_output("curl -s sftp://susetest/tmp/test/ -u root:nots3cr3t", sub { m/libssh_testfile/ });
-    validate_script_output("curl -s sftp://susetest/tmp/test/libssh_testfile -u root:nots3cr3t", sub { m/libssh_testcase001/ });
-    assert_script_run("curl -s sftp://susetest/tmp/test/libssh_block.raw -u root:nots3cr3t -o /tmp/libssh_block.raw");
-    validate_script_output("curl -s scp://susetest/tmp/test/libssh_testfile -u root:nots3cr3t", sub { m/libssh_testcase001/ });
-    validate_script_output('curl -s sftp://root@susetest/tmp/test/libssh_testfile --key /root/.ssh/id_rsa', sub { m/libssh_testcase001/ });
-    validate_script_output('curl -s scp://root@susetest/tmp/test/libssh_testfile --key /root/.ssh/id_rsa', sub { m/libssh_testcase001/ });
+    if (is_sle('=16.0')) {
+        assert_script_run("scp root\@susetest:/tmp/test/libssh_testfile .");
+        assert_script_run("scp root\@susetest:/tmp/test/libssh_block.raw /tmp/libssh_block.raw");
+    }
+    else {
+        validate_script_output("curl -s sftp://susetest/tmp/test/ -u root:nots3cr3t", sub { m/libssh_testfile/ });
+        validate_script_output("curl -s sftp://susetest/tmp/test/libssh_testfile -u root:nots3cr3t", sub { m/libssh_testcase001/ });
+        assert_script_run("curl -s sftp://susetest/tmp/test/libssh_block.raw -u root:nots3cr3t -o /tmp/libssh_block.raw");
+        validate_script_output("curl -s scp://susetest/tmp/test/libssh_testfile -u root:nots3cr3t", sub { m/libssh_testcase001/ });
+        validate_script_output('curl -s sftp://root@susetest/tmp/test/libssh_testfile --key /root/.ssh/id_rsa', sub { m/libssh_testcase001/ });
+        validate_script_output('curl -s scp://root@susetest/tmp/test/libssh_testfile --key /root/.ssh/id_rsa', sub { m/libssh_testcase001/ });
+    }
     validate_script_output('virsh -c "qemu+libssh://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ }) if is_sle('>=15-sp1'); #libssh is not supported by libvirt for sle12 and sle15sp1
     validate_script_output('virsh -c "qemu+libssh2://root@susetest/system?sshauth=privkey&keyfile=/root/.ssh/id_rsa&known_hosts=/root/.ssh/known_hosts" hostname', sub { m/susetest/ });
     #Switch back to host
