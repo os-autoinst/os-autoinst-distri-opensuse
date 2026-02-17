@@ -13,7 +13,6 @@ use base "Exporter";
 use Exporter;
 use testapi;
 use utils;
-use base "opensusebasetest";
 use Utils::Architectures;
 
 our @EXPORT = qw(upload_system_logs upload_supportconfig_log);

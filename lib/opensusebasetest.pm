@@ -24,6 +24,7 @@ use IO::Socket::INET;
 use x11utils qw(handle_login ensure_unlocked_desktop handle_additional_polkit_windows);
 use publiccloud::ssh_interactive 'select_host_console';
 use Utils::Logging qw(save_and_upload_log tar_and_upload_log export_healthcheck_basic select_log_console upload_coredumps export_logs);
+use bootloader_pvm qw(shutdown_hmc_pvm);
 
 # Base class for all openSUSE tests
 
@@ -1088,6 +1089,7 @@ sub post_fail_hook {
         my $flags = $self->test_flags();
         $self->{run_args}->{my_provider}->finalize() if ($flags->{fatal});
     }
+    shutdown_hmc_pvm() if is_pvm;
 }
 
 sub test_flags {

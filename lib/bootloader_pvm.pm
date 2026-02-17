@@ -29,6 +29,7 @@ use Yam::Agama::LiveIso qw(read_live_iso);
 
 our @EXPORT = qw(
   boot_pvm
+  shutdown_hmc_pvm
 );
 
 =head2 get_into_net_boot
@@ -248,6 +249,28 @@ sub check_lpar_is_down {
     my ($hmc_machine_name, $lpar_id) = @_;
     enter_cmd("for i in {0..24}; do lssyscfg -m $hmc_machine_name -r lpar --filter \"\"lpar_ids=$lpar_id\"\" -F state | grep -q 'Not Activated' && echo 'LPAR IS DOWN' && break || echo 'Waiting for lpar $lpar_id to shutdown' && sleep 5 ; done ");
     assert_screen 'lpar-is-down', 120;
+}
+
+=head2 shutdown_hmc_pvm
+
+ shutdown_hmc_pvm();
+
+Shutdown a system connected via the hmc_pvm backend.
+
+=cut
+
+sub shutdown_hmc_pvm {
+    my $hmc_machine_name = get_required_var('HMC_MACHINE_NAME');
+    my $lpar_id = get_required_var('LPAR_ID');
+    my $hmc = select_console 'powerhmc-ssh';
+
+    # detach possibly attached terminals
+    enter_cmd "rmvterm -m $hmc_machine_name --id $lpar_id && echo 'DONE'";
+    assert_screen 'pvm-vterm-closed';
+
+    # power off the machine
+    enter_cmd("chsysstate -r lpar -m $hmc_machine_name -o shutdown --immed --id $lpar_id ");
+    check_lpar_is_down($hmc_machine_name, $lpar_id);
 }
 
 =head2 boot_hmc_pvm
