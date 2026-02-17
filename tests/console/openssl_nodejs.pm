@@ -37,11 +37,20 @@ sub run {
         chop $incident_repo if $incident_repo =~ /\/$/;
         zypper_call("ar -f $incident_repo-Source/ TEST_0_Source");
     }
+    if (check_var('FLAVOR', 'Online-Increments')) {
+        my $increment_repo = get_var('INCREMENT_REPO');
+        chop $increment_repo if $incident_repo =~ /\/$/;
+        zypper_call("ar -f $increment_repo/repo/SLES-16.0-" . get_var('ARCH') . "-Source TEST_0_Source");
+    }
     assert_script_run 'wget --quiet ' . data_url('qam/crypto_rsa_dsa.patch') unless get_var('FLAVOR') =~ /TERADATA/ || is_sle('=12-sp5') || is_sle('=15-sp4');
     assert_script_run 'wget --quiet ' . data_url('console/test_openssl_nodejs.sh');
     assert_script_run 'chmod +x test_openssl_nodejs.sh';
     assert_script_run "./test_openssl_nodejs.sh $os_version", 900;
     zypper_call("mr -d $source_repo", exitcode => [0, 3]) if get_var('ENABLE_SRC_REPO', 0);
+}
+
+sub post_run_hook {
+    zypper_call('rr TEST_0_Source');
 }
 
 1;
