@@ -84,6 +84,7 @@ EXTRABOOTPARAMS_LINE_OFFSET | integer | | Line offset for `linux` line in grub w
 EXTRABOOTPARAMS_DELETE_CHARACTERS | string | | Characters to delete from boot prompt.
 EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET | string | | If specified, go back with the cursor until this needle is matched to delete characters from there. Needs EXTRABOOTPARAMS_BOOT_LOCAL and should be combined with EXTRABOOTPARAMS_DELETE_CHARACTERS.
 EXTRATEST | boolean | false | Enables execution of extra tests, see `load_extra_tests`
+FDE_ENROLLMENT | string | | Type of authentication to use when configuring FDE during installation, current values are `TPM2`, `TPM2 and PIN`, `Only Password` and `FIDO2`. 
 FIRST_BOOT_CONFIG | string | combustion+ignition | The method used for initial configuration of MicroOS images. Possible values are: `combustion`, `ignition`, `combustion+ignition` and `wizard`. For ignition/combustion, the job needs to have a matching HDD attached.
 FLAVOR | string | | Defines flavor of the product under test, e.g. `staging-.-DVD`, `Krypton`, `Argon`, `Gnome-Live`, `DVD`, `Rescue-CD`, etc.
 FULLURL | string | | Full url to the factory repo. Is relevant for openSUSE only.
