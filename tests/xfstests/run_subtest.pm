@@ -114,6 +114,10 @@ sub run {
     $self->{targs} = \%targs;
     $self->{result_args} = {status => 'FAILED', time => 'timeout'};
 
+    $whitelist_env->{kernel} = script_output('uname -r');
+    $whitelist_env->{libc} = script_output('rpm -q glibc');
+    $whitelist_env->{gcc} = script_output('rpm -q gcc');
+    $whitelist_env->{ltp_version} = script_output('rpm -q xfstests');
     enter_cmd("echo $test > /dev/$serialdev");
     if ($enable_heartbeat == 0) {
         $self->{result_args} = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
