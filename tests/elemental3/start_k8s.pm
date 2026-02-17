@@ -1,4 +1,4 @@
-# Copyright 2023-2025 SUSE LLC
+# Copyright 2023-2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test installation and boot of Elemental OS image.
