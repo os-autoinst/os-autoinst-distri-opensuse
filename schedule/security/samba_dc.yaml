@@ -6,5 +6,12 @@ description: >
 schedule:
   - installation/bootloader_start
   - boot/boot_to_desktop
-  - network/setup_multimachine
+  - '{{setup_multimachine}}'
   - security/samba_dc  # run either client or server depending on the HOSTNAME variable
+conditional_schedule:
+  setup_multimachine:
+    ARCH:
+      aarch64:
+        - network/setup_multimachine
+      x86_64:
+        - network/setup_multimachine
