@@ -72,6 +72,7 @@ sub run {
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
     run_command "$env gotestsum --junitfile cli.xml ./e2e/... -- |& tee cli.txt", timeout => 3000;
+    upload_logs("cli.txt");
 
     my @xfails = (
         # NOTE: This list can be removed when we upgrade to Docker v29
@@ -101,7 +102,6 @@ sub run {
 
     patch_junit "docker", $version, "cli.xml", @xfails;
     parse_extra_log(XUnit => "cli.xml", timeout => 180);
-    upload_logs("cli.txt");
 }
 
 sub cleanup {
