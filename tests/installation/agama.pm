@@ -38,6 +38,7 @@ sub agama_set_root_password_screen {
     send_key 'tab';    # show password btn
     send_key 'tab';    # optional enable public ssh key toggle
     send_key 'tab';    # accept button
+    save_screenshot;
     send_key 'ret';
 }
 
