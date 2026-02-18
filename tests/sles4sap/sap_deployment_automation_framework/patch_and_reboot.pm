@@ -93,7 +93,7 @@ sub run {
     assert_script_run('sudo zypper in python3-pip') if script_run('pip -V');
     # This installs all robot requirements
     # Pabot is for executing test suites in parallel
-    assert_script_run('pip install --upgrade robotframework-sshlibrary robotframework-pabot');
+    assert_script_run('pip install --upgrade robotframework-sshlibrary robotframework-pabot==5.1.0');
 
     my $cmd_robot_fetch = join(' ', 'curl', '-v', '-fL',
         data_url("sles4sap/sap_deployment_automation_framework/robot_tests/patch_and_reboot.robot"),
