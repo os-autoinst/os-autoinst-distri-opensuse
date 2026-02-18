@@ -79,15 +79,14 @@ sub run {
     select_serial_terminal;
 
     run_command "gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root |& tee containerd.txt", timeout => 600;
+    upload_logs("containerd.txt");
 
     my @xfails = (
         "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
     );
 
     patch_junit "containerd", $version, "containerd.xml", @xfails;
-
     parse_extra_log(XUnit => "containerd.xml", timeout => 180);
-    upload_logs("containerd.txt");
 
     critest unless is_sle;
 }

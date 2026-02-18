@@ -58,10 +58,10 @@ sub test ($target) {
     my $pytest_args = "-vv --capture=tee-sys -o junit_logging=all --junit-xml $target.xml $ignore $deselect";
 
     run_command "$env pytest $pytest_args podman/tests/$target &> $target.txt || true", timeout => 3600;
+    upload_logs("$target.txt");
 
     patch_junit "podman-py", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml", timeout => 180);
-    upload_logs("$target.txt");
 }
 
 sub run {

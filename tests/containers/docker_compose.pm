@@ -61,11 +61,11 @@ sub test ($target) {
     ) unless (is_sle);
 
     run_command "$env make $target |& tee $target.txt || true", timeout => 3600;
+    upload_logs("$target.txt");
 
     assert_script_run "mv /tmp/report/report.xml $target.xml";
     patch_junit "docker-compose", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml", timeout => 180);
-    upload_logs("$target.txt");
 }
 
 sub run {
