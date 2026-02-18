@@ -40,7 +40,8 @@ sub run {
         $left_sectors = 4062;
     } elsif ((is_sle_micro("5.4+") || is_leap_micro("5.4+")) && is_aarch64 && get_var('FLAVOR', '') !~ m/qcow|SelfInstall/) {
         $left_sectors = 2048;
-    } elsif ((is_sle_micro("6.0+") && get_required_var('FLAVOR') =~ /ppc-4096/) || (is_sle_micro("6.2+") && is_ppc64le && (get_var('FLAVOR') =~ /qcow/)) || is_jeos && is_ppc64le) {
+    } elsif ((is_sle_micro("6.0+") && get_required_var('FLAVOR') =~ /ppc-4096/) || (is_sle_micro("6.2+") && is_ppc64le && (get_var('FLAVOR') =~ /qcow/)) ||
+        is_jeos && is_ppc64le && check_var('HDDSECTORSIZE_1', '4096')) {
         $left_sectors = 1792;
     }
 
