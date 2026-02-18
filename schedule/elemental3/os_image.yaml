@@ -5,6 +5,7 @@ description: |
   Maintainer: unified-core@suse.com, ldevulder@suse.com
 schedule:
   - elemental3/elemental_boot
+  - '{{validate_users}}'
   - '{{elemental_test}}'
 conditional_schedule:
   elemental_test:
@@ -17,3 +18,7 @@ conditional_schedule:
         - elemental3/wait_barriers
         - elemental3/configure_network
         - elemental3/start_k8s
+  validate_users:
+    TESTED_CMD:
+      customize:
+        - elemental3/validate_users
