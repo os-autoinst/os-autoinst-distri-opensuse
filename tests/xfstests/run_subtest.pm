@@ -116,7 +116,6 @@ sub run {
 
     $whitelist_env->{kernel} = script_output('uname -r');
     $whitelist_env->{libc} = script_output('rpm -q glibc');
-    $whitelist_env->{gcc} = script_output('rpm -q gcc');
     $whitelist_env->{ltp_version} = script_output('rpm -q xfstests');
     enter_cmd("echo $test > /dev/$serialdev");
     if ($enable_heartbeat == 0) {
