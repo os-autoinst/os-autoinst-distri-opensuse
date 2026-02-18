@@ -133,6 +133,9 @@ sub select_software {
         } elsif (check_var('DESKTOP', 'icewm')) {
             send_key_until_needlematch('agama-software-selection-icewm-desktop-wayland', 'down');
             assert_and_click('agama-software-selection-icewm-desktop-wayland');
+        } elsif (check_var('DESKTOP', 'xfce')) {
+            send_key_until_needlematch('agama-software-selection-xfce-desktop-wayland', 'down');
+            assert_and_click('agama-software-selection-xfce-desktop-wayland');
         }
         # Go back to the top in case that any further patterns need to be installed
         # and we have to scroll through the list again.
