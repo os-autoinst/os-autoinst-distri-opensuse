@@ -19,6 +19,7 @@ sub init {
     $self->{chb_enable_disk_encryption} = $self->{app}->checkbox({id => 'encryption'});
     $self->{txb_password} = $self->{app}->textbox({id => 'password'});
     $self->{txb_repeat_password} = $self->{app}->textbox({id => 'repeat_password'});
+    $self->{cmb_set_authentication} = $self->{app}->combobox({id => 'authentication'});
     return $self;
 }
 
@@ -50,6 +51,11 @@ sub enter_confirm_password {
 sub is_shown {
     my ($self) = @_;
     return $self->{chb_enable_lvm}->exist();
+}
+
+sub set_fde_enrollment_authentication {
+    my ($self, $type) = @_;
+    $self->{cmb_set_authentication}->select($type);
 }
 
 1;

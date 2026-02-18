@@ -56,6 +56,11 @@ sub configure_encryption {
     $self->get_partitioning_scheme_page()->enter_confirm_password($password);
 }
 
+sub set_fde_enrollment_authentication {
+    my ($self, $type) = @_;
+    $self->get_partitioning_scheme_page()->set_fde_enrollment_authentication($type);
+}
+
 sub enable_lvm {
     my ($self) = @_;
     $self->get_partitioning_scheme_page()->select_enable_lvm();
