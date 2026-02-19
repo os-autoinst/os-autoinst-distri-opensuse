@@ -39,10 +39,9 @@ sub test_integration {
     # We can't use openSUSE's distribution-registry package on SLES so extract this binary from the OCI image
     # Note: registry:latest with v3 fails unlike library/registry:3
     run_command "podman run --rm -v /usr/local/bin:/target:rw,z --user root --entrypoint /bin/cp $registry /bin/registry /target/";
-    my $rc = run_command '(cd integration; SKOPEO_BINARY=/usr/bin/skopeo gotestsum --junitfile ../integration.xml --format standard-verbose --)', no_assert => 1, timeout => 300;
+    run_command '(cd integration; SKOPEO_BINARY=/usr/bin/skopeo gotestsum --junitfile ../integration.xml --format standard-verbose --)', no_assert => 1, timeout => 300;
     patch_junit "skopeo", $skopeo_version, "integration.xml";
     parse_extra_log(XUnit => "integration.xml");
-    die "Test failed" if $rc;
 }
 
 sub run {
