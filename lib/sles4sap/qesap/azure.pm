@@ -315,7 +315,8 @@ Return a list of diagnostic file paths on the JumpHost
 sub qesap_az_diagnostic_log {
     my @diagnostic_log_files;
     my $rg = qesap_az_get_resource_group();
-    my $vm_data = decode_json(script_output("az vm list --resource-group $rg --query '[].{id:id,name:name}' -o json"));
+    my $vm_data = az_vm_list(resource_group => $rg, query => '[].{id:id,name:name}');
+
     my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
     foreach (@{$vm_data}) {
         record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
