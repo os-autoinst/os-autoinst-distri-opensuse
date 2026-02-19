@@ -106,11 +106,11 @@ sub run {
     # $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS"));
     my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
-        run_command "env $env make $target &> $target.txt || true", timeout => 3600;
+        run_command "env $env make $target &> $target.txt", timeout => 1800;
         upload_logs("$target.txt");
         script_run "mv report.xml $target.xml";
         patch_junit "podman", $version, "$target.xml", @xfails;
-        parse_extra_log(XUnit => "$target.xml", timeout => 600);
+        parse_extra_log(XUnit => "$target.xml", timeout => 300);
     }
 }
 
