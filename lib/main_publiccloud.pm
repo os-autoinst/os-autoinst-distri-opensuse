@@ -34,6 +34,12 @@ sub load_maintenance_publiccloud_tests {
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/check_services", run_args => $args;
         loadtest("publiccloud/img_proof", run_args => $args);
+    } elsif (get_var('PUBLIC_CLOUD_MIGRATION')) {
+        if (is_sle('=12-SP5') || is_sle('=15-SP7')) {
+            loadtest("publiccloud/migration", run_args => $args);
+        } else {
+            die('Currently supported versions to migrate from are SLE12 SP5 and SLE15 SP7.');
+        }
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest "publiccloud/registration", run_args => $args;
         loadtest 'publiccloud/run_ltp', run_args => $args;
@@ -264,11 +270,7 @@ sub load_publiccloud_tests {
     }
     else {
         loadtest 'boot/boot_to_desktop';
-        if (get_var('PUBLIC_CLOUD_MIGRATION')) {
-            my $args = OpenQA::Test::RunArgs->new();
-            loadtest('publiccloud/upload_image', run_args => $args);
-            loadtest('publiccloud/migration', run_args => $args);
-        } elsif (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
+        if (check_var('PUBLIC_CLOUD_DOWNLOAD_TESTREPO', 1)) {
             load_publiccloud_download_repos();
         } elsif (get_var('PUBLIC_CLOUD_QAM')) {
             load_maintenance_publiccloud_tests();
