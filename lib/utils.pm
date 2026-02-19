@@ -3733,6 +3733,7 @@ sub inspect_existing_issue {
 
 dump_tasktrace triggers SysRq key combinations to:
 
+- Show a stack backtrace for all active CPUs.
 - Dump a list of current tasks and their information to your console.
 - Dump tasks that are in uninterruptible (blocked) state.
 
@@ -3744,6 +3745,7 @@ sub dump_tasktrace {
     my $old_console = current_console();
 
     select_console('root-console', await_console => 0);
+    send_key('alt-sysrq-l');
     send_key('alt-sysrq-t');
     send_key('alt-sysrq-w');
     wait_serial(qr/sysrq: .*Show Blocked State/, timeout => 300);
