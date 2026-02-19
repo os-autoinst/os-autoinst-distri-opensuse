@@ -99,6 +99,8 @@ sub run {
         'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     ) if (get_var("ROOTLESS"));
 
+    my $errors = 0;
+
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
     my $default_targets = "localintegration";
@@ -106,11 +108,13 @@ sub run {
     # $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS"));
     my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
-        run_command "env $env make $target", timeout => 1800;
+        my $rc = run_command "env $env make $target", no_assert => 1, timeout => 3000;
         script_run "mv report.xml $target.xml";
         patch_junit "podman", $version, "$target.xml", @xfails;
         parse_extra_log(XUnit => "$target.xml", timeout => 300);
+        $errors++ if $rc;
     }
+    die "Test failed" if $errors;
 }
 
 sub post_fail_hook {

@@ -87,10 +87,10 @@ sub test ($target) {
         "tests.unit.api_build_test.BuildTest::test_set_auth_headers_with_dict_and_no_auth_configs",
     ) if (is_sle(">=16"));
 
-    run_command "$env pytest $pytest_args tests/$target", timeout => 3600;
-
+    my $rc = run_command "$env pytest $pytest_args tests/$target", no_assert => 1, timeout => 3600;
     patch_junit "docker-py", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml", timeout => 180);
+    die "Test failed" if $rc;
 }
 
 sub run {
