@@ -35,7 +35,12 @@ sub load_maintenance_publiccloud_tests {
         loadtest "publiccloud/check_services", run_args => $args;
         loadtest("publiccloud/img_proof", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
-        loadtest('publiccloud/run_ltp', run_args => $args);
+        loadtest "publiccloud/registration", run_args => $args;
+        loadtest 'publiccloud/run_ltp', run_args => $args;
+        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+        loadtest "publiccloud/instance_overview", run_args => $args;
+        loadtest "publiccloud/systemd_detect_virt", run_args => $args;
+        loadtest "publiccloud/ssh_interactive_end", run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
         loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
@@ -120,7 +125,13 @@ sub load_latest_publiccloud_tests {
         loadtest "publiccloud/img_proof", run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_LTP')) {
+        loadtest "publiccloud/prepare_instance", run_args => $args;
+        loadtest "publiccloud/registration", run_args => $args;
         loadtest 'publiccloud/run_ltp', run_args => $args;
+        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+        loadtest "publiccloud/instance_overview", run_args => $args;
+        loadtest "publiccloud/systemd_detect_virt", run_args => $args;
+        loadtest "publiccloud/ssh_interactive_end", run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
         loadtest 'publiccloud/az_accelerated_net', run_args => $args;
