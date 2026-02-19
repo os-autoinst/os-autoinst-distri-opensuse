@@ -10,13 +10,13 @@ use testapi;
 use utils;
 use lockapi;
 use mmapi;
-use version_utils qw(is_sle);
+use version_utils 'is_sle';
 use krb5crypt;    # Import public variables
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    select_console 'root-console';
-
-    mutex_wait('CONFIG_READY_SSH_SERVER');
+    select_serial_terminal;
+    barrier_wait('KRB5_SSH_SERVER_READY');
 
     script_run("kinit -p $tst |& tee /dev/$serialdev", 0);
     wait_serial(qr/Password.*$tst/) || die "Matching output failed";
@@ -27,22 +27,22 @@ sub run {
     };
 
     # Try connecting to server
-    my $ssherr = "ssh login failed";
     # -K Enables GSSAPI-based authentication and forwarding (delegation)
     # of GSSAPI credentials to the server
-    script_run("ssh -K -v -o StrictHostKeyChecking=no $tst\@$dom_server |& tee /dev/$serialdev", 0);
-    wait_serial "$tst\@.*~>" || die $ssherr;
-    validate_script_output "hostname", sub { m/krb5server/ };
 
-    # Exit the server
-    send_key 'ctrl-d';
+    # Debugging GSSAPI: Check DNS, ticket cache encryption types, and service ticket availability
+    script_run "getent hosts $dom_server |& tee /dev/$serialdev";
+    script_run "klist -e |& tee /dev/$serialdev";
+    script_run "kvno host/$dom_server |& tee /dev/$serialdev";
+    validate_script_output "ssh -p 2222 -K -vvv -o StrictHostKeyChecking=no -o PasswordAuthentication=no $tst\@$dom_server hostname 2>&1",
+      sub { m/krb5server/ };
+    # ensure the hostname is not changed after ssh connection
     validate_script_output "hostname", sub { m/krb5client/ };
-
-    mutex_create('TEST_DONE_SSH_CLIENT');
+    barrier_wait('KRB5_SSH_TEST_DONE');
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {fatal => 1};
 }
 
 1;
