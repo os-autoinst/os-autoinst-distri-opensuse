@@ -1,14 +1,21 @@
 name: os_image
 description: |
   - Test boot of Elemental OS image
+  - Test user and group creation
+  - Test toolbox command and container image
   - Test k8s distribution included in the image
   Maintainer: unified-core@suse.com, ldevulder@suse.com
 schedule:
   - elemental3/elemental_boot
-  - '{{validate_users}}'
-  - '{{elemental_test}}'
+  - '{{validation_tests}}'
+  - '{{elemental_tests}}'
 conditional_schedule:
-  elemental_test:
+  validation_tests:
+    TESTED_CMD:
+      customize:
+        - elemental3/validate_users
+        - elemental3/validate_toolbox
+  elemental_tests:
     TEST_TYPE:
       test_image:
         - elemental3/start_k8s
@@ -18,7 +25,3 @@ conditional_schedule:
         - elemental3/wait_barriers
         - elemental3/configure_network
         - elemental3/start_k8s
-  validate_users:
-    TESTED_CMD:
-      customize:
-        - elemental3/validate_users
