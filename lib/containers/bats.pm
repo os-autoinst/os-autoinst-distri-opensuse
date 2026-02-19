@@ -13,9 +13,9 @@ use Exporter;
 
 use base "consoletest";
 use testapi;
-use utils;
 use strict;
 use warnings;
+use utils;
 use version_utils qw(is_sle is_tumbleweed);
 use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
@@ -443,6 +443,10 @@ EOF
         add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
     }
 
+    # We use ignore_loglevel to get task traces in case we get
+    # "watchdog: BUG: soft lockup - CPU#1 stuck for 777s!"
+    add_grub_cmdline_settings("ignore_loglevel", update_grub => 1);
+
     power_action('reboot', textmode => 1);
     $self->wait_boot();
     push @commands, "reboot";
@@ -458,7 +462,7 @@ EOF
 
 sub collect_coredumps {
     my $package = get_var("BATS_PACKAGE", "");
-    my $backtrace = get_var("COREDUMP_BACKTRACE");
+    my $backtrace = get_var("DEBUG");
 
     if ($backtrace) {
         script_run "sed -i s/enabled=0/enabled=1/ /etc/zypp/repos.d/*-[Dd]ebug.repo";
@@ -504,6 +508,8 @@ sub collect_calltraces {
 }
 
 sub bats_post_hook {
+    dump_tasktrace if get_var("DEBUG");
+
     select_serial_terminal;
 
     my $log_dir = "/tmp/logs/";
@@ -514,8 +520,9 @@ sub bats_post_hook {
 
     collect_calltraces;
     collect_coredumps;
+
     script_run('df -h > df-h.txt');
-    script_run('dmesg > dmesg.txt');
+    script_run('dmesg --read-clear > dmesg.txt');
     script_run('findmnt > findmnt.txt');
     script_run('free -h > free.txt');
     script_run('lscpu > lscpu.txt');

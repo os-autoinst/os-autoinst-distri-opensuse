@@ -20,6 +20,7 @@ The tests rely on some variables:
 
 | variable | description |
 | --- | --- |
+| `DEBUG` | Enable all kinds of debugging facilities |
 | `DOCKER_EXPERIMENTAL` | Enable experimental features in Docker |
 | `DOCKER_MIN_API_VERSION` | Docker minimum API version |
 | `DOCKER_SELINUX` | Enable SELinux in Docker daemon |
