@@ -93,15 +93,13 @@ sub cleanup {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 1;

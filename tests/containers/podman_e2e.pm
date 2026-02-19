@@ -118,15 +118,15 @@ sub run {
 }
 
 sub post_fail_hook {
+    bats_post_hook;
     cleanup_podman;
     run_command 'kill %1; kill -9 %1 || true';
-    bats_post_hook;
 }
 
 sub post_run_hook {
+    bats_post_hook;
     cleanup_podman;
     run_command 'kill %1; kill -9 %1 || true';
-    bats_post_hook;
 }
 
 1;

@@ -565,6 +565,8 @@ sub bats_post_hook {
     upload_logs('/tmp/commands.txt');
 
     script_run('cd / ; rm -rf /tmp/logs');
+
+    select_user_serial_terminal if (get_var("ROOTLESS") || script_output("id -u", proceed_on_failure => 1) ne "0");
 }
 
 sub bats_tests {

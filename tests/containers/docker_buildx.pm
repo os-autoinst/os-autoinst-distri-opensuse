@@ -69,20 +69,18 @@ sub run {
 }
 
 sub cleanup {
-    cleanup_docker;
     script_run 'rm -vf /usr/local/bin/{buildx,compose}';
+    cleanup_docker;
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 1;
