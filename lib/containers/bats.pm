@@ -59,15 +59,20 @@ sub run_command {
     my %args = testapi::compat_args(
         {
             timeout => 90,
-        }, ['timeout'], @_);
+            no_assert => 0,
+        }, ['timeout', 'no_assert'], @_);
+    my $no_assert = delete $args{no_assert};
 
     push @commands, $cmd;
+
     if ($cmd =~ / &$/) {
         $cmd =~ s/ \&$//;
-        background_script_run $cmd, %args;
-    } else {
-        assert_script_run $cmd, %args;
+        return background_script_run $cmd, %args;
     }
+
+    # We need no_assert when running testsuites because the testsuite may fail
+    # but we need to upload the XML before triggering the post fail hook.
+    return $no_assert ? script_run $cmd, %args : assert_script_run $cmd, %args;
 }
 
 sub switch_to_root {
