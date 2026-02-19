@@ -19,6 +19,14 @@ sub run {
     my $log = '/tmp/cts_regression.log';
     my $timeout = 600;
 
+    # pacemaker-cts requires hostname to be solvable. Let's make sure
+    # this happens in our test by adding an entry in /etc/hosts if
+    # SUT fails to resolve its own name
+    if (script_run('host $(hostnamectl hostname)')) {
+        my $ip = get_my_ip();
+        assert_script_run "echo $ip    \$(hostnamectl hostname) >> /etc/hosts";
+    }
+
     # Some of the tests take longer to complete in aarch64.
     # This increases the timeout in that ARCH
     $timeout *= 2 if is_aarch64;
