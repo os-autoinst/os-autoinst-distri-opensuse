@@ -145,6 +145,7 @@ our @EXPORT = qw(
   assert_cmd_run
   parse_json
   inspect_existing_issue
+  dump_tasktrace
 );
 
 our @EXPORT_OK = qw(
@@ -3726,6 +3727,28 @@ sub inspect_existing_issue {
         }
     }
     return $ret;
+}
+
+=head2 dump_tasktrace
+
+dump_tasktrace triggers SysRq key combinations to:
+
+- Dump a list of current tasks and their information to your console.
+- Dump tasks that are in uninterruptible (blocked) state.
+
+See https://docs.kernel.org/admin-guide/sysrq.html
+
+=cut
+
+sub dump_tasktrace {
+    my $old_console = current_console();
+
+    select_console('root-console', await_console => 0);
+    send_key('alt-sysrq-t');
+    send_key('alt-sysrq-w');
+    wait_serial(qr/sysrq: .*Show Blocked State/, timeout => 300);
+    send_key('ret');
+    select_console($old_console, await_console => 0);
 }
 
 1;
