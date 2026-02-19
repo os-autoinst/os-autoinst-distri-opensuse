@@ -71,9 +71,6 @@ sub run {
     );
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
-    run_command "$env gotestsum --junitfile cli.xml ./e2e/... -- |& tee cli.txt", timeout => 3000;
-    upload_logs("cli.txt");
-
     my @xfails = (
         # NOTE: This list can be removed when we upgrade to Docker v29
         # Expected failures from Docker Content Trust (notary is not supported)
@@ -100,8 +97,10 @@ sub run {
         "github.com/docker/cli/e2e/image::TestBuildFromContextDirectoryWithTag",
     ) if (is_sle("<16"));
 
+    my $rc = run_command "$env gotestsum --junitfile cli.xml ./e2e/... --", no_assert => 1, timeout => 3000;
     patch_junit "docker", $version, "cli.xml", @xfails;
     parse_extra_log(XUnit => "cli.xml", timeout => 180);
+    die "Test failed" if $rc;
 }
 
 sub cleanup {
@@ -112,15 +111,13 @@ sub cleanup {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 1;

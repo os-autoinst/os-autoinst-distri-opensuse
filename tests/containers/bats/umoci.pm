@@ -76,13 +76,13 @@ sub cleanup {
 }
 
 sub post_fail_hook {
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 sub post_run_hook {
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 1;

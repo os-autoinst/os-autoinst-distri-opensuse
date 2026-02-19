@@ -13,6 +13,8 @@ use serial_terminal qw(select_serial_terminal);
 use version_utils;
 use containers::bats;
 
+my $buildah_version = "";
+
 sub run_tests {
     my %params = @_;
     my $rootless = $params{rootless};
@@ -88,11 +90,10 @@ sub test_conformance {
     install_gotestsum;
     run_command 'cp /usr/bin/busybox-static tests/conformance/testdata/mount-targets/true';
     run_command 'docker rmi -f $(docker images -q) || true';
-    run_command 'gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/... |& tee conformance.txt', timeout => 1200;
-    my $version = script_output "buildah version --json | jq -Mr .version";
-    patch_junit "buildah", $version, "conformance.xml";
+    my $rc = run_command 'gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/...', no_assert => 1, timeout => 1200;
+    patch_junit "buildah", $buildah_version, "conformance.xml";
     parse_extra_log(XUnit => "conformance.xml");
-    upload_logs("conformance.txt");
+    die "Test failed" if $rc;
 }
 
 sub run {
@@ -117,7 +118,7 @@ sub run {
     record_info("buildah rootless", script_output("buildah info"));
 
     # Download buildah sources
-    my $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
+    $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
     patch_sources "buildah", "v$buildah_version", "tests";
 
     # Patch mkdir to always use -p

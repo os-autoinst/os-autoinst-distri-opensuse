@@ -57,11 +57,10 @@ sub test ($target) {
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
     my $pytest_args = "-vv --capture=tee-sys -o junit_logging=all --junit-xml $target.xml $ignore $deselect";
 
-    run_command "$env pytest $pytest_args podman/tests/$target &> $target.txt || true", timeout => 3600;
-    upload_logs("$target.txt");
-
+    my $rc = run_command "$env pytest $pytest_args podman/tests/$target", no_assert => 1, timeout => 3600;
     patch_junit "podman-py", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml", timeout => 180);
+    die "Test failed" if $rc;
 }
 
 sub run {
@@ -83,13 +82,13 @@ sub cleanup {
 }
 
 sub post_fail_hook {
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 sub post_run_hook {
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 1;

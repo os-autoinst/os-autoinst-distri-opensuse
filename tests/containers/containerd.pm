@@ -57,8 +57,6 @@ sub critest {
     run_command "systemctl restart containerd";
     record_info "crictl info", script_output("crictl info");
 
-    run_command "critest --ginkgo.junit-report critest.xml |& tee critest.txt", timeout => 300;
-
     my @xfails = (
         # https://github.com/kubernetes-sigs/cri-tools/issues/1029
 "CRI validation::[It] [k8s.io] Networking runtime should support networking runtime should support port mapping with host port and container port [Conformance]",
@@ -66,10 +64,10 @@ sub critest {
         "CRI validation::[It] [k8s.io] Security Context NamespaceOption runtime should support HostIpc is true",
     );
 
+    my $rc = run_command "critest --ginkgo.junit-report critest.xml", no_assert => 1, timeout => 300;
     patch_junit "containerd", $version, "critest.xml", @xfails;
-
     parse_extra_log(XUnit => "critest.xml", timeout => 180);
-    upload_logs("critest.txt");
+    die "Test failed" if $rc;
 }
 
 sub run {
@@ -78,8 +76,7 @@ sub run {
     $self->setup;
     select_serial_terminal;
 
-    run_command "gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root |& tee containerd.txt", timeout => 600;
-    upload_logs("containerd.txt");
+    my $rc = run_command "gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root", no_assert => 1, timeout => 600;
 
     my @xfails = (
         "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
@@ -96,15 +93,13 @@ sub cleanup {
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 1;

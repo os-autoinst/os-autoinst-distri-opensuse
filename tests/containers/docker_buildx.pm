@@ -62,28 +62,25 @@ sub run {
         "github.com/docker/buildx/tests::TestIntegration/TestComposeBuildRegistry/worker=remote",
     ) if (is_sle);
 
-    run_command "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests |& tee buildx.txt", timeout => 1200;
-    upload_logs("buildx.txt");
-
+    my $rc = run_command "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests", no_assert => 1, timeout => 1200;
     patch_junit "docker-buildx", $version, "buildx.xml", @xfails;
     parse_extra_log(XUnit => "buildx.xml", timeout => 180);
+    die "Test failed" if $rc;
 }
 
 sub cleanup {
-    cleanup_docker;
     script_run 'rm -vf /usr/local/bin/{buildx,compose}';
+    cleanup_docker;
 }
 
 sub post_fail_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 sub post_run_hook {
-    my ($self) = @_;
-    cleanup;
     bats_post_hook;
+    cleanup;
 }
 
 1;
