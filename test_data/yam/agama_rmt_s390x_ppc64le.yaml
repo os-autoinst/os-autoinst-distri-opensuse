@@ -1,20 +1,20 @@
 ---
 repos:
-  - name: SLE-Product-SLES-16.0
-    alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-16.0
+  - name: SLE-Product-SLES-%VERSION%
+    alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-%VERSION%
     Autorefresh: 'On'
     enabled: 'Yes'
     filter: name
-    URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/16.0/%ARCH%/product/
-  - name: SLE-Product-SLES-16.0-Debug
-    alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-16.0-Debug
+    URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product/
+  - name: SLE-Product-SLES-%VERSION%-Debug
+    alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-%VERSION%-Debug
     Autorefresh: 'On'
     enabled: 'No'
     filter: name
-    URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/16.0/%ARCH%/product_debug/
-  - name: SLE-Product-SLES-16.0-Source
-    alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-16.0-Source
+    URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_debug/
+  - name: SLE-Product-SLES-%VERSION%-Source
+    alias: SUSE_Linux_Enterprise_Server_%ARCH%:SLE-Product-SLES-%VERSION%-Source
     Autorefresh: 'On'
     enabled: 'No'
     filter: name
-    URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/16.0/%ARCH%/product_source/
+    URI: http://migration-rmt2.qe.nue2.suse.org/repo/SUSE/Products/SLE-Product-SLES/%VERSION%/%ARCH%/product_source/
