@@ -71,8 +71,7 @@ sub run {
     );
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
-    run_command "$env gotestsum --junitfile cli.xml ./e2e/... -- |& tee cli.txt", timeout => 3000;
-    upload_logs("cli.txt");
+    run_command "$env gotestsum --junitfile cli.xml ./e2e/... --", timeout => 3000;
 
     my @xfails = (
         # NOTE: This list can be removed when we upgrade to Docker v29

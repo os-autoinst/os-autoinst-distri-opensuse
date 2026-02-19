@@ -90,10 +90,9 @@ sub test_conformance {
     install_gotestsum;
     run_command 'cp /usr/bin/busybox-static tests/conformance/testdata/mount-targets/true';
     run_command 'docker rmi -f $(docker images -q) || true';
-    run_command 'gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/... |& tee conformance.txt', timeout => 1200;
+    run_command 'gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/...', timeout => 1200;
     patch_junit "buildah", $buildah_version, "conformance.xml";
     parse_extra_log(XUnit => "conformance.xml");
-    upload_logs("conformance.txt");
 }
 
 sub run {

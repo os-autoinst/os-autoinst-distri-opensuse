@@ -60,8 +60,7 @@ sub test ($target) {
         "github.com/docker/compose/v5/pkg/e2e::TestUpDependenciesNotStopped",
     ) unless (is_sle);
 
-    run_command "$env make $target |& tee $target.txt || true", timeout => 3600;
-    upload_logs("$target.txt");
+    run_command "$env make $target", timeout => 3600;
 
     assert_script_run "mv /tmp/report/report.xml $target.xml";
     patch_junit "docker-compose", $version, "$target.xml", @xfails;

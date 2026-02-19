@@ -57,7 +57,7 @@ sub critest {
     run_command "systemctl restart containerd";
     record_info "crictl info", script_output("crictl info");
 
-    run_command "critest --ginkgo.junit-report critest.xml |& tee critest.txt", timeout => 300;
+    run_command "critest --ginkgo.junit-report critest.xml", timeout => 300;
 
     my @xfails = (
         # https://github.com/kubernetes-sigs/cri-tools/issues/1029
@@ -67,9 +67,7 @@ sub critest {
     );
 
     patch_junit "containerd", $version, "critest.xml", @xfails;
-
     parse_extra_log(XUnit => "critest.xml", timeout => 180);
-    upload_logs("critest.txt");
 }
 
 sub run {
@@ -78,8 +76,7 @@ sub run {
     $self->setup;
     select_serial_terminal;
 
-    run_command "gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root |& tee containerd.txt", timeout => 600;
-    upload_logs("containerd.txt");
+    run_command "gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root", timeout => 600;
 
     my @xfails = (
         "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
