@@ -128,20 +128,17 @@ sub run {
 
     my $tags = "apparmor selinux seccomp pkcs11";
 
-    my $errors = 0;
     foreach my $dir (@test_dirs) {
         my $report = $dir =~ s|/|-|gr;
         $env{TEST_CLIENT_BINARY} = "/var/tmp/docker" if ($dir eq "integration-cli");
         my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
         run_command "pushd $dir";
-        my $rc = run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", no_assert => 1, timeout => 900;
+        run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", no_assert => 1, timeout => 900;
         patch_junit "docker", $version, "$report.xml", @xfails;
         parse_extra_log(XUnit => "$report.xml", timeout => 180);
         run_command "popd";
-        $errors++ if $rc;
     }
     upload_logs("/var/tmp/report.txt");
-    die "Test failed" if $errors;
 }
 
 sub cleanup {
