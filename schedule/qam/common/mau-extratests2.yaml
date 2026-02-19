@@ -40,6 +40,18 @@ conditional_schedule:
         - console/rust
         - console/gcc
         - console/ndctl
+        - console/curl_ipv6
+        - console/wget_ipv6
+        - console/osinfo_db
+        - console/ovn
+        # - console/firewalld
+        # - console/nginx
+        - console/libgcrypt
+        - console/zziplib
+        - console/journald_fss
+        - console/valgrind
+        - console/valkey
+        - '{{arch_specific15_sp5plus}}'
       15-SP7:
         - console/pkcon
         - '{{fwupd}}'
