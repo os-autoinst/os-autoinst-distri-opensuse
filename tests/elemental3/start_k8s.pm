@@ -275,7 +275,10 @@ sub post_fail_hook {
     record_info(__PACKAGE__ . ':' . 'post_fail_hook');
 
     # Useful to debug K8s starting issues
-    script_run("journalctl -xeu $_.service") foreach ('k3s', 'rke2-server');
+    foreach my $svc ('k8s-resource-installer', 'k3s', 'rke2-server') {
+        script_run("journalctl -xeu $svc.service > /tmp/${svc}_journal.log");
+        upload_logs("/tmp/${svc}_journal.log", failok => 1);
+    }
 
     # Execute the common part
     $self->SUPER::post_fail_hook;
