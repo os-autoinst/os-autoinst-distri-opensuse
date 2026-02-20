@@ -35,7 +35,7 @@ sub run {
 
     foreach my $cts_tests (@tests_to_run) {
         record_info("$cts_tests", "Starting $cts_tests");
-        assert_script_run "$cts_path/$cts_tests -V | tee -a $log 2>&1", timeout => $timeout;
+        assert_script_run "$cts_path/$cts_tests -V | tee -a $log 2>&1 ; ( exit \${PIPESTATUS[0]} )", timeout => $timeout;
         save_screenshot;
     }
 
