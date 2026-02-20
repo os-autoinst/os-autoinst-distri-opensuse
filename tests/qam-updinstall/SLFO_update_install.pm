@@ -159,6 +159,7 @@ sub run {
         zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
 
         # Install binaries newly added by the incident
+        my @new_binaries;
         if (scalar @new_binaries) {
             record_info 'New packages', "New packages: @new_binaries";
             zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
