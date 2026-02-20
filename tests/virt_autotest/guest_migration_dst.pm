@@ -7,7 +7,7 @@
 #          This is the part to run on the destination host.
 # Maintainer: alice <xlai@suse.com>
 
-use base multi_machine_job_base;
+use base 'multi_machine_job_base';
 use testapi;
 use lockapi;
 use mmapi;
