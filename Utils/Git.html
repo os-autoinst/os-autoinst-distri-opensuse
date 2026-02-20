@@ -30,7 +30,8 @@
     depth=&gt;1,
     single_branch=&gt;1,
     skip_ssl_verification=&gt;&#39;true&#39;,
-    output_log_file=&gt;&#39;git_clone.log&#39;]);</code></pre>
+    output_log_file=&gt;&#39;git_clone.log&#39;,
+    target_dir =&gt; &#39;/path/to/repo/dir&#39;]);</code></pre>
 
 <p><b>repository</b>: Git repository url. Mandatory argument.</p>
 
@@ -43,6 +44,8 @@
 <p><b>skip_ssl_verification</b>: Disable SSL verification. Can be useful in case of self signed certificates. Define this parameter <b>ONLY</b> if you want to skip verification. Default: undef</p>
 
 <p><b>output_log_file</b>: Log output into a file.</p>
+
+<p><b>target_dir</b>: Clone into specific directory. Directory will be created, must be empty.</p>
 
 <p>Generic wrapper around <code>git clone</code> command. Supports basic set of switches and output logging.</p>
 
