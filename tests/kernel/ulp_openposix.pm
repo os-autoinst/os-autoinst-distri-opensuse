@@ -36,6 +36,7 @@ sub parse_incident_repo {
     my $repo_args = join(' ', map({ "-r $_" } @repo_names));
     my $packlist = zypper_search("-st package $repo_args");
 
+    my $incident_id = 0;
     if (grep { $$_{name} eq 'glibc-livepatches' } @$packlist) {
         record_info('Livepatch tests', "Incident $incident_id contains userspace livepatches.");
         $packname = 'glibc-livepatches';
