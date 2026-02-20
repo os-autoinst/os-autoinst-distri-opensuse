@@ -17,7 +17,7 @@ use transactional qw(trup_call process_reboot);
 use utils qw(zypper_call reconnect_mgmt_console);
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends 'is_pvm';
-use Utils::Architectures qw(is_aarch64 is_ppc64le);
+use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x);
 use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional is_microos);
 use security::vendoraffirmation;
 use security::certification;
