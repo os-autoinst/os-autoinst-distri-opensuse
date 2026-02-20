@@ -5,7 +5,7 @@
 # reboot and reach login prompt.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base Yam::Agama::agama_base;
+use base 'Yam::Agama::agama_base';
 
 use testapi;
 use Utils::Architectures qw(is_s390x is_ppc64le);
