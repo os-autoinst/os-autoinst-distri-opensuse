@@ -4,7 +4,7 @@
 # Summary: Agama headless validataion
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base Yam::Agama::agama_base;
+use base 'Yam::Agama::agama_base';
 use testapi qw(assert_script_run select_console);
 use utils qw(systemctl);
 

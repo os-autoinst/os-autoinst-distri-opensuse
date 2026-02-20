@@ -4,7 +4,7 @@
 # Summary: Perform a default installation using only CLI while exercising various commands.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base Yam::Agama::agama_base;
+use base 'Yam::Agama::agama_base';
 use testapi;
 use power_action_utils qw(power_action);
 use Utils::Architectures qw(is_s390x);
