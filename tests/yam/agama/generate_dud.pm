@@ -5,7 +5,7 @@
 # using a web automation tool to test directly from the Live ISO.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base Yam::Agama::agama_base;
+use base 'Yam::Agama::agama_base';
 use testapi;
 use utils;
 use autoyast qw(expand_agama_profile generate_json_profile);
