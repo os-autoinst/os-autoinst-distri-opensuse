@@ -9,7 +9,7 @@
 use base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
     my $tmp_output = '/tmp/out';
