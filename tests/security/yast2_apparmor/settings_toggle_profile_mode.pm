@@ -5,7 +5,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#66901, tc#1741266
 
-use base apparmortest;
+use base 'apparmortest';
 use testapi;
 use utils;
 
