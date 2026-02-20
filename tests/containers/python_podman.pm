@@ -57,7 +57,9 @@ sub test ($target) {
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
     my $pytest_args = "-vv --capture=tee-sys -o junit_logging=all --junit-xml $target.xml $ignore $deselect";
 
-    run_command "$env pytest $pytest_args podman/tests/$target", no_assert => 1, timeout => 3600;
+    run_command "$env pytest $pytest_args podman/tests/$target &> $target.txt", no_assert => 1, timeout => 3600;
+    upload_logs "$target.txt";
+    die "Testsuite failed" if script_run("test -s $target.xml");
     patch_junit "podman-py", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml", timeout => 180);
 }

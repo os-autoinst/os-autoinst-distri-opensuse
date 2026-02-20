@@ -64,7 +64,9 @@ sub critest {
         "CRI validation::[It] [k8s.io] Security Context NamespaceOption runtime should support HostIpc is true",
     );
 
-    run_command "critest --ginkgo.junit-report critest.xml", no_assert => 1, timeout => 300;
+    run_command "critest --ginkgo.junit-report critest.xml >& critest.txt", no_assert => 1, timeout => 300;
+    upload_logs "critest.txt";
+    die "Testsuite failed" if script_run("test -s critest.xml");
     patch_junit "containerd", $version, "critest.xml", @xfails;
     parse_extra_log(XUnit => "critest.xml", timeout => 180);
 }
@@ -75,12 +77,13 @@ sub run {
     $self->setup;
     select_serial_terminal;
 
-    run_command "gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root", no_assert => 1, timeout => 600;
-
     my @xfails = (
         "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
     );
 
+    run_command "gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root &> containerd.txt", no_assert => 1, timeout => 600;
+    upload_logs "containerd.txt";
+    die "Testsuite failed" if script_run("test -s containerd.xml");
     patch_junit "containerd", $version, "containerd.xml", @xfails;
     parse_extra_log(XUnit => "containerd.xml", timeout => 180);
 
