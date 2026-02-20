@@ -7,7 +7,7 @@
 
 package hotplugging_utils;
 
-use base Exporter;
+use base 'Exporter';
 use utils;
 use version_utils;
 use testapi;
