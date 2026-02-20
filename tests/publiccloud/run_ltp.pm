@@ -360,20 +360,22 @@ sub install_ec2_cloudwatch_agent
 
     $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$gpg_file $gpg_url");
 
-    my $gpg_out = $instance->ssh_script_output("sudo gpg --import $download_directory/$gpg_file");
-    my $key_id = $gpg_out =~ /key\s+([0-9A-F]+):/
-      ? $1
-      : die("Failed to extract key ID from gpg output: $gpg_out");
+    my $gpg_out = $instance->ssh_script_output(
+        "sudo gpg --batch --status-fd=1 --import $download_directory/$gpg_file 2>&1"
+    );
 
-    my $imp_fp = $instance->ssh_script_output("sudo gpg --fingerprint --with-colons $key_id");
+    my ($fingerprint) =
+      $gpg_out =~ /^\[GNUPG:\]\s+IMPORT_OK\s+\d+\s+([0-9A-F]{40})/m
+      or die("Failed to extract fingerprint from gpg output: $gpg_out");
+
     die("amazon-cloudwatch-agent.gpg key is outdated. Please update the key in the code.")
-      if ($imp_fp !~ /$fp_flat/);
+      if uc($fingerprint) ne uc($fp_flat);
 
     $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$rpm_file.sig $rpm_url.sig");
     my $download_rpm_cmd = "curl -sLo $download_directory/$rpm_file $rpm_url";
     $instance->ssh_assert_script_run("sudo $download_rpm_cmd");
 
-    my $verify_out = $instance->ssh_script_output("sudo gpg --verify $download_directory/$rpm_file.sig $download_directory/$rpm_file");
+    my $verify_out = $instance->ssh_script_output("sudo gpg --verify $download_directory/$rpm_file.sig $download_directory/$rpm_file 2>&1");
     die("RPM signature verification failed for $download_directory/$rpm_file: $verify_out")
       if ($verify_out !~ /Good signature/);
 
