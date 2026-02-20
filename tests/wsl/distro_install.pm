@@ -62,7 +62,7 @@ sub run {
           unless ($wsl_image_ext =~ /^(appx|xz)$/);
         # Enable the 'developer mode' in Windows
         $self->run_in_powershell(
-            cmd => 'New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -PropertyType DWORD -Value 1'
+            cmd => 'Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -Type DWORD -Value 1'
         );
 
         $self->install_certificates;
