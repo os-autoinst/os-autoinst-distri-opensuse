@@ -15,7 +15,7 @@
 
 use base "installbasetest";
 use testapi;
-use version_utils qw(is_leap is_sle);
+use version_utils qw(is_leap is_sle is_microos);
 use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use Utils::Architectures;
@@ -38,6 +38,7 @@ sub agama_set_root_password_screen {
     send_key 'tab';    # show password btn
     send_key 'tab';    # optional enable public ssh key toggle
     send_key 'tab';    # accept button
+    save_screenshot;
     send_key 'ret';
 }
 
@@ -97,12 +98,16 @@ sub select_product {
     mouse_set(600, 600);
     mouse_click;
 
+    my $product_to_install = "agama-product-tumbleweed";
+    $product_to_install = "agama-product-leap16" if is_leap;
+    $product_to_install = "agama-product-microos" if is_microos;
+
     if (is_leap('>=16.0')) {
-        send_key_until_needlematch('agama-product-leap16', 'down');
-        assert_and_click('agama-product-leap16');
+        send_key_until_needlematch($product_to_install, 'down');
+        assert_and_click($product_to_install);
     } else {    # Default to TW
-        send_key_until_needlematch('agama-product-tumbleweed', 'down');
-        assert_and_click('agama-product-tumbleweed');
+        send_key_until_needlematch($product_to_install, 'down');
+        assert_and_click($product_to_install);
         # New agama version has the Select button inside the same container
         # We need to click on an empty space so we can press arrow down
         mouse_set(850, 630);

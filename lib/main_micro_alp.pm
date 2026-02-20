@@ -29,7 +29,7 @@ sub is_image {
 }
 
 sub is_dvd {
-    return get_required_var('FLAVOR') =~ /dvd/i;
+    return get_required_var('FLAVOR') =~ /dvd|agama-install/i;
 }
 
 sub is_regproxy_required {
@@ -141,6 +141,28 @@ sub load_installation_tests {
     }
     loadtest 'console/textinfo';
     replace_opensuse_repos_tests if is_repo_replacement_required;
+}
+
+sub load_agama_installation_tests {
+    loadtest 'installation/agama';
+    loadtest 'installation/agama_reboot';
+    loadtest 'microos/disk_boot';
+    loadtest 'console/textinfo';
+    replace_opensuse_repos_tests if is_repo_replacement_required;
+}
+
+sub load_yast_installation_tests {
+    if (check_var('HDDSIZEGB', '10')) {
+        load_10GB_installation_tests;
+        return;    # in 10G-disk tests, we don't run more tests
+    }
+    load_installation_tests;
+    # Stop here if we are testing only scc extensions (live, phub, ...) activation
+    my $is_phub = get_var('SCC_ADDONS');
+    if (defined($is_phub) && $is_phub =~ /phub/) {
+        loadtest 'transactional/check_phub';
+        return;
+    }
 }
 
 sub load_autoyast_installation_tests {
@@ -420,16 +442,10 @@ sub load_tests {
         return 1;
     } elsif (is_dvd) {
         load_boot_from_dvd_tests;
-        if (check_var('HDDSIZEGB', '10')) {
-            load_10GB_installation_tests;
-            return;    # in 10G-disk tests, we don't run more tests
-        }
-        load_installation_tests;
-        # Stop here if we are testing only scc extensions (live, phub, ...) activation
-        my $is_phub = get_var('SCC_ADDONS');
-        if (defined($is_phub) && $is_phub =~ /phub/) {
-            loadtest 'transactional/check_phub';
-            return;
+        if (is_agama) {
+            load_agama_installation_tests;
+        } else {
+            load_yast_installation_tests;
         }
     }
 
