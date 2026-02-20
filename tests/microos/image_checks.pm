@@ -8,7 +8,7 @@
 
 use base "consoletest";
 use testapi;
-use version_utils qw(is_microos is_sle_micro is_jeos is_leap_micro);
+use version_utils qw(is_microos is_sle_micro is_jeos is_leap_micro is_transactional);
 use Utils::Backends 'is_pvm';
 use Utils::Architectures qw(is_aarch64 is_ppc64le);
 
