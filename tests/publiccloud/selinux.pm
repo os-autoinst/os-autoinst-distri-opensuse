@@ -10,6 +10,7 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use publiccloud::utils qw(is_ec2);
 
 sub run {
     select_serial_terminal;
