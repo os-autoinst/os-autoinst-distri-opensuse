@@ -332,7 +332,7 @@ sub run {
     if (has_selinux) {
         restorecon_rootfs();
         # SAP admin
-        $sapadm = $self->set_sap_info($sid, $instid);
+        $self->set_sap_info($sid, $instid);
         # Connect SAP account
         $self->user_change;
         # Start Hana

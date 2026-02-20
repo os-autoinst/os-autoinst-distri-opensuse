@@ -134,10 +134,10 @@ sub run {
     die "Initator name $old_initator_name is not changed" if $old_initator_name eq $new_initator_name;
 
     # Save multipath wwids file as we may need it to blacklist iSCSI devices later
+    my $mpconf = '/etc/multipath.conf';
+    my $mpwwid = '/etc/multipath/wwids';
+    my $mptmp = '/tmp/multipath-wwids';
     if (get_var('MULTIPATH')) {
-        my $mpconf = '/etc/multipath.conf';
-        my $mpwwid = '/etc/multipath/wwids';
-        my $mptmp = '/tmp/multipath-wwids';
         script_run "cp $mpwwid $mptmp.orig";
     }
 
