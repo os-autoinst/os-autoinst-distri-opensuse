@@ -107,8 +107,10 @@ sub run {
     # $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS"));
     my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
-        run_command "env $env make $target", no_assert => 1, timeout => 3000;
-        script_run "mv report.xml $target.xml";
+        run_command "env $env make $target &> $target.txt", no_assert => 1, timeout => 3000;
+        upload_logs "$target.txt";
+        assert_script_run "mv report.xml $target.xml";
+        die "Testsuite failed" if script_run("test -s $target.xml");
         patch_junit "podman", $version, "$target.xml", @xfails;
         parse_extra_log(XUnit => "$target.xml", timeout => 300);
     }

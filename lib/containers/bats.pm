@@ -322,7 +322,6 @@ sub patch_junit {
     foreach my $pass (@passed) {
         record_info("PASS", $pass);
     }
-    script_run "diff $xmlfile.orig $xmlfile ; rm -f $xmlfile.orig";
 }
 
 # /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
