@@ -378,6 +378,14 @@ sub setup_pkgs {
     push @pkgs, qw(jq xz);
     @pkgs = uniq sort @pkgs;
     push @pkgs, "git" unless is_sle;
+    if (is_tumbleweed && grep { $_ eq "docker" } @pkgs) {
+        # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1215008
+        run_command 'sed -ri "s/^(NftablesTableOwner)=yes/\1=no/" /etc/firewalld/firewalld.conf';
+        run_command 'systemctl restart firewalld';
+        run_command 'echo br_netfilter > /etc/modules-load.d/docker-netfilter.conf';
+        run_command 'modprobe br_netfilter';
+        push @pkgs, "iptables-backend-nft";
+    }
     run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 600;
     install_git unless is_tumbleweed;
 
