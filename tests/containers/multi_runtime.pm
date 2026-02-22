@@ -12,6 +12,7 @@ use Mojo::Base qw(containers::basetest);
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils;
+use version_utils;
 use containers::common qw(install_packages);
 use Utils::Logging 'save_and_upload_log';
 
@@ -89,7 +90,23 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = ("docker", "podman", "jq");
+    # See https://bugzilla.suse.com/show_bug.cgi?id=1215008
+    push @pkgs, "iptables-backend-nft" if is_tumbleweed;
     install_packages(@pkgs);
+
+    # Needed to avoid:
+    # WARNING: COMMAND_FAILED: INVALID_IPV: 'ipv4' is not a valid backend or is unavailable
+    # See https://bugzilla.suse.com/show_bug.cgi?id=1215008
+    if (is_tumbleweed) {
+        assert_script_run 'sudo sed -ri "s/^(NftablesTableOwner)=yes/\1=no/" /etc/firewalld/firewalld.conf';
+        assert_script_run 'modprobe br_netfilter';
+    }
+
+    # Needed to avoid:
+    # WARNING: COMMAND_FAILED: '/sbin/iptables -t nat -F DOCKER' failed: iptables: No chain/target/match by that name.
+    # See https://bugzilla.suse.com/show_bug.cgi?id=1196801
+    systemctl "restart firewalld";
+    systemctl "status firewalld";
 
     # https://docs.docker.com/engine/daemon/ipv6/
     assert_script_run "sed -i 's%^{%&\"ipv6\":true,\"fixed-cidr-v6\":\"2001:db8:1::/64\",%' /etc/docker/daemon.json";
@@ -103,12 +120,6 @@ sub run {
     record_info("WARNINGS client", $warnings) if $warnings;
     record_info("docker version", script_output("docker version"));
     record_info("podman root", script_output("podman info"));
-
-    # Needed to avoid:
-    # WARNING: COMMAND_FAILED: '/sbin/iptables -t nat -F DOCKER' failed: iptables: No chain/target/match by that name.
-    # See https://bugzilla.suse.com/show_bug.cgi?id=1196801
-    systemctl "restart firewalld";
-    systemctl "status firewalld";
 
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' | tee -a /etc/sudoers.d/nopasswd";
 
