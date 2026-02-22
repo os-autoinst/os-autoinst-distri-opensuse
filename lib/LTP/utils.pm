@@ -576,6 +576,10 @@ sub init_debug {
         install_package('supportutils', trup_reboot => 1);
     }
 
+    if (check_var_array('LTP_DEBUG', 'strace')) {
+        install_package('strace', trup_reboot => 1);
+    }
+
     # Initialize VNC console now to avoid login attempts on frozen system
     select_console('root-console');
 
