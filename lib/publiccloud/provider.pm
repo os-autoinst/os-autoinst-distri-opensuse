@@ -594,6 +594,8 @@ sub terraform_apply {
             if ($ret == 0) {
                 $self->provider_client->availability_zone($az);
                 last;
+            } elsif (get_required_var("ARCH") eq "gce_g2-standard-4") {
+                $self->record_soft_failure_result("poo#191425 - Nvidia accelerator lack of resources");
             }
         }
     }
