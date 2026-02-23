@@ -33,14 +33,14 @@ sub check_min_runtime_version {
 
 sub container_ip {
     my ($container, $runtime) = @_;
-    my $ip = script_output "$runtime inspect $container --format='{{.NetworkSettings.IPAddress}}'";
+    my $ip = script_output "$runtime inspect $container --format='{{.NetworkSettings.Networks.bridge.IPAddress}}'";
     record_info "container IP", "$ip";
     return $ip;
 }
 
 sub container_route {
     my ($container, $runtime) = @_;
-    my $route = script_output "$runtime inspect $container --format='{{.NetworkSettings.Gateway}}'";
+    my $route = script_output "$runtime inspect $container --format='{{.NetworkSettings.Networks.bridge.Gateway}}'";
     record_info "container route", "$route";
     return $route;
 }
