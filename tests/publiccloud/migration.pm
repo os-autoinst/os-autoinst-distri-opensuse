@@ -23,7 +23,7 @@ sub run {
 
     print_os_version($instance);
     if (is_sle('=12-SP5')) {
-        $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 https://download.opensuse.org/repositories/home:/marcus.schaefer:/dms/SLE_12_SP5 Migration");
+        $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration");
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
         $instance->ssh_assert_script_run("sudo zypper -n in suse-migration-sle15-activation", timeout => 1800);
         $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
@@ -48,7 +48,7 @@ sub run {
         $instance->ssh_assert_script_run("sudo zypper -n in aws-cli", timeout => 1800) if (is_ec2());
         $instance->ssh_assert_script_run("sudo zypper -n in azure-cli", timeout => 1800) if (is_azure());
 
-        $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 https://download.opensuse.org/repositories/home:/marcus.schaefer:/dms/SLE_15_SP7 Migration");
+        $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration");
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
         $instance->ssh_assert_script_run("sudo zypper -n in suse-migration-sle16-activation", timeout => 1800);
         $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
