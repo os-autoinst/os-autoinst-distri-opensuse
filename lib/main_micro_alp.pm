@@ -340,7 +340,11 @@ sub load_slem_on_pc_tests {
             loadtest("publiccloud/patch_and_reboot", run_args => $args);
         }
         if (get_var('PUBLIC_CLOUD_LTP', 0)) {
-            loadtest("publiccloud/run_ltp", run_args => $args);
+            loadtest 'publiccloud/run_ltp', run_args => $args;
+            loadtest "publiccloud/ssh_interactive_start", run_args => $args;
+            loadtest "publiccloud/instance_overview", run_args => $args;
+            loadtest "publiccloud/systemd_detect_virt", run_args => $args;
+            loadtest "publiccloud/ssh_interactive_end", run_args => $args;
         } elsif (get_var('PUBLIC_CLOUD_AISTACK')) {
             # AISTACK test verification
             loadtest("publiccloud/ssh_interactive_start", run_args => $args);
