@@ -363,8 +363,8 @@ sub unlock_if_encrypted {
     my (%args) = @_;
     $args{check_typed_password} //= 0;
     my $password = check_var('SYSTEM_ROLE', 'Common_Criteria') ? $security::config::strong_password : $testapi::password;
-
     return unless get_var("ENCRYPT");
+    record_info("Attempting to unlock disk");
 
     if (get_var('S390_ZKVM')) {
         select_console('svirt');
@@ -1195,12 +1195,20 @@ without LVM configuration (cr_swap,cr_home etc).
 =cut
 
 sub need_unlock_after_bootloader {
-    my $is_enc_cc_s390x = check_var('SYSTEM_ROLE', 'Common_Criteria') && check_var('FULL_LVM_ENCRYPT', '1') && is_s390x;
-
-    my $need_unlock_after_bootloader = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0')) || $is_enc_cc_s390x;
-    return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
     # MicroOS with sdboot supports automatic TPM based unlocking.
     return 0 if is_microos && (is_bootloader_sdboot || is_bootloader_grub2_bls) && get_var('QEMUTPM');
+    return 0 if check_var('ENCRYPT', 0) && (is_bootloader_sdboot || is_bootloader_grub2_bls) && get_var('QEMUTPM');
+
+    my $is_enc_cc_s390x = check_var('SYSTEM_ROLE', 'Common_Criteria') && check_var('FULL_LVM_ENCRYPT', '1') && is_s390x;
+    my $need_unlock_after_bootloader = is_leap('<15.6') ||
+      is_sle('<15-sp6') ||
+      is_leap_micro ||
+      is_sle_micro ||
+      (!get_var('LVM', '0')
+        && !get_var('FULL_LVM_ENCRYPT', '0'))
+      || $is_enc_cc_s390x;
+    return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
+
     return 1;
 }
 
