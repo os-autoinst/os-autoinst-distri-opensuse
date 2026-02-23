@@ -240,6 +240,11 @@ sub post_fail_hook {
     }
 
     $self->finalize() unless $self->{finalize_called};
+
+    if (check_var("MACHINE", "gce_g2-standard-4")) {
+        force_soft_failure("poo#191425 - Nvidia accelerator lack of resources");
+        return;
+    }
 }
 
 sub post_run_hook {

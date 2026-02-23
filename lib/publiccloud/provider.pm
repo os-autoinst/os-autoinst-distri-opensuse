@@ -480,6 +480,7 @@ sub terraform_apply {
     $args{count} //= '1';
     my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
     my $cloud_name = $self->conv_openqa_tf_name;
+    my @instances;
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
 
@@ -594,6 +595,9 @@ sub terraform_apply {
             if ($ret == 0) {
                 $self->provider_client->availability_zone($az);
                 last;
+            } elsif (check_var("MACHINE", "gce_g2-standard-4")) {
+                # poo#191425 - Nvidia accelerator lack of resources
+                return @instances;  # empty
             }
         }
     }
@@ -630,7 +634,6 @@ sub terraform_apply {
         $resource_id = $output->{resource_id}->{value} if (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST'));
     }
 
-    my @instances;
     foreach my $i (0 .. $#{$vms}) {
         my $instance = publiccloud::instance->new(
             public_ip => @{$ips}[$i],

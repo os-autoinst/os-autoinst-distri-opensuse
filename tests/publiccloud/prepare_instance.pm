@@ -39,6 +39,7 @@ sub run {
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
     $args->{my_provider} = $self->provider_factory();
     $args->{my_instance} = $args->{my_provider}->create_instance(%instance_args);
+    die "poo#191425 - Nvidia accelerator lack of resources" if (!$args->{my_instance} && check_var("MACHINE", "gce_g2-standard-4"));
     $args->{my_instance}->wait_for_guestregister() if (is_ondemand);
     my $provider = $args->{my_provider};
     my $instance = $args->{my_instance};
