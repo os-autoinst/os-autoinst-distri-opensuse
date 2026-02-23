@@ -80,9 +80,10 @@ sub run {
     select_serial_terminal;
 
     my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit glibc-devel-static go1.25 gpg2 libgpgme-devel
-      libseccomp-devel make netavark openssl podman podman-remote python3-PyYAML skopeo socat sudo systemd-container xfsprogs);
+      libseccomp-devel make netavark openssl podman podman-remote skopeo socat sudo systemd-container xfsprogs);
     push @pkgs, qw(criu libcriu2) if is_tumbleweed;
     push @pkgs, qw(netcat-openbsd) if is_sle("<16");
+    push @pkgs, is_sle ? qw(python3-PyYAML) : qw(yq);
     # Needed for podman machine
     if (is_x86_64) {
         push @pkgs, "qemu-x86";
