@@ -21,7 +21,7 @@ sub run {
     select_host_console();
     my $instance = $args->{my_instance};
 
-    debug_version($instance);
+    print_os_version($instance);
     if (is_sle('=12-SP5')) {
         $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 https://download.opensuse.org/repositories/home:/marcus.schaefer:/dms/SLE_12_SP5 Migration");
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
@@ -68,7 +68,7 @@ sub run {
     }
 }
 
-sub debug_version {
+sub print_os_version {
     my $instance = shift;
     my $os_release = $instance->ssh_script_output("cat /etc/os-release", proceed_on_failure => 1);
     my $zypper_lr = $instance->ssh_script_output("sudo zypper -n lr", proceed_on_failure => 1);
@@ -77,7 +77,7 @@ sub debug_version {
 
 sub validate_version {
     my $instance = shift;
-    debug_version($instance);
+    print_os_version($instance);
     my $version = get_var('VERSION');
     my $sourced_version = $instance->ssh_script_output('source /etc/os-release && echo $VERSION');
     if ($version != $sourced_version) {
