@@ -50,11 +50,6 @@ unnecessary cleanup commands. Cleanup is done in following order:
 =cut
 
 sub full_cleanup {
-    if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
-        record_info('Cleanup OFF', 'OpenQA variable "SDAF_RETAIN_DEPLOYMENT" is active, skipping cleanup.');
-        return;
-    }
-
     # Disable any stray redirection being active. This resets the console to the worker VM.
     disconnect_target_from_serial if check_serial_redirection();
     az_login();
@@ -85,6 +80,11 @@ sub full_cleanup {
         load_os_env_variables();
         az_login();
         sdaf_ibsm_teardown() if get_var('IS_MAINTENANCE');
+        # IBSm teardown must happen even with reused deployment.
+        if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
+            record_info('Cleanup OFF', 'OpenQA variable "SDAF_RETAIN_DEPLOYMENT" is active, skipping cleanup.');
+            return;
+        }
         %cleanup_results = %{sdaf_cleanup()};
         disconnect_target_from_serial();    # Exist Deployer console since we are about to destroy it
     }
