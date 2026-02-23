@@ -1,7 +1,7 @@
 ---
 disks:
   - name: vdb
-    table_type: xfs
+    table_type: gpt
     partitions:
       # whole disk formatted
       - name: vdb
