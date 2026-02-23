@@ -29,43 +29,131 @@ The tests rely on some variables:
 | `OCI_RUNTIME` | OCI runtime to use: `runc` or `crun` |
 | `ROOTLESS` | Enable rootless tests |
 
-These are defined in [skip.yaml](../../data/containers/bats/skip.yaml)
-
 ## openQA jobs
 
-| Testsuite / Product | openSUSE Tumbleweed | Tumbleweed (aarch64) | SLES 16.0 |
-|:---:|:---:|:---:|:---|
-| `docker_testsuite`         | [![tw_dl]][tw_d]     | [![twa_dl]][twa_d]   | [![logo]][s16_d] |
-| `docker_rootless`          | [![tw_drl]][tw_dr]   | [![twa_drl]][twa_dr] | |
-| `podman_e2e`               | [![tw_pl]][tw_p]     | | |
-| `podman_e2e_crun`          | [![tw_pcl]][tw_pc]   | | |
-| `podman_rootless_e2e`      | [![tw_prl]][tw_pr]   | | |
-| `podman_rootless_e2e_crun` | [![tw_prcl]][tw_prc] | | |
+We also run these tests on:
+- [SLES 15-SP4+](https://openqa.suse.de/group_overview/417)
+- [SLES 16.0](https://openqa.suse.de/group_overview/678)
+- [SLES 16.x](https://openqa.suse.de/group_overview/630)
 
-[logo]: bats/logo.svg
+openSUSE Tumbleweed:
 
-[twa_dl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_testsuite
-[twa_d]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_testsuite
+| Testsuite | aarch64 | ppc64le | x86_64 |
+|:---:|:---:|:---:|:---:|
+| aardvark | [![aardvark_aarch64_logo]][aardvark_aarch64] | [![aardvark_ppc64le_logo]][aardvark_ppc64le] | [![aardvark_x86_64_logo]][aardvark_x86_64] |
+| buildah |  |  | [![buildah_x86_64_logo]][buildah_x86_64] |
+| buildah + crun |  |  | [![buildah_crun_x86_64_logo]][buildah_crun_x86_64] |
+| conmon | [![conmon_aarch64_logo]][conmon_aarch64] |  | [![conmon_x86_64_logo]][conmon_x86_64] |
+| containerd | [![containerd_aarch64_logo]][containerd_aarch64] |  | [![containerd_x86_64_logo]][containerd_x86_64] |
+| docker | [![docker_aarch64_logo]][docker_aarch64] |  | [![docker_x86_64_logo]][docker_x86_64] |
+| docker rootless | [![docker_rootless_aarch64_logo]][docker_rootless_aarch64] |  | [![docker_rootless_x86_64_logo]][docker_rootless_x86_64] |
+| netavark | [![netavark_aarch64_logo]][netavark_aarch64] | [![netavark_ppc64le_logo]][netavark_ppc64le] | [![netavark_x86_64_logo]][netavark_x86_64] |
+| podman | [![podman_aarch64_logo]][podman_aarch64] | [![podman_ppc64le_logo]][podman_ppc64le] | [![podman_x86_64_logo]][podman_x86_64] |
+| podman + crun | [![podman_crun_aarch64_logo]][podman_crun_aarch64] | [![podman_crun_ppc64le_logo]][podman_crun_ppc64le] | [![podman_crun_x86_64_logo]][podman_crun_x86_64] |
+| podman e2e |  |  | [![podman_e2e_x86_64_logo]][podman_e2e_x86_64] |
+| podman e2e + crun |  |  | [![podman_e2e_crun_x86_64_logo]][podman_e2e_crun_x86_64] |
+| podman rootless e2e |  |  | [![podman_rootless_e2e_x86_64_logo]][podman_rootless_e2e_x86_64] |
+| podman rootless e2e + crun |  |  | [![podman_rootless_e2e_crun_x86_64_logo]][podman_rootless_e2e_crun_x86_64] |
+| runc | [![runc_aarch64_logo]][runc_aarch64] | [![runc_ppc64le_logo]][runc_ppc64le] | [![runc_x86_64_logo]][runc_x86_64] |
+| skopeo | [![skopeo_aarch64_logo]][skopeo_aarch64] | [![skopeo_ppc64le_logo]][skopeo_ppc64le] | [![skopeo_x86_64_logo]][skopeo_x86_64] |
+| umoci |  |  | [![umoci_x86_64_logo]][umoci_x86_64] |
 
-[tw_dl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
-[tw_d]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
+[aardvark_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_aardvark_testsuite
+[aardvark_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_aardvark_testsuite
 
-[twa_drl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_rootless_testsuite
-[twa_dr]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_rootless_testsuite
+[aardvark_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_aardvark_testsuite
+[aardvark_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_aardvark_testsuite
 
-[tw_drl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_rootless_testsuite
-[tw_dr]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
+[aardvark_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_aardvark_testsuite
+[aardvark_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_aardvark_testsuite
 
-[tw_pl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e
-[tw_p]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e
+[buildah_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
+[buildah_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
 
-[tw_pcl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e_crun
-[tw_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e_crun
+[buildah_crun_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite_crun
+[buildah_crun_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite_crun
 
-[tw_prl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e
-[tw_pr]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e
+[conmon_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_conmon_testsuite
+[conmon_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_conmon_testsuite
 
-[tw_prcl]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e_crun
-[tw_pc]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e_crun
+[conmon_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_conmon_testsuite
+[conmon_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_conmon_testsuite
 
-[s16_d]: https://openqa.suse.de/tests/latest?distri=sle&flavor=Online&version=16.0&arch=x86_64&test=docker_testsuite
+[containerd_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_containerd_testsuite
+[containerd_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_containerd_testsuite
+
+[containerd_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_containerd_testsuite
+[containerd_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_containerd_testsuite
+
+[docker_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_testsuite
+[docker_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_testsuite
+
+[docker_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
+[docker_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
+
+[docker_rootless_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_rootless_testsuite
+[docker_rootless_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_rootless_testsuite
+
+[docker_rootless_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_rootless_testsuite
+[docker_rootless_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_rootless_testsuite
+
+[netavark_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_netavark_testsuite
+[netavark_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_netavark_testsuite
+
+[netavark_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_netavark_testsuite
+[netavark_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_netavark_testsuite
+
+[netavark_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_netavark_testsuite
+[netavark_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_netavark_testsuite
+
+[podman_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_testsuite
+[podman_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_testsuite
+
+[podman_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_podman_testsuite
+[podman_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_podman_testsuite
+
+[podman_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite
+[podman_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite
+
+[podman_crun_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_testsuite_crun
+[podman_crun_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_testsuite_crun
+
+[podman_crun_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_podman_testsuite_crun
+[podman_crun_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_podman_testsuite_crun
+
+[podman_crun_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
+[podman_crun_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
+
+[podman_e2e_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e
+[podman_e2e_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e
+
+[podman_e2e_crun_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e_crun
+[podman_e2e_crun_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e_crun
+
+[podman_rootless_e2e_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e
+[podman_rootless_e2e_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e
+
+[podman_rootless_e2e_crun_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e_crun
+[podman_rootless_e2e_crun_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_rootless_e2e_crun
+
+[runc_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_runc_testsuite
+[runc_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_runc_testsuite
+
+[runc_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_runc_testsuite
+[runc_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_runc_testsuite
+
+[runc_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_runc_testsuite
+[runc_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_runc_testsuite
+
+[skopeo_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_skopeo_testsuite
+[skopeo_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_skopeo_testsuite
+
+[skopeo_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_skopeo_testsuite
+[skopeo_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_skopeo_testsuite
+
+[skopeo_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
+[skopeo_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
+
+[umoci_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_umoci_testsuite
+[umoci_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_umoci_testsuite
+
