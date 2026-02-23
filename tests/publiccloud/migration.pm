@@ -23,12 +23,6 @@ sub run {
 
     print_os_version($instance);
     if (is_sle('=12-SP5')) {
-        $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration");
-        $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo zypper -n in suse-migration-sle15-activation", timeout => 1800);
-        $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
-        $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
-
         # https://bugzilla.suse.com/show_bug.cgi?id=1230009
         # aws-cli and azure-cli break the migration. This is known issue.
         $instance->ssh_script_run("sudo zypper -n rm aws-cli", timeout => 900) if (is_ec2());
@@ -37,30 +31,35 @@ sub run {
         # LTSS should be disabled before the migration
         $instance->ssh_assert_script_run("sudo SUSEConnect -d -p SLES-LTSS/12.5/x86_64", timeout => 180);
 
+        $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration");
+        $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
+        $instance->ssh_assert_script_run("sudo zypper -n in suse-migration-sle15-activation", timeout => 1800);
+        $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
+        $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
+
         # Reboot to run the migration
         $instance->softreboot(timeout => 3600);
         validate_version($instance);
-    }
 
-    if (is_sle('=15-SP7')) {
         # Try to install aws-cli and azure-cli as they were removed for the migration
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
         $instance->ssh_assert_script_run("sudo zypper -n in aws-cli", timeout => 1800) if (is_ec2());
         $instance->ssh_assert_script_run("sudo zypper -n in azure-cli", timeout => 1800) if (is_azure());
+    }
+
+    if (is_sle('=15-SP7')) {
+        # https://bugzilla.suse.com/show_bug.cgi?id=1258138
+        # https://github.com/SUSE/suse-migration-services/pull/458
+        # Wicked to NetworkManager migration doesn't work. This is known.
+        if (is_gce()) {
+            $instance->ssh_assert_script_run(qq(echo -e "network:\\n    wicked2nm-continue-migration: true\\n" | sudo tee -a /etc/sle-migration-service.yml));
+        }
 
         $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration");
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
         $instance->ssh_assert_script_run("sudo zypper -n in suse-migration-sle16-activation", timeout => 1800);
         $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
-
-        # https://bugzilla.suse.com/show_bug.cgi?id=1258138
-        # https://github.com/SUSE/suse-migration-services/pull/458
-        # Wicked to NetworkManager migration doesn't work. This is known.
-        if (is_gce()) {
-            $instance->ssh_script_run("sudo cat /etc/sle-migration-service.yml; true");
-            $instance->ssh_assert_script_run(qq(echo -e "network:\\n    wicked2nm-continue-migration: true\\n" | sudo tee -a /etc/sle-migration-service.yml));
-        }
 
         # Reboot to run the migration
         $instance->softreboot(timeout => 3600);
