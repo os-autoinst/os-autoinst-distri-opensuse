@@ -423,13 +423,10 @@ sub run {
 
     select_host_console();
 
-    ($args->{my_provider}, $args->{my_instance}) = $self->prepare_instance($args);
-
     my $instance = $args->{my_instance};
     my $provider = $args->{my_provider};
 
     $self->prepare_scripts();
-    $self->register_instance($instance, $qam);
 
     my $ltp_dir = '/tmp/ltp';
     my $ltp_prefix = '/opt/ltp';
@@ -468,28 +465,12 @@ sub run {
     die('kirk failed') if ($kirk_exit_code);
 }
 
-sub prepare_instance {
-    my ($self, $args) = @_;
-    unless ($args->{my_provider} && $args->{my_instance}) {
-        $args->{my_provider} = $self->provider_factory();
-        $args->{my_instance} = $args->{my_provider}->create_instance();
-        $args->{my_instance}->wait_for_guestregister() if (is_ondemand());
-    }
-    return ($args->{my_provider}, $args->{my_instance});
-}
-
 sub prepare_scripts {
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
     assert_script_run('curl ' . data_url('publiccloud/log_instance.sh') . ' -o log_instance.sh');
     assert_script_run('chmod +x restart_instance.sh');
     assert_script_run('chmod +x log_instance.sh');
-}
-
-sub register_instance {
-    my ($self, $instance, $qam) = @_;
-    registercloudguest($instance) if (is_byos() && !$qam);
-    register_openstack($instance) if is_openstack;
 }
 
 sub install_ltp {
@@ -542,19 +523,6 @@ sub prepare_kirk {
     script_retry("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo", retry => 5, delay => 60, timeout => 300);
     $instance->ssh_assert_script_run(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->ssh_script_output(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
-    if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
-        record_info('VM type', $instance->ssh_script_output(cmd => '! systemd-detect-virt')) unless is_gce;
-    } else {
-        my $output = $instance->ssh_script_output(cmd => 'systemd-detect-virt', proceed_on_failure => 1);
-        record_info('VM type', $output);
-
-        if (($output eq "none") && is_gce && is_aarch64 && (is_sle_micro("=6.0") || is_sle_micro("=6.1"))) {
-            record_soft_failure("bsc#1256376 - systemd-detect-virt none on GCE SLE Micro 6.0 aarch64") if is_sle_micro('=6.0');
-            record_soft_failure("bsc#1256377 - systemd-detect-virt none on GCE SLE Micro 6.1 aarch64") if is_sle_micro('=6.1');
-        } else {
-            $instance->ssh_assert_script_run('systemd-detect-virt');
-        }
-    }
     assert_script_run("cd kirk");
     my $ghash = script_output("git rev-parse HEAD", proceed_on_failure => 1);
     set_var("LTP_RUN_NG_GIT_HASH", $ghash);
@@ -658,6 +626,10 @@ sub zypper_install_available_remote {
     } else {
         zypper_call_remote($instance, "install --no-recommends " . $available);
     }
+}
+
+sub test_flags {
+    return {fatal => 1, publiccloud_multi_module => 1};
 }
 
 1;
