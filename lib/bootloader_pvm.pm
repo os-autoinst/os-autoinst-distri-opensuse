@@ -149,7 +149,7 @@ sub enter_netboot_parameters {
     }
     # Skipping this setup due to it triggers general code for openSUSE that breaks powerVM scenario
     unless (is_agama) {
-        bootmenu_default_params;
+        bootmenu_default_params(in_grub_edit => 1);
         bootmenu_network_source;
         specific_bootmenu_params;
         type_string_slow remote_install_bootmenu_params;
