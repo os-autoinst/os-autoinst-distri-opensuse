@@ -42,7 +42,7 @@ sub prepare_boot_params {
         create_file_as_profile_companion() if get_var('AGAMA_PROFILE_OPTIONS') =~ /files=true/;
         my $profile_url = $inst_auto;
         unless ($inst_auto =~ /usb:\/\//) {
-            ($inst_auto =~ /\.libsonnet/) ?
+            $profile_url = ($inst_auto =~ /\.libsonnet/) ?
               generate_json_profile($inst_auto) :
               expand_agama_profile($inst_auto);
         }
