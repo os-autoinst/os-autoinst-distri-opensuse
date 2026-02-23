@@ -81,11 +81,11 @@ sub validate_version {
     my $version = get_var('VERSION');
     my $sourced_version = $instance->ssh_script_output('source /etc/os-release && echo $VERSION');
     if ($version != $sourced_version) {
-        record_info($sourced_version, "The version used to be $version and is now $sourced_version which is probably correct.");
+        record_info("OS-Version", "Current: $sourced_version\nOriginal SUT: $version");
         set_var('VERSION', $sourced_version);
         return 1;
     } else {
-        die("The version used to be $version and is still $sourced_version which is bad.");
+        die("OS-Version ($version) didn't update after the migration");
     }
 }
 
