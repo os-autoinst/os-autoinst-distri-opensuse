@@ -222,6 +222,7 @@ podman:
   # https://github.com/containers/podman/pull/27826 - test: Fix PODMAN_BATS_LEAK_CHECK
   # https://github.com/containers/podman/pull/27846 - test/e2e: Skip privileged container test if NoNewPrivs is set
   # https://github.com/containers/podman/pull/28133 - test: Use yq for yaml2json instead of PyYAML
+  # https://github.com/containers/podman/pull/28151 - test/system: fix pod inspect ordering test leak
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 26934
@@ -231,6 +232,7 @@ podman:
     - 27826
     - 27846
     - 28133
+    - 28151
   sle-16.1:
     GITHUB_PATCHES:
     - 25858
