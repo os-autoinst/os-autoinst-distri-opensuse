@@ -23,8 +23,8 @@ sub run {
     barrier_create("NFS_NFSTEST_START", $nodes);
     barrier_create("NFS_NFSTEST_END", $nodes);
     barrier_create("NFS_LTP_2HOST_PREP_DONE", $nodes);
-    my $ltp_done_barrier = get_var('LTP_DONE_BARRIER');
-    barrier_create($ltp_done_barrier, $nodes) if $ltp_done_barrier;
+    my $ltp_done_barrier = get_required_var('LTP_DONE_BARRIER');
+    barrier_create($ltp_done_barrier, $nodes);
     if (check_var('KDUMP_OVER_NFS', '1')) {
         barrier_create("KDUMP_WICKED_TEMP", $nodes);
         barrier_create("KDUMP_MULTIMACHINE", $nodes);
