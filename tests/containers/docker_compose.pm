@@ -78,7 +78,9 @@ sub run {
     assert_script_run "cd /var/tmp/compose";
     run_command 'PATH=$PATH:/var/tmp/compose/bin/build';
 
-    my @targets = split(/\s+/, get_var("RUN_TESTS", "e2e-compose e2e-compose-standalone"));
+    # We don't run the e2e-compose-standalone target as this is deprecated:
+    # https://docs.docker.com/compose/install/standalone/
+    my @targets = split(/\s+/, get_var("RUN_TESTS", "e2e-compose"));
     test $_ foreach (@targets);
 }
 
