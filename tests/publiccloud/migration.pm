@@ -79,7 +79,7 @@ sub validate_version {
     print_os_version($instance);
     my $version = get_var('VERSION');
     my $sourced_version = $instance->ssh_script_output('source /etc/os-release && echo $VERSION');
-    if ($version != $sourced_version) {
+    if ($version ne $sourced_version) {
         record_info("OS-Version", "Current: $sourced_version\nOriginal SUT: $version");
         set_var('VERSION', $sourced_version);
         return 1;
