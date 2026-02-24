@@ -65,7 +65,7 @@ sub run {
     select_serial_terminal;
     $self->setup;
 
-    assert_script_run "cd /var/tmp/podman";
+    run_command "cd /var/tmp/podman";
 
     my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
 

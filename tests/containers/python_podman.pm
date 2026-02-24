@@ -49,9 +49,6 @@ sub test ($target) {
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
 
     my @xfails = ();
-    push @xfails, (
-        "podman.tests.integration.test_container_create.ContainersIntegrationTest::test_container_devices",
-    ) if (get_var("ROOTLESS"));
 
     my %env = ();
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;

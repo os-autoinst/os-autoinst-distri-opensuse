@@ -278,7 +278,11 @@ podman:
     - 27233
     - 27760
 podman-py:
+  # Note on patches:
+  # https://github.com/containers/podman-py/pull/623 - Fix pytest flag for rootful test
   opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 623
 runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set
