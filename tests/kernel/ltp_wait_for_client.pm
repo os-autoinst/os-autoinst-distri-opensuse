@@ -11,9 +11,8 @@ use testapi;
 use lockapi 'barrier_wait';
 
 sub run {
-    my $barrier = get_required_var('LTP_DONE_BARRIER');
-    record_info('LTP wait', "Waiting on barrier $barrier");
-    barrier_wait($barrier);
+    record_info('LTP wait', 'Waiting on barrier NFS_LTP_END');
+    barrier_wait('NFS_LTP_END');
 }
 
 sub test_flags {

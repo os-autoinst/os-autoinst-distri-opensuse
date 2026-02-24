@@ -11,7 +11,6 @@ vars:
     INSTALL_LTP: from_repo
     LTP_PKG: ltp
     LTP_BAREMETAL: 1
-    LTP_DONE_BARRIER: NFS_LTP_CLIENT_DONE
 
 conditional_schedule:
     nfs_barriers:

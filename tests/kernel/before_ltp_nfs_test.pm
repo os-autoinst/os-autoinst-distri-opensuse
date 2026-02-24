@@ -106,7 +106,7 @@ sub run {
     script_retry("ssh-keyscan -T 10 -H $peer_ip >> /root/.ssh/known_hosts", retry => 12, delay => 5, timeout => 30);
     script_run('chmod 600 /root/.ssh/known_hosts');
 
-    barrier_wait('NFS_LTP_2HOST_PREP_DONE');
+    barrier_wait('NFS_LTP_2HOST_SETUP_DONE');
 
     return unless check_var('ROLE', 'nfs_client');
 
