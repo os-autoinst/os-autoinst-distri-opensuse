@@ -78,6 +78,21 @@ sub agama_define_user_screen {
     wait_still_screen 5;
 }
 
+sub agama_fde_setup {
+    wait_still_screen 5;
+    assert_and_click('agama-encryption-tab');
+    assert_and_click('agama-encryption-change');
+    assert_and_click('agama-FDE-enable');
+    send_key 'tab';
+    type_password();
+    send_key 'tab';
+    send_key 'tab';
+    type_password();
+    send_key 'ret';
+    wait_still_screen 5;
+    assert_screen('agama-fde-enabled');
+}
+
 sub upload_agama_logs {
     return if (get_var('NOLOGS'));
     select_console("root-console");
@@ -171,7 +186,6 @@ sub run {
     assert_and_click('agama-define-user-button');
     agama_define_user_screen();
 
-
     # TODO fetch agama logs before install (in case of dependency issues, or if further installation crashes)
 
     assert_and_click('agama-overview-tab');
@@ -185,6 +199,12 @@ sub run {
 
     assert_and_click('agama-overview-tab');
     wait_still_screen 5;
+
+    if (check_var('ENCRYPT', 1)) {
+        assert_and_click('agma-storage-tab');
+        agama_fde_setup();
+        assert_and_click('agama-overview-tab');
+    }
 
     assert_and_click('agama-install-button');
     wait_still_screen 5;
