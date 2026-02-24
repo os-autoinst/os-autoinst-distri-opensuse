@@ -720,6 +720,24 @@
             "leap-micro": [
                 "6.0",
                 "6.1"
+            ],
+            "sle": [
+                "16.1"
+            ]
+        },
+        "type": "ignore"
+    },
+    "update-test-broken": {
+        "description": "Installation of update-test-broken.* failed:|Error: Subprocess failed. Error: RPM failed: Command exited with status 1.|Problem occurred during or after installation or removal of packages:|Installation has been aborted as directed.|Please see the above error message for a hint|ERROR: zypper up on /.snapshots/1\\d/snapshot failed with exit code 8!|Use '--interactive' for manual problem resolution.|Removing snapshot #1\\d",
+        "products": {
+            "microos": [
+                "Tumbleweed"
+            ],
+            "sle-micro": [
+                "6.2"
+            ],
+            "sle": [
+                "16.1"
             ]
         },
         "type": "ignore"
