@@ -271,7 +271,6 @@ sub run {
     my $hddsize = get_var('HDDSIZEGB', '30');
     my $rootpwd = get_required_var('TEST_PASSWORD');
     my $build = get_required_var('BUILD');
-    my $repo_to_test = get_required_var('REPO_TO_TEST');
     my $img_filename = get_required_var('IMG_NAME');
     my $timeout = 900;
     my $out_file;
@@ -286,7 +285,7 @@ sub run {
     assert_script_run("mkdir -p /root/tmp && export TMPDIR=/root/tmp");
 
     # Add Unified Core repository and install Elemental package
-    trup_call("run zypper addrepo --check --refresh $repo_to_test elemental");
+    trup_call('run zypper addrepo --check --refresh ' . get_required_var('REPO_TO_TEST') . ' elemental');
     trup_call('--continue run zypper --gpg-auto-import-keys refresh');
     trup_call('--continue pkg install elemental3 elemental3ctl squashfs mtools xorriso');
     trup_call('apply');
@@ -301,7 +300,6 @@ sub run {
         hddsize => $hddsize,
         rootpwd => $hashpwd,
         build => $build,
-        repo_to_test => $repo_to_test,
         img_filename => $img_filename
     ) if check_var('TESTED_CMD', 'customize');
 
@@ -311,7 +309,6 @@ sub run {
         type => 'iso',
         rootpwd => $hashpwd,
         build => $build,
-        repo_to_test => $repo_to_test,
         img_filename => $img_filename
     ) if check_var('TESTED_CMD', 'build_installer_iso');
 
@@ -322,7 +319,6 @@ sub run {
         hddsize => $hddsize,
         rootpwd => $hashpwd,
         build => $build,
-        repo_to_test => $repo_to_test,
         img_filename => $img_filename
     ) if check_var('TESTED_CMD', 'install');
 

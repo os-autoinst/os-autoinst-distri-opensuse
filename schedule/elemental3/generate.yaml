@@ -4,4 +4,5 @@ description: |
   Maintainer: unified-core@suse.com, ldevulder@suse.com
 schedule:
   - microos/disk_boot
+  - elemental3/set_global_variables
   - elemental3/generate_image
