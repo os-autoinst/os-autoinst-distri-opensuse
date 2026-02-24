@@ -46,7 +46,6 @@ tunnel and network interfaces configuration.
 
 =cut
 
-#
 =head2 get_ipv4_addresses
 
  my $ips_by_if = get_ipv4_addresses();
@@ -64,20 +63,18 @@ without prefix length.
 =cut
 
 sub get_ipv4_addresses {
-    my $output = script_output("ip -4 -o addr show scope global", proceed_on_failure => 1);
-    my %ips_by_if;
+    my $output = script_output("ip -4 -o addr show scope global");
+    my %ips;
 
     for my $line (split(/\n/, $output)) {
-        my ($ifname, $cidr) = $line =~ /^\d+:\s+(\S+)\s+inet\s+(\d+\.\d+\.\d+\.\d+\/\d+)/;
-        next unless $ifname && $cidr;
-        my ($ip) = split('/', $cidr, 2);
-        push @{$ips_by_if{$ifname}}, $ip if defined $ip && $ip ne '';
+        my ($ifname, $ip) = $line =~ /^\d+:\s+(\S+)\s+inet\s+(\d+\.\d+\.\d+\.\d+)\/\d+/;
+        next unless $ifname && $ip;
+        push @{$ips{$ifname}}, $ip;
     }
 
-    return \%ips_by_if;
+    return \%ips;
 }
 
-#
 =head2 get_ipv6_addresses
 
  my $ips_by_if = get_ipv6_addresses();
@@ -95,19 +92,17 @@ without prefix length.
 =cut
 
 sub get_ipv6_addresses {
-    my $output = script_output("ip -6 -o addr show scope global", proceed_on_failure => 1);
-    my %ips_by_if;
+    my $output = script_output("ip -6 -o addr show scope global");
+    my %ips;
 
     for my $line (split(/\n/, $output)) {
-        my ($ifname, $cidr) = $line =~ /^\d+:\s+(\S+)\s+inet6\s+([0-9a-fA-F:]+\/\d+)/;
-        next unless $ifname && $cidr;
-        my ($ip) = split('/', $cidr, 2);
-        push @{$ips_by_if{$ifname}}, $ip if defined $ip && $ip ne '';
+        my ($ifname, $ip) = $line =~ /^\d+:\s+(\S+)\s+inet6\s+([0-9a-fA-F:.]+)\/\d+/;
+        next unless $ifname && $ip;
+        push @{$ips{$ifname}}, $ip;
     }
 
-    return \%ips_by_if;
+    return \%ips;
 }
-
 
 =head2 get_net_prefix_len
 

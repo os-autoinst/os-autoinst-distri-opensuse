@@ -203,6 +203,7 @@ sub install_from_git {
               . get_ltp_version_file()));
 }
 
+# TODO: poo:197063 This should be taked out of the install_ltp
 sub setup_network {
     my $content;
 
