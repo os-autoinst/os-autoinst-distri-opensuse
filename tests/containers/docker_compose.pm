@@ -75,7 +75,7 @@ sub run {
     $self->setup;
 
     select_serial_terminal;
-    assert_script_run "cd /var/tmp/compose";
+    run_command "cd /var/tmp/compose";
     run_command 'PATH=$PATH:/var/tmp/compose/bin/build';
 
     # We don't run the e2e-compose-standalone target as this is deprecated:
