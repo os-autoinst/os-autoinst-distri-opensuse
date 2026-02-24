@@ -83,9 +83,8 @@ sub validate_version {
         record_info("OS-Version", "Current: $sourced_version\nOriginal SUT: $version");
         set_var('VERSION', $sourced_version);
         return 1;
-    } else {
-        die("OS-Version ($version) didn't update after the migration");
     }
+    die("OS-Version ($version) didn't update after the migration");
 }
 
 sub cleanup {
