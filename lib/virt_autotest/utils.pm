@@ -1339,7 +1339,7 @@ sub do_system_registration {
     $args{usetrup} //= 0;
 
     my $cmd = (($args{usetrup} == 1 or get_var('USE_TRUP')) ? "transactional-update register" : "SUSEConnect");
-    $cmd .= $args{activate} == 1 ? " -r " . get_required_var('SCC_REGCODE') . " --url " . get_required_var('SCC_URL') : " -d";
+    $cmd .= $args{activate} == 1 ? " -r " . get_required_var('SCC_REGCODE') . " --url " . render_scc_url : " -d";
     $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
     script_run($cmd);
     save_screenshot;
@@ -1362,7 +1362,7 @@ sub check_system_registration {
     $args{usetrup} //= 0;
 
     my $cmd = (($args{usetrup} == 1 or get_var('USE_TRUP')) ? "transactional-update register" : "SUSEConnect");
-    $cmd .= " --status-text";
+    $cmd .= " --status-text;zypper -n repos --details";
     $cmd = "ssh root\@$args{dst_machine} " . "\"$cmd\"" if ($args{dst_machine} ne 'localhost');
     record_info("System Registration Status", script_output($cmd, proceed_on_failure => 1));
 }
@@ -2038,18 +2038,18 @@ sub install_product_software {
     $args{pattern} //= get_var('INSTALL_PRODUCT_PATTERNS', '');
 
     zypper_call("--gpg-auto-import-keys refresh");
+    if ($args{pattern}) {
+        my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change -t pattern ";
+        $cmd = $cmd . " $_" foreach (split(/,/, $args{pattern}));
+        zypper_call($cmd);
+        save_screenshot;
+    }
     if ($args{package}) {
         my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
         $cmd = $cmd . " virt-install libvirt-client libguestfs0 guestfs-tools";
         $cmd = $cmd . " $_" foreach (split(/,/, $args{package}));
         $cmd = $cmd . " yast2-schema-micro" if is_sle_micro('<6.0');
         $cmd = $cmd . " systemd-coredump" if get_var('COLLECT_COREDUMPS');
-        zypper_call($cmd);
-        save_screenshot;
-    }
-    if ($args{pattern}) {
-        my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change -t pattern ";
-        $cmd = $cmd . " $_" foreach (split(/,/, $args{pattern}));
         zypper_call($cmd);
         save_screenshot;
     }

@@ -1698,7 +1698,7 @@ sub config_guest_installation_automation_registration {
     }
     else {
         $self->{guest_registration_server} =~ s/12345/$self->{guest_build}/g if ($self->{guest_build} ne 'gm');
-        my $_guest_registration_server = ($self->{guest_registration_server} ? $self->{guest_registration_server} : get_var('SCC_URL', 'https://scc.suse.com'));
+        my $_guest_registration_server = ($self->{guest_registration_server} ? $self->{guest_registration_server} : render_scc_url);
         $_guest_registration_server =~ s/\//PLACEHOLDER/img;
         assert_script_run("sed -ri \'s/##Do-Registration##/$self->{guest_do_registration}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Registration-Server##/$_guest_registration_server/g;\' $self->{guest_installation_automation_file}");
@@ -1908,7 +1908,7 @@ sub config_guest_provision_combustion {
     my $_scc_regcode = ($self->{guest_registration_code} ? $self->{guest_registration_code} : get_required_var('SCC_REGCODE'));
     $_scc_regcode =~ s/\//PLACEHOLDER/img;
     assert_script_run("sed -i \'s/##Registration-Code##/$_scc_regcode/g\' $_combustion_config");
-    my $_scc_url = ($self->{guest_registration_server} ? $self->{guest_registration_server} : get_var("SCC_URL", "https://scc.suse.com"));
+    my $_scc_url = ($self->{guest_registration_server} ? $self->{guest_registration_server} : render_scc_url);
     $_scc_url =~ s/\//PLACEHOLDER/img;
     assert_script_run("sed -i \'s/##Registration-Server##/$_scc_url/g\' $_combustion_config");
     assert_script_run("sed -i \'s/PLACEHOLDER/\\\//g;\' $_combustion_config");
