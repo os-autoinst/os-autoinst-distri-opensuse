@@ -135,10 +135,10 @@ sub run {
     record_info('Balancer IP', $ip);
     validate_script_output_retry("curl http://$ip:8080/index.html", qr/I am Groot/, retry => 6, delay => 20, timeout => 10);
 
-    assert_script_run('kubectl delete job sayhello');
-    assert_script_run('kubectl delete job gimme-date');
-    assert_script_run('kubectl delete -f service.yml');
-    assert_script_run('kubectl delete -f deployment.yml');
+    assert_script_run('kubectl delete job sayhello', timeout => 300);
+    assert_script_run('kubectl delete job gimme-date', timeout => 300);
+    assert_script_run('kubectl delete -f service.yml', timeout => 300);
+    assert_script_run('kubectl delete -f deployment.yml', timeout => 300);
 }
 
 sub uninstall_kubectl {
@@ -151,10 +151,10 @@ sub cleanup {
     script_run('kubectl describe services');
     script_run('kubectl describe pods');
     # Cleanup
-    script_run('kubectl delete -f service.yml');
-    script_run('kubectl delete -f deployment.yml');
-    script_run('kubectl delete job sayhello');
-    script_run('kubectl delete job gimme-date');
+    script_run('kubectl delete -f service.yml', timeout => 300);
+    script_run('kubectl delete -f deployment.yml', timeout => 300);
+    script_run('kubectl delete job sayhello', timeout => 300);
+    script_run('kubectl delete job gimme-date', timeout => 300);
 
     uninstall_kubectl if get_var("KUBERNETES_VERSIONS");
 }
