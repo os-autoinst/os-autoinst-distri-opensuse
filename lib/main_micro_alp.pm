@@ -154,14 +154,14 @@ sub load_agama_installation_tests {
 sub load_yast_installation_tests {
     if (check_var('HDDSIZEGB', '10')) {
         load_10GB_installation_tests;
-        return;    # in 10G-disk tests, we don't run more tests
+        return 1;    # in 10G-disk tests, we don't run more tests
     }
     load_installation_tests;
     # Stop here if we are testing only scc extensions (live, phub, ...) activation
     my $is_phub = get_var('SCC_ADDONS');
     if (defined($is_phub) && $is_phub =~ /phub/) {
         loadtest 'transactional/check_phub';
-        return;
+        return 1;
     }
 }
 
@@ -449,7 +449,7 @@ sub load_tests {
         if (is_agama) {
             load_agama_installation_tests;
         } else {
-            load_yast_installation_tests;
+            return if load_yast_installation_tests;
         }
     }
 
