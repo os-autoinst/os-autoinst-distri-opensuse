@@ -146,6 +146,7 @@ our @EXPORT = qw(
   parse_json
   inspect_existing_issue
   dump_tasktrace
+  render_scc_url
 );
 
 our @EXPORT_OK = qw(
@@ -3714,6 +3715,25 @@ sub dump_tasktrace {
     wait_serial(qr/sysrq: .*Show Blocked State/, timeout => 300);
     send_key('ret');
     select_console($old_console, await_console => 0);
+}
+
+=head2 render_scc_url
+
+The SCC_URL is always generated from BUILD which might raise issue for image testing
+which has different BUILD number but still uses the same software repositories used
+by media from fresh installation. So registration url for image testing needs to be
+tweaked a bit to also use the same BUILD number as fresh installation, for example,
+starting from SLES 16.1 which provides transactional pre-built images, thees images
+have different BUILD number but still use SLES 16.1 repositories build of which are
+reflected in BUILD_SLE.
+=cut
+
+sub render_scc_url {
+    my $test_build = get_required_var('BUILD');
+    my $main_build = (is_sle ? get_required_var('BUILD_SLE') : get_required_var('BUILD'));
+    my $scc_url = get_var('SCC_URL', 'https://scc.suse.com');
+    $scc_url =~ s/$test_build/$main_build/g if is_disk_image;
+    return $scc_url;
 }
 
 1;
