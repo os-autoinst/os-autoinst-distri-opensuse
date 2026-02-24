@@ -378,7 +378,7 @@ sub setup_pkgs {
     push @pkgs, qw(jq xz);
     @pkgs = uniq sort @pkgs;
     push @pkgs, "git" unless is_sle;
-    run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 600;
+    run_command "zypper --gpg-auto-import-keys -n install @pkgs", timeout => 1200;
     install_git unless is_tumbleweed;
 
     configure_oci_runtime $oci_runtime;
