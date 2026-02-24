@@ -26,6 +26,13 @@ sub run {
     wait_quit_zypper_pc($args->{my_instance});
 
     registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
+
+    # https://progress.opensuse.org/issues/196370 workaround for a known issue on 15-SP5
+    if (is_sle('=15-SP5')) {
+        $args->{my_instance}->zypper_call_remote("update -y");
+        $args->{my_instance}->softreboot(timeout => 3600);
+    }
+
     register_addons_in_pc($args->{my_instance});
     # Double confirm system is correctly registered, and quit earlier if anything wrong
     # see bsc#1253777, we may need have to rerun the failed job in this case
