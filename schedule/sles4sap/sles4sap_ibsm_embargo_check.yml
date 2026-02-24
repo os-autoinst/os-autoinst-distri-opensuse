@@ -13,7 +13,9 @@ vars:
   # START_AFTER_TEST: create_hdd_sles4sap_gnome
 schedule:
   - boot/boot_to_desktop
+  - sles4sap/publiccloud/qesap_configure
   - sles4sap/publiccloud/qesap_terraform
+  - sles4sap/publiccloud/qesap_instances_preparation
   - sles4sap/publiccloud/clean_leftover_peerings
   - sles4sap/publiccloud/add_server_to_hosts
   - sles4sap/publiccloud/check_ibsm_embargoed
