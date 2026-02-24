@@ -54,7 +54,6 @@ sub post_fail_hook {
 sub post_run_hook {
     # post_{fail|run}_hooks are not working with 3rd party hosts
     return if get_var('NOLOGS');
-    select_console('log-console');
 
     shift->record_avc_selinux_alerts;
 }
