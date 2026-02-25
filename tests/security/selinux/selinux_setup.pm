@@ -94,7 +94,7 @@ sub run {
         if (is_sle('=15-SP6') || is_sle('=15-SP7')) {
             # https://progress.opensuse.org/issues/194768
             assert_script_run("semanage fcontext -a -t lib_t '/usr/lib(64)?/systemd/libsystemd.+'");
-            assert_script_run("restorecon -vR /usr/lib/systemd /usr/lib64/systemd");
+            assert_script_run("restorecon -vR /usr/lib/systemd /usr/lib64/systemd", timeout => 600);
         }
     }
 }

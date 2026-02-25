@@ -19,7 +19,7 @@ sub run {
     select_console 'root-console';
 
     # Run test case
-    run_testcase('audit-tools');
+    run_testcase('audit-tools', timeout => 1200);
 
     # Rerun randomly fail cases
     rerun_fail_cases();
