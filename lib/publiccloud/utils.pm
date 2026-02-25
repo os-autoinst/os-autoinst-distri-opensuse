@@ -229,7 +229,8 @@ sub registercloudguest {
 }
 
 sub register_addons_in_pc {
-    my ($instance) = @_;
+    my ($instance, %args) = @_;
+    my $timeout = $args{timeout} // 90;
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $remote = $instance->username . '@' . $instance->public_ip;
     # Using zypper_call_remote here appends `transactional-update -n pkg` and it
@@ -237,7 +238,7 @@ sub register_addons_in_pc {
     #
     # TODO: this is a hotfix. We need to fix the `zypper_call_remote` itself
     # as transactional-update does not support repo actions => poo#195920)
-    my $ret = $instance->ssh_script_run(cmd => "sudo zypper -n --gpg-auto-import-keys ref");
+    my $ret = $instance->ssh_script_run(cmd => "sudo zypper -n --gpg-auto-import-keys ref", timeout => $timeout);
     die 'No enabled repos defined: bsc#1245651' if $ret == 6;    # from zypper man page: ZYPPER_EXIT_NO_REPOS
     for my $addon (@addons) {
         next if ($addon =~ /^\s+$/);
