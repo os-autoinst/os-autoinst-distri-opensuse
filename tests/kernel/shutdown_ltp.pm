@@ -52,12 +52,6 @@ sub run {
     if (check_var('ROLE', 'nfs_client')) {
         record_info('LTP done', 'Signaling barrier NFS_LTP_END');
         barrier_wait('NFS_LTP_END');
-    } else {
-        my $done_barrier = get_var('LTP_DONE_BARRIER');
-        if ($done_barrier) {
-            record_info('LTP done', "Signaling barrier $done_barrier");
-            barrier_wait($done_barrier);
-        }
     }
 
     # Also cleanup machine-id to avoid duplicate ipv6 link local address in mutli-machine setup.
