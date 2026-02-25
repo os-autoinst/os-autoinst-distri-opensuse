@@ -67,6 +67,10 @@ test_pod_errors:
 test-yaml-valid:
 	tools/check_yaml
 
+.PHONY: test-yaml-valid-changed
+test-yaml-valid-changed:
+	tools/check_yaml --only-changed
+
 .PHONY: test-modules-in-yaml-schedule
 test-modules-in-yaml-schedule:
 	export PERL5LIB=${PERL5LIB_} ; tools/detect_nonexistent_modules_in_yaml_schedule `git diff --diff-filter=d --name-only --exit-code origin/master | grep '^schedule/*'`
