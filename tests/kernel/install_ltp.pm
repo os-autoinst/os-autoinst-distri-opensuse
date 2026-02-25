@@ -266,8 +266,15 @@ sub check_cpu_ucode {
     my $vendor = $1;
     my $packname = $vendor_ucode{$vendor};
     die "Unknown CPU vendor $vendor" unless defined $packname;
-    die "CPU microcode package $packname is not installed"
-      unless scalar @{zypper_search("-i --match-exact $packname")};
+
+    unless (scalar @{zypper_search("-i --match-exact $packname")}) {
+        if (is_sle('=16.1') && get_var('BETA')) {
+            record_soft_failure("CPU microcode package $packname is not installed. bsc#1258193");
+            return;
+        }
+
+        die "CPU microcode package $packname is not installed";
+    }
 }
 
 sub run {
