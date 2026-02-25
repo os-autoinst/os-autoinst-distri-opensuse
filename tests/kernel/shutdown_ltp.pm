@@ -50,7 +50,7 @@ sub run {
     check_kernel_package(get_kernel_flavor()) if get_var('INSTALL_LTP');
 
     if (check_var('ROLE', 'nfs_client')) {
-        record_info('LTP done', 'Signaling barrier NFS_LTP_END');
+        record_info('LTP NFS', 'LTP NFS 2-host tests are done');
         barrier_wait('NFS_LTP_END');
     }
 
