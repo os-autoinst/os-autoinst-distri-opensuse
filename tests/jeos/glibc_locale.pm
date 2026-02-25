@@ -239,7 +239,8 @@ sub run {
     my $rc_expected_data = {
         ROOT_USES_LANG => 'ctype',
         LC_ALL => qr/^ *$/,
-        LANG => (is_sle('15+') || is_leap) ? qr/^ *$/ : $lc_data{$lang_ref}
+        LANG => (is_sle('=12-SP5') || is_sle('16.1+') || is_tumbleweed) ? $lc_data{$lang_ref} : qr/^ *$/
+
     };
 
     ## Retrieve user's $LANG env variable after JeOS firstboot
@@ -281,7 +282,7 @@ sub run {
     # Parse and evaluate /etc/sysconfig/language
     # /etc/sysconfig/language is no longer used in Tumbleweed
     my @locale_conf;
-    if (is_tumbleweed) {
+    if (is_tumbleweed || is_sle('>16.0')) {
         @locale_conf = split('\n', script_output('locale'));
     } else {
         die 'SUSE language config file is missing!' if (script_run("test -f $suse_lang_conf") != 0);
@@ -300,7 +301,7 @@ sub run {
     my $checks = 1;
     my $total_result = 0;
     my $record_info_result = (exists($rc_lc_defaults{LC_ALL}) && $rc_lc_defaults{LC_ALL} =~ /^ *$/);
-    my $total_result += $record_info_result;
+    $total_result += $record_info_result;
     record_info('LC_ALL',
         "Expected to be empty\nRC_LC_ALL = $rc_lc_defaults{LC_ALL}\n",
         result => $record_info_result ? 'ok' : 'fail'
@@ -315,7 +316,7 @@ sub run {
     );
 
     # ROOT_USES_LANG is not defined any more for TW
-    if (!is_tumbleweed) {
+    if (!is_tumbleweed && !is_sle('>16.0')) {
         $checks++;
         $record_info_result = (exists($rc_lc_defaults{ROOT_USES_LANG}) && $rc_lc_defaults{ROOT_USES_LANG} eq $rc_expected_data->{ROOT_USES_LANG});
         $total_result += $record_info_result;
@@ -326,7 +327,7 @@ sub run {
         );
     }
 
-    $record_info_result = (exists($rc_lc_defaults{LC_MESSAGES}) && $rc_lc_defaults{LC_MESSAGES} =~ $rc_expected_data->{LANG});
+    $record_info_result = (exists($rc_lc_defaults{LC_MESSAGES}) && $rc_lc_defaults{LC_MESSAGES} =~ $rc_lc_defaults{LANG});
     $total_result += $record_info_result;
     $checks++;
     record_info('LANG == LC_MESSAGES',
