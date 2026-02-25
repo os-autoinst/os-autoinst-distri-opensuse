@@ -61,24 +61,26 @@ sub assert_systemd_detect_virt_metal {
 sub assert_systemd_detect_virt_virtual {
     my ($self, $rc, $output) = @_;
 
-    return if ($output eq "kvm");
+    if (is_gce) {
+        if ($output eq "none") {
+            # Softfailures for known issues
+            if (is_sle_micro("=6.0") && is_aarch64) {
+                record_soft_failure("bsc#1256376 - systemd-detect-virt none on SLE Micro 6.0 aarch64");
+                return;
+            }
+            if (is_sle_micro("=6.1") && is_aarch64) {
+                record_soft_failure("bsc#1256377 - systemd-detect-virt none on SLE Micro 6.1 aarch64");
+                return;
+            }
 
-    if ($output eq "none") {
-        # Softfailures for known issues
-        if (is_sle_micro("=6.0") && is_aarch64) {
-            record_soft_failure("bsc#1256376 - systemd-detect-virt none on SLE Micro 6.0 aarch64");
-            return;
+            die "systemd-detect-virt detected 'none'";
         }
-        if (is_sle_micro("=6.1") && is_aarch64) {
-            record_soft_failure("bsc#1256377 - systemd-detect-virt none on SLE Micro 6.1 aarch64");
-            return;
-        }
-
-        die "systemd-detect-virt detected 'none'";
     }
 
     die "systemd-detect-virt unexpected rc: $rc"
       unless $rc == 0;
+
+    return if ($output eq "kvm");
 
     die "systemd-detect-virt unexpected output: $output"
       unless $output eq $self->systemd_detect_virt_expected_output_virtual();
