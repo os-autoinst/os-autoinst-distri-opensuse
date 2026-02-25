@@ -45,7 +45,7 @@ tidy-full: tools/tidy
 
 .PHONY: unit-test
 unit-test:
-	prove -l -Ios-autoinst/ t/
+	prove --verbose --timer -l -Ios-autoinst/ t/
 
 .PHONY: test-compile
 test-compile: check-links
