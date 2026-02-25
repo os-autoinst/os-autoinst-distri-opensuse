@@ -12,7 +12,7 @@ use version_utils qw(is_sle is_opensuse);
 use wsl qw(is_sut_reg);
 
 my %expected = (
-    provider => get_var('WSL2') ? 'microsoft' : '(wsl|kvm)',
+    provider => 'microsoft',
     mount => '/mnt/c'
 );
 

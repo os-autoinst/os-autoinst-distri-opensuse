@@ -18,26 +18,13 @@ sub run {
 
     $self->open_powershell_as_admin;
 
-    if (get_var('WSL2')) {
-        # WSL2 platform must be enabled from the MSstore from now on
-        $self->run_in_powershell(
-            cmd => "wsl --install --no-distribution",
-            code => sub {
-                assert_screen("windows-wsl-cli-install-finished", timeout => 900);
-            }
-        );
-    } else {
-        # WSL1 will still be enabled in the legacy mode
-        $self->run_in_powershell(
-            cmd => 'Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart',
-            timeout => 300
-        );
-        # Some versions immediately want to install updates on the first wsl.exe run, do that now
-        $self->run_in_powershell(
-            cmd => 'wsl.exe --update',
-            timeout => 300
-        ) if get_var('HDD_1') =~ /24H2/;
-    }
+    # WSL2 platform must be enabled from the MSstore from now on
+    $self->run_in_powershell(
+        cmd => "wsl --install --no-distribution",
+        code => sub {
+            assert_screen("windows-wsl-cli-install-finished", timeout => 900);
+        }
+    );
 
     $self->reboot_or_shutdown(is_reboot => 1);
     $self->wait_boot_windows;

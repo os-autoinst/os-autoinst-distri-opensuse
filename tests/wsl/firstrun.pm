@@ -177,21 +177,6 @@ sub run {
         send_key 'ret';
         assert_screen 'wsl-image-ready-prompt', 120;
     }
-
-    # Nothing to do in WSL2 pts w/o serialdev support
-    # https://github.com/microsoft/WSL/issues/4322
-    if (get_var('WSL2')) {
-        enter_cmd_slow "exit\n";
-        return;
-    }
-
-    is_fake_scc_url_needed || become_root;
-    assert_script_run 'cd ~';
-    assert_script_run "zypper ps";
-    enter_cmd_slow "exit\n";
-    sleep 3;
-    save_screenshot;
-    is_fake_scc_url_needed || enter_cmd_slow "exit\n";
 }
 
 sub post_fail_hook {
