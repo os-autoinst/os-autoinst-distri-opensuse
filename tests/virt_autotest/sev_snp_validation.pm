@@ -34,7 +34,7 @@ use POSIX 'strftime';
 use testapi qw(:DEFAULT);
 use serial_terminal qw(select_serial_terminal);
 use virt_autotest::common;
-use virt_autotest::utils;
+use virt_autotest::utils qw(guest_is_sle wait_guest_online is_guest_online execute_over_ssh upload_virt_logs);
 use version_utils qw(is_sle package_version_cmp);
 use Utils::Architectures;
 use package_utils;
@@ -524,7 +524,7 @@ sub check_sev_snp_on_guest {
     # For SEV-SNP guests, perform additional verification
     if ($guest_type eq 'sev-snp') {
         # Wait for guest to be online before further checks
-        virt_autotest::utils::wait_guest_online($guest_name, 50, 1);
+        wait_guest_online($guest_name, 50, 1);
 
         # Install required packages on guest
         record_info('Package Installation', "Installing required SEV-SNP packages on guest $guest_name");
@@ -757,7 +757,7 @@ EOL
 
     # Wait for the VM to boot
     record_info('VM Boot', "Waiting for guest to become available...");
-    virt_autotest::utils::wait_guest_online($guest_name, 60, 1);
+    wait_guest_online($guest_name, 60, 1);
 
     return 1;
 }
@@ -885,7 +885,16 @@ sub verify_guest_attestation {
     record_info('Guest Attestation', "Verifying guest attestation for $guest_name");
 
     # Make sure guest is online
-    virt_autotest::utils::wait_guest_online($guest_name, 50, 1);
+    wait_guest_online($guest_name, 50, 1);
+
+    # Display snpguest version for debugging
+    my $snpguest_version = execute_over_ssh(
+        address => $guest_name,
+        command => "snpguest --version 2>&1 || snpguest -V 2>&1 || echo 'Unable to determine snpguest version'",
+        timeout => 30,
+        assert => 0
+    );
+    record_info('SNPGuest Version', "snpguest version on guest $guest_name: $snpguest_version");
 
     # Create a temporary directory for attestation artifacts
     my $temp_dir = LOG_DIR . "/sev_snp_attestation_" . time();
@@ -933,9 +942,9 @@ sub verify_guest_attestation {
     # Fetch AMD CA certificates
     record_info('CA Certificates', "Fetching AMD CA certificates on guest $guest_name");
 
-    # Adapt command format based on SLES version due to snphost version changes
+    # Adapt command format based on guest SLES version due to snpguest version changes
     my $ca_cmd;
-    if (is_sle('>=16')) {
+    if (guest_is_sle($guest_name, '>=16')) {
         # SLES 16+ uses newer snpguest command format
         $ca_cmd = "snpguest fetch ca der $temp_dir/certs-kds milan";
     } else {
@@ -952,7 +961,7 @@ sub verify_guest_attestation {
     save_screenshot;
 
     if ($ca_ret != 0) {
-        record_info('CA Fetch', "Failed to fetch CA certificates on guest $guest_name", result => 'softfail');
+        record_info('CA Fetch', "Failed to fetch CA certificates on guest $guest_name", result => 'fail');
         $self->_cleanup_attestation_dir($guest_name, $temp_dir);
         return;
     }
@@ -960,9 +969,9 @@ sub verify_guest_attestation {
     # Fetch VCEK certificate
     record_info('VCEK Certificate', "Fetching VCEK certificate on guest $guest_name");
 
-    # Adapt command format based on SLES version due to snphost version changes
+    # Adapt command format based on guest SLES version due to snpguest version changes
     my $vcek_cmd;
-    if (is_sle('>=16')) {
+    if (guest_is_sle($guest_name, '>=16')) {
         # SLES 16+ uses newer snpguest command format
         $vcek_cmd = "snpguest fetch vcek der $temp_dir/certs-kds $temp_dir/attestation-report.bin";
     } else {
