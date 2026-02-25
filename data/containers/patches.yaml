@@ -283,15 +283,29 @@ podman-py:
 runc:
   # Note on patches:
   # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set
+  # https://github.com/opencontainers/runc/pull/5124 - tests/int: Disable coredumps for SCMP_ACT_KILL tests
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 5079
+    - 5124
   sle-16.1:
+    GITHUB_PATCHES:
+    - 5124
   sle-16.0:
+    GITHUB_PATCHES:
+    - 5124
   sle-15-SP7:
+    GITHUB_PATCHES:
+    - 5124
   sle-15-SP6:
+    GITHUB_PATCHES:
+    - 5124
   sle-15-SP5:
+    GITHUB_PATCHES:
+    - 5124
   sle-15-SP4:
+    GITHUB_PATCHES:
+    - 5124
 skopeo:
   opensuse-Tumbleweed:
   sle-16.1:
