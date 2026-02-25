@@ -137,15 +137,16 @@ file_content
             "/tmp/$project_name",
             get_required_var('REDIRECT_DESTINATION_USER') . '@' . get_required_var('REDIRECT_DESTINATION_IP') . ':/tmp/'));
 
+    # Connect to Deployer VM
     connect_target_to_serial;
-    # Install pip and robot fw if needed.
+    # Install pip if needed.
     assert_script_run('sudo zypper in python3-pip') if script_run('pip -V');
-    # This installs all robot requirements
-    # Pabot is for executing test suites in parallel
-    assert_script_run('pip install --upgrade robotframework-sshlibrary robotframework-pabot==5.1.0');
-
-    # Path to robot binaries installed by pip
-    assert_script_run('export PATH=$PATH:/home/azureadm/.local/bin');
+    # This installs all robot requirements inside python virtual environment
+    assert_script_run("cd $project_root_dir");
+    assert_script_run('python3 -m venv .venv');
+    assert_script_run('source .venv/bin/activate');
+    assert_script_run('.venv/bin/python3 -m pip install --upgrade pip');
+    assert_script_run('pip install -r requirements.txt');
 
     # Fetch SUT SSH key from keyvault
     my $workload_rg = get_workload_resource_group(deployment_id => find_deployment_id());
@@ -155,7 +156,7 @@ file_content
     my $pabot_cmd = join(' ', 'pabot',
         '--name "Patch and reboot all hosts"',
         "--processes " . scalar(@arg_files),    # number of processes to run in parallel
-        '--exitonfailure',    # if test inside test suite fails, executiion is stopped
+        '--exitonfailure',    # if test inside test suite fails, execution is stopped
         '--xunit xunit_result.xml',
         @arg_files,
         $test_dir
