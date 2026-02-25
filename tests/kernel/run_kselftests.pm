@@ -79,7 +79,7 @@ sub run {
     my $stamp = 'OpenQA::run_kselftest.pm';
     my $timeout = get_var('KSELFTEST_TIMEOUT') // 300;
     my $test_timeout = get_var('KSELFTEST_TEST_TIMEOUT') ? "--override-timeout " . get_var('KSELFTEST_TEST_TIMEOUT') : '';
-    my $runner = get_var('KSELFTEST_RUNNER') // "./run_kselftest.sh $test_timeout $test_opt";
+    my $runner = get_var('KSELFTEST_RUNNER') // "export PATH=\"\$PWD/$collection:\$PATH\"; ./run_kselftest.sh $test_timeout $test_opt";
     $runner .= " | tee -a \$HOME/summary.tap; echo $stamp END";
     my $env = get_var('KSELFTEST_ENV') // '';
     $runner = $env . " $runner";
