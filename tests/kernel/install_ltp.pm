@@ -26,7 +26,7 @@ use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies
 use rpi 'enable_tpm_slb9670';
 use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
-use Utils::Backends 'get_serial_console';
+use Utils::Backends qw(get_serial_console is_ipmi);
 use kernel;
 use transactional;
 
@@ -254,6 +254,29 @@ sub setup_network {
     }
 }
 
+sub check_cpu_ucode {
+    my %vendor_ucode = (
+        AuthenticAMD => 'ucode-amd',
+        GenuineIntel => 'ucode-intel'
+    );
+
+    my $cpuinfo = script_output('cat /proc/cpuinfo');
+
+    die 'Cannot parse CPU info' if ($cpuinfo !~ m/^vendor_id\s+:\s+(\w+)$/m);
+    my $vendor = $1;
+    my $packname = $vendor_ucode{$vendor};
+    die "Unknown CPU vendor $vendor" unless defined $packname;
+
+    unless (scalar @{zypper_search("-i --match-exact $packname")}) {
+        if (is_sle('=16.1') && get_var('BETA')) {
+            record_soft_failure("CPU microcode package $packname is not installed. bsc#1258193");
+            return;
+        }
+
+        die "CPU microcode package $packname is not installed";
+    }
+}
+
 sub run {
     my $self = shift;
     my $inst_ltp = get_var 'INSTALL_LTP';
@@ -272,6 +295,7 @@ sub run {
     enable_tpm_slb9670 if ($is_ima && get_var('MACHINE') =~ /RPi/);
 
     init_debug;    # calls select_serial_terminal
+    check_cpu_ucode() if is_ipmi && is_x86_64;
 
     $grub_param = setup_kernel_logging;
     export_ltp_env;
