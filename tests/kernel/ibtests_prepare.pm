@@ -15,6 +15,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
 use version_utils;
+use registration;
 use mmapi;
 use repo_tools 'add_qa_head_repo';
 
@@ -32,6 +33,15 @@ sub run {
 
     # create a ssh key if we don't have one
     script_run('[ ! -f /root/.ssh/id_rsa ] && ssh-keygen -b 2048 -t rsa -q -N "" -f /root/.ssh/id_rsa');
+
+    if (is_sle) {
+        if (is_phub_ready) {
+            add_suseconnect_product(get_addon_fullname('phub'));
+        } else {
+            record_info('Warning', 'stress-ng from QA repo');
+            add_qa_head_repo(priority => 100);    # needed when phub is not yet available
+        }
+    }
 
     add_qa_head_repo(priority => 100);
 
