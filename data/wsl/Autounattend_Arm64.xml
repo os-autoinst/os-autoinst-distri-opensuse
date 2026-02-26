@@ -378,8 +378,8 @@
             <Name>Bernhard M. Wiedeman</Name>
             <Group>Administrators</Group>
             <Password>
-              <Value>nots3cr3t</Value>
-              <PlainText>true</PlainText>
+              <Value>bgBvAHQAcwAzAGMAcgAzAHQA</Value>
+              <PlainText>false</PlainText>
             </Password>
           </LocalAccount>
         </LocalAccounts>
