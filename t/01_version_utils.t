@@ -195,8 +195,11 @@ subtest 'bootloader_tests' => sub {
     set_var('VERSION', 'Slowroll');
     ok get_default_bootloader eq 'grub2', "Slowroll on UEFI is grub2";
 
+    set_var('STAGING', 'F');
     set_var('VERSION', 'Staging:F');
-    ok get_default_bootloader eq 'grub2-bls', "Tumbleweed/Staging:F on UEFI is grub2-bls";
+    ok get_default_bootloader eq 'systemd-boot', "Tumbleweed/Staging:F on UEFI is systemd-boot";
+    set_var('STAGING', undef);
+
 
     set_var('DISTRI', 'sle-micro');
     set_var('VERSION', '5.5');
