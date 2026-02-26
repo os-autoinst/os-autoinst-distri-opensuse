@@ -20,7 +20,7 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
+use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product is_phub_ready);
 use version_utils 'is_sle';
 
 sub run {
@@ -38,6 +38,8 @@ sub run {
     assert_script_run "mkdir /tmp/zip; cp /usr/share/doc/* /tmp/zip -R";
     assert_script_run "cd /tmp";
 
+    # Package 'zziplib-devel' requires PackageHub is available
+    add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready() && is_sle('>=16.0'));
     # install requirements
     zypper_call "-v in libzzip-0-13 zziplib-devel zip", timeout => 1000;
 

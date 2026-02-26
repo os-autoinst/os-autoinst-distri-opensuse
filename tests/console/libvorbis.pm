@@ -16,13 +16,14 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
-use registration 'add_suseconnect_product';
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 
 sub run {
     # setup
     select_serial_terminal;
 
     add_suseconnect_product('sle-module-desktop-applications') if (is_sle("<16") && !main_common::is_updates_tests());
+    add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready() && is_sle('>=16.0'));
     zypper_call 'in vorbis-tools libvorbis0';
     # download ogg sample
     assert_script_run 'curl -v -o sample.ogg ' . data_url('libvorbis/glass.ogg');
