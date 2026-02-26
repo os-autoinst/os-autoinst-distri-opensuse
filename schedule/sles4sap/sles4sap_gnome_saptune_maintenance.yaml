@@ -21,7 +21,9 @@ conditional_schedule:
     PUBLIC_CLOUD_SLES4SAP:
       '1':
         - publiccloud/validate_repos
+        - sles4sap/publiccloud/qesap_configure
         - sles4sap/publiccloud/qesap_terraform
+        - sles4sap/publiccloud/qesap_instances_preparation
         - sles4sap/publiccloud/clean_leftover_peerings
         - sles4sap/publiccloud/add_server_to_hosts
         - sles4sap/publiccloud/cluster_add_repos

@@ -73,7 +73,9 @@ sub run {
         if (check_var('IS_MAINTENANCE', 1)) {
             loadtest('publiccloud/validate_repos', name => 'validate_repos', run_args => $run_args, @_);
         }
+        loadtest('sles4sap/publiccloud/qesap_configure', name => 'qesap_configure', run_args => $run_args, @_);
         loadtest('sles4sap/publiccloud/qesap_terraform', name => 'deploy_qesap_terraform', run_args => $run_args, @_);
+        loadtest('sles4sap/publiccloud/qesap_instances_preparation', name => 'qesap_instances_preparation', run_args => $run_args, @_);
         if (check_var('IS_MAINTENANCE', 1)) {
             loadtest('sles4sap/publiccloud/clean_leftover_peerings', name => 'clean_leftover_peerings', run_args => $run_args, @_);
         }
