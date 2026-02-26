@@ -114,12 +114,8 @@ EOT
     }
     record_info('Ansible', script_output('ansible --version'));
 
-    # Kubectl in a container
-    my $kubectl_version = get_var('KUBECTL_VERSION', 'v1.22.12');
-    assert_script_run("curl -Lo /usr/bin/kubectl https://dl.k8s.io/release/$kubectl_version/bin/linux/amd64/kubectl");
-    assert_script_run("curl -Lo /usr/bin/kubectl.sha256 https://dl.k8s.io/$kubectl_version/bin/linux/amd64/kubectl.sha256");
-    assert_script_run('echo "$(cat /usr/bin/kubectl.sha256)  /usr/bin/kubectl" | sha256sum --check');
-    assert_script_run('chmod +x /usr/bin/kubectl');
+    my $kubectl_version = get_var('KUBECTL_VERSION', '1.35');
+    zypper_call("in kubernetes$kubectl_version-client");
     record_info('kubectl', script_output('kubectl version --client=true'));
 
     # Remove persistent net rules, necessary to boot the x86_64 image in the aarch64 test runs
