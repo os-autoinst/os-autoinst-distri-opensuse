@@ -215,19 +215,12 @@ podman:
   # https://github.com/containers/podman/pull/27233 is needed for 130-kill
   # https://github.com/containers/podman/pull/27463 - test/system: Update test to handle new error message from runc 1.3.3
   # https://github.com/containers/podman/pull/27760 - test/system: remove apk from build
-  # https://github.com/containers/podman/pull/27813 - test: Fix --hostuser octal UID test flakiness
-  # https://github.com/containers/podman/pull/27826 - test: Fix PODMAN_BATS_LEAK_CHECK
-  # https://github.com/containers/podman/pull/27846 - test/e2e: Skip privileged container test if NoNewPrivs is set
   # https://github.com/containers/podman/pull/28133 - test: Use yq for yaml2json instead of PyYAML
+  # https://github.com/containers/podman/pull/28151 - test/system: fix pod inspect ordering test leak
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
-    - 26934
-    - 27463
-    - 27760
-    - 27813
-    - 27826
-    - 27846
     - 28133
+    - 28151
   sle-16.1:
     GITHUB_PATCHES:
     - 25858
