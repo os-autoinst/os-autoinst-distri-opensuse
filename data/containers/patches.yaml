@@ -143,11 +143,13 @@ moby:
   # https://github.com/moby/moby/pull/51263 - integration: Skip some tests as rootless
   # https://github.com/moby/moby/pull/51794 - integration: Support iputils ping
   # https://github.com/moby/moby/pull/51970 - Skip some tests as rootless when SELinux is enabled
+  # https://github.com/moby/moby/pull/51972 - integration: Support containerd pull error message
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
-    - 51219
     - 51263
     - 51794
+    - 51970
+    - 51972
   sle-16.1:
     GITHUB_PATCHES:
     - 51219
