@@ -76,6 +76,10 @@ sub run {
         QUADLET_BINARY => "/usr/libexec/podman/quadlet",
         TESTFLAGS => "--junit-report=report.xml",
     );
+
+    my $run_tests = get_var("RUN_TESTS");
+    $env{FOCUS} = $run_tests if $run_tests;
+
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
     # mapping of known expected failures
@@ -99,7 +103,7 @@ sub run {
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
     my $default_targets = "localintegration";
     $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS"));
-    my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
+    my @targets = split('\s+', get_var('TARGETS', $default_targets));
     foreach my $target (@targets) {
         run_command "env $env make $target &> $target.txt", no_assert => 1, timeout => 3000;
         upload_logs "$target.txt";
