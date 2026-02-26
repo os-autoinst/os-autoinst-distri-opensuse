@@ -407,6 +407,7 @@ sub prepare_ssh_tunnel {
         $instance->ssh_assert_script_run('sudo sed -i "/^AllowTcpForwarding/c\AllowTcpForwarding yes" /etc/ssh/sshd_config') if (is_hardened());
     }
     $instance->ssh_assert_script_run('sudo systemctl reload sshd');
+    $instance->wait_for_ssh();
     record_info('sshd -G', $instance->ssh_script_output('sudo sshd -G', proceed_on_failure => 1));
 
     permit_root_login($instance);
