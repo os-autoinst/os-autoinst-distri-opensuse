@@ -9,6 +9,7 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils;
+use utils qw(write_sut_file);
 
 sub run {
     select_serial_terminal;
@@ -57,23 +58,38 @@ sub run {
     upload_logs($pam_sshd);
     upload_logs($pam_login);
 
-    # Try to login to the OS with user suse, access should fail
-    assert_script_run(
-        "expect -c 'spawn ssh $user\@localhost; \\
-expect \"Password: \"; send \"$passwd\\n\"; \\
-expect \"Password: \"; send \"$passwd\\n\"; \\
-expect \"Password: \"; send \"$passwd\\n\"; \\
-expect \"*password: \"; send \"$passwd\\n\"; \\
-expect \"*password: \"; send \"$passwd\\n\"; \\
+    my $expect_script = <<"END";
+spawn ssh suse\@localhost
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "*password: "
+send "$passwd\\r"
+
+expect "*password: "
+send "$passwd\\r"
+
 expect {
-    \"*authentication failures\" {
-      exit 0
-   }
-   eof {
-       exit 1
-   }
-}'"
-    );
+    "*authentication failures" {
+        exit 0
+    }
+    eof {
+        exit 1
+    }
+}
+END
+
+    write_sut_file("/tmp/pam_ssh.exp", $expect_script);
+
+    # Try to login to the OS with user suse, access should fail
+    assert_script_run('expect -f /tmp/pam_ssh.exp');
 
     # Make sure your current user is not "suse"
     validate_script_output "whoami | grep $user|| echo 'check pass'", sub { m/check pass/ };
