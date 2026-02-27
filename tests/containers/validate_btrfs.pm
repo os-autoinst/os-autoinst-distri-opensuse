@@ -45,8 +45,8 @@ sub _sanity_test_btrfs {
     my $btrfs_head = '/tmp/subvolumes_saved';
 
     my $storage = $rt->get_storage_driver();
-    if ($storage ne 'overlay2') {
-        die "Expected storage driver for this docker version is 'overlay2', got '$storage'";
+    if ($storage !~ /^overlay2|overlayfs$/) {
+        die "Expected storage driver for this docker version is 'overlay2|overlayfs', got '$storage'";
     }
     assert_script_run('docker system prune -af');
     assert_script_run(q[sed -i 's/^{/{ "storage-driver": "btrfs",/' /etc/docker/daemon.json]);
