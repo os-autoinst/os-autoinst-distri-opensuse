@@ -58,7 +58,8 @@ sub install_oci_runtime {
         zypper_call "in $oci_runtime" if (script_run("which $oci_runtime") != 0);
         if ($runtime eq "podman") {
             script_run "mkdir /etc/containers/containers.conf.d";
-            assert_script_run "echo -e '[engine]\nruntime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
+            assert_script_run "echo '[engine]' > /etc/containers/containers.conf.d/engine.conf";
+            assert_script_run "echo 'runtime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
         } else {
             assert_script_run "sed -i 's%^{%&\"default-runtime\":\"$oci_runtime\",\"runtimes\":{\"$oci_runtime\":{\"path\":\"/usr/bin/$oci_runtime\"}},%' /etc/docker/daemon.json";
             systemctl('restart docker', timeout => 180);
