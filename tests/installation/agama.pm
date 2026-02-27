@@ -21,6 +21,12 @@ use Utils::Logging qw(export_healthcheck_basic);
 use Utils::Architectures;
 use x11utils 'ensure_unlocked_desktop';
 
+sub back_to_overview {
+    assert_and_click('agama-overview-tab');
+    wait_still_screen 5;
+    record_info('Back to overview');
+}
+
 # A More complex screen for root auth
 sub agama_set_root_password_screen {
     wait_still_screen 5;
@@ -78,17 +84,39 @@ sub agama_define_user_screen {
     wait_still_screen 5;
 }
 
+sub agama_fde_setup {
+    assert_and_click('agma-storage-tab');
+    wait_still_screen 5;
+    assert_and_click('agama-encryption-tab');
+    assert_and_click('agama-encryption-change');
+    assert_and_click('agama-FDE-enable');
+    send_key 'tab';
+    type_password();
+    send_key 'tab';
+    send_key 'tab';
+    type_password();
+    save_screenshot;
+    send_key 'ret';
+    wait_still_screen 5;
+    assert_screen('agama-fde-enabled');
+}
+
+sub agama_lvm_setup {
+    assert_and_click('agma-storage-tab');
+    assert_and_click('agama-use-vda-to-install');
+    assert_and_click('agama-create-lvm-on-vda');
+    wait_still_screen 5;
+    mouse_set(630, 300);
+    mouse_click;    # click on a blank portion, so we can scroll down with the keyboard
+    send_key_until_needlematch('agama-lvm-proposal', 'ctrl-down');
+}
+
 sub upload_agama_logs {
     return if (get_var('NOLOGS'));
     select_console("root-console");
     # stores logs in /tmp/agma-logs.tar.gz
     script_run('agama logs store');
     upload_logs('/tmp/agama-logs.tar.gz');
-}
-
-sub get_agama_install_console_tty {
-    # get_x11_console_tty would otherwise autodetermine 2
-    return 7;
 }
 
 
@@ -112,7 +140,7 @@ sub select_product {
         # We need to click on an empty space so we can press arrow down
         mouse_set(850, 630);
         mouse_click;
-        send_key_until_needlematch('agama-product-select', 'down');
+        send_key_until_needlematch('agama-product-select', 'ctrl-down');
     }
     assert_and_click('agama-product-select');
 }
@@ -152,13 +180,14 @@ sub select_software {
 
 sub run {
     my ($self) = @_;
+    my $agama_screen_timeout = 300;
     if (!is_ppc64le && !is_s390x) {
-        assert_screen('agama-inst-welcome-product-list');
+        assert_screen('agama-inst-welcome-product-list', timeout => $agama_screen_timeout);
         select_product();
     }
 
     # can take few minutes to get here
-    assert_screen('agama-overview-screen');
+    assert_screen('agama-overview-screen', timeout => $agama_screen_timeout);
 
     # clicking on agama-show-tab seems to be no longer needed
     # on low-res screens
@@ -171,10 +200,9 @@ sub run {
     assert_and_click('agama-define-user-button');
     agama_define_user_screen();
 
-
     # TODO fetch agama logs before install (in case of dependency issues, or if further installation crashes)
 
-    assert_and_click('agama-overview-tab');
+    back_to_overview;
 
     # Install additional patterns
     select_software();
@@ -183,11 +211,19 @@ sub run {
     # The ready to install button is at the bottom of the page on lowres screen
     # Normally it's on the side
 
-    assert_and_click('agama-overview-tab');
-    wait_still_screen 5;
+    back_to_overview;
+
+    if (check_var('LVM', 1)) {
+        agama_lvm_setup();
+        back_to_overview;
+    }
+
+    if (check_var('ENCRYPT', 1)) {
+        agama_fde_setup();
+        back_to_overview;
+    }
 
     assert_and_click('agama-install-button');
-    wait_still_screen 5;
 
     # confirmation dialog if we keep default partitioning layout
     assert_and_click('agama-confirm-installation');

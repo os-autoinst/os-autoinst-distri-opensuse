@@ -19,8 +19,18 @@ use scheduler 'get_test_suite_data';
 use validate_encrypt_utils;
 use testapi;
 
+sub show_pbkdf {
+    my $device = shift;
+    my $keyslots = '"Slot \(.key): \(.value.type), \(.value.kdf.type)"';
+    my $cmd = "cryptsetup  luksDump $device --dump-json-metadata";
+    $cmd .= " | jq -r '.keyslots | to_entries[] | $keyslots '";
+    $pbkdf = script_output($cmd);
+    record_info("pbkdf for $device", $pbkdf);
+}
+
 sub run {
     select_console 'root-console';
+    my $is_jq_installed = !script_run("rpm -q jq");
     my $test_data = get_test_suite_data();
     verify_crypttab_file_existence();
     my $devices = parse_devices_in_crypttab();
@@ -36,6 +46,8 @@ sub run {
             backup_file_info => $test_data->{backup_file_info},
             backup_path => $test_data->{backup_path}
         );
+
+        show_pbkdf($devices->{$dev}->{encrypted_device}) if $is_jq_installed;
     }
 }
 
