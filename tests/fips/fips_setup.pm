@@ -134,13 +134,13 @@ sub test_flags {
 # create a systemd config file for env vars
 sub env_systemd {
     my $cfg_file = '/etc/systemd/system.conf.d/enable-fips-mode.conf';
-    my $content = "[Manager]\n";
+    my $content = "[Manager]\\n";
     $content .= "DefaultEnvironment=";
     foreach my $var (@vars) {
         $content .= "\"$var=1\" ";
     }
-    $content .= "\n";
-    assert_script_run qq(echo "$content" > $cfg_file);
+    $content .= "\\n";
+    assert_script_run qq(echo -e "$content" > $cfg_file);
     return;
 }
 
@@ -148,9 +148,9 @@ sub env_systemd {
 sub env_bashrc {
     my $content = '';
     foreach my $var (@vars) {
-        $content .= "export $var=1\n";
+        $content .= "export $var=1\\n";
     }
-    assert_script_run qq(echo "$content" >> /etc/bash.bashrc);
+    assert_script_run qq(echo -e "$content" >> /etc/bash.bashrc);
     return;
 }
 
