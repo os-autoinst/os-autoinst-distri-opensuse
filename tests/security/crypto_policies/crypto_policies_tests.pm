@@ -100,8 +100,7 @@ sub ensure_gnutls_is_working {
     );
     assert_script_run("certtool --generate-certificate --load-privkey $srv_key_file --load-ca-certificate $ca_cert_file --load-ca-privkey $ca_key_file --template $srv_template_file --outfile $srv_cert_file", timeout => 300);
     # spin up a server on localhost (5556 = default port) and wait for the server to be active
-    my $pid = background_script_run "gnutls-serv -p 5556 --echo --x509cafile $ca_cert_file \\
-      --x509keyfile $srv_key_file --x509certfile $srv_cert_file > $srv_log_file 2>&1";
+    my $pid = background_script_run "gnutls-serv -p 5556 --echo --x509cafile $ca_cert_file --x509keyfile $srv_key_file --x509certfile $srv_cert_file > $srv_log_file 2>&1";
     script_retry "grep 'Echo Server listening' $srv_log_file";
     # use the client to test the TLS connection
     validate_script_output_retry "echo helloSUSE | gnutls-cli -p 5556 localhost --x509cafile=$ca_cert_file",
