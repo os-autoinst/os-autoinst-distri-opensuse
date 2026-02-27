@@ -117,6 +117,8 @@ sub run {
     push @xfails, (
         # These tests use amd64 images:
         "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
+        # Same as above on Docker v29:
+        "github.com/moby/moby/v2/integration/image::TestAPIImageHistoryCrossPlatform",
     ) unless (is_x86_64);
     push @xfails, (
         # These tests fail as rootless on SLES 15
