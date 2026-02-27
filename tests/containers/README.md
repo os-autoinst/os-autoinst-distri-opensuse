@@ -44,7 +44,7 @@ openSUSE Tumbleweed:
 | buildah |  |  | [![buildah_x86_64_logo]][buildah_x86_64] |
 | buildah + crun |  |  | [![buildah_crun_x86_64_logo]][buildah_crun_x86_64] |
 | conmon | [![conmon_aarch64_logo]][conmon_aarch64] |  | [![conmon_x86_64_logo]][conmon_x86_64] |
-| containerd | [![containerd_aarch64_logo]][containerd_aarch64] |  | [![containerd_x86_64_logo]][containerd_x86_64] |
+| containerd | [![containerd_aarch64_logo]][containerd_aarch64] | [![containerd_ppc64le_logo]][containerd_ppc64le] | [![containerd_x86_64_logo]][containerd_x86_64] |
 | docker | [![docker_aarch64_logo]][docker_aarch64] |  | [![docker_x86_64_logo]][docker_x86_64] |
 | docker rootless | [![docker_rootless_aarch64_logo]][docker_rootless_aarch64] |  | [![docker_rootless_x86_64_logo]][docker_rootless_x86_64] |
 | netavark | [![netavark_aarch64_logo]][netavark_aarch64] | [![netavark_ppc64le_logo]][netavark_ppc64le] | [![netavark_x86_64_logo]][netavark_x86_64] |
@@ -81,6 +81,9 @@ openSUSE Tumbleweed:
 
 [containerd_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_containerd_testsuite
 [containerd_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_containerd_testsuite
+
+[containerd_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_containerd_testsuite
+[containerd_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_containerd_testsuite
 
 [containerd_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_containerd_testsuite
 [containerd_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_containerd_testsuite
