@@ -386,12 +386,24 @@ sub wait_hana_node_up {
     my ($instance, %args) = @_;
     $args{timeout} //= 900;
     my $start_time = time();
-    my $out;
+    my $delay = $args{timeout} > 180 ? 5 : 1;
+    my ($out, $duration, $exit_code);
+
+    # Make sure SSH port 22 is reachable or timeout
+    while (($duration = time() - $start_time) < $args{timeout}) {
+        $exit_code = script_run('nc -vz -w 1 ' . $instance->{public_ip} . ' 22', quiet => 1);
+        record_info("WAIT_FOR_SSH_PORT_OPEN", "exit_code = $exit_code, duration = $duration");
+        last if (defined($exit_code) and $exit_code == 0);
+        sleep $delay;
+    }
+
+    $start_time = time();
     while ((time() - $start_time) < $args{timeout}) {
         $out = $instance->ssh_script_output(
             cmd => 'sudo systemctl is-system-running',
             # timeout must be enough for ssh handshake to not kill the test
             timeout => 30,
+            ssh_opts => '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none -o ConnectTimeout=10',
             proceed_on_failure => 1);
         return if ($out =~ m/running/);
         if ($out =~ m/degraded/) {
