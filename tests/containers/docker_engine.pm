@@ -20,7 +20,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.25 rootlesskit selinux-tools skopeo);
+    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.25 openssl rootlesskit selinux-tools skopeo);
     push @pkgs, qw(nftables-devel) unless is_sle("<15-SP5");
     $self->setup_pkgs(@pkgs);
 
@@ -117,6 +117,8 @@ sub run {
     push @xfails, (
         # These tests use amd64 images:
         "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
+        # Same as above on Docker v29:
+        "github.com/moby/moby/v2/integration/image::TestAPIImageHistoryCrossPlatform",
     ) unless (is_x86_64);
     push @xfails, (
         # These tests fail as rootless on SLES 15

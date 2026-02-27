@@ -19,7 +19,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(docker docker-buildx go1.25);
+    my @pkgs = qw(docker docker-buildx go1.25 openssl);
     push @pkgs, qw(docker-compose) unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
