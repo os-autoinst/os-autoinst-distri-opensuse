@@ -1,0 +1,23 @@
+From 36a89adc82bef24af0fefed2ece0dbf9dea9d2cc Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 27 Feb 2026 20:51:30 +0100
+Subject: [PATCH] integration/capabilities: Switch to debian:trixie-slim
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ integration/capabilities/capabilities_linux_test.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/integration/capabilities/capabilities_linux_test.go b/integration/capabilities/capabilities_linux_test.go
+index 2bf06ee4a624a..6f5ba0936cd64 100644
+--- a/integration/capabilities/capabilities_linux_test.go
++++ b/integration/capabilities/capabilities_linux_test.go
+@@ -20,7 +20,7 @@ func TestNoNewPrivileges(t *testing.T) {
+ 	ctx := setupTest(t)
+ 
+ 	withFileCapability := `
+-		FROM debian:bullseye-slim
++		FROM debian:trixie-slim
+ 		RUN apt-get update && apt-get install -y libcap2-bin --no-install-recommends
+ 		RUN setcap CAP_DAC_OVERRIDE=+eip /bin/cat
+ 		RUN echo "hello" > /txt && chown 0:0 /txt && chmod 700 /txt
