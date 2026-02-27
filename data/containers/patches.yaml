@@ -106,6 +106,10 @@ containerd:
   opensuse-Tumbleweed:
   sle-16.1:
   sle-16.0:
+  sle-15-SP7:
+  sle-15-SP6:
+  sle-15-SP5:
+  sle-15-SP4:
 docker-py:
   # Note on patches:
   # https://github.com/docker/docker-py/pull/3261 - Bump default API version to 1.45 (Moby 26.0/26.1)
