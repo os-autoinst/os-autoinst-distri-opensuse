@@ -103,17 +103,11 @@ sub run {
 
     select_serial_terminal;
     my $provider = $self->provider_factory();
-    my $os_ver;
-    if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
-        $os_ver = $provider->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION'));
-    } else {
-        $os_ver = $provider->get_image_id();
-    }
     assert_script_run('rm ~/.ssh/config');
 
     my $instance_id = crash_deploy_aws(
         region => get_var('PUBLIC_CLOUD_REGION'),
-        image_name => $os_ver,
+        image_name =>, $provider->get_image_id(),
         # 679593333241 ( aws-marketplace )
         image_owner => get_var('PUBLIC_CLOUD_EC2_ACCOUNT_ID', '679593333241'),
         ssh_pub_key => $provider->ssh_key . ".pub",
