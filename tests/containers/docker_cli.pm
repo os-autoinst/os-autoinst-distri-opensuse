@@ -98,6 +98,9 @@ sub run {
         # These tests fail on SLES 15-SP7 due to SUSE patch
         "github.com/docker/cli/e2e/image::TestBuildFromContextDirectoryWithTag",
     ) if (is_sle("<16"));
+    push @xfails, (
+        "github.com/docker/cli/e2e/plugin::TestInstall",
+    ) unless (is_x86_64);
 
     run_command "$env gotestsum --junitfile cli.xml ./e2e/... -- &> cli.txt", no_assert => 1, timeout => 3000;
     upload_logs "cli.txt";
