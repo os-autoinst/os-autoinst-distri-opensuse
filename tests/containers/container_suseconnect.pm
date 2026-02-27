@@ -52,7 +52,7 @@ sub run {
     my $incident_repos_urls = join(',', @repos);
 
     if ($incident_repos_urls) {
-        assert_script_run("printf '%s\n' '$incident_repos_urls' > ./incident_repos_urls.txt");
+        assert_script_run("echo '$incident_repos_urls' > ./incident_repos_urls.txt");
     }
 
     $container_name = "suseconnect-test-$runtime_name";
