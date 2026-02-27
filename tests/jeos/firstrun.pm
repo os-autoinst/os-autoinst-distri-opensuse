@@ -423,9 +423,9 @@ sub run {
             enter_cmd "$testapi::password";
             wait_still_screen 1;
             enter_cmd "echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf";
-            enter_cmd "systemctl restart sshd";
+            enter_cmd "systemctl restart sshd", wait_screen_change => 10;
         }
-        send_key('ctrl-^-]');
+        send_key('ctrl-]');
         $con->attach_to_running();
     }
     select_console('root-console', skip_set_standard_prompt => 1, skip_setterm => 1, skip_disable_key_repeat => 1);
