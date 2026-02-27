@@ -12,7 +12,7 @@ use utils;
 use transactional;
 use Utils::Architectures qw(is_s390x);
 use Utils::Backends qw(is_qemu is_pvm);
-use version_utils qw(is_vmware);
+use version_utils qw(is_vmware is_sle);
 use virt_autotest::esxi_utils;
 
 my (%network_pvm, %network_s390x, %network_qemu, %network_vmware, %net_config, $nic_name);
@@ -111,8 +111,12 @@ sub run {
 
     # make sure 'sysconfig' and 'sysconfig-netconfig' are not installed by default
     my @pkgs = ('sysconfig', 'sysconfig-netconfig');
-    foreach my $pkg (@pkgs) {
-        die "$pkg will not be installed by default on SLE Micro" if (script_run("rpm -q $pkg") == 0);
+    if (is_sle) {
+        foreach (@pkgs) { zypper_call("in $_"); }
+    } else {
+        foreach my $pkg (@pkgs) {
+            die "$pkg will not be installed by default on SLE Micro" if (script_run("rpm -q $pkg") == 0);
+        }
     }
     my ($RcManager, $mode);
     # check 'NetworkManager' service is up and it can get right DNS server
@@ -148,7 +152,9 @@ true'
     # DNS-Manager check
     record_info('with dnsmasq');
     ($RcManager, $mode) = dns_mgr();
-    die 'wrong DNS-Manager is currently used for dnsmasq' if ($RcManager !~ /symlink/ || $mode !~ /dnsmasq/);
+    # When netconfig is installed on the system, it is used; otherwise, if no other rc manager is available,
+    # the system falls back to a symlink
+    die 'wrong DNS-Manager is currently used for dnsmasq' if ($RcManager !~ /symlink|netconfig/ || $mode !~ /dnsmasq/);
     ping_check;
     # systemd-resolved
     unless (is_vmware) {
