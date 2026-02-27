@@ -291,9 +291,10 @@ Create a VM instance
 
 =item B<name> - name for the VM instance
 
-=item B<image> - image name
+=item B<image> - specifies the boot image for the instances
 
-=item B<image_project> - image project name
+=item B<image_project> - the Google Cloud project against which all image and image family references will be resolved.
+                         If not specified and either image or image-family is provided, the current default project is used.
 
 =item B<machine_type> - machine type (e.g., 'n1-standard-2')
 
@@ -311,23 +312,25 @@ Create a VM instance
 =cut
 
 sub gcp_vm_create(%args) {
-    foreach (qw(project zone name image image_project machine_type network subnet address)) {
+    foreach (qw(project zone name image machine_type network subnet address)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    croak("Argument < image > contains '/' : $args{image}. Please use 'image_project' argument instead.") if $args{image} =~ /\//;
     $args{timeout} //= 900;
 
     my $ssh_key = script_output("cat $args{ssh_key}");
-    assert_script_run(join(' ',
-            'gcloud compute instances create', $args{name},
-            '--project', $args{project},
-            '--zone', $args{zone},
-            '--image', $args{image},
-            '--image-project', $args{image_project},
-            '--machine-type', $args{machine_type},
-            '--network', $args{network},
-            '--subnet', $args{subnet},
-            '--address', $args{address},
-            '--metadata', "'ssh-keys=cloudadmin:$ssh_key'"),
-        timeout => $args{timeout});
+
+    my @cmd = ('gcloud compute instances create',
+        $args{name},
+        '--project', $args{project},
+        '--zone', $args{zone},
+        '--machine-type', $args{machine_type},
+        '--network', $args{network},
+        '--subnet', $args{subnet},
+        '--address', $args{address},
+        '--metadata', "'ssh-keys=cloudadmin:$ssh_key'");
+    push @cmd, '--image', $args{image};
+    push @cmd, '--image-project', $args{image_project} if $args{image_project};
+    assert_script_run(join(' ', @cmd), timeout => $args{timeout});
 }
 
 =head2 gcp_vm_wait_running
