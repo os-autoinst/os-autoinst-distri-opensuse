@@ -121,6 +121,13 @@ sub run {
         "github.com/moby/moby/v2/integration/image::TestAPIImageHistoryCrossPlatform",
     ) unless (is_x86_64);
     push @xfails, (
+        "github.com/moby/moby/v2/integration/image::TestSaveAndLoadPlatform",
+        "github.com/moby/moby/v2/integration/image::TestSaveAndLoadPlatform/With_no_platforms_specified",
+    ) if (is_ppc64le);
+    push @xfails, (
+        "github.com/docker/docker/integration/container::TestCreateWithCustomMACs",
+    ) if (is_s390x);
+    push @xfails, (
         # These tests fail as rootless on SLES 15
         "github.com/docker/docker/integration/container::TestNetworkLoopbackNat",
     ) if (is_sle("<16"));
