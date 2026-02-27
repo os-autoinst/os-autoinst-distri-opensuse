@@ -153,6 +153,7 @@ moby:
   # https://github.com/moby/moby/pull/51972 - integration: Support containerd pull error message
   # https://github.com/moby/moby/pull/52116 - integration/container: use page-aligned shm size to fix test on ppc64le
   # https://github.com/moby/moby/pull/52117 - integration/capabilities: Switch to debian:trixie-slim
+  # https://github.com/moby/moby/pull/52119 - integration/image: pull ppc64le and s390x in TestSaveAndLoadPlatform
   opensuse-Tumbleweed:
     GITHUB_PATCHES:
     - 51263
@@ -161,6 +162,7 @@ moby:
     - 51972
     - 52116
     - 52117
+    - 52119
   sle-16.1:
     GITHUB_PATCHES:
     - 51219
