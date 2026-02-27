@@ -35,7 +35,10 @@ buildah:
   # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   # https://github.com/containers/buildah/pull/6271 - Update "bud with --cpu-shares" test, and rename it
+  # https://github.com/containers/buildah/pull/6602 is needed with docker v29
   opensuse-Tumbleweed:
+    GITHUB_PATCHES:
+    - 6602
   sle-16.1:
     GITHUB_PATCHES:
     - 6226
