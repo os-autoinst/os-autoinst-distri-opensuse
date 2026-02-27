@@ -9,7 +9,7 @@ package security::agnosticTestRunner;
 
 use strict;
 use warnings;
-use testapi qw(assert_script_run data_url parse_extra_log script_output);
+use testapi qw(assert_script_run data_url parse_extra_log script_output enter_cmd);
 use registration 'add_suseconnect_product', 'get_addon_fullname';
 use utils 'zypper_call';
 use version_utils 'is_sle';
@@ -80,6 +80,7 @@ sub run_test {
     $run_script = "./$run_script" unless $run_script =~ m{^/|^\./};
     my $command = 'cd ' . $self->{test_dir} . ' && chmod +x ' . $run_script . ' && ' . $run_script . ' && mv results.xml ' . $self->{result_file};
     assert_script_run($command);
+    enter_cmd('reset');
     return $self;
 }
 
