@@ -15,12 +15,12 @@ subtest '[gcp_network_create]' => sub {
     $gcpcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     gcp_network_create(
-        project => 'my-project',
+        project => 'flute',
         name => 'my-network');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /gcloud compute networks create/ } @calls), 'Command networks create');
-    ok((any { /--project.*my-project/ } @calls), 'project parameter is in command');
+    ok((any { /--project.*flute/ } @calls), 'project parameter is in command');
     ok((any { /--subnet-mode=custom/ } @calls), 'subnet-mode=custom is in command');
 };
 
@@ -43,15 +43,15 @@ subtest '[gcp_subnet_create]' => sub {
     $gcpcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     gcp_subnet_create(
-        project => 'my-project',
-        region => 'us-central1',
+        project => 'flute',
+        region => 'clarinet',
         name => 'my-subnet',
         network => 'my-network',
         cidr => '10.0.0.0/24');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /gcloud compute networks subnets create/ } @calls), 'Command subnets create');
-    ok((any { /--region.*us-central1/ } @calls), 'region parameter is in command');
+    ok((any { /--region.*clarinet/ } @calls), 'region parameter is in command');
     ok((any { /--network.*my-network/ } @calls), 'network parameter is in command');
     ok((any { /--range.*10\.0\.0\.0\/24/ } @calls), 'cidr parameter is in command');
 };
@@ -62,7 +62,7 @@ subtest '[gcp_subnet_delete]' => sub {
     $gcpcli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
 
     my $ret = gcp_subnet_delete(
-        region => 'us-central1',
+        region => 'clarinet',
         name => 'my-subnet');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -76,8 +76,8 @@ subtest '[gcp_firewall_rule_create]' => sub {
     $gcpcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     gcp_firewall_rule_create(
-        project => 'my-project',
-        name => 'allow-ssh',
+        project => 'flute',
+        name => 'bassoon',
         network => 'my-network',
         port => 22);
 
@@ -92,7 +92,7 @@ subtest '[gcp_firewall_rule_delete]' => sub {
     my @calls;
     $gcpcli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
 
-    my $ret = gcp_firewall_rule_delete(name => 'allow-ssh');
+    my $ret = gcp_firewall_rule_delete(name => 'bassoon');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /gcloud compute firewall-rules delete/ } @calls), 'Command firewall-rules delete');
@@ -105,13 +105,13 @@ subtest '[gcp_external_ip_create]' => sub {
     $gcpcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
 
     gcp_external_ip_create(
-        project => 'my-project',
-        region => 'us-central1',
+        project => 'flute',
+        region => 'clarinet',
         name => 'my-ip');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /gcloud compute addresses create/ } @calls), 'Command addresses create');
-    ok((any { /--region.*us-central1/ } @calls), 'region parameter is in command');
+    ok((any { /--region.*clarinet/ } @calls), 'region parameter is in command');
 };
 
 subtest '[gcp_external_ip_delete]' => sub {
@@ -120,7 +120,7 @@ subtest '[gcp_external_ip_delete]' => sub {
     $gcpcli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
 
     my $ret = gcp_external_ip_delete(
-        region => 'us-central1',
+        region => 'clarinet',
         name => 'my-ip');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
@@ -132,30 +132,90 @@ subtest '[gcp_vm_create]' => sub {
     my $gcpcli = Test::MockModule->new('sles4sap::gcp_cli', no_auto => 1);
     my @calls;
     $gcpcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $gcpcli->redefine(script_output => sub { return 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ'; });
+    $gcpcli->redefine(script_output => sub { push @calls, $_[0]; return 'bassoonAAAABBBB'; });
 
     gcp_vm_create(
-        project => 'my-project',
+        project => 'flute',
         zone => 'us-central1-a',
         name => 'my-vm',
-        image => 'sles-sap-15-sp5',
-        image_project => 'suse-cloud',
-        machine_type => 'n1-standard-2',
+        image => 'oboe',
+        machine_type => 'saxophone',
         network => 'my-network',
         subnet => 'my-subnet',
         address => 'my-ip',
-        ssh_key => '/path/to/ssh_key.pub');
+        ssh_key => 'bassoon.pub');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /gcloud compute instances create/ } @calls), 'Command instances create');
     ok((any { /--zone.*us-central1-a/ } @calls), 'zone parameter is in command');
-    ok((any { /--image.*sles-sap-15-sp5/ } @calls), 'image parameter is in command');
-    ok((any { /--image-project.*suse-cloud/ } @calls), 'image-project parameter is in command');
-    ok((any { /--machine-type.*n1-standard-2/ } @calls), 'machine-type parameter is in command');
+    ok((any { /--image.*oboe/ } @calls), 'image parameter is in command');
+    ok((any { /--machine-type.*saxophone/ } @calls), 'machine-type parameter is in command');
     ok((any { /--network.*my-network/ } @calls), 'network parameter is in command');
     ok((any { /--subnet.*my-subnet/ } @calls), 'subnet parameter is in command');
     ok((any { /--address.*my-ip/ } @calls), 'address parameter is in command');
-    ok((any { /--metadata.*ssh-keys/ } @calls), 'metadata ssh-keys is in command');
+    ok((any { /--metadata.*ssh-keys.*bassoonAAAABBBB/ } @calls), 'metadata ssh-keys is in command');
+};
+
+subtest '[gcp_vm_create] image_project' => sub {
+    my $gcpcli = Test::MockModule->new('sles4sap::gcp_cli', no_auto => 1);
+    my @calls;
+    $gcpcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $gcpcli->redefine(script_output => sub { return 'bassoonAAAABBBB'; });
+
+    gcp_vm_create(
+        project => 'flute',
+        zone => 'us-central1-a',
+        name => 'my-vm',
+        image => 'oboe',
+        image_project => 'suse-cloud',
+        machine_type => 'saxophone',
+        network => 'my-network',
+        subnet => 'my-subnet',
+        address => 'my-ip',
+        ssh_key => 'bassoon.pub');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /--image-project.*suse-cloud/ } @calls), 'image-project parameter is in command');
+};
+
+subtest '[gcp_vm_create] image invalid format' => sub {
+    my $gcpcli = Test::MockModule->new('sles4sap::gcp_cli', no_auto => 1);
+    my @calls;
+    $gcpcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $gcpcli->redefine(script_output => sub { return 'bassoonAAAABBBB'; });
+
+    dies_ok {
+        gcp_vm_create(
+            project => 'flute',
+            zone => 'us-central1-a',
+            name => 'my-vm',
+            image => 'flute/oboe',
+            machine_type => 'saxophone',
+            network => 'my-network',
+            subnet => 'my-subnet',
+            address => 'my-ip',
+            ssh_key => 'bassoon.pub');
+    } 'Invalid image value including the project';
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
+subtest '[gcp_vm_create] missing arguments' => sub {
+    my $gcpcli = Test::MockModule->new('sles4sap::gcp_cli', no_auto => 1);
+    $gcpcli->redefine(script_output => sub { return 'bassoonAAAABBBB'; });
+
+    dies_ok {
+        gcp_vm_create(
+            project => 'flute',
+            zone => 'z',
+            name => 'n',
+            image => 'i',
+            image_project => 'ip',
+            machine_type => 'saxophone',
+            network => 'net',
+            subnet => 's',
+            ssh_key => '/path/to/key')
+    } 'Dies without address';
 };
 
 subtest '[gcp_vm_wait_running] success' => sub {
@@ -218,44 +278,15 @@ subtest '[gcp_public_ip_get]' => sub {
 };
 
 subtest '[gcp_network_create] missing arguments' => sub {
-    dies_ok { gcp_network_create(project => 'my-project') } 'Dies without name';
+    dies_ok { gcp_network_create(project => 'flute') } 'Dies without name';
     dies_ok { gcp_network_create(name => 'my-network') } 'Dies without project';
 };
 
 subtest '[gcp_subnet_create] missing arguments' => sub {
-    dies_ok { gcp_subnet_create(project => 'p', region => 'r', name => 'n', network => 'net') } 'Dies without cidr';
-    dies_ok { gcp_subnet_create(project => 'p', region => 'r', name => 'n', cidr => 'c') } 'Dies without network';
+    dies_ok { gcp_subnet_create(project => 'flute', region => 'clarinet', name => 'n', network => 'net') } 'Dies without cidr';
+    dies_ok { gcp_subnet_create(project => 'flute', region => 'clarinet', name => 'n', cidr => 'c') } 'Dies without network';
 };
 
-subtest '[gcp_vm_create] missing arguments' => sub {
-    my $gcpcli = Test::MockModule->new('sles4sap::gcp_cli', no_auto => 1);
-    $gcpcli->redefine(script_output => sub { return 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ'; });
-
-    dies_ok {
-        gcp_vm_create(
-            project => 'p',
-            zone => 'z',
-            name => 'n',
-            image => 'i',
-            image_project => 'ip',
-            machine_type => 'm',
-            network => 'net',
-            subnet => 's',
-            ssh_key => '/path/to/key')
-    } 'Dies without address';
-    dies_ok {
-        gcp_vm_create(
-            project => 'p',
-            zone => 'z',
-            name => 'n',
-            image => 'i',
-            machine_type => 'm',
-            network => 'net',
-            subnet => 's',
-            address => 'a',
-            ssh_key => '/path/to/key')
-    } 'Dies without image_project';
-};
 
 done_testing;
 
