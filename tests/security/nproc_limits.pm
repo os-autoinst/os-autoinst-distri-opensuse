@@ -27,7 +27,7 @@ sub run {
 
     # Set systemd config file and check with ulimit command
     my $file_path = "$pathprefix/etc/security/limits.d/nproc.conf";
-    assert_script_run(qq{echo -e "* soft nproc unlimited\n* hard nproc unlimited" > $file_path});
+    assert_script_run(qq{echo -e "* soft nproc unlimited\\n* hard nproc unlimited" > $file_path});
 
     # 'systemctl daemon-reexec' does not work here, so we have to reboot
     power_action('reboot', textmode => 1);
