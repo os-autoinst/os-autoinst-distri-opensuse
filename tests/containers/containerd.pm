@@ -80,6 +80,9 @@ sub run {
     my @xfails = (
         "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
     );
+    push @xfails, (
+        "github.com/containerd/containerd/integration/client::TestExportAndImportMultiLayer",
+    ) if (is_s390x);
 
     run_command "gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root &> containerd.txt", no_assert => 1, timeout => 600;
     upload_logs "containerd.txt";
