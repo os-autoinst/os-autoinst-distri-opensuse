@@ -127,6 +127,9 @@ sub load_compose_tests {
     # SLEM 6.0 has podman 4.9.5 while SLEM 6.1 has podman 5.2.5
     # podman with docker-compose needs podman 5.x
     my $min_slem_version = ($run_args->{runtime} eq "podman") ? "6.1" : "6.0";
+    # docker-stable (v24) doesn't support docker-compose v5.1.0
+    # See https://bugzilla.opensuse.org/show_bug.cgi?id=1258981
+    return if (is_tumbleweed && check_var("CONTAINERS_DOCKER_FLAVOUR", "stable"));
     return unless (is_tumbleweed || is_sle('>=16.0') || is_sle_micro(">=$min_slem_version"));
     loadtest('containers/compose', run_args => $run_args, name => $run_args->{runtime} . "_compose");
 }
