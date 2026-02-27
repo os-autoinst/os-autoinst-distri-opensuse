@@ -169,6 +169,11 @@ sub new_registration {
     record_info('Starting registration...');
     $instance->ssh_script_retry(cmd => "sudo registercloudguest $regcode_param", timeout => 300, retry => 3, delay => 120);
     check_instance_registered($instance);
+    # https://progress.opensuse.org/issues/196370 workaround for a known issue on 15-SP5
+    if (is_sle('=15-SP5')) {
+        $instance->ssh_assert_script_run("sudo zypper update -y");
+        $instance->softreboot(timeout => 3600);
+    }
     return 0;
 }
 
@@ -220,6 +225,11 @@ sub force_new_registration {
     my ($instance) = @_;
     record_info('Forcing a new registration...');
     $instance->ssh_script_retry(cmd => "sudo registercloudguest $regcode_param --force-new", timeout => 300, retry => 3, delay => 120);
+    # https://progress.opensuse.org/issues/196370 workaround for a known issue on 15-SP5
+    if (is_sle('=15-SP5')) {
+        $instance->ssh_assert_script_run("sudo zypper update -y");
+        $instance->softreboot(timeout => 3600);
+    }
     check_instance_registered($instance);
     return 0;
 }
