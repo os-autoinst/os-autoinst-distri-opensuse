@@ -41,6 +41,7 @@ sub prepare_in_trup_shell {
 sub prepare_on_active_system {
     my $self = shift;
 
+    show_all_disks;
     double_check_xen_role if (is_xen_host and is_sle('>=16.1') and is_disk_image);
     check_kvm_modules if (is_kvm_host and is_sle('>=16.1') and is_disk_image);
     $self->prepare_services;

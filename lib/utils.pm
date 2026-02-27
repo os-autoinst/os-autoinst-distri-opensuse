@@ -146,6 +146,7 @@ our @EXPORT = qw(
   parse_json
   inspect_existing_issue
   dump_tasktrace
+  show_all_disks
 );
 
 our @EXPORT_OK = qw(
@@ -3714,6 +3715,16 @@ sub dump_tasktrace {
     wait_serial(qr/sysrq: .*Show Blocked State/, timeout => 300);
     send_key('ret');
     select_console($old_console, await_console => 0);
+}
+
+=head2 show_all_disks
+
+Output information about all disks on system to facilitate convenient and quick
+information lookup on the fly without manual intervention.
+=cut
+
+sub show_all_disks {
+    record_info('Disk info', script_output('lsblk -p -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT,WWN;ls -ahl /dev/disk/by-id;df -ah', proceed_on_failure => 1));
 }
 
 1;
