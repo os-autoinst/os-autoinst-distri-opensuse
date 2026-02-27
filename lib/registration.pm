@@ -204,7 +204,7 @@ sub add_suseconnect_product {
     my $try_cnt = 0;
     while ($try_cnt++ <= $retry) {
         if (is_transactional) {
-            eval { trup_call("register -p $name/" . $version . '/' . get_var('ARCH')) };
+            eval { trup_call("register -p $name/" . $version . '/' . get_var('ARCH') . " $params") };
         } else {
             eval { assert_script_run("SUSEConnect $debug_flag -p $name/$version/$arch $params", timeout => $timeout); };
         }
