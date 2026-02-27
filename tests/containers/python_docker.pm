@@ -21,7 +21,7 @@ my $version;
 sub setup {
     my $self = shift;
 
-    my @pkgs = qq(docker jq make python3 python3-docker python3-paramiko python3-pytest python3-pytest-timeout);
+    my @pkgs = qq(docker jq make openssl python3 python3-docker python3-paramiko python3-pytest python3-pytest-timeout);
     $self->setup_pkgs(@pkgs);
 
     configure_docker(selinux => 1, tls => 1);

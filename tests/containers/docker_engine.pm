@@ -20,7 +20,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.25 rootlesskit selinux-tools skopeo);
+    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.25 openssl rootlesskit selinux-tools skopeo);
     push @pkgs, qw(nftables-devel) unless is_sle("<15-SP5");
     $self->setup_pkgs(@pkgs);
 

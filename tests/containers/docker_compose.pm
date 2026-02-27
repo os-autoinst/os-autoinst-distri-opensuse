@@ -20,7 +20,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(docker docker-buildx docker-compose go1.25 make);
+    my @pkgs = qw(docker docker-buildx docker-compose go1.25 make openssl);
     $self->setup_pkgs(@pkgs);
 
     # docker-compose needs to be patched upstream to support SELinux
