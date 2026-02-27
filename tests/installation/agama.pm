@@ -180,13 +180,14 @@ sub select_software {
 
 sub run {
     my ($self) = @_;
+    my $agama_screen_timeout = 300;
     if (!is_ppc64le && !is_s390x) {
-        assert_screen('agama-inst-welcome-product-list');
+        assert_screen('agama-inst-welcome-product-list', timeout => $agama_screen_timeout);
         select_product();
     }
 
     # can take few minutes to get here
-    assert_screen('agama-overview-screen');
+    assert_screen('agama-overview-screen', timeout => $agama_screen_timeout);
 
     # clicking on agama-show-tab seems to be no longer needed
     # on low-res screens
