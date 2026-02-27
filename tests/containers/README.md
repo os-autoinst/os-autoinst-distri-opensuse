@@ -45,8 +45,8 @@ openSUSE Tumbleweed:
 | buildah + crun |  |  | [![buildah_crun_x86_64_logo]][buildah_crun_x86_64] |
 | conmon | [![conmon_aarch64_logo]][conmon_aarch64] |  | [![conmon_x86_64_logo]][conmon_x86_64] |
 | containerd | [![containerd_aarch64_logo]][containerd_aarch64] | [![containerd_ppc64le_logo]][containerd_ppc64le] | [![containerd_x86_64_logo]][containerd_x86_64] |
-| docker | [![docker_aarch64_logo]][docker_aarch64] |  | [![docker_x86_64_logo]][docker_x86_64] |
-| docker rootless | [![docker_rootless_aarch64_logo]][docker_rootless_aarch64] |  | [![docker_rootless_x86_64_logo]][docker_rootless_x86_64] |
+| docker | [![docker_aarch64_logo]][docker_aarch64] | [![docker_ppc64le_logo]][docker_ppc64le] | [![docker_x86_64_logo]][docker_x86_64] |
+| docker rootless | [![docker_rootless_aarch64_logo]][docker_rootless_aarch64] | [![docker_rootless_ppc64le_logo]][docker_rootless_ppc64le] | [![docker_rootless_x86_64_logo]][docker_rootless_x86_64] |
 | netavark | [![netavark_aarch64_logo]][netavark_aarch64] | [![netavark_ppc64le_logo]][netavark_ppc64le] | [![netavark_x86_64_logo]][netavark_x86_64] |
 | podman | [![podman_aarch64_logo]][podman_aarch64] | [![podman_ppc64le_logo]][podman_ppc64le] | [![podman_x86_64_logo]][podman_x86_64] |
 | podman + crun | [![podman_crun_aarch64_logo]][podman_crun_aarch64] | [![podman_crun_ppc64le_logo]][podman_crun_ppc64le] | [![podman_crun_x86_64_logo]][podman_crun_x86_64] |
@@ -91,11 +91,17 @@ openSUSE Tumbleweed:
 [docker_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_testsuite
 [docker_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_testsuite
 
+[docker_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_docker_testsuite
+[docker_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_docker_testsuite
+
 [docker_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
 [docker_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_testsuite
 
 [docker_rootless_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_rootless_testsuite
 [docker_rootless_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_docker_rootless_testsuite
+
+[docker_rootless_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_docker_rootless_testsuite
+[docker_rootless_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_docker_rootless_testsuite
 
 [docker_rootless_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_rootless_testsuite
 [docker_rootless_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_docker_rootless_testsuite
