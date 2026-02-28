@@ -41,7 +41,7 @@ openSUSE Tumbleweed:
 | Testsuite | aarch64 | ppc64le | x86_64 |
 |:---:|:---:|:---:|:---:|
 | aardvark | [![aardvark_aarch64_logo]][aardvark_aarch64] | [![aardvark_ppc64le_logo]][aardvark_ppc64le] | [![aardvark_x86_64_logo]][aardvark_x86_64] |
-| buildah |  |  | [![buildah_x86_64_logo]][buildah_x86_64] |
+| buildah | [![buildah_aarch64_logo]][buildah_aarch64] | [![buildah_ppc64le_logo]][buildah_ppc64le] | [![buildah_x86_64_logo]][buildah_x86_64] |
 | buildah + crun |  |  | [![buildah_crun_x86_64_logo]][buildah_crun_x86_64] |
 | conmon | [![conmon_aarch64_logo]][conmon_aarch64] |  | [![conmon_x86_64_logo]][conmon_x86_64] |
 | containerd | [![containerd_aarch64_logo]][containerd_aarch64] | [![containerd_ppc64le_logo]][containerd_ppc64le] | [![containerd_x86_64_logo]][containerd_x86_64] |
@@ -66,6 +66,12 @@ openSUSE Tumbleweed:
 
 [aardvark_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_aardvark_testsuite
 [aardvark_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_aardvark_testsuite
+
+[buildah_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_buildah_testsuite
+[buildah_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_buildah_testsuite
+
+[buildah_ppc64le_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_buildah_testsuite
+[buildah_ppc64le]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=ppc64le&test=container_host_buildah_testsuite
 
 [buildah_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
 [buildah_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
