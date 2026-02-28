@@ -22,11 +22,21 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % if ($check_var->('VERSION', '15-SP7')) {
       <addon>
         <name>sle-module-systems-management</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % }
+      % if ($check_var->('VERSION', '15-SP6')) {
+      <addon>
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
+      % }
       <addon>
         <name>sle-module-web-scripting</name>
         <version>{{VERSION}}</version>
