@@ -122,6 +122,7 @@ sub run {
     ) unless (is_x86_64);
     push @xfails, (
         "github.com/docker/docker/integration/container::TestCreateWithCustomMACs",
+        "github.com/docker/docker/integration/container::TestNetworkLocalhostTCPNat",
     ) if (is_s390x);
     push @xfails, (
         # These tests fail as rootless on SLES 15
