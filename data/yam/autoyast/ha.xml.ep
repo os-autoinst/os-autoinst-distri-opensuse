@@ -23,56 +23,24 @@
         <arch>{{ARCH}}</arch>
       </addon>
       <addon>
-        <name>sle-module-systems-management</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-web-scripting</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-containers</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-public-cloud</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-legacy</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-desktop-applications</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-development-tools</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-certifications</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
         <name>sle-ha</name>
         <reg_code>{{SCC_REGCODE_HA}}</reg_code>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
       <addon>
-        <name>PackageHub</name>
+        <name>sle-module-systems-management</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % if ($check_var->('VERSION', '15-SP6') or $check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5')) {
+      <addon>
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
+      % }
     </addons>
   </suse_register>
   <general>
@@ -88,9 +56,10 @@
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
-  <services-manager config:type="map">
-    <services config:type="map">
-      <enable config:type="list">
+  <services-manager t="map">
+    <default_target>multi-user</default_target>
+    <services t="map">
+      <enable t="list">
         <service>sshd</service>
       </enable>
     </services>
@@ -99,13 +68,11 @@
     <products config:type="list">
       <product>SLES</product>
     </products>
-    <packages config:type="list">
-      <package>openssh</package>
-    </packages>
-    <patterns config:type="list">
+    <patterns t="list">
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>enhanced_base</pattern>
+      <pattern>ha_sles</pattern>
       <pattern>minimal_base</pattern>
       <pattern>yast2_basis</pattern>
     </patterns>
