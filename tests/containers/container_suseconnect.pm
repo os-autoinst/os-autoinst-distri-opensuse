@@ -52,7 +52,7 @@ sub run {
     my $incident_repos_urls = join(',', @repos);
 
     if ($incident_repos_urls) {
-        assert_script_run("echo '$incident_repos_urls' > ./incident_repos_urls.txt");
+        write_sut_file("/tmp/incident_repos_urls.txt", $incident_repos_urls);
     }
 
     $container_name = "suseconnect-test-$runtime_name";
@@ -73,7 +73,7 @@ sub run {
         assert_script_run("$runtime_name cp ./add-incidents-repos.sh $container_name:/usr/local/bin/add-incidents-repos.sh");
         assert_script_run("$runtime_name exec $container_name chmod +x /usr/local/bin/add-incidents-repos.sh");
 
-        assert_script_run("$runtime_name cp ./incident_repos_urls.txt $container_name:/tmp/incident_repos_urls.txt");
+        assert_script_run("$runtime_name cp /tmp/incident_repos_urls.txt $container_name:/tmp/incident_repos_urls.txt");
         assert_script_run(
             "$runtime_name exec $container_name /usr/local/bin/add-incidents-repos.sh /tmp/incident_repos_urls.txt"
         );
