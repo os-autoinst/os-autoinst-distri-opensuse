@@ -44,28 +44,12 @@
         },
         "_type": "ignore"
     },
-    "bsc#1255178": {
-        "description": "bsc#1255178 Transactional base image has no /etc/issue",
-        "products": {
-            "sle": ["16.1"]
-        },
-        "modes": ["transactional"],
-        "type": "bug"
-    },
     "bsc#1255476": {
         "description": "bsc#1255476 No SLES16.1 in os database",
         "products": {
             "sle": ["16.1"]
         },
         "modes": ["transactional"],
-        "type": "bug"
-    },
-    "bsc#1257977": {
-        "description": "bsc#1257977 No /etc/issue after OS agama installation",
-        "products": {
-            "sle": ["16.1"]
-        },
-        "modes": ["traditional"],
         "type": "bug"
     }
 }
