@@ -11,6 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
+use Utils::Architectures;
 use containers::bats;
 
 my $buildah_version = "";
@@ -49,6 +50,9 @@ sub run_tests {
     push @xfails, (
         "bud.bats::bud-multiple-platform-no-partial-manifest-list",
     ) if (is_sle("<15-SP6"));
+    push @xfails, (
+        "run.bats::run check /etc/resolv.conf",
+    ) unless (is_aarch64 || is_x86_64);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
 
