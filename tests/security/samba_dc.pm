@@ -17,6 +17,8 @@ use lockapi;
 use utils qw(zypper_call systemctl script_retry random_string);
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle';
+use network_utils 'iface';
+use Utils::Architectures 'is_s390x';
 use feature 'signatures';
 no warnings 'experimental::signatures';
 
@@ -31,6 +33,12 @@ use constant {
 sub run ($self) {
     my $hostname = get_var('HOSTNAME');
     select_serial_terminal;
+
+    if (is_s390x) {
+        our $netdev = iface();
+        our $server_ip = get_var('SERVER_IP', '10.0.2.123');
+        our $client_ip = get_var('CLIENT_IP', '10.0.2.124');
+    }
 
     ($hostname eq 'client') ? run_client() : run_server();
 }
@@ -105,11 +113,16 @@ sub run_client() {
     zypper_call('in samba-client krb5-client samba-winbind bind-utils adcli cyrus-sasl-gssapi');
     disable_ipv6();
     barrier_wait('SAMBA_DC_SETUP');
-
     my $client_hostname = randomize_hostname();
 
-    my $server_ip = script_output(q{getent hosts server | head -n1 | awk '{print $1}'});
+    unless (is_s390x) {
+        my $server_ip = script_output(q{getent hosts server | head -n1 | awk '{print $1}'});
+    }
     my $interface = script_output("nmcli -t -f NAME c | grep -v '^lo' | head -n1");
+    # S390x does not support TAP, network must be setup manualy
+    if (is_s390x) {
+        assert_script_run("nmcli con add type vlan con-name \"$netdev\".1 dev \"$netdev\" id 10 ipv4.method manual ipv4.address \"$client_ip/24\"");
+    }
     assert_script_run("nmcli con mod \"$interface\" ipv4.dns \"$server_ip\" ipv4.ignore-auto-dns yes");
     assert_script_run("nmcli con up \"$interface\"");
 
@@ -155,6 +168,7 @@ sub configure_server_resolver() {
     assert_script_run("sed -i '/\\[global\\]/a dns forwarder = $dns_forwarder' /etc/samba/smb.conf");
     # Configure DNS to point to localhost using nmcli
     my $interface = script_output("nmcli -t -f NAME c | grep -v '^lo' | head -n1");
+
     assert_script_run("nmcli con mod \"$interface\" ipv4.dns \"127.0.0.1\" ipv4.ignore-auto-dns yes");
     assert_script_run("nmcli con mod \"$interface\" ipv4.dns-search " . REALM);
     assert_script_run("nmcli con up \"$interface\"");
@@ -162,6 +176,11 @@ sub configure_server_resolver() {
 
 # Start samba services
 sub validate_samba_services() {
+    #s390x network setup
+    if (is_s390x) {
+        systemctl("stop firewalld");
+        assert_script_run("nmcli con add type vlan con-name \"$netdev\".1 dev \"$netdev\" id 10 ipv4.method manual ipv4.address \"$server_ip/24\"");
+    }
     systemctl('enable --now samba-ad-dc.service');
     systemctl('status samba-ad-dc.service');
     verify_dns_records('localhost');
