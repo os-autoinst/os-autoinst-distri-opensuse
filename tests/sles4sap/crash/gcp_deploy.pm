@@ -34,7 +34,7 @@ sub run {
         region => $region,
         zone => $zone,
         project => $provider->provider_client->project_id,
-        image => get_required_var('PUBLIC_CLOUD_IMAGE_NAME'),
+        image => $provider->get_image_id(),
         image_project => get_required_var('PUBLIC_CLOUD_IMAGE_PROJECT'),
         version => get_required_var('VERSION'),
         machine_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'n1-standard-2'),
