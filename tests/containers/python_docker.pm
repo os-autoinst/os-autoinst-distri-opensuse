@@ -11,6 +11,7 @@ use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
+use version;
 use utils;
 use Utils::Architectures qw(is_x86_64);
 use containers::bats;
@@ -76,8 +77,7 @@ sub test ($target) {
     my $pytest_args = "-vv --capture=tee-sys -o junit_logging=all --junit-xml $target.xml $ignore $deselect";
 
     # For these tests we use the concept of expected failures instead of deselecting them which prevents them from running
-    my @xfails = ();
-    push @xfails, (
+    my @xfails = (
         # Flaky test
         "tests.integration.api_container_test.AttachContainerTest::test_attach_no_stream",
         # This test with websockets is broken
@@ -85,7 +85,7 @@ sub test ($target) {
     );
     push @xfails, (
         "tests.unit.api_build_test.BuildTest::test_set_auth_headers_with_dict_and_no_auth_configs",
-    ) if (is_sle(">=16"));
+    ) if (version->parse(numeric_version($version)) > version->parse("7.0.0"));
 
     run_command "$env pytest $pytest_args tests/$target &> $target.txt", no_assert => 1, timeout => 3600;
     upload_logs "$target.txt";

@@ -11,6 +11,7 @@ use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
+use version;
 use utils;
 use Utils::Architectures;
 use containers::bats;
@@ -57,7 +58,7 @@ sub test ($target) {
         "github.com/docker/compose/v5/pkg/e2e::TestLocalComposeRun/compose_run_-rm_with_stop_signal",
         # Flaky tests:
         "github.com/docker/compose/v5/pkg/e2e::TestUpDependenciesNotStopped",
-    ) unless (is_sle);
+    ) if (version->parse(numeric_version($version)) >= version->parse("5.0.0"));
 
     run_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3600;
     upload_logs "$target.txt";

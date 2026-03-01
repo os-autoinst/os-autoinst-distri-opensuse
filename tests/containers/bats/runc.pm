@@ -11,6 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
+use version;
 use Utils::Architectures;
 use containers::bats;
 

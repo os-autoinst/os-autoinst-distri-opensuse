@@ -11,9 +11,11 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
+use version;
 use containers::bats;
 
 my $netavark;
+my $version;
 
 sub run_tests {
     my %env = (
@@ -24,8 +26,9 @@ sub run_tests {
 
     my @xfails = ();
     push @xfails, (
+        # Test fails on SLES 15 which uses netavark 1.12.x
         "250-bridge-nftables.bats",
-    ) if (is_sle("<16"));
+    ) if (version->parse(numeric_version($version)) < version->parse("1.14.0"));
 
     return bats_tests($log_file, \%env, \@xfails, 1200);
 }
@@ -46,8 +49,8 @@ sub run {
     record_info("netavark package version", script_output("rpm -q netavark"));
 
     # Download netavark sources
-    my $netavark_version = script_output "$netavark --version | awk '{ print \$2 }'";
-    patch_sources "netavark", "v$netavark_version", "test";
+    $version = script_output "$netavark --version | awk '{ print \$2 }'";
+    patch_sources "netavark", "v$version", "test";
 
     my $firewalld_backend = script_output "awk -F= '\$1 == \"FirewallBackend\" { print \$2 }' < /etc/firewalld/firewalld.conf";
     record_info("Firewalld backend", $firewalld_backend);
