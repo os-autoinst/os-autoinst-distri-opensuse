@@ -16,6 +16,7 @@ use testapi;
 use strict;
 use warnings;
 use utils;
+use version;
 use version_utils qw(is_sle is_tumbleweed);
 use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
@@ -625,14 +626,25 @@ sub bats_tests {
 sub patch_sources {
     my ($package, $branch, $tests_dir) = @_;
 
-    my $os_version = get_required_var("DISTRI") . "-" . get_required_var("VERSION");
     my $text = script_output("curl " . data_url("containers/patches.yaml"), quiet => 1);
     my $yaml = YAML::PP->new()->load_string($text);
-    my $settings = $yaml->{$package}{$os_version};
+    my $patches = $yaml->{$package} // {};
+
+    # Strip leading & trailing non-digits from version
+    my $version = $branch;
+    $version =~ s/^\D+//;
+    $version =~ s/\D+$//;
 
     my @patches = split(/\s+/, get_var("GITHUB_PATCHES", ""));
-    if (!@patches && defined $settings->{GITHUB_PATCHES}) {
-        @patches = @{$settings->{GITHUB_PATCHES}};
+    if (!@patches) {
+        for my $pr (sort { $a <=> $b } keys %{$patches}) {
+            my $def = $patches->{$pr} // {};
+            # Skip if already merged in this version
+            next if defined $def->{merged} && version->parse($version) >= version->parse("v$def->{merged}");
+            # Skip if below minimum required version
+            next if defined $def->{min} && version->parse($version) < version->parse("v$def->{min}");
+            push @patches, $pr;
+        }
     }
     # We use GITHUB_PATCHES="none" to specify that we don't want to patch anything
     @patches = () if check_var("GITHUB_PATCHES", "none");

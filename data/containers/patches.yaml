@@ -1,119 +1,60 @@
+# To find out whether a patch was merged:
+#   commit="$(gh pr view "$PR" --json mergeCommit --jq '.mergeCommit.oid')"
+#   git tag --contains "$commit" --sort=version:refname | head -1
+# If the patch was not merged you may want to set min
+
 aardvark-dns:
-  # Note on patches:
   # https://github.com/containers/aardvark-dns/pull/519 is needed for 100-basic-name-resolution
   # https://github.com/containers/aardvark-dns/pull/581 is needed for PR#623
   # https://github.com/containers/aardvark-dns/pull/619 is needed for dnsmasq issue
   # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
-  opensuse-Tumbleweed:
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 581
-    - 619
-    - 623
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 581
-    - 619
-    - 623
-  sle-15-SP7:
-    GITHUB_PATCHES:
-    - 519
-    - 581
-    - 623
-  sle-15-SP6:
-    GITHUB_PATCHES:
-    - 519
-    - 581
-    - 623
-  sle-15-SP5:
-    GITHUB_PATCHES:
-    - 519
-    - 581
-    - 623
+  519:
+    merged: "1.13.0"
+  581:
+    merged: "1.15.0"
+  619:
+    merged: "1.16.0"
+    min: "1.14.0"
+  623:
+    merged: "1.17.0"
+
 buildah:
-  # Note on patches:
   # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
   # https://github.com/containers/buildah/pull/6226 is needed for bud & run
   # https://github.com/containers/buildah/pull/6271 - Update "bud with --cpu-shares" test, and rename it
   # https://github.com/containers/buildah/pull/6602 is needed with docker v29
   # https://github.com/containers/buildah/pull/6701 is needed to test on arches other than amd64
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 6602
-    - 6701
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 6226
-    - 6271
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 6226
-    - 6271
-  sle-15-SP7:
-    GITHUB_PATCHES:
-    - 5495
-    - 6226
-    - 6271
-  sle-15-SP6:
-    GITHUB_PATCHES:
-    - 5495
-    - 6226
-    - 6271
-  sle-15-SP5:
-    GITHUB_PATCHES:
-    - 5495
-    - 6226
-    - 6271
-  sle-15-SP4:
-    GITHUB_PATCHES:
-    - 5495
-    - 6226
-    - 6271
+  5495:
+    merged: "1.36.0"
+  6226:
+    merged: "1.41.0"
+  6271:
+    merged: "1.41.0"
+  6602:
+    min: "1.43.0"
+  6701:
+    min: "1.43.0"
+
 buildx:
-  # Note on patches:
   # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 3475
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 3475
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 3475
+  3475:
+    min: "0.29.0"
+
 compose:
-  # Note on patches:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
   # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 13564
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 13214
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 13214
+  13214:
+    merged: "2.39.4"
+  13564:
+
 conmon:
-  # Note on patches:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
-  opensuse-Tumbleweed:
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 579
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 579
+  579:
+    merged: "2.2.0"
+
 containerd:
-  opensuse-Tumbleweed:
-  sle-16.1:
-  sle-16.0:
-  sle-15-SP7:
-  sle-15-SP6:
-  sle-15-SP5:
-  sle-15-SP4:
+
 docker-py:
-  # Note on patches:
   # https://github.com/docker/docker-py/pull/3261 - Bump default API version to 1.45 (Moby 26.0/26.1)
   # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
   # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
@@ -123,31 +64,17 @@ docker-py:
   # https://github.com/docker/docker-py/pull/3372 - test_connect_with_ipv6_address: enable IPv6
   # https://github.com/docker/docker-py/pull/3373 - test_create_with_ipv6_address: enable IPv6
   # https://github.com/docker/docker-py/pull/3380 - integration: Remove test_build_squash tests
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 3261
-    - 3290
-    - 3354
-    - 3362
-    - 3366
-    - 3367
-    - 3372
-    - 3373
-    - 3380
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 3290
-    - 3354
-    - 3366
-    - 3367
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 3290
-    - 3354
-    - 3366
-    - 3367
+  3261:
+  3290:
+  3354:
+  3362:
+  3366:
+  3367:
+  3372:
+  3373:
+  3380:
+
 moby:
-  # Note on patches:
   # https://github.com/moby/moby/pull/51219 - integration/container: Make tests runnable on SELinux enabled daemon
   # https://github.com/moby/moby/pull/51263 - integration: Skip some tests as rootless
   # https://github.com/moby/moby/pull/51794 - integration: Support iputils ping
@@ -156,78 +83,34 @@ moby:
   # https://github.com/moby/moby/pull/52116 - integration/container: use page-aligned shm size to fix test on ppc64le
   # https://github.com/moby/moby/pull/52117 - integration/capabilities: Switch to debian:trixie-slim
   # https://github.com/moby/moby/pull/52119 - integration/image: pull ppc64le and s390x in TestSaveAndLoadPlatform
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 51263
-    - 51794
-    - 51970
-    - 51972
-    - 52116
-    - 52117
-    - 52119
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 51219
-    - 51263
-    - 51794
-    - 52117
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 51219
-    - 51263
-    - 51794
-    - 52117
-  sle-15-SP7:
-    GITHUB_PATCHES:
-    - 51219
-    - 51263
-    - 51794
-    - 52117
-  sle-15-SP6:
-    GITHUB_PATCHES:
-    - 51219
-    - 51263
-    - 51794
-    - 52117
-  sle-15-SP5:
-    GITHUB_PATCHES:
-    - 51219
-    - 51263
-    - 51794
-    - 52117
-  sle-15-SP4:
-    GITHUB_PATCHES:
-    - 51219
-    - 51263
-    - 51794
-    - 52117
+  51219:
+    merged: "29.0.0"
+  51263:
+  51794:
+  51970:
+    min: "29.2.0"
+  51972:
+    min: "29.2.0"
+  52116:
+    min: "29.2.0"
+  52117:
+    min: "29.2.0"
+  52119:
+    min: "29.2.0"
+
 netavark:
-  # Note on patches:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
-  opensuse-Tumbleweed:
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 1191
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 1191
-  sle-15-SP7:
-    GITHUB_PATCHES:
-    - 1191
-  sle-15-SP6:
-    GITHUB_PATCHES:
-    - 1191
-  sle-15-SP5:
-    GITHUB_PATCHES:
-    - 1191
+  1191:
+    merged: "1.15.0"
+
 podman:
-  # Note on patches:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
   # https://github.com/containers/podman/pull/24068 is needed for 271-tcp-cors-server
   # https://github.com/containers/podman/pull/25858 is needed for 161-volume-quotas
   # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
+  # https://github.com/containers/podman/pull/26798 is needed for pasta
   # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   # https://github.com/containers/podman/pull/26921 is needed to drop socat
   # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
@@ -237,95 +120,54 @@ podman:
   # https://github.com/containers/podman/pull/27760 - test/system: remove apk from build
   # https://github.com/containers/podman/pull/28133 - test: Use yq for yaml2json instead of PyYAML
   # https://github.com/containers/podman/pull/28151 - test/system: fix pod inspect ordering test leak
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 28133
-    - 28151
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 25858
-    - 25918
-    - 25942
-    - 26017
-    - 26798
-    - 26920
-    - 26921
-    - 26934
-    - 27230
-    - 27233
-    - 27463
-    - 27760
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 25858
-    - 25918
-    - 25942
-    - 26017
-    - 26798
-    - 26920
-    - 26921
-    - 26934
-    - 27230
-    - 27233
-    - 27463
-    - 27760
-  sle-15-SP7:
-    GITHUB_PATCHES:
-    - 21875
-    - 24068
-    - 25942
-    - 26920
-    - 27230
-    - 27233
-    - 27760
-  sle-15-SP6:
-    GITHUB_PATCHES:
-    - 21875
-    - 24068
-    - 25942
-    - 26920
-    - 27230
-    - 27233
-    - 27760
+  21875:
+    merged: "5.0.0"
+  24068:
+    merged: "5.3.0"
+  25858:
+    merged: "5.5.0"
+    min: "5.0.0"
+  25918:
+    merged: "5.5.0"
+    min: "5.0.0"
+  25942:
+    merged: "5.6.0"
+  26017:
+    merged: "5.6.0"
+    min: "5.0.0"
+  # XXX: Not merged
+  26798:
+    merged: "5.7.0"
+    min: "5.0.0"
+  26920:
+    merged: "5.7.0"
+  26921:
+    merged: "5.7.0"
+  26934:
+    merged: "5.7.0"
+  27230:
+    merged: "5.7.0"
+  27233:
+    merged: "5.7.0"
+  27463:
+    merged: "5.7.0"
+  27760:
+    merged: "5.7.0"
+  28133:
+    min: "5.8.0"
+  28151:
+    min: "5.8.0"
+
 podman-py:
-  # Note on patches:
   # https://github.com/containers/podman-py/pull/623 - Fix pytest flag for rootful test
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 623
+  623:
+
 runc:
-  # Note on patches:
   # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set
   # https://github.com/opencontainers/runc/pull/5124 - tests/int: Disable coredumps for SCMP_ACT_KILL tests
-  opensuse-Tumbleweed:
-    GITHUB_PATCHES:
-    - 5079
-    - 5124
-  sle-16.1:
-    GITHUB_PATCHES:
-    - 5124
-  sle-16.0:
-    GITHUB_PATCHES:
-    - 5124
-  sle-15-SP7:
-    GITHUB_PATCHES:
-    - 5124
-  sle-15-SP6:
-    GITHUB_PATCHES:
-    - 5124
-  sle-15-SP5:
-    GITHUB_PATCHES:
-    - 5124
-  sle-15-SP4:
-    GITHUB_PATCHES:
-    - 5124
+  5079:
+  5124:
+
 skopeo:
-  opensuse-Tumbleweed:
-  sle-16.1:
-  sle-16.0:
-  sle-15-SP7:
-  sle-15-SP6:
-  sle-15-SP5:
-  sle-15-SP4:
+
 umoci:
-  opensuse-Tumbleweed:
