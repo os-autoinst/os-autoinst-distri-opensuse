@@ -443,7 +443,12 @@ XFSTESTS_RANGES | string | | sub-tests ranges. This setting is mandatory. Suppor
 NO_SHUFFLE | boolean | 0 | the default sequence to run all subtests is a random sequence, it's designed to reduce the influence between each subtest. Set NO_SHUFFLE=1 to run in order
 XFSTESTS_BLACKLIST | string | | set the sub-tests will not run. Mostly use in the feature not supported, and exclude some critical issues to make whole tests stable. The final skip test list will also count those defined in XFSTESTS_GROUPLIST. It's also support "-" and "," to set skip range
 XFSTESTS_GROUPLIST | string | | it's an efficient way to set XFSTESTS_RANGES. Most likely use in test whole range in a single test, such as test special mount option. The range is supported in xfstests upstream, to know the whole range of group names could take a look at xfstests upstream README file. This parameter in openqa supports not only "include" tests, but also "exclude" tests. To add a "!" before a group name to exclude all subtests in that group. Here is an example: e.g. XFSTESTS_GROUPLIST=quick,!fuzz,!fuzzers,!realtime (Add all subtests in quick group, and exclude all dangerous subtests in fuzz, fuzzers, realtime groups)
-XFSTESTS_KNOWN_ISSUES | string | | Used to specify a url for a json file with well known xfstests issues. If an error occur which is listed, then the result is overwritten with softfailure.
+XFSTESTS_KNOWN_ISSUES | string | | Used to specify a url for a json file with well known xfstests issues. If an error occur which is listed, then the result is overwritten with softfailure. Final result is the union of XFSTESTS_BLACKLIST and YAML file (duplicates removed). But XFSTESTS_BLACKLIST parameter will overrides the XFSTESTS_BLACKLIST in yaml file.
+Example:
+XFSTESTS_KNOWN_ISSUES=xfs/001
+yaml:XFSTESTS_KNOWN_ISSUES=xfs/002
+yaml:xfs/003
+Final result:xfs/001,xfs/003
 
 
 Run-time related: timeout control to avoid random fails when low performance
