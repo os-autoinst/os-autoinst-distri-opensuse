@@ -40,6 +40,7 @@ our @EXPORT = qw(
   install_gotestsum
   install_ncat
   mount_tmp_vartmp
+  numeric_version
   patch_junit
   patch_sources
   run_command
@@ -623,6 +624,16 @@ sub bats_tests {
     return ($ret);
 }
 
+sub numeric_version {
+    my $version = shift;
+
+    # Sometimes version strings have a leading "v" or a trailing "-ce"
+    # Strip leading & trailing non-digits from version
+    $version =~ s/^\D+//;
+    $version =~ s/\D+$//;
+    return $version;
+}
+
 sub patch_sources {
     my ($package, $branch, $tests_dir) = @_;
 
@@ -630,10 +641,7 @@ sub patch_sources {
     my $yaml = YAML::PP->new()->load_string($text);
     my $patches = $yaml->{$package} // {};
 
-    # Strip leading & trailing non-digits from version
-    my $version = $branch;
-    $version =~ s/^\D+//;
-    $version =~ s/\D+$//;
+    my $version = numeric_version($branch);
 
     my @patches = split(/\s+/, get_var("GITHUB_PATCHES", ""));
     if (!@patches) {
