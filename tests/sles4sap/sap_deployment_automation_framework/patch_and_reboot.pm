@@ -121,6 +121,8 @@ KEYFILE:$sut_ssh_key_path
 REPO_MIRROR_HOST:$repo_mirror_host
 --variable
 INCIDENT_REPO:$repo_mirror
+--variable
+LOG_DIR:$log_dir
 file_content
         record_info("$hostname ARGS", $file_content);
         write_sut_file("$test_dir/$hostname.args", $file_content);
@@ -144,6 +146,7 @@ file_content
     # This installs all robot requirements inside python virtual environment
     assert_script_run("cd $project_root_dir");
     assert_script_run('python3 -m venv .venv');
+    assert_script_run('export VIRTUAL_ENV_DISABLE_PROMPT=1');
     assert_script_run('source .venv/bin/activate');
     assert_script_run('.venv/bin/python3 -m pip install --upgrade pip');
     assert_script_run('pip install -r requirements.txt');
@@ -157,15 +160,15 @@ file_content
         '--name "Patch and reboot all hosts"',
         "--processes " . scalar(@arg_files),    # number of processes to run in parallel
         '--exitonfailure',    # if test inside test suite fails, execution is stopped
+        "--outputdir $log_dir",
         '--xunit xunit_result.xml',
         @arg_files,
         $test_dir
     );
-    assert_script_run("cd $log_dir");
-    my $pabot_rc = script_run($pabot_cmd, timeout => 3600);
 
-    assert_script_run("tar -cvzf $log_dir/ibsm_patch_and_reboot.zip $log_dir/*");
-    upload_logs("$log_dir/ibsm_patch_and_reboot.zip");
+    my $pabot_rc = script_run($pabot_cmd, timeout => 3600);
+    assert_script_run("tar -cvzf /tmp/ibsm_patch_and_reboot.zip $log_dir/*");
+    upload_logs('/tmp/ibsm_patch_and_reboot.zip');
     # Robot logs - uploaded as log files
     my @robot_logs = split("\n", script_output("ls $log_dir | grep ssh_"));
     record_info('Log upload', "Uploading robot log files:\n" . join("\n", @robot_logs));
