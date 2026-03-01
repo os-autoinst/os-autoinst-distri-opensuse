@@ -55,6 +55,7 @@ sub get_patch {
 
 sub reboot_and_login {
     prepare_system_shutdown;
+    assert_script_run("rm -f /etc/ima/ima-policy*") if (!script_run("ls /etc/ima/ima-policy*"));
     my $textmode = 1;
     if (systemctl('is-enabled display-manager', ignore_failure => 1) == 0 && !is_s390x) {
         $textmode = 0;
