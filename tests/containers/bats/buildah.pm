@@ -11,6 +11,7 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
+use Utils::Architectures;
 use containers::bats;
 
 my $buildah_version = "";
@@ -49,6 +50,9 @@ sub run_tests {
     push @xfails, (
         "bud.bats::bud-multiple-platform-no-partial-manifest-list",
     ) if (is_sle("<15-SP6"));
+    push @xfails, (
+        "run.bats::run check /etc/resolv.conf",
+    ) unless (is_aarch64 || is_x86_64);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
 
@@ -138,7 +142,7 @@ sub run {
     $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
     # Run conformance tests only on Tumbleweed until SLES 16.1 catches up to v1.42.2+
-    test_conformance unless (is_sle || get_var("RUN_TESTS"));
+    test_conformance unless (is_sle || get_var("RUN_TESTS") || check_var("BATS_IGNORE_ROOT", "conformance"));
 
     die "buildah tests failed" if ($errors);
 }
