@@ -13,24 +13,17 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_leap php_version);
-use registration qw(add_suseconnect_product get_addon_fullname);
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 
 sub run {
     select_serial_terminal;
+    return if (!is_phub_ready() && is_sle('>=16.0'));
+
     my ($php, $php_pkg, $php_ver) = php_version();
     record_info("PHP version", $php_pkg);
 
-    if (is_sle(">=16.0")) {
-        if (check_var('BETA', '1')) {
-            my $VERSION = get_required_var('VERSION');
-            my $ARCH = get_required_var('ARCH');
-            zypper_call("--no-gpg-checks ar -f http://updates.suse.de/SUSE/Backports/SLE-${VERSION}_${ARCH}/standard/ 'Backport_${VERSION}'");
-            zypper_call("--gpg-auto-import-keys ref", 300);
-        }
-        else {
-            add_suseconnect_product("PackageHub", undef, undef, undef, 300, 1);
-        }
-    }
+    # Package 'apache2-mod_fcgid' requires PackageHub is available
+    add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready() && is_sle('>=16.0'));
     zypper_call("in $php_pkg apache2-mod_$php_pkg");
     # Disable apache2-mod_php8
     assert_script_run "a2dismod $php_pkg";
