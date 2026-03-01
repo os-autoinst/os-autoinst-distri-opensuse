@@ -29,6 +29,7 @@ sub run {
 
     $self->prepare_ground;
     $self->prepare_console;
+    $self->prepare_storages;
     $self->prepare_extensions;
     $self->prepare_packages;
     $self->prepare_bootloader;
@@ -59,6 +60,12 @@ sub prepare_console {
     my $self = shift;
 
     select_backend_console(init => 0);
+}
+
+sub prepare_storages {
+    my $self = shift;
+
+    show_all_disks;
 }
 
 sub prepare_extensions {
