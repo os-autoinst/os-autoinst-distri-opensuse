@@ -28,6 +28,8 @@ use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
 use Utils::Logging "export_logs_basic";
+use Utils::Backends 'is_ipmi';
+use Kernel::net_tests 'get_ipv4_addresses';
 
 # create a mountpoint and the corresponding export with
 # specified permissions
@@ -61,7 +63,29 @@ sub run {
     my $kernel_nfs4_2 = 0;
     my $kernel_nfsd_v3 = 0;
     my $kernel_nfsd_v4 = 0;
-    my $client = get_var('CLIENT_NODE', 'client-node00');
+    my $client = get_var('CLIENT_NODE');
+    # Baremetal/ipmi multimachine jobs commonly provide peer IPs via IBTEST_IP*
+    # and not DNS-resolvable hostnames.
+    if (is_ipmi) {
+        my $ip1 = get_var('IBTEST_IP1');
+        my $ip2 = get_var('IBTEST_IP2');
+        my $detected_ipv4 = get_ipv4_addresses();
+        my @local_ips = map { @$_ } values %$detected_ipv4;
+
+        if (grep { $_ eq $ip1 } @local_ips) {
+            $client = $ip2;
+        } elsif (grep { $_ eq $ip2 } @local_ips) {
+            $client = $ip1;
+        } else {
+            @local_ips = sort @local_ips;
+            record_info("IP mapping", "local_ips=@local_ips ib1=$ip1 ib2=$ip2", result => 'fail');
+            die "Unable to map client node: local host does not have IBTEST_IP1 or IBTEST_IP2";
+        }
+        @local_ips = sort @local_ips;
+        record_info("IP mapping", "local_ips=@local_ips peer=$client");
+    } else {
+        $client //= 'client-node00';
+    }
 
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
@@ -111,10 +135,20 @@ sub run {
     systemctl("enable rpcbind --now");
     systemctl("is-active rpcbind");
     systemctl("enable nfs-server --now");
+    systemctl("restart rpcbind");
     systemctl("restart nfs-server");
+    assert_script_run("exportfs -ra");
+    sleep(20);
     systemctl("is-active nfs-server");
+    assert_script_run("rpcinfo -t localhost portmapper");
+    my $mountd_ready = script_retry("rpcinfo -t localhost mountd", retry => 12, delay => 5, timeout => 30);
+    die "mountd not ready on localhost" if $mountd_ready != 0;
 
     record_info("RPC", script_output("rpcinfo"));
+    record_info("RPC ports", script_output("rpcinfo -p", proceed_on_failure => 1));
+    record_info("NFS sockets", script_output("ss -lntup | egrep '(:111|:2049)'", proceed_on_failure => 1));
+    record_info("showmount local", script_output("showmount -e localhost", proceed_on_failure => 1));
+    record_info("NFS units", script_output("systemctl --no-pager --full status rpcbind nfs-server", proceed_on_failure => 1));
     record_info("NFS config", script_output("cat /etc/sysconfig/nfs"));
 
     #my $nfsstat = script_output("nfsstat -s");

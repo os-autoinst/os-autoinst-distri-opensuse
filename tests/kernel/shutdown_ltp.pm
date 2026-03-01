@@ -10,6 +10,7 @@ use 5.018;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use lockapi 'barrier_wait';
 use LTP::utils;
 use power_action_utils 'power_action';
 use upload_system_log;
@@ -47,6 +48,11 @@ sub run {
 
     upload_system_logs();
     check_kernel_package(get_kernel_flavor()) if get_var('INSTALL_LTP');
+
+    if (check_var('ROLE', 'nfs_client')) {
+        record_info('LTP NFS', 'LTP NFS 2-host tests are done');
+        barrier_wait('NFS_LTP_END');
+    }
 
     # Also cleanup machine-id to avoid duplicate ipv6 link local address in mutli-machine setup.
     script_run('echo -n >/etc/machine-id');
