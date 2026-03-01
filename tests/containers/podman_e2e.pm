@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use power_action_utils 'power_action';
 use version_utils;
+use version;
 use utils;
 use containers::common qw(install_packages);
 use containers::bats;
@@ -89,7 +90,7 @@ sub run {
         # https://bugzilla.suse.com/show_bug.cgi?id=1249050 - podman passes volume options as bind mount options to runtime
         'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
         'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
-    ) unless (is_tumbleweed);
+    ) if (version->parse(numeric_version($version)) < version->parse("5.6.1"));
     push @xfails, (
         'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     ) if (get_var("ROOTLESS"));

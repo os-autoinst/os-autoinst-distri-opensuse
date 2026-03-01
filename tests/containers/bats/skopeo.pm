@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use Utils::Architectures;
 use version_utils;
+use version;
 use containers::bats;
 
 my $skopeo_version;

@@ -11,10 +11,12 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
+use version;
 use Utils::Architectures;
 use containers::bats;
 
 my $oci_runtime = "";
+my $version;
 
 sub run_tests {
     my %params = @_;
@@ -44,20 +46,20 @@ sub run_tests {
             push @xfails, (
                 # These fail for user/local on Tumbleweed
                 "252-quadlet.bats::quadlet kube - start error",
-            ) unless (is_sle);
+            ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
         }
         push @xfails, (
             # These sometimes fail for user on SLES 16.0 & Tumbleweed
             "505-networking-pasta.bats::TCP/IPv4 large transfer, tap",
             "505-networking-pasta.bats::IPv6 default address assignment",
-        ) unless (is_sle("<16"));
+        ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
     } else {
         if (!$remote) {
             push @xfails, (
                 # These fail for root/local on SLES 16.0 & Tumbleweed
                 # due to https://github.com/containers/podman/issues/27246
                 "200-pod.bats::pod resource limits",
-            ) unless (is_sle("<16"));
+            ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
         }
     }
     push @xfails, (
@@ -106,8 +108,8 @@ sub run {
     record_info("podman rootless", script_output("podman info"));
 
     # Download podman sources
-    my $podman_version = script_output "podman --version | awk '{ print \$3 }'";
-    patch_sources "podman", "v$podman_version", "test/system";
+    $version = script_output "podman --version | awk '{ print \$3 }'";
+    patch_sources "podman", "v$version", "test/system";
 
     $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
 

@@ -11,6 +11,7 @@ use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
+use version;
 use utils;
 use Utils::Architectures;
 use containers::bats;
@@ -93,7 +94,7 @@ sub run {
         "github.com/docker/cli/e2e/image::TestTrustedBuild",
         "github.com/docker/cli/e2e/image::TestTrustedBuildUntrustedImage",
         "github.com/docker/cli/e2e/plugin::TestInstallWithContentTrustUntrusted",
-    ) if (is_sle);
+    ) if (version->parse(numeric_version($version)) < version->parse("29.0.0"));
     push @xfails, (
         # These tests fail on SLES 15-SP7 due to SUSE patch
         "github.com/docker/cli/e2e/image::TestBuildFromContextDirectoryWithTag",

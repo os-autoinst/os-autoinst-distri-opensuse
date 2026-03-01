@@ -11,6 +11,7 @@ use Mojo::Base 'containers::basetest', -signatures;
 use testapi;
 use serial_terminal;
 use version_utils;
+use version;
 use utils;
 use Utils::Architectures;
 use containers::bats;
@@ -113,7 +114,7 @@ sub run {
         "github.com/moby/moby/v2/integration/container::TestEtcCDI",
         # This fails on Docker v29:
         "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
-    ) unless (is_sle);
+    ) if (version->parse(numeric_version($version)) >= version->parse("29.0.0"));
     push @xfails, (
         # These tests use amd64 images:
         "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",

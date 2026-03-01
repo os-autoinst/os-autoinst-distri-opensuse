@@ -11,10 +11,11 @@ use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils;
+use version;
 use Utils::Architectures;
 use containers::bats;
 
-my $buildah_version = "";
+my $version = "";
 
 sub run_tests {
     my %params = @_;
@@ -37,16 +38,16 @@ sub run_tests {
     my @xfails = ();
     push @xfails, (
         "add.bats::add https retry ca"
-    ) if (is_sle(">=16"));
+    ) if (version->parse(numeric_version($version)) <= version->parse("1.39.5"));
     push @xfails, (
         "bud.bats::bud with --cgroup-parent",
-    ) if (is_sle && !$rootless);
+    ) if (version->parse(numeric_version($version)) <= version->parse("1.39.5") && !$rootless);
     push @xfails, (
         "bud.bats::bud-git-context",
         "bud.bats::bud-git-context-subdirectory",
         "bud.bats::bud using gitrepo and branch",
         "run.bats::Check if containers run with correct open files/processes limits",
-    ) if (is_sle("<16") && !$rootless);
+    ) if (version->parse(numeric_version($version)) < version->parse("1.39.5") && !$rootless);
     push @xfails, (
         "bud.bats::bud-multiple-platform-no-partial-manifest-list",
     ) if (is_sle("<15-SP6"));
@@ -97,7 +98,7 @@ sub test_conformance {
     run_command "gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/... &> conformance.txt", no_assert => 1, timeout => 1200;
     upload_logs "conformance.txt";
     die "Testsuite failed" if script_run("test -s conformance.xml");
-    patch_junit "buildah", $buildah_version, "conformance.xml";
+    patch_junit "buildah", $version, "conformance.xml";
     parse_extra_log(XUnit => "conformance.xml");
 }
 
@@ -123,8 +124,8 @@ sub run {
     record_info("buildah rootless", script_output("buildah info"));
 
     # Download buildah sources
-    $buildah_version = script_output "buildah --version | awk '{ print \$3 }'";
-    patch_sources "buildah", "v$buildah_version", "tests";
+    $version = script_output "buildah --version | awk '{ print \$3 }'";
+    patch_sources "buildah", "v$version", "tests";
 
     # Patch mkdir to always use -p
     run_command "sed -i 's/ mkdir /& -p /' tests/*.bats tests/helpers.bash";
