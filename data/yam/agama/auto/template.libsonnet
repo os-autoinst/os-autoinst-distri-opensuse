@@ -36,7 +36,8 @@ function(bootloader=true,
          ssl_certificates=false,
          storage='',
          decrypt_password='',
-         user=true) (
+         user=true,
+         mode='') (
         base_lib.bootloader(bootloader, bootloader_timeout, bootloader_extra_kernel_params) +
         {
           [if dasd == true then 'dasd']: dasd_lib.dasd(),
@@ -59,6 +60,7 @@ function(bootloader=true,
               if registration_packagehub then addons_lib.addon_packagehub(),
             ]),
             id: product,
+            [if mode != '' then 'mode']: mode,
             [if registration_code != '' then 'registrationCode']: registration_code,
             [if registration_url != '' then 'registrationUrl']: registration_url,
           },
