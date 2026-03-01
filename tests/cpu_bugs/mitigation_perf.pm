@@ -8,6 +8,7 @@
 
 package mitigation_perf;
 use testapi;
+use version_utils qw(is_sle);
 use base "consoletest";
 
 sub get_perf_exec_cmd {
@@ -18,19 +19,21 @@ sub get_perf_exec_cmd {
     my $prd_ver = get_var('PERF_PRD_VER');
     my $rls_ver = get_var('PERF_REL_VER');
     my $hyper_type = get_var('HYPER_TYPE');
-
+    my $build_ver = get_var('BUILD');
     #my $logfile = 'screenlog_' . $hyper_type . '.' . $host;
 
     my $screen_name = 'vt_perf_auto_';
     my $exec_cmd;
     my $test_obj;
-    $exec_cmd .= " python3 " . $vt_perf_auto_path . " perf_run ";
+    $exec_cmd .= " python3.11 " . $vt_perf_auto_path . " perf_run ";
     $exec_cmd .= " --host=" . $host;
     $exec_cmd .= " --hypervisor=" . $hyper_type;
     $exec_cmd .= " --qaset-role=" . $qaset_role;
     $exec_cmd .= " --product-ver=" . lc($prd_ver);
     $exec_cmd .= " --release-ver=" . lc($rls_ver);
-
+    if (is_sle('16+')) {
+        $exec_cmd .= " --build-ver=Build" . $build_ver;
+    }
     my $exec_cmd_tmp;
     my $test_obj_tmp;
     if ($hyper_type eq 'kvm') {
@@ -88,8 +91,10 @@ sub get_baremetal_and_kvm_guest_perf_cmd {
         {
             $exec_cmd .= " --kvm-tc=" . $testcase;
         }
-        if (!check_var('KVMGUEST_PRD_URL', '')) {
-            $exec_cmd .= " --kvm-guest-prd-url=" . get_var('KVMGUEST_PRD_URL');
+        if (is_sle('<16')) {
+            if (!check_var('KVMGUEST_PRD_URL', '')) {
+                $exec_cmd .= " --kvm-guest-prd-url=" . get_var('KVMGUEST_PRD_URL');
+            }
         }
         if (check_var('KVMGUEST_NETTEST', '1')) {
             $exec_cmd .= " --kvm-guest-nettest";
