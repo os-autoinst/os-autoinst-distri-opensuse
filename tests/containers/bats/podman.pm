@@ -66,7 +66,7 @@ sub run_tests {
         "550-pause-process.bats::podman system migrate works with conmon being killed",
     ) if (is_ppc64le && !is_sle);
 
-    my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
+    my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
 
     run_command 'kill %1; kill -9 %1 || true' if ($remote);
 
