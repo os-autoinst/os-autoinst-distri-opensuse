@@ -80,7 +80,27 @@ sub run {
     my $timeout = get_var('KSELFTEST_TIMEOUT') // 300;
     my $test_timeout = get_var('KSELFTEST_TEST_TIMEOUT') ? "--override-timeout " . get_var('KSELFTEST_TEST_TIMEOUT') : '';
     my $runner = get_var('KSELFTEST_RUNNER') // "export PATH=\"\$PWD/$collection:\$PATH\"; ./run_kselftest.sh $test_timeout $test_opt";
-    $runner .= " | tee -a \$HOME/summary.tap; echo $stamp END";
+
+    # Helper script that stamps /dev/kmsg with each subtest starting point
+    my $annotate_kmsg_script = <<'EOF';
+my %seen;
+while (my $line = <STDIN>) {
+    if ($line =~ /^#\sselftests:\s\S+:\s(\S+)/) {
+        my $test = $1;
+        if (!$seen{$test}++) {
+            if (open(my $kmsg, '>', '/dev/kmsg')) {
+                print {$kmsg} "OpenQA::run_kselftest.pm: Starting $test\n";
+                close($kmsg);
+            }
+        }
+    }
+    print $line;
+}
+EOF
+    write_sut_file('/tmp/kselftest_kmsg_annotate.pl', $annotate_kmsg_script);
+    my $annotate_kmsg = 'perl /tmp/kselftest_kmsg_annotate.pl';
+
+    $runner .= " 2>&1 | $annotate_kmsg | tee -a \$HOME/summary.tap; echo $stamp END";
     my $env = get_var('KSELFTEST_ENV') // '';
     $runner = $env . " $runner";
 
