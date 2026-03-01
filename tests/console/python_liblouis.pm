@@ -11,6 +11,7 @@ use base "x11test";
 use testapi;
 use version_utils;
 use utils "zypper_call";
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;

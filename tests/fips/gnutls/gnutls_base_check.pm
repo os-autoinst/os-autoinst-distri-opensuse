@@ -85,6 +85,7 @@ sub ensure_self_signed_cerificate_fails {
     background_script_run('gnutls-serv --http --x509cafile ca.pem --x509keyfile server-key.pem --x509certfile server.pem');
     my $bad_result = script_run('echo | gnutls-cli -d 1 localhost -p 443');
     if ($bad_result) {
+        my $my_result = '';
         record_info("Invalid certificate as expected: $my_result");
     }
     else {
