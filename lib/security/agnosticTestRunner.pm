@@ -80,6 +80,7 @@ sub run_test {
     $run_script = "./$run_script" unless $run_script =~ m{^/|^\./};
     my $command = 'cd ' . $self->{test_dir} . ' && chmod +x ' . $run_script . ' && ' . $run_script . ' && mv results.xml ' . $self->{result_file};
     assert_script_run($command);
+    # Prevent previous command from breaking the terminal, leaving it unusable for further testing
     enter_cmd('reset');
     return $self;
 }
