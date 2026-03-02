@@ -603,7 +603,7 @@ sub bats_tests {
     my $cmd = "env $env bats --report-formatter junit --tap -T $tests";
     my $xmlfile = "$tapfile.xml";
     $tapfile .= ".tap.txt";
-    $cmd .= " </dev/null | tee -a $tapfile";
+    $cmd .= " </dev/null &> $tapfile";
 
     run_command "echo $tapfile .. > $tapfile";
     push @commands, $cmd;
