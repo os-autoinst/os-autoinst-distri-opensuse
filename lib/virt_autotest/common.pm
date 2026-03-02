@@ -450,32 +450,57 @@ if (get_var("REGRESSION", '') =~ /xen/) {
 our %imports = ();    # imports are virtual machines that we don't install but just import. We test those separately.
 if (get_var("REGRESSION", '') =~ /xen/) {
     %imports = (
-        win2k19 => {
-            name => 'win2k19',
-            extra_params => '--connect xen:/// --hvm --os-type windows --os-variant win2k16',    # --os-variant win2k19 not supported in older versions
-            disk => '/var/lib/libvirt/images/win2k19.raw',
-            source => '/mnt/virt_images/xen/win2k19.raw',
+        'win2k25-bios' => {
+            name => 'win2k25-bios',
+            extra_params => '--connect xen:/// --virt-type xen --hvm --os-variant win2k25',
+            disk => '/var/lib/libvirt/images/win2k25-bios.raw',
+            source => '/mnt/virt_images/xen/win2k25-bios.raw',
             macaddress => '52:54:00:78:73:66',
-            version => 'Microsoft Windows Server 2019',
+            version => 'Microsoft Windows Server 2025',
             memory => 4096,
             vcpus => 4,
             network_model => "e1000",
         },
+        # Note: Xen does not support UEFI boot (bsc#1184936)
     );
+    # SLES 16+ does not support Xen hypervisor
+    if (is_sle('>=16')) {
+        %imports = ();
+    }
 } elsif (get_var("REGRESSION", '') =~ /kvm|qemu/) {
     %imports = (
-        win2k19 => {
-            name => 'win2k19',
-            extra_params => '--os-type windows --os-variant win2k16',    # --os-variant win2k19 not supported in older versions
-            disk => '/var/lib/libvirt/images/win2k19.raw',
-            source => '/mnt/virt_images/kvm/win2k19.raw',
+        'win2k25-bios' => {
+            name => 'win2k25-bios',
+            extra_params => '--os-variant win2k25',
+            disk => '/var/lib/libvirt/images/win2k25-bios.raw',
+            source => '/mnt/virt_images/kvm/win2k25-bios.raw',
             macaddress => '52:54:00:78:73:66',
-            version => 'Microsoft Windows Server 2019',
+            version => 'Microsoft Windows Server 2025',
             memory => 4096,
             vcpus => 4,
             network_model => "e1000",
         },
+        'win2k25-uefi' => {
+            name => 'win2k25-uefi',
+            extra_params => '--os-variant win2k25',
+            disk => '/var/lib/libvirt/images/win2k25-uefi.raw',
+            source => '/mnt/virt_images/kvm/win2k25-uefi.raw',
+            macaddress => '52:54:00:78:73:67',
+            version => 'Microsoft Windows Server 2025',
+            memory => 4096,
+            vcpus => 4,
+            network_model => "e1000",
+            boot_firmware => 'efi',
+        },
     );
+    # SLES 12 SP5 does not support UEFI boot for Windows
+    if (is_sle('=12-SP5')) {
+        delete $imports{'win2k25-uefi'};
+    }
+    # SLES 16+ only supports UEFI boot (legacy BIOS not supported)
+    if (is_sle('>=16')) {
+        delete $imports{'win2k25-bios'};
+    }
 } else {
     %imports = ();
 }

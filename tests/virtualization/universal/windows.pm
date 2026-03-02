@@ -15,10 +15,15 @@ use utils;
 
 sub remove_guest {
     my $guest = shift;
+    my $virsh_uri = is_xen_host() ? '--connect xen:///' : '';
 
-    if (script_run("virsh list --all | grep '$guest'", 90) == 0) {
-        assert_script_run "virsh destroy $guest";
-        assert_script_run "virsh undefine $guest";
+    if (script_run("virsh $virsh_uri list --all | grep '$guest'", 90) == 0) {
+        script_run "virsh $virsh_uri destroy $guest", 60;
+        script_run "virsh $virsh_uri undefine $guest --nvram", 60;
+    }
+    # Also clean up via xl on Xen host
+    if (is_xen_host()) {
+        script_run "xl destroy $guest 2>/dev/null", 30;
     }
 }
 
@@ -32,15 +37,33 @@ sub run {
 
     import_guest $_, 'virt-install' foreach (values %virt_autotest::common::imports);
 
-    # Wait for Win2k19 boot, get IP via nmap, and add to hosts
+    # Wait for Windows boot, get IP via nmap, and add to hosts
     sleep 60;
+
+    # Determine the correct subnet to scan based on hypervisor type
+    my $scan_subnet;
+    if (is_xen_host()) {
+        # On Xen, guests use br0 bridge - detect the host's subnet
+        my $host_ip = script_output("ip -4 addr show br0 | grep -oP '\\d+\\.\\d+\\.\\d+\\.\\d+/\\d+' | head -1", proceed_on_failure => 1);
+        $scan_subnet = $host_ip || '192.168.122.0/24';
+        record_info('Xen Network', "Scanning subnet: $scan_subnet (br0 bridge)");
+    } else {
+        $scan_subnet = '192.168.122.0/24';
+    }
+
+    # Xen Windows guests may take longer to boot due to HVM overhead
+    my $nmap_delay = is_xen_host() ? 15 : 10;
+    my $nmap_retry = is_xen_host() ? 15 : 10;
+
     foreach (values %virt_autotest::common::imports) {
-        my $cmd = "nmap -sn 192.168.122.0/24 | grep $_->{macaddress} -B2 | head -1 | grep -oE '[0-9]+.[0-9]+.[0-9]+.[0-9]+'";
-        my $ip_address = script_output_retry $cmd, delay => 10, retry => 10;
+        my $mac = $_->{macaddress};
+        my $cmd = "nmap -sn $scan_subnet | grep -i '$mac' -B2 | grep 'Nmap scan report' | grep -oE '([0-9]{1,3}\\.){3}[0-9]{1,3}'";
+        my $ip_address = script_output_retry $cmd, delay => $nmap_delay, retry => $nmap_retry;
+        record_info("Guest IP", "Guest $_->{name} has IP: $ip_address");
         add_guest_to_hosts $_->{name}, $ip_address;
     }
 
-    # Check if SSH is open because of that means that the guest is installed
+    # Check if SSH is open because that means that the guest is installed
     ensure_online $_, skip_ssh => 1 foreach (keys %virt_autotest::common::imports);
 
     ssh_copy_id $_, username => $username, authorized_keys => 'C:\ProgramData\ssh\administrators_authorized_keys', scp => 1 foreach (keys %virt_autotest::common::imports);

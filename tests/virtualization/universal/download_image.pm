@@ -24,7 +24,21 @@ sub run {
 
     # Pull images from server if necessary
     zypper_call("install rsync", exitcode => [0, 102, 103, 106]) if (script_run("which rsync") != 0);
-    assert_script_run "if [ ! -f \"$virt_autotest::common::imports{$_}->{disk}\" ]; then rsync -v --progress $virt_autotest::common::imports{$_}->{source} $virt_autotest::common::imports{$_}->{disk}; fi", 900 foreach (keys %virt_autotest::common::imports);
+    foreach my $name (keys %virt_autotest::common::imports) {
+        my $guest = $virt_autotest::common::imports{$name};
+        my ($source, $disk) = @{$guest}{qw(source disk)};
+
+        next if script_run("test -f '$disk'") == 0;
+
+        # Try syncing compressed .gz first, fallback to uncompressed
+        my $source_gz = "$source.gz";
+        if (script_run("test -f '$source_gz'") == 0) {
+            assert_script_run "rsync -v --progress '$source_gz' '$disk.gz'", 900;
+            assert_script_run "gunzip -f '$disk.gz'", 300;
+        } else {
+            assert_script_run "rsync -v --progress '$source' '$disk'", 900;
+        }
+    }
 
     assert_script_run "umount /mnt/virt_images";
 }
