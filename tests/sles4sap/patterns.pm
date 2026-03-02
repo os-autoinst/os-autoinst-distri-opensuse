@@ -16,15 +16,31 @@ use version_utils qw(is_sle is_upgrade);
 use main_common 'is_updates_tests';
 use registration qw(add_suseconnect_product);
 
-sub run {
-    my @sappatterns = is_sle('16+') ? ("sles_sap_APP", "sles_sap_DB", "sles_sap_addons", "sles_sap_automation", "sles_sap_debug", "sles_sap_security", "sles_sap_trento_agent", "sles_sap_trento_server") : ("sap-nw", "sap-b1", "sap-hana");
-    splice(@sappatterns, 1, 1) if (is_sle('15-SP5+') && !is_sle('16+'));    # sap-bone pattern is no longer part of SLES4SAP starting on 15-SP5
-    my $output = '';
+# Make sure that runs that the BETA flag from the job settings matches the beta status of the SUT.
+# Tests for  bsc#1257948.
+sub validate_beta_status {
+    my $beta_status_expected = get_var("BETA");
+    my $beta_status_on_sut = !script_run("grep -r '<betaversion>' /etc/products.d/");
+    if ($beta_status_expected != $beta_status_on_sut) {
+        my $msg = "Beta Status Expected: $beta_status_expected\nBeta status in /etc/products.d/: $beta_status_on_sut";
+        record_info("Beta status mismatch!", $msg);
+        die $msg;
+    }
+    return;
+}
 
+sub run {
     select_serial_terminal;
 
     # Disable packagekit
     quit_packagekit;
+
+    # Test for beta status mismatch. (bsc#1257948)
+    validate_beta_status;
+
+    my @sappatterns = is_sle('16+') ? ("sles_sap_APP", "sles_sap_DB", "sles_sap_addons", "sles_sap_automation", "sles_sap_debug", "sles_sap_security", "sles_sap_trento_agent", "sles_sap_trento_server") : ("sap-nw", "sap-b1", "sap-hana");
+    splice(@sappatterns, 1, 1) if (is_sle('15-SP5+') && !is_sle('16+'));    # sap-bone pattern is no longer part of SLES4SAP starting on 15-SP5
+    my $output = '';
 
     # Is HA pattern needed?
     if (get_var('HA_CLUSTER')) {
