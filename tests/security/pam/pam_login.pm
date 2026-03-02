@@ -86,6 +86,30 @@ expect {
 }
 END
 
+    my $expect_script_12_sp5 = <<"END";
+spawn ssh suse\@localhost
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "Password: "
+send "$passwd\\r"
+
+expect {
+    "*Permission denied*" {
+        exit 0
+    }
+    eof {
+        exit 1
+    }
+}
+END
+
+    $expect_script = (is_sle('=12-sp5')) ? $expect_script_12_sp5 : $expect_script;
+
     write_sut_file("/tmp/pam_ssh.exp", $expect_script);
 
     # Try to login to the OS with user suse, access should fail
