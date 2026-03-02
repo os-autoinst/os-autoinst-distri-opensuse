@@ -91,7 +91,7 @@ sub run {
     die 'No patch found!' unless scalar(@patches);
 
     for my $patch (@patches) {
-        my @update_conflicts;
+        my @single_conflicts;
         # Get info about the update patch.
         my $patch_info = script_output("zypper -n info -t patch $patch", 200);
         my @patchinfo = split '\n', $patch_info;
@@ -115,22 +115,27 @@ sub run {
 
         for my $pkg (@patch_conflicts) {
             if (grep($pkg eq $_, @conflicting_packages)) {
-                push(@update_conflicts, $pkg);
-                # remove the conflicting package from list which is used for preinstall
-                @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
+                push(@single_conflicts, $pkg);
             }
+        }
+
+        # remove the conflicting packages from list which is used for preinstall
+        for my $pkg (@single_conflicts) {
+            @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
         }
 
         for my $pkg (@skipped_pkgs) {
             @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
         }
 
+        record_info "Patch packages", "@patch_conflicts";
+
         disable_test_repositories($repos_count);
 
         # install conflicting packages one by one
-        if (@update_conflicts) {
-            record_info 'Conflicts', "@update_conflicts";
-            for my $single_package (@update_conflicts) {
+        if (@single_conflicts) {
+            record_info 'Conflicts', "@single_conflicts";
+            for my $single_package (@single_conflicts) {
                 record_info 'Conflict preinstall', "Install conflicting package $single_package before update repo is enabled";
                 zypper_call("-v in -l --force-resolution --solver-focus Update $single_package", exitcode => [0, 102, 103], log => "prepare_${patch}_${single_package}.log", timeout => 1500);
 
