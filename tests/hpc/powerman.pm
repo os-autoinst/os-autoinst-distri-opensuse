@@ -36,15 +36,10 @@ sub run ($self) {
     my $hostname = script_output('hostname');
     test_case('hostname', 'Check hostname', $hostname);
 
-    assert_script_run(
-        "echo \"\$(cat >> $cfg_file <<EOF
-listen \"0.0.0.0:10101\"
-include \"/etc/powerman/$powerman_dev.dev\"
-device \"test\" \"$powerman_dev\" \"/bin/bash |&\"
-node \"$hostname\" \"test\" \"1\"
-EOF
-        )\""
-    );
+    assert_script_run("echo 'listen \"0.0.0.0:10101\"' >> $cfg_file");
+    assert_script_run("echo 'include \"/etc/powerman/$powerman_dev.dev\"' >> $cfg_file");
+    assert_script_run("echo 'device \"test\" \"$powerman_dev\" \"/bin/bash |&\"' >> $cfg_file");
+    assert_script_run("echo 'node \"$hostname\" \"test\" \"1\"' >> $cfg_file");
     record_info("$cfg_file", script_output("cat $cfg_file"));
     record_info('bashrun specs', script_output("cat /etc/powerman/$powerman_dev.dev"));
     my $powerman_dev_caps = $dev_caps->($powerman_dev);
