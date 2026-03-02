@@ -105,7 +105,14 @@ sub run {
     }
 
     record_info('Install LP', "Installing livepatch package: $packname");
-    install_package($packname);
+    # Refer ticket: poo#197309
+    if (is_sle('=15-sp6')) {
+        my $install_done = "Done executing rpm-helper";
+        script_run("(zypper -n in -l $packname; echo $install_done) |& tee /dev/$serialdev", 0);
+        wait_serial(qr/^$install_done/m, 800) || die "installation is not finished";
+    } else {
+        install_package($packname, timeout => 800);
+    }
 
     # Get the list of livepatch files (.so) installed by the package.
     my $patch_files = script_output("rpm -ql $packname | grep '\\.so\$'");
