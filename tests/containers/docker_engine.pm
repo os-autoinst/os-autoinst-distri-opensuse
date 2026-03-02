@@ -112,7 +112,8 @@ sub run {
     push @xfails, (
         # We don't yet support CDI
         "github.com/moby/moby/v2/integration/container::TestEtcCDI",
-        # This fails on Docker v29:
+        # These fail on Docker v29:
+        "github.com/moby/moby/v2/integration/container:TestContainerRestartWithCancelledRequest",
         "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
     ) if (version->parse(numeric_version($version)) >= version->parse("29.0.0"));
     push @xfails, (
@@ -122,8 +123,10 @@ sub run {
         "github.com/moby/moby/v2/integration/image::TestAPIImageHistoryCrossPlatform",
     ) unless (is_x86_64);
     push @xfails, (
+        # These fail on Docker v28:
         "github.com/docker/docker/integration/container::TestCreateWithCustomMACs",
         "github.com/docker/docker/integration/container::TestNetworkLocalhostTCPNat",
+        "github.com/docker/docker/integration/container::TestStopContainerWithTimeoutCancel",
     ) if (is_s390x);
     push @xfails, (
         # These tests fail as rootless on SLES 15
