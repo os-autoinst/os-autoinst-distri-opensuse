@@ -128,6 +128,7 @@
       <li><a href="#inspect_existing_issue">inspect_existing_issue</a></li>
       <li><a href="#dump_tasktrace">dump_tasktrace</a></li>
       <li><a href="#show_all_disks">show_all_disks</a></li>
+      <li><a href="#render_scc_url">render_scc_url</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -951,6 +952,10 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <h2 id="show_all_disks">show_all_disks</h2>
 
 <p>Output information about all disks on system to facilitate convenient and quick information lookup on the fly without manual intervention.</p>
+
+<h2 id="render_scc_url">render_scc_url</h2>
+
+<p>The SCC_URL is always generated from BUILD which might raise issue for image testing which has different BUILD number but still uses the same software repositories used by media from fresh installation. So registration url for image testing needs to be tweaked a bit to also use the same BUILD number as fresh installation, for example, starting from SLES 16.1 which provides transactional pre-built images, these images have different BUILD number but still use SLES 16.1 repositories build of which are reflected in BUILD_SLE.</p>
 
 
 </body>
