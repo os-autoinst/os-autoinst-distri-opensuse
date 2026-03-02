@@ -39,6 +39,10 @@ my @conflicting_packages = (
     'nvidia-open-driver-G06-signed-cuda-kmp-default',
     'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
     'nvidia-open-driver-G06-signed-cuda-default-devel',
+    'ImageMagick-config-7-upstream-limited',
+    'ImageMagick-config-7-upstream-open',
+    'ImageMagick-config-7-upstream-secure',
+    'ImageMagick-config-7-upstream-websafe',
     'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
 );
 
