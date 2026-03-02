@@ -9,7 +9,7 @@ use opensusebasetest qw(handle_uefi_boot_disk_workaround);
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_sle is_livecd is_bootloader_grub2_bls);
+use version_utils qw(is_sle is_livecd is_bootloader_grub2_bls is_agama is_leap);
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 use Utils::Backends;
 
@@ -62,6 +62,7 @@ Due to pre-installation setup, qemu boot order is always booting from CD-ROM.
 
 sub handle_installer_medium_bootup {
     return unless (check_var("BOOTFROM", "d") || (get_var('UEFI') && get_var('USBBOOT')));
+    return if is_agama && !(is_sle || is_leap);
     assert_screen 'inst-bootmenu', 180;
 
     # Layout of live is different from installation media
