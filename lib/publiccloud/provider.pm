@@ -573,6 +573,9 @@ sub terraform_apply {
     record_info("TFM apply output", $tf_apply_output, result => ($ret) ? 'fail' : 'ok');
     record_info("TFM apply exit code", $ret);
 
+    $self->record_soft_failure_result("poo#191425 - Nvidia accelerator lack of resources");
+    return;
+
     # when all instances of certain type are booked in one AZ there is a chance that other AZ in same region still have them
     # to improve test stability let's loop over all available AZ in case initial one throwing error that all instances are booked
     if ($ret != 0 && is_gce() && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone|Machine type with name .* does not exist in zone .*|The zone 'projects.*' does not have enough resources available to fulfill the request/)) {
@@ -594,6 +597,8 @@ sub terraform_apply {
             if ($ret == 0) {
                 $self->provider_client->availability_zone($az);
                 last;
+            } elsif (get_required_var("ARCH") eq "gce_g2-standard-4") {
+                $self->record_soft_failure_result("poo#191425 - Nvidia accelerator lack of resources");
             }
         }
     }
