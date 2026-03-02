@@ -64,26 +64,14 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 
-# this is a tmp file for testing
-my $creat_tmp_file = 'cat > /etc/sysconfig/my_test_file << EOF
-## Type:    string
-## Default: ""
-#
-# This variable just is used for testing yast sysconfig
-# in cli mode.
-XXX_YYY="ZZZ"
-
-EOF
-(exit $?)';
-
 sub run {
-    select_serial_terminal;
+    select_console 'root-console';
 
     # make sure the package was installed.
     zypper_call("in yast2-sysconfig", exitcode => [0, 102, 103]);
 
     # create a tmp file for testing
-    assert_script_run("$creat_tmp_file", fail_message => "Creating tmp file failed.");
+    write_sut_file('/etc/sysconfig/my_test_file', 'XXX_YYY="ZZZ"');
 
     # check yast sysconfig list
     validate_script_output 'yast sysconfig list all 2>&1', sub { m/XXX_YYY="ZZZ"/; };
