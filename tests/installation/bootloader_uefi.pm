@@ -113,14 +113,14 @@ sub run {
         assert_screen("bootloader-grub2-agama", $bootloader_timeout);
     }
     else {
-        assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2 grub2-bls bootloader-sdboot)], $bootloader_timeout);
+        assert_screen([qw(bootloader-shim-import-prompt bootloader-grub2 grub2-bls systemd-boot)], $bootloader_timeout);
     }
     if (match_has_tag("bootloader-shim-import-prompt")) {
         send_key "down";
         send_key "ret";
-        assert_screen([qw(bootloader-grub2 bootloader-sdboot grub2-bls)], $bootloader_timeout);
+        assert_screen([qw(bootloader-grub2 systemd-boot grub2-bls)], $bootloader_timeout);
     }
-    if (match_has_tag("bootloader-sdboot")) {
+    if (match_has_tag("systemd-boot")) {
         return if is_bootloader_sdboot;
     }
 
