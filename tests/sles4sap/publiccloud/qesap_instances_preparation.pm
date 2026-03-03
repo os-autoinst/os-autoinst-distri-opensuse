@@ -88,6 +88,21 @@ sub run {
         $instance->wait_for_ssh();
 
         my $real_hostname = $instance->ssh_script_output(cmd => 'hostname', username => 'cloudadmin');
+
+        # Set hostname with expected one for 'gfree' account if not equal otherwise test case will be failed on playbook
+        # Error msg:
+        #   'remoteHost does not match with any host of the source site.
+        #   all hosts of source and target site must be able to resolve all hostnames of both sites correctly'
+        if ((get_required_var('PUBLIC_CLOUD_NAMESPACE') eq 'gfree') && ($expected_hostname ne $real_hostname)) {
+            record_soft_failure('jsc#TEAM-10999');
+            my $output = $instance->ssh_script_output(cmd => 'cat /etc/hostname', username => 'cloudadmin');
+            record_info('etc hostname', $output);
+            $output = $instance->ssh_script_output(cmd => 'cat /etc/hosts', username => 'cloudadmin');
+            record_info('etc hosts', $output);
+            $instance->ssh_script_output(cmd => "sudo hostnamectl set-hostname $expected_hostname", username => 'cloudadmin');
+            $real_hostname = $instance->ssh_script_output(cmd => 'hostname', username => 'cloudadmin');
+        }
+
         # We expect hostnames reported by terraform to match the actual hostnames in Azure and GCE
         die "Expected hostname $expected_hostname is different than actual hostname [$real_hostname]"
           if ((is_azure() || is_gce()) && ($expected_hostname ne $real_hostname));
