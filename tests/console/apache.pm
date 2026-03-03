@@ -17,8 +17,8 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_jeos has_selinux);
 
-my $config_snippet = "[main]\\n# Install documentation, overrides zypp-excludedocs\\nrpm.install.excludedocs = no\\n";
-my $config_drop_in = "/etc/zypp/zypp.conf.d/override-excludedocs.conf";
+my $config_snippet = q([main]\n# Install documentation, overrides zypp-excludedocs\nrpm.install.excludedocs = no\n);
+my $config_drop_in = q(/etc/zypp/zypp.conf.d/override-excludedocs.conf);
 
 sub run {
     select_serial_terminal;
@@ -30,7 +30,7 @@ sub run {
     # installation of docs and manpages is excluded in zypp.conf
     # enable full package installation, and clean up previous apache2 deployment
     if (is_jeos) {
-        my $command = $zypp_econf ? "echo -e $config_snippet > $config_drop_in" :
+        my $command = $zypp_econf ? qq@echo -e "$config_snippet" > "$config_drop_in"@ :
           'sed -ie \'s/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/\' /etc/zypp/zypp.conf';
 
         assert_script_run($command);
