@@ -600,7 +600,8 @@ sub bats_tests {
     }
     my $tests = @tests ? join(" ", @tests) : $tests_dir{$package};
 
-    my $cmd = "env $env bats --report-formatter junit --tap -T $tests";
+    my $debug = get_var("DEBUG") ? "--trace" : "";
+    my $cmd = "env $env bats $debug --report-formatter junit --tap -T $tests";
     my $xmlfile = "$tapfile.xml";
     $tapfile .= ".tap.txt";
     $cmd .= " </dev/null | tee -a $tapfile";
