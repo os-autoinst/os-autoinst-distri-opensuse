@@ -71,6 +71,11 @@ sub cmp_packages {
 }
 
 sub run {
+    if (is_sle('=15-SP4')) {
+        # agreed to do this until a newer kernel is used for vendor affirmation
+        force_soft_failure('Soft failing due to poo#196010 and bsc#1258814');
+        return;
+    }
     my $self = shift;
 
     select_serial_terminal;
