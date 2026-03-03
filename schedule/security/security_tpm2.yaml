@@ -20,10 +20,23 @@ schedule:
     - '{{keylime}}'
 conditional_schedule:
     keylime:
-        DISTRI:
-            sle:
-                - security/tpm2/keylime/keylime
         VERSION:
+            15-SP2:
+                - security/tpm2/keylime/keylime
+            15-SP3:
+                - security/tpm2/keylime/keylime
+            15-SP4:
+                - security/tpm2/keylime/keylime
+            15-SP5:
+                - security/tpm2/keylime/keylime
+            15-SP6:
+                - security/tpm2/keylime/keylime
+            15-SP7:
+                - security/tpm2/keylime/keylime
+            '16.0':
+                - security/tpm2/keylime/rust_keylime
+            '16.1':
+                - security/tpm2/keylime/rust_keylime
             Tumbleweed:
                 - security/tpm2/keylime/rust_keylime
     fips_setup:
