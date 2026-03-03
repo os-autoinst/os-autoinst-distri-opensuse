@@ -3591,37 +3591,33 @@ sub parse_json {
 =head2 inspect_existing_issue
 
   inspect_existing_issue(issuefile => 'relative path of json files to data folder,
-      localfile => 'absolute path of downloaded local files, issue => 'issues to
-      be inspected separated by double hash ##', distri => 'comma separated issue
-      distri', version => 'comma separated issue version', mode => 'comma separted
-      issue mode')
+      issue => 'issues to be inspected separated by double hash ##', distri => 
+      'comma separated issue distri', version => 'comma separated issue version',
+      mode => 'comma separted issue mode')
 
 Inspect whether concerned issues are bug, feature or can be ignore. Only record
 bug as soft failure. Argument issuefile can take mulitple json files separated by
-comma which are used as reference to compare, localfile can take multiple local
-files separated by comma which are corresponding downloaded and stored files from
-issuefile, issue takes issues to be inspected separated by double hash ##. User
-can also use setting JSON_REFERRAL_FILE to pass in comma separated json file path.
-Settings ISSUE_DISTRI, ISSUE_VERSION and ISSUE_MODE can also be used to specify
-the real distri, version and mode with which inspected issue is associated, they
-are separated by comma if multiple values are provided, for example, ISSUE_MODE=
-('transactional', 'traditional'). Key 'modes' is not mandatory in reference file
-data/virt_autotest/existing_issues_referral.json, if it does not exist or empty,
-any mode is matched. User can also pass in by using arguments distri, version and
-mode. Generally speaking, first find a distri match in all products of an issue
-by iteraing disris in ISSUE_DISTRI, second find a version match in all versions
-of a product by iterating versions in ISSUE_VERSION if there is a distri match(
-namley @existing_issue_version is not empty), at the last find a mode match in
-all modes of an issue by iteraing modes in ISSUE_MODE(empty @existing_issue_mode
-means any mode will be matched). There will be a final successful match if issue
-matches description, distri/version and mode all matched. 
+comma which are used as reference to compare, issue takes issues to be inspected
+separated by double hash ##. User can also use setting JSON_REFERRAL_FILE to pass
+in comma separated json file path. Settings ISSUE_DISTRI, ISSUE_VERSION and
+ISSUE_MODE can also be used to specify the real distri, version and mode with which
+inspected issue is associated, they are separated by comma if multiple values are
+provided, for example, ISSUE_MODE=('transactional', 'traditional'). Key 'modes'
+is not mandatory in reference file data/virt_autotest/existing_issues_referral.json,
+if it does not exist or empty, any mode is matched. User can also pass in by using
+arguments distri, version and mode. Generally speaking, first find a distri match
+in all products of an issue by iteraing disris in ISSUE_DISTRI, second find a
+version match in all versions of a product by iterating versions in ISSUE_VERSION
+if there is a distri match(namley @existing_issue_version is not empty), at the
+last find a mode match in all modes of an issue by iteraing modes in ISSUE_MODE
+(empty @existing_issue_mode means any mode will be matched). There will be a final
+successful match if issue matches description, distri/version and mode all matched. 
 
 =cut
 
 sub inspect_existing_issue {
     my %args = @_;
     $args{issuefile} //= get_var('ISSUE_REFERRAL_FILE', 'virt_autotest/existing_issues_referral.json');
-    $args{localfile} //= '/tmp/local_file.json';
     $args{issue} //= '';
     $args{distri} //= get_var('ISSUE_DISTRI', get_required_var('DISTRI'));
     $args{version} //= get_var('ISSUE_VERSION', get_required_var('VERSION'));
@@ -3629,23 +3625,10 @@ sub inspect_existing_issue {
     die('Issue file in json and issue to be inspected must be given') if (!$args{issuefile} or !$args{issue});
 
     my @issuefile = split(',', $args{issuefile});
-    my @localfile = split(',', $args{localfile});
-    @localfile = ($localfile[0]) x scalar @issuefile if (scalar @localfile != scalar @issuefile);
 
     my $ret = 0;
     while (my ($index, $file) = each(@issuefile)) {
-        my $json_file_url = data_url($file);
-        my $useragent = LWP::UserAgent->new;
-        $useragent->get($json_file_url) ? getstore($json_file_url, $localfile[$index]) : die("Can not download $localfile[$index] from $json_file_url");
-        chmod 0777, $localfile[$index] or die "Can not change permission to $localfile[$index]";
-
-        my $json_file_content = do {
-            open(my $fh, "<", $localfile[$index]) or die "Could not open $localfile[$index]: $!";
-            local $/;
-            <$fh>;
-        };
-        my $json_file_structure = decode_json($json_file_content);
-        my $parsed_json_file = parse_json(json => $json_file_structure);
+        my $parsed_json_file = parse_json(json => decode_json(LWP::Simple::get(data_url($file))));
         diag("JSON file $file content:\n" . Dumper($parsed_json_file));
 
         my @issue_distri = split(',', $args{distri});
