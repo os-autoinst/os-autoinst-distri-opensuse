@@ -23,7 +23,11 @@ sub run {
     my ($self) = @_;
 
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my $vm_ip = crash_pubip(provider => $provider, region => get_var('PUBLIC_CLOUD_REGION'));
+    my %crash_pubip_args;
+    $crash_pubip_args{provider} = $provider;
+    $crash_pubip_args{region} = get_var('PUBLIC_CLOUD_REGION');
+    $crash_pubip_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $crash_pubip_args{provider} eq 'GCE';
+    my $vm_ip = crash_pubip(%crash_pubip_args);
 
     my $remote_host;
     if ($provider eq 'EC2') {
@@ -61,9 +65,11 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my $region = get_required_var('PUBLIC_CLOUD_REGION');
-    crash_cleanup(provider => $provider, region => $region);
+    my %clean_args;
+    $clean_args{provider} = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    $clean_args{region} = get_required_var('PUBLIC_CLOUD_REGION');
+    $clean_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $clean_args{provider} eq 'GCE';
+    crash_cleanup(%clean_args);
     $self->SUPER::post_fail_hook;
 }
 
