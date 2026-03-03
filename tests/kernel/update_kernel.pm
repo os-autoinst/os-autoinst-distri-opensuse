@@ -86,10 +86,9 @@ sub update_kernel {
     else {
         # Use single patch or patch list
         if (is_transactional) {
-            # Proceed with transactional-update patch
-            trup_call("patch");
-            # Reboot system after patch, to make sure that further checks are done on updated system
-            reboot_on_changes;
+            # Proceed with transactional-update patch. Also handle zypper
+            # updates which may require running patch twice.
+            fully_patch_system;
         } else {
             zypper_call("in -l -t patch $patches", exitcode => [0, 102, 103], log => 'zypper.log', timeout => 1400);
         }
