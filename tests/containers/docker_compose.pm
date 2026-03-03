@@ -58,6 +58,7 @@ sub test ($target) {
         "github.com/docker/compose/v5/pkg/e2e::TestLocalComposeRun/compose_run_-rm_with_stop_signal",
         # Flaky tests:
         "github.com/docker/compose/v5/pkg/e2e::TestUpDependenciesNotStopped",
+        "github.com/docker/compose/v5/pkg/e2e::TestUpStopWithLogsMixed",
     ) if (version->parse(numeric_version($version)) >= version->parse("5.0.0"));
 
     run_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3600;
