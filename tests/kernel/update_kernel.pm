@@ -64,9 +64,9 @@ sub update_kernel {
     my $devel_pack = get_kernel_devel_flavor;
 
     fully_patch_system;
-    install_package("--recommends $devel_pack") if (!is_sle('<12') &&
-        !(check_var('SLE_PRODUCT', 'slert') && is_sle_micro('<6.2')) &&
-        !is_sle_micro('<6.0'));
+    install_package("--recommends $devel_pack", trup_reboot => 1)
+      if (!is_sle('<12') && !(check_var('SLE_PRODUCT', 'slert') &&
+            is_sle_micro('<6.2')) && !is_sle_micro('<6.0'));
 
     $self->add_update_repos($repo);
     zypper_call("ref");
