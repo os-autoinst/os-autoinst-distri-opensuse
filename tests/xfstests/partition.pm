@@ -443,7 +443,7 @@ x509.truststore = /etc/tlshd/ca.pem
 x509.certificate = /etc/tlshd/server.pem
 x509.private_key = /etc/tlshd/server.key
 END
-    script_run("echo '$content' > \"/etc/tlshd.conf\"");
+    write_sut_file('/etc/tlshd.conf', $content);
     script_run("sed -i '/^ExecStart/ s|ExecStart=.*|ExecStart=/usr/sbin/tlshd -c /etc/tlshd.conf|' /usr/lib/systemd/system/tlshd.service");
     script_run('systemctl daemon-reload; systemctl enable tlshd.service; systemctl start tlshd.service');
 }
@@ -474,7 +474,7 @@ includedir  /etc/krb5.conf.d
     admin_server = FILE:/var/log/krb5/kadmind.log
     default = SYSLOG:NOTICE:DAEMON
 END
-    script_run("echo '$content' > \"/etc/krb5.conf\"");
+    write_sut_file('/etc/krb5.conf', $content);
 
     #Config idmapd.conf
     $content = <<END;
@@ -485,7 +485,7 @@ Domain = susetest.com
 Nobody-User = nobody
 Nobody-Group = nobody
 END
-    script_run("echo '$content' > \"/etc/idmapd.conf\"");
+    write_sut_file('/etc/idmapd.conf', $content);
 
     #create KDC database, start service and setup key
     script_run('kdb5_util create -s -P susetest -r SUSETEST.COM');
