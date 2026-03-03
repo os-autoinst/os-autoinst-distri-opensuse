@@ -84,10 +84,6 @@ sub run {
                 assert_script_run("find $realpath >> /tmp/repos.list.txt");
             } elsif (is_sle_micro(">=6.0")) {
                 assert_script_run("find $realpath >> /tmp/repos.list.txt");
-            } else {
-                record_info('Softfail', "No .repo file found in $realpath. This directory will be removed.", result => 'softfail');
-                assert_script_run("echo 'No .repo found for $maintrepo' >> ~/repos/qem_download_status.txt");
-                assert_script_run("rm -rf $realpath");
             }
         }
 
