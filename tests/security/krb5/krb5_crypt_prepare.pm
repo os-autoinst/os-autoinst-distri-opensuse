@@ -81,14 +81,12 @@ sub run {
     }
 
     # Prepare hosts file for domains
-    assert_script_run(
-        "echo \"\$(cat <<EOF
+    my $hosts_content = <<END;
 $ip_kdc $dom_kdc
 $ip_server $dom_server
 $ip_client $dom_client
-EOF
-        )\" >> /etc/hosts"
-    );
+END
+    write_sut_file("/etc/hosts", $hosts_content);
 
     if (is_sle '<15') {
         systemctl('stop SuSEfirewall2');
@@ -101,15 +99,11 @@ EOF
     zypper_call('lr -u');
     zypper_call('in krb5 krb5-server krb5-client nfs-client');
     assert_script_run("echo 'export KRB5CCNAME=/root/kcache' >> /etc/profile.d/krb5.sh");    # Make ticket permanent
-
-
     assert_script_run("source /etc/profile.d/krb5.sh");
 
     my $algo = is_sle('<15-SP6') ? "aes256-cts-hmac-sha1-96" : "aes256-cts-hmac-sha384-192";
     my $krb5_conf = is_sle('<16.1') ? '/etc/krb5.conf' : '/usr/etc/krb5.conf';
-    assert_script_run "cat $krb5_conf";
-    assert_script_run(
-        "echo \"\$(cat <<EOF
+    my $krb5_conf_content = <<END;
 [libdefaults]
     fipslevel = 3
     dns_canonicalize_hostname = false
@@ -134,9 +128,8 @@ EOF
     kdc = FILE:/var/log/krb5/krb5kdc.log
     admin_server = FILE:/var/log/krb5/kadmind.log
     default = SYSLOG:NOTICE:DAEMON
-EOF
-        )\" > $krb5_conf"
-    );
+END
+    write_sut_file($krb5_conf, $krb5_conf_content);
     assert_script_run "cat $krb5_conf";
 
     if (get_var('SECURITY_TEST') =~ /crypt_krb5kdc/) {
