@@ -381,7 +381,7 @@ Delete a VM instance. Does not assert but returns the exit code.
 
 =over
 
-=item B<zone> - GCP zone
+=item B<zone> - GCP zone, it is made of <region>-<availability_zone>
 
 =item B<name> - name of the VM instance to delete
 
@@ -411,7 +411,7 @@ Get the external (public) IP address of a VM instance
 
 =item B<project> - GCP project ID
 
-=item B<zone> - GCP zone
+=item B<zone> - GCP zone, it is made of <region>-<availability_zone>
 
 =item B<name> - name of the VM instance
 

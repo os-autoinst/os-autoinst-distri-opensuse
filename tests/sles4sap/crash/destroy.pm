@@ -29,7 +29,7 @@ sub run {
         crash_destroy_aws(region => $region);
     }
     elsif ($provider eq 'GCE') {
-        crash_destroy_gcp(region => $region, zone => $region . '-' . get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE'));
+        crash_destroy_gcp(region => $region, availability_zone => get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE'));
     }
 }
 

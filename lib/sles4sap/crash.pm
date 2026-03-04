@@ -218,23 +218,23 @@ Run the GCP deployment for the crash test
 
 =item B<region> - GCP region
 
-=item B<zone> - GCP zone (e.g., 'us-central1-a')
+=item B<availability_zone> - GCP zone
 
 =item B<project> - GCP project ID
 
-=item B<version> - OS version
+=item B<image_name> - image name
 
 =item B<image_project> - image project name
 
 =item B<machine_type> - machine type (e.g., 'n1-standard-2')
 
-=item B<ssh_key> - ssh_key file
+=item B<ssh_pub_key> - ssh_key file
 
 =back
 =cut
 
 sub crash_deploy_gcp(%args) {
-    foreach (qw(region zone project image image_project version machine_type ssh_key)) {
+    foreach (qw(region availability_zone project image_name image_project machine_type ssh_pub_key)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
     my $job_id = crash_deploy_name();
@@ -267,21 +267,22 @@ sub crash_deploy_gcp(%args) {
         name => $ip_name);
 
     my $vm_name = $job_id . '-vm';
+    my $zone = $args{region} . '-' . $args{availability_zone};
     gcp_vm_create(
         project => $args{project},
-        zone => $args{zone},
+        zone => $zone,
         name => $vm_name,
-        image => $args{image},
+        image => $args{image_name},
         image_project => $args{image_project},
         machine_type => $args{machine_type},
         network => $network_name,
         subnet => $subnet_name,
         address => $ip_name,
-        ssh_key => $args{ssh_key},
+        ssh_key => $args{ssh_pub_key},
         timeout => 1200);
 
     gcp_vm_wait_running(
-        zone => $args{zone},
+        zone => $zone,
         name => $vm_name,
         timeout => 1200);
 }
@@ -295,7 +296,9 @@ unsupported csp name is provided.
 
 =item B<provider> - Cloud provider name using same format of PUBLIC_CLOUD_PROVIDER setting
 
-=item B<region> deployment region
+=item B<region> - deployment region
+
+=item B<availability_zone> - only required for GCE
 
 =back
 =cut
@@ -314,9 +317,9 @@ sub crash_pubip(%args) {
             name => DEPLOY_PREFIX . "-pub_ip");
     }
     elsif ($args{provider} eq 'GCE') {
-        my $zone = $args{region} . '-' . get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE');
+        croak("Argument < availability_zone > missing") unless $args{availability_zone};
         $vm_ip = gcp_public_ip_get(
-            zone => $zone,
+            zone => $args{region} . '-' . $args{availability_zone},
             name => crash_deploy_name() . '-vm');
     }
     else {
@@ -355,7 +358,8 @@ sub crash_get_username(%args) {
 
     my $instance = crash_get_instance(
         provider => 'GCE',
-        region => 'us-central1');
+        region => 'us-central1',
+        availability_zone => 'b');
 
 Create and return a publiccloud::instance object for the crash test VM
 
@@ -365,6 +369,8 @@ Create and return a publiccloud::instance object for the crash test VM
 
 =item B<region> - Cloud region
 
+=item B<availability_zone> - GCP availability zone (optional)
+
 =back
 =cut
 
@@ -372,13 +378,14 @@ sub crash_get_instance(%args) {
     foreach (qw(provider region)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    my $vm_ip = crash_pubip(provider => $args{provider}, region => $args{region});
-    my $username = crash_get_username(provider => $args{provider});
-
     require publiccloud::instance;
+    my %crash_pubip_args;
+    $crash_pubip_args{provider} = $args{provider};
+    $crash_pubip_args{region} = $args{region};
+    $crash_pubip_args{availability_zone} = $args{availability_zone} if $args{availability_zone};
     my $instance = publiccloud::instance->new(
-        public_ip => $vm_ip,
-        username => $username
+        public_ip => crash_pubip(%crash_pubip_args),
+        username => crash_get_username(provider => $args{provider})
     );
 
     return $instance;
@@ -398,6 +405,8 @@ Clean up cloud resources for crash test
 
 =item B<region> - Cloud region
 
+=item B<availability_zone> - only required for GCE
+
 =back
 =cut
 
@@ -412,8 +421,10 @@ sub crash_cleanup(%args) {
         crash_destroy_aws(region => $args{region});
     }
     elsif ($args{provider} eq 'GCE') {
-        my $zone = $args{region} . '-' . get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE');
-        crash_destroy_gcp(zone => $zone, region => $args{region});
+        croak("Argument < availability_zone > missing") unless $args{availability_zone};
+        crash_destroy_gcp(
+            availability_zone => $args{availability_zone},
+            region => $args{region});
     }
     else {
         die "Unsupported provider: $args{provider}";
@@ -617,7 +628,7 @@ Delete the GCP deployment
 
 =over
 
-=item B<zone> - GCP zone where the deployment was created
+=item B<availability_zone> - GCP availability zone where the deployment was created
 
 =item B<region> - GCP region
 
@@ -625,41 +636,38 @@ Delete the GCP deployment
 =cut
 
 sub crash_destroy_gcp(%args) {
-    foreach (qw(zone region)) {
+    foreach (qw(availability_zone region)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
-
-    my %ret;
     my $job_id = crash_deploy_name();
-    my $region = $args{zone};
-    $region =~ s/-[a-z]$//;
-
-    record_info('GCP CLEANUP', "Deleting GCP resources for job: $job_id");
-
+    my %ret;
     $ret{vm} = gcp_vm_terminate(
-        zone => $args{zone},
-        name => $job_id . '-vm');
+        zone => $args{region} . '-' . $args{availability_zone},
+        name => crash_deploy_name() . '-vm');
 
     $ret{ip} = gcp_external_ip_delete(
-        region => $region,
+        region => $args{region},
         name => $job_id . '-ip');
 
     $ret{firewall} = gcp_firewall_rule_delete(
         name => $job_id . '-allow-ssh');
 
     $ret{subnet} = gcp_subnet_delete(
-        region => $region,
+        region => $args{region},
         name => $job_id . '-subnet');
 
     $ret{network} = gcp_network_delete(
         name => $job_id . '-network');
 
+    my $exit = 0;
+    my @erro_msg;
     foreach my $key (keys %ret) {
         if ($ret{$key}) {
-            record_info("Failure in $key", "Failed to destory $key");
-            return $ret{$key};
+            push @erro_msg, "Failed to destory $key rc:" . $ret{$key};
+            $exit = $ret{$key};
         }
     }
-    return 0;
+    record_info("Failure in GCP destroy", join("\n", @erro_msg));
+    return $exit;
 }
 
 1;

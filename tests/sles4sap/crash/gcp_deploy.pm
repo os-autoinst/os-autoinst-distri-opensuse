@@ -29,16 +29,14 @@ sub run {
     assert_script_run('rm -f ~/.ssh/config');
 
     my $region = get_required_var('PUBLIC_CLOUD_REGION');
-    my $zone = $region . '-' . $provider->provider_client->availability_zone;
     crash_deploy_gcp(
         region => $region,
-        zone => $zone,
-        project => $provider->provider_client->project_id,
-        image => $provider->get_image_id() =~ s/.*\///r,
+        availability_zone => get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE'),
+        project => get_required_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID'),
+        image_name => $provider->get_image_id() =~ s/.*\///r,
         image_project => get_required_var('PUBLIC_CLOUD_IMAGE_PROJECT'),
-        version => get_required_var('VERSION'),
         machine_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'n1-standard-2'),
-        ssh_key => $provider->ssh_key . '.pub');
+        ssh_pub_key => $provider->ssh_key . '.pub');
 }
 
 sub test_flags {
@@ -47,9 +45,8 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    my $provider = $self->provider_factory();
     crash_destroy_gcp(
-        zone => get_required_var('PUBLIC_CLOUD_REGION') . '-' . $provider->provider_client->availability_zone,
+        availability_zone => get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE'),
         region => get_required_var('PUBLIC_CLOUD_REGION'));
     $self->SUPER::post_fail_hook;
 }
