@@ -88,9 +88,8 @@ while (my $line = <STDIN>) {
     if ($line =~ /^#\sselftests:\s\S+:\s(\S+)/) {
         my $test = $1;
         if (!$seen{$test}++ && open(my $kmsg, '>', '/dev/kmsg')) {
-                print {$kmsg} "OpenQA::run_kselftest.pm: Starting $test\n";
-                close($kmsg);
-            }
+            print {$kmsg} "OpenQA::run_kselftest.pm: Starting $test\n";
+            close($kmsg);
         }
     }
     print $line;
