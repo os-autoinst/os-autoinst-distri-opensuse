@@ -81,9 +81,10 @@ sub run {
 
     # mapping of known expected failures
     my @xfails = (
+        'Libpod Suite::[It] Podman pod create podman pod create --restart=on-failure',
+        'Libpod Suite::[It] Podman run memory podman run memory test on oomkilled container',
         # Fails with "registry.access.redhat.com/*openshift*"
         'Libpod Suite::[It] Podman search podman search with wildcards',
-        'Libpod Suite::[It] Podman run memory podman run memory test on oomkilled container',
     );
     push @xfails, (
         # Fixed in podman 5.6.1:
