@@ -33,8 +33,8 @@ sub run {
     my $ssh_dir = '/root/.ssh';
     record_info('SSH config', 'Configure password-less SSH access');
     assert_script_run("mkdir -p $ssh_dir");
-    assert_script_run("curl -v -o $ssh_dir/config " . data_url('elemental3/config.ssh'));
-    assert_script_run("curl -v -o /tmp/id_ssh " . data_url('elemental3/id_ssh'));
+    assert_script_run("curl -s -o $ssh_dir/config " . data_url('elemental3/config.ssh'));
+    assert_script_run("curl -s -o /tmp/id_ssh " . data_url('elemental3/id_ssh'));
     assert_script_run("base64 -d /tmp/id_ssh > $ssh_dir/id_rsa");
     assert_script_run("chmod -R go-rwx $ssh_dir");
 
@@ -77,12 +77,7 @@ sub run {
         my $opts;
 
         # Rancher Manager options
-        $opts = "-tags=$test \\
-                 -certManagerVersion $certmanager_version \\
-                 -chartsVersion $rancher_version \\
-                 -chartsRepoName rancher \\
-                 -chartsRepoUrl $rancher_url \\
-                 -chartsArgs $rancher_args" if ($test eq 'deployrancher');
+        $opts = "-tags=$test -certManagerVersion $certmanager_version -chartsVersion $rancher_version -chartsRepoName rancher -chartsRepoUrl $rancher_url -chartsArgs $rancher_args" if ($test eq 'deployrancher');
 
         # Add SELinux test in cluster validation
         # NOTE: disable for now, as ECM test framework needs to be adapted

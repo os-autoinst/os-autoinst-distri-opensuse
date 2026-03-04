@@ -46,7 +46,7 @@ sub run {
     barrier_wait('NETWORK_SETUP_DONE');
 
     # Ping test: ensure that all nodes are able to join the master
-    assert_script_run('ping -M do -s 0 -c 5 10.0.2.100') unless $is_server;
+    assert_script_run('ping -q -M do -s 0 -c 5 10.0.2.100') unless $is_server;
 
     # Record network info
     record_info('Network configuration',

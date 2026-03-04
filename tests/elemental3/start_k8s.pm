@@ -158,12 +158,15 @@ sub prepare_test_framework {
     my ($k8s_version) = script_output('kubectl version') =~ /[Ss]erver.*:\s*(.*)/;
     my $fqdn = script_output('hostnamectl hostname');
     my $k8s_yaml = "/etc/rancher/$args{k8s}/$args{k8s}.yaml";
-    my $k8s_config = script_output("sed 's/127\.0\.0\.1/$fqdn/g' $k8s_yaml | base64 -w0");
+
+    # We have to use this dirty workaround, as the result of this command
+    # is way too big for 'file_content_replace' function
+    assert_script_run("sed 's/127\.0\.0\.1/$fqdn/g' $k8s_yaml | base64 -w0 > /tmp/k8s.config");
 
     # Framework configuration files
     foreach my $file ('/tmp/env', '/tmp/tfvars') {
         assert_script_run(
-            "curl -v -o $file "
+            "curl -s -o $file "
               . data_url('elemental3/test-framework/' . path($file)->basename)
         );
         file_content_replace(
@@ -172,9 +175,11 @@ sub prepare_test_framework {
             '%ACCESS_KEY%' => '/root/.ssh/id_rsa',
             '%K8S%' => $args{k8s},
             '%K8S_VERSION%' => $k8s_version,
-            '%K8S_CONFIG%' => $k8s_config,
             '%FQDN%' => $fqdn
         );
+
+        # Dirty workaround, see above for more details
+        assert_script_run("sed -E \"s|%K8S_CONFIG%|\$(</tmp/k8s.config)|\" -i $file");
     }
 
     # Tells the master that it can download the files

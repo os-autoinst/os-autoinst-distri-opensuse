@@ -14,7 +14,7 @@ sub run {
     record_info('Toolbox Info', 'Verify toolbox script is installed');
 
     assert_script_run('which toolbox');
-    assert_script_run('file $(which toolbox) | grep -i "shell script"');
+    assert_script_run('file -Ls $(which toolbox) | grep -iq "shell script"');
 
     record_info('Toolbox Run', 'Start toolbox, pull image, and exit cleanly');
 
