@@ -288,7 +288,9 @@ QESAP_INSTALL_GITHUB_NO_VERIFY | string | | Configure http.sslVerify false. Igno
 QESAP_ROLES_INSTALL_GITHUB_REPO | string | github.com/sap-linuxlab/community.sles-for-sap | Git repository where to clone from. Ignored if QESAP_ROLES_INSTALL_VERSION is configured.
 QESAP_ROLES_INSTALL_GITHUB_BRANCH | string | | Git branch. Ignored if QESAP_ROLES_INSTALL_VERSION is configured.
 SMELT_URL | string | https://smelt.suse.de | Defines the URL for the SUSE Maintenance Extensible Lightweight Toolset, SMELT for short.
-TRANSACTIONAL_SERVER | boolean | false | Mark the SUT as a transactional system.
+TRANSACTIONAL_SERVER | boolean | false | DEPRECATED by TRANSACTIONAL. Mark the SUT as a transactional system. Legacy variable, should not be used anymore.
+TRANSACTIONAL | boolean | false | Mark the SUT as a transactional system. Used in SLFO.
+
 
 ### Publiccloud specific variables
 
