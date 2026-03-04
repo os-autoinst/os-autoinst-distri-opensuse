@@ -438,12 +438,6 @@ EOF
     # This is a workaround for https://bugzilla.suse.com/show_bug.cgi?id=1246227
     run_command "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf" unless (is_sle(">=16") || is_tumbleweed);
 
-    # Disable tmpfs from next boot
-    if (script_output("findmnt -no FSTYPE /tmp", proceed_on_failure => 1) =~ /tmpfs/) {
-        # Bind mount /tmp to /var/tmp
-        mount_tmp_vartmp;
-    }
-
     # Switch to cgroup v2 if not already active
     if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
         add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
