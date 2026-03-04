@@ -105,34 +105,32 @@ sub run {
         TZ => "UTC",
     );
 
-    my @xfails = (
-        # Flaky tests
-        "github.com/docker/docker/integration/service::TestServicePlugin",
-    );
-    push @xfails, (
-        # We don't yet support CDI
-        "github.com/moby/moby/v2/integration/container::TestEtcCDI",
+    my @xfails = ();
+    if (version->parse(numeric_version($version)) >= version->parse("29.0.0")) {
         # These fail on Docker v29:
-        "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
-        "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
-        "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
-    ) if (version->parse(numeric_version($version)) >= version->parse("29.0.0"));
+        push @xfails, (
+            # We don't yet support CDI
+            "github.com/moby/moby/v2/integration/container::TestEtcCDI",
+            "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
+            "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
+            "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
+        );
+    } else {
+        # These fail on Docker v28:
+        push @xfails, (
+            "github.com/docker/docker/integration/container::TestCreateWithCustomMACs",
+            "github.com/docker/docker/integration/container::TestNetworkLocalhostTCPNat",
+            "github.com/docker/docker/integration/container::TestNetworkLoopbackNat",
+            "github.com/docker/docker/integration/container::TestStopContainerWithTimeoutCancel",
+            "github.com/docker/docker/integration/service::TestServicePlugin",
+        );
+    }
     push @xfails, (
         # These tests use amd64 images:
         "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
         # Same as above on Docker v29:
         "github.com/moby/moby/v2/integration/image::TestAPIImageHistoryCrossPlatform",
     ) unless (is_x86_64);
-    push @xfails, (
-        # These fail on Docker v28:
-        "github.com/docker/docker/integration/container::TestCreateWithCustomMACs",
-        "github.com/docker/docker/integration/container::TestNetworkLocalhostTCPNat",
-        "github.com/docker/docker/integration/container::TestStopContainerWithTimeoutCancel",
-    ) if (is_s390x);
-    push @xfails, (
-        # These tests fail as rootless on SLES 15
-        "github.com/docker/docker/integration/container::TestNetworkLoopbackNat",
-    ) if (is_sle("<16"));
 
     my $tags = "apparmor selinux seccomp pkcs11";
 
