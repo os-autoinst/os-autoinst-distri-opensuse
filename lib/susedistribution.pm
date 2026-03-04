@@ -885,7 +885,7 @@ sub activate_console {
         else {
             my $nr = console_nr($console);
             $self->hyperv_console_switch($console, $nr);
-            my @tags = ("tty$nr-selected", "text-logged-in-$user");
+            my @tags = ("tty$nr-selected", "text-logged-in-$user", "bsc1259131_mls8-wrong-encoding-shutdown");
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
@@ -907,6 +907,10 @@ sub activate_console {
                 ensure_user($user);
             }
             elsif (match_has_tag('wsl-linux-prompt')) {
+                return;
+            }
+            elsif (match_has_tag('bsc1259131_mls8-wrong-encoding-shutdown')) {
+                record_soft_failure('bsc#1259131 - MLS8 wrong encoding at shutdown');
                 return;
             }
         }
