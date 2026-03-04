@@ -419,7 +419,7 @@ sub configure_sev_snp_kernel_parameters {
 
     # Wait for boot completion - increased timeout for IPMI/SOL console where GRUB can take >180s
     $self->wait_boot(textmode => 1, bootloader_time => 100, ready_time => 200);
-    select_serial_terminal;
+    select_console 'root-console';
 
     # Verify parameters after reboot
     my $new_cmdline = script_output("cat /proc/cmdline");
