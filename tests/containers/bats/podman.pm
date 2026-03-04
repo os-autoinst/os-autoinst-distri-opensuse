@@ -117,9 +117,6 @@ sub run {
     run_command "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
     run_command "rm -f contrib/systemd/system/podman-kube@.service.in";
     unless (get_var("RUN_TESTS")) {
-        # This test fails on systems with GNU tar 1.35 due to
-        # https://bugzilla.suse.com/show_bug.cgi?id=1246607
-        run_command "rm -f test/system/125-import.bats" if (!is_x86_64 && (is_tumbleweed || is_sle('>=16.0')));
         # This test is flaky on architectures other than x86_64
         run_command "rm -f test/system/180-blkio.bats" unless is_x86_64;
         # This test is flaky on ppc64le & s390x
