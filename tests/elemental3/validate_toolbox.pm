@@ -38,4 +38,8 @@ sub run {
     validate_script_output('podman images', sub { m/toolbox/i });
 }
 
+sub test_flags {
+    return {fatal => 1, milestone => 1};
+}
+
 1;
