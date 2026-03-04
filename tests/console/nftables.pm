@@ -21,6 +21,11 @@ sub run {
     # check that nftables has been already installed
     zypper_call('info nftables', log => 'zypper_info.log');
     assert_script_run("if systemctl is-active -q iptables; then systemctl stop iptables; fi");
+    my $flag = 0;
+    if (script_run(("grep 'NftablesTableOwner=yes' /etc/firewalld/firewalld.conf") == 0)) {
+        assert_script_run("sed -i -r \'s/^NftablesTableOwner=yes/NftablesTableOwner=no/g\' /etc/firewalld/firewalld.conf");
+        $flag = 1;
+    }
     systemctl("restart firewalld");
 
     # create a customer rule 'tcp-mss-clamp'
@@ -36,6 +41,7 @@ sub run {
     assert_script_run('curl -v -o firewall ' .
           data_url('console/nftables/firewall'));
     assert_script_run("nft -f firewall");
+    assert_script_run("sed -i -r \'s/^NftablesTableOwner=no/NftablesTableOwner=yes/g\' /etc/firewalld/firewalld.conf") if ($flag == 1);
     assert_script_run("systemctl restart firewalld && sleep 5");
     record_info 'firewalld, restarted and it is active.' if script_run '! systemctl is-active firewalld';
 
