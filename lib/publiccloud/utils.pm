@@ -768,10 +768,10 @@ sub wait_quit_zypper_pc {
     my $retry = $args{retry} // 120;    # total attempts (~10 min ceiling)
 
     # Succeeds (RC 0) only when NO matching processes exist.
-    # Using '!' avoids explicit 'exit' and works cleanly with retry_ssh_command.
-    my $cmd = q{pgrep -f "zypper|packagekit|purge-kernels|rpm" && false || true};
+    # Using '!' avoids explicit 'exit' and works cleanly with ssh_script_retry.
+    my $cmd = q{! pgrep -a "zypper|packagekit|purge-kernels|rpm"};
 
-    $instance->retry_ssh_command(
+    $instance->ssh_script_retry(
         cmd => $cmd,
         timeout => $timeout,
         delay => $delay,
