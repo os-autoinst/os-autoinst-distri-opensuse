@@ -39,7 +39,6 @@ our @EXPORT = qw(
   go_arch
   install_gotestsum
   install_ncat
-  mount_tmp_vartmp
   numeric_version
   patch_junit
   patch_sources
@@ -324,24 +323,6 @@ sub patch_junit {
     foreach my $pass (@passed) {
         record_info("PASS", $pass);
     }
-}
-
-# /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
-# Bind-mount it to /var/tmp
-sub mount_tmp_vartmp {
-    my $override_conf = <<'EOF';
-[Unit]
-ConditionPathExists=/var/tmp
-
-[Mount]
-What=/var/tmp
-Where=/tmp
-Type=none
-Options=bind
-EOF
-
-    assert_script_run "mkdir -p /etc/systemd/system/tmp.mount.d/";
-    write_sut_file('/etc/systemd/system/tmp.mount.d/override.conf', $override_conf);
 }
 
 sub nonewprivs {
