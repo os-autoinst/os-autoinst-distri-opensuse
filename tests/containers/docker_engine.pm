@@ -114,6 +114,7 @@ sub run {
         "github.com/moby/moby/v2/integration/container::TestEtcCDI",
         # These fail on Docker v29:
         "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
+        "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
         "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
     ) if (version->parse(numeric_version($version)) >= version->parse("29.0.0"));
     push @xfails, (
