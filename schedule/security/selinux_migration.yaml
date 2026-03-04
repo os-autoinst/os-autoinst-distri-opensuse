@@ -1,0 +1,8 @@
+name: selinux-migration
+description: >
+    Verify that moving the SELinux modules path from /var/lib/selinux
+    to /etc does not affect SELinux functionality.
+    more details https://jira.suse.com/browse/PED-12492
+schedule:
+    - boot/boot_to_desktop
+    - security/selinux/selinux_migration
