@@ -12,7 +12,14 @@ use utils;
 
 sub run {
     my $self = shift;
-    select_console('root-console');
+    # There's a kernel bug in MLS8. bsc#1259131
+    # Wrong encoding when shutting down after kernel update
+    if (check_var("VERSION", "mls8")) {
+        select_serial_terminal;
+        record_soft_failure("bsc#1259131 - Wrong encoding in MLS8 when shutting down after kernel update");
+    } else {
+        select_console("root-console");
+    }
     systemctl 'list-timers --all';
     power_action('poweroff');
 }
