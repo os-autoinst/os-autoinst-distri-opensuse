@@ -96,7 +96,7 @@
 <dd>
 
 </dd>
-<dt id="zone---GCP-zone-e.g.-us-central1-a"><b>zone</b> - GCP zone (e.g., &#39;us-central1-a&#39;)</dt>
+<dt id="availability_zone---GCP-zone"><b>availability_zone</b> - GCP zone</dt>
 <dd>
 
 </dd>
@@ -104,7 +104,7 @@
 <dd>
 
 </dd>
-<dt id="version---OS-version"><b>version</b> - OS version</dt>
+<dt id="image_name---image-name"><b>image_name</b> - image name</dt>
 <dd>
 
 </dd>
@@ -116,7 +116,7 @@
 <dd>
 
 </dd>
-<dt id="ssh_key---ssh_key-file"><b>ssh_key</b> - ssh_key file</dt>
+<dt id="ssh_pub_key---ssh_key-file"><b>ssh_pub_key</b> - ssh_key file</dt>
 <dd>
 
 </dd>
@@ -132,7 +132,11 @@
 <dd>
 
 </dd>
-<dt id="region-deployment-region"><b>region</b> deployment region</dt>
+<dt id="region---deployment-region"><b>region</b> - deployment region</dt>
+<dd>
+
+</dd>
+<dt id="availability_zone---only-required-for-GCE"><b>availability_zone</b> - only required for GCE</dt>
 <dd>
 
 </dd>
@@ -156,7 +160,8 @@
 
 <pre><code>my $instance = crash_get_instance(
     provider =&gt; &#39;GCE&#39;,
-    region =&gt; &#39;us-central1&#39;);</code></pre>
+    region =&gt; &#39;us-central1&#39;,
+    availability_zone =&gt; &#39;b&#39;);</code></pre>
 
 <p>Create and return a publiccloud::instance object for the crash test VM</p>
 
@@ -167,6 +172,10 @@
 
 </dd>
 <dt id="region---Cloud-region"><b>region</b> - Cloud region</dt>
+<dd>
+
+</dd>
+<dt id="availability_zone---GCP-availability-zone-optional"><b>availability_zone</b> - GCP availability zone (optional)</dt>
 <dd>
 
 </dd>
@@ -187,6 +196,10 @@
 
 </dd>
 <dt id="region---Cloud-region1"><b>region</b> - Cloud region</dt>
+<dd>
+
+</dd>
+<dt id="availability_zone---only-required-for-GCE1"><b>availability_zone</b> - only required for GCE</dt>
 <dd>
 
 </dd>
@@ -271,7 +284,7 @@ If C&lt;reg_code&gt; is provided, registers the system and verifies with C&lt;SU
 
 <dl>
 
-<dt id="zone---GCP-zone-where-the-deployment-was-created"><b>zone</b> - GCP zone where the deployment was created</dt>
+<dt id="availability_zone---GCP-availability-zone-where-the-deployment-was-created"><b>availability_zone</b> - GCP availability zone where the deployment was created</dt>
 <dd>
 
 </dd>
