@@ -34,6 +34,7 @@ sub run {
     my $new_pbl = check_version('>=1.1', $pbl_version);
 
     # pbl --loader is not available on <15-SP3
+=head2
     unless (is_sle("<15-SP3")) {
         if (get_var('UEFI')) {
             assert_script_run 'pbl --loader grub2-efi';
@@ -44,17 +45,27 @@ sub run {
             validate_script_output 'cat /etc/sysconfig/bootloader', qr/LOADER_TYPE="grub2"/;
         }
     }
+=cut
 
     if (is_transactional) {
-        trup_call 'run pbl --install';
-        if (get_var('FLAVOR') =~ m/-encrypted/i) {
+        my $last_snap = q@$(snapper list --columns=number | awk 'END {gsub(/[^0-9]/,""); print}')@;
+        #runs grub2-mkconfig -o /boot/grub2/grub.cfg and pbl --install;
+        assert_script_run 'cat /etc/sysconfig/bootloader';
+        trup_call 'grub.cfg';
+        check_reboot_changes;
+        trup_call "bootloader";
+        #if (get_var('FLAVOR') =~ m/-encrypted/i) {
             # workaround bsc#1228126 poo#164021 poo#164156
-            script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/sl') unless is_leap_micro('>6.0');
-            script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/opensuse/') if is_leap_micro('>6.0');
-        }
+            #    script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/sl') unless is_leap_micro('>6.0');
+            #script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/opensuse/') if is_leap_micro('>6.0');
+            #}
+            #check_reboot_changes;
         check_reboot_changes;
-        trup_call 'run pbl --config';
-        check_reboot_changes;
+        assert_script_run 'cat /etc/sysconfig/bootloader';
+        assert_script_run 'pbl --config';
+        assert_script_run 'cat /etc/sysconfig/bootloader';
+        assert_script_run 'pbl --show';
+        
     }
     else {
         assert_script_run 'pbl --install';
