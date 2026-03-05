@@ -8,7 +8,7 @@
 
 use base 'opensusebasetest';
 use testapi;
-use utils qw(zypper_call script_run_interactive enter_cmd_slow);
+use utils qw(zypper_call script_run_interactive enter_cmd_slow write_sut_file);
 use Utils::Architectures qw(is_aarch64);
 use base 'consoletest';
 use version_utils 'is_sle';
@@ -86,14 +86,13 @@ expect \"Enter passphrase for \/dev\/$loopdev: \"; send \"$key\\n\"; interact'"
     my $pam_mount_cfg_bak = '/etc/security/pam_mount.conf.xml.bak';
     assert_script_run "cp $pam_mount_cfg $pam_mount_cfg_bak";
     assert_script_run "sed -i '/<pam_mount>/,/<\\/pam_mount>/d' $pam_mount_cfg";
-    assert_script_run(
-        "echo \"\$(cat <<EOF
+    my $pam_mount_cfg_content = <<END;
 <pam_mount>
   <volume user=\"$user\" path=\"$loopdev\" mountpoint=\"~\" fstype=\"crypt\" fskeycipher=\"none\" fskeyhash=\"md5\" fskeypath=\"$key_dir/$key_file\" />
 </pam_mount>
-EOF
-        )\" >> $pam_mount_cfg"
-    );
+END
+    write_sut_file("/tmp/pam_mount_cfg_content", $pam_mount_cfg_content);
+    assert_script_run("cat /tmp/pam_mount_cfg_content >> $pam_mount_cfg");
 
     # Modify the pam common-session and common-auth files
     my $pam_session = '/etc/pam.d/common-session';
