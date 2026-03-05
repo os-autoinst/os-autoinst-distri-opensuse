@@ -438,6 +438,7 @@ sub is_transactional {
     return 1 if (is_microos || is_sle_micro || is_leap_micro);
     return 1 if (is_alp && get_var('FLAVOR') !~ /NonTransactional/);
     return 1 if (get_var('FLAVOR', '') =~ /transactional/i);
+    return 1 if (check_var('TRANSACTIONAL', '1'));
     return check_var('SYSTEM_ROLE', 'serverro') || get_var('TRANSACTIONAL_SERVER');
 }
 
