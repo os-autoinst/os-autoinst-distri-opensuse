@@ -25,6 +25,7 @@ prepare them to be used by elemental tool.
 =cut
 
 sub get_sysext {
+    my ($timeout) = @_;
     my $shared_dir = '/root/shared';
     my $overlay_dir = "$shared_dir/overlays";
     my $sysext_dir = "$overlay_dir/etc/extensions";
@@ -41,7 +42,7 @@ sub get_sysext {
             "elemental3ctl --debug unpack-image \\
                --image ${img} \\
                --target ${sysext_dir}",
-            $args{timeout}
+            $timeout
         );
         $ctl_oci = $img if ($img =~ /\/elemental3ctl:/);
     }

@@ -5,7 +5,7 @@
 # integration test from GitHub.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base Yam::Agama::patch_agama_base;
+use base 'Yam::Agama::patch_agama_base';
 use testapi qw(assert_script_run get_required_var select_console);
 
 sub run {

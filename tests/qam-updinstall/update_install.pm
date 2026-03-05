@@ -438,7 +438,7 @@ sub run {
         record_info 'Reboot after patch', "system is bootable after patch $patch";
         reboot_and_login;
 
-        if ($patch_info_status_status !~ /Status\s+: applied/ && script_run("grep '$patch already installed' /tmp/zypper_$patch.log") == 1) {
+        if ($patch_info_status !~ /Status\s+: applied/ && script_run("grep '$patch already installed' /tmp/zypper_$patch.log") == 1) {
             # After and only if the patches have been applied and the new binaries
             # have been installed, check the version again and based on that
             # determine if the update was succesfull.

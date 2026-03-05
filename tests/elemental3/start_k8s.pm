@@ -28,7 +28,7 @@ Returns 0 if command is successful or croaks on timeout.
 sub kubectl_cmd {
     my (%args) = @_;
     $args{timeout} //= 120;
-    $timeout = bmwqemu::scale_timeout($args{timeout});
+    my $timeout = bmwqemu::scale_timeout($args{timeout});
     my $starttime = time;
     my $ret = undef;
 
@@ -56,7 +56,7 @@ Wait for kubectl command to be available.
 sub wait_kubectl_cmd {
     my (%args) = @_;
     $args{timeout} //= 120;
-    $timeout = bmwqemu::scale_timeout($args{timeout});
+    my $timeout = bmwqemu::scale_timeout($args{timeout});
     my $starttime = time;
     my $ret = undef;
 
@@ -82,7 +82,7 @@ Returns 0 if cluster is running or croaks on timeout.
 sub wait_k8s_state {
     my (%args) = @_;
     $args{timeout} //= 120;
-    $timeout = bmwqemu::scale_timeout($args{timeout});
+    my $timeout = bmwqemu::scale_timeout($args{timeout});
     my $starttime = time;
     my $ret = undef;
     my $chk_cmd = 'kubectl get pod -A 2>&1';
@@ -120,7 +120,7 @@ Returns 0 if nodes are ready or croaks on timeout.
 sub wait_nodes_ready {
     my (%args) = @_;
     $args{timeout} //= 120;
-    $timeout = bmwqemu::scale_timeout($args{timeout});
+    my $timeout = bmwqemu::scale_timeout($args{timeout});
     my $starttime = time;
     my $chk_cmd = 'kubectl get nodes 2>&1';
     my $out = ' NotReady ';    # Spaces are needed for the next regex to work!

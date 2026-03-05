@@ -185,6 +185,9 @@ sub run {
     script_retry('ls /dev/disk/by-path/ip-*', timeout => $default_timeout, retry => 5, delay => 10, fail_message => 'No iSCSI devices!');
 
     # Blacklist iSCSI devices in multipath. Otherwise HA tests cannot use them directly
+    my $mptmp;
+    my $mpconf;
+    my $mpwwid;
     if (get_var('MULTIPATH') and (get_var('MULTIPATH_CONFIRM') !~ /\bNO\b/i)) {
         assert_script_run "cp $mpwwid $mptmp.new";
         assert_script_run "echo 'blacklist {' >> $mpconf";

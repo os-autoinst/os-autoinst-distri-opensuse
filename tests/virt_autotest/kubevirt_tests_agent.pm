@@ -7,7 +7,7 @@
 #          This is the part running on agent node.
 # Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
 
-use base multi_machine_job_base;
+use base 'multi_machine_job_base';
 use testapi;
 use lockapi;
 use transactional;
