@@ -10,23 +10,26 @@
 
 use base 'sles4sap';
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal);
 use utils;
 use version_utils qw(is_sle is_upgrade);
-use main_common 'is_updates_tests';
+use main_common qw(is_updates_tests);
 use registration qw(add_suseconnect_product);
 
 # Make sure that runs that the BETA flag from the job settings matches the beta status of the SUT.
-# Tests for  bsc#1257948.
+# Tests for bsc#1257948 and bsc#1259179.
 sub validate_beta_status {
-    my $beta_status_expected = get_var("BETA");
+    my $beta_status_expected = get_var('BETA', 0);
     my $beta_status_on_sut = !script_run("grep -r '<betaversion>' /etc/products.d/");
-    if ($beta_status_expected != $beta_status_on_sut) {
-        my $msg = "Beta Status Expected: $beta_status_expected\nBeta status in /etc/products.d/: $beta_status_on_sut";
-        record_info("Beta status mismatch!", $msg);
-        die $msg;
+    return if ($beta_status_expected == $beta_status_on_sut);
+
+    my $msg = "Beta Status Expected: $beta_status_expected\nBeta status in /etc/products.d/: $beta_status_on_sut";
+    record_info('Beta status mismatch!', $msg);
+    if (is_sle('=15-SP6') && script_output("grep -r '<betaversion>' /etc/products.d/") =~ /sle-module-systems-management.prod/) {
+        record_soft_failure('bsc#1259179 - Released System Management module has beta tag on 15-SP6');
+        return;
     }
-    return;
+    die $msg;
 }
 
 sub run {
