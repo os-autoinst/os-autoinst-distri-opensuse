@@ -23,22 +23,13 @@ sub run {
     my ($self) = @_;
 
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my %crash_pubip_args;
-    $crash_pubip_args{provider} = $provider;
-    $crash_pubip_args{region} = get_var('PUBLIC_CLOUD_REGION');
-    $crash_pubip_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $crash_pubip_args{provider} eq 'GCE';
+    my %crash_pubip_args = (provider => $provider, region => get_var('PUBLIC_CLOUD_REGION'));
+    $crash_pubip_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $provider eq 'GCE';
     my $vm_ip = crash_pubip(%crash_pubip_args);
 
-    my $remote_host;
-    if ($provider eq 'EC2') {
-        $remote_host = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ec2-user\@$vm_ip";
-    }
-    elsif ($provider eq 'AZURE') {
-        $remote_host = 'cloudadmin@' . $vm_ip;
-    }
-    elsif ($provider eq 'GCE') {
-        $remote_host = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no cloudadmin\@$vm_ip";
-    }
+    my $username = crash_get_username(provider => $provider);
+    my $remote_host = "$username\@$vm_ip";
+    $remote_host = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $remote_host" unless $provider eq 'AZURE';
     my $ssh_cmd = "ssh $remote_host";
 
     my $start_time = time();
@@ -65,10 +56,9 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-    my %clean_args;
-    $clean_args{provider} = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    $clean_args{region} = get_required_var('PUBLIC_CLOUD_REGION');
-    $clean_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $clean_args{provider} eq 'GCE';
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my %clean_args = (provider => $provider, region => get_required_var('PUBLIC_CLOUD_REGION'));
+    $clean_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $provider eq 'GCE';
     crash_cleanup(%clean_args);
     $self->SUPER::post_fail_hook;
 }

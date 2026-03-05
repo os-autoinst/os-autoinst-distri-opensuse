@@ -185,24 +185,7 @@ subtest '[crash_get_instance] GCE with availability_zone' => sub {
     is($new_args[0]->{username}, 'cloudadmin', 'Correct username passed to new');
 };
 
-subtest '[crash_cleanup]' => sub {
-    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
-    my %calls;
-    $crash->redefine(crash_destroy_azure => sub { $calls{azure}++; });
-    $crash->redefine(crash_destroy_aws => sub { $calls{aws}++; });
-    $crash->redefine(crash_destroy_gcp => sub { $calls{gcp}++; });
-
-    crash_cleanup(provider => 'AZURE', region => 'reg1');
-    ok($calls{azure}, 'Called crash_destroy_azure');
-
-    crash_cleanup(provider => 'EC2', region => 'reg1');
-    ok($calls{aws}, 'Called crash_destroy_aws');
-
-    crash_cleanup(provider => 'GCE', region => 'reg1', availability_zone => 'AmanitaExitialis');
-    ok($calls{gcp}, 'Called crash_destroy_gcp');
-};
-
-subtest '[crash_destroy_azure]' => sub {
+subtest '[crash_cleanup] AZURE' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -218,13 +201,13 @@ subtest '[crash_destroy_azure]' => sub {
             push @calls, $cmd;
             return 0; });
 
-    crash_destroy_azure();
+    crash_cleanup(provider => 'AZURE', region => 'reg1');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /az group delete --name crashRussulaEmetica/ } @calls), 'Correct resource group deleted');
+    ok((any { /az group delete --name crashRussulaEmetica/ } @calls), 'Correct resource group deleted via crash_cleanup');
 };
 
-subtest '[crash_destroy_gcp]' => sub {
+subtest '[crash_cleanup] GCE' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
     $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
     $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -240,15 +223,45 @@ subtest '[crash_destroy_gcp]' => sub {
             push @calls, $cmd;
             return 0; });
 
-    my $ret = crash_destroy_gcp(region => 'reg1', availability_zone => 'AmanitaExitialis');
+    my $ret = crash_cleanup(provider => 'GCE', region => 'reg1', availability_zone => 'AmanitaExitialis');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    is($ret, 0, 'Returns 0 on success');
+    is($ret, 0, 'Returns 0 on success via crash_cleanup');
     ok((any { /gcloud compute instances delete crashRussulaEmetica-vm/ } @calls), 'VM terminated');
     ok((any { /gcloud compute addresses delete crashRussulaEmetica-ip/ } @calls), 'IP deleted');
     ok((any { /gcloud compute firewall-rules delete crashRussulaEmetica-allow-ssh/ } @calls), 'Firewall deleted');
     ok((any { /gcloud compute networks subnets delete crashRussulaEmetica-subnet/ } @calls), 'Subnet deleted');
     ok((any { /gcloud compute networks delete crashRussulaEmetica-network/ } @calls), 'Network deleted');
+};
+
+subtest '[crash_cleanup] EC2' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    my @calls;
+    my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $aws->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $aws->redefine(script_output => sub { push @calls, $_[0]; return 'LactariusTorminosus'; });
+
+    my $ret = crash_cleanup(provider => 'EC2', region => 'SclerodermaCitrinum');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /aws ec2 delete-.*/ } @calls), 'Delete something via crash_cleanup');
+    ok(($ret == 0), "Expected ret:0 and get $ret");
+};
+
+subtest '[crash_cleanup] EC2 failure' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    my @calls;
+    my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $aws->redefine(script_run => sub { push @calls, $_[0]; return 42; });
+    $aws->redefine(script_output => sub { push @calls, $_[0]; return 'LactariusTorminosus'; });
+
+    my $ret = crash_cleanup(provider => 'EC2', region => 'SclerodermaCitrinum');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /aws ec2 delete-.*/ } @calls), 'Delete something even if failure via crash_cleanup');
+    ok(($ret == 42), "Expected ret:42 and get $ret");
 };
 
 subtest '[crash_system_ready]' => sub {
@@ -277,36 +290,6 @@ subtest '[crash_softrestart]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /shutdown.*\-r/ } @calls), 'Shutdown command');
-};
-
-subtest '[crash_destroy_aws] all pass' => sub {
-    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
-    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
-    my @calls;
-    my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
-    $aws->redefine(script_run => sub { push @calls, $_[0]; return 0; });
-    $aws->redefine(script_output => sub { push @calls, $_[0]; return 'LactariusTorminosus'; });
-
-    my $ret = crash_destroy_aws(region => 'SclerodermaCitrinum');
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /aws ec2 delete-.*/ } @calls), 'Delete something');
-    ok(($ret eq 0), "Expected ret:0 and get $ret");
-};
-
-subtest '[crash_destroy_aws] all fail' => sub {
-    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
-    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
-    my @calls;
-    my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
-    $aws->redefine(script_run => sub { push @calls, $_[0]; return 42; });
-    $aws->redefine(script_output => sub { push @calls, $_[0]; return 'LactariusTorminosus'; });
-
-    my $ret = crash_destroy_aws(region => 'SclerodermaCitrinum');
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /aws ec2 delete-.*/ } @calls), 'Delete something');
-    ok(($ret eq 42), "Expected ret:42 and get $ret");
 };
 
 subtest '[crash_wait_back]' => sub {

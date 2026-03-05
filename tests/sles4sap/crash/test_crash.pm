@@ -16,10 +16,8 @@ sub run {
     my ($self) = @_;
 
     my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    my %crash_get_instance_args;
-    $crash_get_instance_args{provider} = $provider;
-    $crash_get_instance_args{region} = get_var('PUBLIC_CLOUD_REGION');
-    $crash_get_instance_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $crash_get_instance_args{provider} eq 'GCE';
+    my %crash_get_instance_args = (provider => $provider, region => get_var('PUBLIC_CLOUD_REGION'));
+    $crash_get_instance_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $provider eq 'GCE';
     my $instance = crash_get_instance(%crash_get_instance_args);
     my $username = crash_get_username(provider => $provider);
 
@@ -42,11 +40,9 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = shift;
-
-    my %clean_args;
-    $clean_args{provider} = get_required_var('PUBLIC_CLOUD_PROVIDER');
-    $clean_args{region} = get_required_var('PUBLIC_CLOUD_REGION');
-    $clean_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $clean_args{provider} eq 'GCE';
+    my $provider = get_required_var('PUBLIC_CLOUD_PROVIDER');
+    my %clean_args = (provider => $provider, region => get_required_var('PUBLIC_CLOUD_REGION'));
+    $clean_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $provider eq 'GCE';
     crash_cleanup(%clean_args);
     $self->SUPER::post_fail_hook;
 }
