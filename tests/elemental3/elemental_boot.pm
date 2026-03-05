@@ -46,10 +46,16 @@ sub run {
         assert_script_run('grep -iq "fips=1" /proc/cmdline');
         record_info('FIPS', 'FIPS mode enabled!');
     }
+
+    # Wait for system to be in running state
+    unless (get_var('PARALLEL_WITH')) {
+        my $sys_state = script_output('systemctl is-system-running --wait', timeout => 240, proceed_on_failure => 1);
+        die("Wrong OS state: $sys_state") unless ($sys_state =~ m/running/);
+    }
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;

@@ -38,10 +38,8 @@ sub get_sysext {
     # Get the system extensions
     foreach my $img (split(/,/, get_required_var('SYSEXT_IMAGES_TO_TEST'))) {
         assert_script_run(
-            "elemental3ctl --debug unpack-image \\
-               --image ${img} \\
-               --target ${sysext_dir}",
-            $args{timeout}
+            "elemental3ctl --debug unpack-image --image ${img} --target ${sysext_dir}",
+            timeout => $args{timeout}
         );
         $ctl_oci = $img if ($img =~ /\/elemental3ctl:/);
     }
@@ -76,7 +74,7 @@ sub customize_cmd {
 
     # Download build configuration files
     assert_script_run(
-        "curl -v -o $tpl_tar "
+        "curl -s -o $tpl_tar "
           . data_url('elemental3/' . path($tpl_tar)->basename)
     );
     assert_script_run("tar xzvf $tpl_tar -C $build_dir");
@@ -109,23 +107,15 @@ sub customize_cmd {
 
     # Generate OS image
     assert_script_run(
-        "elemental3 \\
-           --debug customize \\
-           --type $type \\
-           --config-dir $build_dir \\
-           --output uc_image.$type",
-        $args{timeout}
+        "elemental3 --debug customize --type $type --config-dir $build_dir --output uc_image.$type",
+        timeout => $args{timeout}
     );
 
     # Convert RAW to QCOW2 if needed
     if ($type =~ m/raw/) {
         assert_script_run(
-            "qemu-img convert \\
-               -p -f raw \\
-               -O qcow2 \\
-               uc_image.$type \\
-               ./$out",
-            $args{timeout}
+            "qemu-img convert -p -f raw -O qcow2 uc_image.$type ./$out",
+            timeout => $args{timeout}
         );
     } elsif ($type =~ m/iso/) {
         assert_script_run("mv uc_image.$type '$out'");
@@ -161,7 +151,7 @@ sub build_installer_cmd {
 
     # OS configuration script
     assert_script_run(
-        "curl -v -o $config_file "
+        "curl -s -o $config_file "
           . data_url('elemental3/' . path($config_file)->basename)
     );
     file_content_replace(
@@ -174,7 +164,7 @@ sub build_installer_cmd {
 
     # ISO configuration script
     assert_script_run(
-        "curl -v -o $iso_config_file "
+        "curl -s -o $iso_config_file "
           . data_url('elemental3/' . path($iso_config_file)->basename)
     );
     assert_script_run("chmod 755 $iso_config_file");
@@ -183,19 +173,8 @@ sub build_installer_cmd {
 
     # Generate OS image
     assert_script_run(
-        "elemental3ctl --debug build-installer \\
-           --type $args{type} \\
-           --output . \\
-           --name $args{img_filename} \\
-           --os-image $image \\
-           --cmdline '$isocmdline' \\
-           --config $iso_config_file \\
-           --overlay oci://$ctl_oci \\
-           --install-overlay dir://$overlay_dir \\
-           --install-config $config_file \\
-           --install-cmdline '$krnlcmdline' \\
-           --install-target $device",
-        $args{timeout}
+"elemental3ctl --debug build-installer --type $args{type} --output . --name $args{img_filename} --os-image $image --cmdline '$isocmdline' --config $iso_config_file --overlay oci://$ctl_oci --install-overlay dir://$overlay_dir --install-config $config_file --install-cmdline '$krnlcmdline' --install-target $device",
+        timeout => $args{timeout}
     );
 
     # Return ISO image
@@ -227,7 +206,7 @@ sub install_cmd {
 
     # OS configuration script
     assert_script_run(
-        "curl -v -o $config_file "
+        "curl -s -o $config_file "
           . data_url('elemental3/' . path($config_file)->basename)
     );
     file_content_replace(
@@ -242,23 +221,15 @@ sub install_cmd {
 
     # Create a raw image and mount it
     assert_script_run(
-        "qemu-img create \\
-           -f qcow2 \\
-           $shared_dir/$args{img_filename}.qcow2 \\
-           $args{hddsize}G"
+        "qemu-img create -f qcow2 $shared_dir/$args{img_filename}.qcow2 $args{hddsize}G"
     );
     assert_script_run('modprobe nbd');
     assert_script_run("qemu-nbd -c $device $shared_dir/$args{img_filename}.qcow2");
 
     # Generate OS image
     assert_script_run(
-        "elemental3ctl --debug install \\
-           --cmdline '$krnlcmdline' \\
-           --os-image $image \\
-           --overlay dir://$overlay_dir \\
-           --config $config_file \\
-           --target $device",
-        $args{timeout}
+        "elemental3ctl --debug install --cmdline '$krnlcmdline' --os-image $image --overlay dir://$overlay_dir --config $config_file --target $device",
+        timeout => $args{timeout},
     );
 
     # Return HDD image
@@ -327,7 +298,8 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1};
+    return {fatal => 1, milestone => 1};
+
 }
 
 1;

@@ -33,8 +33,8 @@ sub run {
     my $ssh_dir = '/root/.ssh';
     record_info('SSH config', 'Configure password-less SSH access');
     assert_script_run("mkdir -p $ssh_dir");
-    assert_script_run("curl -v -o $ssh_dir/config " . data_url('elemental3/config.ssh'));
-    assert_script_run("curl -v -o /tmp/id_ssh " . data_url('elemental3/id_ssh'));
+    assert_script_run("curl -s -o $ssh_dir/config " . data_url('elemental3/config.ssh'));
+    assert_script_run("curl -s -o /tmp/id_ssh " . data_url('elemental3/id_ssh'));
     assert_script_run("base64 -d /tmp/id_ssh > $ssh_dir/id_rsa");
     assert_script_run("chmod -R go-rwx $ssh_dir");
 
@@ -77,19 +77,14 @@ sub run {
         my $opts;
 
         # Rancher Manager options
-        $opts = "-tags=$test \\
-                 -certManagerVersion $certmanager_version \\
-                 -chartsVersion $rancher_version \\
-                 -chartsRepoName rancher \\
-                 -chartsRepoUrl $rancher_url \\
-                 -chartsArgs $rancher_args" if ($test eq 'deployrancher');
+        $opts = "-tags=$test -certManagerVersion $certmanager_version -chartsVersion $rancher_version -chartsRepoName rancher -chartsRepoUrl $rancher_url -chartsArgs $rancher_args" if ($test eq 'deployrancher');
 
         # Add SELinux test in cluster validation
         # NOTE: disable for now, as ECM test framework needs to be adapted
         # $opts = "-selinux true" if ($test eq 'validatecluster');
 
         record_info("$test", "Execute '$test' test with options '$opts'");
-        assert_script_run("go test -timeout=45m -v -count=1 ./entrypoint/$test/... $opts", 3600);
+        assert_script_run("go test -timeout=45m -v -count=1 ./entrypoint/$test/... $opts", timeout => 3600);
     }
 
     # Tests done, sync with the nodes
@@ -108,7 +103,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1, milestone => 0};
+    return {fatal => 1, milestone => 1};
 }
 
 1;
