@@ -30,6 +30,5 @@ conditional_schedule:
         - console/apache2_php_fpm
       '16.1':
         - console/php_pcre
-        - console/apache2_php_fpm
       Tumbleweed:
         - console/apache2_php_fpm

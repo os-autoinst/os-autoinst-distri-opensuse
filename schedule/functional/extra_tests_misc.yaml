@@ -25,6 +25,5 @@ schedule:
     - console/perf
     - '{{tw_tests}}'
     - console/dpdk
-    - console/zziplib
     - console/cpio
     - console/zypper_log_packages
