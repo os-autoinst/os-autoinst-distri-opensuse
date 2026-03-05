@@ -142,8 +142,10 @@ sub run {
 
     $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
-    # Run conformance tests only on Tumbleweed until SLES 16.1 catches up to v1.42.2+
-    test_conformance unless (is_sle || !is_x86_64 || get_var("RUN_TESTS") || check_var("BATS_IGNORE_ROOT", "conformance"));
+    # Run conformance tests only on demand, when
+    # new buildah & docker packages are published
+    # You need to clone with BATS_IGNORE_USER=all BATS_IGNORE_ROOT=all RUN_TESTS=conformance
+    test_conformance if check_var("RUN_TESTS", "conformance");
 
     die "buildah tests failed" if ($errors);
 }
