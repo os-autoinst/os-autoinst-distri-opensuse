@@ -84,7 +84,7 @@ sub run {
         # $opts = "-selinux true" if ($test eq 'validatecluster');
 
         record_info("$test", "Execute '$test' test with options '$opts'");
-        assert_script_run("go test -timeout=45m -v -count=1 ./entrypoint/$test/... $opts", 3600);
+        assert_script_run("go test -timeout=45m -v -count=1 ./entrypoint/$test/... $opts", timeout => 3600);
     }
 
     # Tests done, sync with the nodes
