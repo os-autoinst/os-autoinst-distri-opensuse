@@ -142,7 +142,8 @@ subtest '[crash_get_instance]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
     $crash->redefine(crash_pubip => sub { return 'Inoc.ybe.Geo.phylla'; });
     $crash->redefine(crash_get_username => sub { return 'cloudadmin'; });
-
+    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    $crash->redefine(aws_vm_get_id => sub { return 'AmanitaBisporigera'; });
     my $mock_instance = Test::MockObject->new();
     my @new_args;
     my $instance_mock = Test::MockModule->new('publiccloud::instance', no_auto => 1);
@@ -155,6 +156,7 @@ subtest '[crash_get_instance]' => sub {
     is($res, $mock_instance, 'Returns instance object');
     is($new_args[0]->{public_ip}, 'Inoc.ybe.Geo.phylla', 'Correct public_ip passed to new');
     is($new_args[0]->{username}, 'cloudadmin', 'Correct username passed to new');
+    is($new_args[0]->{instance_id}, 'AmanitaBisporigera', 'Correct instance_id passed to new');
 };
 
 subtest '[crash_get_instance] GCE with availability_zone' => sub {
@@ -183,6 +185,7 @@ subtest '[crash_get_instance] GCE with availability_zone' => sub {
     is($res, $mock_instance, 'Returns instance object');
     is($new_args[0]->{public_ip}, 'Inoc.ybe.Geo.phylla', 'Correct public_ip passed to new');
     is($new_args[0]->{username}, 'cloudadmin', 'Correct username passed to new');
+    is($new_args[0]->{instance_id}, 'crashRussulaEmetica-vm', 'Correct instance_id passed to new');
 };
 
 subtest '[crash_cleanup] AZURE' => sub {
