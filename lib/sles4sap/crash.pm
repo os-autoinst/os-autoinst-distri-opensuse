@@ -35,9 +35,6 @@ our @EXPORT = qw(
   crash_system_ready
   crash_softrestart
   crash_wait_back
-  crash_destroy_azure
-  crash_destroy_aws
-  crash_destroy_gcp
 );
 
 use constant DEPLOY_PREFIX => 'crash';
@@ -662,7 +659,7 @@ sub crash_destroy_gcp(%args) {
     my @erro_msg;
     foreach my $key (keys %ret) {
         if ($ret{$key}) {
-            push @erro_msg, "Failed to destory $key rc:" . $ret{$key};
+            push @erro_msg, "Failed to destroy $key rc:" . $ret{$key};
             $exit = $ret{$key};
         }
     }

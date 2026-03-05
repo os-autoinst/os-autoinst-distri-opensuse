@@ -22,15 +22,9 @@ sub run {
     my $region = get_required_var('PUBLIC_CLOUD_REGION');
 
     select_serial_terminal;
-    if ($provider eq 'AZURE') {
-        crash_destroy_azure();
-    }
-    elsif ($provider eq 'EC2') {
-        crash_destroy_aws(region => $region);
-    }
-    elsif ($provider eq 'GCE') {
-        crash_destroy_gcp(region => $region, availability_zone => get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE'));
-    }
+    my %cleanup_args = (provider => $provider, region => $region);
+    $cleanup_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $provider eq 'GCE';
+    crash_cleanup(%cleanup_args);
 }
 
 sub test_flags {
