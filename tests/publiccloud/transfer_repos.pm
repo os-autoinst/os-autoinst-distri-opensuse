@@ -86,7 +86,7 @@ sub run {
         $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec echo '{}' \\;");
     }
 
-    $instance->ssh_assert_script_run("zypper lr -P");
+    record_info("zypper repos", $instance->ssh_script_output("zypper lr -P"));
 }
 
 sub test_flags {
