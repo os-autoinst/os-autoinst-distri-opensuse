@@ -309,7 +309,8 @@ sub replace_opensuse_repos_tests {
 sub is_updates_tests {
     my $flavor = get_var('FLAVOR');
     return 0 unless $flavor;
-    # Incidents might be also Incidents-Gnome or Incidents-Kernel or Online-Increments(for sle16)
+    return 0 if ($flavor =~ "BCI-Updates");    # BCI do not count as update tests
+                                               # Incidents might be also Incidents-Gnome or Incidents-Kernel or Online-Increments(for sle16)
     return $flavor =~ /-Updates|-Incidents|-Increments/;
 }
 
