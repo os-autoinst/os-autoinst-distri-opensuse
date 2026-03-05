@@ -140,6 +140,11 @@ sub run_client() {
         'echo "   idmap config * : range = 3000-7999" >> /etc/samba/smb.conf'
     );
     assert_script_run($_) for @smb_conf_setup;
+
+    if (script_run('test -f /usr/etc/krb5.conf') == 0) {
+        record_soft_failure("bsc#1257940 - net ads join wants to use /etc/krb5.conf");
+        assert_script_run('cp /usr/etc/krb5.conf /etc/');
+    }
     assert_script_run('net ads join -U Administrator%' . PASSWORD);
     assert_script_run('net ads testjoin');
     assert_script_run('smbclient -L //server -I ' . $server_ip . ' -U testuser%' . PASSWORD);
