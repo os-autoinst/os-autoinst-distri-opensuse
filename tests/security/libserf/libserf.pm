@@ -37,7 +37,7 @@ sub setup_apache {
     # Generate self-signed certificate (CN = $server_name)
     assert_script_run("gensslcert -n $server_name -e webmaster\@$server_name -a DNS:example-ssl.com");
     # Configure SSL vhost
-    type_string("cat >> $vhost_ssl_conf <<EOF
+    my $vhost_ssl_conf_content = <<END;
 <IfDefine SSL>
 <VirtualHost _default_:443>
     DocumentRoot \"/srv/www/vhosts/$server_name\"
@@ -58,8 +58,8 @@ sub setup_apache {
     </Directory>
 </VirtualHost>
 </IfDefine>
-EOF
-");
+END
+    write_sut_file($vhost_ssl_conf, $vhost_ssl_conf_content);
 
     # Force Apache SSL
     assert_script_run("sed -i '/^APACHE_SERVER_FLAGS=*/c\\APACHE_SERVER_FLAGS=\"SSL\"' /etc/sysconfig/apache2");
@@ -71,7 +71,7 @@ sub setup_svn {
     # Configure SVN auth
     assert_script_run("htpasswd -cb /etc/apache2/svn.passwd $svn_user $svn_pass");
 
-    type_string("cat >> $svn_conf_file <<EOF
+    my $svn_conf_file_content = <<END;
 <IfModule mod_dav_svn.c>
 <Location /repos>
     DAV svn
@@ -82,8 +82,8 @@ sub setup_svn {
     Require valid-user
 </Location>
 </IfModule>
-EOF
-");
+END
+    write_sut_file($svn_conf_file, $svn_conf_file_content);
 
     # Start Apache
     systemctl('restart apache2');
