@@ -648,15 +648,18 @@ sub load_jeos_tests {
     if (check_var('FIRST_BOOT_CONFIG', 'combustion')) {
         if (get_var('LTP_COMMAND_FILE', '')) {
             loadtest "installation/first_boot";
+            loadtest "jeos/host_config" unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
         } else {
             loadtest 'microos/verify_setup';
             loadtest 'microos/image_checks';
         }
     } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
         loadtest "installation/first_boot";
+        loadtest "jeos/host_config" unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
         loadtest 'jeos/verify_cloudinit';
     } else {
         loadtest "jeos/firstrun";
+        loadtest "jeos/host_config" unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
         if (get_var('POSTGRES_IP')) {
             loadtest "jeos/image_info";
         }
@@ -665,7 +668,6 @@ sub load_jeos_tests {
 
     loadtest "console/force_scheduled_tasks";
     # this test case also disables grub timeout
-    loadtest "jeos/host_config" unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
     unless (get_var('INSTALL_LTP') || get_var('SYSTEMD_TESTSUITE') || get_var('CONTAINER_RUNTIMES')) {
         loadtest "jeos/record_machine_id";
         # jeos/diskusage as of now works only with BTRFS
