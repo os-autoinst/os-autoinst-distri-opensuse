@@ -58,6 +58,11 @@ sub run {
     if (is_sle('>=15-SP3') && ($current_ver < 0.101)) {
         record_soft_failure("jsc#SLE-16780: upgrade Clamav SLE feature is not yet released");
     }
+    # Softfail until BSC1258122 resolved
+    elsif (get_var('FIPS_ENABLED') && (is_sle('=15-SP5') || is_sle('=15-SP4'))) {
+        record_soft_failure("Softfail clamav on SLE 15.4 and 15.5 due to bsc#1258122");
+        return;
+    }
 
     # Initialize and download ClamAV database
     # First from local mirror, it's much faster, then from official clamav db
