@@ -21,6 +21,7 @@ sub run {
     assert_script_run("$tools_dir/btrfsdist 5 2");
     assert_script_run("$tools_dir/btrfsslower -d 10");
     assert_script_run("$tools_dir/filetop -a 5 10");
+    assert_script_run("$tools_dir/runqlat 2 5");
 }
 
 sub test_flags {
