@@ -31,6 +31,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils qw(script_retry zypper_call);
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 
 sub run {
     barrier_create('SALT_MINIONS_READY', 2);
@@ -38,6 +40,9 @@ sub run {
     mutex_create 'barrier_setup_done';
     my $self = shift;
     select_serial_terminal;
+
+    # Package 'salt-master' requires PackageHub is available
+    add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready() && is_sle('>=16.0'));
 
     # Install, configure and start the salt master
     $self->master_prepare();

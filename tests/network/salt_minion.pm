@@ -24,10 +24,15 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use mm_network 'setup_static_mm_network';
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 
 sub run {
     my $self = shift;
     select_serial_terminal;
+
+    # Package 'salt-minion' requires PackageHub is available
+    add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready() && is_sle('>=16.0'));
 
     # Install, configure and start the salt minion
     $self->minion_prepare();
