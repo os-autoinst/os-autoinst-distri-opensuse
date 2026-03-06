@@ -8,6 +8,7 @@
 
 from testapi import *
 import json
+import re
 
 perl.require("registration")
 perl.require("serial_terminal")
@@ -60,7 +61,9 @@ def check_ha_registered(self):
                          for product in json.loads(script_output("SUSEConnect --status"))])
 
     if (not ha_registered):
-        record_soft_failure("jsc#TEAM-10163 - HA Extension not active. Activating it")
+        if re.search("High Availability Extension.*Activated", script_output("SUSEConnect --list-extensions")):
+            record_soft_failure("bsc#1259059 - SUSEConnect --status does not show registered extensions")
+
         perl.registration.register_addons_cmd()
         perl.utils.zypper_call("lr -u")
 
