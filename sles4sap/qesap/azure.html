@@ -190,9 +190,23 @@ Returns tenant ID related to the specified subscription ID.</code></pre>
 
 <h2 id="qesap_az_diagnostic_log">qesap_az_diagnostic_log</h2>
 
+<p>qesap_az_diagnostic_log(cmd =&gt; &#39;command&#39;, [fatal =&gt; 1, timeout =&gt; 240]);</p>
+
 <p>Call `az vm boot-diagnostics json` for each running VM in the resource group associated to this openQA job</p>
 
 <p>Return a list of diagnostic file paths on the JumpHost</p>
+
+<dl>
+
+<dt id="fatal---abort-whole-test-suite-if-this-fails-default-to-1"><b>fatal</b> - abort whole test suite if this fails, default to 1</dt>
+<dd>
+
+</dd>
+<dt id="timeout---the-maximum-waiting-time-default-to-240-seconds"><b>timeout</b> - the maximum waiting time, default to 240 seconds</dt>
+<dd>
+
+</dd>
+</dl>
 
 
 </body>
