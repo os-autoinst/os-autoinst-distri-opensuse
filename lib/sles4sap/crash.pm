@@ -53,6 +53,32 @@ sub crash_deploy_name {
     return DEPLOY_PREFIX . get_current_job_id();
 }
 
+=head2 crash_vm_name
+
+    my $vm_name = crash_vm_name(provider => 'AZURE');
+
+Returns the VM name for a given cloud provider. This function is designed to be called
+before VM creation, as it does not require a running VM to determine the name.
+It is used when composing Azure or GCE CLI commands for VM creation, creating the
+C<publiccloud::instance> object to populate the C<instance_id> field, and during VM deletion.
+Note that EC2 does not need or allow specifying a name in this way, so this function
+is not supported for the EC2 provider.
+
+=over
+
+=item B<provider> - Cloud provider name (AZURE, GCE)
+
+=back
+=cut
+
+sub crash_vm_name {
+    my (%args) = @_;
+    croak('Argument < provider > missing') unless $args{provider};
+    croak("Not supported provider < $args{provider} >") if ($args{provider} ne 'AZURE' && $args{provider} ne 'GCE');
+    return DEPLOY_PREFIX . '-vm' if ($args{provider} eq 'AZURE');
+    return crash_deploy_name() . '-vm' if ($args{provider} eq 'GCE');
+}
+
 =head2 crash_deploy_azure
 
 Run the Azure deployment for the crash test
@@ -114,7 +140,7 @@ sub crash_deploy_azure(%args) {
 
     my %vm_create_args = (
         resource_group => $rg,
-        name => DEPLOY_PREFIX . '-vm',
+        name => crash_vm_name(provider => 'AZURE'),
         image => $os_ver,
         nic => $nic,
         username => USER,
@@ -125,7 +151,7 @@ sub crash_deploy_azure(%args) {
 
     az_vm_wait_running(
         resource_group => crash_deploy_name(),
-        name => DEPLOY_PREFIX . '-vm',
+        name => crash_vm_name(provider => 'AZURE'),
         timeout => 1200);
 }
 
@@ -263,7 +289,7 @@ sub crash_deploy_gcp(%args) {
         region => $region,
         name => $ip_name);
 
-    my $vm_name = $job_id . '-vm';
+    my $vm_name = crash_vm_name(provider => 'GCE');
     my $zone = $args{region} . '-' . $args{availability_zone};
     gcp_vm_create(
         project => $args{project},
@@ -284,7 +310,7 @@ sub crash_deploy_gcp(%args) {
         timeout => 1200);
 }
 
-=head2 crush_pubip
+=head2 crash_pubip
 
 Get the deployment public IP of the VM. Die if an
 unsupported csp name is provided.
@@ -314,10 +340,10 @@ sub crash_pubip(%args) {
             name => DEPLOY_PREFIX . "-pub_ip");
     }
     elsif ($args{provider} eq 'GCE') {
-        croak("Argument < availability_zone > missing") unless $args{availability_zone};
+        croak('Argument < availability_zone > missing') unless $args{availability_zone};
         $vm_ip = gcp_public_ip_get(
             zone => $args{region} . '-' . $args{availability_zone},
-            name => crash_deploy_name() . '-vm');
+            name => crash_vm_name(provider => 'GCE'));
     }
     else {
         die "Not supported provider '$args{provider}'";
@@ -339,7 +365,7 @@ Get the username for SSH login based on cloud provider
 =cut
 
 sub crash_get_username(%args) {
-    croak("Argument < provider > missing") unless $args{provider};
+    croak('Argument < provider > missing') unless $args{provider};
 
     my %usernames = (
         GCE => 'cloudadmin',
@@ -380,7 +406,16 @@ sub crash_get_instance(%args) {
     $crash_pubip_args{provider} = $args{provider};
     $crash_pubip_args{region} = $args{region};
     $crash_pubip_args{availability_zone} = $args{availability_zone} if $args{availability_zone};
+
+    my $instance_id;
+    if ($args{provider} eq 'EC2') {
+        $instance_id = aws_vm_get_id(region => $args{region}, job_id => crash_deploy_name());
+    } else {
+        $instance_id = crash_vm_name(provider => $args{provider});
+    }
+
     my $instance = publiccloud::instance->new(
+        instance_id => $instance_id,
         public_ip => crash_pubip(%crash_pubip_args),
         username => crash_get_username(provider => $args{provider})
     );
@@ -418,7 +453,7 @@ sub crash_cleanup(%args) {
         crash_destroy_aws(region => $args{region});
     }
     elsif ($args{provider} eq 'GCE') {
-        croak("Argument < availability_zone > missing") unless $args{availability_zone};
+        croak('Argument < availability_zone > missing') unless $args{availability_zone};
         crash_destroy_gcp(
             availability_zone => $args{availability_zone},
             region => $args{region});
@@ -504,8 +539,7 @@ sub crash_softrestart(%args) {
     # wait till ssh disappear
     my $out = $args{instance}->wait_for_ssh(
         timeout => $args{timeout},
-        wait_stop => 1,
-        'cloudadmin');
+        wait_stop => 1);
     # ok ssh port closed
     record_info("Shutdown failed",
         "WARNING: while stopping the system, ssh port still open after timeout,\nreporting: $out")
@@ -514,8 +548,7 @@ sub crash_softrestart(%args) {
     my $shutdown_time = time() - $start_time;
     $args{instance}->wait_for_ssh(
         timeout => $args{timeout} - $shutdown_time,
-        'cloudadmin',
-        0);
+        systemup_check => 0);
 }
 
 =head2 crash_wait_back
@@ -529,7 +562,7 @@ Then list for failed services and die if find one.
 
 =item B<vm_ip> Public IP address of the SUT, can be calculated by crash_pubip
 
-=item B<username> Public IP address of the SUT, can be calculated by crash_pubip
+=item B<username> Username for SSH login, can be calculated by crash_get_username
 
 =back
 =cut
@@ -639,7 +672,7 @@ sub crash_destroy_gcp(%args) {
     my %ret;
     $ret{vm} = gcp_vm_terminate(
         zone => $args{region} . '-' . $args{availability_zone},
-        name => crash_deploy_name() . '-vm');
+        name => crash_vm_name(provider => 'GCE'));
 
     $ret{ip} = gcp_external_ip_delete(
         region => $args{region},
