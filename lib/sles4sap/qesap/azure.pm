@@ -306,25 +306,57 @@ sub qesap_az_list_container_files {
 
 =head2 qesap_az_diagnostic_log
 
+qesap_az_diagnostic_log(cmd => 'command', [fatal => 1, timeout => 240]);
+
 Call `az vm boot-diagnostics json` for each running VM in the
 resource group associated to this openQA job
 
 Return a list of diagnostic file paths on the JumpHost
+
+=over
+
+=item B<fatal> - abort whole test suite if this fails, default to 1
+
+=item B<timeout> - the maximum waiting time, default to 240 seconds
+
+=back
 =cut
 
 sub qesap_az_diagnostic_log {
+    my (%args) = @_;
+    my $fatal = $args{fatal} // 1;
+    my $timeout = $args{timeout} // 240;
     my @diagnostic_log_files;
+    my @failures;
+
     my $rg = qesap_az_get_resource_group();
     my $vm_data = az_vm_list(resource_group => $rg, query => '[].{id:id,name:name}');
-
     my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
+
     foreach (@{$vm_data}) {
         record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
         my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
-        # Ignore the return code, so also miss the pipefail setting
-        script_run(join(' ', $az_get_logs_cmd, $_->{id}, '&>', $boot_diagnostics_log));
+
+        my $ret;
+        eval {
+            $ret = script_run("$az_get_logs_cmd $_->{id} &> $boot_diagnostics_log", timeout => $timeout);
+        };
+        my $error = $@;
+
+        if ($error || !defined $ret || $ret != 0) {
+            my $detail = ($error && $error =~ /\S/) ? "$error" : "Exit code: $ret";
+            my $fail_msg = "Failed to get boot diagnostics for $_->{name}: $detail";
+            record_info('Diag Warn', $fail_msg, result => 'fail');
+            push @failures, $fail_msg;
+            next;
+        }
         push(@diagnostic_log_files, $boot_diagnostics_log);
     }
+
+    if (@failures && $fatal) {
+        die "Fatal Error:\n" . join("\n", @failures);
+    }
+
     return @diagnostic_log_files;
 }
 
