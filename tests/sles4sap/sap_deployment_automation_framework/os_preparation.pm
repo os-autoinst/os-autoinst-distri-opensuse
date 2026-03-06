@@ -70,7 +70,7 @@ sub run {
         env_code => get_required_var('SDAF_ENV_CODE'),
         sdaf_region_code => convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')),
         sap_sid => $sap_sid);
-    my $sut_private_key_path = get_sut_sshkey_path(config_root_path => $sdaf_config_root_dir);
+    my $sut_sid_private_key_path = get_sut_sshkey_path(sut => 'sid', config_root_path => $sdaf_config_root_dir);
     # setup = combination of all components chosen for installation
     # Leave OpenQA setting mandatory without default value to keep it consistent across all test modules.
     my @components = split(/,/, get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
@@ -94,8 +94,8 @@ sub run {
         # Tasks needed to be run after playbook 'pb_get-sshkey.yaml'
         if ($playbook_options->{playbook_filename} =~ /pb_get-sshkey/) {
             # Check if SSH key was created by playbook
-            record_info('File check', "Check if SSH key '$sut_private_key_path' was created by SDAF");
-            assert_script_run("test -f $sut_private_key_path");
+            record_info('File check', "Check if SSH key '$sut_sid_private_key_path' was created by SDAF");
+            assert_script_run("test -f $sut_sid_private_key_path");
 
             # BYOS image registration must happen before executing any other playbooks
             sdaf_register_byos(

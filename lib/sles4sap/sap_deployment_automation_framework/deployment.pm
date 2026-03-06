@@ -471,13 +471,15 @@ sub load_os_env_variables {
 
 =head2 sdaf_ssh_key_from_keyvault
 
-    sdaf_ssh_key_from_keyvault(key_vault=>$key_vault [, target_file=>'/path/to/glory/and_happiness']);
+    sdaf_ssh_key_from_keyvault(key_vault=>$key_vault [, query=>'sshkey', target_file=>'/path/to/glory/and_happiness']);
 
 Retrieves public and private ssh key from specified keyvault and sets up permissions.
 
 =over
 
 =item * B<key_vault>: Key vault name
+
+=item * B<query>: Query keyword, default 'sshkey', ['sshkey' | 'sid-sshkey' | 'iscsi-sshkey']
 
 =item * B<target_file>: Full file path, where to write the public key. Default '~/.ssh/id_rsa'
 
@@ -487,10 +489,11 @@ Retrieves public and private ssh key from specified keyvault and sets up permiss
 sub sdaf_ssh_key_from_keyvault {
     my (%args) = @_;
     croak 'Missing mandatory argument: key_vault' unless $args{key_vault};
+    $args{query} //= 'sshkey';
     $args{target_file} //= homedir() . '/.ssh/id_rsa';
     my ($target_filename, $target_path) = fileparse($args{target_file});
     my @secret_ids = @{az_keyvault_secret_list(
-            vault_name => $args{key_vault}, query => '"[?ends_with(name, \'sshkey\')].id"')};
+            vault_name => $args{key_vault}, query => "\"[?ends_with(name, \'$args{query}\')].id\"")};
 
     croak "Multiple or no secrets found: \n" . join("\n", @secret_ids) unless @secret_ids == 1;
 
@@ -517,7 +520,7 @@ sub sdaf_ssh_key_from_keyvault {
         sleep 5;
     }
 
-    record_info('SSH KEY', "SSH public key '$target_path/$target_filename' is ready to be used.");
+    record_info('SSH KEY', "SSH public key '${target_path}${target_filename}' is ready to be used.");
 }
 
 =head2 serial_console_diag_banner

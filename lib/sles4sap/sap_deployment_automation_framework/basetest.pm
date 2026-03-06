@@ -284,7 +284,7 @@ sub post_fail_hook {
         # Prepare redirection data, reset $run_args in case of post_fail_hook being invoked before $run_args is set
         my $inventory_path = get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path);
         my $inventory_data = read_inventory_file($inventory_path);
-        my $private_key_src_path = get_sut_sshkey_path(config_root_path => $config_root_path);
+        my $private_key_src_path = get_sut_sshkey_path(sut => 'sid', config_root_path => $config_root_path);
         $run_args->{sdaf_inventory} = $inventory_data;
         $run_args->{redirection_data} = create_redirection_data(inventory_data => $inventory_data);
         my %redirection_data = %{$run_args->{redirection_data}};
@@ -293,8 +293,12 @@ sub post_fail_hook {
         # Prepare ssh config, download ssh private key for accessing SUTs
         my $jump_host_user = get_required_var('REDIRECT_DESTINATION_USER');
         my $jump_host_ip = get_required_var('REDIRECT_DESTINATION_IP');
-        my $scp_cmd = join(' ', 'scp ', "$jump_host_user\@$jump_host_ip:$private_key_src_path", $sut_private_key_path);
+        my $scp_cmd = join(' ', 'scp ', "$jump_host_user\@$jump_host_ip:$private_key_src_path", $sut_sid_private_key_path);
         assert_script_run($scp_cmd);
+        if (get_required_var('SDAF_FENCING_MECHANISM') eq 'sbd') {
+            $scp_cmd = join(' ', 'scp', "$jump_host_user\@$jump_host_ip:$private_key_src_path", $sut_iscsi_private_key_path);
+            assert_script_run($scp_cmd);
+        }
         prepare_ssh_config(
             inventory_data => $inventory_data,
             jump_host_ip => $jump_host_ip,
