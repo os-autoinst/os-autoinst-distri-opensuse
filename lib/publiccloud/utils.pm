@@ -207,8 +207,6 @@ sub deregister_addon {
     record_info('SUSEConnect time', 'The command SUSEConnect -d ' . get_addon_fullname($addon) . ' took ' . (time() - $cmd_time) . ' seconds.');
 }
 
-my $registration_armed = 0;
-
 sub registercloudguest {
     my ($instance) = @_;
     my $regcode = get_required_var('SCC_REGCODE');
@@ -220,21 +218,9 @@ sub registercloudguest {
         die 'cloud-regionsrv-client should be installed' if !is_container_host;
     }
 
-    record_info('registation_armed', $registration_armed ? 'Yes' : 'No');
-
-    my $cmd_time;
-
-    if ($registration_armed) {
-        $cmd_time = time();
-        $instance->ssh_assert_script_run(cmd => "sudo $suseconnect --clean");
-        record_info('registration cleanup time', 'The registration cleanup took ' . (time() - $cmd_time) . ' seconds.');
-        $registration_armed = 0;
-    }
-
-    $cmd_time = time();
+    my $cmd_time = time();
     $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
     record_info('registration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
-    $registration_armed = 1;
 
     # If the SSH master socket is active, exit it, so the next SSH command will (re)login
     if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
