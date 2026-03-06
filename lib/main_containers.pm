@@ -14,7 +14,6 @@ use version_utils;
 use main_common qw(loadtest boot_hdd_image);
 use testapi qw(check_var get_required_var get_var set_var);
 use publiccloud::utils 'is_azure';
-use main_common qw(is_updates_tests);
 use Utils::Architectures;
 use Utils::Backends;
 use strict;
@@ -330,8 +329,9 @@ sub load_container_tests {
         loadtest 'boot/boot_to_desktop' unless is_public_cloud;
     }
 
-    # Note: Publiccloud uses publiccloud/patch_and_reboot
-    loadtest 'qa_automation/patch_and_reboot' if (is_updates_tests && !is_public_cloud);
+    if (is_sle('16.0+') && get_var('FLAVOR', '') =~ /increments|staging/i) {
+        loadtest 'qa_automation/patch_and_reboot';
+    }
 
     if (my $container_tests = get_var('CONTAINER_TESTS', '')) {
         loadtest "containers/$_" foreach (split(',\s*', $container_tests));
