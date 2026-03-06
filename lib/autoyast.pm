@@ -712,7 +712,7 @@ sub expand_variables {
     # Expand other variables
     my @vars = qw(SCC_REGCODE SCC_REGCODE_HA SCC_REGCODE_GEO SCC_REGCODE_HPC
       SCC_REGCODE_LTSS SCC_REGCODE_WE SCC_REGCODE_SLES4SAP SCC_URL ARCH LOADER_TYPE NTP_SERVER_ADDRESS
-      AGAMA_PRODUCT_ID OSDISK SUT_NETDEVICE
+      AGAMA_PRODUCT_ID OSDISK SUT_NETDEVICE INSTALL_DISK_WWN
       REPO_SLE_MODULE_DEVELOPMENT_TOOLS SCC_REGCODE_LIVE MIRROR_HTTP);
     if (is_agama && get_var('STAGING', '')) {
         # For sle16+ MU tests, we use dynamic agama file to fit different repos
