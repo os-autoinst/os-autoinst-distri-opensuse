@@ -301,7 +301,6 @@ sub delegate_controllers {
         # https://susedoc.github.io/doc-sle/main/html/SLES-tuning/cha-tuning-cgroups.html#sec-cgroups-user-sessions
         run_command "mkdir -p /etc/systemd/system/user@.service.d/";
         run_command 'echo -e "[Service]\nDelegate=cpu cpuset io memory pids" > /etc/systemd/system/user@.service.d/60-delegate.conf';
-        systemctl "daemon-reload";
     }
 }
 
@@ -404,8 +403,6 @@ EOF
         run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install --force-resolution --allow-vendor-change $pkg || rpm -ivh --force --nodeps $pkg";
     }
 
-    delegate_controllers;
-
     if (check_var("SELINUX_ENFORCE", "0") && script_output("getenforce") eq "Enforcing") {
         record_info("Disabling SELinux");
         run_command "sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config";
@@ -419,10 +416,9 @@ EOF
     # This is a workaround for https://bugzilla.suse.com/show_bug.cgi?id=1246227
     run_command "rm -vf /etc/containers/mounts.conf /usr/share/containers/mounts.conf" unless (is_sle(">=16") || is_tumbleweed);
 
-    # Switch to cgroup v2 if not already active
-    if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
-        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
-    }
+    add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1) if check_var('CONTAINERS_CGROUP_VERSION', '2');
+
+    delegate_controllers;
 
     # We use ignore_loglevel to get task traces in case we get
     # "watchdog: BUG: soft lockup - CPU#1 stuck for 777s!"

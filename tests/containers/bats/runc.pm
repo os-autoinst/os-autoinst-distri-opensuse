@@ -20,9 +20,10 @@ sub run_tests {
     my $rootless = $params{rootless};
 
     my %env = (
-        RUNC_USE_SYSTEMD => "1",
         RUNC => "/usr/bin/runc",
     );
+    # systemd cgroups manager only works on cgroup v2
+    $env{RUNC_USE_SYSTEMD} = "1" if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") == 0);
 
     my $log_file = "runc-" . ($rootless ? "user" : "root");
 
