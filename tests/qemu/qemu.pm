@@ -21,8 +21,10 @@ sub is_qemu_preinstalled {
         return 1;
     }
     elsif (is_sle_micro('>=6.2') || is_leap_micro('>=6.2')) {
-        assert_script_run('rpm -q patterns-micro-kvm_host');
-        return 1;
+        if (script_run('rpm -q patterns-micro-kvm_host') != 0) {
+            record_info('TEST', 'Installing patterns-micro-kvm_host');
+            install_qemu('qemu-ppc');
+        }
     }
     elsif (is_sle_micro('>=6.0') || is_leap_micro('>=6.0')) {
         assert_script_run('rpm -q patterns-base-kvm_host');
@@ -50,7 +52,7 @@ sub run {
         assert_screen 'qemu-no-bootable-device', 60;
     }
     elsif (is_ppc64le) {
-        is_qemu_preinstalled or install_qemu('qemu-ppc');
+        is_qemu_preinstalled;
         enter_cmd "qemu-system-ppc64 -nographic";
         assert_screen ['qemu-open-firmware-ready', 'qemu-ppc64-no-trans-mem'], 60;
         if (match_has_tag 'qemu-ppc64-no-trans-mem') {
