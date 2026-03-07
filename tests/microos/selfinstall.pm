@@ -31,6 +31,11 @@ sub run {
     else {
         assert_screen('slem-selfinstall-write-drive', 350 / get_var('TIMEOUT_SCALE', 1));
         check_screen('slem-selfinstall-verify-drive', 350 / get_var('TIMEOUT_SCALE', 1));
+        my $monitor_start_time = time();
+        while (time() - $monitor_start_time <= 1800) {
+            save_screenshot;
+            sleep 1;
+        }
     }
 
     my $no_cd;
