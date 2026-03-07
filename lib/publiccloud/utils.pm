@@ -46,6 +46,7 @@ our @EXPORT = qw(
   is_hardened
   is_cloudinit_supported
   registercloudguest
+  clean_registercloudguest
   register_addon
   register_openstack
   register_addons_in_pc
@@ -221,6 +222,26 @@ sub registercloudguest {
     my $cmd_time = time();
     $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
     record_info('registration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
+
+    # If the SSH master socket is active, exit it, so the next SSH command will (re)login
+    if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
+        assert_script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
+    }
+}
+
+sub clean_registercloudguest {
+    my ($instance) = @_;
+    my $suseconnect = get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
+
+    # Check what version of registercloudguest binary we use, chost images have none pre-installed
+    my $version = $instance->ssh_script_output(cmd => 'rpm -q --queryformat "%{VERSION}\n" cloud-regionsrv-client', proceed_on_failure => 1);
+    if ($version =~ /cloud-regionsrv-client is not installed/) {
+        die 'cloud-regionsrv-client should be installed' if !is_container_host;
+    }
+
+    my $cmd_time = time();
+    $instance->ssh_script_retry(cmd => "sudo $suseconnect --clean", timeout => 420, retry => 3, delay => 120);
+    record_info('registration time', 'The registration cleanup took ' . (time() - $cmd_time) . ' seconds.');
 
     # If the SSH master socket is active, exit it, so the next SSH command will (re)login
     if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {

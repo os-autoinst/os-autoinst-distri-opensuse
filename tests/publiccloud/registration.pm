@@ -25,7 +25,10 @@ sub run {
 
     wait_quit_zypper_pc($args->{my_instance});
 
-    registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
+    if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION')) {
+        clean_registercloudguest($args->{my_instance}) if $args->{clean_registercloudguest};
+        registercloudguest($args->{my_instance});
+    }
 
     # https://progress.opensuse.org/issues/196370 workaround for a known issue on 15-SP5
     if (is_sle('=15-SP5')) {
