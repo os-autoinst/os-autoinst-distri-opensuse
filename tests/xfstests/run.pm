@@ -118,11 +118,14 @@ sub run {
     }
 
     # Generate xfstests blacklist
-    my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist($TEST_RANGES, $GROUPLIST, $FSTYPE));
     my $whitelist;
     if (my $issues = get_var('XFSTESTS_KNOWN_ISSUES')) {
         $whitelist = LTP::WhiteList->new($issues);
     }
+    unless ($BLACKLIST) {
+        $BLACKLIST = $whitelist->find_whitelist_entry($whitelist_env, $TEST_SUITE, 'xfstests_blacklist') if defined($whitelist);
+    }
+    my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist($TEST_RANGES, $GROUPLIST, $FSTYPE));
 
     my $subtest_num = scalar @tests;
     foreach my $index (0 .. $#tests) {
