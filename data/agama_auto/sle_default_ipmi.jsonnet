@@ -1,3 +1,4 @@
+local disk_id = '{{INSTALL_DISK_WWN}}';
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
@@ -15,6 +16,18 @@
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true
+  },
+  storage: {
+    drives: [
+      {
+        search: if disk_id != '' then '/dev/disk/by-id/' + disk_id else '*',
+        partitions: [
+          {
+            generate: 'default'
+          }
+        ]
+      }
+    ]
   },
   scripts: {
     pre: [
