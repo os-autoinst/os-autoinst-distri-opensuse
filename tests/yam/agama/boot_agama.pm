@@ -96,6 +96,7 @@ sub run {
     my @params = prepare_boot_params();
 
     $grub_menu->expect_is_shown();
+    # PED-13766: Boot from HD menu dropped in 16.1 except x86 legacy BIOS
     $grub_menu->select_install_product();
     $grub_menu->select_check_installation_medium_entry() if check_var('AGAMA_GRUB_SELECTION', 'check_medium');
     $grub_menu->select_rescue_system_entry() if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
