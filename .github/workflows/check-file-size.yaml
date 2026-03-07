@@ -18,3 +18,5 @@ jobs:
         max_size: 14000
         fail_on_find: true
         post_comment: false
+        ignored_files: |
+          .//products/microos/needles
