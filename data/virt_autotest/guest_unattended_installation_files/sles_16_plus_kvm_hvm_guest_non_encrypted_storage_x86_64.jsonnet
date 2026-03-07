@@ -23,12 +23,6 @@
     "hashedPassword": true,
     "sshPublicKey": "##Authorized-Keys##"
   },
-  // Workaround for bsc#1257492
-  "software": {
-      "packages": [
-        'qemu-guest-agent'
-      ]
-  },
   "storage": {
     "drives": [
       {
