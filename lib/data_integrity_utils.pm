@@ -1,6 +1,6 @@
 =head1 data_integrity_utils
 
-Library to verify image data integrity by comparing SHA256 checksums
+Library to verify image data integrity by comparing SHA256/SHA512 checksums
 
 =cut
 # SUSE's openQA tests
@@ -8,7 +8,7 @@ Library to verify image data integrity by comparing SHA256 checksums
 # Copyright 2018 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Library to verify image data integrity by comparing SHA256 checksums.
+# Summary: Library to verify image data integrity by comparing SHA256/SHA512 checksums.
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 
 package data_integrity_utils;
@@ -35,17 +35,26 @@ Digest retrieval is platform-specific depends.
 =cut
 
 sub get_image_digest {
-    my ($image_path) = shift;
+    my ($image_path, $algorithm) = @_;
+    $algorithm ||= 'SHA-256';  # default
 
     my $digest;
     if (is_svirt) {
-        $digest = console('svirt')->get_cmd_output("sha256sum $image_path", {domain => is_vmware() ? 'sshVMwareServer' : undef});
-        # On Hyper-V the hash starts with '\'
-        my $start = check_var('VIRSH_VMM_FAMILY', 'hyperv') ? 1 : 0;
-        $digest = substr $digest, $start, 64;    # extract SHA256 from the output
+        if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+            # Use Windows built-in Get-FileHash on Hyper-V, no need for external sha256sum/sha512sum
+            my $algo = $algorithm eq 'SHA-512' ? 'SHA512' : 'SHA256';
+            $digest = console('svirt')->get_cmd_output(
+                "powershell -Command \"(Get-FileHash -Path '$image_path' -Algorithm $algo).Hash.ToLower()\"");
+            $digest =~ s/^\s+|\s+$//g;    # trim whitespace
+        } else {
+            my $cmd = $algorithm eq 'SHA-512' ? 'sha512sum' : 'sha256sum';
+            $digest = console('svirt')->get_cmd_output("$cmd $image_path", {domain => is_vmware() ? 'sshVMwareServer' : undef});
+            my $len = $algorithm eq 'SHA-512' ? 128 : 64;
+            $digest = substr $digest, 0, $len;    # extract hash from the output
+        }
     }
     else {
-        $digest = digest_file_hex($image_path, "SHA-256");
+        $digest = digest_file_hex($image_path, $algorithm);
     }
     return $digest;
 }
@@ -54,7 +63,7 @@ sub get_image_digest {
 
  verify_checksum($dir_path);
 
-Verify image data integrity by comparing SHA256 checksums.
+Verify image data integrity by comparing SHA256/SHA512 checksums.
 Directory path C<$dir_path> is the parameter which is a part of image path '$image_path' if exists.
 
 Returns error message in case of failure, empty string in case of success.
@@ -64,13 +73,14 @@ Returns error message in case of failure, empty string in case of success.
 sub verify_checksum {
     my ($dir_path) = shift;
     my $error = '';
-    diag "Comparing data integrity calculated with SHA256 digest against checksum from IBS/OBS via rsync.pl";
+    diag "Comparing data integrity calculated with SHA256/SHA512 digest against checksum from IBS/OBS via rsync.pl";
     foreach my $image (grep { /^CHECKSUM_/ } keys %bmwqemu::vars) {
         my $checksum = get_required_var $image;
         $image =~ s/CHECKSUM_//;
         my $image_path = get_required_var $image;
         $image_path = $dir_path . basename($image_path) if $dir_path;
-        my $digest = get_image_digest($image_path);
+        my $algorithm = length($checksum) == 128 ? 'SHA-512' : 'SHA-256';
+        my $digest = get_image_digest($image_path, $algorithm);
         unless ($digest) {
             $error .= "Failed to calculate checksum for $image located in: $image_path\n";
             next;
@@ -78,7 +88,7 @@ sub verify_checksum {
         if ($checksum eq $digest) {
             diag("$image OK\n$image_path: OK");
         } else {
-            $error .= "SHA256 checksum does not match for $image:\n\tCalculated: $digest\n\tExpected:   $checksum\n";
+            $error .= "$algorithm checksum does not match for $image:\n\tCalculated: $digest\n\tExpected:   $checksum\n";
         }
     }
     diag($error) if $error;
