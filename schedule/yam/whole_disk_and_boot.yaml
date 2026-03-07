@@ -1,0 +1,13 @@
+---
+name: whole_disk_and_boot
+description: >
+    Installation using directly whole disk for home and boot partition in a different disk.
+schedule:
+    - yam/agama/boot_agama
+    - yam/agama/import_agama_profile
+    - yam/agama/patch_agama_tests
+    - yam/agama/agama
+    - installation/grub_test
+    - installation/first_boot
+    - console/validate_partition_table_via_blkid
+    - console/validate_blockdevices
