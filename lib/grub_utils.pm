@@ -9,7 +9,7 @@ use opensusebasetest qw(handle_uefi_boot_disk_workaround);
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_sle is_livecd is_bootloader_grub2_bls is_agama is_leap);
+use version_utils qw(is_sle is_livecd get_bootloader is_agama is_leap);
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 use Utils::Backends;
 
@@ -35,9 +35,11 @@ sub grub_test {
     reconnect_mgmt_console if is_pvm;
     handle_installer_medium_bootup();
     unlock_bootloader;
-    # 60 due to rare slowness e.g. multipath poo#11908
-    # 90 as a workaround due to the qemu backend fallout
-    assert_screen(is_bootloader_grub2_bls ? 'grub2-bls' : 'grub2', $timeout);
+    # get_bootloader returns the name of the bootloaders
+    # which is conveniently the same names we use for
+    # their tags
+    my $bootloader_tag = get_bootloader();
+    assert_screen($bootloader_tag, $timeout);
     assert_screen('grub2_timeout') if get_var('AGAMA_PROFILE_OPTIONS', '') =~ /bootloader_timeout/;
     stop_grub_timeout;
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");

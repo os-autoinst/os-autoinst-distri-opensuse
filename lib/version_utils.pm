@@ -910,6 +910,7 @@ sub get_bootloader {
     return 'grub2' if is_community_jeos;
     return 'grub2' if is_slowroll;
     return 'systemd-boot' if is_microos;
+    return 'systemd-boot' if (is_staging && check_var('VERSION', 'Staging:H'));
     return 'grub2-bls';
 }
 
