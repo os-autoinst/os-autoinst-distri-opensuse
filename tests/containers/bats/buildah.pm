@@ -50,6 +50,8 @@ sub run_tests {
     ) if (version->parse(numeric_version($version)) < version->parse("1.39.5") && !$rootless);
     push @xfails, (
         "bud.bats::bud-multiple-platform-no-partial-manifest-list",
+        # Fails with cgroups v1
+        "namespaces.bats::use containers.conf namespace settings",
     ) if (is_sle("<15-SP6"));
     push @xfails, (
         "run.bats::run check /etc/resolv.conf",
