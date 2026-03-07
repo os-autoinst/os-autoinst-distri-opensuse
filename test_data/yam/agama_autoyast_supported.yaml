@@ -8,3 +8,27 @@ files:
     mode: '644'
     owner: 'root'
     sha256sum: 'c7ed38f682068cdacf04c61783c3bdf034cd8703de0aa6a0b8c6796f5be3e62b'
+disks:
+  - name: sda
+    table_type: gpt
+    size: 20G
+    type: disk
+    children:
+      - name: sda1
+        type: part
+        mountpoints: ["/home"]
+        size: 20G
+  - name: vda
+    table_type: gpt
+    partitions:
+      - name: vda1
+        type: part
+        size: 8M
+      - name: vda2
+        type: part
+        mountpoints: /
+        size: 20G
+      - name: vda3
+        type: part
+        mountpoints: [SWAP]
+        size: 1G
