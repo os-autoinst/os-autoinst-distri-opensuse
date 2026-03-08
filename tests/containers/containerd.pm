@@ -26,12 +26,13 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
+    $version = script_output q(containerd --version | awk '{ print $3 }');
+    record_info "containerd version", $version;
+
+    configure_containerd_mirror $version;
     run_command "systemctl enable --now containerd";
     record_info "containerd status", script_output("systemctl status containerd");
     record_info "containerd config", script_output("containerd config dump");
-
-    $version = script_output q(containerd --version | awk '{ print $3 }');
-    record_info "containerd version", $version;
 
     patch_sources "containerd", $version, "integration";
 
@@ -46,7 +47,7 @@ sub critest {
     my $url = "https://github.com/cri-o/cri-o/raw/refs/heads/main/contrib/cni/11-crio-ipv4-bridge.conflist";
     run_command "curl -sL $url | tee /etc/cni/net.d/" . basename($url);
 
-    run_command "containerd config default | tee /etc/containerd/config.toml";
+    run_command "containerd config dump | tee /etc/containerd/config.toml";
     # cni-plugins are installed in /usr/libexec/cni instead of /opt/cni
     run_command q(sed -i 's,bin_dir =.*,bin_dir = "/usr/libexec/cni",' /etc/containerd/config.toml);
 
