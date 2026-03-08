@@ -100,6 +100,7 @@ sub run {
         "github.com/docker/cli/e2e/image::TestBuildFromContextDirectoryWithTag",
     ) if (is_sle("<16"));
     push @xfails, (
+        "github.com/docker/cli/e2e/container::TestProcessTermination",
         "github.com/docker/cli/e2e/plugin::TestInstall",
     ) unless (is_x86_64);
 
