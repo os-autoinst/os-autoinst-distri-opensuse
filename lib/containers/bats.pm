@@ -33,6 +33,7 @@ our @EXPORT = qw(
   cleanup_docker
   cleanup_podman
   cleanup_rootless_docker
+  configure_containerd_mirror
   configure_docker
   configure_rootless_docker
   configure_podman_mirror
@@ -52,6 +53,7 @@ my $curl_opts = "-sL --retry 9 --retry-delay 100 --retry-max-time 900";
 my $test_dir = "/var/tmp/";
 my $rebooted = 0;
 my $ip_addr;
+my $registry = get_var("REGISTRY", "3.126.238.126:5000");
 
 my @commands = ();
 
@@ -135,7 +137,6 @@ sub configure_docker {
 
     run_command "export DOCKER_BUILDKIT=1" if is_sle("<16");
 
-    my $registry = get_var("REGISTRY", "3.126.238.126:5000");
     my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn --registry-mirror http://$registry";
     $docker_opts .= " --experimental" if $args{experimental};
     $docker_opts .= " --selinux-enabled" if $args{selinux};
@@ -191,8 +192,33 @@ sub configure_rootless_docker {
     run_command 'export PATH=$PATH:/usr/sbin:/sbin';
 }
 
+sub configure_containerd_mirror {
+    my $version = shift;
+
+    # https://github.com/containerd/containerd/blob/main/docs/cri/registry.md
+    if ($version =~ /v1/) {
+        my $conf = <<"EOF";
+version = 2
+
+[plugins."io.containerd.grpc.v1.cri".registry]
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."docker.io"]
+      endpoint = ["http://$registry"]
+EOF
+        write_sut_file("/etc/containerd/config.toml", $conf);
+    } else {
+        my $conf = <<"EOF";
+server = "https://docker.io"
+
+[host."http://$registry"]
+  capabilities = ["pull", "resolve"]
+EOF
+        assert_script_run("mkdir -p /etc/containerd/certs.d/docker.io");
+        write_sut_file("/etc/containerd/certs.d/docker.io/hosts.toml", $conf);
+    }
+}
+
 sub configure_podman_mirror {
-    my $registry = get_var("REGISTRY", "3.126.238.126:5000");
     my $conf = <<"EOF";
 [[registry]]
 prefix = "docker.io"
