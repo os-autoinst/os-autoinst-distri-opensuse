@@ -90,7 +90,10 @@ sub run {
     }
     record_info('Downgrade', "Installing old version: openssl-3-$target_ver");
     # Force install the old package. Exit codes 106/107 indicate updates are available, which is expected.
-    install_package("--oldpackage libopenssl3=$target_ver openssl-3=$target_ver", trup_continue => 1, trup_reboot => 1);
+    my $ssl_packs = zypper_search('-i libopenssl3');
+    my @downgrade_list = map { "$_->{name}=$target_ver" } @$ssl_packs;
+    push @downgrade_list, "openssl-3=$target_ver";
+    install_package("--oldpackage " . join(' ', @downgrade_list), trup_continue => 1, trup_reboot => 1);
 
     # Start `openssl s_server` in the background. It's a long-running process that links with libssl/libcrypto.
     my $server_pid = background_script_run("openssl s_server -cert cert.pem -key key.pem -pass pass:password -accept 44330 -www");
