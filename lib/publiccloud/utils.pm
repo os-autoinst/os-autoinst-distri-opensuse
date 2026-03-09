@@ -140,7 +140,7 @@ sub register_addon {
     my $timestamp = utc_timestamp();
     record_info($addon, "Going to register '$addon' addon\nUTC: $timestamp");
     my $cmd_time = time();
-    my ($timeout, $retries, $delay) = (300, 3, 120);
+    my ($timeout, $retries, $delay) = (980, 7, 120);
     my $program = get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
 
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
