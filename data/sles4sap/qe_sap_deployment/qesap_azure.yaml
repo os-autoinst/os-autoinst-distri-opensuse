@@ -20,6 +20,7 @@ terraform:
     iscsi_enabled: true
     allowed_ssh_cidr_csv: '%WORKER_IP%'
 ansible:
+  verbosity: 3
   roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'
   az_container_name:  '%HANA_CONTAINER%'

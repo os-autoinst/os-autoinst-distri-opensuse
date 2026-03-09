@@ -20,6 +20,7 @@ terraform:
     iscsi_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
     iscsi_enabled: true
 ansible:
+  verbosity: 3
   roles_path: '%ANSIBLE_ROLES%'
   az_storage_account_name: '%HANA_ACCOUNT%'
   az_container_name:  '%HANA_CONTAINER%'
