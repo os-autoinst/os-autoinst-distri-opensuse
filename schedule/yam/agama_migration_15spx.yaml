@@ -1,0 +1,20 @@
+---
+name: agama_migration_15spx_textmode.yaml
+description: >
+  Migration from SLES 15px equivalent to system role textmode.
+schedule:
+  - yam/migration/setup_upgrade_env
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - console/hostname
+  - yam/migration/migration_unattended
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_product
+  - console/validate_repos
