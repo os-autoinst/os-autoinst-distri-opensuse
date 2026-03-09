@@ -14,7 +14,7 @@ use testapi;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";
 use maintenance_smelt qw(is_embargo_update);
-use version_utils qw(is_sle_micro);
+use version_utils qw(is_sle_micro is_sle);
 use publiccloud::utils qw(zypper_call_remote);
 
 sub run {
@@ -73,7 +73,7 @@ sub run {
     $instance->ssh_assert_script_run("find $repodir -name '*.rpm' -exec du -h '{}' + | sort -h > /tmp/rpm_list.txt", timeout => 60);
     $instance->upload_log('/tmp/rpm_list.txt');
 
-    if (is_sle_micro(">=6.0")) {
+    if (is_sle_micro(">=6.0") || is_sle("16+")) {
         my $counter = 0;
         for my $repo (@repos) {
             zypper_call_remote($instance, cmd => "ar -p10 " . $repodir . $repo . " ToTest_$counter");
