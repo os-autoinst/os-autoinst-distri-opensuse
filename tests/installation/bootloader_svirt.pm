@@ -71,6 +71,7 @@ sub run {
         # Remove invalid VM by previous openQA job
         my @vm_id = split('\n', $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | grep 'invalid VM' | cut -d\\' -f2", {domain => 'sshVMwareServer'}));
         foreach (@vm_id) {
+            record_info('Check invalid VM: ', $_);
             $svirt->run_cmd("vim-cmd vmsvc/reload $_", domain => 'sshVMwareServer');
             $svirt->run_cmd("vim-cmd vmsvc/unregister $_", domain => 'sshVMwareServer');
         }

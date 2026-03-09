@@ -325,6 +325,22 @@ are present and in working condition.
 =cut
 
 sub integration_services_check {
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        if (script_run('rpmquery hyper-v') != 0) {
+            record_soft_failure("Workaround for bsc#1257498");
+            zypper_call('in hyper-v');
+            systemctl('enable --now hv_kvp_daemon.service', timeout => 180);
+            systemctl('enable --now hv_vss_daemon.service', timeout => 180);
+        }
+    }
+    elsif (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        if (script_run('rpmquery open-vm-tools') != 0) {
+            record_soft_failure("Workaround for bsc#1257498");
+            zypper_call('in open-vm-tools');
+            systemctl('enable --now vmtoolsd', timeout => 180);
+            systemctl('enable --now vgauthd', timeout => 180);
+        }
+    }
     integration_services_check_ip();
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
         # Guest-side of Integration Services
