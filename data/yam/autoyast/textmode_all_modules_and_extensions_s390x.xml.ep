@@ -22,14 +22,14 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
-      % if ($check_var->('VERSION', '15-SP7') or $check_var->('VERSION', '15-SP6')) {
+      % if ( $get_var->('VERSION') =~ /15-SP[6-7]/ ) {
       <addon>
         <name>sle-module-systems-management</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
       % }
-      % if ($check_var->('VERSION', '15-SP4') or $check_var->('VERSION', '15-SP5') or $check_var->('VERSION', '15-SP6')) {
+      % if ( $get_var->('VERSION') =~ /15-SP[4-6]/ ) {
       <addon>
         <arch>{{ARCH}}</arch>
         <name>SLES-LTSS</name>

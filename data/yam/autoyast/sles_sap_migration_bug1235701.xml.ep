@@ -77,7 +77,7 @@
   </software>
   <suse_register t="map">
     <addons t="list">
-      % if ($check_var->('VERSION', '15-SP7') or $check_var->('VERSION', '15-SP6')) {
+      % if ( $get_var->('VERSION') =~ /15-SP[6-7]/ ) {
       <addon t="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-systems-management</name>
