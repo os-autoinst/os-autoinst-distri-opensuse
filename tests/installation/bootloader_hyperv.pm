@@ -45,8 +45,9 @@ sub run {
         if (my $iso = get_var("ISO$n")) {
             my $basenameiso = basename($iso);
             for my $isopath ("iso", "iso\\fixed") {
-                # Using sha256sum to judge whether file is used by other job process.
-                hyperv_cmd_with_retry("if exist $root\\cache\\$basenameiso ( sha256sum $root\\cache\\$basenameiso )", {msgs => ('Permission denied')});
+                # Try opening file to check if it is locked by another job process.
+                # Using lightweight file open test instead of hashing large ISO files.
+                hyperv_cmd_with_retry("if exist $root\\cache\\$basenameiso ( powershell -Command \"[System.IO.File]::Open('$root\\cache\\$basenameiso','Open','Read','Read').Close()\" )", {msgs => ('Permission denied', 'being used by another process')});
                 # If the image exists, do nothing
                 last if hyperv_cmd("if exist $root\\cache\\$basenameiso ( exit 1 )", {ignore_return_code => 1});
                 if ($mount_result->{success}) {
@@ -93,7 +94,7 @@ sub run {
     record_info("Checksum", $errors, result => 'fail') if $errors;
     # Delete copied mediums with wrong checksum
     foreach (split("\n", $errors)) {
-        next unless ($_ =~ m/SHA256 checksum does not match for (.*):/);
+        next unless ($_ =~ m/Checksum does not match for (.*):/);
         my $bad_image = basename(get_required_var($1));
         record_info("Delete medium", "Trying to delete wrong checksum downloaded medium $bad_image...", result => 'fail');
         hyperv_cmd_with_retry("del /F $root\\cache\\$bad_image");
