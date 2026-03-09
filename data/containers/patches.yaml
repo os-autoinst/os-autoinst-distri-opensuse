@@ -116,6 +116,7 @@ podman:
   # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   # https://github.com/containers/podman/pull/26921 is needed to drop socat
   # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
+  # https://github.com/containers/podman/pull/26947 - test/system: some small fixes
   # https://github.com/containers/podman/pull/27230 is needed for 130-kill
   # https://github.com/containers/podman/pull/27233 is needed for 130-kill
   # https://github.com/containers/podman/pull/27463 - test/system: Update test to handle new error message from runc 1.3.3
@@ -137,6 +138,9 @@ podman:
   26017:
     merged: "5.6.0"
     min: "5.0.0"
+  26947:
+    merged: "5.7.0"
+    min: "5.4.0"
   # XXX: Not merged
   26798:
     merged: "5.7.0"
