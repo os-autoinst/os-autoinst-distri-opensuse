@@ -525,7 +525,7 @@ sub bats_post_hook {
     script_run('free -h > free.txt');
     script_run('lscpu > lscpu.txt');
     script_run('lsmod > lsmod.txt');
-    script_run('rpm -qa | sort > rpm-qa.txt');
+    script_run('rpm -qa | sort > rpm-qa.txt', timeout => 180);
     script_run('sysctl -a > sysctl.txt');
     script_run('systemctl > systemctl.txt');
     script_run('systemctl status > systemctl-status.txt');
