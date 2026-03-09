@@ -22,7 +22,7 @@
 
 <h1 id="data_integrity_utils">data_integrity_utils</h1>
 
-<p>Library to verify image data integrity by comparing SHA256 checksums</p>
+<p>Library to verify image data integrity by comparing SHA256 and SHA512 checksums</p>
 
 <h2 id="get_image_digest">get_image_digest</h2>
 
@@ -34,7 +34,7 @@
 
 <pre><code>verify_checksum($dir_path);</code></pre>
 
-<p>Verify image data integrity by comparing SHA256 checksums. Directory path <code>$dir_path</code> is the parameter which is a part of image path &#39;$image_path&#39; if exists.</p>
+<p>Verify image data integrity by comparing checksums. Tries SHA-256 first; falls back to SHA-512 only if SHA-256 doesn&#39;t match. Supports full SHA-512 (128 chars) and truncated SHA-512 (first 64 chars) checksums. Directory path <code>$dir_path</code> is the parameter which is a part of image path &#39;$image_path&#39; if exists.</p>
 
 <p>Returns error message in case of failure, empty string in case of success.</p>
 
