@@ -106,9 +106,12 @@ sub run ($self) {
         }
         $container_engine = "docker" if is_sle("<15-SP5");
         is_sle('<15') ? add_suseconnect_product("sle-module-containers", 12) : add_suseconnect_product("sle-module-containers");
+
     }
     # on SLE we need packagehub for sshpass, let's enable it
-    add_suseconnect_product(get_addon_fullname('phub')) if is_sle();
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('<16.1');
+    # SLE16.1 not yet has a Package Hub workarond
+    zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa_head', no_gpg_check => 1) if is_sle('>16.0');
 
     install_dependencies($container_engine);
     setup_389ds_container($container_engine);
