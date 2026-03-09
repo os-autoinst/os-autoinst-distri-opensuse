@@ -49,17 +49,20 @@ sub test ($target) {
     $env{EXCLUDE_E2E_TESTS} .= "|TestConvertAndTransformList" unless is_x86_64;
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
-    my @xfails = ();
-    push @xfails, (
+    # Extract "v2" or "v5" from $version
+    my $v = substr($version, 0, 2);
+    my @xfails = (
         # These fail with Docker v29: https://github.com/docker/compose/issues/13565
-        "github.com/docker/compose/v5/pkg/e2e::TestBuildPlatformsStandardErrors",
-        "github.com/docker/compose/v5/pkg/e2e::TestBuildPlatformsStandardErrors/builder_does_not_support_multi-arch",
-        "github.com/docker/compose/v5/pkg/e2e::TestLocalComposeRun",
-        "github.com/docker/compose/v5/pkg/e2e::TestLocalComposeRun/compose_run_-rm_with_stop_signal",
+        # and multi-arch may need the containerd image store as documented here:
+        # https://docs.docker.com/build/building/multi-platform/
+        "github.com/docker/compose/$v/pkg/e2e::TestBuildPlatformsStandardErrors",
+        "github.com/docker/compose/$v/pkg/e2e::TestBuildPlatformsStandardErrors/builder_does_not_support_multi-arch",
+        "github.com/docker/compose/$v/pkg/e2e::TestLocalComposeRun",
+        "github.com/docker/compose/$v/pkg/e2e::TestLocalComposeRun/compose_run_-rm_with_stop_signal",
         # Flaky tests:
-        "github.com/docker/compose/v5/pkg/e2e::TestUpDependenciesNotStopped",
-        "github.com/docker/compose/v5/pkg/e2e::TestUpStopWithLogsMixed",
-    ) if (version->parse(numeric_version($version)) >= version->parse("5.0.0"));
+        "github.com/docker/compose/$v/pkg/e2e::TestUpDependenciesNotStopped",
+        "github.com/docker/compose/$v/pkg/e2e::TestUpStopWithLogsMixed",
+    );
 
     run_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3600;
     upload_logs "$target.txt";
