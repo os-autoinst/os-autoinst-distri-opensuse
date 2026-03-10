@@ -124,7 +124,8 @@ sub load_container_engine_privileged_mode {
 
 sub load_compose_tests {
     my ($run_args) = @_;
-    return if (is_staging);
+    # The compose tests require the user_serial_terminal which is not available on PublicCloud.
+    return if (is_staging || is_public_cloud);
     # SLEM 6.0 has podman 4.9.5 while SLEM 6.1 has podman 5.2.5
     # podman with docker-compose needs podman 5.x
     my $min_slem_version = ($run_args->{runtime} eq "podman") ? "6.1" : "6.0";
