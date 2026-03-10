@@ -238,8 +238,9 @@ sub register_addons_in_pc {
     #
     # TODO: this is a hotfix. We need to fix the `zypper_call_remote` itself
     # as transactional-update does not support repo actions => poo#195920)
-    my $ret = $instance->ssh_script_run(cmd => "sudo zypper -n --gpg-auto-import-keys ref", timeout => $timeout);
+    my $ret = $instance->ssh_script_retry(cmd => "sudo zypper -n --gpg-auto-import-keys ref", timeout => $timeout, retry => 3, delay => 60, die => 0);
     die 'No enabled repos defined: bsc#1245651' if $ret == 6;    # from zypper man page: ZYPPER_EXIT_NO_REPOS
+    die 'System management is locked by the application with pid xxx (/usr/bin/zypper)' if $ret == 7;    # from zypper man page: ZYPPER_EXIT_ZYPP_LOCKED
     for my $addon (@addons) {
         next if ($addon =~ /^\s+$/);
         register_addon($remote, $addon);
@@ -910,6 +911,10 @@ sub zypper_call_remote {
                 diag "Package conflicts found, not retrying anymore" if $conflicts;
                 last;
             }
+            next;
+        }
+        elsif ($ret == 7) {
+            record_info("Retry $retry as system management is locked");
             next;
         }
         last;

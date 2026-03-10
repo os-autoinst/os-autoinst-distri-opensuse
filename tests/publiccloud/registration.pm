@@ -29,15 +29,18 @@ sub run {
 
     # https://progress.opensuse.org/issues/196370 workaround for a known issue on 15-SP5
     if (is_sle('=15-SP5')) {
-        $args->{my_instance}->zypper_call_remote("update -y");
+        $args->{my_instance}->zypper_call_remote("update -y", retry => 10, delay => 60);
         $args->{my_instance}->softreboot(timeout => 3600);
     }
 
+    wait_quit_zypper_pc($args->{my_instance});
     register_addons_in_pc($args->{my_instance}, timeout => 240);
     wait_quit_zypper_pc($args->{my_instance});
     # Double confirm system is correctly registered, and quit earlier if anything wrong
     # see bsc#1253777, we may need have to rerun the failed job in this case
     record_info('Check registration status');
+    # Workaround for sporadic issue 'System management is locked by the application with pid xxx (/usr/bin/zypper)'
+    $args->{my_instance}->ssh_script_retry(cmd => "sudo SUSEConnect -s", retry => 10, delay => 60);
     my $reg_status = $args->{my_instance}->ssh_script_output("sudo SUSEConnect -s");
     die "System is not correctly registered" if ($reg_status =~ /Not Registered/m);
     # Since SLE 15 SP6 CHOST images don't have curl and we need it for testing
