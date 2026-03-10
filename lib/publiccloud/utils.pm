@@ -884,8 +884,8 @@ sub zypper_call_remote {
     my $retry = $args{retry} // 1;
     my $delay = $args{delay} // 5;
     my $proceed = $args{proceed_on_failure} // 0;
-    my $cmd = "sudo zypper -n " . $args{cmd};
     my $wait_quit_zypper = $args{wait_quit_zypper} // 1;
+    my $cmd = _package_command_composer($args{cmd});
     delete $args{cmd};
     delete $args{exitcode};
     delete $args{retry};
@@ -942,10 +942,25 @@ sub zypper_call_remote {
         record_info("zypper error", $msg, result => 'fail');
     }
     record_info("zypper remote call", "Command: $cmd \nResult: $ret");
-    $instance->softreboot() if is_transactional();
+    $instance->softreboot() if (is_transactional() && $ret == 0);
     return $ret;
 }
 
+sub _package_command_composer {
+    my $cmd = shift;
+    my $found;
+    if (is_transactional) {
+        # list of all zypper commands allowed to run in tr-up env.
+        my @query_cmd = qw(search se info if patch-check list-updates lu what-provides);
+        my @repo_cmd = qw(addrepo ar removerepo rr renamerepo nr modifyrepo mr refresh ref);
+        my @conf_cmd = qw(addlock al removelock rl locks ll clean cl import-runtime-key);
+        foreach my $token (split(/\s+/, $cmd)) {
+            $found += any { $_ eq $token } (@query_cmd, @repo_cmd, @conf_cmd);
+        }
+        return "transactional-update -n --wait $cmd" unless $found;
+    }
+    return "zypper -n $cmd";
+}
 
 =head2 calculate_custodian_ttl
 
