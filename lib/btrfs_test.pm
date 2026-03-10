@@ -14,6 +14,7 @@ use utils 'get_root_console_tty';
 use version_utils qw(is_sle is_jeos is_opensuse);
 use Utils::Systemd qw(systemctl);
 use JSON qw(decode_json);
+use Utils::Architectures 'is_aarch64';
 
 our @EXPORT_OK = qw(set_playground_disk cleanup_partition_table);
 my $old_snapper = undef;
@@ -56,6 +57,9 @@ way to get DBus-less environment is to enter rescue.target via systemctl.
 sub snapper_nodbus_setup {
     my ($self) = @_;
     if (script_run('! systemctl is-active dbus')) {
+        # Wait for a while, see https://progress.opensuse.org/issues/197690
+        assert_script_run('sync');
+        sleep 60 if is_aarch64;
         script_run('systemctl rescue', 0);
         if (!check_screen('emergency-shell', 120)) {
             assert_screen('emergency-shell-boo1134533', no_wait => 1);
@@ -82,7 +86,7 @@ sub snapper_nodbus_restore {
     # workaround bsc#1231986 by enabling the tty before switching to default target
     script_run('systemctl enable getty@tty6.service') if (is_jeos && is_opensuse);
 
-    script_run('systemctl default', timeout => 600);
+    assert_script_run('systemctl default', timeout => 600);
     my $tty = get_root_console_tty;
 
     if (is_sle('<15-SP3') && !defined(my $match = check_screen("tty$tty-selected", 120))) {
