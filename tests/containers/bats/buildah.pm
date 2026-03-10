@@ -37,7 +37,14 @@ sub run_tests {
 
     my @xfails = ();
     push @xfails, (
-        "add.bats::add https retry ca"
+        "add.bats::add https retry ca",
+        # These may fail when github complains about 429 Too Many Requests
+        # and we can't backport PR's 6146 & 6602 to fix this:
+        "bud.bats::bud with --layers and --no-cache flags",
+        "bud.bats::bud with --rm flag",
+        "bud.bats::bud with no --layers comment",
+        "images.bats::images all test",
+        "rmi.bats::rmi with cached images",
     ) if (version->parse(numeric_version($version)) <= version->parse("1.39.5"));
     push @xfails, (
         "bud.bats::bud with --cgroup-parent",
