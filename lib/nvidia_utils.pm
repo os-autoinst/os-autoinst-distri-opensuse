@@ -54,10 +54,10 @@ sub get_nvidia_driver {
  install([ variant => 'cuda' ], [ reboot => 0 ]);
 
 Install the NVIDIA driver and the compute utils, making sure to remove
-any conflicting variant first. Also, it tries to add the relevant
-repositories to grab the packages from, defined by the job through
-NVIDIA_REPO and NVIDIA_CUDA_REPO. Make sure to reboot the SUT after
-calling this subroutine.
+any conflicting branch and variant first. Also, it tries to add the
+relevant repositories to grab the packages from, defined by the job
+through NVIDIA_REPO and NVIDIA_CUDA_REPO. Make sure to reboot the SUT
+after calling this subroutine.
 
 Options:
 
@@ -77,6 +77,15 @@ sub install
     my $reboot = $args{reboot} // 0;
 
     enter_trup_shell if is_transactional;
+
+    my $branch = get_var('NVIDIA_DRIVER_BRANCH', 'G06');
+
+    my $installed = zypper_search('-i nvidia-open-driver');
+    my @conflicting = grep { $_ !~ m/nvidia-open-driver-$branch/ } map { $_->{name} } @$installed;
+    if (@conflicting) {
+        record_info('NVIDIA', "Removing conflicting Nvidia drivers: @conflicting");
+        zypper_call("remove --clean-deps @conflicting");
+    }
 
     if ($args{variant} eq 'cuda') {
         $variant = $variant_cuda;
@@ -100,7 +109,6 @@ sub install
         $workaround = "nvidia-persistenced == $version";
         record_soft_failure("bsc#1249098 - workaround for Nvidia driver dependency issue");
     }
-    my $branch = get_var('NVIDIA_DRIVER_BRANCH', 'G06');
     zypper_call("install -l nvidia-compute-utils-$branch == $version $workaround");
 
     exit_trup_shell if is_transactional;
