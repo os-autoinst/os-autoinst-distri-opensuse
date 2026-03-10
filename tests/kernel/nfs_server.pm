@@ -146,7 +146,7 @@ sub run {
 
     record_info("RPC", script_output("rpcinfo"));
     record_info("RPC ports", script_output("rpcinfo -p", proceed_on_failure => 1));
-    record_info("NFS sockets", script_output("ss -lntup | egrep '(:111|:2049)'", proceed_on_failure => 1));
+    record_info("NFS sockets", script_output("ss -lntup | grep -E '(:111|:2049)'", proceed_on_failure => 1));
     record_info("showmount local", script_output("showmount -e localhost", proceed_on_failure => 1));
     record_info("NFS units", script_output("systemctl --no-pager --full status rpcbind nfs-server", proceed_on_failure => 1));
     record_info("NFS config", script_output("cat /etc/sysconfig/nfs"));
