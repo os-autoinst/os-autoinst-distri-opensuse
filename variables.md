@@ -302,7 +302,6 @@ OPENTOFU_VERSION | string | "1.9.1" | Version of opentofu to include into PC Too
 PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable should list the test name which should be tested.
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
 PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
-PUBLIC_CLOUD_ACCOUNT | string | "" | For GCE will set account via `gcloud config set account ' . $self->account`.
 PUBLIC_CLOUD_AHB_LT | string | "SLES_BYOS" | For Azure, it specifies the license type to change to (and test).
 PUBLIC_CLOUD_ARCH | string | "x86_64" | The architecture of created VM.
 PUBLIC_CLOUD_AVAILABILITY_ZONE | string | "" | The availability zone to use. Depends on `PUBLIC_CLOUD_REGION`. Only for GCE.
@@ -324,7 +323,6 @@ PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added t
 PUBLIC_CLOUD_CONTAINERS | boolean | false | If set, containers tests are added to the job.
 PUBLIC_CLOUD_HIMMELBLAU | boolean | false | Scheduling variable for running the himmelblau tests.
 PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY | string | "" | Name for public cloud registry for the container images used on kubernetes tests.
-PUBLIC_CLOUD_CONTAINER_IMAGES_REPO | string | | The Container images repository in CSP
 PUBLIC_CLOUD_CREDENTIALS_URL | string | "" | Base URL where to get the credentials from. This will be used to compose the full URL together with `PUBLIC_CLOUD_NAMESPACE`.
 PUBLIC_CLOUD_DMS_REPO | string | "" | The Repo URL for migration test.
 PUBLIC_CLOUD_DOWNLOAD_TESTREPO | boolean | false | If set, it schedules `publiccloud/download_repos` job.
@@ -335,8 +333,6 @@ PUBLIC_CLOUD_EC2_UPLOAD_AMI | string | "" | Needed to decide which image will be
 PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP | string | "" | Allow to instruct ec2uploadimg script to use some existing security group instead of creating new one. If given, the parameter `--security-group-ids` is passed to `ec2uploadimg`.
 PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET | string | "" | Allow to instruct ec2uploadimg script to use some existing VPC instead of creating new one.
 PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED | boolean | true | Internal variable written by the code and readed by the code . Should NOT be set manually
-PUBLIC_CLOUD_FIO_RUNTIME | integer | 300 | Set the execution time for each FIO tests.
-PUBLIC_CLOUD_FIO_SSD_SIZE | string | "100G" | Set the additional disk size for the FIO tests.
 PUBLIC_CLOUD_FORCE_REGISTRATION | boolean | false | If set, tests/publiccloud/registration.pm will register cloud guest
 PUBLIC_CLOUD_GCE_STACK_TYPE | string | IPV4_ONLY | Network stack type, possible values: IPV4_IPV6 or IPV4_ONLY
 PUBLIC_CLOUD_GCE_NIC_TYPE | string | "" | Network Interface Card type, possible values: GVNIC, VIRTIO_NET, IDPF, MRDMA or IRDMA 
@@ -374,7 +370,6 @@ PUBLIC_CLOUD_PERF_DB | string | "perf_2" | defines the bucket in which the perfo
 PUBLIC_CLOUD_PERF_DB_ORG | string | "qec" | defines the organization in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
 PUBLIC_CLOUD_PERF_DB_URI | string | "http://publiccloud-ng.qe.suse.de:8086" | bootup time measures get pushed to this Influx database url.
 PUBLIC_CLOUD_PERF_PUSH_DATA | boolean | 1 | To enable the test to push it's metrics to the InfluxDB, when PUBLIC_CLOUD_PERF_COLLECT true.
-PUBLIC_CLOUD_PERF_THRESH_CHECK | boolean | "" | If set to `1` or any not empty value, then the test run will _also_ execute the thresholds check on the collected metrics. By _default_ that check is _Not executed_.
 PUBLIC_CLOUD_PREPARE_TOOLS | boolean | false | Activate prepare_tools test module by setting this variable.
 PUBLIC_CLOUD_PROVIDER | string | "" | The type of the CSP (e.g. AZURE, EC2, GCE).
 PUBLIC_CLOUD_PY_AZURE_REPO | string | "" | PY azure repo URL for azure_more_cli_test.
