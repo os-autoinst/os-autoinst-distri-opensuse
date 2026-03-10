@@ -35,6 +35,9 @@ my @conflicting_packages = (
     'nvidia-open-driver-G06-signed-kmp-default',
     'nvidia-open-driver-G06-signed-cuda-kmp-default',
     'nvidia-open-driver-G06-signed-cuda-default-devel',
+    'nvidia-open-driver-G07-signed-kmp-default',
+    'nvidia-open-driver-G07-signed-cuda-kmp-default',
+    'nvidia-open-driver-G07-signed-cuda-default-devel',
     'ImageMagick-config-7-upstream-limited',
     'ImageMagick-config-7-upstream-open',
     'ImageMagick-config-7-upstream-secure',
@@ -46,6 +49,7 @@ push(@conflicting_packages, (
         'nv-prefer-signed-open-driver',
         'nvidia-open-driver-G06-signed-64kb-devel',
         'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
+        'nvidia-open-driver-G07-signed-64kb-devel',
 )) if is_aarch64;
 
 # We may need to skip installing some packages based on test requirements
