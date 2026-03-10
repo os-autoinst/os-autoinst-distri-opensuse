@@ -157,8 +157,8 @@ sub check_instance_unregistered {
 
     for (split('\n', $out)) {
         # bsc#1252277 - The NVIDIA repos are added by SUSEConnect but not removed
-        if ($_ =~ /^\s?\d+/ && $_ !~ /SUSE_Maintenance|:NVIDIA-/) {
-            record_info('UNEXPECTED REPO URL', $out);
+        if ($_ =~ /^\s?\d+/ && $_ !~ /SUSE_Maintenance|:NVIDIA-|ToTest/) {
+            record_info('Repo leftover', "The following repository is not expected and should have been probably removed:\n$out", result => 'fail');
             die($error);
         }
     }
