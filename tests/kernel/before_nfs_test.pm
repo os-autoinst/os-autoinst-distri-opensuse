@@ -11,8 +11,10 @@ use serial_terminal "select_serial_terminal";
 use utils;
 use lockapi;
 
+# TODO: not used in any test. Consult @Michi
+# likely to be removed
 sub prepare_bond {
-    my $cfg = " /etc/sysconfig/network/ifcfg-bond0";
+    my $cfg = "/etc/sysconfig/network/ifcfg-bond0";
     my $nfs_if1 = get_required_var('NFS_IF_1');
     my $nfs_if2 = get_required_var('NFS_IF_2');
     my $nfs_bond_ip = get_required_var('NFS_BOND_IP');
@@ -32,8 +34,6 @@ sub prepare_bond {
     die "unable to find bond0 in wicked show-config!" unless $out =~ /bond0/;
     assert_script_run("wicked ifup all bond0");
 }
-
-
 
 sub run {
     my ($self) = @_;

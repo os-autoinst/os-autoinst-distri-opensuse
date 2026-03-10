@@ -3,11 +3,7 @@
 # Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: NFS Client
-#    This module provisions the NFS client and then runs some basic
-#    sanity tests. Detailed description of the tests can be found in:
-#    tests/kernel/nfs_server.pm
-
+# Summary: NFS client setup and basic validation
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base "opensusebasetest";
@@ -148,3 +144,63 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+This module provisions the NFS client side of the kernel multimachine NFS
+tests. It waits until the server export is ready, mounts the configured NFSv3
+and NFSv4 exports if the kernel supports them, and performs basic write and
+data-integrity checks.
+
+The client creates a reference file with C<dd>, stores its checksum, copies the
+file and checksum to each mounted export, and then creates additional copies
+with C<dd> using the following output flags:
+
+=over 4
+
+=item * C<direct>
+
+=item * C<dsync>
+
+=item * C<sync>
+
+=back
+
+In IPMI baremetal jobs the module resolves the peer by comparing
+C<IBTEST_IP1>/C<IBTEST_IP2> with locally detected IPv4 addresses. In regular
+VM-based multimachine jobs it falls back to C<SERVER_NODE> or the default
+C<server-node00> hostname.
+
+=head1 Configuration
+
+=head2 SERVER_NODE
+
+Optional. Hostname or address of the NFS server in non-IPMI multimachine jobs.
+Defaults to C<server-node00>.
+
+=head2 IBTEST_IP1, IBTEST_IP2
+
+Required for IPMI baremetal jobs. Used to determine which of the two configured
+addresses belongs to the local host and which one is the remote peer.
+
+=head2 NFS_LOCAL_NFS3
+
+Optional. Local mount point for the synchronous NFSv3 export.
+Defaults to C</home/localNFS3>.
+
+=head2 NFS_LOCAL_NFS3_ASYNC
+
+Optional. Local mount point for the asynchronous NFSv3 export.
+Defaults to C</home/localNFS3async>.
+
+=head2 NFS_LOCAL_NFS4
+
+Optional. Local mount point for the synchronous NFSv4 export.
+Defaults to C</home/localNFS4>.
+
+=head2 NFS_LOCAL_NFS4_ASYNC
+
+Optional. Local mount point for the asynchronous NFSv4 export.
+Defaults to C</home/localNFS4async>.
+
+=cut
