@@ -186,7 +186,7 @@ subtest 'bootloader_tests' => sub {
     ok get_default_bootloader eq 'grub2', "Tumbleweed no UEFI is grub2";
 
     set_var('UEFI', '1');
-    ok get_default_bootloader eq 'grub2-bls', "Tumbleweed on UEFI is grub2-bls";
+    ok get_default_bootloader eq 'systemd-boot', "Tumbleweed on UEFI is systemd-boot";
 
     set_var('DUALBOOT', 1);
     ok get_default_bootloader eq 'grub2', "Tumbleweed on UEFI with DUALBOOT is grub2";
@@ -194,12 +194,6 @@ subtest 'bootloader_tests' => sub {
 
     set_var('VERSION', 'Slowroll');
     ok get_default_bootloader eq 'grub2', "Slowroll on UEFI is grub2";
-
-    set_var('STAGING', 'H');
-    set_var('VERSION', 'Staging:H');
-    ok get_default_bootloader eq 'systemd-boot', "Tumbleweed/Staging:H on UEFI is systemd-boot";
-    set_var('STAGING', undef);
-
 
     set_var('DISTRI', 'sle-micro');
     set_var('VERSION', '5.5');
@@ -223,7 +217,7 @@ subtest 'bootloader_tests' => sub {
     set_var('DISTRI', 'opensuse');
     set_var('FLAVOR', 'Server-DVD');
     set_var('UPGRADE', 1);
-    ok get_default_bootloader eq 'grub2-bls', "Upgrading Tumbleweed on UEFI is grub2-bls";
+    ok get_default_bootloader eq 'systemd-boot', "Upgrading Tumbleweed on UEFI is systemd-boot";
     set_var('UPGRADE', undef);
 
     set_var('UEFI', '0');
