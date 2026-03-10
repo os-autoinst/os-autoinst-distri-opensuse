@@ -11,6 +11,8 @@ jobs:
     steps:
     - name: Checkout Branch
       uses: actions/checkout@v4
+    - name: Create empty needles directory to avoid dangling symlink that would cause the next step to fail
+      run: mkdir products/opensuse/needles
     - name: "Check for oversized files"
       uses: freenet-actions/check-file-size@v1
       with:
