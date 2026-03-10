@@ -893,7 +893,7 @@ sub qesap_ansible_softfail {
     croak 'Missing mandatory logfile argument' unless $args{logfile};
     # use grep as the log is huge
     my $ansible_output = script_output(
-        'grep -E "\[OSADO\]\[softfail\] ([a-zA-Z]+#\S+) (.*)" ' . $args{logfile},
+        'grep -E "\[OSADO\]\[softfail\] ([a-zA-Z]+#\S+)( .*)?" ' . $args{logfile},
         proceed_on_failure => 1);
     my $reference;
     foreach my $ansible_line (split /\n/, $ansible_output) {
