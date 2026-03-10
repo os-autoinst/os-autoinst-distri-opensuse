@@ -894,6 +894,13 @@ sub activate_console {
             # or premature typing of credentials on sle15+
             my $stilltime = is_sle('15+') ? 6 : 1;
             wait_still_screen $stilltime;
+            if ($console eq 'tunnel-console' || $console eq 'root-console' || $console eq 'user-console') {
+                unless (check_screen(\@tags, 10)) {
+                    record_info("Wakeup PTY", "Sending ret to render SSH console: $console");
+                    send_key('ret');
+                    sleep 2;
+                }
+            }
             # we need to wait more than five seconds here to pass the idle timeout in
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
             # or when using remote consoles which can take some seconds, e.g.
