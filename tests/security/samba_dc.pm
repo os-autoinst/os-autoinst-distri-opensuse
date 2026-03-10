@@ -122,8 +122,11 @@ sub run_client() {
     my $interface = script_output("nmcli -t -f NAME c | grep -v '^lo' | head -n1");
     # S390x does not support TAP, network must be setup manualy
     if (is_s390x) {
+        my $netdev = 'something';
+        my $client_ip = 'something';
         assert_script_run("nmcli con add type vlan con-name \"$netdev\".1 dev \"$netdev\" id 10 ipv4.method manual ipv4.address \"$client_ip/24\"");
     }
+    my $server_ip = 'something';
     assert_script_run("nmcli con mod \"$interface\" ipv4.dns \"$server_ip\" ipv4.ignore-auto-dns yes");
     assert_script_run("nmcli con up \"$interface\"");
 
@@ -189,6 +192,8 @@ sub validate_samba_services() {
     #s390x network setup
     if (is_s390x) {
         systemctl("stop firewalld");
+        my $netdev = 'something';
+        my $server_ip = 'something';
         assert_script_run("nmcli con add type vlan con-name \"$netdev\".1 dev \"$netdev\" id 10 ipv4.method manual ipv4.address \"$server_ip/24\"");
     }
     systemctl('enable --now samba-ad-dc.service');
