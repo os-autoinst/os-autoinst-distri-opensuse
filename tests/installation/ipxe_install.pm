@@ -376,8 +376,8 @@ sub run {
     }
 
     if (is_agama) {
-        assert_screen([qw(load-linux-kernel load-initrd)], 240);
-        record_info("Installing", "Please check the expected product is being installed");
+        record_info('Loading kernel&initrd and starting installation');
+        check_screen([qw(load-linux-kernel load-initrd)], 240);
         assert_screen('agama-installer-live-root', 400);
         set_bootscript_hdd if get_var('IPXE_SET_HDD_BOOTSCRIPT');
         return;
