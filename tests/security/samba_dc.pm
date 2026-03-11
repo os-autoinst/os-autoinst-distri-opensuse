@@ -115,8 +115,9 @@ sub run_client() {
     barrier_wait('SAMBA_DC_SETUP');
     my $client_hostname = randomize_hostname();
 
+    my $server_ip;
     unless (is_s390x) {
-        my $server_ip = script_output(q{getent hosts server | head -n1 | awk '{print $1}'});
+        $server_ip = script_output(q{getent hosts server | head -n1 | awk '{print $1}'});
     }
     my $interface = script_output("nmcli -t -f NAME c | grep -v '^lo' | head -n1");
     # S390x does not support TAP, network must be setup manualy
@@ -140,6 +141,16 @@ sub run_client() {
         'echo "   idmap config * : range = 3000-7999" >> /etc/samba/smb.conf'
     );
     assert_script_run($_) for @smb_conf_setup;
+
+    # Fix Kerberos context initialization by providing a clean client krb5.conf
+    my @krb5_conf_setup = (
+        'echo "[libdefaults]" > /etc/krb5.conf',
+        'echo "    default_realm = ' . REALM . '" >> /etc/krb5.conf',
+        'echo "    dns_lookup_realm = false" >> /etc/krb5.conf',
+        'echo "    dns_lookup_kdc = true" >> /etc/krb5.conf'
+    );
+    assert_script_run($_) for @krb5_conf_setup;
+
     assert_script_run('net ads join -U Administrator%' . PASSWORD);
     assert_script_run('net ads testjoin');
     assert_script_run('smbclient -L //server -I ' . $server_ip . ' -U testuser%' . PASSWORD);
