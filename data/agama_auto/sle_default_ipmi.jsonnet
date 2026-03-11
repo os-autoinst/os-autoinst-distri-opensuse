@@ -1,5 +1,8 @@
 local disk_id = '{{INSTALL_DISK_WWN}}';
-local disk_path = if disk_id != '' then '/dev/disk/by-id/' + disk_id else '*';
+local partitions_config = {
+  partitions: [{ generate: 'default' }],
+  [if disk_id != '' then 'search']: '/dev/disk/by-id/' + disk_id
+};
 {
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
@@ -20,14 +23,7 @@ local disk_path = if disk_id != '' then '/dev/disk/by-id/' + disk_id else '*';
   },
   storage: {
     drives: [
-      {
-        search: disk_path,
-        partitions: [
-          {
-            generate: 'default'
-          }
-        ]
-      }
+      partitions_config
     ]
   },
   scripts: {
