@@ -25,6 +25,7 @@ prepare them to be used by elemental tool.
 =cut
 
 sub get_sysext {
+    my (%args) = @_;
     my $shared_dir = '/root/shared';
     my $overlay_dir = "$shared_dir/overlays";
     my $sysext_dir = "$overlay_dir/etc/extensions";
@@ -147,7 +148,7 @@ sub build_installer_cmd {
     my $device = get_var('INSTALL_DISK', '/dev/vda');
 
     # Configure the systemd sysexts
-    my ($overlay_dir, $ctl_oci) = get_sysext($args{timeout});
+    my ($overlay_dir, $ctl_oci) = get_sysext(timeout => $args{timeout});
 
     # OS configuration script
     assert_script_run(
@@ -202,7 +203,7 @@ sub install_cmd {
     my $k8s_sysext_found;
 
     # Configure the systemd sysexts
-    my ($overlay_dir) = get_sysext($args{timeout});
+    my ($overlay_dir) = get_sysext(timeout => $args{timeout});
 
     # OS configuration script
     assert_script_run(
