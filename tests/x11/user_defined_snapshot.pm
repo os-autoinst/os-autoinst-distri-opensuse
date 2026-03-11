@@ -16,6 +16,8 @@
 # - Make sure machine is back to original system
 # Maintainer: Dumitru Gutu <dgutu@suse.com>
 
+## no os-autoinst compile-check
+
 use base "x11test";
 use testapi;
 use utils;

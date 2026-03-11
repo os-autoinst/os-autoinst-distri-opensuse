@@ -5,6 +5,9 @@
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
+
+## no os-autoinst compile-check
+
 package spectre_v4;
 
 use base "consoletest";

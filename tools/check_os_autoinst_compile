@@ -1,0 +1,83 @@
+#!/usr/bin/perl
+# Copyright SUSE LLC
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Call as:
+# prove tools/check_os_autoinst_compile
+# perl tools/check_os_autoinst_compile tests/some/specifictest.pm
+use Test::Most;
+use FindBin '$Bin';
+use lib "$Bin/../os-autoinst";
+use lib "$Bin/../lib";
+
+use Test::MockModule;
+use File::Find;
+use Mojo::File qw(path);
+
+use autotest ();
+use testapi ();
+
+my $tests_dir = "$Bin/..";
+
+testapi::set_var('ENABLE_MODERN_PERL_FEATURES', 1) if $ENV{ENABLE_MODERN_PERL_FEATURES};
+
+# make compilation still work despite code like
+#   my @category = split(/,/, # get_required_var('CATEGORY'));
+# at compile time (outside of run())
+my $testapi_mock = Test::MockModule->new('testapi');
+$testapi_mock->redefine(get_required_var => sub { testapi::get_var(@_) // '?' });
+
+# Set some dummy variables to avoid errors (some modules die on missing variables
+# already at compile time)
+$bmwqemu::vars{VERSION} = 1;
+$bmwqemu::vars{FLAVOR} = 'dev';
+# Set CASEDIR needed by _make_test_code_to_eval
+$bmwqemu::vars{CASEDIR} = $tests_dir;
+
+my @tests;
+sub wanted {
+    push @tests, $File::Find::name if -f $_ and m/\.pm$/;
+}
+
+if (@ARGV) {
+    @tests = @ARGV;
+}
+else {
+    find(\&wanted, "tests");
+}
+
+@tests = sort @tests;
+for my $num (0 .. $#tests) {
+    my $test = $tests[$num];
+
+    my $module_code = path($test)->slurp;
+    if ($module_code =~ m/^ *## no os-autoinst compile-check/m) {
+        local $TODO = "skipping $test because of special comment";
+        fail "$test";
+        next;
+    }
+    my $header = '';
+
+    # lib/y2_base.pm uses Carp::Always, which makes every warning output the
+    # whole module code because it prints a stacktrace, and the code is used
+    # via a string eval. So we disable it again before every new test to reduce
+    # the noise
+    $header .= "no Carp::Always;\n";
+    # Set test name to n$num to avoid loading the same package name from
+    # different directories
+    $module_code = autotest::_make_test_code_to_eval("./$test", $test, "n$num", 0);
+
+    my $code = $header . $module_code;
+    my @warnings;
+    {
+        local $SIG{__WARN__} = sub { push @warnings, @_ };
+        eval $code;
+    }
+    my $err = $@;
+    if ($err) {
+        diag "########### ERROR: $err";
+    }
+    ok !$err, "$test - compiles";
+    is_deeply \@warnings, [], "$test - no warnings";
+}
+
+done_testing;
