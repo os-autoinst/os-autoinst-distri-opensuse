@@ -31,11 +31,6 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     select_serial_terminal;
 
-    # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1248988 - catatonit missing in /usr/libexec/podman/
-    if (is_sle) {
-        my $libdir = is_sle("<16") ? "lib" : "libexec";
-        run_command "ln -f /usr/bin/catatonit /usr/$libdir/podman/catatonit";
-    }
     # rootless user needed for these tests
     run_command "useradd -m containers";
     run_command "usermod --add-subuids 100000-165535 containers";
