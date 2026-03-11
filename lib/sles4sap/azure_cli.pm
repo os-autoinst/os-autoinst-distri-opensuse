@@ -749,6 +749,9 @@ sub az_vm_as_show(%args) {
         '--name', $args{name},
         '-o table');
     assert_script_run($az_cmd);
+
+    # Debug code for TEAM-11039
+    assert_script_run("az provider show --namespace Microsoft.Compute --query \"resourceTypes[?resourceType=='availabilitySets'].apiVersions\"");
 }
 
 =head2 az_img_from_vhd_create
@@ -831,6 +834,8 @@ Create a virtual machine
 
 =item B<tags> - reference to a list of tags to apply to the VM
 
+=item B<debug> - if not zero add --debug
+
 =back
 =cut
 
@@ -842,6 +847,7 @@ sub az_vm_create(%args) {
     croak("At least one between argument < image > or < attach_os_disk > are needed") unless ($args{image} || $args{attach_os_disk});
 
     my @vm_create = ('az vm create');
+    push @vm_create, '--debug' if $args{debug};
     push @vm_create, '--resource-group', $args{resource_group};
     push @vm_create, '-n', $args{name};
     push @vm_create, '--image', $args{image} if $args{image};

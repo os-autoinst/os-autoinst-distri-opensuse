@@ -353,6 +353,7 @@ sub ipaddr2_infra_deploy(%args) {
     $vm_create_internal_args{nsg} = $nsg;
     $vm_create_internal_args{public_ip} = "";
     $vm_create_internal_args{custom_data} = $args{cloudinit_profile} if ($args{cloudinit_profile});
+    $vm_create_internal_args{debug} = 1;
 
     foreach my $i (1 .. 2) {
         $vm = ipaddr2_get_internal_vm_name(id => $i);
