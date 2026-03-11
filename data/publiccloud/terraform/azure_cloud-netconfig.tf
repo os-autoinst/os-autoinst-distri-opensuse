@@ -51,6 +51,10 @@ variable "sku" {
   default = "gen2"
 }
 
+variable "root-disk-size" {
+  default = 30
+}
+
 variable "storage-account" {
   # Note: Don't delete the default value!!!
   # Not all of our `terraform destroy` calls pass this variable and neither is it necessary.
@@ -183,7 +187,7 @@ resource "azurerm_image" "image" {
     os_type  = "Linux"
     os_state = "Generalized"
     blob_uri = "https://${var.storage-account}.blob.core.windows.net/sle-images/${var.image_id}"
-    size_gb  = 30
+    size_gb  = var.root-disk-size
   }
 }
 
@@ -217,7 +221,7 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
     storage_account_type = "Standard_LRS"
     # SLE images are 30G by default. Uncomment this line in case we need to increase the disk size
     # note: value can not be decreased because 30 GB is minimum allowed by Azure
-    # disk_size_gb         = 30
+    disk_size_gb         = var.root-disk-size
   }
 
   source_image_id = var.image_uri != "" ? var.image_uri : (var.image_id != "" ? azurerm_image.image.0.id : null)
