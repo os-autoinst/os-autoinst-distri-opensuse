@@ -188,13 +188,16 @@ sub run {
     validate_script_output("gpgconf --show-versions", sub { m/.*$gpg_fips_string.*/ }) if (is_sle('15+') && !is_jeos && !is_public_cloud);
 
     # increase entropy for key generation for s390x on svirt backend
-    if (is_s390x && ((is_sle('15+') && is_sle('<16')) || is_transactional) && (is_svirt)) {
+    my $is_sle15 = is_sle('15+') && is_sle('<16');
+    my $is_transactional_and_slmicro_lt62 = is_transactional && is_sle_micro('<6.2');
+    if (is_s390x && is_svirt && ($is_sle15 || $is_transactional_and_slmicro_lt62)) {
         if (is_transactional) {
             trup_call('pkg install haveged');
             process_reboot(trigger => 1);
         } else {
             zypper_call('in haveged');
         }
+        # Start the service (consider 'enable --now' if it needs to survive further reboots)
         systemctl('start haveged');
     }
 
@@ -219,7 +222,7 @@ sub run {
     } else {
         if (is_transactional) {
             trup_call('pkg install ' . join(' ', keys %$pkg_list));
-            process_reboot(trigger => 1);
+            is_sle_micro(">=6.2") ? process_reboot(trigger => 1, expected_grub => 0) : reboot_on_changes;
         } else {
             zypper_call("in " . join(' ', keys %$pkg_list));
         }
