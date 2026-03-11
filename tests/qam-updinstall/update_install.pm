@@ -84,11 +84,17 @@ my @conflicting_packages = (
     'libica-openssl1_1-tools', 'libica-devel', 'libica-devel-static',
     'cyrus-sasl-bdb-ntlm', 'cyrus-sasl-bdb-otp', 'cyrus-sasl-saslauthd-bdb', 'cyrus-sasl-otp',
     'cyrus-sasl-ntlm', 'cyrus-sasl-bdb-devel', 'cyrus-sasl-sqlauxprop',
-    'nvidia-open-driver-G06-signed-cuda-default-devel', 'nvidia-open-driver-G06-signed-azure-devel',
-    'nvidia-open-driver-G06-signed-cuda-64kb-devel',
-    'kernel-firmware-nvidia-gspx-G06-cuda', 'nvidia-open-driver-G06-signed-cuda-kmp-default',
-    'nv-prefer-signed-open-driver', 'nvidia-open-driver-G06-signed-cuda-kmp-azure',
-    'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
+    'nv-prefer-signed-open-driver',
+    'nvidia-open-driver-G06-signed-kmp-default',
+    'nvidia-open-driver-G06-signed-cuda-kmp-default',
+    'nvidia-open-driver-G06-signed-cuda-default-devel',
+    'nvidia-open-driver-G06-signed-azure-devel',
+    'nvidia-open-driver-G06-signed-cuda-kmp-azure',
+    'kernel-firmware-nvidia-gspx-G06-cuda',
+    'nv-prefer-signed-open-driver-G07',
+    'nvidia-open-driver-G07-signed-kmp-default',
+    'nvidia-open-driver-G07-signed-cuda-kmp-default',
+    'nvidia-open-driver-G07-signed-cuda-default-devel',
     'kernel-default-base', 'kernel-default-extra',
     'patterns-base-fips-certified',
     'gnu-compilers-hpc-macros-devel', 'gnu12-compilers-hpc-macros-devel',
@@ -97,8 +103,10 @@ my @conflicting_packages = (
 );
 
 # https://progress.opensuse.org/issues/153388
-push(@conflicting_packages, ('dpdk-thunderx', 'dpdk-thunderx-devel', 'dpdk-thunderx-kmp-default')) if is_aarch64;
-push(@conflicting_packages, ('dpdk22-thunderx', 'dpdk22-thunderx-devel', 'dpdk22-thunderx-kmp-default')) if is_aarch64;
+push(@conflicting_packages, ('dpdk-thunderx', 'dpdk-thunderx-devel', 'dpdk-thunderx-kmp-default',
+        'dpdk22-thunderx', 'dpdk22-thunderx-devel', 'dpdk22-thunderx-kmp-default',
+        'nvidia-open-driver-G06-signed-cuda-64kb-devel', 'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
+        'nvidia-open-driver-G07-signed-64kb-devel', 'nvidia-open-driver-G07-signed-cuda-kmp-64kb',)) if is_aarch64;
 
 my @conflicting_packages_sle12 = ('apache2-prefork', 'apache2-doc', 'apache2-example-pages', 'apache2-utils', 'apache2-worker',
     'apache2-tls13', 'apache2-tls13-doc', 'apache2-tls13-example-pages', 'apache2-tls13-prefork', 'apache2-tls13-worker',
