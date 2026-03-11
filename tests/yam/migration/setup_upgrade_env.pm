@@ -20,13 +20,14 @@ sub run {
             get_var('SCC_ADDONS')));
 
     # Save the original value of the variables in order to restore it later if needed
-    foreach my $var (qw(AGAMA SCC_ADDONS SCC_URL VERSION)) {
+    foreach my $var (qw(AGAMA BETA SCC_ADDONS SCC_URL VERSION)) {
         set_var($var . "_ENV", get_var($var)) if (get_var($var));
     }
 
     # Change variables to the other version that we want to migrate from/to
     my %vars_to_set = (
         AGAMA => '0',
+        BETA => '0',
         SCC_ADDONS => $scc_addons,
         SCC_URL => 'https://scc.suse.com',
         VERSION => $version,
