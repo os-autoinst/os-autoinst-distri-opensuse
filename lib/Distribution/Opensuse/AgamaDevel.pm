@@ -8,12 +8,15 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Distribution::Opensuse::AgamaDevel;
+use utils;
 use strict;
 use warnings FATAL => 'all';
 use parent 'susedistribution';
 
 use Yam::Agama::Pom::GrubMenuBasePage;
 use Yam::Agama::Pom::GrubMenuAgamaPage;
+use Yam::Agama::Pom::GrubMenuAgamaBasePage;
+use Yam::Agama::Pom::GrubMenuAgamaPageWithBootFromHD;
 use Yam::Agama::Pom::GrubMenuTumbleweedPage;
 use Yam::Agama::Pom::GrubEntryEditionPage;
 use Yam::Agama::Pom::AgamaUpAndRunningPage;
@@ -26,8 +29,10 @@ use Yam::Agama::Pom::EnterPassphraseForHomePage;
 use Utils::Architectures;
 
 sub get_grub_menu_agama {
-    return Yam::Agama::Pom::GrubMenuAgamaPage->new({
-            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
+    my $args = {grub_menu_base => Yam::Agama::Pom::GrubMenuAgamaBasePage->new()};
+    return (is_x86_64() && !is_uefi_boot)
+      ? Yam::Agama::Pom::GrubMenuAgamaPageWithBootFromHD->new($args)
+      : Yam::Agama::Pom::GrubMenuAgamaPage->new($args);
 }
 
 sub get_grub_menu_base {
