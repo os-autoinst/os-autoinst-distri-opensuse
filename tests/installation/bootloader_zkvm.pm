@@ -17,7 +17,7 @@ use registration;
 use testapi;
 use utils qw(OPENQA_FTP_URL type_line_svirt save_svirt_pty);
 use ntlm_auth;
-use version_utils qw(is_agama);
+use version_utils qw(is_agama is_sle);
 use autoyast qw(expand_agama_profile parse_dud_parameter);
 use Yam::Agama::LiveIso qw(read_live_iso);
 
@@ -63,9 +63,11 @@ sub set_svirt_domain_elements {
         $svirt->change_domain_element(os => cmdline => $cmdline);
 
         # show this on screen and make sure that kernel and initrd are actually saved
-        enter_cmd "wget $repo/boot/s390x/initrd -O $zkvm_img_path/$name.initrd";
+        my $boot_path = "$repo/boot/s390x";
+        $boot_path .= "/loader" if (is_sle('16.1+') && check_var('FLAVOR', 'agama-installer'));
+        enter_cmd "wget $boot_path/initrd -O $zkvm_img_path/$name.initrd";
         assert_screen("initrd-saved", timeout => 300);
-        enter_cmd "wget $repo/boot/s390x/linux -O $zkvm_img_path/$name.kernel";
+        enter_cmd "wget $boot_path/linux -O $zkvm_img_path/$name.kernel";
         assert_screen("kernel-saved", timeout => 300);
     }
     # after installation we need to redefine the domain, so just shutdown
