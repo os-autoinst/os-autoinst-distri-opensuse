@@ -143,7 +143,9 @@ subtest '[get_tfvars_path] Test passing scenarios' => sub {
 };
 
 subtest '[get_sut_sshkey_path]' => sub {
-    is get_sut_sshkey_path(config_root_path => '/Project/Zeta'), '/Project/Zeta/sshkey', 'Return correct ssh key path.';
+    my $mock_lib = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::naming_conventions', no_auto => 1);
+    $mock_lib->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    is get_sut_sshkey_path(config_root_path => '/Project/Zeta'), '/Project/Zeta/sid-sshkey', 'Return correct ssh key path.';
     dies_ok { get_sut_sshkey_path() } 'Fail with missing config root path argument';
 };
 

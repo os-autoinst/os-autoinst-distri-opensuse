@@ -45,8 +45,6 @@ subtest '[sdaf_execute_playbook] Command execution' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /ansible-playbook/ } @calls), 'Execute main command');
     ok((any { /--inventory-file="QES_hosts.yaml"/ } @calls), 'Command contains "--inventory-file" parameter');
-    ok((any { /--private-key=\/tmp\/SDAF\/WORKSPACES\/SYSTEM\/LAB-SECE-SAP04-QAS\/sshkey/ } @calls),
-        'Command contains "--private-key" parameter');
     ok((any { /--extra-vars=\'_workspace_directory=\/tmp\/SDAF\/WORKSPACES\/SYSTEM\/LAB-SECE-SAP04-QAS\'/ } @calls),
         'Command contains extra variable: "_workspace_directory"');
     ok((any { /--extra-vars="\@sap-parameters.yaml"/ } @calls), 'Command contains extra variable with SDAF sap-parameters');

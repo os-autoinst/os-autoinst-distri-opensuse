@@ -32,19 +32,32 @@ sub run {
     my $config_root_path = get_sdaf_config_path(deployment_type => 'sap_system', env_code => $env_code,
         sdaf_region_code => $sdaf_region_code, sap_sid => $sap_sid, vnet_code => $workload_vnet_code);
     my $inventory_path = get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path);
-    my $private_key_src_path = get_sut_sshkey_path(config_root_path => $config_root_path);
+    my $private_key_src_path = get_sut_sshkey_path(sut => 'sid', config_root_path => $config_root_path);
 
     # Connect serial to Deployer VM to get inventory file
     connect_target_to_serial();
-    sdaf_ssh_key_from_keyvault(key_vault => $workload_key_vault, target_file => $private_key_src_path);
+    sdaf_ssh_key_from_keyvault(query => 'sid-sshkey', key_vault => $workload_key_vault, target_file => $private_key_src_path);
+    if (get_required_var('SDAF_FENCING_MECHANISM') eq 'sbd') {
+        $private_key_src_path = get_sut_sshkey_path(sut => 'iscsi', config_root_path => $config_root_path);
+        sdaf_ssh_key_from_keyvault(query => 'iscsi-sshkey', key_vault => $workload_key_vault, target_file => $private_key_src_path);
+    }
 
     my $inventory_data = read_inventory_file($inventory_path);
     # From now on all commands will be executed on worker VM
     disconnect_target_from_serial();
 
     # Download ssh private key for accessing SUTs
-    my $scp_cmd = join(' ', 'scp ', "$jump_host_user\@$jump_host_ip:$private_key_src_path", $sut_private_key_path);
+    my $scp_cmd = join(' ', 'scp', "$jump_host_user\@$jump_host_ip:$private_key_src_path", $sut_sid_private_key_path);
     assert_script_run($scp_cmd);
+    $scp_cmd = join(' ', 'scp', $sut_sid_private_key_path, "$jump_host_user\@$jump_host_ip:$sut_sid_private_key_path");
+    assert_script_run($scp_cmd);
+    if (get_required_var('SDAF_FENCING_MECHANISM') eq 'sbd') {
+        $private_key_src_path = get_sut_sshkey_path(sut => 'iscsi', config_root_path => $config_root_path);
+        $scp_cmd = join(' ', 'scp', "$jump_host_user\@$jump_host_ip:$private_key_src_path", $sut_iscsi_private_key_path);
+        assert_script_run($scp_cmd);
+        $scp_cmd = join(' ', 'scp', $sut_iscsi_private_key_path, "$jump_host_user\@$jump_host_ip:$sut_iscsi_private_key_path");
+        assert_script_run($scp_cmd);
+    }
 
     # Share inventory data between all tests
     $run_args->{sdaf_inventory} = $inventory_data;
@@ -58,6 +71,15 @@ sub run {
     );
     # checks SSH connection to each host executing simple command
     verify_ssh_proxy_connection(inventory_data => $inventory_data);
+
+    # Copy SSH config file from worker VM to deployer VM
+    my $ssh_config_file = '~/.ssh/config';
+    my $scp_cmd = join(' ', 'scp', "$ssh_config_file", "$jump_host_user\@$jump_host_ip:$ssh_config_file");
+    assert_script_run($scp_cmd);
+    connect_target_to_serial();
+    assert_script_run("sed -i 's/ProxyJump/#ProxyJump/g' $ssh_config_file");
+    record_info('SSH KEY on deployer', script_output("cat $ssh_config_file"));
+    disconnect_target_from_serial();
 }
 
 1;

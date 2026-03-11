@@ -13,7 +13,7 @@ use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw($deployer_private_key_path $sut_private_key_path);
+  qw($deployer_private_key_path $sut_sid_private_key_path $sut_iscsi_private_key_path);
 use publiccloud::azure;
 
 =head1 SYNOPSIS
@@ -186,10 +186,18 @@ sub prepare_ssh_config {
     );
 
     # Add all SUT systems defined in inventory file
+    my $sut_private_key_path = $sut_sid_private_key_path;
     for my $instance_type (keys(%{$args{inventory_data}})) {
         my $hosts = $args{inventory_data}->{$instance_type}{hosts};
         for my $hostname (keys %$hosts) {
             my $host_data = $hosts->{$hostname};
+            if ($hostname =~ 'iscsi') {
+                $sut_private_key_path = $sut_iscsi_private_key_path;
+            }
+            else {
+                $sut_private_key_path = $sut_sid_private_key_path;
+            }
+
             ssh_config_entry_add(
                 entry_name => "$hostname $host_data->{ansible_host}",    # This allows both hostname and IP login
                 user => $host_data->{ansible_user},
