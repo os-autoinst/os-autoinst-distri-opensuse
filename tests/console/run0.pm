@@ -7,6 +7,7 @@
 
 use base 'consoletest';
 use testapi;
+use serial_terminal;
 use utils qw(systemctl zypper_call);
 
 sub run {
