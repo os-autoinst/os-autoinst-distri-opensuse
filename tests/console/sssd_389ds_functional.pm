@@ -20,13 +20,14 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_opensuse is_tumbleweed is_sle);
+use package_utils 'install_package';
 use registration qw(add_suseconnect_product get_addon_fullname register_product cleanup_registration);
 use feature 'signatures';
 no warnings 'experimental::signatures';
 
 sub install_dependencies($container_engine) {
     zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16'));
-    zypper_call("in sssd sssd-ldap openldap2-client sshpass $container_engine");
+    install_package("sssd sssd-ldap openldap2-client sshpass $container_engine", trup_reboot => 1);
     systemctl("enable --now $container_engine") if ($container_engine eq "docker");
     return $container_engine;
 }

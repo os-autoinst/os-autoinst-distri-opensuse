@@ -11,16 +11,17 @@ use base 'consoletest';
 use testapi;
 use utils;
 use version_utils;
+use package_utils 'install_package';
 
 sub run {
     my $self = shift;
 
     select_console 'root-console';
-    zypper_call('in sharutils');
+    install_package('sharutils', trup_reboot => 1);
 
     if (check_var('MACHINE', 'RPi3') || check_var('MACHINE', 'RPi4')) {
         select_console 'root-console';
-        zypper_call('in diffutils');
+        install_package('diffutils', trup_reboot => 1);
     }
 
     select_console 'user-console';

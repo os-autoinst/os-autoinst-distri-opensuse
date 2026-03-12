@@ -12,6 +12,7 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_public_cloud is_opensuse is_leap);
 
 sub run {
@@ -23,7 +24,7 @@ sub run {
     }
     # cronie is only installed by default on sle/leap < 16
     unless (is_sle('<16') || is_leap('<16')) {
-        zypper_call('in cronie');
+        install_package('cronie', trup_reboot => 1);
         systemctl('enable cron');
         systemctl('start cron');
     }

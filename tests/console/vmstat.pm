@@ -20,6 +20,7 @@ use POSIX;
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use List::Util qw(min);
 use console::vmstat_utils;
+use package_utils 'install_package';
 
 sub run {
     my ($vm, $cpu);
@@ -28,7 +29,7 @@ sub run {
     # Package 'stress-ng' requires PackageHub is available
     return unless is_phub_ready();
 
-    zypper_call('in procps');
+    install_package('procps', trup_reboot => 1) if (script_run('rpm -q procps'));
     validate_script_output("vmstat",
         qr/(procs\s-+memory-+\s-+swap-+\s-+io-+\s-+system-+\s-+cpu-+).*(\s+|\d+)+/s);
 
@@ -50,7 +51,7 @@ sub run {
     my $min_cpu_lightload = min(@cpu_lite_load);
 
     # Increasing the load in the system using package stress-ng.
-    zypper_call('in stress-ng');
+    install_package('stress-ng', trup_reboot => 1);
     my $total_cpu = script_output("cat /proc/cpuinfo | grep processor | wc -l");
     my $total_mem = script_output("free -h | awk '/Mem\:/ { print \$2 }'");
     if ($total_cpu == 1) { $cpu = $total_cpu } else { $cpu = floor($total_cpu * 0.75) }

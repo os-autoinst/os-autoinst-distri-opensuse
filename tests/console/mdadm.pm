@@ -14,13 +14,13 @@ use base 'consoletest';
 use testapi;
 use Utils::Logging 'save_and_upload_log';
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in mdadm expect');
+    install_package('mdadm expect', trup_reboot => 1);
 
     record_info("mdadm build", script_output("rpm -q --qf '%{version}-%{release}' mdadm"));
 

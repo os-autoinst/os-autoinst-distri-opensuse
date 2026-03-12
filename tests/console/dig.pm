@@ -13,7 +13,7 @@
 
 use base 'consoletest';
 use testapi;
-use utils 'zypper_call';
+use package_utils 'install_package';
 use serial_terminal 'select_serial_terminal';
 
 sub run {
@@ -22,7 +22,7 @@ sub run {
     my $target_ip = script_output("dig +short A $target");
     my $log = 'dig.log';
 
-    zypper_call('in bind-utils') if (script_run('rpm -q bind-utils'));
+    install_package('bind-utils', trup_reboot => 1) if (script_run('rpm -q bind-utils'));
     record_info("Version", script_output("rpm -q --qf '%{version}' bind-utils"));
     assert_script_run("dig $target > $log");
     record_info("dig logs", script_output("cat $log"));

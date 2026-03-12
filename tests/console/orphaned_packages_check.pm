@@ -10,7 +10,7 @@
 
 use Mojo::Base qw(consoletest);
 use testapi;
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils 'is_upgrade';
 use Utils::Logging 'export_logs';
 use serial_terminal 'select_serial_terminal';
@@ -59,7 +59,7 @@ sub run {
 
     record_info((is_offline_upgrade_or_livecd) ? 'Upgrade/LiveCD' : 'No upgrade/LiveCD', 'Upgraded or installed from LIVECD can possibly cause orphans');
 
-    zypper_call('in curl') if (script_run('rpm -qi curl') == 1);
+    install_package('curl') if (script_run('rpm -qi curl'));
     # Orphans are also expected in JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
     # Filter out zypper warning messages and release or skelcd packages

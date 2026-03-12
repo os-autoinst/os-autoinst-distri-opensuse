@@ -14,7 +14,8 @@
 
 use base 'consoletest';
 use testapi;
-use utils qw(zypper_call validate_script_output_retry);
+use package_utils 'install_package';
+use utils 'validate_script_output_retry';
 use serial_terminal 'select_serial_terminal';
 
 sub run {
@@ -23,7 +24,7 @@ sub run {
     my $target = 'opensuse.org';
     my $ip_target = script_output("dig +short A $target");
 
-    zypper_call('in traceroute') if (script_run('rpm -q traceroute'));
+    install_package('traceroute', trup_reboot => 1) if (script_run('rpm -q traceroute'));
     record_info("Version", script_output("rpm -q --qf '%{version}' traceroute"));
     validate_script_output_retry("traceroute -I $target  | tail -n +2 | tee $log", sub { m/$ip_target/ }, retry => 3);
     record_info("Traceroute logs", script_output("cat $log"));

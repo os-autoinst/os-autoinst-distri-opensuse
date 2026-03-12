@@ -26,6 +26,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use version_utils 'has_selinux';
+use package_utils 'install_package';
 
 sub run {
     my $username = $testapi::username;
@@ -33,7 +34,7 @@ sub run {
     select_console 'root-console';
 
     # install requirements
-    zypper_call 'in quota quota-nfs';
+    install_package('quota quota-nfs', trup_reboot => 1);
     my $systemd_version = int(script_output('systemctl --version | grep systemd | awk \'{print $2}\''));
     my $use_templated_service = ($systemd_version >= 256);
     record_info('Systemd Version', "Detected systemd version: $systemd_version");

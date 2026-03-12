@@ -13,6 +13,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_tumbleweed);
 
 sub tuned_set_profile {
@@ -31,7 +32,7 @@ sub run {
 
     select_serial_terminal;
     # Install tuned package
-    zypper_call 'in tuned';
+    install_package('tuned', trup_reboot => 1);
     # Start daemon
     systemctl 'start tuned';
     # Check status

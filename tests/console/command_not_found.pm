@@ -14,6 +14,7 @@ use base "consoletest";
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use package_utils qw(install_package uninstall_package);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 
 # test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
@@ -22,8 +23,10 @@ sub run {
     my $not_installed_pkg = is_sle(">=16.0") ? 'tmux' : 'iftop';    # iftop is not available on SLES16
 
     select_console 'root-console';
-    zypper_call("rm $not_installed_pkg") if (script_run("which $not_installed_pkg") == 0);
-    zypper_call('in command-not-found') if (check_var('DESKTOP', 'textmode'));    # command-not-found is part of the enhanced_base pattern, missing in textmode
+    uninstall_package("$not_installed_pkg", trup_reboot => 1) if (script_run("which $not_installed_pkg") == 0);
+
+    # command-not-found is part of the enhanced_base pattern, missing in textmode
+    install_package('command-not-found', trup_continue => 1, trup_reboot => 1) if (check_var('DESKTOP', 'textmode'));
 
     # select user-console; for one we want to be sure cnf works for a user, 2nd assert_script_run does not work in root-console
     select_console 'user-console';
@@ -33,8 +36,8 @@ sub run {
     save_screenshot;
 
     select_console 'root-console';
-    zypper_call "in $not_installed_pkg";
-    zypper_call "rm $not_installed_pkg";
+    install_package("$not_installed_pkg", trup_continue => 1, trup_reboot => 1);
+    uninstall_package("$not_installed_pkg", trup_continue => 1, trup_reboot => 1);
     select_console 'user-console';
 
     if (is_sle('15+')) {

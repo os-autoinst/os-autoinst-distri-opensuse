@@ -21,13 +21,14 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_leap is_tumbleweed);
 
 
 sub run {
     select_serial_terminal;
     my $ovn_ver = (is_sle('=15-sp5') or is_leap('=15.5')) ? 'ovn3' : 'ovn';
-    zypper_call("in $ovn_ver $ovn_ver-central $ovn_ver-devel $ovn_ver-docker $ovn_ver-host $ovn_ver-vtep", timeout => 300);
+    install_package("$ovn_ver $ovn_ver-central $ovn_ver-devel $ovn_ver-docker $ovn_ver-host $ovn_ver-vtep", trup_reboot => 1, timeout => 300);
 
     # Start the openvswitch and OVN daemons
     systemctl 'start openvswitch ovn-controller ovn-northd', timeout => 200;

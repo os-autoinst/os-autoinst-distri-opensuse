@@ -16,12 +16,13 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
     #install osdbinfo packages
-    zypper_call 'in osinfo-db libosinfo';
+    install_package('osinfo-db libosinfo', trup_reboot => 1);
 
     # list all OSes in the database
     assert_script_run "osinfo-query os";

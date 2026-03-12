@@ -14,7 +14,7 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_leap);
-use utils 'zypper_call';
+use package_utils qw(install_package uninstall_package);
 use python_version_utils;
 use registration qw(add_suseconnect_product is_phub_ready);
 
@@ -39,7 +39,7 @@ sub run {
     record_info("Available versions", "All available new pygit2 versions are: @pygit2_versions");
     record_info("The latest version is:", "$pygit2_versions[$#pygit2_versions]");
 
-    zypper_call "in $pygit2_versions[$#pygit2_versions]";
+    install_package("$pygit2_versions[$#pygit2_versions]", trup_continue => 1, trup_reboot => 1);
 
     # Run test script
     assert_script_run "wget --quiet " . data_url('libgit2/pygit2_test.py') . " -O pygit2_test.py";
@@ -52,9 +52,9 @@ sub run {
 }
 
 sub clean_up {
-    zypper_call "rm python3$python_sub_version-pygit2";
+    uninstall_package("python3$python_sub_version-pygit2", trup_continue => 1, trup_reboot => 1);
     my $out = script_output "python3.$python_sub_version pygit2_test.py", proceed_on_failure => 1;
-    zypper_call "rm python3$python_sub_version";
+    uninstall_package("python3$python_sub_version", trup_continue => 1, trup_reboot => 1);
     assert_script_run "rm -rf libgit2";
     die("uninstalling of python3$python_sub_version-pygit2 failed") if (index($out, "ModuleNotFoundError") == -1);
 }

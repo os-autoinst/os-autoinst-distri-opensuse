@@ -14,7 +14,8 @@ use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils;
-use utils qw(zypper_call upload_y2logs);
+use utils 'upload_y2logs';
+use package_utils 'install_package';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use registration qw(add_suseconnect_product is_phub_ready);
 
@@ -28,13 +29,12 @@ sub run {
     add_suseconnect_product(get_addon_fullname('desktop')) if is_sle('=15-SP7');
 
     # Install libjpeg-turbo package
-    zypper_call("install libjpeg-turbo");
+    install_package("libjpeg-turbo ImageMagick", trup_reboot => 1);
     my $install_version = script_output('rpm -q libjpeg-turbo --qf %{version}');
     record_info("libjpeg-turbo version", $install_version);
     die("libjpeg-turbo version was not updated") if (package_version_cmp($install_version, '2.1.1') <= 0);
 
     # Use jpegtran command to rotate image
-    zypper_call("install ImageMagick");
     my $image = 'lizard.jpeg';
     assert_script_run "wget --quiet " . data_url("imagemagick/$image");
     my $size = script_output("identify -format %wx%h $image");

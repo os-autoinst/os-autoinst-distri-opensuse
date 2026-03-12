@@ -18,6 +18,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use network_utils 'iface';
+use package_utils qw(install_package uninstall_package);
 
 sub run {
     my $iface = iface();
@@ -25,7 +26,7 @@ sub run {
     my $cap_file = '/tmp/capture.pcap';
 
     select_serial_terminal();
-    zypper_call('in wireshark') if (script_run('rpm -q wireshark'));
+    install_package('wireshark', trup_reboot => 1) if (script_run('rpm -q wireshark'));
 
     record_info("List interfaces", script_output('tshark -D'));
     script_run("tshark -i $iface -f 'udp port 53' -w $cap_file > /tmp/tshark.log 2>&1 & echo \$! > $pid_file");
@@ -37,7 +38,7 @@ sub run {
     assert_script_run("kill \$(cat $pid_file)");
     assert_script_run("wait \$(cat $pid_file)");
     record_info('Captured packets', script_output("tshark -r $cap_file"));
-    zypper_call('rm -u wireshark');
+    uninstall_package('wireshark', trup_reboot => 1);
 }
 
 sub post_fail_hook {

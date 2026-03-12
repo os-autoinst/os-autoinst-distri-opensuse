@@ -10,13 +10,13 @@
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    zypper_call 'in man-pages man';
+    install_package('man-pages man', trup_reboot => 1);
     assert_script_run 'man --version';
     assert_script_run 'man man > man_man.txt';
     assert_script_run 'grep -q "Manual pager utils" man_man.txt';

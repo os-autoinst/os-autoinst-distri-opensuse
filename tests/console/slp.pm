@@ -16,7 +16,8 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(zypper_call systemctl script_retry validate_script_output_retry);
+use package_utils 'install_package';
+use utils qw(systemctl script_retry validate_script_output_retry);
 use Utils::Systemd 'disable_and_stop_service';
 use Utils::Logging 'save_and_upload_log';
 use version_utils qw(is_tumbleweed is_sle);
@@ -26,7 +27,7 @@ sub run {
     select_serial_terminal;
 
     # Let's install slpd
-    zypper_call 'in openslp-server';
+    install_package('openslp-server', trup_reboot => 1);
 
     disable_and_stop_service($self->firewall) if (script_run("which " . $self->firewall) == 0);
 

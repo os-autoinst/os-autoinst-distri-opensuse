@@ -12,6 +12,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use registration;
+use package_utils qw(install_package uninstall_package);
 
 sub mob_test {
     assert_script_run "go build /home/$username/data/man_or_boy.go";
@@ -33,13 +34,13 @@ sub run {
     my $latest_go = script_output "zypper se '/^go[0-9][0-9.]*\$/' | awk -F '|' '{print \$2}' | tr -d ' ' | sort --version-sort | tail -1 | head -1";
     record_info "Go Versions", "Detected Go versions:\nOlder: $older_go\nLatest: $latest_go";
     record_info "$older_go";
-    zypper_call "in $older_go";
+    install_package("$older_go", trup_continue => 1, trup_reboot => 1);
     mob_test();
-    zypper_call "rm $older_go";
+    uninstall_package("$older_go", trup_continue => 1, trup_reboot => 1);
     record_info "$latest_go";
-    zypper_call "in $latest_go";
+    install_package("$latest_go", trup_continue => 1, trup_reboot => 1);
     mob_test();
-    zypper_call "rm $latest_go";
+    uninstall_package("$latest_go", trup_continue => 1, trup_reboot => 1);
 }
 
 1;

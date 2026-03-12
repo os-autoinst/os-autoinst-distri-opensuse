@@ -21,11 +21,12 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in procps');
+    install_package('procps', trup_reboot => 1) if (script_run('rpm -q procps'));
 
     assert_script_run("rpm -q procps");
 

@@ -11,10 +11,12 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
+    install_package('bzip2', trup_reboot => 1) if (script_run('rpm -qi bzip2'));
     assert_script_run "wget --quiet " . data_url('console/tar_test.tar');
     assert_script_run("tar -xvf tar_test.tar");
 
@@ -39,7 +41,7 @@ sub run {
     assert_script_run("rm -rf /tmp/tar_test");
 
     if (is_sle('>=15-sp1')) {
-        zypper_call("in zstd");
+        install_package("zstd", trup_reboot => 1) if (script_run('rpm -qi zstd'));
 
         # - compress -I zstd and extract
         assert_script_run("tar -I zstd -cvf myfile.tar.zst tar_test");
