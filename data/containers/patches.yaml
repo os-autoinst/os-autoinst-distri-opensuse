@@ -99,9 +99,12 @@ moby:
     min: "29.2.0"
   52116:
     min: "29.2.0"
+    merged: "29.3.0"
   52117:
+    merged: "29.3.0"
   52119:
     min: "29.2.0"
+    merged: "29.3.0"
 
 netavark:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
