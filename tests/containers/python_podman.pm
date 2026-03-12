@@ -43,10 +43,6 @@ sub test ($target) {
 
     # Used by pytest to ignore individual tests
     my @deselect = ();
-    push @deselect, (
-        # This test depends on an image available only for x86_64
-        "podman/tests/integration/test_manifests.py::ManifestsIntegrationTest::test_manifest_crud",
-    ) unless is_x86_64;
     my $deselect = join " ", map { "--deselect=$_" } @deselect;
 
     my @xfails = ();
