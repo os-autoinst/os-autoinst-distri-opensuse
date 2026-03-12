@@ -24,7 +24,7 @@ sub show_pbkdf {
     my $keyslots = '"Slot \(.key): \(.value.type), \(.value.kdf.type)"';
     my $cmd = "cryptsetup  luksDump $device --dump-json-metadata";
     $cmd .= " | jq -r '.keyslots | to_entries[] | $keyslots '";
-    $pbkdf = script_output($cmd);
+    my $pbkdf = script_output($cmd);
     record_info("pbkdf for $device", $pbkdf);
 }
 
