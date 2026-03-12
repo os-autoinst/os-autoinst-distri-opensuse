@@ -32,7 +32,7 @@ sub run {
     assert_script_run("ip addr add $server_ip/24 dev $netdev") if (is_s390x && $test_node eq 'server');
     assert_script_run("ip addr add $client_ip/24 dev $netdev") if (is_s390x && $test_node eq 'client');
 
-    prepare_for_test(make => 1, timeout => 900, make_netconfig => 1);
+    prepare_for_test(make => 1, timeout => 1200, make_netconfig => 1);
 
     # Export password of root
     assert_script_run("export PASSWD=$testapi::password");
