@@ -235,7 +235,7 @@ sub run {
             # Apply workaround in node 1, sync with rest of the cluster and cleanup cluster_md resource
             if (is_node(1)) {
                 file_content_replace($mdadm_conf, 'UUID=[a-z0-9:]+' => "UUID=$uuid");
-                exec_csync;
+                sync_file($mdadm_conf);
                 rsc_cleanup 'cluster_md';
             }
         }

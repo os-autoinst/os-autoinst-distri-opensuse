@@ -38,6 +38,8 @@ our @EXPORT = qw(
   $sbd_watchdog_timeout
   $sbd_delay_start
   $pcmk_delay_max
+  sync_file
+  cluster_copy
   exec_csync
   add_file_in_csync
   get_cluster_info
@@ -162,6 +164,34 @@ sub _test_var_defined {
 }
 
 # Public functions
+
+=head2 sync_file
+
+  sync_file('/path/to/file');
+
+Wrapper function to synchronize a specific file to all nodes in the cluster based
+on the OS version. It will call C<cluster_copy> in SLES 16 or newer, and C<add_file_in_csync>
+which internally calls C<exec_csync> in versions older than 16.
+
+=cut
+
+sub sync_file {
+    my $file = shift;
+    is_sle('>=16') ? cluster_copy($file) : add_file_in_csync(value => $file);
+}
+
+=head2 cluster_copy
+
+ cluster_copy('/path/to/file');
+
+Runs C<crm cluster copy $file> in the SUT, where C<$file> is the full path to a file
+existing in the SUT.
+
+=cut
+
+sub cluster_copy {
+    assert_script_run 'crm cluster copy ' . shift;
+}
 
 =head2 exec_csync
 
