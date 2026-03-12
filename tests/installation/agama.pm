@@ -27,6 +27,12 @@ sub back_to_overview {
     record_info('Back to overview');
 }
 
+sub has_product_selection {
+    return 0 if is_s390x;
+    return 0 if is_ppc64le && is_leap('=16.0');
+    return 1;
+}
+
 # A More complex screen for root auth
 sub agama_set_root_password_screen {
     wait_still_screen 5;
@@ -172,7 +178,7 @@ sub select_software {
 sub run {
     my ($self) = @_;
     my $agama_screen_timeout = 300;
-    if (!is_ppc64le && !is_s390x) {
+    if (has_product_selection) {
         assert_screen('agama-inst-welcome-product-list', timeout => $agama_screen_timeout);
         select_product();
     }
