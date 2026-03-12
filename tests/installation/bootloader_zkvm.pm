@@ -64,7 +64,7 @@ sub set_svirt_domain_elements {
 
         # show this on screen and make sure that kernel and initrd are actually saved
         my $boot_path = "$repo/boot/s390x";
-        $boot_path .= "/loader" if (is_sle('16.1+') && check_var('FLAVOR', 'agama-installer'));
+        $boot_path .= "/loader" if (is_sle('16.1+'));
         enter_cmd "wget $boot_path/initrd -O $zkvm_img_path/$name.initrd";
         assert_screen("initrd-saved", timeout => 300);
         enter_cmd "wget $boot_path/linux -O $zkvm_img_path/$name.kernel";
