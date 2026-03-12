@@ -169,7 +169,9 @@ podman:
 
 podman-py:
   # https://github.com/containers/podman-py/pull/623 - Fix pytest flag for rootful test
+  # https://github.com/containers/podman-py/pull/637 - tests/integration: Skip test on non-x86_64 arches
   623:
+  637:
 
 runc:
   # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set

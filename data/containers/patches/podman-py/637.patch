@@ -1,0 +1,56 @@
+From 05eaee51aa2a17033f31eb30fb390697e60b16dc Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 12 Mar 2026 17:05:47 +0100
+Subject: [PATCH 1/2] tests/integration: Skip test on non-x86_64 arches
+
+https://github.com/containers/podman-py/issues/636
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ podman/tests/integration/test_images.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/podman/tests/integration/test_images.py b/podman/tests/integration/test_images.py
+index 24f448c9..48bf38dc 100644
+--- a/podman/tests/integration/test_images.py
++++ b/podman/tests/integration/test_images.py
+@@ -236,6 +236,8 @@ def add_file(name: str, content: str):
+         self.assertIsNotNone(image)
+         self.assertIsNotNone(image.id)
+ 
++    # https://github.com/containers/podman-py/issues/636
++    @unittest.skipIf(platform.machine() != "x86_64", reason="test image only available on x86_64")
+     def test_build_with_secret(self):
+         with tempfile.TemporaryDirectory() as context_dir:
+             dockerfile_path = os.path.join(context_dir, "Dockerfile")
+
+From 505fdfd405f76d26a4b659979af5854c803699f7 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 12 Mar 2026 17:41:40 +0100
+Subject: [PATCH 2/2] tests: Fix test_manifest_crud on arm64
+
+On arm64, quay.io/libpod/alpine:latest resolves to a platform-specific
+digest rather than the top-level manifest list digest, so comparing
+manifest IDs directly fails.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ podman/tests/integration/test_manifests.py | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/podman/tests/integration/test_manifests.py b/podman/tests/integration/test_manifests.py
+index 71235f0c..58e8e3c0 100644
+--- a/podman/tests/integration/test_manifests.py
++++ b/podman/tests/integration/test_manifests.py
+@@ -57,7 +57,10 @@ def test_manifest_crud(self):
+ 
+         with self.subTest("Inspect"):
+             actual = self.client.manifests.get("quay.io/libpod/alpine:latest")
+-            self.assertEqual(actual.id, manifest.id)
++            # We don't check manifest.id since arm64 resolves a platform-specific
++            # digest rather than the top-level manifest list digest.
++            self.assertIsNotNone(actual.id)
++            self.assertTrue(actual.id)
+ 
+             actual = self.client.manifests.get(manifest.name)
+             self.assertEqual(actual.id, manifest.id)
