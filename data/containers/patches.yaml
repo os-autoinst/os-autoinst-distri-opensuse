@@ -43,9 +43,12 @@ buildx:
 compose:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
   # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
+  # https://github.com/docker/compose/pull/13630 - test: use random host port for dind TLS build test
   13214:
     merged: "2.39.4"
   13564:
+  13630:
+    min: "5.0.0"
 
 conmon:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
