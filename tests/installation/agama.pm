@@ -13,7 +13,7 @@
 # Actions past install-screen with reboot button ara handled separately in agama_reboot.pm
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
-use base "installbasetest";
+use base Yam::Agama::agama_base;
 use testapi;
 use version_utils qw(is_leap is_sle is_microos);
 use utils;
@@ -110,15 +110,6 @@ sub agama_lvm_setup {
     mouse_click;    # click on a blank portion, so we can scroll down with the keyboard
     send_key_until_needlematch('agama-lvm-proposal', 'ctrl-down');
 }
-
-sub upload_agama_logs {
-    return if (get_var('NOLOGS'));
-    select_console("root-console");
-    # stores logs in /tmp/agma-logs.tar.gz
-    script_run('agama logs store');
-    upload_logs('/tmp/agama-logs.tar.gz');
-}
-
 
 sub select_product {
     # Product selection dialog scrolls with 4+ products at 1024x768.
@@ -242,25 +233,5 @@ sub run {
         die "timeout ($timeout) hit during await_install" if $timeout <= 0;
     }
 }
-
-=head2 post_fail_hook
-
- post_fail_hook();
-
-When the test module fails, this method will be called.
-It will try to fetch logs from agama.
-
-=cut
-
-sub post_fail_hook {
-    my ($self) = @_;
-
-    return if (get_var('NOLOGS'));
-
-    select_console("install-shell");
-    export_healthcheck_basic();
-    upload_agama_logs();
-}
-
 
 1;
