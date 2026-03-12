@@ -189,7 +189,7 @@ subtest 'bootloader_tests' => sub {
     ok get_default_bootloader eq 'systemd-boot', "Tumbleweed on UEFI is systemd-boot";
 
     set_var('DUALBOOT', 1);
-    ok get_default_bootloader eq 'grub2', "Tumbleweed on UEFI with DUALBOOT is grub2";
+    ok get_default_bootloader eq 'systemd-boot', "Tumbleweed on UEFI with DUALBOOT is systemd-boot";
     set_var('DUALBOOT', 0);
 
     set_var('VERSION', 'Slowroll');
