@@ -50,6 +50,7 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
         loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
+        loadtest('publiccloud/ssh_interactive_end', run_args => $args);
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
         loadtest('publiccloud/ahb', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
@@ -153,6 +154,7 @@ sub load_latest_publiccloud_tests {
         if (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
             loadtest('publiccloud/cloud_netconfig', run_args => $args);
             loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
+            loadtest('publiccloud/ssh_interactive_end', run_args => $args);
         } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
             loadtest('publiccloud/ahb', run_args => $args);
         } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
