@@ -20,7 +20,7 @@ use lockapi;
 use utils qw(zypper_call systemctl);
 use network_utils 'iface';
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_tumbleweed package_version_cmp);
 
 sub run {
     select_serial_terminal;
@@ -35,7 +35,8 @@ sub run {
     assert_script_run("sed -i 's/\"eth0\"/\"$server_nic\"/' /etc/kea/kea-dhcp4.conf") unless $server_nic eq 'eth0';
     assert_script_run("kea-dhcp4 -t /etc/kea/kea-dhcp4.conf", fail_message => 'Kea dhcp4 config invalid');
 
-    my $package = (is_sle('>=16') || is_tumbleweed) ? 'kea-dhcp4' : 'kea';
+    my $kea_version = script_output("rpm -q --qf '%{version}' kea");
+    my $package = (package_version_cmp($kea_version, '2.6.3') >= 0) ? 'kea-dhcp4' : 'kea';
     systemctl("enable --now $package");
     systemctl("is-active $package");
 
