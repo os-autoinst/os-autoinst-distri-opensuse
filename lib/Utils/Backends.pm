@@ -64,6 +64,10 @@ sub save_serial_console {
     my $serialconsole = get_var('SERIALCONSOLE', '');
     return if ($serialconsole ne '');
     $serialconsole = get_var('SERIALDEV', 'ttyS1');
+    if ($serialconsole eq 'sshserial') {
+        record_info('Reset SERIALCONSOLE to ttyS1', 'Because SERIALCONSOLE has no value and SERIALDEV is sshserial');
+        $serialconsole = 'ttyS1';
+    }
     set_var('SERIALCONSOLE', $serialconsole);
     bmwqemu::save_vars();
 }
