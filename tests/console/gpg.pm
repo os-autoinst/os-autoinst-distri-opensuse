@@ -26,7 +26,7 @@ use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_public_cloud is_transactional is_sle_micro is_jeos);
 use utils qw(zypper_call package_upgrade_check);
-use transactional qw(trup_call process_reboot);
+use transactional qw(trup_call process_reboot reboot_on_changes);
 
 sub gpg_test {
     my ($key_size, $gpg_ver) = @_;
