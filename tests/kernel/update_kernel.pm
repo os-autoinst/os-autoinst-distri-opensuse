@@ -449,6 +449,18 @@ sub boot_to_console {
     setup_kernel_logging;
 }
 
+sub reboot {
+    my ($self) = @_;
+
+    if (is_transactional) {
+        reboot_on_changes;
+    } elsif (!get_var('KGRAFT')) {
+        power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm || is_ipmi;
+        $self->wait_boot if get_var('LTP_BAREMETAL');
+    }
+}
+
 sub install_requirements {
     my @requirements;
     my $flavor = get_var('FLAVOR');
@@ -575,14 +587,7 @@ sub run {
     }
 
     check_kernel_package($kernel_package);
-
-    if (is_transactional) {
-        reboot_on_changes;
-    } elsif (!get_var('KGRAFT')) {
-        power_action('reboot', textmode => 1);
-        reconnect_mgmt_console if is_pvm || is_ipmi;
-        $self->wait_boot if get_var('LTP_BAREMETAL');
-    }
+    $self->reboot;
 }
 
 sub test_flags {
