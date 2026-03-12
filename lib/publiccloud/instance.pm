@@ -690,8 +690,8 @@ sub check_cloudinit() {
     my ($self) = @_;
 
     # cloud-init status
-    $self->ssh_script_retry(cmd => "sudo cloud-init status", timeout => 90, retry => 12, delay => 15);
-    $self->ssh_script_retry(cmd => "sudo cloud-init status --long", timeout => 90, retry => 12, delay => 15);
+    $self->ssh_script_retry(cmd => "sudo cloud-init status", timeout => 300, retry => 12, delay => 15);
+    $self->ssh_script_retry(cmd => "sudo cloud-init status --long", timeout => 300, retry => 12, delay => 15);
 
     # cloud-id
     my $cloud_id = (is_azure) ? 'azure' : 'aws';
