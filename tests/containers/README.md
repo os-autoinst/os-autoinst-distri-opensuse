@@ -50,10 +50,10 @@ openSUSE Tumbleweed:
 | netavark | [![netavark_aarch64_logo]][netavark_aarch64] | [![netavark_ppc64le_logo]][netavark_ppc64le] | [![netavark_x86_64_logo]][netavark_x86_64] |
 | podman | [![podman_aarch64_logo]][podman_aarch64] | [![podman_ppc64le_logo]][podman_ppc64le] | [![podman_x86_64_logo]][podman_x86_64] |
 | podman + crun | [![podman_crun_aarch64_logo]][podman_crun_aarch64] | [![podman_crun_ppc64le_logo]][podman_crun_ppc64le] | [![podman_crun_x86_64_logo]][podman_crun_x86_64] |
-| podman e2e |  |  | [![podman_e2e_x86_64_logo]][podman_e2e_x86_64] |
-| podman e2e + crun |  |  | [![podman_e2e_crun_x86_64_logo]][podman_e2e_crun_x86_64] |
-| podman rootless e2e |  |  | [![podman_rootless_e2e_x86_64_logo]][podman_rootless_e2e_x86_64] |
-| podman rootless e2e + crun |  |  | [![podman_rootless_e2e_crun_x86_64_logo]][podman_rootless_e2e_crun_x86_64] |
+| podman e2e | [![podman_e2e_aarch64_logo]][podman_e2e_aarch64] |  | [![podman_e2e_x86_64_logo]][podman_e2e_x86_64] |
+| podman e2e + crun | [![podman_e2e_crun_aarch64_logo]][podman_e2e_crun_aarch64] |  | [![podman_e2e_crun_x86_64_logo]][podman_e2e_crun_x86_64] |
+| podman rootless e2e | [![podman_rootless_e2e_aarch64_logo]][podman_rootless_e2e_aarch64] |  | [![podman_rootless_e2e_x86_64_logo]][podman_rootless_e2e_x86_64] |
+| podman rootless e2e + crun | [![podman_rootless_e2e_crun_aarch64_logo]][podman_rootless_e2e_crun_aarch64] |  | [![podman_rootless_e2e_crun_x86_64_logo]][podman_rootless_e2e_crun_x86_64] |
 | runc | [![runc_aarch64_logo]][runc_aarch64] | [![runc_ppc64le_logo]][runc_ppc64le] | [![runc_x86_64_logo]][runc_x86_64] |
 | skopeo | [![skopeo_aarch64_logo]][skopeo_aarch64] | [![skopeo_ppc64le_logo]][skopeo_ppc64le] | [![skopeo_x86_64_logo]][skopeo_x86_64] |
 | umoci |  |  | [![umoci_x86_64_logo]][umoci_x86_64] |
@@ -144,6 +144,18 @@ openSUSE Tumbleweed:
 
 [podman_crun_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
 [podman_crun_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite_crun
+
+[podman_e2e_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_e2e
+[podman_e2e_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_e2e
+
+[podman_e2e_crun_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_e2e_crun
+[podman_e2e_crun_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_e2e_crun
+
+[podman_rootless_e2e_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_rootless_e2e
+[podman_rootless_e2e_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_rootless_e2e
+
+[podman_rootless_e2e_crun_aarch64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_rootless_e2e_crun
+[podman_rootless_e2e_crun_aarch64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=aarch64&test=container_host_podman_rootless_e2e_crun
 
 [podman_e2e_x86_64_logo]: https://openqa.opensuse.org/tests/latest/badge?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e
 [podman_e2e_x86_64]: https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_e2e
