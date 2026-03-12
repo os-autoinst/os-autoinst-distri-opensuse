@@ -654,6 +654,9 @@ sub load_jeos_tests {
             loadtest 'microos/image_checks';
         }
     } elsif (check_var('FIRST_BOOT_CONFIG', 'cloud-init')) {
+        if (is_s390x) {
+            loadtest "boot/reconnect_mgmt_console";
+        }
         loadtest "installation/first_boot";
         loadtest "jeos/host_config" unless (is_bootloader_sdboot || is_bootloader_grub2_bls);
         loadtest 'jeos/verify_cloudinit';
