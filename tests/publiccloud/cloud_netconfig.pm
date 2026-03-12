@@ -6,9 +6,6 @@
 # functionality. The test shall be conducted on a VM in the cloud
 # infrastructure of a supported CSP.
 #
-# This test only contains minimal functionality that needs to be
-# extended in future.
-#
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
