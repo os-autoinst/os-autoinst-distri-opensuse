@@ -12,14 +12,14 @@ use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
-use version_utils qw(is_tumbleweed is_leap is_sle is_transactional is_jeos);
-use transactional qw(trup_call process_reboot);
+use version_utils qw(is_tumbleweed is_leap is_sle is_sle_micro is_transactional is_jeos);
+use transactional qw(trup_call process_reboot reboot_on_changes);
 
 sub install_gnutls {
     # Install the gnutls / libnettle packages (pulled as dependency)
     if (is_transactional) {
         trup_call('pkg install gnutls');
-        process_reboot(trigger => 1);
+        (is_sle_micro(">=6.2") && is_aarch64) ? process_reboot(trigger => 1, expected_grub => 0) : reboot_on_changes;
     } else {
         my @pkgs = qw(gnutls);
         push @pkgs, 'sysvinit-tools' if is_jeos && is_sle('<16.0');
