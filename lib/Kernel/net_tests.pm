@@ -39,10 +39,10 @@ our @EXPORT_OK = qw(
 =head1 SYNOPSIS
 
 Networking helper utilities for multimachine openQA tests involving
-IPsec, L2TP, routing, and general tunnel configuration.
+IPsec, L2TP, routing, as well as LTP NFS multi-machine tests and general
+tunnel and network interfaces configuration.
 
 =cut
-
 
 =head2 get_net_prefix_len
 
