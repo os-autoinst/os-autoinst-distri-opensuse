@@ -123,6 +123,7 @@ podman:
   # https://github.com/containers/podman/pull/27760 - test/system: remove apk from build
   # https://github.com/containers/podman/pull/28133 - test: Use yq for yaml2json instead of PyYAML
   # https://github.com/containers/podman/pull/28151 - test/system: fix pod inspect ordering test leak
+  # https://github.com/containers/podman/pull/28266 - Fixes for running the e2e testsuite on architectures other than amd64
   21875:
     merged: "5.0.0"
   24068:
@@ -162,6 +163,8 @@ podman:
   28133:
     min: "5.8.0"
   28151:
+    min: "5.8.0"
+  28266:
     min: "5.8.0"
 
 podman-py:
