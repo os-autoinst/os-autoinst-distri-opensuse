@@ -22,14 +22,64 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % if ( $get_var->('VERSION') =~ /15-SP[6-7]/ ) {
       <addon>
         <name>sle-module-systems-management</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      % }
+      % if ( $get_var->('VERSION') =~ /15-SP[4-6]/ ) {
+      <addon>
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
+      % }
+      <addon>
+        <name>sle-module-web-scripting</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-containers</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-public-cloud</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-legacy</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-desktop-applications</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-development-tools</name>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>sle-module-certifications</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
       <addon>
         <name>sle-ha</name>
         <reg_code>{{SCC_REGCODE_HA}}</reg_code>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
+      </addon>
+      <addon>
+        <name>PackageHub</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
@@ -41,11 +91,25 @@
       <confirm config:type="boolean">false</confirm>
     </mode>
   </general>
+  <bootloader>
+    <global>
+      <cpu_mitigations>auto</cpu_mitigations>
+      <gfxmode>auto</gfxmode>
+      <hiddenmenu>false</hiddenmenu>
+      <os_prober>false</os_prober>
+      <secure_boot>false</secure_boot>
+      <terminal>console</terminal>
+      <timeout t="integer">0</timeout>
+      <trusted_grub>false</trusted_grub>
+      <update_nvram>true</update_nvram>
+      <xen_kernel_append>crashkernel=147M\&lt;4G</xen_kernel_append>
+    </global>
+  </bootloader>
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
   </networking>
-  <services-manager>
-    <services>
+  <services-manager config:type="map">
+    <services config:type="map">
       <enable config:type="list">
         <service>sshd</service>
       </enable>
@@ -84,11 +148,10 @@
     <packages config:type="list">
       <package>openssh</package>
     </packages>
-    <patterns t="list">
+    <patterns config:type="list">
       <pattern>apparmor</pattern>
       <pattern>base</pattern>
       <pattern>enhanced_base</pattern>
-      <pattern>ha_sles</pattern>
       <pattern>minimal_base</pattern>
       <pattern>yast2_basis</pattern>
     </patterns>

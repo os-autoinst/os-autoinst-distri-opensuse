@@ -33,7 +33,7 @@
     </drive>
   </partitioning>
   <services-manager t="map">
-    <default_target>multi-user</default_target>
+    <default_target>graphical</default_target>
     <services t="map">
       <enable t="list">
         <service>xrdp</service>
@@ -77,11 +77,13 @@
   </software>
   <suse_register t="map">
     <addons t="list">
+      % if ( $get_var->('VERSION') =~ /15-SP[6-7]/ ) {
       <addon t="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-systems-management</name>
 	<version>{{VERSION}}</version>
       </addon>
+      % }
       <addon t="map">
         <arch>{{ARCH}}</arch>
         <name>sle-module-python3</name>

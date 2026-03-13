@@ -22,11 +22,21 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % if ( $get_var->('VERSION') =~ /15-SP[6-7]/ ) {
       <addon>
         <name>sle-module-systems-management</name>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
+      % }
+      % if ( $get_var->('VERSION') =~ /15-SP[4-6]/ ) {
+      <addon>
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
+      % }
       <addon>
         <name>sle-module-web-scripting</name>
         <version>{{VERSION}}</version>
@@ -39,12 +49,6 @@
       </addon>
       <addon>
         <name>sle-module-public-cloud</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-live-patching</name>
-        <reg_code>{{SCC_REGCODE_LIVE}}</reg_code>
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
@@ -82,11 +86,6 @@
       <addon>
         <name>sle-module-NVIDIA-compute</name>
         <version>15</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
-        <name>sle-module-sap-business-one</name>
-        <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
     </addons>

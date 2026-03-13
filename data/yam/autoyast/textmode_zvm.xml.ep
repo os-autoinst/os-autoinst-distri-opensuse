@@ -82,11 +82,21 @@
         <name>sle-module-server-applications</name>
         <version>{{VERSION}}</version>
       </addon>
-      <addon t="map">
-        <arch>{{ARCH}}</arch>
+      % if ( $get_var->('VERSION') =~ /15-SP[6-7]/ ) {
+      <addon>
         <name>sle-module-systems-management</name>
-	<version>{{VERSION}}</version>
+        <version>{{VERSION}}</version>
+        <arch>{{ARCH}}</arch>
       </addon>
+      % }
+      % if ( $get_var->('VERSION') =~ /15-SP[4-6]/ ) {
+      <addon>
+        <arch>{{ARCH}}</arch>
+        <name>SLES-LTSS</name>
+        <version>{{VERSION}}</version>
+        <reg_code>{{SCC_REGCODE_LTSS}}</reg_code>
+      </addon>
+      % }
     </addons>
     <do_registration t="boolean">true</do_registration>
     <install_updates t="boolean">true</install_updates>

@@ -1,7 +1,7 @@
 ---
-name: agama_migration_15sp7_textmode.yaml
+name: agama_migration_15spx_textmode.yaml
 description: >
-  Migration from SLES 15 SP7 equivalent to system role textmode.
+  Migration from SLES 15 SPx equivalent to system role textmode.
 schedule:
   - yam/migration/setup_upgrade_env
   - autoyast/prepare_profile
@@ -12,10 +12,8 @@ schedule:
   - console/system_prepare
   - console/hostname
   - yam/migration/migration_unattended
-  - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_migration_logs
-  - yam/validate/validate_product
-  - yam/validate/validate_registered_products
-  - console/validate_repos
   - yam/validate/validate_connectivity
+  - yam/validate/validate_product
+  - console/validate_repos

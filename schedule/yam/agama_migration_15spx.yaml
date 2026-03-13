@@ -1,24 +1,20 @@
 ---
-name: agama_migration_sles_sap_15sp7
+name: agama_migration_15spx_textmode.yaml
 description: >
-  Migration from SLES for SAP 15SP7.
+  Migration from SLES 15 SPx equivalent to system role textmode.
 schedule:
   - yam/migration/setup_upgrade_env
   - autoyast/prepare_profile
   - installation/bootloader_start
   - autoyast/installation
   - installation/first_boot
+  - yam/migration/restore_upgrade_env
   - console/system_prepare
   - console/hostname
-  - sles4sap/patterns
-  - sles4sap/netweaver_install
-  - sles4sap/netweaver_test_instance
-  - yam/migration/restore_upgrade_env
   - yam/migration/migration_unattended
   - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_migration_logs
-  - yam/validate/validate_product
-  - yam/validate/validate_registered_products
-  - console/validate_repos
   - yam/validate/validate_connectivity
+  - yam/validate/validate_product
+  - console/validate_repos
