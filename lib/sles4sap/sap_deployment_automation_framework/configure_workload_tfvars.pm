@@ -157,6 +157,8 @@ sub create_workload_tfvars {
     $tfvars_data{env_definitions} = define_workload_environment(
         environment => $env_code,
         location => $location,
+        subscription_id => $args{subscription_id},
+        control_plane_name => $args{control_plane_name},
         resource_group => generate_resource_group_name(deployment_type => 'workload_zone'));
     $tfvars_data{workload_networking} = define_networking(
         environment => $env_code,
@@ -171,6 +173,7 @@ sub create_workload_tfvars {
         workload_vnet_code => $args{workload_vnet_code});
     $tfvars_data{iscsi_devices} = define_iscsi_devices();
     $tfvars_data{storage_account} = define_storage_account();
+    $tfvars_data{deployer_tfstate_key} => q|"LAB-SECE-DEP10-INFRASTRUCTURE.terraform.tfstate"|;
 
     # Write file and upload to OpenQA logs
     write_tfvars_file(tfvars_data => \%tfvars_data, tfvars_file => $tfvars_file);
@@ -219,7 +222,11 @@ sub define_workload_environment {
         # Defines the number of workload _vms to create
         utility_vm_count => q|0|,
         # These tags will be applied to all resources
-        tags => q|{"DeployedBy" = "OpenQA-SDAF-automation"}|
+        tags => q|{"DeployedBy" = "OpenQA-SDAF-automation"}|,
+        deployer_tfstate_key => q|"LAB-SECE-DEP10-INFRASTRUCTURE.terraform.tfstate"|,
+        public_network_access_enabled => q|true|,
+        subscription_id => '"' . get_os_variable('ARM_SUBSCRIPTION_ID') . '"',
+        control_plane_name => '"' . "$args{environment}-" . convert_region_to_short($args{location}) . '-' . get_required_var('SDAF_DEPLOYER_VNET_CODE') . '"'
     );
 
     # Add no cleanup tag if the deployment should be kept after test finished
@@ -333,7 +340,7 @@ sub define_subnets {
     croak 'Missing mandatory argument $args{network_data}' unless $args{network_data};
     my %result = (
         header => q|###  Subnet definitions ###|,
-        network_address_space => qq|"$args{network_data}->{network_address_space}"|,
+        network_address_space => qq|["$args{network_data}->{network_address_space}"]|,
         iscsi_subnet_address_prefix => qq|"$args{network_data}->{iscsi_subnet_address_prefix}"|,
         web_subnet_address_prefix => qq|"$args{network_data}->{web_subnet_address_prefix}"|,
         admin_subnet_address_prefix => qq|"$args{network_data}->{admin_subnet_address_prefix}"|,

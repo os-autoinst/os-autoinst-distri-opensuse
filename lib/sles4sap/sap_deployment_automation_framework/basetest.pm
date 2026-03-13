@@ -225,6 +225,9 @@ sub post_fail_hook {
     my $upload_SUT_logs = $serial_regexp_playbook;
 
     record_info('Post fail', 'Executing post fail hook');
+    script_run("echo ====testing start====");
+    #script_run('sleep 12345', timeout => 12345);
+    script_run("echo ====testing end====");
     if (testapi::is_serial_terminal()) {
         # In case playbook/script times out, it will keep occupying the command line,
         # therefore we need to press Ctrl+c to terminate the process.

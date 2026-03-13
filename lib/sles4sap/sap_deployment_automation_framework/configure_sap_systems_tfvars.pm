@@ -16,7 +16,7 @@ use sles4sap::sap_deployment_automation_framework::deployment
   qw(get_os_variable validate_components get_fencing_mechanism);
 use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(write_tfvars_file);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw(generate_resource_group_name get_sizing_filename);
+  qw(generate_resource_group_name get_sizing_filename convert_region_to_short);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
 
 =head1 SYNOPSIS
@@ -73,7 +73,9 @@ sub create_sap_systems_tfvars {
         environment => get_required_var('SDAF_ENV_CODE'),
         location => get_required_var('PUBLIC_CLOUD_REGION'),
         resource_group => generate_resource_group_name(deployment_type => 'sap_system'),
-        bom_name => get_required_var('SDAF_BOM_NAME')
+        bom_name => get_required_var('SDAF_BOM_NAME'),
+        subscription_id => get_os_variable('ARM_SUBSCRIPTION_ID'),
+        control_plane_name => get_required_var('SDAF_ENV_CODE') . '-' . convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')) . '-' . get_required_var('SDAF_DEPLOYER_VNET_CODE')
     );
     $tfvars_data{sap_systems_networking} = define_networking(workload_vnet_code => $args{workload_vnet_code});
     $tfvars_data{cluster_settings} = define_cluster_settings();
@@ -128,7 +130,9 @@ sub define_sap_systems_environment {
         bom_name => qq|"$args{bom_name}"|,
         enable_purge_control_for_keyvaults => 'false',
         use_spn => q|true|,
-        tags => q|{"DeployedBy" = "OpenQA-SDAF-automation"}|
+        tags => q|{"DeployedBy" = "OpenQA-SDAF-automation"}|,
+        subscription_id => qq|"$args{subscription_id}"|,
+        control_plane_name => qq|"$args{control_plane_name}"|
     );
 
     # Add no cleanup tag if the deployment should be kept after test finished
