@@ -26,7 +26,7 @@ use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_public_cloud is_transactional is_sle_micro is_jeos);
 use utils qw(zypper_call package_upgrade_check);
-use transactional qw(trup_call process_reboot reboot_on_changes);
+use transactional qw(trup_call process_reboot);
 
 sub gpg_test {
     my ($key_size, $gpg_ver) = @_;
@@ -197,7 +197,6 @@ sub run {
         } else {
             zypper_call('in haveged');
         }
-        # Start the service (consider 'enable --now' if it needs to survive further reboots)
         systemctl('start haveged');
     }
 
@@ -222,7 +221,7 @@ sub run {
     } else {
         if (is_transactional) {
             trup_call('pkg install ' . join(' ', keys %$pkg_list));
-            is_sle_micro(">=6.2") ? process_reboot(trigger => 1, expected_grub => 0) : reboot_on_changes;
+            process_reboot(trigger => 1);
         } else {
             zypper_call("in " . join(' ', keys %$pkg_list));
         }

@@ -4,6 +4,7 @@ description: >
 schedule:
     - installation/bootloader_start
     - security/boot_disk
+    - '{{host_config}}'
     - '{{register_system}}'
     - fips/fips_setup
     - fips/openssl/openssl_fips_hash
@@ -21,3 +22,7 @@ conditional_schedule:
         DISTRI:
             sle-micro:
                 - console/suseconnect_scc
+    host_config:
+        DISTRI:
+            sle-micro:
+                - transactional/host_config
