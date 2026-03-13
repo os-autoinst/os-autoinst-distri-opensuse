@@ -20,6 +20,7 @@ use qam;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use zypper;
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
@@ -37,6 +38,13 @@ sub run {
 
     fully_patch_system;
     capture_state('after', 1);
+
+    # https://progress.opensuse.org/issues/197900
+    if (is_sle('=12-sp3')) {
+        # latest kernel from customer repo has lower version than old kernel
+        zypper_call('rm kernel-default');
+        zypper_call('in -f --repo 12-SP3-TERADATA-Updates kernel-default');
+    }
 
     power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
