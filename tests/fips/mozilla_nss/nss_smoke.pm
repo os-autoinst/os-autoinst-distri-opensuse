@@ -9,8 +9,8 @@
 
 use base "consoletest";
 use testapi;
-use version_utils qw(is_sle is_transactional is_sle_micro);
-use transactional qw(trup_call process_reboot reboot_on_changes);
+use version_utils qw(is_sle is_transactional);
+use transactional qw(trup_call process_reboot);
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 
@@ -32,7 +32,7 @@ sub run {
 
     if (is_transactional) {
         trup_call("pkg install $zypper_options mozilla-nss mozilla-nss-tools");
-        (is_sle_micro(">=6.2") && is_aarch64) ? process_reboot(trigger => 1, expected_grub => 0) : reboot_on_changes;
+        process_reboot(trigger => 1);
     } else {
         zypper_call("in $zypper_options mozilla-nss mozilla-nss-tools", timeout => 180);
     }

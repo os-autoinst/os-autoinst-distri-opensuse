@@ -27,14 +27,9 @@ my @vars = ('OPENSSL_FIPS', 'OPENSSL_FORCE_FIPS_MODE', 'LIBGCRYPT_FORCE_FIPS_MOD
 sub reboot_and_login {
     my $self = shift;
 
-    my $is_micro_ge62_aarch64 = is_sle_micro(">=6.2") && is_aarch64;
-    if (is_transactional) {
-        process_reboot(trigger => 1, $is_micro_ge62_aarch64 ? (expected_grub => 0) : ());
-    } else {
-        power_action('reboot', textmode => 1, keepconsole => is_pvm);
-    }
+    is_transactional ? process_reboot(trigger => 1) : power_action('reboot', textmode => 1, keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
-    $self->wait_boot unless is_transactional;
+    $self->wait_boot if !is_transactional;
     is_ppc64le() ? select_console('root-console') : select_serial_terminal();
     return;
 }

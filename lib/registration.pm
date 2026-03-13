@@ -1091,7 +1091,7 @@ sub runtime_registration {
             process_reboot(trigger => 1);
             add_suseconnect_product('SL-Micro-Extras', get_var('HDDVERSION'), undef, undef, 90, 1);
         }
-        (is_sle_micro(">=6.2") && is_aarch64) ? process_reboot(trigger => 1, expected_grub => 0) : reboot_on_changes;
+        process_reboot(trigger => 1);
     }
     else {
         my $output = script_output_retry("SUSEConnect $cmd", retry => $retries, delay => $delay, timeout => 180);
