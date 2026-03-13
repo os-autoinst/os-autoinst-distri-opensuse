@@ -51,15 +51,12 @@ sub load_kernel_tests {
             loadtest 'console/suseconnect_scc' if is_sle_micro;
         }
 
-        if (get_var('INSTALL_KOTD')) {
-            loadtest_kernel 'install_kotd';
-        }
-        elsif (get_var('CHANGE_KERNEL_REPO') ||
+        if (get_var('CHANGE_KERNEL_REPO') ||
             get_var('CHANGE_KERNEL_PKG') ||
             get_var('ASSET_CHANGE_KERNEL_RPM')) {
             loadtest_kernel 'change_kernel';
         }
-        if (get_var('FLAVOR', '') =~ /Incidents-Kernel|Updates-Staging|Increments|Maintenance-KOTD|(Default-qcow|Base-RT|Base-ppc-512)-Updates/) {
+        elsif (!get_var('LIBC_LIVEPATCH')) {
             loadtest_kernel 'update_kernel';
         }
 

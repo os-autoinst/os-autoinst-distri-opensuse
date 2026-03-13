@@ -25,6 +25,7 @@ our @EXPORT = qw(
   get_kernel_devel_flavor
   get_kernel_devel_libs
   check_kernel_package
+  is_kernel_validation_flavor
 );
 
 # Kernel flavor preinstalled on the boot disk
@@ -114,6 +115,11 @@ sub check_kernel_package {
         die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
           if $packname ne $kernel_name;
     }
+}
+
+# Check if flavor is validation
+sub is_kernel_validation_flavor {
+    return get_var('FLAVOR', '') =~ /(Online|Online-Kernel-(RT|Base|Azure|Baremetal|(RT|64kb)-Baremetal))$/;
 }
 
 1;

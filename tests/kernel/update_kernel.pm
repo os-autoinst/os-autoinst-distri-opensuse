@@ -13,7 +13,7 @@ use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_sle_micro is_transactional package_version_cmp);
+use version_utils qw(is_sle is_sle_micro is_transactional package_version_cmp is_opensuse);
 use bootloader_setup 'add_grub_cmdline_settings';
 use qam;
 use kernel;
@@ -449,6 +449,18 @@ sub boot_to_console {
     setup_kernel_logging;
 }
 
+sub finish_update {
+    my ($self) = @_;
+
+    if (is_transactional) {
+        reboot_on_changes;
+    } elsif (!get_var('KGRAFT')) {
+        power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm || is_ipmi;
+        $self->wait_boot if get_var('LTP_BAREMETAL');
+    }
+}
+
 sub install_requirements {
     my @requirements;
     my $flavor = get_var('FLAVOR');
@@ -542,6 +554,14 @@ sub run {
         return;
     }
 
+    if (is_kernel_validation_flavor || (is_opensuse && !$repo)) {
+        record_info('Kernel flavor', $kernel_package);
+        $self->prepare_kernel($kernel_package) if $kernel_package ne get_initial_kernel_flavor;
+        check_kernel_package($kernel_package);
+        $self->finish_update;
+        return;
+    }
+
     unless ($repo) {
         $repo = get_required_var('INCIDENT_REPO');
         $incident_id = get_required_var('INCIDENT_ID');
@@ -575,14 +595,7 @@ sub run {
     }
 
     check_kernel_package($kernel_package);
-
-    if (is_transactional) {
-        reboot_on_changes;
-    } elsif (!get_var('KGRAFT')) {
-        power_action('reboot', textmode => 1);
-        reconnect_mgmt_console if is_pvm || is_ipmi;
-        $self->wait_boot if get_var('LTP_BAREMETAL');
-    }
+    $self->finish_update;
 }
 
 sub test_flags {
