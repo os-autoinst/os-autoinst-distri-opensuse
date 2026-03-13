@@ -62,7 +62,8 @@ sub test_flags {
 
 sub run {
     # Skip module if existing deployment is being re-used
-    return if sdaf_deployment_reused();
+# testing
+#return if sdaf_deployment_reused();
 
     my $sap_sid = get_required_var('SAP_SID');
     my $sdaf_config_root_dir = get_sdaf_config_path(
@@ -89,7 +90,24 @@ sub run {
     my $playbook_options = $playbook_setup->get();
     # Request next playbook in loop until all are executed
     while ($playbook_options->{playbook_filename}) {
+	    #if (
+		#($playbook_options->{playbook_filename} !~ 'playbook_00_validate_parameters.yaml')
+		#&& ($playbook_options->{playbook_filename} !~ 'playbook_01_os_base_config.yaml')
+		#&&($playbook_options->{playbook_filename} !~ 'playbook_02_os_sap_specific_config.yaml')
+	        #&& ($playbook_options->{playbook_filename} !~ 'playbook_05_01_sap_dbload')
+		#&& ($playbook_options->{playbook_filename} !~ 'playbook_03_bom_processing')
+		#&& ($playbook_options->{playbook_filename} !~ 'playbook_03_bom_processing')
+		#&& ($playbook_options->{playbook_filename} !~ 'playbook_04_00_00_db_install')
+		#&& ($playbook_options->{playbook_filename} !~ 'playbook_05_00_00_sap_scs_install')
+		#&& ($playbook_options->{playbook_filename} !~ 'playbook_04_00_01_db_ha')
+		#&& get_var('DEBUG', '')) {
+		# record_info("!!!skip $playbook_options->{playbook_filename}");
+		#$playbook_options = $playbook_setup->get();
+		#next; 
+		#}
         sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
+        sleep 60;
+        record_info('!!!sleep 60');
         # Get next playbook settings
         $playbook_options = $playbook_setup->get();
     }

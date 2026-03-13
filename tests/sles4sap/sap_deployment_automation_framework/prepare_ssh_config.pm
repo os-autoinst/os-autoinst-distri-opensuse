@@ -39,7 +39,12 @@ sub run {
     sdaf_ssh_key_from_keyvault(query => 'sid-sshkey', key_vault => $workload_key_vault, target_file => $private_key_src_path);
     if (get_required_var('SDAF_FENCING_MECHANISM') eq 'sbd') {
         $private_key_src_path = get_sut_sshkey_path(sut => 'iscsi', config_root_path => $config_root_path);
-        sdaf_ssh_key_from_keyvault(query => 'iscsi-sshkey', key_vault => $workload_key_vault, target_file => $private_key_src_path);
+        # Workaround for 'feature/sles16'
+        my $query = 'iscsi-sshkey';
+        if (get_var('SDAF_GIT_AUTOMATION_BRANCH') =~ /feature\/sles16/) {
+            $query = 'sid-sshkey';
+        }
+        sdaf_ssh_key_from_keyvault(query => $query, key_vault => $workload_key_vault, target_file => $private_key_src_path);
     }
 
     my $inventory_data = read_inventory_file($inventory_path);

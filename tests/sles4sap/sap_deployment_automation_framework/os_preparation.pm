@@ -61,7 +61,7 @@ sub test_flags {
 
 sub run {
     # Skip module if existing deployment is being re-used
-    return if sdaf_deployment_reused();
+#return if sdaf_deployment_reused();
 
     my $sap_sid = get_required_var('SAP_SID');
     my $sdaf_config_root_dir = get_sdaf_config_path(
@@ -89,6 +89,8 @@ sub run {
     # Get first playbook settings
     my $playbook_options = $playbook_setup->get();
     # Request next playbook in loop until all are executed
+ 
+return if sdaf_deployment_reused();
     while ($playbook_options->{playbook_filename}) {
         sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
         # Tasks needed to be run after playbook 'pb_get-sshkey.yaml'
