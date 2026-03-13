@@ -811,17 +811,28 @@ sub import_guest {
     my $vcpus = $guest->{vcpus} // "2";
     my $maxvcpus = $guest->{maxvcpus} // $vcpus + 1;    # same as for memory, test functionality but don't waste resources
     my $network_model = $guest->{network_model} // "";
+    my $boot_firmware = $guest->{boot_firmware} // "";
 
     if ($method eq 'virt-install' || $method eq '') {
         record_info "$name", "Going to import $name guest";
         send_key 'ret';    # Make some visual separator
 
-        my $network = "network=default,mac=$macaddress,";
-        $network .= ",model=$network_model" unless ($network_model eq "");
+        my $network = "network=default,mac=$macaddress";
+        $network .= ",model=$network_model" if $network_model;
+
+        # Build vcpus and memory parameters
+        # Xen HVM does not support hot-add of vcpus/memory, so skip maxvcpus/maxmemory
+        my $vcpus_param = "--vcpus=$vcpus";
+        $vcpus_param .= ",maxvcpus=$maxvcpus" unless is_xen_host();
+        my $memory_param = "--memory=$memory";
+        $memory_param .= ",maxmemory=$maxmemory" unless is_xen_host();
 
         # Run unattended installation for selected guest
-        my $virtinstall = "virt-install $extra_params --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --cpu host";
-        $virtinstall .= " --graphics vnc --disk $disk --network $network --noautoconsole  --autostart --import";
+        my $virtinstall = "virt-install $extra_params --name $name $vcpus_param $memory_param --cpu host";
+        $virtinstall .= " --graphics vnc --disk $disk --network $network";
+        # Add EFI boot firmware if specified (for SLES 16+ Windows guests)
+        $virtinstall .= " --boot firmware=efi" if ($boot_firmware eq 'efi');
+        $virtinstall .= " --noautoconsole --autostart --import";
         assert_script_run $virtinstall;
     } else {
         die "unsupported import_guest method '$method'";

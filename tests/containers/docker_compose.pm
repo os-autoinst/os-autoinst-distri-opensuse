@@ -24,7 +24,7 @@ sub setup {
     my @pkgs = qw(docker docker-buildx docker-compose go1.25 make openssl);
     $self->setup_pkgs(@pkgs);
 
-    # docker-compose needs to be patched upstream to support SELinux
+    # docker-compose tests needs to be patched upstream to support SELinux
     configure_docker(selinux => 0, tls => 1);
 
     # Some tests need this file
@@ -43,7 +43,7 @@ sub test ($target) {
     my %env = (
         COMPOSE_E2E_BIN_PATH => $docker_compose,
         # This test fails on v2.39.2 at least
-        EXCLUDE_E2E_TESTS => 'TestWatchMultiServices|TestBuildTLS',
+        EXCLUDE_E2E_TESTS => 'TestWatchMultiServices',
     );
     # Fails on non-x86_64 with: "exec /transform: exec format error"
     $env{EXCLUDE_E2E_TESTS} .= "|TestConvertAndTransformList" unless is_x86_64;

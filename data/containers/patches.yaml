@@ -43,9 +43,12 @@ buildx:
 compose:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
   # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
+  # https://github.com/docker/compose/pull/13630 - test: use random host port for dind TLS build test
   13214:
     merged: "2.39.4"
   13564:
+  13630:
+    min: "5.0.0"
 
 conmon:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
@@ -96,9 +99,12 @@ moby:
     min: "29.2.0"
   52116:
     min: "29.2.0"
+    merged: "29.3.0"
   52117:
+    merged: "29.3.0"
   52119:
     min: "29.2.0"
+    merged: "29.3.0"
 
 netavark:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
@@ -123,6 +129,8 @@ podman:
   # https://github.com/containers/podman/pull/27760 - test/system: remove apk from build
   # https://github.com/containers/podman/pull/28133 - test: Use yq for yaml2json instead of PyYAML
   # https://github.com/containers/podman/pull/28151 - test/system: fix pod inspect ordering test leak
+  # https://github.com/containers/podman/pull/28266 - Fixes for running the e2e testsuite on architectures other than amd64
+  # https://github.com/containers/podman/pull/28281 - tests/e2e: Do not try to list /proc/acpi on non-amd64
   21875:
     merged: "5.0.0"
   24068:
@@ -163,10 +171,16 @@ podman:
     min: "5.8.0"
   28151:
     min: "5.8.0"
+  28266:
+    min: "5.8.0"
+  28281:
+    min: "5.8.0"
 
 podman-py:
   # https://github.com/containers/podman-py/pull/623 - Fix pytest flag for rootful test
+  # https://github.com/containers/podman-py/pull/637 - tests/integration: Skip test on non-x86_64 arches
   623:
+  637:
 
 runc:
   # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set

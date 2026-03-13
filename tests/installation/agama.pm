@@ -13,7 +13,7 @@
 # Actions past install-screen with reboot button ara handled separately in agama_reboot.pm
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
-use base "installbasetest";
+use base Yam::Agama::agama_base;
 use testapi;
 use version_utils qw(is_leap is_sle is_microos);
 use utils;
@@ -25,6 +25,12 @@ sub back_to_overview {
     assert_and_click('agama-overview-tab');
     wait_still_screen 5;
     record_info('Back to overview');
+}
+
+sub has_product_selection {
+    return 0 if is_s390x;
+    return 0 if is_ppc64le && is_leap('=16.0');
+    return 1;
 }
 
 # A More complex screen for root auth
@@ -111,15 +117,6 @@ sub agama_lvm_setup {
     send_key_until_needlematch('agama-lvm-proposal', 'ctrl-down');
 }
 
-sub upload_agama_logs {
-    return if (get_var('NOLOGS'));
-    select_console("root-console");
-    # stores logs in /tmp/agma-logs.tar.gz
-    script_run('agama logs store');
-    upload_logs('/tmp/agama-logs.tar.gz');
-}
-
-
 sub select_product {
     # Product selection dialog scrolls with 4+ products at 1024x768.
     # As of now TW is the last item in the list, so we need to scroll a bit.
@@ -181,7 +178,7 @@ sub select_software {
 sub run {
     my ($self) = @_;
     my $agama_screen_timeout = 300;
-    if (!is_ppc64le && !is_s390x) {
+    if (has_product_selection) {
         assert_screen('agama-inst-welcome-product-list', timeout => $agama_screen_timeout);
         select_product();
     }
@@ -242,25 +239,5 @@ sub run {
         die "timeout ($timeout) hit during await_install" if $timeout <= 0;
     }
 }
-
-=head2 post_fail_hook
-
- post_fail_hook();
-
-When the test module fails, this method will be called.
-It will try to fetch logs from agama.
-
-=cut
-
-sub post_fail_hook {
-    my ($self) = @_;
-
-    return if (get_var('NOLOGS'));
-
-    select_console("install-shell");
-    export_healthcheck_basic();
-    upload_agama_logs();
-}
-
 
 1;

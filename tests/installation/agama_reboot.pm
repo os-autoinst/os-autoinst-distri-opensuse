@@ -101,6 +101,7 @@ sub post_fail_hook {
     return if (get_var('NOLOGS'));
 
     select_console("install-shell");
+    record_info('Disk devices', script_output('ls -l /dev/disk/by-id/'));
     export_healthcheck_basic();
     upload_agama_logs();
 }

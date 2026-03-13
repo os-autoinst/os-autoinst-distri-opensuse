@@ -54,6 +54,8 @@ sub setup {
     # This test fails with:
     # Command exited 125 as expected, but did not emit 'failed to connect: dial tcp: lookup '
     run_command "rm -f test/e2e/image_scp_test.go";
+    # https://github.com/containers/podman/pull/28266 can't be cleanly applied on 5.8.x
+    run_command "rm -f test/e2e/run_aardvark_test.go" if (version->parse(numeric_version($version)) <= version->parse("5.9.0"));
 }
 
 sub run {
