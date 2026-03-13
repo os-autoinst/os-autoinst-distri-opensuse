@@ -42,7 +42,7 @@ B<The key tasks performed by this module include:>
 
 =over
 
-=item * B<INCIDENT_REPO> : Incident repository URL
+=item * B<REPOS> : Repository URL(s)
 
 =item * B<IS_MAINTENANCE> : Define if test scenario includes applying maintenance updates
 
@@ -93,7 +93,7 @@ sub run {
     my $project_root_dir = "/tmp/$project_name";
     my $log_dir = "$project_root_dir/logs";
     my $test_dir = "$project_root_dir/tests";
-    my $sut_ssh_key_path = '/home/azureadm/.ssh/sut_id_rsa';
+    my $sut_ssh_key_path = '/home/azureadm/.ssh/sut_sid_id_rsa';
 
     git_clone(get_required_var('HLQR_GIT_REPO'),
         branch => $project_branch,
@@ -106,7 +106,7 @@ sub run {
     # Prepare test argument files
     my @arg_files;
     my $arg_index = 1;
-    my $repo_mirror = get_required_var('INCIDENT_REPO');
+    my $repos = join(',', get_test_repos());
     my $repo_mirror_host = get_required_var('REPO_MIRROR_HOST');
     for my $hostname (keys %update_hosts) {
         my $file_content = <<"file_content";
@@ -120,7 +120,7 @@ KEYFILE:$sut_ssh_key_path
 --variable
 REPO_MIRROR_HOST:$repo_mirror_host
 --variable
-INCIDENT_REPO:$repo_mirror
+REPOS:$repos
 --variable
 LOG_DIR:$log_dir
 file_content
@@ -154,7 +154,7 @@ file_content
     # Fetch SUT SSH key from keyvault
     my $workload_rg = get_workload_resource_group(deployment_id => find_deployment_id());
     my $workload_key_vault = ${az_keyvault_list(resource_group => $workload_rg)}[0];
-    sdaf_ssh_key_from_keyvault(key_vault => $workload_key_vault, target_file => $sut_ssh_key_path);
+    sdaf_ssh_key_from_keyvault(query => 'sid-sshkey', key_vault => $workload_key_vault, target_file => $sut_ssh_key_path);
 
     my $pabot_cmd = join(' ', 'pabot',
         '--name "Patch and reboot all hosts"',
