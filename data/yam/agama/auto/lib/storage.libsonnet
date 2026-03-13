@@ -146,10 +146,19 @@ local raid(level='raid0', boot_type='bios') = {
       ],
     },
   ] else if boot_type == 'prep' then [
+    // First disk: includes PReP
+    {
+      search: '/dev/vda',
+      partitions: [
+        { id: 'prep', size: '8 MiB' },
+        mdroot_partition,
+        mdswap_partition,
+      ],
+    },
+    // Additional disks: no PReP
     {
       search: '*',
       partitions: [
-        { id: 'prep', size: '8 MiB' },
         mdroot_partition,
         mdswap_partition,
       ],
