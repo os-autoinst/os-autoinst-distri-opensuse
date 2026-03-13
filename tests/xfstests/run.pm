@@ -25,7 +25,7 @@ use utils;
 use Utils::Backends 'is_pvm';
 use serial_terminal 'select_serial_terminal';
 use power_action_utils qw(power_action prepare_system_shutdown);
-use filesystem_utils qw(format_partition generate_xfstests_list);
+use filesystem_utils qw(format_partition fetch_xfstests_blacklist_from_url generate_xfstests_list);
 use lockapi;
 use mmapi;
 use version_utils 'is_public_cloud';
@@ -118,11 +118,17 @@ sub run {
     }
 
     # Generate xfstests blacklist
-    my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist($TEST_RANGES, $GROUPLIST, $FSTYPE));
     my $whitelist;
     if (my $issues = get_var('XFSTESTS_KNOWN_ISSUES')) {
         $whitelist = LTP::WhiteList->new($issues);
     }
+    my ($yaml, $blist);
+    if ($BLACKLIST =~ m{^https?://}i) {
+        $yaml = fetch_xfstests_blacklist_from_url($BLACKLIST);
+        $blist = join(',', map { $_->{items} } @{$yaml->{$TEST_SUITE}{xfstests_blacklist}}) if grep { defined $_->{items} } @{$yaml->{$TEST_SUITE}{xfstests_blacklist}};
+        $BLACKLIST = $blist;
+    }
+    my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist($TEST_RANGES, $GROUPLIST, $FSTYPE));
 
     my $subtest_num = scalar @tests;
     foreach my $index (0 .. $#tests) {
