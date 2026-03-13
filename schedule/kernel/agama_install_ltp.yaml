@@ -1,14 +1,14 @@
 name: agama_install_ltp
 description:    >
-    Universal installation schedule for Agama to prepare bare metal using IPXE or
-    prepare PowerVM and install LTP
+    Universal LTP installation schedule for Agama on QEMU backend, bare metal using IPXE
+    amd PowerVM.
 schedule:
     - '{{boot}}'
-    - installation/agama_reboot
     - installation/grub_test
     - installation/first_boot
     - '{{update_kernel}}'
     - console/system_prepare
+    - installation/reboot_after_installation
     - kernel/install_ltp
     - kernel/shutdown_ltp
 conditional_schedule:
@@ -16,9 +16,19 @@ conditional_schedule:
         IPXE:
             1:
                 - installation/bootloader_start
+                - installation/agama_reboot
         BACKEND:
             pvm_hmc:
                 - installation/bootloader
+                - installation/agama_reboot
+            qemu:
+                - yam/agama/boot_agama
+                - yam/agama/agama_auto
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
+                - installation/agama_reboot
+
     update_kernel:
         FLAVOR:
             Online-Kernel-Baremetal-Increments:
