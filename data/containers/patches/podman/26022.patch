@@ -1,0 +1,396 @@
+From f6b91d7be07c5caddbac4c0d18c9a7165340bd8e Mon Sep 17 00:00:00 2001
+From: Giuseppe Scrivano <gscrivan@redhat.com>
+Date: Wed, 30 Apr 2025 11:06:00 +0200
+Subject: [PATCH 1/4] inspect: Ignore character devices for IO limits
+
+Cgroup block I/O limits cannot be applied to character devices.
+
+Ignore character devices in the inspect output.
+
+Update the API tests to use the null block device `/dev/nullb0` (if
+available) instead of `/dev/zero` for testing I/O limits.
+
+Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
+---
+ libpod/container_inspect.go       |  4 ++--
+ libpod/container_inspect_linux.go |  2 +-
+ pkg/util/utils_linux.go           | 11 +++++++++--
+ pkg/util/utils_unsupported.go     |  2 +-
+ test/apiv2/20-containers.at       | 18 +++++++++---------
+ 5 files changed, 22 insertions(+), 15 deletions(-)
+
+diff --git a/libpod/container_inspect.go b/libpod/container_inspect.go
+index 5d759ecc22a..e893d6fb3b5 100644
+--- a/libpod/container_inspect.go
++++ b/libpod/container_inspect.go
+@@ -653,7 +653,7 @@ func (c *Container) GetDevices(priv bool, ctrSpec spec.Spec, deviceNodes map[str
+ 		for _, dev := range ctrSpec.Linux.Devices {
+ 			key := fmt.Sprintf("%d:%d", dev.Major, dev.Minor)
+ 			if deviceNodes == nil {
+-				nodes, err := util.FindDeviceNodes()
++				nodes, err := util.FindDeviceNodes(false)
+ 				if err != nil {
+ 					return nil, err
+ 				}
+@@ -678,7 +678,7 @@ func blkioDeviceThrottle(deviceNodes map[string]string, devs []spec.LinuxThrottl
+ 	for _, dev := range devs {
+ 		key := fmt.Sprintf("%d:%d", dev.Major, dev.Minor)
+ 		if deviceNodes == nil {
+-			nodes, err := util.FindDeviceNodes()
++			nodes, err := util.FindDeviceNodes(true)
+ 			if err != nil {
+ 				return nil, err
+ 			}
+diff --git a/libpod/container_inspect_linux.go b/libpod/container_inspect_linux.go
+index e8fd37c05cf..ea7a391d968 100644
+--- a/libpod/container_inspect_linux.go
++++ b/libpod/container_inspect_linux.go
+@@ -89,7 +89,7 @@ func (c *Container) platformInspectContainerHostConfig(ctrSpec *spec.Spec, hostC
+ 						continue
+ 					}
+ 					if deviceNodes == nil {
+-						nodes, err := util.FindDeviceNodes()
++						nodes, err := util.FindDeviceNodes(true)
+ 						if err != nil {
+ 							return err
+ 						}
+diff --git a/pkg/util/utils_linux.go b/pkg/util/utils_linux.go
+index 9130d1f4041..d113ad802a4 100644
+--- a/pkg/util/utils_linux.go
++++ b/pkg/util/utils_linux.go
+@@ -33,7 +33,8 @@ func GetContainerPidInformationDescriptors() ([]string, error) {
+ // [major:minor] is the device's major and minor numbers formatted as, for
+ // example, 2:0 and path is the path to the device node.
+ // Symlinks to nodes are ignored.
+-func FindDeviceNodes() (map[string]string, error) {
++// If onlyBlockDevices is specified, character devices are ignored.
++func FindDeviceNodes(onlyBlockDevices bool) (map[string]string, error) {
+ 	nodes := make(map[string]string)
+ 	err := filepath.WalkDir("/dev", func(path string, d fs.DirEntry, err error) error {
+ 		if err != nil {
+@@ -44,7 +45,13 @@ func FindDeviceNodes() (map[string]string, error) {
+ 		}
+ 
+ 		// If we aren't a device node, do nothing.
+-		if d.Type()&(os.ModeDevice|os.ModeCharDevice) == 0 {
++		if d.Type()&os.ModeDevice == 0 {
++			return nil
++		}
++
++		// Ignore character devices, because it is not possible to set limits on them.
++		// os.ModeCharDevice is usable only when os.ModeDevice is set.
++		if onlyBlockDevices && d.Type()&os.ModeCharDevice != 0 {
+ 			return nil
+ 		}
+ 
+diff --git a/pkg/util/utils_unsupported.go b/pkg/util/utils_unsupported.go
+index 8a77e189da1..7885423b460 100644
+--- a/pkg/util/utils_unsupported.go
++++ b/pkg/util/utils_unsupported.go
+@@ -5,6 +5,6 @@ package util
+ import "errors"
+ 
+ // FindDeviceNodes is not implemented anywhere except Linux.
+-func FindDeviceNodes() (map[string]string, error) {
++func FindDeviceNodes(onlyBlockDevices bool) (map[string]string, error) {
+ 	return nil, errors.New("not supported on non-Linux OSes")
+ }
+diff --git a/test/apiv2/20-containers.at b/test/apiv2/20-containers.at
+index 28712fccfee..4f5f3f64baf 100644
+--- a/test/apiv2/20-containers.at
++++ b/test/apiv2/20-containers.at
+@@ -710,15 +710,15 @@ t GET libpod/containers/$cname/json 200 \
+   .ImageName=$IMAGE \
+   .Name=$cname
+ 
+-if root; then
++if root && test -e /dev/nullb0; then
+   podman run -dt --name=updateCtr alpine
+   echo '{
+     "Memory":{"Limit":500000},
+     "CPU":{"Shares":123},
+-    "DeviceReadBPs": [{ "Path": "/dev/zero", "Rate": 10485760 }],
+-    "DeviceWriteBPs": [{ "Path": "/dev/zero", "Rate": 31457280 }],
+-    "DeviceReadIOPs": [{ "Path": "/dev/zero", "Rate": 2000 }],
+-    "DeviceWriteIOPs": [{ "Path": "/dev/zero", "Rate": 4000 }]
++    "DeviceReadBPs": [{ "Path": "/dev/nullb0", "Rate": 10485760 }],
++    "DeviceWriteBPs": [{ "Path": "/dev/nullb0", "Rate": 31457280 }],
++    "DeviceReadIOPs": [{ "Path": "/dev/nullb0", "Rate": 2000 }],
++    "DeviceWriteIOPs": [{ "Path": "/dev/nullb0", "Rate": 4000 }]
+     }' >${TMPD}/update.json
+   t POST libpod/containers/updateCtr/update ${TMPD}/update.json 201
+ 
+@@ -734,25 +734,25 @@ if root; then
+ 
+   BlkioDeviceReadBps_expected='[
+   {
+-    "Path": "/dev/zero",
++    "Path": "/dev/nullb0",
+     "Rate": 10485760
+   }
+ ]'
+   BlkioDeviceWriteBPs_expected='[
+   {
+-    "Path": "/dev/zero",
++    "Path": "/dev/nullb0",
+     "Rate": 31457280
+   }
+ ]'
+   BlkioDeviceReadIOPs_expected='[
+   {
+-    "Path": "/dev/zero",
++    "Path": "/dev/nullb0",
+     "Rate": 2000
+   }
+ ]'
+   BlkioDeviceWriteIOPs_expected='[
+   {
+-    "Path": "/dev/zero",
++    "Path": "/dev/nullb0",
+     "Rate": 4000
+   }
+ ]'
+
+From 3b61e56152d41f6311ddcc4e82a97ea182116ff0 Mon Sep 17 00:00:00 2001
+From: Giuseppe Scrivano <gscrivan@redhat.com>
+Date: Wed, 30 Apr 2025 11:04:02 +0200
+Subject: [PATCH 2/4] test/system: Use correct device for I/O limit tests
+
+The tests were incorrectly using `/dev/zero`.  These options are
+intended to set I/O limits on specific block devices.
+
+The test already sets up a loopback device, so reuse it.
+
+Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
+---
+ test/system/030-run.bats    | 14 ++++++++++----
+ test/system/280-update.bats |  8 ++++----
+ 2 files changed, 14 insertions(+), 8 deletions(-)
+
+diff --git a/test/system/030-run.bats b/test/system/030-run.bats
+index bed44e6850d..d89d3c1ca27 100644
+--- a/test/system/030-run.bats
++++ b/test/system/030-run.bats
+@@ -1123,18 +1123,24 @@ EOF
+ @test "podman run --device-read-bps" {
+     skip_if_rootless "cannot use this flag in rootless mode"
+ 
++    if test \! -e /dev/nullb0; then
++        skip "/dev/nullb0 not present, use 'modprobe null_blk nr_devices=1' to create it"
++    fi
++
+     local cid
++    local dev_maj_min=$(stat -c %Hr:%Lr /dev/nullb0)
++
+     # this test is a triple check on blkio flags since they seem to sneak by the tests
+     if is_cgroupsv2; then
+-        run_podman run -dt --device-read-bps=/dev/zero:1M $IMAGE top
++        run_podman run -dt --device-read-bps=/dev/nullb0:1M $IMAGE top
+         cid=$output
+         run_podman exec -it $output cat /sys/fs/cgroup/io.max
+-        is "$output" ".*1:5 rbps=1048576 wbps=max riops=max wiops=max" "throttle devices passed successfully.*"
++        is "$output" ".*$dev_maj_min rbps=1048576 wbps=max riops=max wiops=max" "throttle devices passed successfully.*"
+     else
+-        run_podman run -dt --device-read-bps=/dev/zero:1M $IMAGE top
++        run_podman run -dt --device-read-bps=/dev/nullb0:1M $IMAGE top
+         cid=$output
+         run_podman exec -it $output cat /sys/fs/cgroup/blkio/blkio.throttle.read_bps_device
+-        is "$output" ".*1:5 1048576" "throttle devices passed successfully.*"
++        is "$output" ".*$dev_maj_min 1048576" "throttle devices passed successfully.*"
+     fi
+     run_podman container rm -f -t0 $cid
+ }
+diff --git a/test/system/280-update.bats b/test/system/280-update.bats
+index 451049ca5d4..19c0e3aa478 100644
+--- a/test/system/280-update.bats
++++ b/test/system/280-update.bats
+@@ -63,10 +63,10 @@ memory-reservation  =           400M | 2 | $mm.soft_limit_in_bytes  = 419430400
+ blkio-weight        =            321 | - | -                                       | io.bfq.weight   = default 321 $lomajmin 98
+ blkio-weight-device = $LOOPDEVICE:98 | - | -                                       | io.bfq.weight   = default 321 $lomajmin 98
+ 
+-device-read-bps     = /dev/zero:10mb | - | -                                       | io.max          = $devicemax
+-device-read-iops    = /dev/zero:2000 | - | -                                       | io.max          = $devicemax
+-device-write-bps    = /dev/zero:30mb | - | -                                       | io.max          = $devicemax
+-device-write-iops   = /dev/zero:4000 | - | -                                       | io.max          = $devicemax
++device-read-bps     = $LOOPDEVICE:10mb | - | -                                       | io.max          = $devicemax
++device-read-iops    = $LOOPDEVICE:2000 | - | -                                       | io.max          = $devicemax
++device-write-bps    = $LOOPDEVICE:30mb | - | -                                       | io.max          = $devicemax
++device-write-iops   = $LOOPDEVICE:4000 | - | -                                       | io.max          = $devicemax
+ "
+ 
+     # Run a container
+
+From 8160e02459c06257724f895766030cfd9152e79f Mon Sep 17 00:00:00 2001
+From: Giuseppe Scrivano <gscrivan@redhat.com>
+Date: Wed, 30 Apr 2025 11:05:09 +0200
+Subject: [PATCH 3/4] test/e2e: Use nullb0 for IO limit tests
+
+The tests for device I/O limits were using `/dev/zero`,
+which is not a block device suitable for these cgroup
+controls.
+
+Update the tests to use `/dev/nullb0` if it exists.
+
+Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
+---
+ test/e2e/common_test.go | 11 +++++++++++
+ test/e2e/run_test.go    | 22 ++++++++++++++--------
+ test/e2e/update_test.go |  9 +++++----
+ 3 files changed, 30 insertions(+), 12 deletions(-)
+
+diff --git a/test/e2e/common_test.go b/test/e2e/common_test.go
+index e97b5b471b5..9d081087a7d 100644
+--- a/test/e2e/common_test.go
++++ b/test/e2e/common_test.go
+@@ -942,6 +942,13 @@ func SkipIfNotRootless(reason string) {
+ 	}
+ }
+ 
++func SkipIfNotExist(reason, path string) {
++	checkReason(reason)
++	if _, err := os.Stat(path); err != nil {
++		Skip("[doesNotExist]: " + path + " does not exist: " + reason)
++	}
++}
++
+ func SkipIfSystemdNotRunning(reason string) {
+ 	checkReason(reason)
+ 
+@@ -1648,3 +1655,7 @@ func makeTempDirInDir(dir string) string {
+ 	Expect(err).ToNot(HaveOccurred())
+ 	return path
+ }
++
++func skipWithoutDevNullb0() {
++	SkipIfNotExist("use modprobe null_blk nr_devices=1 to create it", "/dev/nullb0")
++}
+diff --git a/test/e2e/run_test.go b/test/e2e/run_test.go
+index a7c9f99e513..cc281f0c78d 100644
+--- a/test/e2e/run_test.go
++++ b/test/e2e/run_test.go
+@@ -848,13 +848,14 @@ USER bin`, BB)
+ 
+ 	It("podman run device-read-bps test", func() {
+ 		SkipIfRootless("Setting device-read-bps not supported for rootless users")
++		skipWithoutDevNullb0()
+ 
+ 		var session *PodmanSessionIntegration
+ 
+ 		if CGROUPSV2 {
+-			session = podmanTest.Podman([]string{"run", "--rm", "--device-read-bps=/dev/zero:1mb", ALPINE, "sh", "-c", "cat /sys/fs/cgroup/$(sed -e 's|0::||' < /proc/self/cgroup)/io.max"})
++			session = podmanTest.Podman([]string{"run", "--rm", "--device-read-bps=/dev/nullb0:1mb", ALPINE, "sh", "-c", "cat /sys/fs/cgroup/$(sed -e 's|0::||' < /proc/self/cgroup)/io.max"})
+ 		} else {
+-			session = podmanTest.Podman([]string{"run", "--rm", "--device-read-bps=/dev/zero:1mb", ALPINE, "cat", "/sys/fs/cgroup/blkio/blkio.throttle.read_bps_device"})
++			session = podmanTest.Podman([]string{"run", "--rm", "--device-read-bps=/dev/nullb0:1mb", ALPINE, "cat", "/sys/fs/cgroup/blkio/blkio.throttle.read_bps_device"})
+ 		}
+ 
+ 		session.WaitWithDefaultTimeout()
+@@ -866,13 +867,14 @@ USER bin`, BB)
+ 
+ 	It("podman run device-write-bps test", func() {
+ 		SkipIfRootless("Setting device-write-bps not supported for rootless users")
++		skipWithoutDevNullb0()
+ 
+ 		var session *PodmanSessionIntegration
+ 
+ 		if CGROUPSV2 {
+-			session = podmanTest.Podman([]string{"run", "--rm", "--device-write-bps=/dev/zero:1mb", ALPINE, "sh", "-c", "cat /sys/fs/cgroup/$(sed -e 's|0::||' < /proc/self/cgroup)/io.max"})
++			session = podmanTest.Podman([]string{"run", "--rm", "--device-write-bps=/dev/nullb0:1mb", ALPINE, "sh", "-c", "cat /sys/fs/cgroup/$(sed -e 's|0::||' < /proc/self/cgroup)/io.max"})
+ 		} else {
+-			session = podmanTest.Podman([]string{"run", "--rm", "--device-write-bps=/dev/zero:1mb", ALPINE, "cat", "/sys/fs/cgroup/blkio/blkio.throttle.write_bps_device"})
++			session = podmanTest.Podman([]string{"run", "--rm", "--device-write-bps=/dev/nullb0:1mb", ALPINE, "cat", "/sys/fs/cgroup/blkio/blkio.throttle.write_bps_device"})
+ 		}
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -883,12 +885,14 @@ USER bin`, BB)
+ 
+ 	It("podman run device-read-iops test", func() {
+ 		SkipIfRootless("Setting device-read-iops not supported for rootless users")
++		skipWithoutDevNullb0()
++
+ 		var session *PodmanSessionIntegration
+ 
+ 		if CGROUPSV2 {
+-			session = podmanTest.Podman([]string{"run", "--rm", "--device-read-iops=/dev/zero:100", ALPINE, "sh", "-c", "cat /sys/fs/cgroup/$(sed -e 's|0::||' < /proc/self/cgroup)/io.max"})
++			session = podmanTest.Podman([]string{"run", "--rm", "--device-read-iops=/dev/nullb0:100", ALPINE, "sh", "-c", "cat /sys/fs/cgroup/$(sed -e 's|0::||' < /proc/self/cgroup)/io.max"})
+ 		} else {
+-			session = podmanTest.Podman([]string{"run", "--rm", "--device-read-iops=/dev/zero:100", ALPINE, "cat", "/sys/fs/cgroup/blkio/blkio.throttle.read_iops_device"})
++			session = podmanTest.Podman([]string{"run", "--rm", "--device-read-iops=/dev/nullb0:100", ALPINE, "cat", "/sys/fs/cgroup/blkio/blkio.throttle.read_iops_device"})
+ 		}
+ 
+ 		session.WaitWithDefaultTimeout()
+@@ -900,12 +904,14 @@ USER bin`, BB)
+ 
+ 	It("podman run device-write-iops test", func() {
+ 		SkipIfRootless("Setting device-write-iops not supported for rootless users")
++		skipWithoutDevNullb0()
++
+ 		var session *PodmanSessionIntegration
+ 
+ 		if CGROUPSV2 {
+-			session = podmanTest.Podman([]string{"run", "--rm", "--device-write-iops=/dev/zero:100", ALPINE, "sh", "-c", "cat /sys/fs/cgroup/$(sed -e 's|0::||' < /proc/self/cgroup)/io.max"})
++			session = podmanTest.Podman([]string{"run", "--rm", "--device-write-iops=/dev/nullb0:100", ALPINE, "sh", "-c", "cat /sys/fs/cgroup/$(sed -e 's|0::||' < /proc/self/cgroup)/io.max"})
+ 		} else {
+-			session = podmanTest.Podman([]string{"run", "--rm", "--device-write-iops=/dev/zero:100", ALPINE, "cat", "/sys/fs/cgroup/blkio/blkio.throttle.write_iops_device"})
++			session = podmanTest.Podman([]string{"run", "--rm", "--device-write-iops=/dev/nullb0:100", ALPINE, "cat", "/sys/fs/cgroup/blkio/blkio.throttle.write_iops_device"})
+ 		}
+ 
+ 		session.WaitWithDefaultTimeout()
+diff --git a/test/e2e/update_test.go b/test/e2e/update_test.go
+index 7950b1ffe68..e442b7b36d6 100644
+--- a/test/e2e/update_test.go
++++ b/test/e2e/update_test.go
+@@ -87,6 +87,7 @@ var _ = Describe("Podman update", func() {
+ 	It("podman update container all options v2", func() {
+ 		SkipIfCgroupV1("testing flags that only work in cgroup v2")
+ 		SkipIfRootless("many of these handlers are not enabled while rootless in CI")
++		skipWithoutDevNullb0()
+ 		session := podmanTest.Podman([]string{"run", "-dt", ALPINE})
+ 		session.WaitWithDefaultTimeout()
+ 		Expect(session).Should(ExitCleanly())
+@@ -103,10 +104,10 @@ var _ = Describe("Podman update", func() {
+ 			"--memory-swap", "2G",
+ 			"--memory-reservation", "2G",
+ 			"--blkio-weight", "123",
+-			"--device-read-bps", "/dev/zero:10mb",
+-			"--device-write-bps", "/dev/zero:10mb",
+-			"--device-read-iops", "/dev/zero:1000",
+-			"--device-write-iops", "/dev/zero:1000",
++			"--device-read-bps", "/dev/nullb0:10mb",
++			"--device-write-bps", "/dev/nullb0:10mb",
++			"--device-read-iops", "/dev/nullb0:1000",
++			"--device-write-iops", "/dev/nullb0:1000",
+ 			"--pids-limit", "123",
+ 			ctrID}
+ 
+
+From 80065f72244b03a5360076fabd80d296e6a8b47b Mon Sep 17 00:00:00 2001
+From: Giuseppe Scrivano <gscrivan@redhat.com>
+Date: Wed, 30 Apr 2025 11:12:53 +0200
+Subject: [PATCH 4/4] ci: Load null_blk for I/O limit tests
+
+Load the `null_blk` kernel module to have the `/dev/nullb0` device
+available for the tests.
+
+Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
+---
+ contrib/cirrus/setup_environment.sh | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/contrib/cirrus/setup_environment.sh b/contrib/cirrus/setup_environment.sh
+index ee49823e9ff..afe52f73cfb 100755
+--- a/contrib/cirrus/setup_environment.sh
++++ b/contrib/cirrus/setup_environment.sh
+@@ -209,6 +209,12 @@ mount -t tmpfs -o size=75%,mode=0700 none /var/lib/containers
+ showrun echo "Setting CI_DESIRED_STORAGE [=$CI_DESIRED_STORAGE] for *e2e* tests"
+ echo "STORAGE_FS=$CI_DESIRED_STORAGE" >>/etc/ci_environment
+ 
++if ((CONTAINER==0)); then  # not yet inside a container
++    # Load null_blk to use /dev/nullb0 for testing block
++    # devices limits
++    modprobe null_blk nr_devices=1 || :
++fi
++
+ # Required to be defined by caller: The environment where primary testing happens
+ # shellcheck disable=SC2154
+ showrun echo "about to set up for TEST_ENVIRON [=$TEST_ENVIRON]"
