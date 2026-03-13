@@ -12,7 +12,7 @@ use utils qw(quit_packagekit zypper_call);
 use Utils::Backends 'is_pvm';
 use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_sle is_bootloader_grub2_bls);
+use version_utils qw(is_sle is_bootloader_grub2_bls is_bootloader_sdboot);
 
 
 sub run {
@@ -37,7 +37,7 @@ sub run {
     assert_script_run q(sed -i 's/x-initrd.attach/x-initrd.attach,tpm2-device=auto/g' /etc/crypttab);
 
     # Regenerate the initrd.
-    my $initrd_regenerate_cmd = is_bootloader_grub2_bls ? 'sdbootutil mkinitrd' : 'dracut -f';
+    my $initrd_regenerate_cmd = (is_bootloader_grub2_bls || is_bootloader_sdboot) ? 'sdbootutil mkinitrd' : 'dracut -f';
     assert_script_run($initrd_regenerate_cmd);
 
     # reboot to make new initrd effective
