@@ -17,14 +17,14 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/<%= $get_var->('VERSION') %>-LTSS-Extended-Security/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % if ($is_ltss) {
+      % if ($is_ltss and !$check_var->('VERSION', '12-SP3')) {
       <listentry>
         <name>SLES-LTSS:<%= $get_var->('VERSION') %>::update</name>
         <alias>SLES-LTSS:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/<%= $get_var->('VERSION') %>-LTSS/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % if ($get_var->('FLAVOR') =~ m/Server/) {
+      % if ($get_var->('FLAVOR') =~ m/Server/ and !$check_var->('VERSION', '12-SP3')) {
       <listentry>
         <name>SLES:<%= $get_var->('VERSION') %>::pool</name>
         <alias>SLES:<%= $get_var->('VERSION') %>::pool</alias>
@@ -48,7 +48,7 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-DESKTOP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
-      % unless ($check_var->('ARCH', 'aarch64')) {
+      % unless ($check_var->('ARCH', 'aarch64') or $check_var->('VERSION', '12-SP3')) {
       <listentry>
         <name>sle-module-adv-systems-management:12::pool</name>
         <alias>sle-module-adv-systems-management:12::pool</alias>
@@ -94,6 +94,7 @@
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-SAP/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
       % }
+      % unless ($check_var->('VERSION', '12-SP3')) {
       <listentry>
         <name>sle-module-public-cloud:12::pool</name>
         <alias>sle-module-public-cloud:12::pool</alias>
@@ -134,7 +135,8 @@
         <alias>sle-sdk:<%= $get_var->('VERSION') %>::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-SDK/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
-      % if ($check_var->('ARCH', 'x86_64')) {
+      % }
+      % if ($check_var->('ARCH', 'x86_64') and !$check_var->('VERSION', '12-SP3')) {
       <listentry>
         <name>sle-we:<%= $get_var->('VERSION') %>::pool</name>
         <alias>sle-we:<%= $get_var->('VERSION') %>::pool</alias>
