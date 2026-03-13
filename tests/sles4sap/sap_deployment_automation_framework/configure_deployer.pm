@@ -20,6 +20,7 @@ use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
+use utils;
 
 sub test_flags {
     return {fatal => 1};
@@ -46,6 +47,14 @@ sub run {
 
     # From now on everything is executed on Deployer VM (residing on cloud).
     connect_target_to_serial();
+
+    # It is a workaround for https://github.com/ansible/ansible/issues/82758:
+    #   (Heads up: Python 3.13 will remove the module crypt, impacting ansible)
+    # NOTE: these 3 lins does not work
+    #   assert_script_run('source /opt/ansible/venv/2.16/bin/activate');
+    #   assert_script_run('sudo pip install passlib');
+    #   assert_script_run('deactivate');
+    assert_script_run('sudo /opt/ansible/venv/2.16/bin/python -m pip install passlib');
 
     my $subscription_id = az_login();
     set_common_sdaf_os_env(subscription_id => $subscription_id);

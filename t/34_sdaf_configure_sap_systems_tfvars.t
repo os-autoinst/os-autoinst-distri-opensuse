@@ -49,6 +49,7 @@ subtest '[create_sap_systems_tfvars] ENSA2 cluster settings' => sub {
     $ms_sdaf->redefine(upload_logs => sub { return; });
 
     set_openqa_settings;
+    set_var('SDAF_DEPLOYER_VNET_CODE', 'DEP00');
     set_var('SDAF_DEPLOYMENT_SCENARIO', 'db_install,db_ha,nw_pas,nw_ensa');
     create_sap_systems_tfvars(workload_vnet_code => 'SAP05', os_image => 'suse:sles-sap-15-sp5-byos:gen2:latest');
     is $tfvars_data->{database_tier}{database_high_availability}, 'true', 'DB ha setup must be enabled';

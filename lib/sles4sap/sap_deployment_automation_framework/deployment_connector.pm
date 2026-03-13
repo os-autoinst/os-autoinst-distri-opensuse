@@ -38,6 +38,7 @@ use Mojo::URL;
 use Mojo::UserAgent;
 
 our @EXPORT = qw(
+  $DEPLOYMENT_ID
   get_deployer_vm_name
   get_deployer_ip
   check_ssh_availability
@@ -48,6 +49,8 @@ our @EXPORT = qw(
   destroy_orphaned_peerings
   no_cleanup_tag
 );
+
+our $DEPLOYMENT_ID;
 
 =head2 check_ssh_availability
 
@@ -215,6 +218,7 @@ sub find_deployment_id {
     my (%args) = @_;
     # For reusing already deployed infrastructure - check function description
     return get_var('SDAF_DEPLOYMENT_ID') if get_var('SDAF_DEPLOYMENT_ID');
+    return $DEPLOYMENT_ID if $DEPLOYMENT_ID;
     $args{deployer_resource_group} //= get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
 
     # Lists VMs in cloud which contain 'deployment_id' tag and displays only tag values => list of all deployments
@@ -245,6 +249,7 @@ sub find_deployment_id {
     die "Multiple deployments detected. This should not happen.\nFound:\n" . join("\n", @found_deployments)
       if @found_deployments != 1;
 
+    $DEPLOYMENT_ID = $found_deployments[0];
     record_info('Deploy ID', "Deployment ID found:\n" . join("\n", @found_deployments));
     return $found_deployments[0];
 }
@@ -470,3 +475,5 @@ This function ensures default value naming consistency across all modules, inste
 sub no_cleanup_tag {
     return get_var('SDAF_NO_CLEANUP_TAG', 'sdaf_cleanup_ignore');
 }
+
+1;

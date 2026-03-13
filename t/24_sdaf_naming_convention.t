@@ -65,8 +65,8 @@ subtest '[get_tfvars_path] Test passing scenarios' => sub {
         env_code => 'LAB'
     );
     my %expected_results = (
-        workload_zone => '/narnia/LAB-SECE-SAP04-INFRASTRUCTURE-0079.tfvars',
-        sap_system => '/narnia/LAB-SECE-SAP04-QAS-0079.tfvars',
+        workload_zone => '/narnia/LAB-SECE-SAP04-INFRASTRUCTURE.terrraform.tfstate',
+        sap_system => '/narnia/LAB-SECE-SAP04-SID.terrraform.tfstate',
         library => '/narnia/LAB-SECE-SAP_LIBRARY-0079.tfvars',
         deployer => '/narnia/LAB-SECE-SAP04-INFRASTRUCTURE-0079.tfvars'
     );
