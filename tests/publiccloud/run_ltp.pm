@@ -387,7 +387,9 @@ sub install_ec2_cloudwatch_agent
         );
         $instance->softreboot();
     } else {
-        zypper_call_remote($instance, cmd => "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
+        my $zypper_has_allow_unsigned_rpm_option = is_sle(">12-SP5");
+        zypper_call_remote($instance, cmd => "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file") if $zypper_has_allow_unsigned_rpm_option;
+        $instance->ssh_assert_script_run("sudo rpm -Uvh $download_directory/$rpm_file") unless $zypper_has_allow_unsigned_rpm_option;
     }
 
     $instance->ssh_assert_script_run("sudo rm -f $download_directory/$rpm_file $download_directory/$rpm_file.sig $download_directory/$gpg_file");
