@@ -602,8 +602,7 @@ sub bats_tests {
     $cmd .= " </dev/null | tee -a $tapfile";
 
     run_command "echo $tapfile .. > $tapfile";
-    push @commands, $cmd;
-    my $ret = script_run($cmd, timeout => $timeout);
+    my $ret = run_command($cmd, no_assert => 1, timeout => $timeout);
     script_run "mv report.xml $xmlfile";
 
     upload_logs($tapfile);
