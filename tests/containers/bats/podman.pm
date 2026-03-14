@@ -29,12 +29,14 @@ sub run_tests {
 
     my %env = (
         CONTAINERS_HELPER_BINARY_DIR => "/var/tmp/podman/bin",
-        PODMAN_BATS_LEAK_CHECK => (is_x86_64 ? "1" : ""),
         PODMAN_ROOTLESS_USER => $testapi::username,
         PODMAN => $podman,
         QUADLET => $quadlet,
         REMOTESYSTEM_TRANSPORT => "unix",
     );
+    # Clone job with PODMAN_BATS_LEAK_CHECK=0 to disable it
+    my $leak_check = get_var("PODMAN_BATS_LEAK_CHECK", is_x86_64 ? 1 : 0);
+    $env{PODMAN_BATS_LEAK_CHECK} = $leak_check ? "1" : "0";
 
     my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local");
 
