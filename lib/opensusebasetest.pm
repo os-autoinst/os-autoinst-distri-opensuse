@@ -386,9 +386,7 @@ sub wait_grub {
     my $in_grub = $args{in_grub} // 0;
     my @tags;
     push @tags, 'bootloader-shim-import-prompt' if get_var('UEFI') && !get_var('DISABLE_SECUREBOOT');
-    push @tags, 'grub2-bls' if is_bootloader_grub2_bls;
-    push @tags, 'bootloader-sdboot' if is_bootloader_sdboot;
-    push @tags, 'grub2' if is_bootloader_grub2;
+    push @tags, get_default_bootloader();
     push @tags, 'boot-live-' . get_var('DESKTOP') if get_var('LIVETEST');    # LIVETEST won't to do installation and no grub2 menu show up
     push @tags, 'bootloader' if get_var('OFW');
     push @tags, 'encrypted-disk-password-prompt-grub', 'encrypted-disk-password-prompt' if get_var('ENCRYPT');
@@ -486,9 +484,7 @@ sub wait_grub_to_boot_on_local_disk {
     boot_local_disk;
     my @tags = qw(tianocore-mainmenu tianocore-bootmenu);
     push @tags, 'encrypted-disk-password-prompt' if (get_var('ENCRYPT'));
-    push @tags, 'grub2' if is_bootloader_grub2;
-    push @tags, 'grub2-bls' if is_bootloader_grub2_bls;
-    push @tags, 'systemd-boot' if is_bootloader_sdboot;
+    push @tags, get_default_bootloader();
 
     # Workaround for poo#118336
     if (is_ppc64le && is_qemu) {
