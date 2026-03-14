@@ -139,7 +139,10 @@ sub run {
         $env{TEST_CLIENT_BINARY} = "/var/tmp/docker" if ($dir eq "integration-cli");
         my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
         run_command "pushd $dir";
-        run_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", no_assert => 1, timeout => 900;
+        my $timeout = 900;
+        my $cmd = "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt";
+        $cmd = "timeout -k3 $timeout $cmd";
+        run_command $cmd, no_assert => 1, timeout => $timeout + 10;
         patch_junit "docker", $version, "$report.xml", @xfails;
         parse_extra_log(XUnit => "$report.xml", timeout => 180);
         run_command "popd";

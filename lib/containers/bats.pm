@@ -597,13 +597,13 @@ sub bats_tests {
 
     my $debug = get_var("DEBUG") ? "--trace" : "";
     my $cmd = "env $env bats $debug --report-formatter junit --tap -T $tests";
+    $cmd = "timeout -k3 $timeout $cmd";
     my $xmlfile = "$tapfile.xml";
     $tapfile .= ".tap.txt";
     $cmd .= " </dev/null | tee -a $tapfile";
 
     run_command "echo $tapfile .. > $tapfile";
-    push @commands, $cmd;
-    my $ret = script_run($cmd, timeout => $timeout);
+    my $ret = run_command($cmd, no_assert => 1, timeout => $timeout + 10);
     script_run "mv report.xml $xmlfile";
 
     upload_logs($tapfile);

@@ -64,7 +64,10 @@ sub test ($target) {
         "github.com/docker/compose/$v/pkg/e2e::TestUpStopWithLogsMixed",
     );
 
-    run_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3600;
+    my $timeout = 3600;
+    my $cmd = "$env make $target &> $target.txt";
+    $cmd = "timeout -k3 $timeout $cmd";
+    run_command $cmd, no_assert => 1, timeout => $timeout + 10;
     upload_logs "$target.txt";
     assert_script_run "mv /tmp/report/report.xml $target.xml";
     die "Testsuite failed" if script_run("test -s $target.xml");

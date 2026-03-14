@@ -109,7 +109,10 @@ sub test_conformance {
     install_gotestsum;
     run_command 'cp /usr/bin/busybox-static tests/conformance/testdata/mount-targets/true';
     run_command 'docker rmi -f $(docker images -q) || true';
-    run_command "gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/... &> conformance.txt", no_assert => 1, timeout => 1200;
+    my $timeout = 1200;
+    my $cmd = "gotestsum --junitfile conformance.xml --format standard-verbose -- ./tests/conformance/... &> conformance.txt";
+    $cmd = "timeout -k3 $timeout $cmd";
+    run_command $cmd, no_assert => 1, timeout => $timeout + 10;
     upload_logs "conformance.txt";
     die "Testsuite failed" if script_run("test -s conformance.xml");
     patch_junit "buildah", $version, "conformance.xml";
