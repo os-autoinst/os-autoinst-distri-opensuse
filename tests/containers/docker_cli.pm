@@ -104,7 +104,10 @@ sub run {
         "github.com/docker/cli/e2e/plugin::TestInstall",
     ) unless (is_x86_64);
 
-    run_command "$env gotestsum --junitfile cli.xml ./e2e/... -- &> cli.txt", no_assert => 1, timeout => 3000;
+    my $timeout = 3000;
+    my $cmd = "$env gotestsum --junitfile cli.xml ./e2e/... -- &> cli.txt";
+    $cmd = "timeout -k3 $timeout $cmd";
+    run_command $cmd, no_assert => 1, timeout => $timeout + 10;
     upload_logs "cli.txt";
     die "Testsuite failed" if script_run("test -s cli.xml");
     patch_junit "docker", $version, "cli.xml", @xfails;

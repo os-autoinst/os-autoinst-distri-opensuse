@@ -63,7 +63,10 @@ sub run {
         "github.com/docker/buildx/tests::TestIntegration/TestComposeBuildRegistry/worker=remote",
     ) if (is_sle);
 
-    run_command "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests &> buildx.txt", no_assert => 1, timeout => 1200;
+    my $timeout = 1200;
+    my $cmd = "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests &> buildx.txt";
+    $cmd = "timeout -k3 $timeout $cmd";
+    run_command $cmd, no_assert => 1, timeout => $timeout + 10;
     upload_logs "buildx.txt";
     die "Testsuite failed" if script_run("test -s buildx.xml");
     patch_junit "docker-buildx", $version, "buildx.xml", @xfails;

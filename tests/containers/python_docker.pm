@@ -87,7 +87,10 @@ sub test ($target) {
         "tests.unit.api_build_test.BuildTest::test_set_auth_headers_with_dict_and_no_auth_configs",
     ) if (version->parse(numeric_version($version)) > version->parse("7.0.0"));
 
-    run_command "$env pytest $pytest_args tests/$target &> $target.txt", no_assert => 1, timeout => 3600;
+    my $timeout = 3600;
+    my $cmd = "$env pytest $pytest_args tests/$target &> $target.txt";
+    $cmd = "timeout -k3 $timeout $cmd";
+    run_command $cmd, no_assert => 1, timeout => $timeout + 10;
     upload_logs "$target.txt";
     die "Testsuite failed" if script_run("test -s $target.xml");
     patch_junit "docker-py", $version, "$target.xml", @xfails;
