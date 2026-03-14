@@ -36,7 +36,7 @@ sub run_tests {
     );
     # Clone job with PODMAN_BATS_LEAK_CHECK=0 to disable it
     my $leak_check = get_var("PODMAN_BATS_LEAK_CHECK", is_x86_64 ? 1 : 0);
-    $env{PODMAN_BATS_LEAK_CHECK} = $leak_check ? "1" : "0";
+    $env{PODMAN_BATS_LEAK_CHECK} = $leak_check ? "1" : "";
 
     my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local");
 
