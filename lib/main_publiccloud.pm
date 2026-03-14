@@ -28,6 +28,7 @@ sub load_maintenance_publiccloud_tests {
         loadtest("publiccloud/check_registercloudguest", run_args => $args);
     } else {
         loadtest("publiccloud/registration", run_args => $args);
+        $args->{clean_registercloudguest} = 1;
     }
     loadtest "publiccloud/transfer_repos", run_args => $args unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/patch_and_reboot", run_args => $args;
@@ -42,6 +43,7 @@ sub load_maintenance_publiccloud_tests {
         }
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest "publiccloud/registration", run_args => $args;
+        $args->{clean_registercloudguest} = 1;
         loadtest 'publiccloud/run_ltp', run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
@@ -130,6 +132,7 @@ sub load_latest_publiccloud_tests {
     elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest "publiccloud/registration", run_args => $args;
+        $args->{clean_registercloudguest} = 1;
         loadtest 'publiccloud/run_ltp', run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
@@ -144,6 +147,7 @@ sub load_latest_publiccloud_tests {
     elsif (&$should_use_runargs()) {
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest("publiccloud/registration", run_args => $args);
+        $args->{clean_registercloudguest} = 1;
         if (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
             loadtest('publiccloud/cloud_netconfig', run_args => $args);
             loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
@@ -224,6 +228,7 @@ sub load_publiccloud_appimg_tests {
     my $publiccloud_app_img = get_var('PUBLIC_CLOUD_APP_IMG');
     loadtest "publiccloud/prepare_instance", run_args => $args;
     loadtest("publiccloud/registration", run_args => $args);
+    $args->{clean_registercloudguest} = 1;
     loadtest "publiccloud/instance_overview", run_args => $args;
 
     # This can be improved in the future with a hash like:
