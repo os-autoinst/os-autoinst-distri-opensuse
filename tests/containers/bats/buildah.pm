@@ -63,6 +63,11 @@ sub run_tests {
     push @xfails, (
         "run.bats::run check /etc/resolv.conf",
     ) unless (is_aarch64 || is_x86_64);
+    push @xfails, (
+        # registry.access.redhat.com/ubi9-micro:latest may fail with:
+        # Fatal glibc error: CPU lacks ISA 3.00 support (POWER9 or later required)
+        "chroot.bats::chroot mount flags",
+    ) if (is_ppc64le);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
 
