@@ -44,6 +44,7 @@ our @EXPORT = qw(
   patch_junit
   patch_sources
   run_command
+  run_timeout_command
   setup_pkgs
   switch_to_root
   switch_to_user
@@ -76,6 +77,17 @@ sub run_command {
     # We need no_assert when running testsuites because the testsuite may fail
     # but we need to upload the XML before triggering the post fail hook.
     return $no_assert ? script_run $cmd, %args : assert_script_run $cmd, %args;
+}
+
+sub run_timeout_command {
+    my $cmd = shift;
+    my %args = testapi::compat_args(
+        {
+            timeout => 90,
+        }, ['timeout'], @_);
+    my $timeout = delete $args{timeout};
+
+    return run_command("timeout -k 3 $timeout $cmd", %args, timeout => $timeout + 10);
 }
 
 sub switch_to_root {
@@ -602,8 +614,7 @@ sub bats_tests {
     $cmd .= " </dev/null | tee -a $tapfile";
 
     run_command "echo $tapfile .. > $tapfile";
-    push @commands, $cmd;
-    my $ret = script_run($cmd, timeout => $timeout);
+    my $ret = run_timeout_command($cmd, no_assert => 1, timeout => $timeout);
     script_run "mv report.xml $xmlfile";
 
     upload_logs($tapfile);
