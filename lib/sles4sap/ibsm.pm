@@ -33,11 +33,14 @@ use Carp qw(croak);
 use Exporter 'import';
 use testapi;
 use sles4sap::azure_cli;
+use sles4sap::gcp_cli;
 
 our @EXPORT = qw(
   ibsm_calculate_address_range
   ibsm_network_peering_azure_create
   ibsm_network_peering_azure_delete
+  ibsm_network_peering_gcp_create
+  ibsm_network_peering_gcp_delete
 );
 
 =head1 DESCRIPTION
@@ -133,6 +136,13 @@ sub ibsm_network_peering_azure_create {
         # Generate the unique name for the peering based on the source and destination VNETs.
         my $name = _get_peering_name($args{name_prefix}, $vnet_names{$p->{src}}, $vnet_names{$p->{dst}});
 
+        # Delete existing peering if it exists to avoid 'ChangingRemoteVirtualNetworkNotAllowed' error.
+        # This happens when the peering name is the same but points to a different remote VNet ID.
+        if (az_network_peering_exists(resource_group => $args{$p->{src}}, vnet => $vnet_names{$p->{src}}, name => $name)) {
+            record_info('PEERING EXISTS', "Peering $name already exists in $args{$p->{src}}. Deleting it to avoid conflicts.");
+            az_network_peering_delete(name => $name, resource_group => $args{$p->{src}}, vnet => $vnet_names{$p->{src}});
+        }
+
         # Create the network peering in the specified direction.
         az_network_peering_create(name => $name,
             source_rg => $args{$p->{src}}, source_vnet => $vnet_names{$p->{src}},
@@ -227,6 +237,85 @@ sub ibsm_network_peering_azure_delete {
         return;
     }
     record_info('Peering destruction FAIL: There may be leftover peering connections, please check - jsc#7487', result => 'fail');
+}
+
+=head2 ibsm_network_peering_gcp_create
+
+    ibsm_network_peering_gcp_create(
+        ibsm_ncc_hub => 'projects/ibsm-project/locations/global/hubs/ibsm-hub',
+        sut_network  => 'my-network',
+        sut_project  => 'my-project',
+        spoke_name   => 'my-spoke');
+
+Create a GCP NCC VPC spoke in the SUT project connecting to the IBSm NCC hub.
+
+=over
+
+=item B<ibsm_ncc_hub> - full resource URI of the IBSm NCC hub
+
+=item B<sut_network> - name of the SUT VPC network to attach
+
+=item B<sut_project> - GCP project ID of the SUT
+
+=item B<spoke_name> - name for the new spoke
+
+=item B<spoke_group> - name of the hub group to join (e.g., 'default')
+
+=item B<timeout> - optional, timeout waiting for ACTIVE state (default 300)
+
+=back
+=cut
+
+sub ibsm_network_peering_gcp_create {
+    my (%args) = @_;
+    foreach (qw(ibsm_ncc_hub sut_network sut_project spoke_name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    gcp_ncc_spoke_create(
+        project => $args{sut_project},
+        name => $args{spoke_name},
+        hub => $args{ibsm_ncc_hub},
+        group => $args{spoke_group},
+        network => $args{sut_network});
+
+    gcp_ncc_spoke_wait_active(
+        name => $args{spoke_name},
+        timeout => $args{timeout} // 300);
+
+    record_info('GCP PEERING SUCCESS',
+        "NCC spoke '$args{spoke_name}' is ACTIVE on hub '$args{ibsm_ncc_hub}'");
+}
+
+=head2 ibsm_network_peering_gcp_delete
+
+    ibsm_network_peering_gcp_delete(spoke_name => 'my-spoke' [, timeout => 600]);
+
+Delete the GCP NCC spoke connecting the SUT to the IBSm hub.
+
+=over
+
+=item B<spoke_name> - name of the spoke to delete
+
+=item B<timeout> - optional, timeout for the delete operation (default 600)
+
+=back
+=cut
+
+sub ibsm_network_peering_gcp_delete {
+    my (%args) = @_;
+    croak('Argument < spoke_name > missing') unless $args{spoke_name};
+
+    my $ret = gcp_ncc_spoke_delete(
+        name => $args{spoke_name},
+        timeout => $args{timeout});
+    if ($ret) {
+        record_info('GCP PEERING DELETE FAIL',
+            "Failed to delete NCC spoke '$args{spoke_name}' - there may be leftover resources",
+            result => 'fail');
+        return $ret;
+    }
+    record_info('GCP PEERING DELETE SUCCESS', "NCC spoke '$args{spoke_name}' deleted");
+    return 0;
 }
 
 1;

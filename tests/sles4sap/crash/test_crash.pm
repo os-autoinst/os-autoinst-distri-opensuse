@@ -25,12 +25,23 @@ sub run {
     $instance->ssh_script_run(
         cmd => 'sudo su -c "echo b > /proc/sysrq-trigger &"',
         timeout => 10,
+        ignore_timeout_failure => 1,
         ssh_opts => '-E /var/tmp/ssh_sut.log -fn -o ServerAliveInterval=2',
         username => $username);
 
     # wait for reboot
-    sleep 5;
-    record_info('Wait until', 'Wait until SUT is back again');
+    record_info('Wait down', 'Wait until SUT is unreachable (rebooting)');
+    my $wait_down_timeout = 60;
+    while ($wait_down_timeout > 0) {
+        if (script_run('nc -vz -w 1 ' . $instance->{public_ip} . ' 22', quiet => 1) != 0) {
+            record_info('SUT down', 'SUT is unreachable, continuing with wait_back');
+            last;
+        }
+        sleep 2;
+        $wait_down_timeout -= 2;
+    }
+
+    record_info('Wait up', 'Wait until SUT is back again');
     crash_wait_back(vm_ip => $instance->{public_ip}, username => $username);
 }
 
