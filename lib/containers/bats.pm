@@ -401,6 +401,12 @@ sub setup_pkgs {
     run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change @pkgs", timeout => 1200;
     install_git unless is_tumbleweed;
 
+    # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1259147
+    if (is_tumbleweed && $oci_runtime eq "runc" && (check_var("BATS_PACKAGE", "buildah") || check_var("BATS_PACKAGE", "podman"))) {
+        run_command "zypper addrepo -f https://download.opensuse.org/history/20260226/tumbleweed/repo/oss/ goodold";
+        run_command "zypper -n install --oldpackage --from goodold libseccomp2";
+    }
+
     configure_oci_runtime $oci_runtime;
 
     if (script_run("test -f /usr/local/bin/patch_junit")) {
