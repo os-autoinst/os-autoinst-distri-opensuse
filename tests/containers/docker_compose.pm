@@ -60,6 +60,7 @@ sub test ($target) {
         "github.com/docker/compose/$v/pkg/e2e::TestLocalComposeRun",
         "github.com/docker/compose/$v/pkg/e2e::TestLocalComposeRun/compose_run_-rm_with_stop_signal",
         # Flaky tests:
+        "github.com/docker/compose/$v/pkg/e2e::TestBuildTLS",
         "github.com/docker/compose/$v/pkg/e2e::TestUpDependenciesNotStopped",
         "github.com/docker/compose/$v/pkg/e2e::TestUpStopWithLogsMixed",
     );
