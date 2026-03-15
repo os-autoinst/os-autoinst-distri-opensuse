@@ -87,7 +87,7 @@ sub run_timeout_command {
         }, ['timeout'], @_);
     my $timeout = delete $args{timeout};
 
-    return run_command("timeout -k 3 $timeout $cmd", %args, timeout => $timeout + 10);
+    return run_command("timeout -k 3 $timeout env $cmd", %args, timeout => $timeout + 10);
 }
 
 sub switch_to_root {
@@ -608,7 +608,7 @@ sub bats_tests {
     my $tests = @tests ? join(" ", @tests) : $tests_dir{$package};
 
     my $debug = get_var("DEBUG") ? "--trace" : "";
-    my $cmd = "env $env bats $debug --report-formatter junit --tap -T $tests";
+    my $cmd = "$env bats $debug --report-formatter junit --tap -T $tests";
     my $xmlfile = "$tapfile.xml";
     $tapfile .= ".tap.txt";
     $cmd .= " </dev/null | tee -a $tapfile";
