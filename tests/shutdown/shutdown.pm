@@ -9,6 +9,7 @@ use base "opensusebasetest";
 use testapi;
 use power_action_utils qw(power_action check_bsc1215132);
 use utils;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my $self = shift;
