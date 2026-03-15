@@ -101,7 +101,7 @@ sub run {
     # $default_targets .= " remoteintegration" unless (is_sle || get_var("ROOTLESS"));
     my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
-        run_timeout_command "env $env make $target &> $target.txt", no_assert => 1, timeout => 3000;
+        run_timeout_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3000;
         upload_logs "$target.txt";
         assert_script_run "mv report.xml $target.xml";
         die "Testsuite failed" if script_run("test -s $target.xml");
