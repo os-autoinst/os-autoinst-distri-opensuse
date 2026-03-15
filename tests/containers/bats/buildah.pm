@@ -16,6 +16,7 @@ use Utils::Architectures;
 use containers::bats;
 
 my $version = "";
+my $docker_version = "";
 
 sub run_tests {
     my %params = @_;
@@ -101,7 +102,18 @@ sub enable_docker {
     record_info("WARNINGS daemon", $warnings) if $warnings;
     $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
     record_info("WARNINGS client", $warnings) if $warnings;
-    record_info("docker version", script_output("docker version -f json | jq -Mr"));
+    $docker_version = script_output "docker version --format '{{.Client.Version}}'";
+    record_info("docker version", $docker_version);
+}
+
+# Get latest version of package in Tumbleweed
+sub get_latest_version {
+    my $package = shift;
+
+    my $url = "https://mirrorcache.opensuse.org/rest/search/package_locations?ignore_file=json&ignore_path=%2Frepositories%2Fhome%3A&os=tumbleweed&official=1&package=$package";
+    my $jq_script = qq(.data[] | select(.name == "$package" and (.file | test("^$package-[0-9]")) and (.path | startswith("/tumbleweed/repo/oss/"))) | .file | split("-")[1]);
+    my $version = script_output qq(curl -sL "$url" | jq -Mr '$jq_script');
+    return version->parse(numeric_version($version));
 }
 
 # Run conformance tests that compare the output of buildah against Docker's BuildKit
@@ -156,10 +168,11 @@ sub run {
 
     $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
-    # Run conformance tests only on demand, when
-    # new buildah & docker packages are published
+    # Run conformance tests only on demand, when new buildah & docker packages are published
     # You need to clone with BATS_IGNORE_USER=all BATS_IGNORE_ROOT=all RUN_TESTS=conformance
-    test_conformance if check_var("RUN_TESTS", "conformance");
+    test_conformance if (check_var("RUN_TESTS", "conformance") || (is_tumbleweed && is_x86_64 &&
+            (get_latest_version("buildah") < version->parse(numeric_version($version)) ||
+                get_latest_version("docker") < version->parse(numeric_version($docker_version)))));
 
     die "buildah tests failed" if ($errors);
 }
