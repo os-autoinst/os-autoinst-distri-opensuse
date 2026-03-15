@@ -112,7 +112,7 @@ sub get_latest_version {
 
     my $url = "https://mirrorcache.opensuse.org/rest/search/package_locations?ignore_file=json&ignore_path=%2Frepositories%2Fhome%3A&os=tumbleweed&official=1&package=$package";
     my $jq_script = qq(.data[] | select(.name == "$package" and (.file | test("^$package-[0-9]")) and (.path | startswith("/tumbleweed/repo/oss/"))) | .file | split("-")[1]);
-    my $version = script_output qq(curl -sL "$url" | jq -Mr '$jq_script');
+    my $version = script_output qq(curl -sL "$url" | jq -Mr '$jq_script' | sort -Vr | head -1);
     return version->parse(numeric_version($version));
 }
 
