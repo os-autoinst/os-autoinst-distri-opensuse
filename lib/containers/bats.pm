@@ -409,6 +409,9 @@ sub setup_pkgs {
 
     configure_oci_runtime $oci_runtime;
 
+    run_command 'curl -sLo /sbin/runc https://github.com/opencontainers/runc/releases/download/v1.4.1/runc.' . go_arch(get_var("ARCH"));
+    record_info "RUNC", script_output("runc --version");
+
     if (script_run("test -f /usr/local/bin/patch_junit")) {
         assert_script_run "curl -o /usr/local/bin/patch_junit " . data_url("containers/patch_junit.py");
         assert_script_run "chmod +x /usr/local/bin/patch_junit";
