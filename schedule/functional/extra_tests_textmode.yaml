@@ -123,6 +123,7 @@ schedule:
     - console/prepare_test_data
     - console/consoletest_setup
     - '{{update_repos}}'
+    - console/clamav_upgrade
     - console/chrony
     - console/dnsmasq
     - console/man_pages
