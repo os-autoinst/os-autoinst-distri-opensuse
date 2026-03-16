@@ -58,8 +58,6 @@ conmon:
     merged: "2.2.0"
   645:
     min: "2.2.0"
-  648:
-    min: "2.2.0"
 
 containerd:
 
