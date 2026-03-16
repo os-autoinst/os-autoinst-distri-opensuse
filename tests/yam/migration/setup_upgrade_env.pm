@@ -32,6 +32,7 @@ sub run {
         SCC_ADDONS => $scc_addons,
         SCC_URL => 'https://scc.suse.com',
         VERSION => $version,
+        REPO_999 => ($agama ? get_var('REPO_0').".iso" : get_required_var('REPO_999')), 
     );
     my $env_content = '';
     while (my ($var_name, $var_value) = each %vars_to_set) {
