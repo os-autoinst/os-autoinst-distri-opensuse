@@ -279,6 +279,8 @@ sub run {
             if ($variables{AZURE_NATIVE_FENCING_AIM} eq 'spn') {
                 $variables{AZURE_NATIVE_FENCING_APP_ID} = get_var('QESAPDEPLOY_AZURE_SPN_APPLICATION_ID', get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID'));
                 $variables{AZURE_NATIVE_FENCING_APP_PASSWORD} = get_var('QESAPDEPLOY_AZURE_SPN_APP_PASSWORD', get_required_var('_SECRET_AZURE_SPN_APP_PASSWORD'));
+                save_tmp_file('spn_secret.yaml', "spn_application_id: $variables{AZURE_NATIVE_FENCING_APP_ID}\nspn_application_password: $variables{AZURE_NATIVE_FENCING_APP_PASSWORD}");
+                assert_script_run('curl ' . autoinst_url . '/files/spn_secret.yaml -o ~/spn_secret.yaml');
             }
         }
     }
