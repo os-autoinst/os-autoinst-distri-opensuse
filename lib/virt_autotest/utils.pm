@@ -365,9 +365,18 @@ sub check_failures_in_journal {
     $cmd .= " > $logfile";
     $cmd = "ssh -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
     if (script_run($cmd) != 0) {
-        $failures = "Fail to get journal logs from $machine";
-        record_info("Warning", "$failures when checking its health", result => 'softfail');
-        return $failures;
+        # Retry without cursor if it was invalid (e.g., after guest reboot)
+        if (defined($cursor)) {
+            delete $log_cursors{$machine};
+            $cmd = "journalctl --show-cursor > $logfile";
+            $cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root\@$machine " . "\"$cmd\"" if $machine ne 'localhost';
+            script_run($cmd);
+        }
+        if (script_run("test -s $logfile") != 0) {
+            $failures = "Fail to get journal logs from $machine";
+            record_info("Warning", "$failures when checking its health", result => 'softfail');
+            return $failures;
+        }
     }
 
     # Get the cursor of the journal log file
