@@ -49,9 +49,9 @@ sub run {
         # this runs pbl internally and prepares an new snapshot
         trup_call "bootloader";
 
-        if (!script_run('command -v fdectl') && get_var('QEMUTPM', 0)) {
+        if (!script_run('command -v fdectl') && get_var('QEMUTPM', 0) && !(get_var('FLAVOR', '') =~ /updates/i)) {
             # in order to avoid LUKS partition prompt, copy the blob into proper EFI dirs
-            assert_script_run 'EFIDIR=$(dirname $(find /boot/efi/ \( -name "grub.efi" -o -name "grubaa64.efi" \) -print -o -type d -name "BOOT" -prune))';
+            assert_script_run 'EFIDIR=$(dirname $(find /boot/efi/ -name "grub*.efi" -print -o -type d -name "BOOT" -prune))';
             assert_script_run 'test -z ${EFIDIR} || fdectl tpm-activate --uefi-boot-dir ${EFIDIR}';
         }
 
