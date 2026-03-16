@@ -554,7 +554,7 @@ sub run {
         return;
     }
 
-    if (is_kernel_validation_flavor || (is_opensuse && !$repo)) {
+    if (is_kernel_validation_flavor || check_var('FLAVOR', 'Server-DVD-Updates') || (is_opensuse && !$repo)) {
         record_info('Kernel flavor', $kernel_package);
         $self->prepare_kernel($kernel_package) if $kernel_package ne get_initial_kernel_flavor;
         check_kernel_package($kernel_package);
