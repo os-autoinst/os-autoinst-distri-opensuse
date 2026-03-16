@@ -20,7 +20,7 @@ sub run {
     type_string 'reboot';
     assert_and_click 'gnome-shell-confirm-reboot-1';
     assert_and_click 'gnome-shell-confirm-reboot-2';
-    
+
     # Input the encryption passphrase
     assert_screen 'aeon-boot-enter-passphrase', 600;
     type_string $testapi::password;

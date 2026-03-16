@@ -32,5 +32,6 @@ return 1 if load_yaml_schedule;
 loadtest 'aeon/tik';
 loadtest 'aeon/firstboot';
 loadtest 'aeon/reboot';
+loadtest 'aeon/distrobox';
 
 1;
