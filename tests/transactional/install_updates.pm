@@ -13,8 +13,11 @@ use transactional;
 use version_utils 'is_sle_micro';
 use serial_terminal;
 use utils qw(script_retry fully_patch_system);
+use zypper qw(wait_quit_zypper);
 
 sub update_system {
+    # poo#87850 wait the zypper processes in background to finish and release the lock.
+    wait_quit_zypper;
     # By default we use 'up', but this covers also the case of 'patch'
     if (get_var('TRANSACTIONAL_UPDATE_PATCH')) {
         record_info('PATCH', 'Patching system');
