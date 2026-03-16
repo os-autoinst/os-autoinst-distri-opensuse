@@ -52,10 +52,13 @@ compose:
 
 conmon:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
-  # https://github.com/containers/conmon/pull/642 - tests: Increase timeout for wait_for_runtime_status
+  # https://github.com/containers/conmon/pull/645 - tests: fail if runc start failed
+  # https://github.com/containers/conmon/pull/648 - tests: fix race condition in start_conmon_with_default_args
   579:
     merged: "2.2.0"
-  642:
+  645:
+    min: "2.2.0"
+  648:
     min: "2.2.0"
 
 containerd:

@@ -1,0 +1,29 @@
+From b074dcd448585a2f6de844d7cf3e74e721f53f57 Mon Sep 17 00:00:00 2001
+From: Kir Kolyshkin <kolyshkin@gmail.com>
+Date: Wed, 11 Mar 2026 15:15:24 -0700
+Subject: [PATCH] tests: fail if runc start failed
+
+Currently, there is no check that runc/crun start failed, and the test
+proceeds further, leading to harder-to-debug failures.
+
+Add an exit code check, as start is not supposed to fail here.
+
+Signed-off-by: Kir Kolyshkin <kolyshkin@gmail.com>
+---
+ test/test_helper.bash | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/test/test_helper.bash b/test/test_helper.bash
+index 3ea2ee21..97d2872d 100644
+--- a/test/test_helper.bash
++++ b/test/test_helper.bash
+@@ -447,6 +447,9 @@ start_conmon_with_default_args() {
+ 
+     # Start the container and wait until it really starts.
+     run_runtime start "$CTR_ID"
++    if [ "$status" -ne 0 ]; then
++	    die "$RUNTIME_BINARY start failed with $status: $output"
++    fi
+ }
+ 
+ # Helper function to run conmon with default arguments and wait until it is stopped.
