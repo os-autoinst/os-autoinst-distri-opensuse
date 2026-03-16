@@ -13,6 +13,7 @@ use migration 'reset_consoles_tty';
 
 sub run {
     # Read product variables of the product to migrate from/to
+    my $agama = get_var('VERSION_UPGRADE_FROM') =~ /^16/ ? '1' : '0';
     my $version = get_var('VERSION_UPGRADE_FROM', get_var('VERSION_UPGRADE_TO'));
     my $scc_addons =
       get_var('SCC_ADDONS_UPGRADE_FROM',
@@ -26,7 +27,7 @@ sub run {
 
     # Change variables to the other version that we want to migrate from/to
     my %vars_to_set = (
-        AGAMA => '0',
+        AGAMA => $agama,
         BETA => '0',
         SCC_ADDONS => $scc_addons,
         SCC_URL => 'https://scc.suse.com',
