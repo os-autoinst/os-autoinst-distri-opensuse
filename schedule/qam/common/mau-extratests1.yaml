@@ -7,6 +7,7 @@ schedule:
   - console/prepare_test_data
   - console/consoletest_setup
   - console/check_os_release
+  - console/clamav_upgrade
   - console/ping
   - console/arping
   - console/wireshark_cli
