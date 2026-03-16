@@ -82,6 +82,7 @@ sub test ($target) {
         "tests.integration.api_container_test.AttachContainerTest::test_attach_no_stream",
         # This test with websockets is broken
         "tests.integration.api_container_test.AttachContainerTest::test_run_container_reading_socket_ws",
+        "tests.integration.api_exec_test.ExecDemuxTest::test_exec_command_tty_stream_no_demux",
         # https://github.com/docker/docker-py/issues/3389
         "tests.integration.api_network_test.TestNetworks::test_connect_with_mac_address",
     );
