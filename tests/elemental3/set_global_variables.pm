@@ -41,7 +41,7 @@ sub get_uri {
 sub run {
     my $arch = get_required_var('ARCH');
     my $k8s = get_required_var('K8S');
-    my $kernel = 'uc-base-os-kernel-' . get_required_var('KERNEL_TYPE') . '-' . get_required_var('VERSION');
+    my $kernel = 'beta-uc-uc-base-os-kernel-' . get_required_var('KERNEL_TYPE') . '-' . get_required_var('VERSION');
     my $totest_path = get_required_var('TOTEST_PATH');
     my $uc_version = get_required_var('UC_VERSION');
 
