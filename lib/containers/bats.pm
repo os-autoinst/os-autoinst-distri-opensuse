@@ -119,6 +119,9 @@ sub configure_docker_tls {
     my $key = "key.pem";
     my $opts = "-req -days 7 -sha256 -in $req -CA $ca_cert -CAkey $ca_key -CAcreateserial -out $cert";
 
+    my $not_before = is_sle("<16") ? "" : " -not_before " . script_output('date -u -d "5 minutes ago" +%Y%m%d%H%M%SZ');
+    $opts .= $not_before;
+
     # Create self-signed CA
     run_command "openssl genrsa -out $ca_key 4096";
     run_command qq(openssl req -new -x509 -days 7 -key $ca_key -sha256 -subj "/CN=CA" -out $ca_cert -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign");
@@ -135,6 +138,8 @@ sub configure_docker_tls {
     run_command "mv -f $ca_cert $cert $key ~/.docker/";
     run_command "cp /etc/docker/ca.pem /etc/pki/trust/anchors/";
     run_command "update-ca-certificates";
+    # Older versions of openssl-x509(1) lack -not_before so let's sleep a little while
+    sleep 5 unless $not_before;
     return " --tlsverify --tlscacert=/etc/docker/$ca_cert --tlscert=/etc/docker/$cert --tlskey=/etc/docker/$key";
 }
 
