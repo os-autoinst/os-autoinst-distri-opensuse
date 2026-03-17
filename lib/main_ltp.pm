@@ -12,7 +12,7 @@ use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_te
 use 5.018;
 use Utils::Backends;
 use Utils::Architectures qw(is_s390x);
-use version_utils qw(is_opensuse is_transactional is_sle_micro);
+use version_utils qw(is_opensuse is_transactional is_sle_micro is_jeos);
 use LTP::utils qw(loadtest_kernel shutdown_ltp);
 use main_common 'loadtest';
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
@@ -56,7 +56,7 @@ sub load_kernel_tests {
             get_var('ASSET_CHANGE_KERNEL_RPM')) {
             loadtest_kernel 'change_kernel';
         }
-        elsif (!get_var('LIBC_LIVEPATCH')) {
+        elsif (!get_var('LIBC_LIVEPATCH') && !is_jeos) {
             loadtest_kernel 'update_kernel';
         }
 
