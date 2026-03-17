@@ -896,13 +896,15 @@ sub qesap_ansible_softfail {
         'grep -E "\[OSADO\]\[softfail\] ([a-zA-Z]+#\S+)( .*)?" ' . $args{logfile},
         proceed_on_failure => 1);
     my $reference;
+    my $description;
     foreach my $ansible_line (split /\n/, $ansible_output) {
         chomp $ansible_line;
-        if ($ansible_line =~ qr/\[OSADO\]\[softfail\] ([a-zA-Z]+#\S+) (.*)/) {
+        if ($ansible_line =~ qr/\[OSADO\]\[softfail\] ([a-zA-Z]+#\S+)( .*)?/) {
             # Using a variable named $reference is needed to pass test-soft_failure-no-reference.
             # Refer to CONTRIBUTING.md
             $reference = $1;
-            record_soft_failure("$reference - $2");
+            $description = $2 ? ' - ' . $2 : '';
+            record_soft_failure($reference . $description);
         }
     }
 }
