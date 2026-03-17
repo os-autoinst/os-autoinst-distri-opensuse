@@ -51,8 +51,8 @@ sub get_sysext {
 
 =head2 customize_cmd
 
- customize_cmd( hddsize => <value>, k8s => <value>, timeout => <value>,
-                  rootpwd => <value> );
+ customize_cmd( hddsize => <value>, k8s => <value>, rootpwd => <value>,
+                  template => <value>, timeout => <value> );
 
 Create an OS image with `customize` command by using the specified
 release-manifest.
@@ -61,14 +61,15 @@ release-manifest.
 
 sub customize_cmd {
     my (%args) = @_;
-    my $build_dir = '/root/build';
     my $crypto_policy = get_var('CRYPTO_POLICY');
     my $device = get_var('INSTALL_DISK', '/dev/vda');
     my $krnlcmdline = get_var('KERNEL_CMD_LINE');
     my $manifest_uri = get_required_var('RELEASE_MANIFEST_URI');
-    my $out = "$args{img_filename}.iso";
-    my $tpl_tar = "$build_dir/build-tpl.tar.gz";
     my $type = get_required_var('IMAGE_TYPE');
+    my $build_dir = '/root/build';
+    my $tpl_tar = "$build_dir/$args{template}";
+    my $initial_hddsize = '4';
+    my $out = "$args{img_filename}.iso";
 
     # Create directories
     assert_script_run("mkdir -p $build_dir");
@@ -95,7 +96,7 @@ sub customize_cmd {
         "$build_dir/install.yaml",
         '--sed-modifier' => 'g',
         '%CRYPTO_POLICY%' => $crypto_policy,
-        '%HDDSIZE%' => $args{hddsize},
+        '%HDDSIZE%' => $initial_hddsize,
         '%INSTALL_DISK%' => $device,
         '%KERNEL_CMD_LINE%' => $krnlcmdline
     );
@@ -105,6 +106,13 @@ sub customize_cmd {
         '%RELEASE_MANIFEST_URI%' => $manifest_uri,
         '%K8S%' => $args{k8s}
     );
+    if (check_var('TESTED_CMD', 'customize_recovery')) {
+        file_content_replace(
+            "$build_dir/custom/scripts/50-firstboot.sh",
+            '--sed-modifier' => 'g',
+            '%INSTALL_DISK%' => $device,
+        );
+    }
 
     # Generate OS image
     assert_script_run(
@@ -113,9 +121,16 @@ sub customize_cmd {
     );
 
     # Convert RAW to QCOW2 if needed
+    # NOTE: './' is needed in front of $out as the filename contains a ':' in it
     if ($type =~ m/raw/) {
         assert_script_run(
             "qemu-img convert -p -f raw -O qcow2 uc_image.$type ./$out",
+            timeout => $args{timeout}
+        );
+
+        # Extend HDD image to needed size
+        assert_script_run(
+            "qemu-img resize ./$out $args{hddsize}G",
             timeout => $args{timeout}
         );
     } elsif ($type =~ m/iso/) {
@@ -244,6 +259,7 @@ sub run {
     my $rootpwd = get_required_var('TEST_PASSWORD');
     my $build = get_required_var('BUILD');
     my $img_filename = get_required_var('IMG_NAME');
+    my $tpl_file = get_var('TEMPLATE', 'build-tpl.tar.gz');
     my $timeout = 900;
     my $out_file;
 
@@ -271,9 +287,10 @@ sub run {
         k8s => $k8s,
         hddsize => $hddsize,
         rootpwd => $hashpwd,
+        template => $tpl_file,
         build => $build,
         img_filename => $img_filename
-    ) if check_var('TESTED_CMD', 'customize');
+    ) if (check_var('TESTED_CMD', 'customize') || check_var('TESTED_CMD', 'customize_recovery'));
 
     $out_file = build_installer_cmd(
         timeout => $timeout,
@@ -282,7 +299,7 @@ sub run {
         rootpwd => $hashpwd,
         build => $build,
         img_filename => $img_filename
-    ) if check_var('TESTED_CMD', 'build_installer_iso');
+    ) if (check_var('TESTED_CMD', 'build_installer_iso'));
 
     $out_file = install_cmd(
         timeout => $timeout,
@@ -292,7 +309,7 @@ sub run {
         rootpwd => $hashpwd,
         build => $build,
         img_filename => $img_filename
-    ) if check_var('TESTED_CMD', 'install');
+    ) if (check_var('TESTED_CMD', 'install'));
 
     # Upload OS image
     upload_asset("$out_file", 1);
