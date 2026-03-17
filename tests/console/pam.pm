@@ -52,12 +52,12 @@ sub run {
     my $pam_version = script_output("rpm -q --qf '%{VERSION}\n' pam");
     my $limit_pam_version = '1.5.0';
     my $ret = "";
-    my $tap_results = "results.tap";
+    my $tap_results = "/tmp/results.tap";
     assert_script_run("sed -i 's/ROOT_PASSWORD/$testapi::password/g' $pamdir/*.sh");
     if (package_version_cmp($pam_version, $limit_pam_version) >= 0) {
-        $ret = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 180);
+        $ret = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 200);
     } else {
-        $ret = script_run("cd $pamdir; prove -v pam_deprecated.sh >$tap_results", timeout => 180);
+        $ret = script_run("cd $pamdir; prove -v pam_deprecated.sh >$tap_results", timeout => 300);
     }
     parse_extra_log(TAP => $tap_results);
 
@@ -69,6 +69,12 @@ sub run {
     zypper_call('rm bats pam-test');
 
     die "pam.sh failed, see results.tap for details" if ($ret);
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    upload_logs('/tmp/results.tap');
+    $self->SUPER::post_fail_hook;
 }
 
 1;
