@@ -22,6 +22,7 @@ use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 do
 use Utils::Systemd 'get_started_systemd_services';
 use Mojo::File 'path';
 use serial_terminal 'select_serial_terminal';
+use version_utils 'is_tumbleweed';
 
 our @EXPORT = qw(
   save_and_upload_log
@@ -162,7 +163,7 @@ sub select_log_console { select_console('log-console', timeout => 180, @_) }
  upload_coredumps(%args);
 
 Upload all coredumps to logs. In case `proceed_on_failure` key is set to true,
-errors during logs collection will be ignored, which is usefull for the
+errors during logs collection will be ignored, which is useful for the
 post_fail_hook calls.
 =cut
 
@@ -170,7 +171,7 @@ sub upload_coredumps {
     my (%args) = @_;
     my $res = script_run('coredumpctl --no-pager');
     if (!$res) {
-        record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
+        record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
         script_run("coredumpctl info --no-pager | tee coredump-info.txt");
         upload_logs("coredump-info.txt", failok => $args{proceed_on_failure});
         my $basedir = '/var/lib/systemd/coredump/';
@@ -178,6 +179,8 @@ sub upload_coredumps {
         foreach my $file (@files) {
             upload_logs($basedir . $file, failok => $args{proceed_on_failure});
         }
+        # Record soft-failure only on Tumbleweed for now to gather data
+        record_soft_failure("poo#197969 - Coredumps are being silently ignored in openQA tests") if is_tumbleweed;
     }
 }
 
