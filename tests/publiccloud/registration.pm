@@ -9,6 +9,7 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
+use feature 'state';
 use Mojo::Base 'publiccloud::basetest';
 use version_utils;
 use registration;
@@ -18,6 +19,27 @@ use publiccloud::utils;
 use publiccloud::ssh_interactive "select_host_console";
 use File::Basename 'basename';
 
+sub _registration_state {
+    state $reg_subscription = 0;
+
+    my ($set) = @_;
+    $reg_subscription = $set ? 1 : 0 if defined $set;
+
+    return $reg_subscription;
+}
+
+sub mark_registered {
+    _registration_state(1);
+}
+
+sub mark_unregistered {
+    _registration_state(0);
+}
+
+sub is_registered {
+    return _registration_state();
+}
+
 sub run {
     my ($self, $args) = @_;
 
@@ -25,7 +47,16 @@ sub run {
 
     wait_quit_zypper_pc($args->{my_instance});
 
-    registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
+    if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION')) {
+        if (is_registered()) {
+            record_info('System was already registered, cleaning up before new registration');
+            clean_registercloudguest($args->{my_instance}) if is_registered();
+            mark_unregistered();
+        }
+
+        registercloudguest($args->{my_instance});
+        mark_registered();
+    }
 
     # https://progress.opensuse.org/issues/196370 workaround for a known issue on 15-SP5
     if (is_sle('=15-SP5')) {

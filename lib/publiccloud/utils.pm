@@ -46,6 +46,7 @@ our @EXPORT = qw(
   is_hardened
   is_cloudinit_supported
   registercloudguest
+  clean_registercloudguest
   register_addon
   register_openstack
   register_addons_in_pc
@@ -226,6 +227,17 @@ sub registercloudguest {
     if (script_run('ssh -O check ' . $instance->username . '@' . $instance->public_ip) == 0) {
         assert_script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
     }
+}
+
+sub clean_registercloudguest {
+    my ($instance) = @_;
+    my $suseconnect = get_var("PUBLIC_CLOUD_SCC_ENDPOINT", "registercloudguest");
+
+    record_info("Registration cleanup");
+    $instance->ssh_assert_script_run(cmd => "sudo $suseconnect --clean");
+
+    # Force a new session to ensure the environment is set properly
+    script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
 }
 
 sub register_addons_in_pc {
