@@ -221,7 +221,6 @@ sub login_to_console {
     # double-check xen role for xen host
     double_check_xen_role if (is_xen_host and !get_var('REBOOT_AFTER_UPGRADE') and !(is_sle('>=16.1') and is_transactional and is_disk_image));
     check_kvm_modules if (is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE') and !(is_sle('>=16.1') and is_transactional and is_disk_image));
-    check_host_health();
 }
 
 sub run {
@@ -249,6 +248,8 @@ sub run {
         script_run("tar zcfv /tmp/host_agama_installation_script_logs.tar.gz /var/log/agama-installation/scripts/*");
         upload_logs("/tmp/host_agama_installation_script_logs.tar.gz", failok => 1);
     }
+
+    check_host_health();
 }
 
 sub post_fail_hook {
