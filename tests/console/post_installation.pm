@@ -35,7 +35,7 @@ sub run {
         # latest kernel from customer repo has lower version than old kernel
         zypper_call('rm kernel-default');
         zypper_call('in -f --repo 12-SP3-TERADATA-Updates kernel-default');
-        if (check_var('PATTERNS', 'all')) {
+        if (check_var('PATTERNS', 'all') || get_var('TEST', '') =~ /qam-minimal\+base|qam-textmode/) {
             power_action('reboot', textmode => 1);
             $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
             select_serial_terminal;
