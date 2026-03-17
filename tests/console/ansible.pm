@@ -108,7 +108,7 @@ sub run {
     # 2. Ansible basics
 
     # Check Ansible version
-    record_info('ansible --version', script_output('ansible --version'));
+    record_info('ansible --version', script_output('ansible --version', timeout => 300));
 
     # older sles with wicked changes its transient hostname after reboot to s390kvm0XX
     # wicked can leave the hostname configuration for DHCP
