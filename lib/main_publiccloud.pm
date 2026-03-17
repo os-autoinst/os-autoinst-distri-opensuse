@@ -25,7 +25,7 @@ sub load_maintenance_publiccloud_tests {
     loadtest "publiccloud/download_repos" unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/prepare_instance", run_args => $args;
     if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest("publiccloud/check_registercloudguest", run_args => $args);
+        loadtest("publiccloud/registercloudguest", run_args => $args);
     } else {
         loadtest("publiccloud/registration", run_args => $args);
     }
@@ -52,7 +52,7 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
         loadtest("publiccloud/bsc_1205002", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest("publiccloud/check_registercloudguest", run_args => $args);
+        loadtest("publiccloud/registercloudguest", run_args => $args, name => "re-registration");
     } else {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview", run_args => $args;
@@ -136,7 +136,7 @@ sub load_latest_publiccloud_tests {
         loadtest 'publiccloud/az_accelerated_net', run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest "publiccloud/check_registercloudguest", run_args => $args;
+        loadtest "publiccloud/registercloudguest", run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
         loadtest "publiccloud/azure_aitl", run_args => $args;
