@@ -44,7 +44,11 @@ sub configure_nss {
 }
 
 sub configure_pam {
-    assert_script_run('pam-config --add --himmelblau');
+    if (is_sle(">=16")) {
+        assert_script_run('pam-config --add --himmelblau');
+    } else {
+        assert_script_run('aad-tool configure-pam --really');
+    }
     assert_script_run('sed -i -e "/account requisite pam_unix.so try_first_pass/account sufficient pam_unix.so try_first_pass/g" /etc/pam.d/common-account');
     record_info("PAM configured");
 }
