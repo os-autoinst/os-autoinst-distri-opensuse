@@ -953,4 +953,66 @@ subtest '[generate_lun_list]' => sub {
     foreach my $i (0 .. 2) { ok($results[$i] =~ /.+$tgt_ip_port.+$iqn-lun\-$i/, "Correct LUN path [$i]"); }
 };
 
+subtest '[sync_file] crm cluster copy' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @results = ();
+    $hacluster->redefine(assert_script_run => sub { push @results, $_[0]; });
+    my $test_file = 'MEGATRON';
+    set_var('VERSION', '16.0');
+    set_var('DISTRI', 'sle');
+    sync_file($test_file);
+    set_var('VERSION', undef);
+    set_var('DISTRI', undef);
+    note("\n --> " . join("\n --> ", @results));
+    ok($results[0] eq "crm cluster copy $test_file", 'Using "crm cluster copy"');
+};
+
+subtest '[sync_file] csync2' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @results = ();
+    $hacluster->redefine(assert_script_run => sub { push @results, $_[0]; });
+    my $test_file = 'UNICRON';
+    set_var('VERSION', '14');
+    set_var('DISTRI', 'sle');
+    sync_file($test_file);
+    set_var('VERSION', undef);
+    set_var('DISTRI', undef);
+    note("\n --> " . join("\n --> ", @results));
+    ok($results[0] =~ m|w./etc/csync2/csync2.cfg|, 'Checking csync2.cfg is writable');
+    ok($results[1] =~ /grep.+$test_file.+sed.+$test_file/, 'Checking file in csyn2.cfg and adding it');
+    ok($results[1] =~ m|/etc/csync2/csync2.cfg|, 'Adding file to csync2.cfg');
+    ok($results[2] eq 'csync2 -vxF ; sleep 2 ; csync2 -vxF', 'Using csyn2');
+};
+
+subtest '[sync_path] crm cluster copy' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @results = ();
+    $hacluster->redefine(assert_script_run => sub { push @results, $_[0]; });
+    my $test_path = 'STARSCREAM/*';
+    set_var('VERSION', '16.0');
+    set_var('DISTRI', 'sle');
+    sync_path($test_path);
+    set_var('VERSION', undef);
+    set_var('DISTRI', undef);
+    note("\n --> " . join("\n --> ", @results));
+    ok($results[0] =~ m|for p in $test_path.+crm cluster copy|, 'Using "crm cluster copy"');
+};
+
+subtest '[sync_path] csync2' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @results = ();
+    $hacluster->redefine(assert_script_run => sub { push @results, $_[0]; });
+    my $test_path = 'SOUNDWAVE/*';
+    set_var('VERSION', '14');
+    set_var('DISTRI', 'sle');
+    sync_path($test_path);
+    set_var('VERSION', undef);
+    set_var('DISTRI', undef);
+    note("\n --> " . join("\n --> ", @results));
+    ok($results[0] =~ m|w./etc/csync2/csync2.cfg|, 'Checking csync2.cfg is writable');
+    ok($results[1] =~ /grep.+$test_path.+sed.+$test_path/, 'Checking file in csyn2.cfg and adding it');
+    ok($results[1] =~ m|/etc/csync2/csync2.cfg|, 'Adding file to csync2.cfg');
+    ok($results[2] eq 'csync2 -vxF ; sleep 2 ; csync2 -vxF', 'Using csyn2');
+};
+
 done_testing;

@@ -46,8 +46,9 @@ sub run {
         assert_script_run "echo DEVICE $clustermd_lun_01 $clustermd_lun_02 > $mdadm_conf", $default_timeout;
         assert_script_run "mdadm --detail --scan >> $mdadm_conf", $default_timeout;
 
-        # We need to add the configuration in csync2.conf
-        add_file_in_csync(value => "$mdadm_conf");
+        # Sync mdadm configuration to all nodes
+        sync_file($mdadm_conf);
+        sync_file('/etc/lvm/lvm.conf');
     }
     else {
         diag 'Wait until cluster-md device is created...';

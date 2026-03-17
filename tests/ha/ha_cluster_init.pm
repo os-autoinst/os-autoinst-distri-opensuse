@@ -92,8 +92,8 @@ sub run {
         file_content_replace("$sbd_cfg", "SBD_DELAY_START=.*" => "SBD_DELAY_START=yes");
     }
 
-    # Execute csync2 to synchronise the sysconfig sbd file
-    exec_csync;
+    # Synchronize the sysconfig sbd file
+    sync_file($sbd_cfg);
 
     # Set wait_for_all option to 0 if we are in a two nodes cluster situation
     # We need to set it for reproducing the same behaviour we had with no-quorum-policy=ignore
@@ -114,8 +114,8 @@ sub run {
     diag 'Waiting for other nodes to join...';
     barrier_wait("NODE_JOINED_$cluster_name");
 
-    # Execute csync2 to synchronise the configuration files
-    exec_csync;
+    # Synchronize the configuration files
+    sync_file($corosync_conf);
 
     # State of SBD if shared storage SBD is used
     if (!get_var('USE_DISKLESS_SBD')) {
