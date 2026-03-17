@@ -210,13 +210,11 @@ sub ssh_password_possibility {
 
 sub post_fail_hook {
     my ($self) = shift;
-    # Collect y2log firstly for migration case since this is high priority
-    # since sometimes error happen during default post_fail_hook
-    if (get_var('FLAVOR') =~ /Migration/) {
-        select_console 'root-console';
-        assert_script_run 'save_y2logs /tmp/y2logs.tar.bz2';
-        upload_logs '/tmp/y2logs.tar.bz2';
-    }
+    # Always collect y2logs before anything else, if the install failed, probably
+    # there is the most useful place to look at
+    select_console 'root-console';
+    assert_script_run 'save_y2logs /tmp/y2logs.tar.bz2';
+    upload_logs '/tmp/y2logs.tar.bz2';
     $self->SUPER::post_fail_hook;
 }
 
