@@ -23,7 +23,7 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot
-  - installation/first_boot
+  - security/boot_disk
   - console/hostname
   - console/system_prepare
   - console/consoletest_setup
