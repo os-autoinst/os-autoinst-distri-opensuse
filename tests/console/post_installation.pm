@@ -19,14 +19,28 @@ use utils qw(zypper_call quit_packagekit);
 use serial_terminal qw(select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use version_utils qw(is_sle);
+use power_action_utils qw(power_action);
 
 sub run {
+    my ($self) = @_;
     select_serial_terminal;
 
     quit_packagekit unless check_var('DESKTOP', 'textmode');
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '{IGNORECASE=1} /nvidia/ {print $2}')}, exitcode => [0, 3]);
     zypper_call(q{mr -e $(zypper lr | awk -F '|' '/Basesystem-Module/ {print $2}')}, exitcode => [0, 3]) if get_var('FLAVOR') =~ /TERADATA/;
+
+    # https://progress.opensuse.org/issues/197900
+    if (is_sle('=12-sp3')) {
+        # latest kernel from customer repo has lower version than old kernel
+        zypper_call('rm kernel-default');
+        zypper_call('in -f --repo 12-SP3-TERADATA-Updates kernel-default');
+        if (check_var('PATTERNS', 'all')) {
+            power_action('reboot', textmode => 1);
+            $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
+            select_serial_terminal;
+        }
+    }
 
     add_suseconnect_product(get_addon_fullname('phub')) if check_var('PATTERNS', 'all') && is_sle('15-SP6+') && is_sle('<16');
 

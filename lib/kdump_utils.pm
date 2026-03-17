@@ -84,15 +84,10 @@ sub prepare_for_kdump_sle {
         }
     }
 
-    if (is_sle('=12-SP2')) {
-        my $arch = get_var('ARCH');
-        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP2-LTSS-ERICSSON/$arch/update_debug/";
-        zypper_call("--no-gpg-checks ar -f -G $url '12-SP2-LTSS-ERICSSON-Debuginfo-Updates'");
-    }
     if (is_sle('=12-SP3')) {
         my $arch = get_var('ARCH');
-        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-LTSS-TERADATA/$arch/update_debug/";
-        zypper_call("--no-gpg-checks ar -f -G $url '12-SP3-LTSS-TERADATA-Debuginfo-Updates'");
+        my $url = "http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-TERADATA/$arch/update_debug/";
+        zypper_call("--no-gpg-checks ar -f -G $url '12-SP3-TERADATA-Debuginfo-Updates'");
     }
 
     script_run(q(zypper mr -e $(zypper lr | awk '/Debug/ {print $1}')), 60);
