@@ -173,7 +173,10 @@ sub configure_docker {
     record_info "DOCKER_OPTS", $docker_opts;
     run_command "systemctl restart docker";
     run_command "export DOCKER_HOST=tcp://localhost:$port";
-    run_command "export DOCKER_TLS_VERIFY=1" if $args{tls};
+    if ($args{tls}) {
+        run_command 'export DOCKER_CERT_PATH=$HOME/.docker';
+        run_command "export DOCKER_TLS_VERIFY=1";
+    }
     record_info "containerd status", script_output("systemctl status containerd", proceed_on_failure => 1);
     record_info "docker status", script_output("systemctl status docker", proceed_on_failure => 1);
     record_info "docker version", script_output("docker version -f json | jq -Mr");
@@ -256,7 +259,7 @@ sub cleanup_docker {
     script_run 'docker rm -vf $(docker ps -aq)', timeout => $timeout;
     script_run "docker volume prune -a -f", timeout => $timeout;
     script_run "docker system prune -a -f", timeout => $timeout;
-    script_run "unset DOCKER_HOST DOCKER_TLS_VERIFY";
+    script_run "unset DOCKER_CERT_PATH DOCKER_HOST DOCKER_TLS_VERIFY";
     systemctl "restart docker";
 }
 
