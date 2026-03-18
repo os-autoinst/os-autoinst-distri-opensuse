@@ -34,7 +34,7 @@ sub setup {
 
     run_command "echo 127.0.0.1 registry >> /etc/hosts";
 
-    $version = script_output "docker version --format '{{.Client.Version}}'";
+    $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
     $version = "v$version";
     record_info "docker version", $version;

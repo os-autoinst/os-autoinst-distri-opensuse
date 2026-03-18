@@ -30,7 +30,7 @@ sub setup {
     # Tests use "ctr"
     run_command "cp /usr/sbin/containerd-ctr /usr/local/bin/ctr";
 
-    $version = script_output "docker version --format '{{.Client.Version}}'";
+    $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
     # Docker v29 changed tag format
     $version = ($version =~ /^2[1-8]/) ? "v$version" : "docker-v$version";
