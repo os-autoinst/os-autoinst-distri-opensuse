@@ -23,6 +23,7 @@ use zypper qw(wait_quit_zypper);
 
 sub run {
     select_console 'root-console';
+    sleep;
 
     ensure_serialdev_permissions;
     prepare_serial_console;
