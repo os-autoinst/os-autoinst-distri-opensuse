@@ -17,7 +17,7 @@ use Utils::Architectures qw(is_aarch64);
 sub systemd_detect_virt_expected_output_virtual {
     my ($self) = @_;
 
-    return "xen" if get_var("TEST") =~ /_xen$/;
+    return "xen" if (get_var("TEST") =~ /_xen$/) || is_ec2_xen();
     return "google" if is_gce;
     return "amazon" if is_ec2;
     return "microsoft" if is_azure;
