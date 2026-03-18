@@ -121,7 +121,6 @@ sub run {
     record_info("NFS stat for server", script_output("nfsstat -s"));
 
     barrier_wait("NFS_SERVER_ENABLED");
-    barrier_wait("NFS_CLIENT_ENABLED");
     barrier_wait("NFS_SERVER_CHECK");
 
     if ($kernel_nfs3 == 1) {

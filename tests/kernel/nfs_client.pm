@@ -39,6 +39,41 @@ sub mount_share {
     return assert_script_run("mount -t nfs -o $opts $server:$share $local");
 }
 
+sub verify_nfs_support {
+    my %args = @_;
+    my $ver = $args{version} // 'V3';
+    my $is_server = $args{is_server} // 0;
+    my $softfail = $args{optional} // 0;
+
+    if (script_run('test -f /proc/config.gz') != 0) {
+        my $msg = "/proc/config.gz missing! Kernel config not exported.";
+        if ($softfail) {
+            record_soft_failure("NFS Support missing: $msg");
+            return 0;
+        }
+        record_info("config.gz not found", $msg, result => 'fail');
+        die $msg;
+    }
+
+    my $config_key = $is_server
+      ? (($ver =~ /V4/) ? "CONFIG_NFSD_V4" : "CONFIG_NFSD")
+      : "CONFIG_NFS_$ver";
+
+    if (script_run("zgrep '$config_key=[my]' /proc/config.gz") != 0) {
+        my $info = "Flag: $config_key\nVersion: $ver\nRole: " . ($is_server ? "Server" : "Client");
+
+        if ($softfail) {
+            record_soft_failure("NFS support misssing: $config_key missing");
+            return 0;
+        }
+
+        record_info("NFS Supoport missing", $info, result => 'fail');
+        die "FATAL: NFS support check failed for $config_key";
+    }
+
+    return 1;
+}
+
 sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
@@ -52,56 +87,37 @@ sub run {
     my $local_nfs4_async = get_var('NFS_LOCAL_NFS4_ASYNC', '/home/localNFS4async');
     my $multipath = get_var('NFS_MULTIPATH', '0');
 
-    # check kernel config options and set the variables
-    my $kernel_nfs3 = 0;
-    my $kernel_nfs4 = 0;
-    my $kernel_nfs4_1 = 0;
-    my $kernel_nfs4_2 = 0;
-    my $kernel_nfsd_v3 = 0;
-    my $kernel_nfsd_v4 = 0;
-
-    $kernel_nfs3 = 1 unless script_run('zgrep "CONFIG_NFS_V3=[my]" /proc/config.gz');
-    $kernel_nfs4 = 1 unless script_run('zgrep "CONFIG_NFS_V4=[my]" /proc/config.gz');
-    $kernel_nfs4_1 = 1 unless script_run('zgrep "CONFIG_NFS_V4_1=[my]" /proc/config.gz');
-    $kernel_nfs4_2 = 1 unless script_run('zgrep "CONFIG_NFS_V4_2=[my]" /proc/config.gz');
-    $kernel_nfsd_v3 = 1 unless script_run('zgrep "CONFIG_NFSD=[my]" /proc/config.gz');
-    $kernel_nfsd_v4 = 1 unless script_run('zgrep "CONFIG_NFSD_V4=[my]" /proc/config.gz');
+    my $softfail_nfs3 = get_var('NFS_SOFTFAIL_CONF_NFS3', 0);
+    my $softfail_nfs4 = get_var('NFS_SOFTFAIL_CONF_NFS4', 0);
 
     barrier_wait("NFS_SERVER_ENABLED");
     record_info("showmount", script_output("showmount -e $server_node"));
 
-    if ($kernel_nfs3 == 1) {
-        record_info('INFO', 'Kernel has support for NFSv3');
-        mount_share($server_node, "/nfs/shared_nfs3", $local_nfs3, "-o nfsvers=3,sync");
-        mount_share($server_node, "/nfs/shared_nfs3_async", $local_nfs3_async, "-o nfsvers=3");
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv3, skipping NFSv3 tests');
-    }
-
-    if ($kernel_nfs4 == 1) {
-        record_info('INFO', 'Kernel has support for NFSv4');
-        mount_share($server_node, "/nfs/shared_nfs4", $local_nfs4, "-o nfsvers=4,sync");
-        mount_share($server_node, "/nfs/shared_nfs4_async", $local_nfs4_async, "-o nfsvers=4");
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv4, skipping NFSv4tests');
-    }
-
-    barrier_wait("NFS_CLIENT_ENABLED");
-
-    #run basic checks - add a file to each folder and check for the checksum
-    #proper tests should come in the next modules
     assert_script_run("dd if=/dev/zero of=testfile bs=1024 count=10240");
     assert_script_run("md5sum testfile > md5sum.txt");
 
-    if ($kernel_nfs3 == 1) {
+    if (verify_nfs_support('V3', server => 0, softfail => $softfail_nfs3)) {
+        record_info('INFO', 'Kernel has support for NFSv3');
+
+        mount_share($server_node, "/nfs/shared_nfs3", $local_nfs3, "-o nfsvers=3,sync");
+        mount_share($server_node, "/nfs/shared_nfs3_async", $local_nfs3_async, "-o nfsvers=3");
+
         nfs_run_io_tests($local_nfs3, $local_nfs3_async);
     }
-    if ($kernel_nfs4 == 1) {
+
+    if (verify_nfs_support('V4', server => 0, optional => $softfail_nfs4)) {
+        record_info('INFO', 'Kernel has support for NFSv4');
+
+        mount_share($server_node, "/nfs/shared_nfs4", $local_nfs4, "-o nfsvers=4,sync");
+        mount_share($server_node, "/nfs/shared_nfs4_async", $local_nfs4_async, "-o nfsvers=4");
+
         nfs_run_io_tests($local_nfs4, $local_nfs4_async);
     }
 
     barrier_wait("NFS_SERVER_CHECK");
 }
+
+
 
 sub test_flags {
     return {fatal => 1, milestone => 1};
