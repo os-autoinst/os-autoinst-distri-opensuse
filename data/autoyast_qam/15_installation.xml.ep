@@ -381,6 +381,29 @@
     </user>
   </users>
   <scripts>
+    % if ($check_var->('BACKEND', 'ipmi')) {
+    <pre-scripts config:type="list">
+      <script>
+        <filename>wipe_disks.sh</filename>
+        <interpreter>/bin/bash -x</interpreter>
+        <source><![CDATA[
+disks=$(lsblk -n -l -o NAME -d -e 7,11,254);
+for disk in $disks;do
+    echo "Wiping /dev/$disk..."
+    wipefs -af /dev/$disk
+    sync
+    parted -s /dev/$disk mklabel gpt
+    sync
+done
+echo "All disks are wiped out."
+lsblk
+]]>
+        </source>
+        <feedback config:type="boolean">false</feedback>
+        <notification>Please wait while pre-script is running...</notification>
+      </script>
+    </pre-scripts>
+    % }
     <post-scripts config:type="list">
       <script>
         <filename>post.sh</filename>
