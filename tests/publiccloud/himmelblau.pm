@@ -31,9 +31,9 @@ sub configure_himmelblau {
 }
 
 sub configure_nss {
-    my $NSSWITCH_CONF_PATH = "/usr/etc/nsswitch.conf";
-    if (is_sle("<16")) {
-        $NSSWITCH_CONF_PATH = "/etc/nsswitch.conf";
+    my $NSSWITCH_CONF_PATH = "/etc/nsswitch.conf";
+    if (is_sle(">=16")) {
+        assert_script_run("cp /usr/etc/nsswitch.conf $NSSWITCH_CONF_PATH");
     }
 
     assert_script_run("sed -i -e '0,/passwd:.*/!{0,/passwd:.*/s/passwd:.*/passwd:    files systemd himmelblau/}' $NSSWITCH_CONF_PATH");
