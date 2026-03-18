@@ -407,7 +407,7 @@ sub setup_pkgs {
     install_git unless is_tumbleweed;
 
     # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1259147
-    if (is_tumbleweed && !get_var("OCI_RUNTIME") && (check_var("BATS_PACKAGE", "buildah") || check_var("BATS_PACKAGE", "podman"))) {
+    if (is_tumbleweed && is_x86_64 && !get_var("OCI_RUNTIME") && (check_var("BATS_PACKAGE", "buildah") || check_var("BATS_PACKAGE", "podman"))) {
         run_command "zypper addrepo -f https://download.opensuse.org/history/20260226/tumbleweed/repo/oss/ goodold";
         run_command "zypper -n install --oldpackage --from goodold libseccomp2";
     }
