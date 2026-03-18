@@ -44,8 +44,8 @@ conditional_schedule:
         - console/wget_ipv6
         - console/osinfo_db
         - console/ovn
-        # - console/firewalld
-        # - console/nginx
+        - console/firewalld
+        - console/nginx
         - console/libgcrypt
         - console/zziplib
         - console/journald_fss

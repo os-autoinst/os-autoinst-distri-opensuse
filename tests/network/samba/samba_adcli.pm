@@ -47,6 +47,8 @@ sub samba_sssd_install {
     # https://progress.opensuse.org/issues/164394
     script_run("if [ ! -d '/etc/sssd/conf.d' ]; then mkdir -p /etc/sssd/conf.d; fi") if is_sle('>=15-SP6');
 
+    # Back up nsswitch.conf, see https://bugzilla.suse.com/show_bug.cgi?id=1259696
+    assert_script_run("cp /etc/nsswitch.conf{,.bak}") if !script_run 'test -f /etc/nsswitch.conf';
     # Copy config files enviroment.
     get_supportserver_file("kinit.exp", '$HOME/kinit.exp');
     get_supportserver_file("smb.conf", "/etc/samba/smb.conf");
@@ -201,8 +203,10 @@ sub post_run_hook {
     my ($self) = shift;
     enable_ipv6();
     # Restore the network config files
-    assert_script_run("cp /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
-    assert_script_run("cp /etc/resolv.conf{.bak,}");
+    assert_script_run("mv /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
+    assert_script_run("mv /etc/resolv.conf{.bak,}");
+    assert_script_run("rm -f /etc/nsswitch.conf") if script_run 'test -f /etc/nsswitch.conf.bak';
+    assert_script_run("mv /etc/nsswitch.conf{.bak,}") if !script_run 'test -f /etc/nsswitch.conf.bak';
 }
 
 sub post_fail_hook {
@@ -219,8 +223,10 @@ sub post_fail_hook {
         script_run("echo \"\$AD_DOMAIN_PASSWORD\" | net ads leave --domain '$AD_hostname' -U Administrator -i");
     }
     # Restore the network config files
-    assert_script_run("cp /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
-    assert_script_run("cp /etc/resolv.conf{.bak,}");
+    assert_script_run("mv /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
+    assert_script_run("mv /etc/resolv.conf{.bak,}");
+    assert_script_run("rm -f /etc/nsswitch.conf") if script_run 'test -f /etc/nsswitch.conf.bak';
+    assert_script_run("mv /etc/nsswitch.conf{.bak,}") if !script_run 'test -f /etc/nsswitch.conf.bak';
 }
 
 1;
