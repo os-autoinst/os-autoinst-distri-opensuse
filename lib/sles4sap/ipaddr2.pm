@@ -1712,7 +1712,8 @@ Collect logs from the cloud infrastructure
 
 sub ipaddr2_deployment_logs {
     my @diagnostic_log_files = az_vm_diagnostic_log_get(
-        resource_group => ipaddr2_azure_resource_group());
+        resource_group => ipaddr2_azure_resource_group(),
+        verbose => 1);    #TODO remove it
     while (my $file = pop @diagnostic_log_files) {
         upload_logs($file, failok => 1);
     }

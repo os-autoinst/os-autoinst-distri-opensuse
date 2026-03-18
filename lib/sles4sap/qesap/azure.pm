@@ -33,10 +33,10 @@ use Carp qw(croak);
 use Mojo::JSON qw(decode_json);
 use Exporter 'import';
 use File::Basename;
+use testapi;
+use mmapi 'get_current_job_id';
 use sles4sap::azure_cli;
 use sles4sap::qesap::utils;
-use mmapi 'get_current_job_id';
-use testapi;
 
 our @EXPORT = qw(
   qesap_az_get_resource_group
@@ -325,33 +325,12 @@ Return a list of diagnostic file paths on the JumpHost
 sub qesap_az_diagnostic_log {
     my (%args) = @_;
     my $fatal = $args{fatal} // 1;
-    my $timeout = $args{timeout} // 240;
-    my @diagnostic_log_files;
     my @failures;
 
-    my $rg = qesap_az_get_resource_group();
-    my $vm_data = az_vm_list(resource_group => $rg, query => '[].{id:id,name:name}');
-    my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
-
-    foreach (@{$vm_data}) {
-        record_info('az vm boot-diagnostics json', "id: $_->{id} name: $_->{name}");
-        my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
-
-        my $ret;
-        eval {
-            $ret = script_run("$az_get_logs_cmd $_->{id} &> $boot_diagnostics_log", timeout => $timeout);
-        };
-        my $error = $@;
-
-        if ($error || !defined $ret || $ret != 0) {
-            my $detail = ($error && $error =~ /\S/) ? "$error" : "Exit code: $ret";
-            my $fail_msg = "Failed to get boot diagnostics for $_->{name}: $detail";
-            record_info('Diag Warn', $fail_msg, result => 'fail');
-            push @failures, $fail_msg;
-            next;
-        }
-        push(@diagnostic_log_files, $boot_diagnostics_log);
-    }
+    my @diagnostic_log_files = az_vm_diagnostic_log_get(
+        resource_group => qesap_az_get_resource_group(),
+        timeout => $args{timeout} // 240,
+        verbose => 1);    #TODO remove it
 
     if (@failures && $fatal) {
         die "Fatal Error:\n" . join("\n", @failures);
