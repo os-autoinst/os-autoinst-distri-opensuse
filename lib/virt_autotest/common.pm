@@ -462,7 +462,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
                 source => '/mnt/virt_images/xen/win2k25-bios-xen.qcow2',
                 macaddress => '52:54:00:78:73:66',
                 version => 'Microsoft Windows Server 2025',
-                memory => 4096,
+                memory => 6144,
                 vcpus => 4,
                 network_model => "e1000",
             },

@@ -5,7 +5,7 @@
 #
 # Summary: Run 'trustedprograms' test case of 'audit-test' test suite
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#95908
+# Tags: poo#95908, poo#194984
 
 use base 'consoletest';
 use testapi;
@@ -14,6 +14,7 @@ use security_boot_utils;
 use audit_test qw(run_testcase compare_run_log);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils "power_action";
+use Utils::Architectures qw(is_s390x);
 
 sub run {
     my ($self) = shift;
@@ -43,9 +44,9 @@ sub run {
         $self->wait_boot(textmode => 1);
     }
 
-    select_console 'root-console';
+    is_s390x() ? select_serial_terminal : select_console 'root-console';
 
-    run_testcase('trustedprograms', (make => 1, timeout => 1200));
+    run_testcase('trustedprograms', (make => 1, timeout => 1300));
 
     # Compare current test results with baseline
     my $result = compare_run_log('trustedprograms');

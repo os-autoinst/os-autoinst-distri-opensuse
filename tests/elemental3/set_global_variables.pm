@@ -41,7 +41,7 @@ sub get_uri {
 sub run {
     my $arch = get_required_var('ARCH');
     my $k8s = get_required_var('K8S');
-    my $kernel = 'uc-base-os-kernel-' . get_required_var('KERNEL_TYPE') . '-' . get_required_var('VERSION');
+    my $kernel = 'beta-uc-uc-base-os-kernel-' . get_required_var('KERNEL_TYPE') . '-' . get_required_var('VERSION');
     my $totest_path = get_required_var('TOTEST_PATH');
     my $uc_version = get_required_var('UC_VERSION');
 
@@ -55,18 +55,18 @@ sub run {
     my $files_list = script_output("curl -s ${totest_path}/containers/ | sed -n '/alt=\"\\[\\([[:blank:]]*\\|TXT\\)\\]/s/.*href=\"\\(.*\\)\">.*/\\1/gp' | sort -ur");
 
     # Export RELEASE_MANIFEST_URI
-    my $manifest_regex = "suse-uc-release-manifest-${uc_version}_${k8s}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    my $manifest_regex = "beta-uc-release-manifest-${uc_version}_${k8s}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
     my ($file, $version, $build) = get_values(filelist => ${files_list}, regex => ${manifest_regex});
     my $k8s_version = $version;
     my $release_manifest_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${k8s}_${k8s_version}-${build}\)");
     set_var('RELEASE_MANIFEST_URI', "$release_manifest_uri");
 
     # Export SYSEXT_IMAGES_TO_TEST
-    my $elemental3ctl_regex = "suse-uc-elemental3ctl-${uc_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    my $elemental3ctl_regex = "beta-uc-elemental3ctl-${uc_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
     ($file, $version, $build) = get_values(filelist => ${files_list}, regex => ${elemental3ctl_regex});
     my $elemental3ctl_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${version}-${build}\)");
 
-    my $k8s_regex = "suse-uc-${k8s}-${k8s_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    my $k8s_regex = "beta-uc-${k8s}-${k8s_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
     ($file, $version, $build) = get_values(filelist => ${files_list}, regex => ${k8s_regex});
     my $k8s_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${k8s_version}_${version}-${build}\)");
     set_var('SYSEXT_IMAGES_TO_TEST', "${elemental3ctl_uri},${k8s_uri}");

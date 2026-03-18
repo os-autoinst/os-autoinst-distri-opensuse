@@ -239,7 +239,7 @@ sub run {
     my $rc_expected_data = {
         ROOT_USES_LANG => 'ctype',
         LC_ALL => qr/^ *$/,
-        LANG => (is_sle('=12-SP5') || is_sle('16.1+') || is_tumbleweed) ? $lc_data{$lang_ref} : qr/^ *$/
+        LANG => (is_sle('=12-SP5') || is_sle('16.0+') || is_tumbleweed) ? $lc_data{$lang_ref} : qr/^ *$/
 
     };
 
@@ -282,7 +282,7 @@ sub run {
     # Parse and evaluate /etc/sysconfig/language
     # /etc/sysconfig/language is no longer used in Tumbleweed
     my @locale_conf;
-    if (is_tumbleweed || is_sle('>16.0')) {
+    if (is_tumbleweed || is_sle('16.0+')) {
         @locale_conf = split('\n', script_output('locale'));
     } else {
         die 'SUSE language config file is missing!' if (script_run("test -f $suse_lang_conf") != 0);
@@ -316,7 +316,7 @@ sub run {
     );
 
     # ROOT_USES_LANG is not defined any more for TW
-    if (!is_tumbleweed && !is_sle('>16.0')) {
+    if (!is_tumbleweed && !is_sle('16.0+')) {
         $checks++;
         $record_info_result = (exists($rc_lc_defaults{ROOT_USES_LANG}) && $rc_lc_defaults{ROOT_USES_LANG} eq $rc_expected_data->{ROOT_USES_LANG});
         $total_result += $record_info_result;

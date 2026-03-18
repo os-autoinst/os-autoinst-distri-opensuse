@@ -553,6 +553,25 @@ subtest '[qesap_ansible_softfail]' => sub {
     like($rec, qr/bsc#1234.*-.*explanations/, 'softfail format');
 };
 
+subtest '[qesap_ansible_softfail] no description' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+    my $rec;
+
+    $qesap->redefine(record_soft_failure => sub { $rec = $_[0]; });
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return '[OSADO][softfail] bsc#123456789'; });
+
+    qesap_ansible_softfail(logfile => 'PUFFER FISH');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+
+    note("rec:$rec");
+    ok((any { /grep -E.*PUFFER FISH/ } @calls), 'grep called on the log file');
+    like($rec, qr/bsc#123456789/, 'softfail format');
+};
+
 subtest '[qesap_ansible_create_section] single string in a generic section' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
 

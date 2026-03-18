@@ -48,7 +48,7 @@ sub run {
     assert_script_run("cd $dir");
     record_info('qa_test_klp', script_output("git show | tee"));
     record_info('bats', script_output("which bats 2>&1", proceed_on_failure => 1));
-    assert_script_run("./run.sh", 2760);
+    assert_script_run("./run.sh", timeout => 300);
 }
 
 1;

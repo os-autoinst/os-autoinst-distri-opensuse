@@ -35,52 +35,103 @@ index 378d483aae53e..eca73cf1eca6d 100644
  // if they aren't already loaded
  func EnsureFrozenImagesLinux(ctx context.Context, testEnv *Execution) error {
 
-From 0f5443a67962241b02e8feda28cc91a06680e359 Mon Sep 17 00:00:00 2001
+From 45e3c48fc46a23f03b24bed72fdf13281a6ec0ce Mon Sep 17 00:00:00 2001
 From: Ricardo Branco <rbranco@suse.de>
 Date: Sat, 31 Jan 2026 00:49:36 +0100
-Subject: [PATCH 2/2] integration: Ignore some tests as rootless
+Subject: [PATCH 2/2] integration: use fuse-overlayfs for rootless SELinux
+ tests
 
-The overlay2 graphdriver doesn't work with SELinux in enforcing mode.
+When running rootless with SELinux in enforcing mode, overlay2 is not
+usable. Instead of skipping these integration tests entirely, switch
+them to use fuse-overlayfs so the test coverage is preserved in that
+environment.
 
 Signed-off-by: Ricardo Branco <rbranco@suse.de>
 ---
- integration/daemon/default_storage_test.go   | 1 +
- integration/daemon/migration_test.go         | 2 ++
- internal/testutil/environment/environment.go | 1 +
- 3 files changed, 4 insertions(+)
+ integration/daemon/default_storage_test.go   | 17 ++++++++++++++---
+ integration/daemon/migration_test.go         | 15 ++++++++++++++-
+ internal/testutil/environment/environment.go |  1 +
+ 3 files changed, 29 insertions(+), 4 deletions(-)
 
 diff --git a/integration/daemon/default_storage_test.go b/integration/daemon/default_storage_test.go
-index 180b6a45e1849..fb37bb5b25afb 100644
+index 180b6a45e1849..2b5968f77919b 100644
 --- a/integration/daemon/default_storage_test.go
 +++ b/integration/daemon/default_storage_test.go
-@@ -35,6 +35,7 @@ func TestDefaultStorageDriver(t *testing.T) {
- // migrating to containerd snapshotters automatically.
- func TestGraphDriverPersistence(t *testing.T) {
- 	skip.If(t, testEnv.DaemonInfo.OSType == "windows", "Windows does not support running sub-daemons")
-+	skip.If(t, testEnv.IsRootless() && testEnv.IsSELinuxEnforcing(), "rootless mode doesn't support overlay2 with SELinux enabled")
+@@ -38,6 +38,13 @@ func TestGraphDriverPersistence(t *testing.T) {
  	t.Setenv("DOCKER_DRIVER", "")
  	t.Setenv("DOCKER_GRAPHDRIVER", "")
  	t.Setenv("TEST_INTEGRATION_USE_GRAPHDRIVER", "")
++
++	graphdriver := "overlay2"
++	// overlay2 doesn't work rootless with SELinux enforcing; use fuse-overlayfs instead.
++	if testEnv.IsRootless() && testEnv.IsSELinuxEnforcing() {
++		graphdriver = "fuse-overlayfs"
++	}
++
+ 	ctx := testutil.StartSpan(baseContext, t)
+ 
+ 	// Phase 1: Start daemon with explicit graphdriver (overlay2)
+@@ -47,12 +54,14 @@ func TestGraphDriverPersistence(t *testing.T) {
+ 	})
+ 
+ 	const testImage = "busybox:latest"
+-	d.StartWithBusybox(ctx, t, "--iptables=false", "--ip6tables=false", "--storage-driver=overlay2")
++	d.StartWithBusybox(ctx, t, "--iptables=false", "--ip6tables=false", "--storage-driver="+graphdriver)
+ 	c := d.NewClientT(t)
+ 
+ 	// Verify we're using graphdriver
+ 	info := d.Info(t)
+-	assert.Check(t, info.DriverStatus[0][1] != "io.containerd.snapshotter.v1")
++	if len(info.DriverStatus) > 0 {
++		assert.Check(t, info.DriverStatus[0][1] != "io.containerd.snapshotter.v1")
++	}
+ 	prevDriver := info.Driver
+ 
+ 	containerResp, err := c.ContainerCreate(ctx, client.ContainerCreateOptions{
+@@ -74,7 +83,9 @@ func TestGraphDriverPersistence(t *testing.T) {
+ 	// Verify daemon still uses graphdriver (not containerd snapshotter)
+ 	// Verify we're using graphdriver
+ 	info = d.Info(t)
+-	assert.Check(t, info.DriverStatus[0][1] != "io.containerd.snapshotter.v1")
++	if len(info.DriverStatus) > 0 {
++		assert.Check(t, info.DriverStatus[0][1] != "io.containerd.snapshotter.v1")
++	}
+ 	assert.Check(t, is.Equal(info.Driver, prevDriver))
+ 
+ 	// Verify our image is still there
 diff --git a/integration/daemon/migration_test.go b/integration/daemon/migration_test.go
-index 6f4989e0de30a..c0e4a9cc6ebfd 100644
+index 6f4989e0de30a..f8fe4eccdc82c 100644
 --- a/integration/daemon/migration_test.go
 +++ b/integration/daemon/migration_test.go
-@@ -16,6 +16,7 @@ import (
+@@ -16,7 +16,14 @@ import (
  )
  
  func TestMigrateOverlaySnapshotter(t *testing.T) {
-+	skip.If(t, testEnv.IsRootless() && testEnv.IsSELinuxEnforcing(), "rootless mode doesn't support overlay2 with SELinux enabled")
- 	testMigrateSnapshotter(t, "overlay2", "overlayfs")
+-	testMigrateSnapshotter(t, "overlay2", "overlayfs")
++	graphdriver := "overlay2"
++	snapshotter := "overlayfs"
++	// overlay2 doesn't work rootless with SELinux enforcing; use fuse-overlayfs instead.
++	if testEnv.IsRootless() && testEnv.IsSELinuxEnforcing() {
++		graphdriver = "fuse-overlayfs"
++		snapshotter = "fuse-overlayfs"
++	}
++	testMigrateSnapshotter(t, graphdriver, snapshotter)
  }
  
-@@ -89,6 +90,7 @@ func testMigrateSnapshotter(t *testing.T, graphdriver, snapshotter string) {
+ func TestMigrateNativeSnapshotter(t *testing.T) {
+@@ -101,6 +108,12 @@ func TestMigrateSaveLoad(t *testing.T) {
+ 	)
+ 	defer d.Stop(t)
  
- func TestMigrateSaveLoad(t *testing.T) {
- 	skip.If(t, runtime.GOOS != "linux")
-+	skip.If(t, testEnv.IsRootless() && testEnv.IsSELinuxEnforcing(), "rootless mode doesn't support overlay2 with SELinux enabled")
- 
- 	t.Setenv("DOCKER_MIGRATE_SNAPSHOTTER_THRESHOLD", "200M")
- 	t.Setenv("DOCKER_DRIVER", "")
++	// overlay2 doesn't work rootless with SELinux enforcing; use fuse-overlayfs instead.
++	if testEnv.IsRootless() && testEnv.IsSELinuxEnforcing() {
++		graphdriver = "fuse-overlayfs"
++		snapshotter = "fuse-overlayfs"
++	}
++
+ 	d.Start(t, "--iptables=false", "--ip6tables=false", "-s", graphdriver)
+ 	info := d.Info(t)
+ 	id := info.ID
 diff --git a/internal/testutil/environment/environment.go b/internal/testutil/environment/environment.go
 index eca73cf1eca6d..686b07c153a8e 100644
 --- a/internal/testutil/environment/environment.go
