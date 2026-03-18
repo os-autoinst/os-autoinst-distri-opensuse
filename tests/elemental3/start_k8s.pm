@@ -224,10 +224,18 @@ sub prepare_test_framework {
 }
 
 sub run {
+    my ($self) = @_;
     my $arch = get_required_var('ARCH');
     my $k8s = get_required_var('K8S');
     my $k8s_dir = "/etc/rancher/$k8s";
     my $config_yaml = "$k8s_dir/config.yaml";
+
+    # Skip the test with simple ISO container
+    if (check_var('TESTED_CMD', 'extract_iso')) {
+        record_info('SKIP', 'Skip test - No K8s installed in this basic container image');
+        $self->result('skip');
+        return;
+    }
 
     # Set default root password
     $testapi::password = get_required_var('TEST_PASSWORD');

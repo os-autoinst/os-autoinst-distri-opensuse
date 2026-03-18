@@ -24,6 +24,16 @@ sub run {
         wait_still_screen;
     }
 
+    # This ISO image does not install anything
+    # It is just the basic container that should be used with 'customize' command
+    if (check_var('TESTED_CMD', 'extract_iso')) {
+        # Just validate that the OS boot, no more
+        assert_screen('elemental3-tty1-selected', timeout => 120);
+        wait_still_screen;
+        record_info('ISO', 'ISO image booted!');
+        return;
+    }
+
     # OS installation is done automatically as well as the reboot after installation
     # We just have to wait for the VM to reboot
     $self->wait_grub(bootloader_time => bmwqemu::scale_timeout(300));
