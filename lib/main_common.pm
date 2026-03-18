@@ -16,6 +16,7 @@ use autotest;
 use utils;
 use wicked::TestContext;
 use Utils::Architectures;
+use main_containers;
 use version_utils qw(:VERSION :BACKEND :SCENARIO is_community_jeos is_public_cloud is_leap is_sle);
 use Utils::Backends;
 use data_integrity_utils 'verify_checksum';
@@ -2907,6 +2908,7 @@ sub load_common_opensuse_sle_tests {
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests if get_var('INSTALLATION_VALIDATION');
     load_transactional_role_tests if is_transactional && (get_var('ARCH') !~ /ppc64|s390/) && !get_var('INSTALLONLY');
+    load_container_tests if is_transactional;
 }
 
 sub load_ssh_key_import_tests {
