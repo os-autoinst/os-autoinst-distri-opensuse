@@ -99,7 +99,7 @@ sub assert_systemd_detect_virt {
 
     record_info('systemd version', $systemd_version);
 
-    if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /-metal$/) {
+    if (get_var('PUBLIC_CLOUD_INSTANCE_TYPE') =~ /metal$/) {
         $self->assert_systemd_detect_virt_metal($rc, $output);
     } else {
         $self->assert_systemd_detect_virt_virtual($rc, $output);
