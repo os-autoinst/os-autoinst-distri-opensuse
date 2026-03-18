@@ -25,7 +25,7 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    configure_docker(selinux => 1, tls => 0);
+    configure_docker(selinux => 1, tls => 1);
 
     run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 
@@ -67,7 +67,7 @@ sub run {
 
     my %env = (
         DOCKER_CONTENT_TRUST => "",
-        TEST_DOCKER_HOST => "localhost:2375",
+        TEST_DOCKER_HOST => "localhost:2376",
         DOCKER_CLI_E2E_PLUGINS_EXTRA_DIRS => "/var/tmp/cli/build/plugins-linux-$arch",
     );
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
