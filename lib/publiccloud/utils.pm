@@ -40,6 +40,7 @@ our @EXPORT = qw(
   is_byos
   is_ondemand
   is_ec2
+  is_ec2_xen
   is_azure
   is_gce
   is_container_host
@@ -83,6 +84,11 @@ sub is_ondemand() {
 # Check if we are on an AWS test run
 sub is_ec2() {
     return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+}
+
+sub is_ec2_xen {
+    # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html -> Xen-based instances
+    return is_public_cloud && is_ec2 && get_var("PUBLIC_CLOUD_INSTANCE_TYPE") =~ /^(m1|m2|m3|m4|t1|t2|c1|c3|c4|r3|r4|x1|x1e|d2|h1|i2|i3|f1|g3|p2|p3)\..+/;
 }
 
 # Check if we are on an Azure test run
