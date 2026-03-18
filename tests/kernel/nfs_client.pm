@@ -34,6 +34,11 @@ sub nfs_run_io_tests {
     }
 }
 
+sub mount_share {
+    my ($server, $share, $local, $opts) = @_;
+    return assert_script_run("mount -t nfs -o $opts $server:$share $local");
+}
+
 sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
@@ -67,18 +72,16 @@ sub run {
 
     if ($kernel_nfs3 == 1) {
         record_info('INFO', 'Kernel has support for NFSv3');
-        assert_script_run("mkdir $local_nfs3 $local_nfs3_async");
-        assert_script_run("mount -t nfs -o nfsvers=3,sync $server_node:/nfs/shared_nfs3 $local_nfs3");
-        assert_script_run("mount -t nfs -o nfsvers=3 $server_node:/nfs/shared_nfs3_async $local_nfs3_async");
+        mount_share($server_node, "/nfs/shared_nfs3", $local_nfs3, "-o nfsvers=3,sync");
+        mount_share($server_node, "/nfs/shared_nfs3_async", $local_nfs3_async, "-o nfsvers=3");
     } else {
         record_info('INFO', 'Kernel has no support for NFSv3, skipping NFSv3 tests');
     }
 
     if ($kernel_nfs4 == 1) {
         record_info('INFO', 'Kernel has support for NFSv4');
-        assert_script_run("mkdir $local_nfs4 $local_nfs4_async");
-        assert_script_run("mount -t nfs -o nfsvers=4,sync $server_node:/nfs/shared_nfs4 $local_nfs4");
-        assert_script_run("mount -t nfs -o nfsvers=4 $server_node:/nfs/shared_nfs4_async $local_nfs4_async");
+        mount_share($server_node, "/nfs/shared_nfs4", $local_nfs4, "-o nfsvers=4,sync");
+        mount_share($server_node, "/nfs/shared_nfs4_async", $local_nfs4_async, "-o nfsvers=4");
     } else {
         record_info('INFO', 'Kernel has no support for NFSv4, skipping NFSv4tests');
     }
