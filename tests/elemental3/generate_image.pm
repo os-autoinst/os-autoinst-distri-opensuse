@@ -76,7 +76,7 @@ sub customize_cmd {
 
     # Download build configuration files
     assert_script_run(
-        "curl -s -o $tpl_tar "
+        "curl -sf -o $tpl_tar "
           . data_url('elemental3/' . path($tpl_tar)->basename)
     );
     assert_script_run("tar xzvf $tpl_tar -C $build_dir");
@@ -167,7 +167,7 @@ sub build_installer_cmd {
 
     # OS configuration script
     assert_script_run(
-        "curl -s -o $config_file "
+        "curl -sf -o $config_file "
           . data_url('elemental3/' . path($config_file)->basename)
     );
     file_content_replace(
@@ -180,7 +180,7 @@ sub build_installer_cmd {
 
     # ISO configuration script
     assert_script_run(
-        "curl -s -o $iso_config_file "
+        "curl -sf -o $iso_config_file "
           . data_url('elemental3/' . path($iso_config_file)->basename)
     );
     assert_script_run("chmod 755 $iso_config_file");
@@ -222,7 +222,7 @@ sub install_cmd {
 
     # OS configuration script
     assert_script_run(
-        "curl -s -o $config_file "
+        "curl -sf -o $config_file "
           . data_url('elemental3/' . path($config_file)->basename)
     );
     file_content_replace(
