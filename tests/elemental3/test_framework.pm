@@ -33,8 +33,8 @@ sub run {
     my $ssh_dir = '/root/.ssh';
     record_info('SSH config', 'Configure password-less SSH access');
     assert_script_run("mkdir -p $ssh_dir");
-    assert_script_run("curl -s -o $ssh_dir/config " . data_url('elemental3/config.ssh'));
-    assert_script_run("curl -s -o /tmp/id_ssh " . data_url('elemental3/id_ssh'));
+    assert_script_run("curl -sf -o $ssh_dir/config " . data_url('elemental3/config.ssh'));
+    assert_script_run("curl -sf -o /tmp/id_ssh " . data_url('elemental3/id_ssh'));
     assert_script_run("base64 -d /tmp/id_ssh > $ssh_dir/id_rsa");
     assert_script_run("chmod -R go-rwx $ssh_dir");
 

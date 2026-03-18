@@ -195,7 +195,7 @@ sub prepare_test_framework {
     # Framework configuration files
     foreach my $file ('/tmp/env', '/tmp/tfvars') {
         assert_script_run(
-            "curl -s -o $file "
+            "curl -sf -o $file "
               . data_url('elemental3/test-framework/' . path($file)->basename)
         );
         file_content_replace(
