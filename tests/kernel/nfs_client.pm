@@ -16,9 +16,22 @@ use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
 
-sub copy_file {
-    my ($flag, $nfs_mount, $file) = @_;
-    assert_script_run("dd oflag=$flag if=testfile of=$nfs_mount/$file bs=1024 count=10240");
+
+sub nfs_run_io_tests {
+    my @mounts = @_;
+    my @flags = qw(direct dsync sync);
+
+    foreach my $path (@mounts) {
+        # Basis-Dateien kopieren
+        assert_script_run("cp testfile md5sum.txt $path");
+
+        # Verschiedene IO-Flags testen
+        foreach my $flag (@flags) {
+            assert_script_run("dd oflag=$flag if=testfile of=$path/testfile_oflag_$flag bs=1024 count=10240");
+        }
+        # Optional: Validierung der Kopie
+        assert_script_run("md5sum -c md5sum.txt", die_on_fail => 1, run_args => {workdir => $path});
+    }
 }
 
 sub run {
@@ -78,28 +91,10 @@ sub run {
     assert_script_run("md5sum testfile > md5sum.txt");
 
     if ($kernel_nfs3 == 1) {
-        assert_script_run("cp testfile md5sum.txt $local_nfs3");
-        assert_script_run("cp testfile md5sum.txt $local_nfs3_async");
-
-        copy_file('direct', $local_nfs3, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs3, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs3, 'testfile_oflag_sync');
-
-        copy_file('direct', $local_nfs3_async, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs3_async, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs3_async, 'testfile_oflag_sync');
+        nfs_run_io_tests($local_nfs3, $local_nfs3_async);
     }
     if ($kernel_nfs4 == 1) {
-        assert_script_run("cp testfile md5sum.txt $local_nfs4");
-        assert_script_run("cp testfile md5sum.txt $local_nfs4_async");
-
-        copy_file('direct', $local_nfs4, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs4, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs4, 'testfile_oflag_sync');
-
-        copy_file('direct', $local_nfs4_async, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs4_async, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs4_async, 'testfile_oflag_sync');
+        nfs_run_io_tests($local_nfs4, $local_nfs4_async);
     }
 
     barrier_wait("NFS_SERVER_CHECK");
