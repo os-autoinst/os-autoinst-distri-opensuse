@@ -12,17 +12,12 @@ use strict;
 use warnings FATAL => 'all';
 use parent 'Distribution::Opensuse::Leap::16Latest';
 
-use Yam::Agama::Pom::GrubMenuBasePage;
+use Yam::Agama::Pom::GrubMenuAgamaBasePage;
 use Yam::Agama::Pom::GrubMenuSlesPage;
 
 sub get_grub_menu_installed_system {
     return Yam::Agama::Pom::GrubMenuSlesPage->new({
-            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
-}
-
-sub get_grub_menu_agama {
-    return Yam::Agama::Pom::GrubMenuAgamaPage->new({
-            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
+            grub_menu_base => Yam::Agama::Pom::GrubMenuAgamaBasePage->new()});
 }
 
 1;
