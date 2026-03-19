@@ -22,13 +22,16 @@ sub run {
 
     my $cmd_time = time();
     my $ref_timeout = check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE') ? 3600 : 240;
-    my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
+    my $instance = $args->{my_instance};
+    my $remote = $instance->username . '@' . $instance->public_ip;
+
+    my $rpm_qa_command = 'rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n" | sort';
+    my $rpm_list_before = "/var/tmp/rpm-qa-before-patch-system.txt";
+    my $rpm_list_after = "/var/tmp/rpm-qa-after-patch-system.txt";
 
     # Record package list before fully patch system
-    if (get_var('SAVE_LIST_OF_PACKAGES')) {
-        $args->{my_instance}->ssh_script_run(cmd => 'rpm -qa > /tmp/rpm-qa-before-patch-system.txt');
-        $args->{my_instance}->upload_log('/tmp/rpm-qa-before-patch-system.txt');
-    }
+    $instance->ssh_assert_script_run(cmd => $rpm_qa_command . ' | tee ' . $rpm_list_before, timeout => 180);
+    $instance->upload_log($rpm_list_before);
 
     $args->{my_instance}->ssh_script_retry("sudo zypper -n --gpg-auto-import-keys ref", timeout => $ref_timeout, retry => 6, delay => 60, fail_message => 'Remote execution of zypper ref failed. See previous steps for details');
     record_info('zypper ref time', 'The command zypper -n ref took ' . (time() - $cmd_time) . ' seconds.');
@@ -49,6 +52,30 @@ sub run {
         permit_root_login($args->{my_instance});
     } else {
         $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    }
+
+    # Record package list after fully patch system
+    $instance->ssh_assert_script_run(cmd => $rpm_qa_command . ' | tee ' . $rpm_list_after, timeout => 180);
+    $instance->upload_log($rpm_list_after);
+
+    # Check if list is not empty
+    $instance->ssh_assert_script_run(cmd => "test -s $rpm_list_before", fail_message => 'The package list before patching is empty, check the log for details');
+    $instance->ssh_assert_script_run(cmd => "test -s $rpm_list_after", fail_message => 'The package list after patching is empty, check the log for details');
+
+    my $rpm_list_diff = "/var/tmp/rpm-qa-diff.txt";
+    $instance->ssh_assert_script_run(cmd => "diff $rpm_list_before $rpm_list_after | tee $rpm_list_diff");
+    $instance->upload_log($rpm_list_diff);
+
+    my $ignore_empty_updates = get_var("PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES");
+    my $rc = $instance->ssh_script_run(cmd => "test -s $rpm_list_diff");
+    unless ($rc == 0) {
+        if ($ignore_empty_updates) {
+            record_info('No packages were updated during patching');
+        } else {
+            # Uncomment the line below and remove record_soft_failure line once we are confident we don't run into empty updates
+            # die 'No packages were updated during patching';
+            record_soft_failure('poo#197723 - No packages were updated during patching');
+        }
     }
 }
 
