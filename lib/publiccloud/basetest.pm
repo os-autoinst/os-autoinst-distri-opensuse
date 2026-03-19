@@ -230,7 +230,9 @@ sub post_fail_hook {
     my ($self) = @_;
 
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        # This is called explicitly to avoid cyclical imports
+        # This is called explicitly to avoid cyclical imports.
+        # require: Evaluated at run time. It loads the module only when the execution reaches that specific line.
+        require sles4sap::publiccloud;
         sles4sap::publiccloud::deployment_cleanup(
             $self,
             cleanup_called => $self->{cleanup_called} // undef,
