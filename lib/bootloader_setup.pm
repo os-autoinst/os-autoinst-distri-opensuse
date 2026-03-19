@@ -354,7 +354,7 @@ sub boot_into_snapshot {
         save_screenshot;
         send_key 'ret';
     } else {
-        assert_screen('grub2-bls');
+        assert_screen(get_default_bootloader());
         send_key 'down';
         save_screenshot;
         send_key 'ret';

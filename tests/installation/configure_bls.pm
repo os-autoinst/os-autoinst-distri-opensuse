@@ -35,7 +35,7 @@ sub run {
     send_key 'alt-b', wait_screen_change => 1;
     send_key 'spc', wait_screen_change => 1;
     send_key_until_needlematch 'inst-bootloader-systemd-boot-selected', 'down' if is_bootloader_sdboot;
-    send_key_until_needlematch 'inst-bootloader-grub2-bls-selected', 'down' if is_bootloader_grub2_bls;
+    send_key_until_needlematch 'inst-bootloader-grub2-bls-selected', 'up' if is_bootloader_grub2_bls;
     send_key_until_needlematch get_var('UEFI') ? 'inst-bootloader-grub2-efi-selected' : 'inst-bootloader-grub2-selected', 'up' if is_bootloader_grub2;
     send_key 'ret', wait_screen_change => 1;    # Select the option
 
