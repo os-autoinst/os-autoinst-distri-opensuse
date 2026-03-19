@@ -179,8 +179,8 @@ sub upload_coredumps {
         foreach my $file (@files) {
             upload_logs($basedir . $file, failok => $args{proceed_on_failure});
         }
-        # Record soft-failure only on Tumbleweed for now to gather data
-        record_soft_failure("poo#197969 - Coredumps are being silently ignored in openQA tests") if is_tumbleweed;
+        # Record soft-failure only on selected cases to collect data
+        record_soft_failure("poo#197969 - Coredumps are being silently ignored in openQA tests") if (is_tumbleweed || get_var("CONTAINER_RUNTIMES"));
     }
 }
 
