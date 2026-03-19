@@ -28,6 +28,7 @@ use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
 use Utils::Logging "export_logs_basic";
+use Kernel::nfs;
 
 # create a mountpoint and the corresponding export with
 # specified permissions
@@ -55,12 +56,6 @@ sub compare_checksums {
 
 sub run {
     my $self = @_;
-    my $kernel_nfs3 = 0;
-    my $kernel_nfs4 = 0;
-    my $kernel_nfs4_1 = 0;
-    my $kernel_nfs4_2 = 0;
-    my $kernel_nfsd_v3 = 0;
-    my $kernel_nfsd_v4 = 0;
     my $client = get_var('CLIENT_NODE', 'client-node00');
 
     select_serial_terminal();
@@ -74,18 +69,16 @@ sub run {
     my $nfs_permissions = get_var('NFS_PERMISSIONS', 'rw,sync,no_root_squash');
     my $nfs_permissions_async = get_var('NFS_PERMISSIONS_ASYNC', 'rw,async,no_root_squash');
 
-    # check kernel config options and set the variables
-    $kernel_nfs3 = 1 unless script_run('zgrep "CONFIG_NFS_V3=[my]" /proc/config.gz');
-    $kernel_nfs4 = 1 unless script_run('zgrep "CONFIG_NFS_V4=[my]" /proc/config.gz');
-    $kernel_nfs4_1 = 1 unless script_run('zgrep "CONFIG_NFS_V4_1=[my]" /proc/config.gz');
-    $kernel_nfs4_2 = 1 unless script_run('zgrep "CONFIG_NFS_V4_2=[my]" /proc/config.gz');
-    $kernel_nfsd_v3 = 1 unless script_run('zgrep "CONFIG_NFSD=[my]" /proc/config.gz');
-    $kernel_nfsd_v4 = 1 unless script_run('zgrep "CONFIG_NFSD_V4=[my]" /proc/config.gz');
-
     # following files are copied on the client side using dd with specific flags: direct, dsync, sync
     my $file_flag_direct = 'testfile_oflag_direct';
     my $file_flag_dsync = 'testfile_oflag_dsync';
     my $file_flag_sync = 'testfile_oflag_sync';
+
+    my $softfail_nfs3 = get_var('NFS_SOFTFAIL_CONF_NFS3');
+    my $softfail_nfs4 = get_var('NFS_SOFTFAIL_CONF_NFS4');
+    my $kernel_nfs3 = verify_nfs_support(version => 'V3', is_server => 1, softfail => $softfail_nfs3);
+    my $kernel_nfs4 = verify_nfs_support(version => 'V4', is_server => 1, softfail => $softfail_nfs4);
+
 
     # provision NFS server(s) of various types
     zypper_call("in nfs-kernel-server");
@@ -95,15 +88,11 @@ sub run {
         record_info('INFO', 'Kernel has support for NFSv3');
         create_mount_and_export($nfs_mount_nfs3, $client, $nfs_permissions);
         create_mount_and_export($nfs_mount_nfs3_async, $client, $nfs_permissions_async);
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv3, skipping NFSv3 tests');
     }
     if ($kernel_nfs4 == 1) {
         record_info('INFO', 'Kernel has support for NFSv4');
         create_mount_and_export($nfs_mount_nfs4, $client, $nfs_permissions);
         create_mount_and_export($nfs_mount_nfs4_async, $client, $nfs_permissions_async);
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv4, skipping NFSv4 tests');
     }
 
     record_info("EXPORTS", script_output("cat /etc/exports"));

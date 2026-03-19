@@ -39,41 +39,6 @@ sub mount_share {
     return assert_script_run("mount -t nfs -o $opts $server:$share $local");
 }
 
-sub verify_nfs_support {
-    my %args = @_;
-    my $ver = $args{version} // 'V3';
-    my $is_server = $args{is_server} // 0;
-    my $softfail = $args{optional} // 0;
-
-    if (script_run('test -f /proc/config.gz') != 0) {
-        my $msg = "/proc/config.gz missing! Kernel config not exported.";
-        if ($softfail) {
-            record_soft_failure("NFS Support missing: $msg");
-            return 0;
-        }
-        record_info("config.gz not found", $msg, result => 'fail');
-        die $msg;
-    }
-
-    my $config_key = $is_server
-      ? (($ver =~ /V4/) ? "CONFIG_NFSD_V4" : "CONFIG_NFSD")
-      : "CONFIG_NFS_$ver";
-
-    if (script_run("zgrep '$config_key=[my]' /proc/config.gz") != 0) {
-        my $info = "Flag: $config_key\nVersion: $ver\nRole: " . ($is_server ? "Server" : "Client");
-
-        if ($softfail) {
-            record_soft_failure("NFS support misssing: $config_key missing");
-            return 0;
-        }
-
-        record_info("NFS Supoport missing", $info, result => 'fail');
-        die "FATAL: NFS support check failed for $config_key";
-    }
-
-    return 1;
-}
-
 sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
