@@ -25,6 +25,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
+use package_utils 'install_package';
+use transactional 'reboot_on_changes';
 use version_utils qw(is_jeos is_opensuse is_sle);
 
 my $test_dir = "/var/lib/clamav/eicar_test_files";
@@ -43,9 +45,8 @@ sub scan_and_parse {
 sub run {
     select_serial_terminal;
 
-    zypper_call('in clamav');
+    install_package('clamav', trup_reboot => 1);
     zypper_call('info clamav');
-
     # Create a random file
     assert_script_run "dd if=/dev/urandom of=/usr/local/bin/maybeavirus bs=1M count=1";
     assert_script_run "chmod +x /usr/local/bin/maybeavirus";

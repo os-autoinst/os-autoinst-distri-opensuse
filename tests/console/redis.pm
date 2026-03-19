@@ -15,9 +15,10 @@
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(zypper_call script_retry validate_script_output_retry);
+use utils qw(script_retry validate_script_output_retry);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use version_utils qw(is_sle is_tumbleweed);
+use package_utils qw(install_package uninstall_package);
 
 # https://jira.suse.com/browse/PED-11976
 my @redis_versions = is_sle('=15-SP7') ? ("valkey-compat-redis") : ("redis");
@@ -119,7 +120,7 @@ sub upload_redis_logs {
 sub test_redis {
     my (%args) = @_;
     $args{redis_version} //= $redis_versions[0];
-    zypper_call('in --force-resolution --solver-focus Update ' . $args{redis_version});
+    install_package('--force-resolution --solver-focus Update ' . $args{redis_version}, trup_reboot => 1);
     record_info("Testing " . $args{redis_version});
     foreach my $role (values %ROLES) {
         my $port = $PORTS{$role};
@@ -162,7 +163,7 @@ sub post_fail_hook {
 
 sub post_run_hook {
     my $self = shift;
-    zypper_call('rm -u ' . $redis_versions[-1]);
+    uninstall_package('-u ' . $redis_versions[-1]);
     $self->SUPER::post_run_hook;
 }
 

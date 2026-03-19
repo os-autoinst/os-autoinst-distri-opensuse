@@ -12,11 +12,12 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use Utils::Architectures 'is_s390x';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in lshw libxml2-tools');
+    install_package('lshw libxml2-tools', trup_reboot => 1);
 
     # Check various output formats, -sanitize is used to not spill test machine serial numbers into public
     # On some architectures fields like "product" or "vendor" or section "*-pci" might not exist, so trying a common base.

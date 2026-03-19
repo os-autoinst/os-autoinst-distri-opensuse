@@ -10,6 +10,7 @@
 use base "consoletest";
 use testapi;
 use utils;
+use package_utils 'install_package';
 use serial_terminal 'select_serial_terminal';
 
 sub run {
@@ -19,7 +20,7 @@ sub run {
 
     select_serial_terminal;
 
-    zypper_call "in tcpdump";
+    install_package("tcpdump", trup_reboot => 1);
     # Start tcpdump to sniff only icmp loclhost packets in background and do ping
     script_run("tcpdump -i lo icmp and src localhost -vv > $tcpdump_log_file 2>&1 & echo \$! > $pid_file & sleep 4");
     assert_script_run("ping -c4 localhost -4 & sleep 4");

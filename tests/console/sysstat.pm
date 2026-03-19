@@ -14,8 +14,9 @@
 # Maintainer: QE-Core <qe-core@suse.de>
 
 use base 'consoletest';
-use utils qw(zypper_call systemctl);
+use utils 'systemctl';
 use Utils::Architectures;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_leap is_opensuse);
 use testapi;
 use serial_terminal 'select_serial_terminal';
@@ -23,7 +24,7 @@ use version;
 
 sub run {
     select_serial_terminal;
-    zypper_call 'in sysstat';
+    install_package('sysstat', trup_reboot => 1);
     script_run 'rm -rf /var/log/sa/sa*';
     systemctl 'start sysstat.service';
     systemctl 'stop sysstat.service';

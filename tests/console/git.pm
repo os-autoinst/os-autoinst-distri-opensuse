@@ -18,7 +18,7 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(zypper_call);
+use package_utils 'install_package';
 
 sub run {
     my $username = $testapi::username;
@@ -26,7 +26,7 @@ sub run {
     select_serial_terminal;
 
     # Create a test repo
-    zypper_call("in git-core");
+    install_package("git-core", trup_reboot => 1);
     assert_script_run("rm -rf ~/repos && mkdir -p repos/qa1;cd repos/qa1");
     assert_script_run("git init");
     assert_script_run("echo \"SUSE Test\" > README");

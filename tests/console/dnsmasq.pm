@@ -13,12 +13,12 @@
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';
-
-use utils qw(zypper_call systemctl);
+use package_utils qw(install_package uninstall_package);
+use utils 'systemctl';
 
 sub run {
     select_serial_terminal();
-    zypper_call('in dnsmasq bind-utils');
+    install_package('dnsmasq bind-utils', trup_reboot => 1);
 
     assert_script_run 'curl ' . data_url('console/dnsmasq.conf') . ' -o /etc/dnsmasq.conf';
     systemctl('enable --now dnsmasq');
@@ -59,7 +59,7 @@ sub run {
 
 sub cleanup {
     systemctl('disable --now dnsmasq');
-    zypper_call('rm dnsmasq');
+    uninstall_package('dnsmasq');
 }
 
 sub post_fail_hook {

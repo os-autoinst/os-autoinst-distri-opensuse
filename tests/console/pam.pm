@@ -23,6 +23,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
+use package_utils qw(install_package uninstall_package);
 
 sub run {
     select_serial_terminal;
@@ -34,7 +35,7 @@ sub run {
         $qa_head_repo = get_required_var('QA_HEAD_REPO') unless (is_sle('<16'));
         zypper_ar("$qa_head_repo", name => 'qa-head-repo');
     }
-    zypper_call('install bats pam-test pam pam-config snapper perl');
+    install_package('bats pam-test pam pam-config snapper perl', trup_reboot => 1);
     if (is_tumbleweed()) {
         zypper_call('in "group(wheel)"');
     }
@@ -66,7 +67,7 @@ sub run {
     assert_script_run("snapper -v undochange \$snapbf..\$snapaf");
     assert_script_run("snapper delete \$snapaf \$snapbf", timeout => 180);
     zypper_call('rr qa-head-repo');
-    zypper_call('rm bats pam-test');
+    uninstall_package('bats pam-test');
 
     die "pam.sh failed, see results.tap for details" if ($ret);
 }

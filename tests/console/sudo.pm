@@ -16,7 +16,7 @@
 
 use base "consoletest";
 use testapi;
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils qw(is_sle is_public_cloud is_opensuse);
 use publiccloud::utils qw(is_azure is_byos);
 
@@ -103,7 +103,7 @@ sub full_test {
 
 sub run {
     select_console 'root-console';
-    zypper_call 'in sudo expect';
+    install_package('sudo expect', trup_reboot => 1) if (script_run('rpm -qi sudo expect'));
     select_console 'user-console';
     # Check if sudo asks for the root password.
     # On Azure on SLE15, 'Defaults targetpw' is disabled.

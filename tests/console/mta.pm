@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
@@ -25,7 +26,7 @@ sub run {
         systemctl 'status postfix';
     } else {
         # Install and start postfix on Public Cloud/SlE 16+/Leap 16+ and Tumbleweed
-        zypper_call('in postfix mailx');
+        install_package('postfix mailx');
         systemctl 'enable postfix';
         systemctl 'start postfix';
     }

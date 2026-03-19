@@ -23,14 +23,14 @@
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 use Utils::Architectures;
 use version_utils 'has_selinux';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call 'in vsftpd expect';
+    install_package('vsftpd expect', trup_reboot => 1);
 
     # Allow full FTP access when enable selinux
     assert_script_run 'setsebool -P ftpd_full_access on' if has_selinux;

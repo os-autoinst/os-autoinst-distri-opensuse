@@ -18,12 +18,13 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_opensuse is_sle is_jeos);
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
     # try to install rsync if the test does not run on JeOS
     if (!is_jeos) {
-        zypper_call('-t in rsync', dumb_term => 1);
+        install_package('-t rsync', dumb_term => 1, trup_reboot => 1) if (script_run('rpm -qi rsync'));
     }
 
     # create the folders and files that will be synced

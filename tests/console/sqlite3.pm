@@ -17,13 +17,13 @@
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('install sqlite3 expect perl');
+    install_package('sqlite3 expect perl', trup_reboot => 1);
 
     my $archive = "sqlite3-tests.data";
     assert_script_run(

@@ -26,6 +26,7 @@ use utils;
 use Utils::Logging;
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 use version_utils "is_sle";
+use package_utils 'install_package';
 
 sub assert_present {
     my $text = shift;
@@ -139,7 +140,7 @@ sub prepare {
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
 
-    zypper_call '-v in gcc valgrind', timeout => 1000;
+    install_package('gcc valgrind', trup_reboot => 1, timeout => 1000);
 
     # Compile the valgrind test program
     assert_script_run 'mkdir -p /var/tmp/valgrind';

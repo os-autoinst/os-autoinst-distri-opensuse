@@ -12,11 +12,12 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'check_version';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call 'in net-snmp';
+    install_package('net-snmp', trup_reboot => 1);
 
     # version 5.7.3 on 15-SP2 and older use MD5/SHA & DES/AES protocols
     my $snmp_version = script_output("rpm -q --qf '%{version}' net-snmp");

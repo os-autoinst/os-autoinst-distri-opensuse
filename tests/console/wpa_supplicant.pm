@@ -26,6 +26,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use registration 'is_phub_ready';
 use version_utils;
+use package_utils 'install_package';
 
 sub run {
     my $self = shift;
@@ -40,7 +41,7 @@ sub run {
         zypper_ar("$qa_head_repo", name => 'qa-head-repo', no_gpg_check => 1);
     }
     zypper_call 'in dhcp-client' if (is_sle('<16.0') || is_opensuse);
-    zypper_call 'in wpa_supplicant hostapd iw dnsmasq unzip';
+    install_package('wpa_supplicant hostapd iw dnsmasq unzip', trup_reboot => 1);
     assert_script_run 'cd $(mktemp -d)';
     assert_script_run('curl -L -s ' . data_url('wpa_supplicant') . ' | cpio --make-directories --extract && cd data');
     $self->adopt_apparmor;
