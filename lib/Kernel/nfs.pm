@@ -14,6 +14,7 @@ our @EXPORT = qw(
   verifiy_nfs_support
   nfs_run_io_tests
   mount_share
+  create_mount_and_export
 );
 
 =head1 SYNOPSIS
@@ -126,6 +127,68 @@ sub mount_share {
     my ($server, $share, $local, $opts) = @_;
     script_run("mkdir -p $local");
     return assert_script_run("mount -t nfs -o $opts $server:$share $local");
+}
+
+
+=head2 create_mount_and_export
+
+    create_mount_and_export($mountpoint, $cl, $permissions);
+
+Creates a local directory with open permissions (777) and adds a corresponding 
+entry to F</etc/exports> to make it available for NFS clients.
+
+Parameters:
+- C<mountpoint>: Local path to be created and exported.
+- C<cl>: Client specification (e.g. '*' or a specific network/IP).
+- C<permissions>: Export options (e.g. 'rw,sync,no_root_squash').
+
+=cut
+
+sub create_mount_and_export {
+    my ($mountpoint, $cl, $permissions) = @_;
+
+    assert_script_run "mkdir -p $mountpoint";
+    assert_script_run "chmod 777 $mountpoint";
+    assert_script_run "echo $mountpoint $cl\\($permissions\\) >> /etc/exports";
+}
+
+=head2 nfs_verify_checksums
+
+    nfs_verify_checksums($path);
+
+Verifies NFS file integrity for sync, dsync, and direct IO flags at the given path.
+Logs the directory content and checks against the 'md5sum.txt' within that directory.
+
+Parameters:
+- C<path>: The mount point or subdirectory to verify.
+
+=cut
+
+sub nfs_verify_checksums {
+    my ($path) = @_;
+    my @flags = qw(direct dsync sync);
+
+    # Verzeichnisinhalt für das openQA-Log erfassen
+    my $ls_output = script_output("ls -la $path");
+    record_info("Verify: " . (split('/', $path))[-1], "Path: $path\n\n$ls_output");
+
+    # Basis-Check: Existiert die md5sum.txt überhaupt?
+    assert_script_run("test -f $path/md5sum.txt");
+
+    # Validierung gegen die md5sum.txt
+    assert_script_run("cd $path && md5sum -c md5sum.txt");
+
+    foreach my $flag (@flags) {
+        my $file = "testfile_oflag_$flag";
+
+        # -w stellt sicher, dass wir exakt den Dateinamen treffen
+        my $expected = script_output("grep -w '$file' $path/md5sum.txt | cut -d ' ' -f1");
+        my $actual = script_output("md5sum $path/$file | cut -d ' ' -f1");
+
+        if ($expected ne $actual) {
+            die "Checksum mismatch in $path for $file!\nExpected: $expected\nActual:   $actual";
+        }
+    }
 }
 
 1;
