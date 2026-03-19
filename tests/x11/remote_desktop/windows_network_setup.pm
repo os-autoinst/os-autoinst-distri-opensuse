@@ -26,7 +26,7 @@ sub approve_network_popup {
 
 sub run {
     my $self = shift;
-
+    my $mtu = get_var('MM_MTU', 1380);
     assert_screen 'windows-desktop';
     $self->open_powershell_as_admin;
     $self->run_in_powershell(cmd => 'Get-NetIPAddress', tags => 'win-remote-desktop');
@@ -37,6 +37,7 @@ sub run {
     $self->run_in_powershell(cmd => 'New-NetIPAddress -InterfaceAlias $a.name -IPAddress 10.0.2.18 -PrefixLength 24 -DefaultGateway 10.0.2.2 -Confirm:$false', tags => 'win-remote-desktop');
     approve_network_popup;
     $self->run_in_powershell(cmd => 'Set-DnsClientServerAddress -InterfaceAlias $a.name -ServerAddresses ("10.67.0.2") -Confirm:$false', tags => 'win-remote-desktop');
+    $self->run_in_powershell(cmd => 'Set-NetIPInterface -InterfaceAlias $a.name -NlMtu ' . $mtu);
     enter_cmd('exit');
     assert_screen 'windows-desktop';
 }

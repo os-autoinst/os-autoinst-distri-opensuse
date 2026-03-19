@@ -12,16 +12,14 @@ use base 'x11test';
 use testapi;
 use version_utils ':VERSION';
 use lockapi;
-use mmapi;
-use mm_tests;
+use mm_network;
 use x11utils 'default_gui_terminal';
 
 sub run {
     my $self = shift;
-    # Setup static NETWORK
-    $self->configure_static_ip_nm('10.0.2.17/24');
-
-    mutex_lock 'win_server_ready';
+    select_console('root-console');
+    setup_static_mm_network('10.0.2.17/24');
+    select_console('x11');
 
     ensure_installed('remmina');
 
@@ -34,6 +32,8 @@ sub run {
     # (Disabling this using the UI is cumbersome, tab handling is broken, doesn't scroll)
     assert_script_run 'echo -e "[remmina]\\ncolordepth=0" >> ' . $pref_dir . '/remmina.pref';
     enter_cmd "exit";
+
+    mutex_lock 'win_server_ready';
 
     # Start Remmina and login the remote server
     x11_start_program('remmina', valid => 0);
