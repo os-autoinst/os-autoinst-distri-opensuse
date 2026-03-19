@@ -57,6 +57,8 @@ sub get_kernel_source_flavor {
     }
     elsif (get_var('COCO')) {
         $src_pack = 'kernel-source-coco';
+    } elsif (get_kernel_flavor eq 'kernel-longterm') {
+        $src_pack = 'kernel-source-longterm';
     }
 
     return $src_pack;
@@ -71,6 +73,8 @@ sub get_kernel_devel_flavor {
     }
     elsif (get_var('COCO')) {
         $devel_pack = 'kernel-devel-coco';
+    } elsif (get_kernel_flavor eq 'kernel-longterm') {
+        $devel_pack = 'kernel-devel-longterm';
     }
 
     return $devel_pack;
@@ -81,6 +85,8 @@ sub get_kernel_devel_libs {
 
     if (check_var('SLE_PRODUCT', 'slert')) {
         $devel_pack = 'kernel-rt-devel';
+    } elsif (get_kernel_flavor eq 'kernel-longterm') {
+        $devel_pack = 'kernel-longterm-devel';
     }
 
     return $devel_pack;
