@@ -88,6 +88,10 @@ variable "ssh_public_key" {
   default = "/root/.ssh/id_ed25519.pub"
 }
 
+variable "nitro_enclave" {
+  default = false
+}
+
 data "aws_iam_instance_profile" "ec2_cloudwatch" {
   name       = "OpenQAEC2CloudWatchLogsRole" 
 }
@@ -137,6 +141,11 @@ resource "aws_instance" "openqa" {
     content {
       amd_sev_snp = var.enable_confidential_vm
     }
+  }
+
+  # AWS Nitro Enclave
+  enclave_options {
+    enabled = var.nitro_enclave
   }
 
   user_data = var.cloud_init != "" ? file(var.cloud_init) : null
