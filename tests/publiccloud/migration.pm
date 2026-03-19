@@ -40,14 +40,15 @@ sub run {
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
 
         # Disable maintenance updates for the migration as directory is not available during it
-        $instance->ssh_script_run("sudo sudo sed -i 's/^enabled=1/enabled=0/' /etc/zypp/repos.d/SUSE_Maintenance_*");
+        #$instance->ssh_script_run("sudo sudo sed -i 's/^enabled=1/enabled=0/' /etc/zypp/repos.d/SUSE_Maintenance_*");
+        $instance->ssh_script_run("sudo sudo rm -rf /etc/zypp/repos.d/SUSE_Maintenance_*");
 
         # Reboot to run the migration
         $instance->softreboot(timeout => 3600);
         validate_version($instance);
 
         # Re-enable maintenance updates for the migration
-        $instance->ssh_script_run("sudo sudo sed -i 's/^enabled=0/enabled=1/' /etc/zypp/repos.d/SUSE_Maintenance_*");
+        #$instance->ssh_script_run("sudo sudo sed -i 's/^enabled=0/enabled=1/' /etc/zypp/repos.d/SUSE_Maintenance_*");
 
         # Try to install aws-cli and azure-cli as they were removed for the migration
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
@@ -70,7 +71,8 @@ sub run {
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
 
         # Disable maintenance updates for the migration as directory is not available during it
-        $instance->ssh_script_run("sudo sudo sed -i 's/^enabled=1/enabled=0/' /etc/zypp/repos.d/SUSE_Maintenance_*");
+        #$instance->ssh_script_run("sudo sudo sed -i 's/^enabled=1/enabled=0/' /etc/zypp/repos.d/SUSE_Maintenance_*");
+        $instance->ssh_script_run("sudo sudo rm -rf /etc/zypp/repos.d/SUSE_Maintenance_*");
 
         # Reboot to run the migration
         $instance->softreboot(timeout => 3600);

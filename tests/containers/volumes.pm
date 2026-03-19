@@ -121,9 +121,9 @@ sub test {
 sub run {
     my ($self, $args) = @_;
     my $runtime = $args->{runtime};
+    select_serial_terminal();
     my $engine = $self->containers_factory($runtime);
 
-    select_serial_terminal();
     test $runtime;
     $engine->cleanup_system_host();
 
