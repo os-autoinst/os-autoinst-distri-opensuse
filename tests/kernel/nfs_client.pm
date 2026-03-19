@@ -15,29 +15,7 @@ use testapi;
 use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
-
-
-sub nfs_run_io_tests {
-    my @mounts = @_;
-    my @flags = qw(direct dsync sync);
-
-    foreach my $path (@mounts) {
-        # Basis-Dateien kopieren
-        assert_script_run("cp testfile md5sum.txt $path");
-
-        # Verschiedene IO-Flags testen
-        foreach my $flag (@flags) {
-            assert_script_run("dd oflag=$flag if=testfile of=$path/testfile_oflag_$flag bs=1024 count=10240");
-        }
-        # Optional: Validierung der Kopie
-        assert_script_run("md5sum -c md5sum.txt", die_on_fail => 1, run_args => {workdir => $path});
-    }
-}
-
-sub mount_share {
-    my ($server, $share, $local, $opts) = @_;
-    return assert_script_run("mount -t nfs -o $opts $server:$share $local");
-}
+use Kernel::nfs;
 
 sub run {
     select_serial_terminal();
