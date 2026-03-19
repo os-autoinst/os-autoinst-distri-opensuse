@@ -332,6 +332,7 @@ PUBLIC_CLOUD_EC2_ACCOUNT_ID | string | `aws sts get-caller-identity --query "Acc
 PUBLIC_CLOUD_EC2_UPLOAD_AMI | string | "" | Needed to decide which image will be used for helper VM for upload some image. When not specified some predefined value will be used. Overwrite the value for `ec2uploadimg --ec2-ami`.
 PUBLIC_CLOUD_EC2_UPLOAD_SECGROUP | string | "" | Allow to instruct ec2uploadimg script to use some existing security group instead of creating new one. If given, the parameter `--security-group-ids` is passed to `ec2uploadimg`.
 PUBLIC_CLOUD_EC2_UPLOAD_VPCSUBNET | string | "" | Allow to instruct ec2uploadimg script to use some existing VPC instead of creating new one.
+PUBLIC_CLOUD_EC2_NITRO_ENCLAVE | boolean | false | Enable the AWS Nitro Enclave for this instance.
 PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED | boolean | true | Internal variable written by the code and readed by the code . Should NOT be set manually
 PUBLIC_CLOUD_FORCE_REGISTRATION | boolean | false | If set, tests/publiccloud/registration.pm will register cloud guest
 PUBLIC_CLOUD_GCE_STACK_TYPE | string | IPV4_ONLY | Network stack type, possible values: IPV4_IPV6 or IPV4_ONLY
