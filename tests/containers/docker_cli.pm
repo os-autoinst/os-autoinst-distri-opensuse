@@ -17,6 +17,7 @@ use Utils::Architectures;
 use containers::bats;
 
 my $version;
+my $port = 2375;
 
 sub setup {
     my $self = shift;
@@ -25,7 +26,12 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    configure_docker(selinux => 1, tls => 1);
+    # On SLES 15-SP4 & 15-SP5, dockerd fails with:
+    # invalid TLS configuration: failed to append certificates from PEM file: "/etc/docker/ca.pem"
+    my $tls = is_sle("<15-SP6") ? 0 : 1;
+    $port++ if $tls;
+
+    configure_docker(selinux => 1, tls => $tls);
 
     run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 
@@ -67,7 +73,7 @@ sub run {
 
     my %env = (
         DOCKER_CONTENT_TRUST => "",
-        TEST_DOCKER_HOST => "localhost:2376",
+        TEST_DOCKER_HOST => "localhost:$port",
         DOCKER_CLI_E2E_PLUGINS_EXTRA_DIRS => "/var/tmp/cli/build/plugins-linux-$arch",
     );
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
