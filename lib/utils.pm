@@ -48,6 +48,7 @@ our @EXPORT = qw(
   zypper_call
   zypper_enable_install_dvd
   zypper_ar
+  zypper_version_cmp
   fully_patch_system
   handle_patch_11sp4_zvm
   ssh_fully_patch_system
@@ -798,6 +799,38 @@ sub zypper_ar {
         return zypper_call("$cmd_ref --repo $name");
     }
 }
+
+=head2 zypper_version_cmp
+
+  zypper_version_cmp($pckage_ver1, $package_ver2);
+
+Compares two versions using zypper versioncmp. Returns an integer 
+less than, equal to, or greater than zero, indicating whether the 
+first version is less than, equal to, or greater than the second
+
+Examples:
+ zypper_version_cmp('9.20.18','9.18.33');
+
+=cut
+
+sub zypper_version_cmp {
+    my ($pckage_ver1, $package_ver2) = @_;
+    my $cmd = "zypper versioncmp $pckage_ver1 $package_ver2";
+    my $output = script_output($cmd, proceed_on_failure => 1);
+
+    chomp($output);
+
+    if ($output =~ /older than/) {
+        return -1;
+    } elsif ($output =~ /newer than/) {
+        return 1;
+    } elsif ($output =~ /the same as/) {
+        return 0;
+    } else {
+        die "Unexpected output from zypper versioncmp: $output";
+    }
+}
+
 
 =head2 fully_patch_system
 
