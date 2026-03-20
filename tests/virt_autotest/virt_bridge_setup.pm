@@ -14,9 +14,18 @@ sub run {
 
     select_console 'sol', await_console => 0;
     use_ssh_serial_console;
-    record_info("virt-bridge-setup", script_output("rpm -q virt-bridge-setup"));
+
+    # Record the initial network status
+    record_info("virt-bridge-setup", script_output("rpm -q virt-bridge-setup", proceed_on_failure => 1));
+    record_info("Network status", script_output("nmcli con") . "\n" . script_output("ip a"));
+    record_info("NM configuration files", script_output("ls -l /etc/NetworkManager/system-connections"));
+
+    # Setup br0 with virt-bridge-setup tool
+    setup_br0_with_virt_bridge_setup if is_sle('16.1+') and !is_s390x and get_var('SETUP_BR0_WITH_VIRT_BRIDGE_SETUP_TOOL');
+
     record_info("Usage", script_output("virt-bridge-setup --help"));
     test_br0_created if get_var('SETUP_BR0_WITH_VIRT_BRIDGE_SETUP_TOOL');
+    check_host_health();
 }
 
 sub test_br0_created {

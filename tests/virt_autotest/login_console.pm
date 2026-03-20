@@ -57,18 +57,6 @@ sub config_ssh_client {
     script_run("echo " . get_var('_SECRET_RSA_PUB_KEY') . " >> $ssh_dir/authorized_keys");
 }
 
-sub setup_br0_with_virt_bridge_setup {
-    zypper_call('-t in virt-bridge-setup') unless script_run("rpm -q virt-bridge-setup") == 0;
-    record_info("Setting up br0", "");
-    script_run("virt-bridge-setup -d add -bn br0 --stp no");
-    enter_cmd("nmcli con; echo DONE > /dev/$serialdev");
-    unless (defined(wait_serial 'DONE', timeout => 10)) {
-        reset_consoles;
-        select_console('root-console');
-    }
-    record_info("br0 set up successfully", script_output("ip a", proceed_on_failure => 1));
-}
-
 #Explanation for parameters introduced to facilitate offline host upgrade:
 #OFFLINE_UPGRADE indicates whether host upgrade is offline which needs reboot
 #the host and upgrade from installation media. Please refer to this document:
@@ -261,8 +249,6 @@ sub run {
         upload_logs("/tmp/host_agama_installation_script_logs.tar.gz", failok => 1);
     }
 
-    # Setup br0 with virt-bridge-setup tool
-    setup_br0_with_virt_bridge_setup if is_sle('16.1+') and !is_s390x and get_var('SETUP_BR0_WITH_VIRT_BRIDGE_SETUP_TOOL');
     check_host_health();
 }
 
