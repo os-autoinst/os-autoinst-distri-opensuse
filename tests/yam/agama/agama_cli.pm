@@ -30,10 +30,12 @@ sub run {
     assert_script_run('agama config show | jq -C');
 
     my $workaround = is_sle('16.1+') ? " > /dev/null" : "";
+    assert_script_run("agama config show");
     record_soft_failure("bsc#1265431 - Agama config load blocks in BUSY state") if (is_sle('16.1+'));
     assert_script_run("jq -n '.root.password = \"$testapi::password\"' | agama config load $workaround");
 
     assert_script_run("agama config show | grep $testapi::password");
+    assert_script_run("agama config show");
 
     my $product_id = get_var('AGAMA_PRODUCT_ID');
     assert_script_run("jq -n '.product.id = \"$product_id\"' | agama config load $workaround");
