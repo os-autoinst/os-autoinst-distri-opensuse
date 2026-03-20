@@ -432,6 +432,7 @@ sub wait_for_ssh {
 
     # Check also remote system is up and running:
     my $retry = 0;    # count retries of unexpected sysout
+    my $exit_timeout;
     if (isok($exit_code)) {
         if ($args{systemup_check}) {
             # SSH host key is not checked and master socket is not used
@@ -469,6 +470,7 @@ sub wait_for_ssh {
                 sleep $delay;
             }    # end loop
         }    # endif
+        $exit_timeout = 1 if ($duration >= $args{timeout});
 
         if ($args{scan_ssh_host_key}) {
             record_info('RESCAN', 'Rescanning SSH host key');
@@ -488,10 +490,11 @@ sub wait_for_ssh {
             $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => $args{timeout} - $duration, ignore_timeout_failure => 1);
             last if isok($exit_ssh);
             sleep $delay;
+            $exit_timeout = 1 if (time() - $start_time >= $args{timeout});
         }
 
         # Merge exit results
-        $exit_code = $exit_ssh || $exit_code;
+        $exit_code = $exit_timeout || $exit_ssh || $exit_code;
         # Add debugging info on error:
         unless (isok($exit_code)) {
             # validate sshd_config configuration file and verbose ssh debugging
@@ -509,7 +512,7 @@ sub wait_for_ssh {
     }    # endif
 
     # result display
-    $sysout .= "\nTimeout $args{timeout} sec. expired" if ($duration >= $args{timeout});
+    $sysout .= "\nTimeout $args{timeout} sec. expired" if $exit_timeout;
     $instance_msg = "Check" . ($args{systemup_check} ? " SYSTEM " : " SSH ") . ($args{wait_stop} ? "DOWN" : "UP") .
       ", $instance_msg, Duration: $duration sec.\nResult: $sshout";
     $instance_msg .= $sysout if defined($sysout);
