@@ -462,6 +462,13 @@ subtest '[azure_fencing_agents_playbook_args] MSI setup' => sub {
 
 
 subtest '[azure_fencing_agents_playbook_args] SPN setup' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my @calls;
+    my @contents;
+    $sles4sap_publiccloud->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $sles4sap_publiccloud->redefine(save_tmp_file => sub { push @contents, @_; });
+    $sles4sap_publiccloud->redefine(autoinst_url => sub { return 'http://10.0.2.2/tests/'; });
+
     my %mandatory_args =
       ('fence_type' => 'spn',
         'spn_application_id' => 'GoldRodger',
@@ -473,8 +480,7 @@ subtest '[azure_fencing_agents_playbook_args] SPN setup' => sub {
 
     my @expected_results = (
         '-e azure_identity_management=spn',
-        "-e spn_application_id=$mandatory_args{spn_application_id}",
-        "-e spn_application_password=$mandatory_args{spn_application_password}",
+        '-e @~/spn_secret.yaml',
     );
     foreach (@expected_results) {
         like($returned_value, "/$_/", "$_ is part of the playbooks options");
@@ -887,6 +893,11 @@ subtest '[create_playbook_section_list] fencing => azure native msi' => sub {
 
 subtest '[create_playbook_section_list] fencing => azure native spn' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my @calls;
+    my @contents;
+    $sles4sap_publiccloud->redefine(assert_script_run => sub { push @calls, $_[0]; });
+    $sles4sap_publiccloud->redefine(save_tmp_file => sub { push @contents, @_; });
+    $sles4sap_publiccloud->redefine(autoinst_url => sub { return 'http://10.0.2.2/tests/'; });
     $sles4sap_publiccloud->redefine(is_azure => sub { return 1 });
     set_var('USE_SAPCONF', 'Colombo');
     my $ansible_playbooks = create_playbook_section_list(fencing => 'native', fence_type => 'spn', spn_application_id => '123', spn_application_password => 'abc');
