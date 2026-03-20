@@ -31,9 +31,6 @@ sub run {
         record_info('Version switch', 'New version = ' . get_var('VERSION'));
     }
 
-    # Wait for each cluster node to check for its hawk service
-    barrier_wait("HAWK_GUI_INIT_$cluster_name");
-
     unless (is_desktop_installed()) {
         record_info "HAWK GUI test", "HAWK GUI test requires GUI desktop installed";
         return;
@@ -58,6 +55,9 @@ sub run {
     $self->handle_displaymanager_login();
     x11_start_program('xterm');
     turn_off_gnome_screensaver;
+
+    # Wait for each cluster node to check for its hawk service
+    barrier_wait("HAWK_GUI_INIT_$cluster_name");
 
     my $pyscr = 'hawk_test';
     my $path = 'test';
