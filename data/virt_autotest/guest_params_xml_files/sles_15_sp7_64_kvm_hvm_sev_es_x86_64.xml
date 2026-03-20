@@ -80,7 +80,7 @@
     <guest_resource/>
     <guest_sysinfo/>
     <guest_qemu_command/>
-    <guest_launchsecurity>sev,policy=0x06</guest_launchsecurity>
+    <guest_launchsecurity>sev,policy=0x38</guest_launchsecurity>
     <guest_autostart/>
     <guest_transient/>
     <guest_destroy_on_exit/>
