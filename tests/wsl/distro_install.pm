@@ -35,12 +35,6 @@ sub run {
     assert_screen 'windows-desktop';
 
     $self->open_powershell_as_admin;
-    # Set the version for WSL1
-    $self->run_in_powershell(
-        cmd => 'wsl --set-default-version 1',
-        timeout => 30
-    ) unless (get_var('WSL2'));
-
     my $WSL_version = '';
     if (is_sle('<=15-sp4')) {
         $WSL_version = "SUSE-Linux-Enterprise-Server-" . get_required_var("VERSION");
