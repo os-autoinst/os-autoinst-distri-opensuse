@@ -18,7 +18,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(zypper_call);
+use package_utils 'install_package';
 use version_utils qw(is_leap is_sle);
 
 sub wait_serial_or_die {
@@ -46,7 +46,7 @@ sub run {
     # since sle(15-SP3+) *sysvinit-tools* is not preinstalled on JeOS
     # as systemd's dependency with *sysvinit-tools* was dropped
     $test_deps .= ' sysvinit-tools' if ((is_sle('<16.0') && is_sle('>15-sp2')) || is_leap('>15.2'));
-    zypper_call("in $test_deps");
+    install_package("$test_deps", trup_reboot => 1);
     # disable debuginfod
     assert_script_run('unset DEBUGINFOD_URLS');
 

@@ -13,7 +13,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 use registration 'is_phub_ready';
 
 sub run {
@@ -23,7 +23,7 @@ sub run {
 
     # Make sure that python-flake8 is installed.
     # On SLE, this requires phub extenstion
-    zypper_call 'in python3-flake8';
+    install_package('python3-flake8', trup_reboot => 1);
 
     # Test case 1: check if flake8 is functional
     assert_script_run('mkdir /tmp/empty_dir');

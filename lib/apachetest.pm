@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use package_utils qw(install_package uninstall_package);
 use version_utils qw(is_sle is_leap check_version is_tumbleweed is_jeos);
 use Utils::Architectures qw(is_aarch64);
 
@@ -38,7 +39,7 @@ sub setup_apache2 {
     my %args = @_;
     my $mode = uc $args{mode} || "";
     # package hostname is available on sle15+ and openSUSE, on <15 it's net-tools
-    my @packages = qw(/bin/hostname);
+    my @packages = is_sle('<15') ? qw(net-tools) : qw(hostname);
     push @packages, get_var('APACHE2_PKG', "apache2");
 
     # For gensslcert
@@ -53,20 +54,26 @@ sub setup_apache2 {
 
     if ($mode eq "PHP5") {
         push @packages, qw(apache2-mod_php5 php5);
-        zypper_call("rm -u apache2-mod_php{7,8} php{7,8}", exitcode => [0, 104]);
+        if (script_run('rpm -qa | grep -E "php[78]"') == 0) {
+            uninstall_package("apache2-mod_php7 apache2-mod_php8 php7 php8", exitcode => [0, 104], trup_reboot => 1);
+        }
     }
     elsif ($mode eq "PHP7") {
         push @packages, qw(apache2-mod_php7 php7);
-        zypper_call("rm -u apache2-mod_php{5,8} php{5,8}", exitcode => [0, 104]);
+        if (script_run('rpm -qa | grep -E "php[58]"') == 0) {
+            uninstall_package("apache2-mod_php5 apache2-mod_php8 php5 php8", exitcode => [0, 104], trup_reboot => 1);
+        }
     }
     elsif ($mode eq "PHP8") {
         push @packages, qw(apache2-mod_php8 php8-cli);
-        zypper_call("rm -u apache2-mod_php{5,7} php{5,7}", exitcode => [0, 104]);
+        if (script_run('rpm -qa | grep -E "php[57]"') == 0) {
+            uninstall_package("apache2-mod_php5 apache2-mod_php7 php5 php7", exitcode => [0, 104], trup_reboot => 1);
+        }
     }
 
     # Make sure the packages are installed
     my $timeout = is_aarch64 ? 1200 : 300;
-    zypper_call("--no-gpg-checks in @packages", timeout => $timeout);
+    install_package("@packages", trup_continue => 1, trup_reboot => 1, timeout => $timeout) if (script_run("rpm -q @packages") != 0);
 
     # Enable php5
     if ($mode eq "PHP5") {
@@ -429,7 +436,7 @@ sub postgresql_cleanup {
     systemctl 'disable postgresql';
     systemctl 'is-active postgresql', expect_false => 1;
     assert_script_run('kill -s KILL $(ps -u postgres -o pid=)') unless script_run('ps -u postgres -o pid=');
-    zypper_call "rm postgresql";
+    uninstall_package("postgresql", trup_reboot => 1);
 }
 
 1;

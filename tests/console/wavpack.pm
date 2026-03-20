@@ -22,6 +22,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
@@ -34,7 +35,7 @@ sub run {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
-    zypper_call 'in alsa alsa-utils wavpack';
+    install_package('alsa alsa-utils wavpack', trup_reboot => 1) if (script_run('rpm -q alsa alsa-utils wavpack'));
     assert_script_run("cp /usr/share/sounds/alsa/Noise.wav .");
     assert_script_run("cp /usr/share/sounds/alsa/test.wav .");
     assert_script_run("cp /usr/share/sounds/alsa/Side_Left.wav .");

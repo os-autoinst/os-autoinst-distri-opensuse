@@ -16,6 +16,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_jeos has_selinux is_public_cloud);
 use Utils::Architectures;
 
@@ -32,8 +33,8 @@ sub cleanup {
 sub run {
     select_serial_terminal;
 
-    zypper_call('in mariadb');
-    zypper_call("in policycoreutils-python-utils") if has_selinux();
+    install_package('mariadb', trup_continue => 1, trup_reboot => 1);
+    install_package("policycoreutils-python-utils", trup_continue => 1, trup_reboot => 1) if (has_selinux() && script_run('rpm -q policycoreutils-python-utils'));
 
     if (script_run("grep 'bindir=\"\$basedir/sbin\"' /usr/bin/${mariadb}_install_db") == 0) {
         record_soft_failure 'bsc#1142058';

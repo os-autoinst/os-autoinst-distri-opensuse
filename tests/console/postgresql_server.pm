@@ -16,7 +16,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 use apachetest qw(setup_pgsqldb destroy_pgsqldb test_pgsql postgresql_cleanup);
 use Utils::Systemd 'systemctl';
 
@@ -24,7 +24,7 @@ sub run {
     select_serial_terminal;
 
     # install the postgresql server package
-    zypper_call "in postgresql-server sudo";
+    install_package("postgresql-server sudo", trup_reboot => 1);
 
     # start the postgresql service
     systemctl 'start postgresql.service', timeout => 200;

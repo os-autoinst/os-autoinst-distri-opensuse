@@ -15,7 +15,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils;
-use utils "zypper_call";
+use package_utils 'install_package';
 use python_version_utils;
 use registration "add_suseconnect_product";
 
@@ -45,7 +45,7 @@ sub run {
     foreach my $python3_spec_release (@python3_versions) {
         record_info("Testing $python3_spec_release", "$python3_spec_release is tested now");
         my $python3_version = get_python3_binary($python3_spec_release);
-        zypper_call("install $python3_spec_release-base");
+        install_package("$python3_spec_release-base", trup_reboot => 1) if (script_run("rpm -q ${python3_spec_release}-base"));
         # Running classic testing algorithm 'man_or_boy'. More info at:
         # https://rosettacode.org/wiki/Man_or_boy_test
         run_python_test($python3_version);

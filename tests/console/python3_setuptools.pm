@@ -18,6 +18,7 @@ use serial_terminal 'select_serial_terminal';
 use version_utils;
 use python_version_utils;
 use utils "zypper_call";
+use package_utils 'install_package';
 use feature qw(signatures);
 no warnings qw(experimental::signatures);
 
@@ -49,7 +50,7 @@ sub run_tests ($python3_spec_release) {
         return;
     }
 
-    zypper_call("install $python3_spec_release $python3_spec_release-setuptools");
+    install_package("$python3_spec_release $python3_spec_release-setuptools", trup_reboot => 1) if (script_run("rpm -q $python3_spec_release $python3_spec_release-setuptools"));
     record_info("pip3 version:", script_output("rpm -q $python3_spec_release-pip"));
     record_info("python3-setuptools:", script_output("rpm -q $python3_spec_release-setuptools"));
     my $python_binary = get_python3_binary($python3_spec_release);

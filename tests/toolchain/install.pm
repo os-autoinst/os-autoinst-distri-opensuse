@@ -11,6 +11,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use Utils::Systemd 'disable_and_stop_service';
+use package_utils 'install_package';
 use version_utils 'is_sle';
 use registration;
 
@@ -48,8 +49,8 @@ sub run {
             add_suseconnect_product("sle-module-desktop-applications");
             add_suseconnect_product("sle-module-development-tools");
         }
-        zypper_call 'in -t pattern devel_basis';
-        zypper_call 'in gcc-fortran bzip2';    # from Base System Module
+        install_package('-t pattern devel_basis', trup_continue => 1, trup_reboot => 1);
+        install_package('gcc-fortran bzip2', trup_continue => 1, trup_reboot => 1);    # from Base System Module
         script_run 'export CC=/usr/bin/gcc';
         script_run 'export CXX=/usr/bin/g++';
     }

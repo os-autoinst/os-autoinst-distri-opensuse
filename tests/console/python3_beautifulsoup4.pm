@@ -16,7 +16,7 @@ use feature qw(signatures);
 no warnings qw(experimental::signatures);
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils qw(install_package uninstall_package);
 use python_version_utils;
 
 
@@ -31,13 +31,13 @@ sub run_test ($python_package) {
     # we don't run the test if beautifulsoup4 is not packaged for this python version
     return unless script_run("zypper search $python_package-beautifulsoup4") == 0;
     record_info("Testing for", "$python_package is tested now");
-    zypper_call("install $python_package $python_package-beautifulsoup4 $python_package-lxml");
+    install_package("$python_package $python_package-beautifulsoup4 $python_package-lxml", trup_reboot => 1);
     my $python_interpreter = get_python3_binary($python_package);
     record_info("running python version", script_output("$python_interpreter --version"));
     # Execute python script. The script itself ensure output is the one expected
     assert_script_run("$python_interpreter python3-beautifulsoup4-test.py");
     # clean up for the next run
-    zypper_call("rm $python_package $python_package-beautifulsoup4 $python_package-lxml");
+    uninstall_package("$python_package $python_package-beautifulsoup4 $python_package-lxml", trup_reboot => 1);
 }
 
 sub run {

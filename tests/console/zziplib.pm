@@ -20,6 +20,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 use version_utils 'is_sle';
 
@@ -34,12 +35,12 @@ sub run {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
+    # install requirements
+    install_package("libzzip-0-13 zziplib-devel zip", trup_reboot => 1, timeout => 1000);
+
     # create a tmp dir/files to work
     assert_script_run "mkdir /tmp/zip; cp /usr/share/doc/* /tmp/zip -R", timeout => 200;
     assert_script_run "cd /tmp";
-
-    # install requirements
-    zypper_call "-v in libzzip-0-13 zziplib-devel zip", timeout => 1000;
 
     # create a zip file
     assert_script_run "zip -9 $filezip -xi zip/*";
