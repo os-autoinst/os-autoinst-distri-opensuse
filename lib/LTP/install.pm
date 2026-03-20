@@ -21,7 +21,6 @@ use LTP::utils;
 our @EXPORT = qw(
   get_required_build_dependencies
   get_maybe_build_dependencies
-  get_submodules_to_rebuild
 );
 
 sub get_required_build_dependencies {
@@ -75,19 +74,6 @@ sub get_maybe_build_dependencies {
     push @maybe_deps, 'libopenssl-devel-32bit' if (want_ltp_32bit && !is_sle('<15'));
 
     return @maybe_deps;
-}
-
-sub get_submodules_to_rebuild {
-    my @submodules = qw(
-      commands/insmod
-      kernel/device-drivers
-      kernel/firmware
-      kernel/syscalls/delete_module
-      kernel/syscalls/finit_module
-      kernel/syscalls/init_module
-    );
-
-    return @submodules;
 }
 
 1;

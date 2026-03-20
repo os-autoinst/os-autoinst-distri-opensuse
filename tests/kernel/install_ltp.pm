@@ -22,7 +22,7 @@ use version_utils qw(is_jeos is_opensuse is_released is_sle is_leap is_tumblewee
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
 use LTP::utils;
-use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies get_submodules_to_rebuild);
+use LTP::install qw(get_required_build_dependencies get_maybe_build_dependencies);
 use rpi 'enable_tpm_slb9670';
 use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
@@ -172,12 +172,8 @@ sub prepare_ltp_git {
 
 sub install_selected_from_git {
     prepare_ltp_git;
-
-    assert_script_run('pushd testcases');
-    foreach (get_submodules_to_rebuild()) {
-        assert_script_run("pushd $_ && make && make install && popd", timeout => 600);
-    }
-    assert_script_run("popd");
+    assert_script_run('make -j$(getconf _NPROCESSORS_ONLN) modules', timeout => 600);
+    assert_script_run('make -j$(getconf _NPROCESSORS_ONLN) modules-install');
 }
 
 sub install_from_git {
