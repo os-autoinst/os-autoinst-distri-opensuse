@@ -7,6 +7,7 @@ schedule:
   - boot/boot_to_desktop
   - console/suseconnect_scc
   - update/zypper_up
+  - ha/downgrade_suseconnect_ng
   - console/console_reboot
   - migration/online_migration/register_without_ltss
   - ha/wait_barriers
