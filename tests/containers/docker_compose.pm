@@ -63,6 +63,8 @@ sub test ($target) {
         "github.com/docker/compose/$v/pkg/e2e::TestBuildTLS",
         "github.com/docker/compose/$v/pkg/e2e::TestUpDependenciesNotStopped",
         "github.com/docker/compose/$v/pkg/e2e::TestUpStopWithLogsMixed",
+        "github.com/docker/compose/$v/pkg/e2e::TestWatch",
+        "github.com/docker/compose/$v/pkg/e2e::TestWatch/debian",
     );
 
     run_timeout_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3600;
