@@ -49,10 +49,10 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(apache2-utils go1.26 libgpgme-devel openssl podman squashfs skopeo);
+    my @pkgs = qw(apache2-utils go1.26 openssl podman squashfs skopeo);
     push @pkgs, "fakeroot" unless (is_sle('>=16.0') || (is_sle(">=15-SP6") && is_s390x));
     # Needed for integration tests
-    push @pkgs, "distribution-registry" if (is_sle(">=16.0") || is_tumbleweed);
+    push @pkgs, qw(distribution-registry libgpgme-devel) unless is_sle;
 
     $self->setup_pkgs(@pkgs);
 
@@ -76,7 +76,7 @@ sub run {
     $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
     # You need to clone with BATS_IGNORE_USER=all BATS_IGNORE_ROOT=all RUN_TESTS=integration
-    test_integration if (check_var("RUN_TESTS", "integration") || (is_tumbleweed && is_x86_64));
+    test_integration if (check_var("RUN_TESTS", "integration") || is_tumbleweed);
 
     die "skopeo tests failed" if ($errors);
 }
