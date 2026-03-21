@@ -1,0 +1,44 @@
+From 26d0774539d84ae561ae2828ec1f024dcafcd1bc Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 21 Mar 2026 10:45:15 +0100
+Subject: [PATCH] integration: ignore container Status field in DiskUsage test
+ comparisons
+
+The Status field is a human-readable uptime string (e.g. "Up Less than a
+second" vs "Up 1 second") that changes as time passes. The sub-tests
+compare a previously captured DiskUsageResult snapshot against a fresh
+API call, so even a sub-second delay between the two can cause a mismatch.
+
+Use cmpopts.IgnoreFields to exclude Status from the DeepEqual comparison
+in the type-filter sub-tests. The field is already implicitly covered by
+the State and Created assertions in the parent step.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ integration/system/disk_usage_test.go | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/integration/system/disk_usage_test.go b/integration/system/disk_usage_test.go
+index 6543648f646fd..721618ece5286 100644
+--- a/integration/system/disk_usage_test.go
++++ b/integration/system/disk_usage_test.go
+@@ -5,6 +5,7 @@ import (
+ 	"testing"
+ 
+ 	"github.com/google/go-cmp/cmp/cmpopts"
++	containertypes "github.com/moby/moby/api/types/container"
+ 	"github.com/moby/moby/client"
+ 	"github.com/moby/moby/v2/integration/internal/container"
+ 	"github.com/moby/moby/v2/internal/testutil"
+@@ -284,7 +285,10 @@ func TestDiskUsage(t *testing.T) {
+ 
+ 					du, err := apiClient.DiskUsage(ctx, tc.options)
+ 					assert.NilError(t, err)
+-					assert.DeepEqual(t, du, tc.expected, cmpopts.EquateComparable(netip.Addr{}, netip.Prefix{}))
++					assert.DeepEqual(t, du, tc.expected,
++						cmpopts.EquateComparable(netip.Addr{}, netip.Prefix{}),
++						cmpopts.IgnoreFields(containertypes.Summary{}, "Status"),
++					)
+ 				})
+ 			}
+ 		})
