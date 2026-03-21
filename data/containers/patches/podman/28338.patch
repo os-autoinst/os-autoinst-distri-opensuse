@@ -1,0 +1,27 @@
+From b77531879b8e16590176f3868a18d76533445487 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 21 Mar 2026 21:43:37 +0100
+Subject: [PATCH] test: relax rootless runc pid namespace assertion
+
+runc may or may not issue a warning here.
+
+https://github.com/opencontainers/runc/issues/4732
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/system/195-run-namespaces.bats | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/system/195-run-namespaces.bats b/test/system/195-run-namespaces.bats
+index 230669d15be..fadcbb60dd8 100644
+--- a/test/system/195-run-namespaces.bats
++++ b/test/system/195-run-namespaces.bats
+@@ -41,7 +41,7 @@ uts    | uts
+             if [[ "$option" = "pid" ]] && is_rootless && ! is_remote && [[ "$(podman_runtime)" = "runc" ]]; then
+                 # Replace "pid:[1234567]" with "pid:\[1234567\]"
+                 con1_ns_esc="${con1_ns//[\[\]]/\\&}"
+-                assert "$con2_ns" =~ "${con1_ns_esc}.*warning .*" "($name) namespace matches (type: $type)"
++                assert "$con2_ns" =~ "${con1_ns_esc}" "($name) namespace matches (type: $type)"
+             else
+                 assert "$con1_ns" == "$con2_ns" "($name) namespace matches (type: $type)"
+             fi
