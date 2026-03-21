@@ -89,6 +89,7 @@ moby:
   # https://github.com/moby/moby/pull/52116 - integration/container: use page-aligned shm size to fix test on ppc64le
   # https://github.com/moby/moby/pull/52117 - integration/capabilities: Switch to debian:trixie-slim
   # https://github.com/moby/moby/pull/52119 - integration/image: pull ppc64le and s390x in TestSaveAndLoadPlatform
+  # https://github.com/moby/moby/pull/52197 - integration: ignore container Status field in DiskUsage test comparisons
   51219:
     merged: "29.0.0"
   51263:
@@ -105,6 +106,8 @@ moby:
   52119:
     min: "29.2.0"
     merged: "29.3.0"
+  52197:
+    min: "29.2.0"
 
 netavark:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
