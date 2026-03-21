@@ -198,5 +198,8 @@ runc:
     merged: "1.5.0"
 
 skopeo:
+  # https://github.com/containers/skopeo/pull/2830 - integration: Skip TestProxyMetadata on non-amd64 architectures
+  2830:
+    min: "1.20.0"
 
 umoci:
