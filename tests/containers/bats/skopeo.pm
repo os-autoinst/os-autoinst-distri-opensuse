@@ -37,9 +37,6 @@ sub run_tests {
 
 sub test_integration {
     install_gotestsum;
-    # We can't use openSUSE's distribution-registry package on SLES so extract this binary from the OCI image
-    # Note: registry:latest with v3 fails unlike library/registry:3
-    run_command "podman run --rm -v /usr/local/bin:/target:rw,z --user root --entrypoint /bin/cp $registry /bin/registry /target/";
     run_command "cd integration";
     run_timeout_command "SKOPEO_BINARY=/usr/bin/skopeo gotestsum --junitfile integration.xml --format standard-verbose -- &> integration.txt", no_assert => 1, timeout => 300;
     upload_logs "integration.txt";
@@ -52,10 +49,10 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(apache2-utils go1.26 openssl podman squashfs skopeo);
+    my @pkgs = qw(apache2-utils go1.26 libgpgme-devel openssl podman squashfs skopeo);
     push @pkgs, "fakeroot" unless (is_sle('>=16.0') || (is_sle(">=15-SP6") && is_s390x));
-    # Packages needed for Golang integration tests
-    push @pkgs, qw(libgpgme-devel) if (is_tumbleweed && is_x86_64);
+    # Needed for integration tests
+    push @pkgs, "distribution-registry" if (is_sle(">=16.0") || is_tumbleweed);
 
     $self->setup_pkgs(@pkgs);
 
@@ -78,7 +75,8 @@ sub run {
 
     $errors += run_tests(rootless => 0) unless check_var('BATS_IGNORE_ROOT', 'all');
 
-    test_integration if (is_tumbleweed && is_x86_64);
+    # You need to clone with BATS_IGNORE_USER=all BATS_IGNORE_ROOT=all RUN_TESTS=integration
+    test_integration if (check_var("RUN_TESTS", "integration") || (is_tumbleweed && is_x86_64));
 
     die "skopeo tests failed" if ($errors);
 }
