@@ -379,7 +379,7 @@ sub get_guest_disk_name_from_guest_xml {
     my $guest = shift;
 
     # Our automation only supports single guest disk
-    my $disk_from_xml = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //disk/source/\@file";
+    my $disk_from_xml = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //disk/source/\@file | grep -vE \'(ignition|combustion).*\.(qcow2|raw|img)\'";
     record_info('Guest disk config from xml', "Guest $guest disk_from_xml is: $disk_from_xml.");
     die 'There is no guest disk file parsed out from guest xml configuration!' unless $disk_from_xml;
 
