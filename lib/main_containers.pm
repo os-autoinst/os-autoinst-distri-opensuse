@@ -138,6 +138,7 @@ sub load_compose_tests {
 
 sub load_firewall_test {
     return if (is_public_cloud || is_openstack || is_microos ||
+        (is_sle('>=16.0') && is_transactional()) ||
         get_var('FLAVOR') =~ /dvd/i && (is_sle_micro('<6.0') || is_leap_micro('<6.0'))
     );
     my ($run_args) = @_;
@@ -181,7 +182,9 @@ sub load_host_tests_podman {
         loadtest 'containers/podman_remote' if (is_sle('>=15-SP3') || is_sle_micro('5.5+') || is_tumbleweed);
     }
     # Buildah is not available in SLE Micro, MicroOS and staging projects
-    loadtest('containers/buildah', run_args => $run_args, name => $run_args->{runtime} . "_buildah") unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging);
+    loadtest('containers/buildah', run_args => $run_args, name => $run_args->{runtime} . "_buildah") unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging ||
+        (is_sle('>=16.0') && is_transactional())
+    );
     load_volume_tests($run_args);
     load_compose_tests($run_args);
     loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
