@@ -43,7 +43,8 @@ use power_action_utils 'power_action';
 
 # Define constants for SNP verification
 use constant {
-    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'snpguest'],
+    # amd-ucode provides CPU microcode required by snphost ok verification
+    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'snpguest', 'amd-ucode'],
     SNP_GUEST_TOOLS => ['snpguest'],
     SNP_MIN_KERNEL_VER => '5.19.0',
 
