@@ -39,7 +39,7 @@ sub run {
     }
     if (check_var('FLAVOR', 'Online-Increments')) {
         my $increment_repo = get_var('INCREMENT_REPO');
-        chop $increment_repo if $incident_repo =~ /\/$/;
+        chop $increment_repo if $increment_repo =~ /\/$/;
         zypper_call("ar -f $increment_repo/repo/SLES-16.0-" . get_var('ARCH') . "-Source TEST_0_Source");
     }
     assert_script_run 'wget --quiet ' . data_url('qam/crypto_rsa_dsa.patch') unless get_var('FLAVOR') =~ /TERADATA/ || is_sle('=12-sp5') || is_sle('=15-sp4');
