@@ -92,7 +92,9 @@ moby:
   # https://github.com/moby/moby/pull/52197 - integration: ignore container Status field in DiskUsage test comparisons
   51219:
     merged: "29.0.0"
+  # XXX not merged
   51263:
+    merged: "29.0.0"
   51794:
   51970:
     min: "29.2.0"
