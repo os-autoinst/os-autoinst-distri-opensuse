@@ -131,6 +131,12 @@ sub run {
         run_command "rm -f test/system/320-system-df.bats";
         # This tests needs criu, available only on Tumbleweed
         run_command "rm -f test/system/520-checkpoint.bats" unless is_tumbleweed;
+        if (is_sle(">=16.0")) {
+            # This test fails on older versions of passt
+            # https://bugzilla.suse.com/show_bug.cgi?id=1260032
+            my $passt_version = script_output q(rpm -q --queryformat='%{VERSION}' passt | awk -F '[.^]' '{ print $2 }'), proceed_on_failure => 1;
+            run_command "rm -f test/system/505-networking-pasta.bats" if ($passt_version <= 20250415);
+        }
     }
 
     # Compile helpers used by the tests
