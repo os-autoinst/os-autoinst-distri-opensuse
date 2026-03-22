@@ -43,7 +43,8 @@ use power_action_utils 'power_action';
 
 # Define constants for SNP verification
 use constant {
-    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'snpguest'],
+    # ucode-amd provides CPU microcode required by snphost ok verification
+    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'snpguest', 'ucode-amd'],
     SNP_GUEST_TOOLS => ['snpguest'],
     SNP_MIN_KERNEL_VER => '5.19.0',
 
@@ -162,10 +163,8 @@ sub check_sev_snp_on_host {
     # Activate Confidential Computing module if needed
     $self->activate_coco_module();
 
-    # Configure SEV-SNP kernel parameters
-    $self->configure_sev_snp_kernel_parameters();
-
-    # Install and verify required packages
+    # Install packages before kernel parameter configuration so the reboot also loads new microcode
+    # (configure_sev_snp_kernel_parameters triggers a reboot when parameters are missing)
     record_info('Installing SNP packages', "Installing SEV-SNP packages: " . join(', ', @{+SNP_HOST_TOOLS}));
     install_package(join(' ', @{+SNP_HOST_TOOLS}));
 
@@ -180,6 +179,9 @@ sub check_sev_snp_on_host {
         my $installed_pkgs_info = script_output("rpm -q " . join(' ', @{+SNP_HOST_TOOLS}) . " 2>/dev/null || echo 'Some packages not found'", proceed_on_failure => 1);
         record_info('Installed SEV-SNP Packages', $installed_pkgs_info);
     }
+
+    # Configure SEV-SNP kernel parameters (reboots if needed, also loads newly installed ucode-amd)
+    $self->configure_sev_snp_kernel_parameters();
 
     # Check kernel version
     my $kernel_ver = script_output('uname -r');
