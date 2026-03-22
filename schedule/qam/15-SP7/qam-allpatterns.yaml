@@ -36,6 +36,7 @@ schedule:
 - console/yast2_i
 - console/yast2_bootloader
 - console/firewall_enabled
+- console/networkmanager
 - console/sshd
 - console/ssh_cleanup
 - console/mtab
