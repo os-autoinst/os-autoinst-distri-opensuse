@@ -4,7 +4,7 @@ use Test::More;
 use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
-use List::Util qw(any);
+use List::Util qw(any none);
 use sles4sap::ibsm;
 
 subtest '[ibsm_calculate_address_range]' => sub {
@@ -441,5 +441,84 @@ subtest '[ibsm_network_peering_azure_delete] peering list failure' => sub {
     is(scalar @deleted, 1, 'Only one peering deleted when IBSM VNET is missing');
     is($deleted[0], 'VNETCOLIBRI-VNETPASSEROTTO', 'Deleted the listed peering VNETCOLIBRI-VNETPASSEROTTO');
 };
+
+subtest '[ibsm_network_peering_gcp_create]' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @spoke_create_args;
+    $ibsm->redefine(gcp_ncc_spoke_create => sub {
+            my (%args) = @_;
+            push @spoke_create_args, \%args;
+            note(" --> gcp_ncc_spoke_create(name => '$args{name}', hub => '$args{hub}')");
+    });
+    my $wait_called = 0;
+    $ibsm->redefine(gcp_ncc_spoke_wait_active => sub { $wait_called = 1; });
+
+    ibsm_network_peering_gcp_create(
+        ibsm_ncc_hub => 'projects/ibsm-project/locations/global/hubs/ibsm-hub',
+        sut_network => 'my-network',
+        sut_project => 'my-project',
+        spoke_name => 'my-spoke');
+
+    is(scalar @spoke_create_args, 1, 'gcp_ncc_spoke_create called once');
+    is($spoke_create_args[0]->{name}, 'my-spoke', 'Correct spoke name');
+    is($spoke_create_args[0]->{hub}, 'projects/ibsm-project/locations/global/hubs/ibsm-hub', 'Correct hub URI');
+    is($spoke_create_args[0]->{network}, 'my-network', 'Correct network');
+    is($spoke_create_args[0]->{project}, 'my-project', 'Correct project');
+    ok($wait_called, 'gcp_ncc_spoke_wait_active called');
+};
+
+subtest '[ibsm_network_peering_gcp_create] missing arguments' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+    $ibsm->redefine(gcp_ncc_spoke_create => sub { });
+    $ibsm->redefine(gcp_ncc_spoke_wait_active => sub { });
+
+    dies_ok {
+        ibsm_network_peering_gcp_create(sut_network => 'n', sut_project => 'p', spoke_name => 's')
+    } 'Dies without ibsm_ncc_hub';
+    dies_ok {
+        ibsm_network_peering_gcp_create(ibsm_ncc_hub => 'h', sut_project => 'p', spoke_name => 's')
+    } 'Dies without sut_network';
+    dies_ok {
+        ibsm_network_peering_gcp_create(ibsm_ncc_hub => 'h', sut_network => 'n', spoke_name => 's')
+    } 'Dies without sut_project';
+    dies_ok {
+        ibsm_network_peering_gcp_create(ibsm_ncc_hub => 'h', sut_network => 'n', sut_project => 'p')
+    } 'Dies without spoke_name';
+};
+
+subtest '[ibsm_network_peering_gcp_delete] success' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @delete_args;
+    $ibsm->redefine(gcp_ncc_spoke_delete => sub {
+            my (%args) = @_;
+            push @delete_args, \%args;
+            return 0;
+    });
+
+    my $ret = ibsm_network_peering_gcp_delete(spoke_name => 'my-spoke');
+
+    is(scalar @delete_args, 1, 'gcp_ncc_spoke_delete called once');
+    is($delete_args[0]->{name}, 'my-spoke', 'Correct spoke name passed');
+    is($ret, 0, 'Returns 0 on success');
+};
+
+subtest '[ibsm_network_peering_gcp_delete] failure' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ibsm->redefine(gcp_ncc_spoke_delete => sub { return 1; });
+
+    my $ret = ibsm_network_peering_gcp_delete(spoke_name => 'my-spoke');
+
+    ok($ret != 0, 'Returns non-zero on failure');
+};
+
+subtest '[ibsm_network_peering_gcp_delete] missing arguments' => sub {
+    dies_ok { ibsm_network_peering_gcp_delete() } 'Dies without spoke_name';
+};
+
 
 done_testing;

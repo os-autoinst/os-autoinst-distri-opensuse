@@ -33,6 +33,9 @@ our @EXPORT = qw(
   gcp_vm_wait_running
   gcp_vm_terminate
   gcp_public_ip_get
+  gcp_ncc_spoke_create
+  gcp_ncc_spoke_delete
+  gcp_ncc_spoke_wait_active
 );
 
 
@@ -428,5 +431,104 @@ sub gcp_public_ip_get(%args) {
             '--format="get(networkInterfaces[0].accessConfigs[0].natIP)"'));
 }
 
-1;
 
+=head2 gcp_ncc_spoke_create
+
+    gcp_ncc_spoke_create(
+        project => 'my-project',
+        name    => 'my-spoke',
+        hub     => 'projects/ibsm-project/locations/global/hubs/ibsm-hub',
+        network => 'my-network');
+
+Create a VPC spoke and attach it to an NCC hub. The hub may be in a different project.
+
+=over
+
+=item B<project> - GCP project ID where the spoke will be created
+
+=item B<name> - name for the spoke
+
+=item B<hub> - full resource URI of the NCC hub
+
+=item B<network> - name of the VPC network to attach
+
+=item B<group> - optional, NCC hub group to join (e.g., 'default')
+
+=back
+=cut
+
+sub gcp_ncc_spoke_create(%args) {
+    foreach (qw(project name hub network)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $group_opt = $args{group} ? "--group $args{group}" : '';
+
+    assert_script_run(join(' ',
+            'gcloud network-connectivity spokes linked-vpc-network create', $args{name},
+            '--hub', $args{hub},
+            '--global',
+            $group_opt,
+            '--vpc-network', $args{network},
+            '--project', $args{project}));
+}
+
+=head2 gcp_ncc_spoke_delete
+
+    my $ret = gcp_ncc_spoke_delete(name => 'my-spoke' [, timeout => 600]);
+
+Delete a VPC spoke. Does not assert but returns the exit code.
+
+=over
+
+=item B<name> - name of the spoke to delete
+
+=item B<timeout> - optional, timeout for the delete operation (default 600)
+
+=back
+=cut
+
+sub gcp_ncc_spoke_delete(%args) {
+    foreach (qw(name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 600;
+
+    return script_run(join(' ',
+            'gcloud network-connectivity spokes delete', $args{name},
+            '--global',
+            '--quiet'), timeout => $args{timeout});
+}
+
+=head2 gcp_ncc_spoke_wait_active
+
+    gcp_ncc_spoke_wait_active(name => 'my-spoke' [, timeout => 300]);
+
+Wait for an NCC spoke to reach ACTIVE state.
+
+=over
+
+=item B<name> - name of the spoke
+
+=item B<timeout> - optional, timeout in seconds (default 300)
+
+=back
+=cut
+
+sub gcp_ncc_spoke_wait_active(%args) {
+    foreach (qw(name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 300;
+
+    my $start_time = time();
+    while ((time() - $start_time) < $args{timeout}) {
+        my $state = script_output(join(' ',
+                'gcloud network-connectivity spokes describe', $args{name},
+                '--global',
+                '--format="get(state)"'),
+            proceed_on_failure => 1);
+        return (time() - $start_time) if (($state // '') eq 'ACTIVE');
+        sleep 10;
+    }
+    die "NCC spoke $args{name} not ACTIVE after $args{timeout} seconds";
+}
+
+1;

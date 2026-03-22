@@ -225,6 +225,10 @@ subtest '[crash_cleanup] GCE' => sub {
             my ($cmd, %args) = @_;
             push @calls, $cmd;
             return 0; });
+    $gcp->redefine(script_output => sub {
+            my ($cmd, %args) = @_;
+            push @calls, $cmd;
+            return 'crashRussulaEmetica-spoke'; });
 
     my $ret = crash_cleanup(provider => 'GCE', region => 'reg1', availability_zone => 'AmanitaExitialis');
 
@@ -330,6 +334,130 @@ subtest '[crash_wait_back] failed services' => sub {
     dies_ok { crash_wait_back(vm_ip => 'SchizophyllumCommune', username => 'TricholomaSulphureum') };
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+};
+
+subtest '[crash_network_peering_create] AZURE' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    $crash->redefine(crash_pubip => sub { return 'Inoc.ybe.Geo.phylla'; });
+    $crash->redefine(crash_get_username => sub { return 'cloudadmin'; });
+    $crash->redefine(assert_script_run => sub { });
+
+    my @peering_args;
+    $crash->redefine(ibsm_network_peering_azure_create => sub {
+            my (%args) = @_;
+            push @peering_args, \%args;
+    });
+
+    crash_network_peering_create(
+        provider => 'AZURE',
+        ibsm_ip => '10.0.0.1',
+        region => 'westeurope',
+        ibsm_rg => 'IBSmRg');
+
+    is(scalar @peering_args, 1, 'ibsm_network_peering_azure_create called once');
+    is($peering_args[0]->{ibsm_rg}, 'IBSmRg', 'Correct ibsm_rg passed');
+    is($peering_args[0]->{sut_rg}, 'crashRussulaEmetica', 'Correct sut_rg derived from job id');
+};
+
+subtest '[crash_network_peering_create] GCE' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+    $crash->redefine(crash_pubip => sub { return 'GyromitraEsculenta'; });
+    $crash->redefine(crash_get_username => sub { return 'cloudadmin'; });
+    $crash->redefine(assert_script_run => sub { });
+
+    my @spoke_args;
+    $crash->redefine(ibsm_network_peering_gcp_create => sub {
+            my (%args) = @_;
+            push @spoke_args, \%args;
+    });
+
+    crash_network_peering_create(
+        provider => 'GCE',
+        ibsm_ip => '10.0.0.2',
+        region => 'us-central1',
+        availability_zone => 'a',
+        project => 'CalonariusSplendens',
+        ibsm_ncc_hub => 'projects/ibsm-project/locations/global/hubs/ibsm-hub');
+
+    is(scalar @spoke_args, 1, 'ibsm_network_peering_gcp_create called once');
+    is($spoke_args[0]->{ibsm_ncc_hub}, 'projects/ibsm-project/locations/global/hubs/ibsm-hub', 'Correct hub URI');
+    is($spoke_args[0]->{sut_project}, 'CalonariusSplendens', 'Correct sut_project');
+    is($spoke_args[0]->{sut_network}, 'crashRussulaEmetica-network', 'Correct sut_network derived from job id');
+    is($spoke_args[0]->{spoke_name}, 'crashRussulaEmetica-spoke', 'Correct spoke_name derived from job id');
+};
+
+subtest '[crash_network_peering_create] unsupported provider' => sub {
+    dies_ok {
+        crash_network_peering_create(provider => 'EC2', ibsm_ip => '1.2.3.4', region => 'r')
+    } 'Dies for EC2 provider';
+    dies_ok {
+        crash_network_peering_create(provider => 'FUNGUS', ibsm_ip => '1.2.3.4', region => 'r')
+    } 'Dies for unsupported provider';
+};
+
+subtest '[crash_network_peering_create] missing arguments' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(crash_pubip => sub { return '1.2.3.4'; });
+    $crash->redefine(crash_get_username => sub { return 'cloudadmin'; });
+    $crash->redefine(ibsm_network_peering_azure_create => sub { });
+    $crash->redefine(ibsm_add_host_entry_and_repos => sub { });
+    $crash->redefine(assert_script_run => sub { });
+
+    dies_ok {
+        crash_network_peering_create(provider => 'AZURE', ibsm_ip => '1.2.3.4', region => 'r')
+    } 'Dies when AZURE without ibsm_rg';
+    dies_ok {
+        crash_network_peering_create(provider => 'GCE', ibsm_ip => '1.2.3.4', region => 'r',
+            availability_zone => 'a', project => 'p')
+    } 'Dies when GCE without ibsm_ncc_hub';
+};
+
+subtest '[crash_network_peering_delete] AZURE' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+
+    my @delete_args;
+    $crash->redefine(ibsm_network_peering_azure_delete => sub {
+            my (%args) = @_;
+            push @delete_args, \%args;
+    });
+
+    crash_network_peering_delete(provider => 'AZURE', ibsm_rg => 'IBSmRg');
+
+    is(scalar @delete_args, 1, 'ibsm_network_peering_azure_delete called once');
+    is($delete_args[0]->{ibsm_rg}, 'IBSmRg', 'Correct ibsm_rg passed');
+    is($delete_args[0]->{sut_rg}, 'crashRussulaEmetica', 'Correct sut_rg derived from job id');
+};
+
+subtest '[crash_network_peering_delete] GCE' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    $crash->redefine(get_current_job_id => sub { return 'RussulaEmetica'; });
+
+    my @delete_args;
+    $crash->redefine(ibsm_network_peering_gcp_delete => sub {
+            my (%args) = @_;
+            push @delete_args, \%args;
+    });
+
+    crash_network_peering_delete(provider => 'GCE');
+
+    is(scalar @delete_args, 1, 'ibsm_network_peering_gcp_delete called once');
+    is($delete_args[0]->{spoke_name}, 'crashRussulaEmetica-spoke', 'Correct spoke_name derived from job id');
+};
+
+subtest '[crash_network_peering_delete] unsupported provider' => sub {
+    dies_ok {
+        crash_network_peering_delete(provider => 'EC2')
+    } 'Dies for EC2 provider';
+};
+
+subtest '[crash_network_peering_delete] missing arguments' => sub {
+    dies_ok { crash_network_peering_delete() } 'Dies without provider';
+    dies_ok {
+        crash_network_peering_delete(provider => 'AZURE')
+    } 'Dies when AZURE without ibsm_rg';
 };
 
 done_testing;
