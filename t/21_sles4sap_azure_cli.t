@@ -860,14 +860,83 @@ subtest '[az_vm_diagnostic_log_get]' => sub {
             push @calls, $_[0];
             # simulate 2 VM
             return '[{"id": "0001", "name": "Truffaldino"}, {"id": "0002", "name": "Mirandolina"}]'; });
-    $azcli->redefine(script_run => sub { push @calls, $_[0]; });
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    az_vm_diagnostic_log_get(resource_group => 'Arlecchino');
+    my @ret = az_vm_diagnostic_log_get(resource_group => 'Arlecchino');
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  R-->  " . join("\n  R-->  ", @ret));
+    ok((any { /az vm list/ } @calls), 'Correct composition of the list command');
     ok((any { /az vm boot-diagnostics get-boot-log/ } @calls), 'Correct composition of the main command');
-    ok((any { /--ids 0001.*tee.*Truffaldino\.txt/ } @calls), 'Correct composition of the --id for the first VM');
-    ok((any { /--ids 0002.*tee.*Mirandolina\.txt/ } @calls), 'Correct composition of the --id for the second VM');
+    ok((any { /--ids 0001.*Truffaldino\.txt/ } @calls), 'Correct composition of the --id for the first VM');
+    ok((any { /--ids 0002.*Mirandolina\.txt/ } @calls), 'Correct composition of the --id for the second VM');
+    ok((none { /.*tee.*/ } @calls), 'Correctly not use tee to redirect output to file');
+
+    ok scalar @ret == 2, "Two logs one for each VM";
+    ok((any { /\/tmp\/boot-diagnostics_.*/ } @ret), 'Correct log filenames');
+};
+
+subtest '[az_vm_diagnostic_log_get] verbose' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            # simulate 2 VM
+            return '[{"id": "0001", "name": "Truffaldino"}, {"id": "0002", "name": "Mirandolina"}]'; });
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @ret = az_vm_diagnostic_log_get(resource_group => 'Arlecchino', verbose => 1);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  R-->  " . join("\n  R-->  ", @ret));
+    ok((any { /.*tee.*/ } @calls), 'Correctly use tee to redirect output to file');
+};
+
+subtest '[az_vm_diagnostic_log_get] no VMs' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            # simulate 2 VM
+            return '[]'; });
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @ret = az_vm_diagnostic_log_get(resource_group => 'Arlecchino');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  R-->  " . join("\n  R-->  ", @ret));
+    ok((any { /az vm list/ } @calls), 'Correct composition of the list command');
+    ok((none { /az vm boot-diagnostics get-boot-log/ } @calls), 'Correct composition of the main command');
+    ok scalar @ret == 0, "No logs";
+};
+
+subtest '[az_vm_diagnostic_log_get] one fail' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub {
+            push @calls, $_[0];
+            # simulate 2 VM
+            return '[{"id": "0001", "name": "Truffaldino"}, {"id": "0002", "name": "Mirandolina"}]'; });
+    $azcli->redefine(script_run => sub {
+            my ($cmd) = @_;
+            push @calls, $cmd;
+            return ($cmd =~ /Mirandolina/) ? 1 : 0; });
+    $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @ret = az_vm_diagnostic_log_get(resource_group => 'Arlecchino');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    note("\n  R-->  " . join("\n  R-->  ", @ret));
+    ok((any { /az vm list/ } @calls), 'Correct composition of the list command');
+    ok((any { /az vm boot-diagnostics get-boot-log/ } @calls), 'Correct composition of the main command');
+    ok((any { /--ids 0001.*Truffaldino\.txt/ } @calls), 'Correct composition of the --id for the first VM');
+    ok((any { /--ids 0002.*Mirandolina\.txt/ } @calls), 'Correct composition of the --id for the second VM');
+
+    ok scalar @ret == 1, "One log for the non failing VM";
+    ok((any { /\/tmp\/boot-diagnostics_.*/ } @ret), 'Correct log filenames');
 };
 
 subtest '[az_storage_account_create]' => sub {
