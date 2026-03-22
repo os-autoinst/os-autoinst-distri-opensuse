@@ -90,6 +90,7 @@ moby:
   # https://github.com/moby/moby/pull/52117 - integration/capabilities: Switch to debian:trixie-slim
   # https://github.com/moby/moby/pull/52119 - integration/image: pull ppc64le and s390x in TestSaveAndLoadPlatform
   # https://github.com/moby/moby/pull/52197 - integration: ignore container Status field in DiskUsage test comparisons
+  # https://github.com/moby/moby/pull/52199 - Fix testsuite when running directly as rootless
   51219:
     merged: "29.0.0"
   # XXX not merged
@@ -109,6 +110,8 @@ moby:
     min: "29.2.0"
     merged: "29.3.0"
   52197:
+    min: "29.2.0"
+  52199:
     min: "29.2.0"
 
 netavark:
