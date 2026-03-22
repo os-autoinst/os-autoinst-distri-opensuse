@@ -121,7 +121,6 @@ podman:
   # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
   # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
   # https://github.com/containers/podman/pull/26017 is needed for 030-run
-  # https://github.com/containers/podman/pull/26798 is needed for pasta
   # https://github.com/containers/podman/pull/26920 is needed to drop ncat
   # https://github.com/containers/podman/pull/26921 is needed to drop socat
   # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
@@ -156,10 +155,6 @@ podman:
   26947:
     merged: "5.7.0"
     min: "5.4.0"
-  # XXX: Not merged
-  26798:
-    merged: "5.7.0"
-    min: "5.0.0"
   26920:
     merged: "5.7.0"
   26921:
