@@ -47,7 +47,7 @@ sub grub_test {
     if ((is_aarch64 && is_sle && get_var('PLYMOUTH_DEBUG'))
         || get_var('GRUB_KERNEL_OPTION_APPEND'))
     {
-        bug_workaround_bsc1005313() unless get_var("BOOT_TO_SNAPSHOT");
+        append_kernel_options() unless get_var("BOOT_TO_SNAPSHOT");
     }
     else {
         # avoid timeout for booting to HDD
@@ -77,7 +77,7 @@ sub handle_installer_medium_bootup {
     'opensusebasetest'->handle_uefi_boot_disk_workaround() if (is_aarch64);
 }
 
-sub bug_workaround_bsc1005313 {
+sub append_kernel_options {
     send_key 'e';
     check_screen "linux-line-selected", 2;
     # Move to end of kernel boot parameters line
