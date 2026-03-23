@@ -1,0 +1,46 @@
+From 2b2257a19d3474d42b42823e50cb63b789fee48d Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Mon, 23 Mar 2026 18:48:17 +0100
+Subject: [PATCH] integration: Force amd64 on TestProxyMetadata
+
+Otherwise test fails on other architectures due to
+https://github.com/containers/skopeo/issues/2829
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ integration/proxy_test.go | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/integration/proxy_test.go b/integration/proxy_test.go
+index 586035e6df..fed3a5aa97 100644
+--- a/integration/proxy_test.go
++++ b/integration/proxy_test.go
+@@ -261,7 +261,7 @@ func (p *proxy) callGetRawBlob(args []any) (rval any, buf []byte, err error) {
+ 	return
+ }
+ 
+-func newProxy() (*proxy, error) {
++func newProxy(extraArgs ...string) (*proxy, error) {
+ 	fds, err := syscall.Socketpair(syscall.AF_LOCAL, syscall.SOCK_SEQPACKET, 0)
+ 	if err != nil {
+ 		return nil, err
+@@ -277,7 +277,8 @@ func newProxy() (*proxy, error) {
+ 	}
+ 
+ 	// Note ExtraFiles starts at 3
+-	proc := exec.Command(skopeoBinary, "experimental-image-proxy", "--sockfd", "3")
++	args := append(append([]string{}, extraArgs...), "experimental-image-proxy", "--sockfd", "3")
++	proc := exec.Command(skopeoBinary, args...)
+ 	proc.Stderr = os.Stderr
+ 	cmdLifecycleToParentIfPossible(proc)
+ 	proc.ExtraFiles = append(proc.ExtraFiles, theirfd)
+@@ -475,7 +476,8 @@ func runTestGetBlob(p *proxy, img string) error {
+ 
+ func (s *proxySuite) TestProxyMetadata() {
+ 	t := s.T()
+-	p, err := newProxy()
++	// The test image quay.io/coreos/11bot is only available for amd64
++	p, err := newProxy("--override-arch", "amd64")
+ 	require.NoError(t, err)
+ 
+ 	err = runTestMetadataAPIs(p, knownNotManifestListedImageX8664)
