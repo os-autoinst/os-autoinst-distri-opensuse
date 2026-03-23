@@ -495,19 +495,19 @@ sub wait_for_ssh {
 
         # Merge exit results
         $exit_code = $exit_timeout || $exit_ssh || $exit_code;
-        # Add debugging info on error:
+        # on error show debugging infos, validate sshd_config configuration file and verbose ssh
         unless (isok($exit_code)) {
-            # validate sshd_config configuration file and verbose ssh debugging
-            my $debug = script_output("ssh " . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'sudo sshd -t && echo sshd OK || echo sshd config error'", timeout => 90, proceed_on_failure => 1) . "\n";
-            $debug .= script_output("ssh -vvv " . $self->ssh_opts() . " " . $args{username} . "@" . $self->{public_ip} . " -- 'ls -lR /etc/ssh'", timeout => 90, proceed_on_failure => 1) . "\n";
-            record_info('SSH CHECK', "Check ssh on error\n" . $debug, result => 'fail');
+            my $debug .= "\n " . $self->ssh_script_output(cmd => 'set -x; systemctl list-jobs; systemctl --failed', ssh_opts => "-vvv " . $self->ssh_opts(), username => $args{username}, timeout => 90, proceed_on_failure => 1);
+            $debug .= "\n " . $self->ssh_script_output(cmd => 'sudo sshd -t && echo sshd OK || echo sshd config error', ssh_opts => $self->ssh_opts(), username => $args{username}, timeout => 90, proceed_on_failure => 1);
+            record_info('DEBUG', "Check system on error:" . $debug, result => 'fail');
         }
         # Log upload
         if (!get_var('PUBLIC_CLOUD_SLES4SAP') and $args{logs}) {
             #Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
-            $self->ssh_script_run('sudo journalctl -b --no-pager > /tmp/journalctl.log',
+            $self->ssh_script_run('sudo journalctl -b --no-pager > /tmp/journalctl.txt',
                 timeout => 360, ignore_timeout_failure => 1, username => $args{username}, quiet => 1);
-            $self->upload_log('/tmp/journalctl.log', failok => 1);
+            $self->upload_log('/tmp/journalctl.txt', failok => 1);
+            upload_logs('/var/tmp/ssh_sut.log', log_name => "ssh_sut.log.txt", failok => 1);
         }    # endif
     }    # endif
 
@@ -518,7 +518,7 @@ sub wait_for_ssh {
     $instance_msg .= $sysout if defined($sysout);
     $instance_msg .= "\nRetries on failure: $retry" if ($retry);
     # $sysout is not available if $args{systemup_check} is 0
-    record_info("WAIT CHECK:" . isok($exit_code), $instance_msg, result => (defined($sysout) && $sysout =~ m/\sfailed\s/) ? "fail" : "ok");
+    record_info("WAIT CHECK:" . isok($exit_code), $instance_msg, result => (defined($sysout) && $sysout =~ m/\sfailed|timeout\s/i) ? "fail" : "ok");
 
     # OK
     return $duration if (!$exit_code && !$args{wait_stop} || $exit_code && $args{wait_stop});
