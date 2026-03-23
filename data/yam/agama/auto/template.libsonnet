@@ -71,13 +71,14 @@ function(bootloader=true,
             [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
             [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
           },
-          [if decrypt_password != '' || registration_packagehub || multipath_activate  then 'questions']: {
-            answers: std.prune([
-              if decrypt_password != '' then answers_lib.questions_decrypt(decrypt_password),
-              if registration_packagehub then answers_lib.questions_import_gpg(),
-              if multipath_activate then answers_lib.questions_activate_multipath(),
+          questions: {
+            policy: 'auto',
+            [if decrypt_password != '' || registration_packagehub || multipath_activate  then 'answers']: std.prune([
+                if decrypt_password != '' then answers_lib.questions_decrypt(decrypt_password),
+                if registration_packagehub then answers_lib.questions_import_gpg(),
+                if multipath_activate then answers_lib.questions_activate_multipath(),
             ]),
-          },
+          }, 
           [if storage != '' then 'storage']: storage_lib[storage],
           [if user == true then 'user']: base_lib['user'],
         })
