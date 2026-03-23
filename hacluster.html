@@ -15,6 +15,8 @@
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
       <li><a href="#Global-Variables">Global Variables</a></li>
+      <li><a href="#sync_file">sync_file</a></li>
+      <li><a href="#sync_path">sync_path</a></li>
       <li><a href="#exec_csync">exec_csync</a></li>
       <li><a href="#add_file_in_csync">add_file_in_csync</a></li>
       <li><a href="#get_cluster_info">get_cluster_info</a></li>
@@ -120,6 +122,19 @@
 
 </li>
 </ul>
+
+<h2 id="sync_file">sync_file</h2>
+
+<pre><code>sync_file(&#39;/path/to/file&#39;);</code></pre>
+
+<p>Wrapper function to synchronize a specific file to all nodes in the cluster based on the OS version. It will call <code>crm cluster copy</code> in SLES 16 or newer, and <code>add_file_in_csync</code> which internally calls <code>exec_csync</code> in versions older than 16.</p>
+
+<h2 id="sync_path">sync_path</h2>
+
+<pre><code>sync_path(&#39;/path/to/dir&#39;);
+sync_path(&#39;/path/to/files*&#39;);</code></pre>
+
+<p>Function to syncronize a list of files or a directory to all nodes in the cluster based on the OS version. It will use <code>add_file_in_csync</code> which internally calls <code>exec_csync</code> when the OS is older than 16.0; on newer, it will call <code>crm cluster copy</code> for all files matching the given path after expanding any shell wildcards and recursing into any directories.</p>
 
 <h2 id="exec_csync">exec_csync</h2>
 
