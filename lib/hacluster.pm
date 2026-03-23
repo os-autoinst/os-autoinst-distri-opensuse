@@ -38,6 +38,8 @@ our @EXPORT = qw(
   $sbd_watchdog_timeout
   $sbd_delay_start
   $pcmk_delay_max
+  sync_file
+  sync_path
   exec_csync
   add_file_in_csync
   get_cluster_info
@@ -162,6 +164,42 @@ sub _test_var_defined {
 }
 
 # Public functions
+
+=head2 sync_file
+
+ sync_file('/path/to/file');
+
+Wrapper function to synchronize a specific file to all nodes in the cluster based
+on the OS version. It will call C<crm cluster copy> in SLES 16 or newer, and
+C<add_file_in_csync> which internally calls C<exec_csync> in versions older than 16.
+
+=cut
+
+sub sync_file {
+    my $file = shift;
+    is_sle('>=16') ? assert_script_run("crm cluster copy $file") : add_file_in_csync(value => $file);
+}
+
+=head2 sync_path
+
+ sync_path('/path/to/dir');
+ sync_path('/path/to/files*');
+
+Function to syncronize a list of files or a directory to all nodes in the cluster based
+on the OS version. It will use C<add_file_in_csync> which internally calls C<exec_csync> when
+the OS is older than 16.0; on newer, it will call C<crm cluster copy> for all files matching the
+given path after expanding any shell wildcards and recursing into any directories.
+
+=cut
+
+sub sync_path {
+    my $path = shift;
+    # In OS older than 16, use add_file_in_csync and let csync2 handle it
+    return (add_file_in_csync(value => $path)) if is_sle('<16');
+    # On 16 or newer, expand any wildcard and pass the path to find to get all files
+    # Loop will abort with retval 1 in case any of the crm cluster copy commands fail
+    assert_script_run qq@for p in $path; do find "\$p" -type f -print; done | while read f; do crm cluster copy "\$f" || exit 1; done@;
+}
 
 =head2 exec_csync
 
