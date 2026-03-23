@@ -39,6 +39,7 @@ our @EXPORT = qw(
   configure_podman_mirror
   enable_docker
   go_arch
+  install_docker_compose
   install_gotestsum
   install_ncat
   numeric_version
