@@ -6,6 +6,7 @@
 package windowsbasetest;
 use Mojo::Base qw(basetest);
 use Utils::Architectures qw(is_aarch64);
+use version_utils qw(is_bootloader_sdboot);
 use testapi;
 
 
@@ -54,8 +55,14 @@ sub select_windows_in_grub2 {
     return unless (get_var('DUALBOOT'));
 
     assert_screen "grub-reboot-windows", 125;
-    send_key "down" for (1 .. 2);
-    send_key "ret";
+
+    if (is_bootloader_sdboot) {
+        send_key_until_needlematch 'systemd-boot-windows-selected', 'down', 2;
+        send_key "ret";
+    } else {
+        send_key "down" for (1 .. 2);
+        send_key "ret";
+    }
 }
 
 
