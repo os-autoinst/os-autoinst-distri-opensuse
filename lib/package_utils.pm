@@ -11,9 +11,9 @@ use Mojo::Base qw(Exporter);
 use testapi;
 use version_utils qw(is_transactional);
 use transactional qw(trup_call check_reboot_changes);
-use utils qw(zypper_call);
+use utils qw(zypper_call zypper_search);
 
-our @EXPORT = qw(install_package uninstall_package);
+our @EXPORT = qw(install_package install_available_packages uninstall_package);
 
 =head1 DESCRIPTION
 
@@ -55,6 +55,36 @@ sub install_package {
         $ret = zypper_call('in -l ' . $packages, timeout => $args{timeout});
     }
     return $ret;
+}
+
+=head2 install_available_packages
+
+    install_available_packages($packages, %args);
+
+C<packages> defines packages to install for both zypper and trup call,
+keyword parameters are identical to C<install_package()>.
+C<trup_continue> will be enabled by default.
+
+=cut
+
+sub install_available_packages {
+    my ($packlist, %args) = @_;
+
+    if (is_transactional) {
+        $packlist .= ' ' . ($args{trup_extra} // '');
+    }
+    else {
+        $packlist .= ' ' . ($args{zypper_extra} // '');
+    }
+
+    my $result = zypper_search("-t package --match-exact $packlist");
+    my @foundpacks = map { $_->{name} } @$result;
+
+    return 0 unless @foundpacks;
+    $args{trup_continue} //= 1;
+    delete $args{trup_extra};
+    delete $args{zypper_extra};
+    return install_package(join(' ', @foundpacks), %args);
 }
 
 =head2 uninstall_package
