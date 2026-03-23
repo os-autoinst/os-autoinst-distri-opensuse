@@ -130,9 +130,6 @@ sub install_runtime_dependencies_network {
       psmisc
       rpcbind
       rsync
-      telnet
-      tcpdump
-      vsftpd
     );
     zypper_call('-t in ' . join(' ', @deps));
 
@@ -140,6 +137,9 @@ sub install_runtime_dependencies_network {
       dhcp-client
       dhcp-server
       telnet-server
+      telnet
+      tcpdump
+      vsftpd
       wireguard-tools
       xinetd
     );
