@@ -38,6 +38,7 @@ our @EXPORT = qw(
   configure_rootless_docker
   configure_podman_mirror
   go_arch
+  install_docker_compose
   install_gotestsum
   install_ncat
   numeric_version
