@@ -66,12 +66,31 @@ function passed
   echo ""
 }
 
+function raid_sync
+{
+  count=0
+  until grep "UUU" /proc/mdstat; do
+    echo "Waiting for raid sync ..."
+    sleep 5
+    # avoid endless loop
+    (( count++ ))
+    if [ $count == 20 ]; then
+      echo "Waiting too long for raid to sync!"
+      break
+    fi
+  done
+  cat /proc/mdstat
+}
+
 function breakdown
 {
   echo ""
   echo "Test Breakdown:"
   echo "---------------"
   echo ""
+
+  # check raid status, usefull for debugging
+  run mdadm --examine $DEV_1 $DEV_2 $DEV_3
 
   run cd $HOME
   rungrepdebug "/dev/loop42" lsof
@@ -81,7 +100,7 @@ function breakdown
   if [ -e $MD_DEVICE ] ; then mdadm --stop $MD_DEVICE ; fi
   for i in 1 2 3 ; do if losetup $(eval echo \$DEV_$i) >/dev/null 2>&1 ; then run losetup -d $(eval echo \$DEV_$i) ; fi ; done
 
-  run rm -rf $TEMP_ROOT /var/tmp/mdadm.sh.conf
+  run rm -rf $TEMP_ROOT /var/tmp/mdadm.conf
 
   echo ""
   echo "$result"
@@ -146,6 +165,7 @@ run losetup -l
 
 run mdadm --create --verbose $MD_DEVICE --level=0 --raid-devices=3 --size=522240 $DEV_1 $DEV_2 $DEV_3
 
+sleep 1
 rungrep "active raid0" cat /proc/mdstat
 
 # Different fdisk versions either report "1.5 GiB" or "1.49 GiB"
@@ -173,10 +193,11 @@ do
 done
 
 run umount $MD_DEVICE
-run mdadm --detail --scan >/var/tmp/mdadm.sh.conf
+run mdadm --detail --scan |& tee /var/tmp/mdadm.conf
 run mdadm --stop $MD_DEVICE
 run sync
-run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
+sleep 2
+run mdadm --assemble --scan --config=/var/tmp/mdadm.conf
 run mount $MD_DEVICE $tempmnt
 mount | grep -F -q $tempmnt || exit 1
 
@@ -217,19 +238,7 @@ run expect -c "spawn mdadm --create --verbose $MD_DEVICE --level=1 --raid-device
 sleep 1
 rungrep "active raid1" cat /proc/mdstat
 
-count=0
-until grep "UUU" /proc/mdstat; do
-  echo "Waiting for raid sync ..."
-  sleep 5
-  # avoid endless loop
-  (( count++ ))
-  if [ $count == 20 ]; then
-    echo "Waiting too long for raid to sync!"
-    break
-  fi
-done
-
-rungrep "UUU" cat /proc/mdstat
+raid_sync
 
 rungrep "510 MiB" fdisk -l $MD_DEVICE
 
@@ -297,19 +306,7 @@ run mdadm --add $MD_DEVICE $DEV_2
 sleep 1
 rungrep "U_U" cat /proc/mdstat
 
-count=0
-until grep "UUU" /proc/mdstat; do
-  echo "Waiting for raid sync ..."
-  sleep 5
-  # avoid endless loop
-  (( count++ ))
-  if [ $count == 20 ]; then
-    echo "Waiting too long for raid to sync!"
-    break
-  fi
-done
-
-rungrep "UUU" cat /proc/mdstat
+raid_sync
 
 rungrep "clean" mdadm --detail $MD_DEVICE | grep -F "State :"
 
@@ -319,9 +316,9 @@ do
 done
 
 run umount $MD_DEVICE
-run mdadm --detail --scan > /var/tmp/mdadm.sh.conf
+run mdadm --detail --scan |& tee /var/tmp/mdadm.conf
 run mdadm --stop $MD_DEVICE
-run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
+run mdadm --assemble --scan --config=/var/tmp/mdadm.conf
 run mount $MD_DEVICE $tempmnt
 mount | grep -F -q $tempmnt || exit 1
 
@@ -362,19 +359,7 @@ run mdadm --create --verbose $MD_DEVICE --level=5 --raid-devices=3 --size=522240
 sleep 1
 rungrep "active raid5" cat /proc/mdstat
 
-count=0
-until grep "UUU" /proc/mdstat; do
-  echo "Waiting for raid sync ..."
-  sleep 5
-  # avoid endless loop
-  (( count++ ))
-  if [ $count == 20 ]; then
-    echo "Waiting too long for raid to sync!"
-    break
-  fi
-done
-
-rungrep "UUU" cat /proc/mdstat
+raid_sync
 
 rungrep "1020 MiB" fdisk -l $MD_DEVICE
 
@@ -431,19 +416,7 @@ run mdadm --add $MD_DEVICE $DEV_1
 sleep 1
 rungrep "_UU" cat /proc/mdstat
 
-count=0
-until grep "UUU" /proc/mdstat; do
-  echo "Waiting for raid sync ..."
-  sleep 5
-  # avoid endless loop
-  (( count++ ))
-  if [ $count == 20 ]; then
-    echo "Waiting too long for raid to sync!"
-    break
-  fi
-done
-
-rungrep "UUU" cat /proc/mdstat
+raid_sync
 
 rungrep "clean" mdadm --detail $MD_DEVICE | grep -F "State :"
 
@@ -453,9 +426,9 @@ do
 done
 
 run umount $MD_DEVICE
-run mdadm --detail --scan > /var/tmp/mdadm.sh.conf
+run mdadm --detail --scan |& tee /var/tmp/mdadm.conf
 run mdadm --stop $MD_DEVICE
-run mdadm --assemble --scan --config=/var/tmp/mdadm.sh.conf
+run mdadm --assemble --scan --config=/var/tmp/mdadm.conf
 run mount $MD_DEVICE $tempmnt
 mount | grep -F -q $tempmnt || exit 1
 
