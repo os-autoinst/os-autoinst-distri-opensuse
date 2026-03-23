@@ -18,6 +18,7 @@ schedule:
     - fips/gnutls/gnutls_base_check
     - fips/gnutls/gnutls_server
     - fips/gnutls/gnutls_client
+    - fips/gnutls/gnutls_psk_sha384
     - fips/openssl/openssl_tlsv1_3
     - fips/openssl/openssl_pubkey_rsa
     - fips/openssl/openssl_pubkey_dsa
