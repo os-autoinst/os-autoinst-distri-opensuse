@@ -145,7 +145,6 @@ sub crash_deploy_azure(%args) {
         nic => $nic,
         username => USER,
         region => $args{region});
-    $vm_create_args{security_type} = 'Standard' if is_sle('<=12-SP5');
     $vm_create_args{timeout} = 1200;
     az_vm_create(%vm_create_args);
 
