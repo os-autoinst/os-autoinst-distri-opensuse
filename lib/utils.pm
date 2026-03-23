@@ -1093,8 +1093,10 @@ by exact name match.
 sub zypper_install_available {
     my $packlist = join(' ', @_);
     my $result = zypper_search("-t package --match-exact $packlist");
+    my @foundpacks = map { $_->{name} } @$result;
 
-    return zypper_call('-t in ' . join(' ', map { $_->{name} } @$result));
+    return 0 unless @foundpacks;
+    return zypper_call('-t in ' . join(' ', @foundpacks));
 }
 
 =head2 set_zypper_lock_timeout
