@@ -15,10 +15,16 @@ use utils;
 use publiccloud::ssh_interactive qw(ssh_interactive_tunnel);
 use publiccloud::utils qw(allow_openqa_port_selinux);
 use version_utils;
+use Utils::Systemd qw(systemctl);
 
 sub run {
     my ($self, $args) = @_;
     die "tunnel-console requires the TUNNELED=1 setting" unless (is_tunneled());
+
+    # activate tty2/tty3/tty4 in advance, as under some circumstances test fails
+    # on assert_screen() if too much time has passed without activity in the tty
+    select_serial_terminal();
+    systemctl("restart getty\@tty$_.service", timeout => 60) for (2 .. 4);
 
     # Initialize ssh tunnel for the serial device, if not yet happened
     ssh_interactive_tunnel($args->{my_instance}) if (get_var('_SSH_TUNNELS_INITIALIZED', 0) == 0);
