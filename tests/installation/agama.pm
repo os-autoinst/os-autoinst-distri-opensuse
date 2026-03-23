@@ -30,6 +30,7 @@ sub back_to_overview {
 sub has_product_selection {
     return 0 if is_s390x;
     return 0 if is_ppc64le && is_leap('=16.0');
+    return 0 if is_leap('>16.0');
     return 1;
 }
 
