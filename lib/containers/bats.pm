@@ -289,12 +289,8 @@ sub install_git {
     # We need git 2.47.0+ to use `--ours` with `git apply -3`
     return if (script_run("test -f /etc/zypp/repos.d/Kernel_tools.repo") == 0);
     my $version = get_var("VERSION");
-    if (is_sle('<16')) {
-        $version =~ s/-/_/;
-        $version = "SLE_$version";
-    }
-    # 16.1 is BETA
-    $version = "16.0" if ($version eq "16.1");
+    $version =~ s/-/_/;
+    $version = "SLE_$version";
     run_command "zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
     run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
 }
@@ -401,7 +397,7 @@ sub setup_pkgs {
     @pkgs = uniq sort @pkgs;
     push @pkgs, "git" unless is_sle;
     run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change @pkgs", timeout => 1200;
-    install_git unless is_tumbleweed;
+    install_git if is_sle("<16.0");
 
     # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1259147
     if (is_tumbleweed && is_x86_64 && !get_var("OCI_RUNTIME") && (check_var("BATS_PACKAGE", "buildah") || check_var("BATS_PACKAGE", "podman"))) {
