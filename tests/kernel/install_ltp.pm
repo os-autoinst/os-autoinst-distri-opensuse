@@ -312,9 +312,9 @@ sub run {
     # Enables repositories on full installation medium
     zypper_enable_install_dvd if (get_var('FLAVOR') eq 'Full-QR');
 
-    # Lock kernel default on transactional system and RT flavors
+    # Lock kernel default on transactional system, RT flavors and MinimalVM
     # This is workaround for poo#165036 to prevent kernel-default and kernel-default-base installation
-    zypper_call("al kernel-default kernel-default-base") if (is_transactional && (get_var('FLAVOR', '') =~ /Base-RT-Updates|Base-RT|Base-RT-encrypted|Base-Kernel-RT/));
+    zypper_call("al kernel-default kernel-default-base") if (is_transactional && (get_var('FLAVOR', '') =~ /Base-RT-Updates|Base-RT|Base-RT-encrypted|Base-Kernel-RT/) || is_jeos);
 
     # Register Extras repository on SL Micro 6.0+
     add_suseconnect_product('SL-Micro-Extras', get_var('VERSION')) if (is_sle_micro('6.0+'));
