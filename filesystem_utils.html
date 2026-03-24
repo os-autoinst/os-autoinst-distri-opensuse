@@ -32,6 +32,7 @@
       <li><a href="#lsblk_command">lsblk_command</a></li>
       <li><a href="#create_lsblk_validation_test_data">create_lsblk_validation_test_data</a></li>
       <li><a href="#validate_lsblk">validate_lsblk</a></li>
+      <li><a href="#fetch_xfstests_blacklist_from_url">fetch_xfstests_blacklist_from_url</a></li>
       <li><a href="#"></a></li>
     </ul>
   </li>
@@ -147,6 +148,12 @@
 <p><b>type</b> represents the type of device. Valid values: &#39;disk&#39; and &#39;part&#39;; <b>has_mountpoints_col</b> indicates whether version of <code>lsblk</code> used contains new MOUNTPOINTS column including all subvolumes mountpoints or not.</p>
 
 <p>Returns string with all found errors.</p>
+
+<h2 id="fetch_xfstests_blacklist_from_url">fetch_xfstests_blacklist_from_url</h2>
+
+<p>Fetch the xfstests blacklist YAML file from a specified URL.</p>
+
+<p>Returns hash mapping of the YAML.</p>
 
 <h2 id=""></h2>
 
