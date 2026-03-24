@@ -31,6 +31,9 @@ sub run {
 
     assert_screen 'inst-bootloader-settings';
 
+    # Workaround for bug#1158557
+    send_key 'ret' if (check_screen('inst-bootloader-unknown-udev-device'));
+
     # Select systemd-boot as bootloader
     send_key 'alt-b', wait_screen_change => 1;
     send_key 'spc', wait_screen_change => 1;
