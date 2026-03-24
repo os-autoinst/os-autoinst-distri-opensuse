@@ -10,6 +10,7 @@
 # Maintainer: Wayne Chen <wchen@suse.com>, qe-virt <qe-virt@suse.de>
 package virt_autotest::domain_management_utils;
 
+use base 'Exporter';
 use strict;
 use warnings;
 use testapi;
