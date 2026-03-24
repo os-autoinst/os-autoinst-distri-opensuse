@@ -7,8 +7,8 @@
 #
 # This module introduces a simplistic openQA runner for kernel selftests. The test
 # module allows running tests kernel selftests from either git repository which should be
-# defined in the test setting: KERNEL_GIT_TREE or from OBS/IBS repository using packaged
-# and build rpm.
+# defined in the test setting: KERNEL_GIT_TREE, from the kernel-source package installed
+# at /usr/src/linux, or from OBS/IBS repository using packaged and build rpm.
 # Running from git supports checking out specific git tag version of the kernel, so if required
 # the tests can checkout the older version, corresponding with the kernel under tests, and run
 # such tests.
@@ -140,8 +140,9 @@ sub post_run_hook {
 =head1 Description
 
 This module executes Linux Kernel Selftests (kselftests) inside openQA.
-It supports running tests either from the in-tree git repository or from
-the packaged kselftest RPMs provided by OBS/IBS.
+It supports running tests from the in-tree git repository, from the
+C<kernel-source> package, or from the packaged kselftest RPMs provided
+by OBS/IBS.
 
 The module groups tests by a collection, as listed in
 F<kselftest-list.txt>, and allows selecting individual tests, skipping
@@ -183,6 +184,12 @@ collection.
 If set, kselftests are installed from a kernel git tree instead of using
 packaged RPMs. Allows to point to C<KERNEL_GIT_TREE>. Defaults to the
 upstream tree: C<torvalds/linux.git>.
+
+=head2 KSELFTEST_FROM_SRC
+
+If set, kselftests are installed from the kernel source tree provided by
+the C<kernel-source> package instead of using packaged RPMs. The source
+tree is located at F</usr/src/linux>.
 
 =head2 KSELFTEST_RUNNER
 

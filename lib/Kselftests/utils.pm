@@ -20,6 +20,7 @@ use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
 use registration qw(add_suseconnect_product get_addon_fullname);
+use package_utils 'install_package';
 use utils qw(write_sut_file systemctl);
 
 our @EXPORT = qw(
@@ -47,6 +48,19 @@ sub install_from_git
 
     assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$collection", 7200);
     script_run("cp tools/testing/selftests/$collection/config* tools/testing/selftests/kselftest_install/$collection");
+}
+
+sub install_from_src
+{
+    my ($collection) = @_;
+
+    install_package('kernel-devel kernel-source', trup_continue => 1);
+
+    my $version = script_output('uname -r');
+    my $source = "/lib/modules/$version/source";
+    my $build = "/lib/modules/$version/build";
+
+    assert_script_run("make -j `nproc` -C $source/tools/testing/selftests install SKIP_TARGETS= TARGETS=$collection O=$build", 7200);
 }
 
 sub install_from_repo
@@ -108,6 +122,9 @@ sub install_kselftests
     if (get_var('KSELFTEST_FROM_GIT', 0)) {
         install_from_git($collection);
         assert_script_run("cd ./tools/testing/selftests/kselftest_install");
+    } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
+        install_from_src($collection);
+        assert_script_run("cd /lib/modules/`uname -r`/build/kselftest/kselftest_install");
     } else {
         install_from_repo();
         assert_script_run("cd /usr/share/kselftests");
