@@ -18,6 +18,8 @@ use utils;
 use testapi;
 
 use Mojo::JSON 'decode_json';
+use Mojo::UserAgent;
+use YAML::PP;
 
 our @EXPORT = qw(
   str_to_mb
@@ -35,6 +37,7 @@ our @EXPORT = qw(
   validate_lsblk
   get_partition_table_via_blkid
   is_lsblk_able_to_display_mountpoints
+  fetch_xfstests_blacklist_from_url
   generate_xfstests_list);
 
 =head2 str_to_mb
@@ -511,6 +514,26 @@ sub validate_lsblk {
         }
     }
     return $errors;
+}
+
+=head2 fetch_xfstests_blacklist_from_url
+
+Fetch the xfstests blacklist YAML file from a specified URL.
+
+Returns hash mapping of the YAML.
+
+=cut
+
+sub fetch_xfstests_blacklist_from_url {
+    my $url = shift;
+    my $res = Mojo::UserAgent->new->get($url)->result;
+    unless ($res->is_success) {
+        record_info("$url not available.", $res->message, result => 'softfail');
+        return;
+    }
+    my $body = $res->body;
+    my $yp = YAML::PP->new;
+    return $yp->load_string($body);
 }
 
 =head2
