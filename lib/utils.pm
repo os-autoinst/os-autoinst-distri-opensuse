@@ -347,10 +347,15 @@ sub integration_services_check {
         assert_script_run('rpmquery hyper-v');
         assert_script_run('rpmverify hyper-v');
         my $base = is_jeos() ? '-base' : '';
+        # Check Hyper-V drivers: may be builtin or loaded as modules depending on kernel
         for my $module (qw(utils netvsc storvsc vmbus)) {
-            assert_script_run("rpmquery -l kernel-default$base | grep hv_${module}.ko");
             assert_script_run("modinfo hv_$module");
-            assert_script_run("lsmod | grep hv_$module");
+            if (script_run("modinfo -F filename hv_$module | grep -qF '(builtin)'") == 0) {
+                record_info("hv_$module", "Module is built into the kernel");
+            } else {
+                assert_script_run("rpmquery -l kernel-default$base | grep hv_${module}.ko");
+                assert_script_run("lsmod | grep hv_$module");
+            }
         }
         # 'hv_balloon' need not to be loaded
         assert_script_run('modinfo hv_balloon');
