@@ -1882,7 +1882,8 @@
         "description": "kernel: block dm-0: the capability attribute has been deprecated",
         "products": {
             "sle": [
-                "16.0"
+                "16.0",
+                "16.1"
             ]
         },
         "type": "ignore"
@@ -2050,6 +2051,15 @@
             ]
         },
         "type": "ignore"
+    },
+    "forward-time-jump": {
+        "description": "Forward time jump detected",
+        "products": {
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
+        },
+        "type": "ignore"
     }
 }
-
