@@ -810,7 +810,7 @@ sub config_guest_xpath {
     $self->config_guest_params(@_) if (scalar(@_) gt 0);
     if ($self->{guest_xpath} ne '') {
         my @_guest_xpath = split(/#/, $self->{guest_xpath});
-        $self->{guest_xpath_options} = $self->{guest_xpath_options} . "--xml $_ " foreach (@_guest_xpath);
+        $self->{guest_xpath_options} .= "--xml \"$_\" " foreach (@_guest_xpath);
         if (($self->{guest_installation_result} eq 'PASSED') and ($_current_xpath_options ne $self->{guest_xpath_options})) {
             $self->modify_guest_params($self->{guest_name}, 'guest_xpath_options');
         }
