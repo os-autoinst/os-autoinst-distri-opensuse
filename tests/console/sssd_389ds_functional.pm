@@ -86,7 +86,7 @@ sub configure_sssd_client ($container_engine) {
 
 sub change_and_verify_password ($user, $old_pass, $new_pass) {
     # Change password
-    assert_script_run("sshpass -p '$old_pass' ssh -o StrictHostKeyChecking=no $user\@localhost 'echo -e \"$old_pass\\n$new_pass\\n$new_pass\" | passwd'");
+    script_retry("sshpass -p '$old_pass' ssh -o StrictHostKeyChecking=no $user\@localhost 'echo -e \"$old_pass\\n$new_pass\\n$new_pass\" | passwd'", retry => 3, delay => 10);
 
     # Verify password change
     validate_script_output("ldapwhoami -x -H ldap://ldapserver -D uid=$user,ou=users,dc=sssdtest,dc=com -w $new_pass", sub { m/$user/ });
