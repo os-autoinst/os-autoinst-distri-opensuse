@@ -2039,5 +2039,16 @@
             ]
         },
         "type": "ignore"
+    },
+    "core-PMU-driver": {
+        "description": "core PMU driver",
+        "products": {
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
+        },
+        "type": "ignore"
     }
 }
+
