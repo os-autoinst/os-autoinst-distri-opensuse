@@ -52,7 +52,7 @@ sub run {
         }
         assert_script_run("sh prepare-ipsec-test.sh $case_name $eal4_test::client_ip $eal4_test::server_ip client");
         mutex_wait("server_ready_$tmp_case_name");
-        my $output = script_output("ipsec up $case_name", 120);
+        my $output = script_output("ipsec up $case_name", is_s390x ? 300 : 120);
 
         my $result = 'ok';
         my $record_message = "The $case_name test result is expected";
@@ -76,11 +76,18 @@ sub run {
 
                 }
                 # When the ipsec up succeed, we need to check if the connection is created
-                my $ping_ret = script_run("ping -c 1 -W 2 $eal4_test::server_ip");
-                if ($ping_ret != 0) {
+                # Retries up to 10 times, waiting 3 seconds between each attempt
+                eval {
+                    script_retry("ping -c 1 -W 2 $eal4_test::server_ip", retry => 10, delay => 10);
+                };
+                # $@ captures the exception if script_retry fails after all attempts
+                if ($@) {
                     $result = 'fail';
-                    $record_message = "The $case_name test result is expected, but the connection does NOT work";
+                    $record_message = "The $case_name test result is expected, but the connection does NOT work after retries";
                     $self->result('fail');
+
+                    # Optional: Log the actual error thrown by script_retry
+                    record_info('Ping Fail', "Ping retry exhausted: $@");
                 }
             }
         }

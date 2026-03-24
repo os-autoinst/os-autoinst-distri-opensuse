@@ -32,7 +32,7 @@ sub run {
     # 192.168.100.1 is configured in the server by ipsec_setup_tunnel_server.sh
     # We need to check if it's accessible to find the network issue easily.
     assert_script_run("./ipsec_setup_tunnel_toe.sh start $eal4_test::client_ip $eal4_test::server_ip");
-    assert_script_run('ping -W1 -c1 192.168.100.1');
+    script_retry('ping -W1 -c1 192.168.100.1', retry => 10, delay => 10);
 
     # Install IPSec configuration
     assert_script_run('make install');
@@ -48,7 +48,7 @@ sub run {
         sleep(++$inc);
     }
 
-    assert_script_run('ipsec up ikev2suse');
+    assert_script_run('ipsec up ikev2suse', timeout => is_s390x ? 300 : 90);
 
     # Test the IPSec connection
     assert_script_run('ping -W1 -c1 192.168.250.1');

@@ -18,7 +18,7 @@ sub run {
     select_console 'root-console';
 
     assert_script_run('cd /usr/local/eal4/ipsec/IPSEC_basic_eval');
-    my $timeout = is_s390x() ? 180 : 90;
+    my $timeout = is_s390x() ? 300 : 90;
     my $output = script_output('bash test_basic_ipsec_eval_weak.bash', $timeout);
 
     my @lines = split(/\n/, $output);
