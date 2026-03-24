@@ -199,7 +199,6 @@ sub run {
         image => $os_ver,
         username => 'cloudadmin',
         region => $provider->provider_client->region);
-    $vm_create_args{security_type} = 'Standard' if is_sle '<=12-SP5';
 
     az_vm_create(%vm_create_args);
 
