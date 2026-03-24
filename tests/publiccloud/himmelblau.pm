@@ -61,6 +61,7 @@ sub run {
     select_serial_terminal;
 
     # Install Himmelblau
+    zypper_call("ref");
     zypper_call("update");
     zypper_call("lr -U");
     zypper_call("install himmelblau");
