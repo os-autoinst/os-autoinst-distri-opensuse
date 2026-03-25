@@ -65,7 +65,7 @@ sub run {
     zypper_call("update");
     zypper_call("lr -U");
     if (zypper_call("install himmelblau", exitcode => [0, 104]) == 104) {
-        if (is_sle("<16")) {
+        if (is_sle("<=15-SP6")) {
             record_soft_failure('bsc#1260384');
             return;
         }
