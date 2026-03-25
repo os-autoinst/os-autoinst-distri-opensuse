@@ -489,11 +489,9 @@ sub collect_coredumps {
     script_run('coredumpctl list > coredumpctl.txt');
 
     # Get PID and executable for all dumps
-    my @lines = split /\n/, script_output(q{coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5, $10 }'}, proceed_on_failure => 1);
+    my @pids = split /\n/, script_output(q{coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'}, proceed_on_failure => 1);
 
-    foreach my $line (@lines) {
-        my ($pid, $exe) = split /\s+/, $line;
-
+    foreach my $pid (@pids) {
         # Dumping and compressing coredumps may take some time
         my $out = script_output("coredumpctl info $pid", timeout => 300, proceed_on_failure => 1);
         record_info("COREDUMP", $out);
