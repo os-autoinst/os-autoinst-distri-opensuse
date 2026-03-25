@@ -50,7 +50,6 @@ sub run {
     upload_folders(folders => '/etc/zypp/repos.d/');
 
     if (is_s390x) {
-        assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         enter_cmd '/usr/sbin/run_migration';
         reset_consoles;
         reconnect_mgmt_console(timeout => 600);
