@@ -52,14 +52,14 @@ sub run {
     }
 
     my $base_pattern = is_sle('15+') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
-    $base_pattern = 'patterns-sap-base_sap_server' if (is_sle('16+'));
+    $base_pattern = '(patterns-sap-base_sap_server|pattern:sles_sap_base_sap_server)' if (is_sle('16+'));
 
     zypper_enable_install_dvd;
     # First check pattern sap_server which is installed by default in SLES4SAP
     # when 'SLES for SAP Applications' system role is selected
     my $sap_server = is_sle('16+') ? "sles_sap_base_sap_server" : "sap_server";
     $output = script_output("zypper info -t pattern $sap_server");
-    if ($output !~ /i.?\s+\|\s$base_pattern\s+\|\spackage\s\|\sRequired/) {
+    if ($output !~ /i.?\s+\|\s$base_pattern\s+\|\s(package|pattern)\s\|\sRequired/) {
         # Pattern sap_server is not installed. Could be a due to a bug, caused by the
         # use of the 'textmode' system role during install, or on upgrades when the
         # original system didn't have the pattern (for example, from SLES4SAP 11-SP4)
@@ -86,11 +86,11 @@ sub run {
             zypper_call("in -y -t pattern $pattern", timeout => 1500);
             $output = script_output "zypper info -t pattern $pattern";
             # Name of HA pattern is weird...
+            my $origin_pattern = $pattern;
             $pattern = "ha-$pattern" if ($pattern =~ /ha_sles/) && get_var('HA_CLUSTER');
-            my $orgin_pattern = $pattern;
             $pattern =~ s/^sles_sap_/sap-/ if (is_sle('16+'));
             die "SAP zypper pattern [$pattern] info check failed"
-              unless ($output =~ /i.?\s+\|\s(patterns-$pattern|pattern:($orgin_pattern|$pattern))\s+\|\s(package|pattern)\s\|\sRequired/);
+              unless ($output =~ /i.?\s+\|\s(patterns-$pattern|pattern:($origin_pattern|$pattern))\s+\|\s(package|pattern)\s\|\sRequired/);
         }
     }
     elsif (check_var('SLE_PRODUCT', 'sles') && get_var('HANA')) {
