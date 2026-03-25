@@ -163,9 +163,7 @@ sub select_log_console { select_console('log-console', timeout => 180, @_) }
 
  upload_coredumps(%args);
 
-Upload all coredumps to logs. In case `proceed_on_failure` key is set to true,
-errors during logs collection will be ignored, which is useful for the
-post_fail_hook calls.
+Upload all coredumps to logs.
 
 It only uploads present coredumps so in case of expected coredumps it's possible
 remove them from /var/lib/systemd/coredump/ to avoid processing them here.
@@ -173,18 +171,17 @@ remove them from /var/lib/systemd/coredump/ to avoid processing them here.
 =cut
 
 sub upload_coredumps {
-    my (%args) = @_;
-    my @pids = split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => $args{proceed_on_failure}));
+    my @pids = split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1));
     return unless @pids;
     record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
     # Record soft-failure only on selected cases to collect data
     record_soft_failure("poo#197969 - Coredumps are being silently ignored in openQA tests") if (is_tumbleweed || get_var("CONTAINER_RUNTIMES"));
     foreach my $pid (@pids) {
         my $cmd = qq(coredumpctl info --no-pager $pid | tee info$pid.txt | awk '\$1 == "Storage:" { print \$2; exit }');
-        my $core = script_output($cmd, timeout => 600, proceed_on_failure => $args{proceed_on_failure});
+        my $core = script_output($cmd, timeout => 600, proceed_on_failure => 1);
         last unless $core;
-        upload_logs("info$pid.txt", log_name => basename($core) . ".txt", failok => $args{proceed_on_failure});
-        upload_logs($core, failok => $args{proceed_on_failure});
+        upload_logs("info$pid.txt", log_name => basename($core) . ".txt", failok => 1);
+        upload_logs($core, failok => 1);
     }
 }
 
