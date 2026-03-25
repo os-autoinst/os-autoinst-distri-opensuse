@@ -32,20 +32,19 @@ sub run {
     return unless (is_sle_micro('6.1+'));
 
     my $instance = $self->{my_instance} = $args->{my_instance};
-    my $timeout = 900;
     my $reboot_timeout = get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT');
 
     # start migration
     select_serial_terminal();
-    $instance->ssh_script_retry("sudo zypper -n ref", retry => 3, timeout => int($timeout / 3), fail_message => "zypper refresh failed");
+    $instance->ssh_script_retry("sudo zypper -n ref", retry => 3, timeout => 600, fail_message => "zypper refresh failed");
     record_info('Repos', $instance->ssh_script_output('zypper lr -u'));
 
-    my $exit = $instance->ssh_script_run(cmd => 'sudo transactional-update -n up', timeout => $timeout) // -1;
+    my $exit = $instance->ssh_script_run(cmd => 'sudo transactional-update -n up', timeout => 2700) // -1;
     die "transactional-update returned error $exit" unless ($exit == 0);
     $instance->softreboot(timeout => $reboot_timeout);
 
     record_info("SLEM migration", "Initial version: " . get_var('VERSION'));
-    $exit = $instance->ssh_script_run(cmd => 'sudo transactional-update -n migration', timeout => $timeout) // -1;
+    $exit = $instance->ssh_script_run(cmd => 'sudo transactional-update -n migration', timeout => 4500) // -1;
     die "transactional-update migration returned error $exit" unless ($exit == 0);
     $instance->softreboot(timeout => $reboot_timeout);
 
