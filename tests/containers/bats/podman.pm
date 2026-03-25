@@ -126,7 +126,7 @@ sub run {
         # This test is flaky on architectures other than x86_64
         run_command "rm -f test/system/180-blkio.bats" unless is_x86_64;
         # This test is flaky on ppc64le & s390x
-        run_command "rm -f test/system/220-healthcheck.bats" if ((is_ppc64le && is_sle) || is_s390x);
+        run_command "rm -f test/system/220-healthcheck.bats" if (is_sle("<16") && (is_ppc64le || is_s390x));
         # This test is flaky and will fail if system is "full"
         run_command "rm -f test/system/320-system-df.bats";
         # This tests needs criu, available only on Tumbleweed
