@@ -9,6 +9,7 @@ use testapi;
 use lockapi;
 use mm_network qw(configure_hostname setup_static_mm_network);
 use serial_terminal qw(select_serial_terminal);
+use power_action_utils qw(power_action);
 
 sub run {
     my ($self) = @_;
@@ -21,6 +22,16 @@ sub run {
         # Wait for OS installer boot
         assert_screen('grub-unifiedcore_installer', timeout => 120);
         wait_still_screen;
+    }
+
+    # This ISO image does not install anything
+    # It is just the basic container that should be used with 'customize' command
+    if (check_var('TESTED_CMD', 'extract_iso')) {
+        # Just validate that the OS boot, no more
+        assert_screen('elemental3-tty1-selected', timeout => 120);
+        wait_still_screen;
+        record_info('ISO', 'ISO image booted!');
+        return;
     }
 
     # OS installation is done automatically as well as the reboot after installation
@@ -51,6 +62,30 @@ sub run {
     unless (get_var('PARALLEL_WITH')) {
         my $sys_state = script_output('systemctl is-system-running --wait', timeout => 240, proceed_on_failure => 1);
         die("Wrong OS state: $sys_state") unless ($sys_state =~ m/running/);
+    }
+
+    # Test reboot in recovery mode
+    if (check_var('TESTED_CMD', 'customize_recovery')) {
+        power_action('reboot', keepconsole => 1, textmode => 1);
+
+        # Select SUT for bootloader
+        select_console('sut');
+
+        # Wait for GRUB
+        $self->wait_grub();
+
+        # Choose entry to test
+        send_key_until_needlematch('elemental3-bootmenu-recovery', 'down');
+        send_key('ret', wait_screen_change => 1);
+        wait_still_screen(timeout => 120);
+
+        # In recovery mode we have auto-login configured on tty1
+        console('root-console')->set_tty(1);
+        select_console('root-console');
+
+        # Check for recovery boot option
+        assert_script_run('grep -q recovery /proc/cmdline');
+        record_info('RECOVERY', 'Booted in recovery mode!');
     }
 }
 
