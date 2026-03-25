@@ -48,9 +48,11 @@ sub run_tests ($python3_spec_release) {
     assert_script_run("$python_binary -mpipx install dist/package-0.1-py3-none-any.whl");
     script_run("pipx list");
     assert_script_run("export PATH=\$PATH:~/.local/bin");
+    assert_script_run("cd ..");    # avoids test failing to uninstall 'package', as it is relative path too
     validate_script_output("hello-world", sub { m/Hello world from package!/ });
     validate_script_output("pipx uninstall package", sub { m/uninstalled package!/ });
     validate_script_output("pipx list", sub { m/nothing has been installed with pipx/ });
+    assert_script_run("cd data");    # move back to data directory, so cleanup function works as expected
 }
 
 sub cleanup {
