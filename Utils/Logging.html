@@ -79,7 +79,7 @@
 
 <pre><code>upload_coredumps(%args);</code></pre>
 
-<p>Upload all coredumps to logs. In case `proceed_on_failure` key is set to true, errors during logs collection will be ignored, which is useful for the post_fail_hook calls.</p>
+<p>Upload all coredumps to logs.</p>
 
 <p>It only uploads present coredumps so in case of expected coredumps it&#39;s possible remove them from /var/lib/systemd/coredump/ to avoid processing them here.</p>
 
