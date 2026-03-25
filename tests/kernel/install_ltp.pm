@@ -29,6 +29,7 @@ use virt_autotest::utils 'is_xen_host';
 use Utils::Backends qw(get_serial_console is_ipmi);
 use kernel;
 use transactional;
+use package_utils;
 
 sub add_we_repo_if_available {
     # opensuse doesn't have extensions
@@ -60,7 +61,7 @@ sub install_runtime_dependencies {
       sysstat
       iputils
     );
-    zypper_call('-t in ' . join(' ', @deps));
+    install_package(join(' ', @deps), trup_continue => 1);
 
     # kernel-default-extra are only for SLE (in WE)
     # net-tools-deprecated are not available for SLE15
@@ -106,7 +107,7 @@ sub install_runtime_dependencies {
     # exfatprogs create a conflict with exfat-utils on Tumbleweed.
     push @maybe_deps, 'exfatprogs' unless is_tumbleweed();
 
-    zypper_install_available(@maybe_deps);
+    install_available_packages(join(' ', @maybe_deps));
 }
 
 sub install_debugging_tools {
@@ -116,7 +117,7 @@ sub install_debugging_tools {
       ltrace
       strace
     );
-    zypper_install_available(@maybe_deps);
+    install_available_packages(join(' ', @maybe_deps));
 }
 
 sub install_runtime_dependencies_network {
@@ -130,25 +131,26 @@ sub install_runtime_dependencies_network {
       psmisc
       rpcbind
       rsync
-      telnet
-      tcpdump
-      vsftpd
     );
-    zypper_call('-t in ' . join(' ', @deps));
+    install_package(join(' ', @deps), trup_continue => 1);
 
     my @maybe_deps = qw(
       dhcp-client
       dhcp-server
       telnet-server
+      telnet
+      tcpdump
+      vsftpd
       wireguard-tools
       xinetd
     );
-    zypper_install_available(@maybe_deps);
+    install_available_packages(join(' ', @maybe_deps));
 }
 
 sub install_build_dependencies {
-    zypper_call('-t in ' . join(' ', get_required_build_dependencies()));
-    zypper_install_available(get_maybe_build_dependencies());
+    install_package(join(' ', get_required_build_dependencies()),
+        trup_continue => 1);
+    install_available_packages(join(' ', get_maybe_build_dependencies()));
 }
 
 sub prepare_ltp_git {
@@ -322,6 +324,7 @@ sub run {
     if ($inst_ltp =~ /git/i) {
         install_build_dependencies;
         install_runtime_dependencies;
+        reboot_on_changes if is_transactional;
 
         # bsc#1024050 - Watch for Zombies
         script_run('(pidstat -p ALL 1 > /tmp/pidstat.txt &)');
@@ -335,13 +338,14 @@ sub run {
         install_from_repo();
         if (get_var("LTP_GIT_URL")) {
             install_build_dependencies;
+            reboot_on_changes if is_transactional;
             install_selected_from_git;
         }
     }
 
     log_versions 1;
 
-    zypper_call('in efivar') if is_sle('12+') || is_opensuse;
+    install_package('efivar') if is_sle('12+') || is_opensuse;
 
     $grub_param .= ' console=hvc0' if (get_var('ARCH') eq 'ppc64le');
     $grub_param .= ' console=ttysclp0' if (get_var('ARCH') eq 's390x');
@@ -377,7 +381,7 @@ sub run {
         assert_script_run('generate_lvm_runfile.sh');
     }
 
-    (is_jeos && is_sle('>15')) && zypper_call 'in system-user-bin system-user-daemon';
+    (is_jeos && is_sle('>15')) && install_package 'system-user-bin system-user-daemon';
     check_kernel_package(get_kernel_flavor()) if $cmd_file;
 
     # boot_ltp will schedule the tests and shutdown_ltp if there is a command

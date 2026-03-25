@@ -27,12 +27,8 @@ sub get_required_build_dependencies {
     my @deps = qw(
       autoconf
       automake
-      bison
-      expect
-      flex
       gcc
       git-core
-      libaio-devel
       libopenssl-devel
       make
     );
@@ -51,6 +47,7 @@ sub get_maybe_build_dependencies {
     my @maybe_deps = qw(
       keyutils-devel
       libacl-devel
+      libaio-devel
       libcap-devel
       libmnl-devel
       libnuma-devel
