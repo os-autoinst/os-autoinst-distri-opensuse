@@ -45,6 +45,12 @@ sub install_from_git
         assert_script_run("git checkout $git_tag");
     }
 
+    if (is_sle && $collection eq 'livepatch') {
+        my $patch = 'selftests-livepatch-Ignore-NO_SUPPORT-line-in-dmesg.patch';
+        assert_script_run("curl -O " . autoinst_url("/data/kernel/$patch"));
+        assert_script_run("git apply $patch");
+    }
+
     assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$collection", 7200);
     script_run("cp tools/testing/selftests/$collection/config* tools/testing/selftests/kselftest_install/$collection");
 }
