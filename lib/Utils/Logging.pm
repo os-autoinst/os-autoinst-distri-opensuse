@@ -20,6 +20,7 @@ use testapi;
 use JSON qw(decode_json);
 use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 download_script);
 use Utils::Systemd 'get_started_systemd_services';
+use File::Basename 'basename';
 use Mojo::File 'path';
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_tumbleweed';
@@ -165,22 +166,25 @@ sub select_log_console { select_console('log-console', timeout => 180, @_) }
 Upload all coredumps to logs. In case `proceed_on_failure` key is set to true,
 errors during logs collection will be ignored, which is useful for the
 post_fail_hook calls.
+
+It only uploads present coredumps so in case of expected coredumps it's possible
+remove them from /var/lib/systemd/coredump/ to avoid processing them here.
+
 =cut
 
 sub upload_coredumps {
     my (%args) = @_;
-    my $res = script_run('coredumpctl --no-pager');
-    if (!$res) {
-        record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
-        script_run("coredumpctl info --no-pager | tee coredump-info.txt");
-        upload_logs("coredump-info.txt", failok => $args{proceed_on_failure});
-        my $basedir = '/var/lib/systemd/coredump/';
-        my @files = split("\n", script_output("\\ls -1 $basedir | cat", proceed_on_failure => $args{proceed_on_failure}));
-        foreach my $file (@files) {
-            upload_logs($basedir . $file, failok => $args{proceed_on_failure});
-        }
-        # Record soft-failure only on selected cases to collect data
-        record_soft_failure("poo#197969 - Coredumps are being silently ignored in openQA tests") if (is_tumbleweed || get_var("CONTAINER_RUNTIMES"));
+    my @pids = split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => $args{proceed_on_failure}));
+    return unless @pids;
+    record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
+    # Record soft-failure only on selected cases to collect data
+    record_soft_failure("poo#197969 - Coredumps are being silently ignored in openQA tests") if (is_tumbleweed || get_var("CONTAINER_RUNTIMES"));
+    foreach my $pid (@pids) {
+        my $cmd = qq(coredumpctl info --no-pager $pid | tee info$pid.txt | awk '\$1 == "Storage:" { print \$2; exit }');
+        my $core = script_output($cmd, timeout => 600, proceed_on_failure => $args{proceed_on_failure});
+        last unless $core;
+        upload_logs("info$pid.txt", log_name => basename($core) . ".txt", failok => $args{proceed_on_failure});
+        upload_logs($core, failok => $args{proceed_on_failure});
     }
 }
 
