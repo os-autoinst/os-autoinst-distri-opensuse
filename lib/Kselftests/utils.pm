@@ -36,7 +36,7 @@ sub install_from_git
 
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
-    zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel kernel-devel');
+    install_package('bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel kernel-devel', trup_continue => 1);
     assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 240);
 
     assert_script_run("cd ./linux");
@@ -66,7 +66,7 @@ sub install_from_src
 sub install_from_repo
 {
     zypper_ar(get_required_var('KSELFTEST_REPO'), name => 'kselftests', priority => 1, no_gpg_check => 1);
-    zypper_call('in kselftests kernel-devel');
+    install_package('kselftests kernel-devel', trup_continue => 1);
 
     # When using the `kselftests` package from a repository, make sure the KMP subpackage containing the test kernel modules
     # were built against the same kernel version the SUT is currently running.
