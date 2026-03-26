@@ -1,0 +1,19 @@
+---
+name: slmicro_migration
+description: >
+  Perform migration for SL Micro to SLES 16 immutable using transactional-upgrade.
+schedule:
+  - microos/disk_boot
+  - transactional/host_config
+  - console/suseconnect_scc
+  - transactional/install_updates
+  - migration/online_migration/zypper_migration
+  - yam/validate/validate_selinux
+  - yam/validate/validate_base_product
+  - yam/validate/validate_product
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_first_user
+  - yam/validate/validate_hostname
+  - yam/validate/validate_snapshots
+  - yam/validate/validate_registered_products
+  - console/validate_repos
