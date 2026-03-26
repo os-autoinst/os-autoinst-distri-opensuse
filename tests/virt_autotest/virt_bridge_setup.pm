@@ -5,6 +5,8 @@
 # Summary: test virt-bridge-setup tool on sle16.1+
 # Maintainer: qe-virt@suse.de, Julie CAO <JCao@suse.com>
 
+## no os-autoinst style
+
 package virt_bridge_setup;
 use base "virt_autotest_base";
 use testapi;

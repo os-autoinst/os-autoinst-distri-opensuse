@@ -6,6 +6,8 @@
 # Summary: PublicCloud specific SELinux smoke tests
 # Maintainer: QE-C team <qa-c@suse.de>
 
+## no os-autoinst style
+
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

@@ -6,6 +6,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768578
 
+## no os-autoinst style
+
 use base 'opensusebasetest';
 use testapi;
 use utils;

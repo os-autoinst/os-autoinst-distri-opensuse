@@ -11,6 +11,8 @@
 # repositores are added)
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
+## no os-autoinst style
+
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

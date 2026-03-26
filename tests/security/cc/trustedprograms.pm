@@ -7,6 +7,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#95908, poo#194984
 
+## no os-autoinst style
+
 use base 'consoletest';
 use testapi;
 use utils;

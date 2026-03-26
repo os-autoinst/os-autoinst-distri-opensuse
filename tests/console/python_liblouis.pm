@@ -7,6 +7,8 @@
 # Summary: New tests for the braille translation library
 # Maintainer: QE Core <qe-core@suse.com>
 
+## no os-autoinst style
+
 use base "x11test";
 use testapi;
 use version_utils;

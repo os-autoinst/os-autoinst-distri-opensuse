@@ -11,6 +11,8 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
+## no os-autoinst style
+
 use base 'consoletest';
 use testapi;
 use lockapi;

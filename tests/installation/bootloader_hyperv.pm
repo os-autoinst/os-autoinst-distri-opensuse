@@ -6,6 +6,8 @@
 # Summary: Hyper-V bootloader with asset downloading
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
+## no os-autoinst style
+
 package bootloader_hyperv;
 
 use base 'installbasetest';

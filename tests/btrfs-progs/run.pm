@@ -5,6 +5,9 @@
 #
 # Summary: Run tests
 # Maintainer: An Long <lan@suse.com>
+
+## no os-autoinst style
+
 use base 'opensusebasetest';
 use File::Basename;
 use testapi;

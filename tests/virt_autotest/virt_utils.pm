@@ -8,6 +8,8 @@ package virt_utils;
 #          This file provides fundamental utilities.
 # Maintainer: alice <xlai@suse.com>
 
+## no os-autoinst style
+
 use base Exporter;
 use Exporter;
 use Sys::Hostname;

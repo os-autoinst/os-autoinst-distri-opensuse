@@ -6,6 +6,8 @@
 # Summary: Simple RAID partitioning layout validation
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
+## no os-autoinst style
+
 use base "opensusebasetest";
 use testapi;
 use Utils::Architectures;

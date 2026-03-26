@@ -8,6 +8,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#63223, poo#102770, tc#1744099
 
+## no os-autoinst style
+
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

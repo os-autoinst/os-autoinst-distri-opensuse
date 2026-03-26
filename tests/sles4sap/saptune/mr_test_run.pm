@@ -7,6 +7,8 @@
 #          Also the main package with common methods and params for running 'mr_test'.
 # Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>, llzhao <llzhao@suse.com>
 
+## no os-autoinst style
+
 package mr_test_run;
 
 use base 'sles4sap';
