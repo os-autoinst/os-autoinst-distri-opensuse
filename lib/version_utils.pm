@@ -410,7 +410,7 @@ Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+ (>=15 and 15+ are equivalent)
 
 sub is_sle {
     my $query = shift;
-    my $version = shift // get_var('VERSION');
+    my $version = shift // get_var('VERSION_TO_INSTALL', get_var('VERSION'));
 
     return 0 unless check_var('DISTRI', 'sle');
     return 1 unless $query;

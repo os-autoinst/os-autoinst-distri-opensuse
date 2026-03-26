@@ -7,7 +7,8 @@
   product: {
     id: "SLES",
     registrationCode: "##Registration-Code##", 
-    registrationEmail: "www@suse.com"
+    registrationEmail: "www@suse.com",
+    mode: "##Product-Mode##"
   },
   "bootloader": {
     "stopOnBootMenu": false

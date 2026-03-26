@@ -43,7 +43,7 @@ sub verify_agama_auto_install_done_cmdline {
     my $timeout = get_var('AGAMA_INSTALL_TIMEOUT', '480');
     while ($timeout > 0) {
         if (script_run("journalctl -u agama -u agama-web-server.service | grep -E 'Install phase done|Installation finished'") == 0) {
-            record_info("agama install phase done");
+            record_info("agama install phase done", script_output('agama config show'));
             return;
         }
         sleep 20;
@@ -51,7 +51,7 @@ sub verify_agama_auto_install_done_cmdline {
     }
     # Add some debug info for quick check for tester before investigating full agama logs
     # See https://progress.opensuse.org/issues/182258
-    record_info('debug info', script_output('journalctl --no-pager -u agama -n 100'));
+    record_info('debug info', script_output('journalctl --no-pager -u agama -n 100;agama config show'));
     die "Install phase is not done, please check agama logs";
 }
 
