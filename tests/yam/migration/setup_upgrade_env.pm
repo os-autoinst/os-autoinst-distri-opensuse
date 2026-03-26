@@ -21,7 +21,7 @@ sub run {
             get_var('SCC_ADDONS')));
 
     # Save the original value of the variables in order to restore it later if needed
-    foreach my $var (qw(AGAMA BETA SCC_ADDONS SCC_URL VERSION)) {
+    foreach my $var (qw(AGAMA BETA SCC_ADDONS SCC_URL VERSION DISTRI SCC_REGCODE)) {
         set_var($var . "_ENV", get_var($var)) if (get_var($var));
     }
 
@@ -32,6 +32,8 @@ sub run {
         SCC_ADDONS => $scc_addons,
         SCC_URL => 'https://scc.suse.com',
         VERSION => $version,
+        DISTRI => get_var('ORIG_DISTRI') || get_var('DISTRI'),
+        SCC_REGCODE => get_var('ORIG_REGCODE') || get_var('SCC_REGCODE'),
     );
     my $env_content = '';
     while (my ($var_name, $var_value) = each %vars_to_set) {
