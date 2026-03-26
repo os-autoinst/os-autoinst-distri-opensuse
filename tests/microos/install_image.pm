@@ -30,6 +30,12 @@ sub get_disk_by_wwn {
     die "WWN ${wwn} not found in\n${output}";
 }
 
+sub get_serial_console_params {
+    my ($tty, $speed) = split(/,/, get_required_var('IPXE_CONSOLE'));
+    my ($unit) = $tty =~ /(\d+)$/;
+    return ($tty, $unit, $speed);
+}
+
 sub run {
     select_serial_terminal;
 
@@ -70,17 +76,35 @@ sub run {
     # Modify disk to be able to correctly boot and login
     assert_script_run("mount ${root_partition} /mnt");
     assert_script_run("btrfs property set /mnt ro false");
-    # Set correct serial console to be able to see login in first boot
-    assert_script_run("sed -i 's/console=ttyS0,115200/console=ttyS1,115200/g' /mnt/boot/grub2/grub.cfg") if is_x86_64;
     # Upload original grub configuration
     upload_logs("/mnt/etc/default/grub", failok => 1);
-    # Set permanent grub configuration
-    assert_script_run("sed -i 's/console=ttyS0,115200/console=ttyS1,115200/g' /mnt/etc/default/grub") if is_x86_64;
-    # Fully disable graphical terminal on legacy systems without UEFI
-    my $grub_terminal_io = is_ipmi && !get_var('IPXE_UEFI') ? 'console' : 'console gfxterm';
-    assert_script_run("sed -i 's/GRUB_TERMINAL_INPUT=\".*\"/GRUB_TERMINAL_INPUT=\"${grub_terminal_io}\"/g' /mnt/etc/default/grub");
-    assert_script_run("sed -i 's/GRUB_TERMINAL_OUTPUT=\".*\"/GRUB_TERMINAL_OUTPUT=\"${grub_terminal_io}\"/g' /mnt/etc/default/grub");
-    # Enable root loging with password
+    my $grub_file = '/mnt/etc/default/grub';
+    if (is_x86_64) {
+        my ($tty, $unit, $speed) = get_serial_console_params;
+        # Set correct serial console to be able to see login in first boot
+        assert_script_run("sed -i 's/console=ttyS0,115200/console=${tty},${speed}/g' /mnt/boot/grub2/grub.cfg");
+        # Set permanent grub configuration
+        assert_script_run("sed -i 's/console=ttyS0,115200/console=${tty},${speed}/g' ${grub_file}");
+    }
+
+    # Set grub terminal on x86_64 bare metal with UEFI to serial
+    my $grub_terminal_io = is_ipmi && get_var('IPXE_UEFI') && is_x86_64 ? 'serial' : 'console';
+    assert_script_run("sed -i 's/GRUB_TERMINAL_INPUT=\".*\"/GRUB_TERMINAL_INPUT=\"${grub_terminal_io}\"/g' $grub_file");
+    assert_script_run("sed -i 's/GRUB_TERMINAL_OUTPUT=\".*\"/GRUB_TERMINAL_OUTPUT=\"${grub_terminal_io}\"/g' $grub_file");
+
+    # Set GRUB_SERIAL_COMMAND on x86_64 UEFI systems only
+    if (get_var('IPXE_UEFI') && is_x86_64) {
+        my ($tty, $unit, $speed) = get_serial_console_params;
+        my $grub_line = "GRUB_SERIAL_COMMAND=\"serial --speed=$speed --unit=$unit --word=8 --parity=no --stop=1\"";
+        my $grub_content = script_output("cat $grub_file");
+        if ($grub_content =~ /^GRUB_SERIAL_COMMAND/m) {
+            assert_script_run("sed -i 's|^GRUB_SERIAL_COMMAND=.*|$grub_line|' $grub_file");
+        } else {
+            assert_script_run("echo '$grub_line' >> $grub_file");
+        }
+    }
+
+    # Enable root login with password
     assert_script_run("echo 'PermitRootLogin yes' > /mnt/etc/ssh/sshd_config.d/root.conf");
     assert_script_run("btrfs property set /mnt ro true");
     assert_script_run("umount /mnt");
