@@ -39,6 +39,7 @@ QE-SAP <qe-sap@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use sles4sap::publiccloud;
 use sles4sap::qesap::qesapdeployment;
 
 sub run {
