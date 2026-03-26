@@ -6,7 +6,7 @@
 # Summary: Update Windows base image
 # Maintainer: qa-c <qa-c@suse.de>
 
-use Mojo::Base qw(windowsbasetest);
+use Mojo::Base 'windowsbasetest';
 use testapi;
 
 sub run {

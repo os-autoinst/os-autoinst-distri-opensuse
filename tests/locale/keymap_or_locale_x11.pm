@@ -8,7 +8,7 @@
 # - Close xterm
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "locale";
+use Mojo::Base 'locale';
 use testapi;
 use x11utils qw(default_gui_terminal);
 

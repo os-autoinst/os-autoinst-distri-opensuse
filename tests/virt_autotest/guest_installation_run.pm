@@ -6,7 +6,7 @@
 # Summary: guest_installation_run: This test is used to verify if different products can be installed successfully as guest on specify host.
 # Maintainer: alice <xlai@suse.com>
 
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use testapi;
 use Utils::Architectures;
 use Utils::Backends 'use_ssh_serial_console';

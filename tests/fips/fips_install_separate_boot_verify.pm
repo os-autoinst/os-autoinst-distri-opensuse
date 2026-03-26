@@ -8,8 +8,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#112028
 
-use base 'opensusebasetest';
-use base 'consoletest';
+use Mojo::Base qw(opensusebasetest consoletest);
 use testapi;
 
 sub run {

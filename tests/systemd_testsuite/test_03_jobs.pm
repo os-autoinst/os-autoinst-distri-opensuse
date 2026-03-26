@@ -6,7 +6,7 @@
 # Summary: Run test executed by TEST-03-JOBS from upstream after openSUSE/SUSE patches.
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>, Thomas Blume <tblume@suse.com>
 
-use base 'systemd_testsuite_test';
+use Mojo::Base 'systemd_testsuite_test';
 use testapi;
 
 sub pre_run_hook {

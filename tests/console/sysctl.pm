@@ -9,7 +9,7 @@
 # - Check /proc/sys/vm/swappiness and validate value "59"
 # Maintainer: Bernhard M. Wiedemann <bwiedemann+openqa@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

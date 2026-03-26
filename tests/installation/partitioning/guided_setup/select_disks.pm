@@ -5,7 +5,7 @@
 # Screen of Guided Setup.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use scheduler 'get_test_suite_data';
 
 sub run {

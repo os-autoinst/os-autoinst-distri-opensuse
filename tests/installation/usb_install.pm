@@ -11,7 +11,7 @@
 # Maintainer: Xiaoli Ai(Alice) <xlai@suse.com>, qe-virt@suse.de
 
 package usb_install;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 use utils;
 use testapi;

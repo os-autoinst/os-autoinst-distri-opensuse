@@ -6,7 +6,7 @@
 # Summary: Login as user test https://progress.opensuse.org/issues/13306
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use x11utils 'handle_relogin';
 

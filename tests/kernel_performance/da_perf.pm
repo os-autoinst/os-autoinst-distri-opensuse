@@ -7,7 +7,7 @@
 # Maintainer: jtang@suse.com
 package da_perf;
 use testapi;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 sub run {
     my $self = shift;
     my $wait_switch;

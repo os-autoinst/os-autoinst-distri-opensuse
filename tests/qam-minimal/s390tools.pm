@@ -8,7 +8,7 @@
 # - lscss, cputype, lsqeth, lsdasd, lsmem, dasdview, dasdstat, dbginfo.sh
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle);

@@ -7,7 +7,7 @@
 # Summary: GraphicMagick testsuite
 # Maintainer: Ivan Lausuch <ilausuch@suse.com>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use utils 'zypper_call';
 use x11utils qw(default_gui_terminal close_gui_terminal);

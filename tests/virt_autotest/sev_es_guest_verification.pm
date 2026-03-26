@@ -11,7 +11,7 @@
 # Maintainer: Wayne Chen <wchen@suse.com>
 package sev_es_guest_verification;
 
-use base 'virt_feature_test_base';
+use Mojo::Base 'virt_feature_test_base';
 use POSIX 'strftime';
 use File::Basename;
 use testapi;

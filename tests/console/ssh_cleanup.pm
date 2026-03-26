@@ -8,7 +8,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: poo#65375
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

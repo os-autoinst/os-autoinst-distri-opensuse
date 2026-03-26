@@ -9,7 +9,7 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package validate_yast2_firstboot_configuration;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use scheduler 'get_test_suite_data';
 

@@ -5,7 +5,7 @@
 #
 # Summary: Upload logs and generate junit report
 # Maintainer: An Long <lan@suse.com>
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use File::Basename;
 use testapi;
 use serial_terminal 'select_serial_terminal';

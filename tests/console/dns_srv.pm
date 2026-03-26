@@ -10,7 +10,7 @@
 # - verify that the dns server responds
 # Maintainer: sysrich <RBrownCCB@opensuse.org>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use serial_terminal 'select_serial_terminal';
 use testapi;
 use Utils::Architectures;

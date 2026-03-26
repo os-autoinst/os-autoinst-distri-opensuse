@@ -7,7 +7,7 @@
 # Summary: stop pacemaker
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Utils::Systemd qw(systemctl);
 

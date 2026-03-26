@@ -7,7 +7,7 @@
 # Summary: Test for the yast2-rmt module
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use utils;
 use testapi;

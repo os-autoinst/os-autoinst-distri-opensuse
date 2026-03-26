@@ -7,7 +7,7 @@
 # - Check if autoinst.xml does not exist anymore on /root "[ ! -f /root/autoinst.xml ]"
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 # poo#11442

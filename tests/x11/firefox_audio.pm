@@ -15,7 +15,7 @@
 # - Exit firefox
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

@@ -6,7 +6,7 @@
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
 # Maintainer: alice <xlai@suse.com>
 
-use base "host_upgrade_base";
+use Mojo::Base 'host_upgrade_base';
 #use virt_utils qw(set_serialdev);
 use testapi;
 use Utils::Architectures;

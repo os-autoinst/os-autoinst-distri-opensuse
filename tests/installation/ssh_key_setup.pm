@@ -7,7 +7,7 @@
 #    https://progress.opensuse.org/issues/11454 https://github.com/yast/skelcd-control-SLES/blob/d2f9a79c0681806bf02eb38c4b7c287b9d9434eb/control/control.SLES.xml#L53-L71
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

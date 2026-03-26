@@ -6,7 +6,7 @@
 # Summary: Validate selinux in default installation
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use scheduler 'get_test_suite_data';
 use testapi;
 

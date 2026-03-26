@@ -4,7 +4,7 @@
 # Summary: Switch crypto-policies, reboot and verify sshd is running
 # Maintainer: QE Security <none@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use v5.20;
 use feature qw(signatures);
 no warnings qw(experimental::signatures);

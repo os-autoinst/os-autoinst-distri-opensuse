@@ -10,7 +10,7 @@
 # - bmp
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);

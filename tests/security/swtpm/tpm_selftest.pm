@@ -10,7 +10,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#103644, tc#1769832
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl package_upgrade_check);

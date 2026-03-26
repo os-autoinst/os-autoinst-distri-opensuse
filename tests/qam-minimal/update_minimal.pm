@@ -12,7 +12,7 @@
 #    x11 tests
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 
 use utils;
 use power_action_utils qw(power_action);

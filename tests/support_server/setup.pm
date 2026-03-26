@@ -23,7 +23,7 @@
 # Maintainer: Pavel Sladek <psladek@suse.com>
 #             Jan Kohoutek <jkohoutek@suse.com>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use lockapi;
 use testapi;
 use Utils::Architectures;

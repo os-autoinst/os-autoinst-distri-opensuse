@@ -8,7 +8,7 @@
 # the other from a YAML schedule depending on the value of BUILD.
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run {

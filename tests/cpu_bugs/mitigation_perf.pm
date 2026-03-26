@@ -9,7 +9,7 @@
 package mitigation_perf;
 use testapi;
 use version_utils qw(is_sle);
-use base "consoletest";
+use Mojo::Base 'consoletest';
 
 sub get_perf_exec_cmd {
     my $logfile = shift;

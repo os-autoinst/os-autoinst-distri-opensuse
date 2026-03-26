@@ -18,7 +18,7 @@
 #             Martin Loviska <martin.loviska@suse.com>
 # Tags: bsc#1063066 bsc#1171858
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use Date::Parse qw(str2time);
 use testapi;
 use serial_terminal 'select_serial_terminal';

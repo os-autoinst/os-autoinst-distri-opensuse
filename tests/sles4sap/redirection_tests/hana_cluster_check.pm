@@ -8,7 +8,7 @@
 #   It loops over all hosts defined in `$run_args->{redirection_data}` and executes selected functions on each host.
 #   For more information read 'README.md'
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);

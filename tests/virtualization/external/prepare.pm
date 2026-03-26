@@ -5,7 +5,7 @@
 # Summary: This test prepares environment
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use virt_autotest::common;
 use testapi;
 use utils;

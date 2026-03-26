@@ -6,7 +6,7 @@
 # Summary: Initialization of barriers for NFS multimachine setup
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use utils;

@@ -9,7 +9,7 @@
 
 use File::Basename;
 use Mojo::JSON qw(encode_json);
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use version_utils qw(is_sle);
 use serial_terminal 'select_serial_terminal';

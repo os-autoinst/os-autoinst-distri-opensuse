@@ -12,7 +12,7 @@
 # - Flavors of openSUSE-repos packages correspond with flavor of openSUSE-release
 # Maintainer: Lubos Kocmman <lubos.kocman@suse.com>, Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use Utils::Architectures;

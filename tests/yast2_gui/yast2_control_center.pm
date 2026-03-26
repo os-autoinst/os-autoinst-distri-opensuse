@@ -11,7 +11,7 @@
 #    while launching atm.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_module_guitest';
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use utils;
 use version_utils qw(is_opensuse is_sle is_leap is_tumbleweed is_storage_ng);

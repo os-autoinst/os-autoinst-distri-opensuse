@@ -8,7 +8,7 @@
 # - Otherwise, skip registration
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent "y2_installbase";
+use Mojo::Base 'y2_installbase';
 
 use testapi;
 use utils qw(assert_screen_with_soft_timeout handle_untrusted_gpg_key is_uefi_boot);

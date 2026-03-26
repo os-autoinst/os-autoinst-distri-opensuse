@@ -17,7 +17,7 @@
 # - Close yast2 snapper, delete testadata
 # Maintainer: Richard Brown <rbrown@suse.de>
 
-use base qw(y2snapper_common x11test);
+use Mojo::Base qw(y2snapper_common x11test);
 use testapi;
 use utils;
 use x11utils 'turn_off_gnome_screensaver';

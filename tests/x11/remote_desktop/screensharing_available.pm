@@ -14,7 +14,7 @@
 # - Finish with ctrl-q
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use x11utils 'handle_relogin';
 use version_utils qw(is_leap is_sle);

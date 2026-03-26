@@ -5,7 +5,7 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Deployment of the workload zone using SDAF automation
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;

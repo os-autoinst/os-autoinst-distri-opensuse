@@ -15,7 +15,7 @@
 # Maintainer: nick wang <nwang@suse.com>
 # Tags: tc#1436343
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);

@@ -7,7 +7,7 @@
 # modified for running the testcase TOOL_s390_CHCHP on s390x.
 # Maintainer: Elif Aslan <elas@linux.vnet.ibm.com>
 
-use base "s390base";
+use Mojo::Base 's390base';
 use testapi;
 use utils;
 

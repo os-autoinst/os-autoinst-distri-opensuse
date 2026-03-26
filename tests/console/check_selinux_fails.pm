@@ -6,7 +6,7 @@
 # Summary: This test looks for selinux fails in audit log
 # Maintainer: Ludwig Nussel <lnussel@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

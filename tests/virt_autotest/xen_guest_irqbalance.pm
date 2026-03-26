@@ -6,7 +6,7 @@
 # Summary: xen domU irqbalance test
 # Maintainer: Julie CAO <JCao@suse.com>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use testapi;
 use utils 'script_retry';
 use version_utils qw(is_sle);

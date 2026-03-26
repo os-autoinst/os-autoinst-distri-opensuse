@@ -6,7 +6,7 @@
 # Summary: Can add SocketCAN kernel driver without problems
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 # https://fate.suse.com/317131

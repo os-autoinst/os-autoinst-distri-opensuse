@@ -16,7 +16,7 @@
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 # Tags: fate#318787 poo#11450
 
-use base 'y2_module_guitest';
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use y2lan_restart_common;
 use y2_module_basetest 'is_network_manager_default';

@@ -6,7 +6,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_system_role()->select_system_role('desktop_with_GNOME');

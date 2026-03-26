@@ -67,7 +67,7 @@
 # Maintainer: Wayne Chen <wchen@suse.com>
 package unified_guest_installation;
 
-use base 'concurrent_guest_installations';
+use Mojo::Base 'concurrent_guest_installations';
 use testapi;
 use Carp;
 use Utils::Backends;

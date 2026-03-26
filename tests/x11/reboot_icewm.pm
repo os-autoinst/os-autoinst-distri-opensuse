@@ -7,7 +7,7 @@
 # Summary: Reboot from icewm environment
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 

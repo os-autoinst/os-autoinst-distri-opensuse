@@ -5,7 +5,7 @@
 # Summary: Test basic weechat start and stop
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 use version_utils 'package_version_cmp';

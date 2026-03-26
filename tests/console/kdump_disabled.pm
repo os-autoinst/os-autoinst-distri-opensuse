@@ -7,7 +7,7 @@
 # Summary: Check if kdump is disabled by default
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

@@ -12,7 +12,7 @@
 #    3. Change mp4 file with av encoder to yuv file
 # Maintainer: qe-core <qe-core@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

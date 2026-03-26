@@ -10,7 +10,7 @@
 # - validate that YaST applies changes to the system. bsc#1167234
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 use y2lan_restart_common;

@@ -7,7 +7,7 @@
 # Summary: Check that health-check service works correctly
 # Maintainer: Ciprian Cret <ccret@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use transactional qw(process_reboot trup_install trup_shell);

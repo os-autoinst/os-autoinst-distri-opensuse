@@ -19,7 +19,7 @@
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-use base 'wickedbase';
+use Mojo::Base 'wickedbase';
 use testapi;
 use utils qw(systemctl arrays_differ);
 

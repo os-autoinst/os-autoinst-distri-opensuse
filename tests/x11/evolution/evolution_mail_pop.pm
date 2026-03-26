@@ -13,7 +13,7 @@
 # - Exit evolution
 # Maintainer: Zhaocong Jia <zcjia@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

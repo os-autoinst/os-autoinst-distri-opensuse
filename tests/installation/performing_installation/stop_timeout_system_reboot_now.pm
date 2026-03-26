@@ -6,7 +6,7 @@
 # Summary: Stop timeout for system reboot now.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_performing_installation()->stop_timeout_system_reboot_now();

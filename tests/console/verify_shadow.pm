@@ -7,7 +7,7 @@
 # (bsc#973639, bsc#974220, bsc#971804 and bsc#965852)
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 
 sub run {

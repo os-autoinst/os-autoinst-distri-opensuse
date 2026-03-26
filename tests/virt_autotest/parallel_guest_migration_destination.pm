@@ -30,7 +30,7 @@
 # Maintainer: Wayne Chen <wchen@suse.com>, qe-virt <qe-virt@suse.de>
 package parallel_guest_migration_destination;
 
-use base "parallel_guest_migration_base";
+use Mojo::Base 'parallel_guest_migration_base';
 use POSIX 'strftime';
 use testapi;
 use upload_system_log;

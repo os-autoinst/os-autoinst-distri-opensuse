@@ -18,7 +18,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#36883, tc#1621139
 
-use base "apparmortest";
+use Mojo::Base 'apparmortest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_tumbleweed);

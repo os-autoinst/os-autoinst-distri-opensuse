@@ -8,7 +8,7 @@
 # Summary: Check basic functionality of mate terminal
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

@@ -6,7 +6,7 @@
 # Summary: Test rollback after migration back to downgraded system
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use migration 'check_rollback_system';

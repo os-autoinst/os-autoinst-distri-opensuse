@@ -9,7 +9,7 @@
 # or ignition
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl);

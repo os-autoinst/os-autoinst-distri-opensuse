@@ -9,7 +9,7 @@
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 # Tags: https://progress.opensuse.org/issues/49031
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

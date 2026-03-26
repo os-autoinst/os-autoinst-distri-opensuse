@@ -13,7 +13,7 @@
 # - Exit pidgin
 # Maintainer: Grace Wang <grace.wang@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_tumbleweed);

@@ -15,7 +15,7 @@
 #   - Run test3, attach gdb to its pid, add a breakpoint and check
 # Maintainer: apappas@suse.de
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call);

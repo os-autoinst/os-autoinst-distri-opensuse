@@ -21,7 +21,7 @@
 # - Cleanup
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base 'btrfs_test';
+use Mojo::Base 'btrfs_test';
 use testapi;
 use utils 'zypper_call';
 

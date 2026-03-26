@@ -7,7 +7,7 @@
 # Summary: SLE online migration using zypper migration or transactional update
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>, <qa-c@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

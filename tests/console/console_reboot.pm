@@ -8,7 +8,7 @@
 #    refactor common reboot and encrypt unlock functions to utils.pm
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Architectures;
 use Utils::Backends 'is_pvm';

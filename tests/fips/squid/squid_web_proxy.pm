@@ -8,7 +8,7 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(systemctl);
 use version_utils 'is_sle';

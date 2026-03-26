@@ -11,7 +11,7 @@
 # - Exit firefox
 # Maintainer: wnereiz <wnereiz@github>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use x11utils;
 use version_utils 'is_tumbleweed';

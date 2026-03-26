@@ -7,7 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#110233, tc#1769967, poo#112094
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use Utils::Architectures 'is_s390x';

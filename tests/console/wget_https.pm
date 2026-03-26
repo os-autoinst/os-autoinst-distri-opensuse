@@ -9,7 +9,7 @@
 # Tags: tc#1461937
 
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_sle';

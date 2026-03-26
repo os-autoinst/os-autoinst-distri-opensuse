@@ -4,7 +4,7 @@
 # Summary: Smoke test for libica on s390x with enabled FIPS mode
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use version_utils qw(is_sle is_transactional);
 use transactional qw(trup_call process_reboot);

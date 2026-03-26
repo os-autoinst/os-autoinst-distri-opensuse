@@ -13,7 +13,7 @@
 # - Check if generic-desktop was reached
 # Maintainer: Max Lin <mlin@suse.com>
 
-use base 'bootbasetest';
+use Mojo::Base 'bootbasetest';
 use testapi;
 use x11utils 'turn_off_plasma_tooltips';
 

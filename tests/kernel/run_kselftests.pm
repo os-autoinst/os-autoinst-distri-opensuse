@@ -15,7 +15,7 @@
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 
 use testapi;
 use utils qw(write_sut_file);

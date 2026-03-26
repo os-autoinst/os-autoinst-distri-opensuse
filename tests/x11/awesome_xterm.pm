@@ -8,7 +8,7 @@
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 # Tags: poo#9522
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

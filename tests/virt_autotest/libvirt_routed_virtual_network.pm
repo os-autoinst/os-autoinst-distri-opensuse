@@ -9,7 +9,7 @@
 #    - Destroy Routed virtual network
 # Maintainer: Leon Guo <xguo@suse.com>, qe-virt@suse.de
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_utils;
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;

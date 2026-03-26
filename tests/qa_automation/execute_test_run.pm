@@ -13,7 +13,7 @@ use utils;
 use testapi;
 use ctcs2_to_junit;
 use upload_system_log;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use version_utils "is_jeos";
 
 sub run {

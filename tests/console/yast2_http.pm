@@ -13,7 +13,7 @@
 # Step 5: Server start: change from manual to 'on boot'. Due to the changes extra packages are requested, confirm its installation;
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_leap);

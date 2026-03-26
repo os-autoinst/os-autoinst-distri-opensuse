@@ -6,7 +6,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: poo#165258
 #
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use lockapi;

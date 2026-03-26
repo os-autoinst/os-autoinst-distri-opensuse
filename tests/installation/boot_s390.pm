@@ -6,7 +6,7 @@
 # Summary: Helper to boot into existing s390x zvm guest
 # Maintainer: QE LSG <qa-team@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 
 use testapi;
 

@@ -4,7 +4,7 @@
 # Summary: configure support server repos during image building
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use y2_module_basetest;

@@ -8,7 +8,7 @@
 #          Fate link: https://fate.suse.com/316612
 #
 # Maintainer: xlai@suse.com
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use virt_utils;
 use testapi;
 use Utils::Architectures;

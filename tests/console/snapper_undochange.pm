@@ -16,7 +16,7 @@
 # - Cleanup
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base 'btrfs_test';
+use Mojo::Base 'btrfs_test';
 use testapi;
 
 sub run {

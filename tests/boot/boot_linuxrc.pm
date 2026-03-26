@@ -6,7 +6,7 @@
 # Summary: Test the ability to boot installed linux from cd with linuxrc.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "bootbasetest";
+use Mojo::Base 'bootbasetest';
 use testapi;
 use bootloader_setup qw(select_bootmenu_more ensure_shim_import);
 

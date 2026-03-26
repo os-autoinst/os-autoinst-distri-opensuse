@@ -4,7 +4,7 @@
 # Summary: zypper patch for maintenance
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';

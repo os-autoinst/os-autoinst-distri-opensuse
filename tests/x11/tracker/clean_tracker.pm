@@ -8,7 +8,7 @@
 # - remove two files (newfile and newpl.pl)
 # Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 my @filenames = qw(newfile newpl.pl);

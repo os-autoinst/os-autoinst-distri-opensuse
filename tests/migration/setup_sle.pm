@@ -4,7 +4,7 @@
 # Summary: After reboot, setup the system again and set HDD as registered.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use migration;
 use utils;

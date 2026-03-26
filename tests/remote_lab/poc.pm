@@ -8,7 +8,7 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: https://progress.opensuse.org/issues/49901
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use upload_system_log 'upload_supportconfig_log';
 

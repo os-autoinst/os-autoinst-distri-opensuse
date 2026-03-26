@@ -9,7 +9,7 @@
 # itself, which is required if we want to run chrony test afterwards, since it
 # fails when ntpd is installed.
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use services::ntpd;

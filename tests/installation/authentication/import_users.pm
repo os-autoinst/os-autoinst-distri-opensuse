@@ -7,7 +7,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_local_user()->import_existing_users();

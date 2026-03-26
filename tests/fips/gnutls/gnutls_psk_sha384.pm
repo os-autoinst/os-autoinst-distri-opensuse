@@ -6,7 +6,7 @@
 # Summary: Test gnutls credentials2 API for PSK SHA384 binder support
 # Maintainer: QE Security <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';

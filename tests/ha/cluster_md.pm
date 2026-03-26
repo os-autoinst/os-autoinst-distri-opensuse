@@ -7,7 +7,7 @@
 # Summary: cluster-md tests
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use version_utils 'is_sle';
 use testapi;
 use lockapi;

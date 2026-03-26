@@ -7,7 +7,7 @@
 # Summary: GNOME Calculator - Minimal Test
 # Maintainer: Dominique Leuenberger <dimstar@suse.de>>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

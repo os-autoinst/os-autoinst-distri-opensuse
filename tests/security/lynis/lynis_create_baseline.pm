@@ -7,7 +7,7 @@
 #
 # usage: schedule this module to have in the test output the baseline to use for subsequent tests
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
 use testapi;

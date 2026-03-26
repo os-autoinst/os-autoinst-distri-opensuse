@@ -6,7 +6,7 @@
 # Summary: Check that realtime kernel is running
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging qw(export_logs_basic upload_coredumps);

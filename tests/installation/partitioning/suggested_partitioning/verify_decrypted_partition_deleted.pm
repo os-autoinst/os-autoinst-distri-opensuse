@@ -8,7 +8,7 @@
 # relevant mount points are marked for deletion in the partitioning list.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use Test::Assert qw(assert_matches);
 use List::MoreUtils qw(pairwise);
 use scheduler 'get_test_suite_data';

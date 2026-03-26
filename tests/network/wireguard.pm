@@ -9,7 +9,7 @@
 #  Run iperf3 speed test inside the tunnel for verification
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

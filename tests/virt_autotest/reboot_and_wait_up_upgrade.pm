@@ -10,7 +10,7 @@ use File::Basename;
 use testapi;
 use Utils::Logging qw(upload_coredumps);
 use virt_utils 'clean_up_red_disks';
-use base 'reboot_and_wait_up';
+use Mojo::Base 'reboot_and_wait_up';
 use virt_autotest::utils;
 use opensusebasetest;
 use utils qw(upload_y2logs);

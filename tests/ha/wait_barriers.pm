@@ -6,7 +6,7 @@
 # Summary: Wait for support server to initialize the barriers
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use hacluster;
 use lockapi;

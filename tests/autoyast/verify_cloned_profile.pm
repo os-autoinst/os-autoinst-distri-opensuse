@@ -6,7 +6,7 @@
 # Summary: Validate if generated autoyast profile corresponds to the expected one
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use scheduler;
 use autoyast 'validate_autoyast_profile';

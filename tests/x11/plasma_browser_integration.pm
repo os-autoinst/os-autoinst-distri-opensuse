@@ -8,7 +8,7 @@
 # Summary: Test plasma-browser-integration in firefox
 # Maintainer: Fabian Vogt <fvogt@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

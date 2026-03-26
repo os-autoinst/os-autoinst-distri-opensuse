@@ -8,7 +8,7 @@
 # Summary: new test that installs configured packages
 # Maintainer: Stephan Kulow <coolo@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 

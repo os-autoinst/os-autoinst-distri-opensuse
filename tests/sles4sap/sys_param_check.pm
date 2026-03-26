@@ -10,7 +10,7 @@
 #          Branch via SYS_PARAM_CHECK_BRANCH, default is main
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "sles4sap";
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);

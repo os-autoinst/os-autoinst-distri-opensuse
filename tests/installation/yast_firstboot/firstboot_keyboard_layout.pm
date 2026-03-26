@@ -7,7 +7,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_firstboot_basetest';
+use Mojo::Base 'y2_firstboot_basetest';
 use scheduler 'get_test_suite_data';
 use cfg_files_utils;
 

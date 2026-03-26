@@ -14,7 +14,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#36889, poo#45803, poo#106002
 
-use base 'apparmortest';
+use Mojo::Base 'apparmortest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_opensuse);

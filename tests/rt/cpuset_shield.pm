@@ -14,7 +14,7 @@
 #		Test case should not combine *set* and *proc* subcommands with *shield* to configure sets
 # Maintainer: mloviska <mloviska@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging qw(export_logs_basic upload_coredumps);

@@ -7,7 +7,7 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use publiccloud::ssh_interactive 'select_host_console';

@@ -14,7 +14,7 @@
 # Maintainer: Stephan Kulow <coolo@suse.de>
 # Tags: bsc#1017461, bsc#1063638
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_jeos';

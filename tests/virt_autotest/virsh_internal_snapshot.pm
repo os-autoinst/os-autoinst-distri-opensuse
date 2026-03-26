@@ -6,7 +6,7 @@
 # Summary: Test VM internal snapshot using virsh (create - restore - delete)
 # Maintainer: Leon Guo <xguo@suse.com>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use testapi;
 use utils;
 use virt_utils;

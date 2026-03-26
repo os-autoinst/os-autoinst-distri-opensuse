@@ -17,7 +17,7 @@
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use utils qw(clear_console zypper_call systemctl);
 use version_utils;
 use testapi;

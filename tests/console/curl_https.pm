@@ -13,7 +13,7 @@
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>, QE Security <none@suse.de>
 # Tags: poo#106011, poo#109840
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(clear_console ensure_serialdev_permissions);
 use Utils::Architectures;

@@ -7,7 +7,7 @@
 #
 # Maintainer: QE C <qe-c@suse.de>
 #
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use registration qw(runtime_registration deregister_addons_cmd);

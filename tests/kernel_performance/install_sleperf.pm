@@ -7,7 +7,7 @@
 # Maintainer: Qi Wang <qi.wang@suse.de>
 
 package install_sleperf;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use power_action_utils 'power_action';
 use utils;
 use testapi;

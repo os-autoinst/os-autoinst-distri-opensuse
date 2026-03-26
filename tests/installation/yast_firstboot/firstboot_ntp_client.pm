@@ -7,7 +7,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_firstboot_basetest';
+use Mojo::Base 'y2_firstboot_basetest';
 
 sub run {
     $testapi::distri->get_firstboot_ntp_configuration()

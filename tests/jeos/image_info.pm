@@ -13,7 +13,7 @@
 #          operations are used.
 # Maintainer: QA-C <qa-c@suse.de>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_opensuse is_openstack);

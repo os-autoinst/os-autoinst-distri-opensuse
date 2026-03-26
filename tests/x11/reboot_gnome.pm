@@ -9,7 +9,7 @@
 # - Wait until system fully boots (bootloader, login prompt)
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Utils::Architectures;
 use power_action_utils 'power_action';

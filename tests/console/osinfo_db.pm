@@ -12,7 +12,7 @@
 # - If succeed, the test passes, proving All commands return without error.
 #
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

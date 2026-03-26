@@ -5,7 +5,7 @@
 # Maintainer: Petr Vorel <pvorel@suse.cz>
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use version_utils qw(is_sle is_leap);
 

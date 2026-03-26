@@ -8,7 +8,7 @@
 
 use testapi;
 use Utils::Architectures;
-use base "reboot_and_wait_up";
+use Mojo::Base 'reboot_and_wait_up';
 use virt_utils 'is_installed_equal_upgrade_major_release';
 use Utils::Backends 'is_remote_backend';
 use ipmi_backend_utils;

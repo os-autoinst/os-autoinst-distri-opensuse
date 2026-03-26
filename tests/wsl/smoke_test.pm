@@ -6,7 +6,7 @@
 # Summary: Validate WSL image from host
 # Maintainer: qa-c <qa-c@suse.de>
 
-use Mojo::Base qw(windowsbasetest);
+use Mojo::Base 'windowsbasetest';
 use testapi;
 use version_utils qw(is_sle is_opensuse);
 use wsl qw(is_sut_reg);

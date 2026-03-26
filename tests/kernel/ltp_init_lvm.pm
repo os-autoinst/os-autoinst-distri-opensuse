@@ -7,7 +7,7 @@
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run {

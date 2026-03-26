@@ -15,7 +15,7 @@
 # Step 7: Send finish command exits the app.
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
 use utils;

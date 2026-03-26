@@ -7,7 +7,7 @@
 # Summary: install velociraptor-client and collect events on server
 # Maintainer: Gayane Osipyan <gosipyan@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use version_utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);

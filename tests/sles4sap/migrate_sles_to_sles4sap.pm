@@ -10,7 +10,7 @@
 #       the special value "invalid_key" and the migrate-sles-to-sles4sap
 #       script does a roll back to SLES.
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

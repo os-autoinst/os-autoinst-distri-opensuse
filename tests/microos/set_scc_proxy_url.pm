@@ -6,7 +6,7 @@
 # Summary: Register the already installed system on a specific SCC server/proxy if needed
 # Maintainer: qa-c@suse.de
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use migration qw(set_scc_proxy_url);
 
 sub run {

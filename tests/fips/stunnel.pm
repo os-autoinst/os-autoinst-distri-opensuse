@@ -7,7 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#108608, tc#1769815
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use utils;

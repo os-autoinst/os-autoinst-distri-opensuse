@@ -155,7 +155,7 @@ QE-SAP <qe-sap@suse.de>
 
 package qesap_configure;
 
-use base 'sles4sap::publiccloud_basetest';
+use Mojo::Base 'sles4sap::publiccloud_basetest';
 use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos detect_worker_ip);

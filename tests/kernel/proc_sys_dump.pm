@@ -11,7 +11,7 @@
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use serial_terminal;

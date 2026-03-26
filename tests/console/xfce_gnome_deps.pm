@@ -7,7 +7,7 @@
 # Summary: Rework the tests layout.
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 # show installed GNOME components, allows to look for possibly unwanted

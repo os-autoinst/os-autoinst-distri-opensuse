@@ -5,9 +5,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, poo#106020, tc#1167579
 
-use base 'opensusebasetest';
+use Mojo::Base qw(opensusebasetest consoletest);
 use testapi;
-use base 'consoletest';
 use utils qw(clear_console ensure_serialdev_permissions);
 use Utils::Architectures;
 use version_utils;

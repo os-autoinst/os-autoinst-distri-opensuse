@@ -9,7 +9,7 @@
 
 # Maintainer: An Long <lan@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use lockapi;

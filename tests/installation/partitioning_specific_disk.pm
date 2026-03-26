@@ -7,7 +7,7 @@
 # Summary:  Install build on specified parition and format this partition
 # Maintainer: Joyce Na <jna@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use version_utils qw(is_storage_ng is_sle);
 use partition_setup 'mount_device';
 use testapi;

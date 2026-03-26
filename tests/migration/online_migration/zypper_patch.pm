@@ -7,7 +7,7 @@
 # Summary: Fully patch the system before conducting an online migration
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use Utils::Architectures;
 use testapi;
 use utils;

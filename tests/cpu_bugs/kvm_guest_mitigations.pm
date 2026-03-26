@@ -9,7 +9,7 @@
 ## no os-autoinst compile-check
 
 package kvm_guest_mitigations;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use Mitigation;
 use ipmi_backend_utils;

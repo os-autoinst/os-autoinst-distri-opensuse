@@ -8,7 +8,7 @@
 #   `zypper dup`
 # Maintainer: QE LSG <qa-team@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use utils qw(OPENQA_FTP_URL zypper_call);
 use Utils::Backends 'is_pvm';

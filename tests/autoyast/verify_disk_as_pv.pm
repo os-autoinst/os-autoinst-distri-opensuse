@@ -9,7 +9,7 @@
 #          is used for LVM group with root and swap logical volumes.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 
 sub validate_disk_as_partition {

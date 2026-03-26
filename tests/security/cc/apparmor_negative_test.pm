@@ -7,7 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#109307
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use audit_test 'parse_kvm_svirt_apparmor_results';

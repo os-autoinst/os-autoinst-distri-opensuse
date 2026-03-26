@@ -12,7 +12,7 @@
 # - ensure last log line has target ip
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use package_utils 'install_package';
 use utils 'validate_script_output_retry';

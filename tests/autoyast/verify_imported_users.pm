@@ -7,7 +7,7 @@
 # by checking for non-existence of .bashrc in /var/lib/{gdm,empty,polkit,nobody,pulseaudio}.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use scheduler 'get_test_suite_data';
 

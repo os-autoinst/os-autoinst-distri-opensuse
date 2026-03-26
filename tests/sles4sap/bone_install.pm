@@ -6,7 +6,7 @@
 # Summary: Install SAP Business One via command line.
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;

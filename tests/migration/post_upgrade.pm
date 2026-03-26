@@ -8,7 +8,7 @@
 #       1) Change the HDDVERSION to UPGRADE_TARGET_VERSION
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils 'get_x11_console_tty';
 

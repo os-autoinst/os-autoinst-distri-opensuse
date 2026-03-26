@@ -6,7 +6,7 @@
 # Summary: Migration activation then reboot to perform migration.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use power_action_utils 'power_action';
 use utils qw(zypper_call reconnect_mgmt_console upload_folders);

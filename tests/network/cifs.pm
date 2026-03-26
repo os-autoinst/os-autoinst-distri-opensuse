@@ -12,7 +12,7 @@
 # * force a local samba server (on the test machine) with CIFS_TEST_REMOTE=local
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

@@ -6,7 +6,7 @@
 # Summary: SLEPOS test - download images using KIWI
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
-use base "basetest";
+use Mojo::Base 'basetest';
 use testapi;
 use utils;
 

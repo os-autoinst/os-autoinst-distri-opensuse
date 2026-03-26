@@ -14,7 +14,7 @@
 #
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils 'is_sle';

@@ -5,7 +5,7 @@
 # Summary: This test connects to hypervisor using SSH
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use virt_autotest::common;
 use testapi;
 use serial_terminal 'select_serial_terminal';

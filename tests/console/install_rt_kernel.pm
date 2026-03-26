@@ -6,7 +6,7 @@
 # Summary: remove kernel-default and install kernal-rt
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call);

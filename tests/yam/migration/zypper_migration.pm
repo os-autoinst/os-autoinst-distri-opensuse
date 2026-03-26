@@ -7,7 +7,7 @@
 # Maintainer: QE Installation and Migration <none@suse.de>
 
 use testapi;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging 'upload_solvertestcase_logs';

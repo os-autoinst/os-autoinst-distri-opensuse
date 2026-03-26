@@ -6,7 +6,7 @@
 # Summary: Setup multimachine barriers as supportserver is the parent task
 # Maintainer: Pavel Dostal <pdostal@suse.com>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;

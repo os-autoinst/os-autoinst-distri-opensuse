@@ -12,7 +12,7 @@
 # - Stop and disable packagekit
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use zypper;

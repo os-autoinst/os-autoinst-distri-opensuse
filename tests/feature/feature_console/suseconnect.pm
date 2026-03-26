@@ -7,7 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: tc#1480023
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

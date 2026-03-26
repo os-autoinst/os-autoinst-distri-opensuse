@@ -7,7 +7,7 @@
 # Summary: Configure NetWeaver filesystems for ENSA2 based installation
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(systemctl file_content_replace script_retry);

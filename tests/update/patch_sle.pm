@@ -5,7 +5,7 @@
 # Summary: Patch SLE qcow2 images before migration (offline)
 # Maintainer: Dumitru Gutu <dgutu@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Architectures;
 use utils;

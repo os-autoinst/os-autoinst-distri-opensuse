@@ -11,7 +11,7 @@
 # - ensure log has NOERROR status and ANSWER SECTION
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use package_utils 'install_package';
 use serial_terminal 'select_serial_terminal';

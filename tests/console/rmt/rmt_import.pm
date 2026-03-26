@@ -9,7 +9,7 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use testapi;
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use repo_tools;
 use utils;
 use lockapi qw(mutex_create mutex_wait);

@@ -6,7 +6,7 @@
 # Summary: Run openssl post quantum go test
 # Maintainer: QE Security <none@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use security::agnosticTestRunner;

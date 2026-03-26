@@ -8,7 +8,7 @@
 
 use testapi;
 use Utils::Architectures;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 
 sub run {
     select_console('root-console');

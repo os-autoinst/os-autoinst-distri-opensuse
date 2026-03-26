@@ -12,7 +12,7 @@
 #
 # Maintainer: Ednilson Miura <emiura@suse.cz>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);

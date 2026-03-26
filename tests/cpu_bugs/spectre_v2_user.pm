@@ -7,7 +7,7 @@
 # Maintainer: James Wang <jnwang@suse.com>
 package spectre_v2_user;
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use testapi;
 use Utils::Backends;

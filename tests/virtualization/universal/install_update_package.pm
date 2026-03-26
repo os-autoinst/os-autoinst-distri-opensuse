@@ -7,7 +7,7 @@
 #          Simple package installation check without full patching workflow
 # Maintainer: QE-Virtualization <qe-virt@suse.de, Roy.Cai@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';

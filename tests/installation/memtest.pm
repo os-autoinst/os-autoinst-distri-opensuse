@@ -7,7 +7,7 @@
 # Summary: Simple memtest
 # Maintainer: QE LSG <qa-team@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use bootloader_setup qw(ensure_shim_import select_bootmenu_more);
 

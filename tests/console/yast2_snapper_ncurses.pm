@@ -7,7 +7,7 @@
 # Summary: yast2 snapper test for ncurses
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base qw(y2snapper_common y2_module_consoletest);
+use Mojo::Base qw(y2snapper_common y2_module_consoletest);
 
 use testapi;
 use utils;

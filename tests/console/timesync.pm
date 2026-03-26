@@ -5,7 +5,7 @@
 # before proceeding. Useful for bare-metal IPMI tests
 # Maintainer: QE Security <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

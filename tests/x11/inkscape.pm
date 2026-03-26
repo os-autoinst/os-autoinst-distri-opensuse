@@ -8,7 +8,7 @@
 # Summary: Test inkscape can be installed and started
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

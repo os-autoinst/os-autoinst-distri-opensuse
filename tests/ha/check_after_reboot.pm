@@ -134,7 +134,7 @@ QE-SAP <qe-sap@suse.de>
 =cut
 
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use Time::HiRes 'sleep';
 use Utils::Architectures;

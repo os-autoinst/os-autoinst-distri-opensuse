@@ -6,7 +6,7 @@
 # Summary: After installation, enable all repository on a Full flavor system.
 # Maintainer: QE Security <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 use Utils::Architectures qw(is_ppc64le);

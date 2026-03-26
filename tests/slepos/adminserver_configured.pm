@@ -6,7 +6,7 @@
 # Summary: Adminserver configured mutex
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
-use base "basetest";
+use Mojo::Base 'basetest';
 use testapi;
 use utils;
 use lockapi;

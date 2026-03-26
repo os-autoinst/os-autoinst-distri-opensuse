@@ -9,7 +9,7 @@
 #
 # Maintainer: xlai@suse.com
 
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use virt_utils;
 use testapi;
 use Utils::Architectures;

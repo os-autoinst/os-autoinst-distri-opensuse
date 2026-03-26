@@ -27,7 +27,7 @@
 #   - System logs
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

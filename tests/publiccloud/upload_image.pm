@@ -7,7 +7,7 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base "publiccloud::basetest";
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use utils;
 use publiccloud::ec2;

@@ -5,7 +5,7 @@
 # 16
 # Maintainer: QE SAP <qe-sap@suse.de>
 
-use base 'selinuxtest';
+use Mojo::Base 'selinuxtest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(has_selinux_by_default);

@@ -8,7 +8,7 @@
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use Utils::Logging 'save_and_upload_systemd_unit_log';

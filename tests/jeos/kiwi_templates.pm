@@ -6,7 +6,7 @@
 # Summary: Install kiwi templates for JeOS
 # Maintainer: QA-C <qa-c@suse.de>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use version_utils qw(is_sle is_leap);
 use utils qw(zypper_call);

@@ -7,7 +7,7 @@
 # Summary: Create HA cluster using crm cluster init
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use serial_terminal qw(select_serial_terminal);

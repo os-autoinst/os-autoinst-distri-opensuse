@@ -15,7 +15,7 @@
 # - upload created file to further reference.
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use utils;
 my $logfile = 'build.log';

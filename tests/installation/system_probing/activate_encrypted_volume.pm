@@ -4,7 +4,7 @@
 # Summary: Test module to activate encrypted volume.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

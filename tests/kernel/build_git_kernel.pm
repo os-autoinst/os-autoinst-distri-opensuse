@@ -10,7 +10,7 @@
 #
 # Maintainer: Michael Moese <mmoese@suse.de>, Yiannis Bonatakis <ybonatakis@suse.com>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

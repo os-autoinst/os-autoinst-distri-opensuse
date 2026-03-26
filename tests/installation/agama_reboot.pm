@@ -18,7 +18,7 @@
 #    we need to access to live root system to monitor installation process
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use version_utils qw(is_leap is_sle);
 use utils;

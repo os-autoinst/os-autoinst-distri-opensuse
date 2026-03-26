@@ -9,7 +9,7 @@
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use repo_tools qw(add_qa_head_repo add_qa_web_repo);
 
 sub run {

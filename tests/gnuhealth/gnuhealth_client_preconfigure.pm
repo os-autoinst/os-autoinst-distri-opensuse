@@ -6,7 +6,7 @@
 # Summary: first time administration and setup work for gnuhealth client
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils 'is_leap';
 

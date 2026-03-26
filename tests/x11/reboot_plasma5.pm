@@ -7,7 +7,7 @@
 # Summary: Ensure system can reboot from plasma5 session
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use power_action_utils;

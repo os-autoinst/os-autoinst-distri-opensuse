@@ -6,7 +6,7 @@
 # Summary: Test openssl-3-livepatches by iterating over supported openssl versions
 # Maintainer: <qe-core@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use serial_terminal;

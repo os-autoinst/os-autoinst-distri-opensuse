@@ -10,7 +10,7 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'publiccloud::basetest';
+use Mojo::Base 'publiccloud::basetest';
 use registration;
 use testapi;
 use utils;

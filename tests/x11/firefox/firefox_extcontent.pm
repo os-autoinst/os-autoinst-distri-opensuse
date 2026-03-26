@@ -17,7 +17,7 @@
 # - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils 'is_sle';
 use x11utils 'default_gui_terminal';

@@ -7,7 +7,7 @@
 # The node with the master resource must always win the fencing match
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;

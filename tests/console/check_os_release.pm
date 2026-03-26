@@ -9,7 +9,7 @@
 # - compare current values with those from /etc/os-release
 # Maintainer: Alvaro Carvajal <acarvajal@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_leap is_tumbleweed is_sles4sap is_rt is_hpc);

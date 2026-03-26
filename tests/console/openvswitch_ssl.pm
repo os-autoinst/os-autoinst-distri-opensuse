@@ -9,7 +9,7 @@
 # Maintainer: QE Security <none@suse.de>, QE Core <qe-core@suse.de>
 # Tags: TC1595181, poo#65375, poo#107134
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_sle';

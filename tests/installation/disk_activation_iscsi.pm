@@ -8,7 +8,7 @@
 #          provide a multipathed second disk to the client.
 # Maintainer: Klaus Wagner <kgw@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

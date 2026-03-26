@@ -6,7 +6,7 @@
 # Summary: Accept current timezone configuration
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_clock_and_time_zone()->get_clock_and_time_zone_page();

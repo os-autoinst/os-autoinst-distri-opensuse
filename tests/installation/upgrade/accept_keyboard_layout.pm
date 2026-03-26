@@ -6,7 +6,7 @@
 # Summary: Handles page for keyboard layout selection.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_language_keyboard()->get_keyboard_test();

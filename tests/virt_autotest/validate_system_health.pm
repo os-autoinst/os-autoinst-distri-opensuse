@@ -6,7 +6,7 @@
 # Summary: Do a basic examination to the host and guests after tests run
 # Maintainer: Julie CAO <JCao@suse.com>, qe-virt@suse.de
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use Utils::Logging qw(upload_coredumps);

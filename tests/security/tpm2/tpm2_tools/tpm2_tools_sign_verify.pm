@@ -5,7 +5,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#64905, poo#105732, poo#202523, tc#1742297
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

@@ -13,7 +13,7 @@
 # - kill background process
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

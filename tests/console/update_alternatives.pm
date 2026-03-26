@@ -7,7 +7,7 @@
 # Summary: console/update_alternatives test for bsc#969171
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging 'save_and_upload_log';

@@ -18,7 +18,7 @@
 # Maintainer: mkravec <mkravec@suse.com>
 # Tags: poo#11794
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use x11utils 'ensure_unlocked_desktop';
 use version_utils qw(is_sle is_tumbleweed package_version_cmp);

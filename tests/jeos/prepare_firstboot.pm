@@ -6,7 +6,7 @@
 # Summary: Enable jeos-firstboot as required by openQA testsuite
 # Maintainer: Guillaume GARDET <guillaume@opensuse.org>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_leap is_sle);

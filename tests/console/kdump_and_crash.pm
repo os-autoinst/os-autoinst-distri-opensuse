@@ -7,7 +7,7 @@
 # Summary: Run 'crash' utility on a kernel memory dump
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 use kdump_utils;

@@ -11,7 +11,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#44837, bsc#1209271, poo#134321
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

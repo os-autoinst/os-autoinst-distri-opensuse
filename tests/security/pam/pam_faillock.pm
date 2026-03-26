@@ -7,9 +7,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#102990 tc#1769824
 
-use base 'opensusebasetest';
+use Mojo::Base qw(opensusebasetest consoletest);
 use testapi;
-use base 'consoletest';
 use utils qw(zypper_call enter_cmd_slow);
 use version_utils 'is_sle';
 use Utils::Architectures qw(is_aarch64);

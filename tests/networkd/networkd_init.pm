@@ -6,7 +6,7 @@
 # Summary: Setup Networkd test env
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'networkdbase';
+use Mojo::Base 'networkdbase';
 use testapi;
 use utils;
 use version_utils;

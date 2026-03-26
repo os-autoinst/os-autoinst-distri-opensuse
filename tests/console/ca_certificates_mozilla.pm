@@ -9,7 +9,7 @@
 # - connect to static.opensuse.org:443 using openssl and verify that the return code is 0
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';

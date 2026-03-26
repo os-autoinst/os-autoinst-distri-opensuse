@@ -9,7 +9,7 @@
 # - makes sure image rebooted and is at login screen again
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use utils;
 

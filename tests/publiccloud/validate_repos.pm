@@ -7,7 +7,7 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use registration;
 use testapi;
 use utils;

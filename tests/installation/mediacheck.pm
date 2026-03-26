@@ -7,7 +7,7 @@
 # Summary: Verify mediacheck function on the DVD
 # Maintainer: Max Lin <mlin@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use bootloader_setup qw(ensure_shim_import select_bootmenu_more);
 use Utils::Architectures 'is_aarch64';

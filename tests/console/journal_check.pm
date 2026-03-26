@@ -8,7 +8,7 @@
 #          message was found and in case a failing systemd service was found.
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_opensuse';

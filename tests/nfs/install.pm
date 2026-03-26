@@ -8,7 +8,7 @@
 package install;
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';

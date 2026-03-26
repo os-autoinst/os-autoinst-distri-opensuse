@@ -5,7 +5,7 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Setup Netweaver WebGUI access
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 package ensa2_setup_Netweaver_WebGUI_access;
 use testapi;

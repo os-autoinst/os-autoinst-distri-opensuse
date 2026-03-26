@@ -7,7 +7,7 @@
 # Maintainer: John <xgwang@suse.com>
 
 use File::Basename;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run {

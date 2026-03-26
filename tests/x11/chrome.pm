@@ -8,7 +8,7 @@
 # Summary: GOOGLE Chrome: attempt to install and run google chrome
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use Utils::Architectures;
 use utils;

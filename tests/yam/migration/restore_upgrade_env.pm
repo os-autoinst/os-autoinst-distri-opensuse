@@ -6,7 +6,7 @@
 # Summary: Restore environmental variables which differ between the products involved in the upgrade.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use migration 'reset_consoles_tty';
 

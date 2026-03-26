@@ -7,7 +7,7 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: fate#321738
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use utils;
 use testapi;
 

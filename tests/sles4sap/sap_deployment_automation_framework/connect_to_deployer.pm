@@ -5,7 +5,7 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test initializes console redirection to cloud Deployer VM.
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 use testapi;
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner az_login sdaf_ssh_key_from_keyvault);

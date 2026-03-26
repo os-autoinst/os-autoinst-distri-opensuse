@@ -10,7 +10,7 @@
 #   for a list of dedicated lists on Linux
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

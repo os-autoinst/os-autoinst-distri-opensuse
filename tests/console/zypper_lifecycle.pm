@@ -25,7 +25,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: fate#320597
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_jeos is_upgrade);

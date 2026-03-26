@@ -15,7 +15,7 @@
 # - Cleanup
 # Maintainer: Shukui Liu <skliu@suse.com>
 
-use base 'y2_module_basetest';
+use Mojo::Base 'y2_module_basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

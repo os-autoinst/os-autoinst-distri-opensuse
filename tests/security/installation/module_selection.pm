@@ -6,7 +6,7 @@
 # Summary: If Full-QR enable most modules, otherwise don't.
 # Maintainer: QE Security <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

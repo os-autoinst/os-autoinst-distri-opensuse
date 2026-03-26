@@ -9,7 +9,7 @@
 
 use testapi;
 use lockapi;
-use base 'x11test';
+use Mojo::Base 'x11test';
 use mmapi;
 use mm_tests;
 use x11utils 'turn_off_gnome_screensaver';

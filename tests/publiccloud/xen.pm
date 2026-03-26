@@ -6,7 +6,7 @@
 # Summary: Run basic xen smoketest on a publiccloud test instance
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

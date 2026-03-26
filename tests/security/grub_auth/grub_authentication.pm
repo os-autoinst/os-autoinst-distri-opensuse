@@ -5,7 +5,7 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run {

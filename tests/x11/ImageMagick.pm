@@ -19,7 +19,7 @@
 #    time-consuming.
 # Maintainer: Veronika Svecova <vsvecova@suse.cz>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 

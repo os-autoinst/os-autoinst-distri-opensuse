@@ -11,7 +11,7 @@
 # Summary: Update host system
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use utils qw(zypper_call script_retry);
 use version_utils qw(get_os_release);
 use power_action_utils qw(power_action);

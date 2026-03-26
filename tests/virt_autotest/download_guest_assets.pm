@@ -8,7 +8,7 @@
 # Maintainer: Julie CAO <jcao@suse.com>
 package download_guest_assets;
 
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use testapi;
 use virt_utils;
 

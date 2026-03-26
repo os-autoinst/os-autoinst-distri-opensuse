@@ -7,7 +7,7 @@
 #          Test system has to be registered baremetal
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);

@@ -39,7 +39,7 @@
 # Tags: poo#48773, tc#1695946, poo#111036
 
 
-use base "apparmortest";
+use Mojo::Base 'apparmortest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);

@@ -8,7 +8,7 @@
 # for slower architectures.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi 'get_var';
 use Test::Assert ':all';
 

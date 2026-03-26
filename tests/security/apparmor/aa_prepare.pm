@@ -10,7 +10,7 @@
 # - starts apparmor service
 # Maintainer: QE Security <none@suse.de>
 
-use base "basetest";
+use Mojo::Base 'basetest';
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_jeos);

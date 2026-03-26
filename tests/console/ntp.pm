@@ -7,7 +7,7 @@
 # Summary: Basics ntp test - add ntp servers, obtain time
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use services::ntpd;

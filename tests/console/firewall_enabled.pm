@@ -11,7 +11,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: fate#323436
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use version_utils qw(is_upgrade is_jeos is_sle is_vmware is_leap is_tumbleweed);
 use serial_terminal 'select_serial_terminal';

@@ -8,7 +8,7 @@
 
 ## no os-autoinst compile-check
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils;

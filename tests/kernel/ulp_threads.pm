@@ -6,7 +6,7 @@
 # Summary: Apply livepatch to a process with multiple (thousand) threads
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use package_utils;
 use version_utils;

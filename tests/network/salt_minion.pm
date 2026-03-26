@@ -19,7 +19,7 @@
 # - Stop the minion at the end
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "saltbase";
+use Mojo::Base 'saltbase';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;

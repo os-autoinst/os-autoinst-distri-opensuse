@@ -7,7 +7,7 @@
 # Summary: Remove all the resources except stonith/sbd
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;

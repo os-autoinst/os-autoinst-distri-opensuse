@@ -12,7 +12,7 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use testapi;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 
 sub run {
     my ($self) = @_;

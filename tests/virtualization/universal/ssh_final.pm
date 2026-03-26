@@ -5,7 +5,7 @@
 # Summary: This checks all VMs over SSH
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_autotest::common;
 use testapi;
 use utils;

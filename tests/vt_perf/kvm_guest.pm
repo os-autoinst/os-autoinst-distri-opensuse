@@ -6,7 +6,7 @@
 # Summary: VT perf testsuite on KVM testing
 # Maintainer: James Wang <jnwang@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use Utils::Backends 'use_ssh_serial_console';
 use bootloader_setup qw(grub_mkconfig change_grub_config add_grub_cmdline_settings remove_grub_cmdline_settings grep_grub_settings set_framebuffer_resolution set_extrabootparams_grub_conf);
 use Mitigation;

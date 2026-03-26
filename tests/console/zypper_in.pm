@@ -13,7 +13,7 @@
 # - Check if package was removed
 # Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);

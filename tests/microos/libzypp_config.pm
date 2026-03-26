@@ -7,7 +7,7 @@
 # fate#321764
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use version_utils qw(is_community_jeos is_jeos is_transactional);
 use serial_terminal qw(select_serial_terminal);

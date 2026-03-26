@@ -7,7 +7,7 @@
 # s_client/s_server with DHE when in FIPS mode.
 # Maintainer: QE Security <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_sle_micro is_transactional);

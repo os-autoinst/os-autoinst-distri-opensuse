@@ -10,7 +10,7 @@
 # - if in textmode or on SLE-15+, prepare the systembefore executing the command
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_sle';

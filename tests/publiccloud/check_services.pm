@@ -6,7 +6,7 @@
 # Summary: Check public cloud specific services
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'publiccloud::basetest';
+use Mojo::Base 'publiccloud::basetest';
 use serial_terminal 'select_serial_terminal';
 use registration;
 use testapi;

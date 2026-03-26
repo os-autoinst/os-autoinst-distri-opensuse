@@ -6,7 +6,7 @@
 # Summary: Rancher container test using docker
 # Maintainer: George Gkioulis <ggkioulis@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

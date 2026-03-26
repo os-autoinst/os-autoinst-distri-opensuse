@@ -6,7 +6,7 @@
 # Summary: Switch from NetworkManager to wicked.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use y2_module_basetest;
 use testapi;
 use mm_network;

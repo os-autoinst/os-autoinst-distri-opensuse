@@ -13,7 +13,7 @@
 # Tags: poo#9716, poo#10286, poo#10164
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use grub_utils qw(grub_test);
 

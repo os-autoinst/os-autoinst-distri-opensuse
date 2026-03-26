@@ -6,7 +6,7 @@
 # Summary: Test module to validate zfcp multipath on z/VM testing infrastructure.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Test::Assert ':all';
 

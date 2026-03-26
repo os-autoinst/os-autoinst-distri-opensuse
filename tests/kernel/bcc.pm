@@ -5,7 +5,7 @@
 # Summary: Compile and attach eBPF probes with BCC tools
 # Maintainer: kernel-qa@suse.de
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_sle';

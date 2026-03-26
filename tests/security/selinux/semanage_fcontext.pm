@@ -6,7 +6,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#65669, tc#1741290
 
-use base "selinuxtest";
+use Mojo::Base 'selinuxtest';
 use power_action_utils "power_action";
 use testapi;
 use serial_terminal 'select_serial_terminal';

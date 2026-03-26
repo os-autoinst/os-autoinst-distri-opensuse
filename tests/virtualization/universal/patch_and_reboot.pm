@@ -7,7 +7,7 @@
 # Summary: Apply patches to the running system
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use virt_autotest::common;
 use virt_autotest::utils;
 use power_action_utils 'power_action';

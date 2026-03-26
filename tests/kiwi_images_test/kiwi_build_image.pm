@@ -10,7 +10,7 @@
 # Upload the locally created qcow2 image for further testing.
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_sle';

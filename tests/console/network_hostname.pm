@@ -9,7 +9,7 @@
 # which means that is not taken into account dhcp configuration provided for this test via NICTYPE_USER_OPTIONS=hostname=myguest
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use version_utils 'is_sle';
 

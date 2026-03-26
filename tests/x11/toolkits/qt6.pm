@@ -6,7 +6,7 @@
 # Summary: Test UI toolkit: Qt6
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use version_utils 'is_sle';
 use testapi;
 use x11utils 'default_gui_terminal';

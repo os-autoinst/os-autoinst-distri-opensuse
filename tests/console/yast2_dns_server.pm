@@ -8,7 +8,7 @@
 # Summary: Ensure that all combinations of running/stopped and active/inactive can be set for yast2 dns-server
 # Maintainer: jeriveramoya <jeriveramoya@suse.com>
 
-use base 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 use version_utils qw(is_leap is_sle);

@@ -7,7 +7,7 @@
 # Summary: Smoke test for builtin podman tool called quadlet
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(containers::basetest);
+use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp);

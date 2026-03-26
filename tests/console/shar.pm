@@ -7,7 +7,7 @@
 # Summary: This will test the shar (SHELL ARCHIVE) tool
 # Maintainer: Dominik Heidler <dominik@heidler.eu>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils;

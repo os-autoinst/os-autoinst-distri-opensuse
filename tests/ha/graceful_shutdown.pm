@@ -7,7 +7,7 @@
 # Summary: shutdown a cluster gracefully and start it up again using "crm cluster" commands
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;

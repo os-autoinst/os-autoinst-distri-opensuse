@@ -10,7 +10,7 @@
 #    or if the new version with a proposed fix is already included.
 # Maintainer: QE LSG <qa-team@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

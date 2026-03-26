@@ -5,7 +5,7 @@
 # Summary: Checks an service after an upgrade
 # Maintainer: Joachim Rauch <jrauch@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'systemctl';
 use service_check;

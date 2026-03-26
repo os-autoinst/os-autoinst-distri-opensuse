@@ -8,7 +8,7 @@
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610388
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use lockapi;
 use version_utils qw(is_sles4sap is_tumbleweed);

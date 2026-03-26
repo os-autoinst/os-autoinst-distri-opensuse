@@ -11,7 +11,7 @@
 # to create a VM and a storage account in its own resource group. All resources are disposed after execution
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";

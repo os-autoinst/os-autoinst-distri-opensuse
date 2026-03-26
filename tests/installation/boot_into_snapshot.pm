@@ -9,7 +9,7 @@
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
 use testapi;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use bootloader_setup qw(stop_grub_timeout boot_into_snapshot);
 
 sub run {

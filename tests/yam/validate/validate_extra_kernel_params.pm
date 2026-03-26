@@ -6,7 +6,7 @@
 # Summary: Validate the extra kernel parameters added to bootloader section
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

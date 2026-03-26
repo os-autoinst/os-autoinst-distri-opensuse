@@ -6,7 +6,7 @@
 # Summary: Disable various timers that sometimes cause test interruptions
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(systemctl);
 use mm_network qw(is_networkmanager);

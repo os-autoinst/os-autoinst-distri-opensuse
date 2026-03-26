@@ -6,7 +6,7 @@
 # Summary: run upstream libica testsuite (build time) on s390x with enabled FIPS mode
 # Maintainer: QE Security <none@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

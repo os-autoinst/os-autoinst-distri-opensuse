@@ -5,7 +5,7 @@
 # Summary: Prepare the dom0 metrics environment
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use virt_autotest::common;
 use virt_autotest::utils;
 use testapi;

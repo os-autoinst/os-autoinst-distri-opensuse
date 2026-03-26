@@ -6,7 +6,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#107488, tc#1769799, poo#112241
 
-use base qw(consoletest opensusebasetest);
+use Mojo::Base qw(consoletest opensusebasetest);
 use testapi;
 use utils qw(quit_packagekit zypper_call);
 use Utils::Backends 'is_pvm';

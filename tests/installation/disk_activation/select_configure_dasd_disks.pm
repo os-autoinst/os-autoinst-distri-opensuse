@@ -6,7 +6,7 @@
 # Summary: Selects DASD disk configuration in disk activation page
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     my $disk_activation = $testapi::distri->get_disk_activation();

@@ -5,7 +5,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Ticket: poo#51560, poo#51566
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use lockapi;

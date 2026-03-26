@@ -7,7 +7,7 @@
 # Summary: Add add-on via DVD, network or DUD during installation
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Backends;
 use utils qw(addon_license handle_untrusted_gpg_key assert_screen_with_soft_timeout);

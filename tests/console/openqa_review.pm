@@ -6,7 +6,7 @@
 # Summary: Test openqa-review can be started (with runtime dependencies)
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

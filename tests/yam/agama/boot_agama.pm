@@ -5,7 +5,7 @@
 # At the moment redirecting to legacy handling for remote architectures booting.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 
 use testapi;
 use autoyast qw(create_file_as_profile_companion expand_agama_profile generate_json_profile parse_dud_parameter);

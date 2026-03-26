@@ -8,12 +8,11 @@
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610388
 
-use base 'x11test';
+use Mojo::Base qw(x11test opensusebasetest);
 use testapi;
 use lockapi;
 use mmapi;
 use mm_tests;
-use base 'opensusebasetest';
 use utils qw(systemctl zypper_call);
 use x11utils qw(handle_login turn_off_gnome_screensaver);
 use version_utils qw(is_sle is_sles4sap is_tumbleweed);

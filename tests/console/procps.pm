@@ -17,7 +17,7 @@
 # - Run top -b -n 1 and check
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

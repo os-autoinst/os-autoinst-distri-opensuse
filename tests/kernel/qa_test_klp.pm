@@ -9,7 +9,7 @@
 
 use File::Basename 'basename';
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

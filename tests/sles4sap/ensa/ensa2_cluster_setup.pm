@@ -5,7 +5,7 @@
 # Summary: Configure cluster resources for ENSA2
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(file_content_replace);

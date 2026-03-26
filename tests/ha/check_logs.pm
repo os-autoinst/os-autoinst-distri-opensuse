@@ -7,7 +7,7 @@
 # Summary: Check logs to find error and upload all needed logs
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use hacluster qw(get_cluster_name ha_export_logs);

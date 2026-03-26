@@ -7,7 +7,7 @@
 # Summary: Execute regression tests with pacemaker-cts
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use Utils::Architectures;
 use utils 'zypper_call';

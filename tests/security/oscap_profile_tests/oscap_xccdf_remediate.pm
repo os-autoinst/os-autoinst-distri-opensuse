@@ -4,7 +4,7 @@
 # Summary: Generic test for hardening profile in the 'scap-security-guide': mitigation mode
 # Maintainer: QE Security <none@suse.de>
 
-use base 'oscap_tests';
+use Mojo::Base 'oscap_tests';
 use testapi;
 use utils;
 

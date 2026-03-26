@@ -11,7 +11,7 @@
 # - Close evolution
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils "is_gnome_next";
 

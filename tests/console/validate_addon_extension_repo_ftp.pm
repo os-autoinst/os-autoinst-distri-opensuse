@@ -8,7 +8,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use repo_tools 'validate_repo_properties';
 

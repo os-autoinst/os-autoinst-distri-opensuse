@@ -5,7 +5,7 @@
 #
 # Maintainer: unified-core@suse.com, ldevulder@suse.com
 
-use base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use network_utils qw(get_default_dns is_running_in_isolated_network set_resolv);

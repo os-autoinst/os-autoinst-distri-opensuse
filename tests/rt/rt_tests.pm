@@ -9,7 +9,7 @@
 # Maintainer: Martin Loviska <mloviska@suse.com>
 # Tag: poo#46874
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils 'zypper_call';
 

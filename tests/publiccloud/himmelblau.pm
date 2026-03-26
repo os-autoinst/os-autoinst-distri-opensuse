@@ -10,7 +10,7 @@
 # Summary: Test the himmelblau identity provider package
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);

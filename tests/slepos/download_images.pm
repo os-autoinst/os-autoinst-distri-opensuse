@@ -6,7 +6,7 @@
 # Summary: download images SLEPOS test
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
-use base "basetest";
+use Mojo::Base 'basetest';
 use testapi;
 use utils;
 

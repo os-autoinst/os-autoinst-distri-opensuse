@@ -7,7 +7,7 @@
 # Summary: Perform some stress tests on VM
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_autotest::common;
 use testapi;
 use serial_terminal 'select_serial_terminal';

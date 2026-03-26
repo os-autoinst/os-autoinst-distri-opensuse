@@ -4,7 +4,7 @@
 # Summary: Boot and login to the supportserver qcow2 image
 # Maintainer: Pavel Sladek <psladek@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

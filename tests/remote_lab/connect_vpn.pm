@@ -7,7 +7,7 @@
 # Maintainer: Oliver Kurz <okurz@suse.de>
 # Tags: https://progress.opensuse.org/issues/49901
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use Remote::Lab 'connect_vpn';
 use testapi;
 

@@ -7,7 +7,7 @@
 # Maintainer: qa-c team <qa-c@suse.de>
 #             QE Security
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use version_utils qw(is_sle is_transactional);
 use transactional qw(trup_call process_reboot);

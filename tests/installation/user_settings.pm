@@ -13,7 +13,7 @@
 # - Select next, handle "password is too simple" screen
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use version_utils 'is_sle';
 use utils;

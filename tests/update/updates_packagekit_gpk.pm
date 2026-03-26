@@ -16,7 +16,7 @@
 # - If updates requires logout or application restart, close gpk
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use power_action_utils 'power_action';

@@ -34,7 +34,7 @@
 # Maintainer: Antonio Caristia <acaristia@suse.com> (autofs)
 # Maintainer: Timo Jyrinki <tjyrinki@suse.com> (nfsidmap)
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
 use autofs_utils qw(setup_autofs_server check_autofs_service install_service);

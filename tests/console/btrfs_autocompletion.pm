@@ -13,7 +13,7 @@
 # check if device is working and it is at least 1MB in size.
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base 'btrfs_test';
+use Mojo::Base 'btrfs_test';
 use testapi;
 use utils 'zypper_call';
 use version_utils qw(is_jeos is_sle is_leap);

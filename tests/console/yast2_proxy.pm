@@ -7,7 +7,7 @@
 # Summary: Test that squid proxy can be started after setup with YaST
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
 use utils;

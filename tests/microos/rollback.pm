@@ -7,7 +7,7 @@
 #          migration, using transactional-update rollback.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'verify_os_version';

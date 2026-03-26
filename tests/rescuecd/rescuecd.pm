@@ -7,7 +7,7 @@
 # Summary: RESCUECD test
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "rescuecdstep";
+use Mojo::Base 'rescuecdstep';
 use testapi;
 
 sub run {

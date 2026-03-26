@@ -9,7 +9,7 @@
 #          creates a jar file and runs it.
 # Maintainer: George Gkioulis <ggkioulis@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 

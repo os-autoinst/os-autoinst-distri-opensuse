@@ -14,7 +14,7 @@
 #
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 
 
 use utils;

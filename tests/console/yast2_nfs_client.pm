@@ -16,7 +16,7 @@
 #   * We download 1GB file and check it's checksum
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
 use serial_terminal 'select_serial_terminal';

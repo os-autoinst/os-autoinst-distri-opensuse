@@ -14,7 +14,7 @@
 #     - 4. Unzip only one file (instead of all)
 # Maintainer: Panos Georgiadis <pgeorgiadis@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';

@@ -8,7 +8,7 @@
 #
 # Maintainer: QA-C team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional qw(process_reboot);
 use version_utils qw(has_selinux_by_default is_leap_micro is_microos is_sle_micro is_public_cloud);

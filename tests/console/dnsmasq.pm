@@ -10,7 +10,7 @@
 #
 # Maintainer: Ondřej Pithart <ondrej.pithart@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils qw(install_package uninstall_package);

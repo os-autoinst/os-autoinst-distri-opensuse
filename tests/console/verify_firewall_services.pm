@@ -6,7 +6,7 @@
 # Summary: Verification of firewall being inactive and allowing services http https.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 

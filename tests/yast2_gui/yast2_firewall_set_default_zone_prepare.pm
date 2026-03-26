@@ -7,7 +7,7 @@
 # TW set default zone with iface together but sle not, so we need update iface's zone to trusted zone firstly
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_guitest";
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use utils;
 use network_utils 'iface';

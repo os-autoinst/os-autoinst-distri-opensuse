@@ -7,7 +7,7 @@
 # Summary: Select 'snapshot' boot option from grub menu
 # Maintainer: okurz <okurz@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use power_action_utils 'power_action';
 use utils qw(unlock_bootloader reconnect_mgmt_console);

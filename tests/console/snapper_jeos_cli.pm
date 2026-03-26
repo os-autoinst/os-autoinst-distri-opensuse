@@ -7,7 +7,7 @@
 # Summary: Snapshot creation and rollback on JeOS
 # Maintainer: Ciprian Cret <ccret@suse.com>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Architectures;
 use utils;

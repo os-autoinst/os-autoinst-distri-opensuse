@@ -4,7 +4,7 @@
 # Summary: Installs and checks a service for migration scenarios
 # Maintainer: Joachim Rauch <jrauch@suse.com>
 
-use base 'installbasetest';
+use Mojo::Base 'installbasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'systemctl', 'zypper_call';

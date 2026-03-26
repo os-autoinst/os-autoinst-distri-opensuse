@@ -6,7 +6,7 @@
 # Summary: Prepare system for Workload Memory Protection basic test
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
-use base "sles4sap";
+use Mojo::Base 'sles4sap';
 use testapi;
 use utils qw(zypper_call);
 use Utils::Systemd qw(systemctl);

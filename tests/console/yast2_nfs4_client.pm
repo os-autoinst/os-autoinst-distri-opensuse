@@ -17,7 +17,7 @@
 #   * We download 1GB file and check it's checksum
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use utils qw(zypper_call systemctl script_retry);
 use version_utils;

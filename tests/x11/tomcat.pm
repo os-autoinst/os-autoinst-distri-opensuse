@@ -13,7 +13,7 @@
 # * apache2-mod_jk is not avaialble on sle16, so we use proxy instead
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Tomcat::Utils;

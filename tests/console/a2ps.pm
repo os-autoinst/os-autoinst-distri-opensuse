@@ -7,7 +7,7 @@
 # Summary: a2ps test based on: https://progress.opensuse.org/issues/9472
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

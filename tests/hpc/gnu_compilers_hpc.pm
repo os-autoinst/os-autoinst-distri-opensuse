@@ -8,7 +8,7 @@
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base qw(hpcbase), -signatures;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

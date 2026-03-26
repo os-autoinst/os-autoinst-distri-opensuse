@@ -42,7 +42,7 @@
 # Maintainer: Marcelo Martins <mmartins@suse.cz>, Anna Minou <anna.minou@suse.com>
 # Tags: poo#51521, poo#49076
 #
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;

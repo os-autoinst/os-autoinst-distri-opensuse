@@ -7,7 +7,7 @@
 # Summary: Test FirewallD basic usage, including nftables/iptables
 # Maintainer: Alexandre Makoto Tanno <atanno@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call script_retry);

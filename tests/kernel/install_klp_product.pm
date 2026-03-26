@@ -9,7 +9,7 @@
 # Maintainer: Nicolai Stange <nstange@suse.de>
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

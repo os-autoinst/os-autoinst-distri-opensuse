@@ -7,7 +7,7 @@
 # Summary: Test xfce4-appfinder, auto-completion and starting xfce4-about
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils qw(is_tumbleweed is_leap);
 use x11utils 'desktop_runner_hotkey';

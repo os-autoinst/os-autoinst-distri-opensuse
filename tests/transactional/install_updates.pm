@@ -6,7 +6,7 @@
 # Summary: Install Update repos in transactional server
 # Maintainer: qac team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use qam;
 use transactional;

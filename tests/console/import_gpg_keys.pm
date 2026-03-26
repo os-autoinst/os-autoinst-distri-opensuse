@@ -6,7 +6,7 @@
 #    so that key needs to be imported manually
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

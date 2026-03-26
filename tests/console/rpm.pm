@@ -20,7 +20,7 @@
 #  * Uninstall an already installed package
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

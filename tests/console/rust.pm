@@ -8,7 +8,7 @@
 #    Use cargo to create a project which pulls in dependencies online.
 # Maintainer: Cris Dywan <cdywan@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use package_utils 'install_package';
 use Utils::Architectures 'is_aarch64';

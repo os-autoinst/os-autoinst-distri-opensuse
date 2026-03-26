@@ -8,7 +8,7 @@
 # Summary: Support for the new tests for yast command line
 # Maintainer: Ancor Gonzalez Sosa <ancor@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils qw(zypper_call systemctl);
 use repo_tools 'prepare_source_repo';

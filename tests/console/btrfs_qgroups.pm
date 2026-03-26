@@ -18,7 +18,7 @@
 # table.
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base 'btrfs_test';
+use Mojo::Base 'btrfs_test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

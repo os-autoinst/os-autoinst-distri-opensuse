@@ -6,7 +6,7 @@
 # Summary: remove DHCP leases DB from support server
 # Maintainer: Alvaro Carvajal <acarvajal@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'systemctl';
 

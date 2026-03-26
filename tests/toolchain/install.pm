@@ -7,7 +7,7 @@
 # Summary: Toolchain module test environment installation
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use Utils::Systemd 'disable_and_stop_service';

@@ -7,7 +7,7 @@
 # Summary: Reboot from plasma
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 

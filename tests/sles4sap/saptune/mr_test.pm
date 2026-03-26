@@ -52,7 +52,7 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use autotest;
 use testapi;
 use serial_terminal 'select_serial_terminal';

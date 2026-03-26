@@ -5,7 +5,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#78224, poo#88155
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
 use testapi;

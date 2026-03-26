@@ -7,7 +7,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use y2_module_consoletest;
 use testapi qw(select_console wait_serial save_screenshot get_var);
 

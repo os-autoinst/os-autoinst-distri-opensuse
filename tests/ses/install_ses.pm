@@ -6,7 +6,7 @@
 # Summary: Install SES and deepsea-qa from repo as stable or git as latest unstable code
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 use version_utils 'is_sle';

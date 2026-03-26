@@ -7,7 +7,7 @@
 #          in FIPS kernel mode and non-FIPS mode
 # Maintainer: QE Security <none@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';

@@ -7,7 +7,7 @@
 # Summary: Test dracut installation and verify that it works as expected
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

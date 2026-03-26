@@ -9,7 +9,7 @@
 # Make sure yast2 firewall can opened properly. Configurations can be changed and written correctly.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_guitest";
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);

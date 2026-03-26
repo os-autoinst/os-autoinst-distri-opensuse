@@ -6,7 +6,7 @@
 # Summary: NVIDIA open source driver test
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use nvidia_utils;

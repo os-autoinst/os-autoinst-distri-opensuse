@@ -6,7 +6,7 @@
 # Summary: Test preparing the static IP and hostname for simple multimachine tests
 # Maintainer: Pavel Dostal <pdostal@suse.cz>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
 use mm_network 'setup_static_mm_network';

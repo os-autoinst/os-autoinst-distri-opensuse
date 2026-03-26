@@ -7,7 +7,7 @@
 #   file under data/virt_autotest/guest_params_xml_files/.
 # Maintainer: qe-virt@suse.de, Xiaoli Ai<xlai@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

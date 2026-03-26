@@ -5,7 +5,7 @@
 # Summary: Compile and load a BPF sample program from Linux mainline
 # Maintainer: kernel-qa@suse.de
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use version_utils qw(is_sle);

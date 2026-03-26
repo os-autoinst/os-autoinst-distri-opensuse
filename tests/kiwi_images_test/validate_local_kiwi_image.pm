@@ -6,7 +6,7 @@
 # Summary: Validate the locally built Kiwi qcow2 image by booting it.
 # Maintainer:  QE Core <qe-core@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

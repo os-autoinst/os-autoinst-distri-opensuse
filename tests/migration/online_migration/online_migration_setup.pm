@@ -6,7 +6,7 @@
 # Summary: Online migration setup
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use utils;
 use version_utils qw(is_desktop_installed is_sles4sap);
 use testapi;

@@ -8,7 +8,7 @@
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
 use 5.018;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;

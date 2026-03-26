@@ -5,7 +5,7 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Post deployment screens and checks
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 package check_hana_database;
 use warnings FATAL => 'all';

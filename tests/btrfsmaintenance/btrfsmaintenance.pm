@@ -6,7 +6,7 @@
 # Summary: Regression test for btrfsmaintenance. poo#59211.
 #   Fixed by commit 93b0054 (Make balance, scrub, and trim mutually exclusive tasks)
 # Maintainer: An Long <lan@suse.com>
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use File::Basename;
 use testapi;
 use serial_terminal 'select_serial_terminal';

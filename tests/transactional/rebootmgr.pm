@@ -8,7 +8,7 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: poo#16266
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils;

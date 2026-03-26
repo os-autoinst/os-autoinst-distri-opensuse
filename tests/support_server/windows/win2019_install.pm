@@ -6,7 +6,7 @@
 # Summary: Boot and install Windows server 2019
 # Maintainer: mmartins <mmartins@suse.com>
 
-use base 'windowsbasetest';
+use Mojo::Base 'windowsbasetest';
 use testapi;
 use mmapi;
 

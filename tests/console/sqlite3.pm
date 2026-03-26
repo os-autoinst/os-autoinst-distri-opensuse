@@ -14,7 +14,7 @@
 #   * Interactive call with `expect`
 # Maintainer: Tina Müller <tina.mueller@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';

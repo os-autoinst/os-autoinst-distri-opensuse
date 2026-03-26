@@ -12,7 +12,7 @@
 #    while launching atm.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_guitest";
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use utils 'type_string_slow_extended';
 use version_utils 'is_sle';

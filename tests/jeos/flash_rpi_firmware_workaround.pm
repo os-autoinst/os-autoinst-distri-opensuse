@@ -11,7 +11,7 @@
 #   * RPi4 : as it cannot boot from USB (USB is not supported neither in firmware, nor in u-boot)
 # Maintainer: Guillaume GARDET <guillaume@opensuse.org>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Utils::Architectures;
 

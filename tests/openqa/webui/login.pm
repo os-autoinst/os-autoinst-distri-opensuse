@@ -6,7 +6,7 @@
 # Summary: Login to the openQA webui
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

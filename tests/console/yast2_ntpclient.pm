@@ -7,7 +7,7 @@
 # Summary: yast2_ntpclient test
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
 use utils qw(enter_cmd_slow zypper_call systemctl);

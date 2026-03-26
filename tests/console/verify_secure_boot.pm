@@ -7,7 +7,7 @@
 # Summary: Verify that secure boot is set as expected.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use YaST::EFItools;
 use scheduler 'get_test_suite_data';

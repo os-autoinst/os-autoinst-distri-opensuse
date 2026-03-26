@@ -8,7 +8,7 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: https://fate.suse.com/321755
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal;
 

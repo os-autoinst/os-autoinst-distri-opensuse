@@ -6,7 +6,7 @@
 #          in Single Incident job groups.
 # Maintainer: QE SAP & HA <qe-sap@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run {

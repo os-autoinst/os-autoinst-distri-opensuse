@@ -38,7 +38,7 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap::publiccloud_basetest';
+use Mojo::Base 'sles4sap::publiccloud_basetest';
 use testapi;
 
 sub test_flags {

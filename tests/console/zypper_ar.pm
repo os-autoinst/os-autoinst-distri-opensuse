@@ -10,7 +10,7 @@
 # - Add to be tested repositories
 # Maintainer: Santiago Zarate <santiago.zarate@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use version_utils 'is_staging';
 use utils 'zypper_call';

@@ -7,7 +7,7 @@
 # Summary: split the partitioning monster into smaller pieces
 # Maintainer: Sergio Lindo Mansilla <slindomansilla@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use version_utils qw(is_storage_ng is_tumbleweed);
 use partition_setup 'is_storage_ng_newui';

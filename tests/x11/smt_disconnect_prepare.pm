@@ -7,7 +7,7 @@
 # Summary: Do some prepare for internal and external SMT on disconnect SMT case
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use migration;

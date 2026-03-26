@@ -49,7 +49,7 @@ QE-SAP <qe-sap@suse.de>
 
 package hana_sr_schedule_deployment;
 
-use base 'sles4sap::publiccloud_basetest';
+use Mojo::Base 'sles4sap::publiccloud_basetest';
 use testapi;
 use main_common 'loadtest';
 use publiccloud::utils 'is_azure';

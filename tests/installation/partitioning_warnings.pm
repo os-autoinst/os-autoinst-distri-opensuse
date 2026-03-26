@@ -15,7 +15,7 @@
 #                       6) no swap (sle12)
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Architectures;
 use partition_setup qw(create_new_partition_table addpart addboot);

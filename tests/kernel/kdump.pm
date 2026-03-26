@@ -6,7 +6,7 @@
 # Summary: Configure and run kdump test using command line interface
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use kdump_utils;

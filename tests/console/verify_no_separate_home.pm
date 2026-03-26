@@ -8,7 +8,7 @@
 # partition/volume.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use warnings FATAL => 'all';
 use testapi;
 use Test::Assert 'assert_equals';

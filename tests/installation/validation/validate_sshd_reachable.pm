@@ -7,7 +7,7 @@
 # admins may want to connect with ssh right after an ssh installation.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use services::sshd;
 use testapi "select_console";
 
