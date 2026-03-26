@@ -101,20 +101,12 @@ sub run {
         $instance->ssh_assert_script_run(cmd => 'rpm -q ' . $test_package);
     }
 
-    # cockpit test
-    if (is_sle_micro('=6.2')) {
-        # On SLEM 6.2 cockpit is enabled. It's under discussion if this is correct, see bsc#1252729
-        $instance->ssh_assert_script_run(cmd => 'systemctl is-enabled cockpit.socket');
-        $instance->ssh_assert_script_run(cmd => 'curl --no-progress-meter http://localhost:9090');
-        $instance->ssh_assert_script_run(cmd => 'systemctl is-active cockpit.service');
-    } else {
-        # expected not-active
-        $instance->ssh_assert_script_run(cmd => '! curl --no-progress-meter localhost:9090');
-        $instance->ssh_assert_script_run(cmd => 'sudo systemctl enable --now cockpit.socket');
-        $instance->ssh_assert_script_run(cmd => '! systemctl is-active cockpit.service');
-        $instance->ssh_assert_script_run(cmd => 'curl --no-progress-meter http://localhost:9090');
-        $instance->ssh_assert_script_run(cmd => 'systemctl is-active cockpit.service');
-    }
+    # cockpit is expected not-active in all versions since bsc#1252729
+    $instance->ssh_assert_script_run(cmd => '! curl --no-progress-meter localhost:9090');
+    $instance->ssh_assert_script_run(cmd => 'sudo systemctl enable --now cockpit.socket');
+    $instance->ssh_assert_script_run(cmd => '! systemctl is-active cockpit.service');
+    $instance->ssh_assert_script_run(cmd => 'curl --no-progress-meter http://localhost:9090');
+    $instance->ssh_assert_script_run(cmd => 'systemctl is-active cockpit.service');
 
     unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
         # additional tr-up tests
