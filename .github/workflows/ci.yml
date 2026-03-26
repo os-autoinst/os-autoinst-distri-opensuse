@@ -16,6 +16,8 @@ jobs:
             perl-version: 5.26
           - test: compile
             perl-version: 5.26
+          - test: compile-os-autoinst
+            perl-version: '5.40'
     container:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
     steps:

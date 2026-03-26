@@ -55,6 +55,10 @@ test-compile: check-links
 test-compile-changed: os-autoinst/
 	export PERL5LIB=${PERL5LIB_}:$(shell ./tools/wheel --verify) ; for f in `git diff --name-only | grep '.pm'` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
 
+.PHONY: test-compile-os-autoinst
+test-compile-os-autoinst: os-autoinst/
+	prove tools/check_os_autoinst_compile
+
 .PHONY: test_pod_whitespace_rule
 test_pod_whitespace_rule:
 	tools/check_pod_whitespace_rule
@@ -120,6 +124,8 @@ ifeq ($(TESTS),compile)
 test: test-compile
 else ifeq ($(TESTS),compile-changed)
 test: test-compile-changed
+else ifeq ($(TESTS),compile-os-autoinst)
+test: test-compile-os-autoinst
 else ifeq ($(TESTS),static)
 test: test-static
 else ifeq ($(TESTS),unit)

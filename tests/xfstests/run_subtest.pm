@@ -7,6 +7,8 @@
 # Summary: Run single xfstests subtest
 # Maintainer: Yong Sun <yosun@suse.com>, An Long <lan@suse.com>
 
+## no os-autoinst compile-check
+
 use 5.018;
 use base 'opensusebasetest';
 use File::Basename;

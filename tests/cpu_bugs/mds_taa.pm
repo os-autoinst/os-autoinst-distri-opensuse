@@ -6,6 +6,8 @@
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
 
+## no os-autoinst compile-check
+
 
 use base "consoletest";
 use bootloader_setup;

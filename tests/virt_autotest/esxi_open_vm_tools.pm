@@ -6,6 +6,8 @@
 # Summary: Run open-vm-tools testing against VMware ESXi
 # Maintainer: Nan Zhang <nan.zhang@suse.com>
 
+## no os-autoinst compile-check
+
 use base 'consoletest';
 use testapi;
 use transactional;
