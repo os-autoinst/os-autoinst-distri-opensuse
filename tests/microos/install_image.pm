@@ -129,6 +129,15 @@ sub run {
     my $final_disk_layout = script_output("parted ${device} --script print");
     record_info("INFO", "${image} was installed on ${device}. System is going to be rebooted.\n\nFinal disk layout:\n ${final_disk_layout}");
 
+    # Register UEFI boot entry after dd
+    if (get_var('IPXE_UEFI')) {
+        my $distri = get_var('DISTRI');
+        my $efi_loader = is_x86_64 ? '\\EFI\\BOOT\\bootx64.efi' : '\\EFI\\BOOT\\bootaa64.efi';
+        remove_efiboot_entry(boot_entry => $distri);
+        assert_script_run("efibootmgr --create --disk ${device} --part 2 --label '${distri}' --loader '${efi_loader}'");
+        record_info('efiboot information', script_output('efibootmgr -v'));
+    }
+
     # We have to use force option to reboot command as installer doesn't have fully running systemd environment
     power_action("reboot", textmode => 1, force => 1);
 
