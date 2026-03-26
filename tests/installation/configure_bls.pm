@@ -29,7 +29,14 @@ sub run {
         send_key 'ret';
     }
 
+    my $bootloader_options_shortcut = 'alt-t';
     assert_screen 'inst-bootloader-settings';
+
+    # Workaround for bug#1158557
+    if (check_screen('inst-bootloader-unknown-udev-device')) {
+        send_key 'ret';
+        $bootloader_options_shortcut = 'alt-r';    # Having this popup changes the shortcut
+    }
 
     # Select systemd-boot as bootloader
     send_key 'alt-b', wait_screen_change => 1;
@@ -40,19 +47,14 @@ sub run {
     send_key 'ret', wait_screen_change => 1;    # Select the option
 
     unless (get_var('KEEP_GRUB_TIMEOUT')) {
-        # In the case the bootloader selected is the same we're expecting, we have to cycle
-        # through the different controls in the ui to reach the highligted tab, since pressing
-        # enter, does not move us to the 'OK' button anymore.
-        send_key_until_needlematch 'inst-bootloader-settings-first_tab_highlighted', 'tab';
-
-        send_key_until_needlematch 'inst-bootloader-options-highlighted', 'right', 20, 2;
+        send_key $bootloader_options_shortcut, wait_screen_change => 1;    # select Bootloader Options tab
         assert_screen 'installation-bootloader-options';
-        # Uncheck the "automatically boot" checkbox
+
         if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
+            # Uncheck the "automatically boot" checkbox
             send_key 'alt-a', wait_screen_change => 1;
         } else {
-            send_key 'alt-t';
-            wait_still_screen(1);
+            send_key 'alt-t', wait_screen_change => 1;
             type_string "-1";
             send_key 'ret' if check_var('VIDEOMODE', 'text');
         }
