@@ -35,6 +35,8 @@ sub run {
 
     # Use image name from HDD_1 variable
     my $image = get_required_var('HDD_1');
+    # List all available disk devices
+    record_info('Available disks', script_output('lsblk -o name,wwn,type'));
     # Use target disk supplied by the variable, find by WWN or use sda by default
     my $wwn = get_var('INSTALL_DISK_WWN');
     my $device = get_var("MICRO_INSTALL_IMAGE_TARGET_DEVICE", $wwn ? "/dev/" . get_disk_by_wwn($wwn) : "/dev/sda");
