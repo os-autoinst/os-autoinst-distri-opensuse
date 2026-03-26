@@ -171,6 +171,8 @@ remove them from /var/lib/systemd/coredump/ to avoid processing them here.
 =cut
 
 sub upload_coredumps {
+    my $res = script_run('coredumpctl --no-pager');
+    return if $res;
     my @pids = split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1));
     return unless @pids;
     record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
