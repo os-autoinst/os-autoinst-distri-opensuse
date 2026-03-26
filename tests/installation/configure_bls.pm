@@ -29,13 +29,11 @@ sub run {
         send_key 'ret';
     }
 
-    my $bootloader_options_shortcut = 'alt-t';
     assert_screen 'inst-bootloader-settings';
 
     # Workaround for bug#1158557
     if (check_screen('inst-bootloader-unknown-udev-device')) {
         send_key 'ret';
-        $bootloader_options_shortcut = 'alt-r';    # Having this popup changes the shortcut
     }
 
     # Select systemd-boot as bootloader
@@ -47,6 +45,7 @@ sub run {
     send_key 'ret', wait_screen_change => 1;    # Select the option
 
     unless (get_var('KEEP_GRUB_TIMEOUT')) {
+        my $bootloader_options_shortcut = (get_var('UEFI')) ? 'alt-t' : 'alt-r';
         send_key $bootloader_options_shortcut, wait_screen_change => 1;    # select Bootloader Options tab
         assert_screen 'installation-bootloader-options';
 
