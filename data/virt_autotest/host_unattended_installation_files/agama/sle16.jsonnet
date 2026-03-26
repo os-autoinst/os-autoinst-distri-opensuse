@@ -1,7 +1,14 @@
+local version_to_install = '{{VERSION_TO_INSTALL}}';
+local raw_version = if version_to_install == '' || std.length(std.findSubstr('VERSION_TO_INSTALL', version_to_install)) > 0 then '{{VERSION}}' else version_to_install;
+local version = if std.length(std.findSubstr('VERSION', raw_version)) > 0 then -999 else std.parseJson(raw_version);
+local transactional = '{{TRANSACTIONAL}}';
+local agama_product_mode = if transactional == '1' then 'immutable' else 'standard';
+
 {
   product: {
     id: 'SLES',
-    registrationCode: '{{SCC_REGCODE}}'
+    registrationCode: '{{SCC_REGCODE}}',
+    [if version >= 16.1 then "mode"]: agama_product_mode
   },
   user: {
     userName: 'bernhard',
@@ -41,7 +48,9 @@
         ],
       },
       packages: [
-        'virt-bridge-setup'
+        'virt-bridge-setup',
+        // Workaround for bsc#1260073
+        'curl'
       ]
   },
   scripts: {

@@ -31,6 +31,7 @@ our @EXPORT = qw(
 our %_guest_params = (
     'guest_os_name' => '',    # [guest_os_name]:sles,opensuse,oraclelinux or others.Not virt-install argument.
     'guest_os_word_length' => '',    # [guest_os_word_length]:64 or 32.Not virt-install argument.
+    'guest_product_mode' => '',    # [guest_product_mode]:standard or immutable for sles product.Not virt-install argument.
     'guest_version' => '',    # [guest_version]:15-sp3 or others.not virt-install argument.
     'guest_version_major' => '',    # [guest_version_major]:15 or others.not virt-install argument.
     'guest_version_minor' => '',    # [guest_version_minor]:3 or others.not virt-install argument.

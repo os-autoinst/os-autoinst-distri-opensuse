@@ -2042,15 +2042,28 @@ sub config_guest_unattended_installation {
         $self->{guest_installation_automation_file} = "$_host_params{common_log_folder}/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file}";
         assert_script_run("chmod 777  $self->{guest_installation_automation_file}");
 
-        if (($self->{guest_version_major} ge 15) and ($self->{guest_version_major} lt 16) and ($self->{guest_os_name} =~ /sles/im)) {
-            my @_guest_installation_media_extensions = ('Module-Basesystem', 'Module-Desktop-Applications', 'Module-Development-Tools', 'Module-Legacy', 'Module-Server-Applications', 'Module-Web-Scripting', 'Module-Python3', 'Product-SLES');
-            my $_guest_installation_media_extension_url = '';
-            foreach (@_guest_installation_media_extensions) {
-                $_guest_installation_media_extension_url = $self->{guest_installation_media} . '/' . $_;
-                $_guest_installation_media_extension_url =~ s/\//PLACEHOLDER/img;
-                assert_script_run("sed -ri \'s/##$_##/$_guest_installation_media_extension_url/g;\' $self->{guest_installation_automation_file}");
+        if ($self->{guest_os_name} =~ /sles/im) {
+            # Set product mode to standard for sles16.1+ autoagama installation, otherwise drop product mode in guest_installation_automation_file
+            if ($self->{guest_installation_automation_method} =~ /autoagama/i) {
+                if (($self->{guest_version_major} ge 16 and $self->{guest_version_minor} ge 1) or $self->{guest_version_major} gt 16) {
+                    $self->{guest_product_mode} = 'standard' if (!$self->{guest_product_mode});
+                    assert_script_run("sed -i -r \'s/##Product-Mode##/$self->{guest_product_mode}/g;\' $self->{guest_installation_automation_file}");
+                }
+                else {
+                    assert_script_run("sed -i -r \'/^.*##Product-Mode##.*\$/d;\' $self->{guest_installation_automation_file}");
+                }
             }
-            assert_script_run("sed -ri \'s/PLACEHOLDER/\\\//g;\' $self->{guest_installation_automation_file}");
+            # Add extension modules to be installed for sles15 product using autoyast in guest_installation_automation_file
+            elsif ($self->{guest_installation_automation_method} =~ /autoyast/i and ($self->{guest_version_major} ge 15) and ($self->{guest_version_major} lt 16)) {
+                my @_guest_installation_media_extensions = ('Module-Basesystem', 'Module-Desktop-Applications', 'Module-Development-Tools', 'Module-Legacy', 'Module-Server-Applications', 'Module-Web-Scripting', 'Module-Python3', 'Product-SLES');
+                my $_guest_installation_media_extension_url = '';
+                foreach (@_guest_installation_media_extensions) {
+                    $_guest_installation_media_extension_url = $self->{guest_installation_media} . '/' . $_;
+                    $_guest_installation_media_extension_url =~ s/\//PLACEHOLDER/img;
+                    assert_script_run("sed -ri \'s/##$_##/$_guest_installation_media_extension_url/g;\' $self->{guest_installation_automation_file}");
+                }
+                assert_script_run("sed -ri \'s/PLACEHOLDER/\\\//g;\' $self->{guest_installation_automation_file}");
+            }
         }
 
         my $_authorized_key = $_host_params{ssh_public_key};

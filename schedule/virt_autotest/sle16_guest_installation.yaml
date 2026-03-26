@@ -1,10 +1,10 @@
-name:          sle16-virt-guest-installation
-description:    >
+name: sle16-virt-guest-installation
+description: |
   Virtualization guest installation tests including extended feature tests schedule with agama and IPXE
 schedule:
   - '{{host_installation}}'
   - virt_autotest/login_console
-  - virt_autotest/prepare_non_transactional_server
+  - '{{do_preparation}}'
   - '{{prepare_nvram_for_snapshot}}'
   - '{{virt_bridge_setup_test}}'
   - virt_autotest/unified_guest_installation
@@ -23,6 +23,12 @@ conditional_schedule:
       0:
         - installation/ipxe_install
         - installation/agama_reboot
+  do_preparation:
+    TRANSACTIONAL:
+      0:
+        - virt_autotest/prepare_non_transactional_server
+      1:
+        - virt_autotest/prepare_transactional_server
   prepare_nvram_for_snapshot:
     ENABLE_SNAPSHOT:
       1:
