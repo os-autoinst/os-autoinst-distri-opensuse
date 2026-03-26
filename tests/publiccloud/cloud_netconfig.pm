@@ -25,6 +25,13 @@ sub run {
     # 75-persistent-net-generator.rules is usually a symlink to /dev/null in SLES 12+
     $instance->ssh_assert_script_run("test -L $pers_net_rules");
 
+    # Skip test if ip is not available on Azure images (bsc#1259538)
+    if (is_azure && $instance->ssh_script_run("which ip") != 0) {
+        record_soft_failure("bsc#1259538 ip command not in azure images");
+        $instance->ssh_script_retry("sudo zypper -n in iproute2", timeout => 300, retry => 3, delay => 60);
+        $instance->ssh_assert_script_run("ip link");
+    }
+
     # Get public IP address for eth0
     my $local_eth0_ip = $instance->ssh_script_output(qq(ip -4 -o a s eth0 primary | grep -Po "inet \\K[\\d.]+"));
     chomp($local_eth0_ip);
