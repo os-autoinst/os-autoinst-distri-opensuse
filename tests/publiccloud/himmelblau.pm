@@ -72,6 +72,14 @@ sub run {
         die "zypper install himmelblau failed";
     }
 
+    # Add softfailure for bsc#1259741 but only specifically for the affected himmelblau version
+    my $version = script_output("rpm -q --qf '%{VERSION}-%{RELEASE}\n' himmelblau");
+    record_info("himmelblau", "himmelblau package version:\n$version");
+    if (is_sle("=15-SP7") && $version eq '0.7.18+git.0.8485a75-150700.3.6.1') {
+        record_soft_failure("bsc#1259741 himmelblau pam configuration not available on 15-SP7");
+        return;
+    }
+
     # Configure the relevant services
     configure_himmelblau($allowed_domain, $user);
     configure_nss();
