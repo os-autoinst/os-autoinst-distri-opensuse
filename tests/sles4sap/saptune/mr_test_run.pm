@@ -409,6 +409,8 @@ sub test_note {
     $result = "ok";
     $self->result("$result");
     record_info "note $note";
+    $self->workaround_for_bsc1260865() if is_sle('>=16');
+
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_baseline_Cust");
     $self->wrap_script_run("mr_test dump Pattern/${SLE}/testpattern_note_${note}${extra}_b > baseline_testpattern_note_${note}${extra}_b");
     $self->wrap_script_run("saptune note apply $note");
@@ -416,6 +418,8 @@ sub test_note {
     $self->wrap_script_run("mr_test verify baseline_testpattern_note_${note}${extra}_b");
     tune_baseline("baseline_testpattern_note_${note}${extra}_b");
     $self->reboot_wait;
+    $self->workaround_for_bsc1260865() if is_sle('>=16');
+
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_note_${note}${extra}_a");
     $self->wrap_script_run("mr_test verify baseline_testpattern_note_${note}${extra}_b");
     $self->wrap_script_run("saptune note revert $note");
@@ -459,6 +463,8 @@ sub test_override {
               . "sed -i '/:scripts\\/nr_requests/s/^/#/' Pattern/$SLE/testpattern_note_${note}_a_override ; fi");
     }
     foreach my $override (@overrides) {
+        $self->workaround_for_bsc1260865() if is_sle('>=16');
+
         $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_baseline_Cust");
         $self->wrap_script_run("mr_test dump Pattern/$SLE/testpattern_note_${override}_b > baseline_testpattern_note_${override}_b");
         $self->wrap_script_run("cp Pattern/$SLE/override/$override /etc/saptune/override/$note");
@@ -467,6 +473,8 @@ sub test_override {
         $self->wrap_script_run("mr_test verify baseline_testpattern_note_${override}_b");
         tune_baseline("baseline_testpattern_note_${override}_b");
         $self->reboot_wait;
+        $self->workaround_for_bsc1260865() if is_sle('>=16');
+
         $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override");
         $self->wrap_script_run("mr_test verify baseline_testpattern_note_${override}_b");
         $self->wrap_script_run("saptune note revert $note");
@@ -504,6 +512,7 @@ sub test_solution {
     $result = 'ok';
     $self->result("$result");
     record_info "solution $solution";
+    $self->workaround_for_bsc1260865() if is_sle('>=16');
 
     # SLES for SAP 16 comes pre-configured with the SAP_Base solution. We need to revert it before starting
     $self->wrap_script_run('saptune solution revert SAP_Base') if is_sle('>=16');
@@ -514,6 +523,8 @@ sub test_solution {
     $self->wrap_script_run("mr_test verify baseline_testpattern_solution_${solution}_b");
     tune_baseline("baseline_testpattern_solution_${solution}_b");
     $self->reboot_wait;
+    $self->workaround_for_bsc1260865() if is_sle('>=16');
+
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_solution_${solution}_a");
     $self->wrap_script_run("mr_test verify baseline_testpattern_solution_${solution}_b");
     $self->wrap_script_run("saptune solution revert $solution");
@@ -738,6 +749,7 @@ sub wrap_assert_script_run_with_newlines {
     wait_serial qr/enter_cmd_DONE-\d/;
 }
 
+
 =head2 wrap_script_run
 
     $self->wrap_script_run($command);
@@ -822,6 +834,15 @@ sub wrap_script_run {
         $self->result("$result");
     }
 }
+
+
+# remove this function after the bug was fixed
+sub workaround_for_bsc1260865 {
+    my ($self) = @_;
+    record_soft_failure("bsc#1260865 - circular dependency issue");
+    $self->wrap_script_run("systemctl restart saptune.service");
+}
+
 
 sub run {
     my ($self, $tinfo) = @_;
