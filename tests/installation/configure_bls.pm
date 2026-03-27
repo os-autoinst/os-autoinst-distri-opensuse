@@ -29,6 +29,10 @@ sub run {
         send_key 'ret';
     }
 
+    if (is_upgrade && check_screen('bootloader-technology-mismatch')) {
+        send_key_until_needlematch 'inst-bootloader-settings', 'alt-o';
+    }
+
     assert_screen 'inst-bootloader-settings';
 
     # Workaround for bug#1158557
@@ -68,4 +72,5 @@ sub run {
     wait_still_screen 3;
     assert_screen 'installation-settings-overview-loaded', 220;
 }
+
 1;
