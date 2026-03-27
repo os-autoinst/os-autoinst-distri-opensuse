@@ -105,7 +105,7 @@ sub run {
     $instance->ssh_assert_script_run(cmd => '! curl --no-progress-meter localhost:9090');
     $instance->ssh_assert_script_run(cmd => 'sudo systemctl enable --now cockpit.socket');
     $instance->ssh_assert_script_run(cmd => '! systemctl is-active cockpit.service');
-    $instance->ssh_assert_script_run(cmd => 'curl --no-progress-meter http://localhost:9090');
+    $instance->ssh_assert_script_run(cmd => 'curl -sf http://localhost:9090');
     $instance->ssh_assert_script_run(cmd => 'systemctl is-active cockpit.service');
 
     unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
