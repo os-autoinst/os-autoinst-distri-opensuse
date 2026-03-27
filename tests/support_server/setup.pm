@@ -23,7 +23,10 @@
 # Maintainer: Pavel Sladek <psladek@suse.com>
 #             Jan Kohoutek <jkohoutek@suse.com>
 
-use Mojo::Base 'basetest';
+## no os-autoinst style
+# This module contains non-ascii characters that would change with Mojo::Base
+# which enables utf8
+use base 'basetest';
 use lockapi;
 use testapi;
 use Utils::Architectures;
