@@ -5,14 +5,6 @@
 #
 # Summary: Execute Kselftests.
 #
-# This module introduces a simplistic openQA runner for kernel selftests. The test
-# module allows running tests kernel selftests from either git repository which should be
-# defined in the test setting: KERNEL_GIT_TREE, from the kernel-source package installed
-# at /usr/src/linux, or from OBS/IBS repository using packaged and build rpm.
-# Running from git supports checking out specific git tag version of the kernel, so if required
-# the tests can checkout the older version, corresponding with the kernel under tests, and run
-# such tests.
-#
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
