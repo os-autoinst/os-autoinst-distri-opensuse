@@ -72,17 +72,18 @@ sub run {
     my $elemental3ctl_regex = ".*elemental3ctl-${uc_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
     ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${elemental3ctl_regex});
     my $elemental3ctl_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${version}-${build}\)");
+    set_var('SYSEXT_IMAGES_TO_TEST', "${elemental3ctl_uri}");
 
-    my $k8s_regex = ".*${k8s}-${k8s_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    my $k8s_regex = ".*${k8s}-tar-${k8s_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
     ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${k8s_regex});
     my $k8s_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${k8s_version}_${version}-${build}\)");
-    set_var('SYSEXT_IMAGES_TO_TEST', "${elemental3ctl_uri},${k8s_uri}");
 
     # Export CONTAINER_IMAGE_TO_TEST
     my $kernel_regex = ".*${kernel}-\(.*\).${arch}-.*.registry.txt";
     ($file, $build) = get_values(txt => ${files_list}, regex => ${kernel_regex});
     my $container_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${os_version}-${build}\)");
-    set_var('CONTAINER_IMAGE_TO_TEST', "$container_uri");
+    # TODO also test {k8s_uri}
+    set_var('CONTAINER_IMAGE_TO_TEST', "${container_uri}");
 
     # Export REPO_TO_TEST
     set_var('REPO_TO_TEST', "$totest_path/standard");
