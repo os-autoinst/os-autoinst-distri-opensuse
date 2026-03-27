@@ -7,6 +7,8 @@ package host_upgrade_base;
 # Summary: host_upgrade_base: Geting prefix part of command line for running case host upgrade project.
 # Maintainer: alice <xlai@suse.com>
 
+## no os-autoinst style
+
 use base "virt_autotest_base";
 use testapi;
 

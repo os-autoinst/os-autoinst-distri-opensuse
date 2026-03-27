@@ -6,6 +6,8 @@
 # Summary: base class for virtualization multi-machine job
 # Maintainer: alice <xlai@suse.com>
 
+## no os-autoinst style
+
 package multi_machine_job_base;
 use base "virt_autotest_base";
 use testapi;
