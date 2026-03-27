@@ -11,11 +11,18 @@ use base 'opensusebasetest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_transactional);
+use transactional;
 
 sub run {
     my ($self) = shift;
     select_serial_terminal;
-    zypper_call('in go');
+    if (is_transactional) {
+        trup_install('go curl');
+    }
+    else {
+        zypper_call('in go');
+    }
     # download and compile the go program to check the key length
     # upstream project: https://github.com/ilmanzo/autograph-pls
     # to update: $ curl -O --output-dir data/security/secureboot https://raw.githubusercontent.com/ilmanzo/autograph-pls/main/parsesign.go
