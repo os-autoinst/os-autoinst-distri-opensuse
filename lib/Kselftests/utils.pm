@@ -20,6 +20,7 @@ use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
 use registration qw(add_suseconnect_product get_addon_fullname);
+use package_utils qw(install_package install_available_packages);
 use utils qw(write_sut_file systemctl);
 
 our @EXPORT = qw(
@@ -35,7 +36,7 @@ sub install_from_git
 
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
-    zypper_call('in bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel kernel-devel');
+    install_package('bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel kernel-devel', trup_continue => 1);
     assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 240);
 
     assert_script_run("cd ./linux");
@@ -55,10 +56,23 @@ sub install_from_git
     script_run("cp tools/testing/selftests/$collection/config* tools/testing/selftests/kselftest_install/$collection");
 }
 
+sub install_from_src
+{
+    my ($collection) = @_;
+
+    install_package('kernel-devel kernel-source', trup_continue => 1);
+
+    my $version = script_output('uname -r');
+    my $source = "/lib/modules/$version/source";
+    my $build = "/lib/modules/$version/build";
+
+    assert_script_run("make -j `nproc` -C $source/tools/testing/selftests install SKIP_TARGETS= TARGETS=$collection O=$build", 7200);
+}
+
 sub install_from_repo
 {
     zypper_ar(get_required_var('KSELFTEST_REPO'), name => 'kselftests', priority => 1, no_gpg_check => 1);
-    zypper_call('in kselftests kernel-devel');
+    install_package('kselftests kernel-devel', trup_continue => 1);
 
     # When using the `kselftests` package from a repository, make sure the KMP subpackage containing the test kernel modules
     # were built against the same kernel version the SUT is currently running.
@@ -88,9 +102,13 @@ sub install_dependencies
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/16.0/network:utilities.repo';
         }
         zypper_ar($netutils_repo);
-        zypper_call('in qa_test_netperf', exitcode => [0, 4]) if is_sle;
-        zypper_call('in net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 smcroute', exitcode => [0, 4]);
-        zypper_call('in dropwatch', exitcode => [0, 4]) unless is_sle('<16');
+
+        # install build deps
+        install_package('clang libcap-devel libnuma-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
+
+        # install test deps
+        install_available_packages('tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
+
         if (is_sle('>=16.0')) {
             # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
             my $netdevsim_mask = <<"EOF";
@@ -114,6 +132,9 @@ sub install_kselftests
     if (get_var('KSELFTEST_FROM_GIT', 0)) {
         install_from_git($collection);
         assert_script_run("cd ./tools/testing/selftests/kselftest_install");
+    } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
+        install_from_src($collection);
+        assert_script_run("cd /lib/modules/`uname -r`/build/kselftest/kselftest_install");
     } else {
         install_from_repo();
         assert_script_run("cd /usr/share/kselftests");
