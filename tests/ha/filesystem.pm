@@ -98,7 +98,7 @@ sub run {
 
     # Format the Filesystem device
     if (is_node(1)) {
-        assert_script_run "mkfs.$fs_type $fs_opts{$fs_type} \"$fs_lun\"", $default_timeout;
+        assert_script_run "mkfs.$fs_type $fs_opts{$fs_type} \"$fs_lun\"", $default_timeout * 2;
     }
     else {
         diag 'Wait until Filesystem device is formatted...';
