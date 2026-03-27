@@ -80,7 +80,8 @@ sub run {
         enter_cmd "qemu-system-aarch64 -M virt,usb=off -cpu cortex-a57 -nographic -pflash flash0.img -pflash flash1.img";
         assert_screen([qw(qemu-enter-boot-manager qemu-uefi-shell)], 600);
         if (match_has_tag('qemu-enter-boot-manager')) {
-            send_key('e');
+            send_key('spc');
+            wait_screen_change { send_key 'ret' };
             assert_screen('qemu-uefi-boot-manager');
         }
     }
