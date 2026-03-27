@@ -46,6 +46,7 @@ sub run {
 
     unless (get_var('KEEP_GRUB_TIMEOUT')) {
         my $bootloader_options_shortcut = (get_var('UEFI')) ? 'alt-t' : 'alt-r';
+        $bootloader_options_shortcut = 'alt-l' if get_var('OFFLINE_SUT');
         send_key $bootloader_options_shortcut, wait_screen_change => 1;    # select Bootloader Options tab
         assert_screen 'installation-bootloader-options';
 
