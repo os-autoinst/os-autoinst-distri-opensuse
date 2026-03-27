@@ -141,7 +141,7 @@ sub run {
     my %log_entries = (
         info => q{'(Testing, journalctl.pm) We need to call batman'},
         err => q{'(Testing, journalctl.pm) We NEED to call the batman NOW'},
-        emerg => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!1!! AARRGGH!!'}
+        alert => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!!! AARRGGH!!'}
     );
     my @boots;
 
@@ -291,7 +291,7 @@ sub run {
     %log_entries = (
         info => q{'(Testing, journalctl.pm) We need to call batman-after sealing'},
         err => q{'(Testing, journalctl.pm) We NEED to call the batman NOW-after sealing'},
-        emerg => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!1!! AARRGGH!!-after sealing'}
+        alert => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!!! AARRGGH!!-after sealing'}
     );
     rotatelogs_and_verify;
     # remove first bootid
