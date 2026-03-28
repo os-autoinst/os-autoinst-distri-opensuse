@@ -88,11 +88,12 @@ sub run {
     record_info('virsh freecell --all', $svirt->get_cmd_output('virsh freecell --all'));
     record_info('virsh domstats', $svirt->get_cmd_output('virsh domstats'));
     set_svirt_domain_elements $svirt;
+    $svirt->stop_vm;
     zkvm_add_disk $svirt;
     zkvm_add_pty $svirt;
     zkvm_add_interface $svirt;
 
-    $svirt->define_and_start;
+    $svirt->define_and_start(pre_cleanup => 0);
     record_info('SUT hostname', get_var('VIRSH_HOSTNAME'));
     record_info('VM instance', get_var('VIRSH_INSTANCE'));
     record_info('Guest ip', get_var('VIRSH_GUEST'));
