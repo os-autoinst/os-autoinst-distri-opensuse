@@ -23,7 +23,7 @@ use Utils::Systemd 'get_started_systemd_services';
 use File::Basename 'basename';
 use Mojo::File 'path';
 use serial_terminal 'select_serial_terminal';
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_tumbleweed is_transactional);
 
 our @EXPORT = qw(
   save_and_upload_log
@@ -206,12 +206,27 @@ sub upload_coredumps {
     record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
     # Record soft-failure only on selected cases to collect data
     record_soft_failure("poo#197969 - Coredumps are being silently ignored in openQA tests") if (is_tumbleweed || get_var("CONTAINER_RUNTIMES"));
+    my $get_backtrace = get_var("COREDUMP_WITH_BACKTRACE") && !is_transactional;
+    if ($get_backtrace) {
+        script_run('sed -i s/enabled=0/enabled=1/ /etc/zypp/repos.d/*-[Dd]ebug.repo');
+        script_run('zypper -n refresh', timeout => 300);
+        script_run('zypper -n install -y gdb', timeout => 300);
+        script_run('echo set debuginfod enabled on > ~/.gdbinit');
+        script_run('echo set pagination off >> ~/.gdbinit');
+    }
     foreach my $pid (@pids) {
         my $cmd = qq(coredumpctl info --no-pager $pid | tee info$pid.txt | awk '\$1 == "Storage:" { print \$2; exit }');
         my $core = script_output($cmd, timeout => 600, proceed_on_failure => 1);
         last unless $core;
         upload_logs("info$pid.txt", log_name => basename($core) . ".txt", failok => 1);
         upload_logs($core, failok => 1);
+        if ($get_backtrace) {
+            # First download debuginfo stuff to avoid polluting backtrace with download progress
+            script_run(qq(coredumpctl debug -A '-q -ex quit' $pid), timeout => 900);
+            my $gdb_script = '-q -batch -ex "thread apply all bt full" -ex quit';
+            script_run("coredumpctl debug -A '$gdb_script' $pid > backtrace$pid.txt", timeout => 900);
+            upload_logs("backtrace$pid.txt", log_name => basename($core) . "_backtrace.txt", failok => 1);
+        }
     }
 }
 
