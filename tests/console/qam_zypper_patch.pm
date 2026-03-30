@@ -4,9 +4,7 @@
 # Summary: zypper patch for maintenance
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
-## no os-autoinst style
-
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
@@ -42,7 +40,7 @@ sub run {
         record_info "$patch_id", "$patch_info";
 
         if ($patch_info =~ /^Status.*:.*applied/m) {
-            record_info("Failed to patch", "Patch is marked as applied", result => fail);
+            record_info("Failed to patch", "Patch is marked as applied", result => 'fail');
             die "Patch is marked as applied, please check that submission is correct";
         }
 
