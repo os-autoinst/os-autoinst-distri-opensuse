@@ -63,8 +63,7 @@
           "opensuse.org"
         ]
       }
-    ],
-    "state": {}
+    ]
   },
   scripts: {
     post: [
