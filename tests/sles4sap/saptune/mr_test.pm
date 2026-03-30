@@ -66,7 +66,7 @@ use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instances;
 use sles4sap::publiccloud;
 
-sub reboot_wait {
+sub reboot_wait_saptune {
     my ($self) = @_;
 
     if (is_public_cloud) {
@@ -141,7 +141,7 @@ sub setup {
         assert_script_run "rm -f /etc/systemd/logind.conf.d/sap.conf";
     }
 
-    $self->reboot_wait;
+    $self->reboot_wait_saptune;
 }
 
 sub run {
