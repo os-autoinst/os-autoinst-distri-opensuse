@@ -145,4 +145,19 @@
         <timeout config:type="integer">0</timeout>
       </yesno_messages>
     </report>
+    <scripts t="map">
+      <post-scripts t="list">
+        <script t="map">
+          <filename>post.sh</filename>
+          <interpreter>shell</interpreter>
+          <source><![CDATA[
+#!/bin/sh
+# On 15SP4/SP5 need create directory of /etc/ssh/sshd_config.d/.
+mkdir -p /etc/ssh/sshd_config.d/
+echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
+exit 0
+          ]]></source>
+        </script>
+      </post-scripts>
+    </scripts>
 </profile>
