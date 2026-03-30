@@ -53,7 +53,6 @@ sub install_from_git
     }
 
     assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$collection", 7200);
-    script_run("cp tools/testing/selftests/$collection/config* tools/testing/selftests/kselftest_install/$collection");
 }
 
 sub install_from_src
