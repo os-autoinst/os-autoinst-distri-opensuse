@@ -191,26 +191,6 @@ subtest '[az_login] Get credentials from OpenQA settings' => sub {
     undef_variables;
 };
 
-subtest '[Check credentials]' => sub {
-    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
-    my %credentrials = (client_id => 'Potato', client_secret => 'Patata', tenant_id => 'Zemiak', subscription_id => 'Batata');
-
-    $ms_sdaf->redefine(export_credentials => sub { return \%credentrials; });
-    $ms_sdaf->redefine(get_required_var => sub { return 'LAB'; });
-    $ms_sdaf->redefine(az_keyvault_secret_list => sub { return ['SecretList']; });
-    $ms_sdaf->redefine(az_keyvault_secret_show => sub { return 'SecretShow'; });
-    $ms_sdaf->redefine(define_secret_variable => sub { return 0; });
-    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', "$_[0]", ':', "$_[1]")); });
-
-    $ms_sdaf->redefine(script_run => sub { return 0; });
-    ok(check_credentials() == 0, 'Check credentials passed');
-
-    $ms_sdaf->redefine(script_run => sub { return 1; });
-    dies_ok { check_credentials() } 'Check credentials failed on purpose';
-
-    undef_variables;
-};
-
 subtest '[sdaf_cleanup] Test correct usage' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->noop(qw(record_info
@@ -499,6 +479,80 @@ subtest '[get_workload_resource_group]' => sub {
 
     $ms_sdaf->redefine(az_group_name_get => sub { return ['First_result', 'Oh_no-second_one']; });
     dies_ok { get_workload_resource_group(deployment_id => '123') } 'Fail with more than one results';
+};
+
+subtest '[Check credentials] Long name regex ' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my %credentials = (client_id => 'Potato', client_secret => 'Patata', tenant_id => 'Zemiak', subscription_id => 'Batata');
+    set_var('SDAF_ENV_CODE', 'PRD');
+    set_var('SDAF_DEPLOYER_KEY_VAULT', 'prdseceasdf');
+    set_var('SDAF_DEPLOYER_VNET_CODE', 'DEP00');
+    set_var('PUBLIC_CLOUD_REGION', 'swedencentral');
+
+    my @expected_result = (
+        'https://fire/penguin/disco/panda/PRD-SECE-DEP00-client-secret',
+        'https://fire/penguin/disco/panda/PRD-SECE-DEP00-client-id',
+        'https://fire/penguin/disco/panda/PRD-SECE-DEP00-tenant-id',
+        'https://fire/penguin/disco/panda/PRD-SECE-DEP00-subscription-id'
+    );
+    my @secrets_found;
+    $ms_sdaf->redefine(export_credentials => sub { return \%credentials; });
+    $ms_sdaf->redefine(az_keyvault_secret_show => sub { my %arguments = @_; push(@secrets_found, $arguments{id});
+            return 'secret' });
+    $ms_sdaf->redefine(define_secret_variable => sub { return 0; });
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', "$_[0]", ':', "$_[1]")); });
+    $ms_sdaf->redefine(script_run => sub { return 0; });
+    $ms_sdaf->redefine(az_keyvault_secret_list => sub { return [
+                'https://fire/penguin/disco/panda/PRD-SECE-DEP00-client-secret',
+                'https://fire/penguin/disco/panda/PRD-SECE-DEP00-client-id',
+                'https://fire/penguin/disco/panda/PRD-SECE-DEP00-tenant-id',
+                'https://fire/penguin/disco/panda/PRD-SECE-DEP00-subscription-id',
+                'https://just/a/boring/whale-id'
+            ];
+    });
+
+    check_credentials();
+    for my $secret (@secrets_found) {
+        ok(grep($secret, @expected_result), "Long secret '$secret' found in keyvault");
+    }
+    ok(!grep(/whale-id/, @secrets_found), 'Incorrect secret ID must be ommited');
+    undef_variables;
+};
+subtest '[Check credentials] Short name regex ' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my %credentials = (client_id => 'Potato', client_secret => 'Patata', tenant_id => 'Zemiak', subscription_id => 'Batata');
+    set_var('SDAF_ENV_CODE', 'PRD');
+    set_var('SDAF_DEPLOYER_KEY_VAULT', 'prdseceasdf');
+    set_var('SDAF_DEPLOYER_VNET_CODE', 'DEP00');
+    set_var('PUBLIC_CLOUD_REGION', 'swedencentral');
+
+    my @expected_result = (
+        'https://fire/penguin/disco/panda/PRD-client-secret',
+        'https://fire/penguin/disco/panda/PRD-client-id',
+        'https://fire/penguin/disco/panda/PRD-tenant-id',
+        'https://fire/penguin/disco/panda/PRD-subscription-id'
+    );
+    my @secrets_found;
+    $ms_sdaf->redefine(export_credentials => sub { return \%credentials; });
+    $ms_sdaf->redefine(az_keyvault_secret_show => sub { my %arguments = @_; push(@secrets_found, $arguments{id});
+            return 'secret' });
+    $ms_sdaf->redefine(define_secret_variable => sub { return 0; });
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', "$_[0]", ':', "$_[1]")); });
+    $ms_sdaf->redefine(script_run => sub { return 0; });
+    $ms_sdaf->redefine(az_keyvault_secret_list => sub { return [
+                'https://fire/penguin/disco/panda/PRD-client-secret',
+                'https://fire/penguin/disco/panda/PRD-client-id',
+                'https://fire/penguin/disco/panda/PRD-tenant-id',
+                'https://fire/penguin/disco/panda/PRD-subscription-id',
+                'https://just/a/boring/whale-id'
+            ];
+    });
+
+    check_credentials();
+    for my $secret (@secrets_found) {
+        ok(grep($secret, @expected_result), "Short secret '$secret' found in keyvault");
+    }
+    undef_variables;
 };
 
 done_testing;
