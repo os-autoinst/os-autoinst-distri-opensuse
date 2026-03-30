@@ -5,7 +5,7 @@
 #          reset consoles for gnome desktop/
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base Yam::Agama::agama_base;
+use base 'Yam::Agama::agama_base';
 use testapi qw(reset_consoles get_var set_var);
 use scheduler 'get_test_suite_data';
 

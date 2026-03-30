@@ -8,8 +8,7 @@ package virt_utils;
 #          This file provides fundamental utilities.
 # Maintainer: alice <xlai@suse.com>
 
-use base Exporter;
-use Exporter;
+use base 'Exporter';
 use Sys::Hostname;
 use File::Basename;
 use testapi;
