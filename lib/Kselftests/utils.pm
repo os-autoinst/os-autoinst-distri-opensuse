@@ -30,13 +30,29 @@ our @EXPORT = qw(
   validate_kconfig
 );
 
+sub build
+{
+    my ($targets, $source_dir) = @_;
+
+    my $version = script_output('uname -r');
+    $source_dir //= "/lib/modules/$version/source";
+    my $build_dir = "/lib/modules/$version/build";
+
+    zypper_call('install -t pattern --recommends devel_kernel');    # no trup support for now
+    my $make_cmd = "make -j\$(getconf _NPROCESSORS_ONLN) -C $source_dir/tools/testing/selftests install SKIP_TARGETS= TARGETS=$targets O=$build_dir";
+
+    assert_script_run($make_cmd, 7200);
+    assert_script_run("cd $build_dir/kselftest/kselftest_install");
+}
+
 sub install_from_git
 {
     my ($collection) = @_;
 
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
-    install_package('bc git-core ncurses-devel gcc flex bison libelf-devel libopenssl-devel kernel-devel', trup_continue => 1);
+
+    install_package('git', trup_continue => 1);
     assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 240);
 
     assert_script_run("cd ./linux");
@@ -52,20 +68,7 @@ sub install_from_git
         assert_script_run("git apply $patch");
     }
 
-    assert_script_run("make -j `nproc` -C tools/testing/selftests install TARGETS=$collection", 7200);
-}
-
-sub install_from_src
-{
-    my ($collection) = @_;
-
-    install_package('kernel-devel kernel-source', trup_continue => 1);
-
-    my $version = script_output('uname -r');
-    my $source = "/lib/modules/$version/source";
-    my $build = "/lib/modules/$version/build";
-
-    assert_script_run("make -j `nproc` -C $source/tools/testing/selftests install SKIP_TARGETS= TARGETS=$collection O=$build", 7200);
+    build($collection, '.');
 }
 
 sub install_from_repo
@@ -81,6 +84,8 @@ sub install_from_repo
     $kver =~ s/_/-/g;
     $kmpver =~ s/_/-/g;
     die "Kernel and KMP versions mismatch: $kver != $kmpver" if $kver ne $kmpver;
+
+    assert_script_run("cd /usr/share/kselftests");
 }
 
 sub install_dependencies
@@ -130,13 +135,10 @@ sub install_kselftests
 
     if (get_var('KSELFTEST_FROM_GIT', 0)) {
         install_from_git($collection);
-        assert_script_run("cd ./tools/testing/selftests/kselftest_install");
     } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
-        install_from_src($collection);
-        assert_script_run("cd /lib/modules/`uname -r`/build/kselftest/kselftest_install");
+        build($collection);
     } else {
         install_from_repo();
-        assert_script_run("cd /usr/share/kselftests");
     }
 }
 
