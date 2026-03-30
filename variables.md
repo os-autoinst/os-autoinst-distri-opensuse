@@ -363,6 +363,7 @@ PUBLIC_CLOUD_NAMESPACE | string | "" | The Public Cloud Namespace name that will
 PUBLIC_CLOUD_NEW_INSTANCE_TYPE | string | "t3a.large" | Specify the new instance type to check bsc#1205002 in EC2
 PUBLIC_CLOUD_NO_TEARDOWN | boolean | false | Do not tear the instance down.
 PUBLIC_CLOUD_EXTRATESTS | boolean | false | Schedule setting - Run extra tests for PublicCloud
+PUBLIC_CLOUD_EC2_ENCLAVE_TESTS | boolean | false | Schedule the EC2 Nitro Enclave tests
 PUBLIC_CLOUD_FUNCTIONAL | boolean | false | Schedule the functional test suite.
 PUBLIC_CLOUD_ENABLE_KDUMP | boolean | false | Enable kdump
 PUBLIC_CLOUD_MIGRATE_SLEM | boolean | false | Enable module for SL micro 6.x version upgrade to higher

@@ -52,6 +52,8 @@ sub load_maintenance_publiccloud_tests {
         loadtest("publiccloud/bsc_1205002", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
         loadtest("publiccloud/registercloudguest", run_args => $args, name => "re-registration");
+    } elsif (get_var('PUBLIC_CLOUD_EC2_ENCLAVE_TESTS')) {
+        loadtest "publiccloud/aws_enclave", run_args => $args;
     } else {
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview", run_args => $args;
