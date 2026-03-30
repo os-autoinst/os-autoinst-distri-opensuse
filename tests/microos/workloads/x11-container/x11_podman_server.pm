@@ -7,7 +7,7 @@
 # Summary: install and verify x11 container.
 # Maintainer: Grace Wang <grace.wang@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
 use mmapi;

@@ -5,7 +5,7 @@
 #   normally, this is done as part of support server setup
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use lockapi;
 use mmapi;

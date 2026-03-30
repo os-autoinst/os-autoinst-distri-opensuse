@@ -7,7 +7,7 @@
 #
 # Maintainer: QE Core <qe-core@suse.de>
 #
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use power_action_utils "power_action";
 use serial_terminal 'select_serial_terminal';

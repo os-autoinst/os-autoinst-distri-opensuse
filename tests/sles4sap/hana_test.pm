@@ -7,7 +7,7 @@
 # Requires: sles4sap/wizard_hana_install, ENV variables INSTANCE_SID
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 

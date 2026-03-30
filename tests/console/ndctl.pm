@@ -7,7 +7,7 @@
 # Summary: install ndctl. Destroy and configure NVDIMM namespaces
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

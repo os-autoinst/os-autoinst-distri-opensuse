@@ -18,7 +18,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: fate#318875, fate#320919
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call quit_packagekit systemctl);

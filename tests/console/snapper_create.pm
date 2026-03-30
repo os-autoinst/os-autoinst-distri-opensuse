@@ -14,7 +14,7 @@
 #   - Cleanup by deleting created snapshots
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use Mojo::Base qw(btrfs_test);
+use Mojo::Base 'btrfs_test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

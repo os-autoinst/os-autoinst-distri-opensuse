@@ -8,7 +8,7 @@
 #    rebooting a game of chance on real hardware
 # Maintainer: Alvaro Carvajal <acarvajal@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Backends;
 use version_utils qw(is_storage_ng);

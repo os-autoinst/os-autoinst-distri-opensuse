@@ -6,7 +6,7 @@
 # Summary: Enable and test that systemd is running in WSL
 # Maintainer: qa-c  <qa-c@suse.de>
 
-use Mojo::Base qw(windowsbasetest);
+use Mojo::Base 'windowsbasetest';
 use testapi;
 use utils qw(zypper_call enter_cmd_slow);
 use version_utils qw(is_opensuse is_tumbleweed);

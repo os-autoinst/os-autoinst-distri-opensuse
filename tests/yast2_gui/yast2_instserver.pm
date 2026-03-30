@@ -14,7 +14,7 @@
 # - check that NFS instserver is working
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
-use base "y2_module_guitest";
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use utils "zypper_call";
 use version_utils "is_sle";

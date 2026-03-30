@@ -17,7 +17,7 @@
 # - run check_recorded_sound 'DTMF-159D', otherwise, softfail test (bsc#1048271)
 # Maintainer: Rodion Iafarov <aplanas@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'ensure_serialdev_permissions';
 

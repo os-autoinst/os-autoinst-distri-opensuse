@@ -4,7 +4,7 @@
 # Summary: Compare package version with its expected version for SLE15SP3.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "basetest";
+use Mojo::Base 'basetest';
 use version;
 use testapi;
 use utils qw(systemctl zypper_call);

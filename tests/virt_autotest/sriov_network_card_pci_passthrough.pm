@@ -18,7 +18,7 @@
 #    - for each of the plugging/unplugging step above, check domain network status and host&guest status.
 # Maintainer: Julie CAO <JCao@suse.com>, qe-virt@suse.de
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use utils;
 use testapi;
 use virt_autotest::common;

@@ -7,6 +7,8 @@
 # Summary: Run teuthology suites via ECP or OVH openstack and get results and logs
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
+## no os-autoinst style
+
 use base "consoletest";
 use testapi;
 use version_utils 'is_sle';

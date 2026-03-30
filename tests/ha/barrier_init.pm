@@ -6,7 +6,7 @@
 # Summary: Initialize barriers used in HA cluster tests
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use mmapi;

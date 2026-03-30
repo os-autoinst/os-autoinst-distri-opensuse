@@ -9,7 +9,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#71740 bsc#1176714
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_tumbleweed';

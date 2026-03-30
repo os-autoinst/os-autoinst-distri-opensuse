@@ -8,7 +8,7 @@
 # qdevice/qnetd is a supported feature since 15-SP1
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use hacluster qw(choose_node

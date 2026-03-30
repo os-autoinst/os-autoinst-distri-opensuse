@@ -9,7 +9,7 @@
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Utils::Backends;
 use LTP::utils;

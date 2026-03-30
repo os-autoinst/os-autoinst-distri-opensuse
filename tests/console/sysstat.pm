@@ -13,7 +13,7 @@
 # - Test sar (-u, -n DEV, -b, -B, -H, -s options) and validate output
 # Maintainer: QE-Core <qe-core@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use utils 'systemctl';
 use Utils::Architectures;
 use package_utils 'install_package';

@@ -8,7 +8,7 @@
 # More information can be found on https://en.opensuse.org/openSUSE:GPIO
 # Maintainer: Guillaume Gardet <guillaume@opensuse.org>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use Utils::Architectures;

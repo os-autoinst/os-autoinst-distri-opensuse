@@ -8,7 +8,7 @@
 package restore_guests;
 
 use testapi;
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use virt_autotest::utils qw(remove_vm restore_downloaded_guests);
 use virt_utils qw(get_guest_list);
 

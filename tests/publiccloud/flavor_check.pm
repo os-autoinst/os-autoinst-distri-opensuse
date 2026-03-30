@@ -6,7 +6,7 @@
 # Summary: Run the instance-flavor-check
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use publiccloud::utils qw(is_byos is_ondemand);
 use serial_terminal 'select_serial_terminal';

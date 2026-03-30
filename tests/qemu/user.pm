@@ -6,7 +6,7 @@
 # Summary: Run QEMU user mode
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use transactional qw(trup_call check_reboot_changes);

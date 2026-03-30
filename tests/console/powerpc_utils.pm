@@ -7,7 +7,7 @@
 # Summary: regression test powerpc-utils, verify that powerpc-utils works as expected
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

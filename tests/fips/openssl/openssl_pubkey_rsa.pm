@@ -16,7 +16,7 @@
 #    and message signing/verification.
 # Maintainer: QE Security <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw (is_sle is_sle_micro is_transactional package_version_cmp);

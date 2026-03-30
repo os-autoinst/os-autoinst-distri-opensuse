@@ -6,7 +6,7 @@
 # Summary: Install qgis and perform a smoke test
 # Maintainer: Guillaume <guillaume@opensuse.org>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

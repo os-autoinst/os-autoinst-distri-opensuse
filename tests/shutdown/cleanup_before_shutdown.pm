@@ -15,7 +15,7 @@
 #   in /etc/systemd/journald.conf and restart systemd-journalctl
 # Maintainer: Oleksandr Orlov <oorlov@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'prepare_serial_console';
 use utils;

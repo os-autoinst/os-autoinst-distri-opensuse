@@ -10,7 +10,7 @@
 # Maintainer: Wayne Chen <wchen@suse.com>, qe-virt@suse.de
 package verify_virtualization;
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use Tie::IxHash;
 use testapi;
 use utils;

@@ -22,7 +22,7 @@
 # - Cleanup
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'has_selinux';

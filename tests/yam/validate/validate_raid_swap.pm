@@ -4,7 +4,7 @@
 # Summary: Validate the /etc/fstab doesn't have md1 as swap but has md0 instead.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 
 sub run {

@@ -8,7 +8,7 @@
 #
 # Maintainer: elemental@suse.de
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);

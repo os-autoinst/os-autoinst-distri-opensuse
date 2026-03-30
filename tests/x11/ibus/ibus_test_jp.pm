@@ -8,7 +8,7 @@
 # Summary: setup and test ibus japanese input
 # Maintainer: Grace Wang <grace.wang@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

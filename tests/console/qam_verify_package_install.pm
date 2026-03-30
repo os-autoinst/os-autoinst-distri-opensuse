@@ -4,7 +4,7 @@
 # Summary: Verify installed packages
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

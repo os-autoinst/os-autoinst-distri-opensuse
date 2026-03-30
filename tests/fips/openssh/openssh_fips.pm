@@ -16,7 +16,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: tc#1525228, poo#90458
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

@@ -7,7 +7,7 @@
 # - Switch to X11 (make sure that is running in graphics mode)
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils 'ensure_serialdev_permissions';
 use version_utils qw(is_leap);

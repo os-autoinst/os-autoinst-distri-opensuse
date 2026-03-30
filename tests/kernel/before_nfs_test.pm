@@ -5,7 +5,7 @@
 # Summary: Preparation before provisioning NFS setup
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal "select_serial_terminal";
 use utils;

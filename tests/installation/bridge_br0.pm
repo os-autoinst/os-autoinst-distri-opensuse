@@ -10,7 +10,7 @@
 
 # Maintainer: QE Virtualization <qe-virt@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use version_utils qw(is_sle);

@@ -10,7 +10,7 @@
 # https://build.suse.de/projects/SUSE:SLE-15-SP1:GA/prjconf
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use Utils::Logging 'save_and_upload_log';

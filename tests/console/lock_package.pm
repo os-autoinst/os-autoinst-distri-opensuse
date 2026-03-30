@@ -7,7 +7,7 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package lock_package;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

@@ -5,7 +5,7 @@
 # Summary:  [qa_automation] kexec testsuite
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

@@ -8,7 +8,7 @@
 # Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 # Tags: tc#1503754
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

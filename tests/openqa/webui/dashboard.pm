@@ -6,7 +6,7 @@
 # Summary: Open the openQA webui in the web browser
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use x11utils 'ensure_unlocked_desktop';
 

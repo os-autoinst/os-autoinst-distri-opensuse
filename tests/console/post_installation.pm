@@ -13,7 +13,7 @@
 #
 # Maintainer: QE Core <qe-core@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils qw(zypper_call quit_packagekit);
 use serial_terminal qw(select_serial_terminal);

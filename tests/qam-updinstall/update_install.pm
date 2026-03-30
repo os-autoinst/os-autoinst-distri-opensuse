@@ -50,6 +50,8 @@
 #
 # Maintainer: Ondřej Súkup <osukup@suse.cz>, Anton Pappas <apappas@suse.com>
 
+## no os-autoinst style
+
 use base "opensusebasetest";
 
 use utils;

@@ -29,7 +29,7 @@
 
 package sev_snp_validation;
 
-use base 'virt_feature_test_base';
+use Mojo::Base 'virt_feature_test_base';
 use POSIX 'strftime';
 use testapi qw(:DEFAULT);
 use serial_terminal qw(select_serial_terminal);

@@ -11,7 +11,7 @@ package full_run;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
 use testapi;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use File::Basename;
 use LWP::Simple;
 

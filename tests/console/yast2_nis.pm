@@ -18,7 +18,7 @@
 # Step 9: Finish
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
 use utils 'zypper_call';

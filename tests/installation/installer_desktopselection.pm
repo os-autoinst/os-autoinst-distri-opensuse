@@ -7,7 +7,7 @@
 # Summary: Select desktop in installer based on test settings
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use utils 'addon_products_is_applicable';
 use testapi;
 use version_utils 'is_leap';

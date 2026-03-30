@@ -12,7 +12,7 @@
 #
 # Maintainer: João Walter Bruno Filho <bfilho@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use x11utils qw(close_gui_terminal default_gui_terminal);

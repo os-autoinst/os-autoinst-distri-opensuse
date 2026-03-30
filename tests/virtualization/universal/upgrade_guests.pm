@@ -7,7 +7,7 @@
 # Summary: Upgrade all guests to their latest state
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use qam 'ssh_add_test_repositories';

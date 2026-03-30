@@ -11,7 +11,7 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional qw(process_reboot);
 use bootloader_setup qw(change_grub_config);

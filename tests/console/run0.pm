@@ -5,6 +5,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#160322, poo#194417
 
+## no os-autoinst style
+
 use base 'consoletest';
 use testapi;
 use utils qw(systemctl zypper_call);

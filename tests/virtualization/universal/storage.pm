@@ -7,7 +7,7 @@
 # Summary: Storage pool / volume test
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_autotest::virtual_storage_utils;
 use virt_autotest::common;
 use virt_autotest::utils;

@@ -7,7 +7,7 @@
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610388
 
-use Mojo::Base qw(windowsbasetest);
+use Mojo::Base 'windowsbasetest';
 use testapi;
 
 sub approve_network_popup {

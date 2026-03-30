@@ -7,7 +7,7 @@
 # Summary: Test custom partitioning selection: Split off '/usr' partition
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use version_utils qw(is_storage_ng is_tumbleweed);
 use partition_setup 'addpart';

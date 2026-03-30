@@ -7,7 +7,7 @@
 # Summary: Verify firewall configuration after installation using ay profile
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use utils 'systemctl';
 

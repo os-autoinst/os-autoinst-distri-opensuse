@@ -7,7 +7,7 @@
 #   It runs sapcontrol related commands on remote host using console redirection.
 #   For more information read 'README.md'
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);

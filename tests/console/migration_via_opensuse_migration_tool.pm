@@ -10,7 +10,7 @@
 #
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils qw(quit_packagekit zypper_call);
 use power_action_utils 'power_action';

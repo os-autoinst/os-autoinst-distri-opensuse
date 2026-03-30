@@ -29,7 +29,7 @@
 # - Close xterm, start a new yast2 storage and delete all partitions created
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
-use base "y2_module_guitest";
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use version_utils qw(is_sle is_tumbleweed is_opensuse);
 use utils;

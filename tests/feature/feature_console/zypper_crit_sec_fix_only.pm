@@ -7,7 +7,7 @@
 # Tags: fate#318760, tc#1480288
 # Maintainer: QE Security <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use registration;
 use utils;

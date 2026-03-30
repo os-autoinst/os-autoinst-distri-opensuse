@@ -19,7 +19,7 @@
 # - Remove test package
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 use version_utils qw(is_tumbleweed is_sle is_leap);

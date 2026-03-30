@@ -8,7 +8,7 @@
 # Test wireguard with nmcli
 # Maintainer: qe-core <qe-core@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

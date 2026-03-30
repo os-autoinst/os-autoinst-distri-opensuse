@@ -7,7 +7,7 @@
 # Summary: Simple smoke test for testing USB drive connected to system
 # Maintainer: LSG QE Kernel <kernel-qa@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal;
 use utils;

@@ -7,7 +7,7 @@
 # Summary: Configure clvmd or lvmlockd
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use version_utils 'is_sle';
 use utils qw(zypper_call systemctl);
 use testapi;

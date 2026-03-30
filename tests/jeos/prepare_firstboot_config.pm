@@ -7,7 +7,7 @@
 # configuration
 # Maintainer: Wayne Chen <wchen@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils qw(is_ipxe_boot);
 use autoyast qw(expand_template expand_variables upload_profile);

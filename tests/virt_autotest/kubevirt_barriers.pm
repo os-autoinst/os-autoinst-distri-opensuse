@@ -6,7 +6,7 @@
 # Summary: Run kubevirt test suite
 # Maintainer: Nan Zhang <nan.zhang@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 

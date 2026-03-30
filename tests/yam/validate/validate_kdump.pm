@@ -9,7 +9,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use power_action_utils 'power_action';
 use Utils::Architectures 'is_s390x';
 use utils 'systemctl';

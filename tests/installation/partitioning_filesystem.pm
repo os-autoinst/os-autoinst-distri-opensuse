@@ -7,7 +7,7 @@
 # Summary: Partition setup via partition proposal menu
 # Maintainer: Richard Brown <rbrownccb@opensuse.org>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Backends;
 use version_utils qw(is_storage_ng is_sle);

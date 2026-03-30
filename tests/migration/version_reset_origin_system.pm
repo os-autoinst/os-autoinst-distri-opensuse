@@ -6,7 +6,7 @@
 # Summary: Change the VERSION to ORIGIN_SYSTEM_VERSION
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi qw(get_required_var set_var);
 use migration qw(reset_consoles_tty);
 

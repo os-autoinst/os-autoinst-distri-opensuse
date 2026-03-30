@@ -7,7 +7,7 @@
 # Summary: Packagekit updates using kde applet
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use utils;
 use testapi;
 use x11utils qw(ensure_unlocked_desktop turn_off_kde_screensaver);

@@ -9,7 +9,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use power_action_utils qw(prepare_system_shutdown assert_shutdown_and_restore_system);
 
 sub run {

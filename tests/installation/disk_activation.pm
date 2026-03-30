@@ -7,7 +7,7 @@
 # Summary: s390x disk activation test
 # Maintainer: Matthias Griessmeier <mgriessmeier@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use version_utils 'is_sle';
 

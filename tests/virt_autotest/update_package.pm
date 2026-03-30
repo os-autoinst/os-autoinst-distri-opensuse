@@ -8,7 +8,7 @@ package update_package;
 # Maintainer: qe-virt@suse.com
 
 use testapi;
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use utils 'is_uefi_boot';
 use version_utils 'is_sle';
 use virt_utils;

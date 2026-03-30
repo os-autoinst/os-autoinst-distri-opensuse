@@ -5,7 +5,7 @@
 # when using the Common Criteria role.
 # Maintainer: QE Security <none@suse.de>
 
-use parent 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use security::config;
 

@@ -11,7 +11,7 @@
 # - Cleanup
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use x11utils 'ensure_unlocked_desktop';
 use testapi;
 use utils;

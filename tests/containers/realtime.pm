@@ -7,7 +7,7 @@
 # Summary: Test RT workload in a container
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(containers::basetest);
+use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);

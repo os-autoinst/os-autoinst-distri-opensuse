@@ -11,6 +11,8 @@
 #          - List eventually skipped and failed test
 # Maintainer: QE Core <qe-core@suse.de>
 
+## no os-autoinst style
+
 use base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

@@ -7,7 +7,7 @@
 # Summary: Apply patches to the all of our guests and reboot them
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use qam 'ssh_add_test_repositories';
 use utils;

@@ -6,7 +6,7 @@
 # Summary: Install openQA using openqa-bootstrap
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils qw(has_selinux);

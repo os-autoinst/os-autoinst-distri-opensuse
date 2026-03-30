@@ -7,7 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#63223, tc#1744099
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(zypper_call);
 use version_utils qw(is_transactional);

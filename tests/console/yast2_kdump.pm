@@ -7,7 +7,7 @@
 # and checks configuration without rebooting the system.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use cfg_files_utils 'validate_cfg_file';
 use kdump_utils;

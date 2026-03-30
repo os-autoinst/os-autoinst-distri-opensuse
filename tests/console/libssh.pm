@@ -25,7 +25,7 @@
 # Maintainer: Tony Yuan <tyuan@suse.com>
 
 package libssh;
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use Utils::Systemd 'disable_and_stop_service';

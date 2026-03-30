@@ -7,7 +7,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'installbasetest';
+use Mojo::Base 'installbasetest';
 use testapi;
 use scheduler 'get_test_suite_data';
 

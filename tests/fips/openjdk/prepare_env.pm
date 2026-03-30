@@ -6,7 +6,7 @@
 # Summary: prepare env for openjdk tests
 # Maintainer: QE Security <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use openjdktest;

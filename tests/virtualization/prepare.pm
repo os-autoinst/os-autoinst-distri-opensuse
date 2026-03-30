@@ -4,7 +4,7 @@
 # Summary: Prepare a SLE system for use as a hypervisor host
 # Maintainer: aginies <aginies@suse.com>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use virtmanager;
 use utils 'zypper_call';

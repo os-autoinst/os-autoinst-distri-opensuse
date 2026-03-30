@@ -20,7 +20,7 @@
 # testsuite", "junit success", "junit endsuite", otherwise record as failure
 # Maintainer: HouzuoGuo <guohouzuo@gmail.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 
 
 use testapi;

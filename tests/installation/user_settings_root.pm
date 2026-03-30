@@ -8,7 +8,7 @@
 # - Fill password field (and password confirmation) during install procedure
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use parent qw(installation_user_settings y2_installbase);
+use Mojo::Base qw(installation_user_settings y2_installbase);
 use testapi;
 
 sub run {

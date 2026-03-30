@@ -11,6 +11,8 @@
 #          option.
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
+## no os-autoinst style
+
 package bootloader_svirt;
 
 use base "installbasetest";

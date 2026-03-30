@@ -7,7 +7,7 @@
 #           operations work and system can properly boot.
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use Utils::Architectures qw(is_s390x);

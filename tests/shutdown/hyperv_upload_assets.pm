@@ -6,7 +6,7 @@
 # Summary: Upload Hyper-V assets
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base 'installbasetest';
+use Mojo::Base 'installbasetest';
 use testapi;
 use version_utils;
 

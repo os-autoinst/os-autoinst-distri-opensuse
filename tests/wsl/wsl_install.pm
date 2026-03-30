@@ -8,7 +8,7 @@
 # AUTOMATED. IT WILL BE RAN ONLY IN AARCH64 MACHINES.
 # Maintainer: qa-c <qa-c@suse.de>
 
-use Mojo::Base qw(windowsbasetest);
+use Mojo::Base 'windowsbasetest';
 use Utils::Architectures qw(is_aarch64);
 use testapi;
 use version_utils qw(is_sle is_opensuse);

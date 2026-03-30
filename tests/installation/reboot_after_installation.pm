@@ -10,7 +10,7 @@
 # timeouts
 # Maintainer: QE LSG <qa-team@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use lockapi;
 use testapi;
 use utils;

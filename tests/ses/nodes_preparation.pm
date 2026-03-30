@@ -7,7 +7,7 @@
 #          http://docserv.suse.de/documents/Storage_5/ses-deployment/single-html/#ceph.install.stack
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use mm_network;
 use lockapi;

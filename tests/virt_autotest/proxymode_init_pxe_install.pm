@@ -6,6 +6,8 @@
 # Summary: proxymode_init_pxe_install: Initialize pxe and start to install special product
 # Maintainer: John <xgwang@suse.com>
 
+## no os-autoinst style
+
 use testapi;
 
 sub run {

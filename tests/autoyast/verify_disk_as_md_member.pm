@@ -14,7 +14,7 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use testapi;
-use base 'basetest';
+use Mojo::Base 'basetest';
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 

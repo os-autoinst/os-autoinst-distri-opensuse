@@ -18,7 +18,7 @@
 # Maintainer: xiaojun <xjin@suse.com>
 # Tags: tc#5255-1503849
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

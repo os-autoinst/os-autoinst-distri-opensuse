@@ -6,7 +6,7 @@
 # Summary: Reboot system and reach boot screen.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use power_action_utils 'power_action';
 

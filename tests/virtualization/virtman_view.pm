@@ -5,7 +5,7 @@
 # Summary: Basic test of virtman features
 # Maintainer: Antoine <aginies@suse.com>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use virtmanager;
 

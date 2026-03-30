@@ -13,7 +13,7 @@
 # Actions past install-screen with reboot button ara handled separately in agama_reboot.pm
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
-use base Yam::Agama::agama_base;
+use Mojo::Base 'Yam::Agama::agama_base';
 use testapi;
 use version_utils qw(is_leap is_sle is_microos);
 use utils;

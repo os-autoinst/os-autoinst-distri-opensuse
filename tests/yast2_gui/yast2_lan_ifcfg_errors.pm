@@ -7,7 +7,7 @@
 # (like typos or duplicates) in one of the ifcfg files.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_module_guitest';
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use y2lan_restart_common qw(open_network_settings wait_for_xterm_to_be_visible close_xterm close_network_settings);
 use x11utils 'start_root_shell_in_xterm';

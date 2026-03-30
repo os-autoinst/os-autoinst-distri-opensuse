@@ -6,8 +6,7 @@
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586203
 
-use base 'basetest';
-use base 'x11test';
+use Mojo::Base qw(basetest x11test);
 use testapi;
 use lockapi;
 use utils;

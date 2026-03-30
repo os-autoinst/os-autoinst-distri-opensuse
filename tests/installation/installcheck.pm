@@ -8,7 +8,7 @@
 #    added to big staging projects with many changes
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run {

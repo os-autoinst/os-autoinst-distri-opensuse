@@ -7,7 +7,7 @@
 # The list of subvolumes and expected quota limit are stored in 'test_data'.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use scheduler 'get_test_suite_data';
 use Test::Assert 'assert_equals';

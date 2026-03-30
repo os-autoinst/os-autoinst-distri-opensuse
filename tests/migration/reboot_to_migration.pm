@@ -9,7 +9,7 @@
 #       load_boot_tests or wait_boot in setup_zdup.pm
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi qw(select_console set_var assert_script_run send_key assert_screen);
 use Utils::Architectures;
 use Utils::Backends 'is_pvm';

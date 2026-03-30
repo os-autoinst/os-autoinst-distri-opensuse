@@ -8,7 +8,7 @@
 # - test other service like 'sshd' is working fine
 # Maintainer: qe-core <qe-core@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';

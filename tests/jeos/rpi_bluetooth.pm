@@ -7,7 +7,7 @@
 #          the openQA-worker device.
 # Maintainer: qe-core team <qe-core@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use Utils::Logging 'save_and_upload_log';

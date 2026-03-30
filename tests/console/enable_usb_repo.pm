@@ -8,7 +8,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: bsc#1012258
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

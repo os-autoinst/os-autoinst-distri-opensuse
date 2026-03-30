@@ -7,7 +7,7 @@
 # Summary: yast2 lan hostname via DHCP test https://bugzilla.suse.com/show_bug.cgi?id=984890
 # Maintainer: QE Core <qe-core@suse.de>
 
-use parent "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 use version_utils ':VERSION';

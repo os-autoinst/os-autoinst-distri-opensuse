@@ -9,7 +9,7 @@
 # - open main menu and check that it matches the needle
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils qw(is_leap);
 

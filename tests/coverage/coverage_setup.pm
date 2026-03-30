@@ -12,7 +12,7 @@
 #     unzip: /usr/bin/unzip
 #     nano: /usr/bin/nano
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use version_utils qw (is_sle has_selinux);

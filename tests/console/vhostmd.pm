@@ -13,7 +13,7 @@
 # - Check system logs for vhostmd messages
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call);

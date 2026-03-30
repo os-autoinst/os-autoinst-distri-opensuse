@@ -5,7 +5,7 @@
 # Filesystem Options Screen of Guided Setup.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_filesystem_options()->select_root_filesystem_type('ext4');

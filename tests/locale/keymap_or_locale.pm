@@ -10,7 +10,7 @@
 #   - Type keystrokes for selected language (default = us)
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "locale";
+use Mojo::Base 'locale';
 use Utils::Backends 'has_ttys';
 use testapi qw(assert_screen get_var select_console);
 

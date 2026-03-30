@@ -7,7 +7,7 @@
 #          otherwise accept current list of Add On Products to install (screenshots are different).
 # Maintainer: QE Security <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

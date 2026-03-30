@@ -8,6 +8,8 @@
 #   terminal and an ssh connection
 # Maintainer: Matthias Griessmeier <mgriessmeier@suse.de>
 
+## no os-autoinst style
+
 
 package bootloader_s390;
 

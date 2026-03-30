@@ -14,7 +14,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use package_utils 'install_package';
 use version_utils qw(is_sle is_public_cloud is_opensuse);

@@ -17,7 +17,7 @@
 use testapi;
 use utils;
 use x11utils;
-use base "thunderbird_common";
+use Mojo::Base 'thunderbird_common';
 
 sub run {
     my $self = shift;

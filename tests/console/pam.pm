@@ -18,7 +18,7 @@
 #       - run the suite of tests in SUT.
 # Maintainer: Jun Wang <jgwang@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

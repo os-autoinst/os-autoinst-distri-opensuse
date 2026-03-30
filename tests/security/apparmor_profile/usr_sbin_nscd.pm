@@ -11,7 +11,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#44993, tc#1695951
 
-use base "apparmortest";
+use Mojo::Base 'apparmortest';
 use testapi;
 use utils;
 

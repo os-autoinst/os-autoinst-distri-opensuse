@@ -12,7 +12,7 @@
 # - using libgcrypt-config, check some parameters
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_opensuse);

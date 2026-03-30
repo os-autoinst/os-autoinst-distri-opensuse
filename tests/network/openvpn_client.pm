@@ -11,7 +11,7 @@
 #  * When connected, we perform the ping, and finally disconnect.
 # Maintainer: QE Security <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;

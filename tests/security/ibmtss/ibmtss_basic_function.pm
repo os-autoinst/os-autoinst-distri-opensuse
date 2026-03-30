@@ -7,8 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#101088, poo#102792, poo#103086, poo#106501, tc#1769800, poo#128057, poo#169957
 
-use base 'opensusebasetest';
-use base 'consoletest';
+use Mojo::Base qw(opensusebasetest consoletest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

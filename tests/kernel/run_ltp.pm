@@ -8,7 +8,7 @@
 # More documentation is at the bottom
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';

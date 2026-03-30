@@ -6,7 +6,7 @@
 # Summary: Test network bonding capability and connectivity
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use power_action_utils "power_action";
 use utils qw(validate_script_output_retry);

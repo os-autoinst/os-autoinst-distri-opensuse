@@ -6,7 +6,7 @@
 # Summary: Check PSI proc files are accessible when psi=1
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use power_action_utils 'power_action';

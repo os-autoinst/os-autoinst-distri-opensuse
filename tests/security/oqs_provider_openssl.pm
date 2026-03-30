@@ -5,7 +5,7 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use serial_terminal 'select_serial_terminal';
 use testapi;
 use utils 'zypper_call';

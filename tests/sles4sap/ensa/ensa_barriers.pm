@@ -6,7 +6,7 @@
 # Summary: Initialize barriers used in ENSA cluster tests
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use mmapi;

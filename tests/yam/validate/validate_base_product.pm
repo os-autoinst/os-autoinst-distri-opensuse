@@ -6,7 +6,7 @@
 # Summary: Validate the base product from /etc/products.d/baseproduct.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use Test::Assert ':assert';
 

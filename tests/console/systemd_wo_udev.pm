@@ -7,7 +7,7 @@
 # Maintainer: QA-C <qa-c@suse.de>
 # Tags: SLE-21856
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 

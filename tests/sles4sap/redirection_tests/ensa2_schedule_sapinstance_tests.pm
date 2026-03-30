@@ -5,7 +5,7 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module is used for scheduling multiple variants of ENSA2 'kill sapinstance' scenario.
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use warnings FATAL => 'all';
 use testapi;

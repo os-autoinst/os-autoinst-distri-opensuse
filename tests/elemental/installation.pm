@@ -4,7 +4,7 @@
 # Summary: Test installation and boot of Elemental ISO
 # Maintainer: elemental@suse.de
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 
 use testapi;
 use power_action_utils qw(power_action);

@@ -7,7 +7,7 @@
 # Summary: test tcpdump by pinging a localhost and dumping with an icmp filter
 # Maintainer: QE Core <qe-core@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use package_utils 'install_package';

@@ -6,7 +6,7 @@
 # Summary: Setup regproxy and redirect registry.opensuse.org to it
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use containers::urls 'get_opensuse_registry_prefix';

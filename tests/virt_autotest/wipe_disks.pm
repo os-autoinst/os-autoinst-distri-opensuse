@@ -10,7 +10,7 @@
 package wipe_disks;
 
 use testapi;
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use utils;
 use File::Basename;
 

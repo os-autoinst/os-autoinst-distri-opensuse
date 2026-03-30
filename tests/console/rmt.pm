@@ -9,7 +9,7 @@
 #    rmt-wizard and validation with rmt-cli repos rmt-cli scc sync return value
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use repo_tools;
 use version_utils;

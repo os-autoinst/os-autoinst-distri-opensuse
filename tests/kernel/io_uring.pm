@@ -7,7 +7,7 @@
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 # More documentation is at the bottom
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

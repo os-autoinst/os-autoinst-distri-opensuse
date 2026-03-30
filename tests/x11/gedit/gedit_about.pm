@@ -14,7 +14,7 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 # Tags: tc#1436120
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils;
 

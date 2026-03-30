@@ -5,7 +5,7 @@
 # booting again from the installation media.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use Utils::Architectures qw(is_aarch64);
 use opensusebasetest;
 

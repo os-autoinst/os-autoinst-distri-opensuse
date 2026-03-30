@@ -13,7 +13,7 @@
 #     - QAM_TESTREPO_FAIL=ignore: ignore all failures
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils;

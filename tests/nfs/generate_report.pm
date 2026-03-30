@@ -7,7 +7,7 @@
 # Maintainer: Yong Sun <yosun@suse.com>
 package generate_report;
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use Mojo::JSON;
 use testapi;
 use serial_terminal 'select_serial_terminal';

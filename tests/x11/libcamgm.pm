@@ -7,7 +7,7 @@
 # Summary: Test libcamgm via Yast2 CA management module(yast2 ca_mgm)
 # Maintainer: QE Security <none@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

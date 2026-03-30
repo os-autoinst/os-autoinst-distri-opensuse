@@ -6,7 +6,7 @@
 # Summary: Test network connectivity
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils;

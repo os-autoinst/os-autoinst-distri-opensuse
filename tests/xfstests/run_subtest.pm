@@ -10,7 +10,7 @@
 ## no os-autoinst compile-check
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use File::Basename;
 use testapi;
 use utils;

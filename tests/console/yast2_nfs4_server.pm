@@ -16,7 +16,7 @@
 #    * The NFSv4 ACL are used to protest some files - the client then tries to access those
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use utils qw(clear_console zypper_call systemctl);
 use version_utils;

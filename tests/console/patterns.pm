@@ -7,7 +7,7 @@
 # Maintainer: Christopher Hofmann <cwh@suse.de>, QE Core <qe-core@suse.de>
 # Tags: fate#317481 poo#16650
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

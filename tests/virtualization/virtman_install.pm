@@ -7,7 +7,7 @@
 # Summary: Virtualization virtman installation setup
 # Maintainer: aginies <aginies@suse.com>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 
 

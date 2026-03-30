@@ -6,7 +6,7 @@
 # Summary: Ensure that the openQA job is actually running
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 

@@ -10,7 +10,7 @@
 #   is bloated applications.
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use x11utils qw(default_gui_terminal close_gui_terminal);
 

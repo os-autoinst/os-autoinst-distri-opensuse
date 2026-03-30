@@ -12,7 +12,7 @@
 # Maintainer: Wayne Chen <wchen@suse.com> qe-virt@suse.de
 package prepare_non_transactional_server;
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use transactional;
 use utils;

@@ -7,7 +7,7 @@
 # Tags: poo#9576
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use base "y2_installbase";
+use Mojo::Base 'y2_installbase';
 use testapi;
 use lockapi;
 use mm_network;

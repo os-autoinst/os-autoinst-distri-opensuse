@@ -12,7 +12,7 @@
 # Maintainer: Stephan Kulow <coolo@suse.com>
 
 package firefox;
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils qw(is_opensuse is_tumbleweed);
 use Utils::Architectures 'is_s390x';

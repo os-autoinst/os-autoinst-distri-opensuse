@@ -13,7 +13,7 @@
 # - Disable shib module on apache2
 # Maintainer: Romanos Dodopoulos <romanos.dodopoulos@suse.cz>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

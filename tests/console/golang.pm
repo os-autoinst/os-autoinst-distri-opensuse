@@ -6,7 +6,7 @@
 # Summary: Test the 2 newest go versions by compiling and running man_or_boy.go
 # Maintainer: Dominik Heidler <dominik@heidler.eu>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

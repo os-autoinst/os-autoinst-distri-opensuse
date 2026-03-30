@@ -14,7 +14,7 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package validate_encrypt;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use scheduler 'get_test_suite_data';
 use validate_encrypt_utils;
 use testapi;

@@ -6,7 +6,7 @@
 # Summary: Test NetworkManager on SLE Micro/MicroOS environments
 # Maintainer: QE Core <qe-core@suse.de>
 
-use Mojo::Base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use transactional;

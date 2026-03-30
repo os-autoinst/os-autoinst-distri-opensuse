@@ -7,7 +7,7 @@
 #   It loops over all hosts defined in `$run_args->{redirection_data}` and attempts few common OpenQA api calls.
 #   For more information read 'README.md'
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use sles4sap::console_redirection;

@@ -13,7 +13,7 @@
 #   - Apply all changes by running: "grub2-mkconfig -o /boot/grub2/grub.cfg"
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Architectures;
 use serial_terminal qw(select_serial_terminal prepare_serial_console);

@@ -8,7 +8,7 @@
 # Summary: new test that adds configured repositories
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(quit_packagekit zypper_call);
 

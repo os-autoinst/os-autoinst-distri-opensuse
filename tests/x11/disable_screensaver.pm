@@ -6,7 +6,7 @@
 # Summary: Disable screensaver depending on desktop environment
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use x11utils 'turn_off_screensaver';
 

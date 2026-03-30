@@ -11,7 +11,7 @@
 #
 # Maintainer: QE-Core <qe-core@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use v5.20;
 use feature qw(signatures);
 no warnings qw(experimental::signatures);

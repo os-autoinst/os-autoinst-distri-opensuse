@@ -4,7 +4,7 @@
 # Summary: Test toolbox command and container image availability
 # Maintainer: unified-core@suse.com, ldevulder@suse.com
 
-use base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 

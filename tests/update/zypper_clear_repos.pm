@@ -8,7 +8,7 @@
 # Summary: Clear unneed repos before updating for Staging Project
 # Maintainer: Max Lin <mlin@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

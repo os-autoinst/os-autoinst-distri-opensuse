@@ -6,7 +6,7 @@
 # Summary: Initial setup of gnuhealth, e.g. database
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils 'is_leap';
 use utils 'systemctl';

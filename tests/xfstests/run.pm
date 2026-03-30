@@ -15,6 +15,9 @@
 # - Stop heartbeat after last test on list
 # - Collect all logs
 # Maintainer: Yong Sun <yosun@suse.com>, An Long <lan@suse.com>
+
+## no os-autoinst style
+
 package run;
 
 use 5.018;

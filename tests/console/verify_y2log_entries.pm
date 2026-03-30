@@ -11,7 +11,7 @@
 #       fail_message: 'here where no warnings for partition shrinking in y2log'
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use scheduler;
 

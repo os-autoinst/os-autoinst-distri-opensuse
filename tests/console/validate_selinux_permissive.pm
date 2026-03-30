@@ -7,7 +7,7 @@
 # Maintainer: QE C <qe-c@suse.de>
 
 use testapi;
-use base "selinuxtest";
+use Mojo::Base 'selinuxtest';
 
 sub run {
     my ($self) = @_;

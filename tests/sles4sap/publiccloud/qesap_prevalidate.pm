@@ -42,7 +42,7 @@ QE-SAP <qe-sap@suse.de>
 
 =cut
 
-use base 'sles4sap::publiccloud_basetest';
+use Mojo::Base 'sles4sap::publiccloud_basetest';
 use testapi;
 use publiccloud::utils;
 use sles4sap::publiccloud;

@@ -20,7 +20,7 @@
 # - Cleanup
 # Maintainer: Dario Abatianni <dabatianni@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

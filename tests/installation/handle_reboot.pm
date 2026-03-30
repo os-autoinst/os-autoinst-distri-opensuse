@@ -9,7 +9,7 @@
 # usage of complex conditions.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use grub_utils qw(grub_test);
 use testapi;
 use Utils::Architectures;

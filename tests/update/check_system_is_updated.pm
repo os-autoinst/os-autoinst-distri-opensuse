@@ -8,7 +8,7 @@
 # - execute pkcon get-updates and check that the message says 'there are no updates'
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'ensure_serialdev_permissions';
 

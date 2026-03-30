@@ -6,7 +6,7 @@
 # Summary: Validate that the self-update is performed by Agama via /etc/live-self-update/result
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(systemctl);
 use scheduler qw(get_test_suite_data);

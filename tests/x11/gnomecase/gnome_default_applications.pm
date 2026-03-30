@@ -8,7 +8,7 @@
 #  be opened by corresponding applications
 # Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils 'is_sle';

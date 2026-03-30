@@ -6,7 +6,7 @@
 # Summary: Deploy ceph cluster http://docserv.suse.de/documents/Storage_5/ses-deployment/single-html/
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use utils qw(systemctl zypper_call);

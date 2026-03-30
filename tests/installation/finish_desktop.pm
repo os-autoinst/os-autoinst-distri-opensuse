@@ -7,7 +7,7 @@
 # Summary: move all inst/$DESKTOP.pm into one global 999_finish_desktop and run the tests from start.pl
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use main_common 'opensuse_welcome_applicable';
 use x11utils 'turn_off_plasma_tooltips';

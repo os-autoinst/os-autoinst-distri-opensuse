@@ -14,7 +14,7 @@
 
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_utils;
 use testapi;
 use utils;

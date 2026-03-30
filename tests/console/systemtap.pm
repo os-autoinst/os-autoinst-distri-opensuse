@@ -9,7 +9,7 @@
 # * Test simple probing
 # Maintainer: Anastasiadis Vasileios <vasilios.anastasiadis@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

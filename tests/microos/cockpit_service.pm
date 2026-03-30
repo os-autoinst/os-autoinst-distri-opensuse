@@ -6,7 +6,7 @@
 # Summary: Basic check for cockpit service
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils qw(systemctl);

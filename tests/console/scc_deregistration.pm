@@ -4,7 +4,7 @@
 # Summary: Deregister from the SUSE Customer Center
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use registration "scc_deregistration";
 use serial_terminal 'select_serial_terminal';

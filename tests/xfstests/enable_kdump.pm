@@ -20,7 +20,7 @@
 package enable_kdump;
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use utils;
 use Utils::Backends;
 use power_action_utils 'power_action';

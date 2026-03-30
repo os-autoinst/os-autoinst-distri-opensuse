@@ -6,7 +6,7 @@
 # Summary: Clone an openQA job from O3
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

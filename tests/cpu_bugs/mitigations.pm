@@ -8,7 +8,7 @@
 
 ## no os-autoinst compile-check
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use testapi;
 use Utils::Backends;

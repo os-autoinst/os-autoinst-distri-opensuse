@@ -7,7 +7,7 @@
 # Maintainer: Joyce Na <jna@suse.de>
 
 package install_qatestset;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use power_action_utils 'power_action';
 use utils;
 use testapi;

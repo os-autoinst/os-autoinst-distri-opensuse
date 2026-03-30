@@ -14,7 +14,7 @@
 #    - detach vGPU from guest and remove the vGPU
 # Maintainer: qe-virt@suse.de, Julie CAO <JCao@suse.com>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use utils;
 use testapi;
 use virt_autotest::common;

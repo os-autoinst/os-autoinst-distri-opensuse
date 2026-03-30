@@ -19,7 +19,7 @@
 # - Proceed install (Next, next) until license on welcome screen is found
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use y2_logs_helper qw(accept_license verify_license_translations verify_license_has_to_be_accepted);
 use testapi;
 use x11utils 'ensure_fullscreen';

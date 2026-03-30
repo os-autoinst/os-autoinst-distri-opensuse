@@ -6,7 +6,7 @@
 # Summary: Disable grub timeout from the Installer
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use version_utils qw(is_bootloader_grub2);
 
 sub run {

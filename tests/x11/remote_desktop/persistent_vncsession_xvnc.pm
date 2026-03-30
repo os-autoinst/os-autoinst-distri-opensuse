@@ -6,7 +6,7 @@
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: tc#1586209
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use lockapi;
 use utils;

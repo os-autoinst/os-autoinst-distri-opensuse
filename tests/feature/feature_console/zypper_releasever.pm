@@ -7,7 +7,7 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 # Tags: tc#1480297, fate#318354
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub remove_repo {

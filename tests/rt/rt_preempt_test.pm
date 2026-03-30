@@ -6,7 +6,7 @@
 # Summary: RT preempt test
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils qw(zypper_call);
 use repo_tools qw(add_qa_head_repo);

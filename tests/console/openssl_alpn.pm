@@ -15,7 +15,7 @@
 # Maintainer: Michal Nowak <mnowak@suse.com>
 # Tags: fate#320292
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use package_utils 'install_package';

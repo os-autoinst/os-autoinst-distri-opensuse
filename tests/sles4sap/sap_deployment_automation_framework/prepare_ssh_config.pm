@@ -6,6 +6,8 @@
 # Summary:  Executes setup of HanaSR scenario using SDAF ansible playbooks according to:
 #           https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#sap-application-installation
 
+## no os-autoinst style
+
 use parent 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;

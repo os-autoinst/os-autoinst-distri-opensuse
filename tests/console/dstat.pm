@@ -7,7 +7,7 @@
 # Summary: To check whether dstat runs
 # Maintainer: Michael Vetter <mvetter@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_leap);

@@ -4,7 +4,7 @@
 # Summary: Confirm multipath during installation.
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 
 use testapi;
 

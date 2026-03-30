@@ -10,7 +10,7 @@
 # Maintainer: xlai@suse.com
 
 
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use testapi;
 
 sub run {

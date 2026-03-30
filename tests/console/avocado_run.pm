@@ -7,7 +7,7 @@
 # Summary: Run avocado tests and upload results, --vt-type qemu (by default)
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 

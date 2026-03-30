@@ -6,7 +6,7 @@
 # Summary: Enable SELinux during installation
 # Maintainer: Ludwig Nussel <lnussel@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use version_utils qw(is_sle_micro is_leap_micro);
 

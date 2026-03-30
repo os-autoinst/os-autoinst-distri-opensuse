@@ -15,7 +15,7 @@
 #   data/x11/gb18030/README.md
 # Maintainer: Zhaocong <zcjia@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils 'is_sle';

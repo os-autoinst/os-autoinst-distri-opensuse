@@ -8,7 +8,7 @@
 #    https://progress.opensuse.org/issues/11454 https://github.com/yast/skelcd-control-SLES/blob/d2f9a79c0681806bf02eb38c4b7c287b9d9434eb/control/control.SLES.xml#L53-L71
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

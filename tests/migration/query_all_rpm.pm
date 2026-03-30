@@ -6,7 +6,7 @@
 # Summary: Record the installed rpm list before conducting migration
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi qw(assert_script_run upload_logs);
 
 sub run {

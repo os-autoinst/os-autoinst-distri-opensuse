@@ -13,7 +13,7 @@
 # Create a new profile for 'top' binary;
 # Maintainer: Sergio R Lemke <slemke@suse.com>;
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_pre_15 is_sle is_opensuse is_leap);

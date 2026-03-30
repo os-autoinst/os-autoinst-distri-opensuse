@@ -7,7 +7,7 @@
 #           https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#sap-application-installation
 # Playbooks can be found in SDAF repo: https://github.com/Azure/sap-automation/tree/main/deploy/ansible
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 use sles4sap::sap_deployment_automation_framework::ansible;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;

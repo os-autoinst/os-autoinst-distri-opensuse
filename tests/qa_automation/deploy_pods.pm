@@ -6,7 +6,7 @@
 # Summary: Installer for test scripts running inside the tested virtual machine
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

@@ -7,7 +7,7 @@
 # Summary: Preparation step for zypper dup. Making sure that a console is available and selected.
 # Maintainer: Ludwig Nussel <lnussel@suse.com>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use utils;
 use migration;

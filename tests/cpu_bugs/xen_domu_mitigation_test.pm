@@ -65,7 +65,7 @@
 ## no os-autoinst compile-check
 
 package xen_domu_mitigation_test;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use Mitigation;
 use ipmi_backend_utils;

@@ -7,7 +7,7 @@ package reset_partition;
 # Summary: reset_partition: Ensure and reset hard disk partition for virt_autotest.
 # Maintainer: Leon Guo <xguo@suse.com>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use testapi;
 use virt_utils;
 use ipmi_backend_utils;

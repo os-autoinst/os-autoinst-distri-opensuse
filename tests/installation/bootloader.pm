@@ -21,6 +21,8 @@
 # live image
 # Maintainer: QE Core <qe-core@suse.de>
 
+## no os-autoinst style
+
 package bootloader;
 
 use base "installbasetest";

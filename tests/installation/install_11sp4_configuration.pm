@@ -11,7 +11,7 @@
 
 package install_11sp4_configuration;
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 
 use testapi;
 

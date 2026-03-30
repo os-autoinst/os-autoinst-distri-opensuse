@@ -14,7 +14,7 @@
 # - check the Kea logs for full DHCP handshake
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
 use utils qw(zypper_call systemctl);

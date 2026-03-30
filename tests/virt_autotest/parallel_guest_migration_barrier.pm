@@ -8,7 +8,7 @@
 # Maintainer: Wayne Chen <wchen@suse.com>, qe-virt <qe-virt@suse.de>
 package parallel_guest_migration_barrier;
 
-use base "parallel_guest_migration_base";
+use Mojo::Base 'parallel_guest_migration_base';
 use lockapi;
 use mmapi;
 

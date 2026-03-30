@@ -7,7 +7,7 @@
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use 5.018;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run {

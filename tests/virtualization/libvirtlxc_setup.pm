@@ -7,7 +7,7 @@
 # Summary: system containers images test setup, installing libvirt-lxc
 # Maintainer: Cédric Bosdonnat <cbosdonnat@suse.de>
 
-use base "basetest";
+use Mojo::Base 'basetest';
 use testapi;
 use utils;
 

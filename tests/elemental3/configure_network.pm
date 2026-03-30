@@ -6,7 +6,7 @@
 # Based on code written by Pavel Dostal <pdostal@suse.cz>
 # Maintainer: unified-core@suse.com, ldevulder@suse.com
 
-use base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use mm_network qw(configure_hostname setup_static_mm_network);

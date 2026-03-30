@@ -7,7 +7,7 @@
 #
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 

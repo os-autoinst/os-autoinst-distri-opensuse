@@ -10,7 +10,7 @@
 # - Otherwise, wait for boot with determined timeout
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'bootbasetest';
+use Mojo::Base 'bootbasetest';
 use testapi;
 use Utils::Architectures;
 use Utils::Backends;

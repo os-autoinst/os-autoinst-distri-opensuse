@@ -9,7 +9,7 @@
 # - setting up systemd resolved locally, switch /etc/resolv.conf to it
 # Maintainer: qe-core <qe-core@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

@@ -8,7 +8,7 @@
 # Maintainer: Joyce Na <jna@suse.de>
 
 package run_perf_case;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use ipmi_backend_utils;
 use power_action_utils 'power_action';
 use testapi;

@@ -7,7 +7,7 @@
 #      earlier
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 
 sub run {

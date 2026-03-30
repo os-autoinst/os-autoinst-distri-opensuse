@@ -9,7 +9,7 @@
 # - Select graphic console (x11), unless DESKTOP is set to textmode
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

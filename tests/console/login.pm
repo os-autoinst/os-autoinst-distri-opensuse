@@ -8,7 +8,7 @@ package login;
 # Summary: login console
 # Maintainer: Tony Yuan <tyuan@suse.com>, qe-virt@suse.com
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use lib 'sle/tests/virt_autotest';
 use lib 'os-autoinst-distri-opensuse/tests/virt_autotest';

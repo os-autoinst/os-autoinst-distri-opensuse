@@ -14,6 +14,8 @@
 # Maintainer: Panos Georgiadis <pgeorgiadis@suse.com>
 # Maintainer: Andrej Semen <asemen@suse.com>
 
+## no os-autoinst style
+
 use base "consoletest";
 use testapi;
 use serial_terminal 'select_serial_terminal';

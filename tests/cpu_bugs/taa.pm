@@ -7,7 +7,7 @@
 # Maintainer: James Wang <jnwang@suse.com>
 
 package taa;
-use base "Mitigation";
+use Mojo::Base 'Mitigation';
 use bootloader_setup;
 use ipmi_backend_utils;
 use testapi;

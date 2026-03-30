@@ -7,6 +7,8 @@
 # Summary: Interface with the zKVM bootloader based on test settings
 # Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
 
+## no os-autoinst style
+
 package bootloader_zkvm;
 
 use base "installbasetest";

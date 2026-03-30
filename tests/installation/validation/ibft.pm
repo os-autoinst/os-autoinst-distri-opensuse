@@ -11,7 +11,7 @@
 # one-name-and-value fields.
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use Socket;
 use testapi;
 use Test::Assert 'assert_equals';

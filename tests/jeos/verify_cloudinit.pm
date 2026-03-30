@@ -6,7 +6,7 @@
 # Summary: Check cloud-init configuration of the image
 # Maintainer: QA-c <qa-c@suse.com>
 
-use Mojo::Base qw(publiccloud::basetest);
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Utils::Systemd qw(systemctl);
 use Utils::Logging qw(save_and_upload_log);

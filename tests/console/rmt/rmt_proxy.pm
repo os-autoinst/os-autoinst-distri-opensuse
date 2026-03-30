@@ -16,7 +16,7 @@
 #           proxy_auth: ntlm
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use repo_tools;
 use utils;

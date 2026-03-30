@@ -6,7 +6,7 @@
 # Summary: Add RT product installation workaround
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run() {

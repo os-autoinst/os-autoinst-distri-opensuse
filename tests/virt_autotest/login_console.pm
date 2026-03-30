@@ -7,7 +7,7 @@
 # Maintainer: alice <xlai@suse.com>
 
 package login_console;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use File::Basename;
 use testapi;
 use Utils::Architectures;

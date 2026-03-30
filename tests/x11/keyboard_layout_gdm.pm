@@ -8,7 +8,7 @@
 # Summary: Test if gnome login manager honors keyboard layout changes
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use power_action_utils 'power_action';

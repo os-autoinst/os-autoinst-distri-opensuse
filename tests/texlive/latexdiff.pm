@@ -12,7 +12,7 @@
 # - Cleanup
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use x11utils 'default_gui_terminal';

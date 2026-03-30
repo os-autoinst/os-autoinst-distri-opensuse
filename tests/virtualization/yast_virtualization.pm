@@ -7,7 +7,7 @@
 # Summary: Add virtualization hypervisor components to an installed system
 # Maintainer: aginies <aginies@suse.com>
 
-use base 'y2_module_guitest';
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use Utils::Architectures;
 use utils;

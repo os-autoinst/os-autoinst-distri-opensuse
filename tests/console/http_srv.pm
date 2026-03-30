@@ -13,7 +13,7 @@
 # - Create index.html, connect to apache instance, check page
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use services::apache;
 use serial_terminal 'select_serial_terminal';

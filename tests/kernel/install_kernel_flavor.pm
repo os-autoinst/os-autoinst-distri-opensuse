@@ -6,7 +6,7 @@
 # Summary: Install custom kernel and remove kernel-default (if it is requested)
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call);

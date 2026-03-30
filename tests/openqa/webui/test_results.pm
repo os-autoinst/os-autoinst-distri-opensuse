@@ -6,7 +6,7 @@
 # Summary: Show the testresults of a job
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub upload_autoinst_log {

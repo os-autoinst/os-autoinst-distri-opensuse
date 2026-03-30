@@ -7,7 +7,7 @@
 # Summary: Prepare for wayland and log out of X11 and into wayland
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use x11utils 'handle_login';

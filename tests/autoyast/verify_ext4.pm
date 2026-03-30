@@ -10,7 +10,7 @@
 #          * Verify users
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use version_utils 'is_sle';
 

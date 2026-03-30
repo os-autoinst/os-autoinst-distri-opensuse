@@ -8,7 +8,7 @@
 
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     my $online_repos_popup = $testapi::distri->get_yes_no_popup();

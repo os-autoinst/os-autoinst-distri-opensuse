@@ -11,7 +11,7 @@
 # - Save screenshot
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal qw(select_user_serial_terminal);
 

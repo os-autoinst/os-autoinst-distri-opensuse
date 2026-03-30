@@ -4,7 +4,7 @@
 # Summary: supportserver and supportserver generator implementation
 # Maintainer: Pavel Sladek <psladek@suse.com>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 
 sub run {

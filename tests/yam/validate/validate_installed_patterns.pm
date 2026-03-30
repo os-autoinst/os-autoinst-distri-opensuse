@@ -8,7 +8,7 @@
 # selected to be installed during installation.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use utils 'zypper_call';
 use testapi;
 

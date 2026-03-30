@@ -14,7 +14,7 @@
 # - cleanup system (images, containers)
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils;

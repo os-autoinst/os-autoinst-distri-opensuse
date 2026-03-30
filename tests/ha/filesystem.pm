@@ -7,7 +7,7 @@
 # Summary: Create filesystem and check content
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use utils qw(zypper_call write_sut_file);
 use version_utils qw(is_sle);
 use testapi;

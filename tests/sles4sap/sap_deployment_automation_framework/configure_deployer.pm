@@ -14,7 +14,7 @@
 #     'SAP_SID' SAP system ID.
 #     'SDAF_DEPLOYER_RESOURCE_GROUP' Existing deployer resource group - part of the permanent cloud infrastructure.
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::console_redirection;

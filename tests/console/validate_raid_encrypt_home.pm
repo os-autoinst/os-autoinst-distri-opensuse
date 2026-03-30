@@ -7,7 +7,7 @@
 # encrypted home (md is not partitioned).
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Mojo::JSON qw(decode_json);
 use scheduler 'get_test_suite_data';

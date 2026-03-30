@@ -8,7 +8,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: poo#19606
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use package_utils 'install_package';
 use version_utils 'is_upgrade';

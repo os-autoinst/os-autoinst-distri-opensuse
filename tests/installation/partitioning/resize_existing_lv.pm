@@ -6,7 +6,7 @@
 # Summary: Modify and resize existing logical volume on a pre-configured disk.
 # Maintainer: QE YaST <qa-sle-yast@suse.com>
 
-use parent 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use version_utils ':VERSION';
 use scheduler 'get_test_suite_data';

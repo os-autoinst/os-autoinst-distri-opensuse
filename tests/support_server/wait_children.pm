@@ -8,7 +8,7 @@
 # - Upload logs, if opensuse
 # Maintainer: Pavel Sladek <psladek@suse.com>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use lockapi;
 use mmapi;

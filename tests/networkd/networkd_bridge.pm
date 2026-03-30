@@ -6,7 +6,7 @@
 # Summary: Test static bridge configuration using networkd
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'networkdbase';
+use Mojo::Base 'networkdbase';
 use testapi;
 use utils;
 

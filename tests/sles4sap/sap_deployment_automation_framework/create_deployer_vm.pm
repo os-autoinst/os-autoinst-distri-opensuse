@@ -15,7 +15,7 @@
 # 'SDAF_DEPLOYER_SNAPSHOT' define existing snapshot name to be used as a source
 # 'SDAF_DEPLOYER_MACHINE' override default value for VM size
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner az_login sdaf_deployment_reused check_credentials);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(get_deployer_ip no_cleanup_tag);

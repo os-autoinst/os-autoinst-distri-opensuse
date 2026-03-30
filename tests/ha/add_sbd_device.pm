@@ -46,7 +46,7 @@ The hostname of current node.
 
 =cut
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;

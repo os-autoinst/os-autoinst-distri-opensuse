@@ -9,7 +9,7 @@
 #  easy adding a new test to openQA can be
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

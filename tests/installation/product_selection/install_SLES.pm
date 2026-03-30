@@ -4,7 +4,7 @@
 # Summary: Test module to select a product to install
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi 'get_var';
 
 sub run {

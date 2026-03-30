@@ -6,6 +6,8 @@
 # Summary: Run simple image specific checks
 # Maintainer: Fabian Vogt <fvogt@suse.de>
 
+## no os-autoinst style
+
 use base "consoletest";
 use testapi;
 use version_utils qw(is_microos is_sle_micro is_jeos is_leap_micro);

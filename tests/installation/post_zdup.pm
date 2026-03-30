@@ -7,7 +7,7 @@
 # Summary: Prepare system for reboot after zdup upgrade
 # Maintainer: QE LSG <qa-team@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use utils;
 use power_action_utils 'power_action';

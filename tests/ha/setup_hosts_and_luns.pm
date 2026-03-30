@@ -8,7 +8,7 @@
 #          tests with no supportserver
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use Socket qw(getaddrinfo getnameinfo NI_NUMERICHOST);

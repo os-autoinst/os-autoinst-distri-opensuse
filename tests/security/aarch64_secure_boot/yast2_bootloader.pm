@@ -7,8 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#81712
 
-use base 'opensusebasetest';
-use base 'consoletest';
+use Mojo::Base qw(opensusebasetest consoletest);
 use testapi;
 use utils;
 use power_action_utils 'power_action';

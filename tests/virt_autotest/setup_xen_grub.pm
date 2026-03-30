@@ -7,7 +7,7 @@
 # Maintainer: Alice <xlai@suse.com>
 
 use testapi;
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use ipmi_backend_utils;
 
 sub run {

@@ -8,7 +8,7 @@
 
 use testapi;
 use Utils::Architectures;
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use virt_utils 'is_installed_equal_upgrade_major_release';
 use Utils::Backends 'is_remote_backend';
 use ipmi_backend_utils;

@@ -20,6 +20,8 @@
 #
 # Maintainer: QE Core <qe-core@suse.com>
 
+## no os-autoinst style
+
 use base "opensusebasetest";
 
 use utils;

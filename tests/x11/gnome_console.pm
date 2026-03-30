@@ -11,7 +11,7 @@
 # - Close gnome-console
 # Maintainer: Santiago Zarate <santiago.zarate@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

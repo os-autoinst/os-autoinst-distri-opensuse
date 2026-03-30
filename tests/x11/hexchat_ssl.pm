@@ -8,7 +8,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#49139 , poo#49136 , poo#52796
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils 'zypper_call';
 

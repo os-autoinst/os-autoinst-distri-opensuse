@@ -9,7 +9,7 @@
 #    where the pattern is being installed on top.
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

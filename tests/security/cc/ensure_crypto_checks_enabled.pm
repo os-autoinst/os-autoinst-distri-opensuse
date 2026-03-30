@@ -8,7 +8,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#120894
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

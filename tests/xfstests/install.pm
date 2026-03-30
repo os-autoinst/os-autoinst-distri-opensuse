@@ -11,6 +11,9 @@
 # - If XFSTESTS_REPO is set, install xfstests, filesystems
 # - Otherwise, run "/usr/share/qa/qa_test_xfstests/install.sh"
 # Maintainer: Yong Sun <yosun@suse.com>
+
+## no os-autoinst style
+
 package install;
 
 use 5.018;

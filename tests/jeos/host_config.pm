@@ -10,7 +10,7 @@
 # Summary: Configure MinimalVM images
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal;
 use jeos qw(set_grub_gfxmode);

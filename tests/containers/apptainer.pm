@@ -7,7 +7,7 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(zypper_call);
 

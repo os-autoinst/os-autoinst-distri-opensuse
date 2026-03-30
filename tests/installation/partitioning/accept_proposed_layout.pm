@@ -6,7 +6,7 @@
 # Summary: Accept proposed partitioning layout
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use warnings FATAL => 'all';
 
 sub run {

@@ -12,6 +12,9 @@
 # - Generate XML file using parsed results from previous step
 # - Upload XML file for analysis by OpenQA::Parser
 # Maintainer: Yong Sun <yosun@suse.com>
+
+## no os-autoinst style
+
 package generate_report;
 
 use 5.018;

@@ -6,7 +6,7 @@
 # Summary: Test module tests ENSA2 Central Services with HANA DB - refresh sapinstance ASCS & ERS.
 #   After refresh no failover happens, fail count stays at 0, cluster is healthy.
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);

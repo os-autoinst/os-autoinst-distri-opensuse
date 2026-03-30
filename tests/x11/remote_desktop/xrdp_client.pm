@@ -8,7 +8,7 @@
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610392
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils ':VERSION';
 use lockapi;

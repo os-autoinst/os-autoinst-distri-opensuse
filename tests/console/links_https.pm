@@ -8,7 +8,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#52289, tc#1621467, poo#65375
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 use web_browser qw(setup_web_browser_env run_web_browser_text_based);

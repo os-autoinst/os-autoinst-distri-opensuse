@@ -7,7 +7,7 @@
 # subvolume attributes configured in profile.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 
 sub run {

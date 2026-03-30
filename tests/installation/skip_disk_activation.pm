@@ -7,7 +7,7 @@
 # Summary: Skip disk activation during installation
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

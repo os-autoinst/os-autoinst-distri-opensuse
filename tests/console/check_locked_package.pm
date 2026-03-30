@@ -6,7 +6,7 @@
 # Summary: check locked package after lock package test applied
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

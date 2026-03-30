@@ -6,7 +6,7 @@
 # Summary: Install SUSE or openSUSE WSL images from the MS Store directly
 # Maintainer: qa-c  <qa-c@suse.de>
 
-use Mojo::Base "windowsbasetest";
+use Mojo::Base 'windowsbasetest';
 use testapi;
 use version_utils;
 use Utils::Architectures 'is_aarch64';

@@ -6,7 +6,7 @@
 # Summary: Select Firmware-Assisted Dump and accept kdump options.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use cfg_files_utils qw(validate_cfg_file);
 use scheduler qw(get_test_suite_data);

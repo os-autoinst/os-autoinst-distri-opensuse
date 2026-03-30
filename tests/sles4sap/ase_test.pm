@@ -7,7 +7,7 @@
 # Requires: sles4sap/ase_install
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use Carp qw(croak);
 use testapi;
 use serial_terminal qw(select_serial_terminal);

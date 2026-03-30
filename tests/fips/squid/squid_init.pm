@@ -8,7 +8,7 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-use base "basetest";
+use Mojo::Base 'basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call systemctl);

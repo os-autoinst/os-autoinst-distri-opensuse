@@ -9,7 +9,7 @@
 # then add kde environment pattern before start installation.
 # Maintainer: Lemon Li <leli@suse.de>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

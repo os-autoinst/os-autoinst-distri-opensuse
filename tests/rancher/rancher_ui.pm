@@ -6,7 +6,7 @@
 # Summary: Web browser UI test for rancher container
 # Maintainer: George Gkioulis <ggkioulis@suse.com>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use x11utils 'ensure_unlocked_desktop';

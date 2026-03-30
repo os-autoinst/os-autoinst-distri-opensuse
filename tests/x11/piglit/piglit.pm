@@ -15,7 +15,7 @@
 
 
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use x11utils qw(ensure_unlocked_desktop close_gui_terminal);

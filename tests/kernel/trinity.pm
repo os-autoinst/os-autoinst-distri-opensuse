@@ -7,7 +7,7 @@
 # Summary: Trying to stress kernel with fuzz testing using trinity
 # Maintainer: Anton Smorodskyi<asmorodskyi@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

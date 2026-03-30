@@ -6,7 +6,7 @@
 # Summary: Install and configure yomi-formula
 # Maintainer: Alberto Planas <aplanas@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

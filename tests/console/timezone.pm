@@ -15,6 +15,8 @@
 # - Revert timezone changes
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
+## no os-autoinst style
+
 use base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';

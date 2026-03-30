@@ -12,7 +12,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: bsc#598574
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use package_utils 'install_package';
 

@@ -18,7 +18,7 @@
 # - Check registration status
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 
 use testapi;
 use registration;

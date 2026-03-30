@@ -12,7 +12,7 @@
 # - if not old kiwi & oem, just press ENTER and wait for login screen
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use utils;
 

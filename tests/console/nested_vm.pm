@@ -9,7 +9,7 @@
 # as the service status is still enabled and active after migration.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use services::libvirtd;

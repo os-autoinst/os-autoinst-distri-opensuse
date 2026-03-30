@@ -13,7 +13,7 @@
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use testapi;
-use base 'x11test';
+use Mojo::Base 'x11test';
 use repo_tools;
 use utils;
 use x11utils;

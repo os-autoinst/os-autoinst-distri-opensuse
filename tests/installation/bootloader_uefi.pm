@@ -29,6 +29,8 @@
 # "F10"
 # Maintainer: QE LSG <qa-team@suse.de>
 
+## no os-autoinst style
+
 package bootloader_uefi;
 
 use base "installbasetest";

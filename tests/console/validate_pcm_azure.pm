@@ -7,7 +7,7 @@
 #
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use version_utils 'is_sle';
 

@@ -9,6 +9,8 @@
 # allow to use complex conditions.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
+## no os-autoinst style
+
 package bootloader_start;
 use warnings FATAL => 'all';
 use base "installbasetest";

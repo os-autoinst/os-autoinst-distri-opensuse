@@ -17,7 +17,7 @@
 # - Save screenshot
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils "is_sle";

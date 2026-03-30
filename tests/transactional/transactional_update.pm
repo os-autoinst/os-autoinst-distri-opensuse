@@ -11,7 +11,7 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: poo#14444
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use version_utils qw(is_staging is_opensuse is_leap is_sle is_sle_micro is_leap_micro);
 use transactional;

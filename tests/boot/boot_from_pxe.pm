@@ -5,6 +5,8 @@
 # Summary: Boot systems from PXE
 # Maintainer: alice <xlai@suse.com>
 
+## no os-autoinst style
+
 package boot_from_pxe;
 
 use base 'opensusebasetest';

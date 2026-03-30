@@ -11,7 +11,7 @@
 # - Cleanup supportconfig data
 # Maintainer: Juraj Hura <jhura@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use upload_system_log 'upload_supportconfig_log';

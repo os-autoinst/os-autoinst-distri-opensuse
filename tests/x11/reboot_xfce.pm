@@ -7,7 +7,7 @@
 # Summary: Reboot from XFCE environment
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 

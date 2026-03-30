@@ -6,7 +6,7 @@
 # Summary: Check that suse build key is installed and the key exists
 # Maintainer: Ciprian Cret <ccret@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use version_utils "is_opensuse";
 

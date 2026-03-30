@@ -14,7 +14,7 @@
 #    start installation.
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 # poo#11438

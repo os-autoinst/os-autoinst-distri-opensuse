@@ -7,7 +7,7 @@
 # Summary: Import and display pictures into shotwell
 # Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 # Case 1503962 - Shotwell: Import image files

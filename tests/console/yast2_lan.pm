@@ -16,7 +16,7 @@
 # - Get system ip and hostname
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
 use utils;

@@ -8,7 +8,7 @@
 # - Check if iso size is smaller than max defined size
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
-use base "basetest";
+use Mojo::Base 'basetest';
 use testapi;
 
 sub run {

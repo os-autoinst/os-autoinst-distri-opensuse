@@ -5,7 +5,7 @@
 # and navigates to the next screen.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     my $partitioning_scheme = $testapi::distri->get_partitioning_scheme();

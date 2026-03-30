@@ -7,7 +7,7 @@
 # Maintainer: qe-virt@suse.de
 package cleanup_libvirtd_log;
 
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use testapi;
 
 sub run {

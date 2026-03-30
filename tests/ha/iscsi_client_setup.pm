@@ -7,7 +7,7 @@
 # Summary: Configure iSCSI target for HA tests
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use Utils::Backends qw(is_remote_backend);
 use utils qw(zypper_call systemctl ping_size_check file_content_replace script_retry);
 use testapi;

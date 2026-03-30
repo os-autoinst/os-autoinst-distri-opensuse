@@ -5,6 +5,8 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
+## no os-autoinst style
+
 use base 'opensusebasetest';
 use testapi;
 use utils;

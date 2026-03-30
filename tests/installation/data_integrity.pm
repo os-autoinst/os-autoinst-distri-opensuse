@@ -6,7 +6,7 @@
 # Summary: visualize data integrity of the images provided by comparing checksums.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use data_integrity_utils 'verify_checksum';
 use Utils::Backends;

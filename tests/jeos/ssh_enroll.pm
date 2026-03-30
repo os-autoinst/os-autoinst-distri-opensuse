@@ -6,7 +6,7 @@
 # Summary: Run a ssh client to test firstboot wizard ssh enrollment feature
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use lockapi qw(mutex_wait);
 use mmapi;

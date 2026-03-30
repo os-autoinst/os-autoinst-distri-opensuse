@@ -7,7 +7,7 @@
 # Summary: Disconnected SMT internal
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use lockapi;
 use mmapi;

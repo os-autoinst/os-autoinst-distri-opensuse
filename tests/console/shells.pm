@@ -18,7 +18,7 @@
 # - Check if directories are listed correctly with ls -d /*
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Architectures;
 use package_utils 'install_package';

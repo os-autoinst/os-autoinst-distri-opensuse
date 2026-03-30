@@ -17,7 +17,7 @@
 use testapi;
 use utils;
 use lockapi qw(mutex_wait);
-use base "thunderbird_common";
+use Mojo::Base 'thunderbird_common';
 use x11utils qw(ensure_unlocked_desktop turn_off_gnome_screensaver turn_off_gnome_suspend);
 
 sub run {

@@ -4,7 +4,7 @@
 # Summary: collect coverage data, create reports and exports them
 # Maintainer: Andrea Manzini <andrea.manzini@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

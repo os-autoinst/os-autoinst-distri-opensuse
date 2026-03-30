@@ -8,7 +8,7 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base "publiccloud::basetest";
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

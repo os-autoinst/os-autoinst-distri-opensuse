@@ -11,7 +11,7 @@
 # - Compile and launch an app - tests qmake, QtNetwork features etc
 # Maintainer: Timo Jyrinki <tjyrinki@suse.de>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

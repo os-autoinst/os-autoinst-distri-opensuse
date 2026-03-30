@@ -18,7 +18,7 @@
 
 ## no os-autoinst compile-check
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use Utils::Backends 'is_remote_backend';

@@ -6,7 +6,7 @@
 # Summary: Run Deepsea testsuites https://github.com/SUSE/DeepSea/tree/master/qa
 # Maintainer: Jozef Pupava <jpupava@suse.cz>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use mm_network;
 use lockapi;

@@ -15,7 +15,7 @@
 # See lib/cfg_files_utils.pm
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 
 use cfg_files_utils 'validate_cfg_file';
 use scheduler;

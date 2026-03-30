@@ -16,7 +16,7 @@
 #    additional to the on-pattern tag
 # Maintainer: slindomansilla <slindomansilla@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use utils 'type_string_slow';
 

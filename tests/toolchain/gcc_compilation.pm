@@ -6,7 +6,7 @@
 # Summary: C and C++ source compilation to check that gcc from toolchain module
 # Maintainer: qe-core@suse.de
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils 'clear_console';
 use Utils::Logging 'export_logs';

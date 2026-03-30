@@ -7,7 +7,7 @@
 # Summary: Deploy a cluster with YaST
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'haclusterbasetest';
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use utils qw(zypper_call systemctl exec_and_insert_password);

@@ -8,7 +8,7 @@
 # Verify the Apache server is working with php-fmp.service
 # Maintainer: QE Core <qe-core@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

@@ -10,7 +10,7 @@
 #   to the RAM amount.
 # Maintainer: Julien Adamek <jadamek@suse.com>
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

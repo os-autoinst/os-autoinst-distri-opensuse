@@ -4,7 +4,7 @@
 # Summary: Check the system is unregistered and register it via suseconnect tool.
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

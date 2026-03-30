@@ -8,7 +8,7 @@
 # Auto import gpg keys, useful when we re-launch the test suite after the gpg key for maintenance repositories have expired (eg next day after initial run).
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 

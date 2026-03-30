@@ -17,7 +17,7 @@
 # - Close history and firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

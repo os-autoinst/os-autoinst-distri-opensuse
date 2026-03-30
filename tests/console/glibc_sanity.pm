@@ -14,7 +14,7 @@
 # - Check "/lib64/libc.so.6" for "x86_64-suse-linux" (or whatever arch is set)
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Architectures;
 use utils 'zypper_call';

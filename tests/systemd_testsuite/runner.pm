@@ -13,7 +13,7 @@
 #
 # Maintainer: qe-core@suse.com, Martin Loviska <mloviska@suse.com>
 
-use Mojo::Base qw(systemd_testsuite_test);
+use Mojo::Base 'systemd_testsuite_test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging 'save_and_upload_log';

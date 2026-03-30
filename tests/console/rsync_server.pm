@@ -12,7 +12,7 @@
 #  - client tries to download files
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
 use version_utils;

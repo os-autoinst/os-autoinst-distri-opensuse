@@ -6,7 +6,7 @@
 # Summary: LTSS is not supported to do migration, need to deregiter it before migration
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use registration qw(remove_suseconnect_product);
 use testapi qw(get_var set_var);
 

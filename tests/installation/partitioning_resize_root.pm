@@ -8,7 +8,7 @@
 # Maintainer: qa-sle-yast <qa-sle-yast@suse.com>
 # Tags: bsc#989976 bsc#1000165
 
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use scheduler 'get_test_suite_data';
 

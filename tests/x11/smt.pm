@@ -9,7 +9,7 @@
 #    smt-wizard and validation with smt-repos smt-sync return value
 # Maintainer: Jozef Pupava <jpupava@suse.com>, Wei Gao <wegao@suse.com>
 
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use repo_tools;
 use utils 'zypper_call';

@@ -6,7 +6,7 @@
 # Summary: Ensure the service active & disabled after set on tree-based interface for yast2 dns-server
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi qw(save_screenshot select_console);
 use utils;
 

@@ -4,6 +4,8 @@
 # Summary: zypper patch for maintenance
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
+## no os-autoinst style
+
 use base "consoletest";
 use testapi;
 use utils;

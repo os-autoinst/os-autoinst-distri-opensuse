@@ -7,7 +7,7 @@
 #
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
 use utils;

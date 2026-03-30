@@ -13,9 +13,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#104181 tc#1769990
 
-use base 'opensusebasetest';
+use Mojo::Base qw(opensusebasetest consoletest);
 use testapi;
-use base 'consoletest';
 use utils qw(zypper_call package_upgrade_check);
 
 sub run {

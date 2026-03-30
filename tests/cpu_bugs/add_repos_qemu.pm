@@ -7,7 +7,7 @@
 # Summary: Add repo into QEMU
 # Maintainer: James Wang <jnwang@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';

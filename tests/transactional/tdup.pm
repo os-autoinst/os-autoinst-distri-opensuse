@@ -7,7 +7,7 @@
 # Summary: To a transactional-update dup and reboot the node
 # Maintainer: Richard Brown <rbrown@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils;

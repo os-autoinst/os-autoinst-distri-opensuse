@@ -9,7 +9,7 @@
 # - run save_y2logs and upload the generated tar.bz2
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils qw(zypper_call);
 

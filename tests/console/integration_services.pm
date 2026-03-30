@@ -6,7 +6,7 @@
 # Summary: Run integration_services_check
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'integration_services_check';
 

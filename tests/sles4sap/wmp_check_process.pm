@@ -6,7 +6,7 @@
 # Summary: Run Workload Memory Protection basic test
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
-use base "sles4sap";
+use Mojo::Base 'sles4sap';
 use testapi;
 use File::Basename qw(basename);
 use utils qw(zypper_call file_content_replace script_output_retry);

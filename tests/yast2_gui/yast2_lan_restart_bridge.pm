@@ -22,7 +22,7 @@
 # Delete the Bridged device.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_module_guitest';
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use y2lan_restart_common qw(initialize_y2lan open_network_settings check_network_status wait_for_xterm_to_be_visible clear_journal_log close_xterm);
 use YuiRestClient;

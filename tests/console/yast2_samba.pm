@@ -7,7 +7,7 @@
 # Summary: YaST2 Samba functionality
 # Maintainer: Zaoliang Luo <zluo@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
 use utils;

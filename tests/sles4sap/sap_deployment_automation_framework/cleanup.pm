@@ -11,7 +11,7 @@
 # Post run hooks are generally disabled during normal module run so the infrastructure persists between test modules.
 # To skip cleanup use OpenQA parameter 'SDAF_RETAIN_DEPLOYMENT'
 
-use parent 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use sles4sap::sap_deployment_automation_framework::deployment qw(serial_console_diag_banner);

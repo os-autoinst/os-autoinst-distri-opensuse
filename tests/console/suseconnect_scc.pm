@@ -7,7 +7,7 @@
 # Summary: Register system image against SCC
 # Maintainer: qac <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use registration qw(verify_scc investigate_log_empty_license runtime_registration);
 

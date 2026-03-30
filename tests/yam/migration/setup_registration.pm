@@ -6,7 +6,7 @@
 # Summary: Setup registration before migration.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use registration 'register_addons_cmd';
 

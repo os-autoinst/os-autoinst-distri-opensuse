@@ -6,7 +6,7 @@
 # Summary: add addon to SLES via SCC
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base qw(y2_installbase y2_module_guitest);
+use Mojo::Base qw(y2_installbase y2_module_guitest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration;

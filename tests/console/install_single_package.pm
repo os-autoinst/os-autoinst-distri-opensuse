@@ -7,7 +7,7 @@
 # has openqa-ci-tools package as dependency and obey the provided contract
 # Maintainer: soulofdestiny <mgriessmeier@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

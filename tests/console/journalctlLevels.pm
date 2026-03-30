@@ -9,7 +9,7 @@
 # in the journal
 # Maintainer: Ivan Lausuch <ilausuch@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

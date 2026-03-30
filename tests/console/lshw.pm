@@ -7,7 +7,7 @@
 # Summary: Test lshw installation and verify that the output seems properly formatted
 # Maintainer: Timo Jyrinki <tjyrinki@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

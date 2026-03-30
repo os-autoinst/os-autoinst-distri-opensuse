@@ -8,7 +8,7 @@
 #    Works only with CDMODEL=ide-cd and QEMUCPU=host or core2duo (maybe other but not qemu64)
 # Maintainer: qa-c <qa-c@suse.de>
 
-use base "windowsbasetest";
+use Mojo::Base 'windowsbasetest';
 use testapi;
 
 sub run {

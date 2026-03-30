@@ -13,7 +13,7 @@
 # - Kill <default-gui-terminal>
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use x11utils 'default_gui_terminal';
 

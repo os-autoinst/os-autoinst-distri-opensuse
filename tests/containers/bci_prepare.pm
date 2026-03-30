@@ -19,7 +19,7 @@
 #   repository defined by BCI_TESTS_REPO.
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use XML::LibXML;
 use utils qw(zypper_call script_retry systemctl);
 use version_utils qw(get_os_release is_sle);

@@ -7,7 +7,7 @@
 #
 # Maintainer: Michael Moese <mmoese@suse.de>,
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 

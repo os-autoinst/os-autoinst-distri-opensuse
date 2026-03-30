@@ -10,7 +10,7 @@
 # Maintainer: Dominik Heidler <dheidler@suse.de>, Rodion Iafarov <riafarov@suse.com>
 # Tags: poo#9694
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use x11utils qw(handle_login handle_logout handle_welcome_screen default_gui_terminal);

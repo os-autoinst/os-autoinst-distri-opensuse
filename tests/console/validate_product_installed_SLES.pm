@@ -6,7 +6,7 @@
 # Summary: Validate that the product installed is SLES via /etc/os-release
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use Config::Tiny;
 use Test::Assert ':all';

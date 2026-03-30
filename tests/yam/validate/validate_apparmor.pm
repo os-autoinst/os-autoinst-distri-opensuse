@@ -6,7 +6,7 @@
 # Summary: Validate apparmor status after agama installation.
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi qw(select_console);
 use services::apparmor;
 

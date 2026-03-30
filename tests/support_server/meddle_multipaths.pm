@@ -14,7 +14,7 @@
 #
 # Maintainer: Klaus G. Wagner <kgw@suse.com>
 
-use base 'basetest';
+use Mojo::Base 'basetest';
 use lockapi;
 use testapi;    # sub autoinst_url()
 use mmapi;

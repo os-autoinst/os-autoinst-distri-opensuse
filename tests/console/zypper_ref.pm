@@ -11,7 +11,7 @@
 # - Import gpg keys and refresh repositories
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call zypper_enable_install_dvd);

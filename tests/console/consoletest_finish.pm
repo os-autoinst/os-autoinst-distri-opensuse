@@ -15,7 +15,7 @@
 # - if not in textmode, then ensure that desktop is unlocked
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Utils::Architectures;
 use utils;

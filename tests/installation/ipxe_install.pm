@@ -6,6 +6,8 @@
 # Summary: Verify installation starts and is in progress
 # Maintainer: Michael Moese <mmoese@suse.de>
 
+## no os-autoinst style
+
 package ipxe_install;
 use base 'y2_installbase';
 

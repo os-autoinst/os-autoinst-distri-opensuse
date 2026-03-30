@@ -7,7 +7,7 @@
 # Used when we migrate from LTSS to another LTSS version
 # Maintainer: Julien Adamek <jadamek@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration qw(add_suseconnect_product);

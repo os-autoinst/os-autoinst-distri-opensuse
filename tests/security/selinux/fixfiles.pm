@@ -4,7 +4,7 @@
 # Summary: Test "fixfiles" can fix file SELinux security contexts
 # Maintainer: QE Security <none@suse.de>
 
-use base "selinuxtest";
+use Mojo::Base 'selinuxtest';
 use power_action_utils "power_action";
 use testapi;
 use serial_terminal 'select_serial_terminal';
