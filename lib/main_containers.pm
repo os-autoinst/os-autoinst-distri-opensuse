@@ -46,6 +46,11 @@ sub is_suse_host {
     return $host_distri =~ /sle|opensuse/;
 }
 
+sub is_centos_host {
+    # returns if booted image is CentOS
+    return get_var("HDD_1") =~ /centos/;
+}
+
 sub is_ubuntu_host {
     # returns if booted image is Ubuntu
     return get_var("HDD_1") =~ /ubuntu/;
@@ -421,5 +426,5 @@ sub load_container_tests {
         }
     }
     loadtest 'containers/bci_logs' if (get_var('BCI_TESTS'));
-    loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS') || is_ubuntu_host || is_expanded_support_host);
+    loadtest 'console/coredump_collect' unless (is_public_cloud || is_jeos || is_sle_micro || is_microos || is_leap_micro || get_var('BCI_TESTS') || is_centos_host || is_ubuntu_host || is_expanded_support_host);
 }
