@@ -2,21 +2,38 @@
 XFSTESTS_DIR='/opt/xfstests'
 PROG="$XFSTESTS_DIR/check"
 SCRIPT_DIR=$(realpath $(dirname "$0"))
-OPTIONS=""
-if [ "$#" -eq 2 ]; then
-    OPTIONS=$2
-elif [ "$#" -eq 3 ]; then
-    INJECT_LINE=$2
-    INJECT_CODE=$3
+OPTIONS=$2
+DEEP_CLEAN=''
+FSTYPE=''
+
+# empty OPTIONS if it's not nfs or overlay, and store info to FSTYPE
+case "$OPTIONS" in
+    "-nfs")
+        FSTYPE="nfs"
+        ;;
+    "-overlay")
+        FSTYPE="overlay"
+        ;;
+    *)
+        FSTYPE=$OPTIONS
+        OPTIONS=""
+        ;;
+esac
+
+if [ "$#" -eq 3 ]; then
+    DEEP_CLEAN=$3
 elif [ "$#" -eq 4 ]; then
-    OPTIONS=$2
     INJECT_LINE=$3
     INJECT_CODE=$4
+elif [ "$#" -eq 5 ]; then
+    DEEP_CLEAN=$3
+    INJECT_LINE=$4
+    INJECT_CODE=$5
 fi
 
 function usage()
 {
-    echo "Usage: $0 TEST [OPTIONS for ./check] [INJECT_LINE(for debug)] [INJECT_CODE(for debug)]"
+    echo "Usage: $0 TEST [OPTIONS for ./check] [DEEP_CLEAN in wrapper] [INJECT_LINE(for debug)] [INJECT_CODE(for debug)]"
 }
 
 function unset_vars()
@@ -68,6 +85,69 @@ function inject_code()
     fi
 }
 
+# Check XFSTESTS_DEEP_CLEAN to see if need clean up
+# e.g. set osd XFSTESTS_DEEP_CLEAN='xfs/259,xfs/273-275'
+function is_deep_clean_needed() {
+    local current_test=$1
+    [ -z "$DEEP_CLEAN" ] && return 1
+
+    IFS=',' read -ra ADDR <<< "$DEEP_CLEAN"
+    for entry in "${ADDR[@]}"; do
+        if [[ $entry == *-* ]]; then
+            local prefix=$(echo $entry | cut -d'/' -f1)
+            local range=$(echo $entry | cut -d'/' -f2)
+            local start=$(echo $range | cut -d'-' -f1)
+            local end=$(echo $range | cut -d'-' -f2)
+
+            local current_prefix=$(echo $current_test | cut -d'/' -f1)
+            local current_num=$(echo $current_test | cut -d'/' -f2)
+
+            if [[ "$prefix" == "$current_prefix" ]] && \
+               [[ "$current_num" -ge "$start" ]] && \
+               [[ "$current_num" -le "$end" ]]; then
+                return 0
+            fi
+        elif [[ "$current_test" == "$entry" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Cleanup for dirty log
+function smart_clean() {
+    local test_name=$1
+    echo "[Wrapper] Starting cleanup for $test_name..."
+    sync
+    [ -b "$TEST_DEV" ] && blockdev --flushbufs "$TEST_DEV" 2>/dev/null
+    if is_deep_clean_needed "$test_name"; then
+        echo "[Wrapper] Deep clean for $test_name"
+        # Clean TEST_DEV
+        if mountpoint -q "$TEST_DIR"; then
+            umount -f "$TEST_DIR" 2>/dev/null
+        fi
+        if [[ "$FSTYPE" == "xfs" ]] && [ -b "$TEST_DEV" ]; then
+            xfs_repair -L "$TEST_DEV" &>/dev/null
+            mount "$TEST_DEV" "$TEST_DIR"
+        else
+            mount "$TEST_DEV" "$TEST_DIR"
+        fi
+        # Clean SCRATCH_DEV
+        for i in {1..5}; do
+            local dev="/dev/loop$i"
+            if [ -b "$dev" ]; then
+                mountpoint -q "$dev" || mount | grep -q "$dev" && umount -l "$dev" 2>/dev/null
+                blockdev --flushbufs "$dev" 2>/dev/null
+            fi
+        done
+        sleep 2
+    else
+        if [[ "$FSTYPE" != "nfs" && "$FSTYPE" != "overlay" ]]; then
+            [ -b "$SCRATCH_DEV" ] && umount -l "$SCRATCH_DEV" 2>/dev/null
+        fi
+    fi
+}
+
 # Check for cmdline arguments
 if [ "$#" -lt 1 ]; then
     usage
@@ -95,9 +175,11 @@ if [[ -f "$HOME/.xfstests" ]]; then
     source "$HOME/.xfstests"
 fi
 
+smart_clean "$1"
+
 pushd "$XFSTESTS_DIR" &> /dev/null
 
-if [ "$#" -gt 2 ]; then
+if [ "$#" -gt 3 ]; then
     inject_code "$1" $INJECT_LINE "$INJECT_CODE"
 fi
 
