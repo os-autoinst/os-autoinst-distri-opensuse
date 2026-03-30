@@ -484,6 +484,7 @@ sub collect_coredumps {
         script_run "zypper -n refresh", timeout => 300;
         script_run "zypper -n install -y gdb", timeout => 300;
         script_run "echo 'set debuginfod enabled on' > ~/.gdbinit";
+        script_run "echo 'set pagination off' >> ~/.gdbinit";
     }
 
     script_run('coredumpctl list > coredumpctl.txt');
@@ -508,18 +509,7 @@ sub collect_coredumps {
     }
 }
 
-sub collect_calltraces {
-    # Collect all traces
-    my $traces = script_output(q(dmesg | awk '/(Call Trace:|-+\[ cut here \]-+)/ { trace = 1 } trace { print } /(<\/TASK>|-+\[ end trace)/ { trace = 0; print "" }'));
-
-    foreach my $trace (split /\n\n+/, $traces) {
-        record_info("TRACE", $trace);
-    }
-}
-
 sub bats_post_hook {
-    dump_tasktrace if get_var("DEBUG");
-
     select_serial_terminal;
 
     my $log_dir = "/tmp/logs/";
@@ -528,7 +518,8 @@ sub bats_post_hook {
 
     script_run("rm -rf $test_dir", timeout => 0) unless ($test_dir eq "/var/tmp/");
 
-    collect_calltraces;
+    # Note: We don't use grep -q and redirect to /dev/null here to avoid SIGPIPE
+    record_info "TRACES", "check serial0.txt" if !script_run 'dmesg | grep -F -e "Call Trace:" -e "[ cut here ]" >/dev/null';
     collect_coredumps;
 
     script_run('df -h > df-h.txt');
