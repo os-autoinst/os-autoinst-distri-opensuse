@@ -484,6 +484,7 @@ sub collect_coredumps {
         script_run "zypper -n refresh", timeout => 300;
         script_run "zypper -n install -y gdb", timeout => 300;
         script_run "echo 'set debuginfod enabled on' > ~/.gdbinit";
+        script_run "echo 'set pagination off' >> ~/.gdbinit";
     }
 
     script_run('coredumpctl list > coredumpctl.txt');
