@@ -82,13 +82,13 @@ sub run {
     assert_script_run("cd /home/$testapi::username");
     my $test_cmd = "podman run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
     $test_cmd .= "$image -b $browser -H $node1 -S $node2 -s $testapi::password -r /$results --virtual-ip $virtual_ip";
-    enter_cmd "$test_cmd 2>&1 | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode";
+    enter_cmd "$test_cmd 2>&1 | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode; echo HAWK_TEST_DONE; sleep 30;";
     assert_screen "hawk-$browser", 60;
 
     my $loop_count = 360;    # 30 minutes (360*5)
     while (1) {
         $loop_count--;
-        last if ($loop_count < 0);
+        last if ($loop_count < 0 or check_screen('hawk-test-done', 5));
         if (check_screen('generic-desktop', 0, no_wait => 1)) {
             # We may reach generic-desktop in two scenarios: (1) the python script
             # finishes, or (2) it has finished an individual test and closed the
