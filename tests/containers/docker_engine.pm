@@ -23,9 +23,14 @@ sub setup {
     my $self = shift;
     my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.26 openssl rootlesskit selinux-tools skopeo);
     push @pkgs, qw(nftables-devel) unless is_sle("<15-SP5");
+    # To test cross-platform builds
+    push @pkgs, "qemu-linux-user" unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
 
     configure_docker(selinux => 1, tls => 0);
+
+    # https://docs.docker.com/build/building/multi-platform/
+    run_command "docker run --privileged --rm tonistiigi/binfmt --install all" unless is_sle("<16");
 
     # Tests use "ctr"
     run_command "cp /usr/sbin/containerd-ctr /usr/local/bin/ctr";
@@ -125,12 +130,12 @@ sub run {
             "github.com/docker/docker/integration/service::TestServicePlugin",
         );
     }
+    # Cross-platform builds only work on 15-SP6+
     push @xfails, (
-        # These tests use amd64 images:
         "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
         # Same as above on Docker v29:
         "github.com/moby/moby/v2/integration/image::TestAPIImageHistoryCrossPlatform",
-    ) unless (is_x86_64);
+    ) if (is_sle("<16"));
 
     my $tags = "apparmor selinux seccomp pkcs11";
 
