@@ -6,9 +6,7 @@
 # Summary:  Executes setup of HanaSR scenario using SDAF ansible playbooks according to:
 #           https://learn.microsoft.com/en-us/azure/sap/automation/tutorial#sap-application-installation
 
-## no os-autoinst style
-
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);
@@ -76,7 +74,7 @@ sub run {
 
     # Copy SSH config file from worker VM to deployer VM
     my $ssh_config_file = '~/.ssh/config';
-    my $scp_cmd = join(' ', 'scp', "$ssh_config_file", "$jump_host_user\@$jump_host_ip:$ssh_config_file");
+    $scp_cmd = join(' ', 'scp', "$ssh_config_file", "$jump_host_user\@$jump_host_ip:$ssh_config_file");
     assert_script_run($scp_cmd);
     connect_target_to_serial();
     assert_script_run("sed -i 's/ProxyJump/#ProxyJump/g' $ssh_config_file");
