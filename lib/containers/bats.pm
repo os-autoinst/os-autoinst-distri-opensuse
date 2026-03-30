@@ -510,8 +510,6 @@ sub collect_coredumps {
 }
 
 sub bats_post_hook {
-    dump_tasktrace if get_var("DEBUG");
-
     select_serial_terminal;
 
     my $log_dir = "/tmp/logs/";
