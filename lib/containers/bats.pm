@@ -401,8 +401,8 @@ sub setup_pkgs {
 
     # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1259147
     if (is_tumbleweed && is_x86_64 && !get_var("OCI_RUNTIME") && (check_var("BATS_PACKAGE", "buildah") || check_var("BATS_PACKAGE", "podman"))) {
-        run_command "zypper addrepo -f https://download.opensuse.org/history/20260226/tumbleweed/repo/oss/ goodold";
-        run_command "zypper -n install --oldpackage --from goodold libseccomp2";
+        assert_script_run "curl -o /tmp/libseccomp2.rpm " . data_url("containers/libseccomp2-2.6.0-2.2.x86_64.rpm");
+        assert_script_run "rpm -ivh --force /tmp/libseccomp2.rpm";
     }
 
     configure_oci_runtime $oci_runtime;
