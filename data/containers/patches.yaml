@@ -201,7 +201,7 @@ runc:
   5079:
     merged: "1.5.0"
   5124:
-    merged: "1.5.0"
+    merged: "1.4.1"
 
 skopeo:
   # https://github.com/containers/skopeo/pull/2834 - integration: Force amd64 on TestProxyMetadata
