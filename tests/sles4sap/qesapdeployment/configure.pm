@@ -198,7 +198,7 @@ sub run {
     }
 
     my %variables;
-    $variables{TERRAFORM_RUNNER} = get_var('QESAPDEPLOY_TERRAFORM_RUNNER', 'terraform');
+    $variables{TERRAFORM_RUNNER} = get_var('QESAPDEPLOY_TERRAFORM_RUNNER', 'tofu');
     script_run(join(' ',
             'which', $variables{TERRAFORM_RUNNER}, '&&',
             $variables{TERRAFORM_RUNNER}, '--version', '||',
