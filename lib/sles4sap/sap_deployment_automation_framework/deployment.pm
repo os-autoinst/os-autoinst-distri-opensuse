@@ -13,6 +13,7 @@ use warnings;
 use version;
 use testapi;
 use Mojo::Base -signatures;
+use List::Util qw(first);
 use Exporter qw(import);
 use Carp qw(croak);
 use Utils::Git qw(git_clone);
@@ -203,22 +204,29 @@ sub check_credentials {
         ARM_TENANT_ID => $data->{tenant_id},
         ARM_SUBSCRIPTION_ID => $data->{subscription_id}
     );
-
-    my $env = get_required_var('SDAF_ENV_CODE');
-    my %query = (
-        ARM_CLIENT_ID => "${env}-client-id",
-        ARM_CLIENT_SECRET => "${env}-client-secret",
-        ARM_TENANT_ID => "${env}-tenant-id",
-        ARM_SUBSCRIPTION_ID => "${env}-subscription-id"
+    my %queries = (
+        ARM_CLIENT_ID => 'client-id',
+        ARM_CLIENT_SECRET => 'client-secret',
+        ARM_TENANT_ID => 'tenant-id',
+        ARM_SUBSCRIPTION_ID => 'subscription-id'
     );
 
+    my $env = get_required_var('SDAF_ENV_CODE');
+    my $key_vault = get_required_var('SDAF_DEPLOYER_KEY_VAULT');
+    my $vnet_code = get_required_var('SDAF_DEPLOYER_VNET_CODE');
+    my $region_code = convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION'));
+
+    my @secret_ids = @{az_keyvault_secret_list(vault_name => $key_vault, query => '[].id')};
     for my $key (keys %credentials) {
-        my @secret_ids = @{az_keyvault_secret_list(
-                vault_name => get_required_var('SDAF_DEPLOYER_KEY_VAULT'), query => "\"[?ends_with(name, \'$query{$key}\')].id\"")};
-        croak "Multiple or no secrets found: \n" . join("\n", @secret_ids) unless @secret_ids == 1;
+        # Check for full name first and fallback to older naming convention
+        my $long_name = "$env-$region_code-$vnet_code-$queries{$key}";
+        my $short_name = $queries{$key};
+        my $secret_id = (first { /$long_name/ } @secret_ids) //
+          (first { /$short_name/ } @secret_ids) ||
+          die "No secrets found: \n" . join("\n", @secret_ids);
 
         az_keyvault_secret_show(
-            id => $secret_ids[0],
+            id => $secret_id,
             query => 'value',
             output => 'tsv',
             save_to_file => "$tmpfile");
