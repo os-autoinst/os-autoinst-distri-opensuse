@@ -55,7 +55,6 @@ my $SUBTEST_MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
 my $FSTYPE = get_required_var('XFSTESTS');
 my $TEST_SUITE = get_var('TEST');
 my $ENABLE_KDUMP = check_var('NO_KDUMP', '1') ? 0 : 1;
-#my $VIRTIO_CONSOLE = get_var('VIRTIO_CONSOLE');
 
 # variables set by previous steps
 my $TEST_DEV = get_var('XFSTESTS_TEST_DEV');
@@ -82,7 +81,6 @@ my $HB_DONE = '<d>';
 # None heartbeat mode variables
 # - XFSTESTS_TIMEOUT: Set the sub-test timeout threshold
 my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
-
 
 sub run {
     my ($self, $args) = @_;

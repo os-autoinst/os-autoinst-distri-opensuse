@@ -53,10 +53,11 @@ my $LOOP_DEVICE = get_var('XFSTESTS_LOOP_DEVICE');
 # Debug variables
 # - INJECT_INFO: inject a line or more line into xfstests subtests for debugging.
 # - RAW_DUMP: set it a non-zero value to enable raw dump by dd the super block.
-# - XFSTESTS_DEBUG: enable collect more info by set 1 to files under /proc/sys/kernel/, more than 1 info split by space
-#     e.g. "hardlockup_panic hung_task_panic panic_on_io_nmi panic_on_oops panic_on_rcu_stall..."
+# - XFSTESTS_CLEAN_BEFORE_TEST: Clean before run test in wrapper
+#     e.g. ""XFSTESTS_CLEAN_BEFORE_TEST = 'xfs/250-252,xfs/259'
 my $INJECT_INFO = get_var('INJECT_INFO', '');
 my $RAW_DUMP = get_var('RAW_DUMP', 0);
+my $XFSTESTS_DEEP_CLEAN = get_var('XFSTESTS_CLEAN_BEFORE_TEST');
 
 # Heartbeat mode variables
 # - XFSTESTS_HEARTBEAT_INTERVAL: Set how long to send/receive a heartbeat
@@ -121,7 +122,7 @@ sub run {
     $whitelist_env->{ltp_version} = script_output('rpm -q xfstests');
     enter_cmd("echo $test > /dev/$serialdev");
     if ($enable_heartbeat == 0) {
-        $self->{result_args} = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
+        $self->{result_args} = test_run_without_heartbeat($self, $test, $TIMEOUT_NO_HEARTBEAT, $FSTYPE, $RAW_DUMP, $SCRATCH_DEV, $SCRATCH_DEV_POOL, $XFSTESTS_DEEP_CLEAN, $INJECT_INFO, $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $args->{my_instance});
         $status = $self->{result_args}->{status};
         $time = $self->{result_args}->{time};
         $status_log_content = $self->{result_args}->{output};
@@ -130,7 +131,7 @@ sub run {
     else {
         my $result_args = {};
         heartbeat_start;
-        test_run($test, $FSTYPE, $INJECT_INFO);
+        test_run($test, $FSTYPE, $XFSTESTS_DEEP_CLEAN, $INJECT_INFO);
         ($type, $status, $time) = test_wait($SUBTEST_MAX_TIME, $HB_TIMEOUT, $VIRTIO_CONSOLE);
         $result_args->{type} = $type;
         $result_args->{status} = $status;
