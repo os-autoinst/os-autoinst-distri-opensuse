@@ -22,15 +22,17 @@ has wpa_supplicant_version => undef;
 has need_key_mgmt => undef;
 has eap_user => 'tester';
 has eap_password => 'test1234';
-has ca_cert => '/etc/raddb/certs/ca.pem';
-has client_cert => '/etc/raddb/certs/client.crt';
-has client_key => '/etc/raddb/certs/client.key';
-has client_key_no_pass => '/etc/raddb/certs/client_no_pass.key';
+has ca_cert => '/etc/wpa_supplicant/certs/ca.pem';
+has client_cert => '/etc/wpa_supplicant/certs/client.crt';
+has client_key => '/etc/wpa_supplicant/certs/client.key';
+has client_key_no_pass => '/etc/wpa_supplicant/certs/client_no_pass.key';
 has client_key_password => 'whatever';
 
 has netns_name => 'wifi_ref';
 has ref_ifc => 'wlan0';
 has ref_phy => 'phy0';
+has ref_ifc2 => 'wlan2';
+has ref_phy2 => 'phy2';
 sub ref_ip {
     return shift->get_ip(is_wicked_ref => 1, @_);
 }
@@ -180,7 +182,7 @@ sub prepare_packages {
         set_var('QA_HEAD_REPO', 'http://download.suse.de/ibs/QA:/Head/' . generate_version('-')) unless (get_var('QA_HEAD_REPO'));
         add_qa_head_repo();
     }
-    zypper_call('-q in iw hostapd wpa_supplicant dnsmasq freeradius-server freeradius-server-utils vim');
+    zypper_call('-q in iw hostapd wpa_supplicant dnsmasq freeradius-server freeradius-server-utils vim wireless-regdb');
     # make sure, we do not run these deamons, as we need to run them in network namespace
     assert_script_run('systemctl disable --now dnsmasq');
     assert_script_run('systemctl disable --now radiusd');
@@ -188,20 +190,27 @@ sub prepare_packages {
 
 sub prepare_phys {
     my $self = shift;
-    assert_script_run('modprobe mac80211_hwsim radios=2');
+    my $bg_process_pid = -1;
+    assert_script_run('modprobe mac80211_hwsim radios=3');
     assert_script_run('ip netns add ' . $self->netns_name);
     assert_script_run('ip netns list');
     assert_script_run('iw dev');
 
-    my $cmd_set_netns = 'iw phy ' . $self->ref_phy . ' set netns name ' . $self->netns_name;
     if (is_sle('<15')) {
         my $output = script_output(sprintf(q(ip netns exec %s perl -MPOSIX -e '$0="netns_%s_dummy_process"; pause' & echo "BACKGROUND_PROCESS:-$!-"), $self->netns_name, $self->netns_name));
         die("Failed to get netns dummy pid") unless ($output =~ m/BACKGROUND_PROCESS:-(\d+)-/);
-        $cmd_set_netns = 'iw phy ' . $self->ref_phy . ' set netns ' . $1;
+        $bg_process_pid = $1;
     }
     # Delay namespace setup of wlan device to avoid wickedd-nanny error message
     sleep 3;
-    assert_script_run($cmd_set_netns);
+
+    for my $phy ($self->ref_phy, $self->ref_phy2) {
+        my $cmd_set_netns = 'iw phy ' . $phy . ' set netns name ' . $self->netns_name;
+        if (is_sle('<15')) {
+            $cmd_set_netns = 'iw phy ' . $phy . ' set netns ' . $bg_process_pid;
+        }
+        assert_script_run($cmd_set_netns);
+    }
 
     assert_script_run('iw dev');
     $self->netns_exec('iw dev');
@@ -215,6 +224,7 @@ sub prepare_freeradius_server {
     assert_script_run(sprintf(q(echo '%s ClearText-Password := "%s"' >> /etc/raddb/users),
             $self->eap_user, $self->eap_password));
     assert_script_run('time (cd /etc/raddb/certs && ./bootstrap)', timeout => 600);
+    assert_script_run('cp -r /etc/raddb/certs /etc/wpa_supplicant/');
     assert_script_run(sprintf(q(openssl rsa -in '%s' -out '%s' -passin pass:'%s'),
             $self->client_key, $self->client_key_no_pass, $self->client_key_password));
 }
@@ -375,12 +385,16 @@ sub assert_connection {
     my ($self, %args) = @_;
     $args{timeout} //= 0;
     $args{sleep} //= 1;
+    $args{ref_ifc} //= $self->ref_bss(bss => $args{bss});
+    $args{sut_ifc} //= $self->sut_ifc;
+    $args{ref_ip} //= $self->ref_ip(bss => $args{bss});
+    $args{sut_ip} //= $self->sut_ip(bss => $args{bss});
     my $endtime = time() + $args{timeout};
 
     while (1) {
         eval {
-            assert_script_run('ping -c 1 -I ' . $self->sut_ifc . ' ' . $self->ref_ip(bss => $args{bss}));
-            $self->netns_exec('ping -c 1 -I ' . $self->ref_bss(bss => $args{bss}) . ' ' . $self->sut_ip(bss => $args{bss}));
+            assert_script_run('ping -c 1 -I ' . $args{sut_ifc} . ' ' . $args{ref_ip});
+            $self->netns_exec('ping -c 1 -I ' . $args{ref_ifc} . ' ' . $args{sut_ip});
         };
         return 1 unless ($@);    # no error
         die($@) if (time() > $endtime || $args{timeout} == 0);
