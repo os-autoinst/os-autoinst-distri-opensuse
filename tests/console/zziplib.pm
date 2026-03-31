@@ -35,7 +35,7 @@ sub run {
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
     # create a tmp dir/files to work
-    assert_script_run "mkdir /tmp/zip; cp /usr/share/doc/* /tmp/zip -R";
+    assert_script_run "mkdir /tmp/zip; cp /usr/share/doc/* /tmp/zip -R", timeout => 200;
     assert_script_run "cd /tmp";
 
     # install requirements
