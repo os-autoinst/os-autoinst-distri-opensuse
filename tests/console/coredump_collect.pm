@@ -10,11 +10,14 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use Utils::Logging qw(upload_coredumps cleanup_known_coredumps);
 
 sub run {
     my $self = shift;
     select_serial_terminal;
-    $self->upload_coredumps;
+
+    cleanup_known_coredumps;
+    upload_coredumps;
 }
 
 1;
