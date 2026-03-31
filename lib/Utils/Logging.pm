@@ -204,8 +204,6 @@ sub upload_coredumps {
     my @pids = split(/\n/, script_output(q(coredumpctl --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1));
     return unless @pids;
     record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
-    # Record soft-failure only on selected cases to collect data
-    record_soft_failure("poo#197969 - Coredumps are being silently ignored in openQA tests") if (is_tumbleweed || get_var("CONTAINER_RUNTIMES"));
     my $get_backtrace = get_var("COREDUMP_WITH_BACKTRACE") && !is_transactional;
     if ($get_backtrace) {
         script_run('sed -i s/enabled=0/enabled=1/ /etc/zypp/repos.d/*-[Dd]ebug.repo');
