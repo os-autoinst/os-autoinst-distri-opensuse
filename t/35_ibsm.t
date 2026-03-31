@@ -522,4 +522,74 @@ subtest '[ibsm_network_peering_gcp_delete] missing arguments' => sub {
     dies_ok { ibsm_network_peering_gcp_delete() } 'Dies without spoke_name';
 };
 
+subtest '[ibsm_network_peering_aws_create]' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+
+    # Mock functions imported into sles4sap::ibsm
+    $ibsm->redefine(aws_vpc_get_id => sub { return 'vpc-123'; });
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @calls;
+    $ibsm->redefine(aws_tgw_get_id => sub { push @calls, 'aws_tgw_get_id'; return 'tgw-123'; });
+    $ibsm->redefine(aws_vpc_get_subnets => sub { push @calls, 'aws_vpc_get_subnets'; return ('s-1'); });
+    $ibsm->redefine(aws_vpc_get_routing_tables => sub { push @calls, 'aws_vpc_get_routing_tables'; return 'rtb-1'; });
+    $ibsm->redefine(aws_tgw_attachment_create => sub { push @calls, 'aws_tgw_attachment_create'; return 1; });
+    $ibsm->redefine(aws_route_create_tgw => sub { push @calls, 'aws_route_create_tgw'; return; });
+    $ibsm->redefine(aws_security_group_get_id => sub { push @calls, 'aws_security_group_get_id'; return 'sg-123'; });
+    $ibsm->redefine(aws_security_group_authorize_ingress => sub { push @calls, 'aws_security_group_authorize_ingress'; return; });
+
+    ibsm_network_peering_aws_create(
+        region => 'us-west-1',
+        job_id => 'job-456',
+        ibsm_ip_range => '10.0.0.0/8',
+        ibsm_prj_tag => 'my-tag'
+    );
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    is(scalar @calls, 7, 'All TGW setup steps called');
+    ok((any { /aws_tgw_get_id/ } @calls), 'TGW ID retrieval called');
+    ok((any { /aws_tgw_attachment_create/ } @calls), 'Attachment creation called');
+    ok((any { /aws_security_group_get_id/ } @calls), 'Security group ID retrieval called');
+    ok((any { /aws_security_group_authorize_ingress/ } @calls), 'Security group ingress authorization called');
+};
+
+subtest '[ibsm_network_peering_aws_create] missing arguments' => sub {
+    dies_ok { ibsm_network_peering_aws_create(job_id => 'j', ibsm_ip_range => 'r', ibsm_prj_tag => 't') } 'Dies without region';
+    dies_ok { ibsm_network_peering_aws_create(region => 'r', ibsm_ip_range => 'r', ibsm_prj_tag => 't') } 'Dies without job_id';
+    dies_ok { ibsm_network_peering_aws_create(region => 'r', job_id => 'j', ibsm_prj_tag => 't') } 'Dies without ibsm_ip_range';
+    dies_ok { ibsm_network_peering_aws_create(region => 'r', job_id => 'j', ibsm_ip_range => 'r') } 'Dies without ibsm_prj_tag';
+};
+
+subtest '[ibsm_network_peering_aws_delete] success' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+
+    # Mock functions imported into sles4sap::ibsm
+    $ibsm->redefine(aws_tgw_vpc_attachment_get_id => sub { return 'tgwa-789'; });
+    $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ibsm->redefine(aws_tgw_attachment_delete => sub { push @calls, 'aws_tgw_attachment_delete'; return 1; });
+
+    ibsm_network_peering_aws_delete(region => 'us-west-1', job_id => 'job-456');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    is(scalar @calls, 1, 'One call recorded: aws_tgw_attachment_delete');
+    ok((any { /aws_tgw_attachment_delete/ } @calls), 'Attachment delete function called');
+};
+
+subtest '[ibsm_network_peering_aws_delete] nothing to delete' => sub {
+    my $ibsm = Test::MockModule->new('sles4sap::ibsm', no_auto => 1);
+
+    # Mock functions imported into sles4sap::ibsm
+    $ibsm->redefine(aws_tgw_vpc_attachment_get_id => sub { return 'None'; });
+    my @recorded;
+    $ibsm->redefine(record_info => sub { push @recorded, $_[0]; });
+    my $script_called = 0;
+    $ibsm->redefine(script_run => sub { $script_called = 1; });
+
+    ibsm_network_peering_aws_delete(region => 'us-west-1', job_id => 'job-456');
+
+    ok(!$script_called, 'script_run not called');
+    ok((any { /AWS PEERING DELETE/ } @recorded), 'Logged that no attachment was found');
+};
+
 done_testing;
