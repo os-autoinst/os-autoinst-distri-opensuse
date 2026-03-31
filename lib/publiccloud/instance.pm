@@ -205,7 +205,7 @@ sub ssh_script_retry {
 
 =head2 scp
 
-    scp($from, $to[, timeout => 90]);
+    scp($from, $to[, timeout => 90, proceed_on_failure => 0]);
 
 Use scp to copy a file from or to this instance. A url starting with
 C<remote:> is replaced with the IP from this instance. E.g. a call to copy
@@ -216,6 +216,7 @@ C<<<$instance->scp('remote:/var/log/cloudregister', '/tmp');>>>
 sub scp {
     my ($self, $from, $to, %args) = @_;
     $args{timeout} //= SSH_TIMEOUT;
+    $args{proceed_on_failure} //= 0;
 
     my $url = sprintf('%s@%s:', $self->username, $self->public_ip);
     $from =~ s/^remote:/$url/;
@@ -229,7 +230,14 @@ sub scp {
 
     $self->_apply_cmd_timeout(\%args, \$ssh_cmd);
 
-    return script_run($ssh_cmd, %args);
+    if ($args{proceed_on_failure}) {
+        record_info(
+            "Proceed on Failure",
+            "SCP failed but proceed_on_failure flag is set to true. Continuing..."
+        ) if script_run($ssh_cmd, timeout => $args{timeout});
+    } else {
+        assert_script_run($ssh_cmd, timeout => $args{timeout});
+    }
 }
 
 =head2 upload_log
@@ -246,7 +254,7 @@ sub upload_log {
     my $dest = $tmpdir . '/' . basename($remote_file);
     $args{failok} //= 0;
     $args{ignore_timeout_failure} = 1 if ($args{failok});
-    my $ret = $self->scp('remote:' . $remote_file, $dest, %args);
+    my $ret = $self->scp('remote:' . $remote_file, $dest, proceed_on_failure => 1, %args);
     upload_logs($dest, %args) if (defined($ret) && $ret == 0);
     script_run("test -d '$tmpdir' && rm -rf '$tmpdir'");
 }
