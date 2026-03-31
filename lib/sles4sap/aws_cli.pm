@@ -9,6 +9,7 @@ package sles4sap::aws_cli;
 use strict;
 use warnings FATAL => 'all';
 use Mojo::Base -signatures;
+use Mojo::JSON qw(decode_json);
 use testapi;
 use Carp qw(croak);
 use Exporter qw(import);
@@ -25,7 +26,7 @@ our @EXPORT = qw(
   aws_vpc_get_id
   aws_vpc_delete
   aws_subnet_create
-  aws_subnet_get_id
+  aws_subnet_get_ids
   aws_subnet_delete
   aws_security_group_create
   aws_security_group_delete
@@ -45,6 +46,13 @@ our @EXPORT = qw(
   aws_vm_terminate
   aws_get_ip_address
   aws_ssh_key_pair_import
+  aws_tgw_vpc_attachment_get_id
+  aws_tgw_get_id
+  aws_vpc_get_subnets
+  aws_vpc_get_routing_tables
+  aws_tgw_attachment_create
+  aws_tgw_attachment_delete
+  aws_route_create_tgw
 );
 
 
@@ -272,7 +280,8 @@ Add an ingress rule to a security group allowing traffic from a specific CIDR bl
 
 sub aws_security_group_authorize_ingress(%args) {
     foreach (qw(sg_id protocol port cidr region)) {
-        croak("Argument < $_ > missing") unless $args{$_}; }
+        croak("Argument < $_ > missing") unless $args{$_};
+    }
 
     assert_script_run(join(' ',
             'aws ec2 authorize-security-group-ingress',
@@ -312,14 +321,16 @@ sub aws_subnet_create(%args) {
     foreach (qw(region cidr vpc_id job_id)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
-    my $subnet_id = script_output(join(' ',
-            'aws ec2 create-subnet',
-            '--region', $args{region},
-            '--cidr-block', $args{cidr},
-            '--vpc-id', $args{vpc_id},
-            '--query', "'Subnet.SubnetId'",
-            '--output', 'text'
-    ));
+    my @cmd = (
+        'aws ec2 create-subnet',
+        '--region', $args{region},
+        '--cidr-block', $args{cidr},
+        '--vpc-id', $args{vpc_id},
+        '--query', "'Subnet.SubnetId'",
+        '--output', 'text'
+    );
+    push(@cmd, '--availability-zone', $args{availability_zone}) if $args{availability_zone};
+    my $subnet_id = script_output(join(' ', @cmd));
     die('Subnet creation failed: Subnet ID is empty') unless $subnet_id;
     assert_script_run(join(' ',
             'aws ec2 create-tags',
@@ -330,36 +341,37 @@ sub aws_subnet_create(%args) {
     return $subnet_id;
 }
 
-=head2 aws_subnet_get_id
+=head2 aws_subnet_get_ids
 
-    my $subnet_id = aws_subnet_get_id(
+    my @subnet_ids = aws_subnet_get_ids(
         region => 'us-west-1',
         job_id => '67890'
     );
 
-Retrieve the subnet ID associated with a specific OpenQA job
-Returns the subnet ID
+Retrieve the list of subnet IDs associated with a specific OpenQA job
+Returns the list of subnet IDs
 
 =over
 
-=item B<region> - AWS region where the subnet is located
+=item B<region> - AWS region where the subnets are located
 
-=item B<job_id> - OpenQA job identifier used to tag the subnet
+=item B<job_id> - OpenQA job identifier used to tag the subnets
 
 =back
 =cut
 
-sub aws_subnet_get_id(%args) {
+sub aws_subnet_get_ids(%args) {
     foreach (qw(region job_id)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
-    return script_output(join(' ',
+    my $output = script_output(join(' ',
             'aws ec2 describe-subnets',
             '--filters', "'Name=tag:OpenQAJobSubnet,Values=$args{job_id}'",
             '--region', $args{region},
-            '--query', "'Subnets[0].SubnetId'",
-            '--output', 'text'
+            '--query', "'Subnets[*].SubnetId'",
+            '--output', 'json'
     ));
+    return @{decode_json($output)};
 }
 
 =head2 aws_subnet_delete
@@ -369,13 +381,13 @@ sub aws_subnet_get_id(%args) {
         job_id => '67890'
     );
 
-Delete the subnet, do not assert but return the exit code of the command.
+Delete the subnets associated with the job, do not assert but return the exit code of the command.
 
 =over
 
-=item B<region> - AWS region where the subnet is located
+=item B<region> - AWS region where the subnets are located
 
-=item B<job_id> - OpenQA job identifier used to tag the subnet
+=item B<job_id> - OpenQA job identifier used to tag the subnets
 
 =back
 =cut
@@ -384,10 +396,16 @@ sub aws_subnet_delete(%args) {
     foreach (qw(region job_id)) {
         croak("Argument < $_ > missing") unless $args{$_};
     }
-    return script_run(join(' ',
-            'aws ec2 delete-subnet',
-            '--subnet-id', aws_subnet_get_id(region => $args{region}, job_id => $args{job_id}),
-            '--region', $args{region}));
+    my @subnet_ids = aws_subnet_get_ids(region => $args{region}, job_id => $args{job_id});
+    my $exit_code = 0;
+    foreach my $subnet_id (@subnet_ids) {
+        my $rc = script_run(join(' ',
+                'aws ec2 delete-subnet',
+                '--subnet-id', $subnet_id,
+                '--region', $args{region}));
+        $exit_code = $rc if ($rc != 0);
+    }
+    return $exit_code;
 }
 
 =head2 aws_internet_gateway_create
@@ -884,6 +902,305 @@ sub aws_ssh_key_pair_import(%args) {
             'aws ec2 import-key-pair',
             '--key-name', $args{ssh_key},
             '--public-key-material', "fileb://$args{pub_key_path}"));
+}
+
+=head2 aws_tgw_vpc_attachment_get_id
+
+    my $attach_id = aws_tgw_vpc_attachment_get_id(region => 'us-west-1', job_id => 'job-123');
+
+Retrieve the TGW attachment ID associated with a specific OpenQA job.
+Returns the TGW attachment ID as a string. Only the first element found is returned.
+
+=cut
+
+sub aws_tgw_vpc_attachment_get_id(%args) {
+    foreach (qw(region job_id)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $name_tag = $args{job_id} . '-tga';
+    return script_output(join(' ',
+            'aws ec2 describe-transit-gateway-vpc-attachments',
+            "--filters 'Name=tag:Name,Values=$name_tag'",
+            '--region', $args{region},
+            "--query 'TransitGatewayVpcAttachments[0].TransitGatewayAttachmentId' --output text"));
+}
+
+=head2 aws_filter_query
+
+    my $res = aws_filter_query(cmd => 'describe-instances', filter => 'Name=instance-id,Values=i-123', query => 'Reservations[*].Instances[*].InstanceId');
+
+Generic function to compose a aws cli command with filter and query.
+Returns the script output.
+
+=over
+
+=item B<cmd> - AWS EC2 subcommand
+
+=item B<filter> - Filter string
+
+=item B<query> - JMESPath query string
+
+=item B<output> - Output format (default: text)
+
+=back
+=cut
+
+sub aws_filter_query(%args) {
+    foreach (qw(cmd filter query)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
+    my $output_format = $args{output} // 'text';
+    my @cmd = ('aws ec2', $args{cmd},
+        '--filters', $args{filter},
+        '--query', $args{query},
+        '--output', $output_format);
+    push(@cmd, '--region', $args{region}) if $args{region};
+    return script_output(join(' ', @cmd));
+}
+
+=head2 aws_tgw_get_id
+
+    my $tgw_id = aws_tgw_get_id(mirror_tag => 'my-project');
+
+Return the Transit Gateway ID associated with a specific Project tag.
+
+=over
+
+=item B<mirror_tag> - Value of Project tag
+
+=item B<region> - Region
+
+=back
+=cut
+
+sub aws_tgw_get_id(%args) {
+    foreach (qw(mirror_tag region)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    return aws_filter_query(
+        cmd => 'describe-transit-gateways',
+        filter => '"Name=tag:Project,Values=' . $args{mirror_tag} . '"',
+        query => '"TransitGateways[].TransitGatewayId"',
+        region => $args{region}
+    );
+}
+
+=head2 aws_vpc_get_subnets
+
+    my @subnets = aws_vpc_get_subnets(vpc_id => 'vpc-123', region => 'us-east-1');
+
+Return a list of subnets for a VPC, one per Availability Zone.
+
+=over
+
+=item B<vpc_id> - VPC ID
+
+=item B<region> - AWS region
+
+=back
+=cut
+
+sub aws_vpc_get_subnets(%args) {
+    croak 'Missing mandatory vpc_id argument' unless $args{vpc_id};
+
+    my @cmd = ('aws ec2 describe-subnets',
+        '--filters', "\"Name=vpc-id,Values=$args{vpc_id}\"",
+        '--query "Subnets[].{AZ:AvailabilityZone,SI:SubnetId}"',
+        '--output json');
+    push(@cmd, '--region', $args{region}) if $args{region};
+
+    my $describe_subnets = decode_json(script_output(join(' ', @cmd)));
+    my %seen = ();
+    my @uniq = ();
+    foreach (@{$describe_subnets}) {
+        push(@uniq, $_->{SI}) unless $seen{$_->{AZ}}++;
+    }
+    return @uniq;
+}
+
+=head2 aws_vpc_get_routing_tables
+
+    my $rt_ids = aws_vpc_get_routing_tables(vpc_id => 'vpc-123', region => 'us-east-1');
+
+Get routing table IDs for a VPC that have external connections (non-local).
+
+=over
+
+=item B<vpc_id> - VPC ID
+
+=item B<region> - AWS region
+
+=back
+=cut
+
+sub aws_vpc_get_routing_tables(%args) {
+    foreach (qw(vpc_id region)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
+    return aws_filter_query(
+        cmd => 'describe-route-tables',
+        filter => "\"Name=vpc-id,Values=$args{vpc_id}\"",
+        query => '"RouteTables[?Routes[?GatewayId!=\`local\`]].RouteTableId"',
+        region => $args{region}
+    );
+}
+
+=head2 aws_tgw_attachment_get
+
+    my $res = aws_tgw_attachment_get(name => 'my-attachment');
+
+Get a description of one or more transit-gateway-attachments.
+Returns an array reference of hash references (list of dicts).
+    return value = [ {State => 'pending'} ...]
+
+=over
+
+=item B<transit_gateway_attach_id> - Optional ID of the attachment
+
+=item B<name> - Optional Name tag value
+
+=back
+=cut
+
+sub aws_tgw_attachment_get(%args) {
+    my $filter = '';
+    if ($args{transit_gateway_attach_id}) {
+        $filter = "--filter='Name=transit-gateway-attachment-id,Values=$args{transit_gateway_attach_id}'";
+    }
+    elsif ($args{name}) {
+        $filter = "--filter='Name=tag:Name,Values=$args{name}'";
+    }
+    my @cmd = ('aws ec2 describe-transit-gateway-attachments',
+        $filter,
+        '--query "TransitGatewayAttachments[]"',
+        '--output json');
+    push(@cmd, '--region', $args{region}) if $args{region};
+    return decode_json(script_output(join(' ', @cmd)));
+}
+
+=head2 aws_tgw_attachment_create
+
+    aws_tgw_attachment_create(
+        transit_gateway_id => 'tgw-123',
+        vpc_id => 'vpc-456',
+        subnet_id_list => ['subnet-1'],
+        name => 'my-attach'
+    );
+
+Create a Transit Gateway VPC attachment and wait until it is available.
+Returns true if the attachment becomes available within the timeout, false otherwise.
+
+=over
+
+=item B<transit_gateway_id> - ID of the target Transit gateway
+
+=item B<vpc_id> - VPC ID to be attached
+
+=item B<subnet_id_list> - List of subnet IDs to connect
+
+=item B<name> - Prefix for the Tag Name of the attachment
+
+=item B<timeout> - Timeout in seconds (default 300)
+
+=back
+=cut
+
+sub aws_tgw_attachment_create(%args) {
+    foreach (qw(transit_gateway_id vpc_id subnet_id_list name))
+    { croak "Missing mandatory $_ argument" unless $args{$_}; }
+    $args{timeout} //= bmwqemu::scale_timeout(300);
+
+    my $cmd = join(' ', 'aws ec2 create-transit-gateway-vpc-attachment',
+        '--transit-gateway-id', $args{transit_gateway_id},
+        '--vpc-id', $args{vpc_id},
+        '--subnet-ids', join(' ', @{$args{subnet_id_list}}),
+        '--tag-specifications',
+        '"ResourceType=transit-gateway-attachment,Tags=[{Key=Name,Value=' . $args{name} . '-tga}]"',
+        '--output json');
+    my $describe_tgva = decode_json(script_output($cmd));
+    return 0 unless $describe_tgva;
+
+    my $res;
+    my $state = 'none';
+    my $duration;
+    my $start_time = time();
+    while ((($duration = time() - $start_time) < $args{timeout}) && ($state !~ m/available/)) {
+        sleep 5;
+        $res = aws_tgw_attachment_get(
+            transit_gateway_attach_id => $describe_tgva->{TransitGatewayVpcAttachment}->{TransitGatewayAttachmentId});
+        $state = $res->[0]->{State};
+    }
+    return $duration < $args{timeout};
+}
+
+=head2 aws_tgw_attachment_delete
+
+    aws_tgw_attachment_delete(id => 'tgwa-123');
+
+Delete a Transit Gateway VPC attachment and wait until it is deleted.
+Returns true if the attachment is successfully deleted (or if wait is set to 0), false if it times out while waiting for the deleted state.
+
+=over
+
+=item B<id> - ID of the TGW attachment to be deleted
+
+=item B<timeout> - Timeout in seconds (default 300)
+
+=item B<wait> - whether to wait to verify deleted status or not (default 1)
+
+=back
+=cut
+
+sub aws_tgw_attachment_delete(%args) {
+    croak 'Must provide transit gateway id' unless $args{id};
+    $args{timeout} //= bmwqemu::scale_timeout(300);
+    $args{wait} //= 1;
+
+    my @cmd = ('aws ec2 delete-transit-gateway-vpc-attachment', '--transit-gateway-attachment-id', $args{id});
+    push(@cmd, '--region', $args{region}) if $args{region};
+    script_run(join(' ', @cmd));
+
+    return 1 unless $args{wait};
+
+    my $state = 'none';
+    my $duration;
+    my $start_time = time();
+    my $res;
+    while ((($duration = time() - $start_time) < $args{timeout})
+        && ($state !~ m/deleted/))
+    {
+        sleep 5;
+        $res = aws_tgw_attachment_get(transit_gateway_attach_id => $args{id}, region => $args{region});
+
+        last unless @$res;
+        $state = $res->[0]{State};
+    }
+    return $duration < $args{timeout};
+}
+
+=head2 aws_route_create_tgw
+
+    aws_route_create_tgw(rtable_id => 'rtb-1', target_ip_net => '10.0.0.0/8', trans_gw_id => 'tgw-1');
+
+Add a route to a Transit Gateway in a routing table.
+
+=over
+
+=item B<rtable_id> - Routing table ID
+
+=item B<target_ip_net> - Target CIDR block
+
+=item B<trans_gw_id> - Transit Gateway ID
+
+=back
+=cut
+
+sub aws_route_create_tgw(%args) {
+    foreach (qw(rtable_id target_ip_net trans_gw_id)) { croak "Missing mandatory $_ argument" unless $args{$_}; }
+
+    my $cmd = join(' ',
+        'aws ec2 create-route',
+        '--route-table-id', $args{rtable_id},
+        '--destination-cidr-block', $args{target_ip_net},
+        '--transit-gateway-id', $args{trans_gw_id},
+        '--output text');
+    script_run($cmd);
 }
 
 1;
