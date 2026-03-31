@@ -475,6 +475,35 @@ EOF
     record_info "SELinux", script_output("cat /sys/fs/selinux/enforce", proceed_on_failure => 1) unless is_sle("<16");
 }
 
+sub collect_calltraces {
+    my $dmesg = script_output('dmesg', proceed_on_failure => 1, quiet => 1, timeout => 180);
+    return unless defined($dmesg);
+
+    my $start = qr/(?:Call Trace:|-+\[ cut here \]-+)/;
+    my $end = qr/(?:<\/TASK>|-+\[ end trace)/;
+
+    my @lines = ();
+    my @traces = ();
+    my $in_trace = 0;
+
+    for my $line (split /\n/, $dmesg) {
+        $in_trace = 1 if $line =~ $start;
+        push @lines, $line if $in_trace;
+
+        if ($in_trace && $line =~ $end) {
+            push @traces, join("\n", @lines);
+            @lines = ();
+            $in_trace = 0;
+        }
+    }
+
+    push @traces, join("\n", @lines) if @lines;
+
+    for my $trace (@traces) {
+        record_info('TRACE', $trace);
+    }
+}
+
 sub collect_coredumps {
     my $package = get_var("BATS_PACKAGE", "");
     my $backtrace = get_var("DEBUG");
@@ -519,7 +548,7 @@ sub bats_post_hook {
     script_run("rm -rf $test_dir", timeout => 0) unless ($test_dir eq "/var/tmp/");
 
     # Note: We don't use grep -q and redirect to /dev/null here to avoid SIGPIPE
-    record_info "TRACES", "check serial0.txt" if !script_run 'dmesg | grep -F -e "Call Trace:" -e "[ cut here ]" >/dev/null';
+    collect_calltraces if !script_run 'dmesg | grep -F -e "Call Trace:" -e "[ cut here ]" >/dev/null';
     collect_coredumps;
 
     script_run('df -h > df-h.txt');
