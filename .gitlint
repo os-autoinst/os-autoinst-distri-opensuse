@@ -1,0 +1,23 @@
+[general]
+ignore=body-min-length,body-is-missing
+regex-style-search=True
+
+[title-max-length]
+line-length=72
+
+[ignore-by-title]
+regex=^Revert
+ignore=title-max-length
+
+[title-match-regex]
+# 1. Subject beginning: ^([A-Z]|\S+:|git subrepo (clone|pull))
+# 2. Subject ending: Must not end with a dot (^.+(?<!\.))
+regex=^([A-Z]|\S+:|git subrepo (clone|pull)).*(?<!\.)$
+
+[body-has-blank-line]
+# Corresponds to: ^.*(\n\n|$)
+# Enforces a blank line between the title and the body
+
+[ignore-body-lines]
+# Accept lines stating only a long unwrappable URL
+regex=^https?:\/\/\S+$
