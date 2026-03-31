@@ -5,10 +5,9 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#160322, poo#194417
 
-## no os-autoinst style
-
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal qw(select_serial_terminal);
 use utils qw(systemctl zypper_call);
 
 sub run {
@@ -28,7 +27,7 @@ sub run {
     my $uid = script_output('run0 id -u');
     die "run0 did not run as root (uid=$uid)" unless $uid eq '0';
     # User change
-    my $uid = script_output("id -u $testapi::username");
+    $uid = script_output("id -u $testapi::username");
     my $run0uid = script_output("run0 --user=$testapi::username id -u");
     die "run0 did not run as $testapi::username (exptected_uid=$uid, actual_uid=$run0uid)" unless $run0uid eq $uid;
     # Exit and error handling
