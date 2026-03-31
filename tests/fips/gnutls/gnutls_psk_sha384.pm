@@ -15,8 +15,9 @@ use version_utils 'is_sle';
 sub run {
     select_serial_terminal;
 
-    if (is_sle('<15-SP7')) {
-        record_info('SKIPPED', 'only executing on SLE 15.7+');
+    unless (is_sle('=15-SP7') || is_sle('>=16.1')) {
+        # SLE 16.0 will follow in a few days/weeks https://progress.opensuse.org/issues/198809
+        record_info('SKIPPED', 'only executing on SLE 15.7 and >=16.1');
         return;
     }
 
