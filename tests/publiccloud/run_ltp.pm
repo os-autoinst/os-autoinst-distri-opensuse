@@ -51,14 +51,28 @@ sub should_partially_build_ltp_from_git_modules_install {
 sub install_build_deps {
     my ($self, $instance) = @_;
 
+    my @deps = get_required_build_dependencies();
+
+    # Remove kernel-default-devel from the list of dependencies since matching kernel version kernel-<flavor>-devel-<ver> package will be added.
+    @deps = grep { $_ ne 'kernel-default-devel' } @deps;
+
+    # Sample value: kernel-default-devel-6.12.0-160000.27.1
+    my $kernel_devel_pkg = $instance->ssh_script_output(cmd => q{
+        rpm -qf /boot/config-$(uname -r) \
+        | sed -e "s/\.$(arch)//" \
+              -e "s/^kernel-\([^-]\+\)-/kernel-\1-devel-/"
+    });
+
+    push @deps, $kernel_devel_pkg;
+
     if (is_transactional) {
         $instance->ssh_assert_script_run(
-            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', join(' ', get_required_build_dependencies())),
+            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', join(' ', @deps)),
             timeout => 300
         );
         $instance->softreboot();
     } else {
-        zypper_call_remote($instance, cmd => "install --no-recommends " . join(' ', get_required_build_dependencies()));
+        zypper_call_remote($instance, cmd => "install --no-recommends " . join(' ', @deps));
     }
     zypper_install_available_remote($instance);
 }
