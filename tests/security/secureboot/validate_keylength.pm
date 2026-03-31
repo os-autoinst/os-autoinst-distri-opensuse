@@ -22,10 +22,10 @@ sub run {
     assert_script_run 'curl -O ' . data_url('security/secureboot/parsesign.go');
     assert_script_run('go build parsesign.go');
     record_info '/boot/ directory:', script_output('ls -l /boot/');
-    $self->{$image_name} = get_boot_image_name();
-    record_info 'Current kernel image and cmdline:', $self->{$image_name} . ' ' . script_output 'cat /proc/cmdline';
+    $self->{image_name} = get_boot_image_name();
+    record_info 'Current kernel image and cmdline:', $self->{image_name} . ' ' . script_output 'cat /proc/cmdline';
     my $expected_keylength = get_expected_keylength();
-    validate_script_output('./parsesign ' . $self->{$image_name}, sub { /Key size calculation: $expected_keylength bits/ });
+    validate_script_output('./parsesign ' . $self->{image_name}, sub { /Key size calculation: $expected_keylength bits/ });
     assert_script_run 'rm parsesign parsesign.go';    # cleanup
 }
 
@@ -59,7 +59,7 @@ sub get_expected_keylength {
 
 sub post_fail_hook {
     my ($self) = shift;
-    upload_logs $self->{$image_name} if defined $self->{$image_name};
+    upload_logs $self->{image_name} if defined $self->{image_name};
     $self->SUPER::post_fail_hook;
 }
 
