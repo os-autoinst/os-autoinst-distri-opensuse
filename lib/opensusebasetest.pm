@@ -1077,7 +1077,7 @@ sub post_fail_hook {
 
     export_logs;
 
-    if ((is_public_cloud() || is_openstack()) && $self->{run_args}->{my_provider}) {
+    if (is_public_cloud() && $self->{run_args}->{my_provider}) {
         select_host_console(force => 1);
 
         # Destroy the public cloud instance in case of fatal test failure

@@ -12,7 +12,7 @@ use Utils::Systemd qw(systemctl);
 use Utils::Logging qw(save_and_upload_log);
 use publiccloud::ssh_interactive qw(select_host_console);
 use utils qw(ensure_serialdev_permissions);
-use version_utils qw(is_openstack is_public_cloud is_opensuse);
+use version_utils qw(is_public_cloud is_opensuse);
 use serial_terminal;
 
 my @errors = ();
@@ -64,7 +64,7 @@ sub run {
 
     # User checks
     # Applicable for cloud environments as the keys are pushed from cloud client tools
-    if (is_openstack || is_public_cloud) {
+    if (is_public_cloud) {
         assert_script_run('ls -la ~/.ssh/');
         if (script_run('test -s ~/.ssh/authorized_keys')) {
             push @errors, "No pubkeys added to root";
@@ -107,7 +107,7 @@ sub run {
     assert_script_run('sudo sysctl -a');
     enter_cmd('exit');
 
-    if (is_openstack || is_public_cloud) {
+    if (is_public_cloud) {
         select_host_console(force => 1);
         foreach my $u (keys %{$users}) {
             $args->{my_instance}->ssh_assert_script_run(cmd => "who -u | grep $u",
@@ -131,7 +131,7 @@ sub test_flags {
 }
 
 sub post_run_hook {
-    return if (is_openstack || is_public_cloud);
+    return if is_public_cloud;
 
     select_console('root-console');
     upload_logs("/var/log/cloud-init.log");
@@ -145,7 +145,7 @@ sub post_fail_hook {
         record_info('Errors', join('\n', @errors), result => 'fail');
     }
 
-    return if (is_openstack || is_public_cloud);
+    return if is_public_cloud;
     select_console('root-console');
 
     upload_logs("/var/log/cloud-init.log");

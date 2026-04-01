@@ -13,7 +13,7 @@ use registration;
 use utils;
 use mmapi 'get_parents';
 use version_utils
-  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade is_public_cloud is_openstack is_transactional);
+  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade is_public_cloud is_transactional);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -673,10 +673,7 @@ if (load_yaml_schedule) {
 return load_wicked_create_hdd if (get_var('WICKED_CREATE_HDD'));
 
 if (is_jeos) {
-    if (is_openstack) {
-        load_jeos_openstack_tests();
-        return 1;
-    } elsif (is_transactional) {
+    if (is_transactional) {
         main_micro_alp::load_tests;
         return 1;
     } else {

@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use testapi;
 use known_bugs;
-use version_utils qw(is_public_cloud is_openstack);
+use version_utils qw(is_public_cloud);
 use Utils::Logging qw(export_logs_basic export_logs_desktop record_avc_selinux_alerts);
 use utils;
 
@@ -47,7 +47,7 @@ sub post_fail_hook {
     $self->record_avc_selinux_alerts();
     $self->SUPER::post_fail_hook;
     # at this point the instance is shutdown
-    return if (is_public_cloud() || is_openstack());
+    return if is_public_cloud();
     # Remaining log functions are executed in Utils::Logging::export_logs()
     # called in opensusebasetest::post_fail_hook()
     select_console('log-console');
