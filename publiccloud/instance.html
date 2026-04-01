@@ -86,7 +86,7 @@ C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally s
 
 <h2 id="scp">scp</h2>
 
-<pre><code>scp($from, $to[, timeout =&gt; 90]);</code></pre>
+<pre><code>scp($from, $to[, timeout =&gt; 90, proceed_on_failure =&gt; 0]);</code></pre>
 
 <p>Use scp to copy a file from or to this instance. A url starting with <code>remote:</code> is replaced with the IP from this instance. E.g. a call to copy the file <i>/var/log/cloudregister</i> to <i>/tmp</i> looks like: <code>&lt;&lt;$instance-</code>scp(&#39;remote:/var/log/cloudregister&#39;, &#39;/tmp&#39;);&gt;&gt;&gt;</p>
 
