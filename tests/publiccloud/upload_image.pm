@@ -13,7 +13,6 @@ use utils;
 use publiccloud::ec2;
 use publiccloud::azure;
 use publiccloud::gce;
-use publiccloud::openstack;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_jeos);
 

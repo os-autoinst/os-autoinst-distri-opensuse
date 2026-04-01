@@ -23,7 +23,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_openstack is_sle_micro check_version);
+use version_utils qw(is_sle is_public_cloud get_version_id is_transactional is_sle_micro check_version);
 use transactional qw(reboot_on_changes trup_call process_reboot);
 use registration qw(get_addon_fullname add_suseconnect_product %ADDONS_REGCODE);
 use maintenance_smelt qw(is_embargo_update);
@@ -48,7 +48,6 @@ our @EXPORT = qw(
   is_cloudinit_supported
   registercloudguest
   register_addon
-  register_openstack
   register_addons_in_pc
   gcloud_install
   get_ssh_private_key_path
@@ -255,17 +254,6 @@ sub register_addons_in_pc {
     record_info('repos (ls)', $instance->ssh_script_output(cmd => "sudo zypper ls"));
 }
 
-sub register_openstack {
-    my $instance = shift;
-
-    my $regcode = get_required_var 'SCC_REGCODE';
-    my $fake_scc = get_var 'SCC_URL', '';
-
-    my $cmd = "sudo SUSEConnect -r $regcode";
-    $cmd .= " --url $fake_scc" if $fake_scc;
-    $instance->ssh_assert_script_run(cmd => $cmd, timeout => 700, retry => 5);
-}
-
 # Validation for update repos
 sub validate_repo {
     my ($maintrepo) = @_;
@@ -373,7 +361,7 @@ sub gcloud_install {
 
 sub get_ssh_private_key_path {
     # Paramiko needs to be updated for ed25519 https://stackoverflow.com/a/60791079
-    return (is_azure() || is_openstack() || get_var('PUBLIC_CLOUD_LTP')) ? "~/.ssh/id_rsa" : '~/.ssh/id_ed25519';
+    return (is_azure() || get_var('PUBLIC_CLOUD_LTP')) ? "~/.ssh/id_rsa" : '~/.ssh/id_ed25519';
 }
 
 sub permit_root_login {

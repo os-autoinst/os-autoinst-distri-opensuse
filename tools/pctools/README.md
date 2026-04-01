@@ -1,7 +1,7 @@
 PUBLIC CLOUD TOOLS IMAGE
 ========================
 
-The Public Cloud Tools image is a modified SLES image with a pre-installed and configured set of various cloud related tools intended for testing of Cloud Service Providers (CSP) within openQA. It includes various tools like command-line interfaces for Azure, Amazon, OpenStack and Google Compute Platform (GCP). This Dockerfile helps to automatically generate the requirements for those utilities.
+The Public Cloud Tools image is a modified SLES image with a pre-installed and configured set of various cloud related tools intended for testing of Cloud Service Providers (CSP) within openQA. It includes various tools like command-line interfaces for Azure, Amazon and Google Compute Platform (GCP). This Dockerfile helps to automatically generate the requirements for those utilities.
 
 To generate such image, check the SUSE Confluence page [Public Cloud Tools Image](https://confluence.suse.com/pages/viewpage.action?spaceKey=qasle&title=Public+Cloud+Tools+Image).
 

@@ -48,7 +48,6 @@ use constant {
           is_using_system_role
           is_using_system_role_first_flow
           is_public_cloud
-          is_openstack
           is_leap_migration
           is_tunneled
           is_bootloader_grub2
@@ -826,17 +825,6 @@ sub is_public_cloud {
     return get_var('PUBLIC_CLOUD');
 }
 
-=head2 is_openstack
-
-Returns true if the tests loads Cloud image in OpenStack environment
-NO_CLOUD variable is set in order to test the image in QEMU
-
-=cut
-
-sub is_openstack {
-    return get_var('FLAVOR', '') =~ /JeOS-for-OpenStack-Cloud.*/ && !get_var('NO_CLOUD');
-}
-
 =head2 is_leap_migration
 
 Returns true if called in a leap to sle migration scenario
@@ -904,7 +892,7 @@ sub get_bootloader {
     return 'wsl' if is_wsl;
     return 'grub2' if is_sle || is_leap || is_sle_micro;
     return 'grub2' if !check_var('UEFI', 1);
-    return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
+    return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen)$/);
     return 'grub2' if is_community_jeos;
     return 'grub2' if is_slowroll;
     return 'systemd-boot' if is_microos;

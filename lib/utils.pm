@@ -2623,8 +2623,6 @@ sub install_patterns {
             record_soft_failure('bsc#1202478 - skip pattern Amazon-Web-Service');
             next;
         }
-        # For Public cloud module test we need install 'Tools' but not 'Instance' pattern if outside of public cloud images.
-        next if (($pt =~ /OpenStack/) && ($pt !~ /Tools/) && !is_public_cloud);
         # skip installation of wsl_base, wsl_gui and wsl_systemd patterns due to bsc#1226314.
         next if (($pt =~ /wsl_base|wsl_gui|wsl_systemd/) && check_var('PATTERNS', 'all'));
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645

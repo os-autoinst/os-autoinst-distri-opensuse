@@ -205,9 +205,6 @@ subtest 'bootloader_tests' => sub {
     set_var('FLAVOR', 'MicroOS-Image-ContainerHost');
     ok get_default_bootloader eq 'grub2', "Container host image is grub2";
 
-    set_var('FLAVOR', 'JeOS-for-OpenStack-Cloud');
-    ok get_default_bootloader eq 'grub2', "JeOS-for-OpenStack-Cloud image is grub2";
-
     set_var('FLAVOR', 'MicroOS-Image');
     ok get_default_bootloader eq 'grub2', "MicroOS-Image image is grub2";
 

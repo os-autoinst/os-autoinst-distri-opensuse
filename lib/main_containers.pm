@@ -142,7 +142,7 @@ sub load_compose_tests {
 }
 
 sub load_firewall_test {
-    return if (is_public_cloud || is_openstack || is_microos ||
+    return if (is_public_cloud || is_microos ||
         (is_sle('>=16.0') && is_transactional()) ||
         get_var('FLAVOR') =~ /dvd/i && (is_sle_micro('<6.0') || is_leap_micro('<6.0'))
     );
@@ -172,7 +172,7 @@ sub load_host_tests_podman {
     # CNI is the default network backend on SLEM<6 and SLES<15-SP6. It is still available on later products as a dependency for docker.
     # podman+CNI is not supported on SLEM6+ and SLES-15-SP6+.
     loadtest('containers/podman_network_cni') if (is_sle_micro('<6.0') || is_sle("<15-SP6"));
-    # Firewall is not installed in JeOS OpenStack, MicroOS and Public Cloud images
+    # Firewall is not installed in MicroOS and Public Cloud images
     load_firewall_test($run_args);
     # IPv6 is not available on Azure
     loadtest 'containers/podman_ipv6' if (is_public_cloud && is_sle('>=15-SP5') && !is_azure);
@@ -182,7 +182,7 @@ sub load_host_tests_podman {
     load_secret_tests($run_args);
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
-    unless (is_openstack || is_public_cloud) {
+    unless (is_public_cloud) {
         loadtest 'containers/rootless_podman';
         loadtest 'containers/podman_remote' if (is_sle('>=15-SP3') || is_sle_micro('5.5+') || is_tumbleweed);
     }
@@ -207,7 +207,7 @@ sub load_host_tests_docker {
     load_third_party_image_test($run_args);
     load_rt_workload($run_args) if is_rt;
     load_container_engine_privileged_mode($run_args);
-    # Firewall is not installed in Public Cloud, JeOS OpenStack and MicroOS but it is in SLE Micro
+    # Firewall is not installed in Public Cloud and MicroOS but it is in SLE Micro
     load_firewall_test($run_args);
     # The distribution-registry package is only available on Tumbleweed & SLES 15-SP4
     unless (is_staging || is_transactional || is_sle("<15-sp4")) {
@@ -227,7 +227,7 @@ sub load_host_tests_docker {
     }
     load_volume_tests($run_args);
     # Expected to work anywhere except of real HW backends, PC and Micro
-    unless (is_generalhw || is_ipmi || is_public_cloud || is_openstack || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
+    unless (is_generalhw || is_ipmi || is_public_cloud || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
         loadtest 'containers/validate_btrfs';
     }
 }

@@ -21,7 +21,7 @@ use Mojo::JSON qw(decode_json encode_json);
 use utils qw(file_content_replace script_retry);
 use mmapi;
 use db_utils qw(is_ok_url);
-use version_utils qw(is_openstack is_sle_micro);
+use version_utils qw(is_sle_micro);
 
 use constant TERRAFORM_DIR => get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '/root/terraform');
 use constant TERRAFORM_TIMEOUT => 30 * 60;
@@ -391,7 +391,6 @@ sub create_instances {
         $self->show_instance_details();
 
         # Performance data: boottime
-        next if is_openstack;
 
         if (is_ok_url($url)) {
             local $@;
@@ -553,9 +552,7 @@ sub terraform_apply {
     if (get_var('PUBLIC_CLOUD_NVIDIA')) {
         $vars{gpu} = 'true';
     }
-    unless (is_openstack) {
-        $vars{ssh_public_key} = $self->ssh_key . '.pub';
-    }
+    $vars{ssh_public_key} = $self->ssh_key . '.pub';
 
     my $cmd = terraform_cmd($runner . ' plan -no-color -out myplan', %vars);
     script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
@@ -673,9 +670,8 @@ sub terraform_destroy {
     # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
     $vars{region} = $self->provider_client->region;
     $vars{cloud_init} = TERRAFORM_DIR . '/cloud-init.yaml' if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
-    unless (is_openstack) {
-        $vars{ssh_public_key} = $self->ssh_key . '.pub';
-    }
+    $vars{ssh_public_key} = $self->ssh_key . '.pub';
+
     # Add image_id, offer and sku on Azure runs, if defined.
     if (is_azure) {
         my $image = $self->get_image_id();

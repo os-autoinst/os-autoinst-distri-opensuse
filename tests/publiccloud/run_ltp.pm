@@ -494,7 +494,6 @@ sub prepare_scripts {
 sub register_instance {
     my ($self, $instance, $qam) = @_;
     registercloudguest($instance) if (is_byos() && !$qam);
-    register_openstack($instance) if is_openstack;
 }
 
 sub install_ltp {

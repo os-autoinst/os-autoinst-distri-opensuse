@@ -19,7 +19,6 @@ use publiccloud::gke;
 use publiccloud::gcr;
 use publiccloud::acr;
 use publiccloud::aks;
-use publiccloud::openstack;
 use publiccloud::noprovider;
 use Data::Dumper;
 use Storable qw(dclone);
@@ -85,9 +84,6 @@ sub provider_factory {
         else {
             die('Unknown service given');
         }
-    }
-    elsif ($args{provider} eq 'OPENSTACK') {
-        $provider = publiccloud::openstack->new();
     }
     else {
         die('Unknown PUBLIC_CLOUD_PROVIDER given');

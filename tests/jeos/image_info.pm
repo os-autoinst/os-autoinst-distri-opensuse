@@ -16,7 +16,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_sle is_opensuse is_openstack);
+use version_utils qw(is_sle is_opensuse);
 use mmapi qw(get_current_job_id);
 use Cwd;
 use db_utils qw(push_image_data_to_db check_postgres_db);
@@ -33,20 +33,7 @@ sub run {
     my $image;
 
     # Get the image size
-    if (is_openstack) {
-        # In OpenStack JeOS tests, we boot a different HDD which serves as
-        # a jumphost with the needed CLI tools to upload the image and create
-        # the VM in the remote openStack environment.
-        # The JeOS HDD is not copied in the openQA pool directory, we need to
-        # download using PUBLIC_CLOUD_IMAGE_LOCATION variable
-        my $img_url = get_required_var('PUBLIC_CLOUD_IMAGE_LOCATION');
-        record_info('URL', "Downloading $img_url ...");
-        system("curl -O $img_url");
-        ($hdd) = $img_url =~ /([^\/]+)$/;
-    } else {
-        $hdd = get_required_var('HDD_1');
-    }
-
+    $hdd = get_required_var('HDD_1');
     if ($hdd =~ /\.xz/) {
         # We want to monitor the size of uncompressed images.
         my $cmd = "nice ionice unxz -k $hdd -c > hdd_uncompressed";

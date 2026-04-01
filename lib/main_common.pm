@@ -122,7 +122,6 @@ our @EXPORT = qw(
   load_extra_tests_y2uitest_gui
   load_extra_tests_kernel
   load_wicked_create_hdd
-  load_jeos_openstack_tests
   load_upstream_systemd_tests
 );
 
@@ -370,7 +369,6 @@ sub default_desktop {
 }
 
 sub load_shutdown_tests {
-    return if is_openstack;
     # Schedule cleanup before shutdown only in cases the HDD will be published
     loadtest("shutdown/cleanup_before_shutdown") if get_var('PUBLISH_HDD_1');
     loadtest "shutdown/shutdown";
@@ -590,51 +588,6 @@ sub load_system_role_tests {
     elsif (is_opensuse) {
         loadtest "installation/installer_desktopselection";
     }
-}
-
-sub load_jeos_openstack_tests {
-    return unless is_openstack;
-    my $args = OpenQA::Test::RunArgs->new();
-    loadtest 'boot/boot_to_desktop';
-    if (get_var('JEOS_OPENSTACK_UPLOAD_IMG')) {
-        loadtest "publiccloud/upload_image";
-        return;
-    } else {
-        loadtest "jeos/prepare_openstack", run_args => $args;
-    }
-
-    if (get_var('LTP_COMMAND_FILE')) {
-        loadtest 'publiccloud/run_ltp';
-        return;
-    } else {
-        loadtest 'publiccloud/ssh_interactive_start', run_args => $args;
-    }
-
-    if (get_var('CI_VERIFICATION')) {
-        loadtest 'jeos/verify_cloudinit', run_args => $args;
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
-        return;
-    }
-
-    loadtest "jeos/image_info";
-    loadtest "jeos/record_machine_id";
-    loadtest "console/system_prepare" if is_sle;
-    loadtest "console/force_scheduled_tasks";
-    loadtest "jeos/host_config";
-    loadtest "jeos/build_key";
-    loadtest "console/prjconf_excluded_rpms";
-    unless (get_var('CI_VERIFICATION')) {
-        loadtest "console/suseconnect_scc";
-    }
-    unless (get_var('CONTAINER_RUNTIMES')) {
-        loadtest "console/journal_check";
-        loadtest "microos/libzypp_config";
-    }
-
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
-    replace_opensuse_repos_tests if is_repo_replacement_required;
-    main_containers::load_container_tests();
-    loadtest("publiccloud/ssh_interactive_end", run_args => $args);
 }
 
 sub load_jeos_tests {
@@ -1230,7 +1183,7 @@ sub load_consoletests {
         # zypper and sle12 doesn't do upgrade or installation snapshots
         # SLES4SAP default installation flow does not configure snapshots
         elsif (!get_var("ZDUP") and !check_var('VERSION', '12') and !is_sles4sap()) {
-            loadtest "console/installation_snapshots" unless get_var('FLAVOR') =~ /OpenStack-Cloud/;
+            loadtest "console/installation_snapshots";
         }
     }
     loadtest "console/opensuse_repos" if is_opensuse && !(is_staging || is_updates_tests);
