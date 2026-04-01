@@ -1,0 +1,34 @@
+From c4faae3037223ce77236ad8bcf03b095bc18a18f Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 2 Apr 2026 00:11:25 +0200
+Subject: [PATCH] Fix test_connect_with_mac_address for Docker v29.3
+
+With (moby/moby#52040), Docker v29.3.0 now correctly applies the
+MacAddress field in EndpointSettings when connecting a container
+to a network.
+
+The test connected a stopped container to immediately inspect it.
+
+Start the container before connecting to the network so the MAC
+is correctly applied and reflected in inspect on both old and new
+Docker versions.
+
+Fixes: https://github.com/docker/docker-py/issues/3389
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/integration/api_network_test.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/tests/integration/api_network_test.py b/tests/integration/api_network_test.py
+index 070282d24..16f39f84c 100644
+--- a/tests/integration/api_network_test.py
++++ b/tests/integration/api_network_test.py
+@@ -415,6 +415,7 @@ def test_connect_with_mac_address(self):
+ 
+         container = self.client.create_container(TEST_IMG, 'top')
+         self.tmp_containers.append(container)
++        self.client.start(container)
+ 
+         self.client.connect_container_to_network(
+             container, net_name, mac_address='02:42:ac:11:00:02'
