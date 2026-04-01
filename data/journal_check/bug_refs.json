@@ -2061,5 +2061,14 @@
             ]
         },
         "type": "ignore"
+    },
+    "bsc#1260381": {
+        "description": "transactional-update.*(ERROR: cannot set cleanup algorithm for snapshot #\\d+|Snapshot '\\d+' not found)",
+        "products": {
+            "microos": [
+                "Tumbleweed"
+            ]
+        },
+        "type": "bug"
     }
 }
