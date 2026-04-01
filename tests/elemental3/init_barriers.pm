@@ -1,4 +1,4 @@
-# Copyright 2025 SUSE LLC
+# Copyright 2025-2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Initialize mutexes and barriers for multi-machine synchronization.

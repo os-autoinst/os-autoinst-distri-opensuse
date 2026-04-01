@@ -1,4 +1,4 @@
-# Copyright 2025 SUSE LLC
+# Copyright 2025-2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Wait for master to initialize the mutexes/barriers.
