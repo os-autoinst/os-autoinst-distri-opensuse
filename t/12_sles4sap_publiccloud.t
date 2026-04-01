@@ -342,7 +342,7 @@ subtest "[stop_hana] crash wait_hana_node_up running" => sub {
 
     $self->stop_hana(method => 'crash');
     note("\n  C -->  " . join("\n  C -->  ", @calls));
-    # Not very important test as we are checking the same within the run_ssh_command mock
+    # Not very important test as we are checking the same within the ssh_script_output mock
     ok((any { qr/systemctl is-system-running/ } @calls), 'function calls systemctl at least one');
 };
 
