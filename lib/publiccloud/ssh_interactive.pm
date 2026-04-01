@@ -26,7 +26,7 @@ sub establish_tunnel_console {
     # Note: Don't use script_run here! The serial terminal is set to /dev/sshserial, so every script_run will time out
     type_string("\n~.\n", max_interval => 1);    # ensure no previous ssh connection is present
     enter_cmd("clear");
-    enter_cmd('ssh -t sut');
+    enter_cmd('ssh -E /var/tmp/ssh_sut.log -t sut');
     # give the ssh connection some time to settle
     sleep 5;
 }
