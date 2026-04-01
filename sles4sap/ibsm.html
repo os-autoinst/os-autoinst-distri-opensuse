@@ -27,6 +27,8 @@
           <li><a href="#ibsm_network_peering_azure_delete">ibsm_network_peering_azure_delete</a></li>
         </ul>
       </li>
+      <li><a href="#ibsm_network_peering_gcp_create">ibsm_network_peering_gcp_create</a></li>
+      <li><a href="#ibsm_network_peering_gcp_delete">ibsm_network_peering_gcp_delete</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ibsm.pm</h1>
@@ -115,6 +117,62 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 </dd>
 <dt id="name_prefix---allow-the-user-to-prepend-name-prefix-to-the-peering-name-to-be-deleted"><b>name_prefix</b> - allow the user to prepend name prefix to the peering name to be deleted</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ibsm_network_peering_gcp_create">ibsm_network_peering_gcp_create</h2>
+
+<pre><code>ibsm_network_peering_gcp_create(
+    ibsm_ncc_hub =&gt; &#39;projects/ibsm-project/locations/global/hubs/ibsm-hub&#39;,
+    sut_network  =&gt; &#39;my-network&#39;,
+    sut_project  =&gt; &#39;my-project&#39;,
+    spoke_name   =&gt; &#39;my-spoke&#39;);</code></pre>
+
+<p>Create a GCP NCC VPC spoke in the SUT project connecting to the IBSm NCC hub. Die if some commands return with error or if the spoke does not turn in ACTIVE state within timeout.</p>
+
+<dl>
+
+<dt id="ibsm_ncc_hub---full-resource-URI-of-the-IBSm-NCC-hub"><b>ibsm_ncc_hub</b> - full resource URI of the IBSm NCC hub</dt>
+<dd>
+
+</dd>
+<dt id="sut_network---name-of-the-SUT-VPC-network-to-attach"><b>sut_network</b> - name of the SUT VPC network to attach</dt>
+<dd>
+
+</dd>
+<dt id="sut_project---GCP-project-ID-of-the-SUT"><b>sut_project</b> - GCP project ID of the SUT</dt>
+<dd>
+
+</dd>
+<dt id="spoke_name---name-for-the-new-spoke"><b>spoke_name</b> - name for the new spoke</dt>
+<dd>
+
+</dd>
+<dt id="spoke_group---name-of-the-hub-group-to-join-e.g.-default"><b>spoke_group</b> - name of the hub group to join (e.g., &#39;default&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="timeout---optional-timeout-waiting-for-ACTIVE-state-default-300"><b>timeout</b> - optional, timeout waiting for ACTIVE state (default 300)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ibsm_network_peering_gcp_delete">ibsm_network_peering_gcp_delete</h2>
+
+<pre><code>ibsm_network_peering_gcp_delete(spoke_name =&gt; &#39;my-spoke&#39; [, timeout =&gt; 600]);</code></pre>
+
+<p>Delete the GCP NCC spoke connecting the SUT to the IBSm hub.</p>
+
+<dl>
+
+<dt id="spoke_name---name-of-the-spoke-to-delete"><b>spoke_name</b> - name of the spoke to delete</dt>
+<dd>
+
+</dd>
+<dt id="timeout---optional-timeout-for-the-delete-operation-default-600"><b>timeout</b> - optional, timeout for the delete operation (default 600)</dt>
 <dd>
 
 </dd>
