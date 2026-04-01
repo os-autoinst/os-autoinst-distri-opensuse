@@ -5,14 +5,6 @@
 #
 # Summary: Execute Kselftests.
 #
-# This module introduces a simplistic openQA runner for kernel selftests. The test
-# module allows running tests kernel selftests from either git repository which should be
-# defined in the test setting: KERNEL_GIT_TREE, from the kernel-source package installed
-# at /usr/src/linux, or from OBS/IBS repository using packaged and build rpm.
-# Running from git supports checking out specific git tag version of the kernel, so if required
-# the tests can checkout the older version, corresponding with the kernel under tests, and run
-# such tests.
-#
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
@@ -221,6 +213,17 @@ F<tools/testing/selftests/kselftest/runner.sh>.
 Example:
 
   KSELFTEST_ENV="KSELFTEST_TEST_PROGS_CPUV4_ARGS='-v -t verifier'"
+
+=head2 KSELFTEST_BUILD_ENV
+
+Optional string containing environment variable assignments to append to
+the C<make> command when building kselftests from source (i.e. when
+C<KSELFTEST_FROM_GIT> or C<KSELFTEST_FROM_SRC> is set). Has no effect
+when installing from a pre-built RPM package.
+
+Example:
+
+  KSELFTEST_BUILD_ENV="SKIP_DOCS=1"
 
 =head1 Example openQA Settings
 
