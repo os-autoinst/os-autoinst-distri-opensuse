@@ -68,6 +68,12 @@ sub run {
     my $release_manifest_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${k8s}_${k8s_version}-${build}\)");
     set_var('RELEASE_MANIFEST_URI', "$release_manifest_uri");
 
+    # Export ELEMENTAL3_IMAGE_TO_TEST
+    my $elemental3_regex = ".*elemental3-\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${elemental3_regex});
+    my $elemental3_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${version}-${build}\)");
+    set_var('ELEMENTAL3_IMAGE_TO_TEST', "$elemental3_uri");
+
     # Export SYSEXT_IMAGES_TO_TEST
     my $elemental3ctl_regex = ".*elemental3ctl-${uc_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
     ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${elemental3ctl_regex});
@@ -100,7 +106,7 @@ sub run {
     }
 
     # Logs, could be useful for debugging purporses
-    foreach my $v ('SYSEXT_IMAGES_TO_TEST', 'RELEASE_MANIFEST_URI', 'CONTAINER_IMAGE_TO_TEST', 'REPO_TO_TEST', 'ISO_IMAGE_TO_TEST') {
+    foreach my $v ('ELEMENTAL3_IMAGE_TO_TEST', 'SYSEXT_IMAGES_TO_TEST', 'RELEASE_MANIFEST_URI', 'CONTAINER_IMAGE_TO_TEST', 'REPO_TO_TEST', 'ISO_IMAGE_TO_TEST') {
         record_info("$v", get_var("$v"));
     }
 }
