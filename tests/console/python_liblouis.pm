@@ -7,9 +7,8 @@
 # Summary: New tests for the braille translation library
 # Maintainer: QE Core <qe-core@suse.com>
 
-## no os-autoinst style
-
-use base "x11test";
+use Mojo::Base 'x11test';
+use serial_terminal qw(select_serial_terminal);
 use testapi;
 use version_utils;
 use utils "zypper_call";
