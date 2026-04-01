@@ -19,6 +19,7 @@ use version_utils qw(is_sle is_public_cloud);
 use Utils::Architectures;
 use Mojo::JSON 'encode_json';
 use publiccloud::instances;
+use mr_test_lib qw(get_notes get_solutions);
 
 =head1 NAME
 
@@ -64,8 +65,6 @@ C<x86_64> or C<ppc64le>.
 our @EXPORT = qw(
   $result_module
   reboot_wait
-  get_notes
-  get_solutions
 );
 
 our $log_file = '/var/log.txt';
@@ -96,43 +95,6 @@ sub reboot_wait {
     else {
         $self->reboot;
     }
-}
-
-=head2 get_notes
-
-    get_notes();
-
-Return a list of SAP notes depending on the OS version of the System Under Test.
-
-=cut
-
-sub get_notes {
-    # Note: We ignore these as we're not testing on cloud:
-    # 1656250 - SAP on AWS: Support prerequisites - only Linux Operating System IO  recommendations
-    # 2993054 - Recommended settings for SAP systems on Linux running in Azure virtual machines
-    if (is_sle('>=16')) {
-        return qw(1410736 1980196 2161991 2382421 2534844 3024346 3565382 3577842 900929 941735 SAP_BOBJ);
-    }
-    if (is_sle('>=15')) {
-        return qw(1410736 1680803 1771258 1805750 1980196 2161991 2382421 2534844 2578899 2684254 3024346 900929 941735 SAP_BOBJ);
-    }
-    else {
-        return qw(1410736 1680803 1771258 1805750 1980196 1984787 2161991 2205917 2382421 2534844 3024346 900929 941735 SAP_BOBJ);
-    }
-}
-
-=head2 get_solutions
-
-    get_solutions();
-
-Return a list of SAP solutions depending on the OS version of the System Under Test.
-
-=cut
-
-sub get_solutions {
-    my @solutions = qw(BOBJ HANA MAXDB NETWEAVER NETWEAVER+HANA S4HANA-APP+DB S4HANA-APPSERVER S4HANA-DBSERVER);
-    return (@solutions, 'SAP-ASE') if is_sle('<16');
-    return @solutions;
 }
 
 =head2 tune_baseline
