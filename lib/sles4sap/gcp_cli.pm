@@ -33,6 +33,9 @@ our @EXPORT = qw(
   gcp_vm_wait_running
   gcp_vm_terminate
   gcp_public_ip_get
+  gcp_ncc_spoke_create
+  gcp_ncc_spoke_delete
+  gcp_ncc_spoke_wait_active
 );
 
 
@@ -73,16 +76,19 @@ Delete a VPC network. Does not assert but returns the exit code.
 
 =item B<name> - name of the VPC network to delete
 
+=item B<timeout> - Optional. By default is 600
+
 =back
 =cut
 
 sub gcp_network_delete(%args) {
     foreach (qw(name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 600;
 
     return script_run(join(' ',
             'gcloud compute networks delete', $args{name},
-            '--quiet'));
+            '--quiet'), timeout => $args{timeout});
 }
 
 =head2 gcp_subnet_create
@@ -137,17 +143,20 @@ Delete a subnet. Does not assert but returns the exit code.
 
 =item B<name> - name of the subnet to delete
 
+=item B<timeout> - Optional. By default is 600
+
 =back
 =cut
 
 sub gcp_subnet_delete(%args) {
     foreach (qw(region name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 600;
 
     return script_run(join(' ',
             'gcloud compute networks subnets delete', $args{name},
             '--quiet',
-            '--region', $args{region}));
+            '--region', $args{region}), timeout => $args{timeout});
 }
 
 =head2 gcp_firewall_rule_create
@@ -198,16 +207,19 @@ Delete a firewall rule. Does not assert but returns the exit code.
 
 =item B<name> - name of the firewall rule to delete
 
+=item B<timeout> - Optional. By default is 600
+
 =back
 =cut
 
 sub gcp_firewall_rule_delete(%args) {
     foreach (qw(name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 600;
 
     return script_run(join(' ',
             'gcloud compute firewall-rules delete', $args{name},
-            '--quiet'));
+            '--quiet'), timeout => $args{timeout});
 }
 
 =head2 gcp_external_ip_create
@@ -254,17 +266,20 @@ Release an external IP address. Does not assert but returns the exit code.
 
 =item B<name> - name of the external IP address to delete
 
+=item B<timeout> - Optional. By default is 600
+
 =back
 =cut
 
 sub gcp_external_ip_delete(%args) {
     foreach (qw(region name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 600;
 
     return script_run(join(' ',
             'gcloud compute addresses delete', $args{name},
             '--quiet',
-            '--region', $args{region}));
+            '--region', $args{region}), timeout => $args{timeout});
 }
 
 =head2 gcp_vm_create
@@ -385,17 +400,20 @@ Delete a VM instance. Does not assert but returns the exit code.
 
 =item B<name> - name of the VM instance to delete
 
+=item B<timeout> - Optional. By default is 600
+
 =back
 =cut
 
 sub gcp_vm_terminate(%args) {
     foreach (qw(zone name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 600;
 
     return script_run(join(' ',
             'gcloud compute instances delete', $args{name},
             '--quiet',
-            '--zone', $args{zone}));
+            '--zone', $args{zone}), timeout => $args{timeout});
 }
 
 =head2 gcp_public_ip_get
@@ -426,6 +444,104 @@ sub gcp_public_ip_get(%args) {
             'gcloud compute instances describe', $args{name},
             '--zone', $args{zone},
             '--format="get(networkInterfaces[0].accessConfigs[0].natIP)"'));
+}
+
+=head2 gcp_ncc_spoke_create
+
+    gcp_ncc_spoke_create(
+        project => 'my-project',
+        name    => 'my-spoke',
+        hub     => 'projects/ibsm-project/locations/global/hubs/ibsm-hub',
+        network => 'my-network');
+
+Create a VPC spoke and attach it to an NCC hub. The hub may be in a different project.
+
+=over
+
+=item B<project> - GCP project ID where the spoke will be created
+
+=item B<name> - name for the spoke
+
+=item B<hub> - full resource URI of the NCC hub
+
+=item B<network> - name of the VPC network to attach
+
+=item B<group> - optional, NCC hub group to join (e.g., 'default')
+
+=back
+=cut
+
+sub gcp_ncc_spoke_create(%args) {
+    foreach (qw(project name hub network)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+
+    my $group_opt = $args{group} ? "--group $args{group}" : '';
+
+    assert_script_run(join(' ',
+            'gcloud network-connectivity spokes linked-vpc-network create', $args{name},
+            '--hub', $args{hub},
+            '--global',
+            $group_opt,
+            '--vpc-network', $args{network},
+            '--project', $args{project}));
+}
+
+=head2 gcp_ncc_spoke_delete
+
+    my $ret = gcp_ncc_spoke_delete(name => 'my-spoke' [, timeout => 600]);
+
+Delete a VPC spoke. Does not assert but returns the exit code.
+
+=over
+
+=item B<name> - name of the spoke to delete
+
+=item B<timeout> - optional, timeout for the delete operation (default 600)
+
+=back
+=cut
+
+sub gcp_ncc_spoke_delete(%args) {
+    foreach (qw(name)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{timeout} //= 600;
+
+    return script_run(join(' ',
+            'gcloud network-connectivity spokes delete', $args{name},
+            '--global',
+            '--quiet'), timeout => $args{timeout});
+}
+
+=head2 gcp_ncc_spoke_wait_active
+
+    gcp_ncc_spoke_wait_active(name => 'my-spoke' [, timeout => 300]);
+
+Wait for an NCC spoke to reach ACTIVE state. Die if it does not reach ACTIVE state within timeout.
+
+=over
+
+=item B<name> - name of the spoke
+
+=item B<timeout> - optional, timeout in seconds (default 300)
+
+=back
+=cut
+
+sub gcp_ncc_spoke_wait_active(%args) {
+    croak("Argument < name > missing") unless $args{name};
+    $args{timeout} //= 300;
+
+    my $start_time = time();
+    while ((time() - $start_time) < $args{timeout}) {
+        my $state = script_output(join(' ',
+                'gcloud network-connectivity spokes describe', $args{name},
+                '--global',
+                '--format="get(state)"'),
+            proceed_on_failure => 1);
+        return (time() - $start_time) if (($state // '') eq 'ACTIVE');
+        sleep 10;
+    }
+    die "NCC spoke $args{name} not ACTIVE after $args{timeout} seconds";
 }
 
 1;
