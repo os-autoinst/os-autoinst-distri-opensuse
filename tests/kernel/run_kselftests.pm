@@ -214,6 +214,17 @@ Example:
 
   KSELFTEST_ENV="KSELFTEST_TEST_PROGS_CPUV4_ARGS='-v -t verifier'"
 
+=head2 KSELFTEST_BUILD_ENV
+
+Optional string containing environment variable assignments to append to
+the C<make> command when building kselftests from source (i.e. when
+C<KSELFTEST_FROM_GIT> or C<KSELFTEST_FROM_SRC> is set). Has no effect
+when installing from a pre-built RPM package.
+
+Example:
+
+  KSELFTEST_BUILD_ENV="SKIP_DOCS=1"
+
 =head1 Example openQA Settings
 
   KSELFTEST_COLLECTION=cgroup
