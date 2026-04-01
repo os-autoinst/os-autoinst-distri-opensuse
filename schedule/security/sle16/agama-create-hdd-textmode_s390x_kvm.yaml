@@ -1,18 +1,23 @@
 name:  agama-create-hdd-textmode_s390x_kvm
 description:    >
-    Install sle16 via agama.auto profile and publish qcow2 image
-
+  Install sle16 via agama.auto profile and publish qcow2 image
 schedule:
-    - installation/bootloader_zkvm
-    - installation/agama_reboot
-    - installation/first_boot
-    - security/installation/enable_repos
-    - console/zypper_lr
-    - console/system_prepare
-    - console/hostname
-    - console/force_scheduled_tasks
-    - security/secureboot/validate_keylength
-    - shutdown/grub_set_bootargs
-    - shutdown/cleanup_before_shutdown
-    - shutdown/shutdown
-    - shutdown/svirt_upload_assets
+  - installation/bootloader_zkvm
+  - installation/agama_reboot
+  - installation/first_boot
+  - security/installation/enable_repos
+  - console/zypper_lr
+  - console/system_prepare
+  - console/hostname
+  - console/force_scheduled_tasks
+  - security/secureboot/validate_keylength
+  - '{{validate_snapshot}}'
+  - shutdown/grub_set_bootargs
+  - shutdown/cleanup_before_shutdown
+  - shutdown/shutdown
+  - shutdown/svirt_upload_assets
+conditional_schedule:
+  validate_snapshot:
+    TRANSACTIONAL:
+      '1':
+        - yam/validate/validate_snapshots

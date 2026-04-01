@@ -13,6 +13,7 @@ schedule:
   - console/hostname
   - console/force_scheduled_tasks
   - security/secureboot/validate_keylength
+  - '{{validate_snapshot}}'
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
@@ -21,3 +22,7 @@ conditional_schedule:
     FLAVOR:
       'Online-Increments':
         - qa_automation/patch_and_reboot
+  validate_snapshot:
+    TRANSACTIONAL:
+      '1':
+        - yam/validate/validate_snapshots
