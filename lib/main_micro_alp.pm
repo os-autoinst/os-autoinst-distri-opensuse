@@ -346,7 +346,6 @@ sub load_slem_on_pc_tests {
             loadtest("publiccloud/create_aistack_env", run_args => $args);
             loadtest("publiccloud/aistack_rbac_run", run_args => $args);
             loadtest("publiccloud/aistack_sanity_run", run_args => $args);
-            loadtest("publiccloud/ssh_interactive_end", run_args => $args);
         } elsif (is_container_test) {
             loadtest("publiccloud/ssh_interactive_start", run_args => $args);
             loadtest("publiccloud/instance_overview", run_args => $args);
@@ -357,7 +356,6 @@ sub load_slem_on_pc_tests {
                 $run_args->{runtime} = $_;
                 load_container_engine_test($run_args);
             }
-            loadtest("publiccloud/ssh_interactive_end", run_args => $args);
         } else {
             loadtest "publiccloud/check_services", run_args => $args;
             loadtest("publiccloud/slem_upgrade_next", run_args => $args) if (get_var('PUBLIC_CLOUD_MIGRATE_SLEM'));
@@ -368,8 +366,8 @@ sub load_slem_on_pc_tests {
                 loadtest "publiccloud/ssh_interactive_start", run_args => $args;
                 loadtest "publiccloud/instance_overview", run_args => $args;
                 loadtest "publiccloud/systemd_detect_virt", run_args => $args;
-                loadtest "publiccloud/ssh_interactive_end", run_args => $args;
             }
+            loadtest("publiccloud/cleanup", run_args => $args);
         }
     }
 }
