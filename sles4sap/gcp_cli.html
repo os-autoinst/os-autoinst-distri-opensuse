@@ -26,6 +26,9 @@
       <li><a href="#gcp_vm_wait_running">gcp_vm_wait_running</a></li>
       <li><a href="#gcp_vm_terminate">gcp_vm_terminate</a></li>
       <li><a href="#gcp_public_ip_get">gcp_public_ip_get</a></li>
+      <li><a href="#gcp_ncc_spoke_create">gcp_ncc_spoke_create</a></li>
+      <li><a href="#gcp_ncc_spoke_delete">gcp_ncc_spoke_delete</a></li>
+      <li><a href="#gcp_ncc_spoke_wait_active">gcp_ncc_spoke_wait_active</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/gcp_cli.pm</h1>
@@ -63,6 +66,10 @@
 <dl>
 
 <dt id="name---name-of-the-VPC-network-to-delete"><b>name</b> - name of the VPC network to delete</dt>
+<dd>
+
+</dd>
+<dt id="timeout---Optional.-By-default-is-600"><b>timeout</b> - Optional. By default is 600</dt>
 <dd>
 
 </dd>
@@ -121,6 +128,10 @@
 <dd>
 
 </dd>
+<dt id="timeout---Optional.-By-default-is-6001"><b>timeout</b> - Optional. By default is 600</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h2 id="gcp_firewall_rule_create">gcp_firewall_rule_create</h2>
@@ -169,6 +180,10 @@
 <dd>
 
 </dd>
+<dt id="timeout---Optional.-By-default-is-6002"><b>timeout</b> - Optional. By default is 600</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h2 id="gcp_external_ip_create">gcp_external_ip_create</h2>
@@ -211,6 +226,10 @@
 
 </dd>
 <dt id="name---name-of-the-external-IP-address-to-delete"><b>name</b> - name of the external IP address to delete</dt>
+<dd>
+
+</dd>
+<dt id="timeout---Optional.-By-default-is-6003"><b>timeout</b> - Optional. By default is 600</dt>
 <dd>
 
 </dd>
@@ -323,6 +342,10 @@
 <dd>
 
 </dd>
+<dt id="timeout---Optional.-By-default-is-6004"><b>timeout</b> - Optional. By default is 600</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h2 id="gcp_public_ip_get">gcp_public_ip_get</h2>
@@ -345,6 +368,76 @@
 
 </dd>
 <dt id="name---name-of-the-VM-instance1"><b>name</b> - name of the VM instance</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_ncc_spoke_create">gcp_ncc_spoke_create</h2>
+
+<pre><code>gcp_ncc_spoke_create(
+    project =&gt; &#39;my-project&#39;,
+    name    =&gt; &#39;my-spoke&#39;,
+    hub     =&gt; &#39;projects/ibsm-project/locations/global/hubs/ibsm-hub&#39;,
+    network =&gt; &#39;my-network&#39;);</code></pre>
+
+<p>Create a VPC spoke and attach it to an NCC hub. The hub may be in a different project.</p>
+
+<dl>
+
+<dt id="project---GCP-project-ID-where-the-spoke-will-be-created"><b>project</b> - GCP project ID where the spoke will be created</dt>
+<dd>
+
+</dd>
+<dt id="name---name-for-the-spoke"><b>name</b> - name for the spoke</dt>
+<dd>
+
+</dd>
+<dt id="hub---full-resource-URI-of-the-NCC-hub"><b>hub</b> - full resource URI of the NCC hub</dt>
+<dd>
+
+</dd>
+<dt id="network---name-of-the-VPC-network-to-attach"><b>network</b> - name of the VPC network to attach</dt>
+<dd>
+
+</dd>
+<dt id="group---optional-NCC-hub-group-to-join-e.g.-default"><b>group</b> - optional, NCC hub group to join (e.g., &#39;default&#39;)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_ncc_spoke_delete">gcp_ncc_spoke_delete</h2>
+
+<pre><code>my $ret = gcp_ncc_spoke_delete(name =&gt; &#39;my-spoke&#39; [, timeout =&gt; 600]);</code></pre>
+
+<p>Delete a VPC spoke. Does not assert but returns the exit code.</p>
+
+<dl>
+
+<dt id="name---name-of-the-spoke-to-delete"><b>name</b> - name of the spoke to delete</dt>
+<dd>
+
+</dd>
+<dt id="timeout---optional-timeout-for-the-delete-operation-default-600"><b>timeout</b> - optional, timeout for the delete operation (default 600)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="gcp_ncc_spoke_wait_active">gcp_ncc_spoke_wait_active</h2>
+
+<pre><code>gcp_ncc_spoke_wait_active(name =&gt; &#39;my-spoke&#39; [, timeout =&gt; 300]);</code></pre>
+
+<p>Wait for an NCC spoke to reach ACTIVE state. Die if it does not reach ACTIVE state within timeout.</p>
+
+<dl>
+
+<dt id="name---name-of-the-spoke"><b>name</b> - name of the spoke</dt>
+<dd>
+
+</dd>
+<dt id="timeout---optional-timeout-in-seconds-default-3001"><b>timeout</b> - optional, timeout in seconds (default 300)</dt>
 <dd>
 
 </dd>
