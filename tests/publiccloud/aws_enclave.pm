@@ -23,8 +23,8 @@ sub run {
     # Prepare system under test
     assert_script_run("curl -sf " . data_url('publiccloud/aws_nitro/Dockerfile') . " -o Dockerfile");
     assert_script_run("curl -sf " . data_url('publiccloud/aws_nitro/allocator.yaml') . " -o allocator.yaml");
-    die "scp failed" if ($instance->scp("Dockerfile", "remote:Dockerfile") != 0);    # upload always happens as ec2-user
-    die "scp failed" if ($instance->scp("allocator.yaml", "remote:allocator.yaml") != 0);
+    $instance->scp("Dockerfile", "remote:Dockerfile");    # upload always happens as ec2-user
+    $instance->scp("allocator.yaml", "remote:allocator.yaml");
     $instance->ssh_assert_script_run("sudo install -D -m root -g root -m 0644 allocator.yaml /etc/nitro_enclaves/allocator.yaml");
 
     # Prepare instance
