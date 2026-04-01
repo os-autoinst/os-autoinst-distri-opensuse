@@ -2070,5 +2070,14 @@
             ]
         },
         "type": "bug"
+    },
+    "bsc#1259633": {
+        "description": "transactional-update.*Snapshot.cc.*(snapshot num \\d+ in future|time shift detected at snapshot num \\d+)",
+        "products": {
+            "microos": [
+                "Tumbleweed"
+            ]
+        },
+        "type": "bug"
     }
 }
