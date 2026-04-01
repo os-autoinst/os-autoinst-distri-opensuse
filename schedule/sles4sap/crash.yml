@@ -3,8 +3,20 @@ name: sles4sap_cloud_crash
 description: |
   crash scenario with one machine for public cloud providers
 schedule:
+    - boot/boot_to_desktop
+    - '{{validate_repos}}'
     - sles4sap/crash/deploy
     - sles4sap/crash/configure
-    - sles4sap/crash/patch_and_reboot
+    - '{{ibsm_peering}}'
+    - sles4sap/crash/patch_system
     - sles4sap/crash/test_crash
     - sles4sap/crash/destroy
+conditional_schedule:
+    validate_repos:
+        IS_MAINTENANCE:
+            1:
+                - publiccloud/validate_repos
+    ibsm_peering:
+        IS_MAINTENANCE:
+            1:
+                - sles4sap/crash/network_peering

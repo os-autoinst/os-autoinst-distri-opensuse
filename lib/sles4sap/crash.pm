@@ -17,7 +17,9 @@ use Exporter qw(import);
 use sles4sap::azure_cli;
 use sles4sap::aws_cli;
 use sles4sap::gcp_cli;
+use sles4sap::ibsm;
 use version_utils qw(is_sle);
+use utils;
 
 =head1 SYNOPSIS
 
@@ -33,8 +35,11 @@ our @EXPORT = qw(
   crash_get_instance
   crash_cleanup
   crash_system_ready
+  crash_network_peering_create
+  crash_network_peering_delete
   crash_softrestart
   crash_wait_back
+  crash_patch_system
 );
 
 use constant DEPLOY_PREFIX => 'crash';
@@ -89,6 +94,10 @@ Run the Azure deployment for the crash test
 
 =item B<os> - existing Load balancer NAME
 
+=item B<address_range> - VNet address prefix
+
+=item B<subnet_range> - Subnet address prefix
+
 =back
 =cut
 
@@ -125,9 +134,9 @@ sub crash_deploy_azure(%args) {
         resource_group => $rg,
         region => $args{region},
         vnet => $vnet,
-        address_prefixes => '10.1.0.0/16',
+        address_prefixes => $args{address_range},
         snet => $subnet,
-        subnet_prefixes => '10.1.0.0/24');
+        subnet_prefixes => $args{subnet_range});
 
     my $nic = DEPLOY_PREFIX . '-nic';
     az_nic_create(
@@ -171,6 +180,10 @@ Returns the instance ID
 
 =item B<ssh_pub_key> - ssh public key to be uploaded in the VM 
 
+=item B<address_range> - VPC CIDR
+
+=item B<subnet_range> - Subnet CIDR
+
 =back
 =cut
 
@@ -183,7 +196,7 @@ sub crash_deploy_aws(%args) {
     my $ssh_key = 'openqa-cli-test-key-' . crash_deploy_name();
     aws_ssh_key_pair_import(ssh_key => $ssh_key, pub_key_path => $args{ssh_pub_key});
 
-    my $vpc_id = aws_vpc_create(region => $args{region}, cidr => "10.0.0.0/28", job_id => $job_id);
+    my $vpc_id = aws_vpc_create(region => $args{region}, cidr => $args{address_range}, job_id => $job_id);
     my $sg_id = aws_security_group_create(
         region => $args{region},
         group_name => 'crash-aws',
@@ -193,7 +206,7 @@ sub crash_deploy_aws(%args) {
 
     my $subnet_id = aws_subnet_create(
         region => $args{region},
-        cidr => '10.0.0.0/28',
+        cidr => $args{subnet_range},
         vpc_id => $vpc_id,
         job_id => $job_id);
 
@@ -252,6 +265,8 @@ Run the GCP deployment for the crash test
 
 =item B<ssh_pub_key> - ssh_key file
 
+=item B<subnet_range> - Subnet CIDR
+
 =back
 =cut
 
@@ -273,7 +288,7 @@ sub crash_deploy_gcp(%args) {
         region => $region,
         name => $subnet_name,
         network => $network_name,
-        cidr => '10.0.0.0/24');
+        cidr => $args{subnet_range});
 
     my $firewall_name = $job_id . '-allow-ssh';
     gcp_firewall_rule_create(
@@ -446,16 +461,17 @@ sub crash_cleanup(%args) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
     if ($args{provider} eq 'AZURE') {
-        crash_destroy_azure();
+        crash_destroy_azure(ibsm_rg => $args{ibsm_rg}, ibsm_ip => $args{ibsm_ip});
     }
     elsif ($args{provider} eq 'EC2') {
-        crash_destroy_aws(region => $args{region});
+        crash_destroy_aws(region => $args{region}, ibsm_ip => $args{ibsm_ip});
     }
     elsif ($args{provider} eq 'GCE') {
         croak('Argument < availability_zone > missing') unless $args{availability_zone};
         crash_destroy_gcp(
             availability_zone => $args{availability_zone},
-            region => $args{region});
+            region => $args{region},
+            ibsm_ip => $args{ibsm_ip});
     }
     else {
         die "Unsupported provider: $args{provider}";
@@ -506,7 +522,7 @@ sub crash_system_ready(%args) {
         $attempt++;
     }
     die "Registration failed after $attempt attempts with exit $rc" unless ($rc == 0);
-    assert_script_run(join(' ', $args{ssh_command}, 'sudo SUSEConnect -s'));
+    assert_script_run(join(' ', $args{ssh_command}, "'sudo SUSEConnect -s'"));
 }
 
 
@@ -601,7 +617,8 @@ Delete the Azure deployment
 
 =cut
 
-sub crash_destroy_azure {
+sub crash_destroy_azure(%args) {
+    crash_network_peering_delete(provider => 'AZURE', ibsm_rg => $args{ibsm_rg}) if ($args{ibsm_ip});
     my $rg = crash_deploy_name();
     record_info('AZURE CLEANUP', "Deleting resource group: $rg");
     az_group_delete(name => $rg, timeout => 360);
@@ -667,6 +684,9 @@ Delete the GCP deployment
 sub crash_destroy_gcp(%args) {
     foreach (qw(availability_zone region)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+
+    crash_network_peering_delete(provider => 'GCE') if ($args{ibsm_ip});
+
     my $job_id = crash_deploy_name();
     my %ret;
     $ret{vm} = gcp_vm_terminate(
@@ -697,6 +717,233 @@ sub crash_destroy_gcp(%args) {
     }
     record_info("Failure in GCP destroy", join("\n", @erro_msg));
     return $exit;
+}
+
+=head2 crash_patch_system
+
+    crash_patch_system(
+        provider => 'GCE',
+        region => 'us-central1',
+        availability_zone => 'b');
+
+Patch the crash system using ssh_fully_patch_system and reboot.
+
+=over
+
+=item B<provider> - Cloud provider name (EC2, AZURE, GCE)
+
+=item B<region> - Cloud region
+
+=item B<availability_zone> - GCP availability zone (optional)
+
+=back
+=cut
+
+sub crash_patch_system (%args) {
+    foreach (qw(provider region)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    croak('Argument < availability_zone > missing') if ($args{provider} eq 'GCE' && !$args{availability_zone});
+
+    my $instance = crash_get_instance(%args);
+
+    ssh_fully_patch_system($instance->username . '@' . $instance->public_ip, $instance);
+
+    $instance->ssh_script_run(cmd => 'sudo reboot');
+
+    # check if the VM has rebooted successfully
+    my $timeout = 600;
+    while ($timeout > 0) {
+        if (script_run('nc -vz -w 1 ' . $instance->public_ip . ' 22') != 0) {
+            record_info('waiting ' . $instance->public_ip . ' boot');
+            sleep 30;
+            $timeout = $timeout - 30;
+        }
+        else {
+            record_info($instance->public_ip . ' reboot successfully');
+            last;
+        }
+    }
+    die $instance->public_ip . ' failed to reboot' if ($timeout <= 0);
+}
+
+=head2 crash_network_peering_create
+
+    crash_network_peering_create(
+        provider  => 'AZURE',
+        ibsm_ip   => '10.1.2.3',
+        region    => 'westeurope',
+        ibsm_rg   => 'IBSmRg');
+
+    crash_network_peering_create(
+        provider          => 'GCE',
+        ibsm_ip           => '10.1.2.3',
+        region            => 'us-central1',
+        availability_zone => 'a',
+        project           => 'my-project',
+        ibsm_ncc_hub      => 'projects/ibsm-project/locations/global/hubs/ibsm-hub');
+
+Create a network peering between the crash test SUT and an IBSm server.
+Supported providers are AZURE (Azure VNet Peering) and GCE (GCP NCC Spoke).
+After peering is established, the IBSm IP is added to /etc/hosts on the SUT
+and optional incident repos are configured.
+
+=over
+
+=item B<provider> - Cloud provider: C<AZURE> or C<GCE>
+
+=item B<ibsm_ip> - IP address of the IBSm server
+
+=item B<region> - Cloud region of the SUT deployment
+
+=item B<ibsm_rg> - Azure Resource Group of the IBSm. Required for AZURE.
+
+=item B<ibsm_ncc_hub> - Full NCC hub resource URI. Required for GCE.
+
+=item B<project> - GCP project ID of the SUT. Required for GCE.
+
+=item B<availability_zone> - GCP availability zone suffix. Required for GCE.
+
+=item B<incident_repos> - Comma-separated list of incident repo URLs (optional)
+
+=item B<repo_host> - Hostname to redirect to IBSm.
+
+=back
+=cut
+
+sub crash_network_peering_create(%args) {
+    foreach (qw(provider ibsm_ip region repo_host)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    croak("Only AZURE and GCE are supported for network peering, got '$args{provider}'")
+      unless ($args{provider} eq 'AZURE' || $args{provider} eq 'GCE');
+
+    if ($args{provider} eq 'AZURE') {
+        croak('Argument < ibsm_rg > missing') unless $args{ibsm_rg};
+    }
+    elsif ($args{provider} eq 'GCE') {
+        foreach (qw(ibsm_ncc_hub project availability_zone)) {
+            croak("Argument < $_ > missing") unless $args{$_};
+        }
+    }
+
+    $args{incident_repos} //= '';
+
+    my %pubip_args = (provider => $args{provider}, region => $args{region});
+    $pubip_args{availability_zone} = $args{availability_zone} if $args{availability_zone};
+    my $vm_ip = crash_pubip(%pubip_args);
+    my $username = crash_get_username(provider => $args{provider});
+
+    my $remote_host = "$username\@$vm_ip";
+    $remote_host = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $remote_host"
+      unless $args{provider} eq 'AZURE';
+    my $ssh_cmd = "ssh $remote_host";
+
+    my $deploy_name = crash_deploy_name();
+
+    if ($args{provider} eq 'AZURE') {
+        ibsm_network_peering_azure_create(
+            ibsm_rg => $args{ibsm_rg},
+            sut_rg => $deploy_name,
+            name_prefix => $deploy_name);
+    }
+    elsif ($args{provider} eq 'GCE') {
+        ibsm_network_peering_gcp_create(
+            ibsm_ncc_hub => $args{ibsm_ncc_hub},
+            sut_network => $deploy_name . '-network',
+            sut_project => $args{project},
+            spoke_name => $deploy_name . '-spoke',
+            spoke_group => get_var('IBSM_NCC_SPOKE_GROUP', 'edge'));
+    }
+
+    repos_add_server_to_hosts(
+        ibsm_ip => $args{ibsm_ip},
+        repo_host => $args{repo_host},
+        incident_repos => $args{incident_repos},
+        ssh_cmd => $ssh_cmd);
+}
+
+=head2 repos_add_server_to_hosts
+
+    repos_add_server_to_hosts(
+        ibsm_ip       => '10.0.0.1',
+        incident_repos => 'http://repo1,http://repo2',
+        ssh_cmd       => 'ssh user@host');
+
+Add the server IP to /etc/hosts and configure incident repos on a single SUT via SSH.
+
+=over
+
+=item B<ibsm_ip> - IP address of the server
+
+=item B<incident_repos> - comma-separated list of incident repository URLs (optional)
+
+=item B<repo_host> - hostname to redirect to server.
+
+=item B<ssh_cmd> - SSH command prefix used to run commands on the SUT
+
+=back
+=cut
+
+sub repos_add_server_to_hosts {
+    my (%args) = @_;
+    foreach (qw(ibsm_ip ssh_cmd repo_host)) {
+        croak("Argument < $_ > missing") unless $args{$_}; }
+    $args{incident_repos} //= '';
+
+    assert_script_run(join(' ', $args{ssh_cmd}, "'echo \"$args{ibsm_ip} $args{repo_host}\" | sudo tee -a /etc/hosts'"));
+    script_run(join(' ', $args{ssh_cmd}, "'sudo cat /etc/hosts'"));
+
+    my $count = 0;
+    my @repos = split(/,/, $args{incident_repos});
+    while (defined(my $maintrepo = shift @repos)) {
+        next if $maintrepo =~ /^\s*$/;
+        if ($maintrepo =~ /Development-Tools/ or $maintrepo =~ /Desktop-Applications/) {
+            record_info('MISSING REPOS',
+                "There are repos in this incident, that are not uploaded. ($maintrepo). Later errors, if they occur, may be due to these.");
+            next;
+        }
+        assert_script_run(join(' ', $args{ssh_cmd}, "'sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count'"));
+        $count++;
+    }
+}
+
+=head2 crash_network_peering_delete
+
+    crash_network_peering_delete(
+        provider => 'AZURE',
+        ibsm_rg  => 'IBSmRg');
+
+    crash_network_peering_delete(
+        provider => 'GCE');
+
+Delete the network peering between the crash test SUT and the IBSm server.
+Supported providers are AZURE and GCE.
+
+=over
+
+=item B<provider> - Cloud provider: C<AZURE> or C<GCE>
+
+=item B<ibsm_rg> - Azure Resource Group of the IBSm. Required for AZURE.
+
+=back
+=cut
+
+sub crash_network_peering_delete(%args) {
+    croak('Argument < provider > missing') unless $args{provider};
+
+    if ($args{provider} eq 'AZURE') {
+        croak('Argument < ibsm_rg > missing') unless $args{ibsm_rg};
+        ibsm_network_peering_azure_delete(
+            sut_rg => crash_deploy_name(),
+            ibsm_rg => $args{ibsm_rg},
+            name_prefix => crash_deploy_name());
+    }
+    elsif ($args{provider} eq 'GCE') {
+        ibsm_network_peering_gcp_delete(
+            spoke_name => crash_deploy_name() . '-spoke');
+    }
+    else {
+        die "Unsupported provider for network peering: $args{provider}";
+    }
 }
 
 1;
