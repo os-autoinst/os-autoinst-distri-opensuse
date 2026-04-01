@@ -32,6 +32,7 @@ use maintenance_smelt qw(is_embargo_update);
 my $openqa_port_allowed = 0;
 
 our @EXPORT = qw(
+  is_mercury_retrograde
   deregister_addon
   define_secret_variable
   get_credentials
@@ -1000,6 +1001,56 @@ sub pc_data_url {
     return "$git_url/-/raw/$commit/$path" if ($git_url =~ m{^https?://(?:www\.)?gitlab\.});
     # Assume Gitea (used by src.suse.de & src.opensuse.org)
     return "$git_url/src/commit/$commit/$path";
+}
+
+# Constants for J2000 Epoch
+use constant J2000 => 2451545.0;
+
+sub _get_julian_date {
+    my ($dt) = @_;
+    return $dt->jd;
+}
+
+# Simplified Keplerian calculation for Mercury's geocentric position
+sub is_mercury_retrograde {
+    my ($class, $dt) = @_;
+    $dt //= DateTime->now;
+
+    my $d = _get_julian_date($dt) - J2000;
+
+    # Calculate Longitude of the Ascending Node, Inclination, etc.
+    # Elements sourced from JPL's approximate orbital elements
+    my $M_earth = 357.5291 + 0.98560028 * $d;
+    my $M_merc = 174.7947 + 4.09233443 * $d;
+
+    # Helocentric longitudes (simplified)
+    my $L_earth = deg2rad(100.4643 + 0.9856091 * $d);
+    my $L_merc = deg2rad(252.2503 + 4.0923444 * $d);
+
+    # Retrograde occurs when the relative angular velocity
+    # of Mercury from Earth's perspective is negative.
+    # This happens near inferior conjunction.
+
+    my $is_retrograde = sub {
+        my $day_offset = shift;
+        my $t = $d + $day_offset;
+        # Geocentric Longitude Approximation formula
+        # (Simplified Geocentric Ecliptic Longitude)
+        my $earth_pos = 0.9856 * $t;
+        my $merc_pos = 4.0923 * $t;
+        return rad2deg(atan2(sin(deg2rad($merc_pos - $earth_pos)), 0.387 - cos(deg2rad($merc_pos - $earth_pos))));
+    };
+
+    # Delta check: Is the longitude decreasing over a 24-hour window?
+    my $long_today = $is_retrograde->(0);
+    my $long_tomorrow = $is_retrograde->(1);
+
+    # Handle the 360/0 degree wrap-around
+    my $diff = $long_tomorrow - $long_today;
+    $diff += 360 if $diff < -180;
+    $diff -= 360 if $diff > 180;
+
+    return $diff < 0 ? 1 : 0;
 }
 
 1;
