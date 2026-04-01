@@ -42,7 +42,7 @@ sub run {
     my $arch = get_required_var('ARCH');
     my $k8s = get_required_var('K8S');
     my $os_version = get_required_var('VERSION');
-    my $kernel_type = get_var('KERNEL_TYPE');
+    my $kernel_type = get_var('KERNEL_TYPE', '');
     my $kernel = "base-os-kernel-${kernel_type}-${os_version}";
     my $totest_path = get_required_var('TOTEST_PATH');
     my $uc_version = get_required_var('UC_VERSION');

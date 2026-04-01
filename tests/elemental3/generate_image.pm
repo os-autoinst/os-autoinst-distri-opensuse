@@ -29,7 +29,7 @@ containerized OS image.
 sub build_installer_cmd {
     my (%args) = @_;
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
-    my $krnlcmdline = get_var('KERNEL_CMD_LINE');
+    my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $isocmdline = get_var('ISO_CMD_LINE');
     my $config_file = "$args{config_dir}/config.sh";
     my $iso_config_file = "$args{config_dir}/config-iso.sh";
@@ -84,7 +84,7 @@ sub customize_cmd {
     my (%args) = @_;
     my $crypto_policy = get_var('CRYPTO_POLICY');
     my $device = get_var('INSTALL_DISK', '/dev/vda');
-    my $krnlcmdline = get_var('KERNEL_CMD_LINE');
+    my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $manifest_uri = get_required_var('RELEASE_MANIFEST_URI');
     my $type = get_required_var('IMAGE_TYPE');
     my $tpl_tar = "$args{config_dir}/$args{template}";
@@ -251,7 +251,7 @@ containerized OS image.
 sub install_cmd {
     my (%args) = @_;
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
-    my $krnlcmdline = get_var('KERNEL_CMD_LINE');
+    my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $config_file = "$args{config_dir}/config.sh";
     my $device = '/dev/nbd0';
     my $k8s_sysext_found;
