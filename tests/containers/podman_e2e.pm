@@ -76,12 +76,9 @@ sub run {
     );
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
-    # mapping of known expected failures
     my @xfails = (
         'Libpod Suite::[It] Podman pod create podman pod create --restart=on-failure',
         'Libpod Suite::[It] Podman run memory podman run memory test on oomkilled container',
-        # Fails with "registry.access.redhat.com/*openshift*"
-        'Libpod Suite::[It] Podman search podman search with wildcards',
     );
     push @xfails, (
         # Fixed in podman 5.6.1:
@@ -89,6 +86,11 @@ sub run {
         'Libpod Suite::[It] Podman run with volumes podman run with --mount and named volume with driver-opts',
         'Libpod Suite::[It] Podman run with volumes podman named volume copyup',
     ) if (version->parse(numeric_version($version)) < version->parse("5.6.1"));
+    push @xfails, (
+        # Fixed in podman 5.8.0 with https://github.com/containers/podman/pull/27333
+        # Fails with "registry.access.redhat.com/*openshift*"
+        'Libpod Suite::[It] Podman search podman search with wildcards',
+    ) if (version->parse(numeric_version($version)) < version->parse("5.8.0"));
     push @xfails, (
         'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     ) if (get_var("ROOTLESS"));
