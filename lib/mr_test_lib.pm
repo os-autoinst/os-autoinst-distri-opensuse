@@ -52,7 +52,7 @@ sub load_mr_tests {
             $note_solution = 'solution_';
         }
         elsif (grep { /^${test}$/ } get_notes()) {
-            $note_solution = 'note_';
+            $note_solution = 'note_';de
         }
         $tinfo = testinfo({}, test => $test);
         loadtest_mr_test("$script", name => $i . '_saptune_' . $note_solution . $test, run_args => $tinfo);
