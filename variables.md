@@ -491,6 +491,7 @@ XFSTESTS_DEBUG | string | | set it to enable debug tools under /proc/sys/kernel/
 RAW_DUMP | boolean | 0 | set RAW_DUMP=1 to collect raw dump. It uses dd to collect start 512k info to dump the superblock of SCRATCH_DEV or SCRATCH_DEV_POOL
 INJECT_INFO | string | | Add 1 or several lines of code into xfstests level test script(not in openqa script). To add some debug or log collect info. This code will be used by the test wrapper, it will influence all subtests in this test, so better to only use it in debug and set XFSTESTS_RANGES to the subtest you want to. It contains 2 parameters split by space, the format: '<line-number><space><code>'. Beware the output may not match after injection, and better not to add space in the <code> part to avoid mistakes. e.g. INJECT_INFO='49 free' (to check memory in test code line 49)
 INJECT_INFO='<line-number> xtrace | string | | A special inject code is to set xtrace to debug shell script. Set INJECT_INFO='<line-number> xtrace' to openqa configure to enable it and start to record command start after injecting line <line-number>, and redirect debug info to /opt/log/xxx_xtrace.log
+XFSTESTS_CLEAN_BEFORE_TEST | string | | Set test name or a test range, tests inside this range will do TEST_DEV clean up in wrapper before each tests. e.g: XFSTESTS_CLEAN_BEFORE_TEST='xfs/250-252,xfs/259'
 
 SCC REGCODES: registering product modules in SCC
 Variable        | Type      | Default value | Details

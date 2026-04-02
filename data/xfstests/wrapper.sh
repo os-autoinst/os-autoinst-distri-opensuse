@@ -126,11 +126,8 @@ function smart_clean() {
         if mountpoint -q "$TEST_DIR"; then
             umount -f "$TEST_DIR" 2>/dev/null
         fi
-        if [[ "$FSTYPE" == "xfs" ]] && [ -b "$TEST_DEV" ]; then
+        if [[ "$FSTYPE" == "xfs" ]] && [ -n "$TEST_DEV" ] && [ -b "$TEST_DEV" ]; then
             xfs_repair -L "$TEST_DEV" &>/dev/null
-            mount "$TEST_DEV" "$TEST_DIR"
-        else
-            mount "$TEST_DEV" "$TEST_DIR"
         fi
         # Clean SCRATCH_DEV
         for i in {1..5}; do
