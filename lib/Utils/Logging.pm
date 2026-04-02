@@ -32,6 +32,7 @@ our @EXPORT = qw(
   save_ulog
   export_healthcheck_basic
   select_log_console
+  cleanup_known_coredumps
   upload_coredumps
   export_logs
   problem_detection
@@ -158,6 +159,33 @@ This should be especially useful in C<post_fail_hook> implementations.
 =cut
 
 sub select_log_console { select_console('log-console', timeout => 180, @_) }
+
+=head2 cleanup_known_coredumps
+
+ cleanup_known_coredumps;
+
+Remove known coredumps, following upload_coredumps in coredump_collect will
+fail on present unexpected coredump
+
+=cut
+
+sub cleanup_known_coredumps {
+    my %known_coredumps = (
+        # don't add ", it will get lost in compared string
+        'poo#198596' => q(openssl3-conf\/base_only.cnf -p \$'hello'),
+        'bsc#1129403' => q(unzip-mem  v files.zip)
+    );
+
+    for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1))) {
+        for my $known (keys %known_coredumps) {
+            my $coredump_info = script_output("time coredumpctl info --no-pager $pid", proceed_on_failure => 1);
+            if (script_output("echo \"$coredump_info\" | awk -F ': ' '/Command Line/ {print \$2}'") =~ /$known_coredumps{$known}/) {
+                record_info('Known dump', $coredump_info);
+                script_output("rm -vf \$(echo \"$coredump_info\" | awk '/Storage:/ {print \$2}')");
+            }
+        }
+    }
+}
 
 =head2 upload_coredumps
 
