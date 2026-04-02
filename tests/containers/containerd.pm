@@ -84,12 +84,10 @@ sub run {
     );
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
 
-    my @xfails = (
-        "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
-    );
+    my @xfails = ();
     push @xfails, (
-        "github.com/containerd/containerd/integration/client::TestExportAndImportMultiLayer",
-    ) if (is_s390x);
+        "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
+    ) if (version->parse(numeric_version($version)) < version->parse("2.1.0"));
 
     run_timeout_command "$env gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root &> containerd.txt", no_assert => 1, timeout => 600;
     upload_logs "containerd.txt";

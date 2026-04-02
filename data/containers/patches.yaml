@@ -59,6 +59,8 @@ conmon:
     min: "2.2.0"
 
 containerd:
+  # https://github.com/containerd/containerd/pull/13149 - Skip TestExportAndImportMultiLayer on s390x
+  13149:
 
 docker-py:
   # https://github.com/docker/docker-py/pull/3261 - Bump default API version to 1.45 (Moby 26.0/26.1)
