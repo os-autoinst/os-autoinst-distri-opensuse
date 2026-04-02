@@ -22,7 +22,7 @@ sub run {
     my $region = get_required_var('PUBLIC_CLOUD_REGION');
 
     select_serial_terminal;
-    my %cleanup_args = (provider => $provider, region => $region);
+    my %cleanup_args = (provider => $provider, region => $region, ibsm_rg => get_var('IBSM_RG'), ibsm_ip => get_var('IBSM_IP'));
     $cleanup_args{availability_zone} = get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') if $provider eq 'GCE';
     crash_cleanup(%cleanup_args);
 }

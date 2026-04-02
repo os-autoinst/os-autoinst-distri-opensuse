@@ -42,6 +42,7 @@ use serial_terminal 'select_serial_terminal';
 use utils qw(script_retry);
 use sles4sap::aws_cli;
 use sles4sap::crash;
+use sles4sap::ibsm;
 
 sub run {
     my ($self) = @_;
@@ -51,13 +52,17 @@ sub run {
     my $provider = $self->provider_factory();
     assert_script_run('rm -f ~/.ssh/config');
 
+    my %range = ibsm_calculate_address_range(slot => get_required_var('WORKER_ID'));
+
     if ($provider_type eq 'EC2') {
         my $instance_id = crash_deploy_aws(
             region => get_var('PUBLIC_CLOUD_REGION'),
             image_name => $provider->get_image_id(),
             image_owner => get_var('PUBLIC_CLOUD_EC2_ACCOUNT_ID', '679593333241'),
             ssh_pub_key => $provider->ssh_key . ".pub",
-            instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'));
+            instance_type => get_required_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
+            address_range => $range{main_address_range},
+            subnet_range => $range{subnet_address_range});
 
         my $ip_address = aws_get_ip_address(instance_id => $instance_id);
         my $ssh_cmd = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ec2-user\@$ip_address";
@@ -67,7 +72,11 @@ sub run {
         my $os_ver = get_var('PUBLIC_CLOUD_IMAGE_LOCATION') ?
           $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) :
           $provider->get_image_id();
-        crash_deploy_azure(os => $os_ver, region => $provider->provider_client->region);
+        crash_deploy_azure(
+            os => $os_ver,
+            region => $provider->provider_client->region,
+            address_range => $range{main_address_range},
+            subnet_range => $range{subnet_address_range});
     }
     elsif ($provider_type eq 'GCE') {
         crash_deploy_gcp(
@@ -77,7 +86,8 @@ sub run {
             image_name => $provider->get_image_id() =~ s/.*\///r,
             image_project => get_required_var('PUBLIC_CLOUD_IMAGE_PROJECT'),
             machine_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'n1-standard-2'),
-            ssh_pub_key => $provider->ssh_key . '.pub');
+            ssh_pub_key => $provider->ssh_key . '.pub',
+            subnet_range => $range{subnet_address_range});
     }
     else {
         die("Unsupported provider: $provider_type");
