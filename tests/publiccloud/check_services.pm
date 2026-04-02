@@ -98,7 +98,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 0, publiccloud_multi_module => 1};
+    return {fatal => 0};
 }
 
 1;

@@ -47,7 +47,7 @@ use publiccloud::ssh_interactive qw(select_host_console);
 use publiccloud::utils qw(zypper_call_remote is_azure);
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {

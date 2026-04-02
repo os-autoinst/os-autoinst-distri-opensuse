@@ -48,7 +48,7 @@ use serial_terminal 'select_serial_terminal';
 use Time::HiRes 'sleep';
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {

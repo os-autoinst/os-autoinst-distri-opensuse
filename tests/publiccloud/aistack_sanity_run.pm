@@ -18,7 +18,7 @@ use version_utils;
 use transactional qw(process_reboot trup_install trup_shell trup_call);
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {

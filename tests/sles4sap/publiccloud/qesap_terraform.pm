@@ -57,7 +57,7 @@ use publiccloud::utils qw(is_gce);
 use sles4sap::qesap::qesapdeployment;
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {

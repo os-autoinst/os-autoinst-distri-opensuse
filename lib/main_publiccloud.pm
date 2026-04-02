@@ -84,9 +84,8 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/selinux" if (is_sle("16.0+"));
             loadtest "publiccloud/gcp_google_guest_agent" if (is_gce() && is_sle("16.0+"));
         }
-
-        loadtest('publiccloud/cleanup', run_args => $args);
     }
+    loadtest('publiccloud/cleanup', run_args => $args);
 }
 
 sub load_publiccloud_consoletests {

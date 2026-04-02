@@ -125,8 +125,7 @@ sub run {
 sub test_flags {
     return {
         fatal => 0,
-        milestone => 0,
-        publiccloud_multi_module => 1
+        milestone => 0
     };
 }
 

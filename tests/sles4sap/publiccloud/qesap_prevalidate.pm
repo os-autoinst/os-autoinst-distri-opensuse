@@ -49,7 +49,7 @@ use sles4sap::publiccloud;
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {

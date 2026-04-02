@@ -125,9 +125,5 @@ sub debug {
     }
 }
 
-sub test_flags {
-    return {publiccloud_multi_module => 1};
-}
-
 1;
 
