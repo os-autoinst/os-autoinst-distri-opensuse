@@ -40,10 +40,6 @@ sub should_fully_build_ltp_from_git {
     return get_var('PUBLIC_CLOUD_LTP_GIT_FULL_BUILD', 0);    # 1 if env var is set, otherwise 0
 }
 
-sub should_partially_build_ltp_from_git {
-    return get_var('PUBLIC_CLOUD_LTP_GIT_BUILD', 0);    # 1 if env var is set, otherwise 0
-}
-
 sub should_partially_build_ltp_from_git_modules_install {
     return get_var('PUBLIC_CLOUD_LTP_BUILD_MODULES', 0);    # 1 if env var is set, otherwise 0
 }
@@ -428,7 +424,7 @@ sub run {
         $self->fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
     } else {
         $self->install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
-        $self->partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git() || should_partially_build_ltp_from_git_modules_install();
+        $self->partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git_modules_install();
     }
 
     $self->gen_ltp_env($instance, $ltp_pkg);
@@ -603,7 +599,7 @@ sub cleanup {
 sub gen_ltp_env {
     my ($self, $instance, $ltp_pkg) = @_;
     my $ltp_version = get_var('LTP_RELEASE', 'master');
-    unless (should_partially_build_ltp_from_git() || should_fully_build_ltp_from_git()) {
+    unless (should_fully_build_ltp_from_git()) {
         $ltp_version = $instance->ssh_script_output(cmd => qq(rpm -q --qf '%{VERSION}\n' $ltp_pkg));
     }
     $self->{ltp_env} = prepare_whitelist_environment();
