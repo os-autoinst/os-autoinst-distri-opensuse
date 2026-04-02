@@ -335,6 +335,7 @@ sub configure_oci_runtime {
     run_command "mkdir -p /etc/containers/containers.conf.d";
     run_command 'echo -e "[engine]\nruntime=\"' . $oci_runtime . '\"" > /etc/containers/containers.conf.d/engine.conf';
     record_info("OCI runtime", script_output("$oci_runtime --version"));
+    record_info("$oci_runtime features", script_output("$oci_runtime features"));
 }
 
 sub delegate_controllers {
