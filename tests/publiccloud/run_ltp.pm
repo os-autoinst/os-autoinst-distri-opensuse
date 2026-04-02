@@ -114,21 +114,6 @@ sub partially_build_ltp_from_git {
     record_info("LTP Partial Build Time", "Time taken build from source: " . (time() - $start) . " seconds");
 }
 
-sub partially_build_ltp_from_git_modules_install {
-    my ($self, $instance, $ltp_dir, $ltp_prefix) = @_;
-
-    my $start = time();
-    my $ltp_subdir_build_timeout = 5 * 60;
-
-    $self->install_build_deps($instance);
-    $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
-    $instance->ssh_assert_script_run(
-        cmd => "sudo make -C $ltp_dir -j\$(getconf _NPROCESSORS_ONLN) modules-install",
-        timeout => $ltp_subdir_build_timeout
-    );
-    record_info("LTP Partial Build Time", "Time taken build from source: " . (time() - $start) . " seconds");
-}
-
 sub get_ltp_rpm
 {
     my ($url) = @_;
@@ -443,8 +428,7 @@ sub run {
         $self->fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
     } else {
         $self->install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
-        $self->partially_build_ltp_from_git_modules_install($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git_modules_install();
-        $self->partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git();
+        $self->partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git() || should_partially_build_ltp_from_git_modules_install();
     }
 
     $self->gen_ltp_env($instance, $ltp_pkg);
