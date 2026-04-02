@@ -43,18 +43,18 @@ schedule/hpc/ @d3flex @schlad
 tests/publiccloud/nvidia.pm @d3flex
 
 # QE-SAP
-data/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-data/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-lib/hacluster.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-lib/qesapdeployment.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-lib/sles4sap.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-lib/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-lib/sles4sap_publiccloud.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-lib/sles4sap_publiccloud_basetest.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-schedule/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-schedule/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-tests/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
-tests/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot
+data/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+data/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+lib/hacluster.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+lib/qesapdeployment.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+lib/sles4sap.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+lib/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+lib/sles4sap_publiccloud.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+lib/sles4sap_publiccloud_basetest.pm @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+schedule/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+schedule/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+tests/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
+tests/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
 
 # Security
 data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi
