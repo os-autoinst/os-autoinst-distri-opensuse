@@ -59,18 +59,18 @@ sub load_mr_tests {
         $i++;
     }
 
-    # Load 'cleanup.pm' here instead of adding to 'schedule/sles4sap/sles4sap_gnome_saptune.yaml'
-    # otherwise 'cleanup.pm' will be started to run before 'load_mr_tests' finished.
+    # Load 'ssh_interactive_end.pm' here instead of adding to 'schedule/sles4sap/sles4sap_gnome_saptune.yaml'
+    # otherwise 'ssh_interactive_end.pm' will be started to run before 'load_mr_tests' finished.
     # Paste the messages which are cut out from openQA log file FYI for a better understanding:
     #   [debug] ||| starting mr_test tests/sles4sap/saptune/mr_test.pm
     #   [debug] ||| finished mr_test sles4sap/saptune
     #   [debug] scheduling 1_saptune_notes .../mr_test_run.pm
-    #   [debug] ||| starting cleanup tests/publiccloud/cleanup.pm
-    #   [debug] ||| finished cleanup publiccloud
+    #   [debug] ||| starting ssh_interactive_end tests/publiccloud/ssh_interactive_end.pm
+    #   [debug] ||| finished ssh_interactive_end publiccloud
     #   [debug] ||| starting 1_saptune_notes .../mr_test_run.pm
     #   [debug] ||| finished 1_saptune_notes lib
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        loadtest_mr_test('tests/publiccloud/cleanup', run_args => $args);
+        loadtest_mr_test('tests/publiccloud/ssh_interactive_end', run_args => $args);
         loadtest_mr_test('tests/sles4sap/publiccloud/qesap_cleanup', run_args => $args);
     }
 

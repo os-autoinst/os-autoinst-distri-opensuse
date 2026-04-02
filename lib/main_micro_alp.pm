@@ -368,7 +368,7 @@ sub load_slem_on_pc_tests {
                 loadtest "publiccloud/systemd_detect_virt", run_args => $args;
             }
         }
-        loadtest("publiccloud/cleanup", run_args => $args);
+        loadtest("publiccloud/destroy", run_args => $args);
     }
 }
 

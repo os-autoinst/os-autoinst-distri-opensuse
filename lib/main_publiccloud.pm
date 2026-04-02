@@ -85,7 +85,7 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/gcp_google_guest_agent" if (is_gce() && is_sle("16.0+"));
         }
     }
-    loadtest('publiccloud/cleanup', run_args => $args);
+    loadtest('publiccloud/destroy', run_args => $args);
 }
 
 sub load_publiccloud_consoletests {
@@ -188,7 +188,7 @@ sub load_latest_publiccloud_tests {
     } else {
         die "*publiccloud - Latest* expects PUBLIC_CLOUD_* job variable. None is matched from the expected ones.";
     }
-    loadtest('publiccloud/cleanup', run_args => $args);
+    loadtest('publiccloud/destroy', run_args => $args);
 }
 
 sub load_create_publiccloud_tools_image {
@@ -240,7 +240,7 @@ sub load_publiccloud_appimg_tests {
     else {
         die("Unknown PUBLIC_CLOUD_APP_IMG setting");
     }
-    loadtest('publiccloud/cleanup', run_args => $args);
+    loadtest('publiccloud/destroy', run_args => $args);
 }
 
 =head2 load_publiccloud_tests
