@@ -126,7 +126,7 @@ sub load_latest_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
     if (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest "publiccloud/upload_image", run_args => $args;
-        return; # Do not continue as there is no instance to destroy
+        return;    # Do not continue as there is no instance to destroy
     } elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/img_proof", run_args => $args;
     }
