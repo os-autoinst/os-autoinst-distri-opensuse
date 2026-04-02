@@ -195,8 +195,10 @@ podman:
 podman-py:
   # https://github.com/containers/podman-py/pull/623 - Fix pytest flag for rootful test
   # https://github.com/containers/podman-py/pull/637 - tests/integration: Skip test on non-x86_64 arches
+  # https://github.com/containers/podman-py/pull/641 - tests: Remove obsolete podman 3.1 skip markers
   623:
   637:
+  641:
 
 runc:
   # https://github.com/opencontainers/runc/pull/4842 - Update busybox:glibc in integration tests to latest builds
