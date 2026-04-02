@@ -328,6 +328,7 @@ sub load_slem_on_pc_tests {
     } elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/upload_image");
+        return; # Do not continue as there is no instance to destroy
     } else {
         # SLEM basic test
         loadtest("boot/boot_to_desktop");

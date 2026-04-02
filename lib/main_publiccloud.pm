@@ -124,7 +124,10 @@ my $should_use_runargs = sub {
 
 sub load_latest_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
-    if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+    if (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
+        loadtest "publiccloud/upload_image", run_args => $args;
+        return; # Do not continue as there is no instance to destroy
+    } elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/img_proof", run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_LTP')) {
@@ -182,9 +185,6 @@ sub load_latest_publiccloud_tests {
                 loadtest "publiccloud/gcp_google_guest_agent" if (is_gce() && is_sle("16.0+"));
             }
         }
-    }
-    elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
-        loadtest "publiccloud/upload_image", run_args => $args;
     } else {
         die "*publiccloud - Latest* expects PUBLIC_CLOUD_* job variable. None is matched from the expected ones.";
     }
