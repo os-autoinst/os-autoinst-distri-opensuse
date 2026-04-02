@@ -25,6 +25,21 @@ sub run_tests {
     # systemd cgroups manager only works on cgroup v2
     $env{RUNC_USE_SYSTEMD} = "1" if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") == 0);
 
+    if ($rootless) {
+        # /etc/subgid is keyed by user, not group
+        my ($gid_start, $gid_len) = split / /, script_output(
+            q(awk -F: -v user="$(id -un)" '$1 == user { print $2, $3; exit }' /etc/subgid)
+        );
+        my ($uid_start, $uid_len) = split / /, script_output(
+            q(awk -F: -v user="$(id -un)" '$1 == user { print $2, $3; exit }' /etc/subuid)
+        );
+        $env{ROOTLESS_FEATURES} = "idmap";
+        $env{ROOTLESS_GIDMAP_START} = $gid_start;
+        $env{ROOTLESS_GIDMAP_LENGTH} = $gid_len;
+        $env{ROOTLESS_UIDMAP_START} = $uid_start;
+        $env{ROOTLESS_UIDMAP_LENGTH} = $uid_len;
+    }
+
     my $log_file = "runc-" . ($rootless ? "user" : "root");
 
     my @xfails = ();
