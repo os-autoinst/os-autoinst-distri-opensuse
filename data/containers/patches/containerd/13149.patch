@@ -1,0 +1,29 @@
+From 2b7085767c4966871eec29ea1d3dd065b6fd2461 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 2 Apr 2026 18:35:51 +0200
+Subject: [PATCH] Skip TestExportAndImportMultiLayer on s390x
+
+The test image ghcr.io/containerd/volume-copy-up:2.1 does not include
+a manifest for s390x, causing the test to fail with:
+"no manifest found for platform: not found".
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ integration/client/import_test.go | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/integration/client/import_test.go b/integration/client/import_test.go
+index 7a809a3af9dee..3922b5c30d59e 100644
+--- a/integration/client/import_test.go
++++ b/integration/client/import_test.go
+@@ -65,6 +65,10 @@ func TestExportAndImport(t *testing.T) {
+ // images remain sane, and that the Garbage Collector won't delete part of its
+ // content.
+ func TestExportAndImportMultiLayer(t *testing.T) {
++	// ghcr.io/containerd/volume-copy-up:2.1 is not available on s390x
++	if runtime.GOARCH == "s390x" {
++		t.Skip("test image not available on s390x")
++	}
+ 	testExportImport(t, testMultiLayeredImage)
+ }
+ 
