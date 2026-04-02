@@ -35,6 +35,7 @@ sub run {
     # signal the NFS client we are ready
     barrier_wait('KRB5_NFS_SERVER_READY');
     # wait for the client to finish the test before exiting, otherwise it may
+    barrier_wait('KRB5_NFS_TEST_DONE_SC');
     barrier_wait('KRB5_NFS_TEST_DONE');
 }
 

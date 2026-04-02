@@ -38,7 +38,7 @@ sub run {
       sub { m/krb5server/ };
     # ensure the hostname is not changed after ssh connection
     validate_script_output "hostname", sub { m/krb5client/ };
-    barrier_wait('KRB5_SSH_TEST_DONE');
+    barrier_wait('KRB5_SSH_TEST_DONE_SC');
 }
 
 sub test_flags {

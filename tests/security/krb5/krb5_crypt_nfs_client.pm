@@ -39,7 +39,7 @@ sub run {
         assert_script_run "touch $nfs_mntdir/$nfs_fname";
         assert_script_run "umount $nfs_mntdir";
     }
-    barrier_wait('KRB5_NFS_TEST_DONE');
+    barrier_wait('KRB5_NFS_TEST_DONE_SC');
 }
 
 sub test_flags {
