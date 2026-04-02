@@ -29,6 +29,10 @@
       <li><a href="#crash_destroy_azure">crash_destroy_azure</a></li>
       <li><a href="#crash_destroy_aws">crash_destroy_aws</a></li>
       <li><a href="#crash_destroy_gcp">crash_destroy_gcp</a></li>
+      <li><a href="#crash_patch_system">crash_patch_system</a></li>
+      <li><a href="#crash_network_peering_create">crash_network_peering_create</a></li>
+      <li><a href="#repos_add_server_to_hosts">repos_add_server_to_hosts</a></li>
+      <li><a href="#crash_network_peering_delete">crash_network_peering_delete</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/crash.pm</h1>
@@ -71,6 +75,14 @@
 <dd>
 
 </dd>
+<dt id="address_range---VNet-address-prefix"><b>address_range</b> - VNet address prefix</dt>
+<dd>
+
+</dd>
+<dt id="subnet_range---Subnet-address-prefix"><b>subnet_range</b> - Subnet address prefix</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h2 id="crash_deploy_aws">crash_deploy_aws</h2>
@@ -96,6 +108,14 @@
 
 </dd>
 <dt id="ssh_pub_key---ssh-public-key-to-be-uploaded-in-the-VM"><b>ssh_pub_key</b> - ssh public key to be uploaded in the VM</dt>
+<dd>
+
+</dd>
+<dt id="address_range---VPC-CIDR"><b>address_range</b> - VPC CIDR</dt>
+<dd>
+
+</dd>
+<dt id="subnet_range---Subnet-CIDR"><b>subnet_range</b> - Subnet CIDR</dt>
 <dd>
 
 </dd>
@@ -132,6 +152,10 @@
 
 </dd>
 <dt id="ssh_pub_key---ssh_key-file"><b>ssh_pub_key</b> - ssh_key file</dt>
+<dd>
+
+</dd>
+<dt id="subnet_range---Subnet-CIDR1"><b>subnet_range</b> - Subnet CIDR</dt>
 <dd>
 
 </dd>
@@ -304,6 +328,141 @@ If C&lt;reg_code&gt; is provided, registers the system and verifies with C&lt;SU
 
 </dd>
 <dt id="region---GCP-region1"><b>region</b> - GCP region</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_patch_system">crash_patch_system</h2>
+
+<pre><code>crash_patch_system(
+    provider =&gt; &#39;GCE&#39;,
+    region =&gt; &#39;us-central1&#39;,
+    availability_zone =&gt; &#39;b&#39;);</code></pre>
+
+<p>Patch the crash system using ssh_fully_patch_system and reboot.</p>
+
+<dl>
+
+<dt id="provider---Cloud-provider-name-EC2-AZURE-GCE3"><b>provider</b> - Cloud provider name (EC2, AZURE, GCE)</dt>
+<dd>
+
+</dd>
+<dt id="region---Cloud-region2"><b>region</b> - Cloud region</dt>
+<dd>
+
+</dd>
+<dt id="availability_zone---GCP-availability-zone-optional1"><b>availability_zone</b> - GCP availability zone (optional)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_network_peering_create">crash_network_peering_create</h2>
+
+<pre><code>crash_network_peering_create(
+    provider  =&gt; &#39;AZURE&#39;,
+    ibsm_ip   =&gt; &#39;10.1.2.3&#39;,
+    region    =&gt; &#39;westeurope&#39;,
+    ibsm_rg   =&gt; &#39;IBSmRg&#39;);
+
+crash_network_peering_create(
+    provider          =&gt; &#39;GCE&#39;,
+    ibsm_ip           =&gt; &#39;10.1.2.3&#39;,
+    region            =&gt; &#39;us-central1&#39;,
+    availability_zone =&gt; &#39;a&#39;,
+    project           =&gt; &#39;my-project&#39;,
+    ibsm_ncc_hub      =&gt; &#39;projects/ibsm-project/locations/global/hubs/ibsm-hub&#39;);</code></pre>
+
+<p>Create a network peering between the crash test SUT and an IBSm server. Supported providers are AZURE (Azure VNet Peering) and GCE (GCP NCC Spoke). After peering is established, the IBSm IP is added to /etc/hosts on the SUT and optional incident repos are configured.</p>
+
+<dl>
+
+<dt id="provider---Cloud-provider:-AZURE-or-GCE"><b>provider</b> - Cloud provider: <code>AZURE</code> or <code>GCE</code></dt>
+<dd>
+
+</dd>
+<dt id="ibsm_ip---IP-address-of-the-IBSm-server"><b>ibsm_ip</b> - IP address of the IBSm server</dt>
+<dd>
+
+</dd>
+<dt id="region---Cloud-region-of-the-SUT-deployment"><b>region</b> - Cloud region of the SUT deployment</dt>
+<dd>
+
+</dd>
+<dt id="ibsm_rg---Azure-Resource-Group-of-the-IBSm.-Required-for-AZURE"><b>ibsm_rg</b> - Azure Resource Group of the IBSm. Required for AZURE.</dt>
+<dd>
+
+</dd>
+<dt id="ibsm_ncc_hub---Full-NCC-hub-resource-URI.-Required-for-GCE"><b>ibsm_ncc_hub</b> - Full NCC hub resource URI. Required for GCE.</dt>
+<dd>
+
+</dd>
+<dt id="project---GCP-project-ID-of-the-SUT.-Required-for-GCE"><b>project</b> - GCP project ID of the SUT. Required for GCE.</dt>
+<dd>
+
+</dd>
+<dt id="availability_zone---GCP-availability-zone-suffix.-Required-for-GCE"><b>availability_zone</b> - GCP availability zone suffix. Required for GCE.</dt>
+<dd>
+
+</dd>
+<dt id="incident_repos---Comma-separated-list-of-incident-repo-URLs-optional"><b>incident_repos</b> - Comma-separated list of incident repo URLs (optional)</dt>
+<dd>
+
+</dd>
+<dt id="repo_host---Hostname-to-redirect-to-IBSm"><b>repo_host</b> - Hostname to redirect to IBSm.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="repos_add_server_to_hosts">repos_add_server_to_hosts</h2>
+
+<pre><code>repos_add_server_to_hosts(
+    ibsm_ip       =&gt; &#39;10.0.0.1&#39;,
+    incident_repos =&gt; &#39;http://repo1,http://repo2&#39;,
+    ssh_cmd       =&gt; &#39;ssh user@host&#39;);</code></pre>
+
+<p>Add the server IP to /etc/hosts and configure incident repos on a single SUT via SSH.</p>
+
+<dl>
+
+<dt id="ibsm_ip---IP-address-of-the-server"><b>ibsm_ip</b> - IP address of the server</dt>
+<dd>
+
+</dd>
+<dt id="incident_repos---comma-separated-list-of-incident-repository-URLs-optional"><b>incident_repos</b> - comma-separated list of incident repository URLs (optional)</dt>
+<dd>
+
+</dd>
+<dt id="repo_host---hostname-to-redirect-to-server"><b>repo_host</b> - hostname to redirect to server.</dt>
+<dd>
+
+</dd>
+<dt id="ssh_cmd---SSH-command-prefix-used-to-run-commands-on-the-SUT"><b>ssh_cmd</b> - SSH command prefix used to run commands on the SUT</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="crash_network_peering_delete">crash_network_peering_delete</h2>
+
+<pre><code>crash_network_peering_delete(
+    provider =&gt; &#39;AZURE&#39;,
+    ibsm_rg  =&gt; &#39;IBSmRg&#39;);
+
+crash_network_peering_delete(
+    provider =&gt; &#39;GCE&#39;);</code></pre>
+
+<p>Delete the network peering between the crash test SUT and the IBSm server. Supported providers are AZURE and GCE.</p>
+
+<dl>
+
+<dt id="provider---Cloud-provider:-AZURE-or-GCE1"><b>provider</b> - Cloud provider: <code>AZURE</code> or <code>GCE</code></dt>
+<dd>
+
+</dd>
+<dt id="ibsm_rg---Azure-Resource-Group-of-the-IBSm.-Required-for-AZURE1"><b>ibsm_rg</b> - Azure Resource Group of the IBSm. Required for AZURE.</dt>
 <dd>
 
 </dd>
