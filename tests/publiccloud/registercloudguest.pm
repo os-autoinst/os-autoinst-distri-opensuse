@@ -217,7 +217,20 @@ sub test_container_runtimes {
 sub cleanup_instance {
     my ($instance) = @_;
     record_info('Removing registration data');
-    $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean", timeout => 180);
+    my $rc = $instance->ssh_script_run(cmd => "sudo registercloudguest --clean > registercloudguest-clean.log 2>&1", timeout => 180);
+    if ($rc != 0) {
+        # Check for bsc#1260603
+        my $output = $instance->ssh_script_output("sudo cat registercloudguest-clean.log");
+        record_info("register-cleanup", $output);
+        if (is_sle("16+") && $output =~ "Error parsing config file") {
+            record_soft_failure("bsc#1260603 registercloudguest cleanup partially failed");
+            # Manually cleanup remnants and try again
+            $instance->ssh_script_run(cmd => "sudo rm /etc/zypp/repos.d/*.repo");
+            $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
+        } else {
+            die "registercloudguest --clean failed with return code $rc";
+        }
+    }
     check_instance_unregistered($instance);
 }
 
