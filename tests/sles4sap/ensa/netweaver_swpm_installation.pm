@@ -83,7 +83,10 @@ sub run {
 
     # We created new unlabeled files so we must relabel them for SELinux
     if (has_selinux) {
-        assert_script_run('test -d /.snapshots && restorecon -R / -e /.snapshots', timeout => 600);
+        # exclude the files in NFS mountpoints to reduce runtime of restorecon cmd
+        my $mountpoints = script_output(q|awk '$3 ~ /^nfs/ {print $2}' /proc/mounts|, timeout => 60);
+        my $paras = join ' ', map { "-e $_" } split /\n/, $mountpoints;
+        assert_script_run("test -d /.snapshots && restorecon -R / -e /.snapshots $paras", timeout => 900);
         assert_script_run('test -d /.snapshots || restorecon -R /', timeout => 600);
     }
 
