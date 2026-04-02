@@ -9,9 +9,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#39071, poo#105591, poo#105999, poo#109133
 
-## no os-autoinst style
-
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use bootloader_setup qw(add_grub_cmdline_settings change_grub_config);
 use power_action_utils 'power_action';
@@ -77,7 +75,7 @@ sub install_fips {
     } elsif (((is_sle('>=15-SP4') || is_jeos || is_tumbleweed)) && !get_var("FIPS_ENV_MODE")) {
         zypper_call("in crypto-policies-scripts");
         # Explicitly install openssl-3 on s390x SLE16 https://bugzilla.suse.com/show_bug.cgi?id=1247463
-        zypper_call("in openssl-3") if (is_s390x() && is_sle('>=16'));
+        zypper_call("in openssl-3") if (is_s390x && is_sle('>=16'));
         install_vendor_affirmation_pkgs if (check_var('FIPS_USE_CERT_MODULE', '1') && is_sle('=15-SP7'));
     } elsif (is_sle('<=15-SP3') || get_var("FIPS_ENV_MODE")) {
         # No crypto-policies in older SLE

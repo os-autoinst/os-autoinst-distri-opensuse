@@ -8,9 +8,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#63223, poo#102770, tc#1744099
 
-## no os-autoinst style
-
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
@@ -87,9 +85,8 @@ sub ensure_self_signed_cerificate_fails {
     background_script_run('gnutls-serv --http --x509cafile ca.pem --x509keyfile server-key.pem --x509certfile server.pem');
     my $bad_result = script_run('echo | gnutls-cli -d 1 localhost -p 443');
     if ($bad_result) {
-        record_info("Invalid certificate as expected: $my_result");
-    }
-    else {
+        record_info("Invalid certificate as expected: $bad_result");
+    } else {
         die('Certificate should be invalid');
     }
     assert_script_run('kill $(pidof gnutls-serv)');

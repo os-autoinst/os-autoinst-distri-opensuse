@@ -6,12 +6,10 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768578
 
-## no os-autoinst style
-
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_tumbleweed);
 
 sub run {
     my $tmp_output = '/tmp/out';

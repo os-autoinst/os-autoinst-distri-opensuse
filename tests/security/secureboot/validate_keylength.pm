@@ -5,9 +5,7 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-## no os-autoinst style
-
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
@@ -37,14 +35,6 @@ sub run {
 }
 
 sub get_boot_image_name {
-    # First, try to find the kernel image based on the running kernel's release version.
-    # This is more reliable than just guessing based on architecture.
-    my $running_kernel_release = script_output('uname -r');
-    my $kernel_image = script_output("find /boot -name 'vmlinuz-$running_kernel_release' -o -name 'Image-$running_kernel_release' -o -name 'image-$running_kernel_release' -o -name 'vmlinux-$running_kernel_release' | head -n 1");
-
-    return $kernel_image if ($kernel_image && -e $kernel_image);
-
-    # If the dynamic lookup fails, fall back to the architecture-based map.
     my $arch = get_required_var('ARCH');
     my %kernel_paths = (
         s390x => '/boot/image',

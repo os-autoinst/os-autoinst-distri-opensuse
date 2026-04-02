@@ -7,9 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#95908, poo#194984
 
-## no os-autoinst style
-
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use security_boot_utils;
@@ -17,6 +15,7 @@ use audit_test qw(run_testcase compare_run_log);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils "power_action";
 use Utils::Architectures qw(is_s390x);
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
@@ -46,7 +45,7 @@ sub run {
         $self->wait_boot(textmode => 1);
     }
 
-    is_s390x() ? select_serial_terminal : select_console 'root-console';
+    is_s390x ? select_serial_terminal : select_console 'root-console';
 
     run_testcase('trustedprograms', (make => 1, timeout => 1300));
 
