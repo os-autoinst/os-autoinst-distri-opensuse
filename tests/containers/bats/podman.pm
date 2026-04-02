@@ -134,7 +134,7 @@ sub run {
         if (is_sle(">=16.0")) {
             # This test fails on older versions of passt
             # https://bugzilla.suse.com/show_bug.cgi?id=1260032
-            my $passt_version = script_output q(rpm -q --queryformat='%{VERSION}' passt | awk -F '[.^]' '{ print $2 }'), proceed_on_failure => 1;
+            my $passt_version = script_output q(pasta --version | awk -F '[.^]' '{ print $2; exit }'), proceed_on_failure => 1;
             run_command "rm -f test/system/505-networking-pasta.bats" if ($passt_version <= 20250415);
         }
     }
