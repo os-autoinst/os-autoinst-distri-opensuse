@@ -17,6 +17,7 @@ sub run {
     select_serial_terminal;
 
     barrier_wait('KRB5_KDC_READY');
+    barrier_wait('KRB5_KDC_READY_SC');
     krb5_init;
 
     # Add secret key in keytab file

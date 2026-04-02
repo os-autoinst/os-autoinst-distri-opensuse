@@ -36,6 +36,7 @@ sub run {
 
     # signal the client we are ready
     barrier_wait('KRB5_SSH_SERVER_READY');
+    barrier_wait('KRB5_SSH_TEST_DONE_SC');
     barrier_wait('KRB5_SSH_TEST_DONE');
 }
 

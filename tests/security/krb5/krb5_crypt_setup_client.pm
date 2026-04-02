@@ -15,7 +15,7 @@ use serial_terminal 'select_serial_terminal';
 
 sub run {
     select_serial_terminal;
-    barrier_wait('KRB5_KDC_READY');
+    barrier_wait('KRB5_KDC_READY_SC');
     barrier_wait('KRB5_SERVER_READY');
     krb5_init;
 }

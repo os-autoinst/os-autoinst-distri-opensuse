@@ -50,29 +50,45 @@ sub run {
     # We do not only simply setup the network environment, but also ensure the
     # Connections with lock api.
     if (get_var('SECURITY_TEST') =~ /crypt_krb5kdc/) {
-        barrier_create('KRB5_NETWORK_READY', 3);
-        barrier_create('KRB5_KDC_READY', 3);
-        barrier_create('KRB5_SERVER_READY', 2);
-        barrier_create('KRB5_NFS_SERVER_READY', 2);
-        barrier_create('KRB5_SSH_SERVER_READY', 2);
-        barrier_create('KRB5_NFS_TEST_DONE', 3);
-        barrier_create('KRB5_SSH_TEST_DONE', 3);
-        # Create a final mutex to signal all jobs that barriers are ready to use
-        # It must be used with mutex_wait() before any barrier_wait() calls in the child jobs
-        mutex_create('KRB5_PREPARE_BARRIERS_READY');
+        # In a chain topology (KDC -> Server -> Client), barriers are only visible
+        # within each direct parallel sub-group: {KDC, Server} and {Server, Client}.
+        # The Client cannot see barriers created by KDC (grandparent).
+        # Therefore, KDC creates count=2 barriers for the {KDC, Server} sub-group,
+        # and the Server creates separate barriers for the {Server, Client} sub-group.
+        barrier_create('KRB5_NETWORK_READY', 2);
+        barrier_create('KRB5_KDC_READY', 2);
+        barrier_create('KRB5_NFS_TEST_DONE', 2);
+        barrier_create('KRB5_SSH_TEST_DONE', 2);
+        mutex_create('KRB5_KDC_BARRIERS_READY');
         krb5_network_config($ip_kdc, $dom_kdc);
         barrier_wait('KRB5_NETWORK_READY');
     }
     elsif (get_var('SECURITY_TEST') =~ /crypt_krb5server/) {
-        mutex_wait('KRB5_PREPARE_BARRIERS_READY');
+        mutex_wait('KRB5_KDC_BARRIERS_READY');
+        # Create barriers for the {Server, Client} sub-group.
+        # Barriers suffixed with _SC mirror the KDC's barriers for the Client.
+        # Server-only barriers (count=2) are also created here since the Client
+        # can only see barriers from its direct parent (Server).
+        barrier_create('KRB5_NETWORK_READY_SC', 2);
+        barrier_create('KRB5_KDC_READY_SC', 2);
+        barrier_create('KRB5_SERVER_READY', 2);
+        barrier_create('KRB5_NFS_SERVER_READY', 2);
+        barrier_create('KRB5_SSH_SERVER_READY', 2);
+        barrier_create('KRB5_NFS_TEST_DONE_SC', 2);
+        barrier_create('KRB5_SSH_TEST_DONE_SC', 2);
+        mutex_create('KRB5_SERVER_BARRIERS_READY');
         krb5_network_config($ip_server, $dom_server);
         barrier_wait('KRB5_NETWORK_READY');
+        barrier_wait('KRB5_NETWORK_READY_SC');
         assert_script_run("ping -c1 $ip_kdc");
     }
     elsif (get_var('SECURITY_TEST') =~ /crypt_krb5client/) {
-        mutex_wait('KRB5_PREPARE_BARRIERS_READY');
+        # Wait for the Server to signal that barriers are ready to use.
+        # Since mutex_wait() checks the direct parent by default (KDC -> Server -> Client),
+        # the Client must wait on the Server's relay mutex, not the KDC's original mutex.
+        mutex_wait('KRB5_SERVER_BARRIERS_READY');
         krb5_network_config($ip_client, $dom_client);
-        barrier_wait('KRB5_NETWORK_READY');
+        barrier_wait('KRB5_NETWORK_READY_SC');
         assert_script_run("ping -c1 $ip_kdc");
         assert_script_run("ping -c1 $ip_server");
     }
