@@ -131,7 +131,7 @@ sub run {
         run_command "rm -f test/system/320-system-df.bats";
         # This tests needs criu, available only on Tumbleweed
         run_command "rm -f test/system/520-checkpoint.bats" unless is_tumbleweed;
-        if (is_sle(">=16.0")) {
+        if (is_sle("<16.1") && script_run("which pasta") == 0) {
             # This test fails on older versions of passt
             # https://bugzilla.suse.com/show_bug.cgi?id=1260032
             my $passt_version = script_output q(pasta --version | awk -F '[.^]' '{ print $2; exit }'), proceed_on_failure => 1;
