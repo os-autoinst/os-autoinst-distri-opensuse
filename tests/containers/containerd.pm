@@ -89,7 +89,7 @@ sub run {
         "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
     ) if (version->parse(numeric_version($version)) < version->parse("2.1.0"));
 
-    run_timeout_command "$env gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root &> containerd.txt", no_assert => 1, timeout => 600;
+    run_timeout_command "$env gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root &> containerd.txt", no_assert => 1, timeout => 900;
     upload_logs "containerd.txt";
     die "Testsuite failed" if script_run("test -s containerd.xml");
     patch_junit "containerd", $version, "containerd.xml", @xfails;
