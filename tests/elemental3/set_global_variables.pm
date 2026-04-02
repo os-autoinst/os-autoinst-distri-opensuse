@@ -42,7 +42,7 @@ sub run {
     my $arch = get_required_var('ARCH');
     my $k8s = get_required_var('K8S');
     my $os_version = get_required_var('VERSION');
-    my $kernel_type = get_var('KERNEL_TYPE');
+    my $kernel_type = get_var('KERNEL_TYPE', '');
     my $kernel = "base-os-kernel-${kernel_type}-${os_version}";
     my $totest_path = get_required_var('TOTEST_PATH');
     my $uc_version = get_required_var('UC_VERSION');
@@ -66,24 +66,34 @@ sub run {
     my ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${manifest_regex});
     my $k8s_version = $version;
     my $release_manifest_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${k8s}_${k8s_version}-${build}\)");
-    set_var('RELEASE_MANIFEST_URI', "$release_manifest_uri");
+    set_var('RELEASE_MANIFEST_URI', "$release_manifest_uri") unless ($release_manifest_uri eq '');
+
+    # Export ELEMENTAL3_IMAGE_TO_TEST
+    my $elemental3_regex = ".*elemental3-\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${elemental3_regex});
+    my $elemental3_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${version}-${build}\)");
+    set_var('ELEMENTAL3_IMAGE_TO_TEST', "$elemental3_uri") unless ($elemental3_uri eq '');
 
     # Export SYSEXT_IMAGES_TO_TEST
+    # TODO: remove as soon as element3ctl will be added in the OS image!
     my $elemental3ctl_regex = ".*elemental3ctl-${uc_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
     ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${elemental3ctl_regex});
     my $elemental3ctl_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${version}-${build}\)");
-    set_var('SYSEXT_IMAGES_TO_TEST', "${elemental3ctl_uri}");
+    set_var('SYSEXT_IMAGES_TO_TEST', "${elemental3ctl_uri}") unless ($elemental3ctl_uri eq '');
 
-    my $k8s_regex = ".*${k8s}-tar-${k8s_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    # Export K8S_IMAGE_TO_TEST
+    # beta-uc-rke2-tar-1.35.1_rke2r1-2.1.x86_64-2.1.tar.registry.txt
+    # registry.suse.de/devel/unifiedcore/main/totest/containers/beta/uc/rke2-tar:1.35.1_rke2r1-2.1
+    my $k8s_regex = ".*${k8s}-tar-${k8s_version}.*_\(.*\)-\(.*\).${arch}-.*.registry.txt";
     ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${k8s_regex});
-    my $k8s_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${k8s_version}_${version}-${build}\)");
+    my $k8s_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${k8s_version}.*_${version}-${build}\)");
+    set_var('K8S_IMAGE_TO_TEST', "${k8s_uri}") unless ($k8s_uri eq '');
 
     # Export CONTAINER_IMAGE_TO_TEST
     my $kernel_regex = ".*${kernel}-\(.*\).${arch}-.*.registry.txt";
     ($file, $build) = get_values(txt => ${files_list}, regex => ${kernel_regex});
     my $container_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${os_version}-${build}\)");
-    # TODO also test {k8s_uri}
-    set_var('CONTAINER_IMAGE_TO_TEST', "${container_uri}");
+    set_var('CONTAINER_IMAGE_TO_TEST', "${container_uri}") unless ($container_uri eq '');
 
     # Export REPO_TO_TEST
     set_var('REPO_TO_TEST', "$totest_path/standard");
@@ -100,7 +110,7 @@ sub run {
     }
 
     # Logs, could be useful for debugging purporses
-    foreach my $v ('SYSEXT_IMAGES_TO_TEST', 'RELEASE_MANIFEST_URI', 'CONTAINER_IMAGE_TO_TEST', 'REPO_TO_TEST', 'ISO_IMAGE_TO_TEST') {
+    foreach my $v ('ELEMENTAL3_IMAGE_TO_TEST', 'K8S_IMAGE_TO_TEST', 'SYSEXT_IMAGES_TO_TEST', 'RELEASE_MANIFEST_URI', 'CONTAINER_IMAGE_TO_TEST', 'REPO_TO_TEST', 'ISO_IMAGE_TO_TEST') {
         record_info("$v", get_var("$v"));
     }
 }

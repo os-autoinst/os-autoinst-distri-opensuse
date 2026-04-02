@@ -13,8 +13,9 @@ conditional_schedule:
   validation_tests:
     TESTED_CMD:
       customize:
-        - elemental3/validate_users
+        - elemental3/validate_kernel_params
         - elemental3/validate_toolbox
+        - elemental3/validate_users
   elemental_tests:
     TEST_TYPE:
       test_image:

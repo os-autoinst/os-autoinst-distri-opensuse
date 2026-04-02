@@ -230,9 +230,9 @@ sub run {
     my $k8s_dir = "/etc/rancher/$k8s";
     my $config_yaml = "$k8s_dir/config.yaml";
 
-    # Skip the test with simple ISO container
-    if (check_var('TESTED_CMD', 'extract_iso')) {
-        record_info('SKIP', 'Skip test - No K8s installed in this basic container image');
+    # Skip the test with if the OS image is not generated with 'customize'
+    unless (check_var('TESTED_CMD', 'customize')) {
+        record_info('SKIP', 'Skip test - No K8s installed in basic container image');
         $self->result('skip');
         return;
     }

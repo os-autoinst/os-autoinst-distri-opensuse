@@ -1,4 +1,4 @@
-# Copyright 2023-2025 SUSE LLC
+# Copyright 2023-2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Test Elemental container image
@@ -17,9 +17,9 @@ use utils qw(file_content_replace);
 
 =head2 build_installer_cmd
 
- build_installer cmd( img_filename => <value>, k8s => <value>,
-                      rootpwd => <value>, timeout => <value>,
-                      type => <value> );
+ build_installer_cmd( config_dir => <value>, img_filename => <value>,
+                      k8s => <value>, rootpwd => <value>,
+                      timeout => <value>, type => <value> );
 
 Create an OS image with `build-installer` command by using the specified
 containerized OS image.
@@ -29,15 +29,14 @@ containerized OS image.
 sub build_installer_cmd {
     my (%args) = @_;
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
-    my $krnlcmdline = get_var('KERNEL_CMD_LINE');
+    my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $isocmdline = get_var('ISO_CMD_LINE');
-    my $shared_dir = '/root/shared';
-    my $config_file = "$shared_dir/config.sh";
-    my $iso_config_file = "$shared_dir/config-iso.sh";
+    my $config_file = "$args{config_dir}/config.sh";
+    my $iso_config_file = "$args{config_dir}/config-iso.sh";
     my $device = get_var('INSTALL_DISK', '/dev/vda');
 
     # Configure the systemd sysexts
-    my ($overlay_dir, $ctl_oci) = get_sysext(timeout => $args{timeout});
+    my ($overlay_dir, $ctl_oci) = get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
 
     # OS configuration script
     assert_script_run(
@@ -73,8 +72,8 @@ sub build_installer_cmd {
 
 =head2 customize_cmd
 
- customize_cmd( hddsize => <value>, k8s => <value>, rootpwd => <value>,
-                  template => <value>, timeout => <value> );
+ customize_cmd( config_dir => <value>, hddsize => <value>, k8s => <value>,
+                rootpwd => <value>, template => <value>, timeout => <value> );
 
 Create an OS image with `customize` command by using the specified
 release-manifest.
@@ -85,23 +84,22 @@ sub customize_cmd {
     my (%args) = @_;
     my $crypto_policy = get_var('CRYPTO_POLICY');
     my $device = get_var('INSTALL_DISK', '/dev/vda');
-    my $krnlcmdline = get_var('KERNEL_CMD_LINE');
+    my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $manifest_uri = get_required_var('RELEASE_MANIFEST_URI');
     my $type = get_required_var('IMAGE_TYPE');
-    my $build_dir = '/root/build';
-    my $tpl_tar = "$build_dir/$args{template}";
+    my $tpl_tar = "$args{config_dir}/$args{template}";
     my $initial_hddsize = '4';
     my $out = "$args{img_filename}.iso";
 
     # Create directories
-    assert_script_run("mkdir -p $build_dir");
+    assert_script_run("mkdir -p $args{config_dir}");
 
     # Download build configuration files
     assert_script_run(
         "curl -sf -o $tpl_tar "
           . data_url('elemental3/' . path($tpl_tar)->basename)
     );
-    assert_script_run("tar xzvf $tpl_tar -C $build_dir");
+    assert_script_run("tar xzvf $tpl_tar -C $args{config_dir}");
 
     # Add 'oci://' in release-manifest URI if nothing is set
     $manifest_uri = 'oci://' . $manifest_uri unless $manifest_uri =~ /:\/\//;
@@ -109,13 +107,13 @@ sub customize_cmd {
     # Configure the build
     $out = "$args{img_filename}.qcow2" if ($type =~ m/raw/);
     file_content_replace(
-        "$build_dir/butane.yaml",
+        "$args{config_dir}/butane.yaml",
         '--sed-modifier' => 'g',
         '%TEST_PASSWORD%' => $args{rootpwd},
         '%K8S%' => $args{k8s}
     );
     file_content_replace(
-        "$build_dir/install.yaml",
+        "$args{config_dir}/install.yaml",
         '--sed-modifier' => 'g',
         '%CRYPTO_POLICY%' => $crypto_policy,
         '%HDDSIZE%' => $initial_hddsize,
@@ -123,22 +121,23 @@ sub customize_cmd {
         '%KERNEL_CMD_LINE%' => $krnlcmdline
     );
     file_content_replace(
-        "$build_dir/release.yaml",
+        "$args{config_dir}/release.yaml",
         '--sed-modifier' => 'g',
         '%RELEASE_MANIFEST_URI%' => $manifest_uri,
         '%K8S%' => $args{k8s}
     );
     if (check_var('TESTED_CMD', 'customize_recovery')) {
         file_content_replace(
-            "$build_dir/custom/scripts/50-firstboot.sh",
+            "$args{config_dir}/custom/scripts/50-firstboot.sh",
             '--sed-modifier' => 'g',
             '%INSTALL_DISK%' => $device,
         );
     }
 
     # Generate OS image
-    assert_script_run(
-        "elemental3 --debug customize --type $type --config-dir $build_dir --output uc_image.$type",
+    elemental3_cmd(
+        config_dir => $args{config_dir},
+        cmd => "--debug customize --type $type --output /config/uc_image.$type",
         timeout => $args{timeout}
     );
 
@@ -146,7 +145,7 @@ sub customize_cmd {
     # NOTE: './' is needed in front of $out as the filename contains a ':' in it
     if ($type =~ m/raw/) {
         assert_script_run(
-            "qemu-img convert -p -f raw -O qcow2 uc_image.$type ./$out",
+            "qemu-img convert -p -f raw -O qcow2 $args{config_dir}/uc_image.$type ./$out",
             timeout => $args{timeout}
         );
 
@@ -156,11 +155,29 @@ sub customize_cmd {
             timeout => $args{timeout}
         );
     } elsif ($type =~ m/iso/) {
-        assert_script_run("mv uc_image.$type '$out'");
+        assert_script_run("mv $args{config_dir}/uc_image.$type '$out'");
     }
 
     # Return OS image
     return ($out);
+}
+
+=head2 elemental3_cmd
+
+ elemental3_cmd( config_dir => <value>, timeout => <value> );
+
+Execute elemental3 command from container.
+
+=cut
+sub elemental3_cmd {
+    my (%args) = @_;
+    my $uri = get_required_var('ELEMENTAL3_IMAGE_TO_TEST');
+
+    # NOTE: ':z' is needed because of SELinux!
+    assert_script_run(
+        "podman run --rm --volume $args{config_dir}:/config:z $uri $args{cmd}",
+        timeout => $args{timeout}
+    );
 }
 
 =head2 extract_iso
@@ -189,7 +206,7 @@ sub extract_iso {
 
 =head2 get_sysext
 
- get_sysext( timeout => <value> );
+ get_sysext( tmpdir => <value>, timeout => <value> );
 
 Get systemd system extensions from SYSEXT_IMAGES_TO_TEST list and
 prepare them to be used by elemental tool.
@@ -198,8 +215,7 @@ prepare them to be used by elemental tool.
 
 sub get_sysext {
     my (%args) = @_;
-    my $shared_dir = '/root/shared';
-    my $overlay_dir = "$shared_dir/overlays";
+    my $overlay_dir = "$args{tmpdir}/overlays";
     my $sysext_dir = "$overlay_dir/etc/extensions";
     my $ctl_oci;
 
@@ -223,9 +239,9 @@ sub get_sysext {
 
 =head2 install_cmd
 
- install_cmd( hddsize => <value>, img_filename => <value>,
-              k8s => <value>, rootpwd => <value>,
-              timeout => <value> );
+ install_cmd( hddsize => <value>, config_dir => <value>,
+              img_filename => <value>, k8s => <value>,
+              rootpwd => <value>, timeout => <value> );
 
 Create an OS image with `build-installer` command by using the specified
 containerized OS image.
@@ -235,14 +251,13 @@ containerized OS image.
 sub install_cmd {
     my (%args) = @_;
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
-    my $krnlcmdline = get_var('KERNEL_CMD_LINE');
-    my $shared_dir = '/root/shared';
-    my $config_file = "$shared_dir/config.sh";
+    my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
+    my $config_file = "$args{config_dir}/config.sh";
     my $device = '/dev/nbd0';
     my $k8s_sysext_found;
 
     # Configure the systemd sysexts
-    my ($overlay_dir) = get_sysext(timeout => $args{timeout});
+    my ($overlay_dir) = get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
 
     # OS configuration script
     assert_script_run(
@@ -261,10 +276,10 @@ sub install_cmd {
 
     # Create a raw image and mount it
     assert_script_run(
-        "qemu-img create -f qcow2 $shared_dir/$args{img_filename}.qcow2 $args{hddsize}G"
+        "qemu-img create -f qcow2 $args{config_dir}/$args{img_filename}.qcow2 $args{hddsize}G"
     );
     assert_script_run('modprobe nbd');
-    assert_script_run("qemu-nbd -c $device $shared_dir/$args{img_filename}.qcow2");
+    assert_script_run("qemu-nbd -c $device $args{config_dir}/$args{img_filename}.qcow2");
 
     # Generate OS image
     assert_script_run(
@@ -273,7 +288,7 @@ sub install_cmd {
     );
 
     # Return HDD image
-    return ("$shared_dir/$args{img_filename}.qcow2");
+    return ("$args{config_dir}/$args{img_filename}.qcow2");
 }
 
 sub run {
@@ -293,12 +308,13 @@ sub run {
     select_serial_terminal();
 
     # NOTE: there is not enough space on /tmp, so we need to change TMPDIR.
-    assert_script_run("mkdir -p /root/tmp && export TMPDIR=/root/tmp");
+    my $tmpdir = '/root/tmp';
+    assert_script_run("mkdir -m 1777 -p $tmpdir && export TMPDIR=$tmpdir");
 
-    # Add Unified Core repository and install Elemental package
+    # Add Unified Core repository and install elemental3ctl package (we still need this one for now)
     trup_call('run zypper addrepo --check --refresh ' . get_required_var('REPO_TO_TEST') . ' elemental');
     trup_call('--continue run zypper --gpg-auto-import-keys refresh');
-    trup_call('--continue pkg install elemental3 elemental3ctl squashfs mtools xorriso');
+    trup_call('--continue pkg install elemental3ctl squashfs mtools xorriso');
     trup_call('apply');
 
     # Use a crypted password
@@ -306,6 +322,7 @@ sub run {
 
     # Create HDD image with different commands
     $out_file = build_installer_cmd(
+        config_dir => $tmpdir,
         img_filename => $img_filename,
         k8s => $k8s,
         rootpwd => $hashpwd,
@@ -314,6 +331,7 @@ sub run {
     ) if (check_var('TESTED_CMD', 'build_installer_iso'));
 
     $out_file = customize_cmd(
+        config_dir => $tmpdir,
         hddsize => $hddsize,
         img_filename => $img_filename,
         k8s => $k8s,
@@ -329,6 +347,7 @@ sub run {
 
     $out_file = install_cmd(
         arch => $arch,
+        config_dir => $tmpdir,
         hddsize => $hddsize,
         img_filename => $img_filename,
         k8s => $k8s,
@@ -342,7 +361,6 @@ sub run {
 
 sub test_flags {
     return {fatal => 1, milestone => 1};
-
 }
 
 1;
