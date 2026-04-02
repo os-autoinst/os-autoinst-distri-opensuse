@@ -26,6 +26,17 @@ sub export_to_json {
     bmwqemu::save_json_file($test_result_export, $export_file);
 }
 
+sub pre_run_hook {
+    my ($self) = @_;
+
+    # Kernel error messages should be treated as soft-fail in boot_ltp
+    # and install jobs so that at least some testing can be done.
+    # But change them to hard fail here if errors will not impact other jobs.
+    $self->{serial_failures} = unmask_serial_failures($self->{serial_failures})
+      unless has_published_assets();
+    $self->SUPER::pre_run_hook;
+}
+
 sub run {
     my ($self, $tinfo) = @_;
 

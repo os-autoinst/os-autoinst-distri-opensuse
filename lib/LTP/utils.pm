@@ -26,6 +26,7 @@ use package_utils;
 
 our @EXPORT = qw(
   check_kernel_taint
+  unmask_serial_failures
   export_ltp_env
   get_ltproot
   get_ltp_openposix_test_list_file
@@ -256,6 +257,23 @@ sub check_kernel_taint {
             result => 'fail');
         $testmod->{result} = 'fail';
     }
+}
+
+sub unmask_serial_failures {
+    my ($pattern_list) = @_;
+    my @ret;
+    my $expect_warn = get_var('LTP_WARN_EXPECTED');
+
+    for my $pattern (@$pattern_list) {
+        my %tmp = %$pattern;
+
+        # don't switch to hard fail when test is expected to produce kernel warning
+        $tmp{type} = $tmp{post_boot_type} if defined($tmp{post_boot_type}) && !($tmp{soft_on_expect_warn} && $expect_warn);
+
+        push @ret, \%tmp;
+    }
+
+    return \@ret;
 }
 
 sub init_ltp_tests {
