@@ -31,6 +31,8 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     select_serial_terminal;
 
+    run_command "modprobe null_blk nr_devices=1 || true";
+
     # rootless user needed for these tests
     run_command "useradd -m containers";
     run_command "usermod --add-subuids 100000-165535 containers";
