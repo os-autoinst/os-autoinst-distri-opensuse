@@ -11,6 +11,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
 
@@ -19,7 +20,7 @@ sub run {
 
     add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('<15') ? '12' : undef)) if is_sle('<16');
 
-    zypper_call "in python3-Flask";
+    install_package("python3-Flask", trup_continue => 1, trup_reboot => 1);
 
     assert_script_run "cd ~$username/data/";
 
@@ -29,7 +30,7 @@ sub run {
     assert_script_run 'kill $!';
 
     if (is_sle('>=15-SP1')) {
-        zypper_call "in python3-gunicorn python3-gevent";
+        install_package("python3-gunicorn python3-gevent", trup_continue => 1, trup_reboot => 1);
 
         record_info 'gunicorn';
         assert_script_run 'gunicorn -b :6000 flask_app:app & sleep 10';

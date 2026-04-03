@@ -15,11 +15,11 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    zypper_call 'in libaom-devel cmake gcc gcc-c++ git make libtool nasm wget';
+    install_package('libaom-devel cmake gcc gcc-c++ git make libtool nasm wget', trup_reboot => 1);
     assert_script_run 'mkdir -p ~/ffmpeg_sources';
 
     # Re-compile ffmpeg https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 with --enable-libaom

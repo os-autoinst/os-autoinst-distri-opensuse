@@ -14,10 +14,11 @@ use utils;
 use strict;
 use warnings;
 use version_utils 'is_sle';
+use package_utils 'install_package';
 
 sub install_service {
     my $apache = get_var('APACHE2_PKG', "apache2");
-    zypper_call("in $apache $apache-utils");
+    install_package("$apache $apache-utils", trup_reboot => 1);
 }
 
 sub enable_service {

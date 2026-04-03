@@ -14,7 +14,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils qw(is_sle is_leap);
 
 sub run {
@@ -22,7 +22,7 @@ sub run {
     select_serial_terminal;
 
     # Make sure pycairo python module is installed
-    zypper_call "in python3 python3-pycairo";
+    install_package("python3 python3-pycairo", trup_reboot => 1);
 
     # Import pycairo script and sample svg file
     assert_script_run("curl -O " . data_url("python/pycairo_sample.py"));

@@ -11,6 +11,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 
 my $xmlfile = <<'EOT';
 <doc>Success</doc>
@@ -37,7 +38,7 @@ sub run {
     select_serial_terminal;
 
     # Install libxslt and its utilities
-    zypper_call 'in libxslt-tools';
+    install_package('libxslt-tools', trup_reboot => 1);
     assert_script_run 'wget --quiet ' . data_url('qe-core/libxslt/uaf.xml');
     assert_script_run 'wget --quiet ' . data_url('qe-core/libxslt/uaf.xsl');
 

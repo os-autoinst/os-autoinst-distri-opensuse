@@ -15,6 +15,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_jeos has_selinux);
 
 my $config_snippet = q([main]\n# Install documentation, overrides zypp-excludedocs\nrpm.install.excludedocs = no\n);
@@ -42,7 +43,7 @@ sub run {
     assert_script_run 'echo "index" > /srv/www/htdocs/index.html';
 
     # Install and start apache
-    zypper_call "in $apache2";
+    install_package("$apache2", trup_reboot => 1) if (script_run("rpm -q $apache2"));
     zypper_call "in apache2-utils" if is_jeos;
     zypper_call "in policycoreutils-python-utils" if (is_jeos && has_selinux);
     assert_script_run 'restorecon -Rv /srv/www' if (has_selinux);

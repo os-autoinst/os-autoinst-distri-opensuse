@@ -22,6 +22,7 @@ use serial_terminal 'select_serial_terminal';
 use version_utils;
 use python_version_utils;
 use utils "zypper_call";
+use package_utils 'install_package';
 use feature qw(signatures);
 no warnings qw(experimental::signatures);
 
@@ -51,7 +52,7 @@ sub run_tests ($python3_spec_release) {
         record_info("Skip! either $python3_spec_release-pipx or $python3_spec_release-virtualenv doesn't exist");
         return;
     }
-    zypper_call("in $python3_spec_release-pipx $python3_spec_release-virtualenv");
+    install_package("$python3_spec_release-pipx $python3_spec_release-virtualenv", trup_reboot => 1);
     # create a virtual environment named myenv using virtualenv with Python 3.11 and activate it
     my $python_binary = get_python3_binary($python3_spec_release);
     my $version_number = (split("python", $python_binary))[1];

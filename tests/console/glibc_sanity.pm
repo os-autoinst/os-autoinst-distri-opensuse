@@ -18,6 +18,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Architectures;
 use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils qw(is_sle is_leap);
 
 sub run {
@@ -31,7 +32,7 @@ sub run {
         assert_script_run '/lib/libc.so.6 | grep --color "i686-suse-linux"';
     }
     if (is_x86_64 || is_aarch64) {
-        zypper_call 'in -C "libc.so.6()(64bit)"';
+        install_package('glibc', trup_reboot => 1) if (script_run('rpm -q glibc'));
         assert_script_run "/lib64/libc.so.6 | tee /dev/$serialdev | grep --color '$libcstr'";
         assert_script_run '/lib64/libc.so.6 | grep --color "' . get_var('ARCH') . '-suse-linux"';
     }

@@ -15,12 +15,13 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(zypper_call script_retry validate_script_output_retry);
+use utils qw(script_retry validate_script_output_retry);
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in valkey openssl wget');
+    install_package('valkey openssl wget', trup_reboot => 1);
 
     record_info('Generate Test Certificates');
     assert_script_run('mkdir -p valkey/tls/server');

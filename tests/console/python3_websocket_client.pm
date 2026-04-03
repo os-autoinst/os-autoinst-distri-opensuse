@@ -17,7 +17,7 @@ use feature qw(signatures);
 no warnings qw(experimental::signatures);
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils qw(install_package uninstall_package);
 use python_version_utils;
 use version_utils 'is_sle';
 use registration;
@@ -28,7 +28,7 @@ sub test_setup {
     assert_script_run("curl -O " . data_url("python/websockets/client-test.py"));
     assert_script_run("curl -O " . data_url("python/websockets/server.py"));
     # install server dependencies
-    zypper_call("install python3-tornado");
+    install_package("python3-tornado", trup_reboot => 1);
     # start websocket server in background
     return background_script_run 'python3 server.py';
 }
@@ -36,13 +36,13 @@ sub test_setup {
 sub run_test ($python_package) {
     return unless script_run("zypper search $python_package-websocket-client") == 0;
     record_info("Testing for", "$python_package is tested now");
-    zypper_call("install $python_package $python_package-websocket-client");
+    install_package("$python_package $python_package-websocket-client", trup_continue => 1, trup_reboot => 1);
     my $python_interpreter = get_python3_binary($python_package);
     record_info("running python version", script_output("$python_interpreter --version"));
     # Execute python script. The script itself ensure output is the one expected
     assert_script_run("$python_interpreter client-test.py");
     # clean up for the next run
-    zypper_call("rm $python_package $python_package-websocket-client");
+    uninstall_package("$python_package $python_package-websocket-client", trup_continue => 1, trup_reboot => 1);
 }
 
 sub run {

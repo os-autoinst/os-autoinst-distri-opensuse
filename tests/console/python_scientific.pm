@@ -12,6 +12,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_tumbleweed);
 use registration 'is_phub_ready';
 
@@ -40,7 +41,7 @@ sub run {
     return unless is_phub_ready();
 
     my $scipy = is_sle('<15-sp1') || is_sle('>=16.0') ? '' : 'python3-scipy';
-    zypper_call "in python3 python3-numpy $scipy";
+    install_package("python3 python3-numpy $scipy", trup_reboot => 1);
     # Run python scripts
     run_python_script('python3-numpy-test.py');
     run_python_script('python3-scipy-test.py') unless is_sle('<15-sp1');

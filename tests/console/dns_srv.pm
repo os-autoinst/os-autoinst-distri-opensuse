@@ -14,14 +14,15 @@ use Mojo::Base 'consoletest';
 use serial_terminal 'select_serial_terminal';
 use testapi;
 use Utils::Architectures;
-use utils qw(is_bridged_networking systemctl zypper_call script_retry);
+use utils qw(is_bridged_networking systemctl script_retry);
 use Utils::Logging 'save_and_upload_log';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
     # Install bind
-    zypper_call "-q in bind";
+    install_package("bind", trup_reboot => 1);
 
     # check that it can be enabled and disabled;
     systemctl 'enable named';

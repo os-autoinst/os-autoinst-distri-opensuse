@@ -12,6 +12,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils qw(install_package uninstall_package);
 use version_utils qw(is_sle is_leap php_version);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
@@ -31,11 +32,11 @@ sub run {
             add_suseconnect_product("PackageHub", undef, undef, undef, 300, 1);
         }
     }
-    zypper_call("in $php_pkg apache2-mod_$php_pkg");
+    install_package("$php_pkg apache2-mod_$php_pkg", trup_continue => 1, trup_reboot => 1);
     # Disable apache2-mod_php8
     assert_script_run "a2dismod $php_pkg";
     # Install and enable apache2-mod_fcgid and php8-fpm
-    zypper_call("in apache2-mod_fcgid $php_pkg-fpm $php_pkg-pear");
+    install_package("apache2-mod_fcgid $php_pkg-fpm $php_pkg-pear", trup_continue => 1, trup_reboot => 1);
     assert_script_run 'a2enmod proxy';
     assert_script_run 'a2enmod proxy_fcgi';
     assert_script_run 'a2enmod setenvif';
@@ -101,7 +102,7 @@ sub post_fail_hook {
 
 sub cleanup {
     my ($php, $php_pkg, $php_ver) = php_version();
-    zypper_call("rm $php_pkg apache2-mod_$php_pkg apache2-mod_fcgid");
+    uninstall_package("$php_pkg apache2-mod_$php_pkg apache2-mod_fcgid", trup_reboot => 1);
     script_run("rm -f /srv/www/htdocs/test.php /etc/apache2/conf.d/php-fpm.conf /etc/apache2/conf.d/mod_fcgid.conf");
     # Disable PHP-FPM configuration
     assert_script_run 'a2dismod proxy_fcgi';
