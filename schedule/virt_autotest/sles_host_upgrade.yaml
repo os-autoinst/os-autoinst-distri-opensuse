@@ -5,6 +5,7 @@ schedule:
   - '{{prepare_host_installation}}'
   - '{{prepare_virtualization}}'
   - yam/migration/restore_upgrade_env
+  - virt_autotest/restore_upgrade_system
   - console/system_prepare
   - '{{network_prepare}}'
   - yam/migration/migration_unattended
