@@ -27,7 +27,7 @@ sub run {
     # Set a variable for my remote image
     my $remote_image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-busybox:latest" : "registry.suse.com/bci/bci-busybox:latest";
     # Set a variable for my local image
-    my $local_image = 'localhost:5050/bci-busybox:latest';
+    my $local_image = 'containers-storage:bci-busybox:latest';
 
     # install_packages accounts for SLE-Micro environment with transactional-update
     record_info('Installing packages', 'Install required packages');
@@ -94,14 +94,14 @@ sub run {
     ######### Pull the image into a our local repository
     # skipping tls verification as by default most local registries don't have certificates
     record_info('Copy Image', 'Copy image from remote repository into the local repository.');
-    validate_script_output("skopeo copy --remove-signatures --dest-tls-verify=0 docker://$remote_image docker://$local_image",
+    validate_script_output("skopeo copy --remove-signatures docker://$remote_image $local_image",
         sub { m/Writing manifest to image destination/ },
         fail_message => 'Failed to copy image to local repository.');
 
     ######### Inspect the local image repository
     # skipping tls verification as by default most local registries don't have certificates
     record_info('Inspect Image', 'Inspect an image from the local repository.');
-    assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image",
+    assert_script_run("skopeo inspect $local_image",
         fail_message => 'Failed to inspect local image.');
 
     ######### Compare remote image to local image
@@ -111,7 +111,7 @@ sub run {
         fail_message => 'Failed to inspect remote image.');
 
     record_info('Verify Local Image', 'Inspect local image and save results.');
-    assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image | jq .Layers[] >> $workdir/inspect_local.json",
+    assert_script_run("skopeo inspect $local_image | jq .Layers[] >> $workdir/inspect_local.json",
         fail_message => 'Failed to inspect local image.');
 
     record_info('Compare local and remote images', 'Compare local and remote images.');
