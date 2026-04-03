@@ -8,7 +8,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
-use migration 'reset_consoles_tty';
+use migration qw(reset_consoles_tty reset_network_config);
 
 sub run {
     # Restore the original value of the variables
@@ -22,6 +22,8 @@ sub run {
     record_info('ENV', $env_content);
     # tty assignation might differ between product versions
     reset_consoles_tty();
+    # Ensure automatic network configuration migration
+    reset_network_config;
 }
 
 1;
