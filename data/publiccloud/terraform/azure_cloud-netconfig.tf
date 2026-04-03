@@ -174,6 +174,12 @@ resource "azurerm_network_interface" "openqa-secondary-nic" {
     private_ip_address_version  = "IPv4"
     private_ip_address_allocation = "Dynamic"
   }
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_image" "image" {
