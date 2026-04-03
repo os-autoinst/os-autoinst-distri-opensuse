@@ -23,13 +23,14 @@ my $version;
 sub setup {
     my $self = shift;
     my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit glibc-devel-static go1.26 gpg2 jq libgpgme-devel
-      libseccomp-devel make netavark openssl podman podman-remote skopeo socat sudo systemd-container xfsprogs);
-    push @pkgs, qw(criu libcriu2) unless is_sle;
+      libseccomp-devel make netavark openssl podman podman-remote runc skopeo socat sudo systemd-container xfsprogs);
+    push @pkgs, qw(criu crun libcriu2) unless is_sle;
     $oci_runtime = get_var("OCI_RUNTIME", "runc");
-    push @pkgs, $oci_runtime;
 
     $self->setup_pkgs(@pkgs);
     select_serial_terminal;
+
+    run_command "modprobe null_blk nr_devices=1 || true";
 
     # rootless user needed for these tests
     run_command "useradd -m containers";
@@ -47,6 +48,7 @@ sub setup {
     $version = "v$version";
     record_info("version", $version);
     record_info("info", script_output("podman info -f json"));
+    record_info("OCI features", script_output("$oci_runtime features"));
     record_info("OCI runtime", script_output("$oci_runtime --version"));
 
     # Download podman sources
