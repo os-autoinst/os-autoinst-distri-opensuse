@@ -34,6 +34,7 @@ our @EXPORT = qw(
   is_fv_guest
   is_pv_guest
   is_sev_es_guest
+  is_transactional_guest
   guest_is_sle
   is_guest_ballooned
   is_xen_host
@@ -2200,6 +2201,32 @@ sub reset_network_config {
             assert_script_run("echo -e \"NETCONFIG_DNS_POLICY=\"auto\"\" >> $args{config}");
         }
     }
+}
+
+=head2 is_transactional_guest
+
+  is_transactional_guest(address => ip or domain name or fqdn);
+
+Check whether guest is in immutable mode by leveraging the two most reliable methods
+, namely transactional-update shell exists or root partition is mounted read only if
+its domain name does not have 'immutable' or 'transactional'. Need ssh connection to
+perform the check, so argument address is needed which can be guest ip address, domain
+name or FQDN as long as it can be used for ssh connection.
+
+=cut
+
+sub is_transactional_guest {
+    my (%args) = @_;
+    $args{address} //= '';
+    croak('Guest ip address, domain name or FQDN must be given') if (!$args{address});
+
+    return 1 if ($args{address} =~ /immutable|transactional/i);
+    return 0 if ($args{address} =~ /standard|traditional/i);
+    my $ret = 1;
+    my $ssh_command_prefix = "ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
+    $ret &= script_retry("$ssh_command_prefix root\@$args{address} transactional-update --help || mount | grep \'on / \' | grep ro", die => 0);
+    save_screenshot;
+    $ret == 0 ? return 1 : return 0;
 }
 
 1;
