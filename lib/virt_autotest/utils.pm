@@ -110,6 +110,7 @@ our @EXPORT = qw(
   double_check_xen_role
   check_kvm_modules
   install_product_software
+  collect_guests_supportconfig_and_logs
 );
 
 my %log_cursors;
@@ -1051,7 +1052,7 @@ sub remove_additional_nic {
 sub collect_virt_system_logs {
     if (script_run("ls /var/log/libvirt/*d.log") == 0) {
         script_run('tar czvf /tmp/libvirt_daemons.tar.gz /var/log/libvirt/*d.log');
-        upload_asset("/tmp/libvirt_daemons.tar.gz");
+        upload_logs("/tmp/libvirt_daemons.tar.gz");
     }
     else {
         record_info "File /var/log/libvirt/*d.log does not exist.";
@@ -1059,14 +1060,21 @@ sub collect_virt_system_logs {
 
     if (script_run("test -d /var/log/libvirt/libxl/") == 0) {
         assert_script_run 'tar czvf /tmp/libxl.tar.gz /var/log/libvirt/libxl/';
-        upload_asset '/tmp/libxl.tar.gz';
+        upload_logs '/tmp/libxl.tar.gz';
     } else {
         record_info "Directory /var/log/libvirt/libxl/ does not exist.";
     }
 
+    if (script_run("test -d /var/log/libvirt/qemu/") == 0) {
+        assert_script_run 'tar czvf /tmp/qemu.tar.gz /var/log/libvirt/qemu/';
+        upload_logs '/tmp/qemu.tar.gz';
+    } else {
+        record_info "Directory /var/log/libvirt/qemu/ does not exist.";
+    }
+
     if (script_run("test -d /var/log/xen/") == 0) {
         assert_script_run 'tar czvf /tmp/xen.tar.gz /var/log/xen/';
-        upload_asset '/tmp/xen.tar.gz';
+        upload_logs '/tmp/xen.tar.gz';
     } else {
         record_info "Directory /var/log/xen/ does not exist.";
     }
@@ -1087,7 +1095,7 @@ sub collect_virt_system_logs {
     assert_script_run 'mkdir -p /tmp/dumpxml';
     assert_script_run 'for guest in `virsh list --all --name`; do virsh dumpxml $guest > /tmp/dumpxml/$guest.xml; done';
     assert_script_run 'tar czvf /tmp/dumpxml.tar.gz /tmp/dumpxml/';
-    upload_asset '/tmp/dumpxml.tar.gz';
+    upload_logs '/tmp/dumpxml.tar.gz';
 
     upload_system_log::upload_supportconfig_log();
 }
@@ -2136,6 +2144,31 @@ sub install_product_software {
         $cmd = $cmd . " systemd-coredump" if get_var('COLLECT_COREDUMPS');
         zypper_call($cmd);
         save_screenshot;
+    }
+}
+
+=head2 collect_guests_supportconfig_and_logs
+
+  collect_guests_supportconfig_and_logs();
+
+Runs supportconfig and collects compressed /var/log* from all guests 
+
+=cut
+
+sub collect_guests_supportconfig_and_logs {
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        record_info("Logs $guest", "Run supportconfig and collect logs from $guest");
+        my $var_log_archive = "/tmp/var_log_${guest}.tar.gz";
+
+        # Run supportconfig on guest
+        script_run("ssh root\@$guest 'supportconfig < /dev/null'", timeout => 600);
+
+        # Compress /var/log (which now includes the supportconfig log)
+        script_run("ssh root\@$guest 'tar -czf $var_log_archive /var/log'");
+
+        # Pull the archive to the host and upload to openQA
+        script_run("scp root\@$guest:$var_log_archive $var_log_archive");
+        upload_logs("$var_log_archive", log_name => "var_logs_${guest}.tar.gz");
     }
 }
 

@@ -45,6 +45,10 @@ conditional_schedule:
     VIRT_SEV_SNP_GUEST_INSTALL:
       1:
         - virt_autotest/sev_snp_validation
+  tdx_validation:
+    VIRT_TDX_GUEST_INSTALL:
+      1:
+        - virt_autotest/tdx_validation
   sev_es_guest_verification:
     VIRT_SEV_ES_GUEST_INSTALL:
       1:
