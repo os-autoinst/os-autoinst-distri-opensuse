@@ -108,16 +108,8 @@ sub check_guest_pmsuspend_enabled {
     $self->do_guest_pmsuspend($_, 'mem') foreach (keys %virt_autotest::common::guests);
     if (is_kvm_host) {
         foreach (keys %virt_autotest::common::guests) {
-            if (is_sle('>=15') and ($_ =~ /12-sp5/img)) {
-                record_info("PMSUSPEND to hyrbrid is not supported here", "Guest $_ on kvm sles 15+ host");
-                next;
-            }
-            $self->regen_efi_secret_key($_) if (is_sle('>=15') or ($_ =~ /sles-15|sles15/img));
-            $self->do_guest_pmsuspend($_, 'hybrid');
-        }
-        foreach (keys %virt_autotest::common::guests) {
-            if (is_sle('>=15') and ($_ =~ /12-sp5/img)) {
-                record_info("PMSUSPEND to disk is not supported here", "Guest $_ on kvm sles 15+ host");
+            if ((is_sle('>=15') and $_ =~ /12-sp5/img) or is_transactional_guest(address => $_)) {
+                record_info("bsc#1260076 PMSUSPEND to disk is not supported here", "Guest $_ is sles 15- on kvm sles 15+ host or transactional");
                 next;
             }
             $self->regen_efi_secret_key($_) if (is_sle('>=15') or ($_ =~ /sles-15|sles15/img));
@@ -136,7 +128,7 @@ sub do_guest_pmsuspend {
     $suspend_target //= 'mem';
     $suspend_duration //= 0;
 
-    record_info("PM suspend to $suspend_target on $suspend_domain test", "Xen only supports suspend to memory, kvm also supports suspend to disk and hybrid modes");
+    record_info("PM suspend to $suspend_target on $suspend_domain test", "Xen only supports suspend to memory, kvm also supports disk/hybrid but only suspend to memory/disk is officially supported.");
     my $guest_state_after_suspend = 'pmsuspended';
     $guest_state_after_suspend = 'shut off' if ($suspend_target eq 'disk');
     assert_script_run("virsh dompmsuspend --domain $suspend_domain --target $suspend_target");
