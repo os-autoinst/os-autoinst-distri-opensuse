@@ -91,14 +91,6 @@ sub run {
     record_info('Compare images', 'Both extracted copies must be identical.');
     assert_script_run("diff -urN $dir1 $dir2", fail_message => 'Copied images are not identical.');
 
-    ######### Spin-up an instance of the latest Registry
-    my $registry_image = is_opensuse ? "registry.opensuse.org/opensuse/registry:latest" : "registry.suse.com/suse/registry:latest";
-    assert_script_run("podman run --rm -d -p 5050:5000 --name skopeo-registry $registry_image",
-        fail_message => "Failed to start local registry container");
-
-    ######### Wait until the registry is up
-    script_retry("curl http://localhost:5050/v2", delay => 2, fail_message => "Local registry not reachable");
-
     ######### Pull the image into a our local repository
     # skipping tls verification as by default most local registries don't have certificates
     record_info('Copy Image', 'Copy image from remote repository into the local repository.');
@@ -130,10 +122,6 @@ sub run {
 sub cleanup {
     record_info('Cleanup', 'Delete copied image directories');
     script_run "rm -rf $workdir";
-
-    record_info('Cleanup Registry', 'Remove local image Registry');
-    script_run "podman stop skopeo-registry";
-    script_run "podman rm -vf skopeo-registry";
 }
 
 sub post_run_hook {
