@@ -50,6 +50,7 @@ sub run {
     upload_logs('/tmp/kernel_changelog.log');
     upload_logs('/tmp/repos_list.txt');
 
+    record_info('Package list', script_output('rpm -qa'));
     if (get_var('SAVE_LIST_OF_PACKAGES')) {
         assert_script_run("rpm -qa > /tmp/rpm_packages_list_after_patch.txt");
         upload_logs('/tmp/rpm_packages_list_after_patch.txt');
