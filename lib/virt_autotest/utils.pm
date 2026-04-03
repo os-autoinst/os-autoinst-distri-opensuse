@@ -111,6 +111,7 @@ our @EXPORT = qw(
   check_kvm_modules
   install_product_software
   collect_guests_supportconfig_and_logs
+  reset_network_config
 );
 
 my %log_cursors;
@@ -2172,6 +2173,32 @@ sub collect_guests_supportconfig_and_logs {
         # Pull the archive to the host and upload to openQA
         script_run("scp root\@$guest:$var_log_archive $var_log_archive");
         upload_logs("$var_log_archive", log_name => "var_logs_${guest}.tar.gz");
+    }
+}
+
+=head2 reset_network_config
+
+  reset_network_config(config => absolute path to config file);
+
+Reset network config, for example, restore auto dns policy to enable automatic
+dns migration to higher version
+
+=cut
+
+sub reset_network_config {
+    my (%args) = @_;
+    $args{config} //= '';
+
+    if (!is_networkmanager) {
+        $args{config} = '/etc/sysconfig/network/config';
+        return if (script_run("ls $args{config}") != 0);
+        assert_script_run("sed -i -r \'/^NETCONFIG_DNS_POLICY.*\$/d\' $args{config}");
+        if (script_run("grep -E \"^NETCONFIG_DNS_POLICY.*\$\" $args{config}") == 0) {
+            assert_script_run("sed -i -r \'s/^NETCONFIG_DNS_POLICY.*\$/NETCONFIG_DNS_POLICY=\"auto\"/g\' $args{config}");
+        }
+        else {
+            assert_script_run("echo -e \"NETCONFIG_DNS_POLICY=\"auto\"\" >> $args{config}");
+        }
     }
 }
 
