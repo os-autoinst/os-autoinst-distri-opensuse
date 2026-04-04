@@ -25,7 +25,7 @@ sub run_tests {
     # systemd cgroups manager only works on cgroup v2
     $env{RUNC_USE_SYSTEMD} = "1" if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") == 0);
 
-    if ($rootless) {
+    if ($rootless && !is_sle("<15-SP6")) {
         # /etc/subgid is keyed by user, not group
         my ($gid_start, $gid_len) = split / /, script_output(
             q(awk -F: -v user="$(id -un)" '$1 == user { print $2, $3; exit }' /etc/subgid)
