@@ -22,7 +22,7 @@ my $version;
 sub setup {
     my $self = shift;
     my @pkgs = qw(containerd containerd-ctr go1.26 make xfsprogs);
-    push @pkgs, qw(cni-plugins cri-tools) unless is_sle;
+    push @pkgs, qw(cni-plugins cri-tools criu) unless is_sle;
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
