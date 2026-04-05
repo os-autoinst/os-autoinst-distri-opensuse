@@ -440,6 +440,8 @@ EOF
 
     return if $rebooted;
 
+    script_run "mkdir -pm 700 /etc/cdi";
+
     foreach my $pkg (split(/\s+/, get_var("TEST_PACKAGES", ""))) {
         run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install --force-resolution --allow-vendor-change $pkg || rpm -ivh --force --nodeps $pkg";
     }
