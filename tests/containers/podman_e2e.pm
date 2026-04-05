@@ -22,7 +22,7 @@ my $version;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit glibc-devel-static go1.26 gpg2 jq libgpgme-devel
+    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit docker glibc-devel-static go1.26 gpg2 jq libgpgme-devel
       libseccomp-devel make netavark openssl podman podman-remote runc skopeo socat sudo systemd-container xfsprogs);
     push @pkgs, qw(criu crun libcriu2) unless is_sle;
     $oci_runtime = get_var("OCI_RUNTIME", "runc");
@@ -38,6 +38,8 @@ sub setup {
     run_command "usermod --add-subgids 100000-165535 containers";
     # Make /run/secrets directory available on containers
     run_command "echo /var/lib/empty:/run/secrets >> /etc/containers/mounts.conf";
+
+    enable_docker;
 
     if (get_var("ROOTLESS")) {
         switch_to_user;
