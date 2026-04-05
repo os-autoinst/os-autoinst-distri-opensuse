@@ -105,13 +105,13 @@ sub run {
     run_command "modprobe ip6_tables";
     run_command "modprobe null_blk nr_devices=1 || true";
 
-    record_info("podman version", script_output("podman version"));
-    record_info("podman info", script_output("podman info"));
+    record_info("podman version", script_output("podman version -f json | jq -Mr"));
+    record_info("podman info", script_output("podman info -f json"));
     record_info("podman package version", script_output("rpm -q podman"));
 
     switch_to_user;
 
-    record_info("podman rootless", script_output("podman info"));
+    record_info("podman rootless", script_output("podman info -f json"));
 
     # Download podman sources
     $version = script_output "podman --version | awk '{ print \$3 }'";
