@@ -37,6 +37,7 @@ our @EXPORT = qw(
   configure_docker
   configure_rootless_docker
   configure_podman_mirror
+  enable_docker
   go_arch
   install_gotestsum
   install_ncat
@@ -210,6 +211,26 @@ sub configure_rootless_docker {
     $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
     record_info "WARNINGS client", $warnings if $warnings;
     run_command 'export PATH=$PATH:/usr/sbin:/sbin';
+}
+
+sub enable_docker {
+    # Needed to avoid:
+    # WARNING: COMMAND_FAILED: '/sbin/iptables -t nat -F DOCKER' failed: iptables: No chain/target/match by that name.
+    # See https://bugzilla.suse.com/show_bug.cgi?id=1196801
+    script_run 'systemctl restart firewalld';
+
+    script_run 'systemctl enable --now docker';
+    script_run "usermod -aG docker $testapi::username";
+
+    # Running podman as root with docker installed may be problematic as netavark uses nftables
+    # while docker still uses iptables.
+    # Use workaround suggested in:
+    # - https://fedoraproject.org/wiki/Changes/NetavarkNftablesDefault#Known_Issue_with_docker
+    # - https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-on-a-router
+    if (script_run("iptables -L -v | grep -q DOCKER") == 0) {
+        script_run "iptables -I DOCKER-USER -j ACCEPT";
+        script_run "ip6tables -I DOCKER-USER -j ACCEPT";
+    }
 }
 
 sub configure_containerd_mirror {
@@ -439,6 +460,8 @@ EOF
     }
 
     return if $rebooted;
+
+    script_run "mkdir -pm 700 /etc/cdi";
 
     foreach my $pkg (split(/\s+/, get_var("TEST_PACKAGES", ""))) {
         run_command "zypper --gpg-auto-import-keys --no-gpg-checks -n install --force-resolution --allow-vendor-change $pkg || rpm -ivh --force --nodeps $pkg";
