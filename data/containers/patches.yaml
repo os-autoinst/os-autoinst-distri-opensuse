@@ -147,6 +147,7 @@ podman:
   # https://github.com/containers/podman/pull/28266 - Fixes for running the e2e testsuite on architectures other than amd64
   # https://github.com/containers/podman/pull/28281 - tests/e2e: Do not try to list /proc/acpi on non-amd64
   # https://github.com/containers/podman/pull/28338 - test: relax rootless runc pid namespace assertion
+  # https://github.com/containers/podman/pull/28448 - test/system: Fix 260-sdnotify being silently skipped
   21875:
     merged: "5.0.0"
   24068:
@@ -192,6 +193,8 @@ podman:
     min: "5.8.0"
   28338:
     min: "5.4.0"
+  28448:
+    min: "5.7.1"
 
 podman-py:
   # https://github.com/containers/podman-py/pull/623 - Fix pytest flag for rootful test
