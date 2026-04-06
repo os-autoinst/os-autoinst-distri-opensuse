@@ -116,6 +116,8 @@ sub run {
     record_info("buildah package version", script_output("rpm -q buildah"));
 
     enable_docker;
+    $docker_version = script_output "docker version --format '{{.Client.Version}}'";
+    record_info("docker version", $docker_version);
 
     switch_to_user;
 
