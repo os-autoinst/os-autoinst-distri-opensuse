@@ -103,7 +103,6 @@ sub finalize {
     my ($self) = @_;
 
     # Call cleanup() defined in test modules
-    # TODO: I'd like to keep this $self->cleanup() here because of the eval
     eval { $self->cleanup(); }
       or record_info('FAILED cleanup', "Failed the cleanup (ref.: \$self->cleanup() failed --\n $@", result => 'fail');
 }
