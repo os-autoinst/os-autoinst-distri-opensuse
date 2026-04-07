@@ -57,7 +57,10 @@ sub run {
 
     $container_name = "suseconnect-test-$runtime_name";
 
-    my @run_cmd = ("$runtime_name run -d");
+    # We need --init to reap zombie processes and increase --pids-limit 4x to let zypper fork a lot.
+    # Otherwise it fails with EAGAIN like this:
+    # error: Couldn't fork %post(...): Resource temporarily unavailable
+    my @run_cmd = ("$runtime_name run -d --init --pids-limit 8192");
     push @run_cmd, ("--name $container_name",
         "-e ADDITIONAL_MODULES=sle-module-desktop-applications,sle-module-development-tools",
         "-v $scc_credentials_path:/etc/zypp/credentials.d/SCCcredentials");
