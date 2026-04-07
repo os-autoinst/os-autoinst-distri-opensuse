@@ -72,7 +72,7 @@ function(bootloader=true,
             [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
             [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
           },
-          [if decrypt_password != '' || registration_packagehub || multipath_activate || questions_policy_auto then 'questions']: {
+          [if decrypt_password != '' || registration_packagehub || multipath_activate then 'questions']: {
             [if questions_policy_auto then 'policy']: 'auto',
             answers: std.prune([
               if decrypt_password != '' then answers_lib.questions_decrypt(decrypt_password),
