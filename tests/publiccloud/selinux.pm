@@ -21,13 +21,8 @@ sub run {
 
     zypper_call("in selinux-tools");
     # This block can be simplified when bsc#1251802 is resolved.
-    if (script_run("selinuxenabled") != 0) {
-        if (is_ec2) {
-            record_soft_failure("bsc#1251802");
-            return;
-        }
-        die "SELinux is not enabled";
-    }
+    die "SELinux is not enabled" if (script_run("selinuxenabled") != 0);
+
     my $expected = $enforcing ? "Enforcing" : "Permissive";
     validate_script_output("getenforce", sub { $_ =~ m/$expected/i }, fail_message => "SELinux is not in $expected mode");
     # note: ausearch returns with ret=1 if there are no matches.
