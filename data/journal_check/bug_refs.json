@@ -708,7 +708,7 @@
         "type": "ignore"
     },
     "health-check": {
-        "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback",
+        "description": "health-checker/fail.sh check\" failed|Machine didn't come up correctly, do a rollback|Activation request for 'org.opensuse.Snapper' failed",
         "products": {
             "microos": [
                 "Tumbleweed"
