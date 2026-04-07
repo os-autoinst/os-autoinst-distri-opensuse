@@ -7,5 +7,11 @@ schedule:
     - installation/agama_reboot
     - installation/grub_test
     - installation/first_boot
+    - '{{zypper_lr}}'
     - console/system_prepare
     - shutdown/shutdown
+conditional_schedule:
+    zypper_lr:
+        FLAVOR:
+            'Online':
+                - console/zypper_lr

@@ -6,6 +6,7 @@ schedule:
     - installation/bootloader_zkvm
     - installation/agama_reboot
     - installation/first_boot
+    - '{{zypper_lr}}'
     - console/system_prepare
     - console/hostname
     - console/force_scheduled_tasks
@@ -13,3 +14,8 @@ schedule:
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
     - shutdown/svirt_upload_assets
+conditional_schedule:
+    zypper_lr:
+        FLAVOR:
+            'Online':
+                - console/zypper_lr

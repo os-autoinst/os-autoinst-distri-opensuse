@@ -6,6 +6,7 @@ schedule:
     - yam/agama/agama_auto
     - installation/grub_test
     - installation/first_boot
+    - '{{zypper_lr}}'
     - console/system_prepare
     - qa_automation/patch_and_reboot
     - console/hostname
@@ -13,3 +14,8 @@ schedule:
     - shutdown/grub_set_bootargs
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
+conditional_schedule:
+    zypper_lr:
+        FLAVOR:
+            'Online':
+                - console/zypper_lr
