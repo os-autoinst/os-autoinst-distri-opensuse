@@ -30,6 +30,7 @@ use constant {
           is_selfinstall
           is_gnome_next
           is_jeos
+          is_immutable
           is_community_jeos
           is_krypton_argon
           is_leap
@@ -120,6 +121,15 @@ Returns true if called on jeos
 
 sub is_jeos {
     return get_var('FLAVOR', '') =~ /(JeOS|Minimal-VM)/ || get_var('MINIMAL_VM');
+}
+
+=head2 is_immutable
+
+Returns true if called on immutable
+=cut
+
+sub is_immutable {
+    return get_var('FLAVOR', '') =~ m/Immutable/;
 }
 
 =head2 is_vmware

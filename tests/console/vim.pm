@@ -16,7 +16,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Architectures;
-use version_utils qw(is_jeos);
+use version_utils qw(is_jeos is_immutable);
 
 sub run {
     select_console 'root-console';
@@ -24,7 +24,7 @@ sub run {
     # vim-data package must not be present on JeOS
     assert_script_run('! rpm -qi vim-data') if is_jeos();
     enter_cmd "vim /etc/passwd";
-    my $jeos = is_jeos() ? '-jeos' : '';
+    my $jeos = (is_jeos() || is_immutable()) ? '-jeos' : '';
     assert_screen "vim-showing-passwd$jeos";
     wait_screen_change { enter_cmd ":q!" };
 }
