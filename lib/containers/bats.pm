@@ -423,8 +423,12 @@ sub setup_pkgs {
 
     # Workaround for https://bugzilla.opensuse.org/show_bug.cgi?id=1259147
     if (is_tumbleweed && is_x86_64 && !get_var("OCI_RUNTIME") && (check_var("BATS_PACKAGE", "buildah") || check_var("BATS_PACKAGE", "podman"))) {
-        assert_script_run "curl -o /tmp/libseccomp2.rpm " . data_url("containers/libseccomp2-2.6.0-2.2.x86_64.rpm");
-        assert_script_run "rpm -ivh --force /tmp/libseccomp2.rpm";
+        my $version_release = is_x86_64 ? "2.6.0-2.2" : (is_aarch64 ? "2.6.0-2.6" : "");
+        if ($version_release) {
+            $version_release .= "." . get_required_var("ARCH");
+            assert_script_run "curl -o /tmp/libseccomp2.rpm " . data_url("containers/libseccomp2-$version_release.rpm");
+            assert_script_run "rpm -ivh --force /tmp/libseccomp2.rpm";
+        }
     }
 
     configure_oci_runtime $oci_runtime;
