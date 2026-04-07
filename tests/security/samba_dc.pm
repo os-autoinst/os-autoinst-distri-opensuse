@@ -11,14 +11,11 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-## no os-autoinst style
-
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
 use utils qw(zypper_call systemctl script_retry random_string);
 use serial_terminal 'select_serial_terminal';
-use version_utils 'is_sle';
 use network_utils 'iface';
 use Utils::Architectures 'is_s390x';
 use feature 'signatures';
@@ -30,6 +27,8 @@ use constant {
     PASSWORD => 'Passw0rd',
 };
 
+our ($netdev, $server_ip, $client_ip);
+
 # ------------------------ common entry point -------------------------------
 
 sub run ($self) {
@@ -37,9 +36,9 @@ sub run ($self) {
     select_serial_terminal;
 
     if (is_s390x) {
-        our $netdev = iface();
-        our $server_ip = get_var('SERVER_IP', '10.0.2.123');
-        our $client_ip = get_var('CLIENT_IP', '10.0.2.124');
+        $netdev = iface();
+        $server_ip = get_var('SERVER_IP', '10.0.2.123');
+        $client_ip = get_var('CLIENT_IP', '10.0.2.124');
     }
 
     ($hostname eq 'client') ? run_client() : run_server();
@@ -117,7 +116,6 @@ sub run_client() {
     barrier_wait('SAMBA_DC_SETUP');
     my $client_hostname = randomize_hostname();
 
-    my $server_ip;
     unless (is_s390x) {
         $server_ip = script_output(q{getent hosts server | head -n1 | awk '{print $1}'});
     }
