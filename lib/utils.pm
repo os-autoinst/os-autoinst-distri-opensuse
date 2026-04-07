@@ -3171,6 +3171,7 @@ sub is_usb_boot {
  remove_efiboot_entry(boot_entry => 'entry');
 
 Remove provided efiboot entry name by its corresponding boot number.
+All entries with this name will be removed.
 
 =cut
 
@@ -3179,11 +3180,14 @@ sub remove_efiboot_entry {
     $args{boot_entry} //= '';
 
     if ($args{boot_entry}) {
-        if (script_run("efibootmgr | grep $args{boot_entry}") == 0) {
-            script_output("efibootmgr | grep $args{boot_entry}") =~ /Boot([0-9A-F]+)\*/m;
-            assert_script_run("efibootmgr -B -b $1");
-            save_screenshot;
-            record_info("efiboot entry $args{boot_entry} deleted", script_output('efibootmgr -v'));
+        my $output = script_output("efibootmgr");
+        if ($output =~ /$args{boot_entry}/) {
+            my @matches = ($output =~ /Boot([0-9A-F]+)\*?\s*$args{boot_entry}/gm);
+            foreach my $match (@matches) {
+                assert_script_run("efibootmgr -B -b $match");
+                save_screenshot;
+                record_info("efiboot entry $args{boot_entry} deleted", script_output('efibootmgr -v'));
+            }
         }
         else {
             record_info("efiboot entry $args{boot_entry} does not exist", script_output('efibootmgr -v'));
