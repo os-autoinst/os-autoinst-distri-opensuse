@@ -108,7 +108,7 @@ test on the client side. The test runs TEST_TIME seconds.
 sub run_test {
     my ($self, $client, $server) = @_;
     record_info('server', 'Start IPERF in server ' . $server->public_ip);
-    $server->ssh_assert_script_run(cmd => 'nohup iperf3 -s -D &', no_quote => 1);
+    $server->ssh_assert_script_run(cmd => 'nohup iperf3 -s -D &');
     sleep 60;    # Wait 60 seconds so that the server starts up safely and the clinet can connect to it
     record_info('client', 'Start IPERF in client');
     my $ttime = get_required_var('TEST_TIME');
