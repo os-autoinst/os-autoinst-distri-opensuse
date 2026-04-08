@@ -60,6 +60,11 @@ create_fs() {
     lsblk
 }
 
+get_root_fs() {
+#luks_dev=$(blkid -t TYPE=crypto_LUKS --output=device)
+    echo "$(blkid --label "ROOT")"
+}
+
 systemd_mount() {
 
 cat << EOF > /etc/systemd/system/home.mount
@@ -103,8 +108,11 @@ fi
 
 sed -i "s,${luks_keyfile},/.virtual-root.key,g" /etc/crypttab
 sed -i "s,${luks_keyfile},/.virtual-root.key,g" /etc/dracut.conf.d/99-luks-boot.conf
+
 cryptsetup --key-file "${oldpass}" luksChangeKey --pbkdf pbkdf2 "${luks_dev}" "${newpass}"
-cryptsetup reencrypt --key-slot 0 --key-file "${newpass}" "${luks_dev}"
+key_slot=$(cryptsetup luksDump "${luks_dev}" | awk -F ':' '/Keyslots:/ {getline; gsub(/ /, "", $0); print $1}')
+cryptsetup reencrypt --key-slot "${key_slot}" --key-file "${newpass}" "${luks_dev}"
+
 fdectl --passfile "${newpass}" regenerate-key
 systemctl enable fde-tpm-enroll.service
 transactional-update initrd grub.cfg
@@ -142,7 +150,7 @@ if [ "${1-}" = "--prepare" ]; then
     if [ -c "/dev/tpm0" ] && command -v disk-encryption-tool &> /dev/null; then
         mkdir -p /run/credstore
         echo "force" > /run/credstore/disk-encryption-tool-dracut.encrypt
-        echo "cr_root /dev/vda3" >> /run/credstore/disk-encryption-tool-dracut.partitions
+        echo "cr_root $(get_root_fs)" >> /run/credstore/disk-encryption-tool-dracut.partitions
     fi
 
     exit 0
