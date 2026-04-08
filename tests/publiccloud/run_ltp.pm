@@ -45,7 +45,7 @@ sub should_partially_build_ltp_from_git_modules_install {
 }
 
 sub install_build_deps {
-    my ($self, $instance) = @_;
+    my ($instance) = @_;
 
     my @deps = get_required_build_dependencies();
 
@@ -68,13 +68,14 @@ sub install_build_deps {
         );
         $instance->softreboot();
     } else {
-        zypper_call_remote($instance, cmd => "install --no-recommends " . join(' ', @deps));
+        $instance->zypper_call_remote(cmd => "install --no-recommends " . join(' ', @deps));
     }
-    zypper_install_available_remote($instance);
+
+    install_optional_build_deps($instance);
 }
 
 sub prepare_ltp_git {
-    my ($self, $instance, $ltp_dir, $ltp_prefix) = @_;
+    my ($instance, $ltp_dir, $ltp_prefix) = @_;
 
     my $repo_url = get_var('LTP_GIT_URL', 'https://github.com/linux-test-project/ltp');
     my $repo_branch = get_var('LTP_RELEASE', 'master');
@@ -93,13 +94,13 @@ sub prepare_ltp_git {
 }
 
 sub fully_build_ltp_from_git {
-    my ($self, $instance, $ltp_dir, $ltp_prefix) = @_;
+    my ($instance, $ltp_dir, $ltp_prefix) = @_;
 
     my $start = time();
     my $ltp_build_timeout = 20 * 60;
 
-    $self->install_build_deps($instance);
-    $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
+    install_build_deps($instance);
+    prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
     $instance->ssh_assert_script_run(
         cmd => "cd $ltp_dir && make -j\$(getconf _NPROCESSORS_ONLN) && sudo make install",
         timeout => $ltp_build_timeout
@@ -109,30 +110,19 @@ sub fully_build_ltp_from_git {
 }
 
 sub partially_build_ltp_from_git {
-    my ($self, $instance, $ltp_dir, $ltp_prefix) = @_;
+    my ($instance, $ltp_dir, $ltp_prefix) = @_;
 
     my $start = time();
     my $ltp_subdir_build_timeout = 5 * 60;
 
-    $self->install_build_deps($instance);
-    $self->prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
+    install_build_deps($instance);
+    prepare_ltp_git($instance, $ltp_dir, $ltp_prefix);
 
     $instance->ssh_assert_script_run(
         cmd => "cd $ltp_dir && make -j\$(getconf _NPROCESSORS_ONLN) modules && sudo make -j\$(getconf _NPROCESSORS_ONLN) modules-install",
         timeout => $ltp_subdir_build_timeout
     );
     record_info("LTP Partial Build Time", "Time taken build from source: " . (time() - $start) . " seconds");
-}
-
-sub get_ltp_rpm
-{
-    my ($url) = @_;
-    my $ua = Mojo::UserAgent->new();
-    my $links = $ua->get($url)->res->dom->find('a')->map(attr => 'href');
-    for my $link (grep(/^ltp-20.*rpm$/, @{$links})) {
-        return $link;
-    }
-    die('Could not find LTP package in ' . $url);
 }
 
 sub instance_log_args
@@ -196,7 +186,7 @@ sub upload_ltp_logs
 
 sub dump_kernel_config
 {
-    my ($self, $instance) = @_;
+    my ($instance) = @_;
 
     record_info("uname -a", $instance->ssh_script_output(cmd => "uname -a"));
 
@@ -208,7 +198,7 @@ sub dump_kernel_config
 }
 
 sub disable_and_stop_ec2_cloudwatch_agent {
-    my ($self, $instance) = @_;
+    my ($instance) = @_;
 
     my $enabled = $instance->ssh_script_output(
         "sudo systemctl is-enabled amazon-cloudwatch-agent",
@@ -232,11 +222,11 @@ sub disable_and_stop_ec2_cloudwatch_agent {
     sleep 3 * 60;    # wait for CloudWatch agent to flush logs
 }
 sub download_ec2_cloudwatch_logs {
-    my ($self, $instance) = @_;
+    my ($instance) = @_;
 
     my $instance_id = $instance->instance_id;
 
-    $self->disable_and_stop_ec2_cloudwatch_agent($instance);
+    disable_and_stop_ec2_cloudwatch_agent($instance);
 
     for my $entry (@$EC2_CW_LOGS) {
 
@@ -309,7 +299,7 @@ sub download_ec2_cloudwatch_logs {
 # Write dmesg output to /var/log/dmesg so it can be collected as a file-based log source for centralized logging.
 sub install_dmesg_capture_to_log
 {
-    my ($self, $instance) = @_;
+    my ($instance) = @_;
 
     my $svc_file = 'dmesg-capture.service';
     my $svc_target = '/etc/systemd/system/' . $svc_file;
@@ -329,9 +319,9 @@ sub install_dmesg_capture_to_log
 
 sub install_ec2_cloudwatch_agent
 {
-    my ($self, $instance) = @_;
+    my ($instance) = @_;
 
-    $self->install_dmesg_capture_to_log($instance);
+    install_dmesg_capture_to_log($instance);
 
     $instance->ssh_assert_script_run(
         "sudo mkdir -p /etc/systemd/journald.conf.d && " .
@@ -381,7 +371,7 @@ sub install_ec2_cloudwatch_agent
         $instance->softreboot();
     } else {
         if (is_sle(">12-SP5")) {
-            zypper_call_remote($instance, cmd => "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
+            $instance->zypper_call_remote(cmd => "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
         } else {
             $instance->ssh_assert_script_run("sudo rpm -Uvh $download_directory/$rpm_file");
         }
@@ -426,19 +416,19 @@ sub run {
     my $instance = $args->{my_instance};
     my $provider = $args->{my_provider};
 
-    $self->prepare_scripts();
-    $self->register_instance($instance, $qam);
+    prepare_scripts();
+    register_instance($instance, $qam);
 
     my $ltp_dir = '/tmp/ltp';
     my $ltp_prefix = '/opt/ltp';
 
-    $self->install_ec2_cloudwatch_agent($instance) if (is_ec2());
+    install_ec2_cloudwatch_agent($instance) if (is_ec2());
 
     if (should_fully_build_ltp_from_git()) {
-        $self->fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
+        fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
     } else {
-        $self->install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
-        $self->partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git_modules_install();
+        install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
+        partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git_modules_install();
     }
 
     $self->gen_ltp_env($instance, $ltp_pkg);
@@ -446,19 +436,19 @@ sub run {
     my $include_tests_pattern = get_var('LTP_COMMAND_PATTERN');
     my $skip_tests = $self->prepare_skip_tests(\@commands);
 
-    $self->prepare_kirk($instance);
+    prepare_kirk($instance);
 
-    $self->printk_loglevel($instance);
+    printk_loglevel($instance);
 
     my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($provider, $instance);
 
     my $env = get_var('LTP_PC_RUNLTP_ENV');
     my $log_start_cmd = $root_dir . '/log_instance.sh start ' . instance_log_args($provider, $instance);
-    $self->prepare_logging($log_start_cmd);
+    prepare_logging($log_start_cmd);
 
-    my $cmd_run_ltp = $self->prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env);
+    my $cmd_run_ltp = prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env);
 
-    $self->dump_kernel_config($instance);
+    dump_kernel_config($instance);
     record_info('LTP START', 'Command launch');
     # $ltp_timeout is also used for --suite-timeout so we need give kirk some time to try to kill itself before trying to kill it
     my $kirk_exit_code = script_run($cmd_run_ltp, timeout => $ltp_timeout + 60);
@@ -487,14 +477,18 @@ sub prepare_scripts {
 }
 
 sub register_instance {
-    my ($self, $instance, $qam) = @_;
+    my ($instance, $qam) = @_;
     registercloudguest($instance) if (is_byos() && !$qam);
 }
 
 sub install_ltp {
-    my ($self, $instance, $ltp_repo_name, $ltp_repo_url, $ltp_package_name) = @_;
+    my ($instance, $ltp_repo_name, $ltp_repo_url, $ltp_package_name) = @_;
 
-    zypper_add_repo_remote($instance, $ltp_repo_name, $ltp_repo_url);
+    $instance->ssh_assert_script_run(
+        cmd => "sudo zypper -n addrepo -fG $ltp_repo_url $ltp_repo_name",
+        timeout => 600
+    );
+
     if (is_transactional) {
         $instance->ssh_assert_script_run(
             cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', $ltp_package_name),
@@ -502,7 +496,7 @@ sub install_ltp {
         );
         $instance->softreboot();
     } else {
-        zypper_call_remote($instance, cmd => "install --no-recommends " . $ltp_package_name);
+        $instance->zypper_call_remote(cmd => "install --no-recommends " . $ltp_package_name);
     }
 }
 
@@ -534,7 +528,7 @@ sub prepare_skip_tests {
 }
 
 sub prepare_kirk {
-    my ($self, $instance) = @_;
+    my ($instance) = @_;
     my $kirk_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/kirk.git");
     my $kirk_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     record_info('LTP RUNNER REPO', "Repo: " . $kirk_repo . "\nBranch: " . $kirk_branch);
@@ -550,18 +544,18 @@ sub prepare_kirk {
 }
 
 sub printk_loglevel {
-    my ($self, $instance) = @_;
+    my ($instance) = @_;
     # this will print /all/ kernel messages to the console. So in case kernel panic we will have some data to analyse
     $instance->ssh_assert_script_run(cmd => "echo 1 | sudo tee /sys/module/printk/parameters/ignore_loglevel");
 }
 
 sub prepare_logging {
-    my ($self, $log_start_cmd) = @_;
+    my ($log_start_cmd) = @_;
     assert_script_run($log_start_cmd);
 }
 
 sub prepare_ltp_cmd {
-    my ($self, $instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env) = @_;
+    my ($instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env) = @_;
     my $exec_timeout = get_var('LTP_EXEC_TIMEOUT', 1200);
 
     my $sut = ':user=' . $instance->username;
@@ -601,7 +595,7 @@ sub cleanup {
         die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
     }
 
-    $self->download_ec2_cloudwatch_logs($self->{run_args}->{my_instance}) if (is_ec2());
+    download_ec2_cloudwatch_logs($self->{run_args}->{my_instance}) if (is_ec2());
     if (script_run("test -f $root_dir/log_instance.sh") == 0) {
         my $log_instance_stop_command = $root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance});
         script_run($log_instance_stop_command, timeout => 600);
@@ -629,16 +623,78 @@ sub gen_ltp_env {
     return $self->{ltp_env};
 }
 
-=head2 zypper_install_available_remote
+=head2 get_installed_packages_remote
 
-zypper_install_available_remote($instance)
+get_installed_packages_remote($instance, $packages_ref)
+
+This function checks which packages from the provided list are installed on the remote instance.
+It returns an array reference containing the names of the installed packages.
+
+=cut
+
+sub get_installed_packages_remote {
+    my ($instance, $packages_ref) = @_;
+
+    my $pkg_list = join(' ', @$packages_ref);
+    my $cmd = "rpm -q --qf '%{NAME}|' $pkg_list 2>/dev/null";
+
+    my $output = $instance->ssh_script_output(
+        cmd => $cmd,
+        proceed_on_failure => 1
+    );
+
+    my %installed;
+    for my $entry (split /\|/, $output) {
+        next if $entry =~ /is not installed/i;
+        $installed{$entry} = 1;
+    }
+
+    my @found = grep { $installed{$_} } @$packages_ref;
+    return \@found;
+}
+
+=head2 get_available_packages_remote
+
+get_available_packages_remote($instance, $packages_ref)
 
 This function checks which packages from the provided list are available for installation on the remote instance.
+It returns an array reference containing the names of the available packages.
+It uses `zypper -x info` to query the availability of packages.
+
+=cut
+
+sub get_available_packages_remote {
+    my ($instance, $packages_ref) = @_;
+    die "Expected arrayref" unless ref($packages_ref) eq 'ARRAY';
+
+    my %installed = map { $_ => 1 } @{get_installed_packages_remote($instance, $packages_ref)};
+    my @not_installed = grep { !$installed{$_} } @$packages_ref;
+
+    return '' unless @not_installed;
+
+    my $pkg_list = join(' ', @not_installed);
+    my $output = $instance->ssh_script_output(
+        cmd => "zypper -x info $pkg_list 2>/dev/null",
+        proceed_on_failure => 1
+    );
+
+    # Grep all "Name           : <pkg>" lines
+    my %available = map { $_ => 1 } ($output =~ /^Name\s*:\s*(\S+)/mg);
+
+    my @result = grep { $available{$_} } @not_installed;
+    return join(' ', @result);
+}
+
+=head2 zypper_install_available_remote
+
+install_optional_build_deps($instance)
+
+This function checks which packages from the get_maybe_build_dependencies list are available for installation on the remote instance.
 If any packages are available, it installs them using zypper_call_remote.
 
 =cut
 
-sub zypper_install_available_remote {
+sub install_optional_build_deps {
     my ($instance) = @_;
     my $available = get_available_packages_remote($instance, [get_maybe_build_dependencies()]);
     return unless ($available && $available =~ /\S/);
@@ -649,7 +705,7 @@ sub zypper_install_available_remote {
         );
         $instance->softreboot();
     } else {
-        zypper_call_remote($instance, "install --no-recommends " . $available);
+        $instance->zypper_call_remote("install --no-recommends " . $available);
     }
 }
 
