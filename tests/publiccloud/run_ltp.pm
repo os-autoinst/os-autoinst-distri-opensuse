@@ -443,6 +443,7 @@ sub run {
 
     $self->gen_ltp_env($instance, $ltp_pkg);
 
+    my $include_tests_pattern = get_var('LTP_COMMAND_PATTERN');
     my $skip_tests = $self->prepare_skip_tests(\@commands);
 
     $self->prepare_kirk($instance);
@@ -455,7 +456,7 @@ sub run {
     my $log_start_cmd = $root_dir . '/log_instance.sh start ' . instance_log_args($provider, $instance);
     $self->prepare_logging($log_start_cmd);
 
-    my $cmd_run_ltp = $self->prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $skip_tests, $env);
+    my $cmd_run_ltp = $self->prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env);
 
     $self->dump_kernel_config($instance);
     record_info('LTP START', 'Command launch');
@@ -560,7 +561,7 @@ sub prepare_logging {
 }
 
 sub prepare_ltp_cmd {
-    my ($self, $instance, $provider, $reset_cmd, $ltp_command, $skip_tests, $env) = @_;
+    my ($self, $instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env) = @_;
     my $exec_timeout = get_var('LTP_EXEC_TIMEOUT', 1200);
 
     my $sut = ':user=' . $instance->username;
@@ -576,14 +577,16 @@ sub prepare_ltp_cmd {
     }
 
     my $python_exec = get_python_exec();
-    my $cmd = "$env_prefix$python_exec kirk ";
-    $cmd .= '--verbose ';
-    $cmd .= '--exec-timeout=' . $exec_timeout . ' ';
-    $cmd .= '--suite-timeout=' . $ltp_timeout . ' ';
-    $cmd .= '--run-suite ' . $ltp_command . ' ';
-    $cmd .= '--skip-tests \'' . $skip_tests . '\' ' if $skip_tests;
-    $cmd .= '--sut default:com=ssh ';
-    $cmd .= '--com=ssh' . $sut . ' ';
+    my $cmd = "$env_prefix$python_exec kirk";
+    $cmd .= " --verbose";
+    $cmd .= " --exec-timeout=$exec_timeout";
+    $cmd .= " --suite-timeout=$ltp_timeout";
+    $cmd .= " --run-suite $ltp_command";
+    $cmd .= " --run-pattern '$include_tests_pattern'" if $include_tests_pattern;
+    $cmd .= " --skip-tests '$skip_tests'" if $skip_tests;
+    $cmd .= " --sut default:com=ssh";
+    $cmd .= " --com=ssh$sut";
+    $cmd .= " ";
     return $cmd;
 }
 
