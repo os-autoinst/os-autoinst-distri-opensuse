@@ -141,7 +141,7 @@ sub run {
 
     parse_extra_log(IPA => $img_proof->{results});
 
-    $instance->ssh_script_run(cmd => 'sudo chmod a+r /var/tmp/report.html || true', no_quote => 1);
+    $instance->ssh_script_run(cmd => 'sudo chmod a+r /var/tmp/report.html || true');
     $instance->upload_log('/var/tmp/report.html', failok => 1);
 
     my $log = script_output('cat ' . $img_proof->{logfile});
@@ -151,9 +151,9 @@ sub run {
 
     # fail, if at least one test failed
     if ($img_proof->{fail} > 0) {
-        $instance->ssh_assert_script_run(cmd => 'rpm -qa > /tmp/rpm_qa.txt', no_quote => 1);
+        $instance->ssh_assert_script_run(cmd => 'rpm -qa > /tmp/rpm_qa.txt');
         upload_logs('/tmp/rpm_qa.txt');
-        $instance->ssh_assert_script_run(cmd => 'sudo journalctl -b > /tmp/journalctl_b.txt', no_quote => 1);
+        $instance->ssh_assert_script_run(cmd => 'sudo journalctl -b > /tmp/journalctl_b.txt');
         upload_logs('/tmp/journalctl_b.txt');
         die('img_proof failed');
     }

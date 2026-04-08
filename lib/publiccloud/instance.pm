@@ -38,13 +38,12 @@ has ssh_opts => '';
 
 =head2 retry_ssh_command
 
-    ssh_script_retry(command[, retry => 3][, delay => 10][, timeout => 90][, ssh_opts =>'..'][, username => 'XXX'][, no_quote => 0]);
+    ssh_script_retry(command[, retry => 3][, delay => 10][, timeout => 90][, ssh_opts =>'..'][, username => 'XXX']);
 
 Run a C<command> via ssh in the given PC instance until it succeeds or
 the given number of retries is exhausted and an exception is thrown.
 Timeout can be set by C<timeout> or 90 sec by default.
-By default, the command is passed in single quotes to SSH.
-To avoid quoting use C<<no_quote=>1>>.
+The command is passed in single quotes to SSH.
 With C<<ssh_opts=>'...'>> you can overwrite all default ops which are in
 C<<$instance->ssh_opts>>.
 Use argument C<username> to specify a different username then
@@ -77,13 +76,10 @@ sub _prepare_ssh_cmd {
     $args{timeout} //= SSH_TIMEOUT;
 
     my $cmd = $args{cmd};
-    unless ($args{no_quote}) {
-        $cmd =~ s/'/'"'"'/g;
-        $cmd = "'$cmd'";
-    }
+    $cmd =~ s/'/\\'/g;
 
     my $log = '/var/tmp/ssh_sut.log';
-    my $ssh_cmd = sprintf('ssh %s %s "%s@%s" -- %s', (($args{ssh_opts} !~ m{-E\s+$log}) ? "-E $log" : ''), $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
+    my $ssh_cmd = sprintf(q(ssh %s %s "%s@%s" -- $'%s'), (($args{ssh_opts} !~ m{-E\s+$log}) ? "-E $log" : ''), $args{ssh_opts}, $args{username}, $self->public_ip, $cmd);
 
     return $ssh_cmd;
 }
