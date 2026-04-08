@@ -59,25 +59,14 @@ sub run {
         my $wicked_active = $instance->ssh_script_run("systemctl is-active wicked") == 0;
 
         die "Neither wicked nor NetworkManager are active" unless ($nm_active || $wicked_active);
-        if ($nm_active && $wicked_active) {
-            if (is_azure || is_ec2) {
-                record_soft_failure("bsc#1248284 - NetworkManager and wicked active at the same time");
-            } else {
-                die "wicked and NetworkManager cannot be active at the same time";
-            }
-        }
+        # Check for https://bugzilla.suse.com/show_bug.cgi?id=1248284
+        die "wicked and NetworkManager cannot be active at the same time" if ($nm_active && $wicked_active);
 
         my $nm_enabled = $instance->ssh_script_run("systemctl is-enabled NetworkManager") == 0;
         my $wicked_enabled = $instance->ssh_script_run("systemctl is-enabled wicked") == 0;
 
         die "Neither wicked nor NetworkManager are enabled" unless ($nm_enabled || $wicked_enabled);
-        if ($nm_enabled && $wicked_enabled) {
-            if (is_azure || is_ec2) {
-                record_soft_failure("bsc#1248284 - NetworkManager and wicked enabled at the same time");
-            } else {
-                die "wicked and NetworkManager cannot be enabled at the same time";
-            }
-        }
+        die "wicked and NetworkManager cannot be enabled at the same time" if ($nm_enabled && $wicked_enabled);
     } else {
         $instance->ssh_assert_script_run("systemctl is-active NetworkManager", fail_message => "NetworkManager is not active");
         $instance->ssh_assert_script_run("systemctl is-enabled NetworkManager", fail_message => "NetworkManager is not enabled");
