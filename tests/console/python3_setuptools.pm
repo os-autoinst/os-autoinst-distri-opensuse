@@ -44,9 +44,9 @@ sub run_tests ($python3_spec_release) {
         record_info("Skip python39", 'https://jira.suse.com/browse/PED-8196');
         return;
     }
-    if ($python3_spec_release eq 'python311' && is_sle('>=16.0')) {
+    if (($python3_spec_release eq 'python311' || $python3_spec_release eq 'python314') && is_sle('>=16.0')) {
         # python311-setuptools is not available on sle16
-        record_info("Skip python311", 'Skip python311-setuptools test on SLE 16.0');
+        record_info("Skip $python3_spec_release", 'Skip $python3_spec_release-setuptools test on SLE');
         return;
     }
 
