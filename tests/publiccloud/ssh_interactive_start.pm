@@ -31,7 +31,7 @@ sub run {
     die("expect ssh serial") unless (get_var('SERIALDEV') =~ /ssh/);
     # The serial terminal needs to be activated manually, as it requires the $self argument
     select_serial_terminal();
-    enter_cmd('ssh -t sut');
+    enter_cmd('ssh -E /var/tmp/ssh_sut.log -t sut');
 
     # Allow openQA on instances where SELinux is in enforcing state by default
     allow_openqa_port_selinux() if (is_public_cloud && is_sle_micro(">=5.4"));
