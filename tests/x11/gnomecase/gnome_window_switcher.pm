@@ -14,25 +14,28 @@
 
 use Mojo::Base 'x11test';
 use testapi;
+use version_utils qw(is_sle);
+use x11utils;
 
 sub run {
     # Launch 3 applications
-    ensure_installed('gedit');
+    my $editor = is_sle(">=16.0") ? "gnome-text-editor" : "gedit";
+    ensure_installed($editor);
     x11_start_program('nautilus');
     send_key "super-h";    # Minimize the window
-    x11_start_program('gedit');
+    x11_start_program($editor);
     send_key "super-h";    # Minimize the window
-    x11_start_program('totem');
+    x11_start_program(default_gui_terminal);
     send_key "super-h";    # Minimize the window
 
     # Switch windowns with alt+tab
     hold_key "alt";
     send_key "tab";
-    assert_screen "alt-tab-gedit";
+    assert_screen "alt-tab-$editor";
     send_key "tab";
     assert_screen "alt-tab-nautilus";
     send_key "tab";
-    assert_screen "alt-tab-totem";
+    assert_screen "alt-tab-terminal";
     release_key "alt";
 
     # Close the 3 applications
