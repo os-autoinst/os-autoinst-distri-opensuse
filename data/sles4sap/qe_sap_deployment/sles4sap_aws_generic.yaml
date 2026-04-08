@@ -31,6 +31,7 @@ terraform:
     hana_count: '%NODE_COUNT%'
     hana_ha_enabled: '%HA_CLUSTER%'
     hana_instancetype: '%PUBLIC_CLOUD_INSTANCE_TYPE%'
+    hana_vm_size: '%PUBLIC_CLOUD_INSTANCE_TYPE%'
     hana_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
 
 ansible:
