@@ -678,7 +678,7 @@ sub wrapup_log_file {
         push @{$results{tests}}, \%aux;
     }
     my $json = encode_json \%results;
-    enter_cmd "echo '$json' > $results_file";
+    assert_script_run "echo '$json' > $results_file";
 }
 
 =head2 wrap_assert_script_run_with_newlines
