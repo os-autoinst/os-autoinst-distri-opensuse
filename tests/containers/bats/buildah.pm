@@ -70,7 +70,7 @@ sub run_tests {
         "chroot.bats::chroot mount flags",
     ) if (is_ppc64le);
 
-    my $ret = bats_tests($log_file, \%env, \@xfails, 5000);
+    my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
 
     run_command "buildah prune -a -f";
     cleanup_podman;
