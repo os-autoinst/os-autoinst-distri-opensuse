@@ -264,13 +264,13 @@ sub test_flags {
     if (check_var('PUBLIC_CLOUD_QAM', 1)) {
         if ($run_count == 1) {
             # If we are in multi module scenario and this is the first run of the test module we wanna not fail the whole run
-            return {fatal => 0, publiccloud_multi_module => 1};
+            return {fatal => 0};
         }
         # If we are in multi module scenario and this is not the first run of this test module we wanna fail the whole run
-        return {fatal => 1, publiccloud_multi_module => 1};
+        return {fatal => 1};
     }
     # If we are not in multi module scenario it is always the first run and we wanna run basetest cleanup
-    return {fatal => 1, publiccloud_multi_module => 0};
+    return {fatal => 1};
 }
 
 1;

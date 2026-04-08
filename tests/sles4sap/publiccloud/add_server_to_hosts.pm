@@ -42,7 +42,7 @@ use Mojo::Base 'sles4sap::publiccloud_basetest';
 use testapi;
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {

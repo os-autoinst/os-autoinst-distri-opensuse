@@ -19,7 +19,7 @@ sub run {
 }
 
 sub test_flags {
-    return {ignore_failure => 1};
+    return {ignore_failure => 1, always_run => 1};
 }
 
 1;

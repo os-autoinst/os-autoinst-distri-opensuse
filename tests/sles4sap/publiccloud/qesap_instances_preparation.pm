@@ -64,7 +64,7 @@ use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {

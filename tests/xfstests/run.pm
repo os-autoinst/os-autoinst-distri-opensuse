@@ -153,7 +153,7 @@ sub run {
             autotest::loadtest("tests/xfstests/run_subtest.pm", name => $test, run_args => $targs);
             mutex_lock 'last_subtest_run_finish';
             autotest::loadtest 'tests/xfstests/generate_report.pm';
-            autotest::loadtest("tests/publiccloud/ssh_interactive_end.pm", run_args => $args) if is_public_cloud();
+            autotest::loadtest("tests/publiccloud/destroy.pm", run_args => $args) if is_public_cloud();
         }
         else {
             autotest::loadtest("tests/xfstests/run_subtest.pm", name => $test, run_args => $targs);

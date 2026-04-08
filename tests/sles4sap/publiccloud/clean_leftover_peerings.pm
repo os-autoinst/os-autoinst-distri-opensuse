@@ -42,7 +42,7 @@ use publiccloud::utils qw(is_azure);
 use sles4sap::azure_cli;
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {

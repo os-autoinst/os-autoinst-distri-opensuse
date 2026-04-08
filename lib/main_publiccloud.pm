@@ -45,7 +45,6 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
         loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
-        loadtest('publiccloud/ssh_interactive_end', run_args => $args);
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
         loadtest('publiccloud/ahb', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
@@ -85,9 +84,8 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/selinux" if (is_sle("16.0+"));
             loadtest "publiccloud/gcp_google_guest_agent" if (is_gce() && is_sle("16.0+"));
         }
-
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
     }
+    loadtest('publiccloud/destroy', run_args => $args);
 }
 
 sub load_publiccloud_consoletests {
@@ -126,7 +124,10 @@ my $should_use_runargs = sub {
 
 sub load_latest_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
-    if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+    if (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
+        loadtest "publiccloud/upload_image", run_args => $args;
+        return;    # Do not continue as there is no instance to destroy
+    } elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/img_proof", run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_LTP')) {
@@ -147,7 +148,6 @@ sub load_latest_publiccloud_tests {
         if (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
             loadtest('publiccloud/cloud_netconfig', run_args => $args);
             loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
-            loadtest('publiccloud/ssh_interactive_end', run_args => $args);
         } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
             loadtest('publiccloud/ahb', run_args => $args);
         } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
@@ -184,14 +184,11 @@ sub load_latest_publiccloud_tests {
                 loadtest "publiccloud/selinux" if (is_sle("16.0+"));
                 loadtest "publiccloud/gcp_google_guest_agent" if (is_gce() && is_sle("16.0+"));
             }
-            loadtest("publiccloud/ssh_interactive_end", run_args => $args) unless get_var('PUBLIC_CLOUD_XFS');
         }
-    }
-    elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
-        loadtest "publiccloud/upload_image", run_args => $args;
     } else {
         die "*publiccloud - Latest* expects PUBLIC_CLOUD_* job variable. None is matched from the expected ones.";
     }
+    loadtest('publiccloud/destroy', run_args => $args);
 }
 
 sub load_create_publiccloud_tools_image {
@@ -233,11 +230,9 @@ sub load_publiccloud_appimg_tests {
     } elsif ($publiccloud_app_img eq 'mariadb') {
         loadtest("publiccloud/ssh_interactive_start", run_args => $args);
         loadtest('console/mariadb_srv', run_args => $args);
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     } elsif ($publiccloud_app_img eq 'postgresql') {
         loadtest("publiccloud/ssh_interactive_start", run_args => $args);
         loadtest('console/postgresql_server', run_args => $args);
-        loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     }
     elsif ($publiccloud_app_img eq 'php') {
         loadtest('publiccloud/app-images/php', run_args => $args);
@@ -245,6 +240,7 @@ sub load_publiccloud_appimg_tests {
     else {
         die("Unknown PUBLIC_CLOUD_APP_IMG setting");
     }
+    loadtest('publiccloud/destroy', run_args => $args);
 }
 
 =head2 load_publiccloud_tests

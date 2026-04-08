@@ -48,7 +48,7 @@ use sles4sap::qesap::azure;
 use Data::Dumper;
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {
