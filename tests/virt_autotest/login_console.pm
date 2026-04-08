@@ -200,6 +200,18 @@ sub login_to_console {
         }
     }
 
+    # Wait for system to be fully up and SSH port available before switching to SSH console
+    # This ensures bare-metal systems have time to complete boot and network initialization
+    my $sut_ip = get_required_var('SUT_IP');
+    record_info("SSH port check", "Verifying SSH connectivity to $sut_ip:22 (timeout: 120s)");
+
+    unless (check_port_state($sut_ip, 22, 120, 10)) {
+        record_info("SSH port check FAILED", "System may not be fully initialized. Check network and SSH service.", result => 'fail');
+        die "SSH port not available on $sut_ip:22, system may not be ready for SSH console access";
+    }
+
+    record_info("SSH port check PASSED", "System is ready, switching to SSH console");
+
     # use console based on ssh to avoid unstable ipmi
     use_ssh_serial_console;
 
