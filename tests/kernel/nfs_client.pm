@@ -3,11 +3,7 @@
 # Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: NFS Client
-#    This module provisions the NFS client and then runs some basic
-#    sanity tests. Detailed description of the tests can be found in:
-#    tests/kernel/nfs_server.pm
-
+# Summary: NFS client setup and basic validation
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
@@ -15,6 +11,8 @@ use testapi;
 use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
+use Utils::Backends 'is_ipmi';
+use Kernel::net_tests 'get_ipv4_addresses';
 
 sub copy_file {
     my ($flag, $nfs_mount, $file) = @_;
@@ -24,7 +22,29 @@ sub copy_file {
 sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
-    my $server_node = get_var('SERVER_NODE', 'server-node00');
+    my $server_node = get_var('SERVER_NODE');
+    # Baremetal/ipmi multimachine jobs commonly provide peer IPs via IBTEST_IP*
+    # and not DNS-resolvable hostnames.
+    if (is_ipmi) {
+        my $ip1 = get_var('IBTEST_IP1');
+        my $ip2 = get_var('IBTEST_IP2');
+        my $detected_ipv4 = get_ipv4_addresses();
+        my @local_ips = map { @$_ } values %$detected_ipv4;
+
+        if (grep { $_ eq $ip1 } @local_ips) {
+            $server_node = $ip2;
+        } elsif (grep { $_ eq $ip2 } @local_ips) {
+            $server_node = $ip1;
+        } else {
+            @local_ips = sort @local_ips;
+            record_info("IP mapping", "local_ips=@local_ips ib1=$ip1 ib2=$ip2", result => 'fail');
+            die "Unable to map server node: local host does not have IBTEST_IP1 or IBTEST_IP2";
+        }
+        @local_ips = sort @local_ips;
+        record_info("IP mapping", "local_ips=@local_ips peer=$server_node");
+    } else {
+        $server_node //= 'server-node00';
+    }
 
     zypper_call("in nfs-client");
 
@@ -50,7 +70,15 @@ sub run {
     $kernel_nfsd_v4 = 1 unless script_run('zgrep "CONFIG_NFSD_V4=[my]" /proc/config.gz');
 
     barrier_wait("NFS_SERVER_ENABLED");
-    record_info("showmount", script_output("showmount -e $server_node"));
+    assert_script_run("ping -c3 $server_node");
+    record_info("ip a", script_output("ip a", proceed_on_failure => 1));
+    record_info("RPC ping", script_output("rpcinfo -t $server_node portmapper", proceed_on_failure => 1));
+    my $mountd_ready = script_retry("rpcinfo -t $server_node mountd", retry => 12, delay => 5, timeout => 30);
+    die "mountd not reachable on $server_node" if $mountd_ready != 0;
+    record_info("debug", "Sleeping before showmount for manual SSH inspection");
+    my $showmount_ok = script_retry("showmount -e $server_node", retry => 12, delay => 10, timeout => 30);
+    die "showmount failed for $server_node" if $showmount_ok != 0;
+    record_info("showmount", script_output("showmount -e $server_node", proceed_on_failure => 1));
 
     if ($kernel_nfs3 == 1) {
         record_info('INFO', 'Kernel has support for NFSv3');
@@ -116,3 +144,63 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+This module provisions the NFS client side of the kernel multimachine NFS
+tests. It waits until the server export is ready, mounts the configured NFSv3
+and NFSv4 exports if the kernel supports them, and performs basic write and
+data-integrity checks.
+
+The client creates a reference file with C<dd>, stores its checksum, copies the
+file and checksum to each mounted export, and then creates additional copies
+with C<dd> using the following output flags:
+
+=over 4
+
+=item * C<direct>
+
+=item * C<dsync>
+
+=item * C<sync>
+
+=back
+
+In IPMI baremetal jobs the module resolves the peer by comparing
+C<IBTEST_IP1>/C<IBTEST_IP2> with locally detected IPv4 addresses. In regular
+VM-based multimachine jobs it falls back to C<SERVER_NODE> or the default
+C<server-node00> hostname.
+
+=head1 Configuration
+
+=head2 SERVER_NODE
+
+Optional. Hostname or address of the NFS server in non-IPMI multimachine jobs.
+Defaults to C<server-node00>.
+
+=head2 IBTEST_IP1, IBTEST_IP2
+
+Required for IPMI baremetal jobs. Used to determine which of the two configured
+addresses belongs to the local host and which one is the remote peer.
+
+=head2 NFS_LOCAL_NFS3
+
+Optional. Local mount point for the synchronous NFSv3 export.
+Defaults to C</home/localNFS3>.
+
+=head2 NFS_LOCAL_NFS3_ASYNC
+
+Optional. Local mount point for the asynchronous NFSv3 export.
+Defaults to C</home/localNFS3async>.
+
+=head2 NFS_LOCAL_NFS4
+
+Optional. Local mount point for the synchronous NFSv4 export.
+Defaults to C</home/localNFS4>.
+
+=head2 NFS_LOCAL_NFS4_ASYNC
+
+Optional. Local mount point for the asynchronous NFSv4 export.
+Defaults to C</home/localNFS4async>.
+
+=cut
