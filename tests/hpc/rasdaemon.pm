@@ -66,8 +66,13 @@ sub run {
     # we are interested in installation only
     return if (is_ppc64le && is_tumbleweed);
 
-    $rt = assert_script_run('! ras-mc-ctl --status');
-    test_case('Check rasdaemon --status', 'drivers are not loaded', $rt);
+    # The latest ras-mc-ctl checks switched from /proc/modules/ to /sys/module/
+    # which contains BOTH built-in and loadable modules. We now record the status instead
+    # of asserting a failure, ensuring compatibility with both old and new tool versions.
+    my $status_output = script_output('ras-mc-ctl --status', proceed_on_failure => 1);
+    record_info('ras-status', $status_output);
+    die 'unexpected ras-mc-ctl --status output: ' . $status_output
+      unless $status_output =~ /drivers (are |not )loaded/;
 
     # Try to start rasdaemon. May need a restart on aarch64.
     $rt = systemctl('start rasdaemon');
