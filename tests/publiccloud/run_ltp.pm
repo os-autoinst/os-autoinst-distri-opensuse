@@ -55,8 +55,9 @@ sub install_build_deps {
     # Sample value: kernel-default-devel-6.12.0-160000.27.1
     my $kernel_devel_pkg = $instance->ssh_script_output(cmd => q{
         rpm -qf /boot/config-$(uname -r) \
-        | sed -e "s/\.$(arch)//" \
-              -e "s/^kernel-\([^-]\+\)-/kernel-\1-devel-/"
+        | sed -r 's/\.[^.]*$//' \
+        | cut -d- -f2- \
+        | awk -F- '{print "kernel-" $1 "-devel-" substr($0, index($0,$2))}'
     });
 
     push @deps, $kernel_devel_pkg;
