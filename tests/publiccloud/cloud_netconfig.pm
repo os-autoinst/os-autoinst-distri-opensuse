@@ -25,7 +25,7 @@ sub run {
     # 75-persistent-net-generator.rules is usually a symlink to /dev/null in SLES 12+
     $instance->ssh_assert_script_run("test -L $pers_net_rules");
 
-    $instance->retry_ssh_command(cmd => "sudo zypper -n in jq", timeout => 420, retry => 6, delay => 60);
+    $instance->retry_ssh_command(cmd => "sudo zypper -n in jq", timeout => 420, retry => 6, delay => 60) if script_run("which jq");
 
     # Get public IP address for eth0
     my $local_eth0_ip = $instance->ssh_script_output(qq(ip -4 -j a s eth0 primary | jq -Mr '.[0].addr_info[0].local'));
