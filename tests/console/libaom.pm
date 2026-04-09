@@ -19,7 +19,7 @@ use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    install_package('libaom-devel cmake gcc gcc-c++ git make libtool nasm wget', trup_reboot => 1);
+    install_package('libaom-devel cmake gcc gcc-c++ git make libtool nasm wget bzip2', trup_reboot => 1);
     assert_script_run 'mkdir -p ~/ffmpeg_sources';
 
     # Re-compile ffmpeg https://ffmpeg.org/releases/ffmpeg-snapshot.tar.bz2 with --enable-libaom
