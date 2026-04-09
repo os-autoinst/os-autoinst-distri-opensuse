@@ -198,7 +198,7 @@ sub validate_samba_services() {
     validate_script_output('samba-tool domain level show', sub { /Forest function level:.*2008 R2/ }, 60);
     validate_script_output('echo ' . PASSWORD . ' | kinit -V Administrator', sub { /Authenticated to Kerberos/ });
     # use klist to verify that the ticket was obtained
-    validate_script_output('klist', sub { /Default principal: Administrator@${\(REALM)}/ });
+    validate_script_output('klist', sub { /Default principal: Administrator\@${\(REALM)}/ });
 }
 
 sub setup_samba_server() {
