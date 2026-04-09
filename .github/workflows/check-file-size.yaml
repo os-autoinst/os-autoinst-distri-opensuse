@@ -10,7 +10,7 @@ jobs:
       contents: read
     steps:
     - name: Checkout Branch
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     - name: Create empty needles directory to avoid dangling symlink that would cause the next step to fail
       run: mkdir products/opensuse/needles
     - name: "Check for oversized files"

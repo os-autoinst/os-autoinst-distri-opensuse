@@ -21,7 +21,7 @@ jobs:
     container:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Install dependencies
       run: |
         sed -ri '/buster/s/(deb|security)\.debian\.org/archive.debian.org/' /etc/apt/sources.list
