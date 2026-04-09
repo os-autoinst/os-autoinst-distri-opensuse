@@ -46,8 +46,9 @@ sub build
     zypper_call('install -t pattern --recommends devel_kernel');    # no trup support for now
     zypper_call('rl kernel-source kernel-syms') if $lock_kernel_pkgs;
 
+    my $jobs = get_var('KSELFTEST_BUILD_JOBS', '$(getconf _NPROCESSORS_ONLN)');
     my $build_env = get_var('KSELFTEST_BUILD_ENV', '');
-    my $make_cmd = "make -j\$(getconf _NPROCESSORS_ONLN) -C $source_dir/tools/testing/selftests install SKIP_TARGETS= TARGETS=$targets O=$build_dir $build_env";
+    my $make_cmd = "make -j$jobs -C $source_dir/tools/testing/selftests install SKIP_TARGETS= TARGETS=$targets O=$build_dir $build_env";
     $make_cmd =~ s/\s+$//;
 
     assert_script_run($make_cmd, 7200);
