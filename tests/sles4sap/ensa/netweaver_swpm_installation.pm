@@ -83,10 +83,17 @@ sub run {
 
     # We created new unlabeled files so we must relabel them for SELinux
     if (has_selinux) {
-        # exclude the files in NFS mountpoints to reduce runtime of restorecon cmd
+        # Fetch NFS mounts
         my $mountpoints = script_output(q|awk '$3 ~ /^nfs/ {print $2}' /proc/mounts|, timeout => 60);
-        my $paras = join ' ', map { "-e $_" } split /\n/, $mountpoints;
-        assert_script_run("test -d /.snapshots && restorecon -R / -e /.snapshots $paras", timeout => 900);
+        my $paras = '';
+        if ($mountpoints) {
+            # Fetch associated overlays only
+            my $mnt_regex = join('|', split(/\n/, $mountpoints));
+            my $overlay_cmd = q{awk '$3=="overlay" && $4~"lowerdir=(} . $mnt_regex . q{)(/|,|$)" {print $2}' /proc/mounts};
+            my $overlay = script_output($overlay_cmd, timeout => 60);
+            $paras = join(' ', map { "-e $_" } grep { $_ } split(/\n/, "$mountpoints\n$overlay"));
+        }
+        assert_script_run("test -d /.snapshots && restorecon -R / -e /.snapshots $paras", timeout => 1200);
         assert_script_run('test -d /.snapshots || restorecon -R /', timeout => 600);
     }
 
