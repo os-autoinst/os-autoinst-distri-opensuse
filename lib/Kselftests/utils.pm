@@ -113,7 +113,7 @@ sub install_dependencies
         install_package('clang libcap-devel libnuma-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
 
         # install test deps
-        install_available_packages('tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
+        install_available_packages('jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
 
         if (is_sle('>=16.0')) {
             # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
@@ -144,14 +144,16 @@ sub install_kselftests
     }
 }
 
-sub get_sanitized_test_name {
+sub get_sanitized_test_name
+{
     my $test = shift;
     my $test_name = $test =~ s/^\w+://r;    # Remove the collection from it, sub . with _
     my $sanitized_test_name = $test_name =~ s/\.|-/_/gr;    # Dots and hyphens should be underscore for better handling in Perl and YAML files
     return ($test_name, $sanitized_test_name);
 }
 
-sub get_whitelist {
+sub get_whitelist
+{
     my $default_whitelist_file = 'https://raw.githubusercontent.com/openSUSE/kernel-qe/refs/heads/main/kselftests_known_issues.yaml';
     if (is_sle) {
         $default_whitelist_file = 'https://qam.suse.de/known_issues/kselftests.yaml';
@@ -178,7 +180,8 @@ Returns the KTAP output, the number of soft and hardfails
 
 =cut
 
-sub post_process_single {
+sub post_process_single
+{
     my %args = @_;
     $args{logfile} //= '$HOME/summary.tap';
     $args{test_index} //= 1;
@@ -257,7 +260,8 @@ Returns the KTAP output, the number of soft and hard fails
 
 =cut
 
-sub post_process {
+sub post_process
+{
     my %args = @_;
     $args{logfile} //= '$HOME/summary.tap';
     my $env = {
@@ -363,6 +367,7 @@ sub validate_kconfig
     if (@mismatches) {
         script_output("cat <<'EOF' > config_mismatches.txt\n" . join("\n", @mismatches) . "\nEOF");
         upload_logs("config_mismatches.txt");
+        record_info('Kconfig mismatches', join("\n", @mismatches));
     }
 }
 
