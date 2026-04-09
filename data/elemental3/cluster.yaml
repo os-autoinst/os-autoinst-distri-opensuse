@@ -1,0 +1,13 @@
+nodes:
+  - hostname: node01
+    type: server
+    init: true
+  - hostname: node02
+    type: server
+  - hostname: node03
+    type: server
+  - hostname: node04
+    type: agent
+network:
+  apiVIP: 10.0.2.200
+  apiHost: 10.0.2.200.sslip.io

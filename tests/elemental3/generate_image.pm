@@ -134,6 +134,17 @@ sub customize_cmd {
         );
     }
 
+    # Multi-node cluster
+    if (check_var('MULTI_NODE', '1')) {
+        assert_script_run(
+            "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
+              . data_url('elemental3/cluster.yaml')
+        );
+    } else {
+        # Only useful for the multi-node test
+        assert_script_run("rm -rf $args{config_dir}/network");
+    }
+
     # Generate OS image
     elemental3_cmd(
         config_dir => $args{config_dir},

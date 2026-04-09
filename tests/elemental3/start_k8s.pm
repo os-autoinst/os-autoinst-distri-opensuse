@@ -229,6 +229,7 @@ sub run {
     my $k8s = get_required_var('K8S');
     my $k8s_dir = "/etc/rancher/$k8s";
     my $config_yaml = "$k8s_dir/config.yaml";
+    my $timeout = (is_aarch64) ? 2400 : 1200;
 
     # Skip the test with if the OS image is not generated with 'customize'
     unless (check_var('TESTED_CMD', 'customize')) {
@@ -240,9 +241,6 @@ sub run {
     # Set default root password
     $testapi::password = get_required_var('TEST_PASSWORD');
 
-    # Define timeouts based on the architecture
-    my $timeout = (is_aarch64) ? 960 : 480;
-
     # Define k8s service
     my $k8s_svc;
     $k8s_svc = 'k3s' if ($k8s eq 'k3s');
@@ -251,54 +249,56 @@ sub run {
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
 
-    # Set hostname and get IP address
-    my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
-    configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
+    unless (check_var('MULTI_NODE', '1')) {
+        # Set hostname and get IP address
+        my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
+        configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
 
-    my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');
-    die('No IP defined on the node!') unless (defined $ip && $ip ne '');
+        my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');
+        die('No IP defined on the node!') unless (defined $ip && $ip ne '');
 
-    # Split the DNS strings into arrays only if the variable is defined and not empty
-    my @default_dns = split(/,/, get_default_dns);
-    set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
+        # Split the DNS strings into arrays only if the variable is defined and not empty
+        my @default_dns = split(/,/, get_default_dns);
+        set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
 
-    # Wait for K8s directory to appears
-    wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
+        # Wait for K8s directory to appears
+        wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
 
-    # Configure K8s
-    unless (check_var('TESTED_CMD', 'customize')) {
-        # Stop K8s server if needed
-        # NOTE: autostart will fail here because we'll change some parameters in the config file
-        systemctl("stop $k8s_svc", timeout => $timeout);
+        # Configure K8s
+        unless (check_var('TESTED_CMD', 'customize')) {
+            # Stop K8s server if needed
+            # NOTE: autostart will fail here because we'll change some parameters in the config file
+            systemctl("stop $k8s_svc", timeout => $timeout);
 
-        # Update K8s configuration file
-        file_content_replace(
-            "$config_yaml", '--sed-modifier' => 'g',
-            '%NODE_NAME%' => $hostname,
-            '%NODE_IP%' => $ip
-        );
+            # Update K8s configuration file
+            file_content_replace(
+                "$config_yaml", '--sed-modifier' => 'g',
+                '%NODE_NAME%' => $hostname,
+                '%NODE_IP%' => $ip
+            );
 
-        # Update SELinux policy if needed
-        # NOTE: We have to invert the return code as it is inverted between Bash and Perl
-        unless (script_run("grep -q '^selinux:.*true\$' $config_yaml")) {
-            record_info('SELinux detected', "Updating SELinux policy for $k8s");
-            assert_script_run('semodule -i /usr/share/selinux/packages/rke2.pp');
+            # Update SELinux policy if needed
+            # NOTE: We have to invert the return code as it is inverted between Bash and Perl
+            unless (script_run("grep -q '^selinux:.*true\$' $config_yaml")) {
+                record_info('SELinux detected', "Updating SELinux policy for $k8s");
+                assert_script_run('semodule -i /usr/share/selinux/packages/rke2.pp');
+            }
+
+            # Start K8s server
+            systemctl("start $k8s_svc", timeout => $timeout);
+        } elsif (get_var('PARALLEL_WITH')) {
+            assert_script_run("echo -e 'node-name: $hostname' >> $config_yaml");
+            assert_script_run("echo -e 'node-external-ip: $ip' >> $config_yaml");
+            # Restart K8s server
+            systemctl("restart $k8s_svc", timeout => $timeout);
         }
-
-        # Start K8s server
-        systemctl("start $k8s_svc", timeout => $timeout);
-    } elsif (get_var('PARALLEL_WITH')) {
-        assert_script_run("echo -e 'node-name: $hostname' >> $config_yaml");
-        assert_script_run("echo -e 'node-external-ip: $ip' >> $config_yaml");
-        # Restart K8s server
-        systemctl("restart $k8s_svc", timeout => $timeout);
     }
 
     # Wait for kubectl command to be available
     wait_kubectl_cmd(timeout => $timeout);
 
     # Check K8s status
-    wait_k8s_state(regex => 'status.*restarts|(1/1|2/2).*running|0/1.*completed', timeout => $timeout);
+    wait_k8s_state(regex => 'status.*restarts|(1/1|2/2|3/3|4.4).*running|0/1.*completed', timeout => $timeout);
 
     # Record K8s status (we want all, stderr as well)
     record_info('K8s status', script_output('kubectl get pod -A 2>&1'));
@@ -308,6 +308,9 @@ sub run {
 
     # Record K8s version/nodes
     record_info('K8s version/nodes', script_output('kubectl version; kubectl get nodes'));
+
+    # Record K8s services
+    record_info('K8s services', script_output('kubectl get services -A'));
 
     # Check toolkit version
     record_info('Elemental version', script_output('elemental3ctl version'));
