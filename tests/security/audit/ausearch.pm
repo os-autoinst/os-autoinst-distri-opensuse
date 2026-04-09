@@ -4,12 +4,12 @@
 # Summary: Verify the "ausearch" utility can search the audit log file for certain events using various keys or
 #          other characteristics of the logged format
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#81772, tc#1768578
+# Tags: poo#81772, tc#1768578, poo#199391
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle);
 
 sub run {
     my $tmp_output = '/tmp/out';
@@ -48,10 +48,7 @@ sub run {
     # Extract pid from output log
     script_run("tail -1 $tmp_output > $tmp_backup");
 
-    # todo: refactored (some regexp magic?) that works on all OS versions
-    my $cut_index = 7;
-    $cut_index = 9 if is_sle('>12-SP5');
-    $cut_index = 14 if is_tumbleweed || is_sle('>=16');
+    my $cut_index = 14;
 
     script_run("cat $tmp_backup | cut -d '=' -f $cut_index > $tmp_output");
     my $pid = script_output("cat $tmp_output | cut -d ' ' -f 1");
