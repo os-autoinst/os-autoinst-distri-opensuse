@@ -64,7 +64,7 @@ sub cleanup {
     if (is_sle() || is_leap('>15.5')) {
         remove_installed_pythons();
     }
-    assert_script_run("cd ..");
+    assert_script_run("cd /root");
     script_run("rm -r /root/data");
 }
 

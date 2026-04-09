@@ -59,11 +59,11 @@ sub run_tests ($python3_spec_release) {
     # create a virtual environment named myenv using virtualenv with Python 3.11 and activate it
     my $python_binary = get_python3_binary($python3_spec_release);
     my $version_number = (split("python", $python_binary))[1];
+    assert_script_run "cd /root/data" if is_transactional;
     assert_script_run("pipx run --python=$python_binary virtualenv myenv");
     assert_script_run("source myenv/bin/activate");
     # Install build tools and build, install the package locally
     assert_script_run("pip$version_number  install setuptools wheel");
-    assert_script_run "cd /root/data" if is_transactional;
     assert_script_run("python$version_number setup.py sdist bdist_wheel");
     validate_script_output("pip$version_number  install dist/user_package_setuptools-1.0-py3-none-any.whl", sub { m/Successfully installed/ });
     # Verify the installed package
