@@ -37,7 +37,10 @@ sub run {
     # Run the package creation and install test for system python
     run_tests($system_python_version);
     # Test all available new python3 versions in SLEs if any
-    if (is_sle() || is_leap('>15.5')) { run_tests($_) foreach (get_available_python_versions()); }
+    if (is_sle() || is_leap('>15.5')) {
+        my @other_versions = grep { $_ ne $system_python_version } get_available_python_versions();
+        run_tests($_) foreach (@other_versions);
+    }
 }
 
 sub run_tests ($python3_spec_release) {
@@ -60,6 +63,7 @@ sub run_tests ($python3_spec_release) {
     assert_script_run("source myenv/bin/activate");
     # Install build tools and build, install the package locally
     assert_script_run("pip$version_number  install setuptools wheel");
+    assert_script_run "cd /root/data" if is_transactional;
     assert_script_run("python$version_number setup.py sdist bdist_wheel");
     validate_script_output("pip$version_number  install dist/user_package_setuptools-1.0-py3-none-any.whl", sub { m/Successfully installed/ });
     # Verify the installed package
@@ -81,7 +85,7 @@ sub cleanup {
     if (is_sle()) {
         remove_installed_pythons();
     }
-    assert_script_run("cd ..");
+    assert_script_run("cd /root");
     script_run("rm -r data");
 }
 
