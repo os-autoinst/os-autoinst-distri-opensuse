@@ -12,6 +12,7 @@ use Mojo::Base 'publiccloud::basetest';
 use Test::Assert qw(assert_equals assert_not_equals);
 use testapi;
 use publiccloud::utils qw(is_azure is_ec2 is_gce);
+use version_utils qw(is_sle);
 
 sub run {
     my ($self, $args) = @_;
@@ -55,7 +56,15 @@ sub run {
 
         # Make sure there are IP rules for each IP address
         die('No IP rules for eth0 on primary IP') if ($instance->ssh_script_output("ip rule list all from $local_eth0_ip | wc -l") == 0);
-        die('No IP rules for eth0 on secondary IP') if ($instance->ssh_script_output("ip rule list all from $local_eth0_secondary_ip | wc -l") == 0);
+        my $out = $instance->ssh_script_output("ip rule list all from $local_eth0_secondary_ip | wc -l");
+        if ($out == 0) {
+            if (is_sle(">=16.0")) {
+                record_soft_failure("bsc#1258406 - cloud-netconfig fails to add secondary IPv4 address when broadcast info is missing");
+                return;
+            } else {
+                die('No IP rules for eth0 on secondary IP');
+            }
+        }
         die('No IP rules for eth1 on primary IP') if ($instance->ssh_script_output("ip rule list all from $local_eth1_ip | wc -l") == 0);
         die('No IP rules for eth1 on secondary IP') if ($instance->ssh_script_output("ip rule list all from $local_eth1_secondary_ip | wc -l") == 0);
 
