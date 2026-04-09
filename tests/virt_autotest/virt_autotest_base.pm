@@ -282,10 +282,17 @@ sub post_fail_hook {
     check_host_health;
 
     if (get_var("VIRT_PRJ2_HOST_UPGRADE")) {
-        virt_utils::collect_host_and_guest_logs('', '/root/autoupg.xml', '');
+        virt_utils::collect_host_and_guest_logs(
+            extra_host_log => '/root/autoupg.xml',
+            full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1),
+            excluded_supportconfig_features => get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX')
+        );
     }
     else {
-        virt_utils::collect_host_and_guest_logs;
+        virt_utils::collect_host_and_guest_logs(
+            full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1),
+            excluded_supportconfig_features => get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX')
+        );
     }
     save_screenshot;
 
