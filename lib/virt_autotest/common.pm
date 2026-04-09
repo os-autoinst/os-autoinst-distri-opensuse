@@ -47,20 +47,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             distro => 'SLE_15',
             location => 'http://download.suse.de/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
         },
-        sles15sp3PV => {
-            name => 'sles15sp3PV',
-            autoyast => 'autoyast_xen/sles15sp3PV_PRG.xml',
-            extra_params => '--os-variant sle15-unknown',
-            distro => 'SLE_15',
-            location => 'http://download.suse.de/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
-        },
-        sles15sp3HVM => {
-            name => 'sles15sp3HVM',
-            autoyast => 'autoyast_xen/sles15sp3HVM_PRG.xml',
-            extra_params => '--os-variant sle15-unknown',
-            distro => 'SLE_15',
-            location => 'http://download.suse.de/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
-        },
         sles12sp5HVM => {
             name => 'sles12sp5HVM',
             autoyast => 'autoyast_xen/sles12sp5HVM_PRG.xml',
@@ -131,12 +117,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
     } elsif (is_sle('=15-SP2')) {
-        my @allowed_guests = qw(sles15sp2HVM sles15sp2PV sles15sp3HVM sles15sp3PV);
-        foreach my $guest (keys %guests) {
-            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
-        }
-    } elsif (is_sle('=15-SP3')) {
-        my @allowed_guests = qw(sles15sp3HVM sles15sp3PV sles15sp4HVM sles15sp4PV);
+        my @allowed_guests = qw(sles15sp2HVM sles15sp2PV);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
@@ -182,13 +163,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             extra_params => '--os-variant sle15-unknown',    # problems after kernel upgrade (originally sle15sp2)
             distro => 'SLE_15',
             location => 'http://download.suse.de/install/SLP/SLE-15-SP2-Full-GM/x86_64/DVD1/',
-        },
-        sles15sp3 => {
-            name => 'sles15sp3',
-            autoyast => 'autoyast_kvm/sles15sp3_PRG.xml',
-            extra_params => '--os-variant sle15-unknown',
-            distro => 'SLE_15',
-            location => 'http://download.suse.de/install/SLP/SLE-15-SP3-Full-LATEST/x86_64/DVD1/',
         },
         sles12sp5 => {
             name => 'sles12sp5',
@@ -310,12 +284,7 @@ if (get_var("REGRESSION", '') =~ /xen/) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
     } elsif (is_sle('=15-SP2')) {
-        my @allowed_guests = qw(sles15sp2 sles15sp3);
-        foreach my $guest (keys %guests) {
-            delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
-        }
-    } elsif (is_sle('=15-SP3')) {
-        my @allowed_guests = qw(sles15sp3 sles15sp4);
+        my @allowed_guests = qw(sles15sp2);
         foreach my $guest (keys %guests) {
             delete $guests{$guest} unless grep { $_ eq $guest } @allowed_guests;
         }
@@ -384,9 +353,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         sles15sp2TD => {
             name => 'sles15sp2TD',
         },
-        sles15sp3 => {
-            name => 'sles15sp3',
-        },
         sles15sp4 => {
             name => 'sles15sp4',
         },
@@ -421,9 +387,6 @@ if (get_var("REGRESSION", '') =~ /xen/) {
         },
         sles15sp2TD => {
             vm_name => 'sles-15.2_openQA-virtualization-maintenance',
-        },
-        sles15sp3 => {
-            vm_name => 'sles-15.3_openQA-virtualization-maintenance',
         },
         sles15sp4 => {
             vm_name => 'sles-15.4_openQA-virtualization-maintenance',
