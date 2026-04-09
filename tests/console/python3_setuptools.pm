@@ -64,6 +64,7 @@ sub run_tests ($python3_spec_release) {
 sub build_package ($python_binary) {
     assert_script_run("$python_binary -m venv myenv --system-site-packages");
     assert_script_run("source myenv/bin/activate");
+    assert_script_run("cd /root/data") if is_transactional;
     assert_script_run("$python_binary setup.py sdist ");
     validate_script_output("ls", sub { m/dist/ });
 }
@@ -103,9 +104,8 @@ sub uninstall_package ($version_number) {
 sub cleanup {
     # Deletion of work folders
     assert_script_run("rm -rf dist user_package_setuptools.egg-info repo_webroot");
-    assert_script_run("deactivate");    # leave the virtual env
-    assert_script_run("cd ..");
-    script_run("rm -r data");
+    assert_script_run("deactivate") unless is_transactional;    # leave the virtual env
+    assert_script_run("cd /root; rm -r data");
 }
 
 sub post_run_hook {
