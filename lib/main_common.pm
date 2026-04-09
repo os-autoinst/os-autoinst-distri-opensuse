@@ -2013,7 +2013,7 @@ sub load_x11_gnome {
     return unless check_var('DESKTOP', 'gnome');
     if (is_sle('<16')) {
         loadtest "x11/gdm_session_switch";
-        loadtest "x11/gnome_classic_switch";
+        loadtest "x11/gnomecase/gnome_classic_switch";
     }
     loadtest "x11/gnomecase/gnome_default_applications" if (is_sle('<16') || is_tumbleweed);
     loadtest "x11/gnomecase/nautilus_cut_file";
