@@ -42,14 +42,15 @@ sub run {
 
     $self->setup_pkgs(@pkgs);
 
-    install_ncat if is_sle;
-
     $netavark = script_output "rpm -ql netavark | grep podman/netavark";
     record_info("netavark version", script_output("$netavark --version"));
     record_info("netavark package version", script_output("rpm -q netavark"));
 
-    # Download netavark sources
     $version = script_output "$netavark --version | awk '{ print \$2 }'";
+
+    install_ncat if (version->parse(numeric_version($version)) < version->parse("1.16.0"));
+
+    # Download netavark sources
     patch_sources "netavark", "v$version", "test";
 
     my $firewalld_backend = script_output "awk -F= '\$1 == \"FirewallBackend\" { print \$2 }' < /etc/firewalld/firewalld.conf";
@@ -57,7 +58,7 @@ sub run {
 
     # Compile helpers & patch tests
     run_command "make examples", timeout => 600;
-    unless (is_sle) {
+    if (version->parse(numeric_version($version)) >= version->parse("1.16.0")) {
         # This helper replaces ncat
         run_command "cargo build --bin netavark-connection-tester", timeout => 600;
         run_command "cp target/debug/netavark-connection-tester bin/";
