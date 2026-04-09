@@ -27,20 +27,26 @@ sub test_setup {
     # Import python scripts
     assert_script_run("curl -O " . data_url("python/websockets/client-test.py"));
     assert_script_run("curl -O " . data_url("python/websockets/server.py"));
-    # install server dependencies
-    install_package("python3-tornado", trup_reboot => 1);
-    # start websocket server in background
-    return background_script_run 'python3 server.py';
 }
 
 sub run_test ($python_package) {
     return unless script_run("zypper search $python_package-websocket-client") == 0;
     record_info("Testing for", "$python_package is tested now");
-    install_package("$python_package $python_package-websocket-client", trup_continue => 1, trup_reboot => 1);
+    install_package("$python_package $python_package-websocket-client $python_package-tornado", trup_continue => 1, trup_reboot => 1);
+
+    # Start websocket server in background AFTER reboot
     my $python_interpreter = get_python3_binary($python_package);
+    my $server_pid = background_script_run "$python_interpreter server.py";
+    # Wait up to 30 seconds for port 8000 to be active
+    assert_script_run("timeout 30 bash -c 'until printf \"\" 2>>/dev/null >>/dev/tcp/127.0.0.1/8000; do sleep 1; done'");
+
     record_info("running python version", script_output("$python_interpreter --version"));
     # Execute python script. The script itself ensure output is the one expected
     assert_script_run("$python_interpreter client-test.py");
+
+    # Stop websocket server for this specific version
+    assert_script_run "kill $server_pid";
+
     # clean up for the next run
     uninstall_package("$python_package $python_package-websocket-client", trup_continue => 1, trup_reboot => 1);
 }
@@ -52,8 +58,6 @@ sub run {
     my @python3_versions = get_available_python_versions();
     unshift @python3_versions, "python3";    # append the system default one
     run_test($_) foreach @python3_versions;
-    # stop websocket server
-    assert_script_run "kill $server_pid";
 }
 
 sub post_fail_hook {
