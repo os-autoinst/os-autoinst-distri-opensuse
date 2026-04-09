@@ -48,6 +48,7 @@ compose:
     merged: "2.39.4"
   13564:
   13630:
+    merged: "5.1.2"
     min: "5.0.0"
 
 conmon:
