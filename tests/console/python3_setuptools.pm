@@ -64,6 +64,7 @@ sub run_tests ($python3_spec_release) {
 sub build_package ($python_binary) {
     assert_script_run("$python_binary -m venv myenv --system-site-packages");
     assert_script_run("source myenv/bin/activate");
+    assert_script_run("cd /root/data") if is_transactional;
     assert_script_run("$python_binary setup.py sdist ");
     validate_script_output("ls", sub { m/dist/ });
 }
