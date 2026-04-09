@@ -14,7 +14,7 @@ use testapi;
 sub run {
     my ($self) = @_;
     record_info('Info', 'SIT tunnel - ifdown');
-    $self->create_tunnel_with_commands('sit1', 'sit', '127');
+    $self->create_tunnel_with_commands('sit1', 'sit', '64');
 }
 
 sub test_flags {
