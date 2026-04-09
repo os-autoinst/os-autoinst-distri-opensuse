@@ -429,17 +429,19 @@ sub test_override {
     foreach my $override (@overrides) {
         $self->workaround_for_bsc1260865() if is_sle('>=16');
 
-        $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_baseline_Cust");
+        my $suffix = (is_ppc64le() && is_sle('>=16') && is_pvm_hmc()) ? '_ppc64le' : '';
+        $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_baseline_Cust$suffix");
         $self->wrap_script_run("mr_test dump Pattern/$SLE/testpattern_note_${override}_b > baseline_testpattern_note_${override}_b");
         $self->wrap_script_run("cp Pattern/$SLE/override/$override /etc/saptune/override/$note");
         $self->wrap_script_run("saptune note apply $note");
-        $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override");
+        my $override_suffix = ($suffix && $override eq '3565382') ? $suffix : '';
+        $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override${override_suffix}");
         $self->wrap_script_run("mr_test verify baseline_testpattern_note_${override}_b");
         tune_baseline("baseline_testpattern_note_${override}_b");
         $self->reboot_wait;
         $self->workaround_for_bsc1260865() if is_sle('>=16');
 
-        $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override");
+        $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override${override_suffix}");
         $self->wrap_script_run("mr_test verify baseline_testpattern_note_${override}_b");
         $self->wrap_script_run("saptune note revert $note");
         $self->wrap_script_run("rm -f /etc/saptune/override/$note");
