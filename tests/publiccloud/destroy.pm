@@ -19,9 +19,18 @@ sub run {
     my $instance = $args->{my_instance};
     select_host_console(force => 1);
 
-    upload_final_logs($instance);
-    $provider->upload_boot_diagnostics();
-    $provider->teardown();
+    if ($instance) {
+        upload_final_logs($instance);
+    } else {
+        record_info('The $instance object is not available. The upload_final_logs() will not be executed.');
+    }
+
+    if ($provider) {
+        $provider->upload_boot_diagnostics();
+        $provider->teardown();
+    } else {
+        die('The $provider object is not available. We are not able to destroy the testing infrastructure.');
+    }
 }
 
 sub upload_final_logs {
