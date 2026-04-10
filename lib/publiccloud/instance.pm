@@ -475,6 +475,7 @@ sub wait_for_ssh {
             }    # end loop
         }    # endif
         $exit_timeout = 1 if ($duration >= $args{timeout});
+        record_info('TIMEOUT', "System services still starting/waiting, while timeout expired: boot incomplete", result => 'fail') if $exit_timeout;
 
         if ($args{scan_ssh_host_key}) {
             record_info('RESCAN', 'Rescanning SSH host key');
