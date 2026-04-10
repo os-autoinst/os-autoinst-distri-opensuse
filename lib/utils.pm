@@ -48,6 +48,7 @@ our @EXPORT = qw(
   zypper_call
   zypper_enable_install_dvd
   zypper_ar
+  zypper_version_cmp
   fully_patch_system
   handle_patch_11sp4_zvm
   ssh_fully_patch_system
@@ -818,6 +819,36 @@ sub zypper_ar {
         zypper_call($cmd_mr) if $priority && is_sle('<12');
         return zypper_call("$cmd_ref --repo $name");
     }
+}
+
+
+=head2 zypper_version_cmp
+
+ zypper_version_cmp($ver1, $ver2);
+
+Compare the versions supplied as arguments and tell whether version1 is
+older or newer than version2 or the two version strings match.
+
+Example:
+# zypper vcmp 2.1 3.1
+ 2.1 is older than 3.1
+# zypper vcmp 3.1 2.1
+ 3.1 is newer than 2.1
+# zypper vcmp 3.1 3.1
+ 3.1 matches 3.1
+
+=cut
+
+sub zypper_version_cmp {
+    my ($ver1, $ver2) = @_;
+    my ($ret, $output) = cmd_run("zypper vcmp $ver1 $ver2");
+    die "Zypper cannot compare $ver1 and $ver2" unless defined($ret) && grep { $_ == $ret } (0, 11, 12);
+
+    chomp($output);
+
+    return -1 if ($output =~ /older/);
+    return 1 if ($output =~ /newer/);
+    return 0;
 }
 
 =head2 fully_patch_system
