@@ -134,6 +134,7 @@ sub do_partition_for_xfstests {
     # Create mount points
     script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
     # Setup configure file xfstests/local.config
+    script_run("mkdir -p \$(dirname $CONFIG_FILE)");
     script_run("echo 'export FSTYP=$para{fstype}' >> $CONFIG_FILE") if ($para{fstype} !~ /overlay/);
     script_run("echo 'export TEST_DEV=$test_dev' >> $CONFIG_FILE");
     set_var('XFSTESTS_TEST_DEV', $test_dev);
