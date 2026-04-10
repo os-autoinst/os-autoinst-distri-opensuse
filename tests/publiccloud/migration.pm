@@ -12,7 +12,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use version_utils 'is_sle';
 use publiccloud::ssh_interactive "select_host_console";
-use publiccloud::utils qw(is_ec2 is_gce is_azure registercloudguest register_addons_in_pc);
+use publiccloud::utils qw(is_ec2 is_gce is_azure registercloudguest);
 
 
 sub run {
