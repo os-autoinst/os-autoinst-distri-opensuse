@@ -18,6 +18,8 @@ jobs:
             perl-version: 5.26
           - test: compile-os-autoinst
             perl-version: '5.40'
+          - test: check-strict
+            perl-version: '5.40'
     container:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
     steps:
@@ -38,6 +40,7 @@ jobs:
         echo " requires 'Code::DRY';" >> cpanfile
         echo " requires 'Date::Parse';" >> cpanfile
         echo " requires 'Regexp::Common';" >> cpanfile
+        echo " requires 'Syntax::Keyword::Try';" >> cpanfile
         echo " requires 'Perl::Tidy', '== 20250616.0.0';" >> cpanfile
         . "$HOME/.cargo/env"
         make prepare

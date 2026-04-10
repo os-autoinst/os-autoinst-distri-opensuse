@@ -59,6 +59,11 @@ test-compile-changed: os-autoinst/
 test-compile-os-autoinst: os-autoinst/
 	prove tools/check_os_autoinst_compile
 
+.PHONY: test-check-strict
+test-check-strict: os-autoinst/
+	perl ./os-autoinst/script/os-autoinst-testmodules-strict tests/**/*.pm -v --write
+	git diff --exit-code tests
+
 .PHONY: test_pod_whitespace_rule
 test_pod_whitespace_rule:
 	tools/check_pod_whitespace_rule
@@ -126,6 +131,8 @@ else ifeq ($(TESTS),compile-changed)
 test: test-compile-changed
 else ifeq ($(TESTS),compile-os-autoinst)
 test: test-compile-os-autoinst
+else ifeq ($(TESTS),check-strict)
+test: test-check-strict
 else ifeq ($(TESTS),static)
 test: test-static
 else ifeq ($(TESTS),unit)
