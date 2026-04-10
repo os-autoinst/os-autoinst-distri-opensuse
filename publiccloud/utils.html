@@ -32,7 +32,6 @@
       <li><a href="#get_installed_packages_remote">get_installed_packages_remote</a></li>
       <li><a href="#get_available_packages_remote">get_available_packages_remote</a></li>
       <li><a href="#zypper_add_repo_remote">zypper_add_repo_remote</a></li>
-      <li><a href="#zypper_remove_repo_remote">zypper_remove_repo_remote</a></li>
       <li><a href="#wait_quit_zypper_pc">wait_quit_zypper_pc</a></li>
       <li><a href="#detect_worker_ip">detect_worker_ip</a></li>
       <li><a href="#zypper_call_remote">zypper_call_remote</a>
@@ -166,12 +165,6 @@
 <p>zypper_add_repo_remote($instance, $repo_name, $repo_url)</p>
 
 <p>This function adds a repository to the remote instance using zypper. It uses the `-fG` options to add the repository as a GPG-verified repository.</p>
-
-<h2 id="zypper_remove_repo_remote">zypper_remove_repo_remote</h2>
-
-<p>zypper_remove_repo_remote($instance, $repo_name)</p>
-
-<p>This function removes a repository from the remote instance using zypper. It uses the `-n` option to run the command non-interactively.</p>
 
 <h2 id="wait_quit_zypper_pc">wait_quit_zypper_pc</h2>
 
