@@ -9,6 +9,11 @@
         <alias>TERADATA::12-SP3::update</alias>
         <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Updates/SLE-SERVER/12-SP3-TERADATA/<%= $get_var->('ARCH') %>/update/]]></media_url>
       </listentry>
+      <listentry>
+        <name>TERADATA::12-SP3::product</name>
+        <alias>TERADATA::12-SP3::product</alias>
+        <media_url><![CDATA[http://dist.suse.de/ibs/SUSE/Products/SLE-SERVER/12-SP3-TERADATA/<%= $get_var->('ARCH') %>/product/]]></media_url>
+      </listentry>
       % }
       % if ($check_var->('SCC_REGCODE_LTSS_ES', 'ibs')) {
       <listentry>
