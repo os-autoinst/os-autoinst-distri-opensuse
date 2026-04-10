@@ -35,6 +35,8 @@ repos:
     uri: https://download.nvidia.com/suse/sle16
     enabled: 'No'
     filter: name
+important_packages:
+  - transactional-update
 selinux:
   status: enabled
   mode: enforcing
