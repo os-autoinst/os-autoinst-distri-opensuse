@@ -22,7 +22,7 @@ sub run {
     if ($instance) {
         upload_final_logs($instance);
     } else {
-        record_info('The $instance object is not available. The upload_final_logs() will not be executed.');
+        record_info('Undef instance', 'The $instance object is not available. The logs will not be uploaded.');
     }
 
     if ($provider) {
