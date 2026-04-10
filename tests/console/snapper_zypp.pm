@@ -14,7 +14,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_community_jeos is_sle);
 use Test::Assert 'assert_equals';
 
 sub get_snapshot_id {
@@ -38,7 +38,7 @@ sub run_zypper_cmd {
 
 sub run {
     select_serial_terminal;
-    my $package = (get_var('FLAVOR', '') =~ /^JeOS/ ? 'vim-small' : 'vim');
+    my $package = (is_community_jeos() ? 'vim-small' : 'vim');
 
     assert_script_run("rpm -q snapper-zypp-plugin");
     run_zypper_cmd("rm $package", $package);
