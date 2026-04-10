@@ -12,6 +12,7 @@ use virt_autotest::common;
 use virt_autotest::utils;
 use testapi;
 use utils;
+use serial_terminal 'select_serial_terminal';
 
 sub remove_guest {
     my $guest = shift;
@@ -32,6 +33,10 @@ sub run {
     my $self = shift;
     my $username = 'Administrator';
 
+    # Ensure we have a working serial console, previous virt-manager GUI tests
+    # may leave the console in an unreliable state (bsc#1172356, bsc#1221917)
+    select_serial_terminal;
+
     # Remove already existing guests to ensure a fresh start (needed for restarting jobs)
     remove_guest $_ foreach (keys %virt_autotest::common::imports);
     #    shutdown_guests();    # Shutdown SLES guests as they are not needed here
@@ -43,14 +48,14 @@ sub run {
 
     my $scan_subnet = '192.168.122.0/24';
 
-    # Xen Windows guests may take longer to boot due to HVM overhead
-    my $nmap_delay = is_xen_host() ? 15 : 10;
-    my $nmap_retry = is_xen_host() ? 15 : 10;
+    # Xen Windows guests take longer to boot due to HVM overhead
+    my $nmap_delay = is_xen_host() ? 30 : 15;
+    my $nmap_retry = is_xen_host() ? 30 : 15;
 
     foreach (values %virt_autotest::common::imports) {
         my $mac = $_->{macaddress};
         my $cmd = "nmap -sn $scan_subnet | grep -i '$mac' -B2 | grep 'Nmap scan report' | grep -oE '([0-9]{1,3}\\.){3}[0-9]{1,3}'";
-        my $ip_address = script_output_retry $cmd, delay => $nmap_delay, retry => $nmap_retry;
+        my $ip_address = script_output_retry $cmd, delay => $nmap_delay, retry => $nmap_retry, timeout => 60;
         record_info("Guest IP", "Guest $_->{name} has IP: $ip_address");
         add_guest_to_hosts $_->{name}, $ip_address;
     }
@@ -61,9 +66,10 @@ sub run {
     ssh_copy_id $_, username => $username, authorized_keys => 'C:\ProgramData\ssh\administrators_authorized_keys', scp => 1 foreach (keys %virt_autotest::common::imports);
 
     # Print system info, upload it and check the OS version
-    assert_script_run "ssh $username\@$_ 'systeminfo' | tee /tmp/$_-systeminfo.txt" foreach (keys %virt_autotest::common::imports);
+    # Windows systeminfo can be very slow on freshly booted Xen HVM guests
+    assert_script_run "ssh $username\@$_ 'systeminfo' | tee /tmp/$_-systeminfo.txt", 480 foreach (keys %virt_autotest::common::imports);
     upload_logs "/tmp/$_-systeminfo.txt" foreach (keys %virt_autotest::common::imports);
-    assert_script_run "ssh $username\@$_ 'systeminfo' | grep '$virt_autotest::common::imports{$_}->{version}'" foreach (keys %virt_autotest::common::imports);
+    assert_script_run "grep '$virt_autotest::common::imports{$_}->{version}' /tmp/$_-systeminfo.txt" foreach (keys %virt_autotest::common::imports);
 }
 
 sub post_fail_hook {
