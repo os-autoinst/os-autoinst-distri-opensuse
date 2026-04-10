@@ -35,7 +35,6 @@ our @EXPORT = qw(
   deregister_addon
   define_secret_variable
   get_credentials
-  get_available_packages_remote
   validate_repo
   is_byos
   is_ondemand
@@ -59,8 +58,6 @@ our @EXPORT = qw(
   install_in_venv
   venv_activate
   get_python_exec
-  zypper_add_repo_remote
-  zypper_remove_repo_remote
   wait_quit_zypper_pc
   detect_worker_ip
   zypper_call_remote
@@ -643,102 +640,6 @@ exit_code=\$?
 deactivate
 exit \$exit_code
 EOT
-}
-
-=head2 get_installed_packages_remote
-
-get_installed_packages_remote($instance, $packages_ref)
-
-This function checks which packages from the provided list are installed on the remote instance.
-It returns an array reference containing the names of the installed packages.
-
-=cut
-
-sub get_installed_packages_remote {
-    my ($instance, $packages_ref) = @_;
-
-    my $pkg_list = join(' ', @$packages_ref);
-    my $cmd = "rpm -q --qf '%{NAME}|' $pkg_list 2>/dev/null";
-
-    my $output = $instance->ssh_script_output(
-        cmd => $cmd,
-        proceed_on_failure => 1
-    );
-
-    my %installed;
-    for my $entry (split /\|/, $output) {
-        next if $entry =~ /is not installed/i;
-        $installed{$entry} = 1;
-    }
-
-    my @found = grep { $installed{$_} } @$packages_ref;
-    return \@found;
-}
-
-=head2 get_available_packages_remote
-
-get_available_packages_remote($instance, $packages_ref)
-
-This function checks which packages from the provided list are available for installation on the remote instance.
-It returns an array reference containing the names of the available packages.
-It uses `zypper -x info` to query the availability of packages.
-
-=cut
-
-sub get_available_packages_remote {
-    my ($instance, $packages_ref) = @_;
-    die "Expected arrayref" unless ref($packages_ref) eq 'ARRAY';
-
-    my %installed = map { $_ => 1 } @{get_installed_packages_remote($instance, $packages_ref)};
-    my @not_installed = grep { !$installed{$_} } @$packages_ref;
-
-    return '' unless @not_installed;
-
-    my $pkg_list = join(' ', @not_installed);
-    my $output = $instance->ssh_script_output(
-        cmd => "zypper -x info $pkg_list 2>/dev/null",
-        proceed_on_failure => 1
-    );
-
-    # Grep all "Name           : <pkg>" lines
-    my %available = map { $_ => 1 } ($output =~ /^Name\s*:\s*(\S+)/mg);
-
-    my @result = grep { $available{$_} } @not_installed;
-    return join(' ', @result);
-}
-
-=head2 zypper_add_repo_remote
-
-zypper_add_repo_remote($instance, $repo_name, $repo_url)
-
-This function adds a repository to the remote instance using zypper.
-It uses the `-fG` options to add the repository as a GPG-verified repository.
-
-=cut
-
-sub zypper_add_repo_remote {
-    my ($instance, $repo_name, $repo_url) = @_;
-    $instance->ssh_assert_script_run(
-        cmd => "sudo zypper -n addrepo -fG $repo_url $repo_name",
-        timeout => 600
-    );
-}
-
-=head2 zypper_remove_repo_remote
-
-zypper_remove_repo_remote($instance, $repo_name)
-
-This function removes a repository from the remote instance using zypper.
-It uses the `-n` option to run the command non-interactively.
-
-=cut
-
-sub zypper_remove_repo_remote {
-    my ($instance, $repo_name) = @_;
-    $instance->ssh_assert_script_run(
-        cmd => "sudo zypper -n removerepo $repo_name",
-        timeout => 600
-    );
 }
 
 =head2 wait_quit_zypper_pc
