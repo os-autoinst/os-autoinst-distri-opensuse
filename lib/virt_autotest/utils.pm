@@ -178,7 +178,27 @@ sub restart_modular_libvirt_daemons {
 
         # Restart the services after a brief idle time
         foreach my $daemon (@daemons) {
-            systemctl("restart virt${daemon}d.service");
+            if ($daemon eq 'secret') {
+                script_run('ls -lah /var/lib/libvirt');
+                save_screenshot;
+                script_run('ls -lah /var/lib/libvirt/secrets');
+                save_screenshot;
+                script_run('ls -Zd /var/lib/libvirt/secrets');
+                save_screenshot;
+                script_run('systemctl status virt-secret-init-encryption.service');
+                save_screenshot;
+                script_run('rm -f -r /var/lib/libvirt/secrets/secrets-encryption-key');
+                save_screenshot;
+                script_run('systemctl start virt-secret-init-encryption.service');
+                save_screenshot;
+                script_run('systemctl restart virt-secret-init-encryption.service');
+                save_screenshot;
+                systemctl("restart virt${daemon}d.service");
+                save_screenshot;
+            }
+            else {
+                systemctl("restart virt${daemon}d.service");
+            }
         }
     }
     save_screenshot;
