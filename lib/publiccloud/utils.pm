@@ -60,7 +60,6 @@ our @EXPORT = qw(
   venv_activate
   get_python_exec
   zypper_add_repo_remote
-  zypper_remove_repo_remote
   wait_quit_zypper_pc
   detect_worker_ip
   zypper_call_remote
@@ -720,23 +719,6 @@ sub zypper_add_repo_remote {
     my ($instance, $repo_name, $repo_url) = @_;
     $instance->ssh_assert_script_run(
         cmd => "sudo zypper -n addrepo -fG $repo_url $repo_name",
-        timeout => 600
-    );
-}
-
-=head2 zypper_remove_repo_remote
-
-zypper_remove_repo_remote($instance, $repo_name)
-
-This function removes a repository from the remote instance using zypper.
-It uses the `-n` option to run the command non-interactively.
-
-=cut
-
-sub zypper_remove_repo_remote {
-    my ($instance, $repo_name) = @_;
-    $instance->ssh_assert_script_run(
-        cmd => "sudo zypper -n removerepo $repo_name",
         timeout => 600
     );
 }

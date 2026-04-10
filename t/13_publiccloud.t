@@ -334,20 +334,6 @@ subtest '[zypper_add_repo_remote] passes correct cmd and timeout' => sub {
       'correct addrepo command';
 };
 
-subtest '[zypper_remove_repo_remote] passes correct cmd and timeout' => sub {
-    my $inst = Test::MockObject->new;
-    my @seen;
-    $inst->mock('ssh_assert_script_run', sub { push @seen, \@_; return 0 });
-
-    publiccloud::utils::zypper_remove_repo_remote($inst, 'repo-name');
-
-    is scalar(@seen), 1, 'one SSH call';
-    my %args = @{$seen[0]}[1 .. $#{$seen[0]}];
-    is $args{timeout}, 600, 'timeout 600';
-    is $args{cmd}, 'sudo zypper -n removerepo repo-name',
-      'correct removerepo command';
-};
-
 subtest '[wait_quit_zypper_pc] uses defaults and expected command' => sub {
     my $inst = Test::MockObject->new;
     my @calls;
