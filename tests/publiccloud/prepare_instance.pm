@@ -40,7 +40,7 @@ sub run {
     $args->{my_provider} = $self->provider_factory();
     $args->{my_instance} = $args->{my_provider}->create_instance(%instance_args);
     $args->{my_instance}->wait_for_guestregister() if (is_ondemand);
-    my $provider = $args->{my_provider};
+    my $provider = $self->{my_provider} = $args->{my_provider};
     my $instance = $args->{my_instance};
 
     $instance->network_speed_test();
@@ -64,7 +64,8 @@ sub run {
 sub test_flags {
     return {
         fatal => 1,
-        milestone => 1
+        milestone => 1,
+        no_rollback => 1
     };
 }
 
