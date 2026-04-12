@@ -71,7 +71,7 @@ index 284f61c3..c5f9ef63 100644
 -      matrix:
 -        go-version: [stable, oldstable]
      steps:
-       - uses: actions/checkout@v4
+       - uses: actions/checkout@v6
 -      - uses: actions/setup-go@v5
 -        with:
 -          go-version: ${{ matrix.go-version }}
@@ -105,7 +105,7 @@ index fe1b07ed..11b20aeb 100644
 +  lint:
      runs-on: ubuntu-latest
      steps:
-     - uses: actions/checkout@v4
+     - uses: actions/checkout@v6
 -    - name: install go
 -      uses: actions/setup-go@v5
 -      with:
