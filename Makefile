@@ -36,7 +36,7 @@ tidy-check: check-links
 
 .PHONY: tidy
 tidy: tools/tidy
-	$< --only-changed
+	$< --only-changed --force
 	@echo "[make] Tidy called over modified/new files only. For a full run use make tidy-full"
 
 .PHONY: tidy-full
