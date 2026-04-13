@@ -109,7 +109,7 @@ sub create_autoyast_profile {
         record_info("UEFI Config", "Modified autoyast profile for $vm_name to use grub2-efi for UEFI boot");
     }
 
-    my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
+    my $host_os_version = host_os_version_prefix();
     my $incident_repos = "";
     $incident_repos = get_var('INCIDENT_REPO', '') if ($vm_name eq $host_os_version || $vm_name eq "${host_os_version}PV" || $vm_name eq "${host_os_version}HVM");
     my $vars = {
@@ -209,12 +209,12 @@ sub run {
             record_info("$guest->{autoyast}");
             $guest->{osinfo} = gen_osinfo($guest->{name});
 
-            # For SLES16 VMs with kernel update, disable secure boot
-            if ($guest->{name} =~ /sles16/i && get_var("UPDATE_PACKAGE", "") =~ /kernel/) {
-                if ($guest->{boot_firmware} && $guest->{boot_firmware} =~ /^efi/) {
-                    $guest->{boot_firmware_disable_secure} = 1;
-                    record_info("Secure Boot", "Disabling secure boot for $guest->{name} due to kernel update");
-                }
+            # For EFI VMs with kernel update, disable secure boot to prevent boot failure
+            # (kernel MU packages are unsigned and will be rejected by secure boot)
+            if (get_var("UPDATE_PACKAGE", "") =~ /kernel/
+                && $guest->{boot_firmware} && $guest->{boot_firmware} =~ /^efi/) {
+                $guest->{boot_firmware_disable_secure} = 1;
+                record_info("Secure Boot", "Disabling secure boot for $guest->{name} due to kernel update");
             }
 
             create_guest($guest, $method);

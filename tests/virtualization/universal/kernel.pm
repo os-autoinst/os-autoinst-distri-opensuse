@@ -10,6 +10,7 @@
 use Mojo::Base 'consoletest';
 use virt_autotest::common;
 use virt_autotest::kernel;
+use virt_autotest::utils;
 use testapi;
 use utils;
 use qam;
@@ -24,10 +25,9 @@ sub run {
 
     # For kernel updates, verify MU pkg is installed on compatible guests
     my @guests = keys %virt_autotest::common::guests;
-    my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
 
     foreach my $guest (@guests) {
-        if ($pkg eq "kernel-default" && $guest =~ /^${host_os_version}(?:TD|PV|HVM|ES|efi|_online|_full|$)/) {
+        if ($pkg eq "kernel-default" && is_guest_of_host_version($guest)) {
             validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
             record_info("Package Validated on $guest", "$pkg validated on $guest: from TEST repository and up-to-date");
         }

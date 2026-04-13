@@ -40,6 +40,8 @@ our @EXPORT = qw(
   is_kvm_host
   is_sles_mu_virt_test
   is_sles16_mu_virt_test
+  host_os_version_prefix
+  is_guest_of_host_version
   is_monolithic_libvirtd
   turn_on_libvirt_debugging_log
   restart_libvirtd
@@ -205,6 +207,64 @@ sub is_sles_mu_virt_test {
 sub is_sles16_mu_virt_test {
     return is_sle('>=16') && get_var('REGRESSION', '') =~ /xen|kvm|qemu|hyperv|vmware/ && !get_var("VIRT_AUTOTEST");
     # Note: Xen will be tested from SLES16.2
+}
+
+# Convert openQA VERSION variable to the guest name prefix used in %virt_autotest::common::guests.
+# This normalizes the different versioning schemes:
+#   "15-SP7"  -> "sles15sp7"   (dash-based, SLES15 and older)
+#   "16.0"    -> "sles16"      (dot-based, SLES16+ base release)
+#   "16.1"    -> "sles16sp1"   (dot-based, SLES16+ service pack)
+#   "12.5"    -> "sles12sp5"   (dot-based service pack)
+# Returns: e.g. "sles16", "sles15sp7"
+sub host_os_version_prefix {
+    my $distri = get_var('DISTRI', 'sle');
+    my $version = get_var('VERSION', '');
+    return "${distri}s" . _normalize_version($version);
+}
+
+# Normalize VERSION string to guest name component:
+#   "15-SP7"  -> "15sp7"
+#   "16.0"    -> "16"       (x.0 means base release, no SP suffix)
+#   "16.1"    -> "16sp1"
+sub _normalize_version {
+    my $version = shift;
+    if ($version =~ /^(\d+)\.(\d+)$/) {
+        return $2 == 0 ? $1 : "${1}sp${2}";
+    }
+    # Dash-based: "15-SP7" -> "15SP7" -> "15sp7"
+    return lc($version =~ s/-//r);
+}
+
+# Check if a guest name corresponds to the host OS version.
+# Handles all naming conventions across backends:
+#   KVM/Xen:      sles16efi_online, sles16sp2efi_online, sles15sp7PV, sles15sp7-efi-sev-es
+#   VMware/HyperV: sles16.0, sles16.2, sles15sp7, sles15sp7TD
+# Args: $guest_name - the guest name key from %virt_autotest::common::guests
+# Returns: 1 if guest matches host version, 0 otherwise
+sub is_guest_of_host_version {
+    my $guest = shift;
+    my $distri = get_var('DISTRI', 'sle');
+    my $version = get_var('VERSION', '');
+    my $base = "${distri}s";
+    my $prefix;
+
+    if ($version =~ /^(\d+)\.(\d+)$/) {
+        my ($major, $minor) = ($1, $2);
+        if ($minor == 0) {
+            # 16.0: KVM="sles16...", VMware/HyperV="sles16.0..."
+            $prefix = "${base}${major}(?:\\.0)?";
+        } else {
+            # 16.2: KVM="sles16sp2...", VMware/HyperV="sles16.2..."
+            $prefix = "(?:${base}${major}sp${minor}|${base}${major}\\.${minor})";
+        }
+    } else {
+        # Dash-based: "15-SP7" -> "sles15sp7"
+        $prefix = $base . lc($version =~ s/-//r);
+    }
+
+    # Negative lookahead: reject if followed by "sp\d" or bare digit,
+    # which would indicate a different version (e.g. sles16sp1 != sles16).
+    return $guest =~ /^${prefix}(?!sp\d|\d)/;
 }
 
 #return 1 if it is a fv guest judging by name

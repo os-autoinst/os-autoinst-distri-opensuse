@@ -14,6 +14,7 @@ use transactional;
 use utils;
 use virt_autotest::common;
 use virt_autotest::esxi_utils;
+use virt_autotest::utils;
 use Time::Local;
 use Utils::Backends qw(is_qemu is_svirt);
 use version_utils qw(is_sle is_transactional);
@@ -30,9 +31,8 @@ sub run {
         run_tests($vm_name);
     }
     elsif (is_qemu) {
-        my $host_os_ver = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
         foreach my $guest (keys %virt_autotest::common::guests) {
-            run_tests($guest) if ($guest eq $host_os_ver || $guest eq "${host_os_ver}TD" || $guest eq "${host_os_ver}PV" || $guest eq "${host_os_ver}HVM" || $guest eq "${host_os_ver}ES");
+            run_tests($guest) if (is_guest_of_host_version($guest));
         }
     }
 }
