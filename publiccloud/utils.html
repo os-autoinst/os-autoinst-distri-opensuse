@@ -31,6 +31,7 @@
       <li><a href="#venv_generate_runner_script">venv_generate_runner_script</a></li>
       <li><a href="#get_installed_packages_remote">get_installed_packages_remote</a></li>
       <li><a href="#get_available_packages_remote">get_available_packages_remote</a></li>
+      <li><a href="#additional_repos">additional_repos</a></li>
       <li><a href="#zypper_add_repo_remote">zypper_add_repo_remote</a></li>
       <li><a href="#wait_quit_zypper_pc">wait_quit_zypper_pc</a></li>
       <li><a href="#detect_worker_ip">detect_worker_ip</a></li>
@@ -159,6 +160,12 @@
 <p>get_available_packages_remote($instance, $packages_ref)</p>
 
 <p>This function checks which packages from the provided list are available for installation on the remote instance. It returns an array reference containing the names of the available packages. It uses `zypper -x info` to query the availability of packages.</p>
+
+<h2 id="additional_repos">additional_repos</h2>
+
+<p>additional_repos();</p>
+
+<p>This function returns a list of additional repos relevant to the Public Cloud job</p>
 
 <h2 id="zypper_add_repo_remote">zypper_add_repo_remote</h2>
 
