@@ -260,7 +260,12 @@ subtest '[crash_cleanup] EC2' => sub {
     my @calls;
     my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     $aws->redefine(script_run => sub { push @calls, $_[0]; return 0; });
-    $aws->redefine(script_output => sub { push @calls, $_[0]; return 'LactariusTorminosus'; });
+    $aws->redefine(script_output => sub {
+            my $cmd = shift;
+            push @calls, $cmd;
+            return '[]' if $cmd =~ /describe-subnets/;
+            return 'LactariusTorminosus';
+    });
 
     my $ret = crash_cleanup(provider => 'EC2', region => 'SclerodermaCitrinum');
 
@@ -275,7 +280,12 @@ subtest '[crash_cleanup] EC2 failure' => sub {
     my @calls;
     my $aws = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     $aws->redefine(script_run => sub { push @calls, $_[0]; return 42; });
-    $aws->redefine(script_output => sub { push @calls, $_[0]; return 'LactariusTorminosus'; });
+    $aws->redefine(script_output => sub {
+            my $cmd = shift;
+            push @calls, $cmd;
+            return '[]' if $cmd =~ /describe-subnets/;
+            return 'LactariusTorminosus';
+    });
 
     my $ret = crash_cleanup(provider => 'EC2', region => 'SclerodermaCitrinum');
 
@@ -409,9 +419,6 @@ subtest '[crash_network_peering_create] GCE' => sub {
 
 subtest '[crash_network_peering_create] unsupported provider' => sub {
     dies_ok {
-        crash_network_peering_create(provider => 'EC2', ibsm_ip => '1.2.3.4', region => 'r', repo_host => 'h')
-    } 'Dies for EC2 provider';
-    dies_ok {
         crash_network_peering_create(provider => 'FUNGUS', ibsm_ip => '1.2.3.4', region => 'r', repo_host => 'h')
     } 'Dies for unsupported provider';
 };
@@ -471,8 +478,8 @@ subtest '[crash_network_peering_delete] GCE' => sub {
 subtest '[crash_network_peering_delete] unsupported provider' => sub {
     set_var('IBSM_IP', '1.2.3.4');
     dies_ok {
-        crash_network_peering_delete(provider => 'EC2')
-    } 'Dies for EC2 provider';
+        crash_network_peering_delete(provider => 'FUNGUS')
+    } 'Dies for unsupported provider';
 };
 
 subtest '[crash_network_peering_delete] missing arguments' => sub {

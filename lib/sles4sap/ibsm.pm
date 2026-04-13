@@ -34,6 +34,7 @@ use Exporter 'import';
 use testapi;
 use sles4sap::azure_cli;
 use sles4sap::gcp_cli;
+use sles4sap::aws_cli;
 
 our @EXPORT = qw(
   ibsm_calculate_address_range
@@ -41,6 +42,8 @@ our @EXPORT = qw(
   ibsm_network_peering_azure_delete
   ibsm_network_peering_gcp_create
   ibsm_network_peering_gcp_delete
+  ibsm_network_peering_aws_create
+  ibsm_network_peering_aws_delete
 );
 
 =head1 DESCRIPTION
@@ -312,6 +315,121 @@ sub ibsm_network_peering_gcp_delete {
     }
     record_info('GCP PEERING DELETE SUCCESS', "NCC spoke '$args{spoke_name}' deleted");
     return 0;
+}
+
+=head2 ibsm_network_peering_aws_create
+
+    ibsm_network_peering_aws_create(
+        region       => 'us-west-1',
+        job_id       => 'job-123',
+        ibsm_ip_range => '10.0.0.0/8',
+        ibsm_prj_tag => 'tag');
+
+Create a network peering on AWS using Transit Gateway.
+
+=over
+
+=item B<region> - AWS region where the resources are located
+
+=item B<job_id> - OpenQA job identifier used to identify VPC and tag attachment
+
+=item B<ibsm_ip_range> - CIDR block of the IBS Mirror to be routed
+
+=item B<ibsm_prj_tag> - Value of the 'Project' tag to identify the Transit Gateway
+
+=back
+=cut
+
+sub ibsm_network_peering_aws_create {
+    my (%args) = @_;
+    foreach (qw(region job_id ibsm_ip_range ibsm_prj_tag)) {
+        croak("Argument < $_ > missing") unless $args{$_};
+    }
+
+    my $vpc_id = aws_vpc_get_id(region => $args{region}, job_id => $args{job_id});
+    die "Could not find VPC for job $args{job_id}" unless $vpc_id;
+
+    my $trans_gw_id = aws_tgw_get_id(mirror_tag => $args{ibsm_prj_tag}, region => $args{region});
+    unless ($trans_gw_id) {
+        record_info('AWS PEERING', "Could not find Transit Gateway with tag Project=$args{ibsm_prj_tag}");
+        return 0;
+    }
+
+    my @vpc_subnets_list = aws_vpc_get_subnets(vpc_id => $vpc_id, region => $args{region});
+    unless (@vpc_subnets_list) {
+        record_info('AWS PEERING', 'No subnets found in VPC');
+        return 0;
+    }
+
+    # Get all routing tables and handle them as a list
+    my $rtables_raw = aws_vpc_get_routing_tables(vpc_id => $vpc_id, region => $args{region});
+    my @rtable_ids = split(/\s+/, $rtables_raw);
+    unless (@rtable_ids) {
+        record_info('AWS PEERING', 'No routing tables found to update');
+        return 0;
+    }
+
+    # Setting up the peering
+    my $attach = aws_tgw_attachment_create(
+        transit_gateway_id => $trans_gw_id,
+        vpc_id => $vpc_id,
+        subnet_id_list => \@vpc_subnets_list,
+        name => $args{job_id});
+    unless ($attach) {
+        record_info('AWS PEERING', 'Transit Gateway VPC attachment failed or timed out');
+        return 0;
+    }
+
+    # Loop to add routes for each routing table
+    foreach my $rt_id (@rtable_ids) {
+        record_info('AWS ROUTE', "Adding route to $args{ibsm_ip_range} via $trans_gw_id in $rt_id");
+        aws_route_create_tgw(
+            rtable_id => $rt_id,
+            target_ip_net => $args{ibsm_ip_range},
+            trans_gw_id => $trans_gw_id);
+    }
+
+    # Authorize security group inbound rules
+    # Get the security group ID created during the test
+    my $sg_id = aws_security_group_get_id(region => $args{region}, vpc_id => $vpc_id, job_id => $args{job_id});
+    if ($sg_id) {
+        record_info('AWS SG', "Allowing ingress from $args{ibsm_ip_range} in SG $sg_id");
+        aws_security_group_authorize_ingress(
+            sg_id => $sg_id,
+            protocol => 'all',    # Allow all protocols to ensure various IBSM services are available
+            port => 22,
+            cidr => $args{ibsm_ip_range},
+            region => $args{region});
+    } else {
+        record_info('AWS SG WARNING', "Could not find security group for job $args{job_id} to update rules", result => 'fail');
+    }
+
+    record_info('AWS PEERING SUCCESS');
+    return 1;
+}
+
+=head2 ibsm_network_peering_aws_delete
+
+    ibsm_network_peering_aws_delete(region => 'us-west-1', job_id => 'job-123');
+
+Delete AWS TGW attachment for the SUT.
+
+=cut
+
+sub ibsm_network_peering_aws_delete {
+    my (%args) = @_;
+    foreach (qw(region job_id)) {
+        croak("Argument < $_ > missing") unless $args{$_};
+    }
+
+    my $attach_id = aws_tgw_vpc_attachment_get_id(region => $args{region}, job_id => $args{job_id});
+    if ($attach_id && $attach_id ne 'None') {
+        aws_tgw_attachment_delete(id => $attach_id, region => $args{region}, wait => 1);
+        record_info('AWS PEERING DELETE SUCCESS', "Attachment $attach_id deleted");
+    }
+    else {
+        record_info('AWS PEERING DELETE', "No attachment found for job $args{job_id}");
+    }
 }
 
 1;

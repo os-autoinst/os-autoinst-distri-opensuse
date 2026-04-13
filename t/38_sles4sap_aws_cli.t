@@ -135,6 +135,17 @@ subtest '[aws_ssh_key_pair_import]' => sub {
     ok((any { /.*public-key.*Bongo/ } @calls), 'pub_key_path parameter is in command');
 };
 
+subtest '[aws_tgw_vpc_attachment_get_id]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'tgwa-123'; });
+
+    my $res = aws_tgw_vpc_attachment_get_id(region => 'Rocky', job_id => '42');
+    ok((any { /aws ec2 describe-transit-gateway-vpc-attachments/ } @calls), 'Command describe-transit-gateway-vpc-attachments');
+    ok((any { /--filters 'Name=tag:Name,Values=42-tga'/ } @calls), 'Correct name tag filter');
+    ok(($res eq 'tgwa-123'), "Result is '$res' expected to be 'tgwa-123'");
+};
+
 subtest '[aws_subnet_create]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     my @calls;
@@ -154,26 +165,11 @@ subtest '[aws_subnet_create]' => sub {
     ok(($res eq 'subnet-123'), "Result is '$res' expected to be 'subnet-123'");
 };
 
-subtest '[aws_subnet_get_id]' => sub {
-    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
-    my @calls;
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'subnet-123'; });
-
-    my $res = aws_subnet_get_id(
-        region => 'Beat',
-        job_id => '67890'
-    );
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /aws ec2 describe-subnets/ } @calls), 'Command describe-subnets');
-    ok(($res eq 'subnet-123'), "Result is '$res' expected to be 'subnet-123'");
-};
-
 subtest '[aws_subnet_delete]' => sub {
     my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
     my @calls;
     $awscli->redefine(script_run => sub { push @calls, $_[0]; return 42; });
-    $awscli->redefine(script_output => sub { push @calls, $_[0]; return 'subnet-123'; });
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '["subnet-123"]'; });
 
     my $ret = aws_subnet_delete(
         region => 'Beat',
@@ -183,6 +179,22 @@ subtest '[aws_subnet_delete]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /aws ec2 delete-subnet/ } @calls), 'Command delete-subnets');
     ok(($ret eq 42), "Return expected 42 get $ret");
+};
+
+subtest '[aws_subnet_get_ids]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    my @calls;
+    $awscli->redefine(script_output => sub { push @calls, $_[0]; return '["subnet-1", "subnet-2"]'; });
+
+    my @res = aws_subnet_get_ids(
+        region => 'Ascot',
+        job_id => '67890'
+    );
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /aws ec2 describe-subnets/ } @calls), 'Command describe-subnets');
+    ok((any { /--output json/ } @calls), 'Output format is json');
+    is_deeply(\@res, ['subnet-1', 'subnet-2'], 'Correct subnet IDs returned');
 };
 
 subtest '[aws_internet_gateway_create]' => sub {
@@ -408,6 +420,59 @@ subtest '[aws_vm_terminate]' => sub {
     ok((any { /aws ec2 wait instance-terminated/ } @calls), 'Command wait instance-terminated');
     ok(($ret eq 42), "Return expected 42 get $ret");
     is($script_run_count, 2, "script_run called twice");
+};
+
+subtest '[aws_tgw_get_id]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(aws_filter_query => sub { return 'tgw-1'; });
+
+    is(aws_tgw_get_id(mirror_tag => 'T', region => 'R'), 'tgw-1', 'Get TGW ID');
+};
+
+subtest '[aws_vpc_get_subnets]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(script_output => sub { return '[{"AZ":"a","SI":"s1"},{"AZ":"a","SI":"s2"},{"AZ":"b","SI":"s3"}]'; });
+
+    my @res = aws_vpc_get_subnets(vpc_id => 'v');
+    is(scalar @res, 2, 'Unique subnets per AZ');
+    is($res[0], 's1', 'First subnet');
+    is($res[1], 's3', 'Second subnet');
+};
+
+subtest '[aws_vpc_get_routing_tables]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(aws_filter_query => sub { return 'rtb-1'; });
+
+    is(aws_vpc_get_routing_tables(vpc_id => 'v', region => 'r'), 'rtb-1', 'Get routing tables');
+};
+
+subtest '[aws_tgw_attachment_create]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    $awscli->redefine(script_output => sub { return '{"TransitGatewayVpcAttachment":{"TransitGatewayAttachmentId":"at-1"}}'; });
+    $awscli->redefine(aws_tgw_attachment_get => sub { return [{"State" => "available"}]; });
+
+    my $res = aws_tgw_attachment_create(transit_gateway_id => 't', vpc_id => 'v', subnet_id_list => ['s'], name => 'n');
+    ok($res, 'Creation success');
+};
+
+subtest '[aws_tgw_attachment_delete]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    my @calls;
+    $awscli->redefine(script_run => sub { push @calls, $_[0]; });
+    $awscli->redefine(aws_tgw_attachment_get => sub { return [{"State" => "deleted"}]; });
+
+    my $res = aws_tgw_attachment_delete(id => 'at-1');
+    ok((any { /delete-transit-gateway-vpc-attachment/ } @calls), 'Delete command');
+    ok($res, 'Deletion success');
+};
+
+subtest '[aws_route_create_tgw]' => sub {
+    my $awscli = Test::MockModule->new('sles4sap::aws_cli', no_auto => 1);
+    my @calls;
+    $awscli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+
+    aws_route_create_tgw(rtable_id => 'r', target_ip_net => 'i', trans_gw_id => 't');
+    ok((any { /create-route.*--transit-gateway-id t/ } @calls), 'Create route command');
 };
 
 done_testing;
