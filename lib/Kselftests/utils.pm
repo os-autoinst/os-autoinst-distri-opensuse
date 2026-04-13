@@ -110,7 +110,7 @@ sub install_dependencies
         zypper_ar($netutils_repo);
 
         # install build deps
-        install_package('clang libcap-devel libnuma-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
+        install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
 
         # install test deps
         install_available_packages('jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
