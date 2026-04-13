@@ -10,6 +10,7 @@ use testapi;
 use Mojo::Base 'opensusebasetest';
 use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
+use registration;
 use Utils::Logging 'upload_solvertestcase_logs';
 
 sub run {
@@ -25,6 +26,9 @@ sub run {
     };
 
     select_console 'root-console';
+
+    add_suseconnect_product("Leap", undef, undef, " -r " . get_var("SCC_REGCODE"), 60, 1) if (get_var("AGAMA_PRODUCT_ID") eq "openSUSE_Leap");
+
     assert_script_run("echo 'url: " . get_required_var('SCC_URL') . "' > /etc/SUSEConnect");
 
     script_run("(zypper migration; echo $zypper_done) |& tee /dev/$serialdev", 0);
