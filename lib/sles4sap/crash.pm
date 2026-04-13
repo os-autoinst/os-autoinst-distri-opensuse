@@ -182,13 +182,13 @@ Returns the instance ID
 
 =item B<address_range> - VPC CIDR
 
-=item B<subnet_range> - Subnet CIDR
+=item B<subnet_range> - Base Subnet CIDR. Additional subnets for other AZs will be calculated from this.
 
 =back
 =cut
 
 sub crash_deploy_aws(%args) {
-    foreach (qw(region image_name image_owner ssh_pub_key instance_type)) {
+    foreach (qw(region image_name image_owner ssh_pub_key instance_type address_range subnet_range)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
     my $job_id = crash_deploy_name();
@@ -204,19 +204,18 @@ sub crash_deploy_aws(%args) {
         vpc_id => $vpc_id,
         job_id => $job_id);
 
-    my $subnet_id = aws_subnet_create(
+    my $igw_id = aws_internet_gateway_create(region => $args{region}, job_id => $job_id);
+    aws_internet_gateway_attach(vpc_id => $vpc_id, igw_id => $igw_id, region => $args{region});
+
+    my $route_table_id = aws_route_table_create(region => $args{region}, vpc_id => $vpc_id);
+
+    my $sid = aws_subnet_create(
         region => $args{region},
         cidr => $args{subnet_range},
         vpc_id => $vpc_id,
         job_id => $job_id);
 
-    my $igw_id = aws_internet_gateway_create(region => $args{region}, job_id => $job_id);
-    aws_internet_gateway_attach(vpc_id => $vpc_id, igw_id => $igw_id, region => $args{region});
-
-    # SSH connection
-    my $route_table_id = aws_route_table_create(region => $args{region}, vpc_id => $vpc_id);
-
-    aws_route_table_associate(subnet_id => $subnet_id, route_table_id => $route_table_id, region => $args{region});
+    aws_route_table_associate(subnet_id => $sid, route_table_id => $route_table_id, region => $args{region});
 
     aws_route_create(
         route_table_id => $route_table_id,
@@ -236,7 +235,7 @@ sub crash_deploy_aws(%args) {
         instance_type => $args{instance_type},
         image_name => $args{image_name},
         owner => $args{image_owner},
-        subnet_id => $subnet_id,
+        subnet_id => $sid,
         sg_id => $sg_id,
         ssh_key => $ssh_key,
         region => $args{region},
@@ -638,6 +637,8 @@ Delete the AWS deployment
 
 sub crash_destroy_aws(%args) {
     croak "Missing mandatory argument 'region'" unless $args{region};
+    crash_network_peering_delete(provider => 'EC2', region => $args{region}) if ($args{ibsm_ip});
+
     my %ret;
     my $job_id = crash_deploy_name();
 
@@ -782,14 +783,21 @@ sub crash_patch_system (%args) {
         project           => 'my-project',
         ibsm_ncc_hub      => 'projects/ibsm-project/locations/global/hubs/ibsm-hub');
 
+    crash_network_peering_create(
+        provider      => 'EC2',
+        ibsm_ip       => '10.1.2.3',
+        region        => 'us-east-1',
+        ibsm_ip_range => '10.0.0.0/8',
+        ibsm_prj_tag  => 'my-project-tag');
+
 Create a network peering between the crash test SUT and an IBSm server.
-Supported providers are AZURE (Azure VNet Peering) and GCE (GCP NCC Spoke).
+Supported providers are AZURE (Azure VNet Peering), GCE (GCP NCC Spoke) and EC2 (AWS Transit Gateway).
 After peering is established, the IBSm IP is added to /etc/hosts on the SUT
 and optional incident repos are configured.
 
 =over
 
-=item B<provider> - Cloud provider: C<AZURE> or C<GCE>
+=item B<provider> - Cloud provider: C<AZURE>, C<GCE> or C<EC2>
 
 =item B<ibsm_ip> - IP address of the IBSm server
 
@@ -803,6 +811,10 @@ and optional incident repos are configured.
 
 =item B<availability_zone> - GCP availability zone suffix. Required for GCE.
 
+=item B<ibsm_ip_range> - IP range of the IBSm environment. Required for EC2.
+
+=item B<ibsm_prj_tag> - Project tag used to identify the Transit Gateway. Used for EC2.
+
 =item B<incident_repos> - Comma-separated list of incident repo URLs (optional)
 
 =item B<repo_host> - Hostname to redirect to IBSm.
@@ -813,8 +825,8 @@ and optional incident repos are configured.
 sub crash_network_peering_create(%args) {
     foreach (qw(provider ibsm_ip region repo_host)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
-    croak("Only AZURE and GCE are supported for network peering, got '$args{provider}'")
-      unless ($args{provider} eq 'AZURE' || $args{provider} eq 'GCE');
+    croak("Only AZURE, GCE and EC2 are supported for network peering, got '$args{provider}'")
+      unless ($args{provider} eq 'AZURE' || $args{provider} eq 'GCE' || $args{provider} eq 'EC2');
 
     if ($args{provider} eq 'AZURE') {
         croak('Argument < ibsm_rg > missing') unless $args{ibsm_rg};
@@ -823,6 +835,9 @@ sub crash_network_peering_create(%args) {
         foreach (qw(ibsm_ncc_hub project availability_zone)) {
             croak("Argument < $_ > missing") unless $args{$_};
         }
+    }
+    elsif ($args{provider} eq 'EC2') {
+        croak('Argument < ibsm_ip_range > missing') unless $args{ibsm_ip_range};
     }
 
     $args{incident_repos} //= '';
@@ -852,6 +867,13 @@ sub crash_network_peering_create(%args) {
             sut_project => $args{project},
             spoke_name => $deploy_name . '-spoke',
             spoke_group => get_var('IBSM_NCC_SPOKE_GROUP', 'edge'));
+    }
+    elsif ($args{provider} eq 'EC2') {
+        ibsm_network_peering_aws_create(
+            region => $args{region},
+            job_id => $deploy_name,
+            ibsm_ip_range => $args{ibsm_ip_range},
+            ibsm_prj_tag => $args{ibsm_prj_tag});
     }
 
     repos_add_server_to_hosts(
@@ -930,16 +952,22 @@ Supported providers are AZURE and GCE.
 sub crash_network_peering_delete(%args) {
     croak('Argument < provider > missing') unless $args{provider};
 
+    my $deploy_name = crash_deploy_name();
     if ($args{provider} eq 'AZURE') {
         croak('Argument < ibsm_rg > missing') unless $args{ibsm_rg};
         ibsm_network_peering_azure_delete(
             sut_rg => crash_deploy_name(),
             ibsm_rg => $args{ibsm_rg},
-            name_prefix => crash_deploy_name());
+            name_prefix => $deploy_name);
     }
     elsif ($args{provider} eq 'GCE') {
         ibsm_network_peering_gcp_delete(
-            spoke_name => crash_deploy_name() . '-spoke');
+            spoke_name => $deploy_name . '-spoke');
+    }
+    elsif ($args{provider} eq 'EC2') {
+        ibsm_network_peering_aws_delete(
+            region => $args{region},
+            job_id => $deploy_name);
     }
     else {
         die "Unsupported provider for network peering: $args{provider}";
