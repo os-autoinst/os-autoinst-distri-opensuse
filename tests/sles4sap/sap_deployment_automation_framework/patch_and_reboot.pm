@@ -106,7 +106,8 @@ sub run {
     # Prepare test argument files
     my @arg_files;
     my $arg_index = 1;
-    my $repo_mirror = get_required_var('INCIDENT_REPO');
+    my $repo_mirrors = get_var('INCIDENT_REPO') // get_required_var
+        ('MAINT_TEST_REPO');
     my $repo_mirror_host = get_required_var('REPO_MIRROR_HOST');
     for my $hostname (keys %update_hosts) {
         my $file_content = <<"file_content";
@@ -120,7 +121,7 @@ KEYFILE:$sut_ssh_key_path
 --variable
 REPO_MIRROR_HOST:$repo_mirror_host
 --variable
-INCIDENT_REPO:$repo_mirror
+MAINTENANCE_REPOS:$repo_mirrors
 --variable
 LOG_DIR:$log_dir
 file_content
