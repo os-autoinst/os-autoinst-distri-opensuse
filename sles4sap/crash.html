@@ -115,7 +115,7 @@
 <dd>
 
 </dd>
-<dt id="subnet_range---Subnet-CIDR"><b>subnet_range</b> - Subnet CIDR</dt>
+<dt id="subnet_range---Base-Subnet-CIDR.-Additional-subnets-for-other-AZs-will-be-calculated-from-this"><b>subnet_range</b> - Base Subnet CIDR. Additional subnets for other AZs will be calculated from this.</dt>
 <dd>
 
 </dd>
@@ -155,7 +155,7 @@
 <dd>
 
 </dd>
-<dt id="subnet_range---Subnet-CIDR1"><b>subnet_range</b> - Subnet CIDR</dt>
+<dt id="subnet_range---Subnet-CIDR"><b>subnet_range</b> - Subnet CIDR</dt>
 <dd>
 
 </dd>
@@ -372,13 +372,20 @@ crash_network_peering_create(
     region            =&gt; &#39;us-central1&#39;,
     availability_zone =&gt; &#39;a&#39;,
     project           =&gt; &#39;my-project&#39;,
-    ibsm_ncc_hub      =&gt; &#39;projects/ibsm-project/locations/global/hubs/ibsm-hub&#39;);</code></pre>
+    ibsm_ncc_hub      =&gt; &#39;projects/ibsm-project/locations/global/hubs/ibsm-hub&#39;);
 
-<p>Create a network peering between the crash test SUT and an IBSm server. Supported providers are AZURE (Azure VNet Peering) and GCE (GCP NCC Spoke). After peering is established, the IBSm IP is added to /etc/hosts on the SUT and optional incident repos are configured.</p>
+crash_network_peering_create(
+    provider      =&gt; &#39;EC2&#39;,
+    ibsm_ip       =&gt; &#39;10.1.2.3&#39;,
+    region        =&gt; &#39;us-east-1&#39;,
+    ibsm_ip_range =&gt; &#39;10.0.0.0/8&#39;,
+    ibsm_prj_tag  =&gt; &#39;my-project-tag&#39;);</code></pre>
+
+<p>Create a network peering between the crash test SUT and an IBSm server. Supported providers are AZURE (Azure VNet Peering), GCE (GCP NCC Spoke) and EC2 (AWS Transit Gateway). After peering is established, the IBSm IP is added to /etc/hosts on the SUT and optional incident repos are configured.</p>
 
 <dl>
 
-<dt id="provider---Cloud-provider:-AZURE-or-GCE"><b>provider</b> - Cloud provider: <code>AZURE</code> or <code>GCE</code></dt>
+<dt id="provider---Cloud-provider:-AZURE-GCE-or-EC2"><b>provider</b> - Cloud provider: <code>AZURE</code>, <code>GCE</code> or <code>EC2</code></dt>
 <dd>
 
 </dd>
@@ -403,6 +410,14 @@ crash_network_peering_create(
 
 </dd>
 <dt id="availability_zone---GCP-availability-zone-suffix.-Required-for-GCE"><b>availability_zone</b> - GCP availability zone suffix. Required for GCE.</dt>
+<dd>
+
+</dd>
+<dt id="ibsm_ip_range---IP-range-of-the-IBSm-environment.-Required-for-EC2"><b>ibsm_ip_range</b> - IP range of the IBSm environment. Required for EC2.</dt>
+<dd>
+
+</dd>
+<dt id="ibsm_prj_tag---Project-tag-used-to-identify-the-Transit-Gateway.-Used-for-EC2"><b>ibsm_prj_tag</b> - Project tag used to identify the Transit Gateway. Used for EC2.</dt>
 <dd>
 
 </dd>
@@ -458,7 +473,7 @@ crash_network_peering_delete(
 
 <dl>
 
-<dt id="provider---Cloud-provider:-AZURE-or-GCE1"><b>provider</b> - Cloud provider: <code>AZURE</code> or <code>GCE</code></dt>
+<dt id="provider---Cloud-provider:-AZURE-or-GCE"><b>provider</b> - Cloud provider: <code>AZURE</code> or <code>GCE</code></dt>
 <dd>
 
 </dd>

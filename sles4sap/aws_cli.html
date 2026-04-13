@@ -22,7 +22,7 @@
       <li><a href="#aws_security_group_get_id">aws_security_group_get_id</a></li>
       <li><a href="#aws_security_group_authorize_ingress">aws_security_group_authorize_ingress</a></li>
       <li><a href="#aws_subnet_create">aws_subnet_create</a></li>
-      <li><a href="#aws_subnet_get_id">aws_subnet_get_id</a></li>
+      <li><a href="#aws_subnet_get_ids">aws_subnet_get_ids</a></li>
       <li><a href="#aws_subnet_delete">aws_subnet_delete</a></li>
       <li><a href="#aws_internet_gateway_create">aws_internet_gateway_create</a></li>
       <li><a href="#aws_internet_gateway_get_id">aws_internet_gateway_get_id</a></li>
@@ -38,6 +38,15 @@
       <li><a href="#aws_get_ip_address">aws_get_ip_address</a></li>
       <li><a href="#aws_vm_terminate">aws_vm_terminate</a></li>
       <li><a href="#aws_ssh_key_pair_import">aws_ssh_key_pair_import</a></li>
+      <li><a href="#aws_tgw_vpc_attachment_get_id">aws_tgw_vpc_attachment_get_id</a></li>
+      <li><a href="#aws_filter_query">aws_filter_query</a></li>
+      <li><a href="#aws_tgw_get_id">aws_tgw_get_id</a></li>
+      <li><a href="#aws_vpc_get_subnets">aws_vpc_get_subnets</a></li>
+      <li><a href="#aws_vpc_get_routing_tables">aws_vpc_get_routing_tables</a></li>
+      <li><a href="#aws_tgw_attachment_get">aws_tgw_attachment_get</a></li>
+      <li><a href="#aws_tgw_attachment_create">aws_tgw_attachment_create</a></li>
+      <li><a href="#aws_tgw_attachment_delete">aws_tgw_attachment_delete</a></li>
+      <li><a href="#aws_route_create_tgw">aws_route_create_tgw</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/aws_cli.pm</h1>
@@ -255,22 +264,22 @@
 </dd>
 </dl>
 
-<h2 id="aws_subnet_get_id">aws_subnet_get_id</h2>
+<h2 id="aws_subnet_get_ids">aws_subnet_get_ids</h2>
 
-<pre><code>my $subnet_id = aws_subnet_get_id(
+<pre><code>my @subnet_ids = aws_subnet_get_ids(
     region =&gt; &#39;us-west-1&#39;,
     job_id =&gt; &#39;67890&#39;
 );</code></pre>
 
-<p>Retrieve the subnet ID associated with a specific OpenQA job Returns the subnet ID</p>
+<p>Retrieve the list of subnet IDs associated with a specific OpenQA job Returns the list of subnet IDs</p>
 
 <dl>
 
-<dt id="region---AWS-region-where-the-subnet-is-located"><b>region</b> - AWS region where the subnet is located</dt>
+<dt id="region---AWS-region-where-the-subnets-are-located"><b>region</b> - AWS region where the subnets are located</dt>
 <dd>
 
 </dd>
-<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-subnet"><b>job_id</b> - OpenQA job identifier used to tag the subnet</dt>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-subnets"><b>job_id</b> - OpenQA job identifier used to tag the subnets</dt>
 <dd>
 
 </dd>
@@ -283,15 +292,15 @@
     job_id =&gt; &#39;67890&#39;
 );</code></pre>
 
-<p>Delete the subnet, do not assert but return the exit code of the command.</p>
+<p>Delete the subnets associated with the job, do not assert but return the exit code of the command.</p>
 
 <dl>
 
-<dt id="region---AWS-region-where-the-subnet-is-located1"><b>region</b> - AWS region where the subnet is located</dt>
+<dt id="region---AWS-region-where-the-subnets-are-located1"><b>region</b> - AWS region where the subnets are located</dt>
 <dd>
 
 </dd>
-<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-subnet1"><b>job_id</b> - OpenQA job identifier used to tag the subnet</dt>
+<dt id="job_id---OpenQA-job-identifier-used-to-tag-the-subnets1"><b>job_id</b> - OpenQA job identifier used to tag the subnets</dt>
 <dd>
 
 </dd>
@@ -630,6 +639,189 @@
 
 </dd>
 <dt id="pub_key_path---filesystem-path-to-the-public-key-file"><b>pub_key_path</b> - filesystem path to the public key file</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_tgw_vpc_attachment_get_id">aws_tgw_vpc_attachment_get_id</h2>
+
+<pre><code>my $attach_id = aws_tgw_vpc_attachment_get_id(region =&gt; &#39;us-west-1&#39;, job_id =&gt; &#39;job-123&#39;);</code></pre>
+
+<p>Retrieve the TGW attachment ID associated with a specific OpenQA job. Returns the TGW attachment ID as a string. Only the first element found is returned.</p>
+
+<h2 id="aws_filter_query">aws_filter_query</h2>
+
+<pre><code>my $res = aws_filter_query(cmd =&gt; &#39;describe-instances&#39;, filter =&gt; &#39;Name=instance-id,Values=i-123&#39;, query =&gt; &#39;Reservations[*].Instances[*].InstanceId&#39;);</code></pre>
+
+<p>Generic function to compose a aws cli command with filter and query. Returns the script output.</p>
+
+<dl>
+
+<dt id="cmd---AWS-EC2-subcommand"><b>cmd</b> - AWS EC2 subcommand</dt>
+<dd>
+
+</dd>
+<dt id="filter---Filter-string"><b>filter</b> - Filter string</dt>
+<dd>
+
+</dd>
+<dt id="query---JMESPath-query-string"><b>query</b> - JMESPath query string</dt>
+<dd>
+
+</dd>
+<dt id="output---Output-format-default:-text"><b>output</b> - Output format (default: text)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_tgw_get_id">aws_tgw_get_id</h2>
+
+<pre><code>my $tgw_id = aws_tgw_get_id(mirror_tag =&gt; &#39;my-project&#39;);</code></pre>
+
+<p>Return the Transit Gateway ID associated with a specific Project tag.</p>
+
+<dl>
+
+<dt id="mirror_tag---Value-of-Project-tag"><b>mirror_tag</b> - Value of Project tag</dt>
+<dd>
+
+</dd>
+<dt id="region---Region"><b>region</b> - Region</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_vpc_get_subnets">aws_vpc_get_subnets</h2>
+
+<pre><code>my @subnets = aws_vpc_get_subnets(vpc_id =&gt; &#39;vpc-123&#39;, region =&gt; &#39;us-east-1&#39;);</code></pre>
+
+<p>Return a list of subnets for a VPC, one per Availability Zone.</p>
+
+<dl>
+
+<dt id="vpc_id---VPC-ID"><b>vpc_id</b> - VPC ID</dt>
+<dd>
+
+</dd>
+<dt id="region---AWS-region"><b>region</b> - AWS region</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_vpc_get_routing_tables">aws_vpc_get_routing_tables</h2>
+
+<pre><code>my $rt_ids = aws_vpc_get_routing_tables(vpc_id =&gt; &#39;vpc-123&#39;, region =&gt; &#39;us-east-1&#39;);</code></pre>
+
+<p>Get routing table IDs for a VPC that have external connections (non-local).</p>
+
+<dl>
+
+<dt id="vpc_id---VPC-ID1"><b>vpc_id</b> - VPC ID</dt>
+<dd>
+
+</dd>
+<dt id="region---AWS-region1"><b>region</b> - AWS region</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_tgw_attachment_get">aws_tgw_attachment_get</h2>
+
+<pre><code>my $res = aws_tgw_attachment_get(name =&gt; &#39;my-attachment&#39;);</code></pre>
+
+<p>Get a description of one or more transit-gateway-attachments. Returns an array reference of hash references (list of dicts). return value = [ {State =&gt; &#39;pending&#39;} ...]</p>
+
+<dl>
+
+<dt id="transit_gateway_attach_id---Optional-ID-of-the-attachment"><b>transit_gateway_attach_id</b> - Optional ID of the attachment</dt>
+<dd>
+
+</dd>
+<dt id="name---Optional-Name-tag-value"><b>name</b> - Optional Name tag value</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_tgw_attachment_create">aws_tgw_attachment_create</h2>
+
+<pre><code>aws_tgw_attachment_create(
+    transit_gateway_id =&gt; &#39;tgw-123&#39;,
+    vpc_id =&gt; &#39;vpc-456&#39;,
+    subnet_id_list =&gt; [&#39;subnet-1&#39;],
+    name =&gt; &#39;my-attach&#39;
+);</code></pre>
+
+<p>Create a Transit Gateway VPC attachment and wait until it is available. Returns true if the attachment becomes available within the timeout, false otherwise.</p>
+
+<dl>
+
+<dt id="transit_gateway_id---ID-of-the-target-Transit-gateway"><b>transit_gateway_id</b> - ID of the target Transit gateway</dt>
+<dd>
+
+</dd>
+<dt id="vpc_id---VPC-ID-to-be-attached"><b>vpc_id</b> - VPC ID to be attached</dt>
+<dd>
+
+</dd>
+<dt id="subnet_id_list---List-of-subnet-IDs-to-connect"><b>subnet_id_list</b> - List of subnet IDs to connect</dt>
+<dd>
+
+</dd>
+<dt id="name---Prefix-for-the-Tag-Name-of-the-attachment"><b>name</b> - Prefix for the Tag Name of the attachment</dt>
+<dd>
+
+</dd>
+<dt id="timeout---Timeout-in-seconds-default-300"><b>timeout</b> - Timeout in seconds (default 300)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_tgw_attachment_delete">aws_tgw_attachment_delete</h2>
+
+<pre><code>aws_tgw_attachment_delete(id =&gt; &#39;tgwa-123&#39;);</code></pre>
+
+<p>Delete a Transit Gateway VPC attachment and wait until it is deleted. Returns true if the attachment is successfully deleted (or if wait is set to 0), false if it times out while waiting for the deleted state.</p>
+
+<dl>
+
+<dt id="id---ID-of-the-TGW-attachment-to-be-deleted"><b>id</b> - ID of the TGW attachment to be deleted</dt>
+<dd>
+
+</dd>
+<dt id="timeout---Timeout-in-seconds-default-3001"><b>timeout</b> - Timeout in seconds (default 300)</dt>
+<dd>
+
+</dd>
+<dt id="wait---whether-to-wait-to-verify-deleted-status-or-not-default-1"><b>wait</b> - whether to wait to verify deleted status or not (default 1)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="aws_route_create_tgw">aws_route_create_tgw</h2>
+
+<pre><code>aws_route_create_tgw(rtable_id =&gt; &#39;rtb-1&#39;, target_ip_net =&gt; &#39;10.0.0.0/8&#39;, trans_gw_id =&gt; &#39;tgw-1&#39;);</code></pre>
+
+<p>Add a route to a Transit Gateway in a routing table.</p>
+
+<dl>
+
+<dt id="rtable_id---Routing-table-ID"><b>rtable_id</b> - Routing table ID</dt>
+<dd>
+
+</dd>
+<dt id="target_ip_net---Target-CIDR-block"><b>target_ip_net</b> - Target CIDR block</dt>
+<dd>
+
+</dd>
+<dt id="trans_gw_id---Transit-Gateway-ID"><b>trans_gw_id</b> - Transit Gateway ID</dt>
 <dd>
 
 </dd>

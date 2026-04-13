@@ -29,6 +29,8 @@
       </li>
       <li><a href="#ibsm_network_peering_gcp_create">ibsm_network_peering_gcp_create</a></li>
       <li><a href="#ibsm_network_peering_gcp_delete">ibsm_network_peering_gcp_delete</a></li>
+      <li><a href="#ibsm_network_peering_aws_create">ibsm_network_peering_aws_create</a></li>
+      <li><a href="#ibsm_network_peering_aws_delete">ibsm_network_peering_aws_delete</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/ibsm.pm</h1>
@@ -177,6 +179,42 @@ SPDX-License-Identifier: FSFAP</code></pre>
 
 </dd>
 </dl>
+
+<h2 id="ibsm_network_peering_aws_create">ibsm_network_peering_aws_create</h2>
+
+<pre><code>ibsm_network_peering_aws_create(
+    region       =&gt; &#39;us-west-1&#39;,
+    job_id       =&gt; &#39;job-123&#39;,
+    ibsm_ip_range =&gt; &#39;10.0.0.0/8&#39;,
+    ibsm_prj_tag =&gt; &#39;tag&#39;);</code></pre>
+
+<p>Create a network peering on AWS using Transit Gateway.</p>
+
+<dl>
+
+<dt id="region---AWS-region-where-the-resources-are-located"><b>region</b> - AWS region where the resources are located</dt>
+<dd>
+
+</dd>
+<dt id="job_id---OpenQA-job-identifier-used-to-identify-VPC-and-tag-attachment"><b>job_id</b> - OpenQA job identifier used to identify VPC and tag attachment</dt>
+<dd>
+
+</dd>
+<dt id="ibsm_ip_range---CIDR-block-of-the-IBS-Mirror-to-be-routed"><b>ibsm_ip_range</b> - CIDR block of the IBS Mirror to be routed</dt>
+<dd>
+
+</dd>
+<dt id="ibsm_prj_tag---Value-of-the-Project-tag-to-identify-the-Transit-Gateway"><b>ibsm_prj_tag</b> - Value of the &#39;Project&#39; tag to identify the Transit Gateway</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="ibsm_network_peering_aws_delete">ibsm_network_peering_aws_delete</h2>
+
+<pre><code>ibsm_network_peering_aws_delete(region =&gt; &#39;us-west-1&#39;, job_id =&gt; &#39;job-123&#39;);</code></pre>
+
+<p>Delete AWS TGW attachment for the SUT.</p>
 
 
 </body>
