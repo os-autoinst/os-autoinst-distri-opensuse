@@ -35,10 +35,8 @@ sub run {
     select_console('root-console');
     my @guests = keys %virt_autotest::common::guests;
     set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO'));
-    my $host_os_version = get_var('DISTRI') . "s" . lc(get_var('VERSION') =~ s/-//r);
     foreach my $guest (@guests) {
-        # Match guests by prefix to handle various suffixes (efi, TD, PV, HVM, ES, _online, _full, etc.)
-        if ($guest =~ /^${host_os_version}(?:TD|PV|HVM|ES|efi|_online|_full|$)/) {
+        if (is_guest_of_host_version($guest)) {
             if (check_var('PATCH_WITH_ZYPPER', '1') || check_var('PATCH_ON_GUEST', '1')) {
                 assert_script_run("ssh root\@$guest dmesg --level=emerg,crit,alert,err -tx|sort -o /tmp/${guest}_dmesg_err_before.txt");
                 record_info("Patching $guest");
