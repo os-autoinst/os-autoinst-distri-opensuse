@@ -16,6 +16,7 @@ use zypper;
 use registration;
 use qam 'remove_test_repositories';
 use version_utils qw(is_sle is_sles4sap is_leap_migration);
+use mm_network qw(is_networkmanager);
 
 our @EXPORT = qw(
   setup_sle
@@ -31,6 +32,7 @@ our @EXPORT = qw(
   set_zypp_single_rpmtrans
   remove_dropped_modules_packages
   workaround_bsc_1220091
+  reset_network_config
 );
 
 sub setup_sle {
@@ -225,6 +227,24 @@ sub reset_consoles_tty {
     console('x11')->set_tty(get_x11_console_tty);
     console('root-console')->set_tty(get_root_console_tty);
     reset_consoles;
+}
+
+# Reset network config, for example, restore auto dns policy to enable automatic
+# dns migration to higher version
+sub reset_network_config {
+    my (%args) = @_;
+    $args{config} //= '';
+
+    if (!is_networkmanager) {
+        $args{config} = '/etc/sysconfig/network/config';
+        return if (script_run("ls $args{config}") != 0);
+        if (script_run("grep -E \"^NETCONFIG_DNS_POLICY.*\$\" $args{config}") == 0) {
+            assert_script_run("sed -i -r \'s/^NETCONFIG_DNS_POLICY.*\$/NETCONFIG_DNS_POLICY=\"auto\"/g\' $args{config}");
+        }
+        else {
+            assert_script_run("echo -e \"NETCONFIG_DNS_POLICY=\"auto\"\" >> $args{config}");
+        }
+    }
 }
 
 # Register the already installed system on a specific SCC server/proxy if needed
