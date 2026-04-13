@@ -154,8 +154,7 @@ sub run {
             mutex_lock 'last_subtest_run_finish';
             autotest::loadtest 'tests/xfstests/generate_report.pm';
             autotest::loadtest("tests/publiccloud/destroy.pm", run_args => $args) if is_public_cloud();
-        }
-        else {
+        } else {
             autotest::loadtest("tests/xfstests/run_subtest.pm", name => $test, run_args => $targs);
         }
     }
@@ -164,11 +163,14 @@ sub run {
 sub test_flags {
     return {
         fatal => 1,
-        milestone => 1,
+        milestone => 1
     };
 }
 
 sub post_fail_hook {
+    my ($self) = @_;
+    my $args = $self->{run_args};
+    autotest::loadtest('tests/publiccloud/destroy.pm', run_args => $args) if is_public_cloud();
     return;
 }
 
