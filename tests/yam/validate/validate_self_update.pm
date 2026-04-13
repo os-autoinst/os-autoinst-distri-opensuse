@@ -12,8 +12,6 @@ use utils qw(systemctl);
 use scheduler qw(get_test_suite_data);
 
 sub run {
-    select_console 'root-console';
-
     my $self_update_enabled = get_test_suite_data()->{self_update_enabled};
     if ($self_update_enabled) {
         my $retcode = script_output('cat /run/live-self-update/result');
