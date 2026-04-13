@@ -82,18 +82,18 @@ sub run {
     raise_barriers(instance_type => $instance_type, instances => \@instances);
 
     # We created new unlabeled files so we must relabel them for SELinux
+    my $exclusion = '';
     if (has_selinux) {
         # Fetch NFS mounts
         my $mountpoints = script_output(q|awk '$3 ~ /^nfs/ {print $2}' /proc/mounts|, timeout => 60);
-        my $paras = '';
         if ($mountpoints) {
             # Fetch associated overlays only
             my $mnt_regex = join('|', split(/\n/, $mountpoints));
             my $overlay_cmd = q{awk '$3=="overlay" && $4~"lowerdir=(} . $mnt_regex . q{)(/|,|$)" {print $2}' /proc/mounts};
             my $overlay = script_output($overlay_cmd, timeout => 60);
-            $paras = join(' ', map { "-e $_" } grep { $_ } split(/\n/, "$mountpoints\n$overlay"));
+            $exclusion = join(' ', map { "-e $_" } grep { $_ } split(/\n/, "$mountpoints\n$overlay"));
         }
-        assert_script_run("test -d /.snapshots && restorecon -R / -e /.snapshots $paras", timeout => 1200);
+        assert_script_run("test -d /.snapshots && restorecon -R / -e /.snapshots $exclusion", timeout => 1200);
         assert_script_run('test -d /.snapshots || restorecon -R /', timeout => 600);
     }
 
@@ -110,7 +110,7 @@ sub run {
 
     # Labelling the newly installed files only for systems with SELinux.
     if (has_selinux) {
-        assert_script_run('test -d /.snapshots && restorecon -R / -e /.snapshots', timeout => 600);
+        assert_script_run("test -d /.snapshots && restorecon -R / -e /.snapshots $exclusion", timeout => 1200);
         assert_script_run('test -d /.snapshots || restorecon -R /', timeout => 600);
     }
 
