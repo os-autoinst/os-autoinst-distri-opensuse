@@ -24,7 +24,8 @@ sub run {
     # vim-data package must not be present on JeOS
     assert_script_run('! rpm -qi vim-data') if is_jeos();
     enter_cmd "vim /etc/passwd";
-    my $jeos = is_jeos() ? '-jeos' : '';
+    my $flavor = get_var('FLAVOR');
+    my $jeos = (is_jeos() || ($flavor =~ m/Immutable/)) ? '-jeos' : '';
     assert_screen "vim-showing-passwd$jeos";
     wait_screen_change { enter_cmd ":q!" };
 }
