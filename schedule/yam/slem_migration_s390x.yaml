@@ -1,0 +1,12 @@
+---
+name: slem_migration_s390x
+description: >
+  Perform zypper migration for SLE Micro to SLES 16 immutable on s390x.
+schedule:
+  - yam/migration/setup_upgrade_env
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - transactional/host_config
+  - yam/migration/zypper_migration
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_product

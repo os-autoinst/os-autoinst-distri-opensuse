@@ -1,0 +1,15 @@
+---
+name: slem_migration
+description: >
+  Perform zypper migration for SLE Micro to SLES 16 immutable.
+schedule:
+  - yam/migration/setup_upgrade_env
+  - microos/disk_boot
+  - transactional/host_config
+  - console/suseconnect_scc
+  - transactional/install_updates
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - migration/online_migration/zypper_migration
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_product
