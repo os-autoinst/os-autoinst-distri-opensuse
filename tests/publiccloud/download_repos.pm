@@ -13,7 +13,7 @@ use testapi;
 use utils;
 use version_utils 'is_sle_micro';
 use publiccloud::ssh_interactive "select_host_console";
-use publiccloud::utils "validate_repo";
+use publiccloud::utils qw(additional_repos validate_repo);
 
 
 # Get the status of the update repos
@@ -59,6 +59,8 @@ sub run {
     my $regex = "'s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/'";
 
     set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 0);
+
+    push @repos, additional_repos();
 
     for my $maintrepo (@repos) {
         unless (validate_repo($maintrepo)) {

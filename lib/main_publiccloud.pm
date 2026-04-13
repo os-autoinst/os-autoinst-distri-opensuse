@@ -65,7 +65,9 @@ sub load_maintenance_publiccloud_tests {
         } elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
             load_container_tests();
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
+            # xfstests call destroy internally
             loadtest "publiccloud/xfsprepare", run_args => $args;
+            return;
         } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
             loadtest "publiccloud/smoketest";
             # flavor_check is concentrated on checking things which make sense only for image which is registered
@@ -164,7 +166,9 @@ sub load_latest_publiccloud_tests {
                     loadtest "publiccloud/sev", run_args => $args if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
                     loadtest "publiccloud/xen", run_args => $args if (get_var('PUBLIC_CLOUD_XEN'));
                 } elsif (get_var('PUBLIC_CLOUD_XFS')) {
+                    # xfstests call destroy internally
                     loadtest "publiccloud/xfsprepare", run_args => $args;
+                    return;
                 } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
                     loadtest("publiccloud/azure_nfs", run_args => $args);
                 } elsif (get_var('PUBLIC_CLOUD_EXTRATESTS')) {

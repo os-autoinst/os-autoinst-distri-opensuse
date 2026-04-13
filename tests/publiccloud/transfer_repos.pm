@@ -15,7 +15,7 @@ use utils;
 use publiccloud::ssh_interactive "select_host_console";
 use maintenance_smelt qw(is_embargo_update);
 use version_utils qw(is_sle_micro is_sle);
-use publiccloud::utils qw(zypper_call_remote);
+use publiccloud::utils qw(additional_repos zypper_call_remote);
 
 sub run {
     my ($self, $args) = @_;
@@ -50,6 +50,8 @@ sub run {
             ($incident, $type) = ($2, $1) if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g);
             push(@repos, $maintrepo) unless (is_embargo_update($incident, $type)); }
     }
+
+    push @repos, additional_repos();
 
     s/https?:\/\/.*\/ibs\/// for @repos;
 
