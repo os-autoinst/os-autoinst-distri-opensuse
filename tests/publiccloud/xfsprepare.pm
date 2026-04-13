@@ -22,23 +22,6 @@ use utils;
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
 
-# The filesystems repo has different links for different versions now
-sub get_filesystem_repo {
-    my $version = get_required_var('VERSION');
-    # The naming scheme of the filesystems repo depens on the version. See https://download.opensuse.org/repositories/filesystems/
-    # For SLE<15-SP4 -     e.g. https://download.opensuse.org/repositories/filesystems/SLE_15_SP3
-    # From 15-SP4 onwards: e.g. https://download.opensuse.org/repositories/filesystems/15.4
-    if (is_sle("<15-SP5")) {
-        $version =~ s/-/_/g;    # Version in repo-path needs an underscore instead of a dash
-        return "https://download.opensuse.org/repositories/filesystems/SLE_${version}/";
-    } elsif (is_sle(">=15-SP5")) {
-        $version =~ s/-SP/./g;    # Unified versions with dot (e.g. 15.3)
-        return "https://download.opensuse.org/repositories/filesystems/${version}/";
-    } else {
-        die "Unsupported version: $version for the filesystems repo";
-    }
-}
-
 # Check if the given user exists, and if not, add it to the system
 sub ensure_user_exists {
     my ($user, $uid) = @_;
@@ -47,8 +30,6 @@ sub ensure_user_exists {
 
 # Install requirements
 sub install_xfstests {
-    my ($repo) = @_;
-    zypper_ar($repo, name => "filesystems");    # Add filesystem repository, which contains the xfstests
     if (is_sle) {
         # packagehub is required for dbench (required for e.g. generic/241)
         if (is_azure) {
@@ -59,15 +40,15 @@ sub install_xfstests {
     }
     my $packages = "xfsprogs xfsdump btrfsprogs kernel-default xfstests fio";
     $packages .= " dbench" unless (is_sle("<15"));    # dbench is not available on <SLE15
-    zypper_call("in $packages");
+    zypper_call("in --allow-vendor-change $packages");
     assert_script_run('ln -s /usr/lib/xfstests/ /opt/xfstests');    # xfstests/run expects the tests to be in /opt/xfstests
     record_info("xfstests", script_output("rpm -q xfstests"));
     # Ensure users 'nobody' and 'daemon' exists
     ensure_user_exists("nobody", 65534);
     ensure_user_exists("daemon", 2);
     # Create test users (See https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git/tree/README)
-    assert_script_run("useradd -mU fsgqa");    # Create home directory (-m) and 'fsgqa' group for the user (-U) as well
-    assert_script_run("useradd fsgqa2");
+    script_run("useradd -mU fsgqa");    # Create home directory (-m) and 'fsgqa' group for the user (-U) as well
+    script_run("useradd fsgqa2");
 
     # The following is only required by few tests and there is a chance that users starting with digits won't work
     my $fsgqa_123456 = script_run("useradd 123456-fsgqa") == 0;
@@ -176,7 +157,9 @@ sub run {
         die "'$device' size does not match PUBLIC_CLOUD_HDD2_SIZE" unless $hdd2_size == $dev_size;
     }
 
-    install_xfstests(get_filesystem_repo());
+    # We assume that the repo was downloaded and transferred to
+    # the SUT in the download_repos & transfer_repos modules.
+    install_xfstests();
     partition_disk($device, $mnt_xfs, $mnt_scratch);
     create_config($device, $mnt_xfs, $mnt_scratch);
     script_run("source $CONFIG_FILE");

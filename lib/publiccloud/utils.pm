@@ -257,7 +257,7 @@ sub register_addons_in_pc {
 # Validation for update repos
 sub validate_repo {
     my ($maintrepo) = @_;
-    if (is_sle_micro('>=6.0') || is_sle('>=16')) {
+    if (is_sle_micro('>=6.0') || is_sle('>=16') || get_var("PUBLIC_CLOUD_XFS")) {
         record_info("Product Increments", "Can't validate repository");
         return 1;
     }
