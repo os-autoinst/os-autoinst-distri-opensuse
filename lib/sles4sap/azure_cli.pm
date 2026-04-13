@@ -197,7 +197,7 @@ that usually is string B<true> or B<false>.
 
 sub az_group_exists(%args) {
     croak "Missing mandatory argument: 'name'" unless $args{name};
-    return script_output("az group exists --resource-group $args{name}", quiet => $args{quiet});
+    return script_output("az group exists --resource-group $args{name} 2> >(grep -Ev 'FutureWarning|Launching flake|self.' >&2)", quiet => $args{quiet});
 }
 
 =head2 az_network_vnet_create
@@ -326,7 +326,7 @@ sub az_network_vnet_get(%args) {
     croak("Argument < resource_group > missing") unless $args{resource_group};
     $args{query} //= '[].name';
 
-    my $az_cmd = join(' ', 'az network vnet list',
+    my $az_cmd = join(' ', 'az network vnet list 2>/dev/null',
         '-g', $args{resource_group},
         "--query \"$args{query}\"",
         '-o json');
@@ -897,7 +897,7 @@ sub az_vm_list(%args) {
     $args{query} //= '[].name';
 
     my $az_cmd = join(' ',
-        'az vm list',
+        'az vm list 2>/dev/null',
         "-g $args{resource_group}",
         "--query \"$args{query}\"",
         '-o json');
@@ -1173,7 +1173,7 @@ sub az_nic_create(%args) {
     foreach (qw(resource_group name vnet subnet nsg pubip_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    assert_script_run(join(' ', 'az network nic create',
+    assert_script_run(join(' ', 'az network nic create 2>/dev/null',
             '--resource-group', $args{resource_group},
             '--name', $args{name},
             '--vnet-name', $args{vnet},
@@ -1583,7 +1583,7 @@ sub az_network_peering_list(%args) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{query} //= '[].name';
 
-    my $az_cmd = join(' ', 'az network vnet peering list',
+    my $az_cmd = join(' ', 'az network vnet peering list 2> >(grep -Ev "FutureWarning|Launching flake|self." >&2)',
         '--resource-group', $args{resource_group},
         '--vnet-name', $args{vnet},
         "--query \"$args{query}\"",
@@ -1936,7 +1936,7 @@ sub az_storage_blob_list(%args) {
     $args{query} //= '[].name';
 
     my $az_cmd = join(' ',
-        'az storage blob list',
+        'az storage blob list 2> >(grep -Ev "FutureWarning|Launching flake|self." >&2)',
         '--only-show-errors',
         "--container-name $args{container_name}",
         "--account-name $args{storage_account_name}",
@@ -2037,7 +2037,8 @@ sub az_keyvault_secret_list(%args) {
         '--only-show-errors',
         '--vault-name', $args{vault_name},
         '--query', "$args{query}",
-        '--output json'
+        '--output json',
+        "2> >(grep -Ev 'FutureWarning|Launching flake|self.' >&2)"
     );
 
     return decode_json(script_output(join(' ', @az_cmd)));
@@ -2118,7 +2119,7 @@ sub az_network_vnet_show {
     foreach (@mandatory_args) {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
-    my @cmd = ('az network vnet show', "--resource-group $args{resource_group}", "--name $args{name}");
+    my @cmd = ('az network vnet show 2> >(grep -Ev "FutureWarning|Launching flake|self." >&2)', "--resource-group $args{resource_group}", "--name $args{name}");
     push @cmd, "--query \"$args{query}\"" if $args{query};
 
     return decode_json(script_output(join(' ', @cmd)));
@@ -2142,7 +2143,7 @@ Creates private DNS zone within specified B<resource_group>.
 sub az_network_dns_zone_create {
     my (%args) = @_;
     foreach ('resource_group', 'name') { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
-    my @cmd = ('az network private-dns zone create', "--resource-group $args{resource_group}", "--name $args{name}");
+    my @cmd = ('az network private-dns zone create 2> >(grep -Ev "FutureWarning|Launching flake|self." >&2)', "--resource-group $args{resource_group}", "--name $args{name}");
 
     return assert_script_run(join(' ', @cmd));
 }
@@ -2168,7 +2169,8 @@ sub az_network_dns_zone_delete {
     my @cmd = ('az network private-dns zone delete',
         "--resource-group $args{resource_group}",
         "--name $args{zone_name}",
-        '--yes');
+        '--yes',
+        "2> >(grep -Ev 'FutureWarning|Launching flake|self.' >&2)");
 
     return assert_script_run(join(' ', @cmd));
 }
@@ -2193,7 +2195,7 @@ sub az_network_dns_zone_list {
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     $args{query} //= '[].name';
     return decode_json(
-        script_output("az network private-dns zone list --resource-group $args{resource_group} --query \"$args{query}\"")
+        script_output("az network private-dns zone list --resource-group $args{resource_group} --query \"$args{query}\" 2> >(grep -Ev 'FutureWarning|Launching flake|self.' >&2)")
     );
 }
 
@@ -2230,7 +2232,7 @@ sub az_network_dns_add_record {
         "--resource-group $args{resource_group}",
         "--zone-name $args{zone_name}",
         "--record-set-name $args{record_name}",
-        "--ipv4-address $args{ip_addr}"
+        "--ipv4-address $args{ip_addr} 2> >(grep -Ev 'FutureWarning|Launching flake|self.' >&2)"
     );
 
     return assert_script_run(join(' ', @cmd));
@@ -2265,7 +2267,7 @@ sub az_network_dns_link_create {
     my @mandatory_args = qw(resource_group zone_name vnet name);
     foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
     my @cmd = (' ',
-        'az network private-dns link vnet create',
+        'az network private-dns link vnet create 2> >(grep -Ev "FutureWarning|Launching flake|self." >&2)',
         "--resource-group $args{resource_group}",
         "--zone-name $args{zone_name}",
         "--virtual-network $args{vnet}",
@@ -2306,7 +2308,7 @@ sub az_network_dns_link_delete {
         "--resource-group $args{resource_group}",
         "--zone-name $args{zone_name}",
         "--name $args{link_name}",
-        '--yes'    # autoconfirm
+        '--yes 2> >(grep -Ev "FutureWarning|Launching flake|self." >&2)'    # autoconfirm
     );
 
     return assert_script_run(join(' ', @cmd));
@@ -2335,7 +2337,7 @@ sub az_network_dns_link_list {
     my @mandatory_args = qw(resource_group zone_name);
     foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
     my @cmd = (' ',
-        'az network private-dns link vnet list',
+        'az network private-dns link vnet list 2> >(grep -Ev "FutureWarning|Launching flake|self." >&2)',
         "--resource-group $args{resource_group}",
         "--zone-name $args{zone_name}",
         "--query \"$args{query}\""
@@ -2410,7 +2412,7 @@ Output can be modified using B<$args{query}>.
 sub az_account_show {
     my (%args) = @_;
     $args{query} //= 'id';
-    my $az_cmd = join(' ', 'az account show',
+    my $az_cmd = join(' ', 'az account show 2> >(grep -Ev "FutureWarning|Launching flake|self." >&2)',
         "--query '$args{query}'",
         '-o json');
     return decode_json(script_output($az_cmd));

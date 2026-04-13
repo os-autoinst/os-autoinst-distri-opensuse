@@ -20,6 +20,7 @@ use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
+use utils;
 
 sub test_flags {
     return {fatal => 1};
@@ -46,6 +47,10 @@ sub run {
 
     # From now on everything is executed on Deployer VM (residing on cloud).
     connect_target_to_serial();
+
+    # Install 'python3-passlib'
+    zypper_call('se -s python3-passlib');
+    zypper_call('in python3-passlib');
 
     my $subscription_id = az_login();
     set_common_sdaf_os_env(subscription_id => $subscription_id);
