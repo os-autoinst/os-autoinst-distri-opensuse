@@ -113,7 +113,7 @@ sub install_dependencies
         install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
 
         # install test deps
-        install_available_packages('conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
+        install_available_packages('ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
 
         if (is_sle('>=16.0')) {
             # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
