@@ -71,7 +71,7 @@ sub run {
         my ($domain) = $parent =~ '^([a-zA-Z.]*)';
         my ($realpath) = $parent =~ m|ibs/(.*)|;
 
-        $ret = script_run("wget -nH --cut-dirs=1 --no-clobber -r --reject $reject --reject-regex=$regex --domains $domain --no-parent $maintrepo/", timeout => 600);
+        $ret = script_run("wget -nH --cut-dirs=1 --no-clobber -r --reject $reject --reject-regex=$regex --domains $domain --no-parent $maintrepo/", timeout => 3600);
         if ($ret !~ /0|8/) {
             # softfailure, if repo doesn't exist (anymore). This is required for cloning jobs, because the original test repos could be empty already
             record_info('Softfail', "Download /failed (rc=$ret):\n$maintrepo", result => 'softfail');
