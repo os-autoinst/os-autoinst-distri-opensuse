@@ -2420,6 +2420,9 @@ sub get_virt_features_definition {
         ENABLE_SEV_ES => {
             modules => ['virt_autotest/sev_es_guest_verification'],
         },
+        ENABLE_TDX => {
+            modules => ['virt_autotest/tdx_validation'],
+        },
     );
 }
 
@@ -2773,6 +2776,11 @@ sub load_sles16_mu_virt_tests {
         # SEV-SNP tests are available from SLE15-SP7 onwards and SLE16+
         if ($test eq 'ENABLE_SEV_SNP') {
             next unless (is_sle('>=15-sp7') || is_sle('>=16'));
+        }
+
+        # TDX tests are available from SLE16+
+        if ($test eq 'ENABLE_TDX') {
+            next unless (is_sle('>=16'));
         }
 
         # Load the feature using existing function
