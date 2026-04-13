@@ -100,7 +100,7 @@ sub install_dependencies
         add_suseconnect_product(get_addon_fullname('phub'));
     }
 
-    if ($collection eq 'net') {
+    if ($collection =~ m{^net(/|$)}) {
         my $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/openSUSE_Factory/network:utilities.repo';
         if (is_sle('<16')) {
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo';
