@@ -18,13 +18,6 @@
         <product_dir/>
       </listentry>
       <listentry t="map">
-        <alias>repo-oss</alias>
-        <media_url>http://download.opensuse.org/distribution/leap/<%= $get_var->('VERSION') %>/repo/oss/</media_url>
-        <name>Main Repository</name>
-        <priority t="integer">99</priority>
-        <product_dir/>
-      </listentry>
-      <listentry t="map">
         <alias>repo-sle-update</alias>
         <media_url>http://download.opensuse.org/update/leap/<%= $get_var->('VERSION') %>/sle/</media_url>
         <name>Update repository with updates from SUSE Linux Enterprise 15</name>
@@ -35,34 +28,6 @@
         <alias>repo-update-non-oss</alias>
         <media_url>http://download.opensuse.org/update/leap/<%= $get_var->('VERSION') %>/non-oss/</media_url>
         <name>Update Repository (Non-Oss)</name>
-        <priority t="integer">99</priority>
-        <product_dir/>
-      </listentry>
-      <listentry t="map">
-        <alias>repo-update</alias>
-        <media_url>http://download.opensuse.org/update/leap/<%= $get_var->('VERSION') %>/oss/</media_url>
-        <name>Main Update Repository</name>
-        <priority t="integer">99</priority>
-        <product_dir/>
-      </listentry>
-      <listentry t="map">
-        <alias>repo-debug</alias>
-        <media_url>http://download.opensuse.org/debug/distribution/leap/<%= $get_var->('VERSION') %>/repo/oss/</media_url>
-        <name>Debug Repository</name>
-        <priority t="integer">99</priority>
-        <product_dir/>
-      </listentry>
-      <listentry t="map">
-        <alias>repo-debug-update</alias>
-        <media_url>http://download.opensuse.org/debug/update/leap/<%= $get_var->('VERSION') %>/oss/</media_url>
-        <name>Update Repository (Debug)</name>
-        <priority t="integer">99</priority>
-        <product_dir/>
-      </listentry>
-      <listentry t="map">
-        <alias>repo-sle-debug-update</alias>
-        <media_url>http://download.opensuse.org/debug/update/leap/<%= $get_var->('VERSION') %>/sle/</media_url>
-        <name>Update repository with debuginfo for updates from SUSE Linux Enterprise 15</name>
         <priority t="integer">99</priority>
         <product_dir/>
       </listentry>
