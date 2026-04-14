@@ -163,8 +163,10 @@ sub run {
     partition_disk($device, $mnt_xfs, $mnt_scratch);
     create_config($device, $mnt_xfs, $mnt_scratch);
     script_run("source $CONFIG_FILE");
+}
 
-    autotest::loadtest("tests/xfstests/run.pm", run_args => $args);
+sub test_flags {
+    return {fatal => 1};
 }
 
 1;
