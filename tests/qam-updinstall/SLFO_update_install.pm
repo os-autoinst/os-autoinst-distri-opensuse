@@ -45,6 +45,7 @@ my @conflicting_packages = (
     'ImageMagick-config-7-upstream-secure',
     'ImageMagick-config-7-upstream-websafe',
     'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
+    'apache2-mod_php8'
 );
 
 push(@conflicting_packages, (
