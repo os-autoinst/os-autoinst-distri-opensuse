@@ -20,6 +20,7 @@ use version_utils;
 use package_utils;
 
 sub parse_incident_repo {
+    my $incident_id = get_var('INCIDENT_ID');
     my $repo = get_required_var('INCIDENT_REPO');
     my @repos = split(",", $repo);
     my @repo_names;
@@ -39,11 +40,11 @@ sub parse_incident_repo {
     my $packlist = zypper_search("-st package $repo_args");
 
     if (grep { $$_{name} eq 'glibc-livepatches' } @$packlist) {
-        record_info('Livepatch tests', "Incident $incident_id contains userspace livepatches.");
+        record_info('Livepatch tests', "Repository contains userspace livepatches.");
         $packname = 'glibc-livepatches';
     }
     elsif (grep { exists($ulp_tools{$$_{name}}) } @$packlist) {
-        record_info('Tools tests', "Incident $incident_id contains livepatching tools.");
+        record_info('Tools tests', "Repository contains livepatching tools.");
 
         my $patches = get_patches($incident_id, $repo);
 
@@ -57,7 +58,7 @@ sub parse_incident_repo {
     }
     else {
         # Incident has no userspace livepatch related packages, nothing to do
-        record_info('Exit', "Incident $incident_id contains no userspace livepatching related packages. Nothing to test.");
+        record_info('Exit', "Repository contains no userspace livepatching related packages. Nothing to test.");
         return undef;
     }
 
