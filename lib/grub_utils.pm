@@ -25,8 +25,7 @@ Handle grub menu after reboot
     - Handle grub2 to boot from hard disk (opposed to installation)
     - Handle passphrase for encrypted disks
     - Handle booting of snapshot or XEN, acconding to BOOT_TO_SNAPSHOT or XEN
-    - Enable plymouth debug if product if GRUB_KERNEL_OPTION_APPEND is set,
-      or product is sle, aarch64 and PLYMOUTH_DEBUG is set
+    - Append kernel options if set with GRUB_KERNEL_OPTION_APPEND
 =cut
 
 sub grub_test {
@@ -44,8 +43,7 @@ sub grub_test {
     stop_grub_timeout;
     boot_into_snapshot if get_var("BOOT_TO_SNAPSHOT");
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 11, 5) if get_var('XEN');
-    if ((is_aarch64 && is_sle && get_var('PLYMOUTH_DEBUG'))
-        || get_var('GRUB_KERNEL_OPTION_APPEND'))
+    if (get_var('GRUB_KERNEL_OPTION_APPEND'))
     {
         append_kernel_options() unless get_var("BOOT_TO_SNAPSHOT");
     }
@@ -85,12 +83,6 @@ sub append_kernel_options {
     send_key "end";
 
     assert_screen "linux-line-matched";
-    if (get_var('PLYMOUTH_DEBUG')) {
-        record_soft_failure "Running with plymouth:debug to catch bsc#1005313";
-        # remove "splash=silent quiet showopts"
-        for (1 .. 28) { send_key "backspace" }
-        type_string 'plymouth:debug';
-    }
     type_string " " . get_var('GRUB_KERNEL_OPTION_APPEND') if get_var('GRUB_KERNEL_OPTION_APPEND');
 
     save_screenshot;
