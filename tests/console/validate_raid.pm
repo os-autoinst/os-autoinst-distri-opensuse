@@ -6,9 +6,7 @@
 # Summary: Simple RAID partitioning layout validation
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-## no os-autoinst style
-
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Utils::Architectures;
 use Utils::Backends 'is_pvm';
@@ -53,19 +51,19 @@ my $raid0 = qr/\/dev\/md(1|2):.*?Raid Level : raid0/s;
 my $raid1 = qr/\/dev\/md1:.*?Raid Level : raid1/s;
 my @raid_detail = (
     # 4 RAID devices per RAID array
-    /(Raid Devices : 4.*){$num_raid_arrays}/s,
+    qr/(Raid Devices : 4.*){$num_raid_arrays}/s,
     # 4 active RAID devices per RAID array
-    /(Active Devices : 4.*){$num_raid_arrays}/s,
+    qr/(Active Devices : 4.*){$num_raid_arrays}/s,
     # 4 working RAID devices per RAID array
-    /(Working Devices : 4.*){$num_raid_arrays}/s,
+    qr/(Working Devices : 4.*){$num_raid_arrays}/s,
     # 1st raid device per RAID array, i.e.: /dev/vda2
-    /(0.*\/dev\/\w{2}a\d.*){$num_raid_arrays}/s,
+    qr/(0.*\/dev\/\w{2}a\d.*){$num_raid_arrays}/s,
     # 2nd raid device per RAID array, i.e.: /dev/vdb2
-    /(1.*\/dev\/\w{2}b\d.*){$num_raid_arrays}/s,
+    qr/(1.*\/dev\/\w{2}b\d.*){$num_raid_arrays}/s,
     # 3rd raid device per RAID array, i.e.: /dev/vdc2
-    /(2.*\/dev\/\w{2}c\d.*){$num_raid_arrays}/s,
+    qr/(2.*\/dev\/\w{2}c\d.*){$num_raid_arrays}/s,
     # 4th raid device per RAID array, i.e.: /dev/vdd2
-    /(3.*\/dev\/\w{2}d\d.*){$num_raid_arrays}/s,
+    qr/(3.*\/dev\/\w{2}d\d.*){$num_raid_arrays}/s,
 );
 # Store test data to test expected partitioning/raid in specific architecture/product
 my (
