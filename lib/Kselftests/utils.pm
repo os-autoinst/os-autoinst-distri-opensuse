@@ -100,7 +100,7 @@ sub install_dependencies
         add_suseconnect_product(get_addon_fullname('phub'));
     }
 
-    if ($collection eq 'net') {
+    if ($collection =~ m{^net(/|$)}) {
         my $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/openSUSE_Factory/network:utilities.repo';
         if (is_sle('<16')) {
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo';
@@ -110,10 +110,10 @@ sub install_dependencies
         zypper_ar($netutils_repo);
 
         # install build deps
-        install_package('clang libcap-devel libnuma-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
+        install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
 
         # install test deps
-        install_available_packages('jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
+        install_available_packages('ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
 
         if (is_sle('>=16.0')) {
             # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
@@ -147,7 +147,7 @@ sub install_kselftests
 sub get_sanitized_test_name
 {
     my $test = shift;
-    my $test_name = $test =~ s/^\w+://r;    # Remove the collection from it, sub . with _
+    my $test_name = $test =~ s/^[^:]+://r;    # Remove the collection from it (including sub-paths like net/forwarding), sub . with _
     my $sanitized_test_name = $test_name =~ s/\.|-/_/gr;    # Dots and hyphens should be underscore for better handling in Perl and YAML files
     return ($test_name, $sanitized_test_name);
 }
