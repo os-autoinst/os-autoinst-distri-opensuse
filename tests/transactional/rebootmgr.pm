@@ -12,7 +12,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils;
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_tumbleweed is_sle_micro);
 use Utils::Backends 'is_pvm';
 use serial_terminal 'select_serial_terminal';
 
@@ -48,6 +48,7 @@ sub rbm_set_window {
 # Soft reboot only triggers a full reboot when installing a new kernel
 # update of the bootloader or any command like rollback, grub.cfg, bootloader, run or shell
 sub is_soft_reboot_requested {
+    return 0 if is_sle_micro;
     my $soft_reboot_requested;
     my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
     my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
