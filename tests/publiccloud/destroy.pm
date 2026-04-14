@@ -29,7 +29,7 @@ sub run {
         $provider->upload_boot_diagnostics();
         $provider->teardown();
     } else {
-        die('The $provider object is not available. We are not able to destroy the testing infrastructure.');
+        record_info('Undef provider', 'The $provider object is not available. We are not able to destroy the testing infrastructure, eventually present.', result => 'fail');
     }
 }
 
