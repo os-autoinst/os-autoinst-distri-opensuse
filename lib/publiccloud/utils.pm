@@ -306,7 +306,8 @@ sub get_credentials {
     my $url = $base_url . '/' . $args{namespace} . '/' . $args{url_suffix};
 
     my $url_auth = Mojo::URL->new($url)->userinfo("$user:$pwd");
-    my $ua = Mojo::UserAgent->new;
+    # Force the usage of IPv4 because we use IP address whitelisting. For unknown reasons both Domain and LocalAddr are required.
+    my $ua = Mojo::UserAgent->new(socket_options => {Domain => AF_INET, LocalAddr => '0.0.0.0'});
     $ua->insecure(1);
     my $tx = $ua->get($url_auth);
     my $res = $tx->result;
