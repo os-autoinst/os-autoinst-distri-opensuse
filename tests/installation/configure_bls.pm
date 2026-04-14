@@ -6,12 +6,10 @@
 # Summary: Select systemd-boot in the installer
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
-## no os-autoinst style
-
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use utils;
-use version_utils qw(is_bootloader_sdboot is_bootloader_grub2_bls is_bootloader_grub2 is_sle is_leap is_staging);
+use version_utils qw(is_bootloader_sdboot is_bootloader_grub2_bls is_bootloader_grub2 is_sle is_leap is_staging is_upgrade);
 
 sub run {
     my ($self) = shift;
