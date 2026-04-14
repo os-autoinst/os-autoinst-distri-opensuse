@@ -79,6 +79,7 @@
   <software>
     <packages t="list">
       <package>openssh</package>
+      <package>openssh-server-config-rootlogin</package>
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
@@ -104,18 +105,6 @@
       </authorized_keys>
     </user>
   </users>
-  <scripts>
-    <chroot-scripts config:type="list">
-      <script>
-        <file_name>post.sh</file_name>
-        <chrooted config:type="boolean">true</chrooted>
-        <source><![CDATA[
-#!/usr/bin/env bash
-echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-]]></source>
-      </script>
-    </chroot-scripts>
-  </scripts>
   <audit-laf>
     <auditd>
       <flush>INCREMENTAL</flush>
