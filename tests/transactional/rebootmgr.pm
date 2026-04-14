@@ -47,16 +47,17 @@ sub rbm_set_window {
 
 # Soft reboot only triggers a full reboot when installing a new kernel
 # update of the bootloader or any command like rollback, grub.cfg, bootloader, run or shell
-sub is_soft_reboot_requested {
-    return 0 if is_sle_micro;
-    my $soft_reboot_requested;
-    my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
-    my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
-    if ($output =~ $regex) {
-        $soft_reboot_requested = ($1 eq "soft-reboot") ? 1 : 0;
-        record_info("Reboot strategy: $1");
+sub check_reboot_strategy_and_reboot {
+    my @reboot_args;
+    if (!is_sle_micro) {
+        my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
+        my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
+        if ($output =~ $regex) {
+            @reboot_args = (expected_grub => 0) if $1 eq 'soft-reboot';
+            record_info("Reboot strategy: $1");
+        }
     }
-    return $soft_reboot_requested;
+    process_reboot(@reboot_args);
 }
 
 #1 Test instant reboot
@@ -64,10 +65,7 @@ sub check_strategy_instantly {
     select_console('root-console');
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
-
-    my @reboot_args = is_soft_reboot_requested() ? (expected_grub => 0) : ();
-    process_reboot(@reboot_args);
-
+    check_reboot_strategy_and_reboot();
     rbm_call "get-strategy | grep instantly";
 }
 
@@ -75,14 +73,10 @@ sub check_strategy_instantly {
 sub check_strategy_maint_window {
     select_console('root-console');
     rbm_call "set-strategy maint-window";
-
     # Trigger reboot during maint-window
     rbm_set_window '-5minutes', '20m';
     trup_call "reboot pkg install" . rpmver('feature');
-
-    my @reboot_args = is_soft_reboot_requested() ? (expected_grub => 0) : ();
-    process_reboot(@reboot_args);
-
+    check_reboot_strategy_and_reboot();
     # Trigger reboot and wait for maintenance window
     rbm_set_window '+2minutes', '1m';
     rbm_call 'reboot';
