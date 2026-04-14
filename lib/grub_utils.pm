@@ -45,7 +45,7 @@ sub grub_test {
     send_key_until_needlematch("bootmenu-xen-kernel", 'down', 11, 5) if get_var('XEN');
     if (get_var('GRUB_KERNEL_OPTION_APPEND'))
     {
-        append_kernel_options() unless get_var("BOOT_TO_SNAPSHOT");
+        append_kernel_options(get_var('GRUB_KERNEL_OPTION_APPEND')) unless get_var("BOOT_TO_SNAPSHOT");
     }
     else {
         # avoid timeout for booting to HDD
@@ -76,6 +76,8 @@ sub handle_installer_medium_bootup {
 }
 
 sub append_kernel_options {
+    my ($options) = @_;
+
     send_key 'e';
     check_screen "linux-line-selected", 2;
     # Move to end of kernel boot parameters line
@@ -83,7 +85,7 @@ sub append_kernel_options {
     send_key "end";
 
     assert_screen "linux-line-matched";
-    type_string " " . get_var('GRUB_KERNEL_OPTION_APPEND') if get_var('GRUB_KERNEL_OPTION_APPEND');
+    type_string " " . $options;
 
     save_screenshot;
     my $execute_command = (is_bootloader_sdboot()) ? 'ret' : 'ctrl-x';
