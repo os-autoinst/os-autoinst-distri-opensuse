@@ -6,9 +6,7 @@
 # Summary: Install glibc livepatch and run openposix testsuite
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
-## no os-autoinst style
-
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use serial_terminal;
@@ -20,6 +18,7 @@ use version_utils;
 use package_utils;
 
 sub parse_incident_repo {
+    my $incident_id = get_required_var('INCIDENT_ID');
     my $repo = get_required_var('INCIDENT_REPO');
     my @repos = split(",", $repo);
     my @repo_names;
