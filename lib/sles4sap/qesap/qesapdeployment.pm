@@ -1474,6 +1474,18 @@ sub qesap_cluster_log_cmds {
         {
             Cmd => 'rpm -qa',
             Output => 'rpm-qa.txt',
+        },
+        {
+            Cmd => 'cat /tmp/hdblcm_before_jinja.cfg',
+            Output => 'hdblcm_before_jinja.cfg.txt'
+        },
+        {
+            Cmd => 'cat /tmp/hdblcm_template.j2',
+            Output => 'hdblcm_template.j2.txt'
+        },
+        {
+            Cmd => 'cat /tmp/hdblcm_processed_configfile.cfg',
+            Output => 'hdblcm_processed_configfile.cfg.txt'
         }
     );
     if ($args{provider} eq 'EC2') {
