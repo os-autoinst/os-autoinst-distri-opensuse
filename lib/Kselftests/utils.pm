@@ -38,7 +38,14 @@ sub build
     $source_dir //= "/lib/modules/$version/source";
     my $build_dir = "/lib/modules/$version/build";
 
+    # Lock kernel-source/syms to their already-installed versions if present (e.g. pre-installed
+    # by install_kotd at the same version as the running kernel), so the devel_kernel pattern
+    # cannot upgrade them to a mismatched version pulled from a rolling repo like KOTD.
+    my $lock_kernel_pkgs = !script_run('rpm -q kernel-source kernel-syms');
+    zypper_call('al kernel-source kernel-syms') if $lock_kernel_pkgs;
     zypper_call('install -t pattern --recommends devel_kernel');    # no trup support for now
+    zypper_call('rl kernel-source kernel-syms') if $lock_kernel_pkgs;
+
     my $build_env = get_var('KSELFTEST_BUILD_ENV', '');
     my $make_cmd = "make -j\$(getconf _NPROCESSORS_ONLN) -C $source_dir/tools/testing/selftests install SKIP_TARGETS= TARGETS=$targets O=$build_dir $build_env";
     $make_cmd =~ s/\s+$//;
