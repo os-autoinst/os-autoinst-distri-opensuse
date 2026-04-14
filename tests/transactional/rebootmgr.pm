@@ -65,8 +65,8 @@ sub check_strategy_instantly {
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
 
-    my $expect_bootloader = !is_soft_reboot_requested();
-    process_reboot(expected_grub => $expect_bootloader, trigger => !$expect_bootloader);
+    my @reboot_args = is_soft_reboot_requested() ? (expected_grub => 0) : ();
+    process_reboot(@reboot_args);
 
     rbm_call "get-strategy | grep instantly";
 }
@@ -80,8 +80,8 @@ sub check_strategy_maint_window {
     rbm_set_window '-5minutes', '20m';
     trup_call "reboot pkg install" . rpmver('feature');
 
-    my $expect_bootloader = !is_soft_reboot_requested();
-    process_reboot(expected_grub => $expect_bootloader, trigger => !$expect_bootloader);
+    my @reboot_args = is_soft_reboot_requested() ? (expected_grub => 0) : ();
+    process_reboot(@reboot_args);
 
     # Trigger reboot and wait for maintenance window
     rbm_set_window '+2minutes', '1m';
