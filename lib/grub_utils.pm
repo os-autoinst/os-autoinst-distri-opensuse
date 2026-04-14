@@ -78,6 +78,19 @@ sub handle_installer_medium_bootup {
 sub append_kernel_options {
     my ($options) = @_;
 
+    if (is_bootloader_sdboot()) {
+        send_key "e";
+        assert_screen "systemd-boot-edit-cmdline";
+        send_key "end";
+
+        type_string " " . $options;
+
+        save_screenshot;
+        send_key "ret";    # Boot
+        return;
+    }
+
+    # Code for grub2 and grub2-bls
     send_key 'e';
     check_screen "linux-line-selected", 2;
     # Move to end of kernel boot parameters line
@@ -88,8 +101,7 @@ sub append_kernel_options {
     type_string " " . $options;
 
     save_screenshot;
-    my $execute_command = (is_bootloader_sdboot()) ? 'ret' : 'ctrl-x';
-    send_key $execute_command;
+    send_key 'ctrl-x';
 }
 
 1;
