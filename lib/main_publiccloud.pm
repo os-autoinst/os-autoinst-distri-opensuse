@@ -67,6 +67,7 @@ sub load_maintenance_publiccloud_tests {
         } elsif (get_var('PUBLIC_CLOUD_XFS')) {
             # xfstests call destroy internally
             loadtest "publiccloud/xfsprepare", run_args => $args;
+            loadtest "xfstests/run", run_args => $args;
             return;
         } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
             loadtest "publiccloud/smoketest";
@@ -168,6 +169,7 @@ sub load_latest_publiccloud_tests {
                 } elsif (get_var('PUBLIC_CLOUD_XFS')) {
                     # xfstests call destroy internally
                     loadtest "publiccloud/xfsprepare", run_args => $args;
+                    loadtest "xfstests/run", run_args => $args;
                     return;
                 } elsif (get_var('PUBLIC_CLOUD_AZURE_NFS_TEST')) {
                     loadtest("publiccloud/azure_nfs", run_args => $args);

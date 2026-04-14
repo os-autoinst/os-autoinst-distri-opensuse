@@ -153,7 +153,6 @@ sub run {
             autotest::loadtest("tests/xfstests/run_subtest.pm", name => $test, run_args => $targs);
             mutex_lock 'last_subtest_run_finish';
             autotest::loadtest 'tests/xfstests/generate_report.pm';
-            autotest::loadtest("tests/publiccloud/destroy.pm", run_args => $args) if is_public_cloud();
         } else {
             autotest::loadtest("tests/xfstests/run_subtest.pm", name => $test, run_args => $targs);
         }
@@ -163,15 +162,26 @@ sub run {
 sub test_flags {
     return {
         fatal => 1,
-        milestone => 1
+        milestone => 1,
+        # We need to run this always on PC because of post_fail_hook()
+        always_run => (is_public_cloud()) ? 1 : 0
     };
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    cleanup($self->{run_args});
 }
 
 sub post_fail_hook {
     my ($self) = @_;
-    my $args = $self->{run_args};
-    autotest::loadtest('tests/publiccloud/destroy.pm', run_args => $args) if is_public_cloud();
+    cleanup($self->{run_args});
     return;
+}
+
+sub cleanup {
+    my ($args) = @_;
+    autotest::loadtest('tests/publiccloud/destroy.pm', run_args => $args) if is_public_cloud();
 }
 
 1;

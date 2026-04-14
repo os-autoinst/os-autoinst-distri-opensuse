@@ -163,20 +163,10 @@ sub run {
     partition_disk($device, $mnt_xfs, $mnt_scratch);
     create_config($device, $mnt_xfs, $mnt_scratch);
     script_run("source $CONFIG_FILE");
-
-    autotest::loadtest("tests/xfstests/run.pm", run_args => $args);
-}
-
-sub post_fail_hook {
-    my ($self) = @_;
-    my $args = $self->{run_args};
-    # In case this test module fails and xfstests/run where the
-    # publiccloud/destroy isn't loaded we load it here.
-    autotest::loadtest('tests/publiccloud/destroy.pm', run_args => $args);
 }
 
 sub test_flags {
-    return {fatal => 1, always_run => 1};
+    return {fatal => 1};
 }
 
 1;
