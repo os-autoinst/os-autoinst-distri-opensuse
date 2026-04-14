@@ -50,7 +50,7 @@ sub run {
 
     # When SEV_ES guests are rebooted by AutoYast installation in the end of stage 1
     # they will stay in shutdown state, we have to start the guest to continue with stage 2
-    if (check_var('ENABLE_SEV_ES', '1')) {
+    if (check_var('ENABLE_SEV_ES', '1') && is_sle('>=16')) {
         record_info("Installation Stage 1", "Waiting for SEV-ES guests to finish AutoYast stage 1.");
 
         while (@wait_stage_1_install && $count++ < $retry) {
