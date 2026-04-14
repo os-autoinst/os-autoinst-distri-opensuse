@@ -6,9 +6,7 @@
 # Summary: Install glibc livepatch and run openposix testsuite
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
-## no os-autoinst style
-
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use serial_terminal;
