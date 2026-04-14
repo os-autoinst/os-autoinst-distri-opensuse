@@ -415,10 +415,13 @@ sub install_kotd {
     my $repo = shift;
     my $kernel_flavor = get_kernel_flavor;
     my $devel_flavor = get_kernel_devel_flavor;
+    my $src_flavor = get_kernel_source_flavor;
     fully_patch_system;
     remove_kernel_packages;
     zypper_ar($repo, name => 'KOTD', priority => 90, no_gpg_check => 1);
     install_package("-r KOTD $kernel_flavor", trup_continue => 1);
+    my $kver = script_output("rpm -q --qf '%{VERSION}-%{RELEASE}' $kernel_flavor");
+    install_package("$src_flavor=$kver kernel-syms=$kver", trup_continue => 1);
     install_package("--recommends $devel_flavor", trup_continue => 1);
 }
 
