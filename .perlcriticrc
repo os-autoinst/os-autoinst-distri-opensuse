@@ -2,10 +2,6 @@ theme = freenode
 severity = 4
 exclude = OpenQA::RedundantStrictWarning
 
-# TODO: Remove once Perl::Critic::Freenode 0.028 is widely available
-[Community::DiscouragedModules]
-severity = 3
-
 # Test modules have no package declaration
 [Community::PackageMatchesFilename]
 severity = 1
