@@ -48,7 +48,7 @@ sub build
 
     my $jobs = get_var('KSELFTEST_BUILD_JOBS', '$(getconf _NPROCESSORS_ONLN)');
     my $build_env = get_var('KSELFTEST_BUILD_ENV', '');
-    my $make_cmd = "make -j$jobs -C $source_dir/tools/testing/selftests install SKIP_TARGETS= TARGETS=$targets O=$build_dir $build_env";
+    my $make_cmd = "make -j$jobs -C $source_dir/tools/testing/selftests install O=$build_dir SKIP_TARGETS= TARGETS=$targets FORCE_TARGETS=1 $build_env";
     $make_cmd =~ s/\s+$//;
 
     assert_script_run($make_cmd, 7200);
