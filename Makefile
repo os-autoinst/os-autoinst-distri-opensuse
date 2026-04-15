@@ -143,14 +143,13 @@ else
 test: unit-test test-static test-compile test-isotovideo perlcritic
 endif
 
-PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --stern --include Perl::Critic::Policy::HashKeyQuote \
-  --verbose "::warning file=%f,line=%l,col=%c,title=%m - severity %s::%e\n" --quiet
+PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet
 
 .PHONY: perlcritic
 # strictures and warnings are already enforced by os-autoinst basetest.pm so
 # exclude here for test modules
 perlcritic: tools/lib/
-	${PERLCRITIC} --include=strict $$(git ls-files -- '*.p[ml]' ':!:data/' ':!:tests/')
+	${PERLCRITIC} $$(git ls-files -- '*.p[ml]' ':!:data/' ':!:tests/')
 	${PERLCRITIC} --exclude=strict $$(git ls-files -- ':tests/*.p[ml]')
 
 .PHONY: test-unused-modules-changed

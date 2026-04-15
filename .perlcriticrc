@@ -1,6 +1,8 @@
-theme = freenode
+theme = community
 severity = 4
-exclude = OpenQA::RedundantStrictWarning
+exclude = OpenQA::RedundantStrictWarning Community::DiscouragedModules
+
+verbose = ::warning file=%f,line=%l,col=%c,title=%m - severity %s::[%p] %e\n
 
 # Test modules have no package declaration
 [Community::PackageMatchesFilename]
