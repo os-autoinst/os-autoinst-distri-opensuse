@@ -511,10 +511,12 @@ sub is_released {
 
 =head2 is_staging
 
-Returns true if called in staging
+Returns true if called in staging, checks for a particular staging if argument is passed
 =cut
 
 sub is_staging {
+    my $staging = shift;
+    return check_var('STAGING', $staging) if $staging;
     return get_var('STAGING');
 }
 
