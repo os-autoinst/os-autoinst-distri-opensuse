@@ -7,8 +7,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use utils 'zypper_call';
-use version_utils 'package_version_cmp';
+use utils qw(zypper_call zypper_version_cmp);
 
 sub run {
     select_console('root-console');
@@ -16,7 +15,7 @@ sub run {
     select_console('user-console');
     my $weechat_version = script_output("rpm -q --qf '%{version}' weechat");
     record_info('weechat', "Weechat version $weechat_version detected");
-    my $ssl = package_version_cmp($weechat_version, '4') < 0 ? 'ssl' : 'tls';
+    my $ssl = zypper_version_cmp($weechat_version, '4') < 0 ? 'ssl' : 'tls';
 
     script_run("weechat; echo weechat-status-\$? > /dev/$serialdev", 0);
     assert_screen('weechat');

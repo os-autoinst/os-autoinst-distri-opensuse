@@ -55,7 +55,7 @@ sub run {
     my $ret = "";
     my $tap_results = "/tmp/results.tap";
     assert_script_run("sed -i 's/ROOT_PASSWORD/$testapi::password/g' $pamdir/*.sh");
-    if (package_version_cmp($pam_version, $limit_pam_version) >= 0) {
+    if (zypper_version_cmp($pam_version, $limit_pam_version) >= 0) {
         $ret = script_run("cd $pamdir; prove -v pam.sh >$tap_results", timeout => 200);
     } else {
         $ret = script_run("cd $pamdir; prove -v pam_deprecated.sh >$tap_results", timeout => 300);
