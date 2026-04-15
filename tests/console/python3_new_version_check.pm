@@ -18,6 +18,7 @@ use version_utils;
 use package_utils 'install_package';
 use python_version_utils;
 use registration "add_suseconnect_product";
+use utils 'zypper_version_cmp';
 
 sub run {
     select_serial_terminal;
@@ -29,10 +30,10 @@ sub run {
     my $python3_spec_release = script_output("rpm -q $system_python_version | awk -F \'-\' \'{print \$2}\'");
     record_info("python_verison", $python3_spec_release);
     # Python313 is the default python version for sle16
-    die("Python default version differs from 3.13") if ((package_version_cmp($python3_spec_release, "3.13") < 0) && is_sle('>=16'));
+    die("Python default version differs from 3.13") if ((zypper_version_cmp($python3_spec_release, "3.13") < 0) && is_sle('>=16'));
     if (is_sle('>=15-SP4') && is_sle('<16')) {
-        if ((package_version_cmp($python3_spec_release, "3.6") < 0) ||
-            (package_version_cmp($python3_spec_release, "3.7") >= 0)) {
+        if ((zypper_version_cmp($python3_spec_release, "3.6") < 0) ||
+            (zypper_version_cmp($python3_spec_release, "3.7") >= 0)) {
             # Factory default Python3 version for SLE15-SP4+ should be 3.6
             die("Python default version differs from 3.6");
         }
