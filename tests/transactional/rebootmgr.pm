@@ -12,7 +12,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils;
-use version_utils qw(is_tumbleweed is_sle_micro is_staging);
+use version_utils qw(is_tumbleweed is_sle_micro);
 use Utils::Backends 'is_pvm';
 use serial_terminal 'select_serial_terminal';
 
@@ -49,7 +49,7 @@ sub rbm_set_window {
 # update of the bootloader or any command like rollback, grub.cfg, bootloader, run or shell
 sub check_reboot_strategy_and_reboot {
     my @reboot_args;
-    if (!is_sle_micro && is_staging('J')) {
+    if (!is_sle_micro) {
         my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
         my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
         if ($output =~ $regex) {
