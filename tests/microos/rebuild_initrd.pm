@@ -17,7 +17,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    assert_script_run(q|echo 'omit_dracutmodules+="ignition ignition-microos combustion"' > /etc/dracut.conf.d/20-disable_ignition.conf|);
+    assert_script_run(q|echo 'omit_dracutmodules+=" ignition ignition-microos combustion "' > /etc/dracut.conf.d/20-disable_ignition.conf|);
     trup_call('initrd');
     check_reboot_changes;
 }
