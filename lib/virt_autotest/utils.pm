@@ -536,12 +536,14 @@ sub print_cmd_output_to_file {
 
 sub download_script_and_execute {
     my ($script_name, %args) = @_;
-    $args{output_file} //= "$args{script_name}.log";
+    $args{script_args} //= '';
+    $args{output_file} //= "$script_name.log";
     $args{machine} //= 'localhost';
     $args{proceed_on_failure} //= 0;
 
     download_script($script_name, script_url => $args{script_url}, machine => $args{machine}, proceed_on_failure => $args{proceed_on_failure});
     my $cmd = "~/$script_name";
+    $cmd .= " $args{script_args}" unless $args{script_args} eq '';
     $cmd = "ssh root\@$args{machine} " . "\"$cmd\"" if ($args{machine} ne 'localhost');
     script_run("$cmd >> $args{output_file} 2>&1");
 }
@@ -653,7 +655,8 @@ sub ssh_copy_id {
             exec_and_insert_password("scp $options $default_ssh_key $username\@$guest:'$authorized_keys'");
             if (script_run("nmap $guest -PN -p ssh -sV | grep Windows") == 0) {
                 exec_and_insert_password("ssh $options $username\@$guest 'icacls $authorized_keys /remove \"NT AUTHORITY\\Authenticated Users\"'");
-                exec_and_insert_password("ssh $options $username\@$guest 'icacls $authorized_keys /inheritance:r'");
+                # Inheritance access and grant user access
+                exec_and_insert_password("ssh $options $username\@$guest 'icacls $authorized_keys /inheritance:r /grant \"Administrators:F\" /grant \"SYSTEM:F\"'");
             } else {
                 exec_and_insert_password("ssh $options $username\@$guest 'chmod 0700 ~/.ssh/'");
                 exec_and_insert_password("ssh $options $username\@$guest 'chmod 0644 ~/.ssh/authorized_keys'");
