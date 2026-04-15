@@ -12,6 +12,10 @@ use known_bugs;
 
 use utils qw(zypper_call systemctl remount_tmp_if_ro);
 
+sub is_master_node {
+    return check_var('HOSTNAME', 'master');
+}
+
 sub master_prepare {
     # Install the salt master
     zypper_call("in salt-master");
@@ -38,7 +42,7 @@ sub minion_prepare {
 
     # Set the right address of the salt master
     assert_script_run "echo `hostname` > /etc/salt/minion_id";
-    if (check_var('HOSTNAME', 'master')) {
+    if (is_master_node) {
         assert_script_run("sed -i -e 's/#master:.*/master: localhost/' /etc/salt/minion");
     } else {
         assert_script_run("sed -i -e 's/#master:.*/master: 10.0.2.101/' /etc/salt/minion");
@@ -65,7 +69,7 @@ sub minion_prepare {
 }
 
 sub stop {
-    if (check_var('HOSTNAME', 'master')) {
+    if (is_master_node) {
         systemctl 'stop salt-master';
     }
     systemctl 'stop salt-minion';
@@ -80,7 +84,7 @@ Method fetching Salt specific logs.
 sub logs_from_salt {
     assert_script_run "ls /var/log/salt";
 
-    if (check_var('HOSTNAME', 'master')) {
+    if (is_master_node) {
         upload_logs '/var/log/salt/master', log_name => 'salt-master.txt';
         upload_logs '/var/log/salt/event', log_name => 'salt-event.txt';
     }
@@ -93,7 +97,7 @@ sub logs_from_salt {
     $error .= "| grep -vi 'Error while bringing up minion for multi-master'";
     if (script_run("$error") != 1) {
         my $softfail_flag = 0;
-        if (check_var('HOSTNAME', 'master') && script_run('grep "self.pusher.connect(timeout=timeout)" /var/log/salt/master') == 0) {
+        if (is_master_node && script_run('grep "self.pusher.connect(timeout=timeout)" /var/log/salt/master') == 0) {
             record_soft_failure('bsc#1209248');
             $softfail_flag = 1;
         }
