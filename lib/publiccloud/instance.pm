@@ -405,7 +405,7 @@ sub wait_for_ssh {
     $args{proceed_on_failure} //= $args{wait_stop};
     $args{systemup_check} //= not $args{wait_stop};
     $args{logs} //= 1;
-    # DMS migration (tests/publiccloud/migration.pm) is running under user "migration"
+    # DMS migration (tests/publiccloud/migration.pm) runs as user "migration"
     # until it is not over we will receive "ssh permission denied (pubkey)" error
     # but it is not good reason to die early because after it will be over
     # DMS will return normal user and error will be resolved: connection retry for that error.
@@ -416,46 +416,47 @@ sub wait_for_ssh {
     my $instance_msg = "instance: $self->{instance_id}, public IP: $self->{public_ip}";
     my ($duration, $exit_code, $sshout, $sysout);
 
-    # Looping until SSH port 22 is reachable or timeout.
+    # Wait for port 22 to become reachable
     while (($duration = time() - $start_time) < $args{timeout}) {
         $exit_code = script_run('nc -vz -w 1 ' . $self->public_ip . ' 22', quiet => 1);
-        last if (isok($exit_code) and not $args{wait_stop});    # ssh port open ok
-        last if (not isok($exit_code) and $args{wait_stop});    # ssh port closed ok
+        last if (isok($exit_code) and not $args{wait_stop});
+        last if (not isok($exit_code) and $args{wait_stop});
 
         sleep $delay;
-    }    # endloop
+    }
 
-    # exit_code is 0 when shell script is ok
     if (isok($exit_code)) {
-        $sshout = "SSH port is open\n";
+        $sshout = "SSH port open\n";
     }
     else {
-        $sshout = "SSH port is not open failed access\n";
-        $sshout .= "as expected by stopping: OK.\n" if $args{wait_stop};
-    }    # endif
+        $sshout = "SSH port not reachable";
+        $sshout .= " (expected)" if $args{wait_stop};
+        $sshout .= "\n";
+    }
 
-    # Check also remote system is up and running:
+    # Wait for systemd to be running
     my $retry = 0;    # count retries of unexpected sysout
     my $exit_timeout;
     if (isok($exit_code)) {
         if ($args{systemup_check}) {
-            # SSH host key is not checked and master socket is not used
+            # Avoid ssh key exchange issues here and don't use the master socket multiplexing to avoid issues on instance reboot
             my $ssh_opts = $self->ssh_opts() . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none -o ConnectTimeout=10';
             while (($duration = time() - $start_time) < $args{timeout}) {
                 # timeout recalculated removing consumed time until now
                 # We don't support password authentication so it would just block the terminal
                 $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => $ssh_opts,
                     timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
-                # result check
+
+                # Check systemd status
                 if ($sysout =~ m/initializing|starting/) {    # still starting
                     $exit_code = undef;
                 }
-                elsif ($sysout =~ m/running/) {    # startup OK
+                elsif ($sysout =~ m/running/) {    # startup completed
                     $exit_code = 0;
                     $sysout .= "\nSystem successfully booted";
                     last;
                 }
-                elsif ($sysout =~ m/degraded/) {    # up but with failed services to collect
+                elsif ($sysout =~ m/degraded/) {    # startup completed but with failed services
                     $exit_code = 0;
                     $sysout .= "\nSystem booted, but some services failed:\n" .
                       $self->ssh_script_output(cmd => 'sudo systemctl --failed', ssh_opts => $ssh_opts,
@@ -475,7 +476,7 @@ sub wait_for_ssh {
             }    # end loop
         }    # endif
         $exit_timeout = 1 if ($duration >= $args{timeout});
-        record_info('TIMEOUT', "System services still starting/waiting, while timeout expired: boot incomplete", result => 'fail') if $exit_timeout;
+        record_info('Startup failed', "Timeout: System services are not up starting/waiting", result => 'fail') if $exit_timeout;
 
         if ($args{scan_ssh_host_key}) {
             record_info('RESCAN', 'Rescanning SSH host key');
