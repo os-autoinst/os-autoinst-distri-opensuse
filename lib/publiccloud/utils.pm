@@ -223,8 +223,13 @@ sub registercloudguest {
         die 'cloud-regionsrv-client should be installed' if !is_container_host;
     }
 
+    my $custom_smt;
+    if ((my $smt_ip = get_var('PUBLIC_CLOUD_SMT_IP')) && (my $smt_fqdn = get_var('PUBLIC_CLOUD_SMT_FQDN')) && (my $smt_fp = get_var('PUBLIC_CLOUD_SMT_FP'))) {
+        $custom_smt = "--smt-ip 34.83.197.195 --smt-fqdn smt-gce.susecloud.net --smt-fp 0D:6F:60:E0:2B:AC:82:94:51:4B:17:8F:04:33:FE:3F:E2:62:25:3B";
+    }
+
     my $cmd_time = time();
-    $instance->ssh_script_retry(cmd => "sudo $suseconnect -r $regcode", timeout => 420, retry => 3, delay => 120);
+    $instance->ssh_script_retry(cmd => "sudo $suseconnect $custom_smt -r $regcode", timeout => 420, retry => 3, delay => 120);
     record_info('registration time', 'The registration took ' . (time() - $cmd_time) . ' seconds.');
 
     # If the SSH master socket is active, exit it, so the next SSH command will (re)login
