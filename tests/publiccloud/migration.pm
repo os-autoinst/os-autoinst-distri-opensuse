@@ -10,6 +10,7 @@
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
+use Time::Piece;
 use version_utils 'is_sle';
 use publiccloud::ssh_interactive "select_host_console";
 use publiccloud::utils qw(is_ec2 is_gce is_azure registercloudguest);
@@ -65,12 +66,16 @@ sub run {
 
         $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration");
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo zypper -n in suse-migration-sle16-activation", timeout => 1800);
+        $instance->ssh_assert_script_run("sudo zypper -n in SLES16-Migration suse-migration-sle16-activation", timeout => 1800);
         $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
 
         # Disable maintenance updates for the migration as directory is not available during it
         $instance->ssh_script_run("sudo sudo sed -i 's/^enabled=1/enabled=0/' /etc/zypp/repos.d/SUSE_Maintenance_*");
+
+        my $arch = get_required_var('ARCH');
+        $instance->ssh_script_run("echo 'migration_product: SLES/16.0/$arch\\n' | sudo tee -a /etc/sle-migration-service.yml");
+        $instance->ssh_script_run("cat /etc/sle-migration-service.yml");
 
         # Reboot to run the migration
         $instance->softreboot(timeout => 3600);
@@ -90,6 +95,13 @@ sub validate_version {
     print_os_version($instance);
     my $version = get_var('VERSION');
     my $sourced_version = $instance->ssh_script_output('source /etc/os-release && echo $VERSION');
+
+    fix_sftp_subsystem($instance) if ($sourced_version eq '16.0');
+
+    my $now = Time::Piece::localtime->strftime('%Y%m%d%H%M%S');
+    $instance->upload_log("/var/log/migration_startup.log", log_name => "migration_startup_${sourced_version}_$now.txt") if ($instance->ssh_script_run("test -f /var/log/migration_startup.log") == 0);
+    $instance->upload_log("/var/log/distro_migration.log", log_name => "distro_migration_${sourced_version}_$now.txt") if ($instance->ssh_script_run("test -f /var/log/distro_migration.log") == 0);
+
     if ($version ne $sourced_version) {
         record_info("OS-Version", "Current: $sourced_version\nOriginal SUT: $version");
         set_var('VERSION', $sourced_version);
@@ -98,15 +110,14 @@ sub validate_version {
     die("OS-Version ($version) didn't update after the migration");
 }
 
-sub cleanup {
-    my ($self) = @_;
-    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
-        die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
-    }
-    $self->{run_args}->{my_instance}->upload_log("/var/log/migration_startup.log") if ($self->{run_args}->{my_instance}->ssh_script_run("test -f /var/log/migration_startup.log") == 0);
-    $self->{run_args}->{my_instance}->upload_log("/var/log/distro_migration.log") if ($self->{run_args}->{my_instance}->ssh_script_run("test -f /var/log/distro_migration.log") == 0);
-
-    return 1;
+sub fix_sftp_subsystem {
+    my $instance = shift;
+    record_soft_failure('bsc#1261036 - sshd sftp misconfiguration in sles16.0 migrated from sles15-sp7');
+    $instance->ssh_script_run("echo subsystem sftp /usr/libexec/ssh/sftp-server | sudo tee /etc/ssh/sshd_config.d/60-sftp.conf", timeout => 600);
+    $instance->ssh_script_run("sudo systemctl restart sshd", timeout => 600);
+    script_run('ssh -O status ' . $instance->username . '@' . $instance->public_ip);
+    script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
+    $instance->ssh_script_run("sudo sshd -T", timeout => 600);
 }
 
 1;
