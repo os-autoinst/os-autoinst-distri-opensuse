@@ -96,9 +96,11 @@ sub validate_version {
     my $version = get_var('VERSION');
     my $sourced_version = $instance->ssh_script_output('source /etc/os-release && echo $VERSION');
 
+    fix_sftp_subsystem($instance) if ($sourced_version eq '16.0');
+
     my $now = Time::Piece::localtime->strftime('%Y%m%d%H%M%S');
-    $instance->upload_log("/var/log/migration_startup.log", log_name => "migration_startup_$sourced_version_$now.txt") if ($instance->ssh_script_run("test -f /var/log/migration_startup.log") == 0);
-    $instance->upload_log("/var/log/distro_migration.log", log_name => "distro_migration_$sourced_version_$now.txt") if ($instance->ssh_script_run("test -f /var/log/distro_migration.log") == 0);
+    $instance->upload_log("/var/log/migration_startup.log", log_name => "migration_startup_${sourced_version}_$now.txt") if ($instance->ssh_script_run("test -f /var/log/migration_startup.log") == 0);
+    $instance->upload_log("/var/log/distro_migration.log", log_name => "distro_migration_${sourced_version}_$now.txt") if ($instance->ssh_script_run("test -f /var/log/distro_migration.log") == 0);
 
     if ($version ne $sourced_version) {
         record_info("OS-Version", "Current: $sourced_version\nOriginal SUT: $version");
@@ -108,15 +110,14 @@ sub validate_version {
     die("OS-Version ($version) didn't update after the migration");
 }
 
-sub cleanup {
-    my ($self) = @_;
-    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
-        die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
-    }
-    $self->{run_args}->{my_instance}->upload_log("/var/log/migration_startup.log") if ($self->{run_args}->{my_instance}->ssh_script_run("test -f /var/log/migration_startup.log") == 0);
-    $self->{run_args}->{my_instance}->upload_log("/var/log/distro_migration.log") if ($self->{run_args}->{my_instance}->ssh_script_run("test -f /var/log/distro_migration.log") == 0);
-
-    return 1;
+sub fix_sftp_subsystem {
+    my $instance = shift;
+    record_soft_failure('bsc#1261036 - sshd sftp misconfiguration in sles16.0 migrated from sles15-sp7');
+    $instance->ssh_script_run("echo subsystem sftp /usr/libexec/ssh/sftp-server | sudo tee /etc/ssh/sshd_config.d/60-sftp.conf", timeout => 600);
+    $instance->ssh_script_run("sudo systemctl restart sshd", timeout => 600);
+    script_run('ssh -O status ' . $instance->username . '@' . $instance->public_ip);
+    script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
+    $instance->ssh_script_run("sudo sshd -T", timeout => 600);
 }
 
 1;

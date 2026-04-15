@@ -225,7 +225,7 @@ sub registercloudguest {
 
     my $custom_smt;
     if ((my $smt_ip = get_var('PUBLIC_CLOUD_SMT_IP')) && (my $smt_fqdn = get_var('PUBLIC_CLOUD_SMT_FQDN')) && (my $smt_fp = get_var('PUBLIC_CLOUD_SMT_FP'))) {
-        $custom_smt = "--smt-ip 34.83.197.195 --smt-fqdn smt-gce.susecloud.net --smt-fp 0D:6F:60:E0:2B:AC:82:94:51:4B:17:8F:04:33:FE:3F:E2:62:25:3B";
+        $custom_smt = "--smt-ip $smt_ip --smt-fqdn $smt_fqdn --smt-fp $smt_fp";
     }
 
     my $cmd_time = time();
