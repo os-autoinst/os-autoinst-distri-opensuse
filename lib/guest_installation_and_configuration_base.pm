@@ -1005,7 +1005,7 @@ sub config_guest_storage {
     }
 
     if ($self->{guest_storage_type} eq 'disk') {
-        if ($self->{guest_installation_method} eq 'location' or $self->{guest_installation_method} eq 'directkernel') {
+        if ($self->{guest_installation_method} eq 'location' or $self->{guest_installation_method} eq 'directkernel' or $self->{guest_installation_method} eq 'cdrom') {
             $self->{guest_storage_options} = "--disk path=$self->{guest_storage_path},size=$self->{guest_storage_size},format=$self->{guest_storage_format}";
         }
         elsif ($self->{guest_installation_method} eq 'import') {
@@ -1466,18 +1466,20 @@ by passing non-empty arguments using hash.Call config_guest_installation_media t
 set correct installation media. For directkernel installation method which uses
 virt-install --install, please also refer to following link for more information
 https://manpages.opensuse.org/Tumbleweed/virt-install/virt-install.1.en.html
-For 'location' installation method, virt-install command looks like:
---location [guest_installation_media],[guest_installation_method_others]
---extra-args root=live:[guest_installation_fine_grained_media]
---extra-args inst.install_url=[guest_installation_fine_grained_repos]
---extra-args [guest_installation_extra_args] 
-For 'directkernel' installation method, virt-install command looks like:
---install kernel=[guest_installation_fine_grained_media]/linux,
-initrd=[guest_installation_fine_grained_media]/initrd,
-kernel_args=root=live:[guest_installation_media],inst.install_url=
-[guest_installation_fine_grained_repos],[guest_installation_fine_grained_kernel_args]
-For 'import' installation method, virt-install command looks like:
-virt-install --import --disk [guest_storage_options]
+- For 'location' installation method, virt-install command looks like:
+  --location [guest_installation_media],[guest_installation_method_others]
+  --extra-args root=live:[guest_installation_fine_grained_media]
+  --extra-args inst.install_url=[guest_installation_fine_grained_repos]
+  --extra-args [guest_installation_extra_args]
+- For 'directkernel' installation method, virt-install command looks like:
+  --install kernel=[guest_installation_fine_grained_media]/linux,
+  initrd=[guest_installation_fine_grained_media]/initrd,
+  kernel_args=root=live:[guest_installation_media],inst.install_url=
+  [guest_installation_fine_grained_repos],[guest_installation_fine_grained_kernel_args]
+- For 'import' installation method, virt-install command looks like:
+  virt-install --import --disk [guest_storage_options]
+- For 'cdrom' installation method, virt-install command looks like:
+  --cdrom [guest_installation_media],[guest_installation_method_others]
 =cut
 
 sub config_guest_installation_method {
@@ -1526,6 +1528,7 @@ sub config_guest_installation_method {
 
     $self->{guest_installation_method_options} = '--autoconsole ' . $self->{guest_autoconsole} if ($self->{guest_autoconsole} ne '');
     $self->{guest_installation_method_options} = '--noautoconsole' if ($self->{guest_noautoconsole} eq 'true');
+    $self->{guest_installation_method_options} .= ' --wait ' . $self->{guest_installation_wait} if $self->{guest_installation_wait} ne '';
 
     if ($self->{guest_installation_method} eq 'directkernel') {
         $self->{guest_installation_method_options} .= ' --install kernel=' . $self->{guest_image_folder} . '/linux,initrd=' . $self->{guest_image_folder} . '/initrd';
@@ -1541,6 +1544,11 @@ sub config_guest_installation_method {
     }
     elsif ($self->{guest_installation_method} eq 'import') {
         $self->{guest_installation_method_options} .= ' --import ';
+    }
+    # Eg. windows guests
+    elsif ($self->{guest_installation_method} eq 'cdrom') {
+        $self->{guest_installation_method_options} .= ' --cdrom ' . $self->{guest_installation_media};
+        $self->{guest_installation_method_options} .= ",$self->{guest_installation_method_others}" if ($self->{guest_installation_method_others} ne '');
     }
 
     return $self;
@@ -1993,7 +2001,7 @@ sub config_guest_installation_automation {
     if ($self->{guest_installation_automation_method} =~ /ignition|ignition+combustion/i) {
         $self->config_guest_firstboot_provision;
     }
-    elsif ($self->{guest_installation_automation_method} =~ /autoyast|kickstart|autoagama/i) {
+    elsif ($self->{guest_installation_automation_method} =~ /autoyast|kickstart|autoagama|autounattend/i) {
         $self->config_guest_unattended_installation;
     }
     return $self;
@@ -2036,11 +2044,27 @@ sub config_guest_unattended_installation {
     my $self = shift;
 
     $self->reveal_myself;
-    if (($self->{guest_installation_automation_method} =~ /autoyast|kickstart|autoagama/i) and ($self->{guest_installation_automation_file} ne '')) {
+    if (($self->{guest_installation_automation_method} =~ /autoyast|kickstart|autoagama|autounattend/i) and ($self->{guest_installation_automation_file} ne '')) {
         diag("Guest $self->{guest_name} is going to use unattended installation file $self->{guest_installation_automation_file}.");
         assert_script_run("curl -s -o $_host_params{common_log_folder}/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file} " . data_url("virt_autotest/guest_unattended_installation_files/$self->{guest_installation_automation_file}"));
         $self->{guest_installation_automation_file} = "$_host_params{common_log_folder}/unattended_installation_$self->{guest_name}_$self->{guest_installation_automation_file}";
-        assert_script_run("chmod 777  $self->{guest_installation_automation_file}");
+        assert_script_run("chmod 777 $self->{guest_installation_automation_file}");
+
+        # Windows guest with autounattend method. No http support is required
+        if ($self->{guest_installation_automation_method} eq 'autounattend') {
+            my $_domaine_passwd = get_required_var('_SECRET_GUEST_PASSWORD');
+            assert_script_run("sed -ri \'s/##Domain-Password##/$_domaine_passwd/g;\' $self->{guest_installation_automation_file}");
+            script_run("unix2dos $self->{guest_installation_automation_file}");
+            record_info("autounattend.xml for guest $self->{guest_name}", script_output("cat $self->{guest_installation_automation_file}", proceed_on_failure => 1));
+            # Make the floppy
+            my $_floppy_path = "/tmp/unattend_$self->{guest_name}.vfd";
+            assert_script_run("dd if=/dev/zero of=$_floppy_path bs=1k count=1440");
+            assert_script_run("mkfs.msdos $_floppy_path");
+            assert_script_run("mcopy -i $_floppy_path $self->{guest_installation_automation_file} ::/autounattend.xml");
+            script_run("mdir -i $_floppy_path ::/");
+            $self->{guest_installation_automation_options} = "--disk $_floppy_path,device=floppy";
+            return $self;
+        }
 
         if ($self->{guest_os_name} =~ /sles/im) {
             # Set product mode to standard for sles16.1+ autoagama installation, otherwise drop product mode in guest_installation_automation_file
@@ -2259,6 +2283,7 @@ sub guest_installation_run {
     $self->reveal_myself;
     $self->prepare_guest_installation(@_);
     $self->start_guest_installation;
+    $self->monitor_serial_during_installation if $self->{guest_os_name} eq 'windows';
     return $self;
 }
 
@@ -2353,9 +2378,29 @@ sub start_guest_installation {
     script_run("rm -f -r $self->{guest_installation_session_config};touch $self->{guest_installation_session_config};chmod 777 $self->{guest_installation_session_config}");
     script_run("cat /etc/screenrc > $self->{guest_installation_session_config};sed -in \'/^logfile .*\$/d\' $self->{guest_installation_session_config}");
     script_run("echo \"logfile $_guest_installation_log\" >> $self->{guest_installation_session_config}");
-    type_string("screen -t $self->{guest_name} -L -c $self->{guest_installation_session_config} $self->{virt_install_command_line}\n", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
+    if ($self->{guest_os_name} eq 'windows') {
+        # Windows guests need running on background
+        type_string("screen -d -m -t $self->{guest_name} -L -c $self->{guest_installation_session_config} $self->{virt_install_command_line}\n", timeout => 200);
+    } else {
+        type_string("screen -t $self->{guest_name} -L -c $self->{guest_installation_session_config} $self->{virt_install_command_line}\n", timeout => 600 / get_var('TIMEOUT_SCALE', 1));
+    }
     record_info("Guest $self->{guest_name} installation started", "The virt-install command line is $self->{virt_install_command_line}");
     return $self;
+}
+
+=head2 monitor_serial_during_installation
+
+  monitor_serial_during_installation($self)
+
+Monitor serial console and store the output to the common log folder
+
+=cut
+
+sub monitor_serial_during_installation {
+    my $self = shift;
+    my $_script = "monitor_serial_during_installation.sh";
+    my $_args = "$self->{guest_name} $_host_params{common_log_folder}/$self->{guest_name}";
+    download_script_and_execute($_script, script_args => "$_args", proceed_on_failure => 1);
 }
 
 =head2 get_guest_installation_session
@@ -2756,6 +2801,48 @@ sub save_guest_agama_installation_logs {
     $self->upload_guest_installation_logs;
 
     return $self;
+}
+
+=head2 monitor_windows_guest_installation
+
+  monitor_windows_guest_installation($self)
+
+No serial console for Windows guest during installation
+ICMP and SSH accessibility flag the guest installation finishes
+
+=cut
+
+sub monitor_windows_guest_installation {
+    my $self = shift;
+    $self->reveal_myself;
+    my $_screenshot_cmd = "virsh screenshot $self->{guest_name} $_host_params{common_log_folder}/$self->{guest_name}/screenshot-\$(date +%s).ppm";
+    script_run("$_screenshot_cmd");
+    script_run("virsh domstate $self->{guest_name}");
+    $self->get_guest_ipaddr unless $self->{guest_ipaddr_static} eq 'true' or $self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im;
+    script_run("$_screenshot_cmd");
+    if ($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im) {
+        if (script_run("ping -c3 $self->{guest_ipaddr}") == 0) {
+            record_info("Guest $self->{guest_name} can be ping'ed using ip $self->{guest_ipaddr} directly", "It is expected to be ready in 1-2 minutes.");
+            script_run("$_screenshot_cmd");
+            if (script_retry("timeout 3 bash -c '</dev/tcp/$self->{guest_ipaddr}/22'", delay => 10, retry => 12) == 0) {
+                script_run("$_screenshot_cmd");
+                if (ssh_copy_id($self->{guest_ipaddr}, username => 'Administrator', authorized_keys => 'C:\ProgramData\ssh\administrators_authorized_keys', scp => 1) == 0) {
+                    record_info("Passwordless access", "$self->{guest_name} can be accessed over ssh");
+                    my $_win_guest = "Administrator\@$self->{guest_ipaddr}";
+                    script_run("scp $_win_guest:C:/Windows/Panther/setuperr.log $self->{guest_log_folder}/win_setuperr.log");
+                    script_run("scp $_win_guest:C:/Windows/Panther/setupact.log $self->{guest_log_folder}/win_setupact.log");
+                    script_run("ssh $_win_guest 'systeminfo' > $self->{guest_log_folder}/win_systeminfo.dat");
+                } else {
+                    record_info("Missing logs", "SSH is enabled for guest $self->{guest_name} but passwordless access failed, so no logs are collected", result => 'fail');
+                }
+                $self->record_guest_installation_result('PASSED');
+                script_run("virsh dumpxml $self->{guest_name} > $self->{guest_log_folder}/virsh_dumpxml_$self->{guest_name}.xml");
+                $self->upload_guest_installation_logs;
+            }
+        }
+    } else {
+        script_run("echo 'Waiting for $self->{guest_name} to finish installation...'");
+    }
 }
 
 =head2 check_guest_installation_result_via_ssh

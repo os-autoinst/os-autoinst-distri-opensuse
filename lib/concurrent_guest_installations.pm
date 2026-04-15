@@ -111,6 +111,8 @@ sub install_guest_instances {
         next if $guest_instances{$_}->{guest_installation_result} eq 'FAILED';
         if ($guest_instances{$_}->has_noautoconsole_for_sure) {
             assert_screen('text-logged-in-root');
+            # No serial console during installation for Windows guests
+            next if $guest_instances{$_}->{guest_os_name} eq 'windows';
             $guest_instances{$_}->do_attach_guest_installation_screen_without_session;
         }
         $guest_instances{$_}->{guest_installation_attached} = 'true';
@@ -142,18 +144,22 @@ sub monitor_concurrent_guest_installations {
     while (time() - $_monitor_start_time <= 7200) {
         foreach (keys %guest_instances) {
             if (!($guest_instances{$_}->is_guest_installation_done)) {
-                $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
-                $guest_instances{$_}->monitor_guest_installation;
-                if (!($guest_instances{$_}->is_guest_installation_done)) {
-                    $_guest_installations_not_the_last = 0 if ($_guest_installations_left eq 1);
-                    $guest_instances{$_}->detach_guest_installation_screen if ($_guest_installations_not_the_last ne 0);
+                if ($guest_instances{$_}->{guest_os_name} eq 'windows') {
+                    $guest_instances{$_}->monitor_windows_guest_installation;
+                } else {
+                    $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
+                    $guest_instances{$_}->monitor_guest_installation;
+                    if (!($guest_instances{$_}->is_guest_installation_done)) {
+                        $_guest_installations_not_the_last = 0 if ($_guest_installations_left eq 1);
+                        $guest_instances{$_}->detach_guest_installation_screen if ($_guest_installations_not_the_last ne 0);
+                    }
                 }
             }
             my $_current_guest_instance = $_;
             if ((!(grep { $_ eq $_current_guest_instance } @guest_installations_done)) and ($guest_instances{$_}->is_guest_installation_done)) {
                 push(@guest_installations_done, $_);
                 $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
-                $guest_instances{$_}->collect_guest_installation_logs_via_ssh if ($guest_instances{$_}->{guest_installation_result} ne 'PASSED');
+                $guest_instances{$_}->collect_guest_installation_logs_via_ssh unless ($guest_instances{$_}->{guest_installation_result} eq 'PASSED' or $guest_instances{$_}->{guest_os_name} eq 'windows');
                 last if ($_guest_installations_left eq 0);
             }
         }
@@ -174,7 +180,7 @@ sub validate_guest_installations_results {
             record_info("Guest $guest_instances{$_}->{guest_name} still has no installation result at the end.Makr it as UNKNOWN.", "It will be treated as a kind of failure !");
             $guest_instances{$_}->{guest_installation_result} = 'UNKNOWN';
             push(@guest_installations_done, $_);
-            $guest_instances{$_}->collect_guest_installation_logs_via_ssh;
+            $guest_instances{$_}->collect_guest_installation_logs_via_ssh unless $guest_instances{$_}->{guest_os_name} eq 'windows';
         }
         $_overall_test_result = "$guest_instances{$_}->{guest_installation_result},$_overall_test_result";
     }
@@ -188,8 +194,10 @@ sub clean_up_guest_installations {
 
     $self->reveal_myself;
     foreach (keys %guest_instances) {
-        $guest_instances{$_}->detach_guest_installation_screen;
-        $guest_instances{$_}->terminate_guest_installation_session;
+        unless ($guest_instances{$_}->{guest_os_name} eq 'windows') {
+            $guest_instances{$_}->detach_guest_installation_screen;
+            $guest_instances{$_}->terminate_guest_installation_session;
+        }
         if ($guest_instances{$_}->{guest_ipaddr_static} ne 'true') {
             $guest_instances{$_}->get_guest_ipaddr;
         }
