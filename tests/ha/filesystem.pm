@@ -218,6 +218,12 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
             }
         }
 
+        # make sure DRBD passive filesystem is ready
+        my $cmd_timeout = ($default_timeout < 60) ? 60 : $default_timeout;
+        my $check_drbd_cmd = "timeout $cmd_timeout bash -c 'until mountpoint -q /srv/$fs_rsc; do sleep 2; done'";
+        assert_script_run("$check_drbd_cmd", $cmd_timeout + 5);
+        assert_script_run 'sync';
+
         # Check if files/data are different in the Filesystem
         assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out_$node", $default_timeout;
         assert_script_run "cd /srv/$fs_rsc ; diff -urN out out_$node", $default_timeout;
