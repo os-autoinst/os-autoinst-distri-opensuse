@@ -91,11 +91,27 @@ sub logs_from_salt {
 
     upload_logs '/var/log/salt/minion', log_name => 'salt-minion.txt';
 
-    my $error = "cat /var/log/salt/* | grep -i '\\[.*CRITICAL.*\\]\\|\\[.*ERROR.*\\]\\|Traceback' ";
-    $error .= "| grep -vi 'Error while parsing IPv\\|Error loading module\\|Unable to resolve address\\|SaltReqTimeoutError' ";
-    $error .= "| grep -vi 'has cached the public key for this node\\|Minion unable to successfully connect to a Salt Master'";
-    $error .= "| grep -vi 'Error while bringing up minion for multi-master'";
-    if (script_run("$error") != 1) {
+    my @patterns = (
+        "grep -i '\\[.*CRITICAL.*\\]\\|\\[.*ERROR.*\\]\\|Traceback'",
+        "grep -vi 'Error while parsing IPv\\|Error loading module\\|Unable to resolve address\\|SaltReqTimeoutError'",
+        "grep -vi 'has cached the public key for this node\\|Minion unable to successfully connect to a Salt Master'",
+        "grep -vi 'Error while bringing up minion for multi-master'"
+    );
+    my $error_cmd = join(' | ', @patterns);
+
+    my $log_files = script_output('find /var/log/salt -type f');
+    my $has_errors = 0;
+
+    for my $file (split(/\n/, $log_files)) {
+        next unless $file;
+        if (script_run("cat $file | $error_cmd") == 0) {
+            my $matched_output = script_output("cat $file | $error_cmd");
+            record_info("$file has errors", "File: $file\n\nMatched output:\n$matched_output", result => 'fail');
+            $has_errors = 1;
+        }
+    }
+
+    if ($has_errors) {
         my $softfail_flag = 0;
         if (is_master_node && script_run('grep "self.pusher.connect(timeout=timeout)" /var/log/salt/master') == 0) {
             record_soft_failure('bsc#1209248');
