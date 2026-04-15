@@ -25,7 +25,7 @@ tools/tidy: os-autoinst/
 	@test -e tools/tidy || ln -s ../os-autoinst/tools/tidy tools/
 
 tools/lib/: os-autoinst/
-	@test -e tools/lib || ln -s ../os-autoinst/tools/lib tools/
+	@test -e tools/lib || ln -s ../os-autoinst/external/os-autoinst-common/lib/ tools/
 
 .PHONY: check-links
 check-links: tools/tidy tools/lib/ os-autoinst/
