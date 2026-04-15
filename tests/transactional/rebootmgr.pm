@@ -12,7 +12,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils;
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_tumbleweed is_sle_micro is_staging);
 use Utils::Backends 'is_pvm';
 use serial_terminal 'select_serial_terminal';
 
@@ -45,12 +45,27 @@ sub rbm_set_window {
     rbm_call "set-window \$(date -d $time +%T) $duration";
 }
 
+# Soft reboot only triggers a full reboot when installing a new kernel
+# update of the bootloader or any command like rollback, grub.cfg, bootloader, run or shell
+sub check_reboot_strategy_and_reboot {
+    my @reboot_args;
+    if (!is_sle_micro && is_staging('J')) {
+        my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
+        my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
+        if ($output =~ $regex) {
+            @reboot_args = (expected_grub => 0) if $1 eq 'soft-reboot';
+            record_info("Reboot strategy: $1");
+        }
+    }
+    process_reboot(@reboot_args);
+}
+
 #1 Test instant reboot
 sub check_strategy_instantly {
     select_console('root-console');
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
-    process_reboot(expected_grub => 1);
+    check_reboot_strategy_and_reboot();
     rbm_call "get-strategy | grep instantly";
 }
 
@@ -58,12 +73,10 @@ sub check_strategy_instantly {
 sub check_strategy_maint_window {
     select_console('root-console');
     rbm_call "set-strategy maint-window";
-
     # Trigger reboot during maint-window
     rbm_set_window '-5minutes', '20m';
     trup_call "reboot pkg install" . rpmver('feature');
-    process_reboot(expected_grub => 1);
-
+    check_reboot_strategy_and_reboot();
     # Trigger reboot and wait for maintenance window
     rbm_set_window '+2minutes', '1m';
     rbm_call 'reboot';

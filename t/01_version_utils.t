@@ -241,4 +241,14 @@ subtest 'bootloader_tests' => sub {
     ok get_default_bootloader eq 'grub2', "Forcing bootloader works";
 };
 
+subtest 'is_staging tests' => sub {
+    use version_utils qw(is_staging);
+    is is_staging, undef, "No staging variable means it isn't staging";
+
+    set_var('STAGING', 'foo');
+    ok is_staging, "foo is a staging project";
+    isnt is_staging('bar'), 0, "bar is not this staging";
+    is is_staging('foo'), 1, "foo is the current staging";
+};
+
 done_testing;
