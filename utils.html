@@ -314,7 +314,7 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 
 <p>Compare the versions supplied as arguments and tell whether version1 is older or newer than version2 or the two version strings match.</p>
 
-<p>Example: # zypper vcmp 2.1 3.1 2.1 is older than 3.1 # zypper vcmp 3.1 2.1 3.1 is newer than 2.1 # zypper vcmp 3.1 3.1 3.1 matches 3.1</p>
+<p>The default output is in human-friendly form. If --terse global option is used, the result is an integer number, negative/positive if version1 is older/newer than version2, zero if they match.</p>
 
 <h2 id="fully_patch_system">fully_patch_system</h2>
 
