@@ -17,7 +17,7 @@ use lockapi;
 use utils;
 use version_utils;
 use registration qw(runtime_registration add_suseconnect_product);
-use transactional qw(trup_call process_reboot);
+use transactional qw(trup_call process_reboot check_reboot_strategy_and_reboot);
 
 my $server_ip = "10.0.2.101";
 my $subnet = "/24";
@@ -61,7 +61,7 @@ sub install_pkgs {
             assert_script_run "rebootmgrctl set-strategy instantly";
             record_info("Installing packages", "Using transactional-update, requires reboot: $pkg_list");
             trup_call "reboot pkg install $pkg_list";
-            process_reboot(expected_grub => 1);
+            check_reboot_strategy_and_reboot;
             select_serial_terminal;
         } else {
             record_info("Installing packages", "Using zypper for installation: $pkg_list");

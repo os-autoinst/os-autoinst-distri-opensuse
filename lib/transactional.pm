@@ -29,6 +29,7 @@ our @EXPORT = qw(
   process_reboot
   check_reboot_changes
   check_target_version
+  check_reboot_strategy_and_reboot
   rpmver
   trup_call
   trup_install
@@ -74,6 +75,21 @@ sub handle_first_grub {
         wait_still_screen 60 if (check_var('MACHINE', 'ppc64le-emu') || check_var('MACHINE', 'svirt-vmware70'));
         save_screenshot;
     }
+}
+
+# Soft reboot only triggers a full reboot when installing a new kernel
+# update of the bootloader or any command like rollback, grub.cfg, bootloader, run or shell
+sub check_reboot_strategy_and_reboot {
+    my @reboot_args;
+    if (!is_sle_micro) {
+        my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
+        my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
+        if ($output =~ $regex) {
+            @reboot_args = (expected_grub => 0) if $1 eq 'soft-reboot';
+            record_info("Reboot strategy: $1");
+        }
+    }
+    process_reboot(@reboot_args);
 }
 
 sub process_reboot {
