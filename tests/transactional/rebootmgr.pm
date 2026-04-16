@@ -45,21 +45,6 @@ sub rbm_set_window {
     rbm_call "set-window \$(date -d $time +%T) $duration";
 }
 
-# Soft reboot only triggers a full reboot when installing a new kernel
-# update of the bootloader or any command like rollback, grub.cfg, bootloader, run or shell
-sub check_reboot_strategy_and_reboot {
-    my @reboot_args;
-    if (!is_sle_micro) {
-        my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
-        my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
-        if ($output =~ $regex) {
-            @reboot_args = (expected_grub => 0) if $1 eq 'soft-reboot';
-            record_info("Reboot strategy: $1");
-        }
-    }
-    process_reboot(@reboot_args);
-}
-
 #1 Test instant reboot
 sub check_strategy_instantly {
     select_console('root-console');
