@@ -56,9 +56,9 @@ mds:
     raid_level: "%RAIDLEVEL%"
     devices:
       - vda2
-      - vdb2
-      - vdc2
-      - vdd2
+      - vdb1
+      - vdc1
+      - vdd1
     partition:
       role: operating-system
       formatting_options:
@@ -72,9 +72,9 @@ mds:
     raid_level: 0
     devices:
       - vda3
-      - vdb3
-      - vdc3
-      - vdd3
+      - vdb2
+      - vdc2
+      - vdd2
     partition:
       role: swap
       formatting_options:
