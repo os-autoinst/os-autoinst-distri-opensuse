@@ -1215,22 +1215,21 @@ subtest '[ipaddr2_cleanup] ipaddr2_deployment_logs' => sub {
 
 subtest '[ipaddr2_logs_collect]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    my @ssh_calls;
-    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
-            my (%args) = @_;
-            push @ssh_calls, "VM$args{id}: $args{cmd}";
-            return;
-    });
     my @upload_calls;
     $ipaddr2->redefine(upload_logs => sub {
             push @upload_calls, $_[0];
             return;
     });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @ssh_calls;
     my @calls;
-    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $ipaddr2->redefine(script_run => sub {
+            push @ssh_calls, $_[0] if $_[0] =~ /^ssh /;
+            push @calls, $_[0];
+            return 0;
+    });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
 
     ipaddr2_logs_collect();
 
@@ -1239,7 +1238,7 @@ subtest '[ipaddr2_logs_collect]' => sub {
     note("\n  -->  " . join("\n  -->  ", @calls));
 
     is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal called " . (scalar @ssh_calls) . " and expected 8 times (4 log files * 2 VM)");
-    is(scalar @upload_calls, 10, "upload_logs called 8 times (4 log files * 2 VM + 2 ssh local logs)");
+    is(scalar @upload_calls, 10, "upload_logs called 10 times (4 log files * 2 VM + 2 ssh local logs)");
 
     ok((any { /crm report/ } @ssh_calls), "crm report command called");
     ok((any { /save_y2logs/ } @ssh_calls), "YaST2 logs collected");
@@ -1249,6 +1248,48 @@ subtest '[ipaddr2_logs_collect]' => sub {
     ok((any { /crm_report_.*gz/ } @upload_calls), "crm_report.tar.gz uploaded");
     ok((any { /y2logs/ } @upload_calls), "y2logs uploaded");
     ok((any { /supportconfig.*/ } @upload_calls), "supportconfig uploaded");
+};
+
+subtest '[ipaddr2_logs_collect] fail' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub {
+            push @upload_calls, $_[0];
+            return;
+    });
+    my @records;
+    $ipaddr2->redefine(record_info => sub { push @records, \@_; note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(script_run => sub {
+            return 1 if $_[0] =~ /^ssh /;
+            return 0;
+    });
+    $ipaddr2->redefine(assert_script_run => sub { return; });
+
+    lives_ok { ipaddr2_logs_collect(bastion_ip => '1.2.3.4') } 'survives failing script_run';
+
+    is(scalar @upload_calls, 10, "upload_logs called 10 times even if commands fail");
+    ok((any { $_->[0] =~ /Failed.*time/ } @records), "failure was recorded");
+};
+
+subtest '[ipaddr2_logs_collect] timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub {
+            push @upload_calls, $_[0];
+            return;
+    });
+    my @records;
+    $ipaddr2->redefine(record_info => sub { push @records, \@_; note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(script_run => sub {
+            die "command '$_[0]' timed out" if $_[0] =~ /^ssh /;
+            return 0;
+    });
+    $ipaddr2->redefine(assert_script_run => sub { return; });
+
+    lives_ok { ipaddr2_logs_collect(bastion_ip => '1.2.3.4') } 'survives timeout from script_run';
+
+    is(scalar @upload_calls, 10, "upload_logs called 10 times even if commands timeout");
+    ok((any { $_->[0] =~ /SSH timeout/ } @records), "timeout was recorded");
 };
 
 subtest '[ipaddr2_ssh_intrusion_detection]' => sub {

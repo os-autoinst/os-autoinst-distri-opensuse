@@ -1302,6 +1302,7 @@ using the assert_script_run API
 
 =item B<no_assert> - If specified internally use 'script_run' in place of
                      'assert_script_run' and return the exit code.
+                     Also suppresses timeout exceptions (returns undef).
 
 =item B<retry> - Number of retries in case of failure. Default 1 (no retry)
 
@@ -1320,13 +1321,20 @@ sub ipaddr2_ssh_internal(%args) {
         bastion_ip => $args{bastion_ip},
         cmd => $args{cmd});
 
-    my $ret = 0;
+    my $ret;
     for (1 .. $args{retry}) {
-        $ret = script_run($command, timeout => $args{timeout});
-        return $ret if ($ret == 0);
-        record_info("Failed $_ time", "Command $command failed with exit code $ret");
+        eval { $ret = script_run($command, timeout => $args{timeout}); };
+        if ($@) {
+            die $@ unless $args{no_assert};
+            record_info('SSH timeout', "cmd: $command\nerr: $@", result => 'fail');
+            return undef;
+        }
+        return $ret if (defined $ret && $ret == 0);
+        record_info("Failed $_ time",
+            "Command $command failed with exit code " . ($ret // 'undef'),
+            result => 'fail');
     }
-    die "Command $command failed with exit code $ret" if (!defined $args{no_assert});
+    die "Command $command failed with exit code " . ($ret // 'undef') unless $args{no_assert};
     return $ret;
 }
 
