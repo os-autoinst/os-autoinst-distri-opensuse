@@ -362,6 +362,7 @@ sub load_container_tests {
             loadtest 'containers/bci_collect_stats' if (get_var('IMAGE_STORE_DATA'));
             # Note: bci_version_check requires jq.
             loadtest 'containers/bci_version_check' if (get_var('CONTAINER_IMAGE_TO_TEST') && get_var('CONTAINER_IMAGE_BUILD'));
+            loadtest('containers/bci_reproducible_build') if get_var('CONTAINER_REPRODUCIBLE_IMAGE_TO_TEST');
         }
     } elsif (is_tumbleweed && get_var('FLAVOR', '') =~ /dvd|net/i) {
         loadtest 'containers/host_configuration';
