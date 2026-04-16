@@ -225,6 +225,18 @@ Example:
 
   KSELFTEST_BUILD_ENV="SKIP_DOCS=1"
 
+=head2 KSELFTEST_BUILD_JOBS
+
+Optional number of parallel jobs passed to C<make -j> when building
+kselftests from source (i.e. when C<KSELFTEST_FROM_GIT> or
+C<KSELFTEST_FROM_SRC> is set). Defaults to the number of online CPUs
+(C<getconf _NPROCESSORS_ONLN>). Has no effect when installing from a
+pre-built RPM package.
+
+Example:
+
+  KSELFTEST_BUILD_JOBS=4
+
 =head1 Example openQA Settings
 
   KSELFTEST_COLLECTION=cgroup

@@ -46,8 +46,9 @@ sub build
     zypper_call('install -t pattern --recommends devel_kernel');    # no trup support for now
     zypper_call('rl kernel-source kernel-syms') if $lock_kernel_pkgs;
 
+    my $jobs = get_var('KSELFTEST_BUILD_JOBS', '$(getconf _NPROCESSORS_ONLN)');
     my $build_env = get_var('KSELFTEST_BUILD_ENV', '');
-    my $make_cmd = "make -j\$(getconf _NPROCESSORS_ONLN) -C $source_dir/tools/testing/selftests install SKIP_TARGETS= TARGETS=$targets O=$build_dir $build_env";
+    my $make_cmd = "make -j$jobs -C $source_dir/tools/testing/selftests install O=$build_dir SKIP_TARGETS= TARGETS=$targets FORCE_TARGETS=1 $build_env";
     $make_cmd =~ s/\s+$//;
 
     assert_script_run($make_cmd, 7200);
@@ -120,7 +121,7 @@ sub install_dependencies
         install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
 
         # install test deps
-        install_available_packages('ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
+        install_available_packages('wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
 
         if (is_sle('>=16.0')) {
             # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
