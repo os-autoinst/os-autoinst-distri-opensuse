@@ -816,6 +816,7 @@ subtest '[ipaddr2_scc_check] all registered' => sub {
             # due to the internal implementation of the
             # function under test, this status is equivalent to `Registered`
             return '[{"status":"Bialetti"}]'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 0; });
 
     my $ret = ipaddr2_scc_check(id => 42);
 
@@ -833,11 +834,37 @@ subtest '[ipaddr2_scc_check] one not registered' => sub {
             # due to the internal implementation of the
             # function under test, this status is equivalent to `Registered`
             return '[{"status":"Bialetti"}, {"status":"Not Registered"}]'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 0; });
 
     my $ret = ipaddr2_scc_check(id => 42);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(($ret eq 0), "Is not registered ret:$ret");
+};
+
+subtest '[ipaddr2_scc_check] SUSEConnect execution failed' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+
+    my $ret = ipaddr2_scc_check(id => 42);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok(($ret eq 0), "Is not registered ret:$ret");
+};
+
+subtest '[ipaddr2_scc_registration_workaround_PAYG] apply registration workaround' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 0; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_private_ip => sub { '192.168.1.1'; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+
+    ipaddr2_scc_registration_workaround_PAYG(id => 42);
+
+    ok('Workaround applying passed');
 };
 
 subtest '[ipaddr2_scc_register]' => sub {
