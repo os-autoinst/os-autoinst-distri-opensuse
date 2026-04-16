@@ -1,0 +1,14 @@
+---
+name: agama_migration_leap
+description: >
+  Migration from openSUSE Leap using zypper migration
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - yam/migration/zypper_migration
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_product
+  - console/validate_repos
