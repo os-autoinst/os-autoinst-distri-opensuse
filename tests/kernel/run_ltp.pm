@@ -19,7 +19,7 @@ use Utils::Backends qw(is_backend_s390x is_pvm);
 use serial_terminal;
 use Mojo::File 'path';
 use Mojo::JSON;
-use LTP::utils 'prepare_ltp_env';
+use LTP::utils qw(prepare_ltp_env unmask_serial_failures);
 use LTP::WhiteList;
 require bmwqemu;
 
@@ -363,21 +363,11 @@ sub upload_oprofile {
 
 sub pre_run_hook {
     my ($self) = @_;
-    my @pattern_list;
 
     # Kernel error messages should be treated as soft-fail in boot_ltp,
     # install_ltp and shutdown_ltp so that at least some testing can be done.
-    # But change them to hard fail in this test module.
-    for my $pattern (@{$self->{serial_failures}}) {
-        my %tmp = %$pattern;
-
-        # don't switch to hard fail when test is expected to produce kernel warning
-        $tmp{type} = $tmp{post_boot_type} if defined($tmp{post_boot_type}) && !($tmp{soft_on_expect_warn} && get_var('LTP_WARN_EXPECTED'));
-
-        push @pattern_list, \%tmp;
-    }
-
-    $self->{serial_failures} = \@pattern_list;
+    # But change them to hard fail in this module.
+    $self->{serial_failures} = unmask_serial_failures($self->{serial_failures});
     $self->SUPER::pre_run_hook;
 }
 
