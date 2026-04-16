@@ -749,38 +749,37 @@ sub wrap_script_run {
         #     - soft memlock for sybase      [FAIL]  8192 == 64
         #     - hard memlock for sybase      [FAIL]  8192 == 64
 
-        if ($output =~ /.*memlock\sfor\ssybase/) {
-            record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
-        }
-        elsif ($output =~ /HANA.*notes.*1868829/) {
-            record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
-        }
-        elsif ($output =~ /ASE.*notes.*1410736/) {
-            record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', "$output");
-        }
-        elsif ($output =~ /transparent_hugepage.*always\s\[madvise\]\snever ==/) {
-            # Default is changed to madavise in two contexts:
-            # - for Power
-            # - on 15-SP5+ according to SAP Note 2131662 and 2031375
-            if (is_pvm or is_sle('>=15-SP5')) {
-                record_info('Issue can be ignored, see jsc#TEAM-9086', "$output");
+        my @lines = grep { /\[FAIL\]|\[WARN\]/ } split("\n", $output);
+        my (@real_failures, @ignore_issue);
+
+        foreach my $line (@lines) {
+            if ($line =~ /(.*memlock\sfor\ssybase|HANA.*notes.*1868829|ASE.*notes.*1410736)/) {
+                push @ignore_issue, $line;
+            }
+            elsif ($line =~ /transparent_hugepage.*always\s\[madvise\]\snever ==/ && (is_pvm or is_sle('>=15-SP5'))) {
+                # Default is changed to madavise in two contexts:
+                # - for Power
+                # - on 15-SP5+ according to SAP Note 2131662 and 2031375
+                push @ignore_issue, $line;
+            }
+            elsif ($line =~ /net\.ipv4\.tcp_keepalive_time.*1250/ && $output =~ /solution.*notes.*==.*1410736/) {
+                # SP6 is shipped with saptune v3.1.2. The ASE solution in this version contains the Notes: 941735 1680803 1771258 2578899 2993054 1656250.
+                # The test still assumes, that 1410736 is part of the solution, which sets (among others) net.ipv4.tcp_keepalive_time.
+                push @ignore_issue, $line;
             }
             else {
-                $result = 'fail';
-                record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', "$output");
+                push @real_failures, $line;
             }
         }
-        elsif ($output =~ /solution.*notes.*==.*1410736/ && $output =~ /net\.ipv4\.tcp_keepalive_time.*1250/) {
-            # SP6 is shipped with saptune v3.1.2. The ASE solution in this version contains the Notes: 941735 1680803 1771258 2578899 2993054 1656250.
-            # The test still assumes, that 1410736 is part of the solution, which sets (among others) net.ipv4.tcp_keepalive_time.
-            record_info('Issue can be ignored, see jsc#TEAM-9086', "$output");
-        }
-        else {
+
+        record_info('Issue can be ignored, see jsc#TEAM-8662 for more details', join("\n", @ignore_issue)) if (@ignore_issue);
+
+        if (@real_failures) {
             $result = 'fail';
-            record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', "$output");
+            record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', join("\n", @real_failures));
         }
 
-        if (is_public_cloud() && ($result == 'fail')) {
+        if (is_public_cloud() && ($result eq 'fail')) {
             # Mark Public Cloud test cases as 'softfail' not 'fail' for not blocking 'bot' auto approval
             # as for 'saptune 3.1' current/old 'mr_test' do not fit cloud instances
             #   UserTasksMax
@@ -800,7 +799,6 @@ sub wrap_script_run {
         $self->result("$result");
     }
 }
-
 
 # remove this function after the bug was fixed
 sub workaround_for_bsc1260865 {
