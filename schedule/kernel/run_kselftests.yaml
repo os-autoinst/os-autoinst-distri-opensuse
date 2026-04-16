@@ -4,7 +4,8 @@ description:    >
 schedule:
     - '{{boot}}'
     - boot/boot_to_desktop
-    - kernel/run_kselftests
+    - kernel/kselftests_prepare
+    - kernel/kselftests_run
     - shutdown/shutdown
 
 conditional_schedule:
