@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration is_sle_micro);
+use version_utils qw(is_desktop_installed is_sles4sap is_leap_migration is_sle_micro is_sle is_transactional);
 use Utils::Backends 'is_pvm';
 use Utils::Logging 'upload_solvertestcase_logs';
 use transactional;
@@ -40,7 +40,7 @@ sub run {
 
     my $zypper_migration_signing_key = qr/^Do you want to reject the key, trust temporarily, or trust always?[\s\S,]* \[r/m;
     # start migration
-    if (is_sle_micro) {
+    if (is_sle_micro || (is_sle('16.1+') && is_transactional)) {
         # We set DEBUG_TARGET_OS_TEST_ISSUES and DEBUG_TARGET_OS_TEST_REPOS
         # to add the target product's patch before migration.
         # This is for debug using, for more info please check out poo#161156.
@@ -63,6 +63,7 @@ sub run {
         if (script_run('systemctl is-active apparmor.service') == 0) {
             systemctl('disable --now apparmor.service');
         }
+        assert_script_run("echo 'url: " . get_required_var('SCC_URL') . "' > /etc/SUSEConnect") if is_sle('16.1+');
         script_run("(transactional-update migration; echo ZYPPER-DONE) | tee /dev/$serialdev", 0);
     } else {
         my $option = (is_leap_migration) || (get_var("SCC_ADDONS") =~ /phub/) || (get_var("SMT_URL") =~ /smt/) ? " --allow-vendor-change " : " ";
