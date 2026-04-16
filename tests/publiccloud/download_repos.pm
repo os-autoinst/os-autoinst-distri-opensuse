@@ -56,7 +56,9 @@ sub run {
     die "No test repositories" if ($check_empty_repos && $count == 0);
     my $ret = 0;
     my $reject = "'robots.txt,*.ico,*.png,*.gif,*.css,*.js,*.htm*,*.mirrorlist'";
-    my $regex = "'s390x\\/|ppc64le\\/|kernel*debuginfo*.rpm|src\\/'";
+    # If running on x86_64, also ignore aarch64 and viceversa
+    my $other = check_var("ARCH", "x86_64") ? "aarch64" : "x86_64";
+    my $regex = "'s390x\\/|ppc64le\\/|$other\\/|kernel*debuginfo*.rpm|src\\/'";
 
     set_var("PUBLIC_CLOUD_EMBARGOED_UPDATES_DETECTED", 0);
 
