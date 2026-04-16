@@ -11,9 +11,7 @@
 # repositores are added)
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-## no os-autoinst style
-
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
@@ -291,7 +289,7 @@ sub validate_repos_sle {
         # For the name of product channel, sle12 uses NVIDIA, sle12sp1 and sp2 use nVidia
         # Consider migration, use regex to match nvidia whether in upper, lower or mixed
         # Skip check AMD/ATI repo since it would be removed from sled12 and sle-we-12, see bsc#984866
-        if ($base_product eq "SLED" || $we && !get_required_var('FLAVOR') =~ /-Updates$|-Incidents/) {
+        if ($base_product eq "SLED" || $we && get_required_var('FLAVOR') !~ /-Updates$|-Incidents/) {
             validatelr(
                 {
                     product => "SLE-",
