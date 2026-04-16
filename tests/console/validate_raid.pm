@@ -25,7 +25,7 @@ my $raid_partitions_2_arrays = qr/(md(0|1).*){8}|(md(0|1).*){2}/s;
 # 12 raid partitions, with new lsblk output partitions are listed only once
 my $raid_partitions_3_arrays = qr/(md(0|1|2).*){12}|(md(0|1|2).*){3}/s;
 # 8 linux raid members
-my $linux_raid_member_2_arrays = qr/((v|s)d(a|b|c|d)(2|3).+linux_raid_member.*){8}/s;
+my $linux_raid_member_2_arrays = qr/((v|s)d(a|b|c|d)(1|2|3).+linux_raid_member.*){8}/s;
 # 12 linux raid members
 my $linux_raid_member_3_arrays = qr/((v|s)d(a|b|c|d)(1|2|3|4).+linux_raid_member.*){12}/s;
 # 4 hard disks
