@@ -175,6 +175,7 @@ sub cleanup_known_coredumps {
         'poo#198596' => q(openssl3-conf\/base_only.cnf -p \$'hello'),
         'bsc#1129403' => q(unzip-mem  v files.zip),
         'bsc#1261358' => q(gvfs-udisks2-volume-monitor),
+        'bsc#1261625' => q(ovs-vswitchd unix:),
     );
 
     for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1))) {
