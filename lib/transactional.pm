@@ -81,7 +81,13 @@ sub handle_first_grub {
 # update of the bootloader or any command like rollback, grub.cfg, bootloader, run or shell
 sub check_reboot_strategy_and_reboot {
     my @reboot_args;
-    if (!is_sle_micro) {
+
+    # as this will likely grow, it is better to have single line checks to give room to more
+    # complex expressions
+    my $has_soft_reboot = 1;
+    $has_soft_reboot = 0 if (is_sle_micro || is_sle);
+
+    if ($has_soft_reboot) {
         my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
         my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
         if ($output =~ $regex) {
