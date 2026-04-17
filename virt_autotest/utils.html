@@ -32,6 +32,7 @@
       <li><a href="#check_kvm_modules">check_kvm_modules</a></li>
       <li><a href="#download_installation_iso">download_installation_iso</a></li>
       <li><a href="#install_product_software">install_product_software</a></li>
+      <li><a href="#collect_guests_supportconfig_and_logs">collect_guests_supportconfig_and_logs</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -137,6 +138,12 @@
     ,pattern2&#39;)</code></pre>
 
 <p>Install desired packages and patterns from existing product repositories if settings INSTALL_PRODUCT_PACKAGES and INSTALL_PRODUCT_PATTERNS are specified with packages and patterns separated by comma. User can also specify desired pacakges and patterns by passing in arguments package and pattern.</p>
+
+<h2 id="collect_guests_supportconfig_and_logs">collect_guests_supportconfig_and_logs</h2>
+
+<pre><code>collect_guests_supportconfig_and_logs();</code></pre>
+
+<p>Runs supportconfig and collects compressed /var/log* from all guests</p>
 
 
 </body>
