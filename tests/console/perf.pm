@@ -15,7 +15,7 @@ use Utils::Architectures;
 
 # Auxiliar function to filter and group events
 sub run_perf_stat_grouped {
-    my $raw_list = script_output("perf list --raw-dump");
+    my $raw_list = script_output("perf --no-pager list --raw-dump");
 
     # Define groups of events
     my %groups = (
