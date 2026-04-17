@@ -44,7 +44,8 @@ use testapi;
 use registration;
 use utils;
 use publiccloud::ssh_interactive qw(select_host_console);
-use publiccloud::utils qw(zypper_call_remote is_azure);
+use publiccloud::utils qw(is_azure);
+use publiccloud::zypper qw(refresh);
 
 sub test_flags {
     return {fatal => 1};
@@ -63,7 +64,7 @@ sub run {
 
         my $cmd_time = time();
         my $ref_timeout = is_azure ? 3600 : 240;
-        zypper_call_remote($instance, cmd => " --gpg-auto-import-keys ref", timeout => $ref_timeout, retry => 6, delay => 60);
+        refresh($instance, timeout => $ref_timeout, retry => 6, delay => 60);
         record_info('zypper ref time', 'The command zypper -n ref took ' . (time() - $cmd_time) . ' seconds.');
         record_soft_failure('bsc#1195382 - Considerable decrease of zypper performance and increase of registration times') if ((time() - $cmd_time) > 240);
 

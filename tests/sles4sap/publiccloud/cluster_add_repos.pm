@@ -35,7 +35,8 @@ QE-SAP <qe-sap@suse.de>
 
 use Mojo::Base 'sles4sap::publiccloud_basetest';
 use sles4sap::publiccloud;
-use publiccloud::utils qw(zypper_call_remote is_azure);
+use publiccloud::utils qw(is_azure);
+use publiccloud::zypper qw(zypper_call refresh);
 use qam;
 use testapi;
 
@@ -57,14 +58,14 @@ sub run {
         }
         foreach my $instance (@{$self->{instances}}) {
             next if ($instance->{'instance_id'} !~ m/vmhana/);
-            zypper_call_remote($instance, cmd => "addrepo $repo TEST_$repo_index", timeout => 240, retry => 6, delay => 60);
+            zypper_call($instance, "addrepo $repo TEST_$repo_index", timeout => 240, retry => 6, delay => 60);
         }
         $repo_index++;
     }
     my $ref_timeout = is_azure ? 900 : 240;
     foreach my $instance (@{$self->{instances}}) {
         next if ($instance->{'instance_id'} !~ m/vmhana/);
-        zypper_call_remote($instance, cmd => " --gpg-auto-import-keys ref", timeout => $ref_timeout, retry => 6, delay => 60);
+        refresh($instance, timeout => $ref_timeout, retry => 6, delay => 60);
     }
 }
 

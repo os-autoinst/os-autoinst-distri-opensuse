@@ -917,7 +917,8 @@ sub _ssh_fully_patch_system_run_patch {
 
     if ($instance) {
         $cmd = "patch --with-interactive -l";
-        $ret = $instance->publiccloud::utils::zypper_call_remote($cmd, exitcode => $accept_codes, timeout => $timeout);
+        require publiccloud::zypper;
+        $ret = publiccloud::zypper::pkg_call($instance, $cmd, exitcode => $accept_codes, timeout => $timeout);
     }
     else {
         $cmd = "ssh $remote 'sudo zypper -n patch --with-interactive -l'";

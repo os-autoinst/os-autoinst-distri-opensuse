@@ -62,16 +62,11 @@ sub install_build_deps {
 
     push @deps, $kernel_devel_pkg;
 
-    if (is_transactional) {
-        $instance->ssh_assert_script_run(
-            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', join(' ', @deps)),
-            timeout => 300
-        );
-        $instance->softreboot();
-    } else {
-        $instance->zypper_call_remote(cmd => "install --no-recommends " . join(' ', @deps));
-    }
-
+    publiccloud::zypper::pkg_call(
+        $instance,
+        'install --no-recommends ' . join(' ', @deps),
+        timeout => 300,
+    );
     install_optional_build_deps($instance);
 }
 
@@ -372,7 +367,7 @@ sub install_ec2_cloudwatch_agent
         $instance->softreboot();
     } else {
         if (is_sle(">12-SP5")) {
-            $instance->zypper_call_remote(cmd => "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
+            publiccloud::zypper::zypper_call($instance, "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
         } else {
             $instance->ssh_assert_script_run("sudo rpm -Uvh $download_directory/$rpm_file");
         }
@@ -485,20 +480,12 @@ sub register_instance {
 sub install_ltp {
     my ($instance, $ltp_repo_name, $ltp_repo_url, $ltp_package_name) = @_;
 
-    $instance->ssh_assert_script_run(
-        cmd => "sudo zypper -n addrepo -fG $ltp_repo_url $ltp_repo_name",
-        timeout => 600
+    publiccloud::zypper::add_repo($instance, $ltp_repo_name, $ltp_repo_url);
+    publiccloud::zypper::pkg_call(
+        $instance,
+        "install --no-recommends $ltp_package_name",
+        timeout => 300,
     );
-
-    if (is_transactional) {
-        $instance->ssh_assert_script_run(
-            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', $ltp_package_name),
-            timeout => 300
-        );
-        $instance->softreboot();
-    } else {
-        $instance->zypper_call_remote(cmd => "install --no-recommends " . $ltp_package_name);
-    }
 }
 
 sub prepare_skip_tests {
@@ -624,90 +611,27 @@ sub gen_ltp_env {
     return $self->{ltp_env};
 }
 
-=head2 get_installed_packages_remote
-
-get_installed_packages_remote($instance, $packages_ref)
-
-This function checks which packages from the provided list are installed on the remote instance.
-It returns an array reference containing the names of the installed packages.
-
-=cut
-
-sub get_installed_packages_remote {
-    my ($instance, $packages_ref) = @_;
-
-    my $pkg_list = join(' ', @$packages_ref);
-    my $cmd = "rpm -q --qf '%{NAME}|' $pkg_list 2>/dev/null";
-
-    my $output = $instance->ssh_script_output(
-        cmd => $cmd,
-        proceed_on_failure => 1
-    );
-
-    my %installed;
-    for my $entry (split /\|/, $output) {
-        next if $entry =~ /is not installed/i;
-        $installed{$entry} = 1;
-    }
-
-    my @found = grep { $installed{$_} } @$packages_ref;
-    return \@found;
-}
-
-=head2 get_available_packages_remote
-
-get_available_packages_remote($instance, $packages_ref)
-
-This function checks which packages from the provided list are available for installation on the remote instance.
-It returns an array reference containing the names of the available packages.
-It uses `zypper -x info` to query the availability of packages.
-
-=cut
-
-sub get_available_packages_remote {
-    my ($instance, $packages_ref) = @_;
-    die "Expected arrayref" unless ref($packages_ref) eq 'ARRAY';
-
-    my %installed = map { $_ => 1 } @{get_installed_packages_remote($instance, $packages_ref)};
-    my @not_installed = grep { !$installed{$_} } @$packages_ref;
-
-    return '' unless @not_installed;
-
-    my $pkg_list = join(' ', @not_installed);
-    my $output = $instance->ssh_script_output(
-        cmd => "zypper -x info $pkg_list 2>/dev/null",
-        proceed_on_failure => 1
-    );
-
-    # Grep all "Name           : <pkg>" lines
-    my %available = map { $_ => 1 } ($output =~ /^Name\s*:\s*(\S+)/mg);
-
-    my @result = grep { $available{$_} } @not_installed;
-    return join(' ', @result);
-}
-
-=head2 zypper_install_available_remote
+=head2 install_optional_build_deps
 
 install_optional_build_deps($instance)
 
-This function checks which packages from the get_maybe_build_dependencies list are available for installation on the remote instance.
-If any packages are available, it installs them using zypper_call_remote.
+This function checks which packages from the get_maybe_build_dependencies list
+are available for installation on the remote instance. If any packages are
+available, it installs them via C<publiccloud::zypper::pkg_call>.
 
 =cut
 
 sub install_optional_build_deps {
     my ($instance) = @_;
-    my $available = get_available_packages_remote($instance, [get_maybe_build_dependencies()]);
-    return unless ($available && $available =~ /\S/);
-    if (is_transactional) {
-        $instance->ssh_assert_script_run(
-            cmd => sprintf('sudo transactional-update -n pkg in --no-recommends %s', $available),
-            timeout => 300
-        );
-        $instance->softreboot();
-    } else {
-        $instance->zypper_call_remote("install --no-recommends " . $available);
-    }
+    my $available = publiccloud::zypper::available_packages(
+        $instance, [get_maybe_build_dependencies()]
+    );
+    return unless @$available;
+    publiccloud::zypper::pkg_call(
+        $instance,
+        'install --no-recommends ' . join(' ', @$available),
+        timeout => 300,
+    );
 }
 
 sub test_flags {

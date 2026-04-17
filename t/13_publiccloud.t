@@ -9,6 +9,7 @@ use testapi 'set_var';
 
 use publiccloud::azure;
 use publiccloud::utils;
+use publiccloud::zypper;
 
 sub _unset { for my $k (@_) { set_var($k, undef) } }
 
