@@ -24,6 +24,7 @@ buildah:
   # https://github.com/containers/buildah/pull/6271 - Update "bud with --cpu-shares" test, and rename it
   # https://github.com/containers/buildah/pull/6602 is needed with docker v29
   # https://github.com/containers/buildah/pull/6701 is needed to test on arches other than amd64
+  # https://github.com/containers/buildah/pull/6791 - CI: remove dependencies on online apt repositories
   5495:
     merged: "1.36.0"
   6226:
@@ -34,6 +35,8 @@ buildah:
     min: "1.43.0"
   6701:
     min: "1.43.0"
+  6791:
+    min: "1.39.5"
 
 buildx:
   # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
