@@ -10,7 +10,7 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 use Utils::Architectures;
 
 # Auxiliar function to filter and group events
@@ -47,7 +47,7 @@ sub run {
 
     # test 1
     # Installing and testing options -a -d -p
-    zypper_call('in perf', exitcode => [0, 102, 103, 106]) if (script_run("which perf") != 0);
+    install_package('perf', trup_reboot => 1);
     assert_script_run('perf stat -a -d -p 1 sleep 5');
     # test 2
     # Counting with perf stat

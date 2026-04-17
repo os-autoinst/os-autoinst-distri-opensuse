@@ -14,11 +14,12 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(clear_console zypper_call);
+use utils 'clear_console';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    zypper_call 'in dialog';
+    install_package('dialog', trup_reboot => 1);
     select_console 'root-console';
 
     # To avoid bsc#1180307
