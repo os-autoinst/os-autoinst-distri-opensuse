@@ -22,13 +22,11 @@ schedule:
     - console/clamav
     - coverage/coverage_report
 test_data:
-    # these packages are needed by the tests, we need to install them early to instrument them
-    extra_packages:
-        - clamav
-    # the following section is an array of binaries that we want to instrument
+    # package -> binary (or list of binaries) to instrument
     coverage_targets:
-        # - /usr/bin/freshclam # needs investigation, gives operation not permitted
-        - /usr/bin/clamdscan
-        - /usr/bin/clamscan
-        - /usr/bin/sigtool
-        - /usr/sbin/clamd
+        clamav:
+            # - /usr/bin/freshclam # needs investigation, gives operation not permitted
+            - /usr/bin/clamdscan
+            - /usr/bin/clamscan
+            - /usr/bin/sigtool
+            - /usr/sbin/clamd
