@@ -19,6 +19,7 @@ use version_utils qw(is_sle is_public_cloud);
 use Utils::Architectures;
 use Mojo::JSON 'encode_json';
 use publiccloud::instances;
+use publiccloud::utils qw(is_azure);
 use mr_test_lib qw(get_notes get_solutions);
 
 =head1 NAME
@@ -766,6 +767,10 @@ sub wrap_script_run {
                 # SP6 is shipped with saptune v3.1.2. The ASE solution in this version contains the Notes: 941735 1680803 1771258 2578899 2993054 1656250.
                 # The test still assumes, that 1410736 is part of the solution, which sets (among others) net.ipv4.tcp_keepalive_time.
                 push @ignore_issue, $line;
+            }
+            elsif ($output =~ /TMPFS.*?\[FAIL\].*?33% > 5%/ && is_azure()) {
+                # With saptune 3.2.3 TMPFS is left alone on Azure because it cannot be set reliably anymore
+                record_soft_failure('Issue can be ignored, see c1 in bsc#1261666');
             }
             else {
                 push @real_failures, $line;
