@@ -13,7 +13,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal;
-use jeos qw(set_grub_gfxmode);
+use jeos qw(set_grub_gfxmode disable_grub_timeout);
 use utils qw(ensure_serialdev_permissions);
 use Utils::Architectures qw(is_s390x);
 use version_utils qw(is_sle);
@@ -22,6 +22,7 @@ sub run {
     select_console('root-console');
 
     set_grub_gfxmode;
+    disable_grub_timeout;
     ensure_serialdev_permissions;
     prepare_serial_console;
     if (is_s390x && is_sle('16.0+')) {
