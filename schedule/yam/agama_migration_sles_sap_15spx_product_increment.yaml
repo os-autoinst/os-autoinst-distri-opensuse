@@ -1,0 +1,24 @@
+---
+name: agama_migration_sles_sap_15spx_product_increment
+description: >
+  Migration from SLES for SAP 15SPx for product increment.
+schedule:
+  - yam/migration/setup_upgrade_env
+  - autoyast/prepare_profile
+  - installation/bootloader_start
+  - autoyast/installation
+  - installation/first_boot
+  - console/system_prepare
+  - qa_automation/patch_and_reboot
+  - console/hostname
+  - sles4sap/patterns
+  - sles4sap/netweaver_install
+  - sles4sap/netweaver_test_instance
+  - yam/migration/restore_upgrade_env
+  - yam/migration/migration_unattended
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_product
+  - console/validate_repos
