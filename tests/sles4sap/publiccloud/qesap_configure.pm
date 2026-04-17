@@ -129,14 +129,6 @@ Storage key name for PTFs.
 
 Azure fencing type (e.g., 'spn', 'msi').
 
-=item B<AZURE_SPN_APPLICATION_ID>
-
-SPN ID for Azure fencing.
-
-=item B<AZURE_SPN_APP_PASSWORD>
-
-SPN password for Azure fencing.
-
 =item B<SCC_REGCODE_SLES4SAP>
 
 SCC registration code for SLES for SAP.
@@ -158,7 +150,7 @@ package qesap_configure;
 use Mojo::Base 'sles4sap::publiccloud_basetest';
 use testapi;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos detect_worker_ip);
+use publiccloud::utils qw(is_azure is_gce is_ec2 get_ssh_private_key_path is_byos detect_worker_ip get_credentials);
 use sles4sap::publiccloud;
 use sles4sap::qesap::qesapdeployment;
 use sles4sap::qesap::azure;
@@ -325,8 +317,9 @@ sub run {
     if ($playbook_configs{fencing} eq 'native' and is_azure()) {
         $playbook_configs{fence_type} = get_required_var('AZURE_FENCE_AGENT_CONFIGURATION');
         if ($playbook_configs{fence_type} eq 'spn') {
-            $playbook_configs{spn_application_id} = get_var('AZURE_SPN_APPLICATION_ID', get_required_var('_SECRET_AZURE_SPN_APPLICATION_ID'));
-            $playbook_configs{spn_application_password} = get_var('AZURE_SPN_APP_PASSWORD', get_required_var('_SECRET_AZURE_SPN_APP_PASSWORD'));
+            my $data = get_credentials(url_suffix => 'azure.json');
+            $playbook_configs{spn_application_id} = $data->{fencing_client_id};
+            $playbook_configs{spn_application_password} = $data->{fencing_client_secret};
         }
     }
 
