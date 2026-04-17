@@ -11,12 +11,13 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging qw(upload_coredumps cleanup_known_coredumps);
+use version_utils qw(is_tumbleweed);
 
 sub run {
     my $self = shift;
     select_serial_terminal;
 
-    cleanup_known_coredumps;
+    cleanup_known_coredumps unless is_tumbleweed;
     upload_coredumps;
 }
 
