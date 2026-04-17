@@ -55,8 +55,8 @@ sub run {
     # change some default values
     file_content_replace("/tmp/$b1_cfg", '%SERVER%' => $hostname, '%INSTANCE%' => $instid, '%TENANT_DB%' => $sid, '%PASSWORD%' => $sles4sap::instance_password);
 
-    # initial workaround for 15-SP7 and b1 installer 2502
-    $self->b1_workaround_os_version;
+    # disabled as 2602 does not need workaround for 15-SP7
+    #$self->b1_workaround_os_version;
 
     # Install
     assert_script_run "$install_bin -i silent -f /tmp/$b1_cfg --debug", $tout;
