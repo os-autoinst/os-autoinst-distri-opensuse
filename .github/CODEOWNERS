@@ -16,6 +16,7 @@ lib/main_containers.pm @pdostal @grisu48 @mloviska @ricardobranco777
 # Transactional systems
 products/microos/ @mloviska @ricardobranco777
 tests/microos/ @mloviska @ricardobranco777
+tests/microos/install_image.pm @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
 products/sle-micro/ @mloviska @ricardobranco777
 products/alp/ @mloviska @ricardobranco777
 tests/jeos/ @mloviska @ricardobranco777
@@ -36,11 +37,10 @@ tests/network/setup_multimachine.pm @pdostal
 lib/Utils/Logging.pm @pdostal
 
 # HPC
-lib/hpc/ @d3flex @schlad
-tests/hpc/ @d3flex @schlad
-data/hpc/ @d3flex @schlad
-schedule/hpc/ @d3flex @schlad
-tests/publiccloud/nvidia.pm @d3flex
+lib/hpc/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+tests/hpc/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+data/hpc/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+schedule/hpc/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
 
 # QE-SAP
 data/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
@@ -66,3 +66,30 @@ schedule/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimord
 test_data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
 tests/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
 tests/fips/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
+
+# Kernel, xfstests, IPsec, NFS, btrfs-progs, rt, kdump, nvidia, kselftests, storage
+tests/kernel/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+tests/xfstests/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+tests/ipsec/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+tests/nfs/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+tests/btrfs-progs/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+tests/rt/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+tests/publiccloud/nvidia.pm @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+tests/installation/ipxe_install.pm @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+schedule/kernel/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+schedule/ipsec/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+schedule/storage/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+schedule/qam/common/kernel/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+lib/kernel.pm @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+lib/Kernel/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+lib/Kselftests/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+lib/LTP/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+lib/xfstests_utils.pm @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+lib/kdump_utils.pm @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+lib/nvidia_utils.pm @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+data/kernel/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+data/xfstests/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+data/btrfs-progs/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+data/filesystem/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+data/ltp/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
+
