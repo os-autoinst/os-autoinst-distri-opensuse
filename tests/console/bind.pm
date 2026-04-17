@@ -27,10 +27,9 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use utils qw(zypper_call zypper_version_cmp);
 use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
-use version_utils qw(package_version_cmp);
 
 sub run {
     select_serial_terminal;
@@ -83,7 +82,7 @@ sub run {
     assert_script_run 'ip a';
     my $bind_cmd;
     my $worker_count = is_sle('<15-SP2') ? 2 : 8;
-    if (package_version_cmp($bind_version, '9.18.33') <= 0) {
+    if (zypper_version_cmp($bind_version, '9.18.33') <= 0) {
         $bind_cmd = "runuser -u bernhard -- sh runall.sh -n $worker_count";
     }
     else {
@@ -98,11 +97,11 @@ sub run {
         record_info 'Retry:', 'poo#71329';
         for (1 .. 3) {
             eval {
-                if (package_version_cmp($bind_version, '9.18.33') <= 0) {
+                if (zypper_version_cmp($bind_version, '9.18.33') <= 0) {
                     assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' /tmp/test-suite.txt); echo $TFAIL';
                     assert_script_run "for t in \$TFAIL; do runuser -u bernhard -- sh run.sh \$t; done", 2000;
                 }
-                elsif (package_version_cmp($bind_version, '9.20.9') < 0) {
+                elsif (zypper_version_cmp($bind_version, '9.20.9') < 0) {
                     assert_script_run 'TFAIL=$(awk \'/^FAIL:/ {print$2}\' /tmp/test-suite.txt); echo $TFAIL';
                     assert_script_run "for t in \$TFAIL; do runuser -u bernhard -- sh run.sh \$t; done", 2000;
                 }
