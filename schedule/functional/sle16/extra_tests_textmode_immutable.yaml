@@ -56,7 +56,6 @@ schedule:
     - console/shar
     - console/sshd
     - console/update_alternatives
-    - console/rpm
     - console/slp
     - console/pkcon
     - console/command_not_found
