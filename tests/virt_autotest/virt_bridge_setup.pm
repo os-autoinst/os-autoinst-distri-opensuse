@@ -5,10 +5,8 @@
 # Summary: test virt-bridge-setup tool on sle16.1+
 # Maintainer: qe-virt@suse.de, Julie CAO <JCao@suse.com>
 
-## no os-autoinst style
-
 package virt_bridge_setup;
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use testapi;
 use version_utils qw(is_sle);
 use Utils::Architectures;
@@ -28,7 +26,7 @@ sub run {
 
     # Setup br0 with virt-bridge-setup tool
     setup_br0_with_virt_bridge_setup if is_sle('16.1+') and !is_s390x;
-    test_br0_created;
+    test_br0_created();
 
     check_host_health;
 }
