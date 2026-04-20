@@ -6,6 +6,7 @@ vars:
   TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
   - boot/boot_to_desktop
+  - '{{validate_repo}}'
   - sles4sap/sap_deployment_automation_framework/create_deployer_vm
   - sles4sap/sap_deployment_automation_framework/connect_to_deployer
   - sles4sap/sap_deployment_automation_framework/configure_deployer
@@ -20,6 +21,10 @@ schedule:
   - sles4sap/redirection_tests/check_netweaver
 
 conditional_schedule:
+  validate_repo:
+    IS_MAINTENANCE:
+      1:
+        - publiccloud/validate_repos
   maintenance_update:
     IS_MAINTENANCE:
       1:
