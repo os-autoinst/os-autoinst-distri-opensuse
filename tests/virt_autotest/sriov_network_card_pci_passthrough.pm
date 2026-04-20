@@ -77,6 +77,10 @@ sub run_test {
             record_info("Skip SR-IOV test on $guest", "SEV/SEV-ES guest $guest does not support SR-IOV");
             next;
         }
+        if (is_pv_guest($guest)) {
+            record_soft_failure("bsc#1262599 - SR-IOV PCI passthrough is not supported on Xen PV guest $guest, skipping.");
+            next;
+        }
         record_info("Test $guest");
         prepare_guest_for_sriov_passthrough($guest);
         save_network_device_status_logs($guest, "1-initial");
