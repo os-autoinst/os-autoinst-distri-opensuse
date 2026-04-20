@@ -56,6 +56,12 @@ sub run {
             }
         }
     );
+    $self->run_in_powershell(
+        cmd => '$port.WriteLine($(Get-LocalUser | Where-Object { $_.Enabled } | Select Name,PasswordExpires))',
+        code => sub {
+            wait_serial("Name=Bernhard.*PasswordExpires=(?>)}") || die "Failed to disable max password age";
+        }
+    );
     $self->close_powershell;
 }
 
