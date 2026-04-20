@@ -83,8 +83,7 @@ sub run {
     }
 
     else {
-        send_key 'ret';
-        assert_screen "displaymanager-password-prompt";
+        send_key_until_needlematch('displaymanager-password-prompt', 'ret', 4, 3);
         type_password;
         wait_still_screen 3;
         send_key "ret";
