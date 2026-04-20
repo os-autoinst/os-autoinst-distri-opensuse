@@ -34,9 +34,9 @@ sub run {
         # LTSS should be disabled before the migration
         $instance->ssh_assert_script_run("sudo SUSEConnect -d -p SLES-LTSS/12.5/x86_64", timeout => 180);
 
-        $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration");
+        $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration");
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo zypper -n in suse-migration-sle15-activation", timeout => 1800);
+        $instance->ssh_assert_script_run("sudo zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => 2400);
         $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
 
@@ -64,9 +64,9 @@ sub run {
             $instance->ssh_assert_script_run(qq(echo -e "network:\\n    wicked2nm-continue-migration: true\\n" | sudo tee -a /etc/sle-migration-service.yml));
         }
 
-        $instance->ssh_assert_script_run("sudo zypper -n ar -Gef -p90 " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration");
+        $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration");
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo zypper -n in SLES16-Migration suse-migration-sle16-activation", timeout => 1800);
+        $instance->ssh_assert_script_run("sudo zypper -n in SLES16-Migration suse-migration-sle16-activation", timeout => 2400);
         $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
 
@@ -93,14 +93,14 @@ sub print_os_version {
 sub validate_version {
     my $instance = shift;
     print_os_version($instance);
-    my $version = get_var('VERSION');
+    my $version = get_required_var('VERSION');
     my $sourced_version = $instance->ssh_script_output('source /etc/os-release && echo $VERSION');
 
-    fix_sftp_subsystem($instance) if ($sourced_version eq '16.0');
+    fix_sftp_subsystem($instance);
 
-    my $now = Time::Piece::localtime->strftime('%Y%m%d%H%M%S');
-    $instance->upload_log("/var/log/migration_startup.log", log_name => "migration_startup_${sourced_version}_$now.txt") if ($instance->ssh_script_run("test -f /var/log/migration_startup.log") == 0);
-    $instance->upload_log("/var/log/distro_migration.log", log_name => "distro_migration_${sourced_version}_$now.txt") if ($instance->ssh_script_run("test -f /var/log/distro_migration.log") == 0);
+    my $now = Time::Piece::localtime->strftime('%H%M%S');
+    $instance->upload_log("/var/log/migration_startup.log", log_name => "migration_startup_${sourced_version}_$now.txt", failok => 1) if ($instance->ssh_script_run("test -f /var/log/migration_startup.log") == 0);
+    $instance->upload_log("/var/log/distro_migration.log", log_name => "distro_migration_${sourced_version}_$now.txt", failok => 1) if ($instance->ssh_script_run("test -f /var/log/distro_migration.log") == 0);
 
     if ($version ne $sourced_version) {
         record_info("OS-Version", "Current: $sourced_version\nOriginal SUT: $version");
@@ -112,12 +112,31 @@ sub validate_version {
 
 sub fix_sftp_subsystem {
     my $instance = shift;
-    record_soft_failure('bsc#1261036 - sshd sftp misconfiguration in sles16.0 migrated from sles15-sp7');
-    $instance->ssh_script_run("echo subsystem sftp /usr/libexec/ssh/sftp-server | sudo tee /etc/ssh/sshd_config.d/60-sftp.conf", timeout => 600);
-    $instance->ssh_script_run("sudo systemctl restart sshd", timeout => 600);
-    script_run('ssh -O status ' . $instance->username . '@' . $instance->public_ip);
-    script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
-    $instance->ssh_script_run("sudo sshd -T", timeout => 600);
+
+    my $sftp_path;
+    if ($instance->ssh_script_run('sudo test -f /usr/lib/ssh/sftp-server') == 0) {
+        $sftp_path = '/usr/lib/ssh/sftp-server';
+    } elsif ($instance->ssh_script_run('sudo test -f /usr/libexec/ssh/sftp-server') == 0) {
+        $sftp_path = '/usr/libexec/ssh/sftp-server';
+    } else {
+        die('The sftp-server location is not known.');
+    }
+    record_info('SFTP', "The sftp-server is in $sftp_path");
+
+    if ($instance->ssh_script_run("sudo sshd -T | grep $sftp_path") != 0) {
+        record_soft_failure('bsc#1261036 - sshd sftp misconfiguration in sles16.0 migrated from sles15-sp7');
+        $instance->ssh_script_run('sudo sed -i "/sftp-server/d" /etc/ssh/sshd_config');
+        $instance->ssh_script_run("echo 'subsystem sftp $sftp_path' | sudo tee /etc/ssh/sshd_config.d/60-sftp.conf", timeout => 600);
+        if ($instance->ssh_script_run('sudo test -f /etc/ssh/sshd_config') == 0) {
+            $instance->ssh_script_run('sudo mkdir -p /etc/ssh/sshd_config.d');
+            $instance->ssh_script_run("echo 'Include /etc/ssh/sshd_config.d/*.conf' | sudo tee -a /etc/ssh/sshd_config");
+        }
+        $instance->ssh_script_run("sudo systemctl restart sshd", timeout => 600);
+        script_run('ssh -O exit ' . $instance->username . '@' . $instance->public_ip);
+        record_info('SSHD SFTP', $instance->ssh_script_output('sudo sshd -T | grep sftp'));
+    } else {
+        record_info('SSHD SFTP', $instance->ssh_script_output('sudo sshd -T | grep sftp'));
+    }
 }
 
 1;
