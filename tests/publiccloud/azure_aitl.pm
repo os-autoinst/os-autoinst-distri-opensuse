@@ -34,6 +34,11 @@ sub run {
 
     my $aitl_image_gallery = "test_image_gallery";
     my $aitl_image_version = "latest";
+    if (get_var("FLAVOR") =~ /Maintenance/) {
+        $aitl_image_version = $provider->get_image_version();
+        $aitl_image_version =~ s/.*\/versions\///;
+        record_info("AITL image version:", $aitl_image_version);
+    }
     my $aitl_job_name = "openqa-aitl-$job_id";
     my $aitl_manifest = "custom.json";
     my $aitl_image_name = $provider->generate_azure_image_definition();

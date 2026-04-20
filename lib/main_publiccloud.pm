@@ -49,6 +49,8 @@ sub load_maintenance_publiccloud_tests {
         loadtest('publiccloud/ahb', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
         loadtest("publiccloud/bsc_1205002", run_args => $args);
+    } elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
+        loadtest "publiccloud/azure_aitl", run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
         loadtest("publiccloud/registercloudguest", run_args => $args, name => "re-registration");
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
