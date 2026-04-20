@@ -34,7 +34,7 @@ sub load_kernel_tests {
     loadtest_kernel "../installation/bootloader" if (is_pvm && !get_var('LTP_BAREMETAL'));
 
     if (get_var('INSTALL_LTP')) {
-        if (is_transactional) {
+        if (is_transactional && (get_var('FLAVOR', '') !~ /Immutable/)) {
             # Handle specific boot requirements for different backends and architectures
             if (is_s390x) {
                 loadtest 'boot/boot_to_desktop';
