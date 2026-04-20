@@ -94,6 +94,8 @@ sub do_power_mgmt_tests {
     check_vmtools_service() if (is_svirt);
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
+    # Disconnect CD-ROM
+    esxi_vm_disconnect_cdrom($vm_id);
 
     record_info('Guest Power On');
     $powerops = 'power.on';
