@@ -181,7 +181,7 @@ sub cleanup_known_coredumps {
     for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1))) {
         for my $known (keys %known_coredumps) {
             my $coredump_info = script_output("time coredumpctl info --no-pager $pid", proceed_on_failure => 1);
-            if (script_output("echo \"$coredump_info\" | awk -F ': ' '/Command Line/ {print \$2}'") =~ /$known_coredumps{$known}/) {
+            if (script_output("echo \"$coredump_info\" | sed -n 's/^ *Command Line: //p'") =~ /$known_coredumps{$known}/) {
                 record_info('Known dump', $coredump_info);
                 script_output("rm -vf \$(echo \"$coredump_info\" | awk '/Storage:/ {print \$2}')");
             }
