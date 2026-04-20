@@ -9,7 +9,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use version_utils qw(is_community_jeos is_jeos is_transactional);
+use version_utils qw(is_community_jeos is_jeos is_transactional is_sle);
 use serial_terminal qw(select_serial_terminal);
 use Utils::Logging 'tar_and_upload_log';
 
@@ -20,7 +20,9 @@ sub run {
     my $zypp_econf = !script_run("rpm -q --provides libzypp | grep 'libzypp(econf)'");
     my $zypp_etc = !script_run("test -f /etc/zypp/zypp.conf");
 
-    if ($zypp_econf && !$zypp_etc) {
+    # sle 16.1 is missing the zypp-.* packages
+    # the configuration is located in drop-in files located in /etc/zypp or /usr/etc/
+    if ($zypp_econf && !$zypp_etc && !is_sle('16.1+')) {
         $zypp_conf_dir = '/usr/etc/zypp/';
 
         my @packages = qw(zypp-excludedocs zypp-no-recommends);
