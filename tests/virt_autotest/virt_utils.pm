@@ -93,9 +93,7 @@ sub get_version_for_daily_build_guest {
         $version = get_var("VERSION", '');
     }
     $version = lc($version);
-    if ($version !~ /sp/m) {
-        $version = $version . "-fcs";
-    }
+    $version =~ s/\./-/g;
     return $version;
 }
 
