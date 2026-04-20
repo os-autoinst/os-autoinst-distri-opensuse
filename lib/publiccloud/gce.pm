@@ -14,7 +14,6 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
 use publiccloud::ssh_interactive 'select_host_console';
-use DateTime;
 
 sub init {
     my ($self, %params) = @_;
@@ -211,10 +210,7 @@ sub upload_boot_diagnostics {
         record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on gce, undefined instance or region or availability zone');
         return;
     }
-    my $dt = DateTime->now;
-    my $time = $dt->hms;
-    $time =~ s/:/-/g;
-    my $asset_path = "/tmp/console-$time.txt";
+    my $asset_path = "/tmp/console.txt";
     # gce provides full serial log, so extended timeout
     script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region-$availability_zone --port=1 > $asset_path", timeout => 180);
     if (script_output("du $asset_path | cut -f1") < 8) {

@@ -14,7 +14,6 @@ use testapi;
 use publiccloud::utils "is_byos";
 use publiccloud::aws_client;
 use publiccloud::ssh_interactive 'select_host_console';
-use DateTime;
 
 has ssh_key_pair => undef;
 use constant SSH_KEY_PEM => 'QA_SSH_KEY.pem';
@@ -169,10 +168,7 @@ sub upload_boot_diagnostics {
         record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on ec2, undefined instance');
         return;
     }
-    my $dt = DateTime->now;
-    my $time = $dt->hms;
-    $time =~ s/:/-/g;
-    my $asset_path = "/tmp/console-$time.txt";
+    my $asset_path = "/tmp/console.txt";
     script_run("aws ec2 get-console-output --latest --color=off --no-paginate --output text --instance-id $instance_id &> $asset_path", proceed_on_failure => 1);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info("EMPTY", "The console log is empty. `cat $asset_path`:\n" . script_output("cat $asset_path"));
@@ -182,7 +178,7 @@ sub upload_boot_diagnostics {
         upload_logs("$asset_path", failok => 1);
     }
 
-    $asset_path = "/tmp/console-$time.jpg";
+    $asset_path = "/tmp/console.jpg";
     script_run("aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > $asset_path");
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info('empty screenshot', 'The console screenshot is empty.');

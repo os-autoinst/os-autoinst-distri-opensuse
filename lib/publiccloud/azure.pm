@@ -17,7 +17,6 @@ use utils qw(script_retry script_output_retry);
 use publiccloud::azure_client;
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
-use DateTime;
 
 has resource_group => 'openqa-upload';
 has container => 'sle-images';
@@ -536,10 +535,7 @@ sub upload_boot_diagnostics {
     # Wait until the bootlog blob is created
     script_retry("az vm boot-diagnostics get-boot-log-uris $names", delay => 15, retry => 12, die => 1);
 
-    my $dt = DateTime->now;
-    my $time = $dt->hms;
-    $time =~ s/:/-/g;
-    my $asset_path = "/tmp/console-$time.txt";
+    my $asset_path = "/tmp/console.txt";
     script_run("timeout 110 az vm boot-diagnostics get-boot-log $names | jq -Mr '.' > $asset_path", timeout => 120);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info("EMPTY", "The console log is empty. `cat $asset_path`:\n" . script_output("cat $asset_path"));
