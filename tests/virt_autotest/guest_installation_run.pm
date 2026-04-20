@@ -32,12 +32,6 @@ sub get_script_run {
     my ($regcode, $regcode_ltss) = get_guest_regcode(separator => '|');
     my $kernel_params = get_guest_settings(settings => 'GUEST_EXT_KERNEL_PARAMS', separator => '|');
     $pre_test_cmd .= " -f \"" . $guest_pattern . "\" -n " . $parallel_num . " -r " . " -e \"" . $regcode . "\" -E \"" . $regcode_ltss . "\" -k \"" . $kernel_params->{'GUEST_EXT_KERNEL_PARAMS'} . "\"";
-    if ($guest_pattern =~ /sles-16/) {
-        my $agama_mirror_repo = get_var('MIRROR_HTTP');
-        if ($agama_mirror_repo) {
-            $pre_test_cmd .= " -l \"" . $agama_mirror_repo . "\"";
-        }
-    }
     $pre_test_cmd .= " 2>&1 | tee /tmp/s390x_guest_install_test.log" if (is_s390x);
 
     return $pre_test_cmd;
