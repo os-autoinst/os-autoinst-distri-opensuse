@@ -77,6 +77,7 @@
       <li><a href="#guest_installation_run">guest_installation_run</a></li>
       <li><a href="#prepare_guest_installation">prepare_guest_installation</a></li>
       <li><a href="#start_guest_installation">start_guest_installation</a></li>
+      <li><a href="#monitor_serial_during_installation">monitor_serial_during_installation</a></li>
       <li><a href="#get_guest_installation_session">get_guest_installation_session</a></li>
       <li><a href="#terminate_guest_installation_session">terminate_guest_installation_session</a></li>
       <li><a href="#get_guest_ipaddr">get_guest_ipaddr</a></li>
@@ -85,6 +86,7 @@
       <li><a href="#setup_guest_agama_installation_shell">setup_guest_agama_installation_shell</a></li>
       <li><a href="#verify_guest_agama_installation_done">verify_guest_agama_installation_done</a></li>
       <li><a href="#save_guest_agama_installation_logs">save_guest_agama_installation_logs</a></li>
+      <li><a href="#monitor_windows_guest_installation">monitor_windows_guest_installation</a></li>
       <li><a href="#check_guest_installation_result_via_ssh">check_guest_installation_result_via_ssh</a></li>
       <li><a href="#attach_guest_installation_screen">attach_guest_installation_screen</a></li>
       <li><a href="#do_attach_guest_installation_screen">do_attach_guest_installation_screen</a></li>
@@ -396,7 +398,7 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 
 <pre><code>config_guest_installation_method($self[, key-value pairs of guest installation arguments])</code></pre>
 
-<p>Configure [guest_installation_method_options]. User can still change [guest_installation_method], [guest_installation_media], [guest_build], [guest_version], [guest_version_major], [guest_version_minor], [guest_installation_fine_grained] and [guest_autoconsole] by passing non-empty arguments using hash.Call config_guest_installation_media to set correct installation media. For directkernel installation method which uses virt-install --install, please also refer to following link for more information https://manpages.opensuse.org/Tumbleweed/virt-install/virt-install.1.en.html For &#39;location&#39; installation method, virt-install command looks like: --location [guest_installation_media],[guest_installation_method_others] --extra-args root=live:[guest_installation_fine_grained_media] --extra-args inst.install_url=[guest_installation_fine_grained_repos] --extra-args [guest_installation_extra_args] For &#39;directkernel&#39; installation method, virt-install command looks like: --install kernel=[guest_installation_fine_grained_media]/linux, initrd=[guest_installation_fine_grained_media]/initrd, kernel_args=root=live:[guest_installation_media],inst.install_url= [guest_installation_fine_grained_repos],[guest_installation_fine_grained_kernel_args] For &#39;import&#39; installation method, virt-install command looks like: virt-install --import --disk [guest_storage_options]</p>
+<p>Configure [guest_installation_method_options]. User can still change [guest_installation_method], [guest_installation_media], [guest_build], [guest_version], [guest_version_major], [guest_version_minor], [guest_installation_fine_grained] and [guest_autoconsole] by passing non-empty arguments using hash.Call config_guest_installation_media to set correct installation media. For directkernel installation method which uses virt-install --install, please also refer to following link for more information https://manpages.opensuse.org/Tumbleweed/virt-install/virt-install.1.en.html - For &#39;location&#39; installation method, virt-install command looks like: --location [guest_installation_media],[guest_installation_method_others] --extra-args root=live:[guest_installation_fine_grained_media] --extra-args inst.install_url=[guest_installation_fine_grained_repos] --extra-args [guest_installation_extra_args] - For &#39;directkernel&#39; installation method, virt-install command looks like: --install kernel=[guest_installation_fine_grained_media]/linux, initrd=[guest_installation_fine_grained_media]/initrd, kernel_args=root=live:[guest_installation_media],inst.install_url= [guest_installation_fine_grained_repos],[guest_installation_fine_grained_kernel_args] - For &#39;import&#39; installation method, virt-install command looks like: virt-install --import --disk [guest_storage_options] - For &#39;cdrom&#39; installation method, virt-install command looks like: --cdrom [guest_installation_media],[guest_installation_method_others]</p>
 
 <h2 id="config_guest_installation_media">config_guest_installation_media</h2>
 
@@ -494,6 +496,12 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 
 <p>If [virt_install_command_line_dryrun] succeeds, start real guest installation using screen and virt_install_command_line.</p>
 
+<h2 id="monitor_serial_during_installation">monitor_serial_during_installation</h2>
+
+<pre><code>monitor_serial_during_installation($self)</code></pre>
+
+<p>Monitor serial console and store the output to the common log folder</p>
+
 <h2 id="get_guest_installation_session">get_guest_installation_session</h2>
 
 <pre><code>get_guest_installation_session($self)</code></pre>
@@ -541,6 +549,12 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 <pre><code>save_guest_agama_installation_logs($self)</code></pre>
 
 <p>Save guest agama installation logs regardless of whether a successful or failed installation. For &#39;FAILED&#39; installation, transferring saved logs in guest system still requires password login.</p>
+
+<h2 id="monitor_windows_guest_installation">monitor_windows_guest_installation</h2>
+
+<pre><code>monitor_windows_guest_installation($self)</code></pre>
+
+<p>No serial console for Windows guest during installation ICMP and SSH accessibility flag the guest installation finishes</p>
 
 <h2 id="check_guest_installation_result_via_ssh">check_guest_installation_result_via_ssh</h2>
 
