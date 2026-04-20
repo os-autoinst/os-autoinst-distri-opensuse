@@ -72,6 +72,8 @@ sub install_from_git
         assert_script_run("git checkout $git_tag");
     }
 
+    record_info("GIT Commit", script_output("git --no-pager log -1 --oneline"));
+
     if (is_sle && $collection eq 'livepatch') {
         my $patch = 'selftests-livepatch-Ignore-NO_SUPPORT-line-in-dmesg.patch';
         assert_script_run("curl -O " . autoinst_url("/data/kernel/$patch"));
