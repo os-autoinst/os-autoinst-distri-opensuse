@@ -756,10 +756,9 @@ Set PUBLIC_CLOUD_PERF_COLLECT true or >0, to activate boottime measurements.
 =cut
 
 sub measure_boottime() {
-    my ($self, $instance, $type) = @_;
-    my $data_collect = get_var('PUBLIC_CLOUD_PERF_COLLECT', 1);
-
-    return 0 if !$data_collect;
+    my ($instance, $type) = @_;
+    return 0 unless (get_var('PUBLIC_CLOUD_PERF_COLLECT', 1) == 1);
+    my $max_boot_time = get_var('PUBLIC_CLOUD_BOOTTIME_MAX');
 
     my $ret = {
         kernel_release => undef,
@@ -771,14 +770,14 @@ sub measure_boottime() {
 
     record_info("BOOT TIME", 'systemd_analyze');
     # first deployment analysis
-    my ($systemd_analyze, $systemd_blame) = do_systemd_analyze_time($instance);
+    my ($systemd_analyze, $systemd_blame) = $instance->do_systemd_analyze_time();
     return 0 unless ($systemd_analyze && $systemd_blame);
 
     $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
     $ret->{blame} = $systemd_blame;
     $ret->{type} = $type;
-    # $ret->{analyze}->{ssh_access} = $startup_time; # placeholder for next implementation
-    record_info("WARN", "High overall value:" . $ret->{analyze}->{overall}, result => 'fail') if ($ret->{analyze}->{overall} >= 3600.0);
+    my $boottime = $ret->{analyze}->{overall};
+    record_info("WARN", "High overall value:" . $boottime, result => 'fail') if ($boottime >= 3600.0);
 
     # Collect kernel version
     $ret->{kernel_release} = $instance->ssh_script_output(cmd => 'uname -r', proceed_on_failure => 1);
@@ -789,10 +788,12 @@ sub measure_boottime() {
     my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
     $instance->upload_check_logs_tar(map { "$dir/$_" } @logs);
 
+    # check boot time limits
+    croak("Boot time $boottime out of limit $max_boot_time") if $max_boot_time && $boottime > $max_boot_time;
+
     record_info("RESULTS", Dumper($ret));
     return $ret;
 }
-
 
 =head2 store_boottime_db
 
@@ -908,7 +909,7 @@ sub do_systemd_analyze_time {
 
     # calling systemd-analyze time & blame
     # guestregister check executed in create_instances
-    while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
+    while ($output !~ /Startup finished in/i && time() - $start_time < $args{timeout}) {
         $output = $instance->ssh_script_output(cmd => 'systemd-analyze time', proceed_on_failure => 1);
         sleep 5;
     }
