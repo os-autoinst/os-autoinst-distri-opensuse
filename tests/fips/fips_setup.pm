@@ -37,7 +37,7 @@ sub reboot_and_login {
 sub enable_fips {
     my $self = shift;
 
-    if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed) {
+    if ((is_sle('>=15-SP4') || is_jeos || is_tumbleweed) && !is_transactional) {
         assert_script_run("fips-mode-setup --enable", timeout => 120);
         $self->reboot_and_login;
     } else {
@@ -45,12 +45,11 @@ sub enable_fips {
         if (is_sle_micro('<6.0')) {
             change_grub_config('=\"[^\"]*', '& fips=1 ', 'GRUB_CMDLINE_LINUX_DEFAULT');
             trup_call('--continue grub.cfg');
-        } else {
+        } elsif (!is_transactional) {
             add_grub_cmdline_settings('fips=1', update_grub => 1) unless (is_sle_micro || is_microos);
         }
         $self->reboot_and_login;
     }
-    return;
 }
 
 sub ensure_fips_enabled {
