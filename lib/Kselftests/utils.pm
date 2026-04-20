@@ -15,7 +15,7 @@ use warnings;
 use utils;
 use Kselftests::parser;
 use LTP::WhiteList;
-use version_utils qw(is_sle has_selinux);
+use version_utils qw(is_sle has_selinux is_tumbleweed);
 use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
@@ -72,6 +72,8 @@ sub install_from_git
         assert_script_run("git checkout $git_tag");
     }
 
+    record_info("GIT Commit", script_output("git --no-pager log -1 --oneline"));
+
     if (is_sle && $collection eq 'livepatch') {
         my $patch = 'selftests-livepatch-Ignore-NO_SUPPORT-line-in-dmesg.patch';
         assert_script_run("curl -O " . autoinst_url("/data/kernel/$patch"));
@@ -113,13 +115,15 @@ sub install_dependencies
     }
 
     if ($collection =~ m{^net(/|$)}) {
-        my $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/openSUSE_Factory/network:utilities.repo';
-        if (is_sle('<16')) {
+        my $netutils_repo;
+        if (is_tumbleweed()) {
+            $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/openSUSE_Factory/network:utilities.repo';
+        } elsif (is_sle('<16')) {
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo';
         } elsif (is_sle('=16.0')) {
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/16.0/network:utilities.repo';
         }
-        zypper_ar($netutils_repo);
+        zypper_ar($netutils_repo) if $netutils_repo;
 
         # install build deps
         install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
