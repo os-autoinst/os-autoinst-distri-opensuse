@@ -510,7 +510,7 @@ sub run {
 
     $self->{repos} = {};
 
-    if (((is_ipmi || is_pvm) && get_var('LTP_BAREMETAL')) || is_transactional) {
+    if (((is_ipmi || is_pvm) && get_var('LTP_BAREMETAL')) || (is_transactional && (get_var('FLAVOR', '') !~ /Immutable/))) {
         # System is already booted after installation, just switch terminal
         select_serial_terminal;
     } else {

@@ -119,7 +119,7 @@ sub check_kernel_package {
 
 # Check if flavor is validation
 sub is_kernel_validation_flavor {
-    return get_var('FLAVOR', '') =~ /(Full-QR|Online-QR|Online|Online-Kernel-(RT|Base|Azure|Baremetal|(RT|64kb)-Baremetal))$/;
+    return get_var('FLAVOR', '') =~ /(Online-Immutable|Full-QR|Online-QR|Online|Online-Kernel-(RT|Base|Azure|Baremetal|(RT|64kb)-Baremetal))$/;
 }
 
 1;
