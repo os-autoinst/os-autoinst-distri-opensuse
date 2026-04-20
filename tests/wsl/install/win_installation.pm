@@ -65,4 +65,7 @@ sub run {
     $self->close_powershell;
 }
 
+sub test_flags {
+    return {fatal => 1};
+}
 1;
