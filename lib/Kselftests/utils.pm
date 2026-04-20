@@ -15,7 +15,7 @@ use warnings;
 use utils;
 use Kselftests::parser;
 use LTP::WhiteList;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle has_selinux);
 use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
@@ -102,6 +102,10 @@ sub install_dependencies
 {
     my ($collection) = @_;
 
+    # selftests may manipulate namespaces and devices in ways that
+    # trigger AVC denials on SELinux-enabled systems
+    script_run('setenforce 0') if has_selinux;
+
     # cgroup tests do not require phub nor qa repo
     if (is_sle() && $collection ne 'cgroup') {
         add_qa_head_repo;
@@ -121,7 +125,7 @@ sub install_dependencies
         install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
 
         # install test deps
-        install_available_packages('wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
+        install_available_packages('libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
 
         if (is_sle('>=16.0')) {
             # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
