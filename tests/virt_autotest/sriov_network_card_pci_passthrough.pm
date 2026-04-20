@@ -378,13 +378,26 @@ sub plugin_vf_device {
 
     # Print the vf device
     validate_script_output("ssh root\@$vm \"lspci\"", sub { m/Virtual Function/ });
-    # TBD. found empty output here sporadically, not locate the root cause yet
-    $vf->{vm_nic} = script_output "ssh root\@$vm \"grep '$vf->{vm_mac}' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nmac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
-    if ($vf->{vm_nic} eq '') {
-        script_output "ssh root\@$vm \"for FILE in /sys/class/net/*/address; do echo \\\$FILE; cat \\\$FILE; done\"";    #for debug
-        die "Fail to get NIC in $vm: nic='$vf->{vm_nic}'";
+
+    # Debug: host-side state right after attach
+    record_info("Host state after attach", script_output("virsh dumpxml $vm | grep -A10 'hostdev'; virsh domiflist $vm", proceed_on_failure => 1));
+
+    # Debug: guest-side PCI and driver state right after attach (before waiting)
+    record_info("Guest PCI state (immediate)", script_output("ssh root\@$vm \"lspci -v | grep -A8 'Virtual Function'; ls /sys/bus/pci/drivers/; find /sys/bus/pci/devices/ -name 'net' | xargs ls 2>/dev/null\"", proceed_on_failure => 1));
+
+    # Wait for guest kernel to initialize the VF NIC (driver probe may take time, especially for PV guests)
+    if (script_retry("ssh root\@$vm \"grep -l '$vf->{vm_mac}' /sys/class/net/*/address\"", delay => 6, retry => 10, timeout => 10, die => 0) != 0) {
+        # Collect comprehensive debug info before dying
+        record_info("NIC not found - lspci", script_output("ssh root\@$vm \"lspci -vvv | grep -A20 'Virtual Function'\"", proceed_on_failure => 1));
+        record_info("NIC not found - net devices", script_output("ssh root\@$vm \"for FILE in /sys/class/net/*/address; do echo \\\$FILE; cat \\\$FILE; done\"", proceed_on_failure => 1));
+        record_info("NIC not found - PCI drivers", script_output("ssh root\@$vm \"ls /sys/bus/pci/drivers/; find /sys/bus/pci/devices/ -name 'driver' | xargs -I{} sh -c 'echo {}; readlink {}'\"", proceed_on_failure => 1));
+        record_info("NIC not found - udev", script_output("ssh root\@$vm \"journalctl -b --no-pager -u systemd-udevd | tail -30 2>/dev/null || dmesg | grep -i 'udev\\|net\\|eth\\|pci\\|vf\\|iavf\\|ixgbevf' | tail -40\"", proceed_on_failure => 1));
+        record_info("NIC not found - dmesg", script_output("ssh root\@$vm \"dmesg | tail -50\"", proceed_on_failure => 1));
+        record_info("NIC not found - modules", script_output("ssh root\@$vm \"lsmod | grep -i 'vf\\|iavf\\|ixgbe\\|mlx\\|virtio'\"", proceed_on_failure => 1));
+        die "VF NIC with mac $vf->{vm_mac} did not appear in $vm after 60s";
     }
+    $vf->{vm_nic} = script_output("ssh root\@$vm \"grep '$vf->{vm_mac}' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"");
+    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nmac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
 }
 
 
