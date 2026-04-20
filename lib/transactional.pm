@@ -40,6 +40,7 @@ our @EXPORT = qw(
   exit_trup_shell_and_reboot
   reboot_on_changes
   record_kernel_audit_messages
+  trup_apply
 );
 
 # Download files needed for transactional update tests
@@ -414,6 +415,36 @@ sub reboot_on_changes {
     else {
         record_info("No reboot needed", "Reboot saved because there are no changes happened and no new snapshot generated");
     }
+}
+
+=head2 trup_apply
+
+  trup_apply([timeout => $seconds])
+
+Apply pending changes from the new snapshot without rebooting using
+C<transactional-update apply>.
+
+B<Warning>: Do not use this for kernel packages or system libraries that
+require a reboot to take effect. Applying those without a reboot may leave
+the system in an inconsistent state. This function is intended only for
+end user applications and server services.
+
+=over
+
+=item C<timeout>
+
+Timeout in seconds (default: 30).
+
+=back
+
+=cut
+
+sub trup_apply {
+    my (%args) = @_;
+    $args{timeout} //= 30;
+
+    record_info("Apply pending changes", "Applying pending changes without reboot into new snapshot");
+    trup_call('apply', timeout => $args{timeout});
 }
 
 1;
