@@ -24,6 +24,7 @@
           <li><a href="#qesap_get_variables">qesap_get_variables</a></li>
           <li><a href="#qesap_ansible_create_section">qesap_ansible_create_section</a></li>
           <li><a href="#qesap_venv_cmd_exec">qesap_venv_cmd_exec</a></li>
+          <li><a href="#check_bsc1258357">_check_bsc1258357</a></li>
           <li><a href="#qesap_py">qesap_py</a></li>
           <li><a href="#qesap_pip">qesap_pip</a></li>
           <li><a href="#qesap_pip_install">qesap_pip_install</a></li>
@@ -61,13 +62,10 @@
           <li><a href="#qesap_add_server_to_hosts">qesap_add_server_to_hosts</a></li>
           <li><a href="#qesap_import_instances">qesap_import_instances</a></li>
           <li><a href="#qesap_export_instances">qesap_export_instances</a></li>
-        </ul>
-      </li>
-      <li><a href="#qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</a></li>
-      <li><a href="#qesap_terraform_ansible_deploy_retry">qesap_terraform_ansible_deploy_retry</a></li>
-      <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
-      <li><a href="#qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</a>
-        <ul>
+          <li><a href="#qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</a></li>
+          <li><a href="#qesap_terraform_ansible_deploy_retry">qesap_terraform_ansible_deploy_retry</a></li>
+          <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
+          <li><a href="#qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</a></li>
           <li><a href="#qesap_ssh_intrusion_detection">qesap_ssh_intrusion_detection</a></li>
         </ul>
       </li>
@@ -156,7 +154,15 @@ Timeout error is 124 (the one reported by timeout command line utility).</code><
 <dd>
 
 </dd>
+<dt id="PROGRESS---instead-of-the-command-output-print-a-dd-style-progress-to-stdout.-If-set-to-a-number-bigger-than-one-also-print-that-number-of-lines-from-the-output-after-the-command-finishes"><b>PROGRESS</b> - instead of the command output, print a <code>dd</code> style progress to stdout. If set to a number bigger than one, also print that number of lines from the output after the command finishes.</dt>
+<dd>
+
+</dd>
 </dl>
+
+<h3 id="check_bsc1258357">_check_bsc1258357</h3>
+
+<pre><code>Check system for bsc#1258357 and report findings, then fail the test.</code></pre>
 
 <h3 id="qesap_py">qesap_py</h3>
 
@@ -839,7 +845,7 @@ qesap_import_instances(&lt;$test_id&gt;)</code></pre>
 <pre><code>Downloads assets required for re-using infrastructure from previously exported test.
 qesap_export_instances()</code></pre>
 
-<h2 id="qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</h2>
+<h3 id="qesap_aws_delete_leftover_tgw_attachments">qesap_aws_delete_leftover_tgw_attachments</h3>
 
 <pre><code>Delete leftover peering resources for AWS jobs that finished without cleaning up.
 This only works for resources created by jobs that run on the same openqa server 
@@ -853,7 +859,7 @@ that the current job is running on.</code></pre>
 </dd>
 </dl>
 
-<h2 id="qesap_terraform_ansible_deploy_retry">qesap_terraform_ansible_deploy_retry</h2>
+<h3 id="qesap_terraform_ansible_deploy_retry">qesap_terraform_ansible_deploy_retry</h3>
 
 <pre><code>qesap_terraform_ansible_deploy_retry( error_log=&gt;$error_log )
     error_log - ansible error log file name
@@ -877,7 +883,7 @@ Return 1: something went wrong or this function does not know what to do with th
 </dd>
 </dl>
 
-<h2 id="qesap_ansible_error_detection">qesap_ansible_error_detection</h2>
+<h3 id="qesap_ansible_error_detection">qesap_ansible_error_detection</h3>
 
 <pre><code>qesap_ansible_error_detection( error_log=&gt;$error_log )
 
@@ -897,7 +903,7 @@ Return:
 </dd>
 </dl>
 
-<h2 id="qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</h2>
+<h3 id="qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</h3>
 
 <pre><code>qesap_create_cidr_from_ip( proceed_on_failure )
 
