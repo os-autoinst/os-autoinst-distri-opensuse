@@ -316,6 +316,8 @@ sub load_rcshell_tests {
 sub load_journal_check_tests {
     # Enclosing test cases
     loadtest 'console/journal_check';
+    # systemd-coredump is not available on SLEM 5.x
+    loadtest 'console/coredump_collect' unless (is_sle_micro("<6.0"));
     loadtest 'shutdown/shutdown';
 }
 
