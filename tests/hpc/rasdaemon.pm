@@ -25,6 +25,7 @@ use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use Utils::Logging 'export_logs_basic';
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_tumbleweed);
 
 our $file = 'tmpresults.xml';
@@ -59,7 +60,7 @@ sub run {
     # load kernel module
     assert_script_run('modprobe mce-inject') if is_x86_64;
 
-    my $rt = zypper_call('in rasdaemon');
+    my $rt = install_package('rasdaemon', trup_apply => 1);
     test_case('Installation', 'rasdaemon', $rt);
 
     # Skip functional tests on ppc64le and Tumbleweed. It is not fully supported,
