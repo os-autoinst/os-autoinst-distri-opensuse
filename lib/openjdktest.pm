@@ -14,6 +14,10 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
+use package_utils 'install_package';
+use version_utils 'is_transactional';
+use transactional 'trup_call';
 
 our @EXPORT = qw(
   remove_any_installed_java
@@ -28,20 +32,21 @@ sub remove_any_installed_java {
     my @output = grep /java-\d+-openjdk/, split(/\n/, script_output "rpm -qa 'java-*'");
     return unless scalar @output;    # nothing to remove
     my $pkgs = join ' ', @output;
-    zypper_call("rm ${pkgs}");
+    is_transactional ? trup_call("pkg remove ${pkgs}") : zypper_call("rm ${pkgs}");
 }
 
 sub configure_java_version {
     my ($version) = @_;
-    select_console 'root-console';
+    select_serial_terminal();
 
     remove_any_installed_java();
-    zypper_call("in java-$version-openjdk java-$version-openjdk-devel");
+
+    install_package("java-$version-openjdk java-$version-openjdk-devel", trup_continue => 1);
 
     my $permission = ($version > 15) ? "og+rw" : "og+r";
     assert_script_run("chmod $permission /etc/pki/nssdb/*");
 
-    select_console 'user-console';
+    select_user_serial_terminal();
     my $vers_file = "/tmp/java_versions_$version.txt";
     script_output("java -version &> $vers_file; javac -version &>> $vers_file");
     validate_script_output("cat $vers_file", sub { m/openjdk version "$version\..*/ });
@@ -68,11 +73,11 @@ sub run_crypto_test {
 sub run_ssh_test {
     my ($version) = @_;
 
-    select_console 'root-console';
-    zypper_call('in jsch');
+    select_serial_terminal();
 
-    select_console 'user-console';
+    install_package("jsch xterm", trup_continue => 1);
 
+    select_user_serial_terminal();
     my $java_src = "Shell.java";
     my $url = get_var("TEST_JAVA", data_url("security/openjdk/$java_src"));
     my $cp = script_output('rpm -ql jsch |grep jsch.jar') . ':.';
