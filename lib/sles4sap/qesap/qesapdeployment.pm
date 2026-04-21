@@ -34,18 +34,17 @@ use Mojo::JSON qw(decode_json);
 use YAML::PP;
 use NetAddr::IP;
 use Exporter 'import';
-use Scalar::Util 'looks_like_number';
+use Scalar::Util qw(looks_like_number);
 use File::Basename;
 use utils qw(file_content_replace script_retry);
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
 use publiccloud::utils qw(get_credentials detect_worker_ip);
 use sles4sap::qesap::aws;
 use sles4sap::qesap::azure;
 use sles4sap::qesap::utils;
 use sles4sap::azure_cli;
-use mmapi 'get_current_job_id';
+use mmapi qw(get_current_job_id);
 use testapi;
-
 
 my @log_files = ();
 
@@ -223,6 +222,9 @@ sub qesap_ansible_create_section {
 
 =item B<RETRY> - number of retry attempts, default is 1
 
+=item B<PROGRESS> - instead of the command output, print a C<dd> style progress to stdout. If set to a number
+bigger than one, also print that number of lines from the output after the command finishes.
+
 =back
 =cut
 
@@ -232,17 +234,20 @@ sub qesap_venv_cmd_exec {
     $args{timeout} //= bmwqemu::scale_timeout(90);
     croak "Invalid timeout value $args{timeout}" unless $args{timeout} > 0;
     my $retry = $args{retry} // 1;
+    my $print_tail = ($args{progress} && looks_like_number($args{progress}) && $args{progress} > 1);
+    $args{progress} //= 0;
 
     my $cmd = $args{cmd};
     # pipefail is needed as at the end of the command line there could be a pipe
     # to redirect all output to a log_file.
     # pipefail allow script_run always getting the exit code of the cmd command
     # and not only the one from tee
-    if ($args{log_file}) {
-        script_run 'set -o pipefail';
-        # always use tee in append mode
-        $cmd .= " |& tee -a $args{log_file}";
-    }
+    script_run 'set -o pipefail' if ($args{log_file} || $args{progress});
+
+    # always use tee in append mode
+    $cmd .= " |& tee -a $args{log_file}" if ($args{log_file});
+    # pass the output to 'dd status=progress' to print a progress report instead of the output
+    $cmd .= ' |& dd status=progress of=/dev/null 2>&1' if ($args{progress});
 
     my $ret = script_run('source ' . QESAPDEPLOY_VENV . '/bin/activate');
     if ($ret) {
@@ -252,9 +257,34 @@ sub qesap_venv_cmd_exec {
     $ret = script_retry($cmd, timeout => $args{timeout}, retry => $retry, die => 0);
 
     # deactivate python virtual environment
-    script_run('deactivate');
+    eval { script_run('deactivate'); };
+    _check_bsc1258357($@) if ($@);
+
+    script_run "tail -n $args{progress} $args{log_file}" if ($print_tail);
 
     return $ret;
+}
+
+=head3 _check_bsc1258357
+
+  Check system for bsc#1258357 and report findings, then fail the test.
+=cut
+
+sub _check_bsc1258357 {
+    my $errmsg = shift;
+    # If this function was called, probably the active terminal used by the test is
+    # blocked due to bsc#1258357. We need to switch to a different terminal/console
+    # that allows the test to type in commands to confirm. The lines below will attempt
+    # to switch to 'root-console' unless test was already running in 'root-console'
+    my $console = current_console() eq 'root-console' ? 'user-console' : 'root-console';
+    reset_consoles;
+    select_console $console;
+    my $out = script_output(q@journalctl -b | grep -B 5 -A 5 'Disabling IRQ #25'@, proceed_on_failure => 1);
+    if ($out =~ /(Disabling IRQ #25|irq 25: nobody cared)/) {
+        record_info('bsc#1258357 Failure', "err_msg => $errmsg\nkernel trace => $out", result => 'fail');
+        die 'bsc#1258357 - [QE] Writing large amount of text into virtio console breaks input handling on 15-SP7';
+    }
+    die $errmsg;
 }
 
 =head3 qesap_py
@@ -535,7 +565,8 @@ sub qesap_execute {
     my $exec_rc = qesap_venv_cmd_exec(
         cmd => $qesap_cmd,
         timeout => $args{timeout},
-        log_file => $exec_log);
+        log_file => $exec_log,
+        progress => ($args{cmd} eq 'ansible' ? 10 : 0));
 
     my @qesap_logs;
 
@@ -1690,7 +1721,7 @@ sub qesap_export_instances {
         "SSH keys and instances data uploaded to test results:\n" . join("\n", @upload_files));
 }
 
-=head2 qesap_aws_delete_leftover_tgw_attachments
+=head3 qesap_aws_delete_leftover_tgw_attachments
 
     Delete leftover peering resources for AWS jobs that finished without cleaning up.
     This only works for resources created by jobs that run on the same openqa server 
@@ -1735,7 +1766,7 @@ sub qesap_aws_delete_leftover_tgw_attachments {
     return 1;
 }
 
-=head2 qesap_terraform_ansible_deploy_retry
+=head3 qesap_terraform_ansible_deploy_retry
 
     qesap_terraform_ansible_deploy_retry( error_log=>$error_log )
         error_log - ansible error log file name
@@ -1832,7 +1863,7 @@ sub qesap_terraform_ansible_deploy_retry {
     return $detected_error;
 }
 
-=head2 qesap_ansible_error_detection
+=head3 qesap_ansible_error_detection
 
     qesap_ansible_error_detection( error_log=>$error_log )
 
@@ -1880,7 +1911,7 @@ sub qesap_ansible_error_detection {
     return $ret_code;
 }
 
-=head2 qesap_create_cidr_from_ip
+=head3 qesap_create_cidr_from_ip
 
     qesap_create_cidr_from_ip( proceed_on_failure )
 
