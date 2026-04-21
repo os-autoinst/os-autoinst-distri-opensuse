@@ -37,6 +37,8 @@ sub run {
         assert_script_run 'update-ca-certificates -v';
     }
 
+    trup_call('--continue pkg install systemd-coredump') if (is_sle_micro("<6.0"));
+
     update_system;
 
     # Clean the journal to avoid capturing bugs that are fixed after installing updates
