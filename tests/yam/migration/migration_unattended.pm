@@ -18,11 +18,10 @@ sub run {
 
     select_console('root-console');
 
+    # Add repo for devel:DMS when using proxy
     if ((get_var('SCC_URL', "") =~ /proxy/)) {
         my $repo_server = "https://download.opensuse.org/repositories/devel:/DMS/";
         my $repo_url = $repo_server . "SLE_" . (get_var('VERSION_UPGRADE_FROM') =~ s/-/_/gr);
-
-        assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
         zypper_call("ar --refresh -p 90 '$repo_url' Migration");
     }
 
@@ -30,17 +29,19 @@ sub run {
     my $migration_tool = is_s390x ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
     zypper_call("--gpg-auto-import-keys -n in $migration_tool");
 
-    if ((get_var('SCC_URL', "") =~ /proxy/)) {
-        zypper_call("rr Migration");
-    }
-
-    # deacivate unwanted/unsupported extensions before doing migration
+    # deactivate unwanted/unsupported extensions before doing migration
     if (get_var('SCC_SUBTRACTIONS')) {
         foreach my $addon (split(',', get_var('SCC_SUBTRACTIONS'))) {
             my $extension = get_addon_fullname($addon);
             # NVIDIA Compute is not versioned by SP
             remove_suseconnect_product($extension, (($addon eq 'nvidia') ? '15' : ()));
         }
+    }
+
+    # clean migration repo and configure SUSEConnect when using proxy
+    if ((get_var('SCC_URL', "") =~ /proxy/)) {
+        zypper_call("rr Migration");
+        assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
     }
 
     # upload logs to know system state before migration
