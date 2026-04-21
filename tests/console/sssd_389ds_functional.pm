@@ -27,7 +27,8 @@ no warnings 'experimental::signatures';
 
 sub install_dependencies($container_engine) {
     zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16'));
-    install_package("sssd sssd-ldap openldap2-client sshpass $container_engine", trup_reboot => 1);
+    my $openldap2_client = is_sle('>=16') ? 'openldap2_6-client' : 'openldap2-client';
+    install_package("sssd sssd-ldap $openldap2_client sshpass $container_engine", trup_reboot => 1);
     record_info('bsc#1259250', 'Checking if sssd.conf is present after fresh install');
     my $sssd_path = ((is_sle('>=16.0') || is_tumbleweed) ? "/usr/etc/sssd/sssd.conf" : "/etc/sssd/sssd.conf");
     assert_script_run("test -f $sssd_path", fail_message => "bsc#1259250 sssd.conf is not present after fresh install");
