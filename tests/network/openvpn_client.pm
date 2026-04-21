@@ -45,7 +45,7 @@ sub run {
     mutex_wait 'OPENVPN_STATIC_KEY';
 
     # Download key from the server
-    assert_script_run("curl -o static.key $server_ip:8008/static.key");
+    script_retry("curl -fsS -o static.key $server_ip:8008/static.key", delay => 5, retry => 12, timeout => 30);
     assert_script_run("cat /etc/openvpn/static.key");
 
     # Download the client config
@@ -83,9 +83,9 @@ sub run {
     assert_script_run('sed -i "/^cipher/d; /^data-ciphers/d" ca.conf') if (is_sle('<15-sp4'));
 
     # Download key from the server
-    assert_script_run("curl -o ca.crt $server_ip:8008/pki/ca.crt");
-    assert_script_run("curl -o client.crt $server_ip:8008/pki/issued/client.crt");
-    assert_script_run("curl -o client.key $server_ip:8008/pki/private/client.key");
+    script_retry("curl -fsS -o ca.crt $server_ip:8008/pki/ca.crt", delay => 5, retry => 12, timeout => 30);
+    script_retry("curl -fsS -o client.crt $server_ip:8008/pki/issued/client.crt", delay => 5, retry => 12, timeout => 30);
+    script_retry("curl -fsS -o client.key $server_ip:8008/pki/private/client.key", delay => 5, retry => 12, timeout => 30);
 
     # Start the client when also server is ready and test the connection
     systemctl('start openvpn@ca');

@@ -55,7 +55,6 @@ sub run {
     zypper_call("install openssl") if (script_run("which openssl") != 0);
     assert_script_run('cd /etc/openvpn');
     assert_script_run('openvpn --genkey --secret static.key');
-    mutex_create 'OPENVPN_STATIC_KEY';
 
     # Download the server config
     assert_script_run('curl -o static.conf ' . data_url('openvpn/static_server.conf'));
@@ -70,6 +69,9 @@ sub run {
         assert_script_run 'firewall-cmd --reload';
     }
     my $server_pid = background_script_run "python3 -m http.server -b $server_ip 8008";
+    # Wait for the http server to actually listen before unblocking the client
+    script_retry("ss -Hltn 'sport = :8008' | grep -q LISTEN", delay => 1, retry => 30, timeout => 5);
+    mutex_create 'OPENVPN_STATIC_KEY';
 
     # Start the server
     systemctl('start openvpn@static');
