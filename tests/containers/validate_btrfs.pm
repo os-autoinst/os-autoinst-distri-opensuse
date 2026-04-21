@@ -23,8 +23,10 @@ use Utils::Systemd qw(systemctl);
 
 my ($root_drive, $play_drive);
 
-sub _find_root_partition {
-    return (split(/\s+/, script_output('df --output=source /')))[-1];
+# Find the partition of a given filesystem path
+sub _find_partition {
+    my $path = shift;
+    return (split(/\s+/, script_output("df --output=source $path")))[-1];
 }
 
 # Get the total and used GiB of a given btrfs device
@@ -82,6 +84,7 @@ sub _test_btrfs_device_mgmt {
     my ($rt, $dev_path) = @_;
     my $container = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
     my $btrfs_head = '/tmp/subvolumes_saved';
+    my $var_drive = _find_partition("/var");
     record_info "test btrfs";
     script_run("df -h");
     # Determine the remaining size of /var
@@ -90,7 +93,7 @@ sub _test_btrfs_device_mgmt {
     # Create file in the container enough to fill the "/var" partition (where the container is located)
     my $fill = int($var_free * 1024 * 0.99);    # df returns the size in KiB
     $rt->run_container('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
-    validate_script_output "df -h --sync|grep var", sub { m@$root_drive\s+.*(9[7-9]|100)%@ };
+    validate_script_output "df -h --sync|grep var", sub { m@$var_drive\s+.*(9[7-9]|100)%@ };
     # check if the partition is full
     my ($total, $used) = _btrfs_fi("/var");
     die "partition should be full" unless (int($used) >= int($total * 0.99));
@@ -115,7 +118,8 @@ sub run {
 
     set_playground_disk();
     $play_drive = get_var('PLAYGROUNDDISK');
-    $root_drive = _find_root_partition();
+    $root_drive = _find_partition("/");
+    record_info("root", $root_drive);
     my $docker = $self->containers_factory('docker');
     my $btrfs_dev = '/var/lib/docker';
     my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
