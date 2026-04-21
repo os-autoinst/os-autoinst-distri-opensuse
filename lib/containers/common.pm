@@ -197,7 +197,12 @@ sub install_containerd_when_needed {
     my @packages = qw(containerd);
     push(@packages, 'cni-plugins') if (is_sle("<15-SP7") || is_leap("<15.7"));
     push(@packages, 'pattern:apparmor') if is_sle('=15-SP3');
-    zypper_call('in ' . join(" ", @packages), timeout => 300);
+    if (is_transactional) {
+        trup_call("pkg install @packages");
+        check_reboot_changes;
+    } else {
+        zypper_call("in @packages", timeout => 300);
+    }
     assert_script_run "curl " . data_url('containers/containerd.toml') . " -o /etc/containerd/config.toml";
     file_content_replace("/etc/containerd/config.toml", REGISTRY => $registry);
     assert_script_run('cat /etc/containerd/config.toml');
