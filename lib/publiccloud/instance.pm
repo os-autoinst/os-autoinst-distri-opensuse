@@ -770,7 +770,7 @@ sub measure_boottime() {
 
     record_info("BOOT TIME", 'systemd_analyze');
     # first deployment analysis
-    my ($systemd_analyze, $systemd_blame) = $instance->do_systemd_analyze_time();
+    my ($systemd_analyze, $systemd_blame) = $instance->_do_systemd_analyze_time();
     return 0 unless ($systemd_analyze && $systemd_blame);
 
     $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
@@ -858,7 +858,7 @@ sub store_boottime_db() {
     return $res;
 }
 
-sub systemd_time_to_second
+sub _systemd_time_to_second
 {
     my $str_time = trim(shift);
 
@@ -872,7 +872,7 @@ sub systemd_time_to_second
     return $sec;
 }
 
-sub extract_analyze_time {
+sub _extract_analyze_time {
     my $str_time = shift;
     my $res = {};
     ($str_time) = split(/\r?\n/, $str_time, 2);
@@ -881,26 +881,26 @@ sub extract_analyze_time {
     for my $time (split(/\s*\+\s*/, $str_time)) {
         $time = trim($time);
         my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
-        $res->{$type} = systemd_time_to_second($time);
+        $res->{$type} = _systemd_time_to_second($time);
         return 0 if ($res->{$type} == -1);
     }
     foreach (qw(kernel initrd userspace overall)) { return 0 unless exists($res->{$_}); }
     return $res;
 }
 
-sub extract_blame_time {
+sub _extract_blame_time {
     my $str_time = shift;
     my $ret = {};
     for my $line (split(/\r?\n/, $str_time)) {
         $line = trim($line);
         my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
-        $ret->{$service} = systemd_time_to_second($time);
+        $ret->{$service} = _systemd_time_to_second($time);
         return 0 if ($ret->{$service} == -1);
     }
     return $ret;
 }
 
-sub do_systemd_analyze_time {
+sub _do_systemd_analyze_time {
     my ($instance, %args) = @_;
     $args{timeout} = 120;
     my $start_time = time();
@@ -919,10 +919,10 @@ sub do_systemd_analyze_time {
         # handle_boot_failure: soft exit from measurement.
         return (0, 0);
     }
-    push @ret, extract_analyze_time($output);
+    push @ret, _extract_analyze_time($output);
 
     $output = $instance->ssh_script_output(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
-    push @ret, extract_blame_time($output);
+    push @ret, _extract_blame_time($output);
 
     return @ret;
 }

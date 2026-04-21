@@ -389,7 +389,7 @@ sub create_instances {
             my $start_time = $instance->wait_for_ssh(timeout => $args{timeout},
                 proceed_on_failure => $args{proceed_on_failure}, scan_ssh_host_key => 1);
             # Performance data: boottime
-            my $btime = $instance->measure_boottime('first') if $start_time;
+            $instance->measure_boottime('first') if $start_time;
         }
     }
     return @vms;
