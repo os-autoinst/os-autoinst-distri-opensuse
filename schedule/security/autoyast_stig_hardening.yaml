@@ -42,7 +42,9 @@ test_data:
     CCE-83275-8:
       name: Set the UEFI Boot Loader Password
       sles_ref: SLES-15-010200
-      result: fail
+      results_by_version:
+        15-SP7: pass
+      default: fail
     CCE-83274-1:
       name: Set Boot Loader Password in grub2 (non-UEFI)
       sles_ref: SLES-15-010190
