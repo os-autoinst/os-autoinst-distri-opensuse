@@ -1,11 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
-ip_addr=$(ip n | awk '/192.168.122/ {print $1}')
-if [[ -n "$ip_addr" ]] && nc -zvw2 $ip_addr 22 2>/dev/null; then
-    echo "SSH is ONLINE"
+# Discover the guest IP from libvirt's DHCP lease table on the default
+# network. This is authoritative once dnsmasq has issued the lease and,
+# unlike `ip n`, does not depend on the guest emitting a gratuitous ARP
+# to populate the host's neighbor cache.
+ip_addr=$(virsh net-dhcp-leases default 2>/dev/null \
+    | awk '/ipv4/ && !found {sub(/\/.*/,"",$5); print $5; found=1}')
+
+if [[ -n "$ip_addr" ]] && nc -zvw2 "$ip_addr" 22 2>/dev/null; then
+    echo "SSH ONLINE at $ip_addr"
     exit 0
 else
-    echo "SSH still OFFLINE"
+    echo "SSH OFFLINE (ip='${ip_addr:-<none>}')"
     exit 1
 fi
