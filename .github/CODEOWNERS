@@ -93,3 +93,13 @@ data/btrfs-progs/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha
 data/filesystem/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
 data/ltp/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
 
+# QE Installation and Migration
+data/yam/ @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+lib/autoyast.pm @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+lib/Yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+lib/YaST @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+schedule/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+schedule/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+test_data/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+test_data/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+tests/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
