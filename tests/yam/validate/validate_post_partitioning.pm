@@ -13,7 +13,7 @@ use utils;
 
 sub run {
     select_console 'root-console';
-    assert_script_run("ls /etc/zypp/zypp.conf.rpmnew");
+    assert_script_run("ls /etc/zypp/zypper.conf.rpmnew");
 }
 
 1;
