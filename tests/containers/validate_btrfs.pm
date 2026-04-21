@@ -24,20 +24,20 @@ use Utils::Systemd qw(systemctl);
 my ($root_drive, $play_drive);
 
 # Find the partition of a given filesystem path
-sub _find_partition {
+sub find_partition {
     my $path = shift;
     return (split(/\s+/, script_output("df --output=source $path")))[-1];
 }
 
 # Get the total and used GiB of a given btrfs device
-sub _btrfs_fi {
+sub btrfs_fi {
     my $dev = shift;
     my $output = script_output("btrfs fi df $dev");
     die "Unexpected btrfs fi output" unless ($output =~ "^Data.+total=(?<total>[0-9]+\.[0-9]*)GiB, used=(?<used>[0-9]+\.[0-9]*)GiB");
     return ($+{total}, $+{used});
 }
 
-sub _sanity_test_btrfs {
+sub sanity_test_btrfs {
     my ($rt, $dev_path, $img) = @_;
     my $dockerfile_path = "~/sle_base_image/docker_build";
     if (script_run("test -d $dockerfile_path") != 0) {
@@ -61,7 +61,7 @@ sub _sanity_test_btrfs {
     validate_script_output "df -h | grep var", sub { m/\/dev\/x?[v,s]d[a-z].+ [1-8]?[0-9]%/ };
 }
 
-sub _test_btrfs_balancing {
+sub test_btrfs_balancing {
     my ($dev_path) = shift;
     # use -dusage and -musage to prevent "No space left on device" errors, see https://www.suse.com/support/kb/doc/?id=000019789
     assert_script_run qq(btrfs balance start --full-balance -dusage=0 -musage=0 $dev_path), timeout => 900;
@@ -69,7 +69,7 @@ sub _test_btrfs_balancing {
     validate_script_output "btrfs fi show $dev_path/btrfs", sub { m/devid\s+2.+20.00G.+[0-9]+.\d+G.+$play_drive/ };
 }
 
-sub _test_btrfs_thin_partitioning {
+sub test_btrfs_thin_partitioning {
     my ($rt, $dev_path) = @_;
     my $dockerfile_path = '~/sle_base_image/docker_build';
     my $btrfs_head = '/tmp/subvolumes_saved';
@@ -80,11 +80,11 @@ sub _test_btrfs_thin_partitioning {
 }
 
 # Fill up the btrfs subvolume, check if it is full and then increase the available size by adding another disk
-sub _test_btrfs_device_mgmt {
+sub test_btrfs_device_mgmt {
     my ($rt, $dev_path) = @_;
     my $container = 'registry.opensuse.org/cloud/platform/stack/rootfs/images/sle15';
     my $btrfs_head = '/tmp/subvolumes_saved';
-    my $var_drive = _find_partition("/var");
+    my $var_drive = find_partition("/var");
     record_info "test btrfs";
     script_run("df -h");
     # Determine the remaining size of /var
@@ -95,7 +95,7 @@ sub _test_btrfs_device_mgmt {
     $rt->run_container('huge_image', keep_container => 1, cmd => "fallocate -l $fill bigfile.txt");
     validate_script_output "df -h --sync|grep var", sub { m@$var_drive\s+.*(9[7-9]|100)%@ };
     # check if the partition is full
-    my ($total, $used) = _btrfs_fi("/var");
+    my ($total, $used) = btrfs_fi("/var");
     die "partition should be full" unless (int($used) >= int($total * 0.99));
     die("pull should fail on full partition") if ($rt->pull($container, timeout => 600, die => 0) == 0);
     # Increase the amount of available storage by adding the second HDD (e.g. '/dev/vdb') to the pool
@@ -118,15 +118,15 @@ sub run {
 
     set_playground_disk();
     $play_drive = get_var('PLAYGROUNDDISK');
-    $root_drive = _find_partition("/");
+    $root_drive = find_partition("/");
     record_info("root", $root_drive);
     my $docker = $self->containers_factory('docker');
     my $btrfs_dev = '/var/lib/docker';
     my $images_to_test = 'registry.opensuse.org/opensuse/leap:15';
-    _sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);
-    _test_btrfs_thin_partitioning($docker, $btrfs_dev);
-    _test_btrfs_device_mgmt($docker, $btrfs_dev);
-    _test_btrfs_balancing($btrfs_dev);
+    sanity_test_btrfs($docker, $btrfs_dev, $images_to_test);
+    test_btrfs_thin_partitioning($docker, $btrfs_dev);
+    test_btrfs_device_mgmt($docker, $btrfs_dev);
+    test_btrfs_balancing($btrfs_dev);
     $docker->cleanup_system_host;
 }
 
