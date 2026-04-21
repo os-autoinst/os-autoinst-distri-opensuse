@@ -47,4 +47,6 @@ sub post_fail_hook {
     tar_and_upload_log("@backup_dirs", "/tmp/zypp_conf_dir.tar.bz2", {gzip => 1}) if @backup_dirs;
 }
 
+sub test_flags { return {fatal => 0}; }
+
 1;
