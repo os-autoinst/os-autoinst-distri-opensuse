@@ -5,17 +5,15 @@
 #
 # Summary: Test IPsec tunnel in Open vSwitch with 3 different authentication methods
 #
-#   This test does the following
-#    - Installs openvswitch-ipsec, openvswitch-pki and openvswitch-vtep
-#    - Starts the systemd service unit
-#    - Executes IPsec tunneling between two hosts with the following authenitcation
-#    methods:
-#       * Pre-shared key
-#       * Self-signed certificate
-#       * CA-signed certificate
-#    - Sets up and starts the VTEP emulator
-#    - Sets up the logical network, where server and client connect to one switch
-#    - Verifies that client can ping the server
+#  This test does the following
+#   - Installs openvswitch-ipsec, openvswitch-pki and openvswitch-vtep
+#   - Starts the systemd service unit
+#   - Executes IPsec tunneling between two hosts with the following authenitcation
+#  methods:
+#      * Pre-shared key     * Self-signed certificate  * CA-signed certificate
+#   - Sets up and starts the VTEP emulator
+#   - Sets up the logical network, where server and client connect to one switch
+#   - Verifies that client can ping the server
 #
 # Maintainer: Anna Minou <anminou@suse.de>
 #
@@ -26,6 +24,7 @@ use lockapi;
 use utils;
 use console::ovs_utils;
 use version_utils;
+use package_utils 'install_package';
 
 my $server_ip = "10.0.2.101";
 my $client_ip = "10.0.2.102";
@@ -33,17 +32,15 @@ my $server_vpn = "192.0.0.1";
 my $client_vpn = "192.0.0.2";
 my $server_mac = "00:00:00:00:00:01";
 my $client_mac = "00:00:00:00:00:02";
-my $dir = "/etc/keys/";
-my $dir_certs = "/etc/ipsec.d/certs/";
-my $dir_private = "/etc/ipsec.d/private/";
-my $dir_cacerts = "/etc/ipsec.d/cacerts/";
+my $dirc = "/etc/keys/";
+my $dirc_certs = "/etc/ipsec.d/certs/";
+my $dirc_private = "/etc/ipsec.d/private/";
+my $dirc_cacerts = "/etc/ipsec.d/cacerts/";
 
 sub run {
 
     my ($self) = @_;
     select_serial_terminal;
-
-    mutex_wait 'barrier_setup_done';
 
     # Install the needed packages
     # At moment we have opnvswitch3* packages on sles 15 sp5 only
@@ -51,8 +48,9 @@ sub run {
         zypper_call('in openvswitch3-ipsec tcpdump openvswitch3-pki openvswitch3-vtep', timeout => 300);
     }
     else {
-        zypper_call('in openvswitch-ipsec tcpdump openvswitch-pki openvswitch-vtep', timeout => 300);
+        install_package('openvswitch-ipsec tcpdump openvswitch-pki openvswitch-vtep', trup_reboot => 1);
     }
+    mutex_wait 'barrier_setup_done';
 
     # Start the openvswitch and openvswitch-ipsec services
     systemctl 'start openvswitch', timeout => 200;
@@ -76,7 +74,7 @@ sub run {
 
     assert_script_run("ovs-vsctl del-br br-ipsec");
     add_bridge("$client_vpn");
-    assert_script_run("mkdir -pZ $dir && cd $dir");
+    assert_script_run("mkdir -pZ $dirc && cd $dirc");
 
     # Set IPsec tunnel using self-signed certificate
     # Generate self-signed certificate
@@ -107,7 +105,7 @@ sub run {
 
     barrier_wait 'traffic_check_done1';
 
-    assert_script_run("rm -r $dir* $dir_certs* $dir_private*");
+    assert_script_run("rm -r $dirc* $dirc_certs* $dirc_private*");
 
     barrier_wait 'empty_directories';
 
@@ -116,7 +114,7 @@ sub run {
 
     # Set IPsec tunnel using CA-signed certificate
     # Generate certificate request and send it to server
-    assert_script_run("cd $dir");
+    assert_script_run("cd $dirc");
     assert_script_run("ovs-pki req -u host_2");
     # Since the test uses a non-default private key location /etc/keys/host_2-privkey.pem
     # the file needs to be labelled correctly for SELinux-enabled systems
@@ -128,9 +126,9 @@ sub run {
     barrier_wait 'cacert_done';
 
     # Configure IPsec tunnel to use CA-signed certificate
-    assert_script_run("cp -Z host_2-cert.pem $dir_certs");
-    assert_script_run("cp -Z host_2-privkey.pem $dir_private");
-    assert_script_run("cp -Z cacert.pem $dir_cacerts");
+    assert_script_run("cp -Z host_2-cert.pem $dirc_certs");
+    assert_script_run("cp -Z host_2-privkey.pem $dirc_private");
+    assert_script_run("cp -Z cacert.pem $dirc_cacerts");
     assert_script_run("ovs-vsctl set Open_vSwitch . other_config:certificate=/etc/keys/host_2-cert.pem other_config:private_key=/etc/keys/host_2-privkey.pem other_config:ca_cert=/etc/keys/cacert.pem");
     assert_script_run("ovs-vsctl add-port br-ipsec tun -- set interface tun type=gre options:remote_ip=$server_ip options:remote_name=host_1");
     systemctl 'restart openvswitch-ipsec';
@@ -142,7 +140,7 @@ sub run {
     barrier_wait 'traffic_check_done2';
 
     assert_script_run("ovs-vsctl del-br br-ipsec");
-    assert_script_run("rm -r $dir* $dir_certs* $dir_private*");
+    assert_script_run("rm -r $dirc* $dirc_certs* $dirc_private*");
 
     barrier_wait 'end_of_test';
 
