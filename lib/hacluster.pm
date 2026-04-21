@@ -805,6 +805,7 @@ Without it, the method uses B<assert_script_run()> and will croak on failure.
 
 sub check_cluster_state {
     my %args = @_;
+    my $verify_cmd = 'crm_verify -LV';
 
     # We may want to check cluster state without stopping the test
     my $cmd_sub = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
@@ -831,10 +832,28 @@ sub check_cluster_state {
 
     # As some options may be deprecated, test shouldn't die on 'crm_verify'
     if (get_var('HDDVERSION')) {
-        script_run 'crm_verify -LV';
+        script_run $verify_cmd;
     }
     else {
-        $cmd_sub->('crm_verify -LV');
+        if (is_sle('>16')) {
+            # Need both retval and output, so use utils::cmd_run
+            # Also redirect stderr to stdout to get the actual command output
+            my ($ret, $out) = cmd_run("$verify_cmd 2>&1");
+            return if (defined $ret && $ret == 0);
+            if ($ret == 78) {
+                my $errors = 0;
+                foreach my $line (split(/\n/, $out)) {
+                    record_soft_failure "jsc#PED-14519 - $verify_cmd shows deprecation warnings"
+                      if ($line =~ /Support for legacy name .stonith.+is deprecated/);
+                    next if ($line =~ /^warning:/);
+                    next if ($line =~ /^Configuration may need attention/);
+                    ++$errors;
+                }
+                return unless ($errors);
+            }
+            die "$verify_cmd failed. return value=[$ret]; output=[$out]";
+        }
+        $cmd_sub->($verify_cmd);
     }
 }
 
