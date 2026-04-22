@@ -240,6 +240,7 @@ TEST_CONTEXT | string | | Defines the class name to be used as the context insta
 TEST_TIME | integer | | Set time parameter for `iperf -t N` option. Used in Azure Public Cloud testing of Accelerated NICs
 TOGGLEHOME | boolean | false | Changes the state of partitioning to have or not to have separate home partition in the proposal.
 TUNNELED | boolean | false | Enables the use of normal consoles like "root-consoles" on a remote SUT while configuring the tunnel in a local "tunnel-console"
+TRANSACTIONAL_VALIDATION | boolean | false | Runs checks of the transactional filesystem and related tools.
 TYPE_BOOT_PARAMS_FAST | boolean | false | When set, forces `bootloader_setup::type_boot_parameters` to use the default typing interval.
 UEFI | boolean | false | Indicates UEFI in the testing environment.
 ULP_THREAD_COUNT | integer | 1000 | Number of threads to create in `ulp_threads` test module.
