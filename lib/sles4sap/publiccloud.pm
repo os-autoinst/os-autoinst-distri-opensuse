@@ -888,13 +888,18 @@ sub sbd_delay_formula() {
     my ($self) = @_;
     # all commands below ($corosync_token, $corosync_consensus...)
     # are defined and imported from lib/hacluster.pm
+
+    # We need to know first the correct name of the fence_sbd primitive in the
+    # remote cluster configuration
+    my $primitive_name = get_fencing_ra_name($self->run_cmd(cmd => $crm_config_show_fence_sbd));
+
     my %params = (
         'corosync_token' => $self->run_cmd(cmd => $corosync_token),
         'corosync_consensus' => $self->run_cmd(cmd => $corosync_consensus),
         'sbd_watchdog_timeout' => $self->run_cmd(cmd => $sbd_watchdog_timeout),
         'sbd_delay_start' => $self->run_cmd(cmd => $sbd_delay_start),
         'pcmk_delay_max' => get_var('FENCING_MECHANISM') eq 'sbd' ?
-          $self->run_cmd(cmd => $pcmk_delay_max) : 30
+          $self->run_cmd(cmd => pcmk_delay_max_cmd($primitive_name)) : 30
     );
     my $calculated_delay = calculate_sbd_start_delay(\%params);
     record_info('SBD wait', "Calculated SBD start delay: $calculated_delay");
