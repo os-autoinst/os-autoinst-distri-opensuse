@@ -17,6 +17,7 @@ use network_utils 'iface';
 use Utils::Architectures 'is_s390x';
 use utils qw(set_hostname);
 use Utils::Systemd qw(disable_and_stop_service systemctl);
+use version_utils 'is_sle';
 
 my $remote_name = '389ds';
 my $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
@@ -25,7 +26,9 @@ my $ldap_user = get_var('SSS_USERNAME');
 my $uid = '1003';
 
 sub install_service {
-    zypper_call("in 389-ds sssd sssd-ldap openssl");
+    my $pkgs = "in 389-ds sssd sssd-ldap openssl";
+    $pkgs .= ' openldap2_6-client' if is_sle('>=16.1');
+    zypper_call($pkgs);
     # Disable and stop the nscd daemon because it conflicts with sssd
     disable_and_stop_service("nscd", ignore_failure => 1);
 }
