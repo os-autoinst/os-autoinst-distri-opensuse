@@ -51,6 +51,7 @@ sub build
     my $make_cmd = "make -j$jobs -C $source_dir/tools/testing/selftests install O=$build_dir SKIP_TARGETS= TARGETS=$targets FORCE_TARGETS=1 $build_env";
     $make_cmd =~ s/\s+$//;
 
+    assert_script_run("make -j$jobs -C $source_dir headers O=$build_dir $build_env");
     assert_script_run($make_cmd, 7200);
     assert_script_run("cd $build_dir/kselftest/kselftest_install");
 }
