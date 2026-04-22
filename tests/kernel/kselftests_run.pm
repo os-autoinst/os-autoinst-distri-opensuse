@@ -3,7 +3,7 @@
 # Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Execute Kselftests.
+# Summary: Run Kselftests.
 #
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
@@ -18,13 +18,12 @@ sub run {
     my ($self) = @_;
 
     select_serial_terminal;
-    record_info('KERNEL VERSION', script_output('uname -a'));
 
     my $collection = get_required_var('KSELFTEST_COLLECTION');
     $self->{collection} = $collection;
-    install_kselftests($collection);
 
-    # At this point, CWD has the file 'kselftest-list.txt' listing all the available tests
+    # At this point kselftests_prepare.pm has already run: CWD has the file
+    # 'kselftest-list.txt' listing all the available tests
     my @available = split(/\n/, script_output("./run_kselftest.sh --list | grep '^$collection'"));
     record_info("Available Tests", join("\n", @available));
 
@@ -68,7 +67,7 @@ sub run {
 
     validate_kconfig($collection);
 
-    my $stamp = 'OpenQA::run_kselftest.pm';
+    my $stamp = 'OpenQA::kselftest_run.pm';
     my $timeout = get_var('KSELFTEST_TIMEOUT') // 300;
     my $test_timeout = get_var('KSELFTEST_TEST_TIMEOUT') ? "--override-timeout " . get_var('KSELFTEST_TEST_TIMEOUT') : '';
     my $runner = get_var('KSELFTEST_RUNNER') // "export PATH=\"\$PWD/$collection:\$PATH\"; ./run_kselftest.sh $test_timeout $test_opt";
@@ -80,7 +79,7 @@ while (my $line = <STDIN>) {
     if ($line =~ /^#\sselftests:\s\S+:\s(\S+)/) {
         my $test = $1;
         if (!$seen{$test}++ && open(my $kmsg, '>', '/dev/kmsg')) {
-            print {$kmsg} "OpenQA::run_kselftest.pm: Starting $test\n";
+            print {$kmsg} "OpenQA::kselftest_run.pm: Starting $test\n";
             close($kmsg);
         }
     }
@@ -131,10 +130,9 @@ sub post_run_hook {
 
 =head1 Description
 
-This module executes Linux Kernel Selftests (kselftests) inside openQA.
-It supports running tests from the in-tree git repository, from the
-C<kernel-source> package, or from the packaged kselftest RPMs provided
-by OBS/IBS.
+This module runs Linux Kernel Selftests (kselftests) inside openQA.
+It expects C<kselftests_prepare> to have already installed the selftests
+and their dependencies.
 
 The module groups tests by a collection, as listed in
 F<kselftest-list.txt>, and allows selecting individual tests, skipping
@@ -171,18 +169,6 @@ Optional list of tests that should be skipped. This is applied after
 KSELFTEST_TESTS, so it can exclude tests even when running a full
 collection.
 
-=head2 KSELFTEST_FROM_GIT
-
-If set, kselftests are installed from a kernel git tree instead of using
-packaged RPMs. Allows to point to C<KERNEL_GIT_TREE>. Defaults to the
-upstream tree: C<torvalds/linux.git>.
-
-=head2 KSELFTEST_FROM_SRC
-
-If set, kselftests are installed from the kernel source tree provided by
-the C<kernel-source> package instead of using packaged RPMs. The source
-tree is located at F</usr/src/linux>.
-
 =head2 KSELFTEST_RUNNER
 
 Overrides the default runner command. Useful for debugging or running
@@ -213,29 +199,6 @@ F<tools/testing/selftests/kselftest/runner.sh>.
 Example:
 
   KSELFTEST_ENV="KSELFTEST_TEST_PROGS_CPUV4_ARGS='-v -t verifier'"
-
-=head2 KSELFTEST_BUILD_ENV
-
-Optional string containing environment variable assignments to append to
-the C<make> command when building kselftests from source (i.e. when
-C<KSELFTEST_FROM_GIT> or C<KSELFTEST_FROM_SRC> is set). Has no effect
-when installing from a pre-built RPM package.
-
-Example:
-
-  KSELFTEST_BUILD_ENV="SKIP_DOCS=1"
-
-=head2 KSELFTEST_BUILD_JOBS
-
-Optional number of parallel jobs passed to C<make -j> when building
-kselftests from source (i.e. when C<KSELFTEST_FROM_GIT> or
-C<KSELFTEST_FROM_SRC> is set). Defaults to the number of online CPUs
-(C<getconf _NPROCESSORS_ONLN>). Has no effect when installing from a
-pre-built RPM package.
-
-Example:
-
-  KSELFTEST_BUILD_JOBS=4
 
 =head1 Example openQA Settings
 
