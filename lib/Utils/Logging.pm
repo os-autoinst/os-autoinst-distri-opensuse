@@ -173,18 +173,20 @@ sub cleanup_known_coredumps {
     my %known_coredumps = (
         # Note: These are literal strings, not regexes
         'poo#198596' => q(openssl3-conf/base_only.cnf -p $'"hello"'),
-        'bsc#1129403' => q(unzip-mem  v files.zip),
+        'bsc#1129403' => q(unzip-mem "" v files.zip),
         'bsc#1261358' => q(gvfs-udisks2-volume-monitor),
         'bsc#1261625' => q(ovs-vswitchd unix:),
     );
 
     for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1))) {
+        my $coredump_info = script_output("time coredumpctl info --no-pager $pid", proceed_on_failure => 1);
+        my ($cmdline) = $coredump_info =~ /^\s+Command Line: (.*)$/m;
         for my $known (keys %known_coredumps) {
-            my $coredump_info = script_output("time coredumpctl info --no-pager $pid", proceed_on_failure => 1);
-            my ($cmdline) = $coredump_info =~ /^\s+Command Line: (.*)$/m;
             if (index($cmdline, $known_coredumps{$known}) >= 0) {
                 record_info('Known dump', $coredump_info);
-                script_output("rm -vf \$(echo \"$coredump_info\" | awk '/Storage:/ {print \$2}')");
+                my ($coredump) = $coredump_info =~ /^\s+Storage: (.+?) \(present\)$/m;
+                script_output("rm -vf $coredump");
+                last;
             }
         }
     }
