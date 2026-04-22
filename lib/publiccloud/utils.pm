@@ -967,11 +967,14 @@ This tag is needed to compare TTL vs Creation time in Cloud Custodian.
 =cut
 
 sub calculate_custodian_ttl {
-    my $ttl_in_seconds = @_;
+    my ($ttl_in_seconds) = @_;
 
-    # UTC time
-    my $now = gmtime;
-    my $expiration_time = $now + $ttl_in_seconds;
+    # Unix time in seconds
+    my $now_timestamp = time();
+    my $expiration_timestamp = $now_timestamp + $ttl_in_seconds;
+
+    # Convert to UTC
+    my $expiration_time = gmtime($expiration_timestamp);
 
     # convert to proper format
     my $custodian_expiration_date = $expiration_time->strftime("%Y-%m-%dT%H:%M:%SZ");
