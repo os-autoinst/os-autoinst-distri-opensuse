@@ -29,7 +29,7 @@ sub is_image {
 }
 
 sub is_dvd {
-    return get_required_var('FLAVOR') =~ /dvd|agama-install/i;
+    return get_required_var('FLAVOR') =~ /dvd|^agama-install$/i;
 }
 
 sub is_regproxy_required {
