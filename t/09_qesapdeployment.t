@@ -284,7 +284,7 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
     my $expected_res = 0;
     my $cmd = 'GILL';
 
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
@@ -322,7 +322,7 @@ subtest '[qesap_execute] simplest call' => sub {
     my @logs = ();
     my $expected_res = 0;
     my $cmd = 'GILL';
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -347,7 +347,7 @@ subtest '[qesap_execute] invalid timeout' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my $cmd = 'GILL';
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(qesap_get_file_paths => sub {
@@ -374,7 +374,7 @@ subtest '[qesap_execute] cmd_options' => sub {
     my $cmd = 'GILL';
     my $cmd_options = '--tankgang';
     my $expected_log_name = 'qesap_exec_' . $cmd . '__tankgang.log.txt';
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -401,7 +401,7 @@ subtest '[qesap_execute] failure' => sub {
     my @calls;
     my @logs = ();
     my $expected_res = 1;
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -428,7 +428,7 @@ subtest '[qesap_execute] check_logs' => sub {
     my @calls;
     my @logs = ();
     my $expected_res = 1;
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -464,7 +464,7 @@ subtest '[qesap_terraform_conditional_retry] pass at first' => sub {
     my @calls;
 
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     my @return_list = ();
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
@@ -487,7 +487,7 @@ subtest '[qesap_terraform_conditional_retry] retry after fail with expected erro
     my @calls;
 
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_cluster_logs => sub { return 1; });
     my @return_list = ();
     # Reverse order than used in the execution,
@@ -530,7 +530,7 @@ subtest '[qesap_terraform_conditional_retry] retry with destroy terraform' => su
     # 5. re-retry terraform apply PASS
 
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
             my $cmd = $args{cmd};
@@ -559,7 +559,7 @@ subtest '[qesap_terraform_conditional_retry] retry with destroy terraform and fa
     my @return_list = (42, 1);
 
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
             my $cmd = $args{cmd_options} ? $args{cmd} . " " . $args{cmd_options} : $args{cmd};
@@ -584,7 +584,7 @@ subtest '[qesap_terraform_conditional_retry] retry with destroy terraform and fa
 subtest '[qesap_terraform_conditional_retry] dies if expected error message is not found' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
@@ -608,7 +608,7 @@ subtest '[qesap_terraform_conditional_retry] test qesap_file_find_strings' => su
     my @calls;
 
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_cluster_logs => sub { return 1; });
     my @return_list = ();
     # Reverse order than used in the execution,
@@ -1321,35 +1321,85 @@ subtest '[qesap_create_cidr_from_ip]' => sub {
     dies_ok { qesap_create_cidr_from_ip(ip => 'still_not_an_ip') } 'Dies on invalid IP without proceed_on_failure';
 };
 
-subtest '[qesap_ssh_intrusion_detection]' => sub {
+subtest '[qesap_ssh_intrusion_detection] die for missing argument' => sub {
+    dies_ok { qesap_ssh_intrusion_detection(); } "Expected die if called without provider argument";
+};
+
+subtest '[qesap_ssh_intrusion_detection] no inventory' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    # script_run returns 1 to simulate missing inventory file
+    $qesap->redefine(script_run => sub { return 1; });
+    my $ansible_called = 0;
+    $qesap->redefine(qesap_ansible_script_output_file => sub { $ansible_called = 1; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    qesap_ssh_intrusion_detection(provider => 'NEMO');
+
+    ok($ansible_called == 0, 'qesap_ansible_script_output_file is not called when inventory is missing');
+};
+
+subtest '[qesap_ssh_intrusion_detection] with intrusion attempts' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
     my @calls;
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
-    $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; return 0; });
 
     $qesap->redefine(script_output => sub {
             push @calls, $_[0];
             return <<'LOG';
 2025-09-02T11:59:20.291296+0000 vmhana02 sshd[143121]: Connection closed by authenticating user root 1.2.3.4 port 42 [preauth]
 2025-09-02T12:04:21.002220+0000 vmhana02 sshd[160619]: Connection closed by invalid user debian 1.2.3.4 port 42 [preauth]
-2025-09-02T12:04:23.503717+0000 vmhana02 sshd[160801]: Connection closed by invalid user debian 1.2.3.4 port 42 [preauth]
+2025-09-02T12:04:23.503717+0000 vmhana02 sshd[160801]: Connection closed by invalid user debian 5.6.7.8 port 42 [preauth]
 LOG
     });
-
     $qesap->redefine(upload_logs => sub { note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_ansible_script_output_file => sub {
             my (%args) = @_;
             push @calls, "ANSIBLE:" . $args{cmd};
-            note("\n ###--> out_path : $args{out_path}");
-            note("\n ###--> file : $args{file}");
             return 'BOUBLE_FILE.txt'; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     qesap_ssh_intrusion_detection(provider => 'NEMO');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok 1;
+    # Verify both hosts were processed (2 ansible calls, one per host)
+    my @ansible_calls = grep { /^ANSIBLE:/ } @calls;
+    ok(scalar @ansible_calls == 2, 'Ansible called for both hosts');
+    # Verify log files were read for both hosts
+    my @cat_calls = grep { /^cat / } @calls;
+    ok(scalar @cat_calls == 2, 'Log files read for both hosts');
+};
+
+subtest '[qesap_ssh_intrusion_detection] no intrusion attempts' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+
+    # Return log lines that do NOT match the intrusion pattern
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return <<'LOG';
+2025-09-02T12:00:00.000000+0000 vmhana02 sshd[100]: Accepted publickey for cloudadmin from 10.0.0.1 port 22
+LOG
+    });
+    $qesap->redefine(upload_logs => sub { note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(qesap_ansible_script_output_file => sub {
+            my (%args) = @_;
+            push @calls, "ANSIBLE:" . $args{cmd};
+            return 'BOUBLE_FILE.txt'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    qesap_ssh_intrusion_detection(provider => 'NEMO');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    # Verify both hosts were processed (2 ansible calls, one per host)
+    my @ansible_calls = grep { /^ANSIBLE:/ } @calls;
+    ok(scalar @ansible_calls == 2, 'Ansible called for both hosts');
+    # Verify log files were read for both hosts
+    my @cat_calls = grep { /^cat / } @calls;
+    ok(scalar @cat_calls == 2, 'Log files read for both hosts');
 };
 
 done_testing;
