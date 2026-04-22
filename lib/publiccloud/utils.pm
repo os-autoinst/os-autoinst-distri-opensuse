@@ -898,4 +898,29 @@ sub pc_data_url {
     return "$git_url/src/commit/$commit/$path";
 }
 
+=head2 additional_repos
+
+additional_repos();
+
+This function returns a list of additional repos
+relevant to the Public Cloud job
+
+=cut
+
+sub additional_repos {
+    my @repos = ();
+
+    # Add repo for xfstests
+    if (get_var("PUBLIC_CLOUD_XFS")) {
+        my $version = get_required_var("VERSION");
+        my $prefix = "";
+        $prefix = "SLE" if is_sle;
+        $prefix = "SLES" if is_sle(">=16.0");
+        $prefix = "SL-Micro" if is_sle_micro(">=6.0");
+        die "Unsupported product for QA:Head" unless $prefix;
+        push @repos, "https://dist.suse.de/ibs/QA:/Head/$prefix-$version/";
+    }
+    return @repos;
+}
+
 1;
