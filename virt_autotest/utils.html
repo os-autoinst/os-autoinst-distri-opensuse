@@ -33,6 +33,7 @@
       <li><a href="#download_installation_iso">download_installation_iso</a></li>
       <li><a href="#install_product_software">install_product_software</a></li>
       <li><a href="#collect_guests_supportconfig_and_logs">collect_guests_supportconfig_and_logs</a></li>
+      <li><a href="#reset_network_config">reset_network_config</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -144,6 +145,12 @@
 <pre><code>collect_guests_supportconfig_and_logs();</code></pre>
 
 <p>Runs supportconfig and collects compressed /var/log* from all guests</p>
+
+<h2 id="reset_network_config">reset_network_config</h2>
+
+<pre><code>reset_network_config(config =&gt; absolute path to config file);</code></pre>
+
+<p>Reset network config, for example, restore auto dns policy to enable automatic dns migration to higher version</p>
 
 
 </body>
