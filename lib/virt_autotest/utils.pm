@@ -2192,7 +2192,6 @@ sub reset_network_config {
     if (!is_networkmanager) {
         $args{config} = '/etc/sysconfig/network/config';
         return if (script_run("ls $args{config}") != 0);
-        assert_script_run("sed -i -r \'/^NETCONFIG_DNS_POLICY.*\$/d\' $args{config}");
         if (script_run("grep -E \"^NETCONFIG_DNS_POLICY.*\$\" $args{config}") == 0) {
             assert_script_run("sed -i -r \'s/^NETCONFIG_DNS_POLICY.*\$/NETCONFIG_DNS_POLICY=\"auto\"/g\' $args{config}");
         }
