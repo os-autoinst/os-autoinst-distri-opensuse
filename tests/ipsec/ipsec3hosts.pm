@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2025 SUSE LLC
+# Copyright 2023-2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Multimachine IPsec test verifying connectivity, routing,
@@ -16,6 +16,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use lockapi;
 use network_utils;
+use package_utils 'install_package';
 use Kernel::net_tests qw(
   add_ipv6_addr
   add_ipv6_route
@@ -328,7 +329,7 @@ sub pre_run_hook {
     ensure_service_disabled($self->firewall);
     set_hostname(get_var('HOSTNAME', 'susetest'));
 
-    zypper_call('install tcpdump');
+    install_package('tcpdump', trup_apply => 1);
 }
 
 sub post_fail_hook {
