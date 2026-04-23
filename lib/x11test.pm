@@ -1002,6 +1002,12 @@ sub disable_key_repeat {
     x11_start_program('xset -r', target_match => 'generic-desktop', no_wait => 1);
 }
 
+sub open_overview {
+    wait_still_screen 3;
+    send_key "super";
+    assert_screen 'tracker-mainmenu-launched';
+}
+
 # Start one of the libreoffice components, close any first-run dialogs
 sub libreoffice_start_program {
     my ($self, $program) = @_;

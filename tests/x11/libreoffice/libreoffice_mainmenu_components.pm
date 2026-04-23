@@ -64,13 +64,6 @@ sub open_mainmenu {
     assert_screen 'mainmenu-office-components';
 }
 
-# enter 'Activities overview'
-sub open_overview {
-    wait_still_screen 3;
-    send_key "super";
-    assert_screen 'tracker-mainmenu-launched';
-}
-
 sub select_base_and_cleanup {
     assert_screen 'oobase-select-database', 45;
     if (check_screen 'oobase-database-empty') {
