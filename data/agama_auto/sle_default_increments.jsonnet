@@ -19,7 +19,11 @@
   },
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
-    hashedPassword: true
+    hashedPassword: true,
+    sshPublicKey: 'fake public key to enable sshd and open firewall'
+  },
+  software: {
+    packages: ['openssh-server-config-rootlogin'],
   },
   questions: {
     policy: 'auto',
@@ -27,18 +31,6 @@
       {
         answer: 'Trust',
         class: 'software.import_gpg'
-      }
-    ]
-  },
-  scripts: {
-    post: [
-      {
-        name: 'enable sshd',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          systemctl enable sshd
-        |||
       }
     ]
   }
