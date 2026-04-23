@@ -1,4 +1,4 @@
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2026 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Package: bpftrace
@@ -7,14 +7,14 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils 'is_sle';
 use serial_terminal 'select_serial_terminal';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in bcc-tools');
+    install_package('bcc-tools', trup_apply => 1);
 
     my $tools_dir = '/usr/share/bcc/tools';
 
