@@ -2874,7 +2874,7 @@ sub load_common_opensuse_sle_tests {
     load_create_hdd_tests if (get_var("STORE_HDD_1") || get_var("PUBLISH_HDD_1")) && !is_public_cloud();
     loadtest 'console/network_hostname' if get_var('NETWORK_CONFIGURATION');
     load_installation_validation_tests if get_var('INSTALLATION_VALIDATION');
-    load_transactional_role_tests if is_transactional && (get_var('ARCH') !~ /ppc64|s390/) && !get_var('INSTALLONLY');
+    load_transactional_role_tests if get_var('TRANSACTIONAL_VALIDATION');
 }
 
 sub load_ssh_key_import_tests {
