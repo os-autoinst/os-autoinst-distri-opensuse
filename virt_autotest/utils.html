@@ -34,6 +34,7 @@
       <li><a href="#install_product_software">install_product_software</a></li>
       <li><a href="#collect_guests_supportconfig_and_logs">collect_guests_supportconfig_and_logs</a></li>
       <li><a href="#reset_network_config">reset_network_config</a></li>
+      <li><a href="#is_transactional_guest">is_transactional_guest</a></li>
     </ul>
   </li>
 </ul><h1>lib/virt_autotest/utils.pm</h1>
@@ -151,6 +152,12 @@
 <pre><code>reset_network_config(config =&gt; absolute path to config file);</code></pre>
 
 <p>Reset network config, for example, restore auto dns policy to enable automatic dns migration to higher version</p>
+
+<h2 id="is_transactional_guest">is_transactional_guest</h2>
+
+<pre><code>is_transactional_guest(address =&gt; ip or domain name or fqdn);</code></pre>
+
+<p>Check whether guest is in immutable mode by leveraging the two most reliable methods , namely transactional-update shell exists or root partition is mounted read only if its domain name does not have &#39;immutable&#39; or &#39;transactional&#39;. Need ssh connection to perform the check, so argument address is needed which can be guest ip address, domain name or FQDN as long as it can be used for ssh connection.</p>
 
 
 </body>
