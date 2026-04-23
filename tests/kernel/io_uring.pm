@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2025 SUSE LLC
+# Copyright 2023-2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Executes liburing testing suite
@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use LTP::WhiteList;
+use package_utils 'install_package';
 
 sub run {
     my $self = shift;
@@ -33,8 +34,8 @@ sub run {
     $pkgs .= " liburing2" if script_run('rpm -q liburing2');
 
     # install dependences
-    zypper_call("in -t pattern devel_basis");
-    zypper_call("in $pkgs");
+    install_package('-t pattern devel_basis');
+    install_package($pkgs, trup_continue => 1, trup_apply => 1);
 
     # select latest liburing version which is supported by the system
     if ($version eq '') {
