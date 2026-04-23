@@ -37,12 +37,14 @@ sub run {
     my %instance_args;
     $instance_args{check_connectivity} = 0;    # Don't run wait_for_ssh() inside create_instance()
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
+
     $args->{my_provider} = $self->provider_factory();
     $args->{my_instance} = $args->{my_provider}->create_instance(%instance_args);
-    $args->{my_instance}->wait_for_ssh(scan_ssh_host_key => 1);
-    $args->{my_instance}->wait_for_guestregister() if (is_ondemand);
     my $provider = $self->{my_provider} = $args->{my_provider};
     my $instance = $args->{my_instance};
+    my $result = $instance->wait_for_ssh(scan_ssh_host_key => 1);
+    $instance->measure_boottime($instance, 'first') if $result;
+    $instance->wait_for_guestregister() if (is_ondemand);
 
     $instance->network_speed_test();
     $instance->check_cloudinit() if (is_cloudinit_supported);
