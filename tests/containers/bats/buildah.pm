@@ -68,6 +68,7 @@ sub run_tests {
         # registry.access.redhat.com/ubi9-micro:latest may fail with:
         # Fatal glibc error: CPU lacks ISA 3.00 support (POWER9 or later required)
         "chroot.bats::chroot mount flags",
+        "copy.bats::copy-preserving-extended-attributes",
     ) if (is_ppc64le);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
