@@ -60,6 +60,7 @@ schedule:
     - '{{bootloader}}'
     - '{{wizard}}'
     - jeos/image_info
+    - jeos/image_checks
     - jeos/record_machine_id
     - console/force_scheduled_tasks
     - jeos/diskusage
