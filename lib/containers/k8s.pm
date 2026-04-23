@@ -21,7 +21,7 @@ use version_utils qw(is_sle is_microos is_public_cloud is_transactional is_sle_m
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
 
-our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log get_pod_logs gather_k8s_logs);
+our @EXPORT = qw(check_k3s install_k3s uninstall_k3s install_kubectl install_helm apply_manifest wait_for_k8s_job_complete wait_for_pod_ready find_pods validate_pod_log get_pod_logs gather_k8s_logs dump_k3s_debug_info);
 
 sub check_k3s {
     record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
@@ -208,8 +208,8 @@ sub apply_manifest {
     assert_script_run("kubectl apply -f $path");
 }
 
-=head2 find_pods
-Find pods using kubectl queries
+=head2 wait_for_k8s_job_complete
+Wait until the job is complete
 =cut
 
 sub wait_for_k8s_job_complete {
@@ -218,8 +218,44 @@ sub wait_for_k8s_job_complete {
     script_retry($cmd, retry => 5, timeout => 360, die => 1);
 }
 
-=head2 wait_for_k8s_job_complete
-Wait until the job is complete
+=head2 wait_for_pod_ready
+
+    wait_for_pod_ready(labels => "app=myapp", timeout => 60, delay => 12, retry => 5)
+    wait_for_pod_ready(pod_name => "myapp-12345", timeout => 60, delay => 12, retry => 5)
+
+    Waits until the Pod is in Ready status. You can specify either a label selector or the full Pod name.
+
+=cut
+
+sub wait_for_pod_ready {
+    my (%args) = @_;
+    unless ($args{labels} || $args{pod_name}) {
+        die "wait_for_pod_ready requires 'labels' or 'pod_name' arguments";
+    }
+    $args{timeout} //= 60;
+    $args{delay} //= 12;
+    $args{retry} //= 5;
+
+    my $selector = "";
+    $selector .= ($args{pod_name} . " ") if $args{pod_name};
+    $selector .= "-l $args{labels}" if $args{labels};
+
+    my $cmd = "kubectl get pod $selector"
+      . " -o jsonpath='{.items[0].status.conditions[?(@.type==\"Ready\")].status}'";
+
+    validate_script_output_retry(
+        $cmd,
+        sub { $_ eq 'True' },
+        retry => $args{retry},
+        delay => $args{delay},
+        timeout => $args{timeout},
+        fail_message => 'Pod with selector ' . $selector . ' did not become Ready'
+    );
+}
+
+
+=head2 find_pods
+Find pods using kubectl queries
 =cut
 
 sub find_pods {
@@ -302,6 +338,21 @@ sub gather_k8s_logs {
         get_pod_logs($pod_name);
     }
 
+}
+
+=head2 dump_k3s_debug_info
+
+    dump_k3s_debug_info()
+
+    Dumps k3s and kubectl status and logs for debugging purposes.
+
+=cut
+
+sub dump_k3s_debug_info {
+    record_info('K3s status', script_output('systemctl status k3s', proceed_on_failure => 1));
+    script_run('journalctl -u k3s --no-pager');
+    record_info("kubectl get all", script_output("kubectl get all --all-namespaces", proceed_on_failure => 1));
+    record_info("kubectl describe all", script_output("kubectl describe all --all-namespaces", proceed_on_failure => 1));
 }
 
 1;
