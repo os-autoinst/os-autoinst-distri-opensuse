@@ -19,6 +19,7 @@
       <li><a href="#exit_trup_shell">exit_trup_shell</a></li>
       <li><a href="#exit_trup_shell_and_reboot">exit_trup_shell_and_reboot</a></li>
       <li><a href="#reboot_on_changes">reboot_on_changes</a></li>
+      <li><a href="#trup_apply">trup_apply</a></li>
     </ul>
   </li>
 </ul><h1>lib/transactional.pm</h1>
@@ -50,6 +51,24 @@
 <pre><code>reboot_on_changes</code></pre>
 
 <p>Check whether new snapshot is generated and reboot into this new snapshot if there are changes happened.</p>
+
+<h2 id="trup_apply">trup_apply</h2>
+
+<pre><code>trup_apply([timeout =&gt; $seconds])</code></pre>
+
+<p>Apply pending changes from the new snapshot without rebooting using <code>transactional-update apply</code>.</p>
+
+<p><b>Warning</b>: Do not use this for kernel packages or system libraries that require a reboot to take effect. Applying those without a reboot may leave the system in an inconsistent state. This function is intended only for end user applications and server services.</p>
+
+<dl>
+
+<dt id="timeout"><code>timeout</code></dt>
+<dd>
+
+<p>Timeout in seconds (default: 30).</p>
+
+</dd>
+</dl>
 
 
 </body>
