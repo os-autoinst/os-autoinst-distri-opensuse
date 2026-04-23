@@ -116,21 +116,25 @@ sub install_dependencies
     }
 
     if ($collection =~ m{^net(/|$)}) {
-        my $netutils_repo;
+        my $netutils_repo, my $bench_repo;
         if (is_tumbleweed()) {
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/openSUSE_Factory/network:utilities.repo';
+            $bench_repo = 'https://download.opensuse.org/repositories/benchmark/openSUSE_Factory/benchmark.repo';
         } elsif (is_sle('<16')) {
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo';
+            $bench_repo = 'https://download.opensuse.org/repositories/benchmark/15.6/benchmark.repo';
         } elsif (is_sle('=16.0')) {
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/16.0/network:utilities.repo';
+            $bench_repo = 'https://download.opensuse.org/repositories/benchmark/16.0/benchmark.repo';
         }
         zypper_ar($netutils_repo) if $netutils_repo;
+        zypper_ar($bench_repo) if $bench_repo;
 
         # install build deps
         install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
 
         # install test deps
-        install_available_packages('libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
+        install_available_packages('packetdrill libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
 
         if (is_sle('>=16.0')) {
             # NetworkManager interferes with tests such as busy_poll_test.sh and rtnetlink.sh, due to automatically reacting to device creation
