@@ -1,25 +1,9 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2025 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: NFS server
-#    This module provisions the NFS server and then runs some basic sanity tests
-#    NFS server - provisioned on SUSE/openSUSE - provides specific exports:
-#      - NFS v3 with sync and async flags
-#      - NFS v4 with sync and async flags
-#    NFS client (tests/kernel/nfs_client.pm) creates a file using dd tool and then copies
-#    that file to all exports mounted on the client side.
-#    Data integrity of the file is checked with the md5 checksum
-#
-#    Extension to the NFS tests uses dd tool for copying created file using various flags,
-#    specifically:
-#      - direct
-#      - dsync
-#      - sync
-#    An earlier created file is copied with each flag to each mounted export and then md5 checksum is
-#    used again to check data integridty for each file copied with dd tool with all each flag
-
+# Summary: NFS server setup and export verification
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
@@ -28,6 +12,8 @@ use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
 use Utils::Logging "export_logs_basic";
+use Utils::Backends 'is_ipmi';
+use Kernel::net_tests 'get_ipv4_addresses';
 
 # create a mountpoint and the corresponding export with
 # specified permissions
@@ -61,7 +47,29 @@ sub run {
     my $kernel_nfs4_2 = 0;
     my $kernel_nfsd_v3 = 0;
     my $kernel_nfsd_v4 = 0;
-    my $client = get_var('CLIENT_NODE', 'client-node00');
+    my $client = get_var('CLIENT_NODE');
+    # Baremetal/ipmi multimachine jobs commonly provide peer IPs via IBTEST_IP*
+    # and not DNS-resolvable hostnames.
+    if (is_ipmi) {
+        my $ip1 = get_var('IBTEST_IP1');
+        my $ip2 = get_var('IBTEST_IP2');
+        my $detected_ipv4 = get_ipv4_addresses();
+        my @local_ips = map { @$_ } values %$detected_ipv4;
+
+        if (grep { $_ eq $ip1 } @local_ips) {
+            $client = $ip2;
+        } elsif (grep { $_ eq $ip2 } @local_ips) {
+            $client = $ip1;
+        } else {
+            @local_ips = sort @local_ips;
+            record_info("IP mapping", "local_ips=@local_ips ib1=$ip1 ib2=$ip2", result => 'fail');
+            die "Unable to map client node: local host does not have IBTEST_IP1 or IBTEST_IP2";
+        }
+        @local_ips = sort @local_ips;
+        record_info("IP mapping", "local_ips=@local_ips peer=$client");
+    } else {
+        $client //= 'client-node00';
+    }
 
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
@@ -111,11 +119,22 @@ sub run {
     systemctl("enable rpcbind --now");
     systemctl("is-active rpcbind");
     systemctl("enable nfs-server --now");
+    #systemctl("restart rpcbind");
     systemctl("restart nfs-server");
+    assert_script_run("exportfs -ra");
+    #sleep(20);
+    my $mountd_ready = script_retry("rpcinfo -t localhost mountd", retry => 12, delay => 5);
+    die "mountd not ready on localhost" if $mountd_ready != 0;
     systemctl("is-active nfs-server");
+    #assert_script_run("rpcinfo -t localhost portmapper");
+
 
     record_info("RPC", script_output("rpcinfo"));
-    record_info("NFS config", script_output("cat /etc/sysconfig/nfs"));
+    #record_info("RPC ports", script_output("rpcinfo -p", proceed_on_failure => 1));
+    #record_info("NFS sockets", script_output("ss -lntup | grep -E '(:111|:2049)'", proceed_on_failure => 1));
+    #record_info("showmount local", script_output("showmount -e localhost", proceed_on_failure => 1));
+    #record_info("NFS units", script_output("systemctl --no-pager --full status rpcbind nfs-server", proceed_on_failure => 1));
+    #record_info("NFS config", script_output("cat /etc/sysconfig/nfs"));
 
     #my $nfsstat = script_output("nfsstat -s");
     record_info("NFS stat for server", script_output("nfsstat -s"));
@@ -194,3 +213,76 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+This module provisions the server side of the kernel multimachine NFS tests.
+It installs and starts the local NFS services, creates the configured exports,
+and waits for the client to mount and populate them.
+
+The server provides up to four exports, depending on kernel support:
+
+=over 4
+
+=item * NFSv3 synchronous export
+
+=item * NFSv3 asynchronous export
+
+=item * NFSv4 synchronous export
+
+=item * NFSv4 asynchronous export
+
+=back
+
+After the client copies the reference file and checksum data to the mounted
+exports, the server verifies the checksum of the original file as well as the
+files copied via C<dd> with C<direct>, C<dsync>, and C<sync> output flags.
+
+In IPMI baremetal jobs the module resolves the client peer by comparing
+C<IBTEST_IP1>/C<IBTEST_IP2> with locally detected IPv4 addresses. In regular
+VM-based multimachine jobs it falls back to C<CLIENT_NODE> or the default
+C<client-node00> hostname.
+
+=head1 Configuration
+
+=head2 CLIENT_NODE
+
+Optional. Hostname or address of the NFS client in non-IPMI multimachine jobs.
+Defaults to C<client-node00>.
+
+=head2 IBTEST_IP1, IBTEST_IP2
+
+Required for IPMI baremetal jobs. Used to determine which of the two configured
+addresses belongs to the local host and which one is the remote peer.
+
+=head2 NFS_MOUNT_NFS3
+
+Optional. Export path for the synchronous NFSv3 export.
+Defaults to C</nfs/shared_nfs3>.
+
+=head2 NFS_MOUNT_NFS3_ASYNC
+
+Optional. Export path for the asynchronous NFSv3 export.
+Defaults to C</nfs/shared_nfs3_async>.
+
+=head2 NFS_MOUNT_NFS4
+
+Optional. Export path for the synchronous NFSv4 export.
+Defaults to C</nfs/shared_nfs4>.
+
+=head2 NFS_MOUNT_NFS4_ASYNC
+
+Optional. Export path for the asynchronous NFSv4 export.
+Defaults to C</nfs/shared_nfs4_async>.
+
+=head2 NFS_PERMISSIONS
+
+Optional. Export options used for synchronous exports.
+Defaults to C<rw,sync,no_root_squash>.
+
+=head2 NFS_PERMISSIONS_ASYNC
+
+Optional. Export options used for asynchronous exports.
+Defaults to C<rw,async,no_root_squash>.
+
+=cut
