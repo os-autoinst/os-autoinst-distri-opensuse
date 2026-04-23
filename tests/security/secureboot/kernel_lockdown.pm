@@ -1,4 +1,4 @@
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Verify that if we are "secure booted" that kernel lockdown is enabled
@@ -10,10 +10,11 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    zypper_call('in mokutil');
+    install_package("mokutil", trup_continue => 1);
     # Make sure system is secureboot enabled
     validate_script_output('mokutil --sb-state', sub { m/SecureBoot enabled/ });
 
