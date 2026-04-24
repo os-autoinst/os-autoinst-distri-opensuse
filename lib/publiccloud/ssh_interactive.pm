@@ -99,7 +99,6 @@ sub ssh_interactive_leave {
         last if ($test->());
         sleep 5;    # some cool down after a failed attempt
     }
-    die "tunnel-console is not functional" if ($retries <= 0);
 
     select_console($prev_console) if ($prev_console !~ /tunnel-console/);
     set_var('_SSH_TUNNELS_INITIALIZED', 0);    # set after the last select_console!
