@@ -744,61 +744,71 @@ sub enable_kdump() {
     $self->softreboot();
 }
 
-=head2 measure_boottime
+=head2 check_system_boottime
 
-    measure_boottime();
+    check_system_boottime();
 
-Perfomrance measurement of the system Boot time. 
-Mainly used C<systemd-analyze> command for the data extraction.
-Data is then collected in an internal record, ready for storing in a DB.
-Set PUBLIC_CLOUD_PERF_COLLECT true or >0, to activate boottime measurements.
+Performance measurement of the system Boot time. 
+C<systemd-analyze> command used for the data extraction.
+Data is then collected in an internal record.
+Set PUBLIC_CLOUD_BOOTTIME_MAX or max_boot_time to a positive number 
+to activate the routine; assign zero instead, to skip the check.
 
 =cut
 
-sub measure_boottime() {
-    my ($self, $instance, $type) = @_;
-    my $data_collect = get_var('PUBLIC_CLOUD_PERF_COLLECT', 1);
-
-    return 0 if !$data_collect;
+sub check_system_boottime() {
+    my ($instance, $max_boot_time) = @_;
+    use constant WARN_LIMIT_BOOTTIME => 900;
+    $max_boot_time //= get_var('PUBLIC_CLOUD_BOOTTIME_MAX', 600);
+    # check disablePUBLIC_CLOUD_BOOTTIME_MAX = 0
+    return unless ($max_boot_time);
 
     my $ret = {
         kernel_release => undef,
         kernel_version => undef,
-        type => undef,
+        type => 'boottime',
         analyze => {},
         blame => {},
     };
 
     record_info("BOOT TIME", 'systemd_analyze');
     # first deployment analysis
-    my ($systemd_analyze, $systemd_blame) = do_systemd_analyze_time($instance);
-    return 0 unless ($systemd_analyze && $systemd_blame);
+    my ($systemd_analyze, $systemd_blame) = $instance->_do_systemd_analyze_time();
+    return unless ($systemd_analyze && $systemd_blame);
 
     $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
     $ret->{blame} = $systemd_blame;
-    $ret->{type} = $type;
-    # $ret->{analyze}->{ssh_access} = $startup_time; # placeholder for next implementation
-    record_info("WARN", "High overall value:" . $ret->{analyze}->{overall}, result => 'fail') if ($ret->{analyze}->{overall} >= 3600.0);
+    my $boottime = $ret->{analyze}->{overall};
 
     # Collect kernel version
     $ret->{kernel_release} = $instance->ssh_script_output(cmd => 'uname -r', proceed_on_failure => 1);
     $ret->{kernel_version} = $instance->ssh_script_output(cmd => 'uname -v', proceed_on_failure => 1);
 
     $Data::Dumper::Sortkeys = 1;
+    record_info("RESULTS", Dumper($ret));
     my $dir = "/var/log";
     my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
     $instance->upload_check_logs_tar(map { "$dir/$_" } @logs);
 
-    record_info("RESULTS", Dumper($ret));
+    # check boot time limits
+    if ($boottime > $max_boot_time) {
+        if ($boottime <= WARN_LIMIT_BOOTTIME) {
+            # threshold exceeded
+            die("Boot time $boottime out of limit $max_boot_time");
+        } else {
+            # anomalous high value
+            record_info("WARN", "Unexpected high overall value:" . $boottime);
+            record_soft_failure('bsc#1262587 -  [QE] openQA publiccloud tests have anomalous-high boot-time from systemd-analyze');
+        }
+    }
     return $ret;
 }
-
 
 =head2 store_boottime_db
 
     store_boottime_db();
 
-Save data collected with measure_boottime in a DB;
+Save data collected with check_system_boottime in a DB;
 Mainly stored on a remote InfluxDB on a Grafana server.
 To activate boottime push, shall be available results and
   PUBLIC_CLOUD_PERF_PUSH_DATA true/not 0 and
@@ -857,7 +867,7 @@ sub store_boottime_db() {
     return $res;
 }
 
-sub systemd_time_to_second
+sub _systemd_time_to_second
 {
     my $str_time = trim(shift);
 
@@ -871,7 +881,7 @@ sub systemd_time_to_second
     return $sec;
 }
 
-sub extract_analyze_time {
+sub _extract_analyze_time {
     my $str_time = shift;
     my $res = {};
     ($str_time) = split(/\r?\n/, $str_time, 2);
@@ -880,26 +890,26 @@ sub extract_analyze_time {
     for my $time (split(/\s*\+\s*/, $str_time)) {
         $time = trim($time);
         my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
-        $res->{$type} = systemd_time_to_second($time);
+        $res->{$type} = _systemd_time_to_second($time);
         return 0 if ($res->{$type} == -1);
     }
     foreach (qw(kernel initrd userspace overall)) { return 0 unless exists($res->{$_}); }
     return $res;
 }
 
-sub extract_blame_time {
+sub _extract_blame_time {
     my $str_time = shift;
     my $ret = {};
     for my $line (split(/\r?\n/, $str_time)) {
         $line = trim($line);
         my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
-        $ret->{$service} = systemd_time_to_second($time);
+        $ret->{$service} = _systemd_time_to_second($time);
         return 0 if ($ret->{$service} == -1);
     }
     return $ret;
 }
 
-sub do_systemd_analyze_time {
+sub _do_systemd_analyze_time {
     my ($instance, %args) = @_;
     $args{timeout} = 120;
     my $start_time = time();
@@ -908,7 +918,7 @@ sub do_systemd_analyze_time {
 
     # calling systemd-analyze time & blame
     # guestregister check executed in create_instances
-    while ($output !~ /Startup finished in/ && time() - $start_time < $args{timeout}) {
+    while ($output !~ /Startup finished in/i && time() - $start_time < $args{timeout}) {
         $output = $instance->ssh_script_output(cmd => 'systemd-analyze time', proceed_on_failure => 1);
         sleep 5;
     }
@@ -918,10 +928,10 @@ sub do_systemd_analyze_time {
         # handle_boot_failure: soft exit from measurement.
         return (0, 0);
     }
-    push @ret, extract_analyze_time($output);
+    push @ret, _extract_analyze_time($output);
 
     $output = $instance->ssh_script_output(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
-    push @ret, extract_blame_time($output);
+    push @ret, _extract_blame_time($output);
 
     return @ret;
 }

@@ -383,24 +383,13 @@ sub create_instances {
 
     foreach my $instance (@vms) {
         record_info("INSTANCE", $instance->{instance_id});
+        $self->show_instance_details();
         if ($args{check_connectivity}) {
             # An error in VM-up causes test to stop
-            $instance->wait_for_ssh(timeout => $args{timeout},
+            my $start_time = $instance->wait_for_ssh(timeout => $args{timeout},
                 proceed_on_failure => $args{proceed_on_failure}, scan_ssh_host_key => 1);
-        }
-        $self->show_instance_details();
-
-        # Performance data: boottime
-
-        if (is_ok_url($url)) {
-            local $@;
-            eval {
-                my $btime = $instance->measure_boottime($instance, 'first');
-                $instance->store_boottime_db($btime, $url);
-            };
-            record_info("WARN", "Boottime measures cannot be provided", result => 'fail') if ($@);
-        } else {
-            record_info("WARN", "Cannot connect url:" . $url, result => 'fail');
+            # Performance data: boottime
+            $instance->check_system_boottime() if $start_time;
         }
     }
     return @vms;
