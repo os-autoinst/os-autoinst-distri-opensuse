@@ -51,6 +51,7 @@ our @EXPORT = qw(
   ipaddr2_internal_key_gen
   ipaddr2_scc_check
   ipaddr2_scc_register
+  ipaddr2_scc_registration_workaround_PAYG
   ipaddr2_scc_addons
   ipaddr2_billing_model_get
   ipaddr2_crm_move
@@ -1505,12 +1506,15 @@ Return 1 if all modules are registered, 0 if at least one is not.
 sub ipaddr2_scc_check(%args) {
     croak("Argument < id > missing") unless $args{id};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    my $cmd = 'sudo SUSEConnect -s';
+
+    return 0 if ipaddr2_ssh_internal(id => $args{id}, cmd => $cmd, bastion_ip => $args{bastion_ip}, no_assert => 1);
 
     # Initially suppose is registered
     my $registered = 1;
     my $json = decode_json(ipaddr2_ssh_internal_output(
             id => $args{id},
-            cmd => 'sudo SUSEConnect -s',
+            cmd => $cmd,
             bastion_ip => $args{bastion_ip}));
     foreach (@$json) {
         if ($_->{status} =~ '^Not Registered') {
@@ -1519,6 +1523,100 @@ sub ipaddr2_scc_check(%args) {
         }
     }
     return $registered;
+}
+
+=head2 ipaddr2_scc_registration_workaround_PAYG
+
+    my ipaddr2_scc_registration_workaround_PAYG(id => 1);
+
+Workaround for PAYG image scc registration.
+Do cleanup, reboot and re-register.
+Do debug.
+
+=over
+
+=item B<id> - VM id where to install and configure the web server
+
+=item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
+                      Providing it as an argument is recommended
+                      to avoid having to query Azure to get it.
+
+=back
+=cut
+
+sub ipaddr2_scc_registration_workaround_PAYG(%args) {
+    croak("Argument < id > missing") unless $args{id};
+    $args{bastion_ip} //= ipaddr2_bastion_pubip();
+
+    # Debug purpose
+    record_info('Debug: check guestregister.service before reboot');
+    ipaddr2_ssh_internal(
+        id => $args{id},
+        cmd => 'sudo systemctl is-enabled guestregister.service',
+        bastion_ip => $args{bastion_ip},
+        no_assert => 1);
+
+    # Enable and start guestregister.service as it is 'disabled' sometime
+    ipaddr2_ssh_internal(
+        id => $args{id},
+        cmd => 'sudo systemctl enable --now guestregister.service',
+        bastion_ip => $args{bastion_ip});
+
+    # Clean registration before reboot
+    # NOTE: without cleanup the re-register will be failed when hit 'Credentials are invalid' error
+    ipaddr2_ssh_internal(
+        id => $args{id},
+        cmd => 'sudo registercloudguest --clean',
+        bastion_ip => $args{bastion_ip});
+
+    # Reboot: during 'reboot' it will do registration automatically if not
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => 'sudo reboot',
+        timeout => 60,
+        no_assert => 1,
+        bastion_ip => $args{bastion_ip});
+
+    # Check if reboot was done successfully
+    my $timeout = 600;
+    my $ip = ipaddr2_get_internal_vm_private_ip(id => $_);
+    while ($timeout > 0) {
+        if (script_run("ssh $args{bastion_ip} 'nc -vz -w 1 $ip 22'") != 0) {
+            record_info("waiting $ip boot");
+            sleep 60;
+            $timeout = $timeout - 60;
+        }
+        else {
+            record_info("$ip reboot successfully");
+            last;
+        }
+    }
+
+    # Debug purpose
+    record_info('Debug: check guestregister.service after reboot');
+    ipaddr2_ssh_internal(
+        id => $args{id},
+        cmd => 'sudo systemctl is-enabled guestregister.service',
+        bastion_ip => $args{bastion_ip},
+        no_assert => 1);
+    record_info('Debug: check SUSEConnect -s after reboot');
+    ipaddr2_ssh_internal(
+        id => $args{id},
+        cmd => 'sudo SUSEConnect -s',
+        bastion_ip => $args{bastion_ip},
+        no_assert => 0);
+
+    # Try registration cleaup and registercloudguest again manually
+    # NOTE: reboot automatic registration can not fully register all modules sometime
+    # Clean registration
+    ipaddr2_ssh_internal(
+        id => $args{id},
+        cmd => 'sudo registercloudguest --clean',
+        bastion_ip => $args{bastion_ip});
+    # Re-register
+    ipaddr2_ssh_internal(
+        id => $args{id},
+        cmd => 'sudo registercloudguest --force-new',
+        bastion_ip => $args{bastion_ip});
 }
 
 =head2 ipaddr2_scc_register

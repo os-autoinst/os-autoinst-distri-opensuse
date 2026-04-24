@@ -70,7 +70,8 @@ use sles4sap::ipaddr2 qw(
   ipaddr2_repo_list
   ipaddr2_bastion_pubip
   ipaddr2_cleanup
-  ipaddr2_logs_collect);
+  ipaddr2_logs_collect
+  ipaddr2_scc_registration_workaround_PAYG);
 
 sub run {
     my ($self) = @_;
@@ -85,12 +86,28 @@ sub run {
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
         foreach (1 .. 2) {
             my $type = ipaddr2_billing_model_get(id => $_, bastion_ip => $bastion_ip);
+
             # Check if somehow the image is already registered or not
             my $is_registered = ipaddr2_scc_check(
                 bastion_ip => $bastion_ip,
                 id => $_);
             record_info('REG INITIAL', "type:$type is_registered:$is_registered");
-            if (($is_registered ne 1) || ($type eq 'BYOS')) {
+
+            # Apply registration clean and reboot to redo registercloudguest if failed on PAYG image
+            if (($is_registered ne 1) && ($type eq 'PAYG')) {
+                ipaddr2_scc_registration_workaround_PAYG(
+                    bastion_ip => $bastion_ip,
+                    id => $_);
+
+                # Record softfail and check again if image is fully registered
+                record_soft_failure('bsc#1254984 - Occasional registration issues on Azure and GCE OnDemand issues');
+                my $is_registered = ipaddr2_scc_check(
+                    bastion_ip => $bastion_ip,
+                    id => $_);
+                record_info('REG WORKAROUND', "type:$type is_registered:$is_registered");
+            }
+
+            if (($is_registered ne 1) && ($type eq 'BYOS')) {
                 # Conditionally register the SLES for SAP instance.
                 # Registration is attempted only if the instance is not currently registered and a
                 # registration code ('SCC_REGCODE_SLES4SAP') is available.
