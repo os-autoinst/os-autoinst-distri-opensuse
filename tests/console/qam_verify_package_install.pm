@@ -8,9 +8,10 @@ use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {
-    # reuse console
-    my $packages = get_var("VERIFY_PACKAGE_VERSIONS");
-    assert_script_run("~$username/data/lsmfip --verbose --verify \$XDG_RUNTIME_DIR/install_packages.txt $packages | tee /dev/$serialdev");
+    save_tmp_file("packages-list", get_var("VERIFY_PACKAGE_VERSIONS"));
+    my $download_cmd = sprintf('curl -O "%s/files/%s"', autoinst_url, 'packages-list');
+    assert_script_run($download_cmd);
+    assert_script_run("~$username/data/lsmfip --verbose --verify \$XDG_RUNTIME_DIR/install_packages.txt \$(cat packages-list)");
 }
 
 1;
