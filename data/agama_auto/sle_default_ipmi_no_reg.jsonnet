@@ -13,7 +13,11 @@
   },
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
-    hashedPassword: true
+    hashedPassword: true,
+    sshPublicKey: 'fake public key to enable sshd and open firewall'
+  },
+  software: {
+    packages: ['openssh-server-config-rootlogin'],
   },
   scripts: {
     pre: [
@@ -31,15 +35,6 @@
       }
     ],
     post: [
-      {
-        name: 'enable root login',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-          systemctl enable sshd
-        |||
-      },
       {
         name: 'set grub terminal to console',
         chroot: true,

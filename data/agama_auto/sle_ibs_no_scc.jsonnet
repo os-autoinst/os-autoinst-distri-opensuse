@@ -16,9 +16,11 @@ local version = '{{VERSION}}';
   },
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
-    hashedPassword: true
+    hashedPassword: true,
+    sshPublicKey: 'fake public key to enable sshd and open firewall'
   },
   software: {
+    packages: ['openssh-server-config-rootlogin'],
     patterns: ['base', 'minimal_base'],
     extraRepositories: [
       {
@@ -40,12 +42,10 @@ local version = '{{VERSION}}';
   scripts: {
     post: [
       {
-        name: 'enable sshd',
+        name: 'Unregister the system',
         chroot: true,
         content: |||
           #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-          systemctl enable sshd
           SUSEConnect -d || SUSEConnect --cleanup
         |||
       }
