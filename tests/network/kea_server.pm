@@ -21,15 +21,16 @@ use utils qw(zypper_call systemctl);
 use network_utils 'iface';
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_tumbleweed package_version_cmp);
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    mutex_create('kea_server_ready');
-    barrier_create('kea_dhcp', 2);
 
     my $server_nic = iface();
     my $config = 'network_bonding/kea-dhcp4.conf';
-    zypper_call('in kea');
+    install_package('kea', trup_reboot => 1);
+    mutex_create('kea_server_ready');
+    barrier_create('kea_dhcp', 2);
 
     assert_script_run("curl -v -o /etc/kea/kea-dhcp4.conf " . data_url($config));
     assert_script_run("sed -i 's/\"eth0\"/\"$server_nic\"/' /etc/kea/kea-dhcp4.conf") unless $server_nic eq 'eth0';
