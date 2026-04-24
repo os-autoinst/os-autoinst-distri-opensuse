@@ -263,7 +263,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>$2a$05$tvuIlgZ.sSzeCvQD6JN84uqsL26g17B7It3pTYPmJa.Qt7L03XjMu</user_password>
+      <user_password>$y$j9T$nxGac6Huw1LV098lPgpW60$p1ZF6OxoxirU8RkPBg2O0Ri84LOb4iUbJFUiFuZnPoA</user_password>
       <username>root</username>
     </user>
   </users>

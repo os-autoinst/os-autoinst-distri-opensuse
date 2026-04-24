@@ -2660,7 +2660,7 @@ sub setup_guest_agama_installation_shell {
             wait_still_screen;
             enter_cmd("timeout --kill-after=1 --signal=9 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
             assert_screen('password-prompt', timeout => 30);
-            enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+            enter_cmd(get_required_var('_SECRET_GUEST_PASSWORD'), wait_screen_change => 60, max_interval => 1, timeout => 90);
         }
         wait_still_screen(15);
         if (script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
@@ -2669,7 +2669,7 @@ sub setup_guest_agama_installation_shell {
             enter_cmd("clear", wait_still_screen => 3);
             enter_cmd("timeout --kill-after=1 --signal=9 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
             assert_screen('password-prompt', timeout => 30);
-            enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+            enter_cmd(get_required_var('_SECRET_GUEST_PASSWORD'), wait_screen_change => 60, max_interval => 1, timeout => 90);
             wait_still_screen(15);
             enter_cmd("timeout --kill-after=1 --signal=9 120 ip addr show", wait_still_screen => 5, timeout => 150);
         }
@@ -2760,7 +2760,7 @@ sub save_guest_agama_installation_logs {
         enter_cmd("clear", wait_still_screen => 3);
         enter_cmd("timeout --kill-after=1 --signal=9 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
         assert_screen('password-prompt', timeout => 30);
-        enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+        enter_cmd(get_required_var('_SECRET_GUEST_PASSWORD'), wait_screen_change => 60, max_interval => 1, timeout => 90);
         wait_still_screen(15);
         enter_cmd("timeout --kill-after=1 --signal=9 120 mkdir /agama_installation_logs", timeout => 150);
         enter_cmd("timeout --kill-after=1 --signal=9 180 agama logs store -d /agama_installation_logs", timeout => 210);
@@ -2779,7 +2779,7 @@ sub save_guest_agama_installation_logs {
         foreach (@_agama_installation_logs) {
             enter_cmd("timeout --kill-after=1 --signal=9 180 scp -r $_ssh_command_options root\@$self->{guest_ipaddr}:$_ $self->{guest_log_folder}", timeout => 210);
             assert_screen('password-prompt', timeout => 30);
-            enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+            enter_cmd(get_required_var('_SECRET_GUEST_PASSWORD'), wait_screen_change => 60, max_interval => 1, timeout => 90);
             wait_still_screen(15);
         }
     }
