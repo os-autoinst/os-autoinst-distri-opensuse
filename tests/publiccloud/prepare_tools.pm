@@ -86,7 +86,7 @@ EOT
     validate_script_output("terraform -version", qr/$terraform_version/);
     record_info('Terraform', script_output('terraform -version'));
 
-    my $opentofu_version = get_var('OPENTOFU_VERSION', '1.9.1');
+    my $opentofu_version = get_var('OPENTOFU_VERSION', '1.11.6');
     # opentofu in a container
     my $opentofu_wrapper = <<EOT;
 #!/bin/bash -e
