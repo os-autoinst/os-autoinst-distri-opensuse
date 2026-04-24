@@ -12,6 +12,7 @@ use Mojo::Base 'opensusebasetest';
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use package_utils 'install_package';
 use version_utils qw(is_sle is_tumbleweed);
 
 sub install_dependencies_pynfs {
@@ -26,7 +27,7 @@ sub install_dependencies_pynfs {
       nfs-kernel-server
     );
     push(@deps, 'python3-standard-xdrlib') if (is_sle('16+') || is_tumbleweed);
-    zypper_call('in ' . join(' ', @deps));
+    install_package(join(' ', @deps), trup_apply => 1);
 }
 
 sub install_dependencies_cthon04 {
@@ -40,7 +41,7 @@ sub install_dependencies_cthon04 {
       libtirpc-devel
       time
     );
-    zypper_call('in ' . join(' ', @deps));
+    install_package(join(' ', @deps), trup_apply => 1);
 }
 
 sub install_testsuite {
@@ -76,7 +77,7 @@ sub install_testsuite {
 
 sub setup_nfs_server {
     my $nfsversion = shift;
-    assert_script_run('mkdir -p /exportdir && echo \'/exportdir *(rw,no_root_squash,insecure)\' >> /etc/exports');
+    assert_script_run('mkdir -p /var/exportdir && echo \'/var/exportdir *(rw,no_root_squash,insecure)\' >> /etc/exports');
 
     my $nfsgrace = get_var('NFS_GRACE_TIME', 15);
     assert_script_run("echo 'options lockd nlm_grace_period=$nfsgrace' >> /etc/modprobe.d/lockd.conf && echo 'options lockd nlm_timeout=5' >> /etc/modprobe.d/lockd.conf");
