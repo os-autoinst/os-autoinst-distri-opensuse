@@ -51,18 +51,17 @@ sub run {
         assert_screen 'oowriter-menus-file';
     }
 
-    if (is_tumbleweed || is_sle('15+')) {
-        send_key 'down';
-        wait_still_screen 3;
-        send_key 'u';
-    }
-    else {
-        send_key "ctrl-u";
-    }
+    send_key 'down', wait_screen_change => 1;
+    send_key 'u';
+
     assert_screen 'oowriter-menus-file-recentDocuments';
     send_key_until_needlematch("libreoffice-clear-list", "down");
-    send_key "ret";
-    assert_screen 'test-ooffice-1';
+    send_key "ret", wait_screen_change => 1;
+    assert_screen [qw(test-ooffice-1 oowriter clear-recent-documents)];
+
+    if (match_has_tag('clear-recent-documents')) {
+        send_key "alt-f4", wait_screen_change => 1;
+    }
 
     # Quit oowriter
     assert_and_click('ooffice-writing-area', timeout => 10);
