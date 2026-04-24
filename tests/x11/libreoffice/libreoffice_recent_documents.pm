@@ -1,6 +1,6 @@
 # LibreOffice tests
 #
-# Copyright 2016-2019 SUSE LLC
+# Copyright 2016-2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: libreoffice-writer
@@ -39,7 +39,7 @@ sub run {
 
     # Check Recent Documents
     wait_still_screen;
-    x11_start_program('oowriter');
+    $self->libreoffice_start_program('oowriter');
 
     send_key "alt-f";
     # The menu may disappear due to boo#1156745, so we wait here
