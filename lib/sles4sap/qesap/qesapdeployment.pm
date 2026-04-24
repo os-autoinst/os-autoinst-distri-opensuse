@@ -1957,9 +1957,6 @@ sub qesap_ssh_intrusion_detection {
     my (%args) = @_;
     croak "Missing mandatory 'provider' argument" unless $args{provider};
     my $inventory = qesap_get_inventory(provider => $args{provider});
-    my $attempts;
-    my %users;
-    my %ips;
     my %report;
     my $log_filename;
 
@@ -1969,6 +1966,7 @@ sub qesap_ssh_intrusion_detection {
         $log_filename = "$host-intrusion-log.txt";
         $log_filename =~ s/[\[\]"]//g;
         my $out_file = qesap_ansible_script_output_file(
+            # quotation mark escaping needed here as this command is executed via inline ansibleplaybook command
             cmd => 'journalctl -u sshd | grep \"Connection closed by\"',
             provider => $args{provider},
             host => $host,
@@ -1981,11 +1979,9 @@ sub qesap_ssh_intrusion_detection {
         unless (script_run("test -e $out_file")) {
             upload_logs($out_file, failok => 1);
             my $output = script_output("cat $out_file");
-            $attempts = 0;
-            %users = ();
-            %ips = ();
-
-            next if $attempts == 0;
+            my $attempts = 0;
+            my %users = ();
+            my %ips = ();
 
             foreach my $line (split /\n/, $output) {
                 # Regular expression to capture user and IP for both 'authenticating user' and 'invalid user'
@@ -1996,6 +1992,8 @@ sub qesap_ssh_intrusion_detection {
                     $attempts++;
                 }
             }
+
+            next if $attempts == 0;
 
             $report{$host}{attempts} = $attempts;
             $report{$host}{users} = [keys %users];
