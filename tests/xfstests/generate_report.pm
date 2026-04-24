@@ -23,6 +23,8 @@ use File::Basename;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use upload_system_log;
+use Utils::Logging 'save_ulog';
+use xfstests_utils 'get_status_log_content';
 
 my $STATUS_LOG = '/opt/status.log';
 my $LOG_DIR = '/opt/log';
@@ -90,10 +92,13 @@ sub run {
     return if get_var('XFSTESTS_NFS_SERVER');
     sleep 5;
 
-    # Reload uploaded status log back to file
-    my $log_line = int(script_output("cat $STATUS_LOG | wc -l"));
+    # Recover status log after snapshot rollback. Worker-side buffer
+    # survives VM rollbacks; save it directly on the worker via save_ulog.
+    my $log_line = int(script_output("cat $STATUS_LOG 2>/dev/null | wc -l", 60, proceed_on_failure => 1));
+    my $recovered_log;
     if ($log_line < 2) {
-        script_run('df -h; timeout 20 curl -O ' . autoinst_url . "/files/status.log; cat status.log > $STATUS_LOG");
+        $recovered_log = get_status_log_content();
+        save_ulog($recovered_log, 'status.log') if $recovered_log;
     }
 
     # Reload test logs if check missing
@@ -112,9 +117,9 @@ sub run {
     # Upload system log
     upload_system_logs();
 
-    # Summary test range info
-    my $script_output = script_output("cat $STATUS_LOG", 600);
-    test_summary($script_output);
+    # Summary: use recovered worker-side log if SUT copy was lost
+    my $status_content = $recovered_log // script_output("cat $STATUS_LOG", 600);
+    test_summary($status_content);
 }
 
 sub test_flags {
