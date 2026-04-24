@@ -651,6 +651,12 @@ sub zypper_call {
     for (1 .. 5) {
         $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout);
         die "zypper did not finish in $timeout seconds" unless defined($ret);
+        # https://progress.opensuse.org/issues/197900
+        if (is_sle('=12-sp3')) {
+            # latest kernel from customer repo has lower version than old kernel
+            script_run('zypper -n rm kernel-default', timeout => 200);
+            script_run('zypper -n in -f --repo 12-SP3-TERADATA-Updates kernel-default', timeout => 600);
+        }
         if ($ret == 4) {
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
                 die 'According to bsc#1070851 zypper should automatically retry internally. Bugfix missing for current product?';
