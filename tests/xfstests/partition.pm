@@ -165,7 +165,7 @@ sub do_partition_for_xfstests {
 # only available when enable XFSTESTS_LOOP_DEVICE in openQA
 # Inputs explain
 # $filesystem: filesystem type
-# $size: Size of free space of the rootfs. The size of each TEST_DEV or SCRATCH_DEV is split 90% of $size equally.
+# $size: Size of free space of the rootfs. The size of each TEST_DEV or SCRATCH_DEV is split 85% of $size equally.
 sub create_loop_device_by_rootsize {
     my $ref = shift;
     my %para = %{$ref};
@@ -174,8 +174,8 @@ sub create_loop_device_by_rootsize {
     if ($para{fstype} =~ /btrfs/) {
         $amount = 5;
     }
-    # Use 90% of free space, not use all space in /root
-    $size = int($para{size} * 0.9);
+    # Use 85% of free space, not use all space in /root
+    $size = int($para{size} * 0.85);
     # get device size from XFSTESTS_PART_SIZE, other devices share the rest
     if (my @part_list = split(/,/, get_var('XFSTESTS_PART_SIZE'))) {
         my $list_remaining = $amount + 1 - (scalar @part_list);
