@@ -63,8 +63,8 @@ sub get_product_shortcuts {
         # Full              i
         # Full (15-SP4)     s
         if (is_ppc64le() && get_var('ISO') =~ /Full/ && get_var('NTLM_AUTH_INSTALL')) {
-            return (sles => 's') if get_var('FLAVOR') eq 'Full';
-            return (sles => 'u') if get_var('FLAVOR') eq 'Full-QR';
+            return (sles => 's') if get_var('FLAVOR') eq 'Full'
+              || get_var('FLAVOR') eq 'Full-QR';
         }
         return (
             sles => (is_sle '15-SP5+') ? 's'    # for now treat 15-SP5+ as if they would have new shortcuts
