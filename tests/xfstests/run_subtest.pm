@@ -26,6 +26,7 @@ use LTP::utils;
 use LTP::WhiteList;
 use bugzilla;
 use xfstests_utils;
+use xfstests_ai_analysis;
 use lockapi;
 
 # xfstests general variables
@@ -202,6 +203,17 @@ sub run {
             $targs{status} = 'SOFTFAILED';
             $targs{failinfo} = 'XFSTESTS_SOFTFAIL set in configuration';
         }
+
+        # Knowledge base suggestion for immediate feedback on failure
+        eval {
+            if (init_kb()) {
+                my $kb_result = analyze_by_knowledgebase($test, $FSTYPE, $targs{output}, $targs{fullog});
+                if ($kb_result) {
+                    record_info("AI:$test", format_analysis_result($kb_result));
+                }
+            }
+        };
+        bmwqemu::fctinfo("Knowledge base analysis error for $test: $@") if $@;
     }
     else {
         record_info('INFO', "name: $test\ntest result: $status\ntime: $time\n");
