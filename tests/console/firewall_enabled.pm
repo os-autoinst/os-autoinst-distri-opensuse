@@ -35,7 +35,7 @@ sub run {
                 # In case of upgrades from SFW2-based distros (Leap < 15.0 to TW) we end up without any firewall
                 record_soft_failure "boo#1144543 - Migration from SFW2 to firewalld: no firewall enabled";
                 return;
-            } elsif (is_jeos && is_vmware && is_sle('<16.0')) {
+            } elsif ((is_jeos && is_vmware && is_sle('<16.0')) || (get_var('FLAVOR', '') =~ /Immutable/i)) {
                 record_info('FW disabled', 'MinimalVM\'s VMWare image has firewalld disabled');
             } else {
                 die "firewall-cmd is not running";
