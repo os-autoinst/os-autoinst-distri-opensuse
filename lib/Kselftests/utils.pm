@@ -38,12 +38,21 @@ sub build
     $source_dir //= "/lib/modules/$version/source";
     my $build_dir = "/lib/modules/$version/build";
 
+    # Resolve the real build_dir path and, if it is not writable
+    # (such as in an immutable system), mount a writable overlayfs directly on it.
+    my $real_build_dir = script_output("readlink -f $build_dir");
+    if (script_run("test -w $real_build_dir") != 0) {
+        my $overlay = "/var/tmp/kselftest-overlay";
+        assert_script_run("mkdir -p $overlay/{upper,work}");
+        assert_script_run("mount -t overlay overlay -o lowerdir=$real_build_dir,upperdir=$overlay/upper,workdir=$overlay/work $real_build_dir");
+    }
+
     # Lock kernel-source/syms to their already-installed versions if present (e.g. pre-installed
     # by install_kotd at the same version as the running kernel), so the devel_kernel pattern
     # cannot upgrade them to a mismatched version pulled from a rolling repo like KOTD.
     my $lock_kernel_pkgs = !script_run('rpm -q kernel-source kernel-syms');
     zypper_call('al kernel-source kernel-syms') if $lock_kernel_pkgs;
-    zypper_call('install -t pattern --recommends devel_kernel');    # no trup support for now
+    install_package('-t pattern --recommends devel_kernel', trup_apply => 1);
     zypper_call('rl kernel-source kernel-syms') if $lock_kernel_pkgs;
 
     my $jobs = get_var('KSELFTEST_BUILD_JOBS', '$(getconf _NPROCESSORS_ONLN)');
@@ -63,7 +72,7 @@ sub install_from_git
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
 
-    install_package('git', trup_continue => 1);
+    install_package('git', trup_apply => 1) if script_run('rpm -q git');
     assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 240);
 
     assert_script_run("cd ./linux");
@@ -87,7 +96,7 @@ sub install_from_git
 sub install_from_repo
 {
     zypper_ar(get_required_var('KSELFTEST_REPO'), name => 'kselftests', priority => 1, no_gpg_check => 1);
-    install_package('kselftests kernel-devel', trup_continue => 1);
+    install_package('kselftests kernel-devel', trup_apply => 1);
 
     # When using the `kselftests` package from a repository, make sure the KMP subpackage containing the test kernel modules
     # were built against the same kernel version the SUT is currently running.
@@ -131,7 +140,7 @@ sub install_dependencies
         zypper_ar($bench_repo) if $bench_repo;
 
         # install build deps
-        install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_continue => 1);
+        install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_apply => 1);
 
         # install test deps
         install_available_packages('packetdrill libteam-tools wireshark iptables ipvsadm conntrack-tools jq tcpdump iperf iproute2 net-tools net-tools-deprecated ipv6toolkit netsniff-ng ndisc6 socat smcroute dropwatch');
