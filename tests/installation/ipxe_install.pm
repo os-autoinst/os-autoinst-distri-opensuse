@@ -190,7 +190,7 @@ sub enter_o3_ipxe_boot_entry {
 sub set_bootscript_agama_cmdline_extra {
     my $cmdline_extra = " ";
     if (my $agama_auto = get_var('INST_AUTO')) {
-        my $agama_auto_url = autoyast::expand_agama_profile($agama_auto);
+        my $agama_auto_url = ($agama_auto =~ /\.libsonnet/) ? autoyast::generate_json_profile($agama_auto) : autoyast::expand_agama_profile($agama_auto);
         $cmdline_extra .= "inst.auto=$agama_auto_url inst.finish=stop ";
     }
     # Agama Installation repository URL
