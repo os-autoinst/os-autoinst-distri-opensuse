@@ -30,11 +30,12 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
             size: '120 GiB'
           },
           {
-            filesystem: { path: '/var/lib/libvirt/images/', type: 'xfs' }
-          },
-          {
             filesystem: { path: 'swap' },
             size: '4 GiB'
+          },
+          {
+            filesystem: { path: '/var/lib/libvirt/images/', type: 'xfs' },
+            size: 'max'
           }
         ]
       }
@@ -59,8 +60,10 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
         name: 'wipefs',
         content: |||
           #!/usr/bin/env bash
-          for i in `lsblk -n -l -o NAME -d -e 7,11,254`
-              do wipefs -af /dev/$i
+          for i in `lsblk -n -l -o NAME -d -e 7,11,254` ; do
+              wipefs -af /dev/$i
+              # Force the kernel to drop the partition table
+              # parted -s "/dev/$i" mklabel gpt
               sleep 1
               sync
           done
