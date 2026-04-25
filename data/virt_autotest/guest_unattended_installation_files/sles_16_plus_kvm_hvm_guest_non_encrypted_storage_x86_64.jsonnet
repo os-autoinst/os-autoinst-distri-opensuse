@@ -20,7 +20,7 @@
     "hashedPassword": true
   },
   "root": {
-    "password": "$y$j9T$ygIi2oL8Qx5iml/WtZl4V1$FvxyTj11P8eqpTt996iKsT3wJ28D9rREaPJHDph6YM0",
+    "password": "$y$j9T$nRJRQUwZDai/K44Dn8RD40$tNACP3rJ5/oHQD1XIgVmj0MaBZKpD7GWN9nhpyDMgr5",
     "hashedPassword": true,
     "sshPublicKey": "##Authorized-Keys##"
   },
