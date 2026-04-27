@@ -37,7 +37,7 @@ our @EXPORT = qw(
   $corosync_consensus
   $sbd_watchdog_timeout
   $sbd_delay_start
-  $pcmk_delay_max
+  $crm_config_show_fence_sbd
   sync_file
   sync_path
   exec_csync
@@ -103,6 +103,9 @@ our @EXPORT = qw(
   sbd_device_report
   get_fencing_type
   check_crm_nonroot
+  get_crmsh_version
+  get_fencing_ra_name
+  pcmk_delay_max_cmd
 );
 
 =head1 SYNOPSIS
@@ -132,7 +135,7 @@ Extension (HA or HAE) tests.
 
 =item * B<$sbd_delay_start>: command to extract the value of C<SBD_DELAY_START> from C</etc/sysconfig/sbd>
 
-=item * B<$pcmk_delay_max>: command to get the value of the C<pcmd_delay_max> parameter from the STONITH resource in the cluster configuration.
+=item * B<$crm_config_show_fence_sbd>: command to extract the part of the cluster configuration relating to B<fence_sbd>
 
 =back
 
@@ -146,7 +149,7 @@ our $corosync_token = q@corosync-cmapctl | awk -F " = " '/runtime.config.totem.t
 our $corosync_consensus = q@corosync-cmapctl | awk -F " = " '/runtime.config.totem.consensus\s/ {print int($2/1000)}'@;
 our $sbd_watchdog_timeout = q@grep -oP '(?<=^SBD_WATCHDOG_TIMEOUT=)[[:digit:]]+' /etc/sysconfig/sbd@;
 our $sbd_delay_start = q@grep -oP '(?<=^SBD_DELAY_START=)([[:digit:]]+|yes|no)+' /etc/sysconfig/sbd@;
-our $pcmk_delay_max = q@crm resource param stonith-sbd show pcmk_delay_max| sed 's/[^0-9]*//g'@;
+our $crm_config_show_fence_sbd = 'crm -D plain configure show 2>&1 | grep sbd';
 
 # Private functions
 sub _just_the_ip {
@@ -820,8 +823,7 @@ sub check_cluster_state {
 
     # If running with versions of crmsh older than 4.4.2, do not use check_online_nodes (see POD below)
     # Fall back to the older method of checking Online vs. Configured nodes
-    my $out = script_output(q|rpm -q --qf 'crmshver=%{VERSION}\n' crmsh|);
-    my ($ver) = $out =~ /crmshver=(\S+)/m or die "Couldn't parse crmsh version from: $out";
+    my $ver = get_crmsh_version();
     my $cmp_result = package_version_cmp($ver, '4.4.2');
     if ($cmp_result < 0) {
         $cmd_sub->(q/crm_mon -s | grep "$(crm node list | grep -E -c ': member|: normal') nodes online"/);
@@ -1285,7 +1287,7 @@ sub collect_sbd_delay_parameters {
           script_output_retry_check(cmd => $sbd_delay_start, regex_string => '^\d+$|yes|no', sleep => '3', retry => '3'),
         # pcmk_delay_max is not always present for example in 3 node clusters or diskless SBD scenario
         'pcmk_delay_max' => get_var('USE_DISKLESS_SBD') ? 30 :
-          script_output_retry_check(cmd => $pcmk_delay_max, regex_string => '^\d+$', sleep => '3', retry => '3', ignore_failure => 1) // 0
+          script_output_retry_check(cmd => pcmk_delay_max_cmd(), regex_string => '^\d+$', sleep => '3', retry => '3', ignore_failure => 1) // 0
     );
 
     return (%params);
@@ -1909,8 +1911,7 @@ B<Return values:>
 sub crm_list_options {
     my (%args) = @_;
 
-    my $outver = script_output(q|rpm -q --qf 'crmshver=%{VERSION}\n' crmsh|);
-    my ($ver) = $outver =~ /crmshver=(\S+)/m or die "Couldn't parse crmsh version from: $outver";
+    my $ver = get_crmsh_version();
     my $cmp_result = package_version_cmp($ver, '5.0.0');
     return 0 if ($cmp_result < 0);
     my $out;
@@ -2201,6 +2202,53 @@ sub check_crm_nonroot {
     wait_serial $orig_prompt, no_regex => 1, timeout => 2;
 
     select_serial_terminal();
+}
+
+=head2 get_crmsh_version
+
+    get_crmsh_version();
+
+Gets the B<crmsh> package version from the SUT.
+
+=cut
+
+sub get_crmsh_version {
+    my $out = script_output(q|rpm -q --qf 'crmshver=%{VERSION}\n' crmsh|);
+    $out =~ /crmshver=(\S+)/m or die "Couldn't parse crmsh version from: $out";
+    return ($1);
+}
+
+=head2 get_fencing_ra_name
+
+    get_fencing_ra_name($crm_config_output);
+
+Gets the correct name of the B<fence_sbd> primitive from a snippet of the cluster
+configuration provided as an argument, such as the output of the command stored
+in C<$crm_config_show_fence_sbd>.
+
+=cut
+
+sub get_fencing_ra_name {
+    my $conf = shift;
+    $conf =~ m/primitive (\S+) \S+:.+sbd/ or die "Found no primitive matching [sbd] in conf:[$conf]";
+    return ($1);
+}
+
+=head2 pcmk_delay_max_cmd
+
+    pcmk_delay_max_cmd();
+    pcmk_delay_max_cmd($primitive_name);
+
+Returns the command required to get the value of the attribute C<pcmk_delay_max> in the
+cluster configuration. If no argument is provided, it will try to determine the correct
+name for the B<fence_sbd> primitive using C<get_fencing_ra_name>, otherwise it will use
+whatever primitive name is provided as an argument.
+
+=cut
+
+sub pcmk_delay_max_cmd {
+    my $primitive_name = shift // get_fencing_ra_name(script_output($crm_config_show_fence_sbd));
+    return "crm resource param $primitive_name show pcmk_delay_max | sed 's/[^0-9]*//g'";
 }
 
 1;

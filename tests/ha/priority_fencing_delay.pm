@@ -58,7 +58,8 @@ sub run {
     if (is_node(1)) {
         assert_script_run "crm configure primitive stateful-1 ocf:pacemaker:Stateful meta priority=129";
         assert_script_run "crm configure clone promotable-1 stateful-1 meta promotable=true";
-        assert_script_run "crm resource param stonith-sbd set pcmk_delay_max 15";
+        my $fencing_ra = get_fencing_ra_name(script_output($crm_config_show_fence_sbd));
+        assert_script_run "crm resource param $fencing_ra set pcmk_delay_max 15";
         assert_script_run "crm configure property priority-fencing-delay=30";
         # Workaround for bsc#1244437
         if (is_sle('16+') and get_var("WORKAROUND_BSC1244437")) {

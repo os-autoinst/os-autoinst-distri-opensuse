@@ -22,7 +22,6 @@ my %original_hacluster_sbd_delay_params = (
     corosync_consensus => $hacluster::corosync_consensus,
     sbd_watchdog_timeout => $hacluster::sbd_watchdog_timeout,
     sbd_delay_start => $hacluster::sbd_delay_start,
-    pcmk_delay_max => $hacluster::pcmk_delay_max
 );
 
 sub mock_hacluster_sbd_delay_parameters {
@@ -31,7 +30,6 @@ sub mock_hacluster_sbd_delay_parameters {
     $hacluster::corosync_consensus = $args{corosync_consensus} // 2;
     $hacluster::sbd_watchdog_timeout = $args{sbd_watchdog_timeout} // 3;
     $hacluster::sbd_delay_start = $args{sbd_delay_start} // 4;
-    $hacluster::pcmk_delay_max = $args{pcmk_delay_max} // 42;
 }
 
 sub reset_hacluster_sbd_delay_parameters {
@@ -39,7 +37,6 @@ sub reset_hacluster_sbd_delay_parameters {
     $hacluster::corosync_consensus = $original_hacluster_sbd_delay_params{corosync_consensus};
     $hacluster::sbd_watchdog_timeout = $original_hacluster_sbd_delay_params{sbd_watchdog_timeout};
     $hacluster::sbd_delay_start = $original_hacluster_sbd_delay_params{sbd_delay_start};
-    $hacluster::pcmk_delay_max = $original_hacluster_sbd_delay_params{pcmk_delay_max};
 }
 
 subtest '[calculate_sbd_start_delay] Check sbd_delay_start values' => sub {
@@ -103,6 +100,8 @@ subtest '[collect_sbd_delay_parameters] retry corosync-cmapctl' => sub {
     $hacluster->redefine(script_output => sub { return $_[0]; });
     my @retry_cmds = ();
     $hacluster->redefine(script_retry => sub { push @retry_cmds, @_; });
+    # collect_sbd_delay_parameters() uses pcmk_delay_max_cmd()
+    $hacluster->redefine(pcmk_delay_max_cmd => sub { return 42; });
 
     mock_hacluster_sbd_delay_parameters();
     collect_sbd_delay_parameters();
@@ -119,6 +118,8 @@ subtest '[collect_sbd_delay_parameters] SBD scenario' => sub {
     # Just returns whatever you put as command
     $hacluster->redefine(script_output => sub { return $_[0]; });
     $hacluster->redefine(script_retry => sub { return 0; });
+    # collect_sbd_delay_parameters() uses pcmk_delay_max_cmd()
+    $hacluster->redefine(pcmk_delay_max_cmd => sub { return 42; });
 
     mock_hacluster_sbd_delay_parameters();
     my %params = collect_sbd_delay_parameters();
@@ -137,6 +138,8 @@ subtest '[collect_sbd_delay_parameters] SBD scenario - undefined pcmk_delay_max'
     # Just returns whatever you put as command
     $hacluster->redefine(script_output => sub { return $_[0]; });
     $hacluster->redefine(script_retry => sub { return 0; });
+    # collect_sbd_delay_parameters() uses pcmk_delay_max_cmd()
+    $hacluster->redefine(pcmk_delay_max_cmd => sub { return 'asdf'; });
 
     mock_hacluster_sbd_delay_parameters(pcmk_delay_max => 'asdf');
     my %params = collect_sbd_delay_parameters();
@@ -788,6 +791,7 @@ subtest '[crm_list_options] invalid xml' => sub {
 END
     });
     $hacluster->redefine(record_info => sub { note(join(' ', "RECORD_INFO ( $this_test_ver )-->", @_)); });
+    $hacluster->redefine(diag => sub { note(join(' ', "DIAG ( $this_test_ver )-->", @_)); });
 
     $this_test_ver = '5.0.0';
     my $res = crm_list_options();
@@ -1012,7 +1016,62 @@ subtest '[sync_path] csync2' => sub {
     ok($results[0] =~ m|w./etc/csync2/csync2.cfg|, 'Checking csync2.cfg is writable');
     ok($results[1] =~ /grep.+$test_path.+sed.+$test_path/, 'Checking file in csyn2.cfg and adding it');
     ok($results[1] =~ m|/etc/csync2/csync2.cfg|, 'Adding file to csync2.cfg');
-    ok($results[2] eq 'csync2 -vxF ; sleep 2 ; csync2 -vxF', 'Using csyn2');
+    is $results[2], 'csync2 -vxF ; sleep 2 ; csync2 -vxF', 'Using csyn2';
+};
+
+subtest '[get_crmsh_vesion]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my $test_version = 'THIS_IS_MY_VERSION';
+    $hacluster->redefine(script_output => sub { return "crmshver=$test_version"; });
+    my $version = get_crmsh_version();
+    is $version, $test_version, 'Expected crmsh version match';
+    $test_version = '1.2.3.4';
+    $version = get_crmsh_version();
+    is $version, $test_version, 'Expected crmsh version match';
+};
+
+subtest '[get_fencing_ra_name] - expected config' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @test_data = ("primitive stonith-sbd stonith:external/sbd \\\n\tparams pcmk_delay_max=30s",
+        "primitive stonith-sbd stonith:fence_sbd \\\n\tparams pcmk_delay_max=30s",
+        "primitive fencing-sbd stonith:external/sbd \\\n\tparams pcmk_delay_max=30s",
+        "primitive fencing-sbd stonith:fence_sbd \\\n\tparams pcmk_delay_max=30s");
+    my $fencing_ra = '';
+    foreach (1 .. 2) {
+        $fencing_ra = get_fencing_ra_name(shift(@test_data));
+        is $fencing_ra, 'stonith-sbd', 'Fencing RA correctly set to `stonith-sbd`';
+    }
+    foreach (1 .. 2) {
+        $fencing_ra = get_fencing_ra_name(shift(@test_data));
+        is $fencing_ra, 'fencing-sbd', 'Fencing RA correctly set to `stonith-sbd`';
+    }
+};
+
+subtest '[get_fencing_ra_name] - unexpected config' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    dies_ok { get_fencing_ra_name('unexpected output') } 'Test should die with unexpected config';
+};
+
+subtest '[pcmk_delay_max_cmd] provide fence_sbd primitive name' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    foreach (qw(fencing-sbd stonith-sbd MICKEY PLUTO GOOFY)) {
+        my $pcmk_delay_max_cmd = pcmk_delay_max_cmd($_);
+        ok($pcmk_delay_max_cmd =~ /^crm resource param $_ show pcmk_delay_max/, "Command to get pcmk_delay_max correct for [$_] input");
+    }
+};
+
+subtest '[pcmk_delay_max_cmd] calculate fence_sbd primitive name' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    $hacluster->redefine(script_output => sub { return $_[0]; });
+    my $orig_fence_sbd_var = $hacluster::crm_config_show_fence_sbd;
+    foreach (qw(fencing-sbd stonith-sbd MICKEY PLUTO GOOFY)) {
+        # Mock hacluster package variable for test
+        $hacluster::crm_config_show_fence_sbd = "primitive $_ stonith:fence_sbd";
+        my $pcmk_delay_max_cmd = pcmk_delay_max_cmd();
+        ok($pcmk_delay_max_cmd =~ /^crm resource param $_ show pcmk_delay_max/, "Calculated command to get pcmk_delay_max correct for [$_]");
+    }
+    # Set original value back
+    $hacluster::crm_config_show_fence_sbd = $orig_fence_sbd_var;
 };
 
 done_testing;
