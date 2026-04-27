@@ -346,10 +346,10 @@ sub gcloud_install {
     # WARNING:  Python 3.6.x is no longer officially supported by the Google Cloud CLI
     # and may not function correctly. Please use Python version 3.8 and up.
     my @pkgs = qw(curl tar gzip);
-    my $py_version = get_var('PYTHON_VERSION', '3.11');
+    my $py_version = is_sle(">=16.0") ? "3" : get_var('PYTHON_VERSION', '3.11');
     my $py_pkg_version = $py_version =~ s/\.//gr;
     push @pkgs, 'python' . $py_pkg_version;
-    add_suseconnect_product(get_addon_fullname('python3')) if is_sle('15-SP6+');
+    add_suseconnect_product(get_addon_fullname('python3')) if (is_sle('15-SP6+') && is_sle("<16.0"));
 
     zypper_call("in @pkgs", $timeout);
 
