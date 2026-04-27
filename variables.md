@@ -319,6 +319,7 @@ PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID | string | "" | Used to create the service ac
 PUBLIC_CLOUD_AZURE_AITL_IMAGE | string | "registry.opensuse.org/devel/opensuse/qa/qac/containers/15.6/aitl-lisa:leap" | Define docker image containing aitl CLI to be used for Azure AITL LISA testing
 PUBLIC_CLOUD_AZ_API | string | "http://169.254.169.254/metadata/instance/compute" | For Azure, it is the metadata API endpoint.
 PUBLIC_CLOUD_AZ_API_VERSION | string | "2021-02-01" | For Azure, it is the API version used whe querying metadata API.
+PUBLIC_CLOUD_BOOTTIME_MAX | integer | undef | To set the 'overall' `boot time` threshold in check_system_boottime.
 PUBLIC_CLOUD_BTRFS | boolean | false | If set, it schedules `publiccloud/btrfs` job.
 PUBLIC_CLOUD_BUILD | string | "" | The image build number. Used only when we use custom built image.
 PUBLIC_CLOUD_BUILD_KIWI | string | "" | The image kiwi build number. Used only when we use custom built image.
@@ -372,7 +373,6 @@ PUBLIC_CLOUD_FUNCTIONAL | boolean | false | Schedule the functional test suite.
 PUBLIC_CLOUD_ENABLE_KDUMP | boolean | false | Enable kdump
 PUBLIC_CLOUD_MIGRATE_SLEM | boolean | false | Enable module for SL micro 6.x version upgrade to higher
 PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled. This variable should be enabled only sle15SP4 and above.
-PUBLIC_CLOUD_PERF_COLLECT | boolean | 1 | To enable `boottime` measures collection, at end of `create_instance` routine.
 PUBLIC_CLOUD_PERF_DB | string | "perf_2" | defines the bucket in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
 PUBLIC_CLOUD_PERF_DB_ORG | string | "qec" | defines the organization in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
 PUBLIC_CLOUD_PERF_DB_URI | string | "http://publiccloud-ng.qe.suse.de:8086" | bootup time measures get pushed to this Influx database url.

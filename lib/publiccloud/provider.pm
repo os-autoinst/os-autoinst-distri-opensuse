@@ -379,26 +379,14 @@ sub create_instances {
     my ($self, %args) = @_;
     $args{check_connectivity} //= 1;
     my @vms = $self->terraform_apply(%args);
-    my $url = get_var('PUBLIC_CLOUD_PERF_DB_URI', 'http://larry.qe.suse.de:8086');
 
     foreach my $instance (@vms) {
         record_info("INSTANCE", $instance->{instance_id});
         $self->show_instance_details();
         if ($args{check_connectivity}) {
             # An error in VM-up causes test to stop
-            my $result = $instance->wait_for_ssh(timeout => $args{timeout},
+            $instance->wait_for_ssh(timeout => $args{timeout},
                 proceed_on_failure => $args{proceed_on_failure}, scan_ssh_host_key => 1);
-            # Performance data: boottime
-            if ($result && is_ok_url($url)) {
-                local $@;
-                eval {
-                    my $btime = $instance->measure_boottime($instance, 'first');
-                    $instance->store_boottime_db($btime, $url);
-                };
-                record_info("WARN", "Boottime measures cannot be provided", result => 'fail') if ($@);
-            } else {
-                record_info("WARN", "Cannot connect url:" . $url, result => 'fail');
-            }
         }
     }
     return @vms;

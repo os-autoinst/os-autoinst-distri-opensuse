@@ -42,8 +42,9 @@ sub run {
     $args->{my_instance} = $args->{my_provider}->create_instance(%instance_args);
     my $provider = $self->{my_provider} = $args->{my_provider};
     my $instance = $args->{my_instance};
-    my $result = $instance->wait_for_ssh(scan_ssh_host_key => 1);
-    $instance->measure_boottime($instance, 'first') if $result;
+    # check needed when not-executed in create_instance
+    $instance->wait_for_ssh(scan_ssh_host_key => 1) if ($instance_args{check_connectivity} == 0);
+    $instance->check_system_boottime();
     $instance->wait_for_guestregister() if (is_ondemand);
 
     $instance->network_speed_test();
