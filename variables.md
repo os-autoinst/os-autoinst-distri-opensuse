@@ -303,7 +303,7 @@ The following variables are relevant for publiccloud related jobs. Keep in mind 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
 CLUSTER_TYPES | string | false | Set the type of cluster that have to be analyzed (example: "drbd hana").
-OPENTOFU_VERSION | string | "1.9.1" | Version of opentofu to include into PC Tools image
+OPENTOFU_VERSION | string | "1.11.6" | Version of opentofu to include into PC Tools image
 PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable should list the test name which should be tested.
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
 PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
