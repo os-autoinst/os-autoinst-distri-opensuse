@@ -22,14 +22,14 @@ sub run {
         my $version = get_required_var('NFSVERSION');
 
         assert_script_run("cd ~/pynfs/nfs$version");
-        script_run('./testserver.py -v --rundeps --hidepass --json results.json --maketree localhost:/exportdir all', 3600);
+        script_run('./testserver.py -v --rundeps --hidepass --json results.json --maketree localhost:/var/exportdir all', 3600);
     }
     elsif (get_var("CTHON04")) {
         script_run('cd ~/cthon04');
-        script_run('./runtests -b -t /exportdir | tee result_basic_test.txt');
-        script_run('./runtests -g -t /exportdir | tee result_general_test.txt');
-        script_run('./runtests -s -t /exportdir | tee result_special_test.txt');
-        script_run('./runtests -l -t /exportdir | tee result_lock_test.txt');
+        script_run('./runtests -b -t /var/exportdir | tee result_basic_test.txt');
+        script_run('./runtests -g -t /var/exportdir | tee result_general_test.txt');
+        script_run('./runtests -s -t /var/exportdir | tee result_special_test.txt');
+        script_run('./runtests -l -t /var/exportdir | tee result_lock_test.txt');
     }
 }
 
