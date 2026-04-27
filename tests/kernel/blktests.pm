@@ -11,7 +11,6 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle);
 use repo_tools 'add_qa_head_repo';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
 
@@ -34,7 +33,6 @@ sub run {
     my $tests = get_required_var('BLKTESTS');
     my $quick = get_var('BLKTESTS_QUICK', 60);
     my $exclude = get_var('BLKTESTS_EXCLUDE');
-    my $config = get_var('BLKTESTS_CONFIG');
     my $devices = get_required_var('BLKTESTS_DEVICE_ONLY');
     my $trtypes = get_var('BLKTESTS_TRTYPES');
 
