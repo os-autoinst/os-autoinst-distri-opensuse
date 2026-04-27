@@ -53,7 +53,7 @@ sub run_test {
     # Back up /etc/resolv.conf as it will refresh by creating VFs
     assert_script_run("cp /etc/resolv.conf /etc/resolv_before_enable_vf.conf");
 
-    record_info("Before enable VF", script_output("ip a"));
+    record_info("Before enabling VF", script_output("ip a"));
     script_run("ip r");
     script_run("nmcli con");
 
@@ -65,7 +65,7 @@ sub run_test {
         reset_consoles;
         select_console('root-ssh');
     }
-    script_run("ip a");
+    record_info("After enabling VF", script_output("ip a", proceed_on_failure => 1));
     script_run("nmcli con");
 
     # Restore /etc/resolv.conf after VFs are created

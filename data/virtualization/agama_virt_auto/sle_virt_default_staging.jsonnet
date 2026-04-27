@@ -121,6 +121,17 @@ local urls = if repo != '' then std.split(repo, ',') else [];
             sed -i "/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}" $config_file
           done
         |||
+      },
+      {
+        name: "disable_nm_for_sriov_vfs",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          # Make a udev rule to force NM to skip SR-IOV VFs
+          rules_file="/etc/udev/rules.d/99-sriov-vfs-unmanaged.rules"
+          echo 'SUBSYSTEM=="net", ACTION=="add|change", TEST=="device/physfn", ENV{NM_UNMANAGED}="1"' > "$rules_file"
+          chmod 644 "$rules_file"
+        |||
       }
     ]
   }
