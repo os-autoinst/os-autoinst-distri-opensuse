@@ -52,7 +52,8 @@ sub run {
         # Configure the public cloud kubernetes
         if ($k8s_backend eq "EC2") {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle("<16");
-            zypper_call("in jq aws-cli", timeout => 300);
+            my $aws_cli_pkg = is_sle(">16.0") ? 'aws-cli-cmd' : 'aws-cli';
+            zypper_call("in jq $aws_cli_pkg", timeout => 300);
 
             # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
             # we don't want to have defaults and want tests to fail when region is not defined
