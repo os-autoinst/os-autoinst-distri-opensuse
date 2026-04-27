@@ -7,5 +7,6 @@ schedule:
   - yam/agama/agama_auto
   - installation/grub_test
   - installation/first_boot
+  - console/verify_separate_home
   - console/validate_partition_table
   - console/validate_blockdevices
