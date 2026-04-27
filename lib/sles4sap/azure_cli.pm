@@ -1427,19 +1427,39 @@ Return a list of diagnostic file paths on the JumpHost
 
 =item B<resource_group> - existing resource group where to search for a specific VM
 
+=item B<timeout> - max expected execution time for a single az command - default 240sec
+
+=item B<verbose> - use tee to print the output also on the terminal while redirecting to file. Default 0
+
 =back
 =cut
 
 sub az_vm_diagnostic_log_get(%args) {
     croak("Argument < resource_group > missing") unless $args{resource_group};
 
+    my $timeout = $args{timeout} // 240;
     my @diagnostic_log_files;
     my $vm_data = az_vm_list(resource_group => $args{resource_group}, query => '[].{id:id,name:name}');
     my $az_get_logs_cmd = 'az vm boot-diagnostics get-boot-log --ids';
+    my $ret;
+    my $err;
+    my $redirect = $args{verbose} ? '|& tee' : '&>';
+    my $boot_diagnostics_log;
     foreach (@{$vm_data}) {
-        my $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
-        push @diagnostic_log_files, $boot_diagnostics_log unless
-          script_run(join(' ', $az_get_logs_cmd, $_->{id}, '|&', 'tee', $boot_diagnostics_log));
+        $boot_diagnostics_log = '/tmp/boot-diagnostics_' . $_->{name} . '.txt';
+        eval {
+            $ret = script_run(
+                join(' ', $az_get_logs_cmd, $_->{id}, $redirect, $boot_diagnostics_log),
+                timeout => $timeout);
+        };
+        $err = $@;
+        if ($err || !defined $ret || $ret != 0) {
+            my $detail = ($err && $err =~ /\S/) ? "$err" : "Exit code: $ret";
+            my $fail_msg = "Failed to get boot diagnostics for $_->{name}: $detail";
+            record_info('Diag Warn', $fail_msg, result => 'fail');
+            next;
+        }
+        push(@diagnostic_log_files, $boot_diagnostics_log);
     }
     return @diagnostic_log_files;
 }
