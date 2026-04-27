@@ -75,11 +75,9 @@ sub run {
     set_var('ELEMENTAL3_IMAGE_TO_TEST', "$elemental3_uri") unless ($elemental3_uri eq '');
 
     # Export SYSEXT_IMAGES_TO_TEST
-    # TODO: remove as soon as element3ctl will be added in the OS image!
-    my $elemental3ctl_regex = ".*elemental3ctl-${uc_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
-    ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${elemental3ctl_regex});
-    my $elemental3ctl_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${version}-${build}\)");
-    set_var('SYSEXT_IMAGES_TO_TEST', "${elemental3ctl_uri}") unless ($elemental3ctl_uri eq '');
+    # Include sysext uris for the sysexts targeted for testing
+    my $sysext_uri;
+    set_var('SYSEXT_IMAGES_TO_TEST', "${sysext_uri}") unless ($sysext_uri eq '');
 
     # Export K8S_IMAGE_TO_TEST
     # beta-uc-rke2-tar-1.35.1_rke2r1-2.1.x86_64-2.1.tar.registry.txt

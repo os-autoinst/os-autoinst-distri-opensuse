@@ -62,7 +62,7 @@ sub build_installer_cmd {
 
     # Generate OS image
     assert_script_run(
-"elemental3ctl --debug build-installer --type $args{type} --output . --name $args{img_filename} --os-image $image --cmdline '$isocmdline' --config $iso_config_file --overlay oci://$ctl_oci --install-overlay dir://$overlay_dir --install-config $config_file --install-cmdline '$krnlcmdline' --install-target $device",
+"elemental3ctl --debug build-installer --type $args{type} --output . --name $args{img_filename} --os-image $image --cmdline '$isocmdline' --config $iso_config_file --install-overlay dir://$overlay_dir --install-config $config_file --install-cmdline '$krnlcmdline' --install-target $device",
         timeout => $args{timeout}
     );
 
