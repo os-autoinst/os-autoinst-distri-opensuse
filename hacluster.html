@@ -82,6 +82,9 @@
       <li><a href="#sbd_device_report">sbd_device_report</a></li>
       <li><a href="#get_fencing_type">get_fencing_type</a></li>
       <li><a href="#check_crm_nonroot">check_crm_nonroot</a></li>
+      <li><a href="#get_crmsh_version">get_crmsh_version</a></li>
+      <li><a href="#get_fencing_ra_name">get_fencing_ra_name</a></li>
+      <li><a href="#pcmk_delay_max_cmd">pcmk_delay_max_cmd</a></li>
     </ul>
   </li>
 </ul><h1>lib/hacluster.pm</h1>
@@ -118,7 +121,7 @@
 <li><p><b>$sbd_delay_start</b>: command to extract the value of <code>SBD_DELAY_START</code> from <code>/etc/sysconfig/sbd</code></p>
 
 </li>
-<li><p><b>$pcmk_delay_max</b>: command to get the value of the <code>pcmd_delay_max</code> parameter from the STONITH resource in the cluster configuration.</p>
+<li><p><b>$crm_config_show_fence_sbd</b>: command to extract the part of the cluster configuration relating to <b>fence_sbd</b></p>
 
 </li>
 </ul>
@@ -810,6 +813,25 @@ sync_path(&#39;/path/to/files*&#39;);</code></pre>
 
 </li>
 </ul>
+
+<h2 id="get_crmsh_version">get_crmsh_version</h2>
+
+<pre><code>get_crmsh_version();</code></pre>
+
+<p>Gets the <b>crmsh</b> package version from the SUT.</p>
+
+<h2 id="get_fencing_ra_name">get_fencing_ra_name</h2>
+
+<pre><code>get_fencing_ra_name($crm_config_output);</code></pre>
+
+<p>Gets the correct name of the <b>fence_sbd</b> primitive from a snippet of the cluster configuration provided as an argument, such as the output of the command stored in <code>$crm_config_show_fence_sbd</code>.</p>
+
+<h2 id="pcmk_delay_max_cmd">pcmk_delay_max_cmd</h2>
+
+<pre><code>pcmk_delay_max_cmd();
+pcmk_delay_max_cmd($primitive_name);</code></pre>
+
+<p>Returns the command required to get the value of the attribute <code>pcmk_delay_max</code> in the cluster configuration. If no argument is provided, it will try to determine the correct name for the <b>fence_sbd</b> primitive using <code>get_fencing_ra_name</code>, otherwise it will use whatever primitive name is provided as an argument.</p>
 
 
 </body>
