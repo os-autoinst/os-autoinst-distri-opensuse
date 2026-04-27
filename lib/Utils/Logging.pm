@@ -176,6 +176,7 @@ sub cleanup_known_coredumps {
         'bsc#1129403' => q(unzip-mem "" v files.zip),
         'bsc#1261358' => q(gvfs-udisks2-volume-monitor),
         'bsc#1261625' => q(ovs-vswitchd unix:),
+        'https://gitlab.isc.org/isc-projects/bind9/-/work_items/2983' => q(9.18.33/bin/named/.libs/named -D doth),
     );
 
     for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1))) {
