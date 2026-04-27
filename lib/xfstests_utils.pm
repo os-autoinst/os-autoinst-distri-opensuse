@@ -48,6 +48,9 @@ my $KDUMP_DIR = '/opt/kdump';
 my $TEST_FOLDER = '/opt/test';
 my $SCRATCH_FOLDER = '/opt/scratch';
 
+# Worker-side buffer for status log entries, survives VM snapshot rollbacks
+my @_worker_status_log;
+
 our @EXPORT = qw(
   heartbeat_prepare
   heartbeat_start
@@ -73,7 +76,8 @@ our @EXPORT = qw(
   umount_xfstests_dev
   config_debug_option
   test_run_without_heartbeat
-  check_bugzilla_status);
+  check_bugzilla_status
+  get_status_log_content);
 
 =head2 heartbeat_prepare
 
@@ -214,7 +218,22 @@ sub log_add {
     unless ($name and $status) { return; }
     my $cmd = "echo '$name ... ... $status (${time}s)' | tee -a $file";
     my $ret = script_output($cmd, 60, type_command => 1, proceed_on_failure => 1);
+    # Buffer on worker side to survive VM snapshot rollbacks
+    push @_worker_status_log, "$name ... ... $status (${time}s)";
     return $ret;
+}
+
+=head2 get_status_log_content
+
+Return the complete status log content from worker-side buffer.
+This buffer survives VM snapshot rollbacks since it lives in the
+worker process memory, not on the SUT filesystem.
+
+=cut
+
+sub get_status_log_content {
+    return join("\n", @_worker_status_log) . "\n" if @_worker_status_log;
+    return '';
 }
 
 =head2 tests_from_category
