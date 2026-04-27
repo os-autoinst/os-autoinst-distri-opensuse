@@ -36,7 +36,7 @@ sub build_installer_cmd {
     my $device = get_var('INSTALL_DISK', '/dev/vda');
 
     # Configure the systemd sysexts
-    my ($overlay_dir, $ctl_oci) = get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
+    my $overlay_dir = get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
 
     # OS configuration script
     assert_script_run(
@@ -217,7 +217,6 @@ sub get_sysext {
     my (%args) = @_;
     my $overlay_dir = "$args{tmpdir}/overlays";
     my $sysext_dir = "$overlay_dir/etc/extensions";
-    my $ctl_oci;
 
     record_info('SYSEXT', 'Download and configure systemd system extensions');
 
@@ -225,16 +224,15 @@ sub get_sysext {
     assert_script_run("mkdir -p $sysext_dir");
 
     # Get the system extensions
-    foreach my $img (split(/,/, get_required_var('SYSEXT_IMAGES_TO_TEST'))) {
+    foreach my $img (split(/,/, get_var('SYSEXT_IMAGES_TO_TEST'))) {
         assert_script_run(
             "elemental3ctl --debug unpack-image --image ${img} --target ${sysext_dir}",
             timeout => $args{timeout}
         );
-        $ctl_oci = $img if ($img =~ /\/elemental3ctl:/);
     }
 
     # Return systemd-sysexts file name
-    return ($overlay_dir, $ctl_oci);
+    return ($overlay_dir);
 }
 
 =head2 install_cmd
@@ -257,7 +255,7 @@ sub install_cmd {
     my $k8s_sysext_found;
 
     # Configure the systemd sysexts
-    my ($overlay_dir) = get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
+    my $overlay_dir = get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
 
     # OS configuration script
     assert_script_run(
