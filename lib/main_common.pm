@@ -2673,7 +2673,7 @@ sub load_hypervisor_tests {
 
     my %virt_features = get_virt_features_definition();
 
-    for my $test (keys %virt_features) {
+    for my $test (sort keys %virt_features) {
         next if $test eq 'ENABLE_SNAPSHOTS';
         my $feature = $virt_features{$test};
         my $modules = $feature->{modules};
@@ -2761,7 +2761,7 @@ sub load_sles16_mu_virt_tests {
     my %virt_features = get_virt_features_definition();
 
     # Process virtualization features - skip SNAPSHOTS for now, load it at the end
-    for my $test (keys %virt_features) {
+    for my $test (sort keys %virt_features) {
         next if $test eq 'ENABLE_SNAPSHOTS';
         my $feature = $virt_features{$test};
         my $modules = $feature->{modules};
