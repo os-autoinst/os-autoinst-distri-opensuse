@@ -21,6 +21,7 @@
       <li><a href="#test_wait">test_wait</a></li>
       <li><a href="#test_name">test_name</a></li>
       <li><a href="#log_add">log_add</a></li>
+      <li><a href="#get_status_log_content">get_status_log_content</a></li>
       <li><a href="#tests_from_category">tests_from_category</a></li>
       <li><a href="#exclude_grouplist">exclude_grouplist</a></li>
       <li><a href="#include_grouplist">include_grouplist</a></li>
@@ -69,6 +70,10 @@
 <h2 id="log_add">log_add</h2>
 
 <p>Add one test result to log file file - log file test - specific test (e.g. xfs/008) status - test status time - time consumed</p>
+
+<h2 id="get_status_log_content">get_status_log_content</h2>
+
+<p>Return the complete status log content from worker-side buffer. This buffer survives VM snapshot rollbacks since it lives in the worker process memory, not on the SUT filesystem.</p>
 
 <h2 id="tests_from_category">tests_from_category</h2>
 

@@ -1,0 +1,77 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/xfstests_ai_analysis.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='./style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
+  <li>
+    <ul>
+      <li><a href="#analyze_by_knowledgebase">analyze_by_knowledgebase</a></li>
+      <li><a href="#download_kb">_download_kb</a></li>
+      <li><a href="#init_kb">init_kb</a></li>
+      <li><a href="#merge_knowledge_bases">_merge_knowledge_bases</a></li>
+      <li><a href="#match_output_patterns">_match_output_patterns</a></li>
+      <li><a href="#apply_pattern_overrides">_apply_pattern_overrides</a></li>
+      <li><a href="#parse_test_context">_parse_test_context</a></li>
+      <li><a href="#apply_platform_factors">_apply_platform_factors</a></li>
+      <li><a href="#format_analysis_result">format_analysis_result</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/xfstests_ai_analysis.pm</h1>
+
+<h2 id="analyze_by_knowledgebase">analyze_by_knowledgebase</h2>
+
+<p>Analyze a failed test using the pre-generated knowledge base. Must call init_kb() first to load the knowledge base. Returns a hash ref with analysis results, or undef if test not found.</p>
+
+<p>Features: - Matches output patterns (from both test output and full log) with per-pattern classification - Applies platform-specific factors (s390x, ppc64le, aarch64) from test context - Priority resolution: tool_version_mismatch overrides kernel_bug when patterns match</p>
+
+<p>Arguments: test - test name (e.g. &quot;xfs/001&quot;) fstype - filesystem type output - test output content (for pattern and context matching) fullog - .full log content (for tool version mismatch detection)</p>
+
+<h2 id="download_kb">_download_kb</h2>
+
+<p>Download a knowledge base YAML file from URL. Uses Mojo::UserAgent with caching to avoid re-downloading. Returns parsed YAML data structure, or undef on failure.</p>
+
+<h2 id="init_kb">init_kb</h2>
+
+<p>Load knowledge bases from URLs specified by XFSTESTS_AI_KB and XFSTESTS_QE_KB variables. Downloads via HTTP (following the LTP::WhiteList pattern), parses YAML, then merges QE-maintained KB on top (higher priority). QE entries override scalar fields and prepend to list fields. Returns true if at least one knowledge base was loaded successfully.</p>
+
+<h2 id="merge_knowledge_bases">_merge_knowledge_bases</h2>
+
+<p>Merge QE knowledge base into the main cache. For each test entry: - Scalar fields (description, subsystem, bug_probability, classification): QE value overrides AI value - List fields (common_causes, investigation_steps, output_patterns): QE entries are prepended (shown first = higher priority) - platform_factors: merged per-architecture, QE overrides AI per-arch</p>
+
+<h2 id="match_output_patterns">_match_output_patterns</h2>
+
+<p>Match test output against known patterns from the knowledge base. Returns list of matched pattern hashes with bug_probability and classification.</p>
+
+<h2 id="apply_pattern_overrides">_apply_pattern_overrides</h2>
+
+<p>Apply per-pattern bug_probability and classification overrides. Priority: tool_version_mismatch &gt; test_bug &gt; config_problem &gt; kernel_bug. If multiple patterns match, the highest-priority classification wins.</p>
+
+<h2 id="parse_test_context">_parse_test_context</h2>
+
+<p>Parse test output header to extract platform context (arch, kernel, mount options, mkfs options). xfstests output typically starts with lines like: PLATFORM -- Linux/x86_64 hostname 6.x.y-default #1 SMP ... MOUNT_OPTIONS -- rw,relatime,attr2,inode64,... MKFS_OPTIONS -- -f /dev/vdb1</p>
+
+<h2 id="apply_platform_factors">_apply_platform_factors</h2>
+
+<p>Apply platform-specific adjustments from knowledge base. Merges extra_causes, extra_steps, and overrides bug_probability if defined.</p>
+
+<h2 id="format_analysis_result">format_analysis_result</h2>
+
+<p>Format knowledge base analysis result into readable text for record_info.</p>
+
+<p>Arguments: kb_result - hash ref from analyze_by_knowledgebase</p>
+
+
+</body>
+
+</html>
+
+
