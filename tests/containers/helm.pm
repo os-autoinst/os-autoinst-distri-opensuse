@@ -69,7 +69,8 @@ sub run {
         elsif ($k8s_backend eq 'AZURE') {
             add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef)) if is_sle("<16");
             add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
-            zypper_call('in jq azure-cli', timeout => 300);
+            my $az_cli_pkg = is_sle(">16.0") ? 'az-cli-cmd' : 'azure-cli';
+            zypper_call("in jq $az_cli_pkg", timeout => 300);
 
             # publiccloud::azure_client needs to demand PUBLIC_CLOUD_REGION due to other places where
             # we don't want to have defaults and want tests to fail when region is not defined
