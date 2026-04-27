@@ -69,7 +69,7 @@ sub install_from_git
 {
     my ($collection) = @_;
 
-    my $git_tree = get_var('KERNEL_GIT_TREE', 'https://github.com/torvalds/linux.git');
+    my $git_tree = get_var('KERNEL_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
 
     install_package('git', trup_apply => 1) if script_run('rpm -q git');
