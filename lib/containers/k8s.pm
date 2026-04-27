@@ -157,13 +157,20 @@ Installs kubectl from the respositories
 
 sub install_kubectl {
     return if (script_run("which kubectl") == 0);
-
-    # kubectl is in the container module
-    add_suseconnect_product(get_addon_fullname('contm')) if (is_sle("<16"));
     my $k8s_version = shift;
-    my $k8s_pkg = defined($k8s_version) ? "kubernetes$k8s_version-client" : get_var('K8S_CLIENT', 'kubernetes-client-provider');
-    zypper_call("in -C $k8s_pkg");
-    record_info('kubectl version', script_output('kubectl version --client'));
+
+    if (is_sle(">=16.0")) {
+        my $arch = (get_required_var("ARCH") eq "x86_64") ? "amd64" : "arm64";
+        $k8s_version = $k8s_version ? $k8s_version : script_output("curl -L -s https://dl.k8s.io/release/stable.txt");
+        assert_script_run "curl -Lo /usr/local/bin/kubectl 'https://dl.k8s.io/release/$k8s_version/bin/linux/$arch/kubectl'";
+        assert_script_run 'chmod +x /usr/local/bin/kubectl';
+    } else {
+        # kubectl is in the container module
+        add_suseconnect_product(get_addon_fullname('contm'));
+        my $k8s_pkg = $k8s_version ? "kubernetes$k8s_version-client" : get_var('K8S_CLIENT', 'kubernetes-client-provider');
+        zypper_call("in -C $k8s_pkg");
+        record_info('kubectl version', script_output('kubectl version --client'));
+    }
 }
 
 =head2 install_helm
