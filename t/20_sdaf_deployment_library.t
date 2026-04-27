@@ -158,10 +158,16 @@ subtest '[set_common_sdaf_os_env]' => sub {
 subtest '[az_login] Get credentials from server' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $env_variable_file_content;
-    my %credentrials = (client_id => 'Potato', client_secret => 'Patata', tenant_id => 'Zemiak', subscription_id => 'Batata');
+    my $credentrials = {
+        'sdaf' => {
+            'PRD' => {client_id => 'Potato', client_secret => 'Patata', tenant_id => 'Zemiak', subscription_id => 'Batata'}
+        }
+    };
+    set_var('PUBLIC_CLOUD_NAMESPACE', 'sdaf');
+    set_var('SDAF_ENV_CODE', 'PRD');
 
     $ms_sdaf->noop(qw(record_info assert_script_run script_output));
-    $ms_sdaf->redefine(get_credentials => sub { return \%credentrials; });
+    $ms_sdaf->redefine(get_credentials => sub { return $credentrials; });
     $ms_sdaf->redefine(write_sut_file => sub { $env_variable_file_content = $_[1]; });
 
     az_login();
