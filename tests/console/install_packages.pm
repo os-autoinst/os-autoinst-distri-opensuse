@@ -15,10 +15,13 @@ use utils 'zypper_call';
 sub run {
     select_console 'root-console';
 
-    my $packages = get_var("INSTALL_PACKAGES");
-
     zypper_call('in -l perl-solv perl-Data-Dump');
-    my $ex = script_run("~$username/data/lsmfip --verbose $packages > \$XDG_RUNTIME_DIR/install_packages.txt 2> /tmp/lsmfip.log");
+
+    save_tmp_file("packages", get_var("INSTALL_PACKAGES"));
+    my $download_cmd = sprintf('curl -O "%s/files/%s"', autoinst_url, 'packages');
+    assert_script_run($download_cmd);
+
+    my $ex = script_run("~$username/data/lsmfip --verbose \$(cat packages) > \$XDG_RUNTIME_DIR/install_packages.txt 2> /tmp/lsmfip.log");
     record_info("install_packages.txt", script_output("cat \$XDG_RUNTIME_DIR/install_packages.txt"));
     upload_logs '/tmp/lsmfip.log';
     if ($ex) {
