@@ -62,7 +62,7 @@ Due to pre-installation setup, qemu boot order is always booting from CD-ROM.
 
 sub handle_installer_medium_bootup {
     return unless (check_var("BOOTFROM", "d") || (get_var('UEFI') && get_var('USBBOOT')));
-    return if is_agama && !(is_sle || is_leap);
+    return if (check_var("BOOTFROM", "c") && !(is_sle || is_leap("<16.1")));
     assert_screen 'inst-bootmenu', 180;
 
     # Layout of live is different from installation media
