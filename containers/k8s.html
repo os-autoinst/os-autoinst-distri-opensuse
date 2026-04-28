@@ -19,13 +19,15 @@
       <li><a href="#install_kubectl-Installs-kubectl-from-the-respositories">install_kubectl Installs kubectl from the respositories</a></li>
       <li><a href="#install_helm-Installs-helm-from-our-upstream-or-repositories">install_helm Installs helm from our upstream or repositories</a></li>
       <li><a href="#apply_manifest-Apply-a-kubernetes-manifest">apply_manifest Apply a kubernetes manifest</a></li>
-      <li><a href="#find_pods-Find-pods-using-kubectl-queries">find_pods Find pods using kubectl queries</a></li>
       <li><a href="#wait_for_k8s_job_complete-Wait-until-the-job-is-complete">wait_for_k8s_job_complete Wait until the job is complete</a></li>
+      <li><a href="#wait_for_pod_ready">wait_for_pod_ready</a></li>
+      <li><a href="#find_pods-Find-pods-using-kubectl-queries">find_pods Find pods using kubectl queries</a></li>
       <li><a href="#validate_pod_logs-Validates-that-the-logs-contains-a-text">validate_pod_logs Validates that the logs contains a text</a></li>
       <li><a href="#get_pod_name">get_pod_name</a></li>
       <li><a href="#get_pod_logs">get_pod_logs</a></li>
       <li><a href="#get_namespace_events">get_namespace_events</a></li>
       <li><a href="#gather_k8s_logs">gather_k8s_logs</a></li>
+      <li><a href="#dump_k3s_debug_info">dump_k3s_debug_info</a></li>
     </ul>
   </li>
 </ul><h1>lib/containers/k8s.pm</h1>
@@ -40,9 +42,16 @@
 
 <h2 id="apply_manifest-Apply-a-kubernetes-manifest">apply_manifest Apply a kubernetes manifest</h2>
 
-<h2 id="find_pods-Find-pods-using-kubectl-queries">find_pods Find pods using kubectl queries</h2>
-
 <h2 id="wait_for_k8s_job_complete-Wait-until-the-job-is-complete">wait_for_k8s_job_complete Wait until the job is complete</h2>
+
+<h2 id="wait_for_pod_ready">wait_for_pod_ready</h2>
+
+<pre><code>wait_for_pod_ready(labels =&gt; &quot;app=myapp&quot;, timeout =&gt; 60, delay =&gt; 12, retry =&gt; 5)
+wait_for_pod_ready(pod_name =&gt; &quot;myapp-12345&quot;, timeout =&gt; 60, delay =&gt; 12, retry =&gt; 5)
+
+Waits until the Pod is in Ready status. You can specify either a label selector or the full Pod name.</code></pre>
+
+<h2 id="find_pods-Find-pods-using-kubectl-queries">find_pods Find pods using kubectl queries</h2>
 
 <h2 id="validate_pod_logs-Validates-that-the-logs-contains-a-text">validate_pod_logs Validates that the logs contains a text</h2>
 
@@ -70,6 +79,12 @@ Gets the logs from a Pod running on Kubernetes and uploads them to the OpenQA Jo
 <pre><code>gather_k8s_logs($label, @list_of_components)
 
 Gets Events, general Pod status and specific Pod logs and uploads them to the OpenQA Job.</code></pre>
+
+<h2 id="dump_k3s_debug_info">dump_k3s_debug_info</h2>
+
+<pre><code>dump_k3s_debug_info()
+
+Dumps k3s and kubectl status and logs for debugging purposes.</code></pre>
 
 
 </body>
