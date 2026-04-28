@@ -174,6 +174,7 @@ It can be executed on different architectures and K8s distributions.
 
 sub prepare_test_framework {
     my (%args) = @_;
+    my $hostname = script_output('hostnamectl hostname');
 
     croak('Arch should be defined!') unless (defined $args{arch} && $args{arch} ne '');
     croak('K8s should be defined!') unless (defined $args{k8s} && $args{k8s} ne '');
@@ -183,32 +184,34 @@ sub prepare_test_framework {
     $arch = 'arm' if ($args{arch} eq 'aarch64');
     $arch = 'amd64' if ($args{arch} eq 'x86_64');
 
-    # Get some informations from the cluster
-    my ($k8s_version) = script_output('kubectl version') =~ /[Ss]erver.*:\s*(.*)/;
-    my $fqdn = script_output('hostnamectl hostname');
-    my $k8s_yaml = "/etc/rancher/$args{k8s}/$args{k8s}.yaml";
+    # Only needed on first master node
+    if ($hostname eq 'node01') {
+        # Get some informations from the cluster
+        my ($k8s_version) = script_output('kubectl version') =~ /[Ss]erver.*:\s*(.*)/;
+        my $k8s_yaml = "/etc/rancher/$args{k8s}/$args{k8s}.yaml";
 
-    # We have to use this dirty workaround, as the result of this command
-    # is way too big for 'file_content_replace' function
-    assert_script_run("sed 's/127\.0\.0\.1/$fqdn/g' $k8s_yaml | base64 -w0 > /tmp/k8s.config");
+        # We have to use this dirty workaround, as the result of this command
+        # is way too big for 'file_content_replace' function
+        assert_script_run("sed 's/127\.0\.0\.1/$hostname/g' $k8s_yaml | base64 -w0 > /tmp/k8s.config");
 
-    # Framework configuration files
-    foreach my $file ('/tmp/env', '/tmp/tfvars') {
-        assert_script_run(
-            "curl -sf -o $file "
-              . data_url('elemental3/test-framework/' . path($file)->basename)
-        );
-        file_content_replace(
-            $file, '--sed-modifier' => 'g',
-            '%ARCH%' => $arch,
-            '%ACCESS_KEY%' => '/root/.ssh/id_rsa',
-            '%K8S%' => $args{k8s},
-            '%K8S_VERSION%' => $k8s_version,
-            '%FQDN%' => $fqdn
-        );
+        # Framework configuration files
+        foreach my $file ('/tmp/env', '/tmp/tfvars') {
+            assert_script_run(
+                "curl -sf -o $file "
+                  . data_url('elemental3/test-framework/' . path($file)->basename)
+            );
+            file_content_replace(
+                $file, '--sed-modifier' => 'g',
+                '%ARCH%' => $arch,
+                '%ACCESS_KEY%' => '/root/.ssh/id_rsa',
+                '%K8S%' => $args{k8s},
+                '%K8S_VERSION%' => $k8s_version,
+                '%FQDN%' => $hostname
+            );
 
-        # Dirty workaround, see above for more details
-        assert_script_run("sed -E \"s|%K8S_CONFIG%|\$(</tmp/k8s.config)|\" -i $file");
+            # Dirty workaround, see above for more details
+            assert_script_run("sed -E \"s|%K8S_CONFIG%|\$(</tmp/k8s.config)|\" -i $file");
+        }
     }
 
     # Tells the master that it can download the files
@@ -229,7 +232,9 @@ sub run {
     my $k8s = get_required_var('K8S');
     my $k8s_dir = "/etc/rancher/$k8s";
     my $config_yaml = "$k8s_dir/config.yaml";
-    my $timeout = (is_aarch64) ? 2400 : 1200;
+    my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
+    #my $timeout = (is_aarch64) ? 2400 : 1200;
+    my $timeout = 2400;
 
     # Skip the test with if the OS image is not generated with 'customize'
     unless (check_var('TESTED_CMD', 'customize')) {
@@ -260,7 +265,6 @@ sub run {
         # Configure K8s
         if (get_var('PARALLEL_WITH')) {
             # Set hostname and get IP address
-            my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
             configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
 
             # Wait for K8s directory to appears
@@ -275,31 +279,33 @@ sub run {
         }
     }
 
-    # Wait for kubectl command to be available
-    wait_kubectl_cmd(timeout => $timeout);
+    unless ($hostname eq 'node04') {
+        # Wait for kubectl command to be available
+        wait_kubectl_cmd(timeout => $timeout);
 
-    # Check K8s status
-    wait_k8s_state(regex => 'status.*restarts|(1/1|2/2|3/3|4.4).*running|0/1.*completed', timeout => $timeout);
+        # Check K8s status
+        wait_k8s_state(regex => 'status.*restarts|(1/1|2/2|3/3|4.4).*running|0/1.*completed', timeout => $timeout);
 
-    # Record K8s status (we want all, stderr as well)
-    record_info('K8s status', script_output('kubectl get pod -A 2>&1'));
+        # Record K8s status (we want all, stderr as well)
+        record_info('K8s status', script_output('kubectl get pod -A 2>&1'));
 
-    # Wait until node(s) is/are in Ready state
-    wait_nodes_ready(timeout => $timeout);
+        # Wait until node(s) is/are in Ready state
+        wait_nodes_ready(timeout => $timeout);
 
-    # Record K8s version/nodes
-    record_info('K8s version/nodes', script_output('kubectl version; kubectl get nodes'));
+        # Record K8s version/nodes
+        record_info('K8s version/nodes', script_output('kubectl version; kubectl get nodes'));
 
-    # Record K8s services
-    record_info('K8s services', script_output('kubectl get services -A'));
+        # Record K8s services
+        record_info('K8s services', script_output('kubectl get services -A'));
 
-    # Check toolkit version
-    record_info('Elemental version', script_output('elemental3ctl version'));
+        # Check toolkit version
+        record_info('Elemental version', script_output('elemental3ctl version'));
 
-    # Check that test namespace has been created (only for images built from release-manifest)
-    if (check_var('TESTED_CMD', 'customize')) {
-        kubectl_cmd(cmd => 'get namespace openqa-ns', timeout => $timeout);
-        record_info('Test Namespace creation', 'Namespace created!');
+        # Check that test namespace has been created (only for images built from release-manifest)
+        if (check_var('TESTED_CMD', 'customize')) {
+            kubectl_cmd(cmd => 'get namespace openqa-ns', timeout => $timeout);
+            record_info('Test Namespace creation', 'Namespace created!');
+        }
     }
 
     # Only in multi-nodes configuration
