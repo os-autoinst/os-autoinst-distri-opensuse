@@ -26,13 +26,14 @@ use Utils::Architectures qw(is_x86_64 is_aarch64);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use network_utils 'iface';
+use package_utils 'install_package';
 
 sub install_ovs_dpdk {
     if (is_sle('=15-sp5') || (is_leap('=15.5') && !(check_var('FLAVOR', 'DVD-Updates')))) {
         zypper_call('in openvswitch3 dpdk22 dpdk22-tools', timeout => 300);
     }
     else {
-        zypper_call('in openvswitch dpdk dpdk-tools', timeout => 300);
+        install_package('openvswitch dpdk dpdk-tools', trup_reboot => 1);
     }
     # export PATH for later usage
     assert_script_run 'export PATH=$PATH:/usr/share/openvswitch/scripts';

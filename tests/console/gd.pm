@@ -16,11 +16,11 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    zypper_call('in gd');
+    install_package('gd', trup_reboot => 1);
     script_run('cd /var/tmp');
     assert_script_run 'curl -v -o giphy.gif ' . data_url('qam/giphy.gif');
     validate_script_output "md5sum /var/tmp/giphy.gif", sub { m/a2cf36e472e6c42b0bf114c79a87d392/ };
