@@ -209,7 +209,6 @@ sub upload_coredumps {
     return if $res;
     my @pids = split(/\n/, script_output(q(coredumpctl --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1));
     return unless @pids;
-    record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
     my $get_backtrace = get_var("COREDUMP_WITH_BACKTRACE") && !is_transactional;
     if ($get_backtrace) {
         script_run('sed -i s/enabled=0/enabled=1/ /etc/zypp/repos.d/*-[Dd]ebug.repo');
@@ -232,6 +231,7 @@ sub upload_coredumps {
             upload_logs("backtrace$pid.txt", log_name => basename($core) . "_backtrace.txt", failok => 1);
         }
     }
+    die("COREDUMPS found");
 }
 
 =head2 export_logs
