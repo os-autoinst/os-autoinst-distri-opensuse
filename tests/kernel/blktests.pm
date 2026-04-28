@@ -5,14 +5,14 @@
 
 # Package: blktests
 # Summary: Block device layer tests
-# Maintainer: Sebastian Chlad <schlad@suse.de>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle);
 use repo_tools 'add_qa_head_repo';
+use package_utils 'install_package';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
 
 sub prepare_blktests_config {
@@ -21,7 +21,7 @@ sub prepare_blktests_config {
     if ($devices eq 'none') {
         record_info('INFO', 'No specific tests device selected');
     } else {
-        script_run("echo TEST_DEVS=\\($devices\\) > /usr/lib/blktests/config");
+        script_run("echo TEST_DEVS=\\($devices\\) > /etc/blktests/config");
         record_info('INFO', "$devices");
     }
 }
@@ -34,7 +34,6 @@ sub run {
     my $tests = get_required_var('BLKTESTS');
     my $quick = get_var('BLKTESTS_QUICK', 60);
     my $exclude = get_var('BLKTESTS_EXCLUDE');
-    my $config = get_var('BLKTESTS_CONFIG');
     my $devices = get_required_var('BLKTESTS_DEVICE_ONLY');
     my $trtypes = get_var('BLKTESTS_TRTYPES');
 
@@ -44,8 +43,13 @@ sub run {
     #QA repo is added with lower prio in order to avoid possible problems
     #with some packages provided in both, tested product and qa repo; example: fio
     add_qa_head_repo(priority => 100);
-    zypper_call('in blktests');
-    zypper_call('in fio');
+    install_package('blktests fio', trup_apply => 1);
+
+    #Prepare configuration, log/results directories
+    assert_script_run("mkdir -p /etc/blktests");
+
+    my $log_dir = '/var/log/blktests';
+    assert_script_run("mkdir -p ${log_dir}/results");
 
     prepare_blktests_config($devices);
 
@@ -55,9 +59,11 @@ sub run {
     $exclude = join(' ', map { "--exclude=$_" } split(/,/, $exclude // ''));
     $trtypes = "NVMET_TRTYPES=\"$trtypes\" " if $trtypes;
     foreach my $i (@tests) {
-        script_run("${trtypes} ./check --quick=$quick $exclude $i", 1200);
+        my $config = $devices eq 'none' ? '' : '-c /etc/blktests/config';
+        script_run("${trtypes} ./check $config -o ${log_dir}/results --quick=$quick $exclude $i", 1200);
     }
 
+    script_run("cd ${log_dir}");
     script_run('wget --quiet ' . data_url('kernel/post_process') . ' -O post_process');
     script_run('chmod +x post_process');
     script_run('./post_process');
@@ -67,7 +73,7 @@ sub run {
     upload_logs('results.tar.gz');
 
     record_info('XML', script_output('ls ./'));
-    my $output = script_output('find /usr/lib/blktests -name "*_results.xml" 2>/dev/null || true');
+    my $output = script_output("find ${log_dir} -name \"*_results.xml\" 2>/dev/null || true");
     foreach my $file (split /\n/, $output) {
         parse_extra_log('XUnit', $file);
     }
