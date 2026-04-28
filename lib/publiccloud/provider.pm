@@ -471,7 +471,7 @@ Calls terraform tool and applies the corresponding configuration .tf file
 sub terraform_apply {
     my ($self, %args) = @_;
     my $terraform_timeout = get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT);
-    my $terraform_vm_create_timeout = get_var('TERRAFORM_VM_CREATE_TIMEOUT');
+    my $terraform_vm_create_timeout = get_var('TERRAFORM_VM_CREATE_TIMEOUT', ($terraform_timeout - 60));
 
     my $image_uri = $self->get_image_uri();
     my $image_id = $self->get_image_id();
@@ -534,7 +534,7 @@ sub terraform_apply {
         $vars{name} = $self->resource_name;
         $vars{project} = $args{project} if ($args{project});
         $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml" if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
-        $vars{vm_create_timeout} = $terraform_vm_create_timeout if $terraform_vm_create_timeout;
+        $vars{vm_create_timeout} = $terraform_vm_create_timeout;
         $vars{enable_confidential_vm} = 'true' if ($args{confidential_compute} && is_gce());
         $vars{enable_confidential_vm} = 'enabled' if ($args{confidential_compute} && is_ec2());
         my $root_size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
@@ -563,7 +563,6 @@ sub terraform_apply {
     # https://developer.hashicorp.com/terraform/internals/debugging
     my $tf_log = get_var("TERRAFORM_LOG", "");
 
-    # The $terraform_timeout must higher than $terraform_vm_create_timeout (See also var.vm_create_timeout in *.tf file)
     my $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
     my $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
     $self->terraform_applied(1);    # Must happen here to prevent resource leakage
