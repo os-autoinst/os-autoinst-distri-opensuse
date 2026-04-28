@@ -13,6 +13,10 @@ use testapi;
 use serial_terminal qw(select_serial_terminal);
 use Kselftests::utils;
 
+sub test_flags {
+    return {fatal => 1};
+}
+
 sub run {
     my ($self) = @_;
 
