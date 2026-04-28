@@ -74,13 +74,6 @@ sub run {
     my $elemental3_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${version}-${build}\)");
     set_var('ELEMENTAL3_IMAGE_TO_TEST', "$elemental3_uri") unless ($elemental3_uri eq '');
 
-    # Export SYSEXT_IMAGES_TO_TEST
-    # TODO: remove as soon as element3ctl will be added in the OS image!
-    my $elemental3ctl_regex = ".*elemental3ctl-${uc_version}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
-    ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${elemental3ctl_regex});
-    my $elemental3ctl_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${version}-${build}\)");
-    set_var('SYSEXT_IMAGES_TO_TEST', "${elemental3ctl_uri}") unless ($elemental3ctl_uri eq '');
-
     # Export K8S_IMAGE_TO_TEST
     # beta-uc-rke2-tar-1.35.1_rke2r1-2.1.x86_64-2.1.tar.registry.txt
     # registry.suse.de/devel/unifiedcore/main/totest/containers/beta/uc/rke2-tar:1.35.1_rke2r1-2.1
@@ -110,7 +103,7 @@ sub run {
     }
 
     # Logs, could be useful for debugging purporses
-    foreach my $v ('ELEMENTAL3_IMAGE_TO_TEST', 'K8S_IMAGE_TO_TEST', 'SYSEXT_IMAGES_TO_TEST', 'RELEASE_MANIFEST_URI', 'CONTAINER_IMAGE_TO_TEST', 'REPO_TO_TEST', 'ISO_IMAGE_TO_TEST') {
+    foreach my $v ('ELEMENTAL3_IMAGE_TO_TEST', 'K8S_IMAGE_TO_TEST', 'RELEASE_MANIFEST_URI', 'CONTAINER_IMAGE_TO_TEST', 'REPO_TO_TEST', 'ISO_IMAGE_TO_TEST') {
         record_info("$v", get_var("$v"));
     }
 }
