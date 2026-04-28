@@ -53,7 +53,12 @@ sub run {
         if ($k8s_backend eq "EC2") {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle("<16");
             my $aws_cli_pkg = is_sle(">16.0") ? 'aws-cli-cmd' : 'aws-cli';
-            zypper_call("in jq $aws_cli_pkg", timeout => 300);
+            my $rc = zypper_call("in jq $aws_cli_pkg", exitcode => [0, 104], timeout => 300);
+            if ($rc && is_sle(">16.0")) {
+                # https://src.suse.de/products/SLFO/pulls/4071
+                record_soft_failure("ssd#products/SLFO#4071 - New packages: aws-cli-cmd, az-cli-cmd");
+                return;
+            }
 
             # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
             # we don't want to have defaults and want tests to fail when region is not defined
@@ -70,7 +75,12 @@ sub run {
             add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef)) if is_sle("<16");
             add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
             my $az_cli_pkg = is_sle(">16.0") ? 'az-cli-cmd' : 'azure-cli';
-            zypper_call("in jq $az_cli_pkg", timeout => 300);
+            my $rc = zypper_call("in jq $az_cli_pkg", exitcode => [0, 104], timeout => 300);
+            if ($rc && is_sle(">16.0")) {
+                # https://src.suse.de/products/SLFO/pulls/4071
+                record_soft_failure("ssd#products/SLFO#4071 - New packages: aws-cli-cmd, az-cli-cmd");
+                return;
+            }
 
             # publiccloud::azure_client needs to demand PUBLIC_CLOUD_REGION due to other places where
             # we don't want to have defaults and want tests to fail when region is not defined
