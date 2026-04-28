@@ -15,7 +15,7 @@ use utils;
 use version_utils;
 use publiccloud::utils;
 use Utils::Architectures qw(is_ppc64le);
-use containers::k8s qw(install_k3s uninstall_k3s apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
+use containers::k8s qw(install_k3s uninstall_k3s apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log dump_k3s_debug_info);
 
 sub prepare_pod_yaml {
     record_info('Prep', 'Generate the yaml from a pod');
@@ -58,13 +58,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
-    record_info('K3s status', script_output('systemctl status k3s'));
-    script_run('journalctl -u k3s --no-pager');
-    record_info('K3s nodes', script_output('kubectl get nodes'));
-    script_run('kubectl describe nodes');
-    record_info('K3s pods', script_output('kubectl get pods --all-namespaces'));
-    script_run('kubectl describe pods --all-namespaces');
-    script_run('kubectl describe jobs --all-namespaces');
+    dump_k3s_debug_info();
 }
 
 sub post_run_hook {

@@ -374,6 +374,11 @@ sub load_container_tests {
     }
 
     if ($runtime eq 'k3s') {
+        if ('CONTAINER_K3S_SMOKETEST') {
+            loadtest 'containers/k3s_helm_install';
+            loadtest 'containers/k3s_smoketest';
+            return;
+        }
         loadtest 'containers/run_container_in_k3s';
         return;
     }
