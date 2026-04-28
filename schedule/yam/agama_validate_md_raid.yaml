@@ -1,0 +1,9 @@
+---
+name: agama_validate_md_raid
+description: >
+  Perform multi-disk RAID validation from previous installation.
+schedule:
+  - installation/first_boot
+  - console/validate_md_raid
+  - console/validate_raid
+  - yam/validate/validate_raid_swap
