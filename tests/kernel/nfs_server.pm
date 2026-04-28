@@ -29,16 +29,7 @@ use lockapi;
 use utils;
 use Utils::Logging "export_logs_basic";
 use package_utils 'install_package';
-
-# create a mountpoint and the corresponding export with
-# specified permissions
-sub create_mount_and_export {
-    my ($mountpoint, $cl, $permissions) = @_;
-
-    assert_script_run "mkdir -p $mountpoint";
-    assert_script_run "chmod 777 $mountpoint";
-    assert_script_run "echo $mountpoint $cl\\($permissions\\) >> /etc/exports";
-}
+use Kernel::nfs;
 
 sub compare_checksums {
     my ($file) = @_;
@@ -67,10 +58,10 @@ sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
 
-    my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/var/lib/nfs-tests/shared_nfs3');
-    my $nfs_mount_nfs3_async = get_var('NFS_MOUNT_NFS3_ASYNC', '/var/lib/nfs-tests/shared_nfs3_async');
-    my $nfs_mount_nfs4 = get_var('NFS_MOUNT_NFS4', '/var/lib/nfs-tests/shared_nfs4');
-    my $nfs_mount_nfs4_async = get_var('NFS_MOUNT_NFS4_ASYNC', '/var/lib/nfs-tests/shared_nfs4_async');
+    my $nfs_mount_nfs3 = nfs_export_path(version => 'V3');
+    my $nfs_mount_nfs3_async = nfs_export_path(version => 'V3', async => 1);
+    my $nfs_mount_nfs4 = nfs_export_path(version => 'V4');
+    my $nfs_mount_nfs4_async = nfs_export_path(version => 'V4', async => 1);
 
     my $nfs_permissions = get_var('NFS_PERMISSIONS', 'rw,sync,no_root_squash');
     my $nfs_permissions_async = get_var('NFS_PERMISSIONS_ASYNC', 'rw,async,no_root_squash');
@@ -132,8 +123,7 @@ sub run {
 
         assert_script_run("cd $nfs_mount_nfs3");
 
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
+        nfs_verify_checksums($nfs_mount_nfs3);
         record_info("NFS3 checksum", script_output("cat md5sum.txt"));
 
         #check files copied with various flags: direct, dsync, sync
@@ -145,8 +135,7 @@ sub run {
         record_info("TESTS: NFS3 async");
 
         assert_script_run("cd $nfs_mount_nfs3_async");
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS3 async checksum", script_output("md5sum -c md5sum.txt"));
+        nfs_verify_checksums($nfs_mount_nfs3_async);
 
         #check files copied with various flags: direct, dsync, sync
         compare_checksums($file_flag_direct);
@@ -159,8 +148,7 @@ sub run {
         record_info("TESTS: NFS4");
 
         assert_script_run("cd $nfs_mount_nfs4");
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS4 checksum", script_output("md5sum -c md5sum.txt"));
+        nfs_verify_checksums($nfs_mount_nfs4);
 
         #check files copied with various flags: direct, dsync, sync
         compare_checksums($file_flag_direct);
@@ -171,8 +159,7 @@ sub run {
         record_info("TESTS: NFS4 async");
 
         assert_script_run("cd $nfs_mount_nfs4_async");
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS4 async checksum", script_output("md5sum -c md5sum.txt"));
+        nfs_verify_checksums($nfs_mount_nfs4_async);
 
         #check files copied with various flags: direct, dsync, sync
         compare_checksums($file_flag_direct);
