@@ -250,10 +250,6 @@ sub run {
     select_serial_terminal();
 
     unless (check_var('MULTI_NODE', '1')) {
-        # Set hostname and get IP address
-        my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
-        configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
-
         my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');
         die('No IP defined on the node!') unless (defined $ip && $ip ne '');
 
@@ -261,35 +257,19 @@ sub run {
         my @default_dns = split(/,/, get_default_dns);
         set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
 
-        # Wait for K8s directory to appears
-        wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
-
         # Configure K8s
-        unless (check_var('TESTED_CMD', 'customize')) {
-            # Stop K8s server if needed
-            # NOTE: autostart will fail here because we have to change
-            #       some parameters in the config file
-            systemctl("stop $k8s_svc", timeout => $timeout);
+        if (get_var('PARALLEL_WITH')) {
+            # Set hostname and get IP address
+            my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
+            configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
 
-            # Update K8s configuration file
-            file_content_replace(
-                "$config_yaml", '--sed-modifier' => 'g',
-                '%NODE_NAME%' => $hostname,
-                '%NODE_IP%' => $ip
-            );
+            # Wait for K8s directory to appears
+            wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
 
-            # Update SELinux policy if needed
-            # NOTE: We have to invert the return code as it is inverted between Bash and Perl
-            unless (script_run("grep -q '^selinux:.*true\$' $config_yaml")) {
-                record_info('SELinux detected', "Updating SELinux policy for $k8s");
-                assert_script_run('semodule -i /usr/share/selinux/packages/rke2.pp');
-            }
-
-            # Start K8s server
-            systemctl("start $k8s_svc", timeout => $timeout);
-        } elsif (get_var('PARALLEL_WITH')) {
+            # Set hostname/IP
             assert_script_run("echo -e 'node-name: $hostname' >> $config_yaml");
             assert_script_run("echo -e 'node-external-ip: $ip' >> $config_yaml");
+
             # Restart K8s server
             systemctl("restart $k8s_svc", timeout => $timeout);
         }
