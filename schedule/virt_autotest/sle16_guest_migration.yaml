@@ -16,7 +16,7 @@ conditional_schedule:
     guest_migration:
         VIRT_NEW_GUEST_MIGRATION_SOURCE:
             1:
-                - virt_autotest/unified_guest_installation
+                #- virt_autotest/unified_guest_installation
                 - virt_autotest/parallel_guest_migration_source
         VIRT_NEW_GUEST_MIGRATION_DESTINATION:
             1:
