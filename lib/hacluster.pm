@@ -106,6 +106,7 @@ our @EXPORT = qw(
   get_crmsh_version
   get_fencing_ra_name
   pcmk_delay_max_cmd
+  get_bootstrap_properties
 );
 
 =head1 SYNOPSIS
@@ -2249,6 +2250,47 @@ whatever primitive name is provided as an argument.
 sub pcmk_delay_max_cmd {
     my $primitive_name = shift // get_fencing_ra_name(script_output($crm_config_show_fence_sbd));
     return "crm resource param $primitive_name show pcmk_delay_max | sed 's/[^0-9]*//g'";
+}
+
+=head2 get_bootstrap_properties
+
+    get_bootstrap_properties()
+
+Runs C<crm -D plain configure show cib-bootstrap-options> in the System Under Test and parses
+the output into a Perl HASH.
+
+For example, an output like:
+
+    property cib-bootstrap-options: \
+	dc-version="1.2.3.4" \
+	cluster-infrastructure=corosync \
+	have-watchdog=true \
+	cluster-name=hacluster \
+	stonith-enabled=true \
+	stonith-timeout=71 \
+	priority-fencing-delay=60 \
+	last-lrm-refresh=1777299458';
+
+Would produce a HASH like:
+
+    $VAR1 = {
+          'dc-version' => '"1.2.3.4"',
+          'cluster-infrastructure' => 'corosync',
+          'stonith-enabled' => 'true',
+          'last-lrm-refresh' => '1777299458',
+          'stonith-timeout' => '71',
+          'cluster-name' => 'hacluster',
+          'priority-fencing-delay' => '60',
+          'have-watchdog' => 'true'
+        };
+
+=cut
+
+sub get_bootstrap_properties {
+    my $out = script_output('crm -D plain configure show cib-bootstrap-options');
+    die "cib-bootstrap-options does not start with [property] keyword [$out]" unless ($out =~ /^property/);
+    my %properties = map { /(\S+)=(\S+)/ } split(/\n/, $out);
+    return \%properties;
 }
 
 1;

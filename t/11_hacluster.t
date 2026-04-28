@@ -1074,4 +1074,32 @@ subtest '[pcmk_delay_max_cmd] calculate fence_sbd primitive name' => sub {
     $hacluster::crm_config_show_fence_sbd = $orig_fence_sbd_var;
 };
 
+subtest '[get_bootstrap_properties]' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @test_data = ('property cib-bootstrap-options: \
+	dc-version="GENERATION_2" \
+	cluster-infrastructure=corosync \
+	have-watchdog=true \
+	cluster-name=k-tor-cluster \
+	stonith-enabled=true \
+	stonith-timeout=71 \
+	fencing-enabled=true \
+	fencing-timeout=71 \
+	priority-fencing-delay=60 \
+	last-lrm-refresh=1777299458', 'WRONGLY FORMATTED OUTPUT');
+    $hacluster->redefine(script_output => sub { return shift(@test_data); });
+    my $properties = get_bootstrap_properties();
+    is $properties->{'dc-version'}, '"GENERATION_2"', 'Correct dc-version';
+    is $properties->{'cluster-infrastructure'}, 'corosync', 'Correct cluster-infrastructure';
+    is $properties->{'have-watchdog'}, 'true', 'Correct have-watchdog value';
+    is $properties->{'cluster-name'}, 'k-tor-cluster', 'Correct cluster-name';
+    is $properties->{'stonith-enabled'}, 'true', 'Correct stonith-enabled value';
+    is $properties->{'stonith-timeout'}, 71, 'Correct stonith-timeout value';
+    is $properties->{'fencing-enabled'}, 'true', 'Correct fencing-enabled value';
+    is $properties->{'fencing-timeout'}, 71, 'Correct fencing-timeout value';
+    is $properties->{'priority-fencing-delay'}, 60, 'Correct priority-fencing-delay value';
+    is $properties->{'last-lrm-refresh'}, 1777299458, 'Correct last-lrm-refresh';
+    dies_ok { get_bootstrap_properties() } 'Test should die with unexpected output';
+};
+
 done_testing;
