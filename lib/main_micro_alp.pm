@@ -39,7 +39,15 @@ sub is_regproxy_required {
 }
 
 sub load_config_tests {
-    loadtest 'transactional/tdup' if get_var('TDUP');
+    if (get_var('TDUP')) {
+        my $run_args = OpenQA::Test::RunArgs->new();
+        $run_args->{phase} = "pre";
+        loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+        loadtest 'transactional/tdup';
+        $run_args = OpenQA::Test::RunArgs->new();
+        $run_args->{phase} = "post";
+        loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+    }
     loadtest 'rt/rt_is_realtime' if is_rt;
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
     loadtest 'console/suseconnect_scc' if (get_var('SCC_REGISTER') && !is_dvd);
