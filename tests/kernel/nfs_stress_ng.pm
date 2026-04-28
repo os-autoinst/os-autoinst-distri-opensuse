@@ -19,6 +19,7 @@ use utils;
 use registration;
 use version_utils 'is_sle';
 use repo_tools 'add_qa_head_repo';
+use package_utils 'install_package';
 
 sub check_nfs_mounts {
     my @paths = @_;
@@ -73,8 +74,8 @@ sub server {
 
 sub client {
     my ($self) = @_;
-    my $local_nfs4 = "/home/localNFS4";
-    my $local_nfs4_async = "/home/localNFS4async";
+    my $local_nfs4 = get_var('NFS_LOCAL_NFS4', '/var/lib/nfs-tests/localNFS4');
+    my $local_nfs4_async = get_var('NFS_LOCAL_NFS4_ASYNC', '/var/lib/nfs-tests/localNFS4async');
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
     my $exclude = get_var('NFS_STRESS_NG_EXCLUDE');
     # allow to override the default exports
@@ -98,7 +99,7 @@ sub client {
         }
     }
 
-    zypper_call("in stress-ng");
+    install_package('stress-ng', trup_apply => 1);
 
     select_user_serial_terminal;
     assert_script_run("stress-ng --class 'filesystem?'");

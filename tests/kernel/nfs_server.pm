@@ -28,6 +28,7 @@ use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
 use Utils::Logging "export_logs_basic";
+use package_utils 'install_package';
 
 # create a mountpoint and the corresponding export with
 # specified permissions
@@ -66,10 +67,10 @@ sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
 
-    my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/nfs/shared_nfs3');
-    my $nfs_mount_nfs3_async = get_var('NFS_MOUNT_NFS3_ASYNC', '/nfs/shared_nfs3_async');
-    my $nfs_mount_nfs4 = get_var('NFS_MOUNT_NFS4', '/nfs/shared_nfs4');
-    my $nfs_mount_nfs4_async = get_var('NFS_MOUNT_NFS4_ASYNC', '/nfs/shared_nfs4_async');
+    my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/var/lib/nfs-tests/shared_nfs3');
+    my $nfs_mount_nfs3_async = get_var('NFS_MOUNT_NFS3_ASYNC', '/var/lib/nfs-tests/shared_nfs3_async');
+    my $nfs_mount_nfs4 = get_var('NFS_MOUNT_NFS4', '/var/lib/nfs-tests/shared_nfs4');
+    my $nfs_mount_nfs4_async = get_var('NFS_MOUNT_NFS4_ASYNC', '/var/lib/nfs-tests/shared_nfs4_async');
 
     my $nfs_permissions = get_var('NFS_PERMISSIONS', 'rw,sync,no_root_squash');
     my $nfs_permissions_async = get_var('NFS_PERMISSIONS_ASYNC', 'rw,async,no_root_squash');
@@ -88,7 +89,7 @@ sub run {
     my $file_flag_sync = 'testfile_oflag_sync';
 
     # provision NFS server(s) of various types
-    zypper_call("in nfs-kernel-server");
+    install_package('nfs-kernel-server', trup_apply => 1);
 
     # configure our exports
     if ($kernel_nfs3 == 1) {
@@ -125,7 +126,7 @@ sub run {
     barrier_wait("NFS_SERVER_CHECK");
 
     if ($kernel_nfs3 == 1) {
-        #checking files in /nfs/shared_nfs3
+        #checking files in NFSv3 sync export
         record_info("TESTS: NFS3");
         record_info("NFS3 list all files", script_output("ls $nfs_mount_nfs3"));
 
@@ -140,7 +141,7 @@ sub run {
         compare_checksums($file_flag_dsync);
         compare_checksums($file_flag_sync);
 
-        #checking files in /nfs/shared_nfs3_async
+        #checking files in NFSv3 async export
         record_info("TESTS: NFS3 async");
 
         assert_script_run("cd $nfs_mount_nfs3_async");
@@ -154,7 +155,7 @@ sub run {
     }
 
     if ($kernel_nfs4 == 1) {
-        #checking files in /nfs/shared_nfs4
+        #checking files in NFSv4 sync export
         record_info("TESTS: NFS4");
 
         assert_script_run("cd $nfs_mount_nfs4");
@@ -166,7 +167,7 @@ sub run {
         compare_checksums($file_flag_dsync);
         compare_checksums($file_flag_sync);
 
-        #checking files in /nfs/shared_nfs4_async
+        #checking files in NFSv4 async export
         record_info("TESTS: NFS4 async");
 
         assert_script_run("cd $nfs_mount_nfs4_async");
