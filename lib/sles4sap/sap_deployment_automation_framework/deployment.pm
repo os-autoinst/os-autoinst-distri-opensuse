@@ -160,7 +160,8 @@ sub export_credentials {
         };
     } else {
         record_info('Credentials', 'Fetching credentials from remote server');
-        $data = get_credentials(url_suffix => 'azure.json');
+        $data = get_credentials(namespace => 'sdaf', url_suffix => 'azure.json');
+        $data = $data->{get_required_var('PUBLIC_CLOUD_NAMESPACE')}->{get_required_var('SDAF_ENV_CODE')};
     }
 
     my @variables = (
