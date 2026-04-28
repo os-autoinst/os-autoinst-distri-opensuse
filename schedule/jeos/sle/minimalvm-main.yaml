@@ -33,8 +33,10 @@ conditional_schedule:
             'ppc64le-p10':
                 - installation/bootloader_uefi
     efi:
-        UEFI:
-            '1':
+        MACHINE:
+            'uefi-virtio-vga':
+                - console/verify_efi_mok
+            'aarch64':
                 - console/verify_efi_mok
     maintenance:
         FLAVOR:
