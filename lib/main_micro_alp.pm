@@ -40,13 +40,17 @@ sub is_regproxy_required {
 
 sub load_config_tests {
     if (get_var('TDUP')) {
-        my $run_args = OpenQA::Test::RunArgs->new();
-        $run_args->{phase} = "pre";
-        loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+        if (get_var("CONTAINER_RUNTIMES")) {
+            my $run_args = OpenQA::Test::RunArgs->new();
+            $run_args->{phase} = "pre";
+            loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+        }
         loadtest 'transactional/tdup';
-        $run_args = OpenQA::Test::RunArgs->new();
-        $run_args->{phase} = "post";
-        loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+        if (get_var("CONTAINER_RUNTIMES")) {
+            my $run_args = OpenQA::Test::RunArgs->new();
+            $run_args->{phase} = "post";
+            loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+        }
     }
     loadtest 'rt/rt_is_realtime' if is_rt;
     loadtest 'transactional/enable_selinux' if (get_var('ENABLE_SELINUX') && is_image);
