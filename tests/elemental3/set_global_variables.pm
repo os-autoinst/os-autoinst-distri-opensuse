@@ -75,8 +75,6 @@ sub run {
     set_var('ELEMENTAL3_IMAGE_TO_TEST', "$elemental3_uri") unless ($elemental3_uri eq '');
 
     # Export K8S_IMAGE_TO_TEST
-    # beta-uc-rke2-tar-1.35.1_rke2r1-2.1.x86_64-2.1.tar.registry.txt
-    # registry.suse.de/devel/unifiedcore/main/totest/containers/beta/uc/rke2-tar:1.35.1_rke2r1-2.1
     my $k8s_regex = ".*${k8s}-tar-${k8s_version}.*_\(.*\)-\(.*\).${arch}-.*.registry.txt";
     ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${k8s_regex});
     my $k8s_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${k8s_version}.*_${version}-${build}\)");
