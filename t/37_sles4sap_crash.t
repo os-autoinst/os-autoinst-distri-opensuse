@@ -308,7 +308,13 @@ subtest '[crash_system_ready]' => sub {
 subtest '[crash_softrestart]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
     my $mock_pc = Test::MockObject->new();
-    $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->mock('wait_for_ssh_unreachable', sub {
+            return {
+                exit_code => 1,
+                timed_out => 0,
+                duration => 10,
+            };
+    });
     my @calls;
     $mock_pc->mock('ssh_assert_script_run', sub {
             my ($self, %args) = @_;
