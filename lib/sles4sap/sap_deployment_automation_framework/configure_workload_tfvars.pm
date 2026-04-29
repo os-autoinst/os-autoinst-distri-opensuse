@@ -144,6 +144,8 @@ sub create_workload_tfvars {
     my (%args) = @_;
     my $location = get_required_var('PUBLIC_CLOUD_REGION');
     my $env_code = get_required_var('SDAF_ENV_CODE');
+    my $sdaf_region = convert_region_to_short($location);
+    my $vnet_code = get_required_var('SDAF_DEPLOYER_VNET_CODE');
 
     # Mandatory arguments
     for my $arg ('network_data', 'workload_vnet_code') {
@@ -157,6 +159,8 @@ sub create_workload_tfvars {
     $tfvars_data{env_definitions} = define_workload_environment(
         environment => $env_code,
         location => $location,
+        subscription_id => $args{subscription_id},
+        control_plane_name => $args{control_plane_name},
         resource_group => generate_resource_group_name(deployment_type => 'workload_zone'));
     $tfvars_data{workload_networking} = define_networking(
         environment => $env_code,
@@ -167,10 +171,11 @@ sub create_workload_tfvars {
     $tfvars_data{subnet_definition} = define_subnets(network_data => $args{network_data});
     $tfvars_data{nat_configuration} = define_nat_section(
         environment => $env_code,
-        sdaf_region => convert_region_to_short($location),
+        sdaf_region => $sdaf_region,
         workload_vnet_code => $args{workload_vnet_code});
     $tfvars_data{iscsi_devices} = define_iscsi_devices();
     $tfvars_data{storage_account} = define_storage_account();
+    $tfvars_data{deployer_tfstate_key} => qq|"${env_code}-${sdaf_region}-${vnet_code}-INFRASTRUCTURE.terraform.tfstate"|;
 
     # Write file and upload to OpenQA logs
     write_tfvars_file(tfvars_data => \%tfvars_data, tfvars_file => $tfvars_file);
@@ -202,6 +207,8 @@ sub define_workload_environment {
     for my $arg ('environment', 'location', 'resource_group') {
         croak "Missing mandatory argument \$args{$arg}" unless $args{$arg};
     }
+    my $sdaf_region = convert_region_to_short($args{location});
+    my $vnet_code = get_required_var('SDAF_DEPLOYER_VNET_CODE');
 
     my %result = (
         header => q|### Environment definitions ###|,
@@ -219,7 +226,11 @@ sub define_workload_environment {
         # Defines the number of workload _vms to create
         utility_vm_count => q|0|,
         # These tags will be applied to all resources
-        tags => q|{"DeployedBy" = "OpenQA-SDAF-automation"}|
+        tags => q|{"DeployedBy" = "OpenQA-SDAF-automation"}|,
+        deployer_tfstate_key => qq|"$args{environment}-${sdaf_region}-${vnet_code}-INFRASTRUCTURE.terraform.tfstate"|,
+        public_network_access_enabled => q|true|,
+        subscription_id => '"' . get_os_variable('ARM_SUBSCRIPTION_ID') . '"',
+        control_plane_name => '"' . "$args{environment}-" . $sdaf_region . '-' . $vnet_code . '"'
     );
 
     # Add no cleanup tag if the deployment should be kept after test finished
@@ -333,7 +344,9 @@ sub define_subnets {
     croak 'Missing mandatory argument $args{network_data}' unless $args{network_data};
     my %result = (
         header => q|###  Subnet definitions ###|,
-        network_address_space => qq|"$args{network_data}->{network_address_space}"|,
+        network_address_space => (get_var('SDAF_GIT_AUTOMATION_BRANCH') =~ /feature\/sles16/)
+            ? qq|["$args{network_data}->{network_address_space}"]|
+            : qq|"$args{network_data}->{network_address_space}"|,
         iscsi_subnet_address_prefix => qq|"$args{network_data}->{iscsi_subnet_address_prefix}"|,
         web_subnet_address_prefix => qq|"$args{network_data}->{web_subnet_address_prefix}"|,
         admin_subnet_address_prefix => qq|"$args{network_data}->{admin_subnet_address_prefix}"|,
