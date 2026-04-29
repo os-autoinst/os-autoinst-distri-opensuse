@@ -469,7 +469,8 @@ Calls terraform tool and applies the corresponding configuration .tf file
 sub terraform_apply {
     my ($self, %args) = @_;
     my $terraform_timeout = get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT);
-    my $terraform_vm_create_timeout = get_var('TERRAFORM_VM_CREATE_TIMEOUT');
+    die('TERRAFORM_TIMEOUT must be greater than 60') if ($terraform_timeout <= 60);
+    my $terraform_vm_create_timeout = ($terraform_timeout - 60) . 's';
 
     my $image_uri = $self->get_image_uri();
     my $image_id = $self->get_image_id();
@@ -532,7 +533,7 @@ sub terraform_apply {
         $vars{name} = $self->resource_name;
         $vars{project} = $args{project} if ($args{project});
         $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml" if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
-        $vars{vm_create_timeout} = $terraform_vm_create_timeout if $terraform_vm_create_timeout;
+        $vars{vm_create_timeout} = $terraform_vm_create_timeout;
         $vars{enable_confidential_vm} = 'true' if ($args{confidential_compute} && is_gce());
         $vars{enable_confidential_vm} = 'enabled' if ($args{confidential_compute} && is_ec2());
         my $root_size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
@@ -561,7 +562,6 @@ sub terraform_apply {
     # https://developer.hashicorp.com/terraform/internals/debugging
     my $tf_log = get_var("TERRAFORM_LOG", "");
 
-    # The $terraform_timeout must higher than $terraform_vm_create_timeout (See also var.vm_create_timeout in *.tf file)
     my $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
     my $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
     $self->terraform_applied(1);    # Must happen here to prevent resource leakage
@@ -687,7 +687,7 @@ sub terraform_destroy {
     my $cmd = terraform_cmd($runner . ' destroy -no-color -auto-approve -lock=false', %vars);
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
-    my $ret = script_retry($cmd, retry => 3, delay => 60, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
+    my $ret = script_retry($cmd, retry => 9, delay => 180, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
     unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
