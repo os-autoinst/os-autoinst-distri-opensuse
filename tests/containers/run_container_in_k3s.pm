@@ -16,6 +16,8 @@ use version_utils;
 use publiccloud::utils;
 use Utils::Architectures qw(is_ppc64le);
 use containers::k8s qw(install_k3s uninstall_k3s apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log dump_k3s_debug_info);
+use bootloader_setup qw(add_grub_cmdline_settings);
+use power_action_utils qw(power_action);
 
 sub prepare_pod_yaml {
     record_info('Prep', 'Generate the yaml from a pod');
@@ -28,7 +30,18 @@ sub prepare_pod_yaml {
 }
 
 sub run {
+    my $self = shift;
+
     select_serial_terminal;
+
+    # Switch to cgroup v2 if not already active
+    # NOTE: Remove when SLEM 5.5 is EOL
+    if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
+        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
+        power_action('reboot', textmode => 1);
+        $self->wait_boot();
+        select_serial_terminal;
+    }
 
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.suse.com/bci/bci-base:latest");
 
