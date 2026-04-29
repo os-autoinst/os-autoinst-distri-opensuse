@@ -14,11 +14,22 @@ use utils;
 use version_utils;
 use publiccloud::utils;
 use containers::k8s;
+use bootloader_setup qw(add_grub_cmdline_settings);
+use power_action_utils qw(power_action);
 
 sub run {
     my ($self, $args) = @_;
 
     select_serial_terminal;
+
+    # Switch to cgroup v2 if not already active
+    # NOTE: Remove when 15-SP5 LTSS is EOL
+    if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
+        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
+        power_action('reboot', textmode => 1);
+        $self->wait_boot();
+        select_serial_terminal;
+    }
 
     my $k8s_version = $args->{k8s_version};
     install_kubectl($k8s_version);
