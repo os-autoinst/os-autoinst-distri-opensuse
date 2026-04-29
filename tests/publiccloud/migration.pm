@@ -18,6 +18,7 @@ use publiccloud::utils qw(is_ec2 is_gce is_azure registercloudguest);
 
 sub run {
     my ($self, $args) = @_;
+    my $migration_timeout = 2401;
 
     select_host_console();
     my $instance = $args->{my_instance};
@@ -36,7 +37,7 @@ sub run {
 
         $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration");
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => 2400);
+        $instance->ssh_assert_script_run("sudo timeout -k 15 $migration_timeout zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => $migration_timeout + 30);
         $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
 
@@ -66,7 +67,7 @@ sub run {
 
         $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration");
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo zypper -n in SLES16-Migration suse-migration-sle16-activation", timeout => 2400);
+        $instance->ssh_assert_script_run("sudo timeout -k 15 $migration_timeout zypper -n in SLES16-Migration suse-migration-sle16-activation", timeout => $migration_timeout + 30);
         $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
 
