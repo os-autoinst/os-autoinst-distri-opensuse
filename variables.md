@@ -413,7 +413,6 @@ SCC_PROXY_USERNAME | string | "" | Credentials username for registry which requi
 SCC_PROXY_PASSWORD | string | "" | Credentials password for registry which requires SCC login
 TERRAFORM_VERSION | string | "1.5.7" | Version of terraform to include into PC Tools image
 TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
-TERRAFORM_VM_CREATE_TIMEOUT | string | "20m" | Terraform timeout for creating the virtual machine resource.
 _SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existing key allowed by `PUBLIC_CLOUD_INSTANCE_IP` instance
 _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | this required variable is the token to access PUBLIC_CLOUD_PERF_DB_URI (defined in `salt workerconf`)
 
