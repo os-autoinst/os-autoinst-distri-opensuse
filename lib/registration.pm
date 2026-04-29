@@ -1064,11 +1064,9 @@ sub runtime_registration {
     return if get_var('HDD_SCC_REGISTERED');
     my $cmd = ' -r ' . get_required_var 'SCC_REGCODE';
     my $scc_addons = get_var 'SCC_ADDONS', '';
-    # fake scc url pointing to synced repos on openQA
-    # valid only for products currently in development
-    # please unset in job def *SCC_URL* if not required
-    my $fake_scc = get_var 'SCC_URL', '';
-    $cmd .= ' --url ' . $fake_scc if $fake_scc;
+    my $scc_url = get_var('SCC_URL', '');
+    my $skip_scc = is_sle('16.1+') && is_transactional && get_var('TARGET_VERSION');
+    $cmd .= " --url $scc_url" if $scc_url && !$skip_scc;
     my $retries = 5;    # number of retries to run SUSEConnect commands
     my $delay = 60;    # time between retries to run SUSEConnect commands
 
