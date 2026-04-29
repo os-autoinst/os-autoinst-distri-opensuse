@@ -469,6 +469,7 @@ Calls terraform tool and applies the corresponding configuration .tf file
 sub terraform_apply {
     my ($self, %args) = @_;
     my $terraform_timeout = get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT);
+    die('TERRAFORM_TIMEOUT must be greater than 60') if ($terraform_timeout <= 60);
     my $terraform_vm_create_timeout = ($terraform_timeout - 60) . 's';
 
     my $image_uri = $self->get_image_uri();
