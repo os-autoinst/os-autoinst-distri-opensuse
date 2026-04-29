@@ -39,11 +39,11 @@ sub build
     $source_dir //= "/lib/modules/$version/source";
     my $build_dir = "/lib/modules/$version/build";
 
-    # Resolve the real build_dir path and, if it is not writable
-    # (such as in an immutable system), mount a writable overlayfs directly on it.
+    # On immutable systems the build dir is read-only; mount a writable overlayfs on it.
     my $real_build_dir = script_output("readlink -f $build_dir");
     if (script_run("test -w $real_build_dir") != 0) {
-        my $overlay = "/var/tmp/kselftest-overlay";
+        (my $tag = $real_build_dir) =~ s|[/ ]|_|g;
+        my $overlay = "/var/tmp/kselftest-overlay$tag";
         assert_script_run("mkdir -p $overlay/{upper,work}");
         assert_script_run("mount -t overlay overlay -o lowerdir=$real_build_dir,upperdir=$overlay/upper,workdir=$overlay/work $real_build_dir");
     }
@@ -62,6 +62,18 @@ sub build
     $make_cmd =~ s/\s+$//;
 
     assert_script_run("make -j$jobs -C $source_dir headers O=$build_dir $build_env");
+
+    # Mount the source dir overlay only after make headers. Mounting it earlier
+    # disturbs make's timestamp evaluation and causes it to try to regenerate
+    # headers from source files absent in the kernel-source package.
+    my $real_source_dir = script_output("readlink -f $source_dir");
+    if (script_run("test -w $real_source_dir") != 0) {
+        (my $tag = $real_source_dir) =~ s|[/ ]|_|g;
+        my $overlay = "/var/tmp/kselftest-overlay$tag";
+        assert_script_run("mkdir -p $overlay/{upper,work}");
+        assert_script_run("mount -t overlay overlay -o lowerdir=$real_source_dir,upperdir=$overlay/upper,workdir=$overlay/work $real_source_dir");
+    }
+
     assert_script_run($make_cmd, 7200);
     assert_script_run("cd $build_dir/kselftest/kselftest_install");
 }
