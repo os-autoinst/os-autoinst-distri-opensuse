@@ -366,6 +366,221 @@ sub update_instance_ip {
     }
 }
 
+sub _wait_for_ssh_defaults {
+    my ($self, $args) = @_;
+
+    $args->{timeout} = get_var('PUBLIC_CLOUD_SSH_TIMEOUT', $args->{timeout} // 600);
+    $args->{wait_stop} //= 0;
+    $args->{scan_ssh_host_key} //= 0;
+    $args->{proceed_on_failure} //= $args->{wait_stop};
+    $args->{systemup_check} //= !$args->{wait_stop};
+    $args->{logs} //= 1;
+
+    # DMS migration (tests/publiccloud/migration.pm) runs as user "migration"
+    # until it is not over we will receive "ssh permission denied (pubkey)" error
+    # but it is not good reason to die early because after it will be over
+    # DMS will return normal user and error will be resolved: connection retry for that error.
+    $args->{username} //= $self->username();
+
+    $args->{delay} //= $args->{timeout} > 180 ? 5 : 1;
+
+    return $args;
+}
+
+sub _wait_for_ssh_port {
+    my ($self, $args, $start_time) = @_;
+
+    my ($duration, $exit_code);
+
+    while (($duration = time() - $start_time) < $args->{timeout}) {
+        $exit_code = script_run('nc -vz -w 1 ' . $self->public_ip . ' 22', quiet => 1);
+
+        last if isok($exit_code) && !$args->{wait_stop};
+        last if !isok($exit_code) && $args->{wait_stop};
+
+        sleep $args->{delay};
+    }
+
+    my $message;
+    if (isok($exit_code)) {
+        $message = "SSH port open\n";
+    }
+    else {
+        $message = "SSH port not reachable";
+        $message .= " (expected)" if $args->{wait_stop};
+        $message .= "\n";
+    }
+
+    return {
+        duration => $duration,
+        exit_code => $exit_code,
+        message => $message,
+        timed_out => $duration >= $args->{timeout},
+    };
+}
+
+sub _wait_for_systemd {
+    my ($self, $args, $start_time) = @_;
+
+    my ($duration, $exit_code, $output);
+    my $retry = 0;
+
+    my $ssh_opts = $self->ssh_opts()
+      . ' -o StrictHostKeyChecking=no'
+      . ' -o UserKnownHostsFile=/dev/null'
+      . ' -o ControlPath=none'
+      . ' -o ConnectTimeout=10';
+
+    while (($duration = time() - $start_time) < $args->{timeout}) {
+        $output = $self->ssh_script_output(
+            cmd => 'sudo systemctl is-system-running',
+            ssh_opts => $ssh_opts,
+            timeout => $args->{timeout} - $duration,
+            proceed_on_failure => 1,
+            username => $args->{username}
+        );
+
+        if ($output =~ m/initializing|starting/) {
+            $exit_code = undef;
+        }
+        elsif ($output =~ m/running/) {
+            $exit_code = 0;
+            $output .= "\nSystem successfully booted";
+            last;
+        }
+        elsif ($output =~ m/degraded/) {
+            $exit_code = 0;
+            $output .= "\nSystem booted, but some services failed:\n"
+              . $self->ssh_script_output(
+                cmd => 'sudo systemctl --failed',
+                ssh_opts => $ssh_opts,
+                proceed_on_failure => 1,
+                username => $args->{username}
+              );
+            last;
+        }
+        elsif ($output =~ m/maintenance|stopping|offline|unknown/) {
+            $exit_code = 1;
+            $output .= "\nCan not reach systemd target";
+            last;
+        }
+        else {
+            $exit_code = 2;
+            ++$retry;
+        }
+
+        sleep $args->{delay};
+    }
+
+    return {
+        duration => $duration,
+        exit_code => $exit_code,
+        output => $output,
+        retry => $retry,
+        timed_out => $duration >= $args->{timeout},
+    };
+}
+
+sub _scan_ssh_host_key {
+    my ($self) = @_;
+
+    record_info('RESCAN', 'Rescanning SSH host key');
+
+    my $known_hosts_2 = (script_run("test -f /home/$testapi::username/.ssh/known_hosts") eq 0)
+      ? "/home/$testapi::username/.ssh/known_hosts"
+      : "";
+
+    script_run("ssh-keyscan $self->{public_ip} | tee ~/.ssh/known_hosts $known_hosts_2");
+}
+
+sub _verify_ssh_login {
+    my ($self, $args, $start_time) = @_;
+
+    my ($duration, $exit_code);
+
+    while (($duration = time() - $start_time) < $args->{timeout}) {
+        my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10';
+
+        $exit_code = $self->ssh_script_run(
+            cmd => 'true',
+            ssh_opts => $ssh_opts,
+            username => $args->{username},
+            timeout => $args->{timeout} - $duration,
+            ignore_timeout_failure => 1
+        );
+
+        last if isok($exit_code);
+
+        sleep $args->{delay};
+    }
+
+    return {
+        duration => $duration,
+        exit_code => $exit_code,
+        timed_out => $duration >= $args->{timeout},
+    };
+}
+
+sub _record_ssh_debug_info {
+    my ($self, $args) = @_;
+
+    my $debug = "\n " . $self->ssh_script_output(
+        cmd => 'set -x; systemctl list-jobs; systemctl --failed',
+        ssh_opts => "-vvv " . $self->ssh_opts(),
+        username => $args->{username},
+        timeout => 90,
+        proceed_on_failure => 1
+    );
+
+    $debug .= "\n " . $self->ssh_script_output(
+        cmd => 'sudo sshd -t && echo sshd OK || echo sshd config error',
+        ssh_opts => $self->ssh_opts(),
+        username => $args->{username},
+        timeout => 90,
+        proceed_on_failure => 1
+    );
+
+    record_info('DEBUG', "Check system on error:" . $debug, result => 'fail');
+}
+
+sub _upload_ssh_logs {
+    my ($self, $args) = @_;
+
+    return if get_var('PUBLIC_CLOUD_SLES4SAP');
+    return unless $args->{logs};
+
+    $self->ssh_script_run(
+        'sudo journalctl -b --no-pager > /tmp/journalctl.txt',
+        timeout => 360,
+        ignore_timeout_failure => 1,
+        username => $args->{username},
+        quiet => 1
+    );
+
+    $self->upload_log('/tmp/journalctl.txt', failok => 1);
+    upload_logs('/var/tmp/ssh_sut.log', log_name => "ssh_sut.log.txt", failok => 1);
+}
+
+sub _record_wait_for_ssh_result {
+    my ($self, $args, $duration, $exit_code, $sshout, $sysout, $retry, $timed_out) = @_;
+
+    $sysout .= "\nTimeout $args->{timeout} sec. expired" if $timed_out;
+
+    my $instance_msg = "Check"
+      . ($args->{systemup_check} ? " SYSTEM " : " SSH ")
+      . ($args->{wait_stop} ? "DOWN" : "UP")
+      . ", instance: $self->{instance_id}, public IP: $self->{public_ip}, Duration: $duration sec.\nResult: $sshout";
+
+    $instance_msg .= $sysout if defined $sysout;
+    $instance_msg .= "\nRetries on failure: $retry" if $retry;
+
+    record_info(
+        "WAIT CHECK:" . isok($exit_code),
+        $instance_msg,
+        result => (defined($sysout) && $sysout =~ m/\sfailed|timeout\s/i) ? "fail" : "ok"
+    );
+}
+
 =head2 wait_for_ssh
 
     wait_for_ssh([timeout => 600] [, proceed_on_failure => 0] [, scan_ssh_host_key => 0] [, ...])
@@ -398,140 +613,89 @@ Return:
 
 sub wait_for_ssh {
     my ($self, %args) = @_;
-    # Input parameters, see description in above head2 - Parameters section:
-    $args{timeout} = get_var('PUBLIC_CLOUD_SSH_TIMEOUT', $args{timeout} // 600);
-    $args{wait_stop} //= 0;
-    $args{scan_ssh_host_key} //= 0;
-    $args{proceed_on_failure} //= $args{wait_stop};
-    $args{systemup_check} //= not $args{wait_stop};
-    $args{logs} //= 1;
-    # DMS migration (tests/publiccloud/migration.pm) runs as user "migration"
-    # until it is not over we will receive "ssh permission denied (pubkey)" error
-    # but it is not good reason to die early because after it will be over
-    # DMS will return normal user and error will be resolved: connection retry for that error.
 
-    $args{username} //= $self->username();
-    my $delay = $args{timeout} > 180 ? 5 : 1;
+    # Input parameters, see description in above head2 - Parameters section:
+    my $args = $self->_wait_for_ssh_defaults(\%args);
+
     my $start_time = time();
-    my $instance_msg = "instance: $self->{instance_id}, public IP: $self->{public_ip}";
-    my ($duration, $exit_code, $sshout, $sysout);
 
     # Wait for port 22 to become reachable
-    while (($duration = time() - $start_time) < $args{timeout}) {
-        $exit_code = script_run('nc -vz -w 1 ' . $self->public_ip . ' 22', quiet => 1);
-        last if (isok($exit_code) and not $args{wait_stop});
-        last if (not isok($exit_code) and $args{wait_stop});
+    my $port = $self->_wait_for_ssh_port($args, $start_time);
 
-        sleep $delay;
-    }
+    my $systemd = {
+        exit_code => undef,
+        output => '',
+        retry => 0,
+        timed_out => 0,
+        duration => $port->{duration},
+    };
 
-    if (isok($exit_code)) {
-        $sshout = "SSH port open\n";
-    }
-    else {
-        $sshout = "SSH port not reachable";
-        $sshout .= " (expected)" if $args{wait_stop};
-        $sshout .= "\n";
-    }
+    my $ssh = {
+        exit_code => undef,
+        timed_out => 0,
+        duration => $port->{duration},
+    };
 
     # Wait for systemd to be running
-    my $retry = 0;    # count retries of unexpected sysout
-    my $exit_timeout;
-    if (isok($exit_code)) {
-        if ($args{systemup_check}) {
-            # Avoid ssh key exchange issues here and don't use the master socket multiplexing to avoid issues on instance reboot
-            my $ssh_opts = $self->ssh_opts() . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none -o ConnectTimeout=10';
-            while (($duration = time() - $start_time) < $args{timeout}) {
-                # timeout recalculated removing consumed time until now
-                # We don't support password authentication so it would just block the terminal
-                $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => $ssh_opts,
-                    timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
+    if (isok($port->{exit_code})) {
+        $systemd = $self->_wait_for_systemd($args, $start_time) if $args->{systemup_check};
 
-                # Check systemd status
-                if ($sysout =~ m/initializing|starting/) {    # still starting
-                    $exit_code = undef;
-                }
-                elsif ($sysout =~ m/running/) {    # startup completed
-                    $exit_code = 0;
-                    $sysout .= "\nSystem successfully booted";
-                    last;
-                }
-                elsif ($sysout =~ m/degraded/) {    # startup completed but with failed services
-                    $exit_code = 0;
-                    $sysout .= "\nSystem booted, but some services failed:\n" .
-                      $self->ssh_script_output(cmd => 'sudo systemctl --failed', ssh_opts => $ssh_opts,
-                        proceed_on_failure => 1, username => $args{username});
-                    last;
-                }
-                elsif ($sysout =~ m/maintenance|stopping|offline|unknown/) {
-                    $exit_code = 1;
-                    $sysout .= "\nCan not reach systemd target";
-                    last;
-                }
-                else {    # other outcome or connection refused: retry/reloop
-                    $exit_code = 2;
-                    ++$retry;
-                }    # endif
-                sleep $delay;
-            }    # end loop
-        }    # endif
-        $exit_timeout = 1 if ($duration >= $args{timeout});
-        record_info('Startup failed', "Timeout: System services are not up starting/waiting", result => 'fail') if $exit_timeout;
+        record_info(
+            "Startup failed",
+            "Timeout: System services are not up starting/waiting",
+            result => "fail"
+        ) if $systemd->{timed_out};
 
-        if ($args{scan_ssh_host_key}) {
-            record_info('RESCAN', 'Rescanning SSH host key');
-            # remove username/known_host when missing
-            my $known_hosts_2 = (script_run("test -f /home/$testapi::username/.ssh/known_hosts") eq 0)
-              ? "/home/$testapi::username/.ssh/known_hosts" : "";
-            # Install server's ssh publicckeys to prevent authentication interactions
-            # or instance address changes during VM reboots.
-            script_run("ssh-keyscan $self->{public_ip} | tee ~/.ssh/known_hosts $known_hosts_2");
-        }
+        $self->_scan_ssh_host_key() if $args->{scan_ssh_host_key};
 
-        my $exit_ssh;
-        # Finally make sure that SSH works
-        while (($duration = time() - $start_time) < $args{timeout}) {
-            # After the instance is resumed from hibernation the SSH can freeze
-            my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10';
-            $exit_ssh = $self->ssh_script_run(cmd => "true", ssh_opts => $ssh_opts, username => $args{username}, timeout => $args{timeout} - $duration, ignore_timeout_failure => 1);
-            last if isok($exit_ssh);
-            sleep $delay;
-            $exit_timeout = 1 if (time() - $start_time >= $args{timeout});
-        }
+        $ssh = $self->_verify_ssh_login($args, $start_time);
 
         # Merge exit results
-        $exit_code = $exit_timeout || $exit_ssh || $exit_code;
-        # on error show debugging infos, validate sshd_config configuration file and verbose ssh
-        unless (isok($exit_code)) {
-            my $debug .= "\n " . $self->ssh_script_output(cmd => 'set -x; systemctl list-jobs; systemctl --failed', ssh_opts => "-vvv " . $self->ssh_opts(), username => $args{username}, timeout => 90, proceed_on_failure => 1);
-            $debug .= "\n " . $self->ssh_script_output(cmd => 'sudo sshd -t && echo sshd OK || echo sshd config error', ssh_opts => $self->ssh_opts(), username => $args{username}, timeout => 90, proceed_on_failure => 1);
-            record_info('DEBUG', "Check system on error:" . $debug, result => 'fail');
-        }
-        # Log upload
-        if (!get_var('PUBLIC_CLOUD_SLES4SAP') and $args{logs}) {
-            #Exclude 'mr_test/saptune' test case as it will introduce random softreboot failures.
-            $self->ssh_script_run('sudo journalctl -b --no-pager > /tmp/journalctl.txt',
-                timeout => 360, ignore_timeout_failure => 1, username => $args{username}, quiet => 1);
-            $self->upload_log('/tmp/journalctl.txt', failok => 1);
-            upload_logs('/var/tmp/ssh_sut.log', log_name => "ssh_sut.log.txt", failok => 1);
-        }    # endif
-    }    # endif
+        my $intermediate_exit_code =
+          $ssh->{timed_out}
+          || $systemd->{timed_out}
+          || $ssh->{exit_code}
+          || $systemd->{exit_code}
+          || $port->{exit_code};
+
+        $self->_record_ssh_debug_info($args) unless isok($intermediate_exit_code);
+        $self->_upload_ssh_logs($args);
+    }
+
+    # Merge timed out
+    my $timed_out =
+      $port->{timed_out}
+      || $systemd->{timed_out}
+      || $ssh->{timed_out};
+
+    # Merge exit codes
+    my $exit_code =
+      $timed_out
+      || $ssh->{exit_code}
+      || $systemd->{exit_code}
+      || $port->{exit_code};
+
+    my $duration = time() - $start_time;
 
     # result display
-    $sysout .= "\nTimeout $args{timeout} sec. expired" if $exit_timeout;
-    $instance_msg = "Check" . ($args{systemup_check} ? " SYSTEM " : " SSH ") . ($args{wait_stop} ? "DOWN" : "UP") .
-      ", $instance_msg, Duration: $duration sec.\nResult: $sshout";
-    $instance_msg .= $sysout if defined($sysout);
-    $instance_msg .= "\nRetries on failure: $retry" if ($retry);
-    # $sysout is not available if $args{systemup_check} is 0
-    record_info("WAIT CHECK:" . isok($exit_code), $instance_msg, result => (defined($sysout) && $sysout =~ m/\sfailed|timeout\s/i) ? "fail" : "ok");
+    $self->_record_wait_for_ssh_result(
+        $args,
+        $duration,
+        $exit_code,
+        $port->{message},
+        $systemd->{output},
+        $systemd->{retry},
+        $timed_out
+    );
 
     # OK
     return $duration if (!$exit_code && !$args{wait_stop} || $exit_code && $args{wait_stop});
     # FAIL
-    croak(" results summary:\n" . $sshout . $sysout) unless ($args{proceed_on_failure});
+    croak(" results summary:\n" . $port->{message} . $systemd->{output})
+      unless $args->{proceed_on_failure};
+
     return;    # proceed_on_failure true
-}    # end sub
+}
 
 =head2 isok
 
