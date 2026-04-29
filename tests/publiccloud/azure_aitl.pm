@@ -65,7 +65,7 @@ sub run {
     assert_script_run("$aitl_job --help");
 
     # Create Resource group in $region
-    assert_script_run("az group create -n $resource_group -l $region --tags '$tags'");
+    assert_script_run("az group create -n $resource_group -l $region --tags $tags");
 
     # Get manifest from data folder
     assert_script_run("curl " . data_url("publiccloud/aitl/$aitl_manifest") . " -o /tmp/$aitl_manifest");
