@@ -121,7 +121,6 @@ sub run_cmd {
     $self->{my_instance}->wait_for_ssh(timeout => $timeout);
     if ($args{rc_only}) {
         delete($args{rc_only});
-        record_info("LEGACY", "rc_only flag will be obsolete soon please try to avoid use of it");
         return $self->{my_instance}->ssh_script_run(cmd => "sudo $cmd", timeout => $timeout, %args);
     }
     else {
