@@ -1,10 +1,10 @@
-# Copyright 2019 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test mokutil signing function - Create necessary key pairs,
 #          sign the kernel, import cert and boot with signed kernel.
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#45701
+# Tags: poo#45701 poo#199703
 
 use Mojo::Base 'consoletest';
 use testapi;
@@ -14,6 +14,7 @@ use registration 'add_suseconnect_product';
 use Utils::Architectures 'is_aarch64';
 use power_action_utils "power_action";
 use security::config;
+use package_utils 'install_package';
 
 
 sub run {
@@ -26,9 +27,23 @@ sub run {
         add_suseconnect_product("sle-module-development-tools");
     }
 
-    zypper_call('in pesign mozilla-nss-tools');
+    $self->setup;
+    my $kern_name = is_aarch64 ? "Image" : "vmlinuz";
+    my $kern = script_output("ls /boot/$kern_name-*-default");
+    die "Could not find kernel in /boot" unless $kern;
+    $self->sign_kernel($kern);
+    $self->import_mok;
+    $self->enroll_mok;
+    $self->wait_boot(textmode => 1, bootloader_time => 300, ready_time => 600);
+    select_console 'root-console';
+}
 
-    my $work_dir = "/root/certs";
+sub setup {
+    my ($self) = @_;
+
+    install_package('pesign mozilla-nss-tools', trup_continue => 1);
+
+    my $work_dir = '/root/certs';
     my $cert_cfg = "$work_dir/self_signed.conf";
     my $pri_key = "$work_dir/key.asc";
     my $cert_pem = "$work_dir/cert.asc";
@@ -46,7 +61,7 @@ sub run {
     assert_script_run("openssl x509 -in $cert_pem -outform der -out $cert_der");
 
     # certutil -N does not support password in command argument, so the
-    # interactive mode have to be applied here
+    # interactive mode has to be applied here
     script_run_interactive(
         "certutil -d $work_dir -N",
         [
@@ -63,9 +78,12 @@ sub run {
     );
     assert_script_run("pk12util -d $work_dir -i $cert_p12 -K $security::config::cdb_pw -W $security::config::key_pw");
     assert_script_run("ls $work_dir | tee /dev/$serialdev");
+}
 
-    my $kern_name = is_aarch64 ? "Image" : "vmlinuz";
-    my $kern = script_output("ls /boot/$kern_name-*-default");
+sub sign_kernel {
+    my ($self, $kern) = @_;
+
+    my $work_dir = '/root/certs';
 
     # Remove existing signature and sign with new one to ensure it will boot
     # with MOK signed kernel
@@ -74,7 +92,7 @@ sub run {
     assert_script_run("mv /tmp/kerntmp $kern");
     validate_script_output "pesign -S -i $kern", sub { m/No signatures found/ };
 
-    # The interactive mode have to be applied here
+    # The interactive mode has to be used here
     script_run_interactive(
         "pesign -n $work_dir -c kernel_cert -i $kern -o /tmp/kerntmp -s",
         [
@@ -85,11 +103,18 @@ sub run {
         ],
         20
     );
-
     assert_script_run("mv /tmp/kerntmp $kern");
     validate_script_output "pesign -S -i $kern", sub { m/certs.*included/ };
+}
 
-    # Import MOK certificate, with the interactive mode
+sub import_mok {
+    my ($self) = @_;
+
+    my $work_dir = '/root/certs';
+    my $cert_der = "$work_dir/ima_cert.der";
+    my $cert_pem = "$work_dir/cert.asc";
+
+    # Import MOK certificate using interactive mode
     script_run_interactive(
         "mokutil --import $cert_der",
         [
@@ -104,14 +129,16 @@ sub run {
         ],
         20
     );
-
     validate_script_output "mokutil --list-new", sub { m/Certificate:/ };
 
-    # Save certificate fingerprint for the later matching
-    script_output("openssl x509 -noout -fingerprint -in $cert_pem |cut -d= -f2 |sed 's/:/ /g'");
+    # Certificate fingerprint
+    script_output("openssl x509 -noout -fingerprint -in $cert_pem | cut -d= -f2 | sed 's/:/ /g'");
+}
 
+sub enroll_mok {
+    my ($self) = @_;
 
-    # Reboot to enroll MOK certificate in MokManger
+    # Reboot to enroll MOK certificate
     power_action('reboot', keepconsole => 1, textmode => 1);
 
     wait_serial "Press any key to perform MOK management", 60;
@@ -149,10 +176,6 @@ sub run {
     wait_serial "Reboot.*key.*hash", 10;
     save_screenshot;
     send_key 'ret';    # "Reboot"
-
-    $self->wait_boot(textmode => 1, bootloader_time => 300, ready_time => 600);
-    select_console "root-console";
-
 }
 
 sub test_flags {
