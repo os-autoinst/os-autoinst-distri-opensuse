@@ -15,12 +15,13 @@ use warnings;
 use utils;
 use Kselftests::parser;
 use LTP::WhiteList;
-use version_utils qw(is_sle has_selinux is_tumbleweed);
+use version_utils qw(is_sle has_selinux is_tumbleweed is_transactional);
 use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use package_utils qw(install_package install_available_packages);
+use transactional qw(trup_apply);
 use utils qw(write_sut_file systemctl);
 
 our @EXPORT = qw(
@@ -147,6 +148,7 @@ sub install_dependencies
     if (is_sle() && $collection ne 'cgroup') {
         add_qa_head_repo;
         add_suseconnect_product(get_addon_fullname('phub'));
+        trup_apply() if is_transactional;
     }
 
     if ($collection =~ m{^net(/|$)}) {
