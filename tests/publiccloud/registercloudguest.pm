@@ -17,10 +17,26 @@ use testapi;
 use utils;
 use publiccloud::utils;
 use publiccloud::ssh_interactive 'select_host_console';
+use 5.018;
 
 our $run_count = 0;
+my $archive = '/var/log/cloudregister_logs.tar';
 
 my $regcode_param = (is_byos()) ? "-r " . get_required_var('SCC_REGCODE') : '';
+
+sub rotate_cloudregister_log {
+    my $i = shift;
+    my $logfile = '/var/log/cloudregister';
+    state $counter = 0;
+
+    # nothing to rotate, either empty or non-existing
+    return if ($i->ssh_script_run("test -s $logfile"));
+
+    # rotate and add the rotated file into archive
+    $i->ssh_assert_script_run(sprintf('sudo mv %s %s%d', $logfile, $logfile, ++$counter));
+    $i->ssh_assert_script_run("sudo touch $logfile");
+    $i->ssh_assert_script_run(sprintf('sudo tar --append --file=%s %s%d', $archive, $logfile, $counter));
+}
 
 sub run {
     my ($self, $args) = @_;
@@ -43,6 +59,7 @@ sub run {
 
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
         record_info('SKIP', 'PUBLIC_CLOUD_SCC_ENDPOINT is hardcoded to SUSEConnect - skipping registration testing. Falling back to registration module behavior');
+        rotate_cloudregister_log($instance);
         registercloudguest($instance) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
         register_addons_in_pc($instance);
         return;
@@ -51,9 +68,11 @@ sub run {
     if (is_container_host()) {
         # CHOST images don't have registercloudguest pre-installed. To install it we need to register which make it impossible to do
         # all BYOS related checks. So we just regestering system and going further
+        rotate_cloudregister_log($instance);
         registercloudguest($instance);
     } elsif (is_byos()) {
         if (check_var('PUBLIC_CLOUD_CHECK_CLOUDREGISTER_EXECUTED', '1')) {
+            rotate_cloudregister_log($instance);
             $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean", fail_message => 'Failed to deregister the previously registered BYOS system');
         } else {
             check_instance_unregistered($instance, 'The BYOS instance should be unregistered and report "Warning: No repositories defined.".');
@@ -96,6 +115,7 @@ sub run {
             if ($instance->ssh_script_run(cmd => 'sudo test -s /var/log/cloudregister') == 0) {
                 die('/var/log/cloudregister is not empty');
             }
+            rotate_cloudregister_log($instance);
             $instance->ssh_assert_script_run(cmd => '! sudo SUSEConnect -d', fail_message => 'SUSEConnect succeeds but it is not supported should fail on BYOS');
         }
     } else {
@@ -109,6 +129,7 @@ sub run {
         }
     }
 
+    rotate_cloudregister_log($instance);
     cleanup_instance($instance);
     # It might take a bit for the system to remove the repositories
     foreach my $i (1 .. 4) {
@@ -119,17 +140,21 @@ sub run {
 
     # The SUSEConnect registration should still work on BYOS
     if (is_byos()) {
+        rotate_cloudregister_log($instance);
         $instance->ssh_assert_script_run(cmd => 'sudo SUSEConnect --version');
         $instance->ssh_assert_script_run(cmd => "sudo SUSEConnect $regcode_param");
         cleanup_instance($instance);
     }
 
+    rotate_cloudregister_log($instance);
     new_registration($instance);
 
     test_container_runtimes($instance) if (is_sle('>=15-SP5'));
 
+    rotate_cloudregister_log($instance);
     force_new_registration($instance);
 
+    rotate_cloudregister_log($instance);
     register_addons_in_pc($instance);
 
     set_var('PUBLIC_CLOUD_CHECK_CLOUDREGISTER_EXECUTED', '1');
@@ -226,6 +251,7 @@ sub cleanup_instance {
             record_soft_failure("bsc#1260603 registercloudguest cleanup partially failed");
             # Manually cleanup remnants and try again
             $instance->ssh_script_run(cmd => "sudo rm /etc/zypp/repos.d/*.repo");
+            rotate_cloudregister_log($instance);
             $instance->ssh_assert_script_run(cmd => "sudo registercloudguest --clean");
         } else {
             die "registercloudguest --clean failed with return code $rc";
@@ -252,6 +278,7 @@ sub post_fail_hook {
     if (exists($self->{my_instance})) {
         $self->{my_instance}->ssh_script_run("sudo chmod a+r /var/log/cloudregister", timeout => 0, quiet => 1);
         $self->{my_instance}->upload_log('/var/log/cloudregister', log_name => $autotest::current_test->{name} . '-cloudregister.log.txt');
+        $self->{my_instance}->upload_log($archive, log_name => $autotest::current_test->{name} . '-cloudregister_archives.tar');
     }
     if (is_azure()) {
         record_info('azuremetadata', $self->{my_instance}->ssh_script_output(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
