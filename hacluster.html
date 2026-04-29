@@ -85,6 +85,7 @@
       <li><a href="#get_crmsh_version">get_crmsh_version</a></li>
       <li><a href="#get_fencing_ra_name">get_fencing_ra_name</a></li>
       <li><a href="#pcmk_delay_max_cmd">pcmk_delay_max_cmd</a></li>
+      <li><a href="#get_bootstrap_properties">get_bootstrap_properties</a></li>
     </ul>
   </li>
 </ul><h1>lib/hacluster.pm</h1>
@@ -832,6 +833,37 @@ sync_path(&#39;/path/to/files*&#39;);</code></pre>
 pcmk_delay_max_cmd($primitive_name);</code></pre>
 
 <p>Returns the command required to get the value of the attribute <code>pcmk_delay_max</code> in the cluster configuration. If no argument is provided, it will try to determine the correct name for the <b>fence_sbd</b> primitive using <code>get_fencing_ra_name</code>, otherwise it will use whatever primitive name is provided as an argument.</p>
+
+<h2 id="get_bootstrap_properties">get_bootstrap_properties</h2>
+
+<pre><code>get_bootstrap_properties()</code></pre>
+
+<p>Runs <code>crm -D plain configure show cib-bootstrap-options</code> in the System Under Test and parses the output into a Perl HASH.</p>
+
+<p>For example, an output like:</p>
+
+<pre><code>property cib-bootstrap-options: \
+    dc-version=&quot;1.2.3.4&quot; \
+    cluster-infrastructure=corosync \
+    have-watchdog=true \
+    cluster-name=hacluster \
+    stonith-enabled=true \
+    stonith-timeout=71 \
+    priority-fencing-delay=60 \
+    last-lrm-refresh=1777299458&#39;;</code></pre>
+
+<p>Would produce a HASH like:</p>
+
+<pre><code>$VAR1 = {
+      &#39;dc-version&#39; =&gt; &#39;&quot;1.2.3.4&quot;&#39;,
+      &#39;cluster-infrastructure&#39; =&gt; &#39;corosync&#39;,
+      &#39;stonith-enabled&#39; =&gt; &#39;true&#39;,
+      &#39;last-lrm-refresh&#39; =&gt; &#39;1777299458&#39;,
+      &#39;stonith-timeout&#39; =&gt; &#39;71&#39;,
+      &#39;cluster-name&#39; =&gt; &#39;hacluster&#39;,
+      &#39;priority-fencing-delay&#39; =&gt; &#39;60&#39;,
+      &#39;have-watchdog&#39; =&gt; &#39;true&#39;
+    };</code></pre>
 
 
 </body>
