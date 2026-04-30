@@ -83,7 +83,7 @@ sub install_xfstests_from_repo {
     else {
         zypper_call('in ' . join(' ', @PACKAGES));
     }
-    script_run 'test -d /usr/lib/xfstests && ln -s /usr/lib/xfstests /opt/xfstests || ln -s /var/lib/xfstests /opt/xfstests';
+    script_run 'if [ -d /usr/lib/xfstests ]; then ln -s /usr/lib/xfstests /opt/xfstests; else ln -s /var/lib/xfstests /opt/xfstests; fi';
 }
 
 # Create log file used to generate junit xml report
