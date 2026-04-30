@@ -32,7 +32,7 @@
       <li><a href="#start">start</a></li>
       <li><a href="#get_state">get_state</a></li>
       <li><a href="#network_speed_test">network_speed_test</a></li>
-      <li><a href="#measure_boottime">measure_boottime</a></li>
+      <li><a href="#check_system_boottime">check_system_boottime</a></li>
       <li><a href="#store_boottime_db">store_boottime_db</a></li>
     </ul>
   </li>
@@ -168,11 +168,11 @@ C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally s
 
 <p>Test the network speed.</p>
 
-<h2 id="measure_boottime">measure_boottime</h2>
+<h2 id="check_system_boottime">check_system_boottime</h2>
 
-<pre><code>measure_boottime();</code></pre>
+<pre><code>check_system_boottime();</code></pre>
 
-<p>Perfomrance measurement of the system Boot time. Mainly used <code>systemd-analyze</code> command for the data extraction. Data is then collected in an internal record, ready for storing in a DB. Set PUBLIC_CLOUD_PERF_COLLECT true or &gt;0, to activate boottime measurements.</p>
+<p>Check the system boot time, measured by <code>systemd-analyze</code>, to be under a threshold. Assign the threshold in seconds to PUBLIC_CLOUD_BOOTTIME_MAX in test settings. The boot time is saved in a local json structure, then printed in the test&#39;s logs: when the threshold is exceeded the job is stopped. The routine is skipped when the threshold is undefined or zero.</p>
 
 <h2 id="store_boottime_db">store_boottime_db</h2>
 
