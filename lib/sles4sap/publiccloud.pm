@@ -1361,20 +1361,38 @@ sub is_primary_node_online {
 
     Returns the pacemaker version
 
+=over
+
+=item B<retries> - (OPTIONAL) amount of retries to attempt - default 0
+
+=item B<sleep_time> - (OPTIONAL) seconds to sleep between retries - default 5
+
+=back
+
 =cut
 
 sub pacemaker_version {
-    my ($self) = @_;
+    my ($self, %args) = @_;
     my $version_cmd = 'pacemakerd --version';
 
-    my $version_output = $self->run_cmd(cmd => $version_cmd, quiet => 1);
-    record_info('PACEMAKER VERSION', $version_output);
+    # Default to 0 retries to only try once
+    my $retries = $args{retries} // 0;
+    my $sleep_time = $args{sleep_time} // 5;
 
-    if ($version_output =~ /Pacemaker (\d+\.\d+\.\d+)/) {
-        return $1;
-    } else {
-        return '';
+    for my $i (0 .. $retries) {
+        # Pass proceed_on_failure to prevent openQA from dying on first attempt
+        my $version_output = $self->run_cmd(cmd => $version_cmd, quiet => 1, proceed_on_failure => 1);
+
+        if ($version_output =~ /Pacemaker (\d+\.\d+\.\d+)/) {
+            record_info('PACEMAKER VERSION', $version_output);
+            return $1;
+        }
+
+        sleep($sleep_time) if $i < $retries;
     }
+
+    record_info('PACEMAKER VERSION', 'Failed to retrieve Pacemaker version');
+    return '';
 }
 
 =head2 saphanasr_showAttr_version
@@ -1415,7 +1433,7 @@ sub wait_for_cluster {
 
     $args{wait_time} //= 10;
     $args{max_retries} //= 7;
-    my $online_str = check_version('>=2.1.7', $self->pacemaker_version()) ? '4' : 'online';
+    my $online_str = check_version('>=2.1.7', $self->pacemaker_version(retries => 6, sleep_time => 10)) ? '4' : 'online';
 
     while ($args{max_retries} > 0) {
         my $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
