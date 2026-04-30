@@ -44,6 +44,9 @@ sub run_tests {
         "bud.bats::bud with --layers and --no-cache flags",
         "bud.bats::bud with --rm flag",
         "bud.bats::bud with no --layers comment",
+        # This test fails because the test image no longer has a label
+        # and we can't backport PR 6634 to fix it
+        "config.bats::config --unsetlabel",
         "images.bats::images all test",
         "rmi.bats::rmi with cached images",
     ) if (version->parse(numeric_version($version)) <= version->parse("1.39.5"));
