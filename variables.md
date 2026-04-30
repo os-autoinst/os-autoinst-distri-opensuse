@@ -146,6 +146,7 @@ LTP_COMMAND_FILE | string | | The LTP test command file (e.g. syscalls, cve)
 LTP_COMMAND_EXCLUDE | string | | This regex is used to exclude tests from LTP command file.
 LTP_EXEC_TIMEOUT | integer | 1200 |Used to define --exec-timeout value passed to kirk
 LTP_KNOWN_ISSUES | string | | Used to specify a url for a json file with well known LTP issues. If an error occur which is listed, then the result is overwritten with softfailure.
+LTP_MIN_UPTIME | integer | | Minimum uptime in seconds before LTP tests start. It applies only to the native openQA runner, not to tests run by kirk.
 LTP_REPO | string | | The repo which will be added and is used to install LTP package.
 LTP_RUN_NG_BRANCH | string | master | Define the branch of the LTP_RUN_NG_REPO.
 LTP_RUN_NG_REPO | string | https://github.com/linux-test-project/kirk.git | Define the runltp-ng repo to be used.
