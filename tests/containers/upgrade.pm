@@ -150,6 +150,7 @@ sub run {
         upgrade_via_testrepos;
         power_action('reboot', textmode => 1);
         $self->wait_boot();
+        select_serial_terminal;
     }
 
     assert_script_run "rpm -qa | sort > /var/tmp/after", timeout => 180;
