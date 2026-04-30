@@ -244,8 +244,12 @@ sub load_host_tests_helm {
     my ($run_args) = @_;
     my $backends = undef;
 
-    if (is_sle('15-sp3+')) {
+    # k3s v1.35.x is supported on SLES 15-SP6+ only:
+    # https://www.suse.com/suse-k3s/support-matrix/all-supported-versions/k3s-v1-35/
+    if (is_sle('15-sp6+')) {
         $backends = get_var("PUBLIC_CLOUD_PROVIDER", "GCE,EC2,AZURE,K3S");
+    } elsif (is_sle('15-sp4+')) {
+        $backends = get_var("PUBLIC_CLOUD_PROVIDER", "GCE,EC2,AZURE");
     } elsif (is_opensuse) {
         $backends = get_var("PUBLIC_CLOUD_PROVIDER", "K3S");
     } else {
