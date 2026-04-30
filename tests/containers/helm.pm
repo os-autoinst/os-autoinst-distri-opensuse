@@ -43,6 +43,15 @@ sub run {
 
     if ($is_k3s) {
         install_k3s();
+
+        # Switch to cgroup v2 if not already active
+        # NOTE: Remove when SLES 15-SP5 is EOL
+        if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
+            add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
+            power_action('reboot', textmode => 1);
+            $self->wait_boot();
+            select_serial_terminal;
+        }
     }
     else {
         install_kubectl();
