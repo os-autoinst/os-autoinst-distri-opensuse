@@ -125,7 +125,6 @@ sub install_k3s {
 
     # k3s-install script is already packaged for several products
     my @pkgs = qw(k3s-install);
-    push @pkgs, 'apparmor-parser' if is_sle('<15-SP4');
 
     if (script_run(sprintf('rpm -q %s', join(" ", @pkgs))) != 0) {
         if (is_transactional) {
