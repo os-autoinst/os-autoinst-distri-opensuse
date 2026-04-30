@@ -118,14 +118,12 @@ sub install_k3s {
         assert_script_run("curl $curl_opts https://get.k3s.io -o install_k3s.sh");
         assert_script_run("sh install_k3s.sh $disables", timeout => 300);
         script_run("rm -f install_k3s.sh");
-        zypper_call('in apparmor-parser') if is_sle('<15-SP4', get_var('HOST_VERSION', get_required_var('VERSION')));
         setup_and_check_k3s;
         return;
     }
 
     # k3s-install script is already packaged for several products
     my @pkgs = qw(k3s-install);
-    push @pkgs, 'apparmor-parser' if is_sle('<15-SP4');
 
     if (script_run(sprintf('rpm -q %s', join(" ", @pkgs))) != 0) {
         if (is_transactional) {
