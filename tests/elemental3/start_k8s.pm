@@ -232,9 +232,7 @@ sub run {
     my $k8s = get_required_var('K8S');
     my $k8s_dir = "/etc/rancher/$k8s";
     my $config_yaml = "$k8s_dir/config.yaml";
-    my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
-    #my $timeout = (is_aarch64) ? 2400 : 1200;
-    my $timeout = 2400;
+    my $timeout = 2400;    # Will be adapted when we will have more successful tests
 
     # Skip the test with if the OS image is not generated with 'customize'
     unless (check_var('TESTED_CMD', 'customize')) {
@@ -253,6 +251,9 @@ sub run {
 
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
+
+    # Cannot be defined with the other variables, as we need terminal access
+    my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
 
     unless (check_var('MULTI_NODE', '1')) {
         my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');
