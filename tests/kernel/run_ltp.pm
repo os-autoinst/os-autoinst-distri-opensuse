@@ -541,6 +541,11 @@ Comma separated list of debug features to enable during test run.
 - C<tcpdump>: Capture all packets sent or received during each test.
 - C<supportconfig>: Run supportconfig after boot and before shutdown.
 
+=head2 LTP_MIN_UPTIME
+
+Minimum uptime in seconds before LTP tests start. It applies only to the
+native openQA runner, not to tests run by kirk.
+
 =head2 LTP_REBOOT_AFTER_TEST
 
 Reboot SUT after each test (unless last test or TCONF). It prolongs testing

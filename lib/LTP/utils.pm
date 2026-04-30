@@ -375,6 +375,16 @@ sub schedule_tests {
     record_info("LTP version", $environment->{ltp_version});
     record_info("env", script_output('env'));
 
+    # Wait for minimum system uptime before running tests
+    if (my $min_uptime = get_var('LTP_MIN_UPTIME')) {
+        my $current_uptime = int(script_output("awk '{print int(\$1)}' /proc/uptime"));
+        my $wait = $min_uptime - $current_uptime;
+        if ($wait > 0) {
+            record_info('LTP_MIN_UPTIME', "Waiting $wait seconds for minimum uptime $min_uptime seconds.");
+            script_run("sleep $wait", timeout => $wait + 5);
+        }
+    }
+
     $test_result_export->{environment} = $environment;
 
     if ($cmd_file =~ m/ltp-aiodio.part[134]/) {
