@@ -90,10 +90,8 @@ sub run {
     }
     # workaround esp. on aarch64 some test fail occasinally due to low worker performance
     # if there are failed tests run them again up to 3 times
-    eval {
-        assert_script_run('set -o pipefail; ' . $bind_cmd . " |& tee -a /tmp/test-suite.txt", 7000);
-    };
-    if ($@) {
+    my $ret = script_run('set -o pipefail; ' . $bind_cmd . " |& tee -a /tmp/test-suite.txt", timeout => 7000);
+    if ($ret == 1) {
         record_info 'Retry:', 'poo#71329';
         for (1 .. 3) {
             eval {
@@ -114,6 +112,9 @@ sub run {
             record_info "Retry $_", "Failed bind test retry: $_ of 3";
             die 'bind testsuite failed, see test-suite.txt' if $@ && $_ == 3;
         }
+    }
+    elsif ($ret != 0) {
+        die 'Unexpected failure, see logs';
     }
     # remove loopback interfaces
     assert_script_run 'sh ifconfig.sh down';
