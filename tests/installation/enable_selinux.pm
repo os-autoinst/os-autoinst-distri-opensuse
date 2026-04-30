@@ -16,24 +16,17 @@ sub run {
 
     $self->go_to_security_settings();
 
-    if (is_sle_micro('<5.3') || is_leap_micro('<5.3')) {
-        # Combobox for SELinux specifically
-        send_key 'alt-m';
-        send_key_until_needlematch 'security-selinux-enforcing', 'down';
-        send_key 'ret' if $textmode;
-    } else {
-        # Select SELinux first
-        # sle-micro 5.3+ selects SELinux by default
-        # let's wait for YaST2 to load the settings
-        wait_still_screen stilltime => 9, timeout => 45;
-        send_key 'alt-s';
-        send_key_until_needlematch 'security-module-selinux', 'up';
-        send_key 'ret' if $textmode;
-        # Switch it into enforcing mode
-        send_key 'alt-u';
-        send_key_until_needlematch 'security-selinux-enforcing', 'down';
-        send_key 'ret' if $textmode;
-    }
+    # Select SELinux first
+    # sle-micro 5.3+ selects SELinux by default
+    # let's wait for YaST2 to load the settings
+    wait_still_screen stilltime => 9, timeout => 45;
+    send_key 'alt-s';
+    send_key_until_needlematch 'security-module-selinux', 'up';
+    send_key 'ret' if $textmode;
+    # Switch it into enforcing mode
+    send_key 'alt-u';
+    send_key_until_needlematch 'security-selinux-enforcing', 'down';
+    send_key 'ret' if $textmode;
 
     send_key $cmd{ok};
 

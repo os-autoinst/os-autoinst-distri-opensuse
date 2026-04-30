@@ -496,9 +496,7 @@ sub generate_version {
         return $version;
     } elsif (is_sle_micro) {
         $dist = 'SLE';
-        if (is_sle_micro('<5.3')) {
-            $version = "15_SP3";
-        } elsif (is_sle_micro('<5.5')) {
+        if (is_sle_micro('<5.5')) {
             $version = "15_SP4";
         } elsif (is_sle_micro('<6.0')) {
             $version = "15_SP5";
