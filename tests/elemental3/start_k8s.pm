@@ -262,28 +262,15 @@ sub run {
         # Split the DNS strings into arrays only if the variable is defined and not empty
         my @default_dns = split(/,/, get_default_dns);
         set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
-
-        # Configure K8s
-        if (get_var('PARALLEL_WITH')) {
-            # Set hostname and get IP address
-            configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
-
-            # Wait for K8s directory to appears
-            wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
-
-            # Set hostname/IP
-            assert_script_run("echo -e 'node-name: $hostname' >> $config_yaml");
-            assert_script_run("echo -e 'node-external-ip: $ip' >> $config_yaml");
-
-            # Restart K8s server
-            systemctl("restart $k8s_svc", timeout => $timeout);
-        }
     }
 
-    unless ($hostname eq 'node04') {
-        # Wait for kubectl command to be available
-        wait_kubectl_cmd(timeout => $timeout);
+    # Wait for K8s directory to appears
+    wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
 
+    # Wait for kubectl command to be available
+    wait_kubectl_cmd(timeout => $timeout);
+
+    unless ($hostname eq 'node04') {
         # Check K8s status
         wait_k8s_state(regex => 'status.*restarts|(1/1|2/2|3/3|4.4).*running|0/1.*completed', timeout => $timeout);
 
@@ -302,15 +289,13 @@ sub run {
         # Check toolkit version
         record_info('Elemental version', script_output('elemental3ctl version'));
 
-        # Check that test namespace has been created (only for images built from release-manifest)
-        if (check_var('TESTED_CMD', 'customize')) {
-            kubectl_cmd(cmd => 'get namespace openqa-ns', timeout => $timeout);
-            record_info('Test Namespace creation', 'Namespace created!');
-        }
+        # Check that test namespace has been created
+        kubectl_cmd(cmd => 'get namespace openqa-ns', timeout => $timeout);
+        record_info('Test Namespace creation', 'Namespace created!');
     }
 
     # Only in multi-nodes configuration
-    prepare_test_framework(arch => $arch, k8s => $k8s) if (get_var('PARALLEL_WITH'));
+    prepare_test_framework(arch => $arch, k8s => $k8s);
 }
 
 sub post_fail_hook {
