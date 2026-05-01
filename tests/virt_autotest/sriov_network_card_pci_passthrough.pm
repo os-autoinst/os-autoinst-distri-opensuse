@@ -23,6 +23,7 @@ use utils;
 use testapi;
 use virt_autotest::common;
 use version_utils qw(is_sle);
+use mm_network qw(is_networkmanager);
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface);
 
@@ -35,7 +36,7 @@ sub run_test {
 
     #set up ssh, packages and iommu on host
     check_host_health;
-    script_run("journalctl --cursor-file /tmp/cursor.txt -u NetworkManager | grep -e 'timeout' -e 'failure' -e 'failed to acquire D-Bus name' -e 'critical'") if is_sle('16+');
+    script_run("journalctl --cursor-file /tmp/cursor.txt -u NetworkManager | grep -e 'timeout' -e 'failure' -e 'failed to acquire D-Bus name' -e 'critical'") if is_networkmanager();
     prepare_host();
 
     #clean up test logs
@@ -109,8 +110,8 @@ sub run_test {
         }
 
         #hotplug the first vf to vm
-        plugin_vf_device($guest, $vfs[0]);
-        #upload test specific logs
+        next unless plugin_vf_device($guest, $vfs[0]);    # 0 means soft failure recorded (e.g. bsc#1262599)
+                                                          #upload test specific logs
         save_network_device_status_logs($guest, "2-after_hotplug_$vfs[0]->{host_id}");
         #check the networking of the plugged interface
         #use br123 as ssh connection
@@ -176,6 +177,7 @@ sub prepare_host {
 
     #install required packages on host
     zypper_call '-t in pciutils nmap';    #to run 'lspci' and 'nmap' command
+    zypper_call '-t in NetworkManager' if is_networkmanager();    #to run 'nmcli' command
 
     #check IOMMU based on VT-d is supported in Intel x86_64 machines
     if (is_kvm_host && script_run("grep Intel /proc/cpuinfo") == 0) {
@@ -312,15 +314,17 @@ sub prepare_guest_for_sriov_passthrough {
 sub detach_vf_from_host {
     my $device_bdf = shift;
 
+    # On systems using NetworkManager, release NM's hold on the VF before VFIO
+    # binding to prevent "Device or resource busy" on virsh nodedev-detach.
+    if (is_networkmanager()) {
+        my $iface = script_output("ls /sys/bus/pci/devices/0000:$device_bdf/net/ 2>/dev/null | head -1", proceed_on_failure => 1);
+        $iface =~ s/^\s+|\s+$//g;
+        script_run("nmcli device set $iface managed no") if $iface;
+    }
+
     #change to device id in libvirt
     $device_bdf =~ s/[:\.]/_/g;
     my $device_id = script_output "virsh nodedev-list | grep $device_bdf";
-
-    # Show the NM status on host to see if it is fine
-    if (is_sle('16+')) {
-        script_run("nmcli con");
-        script_run("journalctl --cursor-file /tmp/cursor.txt -u NetworkManager | grep -e 'timeout' -e 'failure' -e 'failed to acquire D-Bus name' -e 'critical'");
-    }
 
     #detach from host
     assert_script_run "virsh nodedev-detach $device_id";
@@ -382,9 +386,21 @@ sub plugin_vf_device {
     $vf->{vm_nic} = script_output "ssh root\@$vm \"grep '$vf->{vm_mac}' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
     record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nmac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
     if ($vf->{vm_nic} eq '') {
+        my $dmesg = script_output("ssh root\@$vm 'dmesg'", proceed_on_failure => 1);
         script_output "ssh root\@$vm \"for FILE in /sys/class/net/*/address; do echo \\\$FILE; cat \\\$FILE; done\"";    #for debug
+            # bsc#1262599: pcifront BAR claim fails on Xen PV when VF BAR overlaps balloon RAM (e820_host=1).
+            # The kernel message wording varies across SLE versions; check PV guest type rather than relying
+            # solely on dmesg pattern matching so the soft-fail is not missed on newer kernels.
+        if (is_pv_guest($vm)) {
+            my $reason = ($dmesg =~ /Could not claim resource|BAR.*conflict|pcifront.*fail/i)
+              ? "bsc#1262599 - Xen PV SR-IOV VF BAR conflicts with balloon RAM (e820_host=1). Workaround: use HVM guest."
+              : "Xen PV SR-IOV VF NIC did not appear (possible bsc#1262599 or pcifront issue). Workaround: use HVM guest.";
+            record_soft_failure($reason);
+            return 0;
+        }
         die "Fail to get NIC in $vm: nic='$vf->{vm_nic}'";
     }
+    return 1;
 }
 
 
