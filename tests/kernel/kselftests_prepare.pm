@@ -54,9 +54,13 @@ upstream tree: C<torvalds/linux.git>.
 
 =head2 KSELFTEST_FROM_SRC
 
-If set, kselftests are installed from the kernel source tree provided by
-the C<kernel-source> package instead of using packaged RPMs. The source
-tree is located at F</usr/src/linux>.
+If set, kselftests are built from the kernel source tree provided by the
+C<kernel-source> package instead of using packaged RPMs. The test harness
+(C<run_kselftest.sh> and the C<kselftest/> support directory) is then
+replaced with the version from the upstream linux tree (C<KERNEL_GIT_TREE>,
+default: C<torvalds/linux.git> master branch), so that the SUSE-patched test
+binaries run under the upstream harness. This step requires network access
+and C<git>.
 
 =head2 KSELFTEST_BUILD_ENV
 

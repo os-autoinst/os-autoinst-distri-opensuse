@@ -15,12 +15,13 @@ use warnings;
 use utils;
 use Kselftests::parser;
 use LTP::WhiteList;
-use version_utils qw(is_sle has_selinux is_tumbleweed);
+use version_utils qw(is_sle has_selinux is_tumbleweed is_transactional);
 use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use package_utils qw(install_package install_available_packages);
+use transactional qw(trup_apply);
 use utils qw(write_sut_file systemctl);
 
 our @EXPORT = qw(
@@ -38,15 +39,6 @@ sub build
     $source_dir //= "/lib/modules/$version/source";
     my $build_dir = "/lib/modules/$version/build";
 
-    # Resolve the real build_dir path and, if it is not writable
-    # (such as in an immutable system), mount a writable overlayfs directly on it.
-    my $real_build_dir = script_output("readlink -f $build_dir");
-    if (script_run("test -w $real_build_dir") != 0) {
-        my $overlay = "/var/tmp/kselftest-overlay";
-        assert_script_run("mkdir -p $overlay/{upper,work}");
-        assert_script_run("mount -t overlay overlay -o lowerdir=$real_build_dir,upperdir=$overlay/upper,workdir=$overlay/work $real_build_dir");
-    }
-
     # Lock kernel-source/syms to their already-installed versions if present (e.g. pre-installed
     # by install_kotd at the same version as the running kernel), so the devel_kernel pattern
     # cannot upgrade them to a mismatched version pulled from a rolling repo like KOTD.
@@ -55,12 +47,33 @@ sub build
     install_package('-t pattern --recommends devel_kernel', trup_apply => 1);
     zypper_call('rl kernel-source kernel-syms') if $lock_kernel_pkgs;
 
+    # On immutable systems the build dir is read-only; mount a writable overlayfs on it.
+    my $real_build_dir = script_output("readlink -f $build_dir");
+    if (script_run("test -w $real_build_dir") != 0) {
+        (my $tag = $real_build_dir) =~ s|[/ ]|_|g;
+        my $overlay = "/var/tmp/kselftest-overlay$tag";
+        assert_script_run("mkdir -p $overlay/{upper,work}");
+        assert_script_run("mount -t overlay overlay -o lowerdir=$real_build_dir,upperdir=$overlay/upper,workdir=$overlay/work $real_build_dir");
+    }
+
     my $jobs = get_var('KSELFTEST_BUILD_JOBS', '$(getconf _NPROCESSORS_ONLN)');
     my $build_env = get_var('KSELFTEST_BUILD_ENV', '');
     my $make_cmd = "make -j$jobs -C $source_dir/tools/testing/selftests install O=$build_dir SKIP_TARGETS= TARGETS=$targets FORCE_TARGETS=1 $build_env";
     $make_cmd =~ s/\s+$//;
 
     assert_script_run("make -j$jobs -C $source_dir headers O=$build_dir $build_env");
+
+    # Mount the source dir overlay only after make headers. Mounting it earlier
+    # disturbs make's timestamp evaluation and causes it to try to regenerate
+    # headers from source files absent in the kernel-source package.
+    my $real_source_dir = script_output("readlink -f $source_dir");
+    if (script_run("test -w $real_source_dir") != 0) {
+        (my $tag = $real_source_dir) =~ s|[/ ]|_|g;
+        my $overlay = "/var/tmp/kselftest-overlay$tag";
+        assert_script_run("mkdir -p $overlay/{upper,work}");
+        assert_script_run("mount -t overlay overlay -o lowerdir=$real_source_dir,upperdir=$overlay/upper,workdir=$overlay/work $real_source_dir");
+    }
+
     assert_script_run($make_cmd, 7200);
     assert_script_run("cd $build_dir/kselftest/kselftest_install");
 }
@@ -72,7 +85,7 @@ sub install_from_git
     my $git_tree = get_var('KERNEL_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
     my $git_tag = get_var('KERNEL_GIT_TAG', '');
 
-    install_package('git', trup_apply => 1) if script_run('rpm -q git');
+    install_package('git', trup_apply => 1);
     assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 240);
 
     assert_script_run("cd ./linux");
@@ -93,10 +106,35 @@ sub install_from_git
     build($collection, '.');
 }
 
+sub install_upstream_harness
+{
+    my ($install_dir) = @_;
+
+    my $version = script_output('uname -r');
+    $install_dir //= "/lib/modules/$version/build/kselftest/kselftest_install";
+
+    my $git_tree = get_var('KERNEL_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
+    my $tmpdir = '/var/tmp/linux-harness';
+
+    install_package('git', trup_apply => 1);
+
+    # Partial clone: fetch only tree/commit metadata, no blobs, no working tree.
+    # Then check out just the two harness paths, lazily fetching only those blobs.
+    assert_script_run("rm -rf $tmpdir");
+    assert_script_run("git clone --depth 1 --filter=blob:none --no-checkout --branch master $git_tree $tmpdir", 300);
+    assert_script_run("git -C $tmpdir checkout HEAD -- tools/testing/selftests/run_kselftest.sh tools/testing/selftests/kselftest", 120);
+
+    record_info("Upstream harness", script_output("git -C $tmpdir --no-pager log -1 --oneline"));
+
+    assert_script_run("cp $tmpdir/tools/testing/selftests/run_kselftest.sh $install_dir/");
+    assert_script_run("cp -r $tmpdir/tools/testing/selftests/kselftest/ $install_dir/");
+    assert_script_run("rm -rf $tmpdir");
+}
+
 sub install_from_repo
 {
     zypper_ar(get_required_var('KSELFTEST_REPO'), name => 'kselftests', priority => 1, no_gpg_check => 1);
-    install_package('kselftests kernel-devel', trup_apply => 1);
+    install_package('kselftests', trup_apply => 1);
 
     # When using the `kselftests` package from a repository, make sure the KMP subpackage containing the test kernel modules
     # were built against the same kernel version the SUT is currently running.
@@ -122,6 +160,7 @@ sub install_dependencies
     if (is_sle() && $collection ne 'cgroup') {
         add_qa_head_repo;
         add_suseconnect_product(get_addon_fullname('phub'));
+        trup_apply() if is_transactional;
     }
 
     if ($collection =~ m{^net(/|$)}) {
@@ -169,6 +208,7 @@ sub install_kselftests
         install_from_git($collection);
     } elsif (get_var('KSELFTEST_FROM_SRC', 0)) {
         build($collection);
+        install_upstream_harness();
     } else {
         install_from_repo();
     }
