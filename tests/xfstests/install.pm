@@ -83,12 +83,7 @@ sub install_xfstests_from_repo {
     else {
         zypper_call('in ' . join(' ', @PACKAGES));
     }
-    if (is_sle) {
-        script_run 'ln -s /var/lib/xfstests /opt/xfstests';
-    }
-    elsif (is_tumbleweed || is_leap) {
-        script_run 'ln -s /usr/lib/xfstests /opt/xfstests';
-    }
+    script_run 'if [ -d /usr/lib/xfstests ]; then ln -s /usr/lib/xfstests /opt/xfstests; else ln -s /var/lib/xfstests /opt/xfstests; fi';
 }
 
 # Create log file used to generate junit xml report
