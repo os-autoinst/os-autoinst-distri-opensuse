@@ -15,6 +15,7 @@ use registration;
 use testapi;
 use utils;
 use publiccloud::utils;
+use publiccloud::zypper qw(pkg_call wait_quit);
 use publiccloud::ssh_interactive "select_host_console";
 use File::Basename 'basename';
 
@@ -23,19 +24,19 @@ sub run {
 
     select_host_console();    # select console on the host, not the PC instance
 
-    wait_quit_zypper_pc($args->{my_instance});
+    wait_quit($args->{my_instance});
 
     registercloudguest($args->{my_instance}) if (is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION'));
 
     # https://progress.opensuse.org/issues/196370 workaround for a known issue on 15-SP5
     if (is_sle('=15-SP5')) {
-        $args->{my_instance}->zypper_call_remote("update -y", retry => 10, delay => 60);
+        pkg_call($args->{my_instance}, "update -y", retry => 10, delay => 60);
         $args->{my_instance}->softreboot(timeout => 3600);
     }
 
-    wait_quit_zypper_pc($args->{my_instance});
+    wait_quit($args->{my_instance});
     register_addons_in_pc($args->{my_instance}, timeout => 240);
-    wait_quit_zypper_pc($args->{my_instance});
+    wait_quit($args->{my_instance});
     # Double confirm system is correctly registered, and quit earlier if anything wrong
     # see bsc#1253777, we may need have to rerun the failed job in this case
     record_info('Check registration status');
@@ -45,7 +46,7 @@ sub run {
     die "System is not correctly registered" if ($reg_status =~ /Not Registered/m);
     # Since SLE 15 SP6 CHOST images don't have curl and we need it for testing
     if (is_sle('>15-SP5') && is_container_host()) {
-        $args->{my_instance}->zypper_call_remote("in --force-resolution -y curl");
+        pkg_call($args->{my_instance}, "in --force-resolution -y curl");
     }
 }
 

@@ -16,6 +16,7 @@ use registration;
 use testapi;
 use utils;
 use publiccloud::utils;
+use publiccloud::zypper qw(pkg_call);
 use publiccloud::ssh_interactive 'select_host_console';
 use 5.018;
 
@@ -208,7 +209,7 @@ sub test_container_runtimes {
 
     record_info('Test docker');
     $instance->ssh_assert_script_run("sudo rm -f /root/.docker/config.json");    # workaround for https://bugzilla.suse.com/show_bug.cgi?id=1231185
-    $instance->zypper_call_remote("in -y docker", timeout => 600);
+    pkg_call($instance, "in -y docker", timeout => 600);
     $instance->ssh_assert_script_run("sudo systemctl start docker.service");
     record_info("systemctl status docker.service", $instance->ssh_script_output("systemctl status docker.service"));
     $instance->ssh_script_retry("sudo docker pull $image", retry => 3, delay => 60, timeout => 600);
@@ -224,7 +225,7 @@ sub test_container_runtimes {
             record_info('permissions #1', 'permissions when libcontainers-common is missing');
             $instance->ssh_script_run('sudo stat /etc/containers/registries.conf');
             $instance->ssh_script_run('sudo rm -rf /etc/containers/registries.conf');
-            $instance->zypper_call_remote("in libcontainers-common");
+            pkg_call($instance, "in libcontainers-common");
             record_info('permissions #2', 'The previous registries.conf has been removed, then libcontainers-common was installed');
             $instance->ssh_script_run('sudo stat /etc/containers/registries.conf');
             cleanup_instance($instance);
@@ -234,7 +235,7 @@ sub test_container_runtimes {
         }
         $instance->ssh_script_run('sudo chmod 644 /etc/containers/registries.conf');
     }
-    $instance->zypper_call_remote("in -y podman", timeout => 240);
+    pkg_call($instance, "in -y podman", timeout => 240);
     $instance->ssh_script_retry("podman --debug pull $image", retry => 3, delay => 60, timeout => 600);
     return 0;
 }

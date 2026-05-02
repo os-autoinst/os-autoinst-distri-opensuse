@@ -15,7 +15,8 @@ use utils;
 use publiccloud::ssh_interactive "select_host_console";
 use maintenance_smelt qw(is_embargo_update);
 use version_utils qw(is_sle_micro is_sle);
-use publiccloud::utils qw(additional_repos zypper_call_remote);
+use publiccloud::utils qw(additional_repos);
+use publiccloud::zypper qw(zypper_call);
 
 sub run {
     my ($self, $args) = @_;
@@ -78,7 +79,7 @@ sub run {
     if (is_sle_micro(">=6.0") || is_sle("16+")) {
         my $counter = 0;
         for my $repo (@repos) {
-            zypper_call_remote($instance, cmd => "ar -p10 " . $repodir . $repo . " ToTest_$counter");
+            zypper_call($instance, "ar -p10 " . $repodir . $repo . " ToTest_$counter");
             $counter += 1;
         }
     }
