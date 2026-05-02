@@ -179,6 +179,8 @@ sub setup_env {
     }
 
     set_var('LTP_KNOWN_ISSUES', 'https://raw.githubusercontent.com/openSUSE/kernel-qe/main/ltp_known_issues.yaml') if is_opensuse and !get_var('LTP_KNOWN_ISSUES');
+    set_var('XFSTESTS_AI_KB', 'https://raw.githubusercontent.com/openSUSE/kernel-qe/main/ai_knowledge_base.yaml') if is_opensuse and get_var('XFSTESTS') and !get_var('XFSTESTS_AI_KB');
+    set_var('XFSTESTS_QE_KB', 'https://raw.githubusercontent.com/openSUSE/kernel-qe/main/qe_knowledge_base.yaml') if is_opensuse and get_var('XFSTESTS') and !get_var('XFSTESTS_QE_KB');
 
     # By default format DASD devices before installation
     if (is_backend_s390x) {
