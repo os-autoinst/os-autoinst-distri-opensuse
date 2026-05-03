@@ -128,6 +128,17 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
           #!/usr/bin/env bash
           systemctl enable sshd.service
         |||
+      },
+      {
+        name: "disable_nm_for_sriov_vfs",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          # Make a udev rule to force NM to skip SR-IOV VFs
+          rules_file="/etc/udev/rules.d/99-sriov-vfs-unmanaged.rules"
+          echo 'SUBSYSTEM=="net", ACTION=="add|change", TEST=="device/physfn", ENV{NM_UNMANAGED}="1"' > "$rules_file"
+          chmod 644 "$rules_file"
+        |||
       }
     ]
   }
