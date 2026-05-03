@@ -49,6 +49,10 @@ sub run_tests {
         "run.bats::runc run [joining existing container namespaces]",
         "userns.bats::userns join other container userns",
     ) if (is_sle("<16") && $rootless);
+    push @xfails, (
+        # https://github.com/opencontainers/runc/issues/5264
+        "cgroups.bats::runc run (cgroup v2 resources.unified override)",
+    ) if (is_tumbleweed && is_aarch64 && !$rootless);
 
     return bats_tests($log_file, \%env, \@xfails, 3000);
 }
