@@ -73,7 +73,7 @@ sub install_package {
     #Switch all VM Passwords from installed settings files
     my $setting_file = "/usr/share/qa/virtautolib/data/settings." . locate_sourcefile;
     my $qa_password = $testapi::password;
-    my $vm_password = get_var('VIRTAUTO_VM_PASSWORD');
+    my $vm_password = get_required_var('_SECRET_GUEST_PASSWORD');
     my $cmd = "sed -i -e 's/vm.pass=/vm.pass=$vm_password/g' -e 's/xen.pass=/xen.pass=$vm_password/g' -e 's/migratee.pass=/migratee.pass=$vm_password/g' -e 's/vm.sshpassword=/vm.sshpassword=$qa_password/g' $setting_file";
     if (is_s390x) {
         lpar_cmd("$cmd");
