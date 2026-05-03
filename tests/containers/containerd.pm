@@ -65,6 +65,10 @@ sub critest {
         # https://github.com/containerd/containerd/issues/4460
         "CRI validation::[It] [k8s.io] Security Context NamespaceOption runtime should support HostIpc is true",
     );
+    push @xfails, (
+        # https://github.com/opencontainers/runc/issues/5264
+        "CRI validation::[It] [k8s.io] Container OOM runtime should output OOMKilled reason should terminate with exitCode 137 and reason OOMKilled",
+    ) if (is_tumbleweed && is_aarch64);
 
     run_timeout_command "critest --ginkgo.junit-report critest.xml &> critest.txt", no_assert => 1, timeout => 300;
     upload_logs "critest.txt";
