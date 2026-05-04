@@ -137,8 +137,9 @@ sub run {
         patch_json $img_proof->{results} if (get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP'));
     }
 
-    upload_logs($img_proof->{logfile}, log_name => basename($img_proof->{logfile}) . ".txt");
+    upload_logs($img_proof->{logfile}, log_name => sprintf('img_proof_log-%s%s', basename($img_proof->{logfile}), '.txt'));
 
+    uppload_logs($img_proof->{results}, log_name => $img_proof->{results} . 'json');
     parse_extra_log(IPA => $img_proof->{results});
 
     $instance->ssh_script_run(cmd => 'sudo chmod a+r /var/tmp/report.html || true');
