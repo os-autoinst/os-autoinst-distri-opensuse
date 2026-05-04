@@ -1,0 +1,16 @@
+---
+name: agama_autoyast_supported_x86_64
+description: >
+  Agama installation with backwards compatibility with AutoYaST
+  include iscsi by using only supported AutoYaST elements.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_base_product
+  - yam/validate/validate_first_user
+  - yam/validate/validate_deployed_files
+  - console/verify_separate_home
+  - console/validate_partition_table
+  - console/validate_blockdevices
