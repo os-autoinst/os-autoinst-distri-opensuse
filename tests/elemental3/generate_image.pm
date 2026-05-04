@@ -134,13 +134,19 @@ sub customize_cmd {
         );
     }
 
-    # Multi-node cluster
-    if (check_var('MULTI_NODE', '1')) {
+    # K8s configuration file
+    assert_script_run(
+        "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
+          . data_url('elemental3/cluster.yaml')
+    );
+
+    # For single-node
+    unless (check_var('MULTI_NODE', '1')) {
+        # Keep configuration for first node only
         assert_script_run(
-            "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
-              . data_url('elemental3/cluster.yaml')
+            "sed -i '/node02/,/agent/d' $args{config_dir}/kubernetes/cluster.yaml"
         );
-    } else {
+
         # Only useful for the multi-node test
         assert_script_run("rm -rf $args{config_dir}/network");
     }
