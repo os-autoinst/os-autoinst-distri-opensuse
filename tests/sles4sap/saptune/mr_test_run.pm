@@ -74,6 +74,8 @@ our $results_file = '/var/results.txt';
 our $result;
 # Test result flag for test module
 our $result_module;
+# Global var for not ignored failures
+our $not_ignored;
 
 =head1 METHODS
 
@@ -131,24 +133,25 @@ sub test_bsc1152598 {
     my $note2_content = '"[version]\n# foobar-NOTE=foobar CATEGORY=foobar VERSION=0 DATE=foobar NAME=\" foobar \"\n[block]\nIO_SCHEDULER=foobar, noop, none\n"';
     $note2_content = '"[version]\n#VERSION=0\nDATE=foobar\nDESCRIPTION=\" foobar \"\nREFERENCES=https://me.sap.com/notes/1234\n[block]\nIO_SCHEDULER=foobar, noop, none\n"' if is_sle('>=16');
 
-    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
-    $result = "ok";
-    $self->result("$result");
-    record_info "bsc1152598";
+    my $SLE = is_sle('>=16') ? 'SLE16' : is_sle('>=15') ? 'SLE15' : 'SLE12';
+    $result = 'ok';
+    $not_ignored = '';
+    $self->result($result);
+    record_info 'bsc1152598';
 
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1");
     $self->wrap_assert_script_run_with_newlines($note1_content, $custom_note_path);
-    $self->wrap_script_run("saptune note apply scheduler-test");
+    $self->wrap_script_run('saptune note apply scheduler-test');
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2");
-    $self->wrap_script_run("saptune revert all");
+    $self->wrap_script_run('saptune revert all');
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_1");
     $self->wrap_assert_script_run_with_newlines($note2_content, $custom_note_path);
     $self->wrap_script_run('saptune note apply scheduler-test');
     $self->wrap_script_run("grep -E -q '\[(noop|none)\]' /sys/block/sda/queue/scheduler");
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2");
-    $self->wrap_script_run("saptune revert all");
+    $self->wrap_script_run('saptune revert all');
 
-    assert_script_run "echo Test test_bsc1152598: $result >> $log_file";
+    assert_script_run sprintf('echo Test test_bsc1152598: %s%s >> %s', $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result("$result");
 }
 
@@ -167,14 +170,15 @@ sub test_delete {
     my $note_content = "'[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"'";
     $note_content = "'[version]\nVERSION=0\nDATE=01.01.1971\nDESCRIPTION=testnote\nREFERENCES=https://me.sap.com/notes/1234\n'" if is_sle('>=16');
 
-    my $dir = "Pattern/testpattern_saptune-delete+rename";
-    my $note = "2161991";
+    my $dir = 'Pattern/testpattern_saptune-delete+rename';
+    my $note = '2161991';
 
     ### Deleting a shipped Note (without override/with override + not applied/applied)
-    $result = "ok";
-    $self->result("$result");
+    $result = 'ok';
+    $not_ignored = '';
+    $self->result($result);
     record_info "delete note $note";
-    $self->wrap_script_run("rm -f /etc/saptune/extra/* /etc/saptune/override/*");
+    $self->wrap_script_run('rm -f /etc/saptune/extra/* /etc/saptune/override/*');
 
     # (not-applied, no override)
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#1_1");
@@ -203,51 +207,51 @@ sub test_delete {
 
     ### Deleting a created Note (without override/with override + not applied/applied)
 
-    $self->wrap_script_run("rm -f /etc/saptune/extra/* /etc/saptune/override/*");
+    $self->wrap_script_run('rm -f /etc/saptune/extra/* /etc/saptune/override/*');
 
     # (applied, no override)
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_1");
     $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/extra/testnote.conf');
-    $self->wrap_script_run("saptune note apply testnote");
+    $self->wrap_script_run('saptune note apply testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_2");
-    $self->wrap_script_run("! saptune note delete testnote");
+    $self->wrap_script_run('! saptune note delete testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_2");
 
     # (applied, override)
     $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/override/testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_3");
-    $self->wrap_script_run("! saptune note delete testnote");
+    $self->wrap_script_run('! saptune note delete testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_3");
 
     # (not applied, override)
-    $self->wrap_script_run("saptune note revert testnote");
+    $self->wrap_script_run('saptune note revert testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_4");
-    $self->wrap_script_run("yes n | saptune note delete testnote");
+    $self->wrap_script_run('yes n | saptune note delete testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_4");
-    $self->wrap_script_run("yes | saptune note delete testnote");
+    $self->wrap_script_run('yes | saptune note delete testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_1");
 
     # (not-applied, no override)
     $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/extra/testnote.conf');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_5");
-    $self->wrap_script_run("yes n | saptune note delete testnote");
+    $self->wrap_script_run('yes n | saptune note delete testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_5");
-    $self->wrap_script_run("yes | saptune note delete testnote");
+    $self->wrap_script_run('yes | saptune note delete testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#2_1");
 
     ### Deleting a non-existent Note
 
-    $self->wrap_script_run("rm -f /etc/saptune/extra/* /etc/saptune/override/*");
+    $self->wrap_script_run('rm -f /etc/saptune/extra/* /etc/saptune/override/*');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#3_1");
-    $self->wrap_script_run("! saptune note delete 999999");
+    $self->wrap_script_run('! saptune note delete 999999');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-delete#3_1");
 
     ### Renaming a shipped Note (without override/with override + not applied/applied)
 
-    $self->wrap_script_run("rm -f /etc/saptune/extra/* /etc/saptune/override/*");
+    $self->wrap_script_run('rm -f /etc/saptune/extra/* /etc/saptune/override/*');
 
-    assert_script_run "echo Test test_delete_$note: $result >> $log_file";
-    $self->result("$result");
+    assert_script_run sprintf('echo Test test_delete_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    $self->result($result);
 }
 
 =head2 test_rename
@@ -263,17 +267,18 @@ the appropiarte B<saptune-rename> test patterns.
 sub test_rename {
     my ($self) = @_;
 
-    my $dir = "Pattern/testpattern_saptune-delete+rename";
-    my $note = "2161991";
+    my $dir = 'Pattern/testpattern_saptune-delete+rename';
+    my $note = '2161991';
     # Note's header format is different in SLES 16
     my $note_content = "'[version]\n# SAP-NOTE=testnote CATEGORY=test VERSION=0 DATE=01.01.1971 NAME=\"testnote\"'";
     $note_content = "'[version]\nVERSION=0\nDATE=01.01.1971\nDESCRIPTION=testnote\nREFERENCES=https://me.sap.com/notes/1234\n'" if is_sle('>=16');
 
     ### Renaming a shipped Note (without override/with override + not applied/applied)
-    $result = "ok";
+    $result = 'ok';
+    $not_ignored = '';
     $self->result("$result");
     record_info "rename note $note";
-    $self->wrap_script_run("rm -f /etc/saptune/extra/* /etc/saptune/override/*");
+    $self->wrap_script_run('rm -f /etc/saptune/extra/* /etc/saptune/override/*');
 
     # (not-applied, no override)
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#1_1");
@@ -300,40 +305,40 @@ sub test_rename {
 
     ### Renaming a created Note (without override/with override + not applied/applied)
 
-    $self->wrap_script_run("rm -f /etc/saptune/extra/* /etc/saptune/override/*");
+    $self->wrap_script_run('rm -f /etc/saptune/extra/* /etc/saptune/override/*');
 
     # (applied, no override)
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_1");
     $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/extra/testnote.conf');
-    $self->wrap_script_run("saptune note apply testnote");
-    $self->wrap_script_run("! saptune note rename testnote newnote");
+    $self->wrap_script_run('saptune note apply testnote');
+    $self->wrap_script_run('! saptune note rename testnote newnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_2");
 
     # (applied, override)
     $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/override/testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_3");
-    $self->wrap_script_run("! saptune note rename testnote newnote");
+    $self->wrap_script_run('! saptune note rename testnote newnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_3");
 
     # (not applied, override)
-    $self->wrap_script_run("saptune note revert testnote");
+    $self->wrap_script_run('saptune note revert testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_4");
-    $self->wrap_script_run("yes n | saptune note rename testnote newnote");
+    $self->wrap_script_run('yes n | saptune note rename testnote newnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_4");
-    $self->wrap_script_run("yes | saptune note rename testnote newnote");
+    $self->wrap_script_run('yes | saptune note rename testnote newnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_5");
 
     # (not-applied, no override)
-    $self->wrap_script_run("rm /etc/saptune/override/newnote");
+    $self->wrap_script_run('rm /etc/saptune/override/newnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_6");
-    $self->wrap_script_run("yes n | saptune note rename newnote testnote");
+    $self->wrap_script_run('yes n | saptune note rename newnote testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_6");
-    $self->wrap_script_run("yes | saptune note rename newnote testnote");
+    $self->wrap_script_run('yes | saptune note rename newnote testnote');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#2_7");
 
     ### Renaming a created Note to an existing note (not applied)
 
-    $self->wrap_script_run("rm -f /etc/saptune/extra/* /etc/saptune/override/*");
+    $self->wrap_script_run('rm -f /etc/saptune/extra/* /etc/saptune/override/*');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#3_1");
     $self->wrap_assert_script_run_with_newlines($note_content, '/etc/saptune/extra/testnote.conf');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#3_2");
@@ -342,13 +347,13 @@ sub test_rename {
 
     ### Renaming a non-existent Note
 
-    $self->wrap_script_run("rm -f /etc/saptune/extra/* /etc/saptune/override/*");
+    $self->wrap_script_run('rm -f /etc/saptune/extra/* /etc/saptune/override/*');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#4_1");
-    $self->wrap_script_run("! saptune note rename 999999 999999");
+    $self->wrap_script_run('! saptune note rename 999999 999999');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#4_1");
 
-    assert_script_run "echo Test test_rename_$note: $result >> $log_file";
-    $self->result("$result");
+    assert_script_run sprintf('echo Test test_rename_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    $self->result($result);
 }
 
 =head2 test_note
@@ -368,11 +373,12 @@ Finally, revert the note with C<saptune note revert $note> and reboot the SUT.
 sub test_note {
     my ($self, $note) = @_;
 
-    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
-    my $extra = ($note eq "1771258") ? "-1" : "";
+    my $SLE = is_sle('>=16') ? 'SLE16' : is_sle('>=15') ? 'SLE15' : 'SLE12';
+    my $extra = ($note eq '1771258') ? '-1' : '';
 
-    $result = "ok";
-    $self->result("$result");
+    $result = 'ok';
+    $not_ignored = '';
+    $self->result($result);
     record_info "note $note";
     $self->workaround_for_bsc1260865() if is_sle('>=16');
 
@@ -390,7 +396,7 @@ sub test_note {
     $self->wrap_script_run("saptune note revert $note");
     $self->reboot_wait;
 
-    assert_script_run "echo Test test_note_$note: $result >> $log_file";
+    assert_script_run sprintf('echo Test test_note_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result("$result");
 }
 
@@ -413,18 +419,19 @@ and reboot the SUT again.
 sub test_override {
     my ($self, $note) = @_;
 
-    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
+    my $SLE = is_sle('>=16') ? 'SLE16' : is_sle('>=15') ? 'SLE15' : 'SLE12';
     # With notes 1557506 & 1771258 we have to test 2 override files
     my @overrides = ($note =~ m/^(1557506|1771258)$/) ? ("${note}-1", "${note}-2") : (${note});
 
-    $result = "ok";
-    $self->result("$result");
+    $result = 'ok';
+    $not_ignored = '';
+    $self->result($result);
     record_info "override $note";
 
-    if ($note eq "1680803") {
+    if ($note eq '1680803') {
         # Ignore the tests for the scheduler if we can't set "none" on /dev/sr0
-        assert_script_run("if [ -f /sys/block/sr0/queue/scheduler ] ; then "
-              . "grep -q none /sys/block/sr0/queue/scheduler || "
+        assert_script_run('if [ -f /sys/block/sr0/queue/scheduler ] ; then '
+              . 'grep -q none /sys/block/sr0/queue/scheduler || '
               . "sed -i '/:scripts\\/nr_requests/s/^/#/' Pattern/$SLE/testpattern_note_${note}_a_override ; fi");
     }
     foreach my $override (@overrides) {
@@ -449,8 +456,8 @@ sub test_override {
         $self->reboot_wait;
     }
 
-    assert_script_run "echo Test test_override_$note: $result >> $log_file";
-    $self->result("$result");
+    assert_script_run sprintf('echo Test test_override_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    $self->result($result);
 }
 
 =head2 test_solution
@@ -477,7 +484,8 @@ sub test_solution {
 
     my $SLE = is_sle('>=16') ? 'SLE16' : is_sle('>=15') ? 'SLE15' : 'SLE12';
     $result = 'ok';
-    $self->result("$result");
+    $not_ignored = '';
+    $self->result($result);
     record_info "solution $solution";
     $self->workaround_for_bsc1260865() if is_sle('>=16');
 
@@ -497,8 +505,8 @@ sub test_solution {
     $self->wrap_script_run("saptune solution revert $solution");
     $self->reboot_wait;
 
-    assert_script_run "echo Test test_solution_$solution: $result >> $log_file";
-    $self->result("$result");
+    assert_script_run sprintf('echo Test test_solution_%s: %s%s >> %s', $solution, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    $self->result($result);
 }
 
 =head2 test_notes
@@ -567,24 +575,25 @@ Finally, revert all notes, and do another pattern test.
 sub test_ppc64le {
     my ($self) = @_;
 
-    die "This test cannot be run on QEMU" if (is_qemu);
-    my $SLE = is_sle(">=16") ? "SLE16" : is_sle(">=15") ? "SLE15" : "SLE12";
-    record_info "ppc64le";
-    $result = "ok";
-    $self->result("$result");
+    die 'This test cannot be run on QEMU' if (is_qemu);
+    my $SLE = is_sle('>=16') ? 'SLE16' : is_sle('>=15') ? 'SLE15' : 'SLE12';
+    record_info 'ppc64le';
+    $result = 'ok';
+    $not_ignored = '';
+    $self->result($result);
 
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Power_1");
     # Apply all notes except 1805750
     foreach my $note (get_notes()) {
-        next if ($note eq "1805750");
+        next if ($note eq '1805750');
         $self->wrap_script_run("saptune note apply $note");
     }
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Power_2");
-    $self->wrap_script_run("saptune revert all");
+    $self->wrap_script_run('saptune revert all');
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Power_3");
 
-    assert_script_run "echo Test test_ppc64le: $result >> $log_file";
-    $self->result("$result");
+    assert_script_run sprintf('echo Test test_ppc64le: %s%s >> %s', $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    $self->result($result);
 }
 
 =head2 test_x86_64
@@ -615,15 +624,16 @@ sub test_x86_64 {
         $note = '2205917';
     }
 
-    record_info "x86_64";
-    $result = "ok";
-    $self->result("$result");
+    record_info 'x86_64';
+    $result = 'ok';
+    $not_ignored = '';
+    $self->result($result);
 
     # automatically applied SAP_Base solution on SLE 16.0 for SAP
     # we need to revert it first
-    $self->wrap_script_run("saptune revert all") if (is_sle('>=16'));
+    $self->wrap_script_run('saptune revert all') if (is_sle('>=16'));
     # energy_perf_bias=6
-    $self->wrap_script_run("cpupower set -b 6");
+    $self->wrap_script_run('cpupower set -b 6');
     # governor=powersave
     $self->wrap_script_run('cpupower frequency-set -g powersave');
     # force_latency=max
@@ -645,8 +655,8 @@ sub test_x86_64 {
     $self->wrap_script_run("saptune note revert $note");
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1");
 
-    assert_script_run "echo Test test_x86_64_$note: $result >> $log_file";
-    $self->result("$result");
+    assert_script_run sprintf('echo Test test_x86_64_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    $self->result($result);
 }
 
 =head2 wrapup_log_file
@@ -667,12 +677,14 @@ sub wrapup_log_file {
         my %aux = ();
         next unless ($line =~ /Test ([^:]+)/);
         $aux{name} = $1;
-        $line =~ /Test .*: ([a-zA-z]+)/;
+        $line =~ /Test .*: ([a-zA-Z]+)/;
         if ($1 eq 'ok') {
             $aux{outcome} = 'passed';
         }
         elsif ($1 eq 'fail') {
             $aux{outcome} = 'failed';
+            $line =~ /Test .*: [a-zA-Z]+:(.+)/;
+            $aux{test} = { log => join("\n", split(/:/, $1)) } if ($1);
         }
         elsif ($1 eq 'softfail') {
             $aux{outcome} = 'softfailed';
@@ -781,7 +793,8 @@ sub wrap_script_run {
 
         if (@real_failures) {
             $result = 'fail';
-            record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', join("\n", @real_failures));
+            $not_ignored = join(':', @real_failures);
+            record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', join("\n", @real_failures), result => 'fail');
         }
 
         if (is_public_cloud() && ($result eq 'fail')) {
@@ -801,7 +814,7 @@ sub wrap_script_run {
         }
 
         $result_module = $result;
-        $self->result("$result");
+        $self->result($result);
     }
 }
 
