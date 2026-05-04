@@ -6,6 +6,7 @@ vars:
     DESKTOP: textmode
     IBTESTS: 1
     IBTEST_ROLE: IBTEST_MASTER
+    LTP_BAREMETAL: '1'
     MLX_PROTOCOL: 1
 schedule:
     - kernel/ibtests_barriers
@@ -13,6 +14,7 @@ schedule:
     - installation/agama_reboot
     - installation/grub_test
     - installation/first_boot
+    - kernel/update_kernel
     - kernel/ibtests_prepare
     - installation/handle_reboot
     - kernel/ibtests
