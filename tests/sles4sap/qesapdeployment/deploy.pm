@@ -103,9 +103,11 @@ sub run {
         '/tmp/results/',
         '-type', 'f',
         '-iname', "*.xml");
-    for my $log (split(/\n/, script_output($find_cmd))) {
-        parse_extra_log("XUnit", $log);
-        enter_cmd("rm $log");
+    if ($ret[0]) {
+        for my $log (split(/\n/, script_output($find_cmd))) {
+            parse_extra_log("XUnit", $log);
+            enter_cmd("rm $log");
+        }
     }
     qesap_ansible_softfail(logfile => $ret[1]);
     if ($ret[0]) {

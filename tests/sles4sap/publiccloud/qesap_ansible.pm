@@ -130,8 +130,10 @@ sub run {
             '[', '$?', '-ne', '124', ']',
             '||', 'echo', '"Command find timed out"');
 
-        for my $log (split(/\n/, script_output($find_cmd))) {
-            parse_extra_log("XUnit", $log);
+        if ($ret[0]) {
+            for my $log (split(/\n/, script_output($find_cmd))) {
+                parse_extra_log("XUnit", $log);
+            }
         }
         qesap_ansible_softfail(logfile => $ret[1]);
 
