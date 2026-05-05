@@ -1008,6 +1008,20 @@ sub open_overview {
     assert_screen 'tracker-mainmenu-launched';
 }
 
+sub libreoffice_handle_welcome_popup {
+    if (check_screen('popup-welcome-to-libreoffice')) {
+        send_key "alt-f4";
+    }
+}
+
+sub libreoffice_handle_tip_of_the_day {
+    if (check_screen([qw(ooffice-tip-of-the-day oomath-tip-of-the-day)], 5)) {
+        # Unselect "_S_how tips on startup", select "_O_k"
+        send_key "alt-s";
+        send_key "alt-o";
+    }
+}
+
 # Start one of the libreoffice components, close any first-run dialogs
 sub libreoffice_start_program {
     my ($self, $program, %args) = @_;
@@ -1034,14 +1048,8 @@ sub libreoffice_start_program {
         x11_start_program($program, %start_program_args);
     }
 
-    if (check_screen('popup-welcome-to-libreoffice')) {
-        send_key "alt-f4";
-    }
-    if (check_screen([qw(ooffice-tip-of-the-day oomath-tip-of-the-day)], 5)) {
-        # Unselect "_S_how tips on startup", select "_O_k"
-        send_key "alt-s";
-        send_key "alt-o";
-    }
+    libreoffice_handle_welcome_popup;
+    libreoffice_handle_tip_of_the_day;
 }
 
 sub start_gnome_tweak_tool {
