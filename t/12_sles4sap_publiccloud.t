@@ -282,7 +282,7 @@ subtest "[stop_hana]" => sub {
     $self->{my_instance} = $mock_pc;
 
     set_var('INSTANCE_SID', 'INSTANCE_SIDTEST');
-    $self->stop_hana();
+    $self->stop_hana(online_string => 'online');
     set_var('INSTANCE_SID', undef);
     note("\n  C -->  " . join("\n  C -->  ", @calls));
 
@@ -311,7 +311,7 @@ subtest "[stop_hana] crash" => sub {
     $self->{my_instance} = $mock_pc;
     $self->{my_instance}->{public_ip} = '1.2.3.4';
 
-    $self->stop_hana(method => 'crash');
+    $self->stop_hana(method => 'crash', online_string => 'online');
     note("\n  C -->  " . join("\n  C -->  ", @calls));
     ok((any { qr/echo b.*sysrq-trigger/ } @calls), 'function calls HDB stop');
 };
@@ -340,7 +340,7 @@ subtest "[stop_hana] crash wait_hana_node_up running" => sub {
     $self->{my_instance} = $mock_pc;
     $self->{my_instance}->{public_ip} = '1.2.3.4';
 
-    $self->stop_hana(method => 'crash');
+    $self->stop_hana(method => 'crash', online_string => 'online');
     note("\n  C -->  " . join("\n  C -->  ", @calls));
     # Not very important test as we are checking the same within the ssh_script_output mock
     ok((any { qr/systemctl is-system-running/ } @calls), 'function calls systemctl at least one');
@@ -370,9 +370,15 @@ subtest "[stop_hana] crash wait_hana_node_up degradated" => sub {
     $self->{my_instance} = $mock_pc;
     $self->{my_instance}->{public_ip} = '1.2.3.4';
 
-    dies_ok { $self->stop_hana(method => 'crash') } 'Test expected to die within wait_hana_node_up';
+    dies_ok { $self->stop_hana(method => 'crash', online_string => 'online') } 'Test expected to die within wait_hana_node_up';
     note("\n  C -->  " . join("\n  C -->  ", @calls));
     ok((any { qr/systemctl --failed/ } @calls), 'function calls systemctl --failed to figure out which service is failed');
+};
+
+subtest "[stop_hana] missing online_string croaks" => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    dies_ok { $self->stop_hana() } 'Missing online_string argument causes croak';
 };
 
 subtest "[setup_sbd_delay_publiccloud]" => sub {
@@ -1193,12 +1199,11 @@ subtest '[wait_for_sync] all pass' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $stability_counter = 0;
-    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
     # return of get_hana_topology does no matter so much as we stub the check_hana_topology
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return; });
     $sles4sap_publiccloud->redefine(check_hana_topology => sub { $stability_counter++; return 1; });
     my $self = sles4sap::publiccloud->new();
-    $self->wait_for_sync();
+    $self->wait_for_sync(online_string => 'online');
     ok($stability_counter >= 5, "stability_counter : $stability_counter should be greater or equal than 5");
 };
 
@@ -1206,13 +1211,12 @@ subtest '[wait_for_sync] never ok' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $stability_counter = 0;
-    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
     # return of get_hana_topology does no matter so much as we stub the check_hana_topology
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return; });
     $sles4sap_publiccloud->redefine(check_hana_topology => sub { $stability_counter++; return 0; });
     $sles4sap_publiccloud->redefine(run_cmd => sub { return "Marko Ramius"; });
     my $self = sles4sap::publiccloud->new();
-    dies_ok { $self->wait_for_sync() };
+    dies_ok { $self->wait_for_sync(online_string => 'online') };
 };
 
 subtest '[wait_for_sync] one not ok reset the counter' => sub {
@@ -1221,13 +1225,12 @@ subtest '[wait_for_sync] one not ok reset the counter' => sub {
     my $stability_counter = 0;
     # return of get_hana_topology does no matter so much as we stub the check_hana_topology
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return; });
-    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
     # The trick here is to return a single cluster failure at run 4, the internal score variable in
     # tested code will start counting back from zero
     # so in total the tested code should look 4 + 5 = 9 times.
     $sles4sap_publiccloud->redefine(check_hana_topology => sub { $stability_counter++; return $stability_counter == 4 ? 0 : 1; });
     my $self = sles4sap::publiccloud->new();
-    $self->wait_for_sync();
+    $self->wait_for_sync(online_string => 'online');
     ok($stability_counter >= 9, "stability_counter : $stability_counter should be more than 9.");
 };
 
@@ -1263,11 +1266,13 @@ subtest '[wait_for_sync] all pass with Pacemaker >= 2.1.7' => sub {
     # Hosts/vmhana01/node_state="1712205541"
     # ...
     # Hosts/vmhana02/node_state="1712205541"
+    #
+    # With Pacemaker >= 2.1.7 the caller computes online_string => '4' and passes it in.
+    # This test verifies that wait_for_sync forwards it correctly to check_hana_topology.
 
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $stability_counter = 0;
-    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '2.1.9'; });
     # return of get_hana_topology does no matter so much as we stub the check_hana_topology
     $sles4sap_publiccloud->redefine(get_hana_topology => sub { return 'Bart Mancuso'; });
     my $node_state_match;
@@ -1279,14 +1284,19 @@ subtest '[wait_for_sync] all pass with Pacemaker >= 2.1.7' => sub {
             $stability_counter++;
             return 1; });
     my $self = sles4sap::publiccloud->new();
-    $self->wait_for_sync();
-    ok($node_state_match =~ /[1-9][0-9]+/ or $node_state_match eq '4', 'node_state_match : ' . $node_state_match . ' is expected to be 4 or an integer');
+    $self->wait_for_sync(online_string => '4');
+    ok($node_state_match eq '4', 'node_state_match : ' . $node_state_match . ' is expected to be 4');
+};
+
+subtest '[wait_for_sync] missing online_string croaks' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    dies_ok { $self->wait_for_sync() } 'Missing online_string argument causes croak';
 };
 
 subtest '[wait_for_cluster]' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $sles4sap_publiccloud->redefine(pacemaker_version => sub { return '1.2.3'; });
     my @calls;
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
@@ -1307,13 +1317,19 @@ subtest '[wait_for_cluster]' => sub {
 
     my $self = sles4sap::publiccloud->new();
 
-    $self->wait_for_cluster();
+    $self->wait_for_cluster(online_string => 'online');
 
     note("\n  C -->  " . join("\n  C -->  ", @calls));
     note("\n  node_state_matches -->  " . join("\n  -->  ", @node_state_matches));
 
     ok((any { qr/crm_mon -r -R -n -N -1/ } @calls), 'function calls crm_mon -r -R -n -N -1');
     ok((any { qr/online/ } @node_state_matches), 'Pacemaker older than 2.1.7 match with online');
+};
+
+subtest '[wait_for_cluster] missing online_string croaks' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my $self = sles4sap::publiccloud->new();
+    dies_ok { $self->wait_for_cluster() } 'Missing online_string argument causes croak';
 };
 
 subtest '[saphanasr_showAttr_version]' => sub {
@@ -1324,6 +1340,22 @@ subtest '[saphanasr_showAttr_version]' => sub {
 
     my $ret = $self->saphanasr_showAttr_version();
     ok $ret eq '1.2.3.4';
+};
+
+subtest '[get_online_string] old pacemaker returns online' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return 'Pacemaker 2.1.6-3.el8'; });
+    my $self = sles4sap::publiccloud->new();
+    is($self->get_online_string(), 'online', 'pacemaker < 2.1.7 returns online');
+};
+
+subtest '[get_online_string] new pacemaker returns 4' => sub {
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return 'Pacemaker 2.1.7-1.el8'; });
+    my $self = sles4sap::publiccloud->new();
+    is($self->get_online_string(), '4', 'pacemaker >= 2.1.7 returns 4');
 };
 
 subtest '[create_hana_vars_section]' => sub {

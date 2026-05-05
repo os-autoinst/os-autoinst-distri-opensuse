@@ -87,8 +87,11 @@ sub run {
         $sbd_delay = $self->sbd_delay_formula();
     }
 
+    # Cache the online_string to avoid repeated SSH calls to pacemaker_version()
+    my $online_string = $self->get_online_string();
+
     # Stop/kill/crash HANA DB and wait till SSH is again available with pacemaker running.
-    $self->stop_hana(method => $takeover_action);
+    $self->stop_hana(method => $takeover_action, online_string => $online_string);
 
     # SBD delay is active only after reboot
     if ($takeover_action eq 'crash' || $takeover_action eq 'stop') {
@@ -108,7 +111,7 @@ sub run {
     record_info(ucfirst($site_name) . ' start');
 
     $self->cleanup_resource();
-    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
+    $self->wait_for_cluster(wait_time => 60, max_retries => 10, online_string => $online_string);
     die "Required hana resource is NOT running on $self->{my_instance}, aborting" unless $self->is_hana_resource_running();
     $self->display_full_status();
     if ($self->get_promoted_hostname() eq $target_site->{instance_id}) {

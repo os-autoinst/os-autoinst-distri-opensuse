@@ -66,7 +66,7 @@ our @EXPORT = qw(
   is_hana_database_online
   get_hana_database_status
   is_primary_node_online
-  pacemaker_version
+  get_online_string
   saphanasr_showAttr_version
   get_hana_site_names
   wait_for_cluster
@@ -432,11 +432,16 @@ sub wait_hana_node_up {
 
 =item B<timeout> - only used for stop and kill
 
+=item B<online_string> - mandatory string used to match node state in topology output;
+'4' for pacemaker >= 2.1.7 (lss score), 'online' for older versions.
+Use C<$self->get_online_string()> to compute this value.
+
 =back
 =cut
 
 sub stop_hana {
     my ($self, %args) = @_;
+    croak('Argument <online_string> missing') unless defined $args{online_string};
     $args{method} //= 'stop';
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my %commands = (
@@ -451,7 +456,7 @@ sub stop_hana {
     my $cmd = $commands{$args{method}};
 
     # Wait for data sync before stopping DB
-    $self->wait_for_sync();
+    $self->wait_for_sync(online_string => $args{online_string});
 
     record_info('Stopping HANA', "CMD:$cmd");
     if ($args{method} eq 'crash') {
@@ -738,25 +743,27 @@ sub get_promoted_instance {
 
 =item B<timeout> - timeout for waiting sync state
 
+=item B<online_string> - mandatory string used to match node state in topology output;
+'4' for pacemaker >= 2.1.7 (lss score), 'online' for older versions.
+Use C<$self->get_online_string()> to compute this value.
+
 =back
 =cut
 
 sub wait_for_sync {
     my ($self, %args) = @_;
+    croak('Argument <online_string> missing') unless defined $args{online_string};
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 900);
-    # If pacemaker >= 2.1.7 then 'online_str' is now based on 'lss' score where 4 means OK
-    # Otherwise it's set to the legacy 'online'
-    my $online_str = check_version('>=2.1.7', $self->pacemaker_version()) ? '4' : 'online';
     my $output_pass = 0;
 
-    record_info('Wait for sync', "Waiting for data sync between nodes. online_str=$online_str timeout=$timeout");
+    record_info('Wait for sync', "Waiting for data sync between nodes. online_str=$args{online_string} timeout=$timeout");
 
     # Check sync status periodically until OK for 5 times in a row or timeout
     my $start_time = time;
     while (time - $start_time < $timeout) {
         # call SAPHanaSR-showAttr to get current topology, validate the output, calculate the score.
         # Not OK cluster result in score reset to zero
-        $output_pass = check_hana_topology(input => $self->get_hana_topology(), node_state_match => $online_str) ? $output_pass + 1 : 0;
+        $output_pass = check_hana_topology(input => $self->get_hana_topology(), node_state_match => $args{online_string}) ? $output_pass + 1 : 0;
         last if $output_pass == 5;
         sleep 30;
     }
@@ -1394,6 +1401,21 @@ sub pacemaker_version {
     return '';
 }
 
+=head2 get_online_string
+
+    $self->get_online_string()
+
+    Returns the string used to match the online/active node state in C<check_hana_topology>.
+    For pacemaker >= 2.1.7 this is C<'4'> (lss score); for older versions it is C<'online'>.
+    Use this helper wherever C<online_string> must be computed from the cluster's pacemaker version.
+
+=cut
+
+sub get_online_string {
+    my ($self) = @_;
+    return check_version('>=2.1.7', $self->pacemaker_version(retries => 6, sleep_time => 10)) ? '4' : 'online';
+}
+
 =head2 saphanasr_showAttr_version
 
     Returns the SAPHanaSR-showattr version
@@ -1424,20 +1446,23 @@ sub saphanasr_showAttr_version {
 
 =item B<max_retries> - maximum number of retries, default 7
 
+=item B<online_string> - mandatory string used to match node state in topology output;
+'4' for pacemaker >= 2.1.7 (lss score), 'online' for older versions.
+Use C<$self->get_online_string()> to compute this value.
+
 =back
 =cut
 
 sub wait_for_cluster {
     my ($self, %args) = @_;
-
+    croak('Argument <online_string> missing') unless defined $args{online_string};
     $args{wait_time} //= 10;
     $args{max_retries} //= 7;
-    my $online_str = check_version('>=2.1.7', $self->pacemaker_version(retries => 6, sleep_time => 10)) ? '4' : 'online';
 
     while ($args{max_retries} > 0) {
         my $crm_output = $self->run_cmd(cmd => $crm_mon_cmd, quiet => 1);
 
-        my $hanasr_ready = check_hana_topology(input => $self->get_hana_topology(), node_state_match => $online_str);
+        my $hanasr_ready = check_hana_topology(input => $self->get_hana_topology(), node_state_match => $args{online_string});
         my $crm_ok = check_crm_output(input => $crm_output);
 
         if ($hanasr_ready && $crm_ok) {

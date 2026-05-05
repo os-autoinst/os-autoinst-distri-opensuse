@@ -63,6 +63,8 @@ sub run {
 
     # Check connectivity to all instances and status of the cluster in case of HA deployment
     my @hana_sites = get_hana_site_names();
+    # Cache the online_string to avoid repeated SSH calls to pacemaker_version() (version is cluster-wide constant)
+    my $online_string;
     foreach my $instance (@{$self->{instances}}) {
         $self->{my_instance} = $instance;
         my $instance_id = $instance->{'instance_id'};
@@ -79,7 +81,8 @@ sub run {
         # Output the version of tool 'SAPHanaSR-showAttr'
         record_info('SAPHanaSR version number', $self->saphanasr_showAttr_version());
 
-        $self->wait_for_sync();
+        $online_string //= $self->get_online_string();
+        $self->wait_for_sync(online_string => $online_string);
 
         # Define initial state for both sites
         # Site A is always PROMOTED (Master node) after deployment
@@ -104,7 +107,7 @@ sub run {
         $self->{my_instance} = $instance;
         last if ($instance->{instance_id} =~ m/vmhana/);
     }
-    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
+    $self->wait_for_cluster(wait_time => 60, max_retries => 10, online_string => $online_string);
 
     record_info(
         'Instances:', "Detected HANA instances:

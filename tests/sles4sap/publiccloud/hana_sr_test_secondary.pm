@@ -93,7 +93,10 @@ sub run {
     # Calculate SBD delay sleep time
     $sbd_delay = $self->sbd_delay_formula if $db_action eq 'crash';
 
-    $self->stop_hana(method => $db_action);
+    # Cache the online_string to avoid repeated SSH calls to pacemaker_version()
+    my $online_string = $self->get_online_string();
+
+    $self->stop_hana(method => $db_action, online_string => $online_string);
 
     # SBD delay is active only after reboot
     if ($db_action eq 'crash' || $db_action eq 'stop') {
@@ -117,7 +120,7 @@ sub run {
 
     # Cleanup the resource and check cluster
     $self->cleanup_resource();
-    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
+    $self->wait_for_cluster(wait_time => 60, max_retries => 10, online_string => $online_string);
     $self->display_full_status();
 
     record_info("Done", "Test finished");
