@@ -838,25 +838,23 @@ sub check_cluster_state {
         script_run $verify_cmd;
     }
     else {
-        if (is_sle('>16')) {
-            # Need both retval and output, so use utils::cmd_run
-            # Also redirect stderr to stdout to get the actual command output
-            my ($ret, $out) = cmd_run("$verify_cmd 2>&1");
-            return if (defined $ret && $ret == 0);
-            if ($ret == 78) {
-                my $errors = 0;
-                foreach my $line (split(/\n/, $out)) {
-                    record_soft_failure "jsc#PED-14519 - $verify_cmd shows deprecation warnings"
-                      if ($line =~ /Support for legacy name .stonith.+is deprecated/);
-                    next if ($line =~ /^warning:/);
-                    next if ($line =~ /^Configuration may need attention/);
-                    ++$errors;
-                }
-                return unless ($errors);
+        # Need both retval and output, so use utils::cmd_run
+        # Also redirect stderr to stdout to get the actual command output
+        my ($ret, $out) = cmd_run("$verify_cmd 2>&1");
+        return if (defined $ret && $ret == 0);
+        if ($ret == 78) {
+            my $errors = 0;
+            foreach my $line (split(/\n/, $out)) {
+                record_soft_failure "jsc#PED-14519 - $verify_cmd shows deprecation warnings"
+                  if ($line =~ /Support for legacy name .stonith.+is deprecated/);
+                next if ($line =~ /^[Ww]arning/);
+                next if ($line =~ /^Configuration may need attention/);
+                ++$errors;
             }
-            die "$verify_cmd failed. return value=[$ret]; output=[$out]";
+            return unless ($errors);
         }
-        $cmd_sub->($verify_cmd);
+        die "$verify_cmd failed. return value=[$ret]; output=[$out]"
+          unless ($args{proceed_on_failure});
     }
 }
 
