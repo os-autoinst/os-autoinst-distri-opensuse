@@ -5,6 +5,8 @@ FROM baseimage_var
 RUN zypper --gpg-auto-import-keys ref
 RUN zypper -n in apache2 && zypper clean -a
 RUN echo 'ServerName AppacheInContainer' >> /etc/apache2/httpd.conf
+# workaround https://suse.slack.com/archives/C02CGKBCGT1/p1778050948067779
+RUN mkdir -p /var/log/apache2
 
 # set a directory for the app
 WORKDIR /srv/www/htdocs/
