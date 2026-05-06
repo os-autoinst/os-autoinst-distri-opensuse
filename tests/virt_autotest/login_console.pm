@@ -11,9 +11,9 @@ use Mojo::Base 'y2_installbase';
 use File::Basename;
 use testapi;
 use Utils::Architectures;
-use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout);
+use Utils::Backends qw(use_ssh_serial_console is_remote_backend set_ssh_console_timeout is_pvm);
 use version_utils qw(is_sle is_tumbleweed is_sle_micro is_agama is_transactional);
-use utils qw(is_ipxe_boot is_disk_image);
+use utils qw(is_ipxe_boot is_disk_image reconnect_mgmt_console);
 use ipmi_backend_utils;
 use virt_autotest::utils qw(is_xen_host is_kvm_host check_port_state check_host_health is_monolithic_libvirtd double_check_xen_role check_kvm_modules);
 use IPC::Run;
@@ -81,17 +81,7 @@ sub login_to_console {
         return;
     }
 
-    reset_consoles;
-    reset_consoles;
-    if (is_remote_backend && is_aarch64 && get_var('IPMI_HW') eq 'thunderx') {
-        select_console 'sol', await_console => 1;
-        send_key 'ret';
-        ipmi_backend_utils::ipmitool 'chassis power reset';
-    }
-    else {
-        select_console 'sol', await_console => 0;
-    }
-
+    reset_and_select_console();
     if (check_var('PERF_KERNEL', '1') or check_var('CPU_BUGS', '1') or check_var('VT_PERF', '1')) {
         if (get_var("XEN") && check_var('CPU_BUGS', '1')) {
             assert_screen([qw(pxe-qa-net-mitigation qa-net-selection)], 90);
@@ -234,6 +224,26 @@ sub login_to_console {
     check_kvm_modules if (is_x86_64 and is_kvm_host and !get_var('REBOOT_AFTER_UPGRADE') and !(is_sle('>=16.1') and is_transactional and is_disk_image));
 }
 
+# Reset and select backend console to ensure good connectivity. User can pass in
+# on argument to specify the desired number of reset before selecting console.
+sub reset_and_select_console {
+    my $reset_times = shift;
+    $reset_times //= 2;
+
+    reset_consoles for (0 .. $reset_times - 1);
+    if (is_remote_backend && is_aarch64 && get_var('IPMI_HW') eq 'thunderx') {
+        select_console 'sol', await_console => 1;
+        send_key 'ret';
+        ipmi_backend_utils::ipmitool 'chassis power reset';
+    }
+    elsif (is_pvm) {
+        reconnect_mgmt_console;
+    }
+    else {
+        select_console 'sol', await_console => 0;
+    }
+}
+
 sub run {
     my $self = shift;
     $self->login_to_console;
@@ -267,26 +277,23 @@ sub post_fail_hook {
     my ($self) = @_;
     if (check_var('PERF_KERNEL', '1') || check_var('VIRT_AUTOTEST', '1')) {
         select_console 'log-console';
-        save_screenshot;
-        script_run "save_y2logs /tmp/y2logs.tar.bz2";
-        upload_logs "/tmp/y2logs.tar.bz2";
-        save_screenshot;
-        if (check_var('VIRT_AUTOTEST', '1')) {
-            # show efi boot entry
-            if (check_var('IPXE_UEFI', '1')) {
-                record_info('UEFI entries', script_output('efibootmgr -v'));
-                record_info('Boot partition contents', script_output('ls -R /boot/efi'));
-            }
-            if (get_var('AUTOYAST', '')) {
-                script_run "tar czvf /tmp/autoinstall.tar.gz /var/adm/autoinstall";
-                upload_logs "/tmp/autoinstall.tar.gz";
-            }
-            $self->SUPER::post_fail_hook;
+        # show efi boot entry
+        if (check_var('IPXE_UEFI', '1') or check_var('UEFI', '1')) {
+            record_info('UEFI entries', script_output('efibootmgr -v', proceed_on_failure => 1));
+            record_info('Boot partition contents', script_output('ls -R /boot/efi', proceed_on_failure => 1));
+        }
+        # collect autoyast logs
+        if (get_var('AUTOYAST', '') or get_var('AUTOYAST_PREPARE_PROFILE', '')) {
+            save_screenshot;
+            script_run "save_y2logs /tmp/y2logs.tar.bz2";
+            upload_logs "/tmp/y2logs.tar.bz2";
+            save_screenshot;
+            script_run "tar czvf /tmp/autoinstall.tar.gz /var/adm/autoinstall";
+            upload_logs "/tmp/autoinstall.tar.gz";
+            save_screenshot;
         }
     }
-    else {
-        $self->SUPER::post_fail_hook;
-    }
+    $self->SUPER::post_fail_hook;
 }
 
 1;
