@@ -6,6 +6,9 @@ RUN zypper --gpg-auto-import-keys ref
 RUN zypper -n in apache2 && zypper clean -a
 RUN echo 'ServerName AppacheInContainer' >> /etc/apache2/httpd.conf
 
+# /var/log/apache2 and /srv/www/htdocs are now created via systemd-tmpfiles: https://build.opensuse.org/requests/1350419
+RUN mkdir -p /var/log/apache2 /srv/www/htdocs
+
 # set a directory for the app
 WORKDIR /srv/www/htdocs/
 
