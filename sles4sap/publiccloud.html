@@ -47,6 +47,7 @@
       <li><a href="#is_hana_database_online">is_hana_database_online</a></li>
       <li><a href="#is_primary_node_online">is_primary_node_online</a></li>
       <li><a href="#pacemaker_version">pacemaker_version</a></li>
+      <li><a href="#get_online_string">get_online_string</a></li>
       <li><a href="#saphanasr_showAttr_version">saphanasr_showAttr_version</a></li>
       <li><a href="#wait_for_cluster">wait_for_cluster</a></li>
       <li><a href="#wait_for_zypper">wait_for_zypper</a></li>
@@ -207,6 +208,10 @@ Return 0 if no internal error.</code></pre>
 <dd>
 
 </dd>
+<dt id="online_string---mandatory-string-used-to-match-node-state-in-topology-output-4-for-pacemaker-2.1.7-lss-score-online-for-older-versions.-Use-self-get_online_string-to-compute-this-value"><b>online_string</b> - mandatory string used to match node state in topology output; &#39;4&#39; for pacemaker &gt;= 2.1.7 (lss score), &#39;online&#39; for older versions. Use <code>$self-</code>get_online_string()&gt; to compute this value.</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h2 id="start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</h2>
@@ -273,6 +278,10 @@ Expected conditions:
 <dl>
 
 <dt id="timeout---timeout-for-waiting-sync-state"><b>timeout</b> - timeout for waiting sync state</dt>
+<dd>
+
+</dd>
+<dt id="online_string---mandatory-string-used-to-match-node-state-in-topology-output-4-for-pacemaker-2.1.7-lss-score-online-for-older-versions.-Use-self-get_online_string-to-compute-this-value1"><b>online_string</b> - mandatory string used to match node state in topology output; &#39;4&#39; for pacemaker &gt;= 2.1.7 (lss score), &#39;online&#39; for older versions. Use <code>$self-</code>get_online_string()&gt; to compute this value.</dt>
 <dd>
 
 </dd>
@@ -544,6 +553,14 @@ Returns if primary node status is offline with 0 and 1 online</code></pre>
 </dd>
 </dl>
 
+<h2 id="get_online_string">get_online_string</h2>
+
+<pre><code>$self-&gt;get_online_string()
+
+Returns the string used to match the online/active node state in C&lt;check_hana_topology&gt;.
+For pacemaker &gt;= 2.1.7 this is C&lt;&#39;4&#39;&gt; (lss score); for older versions it is C&lt;&#39;online&#39;&gt;.
+Use this helper wherever C&lt;online_string&gt; must be computed from the cluster&#39;s pacemaker version.</code></pre>
+
 <h2 id="saphanasr_showAttr_version">saphanasr_showAttr_version</h2>
 
 <pre><code>Returns the SAPHanaSR-showattr version</code></pre>
@@ -559,6 +576,10 @@ Returns if primary node status is offline with 0 and 1 online</code></pre>
 
 </dd>
 <dt id="max_retries---maximum-number-of-retries-default-7"><b>max_retries</b> - maximum number of retries, default 7</dt>
+<dd>
+
+</dd>
+<dt id="online_string---mandatory-string-used-to-match-node-state-in-topology-output-4-for-pacemaker-2.1.7-lss-score-online-for-older-versions.-Use-self-get_online_string-to-compute-this-value2"><b>online_string</b> - mandatory string used to match node state in topology output; &#39;4&#39; for pacemaker &gt;= 2.1.7 (lss score), &#39;online&#39; for older versions. Use <code>$self-</code>get_online_string()&gt; to compute this value.</dt>
 <dd>
 
 </dd>
