@@ -6,7 +6,7 @@
     "users": [
       {
         "name": "root",
-        "passwordHash": "$2a$10$2qfKlKzzEp9tl3mde5CmhuxsEPd3DdlfJMQ.PNSI3rqXx4KztGYT6",
+        "passwordHash": "$y$j9T$nRJRQUwZDai/K44Dn8RD40$tNACP3rJ5/oHQD1XIgVmj0MaBZKpD7GWN9nhpyDMgr5",
         "sshAuthorizedKeys": [
           "##Authorized-Keys##"
         ]
