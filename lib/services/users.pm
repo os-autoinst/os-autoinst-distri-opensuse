@@ -131,6 +131,7 @@ sub restore_passwd {
     assert_screen "pwd4user-confirm-terminal";
     type_password "$password\n";
     assert_screen "password-changed-terminal";
+    close_gui_terminal;
 }
 
 # remove test user
