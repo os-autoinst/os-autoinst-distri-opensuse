@@ -6,6 +6,7 @@ vars:
   TEST_CONTEXT: 'OpenQA::Test::RunArgs'
 schedule:
   - boot/boot_to_desktop
+  - '{{check_maintenance_repositories}}'
   - sles4sap/sap_deployment_automation_framework/create_deployer_vm
   - sles4sap/sap_deployment_automation_framework/connect_to_deployer
   - sles4sap/sap_deployment_automation_framework/configure_deployer
@@ -26,3 +27,7 @@ conditional_schedule:
         # Configures VNET connection between SDAF SUT network and IBSM
         - sles4sap/sap_deployment_automation_framework/ibsm_configure
         - sles4sap/sap_deployment_automation_framework/patch_and_reboot
+  check_maintenance_repositories:
+    IS_MAINTENANCE:
+      1:
+        - publiccloud/validate_repos.pm
