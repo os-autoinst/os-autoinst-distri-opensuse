@@ -107,7 +107,6 @@ sub post_fail_hook {
         diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
         cloudinit => get_var('IPADDR2_CLOUDINIT', 1),
         ibsm_rg => get_var('IBSM_RG'));
-    $self->SUPER::post_fail_hook;
 }
 
 1;
