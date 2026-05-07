@@ -1639,6 +1639,10 @@ ipaddr2_infra_deploy by adding couple of lines to cloud-init configuration file.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<timeout> - Execution timeout for the registration command in seconds. Default 360.
+
+=item B<retry> - Number of attempts for the registration command. Default 3.
+
 =back
 =cut
 
@@ -1647,6 +1651,8 @@ sub ipaddr2_scc_register(%args) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
     $args{scc_endpoint} //= 'registercloudguest';
+    $args{timeout} //= 360;
+    $args{retry} //= 3;
     croak("SCC endpoint $args{scc_endpoint} is not supported.") unless ($args{scc_endpoint} eq 'SUSEConnect' || $args{scc_endpoint} eq 'registercloudguest');
 
     ipaddr2_ssh_internal(id => $args{id},
@@ -1656,7 +1662,8 @@ sub ipaddr2_scc_register(%args) {
     my $forcenew = ($args{scc_endpoint} eq 'registercloudguest') ? '--force-new' : '';
     ipaddr2_ssh_internal(id => $args{id},
         cmd => "sudo $args{scc_endpoint} $forcenew -r \"$args{scc_code}\"",
-        timeout => 360,
+        timeout => $args{timeout},
+        retry => $args{retry},
         bastion_ip => $args{bastion_ip});
 }
 

@@ -904,6 +904,45 @@ subtest '[ipaddr2_scc_register] scc_endpoint' => sub {
     ok((none { /SUSEConnect.*force.*1234567890/ } @calls), 'SUSEConnect register does not have force-new');
 };
 
+subtest '[ipaddr2_scc_register] retry and timeout defaults' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, {cmd => $args{cmd}, retry => $args{retry}, timeout => $args{timeout}};
+            return;
+    });
+
+    ipaddr2_scc_register(id => 42, scc_code => '1234567890');
+
+    # The registration command (not the --clean) should have retry and timeout
+    my @reg_calls = grep { $_->{cmd} =~ /force-new/ } @calls;
+    ok((scalar @reg_calls == 1), 'Exactly one registration command');
+    ok(($reg_calls[0]->{retry} == 3), "Default retry is 3, got $reg_calls[0]->{retry}");
+    ok(($reg_calls[0]->{timeout} == 360), "Default timeout is 360, got $reg_calls[0]->{timeout}");
+};
+
+subtest '[ipaddr2_scc_register] custom retry and timeout' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, {cmd => $args{cmd}, retry => $args{retry}, timeout => $args{timeout}};
+            return;
+    });
+
+    ipaddr2_scc_register(id => 42, scc_code => '1234567890', retry => 5, timeout => 600);
+
+    my @reg_calls = grep { $_->{cmd} =~ /force-new/ } @calls;
+    ok((scalar @reg_calls == 1), 'Exactly one registration command');
+    ok(($reg_calls[0]->{retry} == 5), "Custom retry is 5, got $reg_calls[0]->{retry}");
+    ok(($reg_calls[0]->{timeout} == 600), "Custom timeout is 600, got $reg_calls[0]->{timeout}");
+};
+
 subtest '[ipaddr2_logs_cloudinit]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
