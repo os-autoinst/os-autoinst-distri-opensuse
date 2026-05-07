@@ -151,7 +151,7 @@ sub test_bsc1152598 {
     $self->wrap_script_run("mr_test verify Pattern/${SLE}/testpattern_bsc1152598#1_2");
     $self->wrap_script_run('saptune revert all');
 
-    assert_script_run sprintf('echo Test test_bsc1152598: %s%s >> %s', $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    assert_script_run sprintf(q|echo 'Test test_bsc1152598: %s%s' >> %s|, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result("$result");
 }
 
@@ -250,7 +250,7 @@ sub test_delete {
 
     $self->wrap_script_run('rm -f /etc/saptune/extra/* /etc/saptune/override/*');
 
-    assert_script_run sprintf('echo Test test_delete_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    assert_script_run sprintf(q|echo 'Test test_delete_%s: %s%s' >> %s|, $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result($result);
 }
 
@@ -352,7 +352,7 @@ sub test_rename {
     $self->wrap_script_run('! saptune note rename 999999 999999');
     $self->wrap_script_run("mr_test verify ${dir}/testpattern_saptune-rename#4_1");
 
-    assert_script_run sprintf('echo Test test_rename_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    assert_script_run sprintf(q|echo 'Test test_rename_%s: %s%s' >> %s|, $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result($result);
 }
 
@@ -396,7 +396,7 @@ sub test_note {
     $self->wrap_script_run("saptune note revert $note");
     $self->reboot_wait;
 
-    assert_script_run sprintf('echo Test test_note_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    assert_script_run sprintf(q|echo 'Test test_note_%s: %s%s' >> %s|, $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result("$result");
 }
 
@@ -456,7 +456,7 @@ sub test_override {
         $self->reboot_wait;
     }
 
-    assert_script_run sprintf('echo Test test_override_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    assert_script_run sprintf(q|echo 'Test test_override_%s: %s%s' >> %s|, $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result($result);
 }
 
@@ -505,7 +505,7 @@ sub test_solution {
     $self->wrap_script_run("saptune solution revert $solution");
     $self->reboot_wait;
 
-    assert_script_run sprintf('echo Test test_solution_%s: %s%s >> %s', $solution, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    assert_script_run sprintf(q|echo 'Test test_solution_%s: %s%s' >> %s|, $solution, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result($result);
 }
 
@@ -592,7 +592,7 @@ sub test_ppc64le {
     $self->wrap_script_run('saptune revert all');
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Power_3");
 
-    assert_script_run sprintf('echo Test test_ppc64le: %s%s >> %s', $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    assert_script_run sprintf(q|echo 'Test test_ppc64le: %s%s' >> %s|, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result($result);
 }
 
@@ -655,7 +655,7 @@ sub test_x86_64 {
     $self->wrap_script_run("saptune note revert $note");
     $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_Cust#Intel_1");
 
-    assert_script_run sprintf('echo Test test_x86_64_%s: %s%s >> %s', $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
+    assert_script_run sprintf(q|echo 'Test test_x86_64_%s: %s%s' >> %s|, $note, $result, (($result eq 'fail') ? ":$not_ignored" : ''), $log_file);
     $self->result($result);
 }
 
@@ -794,6 +794,7 @@ sub wrap_script_run {
         if (@real_failures) {
             $result = 'fail';
             $not_ignored = join(':', @real_failures);
+            $not_ignored =~ tr/'/"/;    # Replace single quotes if present
             record_info('Issue can NOT be ignored, see jsc#TEAM-8662 for more details', join("\n", @real_failures), result => 'fail');
         }
 
