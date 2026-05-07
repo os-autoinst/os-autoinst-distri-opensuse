@@ -195,7 +195,7 @@ and /var/log from guests and calls post_fail_hook in base class.
 sub post_fail_hook {
     my $self = shift;
     record_info('Failure Hook', "Test failed, collecting logs");
-    collect_guests_supportconfig_and_logs();
+    collect_guests_supportconfig_and_logs() unless get_var('VIRT_AUTOTEST');
     $self->SUPER::post_fail_hook;
 }
 

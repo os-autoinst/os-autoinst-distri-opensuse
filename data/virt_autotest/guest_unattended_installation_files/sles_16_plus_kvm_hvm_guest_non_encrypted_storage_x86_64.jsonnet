@@ -102,5 +102,14 @@
         |||
       }
     ]
+  },
+  "questions": {
+    "policy": "auto",
+    "answers": [
+      {
+        "class": "load.retry",
+        "answer": "yes"
+      }
+    ]
   }
 }
