@@ -12,6 +12,7 @@ schedule:
   - '{{uefi_guest_verification}}'
   - '{{sev_snp_validation}}'
   - '{{sev_es_guest_verification}}'
+  - '{{tdx_validation}}'
   - '{{sriov_network_card_pci_passthrough_test}}'
   - '{{virtual_network_test}}'
   - '{{hotplugging_test}}'
