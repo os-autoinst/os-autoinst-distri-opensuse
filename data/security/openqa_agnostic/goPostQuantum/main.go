@@ -3,11 +3,40 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"log"
+	"math/rand"
+	"net"
 	"os"
-	"time"
+	"syscall"
 )
+
+const (
+	portMin     = 49152
+	portMax     = 65535
+	maxAttempts = 10
+)
+
+func listenOnRandomPort(config *tls.Config) (net.Listener, int, error) {
+	for i := 0; i < maxAttempts; i++ {
+		port := portMin + rand.Intn(portMax-portMin+1)
+		addr := fmt.Sprintf("localhost:%d", port)
+		l, err := tls.Listen("tcp", addr, config)
+		if err != nil {
+			var syscallErr *net.OpError
+			if errors.As(err, &syscallErr) {
+				if errors.Is(syscallErr.Err, syscall.EADDRINUSE) {
+					log.Printf("Port %d in use, retrying...", port)
+					continue
+				}
+			}
+			return nil, 0, err
+		}
+		return l, port, nil
+	}
+	return nil, 0, fmt.Errorf("failed to bind after %d attempts", maxAttempts)
+}
 
 func main() {
 	cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem")
@@ -40,13 +69,17 @@ func main() {
 	}
 
 	done := make(chan bool)
+	portChan := make(chan int, 1)
 
 	go func() {
-		listener, err := tls.Listen("tcp", "localhost:8443", serverConfig)
+		listener, port, err := listenOnRandomPort(serverConfig)
 		if err != nil {
 			log.Fatalf("Server Listen: %v", err)
 		}
 		defer listener.Close()
+
+		fmt.Printf("Server: listening on port %d\n", port)
+		portChan <- port
 
 		conn, err := listener.Accept()
 		if err != nil {
@@ -72,10 +105,11 @@ func main() {
 		done <- true
 	}()
 
-	time.Sleep(100 * time.Millisecond)
-
 	go func() {
-		conn, err := tls.Dial("tcp", "localhost:8443", clientConfig)
+		port := <-portChan
+		addr := fmt.Sprintf("localhost:%d", port)
+
+		conn, err := tls.Dial("tcp", addr, clientConfig)
 		if err != nil {
 			log.Fatalf("Client Dial: %v", err)
 		}
