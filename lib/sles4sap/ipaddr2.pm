@@ -862,6 +862,8 @@ Tests are independent by the cluster status.
 =item B<user> - user expected to be able to ssh connect password-less from one internal VM to the other.
                 Default is cloudadmin.
 
+=item B<enable_dig> - optionally enable dig command execution in the connectivity sanity checks.
+
 =back
 =cut
 
@@ -870,7 +872,7 @@ sub ipaddr2_os_sanity(%args) {
     $args{user} //= USER;
 
     ipaddr2_os_network_sanity(bastion_ip => $args{bastion_ip});
-    ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip}, enable_dig => $args{enable_dig});
     ipaddr2_os_ssh_sanity(user => $args{user}, bastion_ip => $args{bastion_ip});
 
     foreach (1 .. 2) {
@@ -944,6 +946,8 @@ die in case of failure
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<enable_dig> - optionally enable dig command execution.
+
 =back
 =cut
 
@@ -963,8 +967,10 @@ sub ipaddr2_os_connectivity_sanity(%args) {
             ipaddr2_get_internal_vm_private_ip(id => $i),
             ipaddr2_get_internal_vm_name(id => $i)) {
             # tracepath is not available by default in 12sp5
-            # so only use ping and dig
-            foreach my $cmd (PING_CMD, 'dig') {
+            # so only use ping and optionally dig
+            my @cmds = (PING_CMD);
+            push @cmds, 'dig' if $args{enable_dig};
+            foreach my $cmd (@cmds) {
                 ipaddr2_ssh_bastion_assert_script_run(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
