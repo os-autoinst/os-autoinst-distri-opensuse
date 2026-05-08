@@ -1,4 +1,4 @@
-From 1a24b5f1c5f820b054415d51a40405f51442561e Mon Sep 17 00:00:00 2001
+From 785ed255f9091b80bb4199f67f1ad1a68cd87bf8 Mon Sep 17 00:00:00 2001
 From: Kir Kolyshkin <kolyshkin@gmail.com>
 Date: Mon, 4 May 2026 15:59:47 -0700
 Subject: [PATCH] tests/int: fix flake in "resources.unified override"
@@ -11,7 +11,7 @@ it obviously fails because of 1M memory limit:
 
 > runc run failed: unable to start container process: container init was OOM-killed (memory limit too low?)
 
-Increase the limit 2x.
+Increase the limits 4x. Do the same for the "unified only" test.
 
 Fixes issue 5264.
 
@@ -19,19 +19,50 @@ Reported-by: Kevin Berry <kpberry11@gmail.com>
 Reported-by: Ricardo Branco <rbranco@suse.de>
 Signed-off-by: Kir Kolyshkin <kolyshkin@gmail.com>
 ---
- tests/integration/cgroups.bats | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tests/integration/cgroups.bats | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/tests/integration/cgroups.bats b/tests/integration/cgroups.bats
-index 6d829fd19f6..42ab55a4396 100644
+index 6d829fd19f6..2eb7464d00b 100644
 --- a/tests/integration/cgroups.bats
 +++ b/tests/integration/cgroups.bats
+@@ -362,8 +362,8 @@ convert_hugetlb_size() {
+ 	update_config ' .linux.resources.unified |= {
+ 				"memory.min":   "131072",
+ 				"memory.low":   "524288",
+-				"memory.high": "5242880",
+-				"memory.max": "10485760",
++				"memory.high": "20971520",
++				"memory.max": "41943040",
+ 				"pids.max": "99",
+ 				"cpu.max": "10000 100000",
+ 				"cpu.weight": "42"
+@@ -378,15 +378,15 @@ convert_hugetlb_size() {
+ 
+ 	echo "$output" | grep -q '^memory.min:131072$'
+ 	echo "$output" | grep -q '^memory.low:524288$'
+-	echo "$output" | grep -q '^memory.high:5242880$'
+-	echo "$output" | grep -q '^memory.max:10485760$'
++	echo "$output" | grep -q '^memory.high:20971520$'
++	echo "$output" | grep -q '^memory.max:41943040$'
+ 	echo "$output" | grep -q '^pids.max:99$'
+ 	echo "$output" | grep -q '^cpu.max:10000 100000$'
+ 
+ 	check_systemd_value "MemoryMin" 131072
+ 	check_systemd_value "MemoryLow" 524288
+-	check_systemd_value "MemoryHigh" 5242880
+-	check_systemd_value "MemoryMax" 10485760
++	check_systemd_value "MemoryHigh" 20971520
++	check_systemd_value "MemoryMax" 41943040
+ 	check_systemd_value "TasksMax" 99
+ 	check_cpu_quota 10000 100000
+ 	check_cpu_weight 42
 @@ -428,7 +428,7 @@ convert_hugetlb_size() {
  			}
  			| .linux.resources.unified |= {
  				"memory.min": "131072",
 -				"memory.max": "10485760",
-+				"memory.max": "20971520",
++				"memory.max": "41943040",
  				"pids.max": "42",
  				"cpu.max": "5000 50000",
  				"cpu.weight": "42"
@@ -40,7 +71,7 @@ index 6d829fd19f6..42ab55a4396 100644
  	runc exec test_cgroups_unified cat /sys/fs/cgroup/memory.max
  	[ "$status" -eq 0 ]
 -	[ "$output" = '10485760' ]
-+	[ "$output" = '20971520' ]
++	[ "$output" = '41943040' ]
  
  	runc exec test_cgroups_unified cat /sys/fs/cgroup/pids.max
  	[ "$status" -eq 0 ]
