@@ -27,11 +27,4 @@ sub run {
     assert_and_click 'dont-save-libreoffice-btn';    # _Don't save
 }
 
-sub ocr_checklist {
-    [
-
-        #                {screenshot=>2, x=>104, y=>201, xs=>380, ys=>150, pattern=>"H ?ello", result=>"OK"}
-    ];
-}
-
 1;
