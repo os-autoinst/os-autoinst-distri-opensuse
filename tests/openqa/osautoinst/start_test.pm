@@ -15,6 +15,8 @@ sub run {
     my $openqa_url = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
     # aarch64 does not support nested virt, huge pages are not configured and 'gic_version=host' and host cpu options are only usable with KVM
     my $clone_options = ($arch =~ /aarch64/) ? "QEMU_NO_KVM=1 QEMU_HUGE_PAGES_PATH='' QEMUMACHINE=virt QEMUCPU='cortex-a72'" : "";
+    # lower free storage space checks in the SUT
+    $clone_options .= " STORAGE_KEEP_FREE_RATIO=0.05";
     my $cmd = <<"EOF";
 last_tw_build=\$(openqa-cli api --pretty --host $openqa_url assets get | sed -n 's/^.*name.*Tumbleweed-NET-$arch-Snapshot\\([0-9]\\+\\)-Media.*\$/\\1/p' | sort -n | tail -n 1)
 echo "Last Tumbleweed build on openqa.opensuse.org: \$last_tw_build"
