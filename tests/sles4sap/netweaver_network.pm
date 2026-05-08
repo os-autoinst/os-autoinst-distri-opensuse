@@ -45,7 +45,7 @@ sub run {
         assert_script_run 'mv /tmp/hosts.nw /etc/hosts';
 
         # Synchronize the hosts file
-        add_file_in_csync(value => '/etc/hosts');
+        sync_path('/etc/hosts');
     }
 }
 
