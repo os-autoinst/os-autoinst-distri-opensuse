@@ -144,7 +144,6 @@ sub post_fail_hook {
     ipaddr2_logs_collect();
     ipaddr2_cleanup(diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0),
         cloudinit => get_var('IPADDR2_CLOUDINIT', 1));
-    $self->SUPER::post_fail_hook;
 }
 
 1;
