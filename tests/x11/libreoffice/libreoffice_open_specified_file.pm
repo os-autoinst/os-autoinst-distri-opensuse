@@ -35,12 +35,9 @@ sub run {
         save_screenshot;
         type_string_slow "test.$tag\n";
         wait_still_screen 3, 7;
+        $self->libreoffice_handle_welcome_popup;
+        $self->libreoffice_handle_tip_of_the_day;
         assert_screen("libreoffice-test-$tag", 120);
-        if (match_has_tag('ooffice-tip-of-the-day')) {
-            # Unselect "_S_how tips on startup", select "_O_k"
-            send_key "alt-s";
-            send_key "alt-o";
-        }
         # close document
         send_key "ctrl-f4";
         wait_still_screen(2);

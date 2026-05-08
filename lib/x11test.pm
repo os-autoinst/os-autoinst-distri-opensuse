@@ -1002,20 +1002,54 @@ sub disable_key_repeat {
     x11_start_program('xset -r', target_match => 'generic-desktop', no_wait => 1);
 }
 
-# Start one of the libreoffice components, close any first-run dialogs
-sub libreoffice_start_program {
-    my ($self, $program) = @_;
-    my %start_program_args;
-    $start_program_args{timeout} = 100 if get_var('LIVECD') && check_var('MACHINE', 'uefi-usb');
-    x11_start_program($program, %start_program_args);
+sub open_overview {
+    wait_still_screen 3;
+    send_key "super";
+    assert_screen 'tracker-mainmenu-launched';
+}
+
+sub libreoffice_handle_welcome_popup {
     if (check_screen('popup-welcome-to-libreoffice')) {
         send_key "alt-f4";
     }
+}
+
+sub libreoffice_handle_tip_of_the_day {
     if (check_screen([qw(ooffice-tip-of-the-day oomath-tip-of-the-day)], 5)) {
         # Unselect "_S_how tips on startup", select "_O_k"
         send_key "alt-s";
         send_key "alt-o";
     }
+}
+
+# Start one of the libreoffice components, close any first-run dialogs
+sub libreoffice_start_program {
+    my ($self, $program, %args) = @_;
+    my %start_program_args;
+
+    my %libreoffice_applications = (
+        "oobase" => "base",
+        "oocalc" => "calc",
+        "oodraw" => "draw",
+        "ooimpress" => "impress",
+        "oowriter" => "writer",
+        "libreoffice" => "libreoffice"
+    );
+
+    die "Unrecognized LibreOffice application: $program" unless $libreoffice_applications{$program};
+
+    if ($args{from_overview}) {
+        $self->open_overview;
+        type_string $libreoffice_applications{$program};
+        assert_and_click "overview-office-" . $libreoffice_applications{$program};
+        assert_screen $program;
+    } else {
+        $start_program_args{timeout} = 100 if get_var('LIVECD') && check_var('MACHINE', 'uefi-usb');
+        x11_start_program($program, %start_program_args);
+    }
+
+    libreoffice_handle_welcome_popup;
+    libreoffice_handle_tip_of_the_day;
 }
 
 sub start_gnome_tweak_tool {
