@@ -1028,12 +1028,13 @@ sub libreoffice_start_program {
     my %start_program_args;
 
     my %libreoffice_applications = (
+        "libreoffice" => "libreoffice",
         "oobase" => "base",
         "oocalc" => "calc",
         "oodraw" => "draw",
         "ooimpress" => "impress",
-        "oowriter" => "writer",
-        "libreoffice" => "libreoffice"
+        "oomath" => "math",
+        "oowriter" => "writer"
     );
 
     die "Unrecognized LibreOffice application: $program" unless $libreoffice_applications{$program};
