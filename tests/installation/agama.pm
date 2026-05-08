@@ -172,6 +172,8 @@ sub select_software {
 
     # Futher manually selected patterns should go here
 
+    send_key "ctrl-down";
+
     assert_and_click('agama-software-selection-close');
 
 }
