@@ -48,6 +48,7 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
         ],
       },
       packages: [
+        'openssh-server-config-rootlogin',
         'virt-bridge-setup',
         // Workaround for bsc#1260073
         'curl'
@@ -73,7 +74,6 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
         chroot: true,
         content: |||
           #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
           sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
           echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > $sshd_config_file
         |||
@@ -119,14 +119,6 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
             sed -i "/^[# ]*log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs = \"1:file:${log_file}\"%};\${x;/^\$/{s%%log_outputs = \"1:file:${log_file}\"%;H};x}" $config_file
             sed -i "/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}" $config_file
           done
-        |||
-      },
-      {
-        name: "enable_sshd",
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          systemctl enable sshd.service
         |||
       },
       {
