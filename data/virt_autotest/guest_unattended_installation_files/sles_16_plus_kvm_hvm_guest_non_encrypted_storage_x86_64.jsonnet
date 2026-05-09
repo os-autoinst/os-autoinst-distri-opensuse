@@ -48,6 +48,9 @@
       }
     ]
   },
+  software: {
+    packages: ['openssh-server-config-rootlogin'],
+  },
   "network": {
     "connections": [
       {
@@ -80,7 +83,7 @@
         chroot: true,
         content: |||
           #!/usr/bin/env bash
-          echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes\nPermitEmptyPasswords no\nTCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
+          echo -e "PubkeyAuthentication yes\nPasswordAuthentication yes\nPermitEmptyPasswords no\nTCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
         |||
       },
       {
@@ -96,14 +99,6 @@
         content: |||
           #!/usr/bin/env bash
           echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-qe-virtualization-functional.conf
-        |||
-      },
-      {
-        name: "enable_sshd",
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          systemctl enable sshd.service
         |||
       }
     ]

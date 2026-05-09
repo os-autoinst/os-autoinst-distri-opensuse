@@ -22,6 +22,7 @@ local urls = if repo != '' then std.split(repo, ',') else [];
   },
   software: {
     packages: [
+      'openssh-server-config-rootlogin',
       'xauth',
       'xmlstarlet',
       'virt-viewer'
@@ -83,8 +84,6 @@ local urls = if repo != '' then std.split(repo, ',') else [];
           # Note: authorized_keys is already configured by Agama via root.sshPublicKey
           
           # 1. Setup SSH server (sshd) - configure server first
-          systemctl enable sshd
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
           sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
           echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 120" > $sshd_config_file
           
