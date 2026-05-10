@@ -19,7 +19,12 @@ sub run {
 
     zypper_call("search -t pattern");
     zypper_call("search -i -t pattern");
-    foreach (@pattern_list) { zypper_call("search -i -t pattern $_"); }
+    foreach (@pattern_list) {
+        if ($_ eq 'immutable_base') {
+            record_soft_failure("bsc#1262133 Pattern immutable_base is invisible");
+        }
+        else { zypper_call("search -i -t pattern $_"); }
+    }
 }
 
 1;
