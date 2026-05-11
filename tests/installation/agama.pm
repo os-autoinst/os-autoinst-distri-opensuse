@@ -143,7 +143,13 @@ sub select_product {
     assert_and_click('agama-product-select');
 }
 
-sub select_software {
+sub select_desktop_pattern {
+    my $desktop = get_var('DESKTOP');
+    send_key_until_needlematch("agama-software-selection-$desktop-desktop-wayland", 'down');
+    assert_and_click("agama-software-selection-$desktop-desktop-wayland");
+}
+
+sub software_select_patterns {
     assert_and_click('agama-software-tab');
     wait_still_screen(5);
     assert_and_click('agama-change-software-selection');
@@ -153,24 +159,29 @@ sub select_software {
     # I suggest to scroll down until you match the needle and then click on it
     # Go to the very top in case (ctrl+up) that you need to look for further patterns
 
-    # Default is just a minimal server style install
-    if (get_var('DESKTOP')) {
-        if (check_var('DESKTOP', 'gnome')) {
-            send_key_until_needlematch('agama-software-selection-gnome-desktop-wayland', 'down');
-            assert_and_click('agama-software-selection-gnome-desktop-wayland');
-        } elsif (check_var('DESKTOP', 'kde')) {
-            send_key_until_needlematch('agama-software-selection-kde-desktop-wayland', 'down');
-            assert_and_click('agama-software-selection-kde-desktop-wayland');
-        } elsif (check_var('DESKTOP', 'icewm')) {
-            send_key_until_needlematch('agama-software-selection-icewm-desktop-wayland', 'down');
-            assert_and_click('agama-software-selection-icewm-desktop-wayland');
-        }
+    # Prior to Agama 20, the desktop selection used to be handled with the rest of the patterns
+    if (is_leap) {
+        select_desktop_pattern;
         # Go back to the top in case that any further patterns need to be installed
         # and we have to scroll through the list again.
         send_key "ctrl-up";
     }
 
     # Futher manually selected patterns should go here
+
+    send_key "ctrl-down";
+
+    assert_and_click('agama-software-selection-close');
+
+}
+
+sub software_select_desktop {
+    assert_and_click('agama-software-tab');
+    wait_still_screen(5);
+    assert_and_click('agama-select-desktop');
+    wait_still_screen(5);
+
+    select_desktop_pattern();
 
     send_key "ctrl-down";
 
@@ -199,18 +210,16 @@ sub run {
     # Define user and set autologin on
     assert_and_click('agama-define-user-button');
     agama_define_user_screen();
-
-    # TODO fetch agama logs before install (in case of dependency issues, or if further installation crashes)
-
     back_to_overview;
 
+    # Agama 20+ has a new desktop selection screen
+    if (!is_leap) {
+        software_select_desktop;
+        back_to_overview;
+    }
+
     # Install additional patterns
-    select_software();
-    wait_still_screen 5;
-
-    # The ready to install button is at the bottom of the page on lowres screen
-    # Normally it's on the side
-
+    software_select_patterns();
     back_to_overview;
 
     if (check_var('LVM', 1)) {
