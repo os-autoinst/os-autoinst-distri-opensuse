@@ -1,0 +1,58 @@
+From 12d40777f020f0adc40461d28ed6e7885a7dcf98 Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Tue, 28 Apr 2026 20:52:15 +0200
+Subject: [PATCH] test/system: fix quadlet - rootfs on kernel 7.1
+
+As found in fedora openQA testing on the kernel update this test fails
+due a selinux denial.
+
+The kernel now correctly checks the backing fs selinux context in all
+cases. See kernel commit 82544d36b172 (selinux: fix overlayfs mmap()
+and mprotect() access checks).
+
+The test tries to access another container so the selinux level will
+be different from the quadlet roofs container and therefore fail to
+access the files.
+
+To fix this we should be able to just use the regular image mount which
+has a level all containers can access. The comment that this is not
+parallel safe is untrue, mounts are reference counted so this should not
+get unmounted all of the sudden by another test.
+
+In fact we have another  --rootfs test case where we do this and it
+passed in openQA, see "podman run - check workdir".
+
+Fixes: #28602
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/252-quadlet.bats | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/test/system/252-quadlet.bats b/test/system/252-quadlet.bats
+index 519a331986a..a0fb0598eed 100644
+--- a/test/system/252-quadlet.bats
++++ b/test/system/252-quadlet.bats
+@@ -929,11 +929,7 @@ EOF
+     skip_if_no_selinux
+     skip_if_rootless
+ 
+-    # Mount a container image to use as rootfs. Because we (may) run in
+-    # parallel, mount a working container, not $IMAGE
+-    cname="c-$(safename)"
+-    run_podman run -d --name $cname $IMAGE top
+-    run_podman container mount $cname
++    run_podman image mount $IMAGE
+     mountpoint="$output"
+ 
+     local quadlet_file=$PODMAN_TMPDIR/basic_$(safename).container
+@@ -951,8 +947,7 @@ EOF
+ 
+     # Done. Clean up.
+     service_cleanup $QUADLET_SERVICE_NAME failed
+-    run_podman container unmount $cname
+-    run_podman rm -f -t0 $cname
++    run_podman image unmount $IMAGE
+ }
+ 
+ @test "quadlet - selinux disable" {
