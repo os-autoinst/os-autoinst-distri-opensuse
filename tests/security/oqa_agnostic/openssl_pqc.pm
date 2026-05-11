@@ -14,10 +14,11 @@ use version_utils 'is_sle';
 
 sub run {
     select_serial_terminal;
-    if (is_sle('<16')) {
-        record_info('SKIP', 'OpenSSL post quantum crypto tests are only available on SLE 16 and later');
+    if (is_sle('<15-SP7')) {
+        record_info('SKIP', 'OpenSSL post quantum crypto tests are only available on SLE 15-SP7 and later');
         return;
     }
+    record_info('openssl version:', script_output('rpm -q openssl'));
     my $test = security::agnosticTestRunner->new({
             language => 'python',
             name => 'testPostQuantumCrypto',
