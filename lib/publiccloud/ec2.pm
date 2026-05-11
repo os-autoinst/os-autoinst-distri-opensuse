@@ -11,12 +11,21 @@ package publiccloud::ec2;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
-use publiccloud::utils "is_byos";
+use version_utils qw(is_transactional is_sle);
+use Utils::Architectures qw(is_aarch64);
+use publiccloud::utils qw(is_byos pc_data_url);
 use publiccloud::aws_client;
 use publiccloud::ssh_interactive 'select_host_console';
 
 has ssh_key_pair => undef;
 use constant SSH_KEY_PEM => 'QA_SSH_KEY.pem';
+
+my $EC2_CW_LOGS = [
+    {
+        log_group => '/ec2/logs/dmesg',
+        filename => 'ec2__logs__dmesg.txt',
+    }
+];
 
 sub init {
     my ($self) = @_;
@@ -162,13 +171,15 @@ sub on_terraform_apply_timeout {
 
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
+    $args{log_name} //= "console";
+
     my $instance_id = $self->get_terraform_output('.vm_name.value[]');
     return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
     unless (defined($instance_id)) {
         record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on ec2, undefined instance');
         return;
     }
-    my $asset_path = "/tmp/console.txt";
+    my $asset_path = "/tmp/" . $args{log_name} . ".txt";
     script_run("aws ec2 get-console-output --latest --color=off --no-paginate --output text --instance-id $instance_id &> $asset_path", proceed_on_failure => 1);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info("EMPTY", "The console log is empty. `cat $asset_path`:\n" . script_output("cat $asset_path"));
@@ -287,4 +298,206 @@ sub query_metadata {
     return $data;
 }
 
+sub _disable_and_stop_ec2_cloudwatch_agent {
+    my ($self, $instance) = @_;
+
+    $instance->ssh_assert_script_run("sudo systemctl disable --now amazon-cloudwatch-agent");
+    $instance->retry_ssh_command(
+        cmd => "! sudo systemctl is-active amazon-cloudwatch-agent",
+        timeout => 420,
+        retry => 6,
+        delay => 60
+    );
+
+    sleep 3 * 60;    # wait for CloudWatch agent to flush logs
+}
+
+sub _fetch_ec2_cloudwatch_log_events {
+    my ($self, %args) = @_;
+
+    my $log_group = $args{log_group};
+    my $log_stream = $args{log_stream};
+    my $log_filename = $args{log_filename};
+
+    my $end_time = int(time() * 1000);
+
+    my $next_token;
+    my $prev_token = "";
+
+    my $cli_timeout = 5 * 60;    # Timeout for each CLI call, set to 5 minutes
+    my $loop_eol = time() + (2 * $cli_timeout * 10); # Loop end-of-life to prevent infinite loops in case of unexpected CLI behavior. 2 cli calls per loop, so 2x cli timeout with maximum of 10 loops.
+
+    while (time() < $loop_eol) {
+        my $cmd =
+          "aws logs get-log-events " .
+          "--log-group-name '$log_group' " .
+          "--log-stream-name '$log_stream' " .
+          "--start-from-head ";
+
+        $cmd .= "--next-token '$next_token' " if $next_token;
+
+        assert_script_run(
+            "$cmd "
+              . "--end-time $end_time "
+              . "--query 'events[*].[timestamp,message]' "
+              . "--output text >> '$log_filename'",
+            timeout => $cli_timeout
+        );
+
+        my $token_cmd =
+          "$cmd "
+          . "--end-time $end_time "
+          . "--query 'nextForwardToken' "
+          . "--output text";
+
+        my $new_token = script_output($token_cmd, timeout => $cli_timeout);
+
+        last if !$new_token || $new_token eq $prev_token;
+
+        $prev_token = $new_token;
+        $next_token = $new_token;
+    }
+}
+
+sub _download_ec2_cloudwatch_logs {
+    my ($self, $instance) = @_;
+
+    my $instance_id = $instance->instance_id;
+
+    $self->_disable_and_stop_ec2_cloudwatch_agent($instance);
+
+    for my $entry (@$EC2_CW_LOGS) {
+
+        my $log_group = $entry->{log_group};
+        my $log_filename = $entry->{filename};
+        my $log_stream = $instance_id;
+
+        my $next_token;
+        my $prev_token = "";
+
+        my $describe_cmd =
+          "aws logs describe-log-streams " .
+          "--log-group-name '$log_group' " .
+          "--log-stream-name-prefix '$log_stream' " .
+          "--query 'logStreams[?logStreamName==`$log_stream`].logStreamName' " .
+          "--output text";
+        my $existing_log_stream = script_output($describe_cmd, timeout => 300, proceed_on_failure => 1);
+        chomp $existing_log_stream;
+        unless ($existing_log_stream && $existing_log_stream eq $log_stream) {
+            record_info("EC2 CloudWatch Logs", "Log stream '$log_stream' does not exist in log group '$log_group'. Skipping download for this log group.");
+            next;
+        }
+
+        assert_script_run(": > '$log_filename'");
+
+        $self->_fetch_ec2_cloudwatch_log_events(
+            log_group => $log_group,
+            log_stream => $log_stream,
+            log_filename => $log_filename,
+        );
+
+
+        upload_logs($log_filename);
+
+        assert_script_run(
+            "aws logs delete-log-stream " .
+              "--log-group-name '$log_group' " .
+              "--log-stream-name '$log_stream'"
+        );
+    }
+}
+
+# Write dmesg output to /var/log/dmesg so it can be collected as a file-based log source for centralized logging.
+sub _install_dmesg_capture_to_log
+{
+    my ($self, $instance) = @_;
+
+    my $svc_file = 'dmesg-capture.service';
+    my $svc_target = '/etc/systemd/system/' . $svc_file;
+    $instance->ssh_assert_script_run(
+        "sudo curl -sLo $svc_target " . pc_data_url("publiccloud/$svc_file") . " && " .
+          "sudo systemctl daemon-reload && " .
+          "sudo systemctl enable --now $svc_file"
+    );
+
+    my $logrotate_file = 'dmesg-capture-logrotate.conf';
+    my $logrotate_target = '/etc/logrotate.d/dmesg';
+    $instance->ssh_assert_script_run(
+        "sudo curl -sLo $logrotate_target " . pc_data_url("publiccloud/$logrotate_file") . " && " .
+          "sudo logrotate -d $logrotate_target"
+    );
+}
+
+sub _install_ec2_cloudwatch_agent
+{
+    my ($self, $instance) = @_;
+
+    $self->_install_dmesg_capture_to_log($instance);
+
+    $instance->ssh_assert_script_run("sudo mkdir -p /etc/systemd/journald.conf.d");
+    $instance->ssh_assert_script_run("echo -e '[Journal]\\nStorage=persistent' | sudo tee /etc/systemd/journald.conf.d/persistent.conf");
+    $instance->ssh_assert_script_run("sudo systemctl restart systemd-journald");
+
+    my $arch = is_aarch64() ? "arm64" : "amd64";
+
+    my $rpm_file = "amazon-cloudwatch-agent.rpm";
+    my $gpg_file = "amazon-cloudwatch-agent.gpg";
+
+    my $download_directory = "/root";
+
+    $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$gpg_file https://amazoncloudwatch-agent.s3.amazonaws.com/assets/amazon-cloudwatch-agent.gpg");
+
+    $instance->ssh_assert_script_run("sudo gpg --batch --status-fd=1 --import $download_directory/$gpg_file 2>&1");
+
+    $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$rpm_file.sig https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm.sig");
+    $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$rpm_file https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm");
+    $instance->ssh_assert_script_run(
+        "sudo gpg --verify $download_directory/$rpm_file.sig $download_directory/$rpm_file 2>&1 | grep 'Good signature'",
+        fail_message => "GPG signature verification failed for the downloaded RPM package."
+    );
+
+    if (is_transactional) {
+        $instance->ssh_assert_script_run(
+            cmd => "sudo transactional-update run sh -c 'rpm -Uvh --noscripts $download_directory/$rpm_file'",
+            timeout => 300
+        );
+        $instance->softreboot();
+    } else {
+        if (is_sle(">12-SP5")) {
+            $instance->zypper_call_remote(cmd => "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
+        } else {
+            $instance->ssh_assert_script_run("sudo rpm -Uvh $download_directory/$rpm_file");
+        }
+    }
+
+    $instance->ssh_assert_script_run("sudo rm -f $download_directory/$rpm_file $download_directory/$rpm_file.sig $download_directory/$gpg_file");
+
+    my $cfg_file = 'cloudwatch_config.json';
+    my $cfg_target = '/opt/aws/amazon-cloudwatch-agent/etc/' . $cfg_file;
+    $instance->ssh_assert_script_run("sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc");
+    $instance->ssh_assert_script_run("sudo curl -sLo $cfg_target " . pc_data_url("publiccloud/$cfg_file"));
+    $instance->ssh_assert_script_run(
+        "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl " .
+          "-a fetch-config " .
+          "-m ec2 " .
+          "-c file:$cfg_target " .
+          "-s"
+    );
+    $instance->ssh_assert_script_run("sudo systemctl enable --now amazon-cloudwatch-agent");
+    $instance->ssh_script_retry("sudo systemctl is-active amazon-cloudwatch-agent");
+}
+
+sub initialize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-beginning");
+    record_info('Logging', 'Initializing logging for EC2 instance');
+    $self->_install_ec2_cloudwatch_agent($instance);
+}
+
+sub finalize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-end");
+    record_info('Logging', 'Finalizing logging for EC2 instance');
+    $self->_download_ec2_cloudwatch_logs($instance);
+}
 1;

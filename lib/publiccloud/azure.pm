@@ -518,6 +518,7 @@ sub on_terraform_apply_timeout {
 
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
+    $args{log_name} //= "console";
     my $instance_id = $self->get_terraform_output('.instance_id.value[0]');
     $instance_id =~ s/.*\/(.*)/$1/;
     my $resource_group = $self->get_terraform_output('.resource_group_name.value[0]');
@@ -535,7 +536,7 @@ sub upload_boot_diagnostics {
     # Wait until the bootlog blob is created
     script_retry("az vm boot-diagnostics get-boot-log-uris $names", delay => 15, retry => 12, die => 1);
 
-    my $asset_path = "/tmp/console.txt";
+    my $asset_path = "/tmp/" . $args{log_name} . ".txt";
     script_run("timeout 110 az vm boot-diagnostics get-boot-log $names | jq -Mr '.' > $asset_path", timeout => 120);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info("EMPTY", "The console log is empty. `cat $asset_path`:\n" . script_output("cat $asset_path"));
@@ -648,6 +649,18 @@ sub query_metadata {
 
     die("Failed to get interface IPs from metadata server") unless length($data);
     return $data;
+}
+
+sub initialize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-beginning");
+    record_info('Logging', 'Initializing logging for Azure instance');
+}
+
+sub finalize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-end");
+    record_info('Logging', 'Finalizing logging for Azure instance');
 }
 
 1;
