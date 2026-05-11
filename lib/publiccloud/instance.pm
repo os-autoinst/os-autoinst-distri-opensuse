@@ -443,6 +443,8 @@ sub wait_for_ssh {
             my $ssh_opts = $self->ssh_opts() . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none -o ConnectTimeout=10';
             while (($duration = time() - $start_time) < $args{timeout}) {
                 # timeout recalculated removing consumed time until now
+                # log time in serial output
+                $self->ssh_script_run(cmd => 'uptime', ssh_opts => $ssh_opts, ignore_timeout_failure => 1);
                 # We don't support password authentication so it would just block the terminal
                 $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => $ssh_opts,
                     timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
@@ -921,6 +923,9 @@ sub do_systemd_analyze_time {
         record_info("WARN", "Unable to get systemd-analyze in ${timeout}s", result => 'fail');
         return (0, 0);
     }
+    # log time
+    $instance->ssh_script_run("uptime");
+
     push @ret, extract_analyze_time($output);
 
     $output = $instance->ssh_script_output(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
