@@ -23,7 +23,7 @@ use x11utils 'ensure_unlocked_desktop';
 
 sub back_to_overview {
     assert_and_click('agama-overview-tab');
-    wait_still_screen 5;
+    assert_screen('agama-overview-screen');
     record_info('Back to overview');
 }
 
