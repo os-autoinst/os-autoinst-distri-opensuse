@@ -12,7 +12,6 @@ use utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_sle_micro has_selinux);
 use transactional qw(process_reboot trup_call);
-use Utils::Architectures;
 
 sub get_policy_date {
     if (is_sle('>=15') && is_sle('<15-sp4')) {
@@ -52,14 +51,11 @@ sub run {
     if (is_sle('>=16')) {
         select_serial_terminal;
         validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*enforcing/sx });
-
         # After update, clean the audit log to make suere there aren't any leftovers that were already fixed
-        # see poo181403
-        if (is_sle('>=16.0') && is_s390x) {
-            assert_script_run 'tar czf /tmp/audit_before.tgz /var/log/audit';
-            upload_logs '/tmp/audit_before.tgz';
-            assert_script_run 'rm -f /var/log/audit/* /tmp/audit_before.tgz';
-        }
+        # see poo181403 and poo#200766
+        assert_script_run 'tar czf /tmp/audit_before.tgz /var/log/audit';
+        upload_logs '/tmp/audit_before.tgz';
+        assert_script_run 'rm -f /var/log/audit/* /tmp/audit_before.tgz';
         return 1;
     }
 
