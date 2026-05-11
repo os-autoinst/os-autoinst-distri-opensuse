@@ -1109,7 +1109,7 @@ sub firefox_print2file_overview {
     my ($self, $file) = @_;
 
     # Prepare files for firefox printing
-    x11_start_program('gnome-terminal');
+    x11_start_program(default_gui_terminal);
     if (script_run("test -d ffprint")) {
         assert_script_run "mkdir ffprint";
     }
@@ -1158,9 +1158,11 @@ sub firefox_print {
 
 sub verify_firefox_print_output {
     my ($self, $file) = @_;
+    my $pdf_viewer = is_sle(">=16.0") ? "papers" : "evince";
 
     # Verify the content and format of output file
-    x11_start_program("evince /home/$username/ffprint/$file-output.pdf", target_match => "evince-$file-output-default");
+    ensure_installed($pdf_viewer);
+    x11_start_program("$pdf_viewer /home/$username/ffprint/$file-output.pdf", target_match => "pdf_viewer-$file-output-default");
     wait_still_screen 2;
     send_key "alt-f10";    # maximize window
     assert_screen("evince-$file-output-pdf", 5);
@@ -1168,6 +1170,7 @@ sub verify_firefox_print_output {
 }
 
 sub cleanup_firefox_print {
+    x11_start_program(default_gui_terminal);
     assert_script_run "rm -rf /home/$username/ffprint/*";
     send_key 'ctrl-d';
     assert_screen 'generic-desktop';
