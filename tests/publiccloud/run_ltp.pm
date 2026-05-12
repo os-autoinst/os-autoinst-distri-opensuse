@@ -412,13 +412,10 @@ sub run {
 
     select_host_console();
 
-    ($args->{my_provider}, $args->{my_instance}) = $self->prepare_instance($args);
-
     my $instance = $args->{my_instance};
     my $provider = $args->{my_provider};
 
     prepare_scripts();
-    register_instance($instance, $qam);
 
     my $ltp_dir = '/tmp/ltp';
     my $ltp_prefix = '/opt/ltp';
@@ -458,28 +455,12 @@ sub run {
 }
 
 
-sub prepare_instance {
-    my ($self, $args) = @_;
-    unless ($args->{my_provider} && $args->{my_instance}) {
-        $args->{my_provider} = $self->provider_factory();
-        $args->{my_instance} = $args->{my_provider}->create_instance();
-        $args->{my_instance}->wait_for_guestregister() if (is_ondemand());
-    }
-
-    return ($args->{my_provider}, $args->{my_instance});
-}
-
 sub prepare_scripts {
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
     assert_script_run('curl ' . data_url('publiccloud/log_instance.sh') . ' -o log_instance.sh');
     assert_script_run('chmod +x restart_instance.sh');
     assert_script_run('chmod +x log_instance.sh');
-}
-
-sub register_instance {
-    my ($instance, $qam) = @_;
-    registercloudguest($instance) if (is_byos() && !$qam);
 }
 
 sub install_ltp {

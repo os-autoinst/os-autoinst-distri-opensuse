@@ -119,6 +119,8 @@ sub load_latest_publiccloud_tests {
     }
 
     if (get_var('PUBLIC_CLOUD_LTP')) {
+        loadtest "publiccloud/prepare_instance", run_args => $args;
+        loadtest("publiccloud/registration", run_args => $args);
         loadtest 'publiccloud/run_ltp', run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
