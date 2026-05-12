@@ -38,6 +38,9 @@ sub setup {
     run_command "usermod --add-subgids 100000-165535 containers";
     # Make /run/secrets directory available on containers
     run_command "echo /var/lib/empty:/run/secrets >> /etc/containers/mounts.conf";
+    # The tests expect an exact list of unqualified-search-registries containing "quay.io" and we ship:
+    # unqualified-search-registries = ["registry.opensuse.org", "registry.suse.com", "docker.io"]
+    run_command "rm -f /etc/containers/registries.conf.d/00-suse-registries.conf";
 
     enable_docker;
 
