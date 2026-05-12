@@ -227,7 +227,7 @@ sub load_host_tests_docker {
     }
     load_volume_tests($run_args);
     # Expected to work anywhere except of real HW backends, PC and Micro
-    unless (is_generalhw || is_ipmi || is_public_cloud || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
+    unless (is_generalhw || is_ipmi || is_public_cloud || is_transactional || (is_sle('=12-SP5') && is_aarch64)) {
         loadtest 'containers/validate_btrfs';
     }
 }
