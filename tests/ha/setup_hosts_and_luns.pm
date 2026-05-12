@@ -12,7 +12,8 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use Socket qw(getaddrinfo getnameinfo NI_NUMERICHOST);
-use utils qw(systemctl file_content_replace zypper_call script_retry);
+use utils qw(systemctl file_content_replace script_retry);
+use package_utils qw(install_package);
 use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync);
 use mmapi qw(get_current_job_id get_parents);
 
@@ -39,7 +40,7 @@ sub iscsi_server_ip {
 
 sub run {
     my $nfs_share = get_required_var('NFS_SUPPORT_SHARE');
-    my $mountpt = '/support_fs';
+    my $mountpt = '/srv/nfs/support_fs';
     my $cluster_name = get_cluster_name;
 
     my $master_job_id = is_node(1) ? get_current_job_id : (get_parents)->[0];
@@ -56,7 +57,7 @@ sub run {
     $dir_id .= '_angi' if get_var('USE_SAP_HANA_SR_ANGI', '');
 
     if (script_run('rpm -q nfs-client') != 0) {
-        zypper_call 'in nfs-client';
+        install_package('nfs-client', trup_reboot => 1);
     }
 
     set_var('NFS_SUPPORT_DIR', "$mountpt/$dir_id");
