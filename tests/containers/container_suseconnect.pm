@@ -85,9 +85,9 @@ sub run {
         );
     }
 
+    my $pkg = 'socat';
     assert_script_run(
-        "$runtime_name exec $container_name " .
-          "zypper -n --gpg-auto-import-keys in gvim"
+        "$runtime_name exec $container_name zypper -n --gpg-auto-import-keys in $pkg"
     );
 
     validate_script_output(
@@ -100,7 +100,7 @@ sub run {
     );
     validate_script_output(
         "$runtime_name exec $container_name rpm -qa",
-        sub { m/gvim/ }
+        sub { m/$pkg/ }
     );
 
 }
