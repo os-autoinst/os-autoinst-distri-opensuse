@@ -2,9 +2,7 @@ name:  agama-create-hdd-textmode
 description: >
   Install sle16 via agama auto and publish qcow2 images
 schedule:
-  - yam/agama/boot_agama
-  - yam/agama/agama_auto
-  - installation/grub_test
+  - '{{boot}}'
   - installation/first_boot
   - security/installation/enable_repos
   - console/zypper_lr
@@ -17,6 +15,7 @@ schedule:
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
   - shutdown/shutdown
+  - '{{svirt_upload}}'
 conditional_schedule:
   patch_reboot:
     FLAVOR:
@@ -26,3 +25,18 @@ conditional_schedule:
     TRANSACTIONAL:
       '1':
         - yam/validate/validate_snapshots
+  boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_zkvm
+        - installation/agama_reboot
+      x86_64: &agama_boot_modules
+        - yam/agama/boot_agama
+        - yam/agama/agama_auto
+        - installation/grub_test
+      ppc64le: *agama_boot_modules
+      aarch64: *agama_boot_modules
+  svirt_upload:
+    ARCH:
+      s390x:
+        - shutdown/svirt_upload_assets
