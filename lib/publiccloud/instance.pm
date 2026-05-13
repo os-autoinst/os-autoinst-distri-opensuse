@@ -318,6 +318,10 @@ sub wait_for_guestregister {
             # we have some cases where it is known that guestregister service will fail
             # ( e.g. when we testing images not published on Market hence w/o product codes)
             return 1 if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
+            if (is_sle("=16.0") && is_gce) {
+                record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
+                return 1;
+            }
             die('guestregister failed');
         }
         elsif ($out =~ m/active$/) {
