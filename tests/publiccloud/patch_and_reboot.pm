@@ -70,11 +70,12 @@ sub run {
     my $rc = $instance->ssh_script_run(cmd => "test -s $rpm_list_diff");
     unless ($rc == 0) {
         if ($ignore_empty_updates) {
-            record_info('No packages were updated during patching');
+            record_info(
+                'PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES',
+                'No packages were updated during patching'
+            );
         } else {
-            # Uncomment the line below and remove record_soft_failure line once we are confident we don't run into empty updates
-            # die 'No packages were updated during patching';
-            record_soft_failure('poo#197723 - No packages were updated during patching');
+            die 'No packages were updated during patching';
         }
     }
 }
