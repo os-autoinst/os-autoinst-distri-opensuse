@@ -97,6 +97,8 @@ our @EXPORT = qw(
 
 =item B<runas> - pre-pend the command with su to execute it as specific user
 
+=item B<ssh_keepalive> - optional: enable SSH keepalive options to detect hung connections faster
+
 =item B<...> - pass through all other arguments supported by ssh_script_run
 
 =back
@@ -111,11 +113,19 @@ sub run_cmd {
     my $title = $args{title} // $args{cmd};
     $title =~ s/[[:blank:]].+// unless defined $args{title};
     my $cmd = defined($args{runas}) ? "su - $args{runas} -c '$args{cmd}'" : "$args{cmd}";
+
+    # Ensure SSH keepalives to detect hung connections faster
+    if ($args{ssh_keepalive}) {
+        $args{ssh_opts} //= '';
+        $args{ssh_opts} .= ' -o ServerAliveInterval=15 -o ServerAliveCountMax=3' unless $args{ssh_opts} =~ /ServerAliveInterval/;
+    }
+
     # Without cleaning up variables SSH commands get executed under wrong user
     delete($args{cmd});
     delete($args{title});
     delete($args{timeout});
     delete($args{runas});
+    delete($args{ssh_keepalive});
 
     $self->{my_instance}->update_instance_ip();
     $self->{my_instance}->wait_for_ssh(timeout => $timeout);
@@ -147,6 +157,8 @@ sub run_cmd {
 
 =item B<delay> - idle time between retry attempts
 
+=item B<ssh_keepalive> - optional: enable SSH keepalive options and send ETX on failure
+
 =item B<...> - pass through all other arguments supported by run_cmd
 
 =back
@@ -162,6 +174,10 @@ sub run_cmd_retry {
     for (1 .. $retry) {
         my $ret = eval { $self->run_cmd(timeout => $timeout, proceed_on_failure => 0, %args); };
         return $ret if (defined $ret);
+
+        # Unblock console in case the previous command hung and timed out
+        type_string('', terminate_with => 'ETX') if $args{ssh_keepalive};
+
         sleep $delay;
         record_soft_failure('jsc#TEAM-10485 SSH timeout or failure, retrying');
     }
@@ -367,8 +383,8 @@ sub is_hana_resource_running {
     }
 }
 
-=head2 is_hana_node_up
-    is_hana_node_up($my_instance, [timeout => 900]);
+=head2 wait_hana_node_up
+    wait_hana_node_up($my_instance, [timeout => 900, ssh_keepalive => 1]);
 
     Waits until 'is-system-running' returns successfully on the target instance.
 
@@ -378,7 +394,9 @@ sub is_hana_resource_running {
 
 =item B<timeout> - how much time to wait for before aborting
 
-=back  
+=item B<ssh_keepalive> - optional: enable SSH keepalive options
+
+=back
 =cut
 
 sub wait_hana_node_up {
@@ -396,13 +414,16 @@ sub wait_hana_node_up {
         sleep $delay;
     }
 
+    my $ssh_opts = '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none -o ConnectTimeout=10';
+    $ssh_opts .= ' -o ServerAliveInterval=15 -o ServerAliveCountMax=3' if $args{ssh_keepalive};
+
     $start_time = time();
     while ((time() - $start_time) < $args{timeout}) {
         $out = $instance->ssh_script_output(
             cmd => 'sudo systemctl is-system-running',
             # timeout must be enough for ssh handshake to not kill the test
             timeout => 30,
-            ssh_opts => '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none -o ConnectTimeout=10',
+            ssh_opts => $ssh_opts,
             proceed_on_failure => 1);
         return if ($out =~ m/running/);
         if ($out =~ m/degraded/) {
@@ -501,7 +522,7 @@ sub stop_hana {
         record_info('Wait ssh disappear', $end_msg);
 
         # wait for node to be ready
-        wait_hana_node_up($self->{my_instance}, timeout => 900);
+        wait_hana_node_up($self->{my_instance}, timeout => 900, ssh_keepalive => 1);
         record_info('Wait ssh is back again');
     }
     else {
@@ -547,7 +568,7 @@ sub cleanup_resource {
 
     # Retry when running crm command with issue, refer to TEAM-10483
     while ($retry) {
-        $out = $self->run_cmd(cmd => 'crm resource cleanup', proceed_on_failure => 1);
+        $out = $self->run_cmd(cmd => 'crm resource cleanup', proceed_on_failure => 1, ssh_keepalive => 1);
         last if (!grep { $out =~ /$_/ } @errors);
         $retry--;
         sleep 5;
