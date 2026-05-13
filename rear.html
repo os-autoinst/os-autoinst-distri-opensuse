@@ -14,6 +14,8 @@
 <ul id="index"><li><a href="./index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
+      <li><a href="#rear_cmd_log">rear_cmd_log</a></li>
+      <li><a href="#upload_fs_blk_info">upload_fs_blk_info</a></li>
       <li><a href="#upload_rear_logs">upload_rear_logs</a></li>
     </ul>
   </li>
@@ -24,6 +26,19 @@
 <p>Package with common methods and default values for testing ReaR on HA module.</p>
 
 <p>This package inherits from <b>opensusebasetest</b> and should be used as a class.</p>
+
+<h2 id="rear_cmd_log">rear_cmd_log</h2>
+
+<pre><code>$self-&gt;rear_cmd_log();
+$self-&gt;rear_cmd_log(&#39;/path/to/log/file.log&#39;);</code></pre>
+
+<p>Sets or gets the full path to the ReaR command log.</p>
+
+<h2 id="upload_fs_blk_info">upload_fs_blk_info</h2>
+
+<pre><code>$self-&gt;upload_fs_blk_info(prefix =&gt; $prefix);</code></pre>
+
+<p>Upload outputs of <code>lsblk</code> and <code>findmnt</code> commands. If supplied with a prefix in the named argument <b>prefix</b>, prepend the log file names with it.</p>
 
 <h2 id="upload_rear_logs">upload_rear_logs</h2>
 
