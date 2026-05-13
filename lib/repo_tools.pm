@@ -580,7 +580,7 @@ Returns Hash reference with all the parsed properties and their values, for exam
 
 sub parse_repo_data {
     my ($repo_identifier) = @_;
-    my @lines = split(/\n/, script_output("zypper lr $repo_identifier"));
+    my @lines = split(/\n/, script_output("zypper -q lr $repo_identifier"));
     my %repo_data = map { split(/\s*:\s*/, $_, 2) } @lines;
     return \%repo_data;
 }
