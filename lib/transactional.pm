@@ -103,7 +103,7 @@ sub process_reboot {
     my (%args) = @_;
     $args{trigger} //= 0;
     $args{automated_rollback} //= 0;
-    $args{expected_grub} //= (is_sle_micro && is_vmware) ? 0 : 1;
+    $args{expected_grub} //= (is_transactional && is_vmware) ? 0 : 1;
     $args{expected_passphrase} //= 0;
 
     if (is_public_cloud) {
