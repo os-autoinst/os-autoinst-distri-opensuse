@@ -1,0 +1,30 @@
+From 8c066cf0240b946d728171218be58b30bddaa507 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Wed, 13 May 2026 10:01:50 +0200
+Subject: [PATCH] test: run firewalld with debug logging
+
+Start the firewalld instance with --debug=10 so startup failures are
+written to firewalld.log
+
+When firewalld exits before it becomes ready, firewall-cmd only reports
+"not running" with rc=252.  This does not explain why firewalld failed
+to start.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/helpers.bash | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/helpers.bash b/test/helpers.bash
+index a87f84ae7..feb1ab201 100644
+--- a/test/helpers.bash
++++ b/test/helpers.bash
+@@ -74,7 +74,7 @@ function setup_firewalld() {
+     # do not use run_in_host_netns because we want to run this in background
+     # use --nopid (we cannot change the pid file location), --nofork do not run as daemon so we can kill it by pid
+     # change --system-config to make sure that we do not write any config files to the host location
+-    nsenter -n -t $HOST_NS_PID firewalld --nopid --nofork --system-config "$NETAVARK_TMPDIR" &>"$NETAVARK_TMPDIR/firewalld.log" &
++    nsenter -n -t $HOST_NS_PID firewalld --debug=10 --nopid --nofork --system-config "$NETAVARK_TMPDIR" &>"$NETAVARK_TMPDIR/firewalld.log" &
+     FIREWALLD_PID=$!
+     echo "firewalld pid: $FIREWALLD_PID"
+ 

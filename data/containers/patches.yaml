@@ -125,8 +125,10 @@ moby:
 
 netavark:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
+  # https://github.com/containers/netavark/pull/1449 - test: run firewalld with debug logging
   1191:
     merged: "1.15.0"
+  1449:
 
 podman:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
