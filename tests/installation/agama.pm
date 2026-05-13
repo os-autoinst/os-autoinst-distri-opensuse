@@ -213,7 +213,7 @@ sub run {
     back_to_overview;
 
     # Agama 20+ has a new desktop selection screen
-    if (!is_leap) {
+    if (!is_leap && !check_var('DESKTOP', "textmode")) {
         software_select_desktop;
         back_to_overview;
     }
