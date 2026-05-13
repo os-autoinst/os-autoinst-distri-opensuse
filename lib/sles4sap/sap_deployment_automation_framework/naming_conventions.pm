@@ -304,10 +304,10 @@ sub get_tfvars_path {
     my $job_id = find_deployment_id();
 
     my %file_names = (
-        workload_zone => "$args{env_code}-$args{sdaf_region_code}-$args{vnet_code}-INFRASTRUCTURE-$job_id.tfvars",
+        workload_zone => "$args{env_code}-$args{sdaf_region_code}-$args{vnet_code}-INFRASTRUCTURE.terrraform.tfstate",
         deployer => "$args{env_code}-$args{sdaf_region_code}-$args{vnet_code}-INFRASTRUCTURE-$job_id.tfvars",
         library => "$args{env_code}-$args{sdaf_region_code}-SAP_LIBRARY-$job_id.tfvars",
-        sap_system => "$args{env_code}-$args{sdaf_region_code}-$args{vnet_code}-$args{sap_sid}-$job_id.tfvars"
+        sap_system => "$args{env_code}-$args{sdaf_region_code}-$args{vnet_code}-SID.terrraform.tfstate"
     );
 
 
@@ -460,3 +460,5 @@ sub get_ibsm_peering_name {
     my (%args) = @_;
     return "SDAF-$args{source_vnet}-$args{target_vnet}";
 }
+
+1;

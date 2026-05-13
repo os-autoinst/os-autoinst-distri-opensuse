@@ -294,11 +294,11 @@ L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?ta
 sub az_login {
     # This is to remove telemetry messages which can mangle JSON outputs.
     assert_script_run(
-        'az config set core.survey_message=false core.collect_telemetry=no --only-show-errors --output json'
+        'az config set core.survey_message=false core.collect_telemetry=no --only-show-errors --output json', timeout => 240
     );
     my $credentials = export_credentials();
     my $login_cmd = 'while ! az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} -t ${ARM_TENANT_ID} -o none 1>/dev/null 2>&1; do sleep 10; done';
-    assert_script_run($login_cmd, timeout => 30);
+    assert_script_run($login_cmd, timeout => 300);
     record_info('AZ login', "Subscription id: $credentials->{subscription_id}");
     return ($credentials->{subscription_id});
 }
@@ -598,6 +598,8 @@ sub sdaf_execute_deployment {
     # It is used by SDAF internally, so keep it set in OS env
     export_credentials();
     set_os_variable('parameterFile', $tfvars_filename);
+    set_os_variable('TF_PARALLELLISM', 3);
+    assert_script_run("echo \$TF_PARALLELLISM");
 
     # SDAF has to be executed from the profile directory
     assert_script_run("cd $tfvars_path");
@@ -643,8 +645,10 @@ This is done for better debugging and logging transparency. Only sensitive value
 sub get_sdaf_deployment_command {
     my (%args) = @_;
     my $cmd;
+    my $control_plane_name = get_required_var('SDAF_ENV_CODE') . '-' . convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')) . '-' . get_required_var('SDAF_DEPLOYER_VNET_CODE');
     if ($args{deployment_type} eq 'workload_zone') {
         $cmd = join(' ', sdaf_scripts_dir() . '/install_workloadzone.sh',
+            '--control_plane_name', "$control_plane_name",    # control plane name
             '--parameterfile', $args{tfvars_filename},    # workload zone tfvars file
             '--deployer_environment', get_os_variable('deployer_env_code'),    # VNET code
             '--deployer_tfstate_key', get_os_variable('deployerState'),    # tfstate name. State file is stored in storage account.
@@ -724,12 +728,14 @@ sub prepare_sdaf_project {
     }
     record_info("Release: $branch");
 
+    assert_script_run('rm -rf sap-automation');
     git_clone(get_required_var('SDAF_GIT_AUTOMATION_REPO'),
         branch => $branch,
         depth => '1',
         single_branch => 'yes',
         output_log_file => log_dir() . '/git_clone_automation.txt');
 
+    assert_script_run('rm -rf sap-automation-samples');
     git_clone(get_required_var('SDAF_GIT_TEMPLATES_REPO'),
         branch => get_var('SDAF_GIT_TEMPLATES_BRANCH'),
         depth => '1',
@@ -737,6 +743,7 @@ sub prepare_sdaf_project {
         output_log_file => log_dir() . '/git_clone_templates.log');
 
     assert_script_run("cp -Rp sap-automation-samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");
+    assert_script_run("cp -Rp ~/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation $deployment_dir/WORKSPACES");
     # Ensure correct directories are in place
     my %vnet_codes = (
         workload_zone => $workload_vnet_code,
@@ -779,7 +786,7 @@ sub resource_group_exists {
     my ($resource_group) = @_;
     croak 'Mandatory positional argument "$resource_group" not defined.' unless $resource_group;
 
-    my $cmd_out = script_output("az group exists -n $resource_group");
+    my $cmd_out = script_output("az group exists -n $resource_group $SDAF_Azure_podman_flake_filter");
     die "Command 'az group exists -n $resource_group' failed.\nCommand returned: $cmd_out" unless grep /false|true/, $cmd_out;
     return ($cmd_out eq 'true');
 }

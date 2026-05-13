@@ -298,6 +298,7 @@ subtest '[sdaf_execute_deployment] Test generated SDAF deployment command' => su
     $ms_sdaf->redefine(script_run => sub { return 0; });
     $ms_sdaf->redefine(sdaf_scripts_dir => sub { return '/tmp/deployment'; });
     $ms_sdaf->redefine(get_os_variable => sub { return '/some/path/LAB-SECE-SAP04-INFRASTRUCTURE-6453.tfvars' });
+    $ms_sdaf->redefine(get_required_var => sub { return 'swedencentral'; });
 
     # Capture command without logging part
     $ms_sdaf->redefine(log_command_output => sub { $sdaf_command_no_log = $_[1]; return; });

@@ -39,7 +39,7 @@ sub run {
     sdaf_ssh_key_from_keyvault(query => 'sid-sshkey', key_vault => $workload_key_vault, target_file => $private_key_src_path);
     if (get_required_var('SDAF_FENCING_MECHANISM') eq 'sbd') {
         $private_key_src_path = get_sut_sshkey_path(sut => 'iscsi', config_root_path => $config_root_path);
-        sdaf_ssh_key_from_keyvault(query => 'iscsi-sshkey', key_vault => $workload_key_vault, target_file => $private_key_src_path);
+        sdaf_ssh_key_from_keyvault(query => 'sid-sshkey', key_vault => $workload_key_vault, target_file => $private_key_src_path);
     }
 
     my $inventory_data = read_inventory_file($inventory_path);
