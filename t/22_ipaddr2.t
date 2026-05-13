@@ -385,6 +385,9 @@ subtest '[ipaddr2_os_sanity]' => sub {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
     ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+    # extract just the command strings
+    my @cmds = map { $_->[1] } @calls;
+    ok((none { /dig/ } @cmds), 'No dig command when enable_dig is not set');
 };
 
 subtest '[ipaddr2_os_sanity] root' => sub {
@@ -415,6 +418,39 @@ subtest '[ipaddr2_os_sanity] root' => sub {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
     ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+};
+
+subtest '[ipaddr2_os_sanity] enable_dig' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(assert_script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
+            my (%args) = @_;
+            push @calls, ['bastion', $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}];
+            # return exactly what ipaddr2_os_ssh_sanity needs
+            return 3; });
+
+    ipaddr2_os_sanity(enable_dig => 1);
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
+    }
+    ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+    # extract just the command strings
+    my @cmds = map { $_->[1] } @calls;
+    ok((any { /dig/ } @cmds), 'dig command present when enable_dig is set');
 };
 
 subtest '[ipaddr2_bastion_pubip]' => sub {
@@ -1029,6 +1065,22 @@ subtest '[ipaddr2_os_connectivity_sanity]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /ping/ } @calls), 'Connectivity sanity has some ping');
+    ok((none { /dig/ } @calls), 'Connectivity sanity has no dig by default');
+};
+
+subtest '[ipaddr2_os_connectivity_sanity] enable_dig' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    ipaddr2_os_connectivity_sanity(enable_dig => 1);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /ping/ } @calls), 'Connectivity sanity has some ping');
+    ok((any { /dig/ } @calls), 'Connectivity sanity has dig when enable_dig is set');
 };
 
 subtest '[ipaddr2_test_other_vm]' => sub {
