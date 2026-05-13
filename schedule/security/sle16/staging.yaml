@@ -21,11 +21,8 @@ schedule:
 conditional_schedule:
   enable_tpm2:
     ARCH:
-      x86_64:
+      x86_64: &tpm2_modules
         - security/tpm2/tpm2_env_setup
         - security/tpm2/tpm2_engine/tpm2_engine_info
         - security/tpm2/tpm2_engine/tpm2_engine_rsa_operation
-      aarch64:
-        - security/tpm2/tpm2_env_setup
-        - security/tpm2/tpm2_engine/tpm2_engine_info
-        - security/tpm2/tpm2_engine/tpm2_engine_rsa_operation
+      aarch64: *tpm2_modules
