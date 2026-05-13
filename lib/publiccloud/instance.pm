@@ -534,6 +534,15 @@ sub wait_for_ssh {
 
     # OK
     return $duration if (!$exit_code && !$args{wait_stop} || $exit_code && $args{wait_stop});
+    # softfailure for 1261908, remove this after resolved.
+    # On SLES 16 GCE this is really coarse, but the guestregister.service is really stubburn.
+    # Sometimes it fails, sometimes it keeps running and tries to register but we run into the timeout (10mins)
+    # where the system is still booting.
+    if (is_sle("=16.0") && is_gce) {
+        record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
+        return 1;
+    }
+
     # FAIL
     croak(" results summary:\n" . $sshout . $sysout) unless ($args{proceed_on_failure});
     return;    # proceed_on_failure true
