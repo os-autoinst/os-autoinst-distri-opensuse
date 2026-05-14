@@ -1,21 +1,55 @@
+# SUSE's openQA tests
+#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
-
 # Summary: Run zypper patch and reboot
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
 =head1 NAME
 
-sles4sap/patch_system.pm - Apply system patches to the SUT
+sles4sap/crash/patch_system.pm - Apply system patches to the SUT
 
 =head1 DESCRIPTION
 
-This module performs a standard system update on the SUT (System Under Test).
+C<patch_system.pm> performs a standard system update on the SUT (System Under Test) by executing C<zypper patch> and then rebooting the system. This ensures that all updates, including kernel updates, are correctly applied and active before subsequent crash testing.
 
-It executes `zypper patch` to install all available patches and then reboots
-the systems to ensure that all updates, including any kernel updates, are
-correctly applied and active. This step helps ensure the SUTs are in a
-consistent and up-to-date state for subsequent tests.
+Its primary tasks are:
+
+=over
+
+=item * Identify the cloud provider and region for the SUT.
+
+=item * Apply system patches and reboot the SUT via C<crash_patch_system>.
+
+=item * Wait for the SUT to come back online after the reboot.
+
+=back
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Cloud provider used: 'EC2', 'AZURE', or 'GCE'. Required.
+
+=item B<PUBLIC_CLOUD_REGION>
+
+Cloud region where the SUT is deployed. Required.
+
+=item B<PUBLIC_CLOUD_AVAILABILITY_ZONE>
+
+Availability zone for the cloud provider. Required for GCE.
+
+=item B<IBSM_RG>
+
+Azure Resource Group of the IBSm server. Optional (used in cleanup).
+
+=item B<IBSM_IP>
+
+IP address of the IBSm server. Optional (used in cleanup).
+
+=back
 
 =head1 MAINTAINER
 
