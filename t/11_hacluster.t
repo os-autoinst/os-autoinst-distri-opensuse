@@ -482,7 +482,7 @@ subtest '[check_cluster_state]' => sub {
 subtest '[check_cluster_state] assert calls normally' => sub {
     my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
     my @calls;
-    $hacluster->redefine(script_run => sub { push @calls, 'script_run'; });
+    $hacluster->redefine(script_run => sub { push @calls, 'retry_script_run'; });
     $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
     $hacluster->redefine(check_online_nodes => sub { return; });
     $hacluster->redefine(script_output => sub { return 'crmshver=4.4.2'; });
@@ -492,7 +492,7 @@ subtest '[check_cluster_state] assert calls normally' => sub {
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));
 
-    ok((all { /(assert_script_run|cmd_run)/ } @calls), 'check_cluster_state
+    ok((all { /(retry_script_run|assert_script_run|cmd_run)/ } @calls), 'check_cluster_state
     used assert_script_run');
 };
 
@@ -538,8 +538,8 @@ subtest '[check_cluster_state] migration scenario' => sub {
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));
 
-    ok((scalar(grep { /^script_run$/ } @calls)) == 1, 'One call with script_run');
-    ok((scalar(grep { /assert_script_run/ } @calls) == (scalar(@calls) - 1)), 'Remaining calls with assert_script_run');
+    ok((scalar(grep { /^script_run$/ } @calls)) == 11, 'Eleven calls with script_run');
+    ok((scalar(grep { /assert_script_run/ } @calls) == (scalar(@calls) - 11)), 'Remaining calls with assert_script_run');
     set_var('HDDVERSION', undef);
 };
 

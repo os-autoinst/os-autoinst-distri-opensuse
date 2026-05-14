@@ -815,11 +815,16 @@ sub check_cluster_state {
     my $cmd_sub = (defined $args{proceed_on_failure} && $args{proceed_on_failure} == 1) ? \&script_run : \&assert_script_run;
 
     $cmd_sub->("$crm_mon_cmd", 180);
-    if (is_sle '12-sp3+') {
-        # Add sleep as command 'crm_mon' outputs 'Inactive resources:' instead of 'no inactive resources' on 12-sp5
+    # Add retry mechanism as command 'crm_mon' outputs 'Inactive resources:' instead of 'no inactive resources' sometime
+    my $retry = 10;
+    while ($retry--) {
+        last if (!script_run("$crm_mon_cmd | grep -i 'no inactive resources'"));
         sleep 5;
-        $cmd_sub->("$crm_mon_cmd | grep -i 'no inactive resources'");
+        if ($retry == 1) {
+            $cmd_sub->("$crm_mon_cmd | grep -i 'no inactive resources'");
+        }
     }
+
     $cmd_sub->('crm_mon -1 | grep \'partition with quorum\'');
 
     # If running with versions of crmsh older than 4.4.2, do not use check_online_nodes (see POD below)
