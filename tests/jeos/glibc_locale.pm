@@ -64,7 +64,7 @@ sub change_locale {
         $rc_lc_modified{LC_MESSAGES} = $rc_lc_modified{LANG};
 
         for (qw(LANG LC_MESSAGES)) {
-            assert_script_run("sed -ie \'s/$_=\"$rc_lc_setup_const->{$_}\"/$_=\"$rc_lc_modified{$_}\"/\' $suse_lang_conf",
+            assert_script_run("sed -i -e \'s/$_=\"$rc_lc_setup_const->{$_}\"/$_=\"$rc_lc_modified{$_}\"/\' $suse_lang_conf",
                 fail_message => "Update of $suse_lang_conf failed!");
         }
     } else {

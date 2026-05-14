@@ -67,10 +67,10 @@ if [ $? -eq 0 ];then
         mv ${dhcpd_config_file}.orig ${dhcpd_config_file} #Restore ${dhcpd_config_file} if it was previously modified by this script
 fi
 cp $dhcpd_config_file $dhcpd_config_file.orig
-sed -irn "s/^.*default-lease-time.*$/default-lease-time 28800;/g; s/^.*max-lease-time.*$/max-lease-time 28800;/g; s/^.*option domain-name .*$/option domain-name \"$dns_domain_forward\";/g" ${qa_standalone_file}
+sed -i "s/^.*default-lease-time.*$/default-lease-time 28800;/g; s/^.*max-lease-time.*$/max-lease-time 28800;/g; s/^.*option domain-name .*$/option domain-name \"$dns_domain_forward\";/g" ${qa_standalone_file}
 get_dhcp_ipaddr_range=`echo -e ${dns_domain_reverse} | awk -F"." 'BEGIN {OFS=".";} {print $3,$2,$1}'`
 dhcp_ipaddr_range=$(echo -e ${get_dhcp_ipaddr_range})
-sed -irn "s/^IP=.*$/IP=\'${bridgeip}\'/g; s/^NET=.*$/NET=\'${dhcp_ipaddr_range}\.0\'/g; s/^NETREV=.*$/NETREV=\'${dns_domain_reverse}\'/g; s/^NET_DHCP_RANGE_START=.*$/NET_DHCP_RANGE_START=\'${dhcp_ipaddr_range}\.10\'/g; s/^NET_DHCP_RANGE_END=.*$/NET_DHCP_RANGE_END=\'${dhcp_ipaddr_range}\.100\'/g; s/^NET_STATIC_RANGE_START=.*$/NET_STATIC_RANGE_START=\'${dhcp_ipaddr_range}\.101\'/g; s/^NET_STATIC_RANGE_END=.*$/NET_STATIC_RANGE_END=\'${dhcp_ipaddr_range}\.115\'/g" ${qa_standalone_file}
+sed -i "s/^IP=.*$/IP=\'${bridgeip}\'/g; s/^NET=.*$/NET=\'${dhcp_ipaddr_range}\.0\'/g; s/^NETREV=.*$/NETREV=\'${dns_domain_reverse}\'/g; s/^NET_DHCP_RANGE_START=.*$/NET_DHCP_RANGE_START=\'${dhcp_ipaddr_range}\.10\'/g; s/^NET_DHCP_RANGE_END=.*$/NET_DHCP_RANGE_END=\'${dhcp_ipaddr_range}\.100\'/g; s/^NET_STATIC_RANGE_START=.*$/NET_STATIC_RANGE_START=\'${dhcp_ipaddr_range}\.101\'/g; s/^NET_STATIC_RANGE_END=.*$/NET_STATIC_RANGE_END=\'${dhcp_ipaddr_range}\.115\'/g" ${qa_standalone_file}
 source ${qa_standalone_file}
 
 #Insert script signature to the end of ${dhcpd_config_file}
@@ -269,7 +269,7 @@ cp ${dns_resolv_file} ${dns_resolv_file}.orig
 awk -v dnsvar=${bridgeip} 'done != 1 && /^nameserver.*$/ { print "nameserver "dnsvar"\n"; done=1 } 1' ${dns_resolv_file} > ${dns_config_file_tmp}
 mv ${dns_config_file_tmp} ${dns_resolv_file}
 #Add testvirt.net as domain suffix
-sed -irn "s/^search/search ${dns_domain_forward}/" ${dns_resolv_file}
+sed -i "s/^search/search ${dns_domain_forward}/" ${dns_resolv_file}
 #Add 192.168.123.1 as forwarder
 get_nameservers=`cat ${dns_resolv_file} | grep -iE "^nameserver" | awk '{print $NF}'`
 nameservers_array=$(echo -e ${get_nameservers})
@@ -278,7 +278,7 @@ declare -a forwarders_array=""
 for single_nameserver in ${nameservers_array[@]};do
 	forwarders_array+=(${single_nameserver}\;)
 done	
-sed -irn "/^ *forwarders/s/forwarders.*$/forwarders { `echo -e ${forwarders_array[@]}` };/" ${dns_config_file}
+sed -i "/^ *forwarders/s/forwarders.*$/forwarders { `echo -e ${forwarders_array[@]}` };/" ${dns_config_file}
 #Insert script signature to the end of ${dns_config_file} and ${dns_resolv_file}
 echo -e "#$0" >> ${dns_config_file}
 echo -e "#$0" >> ${dns_resolv_file}
