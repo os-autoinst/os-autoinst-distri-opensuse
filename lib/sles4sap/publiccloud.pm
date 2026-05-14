@@ -295,7 +295,7 @@ sub deployment_cleanup {
 sub get_hana_topology {
     my ($self) = @_;
     my $output_format = get_var('USE_SAP_HANA_SR_ANGI') ? 'json' : 'script';
-    $self->wait_for_idle(timeout => 240);
+    $self->wait_for_idle(timeout => 60);
     my $cmd_out = $self->run_cmd_retry(cmd => "SAPHanaSR-showAttr --format=$output_format", quiet => 1);
     return calculate_hana_topology(input_format => $output_format, input => $cmd_out);
 }
@@ -1589,7 +1589,7 @@ sub check_zypper_ref {
 
 sub wait_for_idle {
     my ($self, %args) = @_;
-    my $timeout = $args{timeout} // 240;
+    my $timeout = $args{timeout} // 60;
 
     my $rc = $self->run_cmd_retry(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, rc_only => 1);
     if ($rc == 124) {
