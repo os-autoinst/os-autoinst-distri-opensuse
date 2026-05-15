@@ -163,7 +163,7 @@ sub validate_cuda
     assert_script_run('mkdir cuda-samples/build; cd $_');
     assert_script_run("cmake .. -DCMAKE_CUDA_COMPILER_TOOLKIT_ROOT=/usr/local/cuda -DCMAKE_CUDA_ARCHITECTURES=$compute_cap -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc");
     assert_script_run('make -j$(nproc)', 3000);
-    record_info('CUDA Sample', script_output('./Samples/0_Introduction/clock/clock'));
+    record_info('CUDA Sample', script_output('./cpp/0_Introduction/clock/clock'));
 }
 
 1;
