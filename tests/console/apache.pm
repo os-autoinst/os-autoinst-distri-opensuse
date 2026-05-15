@@ -183,10 +183,14 @@ sub run {
     assert_script_run 'htpasswd -s -b /srv/www/vhosts/localhost/authtest/.htpasswd joe secret';
 
     # Paste the .htaccess file
-    assert_script_run('curl -o /srv/www/vhosts/localhost/authtest/.htaccess ' . data_url('console/apache_.htaccess'));
+    my $apache_htaccess = "/srv/www/vhosts/localhost/authtest/.htaccess";
+    assert_script_run('curl -o /tmp/apache_.htaccess ' . data_url('console/apache_.htaccess'));
+    assert_script_run("mv /tmp/apache_.htaccess $apache_htaccess");
 
     # Paste the config file
-    assert_script_run('curl -o /etc/apache2/conf.d/authtest.conf ' . data_url('console/apache_authtest.conf'));
+    my $apache_authtest = "/etc/apache2/conf.d/authtest.conf";
+    assert_script_run('curl -o /tmp/apache_authtest.conf ' . data_url('console/apache_authtest.conf'));
+    assert_script_run("mv /tmp/apache_authtest.conf $apache_authtest");
 
     # Start the webserver and test the password access
     record_info('poo#179678', 'Job for apache2.service may fail because start of the service was attempted too often');
@@ -208,4 +212,3 @@ sub run {
 }
 
 1;
-
