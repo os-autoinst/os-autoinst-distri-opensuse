@@ -179,7 +179,7 @@ sub upload_boot_diagnostics {
     }
 
     $asset_path = "/tmp/console.jpg";
-    script_run("aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > $asset_path");
+    script_run("timeout -k 150 aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > $asset_path", timeout => 180);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info('empty screenshot', 'The console screenshot is empty.');
         record_info($asset_path, script_output("cat $asset_path"));
