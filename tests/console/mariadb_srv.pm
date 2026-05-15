@@ -65,8 +65,8 @@ sub run {
     if (!is_sle('<=12-SP3')) {
         assert_script_run "curl " . data_url('console/mariadb/mynode1.cnf') . " -o /tmp/mariadb_mynode1.cnf";
         assert_script_run "curl " . data_url('console/mariadb/mynode2.cnf') . " -o /tmp/mariadb_mynode2.cnf";
-        assert_script_run "mv /tmp/mariadb_mynode1.cnf /etc/mynode1.cnf";
-        assert_script_run "mv /tmp/mariadb_mynode2.cnf /etc/mynode2.cnf";
+        assert_script_run "mv -Z /tmp/mariadb_mynode1.cnf /etc/mynode1.cnf";
+        assert_script_run "mv -Z /tmp/mariadb_mynode2.cnf /etc/mynode2.cnf";
         assert_script_run "mkdir -p /var/lib/mysql/node{1,2}";
         assert_script_run "chown mysql:root /var/lib/mysql/node{1,2}";
 
