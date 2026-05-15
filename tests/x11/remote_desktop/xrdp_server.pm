@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2019 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: firewalld xrdp gnome-session-core
@@ -13,9 +13,10 @@ use testapi;
 use lockapi;
 use mmapi;
 use mm_tests;
-use utils qw(systemctl zypper_call);
-use x11utils qw(handle_login turn_off_gnome_screensaver);
-use version_utils qw(is_sle is_sles4sap is_tumbleweed);
+use utils qw(systemctl);
+use x11utils qw(handle_login select_user_gnome turn_off_gnome_screensaver);
+use version_utils qw(is_sle is_sles4sap is_tumbleweed is_transactional);
+use package_utils qw(install_package);
 
 sub run {
     my ($self) = @_;
@@ -51,8 +52,9 @@ sub run {
         }
     }
     else {
-        # Install xrdp
-        zypper_call('in xrdp');
+        # Install xrdp (transactional-aware: trup_apply lets us start the
+        # service without a reboot on immutable images).
+        install_package('xrdp', trup_apply => 1);
 
         # Add the firewall port for xrdp
         assert_script_run 'firewall-cmd --zone=public --permanent --add-port=3389/tcp';
@@ -77,13 +79,18 @@ sub run {
     mouse_click if get_var('OFW');
     send_key_until_needlematch 'displaymanager', 'esc';
 
-    if (is_sles4sap || is_tumbleweed) {
-        # We don't have to test the reconnection and reboot part in SLES4SAP and TW
+    if (is_sles4sap || is_tumbleweed || is_transactional) {
+        # We don't have to test the reconnection and reboot part in SLES4SAP, TW
+        # or transactional/immutable images.
         handle_login;
     }
 
     else {
-        send_key_until_needlematch('displaymanager-password-prompt', 'ret', 4, 3);
+        # After the RDP disconnect GDM often shows the user list with no
+        # user focused; select_user_gnome handles all three GDM states
+        # and leaves us at the password prompt.
+        select_user_gnome;
+        assert_screen 'displaymanager-password-prompt';
         type_password;
         wait_still_screen 3;
         send_key "ret";

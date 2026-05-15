@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2020 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: remmina
@@ -13,15 +13,17 @@ use testapi;
 use version_utils ':VERSION';
 use lockapi;
 use mm_network;
+use package_utils qw(install_package);
 use x11utils 'default_gui_terminal';
 
 sub run {
     my $self = shift;
     select_console('root-console');
     setup_static_mm_network('10.0.2.17/24');
+    # Install on the root console so the path works on transactional images
+    # (trup_apply activates the new snapshot without requiring a reboot).
+    install_package('remmina', trup_apply => 1);
     select_console('x11');
-
-    ensure_installed('remmina');
 
     # Disable Remmina news before launch Remmina
     x11_start_program(default_gui_terminal);
@@ -33,7 +35,7 @@ sub run {
     assert_script_run 'echo -e "[remmina]\\ncolordepth=0" >> ' . $pref_dir . '/remmina.pref';
     enter_cmd "exit";
 
-    mutex_lock 'win_server_ready';
+    mutex_wait 'win_server_ready';
 
     # Start Remmina and login the remote server
     x11_start_program('remmina', valid => 0);
