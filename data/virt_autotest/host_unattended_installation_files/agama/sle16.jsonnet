@@ -79,6 +79,14 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
         |||
       },
       {
+        name: "enable_sshd",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          systemctl enable sshd.service
+        |||
+      },
+      {
         name: "enable_persistent_journal_logging",
         content: |||
           #!/usr/bin/env bash

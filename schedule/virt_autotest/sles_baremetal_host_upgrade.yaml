@@ -1,0 +1,73 @@
+name: sles-baremetal-host-upgrade
+description: |
+  SLES bare metal installation via iPXE (IPMI).
+  Supports SLE15SP7 (AutoYaST) and SLE16.0+ (Agama).
+  Architectures: x86_64, aarch64.
+  Maintainer: qe-virt@suse.de
+
+  DO_NOT_INSTALL_HOST: 1 to skip host installation
+  AGAMA: 1 for SLE16.0+ (Agama), 0 for SLE15SP7 (AutoYaST)
+  AUTOYAST: AutoYaST profile URL (required when AGAMA=0)
+  VERSION_UPGRADE_FROM: migration source version, e.g. 15-SP7 (required when AGAMA=0)
+  VIRT_AUTOTEST: 1 to install guests before upgrade
+  UNIFIED_GUEST_LIST: guest XML profile names (required when VIRT_AUTOTEST=1)
+vars:
+  DO_NOT_INSTALL_HOST: 0
+  TRANSACTIONAL: 0
+schedule:
+  - '{{host_installation}}'
+  - virt_autotest/login_console
+  - '{{do_preparation}}'
+  - '{{guest_installation}}'
+  - '{{upgrade_steps}}'
+conditional_schedule:
+  host_installation:
+    DO_NOT_INSTALL_HOST:
+      0:
+        # All install steps nested here so they are skipped when DO_NOT_INSTALL_HOST=1
+        - '{{autoyast_prepare}}'
+        - installation/ipxe_install
+        - '{{post_ipxe}}'
+  autoyast_prepare:
+    AGAMA:
+      0:
+        # SLE15SP7: AutoYaST requires profile to be prepared before iPXE boot
+        - autoyast/prepare_profile
+  post_ipxe:
+    AGAMA:
+      0:
+        # SLE15SP7: AutoYaST unattended installation
+        - autoyast/installation
+      1:
+        # SLE16.0+: Agama installer reboot
+        - installation/agama_reboot
+  do_preparation:
+    TRANSACTIONAL:
+      0:
+        - virt_autotest/prepare_non_transactional_server
+      1:
+        - virt_autotest/prepare_transactional_server
+  guest_installation:
+    VIRT_AUTOTEST:
+      '1':
+        - virt_autotest/unified_guest_installation
+  upgrade_steps:
+    AGAMA:
+      0:
+        # SLE15SP7: AutoYaST-based host upgrade
+        - console/system_prepare
+        - console/hostname
+        - yam/migration/migration_unattended
+        - installation/grub_test
+        - installation/first_boot
+        - yam/validate/validate_migration_logs
+        - yam/validate/validate_connectivity
+        - yam/validate/validate_product
+        - console/validate_repos
+      1:
+        # SLE16.0+: Agama-based minor upgrade (x86_64)
+        - console/system_prepare
+        - yam/migration/zypper_migration
+        - yam/validate/validate_migration_logs
+        - yam/validate/validate_product
+        - console/validate_repos
