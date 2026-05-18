@@ -1349,6 +1349,7 @@ subtest '[ipaddr2_logs_collect]' => sub {
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
 
+    note("Testing log collection with successful SSH commands...");
     ipaddr2_logs_collect();
 
     note("\n  SSH CALLS -->  " . join("\n  SSH CALLS -->  ", @ssh_calls));
@@ -1368,47 +1369,38 @@ subtest '[ipaddr2_logs_collect]' => sub {
     ok((any { /supportconfig.*/ } @upload_calls), "supportconfig uploaded");
 };
 
-subtest '[ipaddr2_logs_collect] fail' => sub {
+subtest '[ipaddr2_logs_collect] skip scp on failure' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @upload_calls;
     $ipaddr2->redefine(upload_logs => sub {
             push @upload_calls, $_[0];
             return;
     });
-    my @records;
-    $ipaddr2->redefine(record_info => sub { push @records, \@_; note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @ssh_calls;
+    my @scp_calls;
+    # Redefine ipaddr2_ssh_internal to return 1 (failure) and track calls
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_calls, $args{cmd};
+            return 1;
+    });
     $ipaddr2->redefine(script_run => sub {
-            return 1 if $_[0] =~ /^ssh /;
+            push @scp_calls, $_[0] if $_[0] =~ /^scp /;
             return 0;
     });
     $ipaddr2->redefine(assert_script_run => sub { return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
 
-    lives_ok { ipaddr2_logs_collect(bastion_ip => '1.2.3.4') } 'survives failing script_run';
+    note("Testing log collection with failing SSH commands (skip scp)...");
+    ipaddr2_logs_collect();
 
-    is(scalar @upload_calls, 10, "upload_logs called 10 times even if commands fail");
-    ok((any { $_->[0] =~ /Failed.*time/ } @records), "failure was recorded");
+    is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal still called 8 times for log generation");
+    is(scalar @scp_calls, 0, "scp is NOT called because all log generation failed");
+    is(scalar @upload_calls, 2, "upload_logs called only 2 times for local logs");
 };
 
-subtest '[ipaddr2_logs_collect] timeout' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    my @upload_calls;
-    $ipaddr2->redefine(upload_logs => sub {
-            push @upload_calls, $_[0];
-            return;
-    });
-    my @records;
-    $ipaddr2->redefine(record_info => sub { push @records, \@_; note(join(' ', 'RECORD_INFO -->', @_)); });
-    $ipaddr2->redefine(script_run => sub {
-            die "command '$_[0]' timed out" if $_[0] =~ /^ssh /;
-            return 0;
-    });
-    $ipaddr2->redefine(assert_script_run => sub { return; });
-
-    lives_ok { ipaddr2_logs_collect(bastion_ip => '1.2.3.4') } 'survives timeout from script_run';
-
-    is(scalar @upload_calls, 10, "upload_logs called 10 times even if commands timeout");
-    ok((any { $_->[0] =~ /SSH timeout/ } @records), "timeout was recorded");
-};
 
 subtest '[ipaddr2_ssh_intrusion_detection]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');

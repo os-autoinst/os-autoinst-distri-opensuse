@@ -17,6 +17,7 @@ use Mojo::JSON qw( decode_json );
 # a Fully Qualified Domain Name which returns an ipV4 address or an ipV6 address
 # embodied in that order. This feature can be disabled with:
 use NetAddr::IP::Lite ':nofqdn';
+use File::Basename qw(basename);
 use testapi;
 use mmapi qw( get_current_job_id );
 use utils qw( write_sut_file ssh_fully_patch_system);
@@ -2553,6 +2554,7 @@ sub ipaddr2_logs_collect(%args) {
     my %log_data;
     my $remote_file;
     my $timeout;
+    my $scp_cmd;
 
     # Iterate over all the logs
     foreach my $log (ipaddr2_logs_collect_cmds()) {
@@ -2569,29 +2571,31 @@ sub ipaddr2_logs_collect(%args) {
                 $remote_file = $log_data{file};
 
                 # Execute command on the remote VM to generate the log file, if there is a command to run.
-                ipaddr2_ssh_internal(
-                    id => $id,
-                    bastion_ip => $args{bastion_ip},
-                    no_assert => 1,
-                    timeout => $timeout,
-                    cmd => $log_data{cmd}) if (defined $log_data{cmd});
+                my $cmd_ret = 0;
+                if (defined $log_data{cmd}) {
+                    $cmd_ret = ipaddr2_ssh_internal(
+                        id => $id,
+                        bastion_ip => $args{bastion_ip},
+                        no_assert => 1,
+                        timeout => $timeout,
+                        cmd => $log_data{cmd});
+                }
 
-                # Download the generated file from the remote VM to the local worker.
-                my ($filename) = $remote_file =~ m|/([^/]+)$|;
-                $filename //= $remote_file;    # Fallback
-                $local_file = "$worker_tmp_dir/$filename";
-                record_info("bastion_ssh_addr:$bastion_ssh_addr vm_addr:$vm_addr ", join(' ',
+                # Download the generated file from the remote VM to the local worker
+                # only if the previous command was successful.
+                if (defined $cmd_ret && $cmd_ret == 0) {
+                    $local_file = join('/', $worker_tmp_dir, basename($remote_file));
+
+                    $scp_cmd = join(' ',
                         'scp',
                         '-J', $bastion_ssh_addr,
-                        "$vm_addr:$remote_file", $local_file));
+                        "$vm_addr:$remote_file", $local_file);
+                    record_info("bastion_ssh_addr:$bastion_ssh_addr vm_addr:$vm_addr ", $scp_cmd);
+                    $scp_ret = script_run($scp_cmd);
 
-                $scp_ret = script_run(join(' ',
-                        'scp',
-                        '-J', $bastion_ssh_addr,
-                        "$vm_addr:$remote_file", $local_file));
-
-                # If download was successful or file is local, upload the local file to openQA.
-                upload_logs($local_file) if ($scp_ret == 0);
+                    # If download was successful, upload the local file to openQA.
+                    upload_logs($local_file) if ($scp_ret == 0);
+                }
             }
         } else {
             # call it without id
