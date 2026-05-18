@@ -342,7 +342,6 @@ sub load_container_tests {
 
     # qa_automation/patch_and_reboot is only needed for the SLFO workflow on SLES16.
     # Publiccloud uses publiccloud/patch_and_reboot which is in conflict with qa_automation/patch_and_reboot.
-    loadtest 'qa_automation/patch_and_reboot' if (is_sle('16.0+') && is_updates_tests && !is_public_cloud);
 
     if (my $container_tests = get_var('CONTAINER_TESTS', '')) {
         loadtest "containers/$_" foreach (split(',\s*', $container_tests));
