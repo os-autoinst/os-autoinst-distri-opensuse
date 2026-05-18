@@ -137,7 +137,7 @@ def openssl():
 @pytest.mark.parametrize("algo", ML_DSA_ALGOS)
 def test_ml_dsa_explicit_dgst_compatibility(tmp_path: Path, algo, openssl):
     if not openssl.is_supported(algo):
-        pytest.skip(f"Algorithm {algo} not supported.")
+        pytest.fail(f"Error: Algorithm {algo} not supported.")
 
     priv_key_path = tmp_path / "dgst_key.der"
     pub_key_path = tmp_path / "dgst_pub.der"
@@ -170,7 +170,7 @@ def test_tls_handshake(tmp_path: Path, algo, openssl):
     """
     # STRICT CHECK: Only attempt handshake if OpenSSL explicitly lists it as a TLS group.
     if not openssl.is_tls_group(algo):
-        pytest.skip(f"Algorithm {algo} is not listed in 'openssl list -tls-groups'.")
+        pytest.fail(f"Error: Algorithm {algo} is not listed in 'openssl list -tls-groups'.")
 
     # 1. Prepare Server Certs
     server_key = tmp_path / "server.key"
@@ -254,10 +254,10 @@ def test_kem_lifecycle(tmp_path: Path, algo, openssl):
     Tests Key Encapsulation Mechanism (File-based).
     """
     if not openssl.is_supported(algo):
-        pytest.skip(f"Algorithm {algo} not supported.")
+        pytest.fail(f"Error: Algorithm {algo} not supported.")
     
     if not openssl.can_generate_key(algo):
-        pytest.skip(f"Algorithm {algo} appears to be a TLS Group only (no CLI KeyGen support).")
+        pytest.fail(f"Error: Algorithm {algo} appears to be a TLS Group only (no CLI KeyGen support).")
 
     priv_key_path = tmp_path / "key.der"
     openssl.run(["genpkey", "-algorithm", algo, "-outform", "DER", "-out", str(priv_key_path)])
@@ -297,7 +297,7 @@ def test_kem_lifecycle(tmp_path: Path, algo, openssl):
 @pytest.mark.parametrize("algo", ML_DSA_ALGOS + SLH_DSA_ALGOS)
 def test_post_quantum_signatures(tmp_path: Path, algo, openssl):
     if not openssl.is_supported(algo):
-        pytest.skip(f"Algorithm {algo} not supported.")
+        pytest.fail(f"Error: Algorithm {algo} not supported.")
 
     priv_key_path = tmp_path / "sign_key.der"
     openssl.run(["genpkey", "-algorithm", algo, "-outform", "DER", "-out", str(priv_key_path)])

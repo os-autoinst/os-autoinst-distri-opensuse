@@ -24,7 +24,14 @@ sub run {
             name => 'testPostQuantumCrypto',
         }
     );
-    $test->setup()->run_test()->parse_results()->cleanup();
+    if (is_sle('=15-SP7')) {
+        eval { $test->setup()->run_test()->parse_results()->cleanup() };
+        if ($@) {
+            record_soft_failure("poo#200579 OpenSSL PQ not yet ready for SLE15-SP7: $@");
+        }
+    } else {
+        $test->setup()->run_test()->parse_results()->cleanup();
+    }
 }
 
 sub test_flags {
