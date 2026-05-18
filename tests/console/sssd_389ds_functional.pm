@@ -12,7 +12,7 @@
 #
 # Detailed testcases: https://bugzilla.suse.com/tr_show_case.cgi?case_id=1768710
 #
-# Maintainer: QE Security <none@suse.de>
+# Maintainer: qe-core <qe-core@suse.com>
 
 package sssd_389ds_functional;
 use Mojo::Base 'consoletest';
@@ -24,6 +24,8 @@ use package_utils 'install_package';
 use registration qw(add_suseconnect_product get_addon_fullname register_product cleanup_registration);
 use feature 'signatures';
 no warnings 'experimental::signatures';
+
+my $conf_dir = "/tmp/sssd_configs";
 
 sub install_dependencies($container_engine) {
     zypper_call("in sudo nscd") unless (is_tumbleweed || is_sle('>=16'));
@@ -73,16 +75,52 @@ sub setup_389ds_container ($container_engine) {
     assert_script_run('ldapadd -x -H ldap://ldapserver -D "cn=Directory Manager" -w opensuse -f access.ldif');
 }
 
-sub configure_sssd_client ($container_engine) {
+sub configure_sssd_client ($container_engine, $run_as_user = 'root') {
+    systemctl("stop nscd.service nscd.socket", ignore_failure => 1);
+    systemctl("disable --now nscd.service") unless (is_sle('>=16') || is_tumbleweed);
+    systemctl("stop sssd.service");
 
     assert_script_run('mkdir -p /etc/sssd/');
     assert_script_run("$container_engine cp ds389_container:/etc/dirsrv/slapd-frist389/ca.crt /etc/sssd/ldapserver.crt");
-    assert_script_run("install --mode 0644 -D ./nsswitch.conf /etc/nsswitch.conf");
-    assert_script_run("install --mode 0600 -D ./sssd.conf /etc/sssd/sssd.conf");
-    assert_script_run("install --mode 0600 -D ./config ~/.ssh/config");
+    assert_script_run("install --mode 0644 -D $conf_dir/nsswitch.conf /etc/nsswitch.conf");
+    assert_script_run("install --mode 0600 -D $conf_dir/sssd.conf /etc/sssd/sssd.conf");
+    assert_script_run("rm -f /var/log/sssd/*.log /var/lib/sss/db/*.ldb");
+    assert_script_run("sed -i '/config_file_version/d' /etc/sssd/sssd.conf");
+    assert_script_run("sed -i '/\\[sssd\\]/a config_file_version = 2' /etc/sssd/sssd.conf");
 
-    systemctl("disable --now nscd.service") unless (is_sle('>=16') || is_tumbleweed);
-    systemctl("enable --now sssd.service");
+    if ($run_as_user eq 'sssd') {
+        # Ensure files are owned by sssd user
+        assert_script_run("getent group sssd || groupadd -r sssd");
+        assert_script_run("getent passwd sssd || useradd -r -g sssd -d /var/lib/sss -s /sbin/nologin -c 'User for sssd' sssd");
+        record_info('Config', 'Configuring SSSD to run as unprivileged user');
+        assert_script_run("rm -rf /var/lib/sss/db/* /var/lib/sss/mc/*");
+        assert_script_run("chmod 0750 /var/lib/sss/db /var/lib/sss/pipes");
+        assert_script_run("chown -R sssd:sssd /etc/sssd /var/lib/sss /var/log/sssd");
+        # Create systemd override
+        assert_script_run("mkdir -p /etc/systemd/system/sssd.service.d");
+        my $override = "[Service]\nUser=sssd\nGroup=sssd\nSupplementaryGroups=";
+        assert_script_run("echo -e \"$override\" > /etc/systemd/system/sssd.service.d/override.conf");
+    } else {
+        record_info('Config', 'Configuring SSSD to run as root');
+        # Ensure root ownership (or default)
+        assert_script_run("rm -f /etc/systemd/system/sssd.service.d/override.conf");
+        assert_script_run("chown -R root:root /etc/sssd");
+        # Clear cache for clean state
+        assert_script_run("rm -rf /var/lib/sss/db/*");
+    }
+
+    systemctl("daemon-reload");
+
+    my $real_ip = script_output("$container_engine inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ds389_container");
+    assert_script_run("sed -i '/ldapserver/d' /etc/hosts");
+    assert_script_run("echo '$real_ip ldapserver' >> /etc/hosts");
+    my $net_check = script_run("ping -c 1 ldapserver");
+    if ($net_check != 0) {
+        record_info("Net Fix", "Ldapserver unreachable. Restarting container...");
+        assert_script_run("$container_engine restart ds389_container");
+        script_retry("ping -c 1 ldapserver", retry => 5, delay => 2);
+    }
+    script_run("systemctl enable --now sssd.service");
 }
 
 sub change_and_verify_password ($user, $old_pass, $new_pass) {
@@ -117,18 +155,35 @@ sub run ($self) {
     # SLE16.1 not yet has a Package Hub workarond
     zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa_head', no_gpg_check => 1) if is_sle('>16.0');
 
+    assert_script_run("mkdir -p $conf_dir");
+    my @artifacts = qw(user_389.ldif access.ldif instance_389.inf sssd.conf nsswitch.conf config);
+    my $data_url = sprintf("sssd/398-ds/{%s}", join(',', @artifacts));
+    assert_script_run("curl -L --output-dir $conf_dir --remote-name-all " . data_url($data_url));
+
     install_dependencies($container_engine);
     setup_389ds_container($container_engine);
-    configure_sssd_client($container_engine);
+    for my $user_mode ('root', 'sssd') {
+        # Skip logic: sssd mode is not supported on SLE versions older than 15-SP6
+        if ($user_mode eq 'sssd' && (is_sle('<15-sp6') || is_sle('>=16.0') || is_tumbleweed)) {
+            record_info("Skip", "Skipping sssd mode: SLE version is older than 15-SP6");
+            next;
+        }
+        record_info("Test Mode", "Running functional tests as: $user_mode");
+        my $status = script_output("$container_engine inspect -f '{{.State.Running}}' ds389_container");
+        if ($status =~ /false/) {
+            record_info("Container Fix", "Container was down, attempting restart");
+            assert_script_run("$container_engine start ds389_container");
+            script_retry("$container_engine inspect -f '{{.State.Running}}' ds389_container | grep true", retry => 10, delay => 2);
+        }
+        configure_sssd_client($container_engine, $user_mode);
 
-    #execute test cases
-    #get remote user indentity
-    validate_script_output("id alice", sub { m/uid=9998\(alice\)/ });
-    #remote user authentification test
-    assert_script_run("pam-config -a --sss --mkhomedir");
+        # Identity verification
+        validate_script_output("id alice", sub { m/uid=9998\(alice\)/ });
+        assert_script_run("pam-config -a --sss --mkhomedir");
 
-    run_online_tests($container_engine);
-    run_offline_tests($container_engine);
+        run_online_tests($container_engine);
+        run_offline_tests($container_engine);
+    }
 }
 
 sub run_online_tests ($container_engine) {
