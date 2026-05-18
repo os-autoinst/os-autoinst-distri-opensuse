@@ -179,13 +179,13 @@ sub cleanup_known_coredumps {
         'https://gitlab.isc.org/isc-projects/bind9/-/work_items/2983' => q(9.18.33/bin/named/.libs/named -D doth),
     );
 
-    for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1))) {
+    for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 ~ /^(present|truncated)$/ { print $5 }'), proceed_on_failure => 1))) {
         my $coredump_info = script_output("time coredumpctl info --no-pager $pid", proceed_on_failure => 1);
         my ($cmdline) = $coredump_info =~ /^\s+Command Line: (.*)$/m;
         for my $known (keys %known_coredumps) {
             if (index($cmdline, $known_coredumps{$known}) >= 0) {
                 record_info('Known dump', $coredump_info);
-                my ($coredump) = $coredump_info =~ /^\s+Storage: (.+?) \(present\)$/m;
+                my ($coredump) = $coredump_info =~ /^\s+Storage: (.+?) \(present|truncated\)$/m;
                 script_output("rm -vf $coredump");
                 last;
             }
@@ -207,7 +207,7 @@ remove them from /var/lib/systemd/coredump/ to avoid processing them here.
 sub upload_coredumps {
     my $res = script_run('coredumpctl --no-pager');
     return if $res;
-    my @pids = split(/\n/, script_output(q(coredumpctl --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1));
+    my @pids = split(/\n/, script_output(q(coredumpctl --no-pager --no-legend | awk '$9 ~ /^(present|truncated)$/ { print $5 }'), proceed_on_failure => 1));
     return unless @pids;
     record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
     my $get_backtrace = get_var("COREDUMP_WITH_BACKTRACE") && !is_transactional;
