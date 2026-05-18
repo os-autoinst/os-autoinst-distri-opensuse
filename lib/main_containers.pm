@@ -415,7 +415,7 @@ sub load_container_tests {
                 # Common openQA image tests
                 load_image_tests_podman($run_args) if (/podman/i);
                 load_image_tests_docker($run_args) if (/docker/i);
-                load_image_tests_in_k8s($run_args) if (/k8s/i);
+                load_image_tests_in_k8s($run_args) if ((get_var('CONTAINERS_K8S_TEST', '1')) && /k8s/i);
             }
         } else {
             # Container Host tests
