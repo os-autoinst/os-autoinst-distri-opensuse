@@ -2,16 +2,66 @@
 #
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Public Cloud - VM Configuration and Registration
-# This module connects to the VM via SSH and performs:
-# - SSH availability check
-# - Host key scan and trust
-# - (Optional) IBSM repo addition for maintenance update testing
-# - SUSEConnect registration using SCC_REGCODE
-# - System patching using zypper
-# - System reboot
-# This prepares the system for crash testing.
+# Maintainer: QE-SAP <qe-sap@suse.de>
+
+=head1 NAME
+
+sles4sap/crash/configure.pm - VM Configuration and Registration
+
+=head1 DESCRIPTION
+
+C<configure.pm> performs initial setup on the SUT cloud VM for subsequent crash testing.
+
+Its primary tasks are:
+
+=over
+
+=item * Connect to the VM via SSH and verify its availability.
+
+=item * Scan and trust the host key.
+
+=item * Register the system using C<SCC_REGCODE_SLES4SAP> and optional C<SCC_ADDONS>.
+
+=item * Prepare the system by patching and rebooting using C<crash_system_ready>.
+
+=back
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Type of the public cloud provider (e.g., AWS, AZURE, GCE). Required.
+
+=item B<PUBLIC_CLOUD_REGION>
+
+Region of the public cloud provider.
+
+=item B<PUBLIC_CLOUD_AVAILABILITY_ZONE>
+
+Availability zone for the public cloud provider (Required for GCE).
+
+=item B<SCC_REGCODE_SLES4SAP>
+
+Registration code for SLES for SAP.
+
+=item B<PUBLIC_CLOUD_SCC_ENDPOINT>
+
+Custom SCC endpoint URL. Optional. Defaults to 'registercloudguest' inside C<crash_system_ready>.
+
+=item B<SCC_ADDONS>
+
+Comma-separated list of addons to register. Optional.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
 
 use Mojo::Base 'publiccloud::basetest';
 use serial_terminal 'select_serial_terminal';
