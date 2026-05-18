@@ -53,7 +53,7 @@ sub run {
         assert_script_run "! test -f /tmp/OK";
     } else {
         assert_script_run "ls /tmp/OK";
-        zypper_call "in -y -t pattern sap_server";
+        zypper_call 'in -y -t pattern ' . (is_sle('>=16') ? 'sles_sap_base_sap_server' : 'sap_server');
         # We have now a SLES4SAP product, so we need to notify the test(s)
         set_var('SLE_PRODUCT', 'sles4sap');
     }
