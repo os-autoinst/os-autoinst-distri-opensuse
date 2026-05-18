@@ -100,7 +100,7 @@ sub run {
 
     my $grub_menu = $testapi::distri->get_grub_menu_agama();
     my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
-    my $agama_up_an_running = $testapi::distri->get_agama_up_an_running();
+    my $agama_up_and_running = $testapi::distri->get_agama_up_and_running();
 
     my @params = prepare_boot_params();
 
@@ -116,9 +116,13 @@ sub run {
     return if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
     if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
         wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
-    } else {
-        $agama_up_an_running->expect_is_shown();
+        return;
     }
+    if (check_var('AGAMA_GRUB_SELECTION', 'check_medium')) {
+        wait_serial("Medium check succeeded", 600) || die "Medium check failed";
+        send_key 'ret' if wait_serial("Press any key to continue...", 60);
+    }
+    $agama_up_and_running->expect_is_shown();
 }
 
 sub post_fail_hook {
