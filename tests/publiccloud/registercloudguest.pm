@@ -90,8 +90,8 @@ sub run {
                 } else {
                     die "guestregister-lic-watcher.timer is not active";
                 }
-            } else {
-                record_soft_failure('poo#190068 - The legacy check for regionsrv-enabler-azure.timer should be removed') if (is_sle("=12-SP5") && is_azure);
+            } elsif (is_azure()) {
+                record_soft_failure('poo#190068 - The legacy check for regionsrv-enabler-azure.timer should be removed') if is_sle("=12-SP5");
                 # Ensure the legacy timer is not present
                 $instance->ssh_assert_script_run('systemctl show regionsrv-enabler-azure.timer | grep LoadState=not-found', fail_message => "regionsrv-enabler-azure.timer must not be present");
             }
