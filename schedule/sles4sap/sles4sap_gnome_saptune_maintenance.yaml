@@ -25,9 +25,9 @@ conditional_schedule:
         - sles4sap/publiccloud/qesap_terraform
         - sles4sap/publiccloud/qesap_instances_preparation
         - sles4sap/publiccloud/add_server_to_hosts
-        - sles4sap/publiccloud/cluster_add_repos
         - sles4sap/publiccloud/mr_test_setup_env
         - publiccloud/registration
+        - sles4sap/publiccloud/cluster_add_repos
         - publiccloud/patch_and_reboot
         - publiccloud/ssh_interactive_start
         - publiccloud/instance_overview
