@@ -52,11 +52,11 @@ sub run {
         # Configure the public cloud kubernetes
         if ($k8s_backend eq "EC2") {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle("<16");
-            my $aws_cli_pkg = is_sle(">16.0") ? 'aws-cli-cmd' : 'aws-cli';
+            my $aws_cli_pkg = is_sle(">=16.0") ? 'aws-cli-cmd' : 'aws-cli';
             my $rc = zypper_call("in jq $aws_cli_pkg", exitcode => [0, 104], timeout => 300);
-            if ($rc && is_sle(">16.0")) {
-                # https://src.suse.de/products/SLFO/pulls/4071
-                record_soft_failure("ssd#products/SLFO#4071 - New packages: aws-cli-cmd, az-cli-cmd");
+            if ($rc && is_sle(">=16.0")) {
+                record_soft_failure("bsc#1263667 - openQA test fails in aws_cli");
+                script_run("PILOT_DEBUG=1 aws --help");
                 return;
             }
 
@@ -74,11 +74,11 @@ sub run {
         elsif ($k8s_backend eq 'AZURE') {
             add_suseconnect_product(get_addon_fullname('pcm'), (is_sle('=12-sp5') ? '12' : undef)) if is_sle("<16");
             add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
-            my $az_cli_pkg = is_sle(">16.0") ? 'az-cli-cmd' : 'azure-cli';
+            my $az_cli_pkg = is_sle(">=16.0") ? 'az-cli-cmd' : 'azure-cli';
             my $rc = zypper_call("in jq $az_cli_pkg", exitcode => [0, 104], timeout => 300);
-            if ($rc && is_sle(">16.0")) {
-                # https://src.suse.de/products/SLFO/pulls/4071
-                record_soft_failure("ssd#products/SLFO#4071 - New packages: aws-cli-cmd, az-cli-cmd");
+            if ($rc && is_sle(">=16.0")) {
+                record_soft_failure("bsc#1263669 - openQA test fails in azure_cli");
+                script_run("PILOT_DEBUG=1 az %silent --help");
                 return;
             }
 
