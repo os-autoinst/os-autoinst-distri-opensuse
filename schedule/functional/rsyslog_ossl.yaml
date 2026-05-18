@@ -1,0 +1,16 @@
+---
+name: kea
+description: >
+    Maintainer: qe-core
+    Install and test rsyslog-module-ossl
+conditional_schedule:
+    rsyslog_ossl:
+        HOSTNAME:
+            'client':
+                - console/rsyslog_ossl_client
+            'server':
+                - console/rsyslog_ossl_server
+schedule:
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - '{{rsyslog_ossl}}'
