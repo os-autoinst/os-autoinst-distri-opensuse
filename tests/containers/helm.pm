@@ -107,7 +107,17 @@ sub run {
             die('Unknown service given');
         }
 
-        $provider->init();
+        eval { $provider->init(); };
+        my $err = $@;
+        if ($err) {
+            if ($k8s_backend eq "EC2") {
+                record_soft_failure("bsc#1263667 - openQA test fails in aws_cli");
+                return;
+            } else {
+                die "Provider init failed";
+            }
+        }
+
     }
 
     install_helm();
