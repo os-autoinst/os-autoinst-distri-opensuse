@@ -47,11 +47,11 @@ sub run {
         my $local_conf = '/etc/rear/local.conf';
         assert_script_run("curl -f -v " . data_url('ha/rear_local.conf') . " -o $local_conf");
         file_content_replace("$local_conf", q(%BACKUP_URL%) => $backup_url);
-        my $rear_cmd = 'rear -d -D mkbackup |& tee -a ' . $self->rear_cmd_log();
-        assert_script_run('set -o pipefail');
+        my $rear_cmd = 'rear -d -D mkbackup > ' . $self->rear_cmd_log() . ' 2>&1';
         my $backup_rc = script_run($rear_cmd, timeout => $timeout);
         die 'Unexpected error in mkbackup command' unless defined $backup_rc;
         unless ($backup_rc == 0) {
+            script_run('cat ' . $self->rear_cmd_log());
             # Check for bsc#1245306
             if (is_sle('>=16') && (zypper_call('se -i dhcpcd', exitcode => [0, 104]) == 104)) {
                 record_soft_failure('bsc#1245306 - Rear29a: DHCP is enabled but no DHCP client binary was found');
@@ -66,7 +66,12 @@ sub run {
                 assert_script_run("echo \"MODULES=( 'all_modules' )\" >> $local_conf");
             }
             # Retry the mkbackup command
-            assert_script_run($rear_cmd, timeout => $timeout);
+            $backup_rc = script_run($rear_cmd, timeout => $timeout);
+            if (!defined $backup_rc || $backup_rc != 0) {
+                script_run('cat ' . $self->rear_cmd_log());
+                die "mkbackup failed after retry" if defined $backup_rc;
+                die "mkbackup retry timed out";
+            }
         }
     }
 
