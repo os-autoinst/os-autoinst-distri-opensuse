@@ -80,17 +80,18 @@ sub run {
                 die('guestregister.service is not disabled');
             }
 
-            # guestregister-lic-watcher.timer replaces regionsrv-enabler-azure.timer on all images except Azure 12-SP5.
-            if ($instance->ssh_script_run('systemctl is-active guestregister-lic-watcher.timer') != 0) {
-                # The legacy service is still in use on 12-SP5 Azure.
+            # The cloud-regionsrv-client-license-watcher package is only useful on Azure and GCE as they offer
+            # the feature to switch from BYOS to PAYG and vice versa.  AWS doesn't have this capability yet.
+            if (!is_ec2() && $instance->ssh_script_run('systemctl is-active guestregister-lic-watcher.timer') != 0) {
+                # guestregister-lic-watcher.timer replaces regionsrv-enabler-azure.timer on all images except Azure 12-SP5.
                 if (is_sle("=12-SP5") && is_azure) {
                     $instance->ssh_assert_script_run('systemctl is-active regionsrv-enabler-azure.timer', fail_message => "neither guestregister-lic-watcher.timer nor regionsrv-enabler-azure.timer is not present");
                     $instance->ssh_assert_script_run('systemctl show guestregister-lic-watcher.timer | grep LoadState=not-found', fail_message => "guestregister-lic-watcher.timer must not be present when regionsrv-enabler-azure.timer is there");
                 } else {
                     die "guestregister-lic-watcher.timer is not active";
                 }
-            } else {
-                record_soft_failure('poo#190068 - The legacy check for regionsrv-enabler-azure.timer should be removed') if (is_sle("=12-SP5") && is_azure);
+            } elsif (is_azure()) {
+                record_soft_failure('poo#190068 - The legacy check for regionsrv-enabler-azure.timer should be removed') if is_sle("=12-SP5");
                 # Ensure the legacy timer is not present
                 $instance->ssh_assert_script_run('systemctl show regionsrv-enabler-azure.timer | grep LoadState=not-found', fail_message => "regionsrv-enabler-azure.timer must not be present");
             }
