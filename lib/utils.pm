@@ -2274,7 +2274,11 @@ sub script_run_interactive {
     $timeout //= 180;
 
     if ($cmd) {
-        script_run("(script -qe -a /dev/null -c \'", 0);
+        # util-linux >= 2.42 rejects a positional typescript file together
+        # with -c, so use -O to specify the output file instead.
+        my $ul_ver = script_output("rpm -q --qf '%{version}' util-linux");
+        my $script_opts = package_version_cmp($ul_ver, '2.42') >= 0 ? '-qe -O /dev/null' : '-qe -a /dev/null';
+        script_run("(script $script_opts -c \'", 0);
         script_run($cmd, 0);
         # Can not get return value from script_run, so we have to do it in
         # the shell with $? following the endmark.
