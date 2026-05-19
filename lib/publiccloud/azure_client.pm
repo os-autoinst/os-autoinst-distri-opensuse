@@ -12,6 +12,7 @@ use Mojo::Base -base;
 use testapi;
 use utils;
 use publiccloud::utils;
+use version_utils qw(is_sle);
 
 has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
 has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
@@ -41,6 +42,8 @@ sub init {
           . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
           . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
           . '}');
+    script_run("PILOT_DEBUG=1 az %silent --help") if is_sle(">=16");
+
     $self->az_login();
     assert_script_run("az account set --subscription \$ARM_SUBSCRIPTION_ID");
 }
