@@ -42,7 +42,10 @@ sub init {
           . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
           . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
           . '}');
-    script_run("PILOT_DEBUG=1 az %silent --help") if is_sle(">=16");
+    if (is_sle(">=16")) {
+        my $rc = script_run("PILOT_DEBUG=1 az %silent --help");
+        die("bsc#1263669 - openQA test fails in azure_cli") if ($rc && check_var("CONTAINER_RUNTIMES", "helm"));
+    }
 
     $self->az_login();
     assert_script_run("az account set --subscription \$ARM_SUBSCRIPTION_ID");
