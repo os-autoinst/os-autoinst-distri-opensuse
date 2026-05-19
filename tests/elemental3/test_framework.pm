@@ -18,10 +18,6 @@ sub run {
     my $arch = get_required_var('ARCH');
     my ($repo, $branch) = get_required_var('TEST_FRAMEWORK_REPO') =~ /(\S*)@(\S*)/;
 
-    # Split the DNS strings into arrays only if the variable is defined and not empty
-    my @default_dns = split(/,/, get_default_dns);
-    set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
-
     # Define timeouts based on the architecture
     my $timeout = (is_aarch64) ? 960 : 480;
 
