@@ -75,13 +75,6 @@ sub run {
         $patch = $patch ? $patch : $patches;
         zypper_call("in -l -t patch ${patch}", exitcode => [0, 102, 103], log => 'zypper.log');
 
-        # https://progress.opensuse.org/issues/197900
-        if (is_sle('=12-sp3')) {
-            # latest kernel from customer repo has lower version than old kernel
-            zypper_call('rm kernel-default');
-            zypper_call('in -f --repo 12-SP3-TERADATA-Updates kernel-default');
-        }
-
         capture_state('between', 1);
 
         # old kernel does not have key of new kernel
