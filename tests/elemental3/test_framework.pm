@@ -70,6 +70,7 @@ sub run {
     assert_script_run("cd $distro_dir");
     foreach my $test (split(/,/, get_required_var('TESTS_TO_RUN'))) {
         # Specific options are needed for some tests
+        my $go_cmd = "go test -timeout=45m -v -count=1 ./entrypoint/$test/...";
         my $opts;
 
         # Rancher Manager options
@@ -79,8 +80,9 @@ sub run {
         # NOTE: disable for now, as ECM test framework needs to be adapted
         # $opts = "-selinux true" if ($test eq 'validatecluster');
 
-        record_info("$test", "Execute '$test' test with options '$opts'");
-        assert_script_run("go test -timeout=45m -v -count=1 ./entrypoint/$test/... $opts", timeout => 3600);
+        $go_cmd .= " $opts" if (defined($opts));
+        record_info("$test", "Execute '$test' test with: '$go_cmd'");
+        assert_script_run("$go_cmd", timeout => 3600);
     }
 
     # Tests done, sync with the nodes
