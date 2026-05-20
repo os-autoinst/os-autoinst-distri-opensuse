@@ -228,11 +228,11 @@ sub prepare_test_framework {
 
     # mutex_lock/unlock are used to avoid a sporadic crash with
     #  next 'barrier_wait' when master stopped too quickly
-    mutex_lock('wait_nodes');
+    mutex_lock('wait_nodes') if ($hostname eq 'node01');
 
     # Wait for tests to be executed on master node
     barrier_wait('TEST_FRAMEWORK_DONE');
-    mutex_unlock('wait_nodes');
+    mutex_unlock('wait_nodes') if ($hostname eq 'node01');
 }
 
 sub run {
