@@ -105,6 +105,7 @@ sub run {
     $grub_entry_edition->boot();
 
     return if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
+    return if check_var('AGAMA_GRUB_SELECTION', 'check_medium');
     if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
         wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
     } else {
