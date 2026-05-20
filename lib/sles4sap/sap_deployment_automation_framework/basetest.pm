@@ -159,7 +159,7 @@ sub sdaf_ibsm_teardown {
         record_info('DELETE PASS', 'Deleting peerings successful');
     }
 
-    my $workload_resource_group = get_workload_resource_group(deployment_id => find_deployment_id());
+    my $workload_resource_group = get_sdaf_resource_group(deployment_id => find_deployment_id(), resource_group_type => 'workload_zone');
     az_network_dns_links_cleanup(resource_group => $workload_resource_group);
     az_network_dns_zones_cleanup(resource_group => $workload_resource_group);
 }
@@ -187,7 +187,7 @@ Returns B<HASHREF> with all data collected in following format:
 sub sdaf_ibsm_data_collect {
     my $ibsm_rg = get_required_var('IBSM_RG');
     my $ibsm_vnet_name = ${az_network_vnet_get(resource_group => $ibsm_rg)}[0];
-    my $workload_resource_group = get_workload_resource_group(deployment_id => find_deployment_id());
+    my $workload_resource_group = get_sdaf_resource_group(deployment_id => find_deployment_id(), resource_group_type => 'workload_zone');
     my $workload_vnet_name = ${az_network_vnet_get(resource_group => $workload_resource_group)}[0];
     my $ibsm_peering_name = get_ibsm_peering_name(source_vnet => $ibsm_vnet_name, target_vnet => $workload_vnet_name);
     my $workload_peering_name = get_ibsm_peering_name(source_vnet => $workload_vnet_name, target_vnet => $ibsm_vnet_name);

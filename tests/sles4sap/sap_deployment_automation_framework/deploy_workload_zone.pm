@@ -9,10 +9,11 @@ use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
-use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag find_deployment_id);
 use sles4sap::sap_deployment_automation_framework::networking qw(assign_address_space calculate_subnets);
 use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(create_workload_tfvars);
 use sles4sap::console_redirection;
+use sles4sap::azure_cli qw(az_resource_list az_resource_tag);
 use serial_terminal qw(select_serial_terminal);
 use testapi;
 
@@ -66,6 +67,20 @@ sub run {
         deployment_type => 'workload_zone',
         retries => $terraform_retries,
         timeout => $terraform_timeout);
+
+    # workaround: https://github.com/sdaf-suse/sap-automation/issues/22
+    #if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
+    #record_soft_failure('Workaround:
+    #https://github.com/sdaf-suse/sap-automation/issues/22');
+    my $workload_rg = get_sdaf_resource_group(deployment_id => find_deployment_id(), resource_group_type => 'workload_zone');
+    my @untagged_resources = @{az_resource_list(resource_group => $workload_rg)};
+    record_info('PCW Tag', "Adding missing tag 'pcw_ignore' on following resources:\n" .
+          join("\n", @{untagged_resources})) if @untagged_resources;
+    # az_resource_tag(
+    #     resource_ids => @untagged_resources,
+    #     tags => [get_required_var('SDAF_NO_CLEANUP_TAG') . '=1']
+    # ) if @untagged_resources;
+    #}
 
     # disconnect the console
     disconnect_target_from_serial();

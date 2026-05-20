@@ -66,7 +66,7 @@ use sles4sap::azure_cli;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection;
 use sles4sap::console_redirection::redirection_data_tools;
-use sles4sap::sap_deployment_automation_framework::deployment qw(get_workload_resource_group sdaf_ssh_key_from_keyvault);
+use sles4sap::sap_deployment_automation_framework::deployment qw(get_sdaf_resource_group sdaf_ssh_key_from_keyvault);
 use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id);
 use sles4sap::sap_deployment_automation_framework::basetest qw(sdaf_ibsm_teardown);
 
@@ -152,7 +152,7 @@ file_content
     assert_script_run('pip install -r requirements.txt');
 
     # Fetch SUT SSH key from keyvault
-    my $workload_rg = get_workload_resource_group(deployment_id => find_deployment_id());
+    my $workload_rg = get_sdaf_resource_group(deployment_id => find_deployment_id(), resource_group_type => 'workload_zone');
     my $workload_key_vault = ${az_keyvault_list(resource_group => $workload_rg)}[0];
     sdaf_ssh_key_from_keyvault(key_vault => $workload_key_vault, target_file => $sut_ssh_key_path);
 
