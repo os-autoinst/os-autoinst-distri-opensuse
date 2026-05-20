@@ -16,7 +16,7 @@ use testapi;
 use utils;
 use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use package_utils 'install_package';
-use version_utils 'is_transactional';
+use version_utils qw(is_transactional is_sle);
 use transactional 'trup_call';
 
 our @EXPORT = qw(
@@ -37,7 +37,7 @@ sub remove_any_installed_java {
 
 sub configure_java_version {
     my ($version) = @_;
-    select_serial_terminal();
+    select_serial_terminal;
 
     remove_any_installed_java();
 
@@ -66,44 +66,38 @@ sub run_crypto_test {
     my $JDK_TCHECK = get_var("JDK_TCHECK", data_url('security/openjdk/Tcheck.java'));
     assert_script_run("cd ~; test -f Tcheck.java || wget --quiet --no-check-certificate $JDK_TCHECK");
     assert_script_run("javac Tcheck.java");
-    # poo125654: we only need to check that '1. SunPKCS11-NSS-FIPS using library null' is present and at the first place
-    validate_script_output("java Tcheck", sub { m/.* 1\. SunPKCS11-NSS-FIPS using library null.*/ });
+    # Provider #1 must be the NSS-FIPS one. On 15.x and 16.1 it's 'SunPKCS11-NSS-FIPS using library null' (poo#125654).
+    # On 16.0 the FIPS update is already in and it's 'SunPKCS11-FIPS using library .../libnssadapter.so';
+    # 16.1 will switch to that variant once the update lands, so accept either on 16+ (poo#199250).
+    my $null = qr{SunPKCS11-NSS-FIPS using library null};
+    my $adapter = qr{SunPKCS11-FIPS using library \S+/libnssadapter\.so};
+    my $expected = is_sle('>=16') ? qr{ 1\. (?:$null|$adapter)} : qr{ 1\. $null};
+    validate_script_output("java Tcheck", sub { m/$expected/ });
 }
 
 sub run_ssh_test {
     my ($version) = @_;
 
-    select_serial_terminal();
+    select_serial_terminal;
 
-    install_package("jsch xterm", trup_continue => 1);
+    install_package("jsch", trup_continue => 1);
 
     select_user_serial_terminal();
     my $java_src = "Shell.java";
     my $url = get_var("TEST_JAVA", data_url("security/openjdk/$java_src"));
     my $cp = script_output('rpm -ql jsch |grep jsch.jar') . ':.';
 
-    script_run("test -f $java_src || wget --quiet --no-check-certificate $url");
+    assert_script_run("wget --quiet --no-check-certificate -O $java_src $url");
     assert_script_run("javac -cp $cp Shell.java");
 
-    select_console 'x11';
-    x11_start_program("xterm");
-    # wait before typing to avoid typos
-    wait_still_screen 5;
-    script_run("java -cp $cp Shell", timeout => 0);
-    assert_screen "openjdk-hostname";
-    for (1 .. 30) { send_key "backspace"; }
-    type_string get_var("OPENJDK_HN", 'bernhard@localhost');
-    save_screenshot;
-    send_key 'ret';
-    wait_still_screen 3;
-    send_key 'ret';
-    save_screenshot;
-    wait_still_screen 3;
-    send_key 'ret' if (check_screen("auth-key-connect", 10));
-    wait_still_screen 3;
-    record_info("FAIL", "java.security.ProviderException: Could not derive key", result => 'fail') if (check_screen("shell-not-derive-key", 10));
-    send_key 'ret';
-    save_screenshot;
-    wait_still_screen 3;
-    send_key 'alt-f4';
+    my $output = script_output(
+        "java -cp $cp Shell '$testapi::username\@localhost' '$testapi::password' 2>&1 || true",
+        timeout => 60,
+    );
+    return if $output =~ /\Q$testapi::username\E/;
+    return record_soft_failure("bsc#1266034 - java-11-openjdk DH KeyAgreement fails in FIPS mode (CKR_ATTRIBUTE_SENSITIVE)")
+      if $version eq '11' && $output =~ /Could not derive key/;
+    return record_info("FAIL", "java.security.ProviderException: Could not derive key", result => 'fail')
+      if $output =~ /Could not derive key/;
+    die "openjdk SSH test failed unexpectedly: $output";
 }
