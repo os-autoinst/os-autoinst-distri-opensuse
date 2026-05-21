@@ -13,7 +13,7 @@ use version_utils;
 use publiccloud::utils;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
-use Utils::Architectures qw(is_aarch64 is_s390x);
+use Utils::Architectures;
 use main_containers qw(load_container_tests);
 require bmwqemu;
 
@@ -21,6 +21,9 @@ our @EXPORT = qw(load_publiccloud_tests load_publiccloud_download_repos);
 
 sub load_maintenance_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
+
+    # Avoid running jobs for ARM-only packages on x86_64. poo#201303
+    return if (is_x86_64 && get_var("BUILD") =~ /:\d+:dtb-(?:aarch64|armv7l)/);
 
     loadtest "publiccloud/download_repos" unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/prepare_instance", run_args => $args;
