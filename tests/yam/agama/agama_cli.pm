@@ -9,6 +9,7 @@ use testapi;
 use power_action_utils qw(power_action);
 use Utils::Architectures qw(is_s390x);
 use Utils::Backends qw(is_svirt);
+use version_utils qw(is_sle);
 
 sub agama_config_edit {
     my $regex = shift;
@@ -28,11 +29,14 @@ sub run {
 
     assert_script_run('agama config show | jq -C');
 
-    assert_script_run("jq -n '.root.password = \"$testapi::password\"' | agama config load");
+    my $workaround = is_sle('16.1+') ? " > /dev/null" : "";
+    record_soft_failure("bsc#1265431 - Agama config load blocks in BUSY state") if (is_sle('16.1+'));
+    assert_script_run("jq -n '.root.password = \"$testapi::password\"' | agama config load $workaround");
+
     assert_script_run("agama config show | grep $testapi::password");
 
     my $product_id = get_var('AGAMA_PRODUCT_ID');
-    assert_script_run("jq -n '.product.id = \"$product_id\"' | agama config load");
+    assert_script_run("jq -n '.product.id = \"$product_id\"' | agama config load $workaround");
     assert_script_run("agama config show | grep $product_id");
 
     my $rpm_url = data_url('yam/agama/hello-world-0.1-1.1.noarch.rpm');
