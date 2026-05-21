@@ -31,7 +31,8 @@ sub run {
 
     assert_script_run("echo 'url: " . get_required_var('SCC_URL') . "' > /etc/SUSEConnect");
 
-    script_run("(zypper migration; echo $zypper_done) |& tee /dev/$serialdev", 0);
+    my $allow_vendor_change = (get_var("ISO") =~ /Leap/) ? '--allow-vendor-change' : '';
+    script_run("(zypper migration $allow_vendor_change; echo $zypper_done) |& tee /dev/$serialdev", 0);
 
     my $match = wait_serial($zypper_prompts->{migration_target}, 120)
       || die "Target version $target_version was not found.";
