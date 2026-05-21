@@ -207,6 +207,8 @@ remove them from /var/lib/systemd/coredump/ to avoid processing them here.
 sub upload_coredumps {
     my $res = script_run('coredumpctl --no-pager');
     return if $res;
+    # XXX https://progress.opensuse.org/issues/201375
+    script_run("rm -f /var/lib/systemd/coredump/core.ovs-vswitchd.*");
     my @pids = split(/\n/, script_output(q(coredumpctl --no-pager --no-legend | awk '$9 ~ /^(present|truncated)$/ { print $5 }'), proceed_on_failure => 1));
     return unless @pids;
     my $get_backtrace = get_var("COREDUMP_WITH_BACKTRACE") && !is_transactional;
