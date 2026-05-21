@@ -34,7 +34,7 @@ use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    install_package('rsyslog-module-ossl', trup_reboot => 1);
+    install_package('rsyslog-module-ossl openssl', trup_reboot => 1);
     assert_script_run 'mkdir -p /etc/rsyslog-certs;cd /etc/rsyslog-certs';
     assert_script_run 'curl -o /etc/rsyslog.d/10-tls-server.conf ' . data_url('rsyslog/10-tls-server.conf');
     assert_script_run 'openssl req -new -x509 -extensions v3_ca -keyout ca-key.pem -out ca.pem -days 365 -nodes -subj "/CN=TestCA"';
