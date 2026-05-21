@@ -34,7 +34,7 @@ use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    install_package('rsyslog-module-ossl', trup_reboot => 1);
+    install_package('rsyslog-module-ossl openssl', trup_reboot => 1);
     mutex_wait 'server_is_ready';
     assert_script_run 'mkdir -p /etc/rsyslog-certs';
     assert_script_run 'curl -o /etc/rsyslog.d/10-tls-client.conf ' . data_url('rsyslog/10-tls-client.conf');
