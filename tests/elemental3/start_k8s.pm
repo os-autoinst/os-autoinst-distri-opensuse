@@ -228,11 +228,11 @@ sub prepare_test_framework {
 
     # mutex_lock/unlock are used to avoid a sporadic crash with
     #  next 'barrier_wait' when master stopped too quickly
-    mutex_lock('wait_nodes');
+    mutex_lock('wait_nodes') if ($hostname eq 'node01');
 
     # Wait for tests to be executed on master node
     barrier_wait('TEST_FRAMEWORK_DONE');
-    mutex_unlock('wait_nodes');
+    mutex_unlock('wait_nodes') if ($hostname eq 'node01');
 }
 
 sub run {
@@ -240,7 +240,6 @@ sub run {
     my $arch = get_required_var('ARCH');
     my $k8s = get_required_var('K8S');
     my $k8s_dir = "/etc/rancher/$k8s";
-    my $config_yaml = "$k8s_dir/config.yaml";
     my $timeout = 2400;    # Will be adapted when we will have more successful tests
 
     # Skip the test with if the OS image is not generated with 'customize'
@@ -264,17 +263,11 @@ sub run {
     # Cannot be defined with the other variables, as we need terminal access
     my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
 
-    unless (check_var('CLUSTER_TYPE', 'multi')) {
-        my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');
-        die('No IP defined on the node!') unless (defined $ip && $ip ne '');
-
-        # Split the DNS strings into arrays only if the variable is defined and not empty
-        my @default_dns = split(/,/, get_default_dns);
-        set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
-    }
-
     # Wait for K8s directory to appears
     wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
+
+    # Record K8s configuration files
+    record_info("$k8s_dir config files", "ls -l $k8s_dir; echo; cat $k8s_dir/*");
 
     # Wait for kubectl command to be available
     wait_kubectl_cmd(timeout => $timeout);

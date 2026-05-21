@@ -18,10 +18,6 @@ sub run {
     my $arch = get_required_var('ARCH');
     my ($repo, $branch) = get_required_var('TEST_FRAMEWORK_REPO') =~ /(\S*)@(\S*)/;
 
-    # Split the DNS strings into arrays only if the variable is defined and not empty
-    my @default_dns = split(/,/, get_default_dns);
-    set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
-
     # Define timeouts based on the architecture
     my $timeout = (is_aarch64) ? 960 : 480;
 
@@ -74,6 +70,7 @@ sub run {
     assert_script_run("cd $distro_dir");
     foreach my $test (split(/,/, get_required_var('TESTS_TO_RUN'))) {
         # Specific options are needed for some tests
+        my $go_cmd = "go test -timeout=45m -v -count=1 ./entrypoint/$test/...";
         my $opts;
 
         # Rancher Manager options
@@ -83,8 +80,9 @@ sub run {
         # NOTE: disable for now, as ECM test framework needs to be adapted
         # $opts = "-selinux true" if ($test eq 'validatecluster');
 
-        record_info("$test", "Execute '$test' test with options '$opts'");
-        assert_script_run("go test -timeout=45m -v -count=1 ./entrypoint/$test/... $opts", timeout => 3600);
+        $go_cmd .= " $opts" if (defined($opts));
+        record_info("$test", "Execute '$test' test with: '$go_cmd'");
+        assert_script_run("$go_cmd", timeout => 3600);
     }
 
     # Tests done, sync with the nodes

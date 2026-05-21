@@ -35,7 +35,7 @@ sub run {
 
     # Setup network/hostname for master node
     if ($is_master) {
-        setup_static_mm_network('10.0.2.100/24') if ($is_master);
+        setup_static_mm_network('10.0.2.100/24');
         configure_hostname($hostname);
     }
 
@@ -44,7 +44,10 @@ sub run {
 
     # Record network info
     record_info('Network configuration',
-        script_output('hostnamectl hostname; echo; ip a; echo; ip route; echo; cat /etc/hosts'));
+        script_output(
+            'hostnamectl hostname; echo; ip a; echo; ip route; echo; cat /etc/hosts'
+        )
+    );
 
     # Ping test: ensure that all nodes are able to join the master
     assert_script_run('ping -q -M do -s 0 -c 5 10.0.2.100') unless $is_master;
