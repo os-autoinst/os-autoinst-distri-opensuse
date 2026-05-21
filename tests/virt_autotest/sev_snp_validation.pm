@@ -889,14 +889,9 @@ sub verify_guest_attestation {
     # Make sure guest is online
     wait_guest_online($guest_name, 50, 1);
 
-    # Display snpguest version for debugging
-    my $snpguest_version = execute_over_ssh(
-        address => $guest_name,
-        command => "snpguest --version 2>&1 || snpguest -V 2>&1 || echo 'Unable to determine snpguest version'",
-        timeout => 30,
-        assert => 0
-    );
-    record_info('SNPGuest Version', "snpguest version on guest $guest_name: $snpguest_version");
+    my $snpguest_version = $self->_get_snpguest_version($guest_name);
+    my $processor_model = $self->_get_snpguest_processor_model();
+    record_info('SNPGuest Version', "snpguest $snpguest_version on $guest_name (processor: $processor_model)");
 
     # Create a temporary directory for attestation artifacts
     my $temp_dir = LOG_DIR . "/sev_snp_attestation_" . time();
@@ -942,17 +937,8 @@ sub verify_guest_attestation {
     );
 
     # Fetch AMD CA certificates
-    record_info('CA Certificates', "Fetching AMD CA certificates on guest $guest_name");
-
-    # Adapt command format based on guest SLES version due to snpguest version changes
-    my $ca_cmd;
-    if (guest_is_sle($guest_name, '>=16')) {
-        # SLES 16+ uses newer snpguest command format
-        $ca_cmd = "snpguest fetch ca der $temp_dir/certs-kds milan";
-    } else {
-        # SLES 15-SP7 uses older snpguest command format
-        $ca_cmd = "snpguest fetch ca der milan $temp_dir/certs-kds";
-    }
+    my $ca_cmd = $self->_get_snpguest_fetch_ca_cmd($snpguest_version, $temp_dir, $processor_model);
+    record_info('CA Certificates', "Fetching AMD CA certificates on guest $guest_name: $ca_cmd");
 
     my $ca_ret = execute_over_ssh(
         address => $guest_name,
@@ -969,17 +955,8 @@ sub verify_guest_attestation {
     }
 
     # Fetch VCEK certificate
-    record_info('VCEK Certificate', "Fetching VCEK certificate on guest $guest_name");
-
-    # Adapt command format based on guest SLES version due to snpguest version changes
-    my $vcek_cmd;
-    if (guest_is_sle($guest_name, '>=16')) {
-        # SLES 16+ uses newer snpguest command format
-        $vcek_cmd = "snpguest fetch vcek der $temp_dir/certs-kds $temp_dir/attestation-report.bin";
-    } else {
-        # SLES 15-SP7 uses older snpguest command format
-        $vcek_cmd = "snpguest fetch vcek der milan $temp_dir/certs-kds $temp_dir/attestation-report.bin";
-    }
+    my $vcek_cmd = $self->_get_snpguest_fetch_vcek_cmd($snpguest_version, $temp_dir, $processor_model);
+    record_info('VCEK Certificate', "Fetching VCEK certificate on guest $guest_name: $vcek_cmd");
 
     my $vcek_ret = execute_over_ssh(
         address => $guest_name,
@@ -996,14 +973,12 @@ sub verify_guest_attestation {
     }
 
     # Verify attestation report
-    record_info('Verify Report', "Verifying attestation report on guest $guest_name");
-    my $verify_output = script_output("ssh root\@$guest_name \"snpguest verify attestation $temp_dir/certs-kds $temp_dir/attestation-report.bin\"", proceed_on_failure => 1);
+    my $verify_cmd = $self->_get_snpguest_verify_cmd($temp_dir);
+    record_info('Verify Report', "Verifying attestation report on guest $guest_name: $verify_cmd");
+    my $verify_output = script_output("ssh root\@$guest_name \"$verify_cmd\"", proceed_on_failure => 1);
     save_screenshot;
 
-    # Check if verification was successful - accept both VEK and VCEK signature verification
-    # VEK (Versioned Endorsement Key) is standard verification path
-    # VCEK (Versioned Chip Endorsement Key) is chip-specific verification path
-    # Both are valid for confirming successful SEV-SNP attestation
+    # Check if verification was successful - both VEK and VCEK are valid attestation paths.
     my $is_verified = $verify_output =~ /(?:VEK|VCEK) signed the Attestation Report/;
 
     if ($is_verified) {
@@ -1028,6 +1003,58 @@ sub verify_guest_attestation {
     $self->_cleanup_attestation_dir($guest_name, $temp_dir);
 
     return;
+}
+
+# Returns snpguest version string from guest, or "0.0.0" when absent.
+sub _get_snpguest_version {
+    my ($self, $guest_name) = @_;
+    my $ver = script_output("ssh root\@$guest_name 'snpguest --version'", timeout => 30);
+    $ver =~ s/^\s+|\s+$//g;
+    return $ver;
+}
+
+# Returns milan/genoa/turin from host /proc/cpuinfo (family 26=>turin; family 25 model>=16=>genoa; else=>milan).
+sub _get_snpguest_processor_model {
+    my $self = shift;
+    my $out = script_output("awk '/^cpu family/{f=\$NF} /^model[[:space:]]/{m=\$NF} f&&m{print f,m; exit}' /proc/cpuinfo");
+    my ($family, $model) = split(' ', $out);
+    return $family == 26 ? 'turin' : ($family == 25 && $model >= 16 ? 'genoa' : 'milan');
+}
+
+# Returns 1 for snpguest >= v0.9.0 (new CLI), 0 for <= v0.8.3 (old CLI).
+sub _is_snpguest_new_cli {
+    my ($self, $version_str) = @_;
+    my ($major, $minor) = ($version_str =~ /(\d+)\.(\d+)/);
+    return 0 unless defined $major;
+    return ($major > 0 || $minor >= 9) ? 1 : 0;
+}
+
+# Pure command builders: no I/O, all inputs passed explicitly.
+#
+# fetch ca:   <= v0.8.3: der <model> <certs_dir>
+#             >= v0.9.0: der <certs_dir> <model>
+sub _get_snpguest_fetch_ca_cmd {
+    my ($self, $version, $temp_dir, $model) = @_;
+    my $certs = "$temp_dir/certs-kds";
+    return $self->_is_snpguest_new_cli($version)
+      ? "snpguest fetch ca der $certs $model"
+      : "snpguest fetch ca der $model $certs";
+}
+
+# fetch vcek: <= v0.8.3: der <model> <certs_dir> <report>
+#             >= v0.9.0: der <certs_dir> <report> [--processor-model <model>]
+sub _get_snpguest_fetch_vcek_cmd {
+    my ($self, $version, $temp_dir, $model) = @_;
+    my $certs = "$temp_dir/certs-kds";
+    my $report = "$temp_dir/attestation-report.bin";
+    return $self->_is_snpguest_new_cli($version)
+      ? "snpguest fetch vcek der $certs $report --processor-model $model"
+      : "snpguest fetch vcek der $model $certs $report";
+}
+
+sub _get_snpguest_verify_cmd {
+    my ($self, $temp_dir) = @_;
+    return "snpguest verify attestation $temp_dir/certs-kds $temp_dir/attestation-report.bin";
 }
 
 # Helper function to clean up attestation directory
