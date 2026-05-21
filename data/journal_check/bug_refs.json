@@ -118,6 +118,9 @@
                 "5.4",
                 "5.5"
             ],
+            "opensuse": [
+                "Tumbleweed"
+            ],
             "microos": [
                 "Tumbleweed"
             ],
