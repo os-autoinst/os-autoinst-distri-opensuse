@@ -38,6 +38,63 @@ subtest "[run_cmd]" => sub {
     ok $ret eq 'BABUUUUUUUUM';
 };
 
+subtest "[run_cmd] with ssh_keepalive" => sub {
+    my $self = sles4sap::publiccloud->new();
+
+    my $mock_pc = Test::MockObject->new();
+    $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
+    my @captured_opts;
+    $mock_pc->mock('ssh_script_output', sub {
+            my ($self, %args) = @_;
+            push @captured_opts, $args{ssh_opts};
+            return 'OK' });
+    $self->{my_instance} = $mock_pc;
+    $self->{my_instance}->{instance_id} = 'Yondu';
+
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Case 1: ssh_keepalive enabled
+    $self->run_cmd(cmd => 'dummy', ssh_keepalive => 1);
+    like($captured_opts[0], qr/ServerAliveInterval=15/, "ServerAliveInterval is set");
+    like($captured_opts[0], qr/ServerAliveCountMax=3/, "ServerAliveCountMax is set");
+
+    # Case 2: ssh_keepalive disabled (default)
+    @captured_opts = ();
+    $self->run_cmd(cmd => 'dummy');
+    ok(!defined($captured_opts[0]) || $captured_opts[0] !~ /ServerAliveInterval/, "Keepalive options not injected by default");
+};
+
+subtest "[run_cmd_retry] with ssh_keepalive" => sub {
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_pc_mock = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+
+    my $etx_called = 0;
+    $sles4sap_pc_mock->redefine(type_string => sub {
+            my ($string, %args) = @_;
+            $etx_called++ if $args{terminate_with} && $args{terminate_with} eq 'ETX';
+    });
+    $sles4sap_pc_mock->redefine(record_soft_failure => sub { note(join(' ', 'SOFT_FAILURE -->', @_)); });
+
+    # Mock run_cmd to fail twice and then succeed
+    my $calls = 0;
+    $sles4sap_pc_mock->redefine(run_cmd => sub {
+            return 'OK' if ++$calls > 2;
+            die "Command failed";
+    });
+
+    # Case 1: ssh_keepalive enabled -> ETX should be called
+    $self->run_cmd_retry(cmd => 'dummy', ssh_keepalive => 1, retry => 3, delay => 0);
+    is($etx_called, 2, "ETX called twice (once for each failed attempt before success)");
+
+    # Case 2: ssh_keepalive disabled -> ETX should NOT be called
+    $etx_called = 0;
+    $calls = 0;
+    $self->run_cmd_retry(cmd => 'dummy', retry => 3, delay => 0);
+    is($etx_called, 0, "ETX not called when ssh_keepalive is disabled");
+};
+
 subtest "[deployment_cleanup] no args and all pass" => sub {
     # deployment_cleanup is called with no args
     # it result in only to perform terraform destroy
@@ -373,6 +430,29 @@ subtest "[stop_hana] crash wait_hana_node_up degradated" => sub {
     dies_ok { $self->stop_hana(method => 'crash', online_string => 'online') } 'Test expected to die within wait_hana_node_up';
     note("\n  C -->  " . join("\n  C -->  ", @calls));
     ok((any { qr/systemctl --failed/ } @calls), 'function calls systemctl --failed to figure out which service is failed');
+};
+
+subtest "[wait_hana_node_up] with ssh_keepalive" => sub {
+    my $mock_instance = Test::MockObject->new();
+    $mock_instance->{public_ip} = '1.2.3.4';
+    my @captured_opts;
+    $mock_instance->mock('ssh_script_output', sub {
+            my ($self, %args) = @_;
+            push @captured_opts, $args{ssh_opts};
+            return 'running' });
+
+    my $sles4sap_pc_mock = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_pc_mock->redefine(script_run => sub { return 0; });
+    $sles4sap_pc_mock->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Case 1: ssh_keepalive enabled
+    sles4sap::publiccloud::wait_hana_node_up($mock_instance, timeout => 10, ssh_keepalive => 1);
+    like($captured_opts[0], qr/ServerAliveInterval=15/, "ServerAliveInterval is set in wait_hana_node_up");
+
+    # Case 2: ssh_keepalive disabled
+    @captured_opts = ();
+    sles4sap::publiccloud::wait_hana_node_up($mock_instance, timeout => 10);
+    ok($captured_opts[0] !~ /ServerAliveInterval/, "Keepalive options not injected in wait_hana_node_up by default");
 };
 
 subtest "[stop_hana] missing online_string croaks" => sub {
