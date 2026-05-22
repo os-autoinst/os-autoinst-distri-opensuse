@@ -1839,7 +1839,7 @@ sub az_validate_uuid_pattern(%args) {
     az_storage_blob_upload(
         container_name=>'somecontainer',
         storage_account_name=>'storageaccount',
-        file=>'somefilename' [, timeout=>42]);
+        file=>'somefilename' [, timeout=>42, name=>'blob_name.txt']);
 
 Uploads file to a storage container.
 
@@ -1850,6 +1850,8 @@ Uploads file to a storage container.
 =item B<storage_account_name> Storage account name.
 
 =item B<file> File to upload.
+
+=item B<name> Target blob filename. (Optional)
 
 =item B<timeout> Timeout for az command. Default: 90s
 
@@ -1862,14 +1864,14 @@ sub az_storage_blob_upload(%args) {
     }
     $args{timeout} //= '90';
 
-    my $az_cmd = join(' ',
-        'az storage blob upload',
+    my @az_cmd = ('az storage blob upload',
         '--only-show-errors',
         "--container-name $args{container_name}",
         "--account-name $args{storage_account_name}",
         "--file $args{file}"
     );
-    assert_script_run(join(' ', $az_cmd), timeout => $args{timeout});
+    push @az_cmd, "--name $args{name}" if $args{name};
+    assert_script_run(join(' ', @az_cmd), timeout => $args{timeout});
 }
 
 =head2 az_storage_blob_lease_acquire
