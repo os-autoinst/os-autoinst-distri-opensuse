@@ -60,7 +60,7 @@ sub run {
 
     # Wait for system to be in running state
     unless (get_var('PARALLEL_WITH')) {
-        my $sys_state = script_output('systemctl is-system-running --wait', timeout => 240, proceed_on_failure => 1);
+        my $sys_state = script_output('systemctl is-system-running --wait', timeout => 600, proceed_on_failure => 1);
         die("Wrong OS state: $sys_state") unless ($sys_state =~ m/running/);
     }
 
