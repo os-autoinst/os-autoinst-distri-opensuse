@@ -118,11 +118,6 @@ __END
     # Wait for restarting rke2-server service complete
     barrier_wait('rke2_server_restart_complete');
 
-    # Workaround for bsc#1217658
-    my $config_toml_tmpl = 'config.toml.tmpl';
-    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$config_toml_tmpl") . " -o $config_toml_tmpl");
-    assert_script_run("cp $config_toml_tmpl /var/lib/rancher/rke2/agent/etc/containerd/$config_toml_tmpl");
-
     # Restart RKE2 service and check the service is active well after restart
     systemctl('restart rke2-agent.service', timeout => 180);
     $self->check_service_status();
