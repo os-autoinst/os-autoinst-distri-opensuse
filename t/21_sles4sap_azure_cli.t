@@ -1170,13 +1170,16 @@ subtest '[az_storage_blob_upload]' => sub {
     az_storage_blob_upload(
         container_name => 'Arlecchino',
         storage_account_name => 'Pantalone',
-        file => 'Colombina');
+        file => 'Colombina',
+        name => 'Smeraldina'
+    );
 
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az storage blob upload/ } @calls), 'Correct composition of the main command');
     ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
     ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
     ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--name Smeraldina/, @calls), 'Check for argument "--name"');
     ok(grep(/--file Colombina/, @calls), 'Check for argument "--file"');
 };
 
