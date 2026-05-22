@@ -529,40 +529,6 @@ sub collect_calltraces {
     }
 }
 
-sub collect_coredumps {
-    my $package = get_var("BATS_PACKAGE", "");
-    my $backtrace = get_var("DEBUG");
-
-    if ($backtrace) {
-        script_run "sed -i s/enabled=0/enabled=1/ /etc/zypp/repos.d/*-[Dd]ebug.repo";
-        script_run "zypper -n refresh", timeout => 300;
-        script_run "zypper -n install -y gdb", timeout => 300;
-        script_run "echo 'set debuginfod enabled on' > ~/.gdbinit";
-        script_run "echo 'set pagination off' >> ~/.gdbinit";
-    }
-
-    script_run('coredumpctl list > coredumpctl.txt');
-
-    # Get PID and executable for all dumps
-    my @pids = split /\n/, script_output(q{coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'}, proceed_on_failure => 1);
-
-    foreach my $pid (@pids) {
-        # Dumping and compressing coredumps may take some time
-        my $out = script_output("coredumpctl info $pid", timeout => 300, proceed_on_failure => 1);
-        record_info("COREDUMP", $out);
-
-        if ($backtrace) {
-            # First download debuginfo stuff to avoid polluting BACKTRACE info
-            script_run "coredumpctl debug -A '-ex quit' $pid", timeout => 900;
-            my $gdb_script = '-batch -ex "thread apply all bt full" -ex quit';
-            record_info("BACKTRACE", script_output(qq{coredumpctl debug -A '$gdb_script' $pid}, timeout => 900, proceed_on_failure => 1));
-        }
-
-        my ($dump) = $out =~ /^\s*Storage:\s*(\S+)/m;
-        script_run "mv $dump .", timeout => 300;
-    }
-}
-
 sub bats_post_hook {
     select_serial_terminal;
 
@@ -574,7 +540,6 @@ sub bats_post_hook {
 
     # Note: We don't use grep -q and redirect to /dev/null here to avoid SIGPIPE
     collect_calltraces if !script_run 'dmesg | grep -F -e "Call Trace:" -e "[ cut here ]" >/dev/null';
-    collect_coredumps;
 
     script_run('df -h > df-h.txt');
     script_run('dmesg --read-clear > dmesg.txt');

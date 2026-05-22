@@ -346,12 +346,14 @@ sub load_container_tests {
 
     if (my $container_tests = get_var('CONTAINER_TESTS', '')) {
         loadtest "containers/$_" foreach (split(',\s*', $container_tests));
+        loadtest 'console/coredump_collect';
         return;
     }
 
     if (my $bats_package = get_var('BATS_PACKAGE', '')) {
         $bats_package = ($bats_package eq "aardvark-dns") ? "aardvark" : $bats_package;
         loadtest "containers/bats/$bats_package";
+        loadtest 'console/coredump_collect';
         return;
     }
 
