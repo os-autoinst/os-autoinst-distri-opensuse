@@ -21,7 +21,7 @@
       <li><a href="#get_hana_topology-Parses-command-output-returns-hash-of-hashes-containing-values-for-each-host">get_hana_topology Parses command output, returns hash of hashes containing values for each host.</a></li>
       <li><a href="#is_hana_online-is_hana_online-timeout-120-wait_for_start-false">is_hana_online is_hana_online([timeout =&gt; 120, wait_for_start =&gt; &#39;false&#39;]);</a></li>
       <li><a href="#is_hana_resource_running-is_hana_resource_running-quiet-0">is_hana_resource_running is_hana_resource_running([quiet =&gt; 0]);</a></li>
-      <li><a href="#is_hana_node_up-is_hana_node_up-my_instance-timeout-900">is_hana_node_up is_hana_node_up($my_instance, [timeout =&gt; 900]);</a></li>
+      <li><a href="#wait_hana_node_up-wait_hana_node_up-my_instance-timeout-900-ssh_keepalive-1">wait_hana_node_up wait_hana_node_up($my_instance, [timeout =&gt; 900, ssh_keepalive =&gt; 1]);</a></li>
       <li><a href="#stop_hana-stop_hana-timeout-timeout-method-method">stop_hana stop_hana([timeout =&gt; $timeout, method =&gt; $method]);</a></li>
       <li><a href="#start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</a></li>
       <li><a href="#cleanup_resource-cleanup_resource-timeout-60">cleanup_resource cleanup_resource([timeout =&gt; 60]);</a></li>
@@ -86,6 +86,10 @@ otherwise it will be executed as root.</code></pre>
 <dd>
 
 </dd>
+<dt id="ssh_keepalive---optional:-enable-SSH-keepalive-options-to-detect-hung-connections-faster"><b>ssh_keepalive</b> - optional: enable SSH keepalive options to detect hung connections faster</dt>
+<dd>
+
+</dd>
 <dt id="pass-through-all-other-arguments-supported-by-ssh_script_run"><b>...</b> - pass through all other arguments supported by ssh_script_run</dt>
 <dd>
 
@@ -113,6 +117,10 @@ retried for C&lt;retry&gt; times, with C&lt;delay&gt; seconds of interval in bet
 
 </dd>
 <dt id="delay---idle-time-between-retry-attempts"><b>delay</b> - idle time between retry attempts</dt>
+<dd>
+
+</dd>
+<dt id="ssh_keepalive---optional:-enable-SSH-keepalive-options-and-send-ETX-on-failure"><b>ssh_keepalive</b> - optional: enable SSH keepalive options and send ETX on failure</dt>
 <dd>
 
 </dd>
@@ -175,7 +183,7 @@ Return 0 if no internal error.</code></pre>
 </dd>
 </dl>
 
-<h2 id="is_hana_node_up-is_hana_node_up-my_instance-timeout-900">is_hana_node_up is_hana_node_up($my_instance, [timeout =&gt; 900]);</h2>
+<h2 id="wait_hana_node_up-wait_hana_node_up-my_instance-timeout-900-ssh_keepalive-1">wait_hana_node_up wait_hana_node_up($my_instance, [timeout =&gt; 900, ssh_keepalive =&gt; 1]);</h2>
 
 <pre><code>Waits until &#39;is-system-running&#39; returns successfully on the target instance.</code></pre>
 
@@ -186,6 +194,10 @@ Return 0 if no internal error.</code></pre>
 
 </dd>
 <dt id="timeout---how-much-time-to-wait-for-before-aborting"><b>timeout</b> - how much time to wait for before aborting</dt>
+<dd>
+
+</dd>
+<dt id="ssh_keepalive---optional:-enable-SSH-keepalive-options"><b>ssh_keepalive</b> - optional: enable SSH keepalive options</dt>
 <dd>
 
 </dd>
