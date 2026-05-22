@@ -214,6 +214,7 @@ runc:
   # https://github.com/opencontainers/runc/pull/5079 - integration: Skip test for new privileges if NoNewPrivs is set
   # https://github.com/opencontainers/runc/pull/5124 - tests/int: Disable coredumps for SCMP_ACT_KILL tests
   # https://github.com/opencontainers/runc/pull/5269 - tests/int: fix flake in "resources.unified override
+  # https://github.com/opencontainers/runc/pull/5295 - Update busybox:glibc in integration tests to latest (1.38.0) builds
   4842:
     merged: "1.5.0"
     min: "1.4.0"
@@ -222,6 +223,7 @@ runc:
   5124:
     merged: "1.4.1"
   5269:
+  5295:
 
 skopeo:
   # https://github.com/containers/skopeo/pull/2834 - integration: Force amd64 on TestProxyMetadata
