@@ -10,26 +10,16 @@ use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use openjdktest;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my $self = @_;
-    my $interactive_str = [
-        {
-            prompt => qr/Enter new password/m,
-            key => 'ret',
-        },
-        {
-            prompt => qr/Re-enter password/m,
-            key => 'ret',
-        },
-    ];
-
-    select_console "root-console";
+    select_serial_terminal;
     zypper_call("in mozilla-nss-tools git-core");
 
     if (script_run("test -d /etc/pki/nssdb") != 0) {
         assert_script_run("mkdir /etc/pki/nssdb");
-        script_run_interactive("certutil -d /etc/pki/nssdb -N", $interactive_str, 30);
+        assert_script_run("certutil -d /etc/pki/nssdb -N --empty-password");
     }
 }
 
