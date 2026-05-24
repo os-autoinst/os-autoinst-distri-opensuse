@@ -14,6 +14,7 @@ use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils;
 use containers::common qw(install_packages);
 use Utils::Logging 'save_and_upload_log';
+use containers::bats qw(bats_post_hook);
 
 my $port = 8000;
 my $test_image = "registry.opensuse.org/opensuse/nginx";
@@ -167,17 +168,12 @@ sub cleanup {
 }
 
 sub post_run_hook {
+    bats_post_hook;
     cleanup;
 }
 
 sub post_fail_hook {
-    for my $ip_version (4, 6) {
-        save_and_upload_log("ip -$ip_version addr", "/tmp/ip${ip_version}addr.txt");
-        save_and_upload_log("ip -$ip_version route", "/tmp/ip${ip_version}route.txt");
-    }
-    save_and_upload_log("sudo nft list ruleset", "/tmp/nft.txt");
-    save_and_upload_log("sudo ss -tnlp", "/tmp/tcp_services.txt");
-    save_and_upload_log("sudo sysctl -a | grep ^net", "/tmp/net_sysctl.txt");
+    bats_post_hook;
 
     for my $runtime ("docker", "podman") {
         for my $sudo ("", "sudo") {
@@ -192,10 +188,6 @@ sub post_fail_hook {
     }
 
     cleanup;
-}
-
-sub test_flags () {
-    return {always_rollback => 1};
 }
 
 1;
