@@ -94,7 +94,20 @@ sub run {
     # https://docs.docker.com/engine/daemon/ipv6/
     assert_script_run "sed -i 's%^{%&\"ipv6\":true,\"fixed-cidr-v6\":\"2001:db8:1::/64\",%' /etc/docker/daemon.json";
     record_info("docker daemon.json", script_output("cat /etc/docker/daemon.json"));
+    my $firewall_backend = get_var("FIREWALL_BACKEND");
+    assert_script_run q(sed -ri 's/^(DOCKER_OPTS)="(.*?)"/\1="\2 --firewall-backend nftables"/' /etc/sysconfig/docker) if $firewall_backend;
+    # https://docs.docker.com/engine/network/firewall-nftables/#ip-forwarding
+    if ($firewall_backend eq "nftables") {
+        assert_script_run "echo 1 > /proc/sys/net/ipv4/ip_forward";
+        assert_script_run "echo 1 > /proc/sys/net/ipv6/conf/all/forwarding";
+        assert_script_run "echo 1 > /proc/sys/net/ipv6/conf/default/forwarding";
+        assert_script_run "echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf";
+        assert_script_run "echo net.ipv6.conf.all.forwarding = 1 >> /etc/sysctl.d/ip_forward.conf";
+        assert_script_run "echo net.ipv6.conf.default.forwarding = 1 >> /etc/sysctl.d/ip_forward.conf";
+    }
     systemctl "enable --now docker";
+
+    record_info "firewall backend", script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
 
     record_info("docker root", script_output("docker info"));
     my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");

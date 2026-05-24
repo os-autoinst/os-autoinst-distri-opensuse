@@ -95,7 +95,7 @@ sub run {
     select_serial_terminal;
     $self->setup;
 
-    my $firewall_backend = script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
+    my $firewall_backend = get_var("FIREWALL_BACKEND", script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'");
     record_info "firewall backend", $firewall_backend;
     my $test_no_firewalld = ($firewall_backend eq "iptables") ? "true" : "";
 
