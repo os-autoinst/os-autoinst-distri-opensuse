@@ -11,6 +11,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use security::agnosticTestRunner;
 use version_utils 'is_sle';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
@@ -18,6 +19,7 @@ sub run {
         record_info('SKIP', 'OpenSSL post quantum crypto tests are only available on SLE 15-SP7 and later');
         return;
     }
+    install_package("openssl", trup_continue => 1);
     record_info('openssl version:', script_output('rpm -q openssl'));
     my $test = security::agnosticTestRunner->new({
             language => 'python',
