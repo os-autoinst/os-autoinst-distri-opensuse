@@ -14,7 +14,7 @@ use lockapi;
 use mmapi;
 use mm_tests;
 use utils qw(systemctl);
-use x11utils qw(handle_login select_user_gnome turn_off_gnome_screensaver);
+use x11utils qw(handle_login turn_off_gnome_screensaver);
 use version_utils qw(is_sle is_sles4sap is_tumbleweed is_transactional);
 use package_utils qw(install_package);
 
@@ -86,10 +86,13 @@ sub run {
     }
 
     else {
-        # After the RDP disconnect GDM often shows the user list with no
-        # user focused; select_user_gnome handles all three GDM states
-        # and leaves us at the password prompt.
-        select_user_gnome;
+        # Click the bernhard user tile by coordinates instead of relying on
+        # select_user_gnome — the SP5 needle set has no -user-notselected
+        # sibling matching the small-avatar GDM state after RDP disconnect,
+        # so select_user_gnome times out. A single click activates the tile
+        # in both pre-selected (SP4) and not-selected (SP5) GDM variants.
+        mouse_set(450, 370);
+        mouse_click;
         assert_screen 'displaymanager-password-prompt';
         type_password;
         wait_still_screen 3;
