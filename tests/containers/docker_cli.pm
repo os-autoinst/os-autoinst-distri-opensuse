@@ -16,6 +16,7 @@ use utils;
 use Utils::Architectures;
 use containers::bats;
 
+my $firewall_backend;
 my $version;
 my $port = 2375;
 
@@ -56,9 +57,11 @@ sub setup {
 
     # Fetch needed images
     run_command "./scripts/test/e2e/load-image";
+
+    $firewall_backend = script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
     # Init Docker Swarm
     my $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
-    run_command "docker swarm init --advertise-addr $ip_addr";
+    run_command "docker swarm init --advertise-addr $ip_addr" unless ($firewall_backend eq "nftables");
     # Init Docker Compose
     run_command "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose up --build -d registry";
 }
@@ -109,6 +112,11 @@ sub run {
         "github.com/docker/cli/e2e/container::TestProcessTermination",
         "github.com/docker/cli/e2e/plugin::TestInstall",
     ) unless (is_x86_64);
+    # Docker Swarm is not compatible with nftables
+    push @xfails, (
+        "github.com/docker/cli/e2e/stack::TestDeployWithNamedResources",
+        "github.com/docker/cli/e2e/stack::TestRemove",
+    ) if ($firewall_backend eq "nftables");
 
     run_timeout_command "$env gotestsum --junitfile cli.xml ./e2e/... -- &> cli.txt", no_assert => 1, timeout => 3000;
     upload_logs "cli.txt";
@@ -120,7 +128,7 @@ sub run {
 sub cleanup {
     script_run "docker rm -vf registry";
     script_run "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose down -v --rmi all";
-    script_run "docker swarm leave -f";
+    script_run "docker swarm leave -f" unless ($firewall_backend eq "nftables");
     cleanup_docker;
 }
 

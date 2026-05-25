@@ -165,6 +165,13 @@ sub configure_docker {
         $docker_opts .= configure_docker_tls;
     }
     $docker_opts .= " -H tcp://0.0.0.0:$port";
+    my $firewall_backend = get_var("FIREWALL_BACKEND");
+    $docker_opts .= " --firewall-backend $firewall_backend" if $firewall_backend;
+    # https://docs.docker.com/engine/network/firewall-nftables/#ip-forwarding
+    if ($firewall_backend eq "nftables") {
+        run_command "echo 1 > /proc/sys/net/ipv4/ip_forward";
+        run_command "echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf";
+    }
     run_command "mv -f /etc/sysconfig/docker{,.bak} || true";
     run_command "mv -f /etc/docker/daemon.json{,.bak} || true";
     if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
@@ -223,12 +230,14 @@ sub enable_docker {
     script_run 'systemctl enable --now docker';
     script_run "usermod -aG docker $testapi::username";
 
+    my $firewall_backend = script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
+
     # Running podman as root with docker installed may be problematic as netavark uses nftables
     # while docker still uses iptables.
     # Use workaround suggested in:
     # - https://fedoraproject.org/wiki/Changes/NetavarkNftablesDefault#Known_Issue_with_docker
     # - https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-on-a-router
-    if (script_run("iptables -L -v | grep -q DOCKER") == 0) {
+    if ($firewall_backend eq "iptables" && script_run("iptables -L -v | grep -q DOCKER") == 0) {
         script_run "iptables -I DOCKER-USER -j ACCEPT";
         script_run "ip6tables -I DOCKER-USER -j ACCEPT";
     }
