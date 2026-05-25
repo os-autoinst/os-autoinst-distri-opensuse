@@ -117,6 +117,12 @@ sub run {
     if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
         wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
     } else {
+        if (check_var('AGAMA_GRUB_SELECTION', 'check_medium')) {
+            wait_serial("Medium check succeeded", 600) or die "Medium check failed";
+            if (wait_serial("Press any key to continue...", 60)) {
+                send_key 'ret';
+            }
+        }
         $agama_up_an_running->expect_is_shown();
     }
 }
