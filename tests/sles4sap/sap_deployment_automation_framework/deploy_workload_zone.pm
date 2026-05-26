@@ -9,10 +9,11 @@ use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
-use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag find_deployment_id);
 use sles4sap::sap_deployment_automation_framework::networking qw(assign_address_space calculate_subnets);
 use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(create_workload_tfvars);
 use sles4sap::console_redirection;
+use sles4sap::azure_cli qw(az_resource_list az_resource_tag);
 use serial_terminal qw(select_serial_terminal);
 use testapi;
 
@@ -67,9 +68,15 @@ sub run {
         retries => $terraform_retries,
         timeout => $terraform_timeout);
 
+    if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
+        my $workload_rg = get_sdaf_resource_group(
+            deployment_id => find_deployment_id(), resource_group_type => 'workload_zone'
+        );
+        apply_no_cleanup_tag(resource_group => $workload_rg, no_cleanup_tag => no_cleanup_tag());
+    }
+
     # disconnect the console
     disconnect_target_from_serial();
-
     # reset temporary variables
     set_var('SDAF_VNET_CODE', undef);
     serial_console_diag_banner('Module sdaf_deploy_workload_zone.pm : end');

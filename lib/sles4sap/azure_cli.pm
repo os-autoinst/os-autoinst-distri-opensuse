@@ -75,6 +75,7 @@ our @EXPORT = qw(
   az_disk_create
   az_resource_delete
   az_resource_list
+  az_resource_tag
   az_validate_uuid_pattern
   az_keyvault_list
   az_keyvault_secret_list
@@ -1796,8 +1797,43 @@ sub az_resource_list(%args) {
     push(@az_command, "--resource-group $args{resource_group}") if $args{resource_group};
     push(@az_command, "--query \"$args{query}\"") if $args{query};
     push(@az_command, '--output json');
+    push(@az_command, $SDAF_Azure_podman_flake_filter);
 
     return (decode_json(script_output(join(' ', @az_command))));
+}
+
+=head2 az_resource_tag
+
+    az_resource_tag(resource_ids=>['/id/a', '/id/b'], tags=>['pcw_ignore=1']);
+
+Tags list of resource IDs with list of tags
+
+=over
+
+=item B<resource_ids> List of existing resource id that will be tagged
+
+=item B<tags> List of tags
+
+=back
+=cut
+
+sub az_resource_tag(%args) {
+
+    for my $argument ('resource_ids', 'tags') {
+        croak "Mandatory argument '$argument' missing" unless $args{$argument};
+        croak "Argument '$argument' must be an array reference" unless
+          (ref($args{$argument}) eq 'ARRAY');
+    }
+
+    my $resources = join(' ', map("\"$_\"", @{$args{resource_ids}}));
+    my $tags = join(' ', map("\"$_\"", @{$args{tags}}));
+
+    my @az_command = ('az resource tag');
+    push(@az_command, "--ids $resources");
+    push(@az_command, "--tags $tags");
+    push(@az_command, '--output json');
+
+    return (assert_script_run(join(' ', @az_command)));
 }
 
 =head2 az_validate_uuid_pattern
@@ -2471,7 +2507,7 @@ sub az_account_show {
     return decode_json(script_output($az_cmd));
 }
 
-=head2
+=head2 az_role_definition_list
 
 List and return id about named role
 
