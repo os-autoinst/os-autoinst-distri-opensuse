@@ -115,6 +115,20 @@ sub run {
         assert_script_run("cat $file");
     }
 
+    # workaround: https://github.com/sdaf-suse/sap-automation/issues/22
+    #if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
+    #record_soft_failure('Workaround:
+    #https://github.com/sdaf-suse/sap-automation/issues/22');
+    my $workload_rg = get_sdaf_resource_group(deployment_id => find_deployment_id(), resource_group_type => 'sap_system');
+    my @untagged_resources = @{az_resource_list(resource_group => $workload_rg)};
+    record_info('PCW Tag', "Adding missing tag 'pcw_ignore' on following resources:\n" .
+          join("\n", @untagged_resources)) if @untagged_resources;
+    az_resource_tag(
+        resource_ids => @untagged_resources,
+        tags => [get_required_var('SDAF_NO_CLEANUP_TAG') . '=1']
+    ) if @untagged_resources;
+    #}
+
     # disconnect the console
     disconnect_target_from_serial();
 

@@ -1611,4 +1611,26 @@ subtest '[az_role_definition_list]' => sub {
     ok(($ret eq 'Pantalone'), 'Ret is the expected value, of type string');
 };
 
+subtest '[az_resource_tag] Check command composition' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+    my $resource_ids = ['/sub/A', '/sub/B'];
+    my $tags = ['pcw_ignore=1'];
+
+    az_resource_tag(resource_ids => $resource_ids, tags => $tags);
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az resource tag/ } @calls), 'Correct composition of the main command');
+    ok((any { /--ids "\/sub\/A" "\/sub\/B"/ } @calls), 'Check for --ids option.');
+    ok((any { /--tags "pcw_ignore=1"/ } @calls), 'Check for --tags');
+};
+
+subtest '[az_resource_tag] Test exceptions' => sub {
+    dies_ok { az_resource_tag(resource_ids => ['A', 'B']) } 'Fail with missing "tags" argument';
+    dies_ok { az_resource_tag(tags => ['pcw_ignore=1']) } 'Fail with missing "resource_ids" argument';
+    dies_ok { az_resource_tag(resource_ids => 'string', tags => ['pcw_ignore=1']) } 'Fail with non arrayref argument - resource_ids';
+    dies_ok { az_resource_tag(resource_ids => ['A', 'B'], tags => 'string') } 'Fail with non arrayref argument - tags';
+};
+
 done_testing;
