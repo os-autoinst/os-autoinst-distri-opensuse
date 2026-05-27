@@ -41,7 +41,6 @@ our @EXPORT = qw(
   go_arch
   install_docker_compose
   install_gotestsum
-  install_ncat
   numeric_version
   patch_junit
   patch_sources
@@ -332,18 +331,6 @@ sub install_gotestsum {
     run_command 'export GOPATH=$HOME/go';
     run_command 'export PATH=$GOPATH/bin:$PATH';
     run_command 'go install gotest.tools/gotestsum@v1.13.0';
-}
-
-sub install_ncat {
-    if (is_sle('<16')) {
-        # This repo has ncat 7.94
-        run_command "zypper addrepo https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo";
-    }
-    run_command "zypper --gpg-auto-import-keys -n install ncat";
-
-    # Some tests use nc instead of ncat but expect ncat behaviour instead of netcat-openbsd
-    run_command "ln -sf /usr/bin/ncat /usr/bin/nc";
-    record_info("nc", script_output("nc --version"));
 }
 
 sub install_bats {
