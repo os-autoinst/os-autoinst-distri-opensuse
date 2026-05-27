@@ -37,8 +37,7 @@ sub run {
     my ($self) = @_;
     select_serial_terminal;
 
-    my @pkgs = qw(aardvark-dns cargo firewalld iproute2 iptables make netavark protobuf-devel);
-    push @pkgs, is_sle("<16") ? qw(dbus-1) : qw(dbus-1-daemon);
+    my @pkgs = qw(aardvark-dns cargo dbus-1-daemon firewalld iproute2 iptables make netavark protobuf-devel);
 
     $self->setup_pkgs(@pkgs);
 
@@ -48,7 +47,11 @@ sub run {
 
     $version = script_output "$netavark --version | awk '{ print \$2 }'";
 
-    install_ncat if (version->parse(numeric_version($version)) < version->parse("1.16.0"));
+    if (version->parse(numeric_version($version)) < version->parse("1.16.0")) {
+        run_command "zypper --gpg-auto-import-keys -n install ncat";
+        # Some tests use "nc" instead of "ncat" expecting ncat behaviour instead of netcat-openbsd
+        run_command "ln -sf /usr/bin/ncat /usr/bin/nc";
+    }
 
     # Download netavark sources
     patch_sources "netavark", "v$version", "test";
