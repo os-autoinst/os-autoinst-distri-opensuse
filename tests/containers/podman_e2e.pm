@@ -101,7 +101,15 @@ sub run {
     push @xfails, (
         'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     ) if (get_var("ROOTLESS"));
-
+    push @xfails, (
+        # We can't backport https://github.com/containers/podman/pull/27775 and this test may fail with:
+        # Command exited 125 as expected, but did not emit 'gateway 192.168.1.1 not in subnet 10.11.12.0/24'
+        'Libpod Suite::[It] Podman network create podman network create with invalid gateway for subnet',
+    ) if (
+        $oci_runtime eq "runc"
+        && version->parse(numeric_version($version)) >= version->parse("5.8.2")
+        && version->parse(numeric_version($version)) < version->parse("6.0")
+    );
 
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
