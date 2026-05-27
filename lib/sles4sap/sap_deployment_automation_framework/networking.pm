@@ -158,7 +158,8 @@ sub list_expired_files {
     my $all_files = az_storage_blob_list(
         container_name => 'network-spaces',
         storage_account_name => get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT'),
-        query => "[].{network:name , last_modified:properties.lastModified}"
+        query => "[].{network:name , last_modified:properties.lastModified}",
+        timeout => '120'
     );
 
     foreach (@$all_files) {
@@ -185,7 +186,8 @@ sub list_network_lease_files {
     return az_storage_blob_list(
         container_name => 'network-spaces',
         storage_account_name => get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT'),
-        query => "[].name"
+        query => "[].name",
+        timeout => '120'
     );
 }
 
