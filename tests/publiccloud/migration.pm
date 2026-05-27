@@ -3,7 +3,7 @@
 # Copyright 2022 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Migration test from SLE12 SP5 to SLE15 SP7 and to SLE16.
+# Summary: Migration test from SLE12 SP5 to SLE15 SP7 and to SLE16.1.
 # The migration is currently performed in the offline grub (loopback) mode.
 # See https://github.com/SUSE/suse-migration-services for more information.
 # Maintainer: QE-C team <qa-c@suse.de>
@@ -75,7 +75,7 @@ sub run {
         $instance->ssh_script_run("sudo sudo sed -i 's/^enabled=1/enabled=0/' /etc/zypp/repos.d/SUSE_Maintenance_*");
 
         my $arch = get_required_var('ARCH');
-        $instance->ssh_script_run("echo 'migration_product: SLES/16.0/$arch\\n' | sudo tee -a /etc/sle-migration-service.yml");
+        $instance->ssh_script_run("echo 'migration_product: SLES/16.1/$arch\\n' | sudo tee -a /etc/sle-migration-service.yml");
         $instance->ssh_script_run("cat /etc/sle-migration-service.yml");
 
         # Reboot to run the migration
