@@ -1884,7 +1884,8 @@ sub az_storage_blob_upload(%args) {
         container_name       => 'somecontainer',
         storage_account_name => 'storageaccount',
         blob_name            => 'somefilename',
-        lease_duration       => 60
+        lease_duration       => 60,
+        timeout => 120
     );
 
 Acquire a lease for a storage blob.
@@ -1913,6 +1914,8 @@ B<Return value:>
 
 =item B<blob_name> Blob name to acquire lease for.
 
+=item B<timeout> az command timeout: default of `wait_serial` https://open.qa/api/testapi/#script_output
+
 =item B<lease_duration> Specifies the duration of the lease in seconds. A non-infinite
                         lease can be between 15 and 60 seconds. A value of -1 indicates an infinite
                         lease. Default: -1 (infinite).
@@ -1938,7 +1941,7 @@ sub az_storage_blob_lease_acquire(%args) {
                           # decode_json() would cause function to fail instead of just returning
     );
 
-    my $lease_id = script_output($az_cmd, proceed_on_failure => 1);
+    my $lease_id = script_output($az_cmd, $args{timeout}, proceed_on_failure => 1);
     record_info('AZ CLI out', "AZ CLI returned output:\n $lease_id");
     # Return a string if az_validate_uuid_pattern return "true"
     # otherwise return undef, thanks to Perl's implicit return that get value from the if statement.
@@ -1949,7 +1952,8 @@ sub az_storage_blob_lease_acquire(%args) {
 
     az_storage_blob_list(
         container_name=>'somecontainer',
-        storage_account_name=>'storageaccount' [, query=>'[].name']
+        storage_account_name=>'storageaccount' [, query=>'[].name'],
+        timeout => 120
     );
 
 List information about storage blob(s) specified by B<storage_account_name>, B<container_name> and B<query>.
@@ -1961,6 +1965,8 @@ List information about storage blob(s) specified by B<storage_account_name>, B<c
 =item B<storage_account_name> Storage account name.
 
 =item B<query> Query in jmespath format
+
+=item B<timeout> az command timeout: default of `wait_serial` https://open.qa/api/testapi/#script_output
 
 =back
 =cut
@@ -1981,7 +1987,7 @@ sub az_storage_blob_list(%args) {
         $SDAF_Azure_podman_flake_filter
     );
 
-    return decode_json(script_output($az_cmd));
+    return decode_json(script_output($az_cmd, $args{timeout}));
 }
 
 =head2 az_storage_blob_update
