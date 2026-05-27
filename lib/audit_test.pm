@@ -117,8 +117,14 @@ sub parse_lines {
 # Compare baseline testing result and current testing result
 # input: $testcase - test case name (the test module name in openQA code,
 # if test module is 'audit_tools.pm' then $testcase = audit_tools, etc)
+#
+# optional arguments:
+#   softfail_ids => { $id => 1, ... }   Test # that should be reported as
+#                                       softfail (instead of fail) when their
+#                                       result differs from the baseline.
 sub compare_run_log {
-    my ($testcase) = @_;
+    my ($testcase, %args) = @_;
+    my $softfail_ids = $args{softfail_ids} // {};
 
     # Read the current test result from rollup.log
     my $output = script_output('cat ./rollup.log');
@@ -140,16 +146,17 @@ sub compare_run_log {
         my $c_id = $current_result->{id};
         my $c_result = $current_result->{result};
         my $name = $current_result->{name};
+        my $is_expected_softfail = exists $softfail_ids->{$c_id};
         unless ($baseline_results{$c_id}) {
             my $msg = "poo#93441\nNo baseline found(defined).\n[$c_id] $name $c_result";
-            $flag = _parse_results_with_diff_baseline($name, $c_result, $msg, $flag);
+            $flag = _parse_results_with_diff_baseline($name, $c_result, $msg, $flag, $is_expected_softfail);
             next;
         }
         my $b_name = $baseline_results{$c_id}->{name};
         my $b_result = $baseline_results{$c_id}->{result};
         if ($c_result ne $b_result) {
             my $info = "Test result is NOT same as baseline \nCurrent:  [$c_id] $name $c_result\nBaseline: [$c_id] $b_name $b_result";
-            $flag = _parse_results_with_diff_baseline($name, $c_result, $info, $flag);
+            $flag = _parse_results_with_diff_baseline($name, $c_result, $info, $flag, $is_expected_softfail);
             next;
         }
         record_info($name, "Test result is the same as baseline\n[$c_id] $name $c_result", result => 'ok');
@@ -173,9 +180,14 @@ sub compare_run_log {
 # ERROR            PASS/FAIL    fail
 #
 sub _parse_results_with_diff_baseline {
-    my ($name, $result, $msg, $flag) = @_;
+    my ($name, $result, $msg, $flag, $is_expected_softfail) = @_;
     my $softfail_tests = {};
     if ($result eq 'PASS') {
+        record_info('Softfail', $msg, result => 'softfail');
+        $flag = 'softfail' if ($flag ne 'fail');
+    }
+    elsif ($is_expected_softfail) {
+        # If expected, record as softfail
         record_info('Softfail', $msg, result => 'softfail');
         $flag = 'softfail' if ($flag ne 'fail');
     }
