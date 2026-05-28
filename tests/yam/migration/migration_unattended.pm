@@ -38,10 +38,9 @@ sub run {
         }
     }
 
-    # clean migration repo and configure SUSEConnect when using proxy
+    # clean migration repo
     if ((get_var('SCC_URL', "") =~ /proxy/)) {
         zypper_call("rr Migration");
-        assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
     }
 
     # Add product increment repo
