@@ -54,7 +54,8 @@ our @EXPORT = qw(
   validate_components
   get_fencing_mechanism
   sdaf_upload_logs
-  get_workload_resource_group
+  get_sdaf_resource_group
+  apply_no_cleanup_tag
 );
 
 our $output_log_file = '';
@@ -1045,26 +1046,31 @@ sub get_fencing_mechanism {
     return ($supported_fencing_values{$fencing_type});
 }
 
-=head2 get_workload_resource_group
+=head2 get_sdaf_resource_group
 
-    get_workload_resource_group(deployment_id=>'1234');
+    get_sdaf_resource_group(deployment_id=>'1234', resource_group_type=>'workload_zone');
 
-Finds and returns resource group belonging to the tests workload zone.
+Finds and returns resource group belonging to the test according to deployment type.
 
 B<Value conversion:>
 
 =over
 
-=item * B<deployment_id> =>  Test/deployment ID
+=item * B<deployment_id>: Test/deployment ID
+
+=item * B<resource_group_type>: Type of resource group.
+    Supported values: workload_zone, sap_system
 
 =back
 
 =cut
 
-sub get_workload_resource_group {
+sub get_sdaf_resource_group {
     my (%args) = @_;
     croak 'Missing mandatory argument "$args{deployment_id}"' unless $args{deployment_id};
-    my $query = "[?contains(name, 'workload') && contains(name, '$args{deployment_id}')].name";
+    croak 'Missing mandatory argument "$args{resource_group_type}"' unless $args{resource_group_type};
+
+    my $query = "[?contains(name, '$args{resource_group_type}') && contains(name, '$args{deployment_id}')].name";
     my $groups = az_group_name_get(query => $query);
     die "Zero or more than one resource groups found:\n" . join("\n", @$groups) unless (@$groups == 1);
     return $groups->[0];
@@ -1136,6 +1142,40 @@ sub sdaf_upload_logs {
 
     # need to return positive value for unit test to work properly
     return 1;
+}
+
+=head2 apply_no_cleanup_tag
+
+    apply_no_cleanup_tag(resource_group=>'workload_zone', no_cleanup_tag=>'pc_ignore');
+
+Checks resources inside B<resource_group> for B<SDAF_NO_CLEANUP_TAG> and applies one if missing.
+
+=over
+
+=item * B<resource_group>: Resource group name
+
+=item * B<no_cleanup_tag>: Tag name
+
+=back
+
+=cut
+
+sub apply_no_cleanup_tag {
+    my (%args) = @_;
+    for my $argument ('resource_group', 'no_cleanup_tag') {
+        croak "Missing mandatory argument '\$args{$argument}'" unless $args{$argument};
+    }
+    my $query = "[?tags.$args{no_cleanup_tag} == null].id";
+    my @untagged_resources = @{
+        az_resource_list(resource_group => $args{resource_group},
+            query => $query)};
+    record_info('Retain deployment',
+        "Adding missing tag '$args{no_cleanup_tag}' on following resources:\n" .
+          join("\n", @untagged_resources)) if @untagged_resources;
+    az_resource_tag(
+        resource_ids => \@untagged_resources,
+        tags => ["$args{no_cleanup_tag}=1"]
+    ) if @untagged_resources;
 }
 
 1;

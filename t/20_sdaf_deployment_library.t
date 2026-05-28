@@ -470,22 +470,23 @@ subtest '[sdaf_upload_logs]' => sub {
     ok sdaf_upload_logs(hostname => $arguments{hostname}, sap_sid => $arguments{sap_sid});
 };
 
-subtest '[get_workload_resource_group]' => sub {
+subtest '[get_sdaf_resource_group]' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->noop('record_info');
     $ms_sdaf->redefine(az_group_name_get => sub { return ['Resource_group']; });
 
-    is get_workload_resource_group(deployment_id => '123'), 'Resource_group', 'Return exactly one RG';
+    is get_sdaf_resource_group(deployment_id => '123',
+        resource_group_type => 'workload_zone'), 'Resource_group', 'Return exactly one RG';
 };
 
-subtest '[get_workload_resource_group]' => sub {
+subtest '[get_sdaf_resource_group]' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     $ms_sdaf->noop('record_info');
     $ms_sdaf->redefine(az_group_name_get => sub { return []; });
-    dies_ok { get_workload_resource_group(deployment_id => '123') } 'Fail with empty result';
+    dies_ok { get_sdaf_resource_group(deployment_id => '123', resource_group_type => 'workload_zone') } 'Fail with empty result';
 
     $ms_sdaf->redefine(az_group_name_get => sub { return ['First_result', 'Oh_no-second_one']; });
-    dies_ok { get_workload_resource_group(deployment_id => '123') } 'Fail with more than one results';
+    dies_ok { get_sdaf_resource_group(deployment_id => '123', resource_group_type => 'workload_zone') } 'Fail with more than one results';
 };
 
 subtest '[Check credentials] Long name regex ' => sub {
@@ -560,6 +561,23 @@ subtest '[Check credentials] Short name regex ' => sub {
         ok(grep($secret, @expected_result), "Short secret '$secret' found in keyvault");
     }
     undef_variables;
+};
+
+subtest '[apply_no_cleanup_tag]' => sub {
+    my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
+    my $tag_called;
+    $ms_sdaf->redefine(az_resource_tag => sub { $tag_called = '1' });
+    $ms_sdaf->redefine(az_resource_list => sub { return []; });
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    set_var('SDAF_NO_CLEANUP_TAG', '1');
+    apply_no_cleanup_tag(resource_group => 'firepenguindiscopanda', no_cleanup_tag => 'justaboringwhale');
+    is $tag_called, undef, '"az_resource_tag" is not called if no resource is found';
+
+    $ms_sdaf->redefine(az_resource_list => sub { return ['fire', 'penguin', 'disco', 'panda']; });
+    apply_no_cleanup_tag(resource_group => 'firepenguindiscopanda', no_cleanup_tag => 'justaboringwhale');
+    is $tag_called, '1', '"az_resource_tag" is called if resource is found';
+
+    set_var('SDAF_NO_CLEANUP_TAG', undef);
 };
 
 done_testing;

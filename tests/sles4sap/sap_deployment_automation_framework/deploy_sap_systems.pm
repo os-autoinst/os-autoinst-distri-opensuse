@@ -7,9 +7,9 @@
 
 use Mojo::Base qw(sles4sap::sap_deployment_automation_framework::basetest publiccloud::basetest);
 
-use sles4sap::sap_deployment_automation_framework::deployment
-  qw(serial_console_diag_banner load_os_env_variables sdaf_execute_deployment az_login sdaf_deployment_reused);
+use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::sap_deployment_automation_framework::configure_sap_systems_tfvars qw(create_sap_systems_tfvars);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag find_deployment_id);
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
@@ -107,6 +107,13 @@ sub run {
     create_sap_systems_tfvars(workload_vnet_code => $workload_vnet_code, os_image => $os);
     sdaf_execute_deployment(deployment_type => 'sap_system', timeout => 3600);
 
+    if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
+        my $workload_rg = get_sdaf_resource_group(
+            deployment_id => find_deployment_id(), resource_group_type => 'sap_system'
+        );
+        apply_no_cleanup_tag(resource_group => $workload_rg, no_cleanup_tag => no_cleanup_tag());
+    }
+
     my @check_files = (
         "$config_root_path/sap-parameters.yaml",
         get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path));
@@ -117,7 +124,6 @@ sub run {
 
     # disconnect the console
     disconnect_target_from_serial();
-
     # reset temporary variables
     set_var('SDAF_VNET_CODE', undef);
     serial_console_diag_banner('Module sdaf_deploy_sap_systems.pm : end');
