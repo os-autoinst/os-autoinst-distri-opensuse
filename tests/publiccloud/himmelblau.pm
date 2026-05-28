@@ -13,7 +13,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed);
 use utils qw(zypper_call);
 
 sub configure_himmelblau {
@@ -32,7 +32,7 @@ sub configure_himmelblau {
 
 sub configure_nss {
     my $NSSWITCH_CONF_PATH = "/etc/nsswitch.conf";
-    if (is_sle(">=16")) {
+    if (is_sle(">=16") || is_tumbleweed) {
         assert_script_run("cp /usr/etc/nsswitch.conf $NSSWITCH_CONF_PATH");
     }
 
