@@ -63,6 +63,7 @@
       <li><a href="#az_disk_create">az_disk_create</a></li>
       <li><a href="#az_resource_delete">az_resource_delete</a></li>
       <li><a href="#az_resource_list">az_resource_list</a></li>
+      <li><a href="#az_resource_tag">az_resource_tag</a></li>
       <li><a href="#az_validate_uuid_pattern">az_validate_uuid_pattern</a></li>
       <li><a href="#az_storage_blob_upload">az_storage_blob_upload</a></li>
       <li><a href="#az_storage_blob_lease_acquire">az_storage_blob_lease_acquire</a></li>
@@ -82,7 +83,7 @@
       <li><a href="#az_network_dns_links_cleanup">az_network_dns_links_cleanup</a></li>
       <li><a href="#az_network_dns_zones_cleanup">az_network_dns_zones_cleanup</a></li>
       <li><a href="#az_account_show">az_account_show</a></li>
-      <li><a href="#"></a></li>
+      <li><a href="#az_role_definition_list">az_role_definition_list</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/azure_cli.pm</h1>
@@ -1323,6 +1324,24 @@ Return a validated systemAssignedIdentity ID or die.</code></pre>
 </dd>
 </dl>
 
+<h2 id="az_resource_tag">az_resource_tag</h2>
+
+<pre><code>az_resource_tag(resource_ids=&gt;[&#39;/id/a&#39;, &#39;/id/b&#39;], tags=&gt;[&#39;pcw_ignore=1&#39;]);</code></pre>
+
+<p>Tags list of resource IDs with list of tags</p>
+
+<dl>
+
+<dt id="resource_ids-List-of-existing-resource-id-that-will-be-tagged"><b>resource_ids</b> List of existing resource id that will be tagged</dt>
+<dd>
+
+</dd>
+<dt id="tags-List-of-tags"><b>tags</b> List of tags</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="az_validate_uuid_pattern">az_validate_uuid_pattern</h2>
 
 <pre><code>my $is_valid = az_validate_uuid_pattern(uuid =&gt; $uuid_string);
@@ -1789,7 +1808,7 @@ identifiers for Azure resources.</code></pre>
 </dd>
 </dl>
 
-<h2 id=""></h2>
+<h2 id="az_role_definition_list">az_role_definition_list</h2>
 
 <p>List and return id about named role</p>
 

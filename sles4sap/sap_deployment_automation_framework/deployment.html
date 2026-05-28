@@ -36,11 +36,12 @@
       <li><a href="#sdaf_deployment_reused">sdaf_deployment_reused</a></li>
       <li><a href="#validate_components">validate_components</a></li>
       <li><a href="#get_fencing_mechanism">get_fencing_mechanism</a></li>
-      <li><a href="#get_workload_resource_group">get_workload_resource_group</a>
+      <li><a href="#get_sdaf_resource_group">get_sdaf_resource_group</a>
         <ul>
           <li><a href="#sdaf_upload_logs">sdaf_upload_logs</a></li>
         </ul>
       </li>
+      <li><a href="#apply_no_cleanup_tag">apply_no_cleanup_tag</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/deployment.pm</h1>
@@ -449,17 +450,20 @@ tee - writes output also into the log file</code></pre>
 </li>
 </ul>
 
-<h2 id="get_workload_resource_group">get_workload_resource_group</h2>
+<h2 id="get_sdaf_resource_group">get_sdaf_resource_group</h2>
 
-<pre><code>get_workload_resource_group(deployment_id=&gt;&#39;1234&#39;);</code></pre>
+<pre><code>get_sdaf_resource_group(deployment_id=&gt;&#39;1234&#39;, resource_group_type=&gt;&#39;workload_zone&#39;);</code></pre>
 
-<p>Finds and returns resource group belonging to the tests workload zone.</p>
+<p>Finds and returns resource group belonging to the test according to deployment type.</p>
 
 <p><b>Value conversion:</b></p>
 
 <ul>
 
-<li><p><b>deployment_id</b> =&gt; Test/deployment ID</p>
+<li><p><b>deployment_id</b>: Test/deployment ID</p>
+
+</li>
+<li><p><b>resource_group_type</b>: Type of resource group. Supported values: workload_zone, sap_system</p>
 
 </li>
 </ul>
@@ -481,6 +485,22 @@ Collect and upload SDAF logs present and generated locally on SUT.</code></pre>
 
 </dd>
 </dl>
+
+<h2 id="apply_no_cleanup_tag">apply_no_cleanup_tag</h2>
+
+<pre><code>apply_no_cleanup_tag(resource_group=&gt;&#39;workload_zone&#39;, no_cleanup_tag=&gt;&#39;pc_ignore&#39;);</code></pre>
+
+<p>Checks resources inside <b>resource_group</b> for <b>SDAF_NO_CLEANUP_TAG</b> and applies one if missing.</p>
+
+<ul>
+
+<li><p><b>resource_group</b>: Resource group name</p>
+
+</li>
+<li><p><b>no_cleanup_tag</b>: Tag name</p>
+
+</li>
+</ul>
 
 
 </body>
