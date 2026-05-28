@@ -1972,9 +1972,11 @@ sub az_storage_blob_lease_acquire(%args) {
         "--account-name $args{storage_account_name}",
         "--blob-name $args{blob_name}",
         "--lease-duration $args{lease_duration}",
-        '--output tsv'    # Json output won't work here.
-                          # If it is not possible to acquire lease command will return a message which is not in json format.
-                          # decode_json() would cause function to fail instead of just returning
+        '--output tsv',
+        # Json output won't work here.
+        # If it is not possible to acquire lease command will return a message which is not in json format.
+        # decode_json() would cause function to fail instead of just returning
+        $SDAF_Azure_podman_flake_filter
     );
 
     my $lease_id = script_output($az_cmd, $args{timeout}, proceed_on_failure => 1);
