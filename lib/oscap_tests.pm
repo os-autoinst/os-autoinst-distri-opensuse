@@ -671,8 +671,15 @@ sub install_python311 {
     # Ansible playbook still executed by python 3.6 because 3.11 breaks many rules
     zypper_call("in python311 python311-rpm");
     # Set sl for scap scripts
-    assert_script_run("ln -s python3.11 /usr/bin/python");
+    if (script_run "! [[ -e /usr/bin/python ]]") {
+        my $data = script_output("ls -l /usr/bin/python", quiet => 1);
+        record_info("Python symbolic link exists", "$data");
+    }
+    else {
+        assert_script_run("ln -s python3.11 /usr/bin/python");
+    }
 }
+
 sub generate_missing_rules {
     # Generate text file that contains rules that missing implimentation for profile
     my $output_file = "missing_rules.txt";
