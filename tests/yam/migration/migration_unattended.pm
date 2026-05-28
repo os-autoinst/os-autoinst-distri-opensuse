@@ -18,6 +18,10 @@ sub run {
 
     select_console('root-console');
 
+    record_info('zypper lr', script_output('zypper lr -u'));
+    record_info('network', script_output('ip  a s'));
+    record_info('config', script_output('for i in $(find /etc/sysconfig/network -name ifcfg*); do echo "XXXXXXXXXX $i"; cat $i; done'));
+
     # Add repo for devel:DMS when using proxy
     if ((get_var('SCC_URL', "") =~ /proxy/)) {
         my $repo_server = "https://download.opensuse.org/repositories/devel:/DMS/";
@@ -57,6 +61,7 @@ sub run {
         enter_cmd '/usr/sbin/run_migration';
         reset_consoles;
         reconnect_mgmt_console(timeout => 600);
+        record_info('zypper lr', script_output('zypper lr -u'));
     } else {
         # disable timeout for migration grub menu
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
