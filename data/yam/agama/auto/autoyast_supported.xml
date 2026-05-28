@@ -104,6 +104,14 @@ systemLog:
       </authorized_keys>
     </user>
   </users>
+  <ntp-client>
+    <ntp_servers config:type="list">
+      <ntp_server>
+        <address>3.suse.pool.ntp.org</address>
+        <iburst config:type="boolean">true</iburst>
+      </ntp_server>
+    </ntp_servers>
+  </ntp-client>
   <scripts>
     <pre-scripts config:type="list">
       <script>
