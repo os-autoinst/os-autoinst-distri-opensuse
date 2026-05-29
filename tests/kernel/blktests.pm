@@ -12,6 +12,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use repo_tools 'add_qa_head_repo';
+use LTP::WhiteList;
+use LTP::utils 'prepare_whitelist_environment';
 use package_utils 'install_package';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
 
@@ -32,10 +34,11 @@ sub run {
     #below variable exposes blktests options to the openQA testsuite
     #definition, so that it allows flexible ways of re-runing the tests
     my $tests = get_required_var('BLKTESTS');
+    my $devices = get_required_var('BLKTESTS_TEST_DEVS');
     my $quick = get_var('BLKTESTS_QUICK', 60);
     my $exclude = get_var('BLKTESTS_EXCLUDE');
-    my $devices = get_required_var('BLKTESTS_DEVICE_ONLY');
     my $trtypes = get_var('BLKTESTS_TRTYPES');
+    my $issues = get_var('BLKTESTS_KNOWN_ISSUES');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
     save_and_upload_log('rpm -qi kernel-default', 'kernel_bug_report.txt');
@@ -56,8 +59,25 @@ sub run {
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
 
-    $exclude = join(' ', map { "--exclude=$_" } split(/,/, $exclude // ''));
+    # BLKTESTS_EXCLUDE provides the initial list; known-issue entries are appended below
+    my @exclude = split(/,/, $exclude // '');
+    if ($issues) {
+        my $whitelist = LTP::WhiteList->new($issues);
+        my $environment = prepare_whitelist_environment();
+        $environment->{test_variant} = $trtypes // '';
+        $environment->{kernel} = script_output('uname -r');
+
+        for my $test ($whitelist->list_skipped_tests($environment, 'blktests')) {
+            my $entry = $whitelist->find_whitelist_entry($environment, 'blktests', $test);
+            my $message = $entry->{message} // '';
+            record_info('Known issue', "Skipping $test" . ($message ? ": $message" : ''));
+            push @exclude, $test;
+        }
+    }
+
+    $exclude = join(' ', map { "--exclude=$_" } @exclude);
     $trtypes = "NVMET_TRTYPES=\"$trtypes\" " if $trtypes;
+
     foreach my $i (@tests) {
         my $config = $devices eq 'none' ? '' : '-c /etc/blktests/config';
         script_run("${trtypes} ./check $config -o ${log_dir}/results --quick=$quick $exclude $i", 1200);
