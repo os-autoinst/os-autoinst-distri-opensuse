@@ -201,11 +201,13 @@ sub configure_rootless_docker {
 
     switch_to_user;
 
+    run_command 'install -D -m 0600 <(echo {}) $HOME/.config/docker/daemon.json';
     if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
-        run_command 'mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/docker';
         my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
-        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \${XDG_CONFIG_HOME:-\$HOME/.config}/docker/daemon.json);
+        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \$HOME/.config/docker/daemon.json);
     }
+    run_command qq(DAEMON_JSON=\$(jq '.+{"registry-mirrors": ["http://$registry"]}' \$HOME/.config/docker/daemon.json));
+    run_command q(tee $HOME/.config/docker/daemon.json <<< "$DAEMON_JSON");
 
     # https://docs.docker.com/engine/security/rootless/
     run_command "dockerd-rootless-setuptool.sh install";
