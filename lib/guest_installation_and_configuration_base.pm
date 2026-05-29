@@ -290,6 +290,14 @@ sub prepare_ssh_key {
         assert_script_run("ssh-keygen -f $_host_params{ssh_key_file} -q -P \"\" <<<y");
     }
     assert_script_run("chmod 600 $_host_params{ssh_key_file} $_host_params{ssh_key_file}.pub");
+    if (get_var('GUEST_SSH_KEYFILE')) {
+        record_info("Customized ssh key file $_host_params{ssh_key_file} on host being used for guest installation",
+            "Update already imported key, specify identity_file on ssh or call setup_common_ssh_config to stay intact");
+        setup_common_ssh_config(ssh_id_file => $_host_params{ssh_key_file});
+    }
+    else {
+        record_info("The ssh key file on host being used for guest installation is $_host_params{ssh_key_file}");
+    }
     $_host_params{ssh_public_key} = script_output("cat $_host_params{ssh_key_file}.pub");
     $_host_params{ssh_private_key} = script_output("cat $_host_params{ssh_key_file}");
     if (is_sle('16+')) {
