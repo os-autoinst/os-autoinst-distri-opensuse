@@ -69,7 +69,7 @@ sub run {
     set_var('RELEASE_MANIFEST_URI', "$release_manifest_uri") unless ($release_manifest_uri eq '');
 
     # Export ELEMENTAL3_IMAGE_TO_TEST
-    my $elemental3_regex = ".*elemental3-\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    my $elemental3_regex = ".*elemental-3\(.*\)-\(.*\).${arch}-.*.registry.txt";
     ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${elemental3_regex});
     my $elemental3_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${version}-${build}\)");
     set_var('ELEMENTAL3_IMAGE_TO_TEST', "$elemental3_uri") unless ($elemental3_uri eq '');
