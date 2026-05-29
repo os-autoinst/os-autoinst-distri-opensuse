@@ -21,12 +21,8 @@ sub run {
     my @actual_aliases = split(/\n/, script_output("zypper -n lr --uri | awk \'NR>4 && \$1 ~ /[0-9]/ {print \$3}\'"));
     my $unexpected_aliases = '';
     my @skip_aliases = (
-        qr/home_images/,
-        qr/home_sles16/,
         qr/Increment_repo/,
         qr/^SLES$/,    # This is on SLE 16 Full install of QE Security
-        qr/SLES15-SP7-15\.7-0/,
-        qr/SLE-15-SP7-SAP-15\.7-0/,
     );
 
     script_output 'zypper -n lr --uri';
