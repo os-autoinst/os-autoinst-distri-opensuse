@@ -62,7 +62,7 @@ sub run {
     my $files_list = script_output("curl -s ${totest_path}/containers/ | sed -n '/alt=\"\\[\\([[:blank:]]*\\|TXT\\)\\]/s/.*href=\"\\(.*\\)\">.*/\\1/gp' | sort -ur");
 
     # Export RELEASE_MANIFEST_URI
-    my $manifest_regex = ".*release-manifest-${uc_version}_${k8s}_\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    my $manifest_regex = ".*${k8s}-manifest-${uc_version}\(.*\)-\(.*\).${arch}-.*.registry.txt";
     my ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${manifest_regex});
     my $k8s_version = $version;
     my $release_manifest_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${k8s}_${k8s_version}-${build}\)");
