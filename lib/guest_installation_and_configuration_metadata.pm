@@ -270,7 +270,10 @@ our %_host_params = (
     'host_version_major' => '',    # Major version of host os release from /etc/os-release on host
     'host_version_minor' => '',    # Minor version of host os release from /etc/os-release on host
     'host_version_id' => '',    # Version ID of host os release from /etc/os-release on host
-    'ssh_key_file' => get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519'),    # SSH key file used for guest installation and login
+    'ssh_key_file' => get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519'),    # SSH key file resides on host used for guest installation and login.
+        # SSH Key file that is provided by GUEST_SSH_KEYFILE is a customized instead of the default one,
+        # so it is necessary to update previously already imported key, specify identity file to be used
+        # on ssh command or call setup_common_ssh_config to include identity file to be used for ssh.
     'ssh_public_key' => '',    # Public key used for ssh login to guest
     'ssh_private_key' => '',    # Private key used for ssh login to guest
     'ssh_command' => '',    # SSH command used for ssh login, for example, "ssh -vvv -i identity_file username"
