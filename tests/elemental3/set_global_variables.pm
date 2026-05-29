@@ -62,26 +62,26 @@ sub run {
     my $files_list = script_output("curl -s ${totest_path}/containers/ | sed -n '/alt=\"\\[\\([[:blank:]]*\\|TXT\\)\\]/s/.*href=\"\\(.*\\)\">.*/\\1/gp' | sort -ur");
 
     # Export RELEASE_MANIFEST_URI
-    my $manifest_regex = ".*${k8s}-manifest-${uc_version}\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    my $manifest_regex = ".*${k8s}-manifest-\(${uc_version}.*\)-\(.*\)\\.${arch}-.*\\.registry\\.txt";
     my ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${manifest_regex});
     my $k8s_version = $version;
-    my $release_manifest_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${uc_version}_${k8s}_${k8s_version}-${build}\)");
+    my $release_manifest_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${k8s_version}-${build}\)");
     set_var('RELEASE_MANIFEST_URI', "$release_manifest_uri") unless ($release_manifest_uri eq '');
 
     # Export ELEMENTAL3_IMAGE_TO_TEST
-    my $elemental3_regex = ".*elemental-3\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    my $elemental3_regex = ".*elemental-\([0-9]\\..*\)-\(.*\)\\.${arch}-.*\\.registry\\.txt";
     ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${elemental3_regex});
     my $elemental3_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${version}-${build}\)");
     set_var('ELEMENTAL3_IMAGE_TO_TEST', "$elemental3_uri") unless ($elemental3_uri eq '');
 
     # Export K8S_IMAGE_TO_TEST
-    my $k8s_regex = ".*${k8s}-tar-${k8s_version}.*_\(.*\)-\(.*\).${arch}-.*.registry.txt";
+    my $k8s_regex = ".*${k8s}-tar-${k8s_version}_\(.*\)-\(.*\)\\.${arch}-.*\\.registry\\.txt";
     ($file, $version, $build) = get_values(txt => ${files_list}, regex => ${k8s_regex});
-    my $k8s_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${k8s_version}.*_${version}-${build}\)");
+    my $k8s_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${k8s_version}_${version}-${build}\)");
     set_var('K8S_IMAGE_TO_TEST', "${k8s_uri}") unless ($k8s_uri eq '');
 
     # Export CONTAINER_IMAGE_TO_TEST
-    my $kernel_regex = ".*${kernel}-\(.*\).${arch}-.*.registry.txt";
+    my $kernel_regex = ".*${kernel}-\(.*\)\\.${arch}-.*\\.registry\\.txt";
     ($file, $build) = get_values(txt => ${files_list}, regex => ${kernel_regex});
     my $container_uri = get_uri(file => "${totest_path}/containers/${file}", regex => "pull\\s+\(.*:${os_version}-${build}\)");
     set_var('CONTAINER_IMAGE_TO_TEST', "${container_uri}") unless ($container_uri eq '');
