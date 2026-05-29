@@ -12,7 +12,6 @@ schedule:
   - console/prepare_test_data
   - console/consoletest_setup
   - console/setup_libyui_running_system
-  - console/yast2_rmt
   - console/yast2_ntpclient
   - console/yast2_tftp
   - console/yast2_proxy
