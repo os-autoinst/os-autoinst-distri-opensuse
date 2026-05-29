@@ -2057,11 +2057,12 @@ sub az_storage_blob_update(%args) {
         '--container-name', $args{container_name},
         '--account-name', $args{account_name},
         '--name', $args{name},
-        '--output json'
+        '--output json',
+        $SDAF_Azure_podman_flake_filter
     );
     push(@az_cmd, "--lease-id $args{lease_id}") if $args{lease_id};
 
-    return script_run(join(' ', @az_cmd));
+    return script_run(join(' ', @az_cmd), timeout => 180);
 }
 
 =head2 az_keyvault_list
