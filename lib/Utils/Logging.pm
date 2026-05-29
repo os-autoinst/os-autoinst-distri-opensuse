@@ -181,10 +181,6 @@ sub cleanup_known_coredumps {
             cmdline => q(unzip-mem "" v files.zip),
             signals => [qw(FPE)],
         },
-        'bsc#1261625' => {
-            cmdline => q(gvfs-udisks2-volume-monitor),
-            signals => [qw(SEGV)],
-        },
         'bsc#1261358' => {
             cmdline => q(ovs-vswitchd unix:),
             signals => [qw(ABRT)],
