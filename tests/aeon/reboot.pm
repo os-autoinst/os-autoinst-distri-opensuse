@@ -19,7 +19,7 @@ sub run {
     # Initiate reboot
     type_string 'reboot';
     assert_and_click 'gnome-shell-confirm-reboot-1';
-    assert_and_click 'gnome-shell-confirm-reboot-2';
+    assert_and_click('gnome-shell-confirm-reboot-2', timeout => 60);
 
     # Input the encryption passphrase
     assert_screen 'aeon-boot-enter-passphrase', 600;
