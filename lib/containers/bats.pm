@@ -203,6 +203,9 @@ sub configure_rootless_docker {
 
     run_command 'install -D -m 0600 <(echo {}) $HOME/.config/docker/daemon.json';
     if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
+        # Docker v29 increased minimum API version from 1.24 to 1.44 which broke some tests and stuff like
+        # docker-compose & container_diff and also some tests.  Docker v29.3 lowered it from 1.44 to 1.40.
+        # Remove this when we no longer have Docker v29.2 in SLES 16.1.
         my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
         run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \$HOME/.config/docker/daemon.json);
     }
