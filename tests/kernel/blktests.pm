@@ -110,3 +110,78 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+Run the upstream blktests suite from the C<blktests> package.
+
+The test groups to execute are selected with C<BLKTESTS>. Individual tests can
+be skipped either directly with C<BLKTESTS_EXCLUDE> (mostly for debugging purposes)
+or through known-issues metadata referenced by C<BLKTESTS_KNOWN_ISSUES>.
+Most native C<blktests> variables are exposed as C<BLKTESTS_NAME>, where C<NAME>
+matches the upstream C<blktests> variable name, for example C<BLKTESTS_TRTYPES>
+for C<TRTYPES>.
+
+=head1 Configuration
+
+=head2 BLKTESTS
+
+Required. Comma-separated list of blktests groups or individual tests passed to
+C<./check>. Examples:
+
+  BLKTESTS=block
+  BLKTESTS=dm,throtl,scsi,loop
+  BLKTESTS=nvme/001
+
+=head2 BLKTESTS_TEST_DEVS
+
+Required. Device list written to F</etc/blktests/config> as C<TEST_DEVS>.
+Set to C<none> to skip writing a device list.
+
+=head2 BLKTESTS_EXCLUDE
+
+Optional. Comma-separated list of tests to exclude directly from this job. The
+value is converted to C<./check --exclude=...> arguments.
+
+This remains useful for temporary debugging overrides. Persistent product or
+transport specific skips should be represented in C<BLKTESTS_KNOWN_ISSUES>
+instead.
+
+=head2 BLKTESTS_KNOWN_ISSUES
+
+Optional. URL or local path to a known-issues YAML file parsed with
+C<LTP::WhiteList>. Entries under the C<blktests> suite with C<skip: 1> are
+added to the C<./check --exclude=...> arguments when they match the current
+openQA environment.
+
+Known-issues keys must use the full upstream blktests test ID format
+C<group/number>. Matching C<skip: 1> entries are passed directly to
+C<./check --exclude=...>.
+
+Example:
+
+  blktests:
+      block/033:
+      - product: sle:16\.1$
+        skip: 1
+        message: miniublk uses legacy ublk command opcodes
+      nvme/041:
+      - test_variant: ^fc$
+        skip: 1
+        message: skipped only for NVMe Fibre Channel transport
+
+The common C<LTP::WhiteList> fields such as C<product>, C<revision>, C<flavor>,
+C<arch>, C<backend>, C<machine>, C<kernel>, and C<test_variant> are supported.
+For blktests, C<test_variant> matches C<BLKTESTS_TRTYPES>.
+
+=head2 BLKTESTS_QUICK
+
+Optional. Value passed to C<./check --quick>. Defaults to C<60>.
+
+=head2 BLKTESTS_TRTYPES
+
+Optional. NVMe transport type passed to blktests through C<NVMET_TRTYPES>.
+This value is also available to C<BLKTESTS_KNOWN_ISSUES> entries through the
+C<test_variant> matcher.
+
+=cut
