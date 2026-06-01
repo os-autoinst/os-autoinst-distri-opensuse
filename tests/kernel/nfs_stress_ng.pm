@@ -17,7 +17,7 @@ use serial_terminal;
 use lockapi;
 use utils;
 use registration;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_transactional);
 use repo_tools 'add_qa_head_repo';
 use package_utils 'install_package';
 
@@ -99,7 +99,7 @@ sub client {
         }
     }
 
-    install_package('stress-ng', trup_apply => 1);
+    install_package('stress-ng', trup_continue => 1, trup_apply => 1);
 
     select_user_serial_terminal;
     assert_script_run("stress-ng --class 'filesystem?'");
