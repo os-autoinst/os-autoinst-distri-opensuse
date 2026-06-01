@@ -116,7 +116,7 @@ Start heartbeat, setup environment variables (Call it everytime SUT reboots)
 =cut
 
 sub heartbeat_start {
-    enter_cmd(". ~/.xfstests; nohup sh $HB_SCRIPT &");
+    enter_cmd(". $INST_DIR/local.config; nohup sh $HB_SCRIPT &");
 }
 
 =head2 heartbeat_stop
