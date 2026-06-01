@@ -491,7 +491,14 @@ END_CMD
         $cmd = "find /sys/fs/$fstype/*/allocation/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat";
     }
     elsif ($fstype eq 'ext4') {
-        $cmd = "find /sys/fs/$fstype/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat";
+        $cmd = <<END_CMD;
+find /sys/fs/$fstype/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat
+. $INST_DIR/local.config
+echo "==> dumpe2fs SCRATCH_DEV (\$SCRATCH_DEV) <==" >> $LOG_DIR/$category/$num.fs_stat
+dumpe2fs -h \$SCRATCH_DEV >> $LOG_DIR/$category/$num.fs_stat 2>&1
+echo "==> dumpe2fs TEST_DEV (\$TEST_DEV) <==" >> $LOG_DIR/$category/$num.fs_stat
+dumpe2fs -h \$TEST_DEV >> $LOG_DIR/$category/$num.fs_stat 2>&1
+END_CMD
     }
     elsif ($fstype eq 'nfs') {
         enter_cmd("$cmd");
@@ -522,6 +529,7 @@ sub copy_all_log {
         upload_logs("$LOG_DIR/$num.dump.tar");
     }
     collect_fs_status($category, $num, $fstype, $is_crash);
+    script_run("cp $INST_DIR/results/$category/$num.e2image $LOG_DIR/$category/$num.e2image 2>/dev/null");
     if ($raw_dump) { raw_dump($category, $num, $scratch_dev, $scratch_dev_pool); }
 }
 
