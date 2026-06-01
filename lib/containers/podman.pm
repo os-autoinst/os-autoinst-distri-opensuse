@@ -26,7 +26,7 @@ sub configure_insecure_registries {
 
     my $containers_registries = "/etc/containers/registries.conf";
     assert_script_run "curl " . data_url('containers/registries.conf') . " -o /tmp/containers_registries.conf";
-    assert_script_run "mv -Z /tmp/containers_registries.conf $containers_registries";
+    assert_script_run "mv -f -Z /tmp/containers_registries.conf $containers_registries";
     assert_script_run "chmod 644 /etc/containers/registries.conf";
     # Add custom registry only if set by the REGISTRY variable
     assert_script_run('echo -e \'[[registry]]\nlocation = "' . registry_url() . '"\ninsecure = true\' >> /etc/containers/registries.conf') if get_var('REGISTRY');
