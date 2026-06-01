@@ -13,7 +13,6 @@ prepare:
 	./tools/wheel --fetch
 	$(MAKE) check-links
 	# https://rt.cpan.org/Ticket/Display.html?id=133363
-	cd os-autoinst && PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm -v -nq --installdeps .
 	PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm -v -nq --installdeps .
 
 os-autoinst/:
@@ -22,27 +21,28 @@ link a local working copy of 'os-autoinst' into this \
 folder or call 'make prepare' to download and setup a copy necessary for \
 testing" && exit 2)
 
-tools/tidy: os-autoinst/
-	@test -e tools/tidy || ln -s ../os-autoinst/tools/tidy tools/
-
-tools/lib/: os-autoinst/
-	@test -e tools/lib || ln -s ../os-autoinst/external/os-autoinst-common/lib/ tools/
+tools/lib/:
+	@test -e tools/lib || ln -s ../external/os-autoinst-common/lib/ tools/
 
 .PHONY: check-links
-check-links: tools/tidy tools/lib/ os-autoinst/
+check-links: tools/lib/ os-autoinst/
 
 .PHONY: check-links
-tidy-check: check-links
-	tools/tidy --check --quiet
+tidy-check:
+	external/os-autoinst-common/tools/tidyall -a --check-only --quiet
 
 .PHONY: tidy
-tidy: tools/tidy
-	$< --only-changed
+tidy:
+	external/os-autoinst-common/tools/tidyall -g
 	@echo "[make] Tidy called over modified/new files only. For a full run use make tidy-full"
 
 .PHONY: tidy-full
-tidy-full: tools/tidy
-	$<
+tidy-full:
+	external/os-autoinst-common/tools/tidyall -a
+
+.PHONY: subrepo-update
+subrepo-update:
+	git subrepo clone --force https://github.com/os-autoinst/os-autoinst-common.git external/os-autoinst-common
 
 .PHONY: unit-test
 unit-test:
