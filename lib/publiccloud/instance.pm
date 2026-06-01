@@ -337,6 +337,14 @@ sub wait_for_guestregister {
         sleep 1;
     }
     diag("guestregister timeout");
+    if (is_sle("=16.0") && is_gce) {
+        my $out = $self->ssh_script_output(cmd => 'systemctl list-jobs | grep -o "guestregister.service"', proceed_on_failure => 1);
+        if ($out eq 'guestregister.service') {
+            # SF only if the error is really correlated
+            record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
+            return 1;
+        }
+    }
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
@@ -539,8 +547,12 @@ sub wait_for_ssh {
     # Sometimes it fails, sometimes it keeps running and tries to register but we run into the timeout (10mins)
     # where the system is still booting.
     if (is_sle("=16.0") && is_gce) {
-        record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
-        return 1;
+        my $out = $self->ssh_script_output(cmd => 'systemctl list-jobs | grep -o "guestregister.service"', ssh_opts => $self->ssh_opts(), username => $args{username}, timeout => 90, proceed_on_failure => 1);
+        if ($out eq 'guestregister.service') {
+            # SF only if the error is really correlated
+            record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
+            return 1;
+        }
     }
 
     # FAIL
