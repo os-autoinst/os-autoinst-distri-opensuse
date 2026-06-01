@@ -7,6 +7,7 @@
 
 requires 'Carp';
 requires 'Code::DRY';
+requires 'Code::TidyAll';
 requires 'Config::Tiny';
 requires 'Class::Accessor::Fast';
 requires 'Cwd';
@@ -57,6 +58,8 @@ requires 'utf8';
 requires 'version';
 requires 'warnings';
 requires 'SemVer';
+requires 'Perl::Tidy', '== 20260204.0.0';
+requires 'Syntax::Keyword::Try';
 
 
 on 'test' => sub {
