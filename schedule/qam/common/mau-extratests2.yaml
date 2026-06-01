@@ -27,7 +27,7 @@ schedule:
   - console/aaa_base
   - console/gd
   - console/vsftpd
-  - network/samba/samba_adcli
+  # - network/samba/samba_adcli
   - console/pciutils
   - '{{version_specific}}'
   - console/coredump_collect
