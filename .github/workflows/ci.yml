@@ -9,24 +9,23 @@ jobs:
       matrix:
         include:
           - test: static
-            perl-version: 5.32
+            perl-version: '5.40'
           - test: unit
-            perl-version: 5.32
+            perl-version: '5.40'
           - test: compile-changed
-            perl-version: 5.26
+            perl-version: '5.40'
           - test: compile
-            perl-version: 5.26
+            perl-version: '5.40'
           - test: compile-os-autoinst
             perl-version: '5.40'
           - test: check-strict
-            perl-version: '5.40'
+            perl-version: '5.42'
     container:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
     steps:
     - uses: actions/checkout@v6
     - name: Install dependencies
       run: |
-        sed -ri '/buster/s/(deb|security)\.debian\.org/archive.debian.org/' /etc/apt/sources.list
         apt-get -y update
         apt-get -y install libdbus-1-dev libssh2-1-dev parallel python3-dev python3-yaml python3-jsonschema python3-pip liblua5.3-dev
         pip3 install yamllint jsonnet==0.20.0
