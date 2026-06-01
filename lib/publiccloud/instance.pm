@@ -318,10 +318,7 @@ sub wait_for_guestregister {
             # we have some cases where it is known that guestregister service will fail
             # ( e.g. when we testing images not published on Market hence w/o product codes)
             return 1 if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
-            if (is_sle("=16.0") && is_gce) {
-                record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
-                return 1;
-            }
+            return 1 if $self->_softfail_bsc1261908_guestregister();
             die('guestregister failed');
         }
         elsif ($out =~ m/active$/) {
@@ -331,20 +328,13 @@ sub wait_for_guestregister {
         }
 
         if (time() - $last_info > 10) {
-            record_info('WAIT', 'Wait for guest register: ' . $out);
+            diag('Wait for guest register: ' . $out);
             $last_info = time();
         }
         sleep 1;
     }
     diag("guestregister timeout");
-    if (is_sle("=16.0") && is_gce) {
-        my $out = $self->ssh_script_output(cmd => 'systemctl list-jobs | grep -o "guestregister.service"', proceed_on_failure => 1);
-        if ($out eq 'guestregister.service') {
-            # SF only if the error is really correlated
-            record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
-            return 1;
-        }
-    }
+    return 1 if $self->_softfail_bsc1261908_guestregister();
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 
@@ -546,15 +536,7 @@ sub wait_for_ssh {
     # On SLES 16 GCE this is really coarse, but the guestregister.service is really stubburn.
     # Sometimes it fails, sometimes it keeps running and tries to register but we run into the timeout (10mins)
     # where the system is still booting.
-    if (is_sle("=16.0") && is_gce) {
-        my $out = $self->ssh_script_output(cmd => 'systemctl list-jobs | grep -o "guestregister.service"', ssh_opts => $self->ssh_opts(), username => $args{username}, timeout => 90, proceed_on_failure => 1);
-        if ($out eq 'guestregister.service') {
-            # SF only if the error is really correlated
-            record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
-            return 1;
-        }
-    }
-
+    return 1 if $self->_softfail_bsc1261908_guestregister();
     # FAIL
     croak(" results summary:\n" . $sshout . $sysout) unless ($args{proceed_on_failure});
     return;    # proceed_on_failure true
@@ -787,6 +769,7 @@ sub check_system_boottime() {
     my ($instance, %args) = @_;
     my $max_boot_time = get_var('PUBLIC_CLOUD_BOOTTIME_MAX');
     return unless ($max_boot_time);
+    return if $instance->_softfail_bsc1261908_guestregister();
 
     my $ret = {
         kernel_release => undef,
@@ -994,6 +977,22 @@ sub wait_for_state {
         sleep 15;
     }
     die("The instance state is not '$state' but '$current' instead.");
+}
+
+sub _softfail_bsc1261908_guestregister {
+    # softfailure for bsc#1261908:
+    # on SLES 16 GCE, while system is still booting, guestregister either fails or time out.
+    # Remove this workaround after bug resolved.
+    my $self = shift;
+    if (is_sle("=16.0") && is_gce) {
+        # Prevent applying this softfail to other errors: verify guestregister still starting:
+        if ($self->ssh_script_run(cmd => 'systemctl list-jobs | grep "guestregister.service"',
+                ssh_opts => $self->ssh_opts(), username => $self->username()) == 0) {
+            record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16 (in " . (caller(1))[3] . ")");
+            return 1;
+        }
+    }
+    return 0;
 }
 
 1;
