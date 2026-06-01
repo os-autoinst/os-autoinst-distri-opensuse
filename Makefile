@@ -12,8 +12,9 @@ prepare:
 	git clone https://github.com/os-autoinst/os-autoinst.git
 	./tools/wheel --fetch
 	$(MAKE) check-links
-	cd os-autoinst && cpanm -nq --installdeps .
-	cpanm -nq --installdeps .
+	# https://rt.cpan.org/Ticket/Display.html?id=133363
+	cd os-autoinst && PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm -v -nq --installdeps .
+	PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm -v -nq --installdeps .
 
 os-autoinst/:
 	@test -d os-autoinst || (echo "Missing test requirements, \
