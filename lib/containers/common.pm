@@ -45,26 +45,19 @@ sub activate_containers_module {
 }
 
 sub install_oci_runtime {
-    my $runtime = shift;
-
     my $oci_runtime = get_var("OCI_RUNTIME");
     return if (!$oci_runtime);
 
-    my $template = ($runtime eq "podman") ? "{{ .Host.OCIRuntime.Name }}" : "{{ .DefaultRuntime }}";
-    my $use_runtime = script_output("$runtime info -f '$template'");
+    my $template = "{{ .Host.OCIRuntime.Name }}";
+    my $use_runtime = script_output("podman info -f '$template'");
 
     if ($oci_runtime ne $use_runtime) {
         record_info("OCI runtime", "$use_runtime -> $oci_runtime");
         zypper_call "in $oci_runtime" if (script_run("which $oci_runtime") != 0);
-        if ($runtime eq "podman") {
-            script_run "mkdir /etc/containers/containers.conf.d";
-            assert_script_run "echo '[engine]' > /etc/containers/containers.conf.d/engine.conf";
-            assert_script_run "echo 'runtime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
-        } else {
-            assert_script_run "sed -i 's%^{%&\"default-runtime\":\"$oci_runtime\",\"runtimes\":{\"$oci_runtime\":{\"path\":\"/usr/bin/$oci_runtime\"}},%' /etc/docker/daemon.json";
-            systemctl('restart docker', timeout => 180);
-        }
-        $use_runtime = script_output("$runtime info -f '$template'");
+        script_run "mkdir /etc/containers/containers.conf.d";
+        assert_script_run "echo '[engine]' > /etc/containers/containers.conf.d/engine.conf";
+        assert_script_run "echo 'runtime=\"$oci_runtime\"' >> /etc/containers/containers.conf.d/engine.conf";
+        $use_runtime = script_output("podman info -f '$template'");
         die "Could not change OCI runtime to $oci_runtime" if ($oci_runtime ne $use_runtime);
     }
 }
@@ -81,7 +74,7 @@ sub install_podman_when_needed {
             # We may run openSUSE with DISTRI=sle and opensuse doesn't have SUSEConnect
             activate_containers_module if ($host_os =~ 'sle' && $running_version =~ "15");
             zypper_call "in @pkgs";
-            install_oci_runtime("podman");
+            install_oci_runtime;
         }
     }
     record_info('podman', script_output('podman info'));
@@ -156,7 +149,6 @@ sub install_docker_when_needed {
     systemctl('is-active docker');
     systemctl('status docker', timeout => 120);
     if ($host_os =~ /sle|opensuse|micro/) {
-        install_oci_runtime("docker");
         if (script_run('test -d /sys/fs/selinux') == 0 && script_run("docker info -f '{{.SecurityOptions}}' | grep -q selinux")) {
             record_soft_failure('bsc#1252290 - docker comes without SELinux support enabled by default');
             assert_script_run q(sed -i '/DOCKER_OPTS/s/"$/ --selinux-enabled"/' /etc/sysconfig/docker);
