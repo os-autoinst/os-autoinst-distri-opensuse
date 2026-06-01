@@ -149,7 +149,11 @@ sub check_container_signature {
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
     record_info('Image signature', "Checking signature of $image");
 
-    my $cosign_image = "registry.suse.com/suse/cosign";
+    # cosign 2.5 is build upon registry.suse.com/bci/bci-micro:15.7
+    # works with power8 and power10
+    # cosign 3 requires only power9+
+    my $tag = check_var('MACHINE', 'ppc64le-p8-virtio') ? '2.5' : 'latest';
+    my $cosign_image = "registry.suse.com/suse/cosign:$tag";
 
     my $engine_options = "-v /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem:/SUSE_Trust_Root.crt.pem:ro";
     my $options = "--key /usr/share/pki/containers/suse-container-key.pem";
