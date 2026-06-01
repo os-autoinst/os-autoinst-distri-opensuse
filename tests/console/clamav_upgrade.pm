@@ -36,7 +36,7 @@ sub run {
     validate_script_output("clamscan --version", qr/ClamAV $ver/);
 
     # Upgrade to the latest version available in the repo
-    zypper_call("up @pkgs", timeout => 300);
+    zypper_call("up clamav", timeout => 300);
 
     # Verify the upgrade was successful
     my $new_version = script_output("clamscan --version | awk '{print \$2}' | cut -d/ -f1");
