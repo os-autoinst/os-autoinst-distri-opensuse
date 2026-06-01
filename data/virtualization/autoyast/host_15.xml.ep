@@ -121,7 +121,7 @@
       <trusted_grub>false</trusted_grub>
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
-      <xen_append>splash=silent quiet console=hvc0,115200</xen_append>
+      <xen_append>splash=silent quiet</xen_append>
       % if ($check_var->('VERSION', '15-SP6')) {
       <xen_kernel_append><%= $check_var->('IPMI_HW', 'AMD') ? "" : "dom0_max_vcpus=4 dom0_mem=8192M,max:8192M" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all <%= $get_var->('XEN_EXTRA_HYPERVISOR_PARAMS', '') %></xen_kernel_append>
       % } else {
