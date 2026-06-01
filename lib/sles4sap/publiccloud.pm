@@ -172,7 +172,7 @@ sub run_cmd_retry {
     delete($args{proceed_on_failure});
 
     for (1 .. $retry) {
-        my $ret = eval { $self->run_cmd(timeout => $timeout, proceed_on_failure => 0, %args); };
+        my $ret = eval { $self->run_cmd(timeout => $timeout, ignore_timeout_failure => 1, proceed_on_failure => 0, %args); };
         return $ret if (defined $ret);
 
         # Unblock console in case the previous command hung and timed out
