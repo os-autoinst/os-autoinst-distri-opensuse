@@ -1,0 +1,19 @@
+---
+name: 'Commit message check'
+on:
+  workflow_call:
+
+jobs:
+  base-check-commit-message:
+    name: Check commit message
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Install gitlint
+        run: pip install gitlint-core
+      - name: Check commit messages
+        run: gitlint --commits origin/${{ github.base_ref }}..HEAD
