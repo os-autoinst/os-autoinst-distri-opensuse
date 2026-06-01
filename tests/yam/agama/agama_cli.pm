@@ -33,11 +33,11 @@ sub run {
     record_soft_failure("bsc#1265431 - Agama config load blocks in BUSY state") if (is_sle('16.1+'));
     assert_script_run("jq -n '.root.password = \"$testapi::password\"' | agama config load $workaround");
 
-    assert_script_run("agama config show | grep $testapi::password");
+    assert_script_run("agama config show | grep -C 4 $testapi::password");
 
     my $product_id = get_var('AGAMA_PRODUCT_ID');
     assert_script_run("jq -n '.product.id = \"$product_id\"' | agama config load $workaround");
-    assert_script_run("agama config show | grep $product_id");
+    assert_script_run("agama config show | grep -C 4 $product_id");
 
     my $rpm_url = data_url('yam/agama/hello-world-0.1-1.1.noarch.rpm');
     assert_script_run("agama download $rpm_url /tmp/hello-world.rpm");
@@ -46,7 +46,7 @@ sub run {
 
     script_run('agama events > /tmp/agama_events.log 2>&1 &', timeout => 0);
     agama_config_edit(":\%s/bernhard/jose/g");
-    assert_script_run('agama config show | grep jose');
+    assert_script_run('agama config show | grep -C 4 jose');
     agama_config_edit(":\%s/jose/bernhard/g");
 
     validate_script_output('cat /tmp/agama_events.log', qr/ProgressChanged/,
