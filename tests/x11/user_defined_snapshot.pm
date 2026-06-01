@@ -23,7 +23,7 @@ use testapi;
 use utils;
 use Utils::Backends 'is_remote_backend';
 use power_action_utils 'power_action';
-use y2snapper_common qw(y2snapper_close_snapper_module);
+use y2snapper_common;
 use x11utils 'default_gui_terminal';
 use version_utils;
 
