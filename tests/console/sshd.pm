@@ -51,12 +51,6 @@ sub run {
     my $ret = systemctl('restart sshd', ignore_failure => 1);
     my $fips_enabled = script_output('cat /proc/sys/crypto/fips_enabled', proceed_on_failure => 1) eq '1';
 
-    # If restarting sshd service is not successful and fips is enabled, we have encountered bsc#1189534
-    if (($ret != 0) && $fips_enabled && is_sle("=15-SP2")) {
-        record_soft_failure("bsc#1189534");
-        return;
-    }
-
     systemctl 'status sshd';
     services::sshd::ssh_basic_check();
 
