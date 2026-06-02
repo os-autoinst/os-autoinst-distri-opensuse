@@ -163,6 +163,11 @@ sub install_dependencies
         trup_apply() if is_transactional;
     }
 
+    if ($collection eq 'namespaces') {
+        # install build deps
+        install_package('libcap-devel', trup_continue => 1);
+    }
+
     if ($collection =~ m{^net(/|$)}) {
         my $netutils_repo, my $bench_repo;
         if (is_tumbleweed()) {
