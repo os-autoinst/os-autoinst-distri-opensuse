@@ -11,6 +11,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils 'is_transactional';
 use LTP::WhiteList;
 use repo_tools 'add_qa_head_repo';
 use package_utils 'install_package';
@@ -52,9 +53,15 @@ sub run {
         assert_script_run("make -C test");
         $test_dir = 'liburing';
     } else {
-        $test_dir = get_var('LIBURING_TESTS_DIR', '/usr/lib/liburing-tests');
+        my $default_test_dir = '/usr/lib/liburing-tests';
         add_qa_head_repo(priority => 100);
-        install_package('liburing-tests', timeout => 600, trup_apply => 1);
+        install_package('liburing-tests', trup_apply => 1);
+        if (is_transactional()) {
+            assert_script_run("cp -r $default_test_dir /tmp/liburing-tests");
+            $test_dir = '/tmp/liburing-tests';
+        } else {
+            $test_dir = $default_test_dir;
+        }
     }
 
     my $environment = {
@@ -70,13 +77,11 @@ sub run {
     };
 
     # run tests executables
+    my $test_exclude = '';
     my @skipped = $whitelist->list_skipped_tests($environment, 'liburing');
     if (@skipped) {
         push @skipped, $exclude if $exclude;
-        my $test_exclude = join(' ', @skipped);
-
-        my $config_local = $install =~ /git/i ? 'test/config.local' : "$test_dir/config.local";
-        assert_script_run("echo 'TEST_EXCLUDE=\"$test_exclude\"' > $config_local");
+        $test_exclude = join(' ', @skipped);
         record_info(
             "Exclude",
             "Excluding tests: $test_exclude",
@@ -85,14 +90,16 @@ sub run {
     }
 
     if ($install =~ /git/i) {
+        assert_script_run("echo 'TEST_EXCLUDE=\"$test_exclude\"' > test/config.local") if $test_exclude;
         $out = script_output(
             "make -C test runtests",
             timeout => $timeout,
             proceed_on_failure => 1
         );
     } else {
+        my $env = $test_exclude ? "TEST_EXCLUDE=\"$test_exclude\" " : '';
         $out = script_output(
-            "cd $test_dir && ./runtests.sh *.t",
+            "cd $test_dir && ${env}./runtests.sh *.t",
             timeout => $timeout,
             proceed_on_failure => 1
         );
@@ -152,11 +159,6 @@ The liburing git repository. Used only with C<LIBURING_INSTALL=from_git>.
 =head2 LIBURING_VERSION
 
 The liburing version to checkout. Used only with C<LIBURING_INSTALL=from_git>.
-
-=head2 LIBURING_TESTS_DIR
-
-The installed liburing test directory. Used only with C<LIBURING_INSTALL=from_repo>.
-Defaults to /usr/lib/liburing-tests.
 
 =head2 LIBURING_TIMEOUT
 
