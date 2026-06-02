@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/os-autoinst/os-autoinst-common.git
+	branch = master
+	commit = 0e48179240f9383db02b76a265e15f865e632ff3
+	parent = 2ee57953bda0ef54ed697f06700c220dcc222f2c
+	method = merge
+	cmdver = 0.4.6
