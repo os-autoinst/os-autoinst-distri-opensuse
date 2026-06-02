@@ -159,7 +159,7 @@ sub validate_cuda
     record_info('CUDA Sample', script_output('./hello_world'));
 
     # Build NVIDIA/cuda-samples
-    my $cuda_samples_branch = get_var('NVIDIA_CUDA_SAMPLES_BRANCH', 'v13.2update');
+    my $cuda_samples_branch = get_var('NVIDIA_CUDA_SAMPLES_BRANCH', 'v13.3');
     assert_script_run("git clone --depth 1 --single-branch --branch $cuda_samples_branch https://github.com/NVIDIA/cuda-samples.git");
     assert_script_run('mkdir cuda-samples/build; cd $_');
     assert_script_run("cmake .. -DCMAKE_CUDA_COMPILER_TOOLKIT_ROOT=/usr/local/cuda -DCMAKE_CUDA_ARCHITECTURES=$compute_cap -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13 -DCMAKE_CUDA_HOST_COMPILER=g++-13 -DCMAKE_CXX_STANDARD=20 -DCMAKE_CUDA_STANDARD=20");
