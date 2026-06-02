@@ -39,6 +39,7 @@ schedule:
     - console/snapper_zypp
     - console/zypper_extend
     - console/pam
+    - console/run0
     - console/shar
     - console/update_alternatives
     - console/rpm
