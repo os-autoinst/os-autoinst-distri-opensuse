@@ -47,6 +47,20 @@ local::lib, or others), from within the working copy: call
 
 * For linting YAML, you need the openSUSE package `python3-yamllint` or install `yamllint` via pip
 
+#### Optional: Enable local git hooks
+
+Starting with git 2.54.0, you can enable local git hooks that automatically validate your commits before they are created. This provides immediate feedback and helps avoid CI failures later.
+
+To enable the optional commit message linter hook:
+
+```
+git config --local include.path ../.githooks.config
+```
+
+```
+git config --local --unset include.path
+```
+
 #### Relevant documentation
 
 * All openQA documentation in a single [html page](https://open.qa/docs/)
