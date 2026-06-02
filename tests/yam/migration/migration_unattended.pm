@@ -27,7 +27,7 @@ sub run {
 
     # install the migration image and active it
     my $migration_tool = is_s390x ? 'SLES16-Migration' : 'suse-migration-sle16-activation';
-    zypper_call("--gpg-auto-import-keys -n in $migration_tool");
+    record_info("installing DMS", script_output("zypper --gpg-auto-import-keys -n in $migration_tool"));
 
     # deactivate unwanted/unsupported extensions before doing migration
     if (get_var('SCC_SUBTRACTIONS')) {
@@ -51,8 +51,11 @@ sub run {
         zypper_call("ar --refresh $repo_increment Increment_repo");
     }
 
-    # list repos before migration
+    # list repos and check network before migration
     record_info('list repos', script_output('zypper lr -u'));
+    record_info('network', script_output('ip a s'));
+    record_info('wicked', script_output('wicked ifstatus all'));
+    record_info('config', script_output('for i in $(find /etc/sysconfig/network -name ifcfg*); do echo "XXXXXXXXXX $i"; cat $i; done'));
 
     # upload logs to know system state before migration
     upload_logs("/boot/grub2/grub.cfg", failok => 1);
