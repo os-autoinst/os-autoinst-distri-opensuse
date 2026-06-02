@@ -43,14 +43,12 @@ sub run {
     my $k8s = get_required_var('K8S');
     my $os_version = get_required_var('VERSION');
     my $kernel_type = get_var('KERNEL_TYPE', '');
-    my $kernel = "base-os-kernel-${kernel_type}-${os_version}";
+    my $kernel = "base-os-kernel-${kernel_type}-";
     my $totest_path = get_required_var('TOTEST_PATH');
     my $k8s_version_prefix = get_required_var('K8S_VERSION_PREFIX');
 
     # This is to test the ISO container
-    if (check_var('TESTED_CMD', 'extract_iso')) {
-        $kernel = "base-kernel-${kernel_type}-iso-${os_version}";
-    }
+    $kernel .= check_var('TESTED_CMD', 'extract_iso') ? "iso-${os_version}" : ${os_version};
 
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
