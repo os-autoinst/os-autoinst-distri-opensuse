@@ -35,10 +35,10 @@ sub run {
         # LTSS should be disabled before the migration
         $instance->ssh_assert_script_run("sudo SUSEConnect -d -p SLES-LTSS/12.5/x86_64", timeout => 180);
 
-        $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration");
+        $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration") if (get_var("PUBLIC_CLOUD_DMS_REPO"));
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
         $instance->ssh_assert_script_run("sudo timeout -k 15 $migration_timeout zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => $migration_timeout + 30);
-        $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
+        $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900) if (get_var("PUBLIC_CLOUD_DMS_REPO"));
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
 
         # Disable maintenance updates for the migration as directory is not available during it
@@ -65,10 +65,10 @@ sub run {
             $instance->ssh_assert_script_run(qq(echo -e "network:\\n    wicked2nm-continue-migration: true\\n" | sudo tee -a /etc/sle-migration-service.yml));
         }
 
-        $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_required_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration");
+        $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration") if (get_var("PUBLIC_CLOUD_DMS_REPO"));
         $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
         $instance->ssh_assert_script_run("sudo timeout -k 15 $migration_timeout zypper -n in SLES16-Migration suse-migration-sle16-activation", timeout => $migration_timeout + 30);
-        $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900);
+        $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900) if (get_var("PUBLIC_CLOUD_DMS_REPO"));
         $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
 
         # Disable maintenance updates for the migration as directory is not available during it
