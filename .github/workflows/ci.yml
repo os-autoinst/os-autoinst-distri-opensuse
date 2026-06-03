@@ -1,6 +1,8 @@
 name: ci
 # yamllint disable-line rule:truthy
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   static:
     runs-on: ubuntu-latest
