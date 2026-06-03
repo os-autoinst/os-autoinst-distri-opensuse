@@ -224,8 +224,5 @@ sub sudo_user_test {
     assert_script_run("sshpass -p 'open5use' ssh -o StrictHostKeyChecking=no mary\@localhost 'echo open5use | sudo -S -u alice /usr/bin/cat /home/alice/hello > /tmp/readonly'");
     validate_script_output('cat /tmp/readonly', sub { m/file read only by owner alice/ });
 }
-sub test_flags {
-    return {always_rollback => 1};
-}
 
 1;
