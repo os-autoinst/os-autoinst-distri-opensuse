@@ -82,18 +82,16 @@ sub install_from_git
 {
     my ($collection) = @_;
 
-    my $git_tree = get_var('KERNEL_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
-    my $git_tag = get_var('KERNEL_GIT_TAG', '');
+    my $git_tree = get_var('KSELFTEST_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
+    my $git_ref = get_var('KSELFTEST_GIT_REF', '');
 
     install_package('git', trup_apply => 1);
-    assert_script_run("git clone --depth 1 --single-branch --branch master $git_tree linux", 240);
+    my $clone_cmd = "git clone --depth 1 --single-branch";
+    $clone_cmd .= " --branch $git_ref" if $git_ref ne '';
+    $clone_cmd .= " $git_tree linux";
+    assert_script_run($clone_cmd, 240);
 
     assert_script_run("cd ./linux");
-
-    if ($git_tag ne '') {
-        assert_script_run("git fetch --unshallow --tags", 7200);
-        assert_script_run("git checkout $git_tag");
-    }
 
     record_info("GIT Commit", script_output("git --no-pager log -1 --oneline"));
 
@@ -113,7 +111,7 @@ sub install_upstream_harness
     my $version = script_output('uname -r');
     $install_dir //= "/lib/modules/$version/build/kselftest/kselftest_install";
 
-    my $git_tree = get_var('KERNEL_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
+    my $git_tree = get_var('KSELFTEST_GIT_TREE', 'https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git');
     my $tmpdir = '/var/tmp/linux-harness';
 
     install_package('git', trup_apply => 1);

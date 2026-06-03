@@ -48,19 +48,44 @@ Specifies the name of the kselftest collection to install, as reported by:
 
 =head2 KSELFTEST_FROM_GIT
 
-If set, kselftests are installed from a kernel git tree instead of using
-packaged RPMs. Allows to point to C<KERNEL_GIT_TREE>. Defaults to the
-upstream tree: C<torvalds/linux.git>.
+If set, kselftests are cloned and built directly from a kernel git tree
+instead of using packaged RPMs. The repository and ref are controlled by
+C<KSELFTEST_GIT_TREE> and C<KSELFTEST_GIT_REF>.
+
+=head2 KSELFTEST_GIT_TREE
+
+URL of the kernel git repository to clone when C<KSELFTEST_FROM_GIT> is set.
+Defaults to the upstream Linus tree:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+
+=head2 KSELFTEST_GIT_REF
+
+Git ref (branch, tag, or commit SHA) to check out from C<KSELFTEST_GIT_TREE>
+when C<KSELFTEST_FROM_GIT> is set. When unset the repository's default branch
+is used.
+
+Examples:
+
+  KSELFTEST_GIT_REF=stable
+  KSELFTEST_GIT_REF=v6.10
+  KSELFTEST_GIT_REF=a3b1c2d
 
 =head2 KSELFTEST_FROM_SRC
 
 If set, kselftests are built from the kernel source tree provided by the
 C<kernel-source> package instead of using packaged RPMs. The test harness
 (C<run_kselftest.sh> and the C<kselftest/> support directory) is then
-replaced with the version from the upstream linux tree (C<KERNEL_GIT_TREE>,
+replaced with the version from the upstream linux tree (C<KSELFTEST_GIT_TREE>,
 default: C<torvalds/linux.git> master branch), so that the SUSE-patched test
 binaries run under the upstream harness. This step requires network access
 and C<git>.
+
+=head2 KSELFTEST_REPO
+
+URL of a zypper repository providing the C<kselftests> RPM package. Required
+when neither C<KSELFTEST_FROM_GIT> nor C<KSELFTEST_FROM_SRC> is set (the
+default install path).
 
 =head2 KSELFTEST_BUILD_ENV
 
