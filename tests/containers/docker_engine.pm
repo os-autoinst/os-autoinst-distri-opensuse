@@ -120,6 +120,10 @@ sub run {
             "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
             "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
         );
+        # This may fail on SLES 15 due to older version of rootlesskit (1.1.1)
+        push @xfails, (
+            "github.com/moby/moby/v2/integration/container::TestNetworkLoopbackNat",
+        ) if (is_sle("<16") && get_var("ROOTLESS"));
     } else {
         # These fail on Docker v28:
         push @xfails, (
