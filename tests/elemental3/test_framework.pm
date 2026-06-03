@@ -11,15 +11,11 @@ use lockapi;
 use network_utils qw(get_default_dns is_running_in_isolated_network set_resolv);
 use serial_terminal qw(select_serial_terminal);
 use transactional qw(trup_call);
-use Utils::Architectures qw(is_aarch64);
 use Utils::Git;
 
 sub run {
-    my $arch = get_required_var('ARCH');
     my ($repo, $branch) = get_required_var('TEST_FRAMEWORK_REPO') =~ /(\S*)@(\S*)/;
-
-    # Define timeouts based on the architecture
-    my $timeout = (is_aarch64) ? 960 : 480;
+    my $timeout = 1200;
 
     # Add git/go package(s)
     trup_call('pkg install git go kubernetes-client-provider', timeout => $timeout);

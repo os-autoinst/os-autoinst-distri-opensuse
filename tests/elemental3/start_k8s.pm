@@ -13,7 +13,6 @@ use utils qw(exec_and_insert_password systemctl);
 use mm_network qw(configure_hostname);
 use network_utils qw(get_default_dns is_running_in_isolated_network set_resolv);
 use utils qw(file_content_replace);
-use Utils::Architectures qw(is_aarch64);
 use Mojo::File qw(path);
 use Carp qw(croak);
 
