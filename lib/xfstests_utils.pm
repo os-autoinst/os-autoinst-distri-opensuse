@@ -450,8 +450,11 @@ Log: Copy junk.fsxops for fails fsx tests included in subtests
 
 sub copy_fsxops {
     my ($category, $num) = @_;
-    my $cmd = "if [ -e $TEST_FOLDER/junk.fsxops ]; then cp $TEST_FOLDER/junk.fsxops $LOG_DIR/$category/$num.junk.fsxops; fi";
-    script_run($cmd);
+    script_run(". $INST_DIR/local.config && mount \$TEST_DEV $TEST_FOLDER 2>/dev/null");
+    if (script_run("test -f $TEST_FOLDER/junk.fsxops") == 0) {
+        my $fsxops = script_output("cat $TEST_FOLDER/junk.fsxops 2>/dev/null", 30, proceed_on_failure => 1);
+        record_info('fsxops', $fsxops) if $fsxops;
+    }
 }
 
 =head2 raw_dump
