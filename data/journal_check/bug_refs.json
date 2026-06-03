@@ -1926,6 +1926,15 @@
         },
         "type": "ignore"
     },
+    "bsc#1258866": {
+        "description": "dracut.*FAILED.*dracut-install",
+        "products": {
+           "sle-micro": [
+                "6.2"
+           ]
+        },
+        "type": "ignore"
+    },
     "replenish-aarch74": {
         "description": "kernel: sched: DL replenish lagged too much",
         "products": {
@@ -2035,6 +2044,15 @@
     },
     "poo#195269": {
         "description": "transactional-update.*Argument resolves to no package: libtukit4",
+        "products": {
+            "microos": [
+                "Tumbleweed"
+            ]
+        },
+        "type": "ignore"
+    },
+    "poo#198230": {
+        "description": "systemd-coredump.*Process.*eu-strip.*dumped core",
         "products": {
             "microos": [
                 "Tumbleweed"
