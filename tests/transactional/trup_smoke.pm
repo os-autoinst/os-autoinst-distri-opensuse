@@ -20,9 +20,13 @@ sub action {
     record_info('TEST', $text);
     trup_call($target);
 
-    if ($target =~ /bootloader/ && get_var('FLAVOR') =~ m/-encrypted/i) {
-        record_soft_failure("Workaround for bsc#1228126");
-        script_run("fdectl tpm-authorize");
+    if ($target =~ /bootloader/ &&
+        get_var('FLAVOR') =~ m/-encrypted/i &&
+        !script_run('command -v fdectl'))
+    {
+        # in order to avoid LUKS partition prompt, copy the blob into proper EFI dirs
+        assert_script_run 'EFIDIR=$(dirname $(find /boot/efi/ -name "grub*.efi" -print -o -type d -name "BOOT" -prune))';
+        assert_script_run 'test -z ${EFIDIR} || fdectl tpm-activate --uefi-boot-dir ${EFIDIR}';
     }
 
     check_reboot_changes($reboot);
