@@ -38,16 +38,21 @@ sub run {
         }
     }
 
-    # clean migration repo
+    # clean repos before migration
     if ((get_var('SCC_URL', "") =~ /proxy/)) {
         zypper_call("rr Migration");
     }
+    my $repo_num = script_output(q(zypper lr -u | awk -F '|' '/(cd|ftp):/ {printf $1}'));
+    zypper_call("rr $repo_num") if $repo_num;
 
     # Add product increment repo
     if (my $repo_increment = get_var('INCREMENT_REPO')) {
         $repo_increment .= '/repo/' . (get_var('PRODUCT')) . '-' . (get_var('VERSION')) . '-' . (get_var('ARCH'));
         zypper_call("ar --refresh $repo_increment Increment_repo");
     }
+
+    # list repos before migration
+    record_info('list repos', script_output('zypper lr -u'));
 
     # upload logs to know system state before migration
     upload_logs("/boot/grub2/grub.cfg", failok => 1);
