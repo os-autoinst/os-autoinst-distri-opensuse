@@ -19,9 +19,10 @@ sub run {
       get_var('SCC_ADDONS_UPGRADE_FROM',
         get_var('SCC_ADDONS_UPGRADE_TO',
             get_var('SCC_ADDONS')));
+    my $scc_url = get_var('SCC_URL');
 
     # Save the original value of the variables in order to restore it later if needed
-    foreach my $var (qw(AGAMA BETA SCC_ADDONS VERSION)) {
+    foreach my $var (qw(AGAMA BETA SCC_ADDONS SCC_URL VERSION)) {
         set_var($var . "_ENV", get_var($var)) if (get_var($var));
     }
 
@@ -30,6 +31,7 @@ sub run {
         AGAMA => $agama,
         BETA => '0',
         SCC_ADDONS => $scc_addons,
+        SCC_URL => (($version =~ /^(\d+)/ && $1 < 16) ? $scc_url : 'https://scc.suse.com'),
         VERSION => $version,
     );
     my $env_content = '';
