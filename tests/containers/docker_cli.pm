@@ -85,26 +85,6 @@ sub run {
         "github.com/docker/cli/e2e/global::TestTLSVerify",
     );
     push @xfails, (
-        # NOTE: This list can be removed when we upgrade to Docker v29
-        # Expected failures from Docker Content Trust (notary is not supported)
-        "github.com/docker/cli/e2e/container::TestCreateWithContentTrust",
-        "github.com/docker/cli/e2e/container::TestRunWithContentTrust",
-        "github.com/docker/cli/e2e/container::TestTrustedCreateFromBadTrustServer",
-        "github.com/docker/cli/e2e/container::TestTrustedCreateFromUnreachableTrustServer",
-        "github.com/docker/cli/e2e/container::TestTrustedRunFromBadTrustServer",
-        "github.com/docker/cli/e2e/container::TestUntrustedRun",
-        "github.com/docker/cli/e2e/image::TestPullWithContentTrust",
-        "github.com/docker/cli/e2e/image::TestPullWithContentTrustUsesCacheWhenNotaryUnavailable",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrust",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrustExistingTag",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrustReleasesDelegationOnly",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsAllFirstLevelRolesWeHaveKeysFor",
-        "github.com/docker/cli/e2e/image::TestPushWithContentTrustSignsForRolesWithKeysAndValidPaths",
-        "github.com/docker/cli/e2e/image::TestTrustedBuild",
-        "github.com/docker/cli/e2e/image::TestTrustedBuildUntrustedImage",
-        "github.com/docker/cli/e2e/plugin::TestInstallWithContentTrustUntrusted",
-    ) if (version->parse(numeric_version($version)) < version->parse("29.0.0"));
-    push @xfails, (
         # These tests fail on SLES 15-SP7 due to SUSE patch
         "github.com/docker/cli/e2e/image::TestBuildFromContextDirectoryWithTag",
     ) if (is_sle("<16"));
