@@ -45,7 +45,7 @@ sub run {
     else {
         my @tests = qw(TEST-01-BASIC TEST-02-SYSTEMD TEST-04-FULL-SYSTEMD TEST-10-RAID TEST-11-LVM TEST-17-LVM-THIN);
         push(@tests, qw(TEST-63-DRACUT-CPIO TEST-98-GETARG)) if ($version > 49);
-        push(@tests, qw(TEST-15-BTRFSRAID)) if is_sle('15-sp5+');
+        push(@tests, qw(TEST-15-BTRFSRAID)) if (is_sle('15-sp5+') && is_sle('<16.0'));
         foreach (@tests) {
             assert_script_run("cd -- \$(find /usr/src/packages/BUILD/ -type d -name $_) && ll");
             record_info("$_", "$_");
