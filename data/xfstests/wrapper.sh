@@ -166,10 +166,10 @@ if [[ $? -ne 0 ]]; then
     sed -i -e "s/::1.*/& $(hostname)/g" /etc/hosts
 fi
 
-# Load xfstests settings from ~/.xfstests
-if [[ -f "$HOME/.xfstests" ]]; then
+# Load xfstests settings from local.config
+if [[ -f "$XFSTESTS_DIR/local.config" ]]; then
     unset_vars
-    source "$HOME/.xfstests"
+    source "$XFSTESTS_DIR/local.config"
 fi
 
 smart_clean "$1"
@@ -190,7 +190,4 @@ parse_result "$1" "$output"
 ret=$?
 
 popd &> /dev/null
-if [[ -f "$HOME/.xfstests" ]]; then
-    unset_vars
-fi
 exit $ret

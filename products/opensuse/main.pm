@@ -330,7 +330,6 @@ elsif (get_var('XFSTESTS')) {
     else {
         loadtest 'xfstests/partition';
         loadtest 'xfstests/run';
-        loadtest 'xfstests/generate_report';
     }
 }
 else {

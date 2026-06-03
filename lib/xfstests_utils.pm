@@ -116,7 +116,7 @@ Start heartbeat, setup environment variables (Call it everytime SUT reboots)
 =cut
 
 sub heartbeat_start {
-    enter_cmd(". ~/.xfstests; nohup sh $HB_SCRIPT &");
+    enter_cmd(". $INST_DIR/local.config; nohup sh $HB_SCRIPT &");
 }
 
 =head2 heartbeat_stop
@@ -450,8 +450,11 @@ Log: Copy junk.fsxops for fails fsx tests included in subtests
 
 sub copy_fsxops {
     my ($category, $num) = @_;
-    my $cmd = "if [ -e $TEST_FOLDER/junk.fsxops ]; then cp $TEST_FOLDER/junk.fsxops $LOG_DIR/$category/$num.junk.fsxops; fi";
-    script_run($cmd);
+    script_run(". $INST_DIR/local.config && mount \$TEST_DEV $TEST_FOLDER 2>/dev/null");
+    if (script_run("test -f $TEST_FOLDER/junk.fsxops") == 0) {
+        my $fsxops = script_output("cat $TEST_FOLDER/junk.fsxops 2>/dev/null", 30, proceed_on_failure => 1);
+        record_info('fsxops', $fsxops) if $fsxops;
+    }
 }
 
 =head2 raw_dump
@@ -491,7 +494,14 @@ END_CMD
         $cmd = "find /sys/fs/$fstype/*/allocation/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat";
     }
     elsif ($fstype eq 'ext4') {
-        $cmd = "find /sys/fs/$fstype/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat";
+        $cmd = <<END_CMD;
+find /sys/fs/$fstype/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat
+. $INST_DIR/local.config
+echo "==> dumpe2fs SCRATCH_DEV (\$SCRATCH_DEV) <==" >> $LOG_DIR/$category/$num.fs_stat
+dumpe2fs -h \$SCRATCH_DEV >> $LOG_DIR/$category/$num.fs_stat 2>&1
+echo "==> dumpe2fs TEST_DEV (\$TEST_DEV) <==" >> $LOG_DIR/$category/$num.fs_stat
+dumpe2fs -h \$TEST_DEV >> $LOG_DIR/$category/$num.fs_stat 2>&1
+END_CMD
     }
     elsif ($fstype eq 'nfs') {
         enter_cmd("$cmd");
@@ -522,6 +532,7 @@ sub copy_all_log {
         upload_logs("$LOG_DIR/$num.dump.tar");
     }
     collect_fs_status($category, $num, $fstype, $is_crash);
+    script_run("cp $INST_DIR/results/$category/$num.e2image $LOG_DIR/$category/$num.e2image 2>/dev/null");
     if ($raw_dump) { raw_dump($category, $num, $scratch_dev, $scratch_dev_pool); }
 }
 
