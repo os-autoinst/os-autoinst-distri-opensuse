@@ -547,6 +547,7 @@ sub validate_repo_properties {
     }
 
     if ($args->{URI}) {
+	diag("actual=$actual_repo_data->{URI} data=$args->{URI}");
         assert_true($actual_repo_data->{URI} =~ /$args->{URI}/,
             "Repository $args->{Name} has wrong URI, expected: '$args->{URI}', got: '$actual_repo_data->{URI}'");
     }
