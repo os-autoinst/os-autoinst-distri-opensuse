@@ -30,13 +30,13 @@ sub run {
 
     zypper_call(q{mr -e $(zypper lr | awk -F '|' '/Basesystem-Module/ {print $2}')}, exitcode => [0, 3]) if get_var('FLAVOR') =~ /TERADATA/;
     # add extra repos otherwise uefi test will fail due to old grub2
-    add_extra_customer_repositories if get_var('MACHINE') =~ /uefi/ && get_var('FLAVOR') =~ /TERADATA/;
+    add_extra_customer_repositories;
 
     # shim update will fail with old grub2 due to old signature
     if (get_var('MACHINE') =~ /uefi/ && !is_transactional) {
         zypper_call('up grub2 grub2-x86_64-efi kernel-default');
     }
-    zypper_call('rr 15-SP4-TERADATA-Updates') if get_var('MACHINE') =~ /uefi/ && get_var('FLAVOR') =~ /TERADATA/;
+
     # yast2-logs for save_y2logs is on 15-SP4 not installed with minimal base system pattern
     if (is_sle('>=15-SP4') && is_sle('<16')) {
         zypper_call('in yast2-logs');
@@ -74,13 +74,6 @@ sub run {
         # Use single patch or patch list
         $patch = $patch ? $patch : $patches;
         zypper_call("in -l -t patch ${patch}", exitcode => [0, 102, 103], log => 'zypper.log');
-
-        # https://progress.opensuse.org/issues/197900
-        if (is_sle('=12-sp3')) {
-            # latest kernel from customer repo has lower version than old kernel
-            zypper_call('rm kernel-default');
-            zypper_call('in -f --repo 12-SP3-TERADATA-Updates kernel-default');
-        }
 
         capture_state('between', 1);
 
