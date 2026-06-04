@@ -327,6 +327,7 @@ sub activate_kdump_without_yast {
 }
 
 sub activate_kdump_transactional {
+    set_kdump_config('KDUMP_SAVEDIR', get_var('KDUMP_SAVEDIR')) if get_var('KDUMP_SAVEDIR');
     if (get_var('CRASH_MEMORY')) {
         # show and get crashkernel memory
         my $crash_memory = determine_crash_memory;
