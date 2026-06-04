@@ -93,8 +93,4 @@ sub run {
     $self->reboot_and_check('0');
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;
