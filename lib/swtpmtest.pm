@@ -20,9 +20,41 @@ our @EXPORT = qw(
   start_swtpm_vm
   stop_swtpm_vm
   swtpm_verify
+  collect_swtpm_diagnostics
 );
 
 my $image_path = '/var/lib/libvirt/images';
+my $diag_dir = '/var/log/swtpm';
+# Serial log lives under libvirt's own qemu log dir so it inherits the
+# AppArmor/SELinux rules that already let qemu write there. Putting it
+# under $diag_dir trips MAC denial even with chmod 666 (poo#200561).
+my $serial_dir = '/var/log/libvirt/qemu';
+# Name of the most recently started swtpm guest. swtpm_verify() only
+# receives the swtpm version, not the vm type (uefi/legacy), so it relies
+# on start_swtpm_vm() having stored the active vm_name here.
+my $active_vm_name;
+
+# Log host-side context up front so the test details page shows the
+# pieces we always end up asking for first when a swtpm run goes red:
+# package versions, OVMF firmware presence, SELinux mode. Failok — this
+# is informational.
+sub _record_swtpm_preflight {
+    my $pkgs = script_output(
+        "rpm -q qemu swtpm libtpms0 libvirt-daemon qemu-ovmf-x86_64 || true",
+        proceed_on_failure => 1
+    );
+    record_info('swtpm pkgs', $pkgs);
+
+    my $fw = script_output(
+        "ls -la /usr/share/qemu/ovmf-x86_64* 2>&1; sha256sum /usr/share/qemu/ovmf-x86_64*-code* /usr/share/qemu/ovmf-x86_64*-vars* 2>&1 || true",
+        proceed_on_failure => 1
+    );
+    record_info('OVMF firmware', $fw);
+
+    my $sel = script_output("getenforce 2>&1; sestatus 2>&1 || true", proceed_on_failure => 1);
+    record_info('SELinux', $sel);
+}
+
 my $guestvm_cfg = {
     swtpm_1 => {
         xml_file => {uefi => 'swtpm_uefi_1_2.xml', legacy => 'swtpm_legacy_1_2.xml'},
@@ -60,9 +92,50 @@ sub start_swtpm_vm {
 "sed -i \"/<\\/devices>/i\\    <tpm model='tpm-tis'>\\n      <backend type='emulator' version='$swtpm_type'\\/>\\n    <\\/tpm>\" $guest_xml->{$swtpm_vm_type}"
     );
 
+    # Redirect the guest's serial console from a pty to a file on the host
+    # so we can post-mortem boot/network failures (poo#200561). Without
+    # this, a guest that hangs in OVMF or before bringing up virtio-net
+    # leaves no trace anywhere in the openQA artifacts.
+    my $serial_log = "$serial_dir/${vm_name}-serial.log";
+    assert_script_run("mkdir -p $diag_dir $serial_dir && :> $serial_log && chown qemu:qemu $serial_log");
+    assert_script_run(
+        "perl -i -0pe '"
+          . "s{<serial type=.pty.>.*?</serial>}{<serial type=\"file\"><source path=\"$serial_log\" append=\"on\"/><target type=\"isa-serial\" port=\"0\"><model name=\"isa-serial\"/></target></serial>}s;"
+          . "s{<console type=.pty.>.*?</console>}{<console type=\"file\"><source path=\"$serial_log\" append=\"on\"/><target type=\"serial\" port=\"0\"/></console>}s"
+          . "' $guest_xml->{$swtpm_vm_type}"
+    );
+
+    # The XML pins the strict MS-keyed OVMF (ovmf-x86_64-ms-4m-code.bin),
+    # whose enrolled db trusts only SUSE production-signed kernels.
+    # Engineering kernels (e.g. 6.12.0-999999_stage.1-default from
+    # Online-Updates-Staging) are signed with the SUSE engineering cert
+    # and get rejected by shim ("bad shim signature") -> guest never
+    # boots, sshd never comes up, the SSH probe in swtpm_verify gives up.
+    # The SUT and the nested-guest qcow2 are built from the same staging
+    # snapshot, so the SUT's own kernel is a reliable proxy for what's
+    # inside the nested disk. On engineering kernels, swap the loader to
+    # the plain UEFI variant: no enrolled keys, no SB enforcement, shim
+    # becomes transparent. swtpm/TPM PCR measurements still happen, so
+    # the test's assertions are unaffected. Production-kernel runs keep
+    # the original strict loader, so the SB path stays exercised there.
+    if ($swtpm_vm_type eq 'uefi' && !is_aarch64) {
+        my $kver = script_output('uname -r');
+        my $plain = '/usr/share/qemu/ovmf-x86_64-4m-code.bin';
+        if ($kver =~ /(_stage\.\d+|999999)/ && script_run("test -f $plain") == 0) {
+            assert_script_run(
+                "sed -i 's|ovmf-x86_64-ms-4m-code\\.bin|ovmf-x86_64-4m-code.bin|' "
+                  . $guest_xml->{$swtpm_vm_type}
+            );
+            record_info('OVMF', "engineering kernel ($kver) -> swapped nested loader to $plain (SB off)");
+        }
+    }
+
+    _record_swtpm_preflight();
+
     # Define the guest vm and start it
     assert_script_run("virsh define $guest_xml->{$swtpm_vm_type}");
     assert_script_run("virsh start $vm_name");
+    $active_vm_name = $vm_name;
 }
 
 # Function "stop_swtpm_vm" stops/destroys a running vm
@@ -79,6 +152,60 @@ sub stop_swtpm_vm {
     assert_script_run("$undef_vm_cmd");
 }
 
+# Function "collect_swtpm_diagnostics" snapshots everything we need to
+# diagnose a nested-guest boot or networking hang and uploads it as openQA
+# artifacts. Safe to call on success or failure; every step is failok so
+# collection itself never masks the real failure.
+sub collect_swtpm_diagnostics {
+    my ($vm_name) = @_;
+    return unless $vm_name;
+
+    my $bundle = "$diag_dir/${vm_name}-diag";
+    script_run("mkdir -p $bundle");
+
+    # Guest serial console (only present if start_swtpm_vm rewired the XML).
+    # This is the primary signal: full boot trace from OVMF → kernel → systemd.
+    script_run("cp -a $serial_dir/${vm_name}-serial.log $bundle/ 2>/dev/null");
+
+    # Libvirt's own per-domain log: qemu stderr/stdout, chardev errors,
+    # OVMF/firmware messages, swtpm chardev wiring.
+    script_run("cp -a /var/log/libvirt/qemu/${vm_name}.log $bundle/ 2>/dev/null");
+    script_run("cp -a /var/log/libvirt/swtpm/libvirt/qemu/${vm_name}-swtpm.log $bundle/ 2>/dev/null");
+
+    # Single point-of-failure screenshot — useful when the hang is in a
+    # graphical-only stage (OVMF setup screen, GRUB menu) the serial log
+    # can't see.
+    script_run("virsh screenshot $vm_name $bundle/screenshot.ppm 2>&1");
+
+    # Live device + cpu state from qemu's monitor. info tpm is the key
+    # one for ruling in/out a swtpm hand-off problem.
+    for my $hmp (
+        'info status', 'info registers', 'info pci',
+        'info network', 'info tpm', 'info qtree',
+        'info chardev', 'info usernet'
+      )
+    {
+        (my $slug = $hmp) =~ s/\s+/-/g;
+        script_run("virsh qemu-monitor-command $vm_name --hmp '$hmp' > $bundle/qmp-$slug.txt 2>&1");
+    }
+
+    # Materialised state at the moment of failure.
+    script_run("virsh dumpxml $vm_name > $bundle/dumpxml.txt 2>&1");
+    script_run("virsh domstate --reason $vm_name > $bundle/domstate.txt 2>&1");
+    script_run("virsh domiflist $vm_name > $bundle/domiflist.txt 2>&1");
+    script_run("virsh net-dhcp-leases default > $bundle/net-dhcp-leases.txt 2>&1");
+    script_run("virsh net-dumpxml default > $bundle/net-default.xml 2>&1");
+    script_run("(ip -d link show; ip addr; ip route; bridge fdb show; bridge link show) > $bundle/host-net.txt 2>&1");
+    script_run("ls -laZ /run/libvirt/qemu/swtpm/ > $bundle/swtpm-sockets.txt 2>&1");
+    script_run("ss -lx | grep -i swtpm > $bundle/swtpm-listen.txt 2>&1");
+    script_run("ps -ef | grep -E 'qemu|swtpm' | grep -v grep > $bundle/processes.txt 2>&1");
+    script_run("ausearch -m AVC -ts recent 2>&1 | tail -n 200 > $bundle/audit-avc.txt 2>&1");
+    script_run("journalctl -b --no-pager | tail -n 500 > $bundle/journal-tail.txt 2>&1");
+
+    script_run("tar -C $diag_dir -czf /tmp/${vm_name}-diag.tar.gz ${vm_name}-diag");
+    upload_logs("/tmp/${vm_name}-diag.tar.gz", failok => 1);
+}
+
 # Function "swtpm_verify" logs into the VM to run commands for checking
 # tpm parameters along with required information
 sub swtpm_verify {
@@ -86,9 +213,15 @@ sub swtpm_verify {
     die "invalid swtpm parameter $para" unless ($guestvm_cfg->{$para});
     record_info("Current SWTPM device version is: ", "$para");
 
-    # Check the vm guest is up via listening to the port 22
+    # Check the vm guest is up via listening to the port 22. Pass die => 0
+    # so we get the return code instead of an exception, collect diagnostics
+    # on failure, then die ourselves — guarantees artifacts upload before
+    # always_rollback wipes the host state.
     assert_script_run("wget --quiet " . data_url("swtpm/ssh_port_chk_script") . " -P $image_path");
-    script_retry("bash $image_path/ssh_port_chk_script", retry => 20, fail_message => 'Could not SSH into the nested VM.');
+    my $rc = script_retry("bash $image_path/ssh_port_chk_script", retry => 20, die => 0);
+    record_info('swtpm diag', 'Collecting nested-guest diagnostics in case of failing');
+    collect_swtpm_diagnostics($active_vm_name);
+    die 'Could not SSH into the nested VM.' unless $rc == 0;
 
     # Generate an SSH key and copy it into the VM
     my $leases = script_output('virsh net-dhcp-leases default');
