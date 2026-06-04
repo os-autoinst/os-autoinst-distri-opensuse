@@ -52,6 +52,9 @@ sub run {
     $instance->enable_kdump() if (get_var('PUBLIC_CLOUD_ENABLE_KDUMP'));
 
     $provider->initialize_logging($instance);
+    # Add additional authorized_keys for human users
+    # It's probably wise to add PUBLIC_CLOUD_NO_TEARDOWN=1 and PUBLIC_CLOUD_PCW_IGNORE=1
+    add_additional_authorized_keys($instance);
 
     # ssh-tunnel settings
     prepare_ssh_tunnel($instance) if (is_tunneled());

@@ -54,6 +54,7 @@ our @EXPORT = qw(
   get_ssh_private_key_path
   permit_root_login
   prepare_ssh_tunnel
+  add_additional_authorized_keys
   allow_openqa_port_selinux
   ssh_update_transactional_system
   create_script_file
@@ -421,6 +422,16 @@ sub prepare_ssh_tunnel {
     # Create log file for ssh tunnel
     my $ssh_sut = '/var/tmp/ssh_sut.log';
     assert_script_run "touch $ssh_sut; chmod 777 $ssh_sut";
+}
+
+
+sub add_additional_authorized_keys {
+    my ($instance) = @_;
+    # Encode your public key with: PUBLIC_CLOUD_AUTHORIZED_KEYS=$(cat ~/.ssh/id_ed25519.pub | base64)
+    my $encoded_keys = get_var('PUBLIC_CLOUD_AUTHORIZED_KEYS');
+    return unless $encoded_keys;
+
+    $instance->ssh_script_run(cmd => qq(echo "$encoded_keys" | base64 -d | tee -a ~/.ssh/authorized_keys));
 }
 
 
