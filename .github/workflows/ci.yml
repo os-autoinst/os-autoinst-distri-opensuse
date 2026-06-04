@@ -43,10 +43,6 @@ jobs:
         echo " requires 'Perl::Tidy', '== 20250616.0.0';" >> cpanfile
         . "$HOME/.cargo/env"
         make prepare
-        # Temporarily downgrade because of backwards incompatible changes in
-        # 0.181.0 - 0.183.0
-        # https://github.com/geofffranks/test-mockmodule/issues/81
-        cpanm -n Test::MockModule@0.180.0
     - name: Run ${{ matrix.test }} tests
       env:
         TESTS: ${{ matrix.test }}
