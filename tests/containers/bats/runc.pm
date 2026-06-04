@@ -77,11 +77,6 @@ sub run {
     record_info("helpers", $helpers);
     run_command "make $helpers || true";
 
-    unless (get_var("RUN_TESTS")) {
-        # Skip this test due to https://bugzilla.suse.com/show_bug.cgi?id=1247567
-        run_command "rm -f tests/integration/seccomp.bats" if is_s390x;
-    }
-
     my $errors = 0;
     $errors += run_tests(rootless => 1) unless check_var('BATS_IGNORE_USER', 'all');
 
