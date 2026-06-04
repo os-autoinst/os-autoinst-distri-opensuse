@@ -154,6 +154,11 @@ sub install_docker_when_needed {
             assert_script_run q(sed -i '/DOCKER_OPTS/s/"$/ --selinux-enabled"/' /etc/sysconfig/docker);
             systemctl('restart docker');
         }
+        if (is_sle_micro("=5.3")) {
+            # Workaround for https://bugzilla.suse.com/show_bug.cgi?id=1267433
+            assert_script_run q(sed -i '/^DOCKER_OPTS/s/"$/ -s overlay2"/' /etc/sysconfig/docker);
+            systemctl('restart docker');
+        }
     }
     record_info('docker', script_output('docker info'));
     my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
