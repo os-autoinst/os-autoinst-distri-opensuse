@@ -10,7 +10,8 @@ local storage_lib = import 'lib/storage.libsonnet';
 local security_lib = import 'lib/security.libsonnet';
 local answers_lib = import 'lib/answers.libsonnet';
 
-function(bootloader=true,
+function(access_ssh_enabled=false,
+         bootloader=true,
          bootloader_timeout=false,
          bootloader_extra_kernel_params='',
          dasd=false,
@@ -45,6 +46,7 @@ function(bootloader=true,
           [if files == true then 'files']: base_lib['files'],
           [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
           [if localization == true then 'localization']: base_lib['localization'],
+          [if access_ssh_enabled then 'access']: base_lib['access'],
           [if patterns != '' || packages != '' || extra_repositories ||
             patterns_to_add != '' || patterns_to_remove != '' ||
             software_only_required then 'software']: std.prune({
