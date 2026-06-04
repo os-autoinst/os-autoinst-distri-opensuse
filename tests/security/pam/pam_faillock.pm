@@ -97,8 +97,4 @@ EOF
     assert_script_run("userdel -r -f $user_name");
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;

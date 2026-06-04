@@ -63,10 +63,6 @@ sub run {
     }
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 sub post_fail_hook {
     assert_script_run 'cp -pr /mnt/pam.d /etc';
 }

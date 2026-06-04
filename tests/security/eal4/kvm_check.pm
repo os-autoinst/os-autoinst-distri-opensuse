@@ -41,8 +41,4 @@ sub run {
     validate_script_output 'virsh net-list --all | grep default', qr/default\s+active\s+no\s+yes/;
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;
