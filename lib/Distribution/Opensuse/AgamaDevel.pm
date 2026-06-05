@@ -46,7 +46,7 @@ sub get_grub_entry_edition {
       : Yam::Agama::Pom::GrubEntryEditionPage->new();
 }
 
-sub get_agama_up_an_running {
+sub get_agama_up_and_running {
     return is_ppc64le() ? Yam::Agama::Pom::AgamaUpAndRunningPage->new({
             timeout_expect_is_shown => 400})
       : Yam::Agama::Pom::AgamaUpAndRunningPage->new();
