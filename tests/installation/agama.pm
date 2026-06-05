@@ -128,7 +128,7 @@ sub select_product {
     $product_to_install = "agama-product-leap16" if is_leap;
     $product_to_install = "agama-product-microos" if is_microos;
 
-    if (is_leap('>=16.0')) {
+    if (is_leap('=16.0')) {
         send_key_until_needlematch($product_to_install, 'down');
         assert_and_click($product_to_install);
     } else {    # Default to TW
@@ -160,7 +160,7 @@ sub software_select_patterns {
     # Go to the very top in case (ctrl+up) that you need to look for further patterns
 
     # Prior to Agama 20, the desktop selection used to be handled with the rest of the patterns
-    if (is_leap) {
+    if (is_leap('=16.0')) {
         select_desktop_pattern;
         # Go back to the top in case that any further patterns need to be installed
         # and we have to scroll through the list again.
@@ -168,7 +168,9 @@ sub software_select_patterns {
     }
 
     # Futher manually selected patterns should go here
-
+    # Click somewhere in the screen to focus the view, so we can scroll down
+    mouse_set(850, 630);
+    mouse_click;
     send_key "ctrl-down";
 
     assert_and_click('agama-software-selection-close');
@@ -213,7 +215,7 @@ sub run {
     back_to_overview;
 
     # Agama 20+ has a new desktop selection screen
-    if (!is_leap && !check_var('DESKTOP', "textmode")) {
+    if (!is_leap('=16.0') && !check_var('DESKTOP', "textmode")) {
         software_select_desktop;
         back_to_overview;
     }
