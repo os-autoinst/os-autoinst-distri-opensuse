@@ -12,9 +12,9 @@ use Mojo::Base 'publiccloud::basetest';
 use registration;
 use testapi;
 use utils qw(ssh_fully_patch_system);
-use publiccloud::utils qw(ssh_update_transactional_system is_cloudinit_supported permit_root_login);
+use publiccloud::utils;
 use publiccloud::ssh_interactive qw(select_host_console);
-use version_utils qw(is_sle_micro is_sle is_azure is_ondemand);
+use version_utils qw(is_sle_micro is_sle);
 
 sub run {
     my ($self, $args) = @_;
