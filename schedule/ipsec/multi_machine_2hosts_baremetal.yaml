@@ -1,0 +1,33 @@
+---
+name: IPSec 2 Hosts Baremetal
+description: >
+    Multimachine 2-hosts setup for ipsec on baremetal servers
+vars:
+  INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+  DESKTOP: textmode
+  IPSEC_NODES: 2
+
+test_data:
+  <<: !include test_data/kernel/multimachine/ipsec_2hosts.yaml
+
+conditional_schedule:
+  ipsec_barriers:
+    ROLE:
+      left:
+        - ipsec/barrier_init_2hosts
+  ipsec_cleanup:
+    ROLE:
+      left:
+        - ipsec/barrier_destroy_2hosts
+
+schedule:
+  - installation/ipxe_install
+  - installation/agama_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - '{{ipsec_barriers}}'
+  - console/hostname
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - ipsec/ipsec2hosts
+  - '{{ipsec_cleanup}}'

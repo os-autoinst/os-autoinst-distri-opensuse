@@ -1,0 +1,26 @@
+multimachine_topology:
+  name: ipsec_2hosts
+
+  networks:
+    - id: data
+      ipv4_cidr: "10.168.192.0/22"
+      ipv6_cidr: "2a07:de40:a102:5::/64"
+
+  nodes:
+    - id: sonic-1
+      role: left
+      hostname: sonic-1
+      interfaces:
+        - id: eth0
+          network: data
+          ipv4: "10.168.192.67"
+          ipv6: "2a07:de40:a102:5:ae1f:6bff:fe44:0110"
+
+    - id: tails-1
+      role: right
+      hostname: tails-1
+      interfaces:
+        - id: eth0
+          network: data
+          ipv4: "10.168.192.68"
+          ipv6: "2a07:de40:a102:5:ae1f:6bff:fe44:038c"
