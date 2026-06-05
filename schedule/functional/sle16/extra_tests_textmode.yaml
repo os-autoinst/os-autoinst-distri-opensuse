@@ -96,9 +96,6 @@ schedule:
     - console/firewalld
     - console/nftables
     - console/aaa_base
-    - console/vmstat
-    - console/libjpeg_turbo
-    - console/libgit2
     - network/cifs
     - '{{wpa_supplicant}}'
     - console/osinfo_db
