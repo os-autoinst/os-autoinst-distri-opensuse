@@ -3,23 +3,7 @@
 # Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: NFS server
-#    This module provisions the NFS server and then runs some basic sanity tests
-#    NFS server - provisioned on SUSE/openSUSE - provides specific exports:
-#      - NFS v3 with sync and async flags
-#      - NFS v4 with sync and async flags
-#    NFS client (tests/kernel/nfs_client.pm) creates a file using dd tool and then copies
-#    that file to all exports mounted on the client side.
-#    Data integrity of the file is checked with the md5 checksum
-#
-#    Extension to the NFS tests uses dd tool for copying created file using various flags,
-#    specifically:
-#      - direct
-#      - dsync
-#      - sync
-#    An earlier created file is copied with each flag to each mounted export and then md5 checksum is
-#    used again to check data integridty for each file copied with dd tool with all each flag
-
+# Summary: Provision NFS server, export NFSv3/NFSv4 shares and verify data integrity.
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
@@ -195,3 +179,72 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+Provisions the NFS server node of the coordinated multi-machine NFS test.
+This module is designed to execute in lockstep with L<tests/kernel/nfs_client.pm>,
+synchronised at runtime via shared barriers.
+
+Verifies data integrity on all exports after the client has finished writing.
+
+Installs C<nfs-kernel-server> and creates up to four exports under
+C</var/lib/nfs-tests/>, conditional on kernel NFS support detected via
+C</proc/config.gz>: NFSv3 sync, NFSv3 async, NFSv4 sync, and NFSv4 async.
+
+After the client has written a test file and dd-copies using C<direct>,
+C<dsync>, and C<sync> flags, the server verifies data integrity for every
+file using md5 checksums.
+
+=head1 Configuration
+
+=head2 CLIENT_NODE
+
+Hostname or IP of the NFS client used in the export access list.
+Defaults to C<client-node00>.
+
+=head2 NFS_MOUNT_NFS3
+
+Server-side path for the NFSv3 synchronous export.
+Defaults to C</var/lib/nfs-tests/shared_nfs3>.
+
+=head2 NFS_MOUNT_NFS3_ASYNC
+
+Server-side path for the NFSv3 asynchronous export.
+Defaults to C</var/lib/nfs-tests/shared_nfs3_async>.
+
+=head2 NFS_MOUNT_NFS4
+
+Server-side path for the NFSv4 synchronous export.
+Defaults to C</var/lib/nfs-tests/shared_nfs4>.
+
+=head2 NFS_MOUNT_NFS4_ASYNC
+
+Server-side path for the NFSv4 asynchronous export.
+Defaults to C</var/lib/nfs-tests/shared_nfs4_async>.
+
+=head2 NFS_PERMISSIONS
+
+Export options applied to synchronous exports.
+Defaults to C<rw,sync,no_root_squash>.
+
+=head2 NFS_PERMISSIONS_ASYNC
+
+Export options applied to asynchronous exports.
+Defaults to C<rw,async,no_root_squash>.
+
+=head1 Barriers
+
+=head2 NFS_SERVER_ENABLED
+
+Signals that the NFS server is up and all exports are active.
+
+=head2 NFS_CLIENT_ENABLED
+
+Waits for the client to finish mounting all exports; test data is written after this point.
+
+=head2 NFS_SERVER_CHECK
+
+Both nodes meet here after all checksum verifications are complete.
+
+=cut
