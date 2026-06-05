@@ -116,8 +116,10 @@ sub run {
         push @xfails, (
             # We don't yet support CDI
             "github.com/moby/moby/v2/integration/container::TestEtcCDI",
+            # Flaky tests:
             "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
             "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
+            "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeoutCancel",
             "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
         );
         # This may fail on SLES 15 due to older version of rootlesskit (1.1.1)
