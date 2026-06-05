@@ -1,0 +1,11 @@
+name:         sle16_install_vmware_keyboard_mouse
+description:  >
+    Maintainer: nan.zhang@suse.com, qe-virt@suse.de
+    Vmware guest installation with keyboard and mouse tests
+schedule:
+    - installation/bootloader_svirt
+    - yam/agama/boot_agama
+    - virt_autotest/check_keyboard_mouse
+    - yam/agama/patch_agama_tests
+    - yam/agama/agama
+    - installation/first_boot
