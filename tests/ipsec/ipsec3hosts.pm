@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023-2026 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Multimachine IPsec test verifying connectivity, routing,
@@ -27,6 +27,41 @@ use Kernel::net_tests qw(
   validate_tcpdump
   capture_tcpdump
 );
+use Kernel::multimachine_topology qw(
+  get_node_by_role
+  get_network_by_id
+  get_interface
+  require_field
+);
+
+#TODO: likely this should be then put in a separate module but this makes more sense once
+# the tests themselves are handled better that now.
+sub get_ipsec_3hosts_setup {
+    my $left = get_node_by_role('left');
+    my $middle = get_node_by_role('middle');
+    my $right = get_node_by_role('right');
+
+    my $left_if = get_interface($left, 0);
+    my $right_if = get_interface($right, 0);
+    my $middle_if_01 = get_interface($middle, 0);
+    my $middle_if_02 = get_interface($middle, 1);
+
+    my $left_net = get_network_by_id($left_if->{network});
+    my $right_net = get_network_by_id($right_if->{network});
+    my $middle_net_01 = get_network_by_id($middle_if_01->{network});
+    my $middle_net_02 = get_network_by_id($middle_if_02->{network});
+
+    return {
+        left_ip => require_field($left_if->{ipv6}, 'left IPv6 missing from multimachine_topology'),
+        right_ip => require_field($right_if->{ipv6}, 'right IPv6 missing from multimachine_topology'),
+        left_net => require_field($left_net->{ipv6_cidr}, 'left network IPv6 CIDR missing from multimachine_topology'),
+        right_net => require_field($right_net->{ipv6_cidr}, 'right network IPv6 CIDR missing from multimachine_topology'),
+        middle_ip_01 => require_field($middle_if_01->{ipv6}, 'middle interface 0 IPv6 missing from multimachine_topology'),
+        middle_ip_02 => require_field($middle_if_02->{ipv6}, 'middle interface 1 IPv6 missing from multimachine_topology'),
+        middle_net_01 => require_field($middle_net_01->{ipv6_cidr}, 'middle network 0 IPv6 CIDR missing from multimachine_topology'),
+        middle_net_02 => require_field($middle_net_02->{ipv6_cidr}, 'middle network 1 IPv6 CIDR missing from multimachine_topology'),
+    };
+}
 
 sub run_left {
     my ($self, $setup) = @_;
@@ -290,21 +325,12 @@ sub run_right {
 sub run {
     my ($self) = @_;
 
-    my $role = get_var('IPSEC_SETUP');
+    my $role = get_required_var('ROLE');
     select_serial_terminal;
 
-    my $setup = {
-        left_ip => "2001:1:1:1::2",
-        right_ip => "2002:1:1:1::2",
-        left_net => "2001:1:1:1::/64",
-        right_net => "2002:1:1:1::/64",
-        middle_ip_01 => "2001:1:1:1::1",
-        middle_ip_02 => "2002:1:1:1::1",
-        middle_net_01 => "2001:1:1:1::/64",
-        middle_net_02 => "2002:1:1:1::/64",
-    };
+    my $setup = get_ipsec_3hosts_setup();
 
-    record_info('IPSEC_SETUP', $role);
+    record_info('ROLE', $role);
 
     record_info('nmcli connect status', script_output('nmcli c'));
     record_info('nmcli device status', script_output('nmcli device s'));
@@ -312,8 +338,9 @@ sub run {
     record_info('INTF STATUS', script_output('ip -s link show', proceed_on_failure => 1));
 
     if ($role eq 'left') { $self->run_left($setup); }
-    if ($role eq 'middle') { $self->run_middle($setup); }
-    if ($role eq 'right') { $self->run_right($setup); }
+    elsif ($role eq 'middle') { $self->run_middle($setup); }
+    elsif ($role eq 'right') { $self->run_right($setup); }
+    else { die "Unknown ROLE '$role': expected 'left', 'middle', or 'right'"; }
 }
 
 sub pre_run_hook {

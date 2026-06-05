@@ -1,0 +1,51 @@
+multimachine_topology:
+  name: ipsec_3hosts
+
+  networks:
+    - id: left_net
+      ipv4_cidr: "10.1.1.0/24"
+      ipv6_cidr: "2001:1:1:1::/64"
+
+    - id: right_net
+      ipv4_cidr: "10.1.2.0/24"
+      ipv6_cidr: "2002:1:1:1::/64"
+
+  l2tp:
+    pseudowire:
+      left: "172.16.1.1"
+      right: "172.16.1.2"
+    loopback:
+      left: "172.16.101.1"
+      right: "172.16.101.2"
+
+  nodes:
+    - id: left
+      role: left
+      hostname: left-node00
+      interfaces:
+        - id: eth0
+          network: left_net
+          ipv4: "10.1.1.1"
+          ipv6: "2001:1:1:1::2"
+
+    - id: middle
+      role: middle
+      hostname: middle-node00
+      interfaces:
+        - id: eth0
+          network: left_net
+          ipv4: "10.1.1.2"
+          ipv6: "2001:1:1:1::1"
+        - id: eth1
+          network: right_net
+          ipv4: "10.1.2.2"
+          ipv6: "2002:1:1:1::1"
+
+    - id: right
+      role: right
+      hostname: right-node00
+      interfaces:
+        - id: eth0
+          network: right_net
+          ipv4: "10.1.2.1"
+          ipv6: "2002:1:1:1::2"

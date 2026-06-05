@@ -1,10 +1,12 @@
 ---
-name: IPSec
+name: IPSec and L2TP 3 hosts VMs
 description:    >
-    Schedule multimachine setup for ipsec tests
+    Multimachine 3-hosts setup for ipsec and l2tp tests in VMs
 vars:
   DESKTOP: textmode
   BOOT_HDD_IMAGE: 1
+test_data:
+  <<: !include test_data/kernel/multimachine/ipsec_3hosts.yaml
 conditional_schedule:
   bootmenu:
     ARCH:
