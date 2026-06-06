@@ -223,5 +223,6 @@ skopeo:
   # https://github.com/containers/skopeo/pull/2834 - integration: Force amd64 on TestProxyMetadata
   2834:
     min: "1.22.0"
+    merged: "1.23.0"
 
 umoci:
