@@ -45,6 +45,8 @@ sub load_maintenance_publiccloud_tests {
         } else {
             die('Currently supported versions to migrate from are SLE12 SP5 and SLE15 SP7.');
         }
+    } elsif (get_var('PUBLIC_CLOUD_FLEXIBLE_LICENSE') && is_sle('=15-SP7') && is_gce()) {
+        loadtest 'publiccloud/flexible_license', run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest 'publiccloud/run_ltp', run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
