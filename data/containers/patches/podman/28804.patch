@@ -1,0 +1,225 @@
+From d1d0c84a56bf43f600ef6aae09619d7e2454a00e Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Wed, 27 May 2026 19:27:32 +0200
+Subject: [PATCH 1/4] test/system: bump "unlock while waiting for timeout"
+ timeout
+
+In parallel runs the timings might be a bit slower than normal. Increase
+the timeout here, it should not affect the test as we use a 20s stop
+timeout which is more than the ready loop which uses 5s now.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/050-stop.bats | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/test/system/050-stop.bats b/test/system/050-stop.bats
+index 032c6b293d2..bdf0b2703f4 100644
+--- a/test/system/050-stop.bats
++++ b/test/system/050-stop.bats
+@@ -187,7 +187,7 @@ load helpers
+ 
+     # Wait for container to acknowledge the signal. We can't use wait_for_output
+     # because that aborts if .State.Running != true
+-    local timeout=5
++    local timeout=10
+     while [[ $timeout -gt 0 ]]; do
+         run_podman logs $ctrname
+         if [[ "$output" =~ "Received SIGTERM, ignoring" ]]; then
+@@ -206,7 +206,7 @@ load helpers
+     # Time check: make sure we were able to run 'ps' before the container
+     # exited. If this takes too long, it means ps had to wait for lock.
+     local delta_t=$(( $SECONDS - t0 ))
+-    assert $delta_t -le 5 "Operations took too long"
++    assert $delta_t -le 7 "Operations took too long"
+ 
+     run_podman kill $ctrname
+     run_podman wait $ctrname
+
+From a2581cc82f57f31e884c47d73565aca7338c3335 Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Wed, 27 May 2026 19:33:37 +0200
+Subject: [PATCH 2/4] test/e2e: deduplicate some network subnets
+
+With a high parallel node run we have much more test cases run in
+parallel, as such I am seeing a lot of network subnet flakes as they
+were using the same one and thus failed since there can only be one
+config using it at a time.
+
+Now hard coding this here is ugly, yes. But for now I just need to get
+the flakes down in the new CI. Long term we should likely have a helper
+that hands out known unused subnets for the tests.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/e2e/container_iface_name_test.go | 12 ++++++------
+ test/e2e/run_networking_test.go       |  4 ++--
+ 2 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/test/e2e/container_iface_name_test.go b/test/e2e/container_iface_name_test.go
+index b49f9866232..86fa1f89bf6 100644
+--- a/test/e2e/container_iface_name_test.go
++++ b/test/e2e/container_iface_name_test.go
+@@ -101,7 +101,7 @@ var _ = Describe("Podman container interface name", func() {
+ 
+ 				// There is no nic created by the macvlan/ipvlan driver.
+ 				defer podmanTest.removeNetwork(netName1)
+-				nc1 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "--subnet", "10.10.0.0/24", netName1})
++				nc1 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "--subnet", "10.9.0.0/24", netName1})
+ 				nc1.WaitWithDefaultTimeout()
+ 				Expect(nc1).Should(ExitCleanly())
+ 
+@@ -115,7 +115,7 @@ var _ = Describe("Podman container interface name", func() {
+ 				Expect(exec1.OutputToString()).Should(ContainSubstring("eth0"))
+ 
+ 				defer podmanTest.removeNetwork(netName2)
+-				nc2 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "--subnet", "10.25.40.0/24", netName2})
++				nc2 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "--subnet", "10.25.41.0/24", netName2})
+ 				nc2.WaitWithDefaultTimeout()
+ 				Expect(nc2).Should(ExitCleanly())
+ 
+@@ -158,7 +158,7 @@ var _ = Describe("Podman container interface name", func() {
+ 			createNetworkDevice(nicName1)
+ 
+ 			defer podmanTest.removeNetwork(netName1)
+-			nc1 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "-o", parent1, "--subnet", "10.10.0.0/24", netName1})
++			nc1 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "-o", parent1, "--subnet", "10.9.1.0/24", netName1})
+ 			nc1.WaitWithDefaultTimeout()
+ 			Expect(nc1).Should(ExitCleanly())
+ 
+@@ -175,7 +175,7 @@ var _ = Describe("Podman container interface name", func() {
+ 			createNetworkDevice(nicName2)
+ 
+ 			defer podmanTest.removeNetwork(netName2)
+-			nc2 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "-o", parent2, "--subnet", "10.25.40.0/24", netName2})
++			nc2 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "-o", parent2, "--subnet", "10.25.42.0/24", netName2})
+ 			nc2.WaitWithDefaultTimeout()
+ 			Expect(nc2).Should(ExitCleanly())
+ 
+@@ -219,7 +219,7 @@ var _ = Describe("Podman container interface name", func() {
+ 			createNetworkDevice(nicName1)
+ 
+ 			defer podmanTest.removeNetwork(netName1)
+-			nc1 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "-o", parent1, "--subnet", "10.10.0.0/24", netName1})
++			nc1 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "-o", parent1, "--subnet", "10.9.2.0/24", netName1})
+ 			nc1.WaitWithDefaultTimeout()
+ 			Expect(nc1).Should(ExitCleanly())
+ 
+@@ -236,7 +236,7 @@ var _ = Describe("Podman container interface name", func() {
+ 			createNetworkDevice(nicName2)
+ 
+ 			defer podmanTest.removeNetwork(netName2)
+-			nc2 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "-o", parent2, "--subnet", "10.25.40.0/24", netName2})
++			nc2 := podmanTest.Podman([]string{"network", "create", "-d", driverType, "-o", parent2, "--subnet", "10.25.43.0/24", netName2})
+ 			nc2.WaitWithDefaultTimeout()
+ 			Expect(nc2).Should(ExitCleanly())
+ 
+diff --git a/test/e2e/run_networking_test.go b/test/e2e/run_networking_test.go
+index 60ed1c95f31..48bcd84ae04 100644
+--- a/test/e2e/run_networking_test.go
++++ b/test/e2e/run_networking_test.go
+@@ -935,9 +935,9 @@ EXPOSE 2004-2005/tcp`, ALPINE)
+ 
+ 	It("podman run with new:pod and static-ip", func() {
+ 		netName := stringid.GenerateRandomID()
+-		ipAddr := "10.25.40.128"
++		ipAddr := "10.25.44.128"
+ 		podname := "testpod"
+-		create := podmanTest.Podman([]string{"network", "create", "--subnet", "10.25.40.0/24", netName})
++		create := podmanTest.Podman([]string{"network", "create", "--subnet", "10.25.44.0/24", netName})
+ 		create.WaitWithDefaultTimeout()
+ 		Expect(create).Should(ExitCleanly())
+ 		defer podmanTest.removeNetwork(netName)
+
+From ea51ae73053436a858a2e894149f0db63c92b2a4 Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Thu, 28 May 2026 12:56:40 +0200
+Subject: [PATCH 3/4] test/system: use DISABLE_HC_SYSTEMD for 2 tests
+
+The problem is by default we create the systemd timers and run hc in the
+background. This means any tests who depend on exact hc timing can get
+broken by this so use the DISABLE_HC_SYSTEMD=true env which makes podman
+skip creating the systemd timers but still allows you to manually run
+the commands.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/220-healthcheck.bats | 2 ++
+ test/system/250-systemd.bats     | 4 +++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/test/system/220-healthcheck.bats b/test/system/220-healthcheck.bats
+index d5a3d23e5e9..200bad33bf4 100644
+--- a/test/system/220-healthcheck.bats
++++ b/test/system/220-healthcheck.bats
+@@ -429,6 +429,8 @@ function _check_health_log {
+     msg="hc-msg-$(random_string)"
+     hcStatus=$PODMAN_TMPDIR/hcStatus
+ 
++    # Disable systemd healthcheck in the background as they mess up the timings of the manual commands.
++    export DISABLE_HC_SYSTEMD="true"
+     run_podman run -d --name $ctr             \
+            --health-cmd "touch /tmp/abc; sleep 20; echo $msg" \
+            $IMAGE /home/podman/pause
+diff --git a/test/system/250-systemd.bats b/test/system/250-systemd.bats
+index 614185dbab7..23e3abc1fad 100644
+--- a/test/system/250-systemd.bats
++++ b/test/system/250-systemd.bats
+@@ -55,6 +55,7 @@ function mv-safely() {
+ 
+ # Helper to start a systemd service running a container
+ function service_setup() {
++    local extra_args="$1"
+     # January 2024: we can no longer do "run_podman generate systemd" followed
+     # by "echo $output >file", because generate-systemd is deprecated and now
+     # says so loudly, to stderr, with no way to silence it. Since BATS gloms
+@@ -65,6 +66,7 @@ function service_setup() {
+         run_podman generate systemd --files --name \
+                -e http_proxy -e https_proxy -e no_proxy \
+                -e HTTP_PROXY -e HTTPS_PROXY -e NO_PROXY \
++               $extra_args \
+                --new $cname
+         mv-safely "container-$cname.service" $UNIT_FILE
+     )
+@@ -359,7 +361,7 @@ LISTEN_FDNAMES=listen_fdnames" | sort)
+                $IMAGE /home/podman/pause
+ 
+     # run container in systemd unit
+-    service_setup
++    service_setup "-e DISABLE_HC_SYSTEMD=true"
+ 
+     run_podman container inspect $cname --format "{{.ID}}"
+     oldID="$output"
+
+From c4c27787764a3ba2115a4d50dd84a4ac9ab96bca Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Thu, 28 May 2026 13:01:58 +0200
+Subject: [PATCH 4/4] test/system: fix "podman kill - concurrent stop"
+
+It is possible that the background podman stop -t 1 completes before we
+get to podman kill making the kill fail as the container is not running.
+
+The result is this error in the test:
+"Error: can only kill running containers. xxx is in state exited: container state improper"
+
+We can just bump the stop timeout to have a larger time where we can
+trigger kill on a stopping container.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/130-kill.bats | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/system/130-kill.bats b/test/system/130-kill.bats
+index 5ce67abb57d..b3470bcf69b 100644
+--- a/test/system/130-kill.bats
++++ b/test/system/130-kill.bats
+@@ -124,7 +124,7 @@ load helpers
+     # 14761 - concurrent kill/stop must record the exit code
+     cname=c-$(safename)
+     run_podman run -d --replace --name=$cname $IMAGE sh -c "trap 'echo Received SIGTERM, ignoring' SIGTERM; echo READY; while :; do sleep 0.2; done"
+-    "${PODMAN_CMD[@]}" stop -t 1 $cname &
++    "${PODMAN_CMD[@]}" stop -t 5 $cname &
+     run_podman kill $cname
+     run_podman wait $cname
+     run_podman rm -f $cname
