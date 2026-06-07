@@ -50,11 +50,6 @@ sub run_tests {
                 "252-quadlet.bats::quadlet kube - start error",
             ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
         }
-        push @xfails, (
-            # These sometimes fail for user on SLES 16.0 & Tumbleweed
-            "505-networking-pasta.bats::TCP/IPv4 large transfer, tap",
-            "505-networking-pasta.bats::IPv6 default address assignment",
-        ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
     } else {
         if (!$remote) {
             push @xfails, (
