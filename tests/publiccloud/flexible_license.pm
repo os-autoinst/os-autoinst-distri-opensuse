@@ -11,6 +11,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use publiccloud::ssh_interactive "select_host_console";
 use publiccloud::utils qw(registercloudguest is_byos);
+use version_utils 'is_sle';
 
 sub run {
     my ($self, $args) = @_;
@@ -35,7 +36,7 @@ sub run {
         $new_license = 'projects/suse-byos-cloud/global/licenses/sles-15-byos';
     }
 
-    $instance->ssh_assert_script_run("sudo systemctl stop guestregister-lic-watcher.timer");
+    $instance->ssh_assert_script_run("sudo systemctl stop guestregister-lic-watcher.timer") unless (is_sle('=12-SP5'));
     $instance->ssh_assert_script_run("sudo registercloudguest --clean", timeout => 180);
 
     record_info('Repos cleared', $instance->ssh_script_output("sudo zypper lr ||:", timeout => 300));
