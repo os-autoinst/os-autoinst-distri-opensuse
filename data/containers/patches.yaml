@@ -42,13 +42,9 @@ buildx:
 compose:
   # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
   # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
-  # https://github.com/docker/compose/pull/13630 - test: use random host port for dind TLS build test
   13214:
     merged: "2.39.4"
   13564:
-  13630:
-    merged: "5.1.2"
-    min: "5.0.0"
 
 conmon:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
@@ -227,5 +223,6 @@ skopeo:
   # https://github.com/containers/skopeo/pull/2834 - integration: Force amd64 on TestProxyMetadata
   2834:
     min: "1.22.0"
+    merged: "1.23.0"
 
 umoci:
