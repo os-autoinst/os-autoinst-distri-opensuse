@@ -50,11 +50,6 @@ sub run_tests {
                 "252-quadlet.bats::quadlet kube - start error",
             ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
         }
-        push @xfails, (
-            # These sometimes fail for user on SLES 16.0 & Tumbleweed
-            "505-networking-pasta.bats::TCP/IPv4 large transfer, tap",
-            "505-networking-pasta.bats::IPv6 default address assignment",
-        ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
     } else {
         if (!$remote) {
             push @xfails, (
@@ -64,10 +59,6 @@ sub run_tests {
             ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
         }
     }
-    push @xfails, (
-        # https://bugzilla.suse.com/show_bug.cgi?id=1246607
-        "125-import.bats::podman export, alter tarball, re-import",
-    ) if (!is_x86_64 && version->parse(numeric_version($version)) >= version->parse("5.4.0"));
     push @xfails, (
         # Sporadic issue fixed in
         # https://github.com/containers/podman/commit/f172ff789b14226b51cea39f9373e7de2a35905a
