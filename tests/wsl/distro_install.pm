@@ -41,6 +41,11 @@ sub run {
         timeout => 30
     ) unless (get_var('WSL2'));
 
+    # Raise timeouts on sloooow software emulation
+    $self->run_in_powershell(
+        cmd => 'echo "[wsl2]`nvmIdleTimeout=-1`ninstanceIdleTimeout=-1`ndistributionStartTimeout=600000`nkernelBootTimeout=300000" | Out-File -Append -FilePath ~/.wslconfig -Encoding utf8'
+    ) if check_var('QEMU_NO_KVM', '1');
+
     my $WSL_version = '';
     if (is_sle('<=15-sp4')) {
         $WSL_version = "SUSE-Linux-Enterprise-Server-" . get_required_var("VERSION");
