@@ -21,7 +21,7 @@ jobs:
           - test: check-strict
             perl-version: '5.42'
     container:
-      image: perldocker/perl-tester:${{ matrix.perl-version }}
+      image: perl:${{ matrix.perl-version }}-trixie
     steps:
     - uses: actions/checkout@v6
     - name: Install dependencies
