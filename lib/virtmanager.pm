@@ -603,7 +603,7 @@ sub detect_login_screen {
     send_key 'backspace';
 
     # Escape from the guest's console
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     send_key "ctrl-alt";
     send_key "ctrl-alt";
     send_key 'esc';
@@ -629,9 +629,9 @@ sub detect_login_screen {
     send_key 'ret';
 
     # Reopen the guest window
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_file';
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_close';
     send_key 'ret';
 
@@ -673,14 +673,14 @@ sub select_guest {
 }
 
 sub close_guest {
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_file';
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_close';
 }
 
 sub powercycle {
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_shutdown';
     if (!check_screen 'virt-manager_notrunning', 120) {
         assert_and_click 'virt-manager_shutdown_menu';
