@@ -2292,14 +2292,15 @@ sub script_run_interactive {
     }
 
     # Hack: '$' doesn't match '\r\n' line endings, so use '\s' instead
-    push(@words, qr/${endmark}\d+\s/m);
+    my $exitre = qr/${endmark}\d+\s/m;
+    push(@words, $exitre);
 
     {
         do {
             $output = wait_serial(\@words, $timeout) || die "No message matched!";
 
             last if ($output =~ /${endmark}0\s/m);    # return value is 0
-            die if ($output =~ /${endmark}/m);    # other return values
+            die if ($output =~ $exitre);    # other return values
 
             for my $i (@$scan) {
                 next if ($output !~ $i->{prompt});
