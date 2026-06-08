@@ -21,13 +21,9 @@ our @EXPORT = qw(install_package install_available_packages uninstall_package);
 
 =head2 install_package
 
-    install_package('kernel-devel' [, trup_packages => 'kernel-default-base] [, zypper_packages => 'kernel-devel']);
+    install_package('kernel-devel');
 
 C<packages> defines packages to install for both zypper and trup call,
-Parameters C<trup_extra> and C<zypper_extra> define transactional
-or zypper specific packages.
-C<skip_trup> or C<skip_zypper> will return from fucntion,
-record_info is used if sentence is argument value.
 C<trup_reboot> parameter will run reboot_on_changes after trup_call,
 reboot if diff between the current FS and the new snapshot.
 C<trup_apply> parameter will apply pending changes from the new snapshot
@@ -48,9 +44,6 @@ sub install_package {
 
     if (is_transactional) {
         die "install_package: 'trup_reboot' and 'trup_apply' are mutually exclusive" if $args{trup_reboot} && $args{trup_apply};
-        record_info('install_package', $args{skip_trup}) if $args{skip_trup} =~ /\w+/;
-        return if $args{skip_trup};
-        $packages .= ' ' . $args{trup_extra} // '';
         my $cmd = 'pkg in -l ' . $packages;
         $cmd = '-c ' . $cmd if $args{trup_continue} // 0;
         $ret = trup_call($cmd, timeout => $args{timeout});
@@ -58,9 +51,6 @@ sub install_package {
         trup_apply if $args{trup_apply};
     }
     else {
-        record_info('install_package', $args{skip_zypper}) if $args{skip_zypper} =~ /\w+/;
-        return if $args{skip_zypper};
-        $packages .= ' ' . $args{zypper_extra} // '';
         $ret = zypper_call('in -l ' . $packages, timeout => $args{timeout});
     }
     return $ret;
@@ -79,31 +69,19 @@ C<trup_continue> will be enabled by default.
 sub install_available_packages {
     my ($packlist, %args) = @_;
 
-    if (is_transactional) {
-        $packlist .= ' ' . ($args{trup_extra} // '');
-    }
-    else {
-        $packlist .= ' ' . ($args{zypper_extra} // '');
-    }
-
     my $result = zypper_search("-t package --match-exact $packlist");
     my @foundpacks = map { $_->{name} } @$result;
 
     return 0 unless @foundpacks;
     $args{trup_continue} //= 1;
-    delete $args{trup_extra};
-    delete $args{zypper_extra};
     return install_package(join(' ', @foundpacks), %args);
 }
 
 =head2 uninstall_package
 
-    uninstall_package('kernel-devel' [, trup_extra => 'kernel-default-base'] [, zypper_extra => 'kernel-devel']);
+    uninstall_package('kernel-devel');
 
 C<packages> defines packages to uninstall for both zypper and trup call,
-Parameters C<trup_extra> and C<zypper_extra> define transactional
-or zypper specific packages.
-C<skip_trup> or C<skip_zypper> will return from fucntion,
 record_info is used if sentence is argument value.
 C<trup_continue> parameter will add changes to the default snapshot.
 Without this parameter, any changes in the default snapshot will be
@@ -128,9 +106,6 @@ sub uninstall_package {
 
     if (is_transactional) {
         die "uninstall_package: 'trup_reboot' and 'trup_apply' are mutually exclusive" if $args{trup_reboot} && $args{trup_apply};
-        record_info('uninstall_package', $args{skip_trup}) if $args{skip_trup} =~ /\w+/;
-        return if $args{skip_trup};
-        $packages .= ' ' . $args{trup_extra} // '';
         my $cmd = 'pkg remove ' . $packages;
         $cmd = '-c ' . $cmd if $args{trup_continue} // 0;
         $ret = trup_call($cmd, timeout => $args{timeout});
@@ -138,9 +113,6 @@ sub uninstall_package {
         trup_apply if $args{trup_apply};
     }
     else {
-        record_info('uninstall_package', $args{skip_zypper}) if $args{skip_zypper} =~ /\w+/;
-        return if $args{skip_zypper};
-        $packages .= ' ' . $args{zypper_extra} // '';
         $ret = zypper_call('rm ' . $packages, timeout => $args{timeout});
     }
     return $ret;
