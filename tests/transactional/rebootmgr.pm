@@ -56,7 +56,6 @@ sub check_strategy_instantly {
 
 #2 Test maint-window strategy
 sub check_strategy_maint_window {
-    reset_consoles;
     select_console('root-console');
     rbm_call "set-strategy maint-window";
     # Trigger reboot during maint-window
