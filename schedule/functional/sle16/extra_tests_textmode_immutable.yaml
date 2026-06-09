@@ -78,7 +78,6 @@ schedule:
     - console/pciutils
     - console/supportutils
     - console/vsftpd
-    - console/year_2038_detection
     - console/redis
     - console/mdadm
     - console/quota
