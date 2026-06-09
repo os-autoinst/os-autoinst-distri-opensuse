@@ -156,6 +156,7 @@ sub process_reboot {
     }
 
     # Switch to the previous console
+    reset_consoles;
     select_console $prev_console;
 }
 
