@@ -1,4 +1,3 @@
-# Last Modified: Thu Mar 21 15:39:34 2019
 #include <tunables/global>
 
 /usr/sbin/httpd-prefork flags=(attach_disconnected) {
@@ -16,6 +15,7 @@
   signal send set=term peer=/usr/sbin/httpd-prefork//HANDLING_UNTRUSTED_INPUT,
   signal send set=usr1 peer=/usr/sbin/httpd-prefork//HANDLING_UNTRUSTED_INPUT,
 
+  / rw,
   /etc/apache2/** r,
   /etc/mime.types r,
   /etc/php7/apache2/php.ini r,
