@@ -22,6 +22,8 @@ sub run {
     my $svirt = select_console('svirt');
     my $hyperv_intermediary = select_console('hyperv-intermediary');
     my $name = $svirt->name;
+    my $npipe = "\\\\.\\pipe\\$name";
+    $npipe = "\\\\.\\pipe\\pendolino-$name" if (check_var('HYPERV_NPTP', 'pendolino'));
 
     # Following two variables specify where the root with expected directories is located.
     # Beware that we deal with Windows so backslash ('\') is used and multiple backslashes
@@ -180,7 +182,8 @@ sub run {
         foreach my $disk_path (@disk_paths) {
             hyperv_cmd("$ps Add-VMHardDiskDrive -VMName $name -Path $disk_path");
         }
-        hyperv_cmd("$ps Set-VMComPort -VMName $name -Number 1 -Path '\\\\.\\pipe\\$name'");
+
+        hyperv_cmd("$ps Set-VMComPort -VMName $name -Number 1 -Path '$npipe'");
         ($ret, $vmguid, undef) = console('svirt')->run_cmd(qq/$ps (Get-VM -VMName $name).id.guid/, wantarray => 1);
         die "Have not find any GUID for $name" if $ret != 0;
     }
@@ -241,6 +244,17 @@ sub run {
 
     # ...we execute the command right after VMs starts.
     send_key 'ret';
+
+    # Attach serial console by running the pendolino named-pipe-to-tcp proxy
+    if (check_var('HYPERV_NPTP', 'pendolino')) {
+        my $pendolino = "C:\\pendolino.exe";    # Path to the pendolino executable, to be defined
+        my $port = get_required_var('VIRSH_INSTANCE') + 10000;
+        #my $cmd = "powershell -Command \"Start-Process $pendolino -ArgumentList '$npipe :$port' -NoNewWindow\"";
+        my $cmd = "powershell -Command \"Start-Process $pendolino -ArgumentList '$npipe :$port'\"";
+        record_info('cmd', $cmd);
+        my $ret = hyperv_cmd($cmd);
+        record_info('pendolino', $ret);
+    }
 
     # Attach to serial console (a TCP port on HYPERV_SERVER).
     $svirt->attach_to_running({stop_vm => 1});
