@@ -152,9 +152,4 @@ EOF
     assert_script_run("docker stop libssh_container");
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;
-
