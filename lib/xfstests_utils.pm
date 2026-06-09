@@ -455,6 +455,7 @@ sub copy_fsxops {
         my $fsxops = script_output("cat $TEST_FOLDER/junk.fsxops 2>/dev/null", 30, proceed_on_failure => 1);
         record_info('fsxops', $fsxops) if $fsxops;
     }
+    script_run("umount $TEST_FOLDER 2>/dev/null");
 }
 
 =head2 raw_dump
