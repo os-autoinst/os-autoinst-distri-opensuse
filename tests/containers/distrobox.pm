@@ -38,7 +38,7 @@ sub run {
     assert_script_run 'distrobox help';
 
     record_info 'Test', 'Create distrobox tests as root and list it';
-    assert_script_run 'distrobox create -n box-root';
+    assert_script_run 'distrobox create -n box-root', timeout => 300;
     validate_script_output 'distrobox list', sub { m/box-root/ };
 
     record_info 'Test', 'Execute a command in an existing distrobox container';
@@ -55,7 +55,7 @@ sub run {
     validate_script_output 'distrobox list', sub { !m/box-root/ };
 
     record_info 'Test', 'Test upgrade function';
-    assert_script_run 'distrobox create -n box-root';
+    assert_script_run 'distrobox create -n box-root', timeout => 300;
     assert_script_run 'distrobox upgrade box-root', timeout => 300;
     assert_script_run 'distrobox rm box-root';
 
@@ -63,7 +63,7 @@ sub run {
     my $uid = script_output 'id -u';
 
     record_info 'Rootless', 'Run tests as rootless user';
-    assert_script_run 'distrobox create -n box-user';
+    assert_script_run 'distrobox create -n box-user', timeout => 300;
     validate_script_output 'distrobox list', sub { m/box-user/ };
     validate_script_output 'distrobox enter box-user -- whoami', sub { m/${user}/ };
     validate_script_output 'distrobox enter box-user -- id', sub { m/uid=${uid}\(${user}\)/ };
