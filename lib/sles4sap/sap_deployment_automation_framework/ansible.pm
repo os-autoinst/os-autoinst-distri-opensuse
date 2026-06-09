@@ -229,6 +229,8 @@ If undefined, it will use standard output without adding any B<-v> flag. See fun
 
 =item * B<sut>: SAP SUT type. Default 'sid', ['sid' | 'iscsi']
 
+=item * B<retry>: Number of times to retry playbook execution. Default: 0
+
 =back
 =cut
 
@@ -240,6 +242,7 @@ sub sdaf_execute_playbook {
     $args{sap_sid} //= get_required_var('SAP_SID');
     $args{verbosity_level} //= get_var('SDAF_ANSIBLE_VERBOSITY_LEVEL');
     $args{sut} //= 'sid';
+    $args{retry} //= 0;
 
     croak 'Missing mandatory argument "playbook_filename".' unless defined($args{playbook_filename});
     croak 'Missing mandatory argument "sdaf_config_root_dir".' unless $args{sdaf_config_root_dir};
@@ -254,15 +257,28 @@ sub sdaf_execute_playbook {
         '--ssh-common-args="-o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=120"'
     );
 
-    $output_log_file = log_dir() . "/$args{playbook_filename}" =~ s/.yaml|.yml/.txt/r;
     my $playbook_file = join('/', deployment_dir(), 'sap-automation', 'deploy', 'ansible', $args{playbook_filename});
     my $playbook_cmd = join(' ', 'ansible-playbook', $playbook_options, $playbook_file);
 
     record_info('Playbook run', "Executing playbook: $playbook_file\nExecuted command:\n$playbook_cmd");
     assert_script_run("cd $args{sdaf_config_root_dir}");
-    my $rc = script_run(log_command_output(command => $playbook_cmd, log_file => $output_log_file),
-        timeout => $args{timeout}, output => "Executing playbook: $args{playbook_filename}");
-    upload_logs($output_log_file);
+    my $rc = 1;
+    my $run_no = 0;
+    my $max_runs = $args{retry} + 1;
+    until ($rc == 0 || ($run_no > $max_runs)) {
+        $run_no++;
+        diag("\nPlaybook '$args{playbook_filename}'. Attempt $run_no/$max_runs START\n");
+        # Changing log file extension to txt allows direct viewing in OpenQA WebUI
+        $output_log_file = (log_dir() . "/$args{playbook_filename}") =~ s/\.ya?ml$/_$run_no.txt/r;
+        $rc = script_run(log_command_output(command => $playbook_cmd, log_file => $output_log_file),
+            timeout => $args{timeout}, output => "Executing playbook: $args{playbook_filename}");
+
+        upload_logs($output_log_file);
+        record_soft_failure("Retry: Playbook '$args{playbook_filename}' failed with RC '$rc'. bsc#1253777")
+          if ($rc && $args{retry});
+        diag("\nPlaybook '$args{playbook_filename}'. Attempt no $run_no/$max_runs END\n");
+    }
+
     die "Execution of playbook failed with RC: $rc" if $rc;
     record_info('Playbook OK', "Playbook execution finished: $playbook_file");
     # Update the reference and mark playbook as PASSED
