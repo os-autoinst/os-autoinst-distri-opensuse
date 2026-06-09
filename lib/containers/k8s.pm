@@ -112,7 +112,6 @@ sub install_k3s {
     if (get_var('K3S_INSTALL_UPSTREAM') || (is_sle || is_leap || is_sle_micro || is_leap_micro)) {
         if (is_tumbleweed && !is_microos) {
             zypper_call('in k3s-selinux');
-            record_soft_failure("gh#k3s-io/k3s#10876 - Support selinux on Tumbleweed");
         }
         my $curl_opts = "-sfL --retry 3 --retry-delay 60 --retry-max-time 180";
         assert_script_run("curl $curl_opts https://get.k3s.io -o install_k3s.sh");
