@@ -242,6 +242,14 @@ sub run {
     # ...we execute the command right after VMs starts.
     send_key 'ret';
 
+    # Attach serial console by running the pendolino named-pipe-to-tcp proxy
+    if (check_ver('HYPERV_NPTP', 'pendolino')) {
+        my $pendolino = "./pendolino.exe";    # Path to the pendolino executable, to be defined
+        my $npipe = "\\\\.\\pipe\\$name";
+        my $port = get_required_var('VIRSH_INSTANCE') + 1000;
+        hyperv_cmd("Start-Process $pendolino -ArgumentList \"$npipe :$port\" -NoNewWindow");
+    }
+
     # Attach to serial console (a TCP port on HYPERV_SERVER).
     $svirt->attach_to_running({stop_vm => 1});
     # Get the VM's display.
