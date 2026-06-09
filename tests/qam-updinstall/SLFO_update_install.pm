@@ -29,6 +29,7 @@ use qam;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures qw(is_s390x is_aarch64);
+use version_utils qw(is_sle);
 
 my @conflicting_packages = (
     'coreutils-single',
@@ -88,6 +89,9 @@ sub run {
 
     select_serial_terminal;
 
+    # On sle16.0, no kernel livepatches on aarch64
+    # https://progress.opensuse.org/issues/201861
+    return record_info('Skip "kernel-livepatch-SLE16" on aarch64') if (get_var('BUILD') =~ /kernel-livepatch-SLE16/ && is_aarch64 && is_sle('=16.0'));
     # Patch the SUT to a released state and reboot if reboot is needed;
     reboot_and_login if fully_patch_system == 102;
 
