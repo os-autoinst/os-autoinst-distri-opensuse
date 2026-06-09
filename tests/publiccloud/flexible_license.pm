@@ -46,6 +46,11 @@ sub run {
     $provider->start_instance($instance);
     $instance->wait_for_ssh(scan_ssh_host_key => 1);
 
+    my $disk_licenses = script_output("gcloud compute disks describe $instance_id --zone $zone --format='get(licenses)'", timeout => 120);
+    die("Expected new license '$new_license' not found on disk after switch") unless ($disk_licenses =~ /\Q$new_license\E/);
+    die("Old license '$old_license' still present on disk after switch") if ($disk_licenses =~ /\Q$old_license\E/);
+    record_info('License OK', "Disk license verified: $disk_licenses");
+
     if (is_byos()) {
         set_var('FLAVOR', 'GCE-Updates');
     } else {
@@ -55,6 +60,13 @@ sub run {
     registercloudguest($instance);
     record_info('SUSEConnect', $instance->ssh_script_output("sudo SUSEConnect --status-text", timeout => 300));
     record_info('Repos', $instance->ssh_script_output("sudo zypper lr", timeout => 300));
+
+    if ($instance->ssh_script_run("sudo which instance-flavor-check") == 0) {
+        my $expected_flavor = is_byos() ? 'BYOS' : 'PAYG';
+        my $flavor = $instance->ssh_script_output("sudo instance-flavor-check || true", timeout => 120);
+        die("instance-flavor-check returned '$flavor', expected '$expected_flavor'") unless ($flavor =~ /^$expected_flavor$/m);
+        record_info('Flavor OK', "instance-flavor-check confirmed: $expected_flavor");
+    }
 }
 
 1;
