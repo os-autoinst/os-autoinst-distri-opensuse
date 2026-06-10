@@ -2643,6 +2643,7 @@ connection is more convenient for automation purpose, but password will still be
 used if passwordless ssh connection fails. Guest installation will be marked as
 'FAILED' if there is no way to establish ssh connection to Agama installer shell
 using publibc key, because Agama installe shell does support full ssh capability.
+
 =cut
 
 sub setup_guest_agama_installation_shell {
@@ -2658,10 +2659,11 @@ sub setup_guest_agama_installation_shell {
     }
     else {
         enter_cmd("clear", wait_still_screen => 3);
-        if (script_run("timeout --kill-after=1 --signal=9 60 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}") != 0) {
+        if (script_run("timeout --kill-after=1 --signal=9 120 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=12 $_ssh_command_options root\@$self->{guest_ipaddr}", timeout => 150) != 0) {
             type_string("reset\n");
             wait_still_screen;
-            enter_cmd("timeout --kill-after=1 --signal=9 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
+
+            enter_cmd("timeout --kill-after=1 --signal=9 180 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=18 $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
             assert_screen('password-prompt', timeout => 30);
             enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
         }

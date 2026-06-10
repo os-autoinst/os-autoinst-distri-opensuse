@@ -32,9 +32,6 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
           {
             filesystem: { path: 'swap' },
             size: '4 GiB'
-          },
-          {
-            filesystem: { path: '/var/lib/libvirt/images', type: 'xfs' }
           }
         ]
       }
