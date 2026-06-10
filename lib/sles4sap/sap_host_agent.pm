@@ -75,6 +75,16 @@ sub saphostctrl_list_instances {
     my $sudo = $args{as_root} ? 'sudo' : '';
     my $running = $args{running} ? '-running' : '';
     my $cmd = join(' ', $sudo, $saphostctrl, '-function', 'ListInstances', $running, "| grep 'Inst Info'");
+
+    # Add retry mechanism
+    my $retry = 0;
+    while (++$retry) {
+        last if (!script_run($cmd));
+        record_info("Retry $retry", 'sleep 10 and retry');
+        sleep 10;
+        die "No instances found after retry $retry" if ($retry >= 6);
+    }
+
     for my $instance (split("\n", script_output($cmd))) {
         my @instance_data = split(/\s:\s|\s-\s/, $instance);
         push(@instances, {
