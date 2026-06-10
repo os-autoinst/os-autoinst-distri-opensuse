@@ -212,6 +212,7 @@ sub on_terraform_apply_timeout {
 
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
+    $args{log_name} //= "console";
     my $region = $self->get_terraform_output('.region.value');
     my $availability_zone = $self->get_terraform_output('.availability_zone.value');
     my $project = $self->get_terraform_output('.project.value');
@@ -221,7 +222,7 @@ sub upload_boot_diagnostics {
         record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on gce, undefined instance or region or availability zone');
         return;
     }
-    my $asset_path = "/tmp/console.txt";
+    my $asset_path = "/tmp/" . $args{log_name} . ".txt";
     # gce provides full serial log, so extended timeout
     script_run("gcloud compute --project=$project instances get-serial-port-output $instance_id --zone=$region-$availability_zone --port=1 > $asset_path", timeout => 180);
     if (script_output("du $asset_path | cut -f1") < 8) {
@@ -328,6 +329,18 @@ sub query_metadata {
     my $data = $instance->ssh_script_output($query_meta_ipv4_cmd);
 
     return $data;
+}
+
+sub initialize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-beginning");
+    record_info('Logging', 'Initializing logging for GCE instance');
+}
+
+sub finalize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-end");
+    record_info('Logging', 'Finalizing logging for GCE instance');
 }
 
 1;

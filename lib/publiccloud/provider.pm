@@ -802,4 +802,12 @@ sub show_instance_details {
     record_info('IP', $self->get_public_ip());
 }
 
+sub initialize_logging {
+    record_info("initialize_logging not implemented");
+}
+
+sub finalize_logging {
+    record_info("finalize_logging not implemented");
+}
+
 1;

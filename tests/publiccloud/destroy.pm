@@ -21,6 +21,7 @@ sub run {
 
     if ($instance) {
         upload_final_logs($instance);
+        $provider->finalize_logging($instance);
     } else {
         record_info('Undef instance', 'The $instance object is not available. The logs will not be uploaded.');
     }
