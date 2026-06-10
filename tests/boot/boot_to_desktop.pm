@@ -43,7 +43,8 @@ sub run {
     # being prepared for upgrade, as it does not have an unprivileged user to test
     # with other than the SAP Administrator
     my $nologin = (get_var('HDDVERSION') && is_upgrade() && is_sles4sap()) || get_var('HA_CLUSTER');
-    if (check_var('VIRSH_VMM_TYPE', 'linux')) {
+    # Skip Grub check for ppc64le SLE-16+ due to unreliable VNC during boot (VNC stalls)
+    if (check_var('VIRSH_VMM_TYPE', 'linux') || get_var('BOOT_SKIP_GRUB_CHECK')) {
         wait_serial('Welcome to SUSE Linux', $timeout) || die "System did not boot in $timeout seconds.";
     }
     else {
