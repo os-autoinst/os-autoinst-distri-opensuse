@@ -93,7 +93,7 @@ def run(self):
             # issued to make the SUT boot from the ISO again.
             # WARNING: if using this module right before a module that expects an installed
             # SUT, then it will be destroyed and test will fail.
-            need_workaround = (check_var("ARCH", "ppc64le") and perl.version_utils.is_sle(">=16.1"))
+            need_workaround = (check_var("ARCH", "ppc64le") and perl.version_utils.is_sle(">=16"))
             if (need_workaround):
                 # Assume HDDMODEL is virtio-blk by default
                 lsblk_opt = "v"
