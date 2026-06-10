@@ -104,9 +104,9 @@ sub configure_sssd_client ($container_engine, $run_as_user = 'root') {
         record_info('Config', 'Configuring SSSD to run as root');
         # Ensure root ownership (or default)
         assert_script_run("rm -f /etc/systemd/system/sssd.service.d/override.conf");
-        assert_script_run("chown -R root:root /etc/sssd");
+        assert_script_run("chown -R root:root /etc/sssd /var/lib/sss /var/log/sssd");
         # Clear cache for clean state
-        assert_script_run("rm -rf /var/lib/sss/db/*");
+        assert_script_run("rm -rf /var/lib/sss/db/* /var/lib/sss/mc/*");
     }
 
     systemctl("daemon-reload");
@@ -155,16 +155,16 @@ sub run ($self) {
     # SLE16.1 not yet has a Package Hub workarond
     zypper_ar(get_required_var('QA_HEAD_REPO'), name => 'qa_head', no_gpg_check => 1) if is_sle('>16.0');
 
+    install_dependencies($container_engine);
     assert_script_run("mkdir -p $conf_dir");
     my @artifacts = qw(user_389.ldif access.ldif instance_389.inf sssd.conf nsswitch.conf config);
     my $data_url = sprintf("sssd/398-ds/{%s}", join(',', @artifacts));
-    assert_script_run("curl -L --output-dir $conf_dir --remote-name-all " . data_url($data_url));
+    assert_script_run("cd $conf_dir && curl -L --remote-name-all " . data_url($data_url));
 
-    install_dependencies($container_engine);
     setup_389ds_container($container_engine);
     for my $user_mode ('root', 'sssd') {
         # Skip logic: sssd mode is not supported on SLE versions older than 15-SP6
-        if ($user_mode eq 'sssd' && (is_sle('<15-sp6') || is_sle('>=16.0') || is_tumbleweed)) {
+        if ($user_mode eq 'sssd' && (is_sle('<15-sp6') || is_tumbleweed)) {
             record_info("Skip", "Skipping sssd mode: SLE version is older than 15-SP6");
             next;
         }
