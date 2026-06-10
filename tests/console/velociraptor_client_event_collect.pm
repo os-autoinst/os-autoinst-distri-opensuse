@@ -27,7 +27,7 @@ sub run {
 
     if (is_sle) {
         # beta1 has dependency issue will enable with beta2
-        if (is_sle('=16') || $sp_version == '16') {
+        if (is_sle('>=16') || $sp_version == '16') {
             zypper_call("ar -f --no-gpgcheck http://download.suse.de/ibs/SUSE:/Velociraptor/SLE_16/ sensor");
         }
         if (is_sle('=15-SP7') || $sp_version == '15.7') {
