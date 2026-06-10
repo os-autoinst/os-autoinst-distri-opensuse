@@ -22,6 +22,14 @@ conditional_schedule:
         ARCH:
             x86_64:
                 - console/wpa_supplicant
+    year_2038_detection:
+        ARCH:
+            aarch64:
+                - console/year_2038_detection
+            x86_64:
+                - console/year_2038_detection
+            ppc64le:
+                - console/year_2038_detection
 schedule:
     - installation/bootloader_start
     - boot/boot_to_desktop
@@ -83,7 +91,7 @@ schedule:
     - console/pciutils
     - console/supportutils
     - console/vsftpd
-    - console/year_2038_detection
+    - '{{year_2038_detection}}'
     - console/redis
     - console/mdadm
     - console/quota
