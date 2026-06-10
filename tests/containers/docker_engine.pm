@@ -21,8 +21,7 @@ my @test_dirs;
 
 sub setup {
     my $self = shift;
-    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.26 openssl rootlesskit selinux-tools skopeo);
-    push @pkgs, qw(nftables-devel) unless is_sle("<15-SP5");
+    my @pkgs = qw(containerd-ctr distribution-registry docker docker-buildx docker-rootless-extras glibc-devel go1.26 nftables-devel openssl rootlesskit selinux-tools skopeo);
     # To test cross-platform builds
     push @pkgs, "qemu-linux-user" unless is_sle("<16");
     $self->setup_pkgs(@pkgs);
@@ -37,8 +36,7 @@ sub setup {
 
     $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
-    # Docker v29 changed tag format
-    $version = ($version =~ /^2[1-8]/) ? "v$version" : "docker-v$version";
+    $version = "docker-v$version";
     record_info "docker version", $version;
 
     # Used by skopeo in containers/download-frozen-image.sh
@@ -110,38 +108,23 @@ sub run {
         TZ => "UTC",
     );
 
-    my @xfails = ();
-    if (version->parse(numeric_version($version)) >= version->parse("29.0.0")) {
-        # These fail on Docker v29:
-        push @xfails, (
-            # We don't yet support CDI
-            "github.com/moby/moby/v2/integration/container::TestEtcCDI",
-            # Flaky tests:
-            "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
-            "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
-            "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeoutCancel",
-            "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
-        );
-        # This may fail on SLES 15 due to older version of rootlesskit (1.1.1)
-        push @xfails, (
-            "github.com/moby/moby/v2/integration/container::TestNetworkLoopbackNat",
-        ) if (is_sle("<16") && get_var("ROOTLESS"));
-    } else {
-        # These fail on Docker v28:
-        push @xfails, (
-            "github.com/docker/docker/integration/container::TestCreateWithCustomMACs",
-            "github.com/docker/docker/integration/container::TestNetworkLocalhostTCPNat",
-            "github.com/docker/docker/integration/container::TestNetworkLoopbackNat",
-            "github.com/docker/docker/integration/container::TestStopContainerWithTimeoutCancel",
-            "github.com/docker/docker/integration/service::TestServicePlugin",
-        );
-    }
+    my @xfails = (
+        # We don't yet support CDI
+        "github.com/moby/moby/v2/integration/container::TestEtcCDI",
+        # Flaky tests:
+        "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
+        "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
+        "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeoutCancel",
+        "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
+    );
     # Cross-platform builds only work on 15-SP6+
     push @xfails, (
-        "github.com/docker/docker/integration/image::TestAPIImageHistoryCrossPlatform",
-        # Same as above on Docker v29:
         "github.com/moby/moby/v2/integration/image::TestAPIImageHistoryCrossPlatform",
     ) if (is_sle("<16"));
+    # This may fail on SLES 15 due to older version of rootlesskit (1.1.1)
+    push @xfails, (
+        "github.com/moby/moby/v2/integration/container::TestNetworkLoopbackNat",
+    ) if (is_sle("<16") && get_var("ROOTLESS"));
 
     my $tags = "apparmor selinux seccomp pkcs11";
 
