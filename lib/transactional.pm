@@ -106,6 +106,7 @@ sub process_reboot {
     $args{expected_grub} //= (is_transactional && is_vmware) ? 0 : 1;
     $args{expected_passphrase} //= 0;
 
+    reset_consoles;
     if (is_public_cloud) {
         my $instance = publiccloud::instances::get_instance();
         $instance->softreboot();    # Handled re-establishing of the required ssh tunnel and consoles
@@ -150,6 +151,7 @@ sub process_reboot {
         assert_screen 'linux-login', 200;
 
         # Login & clear login needle
+        reset_consoles;
         select_console 'root-console';
         record_kernel_audit_messages();
         assert_script_run 'clear';

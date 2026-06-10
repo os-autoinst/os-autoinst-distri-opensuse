@@ -22,7 +22,7 @@ sub rbm_call {
     my $check = shift // 1;
 
     if ($check) {
-        assert_script_run "rebootmgrctl $cmd";
+        assert_script_run "rebootmgrctl $cmd", 100;
     }
     else {
         script_run "rebootmgrctl $cmd", 0;
@@ -49,6 +49,7 @@ sub rbm_set_window {
 sub check_strategy_instantly {
     select_console('root-console');
     rbm_call "set-strategy instantly";
+    script_run('systemctl enable getty@tty6.service');
     trup_call "reboot ptf install" . rpmver('interactive');
     check_reboot_strategy_and_reboot();
     rbm_call "get-strategy | grep instantly";
@@ -56,6 +57,7 @@ sub check_strategy_instantly {
 
 #2 Test maint-window strategy
 sub check_strategy_maint_window {
+    reset_consoles;
     select_console('root-console');
     rbm_call "set-strategy maint-window";
     # Trigger reboot during maint-window
