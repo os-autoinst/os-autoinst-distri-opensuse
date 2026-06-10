@@ -14,8 +14,12 @@ use transactional qw(trup_call);
 use Utils::Git;
 
 sub run {
-    my ($repo, $branch) = get_required_var('TEST_FRAMEWORK_REPO') =~ /(\S*)@(\S*)/;
     my $timeout = 1200;
+
+    # Extract test framework to use and set default branch if none is provided
+    my ($repo, $branch) = get_required_var('TEST_FRAMEWORK_REPO') =~ /(\S*)@(\S*)/;
+    $repo //= get_required_var('TEST_FRAMEWORK_REPO');
+    $branch //= 'main';
 
     # Add git/go package(s)
     trup_call('pkg install git go kubernetes-client-provider', timeout => $timeout);
