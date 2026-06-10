@@ -890,17 +890,17 @@ subtest '[ipaddr2_scc_check] SUSEConnect execution failed' => sub {
     ok(($ret eq 0), "Is not registered ret:$ret");
 };
 
-subtest '[ipaddr2_scc_registration_workaround_PAYG] apply registration workaround' => sub {
+subtest '[ipaddr2_scc_registration_workaround_PAYG] service succeeds immediately' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 0; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $ipaddr2->redefine(ipaddr2_get_internal_vm_private_ip => sub { '192.168.1.1'; });
-    $ipaddr2->redefine(script_run => sub { return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            return "ActiveState=inactive\nResult=success";
+    });
 
     ipaddr2_scc_registration_workaround_PAYG(id => 42);
 
-    ok('Workaround applying passed');
+    ok(1, 'Workaround returns immediately when service succeeds');
 };
 
 subtest '[ipaddr2_scc_register]' => sub {
@@ -1503,7 +1503,7 @@ subtest '[ipaddr2_ssh_intrusion_detection] no lines in the journal' => sub {
     ok(($ret == 0), "Ret:$ret expected to be 0");
 };
 
-subtest '[ipaddr2_billing_model_get]' => sub {
+subtest '[ipaddr2_billing_model_get] PAYG' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
 
     my @calls;
@@ -1515,6 +1515,137 @@ subtest '[ipaddr2_billing_model_get]' => sub {
     my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(($ret eq 'PAYG'), "Ret:'$ret' expected to be 'PAYG'");
+};
+
+subtest '[ipaddr2_billing_model_get] BYOS rc11' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 11; });
+
+    my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
+    ok(($ret eq 'BYOS'), "Ret:'$ret' expected to be 'BYOS' for rc=11");
+};
+
+subtest '[ipaddr2_billing_model_get] BYOS rc12' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 12; });
+
+    my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
+    ok(($ret eq 'BYOS'), "Ret:'$ret' expected to be 'BYOS' for rc=12");
+};
+
+subtest '[ipaddr2_billing_model_get] UNKNOWN bsc#1267739' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            return "FileNotFoundError: [Errno 2] No such file or directory: '/var/cache/cloudregister/availableSMTInfo_1.obj'";
+    });
+    $ipaddr2->redefine(record_soft_failure => sub { note("SOFT_FAILURE --> $_[0]"); });
+
+    my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
+    ok(($ret eq 'UNKNOWN'), "Ret:'$ret' expected to be 'UNKNOWN' for bsc#1267739");
+};
+
+subtest '[ipaddr2_billing_model_get] die on rc=1 without FileNotFoundError' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            return "Some other traceback error without known signature";
+    });
+
+    dies_ok { ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5') }
+    "Die on rc=1 without FileNotFoundError signature";
+};
+
+subtest '[ipaddr2_billing_model_get] die on unexpected rc' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 99; });
+
+    dies_ok { ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5') }
+    "Die on unexpected exit code 99";
+};
+
+subtest '[ipaddr2_scc_registration_workaround_PAYG] service succeeds' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            # Simulate service completed successfully
+            return "ActiveState=inactive\nResult=success";
+    });
+
+    ipaddr2_scc_registration_workaround_PAYG(id => 1, bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /systemctl show guestregister/ } @calls), 'Polls guestregister.service state');
+    ok((none { /systemctl restart/ } @calls), 'No restart needed when service succeeds');
+};
+
+subtest '[ipaddr2_scc_registration_workaround_PAYG] service fails then recovers' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(record_soft_failure => sub { note("SOFT_FAILURE --> $_[0]"); });
+
+    my $poll_count = 0;
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            if ($args{cmd} =~ /systemctl show guestregister/) {
+                $poll_count++;
+                # First poll: service failed
+                return "ActiveState=failed\nResult=exit-code" if $poll_count == 1;
+                # After restart: service succeeded
+                return "ActiveState=inactive\nResult=success";
+            }
+            if ($args{cmd} =~ /SUSEConnect -s/) {
+                return '[{"status":"Registered"}]';
+            }
+            return '';
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0;
+    });
+
+    ipaddr2_scc_registration_workaround_PAYG(id => 1, bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /systemctl restart guestregister/ } @calls), 'Service restarted after failure');
+    ok((any { /SUSEConnect -s/ } @calls), 'SUSEConnect verification after restart');
+};
+
+subtest '[ipaddr2_scc_registration_workaround_PAYG] recovery fails' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $poll_count = 0;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            if ($args{cmd} =~ /systemctl show guestregister/) {
+                $poll_count++;
+                # Always report failure
+                return "ActiveState=failed\nResult=exit-code";
+            }
+            if ($args{cmd} =~ /SUSEConnect -s/) {
+                return '[{"status":"Not Registered"}]';
+            }
+            return '';
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 0; });
+
+    dies_ok { ipaddr2_scc_registration_workaround_PAYG(id => 1, bastion_ip => '1.2.3.4') }
+    "Die when system remains Not Registered after restart";
 };
 
 done_testing;
