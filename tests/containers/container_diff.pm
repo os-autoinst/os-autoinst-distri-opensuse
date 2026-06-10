@@ -14,11 +14,16 @@ use utils;
 use containers::common;
 use containers::container_images;
 use containers::urls 'get_image_uri';
+use version_utils 'is_leap';
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
     my $docker = $self->containers_factory('docker');
+
+    # Not in the main repo, use it from the devel one for this test.
+    # Prio 150 to only use this repo for packages not available elsewhere.
+    zypper_call('addrepo -fG -p 150 obs://Virtualization:containers/' . get_required_var('VERSION') . ' containers') if is_leap("16.0+");
 
     zypper_call("install container-diff") if (script_run("which container-diff") != 0);
 
