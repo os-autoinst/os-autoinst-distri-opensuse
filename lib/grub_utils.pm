@@ -51,8 +51,8 @@ sub grub_test {
         # avoid timeout for booting to HDD
         send_key 'ret';
     }
-    # Avoid return key not received occasionally for hyperv-uefi guest at first boot
-    send_key 'ret' if (check_var('VIRSH_VMM_FAMILY', 'hyperv') && get_var('UEFI'));
+    # Avoid return key not received occasionally for hyperv-uefi and vmware-uefi guests at first boot
+    send_key 'ret' if ((check_var('VIRSH_VMM_FAMILY', 'hyperv') || check_var('VIRSH_VMM_FAMILY', 'vmware')) && get_var('UEFI'));
 }
 
 =head2 handle_installer_medium_bootup
