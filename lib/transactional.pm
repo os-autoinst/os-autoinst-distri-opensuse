@@ -156,7 +156,7 @@ sub process_reboot {
     }
 
     # Switch to the previous console
-    select_console $prev_console;
+    select_console $prev_console unless ($prev_console eq 'root-console');
 }
 
 # Reboot if there's a diff between the current FS and the new snapshot
