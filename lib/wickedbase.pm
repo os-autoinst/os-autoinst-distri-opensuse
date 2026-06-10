@@ -26,7 +26,6 @@ use File::Basename;
 use version_utils 'check_version';
 use List::MoreUtils qw(uniq);
 use containers::common qw(install_podman_when_needed install_docker_when_needed);
-use Utils::Logging qw(upload_coredumps);
 
 
 use strict;
@@ -1178,8 +1177,6 @@ sub check_coredump {
     my $self = shift;
 
     install_coredump;
-    record_info('Upload coredump files if any');
-    upload_coredumps;
     return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend | grep wicked )" ]') == 0);
 
     my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | grep wicked | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
