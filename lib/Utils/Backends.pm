@@ -271,7 +271,7 @@ sub set_ssh_console_timeout {
     $sshd_timeout //= 28800;
     my $client_count_max = $sshd_timeout / 60;
     if (script_run("ls $sshd_config_file") == 0) {
-        script_run("sed -irnE 's/^.*TCPKeepAlive.*\$/TCPKeepAlive yes/g; s/^.*ClientAliveInterval.*\$/ClientAliveInterval 60/g; s/^.*ClientAliveCountMax.*\$/ClientAliveCountMax $client_count_max/g' $sshd_config_file");
+        script_run("sed -i -E 's/^.*TCPKeepAlive.*\$/TCPKeepAlive yes/g; s/^.*ClientAliveInterval.*\$/ClientAliveInterval 60/g; s/^.*ClientAliveCountMax.*\$/ClientAliveCountMax $client_count_max/g' $sshd_config_file");
         if (script_run("grep -i Alive $sshd_config_file") != 0) {
             script_run("echo -e \"\nTCPKeepAlive yes\n\" >> $sshd_config_file");
             script_run("echo -e \"ClientAliveInterval 60\n\" >> $sshd_config_file");

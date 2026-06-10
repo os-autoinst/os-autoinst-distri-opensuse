@@ -468,7 +468,7 @@ sub run {
 
     select_console 'root-console';
     if ($lang ne 'en_US') {
-        assert_script_run("sed -ie '/KEYMAP=/s/=.*/=us/' /etc/vconsole.conf");
+        assert_script_run("sed -i -e '/KEYMAP=/s/=.*/=us/' /etc/vconsole.conf");
     }
 
     # openSUSE JeOS has SWAP mounted as LABEL instead of UUID until kiwi 9.19.0, so tw and Leap 15.2+ are fine

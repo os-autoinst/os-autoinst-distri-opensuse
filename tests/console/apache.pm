@@ -32,7 +32,7 @@ sub run {
     # enable full package installation, and clean up previous apache2 deployment
     if (is_jeos) {
         my $command = $zypp_econf ? qq@echo -e "$config_snippet" > "$config_drop_in"@ :
-          'sed -ie \'s/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/\' /etc/zypp/zypp.conf';
+          'sed -i -e \'s/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/\' /etc/zypp/zypp.conf';
 
         assert_script_run($command);
         zypper_call('rm apache2', exitcode => [0, 104]);
@@ -141,8 +141,8 @@ sub run {
             assert_script_run "sed 's_\(/var/log/apache2\|/var/run\)_/tmp/prefork_; s/80/8080/' $apache2_default_configuration > /tmp/prefork/httpd.conf";
 
             # httpd.default.conf contains wrong service userid and groupid
-            assert_script_run q{sed -ie 's/^User daemon$/User wwwrun/' /tmp/prefork/httpd.conf};
-            assert_script_run q{sed -ie 's/^Group daemon$/Group www/' /tmp/prefork/httpd.conf};
+            assert_script_run q{sed -i -e 's/^User daemon$/User wwwrun/' /tmp/prefork/httpd.conf};
+            assert_script_run q{sed -i -e 's/^Group daemon$/Group www/' /tmp/prefork/httpd.conf};
 
             # Run and test this new environment
             assert_script_run 'httpd-prefork -f /tmp/prefork/httpd.conf';
@@ -205,7 +205,7 @@ sub run {
     # Revert zypp.conf changes on JeOS
     if (is_jeos) {
         my $command = $zypp_econf ? "rm $config_drop_in" :
-          'sed -ie \'s/rpm.install.excludedocs = no/rpm.install.excludedocs = yes/\' /etc/zypp/zypp.conf';
+          'sed -i -e \'s/rpm.install.excludedocs = no/rpm.install.excludedocs = yes/\' /etc/zypp/zypp.conf';
 
         assert_script_run($command);
     }
