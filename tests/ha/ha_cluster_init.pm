@@ -131,7 +131,13 @@ sub run {
                 last;
             }
             elsif (!$count) {
-                die "Unexpected node count in sdb list command output";
+                # Fail only if after removing repeated nodes, the number still does not match
+                my %aux = map { (split(/\s/, $_))[1] => 1 } (grep { /clear/ } split(/\n/, $sbd_output));
+                my $actual_node_count = keys %aux;
+                die 'Unexpected node count in sbd list command output' if (get_node_number != $actual_node_count);
+                # If actual number of nodes match, then we're here because some of the nodes are listed
+                # more than once
+                record_soft_failure 'bsc#1249216 - Cluster node listed more than one time in sbd device';
             }
             sleep 2;
             record_info('Retry');
