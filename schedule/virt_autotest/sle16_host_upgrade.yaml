@@ -1,0 +1,85 @@
+name: sle16-host-upgrade
+description: |
+  Upgrade host to SLES 16.1 with KVM guests verification.
+  Source versions: 15-SP7 (autoyast) or 16.0 (agama auto).
+  Platforms:
+    - x86_64: qemu nested virtualization, fresh install via ISO+DVD
+    - aarch64: ipmi baremetal, fresh install via ipxe_install
+  Guests installed fresh via unified_guest_installation (autoyast/agama),
+  verified via verify_virtualization after upgrade.
+vars:
+  DESKTOP: textmode
+  HOST_HYPERVISOR: kvm
+  INSTALL_PRODUCT_PATTERNS: kvm_server,kvm_tools
+  YAML_TEST_DATA: test_data/yam/agama_sle.yaml
+schedule:
+  - "{{install_host}}"
+  - "{{prepare_virtualization}}"
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - "{{pre_migration}}"
+  - "{{migration_module}}"
+  - "{{post_migration_boot}}"
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_product
+  - console/validate_repos
+  - "{{verify_virtualization}}"
+conditional_schedule:
+  install_host:
+    ARCH:
+      x86_64:
+        - "{{install_host_x86}}"
+      aarch64:
+        - "{{install_host_aarch64}}"
+  install_host_x86:
+    VERSION_TO_INSTALL:
+      "15-SP7":
+        - yam/migration/setup_upgrade_env
+        - autoyast/prepare_profile
+        - installation/bootloader_start
+        - autoyast/installation
+        - installation/first_boot
+      "16.0":
+        - yam/migration/setup_upgrade_env
+        - yam/agama/boot_agama
+        - yam/agama/agama_auto
+        - installation/grub_test
+        - installation/first_boot
+  install_host_aarch64:
+    VERSION_TO_INSTALL:
+      "15-SP7":
+        - yam/migration/setup_upgrade_env
+        - autoyast/prepare_profile
+        - installation/ipxe_install
+        - autoyast/installation
+        - virt_autotest/login_console
+      "16.0":
+        - yam/migration/setup_upgrade_env
+        - installation/ipxe_install
+        - installation/agama_reboot
+        - virt_autotest/login_console
+  prepare_virtualization:
+    VIRT_AUTOTEST:
+      "1":
+        - virt_autotest/prepare_non_transactional_server
+        - virt_autotest/unified_guest_installation
+  pre_migration:
+    VERSION_TO_INSTALL:
+      "15-SP7":
+        - console/hostname
+  migration_module:
+    VERSION_TO_INSTALL:
+      "15-SP7":
+        - yam/migration/migration_unattended
+      "16.0":
+        - yam/migration/zypper_migration
+  post_migration_boot:
+    VERSION_TO_INSTALL:
+      "15-SP7":
+        - installation/grub_test
+        - installation/first_boot
+  verify_virtualization:
+    VIRT_AUTOTEST:
+      "1":
+        - virt_autotest/verify_virtualization
