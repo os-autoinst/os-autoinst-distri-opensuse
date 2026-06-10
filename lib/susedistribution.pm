@@ -478,8 +478,9 @@ sub init_consoles {
             || is_svirt_except_s390x))
     {
         $self->add_console('install-shell', 'tty-console', {tty => is_agama() ? 8 : 2});
+        # Agama runs the graphical installer on tty2 even when VIDEOMODE=text is set for the boot/install flow.
         $self->add_console('installation', 'tty-console', {tty =>
-                  check_var('VIDEOMODE', 'text') ? 1 : is_agama() ? 2 : 7});
+                  is_agama() ? 2 : check_var('VIDEOMODE', 'text') ? 1 : 7});
         $self->add_console('install-shell2', 'tty-console', {tty => 9});
         # On SLE15 X is running on tty2 see bsc#1054782
         $self->add_console('root-console', 'tty-console', {tty => get_root_console_tty});

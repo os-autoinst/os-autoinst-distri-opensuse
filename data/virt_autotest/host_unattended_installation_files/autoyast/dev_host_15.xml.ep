@@ -53,7 +53,8 @@
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <secure_boot>false</secure_boot>
-      % if ($check_var->('IPXE_UEFI', '1')) {
+      % # Enable NVRAM update for UEFI boot (iPXE UEFI or direct UEFI installation)
+      % if ($check_var->('IPXE_UEFI', '1') or $check_var->('UEFI', '1')) {
       <update_nvram>true</update_nvram>
       % }
       <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV', 'ttyS1') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
@@ -162,7 +163,7 @@
           <mount>/</mount>
           <mountby config:type="symbol">uuid</mountby>
           <partition_id config:type="integer">131</partition_id>
-          <size>120G</size>
+          <size>60G</size>
         </partition>
         <partition>
           <create config:type="boolean">true</create>
