@@ -14,10 +14,7 @@ use scheduler qw(get_test_suite_data);
 sub run {
     my $self_update_enabled = get_test_suite_data()->{self_update_enabled};
     if ($self_update_enabled) {
-        my $retcode = script_output('cat /run/live-self-update/result');
-
-        # Pass validation if retcode is 0 (All OK) or 4 - ZYPPER_EXIT_ERR_ZYPP A problem is reported by ZYPP library
-        if ($retcode != 0 && $retcode != 4) {
+        unless (script_output('systemctl status live-self-update.service', proceed_on_failure => 1) =~ /exit 0/) {
             die "Self update did not ended successfully";
         }
     } else {
