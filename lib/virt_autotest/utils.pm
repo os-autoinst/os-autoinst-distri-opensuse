@@ -1912,9 +1912,6 @@ sub reselect_openqa_console {
         if (!(check_port_state($args{address}, 22)) or !(check_screen($args{needle}))) {
             $countdown = $args{retries} * $args{delay};
             if (check_port_state($args{address}, 22, $args{retries}, $args{delay})) {
-                reset_consoles;
-                select_console($args{console});
-                record_info("Console $args{console} reconnected after being lost");
                 last;
             }
             else {
@@ -1924,6 +1921,15 @@ sub reselect_openqa_console {
         enter_cmd("reset") for (0 .. 2);
         $reselect_console_counter -= $countdown;
     }
+    # Re-establish both the interactive console and the sshserial device.
+    # On IPMI, script_run/script_retry depend on $serialdev='sshserial', which is
+    # a separate SSH channel from root-ssh.  After any network reconfiguration this
+    # channel may be stale even when port 22 is open and the needle matches.
+    # select_backend_console(init => 0) encapsulates the full reconnection sequence
+    # for every backend (reset_consoles + select_console + use_ssh_serial_console
+    # for IPMI; reset_consoles_tty + select_console + serialdev setup for QEMU).
+    select_backend_console(init => 0);
+    record_info("Console $args{console} re-established");
 }
 
 =head2 select_backend_console
