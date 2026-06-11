@@ -29,8 +29,11 @@ sub upload_agama_logs {
     save_and_upload_log('journalctl -b > /tmp/journal.log', "/tmp/journal.log", {timeout => 60});
 
     # logs from the UI saved by default to this path
-    if (script_run("test -f /root/Downloads/agama-logs.tar.gz") == 0) {
-        upload_logs("/root/Downloads/agama-logs.tar.gz", log_name => 'agama-logs-from-ui.tar.gz');
+    my $full_log_path = script_output("find /root/Downloads/ -name 'agama-logs*.tar.gz'");
+    chomp($full_log_path);
+
+    if ($full_log_path && script_run("test -f '$full_log_path'") == 0) {
+        upload_logs($full_log_path, log_name => 'agama-logs-from-ui.tar.gz');
     }
 }
 
