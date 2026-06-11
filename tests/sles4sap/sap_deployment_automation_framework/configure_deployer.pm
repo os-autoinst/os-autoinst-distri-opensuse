@@ -48,13 +48,20 @@ sub run {
     # From now on everything is executed on Deployer VM (residing on cloud).
     connect_target_to_serial();
 
-    # It is a workaround for https://github.com/ansible/ansible/issues/82758:
-    #   (Heads up: Python 3.13 will remove the module crypt, impacting ansible)
-    # NOTE: these 3 lins does not work
-    #   assert_script_run('source /opt/ansible/venv/2.16/bin/activate');
-    #   assert_script_run('sudo pip install passlib');
-    #   assert_script_run('deactivate');
-    assert_script_run('sudo /opt/ansible/venv/2.16/bin/python -m pip install passlib');
+    # Re-register - Repair registration on cloned VM
+    record_info('Register', 'Repairing registration on cloned VM');
+    my @cleanup_retries = (1 .. 3);
+    my $cleanup_rc;
+    while (shift @cleanup_retries) {
+        $cleanup_rc = script_run('sudo registercloudguest --clean');
+        last unless $cleanup_rc;
+    }
+    die 'Registration cleanup attempts failed' if $cleanup_rc;
+
+    my $register_rc = script_run('sudo registercloudguest --force-new');
+    collect_guestregister_logs();
+    die 'Registration attempts failed. Check logs for details' if $register_rc;
+    record_info('Reg OK', 'Registration repaired');
 
     my $subscription_id = az_login();
     set_common_sdaf_os_env(subscription_id => $subscription_id);

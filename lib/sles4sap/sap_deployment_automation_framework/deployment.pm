@@ -54,6 +54,7 @@ our @EXPORT = qw(
   validate_components
   get_fencing_mechanism
   sdaf_upload_logs
+  collect_guestregister_logs
   get_sdaf_resource_group
   apply_no_cleanup_tag
 );
@@ -1074,6 +1075,30 @@ sub get_sdaf_resource_group {
     my $groups = az_group_name_get(query => $query);
     die "Zero or more than one resource groups found:\n" . join("\n", @$groups) unless (@$groups == 1);
     return $groups->[0];
+}
+
+=head3 collect_guestregister_logs
+
+    collect_guestregister_logs()
+
+    Collect and upload SDAF logs related to registercloudguest service.
+
+=cut
+
+sub collect_guestregister_logs {
+    my @commands = (
+        'systemctl status guestregister.service',
+        'journalctl -u guestregister.service --no-pager',
+        'grep -E "ERROR:|WARNING:|401|422|failed" /var/log/cloudregister || true',
+        'zypper lr -u || true'
+    );
+    my @output;
+    for my $cmd (@commands) {
+        push(@output, "\n### COMMAND: $cmd ###\n");
+        push(@output, script_output("sudo $cmd", proceed_on_failure => 1));
+        push(@output, "\n#####################\n");
+    }
+    record_info('REGISTER OUT', join("\n", @output));
 }
 
 =head3 sdaf_upload_logs
