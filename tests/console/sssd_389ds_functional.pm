@@ -105,7 +105,7 @@ sub configure_sssd_client ($container_engine, $run_as_user = 'root') {
         # Ensure root ownership (or default)
         assert_script_run("rm -f /etc/systemd/system/sssd.service.d/override.conf");
         assert_script_run("chown -R root:root /etc/sssd /var/lib/sss /var/log/sssd /etc/sssd/sssd.conf");
-	assert_script_run("chown -R sssd:sssd /var/lib/sss /var/log/sssd");
+        assert_script_run("chown -R sssd:sssd /var/lib/sss /var/log/sssd") if is_tumbleweed;
         assert_script_run("chmod 0600 /etc/sssd/sssd.conf");
         assert_script_run("chmod 0750 /var/lib/sss/db /var/log/sssd");
         # Clear cache for clean state
@@ -124,7 +124,6 @@ sub configure_sssd_client ($container_engine, $run_as_user = 'root') {
         script_retry("ping -c 1 ldapserver", retry => 5, delay => 2);
     }
     script_run("systemctl enable --now sssd.service");
-    script_run("journalctl -xeu sssd.service");
 }
 
 sub change_and_verify_password ($user, $old_pass, $new_pass) {
