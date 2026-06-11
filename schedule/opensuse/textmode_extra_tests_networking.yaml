@@ -37,6 +37,7 @@ schedule:
     - boot/boot_to_desktop
     - console/prepare_test_data
     - '{{consoletest_setup}}'
+    - console/sssd_389ds_functional
     - console/chrony
     - console/dnsmasq
     - console/ping
