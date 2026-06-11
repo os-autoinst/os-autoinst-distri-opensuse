@@ -55,6 +55,7 @@ sub run {
         $provider = $args->{my_provider} = $self->provider_factory();
         $instance = $self->{my_instance} = $args->{my_instance} = $provider->create_instance();
         $instance->wait_for_guestregister() if (is_ondemand());
+        $provider->initialize_logging($instance);
     }
 
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
