@@ -21,6 +21,7 @@ sub run {
     my $zypper_prompts = {
         migration_target => qr/(\d+)\s+\|\s?SUSE Linux Enterprise Server.*?$target_version\s+$arch/m,
         select_id => qr/\[num\/q\]:/m,
+        disable_repo => qr/^Disable obsolete repository.*?\[y\/n\]\s*\(y\):/m,
         continue => qr/^Continue\? \[y/m,
     };
 
@@ -43,6 +44,8 @@ sub run {
     wait_serial($zypper_prompts->{select_id}, 60) || die "ID selection prompt not found";
     enter_cmd $target_id;
     save_screenshot;
+
+    wait_serial($zypper_prompts->{disable_repo}, 30) && enter_cmd "y";
 
     wait_serial($zypper_prompts->{continue}, 120) || die "Continue prompt was not found";
     enter_cmd "y";
