@@ -10,6 +10,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use elemental3;
 use transactional qw(trup_call);
 use serial_terminal qw(select_serial_terminal);
 use Mojo::File qw(path);
@@ -17,7 +18,7 @@ use utils qw(file_content_replace);
 
 =head2 build_installer_cmd
 
- build_installer_cmd( config_dir => <value>, img_filename => <value>,
+ build_installer_cmd( config_dir => <value>, image => <value>, img_filename => <value>,
                       rootpwd => <value>, timeout => <value>, type => <value> );
 
 Create an OS image with `build-installer` command by using the specified
@@ -27,7 +28,6 @@ containerized OS image.
 
 sub build_installer_cmd {
     my (%args) = @_;
-    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $isocmdline = get_var('ISO_CMD_LINE');
     my $config_file = "$args{config_dir}/config.sh";
@@ -35,13 +35,12 @@ sub build_installer_cmd {
     my $device = get_var('INSTALL_DISK', '/dev/vda');
 
     # Configure the systemd sysexts
-    my $overlay_dir = get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
+    my $overlay_dir =
+      get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
 
     # OS configuration script
-    assert_script_run(
-        "curl -sf -o $config_file "
-          . data_url('elemental3/' . path($config_file)->basename)
-    );
+    assert_script_run("curl -sf -o $config_file "
+          . data_url('elemental3/' . path($config_file)->basename));
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
@@ -50,17 +49,15 @@ sub build_installer_cmd {
     assert_script_run("chmod 755 $config_file");
 
     # ISO configuration script
-    assert_script_run(
-        "curl -sf -o $iso_config_file "
-          . data_url('elemental3/' . path($iso_config_file)->basename)
-    );
+    assert_script_run("curl -sf -o $iso_config_file "
+          . data_url('elemental3/' . path($iso_config_file)->basename));
     assert_script_run("chmod 755 $iso_config_file");
 
     record_info('ISO', 'Generate and upload ISO image');
 
     # Generate OS image
     assert_script_run(
-"elemental3ctl --debug build-installer --type $args{type} --output . --name $args{img_filename} --os-image $image --cmdline '$isocmdline' --config $iso_config_file --install-overlay dir://$overlay_dir --install-config $config_file --install-cmdline '$krnlcmdline' --install-target $device",
+"elemental3ctl --debug build-installer --type $args{type} --output . --name $args{img_filename} --os-image $args{image} --cmdline '$isocmdline' --config $iso_config_file --install-overlay dir://$overlay_dir --install-config $config_file --install-cmdline '$krnlcmdline' --install-target $device",
         timeout => $args{timeout}
     );
 
@@ -70,8 +67,9 @@ sub build_installer_cmd {
 
 =head2 customize_cmd
 
- customize_cmd( config_dir => <value>, hddsize => <value>, k8s => <value>,
-                rootpwd => <value>, template => <value>, timeout => <value> );
+ customize_cmd( config_dir => <value>, elemental3_uri => <value>, hddsize => <value>,
+                k8s => <value>, manifest_uri => <value>, rootpwd => <value>,
+                template => <value>, timeout => <value> );
 
 Create an OS image with `customize` command by using the specified
 release-manifest.
@@ -83,7 +81,6 @@ sub customize_cmd {
     my $crypto_policy = get_var('CRYPTO_POLICY');
     my $device = get_var('INSTALL_DISK', '/dev/vda');
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
-    my $manifest_uri = get_required_var('RELEASE_MANIFEST_URI');
     my $type = get_required_var('IMAGE_TYPE');
     my $tpl_tar = "$args{config_dir}/$args{template}";
     my $initial_hddsize = '4';
@@ -93,14 +90,13 @@ sub customize_cmd {
     assert_script_run("mkdir -p $args{config_dir}");
 
     # Download build configuration files
-    assert_script_run(
-        "curl -sf -o $tpl_tar "
-          . data_url('elemental3/' . path($tpl_tar)->basename)
-    );
+    assert_script_run("curl -sf -o $tpl_tar "
+          . data_url('elemental3/' . path($tpl_tar)->basename));
     assert_script_run("tar xzvf $tpl_tar -C $args{config_dir}");
 
     # Add 'oci://' in release-manifest URI if nothing is set
-    $manifest_uri = 'oci://' . $manifest_uri unless $manifest_uri =~ /:\/\//;
+    $args{manifest_uri} = 'oci://' . $args{manifest_uri}
+      unless $args{manifest_uri} =~ /:\/\//;
 
     # Configure the build
     $out = "$args{img_filename}.qcow2" if ($type =~ m/raw/);
@@ -121,7 +117,7 @@ sub customize_cmd {
     file_content_replace(
         "$args{config_dir}/release.yaml",
         '--sed-modifier' => 'g',
-        '%RELEASE_MANIFEST_URI%' => $manifest_uri,
+        '%RELEASE_MANIFEST_URI%' => $args{manifest_uri},
         '%K8S%' => $args{k8s}
     );
     if (check_var('TESTED_CMD', 'customize_recovery')) {
@@ -133,29 +129,34 @@ sub customize_cmd {
     }
 
     if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/) {
+
         # K8s configuration file
         assert_script_run(
             "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
-              . data_url('elemental3/cluster.yaml')
-        );
+              . data_url('elemental3/cluster.yaml'));
 
         # For single-node
         if (check_var('CLUSTER_TYPE', 'singlenode')) {
+
             # Keep configuration for first node only
             assert_script_run(
                 "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $args{config_dir}/kubernetes/cluster.yaml"
             );
         }
-    } else {
+    }
+    else {
         # Only useful for the single-node and multi-node tests
         assert_script_run("rm -rf $args{config_dir}/network");
-        assert_script_run("sed -i '/name: k8s-preinstall.service/,\$d' $args{config_dir}/butane.yaml");
+        assert_script_run(
+            "sed -i '/name: k8s-preinstall.service/,\$d' $args{config_dir}/butane.yaml"
+        );
     }
 
     # Generate OS image
     elemental3_cmd(
         config_dir => $args{config_dir},
         cmd => "--debug customize --type $type --output /config/uc_image.$type",
+        uri => $args{elemental3_uri},
         timeout => $args{timeout}
     );
 
@@ -168,11 +169,10 @@ sub customize_cmd {
         );
 
         # Extend HDD image to needed size
-        assert_script_run(
-            "qemu-img resize ./$out $args{hddsize}G",
-            timeout => $args{timeout}
-        );
-    } elsif ($type =~ m/iso/) {
+        assert_script_run("qemu-img resize ./$out $args{hddsize}G",
+            timeout => $args{timeout});
+    }
+    elsif ($type =~ m/iso/) {
         assert_script_run("mv $args{config_dir}/uc_image.$type '$out'");
     }
 
@@ -180,27 +180,9 @@ sub customize_cmd {
     return ($out);
 }
 
-=head2 elemental3_cmd
-
- elemental3_cmd( config_dir => <value>, timeout => <value> );
-
-Execute elemental3 command from container.
-
-=cut
-sub elemental3_cmd {
-    my (%args) = @_;
-    my $uri = get_required_var('ELEMENTAL3_IMAGE_TO_TEST');
-
-    # NOTE: ':z' is needed because of SELinux!
-    assert_script_run(
-        "podman run --rm --volume $args{config_dir}:/config:z $uri $args{cmd}",
-        timeout => $args{timeout}
-    );
-}
-
 =head2 extract_iso
 
- extract_iso( img_filename => <value>, timeout => <value> );
+ extract_iso( image=> <value>, img_filename => <value>, iso = <value>, timeout => <value> );
 
 Extract ISO image from container.
 
@@ -208,76 +190,44 @@ Extract ISO image from container.
 
 sub extract_iso {
     my (%args) = @_;
-    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
-    my $iso = get_required_var('ISO_IMAGE_TO_TEST');
+
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
     my $out = "$args{img_filename}.iso";
 
-    assert_script_run("$runtime pull $image");
-    my $run_id = script_output("$runtime run -d $image");
-    assert_script_run("$runtime cp ${run_id}:/iso/${iso} .");
-    assert_script_run("mv $iso '$out'");
+    assert_script_run("$runtime pull $args{image}");
+    my $run_id = script_output("$runtime run -d $args{image}");
+    assert_script_run("$runtime cp ${run_id}:/iso/$args{iso} .");
+    assert_script_run("mv $args{iso} '$out'");
 
     # Return OS image
     return ($out);
 }
 
-=head2 get_sysext
-
- get_sysext( tmpdir => <value>, timeout => <value> );
-
-Get systemd system extensions from SYSEXT_IMAGES_TO_TEST list and
-prepare them to be used by elemental tool.
-
-=cut
-
-sub get_sysext {
-    my (%args) = @_;
-    my $overlay_dir = "$args{tmpdir}/overlays";
-    my $sysext_dir = "$overlay_dir/etc/extensions";
-
-    record_info('SYSEXT', 'Download and configure systemd system extensions');
-
-    # Create directories
-    assert_script_run("mkdir -p $sysext_dir");
-
-    # Get the system extensions
-    foreach my $img (split(/,/, get_var('SYSEXT_IMAGES_TO_TEST'))) {
-        assert_script_run(
-            "elemental3ctl --debug unpack-image --image ${img} --target ${sysext_dir}",
-            timeout => $args{timeout}
-        );
-    }
-
-    # Return systemd-sysexts file name
-    return ($overlay_dir);
-}
-
 =head2 install_cmd
 
- install_cmd( hddsize => <value>, config_dir => <value>, img_filename => <value>,
-              rootpwd => <value>, timeout => <value> );
+ install_cmd( hddsize => <value>, config_dir => <value>, image => <value>,
+              img_filename => <value>, rootpwd => <value>, timeout => <value> );
 
-Create an OS image with `build-installer` command by using the specified
+Create an OS image with `install` command by using the specified
 containerized OS image.
 
 =cut
 
 sub install_cmd {
     my (%args) = @_;
-    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
+
+    #my $image       = get_required_var('CONTAINER_IMAGE_TO_TEST');
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $config_file = "$args{config_dir}/config.sh";
     my $device = '/dev/nbd0';
 
     # Configure the systemd sysexts
-    my $overlay_dir = get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
+    my $overlay_dir =
+      get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
 
     # OS configuration script
-    assert_script_run(
-        "curl -sf -o $config_file "
-          . data_url('elemental3/' . path($config_file)->basename)
-    );
+    assert_script_run("curl -sf -o $config_file "
+          . data_url('elemental3/' . path($config_file)->basename));
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
@@ -292,11 +242,12 @@ sub install_cmd {
         "qemu-img create -f qcow2 $args{config_dir}/$args{img_filename}.qcow2 $args{hddsize}G"
     );
     assert_script_run('modprobe nbd');
-    assert_script_run("qemu-nbd -c $device $args{config_dir}/$args{img_filename}.qcow2");
+    assert_script_run(
+        "qemu-nbd -c $device $args{config_dir}/$args{img_filename}.qcow2");
 
     # Generate OS image
     assert_script_run(
-        "elemental3ctl --debug install --cmdline '$krnlcmdline' --os-image $image --overlay dir://$overlay_dir --config $config_file --target $device",
+        "elemental3ctl --debug install --cmdline '$krnlcmdline' --os-image $args{image} --overlay dir://$overlay_dir --config $config_file --target $device",
         timeout => $args{timeout},
     );
 
@@ -310,6 +261,7 @@ sub run {
     my $hddsize = get_var('HDDSIZEGB', '30');
     my $rootpwd = get_required_var('TEST_PASSWORD');
     my $img_filename = get_required_var('IMG_NAME');
+    my $totest_path = get_required_var('TOTEST_PATH');
     my $tpl_file = get_var('TEMPLATE', 'build-tpl.tar.gz');
     my $timeout = 900;
     my $out_file;
@@ -324,8 +276,11 @@ sub run {
     my $tmpdir = '/root/tmp';
     assert_script_run("mkdir -m 1777 -p $tmpdir && export TMPDIR=$tmpdir");
 
-    # Add Unified Core repository and install elemental3ctl package (we still need this one for now)
-    trup_call('run zypper addrepo --check --refresh ' . get_required_var('REPO_TO_TEST') . ' elemental');
+    # Add Unified Core repository and install elemental3ctl package
+    # (we still need this one for now)
+    trup_call(
+        "run zypper addrepo --check --refresh ${totest_path}/standard elemental"
+    );
     trup_call('--continue run zypper --gpg-auto-import-keys refresh');
     trup_call('--continue pkg install elemental3ctl squashfs mtools xorriso');
     trup_call('apply');
@@ -334,37 +289,91 @@ sub run {
     my $hashpwd = script_output("openssl passwd -6 $rootpwd");
 
     # Create HDD image with different commands
-    $out_file = build_installer_cmd(
-        config_dir => $tmpdir,
-        img_filename => $img_filename,
-        rootpwd => $hashpwd,
-        timeout => $timeout,
-        type => 'iso'
-    ) if (check_var('TESTED_CMD', 'build_installer_iso'));
+    if (check_var('TESTED_CMD', 'install')
+        || check_var('TESTED_CMD', 'build_installer_iso'))
+    {
+        my $kernel_type = get_required_var('KERNEL_TYPE');
+        my $kernel = "base-os-kernel-$kernel_type-";
+        my $uri = get_container_uri(
+            url => $totest_path,
+            arch => $arch,
+            regex => ".*${kernel}\([0-9]*\\..*\)-\(.*\)"
+        );
 
-    $out_file = customize_cmd(
-        config_dir => $tmpdir,
-        hddsize => $hddsize,
-        img_filename => $img_filename,
-        k8s => $k8s,
-        rootpwd => $hashpwd,
-        template => $tpl_file,
-        timeout => $timeout
-    ) if (check_var('TESTED_CMD', 'customize') || check_var('TESTED_CMD', 'customize_recovery'));
+        $out_file = install_cmd(
+            arch => $arch,
+            config_dir => $tmpdir,
+            hddsize => $hddsize,
+            image => $uri,
+            img_filename => $img_filename,
+            rootpwd => $hashpwd,
+            timeout => $timeout,
+        ) if (check_var('TESTED_CMD', 'install'));
 
-    $out_file = extract_iso(
-        img_filename => $img_filename,
-        timeout => $timeout
-    ) if (check_var('TESTED_CMD', 'extract_iso'));
+        $out_file = build_installer_cmd(
+            config_dir => $tmpdir,
+            image => $uri,
+            img_filename => $img_filename,
+            rootpwd => $hashpwd,
+            timeout => $timeout,
+            type => 'iso'
+        ) if (check_var('TESTED_CMD', 'build_installer_iso'));
+    }
 
-    $out_file = install_cmd(
-        arch => $arch,
-        config_dir => $tmpdir,
-        hddsize => $hddsize,
-        img_filename => $img_filename,
-        rootpwd => $hashpwd,
-        timeout => $timeout,
-    ) if (check_var('TESTED_CMD', 'install'));
+    if (check_var('TESTED_CMD', 'customize')
+        || check_var('TESTED_CMD', 'customize_recovery'))
+    {
+        my $k8s = get_required_var('K8S');
+        my $k8s_version_prefix = get_required_var('K8S_VERSION_PREFIX');
+        my $uri = get_container_uri(
+            url => $totest_path,
+            arch => $arch,
+            regex =>
+              ".*${k8s}-manifest-\(${k8s_version_prefix}\\.[0-9]*\)-\(.*\)"
+        );
+
+        my $elemental3_uri = get_container_uri(
+            url => $totest_path,
+            arch => $arch,
+            regex => ".*elemental-\([0-9]\\..*\)-\(.*\)"
+        );
+
+        $out_file = customize_cmd(
+            config_dir => $tmpdir,
+            elemental3_uri => $elemental3_uri,
+            hddsize => $hddsize,
+            img_filename => $img_filename,
+            k8s => $k8s,
+            manifest_uri => $uri,
+            rootpwd => $hashpwd,
+            template => $tpl_file,
+            timeout => $timeout
+        );
+    }
+
+    if (check_var('TESTED_CMD', 'extract_iso')) {
+        my $kernel_type = get_required_var('KERNEL_TYPE');
+        my $kernel = "base-os-kernel-$kernel_type-iso-";
+        my $uri = get_container_uri(
+            url => $totest_path,
+            arch => $arch,
+            regex => ".*${kernel}\([0-9]*\\..*\)-\(.*\)"
+        );
+
+        my ($fn, $version, $build) = get_values(
+            url => "${totest_path}/containers",
+            arch => $arch,
+            regex => ".*${kernel}\([0-9]*\\..*\)-\(.*\)"
+        );
+        $kernel =~ s/-$//;
+
+        $out_file = extract_iso(
+            image => $uri,
+            img_filename => $img_filename,
+            iso => "${kernel}.${arch}-${version}-Build${build}.iso",
+            timeout => $timeout
+        );
+    }
 
     # Upload OS image
     upload_asset("$out_file", 1);
