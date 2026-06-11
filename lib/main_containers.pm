@@ -408,6 +408,7 @@ sub load_container_tests {
         if (is_container_image_test()) {
             if (get_var('BCI_TESTS')) {
                 loadtest('containers/bci_prepare');
+                loadtest('containers/bci_signature_check') if (get_var("CONTAINERS_CHECK_SIGNATURE"));
                 loadtest('containers/bci_test', run_args => $run_args, name => 'bci_test_' . $run_args->{runtime});
                 # For Base image we also run traditional image.pm test
                 load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));

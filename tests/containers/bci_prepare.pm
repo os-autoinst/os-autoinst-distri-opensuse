@@ -1,12 +1,7 @@
 # SUSE's openQA tests
 #
-# Copyright 2022-2023 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-#
-# Copying and distribution of this file, with or without modification,
-# are permitted in any medium without royalty provided the copyright
-# notice and this notice are preserved.  This file is offered as-is,
-# without any warranty.
 
 # Summary: bci-tests runner
 #   SUSE Linux Enterprise Base Container Images (SLE BCI)
@@ -135,37 +130,6 @@ sub update_test_repos {
     assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/BCI-tests");
 }
 
-sub check_container_signature {
-    my $engines = get_required_var('CONTAINER_RUNTIMES');
-    my $engine;
-    if ($engines =~ /podman|k3s/) {
-        $engine = 'podman';
-    } elsif ($engines =~ /docker/) {
-        $engine = 'docker';
-    } else {
-        die('No valid container engines defined in CONTAINER_RUNTIMES variable!');
-    }
-
-    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
-    record_info('Image signature', "Checking signature of $image");
-
-    # cosign 2.5 is build upon registry.suse.com/bci/bci-micro:15.7
-    # works with power8 and power10
-    # cosign 3 requires only power9+
-    my $tag = check_var('MACHINE', 'ppc64le-p8-virtio') ? '2.5' : 'latest';
-    my $cosign_image = "registry.suse.com/suse/cosign:$tag";
-
-    my $engine_options = "-v /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem:/SUSE_Trust_Root.crt.pem:ro";
-    my $options = "--key /usr/share/pki/containers/suse-container-key.pem";
-    if ($image =~ "registry.suse.de") {
-        $options .= " --registry-cacert=/SUSE_Trust_Root.crt.pem";    # include SUSE CA for registry.suse.de
-        $options .= " --insecure-ignore-tlog=true";    # ignore missing transparency log entries for registry.suse.de
-    }
-
-    script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 2);
-    assert_script_run("$engine run --rm -q $engine_options $cosign_image verify $options $image", timeout => 300);
-}
-
 sub run {
     select_serial_terminal;
     my ($version, $sp, $host_distri) = get_os_release;
@@ -185,11 +149,6 @@ sub run {
     install_buildah_when_needed($host_distri) if ($engines =~ /podman/ && $host_distri !~ /micro/i);
 
     my $host_version = get_var("HOST_VERSION", get_required_var("VERSION"));    # VERSION is the version of the container, not the host.
-    check_container_signature()
-      if (get_var('CONTAINER_IMAGE_TO_TEST')
-        && get_var("CONTAINERS_SKIP_SIGNATURE", "0") != 1
-        && $host_version =~ "15-SP7|16\..*|slem-6\.1"
-      );
 }
 
 sub test_flags {
