@@ -15,9 +15,11 @@ for the ipaddr2 test.
 Its behavior depends on whether cloud-init was used for the initial setup.
 
 If cloud-init is disabled (B<IPADDR2_CLOUDINIT> is 0), this module will:
-- Check the registration status
-- If the image is Not Registered: register the two SUT VMs
-  with the SUSE Customer Center (SCC) using the provided registration code.
+- Determine the billing model (PAYG, BYOS, or UNKNOWN) via instance-flavor-check
+- For PAYG images: wait for guestregister.service to complete (restart if needed)
+- For BYOS images: register with SCC using the provided registration code
+- For UNKNOWN (bsc#1267739): fall back to SUSEConnect -s to detect status,
+  then register if needed
 - Register any specified add-on products.
 
 After registration (or if cloud-init was enabled), it refreshes the software repositories
@@ -86,36 +88,37 @@ sub run {
     if (check_var('IPADDR2_CLOUDINIT', 0)) {
         foreach (1 .. 2) {
             my $type = ipaddr2_billing_model_get(id => $_, bastion_ip => $bastion_ip);
+            record_info('BILLING', "VM$_ type:$type");
 
-            # Check if somehow the image is already registered or not
-            my $is_registered = ipaddr2_scc_check(
-                bastion_ip => $bastion_ip,
-                id => $_);
-            record_info('REG INITIAL', "type:$type is_registered:$is_registered");
-
-            # Apply registration clean and reboot to redo registercloudguest if failed on PAYG image
-            if (($is_registered ne 1) && ($type eq 'PAYG')) {
+            if ($type eq 'PAYG') {
+                # PAYG images are auto-registered by guestregister.service.
+                # Wait for it to complete; restart if it failed.
                 ipaddr2_scc_registration_workaround_PAYG(
                     bastion_ip => $bastion_ip,
                     id => $_);
+                next;
+            }
 
-                # Record softfail and check again if image is fully registered
-                record_soft_failure('bsc#1254984 - Occasional registration issues on Azure and GCE OnDemand issues');
+            if ($type eq 'UNKNOWN') {
+                # bsc#1267739: instance-flavor-check failed.
+                # Fall back to SUSEConnect -s to determine registration status.
                 my $is_registered = ipaddr2_scc_check(
                     bastion_ip => $bastion_ip,
                     id => $_);
-                record_info('REG WORKAROUND', "type:$type is_registered:$is_registered");
+                record_info('REG FALLBACK', "is_registered:$is_registered");
+                # If already registered, nothing more to do
+                next if $is_registered;
+                # Otherwise, needs registration like BYOS
+                $type = 'BYOS';
             }
 
-            if (($is_registered ne 1) && ($type eq 'BYOS')) {
-                # Conditionally register the SLES for SAP instance.
-                # Registration is attempted only if the instance is not currently registered and a
-                # registration code ('SCC_REGCODE_SLES4SAP') is available.
+            if ($type eq 'BYOS') {
                 my %reg_args = (
                     bastion_ip => $bastion_ip,
                     id => $_,
                     scc_code => get_required_var('SCC_REGCODE_SLES4SAP'));
-                $reg_args{scc_endpoint} = get_var('PUBLIC_CLOUD_SCC_ENDPOINT') if (get_var('PUBLIC_CLOUD_SCC_ENDPOINT'));
+                $reg_args{scc_endpoint} = get_var('PUBLIC_CLOUD_SCC_ENDPOINT')
+                  if (get_var('PUBLIC_CLOUD_SCC_ENDPOINT'));
                 ipaddr2_scc_register(%reg_args);
             }
         }
