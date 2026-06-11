@@ -250,7 +250,7 @@ sub upload_coredumps {
             upload_logs("backtrace$pid.txt", log_name => basename($core) . "_backtrace.txt", failok => 1);
         }
     }
-    die("COREDUMPS found");
+    die("COREDUMPS found") unless get_var('COREDUMP_IGNORE_ERRORS');
 }
 
 =head2 export_logs
