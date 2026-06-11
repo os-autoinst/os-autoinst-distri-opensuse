@@ -13,3 +13,5 @@ repos:
     filter: name
 bootloader_timeout: '8'
 self_update_enabled: 1
+ntp_servers:
+  - 3.suse.pool.ntp.org
