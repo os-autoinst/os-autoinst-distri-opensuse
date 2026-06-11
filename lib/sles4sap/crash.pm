@@ -551,13 +551,11 @@ sub crash_softrestart(%args) {
 
     my $start_time = time();
     # wait till ssh disappear
-    my $out = $args{instance}->wait_for_ssh(
-        timeout => $args{timeout},
-        wait_stop => 1);
+    my $out = $args{instance}->wait_for_ssh_unreachable(timeout => $args{timeout});
     # ok ssh port closed
     record_info("Shutdown failed",
-        "WARNING: while stopping the system, ssh port still open after timeout,\nreporting: $out")
-      if (defined $out);    # not ok port still open
+        "WARNING: while stopping the system, ssh port still open after timeout,\nreporting: $out->{duration}")
+      if ($out->{timed_out} || $args{instance}->isok($out->{exit_code}));    # not ok port still open
 
     my $shutdown_time = time() - $start_time;
     $args{instance}->wait_for_ssh(
