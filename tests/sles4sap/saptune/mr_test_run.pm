@@ -525,6 +525,8 @@ sub test_notes {
         # The ASE docs don't recommend any specific value or formula, so it must
         # be tested with an override file in test_overrides()
         next if ($note eq "1805750");
+        # Skip 1680803 on Azure, note 1680803 does nothing on Azure
+        next if ($note eq "1680803" and is_azure());
         $self->test_note($note);
     }
 }
