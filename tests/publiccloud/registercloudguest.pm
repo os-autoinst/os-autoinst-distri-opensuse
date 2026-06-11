@@ -48,14 +48,8 @@ sub run {
     # $self->{my_instance} is used in this test module
     # $args->{my_instance} is used in base module
     # $args->{my_provider} is used in base module
-    if (get_var('PUBLIC_CLOUD_QAM', 0)) {
-        $provider = $args->{my_provider};
-        $instance = $self->{my_instance} = $args->{my_instance};
-    } else {
-        $provider = $args->{my_provider} = $self->provider_factory();
-        $instance = $self->{my_instance} = $args->{my_instance} = $provider->create_instance();
-        $instance->wait_for_guestregister() if (is_ondemand());
-    }
+    $provider = $args->{my_provider};
+    $instance = $self->{my_instance} = $args->{my_instance};
 
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
         record_info('SKIP', 'PUBLIC_CLOUD_SCC_ENDPOINT is hardcoded to SUSEConnect - skipping registration testing. Falling back to registration module behavior');

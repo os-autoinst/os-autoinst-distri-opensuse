@@ -131,14 +131,14 @@ sub load_latest_publiccloud_tests {
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
         loadtest 'publiccloud/az_accelerated_net', run_args => $args;
     }
-    elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest "publiccloud/registercloudguest", run_args => $args;
-    }
     elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
         loadtest "publiccloud/azure_aitl", run_args => $args;
     } else {    # All test cases below require prepare_instance
         loadtest "publiccloud/prepare_instance", run_args => $args;
-        if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+        if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
+            loadtest "publiccloud/registercloudguest", run_args => $args;
+        }
+        elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
             loadtest "publiccloud/img_proof", run_args => $args;
         } else {    # All test cases below require registration
             loadtest("publiccloud/registration", run_args => $args);
