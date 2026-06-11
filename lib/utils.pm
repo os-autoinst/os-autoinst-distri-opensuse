@@ -635,9 +635,10 @@ sub zypper_call {
     my $allow_exit_codes = $args{exitcode} || [0];
     my $timeout = $args{timeout} || 700;
     my $log = $args{log};
+    my $var = $args{tmpfs} ? '/var' : '';
     my $dumb_term = $args{dumb_term} // is_serial_terminal;
 
-    my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
+    my $printer = $log ? "| tee $var/tmp/$log" : $dumb_term ? '| cat' : '';
     die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
 
     $IN_ZYPPER_CALL = 1;
@@ -723,7 +724,7 @@ sub zypper_call {
         });
     }
 
-    upload_logs("/tmp/$log") if $log;
+    upload_logs("$var/tmp/$log") if $log;
 
     unless (grep { $_ == $ret } @$allow_exit_codes) {
         upload_logs('/var/log/zypper.log');
