@@ -62,8 +62,4 @@ sub run {
     $self->result($test_module_result);
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;
