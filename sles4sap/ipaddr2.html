@@ -468,7 +468,7 @@
     no_assert =&gt; 1,
     retry =&gt; 2);</code></pre>
 
-<p>Run a command on one of the two internal VM through the bastion using the assert_script_run API</p>
+<p>Run a command on one of the two internal VM through the bastion using the script_run testapi. It returns the exit code of the application. It dies for timeout and if exit code is not zero and no_assert is not defined.</p>
 
 <dl>
 
@@ -579,13 +579,15 @@
 
 <h2 id="ipaddr2_scc_registration_workaround_PAYG">ipaddr2_scc_registration_workaround_PAYG</h2>
 
-<pre><code>my ipaddr2_scc_registration_workaround_PAYG(id =&gt; 1);</code></pre>
+<pre><code>ipaddr2_scc_registration_workaround_PAYG(id =&gt; 1);</code></pre>
 
-<p>Workaround for PAYG image scc registration. Do cleanup, reboot and re-register. Do debug.</p>
+<p>Wait for guestregister.service to complete on a PAYG image. If the service fails, collect diagnostics and attempt recovery by restarting it (matching the approach in ansible/playbooks/tasks/check-guestregister-service.yaml).</p>
+
+<p>Dies if registration cannot be recovered after restart. Records a soft failure (bsc#1254984) if restart was needed.</p>
 
 <dl>
 
-<dt id="id---VM-id-where-to-install-and-configure-the-web-server1"><b>id</b> - VM id where to install and configure the web server</dt>
+<dt id="id---VM-id-to-check"><b>id</b> - VM id to check</dt>
 <dd>
 
 </dd>
@@ -603,7 +605,7 @@
 
 <dl>
 
-<dt id="id---VM-id-where-to-install-and-configure-the-web-server2"><b>id</b> - VM id where to install and configure the web server</dt>
+<dt id="id---VM-id-where-to-install-and-configure-the-web-server1"><b>id</b> - VM id where to install and configure the web server</dt>
 <dd>
 
 </dd>
@@ -631,13 +633,31 @@
 
 <h2 id="ipaddr2_billing_model_get">ipaddr2_billing_model_get</h2>
 
-<pre><code>my $is_byos_or_payg = ipaddr2_billing_model_get(id =&gt; 1);</code></pre>
+<pre><code>my $billing = ipaddr2_billing_model_get(id =&gt; 1);</code></pre>
 
-<p>Return the billing model of the running image, between BYOS and PAYG, internally calling instance-flavor-check</p>
+<p>Return the billing model of the running image by calling instance-flavor-check. Possible return values:</p>
 
 <dl>
 
-<dt id="id---VM-id-where-to-install-and-configure-the-web-server3"><b>id</b> - VM id where to install and configure the web server</dt>
+<dt id="PAYG---instance-flavor-check-exit-code-10-valid-PAYG-metadata"><code>PAYG</code> - instance-flavor-check exit code 10 (valid PAYG metadata)</dt>
+<dd>
+
+</dd>
+<dt id="BYOS---instance-flavor-check-exit-code-11-or-12"><code>BYOS</code> - instance-flavor-check exit code 11 or 12</dt>
+<dd>
+
+</dd>
+<dt id="UNKNOWN---instance-flavor-check-crashed-with-bsc-1267739-FileNotFoundError-on-fresh-BYOS-images-where-var-cache-cloudregister-does-not-exist-.-A-record_soft_failure-is-emitted"><code>UNKNOWN</code> - instance-flavor-check crashed with bsc#1267739 (FileNotFoundError on fresh BYOS images where /var/cache/cloudregister/ does not exist). A record_soft_failure is emitted.</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>The function dies on unexpected exit codes or when rc=1 without the known FileNotFoundError signature.</p>
+
+<dl>
+
+<dt id="id---VM-id-where-to-run-instance-flavor-check"><b>id</b> - VM id where to run instance-flavor-check</dt>
 <dd>
 
 </dd>
@@ -655,7 +675,7 @@
 
 <dl>
 
-<dt id="id---VM-id-where-to-install-and-configure-the-web-server4"><b>id</b> - VM id where to install and configure the web server</dt>
+<dt id="id---VM-id-where-to-install-and-configure-the-web-server2"><b>id</b> - VM id where to install and configure the web server</dt>
 <dd>
 
 </dd>
@@ -681,7 +701,7 @@
 
 <dl>
 
-<dt id="id---VM-id-where-to-install-and-configure-the-web-server5"><b>id</b> - VM id where to install and configure the web server</dt>
+<dt id="id---VM-id-where-to-install-and-configure-the-web-server3"><b>id</b> - VM id where to install and configure the web server</dt>
 <dd>
 
 </dd>
@@ -699,7 +719,7 @@
 
 <dl>
 
-<dt id="id---VM-id-where-to-install-and-configure-the-web-server6"><b>id</b> - VM id where to install and configure the web server</dt>
+<dt id="id---VM-id-where-to-install-and-configure-the-web-server4"><b>id</b> - VM id where to install and configure the web server</dt>
 <dd>
 
 </dd>
