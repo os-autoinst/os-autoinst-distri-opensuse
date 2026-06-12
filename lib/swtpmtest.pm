@@ -39,14 +39,16 @@ my $active_vm_name;
 # package versions, OVMF firmware presence, SELinux mode. Failok — this
 # is informational.
 sub _record_swtpm_preflight {
+    my $ovmf_pkg = is_aarch64 ? 'qemu-uefi-aarch64' : 'qemu-ovmf-x86_64';
     my $pkgs = script_output(
-        "rpm -q qemu swtpm libtpms0 libvirt-daemon qemu-ovmf-x86_64 || true",
+        "rpm -q qemu swtpm libtpms0 libvirt-daemon $ovmf_pkg || true",
         proceed_on_failure => 1
     );
     record_info('swtpm pkgs', $pkgs);
 
+    my $fw_glob = is_aarch64 ? '/usr/share/qemu/*aarch64*' : '/usr/share/qemu/ovmf-x86_64*';
     my $fw = script_output(
-        "ls -la /usr/share/qemu/ovmf-x86_64* 2>&1; sha256sum /usr/share/qemu/ovmf-x86_64*-code* /usr/share/qemu/ovmf-x86_64*-vars* 2>&1 || true",
+        "ls -la $fw_glob 2>&1; sha256sum ${fw_glob}-code* ${fw_glob}-vars* 2>&1 || true",
         proceed_on_failure => 1
     );
     record_info('OVMF firmware', $fw);
@@ -97,10 +99,12 @@ sub start_swtpm_vm {
     # this, a guest that hangs in OVMF or before bringing up virtio-net
     # leaves no trace anywhere in the openQA artifacts.
     my $serial_log = "$serial_dir/${vm_name}-serial.log";
+    my $serial_target_type = is_aarch64 ? 'system-serial' : 'isa-serial';
+    my $serial_model_name = is_aarch64 ? 'pl011' : 'isa-serial';
     assert_script_run("mkdir -p $diag_dir $serial_dir && :> $serial_log && chown qemu:qemu $serial_log");
     assert_script_run(
         "perl -i -0pe '"
-          . "s{<serial type=.pty.>.*?</serial>}{<serial type=\"file\"><source path=\"$serial_log\" append=\"on\"/><target type=\"isa-serial\" port=\"0\"><model name=\"isa-serial\"/></target></serial>}s;"
+          . "s{<serial type=.pty.>.*?</serial>}{<serial type=\"file\"><source path=\"$serial_log\" append=\"on\"/><target type=\"$serial_target_type\" port=\"0\"><model name=\"$serial_model_name\"/></target></serial>}s;"
           . "s{<console type=.pty.>.*?</console>}{<console type=\"file\"><source path=\"$serial_log\" append=\"on\"/><target type=\"serial\" port=\"0\"/></console>}s"
           . "' $guest_xml->{$swtpm_vm_type}"
     );
