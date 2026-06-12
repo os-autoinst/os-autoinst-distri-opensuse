@@ -94,6 +94,7 @@ sub run {
         assert_and_click 'wsl-suse-startup-search';
         if (check_var('DISTRI', 'sle') || is_aarch64) {
             assert_and_click("welcome_to_wsl", timeout => 120);
+            assert_screen("welcome_to_wsl-window");
             send_key "alt-f4";
         }
     } elsif ($install_from eq 'msstore') {
@@ -120,6 +121,7 @@ sub run {
         }
         if (check_var('DISTRI', 'sle')) {
             assert_and_click("welcome_to_wsl", timeout => 120);
+            assert_screen("welcome_to_wsl-window");
             send_key "alt-f4";
         }
 
