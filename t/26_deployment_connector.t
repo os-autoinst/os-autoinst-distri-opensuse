@@ -15,6 +15,9 @@ sub undef_variables {
     my @openqa_variables = qw(
       SDAF_DEPLOYER_RESOURCE_GROUP
       SDAF_DEPLOYER_VNET_CODE
+      WORKER_HOSTNAME
+      SDAF_RETAIN_DEPLOYMENT
+      SDAF_DEPLOYMENT_OWNER
     );
     set_var($_, '') foreach @openqa_variables;
 }
@@ -304,6 +307,20 @@ subtest '[destroy_orphaned_peerings]' => sub {
     });
     ok(!destroy_orphaned_peerings(), 'Delete orphaned peering');
 
+    undef_variables;
+};
+
+subtest '[get_deployment_tags] Check returned value' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    $mock_function->redefine(get_current_job_id => sub { '42' });
+    set_var('SDAF_RETAIN_DEPLOYMENT', 'yes');
+    set_var('WORKER_HOSTNAME', 'OSD');
+    set_var('SDAF_DEPLOYMENT_OWNER', 'Unit test');
+
+    my %result = %{get_deployment_tags()};
+    is $result{deployed_by}, 'Unit test', 'Apply "deployed_by" tag';
+    is $result{openqa_instance}, 'OSD', 'Apply "openqa_instance" tag.';
+    is $result{deployment_id}, '42', 'Apply "deployment_id" tag.';
     undef_variables;
 };
 

@@ -46,7 +46,7 @@ subtest '[create_sap_systems_tfvars] ENSA2 cluster settings' => sub {
     $ms_sdaf->redefine(get_os_variable => sub { return 'espresso'; });
     $ms_sdaf->redefine(generate_resource_group_name => sub { return 'NoSleepSquad'; });
     $ms_sdaf->redefine(write_tfvars_file => sub { $tfvars_data = $_[1]; return 'lungo'; });
-    $ms_sdaf->redefine(upload_logs => sub { return; });
+    $ms_sdaf->noop(qw(get_tags_entry upload_logs));
 
     set_openqa_settings;
     set_var('SDAF_DEPLOYER_VNET_CODE', 'DEP00');
@@ -68,7 +68,7 @@ subtest '[create_sap_systems_tfvars] Simple HanaSR cluster settings' => sub {
     $ms_sdaf->redefine(get_os_variable => sub { return 'espresso'; });
     $ms_sdaf->redefine(generate_resource_group_name => sub { return 'NoSleepSquad'; });
     $ms_sdaf->redefine(write_tfvars_file => sub { $tfvars_data = $_[1]; return 'lungo'; });
-    $ms_sdaf->redefine(upload_logs => sub { return; });
+    $ms_sdaf->noop(qw(get_tags_entry upload_logs));
 
     set_openqa_settings;
     set_var('SDAF_DEPLOYMENT_SCENARIO', 'db_install,db_ha');
