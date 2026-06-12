@@ -74,11 +74,13 @@ sub run {
         assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
         if (is_pvm) {
-            reset_consoles;
             reconnect_mgmt_console(timeout => 60);
         }
         assert_screen('grub-menu-migration', 120);
         send_key('ret', wait_screen_change => 1);
+        if (is_pvm) {
+            reconnect_mgmt_console(timeout => 60);
+        }
         if (!is_pvm) {
             assert_screen('migration-running', 60);
             assert_screen('grub2', 1000);
