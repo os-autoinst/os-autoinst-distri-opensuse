@@ -14,8 +14,16 @@ use scheduler qw(get_test_suite_data);
 sub run {
     my $self_update_enabled = get_test_suite_data()->{self_update_enabled};
     if ($self_update_enabled) {
-        unless (script_output('systemctl status live-self-update.service', proceed_on_failure => 1) =~ /exit 0/) {
+        my $systemctl_trace = script_output('systemctl status live-self-update.service', proceed_on_failure => 1)
+        record_info($systemctl_trace);
+        unless ($systemctl_trace =~ /status=0\/SUCCESS/) {
             die "Self update did not ended successfully";
+        }
+
+        my $self_update_trace = script_output('journalctl -t live-self-update.service --no-pager');
+        record_info($self_update_trace);
+        unless ( $self_update_trace =~ get_var('INST_SELF_UPDATE', 'https://scc.suse.com')) {
+            die "Self update did not use specified URL";
         }
     } else {
         systemctl('is-active live-self-update', expect_false => 1);
