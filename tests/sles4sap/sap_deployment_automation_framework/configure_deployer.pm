@@ -63,6 +63,11 @@ sub run {
     die 'Registration attempts failed. Check logs for details' if $register_rc;
     record_info('Reg OK', 'Registration repaired');
 
+    # It is a workaround for https://github.com/ansible/ansible/issues/82758:
+    #   (Heads up: Python 3.13 will remove the module crypt, impacting ansible)
+    assert_script_run('sudo /opt/ansible/venv/2.16/bin/python -m pip install passlib');
+    record_soft_failure 'gh#34 - https://github.com/sdaf-suse/sap-automation/issues/34 - Install passlib';
+
     my $subscription_id = az_login();
     set_common_sdaf_os_env(subscription_id => $subscription_id);
     prepare_sdaf_project();
