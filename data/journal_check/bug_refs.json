@@ -1525,7 +1525,9 @@
                 "6.0"
             ],
             "opensuse": [
-                "Tumbleweed"
+                "Tumbleweed",
+                "16.0",
+                "16.1"
             ],
             "microos": [
                 "Tumbleweed"
