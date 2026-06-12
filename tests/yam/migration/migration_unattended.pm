@@ -11,6 +11,7 @@ use testapi;
 use power_action_utils 'power_action';
 use utils qw(zypper_call reconnect_mgmt_console upload_folders);
 use Utils::Architectures 'is_s390x';
+use Utils::Backends 'is_pvm';
 use registration;
 
 sub run {
@@ -21,6 +22,7 @@ sub run {
     # Add repo for devel:DMS when using proxy
     if ((get_var('SCC_URL', "") =~ /proxy/)) {
         my $repo_server = "https://download.opensuse.org/repositories/devel:/DMS/";
+        assert_script_run("echo 'url: " . get_var('SCC_URL') . "' > /etc/SUSEConnect");
         my $repo_url = $repo_server . "SLE_" . (get_var('VERSION_UPGRADE_FROM') =~ s/-/_/gr);
         zypper_call("ar --refresh -p 90 '$repo_url' Migration");
     }
@@ -62,6 +64,7 @@ sub run {
     upload_folders(folders => '/etc/zypp/repos.d/');
 
     if (is_s390x) {
+        assert_script_run("echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf");
         enter_cmd '/usr/sbin/run_migration';
         reset_consoles;
         reconnect_mgmt_console(timeout => 600);
@@ -70,10 +73,18 @@ sub run {
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
         assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
+        if (is_pvm) {
+            reconnect_mgmt_console(timeout => 60);
+        }
         assert_screen('grub-menu-migration', 120);
-        send_key 'ret';
-        assert_screen('migration-running', 60);
-        assert_screen('grub2', 1000);
+        send_key('ret', wait_screen_change => 1);
+        if (is_pvm) {
+            reconnect_mgmt_console(timeout => 60);
+        }
+        if (!is_pvm) {
+            assert_screen('migration-running', 60);
+            assert_screen('grub2', 1000);
+        }
     }
 }
 
