@@ -8,6 +8,8 @@ conditional_schedule:
         - installation/opensuse_welcome
       aarch64:
         - installation/opensuse_welcome
+      ppc64le:
+        - installation/opensuse_welcome
 schedule:
   - installation/bootloader_start
   - installation/agama
