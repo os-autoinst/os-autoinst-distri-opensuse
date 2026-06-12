@@ -38,6 +38,7 @@
       <li><a href="#adjust_user_password">adjust_user_password</a></li>
       <li><a href="#expand_agama_secrets">expand_agama_secrets</a></li>
       <li><a href="#expand_agama_profile">expand_agama_profile</a></li>
+      <li><a href="#generate_calculated_variables">generate_calculated_variables</a></li>
       <li><a href="#generate_json_profile">generate_json_profile</a></li>
       <li><a href="#upload_profile">upload_profile</a></li>
       <li><a href="#create_file_as_profile_companion">create_file_as_profile_companion</a></li>
@@ -287,6 +288,12 @@ $profile is the autoyast profile &#39;autoinst.xml&#39;.</code></pre>
 <pre><code>expand_agama_profile($profile, $profile_expanded);
 
 Return the PATH of profile with expanded vars</code></pre>
+
+<h2 id="generate_calculated_variables">generate_calculated_variables</h2>
+
+<pre><code>generate_calculated_variables($profile);
+
+Return the profile with its variables calculated via some function or library</code></pre>
 
 <h2 id="generate_json_profile">generate_json_profile</h2>
 
