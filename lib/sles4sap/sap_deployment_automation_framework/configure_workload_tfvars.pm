@@ -15,7 +15,7 @@ use utils qw(write_sut_file);
 use sles4sap::sap_deployment_automation_framework::deployment qw(get_os_variable get_fencing_mechanism);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
   qw(convert_region_to_short generate_resource_group_name);
-use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id no_cleanup_tag);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(find_deployment_id get_deployment_tags);
 
 =head1 SYNOPSIS
 
@@ -181,6 +181,19 @@ sub create_workload_tfvars {
     upload_logs($tfvars_file, log_name => 'workload_zone.tfvars.txt');
 }
 
+=head2 get_tags_entry
+
+    get_tags_entry();
+
+Returns string with tag list
+
+=cut
+
+sub get_tags_entry {
+    my %deployment_tags = %{get_deployment_tags()};
+    return join(', ', map { qq|"$_" = "$deployment_tags{$_}"| } keys %deployment_tags);
+}
+
 =head2 define_workload_environment
 
     define_workload_environment(environment=>'LAB', location=>'swedencentral', resource_group=>'OpenQA');
@@ -225,17 +238,12 @@ sub define_workload_environment {
         # Defines the number of workload _vms to create
         utility_vm_count => q|0|,
         # These tags will be applied to all resources
-        tags => q|{"DeployedBy" = "OpenQA-SDAF-automation"}|,
+        tags => get_tags_entry(),
         deployer_tfstate_key => qq|"$args{environment}-${sdaf_region}-${vnet_code}-INFRASTRUCTURE.terraform.tfstate"|,
         public_network_access_enabled => q|true|,
         subscription_id => '"' . get_os_variable('ARM_SUBSCRIPTION_ID') . '"',
         control_plane_name => '"' . "$args{environment}-" . $sdaf_region . '-' . $vnet_code . '"'
     );
-
-    # Add no cleanup tag if the deployment should be kept after test finished
-    $result{tags} = q|{"DeployedBy" = "OpenQA-SDAF-automation", "| . no_cleanup_tag() . q|" = "1"}|
-      if get_var('SDAF_RETAIN_DEPLOYMENT');
-
     return (\%result);
 }
 
