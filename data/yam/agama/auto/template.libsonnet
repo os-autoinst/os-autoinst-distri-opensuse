@@ -16,7 +16,7 @@ function(bootloader=true,
          dasd=false,
          extra_repositories=false,
          files=false,
-         iscsi=false,
+         iscsi_target_address='',
          localization='',
          mode='',
          multipath_activate=false,
@@ -39,11 +39,12 @@ function(bootloader=true,
          storage='',
          decrypt_password='',
          user=true) (
+         
         base_lib.bootloader(bootloader, bootloader_timeout, bootloader_extra_kernel_params) +
         {
           [if dasd == true then 'dasd']: dasd_lib.dasd(),
           [if files == true then 'files']: base_lib['files'],
-          [if iscsi == true then 'iscsi']: iscsi_lib.iscsi(),
+          [if iscsi_target_address != '' then 'iscsi']: iscsi_lib.iscsi(iscsi_target_address),
           [if localization == true then 'localization']: base_lib['localization'],
           [if patterns != '' || packages != '' || extra_repositories ||
             patterns_to_add != '' || patterns_to_remove != '' ||
