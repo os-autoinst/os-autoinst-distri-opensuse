@@ -21,6 +21,13 @@ use Utils::Logging qw(export_healthcheck_basic);
 use Utils::Architectures;
 use x11utils 'ensure_unlocked_desktop';
 
+sub scroll_down {
+    # We need to click on an empty space so we can press arrow down
+    mouse_set(850, 630);
+    mouse_click;
+    send_key "ctrl-down";
+}
+
 sub back_to_overview {
     assert_and_click('agama-overview-tab');
     assert_screen('agama-overview-screen');
@@ -36,59 +43,104 @@ sub has_product_selection {
 
 # A More complex screen for root auth
 sub agama_set_root_password_screen {
-    wait_still_screen 5;
+    if (is_leap('16.0+')) {
+        # In leap 16 we have a simple toggle to enable root password and then we can set it in the same screen
+        assert_and_click('agama-set-root-password');
+        wait_still_screen 5;
 
-    # a new toggle to enable password auth for root
-    assert_and_click('agama-use-root-password');
-    wait_still_screen 5;
+        # a new toggle to enable password auth for root
+        assert_and_click('agama-use-root-password');
+        wait_still_screen 5;
 
-    send_key 'tab';    # to switch from toggle to input box
-    type_password();
-    send_key 'tab';    # show password btn
-    send_key 'tab';
-    wait_still_screen 5;
-    type_password();
-    send_key 'tab';    # show password btn
-    send_key 'tab';    # optional enable public ssh key toggle
-    send_key 'tab';    # accept button
-    save_screenshot;
-    send_key 'ret';
+        send_key 'tab';    # to switch from toggle to input box
+        type_password();
+        send_key 'tab';    # show password btn
+        send_key 'tab';
+        type_password();
+        send_key 'tab';    # show password btn
+        send_key 'tab';    # optional enable public ssh key toggle
+        send_key 'tab';    # accept button
+        save_screenshot;
+        send_key 'ret';
+    } else {
+        assert_and_click('agama-root-login-method');
+        assert_and_click('agama-root-login-password');
+        send_key 'tab';    # to switch from combo to input box
+
+        type_password();
+        send_key 'tab';    # show password btn
+        send_key 'tab';
+        type_password();
+
+        scroll_down();
+
+        # Click the accept button to confirm changes, we use "enter" in agama_define_user_screen
+        assert_and_click('agama-user-accept-button');
+        assert_screen('agama-auth-changes-applied');
+    }
 }
 
 sub agama_define_user_screen {
-    wait_still_screen 5;
+    if (is_leap('16.0+')) {
+        assert_and_click('agama-define-user-button');
+        wait_still_screen 5;
 
-    # We need to click in the middle of the screen or similar
-    # to make screen active so we can start typing.
-    mouse_set(600, 600);
-    mouse_click;
+        # We need to click in the middle of the screen or similar
+        # to make screen active so we can start typing.
+        mouse_set(600, 600);
+        mouse_click;
 
+        # Fullname
+        send_key 'tab';
+        type_string $testapi::realname;
 
-    # Fullname
-    send_key 'tab';
-    type_string 'Bernhard M. Wiedemann';
+        # Username
+        send_key 'tab';
+        type_string $testapi::username;
+        wait_still_screen 5;
 
-    # Username
-    send_key 'tab';
-    type_string $testapi::username;
-    wait_still_screen 5;
+        # Password - we have to send two tabs as there is a button to show typed password
+        send_key 'tab';
+        type_password();
+        send_key 'tab';    # show password btn
+        send_key 'tab';
+        type_password();
 
-    # Password - we have to send two tabs as there is a button to show typed password
-    send_key 'tab';
-    type_password();
-    send_key 'tab';    # show password btn
-    send_key 'tab';
-    type_password();
+        assert_and_click('agama-user-accept-button');
+        wait_still_screen 5;
+    } else {
+        assert_and_click('agama-add-administrator-account');
 
-    # Autologin - Please use NOAUTOLOGIN for now, regression on agama 12
-    # https://github.com/agama-project/agama/issues/2143
-    #if (!get_var("NOAUTOLOGIN")) {
-    #    send_key 'spc';    # checkbox
-    #    wait_still_screen 5;
-    #}
+        # Fullname
+        send_key 'tab';    # to switch from checkbox to input box
+        type_string $testapi::realname;
 
-    assert_and_click('agama-user-accept-button');
-    wait_still_screen 5;
+        # Username
+        send_key 'tab';
+        type_string $testapi::username;
+
+        # Password
+        send_key 'tab';
+        type_password();
+        send_key 'tab';    # show password btn
+        send_key 'tab';
+        type_password();
+
+        send_key 'ret';    # accepts the changes
+        assert_screen('agama-auth-changes-applied');
+    }
+}
+
+sub auth_setup_root {
+    assert_and_click('agama-auth-tab');
+    agama_set_root_password_screen();
+    back_to_overview;
+}
+
+sub auth_define_user {
+    assert_and_click('agama-auth-tab');
+    agama_define_user_screen();
+    back_to_overview;
 }
 
 sub agama_fde_setup {
@@ -135,9 +187,8 @@ sub select_product {
         send_key_until_needlematch($product_to_install, 'down');
         assert_and_click($product_to_install);
         # New agama version has the Select button inside the same container
-        # We need to click on an empty space so we can press arrow down
-        mouse_set(850, 630);
-        mouse_click;
+        scroll_down();
+
         send_key_until_needlematch('agama-product-select', 'ctrl-down');
     }
     assert_and_click('agama-product-select');
@@ -169,9 +220,7 @@ sub software_select_patterns {
 
     # Futher manually selected patterns should go here
     # Click somewhere in the screen to focus the view, so we can scroll down
-    mouse_set(850, 630);
-    mouse_click;
-    send_key "ctrl-down";
+    scroll_down();
 
     assert_and_click('agama-software-selection-close');
 
@@ -202,17 +251,9 @@ sub run {
     # can take few minutes to get here
     assert_screen('agama-overview-screen', timeout => $agama_screen_timeout);
 
-    # clicking on agama-show-tab seems to be no longer needed
-    # on low-res screens
-    assert_and_click('agama-auth-tab');
-    assert_and_click('agama-set-root-password');
-    agama_set_root_password_screen();
+    auth_setup_root();
 
-
-    # Define user and set autologin on
-    assert_and_click('agama-define-user-button');
-    agama_define_user_screen();
-    back_to_overview;
+    auth_define_user();
 
     # Agama 20+ has a new desktop selection screen
     if (!is_leap('=16.0') && !check_var('DESKTOP', "textmode")) {
