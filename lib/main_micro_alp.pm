@@ -253,6 +253,7 @@ sub load_common_tests {
     # breaking most later modules.
     # Skip the test if setups don't support snapshot rollback due to bsc#1266277
     loadtest 'console/year_2038_detection' unless (is_s390x || is_bootloader_sdboot || get_var('QEMU_DISABLE_SNAPSHOTS'));
+    loadtest 'console/synce4l_gpsd' if (is_sle_micro('>=6.2'));
 }
 
 
