@@ -43,6 +43,7 @@ my @conflicting_packages = (
     'ImageMagick-config-7-upstream-open',
     'ImageMagick-config-7-upstream-secure',
     'ImageMagick-config-7-upstream-websafe',
+    'rmt-server-pubcloud', 'rmt-server-config',
     'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
     'apache2-mod_php8'
 );
