@@ -50,7 +50,6 @@ subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
     $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -112,7 +111,6 @@ subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(write_sut_file => sub { return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
     $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -488,7 +486,6 @@ subtest '[ipaddr2_internal_key_gen]' => sub {
     ipaddr2_internal_key_gen();
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-
     ok((any { /ssh-keygen/ } @calls), 'Generate the keys if they does not exist');
     # search through all the ssh-keygen and extract the ssh key file path after -f
     # then check if there's a scp uploading it
@@ -1004,8 +1001,7 @@ subtest '[ipaddr2_cloudinit_create]' => sub {
     $ipaddr2->redefine(write_sut_file => sub {
             $cloud_init_content = $_[1];
             return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
-
+    $ipaddr2->noop('upload_logs');
     ipaddr2_cloudinit_create();
 
     note("cloud_init_content:\n" .
@@ -1023,7 +1019,7 @@ subtest '[ipaddr2_cloudinit_create] with scc_code' => sub {
     $ipaddr2->redefine(write_sut_file => sub {
             $cloud_init_content = $_[1];
             return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
+    $ipaddr2->noop('upload_logs');
 
     ipaddr2_cloudinit_create(scc_code => 'ABCD');
 
@@ -1041,7 +1037,7 @@ subtest '[ipaddr2_cloudinit_create] nginx_root' => sub {
     $ipaddr2->redefine(write_sut_file => sub {
             $cloud_init_content = $_[1];
             return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
+    $ipaddr2->noop('upload_logs');
 
     ipaddr2_cloudinit_create(nginx_root => 'ABCD');
 
@@ -1323,7 +1319,7 @@ subtest '[ipaddr2_cleanup] ipaddr2_deployment_logs' => sub {
     my $called = 0;
     $ipaddr2->redefine(ipaddr2_azure_resource_group => sub { return 'Volta'; });
     $ipaddr2->redefine(az_vm_diagnostic_log_get => sub { $called = 1; return ('aaaaa.log', 'bbbbbb.log'); });
-    $ipaddr2->redefine(upload_logs => sub { return; });
+    $ipaddr2->noop('upload_logs');
     $ipaddr2->redefine(ipaddr2_infra_destroy => sub { return; });
 
     ipaddr2_cleanup(diagnostic => 1, cloudinit => 0);
@@ -1348,6 +1344,7 @@ subtest '[ipaddr2_logs_collect]' => sub {
     });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
 
     note("Testing log collection with successful SSH commands...");
     ipaddr2_logs_collect();
@@ -1390,12 +1387,15 @@ subtest '[ipaddr2_logs_collect] skip scp on failure' => sub {
             push @scp_calls, $_[0] if $_[0] =~ /^scp /;
             return 0;
     });
-    $ipaddr2->redefine(assert_script_run => sub { return; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
 
     note("Testing log collection with failing SSH commands (skip scp)...");
     ipaddr2_logs_collect();
 
+    note("\n  -->  " . join("\n  -->  ", @calls));
     is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal still called 8 times for log generation");
     is(scalar @scp_calls, 0, "scp is NOT called because all log generation failed");
     is(scalar @upload_calls, 2, "upload_logs called only 2 times for local logs");
@@ -1646,6 +1646,73 @@ subtest '[ipaddr2_scc_registration_workaround_PAYG] recovery fails' => sub {
 
     dies_ok { ipaddr2_scc_registration_workaround_PAYG(id => 1, bastion_ip => '1.2.3.4') }
     "Die when system remains Not Registered after restart";
+};
+
+subtest '[ipaddr2_logs_collect] supportconfig workaround applied when supportutils >= 3.1.25' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->noop('upload_logs');
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+
+    my @version_cmds;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @version_cmds, $args{cmd};
+            return '3.2.12.2';
+    });
+
+    my @ssh_cmds;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_cmds, $args{cmd};
+            return 0;
+    });
+
+    my @soft_failures;
+    $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
+
+    ipaddr2_logs_collect();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  VERSION CMDS -->  " . join("\n  VERSION CMDS -->  ", @version_cmds));
+    note("\n  SSH CMDS -->  " . join("\n  SSH CMDS -->  ", @ssh_cmds));
+    note("\n  SOFT FAILURES -->  " . join("\n  SOFT FAILURES -->  ", @soft_failures));
+
+    ok((any { /rpm.*queryformat.*supportutils/ } @version_cmds), 'Version check queries supportutils package');
+    ok((any { /sudo supportconfig.*< \/dev\/null/ } @ssh_cmds), 'supportconfig cmd has /dev/null stdin redirect (bsc#1268173 workaround)');
+    ok((any { /bsc#1268173/ } @soft_failures), 'record_soft_failure called with bsc#1268173');
+};
+
+subtest '[ipaddr2_logs_collect] supportconfig workaround not applied when supportutils < 3.1.25' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->noop('upload_logs');
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.1.24'; });
+
+    my @ssh_cmds;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_cmds, $args{cmd};
+            return 0;
+    });
+
+    my @soft_failures;
+    $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
+
+    ipaddr2_logs_collect();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  SSH CMDS -->  " . join("\n  SSH CMDS -->  ", @ssh_cmds));
+
+    ok((none { /sudo supportconfig.*< \/dev\/null/ } @ssh_cmds), 'supportconfig cmd has no /dev/null redirect when supportutils < 3.1.25');
+    ok((none { /bsc#1268173/ } @soft_failures), 'record_soft_failure not called when supportutils < 3.1.25');
 };
 
 done_testing;
