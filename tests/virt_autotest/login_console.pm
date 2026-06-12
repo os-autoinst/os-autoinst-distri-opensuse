@@ -103,6 +103,10 @@ sub login_to_console {
         ipmitool("chassis power reset");
         reset_consoles;
         select_console 'sol', await_console => 0;
+        for (0 .. 1200) {
+            save_screenshot;
+            sleep 1;
+        }
         check_screen(\@bootup_needles, 120);
     }
 
