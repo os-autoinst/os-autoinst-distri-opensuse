@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use utils;
 use base 'opensusebasetest';
-use version_utils qw(is_sle is_opensuse);
+use version_utils qw(is_sle is_opensuse is_sle_micro is_transactional is_tumbleweed);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
@@ -22,6 +22,7 @@ use List::MoreUtils qw(uniq);
 use List::Compare;
 use Config::Tiny;
 use YAML::PP;
+use transactional qw(trup_call check_reboot_changes process_reboot);
 
 our @EXPORT = qw(
   $profile_ID
@@ -141,7 +142,7 @@ our $failed_cce_ids_ref;
 # List to collect needed run results
 our @test_run_report = ();
 
-# Get sle version "sle12" or "sle15"
+# Get sle version "sle12", "sle15" or "sle16"
 our $sle_version = '';
 
 # Stores current SCAP benchmark version
@@ -150,20 +151,44 @@ our $benchmark_version = '';
 # Upload HTML report by default
 set_var('UPLOAD_REPORT_HTML', 1);
 
+sub install_packages {
+    my @pkgs = @_;
+    # skip if already installed:
+    unless (script_run("rpm -q @pkgs") == 0) {
+        if (is_transactional) {
+            trup_call("pkg install @pkgs");
+            check_reboot_changes;
+        } else {
+            zypper_call("in @pkgs");
+        }
+    }
+}
+
 sub set_ds_file {
     # Set the ds file for separate product, e.g.,
+    # for SLMICRO the ds file is "ssg-slmicro[5],[6] -ds.xml";
+    # for SLE16 the ds file is "ssg-sle16-ds.xml";
     # for SLE15 the ds file is "ssg-sle15-ds.xml";
     # for SLE12 the ds file is "ssg-sle12-ds.xml";
     # for Tumbleweed the ds file is "ssg-opensuse-ds.xml"
     my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
-    $f_ssg_sle_ds =
-      '/usr/share/xml/scap/ssg/content/ssg-sle' . "$version" . '-ds.xml';
-    $f_ssg_sle_xccdf =
-      '/usr/share/xml/scap/ssg/content/ssg-sle' . "$version" . '-xccdf.xml';
+    if (is_sle) {
+        $f_ssg_sle_ds =
+          '/usr/share/xml/scap/ssg/content/ssg-sle' . "$version" . '-ds.xml';
+        $f_ssg_sle_xccdf =
+          '/usr/share/xml/scap/ssg/content/ssg-sle' . "$version" . '-xccdf.xml';
+    }
+    if (is_sle_micro) {
+        $f_ssg_sle_ds =
+          '/usr/share/xml/scap/ssg/content/ssg-slmicro' . "$version" . '-ds.xml';
+        $f_ssg_sle_xccdf =
+          '/usr/share/xml/scap/ssg/content/ssg-slmicro' . "$version" . '-xccdf.xml';
+    }
 }
 
 sub set_ds_file_name {
     # Set the ds file name for separate product, e.g.,
+    # for SLE16 the ds file is "ssg-sle16-ds.xml";
     # for SLE15 the ds file is "ssg-sle15-ds.xml";
     # for SLE12 the ds file is "ssg-sle12-ds.xml";
     # for Tumbleweed the ds file is "ssg-opensuse-ds.xml"
@@ -442,6 +467,9 @@ sub upload_logs_reports {
         if (is_sle) {
             $files = script_output('ls | grep "^ssg-sle.*.xml"');
         }
+        elsif (is_sle_micro) {
+            $files = script_output('ls | grep "^ssg-slmicro.*.xml"');
+        }
         else {
             $files = script_output('ls | grep "^ssg-opensuse.*.xml"');
         }
@@ -685,9 +713,18 @@ sub generate_missing_rules {
     my $output_file = "missing_rules.txt";
 
     # Installing python libs to be able to run profile_tool.py
-    zypper_call('in python311-Jinja2 python311-PyYAML python311-pytest python311-pytest-cov python311-setuptools', timeout => 180);
-    my $py_libs = "jinja2 ninja";
-    assert_script_run("pip3.11 install $py_libs", timeout => 600);
+    if (is_sle('>=16')) {
+        my ($py_pkg_ver) = get_current_python_version();
+        zypper_call("in python${py_pkg_ver}-Jinja2 python${py_pkg_ver}-PyYAML python${py_pkg_ver}-pytest python${py_pkg_ver}-pytest-cov python${py_pkg_ver}-setuptools", timeout => 180);
+        my $py_libs = "jinja2 ninja";
+        assert_script_run("pip install $py_libs", timeout => 600);
+        assert_script_run("ln -s python3 /usr/bin/python");
+    }
+    if (is_sle('<16')) {
+        zypper_call('in python311-Jinja2 python311-PyYAML python311-pytest python311-pytest-cov python311-setuptools', timeout => 180);
+        my $py_libs = "jinja2 ninja";
+        assert_script_run("pip3.11 install $py_libs", timeout => 600);
+    }
 
     assert_script_run("cd $compliance_as_code_path");
     assert_script_run("source .pyenv.sh");
@@ -719,7 +756,9 @@ sub get_cac_code {
     my $git_repo = "https://github.com/ComplianceAsCode/content.git";
     my $git_clone_cmd = "git clone " . $git_repo . " $cac_dir";
 
-    zypper_call("in git-core");
+    if (is_sle) {
+        zypper_call("in git-core");
+    }
     assert_script_run("mkdir src");
     assert_script_run("rm -r $cac_dir", quiet => 1) if (-e "$cac_dir");
     assert_script_run('git config --global http.sslVerify false', quiet => 1);
@@ -731,23 +770,44 @@ sub get_cac_code {
 
     record_info("Cloned ComplianceAsCode", "Cloned repo $git_repo to folder: $compliance_as_code_path");
     # In case of use CaC master as source - building content
-    if ($use_content_type == 3) {
-        zypper_call('in cmake libxslt-tools python311-lxml python311-pytest python311-sphinx_rtd_theme python311-prometheus_client python311-Jinja2 python311-pytest-cov', timeout => 180);
-        my $py_libs = "json2html sphinxcontrib-jinjadomain autojinja myst_parser  mypy openpyxl pcre2 cmakelint sphinx";
-        # On s390x pip requires packages to build modules
-        if (is_s390x) {
-            zypper_call('in ninja clang15 libxslt-devel libxml2-devel python311-devel', timeout => 180);
-            assert_script_run("pip3.11 install $py_libs", timeout => 600);
+    if ($use_content_type == 3 || is_sle) {
+        if (is_sle('<16')) {
+            zypper_call('in cmake libxslt-tools python311-lxml python311-pytest python311-sphinx_rtd_theme python311-prometheus_client python311-Jinja2 python311-pytest-cov', timeout => 180);
+            my $py_libs = "json2html sphinxcontrib-jinjadomain autojinja myst_parser  mypy openpyxl pcre2 cmakelint sphinx";
+            # On s390x pip requires packages to build modules
+            if (is_s390x || is_ppc64le) {
+                zypper_call('in ninja clang15 libxslt-devel libxml2-devel python311-devel', timeout => 180);
+                assert_script_run("pip3.11 install $py_libs", timeout => 600);
+            }
+            else {
+                assert_script_run("pip3.11 install $py_libs pandas", timeout => 600);
+            }
+            # Fix python version for the build script
+            assert_script_run("mv /usr/bin/python3 /usr/bin/python3_bkp");
+            assert_script_run("ln -s python3.11 /usr/bin/python3");
+            # Building CaC content
+            assert_script_run("cd $compliance_as_code_path");
+            assert_script_run("sh build_product $sle_version", timeout => 9000);
+            # Restore python3 path
+            assert_script_run("rm -rf /usr/bin/python3");
+            assert_script_run("mv /usr/bin/python3_bkp /usr/bin/python3");
         }
-        else {
-            assert_script_run("pip3.11 install $py_libs pandas", timeout => 600);
+        if (is_sle('>=16')) {
+            my ($py_pkg_ver) = get_current_python_version();
+            zypper_call("in cmake libxslt-tools python${py_pkg_ver}-lxml python${py_pkg_ver}-pytest python${py_pkg_ver}-sphinx_rtd_theme python${py_pkg_ver}-prometheus_client python${py_pkg_ver}-Jinja2 python${py_pkg_ver}-pytest-cov python${py_pkg_ver}-mypy", timeout => 180);
+            my $py_libs = "json2html sphinxcontrib-jinjadomain autojinja myst_parser openpyxl pcre2 cmakelint sphinx";
+            # On s390x and ppc64le pip requires packages to build modules
+            if (is_s390x || is_ppc64le) {
+                zypper_call("in ninja clang15 libxslt-devel libxml2-devel python${py_pkg_ver}-devel", timeout => 180);
+                assert_script_run("pip3 install $py_libs", timeout => 600);
+            }
+            else {
+                assert_script_run("pip3 install $py_libs pandas", timeout => 600);
+            }
+            # Building CaC content
+            assert_script_run("cd $compliance_as_code_path");
+            assert_script_run("sh build_product $sle_version", timeout => 9000);
         }
-        # Building CaC content
-        assert_script_run("cd $compliance_as_code_path");
-        # Set python to version 3.11
-        my $python_ver_fix_cmd = "sed -i \'s/Python_ADDITIONAL_VERSIONS 3/Python_ADDITIONAL_VERSIONS 3.11/g\' CMakeLists.txt";
-        assert_script_run("$python_ver_fix_cmd");
-        assert_script_run("sh build_product $sle_version", timeout => 9000);
         record_info("build_product", "sh build_product $sle_version");
         assert_script_run("cd /root");
     }
@@ -802,21 +862,7 @@ sub get_test_expected_results {
     # Get expected results from remote file
     my $file_name = $_[0];
     my $eval_match = ();
-    my $type = "";
-    my $arch = "";
-
-    if ($ansible_remediation == 1) {
-        $type = 'ansible';
-    }
-    else {
-        $type = 'bash';
-    }
-    if (is_s390x) { $arch = "s390x"; }
-    if (is_aarch64 or is_arm) { $arch = "aarch64"; }
-    if (is_ppc64le) { $arch = "ppc"; }
-    if (is_x86_64) { $arch = "x86_64"; }
-    my $version = get_var('VERSION');
-    my $sles_sp = (split('-', $version))[1];
+    my ($type, $arch, $minor_version, $minor_name) = get_execution_parameters();
 
     my $exp_fail_list_name = $sle_version . "-exp_fail_list";
     my $expected_results_file_name = $file_name . "_" . $benchmark_version . ".yaml";
@@ -838,18 +884,18 @@ sub get_test_expected_results {
 
         # Phrase the expected results
         my $expected_results = YAML::PP::Load($data);
-        record_info("Looking expected results", "Looking expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exp_fail_list_name\nService Pack: $sles_sp");
+        record_info("Looking expected results", "Looking expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exp_fail_list_name\n $minor_name: $minor_version");
 
         if ($expected_results_file_name =~ /base/) {
             $eval_match = $expected_results->{$profile_ID}->{$type}->{$arch}->{$exp_fail_list_name};
         }
         else {
-            $eval_match = $expected_results->{$profile_ID}->{$type}->{$arch}->{$exp_fail_list_name}->{$sles_sp};
+            $eval_match = $expected_results->{$profile_ID}->{$type}->{$arch}->{$exp_fail_list_name}->{$minor_version};
         }
 
         if (defined $eval_match) {
             @eval_match = @$eval_match;
-            record_info("Got expected results", "Got expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exp_fail_list_name\nService Pack: $sles_sp\nBenchmark: $benchmark_version\nList of expected to fail rules:\n" . (join "\n", @eval_match));
+            record_info("Got expected results", "Got expected results for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exp_fail_list_name\n $minor_name: $minor_version\nBenchmark: $benchmark_version\nList of expected to fail rules:\n" . (join "\n", @eval_match));
         }
         else {
             record_info("No expected results", "Expected results are not defined.");
@@ -868,28 +914,14 @@ sub get_test_exclusions {
     my $file_name = $_[0];
     my $exclusions = ();
     my $found = -1;
-    my $type = "";
-    my $arch = "";
     my $return = -1;
+    my ($type, $arch, $minor_version, $minor_name) = get_execution_parameters();
 
     # If set in configuration to not use excusions
     if ($use_exclusions == 0) {
         return $found;
     }
     else {
-        if ($ansible_remediation == 1) {
-            $type = 'ansible';
-        }
-        else {
-            $type = 'bash';
-        }
-        if (is_s390x) { $arch = "s390x"; }
-        if (is_aarch64 or is_arm) { $arch = "aarch64"; }
-        if (is_ppc64le) { $arch = "ppc"; }
-        if (is_x86_64) { $arch = "x86_64"; }
-        my $version = get_var('VERSION');
-        my $sles_sp = (split('-', $version))[1];
-
         my $exclusions_list_name = $sle_version . "-exclusions_list";
         my $exclusions_file_name = $file_name . "_" . $benchmark_version . ".yaml";
         my $url = "https://gitlab.suse.de/seccert-public/compliance-as-code-compiled/-/raw/main/content/";
@@ -910,19 +942,19 @@ sub get_test_exclusions {
 
             # Phrase the expected results
             my $exclusions_data = YAML::PP::Load($data);
-            record_info("Looking exclusions", "Looking exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exclusions_list_name\nService Pack: $sles_sp");
+            record_info("Looking exclusions", "Looking exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exclusions_list_name\n $minor_name: $minor_version");
 
             if ($exclusions_file_name =~ /base/) {
                 $exclusions = $exclusions_data->{$profile_ID}->{$type}->{$arch}->{$exclusions_list_name};
             }
             else {
-                $exclusions = $exclusions_data->{$profile_ID}->{$type}->{$arch}->{$exclusions_list_name}->{$sles_sp};
+                $exclusions = $exclusions_data->{$profile_ID}->{$type}->{$arch}->{$exclusions_list_name}->{$minor_version};
             }
             # If results defined
             if (defined $exclusions) {
                 @exclusions = @$exclusions;
                 $found = 1;
-                record_info("Got exclusions", "Got exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exclusions_list_name\nService Pack: $sles_sp\nBenchmark: $benchmark_version\nList of excluded rules:\n" . (join "\n", @exclusions));
+                record_info("Got exclusions", "Got exclusions for \nprofile_ID: $profile_ID\ntype: $type\narch: $arch\nname: $exclusions_list_name\n $minor_name: $minor_version\nBenchmark: $benchmark_version\nList of excluded rules:\n" . (join "\n", @exclusions));
             }
             else {
                 record_info("No exclusions", "Exclusions are not defined.");
@@ -937,6 +969,47 @@ sub get_test_exclusions {
     }
 }
 
+sub get_current_python_version {
+    # Helper function: returns (py_pkg_ver) for current python3
+    my $version_output = script_output('python3 --version 2>&1');
+    # Expected format: "Python 3.13.0" or "Python 3.9.18"
+    if ($version_output =~ /Python\s+(\d+)\.(\d+)/) {
+        my $major = $1;
+        my $minor = $2;
+        my $py_pkg_ver = "$major$minor";
+        return ($py_pkg_ver);
+    }
+    else {
+        record_info("Failed to get Pyton version", "Could not detect python3 version from output: $version_output", result => 'fail');
+    }
+}
+
+sub get_execution_parameters {
+    # Get parameters for current test execution
+    my ($type, $arch, $minor_version, $minor_name) = ("", "", "", "");
+
+    if ($ansible_remediation == 1) {
+        $type = 'ansible';
+    }
+    else {
+        $type = 'bash';
+    }
+    if (is_s390x) { $arch = "s390x"; }
+    if (is_aarch64 or is_arm) { $arch = "aarch64"; }
+    if (is_ppc64le) { $arch = "ppc"; }
+    if (is_x86_64) { $arch = "x86_64"; }
+    my $version = get_var('VERSION');
+    if (is_sle('<16')) {
+        $minor_version = (split('-', $version))[1];
+        $minor_name = "Service Pack";
+    }
+    if (is_sle('>=16')) {
+        $minor_version = (split(/\./, $version))[1];
+        $minor_name = "Minor version";
+    }
+    return ($type, $arch, $minor_version, $minor_name);
+}
+
 sub oscap_security_guide_setup {
     # Main test setup function
     $full_ansible_file_path = $ansible_file_path . $ansible_profile_ID;
@@ -949,8 +1022,16 @@ sub oscap_security_guide_setup {
         record_info("Ansible", "Ansible remediation used");
     }
 
-    zypper_call('ref -s', timeout => 180);
-    zypper_call('in openscap-utils scap-security-guide', timeout => 180);
+    if (is_sle) {
+        zypper_call('ref -s', timeout => 180);
+        zypper_call('in openscap-utils scap-security-guide', timeout => 180);
+    }
+
+    if (is_sle_micro(">=6.0")) {
+        my @pkgs = ("ansible", "scap-security-guide", "openscap-utils", "git-core");
+        install_packages(@pkgs);
+    }
+
     set_ds_file();
 
     $f_ssg_ds = is_sle ? $f_ssg_sle_ds : $f_ssg_tw_ds;
@@ -993,7 +1074,7 @@ sub oscap_security_guide_setup {
     my $schedule = get_var 'YAML_SCHEDULE';
     push(@test_run_report, "schedule = $schedule");
 
-    unless (is_opensuse) {
+    if (is_sle('<16')) {
         # Some packages require PackageHub repo is available
         return unless is_phub_ready();
         add_suseconnect_product(get_addon_fullname('phub'));
@@ -1006,17 +1087,28 @@ sub oscap_security_guide_setup {
         install_python311();
     }
 
+    if (is_sle('>=16')) {
+        # Some packages require PackageHub repo is available
+        return unless is_phub_ready();
+        add_suseconnect_product(get_addon_fullname('phub'));
+    }
+
     # If required ansible remediation
     if ($ansible_remediation == 1) {
-        my $pkg = 'ansible python311-pyOpenSSL';
-        zypper_call "in $pkg sudo";
-        # Record the pkg' version for reference
-        my $out = script_output("zypper se -s $pkg", quiet => 1);
-        record_info("$pkg Pkg_ver", "$pkg packages' version:\n $out");
-        $out = "";
-        #install ansible.posix
-        assert_script_run("pip3.11 install ansible");
-        assert_script_run("ansible-galaxy collection install ansible.posix");
+        if (is_sle('<16')) {
+            my $pkg = 'ansible python311-pyOpenSSL';
+            zypper_call "in $pkg sudo";
+            # Record the pkg' version for reference
+            my $out = script_output("zypper se -s $pkg", quiet => 1);
+            record_info("$pkg Pkg_ver", "$pkg packages' version:\n $out");
+            $out = "";
+            #install ansible.posix
+            assert_script_run("pip3.11 install ansible");
+            assert_script_run("ansible-galaxy collection install ansible.posix");
+        }
+        if (is_sle('>=16')) {
+            zypper_call "in ansible";
+        }
     }
     if (($remove_rules_missing_fixes == 1) or ($use_content_type == 3)) {
         # Get the code for the ComplianceAsCode by cloning its repository
@@ -1067,18 +1159,9 @@ sub oscap_security_guide_setup {
         my $ansible_version = script_output("ansible --version");
         record_info("ansible version", "Ansible version:\n $ansible_version");
     }
-    # Record python3.6 version for reference
-    my $python36_version = script_output("python3 -VV");
-    record_info("python3.6 version", "python3.6 version:\n $python36_version");
-    # Record python3.11 version for reference
-    my $python311_version = script_output("python3.11 -VV");
-    record_info("python3.11 version", "python3.11 version:\n $python311_version");
-    # Record pip3.6 version for reference
-    my $pip36_version = script_output("pip3.6 -V");
-    record_info("pip3.6 version", "pip3.6 version:\n $pip36_version");
-    # Record pip3.11 version for reference
-    my $pip311_version = script_output("pip3.11 -V");
-    record_info("pip3.11 version", "pip3.11 version:\n $pip311_version");
+    # Record python3 version for reference
+    my $python3_version = script_output_retry('python3 -VV', timeout => 60, retry => 3, delay => 5);
+    record_info("python3 version", "python3 version:\n $python3_version");
 }
 
 =ansible return codes
@@ -1091,7 +1174,7 @@ sub oscap_security_guide_setup {
     Invalid or unexpected arguments, i.e. ansible-playbook --this-arg-doesnt-exist some_playbook.yml.
     A syntax or YAML parsing error was encountered during a dynamic include, i.e. include_role or include_task.
 
-3 = This used to mean “Hosts unreachable” per TQM, but that seems to have been redefined to 4. I’m not sure if this means anything different now.
+3 = This used to mean ï¿½Hosts unreachableï¿½ per TQM, but that seems to have been redefined to 4. Iï¿½m not sure if this means anything different now.
 4 = Can mean any of:
 
     Some hosts were unreachable during the run (login errors, host unavailable, etc). This will NOT end the run early.
