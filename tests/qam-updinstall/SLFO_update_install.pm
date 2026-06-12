@@ -154,13 +154,13 @@ sub run {
             record_info 'Conflicts', "@single_conflicts";
             for my $single_package (@single_conflicts) {
                 record_info 'Conflict preinstall', "Install conflicting package $single_package before update repo is enabled";
-                zypper_call("-v in -l --force-resolution --solver-focus Update $single_package", exitcode => [0, 102, 103], log => "prepare_${patch}_${single_package}.log", timeout => 1500);
+                zypper_call("-v in -l --force-resolution --solver-focus Update $single_package", exitcode => [0, 102, 103], log => "prepare_${patch}_${single_package}.log", timeout => 1500, tmpfs => 1);
 
                 enable_test_repositories($repos_count);
 
                 # Patch binaries already installed.
                 record_info 'Conflict install', "Install patch $patch with conflicting $single_package";
-                zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+                zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500, tmpfs => 1);
 
                 record_info 'Conflict rollback', "Rollback patch $patch with conflicting $single_package";
                 assert_script_run("snapper rollback $rollback_number");
@@ -172,20 +172,20 @@ sub run {
         # Install released binaries present in patch
         record_info 'Preinstall', 'Install affected packages before update repo is enabled';
         if (grep { /\S/ } @patch_conflicts) {
-            zypper_call("--ignore-unknown in -l --force-resolution --solver-focus Update @patch_conflicts", exitcode => [0, 102, 103, 104], log => "prepare_$patch.log", timeout => 1500);
-            record_soft_failure "poo#1234 Preinstalled package is missing, check log prepare_${patch}." if (script_run("grep 'not found in package names' /tmp/prepare_${patch}.log") == 0);
+            zypper_call("--ignore-unknown in -l --force-resolution --solver-focus Update @patch_conflicts", exitcode => [0, 102, 103, 104], log => "prepare_$patch.log", timeout => 1500, tmpfs => 1);
+            record_soft_failure "poo#1234 Preinstalled package is missing, check log prepare_${patch}." if (script_run("grep 'not found in package names' /var/tmp/prepare_${patch}.log") == 0);
         }
         enable_test_repositories($repos_count);
 
         # Patch binaries installed in preinstall
         record_info 'Patch', "Install patch $patch";
-        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500, tmpfs => 1);
 
         # Install binaries newly added by the incident
         my @new_binaries;
         if (scalar @new_binaries) {
             record_info 'New packages', "New packages: @new_binaries";
-            zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
+            zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500, tmpfs => 1);
         }
 
         if (is_s390x) {
@@ -205,11 +205,13 @@ sub run {
         }
     }
 
+    assert_script_run("mount");
+    assert_script_run("ls -l /var/tmp");
     # merge logs from all patches into one which is testreport template expecting
     foreach (qw(prepare zypper new)) {
-        next if script_run("timeout 20 ls /tmp|grep ${_}_");
-        assert_script_run("cat /tmp/$_* > /tmp/$_.log");
-        upload_logs("/tmp/$_.log");
+        next if script_run("timeout 20 ls /var/tmp|grep ${_}_");
+        assert_script_run("cat /var/tmp/$_* > /var/tmp/$_.log");
+        upload_logs("/var/tmp/$_.log");
     }
 }
 
