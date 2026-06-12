@@ -104,7 +104,10 @@ sub configure_sssd_client ($container_engine, $run_as_user = 'root') {
         record_info('Config', 'Configuring SSSD to run as root');
         # Ensure root ownership (or default)
         assert_script_run("rm -f /etc/systemd/system/sssd.service.d/override.conf");
-        assert_script_run("chown -R root:root /etc/sssd /var/lib/sss /var/log/sssd");
+        assert_script_run("chown -R root:root /etc/sssd /var/lib/sss /var/log/sssd /etc/sssd/sssd.conf");
+        assert_script_run("chown -R sssd:sssd /var/lib/sss /var/log/sssd") if is_tumbleweed;
+        assert_script_run("chmod 0600 /etc/sssd/sssd.conf");
+        assert_script_run("chmod 0750 /var/lib/sss/db /var/log/sssd");
         # Clear cache for clean state
         assert_script_run("rm -rf /var/lib/sss/db/* /var/lib/sss/mc/*");
     }
