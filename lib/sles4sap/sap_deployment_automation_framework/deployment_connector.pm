@@ -48,6 +48,7 @@ our @EXPORT = qw(
   destroy_orphaned_resources
   destroy_orphaned_peerings
   no_cleanup_tag
+  get_deployment_tags
 );
 
 our $DEPLOYMENT_ID;
@@ -474,6 +475,26 @@ This function ensures default value naming consistency across all modules, inste
 
 sub no_cleanup_tag {
     return get_var('SDAF_NO_CLEANUP_TAG', 'sdaf_cleanup_ignore');
+}
+
+
+=head2 get_deployment_tags
+
+    get_deployment_tags();
+
+Returns Hash of tag name and values to be applied on deployment resources.
+
+=cut
+
+sub get_deployment_tags {
+    my %tags = (
+        deployed_by => get_var('SDAF_DEPLOYMENT_OWNER', 'OpenQA-SDAF-automation'),
+        openqa_instance => get_required_var('WORKER_HOSTNAME'),
+        deployment_id => get_current_job_id()
+    );
+
+    $tags{no_cleanup_tag()} = '1' if get_var('SDAF_RETAIN_DEPLOYMENT');
+    return \%tags;
 }
 
 1;

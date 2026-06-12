@@ -307,4 +307,28 @@ subtest '[destroy_orphaned_peerings]' => sub {
     undef_variables;
 };
 
+subtest '[get_deployment_tags] Check returned value' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    $mock_function->redefine(get_current_job_id => sub { '42' });
+    set_var('AUTOINST_URL_HOSTNAME', 'OSD');
+
+    my %result = %{get_deployment_tags()};
+    is $result{deployed_by}, 'OpenQA-SDAF-automation', 'Apply "deployed_by" tag';
+    is $result{openqa_instance}, 'OSD', 'Apply "openqa_instance" tag.';
+    is $result{deployment_id}, '42', 'Apply "deployment_id" tag.';
+    undef_variables;
+};
+
+subtest '[get_deployment_tags] Check returned value' => sub {
+    my $mock_function = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment_connector', no_auto => 1);
+    $mock_function->redefine(get_current_job_id => sub { '42' });
+
+    set_var('SDAF_RETAIN_DEPLOYMENT', 'yes');
+    set_var('AUTOINST_URL_HOSTNAME', 'OSD');
+    my %result = %{get_deployment_tags()};
+    is $result{sdaf_cleanup_ignore}, '1', 'Apply "sdaf_cleanup_ignore" tag';
+    undef_variables;
+
+};
+
 done_testing();
