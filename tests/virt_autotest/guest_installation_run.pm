@@ -99,6 +99,7 @@ sub run {
         upload_asset("/tmp/s390x_guest_install_test.log", 1, 1);
         lpar_cmd("rm -r /tmp/s390x_guest_install_test.*");
     }
+    die;
 }
 
 1;

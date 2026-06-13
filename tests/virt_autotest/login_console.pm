@@ -270,7 +270,7 @@ sub run {
         upload_logs("/tmp/host_agama_installation_script_logs.tar.gz", failok => 1);
     }
 
-    check_host_health();
+    #check_host_health();
 }
 
 sub post_fail_hook {

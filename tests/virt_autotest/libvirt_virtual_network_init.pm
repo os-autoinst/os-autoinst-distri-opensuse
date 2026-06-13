@@ -92,6 +92,7 @@ sub run_test {
             assert_script_run("time ssh -v root\@$guest systemctl restart wickedd", 120);
         }
     }
+    die;
 }
 
 sub post_fail_hook {
