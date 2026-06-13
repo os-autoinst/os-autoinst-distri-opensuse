@@ -345,6 +345,7 @@ sub ensure_installed {
     zypper_call "in $pkglist";
     wait_still_screen 1;
     close_gui_terminal;
+    $self->invalidate_serial_marker_hook();
 }
 
 =head2 script_sudo
