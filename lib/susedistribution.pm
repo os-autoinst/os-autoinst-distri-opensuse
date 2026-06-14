@@ -409,7 +409,7 @@ Log in as root in the current console
 sub become_root {
     my ($self) = @_;
 
-    $self->_detect_serial_marker_capability() if get_var('PRETTY_SERIAL_MARKER');
+    $self->detect_serial_marker_capability() if $self->get_pretty_serial_marker();
     $self->script_sudo('bash', 1);
     $self->invalidate_serial_marker_hook();
     # No need to apply on more recent kernels
