@@ -133,7 +133,7 @@ sub repl_repo_in_sourcefile {
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . locate_sourcefile;
         my $newrepo = get_repo_0_prefix . get_var("REPO_0");
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
-        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
+        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i || get_var('GUEST_FLAVOR', '') =~ /full/i);
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
         if (is_s390x) {
