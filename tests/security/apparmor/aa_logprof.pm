@@ -47,7 +47,7 @@ sub run {
 
     $self->aa_tmp_prof_prepare("$aa_tmp_prof", 1);
 
-    my @aa_logprof_items = is_sle('<=15-sp4') ? ('\/usr.*\/nscd mrix', 'nscd\.conf r') : ('\s+\/var\/spool\/samba\/.*rw', '\/usr.*\/smbd flags', '\s+\/usr\/lib\*\/samba\/auth\/\*\.so mr');
+    my @aa_logprof_items = is_sle('<=15-sp4') ? ('\/usr.*\/nscd mrix', 'nscd\.conf r') : ('\s+\/var\/spool\/samba\/.*rw', '\s+\/usr\/lib\*\/samba\/auth\/\*\.so mr');
 
     # Remove some rules from profile
     foreach my $item (@aa_logprof_items) {
