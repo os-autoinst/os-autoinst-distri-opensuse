@@ -104,18 +104,19 @@ sub uninstall_package ($version_number) {
 sub cleanup {
     # Deletion of work folders
     assert_script_run("rm -rf dist user_package_setuptools.egg-info repo_webroot");
-    assert_script_run("deactivate") unless is_transactional;    # leave the virtual env
+    # leave the virtual env
+    assert_script_run("deactivate");
     assert_script_run("cd /root; rm -r data");
 }
 
 sub post_run_hook {
-    remove_installed_pythons() if (is_sle);
     cleanup();
+    remove_installed_pythons() if (is_sle);
 }
 
 sub post_fail_hook {
-    remove_installed_pythons() if (is_sle);
     cleanup();
+    remove_installed_pythons() if (is_sle);
 }
 
 1;

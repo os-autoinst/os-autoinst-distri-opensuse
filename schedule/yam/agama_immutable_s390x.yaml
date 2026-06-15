@@ -1,0 +1,22 @@
+---
+name: agama_immutable_s390x
+description: >
+  Perform interactive immutable installation on s390x.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - yam/validate/validate_selinux
+  - yam/validate/validate_base_product
+  - yam/validate/validate_product
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_first_user
+  - yam/validate/validate_snapshots
+  - yam/validate/validate_registered_products
+  - console/validate_repos
+  - yam/validate/validate_installed_patterns
+  - yam/validate/validate_packages
+  - yam/validate/validate_immutable_mountpoints
+  - yam/validate/validate_package_manager_immutable

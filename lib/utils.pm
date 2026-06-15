@@ -635,9 +635,10 @@ sub zypper_call {
     my $allow_exit_codes = $args{exitcode} || [0];
     my $timeout = $args{timeout} || 700;
     my $log = $args{log};
+    my $var = $args{tmpfs} ? '/var' : '';
     my $dumb_term = $args{dumb_term} // is_serial_terminal;
 
-    my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
+    my $printer = $log ? "| tee $var/tmp/$log" : $dumb_term ? '| cat' : '';
     die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
 
     $IN_ZYPPER_CALL = 1;
@@ -723,7 +724,7 @@ sub zypper_call {
         });
     }
 
-    upload_logs("/tmp/$log") if $log;
+    upload_logs("$var/tmp/$log") if $log;
 
     unless (grep { $_ == $ret } @$allow_exit_codes) {
         upload_logs('/var/log/zypper.log');
@@ -917,7 +918,10 @@ sub _ssh_fully_patch_system_run_patch {
 
     if ($instance) {
         $cmd = "patch --with-interactive -l";
-        $ret = $instance->publiccloud::utils::zypper_call_remote($cmd, exitcode => $accept_codes, timeout => $timeout);
+        # Lazy require to avoid a circular `use` loop at compile time
+        # (publiccloud::zypper -> transactional -> utils).
+        require publiccloud::zypper;
+        $ret = publiccloud::zypper::pc_pkg_call($instance, $cmd, exitcode => $accept_codes, timeout => $timeout);
     }
     else {
         $cmd = "ssh $remote 'sudo zypper -n patch --with-interactive -l'";
@@ -1821,8 +1825,8 @@ sub exec_and_insert_password {
         send_key 'ret';
         assert_screen('password-prompt', 60);
     }
-    if (get_var("VIRT_PRJ1_GUEST_INSTALL") || get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
-        type_password("novell");
+    if (get_var("VIRT_AUTOTEST")) {
+        type_password(get_required_var('_SECRET_GUEST_PASSWORD'));
     }
     else {
         type_password;
@@ -2274,7 +2278,11 @@ sub script_run_interactive {
     $timeout //= 180;
 
     if ($cmd) {
-        script_run("(script -qe -a /dev/null -c \'", 0);
+        # util-linux >= 2.42 rejects a positional typescript file together
+        # with -c, so use -O to specify the output file instead.
+        my $ul_ver = script_output("rpm -q --qf '%{version}' util-linux");
+        my $script_opts = package_version_cmp($ul_ver, '2.42') >= 0 ? '-qe -O /dev/null' : '-qe -a /dev/null';
+        script_run("(script $script_opts -c \'", 0);
         script_run($cmd, 0);
         # Can not get return value from script_run, so we have to do it in
         # the shell with $? following the endmark.
@@ -2288,14 +2296,15 @@ sub script_run_interactive {
     }
 
     # Hack: '$' doesn't match '\r\n' line endings, so use '\s' instead
-    push(@words, qr/${endmark}\d+\s/m);
+    my $exitre = qr/${endmark}\d+\s/m;
+    push(@words, $exitre);
 
     {
         do {
             $output = wait_serial(\@words, $timeout) || die "No message matched!";
 
             last if ($output =~ /${endmark}0\s/m);    # return value is 0
-            die if ($output =~ /${endmark}/m);    # other return values
+            die if ($output =~ $exitre);    # other return values
 
             for my $i (@$scan) {
                 next if ($output !~ $i->{prompt});

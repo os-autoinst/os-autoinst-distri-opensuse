@@ -20,6 +20,7 @@ use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
+use utils;
 
 sub test_flags {
     return {fatal => 1};
@@ -46,6 +47,26 @@ sub run {
 
     # From now on everything is executed on Deployer VM (residing on cloud).
     connect_target_to_serial();
+
+    # Re-register - Repair registration on cloned VM
+    record_info('Register', 'Repairing registration on cloned VM');
+    my @cleanup_retries = (1 .. 3);
+    my $cleanup_rc;
+    while (shift @cleanup_retries) {
+        $cleanup_rc = script_run('sudo registercloudguest --clean');
+        last unless $cleanup_rc;
+    }
+    die 'Registration cleanup attempts failed' if $cleanup_rc;
+
+    my $register_rc = script_run('sudo registercloudguest --force-new');
+    collect_guestregister_logs();
+    die 'Registration attempts failed. Check logs for details' if $register_rc;
+    record_info('Reg OK', 'Registration repaired');
+
+    # It is a workaround for https://github.com/ansible/ansible/issues/82758:
+    #   (Heads up: Python 3.13 will remove the module crypt, impacting ansible)
+    assert_script_run('sudo /opt/ansible/venv/2.16/bin/python -m pip install passlib');
+    record_soft_failure 'gh#34 - https://github.com/sdaf-suse/sap-automation/issues/34 - Install passlib';
 
     my $subscription_id = az_login();
     set_common_sdaf_os_env(subscription_id => $subscription_id);

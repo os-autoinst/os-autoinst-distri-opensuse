@@ -4,7 +4,6 @@ set -xe
 
 # Variable(s)
 declare etc_rancher="/etc/rancher"
-declare k8s_distri="%K8S%"
 
 # Setting root passwd
 sed -i '/^root:/s|^root:\*:\(.*\)|root:%TEST_PASSWORD%:\1|' /etc/shadow
@@ -27,30 +26,3 @@ CheckHostIP no
 StrictHostKeyChecking no
 EOF
 chmod 600 /root/.ssh/config
-
-# Add kubectl access/command
-cat > /root/.profile <<EOF
-export KUBECONFIG=${etc_rancher}/${k8s_distri}/${k8s_distri}.yaml
-export PATH=\${PATH}:/var/lib/rancher/${k8s_distri}/bin
-EOF
-
-# Set a default hostname
-echo "${k8s_distri}-node" > /etc/hostname
-
-# Create /etc/rancher directory
-mkdir -p ${etc_rancher}/${k8s_distri}
-
-# Configure RKE2
-cat > ${etc_rancher}/${k8s_distri}/config.yaml <<EOF
-write-kubeconfig-mode: "0644"
-node-name: %NODE_NAME%
-node-external-ip: %NODE_IP%
-selinux: true
-EOF
-
-# Create a pseudo-sudo command (for testing purposes only!)
-mkdir -p /root/bin
-cat > /root/bin/sudo <<EOF
-exec \$@
-EOF
-chmod 0700 /root/bin/sudo

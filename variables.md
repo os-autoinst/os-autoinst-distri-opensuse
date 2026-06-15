@@ -47,16 +47,18 @@ CHECKSUM_FAILED | string | | Variable is set if checksum of installation medium 
 CONTAINER_RUNTIMES | string | | Container runtime to be used, e.g.  `docker`, `podman`, or both `podman,docker`. In addition, it is also used for other container tests, like  `kubectl`, `helm`, etc.
 CONTAINERS_CGROUP_VERSION | string | | If defined, cgroups version to switch to
 CONTAINERS_K3S_VERSION | string |  | If defined, install the provided version of k3s
+CONTAINERS_K8S_TEST | boolean | true | Schedule k8s tests if the runtime is k8s. This is used as a opt-out flag for special tests that should not run on k8s while sharing default settings within the BCI job groups.
 CONTAINERS_NO_SUSE_OS | boolean | false | Used by main_containers to see if the host is different than SLE or openSUSE.
 CONTAINERS_UNTESTED_IMAGES | boolean | false | Whether to use `untested_images` or `released_images` from `lib/containers/urls.pm`.
 CONTAINERS_CRICTL_VERSION | string | v1.23.0 | The version of CriCtl tool.
 CONTAINERS_NERDCTL_VERSION | string | 0.16.1 | The version of NerdCTL tool.
 CONTAINERS_DOCKER_FLAVOUR | string | | Flavour of docker to install. Valid options are `stable` or undefined (for standard docker package)
-CONTAINERS_SKIP_SIGNATURE | string | | Skip image signature checks in BCI tests
+CONTAINERS_CHECK_SIGNATURE | boolean | false | Perform image signature check in BCI tests
 HELM_CHART | string | | Helm chart under test. See `main_containers.pm` for supported chart types |
 HELM_CONFIG | string | | Additional configuration file for helm |
 HELM_LOGIN | string | Comma-separated list of login information if required for a registry, e.g. `registry.suse.de:username:password,registry.suse.de:geekotest:notsecret`
 HELM_FULL_REGISTRY_PATH | string | Full path to the registry images used by the helm chart. e.g. `my.registry.com/myteam/secret_project`. Only necessary when using non-publicly available container images. | 
+COREDUMP_IGNORE_ERRORS | boolean | | Don't quit test if coredump files are seen
 COREDUMP_WITH_BACKTRACE | boolean | | Get a backtrace when analyzing coredumps
 CPU_BUGS | boolean | | Into Mitigations testing
 DESKTOP | string | | Indicates expected DM, e.g. `gnome`, `kde`, `textmode`, `xfce`, `lxde`. Does NOT prescribe installation mode. Installation is controlled by `VIDEOMODE` setting
@@ -86,6 +88,7 @@ EXTRABOOTPARAMS_DELETE_CHARACTERS | string | | Characters to delete from boot pr
 EXTRABOOTPARAMS_DELETE_NEEDLE_TARGET | string | | If specified, go back with the cursor until this needle is matched to delete characters from there. Needs EXTRABOOTPARAMS_BOOT_LOCAL and should be combined with EXTRABOOTPARAMS_DELETE_CHARACTERS.
 EXTRATEST | boolean | false | Enables execution of extra tests, see `load_extra_tests`
 FDE_ENROLLMENT | string | | Type of authentication to use when configuring FDE during installation, current values are `TPM2`, `TPM2 and PIN`, `Only Password` and `FIDO2`. 
+FIREWALL_BACKEND | strings | | Firewall backend (iptables or nftables)
 FIRST_BOOT_CONFIG | string | combustion+ignition | The method used for initial configuration of MicroOS images. Possible values are: `combustion`, `ignition`, `combustion+ignition` and `wizard`. For ignition/combustion, the job needs to have a matching HDD attached.
 FLAVOR | string | | Defines flavor of the product under test, e.g. `staging-.-DVD`, `Krypton`, `Argon`, `Gnome-Live`, `DVD`, `Rescue-CD`, etc.
 FULLURL | string | | Full url to the factory repo. Is relevant for openSUSE only.
@@ -181,6 +184,7 @@ NOIMAGES |||
 NOLOGS | boolean | false | Do not collect logs if set to true. Handy during development.
 NVIDIA_REPO | string | '' | Define the external repo for NVIDIA driver.
 NVIDIA_CUDA_REPO | string | '' | Define the external repo for NVIDIA cuda.
+NVIDIA_CUDA_SAMPLES_BRANCH | string | 'v13.2update' | Define which branch or tag should be cloned from cuda-samples repo.
 NVIDIA_DRIVER_BRANCH | string | 'G06' | Define NVIDIA driver branch (G06, G07).
 NVIDIA_EXPECTED_GPU_REGEX | string | '' | Define which GPU should the test expect.
 NVIDIA_FIRST_RELEASE | boolean | false | Install NVIDIA driver directly from maintenance update repository for kernel tests.
@@ -351,6 +355,7 @@ PUBLIC_CLOUD_HDD2_TYPE | string | "" | If PUBLIC_CLOUD_ADDITIONAL_DISK_SIZE is s
 PUBLIC_CLOUD_IGNORE_EMPTY_REPO | boolean | false | Ignore empty maintenance update repos
 PUBLIC_CLOUD_IGNORE_UNREGISTERED | boolean | false | Ignore any failure related to the fact that system is unregistered.
 PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES | boolean | false | Ignore no rpm list changes in patch_and_reboot
+PUBLIC_CLOUD_IGNORE_CLOUDINIT_ERRORS | boolean | false | Do not fail on cloud-init errors
 PUBLIC_CLOUD_IMAGE_ID | string | "" | The image ID we start the instance from
 PUBLIC_CLOUD_IMAGE_LOCATION | string | "" | The URL where the image gets downloaded from. The name of the image gets extracted from this URL.
 PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project

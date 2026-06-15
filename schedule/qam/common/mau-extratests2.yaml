@@ -51,7 +51,6 @@ conditional_schedule:
         - console/journald_fss
         - console/valgrind
         - console/valkey
-        - '{{arch_specific15_sp5plus}}'
       15-SP7:
         - console/pkcon
         - '{{fwupd}}'
@@ -70,7 +69,6 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
         - console/valkey
-        - '{{arch_specific15_sp5plus}}'
       15-SP6:
         - console/pkcon
         - '{{fwupd}}'
@@ -89,7 +87,6 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
         - console/valkey
-        - '{{arch_specific15_sp5plus}}'
       15-SP5:
         - console/pkcon
         - '{{fwupd}}'
@@ -107,7 +104,6 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
-        - '{{arch_specific15_sp5plus}}'
       15-SP4:
         - console/pkcon
         - '{{fwupd}}'
@@ -173,12 +169,6 @@ conditional_schedule:
         - console/journald_fss
       aarch64:
         - console/journald_fss
-  arch_specific15_sp5plus:
-    ARCH:
-      x86_64:
-        - console/year_2038_detection
-      aarch64:
-        - console/year_2038_detection
   arch_systemtap:
     ARCH:
       x86_64:

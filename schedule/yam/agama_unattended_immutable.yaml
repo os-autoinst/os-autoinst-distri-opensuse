@@ -1,0 +1,21 @@
+---
+name: agama_unattended_immutable
+description: >
+  Default unattended installation on an immutable system.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_base_product
+  - yam/validate/validate_product
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_first_user
+  - yam/validate/validate_hostname
+  - yam/validate/validate_snapshots
+  - yam/validate/validate_registered_products
+  - console/validate_repos
+  - yam/validate/validate_installed_patterns
+  - yam/validate/validate_packages
+  - yam/validate/validate_immutable_mountpoints
+  - yam/validate/validate_package_manager_immutable

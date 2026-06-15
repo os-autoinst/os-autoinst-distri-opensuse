@@ -125,6 +125,11 @@ sub logs_from_salt {
             record_soft_failure('bsc#1213635');
             $softfail_flag = 1;
         }
+        if (script_run('grep -Pzo \'(?s)Failed to import module pip(?:(?!\n.DEBUG).)*?ModuleNotFoundError: No module named .pkg_resources.\' /var/log/salt/minion') == 0) {
+            record_soft_failure('bsc#1262135');
+            $softfail_flag = 1;
+        }
+
         return if $softfail_flag;
         die "Salt logs are containing errors!";
     }

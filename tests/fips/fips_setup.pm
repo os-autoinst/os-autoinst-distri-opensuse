@@ -52,14 +52,17 @@ sub enable_fips {
     }
 }
 
-sub ensure_fips_enabled {
+sub is_fips_enabled {
     if (is_sle('>=15-SP4') || is_jeos || is_tumbleweed || is_microos) {
-        validate_script_output("fips-mode-setup --check",
-            sub { m/FIPS mode is enabled\.\n.*\nThe current crypto policy \(FIPS\) is based on the FIPS policy\./ });
-    } else {
-        assert_script_run q(grep '^1$' /proc/sys/crypto/fips_enabled);
-        assert_script_run("grep '^GRUB_CMDLINE_LINUX_DEFAULT.*fips=1' /etc/default/grub");
+        return script_output("fips-mode-setup --check", proceed_on_failure => 1) =~
+          m/FIPS mode is enabled\.\n.*\nThe current crypto policy \(FIPS\) is based on the FIPS policy\./;
     }
+    return script_run(q(grep '^1$' /proc/sys/crypto/fips_enabled)) == 0
+      && script_run("grep '^GRUB_CMDLINE_LINUX_DEFAULT.*fips=1' /etc/default/grub") == 0;
+}
+
+sub ensure_fips_enabled {
+    die "FIPS is not properly enabled" unless is_fips_enabled();
     return;
 }
 
@@ -118,6 +121,8 @@ sub run {
 
         $self->reboot_and_login;
         record_info 'ENV Mode', 'FIPS environment mode (for single modules) configured!';
+    } elsif (is_fips_enabled()) {
+        record_info 'FIPS already enabled', 'Skipping FIPS setup';
     } else {
         install_fips;
         $self->enable_fips;

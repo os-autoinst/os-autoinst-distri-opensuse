@@ -47,7 +47,7 @@ sub run_test {
         fail_message => "The SUT needs at least " . $expected_pool_size . "GiB available space of active pool for virtual network test");
 
     # SLES16 has done this in earlier setup
-    unless (is_sle('=16')) {
+    unless (is_sle('>=16')) {
         #Enable libvirt debug log
         turn_on_libvirt_debugging_log;
 

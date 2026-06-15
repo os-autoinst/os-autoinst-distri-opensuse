@@ -41,7 +41,6 @@ our @EXPORT = qw(
   go_arch
   install_docker_compose
   install_gotestsum
-  install_ncat
   numeric_version
   patch_junit
   patch_sources
@@ -165,6 +164,13 @@ sub configure_docker {
         $docker_opts .= configure_docker_tls;
     }
     $docker_opts .= " -H tcp://0.0.0.0:$port";
+    my $firewall_backend = get_var("FIREWALL_BACKEND");
+    $docker_opts .= " --firewall-backend $firewall_backend" if $firewall_backend;
+    # https://docs.docker.com/engine/network/firewall-nftables/#ip-forwarding
+    if ($firewall_backend eq "nftables") {
+        run_command "echo 1 > /proc/sys/net/ipv4/ip_forward";
+        run_command "echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf";
+    }
     run_command "mv -f /etc/sysconfig/docker{,.bak} || true";
     run_command "mv -f /etc/docker/daemon.json{,.bak} || true";
     if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
@@ -195,11 +201,16 @@ sub configure_rootless_docker {
 
     switch_to_user;
 
+    run_command 'install -D -m 0600 <(echo {}) $HOME/.config/docker/daemon.json';
     if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
-        run_command 'mkdir -p ${XDG_CONFIG_HOME:-$HOME/.config}/docker';
+        # Docker v29 increased minimum API version from 1.24 to 1.44 which broke some tests and stuff like
+        # docker-compose & container_diff and also some tests.  Docker v29.3 lowered it from 1.44 to 1.40.
+        # Remove this when we no longer have Docker v29.2 in SLES 16.1.
         my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
-        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \${XDG_CONFIG_HOME:-\$HOME/.config}/docker/daemon.json);
+        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \$HOME/.config/docker/daemon.json);
     }
+    run_command qq(DAEMON_JSON=\$(jq '.+{"registry-mirrors": ["http://$registry"]}' \$HOME/.config/docker/daemon.json));
+    run_command q(tee $HOME/.config/docker/daemon.json <<< "$DAEMON_JSON");
 
     # https://docs.docker.com/engine/security/rootless/
     run_command "dockerd-rootless-setuptool.sh install";
@@ -223,12 +234,14 @@ sub enable_docker {
     script_run 'systemctl enable --now docker';
     script_run "usermod -aG docker $testapi::username";
 
+    my $firewall_backend = script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
+
     # Running podman as root with docker installed may be problematic as netavark uses nftables
     # while docker still uses iptables.
     # Use workaround suggested in:
     # - https://fedoraproject.org/wiki/Changes/NetavarkNftablesDefault#Known_Issue_with_docker
     # - https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-on-a-router
-    if (script_run("iptables -L -v | grep -q DOCKER") == 0) {
+    if ($firewall_backend eq "iptables" && script_run("iptables -L -v | grep -q DOCKER") == 0) {
         script_run "iptables -I DOCKER-USER -j ACCEPT";
         script_run "ip6tables -I DOCKER-USER -j ACCEPT";
     }
@@ -323,18 +336,6 @@ sub install_gotestsum {
     run_command 'export GOPATH=$HOME/go';
     run_command 'export PATH=$GOPATH/bin:$PATH';
     run_command 'go install gotest.tools/gotestsum@v1.13.0';
-}
-
-sub install_ncat {
-    if (is_sle('<16')) {
-        # This repo has ncat 7.94
-        run_command "zypper addrepo https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo";
-    }
-    run_command "zypper --gpg-auto-import-keys -n install ncat";
-
-    # Some tests use nc instead of ncat but expect ncat behaviour instead of netcat-openbsd
-    run_command "ln -sf /usr/bin/ncat /usr/bin/nc";
-    record_info("nc", script_output("nc --version"));
 }
 
 sub install_bats {
@@ -529,40 +530,6 @@ sub collect_calltraces {
     }
 }
 
-sub collect_coredumps {
-    my $package = get_var("BATS_PACKAGE", "");
-    my $backtrace = get_var("DEBUG");
-
-    if ($backtrace) {
-        script_run "sed -i s/enabled=0/enabled=1/ /etc/zypp/repos.d/*-[Dd]ebug.repo";
-        script_run "zypper -n refresh", timeout => 300;
-        script_run "zypper -n install -y gdb", timeout => 300;
-        script_run "echo 'set debuginfod enabled on' > ~/.gdbinit";
-        script_run "echo 'set pagination off' >> ~/.gdbinit";
-    }
-
-    script_run('coredumpctl list > coredumpctl.txt');
-
-    # Get PID and executable for all dumps
-    my @pids = split /\n/, script_output(q{coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'}, proceed_on_failure => 1);
-
-    foreach my $pid (@pids) {
-        # Dumping and compressing coredumps may take some time
-        my $out = script_output("coredumpctl info $pid", timeout => 300, proceed_on_failure => 1);
-        record_info("COREDUMP", $out);
-
-        if ($backtrace) {
-            # First download debuginfo stuff to avoid polluting BACKTRACE info
-            script_run "coredumpctl debug -A '-ex quit' $pid", timeout => 900;
-            my $gdb_script = '-batch -ex "thread apply all bt full" -ex quit';
-            record_info("BACKTRACE", script_output(qq{coredumpctl debug -A '$gdb_script' $pid}, timeout => 900, proceed_on_failure => 1));
-        }
-
-        my ($dump) = $out =~ /^\s*Storage:\s*(\S+)/m;
-        script_run "mv $dump .", timeout => 300;
-    }
-}
-
 sub bats_post_hook {
     select_serial_terminal;
 
@@ -574,7 +541,6 @@ sub bats_post_hook {
 
     # Note: We don't use grep -q and redirect to /dev/null here to avoid SIGPIPE
     collect_calltraces if !script_run 'dmesg | grep -F -e "Call Trace:" -e "[ cut here ]" >/dev/null';
-    collect_coredumps;
 
     script_run('df -h > df-h.txt');
     script_run('dmesg --read-clear > dmesg.txt');

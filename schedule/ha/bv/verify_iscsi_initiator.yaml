@@ -14,8 +14,6 @@ description: >
   to pollute the second installation.
   This schedule relies on BOOTFROM=d setting, so the VM always
   boots first from the ISO.
-vars:
-  BOOTFROM: 'd'
 schedule:
   - '{{agama_install}}'
   - installation/first_boot

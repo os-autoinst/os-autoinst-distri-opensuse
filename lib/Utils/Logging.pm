@@ -171,24 +171,41 @@ fail on present unexpected coredump
 
 sub cleanup_known_coredumps {
     my %known_coredumps = (
-        # Note: These are literal strings, not regexes
-        'poo#198596' => q(openssl3-conf/base_only.cnf -p $'"hello"'),
-        'bsc#1129403' => q(unzip-mem "" v files.zip),
-        'bsc#1261358' => q(gvfs-udisks2-volume-monitor),
-        'bsc#1261625' => q(ovs-vswitchd unix:),
-        'https://gitlab.isc.org/isc-projects/bind9/-/work_items/2983' => q(9.18.33/bin/named/.libs/named -D doth),
+        # cmdline is a literal string, not a regex, matching part of the command line.
+        # signals is optional; all signals match if not specified.
+        'poo#198596' => {
+            cmdline => q(openssl3-conf/base_only.cnf -p $'"hello"'),
+            signals => [qw(ABRT)],
+        },
+        'bsc#1129403' => {
+            cmdline => q(unzip-mem "" v files.zip),
+            signals => [qw(FPE)],
+        },
+        'bsc#1261358' => {
+            cmdline => q(ovs-vswitchd unix:),
+            signals => [qw(ABRT)],
+        },
+        'https://gitlab.isc.org/isc-projects/bind9/-/work_items/2983' => {
+            cmdline => q(9.18.33/bin/named/.libs/named -D doth),
+        },
     );
 
-    for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1))) {
+    for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 ~ /^(present|truncated)$/ { print $5 }'), proceed_on_failure => 1))) {
         my $coredump_info = script_output("time coredumpctl info --no-pager $pid", proceed_on_failure => 1);
         my ($cmdline) = $coredump_info =~ /^\s+Command Line: (.*)$/m;
+        # Fetch "ABRT" from a line like:
+        #   Signal: 6 (ABRT)
+        my ($signal) = $coredump_info =~ /^\s+Signal: \d+ \(([A-Z0-9]+)\)$/m;
         for my $known (keys %known_coredumps) {
-            if (index($cmdline, $known_coredumps{$known}) >= 0) {
-                record_info('Known dump', $coredump_info);
-                my ($coredump) = $coredump_info =~ /^\s+Storage: (.+?) \(present\)$/m;
-                script_output("rm -vf $coredump");
-                last;
-            }
+            my $entry = $known_coredumps{$known};
+            next if index($cmdline, $entry->{cmdline}) < 0;
+            next if $entry->{signals} && !grep { $_ eq $signal } @{$entry->{signals}};
+            record_info('Known dump', $coredump_info);
+            # Fetch path from a line like:
+            #   Storage: /var/lib/systemd/coredump/core.binary.999.zst (present)
+            my ($coredump) = $coredump_info =~ /^\s+Storage: (.+?) \((?:present|truncated)\)$/m;
+            script_output("rm -vf $coredump");
+            last;
         }
     }
 }
@@ -207,9 +224,10 @@ remove them from /var/lib/systemd/coredump/ to avoid processing them here.
 sub upload_coredumps {
     my $res = script_run('coredumpctl --no-pager');
     return if $res;
-    my @pids = split(/\n/, script_output(q(coredumpctl --no-pager --no-legend | awk '$9 == "present" { print $5 }'), proceed_on_failure => 1));
+    # XXX https://progress.opensuse.org/issues/201375
+    script_run("rm -f /var/lib/systemd/coredump/core.ovs-vswitchd.*");
+    my @pids = split(/\n/, script_output(q(coredumpctl --no-pager --no-legend | awk '$9 ~ /^(present|truncated)$/ { print $5 }'), proceed_on_failure => 1));
     return unless @pids;
-    record_info("COREDUMPS found", "we found coredumps on SUT, attempt to upload");
     my $get_backtrace = get_var("COREDUMP_WITH_BACKTRACE") && !is_transactional;
     if ($get_backtrace) {
         script_run('sed -i s/enabled=0/enabled=1/ /etc/zypp/repos.d/*-[Dd]ebug.repo');
@@ -232,6 +250,7 @@ sub upload_coredumps {
             upload_logs("backtrace$pid.txt", log_name => basename($core) . "_backtrace.txt", failok => 1);
         }
     }
+    die("COREDUMPS found") unless get_var('COREDUMP_IGNORE_ERRORS');
 }
 
 =head2 export_logs

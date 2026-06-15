@@ -3,15 +3,6 @@ description:    >
     Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
     Kubevirt server & agent node installation and test modules
 vars:
-  IPXE: 1
-  IPXE_UEFI: 1
-  USB_BOOT: 0
-  BOOT_HDD_IMAGE: 1
-  VIRT_AUTOTEST: 1
-  DO_NOT_INSTALL_HOST: 0
-  SYSTEM_ROLE: kvm
-  HOST_HYPERVISOR: kvm
-  PATTERNS: default,kvm
   MAX_JOB_TIME: 10800
 schedule:
   - '{{install_preparation}}'

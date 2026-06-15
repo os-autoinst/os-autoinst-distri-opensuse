@@ -2,36 +2,76 @@
 #
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Deploy a VM in the cloud (Azure, AWS, GCP) for crash testing.
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-=head1 SYNOPSIS
+=head1 NAME
 
-Creates and configures Public Cloud infrastructure for crash testing.
-This test module supports AWS (EC2), Azure (AZURE), and GCP (GCE).
-It sets up the necessary networking, security groups, and launches a VM instance.
+sles4sap/crash/deploy.pm - Cloud Infrastructure Deployment for Crash Testing
 
-B<Required OpenQA variables:>
+=head1 DESCRIPTION
+
+C<deploy.pm> creates and configures the necessary Public Cloud infrastructure (AWS, Azure, or GCP) to support crash testing.
+
+Its primary tasks are:
 
 =over
 
-=item * B<PUBLIC_CLOUD_PROVIDER> - 'EC2', 'AZURE' or 'GCE'
+=item * Initialize the cloud provider factory and validate configuration.
 
-=item * B<PUBLIC_CLOUD_REGION> - Cloud region where resources will be created
+=item * Calculate unique network address ranges based on C<WORKER_ID> to avoid collisions.
 
-=item * B<PUBLIC_CLOUD_INSTANCE_TYPE> - VM instance type to launch
+=item * Deploy provider-specific infrastructure (VPC/VNet, subnets, security groups, VM).
+
+=item * Verify initial VM connectivity (especially for AWS).
 
 =back
 
-B<Test flow:>
+=head1 SETTINGS
 
-1. Validates the cloud provider and initializes the provider factory.
+=over
 
-2. Cleans up any existing SSH configuration.
+=item B<PUBLIC_CLOUD_PROVIDER>
 
-3. Calls the appropriate deployment function from C<sles4sap::crash> based on the provider.
+The cloud provider to use: 'EC2', 'AZURE', or 'GCE'. Required.
 
-4. For AWS, it performs an additional connectivity check.
+=item B<PUBLIC_CLOUD_REGION>
+
+Cloud region where resources will be created. Required.
+
+=item B<PUBLIC_CLOUD_INSTANCE_TYPE>
+
+VM instance type to launch. Required. Defaults to 'n1-standard-2' for GCE if not specified.
+
+=item B<WORKER_ID>
+
+OpenQA worker ID used to calculate unique network address ranges. Required.
+
+=item B<PUBLIC_CLOUD_EC2_ACCOUNT_ID>
+
+AWS account ID.
+
+=item B<PUBLIC_CLOUD_IMAGE_LOCATION>
+
+Optional image location for Azure.
+
+=item B<PUBLIC_CLOUD_AVAILABILITY_ZONE>
+
+Availability zone for the cloud provider. Required for GCE.
+
+=item B<PUBLIC_CLOUD_GOOGLE_PROJECT_ID>
+
+GCP project ID. Required for GCE.
+
+=item B<PUBLIC_CLOUD_IMAGE_PROJECT>
+
+GCP image project. Required for GCE.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
 
 =cut
 

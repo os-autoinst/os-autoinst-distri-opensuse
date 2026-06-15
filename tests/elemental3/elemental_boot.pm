@@ -8,8 +8,9 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use mm_network qw(configure_hostname setup_static_mm_network);
-use serial_terminal qw(select_serial_terminal);
 use power_action_utils qw(power_action);
+use serial_terminal qw(select_serial_terminal);
+use utils qw(validate_script_output_retry);
 
 sub run {
     my ($self) = @_;
@@ -59,10 +60,16 @@ sub run {
     }
 
     # Wait for system to be in running state
-    unless (get_var('PARALLEL_WITH')) {
-        my $sys_state = script_output('systemctl is-system-running --wait', timeout => 240, proceed_on_failure => 1);
-        die("Wrong OS state: $sys_state") unless ($sys_state =~ m/running/);
-    }
+    # NOTE: a lot of things are done through systemd at firstboot,
+    #       so this is why we have to wait quite a long time.
+    validate_script_output_retry(
+        'systemctl is-system-running',
+        sub { m/running/ },
+        retry => 15,
+        delay => 60,
+        die => 1,
+        fail_message => 'systemd not in running state!'
+    ) unless (get_var('PARALLEL_WITH'));
 
     # Test reboot in recovery mode
     if (check_var('TESTED_CMD', 'customize_recovery')) {

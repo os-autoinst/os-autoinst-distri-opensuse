@@ -286,10 +286,18 @@ sub prepare_ssh_key {
 
     $self->reveal_myself;
     # Use the unified ssh keys, or guests can't be reused by different hosts
-    unless (script_run("[[ -f $_host_params{ssh_key_file}.pub ]]") == 0) {
+    unless (script_run("[[ -f $_host_params{ssh_key_file}.pub ]]") == 0 and script_output("cat $_host_params{ssh_key_file}.pub", proceed_on_failure => 1) != '') {
         assert_script_run("ssh-keygen -f $_host_params{ssh_key_file} -q -P \"\" <<<y");
     }
     assert_script_run("chmod 600 $_host_params{ssh_key_file} $_host_params{ssh_key_file}.pub");
+    if (get_var('GUEST_SSH_KEYFILE')) {
+        record_info("Customized ssh key file $_host_params{ssh_key_file} on host being used for guest installation",
+            "Update already imported key, specify identity_file on ssh or call setup_common_ssh_config to stay intact");
+        setup_common_ssh_config(ssh_id_file => $_host_params{ssh_key_file});
+    }
+    else {
+        record_info("The ssh key file on host being used for guest installation is $_host_params{ssh_key_file}");
+    }
     $_host_params{ssh_public_key} = script_output("cat $_host_params{ssh_key_file}.pub");
     $_host_params{ssh_private_key} = script_output("cat $_host_params{ssh_key_file}");
     if (is_sle('16+')) {
@@ -2253,15 +2261,9 @@ sub config_guest_plain_password {
 
     $self->reveal_myself;
     if ($self->{virt_install_command_line} =~ /ROOTPASSWORD/) {
-        unless ($testapi::password) {
-            my $_root_password = get_required_var('_SECRET_ROOT_PASSWORD');
-            $self->{virt_install_command_line} =~ s/ROOTPASSWORD/$_root_password/;
-            $self->{virt_install_command_line_dryrun} =~ s/ROOTPASSWORD/$_root_password/;
-        }
-        else {
-            $self->{virt_install_command_line} =~ s/ROOTPASSWORD/$testapi::password/;
-            $self->{virt_install_command_line_dryrun} =~ s/ROOTPASSWORD/$testapi::password/;
-        }
+        my $_root_password = get_var('_SECRET_GUEST_PASSWORD', $testapi::password);
+        $self->{virt_install_command_line} =~ s/ROOTPASSWORD/$_root_password/;
+        $self->{virt_install_command_line_dryrun} =~ s/ROOTPASSWORD/$_root_password/;
     }
     return $self;
 }
@@ -2660,7 +2662,7 @@ sub setup_guest_agama_installation_shell {
             wait_still_screen;
             enter_cmd("timeout --kill-after=1 --signal=9 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
             assert_screen('password-prompt', timeout => 30);
-            enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+            enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
         }
         wait_still_screen(15);
         if (script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
@@ -2669,7 +2671,7 @@ sub setup_guest_agama_installation_shell {
             enter_cmd("clear", wait_still_screen => 3);
             enter_cmd("timeout --kill-after=1 --signal=9 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
             assert_screen('password-prompt', timeout => 30);
-            enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+            enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
             wait_still_screen(15);
             enter_cmd("timeout --kill-after=1 --signal=9 120 ip addr show", wait_still_screen => 5, timeout => 150);
         }
@@ -2760,7 +2762,7 @@ sub save_guest_agama_installation_logs {
         enter_cmd("clear", wait_still_screen => 3);
         enter_cmd("timeout --kill-after=1 --signal=9 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
         assert_screen('password-prompt', timeout => 30);
-        enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+        enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
         wait_still_screen(15);
         enter_cmd("timeout --kill-after=1 --signal=9 120 mkdir /agama_installation_logs", timeout => 150);
         enter_cmd("timeout --kill-after=1 --signal=9 180 agama logs store -d /agama_installation_logs", timeout => 210);
@@ -2779,7 +2781,7 @@ sub save_guest_agama_installation_logs {
         foreach (@_agama_installation_logs) {
             enter_cmd("timeout --kill-after=1 --signal=9 180 scp -r $_ssh_command_options root\@$self->{guest_ipaddr}:$_ $self->{guest_log_folder}", timeout => 210);
             assert_screen('password-prompt', timeout => 30);
-            enter_cmd("novell", wait_screen_change => 60, max_interval => 1, timeout => 90);
+            enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
             wait_still_screen(15);
         }
     }

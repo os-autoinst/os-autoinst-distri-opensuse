@@ -158,7 +158,8 @@ sub list_expired_files {
     my $all_files = az_storage_blob_list(
         container_name => 'network-spaces',
         storage_account_name => get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT'),
-        query => "[].{network:name , last_modified:properties.lastModified}"
+        query => "[].{network:name , last_modified:properties.lastModified}",
+        timeout => '120'
     );
 
     foreach (@$all_files) {
@@ -185,7 +186,8 @@ sub list_network_lease_files {
     return az_storage_blob_list(
         container_name => 'network-spaces',
         storage_account_name => get_required_var('SDAF_TFSTATE_STORAGE_ACCOUNT'),
-        query => "[].name"
+        query => "[].name",
+        timeout => '120'
     );
 }
 
@@ -370,13 +372,12 @@ sub create_lease_file {
     foreach ('network_space', 'storage_account') {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
-    my $network_lease_filename = $args{network_space};
-    my $lease_file = "/tmp/$network_lease_filename";
-    assert_script_run("touch $lease_file", quiet => 1);
+
     az_storage_blob_upload(
         container_name => 'network-spaces',
         storage_account_name => $args{storage_account},
-        file => $lease_file
+        name => $args{network_space},
+        file => '/dev/null'    # no need to create an empty file
     );
 }
 

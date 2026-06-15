@@ -12,9 +12,9 @@ use Mojo::Base 'publiccloud::basetest';
 use registration;
 use testapi;
 use utils qw(ssh_fully_patch_system);
-use publiccloud::utils qw(ssh_update_transactional_system is_cloudinit_supported permit_root_login);
+use publiccloud::utils;
 use publiccloud::ssh_interactive qw(select_host_console);
-use version_utils qw(is_sle_micro);
+use version_utils qw(is_sle_micro is_sle);
 
 sub run {
     my ($self, $args) = @_;
@@ -28,6 +28,16 @@ sub run {
     my $rpm_qa_command = 'rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n" | sort';
     my $rpm_list_before = "/var/tmp/rpm-qa-before-patch-system.txt";
     my $rpm_list_after = "/var/tmp/rpm-qa-after-patch-system.txt";
+    # kernel-azure is discontinued in LTSS so we need to replace it with kernel-default
+    if (is_ondemand && is_azure && is_sle('<=15-SP5')) {
+        record_info('kernel-azure Switch', 'Switching from kernel-azure to kernel-default for LTSS');
+        $args->{my_instance}->ssh_script_retry(
+            "sudo zypper -n in kernel-default -kernel-azure",
+            timeout => 600,
+            retry => 3,
+            delay => 60
+        );
+    }
 
     # Record package list before fully patch system
     $instance->ssh_assert_script_run(cmd => $rpm_qa_command . ' | tee ' . $rpm_list_before, timeout => 180);
@@ -70,11 +80,12 @@ sub run {
     my $rc = $instance->ssh_script_run(cmd => "test -s $rpm_list_diff");
     unless ($rc == 0) {
         if ($ignore_empty_updates) {
-            record_info('No packages were updated during patching');
+            record_info(
+                'PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES',
+                'No packages were updated during patching'
+            );
         } else {
-            # Uncomment the line below and remove record_soft_failure line once we are confident we don't run into empty updates
-            # die 'No packages were updated during patching';
-            record_soft_failure('poo#197723 - No packages were updated during patching');
+            die 'No packages were updated during patching';
         }
     }
 }

@@ -2,89 +2,77 @@
 
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /**
- * This program enables you to connect to sshd server and get the shell prompt.
- *   $ CLASSPATH=.:../build javac Shell.java 
- *   $ CLASSPATH=.:../build java Shell
- * You will be asked username, hostname and passwd. 
- * If everything works fine, you will get the shell prompt. Output may
- * be ugly because of lacks of terminal-emulation, but you can issue commands.
+ * CLI JSch smoke test used by the openjdk FIPS suite.
  *
+ *   $ javac -cp /usr/share/java/jsch.jar Shell.java
+ *   $ java  -cp /usr/share/java/jsch.jar:. Shell user@host password
+ *
+ * Connects with JSch using the OpenJDK FIPS provider, runs `whoami`
+ * over an exec channel, prints the output, and exits.
  */
 import com.jcraft.jsch.*;
-import java.awt.*;
-import javax.swing.*;
 
-public class Shell{
-  public static void main(String[] arg){
-    
-    try{
-      JSch jsch=new JSch();
+public class Shell {
+  public static void main(String[] arg) {
+    if (arg.length < 2 || arg[0].indexOf('@') < 0) {
+      System.err.println("usage: Shell user@host password");
+      System.exit(2);
+    }
 
-      String host=null;
-      if(arg.length>0){
-        host=arg[0];
-      }
-      else{
-        host=JOptionPane.showInputDialog("Enter username@hostname",
-                                         System.getProperty("user.name")+
-                                         "@localhost"); 
-      }
-      String user=host.substring(0, host.indexOf('@'));
-      host=host.substring(host.indexOf('@')+1);
+    String user = arg[0].substring(0, arg[0].indexOf('@'));
+    String host = arg[0].substring(arg[0].indexOf('@') + 1);
+    String passwd = arg[1];
 
-      Session session=jsch.getSession(user, host, 22);
+    // SunPKCS11 EC private keys do not implement java.security.interfaces.ECPrivateKey,
+    // so JSch's ECDH kex fails with ClassCastException in FIPS mode. Restrict kex to
+    // RFC 3526 fixed groups (FIPS-approved across all SLE versions), strongest first,
+    // and skip GEX because servers may return primes that newer NSS accepts but
+    // SLE 15.x SunPKCS11-NSS-FIPS rejects with "Could not derive key".
+    JSch.setConfig("kex",
+        "diffie-hellman-group18-sha512," +
+        "diffie-hellman-group16-sha512," +
+        "diffie-hellman-group14-sha256");
 
-      String passwd = JOptionPane.showInputDialog("Enter password");
+    Session session = null;
+    try {
+      JSch jsch = new JSch();
+      session = jsch.getSession(user, host, 22);
       session.setPassword(passwd);
+      session.setConfig("StrictHostKeyChecking", "no");
+      session.connect(30000);
 
-      UserInfo ui = new MyUserInfo(){
-        public void showMessage(String message){
-          JOptionPane.showMessageDialog(null, message);
+      ChannelExec channel = (ChannelExec) session.openChannel("exec");
+      channel.setCommand("whoami");
+      channel.setInputStream(null);
+      channel.setErrStream(System.err);
+      java.io.InputStream in = channel.getInputStream();
+      channel.connect(3000);
+
+      byte[] buf = new byte[1024];
+      while (true) {
+        while (in.available() > 0) {
+          int n = in.read(buf, 0, buf.length);
+          if (n < 0) break;
+          System.out.write(buf, 0, n);
         }
-        public boolean promptYesNo(String message){
-          Object[] options={ "yes", "no" };
-          int foo=JOptionPane.showOptionDialog(null, 
-                                               message,
-                                               "Warning", 
-                                               JOptionPane.DEFAULT_OPTION, 
-                                               JOptionPane.WARNING_MESSAGE,
-                                               null, options, options[0]);
-          return foo==0;
+        if (channel.isClosed()) {
+          if (in.available() > 0) continue;
+          break;
         }
-
-      };
-
-      session.setUserInfo(ui);
-
-      session.connect(30000);   // making a connection with timeout.
-
-      Channel channel=session.openChannel("shell");
-
-      channel.setInputStream(System.in);
-
-      channel.setOutputStream(System.out);
-
-      channel.connect(3*1000);
-    }
-    catch(Exception e){
-      System.out.println(e);
-    }
-  }
-
-  public static abstract class MyUserInfo
-                          implements UserInfo, UIKeyboardInteractive{
-    public String getPassword(){ return null; }
-    public boolean promptYesNo(String str){ return false; }
-    public String getPassphrase(){ return null; }
-    public boolean promptPassphrase(String message){ return false; }
-    public boolean promptPassword(String message){ return false; }
-    public void showMessage(String message){ }
-    public String[] promptKeyboardInteractive(String destination,
-                                              String name,
-                                              String instruction,
-                                              String[] prompt,
-                                              boolean[] echo){
-      return null;
+        try { Thread.sleep(100); } catch (Exception ignored) {}
+      }
+      System.out.flush();
+      int rc = channel.getExitStatus();
+      channel.disconnect();
+      if (rc != 0) {
+        System.err.println("remote command exited " + rc);
+        System.exit(rc);
+      }
+    } catch (Exception e) {
+      System.err.println(e);
+      System.exit(1);
+    } finally {
+      if (session != null) session.disconnect();
     }
   }
 }

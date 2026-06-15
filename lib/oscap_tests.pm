@@ -434,15 +434,18 @@ sub find_ansible_cce_by_task_name_vv {
 
 sub uload_log_file {
     # Compress and upload single file for reference
-    my $file_name = $_[0];
+    my ($file_name) = @_;
 
-    if (script_run("test -e $file_name") == 0) {
-        $file_name =~ s/\s//g;    # remove whitespaces
-        script_run "tar cJf $file_name.tar.xz $file_name";
-        if (script_run("test -e $file_name.tar.xz") == 0) {
-            upload_logs($file_name . ".tar.xz", timeout => 600);
-            script_run "rm $file_name.tar.xz";
-        }
+    $file_name =~ s/\s//g;    # remove whitespaces
+                              # Combine the file check and compression into a single shell execution.
+    my $cmd = "test -e '$file_name' && tar cJf '${file_name}.tar.xz' '$file_name'";
+
+    # script_run returns 0 only if BOTH the test and the tar command succeed
+    if (script_run($cmd) == 0) {
+        upload_logs("${file_name}.tar.xz", timeout => 600);
+
+        # Clean up the compressed file afterwards
+        script_run("rm -f '${file_name}.tar.xz'");
     }
 }
 
@@ -769,14 +772,11 @@ sub get_cac_code {
                 assert_script_run("pip3.11 install $py_libs pandas", timeout => 600);
             }
             # Fix python version for the build script
-            assert_script_run("mv /usr/bin/python3 /usr/bin/python3_bkp");
-            assert_script_run("ln -s python3.11 /usr/bin/python3");
+            assert_script_run("mv /usr/bin/python3 /usr/bin/python3_bkp && ln -s python3.11 /usr/bin/python3");
             # Building CaC content
-            assert_script_run("cd $compliance_as_code_path");
-            assert_script_run("sh build_product $sle_version", timeout => 9000);
+            assert_script_run("cd $compliance_as_code_path && sh build_product $sle_version", timeout => 9000);
             # Restore python3 path
-            assert_script_run("rm -rf /usr/bin/python3");
-            assert_script_run("mv /usr/bin/python3_bkp /usr/bin/python3");
+            assert_script_run("rm -rf /usr/bin/python3 && mv /usr/bin/python3_bkp /usr/bin/python3");
         }
         if (is_sle('>=16')) {
             my ($py_pkg_ver) = get_current_python_version();
@@ -791,8 +791,7 @@ sub get_cac_code {
                 assert_script_run("pip3 install $py_libs pandas", timeout => 600);
             }
             # Building CaC content
-            assert_script_run("cd $compliance_as_code_path");
-            assert_script_run("sh build_product $sle_version", timeout => 9000);
+            assert_script_run("cd $compliance_as_code_path && sh build_product $sle_version", timeout => 9000);
         }
         record_info("build_product", "sh build_product $sle_version");
         assert_script_run("cd /root");
@@ -1301,6 +1300,7 @@ sub oscap_evaluate {
     my ($expected_eval_match, $expected_eval_match_diff);
     my ($ret_expected_results, $ret_expected_results_diff);
     my $oval_results_fname = "oval_results.xml";
+    my ($type, $arch, $minor_version, $minor_name) = get_execution_parameters();
 
     # Verify detection mode
     restore_ds_file();
@@ -1358,7 +1358,8 @@ sub oscap_evaluate {
                 if (@ronly == 0) {    # All failed rules found in expected results
                     record_info(
                         "Passed fail rules check",
-                        "Pattern $f_fregex count in file $f_stdout is $fail_count, expected $n_failed_rules or LESS. Failed rules:\n" . (join "\n",
+                        "\nProfile_ID: $profile_ID\ntype: $type\nArch: $arch\nOS: $sle_version $minor_name:$minor_version\nBenchmark: $benchmark_version\n\n" .
+                          "Pattern $f_fregex count in file $f_stdout is $fail_count, expected $n_failed_rules or LESS. Failed rules:\n" . (join "\n",
                             @intersection) . "\n\nExpected rules to fail:\n" . (join "\n",
                             @$eval_match)
                     );
@@ -1366,7 +1367,8 @@ sub oscap_evaluate {
                 else {    # some expected to fail rules are passing
                     record_info(
                         "Passed fail rules check",
-                        "Pattern $f_fregex count in file $f_stdout is $fail_count, expected $n_failed_rules or LESS. Failed rules:\n" . (join "\n",
+                        "\nProfile_ID: $profile_ID\ntype: $type\nArch: $arch\nOS: $sle_version $minor_name:$minor_version\nBenchmark: $benchmark_version\n\n" .
+                          "Pattern $f_fregex count in file $f_stdout is $fail_count, expected $n_failed_rules or LESS. Failed rules:\n" . (join "\n",
                             @intersection) . "\n\nExpected rules to fail:\n" . (join "\n",
                             @$eval_match) . "\n\nRULES PASSED, but are in expected to fail list:\n" . (join "\n",
                             @ronly)
@@ -1378,8 +1380,9 @@ sub oscap_evaluate {
             }
             else {    # found rules NOT in expected results
                 record_info(
-                    "Failed fail rules check",
-                    "#Pattern $f_fregex count in file $f_stdout is $fail_count, expected $n_failed_rules. Failed rules:\n" . (join "\n",
+                    "Failed fail rules check for:",
+                    "\nProfile_ID: $profile_ID\ntype: $type\nArch: $arch\nOS: $sle_version $minor_name:$minor_version\nBenchmark: $benchmark_version\n\n" .
+                      "Number of failed rules is $fail_count, expected $n_failed_rules.\n #Failed rules:\n" . (join "\n",
                         @$failed_rules_ref) . "\n\n#Expected $n_failed_rules rules to fail:\n" . (join "\n",
                         @$eval_match) . "\n\n#Rules failed (not in expected list):\n" . (join "\n",
                         @lonly) . "\n\nRULES PASSED, but are in expected to fail list:\n" . (join "\n",

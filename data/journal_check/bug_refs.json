@@ -118,6 +118,9 @@
                 "5.4",
                 "5.5"
             ],
+            "opensuse": [
+                "Tumbleweed"
+            ],
             "microos": [
                 "Tumbleweed"
             ],
@@ -729,7 +732,7 @@
         "type": "ignore"
     },
     "update-test-broken": {
-        "description": "Installation of update-test-broken.* failed:|Error: Subprocess failed. Error: RPM failed: Command exited with status 1.|Problem occurred during or after installation or removal of packages:|Installation has been aborted as directed.|Please see the above error message for a hint|ERROR: zypper up on /.snapshots/\\d+/snapshot failed with exit code 8!|Use '--interactive' for manual problem resolution.|Removing snapshot #1\\d",
+        "description": "Installation of update-test-broken.* failed:|Error: Subprocess failed. Error: RPM failed: Command exited with status 1.|Problem occurred during or after installation or removal of packages:|Installation has been aborted as directed.|Please see the above error message for a hint|ERROR: zypper up on /.snapshots/\\d+/snapshot failed with exit code 8!|Use '--interactive' for manual problem resolution.|Removing snapshot #\\d+",
         "products": {
             "microos": [
                 "Tumbleweed"
@@ -1522,7 +1525,9 @@
                 "6.0"
             ],
             "opensuse": [
-                "Tumbleweed"
+                "Tumbleweed",
+                "16.0",
+                "16.1"
             ],
             "microos": [
                 "Tumbleweed"

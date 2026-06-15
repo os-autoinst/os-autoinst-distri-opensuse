@@ -99,7 +99,8 @@ sub config_service {
     my $nginx_conf = "/etc/nginx/vhosts.d/nginx_vhost.conf";
 
     # Add new virtual host and check the configuration files
-    assert_script_run("curl -fv " . data_url("console/nginx_vhost.conf") . " -o $nginx_conf");
+    assert_script_run("curl -fv " . data_url("console/nginx_vhost.conf") . " -o /tmp/nginx_vhost.conf");
+    assert_script_run("mv -Z /tmp/nginx_vhost.conf $nginx_conf");
 
     # Add custom ports to SELinux
     add_custom_ports_to_selinux(nginx_conf => $nginx_conf) if $selinux_enabled;

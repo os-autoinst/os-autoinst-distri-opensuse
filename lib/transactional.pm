@@ -86,14 +86,14 @@ sub check_reboot_strategy_and_reboot {
     # as this will likely grow, it is better to have single line checks to give room to more
     # complex expressions
     my $has_soft_reboot = 1;
-    $has_soft_reboot = 0 if (is_sle_micro || is_sle);
+    $has_soft_reboot = 0 if (is_sle_micro || is_sle('<16.1'));
 
     if ($has_soft_reboot) {
-        my $regex = qr/Minimally required reboot level:\s(.*)[\r\n]/;
+        my $regex = qr/Minimally required reboot level:\s([a-zA-Z-]+)/;
         my $output = wait_serial($regex, timeout => 300) or die "Could not capture reboot type";
         if ($output =~ $regex) {
             @reboot_args = (expected_grub => 0) if $1 eq 'soft-reboot';
-            record_info("Reboot strategy: $1");
+            record_info("Reboot strategy", "$1");
         }
     }
     process_reboot(@reboot_args);
@@ -103,7 +103,7 @@ sub process_reboot {
     my (%args) = @_;
     $args{trigger} //= 0;
     $args{automated_rollback} //= 0;
-    $args{expected_grub} //= (is_sle_micro && is_vmware) ? 0 : 1;
+    $args{expected_grub} //= (is_transactional && is_vmware) ? 0 : 1;
     $args{expected_passphrase} //= 0;
 
     if (is_public_cloud) {

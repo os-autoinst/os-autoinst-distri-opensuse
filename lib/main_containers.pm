@@ -186,6 +186,7 @@ sub load_host_tests_podman {
         loadtest 'containers/rootless_podman';
         loadtest 'containers/podman_remote' if (is_sle('>=15-SP3') || is_sle_micro('5.5+') || is_tumbleweed);
     }
+    loadtest 'containers/distrobox' if (is_tumbleweed || is_sle('>=16.1'));
     # Buildah is not available in SLE Micro, MicroOS and staging projects
     loadtest('containers/buildah', run_args => $run_args, name => $run_args->{runtime} . "_buildah") unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging ||
         (is_sle('>=16.0') && is_transactional())
@@ -227,7 +228,7 @@ sub load_host_tests_docker {
     }
     load_volume_tests($run_args);
     # Expected to work anywhere except of real HW backends, PC and Micro
-    unless (is_generalhw || is_ipmi || is_public_cloud || is_sle_micro || is_microos || is_leap_micro || (is_sle('=12-SP5') && is_aarch64)) {
+    unless (is_generalhw || is_ipmi || is_public_cloud || is_transactional || (is_sle('=12-SP5') && is_aarch64)) {
         loadtest 'containers/validate_btrfs';
     }
 }
@@ -346,12 +347,14 @@ sub load_container_tests {
 
     if (my $container_tests = get_var('CONTAINER_TESTS', '')) {
         loadtest "containers/$_" foreach (split(',\s*', $container_tests));
+        loadtest 'console/coredump_collect';
         return;
     }
 
     if (my $bats_package = get_var('BATS_PACKAGE', '')) {
         $bats_package = ($bats_package eq "aardvark-dns") ? "aardvark" : $bats_package;
         loadtest "containers/bats/$bats_package";
+        loadtest 'console/coredump_collect';
         return;
     }
 
@@ -405,6 +408,7 @@ sub load_container_tests {
         if (is_container_image_test()) {
             if (get_var('BCI_TESTS')) {
                 loadtest('containers/bci_prepare');
+                loadtest('containers/bci_signature_check') if (get_var("CONTAINERS_CHECK_SIGNATURE"));
                 loadtest('containers/bci_test', run_args => $run_args, name => 'bci_test_' . $run_args->{runtime});
                 # For Base image we also run traditional image.pm test
                 load_image_test($run_args) if (is_sle(">=15-SP3") && check_var('BCI_TEST_ENVS', 'base'));
@@ -415,7 +419,7 @@ sub load_container_tests {
                 # Common openQA image tests
                 load_image_tests_podman($run_args) if (/podman/i);
                 load_image_tests_docker($run_args) if (/docker/i);
-                load_image_tests_in_k8s($run_args) if (/k8s/i);
+                load_image_tests_in_k8s($run_args) if ((get_var('CONTAINERS_K8S_TEST', '1')) && /k8s/i);
             }
         } else {
             # Container Host tests

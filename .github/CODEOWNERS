@@ -34,7 +34,6 @@ tests/network/wireguard.pm @pdostal
 tests/network/openvpn_client.pm @pdostal
 tests/network/openvpn_server.pm @pdostal
 tests/network/setup_multimachine.pm @pdostal
-lib/Utils/Logging.pm @pdostal
 
 # HPC
 lib/hpc/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad

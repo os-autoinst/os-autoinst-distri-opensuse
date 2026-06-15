@@ -251,7 +251,8 @@ sub load_common_tests {
     # With sd-boot, host_config does not perform a reboot and a snapshot is made while the serial terminal
     # is logged in. year_2038_detection does a forced rollback to this snapshot and triggers poo#109929,
     # breaking most later modules.
-    loadtest 'console/year_2038_detection' unless (is_s390x || is_sle_micro || is_leap_micro || is_bootloader_sdboot);
+    # Skip the test if setups don't support snapshot rollback due to bsc#1266277
+    loadtest 'console/year_2038_detection' unless (is_s390x || is_bootloader_sdboot || get_var('QEMU_DISABLE_SNAPSHOTS'));
 }
 
 

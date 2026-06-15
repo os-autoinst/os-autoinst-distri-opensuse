@@ -259,6 +259,7 @@ subtest '[find_deployment_id] Test exceptions' => sub {
     $mock_function->redefine(get_parent_ids => sub { return (['55', '22']) if grep(/^5$/, @_); });
     # Current job ID is 5
     $mock_function->redefine(get_current_job_id => sub { return '5'; });
+    $DEPLOYMENT_ID = 0;
 
     dies_ok { find_deployment_id() } 'Fail with multiple deployments found';
 

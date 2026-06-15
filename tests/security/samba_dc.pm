@@ -39,6 +39,10 @@ sub run ($self) {
         $netdev = iface();
         $server_ip = get_var('SERVER_IP', '10.0.2.123');
         $client_ip = get_var('CLIENT_IP', '10.0.2.124');
+        #s390x does not have MM setup, this is needed
+        if ($hostname eq 'server') {
+            assert_script_run("hostnamectl set-hostname $hostname");
+        }
     }
 
     ($hostname eq 'client') ? run_client() : run_server();
@@ -190,6 +194,8 @@ sub validate_samba_services() {
     if (is_s390x) {
         systemctl("stop firewalld");
         assert_script_run("nmcli con add type vlan con-name \"$netdev\".1 dev \"$netdev\" id 10 ipv4.method manual ipv4.address \"$server_ip/24\"");
+        #extra disable ipv6 due to nmcl
+        disable_ipv6();
     }
     systemctl('enable --now samba-ad-dc.service');
     systemctl('status samba-ad-dc.service');

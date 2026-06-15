@@ -183,7 +183,7 @@ sub list_skipped_tests {
 sub _whitelist_entry_match
 {
     my ($entry, $env) = @_;
-    my @attributes = qw(product ltp_version revision arch kernel backend retval flavor machine);
+    my @attributes = qw(product ltp_version revision arch kernel backend retval flavor machine test_variant);
 
     foreach my $attr (@attributes) {
         next unless defined $entry->{$attr};

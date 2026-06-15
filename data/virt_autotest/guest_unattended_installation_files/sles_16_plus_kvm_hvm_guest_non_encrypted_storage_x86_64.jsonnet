@@ -20,7 +20,7 @@
     "hashedPassword": true
   },
   "root": {
-    "password": "$2a$10$2qfKlKzzEp9tl3mde5CmhuxsEPd3DdlfJMQ.PNSI3rqXx4KztGYT6",
+    "password": "$y$j9T$nRJRQUwZDai/K44Dn8RD40$tNACP3rJ5/oHQD1XIgVmj0MaBZKpD7GWN9nhpyDMgr5",
     "hashedPassword": true,
     "sshPublicKey": "##Authorized-Keys##"
   },
@@ -47,6 +47,9 @@
         ]
       }
     ]
+  },
+  software: {
+    packages: ['openssh-server-config-rootlogin'],
   },
   "network": {
     "connections": [
@@ -80,7 +83,7 @@
         chroot: true,
         content: |||
           #!/usr/bin/env bash
-          echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes\nPermitEmptyPasswords no\nTCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
+          echo -e "PubkeyAuthentication yes\nPasswordAuthentication yes\nPermitEmptyPasswords no\nTCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
         |||
       },
       {
@@ -97,14 +100,15 @@
           #!/usr/bin/env bash
           echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-qe-virtualization-functional.conf
         |||
-      },
+      }
+    ]
+  },
+  "questions": {
+    "policy": "auto",
+    "answers": [
       {
-        name: "enable_sshd",
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          systemctl enable sshd.service
-        |||
+        "class": "load.retry",
+        "answer": "yes"
       }
     ]
   }

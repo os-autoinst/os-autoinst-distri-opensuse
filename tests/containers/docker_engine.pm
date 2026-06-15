@@ -95,7 +95,7 @@ sub run {
     select_serial_terminal;
     $self->setup;
 
-    my $firewall_backend = script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
+    my $firewall_backend = get_var("FIREWALL_BACKEND", script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'");
     record_info "firewall backend", $firewall_backend;
     my $test_no_firewalld = ($firewall_backend eq "iptables") ? "true" : "";
 
@@ -116,10 +116,16 @@ sub run {
         push @xfails, (
             # We don't yet support CDI
             "github.com/moby/moby/v2/integration/container::TestEtcCDI",
+            # Flaky tests:
             "github.com/moby/moby/v2/integration/container::TestContainerRestartWithCancelledRequest",
             "github.com/moby/moby/v2/integration/container::TestHealthKillContainer",
+            "github.com/moby/moby/v2/integration/container::TestStopContainerWithTimeoutCancel",
             "github.com/moby/moby/v2/integration/service::TestRestoreIngressRulesOnFirewalldReload",
         );
+        # This may fail on SLES 15 due to older version of rootlesskit (1.1.1)
+        push @xfails, (
+            "github.com/moby/moby/v2/integration/container::TestNetworkLoopbackNat",
+        ) if (is_sle("<16") && get_var("ROOTLESS"));
     } else {
         # These fail on Docker v28:
         push @xfails, (

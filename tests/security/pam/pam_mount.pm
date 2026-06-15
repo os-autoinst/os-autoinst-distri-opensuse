@@ -120,10 +120,6 @@ END
     assert_script_run "mv $pam_mount_cfg_bak $pam_mount_cfg";
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 sub post_fail_hook {
     select_console 'root-console';
     assert_script_run 'cp -pr /mnt/pam.d /etc';

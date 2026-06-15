@@ -17,6 +17,12 @@ sub run {
     my $self = shift;
     select_serial_terminal;
 
+    # Avoid tiny races where systemd-coredump is still busy compressing.
+    # Otherwise we may get this on coredumpctl info:
+    #   Timestamp: Sun 2026-05-17 23:34:06 CEST (684ms ago)
+    # Note: We can't use systemd-coredump in pgrep because we'd get:
+    #   pgrep: pattern that searches for process name longer than 15 characters will result in zero matches
+    script_run "while pgrep systemd-cored >/dev/null ; do sleep 1 ; done";
     cleanup_known_coredumps unless is_tumbleweed;
     upload_coredumps;
 }

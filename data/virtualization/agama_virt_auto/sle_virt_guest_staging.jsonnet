@@ -22,7 +22,7 @@ local urls = if repo != '' then std.split(repo, ',') else [];
     sshPublicKey: '{{_SECRET_ED25519_PUB_KEY}}'
   },
   software: {
-    packages: [],
+    packages: ['openssh-server-config-rootlogin'],
     patterns: [
       'base'
     ],
@@ -64,8 +64,6 @@ local urls = if repo != '' then std.split(repo, ',') else [];
         chroot: true,
         content: |||
           #!/usr/bin/env bash
-          systemctl enable sshd
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
           sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
           echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 120" > $sshd_config_file
         |||

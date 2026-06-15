@@ -3,11 +3,7 @@
 # Copyright 2023-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: NFS Client
-#    This module provisions the NFS client and then runs some basic
-#    sanity tests. Detailed description of the tests can be found in:
-#    tests/kernel/nfs_server.pm
-
+# Summary: Provision NFS client, mount NFSv3/NFSv4 shares and write test data.
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
@@ -15,6 +11,7 @@ use testapi;
 use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
+use package_utils 'install_package';
 
 sub copy_file {
     my ($flag, $nfs_mount, $file) = @_;
@@ -26,12 +23,16 @@ sub run {
     record_info("hostname", script_output("hostname"));
     my $server_node = get_var('SERVER_NODE', 'server-node00');
 
-    zypper_call("in nfs-client");
+    install_package('nfs-client', trup_apply => 1);
 
-    my $local_nfs3 = get_var('NFS_LOCAL_NFS3', '/home/localNFS3');
-    my $local_nfs3_async = get_var('NFS_LOCAL_NFS3_ASYNC', '/home/localNFS3async');
-    my $local_nfs4 = get_var('NFS_LOCAL_NFS4', '/home/localNFS4');
-    my $local_nfs4_async = get_var('NFS_LOCAL_NFS4_ASYNC', '/home/localNFS4async');
+    my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/var/lib/nfs-tests/shared_nfs3');
+    my $nfs_mount_nfs3_async = get_var('NFS_MOUNT_NFS3_ASYNC', '/var/lib/nfs-tests/shared_nfs3_async');
+    my $nfs_mount_nfs4 = get_var('NFS_MOUNT_NFS4', '/var/lib/nfs-tests/shared_nfs4');
+    my $nfs_mount_nfs4_async = get_var('NFS_MOUNT_NFS4_ASYNC', '/var/lib/nfs-tests/shared_nfs4_async');
+    my $local_nfs3 = get_var('NFS_LOCAL_NFS3', '/var/lib/nfs-tests/localNFS3');
+    my $local_nfs3_async = get_var('NFS_LOCAL_NFS3_ASYNC', '/var/lib/nfs-tests/localNFS3async');
+    my $local_nfs4 = get_var('NFS_LOCAL_NFS4', '/var/lib/nfs-tests/localNFS4');
+    my $local_nfs4_async = get_var('NFS_LOCAL_NFS4_ASYNC', '/var/lib/nfs-tests/localNFS4async');
     my $multipath = get_var('NFS_MULTIPATH', '0');
 
     # check kernel config options and set the variables
@@ -54,18 +55,18 @@ sub run {
 
     if ($kernel_nfs3 == 1) {
         record_info('INFO', 'Kernel has support for NFSv3');
-        assert_script_run("mkdir $local_nfs3 $local_nfs3_async");
-        assert_script_run("mount -t nfs -o nfsvers=3,sync $server_node:/nfs/shared_nfs3 $local_nfs3");
-        assert_script_run("mount -t nfs -o nfsvers=3 $server_node:/nfs/shared_nfs3_async $local_nfs3_async");
+        assert_script_run("mkdir -p $local_nfs3 $local_nfs3_async");
+        assert_script_run("mount -t nfs -o nfsvers=3,sync $server_node:$nfs_mount_nfs3 $local_nfs3");
+        assert_script_run("mount -t nfs -o nfsvers=3 $server_node:$nfs_mount_nfs3_async $local_nfs3_async");
     } else {
         record_info('INFO', 'Kernel has no support for NFSv3, skipping NFSv3 tests');
     }
 
     if ($kernel_nfs4 == 1) {
         record_info('INFO', 'Kernel has support for NFSv4');
-        assert_script_run("mkdir $local_nfs4 $local_nfs4_async");
-        assert_script_run("mount -t nfs -o nfsvers=4,sync $server_node:/nfs/shared_nfs4 $local_nfs4");
-        assert_script_run("mount -t nfs -o nfsvers=4 $server_node:/nfs/shared_nfs4_async $local_nfs4_async");
+        assert_script_run("mkdir -p $local_nfs4 $local_nfs4_async");
+        assert_script_run("mount -t nfs -o nfsvers=4,sync $server_node:$nfs_mount_nfs4 $local_nfs4");
+        assert_script_run("mount -t nfs -o nfsvers=4 $server_node:$nfs_mount_nfs4_async $local_nfs4_async");
     } else {
         record_info('INFO', 'Kernel has no support for NFSv4, skipping NFSv4tests');
     }
@@ -116,3 +117,82 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+Provisions the NFS client node of the coordinated multi-machine NFS test.
+This module is designed to execute in lockstep with L<tests/kernel/nfs_server.pm>,
+synchronised at runtime via shared barriers.
+
+Installs C<nfs-client>, mounts the exports provided by the server (NFSv3 and
+NFSv4, sync and async variants, subject to kernel support), creates a 10 MiB
+test file with C<dd>, computes its md5 checksum, then copies it to every mount
+using C<cp> and C<dd> with C<direct>, C<dsync>, and C<sync> flags.
+
+=head1 Configuration
+
+=head2 SERVER_NODE
+
+Hostname or IP of the NFS server.
+Defaults to C<server-node00>.
+
+=head2 NFS_MOUNT_NFS3
+
+Server-side export path for the NFSv3 synchronous mount.
+Defaults to C</var/lib/nfs-tests/shared_nfs3>.
+
+=head2 NFS_MOUNT_NFS3_ASYNC
+
+Server-side export path for the NFSv3 asynchronous mount.
+Defaults to C</var/lib/nfs-tests/shared_nfs3_async>.
+
+=head2 NFS_MOUNT_NFS4
+
+Server-side export path for the NFSv4 synchronous mount.
+Defaults to C</var/lib/nfs-tests/shared_nfs4>.
+
+=head2 NFS_MOUNT_NFS4_ASYNC
+
+Server-side export path for the NFSv4 asynchronous mount.
+Defaults to C</var/lib/nfs-tests/shared_nfs4_async>.
+
+=head2 NFS_LOCAL_NFS3
+
+Local mountpoint for the NFSv3 synchronous export.
+Defaults to C</var/lib/nfs-tests/localNFS3>.
+
+=head2 NFS_LOCAL_NFS3_ASYNC
+
+Local mountpoint for the NFSv3 asynchronous export.
+Defaults to C</var/lib/nfs-tests/localNFS3async>.
+
+=head2 NFS_LOCAL_NFS4
+
+Local mountpoint for the NFSv4 synchronous export.
+Defaults to C</var/lib/nfs-tests/localNFS4>.
+
+=head2 NFS_LOCAL_NFS4_ASYNC
+
+Local mountpoint for the NFSv4 asynchronous export.
+Defaults to C</var/lib/nfs-tests/localNFS4async>.
+
+=head2 NFS_MULTIPATH
+
+When set to C<1>, enables multipath for NFS mounts.
+Defaults to C<0>.
+
+=head1 Barriers
+
+=head2 NFS_SERVER_ENABLED
+
+Waits for the server to be ready before mounting the exports.
+
+=head2 NFS_CLIENT_ENABLED
+
+Signals that all NFS exports are mounted; test data is written after this point.
+
+=head2 NFS_SERVER_CHECK
+
+Signals that the client has finished writing test data; the server proceeds to verify checksums after this point.
+
+=cut

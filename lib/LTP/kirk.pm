@@ -19,9 +19,16 @@ use version_utils qw(is_transactional);
 use transactional 'trup_install';
 use LTP::utils;
 
+# Install kirk from git and run it.
+#
+# Parameters:
+#   $cmd        - the kirk command line (without interpreter/path prefix)
+#   $timeout    - timeout in seconds passed to assert_script_run
+#   $env_prefix - environment variable assignments prepended to the command,
+#                 e.g. 'FOO=1 BAR=2 '
 sub _kirk_from_git
 {
-    my ($cmd, $timeout) = @_;
+    my ($cmd, $timeout, $env_prefix) = @_;
     my $repo = get_var('KIRK_REPO', 'https://github.com/linux-test-project/kirk.git');
     my $branch = get_var('KIRK_BRANCH', 'master');
 
@@ -30,26 +37,26 @@ sub _kirk_from_git
     is_transactional ? trup_install("git") : zypper_call("in -y git");
     assert_script_run("git clone -q --single-branch -b $branch --depth 1 $repo");
 
-    $cmd = "python3 kirk/$cmd ";
+    $cmd = "${env_prefix} python3 kirk/$cmd ";
 
     assert_script_run($cmd, timeout => $timeout);
 }
 
 sub _kirk_from_repo
 {
-    my ($cmd, $timeout) = @_;
+    my ($cmd, $timeout, $env_prefix) = @_;
 
     add_ltp_repo();
     zypper_call("ref");
 
     is_transactional ? trup_install("kirk") : zypper_call("in -y kirk");
 
-    assert_script_run($cmd, timeout => $timeout);
+    assert_script_run("$env_prefix $cmd", timeout => $timeout);
 }
 
 sub _kirk_from_container
 {
-    my ($cmd, $timeout, $volumes_ref) = @_;
+    my ($cmd, $timeout, $volumes_ref, $envs_ref) = @_;
     my $container_engine = get_var('KIRK_CONTAINER', 'podman');
     my $container_repo = get_var('KIRK_CONTAINER_REPO', 'registry.opensuse.org/benchmark/ltp/devel/containers/opensuse/kirk:latest');
 
@@ -66,6 +73,9 @@ sub _kirk_from_container
     my $engine_command = "$container_engine run --name kirk_image -it --privileged --security-opt=unmask=ALL ";
     foreach my $volume_ref (@$volumes_ref) {
         $engine_command .= "--volume $volume_ref->{src}:$volume_ref->{dst} ";
+    }
+    foreach my $env (@$envs_ref) {
+        $engine_command .= "--env $env ";
     }
 
     $engine_command .= "$container_repo $cmd";
@@ -87,29 +97,32 @@ sub run
     my ($self, %args) = @_;
     my $install_from = get_var('KIRK_INSTALL', 'repo');
 
-    die "Missing mandatory argument 'framework'" unless defined $args{framework};
-
     $args{sut} //= 'host';
     $args{timeout} //= '5400';
 
     select_serial_terminal;
 
+    # As of kirk's December 2025 changes, the '--framework' and '--env'
+    # options have been removed. kirk now only supports the LTP framework
+    # and reads environment variables directly from the OS environment.
+    my @envs;
+    @envs = split(/:/, $args{envs}) if $args{envs};
+    my $env_prefix = @envs ? join(' ', @envs) . ' ' : '';
+
     my $cmd = 'kirk ';
     $cmd .= "--verbose ";
     $cmd .= "--suite-timeout $args{timeout} ";
-    $cmd .= "--framework $args{framework} " if $args{framework};
     $cmd .= "--sut $args{sut} " if $args{sut};
     $cmd .= "--skip-tests '$args{skip}' " if $args{skip};
-    $cmd .= "--env $args{envs} " if $args{envs};
     $cmd .= "--run-suite $args{suite} " if $args{suite};
     $cmd .= "$args{opts} " if $args{opts};
 
     if ($install_from =~ /git/i) {
-        _kirk_from_git($cmd, $args{timeout});
+        _kirk_from_git($cmd, $args{timeout}, $env_prefix);
     } elsif ($install_from =~ /repo/i) {
-        _kirk_from_repo($cmd, $args{timeout});
+        _kirk_from_repo($cmd, $args{timeout}, $env_prefix);
     } elsif ($install_from =~ /container/i) {
-        _kirk_from_container($cmd, $args{timeout}, $args{container_volumes});
+        _kirk_from_container($cmd, $args{timeout}, $args{container_volumes}, \@envs);
     } else {
         die("Installation can't be done via '$install_from'");
     }

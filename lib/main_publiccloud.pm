@@ -13,7 +13,7 @@ use version_utils;
 use publiccloud::utils;
 use main_common qw(loadtest);
 use testapi qw(check_var get_var);
-use Utils::Architectures qw(is_aarch64 is_s390x);
+use Utils::Architectures;
 use main_containers qw(load_container_tests);
 require bmwqemu;
 
@@ -21,6 +21,11 @@ our @EXPORT = qw(load_publiccloud_tests load_publiccloud_download_repos);
 
 sub load_maintenance_publiccloud_tests {
     my $args = OpenQA::Test::RunArgs->new();
+
+    # Avoid running jobs for ARM-only packages on x86_64. poo#201303
+    return if (is_x86_64 && get_var("BUILD") =~ /:\d+:dtb-(?:aarch64|armv7l)/);
+    # Avoid testing kernel-ec2 on Azure & GCE
+    return if (!is_ec2() && get_var("BUILD") =~ /:\d+:kernel-ec2/);
 
     loadtest "publiccloud/download_repos" unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/prepare_instance", run_args => $args;
@@ -119,19 +124,21 @@ sub load_latest_publiccloud_tests {
     }
 
     if (get_var('PUBLIC_CLOUD_LTP')) {
+        loadtest "publiccloud/prepare_instance", run_args => $args;
+        loadtest("publiccloud/registration", run_args => $args);
         loadtest 'publiccloud/run_ltp', run_args => $args;
     }
     elsif (get_var('PUBLIC_CLOUD_ACCNET')) {
         loadtest 'publiccloud/az_accelerated_net', run_args => $args;
     }
-    elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest "publiccloud/registercloudguest", run_args => $args;
-    }
     elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
         loadtest "publiccloud/azure_aitl", run_args => $args;
     } else {    # All test cases below require prepare_instance
         loadtest "publiccloud/prepare_instance", run_args => $args;
-        if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+        if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
+            loadtest "publiccloud/registercloudguest", run_args => $args;
+        }
+        elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
             loadtest "publiccloud/img_proof", run_args => $args;
         } else {    # All test cases below require registration
             loadtest("publiccloud/registration", run_args => $args);

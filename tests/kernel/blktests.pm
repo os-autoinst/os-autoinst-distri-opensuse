@@ -12,6 +12,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use repo_tools 'add_qa_head_repo';
+use LTP::WhiteList;
+use LTP::utils 'prepare_whitelist_environment';
 use package_utils 'install_package';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
 
@@ -32,10 +34,11 @@ sub run {
     #below variable exposes blktests options to the openQA testsuite
     #definition, so that it allows flexible ways of re-runing the tests
     my $tests = get_required_var('BLKTESTS');
+    my $devices = get_required_var('BLKTESTS_TEST_DEVS');
     my $quick = get_var('BLKTESTS_QUICK', 60);
     my $exclude = get_var('BLKTESTS_EXCLUDE');
-    my $devices = get_required_var('BLKTESTS_DEVICE_ONLY');
     my $trtypes = get_var('BLKTESTS_TRTYPES');
+    my $issues = get_var('BLKTESTS_KNOWN_ISSUES');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
     save_and_upload_log('rpm -qi kernel-default', 'kernel_bug_report.txt');
@@ -56,8 +59,25 @@ sub run {
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
 
-    $exclude = join(' ', map { "--exclude=$_" } split(/,/, $exclude // ''));
+    # BLKTESTS_EXCLUDE provides the initial list; known-issue entries are appended below
+    my @exclude = split(/,/, $exclude // '');
+    if ($issues) {
+        my $whitelist = LTP::WhiteList->new($issues);
+        my $environment = prepare_whitelist_environment();
+        $environment->{test_variant} = $trtypes // '';
+        $environment->{kernel} = script_output('uname -r');
+
+        for my $test ($whitelist->list_skipped_tests($environment, 'blktests')) {
+            my $entry = $whitelist->find_whitelist_entry($environment, 'blktests', $test);
+            my $message = $entry->{message} // '';
+            record_info('Known issue', "Skipping $test" . ($message ? ": $message" : ''));
+            push @exclude, $test;
+        }
+    }
+
+    $exclude = join(' ', map { "--exclude=$_" } @exclude);
     $trtypes = "NVMET_TRTYPES=\"$trtypes\" " if $trtypes;
+
     foreach my $i (@tests) {
         my $config = $devices eq 'none' ? '' : '-c /etc/blktests/config';
         script_run("${trtypes} ./check $config -o ${log_dir}/results --quick=$quick $exclude $i", 1200);
@@ -90,3 +110,78 @@ sub post_fail_hook {
 }
 
 1;
+
+=head1 Description
+
+Run the upstream blktests suite from the C<blktests> package.
+
+The test groups to execute are selected with C<BLKTESTS>. Individual tests can
+be skipped either directly with C<BLKTESTS_EXCLUDE> (mostly for debugging purposes)
+or through known-issues metadata referenced by C<BLKTESTS_KNOWN_ISSUES>.
+Most native C<blktests> variables are exposed as C<BLKTESTS_NAME>, where C<NAME>
+matches the upstream C<blktests> variable name, for example C<BLKTESTS_TRTYPES>
+for C<TRTYPES>.
+
+=head1 Configuration
+
+=head2 BLKTESTS
+
+Required. Comma-separated list of blktests groups or individual tests passed to
+C<./check>. Examples:
+
+  BLKTESTS=block
+  BLKTESTS=dm,throtl,scsi,loop
+  BLKTESTS=nvme/001
+
+=head2 BLKTESTS_TEST_DEVS
+
+Required. Device list written to F</etc/blktests/config> as C<TEST_DEVS>.
+Set to C<none> to skip writing a device list.
+
+=head2 BLKTESTS_EXCLUDE
+
+Optional. Comma-separated list of tests to exclude directly from this job. The
+value is converted to C<./check --exclude=...> arguments.
+
+This remains useful for temporary debugging overrides. Persistent product or
+transport specific skips should be represented in C<BLKTESTS_KNOWN_ISSUES>
+instead.
+
+=head2 BLKTESTS_KNOWN_ISSUES
+
+Optional. URL or local path to a known-issues YAML file parsed with
+C<LTP::WhiteList>. Entries under the C<blktests> suite with C<skip: 1> are
+added to the C<./check --exclude=...> arguments when they match the current
+openQA environment.
+
+Known-issues keys must use the full upstream blktests test ID format
+C<group/number>. Matching C<skip: 1> entries are passed directly to
+C<./check --exclude=...>.
+
+Example:
+
+  blktests:
+      block/033:
+      - product: sle:16\.1$
+        skip: 1
+        message: miniublk uses legacy ublk command opcodes
+      nvme/041:
+      - test_variant: ^fc$
+        skip: 1
+        message: skipped only for NVMe Fibre Channel transport
+
+The common C<LTP::WhiteList> fields such as C<product>, C<revision>, C<flavor>,
+C<arch>, C<backend>, C<machine>, C<kernel>, and C<test_variant> are supported.
+For blktests, C<test_variant> matches C<BLKTESTS_TRTYPES>.
+
+=head2 BLKTESTS_QUICK
+
+Optional. Value passed to C<./check --quick>. Defaults to C<60>.
+
+=head2 BLKTESTS_TRTYPES
+
+Optional. NVMe transport type passed to blktests through C<NVMET_TRTYPES>.
+This value is also available to C<BLKTESTS_KNOWN_ISSUES> entries through the
+C<test_variant> matcher.
+
+=cut

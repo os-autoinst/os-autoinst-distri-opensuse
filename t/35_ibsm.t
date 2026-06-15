@@ -92,8 +92,8 @@ subtest '[ibsm_network_peering_azure_create] az integration' => sub {
 
     $az_cli->redefine(script_output => sub {
             push @calls, 'SO: ' . $_[0];
-            if ($_[0] =~ /az network vnet list -g (.*) --query.*/) { return '["VNET-' . $1 . '"]'; }
-            if ($_[0] =~ /az network vnet show --query id.*--name (.*)/) { return $1 . '-ID'; }
+            if ($_[0] =~ /az network vnet list.* -g (.*) --query.*/) { return '["VNET-' . $1 . '"]'; }
+            if ($_[0] =~ /az network vnet show.* --query id.*--name (.*)/) { return $1 . '-ID'; }
             return 'NOT VALID'; });
 
     $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -157,7 +157,7 @@ subtest '[ibsm_network_peering_azure_delete] including az_cli code layer' => sub
 
     $az_cli->redefine(script_output => sub {
             push @calls, 'SO: ' . $_[0];
-            if ($_[0] =~ /az network vnet list -g (.*) --query.*/) { return '["VNET-' . $1 . '"]'; }
+            if ($_[0] =~ /az network vnet list.* -g (.*) --query.*/) { return '["VNET-' . $1 . '"]'; }
             if ($_[0] =~ /az network vnet show --query id.*--name (.*)/) { return $1 . '-ID'; }
             if ($_[0] =~ /az network vnet peering list/) { return '["GABBIANO"]'; }
             if ($_[0] =~ /az network vnet peering delete/) { return 0; }

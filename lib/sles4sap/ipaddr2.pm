@@ -17,6 +17,7 @@ use Mojo::JSON qw( decode_json );
 # a Fully Qualified Domain Name which returns an ipV4 address or an ipV6 address
 # embodied in that order. This feature can be disabled with:
 use NetAddr::IP::Lite ':nofqdn';
+use File::Basename qw(basename);
 use testapi;
 use mmapi qw( get_current_job_id );
 use utils qw( write_sut_file ssh_fully_patch_system);
@@ -24,6 +25,7 @@ use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use sles4sap::ibsm;
 use sles4sap::azure_cli;
+use version_utils qw(package_version_cmp);
 
 
 =head1 SYNOPSIS
@@ -576,10 +578,10 @@ sub ipaddr2_internal_key_accept(%args) {
 
             # this score mechanism penalize more those systems
             # that are not ready when reaching this code.
-            $score += (defined($exit_code) && $exit_code eq 0) ? +1 : -1;
+            $score += (defined($exit_code) && $exit_code == 0) ? +1 : -1;
             last if $score > 1;
         }
-        die "ssh port 22 not available on VM $vm_name" if (!(defined($exit_code) && $exit_code eq 0));
+        die "ssh port 22 not available on VM $vm_name" if (!(defined($exit_code) && $exit_code == 0));
 
         # Try two different variants of the same command.
         $ret = script_run(join(' ',
@@ -831,12 +833,12 @@ sub ipaddr2_deployment_sanity {
     my $rg = ipaddr2_azure_resource_group();
     my $res = az_group_name_get();
     my $count = grep(/$rg/, @$res);
-    die "There are not exactly one but $count resource groups with name $rg" unless $count eq 1;
+    die "There are not exactly one but $count resource groups with name $rg" unless $count == 1;
 
     $res = az_vm_list(resource_group => $rg, query => '[].name');
     $count = grep(/$bastion_vm_name/, @$res);
-    die "There are not exactly 3 VMs but " . ($#{$res} + 1) unless ($#{$res} + 1) eq 3;
-    die "There are not exactly 1 but $count VMs with name $bastion_vm_name" unless $count eq 1;
+    die "There are not exactly 3 VMs but " . ($#{$res} + 1) unless ($#{$res} + 1) == 3;
+    die "There are not exactly 1 but $count VMs with name $bastion_vm_name" unless $count == 1;
 
     foreach (@$res) {
         az_vm_wait_running(
@@ -862,6 +864,8 @@ Tests are independent by the cluster status.
 =item B<user> - user expected to be able to ssh connect password-less from one internal VM to the other.
                 Default is cloudadmin.
 
+=item B<enable_dig> - optionally enable dig command execution in the connectivity sanity checks.
+
 =back
 =cut
 
@@ -870,7 +874,7 @@ sub ipaddr2_os_sanity(%args) {
     $args{user} //= USER;
 
     ipaddr2_os_network_sanity(bastion_ip => $args{bastion_ip});
-    ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip});
+    ipaddr2_os_connectivity_sanity(bastion_ip => $args{bastion_ip}, enable_dig => $args{enable_dig});
     ipaddr2_os_ssh_sanity(user => $args{user}, bastion_ip => $args{bastion_ip});
 
     foreach (1 .. 2) {
@@ -918,7 +922,7 @@ sub ipaddr2_cluster_sanity(%args) {
         bastion_ip => $args{bastion_ip});
 
     my @resources = $crm_configure =~ /primitive/g;
-    die "Cluster on VM $args{id} has " . scalar @resources . " primitives instead of expected 3" unless (scalar @resources) eq 3;
+    die "Cluster on VM $args{id} has " . scalar @resources . " primitives instead of expected 3" unless (scalar @resources) == 3;
 
     ipaddr2_ssh_internal(id => $args{id},
         cmd => '[ -f /usr/lib/ocf/resource.d/heartbeat/nginx ]',
@@ -944,6 +948,8 @@ die in case of failure
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<enable_dig> - optionally enable dig command execution.
+
 =back
 =cut
 
@@ -963,8 +969,10 @@ sub ipaddr2_os_connectivity_sanity(%args) {
             ipaddr2_get_internal_vm_private_ip(id => $i),
             ipaddr2_get_internal_vm_name(id => $i)) {
             # tracepath is not available by default in 12sp5
-            # so only use ping and dig
-            foreach my $cmd (PING_CMD, 'dig') {
+            # so only use ping and optionally dig
+            my @cmds = (PING_CMD);
+            push @cmds, 'dig' if $args{enable_dig};
+            foreach my $cmd (@cmds) {
                 ipaddr2_ssh_bastion_assert_script_run(
                     cmd => "$cmd $addr",
                     bastion_ip => $args{bastion_ip});
@@ -1287,7 +1295,9 @@ sub ipaddr2_ssh_internal_cmd(%args) {
         retry => 2);
 
 Run a command on one of the two internal VM through the bastion
-using the assert_script_run API
+using the script_run testapi. It returns the exit code of the
+application.
+It dies for timeout and if exit code is not zero and no_assert is not defined.
 
 =over
 
@@ -1527,15 +1537,19 @@ sub ipaddr2_scc_check(%args) {
 
 =head2 ipaddr2_scc_registration_workaround_PAYG
 
-    my ipaddr2_scc_registration_workaround_PAYG(id => 1);
+    ipaddr2_scc_registration_workaround_PAYG(id => 1);
 
-Workaround for PAYG image scc registration.
-Do cleanup, reboot and re-register.
-Do debug.
+Wait for guestregister.service to complete on a PAYG image.
+If the service fails, collect diagnostics and attempt recovery
+by restarting it (matching the approach in
+ansible/playbooks/tasks/check-guestregister-service.yaml).
+
+Dies if registration cannot be recovered after restart.
+Records a soft failure (bsc#1254984) if restart was needed.
 
 =over
 
-=item B<id> - VM id where to install and configure the web server
+=item B<id> - VM id to check
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended
@@ -1548,75 +1562,96 @@ sub ipaddr2_scc_registration_workaround_PAYG(%args) {
     croak("Argument < id > missing") unless $args{id};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
-    # Debug purpose
-    record_info('Debug: check guestregister.service before reboot');
-    ipaddr2_ssh_internal(
-        id => $args{id},
-        cmd => 'sudo systemctl is-enabled guestregister.service',
-        bastion_ip => $args{bastion_ip},
-        no_assert => 1);
-
-    # Enable and start guestregister.service as it is 'disabled' sometime
-    ipaddr2_ssh_internal(
-        id => $args{id},
-        cmd => 'sudo systemctl enable --now guestregister.service',
-        bastion_ip => $args{bastion_ip});
-
-    # Clean registration before reboot
-    # NOTE: without cleanup the re-register will be failed when hit 'Credentials are invalid' error
-    ipaddr2_ssh_internal(
-        id => $args{id},
-        cmd => 'sudo registercloudguest --clean',
-        bastion_ip => $args{bastion_ip});
-
-    # Reboot: during 'reboot' it will do registration automatically if not
-    ipaddr2_ssh_internal(id => $args{id},
-        cmd => 'sudo reboot',
-        timeout => 60,
-        no_assert => 1,
-        bastion_ip => $args{bastion_ip});
-
-    # Check if reboot was done successfully
+    # Wait for guestregister.service to reach terminal state (inactive or failed).
+    # Poll for up to 10 minutes (60 retries x 10s), matching Ansible retries/delay.
+    my $service_ok = 0;
     my $timeout = 600;
-    my $ip = ipaddr2_get_internal_vm_private_ip(id => $_);
+    my $interval = 10;
     while ($timeout > 0) {
-        if (script_run("ssh $args{bastion_ip} 'nc -vz -w 1 $ip 22'") != 0) {
-            record_info("waiting $ip boot");
-            sleep 60;
-            $timeout = $timeout - 60;
-        }
-        else {
-            record_info("$ip reboot successfully");
+        my $state = ipaddr2_ssh_internal_output(id => $args{id},
+            cmd => 'sudo systemctl show guestregister.service --property=ActiveState --property=Result',
+            bastion_ip => $args{bastion_ip});
+
+        if ($state =~ /ActiveState=inactive/) {
+            $service_ok = ($state =~ /Result=success/) ? 1 : 0;
             last;
         }
+        if ($state =~ /ActiveState=failed/) {
+            $service_ok = 0;
+            last;
+        }
+        # Still activating - wait
+        sleep $interval;
+        $timeout -= $interval;
     }
 
-    # Debug purpose
-    record_info('Debug: check guestregister.service after reboot');
-    ipaddr2_ssh_internal(
-        id => $args{id},
-        cmd => 'sudo systemctl is-enabled guestregister.service',
+    # If guestregister.service succeeded, nothing more to do
+    return if $service_ok;
+
+    # Service failed or timed out. Collect diagnostics.
+    record_info('PAYG svc failed', 'guestregister.service did not complete successfully');
+    foreach my $cmd (
+        'sudo systemctl status guestregister.service',
+        'sudo journalctl -u guestregister.service --no-pager',
+        'sudo grep -E "ERROR:|WARNING:|401|422|failed" /var/log/cloudregister || true',
+        'sudo zypper lr -u || true'
+    ) {
+        ipaddr2_ssh_internal(id => $args{id},
+            cmd => $cmd,
+            bastion_ip => $args{bastion_ip},
+            no_assert => 1);
+    }
+
+    # Recovery - restart guestregister.service
+    record_info('PAYG recovery', 'Attempting guestregister.service restart');
+    ipaddr2_ssh_internal(id => $args{id},
+        cmd => 'sudo systemctl restart guestregister.service',
         bastion_ip => $args{bastion_ip},
         no_assert => 1);
-    record_info('Debug: check SUSEConnect -s after reboot');
-    ipaddr2_ssh_internal(
-        id => $args{id},
-        cmd => 'sudo SUSEConnect -s',
-        bastion_ip => $args{bastion_ip},
-        no_assert => 0);
 
-    # Try registration cleaup and registercloudguest again manually
-    # NOTE: reboot automatic registration can not fully register all modules sometime
-    # Clean registration
-    ipaddr2_ssh_internal(
-        id => $args{id},
-        cmd => 'sudo registercloudguest --clean',
+    # Wait again for restart to reach terminal state (30 retries x 5s = 150s)
+    my $retry_ok = 0;
+    $timeout = 150;
+    $interval = 5;
+    while ($timeout > 0) {
+        my $state = ipaddr2_ssh_internal_output(id => $args{id},
+            cmd => 'sudo systemctl show guestregister.service --property=ActiveState --property=Result',
+            bastion_ip => $args{bastion_ip});
+
+        if ($state =~ /ActiveState=inactive/) {
+            $retry_ok = ($state =~ /Result=success/) ? 1 : 0;
+            last;
+        }
+        if ($state =~ /ActiveState=failed/) {
+            $retry_ok = 0;
+            last;
+        }
+        sleep $interval;
+        $timeout -= $interval;
+    }
+
+    # Verify with SUSEConnect -s (5 retries x 120s delay, matching Ansible)
+    my $sc_ret;
+    for my $attempt (1 .. 5) {
+        $sc_ret = ipaddr2_ssh_internal(id => $args{id},
+            cmd => 'sudo SUSEConnect -s',
+            bastion_ip => $args{bastion_ip},
+            no_assert => 1);
+        last if (defined $sc_ret && $sc_ret == 0);
+        sleep 120 if $attempt < 5;
+    }
+
+    die "FATAL: SUSEConnect -s failed after guestregister.service restart (rc=$sc_ret)" if $sc_ret;
+
+    my $sc_out = ipaddr2_ssh_internal_output(id => $args{id},
+        cmd => 'sudo SUSEConnect -s',
         bastion_ip => $args{bastion_ip});
-    # Re-register
-    ipaddr2_ssh_internal(
-        id => $args{id},
-        cmd => 'sudo registercloudguest --force-new',
-        bastion_ip => $args{bastion_ip});
+
+    if ($sc_out =~ /Not Registered/) {
+        die "FATAL: System still 'Not Registered' after guestregister.service restart";
+    }
+
+    record_soft_failure('bsc#1254984 - guestregister.service required restart for successful registration');
 }
 
 =head2 ipaddr2_scc_register
@@ -1653,7 +1688,8 @@ sub ipaddr2_scc_register(%args) {
     $args{scc_endpoint} //= 'registercloudguest';
     $args{timeout} //= 360;
     $args{retry} //= 3;
-    croak("SCC endpoint $args{scc_endpoint} is not supported.") unless ($args{scc_endpoint} eq 'SUSEConnect' || $args{scc_endpoint} eq 'registercloudguest');
+    croak("SCC endpoint $args{scc_endpoint} is not supported.")
+      unless ($args{scc_endpoint} eq 'SUSEConnect' || $args{scc_endpoint} eq 'registercloudguest');
 
     ipaddr2_ssh_internal(id => $args{id},
         cmd => "sudo $args{scc_endpoint} --clean",
@@ -1669,14 +1705,29 @@ sub ipaddr2_scc_register(%args) {
 
 =head2 ipaddr2_billing_model_get
 
-    my $is_byos_or_payg = ipaddr2_billing_model_get(id => 1);
+    my $billing = ipaddr2_billing_model_get(id => 1);
 
-Return the billing model of the running image, between BYOS and PAYG,
-internally calling instance-flavor-check
+Return the billing model of the running image by calling instance-flavor-check.
+Possible return values:
 
 =over
 
-=item B<id> - VM id where to install and configure the web server
+=item C<PAYG> - instance-flavor-check exit code 10 (valid PAYG metadata)
+
+=item C<BYOS> - instance-flavor-check exit code 11 or 12
+
+=item C<UNKNOWN> - instance-flavor-check crashed with bsc#1267739
+(FileNotFoundError on fresh BYOS images where /var/cache/cloudregister/
+does not exist). A record_soft_failure is emitted.
+
+=back
+
+The function dies on unexpected exit codes or when rc=1 without the
+known FileNotFoundError signature.
+
+=over
+
+=item B<id> - VM id where to run instance-flavor-check
 
 =item B<bastion_ip> - Public IP address of the bastion. Calculated if not provided.
                       Providing it as an argument is recommended
@@ -1689,19 +1740,35 @@ sub ipaddr2_billing_model_get(%args) {
     croak("Argument < id > missing") unless $args{id};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
-    # Check for image type with instance-flavor-check
+    # Run instance-flavor-check (never fatal for exit code)
     my $ret = ipaddr2_ssh_internal(id => $args{id},
         cmd => 'sudo instance-flavor-check',
         bastion_ip => $args{bastion_ip},
         no_assert => 1);
 
-    # Valid instance metadata verified successfully
-    return 'PAYG' if ($ret eq 10);
-    # 11: not valid instance metadata verified successfully
-    # 12: we could not reliably determine the flavor of the instance. The instance is labeled as BYOS
-    return 'BYOS' if (($ret eq 11) || ($ret eq 12));
+    # rc 10: Valid instance metadata verified successfully
+    return 'PAYG' if ($ret == 10);
+    # rc 11: not valid instance metadata verified successfully
+    # rc 12: we could not reliably determine the flavor of the instance
+    return 'BYOS' if (($ret == 11) || ($ret == 12));
 
-    die "Invalid instance-flavor-check ret:$ret";
+    # bsc#1267739: instance-flavor-check crashes with FileNotFoundError
+    # on fresh BYOS images where /var/cache/cloudregister/ does not exist.
+    # Detect the known bug signature and return UNKNOWN so the caller can
+    # fall back to SUSEConnect -s.
+    if ($ret == 1) {
+        my $out = ipaddr2_ssh_internal_output(id => $args{id},
+            cmd => 'sudo instance-flavor-check 2>&1 || true',
+            bastion_ip => $args{bastion_ip});
+
+        if ($out =~ /FileNotFoundError/) {
+            record_soft_failure('bsc#1267739 - instance-flavor-check crashed with FileNotFoundError');
+            return 'UNKNOWN';
+        }
+    }
+
+    # Any other unexpected exit code or rc=1 without known signature
+    die "instance-flavor-check unexpected result ret:$ret";
 }
 
 =head2 ipaddr2_configure_web_server
@@ -2547,6 +2614,7 @@ sub ipaddr2_logs_collect(%args) {
     my %log_data;
     my $remote_file;
     my $timeout;
+    my $scp_cmd;
 
     # Iterate over all the logs
     foreach my $log (ipaddr2_logs_collect_cmds()) {
@@ -2560,32 +2628,50 @@ sub ipaddr2_logs_collect(%args) {
                 $worker_tmp_dir = ipaddr2_get_worker_tmp_for_internal_vm(id => $id);
                 assert_script_run("mkdir -p $worker_tmp_dir || echo 'Folder $worker_tmp_dir already exist'");
                 %log_data = %{$log->{f_log}->($id)};
+                $log_data{name} = $log->{name} if defined $log->{name};
                 $remote_file = $log_data{file};
 
+                # bsc#1268173: ausearch (called by supportconfig for the SELinux section) reads from
+                # stdin when stdin is not a terminal, blocking indefinitely over SSH. Redirect stdin
+                # from /dev/null so ausearch falls back to reading /var/log/audit/audit.log directly.
+                if (defined $log_data{name} && $log_data{name} eq 'supportconfig') {
+                    my $supportutils_ver = ipaddr2_ssh_internal_output(
+                        id => $id,
+                        bastion_ip => $args{bastion_ip},
+                        cmd => "rpm -q --queryformat '%{VERSION}' supportutils");
+                    # The ausearch call was introduced in supportutils 3.1.25 (bsc#1209979, Jun 2023).
+                    if (package_version_cmp($supportutils_ver, '3.1.25') >= 0) {
+                        $log_data{cmd} =~ s/(sudo supportconfig .+?)\s*&&/$1 < \/dev\/null &&/;
+                        record_soft_failure('bsc#1268173 - supportconfig hangs when run non-interactively.');
+                    }
+                }
+
                 # Execute command on the remote VM to generate the log file, if there is a command to run.
-                ipaddr2_ssh_internal(
-                    id => $id,
-                    bastion_ip => $args{bastion_ip},
-                    no_assert => 1,
-                    timeout => $timeout,
-                    cmd => $log_data{cmd}) if (defined $log_data{cmd});
+                my $cmd_ret = 0;
+                if (defined $log_data{cmd}) {
+                    $cmd_ret = ipaddr2_ssh_internal(
+                        id => $id,
+                        bastion_ip => $args{bastion_ip},
+                        no_assert => 1,
+                        timeout => $timeout,
+                        cmd => $log_data{cmd});
+                }
 
-                # Download the generated file from the remote VM to the local worker.
-                my ($filename) = $remote_file =~ m|/([^/]+)$|;
-                $filename //= $remote_file;    # Fallback
-                $local_file = "$worker_tmp_dir/$filename";
-                record_info("bastion_ssh_addr:$bastion_ssh_addr vm_addr:$vm_addr ", join(' ',
+                # Download the generated file from the remote VM to the local worker
+                # only if the previous command was successful.
+                if (defined $cmd_ret && $cmd_ret == 0) {
+                    $local_file = join('/', $worker_tmp_dir, basename($remote_file));
+
+                    $scp_cmd = join(' ',
                         'scp',
                         '-J', $bastion_ssh_addr,
-                        "$vm_addr:$remote_file", $local_file));
+                        "$vm_addr:$remote_file", $local_file);
+                    record_info("bastion_ssh_addr:$bastion_ssh_addr vm_addr:$vm_addr ", $scp_cmd);
+                    $scp_ret = script_run($scp_cmd);
 
-                $scp_ret = script_run(join(' ',
-                        'scp',
-                        '-J', $bastion_ssh_addr,
-                        "$vm_addr:$remote_file", $local_file));
-
-                # If download was successful or file is local, upload the local file to openQA.
-                upload_logs($local_file) if ($scp_ret == 0);
+                    # If download was successful, upload the local file to openQA.
+                    upload_logs($local_file) if ($scp_ret == 0);
+                }
             }
         } else {
             # call it without id

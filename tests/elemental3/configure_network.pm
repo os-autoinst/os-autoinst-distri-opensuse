@@ -33,15 +33,10 @@ sub run {
         assert_script_run("echo '10.0.2.1$index node$index' >> /etc/hosts");
     }
 
-    unless (check_var('MULTI_NODE', '1')) {
-        # Setup static network
-        setup_static_mm_network($is_master ? '10.0.2.100/24' : "10.0.2.1$local_index/24");
-
-        # Set the hostname
+    # Setup network/hostname for master node
+    if ($is_master) {
+        setup_static_mm_network('10.0.2.100/24');
         configure_hostname($hostname);
-
-        # Restart sshd on the nodes
-        systemctl('restart sshd') unless $is_master;
     }
 
     # Wait for all nodes to be synced
@@ -49,7 +44,10 @@ sub run {
 
     # Record network info
     record_info('Network configuration',
-        script_output('hostnamectl hostname; echo; ip a; echo; ip route; echo; cat /etc/hosts'));
+        script_output(
+            'hostnamectl hostname; echo; ip a; echo; ip route; echo; cat /etc/hosts'
+        )
+    );
 
     # Ping test: ensure that all nodes are able to join the master
     assert_script_run('ping -q -M do -s 0 -c 5 10.0.2.100') unless $is_master;

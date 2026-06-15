@@ -14,6 +14,7 @@ use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils;
 use containers::common qw(install_packages);
 use Utils::Logging 'save_and_upload_log';
+use containers::bats qw(bats_post_hook);
 
 my $port = 8000;
 my $test_image = "registry.opensuse.org/opensuse/nginx";
@@ -94,7 +95,20 @@ sub run {
     # https://docs.docker.com/engine/daemon/ipv6/
     assert_script_run "sed -i 's%^{%&\"ipv6\":true,\"fixed-cidr-v6\":\"2001:db8:1::/64\",%' /etc/docker/daemon.json";
     record_info("docker daemon.json", script_output("cat /etc/docker/daemon.json"));
+    my $firewall_backend = get_var("FIREWALL_BACKEND");
+    assert_script_run q(sed -ri 's/^(DOCKER_OPTS)="(.*?)"/\1="\2 --firewall-backend nftables"/' /etc/sysconfig/docker) if $firewall_backend;
+    # https://docs.docker.com/engine/network/firewall-nftables/#ip-forwarding
+    if ($firewall_backend eq "nftables") {
+        assert_script_run "echo 1 > /proc/sys/net/ipv4/ip_forward";
+        assert_script_run "echo 1 > /proc/sys/net/ipv6/conf/all/forwarding";
+        assert_script_run "echo 1 > /proc/sys/net/ipv6/conf/default/forwarding";
+        assert_script_run "echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf";
+        assert_script_run "echo net.ipv6.conf.all.forwarding = 1 >> /etc/sysctl.d/ip_forward.conf";
+        assert_script_run "echo net.ipv6.conf.default.forwarding = 1 >> /etc/sysctl.d/ip_forward.conf";
+    }
     systemctl "enable --now docker";
+
+    record_info "firewall backend", script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
 
     record_info("docker root", script_output("docker info"));
     my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
@@ -154,17 +168,12 @@ sub cleanup {
 }
 
 sub post_run_hook {
+    bats_post_hook;
     cleanup;
 }
 
 sub post_fail_hook {
-    for my $ip_version (4, 6) {
-        save_and_upload_log("ip -$ip_version addr", "/tmp/ip${ip_version}addr.txt");
-        save_and_upload_log("ip -$ip_version route", "/tmp/ip${ip_version}route.txt");
-    }
-    save_and_upload_log("sudo nft list ruleset", "/tmp/nft.txt");
-    save_and_upload_log("sudo ss -tnlp", "/tmp/tcp_services.txt");
-    save_and_upload_log("sudo sysctl -a | grep ^net", "/tmp/net_sysctl.txt");
+    bats_post_hook;
 
     for my $runtime ("docker", "podman") {
         for my $sudo ("", "sudo") {
@@ -179,10 +188,6 @@ sub post_fail_hook {
     }
 
     cleanup;
-}
-
-sub test_flags () {
-    return {always_rollback => 1};
 }
 
 1;

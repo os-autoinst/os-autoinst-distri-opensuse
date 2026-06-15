@@ -54,7 +54,9 @@ our @EXPORT = qw(
   validate_components
   get_fencing_mechanism
   sdaf_upload_logs
-  get_workload_resource_group
+  collect_guestregister_logs
+  get_sdaf_resource_group
+  apply_no_cleanup_tag
 );
 
 our $output_log_file = '';
@@ -294,11 +296,11 @@ L<https://learn.microsoft.com/en-us/azure/sap/automation/deploy-control-plane?ta
 sub az_login {
     # This is to remove telemetry messages which can mangle JSON outputs.
     assert_script_run(
-        'az config set core.survey_message=false core.collect_telemetry=no --only-show-errors --output json'
+        'az config set core.survey_message=false core.collect_telemetry=no --only-show-errors --output json', timeout => 240
     );
     my $credentials = export_credentials();
     my $login_cmd = 'while ! az login --service-principal -u ${ARM_CLIENT_ID} -p ${ARM_CLIENT_SECRET} -t ${ARM_TENANT_ID} -o none 1>/dev/null 2>&1; do sleep 10; done';
-    assert_script_run($login_cmd, timeout => 30);
+    assert_script_run($login_cmd, timeout => 300);
     record_info('AZ login', "Subscription id: $credentials->{subscription_id}");
     return ($credentials->{subscription_id});
 }
@@ -598,6 +600,8 @@ sub sdaf_execute_deployment {
     # It is used by SDAF internally, so keep it set in OS env
     export_credentials();
     set_os_variable('parameterFile', $tfvars_filename);
+    set_os_variable('TF_PARALLELLISM', 3);
+    assert_script_run("echo \$TF_PARALLELLISM");
 
     # SDAF has to be executed from the profile directory
     assert_script_run("cd $tfvars_path");
@@ -643,8 +647,10 @@ This is done for better debugging and logging transparency. Only sensitive value
 sub get_sdaf_deployment_command {
     my (%args) = @_;
     my $cmd;
+    my $control_plane_name = get_required_var('SDAF_ENV_CODE') . '-' . convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')) . '-' . get_required_var('SDAF_DEPLOYER_VNET_CODE');
     if ($args{deployment_type} eq 'workload_zone') {
         $cmd = join(' ', sdaf_scripts_dir() . '/install_workloadzone.sh',
+            '--control_plane_name', "$control_plane_name",    # control plane name
             '--parameterfile', $args{tfvars_filename},    # workload zone tfvars file
             '--deployer_environment', get_os_variable('deployer_env_code'),    # VNET code
             '--deployer_tfstate_key', get_os_variable('deployerState'),    # tfstate name. State file is stored in storage account.
@@ -724,12 +730,14 @@ sub prepare_sdaf_project {
     }
     record_info("Release: $branch");
 
+    assert_script_run('rm -rf sap-automation');
     git_clone(get_required_var('SDAF_GIT_AUTOMATION_REPO'),
         branch => $branch,
         depth => '1',
         single_branch => 'yes',
         output_log_file => log_dir() . '/git_clone_automation.txt');
 
+    assert_script_run('rm -rf sap-automation-samples');
     git_clone(get_required_var('SDAF_GIT_TEMPLATES_REPO'),
         branch => get_var('SDAF_GIT_TEMPLATES_BRANCH'),
         depth => '1',
@@ -737,6 +745,7 @@ sub prepare_sdaf_project {
         output_log_file => log_dir() . '/git_clone_templates.log');
 
     assert_script_run("cp -Rp sap-automation-samples/Terraform/WORKSPACES $deployment_dir/WORKSPACES");
+    assert_script_run("cp -Rp ~/Azure_SAP_Automated_Deployment/WORKSPACES/.sap_deployment_automation $deployment_dir/WORKSPACES");
     # Ensure correct directories are in place
     my %vnet_codes = (
         workload_zone => $workload_vnet_code,
@@ -779,7 +788,7 @@ sub resource_group_exists {
     my ($resource_group) = @_;
     croak 'Mandatory positional argument "$resource_group" not defined.' unless $resource_group;
 
-    my $cmd_out = script_output("az group exists -n $resource_group");
+    my $cmd_out = script_output("az group exists -n $resource_group $SDAF_Azure_podman_flake_filter");
     die "Command 'az group exists -n $resource_group' failed.\nCommand returned: $cmd_out" unless grep /false|true/, $cmd_out;
     return ($cmd_out eq 'true');
 }
@@ -1038,29 +1047,58 @@ sub get_fencing_mechanism {
     return ($supported_fencing_values{$fencing_type});
 }
 
-=head2 get_workload_resource_group
+=head2 get_sdaf_resource_group
 
-    get_workload_resource_group(deployment_id=>'1234');
+    get_sdaf_resource_group(deployment_id=>'1234', resource_group_type=>'workload_zone');
 
-Finds and returns resource group belonging to the tests workload zone.
+Finds and returns resource group belonging to the test according to deployment type.
 
 B<Value conversion:>
 
 =over
 
-=item * B<deployment_id> =>  Test/deployment ID
+=item * B<deployment_id>: Test/deployment ID
+
+=item * B<resource_group_type>: Type of resource group.
+    Supported values: workload_zone, sap_system
 
 =back
 
 =cut
 
-sub get_workload_resource_group {
+sub get_sdaf_resource_group {
     my (%args) = @_;
     croak 'Missing mandatory argument "$args{deployment_id}"' unless $args{deployment_id};
-    my $query = "[?contains(name, 'workload') && contains(name, '$args{deployment_id}')].name";
+    croak 'Missing mandatory argument "$args{resource_group_type}"' unless $args{resource_group_type};
+
+    my $query = "[?contains(name, '$args{resource_group_type}') && contains(name, '$args{deployment_id}')].name";
     my $groups = az_group_name_get(query => $query);
     die "Zero or more than one resource groups found:\n" . join("\n", @$groups) unless (@$groups == 1);
     return $groups->[0];
+}
+
+=head3 collect_guestregister_logs
+
+    collect_guestregister_logs()
+
+    Collect and upload SDAF logs related to registercloudguest service.
+
+=cut
+
+sub collect_guestregister_logs {
+    my @commands = (
+        'systemctl status guestregister.service',
+        'journalctl -u guestregister.service --no-pager',
+        'grep -E "ERROR:|WARNING:|401|422|failed" /var/log/cloudregister || true',
+        'zypper lr -u || true'
+    );
+    my @output;
+    for my $cmd (@commands) {
+        push(@output, "\n### COMMAND: $cmd ###\n");
+        push(@output, script_output("sudo $cmd", proceed_on_failure => 1));
+        push(@output, "\n#####################\n");
+    }
+    record_info('REGISTER OUT', join("\n", @output));
 }
 
 =head3 sdaf_upload_logs
@@ -1129,6 +1167,40 @@ sub sdaf_upload_logs {
 
     # need to return positive value for unit test to work properly
     return 1;
+}
+
+=head2 apply_no_cleanup_tag
+
+    apply_no_cleanup_tag(resource_group=>'workload_zone', no_cleanup_tag=>'pc_ignore');
+
+Checks resources inside B<resource_group> for B<SDAF_NO_CLEANUP_TAG> and applies one if missing.
+
+=over
+
+=item * B<resource_group>: Resource group name
+
+=item * B<no_cleanup_tag>: Tag name
+
+=back
+
+=cut
+
+sub apply_no_cleanup_tag {
+    my (%args) = @_;
+    for my $argument ('resource_group', 'no_cleanup_tag') {
+        croak "Missing mandatory argument '\$args{$argument}'" unless $args{$argument};
+    }
+    my $query = "[?tags.$args{no_cleanup_tag} == null].id";
+    my @untagged_resources = @{
+        az_resource_list(resource_group => $args{resource_group},
+            query => $query)};
+    record_info('Retain deployment',
+        "Adding missing tag '$args{no_cleanup_tag}' on following resources:\n" .
+          join("\n", @untagged_resources)) if @untagged_resources;
+    az_resource_tag(
+        resource_ids => \@untagged_resources,
+        tags => ["$args{no_cleanup_tag}=1"]
+    ) if @untagged_resources;
 }
 
 1;

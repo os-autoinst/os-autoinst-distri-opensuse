@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Setup mariadb server enviroment and wait client to connect
@@ -14,6 +14,7 @@ use Utils::Architectures;
 use lockapi;
 use mmapi 'wait_for_children';
 use network_utils 'iface';
+use package_utils qw(install_package);
 
 sub run {
     my ($self) = @_;
@@ -31,7 +32,9 @@ sub run {
     systemctl("stop firewalld") if (is_s390x);
 
     # Install mariadb, edit the config file and start mysql service
-    zypper_call('in mariadb');
+    # Install mariadb transactional-aware:
+    # trup_apply lets us start the service without a reboot on immutable images
+    install_package('mariadb', trup_apply => 1);
     assert_script_run('sed -i "/^bind-address.*/c\\bind-address = 0.0.0.0" /etc/my.cnf');
     record_info('mariadb_bind_address', script_output('cat /etc/my.cnf | grep bind-address'));
     systemctl("start $db_service");

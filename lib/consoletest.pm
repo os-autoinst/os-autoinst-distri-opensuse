@@ -44,8 +44,8 @@ Method executed when run() finishes and the module has result => 'fail'
 sub post_fail_hook {
     my ($self) = @_;
     return if get_var('NOLOGS');
-    $self->record_avc_selinux_alerts();
     $self->SUPER::post_fail_hook;
+    $self->record_avc_selinux_alerts();
     # at this point the instance is shutdown
     return if is_public_cloud();
     # Remaining log functions are executed in Utils::Logging::export_logs()

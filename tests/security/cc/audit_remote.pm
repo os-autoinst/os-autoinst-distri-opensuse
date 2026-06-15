@@ -32,7 +32,7 @@ sub run {
     assert_script_run("ip addr add $server_ip/24 dev $netdev") if (is_s390x && $test_node eq 'server');
     assert_script_run("ip addr add $client_ip/24 dev $netdev") if (is_s390x && $test_node eq 'client');
 
-    prepare_for_test(make => 1, timeout => 900, make_netconfig => 1);
+    prepare_for_test(make => 1, timeout => 1200, make_netconfig => 1);
 
     # Export password of root
     assert_script_run("export PASSWD=$testapi::password");
@@ -41,10 +41,17 @@ sub run {
     assert_script_run('export SYSTEMD_PAGER=""');
 
     if ($test_node eq 'server') {
-        my $pid = background_script_run("$audit_test::test_dir/audit-test/utils/network-server/lblnet_tst_server");
+        # Redirect the test server's output to a log file.
+        my $server_log = '/tmp/tst_server.log';
+        my $pid = background_script_run(
+            "$audit_test::test_dir/audit-test/utils/network-server/lblnet_tst_server > $server_log 2>&1");
 
         mutex_create('AUDIT_REMOTE_SERVER_READY');
         wait_for_children;
+
+        # Shut the test server down so the serial console is responsive again
+        script_run("kill $pid; sleep 1; kill -9 $pid 2>/dev/null", timeout => 30);
+        upload_logs($server_log) if (script_run("test -s $server_log") == 0);
 
         # Delete the ip that we added if arch is s390x
         assert_script_run("ip addr del $server_ip/24 dev $netdev") if (is_s390x);
@@ -65,15 +72,30 @@ sub run {
         # result comparison will be done against the baseline when all the tests have run
         for (my $case = 0; $case < $ncases; $case++) {
             record_info "Running $test_name #$case ...";
-            script_run("./run.bash $case", timeout => 600);
+            script_run("./run.bash $case", timeout => 1200);
         }
         upload_audit_test_logs($test_name);
-        # The 4th and 5th may fail because the audit log is generated slowly in server, we need to rerun it again
-        assert_script_run('./run.bash 0', timeout => 600) if (script_run('grep -E "[0].*FAIL" rollup.log') == 0);
-        assert_script_run('./run.bash 4', timeout => 600) if (script_run('grep -E "[4].*FAIL" rollup.log') == 0);
-        assert_script_run('./run.bash 5', timeout => 600) if (script_run('grep -E "[5].*FAIL" rollup.log') == 0);
 
-        my $result = compare_run_log($test_name);
+        # Tests 4 and 5 may fail when run after test 3 because the audit log
+        # is generated slowly in server. Accept failures as softfail poo#197378
+        my %expected_softfail_ids = (4 => 1, 5 => 1);
+
+        # Collect which of the expected softfails actually failed,
+        # so we can attach a single softfail.
+        my $fail_output = script_output('grep -E "FAIL|ERROR" rollup.log', proceed_on_failure => 1);
+        my @soft_failed;
+        foreach my $line (split(/\n/, $fail_output)) {
+            # Test names can contain spaces, so match greedily up to the trailing result word.
+            if ($line =~ /\[(\d+)\]\s+(.*)\s+(FAIL|ERROR)\s*$/) {
+                my ($id, $name, $res) = ($1, $2, $3);
+                push @soft_failed, "[$id] $name $res" if $expected_softfail_ids{$id};
+            }
+        }
+        record_soft_failure("poo#197378 - expected failure(s): "
+              . join(', ', @soft_failed)
+              . " (server side error)") if @soft_failed;
+
+        my $result = compare_run_log($test_name, softfail_ids => \%expected_softfail_ids);
         $self->result($result);
 
         # Delete the ip that we added if arch is s390x

@@ -159,7 +159,7 @@ sub sdaf_ibsm_teardown {
         record_info('DELETE PASS', 'Deleting peerings successful');
     }
 
-    my $workload_resource_group = get_workload_resource_group(deployment_id => find_deployment_id());
+    my $workload_resource_group = get_sdaf_resource_group(deployment_id => find_deployment_id(), resource_group_type => 'workload_zone');
     az_network_dns_links_cleanup(resource_group => $workload_resource_group);
     az_network_dns_zones_cleanup(resource_group => $workload_resource_group);
 }

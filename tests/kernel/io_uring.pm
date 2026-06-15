@@ -11,7 +11,9 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils 'is_transactional';
 use LTP::WhiteList;
+use repo_tools 'add_qa_head_repo';
 use package_utils 'install_package';
 
 sub run {
@@ -19,40 +21,49 @@ sub run {
 
     select_serial_terminal;
 
-    my $repository = get_var('LIBURING_REPO', 'https://github.com/axboe/liburing.git');
+    my $install = get_var('LIBURING_INSTALL', 'from_repo');
     my $timeout = get_var('LIBURING_TIMEOUT', 1800);
-    my $version = get_var('LIBURING_VERSION', '');
     my $exclude = get_var('LIBURING_EXCLUDE', '');
     my $issues = get_var('LIBURING_KNOWN_ISSUES', '');
     my $whitelist = LTP::WhiteList->new($issues);
-    my $pkgs = "git-core";
-    my @lines;
+    my $test_dir;
     my $out;
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
-    # check if liburing2 is installed and eventually install it
-    $pkgs .= " liburing2" if script_run('rpm -q liburing2');
 
-    # install dependences
-    install_package('-t pattern devel_basis');
-    install_package($pkgs, trup_continue => 1, trup_apply => 1);
+    if ($install =~ /git/i) {
+        my $repository = get_var('LIBURING_REPO', 'https://github.com/axboe/liburing.git');
+        my $version = get_var('LIBURING_VERSION', '');
+        my $pkgs = "git-core";
 
-    # select latest liburing version which is supported by the system
-    if ($version eq '') {
-        $out = script_output('rpm -q --qf "%{Version}\n" liburing2 | sort -nr | head -1');
-        $version = "liburing-$out";
+        $pkgs .= " liburing2" if script_run('rpm -q liburing2');
+        install_package('-t pattern devel_basis');
+        install_package($pkgs, trup_continue => 1, trup_apply => 1);
+
+        if ($version eq '') {
+            $out = script_output('rpm -q --qf "%{Version}\n" liburing2 | sort -nr | head -1');
+            $version = "liburing-$out";
+        }
+
+        assert_script_run("git clone --depth=1 --branch $version $repository");
+        assert_script_run("cd liburing");
+        record_info("test version", script_output("git log -1 --oneline"));
+        assert_script_run("./configure");
+        assert_script_run("make -C src");
+        assert_script_run("make -C test");
+        $test_dir = 'liburing';
+    } else {
+        my $default_test_dir = '/usr/lib/liburing-tests';
+        add_qa_head_repo(priority => 100);
+        install_package('liburing-tests', trup_apply => 1);
+        if (is_transactional()) {
+            assert_script_run("cp -r $default_test_dir /tmp/liburing-tests");
+            $test_dir = '/tmp/liburing-tests';
+        } else {
+            $test_dir = $default_test_dir;
+        }
     }
 
-    # download and compile tests
-    assert_script_run("git clone --no-single-branch $repository");
-    assert_script_run("cd liburing");
-    assert_script_run("git checkout $version");
-    record_info("test version", script_output("git log -1 --oneline"));
-    assert_script_run("./configure");
-    assert_script_run("make -C src");
-    assert_script_run("make -C test");
-
-    # create environment information for known issues check
     my $environment = {
         product => get_var('DISTRI') . ':' . get_var('VERSION'),
         revision => get_var('BUILD'),
@@ -63,16 +74,14 @@ sub run {
         libc => '',
         gcc => '',
         harness => 'SUSE OpenQA',
-        ltp_version => $version
     };
 
     # run tests executables
+    my $test_exclude = '';
     my @skipped = $whitelist->list_skipped_tests($environment, 'liburing');
     if (@skipped) {
         push @skipped, $exclude if $exclude;
-        my $test_exclude = join(' ', @skipped);
-
-        assert_script_run("echo 'TEST_EXCLUDE=\"$test_exclude\"' > test/config.local");
+        $test_exclude = join(' ', @skipped);
         record_info(
             "Exclude",
             "Excluding tests: $test_exclude",
@@ -80,11 +89,21 @@ sub run {
         );
     }
 
-    $out = script_output(
-        "make -C test runtests",
-        timeout => $timeout,
-        proceed_on_failure => 1
-    );
+    if ($install =~ /git/i) {
+        assert_script_run("echo 'TEST_EXCLUDE=\"$test_exclude\"' > test/config.local") if $test_exclude;
+        $out = script_output(
+            "make -C test runtests",
+            timeout => $timeout,
+            proceed_on_failure => 1
+        );
+    } else {
+        my $env = $test_exclude ? "TEST_EXCLUDE=\"$test_exclude\" " : '';
+        $out = script_output(
+            "cd $test_dir && ${env}./runtests.sh *.t",
+            timeout => $timeout,
+            proceed_on_failure => 1
+        );
+    }
 
     my @issues;
     for my $line ($out =~ /Tests timed out \(\d+\):.*/mg) {
@@ -127,17 +146,23 @@ Test module to run liburing testing suite.
 
 =head1 Configuration
 
+=head2 LIBURING_INSTALL
+
+Installation method. Defaults to C<from_repo> which installs the pre-built
+liburing-tests RPM from QA:Head. Set to C<from_git> to clone and build from
+source instead.
+
 =head2 LIBURING_REPO
 
-The liburing repository
+The liburing git repository. Used only with C<LIBURING_INSTALL=from_git>.
 
 =head2 LIBURING_VERSION
 
-The liburing version
+The liburing version to checkout. Used only with C<LIBURING_INSTALL=from_git>.
 
 =head2 LIBURING_TIMEOUT
 
-The liburing testing suite timeout
+The liburing testing suite timeout.
 
 =head2 LIBURING_EXCLUDE
 
@@ -145,4 +170,4 @@ The liburing tests which we want to exclude. This can be useful for debugging.
 
 =head2 LIBURING_KNOWN_ISSUES
 
-The liburing tests which have known issues if they fail
+The liburing tests which have known issues if they fail.

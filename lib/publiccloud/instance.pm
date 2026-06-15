@@ -318,6 +318,10 @@ sub wait_for_guestregister {
             # we have some cases where it is known that guestregister service will fail
             # ( e.g. when we testing images not published on Market hence w/o product codes)
             return 1 if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
+            if (is_sle("=16.0") && is_gce) {
+                record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
+                return 1;
+            }
             die('guestregister failed');
         }
         elsif ($out =~ m/active$/) {
@@ -443,6 +447,8 @@ sub wait_for_ssh {
             my $ssh_opts = $self->ssh_opts() . ' -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ControlPath=none -o ConnectTimeout=10';
             while (($duration = time() - $start_time) < $args{timeout}) {
                 # timeout recalculated removing consumed time until now
+                # log time in serial output
+                $self->ssh_script_run(cmd => 'uptime', ssh_opts => $ssh_opts, ignore_timeout_failure => 1);
                 # We don't support password authentication so it would just block the terminal
                 $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => $ssh_opts,
                     timeout => $args{timeout} - $duration, proceed_on_failure => 1, username => $args{username});
@@ -528,6 +534,15 @@ sub wait_for_ssh {
 
     # OK
     return $duration if (!$exit_code && !$args{wait_stop} || $exit_code && $args{wait_stop});
+    # softfailure for 1261908, remove this after resolved.
+    # On SLES 16 GCE this is really coarse, but the guestregister.service is really stubburn.
+    # Sometimes it fails, sometimes it keeps running and tries to register but we run into the timeout (10mins)
+    # where the system is still booting.
+    if (is_sle("=16.0") && is_gce) {
+        record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
+        return 1;
+    }
+
     # FAIL
     croak(" results summary:\n" . $sshout . $sysout) unless ($args{proceed_on_failure});
     return;    # proceed_on_failure true
@@ -700,8 +715,8 @@ sub check_cloudinit() {
 
     # cloud-init status
     my $rc = $self->ssh_script_run(cmd => "sudo cloud-init status --wait", timeout => 300);
-    record_info("cloud-init", $self->ssh_script_output("sudo cloud-init status --long", timeout => 300));
-    die "cloud-init failed with return code $rc" if ($rc != 0);
+    record_info("cloud-init", $self->ssh_script_output("sudo cloud-init status --long", proceed_on_failure => 1, timeout => 300), result => $rc == 0 ? 'ok' : 'fail');
+    die "cloud-init failed with return code $rc" if ($rc != 0 && get_var('PUBLIC_CLOUD_IGNORE_CLOUDINIT_ERRORS') != 1);
 
     # cloud-id
     my $cloud_id = (is_azure) ? 'azure' : 'aws';
@@ -921,6 +936,9 @@ sub do_systemd_analyze_time {
         record_info("WARN", "Unable to get systemd-analyze in ${timeout}s", result => 'fail');
         return (0, 0);
     }
+    # log time
+    $instance->ssh_script_run("uptime");
+
     push @ret, extract_analyze_time($output);
 
     $output = $instance->ssh_script_output(cmd => 'systemd-analyze blame', proceed_on_failure => 1);

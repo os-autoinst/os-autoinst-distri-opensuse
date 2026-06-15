@@ -1,19 +1,31 @@
+# SUSE's openQA tests
+#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Create network peering with IBSm for the crash test environment.
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
 =head1 NAME
 
-crash/network_peering.pm - Create a network peering with an IBSm server
+sles4sap/crash/network_peering.pm - Create a network peering with an IBSm server
 
 =head1 DESCRIPTION
 
-This module establishes a network peering between the crash test SUT and an
-IBSm server, and configures the SUT to use the IBSm for software repositories.
+This module establishes a network peering between the crash test SUT and an IBSm server, and configures the SUT to use the IBSm for software repositories.
 
-Supported cloud providers are Azure (VNet Peering via B<IBSM_RG>),
-GCP (NCC Spoke via B<IBSM_NCC_HUB>) and AWS (Transit Gateway via B<IBSM_IPRANGE>).
+Supported cloud providers are Azure (VNet Peering via B<IBSM_RG>), GCP (NCC Spoke via B<IBSM_NCC_HUB>) and AWS (Transit Gateway via B<IBSM_IPRANGE>).
+
+Its primary tasks are:
+
+=over
+
+=item * Establish network peering between SUT and IBSm using provider-specific mechanisms.
+
+=item * Add the IBSm IP to C</etc/hosts> on the SUT.
+
+=item * Configure optional incident repositories on the SUT to use the peered connection.
+
+=back
 
 =head1 SETTINGS
 
@@ -21,11 +33,15 @@ GCP (NCC Spoke via B<IBSM_NCC_HUB>) and AWS (Transit Gateway via B<IBSM_IPRANGE>
 
 =item B<PUBLIC_CLOUD_PROVIDER>
 
-Cloud provider: C<AZURE>, C<GCE> or C<EC2>.
+Cloud provider: C<AZURE>, C<GCE> or C<EC2>. Required.
+
+=item B<PUBLIC_CLOUD_REGION>
+
+Cloud region where the SUT is deployed. Required.
 
 =item B<IBSM_IP>
 
-The IP address of the IBSm server. Added to C</etc/hosts> on the SUT.
+The IP address of the IBSm server. Added to C</etc/hosts> on the SUT. Required.
 
 =item B<IBSM_RG>
 
@@ -34,6 +50,14 @@ Azure Resource Group of the IBSm environment. Required for Azure.
 =item B<IBSM_NCC_HUB>
 
 Full NCC hub resource URI of the IBSm environment. Required for GCE.
+
+=item B<PUBLIC_CLOUD_GOOGLE_PROJECT_ID>
+
+GCP project ID of the SUT. Required for GCE.
+
+=item B<PUBLIC_CLOUD_AVAILABILITY_ZONE>
+
+GCP availability zone suffix. Required for GCE.
 
 =item B<IBSM_IPRANGE>
 
@@ -52,6 +76,10 @@ An optional, comma-separated list of incident-specific repository URLs.
 The hostname to redirect to the IBSm. Defaults to C<download.suse.de>.
 
 =back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
 
 =cut
 

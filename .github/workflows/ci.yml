@@ -9,27 +9,25 @@ jobs:
       matrix:
         include:
           - test: static
-            perl-version: 5.32
+            perl-version: '5.40'
           - test: unit
-            perl-version: 5.32
+            perl-version: '5.40'
           - test: compile-changed
-            perl-version: 5.26
+            perl-version: '5.40'
           - test: compile
-            perl-version: 5.26
+            perl-version: '5.40'
           - test: compile-os-autoinst
             perl-version: '5.40'
           - test: check-strict
-            perl-version: '5.40'
+            perl-version: '5.42'
     container:
-      image: perldocker/perl-tester:${{ matrix.perl-version }}
+      image: perl:${{ matrix.perl-version }}-trixie
     steps:
     - uses: actions/checkout@v6
     - name: Install dependencies
       run: |
-        sed -ri '/buster/s/(deb|security)\.debian\.org/archive.debian.org/' /etc/apt/sources.list
         apt-get -y update
-        apt-get -y install libdbus-1-dev libssh2-1-dev parallel python3-dev python3-yaml python3-jsonschema python3-pip liblua5.3-dev
-        pip3 install yamllint jsonnet==0.20.0
+        apt-get -y install libdbus-1-dev libssh2-1-dev libxml2-dev parallel python3-dev python3-yaml python3-jsonnet python3-jsonschema liblua5.3-dev yamllint
         # FFI needs cargo (newer than the packaged version)
         curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     - name: Setup perl
@@ -38,16 +36,14 @@ jobs:
       run: |
         # Prefix with space to bypass ./tools/update_spec
         echo " requires 'Code::DRY';" >> cpanfile
+        echo " requires 'Code::TidyAll';" >> cpanfile
         echo " requires 'Date::Parse';" >> cpanfile
+        echo " requires 'List::Compare';" >> cpanfile
         echo " requires 'Regexp::Common';" >> cpanfile
         echo " requires 'Syntax::Keyword::Try';" >> cpanfile
         echo " requires 'Perl::Tidy', '== 20250616.0.0';" >> cpanfile
         . "$HOME/.cargo/env"
         make prepare
-        # Temporarily downgrade because of backwards incompatible changes in
-        # 0.181.0 - 0.183.0
-        # https://github.com/geofffranks/test-mockmodule/issues/81
-        cpanm -n Test::MockModule@0.180.0
     - name: Run ${{ matrix.test }} tests
       env:
         TESTS: ${{ matrix.test }}

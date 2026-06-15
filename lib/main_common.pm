@@ -252,9 +252,8 @@ sub kdestep_is_applicable {
 
 sub opensuse_welcome_applicable {
     my $desktop = shift // get_var('DESKTOP', '');
-    # No libqt5-qtwebengine on ppc64/ppc64le and s390 on anything older than Tumbleweed
-    # Tumbleweed has switched to a gnome-tour/gtk based implementation
-    return 0 if !is_tumbleweed && get_var('ARCH', '') =~ /ppc64|s390/;
+    # Tumbleweed and Leap 16.1 has switched to a gnome-tour/gtk based implementation
+    return 0 if !is_tumbleweed && get_var('ARCH', '') =~ /s390/;
     # openSUSE-welcome is expected to show up on openSUSE Tumbleweed and Leap 15.2 XFCE only
     # starting with Leap 15.3 opensuse-welcome is enabled on supported DEs not just XFCE
     return 0 unless is_tumbleweed || is_leap(">=15.3");
@@ -1189,7 +1188,8 @@ sub load_consoletests {
             loadtest "console/installation_snapshots";
         }
     }
-    loadtest "console/opensuse_repos" if is_opensuse && !(is_staging || is_updates_tests);
+    # This module only works if openQA supplies its own repos and thus openSUSE-repos is *not* used.
+    loadtest "console/opensuse_repos" if is_opensuse && get_var('REPO_0');
     loadtest "console/zypper_lr";
     # Enable installation repo from the usb, unless we boot from USB, but don't use it
     # for the installation, like in case of LiveCDs and when using http/smb/ftp mirror

@@ -18,8 +18,7 @@ use utils qw(file_content_replace);
 =head2 build_installer_cmd
 
  build_installer_cmd( config_dir => <value>, img_filename => <value>,
-                      k8s => <value>, rootpwd => <value>,
-                      timeout => <value>, type => <value> );
+                      rootpwd => <value>, timeout => <value>, type => <value> );
 
 Create an OS image with `build-installer` command by using the specified
 containerized OS image.
@@ -46,8 +45,7 @@ sub build_installer_cmd {
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => $args{rootpwd},
-        '%K8S%' => $args{k8s}
+        '%TEST_PASSWORD%' => $args{rootpwd}
     );
     assert_script_run("chmod 755 $config_file");
 
@@ -134,15 +132,24 @@ sub customize_cmd {
         );
     }
 
-    # Multi-node cluster
-    if (check_var('MULTI_NODE', '1')) {
+    if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/) {
+        # K8s configuration file
         assert_script_run(
             "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
               . data_url('elemental3/cluster.yaml')
         );
+
+        # For single-node
+        if (check_var('CLUSTER_TYPE', 'singlenode')) {
+            # Keep configuration for first node only
+            assert_script_run(
+                "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $args{config_dir}/kubernetes/cluster.yaml"
+            );
+        }
     } else {
-        # Only useful for the multi-node test
+        # Only useful for the single-node and multi-node tests
         assert_script_run("rm -rf $args{config_dir}/network");
+        assert_script_run("sed -i '/name: k8s-preinstall.service/,\$d' $args{config_dir}/butane.yaml");
     }
 
     # Generate OS image
@@ -248,8 +255,7 @@ sub get_sysext {
 
 =head2 install_cmd
 
- install_cmd( hddsize => <value>, config_dir => <value>,
-              img_filename => <value>, k8s => <value>,
+ install_cmd( hddsize => <value>, config_dir => <value>, img_filename => <value>,
               rootpwd => <value>, timeout => <value> );
 
 Create an OS image with `build-installer` command by using the specified
@@ -263,7 +269,6 @@ sub install_cmd {
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $config_file = "$args{config_dir}/config.sh";
     my $device = '/dev/nbd0';
-    my $k8s_sysext_found;
 
     # Configure the systemd sysexts
     my $overlay_dir = get_sysext(tmpdir => $args{config_dir}, timeout => $args{timeout});
@@ -276,8 +281,7 @@ sub install_cmd {
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => $args{rootpwd},
-        '%K8S%' => $args{k8s}
+        '%TEST_PASSWORD%' => $args{rootpwd}
     );
     assert_script_run("chmod 755 $config_file");
 
@@ -333,7 +337,6 @@ sub run {
     $out_file = build_installer_cmd(
         config_dir => $tmpdir,
         img_filename => $img_filename,
-        k8s => $k8s,
         rootpwd => $hashpwd,
         timeout => $timeout,
         type => 'iso'
@@ -359,7 +362,6 @@ sub run {
         config_dir => $tmpdir,
         hddsize => $hddsize,
         img_filename => $img_filename,
-        k8s => $k8s,
         rootpwd => $hashpwd,
         timeout => $timeout,
     ) if (check_var('TESTED_CMD', 'install'));

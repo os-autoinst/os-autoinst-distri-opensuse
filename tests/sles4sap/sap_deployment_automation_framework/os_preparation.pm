@@ -90,7 +90,8 @@ sub run {
     my $playbook_options = $playbook_setup->get();
     # Request next playbook in loop until all are executed
     while ($playbook_options->{playbook_filename}) {
-        sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir);
+        my $retry = ($playbook_options->{playbook_filename} =~ 'playbook_01_os_base_config') ? 1 : 0;
+        sdaf_execute_playbook(%{$playbook_options}, sdaf_config_root_dir => $sdaf_config_root_dir, retry => $retry);
         # Tasks needed to be run after playbook 'pb_get-sshkey.yaml'
         if ($playbook_options->{playbook_filename} =~ /pb_get-sshkey/) {
             # Check if SSH key was created by playbook

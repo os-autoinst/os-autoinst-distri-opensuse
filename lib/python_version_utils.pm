@@ -75,6 +75,7 @@ remove all the installed available python versions
 
 sub remove_installed_pythons() {
     my $default_python = script_output("python3 --version | awk -F ' ' '{print \$2}\'");
+    record_info("Default python", "$default_python");
     my @python3_versions = split(/\n/, script_output(qq[zypper se -i 'python3[0-9]*' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
     record_info("Installed versions", "All Installed new python3 versions are: @python3_versions");
     foreach my $python3_spec_release (@python3_versions) {

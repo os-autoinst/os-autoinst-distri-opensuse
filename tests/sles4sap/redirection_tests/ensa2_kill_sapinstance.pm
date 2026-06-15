@@ -88,6 +88,14 @@ sub run {
     wait_until_resources_started();
     wait_for_idle_cluster();
 
+    # Setup 'meta' 'migration-threshold' for resource as it's missing for 'meta' part
+    # Resource also inherits 'migration-threshold' from resource 'group' ('3' by default)
+    # So use '4' to distinguish here
+    crm_resource_meta_set(
+        resource => $resource_name,
+        meta_argument => 'migration-threshold',
+        argument_value => '4');
+
     # Store original 'migration-threshold' to restore it at the end of the test
     my $migration_threshold_original_value =
       crm_resource_meta_show(resource => $resource_name, meta_argument => 'migration-threshold');
@@ -141,6 +149,8 @@ sub run {
     record_info("Fail count: $fail_count", "Fail count is $fail_count");
 
     wait_for_idle_cluster();
+    record_info('Remove constraints', 'Removed migration constraints for ASCS. See bsc#1266289');
+    assert_script_run('crm resource clear ' . 'g-' . get_required_var('SAP_SID') . '_ASCS');
     record_info('Refresh', 'Refreshing resources using "crm resource refresh"');
     assert_script_run('crm resource refresh');
     wait_until_resources_started();

@@ -16,6 +16,7 @@ use registration;
 use testapi;
 use utils;
 use publiccloud::utils;
+use publiccloud::zypper qw(pc_pkg_call);
 use publiccloud::ssh_interactive 'select_host_console';
 use 5.018;
 
@@ -48,14 +49,8 @@ sub run {
     # $self->{my_instance} is used in this test module
     # $args->{my_instance} is used in base module
     # $args->{my_provider} is used in base module
-    if (get_var('PUBLIC_CLOUD_QAM', 0)) {
-        $provider = $args->{my_provider};
-        $instance = $self->{my_instance} = $args->{my_instance};
-    } else {
-        $provider = $args->{my_provider} = $self->provider_factory();
-        $instance = $self->{my_instance} = $args->{my_instance} = $provider->create_instance();
-        $instance->wait_for_guestregister() if (is_ondemand());
-    }
+    $provider = $args->{my_provider};
+    $instance = $self->{my_instance} = $args->{my_instance};
 
     if (check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect')) {
         record_info('SKIP', 'PUBLIC_CLOUD_SCC_ENDPOINT is hardcoded to SUSEConnect - skipping registration testing. Falling back to registration module behavior');
@@ -80,17 +75,18 @@ sub run {
                 die('guestregister.service is not disabled');
             }
 
-            # guestregister-lic-watcher.timer replaces regionsrv-enabler-azure.timer on all images except Azure 12-SP5.
-            if ($instance->ssh_script_run('systemctl is-active guestregister-lic-watcher.timer') != 0) {
-                # The legacy service is still in use on 12-SP5 Azure.
+            # The cloud-regionsrv-client-license-watcher package is only useful on Azure and GCE as they offer
+            # the feature to switch from BYOS to PAYG and vice versa.  AWS doesn't have this capability yet.
+            if (!is_ec2() && $instance->ssh_script_run('systemctl is-active guestregister-lic-watcher.timer') != 0) {
+                # guestregister-lic-watcher.timer replaces regionsrv-enabler-azure.timer on all images except Azure 12-SP5.
                 if (is_sle("=12-SP5") && is_azure) {
                     $instance->ssh_assert_script_run('systemctl is-active regionsrv-enabler-azure.timer', fail_message => "neither guestregister-lic-watcher.timer nor regionsrv-enabler-azure.timer is not present");
                     $instance->ssh_assert_script_run('systemctl show guestregister-lic-watcher.timer | grep LoadState=not-found', fail_message => "guestregister-lic-watcher.timer must not be present when regionsrv-enabler-azure.timer is there");
                 } else {
                     die "guestregister-lic-watcher.timer is not active";
                 }
-            } else {
-                record_soft_failure('poo#190068 - The legacy check for regionsrv-enabler-azure.timer should be removed') if (is_sle("=12-SP5") && is_azure);
+            } elsif (is_azure()) {
+                record_soft_failure('poo#190068 - The legacy check for regionsrv-enabler-azure.timer should be removed') if is_sle("=12-SP5");
                 # Ensure the legacy timer is not present
                 $instance->ssh_assert_script_run('systemctl show regionsrv-enabler-azure.timer | grep LoadState=not-found', fail_message => "regionsrv-enabler-azure.timer must not be present");
             }
@@ -191,7 +187,7 @@ sub test_container_runtimes {
 
     record_info('Test docker');
     $instance->ssh_assert_script_run("sudo rm -f /root/.docker/config.json");    # workaround for https://bugzilla.suse.com/show_bug.cgi?id=1231185
-    $instance->zypper_call_remote("in -y docker", timeout => 600);
+    pc_pkg_call($instance, "in -y docker", timeout => 600);
     $instance->ssh_assert_script_run("sudo systemctl start docker.service");
     record_info("systemctl status docker.service", $instance->ssh_script_output("systemctl status docker.service"));
     $instance->ssh_script_retry("sudo docker pull $image", retry => 3, delay => 60, timeout => 600);
@@ -207,7 +203,7 @@ sub test_container_runtimes {
             record_info('permissions #1', 'permissions when libcontainers-common is missing');
             $instance->ssh_script_run('sudo stat /etc/containers/registries.conf');
             $instance->ssh_script_run('sudo rm -rf /etc/containers/registries.conf');
-            $instance->zypper_call_remote("in libcontainers-common");
+            pc_pkg_call($instance, "in libcontainers-common");
             record_info('permissions #2', 'The previous registries.conf has been removed, then libcontainers-common was installed');
             $instance->ssh_script_run('sudo stat /etc/containers/registries.conf');
             cleanup_instance($instance);
@@ -217,7 +213,7 @@ sub test_container_runtimes {
         }
         $instance->ssh_script_run('sudo chmod 644 /etc/containers/registries.conf');
     }
-    $instance->zypper_call_remote("in -y podman", timeout => 240);
+    pc_pkg_call($instance, "in -y podman", timeout => 240);
     $instance->ssh_script_retry("podman --debug pull $image", retry => 3, delay => 60, timeout => 600);
     return 0;
 }

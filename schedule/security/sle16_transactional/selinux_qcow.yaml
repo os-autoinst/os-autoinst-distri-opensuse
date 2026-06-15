@@ -1,0 +1,23 @@
+name: selinux-transactional-qcow
+description: >
+  Test selinux using preinstalled qcow2 images in immutable mode
+schedule:
+  - '{{boot}}'
+  - jeos/firstrun
+  - transactional/host_config
+  - console/suseconnect_scc
+  - microos/services_enabled
+  - transactional/disable_timers
+  - security/selinux/selinux_setup
+  - security/selinux/selinux_smoke
+  - security/selinux/container_selinux
+  - shutdown/shutdown
+conditional_schedule:
+  boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_start
+      aarch64:
+        - installation/bootloader_uefi
+      x86_64:
+        - installation/bootloader_uefi

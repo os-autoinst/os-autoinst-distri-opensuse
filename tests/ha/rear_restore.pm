@@ -38,7 +38,14 @@ sub run {
     # Restore the OS backup
     set_var('LIVETEST', 1);    # Because there is no password in ReaR miniOS
     select_console('root-console', skip_setterm => 1);    # Serial console is not configured in ReaR miniOS
-    assert_script_run('export USER_INPUT_TIMEOUT=5; rear -d -D recover', timeout => $timeout);
+    $self->upload_fs_blk_info(prefix => 'before');
+    my $rear_cmd = 'export USER_INPUT_TIMEOUT=5; rear -d -D recover > ' . $self->rear_cmd_log() . ' 2>&1';
+    my $rc = script_run($rear_cmd, timeout => $timeout);
+    if (!defined $rc || $rc != 0) {
+        script_run('cat ' . $self->rear_cmd_log());
+        die "ReaR recovery failed (rc: $rc)" if defined $rc;
+        die "ReaR recovery timed out";
+    }
     $self->upload_rear_logs;
     set_var('LIVETEST', 0);
 

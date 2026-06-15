@@ -34,7 +34,7 @@ subtest 'whitelist_entry_match' => sub {
     $env->{flavor} = 'EC2-HVM';
     is_deeply(LTP::WhiteList::_whitelist_entry_match($entry, $env), $entry, "Entry match with less attributes");
 
-    for my $attr (qw(product ltp_version revision arch kernel backend retval flavor)) {
+    for my $attr (qw(product ltp_version revision arch kernel backend retval flavor test_variant)) {
         $entry = {$attr => '^incredible_value$'};
         $env = {$attr => "incredible_value"};
         is_deeply(LTP::WhiteList::_whitelist_entry_match($entry, $env), $entry, "Check match attribute $attr");

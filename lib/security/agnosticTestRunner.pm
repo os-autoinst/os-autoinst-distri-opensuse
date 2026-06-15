@@ -41,6 +41,9 @@ sub setup {
     my ($self) = @_;
     my $url = data_url($self->{data_url_path});
 
+    # SLE15 needs phub for that packages
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('<16.0');
+
     zypper_call 'in go gotestsum' if $self->{language} eq 'go';
     zypper_call 'in python3-pytest' if $self->{language} eq 'python';
 

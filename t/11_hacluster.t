@@ -465,6 +465,8 @@ subtest '[check_cluster_state]' => sub {
     my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
     my @calls;
     $hacluster->redefine(script_run => sub { push @calls, $_[0]; });
+    $hacluster->redefine(cmd_run => sub { push @calls, $_[0];
+            return 'cmd_run'; });
     $hacluster->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $hacluster->redefine(check_online_nodes => sub { push @calls, 'check_online_nodes'; });
     $hacluster->redefine(script_output => sub { return 'crmshver=4.4.2'; });
@@ -480,15 +482,31 @@ subtest '[check_cluster_state]' => sub {
 subtest '[check_cluster_state] assert calls normally' => sub {
     my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
     my @calls;
-    $hacluster->redefine(script_run => sub { push @calls, 'script_run'; });
+    $hacluster->redefine(script_run => sub { push @calls, 'retry_script_run'; });
     $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
     $hacluster->redefine(check_online_nodes => sub { return; });
     $hacluster->redefine(script_output => sub { return 'crmshver=4.4.2'; });
+    $hacluster->redefine(cmd_run => sub { push @calls, 'cmd_run';
+            return 'all good' });
 
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));
 
-    ok((all { /assert_script_run/ } @calls), 'check_cluster_state used assert_script_run');
+    ok((all { /(retry_script_run|assert_script_run|cmd_run)/ } @calls), 'check_cluster_state
+    used assert_script_run');
+};
+
+subtest '[check_cluster_state] Cluster state errors' => sub {
+    my $hacluster = Test::MockModule->new('hacluster', no_auto => 1);
+    my @calls;
+    $hacluster->redefine(script_run => sub { push @calls, 'script_run'; });
+    $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
+    $hacluster->redefine(check_online_nodes => sub { return; });
+    $hacluster->redefine(script_output => sub { return 'crmshver=4.4.2'; });
+    $hacluster->redefine(cmd_run => sub { push @calls, 'cmd_run';
+            return (42, 'Cluster is not happy') });
+
+    dies_ok { check_cluster_state() } 'Fail with unhealthy cluster';
 };
 
 subtest '[check_cluster_state] proceed_on_failure' => sub {
@@ -498,11 +516,14 @@ subtest '[check_cluster_state] proceed_on_failure' => sub {
     $hacluster->redefine(assert_script_run => sub { push @calls, 'assert_script_run'; });
     $hacluster->redefine(check_online_nodes => sub { return; });
     $hacluster->redefine(script_output => sub { return 'crmshver=4.4.2'; });
+    $hacluster->redefine(cmd_run => sub { push @calls, 'cmd_run';
+            return (78, 'Warnings only') });
 
     check_cluster_state(proceed_on_failure => 1);
     note("\n  -->  " . join("\n  -->  ", @calls));
 
-    ok((all { /^script_run$/ } @calls), 'check_cluster_state used script_run');
+    ok((all { /^(script_run|cmd_run)$/ } @calls), 'check_cluster_state used
+    script_run');
 };
 
 subtest '[check_cluster_state] migration scenario' => sub {
@@ -517,8 +538,8 @@ subtest '[check_cluster_state] migration scenario' => sub {
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));
 
-    ok((scalar(grep { /^script_run$/ } @calls)) == 1, 'One call with script_run');
-    ok((scalar(grep { /assert_script_run/ } @calls) == (scalar(@calls) - 1)), 'Remaining calls with assert_script_run');
+    ok((scalar(grep { /^script_run$/ } @calls)) == 11, 'Eleven calls with script_run');
+    ok((scalar(grep { /assert_script_run/ } @calls) == (scalar(@calls) - 11)), 'Remaining calls with assert_script_run');
     set_var('HDDVERSION', undef);
 };
 
@@ -529,6 +550,8 @@ subtest '[check_cluster_state] old crmsh' => sub {
     $hacluster->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $hacluster->redefine(check_online_nodes => sub { push @calls, 'check_online_nodes'; });
     $hacluster->redefine(script_output => sub { return 'crmshver=3.6.0'; });
+    $hacluster->redefine(cmd_run => sub { push @calls, $_[0];
+            return (0, 'Cluster happy') });
 
     check_cluster_state();
     note("\n  -->  " . join("\n  -->  ", @calls));

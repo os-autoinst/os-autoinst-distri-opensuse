@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2022 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Run mariadb connect to server with '--ssl' parameter test case
@@ -13,6 +13,7 @@ use utils;
 use Utils::Architectures;
 use lockapi;
 use network_utils 'iface';
+use package_utils qw(install_package);
 
 sub run {
     my ($self) = @_;
@@ -22,15 +23,18 @@ sub run {
 
     select_console 'root-console';
 
-    # Install runtime dependencies
-    zypper_call("in iputils");
+    # Install runtime dependencies transactional-aware:
+    # trup_apply lets us start the service without a reboot on immutable images
+    install_package('iputils', trup_apply => 1);
 
     # We don't run setup_multimachine in s390x, but we need to know the server and client's
     # ip address, so we add a known ip to NETDEV.
     my $netdev = iface;
     assert_script_run("ip addr add $client_ip/24 dev $netdev") if (is_s390x);
 
-    zypper_call('in mariadb');
+    # Install mariadb transactional-aware:
+    # trup_apply lets us start the service without a reboot on immutable images
+    install_package('mariadb', trup_apply => 1);
     mutex_wait('MARIADB_SERVER_READY');
 
     # Run MySQL tests

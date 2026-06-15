@@ -1170,13 +1170,16 @@ subtest '[az_storage_blob_upload]' => sub {
     az_storage_blob_upload(
         container_name => 'Arlecchino',
         storage_account_name => 'Pantalone',
-        file => 'Colombina');
+        file => 'Colombina',
+        name => 'Smeraldina'
+    );
 
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az storage blob upload/ } @calls), 'Correct composition of the main command');
     ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
     ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
     ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+    ok(grep(/--name Smeraldina/, @calls), 'Check for argument "--name"');
     ok(grep(/--file Colombina/, @calls), 'Check for argument "--file"');
 };
 
@@ -1606,6 +1609,28 @@ subtest '[az_role_definition_list]' => sub {
     ok((any { /az role definition list/ } @calls), 'Correct composition of the main command');
     ok((any { /\[\?roleName=='Pulcinella'\]\.id/ } @calls), 'Query uses roleName filter');
     ok(($ret eq 'Pantalone'), 'Ret is the expected value, of type string');
+};
+
+subtest '[az_resource_tag] Check command composition' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+    my $resource_ids = ['/sub/A', '/sub/B'];
+    my $tags = ['pcw_ignore=1'];
+
+    az_resource_tag(resource_ids => $resource_ids, tags => $tags);
+
+    note("\n --> " . join("\n --> ", @calls));
+    ok((any { /az resource tag/ } @calls), 'Correct composition of the main command');
+    ok((any { /--ids "\/sub\/A" "\/sub\/B"/ } @calls), 'Check for --ids option.');
+    ok((any { /--tags "pcw_ignore=1"/ } @calls), 'Check for --tags');
+};
+
+subtest '[az_resource_tag] Test exceptions' => sub {
+    dies_ok { az_resource_tag(resource_ids => ['A', 'B']) } 'Fail with missing "tags" argument';
+    dies_ok { az_resource_tag(tags => ['pcw_ignore=1']) } 'Fail with missing "resource_ids" argument';
+    dies_ok { az_resource_tag(resource_ids => 'string', tags => ['pcw_ignore=1']) } 'Fail with non arrayref argument - resource_ids';
+    dies_ok { az_resource_tag(resource_ids => ['A', 'B'], tags => 'string') } 'Fail with non arrayref argument - tags';
 };
 
 done_testing;

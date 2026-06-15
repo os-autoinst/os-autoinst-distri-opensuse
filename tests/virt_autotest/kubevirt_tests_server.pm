@@ -152,27 +152,22 @@ sub rke2_server_setup {
     # Create registries ready
     our $local_registry_fqdn = get_required_var("LOCAL_REGISTRY_FQDN");
     our $local_registry_ip = script_output("nslookup $local_registry_fqdn|sed -n '5,1p'|awk -F' ' '{print \$2}'");
-    assert_script_run("cat > /etc/rancher/rke2/registries.yaml <<__END
+    assert_script_run(qq(cat > /etc/rancher/rke2/registries.yaml <<__END
 mirrors:
-  $local_registry_fqdn:5000:
+  "$local_registry_fqdn:5000":
     endpoint:
-      - http://$local_registry_fqdn:5000
-  $local_registry_ip:5000:
+      - "http://$local_registry_fqdn:5000"
+  "$local_registry_ip:5000":
     endpoint:
-      - http://$local_registry_ip:5000
+      - "http://$local_registry_ip:5000"
 __END
-(exit \$?)");
+(exit \$?)));
 
     # Wait for rke2-agent service to be ready
     my $children = get_children();
     mutex_wait('rke2_agent_start_ready', (keys %$children)[0]);
 
     assert_script_run("scp /etc/rancher/rke2/registries.yaml root\@$agent_ip:/etc/rancher/rke2/registries.yaml");
-
-    # Workaround for bsc#1217658
-    my $config_toml_tmpl = 'config.toml.tmpl';
-    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$config_toml_tmpl") . " -o $config_toml_tmpl");
-    assert_script_run("cp $config_toml_tmpl /var/lib/rancher/rke2/agent/etc/containerd/$config_toml_tmpl");
 
     # Restart RKE2 service and check the service is active well after restart
     systemctl('restart rke2-server.service', timeout => 180);

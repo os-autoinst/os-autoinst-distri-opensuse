@@ -13,7 +13,6 @@ use utils qw(exec_and_insert_password systemctl);
 use mm_network qw(configure_hostname);
 use network_utils qw(get_default_dns is_running_in_isolated_network set_resolv);
 use utils qw(file_content_replace);
-use Utils::Architectures qw(is_aarch64);
 use Mojo::File qw(path);
 use Carp qw(croak);
 
@@ -194,6 +193,13 @@ sub prepare_test_framework {
         # is way too big for 'file_content_replace' function
         assert_script_run("sed 's/127\.0\.0\.1/$hostname/g' $k8s_yaml | base64 -w0 > /tmp/k8s.config");
 
+        # Get number of nodes
+        my $nb_server_nodes = script_output('kubectl get nodes --no-headers | wc -l');
+        my $nb_worker_nodes = script_output(
+            q@kubectl get nodes --no-headers | awk 'BEGIN {N=0} $3=="agent" {N++} END {print N}'@
+        );
+        $nb_server_nodes -= $nb_worker_nodes;
+
         # Framework configuration files
         foreach my $file ('/tmp/env', '/tmp/tfvars') {
             assert_script_run(
@@ -204,9 +210,11 @@ sub prepare_test_framework {
                 $file, '--sed-modifier' => 'g',
                 '%ARCH%' => $arch,
                 '%ACCESS_KEY%' => '/root/.ssh/id_rsa',
+                '%FQDN%' => $hostname,
                 '%K8S%' => $args{k8s},
                 '%K8S_VERSION%' => $k8s_version,
-                '%FQDN%' => $hostname
+                '%NB_SERVER_NODES%' => $nb_server_nodes,
+                '%NB_WORKER_NODES%' => $nb_worker_nodes
             );
 
             # Dirty workaround, see above for more details
@@ -219,11 +227,11 @@ sub prepare_test_framework {
 
     # mutex_lock/unlock are used to avoid a sporadic crash with
     #  next 'barrier_wait' when master stopped too quickly
-    mutex_lock('wait_nodes');
+    mutex_lock('wait_nodes') if ($hostname eq 'node01');
 
     # Wait for tests to be executed on master node
     barrier_wait('TEST_FRAMEWORK_DONE');
-    mutex_unlock('wait_nodes');
+    mutex_unlock('wait_nodes') if ($hostname eq 'node01');
 }
 
 sub run {
@@ -231,7 +239,6 @@ sub run {
     my $arch = get_required_var('ARCH');
     my $k8s = get_required_var('K8S');
     my $k8s_dir = "/etc/rancher/$k8s";
-    my $config_yaml = "$k8s_dir/config.yaml";
     my $timeout = 2400;    # Will be adapted when we will have more successful tests
 
     # Skip the test with if the OS image is not generated with 'customize'
@@ -255,35 +262,16 @@ sub run {
     # Cannot be defined with the other variables, as we need terminal access
     my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
 
-    unless (check_var('MULTI_NODE', '1')) {
-        my $ip = script_output('ip -o route get 1 2>/dev/null | cut -d" " -f7');
-        die('No IP defined on the node!') unless (defined $ip && $ip ne '');
+    # Wait for K8s directory to appears
+    wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
 
-        # Split the DNS strings into arrays only if the variable is defined and not empty
-        my @default_dns = split(/,/, get_default_dns);
-        set_resolv(nameservers => \@default_dns) if (is_running_in_isolated_network());
+    # Record K8s configuration files
+    record_info("$k8s_dir config files", "ls -l $k8s_dir; echo; cat $k8s_dir/*");
 
-        # Configure K8s
-        if (get_var('PARALLEL_WITH')) {
-            # Set hostname and get IP address
-            configure_hostname($hostname) unless (get_var('PARALLEL_WITH'));
-
-            # Wait for K8s directory to appears
-            wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
-
-            # Set hostname/IP
-            assert_script_run("echo -e 'node-name: $hostname' >> $config_yaml");
-            assert_script_run("echo -e 'node-external-ip: $ip' >> $config_yaml");
-
-            # Restart K8s server
-            systemctl("restart $k8s_svc", timeout => $timeout);
-        }
-    }
+    # Wait for kubectl command to be available
+    wait_kubectl_cmd(timeout => $timeout);
 
     unless ($hostname eq 'node04') {
-        # Wait for kubectl command to be available
-        wait_kubectl_cmd(timeout => $timeout);
-
         # Check K8s status
         wait_k8s_state(regex => 'status.*restarts|(1/1|2/2|3/3|4.4).*running|0/1.*completed', timeout => $timeout);
 
@@ -302,15 +290,14 @@ sub run {
         # Check toolkit version
         record_info('Elemental version', script_output('elemental3ctl version'));
 
-        # Check that test namespace has been created (only for images built from release-manifest)
-        if (check_var('TESTED_CMD', 'customize')) {
-            kubectl_cmd(cmd => 'get namespace openqa-ns', timeout => $timeout);
-            record_info('Test Namespace creation', 'Namespace created!');
-        }
+        # Check that test namespace has been created
+        kubectl_cmd(cmd => 'get namespace openqa-ns', timeout => $timeout);
+        record_info('Test Namespace creation', 'Namespace created!');
     }
 
-    # Only in multi-nodes configuration
-    prepare_test_framework(arch => $arch, k8s => $k8s) if (get_var('PARALLEL_WITH'));
+    # Only in single-node/multi-node tests
+    prepare_test_framework(arch => $arch, k8s => $k8s)
+      if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/);
 }
 
 sub post_fail_hook {

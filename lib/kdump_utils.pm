@@ -327,6 +327,7 @@ sub activate_kdump_without_yast {
 }
 
 sub activate_kdump_transactional {
+    set_kdump_config('KDUMP_SAVEDIR', get_var('KDUMP_SAVEDIR')) if get_var('KDUMP_SAVEDIR');
     if (get_var('CRASH_MEMORY')) {
         # show and get crashkernel memory
         my $crash_memory = determine_crash_memory;
@@ -480,6 +481,12 @@ sub check_function {
             $crash_cmd = "podman container run --privileged -v '/:/host' registry.opensuse.org/opensuse/tumbleweed bash -c '$bash_cmd'";
         }
         validate_script_output $crash_cmd, sub { m/PANIC:\s([^\s]+)/ }, is_aarch64 ? 1200 : 800 if $crash_cmd;
+        # also verify crash auto-detects the booted vmlinux when called without arguments
+        if (!is_transactional && !get_var('SKIP_KERNEL_DEBUGINFO')) {
+            my $out = script_output('echo exit | crash 2>&1', is_aarch64 ? 1200 : 800, proceed_on_failure => 1);
+            record_soft_failure 'bsc#1237855 - crash cannot auto-detect booted kernel without arguments'
+              unless $out =~ m/KERNEL:/;
+        }
     }
     else {
         # migration tests need remove core files before migration start

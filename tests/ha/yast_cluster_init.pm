@@ -7,6 +7,64 @@
 # Summary: Deploy a cluster with YaST
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
+=head1 NAME
+
+ha/yast_cluster_init.pm - Deploy a cluster with YaST
+
+=head1 DESCRIPTION
+
+This module deploys and configures a High Availability cluster node using the YaST2 cluster module.
+It performs initial cluster setup, configures Corosync, Csync2, and conntrackd services, and
+configures Pacemaker properties using crmsh commands after ensuring node synchronization.
+
+Its primary tasks are:
+
+=over
+
+=item * Initialize cluster configuration using the YaST2 cluster interface.
+
+=item * Install required HA packages if missing.
+
+=item * Set network bindings (e.g., binding address 10.0.2.0) and expected votes.
+
+=item * Configure Corosync (on SLE 15+), security, and conntrackd settings.
+
+=item * Set up Csync2 with pre-shared keys, sync host, and suggested configuration files.
+
+=item * Enable and start the Pacemaker cluster service.
+
+=item * Generate SSH keys and authorize the local node for secure ssh access.
+
+=item * Wait for other cluster nodes using openQA synchronization barriers.
+
+=item * Perform file synchronization using Csync2.
+
+=item * Set Pacemaker cluster properties (e.g., no-quorum-policy based on node count, watchdog, STONITH, stickiness, thresholds).
+
+=item * Save cluster state and verification data.
+
+=back
+
+=head1 SETTINGS
+
+=over
+
+=item B<CLUSTER_NAME>
+
+The name of the cluster. Used to coordinate cluster-wide openQA barriers (e.g. CLUSTER_INITIALIZED_...) and configurations. Required.
+
+=item B<HOSTNAME>
+
+The hostname of the system. Used for SSH key setup, sync host registration, and identifying other cluster node names. Required.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
 use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;

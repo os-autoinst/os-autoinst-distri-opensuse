@@ -31,6 +31,12 @@ sub run {
 
     assert_script_run("ps aux | nl");
 
+    # Workaround for missing iproute2 package in 15-SP4 CHOST images (bsc#1264714)
+    if (get_required_var('FLAVOR') =~ 'GCE-CHOST-BYOS' && (is_sle("=15-SP4") || is_sle("=15-SP5")) && script_run("ip l") != 0) {
+        record_soft_failure("bsc#1264714 Missing iproute2 package");
+        script_retry("zypper -n in iproute2", retry => 3, timeout => 300);
+    }
+
     my $ip_color = (is_sle('>=15-SP3')) ? '-c=never' : '';
     assert_script_run("ip $ip_color a s");
     assert_script_run("ip $ip_color r s");

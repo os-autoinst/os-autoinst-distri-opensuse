@@ -23,9 +23,3 @@ pull_request_rules:
     actions:
       review:
         type: APPROVE
-  - name: ask to resolve conflict
-    conditions:
-      - conflict
-    actions:
-      comment:
-        message: This pull request is now in conflicts. Could you fix it? 🙏

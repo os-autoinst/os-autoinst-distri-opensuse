@@ -50,7 +50,6 @@ subtest '[ipaddr2_infra_deploy] cloudinit_profile' => sub {
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
     $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -112,7 +111,6 @@ subtest '[ipaddr2_infra_deploy] diagnostic' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(write_sut_file => sub { return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
     $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -385,6 +383,9 @@ subtest '[ipaddr2_os_sanity]' => sub {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
     ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+    # extract just the command strings
+    my @cmds = map { $_->[1] } @calls;
+    ok((none { /dig/ } @cmds), 'No dig command when enable_dig is not set');
 };
 
 subtest '[ipaddr2_os_sanity] root' => sub {
@@ -415,6 +416,39 @@ subtest '[ipaddr2_os_sanity] root' => sub {
         note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
     }
     ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+};
+
+subtest '[ipaddr2_os_sanity] enable_dig' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(assert_script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
+            my (%args) = @_;
+            push @calls, ['bastion', $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}];
+            # return exactly what ipaddr2_os_ssh_sanity needs
+            return 3; });
+
+    ipaddr2_os_sanity(enable_dig => 1);
+
+    for my $call_idx (0 .. $#calls) {
+        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]");
+    }
+    ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
+    # extract just the command strings
+    my @cmds = map { $_->[1] } @calls;
+    ok((any { /dig/ } @cmds), 'dig command present when enable_dig is set');
 };
 
 subtest '[ipaddr2_bastion_pubip]' => sub {
@@ -452,7 +486,6 @@ subtest '[ipaddr2_internal_key_gen]' => sub {
     ipaddr2_internal_key_gen();
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-
     ok((any { /ssh-keygen/ } @calls), 'Generate the keys if they does not exist');
     # search through all the ssh-keygen and extract the ssh key file path after -f
     # then check if there's a scp uploading it
@@ -854,17 +887,17 @@ subtest '[ipaddr2_scc_check] SUSEConnect execution failed' => sub {
     ok(($ret eq 0), "Is not registered ret:$ret");
 };
 
-subtest '[ipaddr2_scc_registration_workaround_PAYG] apply registration workaround' => sub {
+subtest '[ipaddr2_scc_registration_workaround_PAYG] service succeeds immediately' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 0; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    $ipaddr2->redefine(ipaddr2_get_internal_vm_private_ip => sub { '192.168.1.1'; });
-    $ipaddr2->redefine(script_run => sub { return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            return "ActiveState=inactive\nResult=success";
+    });
 
     ipaddr2_scc_registration_workaround_PAYG(id => 42);
 
-    ok('Workaround applying passed');
+    ok(1, 'Workaround returns immediately when service succeeds');
 };
 
 subtest '[ipaddr2_scc_register]' => sub {
@@ -968,8 +1001,7 @@ subtest '[ipaddr2_cloudinit_create]' => sub {
     $ipaddr2->redefine(write_sut_file => sub {
             $cloud_init_content = $_[1];
             return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
-
+    $ipaddr2->noop('upload_logs');
     ipaddr2_cloudinit_create();
 
     note("cloud_init_content:\n" .
@@ -987,7 +1019,7 @@ subtest '[ipaddr2_cloudinit_create] with scc_code' => sub {
     $ipaddr2->redefine(write_sut_file => sub {
             $cloud_init_content = $_[1];
             return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
+    $ipaddr2->noop('upload_logs');
 
     ipaddr2_cloudinit_create(scc_code => 'ABCD');
 
@@ -1005,7 +1037,7 @@ subtest '[ipaddr2_cloudinit_create] nginx_root' => sub {
     $ipaddr2->redefine(write_sut_file => sub {
             $cloud_init_content = $_[1];
             return; });
-    $ipaddr2->redefine(upload_logs => sub { return '/Faggin'; });
+    $ipaddr2->noop('upload_logs');
 
     ipaddr2_cloudinit_create(nginx_root => 'ABCD');
 
@@ -1029,6 +1061,22 @@ subtest '[ipaddr2_os_connectivity_sanity]' => sub {
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /ping/ } @calls), 'Connectivity sanity has some ping');
+    ok((none { /dig/ } @calls), 'Connectivity sanity has no dig by default');
+};
+
+subtest '[ipaddr2_os_connectivity_sanity] enable_dig' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    ipaddr2_os_connectivity_sanity(enable_dig => 1);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /ping/ } @calls), 'Connectivity sanity has some ping');
+    ok((any { /dig/ } @calls), 'Connectivity sanity has dig when enable_dig is set');
 };
 
 subtest '[ipaddr2_test_other_vm]' => sub {
@@ -1271,7 +1319,7 @@ subtest '[ipaddr2_cleanup] ipaddr2_deployment_logs' => sub {
     my $called = 0;
     $ipaddr2->redefine(ipaddr2_azure_resource_group => sub { return 'Volta'; });
     $ipaddr2->redefine(az_vm_diagnostic_log_get => sub { $called = 1; return ('aaaaa.log', 'bbbbbb.log'); });
-    $ipaddr2->redefine(upload_logs => sub { return; });
+    $ipaddr2->noop('upload_logs');
     $ipaddr2->redefine(ipaddr2_infra_destroy => sub { return; });
 
     ipaddr2_cleanup(diagnostic => 1, cloudinit => 0);
@@ -1296,7 +1344,9 @@ subtest '[ipaddr2_logs_collect]' => sub {
     });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
 
+    note("Testing log collection with successful SSH commands...");
     ipaddr2_logs_collect();
 
     note("\n  SSH CALLS -->  " . join("\n  SSH CALLS -->  ", @ssh_calls));
@@ -1316,47 +1366,41 @@ subtest '[ipaddr2_logs_collect]' => sub {
     ok((any { /supportconfig.*/ } @upload_calls), "supportconfig uploaded");
 };
 
-subtest '[ipaddr2_logs_collect] fail' => sub {
+subtest '[ipaddr2_logs_collect] skip scp on failure' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     my @upload_calls;
     $ipaddr2->redefine(upload_logs => sub {
             push @upload_calls, $_[0];
             return;
     });
-    my @records;
-    $ipaddr2->redefine(record_info => sub { push @records, \@_; note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @ssh_calls;
+    my @scp_calls;
+    # Redefine ipaddr2_ssh_internal to return 1 (failure) and track calls
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_calls, $args{cmd};
+            return 1;
+    });
     $ipaddr2->redefine(script_run => sub {
-            return 1 if $_[0] =~ /^ssh /;
+            push @scp_calls, $_[0] if $_[0] =~ /^scp /;
             return 0;
     });
-    $ipaddr2->redefine(assert_script_run => sub { return; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
 
-    lives_ok { ipaddr2_logs_collect(bastion_ip => '1.2.3.4') } 'survives failing script_run';
+    note("Testing log collection with failing SSH commands (skip scp)...");
+    ipaddr2_logs_collect();
 
-    is(scalar @upload_calls, 10, "upload_logs called 10 times even if commands fail");
-    ok((any { $_->[0] =~ /Failed.*time/ } @records), "failure was recorded");
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal still called 8 times for log generation");
+    is(scalar @scp_calls, 0, "scp is NOT called because all log generation failed");
+    is(scalar @upload_calls, 2, "upload_logs called only 2 times for local logs");
 };
 
-subtest '[ipaddr2_logs_collect] timeout' => sub {
-    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
-    my @upload_calls;
-    $ipaddr2->redefine(upload_logs => sub {
-            push @upload_calls, $_[0];
-            return;
-    });
-    my @records;
-    $ipaddr2->redefine(record_info => sub { push @records, \@_; note(join(' ', 'RECORD_INFO -->', @_)); });
-    $ipaddr2->redefine(script_run => sub {
-            die "command '$_[0]' timed out" if $_[0] =~ /^ssh /;
-            return 0;
-    });
-    $ipaddr2->redefine(assert_script_run => sub { return; });
-
-    lives_ok { ipaddr2_logs_collect(bastion_ip => '1.2.3.4') } 'survives timeout from script_run';
-
-    is(scalar @upload_calls, 10, "upload_logs called 10 times even if commands timeout");
-    ok((any { $_->[0] =~ /SSH timeout/ } @records), "timeout was recorded");
-};
 
 subtest '[ipaddr2_ssh_intrusion_detection]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
@@ -1459,7 +1503,7 @@ subtest '[ipaddr2_ssh_intrusion_detection] no lines in the journal' => sub {
     ok(($ret == 0), "Ret:$ret expected to be 0");
 };
 
-subtest '[ipaddr2_billing_model_get]' => sub {
+subtest '[ipaddr2_billing_model_get] PAYG' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
 
     my @calls;
@@ -1471,6 +1515,204 @@ subtest '[ipaddr2_billing_model_get]' => sub {
     my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok(($ret eq 'PAYG'), "Ret:'$ret' expected to be 'PAYG'");
+};
+
+subtest '[ipaddr2_billing_model_get] BYOS rc11' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 11; });
+
+    my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
+    ok(($ret eq 'BYOS'), "Ret:'$ret' expected to be 'BYOS' for rc=11");
+};
+
+subtest '[ipaddr2_billing_model_get] BYOS rc12' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 12; });
+
+    my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
+    ok(($ret eq 'BYOS'), "Ret:'$ret' expected to be 'BYOS' for rc=12");
+};
+
+subtest '[ipaddr2_billing_model_get] UNKNOWN bsc#1267739' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            return "FileNotFoundError: [Errno 2] No such file or directory: '/var/cache/cloudregister/availableSMTInfo_1.obj'";
+    });
+    $ipaddr2->redefine(record_soft_failure => sub { note("SOFT_FAILURE --> $_[0]"); });
+
+    my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
+    ok(($ret eq 'UNKNOWN'), "Ret:'$ret' expected to be 'UNKNOWN' for bsc#1267739");
+};
+
+subtest '[ipaddr2_billing_model_get] die on rc=1 without FileNotFoundError' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            return "Some other traceback error without known signature";
+    });
+
+    dies_ok { ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5') }
+    "Die on rc=1 without FileNotFoundError signature";
+};
+
+subtest '[ipaddr2_billing_model_get] die on unexpected rc' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 99; });
+
+    dies_ok { ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5') }
+    "Die on unexpected exit code 99";
+};
+
+subtest '[ipaddr2_scc_registration_workaround_PAYG] service succeeds' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            # Simulate service completed successfully
+            return "ActiveState=inactive\nResult=success";
+    });
+
+    ipaddr2_scc_registration_workaround_PAYG(id => 1, bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /systemctl show guestregister/ } @calls), 'Polls guestregister.service state');
+    ok((none { /systemctl restart/ } @calls), 'No restart needed when service succeeds');
+};
+
+subtest '[ipaddr2_scc_registration_workaround_PAYG] service fails then recovers' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(record_soft_failure => sub { note("SOFT_FAILURE --> $_[0]"); });
+
+    my $poll_count = 0;
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            if ($args{cmd} =~ /systemctl show guestregister/) {
+                $poll_count++;
+                # First poll: service failed
+                return "ActiveState=failed\nResult=exit-code" if $poll_count == 1;
+                # After restart: service succeeded
+                return "ActiveState=inactive\nResult=success";
+            }
+            if ($args{cmd} =~ /SUSEConnect -s/) {
+                return '[{"status":"Registered"}]';
+            }
+            return '';
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0;
+    });
+
+    ipaddr2_scc_registration_workaround_PAYG(id => 1, bastion_ip => '1.2.3.4');
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /systemctl restart guestregister/ } @calls), 'Service restarted after failure');
+    ok((any { /SUSEConnect -s/ } @calls), 'SUSEConnect verification after restart');
+};
+
+subtest '[ipaddr2_scc_registration_workaround_PAYG] recovery fails' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $poll_count = 0;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            if ($args{cmd} =~ /systemctl show guestregister/) {
+                $poll_count++;
+                # Always report failure
+                return "ActiveState=failed\nResult=exit-code";
+            }
+            if ($args{cmd} =~ /SUSEConnect -s/) {
+                return '[{"status":"Not Registered"}]';
+            }
+            return '';
+    });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 0; });
+
+    dies_ok { ipaddr2_scc_registration_workaround_PAYG(id => 1, bastion_ip => '1.2.3.4') }
+    "Die when system remains Not Registered after restart";
+};
+
+subtest '[ipaddr2_logs_collect] supportconfig workaround applied when supportutils >= 3.1.25' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->noop('upload_logs');
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+
+    my @version_cmds;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @version_cmds, $args{cmd};
+            return '3.2.12.2';
+    });
+
+    my @ssh_cmds;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_cmds, $args{cmd};
+            return 0;
+    });
+
+    my @soft_failures;
+    $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
+
+    ipaddr2_logs_collect();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  VERSION CMDS -->  " . join("\n  VERSION CMDS -->  ", @version_cmds));
+    note("\n  SSH CMDS -->  " . join("\n  SSH CMDS -->  ", @ssh_cmds));
+    note("\n  SOFT FAILURES -->  " . join("\n  SOFT FAILURES -->  ", @soft_failures));
+
+    ok((any { /rpm.*queryformat.*supportutils/ } @version_cmds), 'Version check queries supportutils package');
+    ok((any { /sudo supportconfig.*< \/dev\/null/ } @ssh_cmds), 'supportconfig cmd has /dev/null stdin redirect (bsc#1268173 workaround)');
+    ok((any { /bsc#1268173/ } @soft_failures), 'record_soft_failure called with bsc#1268173');
+};
+
+subtest '[ipaddr2_logs_collect] supportconfig workaround not applied when supportutils < 3.1.25' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->noop('upload_logs');
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $ipaddr2->redefine(script_run => sub { return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.1.24'; });
+
+    my @ssh_cmds;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_cmds, $args{cmd};
+            return 0;
+    });
+
+    my @soft_failures;
+    $ipaddr2->redefine(record_soft_failure => sub { push @soft_failures, $_[0]; });
+
+    ipaddr2_logs_collect();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  SSH CMDS -->  " . join("\n  SSH CMDS -->  ", @ssh_cmds));
+
+    ok((none { /sudo supportconfig.*< \/dev\/null/ } @ssh_cmds), 'supportconfig cmd has no /dev/null redirect when supportutils < 3.1.25');
+    ok((none { /bsc#1268173/ } @soft_failures), 'record_soft_failure not called when supportutils < 3.1.25');
 };
 
 done_testing;

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2019 SUSE LLC
+# Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
 # Package: firewalld xrdp gnome-session-core
@@ -13,9 +13,10 @@ use testapi;
 use lockapi;
 use mmapi;
 use mm_tests;
-use utils qw(systemctl zypper_call);
+use utils qw(systemctl);
 use x11utils qw(handle_login turn_off_gnome_screensaver);
-use version_utils qw(is_sle is_sles4sap is_tumbleweed);
+use version_utils qw(is_sle is_sles4sap is_tumbleweed is_transactional);
+use package_utils qw(install_package);
 
 sub run {
     my ($self) = @_;
@@ -51,8 +52,9 @@ sub run {
         }
     }
     else {
-        # Install xrdp
-        zypper_call('in xrdp');
+        # Install xrdp (transactional-aware: trup_apply lets us start the
+        # service without a reboot on immutable images).
+        install_package('xrdp', trup_apply => 1);
 
         # Add the firewall port for xrdp
         assert_script_run 'firewall-cmd --zone=public --permanent --add-port=3389/tcp';
@@ -77,13 +79,21 @@ sub run {
     mouse_click if get_var('OFW');
     send_key_until_needlematch 'displaymanager', 'esc';
 
-    if (is_sles4sap || is_tumbleweed) {
-        # We don't have to test the reconnection and reboot part in SLES4SAP and TW
+    if (is_sles4sap || is_tumbleweed || is_transactional) {
+        # We don't have to test the reconnection and reboot part in SLES4SAP, TW
+        # or transactional/immutable images.
         handle_login;
     }
 
     else {
-        send_key_until_needlematch('displaymanager-password-prompt', 'ret', 4, 3);
+        # Click the bernhard user tile by coordinates instead of relying on
+        # select_user_gnome — the SP5 needle set has no -user-notselected
+        # sibling matching the small-avatar GDM state after RDP disconnect,
+        # so select_user_gnome times out. A single click activates the tile
+        # in both pre-selected (SP4) and not-selected (SP5) GDM variants.
+        mouse_set(450, 370);
+        mouse_click;
+        assert_screen 'displaymanager-password-prompt';
         type_password;
         wait_still_screen 3;
         send_key "ret";

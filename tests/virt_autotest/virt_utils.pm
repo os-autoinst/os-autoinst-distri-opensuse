@@ -93,9 +93,7 @@ sub get_version_for_daily_build_guest {
         $version = get_var("VERSION", '');
     }
     $version = lc($version);
-    if ($version !~ /sp/m) {
-        $version = $version . "-fcs";
-    }
+    $version =~ s/\./-/g;
     return $version;
 }
 
@@ -332,21 +330,31 @@ sub lpar_cmd {
 
     die 'Command not provided' unless $cmd;
 
-    my $ret = console('svirt')->run_cmd($cmd, timeout => $timeout);
-    $ret //= 1;
+    # Append 2>&1 to capture standard error (stderr) into standard output (stdout),
+    # unless the command already includes it.
+    $cmd .= ' 2>&1' unless $cmd =~ /2>&1/;
 
+    # Execute the command with wantarray => 1 to capture both RC and combined output
+    my ($ret, $output) = console('svirt')->run_cmd($cmd, timeout => $timeout, wantarray => 1);
+
+    # Fallbacks in case run_cmd returns undefined values
+    $ret = 1 unless defined $ret;
+    $output = '' unless defined $output;
+
+    # Record the result and the captured output/errors to openQA Web UI
     if ($ret == 0) {
-        record_info('LPAR_CMD_PASS', "Command finished with RC 0: $cmd");
+        record_info('LPAR_CMD_PASS', "Command finished with RC 0: $cmd\n\nOutput:\n$output");
     }
     else {
-        record_info('LPAR_CMD_FAIL', "Command failed with RC $ret: $cmd");
+        record_info('LPAR_CMD_FAIL', "Command failed with RC $ret: $cmd\n\nOutput:\n$output");
     }
 
-    die "Find new failure (RC $ret), please check manually for command: $cmd"
+    # Die with the output string if the command failed and we are not ignoring the RC
+    die "Find new failure (RC $ret), please check manually for command: $cmd\nOutput:\n$output"
       unless ($ignore_return_code || $ret == 0);
 
-    # Return the captured return code
-    return $ret;
+    # Return context-aware results: list of (RC, output) or just RC
+    return wantarray ? ($ret, $output) : $ret;
 }
 
 # Guest xml will be uploaded with name format [generated_name_by_this_func].xml

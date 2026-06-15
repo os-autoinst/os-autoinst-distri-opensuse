@@ -51,6 +51,8 @@ sub run {
     $instance->check_cloudinit() if (is_cloudinit_supported);
     $instance->enable_kdump() if (get_var('PUBLIC_CLOUD_ENABLE_KDUMP'));
 
+    $provider->initialize_logging($instance);
+
     # ssh-tunnel settings
     prepare_ssh_tunnel($instance) if (is_tunneled());
 

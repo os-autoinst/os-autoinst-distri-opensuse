@@ -129,9 +129,13 @@ local raid(level='raid0', boot_type='bios') = {
         },
         mdroot_partition,
         mdswap_partition,
+        {
+          size: '1024 MiB',
+          filesystem: { path: '/boot', type: 'xfs' },
+        },
       ],
     },
-    // Additional disks: EFI partition, not mounted
+    // Additional disks: EFI and boot partition, not mounted
     {
       search: '*',
       partitions: [
@@ -143,6 +147,10 @@ local raid(level='raid0', boot_type='bios') = {
         },
         mdroot_partition,
         mdswap_partition,
+        {
+          size: '1024 MiB',
+          filesystem: { type: 'xfs' },
+        },
       ],
     },
   ] else if boot_type == 'prep' then [
@@ -217,6 +225,17 @@ local search_raid0() = {
           filesystem: {
             path: '/boot/efi',
             type: 'vfat'
+          },
+        },
+        {
+          search: {
+            condition: {
+              size: '1024 MiB'
+            }
+          },
+          filesystem: {
+            path: '/boot',
+            type: 'xfs'
           },
         },
       ],

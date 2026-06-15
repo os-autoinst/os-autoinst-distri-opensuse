@@ -3,12 +3,7 @@
 # Copyright 2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Run stress-ng on NFS
-#    This module validates NFS client/server functionality by running
-#    filesystem-class stress-ng tests against mounted NFS exports.
-#    The module expects a multi-machine setup with roles 'nfs_client'
-#    and 'nfs_server' and should be scheduled after after nfs_client,
-#    nfs_server modules.
+# Summary: Run filesystem-class stress-ng workloads against mounted NFS exports.
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
@@ -17,8 +12,9 @@ use serial_terminal;
 use lockapi;
 use utils;
 use registration;
-use version_utils 'is_sle';
+use version_utils qw(is_sle is_transactional);
 use repo_tools 'add_qa_head_repo';
+use package_utils 'install_package';
 
 sub check_nfs_mounts {
     my @paths = @_;
@@ -73,8 +69,8 @@ sub server {
 
 sub client {
     my ($self) = @_;
-    my $local_nfs4 = "/home/localNFS4";
-    my $local_nfs4_async = "/home/localNFS4async";
+    my $local_nfs4 = get_var('NFS_LOCAL_NFS4', '/var/lib/nfs-tests/localNFS4');
+    my $local_nfs4_async = get_var('NFS_LOCAL_NFS4_ASYNC', '/var/lib/nfs-tests/localNFS4async');
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
     my $exclude = get_var('NFS_STRESS_NG_EXCLUDE');
     # allow to override the default exports
@@ -98,7 +94,7 @@ sub client {
         }
     }
 
-    zypper_call("in stress-ng");
+    install_package('stress-ng', trup_continue => 1, trup_apply => 1);
 
     select_user_serial_terminal;
     assert_script_run("stress-ng --class 'filesystem?'");
@@ -174,72 +170,64 @@ sub test_flags {
 
 =head1 Description
 
-This module runs filesystem-class C<stress-ng> workloads against NFS
-mounts in a multi-machine openQA setup. It is intended to validate both
-basic NFS functionality and filesystem stability under load.
+Runs filesystem-class C<stress-ng> workloads against mounted NFS exports to
+validate NFS client/server stability under load. This module is designed to
+execute in lockstep with L<tests/kernel/nfs_server.pm> and
+L<tests/kernel/nfs_client.pm>, synchronised at runtime via shared barriers.
+It should be scheduled after both C<nfs_server> and C<nfs_client>.
 
-The module operates in two roles:
+On the B<NFS client> node the module verifies that all required NFS mount
+points are present and of the correct filesystem type, installs C<stress-ng>,
+runs the full C<filesystem> stressor class sequentially against each export,
+parses the generated YAML metrics, and records any failing or untrustworthy
+results as test failures.
 
-=over 4
-
-=item * C<nfs_client> - verifies required NFS mounts, installs C<stress-ng>,
-runs the workload on each export, parses the generated metrics, and records
-the results.
-
-=item * C<nfs_server> - synchronizes with the client through barriers and
-prints NFS statistics (C<nfsstat -s>) after the workload completes.
-
-Before executing any stress tests, the client ensures that all required
-mount points - either the default NFS paths or those provided via
-C<NFS_STRESS_EXPORTS> - are present and mounted as real NFS filesystems.
-
-=back
-
-Metrics are parsed from the C<stress-ng> C<--metrics-brief> output. Any
-failing or untrustworthy metrics are treated as test failures.
+On the B<NFS server> node the module synchronises with the client through
+barriers and records NFS server statistics via C<nfsstat -s> after the
+workload completes.
 
 =head1 Configuration
 
-The following openQA variables control the behavior of this module:
-
 =head2 ROLE
 
-Required. Must be either C<nfs_client> or C<nfs_server>. Determines
-which execution path is taken.
+Required. Set to C<nfs_client> or C<nfs_server> to select the node's role
+in the multi-machine scenario.
+
+=head2 NFS_LOCAL_NFS4
+
+Client-side mountpoint for the NFSv4 synchronous export used as the default
+stress-ng target. Defaults to C</var/lib/nfs-tests/localNFS4>.
+
+=head2 NFS_LOCAL_NFS4_ASYNC
+
+Client-side mountpoint for the NFSv4 asynchronous export used as the default
+stress-ng target. Defaults to C</var/lib/nfs-tests/localNFS4async>.
 
 =head2 NFS_STRESS_EXPORTS
 
-Optional. Comma-separated list of client-side mount points where
-C<stress-ng> will be executed. Example:
-
-  '/home/localNFS3,/home/localNFS4'
-
-If not set, the defaults
-
-=over 4
-
-=item * C</home/localNFS4>
-=item * C</home/localNFS4async>
-
-=back
-
-are used.
+Comma-separated list of client-side mount points where C<stress-ng> will be
+executed, overriding the C<NFS_LOCAL_NFS4> and C<NFS_LOCAL_NFS4_ASYNC> defaults.
 
 =head2 NFS_STRESS_NG_TIMEOUT
 
-Optional. Timeout (in seconds) for the C<stress-ng> workload. Defaults to 3.
-
-This value is passed directly to the C<--timeout> argument of C<stress-ng>.
-
-=cut
+Timeout in seconds passed to the C<stress-ng --timeout> option for each
+stressor. Defaults to C<3>.
 
 =head2 NFS_STRESS_NG_EXCLUDE
 
-Optional. One or more C<stress-ng> stressors to exclude from execution.
+Comma-separated list of C<stress-ng> stressors to skip, passed directly to
+C<--exclude>. Excluded stressors are not run even if they belong to the
+C<filesystem> class.
 
-The value is passed directly to the C<stress-ng --exclude> option and
-may contain a single stressor name or a comma-separated list of names.
-Excluded stressors are not run, even if they belong to the selected
-C<filesystem> stressor class.
+=head1 Barriers
+
+=head2 NFS_STRESS_NG_START
+
+Synchronises both nodes before the stress workload begins; the server waits
+here while the client verifies mounts and installs C<stress-ng>.
+
+=head2 NFS_STRESS_NG_END
+
+Both nodes meet here after the stress workload is complete.
 
 =cut
