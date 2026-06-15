@@ -35,7 +35,7 @@ sub run {
     #definition, so that it allows flexible ways of re-runing the tests
     my $tests = get_required_var('BLKTESTS');
     my $devices = get_required_var('BLKTESTS_TEST_DEVS');
-    my $quick = get_var('BLKTESTS_QUICK', 60);
+    my $quick = get_var('BLKTESTS_QUICK');
     my $exclude = get_var('BLKTESTS_EXCLUDE');
     my $trtypes = get_var('BLKTESTS_TRTYPES');
     my $issues = get_var('BLKTESTS_KNOWN_ISSUES');
@@ -80,7 +80,8 @@ sub run {
 
     foreach my $i (@tests) {
         my $config = $devices eq 'none' ? '' : '-c /etc/blktests/config';
-        script_run("${trtypes} ./check $config -o ${log_dir}/results --quick=$quick $exclude $i", 1200);
+        my $quick_arg = $quick ? "--quick=$quick" : '';
+        script_run("${trtypes} ./check $config -o ${log_dir}/results $quick_arg $exclude $i", 1200);
     }
 
     script_run("cd ${log_dir}");
@@ -176,7 +177,8 @@ For blktests, C<test_variant> matches C<BLKTESTS_TRTYPES>.
 
 =head2 BLKTESTS_QUICK
 
-Optional. Value passed to C<./check --quick>. Defaults to C<60>.
+Optional. Value passed to C<./check --quick>. If unset, C<--quick> is not
+passed and all tests run regardless of their C<QUICK> flag.
 
 =head2 BLKTESTS_TRTYPES
 
