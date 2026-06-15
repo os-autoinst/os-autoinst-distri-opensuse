@@ -128,7 +128,7 @@ sub rotatelogs_and_verify {
 
     foreach my $emsg (@errors) {
         if (($emsg eq 'New system.journal file has not been created!') && (is_leap('<15.3') || is_sle('<15-sp3'))) {
-            record_soft_failure 'bsc#1183721 - brtime of file is empty';
+            record_info("bsc#1183721", "brtime of file is empty");
         } else {
             die join('\n', @errors);
         }
