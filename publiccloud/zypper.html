@@ -1,0 +1,183 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>publiccloud::zypper - Zypper / transactional-update plumbing for public cloud tests</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a></li>
+  <li><a href="#PUBLIC-API">PUBLIC API</a>
+    <ul>
+      <li><a href="#pc_zypper_call">pc_zypper_call</a></li>
+      <li><a href="#pc_transactional_call">pc_transactional_call</a></li>
+      <li><a href="#pc_pkg_call">pc_pkg_call</a></li>
+      <li><a href="#pc_refresh">pc_refresh</a></li>
+      <li><a href="#pc_add_repo">pc_add_repo</a></li>
+      <li><a href="#pc_wait_quit">pc_wait_quit</a></li>
+      <li><a href="#pc_installed_packages">pc_installed_packages</a></li>
+      <li><a href="#pc_available_packages">pc_available_packages</a></li>
+      <li><a href="#pc_install_packages_local">pc_install_packages_local</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/publiccloud/zypper.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>publiccloud::zypper - Zypper / transactional-update plumbing for public cloud tests</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>use publiccloud::zypper qw(pc_pkg_call pc_refresh pc_add_repo);
+
+pc_refresh($instance);
+pc_add_repo($instance, &#39;my-repo&#39;, &#39;http://example.com/repo&#39;);
+pc_pkg_call($instance, &#39;in some-package&#39;);</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Centralises all package-management interactions with remote public cloud instances (and a small helper for local installations). On transactional systems, package-changing operations are transparently routed through <code>transactional-update</code>; refresh and repository management always go through plain <code>zypper</code>.</p>
+
+<h1 id="PUBLIC-API">PUBLIC API</h1>
+
+<dl>
+
+<dt id="pc_zypper_call---plain-sudo-zypper--n"><a href="#pc_zypper_call">&quot;pc_zypper_call&quot;</a> - plain <code>sudo zypper -n ...</code></dt>
+<dd>
+
+</dd>
+<dt id="pc_transactional_call---plain-sudo-transactional-update--n"><a href="#pc_transactional_call">&quot;pc_transactional_call&quot;</a> - plain <code>sudo transactional-update -n ...</code></dt>
+<dd>
+
+</dd>
+<dt id="pc_pkg_call---smart-dispatch-based-on-is_transactional"><a href="#pc_pkg_call">&quot;pc_pkg_call&quot;</a> - smart dispatch based on <code>is_transactional()</code></dt>
+<dd>
+
+</dd>
+<dt id="pc_refresh---zypper-ref-always-plain-poo-195920"><a href="#pc_refresh">&quot;pc_refresh&quot;</a> - <code>zypper ref</code> (always plain; poo#195920)</dt>
+<dd>
+
+</dd>
+<dt id="pc_add_repo---add-a-GPG-checked-repository"><a href="#pc_add_repo">&quot;pc_add_repo&quot;</a> - add a GPG-checked repository</dt>
+<dd>
+
+</dd>
+<dt id="pc_wait_quit---wait-for-zypper-rpm-etc.-to-finish"><a href="#pc_wait_quit">&quot;pc_wait_quit&quot;</a> - wait for zypper/rpm/etc. to finish</dt>
+<dd>
+
+</dd>
+<dt id="pc_installed_packages---filter-list-to-installed-packages"><a href="#pc_installed_packages">&quot;pc_installed_packages&quot;</a> - filter list to installed packages</dt>
+<dd>
+
+</dd>
+<dt id="pc_available_packages---filter-list-to-available-but-not-installed"><a href="#pc_available_packages">&quot;pc_available_packages&quot;</a> - filter list to available-but-not-installed</dt>
+<dd>
+
+</dd>
+<dt id="pc_install_packages_local---local-SUT-install-helper"><a href="#pc_install_packages_local">&quot;pc_install_packages_local&quot;</a> - local-SUT install helper</dt>
+<dd>
+
+</dd>
+</dl>
+
+<p>See the per-function sections below for full signatures and options.</p>
+
+<h2 id="pc_zypper_call">pc_zypper_call</h2>
+
+<pre><code>pc_zypper_call($instance, $cmd, %opts);
+pc_zypper_call($instance, cmd =&gt; $cmd, %opts);</code></pre>
+
+<p>Runs <code>sudo zypper -n $cmd</code> on a remote instance. Never wraps the command in <code>transactional-update</code>; use this for repo/refresh/info operations even on transactional systems.</p>
+
+<p>Options (all optional):</p>
+
+<dl>
+
+<dt id="timeout-seconds-default-700"><b>timeout</b> =&gt; seconds, default 700</dt>
+<dd>
+
+</dd>
+<dt id="retry-number-of-attempts-default-1"><b>retry</b> =&gt; number of attempts, default 1</dt>
+<dd>
+
+</dd>
+<dt id="delay-seconds-between-retries-default-5"><b>delay</b> =&gt; seconds between retries, default 5</dt>
+<dd>
+
+</dd>
+<dt id="exitcode-arrayref-of-accepted-exit-codes-default-0"><b>exitcode</b> =&gt; arrayref of accepted exit codes, default [0]</dt>
+<dd>
+
+</dd>
+<dt id="proceed_on_failure-if-true-record-the-failure-but-dont-die"><b>proceed_on_failure</b> =&gt; if true, record the failure but don&#39;t die</dt>
+<dd>
+
+</dd>
+<dt id="wait_quit-if-true-default-wait-for-any-running-zypper-related-processes-to-finish-before-running-the-command"><b>wait_quit</b> =&gt; if true (default), wait for any running zypper-related processes to finish before running the command</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h2 id="pc_transactional_call">pc_transactional_call</h2>
+
+<pre><code>pc_transactional_call($instance, $cmd, %opts);</code></pre>
+
+<p>Runs <code>sudo transactional-update -n $cmd</code> on a remote instance and triggers a soft reboot on success (unless <code>no_reboot =</code> 1&gt; is passed). The default accepted exit codes are 0, 102, 103.</p>
+
+<h2 id="pc_pkg_call">pc_pkg_call</h2>
+
+<pre><code>pc_pkg_call($instance, $cmd, %opts);</code></pre>
+
+<p>Smart dispatch: on transactional systems, translates <code>$cmd</code> into the equivalent <code>transactional-update</code> invocation when possible (for install / remove / update / dup / patch). Anything that <code>transactional-update</code> does not support (refresh, repo management, queries, ...) falls through to plain <code>pc_zypper_call</code>. On non-transactional systems this is identical to <code>pc_zypper_call</code>.</p>
+
+<h2 id="pc_refresh">pc_refresh</h2>
+
+<pre><code>pc_refresh($instance, %opts);</code></pre>
+
+<p>Refreshes repositories on the remote instance. Always uses plain zypper, even on transactional systems, because <code>transactional-update</code> does not support repo refresh actions (poo#195920).</p>
+
+<h2 id="pc_add_repo">pc_add_repo</h2>
+
+<pre><code>pc_add_repo($instance, $name, $url, [timeout =&gt; 600]);</code></pre>
+
+<p>Adds a GPG-checked repository to the remote instance. Uses <code>ssh_assert_script_run</code> directly (i.e. dies on non-zero exit) rather than the full <code>pc_zypper_call</code> retry pipeline, since adding a single repository is a one-shot operation.</p>
+
+<h2 id="pc_wait_quit">pc_wait_quit</h2>
+
+<pre><code>pc_wait_quit($instance, [timeout =&gt; 20], [delay =&gt; 10], [retry =&gt; 120]);</code></pre>
+
+<p>Waits until no zypper / packagekit / purge-kernels / rpm processes are running on the remote instance. Defaults give a ~20 minute ceiling.</p>
+
+<h2 id="pc_installed_packages">pc_installed_packages</h2>
+
+<pre><code>pc_installed_packages($instance, \@pkgs);</code></pre>
+
+<p>Returns an arrayref of those packages from <code>\@pkgs</code> that are installed on the remote instance, preserving the order from the input list.</p>
+
+<h2 id="pc_available_packages">pc_available_packages</h2>
+
+<pre><code>pc_available_packages($instance, \@pkgs);</code></pre>
+
+<p>Returns an arrayref of packages from <code>\@pkgs</code> that are not yet installed but are available for installation. Uses <code>zypper -x info</code> to query availability.</p>
+
+<h2 id="pc_install_packages_local">pc_install_packages_local</h2>
+
+<pre><code>pc_install_packages_local(\@pkgs, [timeout =&gt; $seconds]);</code></pre>
+
+<p>Installs packages on the local SUT. On transactional systems uses <code>trup_call(&quot;pkg install ...&quot;)</code> followed by <code>reboot_on_changes</code>; otherwise uses the standard <code>utils::zypper_call(&quot;in ...&quot;)</code>.</p>
+
+
+</body>
+
+</html>
+
+
