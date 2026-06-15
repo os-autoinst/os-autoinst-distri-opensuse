@@ -14,6 +14,7 @@ use testapi;
 use version_utils qw(is_transactional is_sle);
 use Utils::Architectures qw(is_aarch64);
 use publiccloud::utils qw(is_byos pc_data_url);
+use publiccloud::zypper qw(pc_zypper_call);
 use publiccloud::aws_client;
 use publiccloud::ssh_interactive 'select_host_console';
 
@@ -464,7 +465,7 @@ sub _install_ec2_cloudwatch_agent
         $instance->softreboot();
     } else {
         if (is_sle(">12-SP5")) {
-            $instance->zypper_call_remote(cmd => "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
+            pc_zypper_call($instance, "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
         } else {
             $instance->ssh_assert_script_run("sudo rpm -Uvh $download_directory/$rpm_file");
         }
