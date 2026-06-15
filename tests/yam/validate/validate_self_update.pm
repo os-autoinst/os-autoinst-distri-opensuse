@@ -3,7 +3,7 @@
 # Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: Validate that the self-update is performed by Agama via /etc/live-self-update/result
+# Summary: Validate that the self-update is performed by Agama via systemctl
 # Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 use Mojo::Base 'consoletest';
@@ -12,6 +12,7 @@ use utils qw(systemctl);
 use scheduler qw(get_test_suite_data);
 
 sub run {
+    select_console 'install-shell';
     my $self_update_enabled = get_test_suite_data()->{self_update_enabled};
     if ($self_update_enabled) {
         my $retcode = script_output('cat /run/live-self-update/result');
