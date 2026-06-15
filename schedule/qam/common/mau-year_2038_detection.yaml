@@ -1,0 +1,8 @@
+---
+name: mau-year_2038_detection
+description: run year_2038_detection
+schedule:
+- boot/boot_to_desktop
+- console/year_2038_detection
+- console/coredump_collect
+...
