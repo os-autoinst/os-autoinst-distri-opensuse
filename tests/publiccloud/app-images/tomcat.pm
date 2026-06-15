@@ -11,8 +11,6 @@ use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use publiccloud::ssh_interactive 'select_host_console';
-use publiccloud::utils 'pc_data_url';
-
 
 sub run {
     my ($self, $args) = @_;
@@ -37,11 +35,10 @@ sub run {
     );
 
     # 3. Try a different example .war page.
-    $instance->ssh_assert_script_run(
-        'sudo curl -sL '
-          . pc_data_url('publiccloud/hello-suse.war')
-          . ' -o /usr/share/tomcat/webapps/hello-suse.war'
-    );
+    my $war_file = 'hello-suse.war';
+    assert_script_run("curl -sLo /var/tmp/$war_file " . data_url("publiccloud/$war_file"));
+    $instance->scp("/var/tmp/$war_file", "remote:/var/tmp/$war_file");
+    $instance->ssh_assert_script_run("sudo mv /var/tmp/$war_file /usr/share/tomcat/webapps/$war_file");
     $instance->ssh_script_retry(
         "curl -f -s http://localhost:8080/hello-suse/ | grep \"Hello\ SUSE\"",
         retry => 10,
