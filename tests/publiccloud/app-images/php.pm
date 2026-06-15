@@ -10,7 +10,6 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
-use publiccloud::utils;
 use publiccloud::ssh_interactive 'select_host_console';
 
 
@@ -42,9 +41,14 @@ sub prepare_assets {
     my $instance = $self->{run_args}->{my_instance};
     my $htdocs_path = "/srv/www/htdocs/hello-suse";
     $instance->ssh_assert_script_run("sudo mkdir -p $htdocs_path");
-    $instance->ssh_assert_script_run("sudo curl -sLo $htdocs_path/index.php " . pc_data_url("publiccloud/app_images/php/index.php"));
-    $instance->ssh_assert_script_run("sudo curl -sLo $start_dev_server_script_path " . pc_data_url("publiccloud/app_images/php/start-dev-server.sh"));
-    $instance->ssh_assert_script_run("sudo chmod +x $start_dev_server_script_path");
+
+    assert_script_run("curl -sLo /var/tmp/index.php " . data_url("publiccloud/app_images/php/index.php"));
+    $instance->scp("/var/tmp/index.php", "remote:/var/tmp/index.php");
+    $instance->ssh_assert_script_run("sudo mv /var/tmp/index.php $htdocs_path/index.php");
+
+    assert_script_run("curl -sLo /var/tmp/start-dev-server.sh " . data_url("publiccloud/app_images/php/start-dev-server.sh"));
+    $instance->scp("/var/tmp/start-dev-server.sh", "remote:/var/tmp/start-dev-server.sh");
+    $instance->ssh_assert_script_run("sudo mv /var/tmp/start-dev-server.sh $start_dev_server_script_path && sudo chmod +x $start_dev_server_script_path");
 }
 
 1;
