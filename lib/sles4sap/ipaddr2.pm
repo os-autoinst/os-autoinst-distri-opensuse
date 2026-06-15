@@ -25,6 +25,7 @@ use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use sles4sap::ibsm;
 use sles4sap::azure_cli;
+use version_utils qw(package_version_cmp);
 
 
 =head1 SYNOPSIS
@@ -1561,7 +1562,7 @@ sub ipaddr2_scc_registration_workaround_PAYG(%args) {
     croak("Argument < id > missing") unless $args{id};
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
 
-    # Step 1: Wait for guestregister.service to reach terminal state (inactive or failed).
+    # Wait for guestregister.service to reach terminal state (inactive or failed).
     # Poll for up to 10 minutes (60 retries x 10s), matching Ansible retries/delay.
     my $service_ok = 0;
     my $timeout = 600;
@@ -1587,7 +1588,7 @@ sub ipaddr2_scc_registration_workaround_PAYG(%args) {
     # If guestregister.service succeeded, nothing more to do
     return if $service_ok;
 
-    # Step 2: Service failed or timed out. Collect diagnostics.
+    # Service failed or timed out. Collect diagnostics.
     record_info('PAYG svc failed', 'guestregister.service did not complete successfully');
     foreach my $cmd (
         'sudo systemctl status guestregister.service',
@@ -1601,14 +1602,14 @@ sub ipaddr2_scc_registration_workaround_PAYG(%args) {
             no_assert => 1);
     }
 
-    # Step 3: Recovery - restart guestregister.service
+    # Recovery - restart guestregister.service
     record_info('PAYG recovery', 'Attempting guestregister.service restart');
     ipaddr2_ssh_internal(id => $args{id},
         cmd => 'sudo systemctl restart guestregister.service',
         bastion_ip => $args{bastion_ip},
         no_assert => 1);
 
-    # Step 4: Wait again for restart to reach terminal state (30 retries x 5s = 150s)
+    # Wait again for restart to reach terminal state (30 retries x 5s = 150s)
     my $retry_ok = 0;
     $timeout = 150;
     $interval = 5;
@@ -1629,7 +1630,7 @@ sub ipaddr2_scc_registration_workaround_PAYG(%args) {
         $timeout -= $interval;
     }
 
-    # Step 5: Verify with SUSEConnect -s (5 retries x 120s delay, matching Ansible)
+    # Verify with SUSEConnect -s (5 retries x 120s delay, matching Ansible)
     my $sc_ret;
     for my $attempt (1 .. 5) {
         $sc_ret = ipaddr2_ssh_internal(id => $args{id},
@@ -2627,7 +2628,23 @@ sub ipaddr2_logs_collect(%args) {
                 $worker_tmp_dir = ipaddr2_get_worker_tmp_for_internal_vm(id => $id);
                 assert_script_run("mkdir -p $worker_tmp_dir || echo 'Folder $worker_tmp_dir already exist'");
                 %log_data = %{$log->{f_log}->($id)};
+                $log_data{name} = $log->{name} if defined $log->{name};
                 $remote_file = $log_data{file};
+
+                # bsc#1268173: ausearch (called by supportconfig for the SELinux section) reads from
+                # stdin when stdin is not a terminal, blocking indefinitely over SSH. Redirect stdin
+                # from /dev/null so ausearch falls back to reading /var/log/audit/audit.log directly.
+                if (defined $log_data{name} && $log_data{name} eq 'supportconfig') {
+                    my $supportutils_ver = ipaddr2_ssh_internal_output(
+                        id => $id,
+                        bastion_ip => $args{bastion_ip},
+                        cmd => "rpm -q --queryformat '%{VERSION}' supportutils");
+                    # The ausearch call was introduced in supportutils 3.1.25 (bsc#1209979, Jun 2023).
+                    if (package_version_cmp($supportutils_ver, '3.1.25') >= 0) {
+                        $log_data{cmd} =~ s/(sudo supportconfig .+?)\s*&&/$1 < \/dev\/null &&/;
+                        record_soft_failure('bsc#1268173 - supportconfig hangs when run non-interactively.');
+                    }
+                }
 
                 # Execute command on the remote VM to generate the log file, if there is a command to run.
                 my $cmd_ret = 0;
