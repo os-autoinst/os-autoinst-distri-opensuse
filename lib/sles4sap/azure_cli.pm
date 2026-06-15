@@ -1979,7 +1979,7 @@ sub az_storage_blob_lease_acquire(%args) {
         $SDAF_Azure_podman_flake_filter
     );
 
-    my $lease_id = script_output($az_cmd, $args{timeout}, proceed_on_failure => 1);
+    my $lease_id = script_output($az_cmd, $args{timeout}, proceed_on_failure => 1, timeout => 180);
     record_info('AZ CLI out', "AZ CLI returned output:\n $lease_id");
     # Return a string if az_validate_uuid_pattern return "true"
     # otherwise return undef, thanks to Perl's implicit return that get value from the if statement.
