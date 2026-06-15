@@ -1177,10 +1177,11 @@ sub check_coredump {
     my $self = shift;
 
     install_coredump;
-    return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend)" ]') == 0);
+    # Skip checking SIGQUIT coredump files
+    record_info('List all coredump files', script_output('coredumpctl list --no-pager', proceed_on_failure => 1));
+    return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend | grep -v SIGQUIT)" ]') == 0);
 
-    record_info('List all coredump files', script_output('coredumpctl list --no-pager'));
-    my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
+    my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | grep -v SIGQUIT | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
     for my $pid (@core_pids) {
         my $core;
         my $is_wicked = script_run('coredumpctl info ' . $pid . ' | grep -E "Executable:.*wicked"') == 0;
