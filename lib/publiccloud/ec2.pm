@@ -13,7 +13,7 @@ use Mojo::JSON 'decode_json';
 use testapi;
 use version_utils qw(is_transactional is_sle);
 use Utils::Architectures qw(is_aarch64);
-use publiccloud::utils qw(is_byos pc_data_url);
+use publiccloud::utils qw(is_byos);
 use publiccloud::zypper qw(pc_zypper_call);
 use publiccloud::aws_client;
 use publiccloud::ssh_interactive 'select_host_console';
@@ -415,16 +415,20 @@ sub _install_dmesg_capture_to_log
 
     my $svc_file = 'dmesg-capture.service';
     my $svc_target = '/etc/systemd/system/' . $svc_file;
+    assert_script_run("curl -sLo /var/tmp/$svc_file " . data_url("publiccloud/$svc_file"));
+    $instance->scp("/var/tmp/$svc_file", "remote:/var/tmp/$svc_file");
     $instance->ssh_assert_script_run(
-        "sudo curl -sLo $svc_target " . pc_data_url("publiccloud/$svc_file") . " && " .
+        "sudo mv /var/tmp/$svc_file $svc_target && " .
           "sudo systemctl daemon-reload && " .
           "sudo systemctl enable --now $svc_file"
     );
 
     my $logrotate_file = 'dmesg-capture-logrotate.conf';
     my $logrotate_target = '/etc/logrotate.d/dmesg';
+    assert_script_run("curl -sLo /var/tmp/$logrotate_file " . data_url("publiccloud/$logrotate_file"));
+    $instance->scp("/var/tmp/$logrotate_file", "remote:/var/tmp/$logrotate_file");
     $instance->ssh_assert_script_run(
-        "sudo curl -sLo $logrotate_target " . pc_data_url("publiccloud/$logrotate_file") . " && " .
+        "sudo mv /var/tmp/$logrotate_file $logrotate_target && " .
           "sudo logrotate -d $logrotate_target"
     );
 }
@@ -472,7 +476,9 @@ sub _install_ec2_cloudwatch_agent
     my $cfg_file = 'cloudwatch_config.json';
     my $cfg_target = '/opt/aws/amazon-cloudwatch-agent/etc/' . $cfg_file;
     $instance->ssh_assert_script_run("sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc");
-    $instance->ssh_assert_script_run("sudo curl -sLo $cfg_target " . pc_data_url("publiccloud/$cfg_file"));
+    assert_script_run("curl -sLo /var/tmp/$cfg_file " . data_url("publiccloud/$cfg_file"));
+    $instance->scp("/var/tmp/$cfg_file", "remote:/var/tmp/$cfg_file");
+    $instance->ssh_assert_script_run("sudo mv /var/tmp/$cfg_file $cfg_target");
     $instance->ssh_assert_script_run(
         "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl " .
           "-a fetch-config " .
