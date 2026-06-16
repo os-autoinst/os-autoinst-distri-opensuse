@@ -435,10 +435,6 @@ sub _install_ec2_cloudwatch_agent
 
     $self->_install_dmesg_capture_to_log($instance);
 
-    $instance->ssh_assert_script_run("sudo mkdir -p /etc/systemd/journald.conf.d");
-    $instance->ssh_assert_script_run("echo -e '[Journal]\\nStorage=persistent' | sudo tee /etc/systemd/journald.conf.d/persistent.conf");
-    $instance->ssh_assert_script_run("sudo systemctl restart systemd-journald");
-
     my $arch = is_aarch64() ? "arm64" : "amd64";
 
     my $rpm_file = "amazon-cloudwatch-agent.rpm";
