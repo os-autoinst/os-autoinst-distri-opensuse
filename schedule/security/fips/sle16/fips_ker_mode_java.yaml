@@ -1,0 +1,9 @@
+name: fips_ker_mode_java
+description:    >
+    This is for OpenQA-agnostic FIPS testing of Java modules
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/consoletest_setup
+    - fips/fips_setup
+    - security/oqa_agnostic/java_hashing
