@@ -46,11 +46,11 @@ sub run {
 
         # Reboot to run the migration
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
-	$instance->wait_for_ssh();
+        $instance->wait_for_ssh();
         validate_version($instance);
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
-	$instance->wait_for_ssh();
-	record_info('SUSEConnect', $instance->ssh_script_output("sudo SUSEConnect --status-text", timeout => 300));
+        $instance->wait_for_ssh();
+        record_info('SUSEConnect', $instance->ssh_script_output("sudo SUSEConnect --status-text", timeout => 300));
 
         # Re-enable maintenance updates for the migration
         $instance->ssh_script_run("sudo sudo sed -i 's/^enabled=0/enabled=1/' /etc/zypp/repos.d/SUSE_Maintenance_*");
@@ -84,11 +84,11 @@ sub run {
 
         # Reboot to run the migration
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
-	$instance->wait_for_ssh();
+        $instance->wait_for_ssh();
         validate_version($instance);
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
-	$instance->wait_for_ssh();
-	record_info('SUSEConnect', $instance->ssh_script_output("sudo SUSEConnect --status-text", timeout => 300));
+        $instance->wait_for_ssh();
+        record_info('SUSEConnect', $instance->ssh_script_output("sudo SUSEConnect --status-text", timeout => 300));
     }
 }
 
