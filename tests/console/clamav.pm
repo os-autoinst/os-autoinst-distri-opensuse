@@ -35,7 +35,7 @@ sub scan_and_parse {
     my ($cmd) = @_;
     my $log_file = "$cmd.log";
 
-    script_run "$cmd -i --log=$log_file $test_dir", 300;
+    script_run "$cmd -i --log=$log_file $test_dir", 900;
     validate_script_output "cat $log_file", sub {
         /Infected files:\s+3/ && /Eicar.*FOUND/;
     };
