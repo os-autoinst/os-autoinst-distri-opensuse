@@ -213,7 +213,7 @@ sub install_kubevirt_packages {
         # Check if at least one installed kubevirt package is from the incident repo
         my $pkgs_from_incident_repo;
         foreach (split(' ', $virt_manifests_pkgs), $virt_tests_pkg) {
-            $pkgs_from_incident_repo += 1 if (script_output("zypper info $_ | awk -F': ' '/^Repository/{print \$2}'") =~ /^TEST_/);
+            $pkgs_from_incident_repo += 1 if (script_output("zypper se -s $_ | grep '^i+'") =~ /TEST_[0-9]+/);
         }
         # Patch the kubevirt-operator manifest to use images from the SUSE internal registry
         my $incident_id = get_required_var('INCIDENT_ID');
