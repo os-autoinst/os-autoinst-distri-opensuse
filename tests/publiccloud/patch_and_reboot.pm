@@ -29,7 +29,7 @@ sub run {
     my $rpm_list_before = "/var/tmp/rpm-qa-before-patch-system.txt";
     my $rpm_list_after = "/var/tmp/rpm-qa-after-patch-system.txt";
     # kernel-azure is discontinued in LTSS so we need to replace it with kernel-default
-    if (is_ondemand && is_azure && is_sle('<=15-SP5')) {
+    if (is_ondemand && is_azure && is_sle('<=15-SP6')) {
         record_info('kernel-azure Switch', 'Switching from kernel-azure to kernel-default for LTSS');
         $args->{my_instance}->ssh_script_retry(
             "sudo zypper -n in kernel-default -kernel-azure",
