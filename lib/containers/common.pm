@@ -193,7 +193,6 @@ sub install_containerd_when_needed {
     my $registry = registry_url();
     my @packages = qw(containerd);
     push(@packages, 'cni-plugins') if (is_sle("<15-SP7") || is_leap("<15.7"));
-    push(@packages, 'pattern:apparmor') if is_sle('=15-SP3');
     if (is_transactional) {
         trup_call("pkg install @packages");
         check_reboot_changes;
