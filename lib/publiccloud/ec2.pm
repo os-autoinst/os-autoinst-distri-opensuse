@@ -28,6 +28,8 @@ my $EC2_CW_LOGS = [
     }
 ];
 
+my $curl_cmd = is_sle("=12-SP5") ? "wget -O" : "curl -sLo";
+
 sub init {
     my ($self) = @_;
     $self->SUPER::init();
@@ -416,7 +418,7 @@ sub _install_dmesg_capture_to_log
     my $svc_file = 'dmesg-capture.service';
     my $svc_target = '/etc/systemd/system/' . $svc_file;
     $instance->ssh_assert_script_run(
-        "sudo curl -sLo $svc_target " . pc_data_url("publiccloud/$svc_file") . " && " .
+        "sudo $curl_cmd $svc_target " . pc_data_url("publiccloud/$svc_file") . " && " .
           "sudo systemctl daemon-reload && " .
           "sudo systemctl enable --now $svc_file"
     );
@@ -424,7 +426,7 @@ sub _install_dmesg_capture_to_log
     my $logrotate_file = 'dmesg-capture-logrotate.conf';
     my $logrotate_target = '/etc/logrotate.d/dmesg';
     $instance->ssh_assert_script_run(
-        "sudo curl -sLo $logrotate_target " . pc_data_url("publiccloud/$logrotate_file") . " && " .
+        "sudo $curl_cmd $logrotate_target " . pc_data_url("publiccloud/$logrotate_file") . " && " .
           "sudo logrotate -d $logrotate_target"
     );
 }
@@ -442,12 +444,12 @@ sub _install_ec2_cloudwatch_agent
 
     my $download_directory = "/root";
 
-    $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$gpg_file https://amazoncloudwatch-agent.s3.amazonaws.com/assets/amazon-cloudwatch-agent.gpg");
+    $instance->ssh_assert_script_run("sudo $curl_cmd $download_directory/$gpg_file https://amazoncloudwatch-agent.s3.amazonaws.com/assets/amazon-cloudwatch-agent.gpg");
 
     $instance->ssh_assert_script_run("sudo gpg --batch --status-fd=1 --import $download_directory/$gpg_file 2>&1");
 
-    $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$rpm_file.sig https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm.sig");
-    $instance->ssh_assert_script_run("sudo curl -sLo $download_directory/$rpm_file https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm");
+    $instance->ssh_assert_script_run("sudo $curl_cmd $download_directory/$rpm_file.sig https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm.sig");
+    $instance->ssh_assert_script_run("sudo $curl_cmd $download_directory/$rpm_file https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm");
     $instance->ssh_assert_script_run(
         "sudo gpg --verify $download_directory/$rpm_file.sig $download_directory/$rpm_file 2>&1 | grep 'Good signature'",
         fail_message => "GPG signature verification failed for the downloaded RPM package."
@@ -472,7 +474,7 @@ sub _install_ec2_cloudwatch_agent
     my $cfg_file = 'cloudwatch_config.json';
     my $cfg_target = '/opt/aws/amazon-cloudwatch-agent/etc/' . $cfg_file;
     $instance->ssh_assert_script_run("sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc");
-    $instance->ssh_assert_script_run("sudo curl -sLo $cfg_target " . pc_data_url("publiccloud/$cfg_file"));
+    $instance->ssh_assert_script_run("sudo $curl_cmd $cfg_target " . pc_data_url("publiccloud/$cfg_file"));
     $instance->ssh_assert_script_run(
         "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl " .
           "-a fetch-config " .
