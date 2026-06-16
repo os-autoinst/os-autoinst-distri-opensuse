@@ -14,10 +14,9 @@ use Carp qw(croak);
 use utils qw(write_sut_file);
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(get_os_variable validate_components get_fencing_mechanism);
-use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(write_tfvars_file);
+use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(write_tfvars_file get_tags_entry);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
   qw(generate_resource_group_name get_sizing_filename convert_region_to_short);
-use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag);
 
 =head1 SYNOPSIS
 
@@ -130,14 +129,10 @@ sub define_sap_systems_environment {
         bom_name => qq|"$args{bom_name}"|,
         enable_purge_control_for_keyvaults => 'false',
         use_spn => q|true|,
-        tags => q|{"DeployedBy" = "OpenQA-SDAF-automation"}|,
+        tags => get_tags_entry(),
         subscription_id => qq|"$args{subscription_id}"|,
         control_plane_name => qq|"$args{control_plane_name}"|
     );
-
-    # Add no cleanup tag if the deployment should be kept after test finished
-    $result{tags} = q|{"DeployedBy" = "OpenQA-SDAF-automation", "| . no_cleanup_tag() . q|" = "1"}|
-      if get_var('SDAF_RETAIN_DEPLOYMENT');
 
     return (\%result);
 }

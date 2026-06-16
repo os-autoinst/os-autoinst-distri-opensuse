@@ -14,11 +14,12 @@
 # Optional:
 # 'SDAF_DEPLOYER_SNAPSHOT' define existing snapshot name to be used as a source
 # 'SDAF_DEPLOYER_MACHINE' override default value for VM size
+# 'SDAF_DEPLOYMENT_OWNER' Set deployed_by tag on all resources. Helps identifying deployment origin.
 
 use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner az_login sdaf_deployment_reused check_credentials);
-use sles4sap::sap_deployment_automation_framework::deployment_connector qw(get_deployer_ip no_cleanup_tag);
+use sles4sap::sap_deployment_automation_framework::deployment_connector;
 use sles4sap::sap_deployment_automation_framework::naming_conventions qw(generate_deployer_name);
 use sles4sap::azure_cli qw(az_disk_create);
 use serial_terminal qw(select_serial_terminal);
@@ -40,16 +41,14 @@ sub run {
     my $deployer_vm_size = get_var('SDAF_DEPLOYER_MACHINE', 'Standard_D4ds_v5');    # Small VM to control costs
     my $new_deployer_vm_name = generate_deployer_name();
     my $deployer_disk_name = "$new_deployer_vm_name\_OS";
+    az_login();
 
     # VM resource tags are used for sharing information between test modules and test jobs
     # 'deployment_id' (equals test ID) tag identifies which test used the VM for deployment.
     # Check SYNOPSIS section of: sles4sap::sap_deployment_automation_framework::deployment_connector
     # for more details
-    my @deployment_tags = ('deployment_id=' . get_current_job_id());
-
-    # Add no cleanup tag if the deployment should be kept after test finished
-    push @deployment_tags, no_cleanup_tag() . "=1" if get_var('SDAF_RETAIN_DEPLOYMENT');
-    az_login();
+    my $tagsref = get_deployment_tags();
+    my $deployment_tags = join ' ', map { "$_=$tagsref->{$_}" } keys %$tagsref;
 
     # Fetch keyvault secrets and compare them with openQA settings
     check_credentials();
@@ -65,7 +64,7 @@ sub run {
         resource_group => $deployer_resource_group,
         name => $deployer_disk_name,
         source => $snapshot_source_disk,
-        tags => join(' ', @deployment_tags)
+        tags => $deployment_tags
     );
 
     # Create new VM clone
@@ -74,8 +73,8 @@ sub run {
         "--name $new_deployer_vm_name",
         "--attach-os-disk $deployer_disk_name",
         "--size $deployer_vm_size",
-        "--os-type Linux",
-        "--tags " . join(' ', @deployment_tags)    # This tag is used to find correct deployer VM by other modules
+        '--os-type Linux',
+        qq|--tags $deployment_tags|
     );
     assert_script_run($vm_create_cmd, timeout => 600);
 
