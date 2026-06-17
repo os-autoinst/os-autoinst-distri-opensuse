@@ -721,6 +721,9 @@ sub pc_data_url {
     my $git_url = get_required_var("TEST_GIT_URL");
     my $commit = get_required_var("TEST_GIT_HASH");
 
+    # Convert the ssh URL "git@github.com:foobar" into "https://github.com/foobar" for curl/wget consumption
+    $git_url =~ s{^.*@([^:]+):}{https://$1/};
+
     # Strip .git suffix
     $git_url =~ s{\.git$}{};
 
