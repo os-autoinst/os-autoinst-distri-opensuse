@@ -13,7 +13,6 @@ use serial_terminal qw(select_serial_terminal);
 use version_utils;
 use version;
 use utils;
-use Utils::Architectures qw(is_x86_64);
 use containers::bats;
 
 my $api_version;
@@ -58,8 +57,6 @@ sub test ($target) {
         "tests/integration/api_swarm_test.py",
         "tests/integration/models_swarm_test.py"
     );
-    # This test uses the vieux/sshfs plugin which doesn't seem to be available for other arches
-    push @ignore, "tests/integration/api_plugin_test.py" unless is_x86_64;
     my $ignore = join " ", map { "--ignore=$_" } @ignore;
 
     # Used by pytest to ignore individual tests
