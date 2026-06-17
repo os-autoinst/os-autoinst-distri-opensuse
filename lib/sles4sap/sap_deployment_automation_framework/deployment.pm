@@ -1133,6 +1133,10 @@ sub sdaf_upload_logs {
     record_info('crm configure show', 'Failed to run "crm configure show"', result => 'fail') if (script_run("sudo crm configure show > $crm_cfg_log", timeout => 120));
     upload_logs("$crm_cfg_log", failok => 1);
 
+    # Upload registercloudguest log
+    collect_guestregister_logs();
+    upload_logs('/var/log/cloudregister', log_name => "$autotest::current_test->{name}-${hostname}_cloudregister.log", failok => 1);
+
     # Upload zypper log
     upload_logs('/var/log/zypper.log', log_name => "$autotest::current_test->{name}-${hostname}_zypper.log", failok => 1);
 

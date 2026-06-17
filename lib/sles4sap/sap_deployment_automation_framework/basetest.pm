@@ -307,7 +307,7 @@ sub post_fail_hook {
 
         # Upload SUTs logs
         for my $instance_type (keys(%redirection_data)) {
-            next() unless grep /$instance_type/, qw(db_hana nw_ers nw_ascs);
+            next() unless grep /$instance_type/, qw(db_hana nw_ers nw_ascs nw_iscsi nw_pas nw_aas);
             for my $hostname (keys(%{$redirection_data{$instance_type}})) {
                 my %host_data = %{$redirection_data{$instance_type}{$hostname}};
                 connect_target_to_serial(
