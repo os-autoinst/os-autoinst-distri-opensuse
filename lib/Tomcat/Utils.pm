@@ -49,6 +49,12 @@ sub tomcat_setup() {
     systemctl('start tomcat');
     systemctl('status tomcat');
 
+    # https://jira.suse.com/browse/PED-16024
+    if (is_sle('>=15-sp4')) {
+        record_info('jsc#PED-16024', 'New packge libtcnative-2.0 is required');
+        die('Older version Apache Tomcat Native library is installed') if script_run('rpm -q libtcnative-2.0') != 0;
+    }
+
     # check that tomcat is listening on port 8080
     assert_script_run('lsof -i :8080 | grep tomcat');
 
@@ -56,8 +62,24 @@ sub tomcat_setup() {
     assert_script_run('curl -v -o /etc/tomcat/tomcat-users.xml ' .
           data_url('lib/tomcat/tomcat-users.xml'));
 
-    # restart tomcat in order to take into account new role
-    systemctl('restart tomcat');
+    # set https connection for sle15sp4+
+    # https://jira.suse.com/browse/PED-16024
+    if (is_sle('>=15-sp4')) {
+        assert_script_run('mv /etc/tomcat/server.xml /etc/tomcat/server.xml.bak');
+        assert_script_run('curl -v -o /etc/tomcat/server.xml ' .
+              data_url('lib/tomcat/server.xml'));
+        assert_script_run('openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/tomcat/localhost.key -out /etc/tomcat/localhost.crt -subj "/C=CN/ST=State/L=City/O=QE/CN=localhost"');
+        assert_script_run('chown tomcat:tomcat /etc/tomcat/localhost.key /etc/tomcat/localhost.crt');
+        assert_script_run('chmod 600 /etc/tomcat/localhost.key');
+        assert_script_run('chmod 644 /etc/tomcat/localhost.crt');
+        systemctl('restart tomcat');
+        # check that tomcat is listening on port 8443
+        assert_script_run('lsof -i :8443 | grep tomcat');
+    }
+    else {
+        # restart tomcat in order to take into account new role
+        systemctl('restart tomcat');
+    }
 }
 
 
@@ -72,8 +94,10 @@ sub tomcat_manager_test() {
     record_info('curl examples of Servelt, JSP and Websocket');
     # curl Servlet examples and login with authentification
     assert_script_run('curl --connect-timeout 20 --user admin:admin --output servelets 127.0.0.1:8080/examples/servlets', 90);
+    assert_script_run('curl -k --connect-timeout 20 --user admin:admin --output servelets https://localhost:8443/examples/servlets', 90) if is_sle('>=15-sp4');
     # curl examples of JSP and Websockets
     assert_script_run('curl --connect-timeout 20 --output jsp localhost:8080/examples/jsp --output websocket 127.0.0.1:8080/examples/websocket', 90);
+    assert_script_run('curl -k --connect-timeout 20 --output jsp https://localhost:8443/examples/jsp --output websocket https://127.0.0.1:8443/examples/websocket', 90) if is_sle('>=15-sp4');
 }
 
 # Switch to desktop
