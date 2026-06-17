@@ -49,7 +49,7 @@ sub run {
         $instance->wait_for_ssh();
         validate_version($instance);
 
-        # Reboot again so the system will freshly boot into the new system
+        # Second reboot as it has been recommended by the DMS package maintainer
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
         $instance->wait_for_ssh();
         record_info('SUSEConnect', $instance->ssh_script_output("sudo SUSEConnect --status-text", timeout => 300));
