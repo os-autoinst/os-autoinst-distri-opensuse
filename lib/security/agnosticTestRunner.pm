@@ -27,14 +27,24 @@ sub new {
     die "Attribute 'language' is mandatory" unless defined $args->{language};
 
     # check language support validity
-    die "Unsupported language '$args->{language}'. Supported languages are 'go' and 'python'" unless $args->{language} =~ /^(go|python)$/;
+    die "Unsupported language '$args->{language}'. Supported languages are 'go', 'python' and 'java'" unless $args->{language} =~ /^(go|python|java)$/;
 
     # Default values for attributes
     $args->{test_dir} //= '~/' . $args->{name};
-    $args->{result_file} //= '/tmp/' . lc($args->{name}) . '_results.xml';
+    $args->{result_format} //= $args->{language} eq 'java' ? 'TAP' : 'XUnit';
+    $args->{result_file} //= '/tmp/' . lc($args->{name}) . ($args->{language} eq 'java' ? '_results.tap' : '_results.xml');
     $args->{data_url_path} //= 'security/openqa_agnostic/' . $args->{name};
     $args->{run_command} //= 'runtest';
     return bless $args, $class;
+}
+
+sub latest_java_devel {
+    my $out = script_output(
+        q{zypper --terse -n se  'java-*-openjdk-devel'},
+        proceed_on_failure => 1);
+    my @majors = sort { $a <=> $b } ($out =~ /\bjava-(\d+)-openjdk-devel\b/g);
+    die 'No java-*-openjdk-devel package available in configured repos' unless @majors;
+    return "java-$majors[-1]-openjdk-devel";
 }
 
 sub setup {
@@ -46,10 +56,11 @@ sub setup {
 
     zypper_call 'in go gotestsum' if $self->{language} eq 'go';
     zypper_call 'in python3-pytest' if $self->{language} eq 'python';
+    zypper_call 'in ' . latest_java_devel() if $self->{language} eq 'java';
 
     assert_script_run 'mkdir -p ' . $self->{test_dir};
 
-    # Create lib directory and download the helper script
+    # Create lib directory and download shared helpers
     assert_script_run 'mkdir -p ' . $self->{test_dir} . '/../lib';
     my $helper_url = data_url('security/openqa_agnostic/lib/helper.sh');
     assert_script_run 'curl -s -o ' . $self->{test_dir} . '/../lib/helper.sh ' . $helper_url;
@@ -81,7 +92,8 @@ sub run_test {
     my $run_script = $self->{run_command};
     # Ensure run_command is treated as a path inside test_dir
     $run_script = "./$run_script" unless $run_script =~ m{^/|^\./};
-    my $command = 'cd ' . $self->{test_dir} . ' && chmod +x ' . $run_script . ' && ' . $run_script . ' && mv results.xml ' . $self->{result_file};
+    my $result_src = $self->{result_format} eq 'TAP' ? 'results.tap' : 'results.xml';
+    my $command = 'cd ' . $self->{test_dir} . ' && chmod +x ' . $run_script . ' && ' . $run_script . ' && mv ' . $result_src . ' ' . $self->{result_file};
     assert_script_run($command);
     # Prevent previous command from breaking the terminal, leaving it unusable for further testing
     enter_cmd('reset');
@@ -90,7 +102,7 @@ sub run_test {
 
 sub parse_results {
     my ($self) = @_;
-    parse_extra_log('XUnit', $self->{result_file});
+    parse_extra_log($self->{result_format}, $self->{result_file});
     return $self;
 }
 
