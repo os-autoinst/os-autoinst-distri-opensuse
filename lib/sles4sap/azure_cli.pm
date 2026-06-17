@@ -26,7 +26,6 @@ Library to compose and run Azure cli commands
 our @EXPORT = qw(
   $SDAF_Azure_podman_flake_filter
   az_version
-  az_account_show
   az_group_create
   az_group_name_get
   az_group_delete
@@ -144,7 +143,7 @@ Get the name of all existing Resource Group in the current subscription.
 By default the output is an array of strings.
 Output is always an hash with `data` and `err` keys:
 `data` is the decode_json of the stdout. The internal data structure can change accordingly to what is provided via B<query>
-`err` is the stderr string if present, otherwise the key is missing.
+`err` is the stderr string, key is always present but it could have empty value.
 
 =over
 
@@ -164,7 +163,7 @@ sub az_group_name_get(%args) {
     );
     my $data = decode_json(script_output($az_cmd));
     # Prepare return hash
-    my $result = { data => $data };
+    my $result = {data => $data};
     $result->{err} = script_output("cat $err_file 2>/dev/null || echo -n ''");
     return $result;
 }
@@ -2497,30 +2496,6 @@ sub az_network_dns_zones_cleanup {
     for my $zone (@zones) {
         az_network_dns_zone_delete(resource_group => $args{resource_group}, zone_name => $zone);
     }
-}
-
-=head2 az_account_show
-
-
-Get account informations, by default the ID. By default the output is an strings.
-Output can be modified using B<$args{query}>.
-
-=over
-
-=item B<query> - Modify output filter using jmespath query. Default: 'id'
-
-=back
-=cut
-
-sub az_account_show {
-    my (%args) = @_;
-    $args{query} //= 'id';
-    my $az_cmd = join(' ', 'az account show',
-        "--query '$args{query}'",
-        '-o json',
-        $SDAF_Azure_podman_flake_filter
-    );
-    return decode_json(script_output($az_cmd));
 }
 
 =head2 az_role_definition_list
