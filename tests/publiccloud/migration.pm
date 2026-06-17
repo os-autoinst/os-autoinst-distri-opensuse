@@ -48,6 +48,8 @@ sub run {
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
         $instance->wait_for_ssh();
         validate_version($instance);
+
+        # Reboot again so the system will freshly boot into the new system
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
         $instance->wait_for_ssh();
         record_info('SUSEConnect', $instance->ssh_script_output("sudo SUSEConnect --status-text", timeout => 300));
@@ -113,6 +115,8 @@ sub run {
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
         $instance->wait_for_ssh();
         validate_version($instance);
+
+        # Reboot again so the system will freshly boot into the new system
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
         $instance->wait_for_ssh();
         record_info('SUSEConnect', $instance->ssh_script_output("sudo SUSEConnect --status-text", timeout => 300));
