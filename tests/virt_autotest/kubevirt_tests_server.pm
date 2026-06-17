@@ -215,20 +215,25 @@ sub install_kubevirt_packages {
         foreach (split(' ', $virt_manifests_pkgs), $virt_tests_pkg) {
             $pkgs_from_incident_repo += 1 if (script_output("zypper info $_ | awk -F': ' '/^Repository/{print \$2}'") =~ /^TEST_/);
         }
-        # Patch the kubevirt-operator manifest to use images from the SUSE internal registry
-        my $incident_id = get_required_var('INCIDENT_ID');
-        my $manifest = "/usr/share/kube-virt/manifests/release/kubevirt-operator.yaml";
-        my $src_repo = "registry.suse.com";
-        my $dst_repo = "registry.suse.de/suse/maintenance/$incident_id/containerfile";
-
-        assert_script_run("sed -i 's|$src_repo|$dst_repo|g' $manifest");
-        record_info("Patch kubevirt-operator to suse.de");
-
         if ($pkgs_from_incident_repo < 1) {
             die "No kubevirt packages were installed from incident repository.";
         } else {
             record_info("$pkgs_from_incident_repo package(s) installed from incident repository.", script_output("zypper lr -u; zypper se -s $virt_manifests_pkgs $virt_tests_pkg"));
         }
+
+        # Patch the kubevirt or cdi manifest for incident build to use images from the SUSE internal registry
+        my $incident_id = get_required_var('INCIDENT_ID');
+        my $src_repo = "registry.suse.com";
+        my $dst_repo = "registry.suse.de/suse/maintenance/$incident_id/containerfile";
+        my $manifest;
+        if (get_var('BUILD') =~ /kubevirt/) {
+            $manifest = "/usr/share/kube-virt/manifests/release/kubevirt-operator.yaml";
+            record_info("Patch kubevirt-operator to suse.de");
+        } elsif (get_var('BUILD') =~ /cdi-cloner-container/) {
+            $manifest = "/usr/share/cdi/manifests/release/cdi-operator.yaml";
+            record_info("Patch cdi-operator to suse.de");
+        }
+        assert_script_run("sed -i 's|$src_repo|$dst_repo|g' $manifest");
     } else {
         $virt_manifests_repo = get_var('VIRT_MANIFESTS_REPO');
         $virt_tests_repo = get_var('VIRT_TESTS_REPO');
@@ -530,19 +535,24 @@ EOF
     my $additional_reg_tag = "-previous-release-registry=$pre_rel_reg -previous-release-tag=$pre_rel_tag";
 
     our $local_registry_fqdn;
-    my ($private_reg, $container_tag, $pre_util_container_tag);
-    if ($kubevirt_ver ge "0.50.0") {
-        $private_reg = "$local_registry_fqdn:5000";
-        # Dynamically get the value of the parameter "-container-tag" and "-previous-utility-container-tag"
-        $container_tag = (split('-', $kubevirt_ver))[0];
-        $pre_util_container_tag = (split('-', $pre_rel_tag))[0];
-        # Check if the container tag exists in local private registry
-        assert_script_run("curl $private_reg/v2/alpine-container-disk-demo/tags/list | jq -r '.tags[]' | grep $container_tag");
+    my ($private_reg, $container_tag, $utility_container_tag);
+    $private_reg = "$local_registry_fqdn:5000";
+    # Dynamically get the value of the parameter "-container-tag" and "-previous-utility-container-tag or -utility-container-tag"
+    $container_tag = (split('-', $kubevirt_ver))[0];
+    $utility_container_tag = (split('-', $pre_rel_tag))[0];
+    # Check if the container tag exists in local private registry
+    assert_script_run("curl $private_reg/v2/alpine-container-disk-demo/tags/list | jq -r '.tags[]' | grep $container_tag");
 
+    if ($kubevirt_ver ge "0.50.0" and $kubevirt_ver le "1.7.0") {
         $additional_reg_tag = "$additional_reg_tag " .
           "-container-prefix=$private_reg -container-tag=$container_tag " .
           "-previous-utility-container-registry=$private_reg " .
-          "-previous-utility-container-tag=$pre_util_container_tag";
+          "-previous-utility-container-tag=$utility_container_tag";
+    } elsif ($kubevirt_ver gt "1.7.0") {
+        $additional_reg_tag = "$additional_reg_tag " .
+          "-container-prefix=$private_reg -container-tag=$container_tag " .
+          "-utility-container-prefix=$private_reg " .
+          "-utility-container-tag=$utility_container_tag";
     }
 
     $ginkgo_focus = get_var('GINKGO_FOCUS');
