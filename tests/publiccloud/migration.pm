@@ -14,6 +14,7 @@ use Time::Piece;
 use version_utils 'is_sle';
 use publiccloud::ssh_interactive "select_host_console";
 use publiccloud::utils qw(is_ec2 is_gce is_azure registercloudguest);
+use publiccloud::zypper qw(pc_zypper_call pc_refresh);
 
 sub run {
     my ($self, $args) = @_;
@@ -28,17 +29,17 @@ sub run {
     if (is_sle('=12-SP5')) {
         # https://bugzilla.suse.com/show_bug.cgi?id=1230009
         # aws-cli and azure-cli break the migration. This is known issue.
-        $instance->ssh_script_run("sudo zypper -n rm aws-cli", timeout => 900) if (is_ec2());
-        $instance->ssh_script_run("sudo zypper -n rm azure-cli python3-azure-devops python3-azure-nspkg", timeout => 900) if (is_azure());
+        pc_zypper_call($instance, "rm aws-cli", timeout => 900, proceed_on_failure => 1) if (is_ec2());
+        pc_zypper_call($instance, "rm azure-cli python3-azure-devops python3-azure-nspkg", timeout => 900, proceed_on_failure => 1) if (is_azure());
 
         # LTSS should be disabled before the migration if registered
         $instance->ssh_script_run("sudo SUSEConnect -d -p SLES-LTSS/12.5/x86_64", timeout => 180);
 
-        $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration") if (get_var("PUBLIC_CLOUD_DMS_REPO"));
-        $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo timeout -k 15 $migration_timeout zypper -n in SLES15-Migration suse-migration-sle15-activation", timeout => $migration_timeout + 30);
-        $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900) if (get_var("PUBLIC_CLOUD_DMS_REPO"));
-        $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
+        pc_zypper_call($instance, "-p 110 ar -fG " . get_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_12_SP5 Migration") if (get_var("PUBLIC_CLOUD_DMS_REPO"));
+        pc_refresh($instance, timeout => 1800) if (is_ec2());
+        pc_zypper_call($instance, "in SLES15-Migration suse-migration-sle15-activation", timeout => $migration_timeout + 30);
+        pc_zypper_call($instance, "rr Migration", timeout => 900) if (get_var("PUBLIC_CLOUD_DMS_REPO"));
+        pc_zypper_call($instance, "refresh-services --force", timeout => 180);
 
         # Disable maintenance updates for the migration as directory is not available during it
         $instance->ssh_script_run("sudo sed -i 's/^enabled=1/enabled=0/' /etc/zypp/repos.d/SUSE_Maintenance_*");
@@ -55,9 +56,9 @@ sub run {
         $instance->ssh_script_run("sudo sed -i 's/^enabled=0/enabled=1/' /etc/zypp/repos.d/SUSE_Maintenance_*");
 
         # Try to install aws-cli and azure-cli as they were removed for the migration
-        $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo zypper -n in aws-cli", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo zypper -n in azure-cli", timeout => 1800) if (is_azure());
+        pc_refresh($instance, timeout => 1800) if (is_ec2());
+        pc_zypper_call($instance, "in aws-cli", timeout => 1800) if (is_ec2());
+        pc_zypper_call($instance, "in azure-cli", timeout => 1800) if (is_azure());
     }
 
     if (is_sle('=15-SP7')) {
@@ -68,11 +69,11 @@ sub run {
             $instance->ssh_assert_script_run(qq(echo -e "network:\\n    wicked2nm-continue-migration: true\\n" | sudo tee -a /etc/sle-migration-service.yml));
         }
 
-        $instance->ssh_assert_script_run("sudo zypper -n -p 110 ar -Gef " . get_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration") if (get_var("PUBLIC_CLOUD_DMS_REPO"));
-        $instance->ssh_script_run("sudo zypper -n ref", timeout => 1800) if (is_ec2());
-        $instance->ssh_assert_script_run("sudo timeout -k 15 $migration_timeout zypper -n in SLES16-Migration suse-migration-sle16-activation", timeout => $migration_timeout + 30);
-        $instance->ssh_assert_script_run("sudo zypper -n rr Migration", timeout => 900) if (get_var("PUBLIC_CLOUD_DMS_REPO"));
-        $instance->ssh_assert_script_run("sudo zypper refresh-services --force", timeout => 180);
+        pc_zypper_call($instance, "-p 110 ar -fG " . get_var("PUBLIC_CLOUD_DMS_REPO") . "SLE_15_SP7 Migration") if (get_var("PUBLIC_CLOUD_DMS_REPO"));
+        pc_refresh($instance, timeout => 1800) if (is_ec2());
+        pc_zypper_call($instance, "in SLES16-Migration suse-migration-sle16-activation", timeout => $migration_timeout + 30);
+        pc_zypper_call($instance, "rr Migration", timeout => 900) if (get_var("PUBLIC_CLOUD_DMS_REPO"));
+        pc_zypper_call($instance, "refresh-services --force", timeout => 180);
 
         # Disable maintenance updates for the migration as directory is not available during it
         $instance->ssh_script_run("sudo sed -i 's/^enabled=1/enabled=0/' /etc/zypp/repos.d/SUSE_Maintenance_*");
@@ -102,7 +103,7 @@ sub run {
         for my $entry (@modules_to_remove) {
             my ($module, $svc) = @{$entry};
             $instance->ssh_script_run("sudo SUSEConnect -d -p $module/15.7/$arch", timeout => 120);
-            my $ret = $instance->ssh_script_run("sudo zypper -n removeservice $svc", timeout => 120);
+            my $ret = pc_zypper_call($instance, "removeservice $svc", timeout => 120, proceed_on_failure => 1);
             push @removed, $svc if $ret == 0;
         }
         record_info('Removed services', join("\n", @removed) || 'none');
