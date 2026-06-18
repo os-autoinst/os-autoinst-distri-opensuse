@@ -135,12 +135,15 @@ sub init_main {
         my $errors = verify_checksum();
         set_var('CHECKSUM_FAILED', $errors) if $errors;
     }
-    # allow scheduling jobs with e.g. `VERSION=16.0:gitea:pr:1234` instead of just `VERSION=16.0`
+    # allow scheduling jobs with e.g. `VERSION=16.0:git-1234` instead of just `VERSION=16.0`
     # note: This is useful because then jobs for individual submissions are not wrongly considered
     #       to be for consecutive builds and e.g. wrong bugref carry over is avoided.
     if (my $version = get_var('VERSION')) {
-        set_var('VERSION_ORIGINAL', $version);
-        set_var('VERSION', $version =~ s/:(?:(git|smelt)[-:])?(?:pr[-:])\d+$//rgi);
+        my $simplified_version = $version =~ s/:(?:(git|smelt)[-:])\d+$//rgi;
+        if ($version ne $simplified_version) {
+            set_var('VERSION_ORIGINAL', $version);
+            set_var('VERSION', $simplified_version);
+        }
     }
 }
 
