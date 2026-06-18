@@ -1411,12 +1411,14 @@ sub ipaddr2_cluster_create(%args) {
 
     ipaddr2_ssh_internal(id => 1,
         cmd => 'sudo crm cluster init -y --name DONALDUCK',
+        timeout => 300,
         bastion_ip => $args{bastion_ip});
 
     my $join_str = $args{rootless} ? USER . '@' : "";
     $join_str .= ipaddr2_get_internal_vm_private_ip(id => 1);
     ipaddr2_ssh_internal(id => 2,
         cmd => "sudo crm cluster join -y -c $join_str",
+        timeout => 300,
         bastion_ip => $args{bastion_ip});
 
     ipaddr2_ssh_internal(id => 1,
