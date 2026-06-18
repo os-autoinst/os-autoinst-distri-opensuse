@@ -345,6 +345,7 @@ sub ensure_installed {
     zypper_call "in $pkglist";
     wait_still_screen 1;
     close_gui_terminal;
+    $self->invalidate_serial_marker_hook();
 }
 
 =head2 script_sudo
@@ -409,7 +410,9 @@ Log in as root in the current console
 sub become_root {
     my ($self) = @_;
 
+    $self->_detect_serial_marker_capability() if get_var('PRETTY_SERIAL_MARKER');
     $self->script_sudo('bash', 1);
+    $self->invalidate_serial_marker_hook();
     # No need to apply on more recent kernels
     if (is_sle('<=15-SP2') || is_leap('<=15.2')) {
         disable_serial_getty() unless $self->script_run("systemctl is-enabled serial-getty\@$testapi::serialdev");
