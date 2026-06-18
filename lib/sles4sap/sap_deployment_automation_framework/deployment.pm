@@ -1078,9 +1078,7 @@ sub get_sdaf_resource_group {
     # Apply the filter: remove known noisy warnings
     if (exists $result->{err}) {
         # Define the filter regex based on the branch
-        my $is_sles16 = (get_var('SDAF_GIT_AUTOMATION_BRANCH', '') =~ /feature\/sles16/);
-        my $filter_regex = $is_sles16 ? qr/FutureWarning|Launching flake|self./ : qr/^$/;
-        $result->{err} =~ s/$filter_regex//g;
+        $result->{err} =~ s/.*(FutureWarning|Launching flake|self.).*//g;
         # Remove empty lines left behind by the filtering
         $result->{err} =~ s/^\s*\n//gm;
         record_info('AZ ERROR', "Error while fetching resource groups: $result->{err}") if ($result->{err} =~ /\S+/);
