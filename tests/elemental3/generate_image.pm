@@ -12,6 +12,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use elemental3;
 use transactional qw(trup_call);
+use package_utils qw(install_package);
 use serial_terminal qw(select_serial_terminal);
 use Mojo::File qw(path);
 use utils qw(file_content_replace);
@@ -282,8 +283,7 @@ sub run {
         "run zypper addrepo --check --refresh ${totest_path}/standard elemental"
     );
     trup_call('--continue run zypper --gpg-auto-import-keys refresh');
-    trup_call('--continue pkg install elemental3ctl squashfs mtools xorriso');
-    trup_call('apply');
+    install_package('elemental3ctl squashfs mtools xorriso', trup_apply => 1);
 
     # Use a crypted password
     my $hashpwd = script_output("openssl passwd -6 $rootpwd");
