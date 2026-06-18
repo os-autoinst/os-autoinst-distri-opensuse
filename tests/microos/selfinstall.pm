@@ -13,7 +13,7 @@ use Utils::Architectures qw(is_aarch64);
 use version_utils qw(is_leap_micro is_sle_micro);
 use utils;
 use Utils::Backends qw(is_ipmi);
-use ipmi_backend_utils qw(ipmitool);
+use ipmi_backend_utils qw(ipmitool set_bootscript_hdd);
 
 sub run {
     my ($self) = @_;
@@ -66,6 +66,11 @@ sub run {
         empty_usb_disks;
         ipmitool("chassis bootdev disk options=persistent,efiboot") for (0 .. 2);
     }
+
+    # Write exit to ipxe script to abort the network boot process and hands control back to the
+    # motherboard's BIOS or UEFI firmware, which then moves on to the next device in your boot
+    # order, namely almost always the local hard drive.
+    set_bootscript_hdd() if (is_ipxe_boot and get_var('IPXE_SET_HDD_BOOTSCRIPT'));
 }
 
 sub post_run_hook {

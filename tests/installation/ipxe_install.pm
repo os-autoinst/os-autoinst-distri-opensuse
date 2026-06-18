@@ -133,15 +133,6 @@ END_BOOTSCRIPT
     set_ipxe_bootscript($bootscript);
 }
 
-sub set_bootscript_hdd {
-    my $bootscript = <<"END_BOOTSCRIPT";
-#!ipxe
-exit
-END_BOOTSCRIPT
-
-    set_ipxe_bootscript($bootscript);
-}
-
 sub set_bootscript_agama {
     my $host = get_required_var('SUT_IP');
     my $arch = get_required_var('ARCH');
