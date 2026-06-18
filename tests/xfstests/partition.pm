@@ -313,6 +313,10 @@ sub post_env_info {
     $size_info = $size_info . "QEMURAM       " . get_var("QEMURAM") . "\n";
     $size_info = $size_info . "\n" . script_output("df -h");
     record_info('Size', $size_info);
+
+    # record mounted filesystem info
+    my $mount_info = script_output("mount");
+    record_info('Mount', $mount_info);
 }
 
 sub format_with_options {
