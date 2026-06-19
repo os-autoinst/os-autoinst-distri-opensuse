@@ -32,7 +32,7 @@ sub set_svirt_domain_elements {
         my $name = $svirt->name;
 
         my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
-        my $cmdline = get_var('VIRSH_CMDLINE') . $ntlm_p . " ";
+        my $cmdline = get_var('VIRSH_CMDLINE') . " " . $ntlm_p . " ";
         if (is_agama) {
             my $mirror_http = get_required_var('MIRROR_HTTP');
             $cmdline .= " root=live:$mirror_http/LiveOS/squashfs.img live.password=$testapi::password";
