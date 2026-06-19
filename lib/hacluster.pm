@@ -2069,7 +2069,7 @@ sub parse_sbd_metadata {
     my @val = ();
     my $metadata = {};
     my $device_name = "";
-    foreach my $line (split(/\n/, script_output('crm sbd configure show disk_metadata'))) {
+    foreach my $line (split(/\n/, script_output('crm sbd configure show disk_metadata', proceed_on_failure => 1))) {
         if ($line =~ /^==Dumping header on disk (\S+)/) {
             $device_name = $1;
         } elsif ($line =~ /Timeout\s+\((\w+)\)\s+\:\s+(\d+)/) {
