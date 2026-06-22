@@ -382,6 +382,11 @@ sub load_container_tests {
             loadtest 'containers/k3s_smoketest';
             return;
         }
+        if (get_var('CONTAINERS_KUBEVIRT_SMOKETEST')) {
+            loadtest 'containers/k3s_helm_install';
+            loadtest 'containers/kubevirt_smoketest';
+            return;
+        }
         loadtest 'containers/run_container_in_k3s';
         return;
     }
