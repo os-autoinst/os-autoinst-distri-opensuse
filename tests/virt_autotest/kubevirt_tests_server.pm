@@ -149,6 +149,9 @@ sub rke2_server_setup {
     assert_script_run('kubectl config view');
     assert_script_run('kubectl get nodes');
 
+    # Configure rke2-server service
+    assert_script_run("echo 'nonroot-devices: true' > /etc/rancher/rke2/config.yaml");
+
     # Create registries ready
     our $local_registry_fqdn = get_required_var("LOCAL_REGISTRY_FQDN");
     our $local_registry_ip = script_output("nslookup $local_registry_fqdn|sed -n '5,1p'|awk -F' ' '{print \$2}'");
