@@ -2084,5 +2084,15 @@
             ]
         },
         "type": "bug"
+    },
+    "tdx-not-supported": {
+        "description": "virt/tdx: TDX not supported by the host platform",
+        "products": {
+            "sle": [
+                "16.0",
+                "16.1"
+            ]
+        },
+        "type": "ignore"
     }
 }
