@@ -17,10 +17,7 @@ sub run {
     set_var('AGAMA_PROFILE', $profile_url);
 
     select_console 'install-shell';
-    my $enable_workaround = (is_sle('16.1+') && get_var('FLAVOR', '') =~ /Online|Full/);
-    my $workaround = $enable_workaround ? " > /dev/null" : "";
-    record_soft_failure("bsc#1265431 - Agama config load blocks in BUSY state") if $enable_workaround;
-    assert_script_run("agama config load $profile_url" . $workaround, timeout => 300) if (!check_var('AGAMA_PROFILE_LOAD', '0'));
+    assert_script_run("agama config load $profile_url", timeout => 300) if (!check_var('AGAMA_PROFILE_LOAD', '0'));
 }
 
 1;

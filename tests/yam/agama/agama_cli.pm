@@ -29,15 +29,12 @@ sub run {
 
     assert_script_run('agama config show | jq -C');
 
-    my $enable_workaround = (is_sle('16.1+') && get_var('FLAVOR', '') =~ /Online|Full/);
-    my $workaround = $enable_workaround ? " > /dev/null" : "";
-    record_soft_failure("bsc#1265431 - Agama config load blocks in BUSY state") if $enable_workaround;
-    assert_script_run("jq -n '.root.password = \"$testapi::password\"' | agama config load $workaround");
+    assert_script_run("jq -n '.root.password = \"$testapi::password\"' | agama config load");
 
     assert_script_run("agama config show | grep -C 4 $testapi::password");
 
     my $product_id = get_var('AGAMA_PRODUCT_ID');
-    assert_script_run("jq -n '.product.id = \"$product_id\"' | agama config load $workaround");
+    assert_script_run("jq -n '.product.id = \"$product_id\"' | agama config load");
     assert_script_run("agama config show | grep -C 4 $product_id");
 
     my $rpm_url = data_url('yam/agama/hello-world-0.1-1.1.noarch.rpm');
