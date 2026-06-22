@@ -42,7 +42,8 @@ sub verify_agama_auto_install_done_cmdline {
     # so we need to make sure the installation has completed from command line.
     my $timeout = get_var('AGAMA_INSTALL_TIMEOUT', '480');
     while ($timeout > 0) {
-        if (script_run("journalctl -u agama -u agama-web-server.service | grep -E 'Install phase done|Installation finished'") == 0) {
+        my $check_install_finish = is_sle('<16.1') ? "journalctl -u agama -u agama-web-server.service | grep -E 'Install phase done|Installation finished'" : "agama status --format json | jq '.installation' | grep succeeded";
+        if (script_run("$check_install_finish") == 0) {
             record_info("agama install phase done", script_output('agama config show'));
             return;
         }
