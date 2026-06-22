@@ -1,0 +1,6 @@
+name: yama confinement framework
+description: >
+  This is for the yama confinement framework
+schedule:
+  - boot/boot_to_desktop
+  - security/oqa_agnostic/yama
