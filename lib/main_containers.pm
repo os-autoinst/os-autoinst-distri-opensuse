@@ -186,7 +186,7 @@ sub load_host_tests_podman {
         loadtest 'containers/rootless_podman';
         loadtest 'containers/podman_remote' if (is_sle('>=15-SP3') || is_sle_micro('5.5+') || is_tumbleweed);
     }
-    loadtest 'containers/distrobox' if (is_tumbleweed || is_sle('>=16.1'));
+    loadtest 'containers/distrobox' if ((is_tumbleweed && (is_aarch64 || is_x86_64)) || is_sle('>=16.1'));
     # Buildah is not available in SLE Micro, MicroOS and staging projects
     loadtest('containers/buildah', run_args => $run_args, name => $run_args->{runtime} . "_buildah") unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging ||
         (is_sle('>=16.0') && is_transactional())
