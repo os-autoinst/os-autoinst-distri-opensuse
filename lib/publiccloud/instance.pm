@@ -920,7 +920,7 @@ sub do_systemd_analyze_time {
         sleep 5;
     }
     unless (time() - $start_time < $timeout) {
-        record_info("WARN", "Unable to get systemd-analyze in ${timeout}s", result => 'fail');
+        record_info("WARN", "Unable to get systemd-analyze in ${timeout}s.\nLast output:" . $output, result => 'fail');
         return (0, 0);
     }
     # log time
