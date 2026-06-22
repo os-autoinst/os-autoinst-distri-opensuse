@@ -133,6 +133,7 @@ sub load_latest_publiccloud_tests {
     }
     elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
         loadtest "publiccloud/azure_aitl", run_args => $args;
+        return;    # Do not continue as there is no instance to destroy
     } else {    # All test cases below require prepare_instance
         loadtest "publiccloud/prepare_instance", run_args => $args;
         if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
