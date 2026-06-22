@@ -169,14 +169,11 @@ sub run {
 
     ## Verify checksum of the copied images
     my $location = '/var/lib/libvirt/images/';
-    $location = $vmware_openqa_datastore if (is_vmware);
-    my $errors = verify_checksum $location;
-    if ($errors) {
-        record_info("Checksum", $errors, result => 'fail');
-        die "Checksum verification failed.";
-    } else {
-        record_info("Checksum matched", "", result => 'ok');
+    if (is_vmware) {
+        $location = get_var('BOOT_HDD_IMAGE') ? $vmware_openqa_datastore : $isodir;
     }
+    my $errors = verify_checksum $location;
+    record_info("Checksum", $errors, result => 'fail') if $errors;
 
     # We need to use 'tablet' as a pointer device, i.e. a device
     # with absolute axis. That needs to be explicitely configured
