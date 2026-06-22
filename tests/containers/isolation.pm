@@ -114,3 +114,7 @@ sub post_run_hook {
     cleanup;
     $self->SUPER::post_run_hook;
 }
+
+sub test_flags {
+    return {fatal => 0};
+}

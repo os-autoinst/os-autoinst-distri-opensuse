@@ -101,4 +101,8 @@ sub run {
     $engine->cleanup_system_host();
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;
