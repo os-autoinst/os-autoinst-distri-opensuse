@@ -185,6 +185,7 @@ NOLOGS | boolean | false | Do not collect logs if set to true. Handy during deve
 NVIDIA_REPO | string | '' | Define the external repo for NVIDIA driver.
 NVIDIA_CUDA_REPO | string | '' | Define the external repo for NVIDIA cuda.
 NVIDIA_CUDA_SAMPLES_BRANCH | string | 'v13.2update' | Define which branch or tag should be cloned from cuda-samples repo.
+NVIDIA_CUDA_GCC_VERSION | string | '' | Define which gcc version to use for building cuda samples.
 NVIDIA_DRIVER_BRANCH | string | 'G06' | Define NVIDIA driver branch (G06, G07).
 NVIDIA_EXPECTED_GPU_REGEX | string | '' | Define which GPU should the test expect.
 NVIDIA_FIRST_RELEASE | boolean | false | Install NVIDIA driver directly from maintenance update repository for kernel tests.
