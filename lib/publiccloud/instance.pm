@@ -318,10 +318,6 @@ sub wait_for_guestregister {
             # we have some cases where it is known that guestregister service will fail
             # ( e.g. when we testing images not published on Market hence w/o product codes)
             return 1 if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
-            if (is_sle("=16.0") && is_gce) {
-                record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
-                return 1;
-            }
             die('guestregister failed');
         }
         elsif ($out =~ m/active$/) {
@@ -534,15 +530,6 @@ sub wait_for_ssh {
 
     # OK
     return $duration if (!$exit_code && !$args{wait_stop} || $exit_code && $args{wait_stop});
-    # softfailure for 1261908, remove this after resolved.
-    # On SLES 16 GCE this is really coarse, but the guestregister.service is really stubburn.
-    # Sometimes it fails, sometimes it keeps running and tries to register but we run into the timeout (10mins)
-    # where the system is still booting.
-    if (is_sle("=16.0") && is_gce) {
-        record_soft_failure("bsc#1261908 guestregister.service fails on SLES 16");
-        return 1;
-    }
-
     # FAIL
     croak(" results summary:\n" . $sshout . $sysout) unless ($args{proceed_on_failure});
     return;    # proceed_on_failure true
@@ -933,7 +920,7 @@ sub do_systemd_analyze_time {
         sleep 5;
     }
     unless (time() - $start_time < $timeout) {
-        record_info("WARN", "Unable to get systemd-analyze in ${timeout}s", result => 'fail');
+        record_info("WARN", "Unable to get systemd-analyze in ${timeout}s.\nLast output:" . $output, result => 'fail');
         return (0, 0);
     }
     # log time
