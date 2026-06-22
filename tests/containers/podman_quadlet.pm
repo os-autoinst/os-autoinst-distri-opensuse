@@ -183,4 +183,8 @@ sub post_fail_hook {
     cleanup();
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;
