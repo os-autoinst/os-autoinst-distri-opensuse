@@ -86,15 +86,28 @@ sub run {
     # Wait a few seconds to give Azure time to create the jobs
     sleep(10);
 
+    # Need to save results to a variable
+    my $results;
+
     # Get AITL job status
     # AITL Jobs run in parallel so it's possible to have Jobs in all kind of states.
     # The goal of the loop is to check there are no Jobs Queued or currently Running.
     my $status_data;
     while (1) {
-        # Get the current job status
-        my $status = script_output(qq($aitl_job get $aitl_get_options -q "properties.results[].status|$monitoring"));
+        # # poo#200979: If the AITL resource was already deleted by Azure don't overwrite last known results
+        my $results_current = script_output("$aitl_job get $aitl_get_options -q 'properties.results[]'", proceed_on_failure => 1);
+        $results = $results_current if (($results_current !~ /ResourceNotFound/) && ($results_current !~ /BadGatewayConnection/));
 
-        if ($status =~ /no result returned/ig) {
+        # Get the current job status
+        my $status = script_output(qq($aitl_job get $aitl_get_options -q "properties.results[].status|$monitoring"), proceed_on_failure => 1);
+
+        # poo#200979: If the AITL resource was already deleted by Azure, we can consider the AITL job as finished and break the loop
+        if (($status =~ /ResourceNotFound/) || ($results_current =~ /ResourceNotFound/)) {
+            record_info('AITL cleanup', 'AITL resource was already deleted by Azure');
+            last;
+        }
+
+        if ($status =~ /no result returned/ig || $status =~ /BadGatewayConnection/) {
             sleep(60);
             record_info("WARN:", "no results:\n" . $status);
             next;
@@ -106,20 +119,19 @@ sub run {
         # Decode the status JSON
         eval { $status_data = decode_json($status); };
 
+        die "Failed to decode AITL status JSON:\n$status" if $@;
         # Check if there are still jobs in RUNNING, QUEUED, or ASSIGNED state
-        if ($@ || $status_data->{RUNNING} == 0 && $status_data->{QUEUED} == 0 && $status_data->{ASSIGNED} == 0) {
+        if ($status_data->{RUNNING} == 0 && $status_data->{QUEUED} == 0 && $status_data->{ASSIGNED} == 0) {
             last;    # Exit the loop if no jobs are in these states
         }
 
         # Print the status
         print("Unfinished AITL Jobs! Running:", $status_data->{RUNNING}, " QUEUED: ", $status_data->{QUEUED}, " ASSIGNED: ", $status_data->{ASSIGNED});
 
+        $results = $results_current;
         # Wait before checking again
         sleep(65);
     }
-
-    # Need to save results to a variable
-    my $results = script_output("$aitl_job get $aitl_get_options -q 'properties.results[]'");
 
     # Remove the first two non-JSON lines from the results JSON.
     $results =~ s/^(?:.*\n){1,3}//;
