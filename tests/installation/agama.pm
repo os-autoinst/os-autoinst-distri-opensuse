@@ -143,6 +143,13 @@ sub auth_define_user {
     back_to_overview;
 }
 
+sub agama_fde_tpm_setup {
+    assert_and_click('agama-encryption-change');
+    assert_and_click('agama-fde-tpm-enable');
+    send_key 'ret';
+    assert_screen('agama-fde-tpm-enabled');
+}
+
 sub agama_fde_setup {
     assert_and_click('agma-storage-tab');
     wait_still_screen 5;
@@ -158,6 +165,10 @@ sub agama_fde_setup {
     send_key 'ret';
     wait_still_screen 5;
     assert_screen('agama-fde-enabled');
+
+    agama_fde_tpm_setup() if get_var('QEMUTPM', 0);
+
+    back_to_overview;
 }
 
 sub agama_lvm_setup {
@@ -270,9 +281,9 @@ sub run {
         back_to_overview;
     }
 
-    if (check_var('ENCRYPT', 1)) {
+    # We can have scenarios with TPM where ENCRYPT is set to 0
+    if (defined(get_var('ENCRYPT'))) {
         agama_fde_setup();
-        back_to_overview;
     }
 
     assert_and_click('agama-install-button');
