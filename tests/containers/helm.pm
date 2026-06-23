@@ -109,18 +109,7 @@ sub run {
 
         eval { $provider->init(); };
         my $err = $@;
-        if ($err) {
-            if ($k8s_backend eq "EC2") {
-                record_soft_failure("bsc#1263667 - openQA test fails in aws_cli");
-                return;
-            } elsif ($k8s_backend eq "AZURE") {
-                record_soft_failure("bsc#1263669 - openQA test fails in azure_cli");
-                return;
-            } else {
-                die "Provider init failed: $err";
-            }
-        }
-
+        die "Provider init failed: $err" if $err;
     }
 
     install_helm();

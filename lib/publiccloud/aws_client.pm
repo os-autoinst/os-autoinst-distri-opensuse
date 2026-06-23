@@ -45,8 +45,7 @@ sub init {
         assert_script_run('mkdir -p ~/.aws');
         # CAVEAT: Use the bash environment variables to prevent credential leaks.
         assert_script_run('printf "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY\nregion=$AWS_DEFAULT_REGION\n" > ~/.aws/credentials');
-        my $rc = script_run("PILOT_DEBUG=1 aws %silent --help");
-        die("bsc#1263669 - openQA test fails in azure_cli") if ($rc && check_var("CONTAINER_RUNTIMES", "helm"));
+        script_run("PILOT_DEBUG=1 aws %silent --help");
     }
 
     # Disable pager (see poo#133226 - EC2: WARNING: terminal is not fully functional)
