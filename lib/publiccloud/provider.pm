@@ -642,9 +642,20 @@ Destroys the current terraform deployment
 
 sub terraform_destroy {
     my ($self) = @_;
-    record_info('TFM DESTROY', 'Running terraform_destroy() now');
+
     # Do not destroy if terraform has not been applied or the environment doesn't exist
-    return unless ($self->terraform_applied);
+    unless ($self->terraform_applied) {
+        record_info('NO TFM DESTROY', 'Skipping terraform_destroy() due to missing $self->terraform_applied');
+        return;
+    }
+
+    # Do not destroy if PUBLIC_CLOUD_NO_TEARDOWN=1
+    if (check_var('PUBLIC_CLOUD_NO_TEARDOWN', '1')) {
+        record_info('NO TFM DESTROY', 'Skipping terraform_destroy() due to PUBLIC_CLOUD_NO_TEARDOWN=1');
+        return;
+    }
+
+    record_info('TFM DESTROY', 'Running terraform_destroy() now');
 
     select_host_console(force => 1);
 
@@ -715,6 +726,9 @@ sub terraform_param_tags
         openqa_var_server => $openqa_var_server,
         custodian_ttl => calculate_custodian_ttl($openqa_ttl)
     };
+
+    # Add pcw_ignore tag if requested
+    $tags->{pcw_ignore} = '1' if (check_var('PUBLIC_CLOUD_PCW_IGNORE', '1'));
 
     return encode_json($tags);
 }
