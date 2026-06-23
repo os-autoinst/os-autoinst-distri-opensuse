@@ -1071,8 +1071,20 @@ sub get_sdaf_resource_group {
     croak 'Missing mandatory argument "$args{deployment_id}"' unless $args{deployment_id};
     croak 'Missing mandatory argument "$args{resource_group_type}"' unless $args{resource_group_type};
 
-    my $query = "[?contains(name, '$args{resource_group_type}') && contains(name, '$args{deployment_id}')].name";
-    my $groups = az_group_name_get(query => $query);
+    # Capture the full hash returned by the new az_group_name_get
+    my $result = az_group_name_get(
+        query => "[?contains(name, '$args{resource_group_type}') && contains(name, '$args{deployment_id}')].name");
+
+    # Apply the filter: remove known noisy warnings
+    if (exists $result->{err}) {
+        # Define the filter regex based on the branch
+        $result->{err} =~ s/.*(FutureWarning|Launching flake|self.).*//g;
+        # Remove empty lines left behind by the filtering
+        $result->{err} =~ s/^\s*\n//gm;
+        record_info('AZ ERROR', "Error while fetching resource groups: $result->{err}") if ($result->{err} =~ /\S+/);
+    }
+
+    my $groups = $result->{data};
     die "Zero or more than one resource groups found:\n" . join("\n", @$groups) unless (@$groups == 1);
     return $groups->[0];
 }

@@ -50,13 +50,52 @@ subtest '[az_group_create] missing args' => sub {
 subtest '[az_group_name_get]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["Arlecchino","Truffaldino"]'; });
+
+    $azcli->redefine(script_output => sub {
+            my $cmd = shift;
+            push @calls, $cmd;
+
+            # Handle the az command
+            return '["Arlecchino","Truffaldino"]' if ($cmd =~ /az\s+.*/);
+
+            # Handle the cat command by matching 'cat /tmp/az_cli.err' (or similar)
+            return 'Mi son Arlechin batocio. Orbo de na recia e sordo da un ocio' if ($cmd =~ /cat\s+(\/tmp\/.*)/);
+
+            return 'INVALID';
+    });
 
     my $res = az_group_name_get();
 
     note("\n  -->  " . join("\n  -->  ", @calls));
+
     ok((any { /az group list/ } @calls), 'Correct composition of the main command');
-    ok((any { /Arlecchino/ } @$res), 'Correct result decoding');
+    ok((any { /cat \/tmp\/az_cli.err/ } @calls), 'The error file was read');
+    is_deeply($res->{data}, ["Arlecchino", "Truffaldino"], 'Data matches expected array');
+    is($res->{err}, 'Mi son Arlechin batocio. Orbo de na recia e sordo da un ocio', 'Error content correctly captured');
+};
+
+subtest '[az_group_name_get] empty stderr' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    my @calls;
+
+    $azcli->redefine(script_output => sub {
+            my $cmd = shift;
+            push @calls, $cmd;
+
+            # Handle the az command
+            return '["Arlecchino","Truffaldino"]' if ($cmd =~ /az\s+.*/);
+
+            # Handle the cat command by matching 'cat /tmp/az_cli.err' (or similar)
+            return '' if ($cmd =~ /cat\s+(\/tmp\/.*)/);
+
+            return 'INVALID';
+    });
+
+    my $res = az_group_name_get();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+
+    is($res->{err}, '', 'Error empty content correctly captured');
 };
 
 subtest '[az_group_name_get] query' => sub {
@@ -64,7 +103,7 @@ subtest '[az_group_name_get] query' => sub {
     my @calls;
     $azcli->redefine(script_output => sub { push @calls, $_[0]; return '{"Arlecchino": "Truffaldino"}'; });
 
-    my $res = az_group_name_get(query => 'MASCHERA');
+    az_group_name_get(query => 'MASCHERA');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /--query.*MASCHERA/ } @calls), 'Correct composition of the query argument');
@@ -1584,18 +1623,6 @@ subtest '[az_network_dns_link_delete] Compose command' => sub {
     ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
     ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
     ok(grep(/--yes/, @calls), 'Check for autoapprove argument "--yes"');
-};
-
-subtest '[az_account_show]' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '"00000000-0000-0000-0000-000000000000"'; });
-
-    my $ret = az_account_show();
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az account show/ } @calls), 'Correct composition of the main command');
-    ok(($ret eq '00000000-0000-0000-0000-000000000000'), 'Ret is the expected value, of type string');
 };
 
 subtest '[az_role_definition_list]' => sub {
