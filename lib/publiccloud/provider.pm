@@ -642,13 +642,20 @@ Destroys the current terraform deployment
 
 sub terraform_destroy {
     my ($self) = @_;
-    record_info('TFM DESTROY', 'Running terraform_destroy() now');
 
     # Do not destroy if terraform has not been applied or the environment doesn't exist
-    return unless ($self->terraform_applied);
+    unless ($self->terraform_applied) {
+        record_info('NO TFM DESTROY', 'Skipping terraform_destroy() due to missing $self->terraform_applied');
+        return;
+    }
 
     # Do not destroy if PUBLIC_CLOUD_NO_TEARDOWN=1
-    return if check_var('PUBLIC_CLOUD_NO_TEARDOWN', '1');
+    if (check_var('PUBLIC_CLOUD_NO_TEARDOWN', '1')) {
+        record_info('NO TFM DESTROY', 'Skipping terraform_destroy() due to PUBLIC_CLOUD_NO_TEARDOWN=1');
+        return;
+    }
+
+    record_info('TFM DESTROY', 'Running terraform_destroy() now');
 
     select_host_console(force => 1);
 
