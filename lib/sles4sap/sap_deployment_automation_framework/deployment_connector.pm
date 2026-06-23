@@ -489,8 +489,11 @@ Returns Hash of tag name and values to be applied on deployment resources.
 sub get_deployment_tags {
     my %tags = (
         deployed_by => get_var('SDAF_DEPLOYMENT_OWNER', 'OpenQA-SDAF-automation'),
-        openqa_instance => get_required_var('WORKER_HOSTNAME'),
-        deployment_id => get_current_job_id()
+        openqa_instance => get_var('WORKER_HOSTNAME', 'N/A'),
+        deployment_id => get_current_job_id(),
+        openqa_build => get_var('BUILD', 'N/A'),
+        deployment_scenario => get_var('SDAF_DEPLOYMENT_SCENARIO', 'N/A'),
+        openqa_created_date => Time::Piece->new->datetime()
     );
 
     $tags{no_cleanup_tag()} = '1' if get_var('SDAF_RETAIN_DEPLOYMENT');

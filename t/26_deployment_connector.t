@@ -9,6 +9,7 @@ use testapi;
 use Data::Dumper;
 use Scalar::Util qw(reftype);
 use List::Util qw(any none);
+use Time::Piece;
 use sles4sap::sap_deployment_automation_framework::deployment_connector;
 
 sub undef_variables {
@@ -321,6 +322,8 @@ subtest '[get_deployment_tags] Check returned value' => sub {
     is $result{deployed_by}, 'Unit test', 'Apply "deployed_by" tag';
     is $result{openqa_instance}, 'OSD', 'Apply "openqa_instance" tag.';
     is $result{deployment_id}, '42', 'Apply "deployment_id" tag.';
+    ok(Time::Piece->strptime($result{openqa_created_date}, "%Y-%m-%dT%H:%M:%S"),
+        "Check date format in tag 'openqa_created_date: $result{openqa_created_date}'.");
     undef_variables;
 };
 
