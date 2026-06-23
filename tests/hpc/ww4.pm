@@ -66,7 +66,7 @@ sub run ($self) {
 
     $rt = (assert_script_run "wwctl container import $hpc_container warewulf-container", timeout => 320) ? 1 : 0;
     test_case('Container pull', 'ww4', $rt);
-    $rt = (assert_script_run "wwctl profile set -y --image warewulf-container") ? 1 : 0;
+    $rt = (assert_script_run "wwctl profile set -y --image warewulf-container default") ? 1 : 0;
     test_case('Profile', 'ww4', $rt);
     assert_script_run "wwctl profile set -y default --netname default --netmask 255.255.255.0 --gateway 192.168.10.100";
     assert_script_run "wwctl profile list -a";
