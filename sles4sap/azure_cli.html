@@ -82,7 +82,6 @@
       <li><a href="#az_network_dns_link_list">az_network_dns_link_list</a></li>
       <li><a href="#az_network_dns_links_cleanup">az_network_dns_links_cleanup</a></li>
       <li><a href="#az_network_dns_zones_cleanup">az_network_dns_zones_cleanup</a></li>
-      <li><a href="#az_account_show">az_account_show</a></li>
       <li><a href="#az_role_definition_list">az_role_definition_list</a></li>
     </ul>
   </li>
@@ -122,7 +121,7 @@
 
 <pre><code>my $ret = az_group_name_get();</code></pre>
 
-<p>Get the name of all existing Resource Group in the current subscription. By default the output is an array of strings. Output can be modified using <b>$args{query}</b>.</p>
+<p>Get the name of all existing Resource Group in the current subscription. By default the output is an array of strings. Output is always an hash with `data` and `err` keys: `data` is the decode_json of the stdout. The internal data structure can change accordingly to what is provided via <b>query</b> `err` is the stderr string, key is always present but it could have empty value.</p>
 
 <dl>
 
@@ -1791,18 +1790,6 @@ identifiers for Azure resources.</code></pre>
 <dl>
 
 <dt id="resource_group-Resource-group-name10"><b>resource_group</b> Resource group name</dt>
-<dd>
-
-</dd>
-</dl>
-
-<h2 id="az_account_show">az_account_show</h2>
-
-<p>Get account informations, by default the ID. By default the output is an strings. Output can be modified using <b>$args{query}</b>.</p>
-
-<dl>
-
-<dt id="query---Modify-output-filter-using-jmespath-query.-Default:-id"><b>query</b> - Modify output filter using jmespath query. Default: &#39;id&#39;</dt>
 <dd>
 
 </dd>
