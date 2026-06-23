@@ -57,7 +57,12 @@ sub setup_389ds_container ($container_engine) {
     my $data_url = sprintf("sssd/398-ds/{%s}", join(',', @artifacts));
     assert_script_run("curl --remote-name-all " . data_url($data_url));
 
-    assert_script_run(qq($container_engine build -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$container_engine .), timeout => 600);
+    # https://progress.opensuse.org/issues/203001
+    # On sle16.1 host, install 389-ds may hit issue below:
+    # "Cannot open audit interface - aborting."
+    # we need to grant full rights
+    my $build_opt = is_sle('>=16.1') ? '--cap-add=all' : '';
+    assert_script_run(qq($container_engine build $build_opt -t ds389_image --build-arg tag="$tag" --build-arg pkgs="$pkgs" -f Dockerfile_$container_engine .), timeout => 600);
 
     script_run(qq($container_engine rm -f ds389_container));
 
