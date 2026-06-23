@@ -60,4 +60,8 @@ sub post_run_hook {
     upload_3rd_party_images_logs($self->{runtime});
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;

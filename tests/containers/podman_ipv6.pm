@@ -93,4 +93,8 @@ sub post_fail_hook {
     shift->_cleanup();
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 1;
