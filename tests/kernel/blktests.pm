@@ -38,6 +38,7 @@ sub run {
     my $quick = get_var('BLKTESTS_QUICK');
     my $exclude = get_var('BLKTESTS_EXCLUDE');
     my $trtypes = get_var('BLKTESTS_TRTYPES');
+    my $md_kver = get_var('BLKTESTS_MD_KVER');
     my $issues = get_var('BLKTESTS_KNOWN_ISSUES');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
@@ -77,11 +78,12 @@ sub run {
 
     $exclude = join(' ', map { "--exclude=$_" } @exclude);
     $trtypes = "NVMET_TRTYPES=\"$trtypes\" " if $trtypes;
+    $md_kver = "BLKTESTS_MD_KVER=\"$md_kver\" " if $md_kver;
 
     foreach my $i (@tests) {
         my $config = $devices eq 'none' ? '' : '-c /etc/blktests/config';
         my $quick_arg = $quick ? "--quick=$quick" : '';
-        script_run("${trtypes} ./check $config -o ${log_dir}/results $quick_arg $exclude $i", 1200);
+        script_run("${trtypes}${md_kver}./check $config -o ${log_dir}/results $quick_arg $exclude $i", 1200);
     }
 
     script_run("cd ${log_dir}");
@@ -179,6 +181,14 @@ For blktests, C<test_variant> matches C<BLKTESTS_TRTYPES>.
 
 Optional. Value passed to C<./check --quick>. If unset, C<--quick> is not
 passed and all tests run regardless of their C<QUICK> flag.
+
+=head2 BLKTESTS_MD_KVER
+
+Optional. Overrides the minimum kernel version required by the md test group,
+passed as C<BLKTESTS_MD_KVER> to C<./check>. Useful for distro kernels that
+backport md atomic write support to an older base version. Example:
+
+  BLKTESTS_MD_KVER=6 12 0
 
 =head2 BLKTESTS_TRTYPES
 
