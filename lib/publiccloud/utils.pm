@@ -433,7 +433,7 @@ sub add_additional_authorized_keys {
     # Accept either a URL (fetched with curl on the remote) or a base64-encoded string.
     # Encode a key with: PUBLIC_CLOUD_AUTHORIZED_KEYS=$(base64 -w0 ~/.ssh/id_ed25519.pub)
     if ($keys_source =~ m{^https?://}) {
-        $instance->ssh_script_run(cmd => qq(curl -sSf '$keys_source' | tee -a ~/.ssh/authorized_keys));
+        $instance->ssh_script_run(cmd => qq(curl -sLSf '$keys_source' | tee -a ~/.ssh/authorized_keys));
     } else {
         $instance->ssh_script_run(cmd => qq(echo "$keys_source" | base64 -d | tee -a ~/.ssh/authorized_keys));
     }
