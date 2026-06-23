@@ -28,6 +28,8 @@ sub run {
     my $nr = 1;
     foreach my $r (split(/,/, get_var('ZDUPREPOS', $defaultrepo))) {
         zypper_call("--no-gpg-checks ar \"$r\" repo$nr");
+        # Workaround to make zypper behaviour more like if it was download.o.o
+        script_run("echo \"gpgkey=$r/repodata/repomd.xml.key\" >> /etc/zypp/repos.d/repo$nr.repo");
         $nr++;
     }
 

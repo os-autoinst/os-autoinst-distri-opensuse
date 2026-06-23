@@ -107,6 +107,8 @@ sub run {
             $r .= "/\\\$basearch";
         }
         zypper_call("--no-gpg-checks ar \"$r\" repo$nr");
+        # Workaround to make zypper behaviour more like if it was download.o.o
+        script_run("echo \"gpgkey=$r/repodata/repomd.xml.key\" >> /etc/zypp/repos.d/repo$nr.repo");
         $nr++;
     }
     zypper_call '--gpg-auto-import-keys ref';
