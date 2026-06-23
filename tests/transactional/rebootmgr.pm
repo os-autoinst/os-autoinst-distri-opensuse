@@ -65,6 +65,7 @@ sub check_strategy_maint_window {
     # Trigger reboot and wait for maintenance window
     rbm_set_window '+2minutes', '1m';
     rbm_call 'reboot';
+    reset_consoles;
     rbm_check_status 2;
     die "System should be rebooting" unless wait_screen_change(undef, 180);
     process_reboot;
