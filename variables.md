@@ -421,7 +421,7 @@ TERRAFORM_VERSION | string | "1.5.7" | Version of terraform to include into PC T
 TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
 _SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existing key allowed by `PUBLIC_CLOUD_INSTANCE_IP` instance
 _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | this required variable is the token to access PUBLIC_CLOUD_PERF_DB_URI (defined in `salt workerconf`)
-PUBLIC_CLOUD_AUTHORIZED_KEYS | string | "" | Base64-encoded SSH public keys to append to authorized_keys file for human users. Encode using: `base64 -w0 ~/.ssh/id_rsa.pub` or `base64 < ~/.ssh/id_rsa.pub | tr -d '\n'`. Multiple keys can be concatenated with newlines before encoding. Recommended to use with PUBLIC_CLOUD_NO_TEARDOWN=1.
+PUBLIC_CLOUD_AUTHORIZED_KEYS | string | "" | SSH public keys to append to the authorized_keys file for human users. Accepts either a URL (e.g. `https://github.com/user.keys`) which is fetched with curl on the remote instance, or a base64-encoded key string (encode with `base64 -w0 ~/.ssh/id_ed25519.pub`). Multiple keys can be concatenated with newlines before encoding. Recommended to use with PUBLIC_CLOUD_NO_TEARDOWN=1.
 PUBLIC_CLOUD_PCW_IGNORE | boolean | false | If set to 1, adds `pcw_ignore=1` tag to cloud resources to prevent Public Cloud Watchdog from cleaning them up automatically based on TTL.
 
 
