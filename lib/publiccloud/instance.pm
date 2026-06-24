@@ -794,7 +794,7 @@ sub check_system_boottime() {
     if ($boottime > $max_boot_time) {
         if (is_azure()) {
             # Unreliable userspace boot time in Azure.
-            record_soft_failure("bsc#1262587 - openQA publiccloud tests have anomalous-high boot-time from systemd-analyze");
+            record_info("bsc#1262587", "Azure test high overall boottime - statistics collection value [sec]: " . $boottime);
         } else {
             # threshold exceeded
             die("System boot time overall $boottime is out of limit $max_boot_time");
