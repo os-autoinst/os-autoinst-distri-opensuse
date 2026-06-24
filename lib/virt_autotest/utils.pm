@@ -285,7 +285,11 @@ sub is_pv_guest {
 }
 
 #Check if guest is SLE with optional filter for:
-#Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+ (>=15 and 15+ are equivalent)
+#Version: 16 =16.1 <16.0 16.1+ <=12-sp3 >=15 15+ (>=15 and 15+ are equivalent)
+#Examples of guest name:
+#   sles-16-1-64-kvm-hvm-uefi-agama-online-iso,
+#   sles_15_sp7_64_kvm_hvm_uefi-qcow2nvram,
+#   sles16efi_full-sev-es, sles15sp7-efi-sev-es
 #usage: guest_is_sle($guest_name, '<=12-sp2')
 sub guest_is_sle {
     my $guest_name = lc shift;
@@ -295,9 +299,15 @@ sub guest_is_sle {
     return 1 unless $query;
 
     # Version check
-    $guest_name =~ /sles-*(\d{2})(?:-*sp(\d))?/;
-    my $version = defined($2) ? "$1-sp$2" : "$1-sp0";
-    return check_version($query, $version, qr/\d{2}(?:-sp\d)?/);
+    $guest_name =~ /sles[-_]*(\d{2})(?:[-_]*(?:sp)?(\d+)|sp(\d+))?/;
+    my $major = $1;
+    my $sp = defined($2) ? $2 : (defined($3) ? $3 : 0);
+    my $version = "${major}.${sp}";
+    $query =~ s/[-_]*sp(\d+)/.$1/gi;
+    if ($query =~ /^\d+(?:\.\d+)?$/) {
+        $query = "=" . $query;
+    }
+    return check_version($query, $version, qr/\d{2}(?:\.\d+)?/);
 }
 
 
