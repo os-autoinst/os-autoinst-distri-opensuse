@@ -10,6 +10,7 @@ use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
+    my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
     select_serial_terminal();
 
@@ -33,9 +34,10 @@ sub run {
         timeout => 240
     );
 
-    record_info('Podman Verify', 'Verify the toolbox image was stored on the host');
+    record_info('Image Verify',
+        'Verify that the toolbox image was stored on the host');
 
-    validate_script_output('podman images', sub { m/toolbox/i });
+    validate_script_output("$runtime images", sub { m/toolbox/i });
 }
 
 sub test_flags {
