@@ -2,5 +2,11 @@ name: yama confinement framework
 description: >
   This is for the yama confinement framework
 schedule:
+  - '{{bootloader}}'
   - boot/boot_to_desktop
   - security/oqa_agnostic/yama
+conditional_schedule:
+  bootloader:
+    ARCH:
+      s390x:
+        - installation/bootloader_start
