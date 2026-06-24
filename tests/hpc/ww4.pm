@@ -70,29 +70,36 @@ sub run ($self) {
     test_case('Profile', 'ww4', $rt);
     assert_script_run "wwctl profile set -y default --netname default --netmask 255.255.255.0 --gateway 192.168.10.100";
     assert_script_run "wwctl profile list -a";
+    assert_script_run("logger DEBUG: wwctl node add compute10");
     $rt = (assert_script_run "wwctl node add compute10 --netdev eth0 -I 192.168.10.111 --discoverable=true --image warewulf-container") ? 1 : 0;
     test_case('Nodes', 'first node added successfully', $rt);
+    assert_script_run("logger DEBUG: wwctl node add compute11");
     $rt = (assert_script_run "wwctl node add compute11 --netdev eth0 -I 192.168.10.112 --discoverable=true --image warewulf-container") ? 1 : 0;
     test_case('Nodes', 'second node added successfully', $rt);
 
+    assert_script_run("logger DEBUG: wwctl node list");
     my $compute_nodes = script_output "wwctl node list -a";
     record_info "nodes in conf", "$compute_nodes";
 
     # Build container, mandatory since warewulf4 version 4.5
+    assert_script_run("logger DEBUG: wwctl container build warewulf-container");
     assert_script_run "wwctl container build warewulf-container";
 
     # I think running the configuration after the profile and the nodes are set
     # provides complete results of the scripts.
-    $rt = (assert_script_run "echo yes | wwctl -v configure --all") ? 1 : 0;
+    assert_script_run("logger DEBUG: wwctl configure all");
+    $rt = (assert_script_run "echo yes | wwctl -d configure --all") ? 1 : 0;
     test_case('Service configuration', 'ww4', $rt);
     # Build overlay, mandatory since warewulf4 version 4.5
+    assert_script_run("logger DEBUG: wwctl overlay build");
     assert_script_run "wwctl overlay build";
     # Refresh repositories inside the container
     validate_script_output("echo 'zypper -n refresh && echo warewulf-container-refreshed' | wwctl container shell warewulf-container", sub { m/warewulf-container-refreshed/ });
+    assert_script_run("logger DEBUG: restarting dnsmasq");
+    systemctl 'restart dnsmasq';
     barrier_wait('WWCTL_READY');
     record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
     mutex_unlock 'ww4_ready';
-
     barrier_wait('WWCTL_DONE');
     record_info 'WWCTL_DONE', strftime("\%H:\%M:\%S", localtime);
     my @compute_nodes = _get_compute_node_hostnames();
