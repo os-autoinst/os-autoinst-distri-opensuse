@@ -29,9 +29,18 @@ sub scroll_down {
 }
 
 sub back_to_overview {
-    assert_and_click('agama-overview-tab');
-    assert_screen('agama-overview-screen');
-    record_info('Back to overview');
+    for (my $tries = 0; $tries <= 5; $tries++) {
+        assert_and_click('agama-overview-tab');
+
+        if (check_screen('agama-overview-screen', 5)) {
+            record_info('Back to overview');
+            return;
+        }
+
+        diag "Failed to get to overview screen (# $tries)";
+    }
+
+    die "Max tries to return to overview screen reached";
 }
 
 sub has_product_selection {
