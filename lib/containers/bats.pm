@@ -179,6 +179,11 @@ sub configure_docker {
     }
     run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
     record_info "DOCKER_OPTS", $docker_opts;
+    # Configure the default buildkitd config so BuildKit workers that don't receive
+    # an explicit --buildkitd-config (e.g. custom builders in compose e2e tests) also
+    # pull through our mirror instead of hitting docker.io directly.
+    run_command "mkdir -p /etc/buildkit";
+    write_sut_file("/etc/buildkit/buildkitd.toml", qq([registry."docker.io"]\n  mirrors = ["http://$registry"]\n\n[registry."http://$registry"]\n  insecure = true\n));
     run_command "systemctl restart docker";
     run_command "export DOCKER_HOST=tcp://localhost:$port";
     if ($args{tls}) {
