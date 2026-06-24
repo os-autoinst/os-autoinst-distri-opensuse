@@ -69,6 +69,10 @@ sub run {
         install_package 'lklfuse';
         assert_script_run "usermod -a -G disk bernhard";
 
+        if (script_run('which fusermount3') != 0) {
+            record_soft_failure "bsc#1256466 - missing dependency for fuse3 in libfuse3";
+            install_package 'fuse3';
+        }
         select_user_serial_terminal;
         $mountpoint = "/home/bernhard/mount";
         $file = "/home/bernhard/file";
