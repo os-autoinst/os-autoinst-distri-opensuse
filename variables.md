@@ -362,7 +362,6 @@ PUBLIC_CLOUD_IMAGE_PROJECT | string | "" | Google Compute Engine image project
 PUBLIC_CLOUD_IMAGE_URI | string | "" | The URI of the image to be used. Use 'auto' if you want the URI to be calculated.
 PUBLIC_CLOUD_IMG_PROOF_EXCLUDE | string | "" | Tests to be excluded by img-proof.
 PUBLIC_CLOUD_IMG_PROOF_TESTS | string | "test-sles" | Tests run by img-proof.
-PUBLIC_CLOUD_INSTANCE_IP | string | "" | If defined, no instance will be created and this IP will be used to connect to
 PUBLIC_CLOUD_INSTANCE_TYPE | string | "" | Specify the instance type. Which instance types exists depends on the CSP. (default-azure: Standard_A2, default-ec2: t3a.large )
 PUBLIC_CLOUD_K8S_CLUSTER | string | "" | Name for the kubernetes cluster.
 PUBLIC_CLOUD_KEEP_IMG | boolean | false | If set, the uploaded image will be tagged with `pcw_ignore=1`
@@ -419,7 +418,6 @@ SCC_PROXY_USERNAME | string | "" | Credentials username for registry which requi
 SCC_PROXY_PASSWORD | string | "" | Credentials password for registry which requires SCC login
 TERRAFORM_VERSION | string | "1.5.7" | Version of terraform to include into PC Tools image
 TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
-_SECRET_PUBLIC_CLOUD_INSTANCE_SSH_KEY | string | "" | The `~/.ssh/id_rsa` existing key allowed by `PUBLIC_CLOUD_INSTANCE_IP` instance
 _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | this required variable is the token to access PUBLIC_CLOUD_PERF_DB_URI (defined in `salt workerconf`)
 PUBLIC_CLOUD_AUTHORIZED_KEYS | string | "" | SSH public keys to append to the authorized_keys file for human users. Accepts either a URL (e.g. `https://github.com/user.keys`) which is fetched with curl on the remote instance, or a base64-encoded key string (encode with `base64 -w0 ~/.ssh/id_ed25519.pub`). Multiple keys can be concatenated with newlines before encoding. Recommended to use with PUBLIC_CLOUD_NO_TEARDOWN=1.
 PUBLIC_CLOUD_PCW_IGNORE | boolean | false | If set to 1, adds `pcw_ignore=1` tag to cloud resources to prevent Public Cloud Watchdog from cleaning them up automatically based on TTL.
