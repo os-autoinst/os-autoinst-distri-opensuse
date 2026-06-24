@@ -29,6 +29,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call zypper_version_cmp);
 use version_utils 'is_sle';
+use Utils::Architectures qw(is_s390x);
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
@@ -37,14 +38,18 @@ sub run {
     if (is_sle('<=12-SP5')) {
         # preinstall libopenssl-devel & libmysqlclient-devel because on 12* are multiple versions and zypper can't decide,
         # perl-IO-Socket-INET6 for reclimit test
-        zypper_call 'in libopenssl-devel libmysqlclient-devel bind rpm-build perl-IO-Socket-INET6 python3-pytest';
+        zypper_call '-v in libopenssl-devel libmysqlclient-devel bind rpm-build perl-IO-Socket-INET6 python3-pytest';
     }
     elsif (is_sle('>=15')) {
+        my $version = get_var('VERSION');
+        # Temporary repo, will move it to QA:Maintenance:bind
+        zypper_call("ar -G http://download.suse.de/ibs/home:/dzedro:/branches:/SUSE:/SLE-15-SP7:/Head/SLE-$version/home:dzedro:branches:SUSE:SLE-15-SP7:Head.repo") if is_sle('=15-SP7');
         # bind-utils for dig, net-tools-deprecated for ifconfig, perl-IO-Socket-INET6 for reclimit,
         # perl-Net-DNS for xfer, dnspython for chain test
         zypper_call 'in bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython git-core python3-pytest python3-hypothesis jemalloc-devel libcmocka-devel';
         # xdist for parallel test execution and other test dependencies
-        zypper_call('in python3*-Jinja2 python3*-pytest-xdist python3*-dnspython python3*-hypothesis gnutls', exitcode => [0, 107]) if is_sle('=15-SP7');
+        # sphinx_rtd_theme for never version of Sphinx and python3*-dnspython python3*-flaky from QA:Maintenance:bind repo required for some tests to pass
+        zypper_call('-v in python3*-Jinja2 python3*-pytest-xdist python3*-dnspython python3*-hypothesis python3*-sphinx_rtd_theme gnutls', exitcode => [0, 107]) if is_sle('=15-SP7');
     }
     # enable source repositories to get latest source packages
     assert_script_run 'for r in `zypper lr|awk \'/Source-Pool/ {print $5}\'`;do zypper mr -e --refresh $r;done';
@@ -72,7 +77,8 @@ sub run {
     # temporary disable logfileconf poo#159465
     assert_script_run 'sed -i \'/\\s*logfileconfig\\s*\\\/d\' Makefile' if is_sle('=15-SP6');
     # disable failing tests on 15-SP7 poo#181709
-    assert_script_run 'rm -rf upforwd forward logfileconfig qmin' if is_sle('=15-SP7');
+    assert_script_run 'rm -rfv logfileconfig rpz/tests_sh_rpz.py' if is_sle('=15-SP7');
+    assert_script_run 'rm -rfv tools/tests_tools_nsec3hash.py' if is_sle('=15-SP7') && is_s390x;
     assert_script_run 'cat Makefile';
     # fix permissions and executables to run the testsuite
     assert_script_run 'chown bernhard:root -R .';
@@ -86,34 +92,39 @@ sub run {
         $bind_cmd = "runuser -u bernhard -- sh runall.sh -n $worker_count";
     }
     else {
-        $bind_cmd = 'pytest -n 10';
+        $bind_cmd = 'pytest -n 8 --color=no';
     }
     # workaround esp. on aarch64 some test fail occasinally due to low worker performance
     # if there are failed tests run them again up to 3 times
-    eval {
-        assert_script_run('set -o pipefail; ' . $bind_cmd . " |& tee -a /tmp/test-suite.txt", 7000);
-    };
-    if ($@) {
+    my $ret = script_run("set -o pipefail; $bind_cmd |& tee -a /tmp/test-suite.txt", timeout => 7000);
+    if ($ret == 1) {
         record_info 'Retry:', 'poo#71329';
+        script_run "echo '### FAILED TESTS RETRY ###' >>/tmp/test-suite.txt";
         for (1 .. 3) {
             eval {
                 if (zypper_version_cmp($bind_version, '9.18.33') <= 0) {
                     assert_script_run 'TFAIL=$(awk -F: -e \'/^R:.*:FAIL/ {print$2}\' /tmp/test-suite.txt); echo $TFAIL';
-                    assert_script_run "for t in \$TFAIL; do runuser -u bernhard -- sh run.sh \$t; done", 2000;
+                    assert_script_run "for t in \$TFAIL; do runuser -u bernhard -- sh run.sh \$t |& tee -a /tmp/test-suite.txt; done", 2000;
                 }
                 elsif (zypper_version_cmp($bind_version, '9.20.9') < 0) {
                     assert_script_run 'TFAIL=$(awk \'/^FAIL:/ {print$2}\' /tmp/test-suite.txt); echo $TFAIL';
-                    assert_script_run "for t in \$TFAIL; do runuser -u bernhard -- sh run.sh \$t; done", 2000;
+                    assert_script_run "for t in \$TFAIL; do runuser -u bernhard -- sh run.sh \$t |& tee -a /tmp/test-suite.txt; done", 2000;
                 }
                 else {
                     assert_script_run 'TFAIL=$(awk \'/^FAILED/ {print$2}\' /tmp/test-suite.txt); echo $TFAIL';
-                    assert_script_run "for t in \$TFAIL; do $bind_cmd \$t; done", 2000;
+                    assert_script_run "for t in \$TFAIL; do $bind_cmd \$t |& tee -a /tmp/test-suite.txt; done", 2000;
                 }
             };
             last unless ($@);
             record_info "Retry $_", "Failed bind test retry: $_ of 3";
             die 'bind testsuite failed, see test-suite.txt' if $@ && $_ == 3;
         }
+    }
+    elsif ($ret == 4 && script_run('grep "ImportError: cannot import name \'EDECode\'" /tmp/test-suite.txt') == 0) {
+        record_soft_failure('bsc#1268896');
+    }
+    elsif ($ret != 0) {
+        die 'Unexpected failure, see logs';
     }
     # remove loopback interfaces
     assert_script_run 'sh ifconfig.sh down';
