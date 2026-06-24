@@ -17,6 +17,7 @@ use Utils::Architectures;
 use containers::bats;
 
 my $version;
+my $mirror_dir = "/var/tmp/buildkit-registry-mirror";
 
 sub setup {
     my $self = shift;
@@ -38,6 +39,26 @@ sub setup {
     record_info "docker-buildx version", $version;
 
     patch_sources "buildx", $version, "tests";
+
+    # The buildx test framework starts its own local distribution registry as a BuildKit
+    # mirror (via BUILDKIT_REGISTRY_MIRROR_DIR).  By default it generates a plain registry
+    # config (no pull-through), so images not pre-seeded in the mirror fall back to
+    # docker.io directly and hit rate limits.  Pre-seed a config.yaml that makes the
+    # local registry a pull-through proxy backed by our mirror; the framework skips
+    # writing its own config.yaml when one already exists.
+    my $registry = get_var("REGISTRY", "3.126.238.126:5000");
+    run_command "mkdir -p $mirror_dir/data";
+    write_sut_file("$mirror_dir/config.yaml", <<END_YAML);
+version: 0.1
+loglevel: debug
+storage:
+    filesystem:
+        rootdirectory: $mirror_dir/data
+http:
+    addr: 127.0.0.1:0
+proxy:
+    remoteurl: http://$registry
+END_YAML
 }
 
 sub run {
@@ -47,6 +68,7 @@ sub run {
     select_serial_terminal;
 
     my %env = (
+        BUILDKIT_REGISTRY_MIRROR_DIR => $mirror_dir,
         TZ => "UTC",
     );
     my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
