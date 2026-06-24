@@ -113,6 +113,9 @@ sub run {
             die 'bind testsuite failed, see test-suite.txt' if $@ && $_ == 3;
         }
     }
+    elsif ($ret == 4 && script_run('grep "ImportError: cannot import name \'EDECode\'" /tmp/test-suite.txt') == 0) {
+        record_soft_failure('bsc#1268896');
+    }
     elsif ($ret != 0) {
         die 'Unexpected failure, see logs';
     }
