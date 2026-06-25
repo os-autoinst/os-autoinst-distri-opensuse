@@ -290,6 +290,7 @@ sub is_pv_guest {
 #   sles-16-1-64-kvm-hvm-uefi-agama-online-iso,
 #   sles_15_sp7_64_kvm_hvm_uefi-qcow2nvram,
 #   sles16efi_full-sev-es, sles15sp7-efi-sev-es
+#   sles-16dot1-aarch64-kvm-uefi
 #usage: guest_is_sle($guest_name, '<=12-sp2')
 sub guest_is_sle {
     my $guest_name = lc shift;
@@ -298,16 +299,22 @@ sub guest_is_sle {
     return 0 unless $guest_name =~ /sle/;
     return 1 unless $query;
 
+    # Replace "dot" with hyphen (eg. sles-16dot1 -> sles-16-1)
+    $guest_name =~ s/(\d+)dot(\d+)/$1-$2/g;
+
     # Version check
-    $guest_name =~ /sles[-_]*(\d{2})(?:[-_]*(?:sp)?(\d+)|sp(\d+))?/;
-    my $major = $1;
-    my $sp = defined($2) ? $2 : (defined($3) ? $3 : 0);
-    my $version = "${major}.${sp}";
-    $query =~ s/[-_]*sp(\d+)/.$1/gi;
-    if ($query =~ /^\d+(?:\.\d+)?$/) {
-        $query = "=" . $query;
+    if ($guest_name =~ /sles[-_]*(\d{2})(?:[-_]*(?:sp)?(?!(?:64|x86|aarch|efi|kvm)\b)(\d+)|sp(\d+))?/) {
+        my $major = $1;
+        my $sp = defined($2) ? $2 : (defined($3) ? $3 : 0);
+        my $version = "${major}.${sp}";
+        $query =~ s/[-_]*sp(\d+)/.$1/gi;
+        if ($query =~ /^\d+(?:\.\d+)?$/) {
+            $query = "=" . $query;
+        }
+        return check_version($query, $version, qr/\d{2}(?:\.\d+)?/);
     }
-    return check_version($query, $version, qr/\d{2}(?:\.\d+)?/);
+
+    return 0;
 }
 
 
