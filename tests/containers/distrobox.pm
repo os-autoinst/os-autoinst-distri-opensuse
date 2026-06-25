@@ -11,6 +11,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use package_utils 'install_package';
+use utils qw(script_retry);
 
 our $user = $testapi::username;
 our $password = $testapi::password;
@@ -55,7 +56,7 @@ sub run {
     validate_script_output 'distrobox list', sub { !m/box-root/ };
 
     record_info 'Test', 'Test upgrade function';
-    assert_script_run 'distrobox create -n box-root', timeout => 300;
+    script_retry('distrobox create --pull -n box-root', delay => 60, retry => 3, timeout => 300);
     assert_script_run 'distrobox upgrade box-root', timeout => 300;
     assert_script_run 'distrobox rm box-root';
 
