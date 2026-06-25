@@ -37,4 +37,4 @@ repos:
     filter: name
 selinux:
   status: enabled
-  mode: permissive
+  mode: enforcing
