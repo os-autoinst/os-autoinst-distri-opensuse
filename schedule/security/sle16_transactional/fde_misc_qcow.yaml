@@ -1,0 +1,14 @@
+name: fde_misc_qcow
+description: >
+  Test fde misc using preinstalled qcow2 images in immutable mode
+schedule:
+  - installation/bootloader_uefi
+  - jeos/firstrun
+  - transactional/host_config
+  - console/suseconnect_scc
+  - microos/services_enabled
+  - transactional/disable_timers
+  - security/selinux/selinux_setup
+  - security/tpm2/tpm2_verify_presence
+  - security/tpm2/tpm2_fail_key_unsealing
+  - security/fde_regenerate_key

@@ -21,6 +21,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils qw(is_sle is_transactional is_sle_micro);
+use package_utils 'install_package';
 
 sub is_older_product {
     return 1 if is_sle('<16');
@@ -35,8 +36,8 @@ sub run {
     my $current_ver = script_output("rpm -q --qf '%{version}\n' openssh");
     record_info("openssh version", "Current openssh package version: $current_ver");
 
-    # this package is not available on SL Micro
-    zypper_call('in expect') unless is_transactional;
+    # expect package is not available on SL Micro
+    install_package('expect', trup_apply => 1) unless is_sle_micro;
 
     # on Tumbleweed sshd is not active by default:
     # ensure sshd is installed and started before trying to connect

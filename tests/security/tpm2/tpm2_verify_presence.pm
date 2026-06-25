@@ -8,11 +8,12 @@
 use Mojo::Base 'opensusebasetest';
 use serial_terminal 'select_serial_terminal';
 use testapi;
-
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
+    install_package('fde-tools', trup_continue => 1, trup_reboot => 1);
     my $out = script_output('fdectl tpm-present', proceed_on_failure => 1);
     record_info('TPM output', $out);
 
