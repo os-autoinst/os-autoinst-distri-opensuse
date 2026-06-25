@@ -50,14 +50,6 @@ sub run {
     }
 }
 
-sub cleanup {
-    my ($self) = @_;
-    if (is_azure()) {
-        record_info('azuremetadata', $self->{run_args}->{my_instance}->ssh_script_output(cmd => "sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml"));
-    }
-    1;
-}
-
 sub test_flags {
     return {fatal => 1};
 }
