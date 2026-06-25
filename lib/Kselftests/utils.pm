@@ -25,11 +25,21 @@ use transactional qw(trup_apply);
 use utils qw(write_sut_file systemctl);
 
 our @EXPORT = qw(
+  export_kselftest_env
   install_kselftests
   post_process_single
   post_process
   validate_kconfig
 );
+
+sub export_kselftest_env {
+    my $kselftest_env = get_var('KSELFTEST_ENV');
+
+    if ($kselftest_env) {
+        $kselftest_env =~ s/,/ /g;
+        script_run("export $kselftest_env");
+    }
+}
 
 sub build
 {
@@ -56,6 +66,7 @@ sub build
         assert_script_run("mount -t overlay overlay -o lowerdir=$real_build_dir,upperdir=$overlay/upper,workdir=$overlay/work $real_build_dir");
     }
 
+    export_kselftest_env();
     my $jobs = get_var('KSELFTEST_BUILD_JOBS', '$(getconf _NPROCESSORS_ONLN)');
     my $build_env = get_var('KSELFTEST_BUILD_ENV', '');
     my $make_cmd = "make -j$jobs -C $source_dir/tools/testing/selftests install O=$build_dir SKIP_TARGETS= TARGETS=$targets FORCE_TARGETS=1 $build_env";
