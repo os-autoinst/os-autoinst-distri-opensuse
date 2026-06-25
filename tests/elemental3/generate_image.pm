@@ -283,7 +283,7 @@ sub run {
         "run zypper addrepo --check --refresh ${totest_path}/standard elemental"
     );
     trup_call('--continue run zypper --gpg-auto-import-keys refresh');
-    install_package('elemental3ctl squashfs mtools xorriso', trup_apply => 1);
+    install_package('elemental3ctl squashfs mtools xorriso', trup_apply => 1, trup_continue => 1);
 
     # Use a crypted password
     my $hashpwd = script_output("openssl passwd -6 $rootpwd");
