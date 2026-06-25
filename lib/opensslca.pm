@@ -40,7 +40,7 @@ sub self_sign_ca {
     assert_script_run qq(openssl genrsa -out server.key 2048);
     assert_script_run qq(openssl req -new -key server.key -out server.csr -subj "/C=CN/ST=Beijing/L=Beijing/O=QA/OU=security/CN=$cn_name.example.com");
     assert_script_run qq(openssl x509 -req -days 3560 -CA myca.pem -CAkey myca.key -CAcreateserial -in server.csr -out server.pem);
-    assert_script_run qq(openssl pkcs12 -export -inkey server.key -in server.pem -out crt.p12 -nodes -name Server-Cert -password pass:"");
+    assert_script_run qq(openssl pkcs12 -export -nomac  -inkey server.key -in server.pem -out crt.p12 -name Server-Cert -password pass:"");
     assert_script_run qq(openssl verify -verbose -CAfile myca.pem server.pem);
 }
 
