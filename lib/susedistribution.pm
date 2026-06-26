@@ -952,7 +952,6 @@ sub activate_console {
         handle_password_prompt($console);
         assert_screen('text-logged-in-root', 60) unless is_hyperv;
         $self->set_standard_prompt('root', os_type => $os_type, skip_set_standard_prompt => $args{skip_set_standard_prompt});
-        save_svirt_pty;
     }
     elsif (
         $console eq 'installation'

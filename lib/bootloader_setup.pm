@@ -1318,7 +1318,7 @@ sub zkvm_add_disk {
                 $hdd_path or die "Unable to find image $basename in $hdd_dir";
                 diag("HDD path found: $hdd_path");
 
-                enter_cmd("# copying image ($basename)...");
+                record_info("copying image ($basename)...");
                 if (my $size = get_var("HDDSIZEGB_$di")) {
                     $size .= "G";
                     $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id, size => $size});
