@@ -13,7 +13,7 @@ use testapi;
 use strict;
 use warnings;
 use utils;
-use version_utils 'is_transactional';
+use version_utils qw(is_transactional);
 use transactional;
 use base 'opensusebasetest';
 use serial_terminal qw(select_serial_terminal);
@@ -145,7 +145,10 @@ sub validate
 
 sub validate_cuda
 {
-    zypper_call('install -l cmake git cuda-toolkit vulkan-devel freeglut-devel Mesa-libEGL-devel', timeout => 1200);
+    my $gcc_ver = get_var('NVIDIA_CUDA_GCC_VERSION');
+    my $gcc_pkgs = $gcc_ver ? "gcc$gcc_ver gcc$gcc_ver-c++" : "";
+
+    zypper_call("install -l cmake git $gcc_pkgs cuda-toolkit vulkan-devel freeglut-devel Mesa-libEGL-devel", timeout => 1200);
 
     # Query the GPU capabilities
     my $query = script_output('nvidia-smi --query-gpu=compute_cap --format=csv');
@@ -155,14 +158,16 @@ sub validate_cuda
 
     # Compiler smoke test with a simple hello_world program
     assert_script_run('curl -s -o hello_world.cu ' . data_url('cuda/hello_world.cu'));
-    assert_script_run("/usr/local/cuda/bin/nvcc -rdc=true -arch=sm_$compute_cap -o hello_world hello_world.cu");
+    my $nvcc_ccbin = $gcc_ver ? "-ccbin g++-$gcc_ver" : "";
+    assert_script_run("/usr/local/cuda/bin/nvcc -rdc=true -arch=sm_$compute_cap $nvcc_ccbin -std=c++20 -o hello_world hello_world.cu");
     record_info('CUDA Sample', script_output('./hello_world'));
 
     # Build NVIDIA/cuda-samples
-    my $cuda_samples_branch = get_var('NVIDIA_CUDA_SAMPLES_BRANCH', 'v13.2update');
+    my $cuda_samples_branch = get_var('NVIDIA_CUDA_SAMPLES_BRANCH', 'v13.3');
     assert_script_run("git clone --depth 1 --single-branch --branch $cuda_samples_branch https://github.com/NVIDIA/cuda-samples.git");
     assert_script_run('mkdir cuda-samples/build; cd $_');
-    assert_script_run("cmake .. -DCMAKE_CUDA_COMPILER_TOOLKIT_ROOT=/usr/local/cuda -DCMAKE_CUDA_ARCHITECTURES=$compute_cap -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc");
+    my $cmake_compiler_args = $gcc_ver ? "-DCMAKE_C_COMPILER=gcc-$gcc_ver -DCMAKE_CXX_COMPILER=g++-$gcc_ver -DCMAKE_CUDA_HOST_COMPILER=g++-$gcc_ver" : "";
+    assert_script_run("cmake .. -DCMAKE_CUDA_COMPILER_TOOLKIT_ROOT=/usr/local/cuda -DCMAKE_CUDA_ARCHITECTURES=$compute_cap -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc $cmake_compiler_args -DCMAKE_CXX_STANDARD=20 -DCMAKE_CUDA_STANDARD=20");
     assert_script_run('make -j$(nproc)', 3000);
     record_info('CUDA Sample', script_output('./cpp/0_Introduction/clock/clock'));
 }
