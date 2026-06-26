@@ -286,7 +286,8 @@ sub prepare_ssh_key {
 
     $self->reveal_myself;
     # Use the unified ssh keys, or guests can't be reused by different hosts
-    unless (script_run("[[ -f $_host_params{ssh_key_file}.pub ]]") == 0 and script_output("cat $_host_params{ssh_key_file}.pub", proceed_on_failure => 1) != '') {
+    unless (script_run("[[ -f $_host_params{ssh_key_file}.pub ]]") == 0 and script_output("cat $_host_params{ssh_key_file}.pub", proceed_on_failure => 1) ne '') {
+        record_info("Re-generate non-existent or empty ssh key file $_host_params{ssh_key_file}.pub");
         assert_script_run("ssh-keygen -f $_host_params{ssh_key_file} -q -P \"\" <<<y");
     }
     assert_script_run("chmod 600 $_host_params{ssh_key_file} $_host_params{ssh_key_file}.pub");
