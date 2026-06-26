@@ -10,13 +10,23 @@ use Mojo::Base 'Yam::Agama::agama_base';
 use testapi;
 use Utils::Architectures qw(is_s390x is_ppc64le);
 use Utils::Backends qw(is_pvm is_svirt is_hyperv);
-use power_action_utils 'power_action';
+use power_action_utils qw(power_action);
 use version_utils qw(is_vmware is_leap);
 
 sub run {
     my $self = shift;
     select_console 'installation';
     my $reboot_page = $testapi::distri->get_reboot();
+
+    if (check_var('INST_FINISH', 'reboot') || check_var('INST_FINISH_DISABLED', '1')) {
+        $self->wait_boot(textmode => 1, ready_time => 600, bootloader_time => 300);
+        return;
+    }
+    elsif (check_var('INST_FINISH', 'poweroff')) {
+        assert_shutdown(300);
+        power_action('reboot', keepconsole => 1, textmode => 1);
+        return;
+    }
     $reboot_page->expect_is_shown();
 
     $self->upload_agama_logs() unless is_hyperv();
