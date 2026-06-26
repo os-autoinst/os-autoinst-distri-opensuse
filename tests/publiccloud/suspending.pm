@@ -38,7 +38,7 @@ sub run {
 
     # Suspend the instance and wait until it is no longer reachable via SSH
     $provider->suspend_instance($instance);
-    $instance->wait_for_ssh(wait_stop => 1);
+    $instance->wait_for_ssh_unreachable();
 
     # Resume the instance and wait until it is reachable via SSH
     $provider->resume_instance($instance);
