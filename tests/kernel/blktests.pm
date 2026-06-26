@@ -16,6 +16,7 @@ use LTP::WhiteList;
 use LTP::utils 'prepare_whitelist_environment';
 use package_utils 'install_package';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
+use Kernel::block_dev 'record_storage_info';
 
 sub prepare_blktests_config {
     my ($devices, $test_case_dev_array) = @_;
@@ -60,6 +61,9 @@ sub run {
     assert_script_run("mkdir -p ${log_dir}/results");
 
     prepare_blktests_config($devices, $test_case_dev_array);
+
+    record_storage_info();
+    record_info('blktests cfg', script_output('cat /etc/blktests/config 2>/dev/null || true'));
 
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
