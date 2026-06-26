@@ -48,6 +48,7 @@ sub run {
       " --agama-web-ui-package-version " . get_var('AGAMA_WEBUI_PACKAGE_VERSION') .
       " $test_options";
 
+    select_console 'install-shell';
     record_info("node cmd", $node_cmd);
     my $ret = script_run($node_cmd, timeout => 2400);
 
