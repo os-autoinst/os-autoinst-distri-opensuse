@@ -2152,8 +2152,6 @@ sub script_retry {
 
 Repeat command until expected result or timeout. Return the output of the command on success.
 
-C<$expect> refers to the expected command exit code and defaults to C<0>.
-
 C<$retry> refers to the number of retries and defaults to C<10>.
 
 C<$delay> is the time between retries and defaults to C<30>.
@@ -2162,7 +2160,7 @@ C<$fail_message> is an optional error message in case of failure. Defaults to "W
 
 The command must return within C<$timeout> seconds (default: 25).
 
-If the command doesn't return C<$expect> after C<$retry> retries,
+If the command doesn't work after C<$retry> retries,
 this function will die, if C<$die> is set.
 
 Example:
@@ -2184,7 +2182,9 @@ sub script_output_retry {
         my $ret = eval { script_output($exec, timeout => $timeout, proceed_on_failure => 0); };
         return $ret if ($ret);
         sleep $delay;
-        record_info('Retry', 'script_output failed, retrying.');
+        record_info("Retry", "Command:
+	    $cmd
+	    failed, retrying.");
     }
     die($fail_msg) if $die;
 }
