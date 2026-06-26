@@ -1,0 +1,34 @@
+From 558bb3404e08fc76e4c05d5d869f024424a7fa80 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 26 Jun 2026 23:55:27 +0200
+Subject: [PATCH] test: Set stop_signal to SIGTERM in nginx-based services
+
+The official nginx images set STOPSIGNAL to SIGQUIT which dumps core.
+Set it to SIGTERM to avoid dumping core on e2e tests when containers
+running "sleep infinity" are stopped.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ pkg/e2e/fixtures/watch/rebuild-deps.yaml | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/pkg/e2e/fixtures/watch/rebuild-deps.yaml b/pkg/e2e/fixtures/watch/rebuild-deps.yaml
+index 48b1b45cb0..60b39b17da 100644
+--- a/pkg/e2e/fixtures/watch/rebuild-deps.yaml
++++ b/pkg/e2e/fixtures/watch/rebuild-deps.yaml
+@@ -6,6 +6,7 @@ services:
+         RUN echo "backend_build_marker" > /built
+     command: sleep infinity
+     init: true
++    stop_signal: SIGTERM
+   frontend:
+     build:
+       dockerfile_inline: |
+@@ -14,6 +15,7 @@ services:
+         RUN echo "frontend_build_marker" > /built
+     command: sleep infinity
+     init: true
++    stop_signal: SIGTERM
+     depends_on:
+       - backend
+     develop:
