@@ -28,7 +28,7 @@
       <li><a href="#create_instance">create_instance</a></li>
       <li><a href="#create_instances">create_instances</a></li>
       <li><a href="#on_terraform_apply_timeout">on_terraform_apply_timeout</a></li>
-      <li><a href="#on_terraform_destroy_timeout">on_terraform_destroy_timeout</a></li>
+      <li><a href="#on_terraform_destroy_failure">on_terraform_destroy_failure</a></li>
       <li><a href="#terraform_prepare_env">terraform_prepare_env</a></li>
       <li><a href="#terraform_apply">terraform_apply</a></li>
       <li><a href="#terraform_destroy">terraform_destroy</a></li>
@@ -114,9 +114,9 @@ Returns a string-name containing distri, version, flavor, arch.</code></pre>
 
 <p>This method can be overwritten by child classes to do some special cleanup task if &#39;apply&#39; fails. Terraform was already terminated using the QUIT signal and openqa has a valid shell. The working directory is always the terraform directory, where the statefile and the *.tf is placed.</p>
 
-<h2 id="on_terraform_destroy_timeout">on_terraform_destroy_timeout</h2>
+<h2 id="on_terraform_destroy_failure">on_terraform_destroy_failure</h2>
 
-<p>This method can be overwritten by child classes to do some special cleanup task if &#39;destroy&#39; fails. Terraform was already terminated using the QUIT signal and openqa has a valid shell. The working directory is always the terraform directory, where the statefile and the *.tf is placed.</p>
+<p>This method can be overwritten by child classes to do some special cleanup task if &#39;destroy&#39; fails (including timeout). The working directory is always the terraform directory, where the statefile and the *.tf is placed. Returns 1 if the fallback cleanup succeeded (caller should not die), or a false value if it did not (caller should die).</p>
 
 <h2 id="terraform_prepare_env">terraform_prepare_env</h2>
 
