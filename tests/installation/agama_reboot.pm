@@ -43,7 +43,7 @@ sub verify_agama_auto_install_done_cmdline {
     my $timeout = get_var('AGAMA_INSTALL_TIMEOUT', '480');
     while ($timeout > 0) {
         my $check_install_finish = is_sle('<16.1') ? "journalctl -u agama -u agama-web-server.service | grep -E 'Install phase done|Installation finished'" : "agama status --format json | jq '.installation' | grep succeeded";
-        if (script_run("$check_install_finish") == 0) {
+        if (script_run("$check_install_finish", timeout => 60) == 0) {
             record_info("agama install phase done", script_output('agama config show'));
             return;
         }
