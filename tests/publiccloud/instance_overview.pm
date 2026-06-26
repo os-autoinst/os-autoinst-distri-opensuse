@@ -3,7 +3,7 @@
 # Copyright 2019-2024 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: python3-ec2metadata iproute2 ca-certificates
+# Package: iproute2 ca-certificates
 # Summary: This is just bunch of random commands overviewing the public cloud instance
 # We just register the system, install random package, see the system and network configuration
 # This test module will fail at the end to prove that the test run will continue without rollback
@@ -24,10 +24,6 @@ sub run {
     assert_script_run("uname -a");
 
     assert_script_run("cat /etc/os-release");
-    if (is_ec2) {
-        script_run("ec2metadata --api latest --document | tee ec2metadata.txt");
-        upload_logs("ec2metadata.txt");
-    }
 
     assert_script_run("ps aux | nl");
 
