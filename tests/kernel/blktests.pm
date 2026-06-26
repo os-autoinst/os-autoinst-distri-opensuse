@@ -16,15 +16,19 @@ use LTP::WhiteList;
 use LTP::utils 'prepare_whitelist_environment';
 use package_utils 'install_package';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
+use Kernel::block_dev 'record_storage_info';
 
 sub prepare_blktests_config {
-    my ($devices) = @_;
+    my ($devices, $test_case_dev_array) = @_;
 
     if ($devices eq 'none') {
         record_info('INFO', 'No specific tests device selected');
     } else {
         script_run("echo TEST_DEVS=\\($devices\\) > /etc/blktests/config");
         record_info('INFO', "$devices");
+    }
+    if ($test_case_dev_array) {
+        script_run("echo '$test_case_dev_array' >> /etc/blktests/config");
     }
 }
 
@@ -38,7 +42,9 @@ sub run {
     my $quick = get_var('BLKTESTS_QUICK');
     my $exclude = get_var('BLKTESTS_EXCLUDE');
     my $trtypes = get_var('BLKTESTS_TRTYPES');
+    my $md_kver = get_var('BLKTESTS_MD_KVER');
     my $issues = get_var('BLKTESTS_KNOWN_ISSUES');
+    my $test_case_dev_array = get_var('BLKTESTS_TEST_CASE_DEV_ARRAY');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
     save_and_upload_log('rpm -qi kernel-default', 'kernel_bug_report.txt');
@@ -54,7 +60,10 @@ sub run {
     my $log_dir = '/var/log/blktests';
     assert_script_run("mkdir -p ${log_dir}/results");
 
-    prepare_blktests_config($devices);
+    prepare_blktests_config($devices, $test_case_dev_array);
+
+    record_storage_info();
+    record_info('blktests cfg', script_output('cat /etc/blktests/config 2>/dev/null || true'));
 
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
@@ -77,11 +86,12 @@ sub run {
 
     $exclude = join(' ', map { "--exclude=$_" } @exclude);
     $trtypes = "NVMET_TRTYPES=\"$trtypes\" " if $trtypes;
+    $md_kver = "BLKTESTS_MD_KVER=\"$md_kver\" " if $md_kver;
 
     foreach my $i (@tests) {
         my $config = $devices eq 'none' ? '' : '-c /etc/blktests/config';
         my $quick_arg = $quick ? "--quick=$quick" : '';
-        script_run("${trtypes} ./check $config -o ${log_dir}/results $quick_arg $exclude $i", 1200);
+        script_run("${trtypes}${md_kver}./check $config -o ${log_dir}/results $quick_arg $exclude $i", 1200);
     }
 
     script_run("cd ${log_dir}");
@@ -179,6 +189,21 @@ For blktests, C<test_variant> matches C<BLKTESTS_TRTYPES>.
 
 Optional. Value passed to C<./check --quick>. If unset, C<--quick> is not
 passed and all tests run regardless of their C<QUICK> flag.
+
+=head2 BLKTESTS_TEST_CASE_DEV_ARRAY
+
+Optional. A bash assignment appended verbatim to the blktests config file.
+Required for tests using C<test_device_array()>, such as C<md/003>. Example:
+
+  BLKTESTS_TEST_CASE_DEV_ARRAY='TEST_CASE_DEV_ARRAY[md/003]="/dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1 /dev/nvme3n1"'
+
+=head2 BLKTESTS_MD_KVER
+
+Optional. Overrides the minimum kernel version required by the md test group,
+passed as C<BLKTESTS_MD_KVER> to C<./check>. Useful for distro kernels that
+backport md atomic write support to an older base version. Example:
+
+  BLKTESTS_MD_KVER=6 12 0
 
 =head2 BLKTESTS_TRTYPES
 

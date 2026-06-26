@@ -6,12 +6,6 @@ vars:
     VIDEOMODE: text
     VIRTIO_CONSOLE: 1
     QEMUCPUS: 4
-    NUMDISKS: 5
-    HDDMODEL_1: virtio-blk
-    HDDMODEL_2: nvme
-    HDDMODEL_3: nvme
-    HDDMODEL_4: scsi-hd
-    HDDMODEL_5: scsi-hd
     DUMP_MEMORY_ON_FAIL: 1
     BOOT_HDD_IMAGE: 1
 
