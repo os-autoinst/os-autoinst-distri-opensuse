@@ -122,10 +122,11 @@ sub check_tdx_features {
         }
     }
 
+    my $tdx_init_msg = is_sle('<16.1') ? 'virt/tdx: module initialized' : 'virt/tdx: TDX-Module initialized';
     my %dmesg_tdx_events = (
         'virt/tdx: BIOS enabled: private KeyID range' => 'TDX enabled and KeyIDs partitioned in BIOS',
         'allocated for PAMT' => 'PAMT memory successfully allocated',
-        'virt/tdx: module initialized' => 'TDX kernel module fully initialized'
+        $tdx_init_msg => 'TDX kernel module fully initialized'
     );
 
     # Get dmesg output
