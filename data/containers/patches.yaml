@@ -86,27 +86,12 @@ moby:
   # https://github.com/moby/moby/pull/51794 - integration: Support iputils ping
   # https://github.com/moby/moby/pull/51970 - Skip some tests as rootless when SELinux is enabled
   # https://github.com/moby/moby/pull/51972 - integration: Support containerd pull error message
-  # https://github.com/moby/moby/pull/52116 - integration/container: use page-aligned shm size to fix test on ppc64le
-  # https://github.com/moby/moby/pull/52117 - integration/capabilities: Switch to debian:trixie-slim
-  # https://github.com/moby/moby/pull/52119 - integration/image: pull ppc64le and s390x in TestSaveAndLoadPlatform
-  # https://github.com/moby/moby/pull/52197 - integration: ignore container Status field in DiskUsage test comparisons
   # https://github.com/moby/moby/pull/52199 - Fix testsuite when running directly as rootless
   51794:
   51970:
     min: "29.2.0"
   51972:
     min: "29.2.0"
-  52116:
-    min: "29.2.0"
-    merged: "29.3.0"
-  52117:
-    merged: "29.3.0"
-  52119:
-    min: "29.2.0"
-    merged: "29.3.0"
-  52197:
-    min: "29.2.0"
-    merged: "29.4.0"
   52199:
     min: "29.2.0"
 
