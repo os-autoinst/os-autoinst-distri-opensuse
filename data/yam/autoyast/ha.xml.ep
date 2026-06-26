@@ -5,7 +5,6 @@
     <do_registration config:type="boolean">true</do_registration>
     <email/>
     <reg_code>{{SCC_REGCODE}}</reg_code>
-    <reg_server>{{SCC_URL}}</reg_server>
     <install_updates config:type="boolean">true</install_updates>
     <addons config:type="list">
       <addon>

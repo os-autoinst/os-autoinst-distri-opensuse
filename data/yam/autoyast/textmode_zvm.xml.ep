@@ -101,7 +101,6 @@
     <do_registration t="boolean">true</do_registration>
     <install_updates t="boolean">true</install_updates>
     <reg_code>{{SCC_REGCODE}}</reg_code>
-    <reg_server>{{SCC_URL}}</reg_server>
   </suse_register>
   <users t="list">
     <user t="map">
