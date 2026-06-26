@@ -406,18 +406,18 @@ and the *.tf is placed.
 sub on_terraform_apply_timeout {
 }
 
-=head2 on_terraform_destroy_timeout
+=head2 on_terraform_destroy_failure
 
 This method can be overwritten by child classes to do some special
-cleanup task if 'destroy' fails.
-Terraform was already terminated using the QUIT signal and openqa has a
-valid shell.
+cleanup task if 'destroy' fails (including timeout).
 The working directory is always the terraform directory, where the statefile
 and the *.tf is placed.
+Returns 1 if the fallback cleanup succeeded (caller should not die),
+or a false value if it did not (caller should die).
 
 =cut
 
-sub on_terraform_destroy_timeout {
+sub on_terraform_destroy_failure {
 }
 
 =head2 terraform_prepare_env
@@ -684,9 +684,10 @@ sub terraform_destroy {
     }
     # Regarding the use of '-lock=false': Ignore lock to avoid "Error acquiring the state lock"
     my $cmd = terraform_cmd($runner . ' destroy -no-color -auto-approve -lock=false', %vars);
+    my $terraform_timeout = get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT);
     # Retry 3 times with considerable delay. This has been introduced due to poo#95932 (RetryableError)
     # terraform keeps track of the allocated and destroyed resources, so its safe to run this multiple times.
-    my $ret = script_retry($cmd, retry => 9, delay => 180, timeout => get_var('TERRAFORM_TIMEOUT', TERRAFORM_TIMEOUT), die => 0);
+    my $ret = script_retry($cmd, retry => 9, delay => 180, timeout => $terraform_timeout, die => 0);
     unless (defined $ret) {
         if (is_serial_terminal()) {
             type_string(qq(\c\\));    # Send QUIT signal
@@ -695,14 +696,14 @@ sub terraform_destroy {
             send_key('ctrl-\\');    # Send QUIT signal
         }
         assert_script_run('true');    # make sure we have a prompt
-        record_info('ERROR', 'Terraform destroy failed with timeout', result => 'fail');
-        assert_script_run('cd ' . TERRAFORM_DIR);
-        $self->on_terraform_destroy_timeout();
+        $ret = -1;
     }
 
     if ($ret != 0) {
-        record_info('ERROR', 'Terraform exited with ' . $ret, result => 'fail');
-        die('Terraform destroy failed');
+        record_info('ERROR', 'Terraform destroy failed with exit code ' . $ret, result => 'fail');
+        record_info('TFM CLEANUP', 'Attempting provider-level cleanup after failed destroy...');
+        assert_script_run('cd ' . TERRAFORM_DIR);
+        die('Terraform destroy failed') unless $self->on_terraform_destroy_failure();
     }
 }
 

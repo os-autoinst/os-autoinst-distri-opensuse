@@ -545,15 +545,17 @@ sub upload_boot_diagnostics {
     }
 }
 
-sub on_terraform_destroy_timeout {
+sub on_terraform_destroy_failure {
     my ($self) = @_;
-    my $out = script_output('terraform state show azurerm_resource_group.openqa-group');
-    if ($out !~ /name\s+=\s+(openqa-[a-z0-9]+)/m) {
+    my $runner = get_var('PUBLIC_CLOUD_TERRAFORM_RUNNER', 'tofu');
+    my $out = script_output("$runner state show azurerm_resource_group.openqa-group");
+    if ($out !~ /name\s+=\s+"([^"]+)"/m) {
         record_info('ERROR', 'Unable to get resource-group:' . $/ . $out, result => 'fail');
-        return;
+        return 0;
     }
     my $resgroup = $1;
     assert_script_run("az group delete --yes --no-wait --name $resgroup");
+    return 1;
 }
 
 sub get_state_from_instance {
