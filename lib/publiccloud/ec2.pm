@@ -11,6 +11,7 @@ package publiccloud::ec2;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
+use utils qw(random_string);
 use version_utils qw(is_transactional is_sle);
 use Utils::Architectures qw(is_aarch64);
 use publiccloud::utils qw(is_byos pc_data_url);
@@ -304,15 +305,24 @@ sub query_metadata {
 sub _disable_and_stop_ec2_cloudwatch_agent {
     my ($self, $instance) = @_;
 
-    $instance->ssh_assert_script_run("sudo systemctl disable --now amazon-cloudwatch-agent");
-    $instance->retry_ssh_command(
-        cmd => "! sudo systemctl is-active amazon-cloudwatch-agent",
-        timeout => 420,
-        retry => 6,
-        delay => 60
-    );
+    # systemctl is-enabled exits 4 when the unit file does not exist at all.
+    return if $instance->ssh_script_run("sudo systemctl is-enabled amazon-cloudwatch-agent") == 4;
 
-    sleep 3 * 60;    # wait for CloudWatch agent to flush logs
+    if ($instance->ssh_script_run("sudo systemctl is-active amazon-cloudwatch-agent") == 0) {
+        my $instance_id = $instance->instance_id;
+        my $region = $self->provider_client->region;
+        my $token = random_string(6) . '-vamoosed';
+        $instance->ssh_assert_script_run("echo 'openqa-cloudwatch-fence-$token' | sudo tee -a /var/log/dmesg");
+        $instance->ssh_script_retry(
+            "aws logs get-log-events --region '$region' --log-group-name '/ec2/logs/dmesg' " .
+              "--log-stream-name '$instance_id' --no-start-from-head --limit 10 " .
+              "--query 'events[*].message' --output text | grep -q '$token'",
+            retry => 6, delay => 5, timeout => 30
+        );
+        $instance->ssh_script_run("sudo systemctl disable --now amazon-cloudwatch-agent");
+    } else {
+        $instance->ssh_script_run("sudo systemctl disable amazon-cloudwatch-agent");
+    }
 }
 
 sub _fetch_ec2_cloudwatch_log_events {
