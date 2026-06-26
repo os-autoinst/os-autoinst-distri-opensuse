@@ -18,13 +18,16 @@ use package_utils 'install_package';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
 
 sub prepare_blktests_config {
-    my ($devices) = @_;
+    my ($devices, $test_case_dev_array) = @_;
 
     if ($devices eq 'none') {
         record_info('INFO', 'No specific tests device selected');
     } else {
         script_run("echo TEST_DEVS=\\($devices\\) > /etc/blktests/config");
         record_info('INFO', "$devices");
+    }
+    if ($test_case_dev_array) {
+        script_run("echo '$test_case_dev_array' >> /etc/blktests/config");
     }
 }
 
@@ -40,6 +43,7 @@ sub run {
     my $trtypes = get_var('BLKTESTS_TRTYPES');
     my $md_kver = get_var('BLKTESTS_MD_KVER');
     my $issues = get_var('BLKTESTS_KNOWN_ISSUES');
+    my $test_case_dev_array = get_var('BLKTESTS_TEST_CASE_DEV_ARRAY');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
     save_and_upload_log('rpm -qi kernel-default', 'kernel_bug_report.txt');
@@ -55,7 +59,7 @@ sub run {
     my $log_dir = '/var/log/blktests';
     assert_script_run("mkdir -p ${log_dir}/results");
 
-    prepare_blktests_config($devices);
+    prepare_blktests_config($devices, $test_case_dev_array);
 
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');
@@ -181,6 +185,13 @@ For blktests, C<test_variant> matches C<BLKTESTS_TRTYPES>.
 
 Optional. Value passed to C<./check --quick>. If unset, C<--quick> is not
 passed and all tests run regardless of their C<QUICK> flag.
+
+=head2 BLKTESTS_TEST_CASE_DEV_ARRAY
+
+Optional. A bash assignment appended verbatim to the blktests config file.
+Required for tests using C<test_device_array()>, such as C<md/003>. Example:
+
+  BLKTESTS_TEST_CASE_DEV_ARRAY='TEST_CASE_DEV_ARRAY[md/003]="/dev/nvme0n1 /dev/nvme1n1 /dev/nvme2n1 /dev/nvme3n1"'
 
 =head2 BLKTESTS_MD_KVER
 
