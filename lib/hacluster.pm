@@ -661,7 +661,7 @@ sub lvm_add_filter {
     my ($type, $filter) = @_;
     my $lvm_conf = '/etc/lvm/lvm.conf';
 
-    assert_script_run "sed -ie '/^[[:blank:]][[:blank:]]*filter/s;\\[[[:blank:]]*;\\[ \"$type|$filter|\", ;' $lvm_conf";
+    assert_script_run "sed -i -e '/^[[:blank:]][[:blank:]]*filter/s;\\[[[:blank:]]*;\\[ \"$type|$filter|\", ;' $lvm_conf";
 }
 
 =head2 lvm_remove_filter
@@ -676,7 +676,7 @@ sub lvm_remove_filter {
     my $filter = shift;
     my $lvm_conf = '/etc/lvm/lvm.conf';
 
-    assert_script_run "sed -ie '/^[[:blank:]][[:blank:]]*filter/s;$filter;;' $lvm_conf";
+    assert_script_run "sed -i -e '/^[[:blank:]][[:blank:]]*filter/s;$filter;;' $lvm_conf";
 }
 
 =head2 rsc_cleanup
@@ -1139,7 +1139,7 @@ sub set_lvm_config {
     my $cmd;
 
     foreach my $param (keys %args) {
-        $cmd = sprintf("sed -ie 's/^\\([[:blank:]]*%s[[:blank:]]*=\\).*/\\1 %s/' %s", $param, $args{$param}, $lvm_conf);
+        $cmd = sprintf("sed -i -e 's/^\\([[:blank:]]*%s[[:blank:]]*=\\).*/\\1 %s/' %s", $param, $args{$param}, $lvm_conf);
         assert_script_run $cmd;
     }
 
@@ -1164,8 +1164,8 @@ sub add_lock_mgr {
     $args{force} //= 0;
     my $cmd = join(' ', 'crm', ($args{force} ? '--force' : ''), 'configure', 'edit');
 
-    assert_script_run "EDITOR=\"sed -ie '\$ a primitive $lock_mgr ocf:heartbeat:$lock_mgr'\" $cmd";
-    assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $lock_mgr/'\" $cmd";
+    assert_script_run "EDITOR=\"sed -i -e '\$ a primitive $lock_mgr ocf:heartbeat:$lock_mgr'\" $cmd";
+    assert_script_run "EDITOR=\"sed -i -e 's/^\\(group base-group.*\\)/\\1 $lock_mgr/'\" $cmd";
 
     # Wait to get clvmd/lvmlockd running on all nodes
     sleep 5;

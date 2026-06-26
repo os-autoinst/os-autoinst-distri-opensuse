@@ -72,18 +72,18 @@ sub run {
             assert_script_run "crm configure property maintenance-mode=true";
 
             # Create vip resource
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ip_rsc IPaddr2 params ip='$vip_ip' nic='$iface' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a primitive $ip_rsc IPaddr2 params ip='$vip_ip' nic='$iface' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
 
             # Add ctdb, nmb, smb, group, clone and order resources
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ctdb_rsc CTDB params ctdb_manages_winbind=false ctdb_manages_samba=false ctdb_recovery_lock='$ctdb_folder/ctdb.lock' ctdb_socket='$ctdb_socket''\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $nmb_rsc systemd:nmb'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $smb_rsc systemd:smb'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a group ctdb-group $ctdb_rsc $nmb_rsc $smb_rsc'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a clone ctdb-clone ctdb-group meta interleave=true'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a colocation col-ctdb-with-clusterfs inf: ctdb-clone base-clone'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a colocation col-ip-with-ctdb Mandatory: $ip_rsc ctdb-clone'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a order o-clusterfs-then-ctdb Mandatory: base-clone ctdb-clone'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a order o-ip-then-ctdb Mandatory: $ip_rsc ctdb-clone'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a primitive $ctdb_rsc CTDB params ctdb_manages_winbind=false ctdb_manages_samba=false ctdb_recovery_lock='$ctdb_folder/ctdb.lock' ctdb_socket='$ctdb_socket''\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a primitive $nmb_rsc systemd:nmb'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a primitive $smb_rsc systemd:smb'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a group ctdb-group $ctdb_rsc $nmb_rsc $smb_rsc'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a clone ctdb-clone ctdb-group meta interleave=true'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a colocation col-ctdb-with-clusterfs inf: ctdb-clone base-clone'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a colocation col-ip-with-ctdb Mandatory: $ip_rsc ctdb-clone'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a order o-clusterfs-then-ctdb Mandatory: base-clone ctdb-clone'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a order o-ip-then-ctdb Mandatory: $ip_rsc ctdb-clone'\" crm configure edit";
 
             # Remove maintenance mode and wait for resources start
             assert_script_run "crm configure property maintenance-mode=false";

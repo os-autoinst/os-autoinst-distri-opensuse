@@ -111,26 +111,26 @@ sub run {
         # Create the Filesystem resource
         my $clean_flag = undef;
         my $edit_crm_config_script = "#!/bin/sh
-EDITOR='sed -ie \"\$ a primitive $fs_rsc ocf:heartbeat:Filesystem params device=\'$fs_lun\' directory=\'/srv/$fs_rsc\' fstype=\'$fs_type\'\"' crm configure edit
+EDITOR='sed -i -e \"\$ a primitive $fs_rsc ocf:heartbeat:Filesystem params device=\'$fs_lun\' directory=\'/srv/$fs_rsc\' fstype=\'$fs_type\'\"' crm configure edit
 ";
         # Only OCFS2 and GFS can be cloned
         if ($fs_type eq 'ocfs2' || $fs_type eq 'gfs2') {
             $edit_crm_config_script .= "
-EDITOR='sed -ie \"s/^\\(group base-group.*\\)/\\1 $fs_rsc/\"' crm configure edit
+EDITOR='sed -i -e \"s/^\\(group base-group.*\\)/\\1 $fs_rsc/\"' crm configure edit
 ";
         }
         else {
             if ($resource eq 'drbd_passive') {
                 my $role = is_sle('>=15-SP4') ? "Promoted" : "Master";
                 $edit_crm_config_script .= "
-EDITOR='sed -ie \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:$role\"' crm configure edit
-EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start\"' crm configure edit
+EDITOR='sed -i -e \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc ms_$resource:$role\"' crm configure edit
+EDITOR='sed -i -e \"\$ a order order_$fs_rsc Mandatory: ms_$resource:promote $fs_rsc:start\"' crm configure edit
 ";
             }
             else {
                 $edit_crm_config_script .= "
-EDITOR='sed -ie \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource\"' crm configure edit
-EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' crm configure edit
+EDITOR='sed -i -e \"\$ a colocation colocation_$fs_rsc inf: $fs_rsc vg_$resource\"' crm configure edit
+EDITOR='sed -i -e \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' crm configure edit
 ";
             }
             $clean_flag = "cleanup";

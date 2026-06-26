@@ -2378,7 +2378,7 @@ sub start_guest_installation {
     #The -Logfile option is only supported by more recent operating systems.
     $self->{guest_installation_session_config} = script_output("cd ~;pwd") . '/' . $self->{guest_name} . '_installation_screen_config';
     script_run("rm -f -r $self->{guest_installation_session_config};touch $self->{guest_installation_session_config};chmod 777 $self->{guest_installation_session_config}");
-    script_run("cat /etc/screenrc > $self->{guest_installation_session_config};sed -in \'/^logfile .*\$/d\' $self->{guest_installation_session_config}");
+    script_run("cat /etc/screenrc > $self->{guest_installation_session_config};sed -i \'/^logfile .*\$/d\' $self->{guest_installation_session_config}");
     script_run("echo \"logfile $_guest_installation_log\" >> $self->{guest_installation_session_config}");
     if ($self->{guest_os_name} eq 'windows') {
         # Windows guests need running on background
@@ -3068,7 +3068,7 @@ sub do_attach_guest_installation_screen_without_session {
             $_attach_timestamp =~ s/ |:/_/g;
             my $_guest_installation_log = "$_host_params{common_log_folder}/$self->{guest_name}/$self->{guest_name}" . "_installation_log_" . $_attach_timestamp;
             $self->{guest_installation_session_config} = script_output("cd ~;pwd") . '/' . $self->{guest_name} . '_installation_screen_config' if ($self->{guest_installation_session_config} eq '');
-            script_run("> $self->{guest_installation_session_config};cat /etc/screenrc > $self->{guest_installation_session_config};sed -in \'/^logfile .*\$/d\' $self->{guest_installation_session_config}");
+            script_run("> $self->{guest_installation_session_config};cat /etc/screenrc > $self->{guest_installation_session_config};sed -i \'/^logfile .*\$/d\' $self->{guest_installation_session_config}");
             script_run("echo \"logfile $_guest_installation_log\" >> $self->{guest_installation_session_config}");
          #Use "screen" in the most compatible way, screen -t "title (window's name)" -c "screen configuration file" -L(turn on output logging) "command to run".
             #The -Logfile option is only supported by more recent operating systems.
