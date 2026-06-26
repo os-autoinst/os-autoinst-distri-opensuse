@@ -34,6 +34,13 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 
 sub run {
     select_serial_terminal;
+    if (is_s390x && is_sle('15+')) {
+        assert_script_run 'chronyc makestep';
+        assert_script_run 'chronyc waitsync 120 0.5', 1210;
+        assert_script_run 'chronyc sources';
+        assert_script_run 'chronyc tracking';
+        assert_script_run 'chronyc activity';
+    }
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle('15-SP2+');
     if (is_sle('<=12-SP5')) {
         # preinstall libopenssl-devel & libmysqlclient-devel because on 12* are multiple versions and zypper can't decide,
@@ -41,12 +48,15 @@ sub run {
         zypper_call '-v in libopenssl-devel libmysqlclient-devel bind rpm-build perl-IO-Socket-INET6 python3-pytest';
     }
     elsif (is_sle('>=15')) {
-        my $version = get_var('VERSION');
-        # Temporary repo, will move it to QA:Maintenance:bind
-        zypper_call("ar -G http://download.suse.de/ibs/home:/dzedro:/branches:/SUSE:/SLE-15-SP7:/Head/SLE-$version/home:dzedro:branches:SUSE:SLE-15-SP7:Head.repo") if is_sle('=15-SP7');
+        # BIND_REPO for latest test dependencies
+        if (is_sle('=15-SP7') && get_var('BIND_REPO')) {
+            my $bind_repo = get_var('BIND_REPO');
+            zypper_call("ar -f $bind_repo bind_repo");
+            zypper_call("--gpg-auto-import-keys ref");
+        }
         # bind-utils for dig, net-tools-deprecated for ifconfig, perl-IO-Socket-INET6 for reclimit,
         # perl-Net-DNS for xfer, dnspython for chain test
-        zypper_call 'in bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython git-core python3-pytest python3-hypothesis jemalloc-devel libcmocka-devel';
+        zypper_call '-v in bind rpm-build bind-utils net-tools-deprecated perl-IO-Socket-INET6 perl-Socket6 perl-Net-DNS python3-dnspython git-core python3-pytest python3-hypothesis jemalloc-devel libcmocka-devel';
         # xdist for parallel test execution and other test dependencies
         # sphinx_rtd_theme for never version of Sphinx and python3*-dnspython python3*-flaky from QA:Maintenance:bind repo required for some tests to pass
         zypper_call('-v in python3*-Jinja2 python3*-pytest-xdist python3*-dnspython python3*-hypothesis python3*-sphinx_rtd_theme gnutls', exitcode => [0, 107]) if is_sle('=15-SP7');
