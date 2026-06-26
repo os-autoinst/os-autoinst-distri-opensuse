@@ -489,6 +489,7 @@ Variable        | Type      | Default value | Details
 XFSTEST_MKFS_OPTION | string | | BTRFS only, value=<options-in-mkfs>. Set the options in mkfs.btrfs. And also set it in xfstests runtime option BTRFS_MKFS_OPTIONS.
 XFSTESTS_LOGDEV | boolean | 0 | XFS only, value=0/1. enable log device in testing xfs
 XFSTESTS_LOOP_DEVICE | boolean | 0 | Create loop device for testing
+XFSTESTS_DD_CREATE_DISK | boolean | 0 | Use dd with chattr +C (NoCoW) to create loop device files with real physical space. On Btrfs hosts, this prevents: (1) compression of zero blocks making dd ineffective, (2) CoW-induced space explosion when fio writes random data, causing host ENOSPC/crash. chattr +C only affects host storage, not the filesystem inside loop device. Safe for all test types including btrfs. Slower than fallocate but essential for debugging ENOSPC tests like generic/299 on Btrfs hosts
 XFSTESTS_ZONE_DEVICE | boolean | 0 | Create zoned device for testing
 XFSTESTS_XFS_REPAIR | boolean | 0 | XFS only, value=0/1. enable TEST_XFS_REPAIR_REBUILD=1 in xfstests log file local.config
 XFSTESTS_NFS_VERSION | string | 4.1 | NFS only, version of test target NFS. What's special is that set it with TLS-<nfsversion> will enable NFS over kTLS. And set it with krb5[pi]-<nfsversion> will enable NFS with kerberos5 mount option during tests
