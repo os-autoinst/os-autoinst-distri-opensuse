@@ -90,8 +90,7 @@ EOF
     my $annotate_kmsg = 'perl /tmp/kselftest_kmsg_annotate.pl';
 
     $runner .= " 2>&1 | $annotate_kmsg | tee -a \$HOME/summary.tap; echo $stamp END";
-    my $env = get_var('KSELFTEST_ENV') // '';
-    $runner = $env . " $runner";
+    export_kselftest_env();
 
     script_run("echo '$stamp BEGIN' > /dev/kmsg");
     wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
