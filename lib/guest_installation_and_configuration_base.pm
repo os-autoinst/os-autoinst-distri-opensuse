@@ -245,7 +245,8 @@ sub prepare_common_environment {
         disable_and_stop_service('named.service', ignore_failure => 1);
         script_run("rm -f -r $_host_params{common_log_folder}");
         assert_script_run("mkdir -p $_host_params{common_log_folder}");
-        enable_debug_logging if (is_sle('<16', get_var('VERSION_TO_INSTALL', get_required_var('VERSION'))));
+        my $version_to_install = get_var('VERSION_TO_INSTALL') || get_required_var('VERSION');
+        enable_debug_logging if (is_sle('<16', $version_to_install));
         $_host_params{host_sutip} = get_required_var('SUT_IP') if (is_ipmi);
         my $_default_route = script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+", proceed_on_failure => 1);
         my $_default_device = ((!$_default_route) ? 'br0' : (split(' ', script_output("ip route show default | grep -i dhcp | grep -vE br[[:digit:]]+ | head -1")))[4]);
@@ -2657,7 +2658,7 @@ sub setup_guest_agama_installation_shell {
     }
     else {
         enter_cmd("clear", wait_still_screen => 3);
-        if (script_run("timeout --kill-after=1 --signal=9 60 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}") != 0) {
+        if (script_run("timeout --kill-after=1 --signal=9 60 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", timeout => 70) != 0) {
             type_string("reset\n");
             wait_still_screen;
             enter_cmd("timeout --kill-after=1 --signal=9 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
@@ -2665,7 +2666,7 @@ sub setup_guest_agama_installation_shell {
             enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
         }
         wait_still_screen(15);
-        if (script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
+        if (script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls", timeout => 70) != 0) {
             $self->record_guest_installation_result('FAILED');
             record_info("Guest $self->{guest_name} agama installer shell ssh pubkey login failed", "Try login with password to guest $self->{guest_name} agama installer shell", result => 'fail');
             enter_cmd("clear", wait_still_screen => 3);
