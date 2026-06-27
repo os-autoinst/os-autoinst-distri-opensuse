@@ -45,6 +45,25 @@ subtest 'script_retry' => sub {
     is $called, 3, 'command called multiple times on failing command';
 };
 
+use List::Util qw(any none);
+
+subtest 'script_retry timeout' => sub {
+    my $testapi = Test::MockModule->new('utils');
+    my @calls;
+    my $timeout;
+    $testapi->redefine("script_run", sub {
+            my $cmd = shift;
+            $timeout = shift;
+            push @calls, $cmd;
+            return 0; });
+
+    script_retry('pippo', retry => 2, delay => 0, timeout => 42);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /timeout 42.*pippo/ } @calls), 'script_run command correctly composed');
+    ok(($timeout > 42), "script_run timeout:$timeout is larger than script_retry timeout 42");
+};
+
 
 subtest 'validate_script_output_retry' => sub {
     my $module = Test::MockModule->new('testapi');
