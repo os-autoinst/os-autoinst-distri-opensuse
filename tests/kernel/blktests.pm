@@ -16,7 +16,7 @@ use LTP::WhiteList;
 use LTP::utils 'prepare_whitelist_environment';
 use package_utils 'install_package';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
-use Kernel::block_dev 'record_storage_info';
+use Kernel::block_dev qw(is_block_device record_storage_info);
 
 sub prepare_blktests_config {
     my ($devices, $test_case_dev_array) = @_;
@@ -64,6 +64,9 @@ sub run {
 
     record_storage_info();
     record_info('blktests cfg', script_output('cat /etc/blktests/config 2>/dev/null || true'));
+    # BLKTESTS_TEST_DEVS may be set to 'none' to let blktests use its own defaults,
+    # so skip the is_block_device check in such case
+    is_block_device(split(/\s+/, $devices)) if $devices ne 'none';
 
     my @tests = split(',', $tests);
     assert_script_run('cd /usr/lib/blktests');

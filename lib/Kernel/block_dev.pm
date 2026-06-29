@@ -15,8 +15,27 @@ use warnings;
 use testapi;
 
 our @EXPORT_OK = qw(
+  is_block_device
   record_storage_info
 );
+
+=head2 is_block_device
+
+ is_block_device(@devices);
+
+Asserts that each device in the list exists as a block device. Dies if any
+device is not found, allowing the test to fail if a block device is not detected
+on the SUT.
+
+=cut
+
+sub is_block_device {
+    my (@devices) = @_;
+    for my $dev (@devices) {
+        assert_script_run("test -b $dev",
+            fail_message => "Block device $dev not found");
+    }
+}
 
 =head2 record_storage_info
 
