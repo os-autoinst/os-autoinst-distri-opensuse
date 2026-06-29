@@ -194,7 +194,8 @@ Does B<not> work on B<Hyper-V>.
 sub save_svirt_pty {
     return if check_var('VIRSH_VMM_FAMILY', 'hyperv');
     my $name = console('svirt')->name;
-    enter_cmd "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`";
+    enter_cmd "pty=`virsh ttyconsole $name`";
+    wait_still_screen 1;
     enter_cmd "echo \$pty";
 }
 
@@ -392,6 +393,7 @@ sub unlock_if_encrypted {
 
     if (get_var('S390_ZKVM')) {
         select_console('svirt');
+        save_svirt_pty;
 
         # enter passphrase twice (before grub and after grub) if full disk is encrypted
         if (get_var('FULL_LVM_ENCRYPT')) {
