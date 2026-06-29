@@ -18,6 +18,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call script_retry script_output_retry file_content_replace);
 use mmapi 'get_current_job_id';
+use power_action_utils;
+use version_utils;
 use containers::k8s;
 
 my $vmi_user = 'test';
@@ -30,8 +32,16 @@ my $vmi_image = get_var('CONTAINER_IMAGE_TO_TEST', 'registry.opensuse.org/opensu
 sub install_kubevirt {
     zypper_call('in kubevirt-manifests kubevirt-virtctl', timeout => 300);
 
-    assert_script_run('kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-operator.yaml', 180);
-    assert_script_run('kubectl apply -f /usr/share/kube-virt/manifests/release/kubevirt-cr.yaml', 180);
+    my $manifest_dir = script_output(
+        q{find /usr/share -type f -path '*/manifests/release/kubevirt-operator.yaml' -printf '%h\n' -quit}
+    );
+
+    die 'KubeVirt manifest directory not found' unless $manifest_dir;
+
+    record_info('KubeVirt manifests', $manifest_dir);
+
+    assert_script_run("kubectl apply -f $manifest_dir/kubevirt-operator.yaml", 180);
+    assert_script_run("kubectl apply -f $manifest_dir/kubevirt-cr.yaml", 180);
 
     assert_script_run('kubectl -n kubevirt wait kv kubevirt --for condition=Available --timeout=600s', 620);
     assert_script_run('kubectl get all -n kubevirt');
@@ -126,11 +136,46 @@ sub cleanup_vmi {
     script_run("rm -f $vmi_ssh_key_path $vmi_ssh_key_path.pub") if $vmi_ssh_key_path;
 }
 
+# Gets the currently used kernel flavor, e.g. `kernel-default`
+sub current_kernel_flavor {
+    return script_output(q{
+        rpm -qf /boot/config-$(uname -r) \
+        | sed -r 's/-[0-9].*$//'
+    });
+}
+
+sub install_kernel_with_kvm_support {
+    my ($self) = @_;
+
+    return if current_kernel_flavor() eq 'kernel-default';
+
+    record_info("Installing kernel-default instead of " . current_kernel_flavor);
+
+    zypper_call('in kernel-default', timeout => 300);
+    zypper_call("rm " . current_kernel_flavor, timeout => 300);
+
+    power_action('reboot', textmode => 1);
+    $self->wait_boot(bootloader_time => 300);
+    select_serial_terminal;
+}
+
+sub install_deps {
+    my @deps = (
+        "netcat-openbsd",
+    );
+
+    zypper_call("in @deps");
+}
+
 sub run {
     my ($self, $run_args) = @_;
     my $job_id = get_current_job_id();
 
     select_serial_terminal;
+
+    install_deps;
+
+    $self->install_kernel_with_kvm_support if is_jeos;
 
     record_info('ContainerDisk', $vmi_image);
 
