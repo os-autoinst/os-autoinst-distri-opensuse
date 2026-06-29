@@ -11,7 +11,7 @@ package publiccloud::ec2;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
-use utils qw(random_string);
+use utils qw(random_string script_retry);
 use version_utils qw(is_transactional is_sle);
 use Utils::Architectures qw(is_aarch64);
 use publiccloud::utils qw(is_byos pc_data_url);
@@ -313,11 +313,11 @@ sub _disable_and_stop_ec2_cloudwatch_agent {
         my $region = $self->provider_client->region;
         my $token = random_string(6) . '-vamoosed';
         $instance->ssh_assert_script_run("echo 'openqa-cloudwatch-fence-$token' | sudo tee -a /var/log/dmesg");
-        $instance->ssh_script_retry(
+        script_retry(
             "aws logs get-log-events --region '$region' --log-group-name '/ec2/logs/dmesg' " .
               "--log-stream-name '$instance_id' --no-start-from-head --limit 10 " .
               "--query 'events[*].message' --output text | grep -q '$token'",
-            retry => 6, delay => 5, timeout => 30
+            retry => 6, delay => 5, timeout => 30, die => 0
         );
         $instance->ssh_script_run("sudo systemctl disable --now amazon-cloudwatch-agent");
     } else {
