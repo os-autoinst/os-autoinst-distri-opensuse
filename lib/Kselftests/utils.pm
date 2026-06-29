@@ -187,9 +187,6 @@ sub install_dependencies
         if (is_tumbleweed()) {
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/openSUSE_Factory/network:utilities.repo';
             $bench_repo = 'https://download.opensuse.org/repositories/benchmark/openSUSE_Factory/benchmark.repo';
-        } elsif (is_sle('<16')) {
-            $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/15.6/network:utilities.repo';
-            $bench_repo = 'https://download.opensuse.org/repositories/benchmark/15.6/benchmark.repo';
         } elsif (is_sle('=16.0')) {
             $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/16.0/network:utilities.repo';
             $bench_repo = 'https://download.opensuse.org/repositories/benchmark/16.0/benchmark.repo';
