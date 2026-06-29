@@ -105,7 +105,14 @@ sub regen_efi_secret_key {
 sub check_guest_pmsuspend_enabled {
     my $self = shift;
 
+    # Function-level skip for all LTSS hosts to avoid bsc#1270215 deadlocks
+    if (is_sle('=15-SP4') || is_sle('=15-SP5') || is_sle('=15-SP6')) {
+        record_info("Skip PM Suspend", "Skipping dompmsuspend tests entirely on LTSS hosts (15-SP4/5/6) as per LTP updates and developer feedback.");
+        return $self;
+    }
+
     $self->do_guest_pmsuspend($_, 'mem') foreach (keys %virt_autotest::common::guests);
+
     if (is_kvm_host) {
         foreach (keys %virt_autotest::common::guests) {
             if ((is_sle('>=15') and $_ =~ /12-sp5/img) or is_transactional_guest(address => $_)) {
