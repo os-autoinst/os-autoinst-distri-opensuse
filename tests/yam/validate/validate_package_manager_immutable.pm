@@ -14,7 +14,7 @@ sub run {
 
     validate_script_output("transactional-update -h", qr /Applies package updates to a new snapshot/,
         fail_message => 'Failed to execute help command for transactional update.');
-    assert_script_run('zypper in patterns-base-transactional_base 2>&1 | grep "This is a transactional-server"');
+    assert_script_run('zypper in patterns-base-transactional_base 2>&1 | tee /dev/stderr | grep "Transactional system detected"');
 }
 
 1;
