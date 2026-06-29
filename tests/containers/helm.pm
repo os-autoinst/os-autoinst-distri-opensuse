@@ -54,6 +54,7 @@ sub run {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle("<16");
             my $aws_cli_pkg = is_sle(">16.0") ? 'aws-cli-cmd' : 'aws-cli';
             zypper_call("in jq $aws_cli_pkg", timeout => 300);
+            script_run("PILOT_DEBUG=1 aws %silent --help") if is_sle(">16.0");
 
             # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
             # we don't want to have defaults and want tests to fail when region is not defined
@@ -71,6 +72,7 @@ sub run {
             add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
             my $az_cli_pkg = is_sle(">16.0") ? 'az-cli-cmd' : 'azure-cli';
             zypper_call("in jq $az_cli_pkg", timeout => 300);
+            script_run("PILOT_DEBUG=1 az %silent --help") if is_sle(">16.0");
 
             # publiccloud::azure_client needs to demand PUBLIC_CLOUD_REGION due to other places where
             # we don't want to have defaults and want tests to fail when region is not defined
