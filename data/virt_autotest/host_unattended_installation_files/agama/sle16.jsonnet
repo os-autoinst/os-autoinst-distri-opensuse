@@ -30,11 +30,11 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
             size: '120 GiB'
           },
           {
-            filesystem: { path: '/var/lib/libvirt/images/', type: 'xfs' }
-          },
-          {
             filesystem: { path: 'swap' },
             size: '4 GiB'
+          },
+          {
+            filesystem: { path: '/var/lib/libvirt/images', type: 'xfs' }
           }
         ]
       }
@@ -62,9 +62,14 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
           #!/usr/bin/env bash
           for i in `lsblk -n -l -o NAME -d -e 7,11,254`
               do wipefs -af /dev/$i
-              sleep 1
-              sync
+              # The following 4 lines work around Agama race condition on NVMe devices.
+              # See bsc#1269730 and PR#25926
+              partprobe /dev/$i 2>/dev/null
+              blockdev --rereadpt /dev/$i 2>/dev/null
           done
+          udevadm settle --timeout=30
+          sync
+          sleep 2
         |||
       }
     ],
