@@ -144,6 +144,10 @@ sub run {
             assert_script_run q{sed -ie 's/^User daemon$/User wwwrun/' /tmp/prefork/httpd.conf};
             assert_script_run q{sed -ie 's/^Group daemon$/Group www/' /tmp/prefork/httpd.conf};
 
+            # https://bugzilla.suse.com/show_bug.cgi?id=1265305
+            # modules for prefork reside in /usr/lib64/apache2-prefork now on sle16.1
+            assert_script_run q{sed -i 's#/usr/lib64/apache2#/usr/lib64/apache2-prefork#g' /tmp/prefork/httpd.conf} if is_sle('>=16.1');
+
             # Run and test this new environment
             assert_script_run 'httpd-prefork -f /tmp/prefork/httpd.conf';
             assert_script_run 'until ps aux|grep wwwrun|grep -E httpd\(2\)?-prefork; do echo waiting for httpd-prefork pid; done';
