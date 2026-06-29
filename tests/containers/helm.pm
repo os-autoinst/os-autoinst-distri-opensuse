@@ -54,6 +54,7 @@ sub run {
             add_suseconnect_product(get_addon_fullname('pcm')) if is_sle("<16");
             my $aws_cli_pkg = is_sle(">16.0") ? 'aws-cli-cmd' : 'aws-cli';
             zypper_call("in jq $aws_cli_pkg", timeout => 300);
+            record_info $aws_cli_pkg, script_output("rpm -qi $aws_cli_pkg", proceed_on_failure => 1);
             script_run("PILOT_DEBUG=1 aws %silent --help") if is_sle(">16.0");
 
             # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
@@ -72,6 +73,7 @@ sub run {
             add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
             my $az_cli_pkg = is_sle(">16.0") ? 'az-cli-cmd' : 'azure-cli';
             zypper_call("in jq $az_cli_pkg", timeout => 300);
+            record_info $az_cli_pkg, script_output("rpm -qi $az_cli_pkg", proceed_on_failure => 1);
             script_run("PILOT_DEBUG=1 az %silent --help") if is_sle(">16.0");
 
             # publiccloud::azure_client needs to demand PUBLIC_CLOUD_REGION due to other places where
