@@ -14,10 +14,17 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li>
     <ul>
+      <li><a href="#is_block_device">is_block_device</a></li>
       <li><a href="#record_storage_info">record_storage_info</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/block_dev.pm</h1>
+
+<h2 id="is_block_device">is_block_device</h2>
+
+<pre><code>is_block_device(@devices);</code></pre>
+
+<p>Asserts that each device in the list exists as a block device. Dies if any device is not found, allowing the test to fail if a block device is not detected on the SUT.</p>
 
 <h2 id="record_storage_info">record_storage_info</h2>
 
