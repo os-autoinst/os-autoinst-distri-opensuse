@@ -10,11 +10,11 @@ jobs:
       contents: read
     steps:
     - name: Checkout Branch
-      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6
     - name: Create empty needles directory to avoid dangling symlink that would cause the next step to fail
       run: mkdir products/opensuse/needles
     - name: "Check for oversized files"
-      uses: freenet-actions/check-file-size@3355d698d5e253cb3697aab11efca9bd2385da6f # v1
+      uses: freenet-actions/check-file-size@3355d698d5e253cb3697aab11efca9bd2385da6f  # v1
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         max_size: 14000
