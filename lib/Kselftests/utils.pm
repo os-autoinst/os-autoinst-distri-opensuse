@@ -23,6 +23,7 @@ use registration qw(add_suseconnect_product get_addon_fullname);
 use package_utils qw(install_package install_available_packages);
 use transactional qw(trup_apply);
 use utils qw(write_sut_file systemctl);
+use Utils::Systemd qw(disable_and_stop_service);
 
 our @EXPORT = qw(
   export_kselftest_env
@@ -164,6 +165,10 @@ sub install_dependencies
     # selftests may manipulate namespaces and devices in ways that
     # trigger AVC denials on SELinux-enabled systems
     script_run('setenforce 0') if has_selinux;
+
+    # the default firewall might interfere with many tests,
+    # stop it to avoid false negative test results
+    disable_and_stop_service('firewalld');
 
     # cgroup tests do not require phub nor qa repo
     if (is_sle() && $collection ne 'cgroup') {
