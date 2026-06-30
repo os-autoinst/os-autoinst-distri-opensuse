@@ -14,3 +14,4 @@ schedule:
   - yam/validate/validate_hostname
   - yam/validate/validate_connectivity
   - yam/validate/validate_bootloader_timeout
+  - yam/validate/validate_ntp
