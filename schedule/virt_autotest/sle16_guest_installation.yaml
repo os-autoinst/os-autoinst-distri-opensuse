@@ -33,6 +33,15 @@ conditional_schedule:
   prepare_nvram_for_snapshot:
     ENABLE_SNAPSHOT:
       1:
+        - '{{prepare_nvram_for_snapshot_DEV_version}}'
+        - '{{prepare_nvram_for_snapshot_QU_version}}'
+  prepare_nvram_for_snapshot_DEV_version:
+    VERSION_TO_INSTALL:
+      '16.0':
+        - virt_autotest/prepare_nvram_for_snapshot
+  prepare_nvram_for_snapshot_QU_version:
+    VERSION:
+      '16.0':
         - virt_autotest/prepare_nvram_for_snapshot
   virt_bridge_setup_test:
     ENABLE_VIRT_BRIDGE_SETUP_TEST:
