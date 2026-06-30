@@ -22,7 +22,7 @@ jobs:
     container:
       image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - name: Determine the latest Tumbleweed build on o3
         id: latest_build
         run: >-
@@ -50,4 +50,4 @@ jobs:
       image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
     steps:
       - name: Clone and monitor job mentioned in PR description
-        uses: os-autoinst/scripts/actions/clone-job@master
+        uses: os-autoinst/scripts/actions/clone-job@d88016f64ecaf30bd69f3bda4bfcc6c693b6febd # master

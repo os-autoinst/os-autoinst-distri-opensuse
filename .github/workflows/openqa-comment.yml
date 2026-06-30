@@ -25,4 +25,4 @@ jobs:
       image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
     steps:
       - name: Clone and monitor job mentioned in PR comment
-        uses: os-autoinst/scripts/actions/clone-job@master
+        uses: os-autoinst/scripts/actions/clone-job@d88016f64ecaf30bd69f3bda4bfcc6c693b6febd # master
