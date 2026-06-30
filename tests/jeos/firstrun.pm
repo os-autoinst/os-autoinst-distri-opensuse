@@ -216,6 +216,16 @@ sub create_user_in_ui {
     $user_created = 1;
 }
 
+sub check_jeos_on_serial_terminal {
+    return if (wait_serial("JeOS Firstboot", no_regex => 1, timeout => 300));
+
+    if (is_sle("=16.1") && is_ppc64le) {
+        record_soft_failure("bsc#1260359 - No serial terminal on ppc64le");
+        return;
+    }
+    die "JeOS firstboot not detected on serial terminal";
+}
+
 sub run {
     my ($self) = @_;
     my $lang = get_var('JEOSINSTLANG', 'en_US');
@@ -240,6 +250,9 @@ sub run {
         # long timeout due to missing combustion/ignition config bsc#1210429
         $initial_screen_timeout = 420 if is_sle_micro;
     }
+
+    # Ensures the JeOS firstboot wizard is present on the serial terminal
+    check_jeos_on_serial_terminal() unless (is_sle("<15") || is_s390x || check_var('JEOS_CHECK_SERIAL', '0'));
 
     # https://github.com/openSUSE/jeos-firstboot/pull/82 welcome dialog is shown on all consoles
     # and configuration continues on console where *Start* has been pressed
