@@ -27,6 +27,7 @@ use x11utils 'ensure_unlocked_desktop';
 use Utils::Backends qw(is_ipmi is_pvm is_svirt);
 use Utils::Architectures qw(is_aarch64 is_s390x);
 use power_action_utils 'assert_shutdown_and_restore_system';
+use ipmi_backend_utils 'set_disk_boot';
 
 sub upload_agama_logs {
     return if (get_var('NOLOGS'));
@@ -65,6 +66,7 @@ sub run {
         verify_agama_auto_install_done_cmdline();
         upload_agama_logs();
         record_info 'Reboot system to disk boot';
+        set_disk_boot() if (is_ipmi and get_var('IPMI_BACKEND_BOOTDEV_DISK'));
         enter_cmd 'reboot';
         # Swith back to sol console, then user can monitor the boot log
         select_console 'sol', await_console => 0 if is_ipmi;
