@@ -48,7 +48,7 @@ sub run {
     $instance->wait_for_guestregister() if (is_ondemand);
 
     $instance->network_speed_test();
-    $instance->check_cloudinit() if (is_cloudinit_supported);
+    $instance->check_cloudinit() if (is_cloudinit_supported && !get_var('PUBLIC_CLOUD_SKIP_INSTANCE_CHECKS'));
     $instance->enable_kdump() if (get_var('PUBLIC_CLOUD_ENABLE_KDUMP'));
 
     $provider->initialize_logging($instance);
