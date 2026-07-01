@@ -147,12 +147,13 @@ sub current_kernel_flavor {
 sub install_kernel_with_kvm_support {
     my ($self) = @_;
 
-    return if current_kernel_flavor() eq 'kernel-default';
+    return if current_kernel_flavor eq 'kernel-default';
 
     record_info("Installing kernel-default instead of " . current_kernel_flavor);
 
-    zypper_call('in kernel-default', timeout => 300);
-    zypper_call("rm " . current_kernel_flavor, timeout => 300);
+    # exactly in this order otherwise
+    # the installed kernel-default-base-XXX conflicts with 'kernel-default = XXX' provided by the to be installed kernel-default-XXX
+    zypper_call('in kernel-default -' . current_kernel_flavor, timeout => 300);
 
     power_action('reboot', textmode => 1);
     $self->wait_boot(bootloader_time => 300);
