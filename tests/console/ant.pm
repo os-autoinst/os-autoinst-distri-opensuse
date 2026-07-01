@@ -79,7 +79,12 @@ sub run {
     zypper_call 'in ant';
 
     # Set JAVA_HOME to the jdk installation directory
-    assert_script_run("export JAVA_HOME=`update-alternatives --list javac| awk -F 'java' '{split(\$0, a); print a[1]; exit}'`'java'");
+    assert_script_run 'ALL_JAVA=$(rpm -ql aaa_base | grep alljava.sh)';
+    # test workaround, normally alljava.sh should not be sourced manually, but
+    # $PROFILEREAD is already set and the test does not reboot the SUT. therefore
+    # alljava.sh is then sourced explicitly to set the java variables
+    assert_script_run '. ${ALL_JAVA}', timeout => 120;
+    assert_script_run 'env | grep -i java';
     assert_script_run("export ANT_HOME=/usr/share/ant");
 
     # Set up
