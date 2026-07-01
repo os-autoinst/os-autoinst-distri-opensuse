@@ -10,9 +10,6 @@ use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my ($self) = @_;
-    my $runtime = get_required_var('CONTAINER_RUNTIMES');
-
-    select_serial_terminal();
 
     # Skip the test in multi-machine mode
     if (get_var('PARALLEL_WITH')) {
@@ -21,8 +18,10 @@ sub run {
         return;
     }
 
+    my $runtime = get_var('CONTAINER_RUNTIMES', 'podman');
     record_info('Toolbox Info', 'Verify toolbox script is installed');
 
+    select_serial_terminal();
     assert_script_run('which toolbox');
     assert_script_run('file -Ls $(which toolbox) | grep -iq "shell script"');
 
