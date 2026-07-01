@@ -50,6 +50,7 @@ conditional_schedule:
 schedule:
     - '{{bootloader}}'
     - '{{wizard}}'
+    - jeos/kernel_config
     - jeos/image_info
     - jeos/record_machine_id
     - console/force_scheduled_tasks
