@@ -23,6 +23,9 @@ sub parse_bug_refs {
     # Treat staging projects like the full product
     $tested_version = 'Tumbleweed' if (is_opensuse && $tested_version =~ /^Staging:/);
 
+    # Extract base version (some staging jobs have complex version strings, e.g. VERSION=16.1:PR-5106)
+    my $base_version = (split(':', $tested_version))[0];
+
     my $data;
     {
         open(my $fh_json, '<', $bug_file) or die "Can't open \"$bug_file\": $!\n";
@@ -35,7 +38,7 @@ sub parse_bug_refs {
     foreach my $bugid (keys %$bugs) {
         if (exists $bugs->{$bugid}->{products}->{$tested_product} && ref $bugs->{$bugid}->{products}->{$tested_product} eq ref []) {
             foreach my $ver (@{$bugs->{$bugid}->{products}->{$tested_product}}) {
-                if ($ver eq $tested_version) {
+                if ($ver eq $base_version) {
                     $bp{$bugid} = {%{$bugs->{$bugid}}{qw(type description)}};
                     last;
                 }

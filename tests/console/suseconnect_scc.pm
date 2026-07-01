@@ -10,8 +10,12 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use registration qw(verify_scc investigate_log_empty_license runtime_registration);
+use utils 'ensure_ca_certificates_suse_installed';
+use version_utils 'is_staging';
 
 sub run {
+    # Development product staging jobs use repositories from download.suse.de and need the SUSE certificate
+    ensure_ca_certificates_suse_installed if is_staging;
     runtime_registration();    # assume it will run in serial terminal
 }
 

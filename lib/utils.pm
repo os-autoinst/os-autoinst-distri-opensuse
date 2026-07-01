@@ -2531,9 +2531,10 @@ sub ensure_ca_certificates_suse_installed {
         # For more details, please see https://forums.opensuse.org/t/error-rpm-failed-error-unpacking-of-archive-failed-cpio-bad-magic/142434
         $version = "SLE_12_SP5" if (is_sle('=12-SP5'));
         zypper_call("ar --refresh https://download.opensuse.org/repositories/SUSE:/CA/$version/SUSE:CA.repo");
-        if (is_sle_micro) {
+        if (is_transactional) {
             transactional::trup_call("--continue run zypper --gpg-auto-import-keys refresh");
             transactional::trup_call('--continue pkg install ca-certificates-suse');
+            transactional::trup_call('apply');
         } else {
             zypper_call("--gpg-auto-import-keys in ca-certificates-suse");
         }
