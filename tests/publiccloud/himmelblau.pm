@@ -23,7 +23,7 @@ sub configure_himmelblau {
     my $CONFIG_FILE = "/etc/himmelblau/himmelblau.conf";
     my $ENABLE_DEBUG_LOGS = "true";
 
-    assert_script_run("sed -i -e 's/# domains =/domains = $allowed_domain/g' $CONFIG_FILE");
+    assert_script_run("sed -i -e 's/# domain =/domain = $allowed_domain/g' $CONFIG_FILE");
     assert_script_run("sed -i -e 's/# pam_allow_groups =.*/pam_allow_groups = $allowed_user/g' $CONFIG_FILE");
     assert_script_run("sed -i -e 's/# debug =.*/debug = $ENABLE_DEBUG_LOGS/g' $CONFIG_FILE");
 
