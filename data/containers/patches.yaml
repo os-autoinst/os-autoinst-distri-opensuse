@@ -223,7 +223,9 @@ runc:
   5124:
     merged: "1.4.1"
   5269:
+    merged: "1.4.3"
   5295:
+    merged: "1.4.3"
   5307:
 
 skopeo:
