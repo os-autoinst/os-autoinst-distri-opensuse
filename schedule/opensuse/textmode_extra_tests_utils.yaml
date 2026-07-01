@@ -38,6 +38,7 @@ schedule:
     - console/zypper_info
     - console/snapper_zypp
     - console/zypper_extend
+    - console/ds389_advanced_functional
     - console/pam
     - console/shar
     - console/update_alternatives
