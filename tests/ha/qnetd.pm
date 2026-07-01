@@ -113,8 +113,8 @@ sub run {
         # Add a promotable resource to check if the current node is hosting
         # master instance of the resource. If so, this cluster partition
         # is preferred to be given the vote from qnetd.
-        assert_script_run q|EDITOR="sed -ie '$ a primitive stateful-1 ocf:pacemaker:Stateful'" crm configure edit|;
-        assert_script_run q|EDITOR="sed -ie '$ a clone promotable-1 stateful-1 meta promotable=true'" crm configure edit|;
+        assert_script_run q|EDITOR="sed -i -e '$ a primitive stateful-1 ocf:pacemaker:Stateful'" crm configure edit|;
+        assert_script_run q|EDITOR="sed -i -e '$ a clone promotable-1 stateful-1 meta promotable=true'" crm configure edit|;
         save_state;
 
         # Qdevice should be started

@@ -60,8 +60,8 @@ sub run {
     if (is_node(1)) {
         # Create cluster-md resource
         assert_script_run
-"EDITOR=\"sed -ie '\$ a primitive $clustermd_rsc ocf:heartbeat:Raid1 params raiddev=auto force_clones=true raidconf=$mdadm_conf'\" crm configure edit", $default_timeout;
-        assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $clustermd_rsc/'\" crm configure edit", $default_timeout;
+"EDITOR=\"sed -i -e '\$ a primitive $clustermd_rsc ocf:heartbeat:Raid1 params raiddev=auto force_clones=true raidconf=$mdadm_conf'\" crm configure edit", $default_timeout;
+        assert_script_run "EDITOR=\"sed -i -e 's/^\\(group base-group.*\\)/\\1 $clustermd_rsc/'\" crm configure edit", $default_timeout;
     }
     else {
         diag 'Wait until cluster-md resource is created...';

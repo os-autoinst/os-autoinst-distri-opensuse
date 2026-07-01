@@ -72,20 +72,20 @@ sub run {
 
     if (is_node(1)) {
         # Create vip resource
-        assert_script_run "EDITOR=\"sed -ie '\$ a primitive $vip_rsc IPaddr2 params ip='$vip_ip' nic='$iface' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
+        assert_script_run "EDITOR=\"sed -i -e '\$ a primitive $vip_rsc IPaddr2 params ip='$vip_ip' nic='$iface' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
 
         # Just to be sure that vip resource is started
         sleep 5;
         save_state;
 
         # Create haproxy resource
-        assert_script_run "EDITOR=\"sed -ie '\$ a primitive $haproxy_rsc systemd:haproxy'\" crm configure edit";
+        assert_script_run "EDITOR=\"sed -i -e '\$ a primitive $haproxy_rsc systemd:haproxy'\" crm configure edit";
 
         # Vip must be started before haproxy
-        assert_script_run "EDITOR=\"sed -ie '\$ a order order_vip_haproxy Mandatory: $vip_rsc $haproxy_rsc'\" crm configure edit";
+        assert_script_run "EDITOR=\"sed -i -e '\$ a order order_vip_haproxy Mandatory: $vip_rsc $haproxy_rsc'\" crm configure edit";
 
         # Vip must be started where haproxy is live
-        assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_vip_haproxy inf: $haproxy_rsc $vip_rsc'\" crm configure edit";
+        assert_script_run "EDITOR=\"sed -i -e '\$ a colocation colocation_vip_haproxy inf: $haproxy_rsc $vip_rsc'\" crm configure edit";
 
         # Sometimes we need to cleanup the resource
         rsc_cleanup $haproxy_rsc;
