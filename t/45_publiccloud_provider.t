@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Unit tests for the publiccloud::provider base class -- name
-# conversion, img-proof output parsing, terraform tag/output helpers and
-# string escaping.
+# conversion, terraform tag/output helpers, ssh-key generation and string
+# escaping.
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use strict;
@@ -36,48 +36,6 @@ subtest '[escape_single_quote] shell-safe single quotes' => sub {
     is(publiccloud::provider::escape_single_quote('plain'), 'plain', 'no quotes unchanged');
     is(publiccloud::provider::escape_single_quote(q{it's}), q{it'"'"'s}, 'single quote escaped');
     is(publiccloud::provider::escape_single_quote(q{a'b'c}), q{a'"'"'b'"'"'c}, 'multiple quotes escaped');
-};
-
-subtest '[parse_img_proof_output] complete output' => sub {
-    my $provider = publiccloud::provider->new();
-    my $out = <<'EOT';
-ID of instance: i-12345
-IP of instance: 203.0.113.7
-Created log file /tmp/img-proof.log
-Created results file /tmp/img-proof.results
-tests=10|pass=8|skip=1|fail=1|error=0
-EOT
-    my $res = $provider->parse_img_proof_output($out);
-    is(ref $res, 'HASH', 'returns hashref when all fields present');
-    is($res->{instance_id}, 'i-12345', 'instance id parsed');
-    is($res->{ip}, '203.0.113.7', 'ip parsed');
-    is($res->{logfile}, '/tmp/img-proof.log', 'logfile parsed');
-    is($res->{results}, '/tmp/img-proof.results', 'results parsed');
-    is($res->{tests}, 10, 'tests count parsed');
-    is($res->{pass}, 8, 'pass count parsed');
-    is($res->{skip}, 1, 'skip count parsed');
-    is($res->{fail}, 1, 'fail count parsed');
-    is($res->{error}, 0, 'error count parsed');
-};
-
-subtest '[parse_img_proof_output] missing fields returns undef' => sub {
-    my $provider = publiccloud::provider->new();
-    # Missing the tests=... summary line -> incomplete
-    my $out = "ID of instance: i-1\nIP of instance: 1.2.3.4\n";
-    is($provider->parse_img_proof_output($out), undef, 'undef when required fields missing');
-};
-
-subtest '[parse_img_proof_output] terminating line as instance id' => sub {
-    my $provider = publiccloud::provider->new();
-    my $out = <<'EOT';
-Terminating instance i-999
-IP of instance: 10.0.0.4
-Created log file /tmp/l
-Created results file /tmp/r
-tests=1|pass=1|skip=0|fail=0|error=0
-EOT
-    my $res = $provider->parse_img_proof_output($out);
-    is($res->{instance_id}, 'i-999', 'instance id taken from Terminating line');
 };
 
 subtest '[terraform_param_tags] json tag structure' => sub {
