@@ -12,6 +12,7 @@ use utils qw(systemctl);
 use scheduler qw(get_test_suite_data);
 
 sub run {
+    select_console 'install-shell';
     my $self_update_enabled = get_test_suite_data()->{self_update_enabled};
     if ($self_update_enabled) {
         my $systemctl_output = script_output('systemctl status live-self-update.service', proceed_on_failure => 1);
