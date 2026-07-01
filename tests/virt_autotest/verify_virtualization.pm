@@ -62,8 +62,14 @@ sub verify_system {
     record_info("Grub config", script_output("cat /boot/grub2/grub.cfg"));
     my %osinfo = script_output("cat /etc/os-release") =~ /^([^#]\S+)="?([^"\r\n]+)"?$/gm;
     %osinfo = map { uc($_) => $osinfo{$_} } keys %osinfo;
-    if (uc($osinfo{VERSION}) ne uc(get_required_var('VERSION'))) {
-        record_info("System is not expected os " . get_required_var('DISTRI') . " " . get_required_var('VERSION'), "Current system is running $osinfo{ID} $osinfo{VERSION}", result => 'fail');
+
+    # Use VERSION_ID (clean numeric version) if available, fallback to VERSION
+    my $actual_version = $osinfo{VERSION_ID} // $osinfo{VERSION} // '';
+    my $expected_version = get_required_var('VERSION');
+
+    if (uc($actual_version) ne uc($expected_version)) {
+        record_info("System is not expected os " . get_required_var('DISTRI') . " " . $expected_version,
+            "Current system is running $osinfo{ID} $actual_version", result => 'fail');
         die("System is not running the expected os");
     }
     return $self;
@@ -129,6 +135,8 @@ sub verify_guest_network {
     $args{confdir} //= '/var/lib/libvirt/images';
     $args{keyfile} //= get_var('GUEST_SSH_KEYFILE', '/root/.ssh/id_ed25519');
 
+    # Ensure default network is active
+    assert_script_run "virsh net-start default" if (script_run("virsh net-list --all | grep default | grep ' active'", 90) != 0);
     record_info("List virtual networks", script_output("virsh net-list --all"));
     record_info("List guests", script_output("virsh list --all"));
     my $ssh_command = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i $args{keyfile}";

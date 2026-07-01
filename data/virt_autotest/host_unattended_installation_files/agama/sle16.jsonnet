@@ -27,7 +27,7 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
         partitions: [
           {
             filesystem: { path: '/' },
-            size: '120 GiB'
+            size: '60 GiB'
           },
           {
             filesystem: { path: 'swap' },
