@@ -129,7 +129,7 @@ subtest '[change_instance_type] dies when already that type' => sub {
 subtest '[query_metadata] fetches IMDSv2 token then ip' => sub {
     my $provider = publiccloud::ec2->new();
     my $mod = Test::MockModule->new('publiccloud::ec2', no_auto => 1);
-    $mod->redefine(record_info => sub { });
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my @cmds;
     my $inst = Test::MockObject->new;

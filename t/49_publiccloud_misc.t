@@ -128,7 +128,7 @@ subtest '[select_host_console] non-tunneled selects serial terminal' => sub {
     my %did;
     $mod->redefine(select_serial_terminal => sub { $did{serial} = 1 });
     $mod->redefine(type_string => sub { });
-    $mod->redefine(record_info => sub { });
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $mod->redefine(script_output => sub { 'myhost' });
     $mod->redefine(assert_script_run => sub { $did{health} = 1; return 0 });
     $mod->redefine(select_console => sub { $did{console} = $_[0] });
@@ -146,7 +146,7 @@ subtest '[select_host_console] tunneled without force dies' => sub {
     $mod->redefine(is_tunneled => sub { 1 });
     $mod->redefine(select_serial_terminal => sub { });
     $mod->redefine(type_string => sub { });
-    $mod->redefine(record_info => sub { });
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $mod->redefine(select_console => sub { });
 
     set_var('_SSH_TUNNELS_INITIALIZED', 1);

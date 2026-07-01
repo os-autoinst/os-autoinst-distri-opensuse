@@ -123,7 +123,7 @@ subtest '[instances] set/get registry' => sub {
 # ---------------------------------------------------------------------------
 subtest '[k8s_provider] init routes to correct client class' => sub {
     my $k8s = Test::MockModule->new('publiccloud::k8s_provider', no_auto => 1);
-    $k8s->redefine(record_info => sub { });
+    $k8s->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     # Stub each client's init so we don't perform real auth.
     for my $cls (qw/publiccloud::aws_client publiccloud::gcp_client publiccloud::azure_client/) {
@@ -172,7 +172,7 @@ subtest '[acr] delete_image composes az acr repository delete' => sub {
     $acr->provider_client($client);
 
     my $mod = Test::MockModule->new('publiccloud::acr', no_auto => 1);
-    $mod->redefine(record_info => sub { });
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $seen;
     $mod->redefine(assert_script_run => sub { $seen = $_[0]; return 0 });
     $acr->delete_image('tagA');
@@ -182,7 +182,7 @@ subtest '[acr] delete_image composes az acr repository delete' => sub {
 subtest '[gcr] delete_image composes gcloud container images delete' => sub {
     my $gcr = publiccloud::gcr->new();
     my $mod = Test::MockModule->new('publiccloud::gcr', no_auto => 1);
-    $mod->redefine(record_info => sub { });
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $mod->redefine(get_container_image_full_name => sub { 'eu.gcr.io/p/imgX:latest' });
     my $seen;
     $mod->redefine(assert_script_run => sub { $seen = $_[0]; return 0 });

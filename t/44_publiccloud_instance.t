@@ -42,7 +42,7 @@ subtest '[systemd_time_to_second] parsing' => sub {
 
 subtest '[systemd_time_to_second] invalid returns -1' => sub {
     my $instance = Test::MockModule->new('publiccloud::instance', no_auto => 1);
-    $instance->redefine(record_info => sub { });
+    $instance->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     is(publiccloud::instance::systemd_time_to_second('garbage'), -1, 'unparseable string returns -1');
     is(publiccloud::instance::systemd_time_to_second(''), -1, 'empty string returns -1');
 };
@@ -79,7 +79,7 @@ subtest '[extract_blame_time] systemd-analyze blame output' => sub {
 
 subtest '[extract_blame_time] unparseable line returns 0' => sub {
     my $instance = Test::MockModule->new('publiccloud::instance', no_auto => 1);
-    $instance->redefine(record_info => sub { });
+    $instance->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my $out = "totally bogus";
     is(publiccloud::instance::extract_blame_time($out), 0, 'bad time token returns 0');
 };

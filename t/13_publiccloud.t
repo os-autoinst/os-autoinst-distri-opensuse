@@ -506,7 +506,7 @@ subtest '[get_image_definition] finds matching definition' => sub {
     my $provider = publiccloud::azure->new();
     my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
     $azure->redefine(generate_azure_image_definition => sub { 'MY-DEF' });
-    $azure->redefine(record_info => sub { });
+    $azure->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     $azure->redefine(script_output => sub { '[{"name":"OTHER"},{"name":"MY-DEF"}]' });
     is($provider->get_image_definition('rg', 'gal'), 'MY-DEF', 'returns matching definition name');
