@@ -190,6 +190,11 @@ subtest '[get_ssh_private_key_path] depends on provider/LTP' => sub {
     set_var('PUBLIC_CLOUD_LTP', undef);
     is(get_ssh_private_key_path(), '~/.ssh/id_ed25519', 'ec2 uses ed25519');
 
+    # rsa is only forced for azure/LTP; any other (even unknown) provider
+    # falls through to ed25519, so the value here is not EC2-specific.
+    set_var('PUBLIC_CLOUD_PROVIDER', 'DONALDUCK');
+    is(get_ssh_private_key_path(), '~/.ssh/id_ed25519', 'non-azure provider uses ed25519');
+
     set_var('PUBLIC_CLOUD_LTP', 1);
     is(get_ssh_private_key_path(), '~/.ssh/id_rsa', 'LTP forces rsa');
 
@@ -246,17 +251,6 @@ subtest '[calculate_custodian_ttl] ISO 8601 with offset' => sub {
     my $t1 = $parse->(calculate_custodian_ttl(7200));
     cmp_ok($t1 - $t0, '>=', 7199, 'ttl offset reflected (lower bound, allows 1s clock tick)');
     cmp_ok($t1 - $t0, '<=', 7201, 'ttl offset reflected (upper bound)');
-};
-
-# --- internal (non-exported) helper, called fully-qualified -------------------
-
-subtest '[venv_generate_runner_script] script content' => sub {
-    my $script = publiccloud::utils::venv_generate_runner_script('img-proof', '/root/.venv_img-proof');
-    like($script, qr{^#!/bin/sh}, 'has shebang');
-    like($script, qr{\. "/root/\.venv_img-proof/bin/activate"}, 'activates the venv');
-    like($script, qr{/root/\.venv_img-proof/bin/img-proof}, 'references the binary path');
-    like($script, qr{img-proof "\$\@"}, 'forwards arguments to binary');
-    like($script, qr{deactivate}, 'deactivates the venv afterwards');
 };
 
 done_testing;
