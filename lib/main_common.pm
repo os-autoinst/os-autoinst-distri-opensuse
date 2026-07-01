@@ -2604,7 +2604,7 @@ sub set_sles16_mu_virt_vars {
         if ($_pkg =~ /none/) {
             # 'none' is for ease of functional testing when no package update is needed
             $_update_package = '';
-        } elsif ($_pkg =~ /qemu|virt-manager|libguestfs|libslirp|open-vm-tools|snphost|dnsmasq/) {
+        } elsif ($_pkg =~ /qemu|virt-manager|libguestfs|open-vm-tools|snphost|dnsmasq/) {
             # Direct package name usage (SLES16 currently supports KVM/QEMU only)
             $_update_package = $_pkg;
         } elsif ($_pkg =~ /snpguest/) {
@@ -2617,6 +2617,9 @@ sub set_sles16_mu_virt_vars {
         } elsif ($_pkg =~ /xen/) {
             # Xen support will return in SLES16.2
             die "Xen testing is not supported in SLES16 (will return in SLES16.2)";
+	} elsif ($_pkg =~ /libslirp/) {
+            # Special case: libslirp maps to libslirp0
+            $_update_package = 'libslirp0'
         } else {
             # Default to kernel-default for other cases
             $_update_package = 'kernel-default';
