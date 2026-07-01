@@ -422,6 +422,9 @@ sub run {
             wait_still_screen;
         }
     }
+    elsif (get_var('IPMI_BACKEND_BOOTDEV_DISK')) {
+        set_disk_boot() if is_ipmi;
+    }
     elsif (get_var('IPXE_SET_HDD_BOOTSCRIPT')) {
         # make sure to wait for a while befor changing the boot device again, in order to not change it too early
         sleep get_var('PXE_BOOT_TIME', 120);
