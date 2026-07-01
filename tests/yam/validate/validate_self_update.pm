@@ -25,11 +25,6 @@ sub run {
         systemctl('is-active live-self-update', expect_false => 1);
         assert_script_run("journalctl -t live-self-update | grep \"Self update not configured\"");
     }
-    select_console 'installation', await_console => 0, ignore => 1;
-}
-
-sub post_run_hook {
-    return;
 }
 
 1;

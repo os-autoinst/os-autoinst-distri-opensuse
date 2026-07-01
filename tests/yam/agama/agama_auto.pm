@@ -14,6 +14,7 @@ use power_action_utils 'power_action';
 use version_utils qw(is_vmware is_leap);
 
 sub run {
+    select_console 'installation';
     my $self = shift;
     my $reboot_page = $testapi::distri->get_reboot();
     $reboot_page->expect_is_shown();
