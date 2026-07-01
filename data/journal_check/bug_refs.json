@@ -2098,5 +2098,14 @@
             ]
         },
         "type": "ignore"
+    },
+    "bsc#1263772": {
+        "description": "Failed to start Run SUSEConnect --keepalive",
+        "products": {
+            "sle": [
+                "15-SP7"
+            ]
+        },
+        "type": "bug"
     }
 }
