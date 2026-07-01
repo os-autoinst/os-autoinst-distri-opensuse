@@ -216,6 +216,12 @@ EOF
             write_sut_file('/etc/NetworkManager/conf.d/99-disable-netdevsim.conf', $netdevsim_mask);
             systemctl('reload NetworkManager');
         }
+
+        # The sit module auto-claims 2002::/16 (6to4) addresses, which are used by
+        # net:tun tests as outer IPv6 tunnel addresses. This creates competing local
+        # routes that prevent GENEVE-decapsulated packets from reaching the test socket
+        # (observed as failures in *_gtgso send_gso_packet variants).
+        script_run('rmmod sit');
     }
 }
 
