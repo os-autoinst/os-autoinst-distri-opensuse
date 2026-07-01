@@ -13,16 +13,7 @@ use lockapi;
 use utils;
 use Utils::Logging "export_logs_basic";
 use package_utils 'install_package';
-
-# create a mountpoint and the corresponding export with
-# specified permissions
-sub create_mount_and_export {
-    my ($mountpoint, $cl, $permissions) = @_;
-
-    assert_script_run "mkdir -p $mountpoint";
-    assert_script_run "chmod 777 $mountpoint";
-    assert_script_run "echo $mountpoint $cl\\($permissions\\) >> /etc/exports";
-}
+use Kernel::nfs;
 
 sub compare_checksums {
     my ($file) = @_;
@@ -56,8 +47,8 @@ sub run {
     my $nfs_mount_nfs4 = get_var('NFS_MOUNT_NFS4', '/var/lib/nfs-tests/shared_nfs4');
     my $nfs_mount_nfs4_async = get_var('NFS_MOUNT_NFS4_ASYNC', '/var/lib/nfs-tests/shared_nfs4_async');
 
-    my $nfs_permissions = get_var('NFS_PERMISSIONS', 'rw,sync,no_root_squash');
-    my $nfs_permissions_async = get_var('NFS_PERMISSIONS_ASYNC', 'rw,async,no_root_squash');
+    my $nfs_options = get_var('NFS_OPTIONS', 'rw,sync,no_root_squash');
+    my $nfs_options_async = get_var('NFS_OPTIONS_ASYNC', 'rw,async,no_root_squash');
 
     # check kernel config options and set the variables
     $kernel_nfs3 = 1 unless script_run('zgrep "CONFIG_NFS_V3=[my]" /proc/config.gz');
@@ -78,15 +69,15 @@ sub run {
     # configure our exports
     if ($kernel_nfs3 == 1) {
         record_info('INFO', 'Kernel has support for NFSv3');
-        create_mount_and_export($nfs_mount_nfs3, $client, $nfs_permissions);
-        create_mount_and_export($nfs_mount_nfs3_async, $client, $nfs_permissions_async);
+        create_export($nfs_mount_nfs3, $client, $nfs_options);
+        create_export($nfs_mount_nfs3_async, $client, $nfs_options_async);
     } else {
         record_info('INFO', 'Kernel has no support for NFSv3, skipping NFSv3 tests');
     }
     if ($kernel_nfs4 == 1) {
         record_info('INFO', 'Kernel has support for NFSv4');
-        create_mount_and_export($nfs_mount_nfs4, $client, $nfs_permissions);
-        create_mount_and_export($nfs_mount_nfs4_async, $client, $nfs_permissions_async);
+        create_export($nfs_mount_nfs4, $client, $nfs_options);
+        create_export($nfs_mount_nfs4_async, $client, $nfs_options_async);
     } else {
         record_info('INFO', 'Kernel has no support for NFSv4, skipping NFSv4 tests');
     }
@@ -223,12 +214,12 @@ Defaults to C</var/lib/nfs-tests/shared_nfs4>.
 Server-side path for the NFSv4 asynchronous export.
 Defaults to C</var/lib/nfs-tests/shared_nfs4_async>.
 
-=head2 NFS_PERMISSIONS
+=head2 NFS_OPTIONS
 
 Export options applied to synchronous exports.
 Defaults to C<rw,sync,no_root_squash>.
 
-=head2 NFS_PERMISSIONS_ASYNC
+=head2 NFS_OPTIONS_ASYNC
 
 Export options applied to asynchronous exports.
 Defaults to C<rw,async,no_root_squash>.
