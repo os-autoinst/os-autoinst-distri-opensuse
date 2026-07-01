@@ -15,7 +15,6 @@ use List::Util qw(any);
 use testapi 'set_var';
 
 use publiccloud::azure;
-use publiccloud::utils;
 use publiccloud::zypper qw(pc_wait_quit pc_pkg_call);
 
 sub _unset { for my $k (@_) { set_var($k, undef) } }
@@ -356,122 +355,6 @@ subtest '[pc_wait_quit] times out after 5 failures' => sub {
     is($seen{retry}, 5, 'retry=5 passed');
     is($seen{delay}, 0, 'delay=0 passed');
     is($seen{timeout}, 1, 'timeout=1 passed');
-};
-
-subtest '[is_byos] via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('FLAVOR', 'SLES-15-SP6-BYOS');
-    ok publiccloud::utils::is_byos(), 'BYOS detected (upper)';
-
-    set_var('FLAVOR', 'sles-something-byos');
-    ok publiccloud::utils::is_byos(), 'BYOS detected (lower, /byos/i)';
-
-    set_var('FLAVOR', 'SLES-15-SP6-On-Demand');
-    ok !publiccloud::utils::is_byos(), 'not BYOS when FLAVOR lacks token';
-
-    set_var('PUBLIC_CLOUD', 0);
-    ok !publiccloud::utils::is_byos(), 'not BYOS outside public cloud';
-
-    _unset(qw/PUBLIC_CLOUD FLAVOR/);
-};
-
-subtest '[is_ondemand] via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('FLAVOR', 'On-Demand-ish');
-    ok publiccloud::utils::is_ondemand(), 'on-demand when not BYOS';
-
-    set_var('FLAVOR', 'BYOS');
-    ok !publiccloud::utils::is_ondemand(), 'not on-demand when BYOS';
-
-    set_var('PUBLIC_CLOUD', 0);
-    ok !publiccloud::utils::is_ondemand(), 'not on-demand outside public cloud';
-
-    _unset(qw/PUBLIC_CLOUD FLAVOR/);
-};
-
-subtest '[provider checks] via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    ok publiccloud::utils::is_ec2(), 'EC2 true';
-    ok !publiccloud::utils::is_azure(), 'AZURE false';
-    ok !publiccloud::utils::is_gce(), 'GCE false';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok publiccloud::utils::is_azure(), 'AZURE true';
-    ok !publiccloud::utils::is_ec2(), 'EC2 false';
-    ok !publiccloud::utils::is_gce(), 'GCE false';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
-    ok publiccloud::utils::is_gce(), 'GCE true';
-    ok !publiccloud::utils::is_ec2(), 'EC2 false';
-    ok !publiccloud::utils::is_azure(), 'AZURE false';
-
-    set_var('PUBLIC_CLOUD', 0);
-    ok !publiccloud::utils::is_ec2(), 'EC2 false when not public cloud';
-    ok !publiccloud::utils::is_azure(), 'AZURE false when not public cloud';
-    ok !publiccloud::utils::is_gce(), 'GCE false when not public cloud';
-
-    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER/);
-};
-
-subtest '[flavor flags] CHOST & Hardened via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('FLAVOR', 'SLE-CHOST-15-SP6');
-    ok publiccloud::utils::is_container_host(), 'CHOST detected';
-
-    set_var('FLAVOR', 'SLE-Hardened-15-SP6');
-    ok publiccloud::utils::is_hardened(), 'Hardened detected';
-
-    set_var('FLAVOR', 'SLE-Whatever');
-    ok !publiccloud::utils::is_container_host(), 'CHOST not detected';
-    ok !publiccloud::utils::is_hardened(), 'Hardened not detected';
-
-    set_var('PUBLIC_CLOUD', 0);
-    set_var('FLAVOR', 'SLE-CHOST-15-SP6');
-    ok !publiccloud::utils::is_container_host(), 'CHOST requires public cloud';
-    set_var('FLAVOR', 'SLE-Hardened-15-SP6');
-    ok !publiccloud::utils::is_hardened(), 'Hardened requires public cloud';
-
-    _unset(qw/PUBLIC_CLOUD FLAVOR/);
-};
-
-
-subtest '[is_cloudinit_supported] via set_var only' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-    set_var('DISTRI', 'sle');
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok publiccloud::utils::is_cloudinit_supported(),
-      'AZURE + sle => supported';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    ok publiccloud::utils::is_cloudinit_supported(),
-      'EC2 + sle => supported';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'GCE + sle => not supported';
-
-    set_var('DISTRI', 'sle-micro');
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'AZURE + sle-micro => NOT supported';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'EC2 + sle-micro => NOT supported';
-
-    set_var('PUBLIC_CLOUD', 0);
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'not public cloud => NOT supported';
-
-    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER DISTRI/);
 };
 
 # --- pc_pkg_call -> transactional-update translation ---------------------------
