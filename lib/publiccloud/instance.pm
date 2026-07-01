@@ -466,7 +466,7 @@ sub wait_for_ssh {
                     # bsc#1250320 - augenrules.service fails at startup on Hardened Images
                     # The same known failure is handled as a soft-failure in the check_services test module
                     record_soft_failure('bsc#1250320 - augenrules.service fails at startup on Hardened Images')
-                      if (is_hardened() && $failed_svcs =~ m/augenrules/);
+                      if (is_sle("=15-SP7") && is_hardened() && $failed_svcs =~ m/augenrules/);
                     last;
                 }
                 elsif ($sysout =~ m/maintenance|stopping|offline|unknown/) {
