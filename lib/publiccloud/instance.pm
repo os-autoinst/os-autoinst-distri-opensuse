@@ -460,9 +460,13 @@ sub wait_for_ssh {
                 }
                 elsif ($sysout =~ m/degraded/) {    # startup completed but with failed services
                     $exit_code = 0;
-                    $sysout .= "\nSystem booted, but some services failed:\n" .
-                      $self->ssh_script_output(cmd => 'sudo systemctl --failed', ssh_opts => $ssh_opts,
+                    my $failed_svcs = $self->ssh_script_output(cmd => 'sudo systemctl --failed', ssh_opts => $ssh_opts,
                         proceed_on_failure => 1, username => $args{username});
+                    $sysout .= "\nSystem booted, but some services failed:\n" . $failed_svcs;
+                    # bsc#1250320 - augenrules.service fails at startup on Hardened Images
+                    # The same known failure is handled as a soft-failure in the check_services test module
+                    record_soft_failure('bsc#1250320 - augenrules.service fails at startup on Hardened Images')
+                      if (is_sle("=15-SP7") && is_hardened() && $failed_svcs =~ m/augenrules/);
                     last;
                 }
                 elsif ($sysout =~ m/maintenance|stopping|offline|unknown/) {
@@ -526,7 +530,11 @@ sub wait_for_ssh {
     $instance_msg .= $sysout if defined($sysout);
     $instance_msg .= "\nRetries on failure: $retry" if ($retry);
     # $sysout is not available if $args{systemup_check} is 0
-    record_info("WAIT CHECK:" . isok($exit_code), $instance_msg, result => (defined($sysout) && $sysout =~ m/\sfailed|timeout\s/i) ? "fail" : "ok");
+    # Per systemd docs, "degraded" means operational but with failed units - it is treated as boot
+    # success ($exit_code=0 above), so base the result on $exit_code rather than string-matching
+    # $sysout which would flag the "some services failed" narrative as a failure.
+    # See: https://man7.org/linux/man-pages/man1/systemctl.1.html (is-system-running)
+    record_info("WAIT CHECK:" . isok($exit_code), $instance_msg, result => isok($exit_code) ? "ok" : "fail");
 
     # OK
     return $duration if (!$exit_code && !$args{wait_stop} || $exit_code && $args{wait_stop});
