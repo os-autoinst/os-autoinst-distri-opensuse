@@ -23,7 +23,7 @@ sub run {
     $branch //= 'main';
 
     # This is a *dirty* workaround to fix this issue we encountered: https://bugzilla.suse.com/show_bug.cgi?id=1239721
-    # TODO: update the MicroOS image or - even better - try to use SLMirco instead (but Golang seens to be missing...)
+    # TODO: update the MicroOS image or - even better - try to use SLMicro instead (but Golang seems to be missing...)
     trup_call('--no-selfupdate run zypper -n --gpg-auto-import-keys refresh --force');
 
     # Add git/go package(s)
