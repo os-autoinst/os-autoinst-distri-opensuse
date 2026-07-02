@@ -85,6 +85,8 @@ sub run {
     }
     else {
         $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://download.suse.de/ibs/,$repodir,g' '{}' \\;");
+        # QA:/Head repos have an untrusted GPG key; disable gpgcheck in the .repo file before adding
+        $instance->ssh_assert_script_run("sudo grep -rl 'QA:/Head' $repodir | grep '\\.repo\$' | xargs -r sudo sed -i 's/^gpgcheck=.*/gpgcheck=0/'");
         $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec zypper ar -p10 '{}' \\;");
         $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec echo '{}' \\;");
     }
