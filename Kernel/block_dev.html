@@ -16,6 +16,8 @@
     <ul>
       <li><a href="#is_block_device">is_block_device</a></li>
       <li><a href="#record_storage_info">record_storage_info</a></li>
+      <li><a href="#create_loop_backing_file">create_loop_backing_file</a></li>
+      <li><a href="#attach_loop_device">attach_loop_device</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/block_dev.pm</h1>
@@ -31,6 +33,30 @@
 <pre><code>record_storage_info();</code></pre>
 
 <p>Records block device layout into the openQA test log as a diagnostic snapshot.</p>
+
+<h2 id="create_loop_backing_file">create_loop_backing_file</h2>
+
+<pre><code>create_loop_backing_file($path, $size, %opts);</code></pre>
+
+<p>Creates a loop device backing file with proper Btrfs host handling.</p>
+
+<p>Arguments: $path - Full path to the backing file (e.g., &#39;/opt/xfstests/test_dev&#39;) $size - Size specification (e.g., &#39;5G&#39;, &#39;1024M&#39;) %opts - Optional parameters: timeout =&gt; timeout in seconds (default: 300)</p>
+
+<p>This function creates an empty file, applies chattr +C to disable CoW and compression on Btrfs hosts (no-op on other filesystems), then uses fallocate to allocate the requested space.</p>
+
+<p>The chattr +C flag must be set on an empty file before data is written to prevent Btrfs host filesystem issues: - CoW disabled: prevents physical space explosion during overwrites - Compression disabled: ensures full physical space allocation - Safe for all test filesystems (xfs, btrfs, ext4, overlay, nfs)</p>
+
+<p>Returns: nothing (dies on error via assert_script_run)</p>
+
+<h2 id="attach_loop_device">attach_loop_device</h2>
+
+<pre><code>attach_loop_device($backing_file, %opts);</code></pre>
+
+<p>Attaches a loop device to a backing file and returns the loop device path.</p>
+
+<p>Arguments: $backing_file - Path to the backing file %opts - Optional parameters: loop_dev =&gt; specific loop device path (e.g., &#39;/dev/loop100&#39;) If not provided, uses &#39;losetup -f&#39; to find next free device timeout =&gt; timeout in seconds (default: 300)</p>
+
+<p>Returns: the loop device path (e.g., &#39;/dev/loop0&#39;)</p>
 
 
 </body>
