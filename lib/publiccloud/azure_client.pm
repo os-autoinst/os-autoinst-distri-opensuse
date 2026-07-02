@@ -42,6 +42,8 @@ sub init {
           . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
           . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
           . '}');
+    # Work-around for https://bugzilla.suse.com/show_bug.cgi?id=1270099
+    assert_script_run q(sed '/ca-certificates/s,\\$,--opt "\\--volume /etc/ssl:/etc/ssl:ro" \\,' /usr/bin/register_az | bash) if is_sle(">16.0");
     script_run("PILOT_DEBUG=1 az %silent --help") if is_sle(">=16");
 
     $self->az_login();
