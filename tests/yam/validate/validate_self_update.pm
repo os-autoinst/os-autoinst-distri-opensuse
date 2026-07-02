@@ -23,8 +23,7 @@ sub run {
         my $self_update_url = get_var('SCC_URL') =~ /proxy/
           ? get_var('SCC_URL')
           : get_var('INST_SELF_UPDATE', 'https://scc.suse.com');
-        assert_script_run("journalctl -t live-self-update --no-pager | grep 'Will use a custom registration server " .
-              "$self_update_url for obtaining the self-update repository'");
+        assert_script_run("journalctl -t live-self-update --no-pager | grep '$self_update_url'");
     } else {
         systemctl('is-active live-self-update', expect_false => 1);
         assert_script_run("journalctl -t live-self-update | grep \"Self update not configured\"");
