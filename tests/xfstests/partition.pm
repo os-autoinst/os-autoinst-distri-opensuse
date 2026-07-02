@@ -28,6 +28,7 @@ use registration;
 use version_utils qw(is_transactional is_sle_micro is_sle);
 use Utils::Architectures 'is_ppc64le';
 use transactional;
+use Kernel::block_dev qw(create_loop_backing_file attach_loop_device);
 use List::Util 'sum';
 use rdma;
 
@@ -188,23 +189,11 @@ sub create_loop_device_by_rootsize {
     @filename = ('test_dev');
     foreach (1 .. $amount) { push(@filename, "scratch_dev$_"); }
 
-    my $use_dd_create = get_var('XFSTESTS_DD_CREATE_DISK', 0);
-
     my $i = 0;
     foreach (@filename) {
-        if ($use_dd_create) {
-            # chattr +C must be set on empty file to disable CoW/compression on Btrfs hosts
-            assert_script_run("touch $INST_DIR/$_");
-            script_run("chattr +C $INST_DIR/$_ 2>/dev/null || true");
-            my $size_mb = str_to_mb($loop_dev_size[$i]);
-            record_info('Loop device (dd)', "Creating $_ with dd: $loop_dev_size[$i] ($size_mb MB)");
-            assert_script_run("dd if=/dev/zero of=$INST_DIR/$_ bs=1M count=$size_mb conv=fsync status=progress", 1200);
-        } else {
-            assert_script_run("fallocate -l $loop_dev_size[$i] $INST_DIR/$_", 300);
-        }
-
+        create_loop_backing_file("$INST_DIR/$_", $loop_dev_size[$i]);
+        attach_loop_device("$INST_DIR/$_");
         $i++;
-        assert_script_run("losetup -fP $INST_DIR/$_", 300);
     }
     script_run("losetup -a");
     if ($para{fstype} =~ /overlay/) {
@@ -239,17 +228,8 @@ sub create_loop_device_by_rootsize {
         my $logdev = "/dev/loop100";
         my $logdev_name = "logdev";
 
-        if ($use_dd_create) {
-            # chattr +C must be set on empty file to disable CoW/compression on Btrfs hosts
-            assert_script_run("touch $INST_DIR/$logdev_name");
-            script_run("chattr +C $INST_DIR/$logdev_name 2>/dev/null || true");
-            record_info('Loop device (dd)', "Creating logdev with dd: 1G (1024 MB)");
-            assert_script_run("dd if=/dev/zero of=$INST_DIR/$logdev_name bs=1M count=1024 conv=fsync status=progress", 1200);
-        } else {
-            assert_script_run("fallocate -l 1G $INST_DIR/$logdev_name", 300);
-        }
-
-        assert_script_run("losetup -P $logdev $INST_DIR/$logdev_name", 300);
+        create_loop_backing_file("$INST_DIR/$logdev_name", '1G');
+        attach_loop_device("$INST_DIR/$logdev_name", loop_dev => $logdev);
         format_partition("$INST_DIR/$logdev_name", $para{fstype});
         script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
         script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
