@@ -28,6 +28,13 @@ sub scroll_down {
     send_key "ctrl-down";
 }
 
+sub scroll_up {
+    # We need to click on an empty space so we can press arrow up
+    mouse_set(850, 630);
+    mouse_click;
+    send_key "ctrl-up";
+}
+
 sub back_to_overview {
     for (my $tries = 0; $tries <= 5; $tries++) {
         assert_and_click('agama-overview-tab');
@@ -85,6 +92,9 @@ sub agama_set_root_password_screen {
 
         # Click the accept button to confirm changes, we use "enter" in agama_define_user_screen
         assert_and_click('agama-user-accept-button');
+
+        scroll_up();
+
         assert_screen('agama-auth-changes-applied');
     }
 }
