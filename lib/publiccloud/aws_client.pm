@@ -45,6 +45,8 @@ sub init {
         assert_script_run('mkdir -p ~/.aws');
         # CAVEAT: Use the bash environment variables to prevent credential leaks.
         assert_script_run('printf "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY\nregion=$AWS_DEFAULT_REGION\n" > ~/.aws/credentials');
+        # Work-around for https://bugzilla.suse.com/show_bug.cgi?id=1269510
+        assert_script_run('printf "[default]\nca_bundle = /var/lib/ca-certificates/ca-bundle.pem\n" > ~/.aws/config') if is_sle(">16.0");
         script_run("PILOT_DEBUG=1 aws %silent --help");
     }
 

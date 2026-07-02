@@ -192,7 +192,7 @@ sub create_ssh_key {
     record_info($alg, "The $alg key will be generated.");
     if (script_run('test -f ' . $self->ssh_key) != 0) {
         assert_script_run('SSH_DIR=`dirname ' . $self->ssh_key . '`; mkdir -p $SSH_DIR');
-        assert_script_run('ssh-keygen -t ' . $alg . ' -q -N "" -C "" -m pem -f ' . $self->ssh_key);
+        assert_script_run('ssh-keygen -t ' . $alg . ' -q -N "" -C ""' . ($alg eq 'rsa' ? ' -m pem' : '') . ' -f ' . $self->ssh_key);
     }
 }
 
