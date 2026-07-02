@@ -78,6 +78,15 @@ sub run {
             add_suseconnect_product(get_addon_fullname('phub')) if is_sle('=12-sp5');
             my $az_cli_pkg = is_sle(">16.0") ? 'az-cli-cmd' : 'azure-cli';
             zypper_call("in jq $az_cli_pkg", timeout => 300);
+            if (is_sle(">16.0")) {
+                # Wrap az to suppress flake-pilot stderr noise
+                # https://github.com/OSInside/flake-pilot/issues/80
+                my $az_bin = script_output("command -v az");
+                assert_script_run("printf '#!/bin/sh\\nexec $az_bin %%silent \"\$\@\"\\n' > /usr/local/bin/az && chmod +x /usr/local/bin/az");
+                assert_script_run('export PATH=/usr/local/bin:$PATH');
+            }
+
+            # publiccloud::aws_client needs to demand PUBLIC_CLOUD_REGION due to other places where
 
             # publiccloud::azure_client needs to demand PUBLIC_CLOUD_REGION due to other places where
             # we don't want to have defaults and want tests to fail when region is not defined
