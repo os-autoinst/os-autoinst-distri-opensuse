@@ -107,7 +107,7 @@ sub run {
     # workaround esp. on aarch64 some test fail occasinally due to low worker performance
     # if there are failed tests run them again up to 3 times
     my $ret = script_run("set -o pipefail; $bind_cmd |& tee -a /tmp/test-suite.txt", timeout => 7000);
-    my $expected_ret = is_sle('=12-sp5') ? 2 : 1;
+    my $expected_ret = zypper_version_cmp($bind_version, '9.18.33') <= 0 ? 2 : 1;
     if ($ret == $expected_ret) {
         record_info 'Retry:', 'poo#71329';
         script_run "echo '### FAILED TESTS RETRY ###' >>/tmp/test-suite.txt";
