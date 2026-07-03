@@ -147,6 +147,11 @@ sub process_reboot {
             assert_screen 'grub2', 300;
             wait_screen_change { send_key 'ret' };
         }
+        else {
+            #Need to wait 3s to start tty6 service refer bsc#1269251
+            assert_screen 'linux-login', 200;
+            wait_still_screen(3);
+        }
         assert_screen 'linux-login', 200;
 
         # Login & clear login needle
