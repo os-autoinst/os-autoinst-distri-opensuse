@@ -92,6 +92,18 @@ sub run {
     push @xfails, (
         "github.com/containerd/containerd/integration/client::TestImagePullSchema1",
     ) if (version->parse(numeric_version($version)) < version->parse("2.1.0"));
+    # NOTE: Remove when criu > 4.2-2.1
+    push @xfails, (
+        "github.com/containerd/containerd/integration/client::TestCheckpointLeaveRunning",
+        "github.com/containerd/containerd/integration/client::TestCheckpointOnPauseStatus",
+        "github.com/containerd/containerd/integration/client::TestCheckpointRestore",
+        "github.com/containerd/containerd/integration/client::TestCheckpointRestoreNewContainer",
+        "github.com/containerd/containerd/integration/client::TestCheckpointRestorePTY",
+        "github.com/containerd/containerd/integration/client::TestCheckpointRestoreWithImagePath",
+        "github.com/containerd/containerd/integration/client::TestContainerKillInitKillsChildWhenNotHostPid",
+        "github.com/containerd/containerd/integration/client::TestContainerKillInitPidHost",
+        "github.com/containerd/containerd/integration/client::TestContainerList",
+    ) if (is_tumbleweed);
 
     run_timeout_command "$env gotestsum --junitfile containerd.xml --format standard-verbose ./... -- -v -test.root &> containerd.txt", no_assert => 1, timeout => 900;
     upload_logs "containerd.txt";

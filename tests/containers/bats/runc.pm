@@ -49,6 +49,22 @@ sub run_tests {
         "run.bats::runc run [joining existing container namespaces]",
         "userns.bats::userns join other container userns",
     ) if (is_sle("<16") && $rootless);
+    # NOTE: Remove when criu > 4.2-2.1
+    push @xfails, (
+        "checkpoint.bats::checkpoint --lazy-pages and restore",
+        "checkpoint.bats::checkpoint --pre-dump and restore",
+        "checkpoint.bats::checkpoint and restore",
+        "checkpoint.bats::checkpoint and restore (bind mount, destination is symlink)",
+        "checkpoint.bats::checkpoint and restore (with --debug)",
+        "checkpoint.bats::checkpoint and restore in external network namespace",
+        "checkpoint.bats::checkpoint and restore with container specific CRIU config",
+        "checkpoint.bats::checkpoint and restore with nested bind mounts",
+        "checkpoint.bats::checkpoint and restore with netdevice",
+        "checkpoint.bats::checkpoint and restore with netdevice (bind mount, destination is symlink)",
+        "checkpoint.bats::checkpoint and restore with netdevice (with --debug)",
+        "checkpoint.bats::checkpoint then restore into a different cgroup (via --manage-cgroups-mode ignore)",
+        "checkpoint.bats::checkpoint/restore and exec",
+    ) if (is_tumbleweed);
 
     return bats_tests($log_file, \%env, \@xfails, 3000);
 }
