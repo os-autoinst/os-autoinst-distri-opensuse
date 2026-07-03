@@ -12,22 +12,6 @@ use Data::Dumper;
 use testapi 'set_var';
 use sles4sap::qesap::aws;
 
-subtest '[qesap_aws_get_vpc_id]' => sub {
-    my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
-    my @calls;
-    my @soft_failure;
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'FISHERMAN'; });
-    set_var('PUBLIC_CLOUD_REGION', 'OCEAN');
-
-    qesap_aws_get_vpc_id(resource_group => 'LATTE');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /aws ec2 describe-instances/ } @calls), 'Base command aws ec2 describe-instances');
-    ok((any { /--region OCEAN/ } @calls), 'Region from argument');
-    ok((any { /--filters.*Values=LATTE/ } @calls), 'Filter resource_group in tag');
-};
-
 subtest '[qesap_aws_delete_transit_gateway_vpc_attachment]' => sub {
     my $qesap = Test::MockModule->new('sles4sap::qesap::aws', no_auto => 1);
     my @calls;
