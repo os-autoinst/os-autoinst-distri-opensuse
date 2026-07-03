@@ -6,7 +6,7 @@
 # Package: git-core twopence-shell-client bc iputils python
 # Summary: run InfiniBand test suite hpc-testing
 #
-# Maintainer: Michael Moese <mmoese@suse.de>, Nick Singer <nsinger@suse.de>, ybonatakis <ybonatakis@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
 use Utils::Backends;
@@ -155,64 +155,89 @@ sub post_fail_hook {
 
 1;
 
-=head1 bare metal testing for InfiniBand
-This section describes how to setup your environment for running the testsuite on bare metal.
-Once fully implemented, it will be expanded to virtualized testing.
+=head1 Description
 
-=head2 Overview
-This test is executing the hpc-testing testsuite from https://github.com/SUSE/hpc-testing
+Test module for bare metal testing of InfiniBand. This section describes how
+to setup your environment for running the testsuite on bare metal. Once fully
+implemented, it will be expanded to virtualized testing.
 
-In order to run this testsuite, two machines with InfiniBand HCA's are required.
+This test is executing the hpc-testing testsuite from
+https://github.com/SUSE/hpc-testing
 
-The test has some additional dependencies (twopence) that need to be in DEVEL_TOOLS_REPO.
+In order to run this testsuite, two machines with InfiniBand HCA's are
+required.
+
+The test has some additional dependencies (twopence) that need to be in
+DEVEL_TOOLS_REPO.
 
 =head1 openQA setup
 
 =head2 openQA worker setup
+
 The workers with the InfiniBand HCA's need a special worker class, in this case
 we assume it is "64bit-mlx_con5". See the schedule/kernel/ibtest-master.yaml and
 schedule/kernel/ibtest-slave.yaml for more details.
 
 =head2 openQA test suites
+
 As the test is executed on two hosts, two test suites should be created. Please note:
 most settings are now defined in the YAML schedule.
 
 =head3 ibtest-master
+
 YAML_SCHEDULE=schedule/kernel/ibtest-master.yaml
 
 =head3 ibtest-slave
+
 PARALLEL_WITH=ibtest-master
 YAML_SCHEDULE=schedule/kernel/ibtest-slave.yaml
 
-=head3 additional configuration variables
+=head1 Configuration
+
 These are only effective, when defined for the master job. Leave them at their
 defaults unless you know what you are doing.
 
-IBTEST_TIMEOUT
- Test timeout in seconds.
- Default: 3600 (1 hour)
-IBTEST_ONLY_PHASE
- integer value. Only run the defined phase.
- Not set by default.
-IBTEST_START_PHASE
- integer value. Start with specified phase.
- Default: 0
-IBTEST_END_PHASE
- integer value. End with specified phase.
- Default: 999
-IBTEST_MPI_FLAVOURS
- Comma separated list of MPI flavours to test.
- Default: mvapich2,mpich,openmpi,openmpi2,openmpi3
-IBTEST_IPOIB_MODES
- Comma separated list of IPoIB modes to test
- Default: connected,datagram
-IBTEST_VERBOSE
- Set this variable to enable verbose mode
- Default: not set
-IBTEST_IN_VM
- Set this variable to enable testing in a VM.
- Default: not set
-IBTEST_NO_MAD
- Set this variable toisable test that requires MAD support. Needed for testing over SR-IOV
- Default: not set
+=head2 IBTEST_TIMEOUT
 
+Test timeout in seconds.
+Default: 3600 (1 hour)
+
+=head2 IBTEST_ONLY_PHASE
+
+Integer value. Only run the defined phase.
+Not set by default.
+
+=head2 IBTEST_START_PHASE
+
+Integer value. Start with specified phase.
+Default: 0
+
+=head2 IBTEST_END_PHASE
+
+Integer value. End with specified phase.
+Default: 999
+
+=head2 IBTEST_MPI_FLAVOURS
+
+Comma separated list of MPI flavours to test.
+Default: mvapich2,mpich,openmpi,openmpi2,openmpi3
+
+=head2 IBTEST_IPOIB_MODES
+
+Comma separated list of IPoIB modes to test.
+Default: connected,datagram
+
+=head2 IBTEST_VERBOSE
+
+Set this variable to enable verbose mode.
+Default: not set
+
+=head2 IBTEST_IN_VM
+
+Set this variable to enable testing in a VM.
+Default: not set
+
+=head2 IBTEST_NO_MAD
+
+Set this variable to disable test that requires MAD support. Needed for testing over SR-IOV.
+Default: not set
