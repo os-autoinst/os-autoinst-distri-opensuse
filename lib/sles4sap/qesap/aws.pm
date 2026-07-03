@@ -234,7 +234,7 @@ sub qesap_aws_filter_query {
 
 sub qesap_aws_get_mirror_tg {
     my (%args) = @_;
-    croak "Missing mandatory $_ argument" unless $args{mirror_tag};
+    croak "Missing mandatory mirror_tag argument" unless $args{mirror_tag};
     return qesap_aws_filter_query(
         cmd => 'describe-transit-gateways',
         filter => '"Name=tag-key,Values=Project" "Name=tag-value,Values=' . $args{mirror_tag} . '"',
