@@ -35,7 +35,6 @@ use Exporter 'import';
 use testapi;
 
 our @EXPORT = qw(
-  qesap_aws_get_vpc_id
   qesap_aws_get_tgw_attachments
   qesap_aws_delete_transit_gateway_vpc_attachment
   qesap_aws_create_credentials
@@ -94,41 +93,6 @@ sub qesap_aws_create_config {
     save_tmp_file('config', "[default]\nregion = $args{region}\n");
     assert_script_run 'mkdir -p ~/.aws';
     assert_script_run 'curl ' . autoinst_url . "/files/config -o ~/.aws/config";
-}
-
-=head3 qesap_aws_get_vpc_id
-
-    Get the vpc_id of a given instance in the cluster.
-    This function looks for the cluster using the aws describe-instances
-    and filtering by terraform deployment_name value, that qe-sap-deployment
-    is kind to use as tag for each resource.
-
-=cut
-
-=over
-
-=item B<RESOURCE_GROUP> - value of the workspace tag configured in qe-sap-deployment, usually it is the deployment name
-
-=back
-=cut
-
-sub qesap_aws_get_vpc_id {
-    my (%args) = @_;
-    croak 'Missing mandatory resource_group argument' unless $args{resource_group};
-
-    # tag names has to be aligned to
-    # https://github.com/SUSE/qe-sap-deployment/blob/main/terraform/aws/infrastructure.tf
-    my $cmd = join(' ', 'aws ec2 describe-instances',
-        '--region', get_required_var('PUBLIC_CLOUD_REGION'),
-        '--filters',
-        '"Name=tag-key,Values=workspace"',
-        "\"Name=tag-value,Values=$args{resource_group}\"",
-        '--query',
-        # the two 0 index result in select only the vpc of vmhana01
-        # that is always equal to the one used by vmhana02
-        "'Reservations[0].Instances[0].VpcId'",
-        '--output text');
-    return script_output($cmd);
 }
 
 =head3 qesap_aws_get_transit_gateway_vpc_attachment
