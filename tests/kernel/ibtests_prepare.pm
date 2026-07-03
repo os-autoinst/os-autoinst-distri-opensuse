@@ -6,7 +6,7 @@
 # Package: ibtests_prepare
 # Summary: prepare for InfiniBand test suite hpc-testing
 #
-# Maintainer: Michael Moese <mmoese@suse.de>, Nick Singer <nsinger@suse.de>, ybonatakis <ybonatakis@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
 use Mojo::Base 'opensusebasetest';
 use Utils::Backends;
@@ -51,3 +51,21 @@ sub run {
 }
 
 1;
+
+=head1 Description
+
+Test module to prepare the machines for the InfiniBand test suite
+hpc-testing. Installs the required packages, unloads the firewall, creates
+a SSH key if needed and reboots the machine.
+
+=head1 Configuration
+
+=head2 IBTEST_ROLE
+
+Role of the machine, either C<IBTEST_MASTER> or C<IBTEST_SLAVE>. The master
+role additionally installs C<git-core> and C<bc>.
+
+=head2 SCIENCE_HPC_REPO
+
+Optional zypper repository to add for HPC science packages.
+
