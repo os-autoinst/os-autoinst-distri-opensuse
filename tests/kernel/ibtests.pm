@@ -18,6 +18,8 @@ use lockapi;
 use mmapi;
 use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
 use mm_network;
+use LTP::WhiteList;
+use LTP::utils 'prepare_whitelist_environment';
 
 our $master;
 our $slave;
@@ -59,6 +61,8 @@ sub ibtest_master {
     my $ipoib_modes = get_var('IBTEST_IPOIB_MODES');
     my $ipoib_ip1 = get_var('IBTEST_IPOIB_IP1', '192.168.0.1');
     my $ipoib_ip2 = get_var('IBTEST_IPOIB_IP2', '192.168.0.2');
+    my $exclude = get_var('IBTEST_EXCLUDE');
+    my $issues = get_var('IBTEST_KNOWN_ISSUES');
 
     my $args = '';
 
@@ -77,6 +81,20 @@ sub ibtest_master {
     $args = $args . "--ipoib $ipoib_modes " if $ipoib_modes;
     $args = $args . "--ip1 $ipoib_ip1 --ip2 $ipoib_ip2 ";
 
+    my @exclude = split(/,/, $exclude // '');
+    if ($issues) {
+        my $whitelist = LTP::WhiteList->new($issues);
+        my $environment = prepare_whitelist_environment();
+        $environment->{kernel} = script_output('uname -r');
+
+        for my $test ($whitelist->list_skipped_tests($environment, 'ibtest')) {
+            my $entry = $whitelist->find_whitelist_entry($environment, 'ibtest', $test);
+            my $message = $entry->{message} // '';
+            record_info('Known issue', "Skipping $test" . ($message ? ": $message" : ''));
+            push @exclude, $test;
+        }
+    }
+    $args = $args . join(' ', map { "--skip-test '$_'" } @exclude) . ' ' if @exclude;
 
     # testsuite is already fetched by ibtests_prepare.pm before the reboot
     my $test_dir = $install =~ /git/i ? 'hpc-testing' : '/usr/share/hpc-testing';
@@ -251,3 +269,13 @@ Default: not set
 
 Set this variable to disable test that requires MAD support. Needed for testing over SR-IOV.
 Default: not set
+
+=head2 IBTEST_EXCLUDE
+
+Optional. Comma-separated list of test names/patterns to skip (passed as
+C<--skip-test>).
+
+=head2 IBTEST_KNOWN_ISSUES
+
+Optional. URL or path to a known-issues YAML file parsed with
+C<LTP::WhiteList>
