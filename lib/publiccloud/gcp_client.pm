@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Helper class for google connection and authentication
@@ -11,7 +11,7 @@ package publiccloud::gcp_client;
 use Mojo::Base -base;
 use testapi;
 use utils;
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
 use publiccloud::utils;
 use Mojo::Util qw(b64_decode);
 use Mojo::JSON 'decode_json';
@@ -23,7 +23,39 @@ has storage_name => sub { get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', 'openqa-storag
 has project_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID') };
 has account => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
 has gcr_zone => sub { get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io') };
-has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
+
+# Reference to a list of all regions specified via job variable/settings
+# At least one region is present from PUBLIC_CLOUD_REGION
+has _regions => sub {
+    my @list = (get_required_var('PUBLIC_CLOUD_REGION'));
+    if (my $alt = get_var('PUBLIC_CLOUD_ALTERNATE_REGIONS')) {
+        push @list, split(/\s*,\s*/, $alt);
+    }
+    return \@list;
+};
+
+# List of regions blacklisted by the user during the test execution.
+has _blacklisted_regions => sub { {} };
+
+# Setter for the blacklist. The test code can call this function
+# to add a region name to the blacklis; it usually happens
+# when a terraform deployment fails for a specific error.
+sub blacklist_region {
+    my ($self, $region) = @_;
+    $self->_blacklisted_regions->{$region} = 1;
+    return $self;    # allows chaining
+}
+
+# Getter, return the first not blacklisted region or die
+sub region {
+    my ($self) = @_;
+    my $blacklist = $self->_blacklisted_regions;
+    for my $r (@{$self->_regions}) {
+        return $r unless $blacklist->{$r};
+    }
+    die "No available regions — all blacklisted: " . join(', ', @{$self->_regions});
+}
+
 has availability_zone => sub { get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
 

@@ -11,12 +11,44 @@ package publiccloud::azure_client;
 use Mojo::Base -base;
 use testapi;
 use utils;
-use publiccloud::utils;
 use version_utils qw(is_sle);
+use publiccloud::utils;
 
-has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
-has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
+
+# Reference to a list of all regions specified via job variable/settings
+# At least one region is present from PUBLIC_CLOUD_REGION
+has _regions => sub {
+    my @list = (get_required_var('PUBLIC_CLOUD_REGION'));
+    if (my $alt = get_var('PUBLIC_CLOUD_ALTERNATE_REGIONS')) {
+        push @list, split(/\s*,\s*/, $alt);
+    }
+    return \@list;
+};
+
+# List of regions blacklisted by the user during the test execution.
+has _blacklisted_regions => sub { {} };
+
+# Setter for the blacklist. The test code can call this function
+# to add a region name to the blacklis; it usually happens
+# when a terraform deployment fails for a specific error.
+sub blacklist_region {
+    my ($self, $region) = @_;
+    $self->_blacklisted_regions->{$region} = 1;
+    return $self;    # allows chaining
+}
+
+# Getter, return the first not blacklisted region or die
+sub region {
+    my ($self) = @_;
+    my $blacklist = $self->_blacklisted_regions;
+    for my $r (@{$self->_regions}) {
+        return $r unless $blacklist->{$r};
+    }
+    die "No available regions — all blacklisted: " . join(', ', @{$self->_regions});
+}
+
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'azureuser') };
+has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
 has credentials_file_content => undef;
 has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
 
