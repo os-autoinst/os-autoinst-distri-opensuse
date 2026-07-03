@@ -1197,9 +1197,8 @@ sub az_nic_create(%args) {
             '--subnet', $args{subnet},
             '--network-security-group', $args{nsg},
             '--private-ip-address-version IPv4',
-            '--public-ip-address', $args{pubip_name}),
-        $SDAF_Azure_podman_flake_filter
-    );
+            '--public-ip-address', $args{pubip_name},
+            $SDAF_Azure_podman_flake_filter));
 }
 
 =head2 az_nic_get
