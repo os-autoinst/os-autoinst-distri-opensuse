@@ -79,6 +79,19 @@ gm convert white.png frame4.gif
 # Helpers
 ##########################
 
+
+## Check if the first version is equal or greater than the required version
+# e.g version_or_higher "1.3.33" "1.3.28" returns true
+function version_or_higher() {
+  local version="${1:-0}"
+  local required="${2:-0}"
+
+  zypper vcmp "$version" "$required" >/dev/null 2>&1
+  local rc=$?
+
+  [ "$rc" -eq 0 ] || [ "$rc" -eq 11 ]
+}
+
 function compare {
   metric=$1
   image1=$2
@@ -431,11 +444,15 @@ tests=(
   # b. bundle operations http://www.graphicsmagick.org/mogrify.html
   "special 6"
 
-  # Test 13. Test scripting
-  # http://www.graphicsmagick.org/conjure.html
-  "gm conjure -dimensions 10x10 script.html; perl check_size.pl script_test.png 10 10"
-
 )
+
+if ! version_or_higher "$(rpm -q GraphicsMagick --qf '%{VERSION}')" "1.3.47"; then
+  tests+=(
+    # Test 13. Test scripting - MSL scripting is disabled since 1.3.47: https://bugzilla.opensuse.org/show_bug.cgi?id=1269472
+    # http://www.graphicsmagick.org/conjure.html
+    "gm conjure -dimensions 10x10 script.html; perl check_size.pl script_test.png 10 10"
+  )
+fi
 
 function special(){
   case $1 in
