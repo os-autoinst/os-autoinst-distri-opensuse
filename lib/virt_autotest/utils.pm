@@ -862,10 +862,15 @@ sub create_guest {
             record_info("Boot Firmware", "Guest $name configured for EFI sev_es boot");
         }
         if ($guest->{boot_firmware} && $guest->{boot_firmware} eq 'efi-with-qcow2-based-nvram') {
-            # Need to match with SNAPSHOT_NVRAM_TEMPLATE_SRC and SNAPSHOT_NVRAM_TEMPLATE_NEW settings
-            $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,"
-              . "loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-qcow2-vars.bin,"
-              . "nvram.templateFormat=qcow2,hd,bootmenu.enable=yes,menu=on";
+            if (is_sle('>=16.1')) {
+                $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.qcow2,loader.readonly=yes,"
+                  . "loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-vars.qcow2,";
+            } else {
+                # Need to match with SNAPSHOT_NVRAM_TEMPLATE_SRC and SNAPSHOT_NVRAM_TEMPLATE_NEW settings
+                $virtinstall .= " --boot loader=/usr/share/qemu/ovmf-x86_64-suse-4m-code.bin,loader.readonly=yes,"
+                  . "loader.type=pflash,nvram.template=/usr/share/qemu/ovmf-x86_64-suse-4m-qcow2-vars.bin,";
+            }
+            $virtinstall .= "nvram.templateFormat=qcow2,hd,bootmenu.enable=yes,menu=on";
             record_info("Boot Firmware", "Guest $name configured with EFI bootloader and qcow2 based nvram for snapshot test");
         }
 
