@@ -23,6 +23,7 @@ sub run {
     my @skip_aliases = (
         qr/Increment_repo/,
         qr/^SLES$/,    # This is on SLE 16 Full install of QE Security
+        qr/^http-openqa.suse.de/,    # QU Full installation on s390x repository (Random alias skip)
     );
 
     script_output 'zypper -n lr --uri';
