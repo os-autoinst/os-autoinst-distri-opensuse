@@ -810,7 +810,7 @@ sub generate_calculated_variables {
     );
 
     # Dynamically replace any matches found in the %generators hash
-    $profile =~ s/\b(WORKER_IP)\b/$generators{uc($1)}->()/gie;
+    $profile =~ s/%(WORKER_IP)%/$generators{uc($1)}->()/gie;
 
     return $profile;
 }
