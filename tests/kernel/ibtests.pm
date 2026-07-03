@@ -48,8 +48,7 @@ sub ibtest_master {
     my $self = shift;
     my $master = get_required_var('IBTEST_IP1');
     my $slave = get_required_var('IBTEST_IP2');
-    my $hpc_testing = get_var('IBTEST_GITTREE', 'https://github.com/SUSE/hpc-testing.git');
-    my $hpc_testing_branch = get_var('IBTEST_GITBRANCH', 'master');
+    my $install = get_var('IBTEST_INSTALL', 'from_repo');
     my $timeout = get_var('IBTEST_TIMEOUT', '3600');
 
     # construct some parameters to allow to customize test runs when needed
@@ -79,11 +78,11 @@ sub ibtest_master {
     $args = $args . "--ip1 $ipoib_ip1 --ip2 $ipoib_ip2 ";
 
 
-    # pull in the testsuite
-    assert_script_run("git clone $hpc_testing --branch $hpc_testing_branch", timeout => $timeout);
+    # testsuite is already fetched by ibtests_prepare.pm before the reboot
+    my $test_dir = $install =~ /git/i ? 'hpc-testing' : '/usr/share/hpc-testing';
 
     # wait until the two machines under test are ready setting up their local things
-    assert_script_run('cd hpc-testing');
+    assert_script_run("cd $test_dir");
     barrier_wait('IBTEST_BEGIN');
     script_run("./ib-test.sh $args $master $slave", timeout => $timeout);
     script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
@@ -197,9 +196,16 @@ YAML_SCHEDULE=schedule/kernel/ibtest-slave.yaml
 These are only effective, when defined for the master job. Leave them at their
 defaults unless you know what you are doing.
 
+=head2 IBTEST_INSTALL
+
+Installation method for the hpc-testing suite, C<from_repo> (default) or
+C<from_git>. See ibtests_prepare.pm, which fetches the testsuite before
+the reboot.
+
 =head2 IBTEST_TIMEOUT
 
-Test timeout in seconds.
+Test timeout in seconds. Also used by ibtests_prepare.pm as the git clone
+timeout.
 Default: 3600 (1 hour)
 
 =head2 IBTEST_ONLY_PHASE
