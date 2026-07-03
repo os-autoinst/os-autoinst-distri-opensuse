@@ -426,6 +426,27 @@ sub install_kotd {
     install_package("--recommends $devel_flavor", trup_continue => 1);
 }
 
+sub cleanup_kernel_repos {
+    # Detect leftover kernel update repositories by name (present when this
+    # image already went through a kernel update, e.g. a published KOTD
+    # image). If none exist, there is nothing to clean up.
+    my @stale = grep { /^(KOTD|kernel-update-\d+)$/ } map { $$_{alias} } @{zypper_repos()};
+    return unless @stale;
+
+    # Remove locks on all installed kernel packages, otherwise
+    # remove_kernel_packages() fails in the install branches.
+    my @kpkgs = grep { m/^kernel-(?!firmware)/ }
+      map { $_->{name} } @{zypper_search('-i kernel')};
+    zypper_call('rl ' . join(' ', @kpkgs)) if @kpkgs;
+
+    # Remove the stale repositories so a new KOTD_REPO takes effect.
+    zypper_call('rr ' . join(' ', @stale));
+
+    # Remove LTP to avoid conflicts with the following install_ltp
+    zypper_call('rm ltp ltp-stable', exitcode => [0, 104]);
+    script_run('rm -rf /opt/ltp');
+}
+
 sub update_kgraft_under_load {
     my ($self, $incident_klp_pkg, $repo, $incident_id) = @_;
 
@@ -520,6 +541,11 @@ sub run {
 
     # Install requirements for SLE 16 staging tests
     install_requirements if get_var('FLAVOR') =~ /Updates-Staging/;
+
+    # Clean up leftover kernel update repositories, locks and LTP from a
+    # previous kernel update (e.g. a republished KOTD image) so the
+    # installation below can proceed with fresh settings.
+    cleanup_kernel_repos;
 
     my $repo = get_var('KOTD_REPO');
     $repo = get_var('OS_TEST_REPOS') if (!defined($repo) && (is_sle_micro('>=6.0') || (is_sle('16+'))));
