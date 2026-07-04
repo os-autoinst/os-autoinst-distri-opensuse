@@ -106,7 +106,7 @@ sub run {
     select_serial_terminal;
 
     record_info('KERNEL', script_output('rpm -qi kernel-default; uname -r'));
-    save_and_upload_log('rpm -qi kernel-default; uname -r', 'kernel_bug_report.txt');
+    save_and_upload_log('(rpm -qi kernel-default; uname -r)', 'kernel_bug_report.txt');
 
     # wait for both machines to boot up before we continue
     barrier_wait('IBTEST_SETUP');
