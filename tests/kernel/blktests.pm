@@ -47,7 +47,7 @@ sub run {
     my $test_case_dev_array = get_var('BLKTESTS_TEST_CASE_DEV_ARRAY');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
-    save_and_upload_log('rpm -qi kernel-default', 'kernel_bug_report.txt');
+    save_and_upload_log('(rpm -qi kernel-default; uname -a)', 'kernel_bug_report.txt');
 
     #QA repo is added with lower prio in order to avoid possible problems
     #with some packages provided in both, tested product and qa repo; example: fio
