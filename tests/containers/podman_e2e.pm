@@ -139,6 +139,9 @@ sub run {
         "Libpod Suite::[It] Podman checkpoint podman restore multiple containers from multiple checkpoint images",
         "Libpod Suite::[It] Podman checkpoint podman restore multiple containers from single checkpoint image",
         "Libpod Suite::[It] Podman checkpoint podman run with checkpoint image",
+        # Seen with crun:
+        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with export and verify non-default runtime",
+        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with export and try to change the runtime",
     ) if (is_tumbleweed);
 
     # Skip remoteintegration on SLES as it panics with:
