@@ -48,7 +48,11 @@ sub run {
     $self->{tests} = [@tests];
     die 'No tests to run.' unless @tests > 0;
 
-    my $test_opt = @tests > 1 ? '--per-test-log' : '';
+    # Always use --per-test-log so each test's subtest output goes to its own
+    # /tmp/<test> file and the summary only holds the top-level results. This
+    # keeps a single, uniform post-processing path for both single and multiple
+    # tests (see post_process).
+    my $test_opt = '--per-test-log';
     if (@selected == @available && !@skip) {
         # No tests were selected nor skipped, run full collection
         $test_opt .= " --collection $collection";
@@ -108,13 +112,8 @@ sub post_run_hook {
     my ($self) = @_;
     $self->SUPER::post_run_hook;
 
-    my ($ktap, $softfails, $hardfails);
     my @tests = @{$self->{tests}};
-    if (@tests > 1) {
-        ($ktap, $softfails, $hardfails) = post_process(collection => $self->{collection}, tests => \@tests);
-    } else {
-        ($ktap, $softfails, $hardfails) = post_process_single(collection => $self->{collection}, test => $tests[0]);
-    }
+    my ($ktap, $softfails, $hardfails) = post_process(collection => $self->{collection}, tests => \@tests);
 
     chomp @{$ktap};
     write_sut_file('/tmp/kselftest.tap.txt', join("\n", grep { /\S/ } @{$ktap}));
