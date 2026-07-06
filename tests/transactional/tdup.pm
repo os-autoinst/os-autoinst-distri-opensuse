@@ -33,9 +33,12 @@ sub run {
         $nr++;
     }
 
-    zypper_call '--gpg-auto-import-keys ref';
+    # Work around that for t-u < 5.5.1, selfupdates break key updates (boo#1239721)
+    if (script_output('zypper -t vcmp 5.5.1 $(rpm -q --qf %{version} transactional-update)', proceed_on_failure => 1) !~ /-1/) {
+        trup_call '--no-selfupdate run zypper ref -f';
+    }
 
-    trup_call 'dup', timeout => 600;
+    trup_call '-c dup', timeout => 600;
 
     check_reboot_changes;
 }
