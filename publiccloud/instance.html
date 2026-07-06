@@ -25,7 +25,6 @@
       <li><a href="#upload_check_logs_tar">upload_check_logs_tar</a></li>
       <li><a href="#wait_for_guestregister">wait_for_guestregister</a></li>
       <li><a href="#update_instance_ip">update_instance_ip</a></li>
-      <li><a href="#wait_for_ssh">wait_for_ssh</a></li>
       <li><a href="#isok">isok</a></li>
       <li><a href="#softreboot">softreboot</a></li>
       <li><a href="#stop">stop</a></li>
@@ -117,18 +116,6 @@ C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally s
 <pre><code>update_instance_ip(timeout =&gt; 600)</code></pre>
 
 <p>This subroutine checks the public IP cloud provider provides for the VM. When the IP differs from `$self-&gt;public_ip` we update `$self-&gt;public_ip`.</p>
-
-<h2 id="wait_for_ssh">wait_for_ssh</h2>
-
-<pre><code>wait_for_ssh([timeout =&gt; 600] [, proceed_on_failure =&gt; 0] [, scan_ssh_host_key =&gt; 0] [, ...])</code></pre>
-
-<p>When a remote pc instance starting, by default wait_stop param.=0(false) and this routine checks until the SSH port of the remote instance is reachable and open. Then by default also checks that system is up, unless systemup_check false/0.</p>
-
-<p>Wnen a remote pc instance is stopping in shutdown, we set input param. wait_stop=1(true), to expect until ssh is closed; automatic defaults systemup_check=0 and proceed_on_failure=1 applied. Status values of exit_code: 0 = pass; 1 = fail; 2 = fail,but retry,till timeout or valid outcome.</p>
-
-<p>Parameters: timeout =&gt; total wait timeout; default: 600. wait_stop =&gt; If true waits for ssh port to become unreachable, if false waits for ssh reachable; default: false. proceed_on_failure =&gt; in case of fail, if false exit test with error, if true let calling code to continue; default: wait_stop. scan_ssh_host_key =&gt; If true we will rescan the SSH host key This will be true when: * SUT changes it&#39;s public IP address * SUT regenerates it&#39;s SSH host keys (e.g. when cloud-init state is cleared) username =&gt; default: username(). systemup_check =&gt; If true, checks if the system is up too, instead of just checking the ssh port; default: !wait_stop. logs =&gt; If true, upload journal to test logs, if false log not uploaded, to speed up check; default: true.</p>
-
-<p>Return: duration if pass undef if fail and proceed_on_failure true, otherwise die.</p>
 
 <h2 id="isok">isok</h2>
 
