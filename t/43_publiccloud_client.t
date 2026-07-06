@@ -5,7 +5,7 @@
 
 # Summary: Unit tests for the public cloud connection clients
 #   (publiccloud::aws_client, publiccloud::azure_client, publiccloud::gcp_client).
-#   The region / blacklist logic is shared via publiccloud::client_base, so every
+#   The region / disallow logic is shared via publiccloud::client_base, so every
 #   subtest exercises all three concrete clients to prove the inherited behaviour.
 
 use strict;
@@ -20,8 +20,7 @@ use publiccloud::azure_client;
 use publiccloud::gcp_client;
 use publiccloud::client_base;
 
-# The three cloud connection clients inherit the region/blacklist logic from
-# publiccloud::client_base. Running each check against all of them verifies the
+# Running each check against all of the CSP children classes verifies the
 # shared behaviour through every concrete client.
 my @CLIENTS = qw(
   publiccloud::aws_client
@@ -51,54 +50,54 @@ subtest '[region] missing PUBLIC_CLOUD_REGION dies' => sub {
     }
 };
 
-subtest '[blacklist_region] ignore double blacklisting' => sub {
+subtest '[disable_region] ignore double disabling' => sub {
     set_var('PUBLIC_CLOUD_REGION', 'olympus-1');
     set_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', 'delphi-2,ithaca-3');
     my $ret;
     for my $class (@CLIENTS) {
         my $client = $class->new();
-        $client->blacklist_region('olympus-1');
-        is $client->region, 'delphi-2', "$class skips the single blacklisted region";
+        $client->disable_region('olympus-1');
+        is $client->region, 'delphi-2', "$class skips the single not allowed region";
 
-        # Blacklist two times the same does not have any effect
-        $client->blacklist_region('olympus-1');
-        is $client->region, 'delphi-2', "$class skips the single blacklisted region";
+        # Block two times the same does not have any effect
+        $client->disable_region('olympus-1');
+        is $client->region, 'delphi-2', "$class skips the single not allowed region";
     }
     _unset('PUBLIC_CLOUD_REGION', 'PUBLIC_CLOUD_ALTERNATE_REGIONS');
 };
 
-subtest '[blacklist_region] blacklisting is chainable' => sub {
+subtest '[disable_region] is chainable' => sub {
     set_var('PUBLIC_CLOUD_REGION', 'olympus-1');
     set_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', 'delphi-2,ithaca-3');
     my $ret;
     for my $class (@CLIENTS) {
         my $client = $class->new();
-        $client->blacklist_region('olympus-1')->blacklist_region('delphi-2');
-        is $client->region, 'ithaca-3', "$class skips multiple blacklisted regions set via chaining";
+        $client->disable_region('olympus-1')->disable_region('delphi-2');
+        is $client->region, 'ithaca-3', "$class skips multiple disabled regions set via chaining";
     }
     _unset('PUBLIC_CLOUD_REGION', 'PUBLIC_CLOUD_ALTERNATE_REGIONS');
 };
 
-subtest '[region] dies when all regions are blacklisted' => sub {
+subtest '[region] dies when all regions are blocked' => sub {
     set_var('PUBLIC_CLOUD_REGION', 'olympus-1');
     set_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', 'delphi-2');
     for my $class (@CLIENTS) {
         my $client = $class->new();
-        $client->blacklist_region('olympus-1')->blacklist_region('delphi-2');
+        $client->disable_region('olympus-1')->disable_region('delphi-2');
         throws_ok { $client->region } qr/No available regions/,
-          "$class dies with a descriptive error when every region is blacklisted";
+          "$class dies with a descriptive error when every region is disabled";
     }
     _unset('PUBLIC_CLOUD_REGION', 'PUBLIC_CLOUD_ALTERNATE_REGIONS');
 };
 
-subtest '[blacklist_region] state is isolated per instance' => sub {
+subtest '[disable_region] state is isolated per instance' => sub {
     set_var('PUBLIC_CLOUD_REGION', 'olympus-1');
     set_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', 'delphi-2');
     for my $class (@CLIENTS) {
         my $first = $class->new();
         my $second = $class->new();
-        $first->blacklist_region('olympus-1');
-        is $first->region, 'delphi-2', "$class first instance sees its own blacklist";
+        $first->disable_region('olympus-1');
+        is $first->region, 'delphi-2', "$class first instance sees its own blocked list";
         is $second->region, 'olympus-1', "$class second instance is not affected by the first (per-instance hash)";
     }
     _unset('PUBLIC_CLOUD_REGION', 'PUBLIC_CLOUD_ALTERNATE_REGIONS');

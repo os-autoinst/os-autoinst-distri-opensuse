@@ -21,31 +21,30 @@ has _regions => sub {
     return \@list;
 };
 
-# List of regions blacklisted by the user during the test execution.
+# List of disallowed regions during the test execution.
 # The default must be a coderef (sub { {} }) and NOT a bare hashref ({}).
 # A bare {} is evaluated once at compile time and shared across all instances,
-# so blacklisting a region on one object would corrupt every other object.
+# so disabling a region on one object would corrupt every other object.
 # Wrapping in sub {} makes Mojo::Base call it fresh for each new instance,
 # giving every object its own independent hash.
-has _blacklisted_regions => sub { {} };
+has _disallowed_regions => sub { {} };
 
-# Setter for the blacklist. The test code can call this function
-# to add a region name to the blacklis; it usually happens
+# Setter for the _dissallowed_regions. The test code can call this function
+# to add a region name to the disallowed list; it usually happens
 # when a terraform deployment fails for a specific error.
-sub blacklist_region {
+sub disable_region {
     my ($self, $region) = @_;
-    $self->_blacklisted_regions->{$region} = 1;
+    $self->_disallowed_regions->{$region} = 1;
     return $self;    # allows chaining
 }
 
-# Getter, return the first not blacklisted region or die
+# Getter, return the first not disallowed region or die
 sub region {
     my ($self) = @_;
-    my $blacklist = $self->_blacklisted_regions;
     for my $r (@{$self->_regions}) {
-        return $r unless $blacklist->{$r};
+        return $r unless $self->_disallowed_regions->{$r};
     }
-    die "No available regions — all blacklisted: " . join(', ', @{$self->_regions});
+    die "No available regions — all disabled: " . join(', ', @{$self->_regions});
 }
 
 1;

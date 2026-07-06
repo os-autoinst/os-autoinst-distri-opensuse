@@ -315,6 +315,7 @@ PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable sh
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
 PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
 PUBLIC_CLOUD_AHB_LT | string | "SLES_BYOS" | For Azure, it specifies the license type to change to (and test).
+PUBLIC_CLOUD_ALTERNATE_REGIONS | string | "" | Comma-separated list of fallback regions, appended after `PUBLIC_CLOUD_REGION`. The connection client exposes `region()` (returns the first non-disabled region) and `disable_region($region)` (marks a region unusable, e.g. after a deployment failure, so `region()` returns the next candidate). See `lib/publiccloud/client_base.pm`.
 PUBLIC_CLOUD_ARCH | string | "x86_64" | The architecture of created VM.
 PUBLIC_CLOUD_AVAILABILITY_ZONE | string | "" | The availability zone to use. Depends on `PUBLIC_CLOUD_REGION`. Only for GCE.
 PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION | string | "" | Defines the image definition for uploading Arm64 images to the image gallery.
