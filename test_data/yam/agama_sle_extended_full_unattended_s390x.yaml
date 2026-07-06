@@ -1,0 +1,19 @@
+---
+hostname: suselinux
+files:
+  - path: '/usr/local/share/dummy.xml'
+    mode: '644'
+    owner: 'root'
+    sha256sum: '5f925f748a27b757853767477ec0e0e6f04b1727f3607c7f622a2a1e4bd2a0e5'
+repos:
+  - name: http://openqa.suse.de/assets/repo/SLES-%VERSION%-Full-%ARCH%-Build%BUILD%.install/install/
+    alias: 'http-openqa.suse.de'
+    uri: http://openqa.suse.de/assets/repo/SLES-%VERSION%-Full-%ARCH%-Build%BUILD%.install/install/
+    enabled: 'Yes'
+    filter: name
+  - name: science
+    alias: science
+    uri: https://download.opensuse.org/repositories/science/%VERSION%/
+    enabled: 'Yes'
+    filter: alias
+bootloader_timeout: '15'
