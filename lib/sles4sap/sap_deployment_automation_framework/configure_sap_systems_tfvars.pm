@@ -14,7 +14,7 @@ use Carp qw(croak);
 use utils qw(write_sut_file);
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(get_os_variable validate_components get_fencing_mechanism);
-use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(write_tfvars_file get_tags_entry);
+use sles4sap::sap_deployment_automation_framework::configure_workload_tfvars qw(write_tfvars_file get_tags_entry define_vm_images);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
   qw(generate_resource_group_name get_sizing_filename convert_region_to_short);
 
@@ -404,58 +404,4 @@ sub define_nfs_settings {
     return (\%result);
 }
 
-=head2 define_vm_images
-
-    define_vm_images(os_image=>'suse:sles-sap-15-sp5:gen2:latest');
-
-VM OS image tfvars setting definition. Currently all VMs use the same OS image. Both BYOS and PAYG images can be used.
-B<Example:> {source_image_id : '"suse:sles-sap-15-sp5:gen2:latest"', publisher : '"SUSE"' ... }
-Pay attention to double quoting strings. They are very important in resulting file.
-
-=over
-
-=item * B<os_image>: BYOS or PAYG image ID.
-
-=back
-
-=cut
-
-sub define_vm_images {
-    my (%args) = @_;
-    croak 'Missing mandatory argument $args{os_image}' unless $args{os_image};
-    my $type;
-    my $publisher;
-    my $offer;
-    my $sku;
-    my $version;
-
-    # This regex targets the general Azure Gallery image naming patterns,
-    # excluding part of the name that are related to PC library.
-    if ($args{os_image} =~ /^\/subscriptions\/.*\/galleries\/.*/) {
-        $type = 'custom';
-        ($publisher, $offer, $sku, $version) = '';    # Those can't be undef
-    }
-    else {
-        # Parse image ID supplied by OpenQA parameter 'PUBLIC_CLOUD_IMAGE_ID'
-        ($publisher, $offer, $sku, $version) = split(':', $args{os_image});
-        $type = 'marketplace';
-    }
-
-    my %result = (
-        header => '### VM images ###'
-    );
-    for my $component ('database_vm_image', 'scs_server_image', 'application_server_image') {
-        $result{$component} = <<"END";
-{ os_type = "LINUX",
-  source_image_id = "$args{os_image}",
-  publisher = "$publisher",
-  offer = "$offer",
-  sku = "$sku",
-  version = "$version",
-  type = "$type"
-}
-END
-    }
-
-    return (\%result);
-}
+1;
