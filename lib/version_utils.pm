@@ -7,12 +7,13 @@ use base Exporter;
 use Exporter;
 use strict;
 use warnings;
-use testapi qw(check_var get_var set_var script_output);
+use testapi qw(check_var get_var get_required_var set_var script_output);
 use version 'is_lax';
 use Carp 'croak';
 use Utils::Backends;
 use Utils::Architectures;
 use SemVer;
+use POSIX 'strftime';
 
 use constant {
     VERSION => [
@@ -67,6 +68,7 @@ use constant {
           has_selinux_by_default
           has_selinux
           is_wsl
+          is_ltss
         )
     ],
     BACKEND => [
@@ -1070,3 +1072,38 @@ Check if agama installation is being used
 sub is_agama {
     return (get_var('AGAMA') || get_var('INST_AUTO'));
 }
+
+=head2 is_ltss
+
+Returns true if the system is running on LTSS (Long Term Service Support)
+=cut
+
+sub is_ltss {
+    my $version = get_required_var('VERSION');
+    my $current_date = strftime("%Y%m%d", localtime);
+    # Product Support Lifecycle Dates defined at https://www.suse.com/lifecycle
+    my %general_ends = (
+        '15-SP7' => '20310731',
+        '16.0' => '20271130',
+        '16.1' => '20281130',
+        '16.2' => '20291130',
+        '16.3' => '20301130',
+        '16.4' => '20311130',
+        '16.5' => '20321130',
+        '16.6' => '20351130'
+    );
+    # Not valid for openSUSE products
+    return 0 if is_opensuse;
+
+    # All versions <=15-SP6 are already in LTSS
+    return 1 if is_sle('<=15-SP6');
+
+    # Die if version is not in the lifecycle table (including non-SLE products)
+    die "Version $version is not defined in LTSS lifecycle table.\nPlease update lib/version_utils.pm\n\n"
+      unless exists $general_ends{$version};
+
+    # Check if current date is past the lifecycle date
+    return $general_ends{$version} <= $current_date;
+}
+
+

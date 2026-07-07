@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Test::Warnings;
+use Test::MockModule;
 
 use testapi qw(check_var get_var set_var);
 
@@ -249,6 +250,72 @@ subtest 'is_staging tests' => sub {
     ok is_staging, "foo is a staging project";
     isnt is_staging('bar'), 0, "bar is not this staging";
     is is_staging('foo'), 1, "foo is the current staging";
+};
+
+subtest 'is_ltss' => sub {
+    use version_utils 'is_ltss';
+    my $my_ver = Test::MockModule->new('version_utils', no_auto => 1);
+    my $my_fake_today;
+
+    $my_ver->redefine(strftime => sub { return $my_fake_today });
+
+    # Test 1: SLE 15-SP6 and older are always LTSS (regardless of date)
+    set_var('DISTRI', 'sle');
+    set_var('VERSION', '15-SP6');
+    $my_fake_today = '20260702';    # Today - way before LTSS
+    ok is_ltss(), "SLE 15-SP6 is LTSS even before lifecycle date";
+
+    set_var('VERSION', '15-SP5');
+    $my_fake_today = '20260702';
+    ok is_ltss(), "SLE 15-SP5 is LTSS";
+
+    set_var('VERSION', '12-SP5');
+    $my_fake_today = '20260702';
+    ok is_ltss(), "SLE 12-SP5 is LTSS";
+
+    # Test 2: Future versions before their lifecycle date
+    set_var('VERSION', '15-SP7');
+    $my_fake_today = '20310730';    # One day before 20310731
+    ok !is_ltss(), "SLE 15-SP7 is not yet LTSS (one day before)";
+
+    set_var('VERSION', '16.0');
+    $my_fake_today = '20271129';    # One day before 20271130
+    ok !is_ltss(), "SLE 16.0 is not yet LTSS (one day before)";
+
+    # Test 3: Future versions on their lifecycle date
+    set_var('VERSION', '15-SP7');
+    $my_fake_today = '20310731';    # Exactly on lifecycle date
+    ok is_ltss(), "SLE 15-SP7 is LTSS on lifecycle date";
+
+    set_var('VERSION', '16.0');
+    $my_fake_today = '20271130';    # Exactly on lifecycle date
+    ok is_ltss(), "SLE 16.0 is LTSS on lifecycle date";
+
+    # Test 4: Future versions after their lifecycle date
+    set_var('VERSION', '15-SP7');
+    $my_fake_today = '20310801';    # One day after 20310731
+    ok is_ltss(), "SLE 15-SP7 is LTSS (one day after)";
+
+    set_var('VERSION', '16.1');
+    $my_fake_today = '20321201';    # After 20281130
+    ok is_ltss(), "SLE 16.1 is LTSS (years after)";
+
+    # Test 5: Undefined SLE version should die
+    set_var('VERSION', '42.0');
+    dies_ok { is_ltss() } "SLE 42.0 (undefined version) should die";
+
+    # Test 6: openSUSE products return false (not LTSS)
+    set_var('DISTRI', 'opensuse');
+    set_var('VERSION', 'Tumbleweed');
+    ok !is_ltss(), "Tumbleweed is not LTSS";
+
+    set_var('DISTRI', 'microos');
+    set_var('VERSION', '6.0');
+    ok !is_ltss(), "MicroOS is not LTSS";
+
+    # Cleanup
+    set_var('DISTRI', undef);
+    set_var('VERSION', undef);
 };
 
 done_testing;
