@@ -83,6 +83,7 @@ sub run {
         QUADLET_BINARY => "/usr/libexec/podman/quadlet",
         STORAGE_DRIVER => "overlay",
         TESTFLAGS => "--junit-report=report.xml",
+        TMPDIR => "/var/tmp",
     );
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
