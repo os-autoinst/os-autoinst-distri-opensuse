@@ -2094,7 +2094,7 @@ sub svirt_host_basedir {
 
 =head2 script_retry
 
- script_retry($cmd, [expect => $expect], [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die]);
+ script_retry($cmd, [expect => $expect], [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die], [kill_timeout => $kill_timeout], [retry_grace => $retry_grace]);
 
 Repeat a command until the expected result is found or the overall timeout is
 hit.
@@ -2108,6 +2108,10 @@ C<$delay> is the time between retries and defaults to C<30>.
 C<$fail_message> is an optional error message in case of failure. Defaults to "Waiting for Godot".
 
 The command must return within C<$timeout> seconds (default: 30).
+
+C<$kill_timeout> is the number of seconds passed to C<timeout -k> (SIGKILL grace period after SIGTERM). Defaults to C<5>.
+
+C<$retry_grace> is the number of extra seconds C<script_run> waits beyond C<$timeout> to allow the shell to report the exit code after SIGKILL. Defaults to C<10>.
 
 If the command doesn't return C<$expect> after C<$retry> retries,
 this function will die, if C<$die> is set.
@@ -2127,6 +2131,8 @@ sub script_retry {
     my $option = $args{option} // '';
     my $die = $args{die} // 1;
     my $fail_msg = $args{fail_message} // "Waiting for Godot: $cmd";
+    my $kill_timeout = $args{kill_timeout} // 5;
+    my $retry_grace = $args{retry_grace} // 10;
     my $negate;
     # Exclamation mark needs to be moved before the timeout command, if present
     if (substr($cmd, 0, 1) eq "!") {
@@ -2134,11 +2140,12 @@ sub script_retry {
         $cmd =~ s/^\s+//;    # left trim spaces after the exclamation mark
         $negate = '!';
     }
-    my $exec = join ' ', grep { defined && length } ($negate, 'timeout -k 5', $option, $timeout, $cmd);
+    my $exec = join ' ', grep { defined && length } ($negate, "timeout -k $kill_timeout", $option, $timeout, $cmd);
     my $ret;
     for (1 .. $retry) {
-        # timeout for script_run must be larger than for the 'timeout ...' command
-        $ret = script_run($exec, ($timeout + 10));
+        # timeout for script_run must be larger than for the 'timeout ...' command  to give the shell more headroom to report the exit code after SIGKILL.
+        # to give the shell more headroom to report the exit code after SIGKILL
+        $ret = script_run($exec, ($timeout + $retry_grace));
         last if defined($ret) && $ret == $ecode;
 
         die($fail_msg) if $retry == $_ && $die == 1;
