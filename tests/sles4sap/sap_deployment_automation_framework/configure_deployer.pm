@@ -53,7 +53,7 @@ sub run {
     my @cleanup_retries = (1 .. 3);
     my $cleanup_rc;
     while (shift @cleanup_retries) {
-        $cleanup_rc = script_run('sudo registercloudguest --clean');
+        $cleanup_rc = script_run('sudo registercloudguest --clean', timeout => 180);
         last unless $cleanup_rc;
     }
     die 'Registration cleanup attempts failed' if $cleanup_rc;
