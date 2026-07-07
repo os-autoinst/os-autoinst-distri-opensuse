@@ -1347,7 +1347,7 @@ sub ipaddr2_ssh_internal(%args) {
         return $ret if (defined $ret && $ret == 0);
         record_info("Failed $_ time",
             "Command $command failed with exit code " . ($ret // 'undef'),
-            result => 'fail');
+            result => 'fail') unless $args{no_assert};
     }
     die "Command $command failed with exit code " . ($ret // 'undef') unless $args{no_assert};
     return $ret;
