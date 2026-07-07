@@ -42,6 +42,22 @@ sub export_kselftest_env {
     }
 }
 
+# Without an uncompressed vmlinux in the build tree, scripts/Makefile.modfinal
+# skips module BTF generation (needed by e.g. bpf's bpf_testmod.ko), which
+# breaks any test relying on it. Extract the distro-provided compressed copy.
+sub extract_vmlinux
+{
+    my ($build_dir, $version) = @_;
+
+    if (is_sle('<16.0')) {
+        return if script_run("test -f /boot/vmlinux-$version.gz") != 0;
+        assert_script_run("gzip -dc /boot/vmlinux-$version.gz > $build_dir/vmlinux");
+    } else {
+        return if script_run("test -f /usr/lib/modules/$version/vmlinux.xz") != 0;
+        assert_script_run("xz -dc /usr/lib/modules/$version/vmlinux.xz > $build_dir/vmlinux");
+    }
+}
+
 sub build
 {
     my ($targets, $source_dir) = @_;
@@ -66,6 +82,8 @@ sub build
         assert_script_run("mkdir -p $overlay/{upper,work}");
         assert_script_run("mount -t overlay overlay -o lowerdir=$real_build_dir,upperdir=$overlay/upper,workdir=$overlay/work $real_build_dir");
     }
+
+    extract_vmlinux($build_dir, $version) if get_var('KSELFTEST_FROM_SRC', 0);
 
     export_kselftest_env();
     my $jobs = get_var('KSELFTEST_BUILD_JOBS', '$(getconf _NPROCESSORS_ONLN)');
