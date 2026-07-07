@@ -24,13 +24,14 @@
       <li><a href="#define_subnets">define_subnets</a></li>
       <li><a href="#define_iscsi_devices">define_iscsi_devices</a></li>
       <li><a href="#define_storage_account">define_storage_account</a></li>
+      <li><a href="#define_vm_images">define_vm_images</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/configure_workload_tfvars.pm</h1>
 
 <h1 id="SYNOPSIS">SYNOPSIS</h1>
 
-<p>Library with common functions for Microsoft SDAF deployment automation that help with preparation of &#39;WORKLOAD-ZONE&#39; tfvars file. Generated file is following example template: https://github.com/Azure/SAP-automation-samples/blob/main/Terraform/WORKSPACES/SYSTEM/LAB-SECE-SAP04-L00/LAB-SECE-SAP04-L00.tfvars</p>
+<p>Library with common functions for Microsoft SDAF deployment automation that help with preparation of &#39;WORKLOAD-ZONE&#39; tfvars file. Generated file is following example template: https://github.com/Azure/SAP-automation-samples/blob/main/Terraform/WORKSPACES/LANDSCAPE/LAB-SECE-SAP04-INFRASTRUCTURE/LAB-SECE-SAP04-INFRASTRUCTURE.tfvars</p>
 
 <h2 id="write_tfvars_file">write_tfvars_file</h2>
 
@@ -88,6 +89,9 @@ workload_vnet_code=&gt;&#39;FUN&#39; [, environment=&gt;&#39;LAB&#39;, location=
 
 </li>
 <li><p><b>workload_vnet_code</b>: Workload zone VNET code</p>
+
+</li>
+<li><p><b>os_image</b>: BYOS or PAYG image ID. For example: &#39;suse:sles-sap-15-sp7:gen2:latest&#39;</p>
 
 </li>
 </ul>
@@ -176,6 +180,22 @@ workload_vnet_code=&gt;&#39;FUN&#39; [, environment=&gt;&#39;LAB&#39;, location=
 <pre><code>define_storage_account();</code></pre>
 
 <p>Returns tfvars section related to storage account settings in <b>HASHREF</b> format. Storage accounts related to installation media and SAP transport shares. <b>Example:</b> {install_volume_size : &#39;1024&#39;, NFS_provider : &#39;AFS&#39; ... }</p>
+
+<h2 id="define_vm_images">define_vm_images</h2>
+
+<pre><code>define_vm_images(os_image=&gt;&#39;suse:sles-sap-15-sp5:gen2:latest&#39;);</code></pre>
+
+<p>VM OS image tfvars setting definition. Currently all VMs use the same OS image. Both BYOS and PAYG images can be used. <b>Example:</b> {source_image_id : &#39;&quot;suse:sles-sap-15-sp5:gen2:latest&quot;&#39;, publisher : &#39;&quot;SUSE&quot;&#39; ... } Pay attention to double quoting strings. They are very important in resulting file.</p>
+
+<ul>
+
+<li><p><b>os_image</b>: BYOS or PAYG image ID.</p>
+
+</li>
+<li><p><b>deployment_type</b>: deployment type: optional argument; &#39;workload_zone&#39; or &#39;sap_system&#39;; default is &#39;sap_system&#39;.</p>
+
+</li>
+</ul>
 
 
 </body>

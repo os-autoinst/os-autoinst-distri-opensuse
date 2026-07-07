@@ -24,7 +24,6 @@
       <li><a href="#define_application_servers">define_application_servers</a></li>
       <li><a href="#define_miscellaneous_settings">define_miscellaneous_settings</a></li>
       <li><a href="#define_nfs_settings">define_nfs_settings</a></li>
-      <li><a href="#define_vm_images">define_vm_images</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/sap_deployment_automation_framework/configure_sap_systems_tfvars.pm</h1>
@@ -159,19 +158,6 @@
 <pre><code>define_nfs_settings();</code></pre>
 
 <p>Returns tfvars NFS related setting section in HASHREF format. NFS storage is used to distribute installation media across all nodes. NFS storage is served by Hana DB node in case only database is installed, otherwise it is ASCS node that serves media. <b>Example:</b> {NFS_provider : &#39;&quot;AFS&quot;&#39;, ANF_HANA_use_AVG : &#39;false&#39; ... } Pay attention to double quoting strings. They are very important in resulting file.</p>
-
-<h2 id="define_vm_images">define_vm_images</h2>
-
-<pre><code>define_vm_images(os_image=&gt;&#39;suse:sles-sap-15-sp5:gen2:latest&#39;);</code></pre>
-
-<p>VM OS image tfvars setting definition. Currently all VMs use the same OS image. Both BYOS and PAYG images can be used. <b>Example:</b> {source_image_id : &#39;&quot;suse:sles-sap-15-sp5:gen2:latest&quot;&#39;, publisher : &#39;&quot;SUSE&quot;&#39; ... } Pay attention to double quoting strings. They are very important in resulting file.</p>
-
-<ul>
-
-<li><p><b>os_image</b>: BYOS or PAYG image ID.</p>
-
-</li>
-</ul>
 
 
 </body>
