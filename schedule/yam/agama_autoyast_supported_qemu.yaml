@@ -11,3 +11,4 @@ schedule:
   - yam/validate/validate_first_user
   - yam/validate/validate_deployed_files
   - console/verify_separate_home
+  - yam/validate/validate_ntp
