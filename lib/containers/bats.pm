@@ -576,14 +576,14 @@ sub bats_post_hook {
 
     my @logs = split /\s+/, script_output "ls";
     for my $log (@logs) {
-        upload_logs($log_dir . $log);
+        upload_logs($log_dir . $log, failok => 1);
     }
 
-    upload_logs('/proc/config.gz');
-    upload_logs('/var/log/audit/audit.log', log_name => "audit.txt");
+    upload_logs('/proc/config.gz', failok => 1);
+    upload_logs('/var/log/audit/audit.log', log_name => "audit.txt", failok => 1);
 
     write_sut_file('/tmp/commands.txt', join("\n", @commands));
-    upload_logs('/tmp/commands.txt');
+    upload_logs('/tmp/commands.txt', failok => 1);
 
     script_run('cd / ; rm -rf /tmp/logs');
 
@@ -633,7 +633,7 @@ sub bats_tests {
     my $ret = run_timeout_command($cmd, no_assert => 1, timeout => $timeout);
     script_run "mv report.xml $xmlfile";
 
-    upload_logs($tapfile);
+    upload_logs($tapfile, failok => 1);
     my @xfails = get_var("RUN_TESTS") ? () : @{$xfails};
     # Strip control chars from XML as they aren't quoted and we can't quote them as valid XML 1.1
     # because it's not supported in most XML libraries anyway. See https://bugs.python.org/issue43703

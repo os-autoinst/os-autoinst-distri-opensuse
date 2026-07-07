@@ -68,7 +68,7 @@ sub test ($target) {
     );
 
     run_timeout_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3600;
-    upload_logs "$target.txt";
+    upload_logs "$target.txt", failok => 1;
     assert_script_run "mv /tmp/report/report.xml $target.xml";
     die "Testsuite failed" if script_run("test -s $target.xml");
     patch_junit "docker-compose", $version, "$target.xml", @xfails;
