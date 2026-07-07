@@ -99,7 +99,7 @@ sub run {
     ) if ($firewall_backend eq "nftables");
 
     run_timeout_command "$env gotestsum --junitfile cli.xml ./e2e/... -- &> cli.txt", no_assert => 1, timeout => 3000;
-    upload_logs "cli.txt";
+    upload_logs "cli.txt", failok => 1;
     die "Testsuite failed" if script_run("test -s cli.xml");
     patch_junit "docker", $version, "cli.xml", @xfails;
     parse_extra_log(XUnit => "cli.xml", timeout => 180);

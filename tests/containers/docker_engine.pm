@@ -138,7 +138,7 @@ sub run {
         parse_extra_log(XUnit => "$report.xml", timeout => 180);
         run_command "popd";
     }
-    upload_logs("/var/tmp/report.txt");
+    upload_logs "/var/tmp/report.txt", failok => 1;
 }
 
 sub cleanup {

@@ -86,7 +86,7 @@ sub run {
     ) if (is_sle);
 
     run_timeout_command "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests &> buildx.txt", no_assert => 1, timeout => 1200;
-    upload_logs "buildx.txt";
+    upload_logs "buildx.txt", failok => 1;
     die "Testsuite failed" if script_run("test -s buildx.xml");
     patch_junit "docker-buildx", $version, "buildx.xml", @xfails;
     parse_extra_log(XUnit => "buildx.xml", timeout => 180);

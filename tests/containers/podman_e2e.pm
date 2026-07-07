@@ -152,7 +152,7 @@ sub run {
     my @targets = split('\s+', get_var('RUN_TESTS', $default_targets));
     foreach my $target (@targets) {
         run_timeout_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3000;
-        upload_logs "$target.txt";
+        upload_logs "$target.txt", failok => 1;
         assert_script_run "mv report.xml $target.xml";
         die "Testsuite failed" if script_run("test -s $target.xml");
         patch_junit "podman", $version, "$target.xml", @xfails;

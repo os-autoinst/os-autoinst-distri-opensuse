@@ -82,7 +82,7 @@ sub test ($target) {
     );
 
     run_timeout_command "$env pytest $pytest_args tests/$target &> $target.txt", no_assert => 1, timeout => 3600;
-    upload_logs "$target.txt";
+    upload_logs "$target.txt", failok => 1;
     die "Testsuite failed" if script_run("test -s $target.xml");
     patch_junit "docker-py", $version, "$target.xml", @xfails;
     parse_extra_log(XUnit => "$target.xml", timeout => 180);
