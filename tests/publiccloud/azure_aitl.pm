@@ -19,6 +19,19 @@ use JSON;
 use XML::LibXML;
 use Data::Dumper;
 
+
+sub is_cleaned_up {
+    my ($stdout, $rc) = @_;
+
+    return ($rc == 1) && ($stdout =~ /ResourceNotFound/);
+}
+
+sub is_bad_gateway {
+    my ($stdout, $rc) = @_;
+
+    return ($rc == 1) && ($stdout =~ /BadGatewayConnection|ResourceReadFailed|Bad Gateway/);
+}
+
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
@@ -86,19 +99,46 @@ sub run {
     # Wait a few seconds to give Azure time to create the jobs
     sleep(10);
 
+    # Need to save results to a variable
+    my $results;
+
     # Get AITL job status
     # AITL Jobs run in parallel so it's possible to have Jobs in all kind of states.
     # The goal of the loop is to check there are no Jobs Queued or currently Running.
     my $status_data;
     while (1) {
-        # Get the current job status
-        my $status = script_output(qq($aitl_job get $aitl_get_options -q "properties.results[].status|$monitoring"));
+        # # poo#200979: If the AITL resource was already deleted by Azure don't overwrite last known results
+        my $results_rc = script_run("$aitl_job get $aitl_get_options -q 'properties.results[]' > /tmp/aitl_results.out 2>&1", timeout => 300);
+        my $results_current = script_output("cat /tmp/aitl_results.out");
+        $results = $results_current if $results_rc == 0;
 
-        if ($status =~ /no result returned/ig) {
+        # Get the current job status
+        my $status_rc = script_run(qq($aitl_job get $aitl_get_options -q "properties.results[].status|$monitoring" > /tmp/aitl_status.out 2>&1), timeout => 300);
+        my $status = script_output("cat /tmp/aitl_status.out");
+
+        # poo#200979: If the AITL resource was already deleted by Azure, we can consider the AITL job as finished and break the loop
+        if (is_cleaned_up($status, $status_rc) || is_cleaned_up($results_current, $results_rc)) {
+            record_info('AITL cleanup', 'AITL resource was already deleted by Azure');
+            last;
+        }
+
+        if (
+            $status =~ /no result returned/i ||
+            is_bad_gateway($status, $status_rc) ||
+            is_bad_gateway($results_current, $results_rc)
+        ) {
+            my $warn = "";
+            $warn .= "no status: $status\n" if ($status =~ /no result returned/i);
+            $warn .= "no status (Bad Gateway): $status\n" if (is_bad_gateway($status, $status_rc));
+            $warn .= "no result (Bad Gateway): $results_current\n" if (is_bad_gateway($results_current, $results_rc));
+            record_info("WARN:", $warn);
+
             sleep(60);
-            record_info("WARN:", "no results:\n" . $status);
             next;
         }
+
+        die "Unexpected status: $status" unless $status_rc == 0;
+        die "Unexpected results: $results_current" unless $results_rc == 0;
 
         # Remove the first two/3 non-JSON lines from the status JSON
         $status =~ s/^(?:.*\n){1,3}//;
@@ -106,8 +146,9 @@ sub run {
         # Decode the status JSON
         eval { $status_data = decode_json($status); };
 
+        die "Failed to decode AITL status JSON:\n$status" if $@;
         # Check if there are still jobs in RUNNING, QUEUED, or ASSIGNED state
-        if ($@ || $status_data->{RUNNING} == 0 && $status_data->{QUEUED} == 0 && $status_data->{ASSIGNED} == 0) {
+        if ($status_data->{RUNNING} == 0 && $status_data->{QUEUED} == 0 && $status_data->{ASSIGNED} == 0) {
             last;    # Exit the loop if no jobs are in these states
         }
 
@@ -117,9 +158,6 @@ sub run {
         # Wait before checking again
         sleep(65);
     }
-
-    # Need to save results to a variable
-    my $results = script_output("$aitl_job get $aitl_get_options -q 'properties.results[]'");
 
     # Remove the first two non-JSON lines from the results JSON.
     $results =~ s/^(?:.*\n){1,3}//;
