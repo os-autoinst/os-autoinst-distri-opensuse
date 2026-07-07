@@ -41,6 +41,8 @@ sub setup {
     # The tests expect an exact list of unqualified-search-registries containing "quay.io" and we ship:
     # unqualified-search-registries = ["registry.opensuse.org", "registry.suse.com", "docker.io"]
     run_command "rm -f /etc/containers/registries.conf.d/00-suse-registries.conf";
+    # Tests using --signature-policy /etc/containers/policy.json expect this file to exist
+    run_command "ln -sf /usr/share/containers/policy.json /etc/containers/policy.json" if script_run("test -f /etc/containers/policy.json");
 
     enable_docker;
 
