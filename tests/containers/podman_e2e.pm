@@ -81,6 +81,7 @@ sub run {
         PODMAN_BINARY => "/usr/bin/podman",
         PODMAN_REMOTE_BINARY => "/usr/bin/podman-remote",
         QUADLET_BINARY => "/usr/libexec/podman/quadlet",
+        STORAGE_DRIVER => "overlay",
         TESTFLAGS => "--junit-report=report.xml",
     );
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
