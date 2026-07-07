@@ -198,6 +198,8 @@ sub install_dependencies
     if ($collection eq 'bpf') {
         # install build deps
         install_package('clang llvm-devel lld python3-docutils rsync', trup_continue => 1);
+        # install test deps
+        install_package('iptables');
     }
 
     if ($collection eq 'namespaces') {
