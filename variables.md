@@ -567,3 +567,18 @@ TEMPLATE | string | default | Template to use to build the OS image
 TEST_GROUP | string | qetestgroup | Test group to create and use
 TEST_USER | string | qetest | Test user to create and use
 TOTEST_PATH | string | | Path where the ToTest artifacts could be found
+
+### Trento specific variables
+
+Following variables are relevant for Trento container tests.
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+CERT_MANAGER_VERSION | string | v1.20.2 | cert-manager chart version used for ingress TLS
+TRENTO_ADMIN_PASSWORD | string | random 12 character password | Admin password for Trento Web, generated when unset
+TRENTO_ADMIN_USER | string | admin | Admin user for Trento Web
+TRENTO_HELM_CHARTS_REF | string | main | Git ref of the Trento helm-charts repository to check out
+TRENTO_HELM_CHARTS_REPO | string | https://github.com/trento-project/helm-charts.git | Repository providing the upstream smoke test script
+TRENTO_HELM_RELEASE | string | trento-server | Name of the Helm release
+TRENTO_INGRESS_URL | string | https://$TRENTO_SERVER_HOSTNAME | Base URL used to reach Trento through the ingress
+TRENTO_SERVER_HOSTNAME | string | localhost | Hostname used for the ingress and the TLS certificate
