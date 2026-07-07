@@ -444,7 +444,7 @@ sub cleanup_kernel_repos {
 
     # Remove LTP to avoid conflicts with the following install_ltp
     zypper_call('rm ltp ltp-stable', exitcode => [0, 104]);
-    script_run('rm -rf /opt/ltp');
+    script_run('rm -rf ' . get_ltproot(0) . ' ' . get_ltproot(1));
 }
 
 sub update_kgraft_under_load {
