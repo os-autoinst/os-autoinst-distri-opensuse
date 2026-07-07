@@ -88,6 +88,7 @@ sub run {
     my @xfails = (
         'Libpod Suite::[It] Podman pod create podman pod create --restart=on-failure',
         'Libpod Suite::[It] Podman run memory podman run memory test on oomkilled container',
+        'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     );
     push @xfails, (
         # Fixed in podman 5.6.1:
@@ -100,9 +101,6 @@ sub run {
         # Fails with "registry.access.redhat.com/*openshift*"
         'Libpod Suite::[It] Podman search podman search with wildcards',
     ) if (version->parse(numeric_version($version)) < version->parse("5.8.0"));
-    push @xfails, (
-        'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
-    ) if (get_var("ROOTLESS"));
     push @xfails, (
         # We can't backport https://github.com/containers/podman/pull/27775 and this test may fail with:
         # Command exited 125 as expected, but did not emit 'gateway 192.168.1.1 not in subnet 10.11.12.0/24'
