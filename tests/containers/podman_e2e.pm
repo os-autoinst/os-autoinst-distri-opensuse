@@ -110,39 +110,6 @@ sub run {
         && version->parse(numeric_version($version)) >= version->parse("5.8.2")
         && version->parse(numeric_version($version)) < version->parse("6.0")
     );
-    # NOTE: Remove when criu > 4.2-2.1
-    push @xfails, (
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint --create-image with running container",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint a container started with --rm",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint a container with volumes",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint a running container by id",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint a running container by name",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint all running container",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint and restore container with --file-locks",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint and restore container with root file-system changes",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint and restore container with root file-system changes using --ignore-rootfs during checkpoint",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint and restore container with root file-system changes using --ignore-rootfs during restore",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint and restore container with same IP",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint and restore dev/shm content",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint and restore dev/shm content with --export and --import",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint and run exec in restored container",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with --pre-checkpoint",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with --pre-checkpoint and export (migration)",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with export (migration)",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with export (migration) and --ipc host",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with export and different compression algorithms",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with export and statistics",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with export and verify runtime",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint latest running container",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint with --leave-running",
-        "Libpod Suite::[It] Podman checkpoint podman pause a checkpointed container by id",
-        "Libpod Suite::[It] Podman checkpoint podman restore multiple containers from multiple checkpoint images",
-        "Libpod Suite::[It] Podman checkpoint podman restore multiple containers from single checkpoint image",
-        "Libpod Suite::[It] Podman checkpoint podman run with checkpoint image",
-        # Seen with crun:
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with export and verify non-default runtime",
-        "Libpod Suite::[It] Podman checkpoint podman checkpoint container with export and try to change the runtime",
-    ) if (is_tumbleweed);
 
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked

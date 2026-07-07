@@ -64,14 +64,6 @@ sub run_tests {
         # https://github.com/containers/podman/commit/f172ff789b14226b51cea39f9373e7de2a35905a
         "550-pause-process.bats::podman system migrate works with conmon being killed",
     ) if (is_ppc64le && !is_sle);
-    # NOTE: Remove when criu > 4.2-2.1
-    push @xfails, (
-        "520-checkpoint.bats::podman checkpoint - basic test",
-        "520-checkpoint.bats::podman checkpoint --file-locks",
-        "520-checkpoint.bats::podman checkpoint/restore ip and mac handling",
-        "520-checkpoint.bats::podman checkpoint/restore print IDs or raw input",
-        "520-checkpoint.bats::podman checkpoint/restore the latest container",
-    ) if (is_tumbleweed);
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
 
