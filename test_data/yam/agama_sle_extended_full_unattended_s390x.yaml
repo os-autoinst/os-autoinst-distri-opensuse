@@ -16,4 +16,4 @@ repos:
     uri: https://download.opensuse.org/repositories/science/%VERSION%/
     enabled: 'Yes'
     filter: alias
-bootloader_timeout: '15'
+bootloader_timeout: '30'
