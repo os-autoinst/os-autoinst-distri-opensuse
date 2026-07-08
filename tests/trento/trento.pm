@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright SUSE LLC
+# SPDX-FileCopyrightText: SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Smoke test for Trento container images
@@ -79,6 +79,33 @@ sub _json_escape {
     return $value;
 }
 
+sub _helm_set_options {
+    # Build the extra Helm --set/--set-string flags applied on top of the image override.
+    # Adding a new flag when the Trento chart gains a config option is a one-line change to
+    # the list below, keeping the deployment logic in run() untouched.
+    my (%args) = @_;
+
+    # Plain values passed with --set.
+    my @set = (
+        'trento-mcp-server.enabled=true',    # enable the MCP server subchart (rebuild validation scope)
+        'prometheus.enabled=false',    # disable Prometheus in this lightweight single-node setup
+    );
+
+    # String values passed with --set-string so Helm does not coerce their type.
+    my @set_string = (
+        "global.trentoWeb.origin=$args{hostname}",    # Trento Web origin for the local deployment
+        "trento-web.adminUser.password=$args{admin_password}",    # admin password from an openQA variable
+    );
+
+    # Assemble the flags into a single option string, shell-quoting the string values.
+    my $options = '';
+    $options .= " --set $_" for @set;
+    $options .= ' --set-string ' . _shell_quote($_) for @set_string;
+
+    # Return the flags to append to the helm command line.
+    return $options;
+}
+
 sub run {
     # Use the serial terminal because this is a command-line-only validation without graphical needles.
     select_serial_terminal;
@@ -89,7 +116,9 @@ sub run {
     # CONTAINER_IMAGE_TO_TEST is the rebuilt container image that must be injected into the chart.
     my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
 
-    # Derive the Helm values image path from the rebuilt image provided by container-release-bot.
+    # Derive the Helm values path for the single image under test. Only this one component is
+    # overridden below; every other chart image (and its registry) keeps the released default,
+    # so we validate the rebuilt image against the rest of the released stack.
     my $helm_values_image_path = _helm_values_image_path_from_image($image);
     set_var('HELM_VALUES_IMAGE_PATH', $helm_values_image_path);
 
@@ -131,7 +160,7 @@ sub run {
     assert_script_run('mkdir -p ~/.kube && ln -sf /etc/rancher/k3s/k3s.yaml ~/.kube/config');
 
     # Install Helm as root following the Trento Server documentation.
-    assert_script_run('curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash', timeout => 600);
+    assert_script_run('curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-4 | bash', timeout => 600);
 
     # Wait for the freshly installed K3s node to become Ready before deploying.
     assert_script_run("$kubeconfig kubectl wait --for=condition=Ready node --all --timeout=300s", timeout => 330);
@@ -153,20 +182,13 @@ sub run {
     # Resolve the chart reference; the helper supports URLs, OCI references, and local chart paths.
     my $chart = helm_get_chart($helm_chart);
 
-    # Build image override options from CONTAINER_IMAGE_TO_TEST and the derived HELM_VALUES_IMAGE_PATH.
+    # Build the image override for the single component under test. split_image_registry => 0
+    # keeps the whole "registry/path/name" in image.repository because the Trento subcharts
+    # model the image as a single repository string with no separate image.registry field.
     my ($set_options, $helm_options) = helm_configure_values(get_var('HELM_CONFIG'), split_image_registry => 0);
 
-    # Enable the MCP server subchart as required by the Trento rebuild validation scope.
-    $set_options .= ' --set trento-mcp-server.enabled=true';
-
-    # The documented K3s deployment disables Prometheus in this lightweight single-node setup.
-    $set_options .= ' --set prometheus.enabled=false';
-
-    # Configure the Trento Web origin for the local test deployment.
-    $set_options .= ' --set-string global.trentoWeb.origin=' . _shell_quote($trento_server_hostname);
-
-    # Configure the Trento admin password from an openQA variable.
-    $set_options .= ' --set-string trento-web.adminUser.password=' . _shell_quote($admin_password);
+    # Append the test-specific chart value overrides (MCP, Prometheus, origin, admin password).
+    $set_options .= _helm_set_options(hostname => $trento_server_hostname, admin_password => $admin_password);
 
     # Install or update Trento Server with the rebuilt image injected through Helm values.
     # k3s installs Traefik and its CRDs asynchronously; even after the waits above the API
