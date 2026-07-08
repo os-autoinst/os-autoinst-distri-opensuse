@@ -107,7 +107,7 @@ systemLog:
   <ntp-client>
     <ntp_servers config:type="list">
       <ntp_server>
-        <address>3.suse.pool.ntp.org</address>
+        <address>2.suse.pool.ntp.org</address>
         <iburst config:type="boolean">true</iburst>
       </ntp_server>
     </ntp_servers>

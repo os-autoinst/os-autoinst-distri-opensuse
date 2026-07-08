@@ -14,4 +14,4 @@ repos:
 bootloader_timeout: '30'
 self_update_enabled: 1
 ntp_servers:
-  - 3.suse.pool.ntp.org
+  - 2.suse.pool.ntp.org
