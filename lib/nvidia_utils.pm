@@ -41,7 +41,7 @@ sub get_nvidia_driver {
     my $branch = get_var('NVIDIA_DRIVER_BRANCH', 'G06');
     my $driver;
 
-    if ($args{variant} eq 'cuda') {
+    if (($args{variant} // '') eq 'cuda') {
         $driver = "nvidia-open-driver-${branch}-signed-cuda-kmp-default";
     } else {
         $driver = "nvidia-open-driver-${branch}-signed-kmp-default";
@@ -87,7 +87,7 @@ sub install
         zypper_call("remove --clean-deps @conflicting");
     }
 
-    if ($args{variant} eq 'cuda') {
+    if (($args{variant} // '') eq 'cuda') {
         $variant = $variant_cuda;
         zypper_call("remove --clean-deps $variant_std", exitcode => [0, 104]);
         zypper_call('rr nvidia');
@@ -104,8 +104,8 @@ sub install
     my $version = script_output("rpm -qa --queryformat '%{VERSION}\n' $variant | cut -d '_' -f1 | sort -u | tail -n 1");
     record_info("NVIDIA Version", $version);
 
-    my $workaround;
-    if ($version < 580 && $args{variant} eq 'cuda') {
+    my $workaround = '';
+    if ($version < 580 && ($args{variant} // '') eq 'cuda') {
         $workaround = "nvidia-persistenced == $version";
         record_soft_failure("bsc#1249098 - workaround for Nvidia driver dependency issue");
     }
