@@ -15,7 +15,7 @@ use version_utils qw(is_vmware is_leap);
 
 sub run {
     my $self = shift;
-    select_console 'installation';
+    select_console 'installation' unless is_vmware() || is_hyperv();
     my $reboot_page = $testapi::distri->get_reboot();
     $reboot_page->expect_is_shown();
 
