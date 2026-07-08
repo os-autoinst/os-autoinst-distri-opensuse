@@ -208,16 +208,16 @@ sub install_dependencies
     }
 
     if ($collection =~ m{^net(/|$)}) {
-        my $netutils_repo, my $bench_repo;
+        my $version;
         if (is_tumbleweed()) {
-            $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/openSUSE_Factory/network:utilities.repo';
-            $bench_repo = 'https://download.opensuse.org/repositories/benchmark/openSUSE_Factory/benchmark.repo';
-        } elsif (is_sle('=16.0')) {
-            $netutils_repo = 'https://download.opensuse.org/repositories/network:/utilities/16.0/network:utilities.repo';
-            $bench_repo = 'https://download.opensuse.org/repositories/benchmark/16.0/benchmark.repo';
+            $version = 'openSUSE_Factory';
+        } elsif (is_sle('>=16.0')) {
+            $version = '16.0';
         }
-        zypper_ar($netutils_repo) if $netutils_repo;
-        zypper_ar($bench_repo) if $bench_repo;
+        if ($version) {
+            # ipv6toolkit netsniff-ng ndisc6 dropwatch
+            zypper_ar("https://download.opensuse.org/repositories/network:/utilities/$version/network:utilities.repo", priority => 100);
+        }
 
         # install build deps
         install_package('clang libcap-devel libnuma-devel libmnl-devel python3-PyYAML python3-jsonschema', trup_apply => 1);
