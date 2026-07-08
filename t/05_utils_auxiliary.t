@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Test::Warnings;
 use Test::MockModule;
+use Test::Mock::Time;
 use Test::Exception;
 use testapi;
 use utils;
@@ -11,64 +12,147 @@ use utils;
 # Add additional unit tests for auxiliary subroutines (e.g. util.pm) here.
 
 
-subtest 'script_retry' => sub {
-    # Override script_run
-    my $testapi = Test::MockModule->new('utils');
+subtest '[script_retry] simulate with local bash: pass' => sub {
+    my $mock_utils = Test::MockModule->new('utils');
     # script_run runs the commands on the local machine as bash
-    $testapi->redefine("script_run", sub { return system("bash -c '$_[0]'"); });
+    $mock_utils->redefine("script_run", sub { return system("bash -c '$_[0]'"); });
+    for my $cmd ('true', 'echo Hello') {
+        my $ret = script_retry($cmd, retry => 2, delay => 0, timeout => 1);
+        is $ret, 0, "script_retry(true) ret:$ret";
+    }
+};
 
-    is script_retry('true', retry => 2, delay => 0, timeout => 1), 0, "script_retry(true)";
-    is script_retry('echo Hello', retry => 2, delay => 0, timeout => 1), 0, "script_retry(echo)";
-    isnt script_retry('false', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry(false)";
+subtest '[script_retry] simulate with local bash: fail' => sub {
+    my $mock_utils = Test::MockModule->new('utils');
+    $mock_utils->redefine("script_run", sub { return system("bash -c '$_[0]'"); });
+
     dies_ok { script_retry('false', retry => 2, delay => 0, timeout => 1) } 'script_retry(false) is expected to die';
-    isnt script_retry('! true', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('! true')";
-    isnt script_retry('!true', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('!true')";
-    is script_retry('!false', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('!false')";
-    is script_retry('! false', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('! false')";
-    is script_retry('!  false', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry('!  false')";
-    # This fails on first run but succeeds on second run. Test if we are actually retrying
-    is script_retry('rm -f test', retry => 1, delay => 0, timeout => 1), 0, 'removing test file';
-    is script_retry('bash -c "if [[ -f test ]]; then exit 0; else touch test; exit 1; fi"', retry => 2, delay => 0, timeout => 1, die => 0), 0, "script_retry - OK on second try";
-    my $called = 0;
-    $testapi->redefine('script_run', sub { ++$called; $testapi->original('script_run') });
-    dies_ok { script_retry('sleep 10', retry => 3, delay => 0, timeout => .0001) } 'script_retry(sleep) is expected to die';
-    my $cmd;
-    is $called, 3, 'command called multiple times on timeout';
-    $testapi->redefine('script_run', sub { $cmd = shift; ++$called; 0 });
-    $called = 0;
-    is script_retry('true', delay => 0, retry => 2, timeout => 1), 0, 'script_retry(true) is ok mocked to collect call';
-    is $cmd, 'timeout -k 5 1 true', 'expected concatenated command (no double spaces)';
-    is $called, 1, 'command called once for successful execution';
-    $called = 0;
-    $testapi->redefine('script_run', sub { ++$called; 1 });
-    throws_ok { script_retry('false', retry => 3, delay => 0, timeout => .0001, fail_message => 'will fail') } qr/will fail/, 'expected to die on false';
-    is $called, 3, 'command called multiple times on failing command';
 
-    # Test kill_timeout parameter is wired into the timeout -k command
-    my $actual_timeout;
-    $testapi->redefine('script_run', sub { $cmd = shift; $actual_timeout = shift; ++$called; 0 });
+    # die => 0 disable the die
+    my $ret = script_retry('false', retry => 2, delay => 0, timeout => 1, die => 0);
+    isnt $ret, 0, "script_retry(false, die => 0)";
+};
+
+subtest '[script_retry] retry' => sub {
+    my $mock_utils = Test::MockModule->new('utils');
+    my @calls;
+    $mock_utils->redefine("script_run", sub {
+            my $cmd_in = $_[0];
+            my $ret_val = scalar(@calls) == 0 ? 1 : 0;
+            push @calls, {cmd => $cmd_in, ret => $ret_val};
+            return $ret_val;
+    });
+
+    # called with retry max cap to 5 even if it will only need two retry (due to the way the mock is coded)
+    my $ret = script_retry('whatever, none care or run this command', retry => 5, delay => 0, timeout => 1, die => 0);
+    for my $call (@calls) {
+        note("  C--> Command: '$call->{cmd}' | Returned: '$call->{ret}'");
+    }
+    is $ret, 0, "script_retry - OK on second try";
+    is scalar @calls, 2, "script_retry made exactly 2 attempts";
+};
+
+subtest '[script_retry] timeout' => sub {
+    # script_run returns undef on timeout (real script_run behavior),
+    # script_retry must retry and eventually die.
+    # timeout => 1 is arbitrary thanks to Test::Mock::Time
+    my $mock_utils = Test::MockModule->new('utils');
+    my $called = 0;
+    $mock_utils->redefine('script_run', sub { ++$called; return undef });
+
+    dies_ok { script_retry('sleep 10', retry => 3, delay => 0, timeout => 1) }
+    'script_retry dies when script_run returns undef (timeout)';
+    is $called, 3, 'command called retry times on timeout';
+};
+
+subtest '[script_retry] failing command' => sub {
+    # script_run returns non-zero (command failure), script_retry must retry
+    # and die with the configured fail_message.
+    my $mock_utils = Test::MockModule->new('utils');
+    my $called = 0;
+    $mock_utils->redefine('script_run', sub { ++$called; return 1 });
+
+    throws_ok { script_retry('false', retry => 3, delay => 0, timeout => 1, fail_message => 'will fail') }
+    qr/will fail/, 'dies with custom fail_message on failing command';
+    is $called, 3, 'command called retry times (retry=3) on failing command';
+
+    # default fail_message when none is given
     $called = 0;
+    throws_ok { script_retry('false', retry => 4, delay => 0, timeout => 1) }
+    qr/Waiting for Godot/, 'dies with default fail_message when retries are exhausted';
+    is $called, 4, 'command called retry times (retry=4) on failing command';
+};
+
+subtest '[script_retry] command timeout wrapping' => sub {
+    # Collect the command string and the timeout passed to script_run to verify
+    # how kill_timeout and retry_grace are wired into the timeout invocation.
+    my $mock_utils = Test::MockModule->new('utils');
+    my ($cmd, $actual_timeout);
+    my $called = 0;
+    $mock_utils->redefine('script_run', sub { $cmd = shift; $actual_timeout = shift; ++$called; 0 });
+
+    # default kill_timeout is 5
+    is script_retry('true', delay => 0, retry => 2, timeout => 1), 0, 'script_retry(true) is ok mocked to collect call';
+    is $cmd, 'timeout -k 5 1 true', 'expected concatenated command (no double spaces), default kill_timeout';
+    is $called, 1, 'command called once for successful execution';
+
+    # custom kill_timeout is reflected in the timeout -k argument
     is script_retry('true', delay => 0, retry => 1, timeout => 1, kill_timeout => 9), 0, 'script_retry with kill_timeout=9 succeeds';
     is $cmd, 'timeout -k 9 1 true', 'kill_timeout is reflected in the timeout -k argument';
 
-    # Test retry_grace parameter is wired into the script_run timeout
-    $called = 0;
+    # retry_grace is added to the timeout passed to script_run (timeout + retry_grace)
     is script_retry('true', delay => 0, retry => 1, timeout => 2, retry_grace => 20), 0, 'script_retry with retry_grace=20 succeeds';
     is $actual_timeout, 22, 'retry_grace is added to timeout for the script_run call (timeout + retry_grace)';
-
-    # Test that a script_run timeout exception (die) is propagated and retries do not mask it
-    my $throws_count = 0;
-    $testapi->redefine('script_run', sub { ++$throws_count; die "script_run timeout\n" });
-    throws_ok { script_retry('true', retry => 3, delay => 0, timeout => 1) } qr/script_run timeout/, 'script_run timeout exception propagates out of script_retry';
-    is $throws_count, 1, 'script_run is called once before the exception aborts the loop';
-
-    # Test that retries happen the expected number of times when kill_timeout and retry_grace are set
-    $called = 0;
-    $testapi->redefine('script_run', sub { ++$called; 1 });    # always fail (non-zero)
-    throws_ok { script_retry('false', retry => 4, delay => 0, timeout => 1, kill_timeout => 2, retry_grace => 5) } qr/Waiting for Godot/, 'dies after exhausting retries with custom kill_timeout and retry_grace';
-    is $called, 4, 'retried exactly retry times with kill_timeout and retry_grace set';
 };
 
+subtest '[script_retry] script_run exception propagates' => sub {
+    # An exception thrown by script_run (e.g. an internal timeout) must abort the
+    # retry loop immediately and not be masked by further retries.
+    my $mock_utils = Test::MockModule->new('utils');
+    my $throws_count = 0;
+    $mock_utils->redefine('script_run', sub { ++$throws_count; die "script_run timeout\n" });
+
+    throws_ok { script_retry('true', retry => 3, delay => 0, timeout => 1) }
+    qr/script_run timeout/, 'script_run exception propagates out of script_retry';
+    is $throws_count, 1, 'script_run is called once before the exception aborts the loop';
+};
+
+subtest '[script_retry] simulate with local bash: esclamation mark handling' => sub {
+    # The tested function has an internal feature
+    # moving the esclamation mark at the beginning
+    # avoiding problems like:
+    #    timeout -k 5 1 ! true ; echo "rc:$?"
+    #
+    #    timeout: failed to run command ‘!’: No such file or directory
+    #    rc:127
+    my $mock_utils = Test::MockModule->new('utils');
+    my @calls;
+    $mock_utils->redefine("script_run", sub {
+            push @calls, $_[0];
+            return system("bash -c '$_[0]'");
+    });
+
+    # Define test cases: [ command, expect_zero_success ]
+    my @test_cases = (
+        ['! true', 0],
+        ['!true', 0],
+        ['!false', 1],
+        ['! false', 1],
+        ['!  false', 1],
+    );
+
+    for my $case (@test_cases) {
+        my ($cmd, $expect_zero) = @$case;
+        my $ret = script_retry($cmd, retry => 2, delay => 0, timeout => 1, die => 0);
+        if ($expect_zero) {
+            is $ret, 0, "script_retry('$cmd') expected success (0)";
+        } else {
+            isnt $ret, 0, "script_retry('$cmd') expected failure (not 0)";
+        }
+        note("\n  C-->  " . join("\n  C-->  ", @calls));
+        @calls = ();
+    }
+};
 
 subtest 'validate_script_output_retry' => sub {
     my $module = Test::MockModule->new('testapi');

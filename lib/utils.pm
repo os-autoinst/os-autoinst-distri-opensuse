@@ -2096,8 +2096,21 @@ sub svirt_host_basedir {
 
  script_retry($cmd, [expect => $expect], [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die], [kill_timeout => $kill_timeout], [retry_grace => $retry_grace]);
 
-Repeat a command until the expected result is found or the overall timeout is
-hit.
+Repeat a command until the expected result is found or the retries are exhausted.
+
+The command is run through C<script_run> wrapped in C<timeout -k>, so each
+attempt can end in one of two ways, both of which are retried:
+
+=over
+
+=item * The command returns quickly with an exit code different from C<$expect>
+(a genuine command failure). C<script_retry> waits C<$delay> seconds and tries again.
+
+=item * The command does not finish within C<$timeout> seconds and is killed by
+C<timeout>. In this case C<script_run> returns C<undef>; C<script_retry> waits
+C<$delay> seconds and tries again.
+
+=back
 
 C<$expect> refers to the expected command exit code and defaults to C<0>.
 
@@ -2114,7 +2127,10 @@ C<$kill_timeout> is the number of seconds passed to C<timeout -k> (SIGKILL grace
 C<$retry_grace> is the number of extra seconds C<script_run> waits beyond C<$timeout> to allow the shell to report the exit code after SIGKILL. Defaults to C<10>.
 
 If the command doesn't return C<$expect> after C<$retry> retries,
-this function will die, if C<$die> is set.
+this function will die.
+This default behavior can be disabled by setting C<$die> to C<0>.
+
+Returns the exit code of the last executed command.
 
 Example:
 
