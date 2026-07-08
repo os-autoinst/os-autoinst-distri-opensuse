@@ -46,13 +46,15 @@ sub install_build_deps {
     # Remove kernel-default-devel from the list of dependencies since matching kernel version kernel-<flavor>-devel-<ver> package will be added.
     @deps = grep { $_ ne 'kernel-default-devel' } @deps;
 
+    # Query rpm's NAME/VERSION/RELEASE tags directly for the package owning
+    # the running kernel's config file, instead of parsing free-form `rpm -qf`
+    # output. The previous sed/cut/awk chain assumed the package name always
+    # splits cleanly into kernel-<flavor>-<version>, which is not guaranteed
+    # and produced an invalid 'kernel--devel-<version>' package on some SUTs.
+    my $kernel_pkg_name = $instance->ssh_script_output(cmd => q{rpm -qf --qf '%{NAME}' /boot/config-$(uname -r)});
+    my $kernel_pkg_ver = $instance->ssh_script_output(cmd => q{rpm -qf --qf '%{VERSION}-%{RELEASE}' /boot/config-$(uname -r)});
     # Sample value: kernel-default-devel-6.12.0-160000.27.1
-    my $kernel_devel_pkg = $instance->ssh_script_output(cmd => q{
-        rpm -qf /boot/config-$(uname -r) \
-        | sed -r 's/\.[^.]*$//' \
-        | cut -d- -f2- \
-        | awk -F- '{print "kernel-" $1 "-devel-" substr($0, index($0,$2))}'
-    });
+    my $kernel_devel_pkg = "${kernel_pkg_name}-devel-${kernel_pkg_ver}";
 
     push @deps, $kernel_devel_pkg;
 
