@@ -43,6 +43,30 @@ subtest 'script_retry' => sub {
     $testapi->redefine('script_run', sub { ++$called; 1 });
     throws_ok { script_retry('false', retry => 3, delay => 0, timeout => .0001, fail_message => 'will fail') } qr/will fail/, 'expected to die on false';
     is $called, 3, 'command called multiple times on failing command';
+
+    # Test kill_timeout parameter is wired into the timeout -k command
+    my $actual_timeout;
+    $testapi->redefine('script_run', sub { $cmd = shift; $actual_timeout = shift; ++$called; 0 });
+    $called = 0;
+    is script_retry('true', delay => 0, retry => 1, timeout => 1, kill_timeout => 9), 0, 'script_retry with kill_timeout=9 succeeds';
+    is $cmd, 'timeout -k 9 1 true', 'kill_timeout is reflected in the timeout -k argument';
+
+    # Test retry_grace parameter is wired into the script_run timeout
+    $called = 0;
+    is script_retry('true', delay => 0, retry => 1, timeout => 2, retry_grace => 20), 0, 'script_retry with retry_grace=20 succeeds';
+    is $actual_timeout, 22, 'retry_grace is added to timeout for the script_run call (timeout + retry_grace)';
+
+    # Test that a script_run timeout exception (die) is propagated and retries do not mask it
+    my $throws_count = 0;
+    $testapi->redefine('script_run', sub { ++$throws_count; die "script_run timeout\n" });
+    throws_ok { script_retry('true', retry => 3, delay => 0, timeout => 1) } qr/script_run timeout/, 'script_run timeout exception propagates out of script_retry';
+    is $throws_count, 1, 'script_run is called once before the exception aborts the loop';
+
+    # Test that retries happen the expected number of times when kill_timeout and retry_grace are set
+    $called = 0;
+    $testapi->redefine('script_run', sub { ++$called; 1 });    # always fail (non-zero)
+    throws_ok { script_retry('false', retry => 4, delay => 0, timeout => 1, kill_timeout => 2, retry_grace => 5) } qr/Waiting for Godot/, 'dies after exhausting retries with custom kill_timeout and retry_grace';
+    is $called, 4, 'retried exactly retry times with kill_timeout and retry_grace set';
 };
 
 
