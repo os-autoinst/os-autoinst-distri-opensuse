@@ -44,6 +44,12 @@ my $mock_data = {
             ip_address => '192.168.1.10',
             ssh_user => 'hanaadmin'
         }
+    },
+    nw_iscsi => {
+        iscsi01 => {
+            ip_address => '192.168.1.11',
+            ssh_user => 'iscsiadm'
+        }
     }
 };
 
@@ -89,6 +95,16 @@ subtest '[get_sap_hosts]' => sub {
     note('NW hosts found: ' . join(' ', keys %nw_hosts));
     for my $host (@expected_hosts) {
         ok(grep(/$host/, keys(%nw_hosts)), "SAP list contains host '$host'");
+    }
+};
+
+subtest '[get_iscsi_hosts]' => sub {
+    my $mockObject = sles4sap::console_redirection::redirection_data_tools->new($mock_data);
+    my %iscsi_hosts = %{$mockObject->get_iscsi_hosts()};
+    my @expected_hosts = qw(iscsi01);
+    note('NW hosts found: ' . join(' ', keys %iscsi_hosts));
+    for my $host (@expected_hosts) {
+        ok(grep(/$host/, keys(%iscsi_hosts)), "SAP list contains host '$host'");
     }
 };
 
