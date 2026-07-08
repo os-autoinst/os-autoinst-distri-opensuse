@@ -1,0 +1,34 @@
+name: fips_ker_mode_tests_crypt_core_qcow
+description: >
+  Test fips_ker_mode_tests_crypt_core using preinstalled qcow2 images in immutable mode
+schedule:
+  - '{{boot}}'
+  - jeos/firstrun
+  - transactional/host_config
+  - console/suseconnect_scc
+  - microos/services_enabled
+  - transactional/disable_timers
+  - security/selinux/selinux_setup
+  - fips/fips_setup
+  - fips/openssl/openssl_fips_alglist
+  - fips/openssl/openssl_fips_hash
+  - fips/openssl/openssl_fips_cipher
+  - console/openssl_alpn
+  - fips/gnutls/gnutls_base_check
+  - fips/gnutls/gnutls_server
+  - fips/gnutls/gnutls_client
+  - fips/openssl/openssl_pubkey_rsa
+  - fips/openssl/openssl_pubkey_dsa
+  - fips/openssl/openssl_fips_dhparam
+  - fips/openssh/openssh_fips
+  - console/sshd
+  - console/ssh_cleanup
+conditional_schedule:
+  boot:
+    ARCH:
+      s390x:
+        - installation/bootloader_start
+      aarch64:
+        - installation/bootloader_uefi
+      x86_64:
+        - installation/bootloader_uefi

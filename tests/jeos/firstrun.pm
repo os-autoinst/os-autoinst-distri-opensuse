@@ -324,7 +324,7 @@ sub run {
     }
 
     # Only execute this block on SLE Micro 6.0+ when using the encrypted image.
-    if (get_var('FLAVOR') =~ m/-encrypted/i) {
+    if (get_var('FLAVOR') =~ m/-encrypted/i || get_var('ENCRYPTED')) {
         # Select FDE with pass and tpm
         assert_screen "alp-fde-pass-tpm";
         # with the latest ALP 9.2/SLEM 3.4 build, this step takes more time than usual.
