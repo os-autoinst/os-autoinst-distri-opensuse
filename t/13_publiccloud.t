@@ -1,17 +1,13 @@
 use strict;
 use warnings;
 
-# Deterministic fake clock: sleep() advances mocked time() instead of spending
-# real wall-clock seconds, so state-polling loops (e.g. stop_instance) and the
-# do_systemd_analyze_time boot-time race tests (poo#203817) run fast and
-# deterministically. Must be loaded before the modules under test are compiled.
-use Test::Mock::Time;
 
 use Test::More;
 use Test::MockObject;
 use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
+use Test::Mock::Time;
 use List::Util qw(any);
 use testapi 'set_var';
 
@@ -29,7 +25,7 @@ subtest '[get_blob_name]' => sub {
     my $res = $provider->get_blob_name('SOMETHING.vhdfixed.xz');
     is $res, 'SOMETHING.vhd', "The image name is properly composed";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+    _unset('PUBLIC_CLOUD_AZURE_SKU');
 };
 
 subtest '[get_blob_name] without .xz' => sub {
@@ -40,7 +36,7 @@ subtest '[get_blob_name] without .xz' => sub {
     my $res = $provider->get_blob_name('SOMETHING.vhdfixed');
     is $res, 'SOMETHING.vhd', "The image name is properly composed";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+    _unset('PUBLIC_CLOUD_AZURE_SKU');
 };
 
 subtest '[get_blob_name] with URL' => sub {
@@ -51,7 +47,7 @@ subtest '[get_blob_name] with URL' => sub {
     my $res = $provider->get_blob_name('https://download.somewhere.org/SUSE:/SLE-15-SP5:/Update:/PubClouds/images/SOMETHING.vhdfixed.xz');
     is $res, 'SOMETHING.vhd', "The image name is properly composed";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+    _unset('PUBLIC_CLOUD_AZURE_SKU');
 };
 
 subtest '[get_blob_name] file name too short' => sub {
@@ -63,7 +59,7 @@ subtest '[get_blob_name] file name too short' => sub {
     eval { $res = $provider->get_blob_name('.xz') };
     is $res, undef, "The image name is too short.";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
+    _unset('PUBLIC_CLOUD_AZURE_SKU');
 };
 
 subtest '[get_blob_uri]' => sub {
@@ -75,8 +71,7 @@ subtest '[get_blob_uri]' => sub {
     my $res = $provider->get_blob_uri('SOMETHING.vhdfixed.xz');
     is $res, 'https://SOMEWHERE.blob.core.windows.net/sle-images/SOMETHING.vhd', "The image uri is properly composed";
 
-    set_var('PUBLIC_CLOUD_AZURE_SKU', undef);
-    set_var('PUBLIC_CLOUD_STORAGE_ACCOUNT', undef);
+    _unset(qw/PUBLIC_CLOUD_AZURE_SKU PUBLIC_CLOUD_STORAGE_ACCOUNT/);
 };
 
 subtest '[generate_basename]' => sub {
@@ -103,12 +98,7 @@ subtest '[generate_basename]' => sub {
     $res = $provider->generate_basename();
     is $res, 'AAA-BBB-CCC-x86_64';
 
-    set_var('PUBLIC_CLOUD_ARCH', undef);
-    set_var('PUBLIC_CLOUD', undef);
-    set_var('DISTRI', undef);
-    set_var('VERSION', undef);
-    set_var('FLAVOR', undef);
-    set_var('ARCH', undef);
+    _unset(qw/PUBLIC_CLOUD_ARCH PUBLIC_CLOUD DISTRI VERSION FLAVOR ARCH/);
 };
 
 subtest '[generate_azure_image_definition]' => sub {
@@ -359,15 +349,6 @@ subtest '[pc_wait_quit] times out after 5 failures' => sub {
     is($seen{timeout}, 1, 'timeout=1 passed');
 };
 
-# --- pc_pkg_call -> transactional-update translation ---------------------------
-#
-# These assert that zypper *command* options stay attached to the verb and are
-# never hoisted into transactional-update's global slot. Regression guard for
-# the case where `zypper in -y curl` became `transactional-update -y pkg ...`,
-# with -y being an invalid transactional-update global option.
-
-# Run pc_pkg_call with is_transactional() forced to $transactional and capture
-# the command string handed to the transactional / plain-zypper layer.
 sub _capture_pkg_call {
     my ($transactional, $cmd, %opts) = @_;
     my $mod = Test::MockModule->new('publiccloud::zypper');
@@ -390,6 +371,13 @@ sub _capture_pkg_call {
     return \%captured;
 }
 
+# These assert that zypper *command* options stay attached to the verb and are
+# never hoisted into transactional-update's global slot. Regression guard for
+# the case where `zypper in -y curl` became `transactional-update -y pkg ...`,
+# with -y being an invalid transactional-update global option.
+
+# Run pc_pkg_call with is_transactional() forced to $transactional and capture
+# the command string handed to the transactional / plain-zypper layer.
 subtest '[pc_pkg_call] command flags stay with verb, not hoisted to global' => sub {
     my %cases = (
         'in -y docker' => 'pkg install -y docker',

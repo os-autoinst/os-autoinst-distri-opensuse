@@ -17,7 +17,10 @@ use Test::Exception;
 use Test::Warnings;
 use testapi 'set_var';
 
+use publiccloud::azure_client;
 use publiccloud::provider;
+
+sub _unset { for my $k (@_) { set_var($k, undef) } }
 
 subtest '[conv_openqa_tf_name] provider name mapping' => sub {
     set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
@@ -99,7 +102,33 @@ subtest '[create_ssh_key] derives algorithm and generates when absent' => sub {
     ok(!(grep { /ssh-keygen/ } @asr), 'does not regenerate existing key');
 };
 
-# helper used by the provider-name subtest
-sub _unset { for my $k (@_) { set_var($k, undef) } }
+subtest '[terraform_apply] minimal happy path' => sub {
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    set_var('PUBLIC_CLOUD_REGION', 'westeurope');
+    set_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'Standard_B1s');
+    set_var('FLAVOR', 'DVD');
+
+    my $mock = Test::MockModule->new('publiccloud::provider', no_auto => 1);
+    $mock->redefine($_ => sub { }) for qw(record_info assert_script_run script_retry terraform_prepare_env);
+    $mock->redefine(get_image_uri => sub { '' });
+    $mock->redefine(get_image_id => sub { '' });
+    $mock->redefine(conv_openqa_tf_name => sub { 'tf' });
+    $mock->redefine(terraform_param_tags => sub { '{}' });
+    $mock->redefine(script_run => sub { 0 });
+    $mock->redefine(script_output => sub {
+            return '{"vm_name":{"value":[]},"public_ip":{"value":[]}}' if ($_[0] =~ /output -json/);
+            return '';
+    });
+    Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
+
+    my $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new());
+    my @instances = $provider->terraform_apply();
+
+    is scalar(@instances), 0, 'terraform_apply returns the list of created instances';
+    ok $provider->terraform_applied, 'terraform_apply flags the deployment as applied';
+
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR/);
+};
 
 done_testing;
