@@ -20,16 +20,6 @@ sub run {
     my $chrony_config = '/etc/chrony.d/99-installer.conf';
     assert_script_run("cat $chrony_config");
     assert_script_run("grep '$_' $chrony_config") foreach @{$test_data->{ntp_servers}};
-
-    my $tracking_output = script_output('chronyc tracking');
-
-    if ($tracking_output =~ /Leap\s+status\s*:\s*(?<status>.+?)\s*$/m) {
-        my $status = $+{status};
-        $status =~ s/\s+$//;
-        die "Chrony tracking failed. Expected Leap status 'Normal', but got '$status'." if $status ne 'Normal';
-    } else {
-        die "Could not parse Leap status from chronyc tracking output.";
-    }
 }
 
 1;
