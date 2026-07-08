@@ -416,7 +416,7 @@ sub terraform_prepare_env {
     my ($self) = @_;
     return if $self->terraform_env_prepared;
 
-    my $file = lc get_var('PUBLIC_CLOUD_PROVIDER');
+    my $file = lc get_required_var('PUBLIC_CLOUD_PROVIDER');
     assert_script_run('mkdir -p ' . TERRAFORM_DIR);
     $file = get_var('PUBLIC_CLOUD_TERRAFORM_FILE', "publiccloud/terraform/$file.tf");
     assert_script_run('curl ' . data_url("$file") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
@@ -432,6 +432,34 @@ sub terraform_cmd {
     }
     record_info('TFM cmd', $cmd);
     return $cmd;
+}
+
+=head2 region_out_of_resources
+
+    my $bool = $self->region_out_of_resources($terraform_output);
+
+Return true if the given terraform C<apply> output indicates that the current
+region has no resources available to fulfil the request for the selected
+instance type (e.g. STOCKOUT on GCE, C<InsufficientInstanceCapacity> on EC2 or
+C<SkuNotAvailable>/C<AllocationFailed> on Azure).
+
+It is used by L</terraform_apply> to decide whether it is worth retrying the
+deployment in one of the C<PUBLIC_CLOUD_ALTERNATE_REGIONS> (poo#202446, AC2).
+Any other kind of error must fail immediately, so it returns false for them.
+
+=cut
+
+sub region_out_of_resources {
+    my ($self, $output) = @_;
+    return 0 unless defined($output);
+    # Provider-specific messages emitted by terraform when a region cannot
+    # fulfil the request for the requested instance type.
+    return ($output =~ /does not have enough resources available to fulfill the request/i    # GCE
+          || $output =~ /is currently unavailable in the .* zone/i    # GCE (e.g. nvidia accelerators)
+          || $output =~ /STOCKOUT|ZONE_RESOURCE_POOL_EXHAUSTED/i    # GCE
+          || $output =~ /InsufficientInstanceCapacity|Insufficient capacity/i    # EC2
+          || $output =~ /SkuNotAvailable|AllocationFailed|OverconstrainedAllocationRequest/i    # Azure
+    ) ? 1 : 0;
 }
 
 =head2 terraform_apply
@@ -457,101 +485,118 @@ sub terraform_apply {
     $self->terraform_prepare_env();
 
     # 1) Terraform init
-
     assert_script_run('cd ' . TERRAFORM_DIR);
     script_retry($runner . ' init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
 
-    # 2) Terraform plan
-
-    my %vars = ();
-    if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
-        # Some auxiliary variables, requires for fine control and public cloud provider specifics
-        for my $key (keys %{$args{vars}}) {
-            $vars{$key} = escape_single_quote($args{vars}->{$key});
-        }
-
-        # image_uri and image_id are mutually exclusive
-        if ($image_uri && $image_id) {
-            die "PUBLIC_CLOUD_IMAGE_URI and PUBLIC_CLOUD_IMAGE_ID are mutually exclusive";
-        } elsif ($image_uri) {
-            $vars{image_uri} = $image_uri;
-            record_info('INFO', "Creating instance $instance_type from $image_uri ...");
-        } elsif ($image_id) {
-            $vars{image_id} = $image_id;
-            record_info('INFO', "Creating instance $instance_type from $image_id ...");
-        }
-        if (is_ec2) {
-            $vars{availability_zone} = script_output("aws ec2 describe-instance-type-offerings --location-type availability-zone  --filters Name=instance-type,Values=" . $instance_type . "  --region '" . $self->provider_client->region . "' --query 'InstanceTypeOfferings[0].Location' --output 'text'");
-            die('Instance type not supported by the selected Availability Zone') if ($vars{availability_zone} =~ /None/);
-            $vars{vpc_security_group_ids} = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
-            $vars{subnet_id} = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' 'Name=availabilityZone,Values=" . $vars{availability_zone} . "' --query 'Subnets[0].SubnetId' --output text");
-        } elsif (is_azure) {
-            my $subnet_id = script_output("az network vnet subnet list -g 'tf-" . $self->provider_client->region . "-rg' --vnet-name 'tf-network' --query '[0].id' --output 'tsv'");
-            $vars{subnet_id} = $subnet_id if ($subnet_id);
-        }
-        $vars{instance_count} = $args{count};
-        $vars{type} = $instance_type;
-        $vars{region} = $self->provider_client->region;
-        $vars{name} = $self->resource_name;
-        $vars{project} = $args{project} if ($args{project});
-        $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml" if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
-        $vars{vm_create_timeout} = $terraform_vm_create_timeout;
-        my $root_size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
-        $vars{'root-disk-size'} = $root_size if ($root_size);
-        $vars{tags} = escape_single_quote($self->terraform_param_tags);
-        if ($args{use_extra_disk}) {
-            $vars{'create-extra-disk'} = 'true';
-            $vars{'extra-disk-size'} = $args{use_extra_disk}->{size} if $args{use_extra_disk}->{size};
-            $vars{'extra-disk-type'} = $args{use_extra_disk}->{type} if $args{use_extra_disk}->{type};
-        }
-    }
-    if (get_var('FLAVOR') =~ 'UEFI') {
-        $vars{uefi} = 'true';
-    }
-    if (get_var('PUBLIC_CLOUD_NVIDIA')) {
-        $vars{gpu} = 'true';
-    }
-    $vars{ssh_public_key} = $self->ssh_key . '.pub';
-
-    my $cmd = terraform_cmd($runner . ' plan -no-color -out myplan', %vars);
-    script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
-
-    # 3) Terraform apply
+    # 2) Terraform plan & apply
+    #
+    # Attempt the deployment in the primary region (PUBLIC_CLOUD_REGION) first.
+    # Only it has no resources available for the requested instance type,
+    # retry in each region listed in PUBLIC_CLOUD_ALTERNATE_REGIONS.
+    # Any other kind of failure fails immediately.
+    my @regions = ($self->provider_client->region);
+    push @regions, split(/\s*,\s*/, get_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', ''));
 
     # Valid values according to documentation: TRACE, DEBUG, INFO, WARN, ERROR & OFF
     # https://developer.hashicorp.com/terraform/internals/debugging
     my $tf_log = get_var("TERRAFORM_LOG", "");
 
-    my $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
-    my $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
-    $self->terraform_applied(1);    # Must happen here to prevent resource leakage
+    my %vars = ();
+    # Some auxiliary variables, requires for fine control and public cloud provider specifics
+    for my $key (keys %{$args{vars}}) {
+        $vars{$key} = escape_single_quote($args{vars}->{$key});
+    }
 
-    record_info("TFM apply output", $tf_apply_output, result => ($ret) ? 'fail' : 'ok');
-    record_info("TFM apply exit code", $ret);
+    # image_uri and image_id are mutually exclusive
+    if ($image_uri && $image_id) {
+        die "PUBLIC_CLOUD_IMAGE_URI and PUBLIC_CLOUD_IMAGE_ID are mutually exclusive";
+    } elsif ($image_uri) {
+        $vars{image_uri} = $image_uri;
+        record_info('INFO', "Creating instance $instance_type from $image_uri ...");
+    } elsif ($image_id) {
+        $vars{image_id} = $image_id;
+        record_info('INFO', "Creating instance $instance_type from $image_id ...");
+    }
+    $vars{instance_count} = $args{count};
+    $vars{type} = $instance_type;
+    $vars{name} = $self->resource_name;
+    $vars{project} = $args{project} if ($args{project});
+    $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml" if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
+    $vars{vm_create_timeout} = $terraform_vm_create_timeout;
+    my $root_size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
+    $vars{'root-disk-size'} = $root_size if ($root_size);
+    $vars{tags} = escape_single_quote($self->terraform_param_tags);
+    if ($args{use_extra_disk}) {
+        $vars{'create-extra-disk'} = 'true';
+        $vars{'extra-disk-size'} = $args{use_extra_disk}->{size} if $args{use_extra_disk}->{size};
+        $vars{'extra-disk-type'} = $args{use_extra_disk}->{type} if $args{use_extra_disk}->{type};
+    }
+    $vars{uefi} = 'true' if (get_var('FLAVOR') =~ 'UEFI');
+    $vars{gpu} = 'true' if (get_var('PUBLIC_CLOUD_NVIDIA'));
+    $vars{ssh_public_key} = $self->ssh_key . '.pub';
 
-    # when all instances of certain type are booked in one AZ there is a chance that other AZ in same region still have them
-    # to improve test stability let's loop over all available AZ in case initial one throwing error that all instances are booked
-    if ($ret != 0 && is_gce() && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone|Machine type with name .* does not exist in zone .*|The zone 'projects.*' does not have enough resources available to fulfill the request/)) {
-        my $zones_output = script_output("gcloud compute zones list --filter='region=" . $vars{region} . "' --format=\"value(name.split('-').slice(-1))\" | tr '\n' ','");
-        my @alternative_zones = split /\s*,\s*/, $zones_output;
-        @alternative_zones = grep { $_ ne $vars{availability_zone} } @alternative_zones;
-        record_info('ZONE UNAVAILABLE', "Alternative zones " . join(', ', @alternative_zones));
-        for my $az (@alternative_zones) {
-            # try to apply in all regions before hardfailing
-            record_info('RETRYING', "Attempting with availability_zone: $az");
-            $vars{availability_zone} = $az;
+    my ($ret, $tf_apply_output);
+    for my $region (@regions) {
+        # Swap the active region inline so all the region-dependent variables
+        # and any test relying on provider_client->region are aware.
+        $self->provider_client->region($region);
+        record_info('REGION', "Attempting the deployment in region '$region'");
 
-            $cmd = terraform_cmd($runner . ' plan -no-color -out myplan', %vars);
-            script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
-            $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
-            $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
-            record_info("TFM apply output", $tf_apply_output);
-            record_info("TFM apply exit code", $ret, result => ($ret) ? 'fail' : 'ok');
-            if ($ret == 0) {
-                $self->provider_client->availability_zone($az);
-                last;
+        if (!get_var('PUBLIC_CLOUD_SLES4SAP')) {
+            if (is_ec2) {
+                $vars{availability_zone} = script_output("aws ec2 describe-instance-type-offerings --location-type availability-zone --filters Name=instance-type,Values=" . $instance_type . " --region '" . $self->provider_client->region . "' --query 'InstanceTypeOfferings[0].Location' --output 'text'");
+                die('Instance type not supported by the selected Availability Zone') if ($vars{availability_zone} =~ /None/);
+                $vars{vpc_security_group_ids} = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
+                $vars{subnet_id} = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' 'Name=availabilityZone,Values=" . $vars{availability_zone} . "' --query 'Subnets[0].SubnetId' --output text");
+            } elsif (is_azure) {
+                my $subnet_id = script_output("az network vnet subnet list -g 'tf-" . $self->provider_client->region . "-rg' --vnet-name 'tf-network' --query '[0].id' --output 'tsv'");
+                $vars{subnet_id} = $subnet_id if ($subnet_id);
+            }
+            $vars{region} = $self->provider_client->region;
+        }
+
+        my $cmd = terraform_cmd($runner . ' plan -no-color -out myplan', %vars);
+        script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
+
+        $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
+        $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
+        $self->terraform_applied(1);    # Must happen here to prevent resource leakage
+
+        record_info("TFM apply output", $tf_apply_output, result => ($ret) ? 'fail' : 'ok');
+        record_info("TFM apply exit code", $ret);
+
+        # when all instances of certain type are booked in one AZ there is a chance that other AZ in same region still have them
+        # to improve test stability let's loop over all available AZ in case initial one throwing error that all instances are booked
+        if ($ret != 0 && is_gce() && ($tf_apply_output =~ /A .* VM instance with 1 .* accelerator\(s\) is currently unavailable in the .* zone|Machine type with name .* does not exist in zone .*|The zone 'projects.*' does not have enough resources available to fulfill the request/)) {
+            my $zones_output = script_output("gcloud compute zones list --filter='region=" . $vars{region} . "' --format=\"value(name.split('-').slice(-1))\" | tr '\n' ','");
+            my @alternative_zones = split /\s*,\s*/, $zones_output;
+            @alternative_zones = grep { $_ ne $vars{availability_zone} } @alternative_zones;
+            record_info('ZONE UNAVAILABLE', "Alternative zones " . join(', ', @alternative_zones));
+            for my $az (@alternative_zones) {
+                # try to apply in all regions before hardfailing
+                record_info('RETRYING', "Attempting with availability_zone: $az");
+                $vars{availability_zone} = $az;
+
+                $cmd = terraform_cmd($runner . ' plan -no-color -out myplan', %vars);
+                script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
+                $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
+                $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
+                record_info("TFM apply output", $tf_apply_output);
+                record_info("TFM apply exit code", $ret, result => ($ret) ? 'fail' : 'ok');
+                if ($ret == 0) {
+                    $self->provider_client->availability_zone($az);
+                    last;
+                }
             }
         }
+
+        # Deployment succeeded: no need to try any alternate region.
+        last if (defined($ret) && $ret == 0);
+
+        # AC2: fall back to an alternate region only when the failure is caused by
+        # the region running out of resources; any other error must fail immediately.
+        last unless ($self->region_out_of_resources($tf_apply_output));
+        record_info('REGION UNAVAILABLE', "Region '$region' has no resources available for instance type '$instance_type'");
     }
 
     unless (defined $ret) {
@@ -570,7 +615,7 @@ sub terraform_apply {
     }
     die('Terraform exit with ' . $ret) if ($ret != 0);
 
-    # 4) Terraform output
+    # 3) Terraform output
 
     my $output = decode_json(script_output($runner . ' output -json'));
     my ($vms, $ips, $resource_id);
