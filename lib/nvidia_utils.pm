@@ -148,7 +148,10 @@ sub validate_cuda
     my $gcc_ver = get_var('NVIDIA_CUDA_GCC_VERSION');
     my $gcc_pkgs = $gcc_ver ? "gcc$gcc_ver gcc$gcc_ver-c++" : "";
 
-    zypper_call("install -l cmake git $gcc_pkgs cuda-toolkit vulkan-devel freeglut-devel Mesa-libEGL-devel", timeout => 1200);
+    zypper_call("install -l cmake python3-pip git $gcc_pkgs cuda-toolkit vulkan-devel freeglut-devel Mesa-libEGL-devel", timeout => 1200);
+    # Get an up-to-date cmake from PyPI instead of the distro package
+    assert_script_run('pip3 install -U cmake');
+    record_info('CMake Version', script_output('cmake --version'));
 
     # Query the GPU capabilities
     my $query = script_output('nvidia-smi --query-gpu=compute_cap --format=csv');
