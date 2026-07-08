@@ -89,6 +89,8 @@ sub run ($self) {
     assert_script_run "wwctl overlay build";
     # Refresh repositories inside the container
     validate_script_output("echo 'zypper -n refresh && echo warewulf-container-refreshed' | wwctl container shell warewulf-container", sub { m/warewulf-container-refreshed/ });
+    # Restart dnsmasq to apply newly configured compute nodes, expected behavior documented in bsc#1269035
+    systemctl 'restart dnsmasq';
     barrier_wait('WWCTL_READY');
     record_info 'WWCTL_READY', strftime("\%H:\%M:\%S", localtime);
     mutex_unlock 'ww4_ready';
