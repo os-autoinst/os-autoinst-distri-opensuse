@@ -17,7 +17,6 @@ use trento qw(
   setup_trento_ingress_tls
   trento_helm_set_options
   trento_helm_values_image_path_from_image
-  trento_json_escape
   trento_shell_quote
 );
 use utils 'script_retry';
@@ -36,7 +35,6 @@ sub run {
     my $helm_release = get_var('TRENTO_HELM_RELEASE', 'trento-server');
 
     my $trento_ingress_url = get_var('TRENTO_INGRESS_URL', "https://$trento_server_hostname");
-    my $trento_mcp_health_port = get_var('TRENTO_MCP_HEALTH_PORT', '8080');
     my $kubeconfig = 'KUBECONFIG=/etc/rancher/k3s/k3s.yaml';
     my $trento_namespace = 'default';
 
@@ -51,15 +49,15 @@ sub run {
     assert_script_run("$kubeconfig kubectl wait --for=condition=Ready node --all --timeout=300s", timeout => 330);
 
     # The chart creates Traefik Middleware objects, so wait for Traefik CRDs and deployment.
-    script_retry("$kubeconfig kubectl get crd middlewares.traefik.io", timeout => 180, retry => 30, delay => 6);
+    script_retry("env $kubeconfig kubectl get crd middlewares.traefik.io", timeout => 180, retry => 30, delay => 6);
     assert_script_run("$kubeconfig kubectl wait --for=condition=established crd/middlewares.traefik.io --timeout=180s", timeout => 200);
-    script_retry("$kubeconfig kubectl -n kube-system get deploy traefik", timeout => 180, retry => 30, delay => 6);
+    script_retry("env $kubeconfig kubectl -n kube-system get deploy traefik", timeout => 180, retry => 30, delay => 6);
     assert_script_run("$kubeconfig kubectl -n kube-system rollout status deploy/traefik --timeout=180s", timeout => 200);
 
     assert_script_run('getent hosts ' . trento_shell_quote($trento_server_hostname) . ' || echo ' . trento_shell_quote("127.0.0.1 $trento_server_hostname") . ' >> /etc/hosts');
 
     # Reuse the upstream helper manifests to enable cert-manager-backed ingress TLS.
-    my $tls_values_file = setup_trento_ingress_tls(
+    my ($tls_values_file, $smoke_test_script) = setup_trento_ingress_tls(
         kubeconfig => $kubeconfig,
         hostname => $trento_server_hostname,
         namespace => $trento_namespace);
@@ -71,6 +69,7 @@ sub run {
 
     # Install Trento Server with the rebuilt image and ingress TLS values.
     my $helm_cmd = join(' ',
+        'env',
         $kubeconfig,
         'helm upgrade --install',
         $set_options,
@@ -86,30 +85,19 @@ sub run {
     assert_script_run("$kubeconfig kubectl wait --for=condition=Ready pods --all --timeout=900s", timeout => 930);
     assert_script_run("$kubeconfig helm status " . trento_shell_quote($helm_release), timeout => 120);
 
-    my $mcp_pod_ip = script_output("$kubeconfig kubectl get pod -l app.kubernetes.io/name=mcp-server -o jsonpath='{.items[0].status.podIP}'");
-    my $trento_mcp_url = "http://$mcp_pod_ip:$trento_mcp_health_port";
-
-    # Validate Web and Wanda through the TLS ingress; MCP health is validated on the pod IP.
-    script_retry("curl -kfsS -o /dev/null " . trento_shell_quote("$trento_ingress_url/api/readyz"), timeout => 120, retry => 30, delay => 5);
-    validate_script_output('curl -ksS ' . trento_shell_quote("$trento_ingress_url/api/readyz"), qr/"ready":true/);
-    validate_script_output('curl -ksS ' . trento_shell_quote("$trento_ingress_url/api/healthz"), qr/"database":"pass"/);
-    validate_script_output('curl -ksS ' . trento_shell_quote("$trento_ingress_url/wanda/api/readyz"), qr/"ready":true/);
-    validate_script_output('curl -ksS ' . trento_shell_quote("$trento_ingress_url/wanda/api/healthz"), qr/"database":"pass"/);
-    validate_script_output('curl -sS ' . trento_shell_quote("$trento_mcp_url/livez"), qr/"name":"mcp-server-trento".*"status":"up"/);
-    validate_script_output('curl -sS ' . trento_shell_quote("$trento_mcp_url/readyz"), qr/"mcp-server":\{"status":"up".*"wanda-api":\{"status":"up".*"web-api":\{"status":"up"/);
-
-    # Check that the configured admin user can log in through the ingress.
-    my $login_payload = '{"username":"' . trento_json_escape($admin_user) . '","password":"' . trento_json_escape($admin_password) . '"}';
-    assert_script_run(
-        'curl -kfsS '
-          . trento_shell_quote("$trento_ingress_url/api/session")
-          . ' -H '
-          . trento_shell_quote('Accept: application/json')
-          . ' -H '
-          . trento_shell_quote('Content-Type: application/json')
-          . ' --data-raw '
-          . trento_shell_quote($login_payload),
-        timeout => 120);
+    # Run the upstream smoke test through the TLS ingress.
+    my $smoke_test_cmd = join(' ',
+        'env',
+        $kubeconfig,
+        'INGRESS_HOST=' . trento_shell_quote($trento_server_hostname),
+        'WEB_BASE_URL=' . trento_shell_quote($trento_ingress_url),
+        'WANDA_BASE_URL=' . trento_shell_quote("$trento_ingress_url/wanda"),
+        'MCP_BASE_URL=' . trento_shell_quote("$trento_ingress_url/mcp"),
+        'TEST_USERNAME=' . trento_shell_quote($admin_user),
+        'TEST_PASSWORD=' . trento_shell_quote($admin_password),
+        'bash',
+        trento_shell_quote($smoke_test_script));
+    script_retry($smoke_test_cmd, timeout => 300, retry => 3, delay => 15);
 }
 
 sub post_fail_hook {

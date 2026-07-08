@@ -20,7 +20,6 @@ our @EXPORT = qw(
   setup_trento_ingress_tls
   trento_helm_set_options
   trento_helm_values_image_path_from_image
-  trento_json_escape
   trento_shell_quote
 );
 
@@ -60,15 +59,6 @@ sub trento_helm_values_image_path_from_image {
     return $helm_values_image_path{$image_name};
 }
 
-sub trento_json_escape {
-    my ($value) = @_;
-
-    $value =~ s/\\/\\\\/g;
-    $value =~ s/"/\\"/g;
-
-    return $value;
-}
-
 sub trento_helm_set_options {
     my (%args) = @_;
 
@@ -93,6 +83,7 @@ sub _install_cert_manager {
 
     script_retry(
         join(' ',
+            'env',
             $args{kubeconfig},
             'helm upgrade --install cert-manager oci://quay.io/jetstack/charts/cert-manager',
             '--version', _shell_quote($args{version}),
@@ -123,7 +114,7 @@ sub _checkout_helm_charts_repository {
     assert_script_run(
         join(' ',
             'git -C', _shell_quote($args{target_dir}),
-            'sparse-checkout set --no-cone hack/cert-manager',
+            'sparse-checkout set --no-cone hack/cert-manager .github/scripts/helm-upgrade-smoke-test.sh',
             '&& git -C', _shell_quote($args{target_dir}),
             'fetch --depth 1 origin', _shell_quote($args{ref}),
             '&& git -C', _shell_quote($args{target_dir}),
@@ -162,6 +153,7 @@ sub setup_trento_ingress_tls {
     my $helm_charts_repo = get_var('TRENTO_HELM_CHARTS_REPO', 'https://github.com/trento-project/helm-charts.git');
     my $helm_charts_ref = get_var('TRENTO_HELM_CHARTS_REF', 'main');
     my $helm_charts_dir = '/root/trento-helm-charts';
+    my $smoke_test_script = "$helm_charts_dir/.github/scripts/helm-upgrade-smoke-test.sh";
 
     install_package('git', timeout => 600);
 
@@ -170,6 +162,7 @@ sub setup_trento_ingress_tls {
         repository => $helm_charts_repo,
         ref => $helm_charts_ref,
         target_dir => $helm_charts_dir);
+    assert_script_run('test -f ' . _shell_quote($smoke_test_script));
 
     my ($issuer_file, $certificate_file, $tls_values_file) = _prepare_tls_termination_files(
         helm_charts_dir => $helm_charts_dir,
@@ -179,7 +172,7 @@ sub setup_trento_ingress_tls {
     assert_script_run("$args{kubeconfig} kubectl apply -f " . _shell_quote($certificate_file), timeout => 120);
     assert_script_run("$args{kubeconfig} kubectl wait --for=condition=Ready certificate/trento-certificate --timeout=180s", timeout => 200);
 
-    return $tls_values_file;
+    return ($tls_values_file, $smoke_test_script);
 }
 
 1;
