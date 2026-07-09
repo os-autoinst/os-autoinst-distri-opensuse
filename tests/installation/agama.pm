@@ -59,7 +59,7 @@ sub has_product_selection {
 
 # A More complex screen for root auth
 sub agama_set_root_password_screen {
-    if (is_leap('16.0+')) {
+    if (is_leap('<16.1')) {
         # In leap 16 we have a simple toggle to enable root password and then we can set it in the same screen
         assert_and_click('agama-set-root-password');
         wait_still_screen 5;
@@ -100,7 +100,7 @@ sub agama_set_root_password_screen {
 }
 
 sub agama_define_user_screen {
-    if (is_leap('16.0+')) {
+    if (is_leap('<16.1')) {
         assert_and_click('agama-define-user-button');
         wait_still_screen 5;
 
