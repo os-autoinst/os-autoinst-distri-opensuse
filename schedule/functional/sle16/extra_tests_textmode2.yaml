@@ -34,6 +34,7 @@ schedule:
     - console/zypper_log_packages
     - console/rabbitmq
     - console/libxslt
+    - console/ds389_advanced_functional
     - console/synce4l_gpsd
     - network/samba/samba_adcli
     - shutdown/shutdown

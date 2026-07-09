@@ -18,6 +18,7 @@ use network_utils 'iface';
 use Utils::Architectures 'is_s390x';
 use Utils::Systemd qw(disable_and_stop_service systemctl);
 use version_utils qw(has_selinux is_sle);
+use package_utils 'install_package';
 
 my $local_name = '389ds';
 my $remote_name = 'sssdclient';
@@ -25,7 +26,7 @@ my $ca_dir = '/etc/openldap/ssl';
 my $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
 
 sub install_service {
-    zypper_call("in 389-ds openssl");
+    install_package("389-ds openssl", trup_reboot => 1);
 }
 
 # move ssh server to another port on s390x architecture
@@ -47,14 +48,16 @@ sub workaround_CC_s390x {
 
 # The function below covers all required steps for 389ds server's configuration
 sub config_service {
-    # Permit ssh/scp from client as root
+    my ($no_check) = @_;
+    $no_check //= 0;    # Need to check by default
+                        # Permit ssh/scp from client as root
     permit_root_ssh();
     workaround_CC_s390x if is_s390x;
     # Start a local instance with basic configuration file
     assert_script_run("wget --quiet " . data_url("389ds/instance.inf") . " -O /tmp/instance.inf");
     assert_script_run("sed -i 's/\{\{PASSWORD\}\}/$testapi::password/g' /tmp/instance.inf");
     # On s390x we need to set strict_host_checking to False, otherwise the test will fail
-    assert_script_run("sed -i 's/True/False/g' /tmp/instance.inf") if is_s390x;
+    assert_script_run("sed -i 's/True/False/g' /tmp/instance.inf") if (is_s390x || $no_check);
     assert_script_run("dscreate from-file /tmp/instance.inf");
     validate_script_output("dsctl localhost status", sub { m/Instance.*is running/ });
 
