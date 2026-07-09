@@ -24,8 +24,7 @@ sub run {
 
     # Install the specific old versions
     my $libfreshclam = ($old_version =~ /^1\.5\./) ? "libfreshclam4" : "libfreshclam3";
-    my @pkgs = ("clamav", "clamav-milter", "libclamav12", "libclammspack0");
-    push(@pkgs, $libfreshclam) if (is_sle('<16.0'));
+    my @pkgs = ("clamav", "clamav-milter", "libclamav12", "libclammspack0", $libfreshclam);
     my $install_list = join(" ", map { "$_=$old_version" } @pkgs);
 
     zypper_call("in $install_list", timeout => 300);
