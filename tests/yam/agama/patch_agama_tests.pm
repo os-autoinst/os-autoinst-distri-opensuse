@@ -6,7 +6,7 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base Yam::Agama::patch_agama_base;
-use testapi qw(assert_script_run get_required_var select_console script_run);
+use testapi qw(assert_script_run get_required_var select_console script_run record_info);
 
 sub run {
     select_console 'install-shell';
@@ -15,7 +15,8 @@ sub run {
     my $destination = "/usr/share/agama/system-tests";
 
 
-    `podman run --rm hello-world`;
+    my $output = `podman run --rm hello-world`;
+    record_info('podman', $output);
     
     #my $sha = script_output("curl -s https://api.github.com/repos/OWNER/REPO/commits/BRANCH | jq -r '.sha'");
     #script_run("curl -L -o dist.tar.gz https://github.com/$repo/releases/download/tag-$branch/dist.tar.gz");
