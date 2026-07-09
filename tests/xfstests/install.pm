@@ -95,8 +95,8 @@ sub log_create {
 
 sub collect_version {
     my $file = shift;
-    my $packs = "xfsprogs xfsdump btrfsprogs e2fsprogs coreutils util-linux kernel-default";
-    my $cmd = "(rpm -qa " . join(' ', ($packs, @PACKAGES)) . "; uname -r; rpm -qi kernel-default) | tee $file";
+    my $packs = "xfsprogs xfsdump btrfsprogs e2fsprogs coreutils util-linux attr kernel-default";
+    my $cmd = "(rpm -qa " . join(' ', ($packs, @PACKAGES)) . "; uname -a; rpm -qi kernel-default) | tee $file";
     script_run($cmd, proceed_on_failure => 1);
     upload_logs($file, timeout => 60, log_name => basename($file));
 }
