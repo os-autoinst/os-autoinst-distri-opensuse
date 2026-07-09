@@ -818,16 +818,20 @@ sub systemd_time_to_second
 sub extract_analyze_time {
     my $str_time = shift;
     my $res = {};
-    ($str_time) = split(/\r?\n/, $str_time, 2);
-    $str_time =~ s/Startup finished in\s*//;
+    # Pick the line that actually holds the timing, not blindly the first line:
+    # ssh_script_output may prepend an SSH login banner / MOTD, which would
+    # otherwise leave us parsing an empty or non-timing line (poo#203817).
+    ($str_time) = grep { /Startup finished in/i } split(/\r?\n/, $str_time);
+    return undef unless defined($str_time);
+    $str_time =~ s/Startup finished in\s*//i;
     $str_time =~ s/=(.+)$/+$1 (overall)/;
     for my $time (split(/\s*\+\s*/, $str_time)) {
         $time = trim($time);
         my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
         $res->{$type} = systemd_time_to_second($time);
-        return 0 if ($res->{$type} == -1);
+        return undef if ($res->{$type} == -1);
     }
-    foreach (qw(kernel initrd userspace overall)) { return 0 unless exists($res->{$_}); }
+    foreach (qw(kernel initrd userspace overall)) { return undef unless exists($res->{$_}); }
     return $res;
 }
 
@@ -836,26 +840,43 @@ sub extract_blame_time {
     my $ret = {};
     for my $line (split(/\r?\n/, $str_time)) {
         $line = trim($line);
-        my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
-        $ret->{$service} = systemd_time_to_second($time);
-        return 0 if ($ret->{$service} == -1);
+        # Only <time> <service> lines are blame entries; skip anything else
+        # (e.g. an SSH login banner / MOTD prepended to the output, poo#203817).
+        my ($time, $service) = $line =~ /^(\S+)\s+(\S+)$/;
+        next unless defined($service);
+        my $sec = systemd_time_to_second($time);
+        next unless ($sec >= 0);
+        $ret->{$service} = $sec;
     }
     return $ret;
 }
 
 sub do_systemd_analyze_time {
     my ($instance, %args) = @_;
-    my $timeout = $args{timeout} // 120;
+    my $timeout = $args{timeout} // 300;
     my $start_time = time();
     my $output = "";
+    my $finished = 0;
     my @ret;
 
-    # calling systemd-analyze time & blame
-    while ($output !~ /Startup finished in/i && time() - $start_time < $timeout) {
+    # Poll systemd-analyze until the system has actually finished booting.
+    # On a freshly-launched Public Cloud instance SSH becomes reachable while
+    # late boot units (e.g. cloud-init) are still running, so systemd-analyze
+    # reports "Bootup is not yet finished (...FinishTimestampMonotonic=0)" and
+    # exits non-zero (poo#203817). "Startup finished in" only appears once boot
+    # is complete, so it is our readiness signal. Break out on the successful
+    # match *before* sleeping so a result arriving near the timeout is not
+    # discarded, and gate success on the match rather than on elapsed time.
+    while (time() - $start_time < $timeout) {
+        # calling systemd-analyze time
         $output = $instance->ssh_script_output(cmd => 'systemd-analyze time', proceed_on_failure => 1);
+        if ($output =~ /Startup finished in/i) {
+            $finished = 1;
+            last;
+        }
         sleep 5;
     }
-    unless (time() - $start_time < $timeout) {
+    unless ($finished) {
         record_info("WARN", "Unable to get systemd-analyze in ${timeout}s.\nLast output:" . $output, result => 'fail');
         return (0, 0);
     }
