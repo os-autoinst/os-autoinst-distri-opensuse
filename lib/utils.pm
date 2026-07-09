@@ -149,6 +149,7 @@ our @EXPORT = qw(
   dump_tasktrace
   show_all_disks
   render_scc_url
+  query_installed_packages
 );
 
 our @EXPORT_OK = qw(
@@ -3809,6 +3810,25 @@ sub render_scc_url {
     my $scc_url = get_var('SCC_URL', 'https://scc.suse.com');
     $scc_url =~ s/$test_build/$main_build/g if is_disk_image;
     return $scc_url;
+}
+
+=head2 query_installed_packages
+
+  query_installed_packages(packages => 'package1,package2,package3')
+
+Query whether provided packages are all installed by using 'rpm -q'. Return 1 if
+all packages are already installed or 0 if any of them is not installed. The only
+argument is packages which accepts list of package names separated by comma.
+=cut
+
+sub query_installed_packages {
+    my %args = @_;
+    $args{packages} //= '';
+
+    croak('No packages to be checked') if (!$args{packages});
+    my $ret = 0;
+    $ret |= script_run("rpm -q $_") foreach (split(/,/, $args{packages}));
+    return ($ret ? 0 : 1);
 }
 
 1;
