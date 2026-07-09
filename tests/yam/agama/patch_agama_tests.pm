@@ -14,11 +14,16 @@ sub run {
     my ($repo, $branch) = split /#/, get_required_var('YUPDATE_GIT');
     my $destination = "/usr/share/agama/system-tests";
 
-    script_run("curl -L -o dist.tar.gz https://github.com/$repo/releases/download/tag-$branch/dist.tar.gz");
-    script_run("tar -xzf dist.tar.gz");
-    script_run("mkdir -p $destination");
-    script_run("cp dist/vendor.js $destination");
-    script_run("cp dist/$agama_test* $destination");
+
+    `podman run --rm hello-world`;
+    
+    #my $sha = script_output("curl -s https://api.github.com/repos/OWNER/REPO/commits/BRANCH | jq -r '.sha'");
+    #script_run("curl -L -o dist.tar.gz https://github.com/$repo/releases/download/tag-$branch/dist.tar.gz");
+    #script_run("curl -L -o dist.tar.gz https://github.com/$repo/releases/download/tag-$branch/dist.tar.gz");
+    #script_run("tar -xzf dist.tar.gz");
+    #script_run("mkdir -p $destination");
+    #script_run("cp dist/vendor.js $destination");
+    #script_run("cp dist/$agama_test* $destination");
 }
 
 1;
