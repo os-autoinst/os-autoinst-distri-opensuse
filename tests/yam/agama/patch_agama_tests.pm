@@ -12,7 +12,11 @@ sub run {
     select_console 'install-shell';
     my $tar_name = 'dist.tar.gz';
     my $destination = "/usr/share/agama/system-tests";
-    my $podman_command = "podman run --rm -v ./:/tmp/output " .
+    my $podman_command = "podman run --rm " .
+          "--storage-opt ignore_chown_errors=true " .
+          "--cgroup-manager=cgroupfs " .
+          "--root ./ " .
+          "-v './:/tmp/output' " .
           "docker.io/okynos/agama-integration-test-webpack-builder:latest " .
           get_required_var('YUPDATE_GIT');
 
