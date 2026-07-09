@@ -14,10 +14,11 @@ sub run {
     my ($repo, $branch) = split /#/, get_required_var('YUPDATE_GIT');
     my $tar_name = 'dist.tar.gz';
     my $destination = "/usr/share/agama/system-tests";
-
-    my $podman_output = `podman run --rm -v ./:/tmp/output ` .
-          `okynos/agama-integration-test-webpack-builder:latest ` .
+    my $podman_command = "podman run --rm -v ./:/tmp/output " .
+          "okynos/agama-integration-test-webpack-builder:latest " .
           get_required_var('YUPDATE_GIT');
+
+    my $podman_output = qx{$command};
     record_info('podman', $podman_output);
 
     my $tar_data = `cat $tar_name`;
