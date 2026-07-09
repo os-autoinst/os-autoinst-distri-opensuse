@@ -6,7 +6,7 @@
 # Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
 
 use base Yam::Agama::patch_agama_base;
-use testapi qw(assert_script_run get_required_var select_console script_run record_info save_tmp_file);
+use testapi qw(assert_script_run get_required_var select_console script_run record_info save_tmp_file autoinst_url);
 
 sub run {
     select_console 'install-shell';
