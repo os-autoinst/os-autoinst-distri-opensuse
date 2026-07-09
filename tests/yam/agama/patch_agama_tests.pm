@@ -23,7 +23,9 @@ sub run {
     record_info('command', $podman_command);
     my $podman_output = qx{$command 2>&1};
     my $podman_exit_code = $? >> 8;
-    my $podman_version = qx{/usr/bin/podman --root ./ --version 2>&1};
+    my $pwd = qx{pwd};
+    record_info('pwd', $pwd);
+    my $podman_version = qx{/usr/bin/podman --root $pwd --version 2>&1};
     record_info('version', $podman_version);
     record_info('podman', $podman_output);
     record_info('exit', $podman_exit_code);
