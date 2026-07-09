@@ -10,18 +10,20 @@ use testapi qw(assert_script_run get_required_var select_console script_run reco
 
 sub run {
     select_console 'install-shell';
-    my $agama_test = get_required_var("AGAMA_TEST");
-    my ($repo, $branch) = split /#/, get_required_var('YUPDATE_GIT');
     my $tar_name = 'dist.tar.gz';
     my $destination = "/usr/share/agama/system-tests";
     my $podman_command = "podman run --rm -v ./:/tmp/output " .
           "docker.io/okynos/agama-integration-test-webpack-builder:latest " .
           get_required_var('YUPDATE_GIT');
 
+    record_info('command', $podman_command);
     my $podman_output = qx{$command 2>&1};
     my $podman_exit_code = $? >> 8;
     record_info('podman', $podman_output);
     record_info('exit', $podman_exit_code);
+
+    my $folder_ls = `ls -lah`;
+    record_info('folder', $folder_ls);
 
     my $tar_data = `cat $tar_name`;
     save_tmp_file($tar_name, $tar_data);
