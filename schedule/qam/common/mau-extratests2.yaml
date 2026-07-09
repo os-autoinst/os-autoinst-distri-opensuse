@@ -35,7 +35,6 @@ conditional_schedule:
   version_specific:
     VERSION:
       '16.0':
-        - console/ds389_advanced_functional
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -52,8 +51,8 @@ conditional_schedule:
         - console/journald_fss
         - console/valgrind
         - console/valkey
+        - console/ds389_advanced_functional
       15-SP7:
-        - console/ds389_advanced_functional
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -71,8 +70,8 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
         - console/valkey
+        - console/ds389_advanced_functional
       15-SP6:
-        - console/ds389_advanced_functional
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -90,8 +89,8 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
         - console/valkey
+        - console/ds389_advanced_functional
       15-SP5:
-        - console/ds389_advanced_functional
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -108,8 +107,8 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
+        - console/ds389_advanced_functional
       15-SP4:
-        - console/ds389_advanced_functional
         - console/pkcon
         - '{{fwupd}}'
         - console/rust
@@ -126,6 +125,7 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
+        - console/ds389_advanced_functional
       15-SP3:
         - console/curl_ipv6
         - console/wget_ipv6

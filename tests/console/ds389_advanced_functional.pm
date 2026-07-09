@@ -19,6 +19,7 @@ sub run {
     select_serial_terminal;
 
     set_var('SSS_USERNAME', 'wilber');
+    assert_script_run("cp -a /etc/hosts /etc/hosts.bak");
     record_info("Setup", "Installing and configuring 389ds using library methods");
     assert_script_run("echo '127.0.0.1 localhost.localdomain localhost' > /etc/hosts");
     services::389ds_server::install_service();
@@ -88,6 +89,7 @@ sub clean_up {
 
     # Remove backup artifacts if they exist
     script_run("rm -rf $backup_dir");
+    script_run("mv /etc/hosts.bak /etc/hosts");
 
     # Gracefully stop the 389-ds service instance if running
     script_run("dsctl localhost stop");
