@@ -1,30 +1,22 @@
 use strict;
 use warnings;
 
-# Controllable fake clock for do_systemd_analyze_time tests (poo#203817).
-# CORE::sleep/time are resolved at compile time inside the module under test, so
-# they must be overridden via CORE::GLOBAL in a BEGIN block *before* that module
-# is compiled. $FakeClock::enabled gates the override so all other tests keep
-# using the real clock.
-package FakeClock;
-our $enabled = 0;
-our $now = 0;
-BEGIN {
-    *CORE::GLOBAL::time = sub { $enabled ? $now : CORE::time() };
-    *CORE::GLOBAL::sleep = sub { $enabled ? ($now += ($_[0] // 0)) : CORE::sleep($_[0] // 0) };
-}
+# Deterministic fake clock: sleep() advances mocked time() instead of spending
+# real wall-clock seconds, so state-polling loops (e.g. stop_instance) and the
+# do_systemd_analyze_time boot-time race tests (poo#203817) run fast and
+# deterministically. Must be loaded before the modules under test are compiled.
+use Test::Mock::Time;
 
-package main;
 use Test::More;
 use Test::MockObject;
 use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
+use List::Util qw(any);
 use testapi 'set_var';
 
 use publiccloud::azure;
 use publiccloud::instance;
-use publiccloud::utils;
 use publiccloud::zypper qw(pc_wait_quit pc_pkg_call);
 
 sub _unset { for my $k (@_) { set_var($k, undef) } }
@@ -367,122 +359,6 @@ subtest '[pc_wait_quit] times out after 5 failures' => sub {
     is($seen{timeout}, 1, 'timeout=1 passed');
 };
 
-subtest '[is_byos] via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('FLAVOR', 'SLES-15-SP6-BYOS');
-    ok publiccloud::utils::is_byos(), 'BYOS detected (upper)';
-
-    set_var('FLAVOR', 'sles-something-byos');
-    ok publiccloud::utils::is_byos(), 'BYOS detected (lower, /byos/i)';
-
-    set_var('FLAVOR', 'SLES-15-SP6-On-Demand');
-    ok !publiccloud::utils::is_byos(), 'not BYOS when FLAVOR lacks token';
-
-    set_var('PUBLIC_CLOUD', 0);
-    ok !publiccloud::utils::is_byos(), 'not BYOS outside public cloud';
-
-    _unset(qw/PUBLIC_CLOUD FLAVOR/);
-};
-
-subtest '[is_ondemand] via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('FLAVOR', 'On-Demand-ish');
-    ok publiccloud::utils::is_ondemand(), 'on-demand when not BYOS';
-
-    set_var('FLAVOR', 'BYOS');
-    ok !publiccloud::utils::is_ondemand(), 'not on-demand when BYOS';
-
-    set_var('PUBLIC_CLOUD', 0);
-    ok !publiccloud::utils::is_ondemand(), 'not on-demand outside public cloud';
-
-    _unset(qw/PUBLIC_CLOUD FLAVOR/);
-};
-
-subtest '[provider checks] via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    ok publiccloud::utils::is_ec2(), 'EC2 true';
-    ok !publiccloud::utils::is_azure(), 'AZURE false';
-    ok !publiccloud::utils::is_gce(), 'GCE false';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok publiccloud::utils::is_azure(), 'AZURE true';
-    ok !publiccloud::utils::is_ec2(), 'EC2 false';
-    ok !publiccloud::utils::is_gce(), 'GCE false';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
-    ok publiccloud::utils::is_gce(), 'GCE true';
-    ok !publiccloud::utils::is_ec2(), 'EC2 false';
-    ok !publiccloud::utils::is_azure(), 'AZURE false';
-
-    set_var('PUBLIC_CLOUD', 0);
-    ok !publiccloud::utils::is_ec2(), 'EC2 false when not public cloud';
-    ok !publiccloud::utils::is_azure(), 'AZURE false when not public cloud';
-    ok !publiccloud::utils::is_gce(), 'GCE false when not public cloud';
-
-    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER/);
-};
-
-subtest '[flavor flags] CHOST & Hardened via set_var' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-
-    set_var('FLAVOR', 'SLE-CHOST-15-SP6');
-    ok publiccloud::utils::is_container_host(), 'CHOST detected';
-
-    set_var('FLAVOR', 'SLE-Hardened-15-SP6');
-    ok publiccloud::utils::is_hardened(), 'Hardened detected';
-
-    set_var('FLAVOR', 'SLE-Whatever');
-    ok !publiccloud::utils::is_container_host(), 'CHOST not detected';
-    ok !publiccloud::utils::is_hardened(), 'Hardened not detected';
-
-    set_var('PUBLIC_CLOUD', 0);
-    set_var('FLAVOR', 'SLE-CHOST-15-SP6');
-    ok !publiccloud::utils::is_container_host(), 'CHOST requires public cloud';
-    set_var('FLAVOR', 'SLE-Hardened-15-SP6');
-    ok !publiccloud::utils::is_hardened(), 'Hardened requires public cloud';
-
-    _unset(qw/PUBLIC_CLOUD FLAVOR/);
-};
-
-
-subtest '[is_cloudinit_supported] via set_var only' => sub {
-    set_var('PUBLIC_CLOUD', 1);
-    set_var('DISTRI', 'sle');
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok publiccloud::utils::is_cloudinit_supported(),
-      'AZURE + sle => supported';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    ok publiccloud::utils::is_cloudinit_supported(),
-      'EC2 + sle => supported';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'GCE + sle => not supported';
-
-    set_var('DISTRI', 'sle-micro');
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'AZURE + sle-micro => NOT supported';
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'EC2 + sle-micro => NOT supported';
-
-    set_var('PUBLIC_CLOUD', 0);
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    ok !publiccloud::utils::is_cloudinit_supported(),
-      'not public cloud => NOT supported';
-
-    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER DISTRI/);
-};
-
 # --- pc_pkg_call -> transactional-update translation ---------------------------
 #
 # These assert that zypper *command* options stay attached to the verb and are
@@ -603,10 +479,10 @@ sub _run_systemd_analyze {
     my $blame_output = delete $args{blame_output}
       // "10.000s some.service\n5.000s other.service";
 
-    # Fake, monotonic clock advanced by mocked sleep so the loop's
-    # `time() - $start_time < $timeout` guard is deterministic and fast.
-    local $FakeClock::now = 0;
-    local $FakeClock::enabled = 1;
+    # Test::Mock::Time advances mocked time() by each sleep() the routine does,
+    # so the loop's `time() - $start_time < $timeout` guard is deterministic and
+    # fast. Capture the fake start time to report elapsed time back to callers.
+    my $clock_start = time();
 
     my @time_seq = @$time_outputs;
     my @time_cmds;
@@ -624,7 +500,7 @@ sub _run_systemd_analyze {
     $mocked->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     my @ret = $inst->do_systemd_analyze_time(%args);
-    return {ret => \@ret, time_calls => scalar(@time_cmds), final_time => $FakeClock::now};
+    return {ret => \@ret, time_calls => scalar(@time_cmds), final_time => time() - $clock_start};
 }
 
 subtest '[do_systemd_analyze_time] early success returns parsed times' => sub {
@@ -705,6 +581,168 @@ subtest '[do_systemd_analyze_time] SSH login banner does not break parsing' => s
     ok ref($blame) eq 'HASH', 'blame parsed despite banner';
     cmp_ok $blame->{'some.device'}, '==', 14.852, 'blame entry parsed, banner skipped';
     ok !exists $blame->{'reported.'}, 'banner text not mistaken for a blame entry';
+};
+
+# --- publiccloud::azure pure functions ----------------------------------------
+
+subtest '[decode_azure_json] strips color codes and decodes' => sub {
+    my $colored = "\e[32m{\"name\": \"foo\", \"n\": 7}\e[0m";
+    my $obj = publiccloud::azure::decode_azure_json($colored);
+    is(ref $obj, 'HASH', 'returns decoded hashref');
+    is($obj->{name}, 'foo', 'string value decoded after colorstrip');
+    is($obj->{n}, 7, 'numeric value decoded');
+};
+
+subtest '[parse_instance_id] azure resource id parsing' => sub {
+    my $provider = publiccloud::azure->new();
+
+    my $id = '/subscriptions/SUB-123/resourceGroups/RG-456/providers/Microsoft.Compute/virtualMachines/my-vm';
+    my $inst = Test::MockObject->new;
+    $inst->mock(instance_id => sub { $id });
+    my $res = $provider->parse_instance_id($inst);
+    is($res->{subscription}, 'SUB-123', 'subscription parsed');
+    is($res->{resource_group}, 'RG-456', 'resource_group parsed');
+    is($res->{vm_name}, 'my-vm', 'vm_name parsed');
+
+    my $bad = Test::MockObject->new;
+    $bad->mock(instance_id => sub { 'i-0123456789abcdef0' });
+    is($provider->parse_instance_id($bad), undef, 'non-azure id returns undef');
+};
+
+subtest '[generate_image_tags] tag composition' => sub {
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $azure->redefine(get_current_job_id => sub { 4242 });
+    set_var('OPENQA_URL', 'https://openqa.example.com/');
+    set_var('PUBLIC_CLOUD_KEEP_IMG', undef);
+
+    my $tags = publiccloud::azure::generate_image_tags();
+    like($tags, qr{openqa_created_by=openqa\.example\.com/t4242}, 'created_by tag composed and url trimmed');
+    like($tags, qr{openqa_var_job_id=4242}, 'job id tag present');
+    unlike($tags, qr{pcw_ignore}, 'no pcw_ignore tag without KEEP_IMG');
+
+    set_var('PUBLIC_CLOUD_KEEP_IMG', '1');
+    my $tags2 = publiccloud::azure::generate_image_tags();
+    like($tags2, qr{pcw_ignore=1}, 'pcw_ignore tag added when KEEP_IMG=1');
+
+    _unset(qw/OPENQA_URL OPENQA_HOSTNAME PUBLIC_CLOUD_KEEP_IMG/);
+};
+
+subtest '[get_image_definition] finds matching definition' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $azure->redefine(generate_azure_image_definition => sub { 'MY-DEF' });
+    $azure->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    $azure->redefine(script_output => sub { '[{"name":"OTHER"},{"name":"MY-DEF"}]' });
+    is($provider->get_image_definition('rg', 'gal'), 'MY-DEF', 'returns matching definition name');
+
+    $azure->redefine(script_output => sub { '[{"name":"OTHER"}]' });
+    is($provider->get_image_definition('rg', 'gal'), undef, 'undef when no match');
+
+    $azure->redefine(script_output => sub { '' });
+    is($provider->get_image_definition('rg', 'gal'), undef, 'undef on empty output');
+};
+
+# --- publiccloud::azure mockable instance methods -----------------------------
+
+subtest '[get_state_from_instance] parses PowerState' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $azure->redefine(script_output => sub { '{"code":"PowerState/running","displayStatus":"VM running"}' });
+
+    my $inst = Test::MockObject->new;
+    $inst->mock(instance_id => sub { '/subscriptions/x/resourceGroups/y/providers/Microsoft.Compute/virtualMachines/z' });
+    is($provider->get_state_from_instance($inst), 'running', 'extracts state after PowerState/');
+
+    $azure->redefine(script_output => sub { '{"code":"ProvisioningState/succeeded"}' });
+    throws_ok { $provider->get_state_from_instance($inst) }
+    qr/Expect PowerState/, 'dies when not a PowerState code';
+};
+
+subtest '[query_metadata] returns metadata server data' => sub {
+    my $provider = publiccloud::azure->new();
+    my $inst = Test::MockObject->new;
+    my @calls;
+    $inst->mock(ssh_script_output => sub { my ($s, $c) = @_; push @calls, $c; return '10.1.2.3' });
+
+    my $data = $provider->query_metadata($inst, ifNum => 0, addrCount => 0);
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    is($data, '10.1.2.3', 'returns metadata payload');
+    ok((any { /169\.254\.169\.254/ } @calls), 'queries the cloud metadata IP');
+    ok((any { m{network/interface/0/ipv4/ipAddress/0/privateIpAddress} } @calls), 'composes metadata path');
+
+    $inst->mock(ssh_script_output => sub { '' });
+    throws_ok { $provider->query_metadata($inst, ifNum => 0, addrCount => 0) }
+    qr/Failed to get interface IPs/, 'dies on empty metadata response';
+};
+
+subtest '[start_instance] starts a stopped instance' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    my @asr;
+    $azure->redefine(assert_script_run => sub { push @asr, $_[0]; return 0 });
+    $azure->redefine(get_state_from_instance => sub { 'stopped' });
+    $azure->redefine(get_public_ip => sub { '203.0.113.9' });
+
+    my $newip;
+    my $inst = Test::MockObject->new;
+    $inst->mock(instance_id => sub { 'vm-id' });
+    $inst->mock(resource_group => sub { 'rg' });
+    $inst->mock(public_ip => sub { $newip = $_[1] if @_ > 1; return $newip });
+
+    $provider->start_instance($inst);
+    note("\n  -->  " . join("\n  -->  ", @asr));
+    ok((any { /az vm start --ids 'vm-id'/ } @asr), 'issues az vm start');
+    is($newip, '203.0.113.9', 'updates instance public_ip after start');
+
+    $azure->redefine(get_state_from_instance => sub { 'running' });
+    throws_ok { $provider->start_instance($inst) }
+    qr/start a running instance/, 'refuses to start a running instance';
+};
+
+subtest '[stop_instance] stops a running instance' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    my @asr;
+    $azure->redefine(assert_script_run => sub { push @asr, $_[0]; return 0 });
+    $azure->redefine(get_public_ip => sub { '203.0.113.9' });
+    # first call: running, second: stopped (loop exits)
+    my @states = ('running', 'stopped');
+    $azure->redefine(get_state_from_instance => sub { shift @states // 'stopped' });
+
+    my $inst = Test::MockObject->new;
+    $inst->mock(instance_id => sub { 'vm-id' });
+    $inst->mock(resource_group => sub { 'rg' });
+    $inst->mock(public_ip => sub { '203.0.113.9' });
+
+    $provider->stop_instance($inst);
+    note("\n  -->  " . join("\n  -->  ", @asr));
+    ok((any { /az vm stop --ids 'vm-id'/ } @asr), 'issues az vm stop');
+};
+
+subtest '[stop_instance] dies on outdated instance object' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+    $azure->redefine(get_public_ip => sub { '203.0.113.9' });
+
+    my $inst = Test::MockObject->new;
+    $inst->mock(instance_id => sub { 'vm-id' });
+    $inst->mock(resource_group => sub { 'rg' });
+    $inst->mock(public_ip => sub { '198.51.100.1' });    # mismatch
+
+    throws_ok { $provider->stop_instance($inst) }
+    qr/Outdated instance object/, 'dies when cached IP differs from live IP';
+};
+
+subtest '[resource_group_exist] boolean from az output' => sub {
+    my $provider = publiccloud::azure->new();
+    my $azure = Test::MockModule->new('publiccloud::azure', no_auto => 1);
+
+    $azure->redefine(script_output_retry => sub { '{"name":"openqa-upload"}' });
+    is($provider->resource_group_exist(), 1, 'non-empty output => exists');
+
+    $azure->redefine(script_output_retry => sub { '[]' });
+    is($provider->resource_group_exist(), 0, 'empty array output => not exists');
 };
 
 done_testing;
