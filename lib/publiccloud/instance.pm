@@ -845,17 +845,30 @@ sub extract_blame_time {
 
 sub do_systemd_analyze_time {
     my ($instance, %args) = @_;
-    my $timeout = $args{timeout} // 120;
+    my $timeout = $args{timeout} // 300;
     my $start_time = time();
     my $output = "";
+    my $finished = 0;
     my @ret;
 
-    # calling systemd-analyze time & blame
-    while ($output !~ /Startup finished in/i && time() - $start_time < $timeout) {
+    # Poll systemd-analyze until the system has actually finished booting.
+    # On a freshly-launched Public Cloud instance SSH becomes reachable while
+    # late boot units (e.g. cloud-init) are still running, so systemd-analyze
+    # reports "Bootup is not yet finished (...FinishTimestampMonotonic=0)" and
+    # exits non-zero (poo#203817). "Startup finished in" only appears once boot
+    # is complete, so it is our readiness signal. Break out on the successful
+    # match *before* sleeping so a result arriving near the timeout is not
+    # discarded, and gate success on the match rather than on elapsed time.
+    while (time() - $start_time < $timeout) {
+        # calling systemd-analyze time
         $output = $instance->ssh_script_output(cmd => 'systemd-analyze time', proceed_on_failure => 1);
+        if ($output =~ /Startup finished in/i) {
+            $finished = 1;
+            last;
+        }
         sleep 5;
     }
-    unless (time() - $start_time < $timeout) {
+    unless ($finished) {
         record_info("WARN", "Unable to get systemd-analyze in ${timeout}s.\nLast output:" . $output, result => 'fail');
         return (0, 0);
     }

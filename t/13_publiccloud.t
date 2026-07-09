@@ -1,5 +1,20 @@
 use strict;
 use warnings;
+
+# Controllable fake clock for do_systemd_analyze_time tests (poo#203817).
+# CORE::sleep/time are resolved at compile time inside the module under test, so
+# they must be overridden via CORE::GLOBAL in a BEGIN block *before* that module
+# is compiled. $FakeClock::enabled gates the override so all other tests keep
+# using the real clock.
+package FakeClock;
+our $enabled = 0;
+our $now = 0;
+BEGIN {
+    *CORE::GLOBAL::time = sub { $enabled ? $now : CORE::time() };
+    *CORE::GLOBAL::sleep = sub { $enabled ? ($now += ($_[0] // 0)) : CORE::sleep($_[0] // 0) };
+}
+
+package main;
 use Test::More;
 use Test::MockObject;
 use Test::Exception;
@@ -8,6 +23,7 @@ use Test::MockModule;
 use testapi 'set_var';
 
 use publiccloud::azure;
+use publiccloud::instance;
 use publiccloud::utils;
 use publiccloud::zypper qw(pc_wait_quit pc_pkg_call);
 
@@ -566,6 +582,100 @@ subtest '[pc_pkg_call] non-transactional system always uses plain zypper' => sub
     my $cap = _capture_pkg_call(0, 'in -y docker');
     is $cap->{zypper}, 'in -y docker', 'verbatim zypper on non-transactional host';
     ok !defined $cap->{transactional}, 'no transactional-update translation';
+};
+
+# --- do_systemd_analyze_time boot-time race (poo#203817) ----------------------
+#
+# prepare_instance probes `systemd-analyze time` right after SSH is up. On a
+# freshly-launched Public Cloud instance boot may not be finished yet, so the
+# probe returns "Bootup is not yet finished (...FinishTimestampMonotonic=0)".
+# The routine must keep polling until "Startup finished in" appears, must not
+# discard a result that arrives near the timeout, and must fall back to the
+# WARN + (0,0) path only when boot genuinely never finishes.
+
+# Drive do_systemd_analyze_time with a scripted sequence of `systemd-analyze
+# time` outputs and a controllable fake clock (so no real sleeping happens and
+# the timeout is reached deterministically). Each element of @$time_outputs is
+# returned by successive `systemd-analyze time` calls; the last element repeats
+# once the list is exhausted.
+sub _run_systemd_analyze {
+    my ($time_outputs, %args) = @_;
+    my $blame_output = delete $args{blame_output}
+      // "10.000s some.service\n5.000s other.service";
+
+    # Fake, monotonic clock advanced by mocked sleep so the loop's
+    # `time() - $start_time < $timeout` guard is deterministic and fast.
+    local $FakeClock::now = 0;
+    local $FakeClock::enabled = 1;
+
+    my @time_seq = @$time_outputs;
+    my @time_cmds;
+    my $inst = publiccloud::instance->new();
+    my $mocked = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    $mocked->redefine(ssh_script_output => sub {
+            my ($self, %a) = @_;
+            if ($a{cmd} eq 'systemd-analyze blame') {
+                return $blame_output;
+            }
+            push @time_cmds, $a{cmd};
+            return @time_seq > 1 ? shift(@time_seq) : $time_seq[0];
+    });
+    $mocked->redefine(ssh_script_run => sub { return 0; });
+    $mocked->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my @ret = $inst->do_systemd_analyze_time(%args);
+    return {ret => \@ret, time_calls => scalar(@time_cmds), final_time => $FakeClock::now};
+}
+
+subtest '[do_systemd_analyze_time] early success returns parsed times' => sub {
+    my $r = _run_systemd_analyze(
+        ['Startup finished in 1.000s (kernel) + 2.000s (initrd) + 3.000s (userspace) = 6.000s'],
+        timeout => 300);
+
+    my ($analyze, $blame) = @{$r->{ret}};
+    ok ref($analyze) eq 'HASH', 'analyze result is a hashref (not the (0,0) failure)';
+    cmp_ok $analyze->{overall}, '==', 6, 'overall boot time parsed';
+    cmp_ok $analyze->{userspace}, '==', 3, 'userspace boot time parsed';
+    is $r->{time_calls}, 1, 'succeeded on the first probe';
+};
+
+subtest '[do_systemd_analyze_time] retries while "Bootup is not yet finished"' => sub {
+    my $not_finished = 'Bootup is not yet finished (org.freedesktop.systemd1.Manager.FinishTimestampMonotonic=0)';
+    my $r = _run_systemd_analyze(
+        [$not_finished, $not_finished, $not_finished,
+            'Startup finished in 1.000s (kernel) + 2.000s (initrd) + 3.000s (userspace) = 6.000s'],
+        timeout => 300);
+
+    my ($analyze) = @{$r->{ret}};
+    ok ref($analyze) eq 'HASH', 'result parsed after boot finishes';
+    cmp_ok $analyze->{overall}, '==', 6, 'overall boot time parsed after retries';
+    is $r->{time_calls}, 4, 'polled until boot finished (3 not-finished + 1 success)';
+};
+
+subtest '[do_systemd_analyze_time] late success near timeout is NOT discarded' => sub {
+    # Regression guard for the trailing-sleep bug: a successful result arriving
+    # on the final poll (just under the timeout) must be returned, not thrown
+    # away because the clock crossed the timeout during that poll.
+    my $not_finished = 'Bootup is not yet finished (org.freedesktop.systemd1.Manager.FinishTimestampMonotonic=0)';
+    # timeout=20, sleep 5 per iteration: polls happen at t=0,5,10,15; success on
+    # the 4th poll (t=15). The old code's trailing sleep would push t to 20 and
+    # discard this valid result.
+    my $r = _run_systemd_analyze(
+        [$not_finished, $not_finished, $not_finished,
+            'Startup finished in 1.000s (kernel) + 2.000s (initrd) + 3.000s (userspace) = 6.000s'],
+        timeout => 20);
+
+    my ($analyze) = @{$r->{ret}};
+    ok ref($analyze) eq 'HASH', 'late-but-valid result is returned, not discarded';
+    cmp_ok $analyze->{overall}, '==', 6, 'overall boot time parsed on late success';
+};
+
+subtest '[do_systemd_analyze_time] persistent not-finished ends in WARN + (0,0)' => sub {
+    my $not_finished = 'Bootup is not yet finished (org.freedesktop.systemd1.Manager.FinishTimestampMonotonic=0)';
+    my $r = _run_systemd_analyze([$not_finished], timeout => 20);
+
+    is_deeply $r->{ret}, [0, 0], 'returns (0,0) when boot never finishes';
+    ok $r->{final_time} >= 20, 'polled for the full timeout window before giving up';
 };
 
 done_testing;
