@@ -11,10 +11,10 @@
 use strict;
 use warnings;
 
-# Neutralize sleep() process-wide so any state-polling loop does not spend real
-# wall-clock seconds during unit tests. Installed in BEGIN so it is in effect
+# Deterministic fake clock: sleep() advances mocked time() instead of spending
+# real wall-clock seconds, so any state-polling loop runs fast. Must be loaded
 # before the modules under test are compiled.
-BEGIN { *CORE::GLOBAL::sleep = sub { }; }
+use Test::Mock::Time;
 
 use Test::More;
 use Test::MockObject;

@@ -10,6 +10,12 @@
 
 use strict;
 use warnings;
+
+# Deterministic fake clock: sleep() advances mocked time() instead of spending
+# real wall-clock seconds, so the retry_ssh_command and wait_for_state polling
+# loops run fast. Must be loaded before the module under test is compiled.
+use Test::Mock::Time;
+
 use Test::More;
 use Test::MockObject;
 use Test::MockModule;
@@ -169,9 +175,6 @@ subtest '[retry_ssh_command] retries then succeeds' => sub {
     my @rcs = (1, 1, 0);
     my $calls = 0;
     $instmod->redefine(ssh_script_run => sub { $calls++; return shift @rcs });
-    # avoid real sleep
-    no warnings 'redefine';
-    local *publiccloud::instance::sleep = sub { };
     my $rc = $inst->retry_ssh_command(cmd => 'true', retry => 5, delay => 0);
     is($rc, 0, 'returns 0 on eventual success');
     is($calls, 3, 'stopped retrying after first success');
@@ -181,8 +184,6 @@ subtest '[retry_ssh_command] dies after exhausting retries' => sub {
     my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
     my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
     $instmod->redefine(ssh_script_run => sub { 1 });
-    no warnings 'redefine';
-    local *publiccloud::instance::sleep = sub { };
     throws_ok { $inst->retry_ssh_command(cmd => 'false', retry => 2, delay => 0) }
     qr/Waiting for Godot: false/, 'dies with command in message';
 };
@@ -212,8 +213,6 @@ subtest '[wait_for_state] returns when state matches' => sub {
     $provider->mock(get_state_from_instance => sub { shift @states });
     my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => $provider);
 
-    no warnings 'redefine';
-    local *publiccloud::instance::sleep = sub { };
     lives_ok { $inst->wait_for_state('running', 100) } 'returns once desired state reached';
 };
 
@@ -222,8 +221,6 @@ subtest '[wait_for_state] dies on timeout' => sub {
     $provider->mock(get_state_from_instance => sub { 'pending' });
     my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => $provider);
 
-    no warnings 'redefine';
-    local *publiccloud::instance::sleep = sub { };
     # A zero timeout makes the deadline already in the past on the first check,
     # so the method gives up immediately and dies. The die message interpolates
     # an as-yet-undef $current, so silence that expected warning.
