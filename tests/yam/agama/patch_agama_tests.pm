@@ -12,19 +12,20 @@ sub run {
     select_console 'install-shell';
     my $agama_test = get_required_var("AGAMA_TEST");
     my ($repo, $branch) = split /#/, get_required_var('YUPDATE_GIT');
+    my $tar_name = 'dist.tar.gz';
     my $destination = "/usr/share/agama/system-tests";
 
+    my $podman_output = `podman run --rm -v ./:/tmp/output ` .
+          `okynos/agama-integration-test-webpack-builder:latest ` .
+          get_required_var('YUPDATE_GIT');
+    record_info('podman', $podman_output);
 
-    my $output = `podman run --rm hello-world`;
-    record_info('podman', $output);
-    
-    #my $sha = script_output("curl -s https://api.github.com/repos/OWNER/REPO/commits/BRANCH | jq -r '.sha'");
-    #script_run("curl -L -o dist.tar.gz https://github.com/$repo/releases/download/tag-$branch/dist.tar.gz");
-    #script_run("curl -L -o dist.tar.gz https://github.com/$repo/releases/download/tag-$branch/dist.tar.gz");
-    #script_run("tar -xzf dist.tar.gz");
-    #script_run("mkdir -p $destination");
-    #script_run("cp dist/vendor.js $destination");
-    #script_run("cp dist/$agama_test* $destination");
+    my $tar_data = `cat $tar_name`;
+    save_tmp_file($tar_name, $tar_data);
+
+    my $tar_url = autoinst_url("/files/$tar_name");
+    script_run("curl -OL $tar_url");
+    script_run("tar -C '$destination' -xzf $tar_name");
 }
 
 1;
