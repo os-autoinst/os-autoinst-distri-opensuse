@@ -187,7 +187,7 @@ sub test_container_runtimes {
 
     record_info('Test docker');
     $instance->ssh_assert_script_run("sudo rm -f /root/.docker/config.json");    # workaround for https://bugzilla.suse.com/show_bug.cgi?id=1231185
-    pc_pkg_call($instance, "in -y docker", timeout => 600);
+    pc_pkg_call($instance, "in -y docker", timeout => 600, retry => 3, delay => 30);
     $instance->ssh_assert_script_run("sudo systemctl start docker.service");
     record_info("systemctl status docker.service", $instance->ssh_script_output("systemctl status docker.service"));
     $instance->ssh_script_retry("sudo docker pull $image", retry => 3, delay => 60, timeout => 600);
@@ -213,7 +213,7 @@ sub test_container_runtimes {
         }
         $instance->ssh_script_run('sudo chmod 644 /etc/containers/registries.conf');
     }
-    pc_pkg_call($instance, "in -y podman", timeout => 240);
+    pc_pkg_call($instance, "in -y podman", timeout => 240, retry => 3, delay => 30);
     $instance->ssh_script_retry("podman --debug pull $image", retry => 3, delay => 60, timeout => 600);
     return 0;
 }

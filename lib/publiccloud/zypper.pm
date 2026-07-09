@@ -74,6 +74,7 @@ use constant {
     EXIT_SOLVER => 4,    # generic solver problem
     EXIT_NO_REPOS => 6,    # ZYPPER_EXIT_NO_REPOS
     EXIT_LOCKED => 7,    # ZYPPER_EXIT_ZYPP_LOCKED
+    EXIT_ERR_COMMIT => 8,    # ZYPPER_EXIT_ERR_COMMIT (commit error; can be caused by a lock held at transaction time)
     EXIT_REBOOT_NEEDED => 102,
     EXIT_REBOOT_SCHED => 103,
     EXIT_CAP_NOT_FOUND => 104,    # ZYPPER_EXIT_INF_CAP_NOT_FOUND
@@ -100,6 +101,7 @@ our @EXPORT_OK = qw(
   EXIT_SOLVER
   EXIT_NO_REPOS
   EXIT_LOCKED
+  EXIT_ERR_COMMIT
   EXIT_REBOOT_NEEDED
   EXIT_REBOOT_SCHED
   EXIT_CAP_NOT_FOUND
@@ -497,6 +499,18 @@ sub _handle_transient_failure {
     if ($ret == EXIT_LOCKED) {
         record_info("Retry $attempt/$max as system management is locked");
         return 'retry';
+    }
+    # EXIT_ERR_COMMIT (8) can be caused by the zypp lock being held at
+    # transaction time (the lock is taken later than the PID check done by
+    # pc_wait_quit, so pgrep passes while the lock file is still present).
+    # Only retry when the log confirms the root cause is a lock; otherwise
+    # treat it as a genuine commit failure.
+    if ($ret == EXIT_ERR_COMMIT) {
+        if (_log_grep($instance, 'System management is locked') == 0) {
+            record_info("Retry $attempt/$max as commit failed due to zypp lock");
+            return 'retry';
+        }
+        return 'fail';
     }
     return 'fail';
 }
