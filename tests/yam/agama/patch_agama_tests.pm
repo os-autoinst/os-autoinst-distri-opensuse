@@ -18,8 +18,10 @@ sub run {
           "docker.io/okynos/agama-integration-test-webpack-builder:latest " .
           get_required_var('YUPDATE_GIT');
 
-    my $podman_output = qx{$command};
+    my $podman_output = qx{$command 2>&1};
+    my $podman_exit_code = $? >> 8;
     record_info('podman', $podman_output);
+    record_info('exit', $podman_exit_code);
 
     my $tar_data = `cat $tar_name`;
     save_tmp_file($tar_name, $tar_data);
