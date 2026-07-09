@@ -678,4 +678,33 @@ subtest '[do_systemd_analyze_time] persistent not-finished ends in WARN + (0,0)'
     ok $r->{final_time} >= 20, 'polled for the full timeout window before giving up';
 };
 
+subtest '[do_systemd_analyze_time] SSH login banner does not break parsing' => sub {
+    # Regression guard for the second failure seen in the poo#203817 VR: SSH
+    # prepends a login banner / MOTD to the command output, so "Startup finished
+    # in" is NOT on the first line. extract_analyze_time must pick the timing
+    # line by content, and extract_blame_time must skip banner lines, instead of
+    # failing with "Unable to parse systemd time ''" and dying.
+    my $banner = join("\n",
+        "",
+        "Welcome to SUSE Linux Enterprise Server 15 SP7  (x86_64)",
+        "",
+        "Authorized users only. All activity may be monitored and reported.",
+    );
+    my $analyze_out = $banner . "\n"
+      . "Startup finished in 2.406s (kernel) + 13.116s (initrd) + 19.353s (userspace) = 34.876s \n"
+      . "graphical.target reached after 19.290s in userspace.";
+    my $blame_out = $banner . "\n"
+      . "14.852s some.device\n" . "5.000s other.service";
+
+    my $r = _run_systemd_analyze([$analyze_out], timeout => 300, blame_output => $blame_out);
+
+    my ($analyze, $blame) = @{$r->{ret}};
+    ok ref($analyze) eq 'HASH', 'analyze parsed despite banner (no die)';
+    cmp_ok $analyze->{overall}, '==', 34.876, 'overall boot time parsed from banner-prefixed output';
+    cmp_ok $analyze->{userspace}, '==', 19.353, 'userspace boot time parsed';
+    ok ref($blame) eq 'HASH', 'blame parsed despite banner';
+    cmp_ok $blame->{'some.device'}, '==', 14.852, 'blame entry parsed, banner skipped';
+    ok !exists $blame->{'reported.'}, 'banner text not mistaken for a blame entry';
+};
+
 done_testing;

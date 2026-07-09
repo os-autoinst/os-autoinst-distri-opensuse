@@ -818,16 +818,20 @@ sub systemd_time_to_second
 sub extract_analyze_time {
     my $str_time = shift;
     my $res = {};
-    ($str_time) = split(/\r?\n/, $str_time, 2);
-    $str_time =~ s/Startup finished in\s*//;
+    # Pick the line that actually holds the timing, not blindly the first line:
+    # ssh_script_output may prepend an SSH login banner / MOTD, which would
+    # otherwise leave us parsing an empty or non-timing line (poo#203817).
+    ($str_time) = grep { /Startup finished in/i } split(/\r?\n/, $str_time);
+    return undef unless defined($str_time);
+    $str_time =~ s/Startup finished in\s*//i;
     $str_time =~ s/=(.+)$/+$1 (overall)/;
     for my $time (split(/\s*\+\s*/, $str_time)) {
         $time = trim($time);
         my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
         $res->{$type} = systemd_time_to_second($time);
-        return 0 if ($res->{$type} == -1);
+        return undef if ($res->{$type} == -1);
     }
-    foreach (qw(kernel initrd userspace overall)) { return 0 unless exists($res->{$_}); }
+    foreach (qw(kernel initrd userspace overall)) { return undef unless exists($res->{$_}); }
     return $res;
 }
 
@@ -836,9 +840,13 @@ sub extract_blame_time {
     my $ret = {};
     for my $line (split(/\r?\n/, $str_time)) {
         $line = trim($line);
-        my ($time, $service) = $line =~ /^(.+)\s+(\S+)$/;
-        $ret->{$service} = systemd_time_to_second($time);
-        return 0 if ($ret->{$service} == -1);
+        # Only <time> <service> lines are blame entries; skip anything else
+        # (e.g. an SSH login banner / MOTD prepended to the output, poo#203817).
+        my ($time, $service) = $line =~ /^(\S+)\s+(\S+)$/;
+        next unless defined($service);
+        my $sec = systemd_time_to_second($time);
+        next unless ($sec >= 0);
+        $ret->{$service} = $sec;
     }
     return $ret;
 }
