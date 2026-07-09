@@ -21,6 +21,7 @@ our @EXPORT = qw(
   trento_helm_set_options
   trento_helm_values_image_path_from_image
   trento_shell_quote
+  trento_wait_for_crd_established
 );
 
 sub _shell_quote {
@@ -78,6 +79,21 @@ sub trento_helm_set_options {
     return $options;
 }
 
+sub trento_wait_for_crd_established {
+    my (%args) = @_;
+
+    script_retry(
+        join(' ',
+            'env',
+            $args{kubeconfig},
+            'kubectl get crd',
+            _shell_quote($args{name}),
+            q{-o go-template='{{range .status.conditions}}{{if eq .type "Established"}}{{.status}}{{end}}{{end}}' 2>/dev/null | grep -q True}),
+        timeout => $args{timeout} // 30,
+        retry => $args{retry} // 60,
+        delay => $args{delay} // 6);
+}
+
 sub _install_cert_manager {
     my (%args) = @_;
 
@@ -95,7 +111,8 @@ sub _install_cert_manager {
         timeout => 600,
         retry => 3,
         delay => 30);
-    assert_script_run("$args{kubeconfig} kubectl wait --for=condition=established crd/certificates.cert-manager.io crd/clusterissuers.cert-manager.io --timeout=180s", timeout => 200);
+    trento_wait_for_crd_established(kubeconfig => $args{kubeconfig}, name => 'certificates.cert-manager.io');
+    trento_wait_for_crd_established(kubeconfig => $args{kubeconfig}, name => 'clusterissuers.cert-manager.io');
     assert_script_run("$args{kubeconfig} kubectl wait --for=condition=available --timeout=300s --all deployments -n cert-manager", timeout => 330);
 }
 

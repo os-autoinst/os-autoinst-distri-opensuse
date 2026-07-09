@@ -18,8 +18,9 @@ use trento qw(
   trento_helm_set_options
   trento_helm_values_image_path_from_image
   trento_shell_quote
+  trento_wait_for_crd_established
 );
-use utils 'script_retry';
+use utils qw(random_string script_retry);
 
 sub run {
     select_serial_terminal;
@@ -30,7 +31,7 @@ sub run {
     set_var('HELM_VALUES_IMAGE_PATH', $helm_values_image_path);
 
     my $trento_server_hostname = get_var('TRENTO_SERVER_HOSTNAME', 'localhost');
-    my $admin_password = get_required_var('TRENTO_ADMIN_PASSWORD');
+    my $admin_password = get_var('TRENTO_ADMIN_PASSWORD', random_string(length => 10));
     my $admin_user = get_var('TRENTO_ADMIN_USER', 'admin');
     my $helm_release = get_var('TRENTO_HELM_RELEASE', 'trento-server');
 
@@ -46,11 +47,11 @@ sub run {
     assert_script_run('curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true sh', timeout => 600);
     assert_script_run('mkdir -p ~/.kube && ln -sf /etc/rancher/k3s/k3s.yaml ~/.kube/config');
     assert_script_run('curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-4 | bash', timeout => 600);
+    script_retry("env $kubeconfig kubectl get nodes -o name | grep -q '^node/'", timeout => 30, retry => 50, delay => 6);
     assert_script_run("$kubeconfig kubectl wait --for=condition=Ready node --all --timeout=300s", timeout => 330);
 
     # The chart creates Traefik Middleware objects, so wait for Traefik CRDs and deployment.
-    script_retry("env $kubeconfig kubectl get crd middlewares.traefik.io", timeout => 180, retry => 30, delay => 6);
-    assert_script_run("$kubeconfig kubectl wait --for=condition=established crd/middlewares.traefik.io --timeout=180s", timeout => 200);
+    trento_wait_for_crd_established(kubeconfig => $kubeconfig, name => 'middlewares.traefik.io');
     script_retry("env $kubeconfig kubectl -n kube-system get deploy traefik", timeout => 180, retry => 30, delay => 6);
     assert_script_run("$kubeconfig kubectl -n kube-system rollout status deploy/traefik --timeout=180s", timeout => 200);
 
