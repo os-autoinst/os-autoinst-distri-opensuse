@@ -12,7 +12,7 @@ sub run {
     select_console 'install-shell';
     my $tar_name = 'dist.tar.gz';
     my $destination = "/usr/share/agama/system-tests";
-    my $podman_command = "podman run --rm " .
+    my $podman_command = "/usr/bin/podman run --rm " .
           "--storage-opt ignore_chown_errors=true " .
           "--cgroup-manager=cgroupfs " .
           "--root ./ " .
