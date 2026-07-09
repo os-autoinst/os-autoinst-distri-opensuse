@@ -15,15 +15,18 @@ use testapi;
 
 our @EXPORT = qw(read_live_iso);
 
+# In product development, the staging jobs don't have ISO variable set, they use ISO_1 instead
+my $iso_path = get_var('ISO', get_var('ISO_1'));
+
 sub read_iso_info {
-    my $iso_info = `isoinfo -j UTF-8 -R -x /LiveOS/.info -i @{[ get_var('ISO') ]}`;
+    my $iso_info = `isoinfo -j UTF-8 -R -x /LiveOS/.info -i $iso_path`;
     die "Error getting info from ISO image" if ($? != 0);
     return $iso_info;
 }
 
 sub get_package_version {
     my ($package_name) = @_;
-    my $command = "isoinfo -j UTF-8 -R -x /LiveOS/.packages.json.gz -i @{[ get_var('ISO') ]}" .
+    my $command = "isoinfo -j UTF-8 -R -x /LiveOS/.packages.json.gz -i $iso_path" .
       " | gunzip" .
       " | jq -r '.[] | select(.name==\"$package_name\") | .version'";
 
@@ -58,7 +61,7 @@ sub record_agama_info {
 }
 
 sub read_live_iso {
-    return unless get_var('ISO');
+    return unless $iso_path;
     my $info = read_iso_info();
     my $pkgs = parse_agama_packages();
     $info =~ /^Image.version:\s+(?<major_version>\d+\.\w+)\./m;

@@ -11,6 +11,7 @@ use testapi;
 use Config::Tiny;
 use Test::Assert ':all';
 use scheduler 'get_test_suite_data';
+use version_utils 'get_base_version';
 
 sub run {
     select_console 'root-console';
@@ -22,6 +23,7 @@ sub run {
         my $expected = $test_data->{$key};
         my $actual = $os_release->{$key};
         $actual =~ s/^"|"$//g;
+        $expected = get_base_version($expected);
         assert_equals($expected, $actual, "Mismatch for $key, expect $expected but got $actual");
     }
 }

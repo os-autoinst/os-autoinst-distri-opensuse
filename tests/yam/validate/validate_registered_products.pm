@@ -11,12 +11,13 @@ use utils 'zypper_call';
 use testapi;
 use JSON;
 use scheduler 'get_test_suite_data';
+use version_utils 'get_base_version';
 
 sub is_registered_and_active {
     my ($product) = @_;
 
     return $product->{status} eq 'Registered' &&
-      $product->{version} eq get_var("VERSION") &&
+      $product->{version} eq get_base_version() &&
       $product->{subscription_status} eq 'ACTIVE';
 }
 

@@ -11,6 +11,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use repo_tools 'validate_repo_properties';
 use scheduler 'get_test_suite_data';
+use version_utils 'get_base_version';
 
 sub run {
     my $test_data = get_test_suite_data();
@@ -41,7 +42,8 @@ sub run {
     }
     foreach my $alias (@actual_aliases) {
         next if grep { $alias =~ $_ } @skip_aliases;
-        if (!$expected_repos{$alias}) {
+        my $expected_alias = get_base_version($expected_repos{$alias});
+        if (!$expected_alias) {
             $unexpected_aliases .= $alias . '\n';
         }
     }

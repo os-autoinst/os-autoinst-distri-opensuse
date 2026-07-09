@@ -23,7 +23,7 @@ use testapi qw(
 );
 use Utils::Architectures qw(is_s390x is_ppc64le);
 use Utils::Backends qw(is_pvm is_svirt);
-use version_utils qw(is_vmware);
+use version_utils qw(is_vmware get_base_version);
 use power_action_utils 'power_action';
 
 sub is_headless_installation {
@@ -44,7 +44,7 @@ sub run {
       " --test-reporter-destination=/tmp/$spec" .
       " --test-reporter-destination=/tmp/$tap" .
       " /usr/share/agama/system-tests/${test}.js" .
-      " --product-version " . get_required_var('VERSION') .
+      " --product-version " . get_base_version() .
       " --agama-web-ui-package-version " . get_var('AGAMA_WEBUI_PACKAGE_VERSION') .
       " $test_options";
 

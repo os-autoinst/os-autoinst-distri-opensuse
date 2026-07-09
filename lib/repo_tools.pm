@@ -68,7 +68,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_leap is_sle is_sle_micro is_tumbleweed);
+use version_utils qw(is_leap is_sle is_sle_micro is_tumbleweed get_base_version);
 use y2_module_consoletest;
 use Test::Assert ':all';
 use xml_utils;
@@ -537,13 +537,15 @@ sub validate_repo_properties {
     my $actual_repo_data = parse_repo_data($search_criteria);
 
     if ($args->{Alias}) {
-        assert_true($actual_repo_data->{Alias} =~ /$args->{Alias}/,
-            "Repository $args->{Name} has wrong alias, expected: '$args->{Alias}', got: '$actual_repo_data->{Alias}'");
+        my $expected_alias = get_base_version($args->{Alias});
+        assert_true($actual_repo_data->{Alias} =~ /$expected_alias/,
+            "Repository $args->{Name} has wrong alias, expected: '$expected_alias', got: '$actual_repo_data->{Alias}'");
     }
 
     if ($args->{Name}) {
-        assert_true($actual_repo_data->{Name} =~ /$args->{Name}/,
-            "Repository '$args->{Name}' has wrong name: '$actual_repo_data->{Name}'");
+        my $expected_name = get_base_version($args->{Name});
+        assert_true($actual_repo_data->{Name} =~ /$expected_name/,
+            "Repository '$args->{Name}' has wrong name: '$expected_name'");
     }
 
     if ($args->{URI}) {
@@ -580,7 +582,7 @@ Returns Hash reference with all the parsed properties and their values, for exam
 
 sub parse_repo_data {
     my ($repo_identifier) = @_;
-    my @lines = split(/\n/, script_output("zypper -q lr $repo_identifier"));
+    my @lines = split(/\n/, script_output("zypper -q lr " . get_base_version($repo_identifier)));
     my %repo_data = map { split(/\s*:\s*/, $_, 2) } @lines;
     return \%repo_data;
 }

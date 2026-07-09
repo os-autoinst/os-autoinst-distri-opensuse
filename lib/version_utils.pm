@@ -69,6 +69,7 @@ use constant {
           has_selinux
           is_wsl
           is_ltss
+          get_base_version
         )
     ],
     BACKEND => [
@@ -1104,6 +1105,22 @@ sub is_ltss {
 
     # Check if current date is past the lifecycle date
     return $general_ends{$version} <= $current_date;
+}
+
+=head2 get_base_version
+
+ get_base_version($string);
+
+In SLFO development, the staging jobs have VERSION with format containing :PR-XXXX
+This function removes the :PR-XXXX pattern from the string.
+If no argument is provided, it uses get_var('VERSION') by default.
+
+=cut
+
+sub get_base_version {
+    my $str = shift // get_var('VERSION');
+    $str =~ s/:PR-\d+//g;
+    return $str;
 }
 
 
