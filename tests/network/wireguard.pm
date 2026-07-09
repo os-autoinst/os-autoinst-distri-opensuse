@@ -17,6 +17,7 @@ use version_utils 'is_sle';
 use registration;
 use lockapi;
 use mmapi 'wait_for_children';
+use package_utils 'install_package';
 
 sub start_wgquick {
     foreach my $dev (@_) {
@@ -72,7 +73,7 @@ sub run {
     assert_script_run("grep -i CONFIG_WIREGUARD $boot_config") unless (script_run("stat $boot_config") != 0);
     assert_script_run 'modinfo wireguard';
 
-    zypper_call 'in wireguard-tools iperf';
+    install_package('wireguard-tools iperf', trup_reboot => 1);
 
     assert_script_run 'which wg';
     assert_script_run 'umask 077';

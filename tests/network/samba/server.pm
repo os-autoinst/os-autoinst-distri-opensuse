@@ -13,11 +13,12 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use registration;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call "in samba samba-winbind";
+    install_package("samba samba-winbind", trup_reboot => 1);
 
     record_info 'start services';
     systemctl 'start smb nmb winbind';
