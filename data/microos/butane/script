@@ -142,7 +142,6 @@ if [ "${1-}" = "--prepare" ]; then
     if [ -c "/dev/tpm0" ] && command -v disk-encryption-tool &> /dev/null; then
         mkdir -p /run/credstore
         echo "force" > /run/credstore/disk-encryption-tool-dracut.encrypt
-        echo "cr_root /dev/vda3" >> /run/credstore/disk-encryption-tool-dracut.partitions
     fi
 
     exit 0
