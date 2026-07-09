@@ -15,7 +15,7 @@ sub run {
     my $tar_name = 'dist.tar.gz';
     my $destination = "/usr/share/agama/system-tests";
     my $podman_command = "podman run --rm -v ./:/tmp/output " .
-          "okynos/agama-integration-test-webpack-builder:latest " .
+          "docker.io/okynos/agama-integration-test-webpack-builder:latest " .
           get_required_var('YUPDATE_GIT');
 
     my $podman_output = qx{$command};
