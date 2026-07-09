@@ -138,6 +138,17 @@ sub get_gcp_guest_os_features {
             'UEFI_COMPATIBLE',
             'VIRTIO_SCSI_MULTIQUEUE',
         ],
+        'SLES-SAP-16.1' => [
+            'GVNIC',
+            'IDPF',
+            'SEV_CAPABLE',
+            'SEV_LIVE_MIGRATABLE',
+            'SEV_LIVE_MIGRATABLE_V2',
+            'SEV_SNP_CAPABLE',
+            'TDX_CAPABLE',
+            'UEFI_COMPATIBLE',
+            'VIRTIO_SCSI_MULTIQUEUE',
+        ],
     );
 
     my $os_version;
