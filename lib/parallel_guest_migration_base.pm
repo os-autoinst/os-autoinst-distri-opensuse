@@ -792,7 +792,8 @@ sub save_guest_asset {
     foreach my $_guest (split(/ /, $args{_guest})) {
         record_info("Save $_guest asset");
         my $_temp = 1;
-        $_temp = script_run("virsh $_uri dumpxml $_guest > $args{_confdir}/$_guest.xml");
+        # According to bsc#1271635, '--migratable' option should be used with 'virsh dumpxml' for migration.
+        $_temp = script_run("virsh $_uri dumpxml --migratable $_guest > $args{_confdir}/$_guest.xml");
         $_temp |= script_run("xmlstarlet ed --inplace --delete \"/domain/devices/interface/target\" $args{_confdir}/$_guest.xml");
         $_temp |= script_run("xmlstarlet ed --inplace --delete \"/domain/devices/interface/alias\" $args{_confdir}/$_guest.xml");
         $_temp |= script_run("xmlstarlet ed --inplace --delete \"/domain/devices/interface/source/\@portid\" $args{_confdir}/$_guest.xml");
@@ -1557,7 +1558,8 @@ sub do_guest_administration {
             "virsh $_uri list | grep \"guest .*running\"",
             "virsh $_uri save guest /tmp/guest_administration.chckpnt",
             "virsh $_uri restore /tmp/guest_administration.chckpnt",
-            "virsh $_uri dumpxml guest > /tmp/guest_administration.xml",
+            # According to bsc#1271635, '--migratable' option should be used with 'virsh dumpxml' for migration.
+            "virsh $_uri dumpxml guest --migratable > /tmp/guest_administration.xml",
             "virsh $_uri domxml-to-native --format native-format /tmp/guest_administration.xml > /tmp/guest_administration.cfg",
             "virsh $_uri shutdown guest",
             "virsh $_uri undefine guest --managed-save || virsh $_uri undefine guest --keep-nvram --managed-save",
