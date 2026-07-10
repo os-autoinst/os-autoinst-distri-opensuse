@@ -156,17 +156,99 @@ subtest '[ssh_script_output] strips trailing connection-closed line' => sub {
     unlike($out, qr/Connection to .* closed/, 'strips connection-closed trailer');
 };
 
-subtest '[scp] composes scp command and rewrites remote:' => sub {
-    my $instance = Test::MockModule->new('publiccloud::instance', no_auto => 1);
-    my $seen_cmd;
-    $instance->redefine(assert_script_run => sub { $seen_cmd = $_[0]; return 0 });
+subtest '[scp] composes scp command and rewrites only remote: paths' => sub {
+    # remote: is rewritten to the instance identity (user@public_ip:), while
+    # local paths and an explicit user@host are passed through verbatim. -E is
+    # stripped from ssh_opts because scp does not accept it.
+    my @cases = (
+        {
+            name => 'rewrites remote: in source (download)',
+            username => 'DONALDUCK',
+            ssh_opts => '-o X=y -E /tmp/log',
+            src => 'remote:/var/log/messages',
+            dst => '/tmp/messages',
+            like => [qr/^scp /, qr/DONALDUCK\@198\.51\.100\.2:\/var\/log\/messages/, qr/"\/tmp\/messages"/],
+            unlike => [qr/DONALDUCK\@198\.51\.100\.2:\/tmp\/messages/, qr/-E /],
+        },
+        {
+            name => 'rewrites remote: in destination (upload)',
+            username => 'GOOFY',
+            src => '/tmp/foo',
+            dst => 'remote:/home/admin/foo',
+            like => [qr/GOOFY\@198\.51\.100\.2:\/home\/admin\/foo/, qr/"\/tmp\/foo"/],
+            unlike => [qr/GOOFY\@198\.51\.100\.2:\/tmp\/foo/],
+        },
+        {
+            name => 'neither path has remote:',
+            username => 'admin',
+            src => '/tmp/src',
+            dst => '/tmp/dst',
+            like => [qr/"\/tmp\/src"/, qr/"\/tmp\/dst"/],
+            unlike => [qr/admin\@198\.51\.100\.2/],
+        },
+        {
+            name => 'explicit user@host:/path in source',
+            username => 'admin',
+            src => 'other@example.com:/etc/hosts',
+            dst => '/tmp/hosts',
+            like => [qr/"other\@example\.com:\/etc\/hosts"/],
+            unlike => [qr/admin\@198\.51\.100\.2/],
+        },
+    );
 
-    my $inst = publiccloud::instance->new(public_ip => '198.51.100.2', username => 'admin', ssh_opts => '-o X=y -E /tmp/log');
-    $inst->scp('remote:/var/log/messages', '/tmp/messages');
-    like($seen_cmd, qr/^scp /, 'starts with scp');
-    like($seen_cmd, qr/admin\@198\.51\.100\.2:\/var\/log\/messages/, 'remote: rewritten to user@ip:');
-    like($seen_cmd, qr/\/tmp\/messages/, 'destination present');
-    unlike($seen_cmd, qr/-E /, '-E option stripped (scp does not accept it)');
+    foreach my $case (@cases) {
+        my $instance = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+        my @calls;
+        $instance->redefine(assert_script_run => sub { push @calls, $_[0]; return 0 });
+        $instance->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+        my $inst = publiccloud::instance->new(public_ip => '198.51.100.2', username => $case->{username}, ssh_opts => $case->{ssh_opts} // '');
+
+        $inst->scp($case->{src}, $case->{dst});
+
+        note("\n  -->  " . join("\n  -->  ", @calls));
+        like($calls[0], $_, "$case->{name}: matches $_") for @{$case->{like}};
+        unlike($calls[0], $_, "$case->{name}: does not match $_") for @{$case->{unlike} // []};
+    }
+};
+
+subtest '[scp] timeout defaults to SSH_TIMEOUT and is overridable' => sub {
+    my $instance = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my %seen;
+    $instance->redefine(assert_script_run => sub { my ($c, %a) = @_; %seen = %a; return 0 });
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+
+    $inst->scp('/tmp/a', '/tmp/b');
+    is($seen{timeout}, 90, 'defaults to SSH_TIMEOUT (90s) when not given');
+
+    $inst->scp('/tmp/a', '/tmp/b', timeout => 300);
+    is($seen{timeout}, 300, 'custom timeout forwarded to assert_script_run');
+};
+
+subtest '[scp] proceed_on_failure controls failure handling' => sub {
+    my $instance = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my $assert_called;
+    $instance->redefine(assert_script_run => sub { $assert_called++; return 0 });
+    my $script_run_ret;
+    $instance->redefine(script_run => sub { return $script_run_ret });
+    $instance->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+
+    # proceed_on_failure=1 and scp fails: no die, no assert_script_run, an info is recorded
+    $script_run_ret = 1;
+    $assert_called = 0;
+    lives_ok { $inst->scp('/tmp/a', '/tmp/b', proceed_on_failure => 1) }
+    'does not die on scp failure when proceed_on_failure is set';
+    is($assert_called, 0, 'assert_script_run not used when proceed_on_failure is set');
+
+    # proceed_on_failure=1 and scp succeeds
+    $script_run_ret = 0;
+    $inst->scp('/tmp/a', '/tmp/b', proceed_on_failure => 1);
+    is($assert_called, 0, 'assert_script_run not used when proceed_on_failure is set');
+
+    # default (proceed_on_failure not set): the copy is asserted
+    $assert_called = 0;
+    $inst->scp('/tmp/a', '/tmp/b');
+    is($assert_called, 1, 'assert_script_run used by default');
 };
 
 subtest '[retry_ssh_command] retries then succeeds' => sub {
