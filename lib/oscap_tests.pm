@@ -765,7 +765,7 @@ sub get_cac_code {
             my $py_libs = "json2html sphinxcontrib-jinjadomain autojinja myst_parser  mypy openpyxl pcre2 cmakelint sphinx";
             # On s390x pip requires packages to build modules
             if (is_s390x || is_ppc64le) {
-                zypper_call('in ninja clang15 libxslt-devel libxml2-devel python311-devel', timeout => 180);
+                zypper_call('in ninja clang libxslt-devel libxml2-devel python311-devel', timeout => 180);
                 assert_script_run("pip3.11 install $py_libs", timeout => 600);
             }
             else {
@@ -784,7 +784,7 @@ sub get_cac_code {
             my $py_libs = "json2html sphinxcontrib-jinjadomain autojinja myst_parser openpyxl pcre2 cmakelint sphinx";
             # On s390x and ppc64le pip requires packages to build modules
             if (is_s390x || is_ppc64le) {
-                zypper_call("in ninja clang15 libxslt-devel libxml2-devel python${py_pkg_ver}-devel", timeout => 180);
+                zypper_call("in ninja clang libxslt-devel libxml2-devel python${py_pkg_ver}-devel", timeout => 180);
                 assert_script_run("pip3 install $py_libs", timeout => 600);
             }
             else {
