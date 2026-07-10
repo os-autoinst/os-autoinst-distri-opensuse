@@ -19,6 +19,7 @@
       <li><a href="#get_nw_hosts">get_nw_hosts</a></li>
       <li><a href="#get_pas_host">get_pas_host</a></li>
       <li><a href="#get_sap_hosts">get_sap_hosts</a></li>
+      <li><a href="#get_iscsi_hosts">get_iscsi_hosts</a></li>
     </ul>
   </li>
 </ul><h1>lib/sles4sap/console_redirection/redirection_data_tools.pm</h1>
@@ -58,6 +59,12 @@
 <pre><code>get_sap_hosts();</code></pre>
 
 <p>Returns <b>ARRAYREF</b> containing connection data to all hosts related to SAP suite (Databases, instances, etc...). <b>Example:</b> { hostname_a =&gt; {ip_address =&gt; &#39;192.168.0.2&#39;, ssh_user =&gt; &#39;username&#39;} hostname_b =&gt; {ip_address =&gt; &#39;192.168.0.2&#39;, ssh_user =&gt; &#39;username&#39;} };</p>
+
+<h2 id="get_iscsi_hosts">get_iscsi_hosts</h2>
+
+<pre><code>get_iscsi_hosts();</code></pre>
+
+<p>Returns <b>ARRAYREF</b> containing only ISCSI host connection data <b>Example:</b> { hostname_a =&gt; {ip_address =&gt; &#39;192.168.0.2&#39;, ssh_user =&gt; &#39;username&#39;} hostname_b =&gt; {ip_address =&gt; &#39;192.168.0.2&#39;, ssh_user =&gt; &#39;username&#39;} };</p>
 
 
 </body>
