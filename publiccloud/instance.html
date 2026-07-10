@@ -85,9 +85,29 @@ C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally s
 
 <h2 id="scp">scp</h2>
 
-<pre><code>scp($from, $to[, timeout =&gt; 90, proceed_on_failure =&gt; 0]);</code></pre>
+<pre><code>scp($from, $to [, timeout =&gt; 90] [, proceed_on_failure =&gt; 0]);</code></pre>
 
-<p>Use scp to copy a file from or to this instance. A url starting with <code>remote:</code> is replaced with the IP from this instance. E.g. a call to copy the file <i>/var/log/cloudregister</i> to <i>/tmp</i> looks like: <code>&lt;&lt;$instance-</code>scp(&#39;remote:/var/log/cloudregister&#39;, &#39;/tmp&#39;);&gt;&gt;&gt;</p>
+<p>Copy a file to or from this instance using <code>scp</code>.</p>
+
+<p>Arguments:</p>
+
+<p><code>$from</code> - source path. When it starts with <code>remote:</code>, the prefix is replaced with <code>&lt;username&gt;@&lt;public_ip&gt;:</code> so the file is read from this instance (download). Otherwise it is treated as a local path. Using <code>remote:</code> is only a convenience: you are free to pass an explicit <code>user@host:/path</code> instead, which is left untouched by this function.</p>
+
+<p><code>$to</code> - destination path. Uses the same <code>remote:</code> rewriting as <code>$from</code>, so a <code>remote:</code> destination uploads a local file to this instance. As with <code>$from</code>, an explicit <code>user@host:/path</code> can be passed and is left untouched.</p>
+
+<p><code>timeout</code> - maximum time in seconds allowed for the scp command. Defaults to <code>SSH_TIMEOUT</code> (90 seconds).</p>
+
+<p><code>proceed_on_failure</code> - when set to a true value a failing scp does not abort the test: the command is run via <code>script_run</code> and only an informational message is recorded. When false (the default) the copy is run via <code>assert_script_run</code> so a failure dies. Defaults to <code>0</code>.</p>
+
+<p>Any <code>-E &lt;file</code>&gt; logging options present in <code>$instance-&gt;ssh_opts</code> are stripped, because <code>scp</code> does not accept them.</p>
+
+<p>E.g. to download the file <i>/var/log/cloudregister</i> into <i>/tmp</i>:</p>
+
+<pre><code>$instance-&gt;scp(&#39;remote:/var/log/cloudregister&#39;, &#39;/tmp&#39;);</code></pre>
+
+<p>and to upload a local <i>/tmp/foo</i> to the instance home directory:</p>
+
+<pre><code>$instance-&gt;scp(&#39;/tmp/foo&#39;, &#39;remote:/home/user/foo&#39;);</code></pre>
 
 <h2 id="upload_log">upload_log</h2>
 
