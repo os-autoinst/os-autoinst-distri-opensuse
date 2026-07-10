@@ -77,23 +77,27 @@ release-manifest.
 
 =cut
 
+# Encode Internal SUSE CA:
+# base64 -w0 /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem
+
+# Extract files/subdirs from a directory
+# assert_script_run 'curl ' . data_url('console/ansible/') . ' | cpio -id';
+
 sub customize_cmd {
     my (%args) = @_;
     my $crypto_policy = get_var('CRYPTO_POLICY');
     my $device = get_var('INSTALL_DISK', '/dev/vda');
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $type = get_required_var('IMAGE_TYPE');
-    my $tpl_tar = "$args{config_dir}/$args{template}";
     my $initial_hddsize = '4';
     my $out = "$args{img_filename}.iso";
 
-    # Create directories
-    assert_script_run("mkdir -p $args{config_dir}");
-
     # Download build configuration files
-    assert_script_run("curl -sf -o $tpl_tar "
-          . data_url('elemental3/' . path($tpl_tar)->basename));
-    assert_script_run("tar xzvf $tpl_tar -C $args{config_dir}");
+    assert_script_run("cd $args{config_dir}");
+    assert_script_run('curl ' . data_url("elemental3/templates/$args{template}/") . ' | cpio -ivd');
+
+    # Redefine configuration path
+    $args{config_dir} .= "/data";
 
     # Add 'oci://' in release-manifest URI if nothing is set
     $args{manifest_uri} = 'oci://' . $args{manifest_uri}
@@ -130,7 +134,6 @@ sub customize_cmd {
     }
 
     if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/) {
-
         # K8s configuration file
         assert_script_run(
             "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
@@ -138,7 +141,6 @@ sub customize_cmd {
 
         # For single-node
         if (check_var('CLUSTER_TYPE', 'singlenode')) {
-
             # Keep configuration for first node only
             assert_script_run(
                 "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $args{config_dir}/kubernetes/cluster.yaml"
@@ -263,7 +265,7 @@ sub run {
     my $rootpwd = get_required_var('TEST_PASSWORD');
     my $img_filename = get_required_var('IMG_NAME');
     my $totest_path = get_required_var('TOTEST_PATH');
-    my $tpl_file = get_var('TEMPLATE', 'build-tpl.tar.gz');
+    my $template = get_var('TEMPLATE', 'default');
     my $timeout = 900;
     my $out_file;
 
@@ -346,7 +348,7 @@ sub run {
             k8s => $k8s,
             manifest_uri => $uri,
             rootpwd => $hashpwd,
-            template => $tpl_file,
+            template => $template,
             timeout => $timeout
         );
     }
