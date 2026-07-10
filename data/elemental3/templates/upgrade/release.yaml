@@ -1,0 +1,4 @@
+#manifestURI: oci://registry.suse.com/elemental/rke2/rke2-manifest:1.35
+manifestURI: oci://registry.suse.com/elemental/rke2/rke2-manifest:1.35.5-22.1
+components:
+  kubernetes: {}

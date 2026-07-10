@@ -1,0 +1,8 @@
+schema: v0
+bootloader: grub
+kernelCmdLine: "logleve=3 console=ttyS0 qatestframework=openqa"
+cryptoPolicy: fips
+raw:
+  diskSize: 4G
+iso:
+  device: /dev/nvme0n1

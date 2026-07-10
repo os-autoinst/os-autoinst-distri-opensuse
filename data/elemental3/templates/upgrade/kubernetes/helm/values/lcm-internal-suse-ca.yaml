@@ -1,0 +1,13 @@
+extraVolumes:
+- name: registry-ca
+  secret:
+    secretName: internal-suse-ca
+
+extraVolumeMounts:
+- name: registry-ca
+  mountPath: /etc/ssl/custom
+  readOnly: true
+
+extraEnv:
+- name: SSL_CERT_FILE
+  value: /etc/ssl/custom/ca.crt

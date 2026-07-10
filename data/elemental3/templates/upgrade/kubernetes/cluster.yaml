@@ -1,0 +1,27 @@
+helm:
+  charts:
+    - name: "cert-manager"
+      version: "v1.20.3"
+      targetNamespace: "cert-manager"
+      repositoryName: "jetstack-charts"
+      valuesFile: cert-manager.yaml
+    - name: "system-upgrade-controller"
+      version: "109.0.2"
+      targetNamespace: "cattle-system"
+      repositoryName: "rancher-charts"
+    - name: "elemental-lifecycle-manager-crds"
+      version: "0.1.0"
+      targetNamespace: "elemental-system"
+      repositoryName: "elemental-charts"
+    - name: "elemental-lifecycle-manager"
+      version: "0.1.0"
+      targetNamespace: "elemental-system"
+      repositoryName: "elemental-charts"
+      valuesFile: lcm-internal-suse-ca.yaml
+  repositories:
+    - name: "jetstack-charts"
+      url: "oci://quay.io/jetstack/charts"
+    - name: "rancher-charts"
+      url: "https://charts.rancher.io"
+    - name: "elemental-charts"
+      url: "oci://registry.suse.com/elemental/charts"

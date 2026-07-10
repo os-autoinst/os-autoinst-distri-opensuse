@@ -1,0 +1,3 @@
+token: qa-test-token
+debug: true
+selinux: true

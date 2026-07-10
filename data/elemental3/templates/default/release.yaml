@@ -1,0 +1,3 @@
+manifestURI: %RELEASE_MANIFEST_URI%
+components:
+  kubernetes: {}

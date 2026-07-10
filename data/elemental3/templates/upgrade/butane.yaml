@@ -1,0 +1,70 @@
+version: 1.6.0
+variant: fcos
+passwd:
+  groups:
+    - name: qetestgroup
+  users:
+    - name: qetest
+      # Hash for 'testpassw0rd' passwd create with "openssl passwd -6"
+      password_hash: "$6$SrHq2CHompxECcg4$nN93b.VH5LYq083XTiGXQkxAO3qt0YXsjCF4hN6.Hn5lLvUZvqlnuvdL89f9k8enKghHiX.WKmXV4K0NxJJiZ0"
+      groups:
+        - qetestgroup
+    - name: root
+      # Hash for 'uc0@linux' passwd created with "openssl passwd -6"
+      password_hash: "$6$.IMy8FkEf2TN04NI$mBy9Ohtj85KTfprP/2nOl7/eFEMQvxSSPC7bJ/hiG9HIlglLdZ/6iYvVvJlPT4mqgjx/6LpKSaEp0jxsFTXDm."
+      ssh_authorized_keys:
+        - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCfUK3osL0inEfTKGEXPus7nlOcnNBrVdyMWXe1UVvHV/8LXbdHKTSS9BxJC2wnjBETa/d+z2Ghfcyl6R4aN9AXyiU5DmHXg3V1sMfouibH7ilpJ4EXgQTyWc2ConVtg1/4f331RRAG5Jotd0N0YVCzFJtlnn/EQ1SUKrT+d3pZUPuaMQYUsF6mL3sFXM0NkOZfi1amrPuSZaEUP04wWT5p2ummrDTOfXP3+tEi874v5GpBdxRhIxutQcOjFgvEearf0aF8iOV8xCg4zbbLSi+f2gyg7mEF8VPYlU9kroB20zP46OP6GCwBTUq2mds/dZzjsY3VVWJmjbq3AHQmtX2tiC/9QJ1n0ihhGMxdKhKEW8kEf1nufACCfbtkr8Ai9YnyWhOVFdTcHHzFZob5nGT3eIk6iVJJE1QMnCoB95SU0KTNa+PV0JMp/Ycxdbrs9nq1FF312L1Q5lctN3knaU/Hh0SyQaPa5iPxEeBMMI8VooW/C180Zwpiwhov8kXcMT0+vxbUSQHgW88LwB8bu7GpMKhPhlA9VX87YMpX4w8Jwe/xzDETsdg8CVdWwnvZZz+iWPwLulcT/vjM5oUxn6WtaKF9BKAfnCMCWqosnpKuqmMhoyFgrQH8UUsyBpS4Q7z3pbOZobBriCQ5FTNLnEbdsWJZr3qGmZVT/9mYOHoqzw== UnifiedCore 
+storage:
+  # Workaround to be able to create a regular user at 1st boot with Butane
+  filesystems:
+    - device: /dev/disk/by-label/SYSTEM
+      format: btrfs
+      mount_options:
+        - subvol=/@/home
+      path: /home
+  files:
+    - path: /etc/ssh/sshd_config.d/root_access.conf
+      overwrite: true
+      mode: 0600
+      contents:
+        inline: PermitRootLogin yes
+    - path: /root/.profile
+      overwrite: true
+      mode: 0640
+      contents:
+          inline: |
+            # Local config
+            set -o vi
+
+            # For kubectl
+            export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+            export PATH=${PATH}:/var/lib/rancher/rke2/bin
+    - path: /root/.alias
+      overwrite: true
+      mode: 0640
+      contents:
+          inline: |
+            alias k='kubectl'
+systemd:
+  units:
+    - name: sshd.service
+      enabled: true
+    - name: k8s-preinstall.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=K8s Pre-Installation
+        ConditionFirstBoot=true
+        Requires=network-online.target
+        Before=k8s-config-installer.service
+
+        [Service]
+        Type=oneshot
+        Restart=on-failure
+        ExecStart=/bin/sh -c "mkdir -p /etc/rancher/rke2"
+        ExecStart=/bin/sh -c "echo \"node-external-ip: $(ip -o route get 1 | cut -d' ' -f7)\" > /etc/rancher/rke2/config.yaml"
+        ExecStartPost=/bin/sh -c "systemctl disable k8s-preinstall.service"
+        ExecStartPost=/bin/sh -c "rm -rf /etc/systemd/system/k8s-preinstall.service"
+
+        [Install]
+        WantedBy=multi-user.target
