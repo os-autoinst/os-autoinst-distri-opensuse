@@ -504,8 +504,11 @@ sub terraform_apply {
     $args{vars} //= {};
     my $offer = get_var("PUBLIC_CLOUD_AZURE_OFFER");
     my $sku = get_var("PUBLIC_CLOUD_AZURE_SKU");
+    # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
+    my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
     $args{vars}->{offer} = $offer if ($offer);
     $args{vars}->{sku} = $sku if ($sku);
+    $args{vars}->{'storage-account'} = $storage_account if ($storage_account);
 
     return $self->SUPER::terraform_apply(%args);
 }

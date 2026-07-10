@@ -203,7 +203,14 @@ sub img_proof {
 sub terraform_apply {
     my ($self, %args) = @_;
     $args{project} //= $self->provider_client->project_id;
-    $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
+    my $confidential_compute = get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM');
+    $args{vars}->{enable_confidential_vm} = 'true' if $confidential_compute;
+    my $stack_type = get_var('PUBLIC_CLOUD_GCE_STACK_TYPE', 'IPV4_ONLY');
+    $args{vars}->{stack_type} = $stack_type;
+    my $nic_type = get_var('PUBLIC_CLOUD_GCE_NIC_TYPE', '');
+    $args{vars}->{nic_type} = $nic_type if $nic_type;
+    $args{vars}->{availability_zone} = $self->provider_client->availability_zone;
+
     my @instances = $self->SUPER::terraform_apply(%args);
 
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");

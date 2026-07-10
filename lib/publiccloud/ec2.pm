@@ -165,7 +165,10 @@ sub upload_img {
 
 sub terraform_apply {
     my ($self, %args) = @_;
-    $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
+    my $confidential_compute = get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM');
+    $args{vars}->{enable_confidential_vm} = 'enabled' if $confidential_compute;
+    $args{vars}->{ipv6_address_count} = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 0);
+    $args{vars}->{nitro_enclave} = "true" if check_var("PUBLIC_CLOUD_EC2_NITRO_ENCLAVE", "1");
     return $self->SUPER::terraform_apply(%args);
 }
 

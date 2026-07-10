@@ -485,20 +485,9 @@ sub terraform_apply {
             die('Instance type not supported by the selected Availability Zone') if ($vars{availability_zone} =~ /None/);
             $vars{vpc_security_group_ids} = script_output("aws ec2 describe-security-groups --region '" . $self->provider_client->region . "' --filters 'Name=group-name,Values=tf-sg' --query 'SecurityGroups[0].GroupId' --output text");
             $vars{subnet_id} = script_output("aws ec2 describe-subnets --region '" . $self->provider_client->region . "' --filters 'Name=tag:Name,Values=tf-subnet' 'Name=availabilityZone,Values=" . $vars{availability_zone} . "' --query 'Subnets[0].SubnetId' --output text");
-            $vars{ipv6_address_count} = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 0);
-            $vars{nitro_enclave} = "true" if check_var("PUBLIC_CLOUD_EC2_NITRO_ENCLAVE", "1");
         } elsif (is_azure) {
             my $subnet_id = script_output("az network vnet subnet list -g 'tf-" . $self->provider_client->region . "-rg' --vnet-name 'tf-network' --query '[0].id' --output 'tsv'");
             $vars{subnet_id} = $subnet_id if ($subnet_id);
-            # Note: Only the default Azure terraform profiles contains the 'storage-account' variable
-            my $storage_account = get_var('PUBLIC_CLOUD_STORAGE_ACCOUNT');
-            $vars{'storage-account'} = $storage_account if ($storage_account);
-        } elsif (is_gce) {
-            my $stack_type = get_var('PUBLIC_CLOUD_GCE_STACK_TYPE', 'IPV4_ONLY');
-            $vars{stack_type} = $stack_type;
-            my $nic_type = get_var('PUBLIC_CLOUD_GCE_NIC_TYPE', '');
-            $vars{nic_type} = $nic_type if $nic_type;
-            $vars{availability_zone} = $self->provider_client->availability_zone;
         }
         $vars{instance_count} = $args{count};
         $vars{type} = $instance_type;
@@ -507,8 +496,6 @@ sub terraform_apply {
         $vars{project} = $args{project} if ($args{project});
         $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml" if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
         $vars{vm_create_timeout} = $terraform_vm_create_timeout;
-        $vars{enable_confidential_vm} = 'true' if ($args{confidential_compute} && is_gce());
-        $vars{enable_confidential_vm} = 'enabled' if ($args{confidential_compute} && is_ec2());
         my $root_size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
         $vars{'root-disk-size'} = $root_size if ($root_size);
         $vars{tags} = escape_single_quote($self->terraform_param_tags);
