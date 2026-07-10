@@ -13,6 +13,7 @@ schedule:
   - sles4sap/sap_deployment_automation_framework/deploy_workload_zone
   - sles4sap/sap_deployment_automation_framework/deploy_sap_systems
   - sles4sap/sap_deployment_automation_framework/prepare_ssh_config
+  - '{{iscsi_workaround}}'
   - sles4sap/sap_deployment_automation_framework/os_preparation
   - '{{maintenance_update}}'
   - sles4sap/sap_deployment_automation_framework/app_deployment
@@ -31,3 +32,7 @@ conditional_schedule:
     IS_MAINTENANCE:
       1:
         - publiccloud/validate_repos.pm
+  iscsi_workaround:
+    SDAF_FENCING_MECHANISM:
+      sbd:
+        - sles4sap/sap_deployment_automation_framework/register_iscsi

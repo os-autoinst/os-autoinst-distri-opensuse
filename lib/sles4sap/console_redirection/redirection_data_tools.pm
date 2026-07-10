@@ -112,4 +112,22 @@ sub get_sap_hosts {
     return {map { %{$self->{$_}} } qw(nw_ascs nw_ers nw_pas nw_aas db_hana)};
 }
 
+=head2 get_iscsi_hosts
+
+    get_iscsi_hosts();
+
+Returns B<ARRAYREF> containing only ISCSI host connection data
+B<Example:>
+{
+    hostname_a => {ip_address => '192.168.0.2', ssh_user => 'username'}
+    hostname_b => {ip_address => '192.168.0.2', ssh_user => 'username'}
+};
+
+=cut
+
+sub get_iscsi_hosts {
+    my $self = shift;
+    return {map { %{$_} } ($self->{nw_iscsi})};
+}
+
 1;
