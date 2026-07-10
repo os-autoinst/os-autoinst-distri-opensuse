@@ -2484,10 +2484,12 @@ sub set_mu_virt_vars {
     # If $_pkg contains none, it is for ease of functional testing when no incidents are coming.
     if ($_pkg =~ /none/) {
         $_update_package = '';
-    } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|libslirp|open-vm-tools|dnsmasq|sevctl/) {
+    } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|open-vm-tools|dnsmasq|sevctl/) {
         $_update_package = $_pkg;
     } elsif ($_pkg =~ /libvirt/) {
         $_update_package = 'libvirt-client';
+    } elsif ($_pkg =~ /libslirp/) {
+        $_update_package = 'libslirp0';
     } else {
         $_update_package = 'kernel-default';
     }
@@ -2617,9 +2619,9 @@ sub set_sles16_mu_virt_vars {
         } elsif ($_pkg =~ /xen/) {
             # Xen support will return in SLES16.2
             die "Xen testing is not supported in SLES16 (will return in SLES16.2)";
-	} elsif ($_pkg =~ /libslirp/) {
+        } elsif ($_pkg =~ /libslirp/) {
             # Special case: libslirp maps to libslirp0
-            $_update_package = 'libslirp0'
+            $_update_package = 'libslirp0';
         } else {
             # Default to kernel-default for other cases
             $_update_package = 'kernel-default';
