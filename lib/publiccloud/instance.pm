@@ -201,12 +201,41 @@ sub ssh_script_retry {
 
 =head2 scp
 
-    scp($from, $to[, timeout => 90, proceed_on_failure => 0]);
+    scp($from, $to [, timeout => 90] [, proceed_on_failure => 0]);
 
-Use scp to copy a file from or to this instance. A url starting with
-C<remote:> is replaced with the IP from this instance. E.g. a call to copy
-the file I</var/log/cloudregister> to I</tmp> looks like:
-C<<<$instance->scp('remote:/var/log/cloudregister', '/tmp');>>>
+Copy a file to or from this instance using C<scp>.
+
+Arguments:
+
+C<$from> - source path. When it starts with C<remote:>, the prefix is
+    replaced with C<< <username>@<public_ip>: >> so the file is read from
+    this instance (download). Otherwise it is treated as a local path.
+    Using C<remote:> is only a convenience: you are free to pass an explicit
+    C<< user@host:/path >> instead, which is left untouched by this function.
+
+C<$to> - destination path. Uses the same C<remote:> rewriting as C<$from>,
+    so a C<remote:> destination uploads a local file to this instance. As
+    with C<$from>, an explicit C<< user@host:/path >> can be passed and is
+    left untouched.
+
+C<timeout> - maximum time in seconds allowed for the scp command. Defaults
+    to C<SSH_TIMEOUT> (90 seconds).
+
+C<proceed_on_failure> - when set to a true value a failing scp does not abort
+    the test: the command is run via C<script_run> and only an informational
+    message is recorded. When false (the default) the copy is run via
+    C<assert_script_run> so a failure dies. Defaults to C<0>.
+
+Any C<-E <file>> logging options present in C<< $instance->ssh_opts >> are
+stripped, because C<scp> does not accept them.
+
+E.g. to download the file I</var/log/cloudregister> into I</tmp>:
+
+    $instance->scp('remote:/var/log/cloudregister', '/tmp');
+
+and to upload a local I</tmp/foo> to the instance home directory:
+
+    $instance->scp('/tmp/foo', 'remote:/home/user/foo');
 =cut
 
 sub scp {
