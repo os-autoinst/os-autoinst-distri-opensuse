@@ -72,20 +72,6 @@ sub generate_basename {
     return "$distri-$version-$flavor-$arch";
 }
 
-=head2 conv_openqa_tf_name
-
-Does the conversion between C<PUBLIC_CLOUD_PROVIDER> and Terraform providers name.
-
-=cut
-
-sub conv_openqa_tf_name {
-    # Check https://github.com/SUSE/ha-sap-terraform-deployments/issues/177 for more information
-    my $cloud_provider = lc get_var('PUBLIC_CLOUD_PROVIDER');
-    return 'aws' if $cloud_provider eq 'ec2';
-    return 'gcp' if $cloud_provider eq 'gce';
-    return $cloud_provider;
-}
-
 =head2 find_img
 
 Retrieves the image-id by given image C<name>.
@@ -465,7 +451,6 @@ sub terraform_apply {
 
     $args{count} //= '1';
     my $instance_type = get_var('PUBLIC_CLOUD_INSTANCE_TYPE');
-    my $cloud_name = $self->conv_openqa_tf_name;
 
     record_info('WARNING', 'Terraform apply has been run previously.') if ($self->terraform_applied);
 

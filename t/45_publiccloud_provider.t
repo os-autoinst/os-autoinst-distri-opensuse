@@ -22,19 +22,6 @@ use publiccloud::provider;
 
 sub _unset { for my $k (@_) { set_var($k, undef) } }
 
-subtest '[conv_openqa_tf_name] provider name mapping' => sub {
-    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
-    is(publiccloud::provider::conv_openqa_tf_name(), 'aws', 'EC2 maps to aws');
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'GCE');
-    is(publiccloud::provider::conv_openqa_tf_name(), 'gcp', 'GCE maps to gcp');
-
-    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    is(publiccloud::provider::conv_openqa_tf_name(), 'azure', 'AZURE stays azure (lowercased)');
-
-    _unset('PUBLIC_CLOUD_PROVIDER');
-};
-
 subtest '[escape_single_quote] shell-safe single quotes' => sub {
     is(publiccloud::provider::escape_single_quote('plain'), 'plain', 'no quotes unchanged');
     is(publiccloud::provider::escape_single_quote(q{it's}), q{it'"'"'s}, 'single quote escaped');
@@ -113,7 +100,6 @@ subtest '[terraform_apply] minimal happy path' => sub {
     $mock->redefine($_ => sub { }) for qw(record_info assert_script_run script_retry terraform_prepare_env);
     $mock->redefine(get_image_uri => sub { '' });
     $mock->redefine(get_image_id => sub { '' });
-    $mock->redefine(conv_openqa_tf_name => sub { 'tf' });
     $mock->redefine(terraform_param_tags => sub { '{}' });
     $mock->redefine(script_run => sub { 0 });
     $mock->redefine(script_output => sub {
