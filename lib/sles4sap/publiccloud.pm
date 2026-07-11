@@ -169,11 +169,19 @@ sub run_cmd_retry {
     my $timeout = delete $args{timeout} // 60;
     my $retry = delete $args{retry} // 3;
     my $delay = delete $args{delay} // 10;
-    delete($args{proceed_on_failure});
+    my $proceed_on_failure = delete $args{proceed_on_failure} // 0;
+    my $ret = 0;
 
     for (1 .. $retry) {
-        my $ret = eval { $self->run_cmd(timeout => $timeout, ignore_timeout_failure => 1, proceed_on_failure => 0, %args); };
-        return $ret if (defined $ret);
+        $ret = eval { $self->run_cmd(timeout => $timeout, ignore_timeout_failure => 1, %args); };
+        # If we want return code, then retry until the command succeeds,
+        # if we want output, then retry until we can get the output.
+        if ($args{rc_only}) {
+            return $ret if (defined($ret) && $ret == 0);
+        }
+        else {
+            return $ret if (defined $ret);
+        }
 
         # Unblock console in case the previous command hung and timed out
         type_string('', terminate_with => 'ETX') if $args{ssh_keepalive};
@@ -181,6 +189,7 @@ sub run_cmd_retry {
         sleep $delay;
         record_soft_failure('jsc#TEAM-10485 SSH timeout or failure, retrying');
     }
+    return $ret if $proceed_on_failure;
     die('Maximum number of SSH retry attempts exceeded');
 }
 
@@ -1612,7 +1621,7 @@ sub wait_for_idle {
     my ($self, %args) = @_;
     my $timeout = $args{timeout} // 60;
 
-    my $rc = $self->run_cmd_retry(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, rc_only => 1);
+    my $rc = $self->run_cmd_retry(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, rc_only => 1, proceed_on_failure => 1);
     if ($rc == 124) {
         record_info('WARN cs_wait_for_idle', "cs_wait_for_idle timed out after $timeout. Gathering info and retrying");
         $self->run_cmd(cmd => 'cs_clusterstate', proceed_on_failure => 1);

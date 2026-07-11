@@ -1210,6 +1210,9 @@ subtest '[wait_for_idle] command fails with rc 124, passes at second try' => sub
     $sles4sap_publiccloud->redefine(record_info => sub {
             note(join(' ', 'RECORD_INFO -->', @_));
     });
+    $sles4sap_publiccloud->redefine(record_soft_failure => sub {
+            note(join(' ', 'SOFT_FAILURE -->', @_));
+    });
 
     lives_ok { $self->wait_for_idle() } 'Cluster was not idle the first time but succeeded the second';
     ok((any { qr/cs_clusterstate/ } @calls), 'function calls cs_clusterstate');
