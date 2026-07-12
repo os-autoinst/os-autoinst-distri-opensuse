@@ -14,9 +14,12 @@ use strict;
 use warnings;
 
 our $test_idx = 1;
+our $seen_error_logs = 0;
 
 sub parse_line {
     my ($self, $test_ln) = @_;
+    $seen_error_logs ||= ($test_ln =~ /^#\s+All error logs:/);
+    return undef if $seen_error_logs;
     if ($test_ln =~ /(?:^#\s)?#\S+\s+(\S+):(OK|FAIL|SKIP)$/) {
         my ($description, $st) = ($1, $2);
         my $normalized;
