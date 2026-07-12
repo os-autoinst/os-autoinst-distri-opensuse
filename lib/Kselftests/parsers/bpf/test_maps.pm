@@ -28,6 +28,11 @@ sub parse_line {
         $test_idx++;
         return $normalized;
     }
+    if ($test_ln =~ /^#\s(\S+)\(\d+\):FAIL:/) {
+        my $normalized = "# not ok $test_idx $1";
+        $test_idx++;
+        return $normalized;
+    }
     return undef;
 }
 
