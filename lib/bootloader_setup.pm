@@ -366,7 +366,7 @@ sub select_bootmenu_option {
     assert_screen 'inst-bootmenu', $timeout;
 
     # Special handling for Agama
-    if (get_var('AGAMA')) {
+    if (is_agama) {
         send_key_until_needlematch 'boot-agama-installation', 'down', 11, 5;
         return 0;
     }
@@ -649,7 +649,7 @@ sub bootmenu_default_params {
         }
         push @params, "Y2DEBUG=1";
     }
-    elsif (get_var('AGAMA')) {
+    elsif (is_agama) {
         if (!$args{in_grub_edit}) {
             wait_screen_change { send_key "e" };
             send_key "down";
@@ -658,21 +658,6 @@ sub bootmenu_default_params {
             send_key "down";
             wait_screen_change { send_key "end" };
         }
-        # REPO_0 should be set everywhere where we rsync repo (aside from iso)
-        if (get_var('REPO_0')) {
-            my $host = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
-            my $repo = get_var('REPO_0');
-
-            # Split repodata functionality in Leap 16.0
-            # https://code.opensuse.org/leap/features/issue/193
-            if (get_var('SPLIT_REPODATA')) {
-                $repo .= "/\\\$basearch";
-            }
-
-            # inst.install_url supports comma separated list if more repos are needed ...
-            push @params, "inst.install_url=$host/assets/repo/$repo";
-        }
-        push @params, "live.password=$testapi::password";
     }
     else {
         # On JeOS and MicroOS we don't have YaST installer.
@@ -931,7 +916,8 @@ sub specific_bootmenu_params {
         push @params, "inst.auto=$url inst.finish=stop";
     }
 
-    if (my $agama_install_url = get_var('INST_INSTALL_URL')) {
+    my $agama_install_url = get_var('INST_INSTALL_URL');
+    if ($agama_install_url && is_agama) {
         if (get_var('SPLIT_REPODATA')) {
             $agama_install_url .= "/\\\$basearch";
         }
