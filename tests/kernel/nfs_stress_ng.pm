@@ -15,6 +15,7 @@ use registration;
 use version_utils qw(is_sle is_transactional);
 use repo_tools 'add_qa_head_repo';
 use package_utils 'install_package';
+use Kernel::nfs;
 
 sub check_nfs_mounts {
     my @paths = @_;
@@ -69,13 +70,12 @@ sub server {
 
 sub client {
     my ($self) = @_;
-    my $local_nfs4 = get_var('NFS_LOCAL_NFS4', '/var/lib/nfs-tests/localNFS4');
-    my $local_nfs4_async = get_var('NFS_LOCAL_NFS4_ASYNC', '/var/lib/nfs-tests/localNFS4async');
+    my $cfg = nfs_mount_config('4.0');
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
     my $exclude = get_var('NFS_STRESS_NG_EXCLUDE');
     # allow to override the default exports
     my $exports = get_var('NFS_STRESS_EXPORTS');
-    my @paths = $exports ? split(/,/, $exports) : ($local_nfs4, $local_nfs4_async);
+    my @paths = $exports ? split(/,/, $exports) : ($cfg->{local}, $cfg->{local_async});
 
     if (!check_nfs_mounts(@paths)) {
         $self->result('fail');
@@ -193,20 +193,21 @@ workload completes.
 Required. Set to C<nfs_client> or C<nfs_server> to select the node's role
 in the multi-machine scenario.
 
-=head2 NFS_LOCAL_NFS4
+=head2 NFS_LOCAL_NFS4_0
 
-Client-side mountpoint for the NFSv4 synchronous export used as the default
-stress-ng target. Defaults to C</var/lib/nfs-tests/localNFS4>.
+Client-side mountpoint for the NFSv4.0 synchronous export used as the default
+stress-ng target. Defaults to C</var/lib/nfs-tests/localNFS4_0>. See
+L<Kernel::nfs/nfs_mount_config>.
 
-=head2 NFS_LOCAL_NFS4_ASYNC
+=head2 NFS_LOCAL_NFS4_0_ASYNC
 
-Client-side mountpoint for the NFSv4 asynchronous export used as the default
-stress-ng target. Defaults to C</var/lib/nfs-tests/localNFS4async>.
+Client-side mountpoint for the NFSv4.0 asynchronous export used as the default
+stress-ng target. Defaults to C</var/lib/nfs-tests/localNFS4_0async>.
 
 =head2 NFS_STRESS_EXPORTS
 
 Comma-separated list of client-side mount points where C<stress-ng> will be
-executed, overriding the C<NFS_LOCAL_NFS4> and C<NFS_LOCAL_NFS4_ASYNC> defaults.
+executed, overriding the C<NFS_LOCAL_NFS4_0> and C<NFS_LOCAL_NFS4_0_ASYNC> defaults.
 
 =head2 NFS_STRESS_NG_TIMEOUT
 
