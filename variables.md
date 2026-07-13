@@ -381,10 +381,6 @@ PUBLIC_CLOUD_FUNCTIONAL | boolean | false | Schedule the functional test suite.
 PUBLIC_CLOUD_ENABLE_KDUMP | boolean | false | Enable kdump
 PUBLIC_CLOUD_MIGRATE_SLEM | boolean | false | Enable module for SL micro 6.x version upgrade to higher
 PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled. This variable should be enabled only sle15SP4 and above.
-PUBLIC_CLOUD_PERF_DB | string | "perf_2" | defines the bucket in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
-PUBLIC_CLOUD_PERF_DB_ORG | string | "qec" | defines the organization in which the performance metrics are stored on PUBLIC_CLOUD_PERF_DB_URI
-PUBLIC_CLOUD_PERF_DB_URI | string | "http://publiccloud-ng.qe.suse.de:8086" | bootup time measures get pushed to this Influx database url.
-PUBLIC_CLOUD_PERF_PUSH_DATA | boolean | 1 | To enable the test to push it's metrics to the InfluxDB, when PUBLIC_CLOUD_PERF_COLLECT true.
 PUBLIC_CLOUD_PREPARE_TOOLS | boolean | false | Activate prepare_tools test module by setting this variable.
 PUBLIC_CLOUD_PROVIDER | string | "" | The type of the CSP (e.g. AZURE, EC2, GCE).
 PUBLIC_CLOUD_PY_AZURE_REPO | string | "" | PY azure repo URL for azure_more_cli_test.
@@ -422,7 +418,6 @@ SCC_PROXY_USERNAME | string | "" | Credentials username for registry which requi
 SCC_PROXY_PASSWORD | string | "" | Credentials password for registry which requires SCC login
 TERRAFORM_VERSION | string | "1.5.7" | Version of terraform to include into PC Tools image
 TERRAFORM_TIMEOUT | integer | 1800 | Set timeout for terraform actions
-_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN | string | "" | this required variable is the token to access PUBLIC_CLOUD_PERF_DB_URI (defined in `salt workerconf`)
 PUBLIC_CLOUD_AUTHORIZED_KEYS | string | "" | SSH public keys to append to the authorized_keys file for human users. Accepts either a URL (e.g. `https://github.com/user.keys`) which is fetched with curl on the remote instance, or a base64-encoded key string (encode with `base64 -w0 ~/.ssh/id_ed25519.pub`). Multiple keys can be concatenated with newlines before encoding. Recommended to use with PUBLIC_CLOUD_NO_TEARDOWN=1.
 PUBLIC_CLOUD_PCW_IGNORE | boolean | false | If set to 1, adds `pcw_ignore=1` tag to cloud resources to prevent Public Cloud Watchdog from cleaning them up automatically based on TTL.
 
