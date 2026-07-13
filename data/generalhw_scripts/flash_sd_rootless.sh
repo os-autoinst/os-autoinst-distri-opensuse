@@ -20,7 +20,7 @@ image_to_flash=$2
 # Get hdd size (ignored for SD, but passed as arg from openQA)
 hdd_size=$3
 
-device_link="/dev/disk/by-id/usb-LinuxAut_sdmux_HS-SD_MMC_${device_serial}-0:0"
+device_link=/dev/disk/by-id/usb-LinuxAut_sd*_HS-SD_MMC_${device_serial}-0:0
 
 echo "* Switch SD card to flasher"
 usbsdmux /dev/usb-sd-mux/id-$device_serial host
