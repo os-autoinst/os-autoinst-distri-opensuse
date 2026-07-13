@@ -18,11 +18,8 @@ use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
 use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave select_host_console);
 use version_utils;
 use utils;
-# for boottime checks
-use db_utils;
 use Mojo::Util 'trim';
 use Data::Dumper;
-use mmapi qw(get_current_job_id);
 
 use constant SSH_TIMEOUT => 90;
 
@@ -765,69 +762,6 @@ sub check_system_boottime() {
             die("System boot time overall $boottime is out of limit $max_boot_time");
         }
     }
-}
-
-=head2 store_boottime_db
-
-    store_boottime_db();
-
-Save data collected with measure_boottime in a DB;
-Mainly stored on a remote InfluxDB on a Grafana server.
-To activate boottime push, shall be available results and
-  PUBLIC_CLOUD_PERF_PUSH_DATA true/not 0 and
-  _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN defined
-=cut
-
-sub store_boottime_db() {
-    my ($self, $results, $url) = @_;
-    my $data_push = get_var('PUBLIC_CLOUD_PERF_PUSH_DATA', 1);
-    my $org = get_var('PUBLIC_CLOUD_PERF_DB_ORG', 'qec');
-    my $db = get_var('PUBLIC_CLOUD_PERF_DB', 'perf_2');
-    my $token = get_var('_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN');
-
-    return unless ($results && $data_push && $url);
-    unless ($token) {
-        record_info("WARN", "_SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN is missing ", result => 'fail');
-        return 0;
-    }
-
-    my $tags = {
-        instance_type => get_var('PUBLIC_CLOUD_INSTANCE_TYPE'),
-        job_id => get_current_job_id(),
-        os_provider => get_var('PUBLIC_CLOUD_PROVIDER'),
-        os_build => get_var('BUILD'),
-        os_flavor => get_var('FLAVOR'),
-        os_version => get_var('VERSION'),
-        os_distri => get_var('DISTRI'),
-        os_arch => get_var('ARCH'),
-        os_region => $self->{region},
-        os_kernel_release => $results->{kernel_release},
-        os_kernel_version => $results->{kernel_version},
-    };
-
-    $tags->{os_pc_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_var('PUBLIC_CLOUD_BUILD', 0);
-    $tags->{os_pc_kiwi_build} = get_var('PUBLIC_CLOUD_QAM') ? 'N/A' : get_var('PUBLIC_CLOUD_BUILD_KIWI', 0);
-
-    record_info("STORE analyze", 'bootup');
-    # Store values in influx-db
-
-    my $data = {
-        table => 'bootup',
-        tags => $tags,
-        values => $results->{analyze}
-    };
-    my $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
-    return unless ($res);
-
-    record_info("STORE blame", $results->{type});
-    $tags->{boottype} = $results->{type};
-    $data = {
-        table => 'bootup_blame',
-        tags => $tags,
-        values => $results->{blame}
-    };
-    $res = influxdb_push_data($url, $db, $org, $token, $data, proceed_on_failure => 1);
-    return $res;
 }
 
 sub systemd_time_to_second
