@@ -16,17 +16,13 @@ use Test::MockModule;
 use Test::Exception;
 use Test::Warnings;
 use testapi 'set_var';
+use List::Util qw(any);
 
 use publiccloud::azure_client;
 use publiccloud::provider;
 
 sub _unset { for my $k (@_) { set_var($k, undef) } }
 
-subtest '[escape_single_quote] shell-safe single quotes' => sub {
-    is(publiccloud::provider::escape_single_quote('plain'), 'plain', 'no quotes unchanged');
-    is(publiccloud::provider::escape_single_quote(q{it's}), q{it'"'"'s}, 'single quote escaped');
-    is(publiccloud::provider::escape_single_quote(q{a'b'c}), q{a'"'"'b'"'"'c}, 'multiple quotes escaped');
-};
 
 subtest '[terraform_param_tags] json tag structure' => sub {
     my $provider = publiccloud::provider->new();
@@ -92,16 +88,16 @@ subtest '[create_ssh_key] derives algorithm and generates when absent' => sub {
 subtest '[terraform_apply] minimal happy path' => sub {
     set_var('PUBLIC_CLOUD', 1);
     set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
-    set_var('PUBLIC_CLOUD_REGION', 'westeurope');
-    set_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'Standard_B1s');
-    set_var('FLAVOR', 'DVD');
-
+    set_var('PUBLIC_CLOUD_REGION', 'Ferengi');
+    set_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'Romulan');
+    set_var('FLAVOR', 'Talaxian');
+    set_var('OPENQA_URL', 'Xindi');
     my $mock = Test::MockModule->new('publiccloud::provider', no_auto => 1);
-    $mock->redefine($_ => sub { }) for qw(record_info assert_script_run script_retry terraform_prepare_env);
-    $mock->redefine(get_image_uri => sub { '' });
-    $mock->redefine(get_image_id => sub { '' });
-    $mock->redefine(terraform_param_tags => sub { '{}' });
-    $mock->redefine(script_run => sub { 0 });
+    $mock->redefine($_ => sub { '' }) for qw(get_image_uri get_image_id data_url);
+    $mock->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock->redefine(get_current_job_id => sub { return 42; });
+    my @calls;
+    $mock->redefine($_ => sub { push @calls, $_[0]; return 0; }) for qw(assert_script_run script_run script_retry);
     $mock->redefine(script_output => sub {
             return '{"vm_name":{"value":[]},"public_ip":{"value":[]}}' if ($_[0] =~ /output -json/);
             return '';
@@ -113,8 +109,64 @@ subtest '[terraform_apply] minimal happy path' => sub {
 
     is scalar(@instances), 0, 'terraform_apply returns the list of created instances';
     ok $provider->terraform_applied, 'terraform_apply flags the deployment as applied';
+    ok((any { qr/tofu.*$_/ } @calls), "tofu $_ is executed") foreach (qw(init plan apply));
 
-    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR/);
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
 };
+
+subtest '[terraform_apply] vars' => sub {
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    set_var('PUBLIC_CLOUD_REGION', 'Ferengi');
+    set_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'Romulan');
+    set_var('FLAVOR', 'Talaxian');
+    set_var('OPENQA_URL', 'Xindi');
+    my $mock = Test::MockModule->new('publiccloud::provider', no_auto => 1);
+    $mock->redefine($_ => sub { '' }) for qw(get_image_uri get_image_id data_url);
+    $mock->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock->redefine(get_current_job_id => sub { return 42; });
+    my @calls;
+    $mock->redefine($_ => sub { push @calls, $_[0]; return 0; }) for qw(assert_script_run script_run script_retry);
+    $mock->redefine(script_output => sub {
+            return '{"vm_name":{"value":[]},"public_ip":{"value":[]}}' if ($_[0] =~ /output -json/);
+            return '';
+    });
+    Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
+
+    my $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new());
+    my %test_vars;
+    $test_vars{Borg00} = 'ResistanceIsFutile';
+    $test_vars{Borg01} = q{Resistance'IsFutile};
+    $test_vars{Borg10} = q{Resistance'Is'Futile};
+    my @instances = $provider->terraform_apply(vars => \%test_vars);
+
+    # Extract the single recorded call that runs 'tofu ... plan ...'
+    my ($plan_cmd) = grep { /tofu.*plan/ } @calls;
+    ok($plan_cmd, "tofu plan is executed");
+
+    # Split the command into its individual -var arguments. Values may contain
+    # the shell single-quote escape sequence '"'"', so we split on the ' -var '
+    # delimiter rather than trying to match balanced quotes.
+    my @var_args = split(/\s+-var\s+/, $plan_cmd);
+    shift @var_args;    # drop the 'tofu plan -no-color -out myplan' prefix
+
+    # Keep only the Borg* vars we injected, mapping key => escaped value.
+    # Each argument looks like:  'KEY=VALUE'
+    my %borg;
+    for my $arg (@var_args) {
+        my ($key, $val) = $arg =~ /^'([^=]+)=(.*)'\s*$/s;
+        next unless defined $key && $key =~ /^Borg/;
+        $borg{$key} = $val;
+    }
+
+    is($borg{Borg00}, q{ResistanceIsFutile}, 'plain value left unescaped');
+    is($borg{Borg01}, q{Resistance'"'"'IsFutile}, 'single quote escaped');
+    is($borg{Borg10}, q{Resistance'"'"'Is'"'"'Futile}, 'multiple single quotes escaped');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
+};
+
 
 done_testing;
