@@ -41,11 +41,6 @@ sub run {
     my $nfs_options = get_var('NFS_OPTIONS', 'rw,sync,no_root_squash');
     my $nfs_options_async = get_var('NFS_OPTIONS_ASYNC', 'rw,async,no_root_squash');
 
-    # following files are copied on the client side using dd with specific flags: direct, dsync, sync
-    my $file_flag_direct = 'testfile_oflag_direct';
-    my $file_flag_dsync = 'testfile_oflag_dsync';
-    my $file_flag_sync = 'testfile_oflag_sync';
-
     # provision NFS server(s) of various types
     install_package('nfs-kernel-server', trup_apply => 1);
 
@@ -69,7 +64,6 @@ sub run {
     record_info("RPC", script_output("rpcinfo"));
     record_info("NFS config", script_output("cat /etc/sysconfig/nfs"));
 
-    #my $nfsstat = script_output("nfsstat -s");
     record_info("NFS stat for server", script_output("nfsstat -s"));
 
     barrier_wait("NFS_SERVER_ENABLED");
@@ -89,10 +83,10 @@ sub run {
             record_info("NFSv$version checksum", script_output("md5sum -c md5sum.txt"));
             record_info("NFSv$version checksum", script_output("cat md5sum.txt"));
 
-            #check files copied with various flags: direct, dsync, sync
-            compare_checksums($file_flag_direct);
-            compare_checksums($file_flag_dsync);
-            compare_checksums($file_flag_sync);
+            # check files copied with various flags: direct, dsync, sync
+            for my $flag (qw(direct dsync sync)) {
+                compare_checksums("testfile_oflag_$flag");
+            }
         }
     }
 
