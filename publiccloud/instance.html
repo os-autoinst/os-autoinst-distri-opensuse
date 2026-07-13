@@ -32,7 +32,6 @@
       <li><a href="#get_state">get_state</a></li>
       <li><a href="#network_speed_test">network_speed_test</a></li>
       <li><a href="#check_system_boottime">check_system_boottime</a></li>
-      <li><a href="#store_boottime_db">store_boottime_db</a></li>
     </ul>
   </li>
 </ul><h1>lib/publiccloud/instance.pm</h1>
@@ -180,12 +179,6 @@ C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally s
 <pre><code>check_system_boottime();</code></pre>
 
 <p>Check the system boot time, measured by <code>systemd-analyze</code>, to be under a threshold. Assign the threshold in seconds to PUBLIC_CLOUD_BOOTTIME_MAX in test settings. The boot time is saved in a local json structure, then printed in the test&#39;s logs: when the threshold is exceeded the job is stopped. The routine is skipped when the threshold is undefined or zero.</p>
-
-<h2 id="store_boottime_db">store_boottime_db</h2>
-
-<pre><code>store_boottime_db();</code></pre>
-
-<p>Save data collected with measure_boottime in a DB; Mainly stored on a remote InfluxDB on a Grafana server. To activate boottime push, shall be available results and PUBLIC_CLOUD_PERF_PUSH_DATA true/not 0 and _SECRET_PUBLIC_CLOUD_PERF_DB_TOKEN defined</p>
 
 
 </body>
