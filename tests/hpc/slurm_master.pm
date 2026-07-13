@@ -22,6 +22,57 @@ our @all_tests_results;
 
 our $slurm_pkg = get_slurm_version(get_var('SLURM_VERSION', ''));
 
+sub validate_result ($result) {
+    if ($result == 0) {
+        return 'PASS';
+    } elsif ($result == 1) {
+        return 'FAIL';
+    } else {
+        return undef;
+    }
+}
+
+sub generate_results ($name, $description, $result) {
+    my %results = (
+        test => $name,
+        description => $description,
+        result => validate_result($result)
+    );
+    return %results;
+}
+
+sub parse_test_results ($testsuite, $xmlfile, @test) {
+    my $fail_check = 0;
+    for my $i (@test) {
+        if ($i->{result} eq 'FAIL') {
+            $fail_check++;
+        }
+    }
+
+    # Ensure we start with a clean file on SUT
+    script_run("rm -f $xmlfile");
+
+    if ($fail_check > 0) {
+        script_run(qq{echo "<testsuite name='$testsuite' errors='1'>" >> $xmlfile});
+    } else {
+        script_run(qq{echo "<testsuite name='$testsuite'>" >> $xmlfile});
+    }
+
+    # Parse all results and write the junit test cases directly to the SUT
+    for my $i (@test) {
+        if ($i->{result} eq 'FAIL') {
+            script_run("echo \"<testcase name='$i->{test}' errors='1'>\" >> $xmlfile");
+        } else {
+            script_run("echo \"<testcase name='$i->{test}'>\" >> $xmlfile");
+        }
+        script_run("echo \"<system-out>\" >> $xmlfile");
+        script_run("echo \"$i->{description}\" >> $xmlfile");
+        script_run("echo \"</system-out>\" >> $xmlfile");
+        script_run("echo \"</testcase>\" >> $xmlfile");
+    }
+    script_run(qq{echo "</testsuite>" >> $xmlfile});
+}
+
 sub run_tests ($slurm_conf) {
     my $xmlfile = 'testresults.xml';
     assert_script_run("touch $xmlfile");
@@ -40,7 +91,7 @@ sub run_tests ($slurm_conf) {
     }
 
     parse_test_results('HPC slurm tests', $xmlfile, @all_tests_results);
-    parse_extra_log('XUnit', "/tmp/$xmlfile");
+    parse_extra_log('XUnit', $xmlfile);
 }
 
 ########################################
