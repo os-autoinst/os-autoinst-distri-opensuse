@@ -20,14 +20,14 @@ image_to_flash=$2
 # Get hdd size (ignored for SD, but passed as arg from openQA)
 hdd_size=$3
 
-device_link=/dev/disk/by-id/usb-LinuxAut_sd*_HS-SD_MMC_${device_serial}-0:0
+device_link="/dev/disk/by-id/usb-LinuxAut_sd*_HS-SD_MMC_${device_serial}-0:0"
 
 echo "* Switch SD card to flasher"
 usbsdmux /dev/usb-sd-mux/id-$device_serial host
 
 echo "* Wait for kernel to propagate device nodes"
 sleep 5
-while ! [[ -L $device_link ]] ; do
+while ! [ -L $device_link ] ; do
 	sleep 1
 done
 sdX_device=$(readlink -f $device_link)
@@ -42,17 +42,17 @@ set -e
 if [ "$output" == "" ]; then
 	# Copy to SD card
 	echo "** Copy to SD card"
-	du --apparent-size -h -L $image_to_flash
+	du --apparent-size -h -L "$image_to_flash"
 	image_to_flash_extension="${image_to_flash##*.}"
 	if [ "$image_to_flash_extension" == "qcow2" ] ; then
 		qemu-img info $image_to_flash
-		qemu-img dd -f qcow2 -O raw if=$image_to_flash of=$device_link bs=8M
+		qemu-img dd -f qcow2 -O raw if=$image_to_flash of=$sdX_device bs=8M
 	elif [ "$image_to_flash_extension" == "xz" ] ; then
-		xzcat --threads=0 $image_to_flash | dd of=$device_link oflag=sync bs=8M status=progress
+		xzcat --threads=0 $image_to_flash | dd of=$sdX_device oflag=sync bs=8M status=progress
 	elif [ "$image_to_flash_extension" == "gz" ] ; then
-		zcat $image_to_flash | dd of=$device_link oflag=sync bs=8M status=progress
+		zcat $image_to_flash | dd of=$sdX_device oflag=sync bs=8M status=progress
 	else
-		cat $image_to_flash | dd of=$device_link oflag=sync bs=8M status=progress
+		cat $image_to_flash | dd of=$sdX_device oflag=sync bs=8M status=progress
 	fi
 else
 	echo "***** /dev/$sdX_device is mounted, so it is unlikely your target. Please check. *****"
