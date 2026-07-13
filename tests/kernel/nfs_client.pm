@@ -54,9 +54,9 @@ sub run {
         for my $mount ($cfg->{local}, $cfg->{local_async}) {
             assert_script_run("cp testfile md5sum.txt $mount");
 
-            copy_file('direct', $mount, 'testfile_oflag_direct');
-            copy_file('dsync', $mount, 'testfile_oflag_dsync');
-            copy_file('sync', $mount, 'testfile_oflag_sync');
+            for my $flag (qw(direct dsync sync)) {
+                copy_file($flag, $mount, "testfile_oflag_$flag");
+            }
         }
     }
 
