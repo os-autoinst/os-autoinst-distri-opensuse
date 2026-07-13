@@ -123,6 +123,7 @@ IPXE_SET_HDD_BOOTSCRIPT | boolean | false | Upload second IPXE boot script for b
 ISO_MAXSIZE | integer | | Max size of the iso, used in `installation/isosize.pm`.
 IS_MM_SERVER | boolean | | If set, run server-specific part of the multimachine job
 IS_MM_CLIENT | boolean | | If set, run client-specific part of the multimachine job
+JEOS_CHECK_SERIAL | boolean | true | Skip the check weather the JeOS Firstboot wizard shows up on the serial terminal
 K3S_SYMLINK | string | | Can be 'skip' or 'force'. Skips the installation of k3s symlinks to tools like kubectl or forces the creation of symlinks
 K3S_BIN_DIR | string | | If defined, install k3s to this provided directory instead of `/usr/local/bin/`
 K3S_CHANNEL | string | | Set the release channel to pick the k3s version from. Options include "stable", "latest" and "testing"
