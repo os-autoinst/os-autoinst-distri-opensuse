@@ -130,6 +130,7 @@
       <li><a href="#dump_tasktrace">dump_tasktrace</a></li>
       <li><a href="#show_all_disks">show_all_disks</a></li>
       <li><a href="#render_scc_url">render_scc_url</a></li>
+      <li><a href="#query_installed_packages">query_installed_packages</a></li>
     </ul>
   </li>
 </ul><h1>lib/utils.pm</h1>
@@ -980,6 +981,12 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <h2 id="render_scc_url">render_scc_url</h2>
 
 <p>The SCC_URL is always generated from BUILD which might raise issue for image testing which has different BUILD number but still uses the same software repositories used by media from fresh installation. So registration url for image testing needs to be tweaked a bit to also use the same BUILD number as fresh installation, for example, starting from SLES 16.1 which provides transactional pre-built images, these images have different BUILD number but still use SLES 16.1 repositories build of which are reflected in BUILD_SLE.</p>
+
+<h2 id="query_installed_packages">query_installed_packages</h2>
+
+<pre><code>query_installed_packages(packages =&gt; &#39;package1,package2,package3&#39;)</code></pre>
+
+<p>Query whether provided packages are all installed by using &#39;rpm -q&#39;. Return 1 if all packages are already installed or 0 if any of them is not installed. The only argument is packages which accepts list of package names separated by comma.</p>
 
 
 </body>
