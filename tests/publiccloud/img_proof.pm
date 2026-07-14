@@ -16,6 +16,7 @@ use publiccloud::utils qw(is_ondemand is_hardened);
 use publiccloud::ssh_interactive 'select_host_console';
 use File::Basename 'basename';
 use version_utils "is_sle";
+use utils qw(zypper_call);
 
 sub patch_json {
     my ($file) = @_;
@@ -107,13 +108,13 @@ sub run {
         $tests = "test_sles";
     }
 
-    if (get_var('IMG_PROOF_GIT_REPO')) {
-        my $repo = get_required_var('IMG_PROOF_GIT_REPO');
+    if (my $repo = get_var('IMG_PROOF_GIT_REPO')) {
         my $branch = get_required_var('IMG_PROOF_GIT_BRANCH');
-        zypper_call("rm -y python3-img-proof python3-img-proof-tests", exitcode => [0, 104]);
+
+        zypper_call("rm python3-img-proof python3-img-proof-tests", exitcode => [0, 104]);
         assert_script_run "git clone --depth 1 -q --branch $branch $repo";
         assert_script_run "cd img-proof";
-        assert_script_run "python3 setup.py install";
+        assert_script_run "python3.11 setup.py install", 300;
         assert_script_run "cp -r usr/* /usr";
     }
 
