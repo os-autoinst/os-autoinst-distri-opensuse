@@ -112,20 +112,20 @@ subtest '[_prepare_ssh_cmd] dies without cmd' => sub {
     throws_ok { $inst->_prepare_ssh_cmd() } qr/No command defined/, 'missing cmd dies';
 };
 
-subtest '[_apply_cmd_timeout] wraps with timeout when ignore_timeout_failure' => sub {
+subtest '[_wrap_timeout] wraps with timeout when apply_graceful_timeout' => sub {
     my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
 
-    my %args = (timeout => 100, ignore_timeout_failure => 1);
+    my %args = (timeout => 100, apply_graceful_timeout => 1);
     my $ssh_cmd = 'ssh foo';
-    $inst->_apply_cmd_timeout(\%args, \$ssh_cmd);
+    $inst->_wrap_timeout(\%args, \$ssh_cmd);
     like($ssh_cmd, qr/^timeout --foreground -k 10s 100 ssh foo$/, 'wrapped in timeout call');
     is($args{timeout}, 120, 'script_run timeout bumped by 20s buffer');
-    ok(!exists $args{ignore_timeout_failure}, 'ignore_timeout_failure consumed');
+    ok(!exists $args{apply_graceful_timeout}, 'apply_graceful_timeout consumed');
 
     # Without the flag: no wrapping
     my %args2 = (timeout => 50);
     my $ssh_cmd2 = 'ssh bar';
-    $inst->_apply_cmd_timeout(\%args2, \$ssh_cmd2);
+    $inst->_wrap_timeout(\%args2, \$ssh_cmd2);
     is($ssh_cmd2, 'ssh bar', 'command untouched when flag not set');
     is($args2{timeout}, 50, 'timeout unchanged when flag not set');
 };

@@ -173,7 +173,7 @@ sub run_cmd_retry {
     my $ret = 0;
 
     for (1 .. $retry) {
-        $ret = eval { $self->run_cmd(timeout => $timeout, ignore_timeout_failure => 1, %args); };
+        $ret = eval { $self->run_cmd(timeout => $timeout, apply_graceful_timeout => 1, %args); };
         # If we want return code, then retry until the command succeeds,
         # if we want output, then retry until we can get the output.
         if ($args{rc_only}) {
@@ -439,7 +439,7 @@ sub wait_hana_node_up {
             my $failed_service = $instance->ssh_script_output(cmd => 'sudo systemctl --failed', timeout => 600, proceed_on_failure => 1);
             if ($out =~ /degraded/ && $failed_service =~ /guestregister/) {
                 record_soft_failure('bsc#1238152 - Restart guestregister service');
-                $instance->ssh_script_run(cmd => 'sudo systemctl restart guestregister.service', timeout => 600, ignore_timeout_failure => 1);
+                $instance->ssh_script_run(cmd => 'sudo systemctl restart guestregister.service', timeout => 600, apply_graceful_timeout => 1);
             }
         }
         record_info('WAIT_FOR_SYSTEM', "System state: $out");
@@ -1554,7 +1554,7 @@ sub wait_for_zypper {
     while ($retry < $args{max_retries}) {
         my $ret = $args{instance}->ssh_script_run(cmd => 'sudo zypper ref',
             username => $args{runas},
-            ignore_timeout_failure => 1,
+            apply_graceful_timeout => 1,
             quiet => 1,
             timeout => $args{timeout});
         if ($ret == 7) {
@@ -1591,7 +1591,7 @@ sub check_zypper_ref {
 
     my $ret = $self->{my_instance}->ssh_script_run(cmd => 'sudo zypper ref',
         username => $args{runas},
-        ignore_timeout_failure => 1,
+        apply_graceful_timeout => 1,
         quiet => 1,
         timeout => $args{timeout});
     if ($ret == 4) {

@@ -43,7 +43,7 @@ sub upload_final_logs {
 
     my @instance_logs = ('/var/log/cloudregister', '/etc/hosts', '/var/log/zypper.log', '/etc/zypp/credentials.d/SCCcredentials');
     for my $instance_log (@instance_logs) {
-        $instance->ssh_script_run("sudo chmod a+r " . $instance_log, quiet => 1, ignore_timeout_failure => 1);
+        $instance->ssh_script_run("sudo chmod a+r " . $instance_log, quiet => 1, apply_graceful_timeout => 1);
         $instance->upload_log($instance_log, failok => 1, log_name => $instance_log . ".txt");
     }
     $instance->upload_supportconfig_log();
