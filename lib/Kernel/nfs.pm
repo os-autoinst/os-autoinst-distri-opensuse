@@ -8,7 +8,7 @@ use Exporter 'import';
 use strict;
 use warnings;
 use testapi;
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed);
 
 our @EXPORT = qw(
   create_export
@@ -46,7 +46,8 @@ sub create_export {
   get_nfs_versions();
 
 Returns the list of NFS versions (e.g. C<3>, C<4.0>, C<4.1>, C<4.2>) that
-should be tested on the current SUT.
+should be tested on the current SUT. NFS 4.0 is left out on Tumbleweed,
+whose kernel dropped C<CONFIG_NFS_V4_0> support.
 
 Can be overridden with the C<NFS_VERSIONS> openQA variable (comma-separated
 list, takes precedence over everything else), or narrowed down with
@@ -65,10 +66,16 @@ sub get_nfs_versions {
 
     my @skip_versions = split(/,/, get_var('NFS_VERSIONS_SKIP', ''));
 
+    # Tumbleweed's kernel dropped CONFIG_NFS_V4_0, keeping only 4.1/4.2
+    push @skip_versions, '4.0' if is_tumbleweed;
+
     my @result;
     for my $version (@versions) {
-        next if grep { $_ eq $version } @skip_versions;
-        push @result, $version;
+        my $skip = 0;
+        for my $skip_version (@skip_versions) {
+            $skip = 1 if $skip_version eq $version;
+        }
+        push @result, $version unless $skip;
     }
 
     return @result;

@@ -70,7 +70,8 @@ sub server {
 
 sub client {
     my ($self) = @_;
-    my $cfg = nfs_mount_config('4.0');
+    my @nfs_versions = get_nfs_versions();
+    my $cfg = nfs_mount_config($nfs_versions[-1]);
     my $stressor_timeout = get_var('NFS_STRESS_NG_TIMEOUT') // 3;
     my $exclude = get_var('NFS_STRESS_NG_EXCLUDE');
     # allow to override the default exports
@@ -193,21 +194,13 @@ workload completes.
 Required. Set to C<nfs_client> or C<nfs_server> to select the node's role
 in the multi-machine scenario.
 
-=head2 NFS_LOCAL_NFS4_0
-
-Client-side mountpoint for the NFSv4.0 synchronous export used as the default
-stress-ng target. Defaults to C</var/lib/nfs-tests/localNFS4_0>. See
-L<Kernel::nfs/nfs_mount_config>.
-
-=head2 NFS_LOCAL_NFS4_0_ASYNC
-
-Client-side mountpoint for the NFSv4.0 asynchronous export used as the default
-stress-ng target. Defaults to C</var/lib/nfs-tests/localNFS4_0async>.
-
 =head2 NFS_STRESS_EXPORTS
 
 Comma-separated list of client-side mount points where C<stress-ng> will be
-executed, overriding the C<NFS_LOCAL_NFS4_0> and C<NFS_LOCAL_NFS4_0_ASYNC> defaults.
+executed, overriding the default of the synchronous and asynchronous mounts
+for the highest NFS version returned by L<Kernel::nfs/get_nfs_versions>
+(see also L<Kernel::nfs/nfs_mount_config> for the C<NFS_LOCAL_NFS*>
+variables that control those default paths).
 
 =head2 NFS_STRESS_NG_TIMEOUT
 
