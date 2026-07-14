@@ -15,7 +15,7 @@
   <li>
     <ul>
       <li><a href="#retry_ssh_command">retry_ssh_command</a></li>
-      <li><a href="#apply_cmd_timeout-_apply_cmd_timeout-args-ssh_cmd---wraps-ssh_cmd-within-timeout-call-which-will-make-sure-graceful-and-unconditional-interruption-after-defined-period-of-time">_apply_cmd_timeout _apply_cmd_timeout($args, $ssh_cmd) - wraps $ssh_cmd within timeout call which will make sure graceful and unconditional interruption after defined period of time</a></li>
+      <li><a href="#wrap_timeout-_wrap_timeout-args-ssh_cmd---wraps-ssh_cmd-within-timeout-call-which-will-make-sure-graceful-and-unconditional-interruption-after-defined-period-of-time">_wrap_timeout _wrap_timeout($args, $ssh_cmd) - wraps $ssh_cmd within timeout call which will make sure graceful and unconditional interruption after defined period of time</a></li>
       <li><a href="#ssh_script_run">ssh_script_run</a></li>
       <li><a href="#ssh_assert_script_run">ssh_assert_script_run</a></li>
       <li><a href="#ssh_script_output">ssh_script_output</a></li>
@@ -44,7 +44,7 @@
 
 <p>This function is deprecated. Please use ssh_script_retry instead.</p>
 
-<h2 id="apply_cmd_timeout-_apply_cmd_timeout-args-ssh_cmd---wraps-ssh_cmd-within-timeout-call-which-will-make-sure-graceful-and-unconditional-interruption-after-defined-period-of-time">_apply_cmd_timeout _apply_cmd_timeout($args, $ssh_cmd) - wraps $ssh_cmd within timeout call which will make sure graceful and unconditional interruption after defined period of time</h2>
+<h2 id="wrap_timeout-_wrap_timeout-args-ssh_cmd---wraps-ssh_cmd-within-timeout-call-which-will-make-sure-graceful-and-unconditional-interruption-after-defined-period-of-time">_wrap_timeout _wrap_timeout($args, $ssh_cmd) - wraps $ssh_cmd within timeout call which will make sure graceful and unconditional interruption after defined period of time</h2>
 
 <pre><code>C&lt;args&gt; - reference to args hash. it is important to pass reference so function can modify timeout passed to script_run by the caller
             to make sure it is bigger than value defined in timeout command which suppose to kill what script_run needs to execute
@@ -53,22 +53,24 @@ C&lt;ssh_cmd&gt; - reference to string containing command which will be executed
 
 <h2 id="ssh_script_run">ssh_script_run</h2>
 
-<pre><code>ssh_script_run($cmd [, timeout =&gt; $timeout] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username][, ignore_timeout_failure =&gt; $ignore_timeout_failure])
+<pre><code>ssh_script_run($cmd [, timeout =&gt; $timeout] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username][, apply_graceful_timeout =&gt; $apply_graceful_timeout])
 
 C&lt;timeout&gt; - TTL for command execution measured in seconds . After that period of time execution will be aborded
 C&lt;quiet&gt; - avoid recording serial_results ( value pass to script_run call)
 C&lt;ssh_opts&gt; - additional ssh options passed to ssh
 C&lt;username&gt; - username used for ssh tunnel
-C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally script_run will die. Setting this parameter to true
+C&lt;apply_graceful_timeout&gt; - in case waiting longer than timeout normally script_run will die. Setting this parameter to true
     will avoid such failure</code></pre>
 
-<p>Runs a command <code>cmd</code> via ssh on the publiccloud instance and returns the return code.</p>
+<p>Runs a command <code>cmd</code> via ssh on the publiccloud instance and returns the return code, using testapi::script_run.</p>
 
 <h2 id="ssh_assert_script_run">ssh_assert_script_run</h2>
 
-<pre><code>ssh_assert_script_run($cmd [, timeout =&gt; $timeout] [, fail_message =&gt; $fail_message] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username])</code></pre>
+<pre><code>ssh_assert_script_run($cmd [, timeout =&gt; $timeout] [, fail_message =&gt; $fail_message] [,quiet =&gt; $quiet] [,ssh_opts =&gt; $ssh_opts] [,username =&gt; $username][, apply_graceful_timeout =&gt; $apply_graceful_timeout])</code></pre>
 
-<p>Runs a command <code>cmd</code> via ssh on the publiccloud instance and die, unless it returns zero.</p>
+<p>Runs a command <code>cmd</code> via ssh on the publiccloud instance and die on error.</p>
+
+<p>Use the parameters of ssh_script_run.</p>
 
 <h2 id="ssh_script_output">ssh_script_output</h2>
 
@@ -84,7 +86,7 @@ C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally s
 
 <h2 id="scp">scp</h2>
 
-<pre><code>scp($from, $to [, timeout =&gt; 90] [, proceed_on_failure =&gt; 0]);</code></pre>
+<pre><code>scp($from, $to [, timeout =&gt; 90] [, proceed_on_failure =&gt; 0][, apply_graceful_timeout =&gt; $apply_graceful_timeout]);</code></pre>
 
 <p>Copy a file to or from this instance using <code>scp</code>.</p>
 
@@ -97,6 +99,8 @@ C&lt;ignore_timeout_failure&gt; - in case waiting longer than timeout normally s
 <p><code>timeout</code> - maximum time in seconds allowed for the scp command. Defaults to <code>SSH_TIMEOUT</code> (90 seconds).</p>
 
 <p><code>proceed_on_failure</code> - when set to a true value a failing scp does not abort the test: the command is run via <code>script_run</code> and only an informational message is recorded. When false (the default) the copy is run via <code>assert_script_run</code> so a failure dies. Defaults to <code>0</code>.</p>
+
+<p><code>apply_graceful_timeout</code> - same parameter as ssh_script_run.</p>
 
 <p>Any <code>-E &lt;file</code>&gt; logging options present in <code>$instance-&gt;ssh_opts</code> are stripped, because <code>scp</code> does not accept them.</p>
 
