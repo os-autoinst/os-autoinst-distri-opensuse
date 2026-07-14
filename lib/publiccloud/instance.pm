@@ -70,7 +70,6 @@ sub _prepare_ssh_cmd {
     die('No command defined') unless ($args{cmd});
     $args{ssh_opts} //= $self->ssh_opts();
     $args{username} //= $self->username();
-    $args{timeout} //= SSH_TIMEOUT;
 
     my $cmd = $args{cmd};
     $cmd =~ s/'/\\'/g;
@@ -242,7 +241,6 @@ and to upload a local I</tmp/foo> to the instance home directory:
 
 sub scp {
     my ($self, $from, $to, %args) = @_;
-    $args{timeout} //= SSH_TIMEOUT;
     $args{proceed_on_failure} //= 0;
 
     my $url = sprintf('%s@%s:', $self->username, $self->public_ip);
