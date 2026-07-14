@@ -35,16 +35,18 @@ sub browse_with_keyboard {
 
 # Install tomcat and set initial configuration
 sub tomcat_setup() {
-    # log in to root console
-    select_console('root-console');
+    my ($self, $version) = @_;
+    $version //= '';    # default version is tomcat9
+    select_console('root-console');    # log in to root console
 
     record_info('Initial Setup');
     # we need to disable packagekit because it can block zypper sometimes later
     quit_packagekit if is_sle;
 
-    zypper_call('in tomcat tomcat-webapps tomcat-admin-webapps', timeout => 300);
+    my $tomcat = 'tomcat' . $version;
+    zypper_call("in $tomcat ${tomcat}-webapps ${tomcat}-admin-webapps", timeout => 300);
     zypper_call('in libtcnative-2-0') if is_sle('>=15-sp4');
-    assert_script_run('rpm -q tomcat');
+    assert_script_run("rpm -q $tomcat");
 
     # start the tomcat daemon and check that it is running
     systemctl('start tomcat');

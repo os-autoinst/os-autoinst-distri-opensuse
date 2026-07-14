@@ -28,7 +28,7 @@ sub run() {
     my ($self) = shift;
     # install and configure tomcat in console
     turn_off_screensaver;
-    Tomcat::Utils->tomcat_setup();
+    Tomcat::Utils->tomcat_setup(get_var('TOMCAT_VER', ''));
 
     # verify that the tomcat manager works
     Tomcat::Utils->tomcat_manager_test();
