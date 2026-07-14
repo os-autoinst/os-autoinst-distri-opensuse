@@ -15,22 +15,6 @@ use version_utils 'is_sle';
 use registration;
 use serial_terminal;
 
-# allow a 60 second timeout for asserting needles
-use constant TIMEOUT => 90;
-
-# Use keyboard to browse the examples faster
-sub browse_with_keyboard {
-    my ($self, $fallback_needle, $test_func, $tab_num) = @_;
-
-    assert_screen($fallback_needle, TIMEOUT);
-    for (1 .. $tab_num) { send_key('tab'); }
-    send_key('ctrl-ret');
-    send_key('ctrl-tab');
-
-    $test_func->();
-    send_key('ctrl-w');
-}
-
 # Install tomcat and set initial configuration
 sub tomcat_setup() {
     my ($self, $version) = @_;
@@ -81,7 +65,6 @@ sub tomcat_setup() {
         systemctl('restart tomcat');
     }
 }
-
 
 # Check Servlet, JSP and Websocket, the example files can be accessed, login with admin via tomcat manager
 sub tomcat_manager_test() {
