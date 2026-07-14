@@ -292,7 +292,8 @@ subtest '[destroy_orphaned_peerings]' => sub {
     $mock_function->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $mock_function->redefine(az_network_peering_delete => sub { return; });
     $mock_function->redefine(az_network_vnet_get => sub { return ['Zabi-VNET']; });
-    $mock_function->redefine(az_group_exists => sub { return 'true' if grep /^existing$/, @_; return 'false' });
+    $mock_function->redefine(az_group_exists => sub { return $JSON::PP::true if grep /^existing$/, @_;
+            return $JSON::PP::false });
     $mock_function->redefine(az_network_peering_list => sub { return [
                 {"workload_resource_group" => "existing", "peering_name" => "Iron_blooded_orphans"},
                 {"workload_resource_group" => "existing", "peering_name" => "EarthFederation"}];
