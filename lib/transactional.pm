@@ -161,7 +161,11 @@ sub process_reboot {
     }
 
     # Switch to the previous console
-    select_console $prev_console;
+    # Skip if already on root-console: after a soft reboot select_console 'root-console' was
+    # already called above (line 158) and calling it again triggers a race condition on aarch64
+    # where the tty is not yet fully initialised, causing a "no candidate needle" failure.
+    # See https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/25771 and poo#202980.
+    select_console $prev_console unless ($prev_console eq 'root-console');
 }
 
 # Reboot if there's a diff between the current FS and the new snapshot
