@@ -389,6 +389,7 @@ PUBLIC_CLOUD_QAM | boolean | false |  1 : to identify jobs running to test "Main
 PUBLIC_CLOUD_REBOOT_TIMEOUT | integer | 600 | Number of seconds we wait for instance to reboot.
 PUBLIC_CLOUD_REDOWNLOAD_MU | boolean | false | Debug variable used to redownload the maintenance repositories (as they might be downloaded by parent test)
 PUBLIC_CLOUD_REGION | string | "" | The region to use. (default-azure: westeurope, default-ec2: eu-central-1, default-gcp: europe-west1-b). In `upload-img` for Azure Arm64 images, multiple comma-separated regions are supported (see `lib/publiccloud/azure.pm`)
+PUBLIC_CLOUD_ALTERNATE_REGIONS | string | "" | Comma-separated list of fallback regions. If the deployment in `PUBLIC_CLOUD_REGION` fails because the region has no resources available for the requested instance type, `provider::terraform_apply` retries the deployment in each of these regions in order. Any other kind of failure fails immediately (poo#202446).
 PUBLIC_CLOUD_REGISTRATION_TESTS | boolean | false | If set, only the registration tests are added to the job.
 PUBLIC_CLOUD_RESOURCE_GROUP | string | "qesaposd" | Allows to specify resource group name on SLES4SAP PC tests.
 PUBLIC_CLOUD_RESOURCE_NAME | string | "openqa-vm" | The name we use when creating our VM.
