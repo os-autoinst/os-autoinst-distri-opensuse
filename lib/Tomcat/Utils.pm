@@ -40,7 +40,7 @@ sub tomcat_setup() {
     }
 
     # check that tomcat is listening on port 8080
-    assert_script_run('lsof -i :8080 | grep tomcat');
+    wait_for_port(":8080", process => "java");
 
     # create manager-gui role
     assert_script_run('curl -v -o /etc/tomcat/tomcat-users.xml ' .
@@ -58,7 +58,7 @@ sub tomcat_setup() {
         assert_script_run('chmod 644 /etc/tomcat/localhost.crt');
         systemctl('restart tomcat');
         # check that tomcat is listening on port 8443
-        assert_script_run('lsof -i :8443 | grep tomcat');
+        wait_for_port(":8443", process => "java");
     }
     else {
         # restart tomcat in order to take into account new role
