@@ -29,6 +29,7 @@
       <li><a href="#on_terraform_apply_timeout">on_terraform_apply_timeout</a></li>
       <li><a href="#on_terraform_destroy_failure">on_terraform_destroy_failure</a></li>
       <li><a href="#terraform_prepare_env">terraform_prepare_env</a></li>
+      <li><a href="#region_out_of_resources">region_out_of_resources</a></li>
       <li><a href="#terraform_apply">terraform_apply</a></li>
       <li><a href="#terraform_destroy">terraform_destroy</a></li>
       <li><a href="#terraform_param_tags">terraform_param_tags</a></li>
@@ -116,6 +117,14 @@ Returns a string-name containing distri, version, flavor, arch.</code></pre>
 <h2 id="terraform_prepare_env">terraform_prepare_env</h2>
 
 <p>This method is used to initialize the terraform environment. it is executed only once, guareded by `terraform_env_prepared` member.</p>
+
+<h2 id="region_out_of_resources">region_out_of_resources</h2>
+
+<pre><code>my $bool = $self-&gt;region_out_of_resources($terraform_output);</code></pre>
+
+<p>Return true if the given terraform <code>apply</code> output indicates that the current region has no resources available to fulfil the request for the selected instance type (e.g. STOCKOUT on GCE, <code>InsufficientInstanceCapacity</code> on EC2 or <code>SkuNotAvailable</code>/<code>AllocationFailed</code> on Azure).</p>
+
+<p>It is used by <a href="#terraform_apply">&quot;terraform_apply&quot;</a> to decide whether it is worth retrying the deployment in one of the <code>PUBLIC_CLOUD_ALTERNATE_REGIONS</code> (poo#202446, AC2). Any other kind of error must fail immediately, so it returns false for them.</p>
 
 <h2 id="terraform_apply">terraform_apply</h2>
 
