@@ -24,7 +24,6 @@ Library to compose and run Azure cli commands
 =cut
 
 our @EXPORT = qw(
-  $SDAF_Azure_podman_flake_filter
   az_version
   az_group_create
   az_group_name_get
@@ -196,9 +195,7 @@ sub az_group_delete(%args) {
 
     az_group_exists(name => 'resource group name' [, quiet=>'pssst!']);
 
-Check if specified resource group exists.
-Returns whatever 'az group exist' is returning
-that usually is string B<true> or B<false>.
+Returns non-empty value if resource group exists, otherwise B<undef>
 
 =over
 
@@ -211,7 +208,11 @@ that usually is string B<true> or B<false>.
 
 sub az_group_exists(%args) {
     croak "Missing mandatory argument: 'name'" unless $args{name};
-    return script_output("az group exists --resource-group $args{name} $SDAF_Azure_podman_flake_filter", quiet => $args{quiet});
+    my $cmd = "az group exists --resource-group $args{name} $SDAF_Azure_podman_flake_filter";
+    my $out = script_output($cmd, quiet => $args{quiet});
+    die "Command '$cmd' failed.\nCommand returned: $out" unless $out =~ /(true|false)/i;
+    return undef if $out =~ /false/i;
+    return $out;
 }
 
 =head2 az_network_vnet_create

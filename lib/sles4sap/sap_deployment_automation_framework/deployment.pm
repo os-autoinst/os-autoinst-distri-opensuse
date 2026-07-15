@@ -770,28 +770,6 @@ sub prepare_sdaf_project {
     assert_script_run("mkdir -p $_") foreach @create_workspace_dirs;
 }
 
-=head2 resource_group_exists
-
-    resource_group_exists($resource_group);
-
-Checks if resource group exists. Function accepts only full resource name.
-Croaks if command does not return true/false value.
-
-=over
-
-=item * B<$resource_group>: Resource group name to check
-
-=back
-=cut
-
-sub resource_group_exists {
-    my ($resource_group) = @_;
-    croak 'Mandatory positional argument "$resource_group" not defined.' unless $resource_group;
-
-    my $cmd_out = script_output("az group exists -n $resource_group $SDAF_Azure_podman_flake_filter");
-    die "Command 'az group exists -n $resource_group' failed.\nCommand returned: $cmd_out" unless grep /false|true/, $cmd_out;
-    return ($cmd_out eq 'true');
-}
 
 =head2 sdaf_execute_remover
 
@@ -876,8 +854,9 @@ sub sdaf_cleanup {
     my %result;
     # Sap system needs to be destroyed before workload zone so order matters here.
     for my $deployment_type ('sap_system', 'workload_zone') {
-        my $resource_group = resource_group_exists(generate_resource_group_name(deployment_type => $deployment_type));
-        unless ($resource_group) {
+        my $group_exists = az_group_exists(
+            name => generate_resource_group_name(deployment_type => $deployment_type));
+        unless ($group_exists) {
             record_info('Cleanup skip', "Resource group for deployment type '$deployment_type' does not exist. Skipping cleanup");
             next;
         }

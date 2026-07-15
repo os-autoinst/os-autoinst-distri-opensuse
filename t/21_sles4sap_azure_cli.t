@@ -1430,15 +1430,24 @@ subtest '[az_keyvault_secret_show] Calling with "name" and "vault_name" argument
 subtest '[az_group_exists] Compose command' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return 'Arlecchino'; });
-
-    my $ret = az_group_exists(name => 'Pantalone');
-
+    $azcli->redefine(script_output => sub { @calls = $_[0]; return 'true'; });
+    az_group_exists(name => 'Pantalone');
     note("\n --> " . join("\n --> ", @calls));
     ok((any { /az group exists/ } @calls), 'Correct composition of the main command');
     ok((grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"'), 'Correct argument about resource group name');
-    ok(($ret eq 'Arlecchino'), "Correct return code: expect 'Arlecchino' get '$ret'");
 };
+
+
+subtest '[az_group_exists] Test return values' => sub {
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(script_output => sub { return 'true'; });
+    ok((az_group_exists(name => 'Pantalone') eq 'true'), 'Return "true" if group exists');
+    $azcli->redefine(script_output => sub { return 'false'; });
+    ok(!az_group_exists(name => 'Pantalone'), 'Return "undef" if group does not exist');
+    $azcli->redefine(script_output => sub { return 'Arlecchino'; });
+    dies_ok { az_group_exists(name => 'Pantalone') } 'Fail with incorrect command output.';
+};
+
 
 subtest '[az_nic_list] Compose command' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
