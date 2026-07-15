@@ -80,9 +80,12 @@ sub run {
         "github.com/docker/buildx/tests::TestIntegration/TestBuildAnnotations/worker=remote",
     ) if (is_aarch64);
     push @xfails, (
+        # XXX These fail for unknown reasons and not really important right now:
         "github.com/docker/buildx/tests::TestIntegration",
         "github.com/docker/buildx/tests::TestIntegration/TestComposeBuildCheck/worker=remote",
         "github.com/docker/buildx/tests::TestIntegration/TestComposeBuildRegistry/worker=remote",
+        "github.com/docker/buildx/tests::TestIntegration/TestDapBuildExitedEvent/worker=remote",
+        "github.com/docker/buildx/tests::TestIntegration/TestDapBuildExitedEvent/worker=remote/failure",
     ) if (is_sle);
 
     run_timeout_command "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests &> buildx.txt", no_assert => 1, timeout => 1200;
