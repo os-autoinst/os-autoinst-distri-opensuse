@@ -36,6 +36,8 @@ sub run {
     select_console 'root-console';
 
     my $test_data = get_test_suite_data();
+    die("No test data available, check 'YAML_TEST_DATA' is defined either in the test schedule or by test settings") if (!defined($test_data->{mds}));
+
     my ($mdadm_output, $mdadm_cfg);
 
     foreach my $md (@{$test_data->{mds}}) {
