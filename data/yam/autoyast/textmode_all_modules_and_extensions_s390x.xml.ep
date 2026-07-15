@@ -79,11 +79,6 @@
         <version>{{VERSION}}</version>
         <arch>{{ARCH}}</arch>
       </addon>
-      <addon>
-        <name>PackageHub</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
     </addons>
   </suse_register>
   <general>

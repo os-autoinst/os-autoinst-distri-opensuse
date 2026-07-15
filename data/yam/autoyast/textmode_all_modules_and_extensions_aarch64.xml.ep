@@ -80,11 +80,6 @@
         <arch>{{ARCH}}</arch>
       </addon>
       <addon>
-        <name>PackageHub</name>
-        <version>{{VERSION}}</version>
-        <arch>{{ARCH}}</arch>
-      </addon>
-      <addon>
         <name>sle-module-NVIDIA-compute</name>
         <version>15</version>
         <arch>{{ARCH}}</arch>
