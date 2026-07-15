@@ -115,6 +115,7 @@ Returns test data parsed from the yaml file.
 =cut
 
 sub get_test_suite_data {
+    die("No test data available, check that either YAML_TEST_DATA is defined or that the schedule contains test_data") unless keys %{$test_suite_data};
     return $test_suite_data;
 }
 
