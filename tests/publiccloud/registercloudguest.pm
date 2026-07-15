@@ -92,7 +92,12 @@ sub run {
             }
 
             if ($instance->ssh_script_run(cmd => 'sudo test -s /var/log/cloudregister') == 0) {
-                die('/var/log/cloudregister is not empty');
+                my $log_content = $instance->ssh_script_output(cmd => 'sudo cat /var/log/cloudregister');
+                if ($log_content =~ /check_payg_byos.*Successful server query: BYOS/s) {
+                    record_info('guestregister BYOS check', 'guestregister ran a BYOS/PAYG detection on boot and confirmed BYOS. No registration occurred.');
+                } else {
+                    die('/var/log/cloudregister is not empty');
+                }
             }
             rotate_cloudregister_log($instance);
             $instance->ssh_assert_script_run(cmd => '! sudo SUSEConnect -d', fail_message => 'SUSEConnect succeeds but it is not supported should fail on BYOS');
