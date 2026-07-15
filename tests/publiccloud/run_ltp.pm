@@ -130,7 +130,16 @@ sub upload_ltp_logs
     my $log_file = Mojo::File::path('ulogs/results.json');
 
     record_info('LTP Logs', 'upload');
-    upload_logs("/tmp/kirk.\$USER/latest/results.json", log_name => $log_file->basename, failok => 1);
+    # kirk only writes results.json when the session collected results. On an
+    # aborted run (e.g. an SSH drop mid-suite raising a KirkException, kirk exits
+    # 1) the file is never created, so a blind upload emits a confusing
+    # "curl: (26) Failed to open/read local data" line. Guard the upload and
+    # note the absence instead. See poo#203316.
+    if (script_run('test -e /tmp/kirk.$USER/latest/results.json') == 0) {
+        upload_logs("/tmp/kirk.\$USER/latest/results.json", log_name => $log_file->basename, failok => 1);
+    } else {
+        record_info('No results.json', 'kirk did not produce results.json (run likely aborted); skipping upload', result => 'softfail');
+    }
     upload_logs("/tmp/kirk.\$USER/latest/debug.log", log_name => 'debug.txt', failok => 1);
 
     return unless -e $log_file->to_string;
