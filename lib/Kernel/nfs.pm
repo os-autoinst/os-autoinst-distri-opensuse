@@ -3,7 +3,7 @@
 
 package Kernel::nfs;
 
-use Exporter;
+use Exporter 'import';
 
 use strict;
 use warnings;
