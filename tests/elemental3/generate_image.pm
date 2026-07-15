@@ -45,7 +45,7 @@ sub build_installer_cmd {
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => $args{rootpwd}
+        '%TEST_PASSWORD%' => "$args{rootpwd}"
     );
     assert_script_run("chmod 755 $config_file");
 
@@ -77,12 +77,6 @@ release-manifest.
 
 =cut
 
-# Encode Internal SUSE CA:
-# base64 -w0 /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem
-
-# Extract files/subdirs from a directory
-# assert_script_run 'curl ' . data_url('console/ansible/') . ' | cpio -id';
-
 sub customize_cmd {
     my (%args) = @_;
     my $crypto_policy = get_var('CRYPTO_POLICY');
@@ -108,50 +102,62 @@ sub customize_cmd {
     file_content_replace(
         "$args{config_dir}/butane.yaml",
         '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => $args{rootpwd},
-        '%K8S%' => $args{k8s}
+        '%TEST_PASSWORD%' => "$args{rootpwd}",
+        '%K8S%' => "$args{k8s}"
     );
     file_content_replace(
         "$args{config_dir}/install.yaml",
         '--sed-modifier' => 'g',
-        '%CRYPTO_POLICY%' => $crypto_policy,
-        '%HDDSIZE%' => $initial_hddsize,
-        '%INSTALL_DISK%' => $device,
-        '%KERNEL_CMD_LINE%' => $krnlcmdline
+        '%CRYPTO_POLICY%' => "$crypto_policy",
+        '%HDDSIZE%' => "$initial_hddsize",
+        '%INSTALL_DISK%' => "$device",
+        '%KERNEL_CMD_LINE%' => "$krnlcmdline"
     );
     file_content_replace(
         "$args{config_dir}/release.yaml",
         '--sed-modifier' => 'g',
-        '%RELEASE_MANIFEST_URI%' => $args{manifest_uri},
-        '%K8S%' => $args{k8s}
+        '%RELEASE_MANIFEST_URI%' => "$args{manifest_uri}",
+        '%K8S%' => "$args{k8s}"
     );
-    if (check_var('TESTED_CMD', 'customize_recovery')) {
+
+    if ($args{template} =~ m/recovery/) {
         file_content_replace(
             "$args{config_dir}/custom/scripts/50-firstboot.sh",
             '--sed-modifier' => 'g',
-            '%INSTALL_DISK%' => $device,
+            '%INSTALL_DISK%' => "$device"
         );
-    }
-
-    if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/) {
-        # K8s configuration file
-        assert_script_run(
-            "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
-              . data_url('elemental3/cluster.yaml'));
-
-        # For single-node
-        if (check_var('CLUSTER_TYPE', 'singlenode')) {
-            # Keep configuration for first node only
+    } else {
+        if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/) {
+            # K8s configuration file
             assert_script_run(
-                "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $args{config_dir}/kubernetes/cluster.yaml"
+                "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
+                  . data_url('elemental3/cluster.yaml')
+            );
+
+            # For single-node
+            if (check_var('CLUSTER_TYPE', 'singlenode')) {
+                # Keep configuration for first node only
+                assert_script_run(
+                    "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $args{config_dir}/kubernetes/cluster.yaml"
+                );
+            }
+        } else {
+            # Remove k8s-preinstall service, as this is only useful
+            # for the single-node and multi-node tests
+            assert_script_run("rm -rf $args{config_dir}/network");
+            assert_script_run(
+                "sed -i '/name: k8s-preinstall.service/,\$d' $args{config_dir}/butane.yaml"
             );
         }
-    }
-    else {
-        # Only useful for the single-node and multi-node tests
-        assert_script_run("rm -rf $args{config_dir}/network");
+
+        # We need to add SUSE CA into generated OS image,
+        # as Dev artifacts does not have the standard CA
+        # NOTE: we can't use file_content_replace here as the
+        # CA line has too much characters, so the function fails
+        my $ca = '/usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem';
+        my $ca_cmd = "printf '%0.1s' ' '{1..4}; base64 -w0 $ca";
         assert_script_run(
-            "sed -i '/name: k8s-preinstall.service/,\$d' $args{config_dir}/butane.yaml"
+            "($ca_cmd) >> $args{config_dir}/kubernetes/manifests/internal-suse-ca.yaml"
         );
     }
 
@@ -172,8 +178,10 @@ sub customize_cmd {
         );
 
         # Extend HDD image to needed size
-        assert_script_run("qemu-img resize ./$out $args{hddsize}G",
-            timeout => $args{timeout});
+        assert_script_run(
+            "qemu-img resize ./$out $args{hddsize}G",
+            timeout => $args{timeout}
+        );
     }
     elsif ($type =~ m/iso/) {
         assert_script_run("mv $args{config_dir}/uc_image.$type '$out'");
@@ -234,7 +242,7 @@ sub install_cmd {
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => $args{rootpwd}
+        '%TEST_PASSWORD%' => "$args{rootpwd}"
     );
     assert_script_run("chmod 755 $config_file");
 
