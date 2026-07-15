@@ -223,6 +223,10 @@ sub check_jeos_on_serial_terminal {
         record_soft_failure("bsc#1260359 - No serial terminal on ppc64le");
         return;
     }
+    elsif (is_sle("=16.0") && is_ppc64le) {
+        record_soft_failure("bsc#1271468 - No serial terminal on ppc64le");
+        return;
+    }
     die "JeOS firstboot not detected on serial terminal";
 }
 
