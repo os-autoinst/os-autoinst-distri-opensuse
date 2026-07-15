@@ -44,9 +44,11 @@ tidy: tools/tidy
 tidy-full: tools/tidy
 	$<
 
+UNIT_TESTS ?= t/
+
 .PHONY: unit-test
 unit-test:
-	prove -l -Ios-autoinst/ t/
+	prove -l -Ios-autoinst/ $(UNIT_TESTS)
 
 .PHONY: test-compile
 test-compile: check-links
