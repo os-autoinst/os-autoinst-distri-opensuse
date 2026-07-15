@@ -33,6 +33,7 @@ sub run {
 
     if (is_sle_micro) {
         script_retry('curl -k https://ca.suse.de/certificates/ca/SUSE_Trust_Root.crt -o /etc/pki/trust/anchors/SUSE_Trust_Root.crt', timeout => 100, delay => 30, retry => 5);
+        assert_script_run('test -s /etc/pki/trust/anchors/SUSE_Trust_Root.crt', fail_message => 'SUSE_Trust_Root.crt was not downloaded correctly');
         script_retry('pgrep update-ca-certificates', retry => 5, delay => 2, die => 0);
         assert_script_run 'update-ca-certificates -v';
     }
@@ -48,7 +49,9 @@ sub run {
 
     # Now we add the test repositories and do a system update
     add_test_repositories;
-    record_info('Updates', script_output('zypper lu'));
+    my $updates = script_output('zypper lu');
+    record_info('Updates', $updates);
+    die 'No updates found in the test repositories' if ($updates =~ /No updates found/);
     update_system unless get_var('DISABLE_UPDATE_WITH_PATCH');
 
     # after update, clean the audit log to make sure there aren't any leftovers that were already fixed
