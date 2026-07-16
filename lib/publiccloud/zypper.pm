@@ -78,8 +78,12 @@ use constant {
     EXIT_REBOOT_NEEDED => 102,
     EXIT_REBOOT_SCHED => 103,
     EXIT_CAP_NOT_FOUND => 104,    # ZYPPER_EXIT_INF_CAP_NOT_FOUND
+    EXIT_REPOS_SKIPPED => 106,    # ZYPPER_EXIT_INF_REPOS_SKIPPED (poo#204057)
     EXIT_RPM_SCRIPT_FAIL => 107,    # ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED
-                                    # Tunable defaults
+                                    # poo#204057: coreutils `timeout` exit codes (see apply_graceful_timeout)
+    EXIT_TIMEOUT => 124,    # deadline hit, command terminated with SIGTERM
+    EXIT_TIMEOUT_KILLED => 137,    # ignored SIGTERM, had to be SIGKILLed
+                                   # Tunable defaults
     DEFAULT_TIMEOUT_ZYPPER => 700,
     DEFAULT_TIMEOUT_TRANSACTIONAL => 900,
     DEFAULT_RETRY => 1,
@@ -105,7 +109,10 @@ our @EXPORT_OK = qw(
   EXIT_REBOOT_NEEDED
   EXIT_REBOOT_SCHED
   EXIT_CAP_NOT_FOUND
+  EXIT_REPOS_SKIPPED
   EXIT_RPM_SCRIPT_FAIL
+  EXIT_TIMEOUT
+  EXIT_TIMEOUT_KILLED
 );
 
 our %EXPORT_TAGS = (
@@ -163,6 +170,10 @@ my %FAILURE_CLASSIFIERS = (
     EXIT_RPM_SCRIPT_FAIL() => {
         label => 'ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED',
         regex => 'RpmPostTransCollector\.cc\(executeScripts\):.* scriptlet failed, exit status',
+    },
+    EXIT_REPOS_SKIPPED() => {
+        label => 'ZYPPER_EXIT_INF_REPOS_SKIPPED (poo#204057)',
+        regex => '(MediaCurl\.cc|Login failed|Not ready to read within timeout)',
     },
 );
 
@@ -448,6 +459,9 @@ sub _run {
       ? DEFAULT_TIMEOUT_TRANSACTIONAL
       : DEFAULT_TIMEOUT_ZYPPER;
     $args{rc_only} = 1;
+    # poo#204057: without this, an SSH stall croaks past the retry loop below
+    # instead of yielding a retryable exit code (EXIT_TIMEOUT/_KILLED).
+    $args{apply_graceful_timeout} //= 1;
 
     pc_wait_quit($instance) if $wait_quit;
 
@@ -498,6 +512,19 @@ sub _handle_transient_failure {
     }
     if ($ret == EXIT_LOCKED) {
         record_info("Retry $attempt/$max as system management is locked");
+        return 'retry';
+    }
+    # poo#204057: SSH round-trip stalled (e.g. smt-*.susecloud.net not
+    # responding right after registration) -- always worth a retry.
+    if ($ret == EXIT_TIMEOUT || $ret == EXIT_TIMEOUT_KILLED) {
+        record_info("Retry $attempt/$max: ssh command stalled (timeout)");
+        return 'retry';
+    }
+    # poo#204057: repo/credential provisioning can lag briefly right after
+    # registration; bounded by the caller's own 'retry' count, same as the
+    # zypp-lock case above.
+    if ($ret == EXIT_REPOS_SKIPPED) {
+        record_info("Retry $attempt/$max: repo/credentials not ready yet");
         return 'retry';
     }
     # EXIT_ERR_COMMIT (8) can be caused by the zypp lock being held at
