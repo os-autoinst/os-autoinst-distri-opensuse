@@ -16,4 +16,5 @@ schedule:
   - yam/validate/validate_migration_logs
   - yam/validate/validate_connectivity
   - yam/validate/validate_product
+  - yam/validate/validate_registered_products
   - console/validate_repos
