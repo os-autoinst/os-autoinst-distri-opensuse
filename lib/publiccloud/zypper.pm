@@ -82,7 +82,8 @@ use constant {
     EXIT_RPM_SCRIPT_FAIL => 107,    # ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED
     EXIT_TIMEOUT => 124,    # not zypper's own; apply_graceful_timeout (poo#204057)
     EXIT_TIMEOUT_KILLED => 137,    # as above, but SIGKILLed
-                                   # Tunable defaults
+
+    # Tunable defaults
     DEFAULT_TIMEOUT_ZYPPER => 700,
     DEFAULT_TIMEOUT_TRANSACTIONAL => 900,
     DEFAULT_RETRY => 1,
