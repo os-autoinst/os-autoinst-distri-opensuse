@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use repo_tools 'add_qa_head_repo';
+use version_utils 'is_sle';
 use LTP::WhiteList;
 use LTP::utils 'prepare_whitelist_environment';
 use package_utils 'install_package';
@@ -49,6 +50,9 @@ sub run {
 
     record_info('KERNEL', script_output('(rpm -qi kernel-default; uname -a)'));
     save_and_upload_log('(rpm -qi kernel-default; uname -a)', 'kernel_bug_report.txt');
+
+    # kernel debugfs is disabled by default PED-8812
+    systemctl('enable --now sys-kernel-debug.mount') if is_sle('16.1+');
 
     #QA repo is added with lower prio in order to avoid possible problems
     #with some packages provided in both, tested product and qa repo; example: fio
