@@ -31,7 +31,7 @@ use YaST::workarounds;
 
 # load expected test data from yaml
 # common for both iscsi MM modules
-my $test_data = get_test_suite_data();
+my $test_data = undef;
 
 sub create_fileio {
     if (defined($test_data->{target_conf}->{backstore})) {
@@ -205,6 +205,7 @@ sub display_targets {
 
 sub run {
     my $self = shift;
+    $test_data = get_test_suite_data();
     # open xterm, configure server network and create drive for iscsi
     prepare_xterm_and_setup_static_network(ip => $test_data->{target_conf}->{ip}, message => 'Configure MM network - server');
     prepare_iscsi_deps;

@@ -30,7 +30,7 @@ use Utils::Logging 'save_and_upload_log';
 
 # load expected test data from yaml
 # common for both iscsi MM modules
-my $test_data = get_test_suite_data();
+my $test_data = undef;
 
 sub initiator_service_tab {
     apply_workaround_poo124652('iscsi-client-service') if (is_sle('>=15-SP4'));
@@ -119,6 +119,7 @@ sub initiator_connected_targets_tab {
 
 
 sub run {
+    $test_data = get_test_suite_data();
     prepare_xterm_and_setup_static_network(ip => $test_data->{initiator_conf}->{ip}, message => 'Configure MM network - client');
     zypper_call("in open-iscsi yast2-iscsi-client");
     mutex_wait('iscsi_target_ready', undef, 'Target configuration in progress!');
