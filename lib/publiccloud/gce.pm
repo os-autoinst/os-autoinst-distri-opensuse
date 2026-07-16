@@ -215,12 +215,7 @@ sub terraform_apply {
 
     my $instance_id = $self->get_terraform_output(".vm_name.value[0]");
     # gce provides full serial log, so extended timeout
-    if (!check_var('PUBLIC_CLOUD_SLES4SAP', 1) && defined($instance_id)) {
-        if ($instance_id !~ /$self->{resource_name}/) {
-            record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail');
-        }
-    }
-
+    record_info("Warn", "instance_id " . ($instance_id) ? $instance_id : "empty", result => 'fail') if (defined($instance_id) && $instance_id !~ /$self->{resource_name}/);
     return @instances;
 }
 
