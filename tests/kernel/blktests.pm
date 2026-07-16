@@ -47,7 +47,7 @@ sub run {
     my $test_case_dev_array = get_var('BLKTESTS_TEST_CASE_DEV_ARRAY');
     my $install = get_var('BLKTESTS_INSTALL', 'from_repo');
 
-    record_info('KERNEL', script_output('rpm -qi kernel-default'));
+    record_info('KERNEL', script_output('(rpm -qi kernel-default; uname -a)'));
     save_and_upload_log('(rpm -qi kernel-default; uname -a)', 'kernel_bug_report.txt');
 
     #QA repo is added with lower prio in order to avoid possible problems
