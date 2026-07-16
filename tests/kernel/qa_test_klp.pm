@@ -34,6 +34,9 @@ sub run {
     add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));
     install_package('autoconf automake gcc git make');
 
+    # kernel debugfs is disabled by default PED-8812
+    systemctl('enable --now sys-kernel-debug.mount') if is_sle('16.1+');
+
     if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
         my $devel_pack = get_kernel_devel_flavor;
 
