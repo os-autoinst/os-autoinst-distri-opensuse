@@ -80,7 +80,7 @@ use constant {
     EXIT_CAP_NOT_FOUND => 104,    # ZYPPER_EXIT_INF_CAP_NOT_FOUND
     EXIT_REPOS_SKIPPED => 106,    # ZYPPER_EXIT_INF_REPOS_SKIPPED
     EXIT_RPM_SCRIPT_FAIL => 107,    # ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED
-    EXIT_TIMEOUT => 124,    # not zypper's own; apply_graceful_timeout (poo#204057)
+    EXIT_TIMEOUT => 124,    # exit code from the timeout utility, not zypper
     EXIT_TIMEOUT_KILLED => 137,    # as above, but SIGKILLed
 
     # Tunable defaults
