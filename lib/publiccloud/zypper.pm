@@ -80,9 +80,8 @@ use constant {
     EXIT_CAP_NOT_FOUND => 104,    # ZYPPER_EXIT_INF_CAP_NOT_FOUND
     EXIT_REPOS_SKIPPED => 106,    # ZYPPER_EXIT_INF_REPOS_SKIPPED (poo#204057)
     EXIT_RPM_SCRIPT_FAIL => 107,    # ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED
-                                    # poo#204057: coreutils `timeout` exit codes (see apply_graceful_timeout)
-    EXIT_TIMEOUT => 124,    # deadline hit, command terminated with SIGTERM
-    EXIT_TIMEOUT_KILLED => 137,    # ignored SIGTERM, had to be SIGKILLed
+    EXIT_TIMEOUT => 124,    # not zypper's own; apply_graceful_timeout (poo#204057)
+    EXIT_TIMEOUT_KILLED => 137,    # as above, but SIGKILLed
                                    # Tunable defaults
     DEFAULT_TIMEOUT_ZYPPER => 700,
     DEFAULT_TIMEOUT_TRANSACTIONAL => 900,
@@ -514,18 +513,16 @@ sub _handle_transient_failure {
         record_info("Retry $attempt/$max as system management is locked");
         return 'retry';
     }
-    # poo#204057: SSH round-trip stalled (e.g. smt-*.susecloud.net not
-    # responding right after registration) -- always worth a retry.
+    # poo#204057: retry on timeouts (typically indicates network issues).
     if ($ret == EXIT_TIMEOUT || $ret == EXIT_TIMEOUT_KILLED) {
-        record_info("Retry $attempt/$max: ssh command stalled (timeout)");
+        record_info("Retry $attempt/$max as the zypper command stalled (timeout)");
         return 'retry';
     }
-    # poo#204057: repo/credential provisioning can lag briefly right after
-    # registration; bounded by the caller's own 'retry' count, same as the
-    # zypp-lock case above.
+    # poo#204057: not enough evidence yet whether this is expected SMT
+    # eventual-consistency lag or a genuine product bug -- fail clearly
+    # instead of masking it; revisit once we have more data.
     if ($ret == EXIT_REPOS_SKIPPED) {
-        record_info("Retry $attempt/$max: repo/credentials not ready yet");
-        return 'retry';
+        return 'fail';
     }
     # EXIT_ERR_COMMIT (8) can be caused by the zypp lock being held at
     # transaction time (the lock is taken later than the PID check done by

@@ -334,14 +334,17 @@ subtest '[_handle_transient_failure] EXIT_TIMEOUT dies once retries are exhauste
     is(scalar @attempts, 2, 'used all configured retries before giving up');
 };
 
-subtest '[_handle_transient_failure] EXIT_REPOS_SKIPPED (106) is retried unconditionally' => sub {
+subtest '[_handle_transient_failure] EXIT_REPOS_SKIPPED (106) fails immediately, not retried' => sub {
     my $mod = Test::MockModule->new('publiccloud::zypper');
     $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
     $mod->redefine(is_transactional => sub { 0 });
 
-    my $inst = _instance_mock(run_rc => [EXIT_REPOS_SKIPPED, 0]);
-    my $ret = pc_pkg_call($inst, 'in -y docker', retry => 2, delay => 0);
-    is($ret, 0, 'exit 106 is retried (bounded by the caller-provided retry count) and the retry succeeds');
+    my $inst = _instance_mock(run_rc => EXIT_REPOS_SKIPPED);
+    throws_ok { pc_pkg_call($inst, 'in -y docker', retry => 3, delay => 0) }
+    qr/failed with code: 106.*poo#204057/s,
+      'dies with a poo#204057 pointer instead of silently retrying (not enough evidence yet it is safe to mask)';
+    my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n in -y docker' } @{$inst->{calls}};
+    is(scalar @attempts, 1, 'only the first attempt was made -- no retry');
 };
 
 subtest '[pc_install_packages_local] transactional vs plain' => sub {
