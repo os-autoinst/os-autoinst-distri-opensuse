@@ -56,6 +56,33 @@ sub search_image_on_svirt_host {
     return $path;
 }
 
+sub cleanup_leftover_vmware_vms {
+    my ($svirt, $name, $vmware_openqa_datastore) = @_;
+
+    # Power off and unregister any leftover VM from a previous openQA job
+    # before deleting its files to avoid it becomes an orphaned VM
+    my $vm_id = $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | awk '\$2 == \"$name\" { print \$1 }'", {domain => 'sshVMwareServer'});
+    my $power_state = $svirt->get_cmd_output("vim-cmd vmsvc/power.getstate $vm_id", {domain => 'sshVMwareServer'});
+    if ($vm_id) {
+        record_info('Remove leftover VM', "$vm_id ($name)");
+        $svirt->run_cmd("vim-cmd vmsvc/power.off $vm_id", domain => 'sshVMwareServer') if ($power_state =~ /Powered on/);
+        $svirt->run_cmd("vim-cmd vmsvc/destroy $vm_id", domain => 'sshVMwareServer');
+    }
+    # Remove invalid VM by previous openQA job
+    my @invalid_vmid = split('\n', $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | grep 'invalid VM' | cut -d\\' -f2", {domain => 'sshVMwareServer'}));
+    foreach (@invalid_vmid) {
+        if ($_ == $vm_id) {
+            record_info('Remove invalid VM: ', "$_ ($name)");
+            $svirt->run_cmd("vim-cmd vmsvc/reload $_", domain => 'sshVMwareServer');
+            $svirt->run_cmd("vim-cmd vmsvc/unregister $_", domain => 'sshVMwareServer');
+            last;
+        }
+    }
+    # Clear datastore on VMware host (the VM is unregistered its disk files
+    # are no longer locked and can be removed cleanly)
+    $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
+}
+
 sub run {
     my $arch = get_var('ARCH');
     my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
@@ -66,17 +93,8 @@ sub run {
     my $vmware_openqa_datastore;
 
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        # Clear datastore on VMware host
         $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
-        $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
-
-        # Remove invalid VM by previous openQA job
-        my @vm_id = split('\n', $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | grep 'invalid VM' | cut -d\\' -f2", {domain => 'sshVMwareServer'}));
-        foreach (@vm_id) {
-            record_info('Check invalid VM: ', $_);
-            $svirt->run_cmd("vim-cmd vmsvc/reload $_", domain => 'sshVMwareServer');
-            $svirt->run_cmd("vim-cmd vmsvc/unregister $_", domain => 'sshVMwareServer');
-        }
+        cleanup_leftover_vmware_vms($svirt, $name, $vmware_openqa_datastore);
     }
 
     my $xenconsole = "hvc0";
