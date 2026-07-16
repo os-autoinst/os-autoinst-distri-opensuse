@@ -395,109 +395,58 @@ sub update_instance_ip {
     }
 }
 
-sub _scan_ssh_host_key {
+sub scan_ssh_host_key {
     my ($self) = @_;
 
     record_info('RESCAN', 'Rescanning SSH host key');
 
-    my $known_hosts_2 = (script_run("test -f /home/$testapi::username/.ssh/known_hosts") eq 0)
+    my $user_known_hosts = (script_run("test -f /home/$testapi::username/.ssh/known_hosts") eq 0)
       ? "/home/$testapi::username/.ssh/known_hosts"
       : "";
 
-    script_run("ssh-keyscan $self->{public_ip} | tee -a ~/.ssh/known_hosts $known_hosts_2");
-}
-
-sub _wait_port_state {
-    my ($self, %args) = @_;
-
-    my ($duration, $exit_code);
-
-    while (($duration = time() - $args{start_time}) < $args{timeout}) {
-        $exit_code = script_run('nc -vz -w 1 ' . $self->public_ip . ' ' . $args{port}, quiet => 1);
-
-        last if ($args{unreachable} ? !isok($exit_code) : isok($exit_code));
-
-        sleep $args{delay};
-    }
-
-    return {
-        duration => $duration,
-        exit_code => $exit_code,
-        timed_out => $duration >= $args{timeout},
-    };
-}
-
-sub _wait_for_ssh_login {
-    my ($self, %args) = @_;
-
-    my ($duration, $exit_code);
-
-    while (($duration = time() - $args{start_time}) < $args{timeout}) {
-        my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10 -o strictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
-
-        $exit_code = $self->ssh_script_run(
-            cmd => 'uptime',
-            ssh_opts => $ssh_opts,
-            username => $args{username},
-            timeout => $args{timeout} - $duration,
-            apply_graceful_timeout => 1
-        );
-
-        last if isok($exit_code);
-
-        # After the instance is resumed from hibernation the SSH can freeze
-        sleep $args{delay};
-    }
-
-    return {
-        duration => $duration,
-        exit_code => $exit_code,
-        timed_out => $duration >= $args{timeout},
-    };
+    script_retry("ssh-keyscan $self->{public_ip} | tee -a ~/.ssh/known_hosts $user_known_hosts", retry => 6, delay => 10);
 }
 
 sub wait_for_ssh {
     my ($self, %args) = @_;
+    $self->wait_for_ssh_reachable();
+    $self->scan_ssh_host_key() if $args{scan_ssh_host_key};
+    $self->wait_for_ssh_login();
+}
 
-    $args{timeout} = get_var('PUBLIC_CLOUD_SSH_TIMEOUT', $args{timeout} // 600);
-    $args{scan_ssh_host_key} //= 0;
+sub wait_for_ssh_reachable {
+    my ($self, %args) = @_;
 
-    $args{username} //= $self->username();
+    my $delay = $args{delay} // 30;
+    my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
+    my $retry = $timeout / $delay;
+    my $port = $args{port} // 22;
 
-    $args{delay} //= $args{timeout} > 180 ? 5 : 1;
-    $args{start_time} = time();
-
-    my %args_for_port_state = %args;
-    $args_for_port_state{port} = 22;
-    my $port_state = $self->_wait_port_state(%args_for_port_state);
-
-    die "SSH port didn't become available. Exit code: $port_state->{exit_code}; Timed out: $port_state->{timed_out}; Duration: $port_state->{duration}"
-      if ($port_state->{timed_out} || !isok($port_state->{exit_code}));
-
-    $self->_scan_ssh_host_key() if $args{scan_ssh_host_key};
-
-    my $ssh_login_state = $self->_wait_for_ssh_login(%args);
-
-    die "SSH login didn't become available. Exit code: $ssh_login_state->{exit_code}; Timed out: $ssh_login_state->{timed_out}; Duration: $ssh_login_state->{duration}"
-      if ($ssh_login_state->{timed_out} || !isok($ssh_login_state->{exit_code}));
+    script_retry('nc -vz -w 1 ' . $self->public_ip . ' ' . $port, delay => $delay, retry => $retry, fail_message => "ssh port unreachable after $timeout seconds (port probed via nc)");
 }
 
 sub wait_for_ssh_unreachable {
     my ($self, %args) = @_;
 
-    $args{timeout} //= get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 600);
-    $args{delay} //= $args{timeout} > 180 ? 5 : 1;
-    $args{start_time} = time();
+    # delay must be low otherwise we miss the reboot window where ssh is unreachable
+    my $delay = $args{delay} // 2;
+    my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
+    my $retry = $timeout / $delay;
+    my $port = $args{port} // 22;
+    my $die = ${args}{die} // 1;
 
-    my %args_for_port_state = %args;
-    $args_for_port_state{port} = 22;
-    $args_for_port_state{unreachable} = 1;
+    my $rc = script_retry('! nc -vz -w 1 ' . $self->public_ip . ' ' . $port, delay => $delay, retry => $retry, fail_message => "ssh port still reachable after $timeout seconds (port probed via nc)", die => $die);
+    # Print a warning message, if we don't want to `die` here in the previous check
+    record_info("ssh still reachable", "WARNING: ssh port is still reachable", result => 'fail') if ($rc != 0);
+    return $rc;
+}
 
-    my $port_state = $self->_wait_port_state(%args_for_port_state);
-    die "SSH port didn't become unavailable. Exit code: $port_state->{exit_code}; Timed out: $port_state->{timed_out}; Duration: $port_state->{duration}"
-      if ($port_state->{timed_out} || isok($port_state->{exit_code}));
+sub wait_for_ssh_login {
+    my ($self, %args) = @_;
 
-    return $port_state;
+    ## ssh options to avoid issues with pipelining and host key validation
+    my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10 -o strictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
+    $self->ssh_script_retry("true", ssh_opts => $ssh_opts, retry => 10, delay => 30, fail_message => "ssh connection failed (10 attempts in 300 seconds)");
 }
 
 =head2 isok
@@ -556,10 +505,7 @@ sub softreboot {
     my $start_time = time();
 
     # wait till ssh disappear
-    my $out = $self->wait_for_ssh_unreachable(timeout => $args{timeout}, username => $args{username});
-    # ok ssh port closed
-    record_info("Shutdown failed", "WARNING: while stopping the system, ssh port still open after timeout,\nreporting: $out->{duration},\nexit code: $out->{exit_code}, \ntimed out: $out->{timed_out}", result => 'fail')
-      if ($out->{timed_out} || isok($out->{exit_code}));    # not ok port still open
+    $self->wait_for_ssh_unreachable(die => 0);
 
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
