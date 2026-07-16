@@ -27,11 +27,11 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    zypper_call('in netcat lsof psmisc');
+    install_package('netcat lsof psmisc', trup_reboot => 1);
     assert_script_run("lsof");
     assert_script_run("lsof -u root");
     assert_script_run("lsof -i");
