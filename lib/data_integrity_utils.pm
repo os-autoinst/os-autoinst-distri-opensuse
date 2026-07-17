@@ -35,7 +35,7 @@ Digest retrieval is platform-specific depends.
 =cut
 
 sub get_image_digest {
-    my ($image_path, $algorithm) = @_;
+    my ($image_path, $algorithm, $timeout) = @_;
     $algorithm ||= 'SHA-256';    # default
 
     my $digest;
@@ -48,7 +48,7 @@ sub get_image_digest {
             $digest =~ s/^\s+|\s+$//g;    # trim whitespace
         } else {
             my $cmd = $algorithm eq 'SHA-512' ? 'sha512sum' : 'sha256sum';
-            $digest = console('svirt')->get_cmd_output("$cmd $image_path", {domain => is_vmware() ? 'sshVMwareServer' : undef});
+            $digest = console('svirt')->get_cmd_output("$cmd $image_path", {domain => is_vmware() ? 'sshVMwareServer' : undef, timeout => $timeout});
             my $len = $algorithm eq 'SHA-512' ? 128 : 64;
             $digest = substr $digest, 0, $len;    # extract hash from the output
         }
@@ -74,6 +74,7 @@ Returns error message in case of failure, empty string in case of success.
 
 sub verify_checksum {
     my ($dir_path) = shift;
+    my $timeout = shift // 600;
     my $error = '';
     diag "Comparing data integrity calculated with SHA256/SHA512 digest against checksum from IBS/OBS via rsync.pl";
     foreach my $image (grep { /^CHECKSUM_/ } keys %bmwqemu::vars) {
@@ -83,14 +84,14 @@ sub verify_checksum {
         $image_path = $dir_path . basename($image_path) if $dir_path;
 
         # Try SHA-256 first (most common, preserves existing behavior)
-        my $digest256 = get_image_digest($image_path, 'SHA-256');
+        my $digest256 = get_image_digest($image_path, 'SHA-256', timeout => $timeout);
         if ($digest256 && $checksum eq $digest256) {
             diag("$image OK (SHA-256)\n$image_path: OK");
             next;
         }
 
         # Fall back to SHA-512 only when SHA-256 didn't match
-        my $digest512 = get_image_digest($image_path, 'SHA-512');
+        my $digest512 = get_image_digest($image_path, 'SHA-512', timeout => $timeout);
         if ($digest512 && ($checksum eq $digest512 || (length($checksum) == 64 && $checksum eq substr($digest512, 0, 64)))) {
             my $variant = length($checksum) == 128 ? 'SHA-512' : 'SHA-512 truncated';
             diag("$image OK ($variant)\n$image_path: OK");
