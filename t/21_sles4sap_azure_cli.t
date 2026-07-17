@@ -1554,7 +1554,7 @@ subtest '[az_network_dns_link_create] Compose command' => sub {
     ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
     ok(grep(/--virtual-network vnet_rg/, @calls), 'Check for argument "--virtual-network"');
     ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
-    ok(grep(/--registration-enabled true/, @calls), 'Check for argument "--auto-registration"');
+    ok(grep(/--registration-enabled false/, @calls), 'Check for argument "--auto-registration"');
 };
 
 subtest '[az_network_dns_zone_list] Compose command' => sub {

@@ -2370,7 +2370,7 @@ sub az_network_dns_link_create {
         "--zone-name $args{zone_name}",
         "--virtual-network $args{vnet}",
         "--name $args{name}",
-        '--registration-enabled true',
+        '--registration-enabled false',
         $SDAF_Azure_podman_flake_filter    # This updates all VMs A records immediately
     );
 
