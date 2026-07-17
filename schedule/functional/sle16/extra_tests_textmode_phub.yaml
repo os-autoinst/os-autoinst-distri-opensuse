@@ -10,6 +10,7 @@ schedule:
     - console/libjpeg_turbo
     - console/libgit2
     - console/apache2_php_fpm
+    - console/stalld
     - '{{libaom}}'
     - '{{libvorbis}}'
     - console/zziplib
