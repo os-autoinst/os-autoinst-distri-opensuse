@@ -37,15 +37,15 @@ sub run {
     # while subsequent bare 'sar' calls would open the empty new-day file and find no data.
     my $sa_file;
     if (is_sle('>=12-SP2') || is_opensuse) {
-        $sa_file = 'sa' . script_output("date +'%Y%m%d'", proceed_on_failure => 0);
+        $sa_file = '/var/log/sa/sa' . script_output("date +'%Y%m%d'");
     } else {
-        $sa_file = 'sa' . script_output("date +'%d'", proceed_on_failure => 0);
+        $sa_file = '/var/log/sa/sa' . script_output("date +'%d'");
     }
 
     #compare todays date with todays generated file.
-    assert_script_run "test -e /var/log/sa/$sa_file";
+    assert_script_run "test -e $sa_file";
 
-    #Populate /var/log/sa/$sa_file, that data will be used on the next tests
+    #Populate $sa_file, that data will be used on the next tests
     if (is_arm) {
         assert_script_run '/usr/lib/sa/sa1 5 5';
     } else {
@@ -66,30 +66,30 @@ sub run {
 
     #header integrity checks:
     if (is_sle('>=12-SP2') || is_opensuse) {
-        validate_script_output "sar -r -f /var/log/sa/$sa_file", sub { /kbmemfree   kbavail kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
+        validate_script_output "sar -r -f $sa_file", sub { /kbmemfree   kbavail kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
         validate_script_output "pidstat", sub { /UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command/ };
     } else {
-        validate_script_output "sar -r -f /var/log/sa/$sa_file", sub { /kbmemfree kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
+        validate_script_output "sar -r -f $sa_file", sub { /kbmemfree kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit  kbactive   kbinact   kbdirty/ };
         validate_script_output "pidstat", sub { /UID       PID    %usr %system  %guest    %CPU   CPU  Command/ };
     }
 
     validate_script_output "iostat", sub { /avg-cpu:  %user   %nice %system %iowait  %steal   %idle/ };
     validate_script_output "mpstat", sub { /CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle/ };
-    validate_script_output "sar -u -f /var/log/sa/$sa_file", sub { /CPU     %user     %nice   %system   %iowait    %steal     %idle/ };
-    validate_script_output "sar -n DEV -f /var/log/sa/$sa_file", sub { /IFACE   rxpck\/s   txpck\/s    rxkB\/s    txkB\/s   rxcmp\/s   txcmp\/s  rxmcst\/s   %ifutil/ };
+    validate_script_output "sar -u -f $sa_file", sub { /CPU     %user     %nice   %system   %iowait    %steal     %idle/ };
+    validate_script_output "sar -n DEV -f $sa_file", sub { /IFACE   rxpck\/s   txpck\/s    rxkB\/s    txkB\/s   rxcmp\/s   txcmp\/s  rxmcst\/s   %ifutil/ };
     #from version 12.1.2 iostat supports discard I/O statistics.
     if (version->parse(script_output('rpm --qf "%{VERSION}\n" -q sysstat')) >= version->parse('12.1.2')) {
-        validate_script_output "sar -b -f /var/log/sa/$sa_file", sub { /tps      rtps      wtps      dtps   bread\/s   bwrtn\/s   bdscd\/s/ };
+        validate_script_output "sar -b -f $sa_file", sub { /tps      rtps      wtps      dtps   bread\/s   bwrtn\/s   bdscd\/s/ };
     } else {
-        validate_script_output "sar -b -f /var/log/sa/$sa_file", sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
+        validate_script_output "sar -b -f $sa_file", sub { /tps      rtps      wtps   bread\/s   bwrtn\/s/ };
     }
     if (version->parse(script_output('rpm --qf "%{VERSION}\n" -q sysstat')) >= version->parse('12.7.5')) {
-        validate_script_output "sar -B -f /var/log/sa/$sa_file", sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s  pgprom\/s   pgdem\/s/ };
+        validate_script_output "sar -B -f $sa_file", sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s  pgprom\/s   pgdem\/s/ };
     } else {
-        validate_script_output "sar -B -f /var/log/sa/$sa_file", sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s    %vmeff/ };
+        validate_script_output "sar -B -f $sa_file", sub { /pgpgin\/s pgpgout\/s   fault\/s  majflt\/s  pgfree\/s pgscank\/s pgscand\/s pgsteal\/s    %vmeff/ };
     }
-    validate_script_output "sar -H -f /var/log/sa/$sa_file", sub { /kbhugfree kbhugused  %hugused/ };
-    validate_script_output "sar -S -f /var/log/sa/$sa_file", sub { /kbswpfree kbswpused  %swpused  kbswpcad   %swpcad/ };
+    validate_script_output "sar -H -f $sa_file", sub { /kbhugfree kbhugused  %hugused/ };
+    validate_script_output "sar -S -f $sa_file", sub { /kbswpfree kbswpused  %swpused  kbswpcad   %swpcad/ };
 
     assert_script_run 'unset S_COLORS';
 
