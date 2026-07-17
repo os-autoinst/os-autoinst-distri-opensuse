@@ -26,3 +26,8 @@ conditional_schedule:
         - elemental3/wait_barriers
         - elemental3/configure_network
         - elemental3/start_k8s
+      upgrade:
+        - elemental3/validate_k8s
+        - elemental3/upgrade_manifest
+        - elemental3/validate_k8s
+        - elemental3/wait_barriers

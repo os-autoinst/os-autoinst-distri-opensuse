@@ -38,6 +38,7 @@ sub run {
     # OS installation is done automatically as well as the reboot after installation
     # We just have to wait for the VM to reboot
     $self->wait_grub(bootloader_time => bmwqemu::scale_timeout(300));
+    wait_still_screen;
 
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();

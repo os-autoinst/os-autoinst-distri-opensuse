@@ -23,6 +23,7 @@ our @EXPORT = qw(
   wait_kubectl_cmd
   wait_nodes_ready
   wait_on_cmd
+  wait_script_output
 );
 
 =head2 elemental3_cmd
@@ -289,6 +290,35 @@ sub wait_on_cmd {
     # Return the command status
     die('Check did not return a defined value!') unless defined $ret;
     return $ret;
+}
+
+=head2 wait_script_output
+
+ wait_script_output( cmd => <value> [, timeout => <value> ] );
+
+Checks for up to B<$timeout> seconds whether command is executed.
+Returns command output if successful or croaks on timeout.
+
+=cut
+
+sub wait_script_output {
+    my (%args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $starttime = time;
+    my $out = undef;
+
+    croak('Argument <cmd> missing') unless $args{cmd};
+    while ($out eq '') {
+        $out = script_output("$args{cmd}", timeout => $timeout / 10);
+        if (time - $starttime >= $timeout) {
+            die("command '$args{cmd}' timed out after $timeout seconds!");
+        }
+        sleep 5;
+    }
+
+    # Return the command output
+    die('Check did not return a defined value!') unless defined $out;
+    return $out;
 }
 
 1;
