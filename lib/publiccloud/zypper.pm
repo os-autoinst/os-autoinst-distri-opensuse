@@ -232,6 +232,9 @@ Runs C<sudo transactional-update -n $cmd> on a remote instance and triggers
 a soft reboot on success (unless C<no_reboot => 1> is passed). The default
 accepted exit codes are 0, 102, 103.
 
+Also accepts the same C<apply_graceful_timeout> option as
+L</pc_zypper_call>, since both are implemented on top of C<_run>.
+
 =cut
 
 sub pc_transactional_call {
@@ -465,7 +468,6 @@ sub _run {
       ? DEFAULT_TIMEOUT_TRANSACTIONAL
       : DEFAULT_TIMEOUT_ZYPPER;
     $args{rc_only} = 1;
-    # Wrap zypper call in timeout to prevent stall and allow to retry.
     $args{apply_graceful_timeout} //= 1;
 
     pc_wait_quit($instance) if $wait_quit;
