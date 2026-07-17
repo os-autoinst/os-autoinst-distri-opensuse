@@ -68,7 +68,7 @@ use utils ();
 use transactional ();
 use version_utils qw(is_transactional);
 
-# Zypper exit codes (see man zypper, EXIT CODES section)
+# Zypper and timeout exit codes (see man zypper, EXIT CODES section)
 use constant {
     EXIT_OK => 0,
     EXIT_SOLVER => 4,    # generic solver problem
@@ -207,6 +207,12 @@ Options (all optional):
 =item B<wait_quit>          => if true (default), wait for any running
                                 zypper-related processes to finish before
                                 running the command
+
+=item B<apply_graceful_timeout> => if true (default), wrap the remote
+                                command in C<timeout> so an SSH-level
+                                stall yields a retryable exit code
+                                (EXIT_TIMEOUT/EXIT_TIMEOUT_KILLED) instead
+                                of dying past the retry loop
 
 =back
 
@@ -459,8 +465,7 @@ sub _run {
       ? DEFAULT_TIMEOUT_TRANSACTIONAL
       : DEFAULT_TIMEOUT_ZYPPER;
     $args{rc_only} = 1;
-    # poo#204057: without this, an SSH stall croaks past the retry loop below
-    # instead of yielding a retryable exit code (EXIT_TIMEOUT/_KILLED).
+    # Wrap zypper call in timeout to prevent stall and allow to retry.
     $args{apply_graceful_timeout} //= 1;
 
     pc_wait_quit($instance) if $wait_quit;
@@ -514,7 +519,7 @@ sub _handle_transient_failure {
         record_info("Retry $attempt/$max as system management is locked");
         return 'retry';
     }
-    # poo#204057: retry on timeouts (typically indicates network issues).
+    # Retry on timeouts (typically indicates network issues).
     if ($ret == EXIT_TIMEOUT || $ret == EXIT_TIMEOUT_KILLED) {
         record_info("Retry $attempt/$max as the zypper command stalled (timeout)");
         return 'retry';
