@@ -81,11 +81,11 @@ sub run {
         PODMAN_BINARY => "/usr/bin/podman",
         PODMAN_REMOTE_BINARY => "/usr/bin/podman-remote",
         QUADLET_BINARY => "/usr/libexec/podman/quadlet",
-        STORAGE_DRIVER => "overlay",
         TESTFLAGS => "--junit-report=report.xml",
         TMPDIR => "/var/tmp",
     );
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
+    $env{STORAGE_DRIVER} = "overlay" if (version->parse(numeric_version($version)) > version->parse("6.0.0"));
 
     my @xfails = (
         'Libpod Suite::[It] Podman pod create podman pod create --restart=on-failure',
