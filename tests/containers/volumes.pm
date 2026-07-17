@@ -109,7 +109,9 @@ sub test {
         assert_script_run("! $runtime volume inspect $test_volume");
     }
 
-    my $all = ($runtime eq "docker") ? "-a" : "";
+    # podman behaviour changed in podman v6.0.0 to match Docker's behaviour
+    my $podman_version = ($runtime eq "podman") ? script_output("podman version -f '{{.Version}}' | cut -d. -f1") : undef;
+    my $all = ($runtime eq "docker" || $podman_version >= 6) ? "-a" : "";
 
     # Create a dangling (not used by any container) volume and test its removal
     assert_script_run("$runtime volume create $test_volume");
