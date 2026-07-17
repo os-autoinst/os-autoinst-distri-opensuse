@@ -9,9 +9,6 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(exec_and_insert_password systemctl);
-use mm_network qw(configure_hostname);
-use network_utils qw(get_default_dns is_running_in_isolated_network set_resolv);
 use utils qw(file_content_replace);
 use Mojo::File qw(path);
 use Carp qw(croak);
@@ -250,11 +247,6 @@ sub run {
 
     # Set default root password
     $testapi::password = get_required_var('TEST_PASSWORD');
-
-    # Define k8s service
-    my $k8s_svc;
-    $k8s_svc = 'k3s' if ($k8s eq 'k3s');
-    $k8s_svc = 'rke2-server' if ($k8s eq 'rke2');
 
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
