@@ -57,6 +57,11 @@ sub run_tests {
                 # due to https://github.com/containers/podman/issues/27246
                 "200-pod.bats::pod resource limits",
             ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
+            push @xfails, (
+                # These fail for root/local on podman v6.0.0 because we don't ship libcontainers-common
+                # with the storage driver set in storage.conf
+                "155-partial-pull.bats::zstd chunked does not modify image content",
+            ) if (version->parse(numeric_version($version)) >= version->parse("6.0.0"));
         }
     }
     push @xfails, (

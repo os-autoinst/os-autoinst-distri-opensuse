@@ -76,7 +76,7 @@ sub run_tests {
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
 
-    run_command "buildah prune -a -f";
+    run_command "STORAGE_DRIVER=$storage_driver buildah prune -a -f";
     cleanup_podman;
 
     return ($ret);

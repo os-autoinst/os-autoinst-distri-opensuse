@@ -41,6 +41,8 @@ sub setup {
     # The tests expect an exact list of unqualified-search-registries containing "quay.io" and we ship:
     # unqualified-search-registries = ["registry.opensuse.org", "registry.suse.com", "docker.io"]
     run_command "rm -f /etc/containers/registries.conf.d/00-suse-registries.conf";
+    # Tests using --signature-policy /etc/containers/policy.json expect this file to exist
+    run_command "ln -sf /usr/share/containers/policy.json /etc/containers/policy.json" if script_run("test -f /etc/containers/policy.json");
 
     enable_docker;
 
@@ -79,13 +81,16 @@ sub run {
         PODMAN_BINARY => "/usr/bin/podman",
         PODMAN_REMOTE_BINARY => "/usr/bin/podman-remote",
         QUADLET_BINARY => "/usr/libexec/podman/quadlet",
+        STORAGE_DRIVER => "overlay",
         TESTFLAGS => "--junit-report=report.xml",
+        TMPDIR => "/var/tmp",
     );
     my $env = join " ", map { "$_=$env{$_}" } sort keys %env;
 
     my @xfails = (
         'Libpod Suite::[It] Podman pod create podman pod create --restart=on-failure',
         'Libpod Suite::[It] Podman run memory podman run memory test on oomkilled container',
+        'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
     );
     push @xfails, (
         # Fixed in podman 5.6.1:
@@ -98,9 +103,6 @@ sub run {
         # Fails with "registry.access.redhat.com/*openshift*"
         'Libpod Suite::[It] Podman search podman search with wildcards',
     ) if (version->parse(numeric_version($version)) < version->parse("5.8.0"));
-    push @xfails, (
-        'Libpod Suite::[It] Verify podman containers.conf usage set .engine.remote=true',
-    ) if (get_var("ROOTLESS"));
     push @xfails, (
         # We can't backport https://github.com/containers/podman/pull/27775 and this test may fail with:
         # Command exited 125 as expected, but did not emit 'gateway 192.168.1.1 not in subnet 10.11.12.0/24'
