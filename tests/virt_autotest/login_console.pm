@@ -214,9 +214,13 @@ sub login_to_console {
 
         # Swap needs to be reinitiated
         my $swap_partition = script_output("swapon | awk '/\\/dev/{print \$1; exit}'");
-        record_info('Current swap partition is ', $swap_partition);
-        assert_script_run("swapoff $swap_partition");
-        assert_script_run('swapon --fixpgsz');
+        if ($swap_partition) {
+            record_info('Current swap partition is ', $swap_partition);
+            assert_script_run("swapoff $swap_partition");
+            assert_script_run('swapon --fixpgsz');
+        } else {
+            record_info('No active swap partition found; skipping swap reinitialization.');
+        }
         assert_script_run('getconf PAGESIZE');
     }
 

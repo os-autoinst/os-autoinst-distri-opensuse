@@ -290,13 +290,19 @@ sub set_bootscript_image_config {
       " rd.kiwi.install.pxe rd.kiwi.install.pxe.curl_options=--retry,3,--retry-delay,3,--speed-limit,2048"
       . " rd.debug rd.memdebug=5 rd.udev.debug rd.kiwi.debug rd.kiwi.term rd.kiwi.install.pass.bootparam ";
     if (get_var("FIRST_BOOT_CONFIG")) {
-        $cmdline_image_config .= " rd.kiwi.oem.installdevice=";
         if (is_ipmi) {
-            $cmdline_image_config .=
-              get_var('INSTALL_DISK_WWN') ? "/dev/disk/by-id/" . get_var('INSTALL_DISK_WWN') . " " : "/dev/sda ";
-            set_var('INSTALL_DISK_WWN', get_var('INSTALL_DISK_WWN', '/dev/sda'));
+            my $install_disk_wwn = get_var('INSTALL_DISK_WWN');
+            if (get_var('INSTALL_DISK_AUTO') && !$install_disk_wwn) {
+                record_info('Automatic install disk selection', 'No rd.kiwi.oem.installdevice parameter will be added.');
+            }
+            else {
+                $cmdline_image_config .= " rd.kiwi.oem.installdevice=";
+                $cmdline_image_config .= $install_disk_wwn ? "/dev/disk/by-id/$install_disk_wwn " : "/dev/sda ";
+                set_var('INSTALL_DISK_WWN', $install_disk_wwn || '/dev/sda');
+            }
         }
         elsif (is_qemu) {
+            $cmdline_image_config .= " rd.kiwi.oem.installdevice=";
             $cmdline_image_config .= "/dev/vda ";
             set_var('INSTALL_DISK_WWN', get_var('INSTALL_DISK_WWN', '/dev/vda'));
         }

@@ -1314,8 +1314,10 @@ sub config_guest_network_bridge_services {
     my $_guest_network_ipaddr_gw_transformed = $_guest_network_ipaddr_gw;
     $_guest_network_ipaddr_gw_transformed =~ s/\./_/g;
     my $_dnsmasq_log = "$_host_params{common_log_folder}/dnsmasq_listen_address_$_guest_network_ipaddr_gw_transformed" . '_log';
+        my $_dnsmasq_leasefile = "/run/dnsmasq_$_guest_network_device.leases";
     my $_dnsmasq_command = "/usr/sbin/dnsmasq --bind-dynamic --listen-address=$_guest_network_ipaddr_gw --bogus-priv --domain-needed --expand-hosts "
       . "--dhcp-range=$_guest_network_ipaddr_start,$_guest_network_ipaddr_end,$_guest_network_mask,8h --interface=$_guest_network_device "
+            . "--dhcp-leasefile=$_dnsmasq_leasefile "
       . "--dhcp-authoritative --no-negcache --dhcp-option=option:router,$_guest_network_ipaddr_gw --log-queries --local=/$self->{guest_domain_name}/ "
       . "--domain=$self->{guest_domain_name} --log-dhcp --dhcp-fqdn --dhcp-sequential-ip --dhcp-client-update --dns-loop-detect --no-daemon "
       . "--server=/$self->{guest_domain_name}/$_guest_network_ipaddr_gw --server=/$_guest_network_ipaddr_rev/$_guest_network_ipaddr_gw";
@@ -2695,6 +2697,8 @@ sub setup_guest_agama_installation_shell {
 
     my $_timeout_command_prefix = "timeout --kill-after=5";
     my $_ssh_command_options = $self->config_guest_agama_shell_ssh_options();
+    my $_ssh_copy_id_options = $self->config_guest_agama_shell_ssh_options(_with_key_file => 0);
+    my $_ssh_public_key = "$_host_params{ssh_key_file}.pub";
 
     $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
     if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
@@ -2703,10 +2707,10 @@ sub setup_guest_agama_installation_shell {
     }
     else {
         enter_cmd("clear", wait_still_screen => 3);
-        if (script_run("$_timeout_command_prefix 120 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=12 $_ssh_command_options root\@$self->{guest_ipaddr}", timeout => 150) != 0) {
+        if (script_run("$_timeout_command_prefix 120 ssh-copy-id -f -i $_ssh_public_key -o BatchMode=yes -o ConnectTimeout=10 -o ConnectionAttempts=12 $_ssh_copy_id_options root\@$self->{guest_ipaddr}", timeout => 150) != 0) {
             type_string("reset\n");
             wait_still_screen;
-            enter_cmd("$_timeout_command_prefix 180 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=18 $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
+            enter_cmd("$_timeout_command_prefix 180 ssh-copy-id -f -i $_ssh_public_key -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -o ConnectTimeout=10 -o ConnectionAttempts=18 $_ssh_copy_id_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
             assert_screen('password-prompt', timeout => 30);
             enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
             # Wait for ssh-copy-id to finish writing the public key and exit
