@@ -1,0 +1,30 @@
+name: sle16-virt-guest-installation-64kb-immutable-aarch64
+description: |
+  Maintainer: qe-virt@suse.de
+  poo#126110 - SLE 16.1 aarch64 KVM host + guest with kernel-64kb (64KB page
+  size) on Immutable (transactional) image. Host is installed from the
+  SelfInstall image (SLES-16.1-Immutable.aarch64-Base-64kb-SelfInstall-*.tar)
+  and guest is imported from the matching raw disk image
+  (SLES-16.1-Immutable.aarch64-Base-64kb-*.raw.xz, see
+  data/virt_autotest/guest_params_xml_files/sles_16_1_transactional_64kb_kvm_hvm_aarch64_base_raw_ignition+combustion.xml).
+  Both images already ship kernel-64kb, so this scenario only verifies 64KB
+  page size is effective, it does not switch kernels. Only developing host +
+  developing guest is covered, no cross-version matrix.
+vars:
+  VIRT_AUTOTEST: 1
+  VIRT_UNIFIED_GUEST_INSTALL: 1
+  TRANSACTIONAL: 1
+  KERNEL_64KB_PAGE_SIZE: 1
+  SYSTEM_ROLE: kvm
+  HOST_HYPERVISOR: kvm
+  UNIFIED_GUEST_LIST: sles-16-1-immutable-64kb
+  UNIFIED_GUEST_PROFILES: sles_16_1_transactional_64kb_kvm_hvm_aarch64_base_raw_ignition+combustion
+  MAX_JOB_TIME: 10800
+schedule:
+  - installation/bootloader_uefi
+  - microos/selfinstall
+  - virt_autotest/login_console
+  - virt_autotest/prepare_transactional_server
+  - virt_autotest/unified_guest_installation
+  - virt_autotest/set_config_as_glue
+  - virt_autotest/verify_guest_kernel_64kb

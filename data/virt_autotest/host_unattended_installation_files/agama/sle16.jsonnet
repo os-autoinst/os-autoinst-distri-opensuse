@@ -3,6 +3,7 @@ local raw_version = if version_to_install == '' || std.length(std.findSubstr('VE
 local version = if std.length(std.findSubstr('VERSION', raw_version)) > 0 then -999 else std.parseJson(raw_version);
 local transactional = '{{TRANSACTIONAL}}';
 local agama_product_mode = if transactional == '1' then 'immutable' else 'standard';
+local kernel_64kb_page_size = '{{KERNEL_64KB_PAGE_SIZE}}';
 
 {
   product: {
@@ -137,6 +138,19 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
           chmod 644 "$rules_file"
         |||
       }
-    ]
+    ] + (if kernel_64kb_page_size == '1' then [
+      {
+        // poo#126110 - switch host kernel to kernel-64kb (64KB page size) before
+        // first boot so the installed system already runs with 64KB page size.
+        name: 'switch_to_kernel_64kb',
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          set -e
+          zypper --non-interactive install kernel-64kb
+          zypper --non-interactive remove kernel-default
+        |||
+      }
+    ] else [])
   }
 }
