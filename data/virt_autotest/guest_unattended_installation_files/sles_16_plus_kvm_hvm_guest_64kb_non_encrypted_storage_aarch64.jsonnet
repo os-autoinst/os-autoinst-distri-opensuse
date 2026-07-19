@@ -1,0 +1,117 @@
+{
+  "localization": {
+    "language": "en_US.UTF-8",
+    "keyboard": "us",
+    "timezone": "Europe/Berlin"
+  },
+  product: {
+    id: "SLES",
+    registrationCode: "##Registration-Code##",
+    registrationEmail: "www@suse.com"
+  },
+  "bootloader": {
+    "stopOnBootMenu": false
+  },
+  "user": {
+    "fullName": "QE Virtualization Functional Test",
+    "userName": "qevirt",
+    "password": "$2a$10$v32/h9hPd9cATZgLI/a1AepB9eQuMbjvNBOxQIla19fmAMjznSczG",
+    "hashedPassword": true
+  },
+  "root": {
+    "password": "$y$j9T$nRJRQUwZDai/K44Dn8RD40$tNACP3rJ5/oHQD1XIgVmj0MaBZKpD7GWN9nhpyDMgr5",
+    "hashedPassword": true,
+    "sshPublicKey": "##Authorized-Keys##"
+  },
+  "storage": {
+    "drives": [
+      {
+        "partitions": [
+          {
+            "search": { "ifNotFound": "skip" },
+            "delete": true
+          },
+          {
+            "filesystem": { "path": "/" },
+            "size": { "min": "20 GiB" }
+          },
+          {
+            "filesystem": { "path": "swap" },
+            "size": "4 GiB"
+          },
+          {
+            "filesystem": { "path": "/home" },
+            "size": "6 GiB"
+          }
+        ]
+      }
+    ]
+  },
+  software: {
+    packages: ['openssh-server-config-rootlogin'],
+  },
+  "network": {
+    "connections": [
+      {
+        "id": "Wired Connection",
+        "method4": "auto",
+        "method6": "auto",
+        "ignoreAutoDns": false,
+        "status": "up",
+        "autoconnect": true,
+        "dnsSearchlist": [
+          "##Domain-Name##",
+          "suse.de",
+          "suse.asia",
+          "opensuse.org"
+        ]
+      }
+    ]
+  },
+  scripts: {
+    post: [
+      {
+        name: "persistent_hostname",
+        content: |||
+          #!/usr/bin/env bash
+          echo -e "##Host-Name##.##Domain-Name##" > /etc/hostname
+        |||
+      },
+      {
+        name: "sshd_config",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          echo -e "PubkeyAuthentication yes\nPasswordAuthentication yes\nPermitEmptyPasswords no\nTCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
+        |||
+      },
+      {
+        name: "ssh_config",
+        content: |||
+          #!/usr/bin/env bash
+          mkdir -p /etc/ssh/ssh_config.d
+          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /etc/ssh/ssh_config.d/01-qe-virtualization-functional.conf
+        |||
+      },
+      {
+        name: "persistent_journal_logging",
+        content: |||
+          #!/usr/bin/env bash
+          echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-qe-virtualization-functional.conf
+        |||
+      },
+      {
+        // poo#126110 - switch guest kernel to kernel-64kb (64KB page size) before
+        // first boot so the installed guest already runs with 64KB page size.
+        name: "switch_to_kernel_64kb",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          set -e
+          zypper --non-interactive install kernel-64kb
+          zypper --non-interactive remove kernel-default
+        |||
+      }
+    ]
+  }
+}

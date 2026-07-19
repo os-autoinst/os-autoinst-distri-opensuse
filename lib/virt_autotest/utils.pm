@@ -2027,7 +2027,10 @@ Check whether kvm moduldes are successfully loaded on running system.
 =cut
 
 sub check_kvm_modules {
-    unless (script_run('lsmod | grep "^kvm\b"') == 0 or script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0) {
+    my $kvm_available = is_aarch64
+      ? script_run('test -e /dev/kvm') == 0
+      : script_run('lsmod | grep "^kvm\b"') == 0 || script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0;
+    unless ($kvm_available) {
         save_screenshot;
         die "KVM modules are not loaded!";
     }
@@ -2035,6 +2038,7 @@ sub check_kvm_modules {
     # for modular libvirt, virtqemud is expected in "loaded: active or inactive" status.
     # virtqemud.socket seems to be always in "loaded: active" status
     unless (is_monolithic_libvirtd) {
+        systemctl('start virtqemud.socket') if is_aarch64;
         unless (get_var('TEST_SUITE_NAME') =~ /kubevirt-tests/ or script_run("systemctl is-active virtqemud.socket") eq 0) {
             die 'virtqemud.socket is not running!';
         }
