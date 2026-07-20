@@ -4,40 +4,27 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Unit tests for publiccloud::instance -- systemd time parsing,
-# the isok helper, ssh command construction and the thin provider-delegating
+# ssh command construction and the thin provider-delegating
 # methods (start/stop/get_state/wait_for_state).
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use strict;
 use warnings;
 
-# Deterministic fake clock: sleep() advances mocked time() instead of spending
-# real wall-clock seconds, so the retry_ssh_command and wait_for_state polling
-# loops run fast. Must be loaded before the module under test is compiled.
-use Test::Mock::Time;
-
 use Test::More;
 use Test::MockObject;
 use Test::MockModule;
 use Test::Exception;
 use Test::Warnings;
+# Deterministic fake clock: sleep() advances mocked time() instead of spending
+# real wall-clock seconds, so the retry_ssh_command and wait_for_state polling
+# loops run fast. Must be loaded before the module under test is compiled.
+use Test::Mock::Time;
+
 use testapi 'set_var';
 
 use publiccloud::instance;
 
-# ---------------------------------------------------------------------------
-# Pure helper: isok
-# ---------------------------------------------------------------------------
-subtest '[isok] shell exit code truthiness' => sub {
-    ok(publiccloud::instance::isok(0), '0 is ok');
-    ok(!publiccloud::instance::isok(1), '1 is not ok');
-    ok(!publiccloud::instance::isok(undef), 'undef is not ok');
-    ok(!publiccloud::instance::isok(255), '255 is not ok');
-};
-
-# ---------------------------------------------------------------------------
-# Pure helper: systemd_time_to_second
-# ---------------------------------------------------------------------------
 subtest '[systemd_time_to_second] parsing' => sub {
     cmp_ok(publiccloud::instance::systemd_time_to_second('1.234s'), '==', 1.234, 'seconds only');
     cmp_ok(publiccloud::instance::systemd_time_to_second('500ms'), '==', 0.5, 'milliseconds converted');
@@ -309,6 +296,20 @@ subtest '[wait_for_state] dies on timeout' => sub {
     local $SIG{__WARN__} = sub { };
     throws_ok { $inst->wait_for_state('running', 0) }
     qr/instance state is not 'running'/, 'dies when state never matches before timeout';
+};
+
+subtest '[wait_for_ssh_unreachable]' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my @calls;
+    $instmod->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my $provider = Test::MockObject->new;
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => $provider);
+
+    $inst->wait_for_ssh_unreachable();
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    like($calls[0], qr/nc.*10\.0\.0\.1.*22/, 'nc command composed with the instance public ip');
 };
 
 done_testing;
