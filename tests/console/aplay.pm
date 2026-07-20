@@ -49,7 +49,7 @@ EOS
 
     assert_script_run('set_default_volume -f');
 
-    script_run('alsamixer', 0);
+    script_run('alsamixer -c 0', 0);
     assert_screen 'test-aplay-2', 3;
     send_key "esc";
     $self->clear_and_verify_console;
