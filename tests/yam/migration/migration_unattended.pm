@@ -11,6 +11,7 @@ use testapi;
 use power_action_utils 'power_action';
 use utils qw(zypper_call reconnect_mgmt_console upload_folders);
 use Utils::Architectures 'is_s390x';
+use Utils::Backends 'is_pvm';
 use registration;
 
 sub run {
@@ -70,9 +71,10 @@ sub run {
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
         assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
+        reconnect_mgmt_console(timeout => 60) if (is_pvm);
         assert_screen('grub-menu-migration', 120);
-        send_key 'ret';
-        assert_screen('migration-running', 60);
+        send_key('ret');
+        assert_screen('migration-running', 60) unless (is_pvm);
         assert_screen('grub2', 1000);
     }
 }
