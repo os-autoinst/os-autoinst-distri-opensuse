@@ -614,7 +614,17 @@ sub check_cloudinit() {
     # cloud-init status
     my $rc = $self->ssh_script_run(cmd => "sudo cloud-init status --wait", timeout => 300);
     record_info("cloud-init", $self->ssh_script_output("sudo cloud-init status --long", proceed_on_failure => 1, timeout => 300), result => $rc == 0 ? 'ok' : 'fail');
-    die "cloud-init failed with return code $rc" if ($rc != 0 && get_var('PUBLIC_CLOUD_IGNORE_CLOUDINIT_ERRORS') != 1);
+    # Cloud-init error codes: 0 - success, 1 - unrecoverable error, 2 - recoverable error (See cloud-init documentation)
+    # As of https://bugzilla.suse.com/show_bug.cgi?id=1266207 we ignore recoverable errors
+    if (get_var('PUBLIC_CLOUD_IGNORE_CLOUDINIT_ERRORS') != 1) {
+        if ($rc == 1) {
+            die "unrecoverable cloud-init error";
+        } elsif ($rc == 2) {
+            record_info("cloud-init", "recoverable error (return code 2)");
+        } elsif ($rc != 0) {
+            die "unknown cloud-init return code $rc";
+        }
+    }
 
     # cloud-id
     my $cloud_id = (is_azure) ? 'azure' : 'aws';
