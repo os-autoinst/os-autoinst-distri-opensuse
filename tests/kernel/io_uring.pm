@@ -81,11 +81,12 @@ sub run {
     my @skipped = $whitelist->list_skipped_tests($environment, 'liburing');
     if (@skipped) {
         push @skipped, $exclude if $exclude;
-        $test_exclude = join("\n", sort @skipped);
-        my $count = $#skipped + 1;
+        my @sorted = sort @skipped;
+        $test_exclude = join(' ', @sorted);
+        my $count = scalar @sorted;
         record_info(
             "Exclude ($count)",
-            "Excluding tests ($count):\n$test_exclude",
+            "Excluding tests ($count):\n" . join("\n", @sorted),
             result => 'softfail'
         );
     }
