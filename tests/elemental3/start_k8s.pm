@@ -9,7 +9,6 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use elemental3;
-use serial_terminal qw(select_serial_terminal);
 use utils qw(file_content_replace);
 use Mojo::File qw(path);
 use Carp qw(croak);
@@ -99,12 +98,6 @@ sub run {
         $self->result('skip');
         return;
     }
-
-    # Set default root password
-    $testapi::password = get_required_var('TEST_PASSWORD');
-
-    # No GUI, easier and quicker to use the serial console
-    select_serial_terminal();
 
     # Cannot be defined with the other variables, as we need terminal access
     my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
