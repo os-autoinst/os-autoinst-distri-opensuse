@@ -139,7 +139,7 @@ sub init_main {
     # note: This is useful because then jobs for individual submissions are not wrongly considered
     #       to be for consecutive builds and e.g. wrong bugref carry over is avoided.
     if (my $version = get_var('VERSION')) {
-        my $simplified_version = $version =~ s/:(?:(git|smelt)[-:])\d+$//rgi;
+        my $simplified_version = $version =~ s/:(?:(git|smelt|PR)[-:])\d+$//rgi;
         if ($version ne $simplified_version) {
             set_var('VERSION_ORIGINAL', $version);
             set_var('VERSION', $simplified_version);
