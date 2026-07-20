@@ -3,7 +3,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Run 'java hashing' FIPS JCA provider test
+# Summary: Run FIPS-mode Java crypto tests: JCA provider hashing and elliptic-curve math/ECDSA
 # Maintainer: QE Security <none@suse.de>
 
 use Mojo::Base 'opensusebasetest';
@@ -13,13 +13,10 @@ use security::agnosticTestRunner;
 
 sub run {
     select_serial_terminal;
-    my $test = security::agnosticTestRunner->new({
-            language => 'java',
-            name => 'java_hashing',
-        }
-    );
-
-    $test->setup()->run_test()->parse_results()->cleanup();
+    for my $name (qw(java_hashing java_elliptic)) {
+        security::agnosticTestRunner->new({language => 'java', name => $name})
+          ->setup()->run_test()->parse_results()->cleanup();
+    }
 }
 
 sub test_flags {

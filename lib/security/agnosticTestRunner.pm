@@ -33,7 +33,7 @@ sub new {
     $args->{test_dir} //= '~/' . $args->{name};
     $args->{result_format} //= $args->{language} eq 'java' ? 'TAP' : 'XUnit';
     $args->{result_file} //= '/tmp/' . lc($args->{name}) . ($args->{language} eq 'java' ? '_results.tap' : '_results.xml');
-    $args->{data_url_path} //= 'security/openqa_agnostic/' . $args->{name};
+    $args->{data_url_path} //= 'security/openqa_agnostic/' . $args->{language} . '/' . $args->{name};
     $args->{run_command} //= 'runtest';
     return bless $args, $class;
 }
