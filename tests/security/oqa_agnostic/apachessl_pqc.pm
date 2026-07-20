@@ -42,7 +42,7 @@ sub run {
 
     # prepare test data
     record_info('preparing test data');
-    my $data_url = data_url('security/openqa_agnostic/testApacheSSLPQC');
+    my $data_url = data_url('security/openqa_agnostic/python/testApacheSSLPQC');
     my $test_dir = '~/testApacheSSLPQC';
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "curl -s -o $test_dir/pqc-ssl.conf $data_url/pqc-ssl.conf";

@@ -1,0 +1,28 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: java elliptic curve
+# desc: Verifies EC key generation, curve-point math, ECDSA sign/verify and tamper rejection via the JCA
+# steps:
+#   - generate an EC key pair (secp256r1) and confirm the public point satisfies the curve equation
+#   - sign and verify sample data with ECDSA (positive test)
+#   - confirm verification fails against tampered data (negative test)
+#   - attempt to construct a public key from a malformed curve point (informational)
+# author: <andrea.manzini@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: results.tap reports all tests passed
+# platform: SLE 16.1
+# tags: security java elliptic-curve ECDSA
+# ---
+# METADATA_END
+
+set -e
+source ../lib/helper.sh
+
+TEST_FILES=(EllipticCurveCoreTest.java)
+handle_args "$0" "$@"
+
+ensure_command_available "javac"
+
+javac EllipticCurveCoreTest.java
+java EllipticCurveCoreTest > results.tap
