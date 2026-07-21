@@ -34,7 +34,7 @@ sub run {
     my $container_diff_results = "/tmp/container-diff-$image_file.txt";
     assert_script_run("docker pull $unreleased_image", 360);
     assert_script_run("docker pull $released_image", 360);
-    assert_script_run("container-diff diff daemon://$unreleased_image daemon://$released_image --type=rpm --type=file --type=size > $container_diff_results", 300);
+    assert_script_run("container-diff diff daemon://$released_image daemon://$unreleased_image --type=rpm --type=file --type=size > $container_diff_results", 300);
     upload_logs("$container_diff_results");
 
     # Clean container
