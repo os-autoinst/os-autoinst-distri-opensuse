@@ -103,6 +103,16 @@ sub run {
                 sdaf_config_root_dir => $sdaf_config_root_dir,
                 scc_reg_code => get_required_var('SCC_REGCODE_SLES4SAP'))
               if is_byos() || get_var('PUBLIC_CLOUD_FORCE_REGISTRATION');
+
+            # Register iSCSI servers as a temporary workaround for GH#35
+            record_soft_failure('gh#35 - Register iSCSI manually') if check_var('SDAF_FENCING_MECHANISM', 'sbd');
+            ansible_execute_command(
+                command => 'sudo registercloudguest --clean && sudo registercloudguest --force-new',
+                host_group => $sap_sid . "_ISCSI",
+                sdaf_config_root_dir => $sdaf_config_root_dir,
+                sap_sid => $sap_sid,
+                verbose => 1
+            ) if check_var('SDAF_FENCING_MECHANISM', 'sbd');
         }
         # Stop execution with SAP SUT OS setup - App installation is done after maintenance updates are applied
         last if ($playbook_options->{playbook_filename} =~ /playbook_02_os_sap_specific_config/);
