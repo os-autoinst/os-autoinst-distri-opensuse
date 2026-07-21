@@ -57,8 +57,8 @@ sub run {
     my $wiz_name = (is_sle('15-SP5+') and get_var('BONE')) ? "bone-installation-wizard" : "sap-installation-wizard";
     my $wizard_package_version = script_output("rpm -q --qf '%{VERSION}\n' $wiz_name");
 
-    # initial workaround for 15-SP7 and b1 installer 2505
-    $self->b1_workaround_os_version;
+    # disabled as 2602 does not need workaround for 15-SP7
+    #$self->b1_workaround_os_version;
 
     # start wizard
     if (check_var('DESKTOP', 'textmode')) {
