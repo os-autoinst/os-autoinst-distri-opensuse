@@ -28,7 +28,7 @@ sub run {
     zypper_call("install container-diff") if (script_run("which container-diff") != 0);
 
     my $unreleased_image = get_image_uri(released => 0);
-    my $released_image = get_image_uri();
+    my $released_image = get_image_uri(released => 1);
     # container-diff
     my $image_file = $unreleased_image =~ s/\/|:/-/gr;
     my $container_diff_results = "/tmp/container-diff-$image_file.txt";
