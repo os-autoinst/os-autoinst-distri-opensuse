@@ -17,6 +17,7 @@ use utils 'is_boot_encrypted';
 
 sub run {
     my ($self) = @_;
+    select_console('x11');
     # 'keepconsole => 1' is workaround for bsc#1044072
     # Poo#80184, it's not suitable to keep console for s390x after reboot.
     power_action('reboot', keepconsole => (is_s390x) ? 0 : 1);
