@@ -1454,9 +1454,9 @@ sub change_grub_config {
 
     if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
         die "Unsupported option $search on BLS" unless $search == "GRUB_CMDLINE_LINUX_DEFAULT";
-        assert_script_run("sed -ie 's/${old}/${new}/${modifiers}' " . BLS_DEFAULT_FILE);
+        assert_script_run("sed -i -e 's/${old}/${new}/${modifiers}' " . BLS_DEFAULT_FILE);
     } else {
-        assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
+        assert_script_run("sed -i -e '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
     }
 
     if ($update_grub && is_bootloader_grub2) {
