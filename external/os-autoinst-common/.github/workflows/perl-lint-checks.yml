@@ -1,0 +1,16 @@
+---
+name: 'Perl static checks'
+
+on: [push, pull_request]
+
+jobs:
+  perl-lint-checks:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    name: "Perltidy"
+    container:
+      image: registry.opensuse.org/devel/openqa/containers/os-autoinst_dev
+    steps:
+      - uses: actions/checkout@v6
+      - run: GITHUB_ACTIONS=1 make test-tidy

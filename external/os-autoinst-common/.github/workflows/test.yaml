@@ -1,0 +1,15 @@
+---
+name: 'Unit Tests'
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    container:
+      image: perldocker/perl-tester
+    steps:
+      - uses: actions/checkout@v6
+      - run: make test-t
