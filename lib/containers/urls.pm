@@ -188,7 +188,7 @@ sub get_image_uri {
     $args{version} =~ s/^Staging:(?<letter>.)$/Tumbleweed/ if is_tumbleweed || is_microos("Tumbleweed");
 
     my $url = get_var('CONTAINER_IMAGE_TO_TEST');
-    return $url if ($url);
+    return $url if (!$args{released} && $url);
 
     my $type = $args{released} ? 'released' : 'totest';
     if (supports_image_arch($args{distri}, $args{version}, $args{arch})) {
