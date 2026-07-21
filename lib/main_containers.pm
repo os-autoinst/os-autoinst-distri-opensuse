@@ -112,14 +112,21 @@ sub load_secret_tests {
     loadtest('containers/secret', run_args => $run_args, name => 'secret_' . $run_args->{runtime});
 }
 
+sub is_container_diff_available {
+    return 1 if is_opensuse;
+
+    # On SLES, the container_diff package is only available on 12-SP5 x86_64 and 15 (all architectures)
+    return 0 if (is_sle(">=16"));
+    return 0 if (is_sle("=12") && !is_x86_64);
+    # We don't want to run this against 3rd party hosts
+    return 0 if get_var('CONTAINERS_NO_SUSE_OS');
+    return 1;
+}
+
 sub load_image_tests_docker {
     my ($run_args) = @_;
     load_image_test($run_args);
-    # container_diff package is not avaiable for <=15 in aarch64
-    # Also, we don't want to run it on 3rd party hosts
-    unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS') || is_staging) {
-        loadtest 'containers/container_diff';
-    }
+    loadtest 'containers/container_diff' if (is_container_diff_available && (!is_opensuse || !is_staging));
 }
 
 sub load_container_engine_privileged_mode {
