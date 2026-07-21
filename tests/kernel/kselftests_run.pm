@@ -13,6 +13,13 @@ use testapi;
 use utils qw(write_sut_file);
 use serial_terminal qw(serial_term_prompt select_serial_terminal);
 use Kselftests::utils;
+use LTP::utils qw(unmask_serial_failures);
+
+sub pre_run_hook {
+    my ($self) = @_;
+    $self->{serial_failures} = unmask_serial_failures($self->{serial_failures});
+    $self->SUPER::pre_run_hook;
+}
 
 sub run {
     my ($self) = @_;
