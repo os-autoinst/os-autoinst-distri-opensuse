@@ -51,7 +51,7 @@ sub run {
     add_test_repositories;
     my $updates = script_output('zypper lu');
     record_info('Updates', $updates);
-    die 'No updates found in the test repositories' if ($updates =~ /No updates found/);
+    record_soft_failure("poo#195497 No updates found in the test repositories.") if ($updates =~ /No updates found/);
     update_system unless get_var('DISABLE_UPDATE_WITH_PATCH');
 
     # after update, clean the audit log to make sure there aren't any leftovers that were already fixed
