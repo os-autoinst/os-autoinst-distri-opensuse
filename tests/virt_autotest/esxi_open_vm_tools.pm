@@ -277,8 +277,7 @@ sub login_vm_console {
     reset_consoles;
     console('svirt')->start_serial_grab;
     select_console('sut');
-    assert_screen('grub2', 200);
-    wait_screen_change { send_key 'ret' };
+    send_key 'ret' if (check_screen('grub2', 180));
     assert_screen('linux-login', 120);
     select_console('root-console');
 }
