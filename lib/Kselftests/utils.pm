@@ -16,6 +16,7 @@ use utils;
 use Kselftests::parser;
 use LTP::WhiteList;
 use version_utils qw(is_sle has_selinux is_tumbleweed is_transactional);
+use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
 use base 'opensusebasetest';
 use File::Basename qw(basename);
 use repo_tools qw(add_qa_head_repo);
@@ -179,6 +180,8 @@ sub install_from_repo
 sub install_dependencies
 {
     my ($collection) = @_;
+
+    enable_debugfs() unless is_debugfs_mounted();
 
     # selftests may manipulate namespaces and devices in ways that
     # trigger AVC denials on SELinux-enabled systems
