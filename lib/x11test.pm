@@ -769,6 +769,7 @@ sub unlock_user_settings {
     type_string "users";
     assert_screen "settings-users-selected";
     send_key "ret";
+    wait_still_screen(1, 2);
     assert_screen "users-settings";
     assert_and_click "Unlock-user-settings";
     assert_screen "authentication-required-user-settings";
