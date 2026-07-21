@@ -49,7 +49,7 @@ sub run {
 
     # OS upgrade is done automatically as well as the reboot after upgrade
     # We just have to wait for the VM to reboot
-    $self->wait_grub(bootloader_time => bmwqemu::scale_timeout(900));
+    $self->wait_boot(bootloader_time => bmwqemu::scale_timeout(900), textmode => 1, nologin => 1);
 
     # Set default root password
     $testapi::password = get_required_var('TEST_PASSWORD');
