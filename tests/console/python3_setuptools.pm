@@ -98,6 +98,7 @@ sub http_install_test ($version_number, $env) {
         else {
             validate_script_output("pip$version_number install wheel", sub { m/Successfully installed/ });
         }
+        script_run("pip$version_number uninstall wheel -y");
         return;
     }
     else {
