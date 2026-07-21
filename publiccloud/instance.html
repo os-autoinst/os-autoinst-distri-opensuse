@@ -25,6 +25,7 @@
       <li><a href="#upload_check_logs_tar">upload_check_logs_tar</a></li>
       <li><a href="#wait_for_guestregister">wait_for_guestregister</a></li>
       <li><a href="#update_instance_ip">update_instance_ip</a></li>
+      <li><a href="#wait_for_ssh_unreachable">wait_for_ssh_unreachable</a></li>
       <li><a href="#isok">isok</a></li>
       <li><a href="#softreboot">softreboot</a></li>
       <li><a href="#stop">stop</a></li>
@@ -139,6 +140,54 @@ C&lt;apply_graceful_timeout&gt; - in case waiting longer than timeout normally s
 <pre><code>update_instance_ip(timeout =&gt; 600)</code></pre>
 
 <p>This subroutine checks the public IP cloud provider provides for the VM. When the IP differs from `$self-&gt;public_ip` we update `$self-&gt;public_ip`.</p>
+
+<h2 id="wait_for_ssh_unreachable">wait_for_ssh_unreachable</h2>
+
+<pre><code>my $rc = $instance-&gt;wait_for_ssh_unreachable([delay =&gt; 2] [, timeout =&gt; 300] [, port =&gt; 22] [, die =&gt; 1]);</code></pre>
+
+<p>Wait until the SSH port of this instance stops accepting connections, i.e. when the instance goes down. Retrying continues until the port becomes unreachable or <code>timeout</code> seconds elapse (the number of attempts is derived as <code>timeout / delay</code>).</p>
+
+<p>This is typically used to detect the reboot/shutdown window (e.g. from <code>softreboot</code>). The default <code>delay</code> is intentionally small so the short interval during which SSH becomes unreachable is not missed.</p>
+
+<p>Returns the exit code of the last <code>nc</code> probe, as forwarded by <code>script_retry</code>. The value tells whether the port is still connectable: <code>0</code> means &quot;not connected&quot; (unreachable), a non-zero value means &quot;still connected&quot; (reachable).</p>
+
+<ul>
+
+<li><p><code>0</code> when the port became unreachable within the timeout (success).</p>
+
+</li>
+<li><p>a non-zero value when the port is still reachable after the timeout, but only if <code>die</code> is set to a false value.</p>
+
+</li>
+<li><p>with the default <code>die =&gt; 1</code>, a still-reachable port makes <code>script_retry</code> <b>die</b> instead of returning, so the only value ever returned in that mode is <code>0</code>.</p>
+
+</li>
+<li><p><code>undef</code> as a corner case: <code>script_retry</code> returns <code>undef</code> when the last probe attempt is killed by its <code>timeout</code> wrapper before an exit code is reported. This is unlikely here (the probe is <code>nc -w 1</code>), but callers relying on the return value should treat <code>undef</code> as &quot;not unreachable&quot;.</p>
+
+</li>
+</ul>
+
+<p>Arguments:</p>
+
+<dl>
+
+<dt id="delay---seconds-to-wait-between-two-probes.-Defaults-to-2.-Keep-it-low-to-avoid-missing-the-brief-window-where-SSH-is-unreachable"><b>delay</b> - seconds to wait between two probes. Defaults to <code>2</code>. Keep it low to avoid missing the brief window where SSH is unreachable.</dt>
+<dd>
+
+</dd>
+<dt id="timeout---overall-time-budget-in-seconds.-Defaults-to-the-test-setting-PUBLIC_CLOUD_SSH_TIMEOUT-or-300-if-unset"><b>timeout</b> - overall time budget in seconds. Defaults to the test setting <code>PUBLIC_CLOUD_SSH_TIMEOUT</code> or <code>300</code> if unset.</dt>
+<dd>
+
+</dd>
+<dt id="port---TCP-port-to-probe.-Defaults-to-22"><b>port</b> - TCP port to probe. Defaults to <code>22</code>.</dt>
+<dd>
+
+</dd>
+<dt id="die---when-true-the-default-1-the-function-dies-if-the-port-is-still-reachable-after-timeout.-Set-to-0-to-instead-return-the-non-zero-return-code"><b>die</b> - when true (the default <code>1</code>) the function dies if the port is still reachable after <code>timeout</code>. Set to <code>0</code> to instead return the non-zero return code.</dt>
+<dd>
+
+</dd>
+</dl>
 
 <h2 id="isok">isok</h2>
 
