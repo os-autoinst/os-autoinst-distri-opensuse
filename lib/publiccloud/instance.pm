@@ -409,9 +409,9 @@ sub scan_ssh_host_key {
 
 sub wait_for_ssh {
     my ($self, %args) = @_;
-    $self->wait_for_ssh_reachable();
-    $self->scan_ssh_host_key() if $args{scan_ssh_host_key};
-    $self->wait_for_ssh_login();
+    $self->wait_for_ssh_reachable(%args);
+    $self->scan_ssh_host_key(%args) if $args{scan_ssh_host_key};
+    $self->wait_for_ssh_login(%args);
 }
 
 sub wait_for_ssh_reachable {
@@ -503,10 +503,13 @@ sub wait_for_ssh_unreachable {
 
 sub wait_for_ssh_login {
     my ($self, %args) = @_;
+    my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
+    my $delay = $args{delay} // 30;
+    my $retry = $timeout / $delay;
 
     ## ssh options to avoid issues with pipelining and host key validation
     my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10 -o strictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
-    $self->ssh_script_retry("true", ssh_opts => $ssh_opts, retry => 10, delay => 30, fail_message => "ssh connection failed (10 attempts in 300 seconds)");
+    $self->ssh_script_retry("true", ssh_opts => $ssh_opts, retry => $retry, delay => $delay, fail_message => "ssh connection failed ($delay attempts in $timeout seconds)");
 }
 
 =head2 isok
