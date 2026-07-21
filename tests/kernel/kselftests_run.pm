@@ -55,63 +55,28 @@ sub run {
     $self->{tests} = [@tests];
     die 'No tests to run.' unless @tests > 0;
 
-    # Always use --per-test-log so each test's subtest output goes to its own
-    # /tmp/<test> file and the summary only holds the top-level results. This
-    # keeps a single, uniform post-processing path for both single and multiple
-    # tests (see post_process).
-    my $test_opt = '--per-test-log';
-    if (@selected == @available && !@skip) {
-        # No tests were selected nor skipped, run full collection
-        $test_opt .= " --collection $collection";
-    } elsif (@selected == @available && @skip) {
-        # No tests were selected but some must be skipped
-        if (script_output('./run_kselftest.sh -h') =~ m/--skip/) {
-            # Use `--skip` if runner allows, this is important for collections that have a high number of tests
-            $test_opt .= " --collection $collection " . join(' ', map { "--skip $_" } @skip);
-        } else {
-            $test_opt .= ' ' . join(' ', map { "--test $_" } @tests);
-        }
-    } else {
-        # Some tests were selected and/or skipped, simply use `--test`
-        $test_opt .= ' ' . join(' ', map { "--test $_" } @tests);
-    }
-
     validate_kconfig($collection);
 
-    my $stamp = 'OpenQA::kselftest_run.pm';
     my $timeout = get_var('KSELFTEST_TIMEOUT') // 300;
-    my $test_timeout = get_var('KSELFTEST_TEST_TIMEOUT') ? "--override-timeout " . get_var('KSELFTEST_TEST_TIMEOUT') : '';
-    my $runner = get_var('KSELFTEST_RUNNER') // "export PATH=\"\$PWD/$collection:\$PATH\"; ./run_kselftest.sh $test_timeout $test_opt";
+    my $stamp = 'OpenQA::kselftest_run.pm';
 
-    # Helper script that stamps /dev/kmsg with each subtest starting point
-    my $annotate_kmsg_script = <<'EOF';
-my %seen;
-while (my $line = <STDIN>) {
-    if ($line =~ /^#\sselftests:\s\S+:\s(\S+)/) {
-        my $test = $1;
-        if (!$seen{$test}++ && open(my $kmsg, '>', '/dev/kmsg')) {
-            print {$kmsg} "OpenQA::kselftest_run.pm: Starting $test\n";
-            close($kmsg);
-        }
-    }
-    print $line;
-}
-EOF
-    write_sut_file('/tmp/kselftest_kmsg_annotate.pl', $annotate_kmsg_script);
-    my $annotate_kmsg = 'perl /tmp/kselftest_kmsg_annotate.pl';
-
-    $runner .= " 2>&1 | $annotate_kmsg | tee -a \$HOME/summary.tap; echo $stamp END";
     export_kselftest_env();
 
-    script_run("echo '$stamp BEGIN' > /dev/kmsg");
-    wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
-    type_string($runner);
-    wait_serial($runner, undef, 0, no_regex => 1);
-    send_key 'ret';
+    for my $test (@tests) {
+        # Stamp the kernel ring buffer before each test
+        script_run("echo '$stamp: Starting $test' > /dev/kmsg");
 
-    my $finished = wait_serial(qr/$stamp END/, timeout => $timeout, expect_not_found => 0, record_output => 1);
-    if (not defined $finished) {
-        die "Timed out waiting for Kselftests runner which may still be running or the OS may have crashed!";
+        my $cmd = "./run_kselftest.sh --override-timeout $timeout --per-test-log --test $test 2>&1 | tee -a \$HOME/summary.tap; echo '$stamp $test END'";
+
+        wait_serial(serial_term_prompt(), undef, 0, no_regex => 1);
+        type_string($cmd);
+        wait_serial($cmd, undef, 0, no_regex => 1);
+        send_key 'ret';
+
+        # Give the harness's own --override-timeout a 10s head start so it can
+        # print its TIMEOUT result and the END stamp before openQA gives up.
+        my $finished = wait_serial(qr/\Q$stamp\E \Q$test\E END/, timeout => $timeout + 10, record_output => 1);
+        die "Timed out waiting for kselftest '$test' which may still be running or the OS may have crashed!" unless defined $finished;
     }
 }
 
@@ -139,19 +104,13 @@ This module runs Linux Kernel Selftests (kselftests) inside openQA.
 It expects C<kselftests_prepare> to have already installed the selftests
 and their dependencies.
 
-The module groups tests by a collection, as listed in
-F<kselftest-list.txt>, and allows selecting individual tests, skipping
-tests, and injecting custom environment variables into the test harness.
+Each test in the collection is run individually so that kernel crashes or
+hangs are caught per-test rather than aborting the entire run with a
+single opaque timeout.
 
 Test results are collected from KTAP output produced by the
 F<run_kselftest.sh> harness and exported into the openQA result
-directory. When multiple tests are executed, per-test logs are enabled
-automatically.
-
-A serial console stamp is written before and after the test run to
-detect hangs or kernel crashes. A global timeout is applied to the
-overall test run, while an optional per-test timeout can be used to
-override the default 45-second limit built into the kselftest harness.
+directory.
 
 =head1 Configuration
 
@@ -174,23 +133,10 @@ Optional list of tests that should be skipped. This is applied after
 KSELFTEST_TESTS, so it can exclude tests even when running a full
 collection.
 
-=head2 KSELFTEST_RUNNER
-
-Overrides the default runner command. Useful for debugging or running
-custom wrappers. Example:
-
-  KSELFTEST_RUNNER="cd bpf; strace ./test_progs -t dummy_st_ops"
-
 =head2 KSELFTEST_TIMEOUT
 
-Applies a global timeout (in seconds) to the entire kselftest run. If
-the tests do not complete within this time, the module fails.
-
-=head2 KSELFTEST_TEST_TIMEOUT
-
-Optional per-test timeout passed to F<run_kselftest.sh> via the
-C<--override-timeout> argument. This overrides the default kselftest
-per-test timeout (typically 45 seconds). Useful for long-running tests.
+Per-test timeout in seconds. If a single test does not complete within
+this time, the module fails. Defaults to 300 seconds.
 
 =head2 KSELFTEST_ENV
 
@@ -209,6 +155,5 @@ Example:
 
   KSELFTEST_COLLECTION=cgroup
   KSELFTEST_TESTS=test_cpucg_stats,test_cpucg_max
-  KSELFTEST_TEST_TIMEOUT=120
   KSELFTEST_TIMEOUT=1800
   KSELFTEST_FROM_GIT=0
