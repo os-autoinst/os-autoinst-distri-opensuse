@@ -122,9 +122,8 @@ sub create_host_bridge_nm {
         $execute_script .= ' ' . (get_var('EXCLUDED_BR_NICS', '') ? get_var('EXCLUDED_BR_NICS') : '""');
         script_output($execute_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         save_screenshot;
-        # Re-establish the SSH connection, poo#187197
-        reset_consoles;
-        select_console('root-ssh');
+        # Re-establish the backend console connection, poo#187197
+        select_backend_console(init => 0);
         # Set metric the lowest to make br0 always be the default route
         script_run("nmcli con modify br0 ipv4.route-metric 50");
         script_run("nmcli con up br0");

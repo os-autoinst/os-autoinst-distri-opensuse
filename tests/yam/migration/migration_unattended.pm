@@ -10,6 +10,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use power_action_utils 'power_action';
 use utils qw(zypper_call reconnect_mgmt_console upload_folders);
+use Utils::Backends qw(is_ipmi);
 use Utils::Architectures 'is_s390x';
 use registration;
 
@@ -70,10 +71,11 @@ sub run {
         assert_script_run("sed -i 's/set timeout=[0-9]*/set timeout=-1/' /etc/grub.d/99_migration");
         assert_script_run("grub2-mkconfig -o /boot/grub2/grub.cfg");
         power_action('reboot', textmode => 1, keepconsole => 1, first_reboot => 1);
-        assert_screen('grub-menu-migration', 120);
+        reconnect_mgmt_console(timeout => 600) if is_ipmi;
+        assert_screen('grub-menu-migration', is_ipmi ? 600 : 120);
         send_key 'ret';
         assert_screen('migration-running', 60);
-        assert_screen('grub2', 1000);
+        assert_screen('grub2', 1200);
     }
 }
 
