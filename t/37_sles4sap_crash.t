@@ -308,13 +308,28 @@ subtest '[crash_system_ready]' => sub {
 subtest '[crash_softrestart]' => sub {
     my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
     my $mock_pc = Test::MockObject->new();
-    $mock_pc->mock('wait_for_ssh_unreachable', sub {
-            return {
-                exit_code => 1,
-                timed_out => 0,
-                duration => 10,
-            };
-    });
+    # 0 means the ssh port became unreachable, i.e. the instance went down as expected
+    $mock_pc->mock('wait_for_ssh_unreachable', sub { return 0; });
+    $mock_pc->mock('wait_for_ssh', sub { return; });
+    my @calls;
+    $mock_pc->mock('ssh_assert_script_run', sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return; });
+    $crash->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    crash_softrestart(instance => $mock_pc);
+
+    note("\n  -->  " . join("\n  -->  ", @calls));
+    ok((any { /shutdown.*\-r/ } @calls), 'Shutdown command');
+};
+
+subtest '[crash_softrestart] ssh never unreachable' => sub {
+    my $crash = Test::MockModule->new('sles4sap::crash', no_auto => 1);
+    my $mock_pc = Test::MockObject->new();
+    # non-zero means the ssh port is still reachable after the timeout, i.e. the instance never went down
+    $mock_pc->mock('wait_for_ssh_unreachable', sub { return 1; });
+    $mock_pc->mock('wait_for_ssh', sub { return; });
     my @calls;
     $mock_pc->mock('ssh_assert_script_run', sub {
             my ($self, %args) = @_;

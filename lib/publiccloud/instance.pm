@@ -425,6 +425,62 @@ sub wait_for_ssh_reachable {
     script_retry('nc -vz -w 1 ' . $self->public_ip . ' ' . $port, delay => $delay, retry => $retry, fail_message => "ssh port unreachable after $timeout seconds (port probed via nc)");
 }
 
+=head2 wait_for_ssh_unreachable
+
+    my $rc = $instance->wait_for_ssh_unreachable([delay => 2] [, timeout => 300] [, port => 22] [, die => 1]);
+
+Wait until the SSH port of this instance stops accepting connections, i.e.
+when the instance goes down. Retrying continues until the port becomes
+unreachable or C<timeout> seconds elapse (the number of attempts is derived
+as C<timeout / delay>).
+
+This is typically used to detect the reboot/shutdown window (e.g. from
+C<softreboot>). The default C<delay> is intentionally small so the short
+interval during which SSH becomes unreachable is not missed.
+
+Returns the exit code of the last C<nc> probe, as forwarded by C<script_retry>.
+The value tells whether the port is still connectable: C<0> means "not
+connected" (unreachable), a non-zero value means "still connected" (reachable).
+
+=over
+
+=item * C<0> when the port became unreachable within the timeout (success).
+
+=item * a non-zero value when the port is still reachable after the timeout,
+        but only if C<die> is set to a false value.
+
+=item * with the default C<die =E<gt> 1>, a still-reachable port makes
+        C<script_retry> B<die> instead of returning, so the only value ever
+        returned in that mode is C<0>.
+
+=item * C<undef> as a corner case: C<script_retry> returns C<undef> when the
+        last probe attempt is killed by its C<timeout> wrapper before an exit
+        code is reported. This is unlikely here (the probe is C<nc -w 1>), but
+        callers relying on the return value should treat C<undef> as "not
+        unreachable".
+
+=back
+
+Arguments:
+
+=over
+
+=item B<delay> - seconds to wait between two probes. Defaults to C<2>. Keep it
+                 low to avoid missing the brief window where SSH is unreachable.
+
+=item B<timeout> - overall time budget in seconds. Defaults to the test setting
+                   C<PUBLIC_CLOUD_SSH_TIMEOUT> or C<300> if unset.
+
+=item B<port> - TCP port to probe. Defaults to C<22>.
+
+=item B<die> - when true (the default C<1>) the function dies if the port is
+               still reachable after C<timeout>. Set to C<0> to instead return
+               the non-zero return code.
+
+=back
+
+=cut
+
 sub wait_for_ssh_unreachable {
     my ($self, %args) = @_;
 
@@ -435,7 +491,11 @@ sub wait_for_ssh_unreachable {
     my $port = $args{port} // 22;
     my $die = ${args}{die} // 1;
 
-    my $rc = script_retry('! nc -vz -w 1 ' . $self->public_ip . ' ' . $port, delay => $delay, retry => $retry, fail_message => "ssh port still reachable after $timeout seconds (port probed via nc)", die => $die);
+    my $rc = script_retry('! nc -vz -w 1 ' . $self->public_ip . ' ' . $port,
+        delay => $delay,
+        retry => $retry,
+        fail_message => "ssh port still reachable after $timeout seconds (port probed via nc)",
+        die => $die);
     # Print a warning message, if we don't want to `die` here in the previous check
     record_info("ssh still reachable", "WARNING: ssh port is still reachable", result => 'fail') if ($rc != 0);
     return $rc;
