@@ -72,6 +72,26 @@ sub run {
         die('There are no ARP neighbors on eth0') if ($instance->ssh_script_output("ip neighbor show dev eth0 | wc -l") == 0);
         die('There are no ARP neighbors on eth1') if ($instance->ssh_script_output("ip neighbor show dev eth1 | wc -l") == 0);
 
+        # Log cloud-init network config for debugging (bsc#1266868)
+        record_info('cloud-init network-config', $instance->ssh_script_output('sudo cat /var/lib/cloud/instance/network-config.json', proceed_on_failure => 1));
+
+        # Check that cloud-init contains the SUSE-specific _write_routes patch (bsc#1266868)
+        if ($instance->ssh_script_run('python3 -c "from cloudinit.distros.opensuse import Distro; assert hasattr(Distro, \'_write_routes\')"') != 0) {
+            record_soft_failure("bsc#1266868 - cloud-init is missing the SUSE-specific _write_routes patch");
+        }
+
+        # Check that cloud-init wrote the Azure UDR route to ifroute-eth0 (bsc#1266868)
+        my $udr_route = '172.25.25';
+        if ($instance->ssh_script_run("sudo grep -q $udr_route /etc/sysconfig/network/ifroute-eth0") != 0) {
+            record_soft_failure("bsc#1266868 - cloud-init did not write UDR route to /etc/sysconfig/network/ifroute-eth0");
+        }
+
+        # Check that cloud-netconfig programmed the Azure UDR route into the kernel (bsc#1267422)
+        my $custom_route = '172.25.25.0/24';
+        if ($instance->ssh_script_output("ip route show table all $custom_route | wc -l") == 0) {
+            record_soft_failure("bsc#1267422 - Custom UDR route $custom_route not found in routing tables");
+        }
+
         # Remove eth0 secondary address and eth1 default route and check if it reappears
         $instance->ssh_assert_script_run("sudo ip addr del $local_eth0_secondary_ip/24 dev eth0");
         $instance->ssh_assert_script_run("sudo ip route del default dev eth1");
