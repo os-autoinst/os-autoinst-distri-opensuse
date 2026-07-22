@@ -40,6 +40,7 @@ sub run {
 
     # run create table
     send_key 'ret';
+    $self->libreoffice_handle_tip_of_the_day;
     assert_screen 'ooffice-verify-table';
 
     # exit ooffice-writer without saving created table
