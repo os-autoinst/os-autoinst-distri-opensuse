@@ -397,6 +397,7 @@ PUBLIC_CLOUD_SCC_ENDPOINT | string | "registercloudguest" | Name of binary which
 PUBLIC_CLOUD_SKIP_INSTANCE_CHECKS | boolean | false | DO NOT ADD TO JOB GROUPS: Skip the instance checks running right after instance is created. Those includes failed service check and the cloud init check.
 PUBLIC_CLOUD_SKIP_MU | boolean | false | Run tests without downloading/applying maintenance updates.
 PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
+PUBLIC_CLOUD_SSH_TIMEOUT | int | 300 | Sets the timeout for ssh wait operations.
 PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
 PUBLIC_CLOUD_SUPPORTCONFIG_EXCLUDE | string | "" | List of comma-separated features to exclude from 'supportconfig' execution
 PUBLIC_CLOUD_SMOKETEST | boolean | false | Scheduling setting - Run instance smoke tests
