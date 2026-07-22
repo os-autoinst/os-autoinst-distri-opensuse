@@ -20,6 +20,10 @@ use x11utils 'turn_off_plasma_tooltips';
 sub run {
     # Workaround: on vmware or hyperv the 'ret' from grub_test is occasionally
     # lost across a VNC reconnect, leaving the SUT at the GRUB menu.
+    if (check_var('VIRSH_VMM_FAMILY', 'vmware') || check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        console('sut')->disable_vnc_stalls;
+        select_console('sut');
+    }
     if (check_screen('grub2', 5)) {
         record_info('bootloader still visible, resending ret');
         send_key 'ret';

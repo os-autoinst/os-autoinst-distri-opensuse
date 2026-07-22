@@ -117,8 +117,6 @@ sub do_power_mgmt_tests {
     check_vmtools_service() if (is_svirt);
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_ON);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 0, $VM_POWER_OFF);
-
-    # Boot up the VM if it's powered off
     $powerops = 'power.on';
     $powerops_ret = take_vm_power_ops($vm_id, $powerops, $VM_POWER_OFF);
     check_vm_power_state($vm_id, $vm_ip, $powerops, $powerops_ret, 1, $VM_POWER_ON);
@@ -274,11 +272,12 @@ sub wait_for_vm_network {
 }
 
 sub login_vm_console {
+    console('sut')->disable_vnc_stalls;
+    console('svirt')->stop_serial_grab;
     reset_consoles;
     console('svirt')->start_serial_grab;
     select_console('sut');
-    assert_screen('grub2', 200);
-    wait_screen_change { send_key 'ret' };
+    send_key 'ret' if (check_screen('grub2', 180));
     assert_screen('linux-login', 120);
     select_console('root-console');
 }
