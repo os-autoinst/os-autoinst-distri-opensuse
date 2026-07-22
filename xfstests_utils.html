@@ -33,8 +33,10 @@
       <li><a href="#copy_fsxops">copy_fsxops</a></li>
       <li><a href="#raw_dump">raw_dump</a></li>
       <li><a href="#collect_fs_status">collect_fs_status</a></li>
+      <li><a href="#record_env_pressure">record_env_pressure</a></li>
       <li><a href="#copy_all_log">copy_all_log</a></li>
       <li><a href="#reload_loop_device">reload_loop_device</a></li>
+      <li><a href="#recover_after_crash">recover_after_crash</a></li>
       <li><a href="#umount_xfstests_dev">umount_xfstests_dev</a></li>
       <li><a href="#config_debug_option">config_debug_option</a></li>
       <li><a href="#test_run_without_heartbeat">test_run_without_heartbeat</a></li>
@@ -119,6 +121,10 @@
 
 <p>Log: Collect fs runtime status for XFS, Btrfs and Ext4</p>
 
+<h2 id="record_env_pressure">record_env_pressure</h2>
+
+<p>Record the host-contention fingerprint on a subtest failure: load average plus CPU steal (mpstat) and IO await / avg-cpu (iostat), to help diagnose failures caused by an oversubscribed/contended host. Reported via a single dedicated record_info.</p>
+
 <h2 id="copy_all_log">copy_all_log</h2>
 
 <p>Add all above logs</p>
@@ -126,6 +132,10 @@
 <h2 id="reload_loop_device">reload_loop_device</h2>
 
 <p>Reload loop device for xfstests</p>
+
+<h2 id="recover_after_crash">recover_after_crash</h2>
+
+<p>Recover the SUT after a subtest crashed or hung. Reboots the system (soft reboot on public cloud), saves kdump data when enabled and reloads loop devices so that the next subtest starts from a clean environment. Shared by the heartbeat path and the non-heartbeat path (test_run_without_heartbeat), and by the sporadic debug loop. $cloud_instance is only used on public cloud.</p>
 
 <h2 id="umount_xfstests_dev">umount_xfstests_dev</h2>
 
