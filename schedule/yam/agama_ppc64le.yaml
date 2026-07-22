@@ -12,3 +12,4 @@ schedule:
   - yam/validate/validate_base_product
   - yam/validate/validate_product
   - yam/validate/validate_first_user
+  - shutdown/shutdown
