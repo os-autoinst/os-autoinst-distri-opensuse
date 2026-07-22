@@ -15,4 +15,5 @@ schedule:
   - yam/validate/validate_first_user
   - yam/validate/validate_snapshots
   - yam/validate/validate_registered_products
+  - yam/validate/validate_registration_server
   - console/validate_repos
