@@ -48,11 +48,11 @@ sub workaround_CC_s390x {
 
 # The function below covers all required steps for 389ds server's configuration
 sub config_service {
-    my ($no_check) = @_;
-    $no_check //= 0;    # Need to check by default
-                        # Permit ssh/scp from client as root
-    permit_root_ssh();
-    workaround_CC_s390x if is_s390x;
+    my %args = @_;
+    my $no_check = $args{no_check} // 0;    # Need to check by default
+    my $workaround = $args{workaround} // 1;    # Need workaround for s390x
+    permit_root_ssh();    # Permit ssh/scp from client as root
+    workaround_CC_s390x if (is_s390x && $workaround);
     # Start a local instance with basic configuration file
     assert_script_run("wget --quiet " . data_url("389ds/instance.inf") . " -O /tmp/instance.inf");
     assert_script_run("sed -i 's/\{\{PASSWORD\}\}/$testapi::password/g' /tmp/instance.inf");

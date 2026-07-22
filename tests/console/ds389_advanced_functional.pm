@@ -23,7 +23,7 @@ sub run {
     record_info("Setup", "Installing and configuring 389ds using library methods");
     assert_script_run("echo '127.0.0.1 localhost.localdomain localhost' > /etc/hosts");
     services::389ds_server::install_service();
-    services::389ds_server::config_service(no_check => 1);
+    services::389ds_server::config_service(no_check => 1, workaround => 0);
     services::389ds_server::enable_service();
     services::389ds_server::check_service();
 
