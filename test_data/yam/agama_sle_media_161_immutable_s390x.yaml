@@ -2,7 +2,7 @@
 os_release:
   NAME: "SLES"
   PRETTY_NAME: "SUSE Linux Enterprise Server %VERSION%"
-  VARIANT: "Micro"
+  VARIANT: "Enterprise Server (Immutable)"
   VARIANT_ID: "transactional"
   VERSION_ID: "%VERSION%"
   ID: "sles"
