@@ -16,6 +16,7 @@ use utils;
 use version_utils 'is_sle';
 use registration;
 use serial_terminal;
+use package_utils 'install_package';
 
 # allow a 60 second timeout for asserting needles
 use constant TIMEOUT => 90;
@@ -44,8 +45,8 @@ sub tomcat_setup() {
     quit_packagekit if is_sle;
 
     my $tomcat = 'tomcat' . $version;
-    zypper_call("in $tomcat ${tomcat}-webapps ${tomcat}-admin-webapps", timeout => 300);
-    zypper_call('in libtcnative-2-0') if is_sle('>=15-sp4');
+    install_package("$tomcat ${tomcat}-webapps ${tomcat}-admin-webapps", trup_reboot => 1);
+    install_package('libtcnative-2-0', trup_reboot => 1) if is_sle('>=15-sp4');
     assert_script_run("rpm -q $tomcat");
 
     # start the tomcat daemon and check that it is running

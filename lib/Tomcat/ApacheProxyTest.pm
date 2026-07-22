@@ -14,13 +14,14 @@ use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 
 sub mod_proxy_setup() {
     my $self = shift;
     select_serial_terminal();
 
     record_info('install and configure apache2 proxy');
-    zypper_call('in apache2');
+    install_package('apache2', trup_reboot => 1);
     script_output(
         "echo  \"\$(cat <<EOF
 <VirtualHost *:80>
