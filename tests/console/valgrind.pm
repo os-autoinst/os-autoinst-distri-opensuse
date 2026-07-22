@@ -40,6 +40,7 @@ sub run {
     prepare();
     record_info("valgrind", script_output("valgrind --version"));
 
+    script_run 'export DEBUGINFOD_URLS=""';
     # Run valgrind memchecks
     assert_script_run 'valgrind --tool=memcheck --trace-children=yes ./valgrind-test';
     my $cmd = 'valgrind -s --log-fd=1';    # command with common options
