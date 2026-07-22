@@ -37,6 +37,7 @@ our @EXPORT = qw(
   handle_sp_in_settings_with_sp0
   clean_up_red_disks
   lpar_cmd
+  lpar_upload_logs
   generate_guest_asset_name
   get_guest_disk_name_from_guest_xml
   compress_single_qcow2_disk
@@ -133,7 +134,7 @@ sub repl_repo_in_sourcefile {
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . locate_sourcefile;
         my $newrepo = get_repo_0_prefix . get_var("REPO_0");
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
-        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
+        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i || get_var('GUEST_FLAVOR', '') =~ /full/i);
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
         if (is_s390x) {
@@ -178,7 +179,7 @@ sub repl_module_in_sourcefile {
     if (is_s390x) {
         lpar_cmd("$command");
         lpar_cmd("grep Module $source_file -r");
-        upload_asset "/usr/share/qa/virtautolib/data/sources.de", 1, 1;
+        lpar_upload_logs("/usr/share/qa/virtautolib/data/sources.de");
     }
     else {
         assert_script_run($command, timeout => 120);
@@ -355,6 +356,33 @@ sub lpar_cmd {
 
     # Return context-aware results: list of (RC, output) or just RC
     return wantarray ? ($ret, $output) : $ret;
+}
+
+=head2 lpar_upload_logs
+
+  lpar_upload_logs($file_path, [$custom_upname])
+
+Upload a log file directly from the s390x LPAR host to the openQA web UI.
+This helper subroutine executes a native C<curl> command via C<lpar_cmd()>,
+bypassing the standard C<upload_logs()> to avoid fragile C<wait_serial> timeouts
+caused by console context mismatches. It takes the absolute C<$file_path> on the host,
+and an optional C<$custom_upname> for the openQA Assets tab (defaults to the file's base name).
+
+=cut
+
+sub lpar_upload_logs {
+    my ($file_path, $custom_upname) = @_;
+
+    my ($filename) = $file_path =~ m|([^/]+)$|;
+    my $upname = $custom_upname || $filename;
+    my $upload_url = autoinst_url("/uploadlog/$filename");
+
+    my $curl_cmd = "curl -s --form upload=\@$file_path " .
+      "--form upname=$upname " .
+      "--max-time 90 $upload_url";
+
+    record_info('Upload Log', "Uploading $file_path directly from LPAR");
+    lpar_cmd($curl_cmd);
 }
 
 # Guest xml will be uploaded with name format [generated_name_by_this_func].xml
