@@ -17,6 +17,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 use registration;
+use package_utils 'install_package';
 
 # install and configure apache2, apache2-mod_jk and verify the interaction between apache2 and tomcat
 # via the package apache2-mod_jk
@@ -25,7 +26,7 @@ sub mod_jk_setup() {
     select_serial_terminal();
 
     record_info('install and configure apache2 and apache2-mod_jk connector Setup');
-    zypper_call('in apache2 apache2-mod_jk');
+    install_package('apache2 apache2-mod_jk', trup_reboot => 1);
 
     $self->conn_apache2_tomcat();
     $self->load_jk_module();

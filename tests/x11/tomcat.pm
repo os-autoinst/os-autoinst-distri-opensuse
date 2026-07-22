@@ -13,7 +13,7 @@
 # * apache2-mod_jk is not avaialble on sle16, so we use proxy instead
 # Maintainer: QE Core <qe-core@suse.de>
 
-use Mojo::Base 'x11test';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Tomcat::Utils;
@@ -21,13 +21,11 @@ use Tomcat::ModjkTest;
 use Tomcat::ApacheProxyTest;
 use utils;
 use version_utils 'is_sle';
-use x11utils qw(turn_off_screensaver);
 
 sub run() {
 
     my ($self) = shift;
     # install and configure tomcat in console
-    turn_off_screensaver;
     Tomcat::Utils->tomcat_setup(get_var('TOMCAT_VER', ''));
 
     # verify that the tomcat manager works
@@ -43,9 +41,6 @@ sub run() {
         # Connection from apache2 to tomcat: Functionality test
         Tomcat::ModjkTest->func_conn_apache2_tomcat();
     }
-
-    # switch to desktop
-    Tomcat::Utils->switch_to_desktop();
 }
 
 1;
