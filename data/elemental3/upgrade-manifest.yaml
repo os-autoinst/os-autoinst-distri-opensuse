@@ -1,0 +1,8 @@
+apiVersion: lifecycle.suse.com/v1alpha1
+kind: Release
+metadata:
+  name: upgrade-manifest
+spec:
+  registry: %MANIFEST_URL%
+  version: %MANIFEST_VERSION%
+  disableDrain: false

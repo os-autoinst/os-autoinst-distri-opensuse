@@ -45,7 +45,7 @@ sub build_installer_cmd {
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => $args{rootpwd}
+        '%TEST_PASSWORD%' => "$args{rootpwd}"
     );
     assert_script_run("chmod 755 $config_file");
 
@@ -83,17 +83,15 @@ sub customize_cmd {
     my $device = get_var('INSTALL_DISK', '/dev/vda');
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $type = get_required_var('IMAGE_TYPE');
-    my $tpl_tar = "$args{config_dir}/$args{template}";
     my $initial_hddsize = '4';
     my $out = "$args{img_filename}.iso";
 
-    # Create directories
-    assert_script_run("mkdir -p $args{config_dir}");
-
     # Download build configuration files
-    assert_script_run("curl -sf -o $tpl_tar "
-          . data_url('elemental3/' . path($tpl_tar)->basename));
-    assert_script_run("tar xzvf $tpl_tar -C $args{config_dir}");
+    assert_script_run("cd $args{config_dir}");
+    assert_script_run('curl ' . data_url("elemental3/templates/$args{template}/") . ' | cpio -ivd');
+
+    # Redefine configuration path
+    $args{config_dir} .= "/data";
 
     # Add 'oci://' in release-manifest URI if nothing is set
     $args{manifest_uri} = 'oci://' . $args{manifest_uri}
@@ -104,52 +102,82 @@ sub customize_cmd {
     file_content_replace(
         "$args{config_dir}/butane.yaml",
         '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => $args{rootpwd},
-        '%K8S%' => $args{k8s}
+        '%TEST_PASSWORD%' => "$args{rootpwd}",
+        '%K8S%' => "$args{k8s}"
     );
     file_content_replace(
         "$args{config_dir}/install.yaml",
         '--sed-modifier' => 'g',
-        '%CRYPTO_POLICY%' => $crypto_policy,
-        '%HDDSIZE%' => $initial_hddsize,
-        '%INSTALL_DISK%' => $device,
-        '%KERNEL_CMD_LINE%' => $krnlcmdline
+        '%CRYPTO_POLICY%' => "$crypto_policy",
+        '%HDDSIZE%' => "$initial_hddsize",
+        '%INSTALL_DISK%' => "$device",
+        '%KERNEL_CMD_LINE%' => "$krnlcmdline"
     );
     file_content_replace(
         "$args{config_dir}/release.yaml",
         '--sed-modifier' => 'g',
-        '%RELEASE_MANIFEST_URI%' => $args{manifest_uri},
-        '%K8S%' => $args{k8s}
+        '%RELEASE_MANIFEST_URI%' => "$args{manifest_uri}",
+        '%K8S%' => "$args{k8s}"
     );
-    if (check_var('TESTED_CMD', 'customize_recovery')) {
+
+    if ($args{template} =~ m/recovery/) {
         file_content_replace(
             "$args{config_dir}/custom/scripts/50-firstboot.sh",
             '--sed-modifier' => 'g',
-            '%INSTALL_DISK%' => $device,
+            '%INSTALL_DISK%' => "$device"
         );
-    }
-
-    if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/) {
-
-        # K8s configuration file
-        assert_script_run(
-            "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
-              . data_url('elemental3/cluster.yaml'));
-
-        # For single-node
-        if (check_var('CLUSTER_TYPE', 'singlenode')) {
-
-            # Keep configuration for first node only
+    } else {
+        if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/) {
+            # K8s configuration file
             assert_script_run(
-                "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $args{config_dir}/kubernetes/cluster.yaml"
+                "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
+                  . data_url('elemental3/cluster.yaml')
+            );
+
+            # For single-node
+            if (check_var('CLUSTER_TYPE', 'singlenode')) {
+                # Keep configuration for first node only
+                assert_script_run(
+                    "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $args{config_dir}/kubernetes/cluster.yaml"
+                );
+            }
+        } else {
+            # Remove k8s-preinstall service, as this is only useful
+            # for the single-node and multi-node tests
+            assert_script_run("rm -rf $args{config_dir}/network");
+            assert_script_run(
+                "sed -i '/name: k8s-preinstall.service/,\$d' $args{config_dir}/butane.yaml"
             );
         }
-    }
-    else {
-        # Only useful for the single-node and multi-node tests
-        assert_script_run("rm -rf $args{config_dir}/network");
+
+        # We need to add SUSE CA into generated OS image,
+        # as Dev artifacts does not have the standard CA
+        # NOTE: we can't use file_content_replace here as the
+        # CA line has too much characters, so the function fails
+        my $ca = '/usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem';
+        my $ca_cmd = "printf '%0.1s' ' '{1..4}; base64 -w0 $ca";
         assert_script_run(
-            "sed -i '/name: k8s-preinstall.service/,\$d' $args{config_dir}/butane.yaml"
+            "($ca_cmd) >> $args{config_dir}/kubernetes/manifests/internal-suse-ca.yaml"
+        );
+
+        # In multi-machine mode we don't have access to internal DNS, so we need
+        # to create a hosts file for K8s cluster (done in K8s cluster tests)
+        # NOTE: maybe not the more elegant way to do this but it works
+        # (and it can be improved later)
+        # TODO: use a support-server to add a DNS server with internal LAN access?
+        assert_script_run('toolbox -- zypper -n in bind-utils');
+        my $static_hosts;
+        foreach my $s (split(',', get_var('STATIC_HOSTS'))) {
+            my $ip = script_output("toolbox -- dig +short ${s} | grep ^[1-9]") =~ s/\R//r;
+            # Add some spaces in front to comply with yaml
+            $static_hosts .= " " x 12 . "${ip} ${s}\\n";
+        }
+        # Remove the last newline and the 2 last characters, otherwise sed will fail
+        chomp($static_hosts);
+        $static_hosts =~ s/.{2}$//;
+        file_content_replace(
+            "$args{config_dir}/butane.yaml",
+            '%STATIC_HOSTS%' => "$static_hosts"
         );
     }
 
@@ -170,8 +198,10 @@ sub customize_cmd {
         );
 
         # Extend HDD image to needed size
-        assert_script_run("qemu-img resize ./$out $args{hddsize}G",
-            timeout => $args{timeout});
+        assert_script_run(
+            "qemu-img resize ./$out $args{hddsize}G",
+            timeout => $args{timeout}
+        );
     }
     elsif ($type =~ m/iso/) {
         assert_script_run("mv $args{config_dir}/uc_image.$type '$out'");
@@ -232,7 +262,7 @@ sub install_cmd {
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
-        '%TEST_PASSWORD%' => $args{rootpwd}
+        '%TEST_PASSWORD%' => "$args{rootpwd}"
     );
     assert_script_run("chmod 755 $config_file");
 
@@ -263,7 +293,7 @@ sub run {
     my $rootpwd = get_required_var('TEST_PASSWORD');
     my $img_filename = get_required_var('IMG_NAME');
     my $totest_path = get_required_var('TOTEST_PATH');
-    my $tpl_file = get_var('TEMPLATE', 'build-tpl.tar.gz');
+    my $template = get_var('TEMPLATE', 'default');
     my $timeout = 900;
     my $out_file;
 
@@ -279,11 +309,16 @@ sub run {
 
     # Add Unified Core repository and install elemental3ctl package
     # (we still need this one for now)
-    trup_call(
-        "run zypper addrepo --check --refresh ${totest_path}/standard elemental"
-    );
-    trup_call('--continue run zypper --gpg-auto-import-keys refresh');
-    install_package('elemental3ctl squashfs mtools xorriso', trup_apply => 1, trup_continue => 1);
+    my $pkgs = 'squashfs mtools xorriso';
+    unless (check_var('TESTED_CMD', 'customize')) {
+        # We need to add elemental3ctl package
+        trup_call(
+            "run zypper addrepo --check --refresh ${totest_path}/standard elemental"
+        );
+        trup_call('--continue run zypper --gpg-auto-import-keys refresh');
+        $pkgs .= ' elemental3ctl';
+    }
+    install_package($pkgs, trup_apply => 1, trup_continue => 1);
 
     # Use a crypted password
     my $hashpwd = script_output("openssl passwd -6 $rootpwd");
@@ -346,7 +381,7 @@ sub run {
             k8s => $k8s,
             manifest_uri => $uri,
             rootpwd => $hashpwd,
-            template => $tpl_file,
+            template => $template,
             timeout => $timeout
         );
     }
