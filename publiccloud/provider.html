@@ -29,6 +29,7 @@
       <li><a href="#on_terraform_apply_timeout">on_terraform_apply_timeout</a></li>
       <li><a href="#on_terraform_destroy_failure">on_terraform_destroy_failure</a></li>
       <li><a href="#terraform_prepare_env">terraform_prepare_env</a></li>
+      <li><a href="#tofu_run_step">_tofu_run_step</a></li>
       <li><a href="#region_out_of_resources">region_out_of_resources</a></li>
       <li><a href="#terraform_apply">terraform_apply</a></li>
       <li><a href="#terraform_destroy">terraform_destroy</a></li>
@@ -117,6 +118,18 @@ Returns a string-name containing distri, version, flavor, arch.</code></pre>
 <h2 id="terraform_prepare_env">terraform_prepare_env</h2>
 
 <p>This method is used to initialize the terraform environment. it is executed only once, guareded by `terraform_env_prepared` member.</p>
+
+<h2 id="tofu_run_step">_tofu_run_step</h2>
+
+<pre><code>my ($ret, $output) = $self-&gt;_tofu_run_step(
+    step    =&gt; &#39;init&#39;,            # short label, also used to name the output file (tf_&lt;step&gt;_output)
+    cmd     =&gt; &#39;tofu init -no-color&#39;,
+    timeout =&gt; 180,               # overall script_retry() timeout, in seconds
+    delay   =&gt; 10,                # seconds to wait between retries
+    retry   =&gt; 6,                 # number of script_retry() attempts
+);</code></pre>
+
+<p>Run a single tofu/terraform step (<code>init</code>, <code>plan</code> or <code>apply</code>) via <code>script_retry()</code>, capturing its combined stdout/stderr to <code>tf_&lt;step</code>_output&gt; so the output survives even on a timeout (unlike letting <code>script_retry</code> die internally with no diagnostics). Always returns the exit code and the captured output rather than dying itself, so the caller decides how to react to a failure.</p>
 
 <h2 id="region_out_of_resources">region_out_of_resources</h2>
 
