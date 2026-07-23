@@ -62,9 +62,9 @@ sub cleanup_leftover_vmware_vms {
     # Power off and unregister any leftover VM from a previous openQA job
     # before deleting its files to avoid it becomes an orphaned VM
     my $vm_id = $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | awk '\$2 == \"$name\" { print \$1 }'", {domain => 'sshVMwareServer'});
-    my $power_state = $svirt->get_cmd_output("vim-cmd vmsvc/power.getstate $vm_id", {domain => 'sshVMwareServer'});
     if ($vm_id) {
         record_info('Remove leftover VM', "$vm_id ($name)");
+        my $power_state = $svirt->get_cmd_output("vim-cmd vmsvc/power.getstate $vm_id", {domain => 'sshVMwareServer'});
         $svirt->run_cmd("vim-cmd vmsvc/power.off $vm_id", domain => 'sshVMwareServer') if ($power_state =~ /Powered on/);
         $svirt->run_cmd("vim-cmd vmsvc/destroy $vm_id", domain => 'sshVMwareServer');
     }
