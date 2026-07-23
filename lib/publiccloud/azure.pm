@@ -489,7 +489,7 @@ sub img_proof {
 
     $args{credentials_file} = $credentials_file;
     $args{instance_type} //= 'Standard_A2';
-    $args{user} //= 'azureuser';
+    $args{user} //= $self->provider_client->username;
     $args{provider} //= 'azure';
 
     if (my $parsed_id = $self->parse_instance_id($args{instance})) {

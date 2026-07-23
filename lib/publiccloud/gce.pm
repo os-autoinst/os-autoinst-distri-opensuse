@@ -194,7 +194,7 @@ sub img_proof {
 
     $args{credentials_file} = $self->provider_client->get_credentials_file_name();
     $args{instance_type} //= 'n1-standard-2';
-    $args{user} //= 'susetest';
+    $args{user} //= $self->provider_client->username;
     $args{provider} //= 'gce';
 
     return $self->run_img_proof(%args);
