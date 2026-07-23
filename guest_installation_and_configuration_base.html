@@ -82,6 +82,8 @@
       <li><a href="#terminate_guest_installation_session">terminate_guest_installation_session</a></li>
       <li><a href="#get_guest_ipaddr">get_guest_ipaddr</a></li>
       <li><a href="#monitor_guest_installation">monitor_guest_installation</a></li>
+      <li><a href="#is_host_ltss_15sp4_sp5">is_host_ltss_15sp4_sp5</a></li>
+      <li><a href="#config_guest_agama_shell_ssh_options">config_guest_agama_shell_ssh_options</a></li>
       <li><a href="#monitor_guest_agama_installation">monitor_guest_agama_installation</a></li>
       <li><a href="#setup_guest_agama_installation_shell">setup_guest_agama_installation_shell</a></li>
       <li><a href="#verify_guest_agama_installation_done">verify_guest_agama_installation_done</a></li>
@@ -525,6 +527,18 @@ $_guest_network_ipaddr_end, $_guest_network_ipaddr_rev)</code></pre>
 <pre><code>monitor_guest_installation($self)</code></pre>
 
 <p>Monitor guest installation progress: If needle &#39;guest_installation_failures&#39; is detected,mark it as FAILED. If needle &#39;text-login&#39; is detected,this means guest installations finishes. Mark it as PASSED if ssh connection is good,otherwise mark it as FAILED. If needle &#39;grub2&#39; is detected,this means guest is rebooting. Will check its result in the next round. If needle &#39;text-logged-in-root&#39; is detected,this means installation screen is disconnected, terminated or broken.Will try to re-attach and check its result in the next round. If needle &#39;guest_installation_in_progress&#39; is detected,this means installation is still in progress. Will check its result in the next round. If none of above needles is detected, makr it as PASSED if ssh connection to it is good, otherwise mark it as FAILED by calling check_guest_installation_result_via_ssh.</p>
+
+<h2 id="is_host_ltss_15sp4_sp5">is_host_ltss_15sp4_sp5</h2>
+
+<pre><code>is_host_ltss_15sp4_sp5($self)</code></pre>
+
+<p>Check if the host operating system is LTSS SLES 15 SP4 or SP5. This helper subroutine directly utilizes the cached <code>$_host_params{host_version_major}</code> and <code>$_host_params{host_version_minor}</code> to improve performance by avoiding multiple redundant calls to <code>is_sle()</code>. Returns 1 if the host matches, 0 otherwise.</p>
+
+<h2 id="config_guest_agama_shell_ssh_options">config_guest_agama_shell_ssh_options</h2>
+
+<pre><code>config_guest_agama_shell_ssh_options($self, %args)</code></pre>
+
+<p>Return the ssh options string required to connect to the Agama installer. If $args{_with_key_file} is false, the identity file (-i) will be excluded.</p>
 
 <h2 id="monitor_guest_agama_installation">monitor_guest_agama_installation</h2>
 
