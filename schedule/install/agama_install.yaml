@@ -17,5 +17,5 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - '{{opensuse_welcome}}'
-  - console/system_prepare
+  - yam/validate/validate_selinux
   - shutdown/shutdown
