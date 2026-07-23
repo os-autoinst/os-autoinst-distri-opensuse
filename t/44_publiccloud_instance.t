@@ -312,4 +312,55 @@ subtest '[wait_for_ssh_unreachable]' => sub {
     like($calls[0], qr/nc.*10\.0\.0\.1.*22/, 'nc command composed with the instance public ip');
 };
 
+subtest '[wait_for_ssh_login]' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my @calls;
+    my @call_args;
+    $instmod->redefine(ssh_script_retry => sub {
+            my $self = shift;
+            my $cmd = shift;
+            my (%args) = @_;
+            push @calls, $cmd;
+            push @call_args, \%args;
+            return 0; });
+    my $provider = Test::MockObject->new;
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => $provider);
+
+    $inst->wait_for_ssh_login();
+
+    is(scalar @calls, 1, 'ssh_script_retry called exactly once');
+    is($calls[0], 'true', 'runs the "true" command to verify login');
+    like($call_args[0]->{ssh_opts}, qr/ControlPath=none/, 'ssh_opts includes ControlPath=none');
+    like($call_args[0]->{ssh_opts}, qr/ConnectTimeout=10/, 'ssh_opts includes ConnectTimeout=10');
+    like($call_args[0]->{ssh_opts}, qr/strictHostKeyChecking=no/, 'ssh_opts includes strictHostKeyChecking=no');
+};
+
+subtest '[wait_for_ssh_login] timeout/delay/retry argument propagation' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my @call_args;
+    $instmod->redefine(ssh_script_retry => sub {
+            my $self = shift;
+            my $cmd = shift;
+            my (%args) = @_;
+            push @call_args, \%args;
+            return 0; });
+    my $provider = Test::MockObject->new;
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => $provider);
+
+    # Explicit timeout propagates and drives retry = timeout/delay
+    $inst->wait_for_ssh_login(timeout => 600);
+    is($call_args[-1]->{delay}, 30, 'delay still defaults to 30');
+    is($call_args[-1]->{retry}, 600 / 30, 'retry scales with custom timeout (20)');
+    like($call_args[-1]->{fail_message}, qr/30 attempts in 600 seconds/, 'fail_message reflects custom timeout');
+
+    # Explicit delay propagates and drives retry = timeout/delay
+    $inst->wait_for_ssh_login(delay => 10);
+    is($call_args[-1]->{delay}, 10, 'custom delay forwarded');
+
+    # PUBLIC_CLOUD_SSH_TIMEOUT var overrides the default timeout
+    set_var('PUBLIC_CLOUD_SSH_TIMEOUT', 900);
+    $inst->wait_for_ssh_login();
+    is($call_args[-1]->{retry}, 900 / 30, 'retry derives from PUBLIC_CLOUD_SSH_TIMEOUT var');
+    set_var('PUBLIC_CLOUD_SSH_TIMEOUT', undef);
+};
 done_testing;
