@@ -23,6 +23,7 @@
       <li><a href="#pc_refresh">pc_refresh</a></li>
       <li><a href="#pc_add_repo">pc_add_repo</a></li>
       <li><a href="#pc_wait_quit">pc_wait_quit</a></li>
+      <li><a href="#pc_wait_quit_local">pc_wait_quit_local</a></li>
       <li><a href="#pc_installed_packages">pc_installed_packages</a></li>
       <li><a href="#pc_available_packages">pc_available_packages</a></li>
       <li><a href="#pc_install_packages_local">pc_install_packages_local</a></li>
@@ -71,6 +72,10 @@ pc_pkg_call($instance, &#39;in some-package&#39;);</code></pre>
 
 </dd>
 <dt id="pc_wait_quit---wait-for-zypper-rpm-etc.-to-finish"><a href="#pc_wait_quit">&quot;pc_wait_quit&quot;</a> - wait for zypper/rpm/etc. to finish</dt>
+<dd>
+
+</dd>
+<dt id="pc_wait_quit_local---like-pc_wait_quit-but-console-direct"><a href="#pc_wait_quit_local">&quot;pc_wait_quit_local&quot;</a> - like <code>pc_wait_quit</code>, but console-direct</dt>
 <dd>
 
 </dd>
@@ -155,7 +160,15 @@ pc_zypper_call($instance, cmd =&gt; $cmd, %opts);</code></pre>
 
 <pre><code>pc_wait_quit($instance, [timeout =&gt; 20], [delay =&gt; 10], [retry =&gt; 120]);</code></pre>
 
-<p>Waits until no zypper / packagekit / purge-kernels / rpm processes are running on the remote instance. Defaults give a ~20 minute ceiling.</p>
+<p>Waits until no zypper / packagekit / purge-kernels / rpm / transactional-update / snapper processes are running on the remote instance, via SSH. Defaults give a ~20 minute ceiling.</p>
+
+<h2 id="pc_wait_quit_local">pc_wait_quit_local</h2>
+
+<pre><code>pc_wait_quit_local([timeout =&gt; 20], [delay =&gt; 10], [retry =&gt; 120]);</code></pre>
+
+<p>Console-direct counterpart to <a href="#pc_wait_quit">&quot;pc_wait_quit&quot;</a>: waits until no zypper/packagekit/purge-kernels/rpm/transactional-update/snapper processes are running, using the currently selected console (plain <code>script_retry</code>) instead of an SSH-wrapped remote command.</p>
+
+<p>Use this when already directly attached to the target&#39;s console (e.g. an interactive SSH session opened by <code>publiccloud::ssh_interactive</code>, or a local transactional system), where going through <code>$instance-&gt;ssh_*</code> would open a redundant nested SSH connection.</p>
 
 <h2 id="pc_installed_packages">pc_installed_packages</h2>
 
