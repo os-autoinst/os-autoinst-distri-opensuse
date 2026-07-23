@@ -25,7 +25,8 @@
     [if password then 'hashedPassword']: true,
     [if sshPublicKey then 'sshPublicKey']: "fake public key to enable sshd and open firewall",
   },
-  access: {
-    ssh: 'enabled',
-  },
+  access(ssh, webConsole):: {
+    [if ssh then 'ssh']: 'enabled',
+    [if webConsole then 'webConsole']: 'enabled',
+  }
 }
