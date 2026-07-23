@@ -12,6 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use publiccloud::utils qw(is_byos is_azure is_ec2 registercloudguest);
 use publiccloud::ssh_interactive 'select_host_console';
+use publiccloud::zypper 'pc_transactional_call';
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle_micro check_version);
 use Mojo::JSON 'j';
@@ -85,7 +86,7 @@ sub run {
         unless ($ret) {
             die("Testing package \'$test_package\' is already installed, choose a different package!");
         }
-        $instance->ssh_assert_script_run(cmd => 'sudo transactional-update -n pkg install ' . $test_package, timeout => 600);
+        pc_transactional_call($instance, 'pkg install ' . $test_package, timeout => 600, exitcode => [0], no_reboot => 1);
         $instance->softreboot();
         $instance->ssh_assert_script_run(cmd => 'rpm -q ' . $test_package);
     }
@@ -99,7 +100,7 @@ sub run {
 
     unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
         # additional tr-up tests
-        $instance->ssh_assert_script_run(cmd => 'sudo transactional-update -n up', timeout => 360);
+        pc_transactional_call($instance, 'up', timeout => 360, exitcode => [0], no_reboot => 1);
         $instance->softreboot();
     }
 
@@ -111,7 +112,7 @@ sub run {
     } else {
         die "SELinux should be enforcing" unless ($getenforce =~ /Enforcing/i);
     }
-    $instance->ssh_assert_script_run(cmd => 'sudo transactional-update -n setup-selinux');
+    pc_transactional_call($instance, 'setup-selinux', exitcode => [0], no_reboot => 1);
     $instance->softreboot();
 
     record_info('timers', $instance->ssh_script_output(cmd => 'sudo systemctl list-timers --all'));

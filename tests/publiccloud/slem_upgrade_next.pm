@@ -10,6 +10,7 @@
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use publiccloud::zypper 'pc_transactional_call';
 use version_utils qw(is_sle_micro);
 
 
@@ -39,13 +40,14 @@ sub run {
     $instance->ssh_script_retry("sudo zypper -n ref", retry => 3, timeout => 600, fail_message => "zypper refresh failed");
     record_info('Repos', $instance->ssh_script_output('zypper lr -u'));
 
-    my $exit = $instance->ssh_script_run(cmd => 'sudo transactional-update -n up', timeout => 2700) // -1;
-    die "transactional-update returned error $exit" unless ($exit == 0);
+    # pc_transactional_call() dies with the relevant transactional-update.log
+    # excerpt on failure (exitcode => [0] here, since a reboot is expected
+    # right after, not folded into the accept-list).
+    pc_transactional_call($instance, 'up', timeout => 2700, exitcode => [0], no_reboot => 1);
     $instance->softreboot(timeout => $reboot_timeout);
 
     record_info("SLEM migration", "Initial version: " . get_var('VERSION'));
-    $exit = $instance->ssh_script_run(cmd => 'sudo transactional-update -n migration', timeout => 4500) // -1;
-    die "transactional-update migration returned error $exit" unless ($exit == 0);
+    pc_transactional_call($instance, 'migration', timeout => 4500, exitcode => [0], no_reboot => 1);
     $instance->softreboot(timeout => $reboot_timeout);
 
     my $ver = check_upgraded_version($instance);
