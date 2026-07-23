@@ -48,6 +48,7 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest 'publiccloud/run_ltp', run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
+        loadtest "publiccloud/check_services", run_args => $args;
         loadtest('publiccloud/metadata', run_args => $args);
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
         loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
@@ -78,6 +79,7 @@ sub load_maintenance_publiccloud_tests {
             loadtest "xfstests/run", run_args => $args;
             return;
         } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
+            loadtest "publiccloud/check_services", run_args => $args;
             loadtest "publiccloud/smoketest";
             # flavor_check is concentrated on checking things which make sense only for image which is registered
             # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
@@ -153,10 +155,12 @@ sub load_latest_publiccloud_tests {
             loadtest "publiccloud/registercloudguest", run_args => $args;
         }
         elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+            loadtest "publiccloud/check_services", run_args => $args;
             loadtest "publiccloud/img_proof", run_args => $args;
         } else {    # All test cases below require registration
             loadtest("publiccloud/registration", run_args => $args);
             if (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
+                loadtest "publiccloud/check_services", run_args => $args;
                 loadtest('publiccloud/metadata', run_args => $args);
                 loadtest('publiccloud/cloud_netconfig', run_args => $args);
                 loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
