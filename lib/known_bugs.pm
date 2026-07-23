@@ -68,6 +68,7 @@ sub create_list_of_serial_failures {
         push @$serial_failures, {type => $type, message => 'WARNING CPU in kernel messages', pattern => quotemeta 'WARNING: CPU', post_boot_type => 'hard', soft_on_expect_warn => 1};
         push @$serial_failures, {type => $type, message => 'Kernel stack is corrupted', pattern => quotemeta 'stack-protector: Kernel stack is corrupted', post_boot_type => 'hard'};
         push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => quotemeta 'BUG: failure at', post_boot_type => 'hard'};
+        push @$serial_failures, {type => $type, message => 'Kernel BUG found', pattern => quotemeta 'BUG: unable to', post_boot_type => 'hard'};
         push @$serial_failures, {type => $type, message => 'Kernel Oops found', pattern => quotemeta '-[ cut here ]-', post_boot_type => 'hard', soft_on_expect_warn => 1};
         # bsc#1229025, but must be soft because any LTP test which intentionally triggers OOM killer will produce this call trace as well
         push @$serial_failures, {type => 'soft', message => 'Kernel Call Trace found', pattern => quotemeta 'Call Trace:'};
