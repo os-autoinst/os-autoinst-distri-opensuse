@@ -159,6 +159,26 @@ sub customize_cmd {
         assert_script_run(
             "($ca_cmd) >> $args{config_dir}/kubernetes/manifests/internal-suse-ca.yaml"
         );
+
+        # In multi-machine mode we don't have access to internal DNS, so we need
+        # to create a hosts file for K8s cluster (done in K8s cluster tests)
+        # NOTE: maybe not the more elegant way to do this but it works
+        # (and it can be improved later)
+        # TODO: use a support-server to add a DNS server with internal LAN access?
+        assert_script_run('toolbox -- zypper -n in bind-utils');
+        my $static_hosts;
+        foreach my $s (split(',', get_var('STATIC_HOSTS'))) {
+            my $ip = script_output("toolbox -- dig +short ${s} | grep ^[1-9]") =~ s/\R//r;
+            # Add some spaces in front to comply with yaml
+            $static_hosts .= " " x 12 . "${ip} ${s}\\n";
+        }
+        # Remove the last newline and the 2 last characters, otherwise sed will fail
+        chomp($static_hosts);
+        $static_hosts =~ s/.{2}$//;
+        file_content_replace(
+            "$args{config_dir}/butane.yaml",
+            '%STATIC_HOSTS%' => "$static_hosts"
+        );
     }
 
     # Generate OS image
