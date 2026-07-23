@@ -210,7 +210,7 @@ sub img_proof {
     my ($self, %args) = @_;
 
     $args{instance_type} //= 't3a.large';
-    $args{user} //= 'ec2-user';
+    $args{user} //= $self->provider_client->username;
     $args{provider} //= 'ec2';
     $args{ssh_private_key_file} //= SSH_KEY_PEM;
     $args{key_name} //= $self->ssh_key;
