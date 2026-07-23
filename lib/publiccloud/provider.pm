@@ -361,24 +361,19 @@ publiccloud::instance objects.
 C<image>         defines the image_id to create the instance.
 C<instance_type> defines the flavor of the instance. If not specified, it will load it
                      from PUBLIC_CLOUD_INSTANCE_TYPE.
-C<timeout>             Parameter to pass to instance::wait_for_ssh.
-C<proceed_on_failure>  Same as timeout.
+
+Note: this does not wait for SSH to become available on the created instances,
+callers are expected to call C<< $instance->wait_for_ssh() >> themselves.
 
 =cut
 
 sub create_instances {
     my ($self, %args) = @_;
-    $args{check_connectivity} //= 1;
     my @vms = $self->terraform_apply(%args);
 
     foreach my $instance (@vms) {
         record_info("INSTANCE", $instance->{instance_id});
         $self->show_instance_details();
-        if ($args{check_connectivity}) {
-            # An error in VM-up causes test to stop
-            $instance->wait_for_ssh(timeout => $args{timeout},
-                proceed_on_failure => $args{proceed_on_failure}, scan_ssh_host_key => 1);
-        }
     }
     return @vms;
 }

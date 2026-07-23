@@ -12,7 +12,7 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Path::Tiny;
 use Mojo::JSON;
-use publiccloud::utils qw(is_ondemand is_hardened);
+use publiccloud::utils qw(is_hardened);
 use publiccloud::ssh_interactive 'select_host_console';
 use File::Basename 'basename';
 use version_utils "is_sle";
@@ -86,11 +86,6 @@ sub run {
 
     select_host_console();
 
-    unless ($args->{my_provider} && $args->{my_instance}) {
-        $args->{my_provider} = $self->provider_factory();
-        $args->{my_instance} = $args->{my_provider}->create_instance();
-        $args->{my_instance}->wait_for_guestregister() if (is_ondemand);
-    }
     $instance = $args->{my_instance};
     $provider = $args->{my_provider};
 
