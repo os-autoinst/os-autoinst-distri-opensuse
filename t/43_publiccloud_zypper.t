@@ -23,6 +23,8 @@ use publiccloud::zypper qw(
   pc_pkg_call
   pc_refresh
   pc_add_repo
+  pc_wait_quit
+  pc_wait_quit_local
   pc_installed_packages
   pc_available_packages
   pc_install_packages_local
@@ -152,6 +154,7 @@ sub _instance_mock {
             return $behaviour{output} // '';
     });
     $inst->mock(softreboot => sub { push @{$_[0]->{calls}}, {m => 'softreboot'}; return });
+    $inst->mock(upload_log => sub { push @{$_[0]->{calls}}, {m => 'upload_log', log => $_[1]}; return });
     return $inst;
 }
 
@@ -286,6 +289,123 @@ subtest '[pc_install_packages_local] transactional vs plain' => sub {
     ok(!defined $zypper_cmd, 'empty package list is a no-op');
 
     throws_ok { pc_install_packages_local('x') } qr/Expected arrayref/, 'non-arrayref dies';
+};
+
+# ---------------------------------------------------------------------------
+# pc_wait_quit / pc_wait_quit_local -- poo#204534
+# ---------------------------------------------------------------------------
+subtest '[BUSY_PROCESS_PATTERN] transactional-update is truncated to avoid pgrep comm truncation' => sub {
+    my $pattern = publiccloud::zypper::BUSY_PROCESS_PATTERN();
+    # Regression guard for poo#204534: pgrep (without -f) truncates comm to
+    # 15 chars, so the full 20-char literal would silently never match.
+    # Assert the truncated prefix is used instead of the untruncated name.
+    unlike($pattern, qr/\|transactional-update(\||$)/, 'full untruncated name is not used as a pgrep branch');
+    like($pattern, qr/\|transactional-u(\||$)/, 'truncated 15-char prefix is used instead');
+    like($pattern, qr/\bsnapper\b/, 'pattern includes snapper');
+    like($pattern, qr/\bzypper\b/, 'pattern still includes zypper');
+};
+
+subtest '[pc_wait_quit] pgrep pattern covers transactional-update/snapper' => sub {
+    my $inst = _instance_mock();
+    pc_wait_quit($inst);
+    my ($call) = grep { $_->{m} eq 'retry' } @{$inst->{calls}};
+    ok($call, 'ssh_script_retry invoked');
+    like($call->{cmd}, qr/pgrep/, 'command greps processes');
+    like($call->{cmd}, qr/\Q@{[publiccloud::zypper::BUSY_PROCESS_PATTERN()]}\E/, 'uses the shared busy-process pattern');
+};
+
+subtest '[pc_wait_quit_local] polls via plain script_retry, no SSH' => sub {
+    my $utils = Test::MockModule->new('utils', no_auto => 1);
+    my ($cmd, %opts_seen);
+    $utils->redefine(script_retry => sub { $cmd = $_[0]; %opts_seen = @_[1 .. $#_]; return 0 });
+    pc_wait_quit_local(timeout => 5, delay => 1, retry => 2);
+    like($cmd, qr/pgrep/, 'command greps processes');
+    like($cmd, qr/\Q@{[publiccloud::zypper::BUSY_PROCESS_PATTERN()]}\E/, 'uses the shared busy-process pattern');
+    is($opts_seen{timeout}, 5, 'timeout forwarded');
+    is($opts_seen{delay}, 1, 'delay forwarded');
+    is($opts_seen{retry}, 2, 'retry forwarded');
+};
+
+# ---------------------------------------------------------------------------
+# _handle_transient_failure -- transactional-update lock detection (poo#204534)
+# ---------------------------------------------------------------------------
+subtest '[_handle_transient_failure] transactional lock message triggers retry' => sub {
+    my $testapi_mock = Test::MockModule->new('publiccloud::zypper');
+    $testapi_mock->redefine(record_info => sub { return 1 });
+    my $inst = _instance_mock();
+    $inst->mock(ssh_script_run => sub {
+            my ($s, $cmd) = @_;
+            push @{$s->{calls}}, {m => 'run', cmd => $cmd};
+            return ($cmd =~ /transactional-update\.log/) ? 0 : 1;    # pattern found
+    });
+    is(publiccloud::zypper::_handle_transient_failure($inst, 1, 1, 3, 'transactional'),
+        'retry', 'retries when log confirms the lock message');
+};
+
+subtest '[_handle_transient_failure] greps for both known lock messages' => sub {
+    my $testapi_mock = Test::MockModule->new('publiccloud::zypper');
+    $testapi_mock->redefine(record_info => sub { return 1 });
+
+    for my $case (
+        {label => 'bashlock (CLI wrapper) message', needle => 'Couldn'},
+        {label => 'tukit backend message', needle => 'Another instance of tukit is already running'},
+      )
+    {
+        my $inst = _instance_mock_positional();
+        $inst->mock(ssh_script_run => sub {
+                my ($s, $cmd) = @_;
+                push @{$s->{calls}}, $cmd;
+                # The composed grep command must reference this case's
+                # message (checked as a plain substring since _shell_quote
+                # escapes the apostrophe in "Couldn't").
+                return (index($cmd, $case->{needle}) >= 0) ? 0 : 1;
+        });
+        is(publiccloud::zypper::_handle_transient_failure($inst, 1, 1, 3, 'transactional'),
+            'retry', "retries on $case->{label}");
+    }
+};
+
+subtest '[_handle_transient_failure] transactional failure without lock message fails' => sub {
+    my $inst = _instance_mock_positional();
+    $inst->mock(ssh_script_run => sub { return 1 });    # grep finds nothing -> non-zero
+    is(publiccloud::zypper::_handle_transient_failure($inst, 1, 1, 3, 'transactional'),
+        'fail', 'does not retry a genuine transactional-update failure');
+};
+
+subtest '[_handle_transient_failure] zypper-kind checks unaffected by kind arg' => sub {
+    my $testapi_mock = Test::MockModule->new('publiccloud::zypper');
+    $testapi_mock->redefine(record_info => sub { return 1 });
+    my $inst = _instance_mock(run_rc => 1);    # log grep misses
+    is(publiccloud::zypper::_handle_transient_failure($inst, publiccloud::zypper::EXIT_LOCKED(), 1, 3),
+        'retry', 'zypp lock still retried when kind defaults to zypper');
+};
+
+sub _instance_mock_positional {
+    my $inst = Test::MockObject->new;
+    $inst->{calls} = [];
+    $inst->mock(ssh_script_run => sub { my ($s, $cmd) = @_; push @{$s->{calls}}, $cmd; return 0 });
+    $inst->mock(ssh_script_output => sub { return 'some log tail' });
+    $inst->mock(upload_log => sub { return });
+    return $inst;
+}
+
+subtest '[_log_grep] defaults to zypper log, accepts an override, uses extended regex' => sub {
+    my $inst = _instance_mock_positional();
+    publiccloud::zypper::_log_grep($inst, 'needle');
+    like($inst->{calls}[0], qr{/var/log/zypper\.log}, 'defaults to zypper.log');
+    like($inst->{calls}[0], qr/grep -E/, 'uses -E so callers can use plain alternation');
+
+    $inst = _instance_mock_positional();
+    publiccloud::zypper::_log_grep($inst, 'needle', '/var/log/transactional-update.log');
+    like($inst->{calls}[0], qr{/var/log/transactional-update\.log}, 'custom log path honoured');
+};
+
+subtest '[_report_failure] uses transactional-update.log for transactional kind' => sub {
+    my $inst = _instance_mock_positional();
+    throws_ok { publiccloud::zypper::_report_failure($inst, 'transactional-update -n up', 1, 0, 'transactional') }
+    qr/Related transactional-update logs/, 'error message references the right log';
+    my ($chmod_cmd) = grep { /chmod/ } @{$inst->{calls}};
+    like($chmod_cmd, qr{/var/log/transactional-update\.log}, 'chmod targets transactional-update.log');
 };
 
 done_testing;

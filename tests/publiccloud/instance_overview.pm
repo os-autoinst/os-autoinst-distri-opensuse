@@ -15,6 +15,7 @@ use registration;
 use testapi;
 use utils;
 use publiccloud::utils;
+use publiccloud::zypper 'pc_wait_quit_local';
 use version_utils qw(is_sle is_sle_micro);
 use Utils::Logging 'tar_and_upload_log';
 
@@ -46,6 +47,9 @@ sub run {
     # Check for bsc#1165915
     zypper_call("ref");
     my $register = (is_sle_micro) ? "transactional-update register --status-text" : "SUSEConnect --status-text";
+    # poo#204534: a background transactional-update task (e.g. snapper
+    # cleanup) may still hold the lock right after boot/registration.
+    pc_wait_quit_local() if is_sle_micro;
     assert_script_run($register, 300);
 
     zypper_call("lr -d");
