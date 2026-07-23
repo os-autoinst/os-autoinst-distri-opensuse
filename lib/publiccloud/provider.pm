@@ -25,6 +25,11 @@ use version_utils qw(is_sle_micro);
 
 use constant TERRAFORM_DIR => get_var('PUBLIC_CLOUD_TERRAFORM_DIR', '/root/terraform');
 use constant TERRAFORM_TIMEOUT => 30 * 60;
+use constant TERRAFORM_INIT_TIMEOUT => 3 * 60;
+use constant TERRAFORM_PLAN_TIMEOUT => 5 * 60;
+# Valid values according to documentation: TRACE, DEBUG, INFO, WARN, ERROR & OFF
+# https://developer.hashicorp.com/terraform/internals/debugging
+use constant TERRAFORM_LOG => get_var('TERRAFORM_LOG', '');
 
 our $instance_counter;    # Package variable tracking create_instance calls
 
@@ -434,6 +439,34 @@ sub terraform_cmd {
     return $cmd;
 }
 
+=head2 _tofu_run_step
+
+    my ($ret, $output) = $self->_tofu_run_step(
+        step    => 'init',            # short label, also used to name the output file (tf_<step>_output)
+        cmd     => 'tofu init -no-color',
+        timeout => 180,               # overall script_retry() timeout, in seconds
+        delay   => 10,                # seconds to wait between retries
+        retry   => 6,                 # number of script_retry() attempts
+    );
+
+Run a single tofu/terraform step (C<init>, C<plan> or C<apply>) via
+C<script_retry()>, capturing its combined stdout/stderr to C<tf_<step>_output>
+so the output survives even on a timeout (unlike letting C<script_retry> die
+internally with no diagnostics). Always returns the exit code and the
+captured output rather than dying itself, so the caller decides how to react
+to a failure.
+
+=cut
+
+sub _tofu_run_step {
+    my ($self, %args) = @_;
+    my $output_file = "tf_$args{step}_output";
+    my $ret = script_retry("set -o pipefail; TF_LOG=" . TERRAFORM_LOG . " $args{cmd} 2>&1 | tee $output_file", timeout => $args{timeout}, delay => $args{delay}, retry => $args{retry}, die => 0);
+    my $output = script_output("cat $output_file", proceed_on_failure => 1);
+    record_info("TFM $args{step} output", "exit code: $ret", result => ($ret) ? 'fail' : 'ok');
+    return ($ret, $output);
+}
+
 =head2 region_out_of_resources
 
     my $bool = $self->region_out_of_resources($terraform_output);
@@ -486,7 +519,8 @@ sub terraform_apply {
 
     # 1) Terraform init
     assert_script_run('cd ' . TERRAFORM_DIR);
-    script_retry($runner . ' init -no-color', timeout => $terraform_timeout, delay => 3, retry => 6);
+    my ($init_ret) = $self->_tofu_run_step(step => 'init', cmd => $runner . ' init -no-color', timeout => TERRAFORM_INIT_TIMEOUT, delay => 10, retry => 6);
+    die("Terraform init failed with exit code $init_ret") if $init_ret;
 
     # 2) Terraform plan & apply
     #
@@ -496,10 +530,6 @@ sub terraform_apply {
     # Any other kind of failure fails immediately.
     my @regions = ($self->provider_client->region);
     push @regions, split(/\s*,\s*/, get_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', ''));
-
-    # Valid values according to documentation: TRACE, DEBUG, INFO, WARN, ERROR & OFF
-    # https://developer.hashicorp.com/terraform/internals/debugging
-    my $tf_log = get_var("TERRAFORM_LOG", "");
 
     my %vars = ();
     # Some auxiliary variables, requires for fine control and public cloud provider specifics
@@ -559,14 +589,11 @@ sub terraform_apply {
         $vars{region} = $self->provider_client->region;
 
         my $cmd = terraform_cmd($runner . ' plan -no-color -out myplan', %vars);
-        script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
+        my ($plan_ret) = $self->_tofu_run_step(step => 'plan', cmd => $cmd, timeout => TERRAFORM_PLAN_TIMEOUT, delay => 10, retry => 6);
+        die("Terraform plan failed with exit code $plan_ret") if $plan_ret;
 
-        $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
-        $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
+        ($ret, $tf_apply_output) = $self->_tofu_run_step(step => 'apply', cmd => "$runner apply -no-color -input=false myplan", timeout => $terraform_timeout, delay => 0, retry => 1);
         $self->terraform_applied(1);    # Must happen here to prevent resource leakage
-
-        record_info("TFM apply output", $tf_apply_output, result => ($ret) ? 'fail' : 'ok');
-        record_info("TFM apply exit code", $ret);
 
         # when all instances of certain type are booked in one AZ there is a chance that other AZ in same region still have them
         # to improve test stability let's loop over all available AZ in case initial one throwing error that all instances are booked
@@ -579,11 +606,10 @@ sub terraform_apply {
                 $vars{availability_zone} = $az;
 
                 $cmd = terraform_cmd($runner . ' plan -no-color -out myplan', %vars);
-                script_retry($cmd, timeout => $terraform_timeout, delay => 3, retry => 6);
-                $ret = script_run("set -o pipefail; TF_LOG=$tf_log $runner apply -no-color -input=false myplan 2>&1 | tee tf_apply_output", timeout => $terraform_timeout);
-                $tf_apply_output = script_output('cat tf_apply_output', proceed_on_failure => 1);
-                record_info("TFM apply output", $tf_apply_output);
-                record_info("TFM apply exit code", $ret, result => ($ret) ? 'fail' : 'ok');
+                ($plan_ret) = $self->_tofu_run_step(step => 'plan', cmd => $cmd, timeout => TERRAFORM_PLAN_TIMEOUT, delay => 10, retry => 6);
+                die("Terraform plan failed with exit code $plan_ret") if $plan_ret;
+
+                ($ret, $tf_apply_output) = $self->_tofu_run_step(step => 'apply', cmd => "$runner apply -no-color -input=false myplan", timeout => $terraform_timeout, delay => 0, retry => 1);
                 if ($ret == 0) {
                     $self->provider_client->availability_zone($az);
                     last;
