@@ -2614,6 +2614,50 @@ sub monitor_guest_installation {
     return $self;
 }
 
+=head2 is_host_ltss_15sp4_sp5
+
+  is_host_ltss_15sp4_sp5($self)
+
+Check if the host operating system is LTSS SLES 15 SP4 or SP5.
+This helper subroutine directly utilizes the cached C<$_host_params{host_version_major}>
+and C<$_host_params{host_version_minor}> to improve performance by avoiding
+multiple redundant calls to C<is_sle()>. Returns 1 if the host matches, 0 otherwise.
+
+=cut
+
+sub is_host_ltss_15_sp4_sp5 {
+    my $self = shift;
+
+    if (defined $_host_params{host_version_major} && defined $_host_params{host_version_minor}) {
+        if ($_host_params{host_version_major} eq '15' &&
+            ($_host_params{host_version_minor} eq '4' || $_host_params{host_version_minor} eq '5')) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+=head2 config_guest_agama_shell_ssh_options
+
+  config_guest_agama_shell_ssh_options($self, %args)
+
+Return the ssh options string required to connect to the Agama installer.
+If $args{_with_key_file} is false, the identity file (-i) will be excluded.
+
+=cut
+
+sub config_guest_agama_shell_ssh_options {
+    my ($self, %args) = @_;
+
+    $args{_with_key_file} //= 1;
+    my $_is_host_ltss_15_sp4_sp5 = $self->is_host_ltss_15_sp4_sp5();
+    my $_ssh_opts = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
+    $_ssh_opts .= is_sle('15-SP7+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 " : ($_is_host_ltss_15_sp4_sp5 ? "" : "-o PubkeyAcceptedAlgorithms=+ssh-rsa ");
+    $_ssh_opts .= "-i $_host_params{ssh_key_file}" if $args{_with_key_file};
+
+    return $_ssh_opts;
+}
+
 =head2 monitor_guest_agama_installation
 
   monitor_guest_agama_installation($self)
@@ -2649,9 +2693,9 @@ using publibc key, because Agama installe shell does support full ssh capability
 sub setup_guest_agama_installation_shell {
     my $self = shift;
 
-    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
-    $_ssh_command_options .= is_sle('16+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 " : "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
-    $_ssh_command_options .= "-i $_host_params{ssh_key_file}";
+    my $_timeout_command_prefix = "timeout --kill-after=5";
+    my $_ssh_command_options = $self->config_guest_agama_shell_ssh_options();
+
     $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
     if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
         $self->record_guest_installation_result('FAILED');
@@ -2659,24 +2703,23 @@ sub setup_guest_agama_installation_shell {
     }
     else {
         enter_cmd("clear", wait_still_screen => 3);
-        if (script_run("timeout --kill-after=1 --signal=9 120 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=12 $_ssh_command_options root\@$self->{guest_ipaddr}", timeout => 150) != 0) {
+        if (script_run("$_timeout_command_prefix 120 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}") != 0) {
             type_string("reset\n");
             wait_still_screen;
-
-            enter_cmd("timeout --kill-after=1 --signal=9 180 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=18 $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
+            enter_cmd("$_timeout_command_prefix 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
             assert_screen('password-prompt', timeout => 30);
             enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
         }
         wait_still_screen(15);
-        if (script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
+        if (script_run("$_timeout_command_prefix 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
             $self->record_guest_installation_result('FAILED');
             record_info("Guest $self->{guest_name} agama installer shell ssh pubkey login failed", "Try login with password to guest $self->{guest_name} agama installer shell", result => 'fail');
             enter_cmd("clear", wait_still_screen => 3);
-            enter_cmd("timeout --kill-after=1 --signal=9 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
+            enter_cmd("$_timeout_command_prefix 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
             assert_screen('password-prompt', timeout => 30);
             enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
             wait_still_screen(15);
-            enter_cmd("timeout --kill-after=1 --signal=9 120 ip addr show", wait_still_screen => 5, timeout => 150);
+            enter_cmd("$_timeout_command_prefix 120 ip addr show", wait_still_screen => 5, timeout => 150);
         }
         else {
             record_info("Guest $self->{guest_name} agama installer shell ssh pubkey login succeeded");
@@ -2699,8 +2742,10 @@ already marked as 'FAILED' for this case in setup_guest_agama_installation_shell
 sub verify_guest_agama_installation_done {
     my $self = shift;
 
+    my $_timeout_command_prefix = "timeout --kill-after=5";
     my $_wait_timeout = get_var('AGAMA_INSTALL_TIMEOUT', 600);
-    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
+    my $_ssh_command_options = $self->config_guest_agama_shell_ssh_options();
+
     if ($self->{guest_installation_result} eq 'FAILED') {
         if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
             record_info("Can not verify agama install for guest $self->{guest_name}", "Guest $self->{guest_name} has no ip address $self->{guest_ipaddr}", result => 'fail');
@@ -2710,7 +2755,7 @@ sub verify_guest_agama_installation_done {
             my $check_install_finish = ($self->{guest_version} eq '16.0')
               ? "journalctl -u agama -u agama-web-server.service | grep -E 'Install phase done|Installation finished'"
               : "agama status --format json | jq '.installation' | grep succeeded";
-            enter_cmd("timeout --kill-after=1 --signal=9 120 $check_install_finish", timeout => 150);
+            enter_cmd("$_timeout_command_prefix 120 $check_install_finish", timeout => 150);
             wait_still_screen(20);
             $_wait_timeout -= 20;
         }
@@ -2724,14 +2769,11 @@ sub verify_guest_agama_installation_done {
         }
     }
     else {
-        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
-        $_ssh_command_options .= is_sle('16+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519 " : "-o PubkeyAcceptedAlgorithms=+ssh-rsa ";
-        $_ssh_command_options .= "-i $_host_params{ssh_key_file}";
         while ($_wait_timeout > 0) {
             my $check_install_finish = ($self->{guest_version} eq '16.0')
               ? "journalctl -u agama -u agama-web-server.service | grep -E 'Install phase done|Installation finished'"
               : "agama status --format json | jq '.installation' | grep succeeded";
-            if (script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"$check_install_finish\"", timeout => 150) == 0) {
+            if (script_run("$_timeout_command_prefix 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"$check_install_finish\"", timeout => 150) == 0) {
                 record_info("Guest $self->{guest_name} agama install phase done", "Guest $self->{guest_name} ip address is $self->{guest_ipaddr}");
                 $self->record_guest_installation_result('AGAMA_INSTALL_PHASE_DONE');
                 return $self;
@@ -2758,25 +2800,25 @@ still requires password login.
 sub save_guest_agama_installation_logs {
     my $self = shift;
 
-    my $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
-    $_ssh_command_options .= is_sle('16+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519" : "-o PubkeyAcceptedAlgorithms=+ssh-rsa";
-    $_ssh_command_options .= " -i $_host_params{ssh_key_file}";
-    if ($self->{guest_installation_result} eq 'FAILED' and script_run("timeout --kill-after=1 --signal=9 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
+    my $_timeout_command_prefix = "timeout --kill-after=5";
+    my $_ssh_command_options = $self->config_guest_agama_shell_ssh_options();
+
+    if ($self->{guest_installation_result} eq 'FAILED' and script_run("$_timeout_command_prefix 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
         if ($self->{guest_ipaddr} eq 'NO_IP_ADDRESS_FOUND_AT_THE_MOMENT') {
             record_info("Can not save agama install logs for guest $self->{guest_name}", "Guest $self->{guest_name} has no ip address $self->{guest_ipaddr}", result => 'fail');
             return $self;
         }
         record_info("Save guest $self->{guest_name} agama install logs", "Use password ssh login");
-        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
+        $_ssh_command_options = $self->config_guest_agama_shell_ssh_options(_with_key_file => 0);
         enter_cmd("clear", wait_still_screen => 3);
-        enter_cmd("timeout --kill-after=1 --signal=9 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
+        enter_cmd("$_timeout_command_prefix 1800 ssh $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 1850);
         assert_screen('password-prompt', timeout => 30);
         enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
         wait_still_screen(15);
-        enter_cmd("timeout --kill-after=1 --signal=9 120 mkdir /agama_installation_logs", timeout => 150);
-        enter_cmd("timeout --kill-after=1 --signal=9 180 agama logs store -d /agama_installation_logs", timeout => 210);
-        enter_cmd("timeout --kill-after=1 --signal=9 180 agama config show > /agama_installation_logs/agama_config.txt", timeout => 210);
-        enter_cmd("timeout --kill-after=1 --signal=9 120 sync", timeout => 150);
+        enter_cmd("$_timeout_command_prefix 120 mkdir /agama_installation_logs", timeout => 150);
+        enter_cmd("$_timeout_command_prefix 180 agama logs store -d /agama_installation_logs", timeout => 210);
+        enter_cmd("$_timeout_command_prefix 180 agama config show > /agama_installation_logs/agama_config.txt", timeout => 210);
+        enter_cmd("$_timeout_command_prefix 120 sync", timeout => 150);
         wait_still_screen;
         enter_cmd("exit");
         wait_still_screen(15);
@@ -2788,7 +2830,7 @@ sub save_guest_agama_installation_logs {
         }
         my @_agama_installation_logs = ('/agama_installation_logs/agama-logs.tar.gz', '/agama_installation_logs/agama_config.txt');
         foreach (@_agama_installation_logs) {
-            enter_cmd("timeout --kill-after=1 --signal=9 180 scp -r $_ssh_command_options root\@$self->{guest_ipaddr}:$_ $self->{guest_log_folder}", timeout => 210);
+            enter_cmd("$_timeout_command_prefix 180 scp -r $_ssh_command_options root\@$self->{guest_ipaddr}:$_ $self->{guest_log_folder}", timeout => 210);
             assert_screen('password-prompt', timeout => 30);
             enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
             wait_still_screen(15);
@@ -2796,17 +2838,14 @@ sub save_guest_agama_installation_logs {
     }
     else {
         record_info("Save guest $self->{guest_name} agama install logs", "Use passwordless ssh login");
-        $_ssh_command_options = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ";
-        $_ssh_command_options .= is_sle('16+') ? "-o PubkeyAcceptedAlgorithms=+ssh-ed25519" : "-o PubkeyAcceptedAlgorithms=+ssh-rsa";
-        $_ssh_command_options .= " -i $_host_params{ssh_key_file}";
-        script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"mkdir /agama_installation_logs\"", timeout => 150);
-        script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"agama logs store -d /agama_installation_logs\"", timeout => 210);
-        script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"agama config show > /agama_installation_logs/agama_config.txt\"", timeout => 210);
-        script_run("timeout --kill-after=1 --signal=9 180 scp -r $_ssh_command_options root\@$self->{guest_ipaddr}:/agama_installation_logs/{agama-logs.tar.gz,agama_config.txt} $self->{guest_log_folder}", timeout => 210);
-        script_run("timeout --kill-after=1 --signal=9 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"sync\"", timeout => 150);
+        script_run("$_timeout_command_prefix 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"mkdir /agama_installation_logs\"", timeout => 150);
+        script_run("$_timeout_command_prefix 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"agama logs store -d /agama_installation_logs\"", timeout => 210);
+        script_run("$_timeout_command_prefix 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"agama config show > /agama_installation_logs/agama_config.txt\"", timeout => 210);
+        script_run("$_timeout_command_prefix 180 scp -r $_ssh_command_options root\@$self->{guest_ipaddr}:/agama_installation_logs/{agama-logs.tar.gz,agama_config.txt} $self->{guest_log_folder}", timeout => 210);
+        script_run("$_timeout_command_prefix 120 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"sync\"", timeout => 150);
         if ($self->{guest_installation_result} ne 'FAILED') {
             record_info("Reboot guest $self->{guest_name} to disk boot", "Saved guest $self->{guest_name} agama installation logs");
-            $self->power_cycle_guest('force') if (script_run("timeout --kill-after=1 --signal=9 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"reboot --reboot\"", timeout => 210) != 0);
+            $self->power_cycle_guest('force') if (script_run("$_timeout_command_prefix 180 ssh $_ssh_command_options root\@$self->{guest_ipaddr} \"reboot --reboot\"", timeout => 210) != 0);
         }
     }
     $self->upload_guest_installation_logs;
