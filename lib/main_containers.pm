@@ -13,7 +13,6 @@ use utils;
 use version_utils;
 use main_common qw(loadtest boot_hdd_image);
 use testapi qw(check_var get_required_var get_var set_var);
-use publiccloud::utils 'is_azure';
 use main_common qw(is_updates_tests);
 use Utils::Architectures;
 use Utils::Backends;
@@ -129,8 +128,7 @@ sub load_container_engine_privileged_mode {
 
 sub load_compose_tests {
     my ($run_args) = @_;
-    # The compose tests require the user_serial_terminal which is not available on PublicCloud.
-    return if (is_staging || is_public_cloud);
+    return if is_staging;
     # SLEM 6.0 has podman 4.9.5 while SLEM 6.1 has podman 5.2.5
     # podman with docker-compose needs podman 5.x
     my $min_slem_version = ($run_args->{runtime} eq "podman") ? "6.1" : "6.0";
@@ -142,7 +140,7 @@ sub load_compose_tests {
 }
 
 sub load_firewall_test {
-    return if (is_public_cloud || is_microos ||
+    return if (is_microos ||
         (is_sle('>=16.0') && is_transactional()) ||
         get_var('FLAVOR') =~ /dvd/i && (is_sle_micro('<6.0') || is_leap_micro('<6.0'))
     );
@@ -157,43 +155,41 @@ sub load_host_tests_podman {
     load_image_test($run_args) unless is_public_cloud;
     load_third_party_image_test($run_args);
     load_rt_workload($run_args) if is_rt;
-    load_container_engine_privileged_mode($run_args);
+    load_container_engine_privileged_mode($run_args) unless is_public_cloud;
     # podman artifact needs podman 5.4.0
-    loadtest 'containers/podman_artifact' if (is_sle('>=16.0') || is_tumbleweed);
+    loadtest 'containers/podman_artifact' if ((is_sle('>=16.0') || is_tumbleweed) && !is_public_cloud);
     # The registry module contains further tests for podman artifact pull/push
     # The distribution-registry package is only available on Tumbleweed & SLES 15-SP4
-    unless (is_staging || is_transactional || is_sle("<15-sp4")) {
+    unless (is_staging || is_transactional || is_sle("<15-sp4") || is_public_cloud) {
         loadtest('containers/registry', run_args => $run_args, name => $run_args->{runtime} . "_registry");
     }
     # container_suseconnect requires access to IBS and thus cannot run in PublicCloud (poo#193090)
     loadtest('containers/container_suseconnect', run_args => $run_args, name => $run_args->{runtime} . "_suseconnect") if (is_sle("15-sp6+") && !is_public_cloud && !check_var("BETA", '1'));
-    loadtest 'containers/podman_bci_systemd';
-    loadtest 'containers/podman_pods';
+    loadtest 'containers/podman_bci_systemd' unless is_public_cloud;
+    loadtest 'containers/podman_pods' unless is_public_cloud;
     # CNI is the default network backend on SLEM<6 and SLES<15-SP6. It is still available on later products as a dependency for docker.
     # podman+CNI is not supported on SLEM6+ and SLES-15-SP6+.
-    loadtest('containers/podman_network_cni') if (is_sle_micro('<6.0') || is_sle("<15-SP6"));
+    loadtest('containers/podman_network_cni') if ((is_sle_micro('<6.0') || is_sle("<15-SP6")) && !is_public_cloud);
     # Firewall is not installed in MicroOS and Public Cloud images
-    load_firewall_test($run_args);
-    # IPv6 is not available on Azure
-    loadtest 'containers/podman_ipv6' if (is_public_cloud && is_sle('>=15-SP5') && !is_azure);
-    loadtest 'containers/podman_netavark' unless (is_staging || is_ppc64le);
-    loadtest 'containers/skopeo' unless (is_sle('<15') || is_sle_micro('<5.5'));
-    loadtest 'containers/podman_quadlet' unless (is_staging || is_leap("<16") || is_sle("<16") || is_sle_micro("<6.1"));
-    load_secret_tests($run_args);
+    load_firewall_test($run_args) unless is_public_cloud;
+    loadtest 'containers/podman_netavark' unless (is_staging || is_ppc64le || is_public_cloud);
+    loadtest 'containers/skopeo' unless (is_sle('<15') || is_sle_micro('<5.5') || is_public_cloud);
+    loadtest 'containers/podman_quadlet' unless (is_staging || is_leap("<16") || is_sle("<16") || is_sle_micro("<6.1") || is_public_cloud);
+    load_secret_tests($run_args) unless is_public_cloud;
     # https://github.com/containers/podman/issues/5732#issuecomment-610222293
     # exclude rootless podman on public cloud because of cgroups2 special settings
     unless (is_public_cloud) {
         loadtest 'containers/rootless_podman';
         loadtest 'containers/podman_remote' if (is_sle('>=15-SP3') || is_sle_micro('5.5+') || is_tumbleweed);
     }
-    loadtest 'containers/distrobox' if ((is_tumbleweed && (is_aarch64 || is_x86_64)) || is_sle('>=16.1'));
+    loadtest 'containers/distrobox' if (((is_tumbleweed && (is_aarch64 || is_x86_64)) || is_sle('>=16.1')) && !is_public_cloud);
     # Buildah is not available in SLE Micro, MicroOS and staging projects
-    loadtest('containers/buildah', run_args => $run_args, name => $run_args->{runtime} . "_buildah") unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging ||
+    loadtest('containers/buildah', run_args => $run_args, name => $run_args->{runtime} . "_buildah") unless (is_sle('<15') || is_sle_micro || is_microos || is_leap_micro || is_staging || is_public_cloud ||
         (is_sle('>=16.0') && is_transactional())
     );
-    load_volume_tests($run_args);
-    load_compose_tests($run_args);
-    loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
+    load_volume_tests($run_args) unless is_public_cloud;
+    load_compose_tests($run_args) unless is_public_cloud;
+    loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless (is_sle('<15') || is_public_cloud);
     loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation") unless (is_public_cloud || is_transactional);
     loadtest('containers/podmansh') if (is_tumbleweed && !is_staging && !is_transactional);
 }
@@ -205,28 +201,28 @@ sub load_host_tests_docker {
     loadtest('containers/container_suseconnect', run_args => $run_args, name => $run_args->{runtime} . "_suseconnect") if (is_sle("15-sp6+") && !is_public_cloud && !check_var("BETA", '1'));
     # In Public Cloud we don't have internal resources
     load_image_test($run_args) unless is_public_cloud;
-    load_third_party_image_test($run_args);
+    load_third_party_image_test($run_args) unless is_public_cloud;
     load_rt_workload($run_args) if is_rt;
-    load_container_engine_privileged_mode($run_args);
+    load_container_engine_privileged_mode($run_args) unless is_public_cloud;
     # Firewall is not installed in Public Cloud and MicroOS but it is in SLE Micro
-    load_firewall_test($run_args);
+    load_firewall_test($run_args) unless is_public_cloud;
     # The distribution-registry package is only available on Tumbleweed & SLES 15-SP4
-    unless (is_staging || is_transactional || is_sle("<15-sp4")) {
+    unless (is_staging || is_transactional || is_sle("<15-sp4") || is_public_cloud) {
         loadtest('containers/registry', run_args => $run_args, name => $run_args->{runtime} . "_registry");
     }
     # Skip this test on docker-stable due to https://bugzilla.opensuse.org/show_bug.cgi?id=1239596
     unless (is_transactional || is_public_cloud || is_sle('<15-SP4') || check_var("CONTAINERS_DOCKER_FLAVOUR", "stable")) {
         loadtest('containers/isolation', run_args => $run_args, name => $run_args->{runtime} . "_isolation");
     }
-    load_compose_tests($run_args);
-    loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless is_sle('<15');
+    load_compose_tests($run_args) unless is_public_cloud;
+    loadtest('containers/seccomp', run_args => $run_args, name => $run_args->{runtime} . "_seccomp") unless (is_sle('<15') || is_public_cloud);
     # The docker-rootless-extras package is only available on SLES 15-SP4+
     # while the docker-stable-rootless-extras is available on SLES 16.0+
     if (is_tumbleweed || is_leap || is_sle && (is_sle('>=16') || is_sle('>=15-SP4') && !check_var("CONTAINERS_DOCKER_FLAVOUR", "stable"))) {
         # select_user_serial_terminal is broken on public cloud
         loadtest 'containers/rootless_docker' unless (is_public_cloud);
     }
-    load_volume_tests($run_args);
+    load_volume_tests($run_args) unless is_public_cloud;
     # Expected to work anywhere except of real HW backends, PC and Micro
     unless (is_generalhw || is_ipmi || is_public_cloud || is_transactional || (is_sle('=12-SP5') && is_aarch64)) {
         loadtest 'containers/validate_btrfs';
