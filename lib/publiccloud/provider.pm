@@ -439,7 +439,25 @@ sub terraform_cmd {
     return $cmd;
 }
 
-# Run a tofu/terraform step with output captured to a file.
+=head2 _tofu_run_step
+
+    my ($ret, $output) = $self->_tofu_run_step(
+        step    => 'init',            # short label, also used to name the output file (tf_<step>_output)
+        cmd     => 'tofu init -no-color',
+        timeout => 180,               # overall script_retry() timeout, in seconds
+        delay   => 10,                # seconds to wait between retries
+        retry   => 6,                 # number of script_retry() attempts
+    );
+
+Run a single tofu/terraform step (C<init>, C<plan> or C<apply>) via
+C<script_retry()>, capturing its combined stdout/stderr to C<tf_<step>_output>
+so the output survives even on a timeout (unlike letting C<script_retry> die
+internally with no diagnostics). Always returns the exit code and the
+captured output rather than dying itself, so the caller decides how to react
+to a failure.
+
+=cut
+
 sub _tofu_run_step {
     my ($self, %args) = @_;
     my $output_file = "tf_$args{step}_output";

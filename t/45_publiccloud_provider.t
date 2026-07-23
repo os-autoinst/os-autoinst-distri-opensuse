@@ -272,18 +272,21 @@ subtest '[terraform_apply] returns instance objects' => sub {
 #              On every matching command the next response in that list is consumed:
 #              'exit' is returned to script_run/script_retry, 'output' to
 #              script_output. There is no implicit coupling between commands: the
-#              apply exit code and the terraform output read back by
-#              'cat tf_apply_output' are two distinct commands, so they are
-#              scripted with two distinct regexps. init/plan also each run their
-#              own 'cat tf_{init,plan}_output' (via _tofu_run_step), but these
-#              subtests don't script those -- they fall through to the default
-#              '' output, since init/plan success/failure isn't what's under test
-#              here (see the dedicated init/plan subtest instead).
+#              apply exit code and the terraform output read back by '^cat '
+#              are two distinct commands, so they are scripted with two
+#              distinct regexps. '^cat ' matches init/plan/apply's output-file
+#              read-back alike (_tofu_run_step doesn't care about the
+#              filename, and neither does this test) -- use the
+#              _cat_responses() helper below to build that list, since only
+#              apply's output matters to these subtests but every step's own
+#              cat still consumes a slot in the shared queue. (Anchored to
+#              avoid false hits like EC2's "describe-instance-type-offerings
+#              --lo-CAT-ion-type ..." matching a bare /cat/.)
 #              Each list must hold exactly one entry per expected match; if a
 #              matching command is run after its list is exhausted the helper dies,
 #              so the test fails loudly on an unexpected extra command. E.g.:
-#                { 'apply.*myplan'      => [{exit=>42}, {exit=>0}],
-#                  'cat tf_apply_output' => [{output=>$MSG}, {output=>''}],
+#                { 'apply.*myplan' => [{exit=>42}, {exit=>0}],
+#                  '^cat '         => [_cat_responses({output=>$MSG}, {output=>''})],
 #                  'az network vnet subnet' => [{output=>'subnet-0'}, {output=>'subnet-1'}] }
 #   calls   => [out] arrayref the caller passes in empty; the helper appends
 #              every executed command to it for the caller to inspect afterwards.
@@ -336,6 +339,16 @@ sub _mock_terraform_apply {
     return $mock;
 }
 
+# Build a 'cat' response list for _mock_terraform_apply's script_responses.
+# _tofu_run_step() reads back every step's own output file (init, plan, and
+# apply each get their own 'cat', regardless of filename), but only apply's
+# output feeds region_out_of_resources() -- init's and plan's are irrelevant
+# to these region-retry subtests. Rather than coupling the test to the
+# tf_<step>_output filenames, this pads the shared 'cat' queue with one
+# placeholder for init and one for each apply's preceding plan, so callers
+# only need to state the apply outputs they actually care about.
+sub _cat_responses { return ({output => ''}, map { ({output => ''}, $_) } @_); }
+
 # Provider-specific terraform 'apply' outputs that flag a resource shortage:
 my %OUT_OF_RESOURCES = (
     AZURE => q{Error: creating Linux Virtual Machine ... Code="SkuNotAvailable" Message="The requested VM size ... is not available"},
@@ -368,10 +381,7 @@ subtest '[terraform_apply] Azure retries in the first alternate region and succe
                 {exit => 0, output => ''},
             ],
             # this simulate the script_output(cat) of the "tofu apply" log, and it containing a specific error message
-            'cat tf_apply_output' => [
-                {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
-                {exit => 0, output => ''},
-            ],
+            '^cat ' => [_cat_responses({exit => 0, output => $OUT_OF_RESOURCES{AZURE}}, {exit => 0, output => ''})],
             # az network query runs once per region attempt (primary + 1st alternate)
             'az network vnet subnet list' => [{output => 'subnet-Ferenginar'}, {output => 'subnet-Bajor'}],
         });
@@ -421,11 +431,7 @@ subtest '[terraform_apply] Azure retries in the first alternate region and fails
                 {exit => 42, output => 'None care'},
                 {exit => 0, output => ''},
             ],
-            'cat tf_apply_output' => [
-                {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
-                {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
-                {exit => 0, output => ''},
-            ],
+'^cat ' => [_cat_responses({exit => 0, output => $OUT_OF_RESOURCES{AZURE}}, {exit => 0, output => $OUT_OF_RESOURCES{AZURE}}, {exit => 0, output => ''})],
             # az network query runs once per region attempt (primary + 2 alternates)
             'az network vnet subnet list' => [{output => 'subnet-Ferenginar'}, {output => 'subnet-Bajor'}, {output => 'subnet-Cardassia'}],
         });
@@ -465,11 +471,7 @@ subtest '[terraform_apply] Azure retries never succeed' => sub {
                 {exit => 42, output => 'None care'},
                 {exit => 42, output => 'None care'},
             ],
-            'cat tf_apply_output' => [
-                {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
-                {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
-                {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
-            ],
+'^cat ' => [_cat_responses({exit => 0, output => $OUT_OF_RESOURCES{AZURE}}, {exit => 0, output => $OUT_OF_RESOURCES{AZURE}}, {exit => 0, output => $OUT_OF_RESOURCES{AZURE}})],
             # az network query runs once per region attempt (primary + 2 alternates)
             'az network vnet subnet list' => [{output => 'subnet-Ferengi'}, {output => 'subnet-Bajor'}, {output => 'subnet-Cardassia'}],
         });
@@ -511,10 +513,7 @@ subtest '[terraform_apply] EC2 retries in an alternate region' => sub {
                 {exit => 42, output => 'None care'},
                 {exit => 0, output => ''},
             ],
-            'cat tf_apply_output' => [
-                {exit => 0, output => $OUT_OF_RESOURCES{EC2}},
-                {exit => 0, output => ''},
-            ],
+            '^cat ' => [_cat_responses({exit => 0, output => $OUT_OF_RESOURCES{EC2}}, {exit => 0, output => ''})],
             # each aws query runs once per region attempt (primary + 1 alternate)
             'describe-instance-type-offerings' => [{output => 'us-east-1a'}, {output => 'us-east-1b'}],
             'describe-security-groups' => [{output => 'sg-0'}, {output => 'sg-1'}],
@@ -554,12 +553,10 @@ subtest '[terraform_apply] GCE succeed in the first zone of the first region' =>
             'apply.*myplan' => [
                 {exit => 0, output => 'None care'},    # primary region, initial zone 'a'
             ],
-            'cat tf_apply_output' => [
-                {exit => 0, output => ''},    # primary region, initial zone 'a'
-            ],
-            # 'gcloud compute zones list' returns the zones of the region (last name part).
-            # This line also simulate that what has been configured in the PUBLIC_CLOUD_AVAILABILITY_ZONE
-            # is in agreement with what the cloud has.
+            '^cat ' => [_cat_responses({exit => 0, output => ''})],    # primary region, initial zone 'a'
+                                                                       # 'gcloud compute zones list' returns the zones of the region (last name part).
+                # This line also simulate that what has been configured in the PUBLIC_CLOUD_AVAILABILITY_ZONE
+                # is in agreement with what the cloud has.
             'gcloud compute zones list.*filter.*region.*Ferengi' => [{exit => 0, output => 'Weeville,b,c,'}],
         });
     Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
@@ -608,12 +605,13 @@ subtest '[terraform_apply] GCE loops over zones, then over regions' => sub {
                 {exit => 42, output => 'None care'},    # primary region, zone 'c'
                 {exit => 0, output => ''},    # alternate region 'Bajor'
             ],
-            'cat tf_apply_output' => [
-                {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, initial zone 'a'
-                {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, zone 'b'
-                {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, zone 'c'
-                {exit => 0, output => ''},    # alternate region 'Bajor'
-            ],
+            '^cat ' => [
+                _cat_responses(
+                    {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, initial zone 'a'
+                    {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, zone 'b'
+                    {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, zone 'c'
+                    {exit => 0, output => ''},    # alternate region 'Bajor'
+                )],
             'gcloud compute zones list.*filter.*region.*Ferengi' => [{exit => 0, output => 'a,b,c,'}],
             'gcloud compute zones list.*filter.*region.*Bajoran' => [{exit => 0, output => 'd,e,f,'}],    # this test does not use it, but it should
         });
