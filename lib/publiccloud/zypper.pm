@@ -70,7 +70,7 @@ use utils ();
 use transactional ();
 use version_utils qw(is_transactional);
 
-# Zypper exit codes (see man zypper, EXIT CODES section)
+# Zypper and timeout exit codes (see man zypper, EXIT CODES section)
 use constant {
     EXIT_OK => 0,
     EXIT_SOLVER => 4,    # generic solver problem
@@ -80,8 +80,12 @@ use constant {
     EXIT_REBOOT_NEEDED => 102,
     EXIT_REBOOT_SCHED => 103,
     EXIT_CAP_NOT_FOUND => 104,    # ZYPPER_EXIT_INF_CAP_NOT_FOUND
+    EXIT_REPOS_SKIPPED => 106,    # ZYPPER_EXIT_INF_REPOS_SKIPPED
     EXIT_RPM_SCRIPT_FAIL => 107,    # ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED
-                                    # Tunable defaults
+    EXIT_TIMEOUT => 124,    # exit code from the timeout utility, not zypper
+    EXIT_TIMEOUT_KILLED => 137,    # as above, but SIGKILLed
+
+    # Tunable defaults
     DEFAULT_TIMEOUT_ZYPPER => 700,
     DEFAULT_TIMEOUT_TRANSACTIONAL => 900,
     DEFAULT_RETRY => 1,
@@ -118,7 +122,10 @@ our @EXPORT_OK = qw(
   EXIT_REBOOT_NEEDED
   EXIT_REBOOT_SCHED
   EXIT_CAP_NOT_FOUND
+  EXIT_REPOS_SKIPPED
   EXIT_RPM_SCRIPT_FAIL
+  EXIT_TIMEOUT
+  EXIT_TIMEOUT_KILLED
 );
 
 our %EXPORT_TAGS = (
@@ -177,6 +184,10 @@ my %FAILURE_CLASSIFIERS = (
         label => 'ZYPPER_EXIT_INF_RPM_SCRIPT_FAILED',
         regex => 'RpmPostTransCollector\.cc\(executeScripts\):.* scriptlet failed, exit status',
     },
+    EXIT_REPOS_SKIPPED() => {
+        label => 'ZYPPER_EXIT_INF_REPOS_SKIPPED (poo#204057)',
+        regex => '(MediaCurl\.cc|Login failed|Not ready to read within timeout)',
+    },
 );
 
 # ---------------------------------------------------------------------------
@@ -210,6 +221,12 @@ Options (all optional):
                                 zypper-related processes to finish before
                                 running the command
 
+=item B<apply_graceful_timeout> => if true (default), wrap the remote
+                                command in C<timeout> so an SSH-level
+                                stall yields a retryable exit code
+                                (EXIT_TIMEOUT/EXIT_TIMEOUT_KILLED) instead
+                                of dying past the retry loop
+
 =back
 
 =cut
@@ -227,6 +244,9 @@ sub pc_zypper_call {
 Runs C<sudo transactional-update -n $cmd> on a remote instance and triggers
 a soft reboot on success (unless C<no_reboot => 1> is passed). The default
 accepted exit codes are 0, 102, 103.
+
+Also accepts the same C<apply_graceful_timeout> option as
+L</pc_zypper_call>, since both are implemented on top of C<_run>.
 
 =cut
 
@@ -487,6 +507,7 @@ sub _run {
       ? DEFAULT_TIMEOUT_TRANSACTIONAL
       : DEFAULT_TIMEOUT_ZYPPER;
     $args{rc_only} = 1;
+    $args{apply_graceful_timeout} //= 1;
 
     pc_wait_quit($instance) if $wait_quit;
 
@@ -550,6 +571,17 @@ sub _handle_transient_failure {
     if ($ret == EXIT_LOCKED) {
         record_info("Retry $attempt/$max as system management is locked");
         return 'retry';
+    }
+    # Retry on timeouts (typically indicates network issues).
+    if ($ret == EXIT_TIMEOUT || $ret == EXIT_TIMEOUT_KILLED) {
+        record_info("Retry $attempt/$max as the zypper command stalled (timeout)");
+        return 'retry';
+    }
+    # poo#204057: not enough evidence yet whether this is expected SMT
+    # eventual-consistency lag or a genuine product bug -- fail clearly
+    # instead of masking it; revisit once we have more data.
+    if ($ret == EXIT_REPOS_SKIPPED) {
+        return 'fail';
     }
     # EXIT_ERR_COMMIT (8) can be caused by the zypp lock being held at
     # transaction time (the lock is taken later than the PID check done by
