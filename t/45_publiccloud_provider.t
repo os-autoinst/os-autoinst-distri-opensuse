@@ -13,7 +13,6 @@ use warnings;
 use Test::More;
 use Test::MockObject;
 use Test::MockModule;
-use Test::Exception;
 use Test::Warnings;
 use testapi 'set_var';
 use List::Util qw(any);
@@ -162,10 +161,13 @@ subtest '[terraform_apply] vars' => sub {
     shift @var_args;    # drop the 'tofu plan -no-color -out myplan' prefix
 
     # Keep only the Borg* vars we injected, mapping key => escaped value.
-    # Each argument looks like:  'KEY=VALUE'
+    # Each argument looks like:  'KEY=VALUE', with the last one also carrying
+    # the ' 2>&1 | tee tf_plan_output' redirection _tofu_run_step appends. As
+    # that suffix never contains a quote, dropping the trailing anchor still
+    # lets the greedy (.*) match up to the real closing quote.
     my %borg;
     for my $arg (@var_args) {
-        my ($key, $val) = $arg =~ /^'([^=]+)=(.*)'\s*$/s;
+        my ($key, $val) = $arg =~ /^'([^=]+)=(.*)'/s;
         next unless defined $key && $key =~ /^Borg/;
         $borg{$key} = $val;
     }
@@ -268,15 +270,20 @@ subtest '[terraform_apply] returns instance objects' => sub {
 #              * to an ordered list of { exit => ..., output => ... } responses.
 #
 #              On every matching command the next response in that list is consumed:
-#              'exit' is returned to script_run, 'output' to script_output. There
-#              is no implicit coupling between commands: the apply exit code and
-#              the terraform output read back by 'cat tf_apply_output' are two
-#              distinct commands, so they are scripted with two distinct regexps.
+#              'exit' is returned to script_run/script_retry, 'output' to
+#              script_output. There is no implicit coupling between commands: the
+#              apply exit code and the terraform output read back by
+#              'cat tf_apply_output' are two distinct commands, so they are
+#              scripted with two distinct regexps. init/plan also each run their
+#              own 'cat tf_{init,plan}_output' (via _tofu_run_step), but these
+#              subtests don't script those -- they fall through to the default
+#              '' output, since init/plan success/failure isn't what's under test
+#              here (see the dedicated init/plan subtest instead).
 #              Each list must hold exactly one entry per expected match; if a
 #              matching command is run after its list is exhausted the helper dies,
 #              so the test fails loudly on an unexpected extra command. E.g.:
-#                { 'apply.*myplan' => [{exit=>42}, {exit=>0}],
-#                  'cat'           => [{output=>$MSG}, {output=>''}],
+#                { 'apply.*myplan'      => [{exit=>42}, {exit=>0}],
+#                  'cat tf_apply_output' => [{output=>$MSG}, {output=>''}],
 #                  'az network vnet subnet' => [{output=>'subnet-0'}, {output=>'subnet-1'}] }
 #   calls   => [out] arrayref the caller passes in empty; the helper appends
 #              every executed command to it for the caller to inspect afterwards.
@@ -290,8 +297,7 @@ sub _mock_terraform_apply {
     $mock->noop("$_") for qw(get_image_uri data_url);
     $mock->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $mock->redefine(get_current_job_id => sub { 42 });
-    $mock->redefine($_ => sub { push @{$args{calls}}, $_[0]; return 0; }) for qw(assert_script_run script_retry);
-
+    $mock->redefine(assert_script_run => sub { push @{$args{calls}}, $_[0]; return 0; });
 
     # It consumes each regexp's list in order and dies if list of response is exhausted. Returns undef when no regexp matches at all.
     my %cursor;
@@ -308,12 +314,17 @@ sub _mock_terraform_apply {
         }
         return undef;
     };
-    $mock->redefine(script_run => sub {
+    # init/plan/apply all run via _tofu_run_step -> script_retry now (no more
+    # direct script_run for apply), so script_retry needs the same scripted
+    # responses script_run gets. init/plan aren't under test here and match
+    # none of the 'apply.*myplan'-style patterns below, so they transparently
+    # succeed (exit 0) unless a subtest explicitly scripts them.
+    $mock->redefine($_ => sub {
             my ($cmd) = @_;
             push @{$args{calls}}, $cmd;
             my $r = $next_response->($cmd);
             return (defined $r ? ($r->{exit} // 0) : 0);
-    });
+    }) for qw(script_run script_retry);
     $mock->redefine(script_output => sub {
             my ($cmd) = @_;
             push @{$args{calls}}, $cmd;
@@ -357,7 +368,7 @@ subtest '[terraform_apply] Azure retries in the first alternate region and succe
                 {exit => 0, output => ''},
             ],
             # this simulate the script_output(cat) of the "tofu apply" log, and it containing a specific error message
-            'cat ' => [
+            'cat tf_apply_output' => [
                 {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
                 {exit => 0, output => ''},
             ],
@@ -410,7 +421,7 @@ subtest '[terraform_apply] Azure retries in the first alternate region and fails
                 {exit => 42, output => 'None care'},
                 {exit => 0, output => ''},
             ],
-            'cat ' => [
+            'cat tf_apply_output' => [
                 {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
                 {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
                 {exit => 0, output => ''},
@@ -454,7 +465,7 @@ subtest '[terraform_apply] Azure retries never succeed' => sub {
                 {exit => 42, output => 'None care'},
                 {exit => 42, output => 'None care'},
             ],
-            'cat ' => [
+            'cat tf_apply_output' => [
                 {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
                 {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
                 {exit => 0, output => $OUT_OF_RESOURCES{AZURE}},
@@ -466,8 +477,11 @@ subtest '[terraform_apply] Azure retries never succeed' => sub {
     my $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new());
 
     # Every region fails with a resource shortage, so after trying them all
-    # terraform_apply gives up and dies.
-    dies_ok { $provider->terraform_apply(vars => {}) } 'terraform_apply dies after every region is exhausted';
+    # terraform_apply gives up and dies. Plain eval rather than dies_ok: the
+    # extra _tofu_run_step call frame trips up Test::Exception's Sub::Uplevel
+    # stack rewriting here, letting the exception escape the subtest instead
+    # of being reported as a normal test failure.
+    ok(!eval { $provider->terraform_apply(vars => {}); 1 }, 'terraform_apply dies after every region is exhausted');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     # code under test try "tofu plan" in all the regions
@@ -497,7 +511,7 @@ subtest '[terraform_apply] EC2 retries in an alternate region' => sub {
                 {exit => 42, output => 'None care'},
                 {exit => 0, output => ''},
             ],
-            'cat ' => [
+            'cat tf_apply_output' => [
                 {exit => 0, output => $OUT_OF_RESOURCES{EC2}},
                 {exit => 0, output => ''},
             ],
@@ -540,7 +554,7 @@ subtest '[terraform_apply] GCE succeed in the first zone of the first region' =>
             'apply.*myplan' => [
                 {exit => 0, output => 'None care'},    # primary region, initial zone 'a'
             ],
-            'cat ' => [
+            'cat tf_apply_output' => [
                 {exit => 0, output => ''},    # primary region, initial zone 'a'
             ],
             # 'gcloud compute zones list' returns the zones of the region (last name part).
@@ -594,7 +608,7 @@ subtest '[terraform_apply] GCE loops over zones, then over regions' => sub {
                 {exit => 42, output => 'None care'},    # primary region, zone 'c'
                 {exit => 0, output => ''},    # alternate region 'Bajor'
             ],
-            'cat ' => [
+            'cat tf_apply_output' => [
                 {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, initial zone 'a'
                 {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, zone 'b'
                 {exit => 0, output => $OUT_OF_RESOURCES{GCE}},    # primary region, zone 'c'
@@ -625,6 +639,58 @@ subtest '[terraform_apply] GCE loops over zones, then over regions' => sub {
     is(scalar(@gcloud), 2, 'gcloud zone list queried at each region loop');
     like($gcloud[0], qr/^gcloud compute zones list --filter='region=Ferengi'/, 'zone list scoped to the failing region');
     is($provider->provider_client->region, 'Bajoran', 'active region left on the successful alternate');
+
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
+};
+
+subtest '[terraform_apply] init/plan failures die with captured output, no region retry (poo#204060)' => sub {
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    set_var('PUBLIC_CLOUD_REGION', 'Ferengi');
+    set_var('PUBLIC_CLOUD_ALTERNATE_REGIONS', 'Cardassia');
+    set_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'Romulan');
+    set_var('FLAVOR', 'Talaxian');
+    set_var('OPENQA_URL', 'Xindi');
+    my $mock = Test::MockModule->new('publiccloud::provider', no_auto => 1);
+    $mock->redefine(get_image_id => sub { '' });
+    $mock->noop("$_") for qw(get_image_uri data_url);
+    $mock->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $mock->redefine(get_current_job_id => sub { return 42; });
+    $mock->redefine(assert_script_run => sub { return 0; });
+    Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
+
+    for my $case (
+        {step => 'init', fail_cmd => qr/tofu init/, timeout => 180, garbage => 'connection refused'},
+        {step => 'plan', fail_cmd => qr/tofu plan/, timeout => 300, garbage => ''},
+      )
+    {
+        my @retry_calls;
+        $mock->redefine(script_retry => sub {
+                my ($cmd, %retry_args) = @_;
+                push @retry_calls, [$cmd, \%retry_args];
+                return 1 if ($cmd =~ $case->{fail_cmd});
+                return 0;
+        });
+        $mock->redefine(script_output => sub {
+                return $case->{garbage} if ($_[0] =~ /cat /);
+                return '';
+        });
+
+        my $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new());
+        eval { $provider->terraform_apply() };
+        my $died = $@;
+        like($died, qr/Terraform $case->{step} failed/i, "$case->{step} failure dies with a clear message");
+        # Regression check for the scalar-context bug where `my $ret = ...`
+        # (instead of `my ($ret) = ...`) silently captured the captured
+        # output text instead of the numeric exit code from script_retry.
+        like($died, qr/exit code 1\b/, "$case->{step} die message reports the numeric exit code, not the captured output");
+
+        my ($retry_call) = grep { $_->[0] =~ $case->{fail_cmd} } @retry_calls;
+        ok($retry_call, "$case->{step} is retried via script_retry");
+        is($retry_call->[1]{timeout}, $case->{timeout}, "$case->{step} uses its own fixed timeout, not TERRAFORM_TIMEOUT");
+        ok($retry_call->[1]{retry} > 1, "$case->{step} is configured to actually retry multiple times");
+        is($retry_call->[1]{die}, 0, "$case->{step} does not let script_retry die internally (so output can be captured)");
+    }
 
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
 };
