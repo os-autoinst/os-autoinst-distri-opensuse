@@ -654,27 +654,33 @@ subtest '[terraform_apply] init/plan failures die with captured output, no regio
     $mock->redefine(get_current_job_id => sub { return 42; });
     Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
 
-    for my $case (
+    # Mocks are defined once, closing over $case (set fresh each loop
+    # iteration below) rather than being redefined per iteration.
+    my $case;
+    my (@calls, @retry_calls);
+    $mock->redefine(assert_script_run => sub { push @calls, $_[0]; return 0; });
+    $mock->redefine(script_retry => sub {
+            my ($cmd, %retry_args) = @_;
+            push @calls, $cmd;
+            push @retry_calls, [$cmd, \%retry_args];
+            return 1 if ($cmd =~ $case->{fail_cmd});
+            return 0;
+    });
+    $mock->redefine(script_output => sub {
+            push @calls, $_[0];
+            return $case->{garbage} if ($_[0] =~ /cat /);
+            return '';
+    });
+    my $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new());
+
+    for my $c (
         {step => 'init', fail_cmd => qr/tofu init/, timeout => 180, garbage => 'connection refused'},
         {step => 'plan', fail_cmd => qr/tofu plan/, timeout => 300, garbage => ''},
       )
     {
-        my (@calls, @retry_calls);
-        $mock->redefine(assert_script_run => sub { push @calls, $_[0]; return 0; });
-        $mock->redefine(script_retry => sub {
-                my ($cmd, %retry_args) = @_;
-                push @calls, $cmd;
-                push @retry_calls, [$cmd, \%retry_args];
-                return 1 if ($cmd =~ $case->{fail_cmd});
-                return 0;
-        });
-        $mock->redefine(script_output => sub {
-                push @calls, $_[0];
-                return $case->{garbage} if ($_[0] =~ /cat /);
-                return '';
-        });
+        $case = $c;
+        (@calls, @retry_calls) = ();
 
-        my $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new());
         eval { $provider->terraform_apply() };
         my $died = $@;
         like($died, qr/Terraform $case->{step} failed/i, "$case->{step} failure dies with a clear message");
