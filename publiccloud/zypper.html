@@ -130,6 +130,10 @@ pc_zypper_call($instance, cmd =&gt; $cmd, %opts);</code></pre>
 <dd>
 
 </dd>
+<dt id="apply_graceful_timeout-if-true-default-wrap-the-remote-command-in-timeout-so-an-SSH-level-stall-yields-a-retryable-exit-code-EXIT_TIMEOUT-EXIT_TIMEOUT_KILLED-instead-of-dying-past-the-retry-loop"><b>apply_graceful_timeout</b> =&gt; if true (default), wrap the remote command in <code>timeout</code> so an SSH-level stall yields a retryable exit code (EXIT_TIMEOUT/EXIT_TIMEOUT_KILLED) instead of dying past the retry loop</dt>
+<dd>
+
+</dd>
 </dl>
 
 <h2 id="pc_transactional_call">pc_transactional_call</h2>
@@ -137,6 +141,8 @@ pc_zypper_call($instance, cmd =&gt; $cmd, %opts);</code></pre>
 <pre><code>pc_transactional_call($instance, $cmd, %opts);</code></pre>
 
 <p>Runs <code>sudo transactional-update -n $cmd</code> on a remote instance and triggers a soft reboot on success (unless <code>no_reboot =</code> 1&gt; is passed). The default accepted exit codes are 0, 102, 103.</p>
+
+<p>Also accepts the same <code>apply_graceful_timeout</code> option as <a href="#pc_zypper_call">&quot;pc_zypper_call&quot;</a>, since both are implemented on top of <code>_run</code>.</p>
 
 <h2 id="pc_pkg_call">pc_pkg_call</h2>
 
