@@ -22,7 +22,8 @@ sub run {
     my $instance = $args->{my_instance};
     my %known_failing_services = (
         'systemd-vconsole-setup' => 'bsc#1249902 - systemd-vconsole-setup.service failed to load',
-        augenrules => 'bsc#1250320 - augenrules.service fails at startup on Hardened Images'
+        augenrules => 'bsc#1250320 - augenrules.service fails at startup on Hardened Images',
+        cleanoldsepoldir => 'bsc#1271814 - snapper is intentionally not installed on Public Cloud images',
     );
     $known_failing_services{guestregister} = 'Custom ignore of guestregister via openQA variable' if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
     my $failed_services_output = $instance->ssh_script_output(
