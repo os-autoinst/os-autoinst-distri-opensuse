@@ -58,7 +58,6 @@ sub run {
     if (is_cloudinit_supported) {
         $args->{my_instance}->cleanup_cloudinit();
         $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), scan_ssh_host_key => 1);
-        $args->{my_instance}->check_cloudinit();
         permit_root_login($args->{my_instance});
     } else {
         $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));

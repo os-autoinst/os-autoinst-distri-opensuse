@@ -359,6 +359,7 @@ sub load_slem_on_pc_tests {
         if (get_var('PUBLIC_CLOUD_QAM', 0)) {
             loadtest("publiccloud/transfer_repos", run_args => $args) unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
             loadtest("publiccloud/patch_and_reboot", run_args => $args);
+            loadtest("publiccloud/check_cloudinit", run_args => $args);
         }
         if (get_var('PUBLIC_CLOUD_LTP', 0)) {
             loadtest 'publiccloud/run_ltp', run_args => $args;
