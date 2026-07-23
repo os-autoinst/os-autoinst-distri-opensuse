@@ -11,15 +11,12 @@ package publiccloud::instance;
 use testapi;
 use Carp 'croak';
 use Mojo::Base -base;
-use Mojo::Util 'trim';
 use File::Basename;
 use publiccloud::utils;
 use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
 use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave select_host_console);
 use version_utils;
 use utils;
-use Mojo::Util 'trim';
-use Data::Dumper;
 
 use constant SSH_TIMEOUT => 90;
 
@@ -632,36 +629,6 @@ sub get_state {
     return $self->provider->get_state_from_instance($self, @_);
 }
 
-=head2 network_speed_test
-
-    network_speed_test();
-
-Test the network speed.
-=cut
-
-sub network_speed_test() {
-    my ($self, %args) = @_;
-    my ($cmd, $ret);
-
-    # Curl stats output format
-    my $write_out
-      = 'time_namelookup:\t%{time_namelookup} s\ntime_connect:\t\t%{time_connect} s\ntime_appconnect:\t%{time_appconnect} s\ntime_pretransfer:\t%{time_pretransfer} s\ntime_redirect:\t\t%{time_redirect} s\ntime_starttransfer:\t%{time_starttransfer} s\ntime_total:\t\t%{time_total} s\n';
-    # PC RMT server domain name
-    my $rmt_host = "smt-" . lc(get_required_var('PUBLIC_CLOUD_PROVIDER')) . ".susecloud.net";
-
-    $cmd = "grep \"$rmt_host\" /etc/hosts";
-    $ret = $self->ssh_script_run(cmd => $cmd, apply_graceful_timeout => 1);
-    record_info("RMT_HOST", printf('$ %s\n%s', $cmd, $ret));
-
-    $cmd = "ping -c3 1.1.1.1";
-    $ret = $self->ssh_script_run(cmd => $cmd, apply_graceful_timeout => 1);
-    record_info("PING", printf('$ %s\n%s', $cmd, $ret));
-
-    $cmd = "curl -w '$write_out' -o /dev/null -v https://$rmt_host/";
-    $ret = $self->ssh_script_run(cmd => $cmd, apply_graceful_timeout => 1);
-    record_info("CURL", printf('$ %s\n%s', $cmd, $ret));
-}
-
 sub cleanup_cloudinit() {
     my ($self) = @_;
     $self->ssh_assert_script_run('sudo cloud-init clean --logs');
@@ -669,211 +636,6 @@ sub cleanup_cloudinit() {
         $self->ssh_assert_script_run('sudo rm /root/test_cloud-init.txt');
         $self->ssh_assert_script_run('sudo zypper -n rm ed');
     }
-}
-
-sub check_cloudinit() {
-    my ($self) = @_;
-
-    # cloud-init status
-    my $rc = $self->ssh_script_run(cmd => "sudo cloud-init status --wait", timeout => 300);
-    record_info("cloud-init", $self->ssh_script_output("sudo cloud-init status --long", proceed_on_failure => 1, timeout => 300), result => $rc == 0 ? 'ok' : 'fail');
-    # Cloud-init error codes: 0 - success, 1 - unrecoverable error, 2 - recoverable error (See cloud-init documentation)
-    # As of https://bugzilla.suse.com/show_bug.cgi?id=1266207 we ignore recoverable errors
-    if (get_var('PUBLIC_CLOUD_IGNORE_CLOUDINIT_ERRORS') != 1) {
-        if ($rc == 1) {
-            die "unrecoverable cloud-init error";
-        } elsif ($rc == 2) {
-            record_info("cloud-init", "recoverable error (return code 2)");
-        } elsif ($rc != 0) {
-            die "unknown cloud-init return code $rc";
-        }
-    }
-
-    # cloud-id
-    my $cloud_id = (is_azure) ? 'azure' : 'aws';
-    $self->ssh_assert_script_run(cmd => "sudo cloud-id | grep '^$cloud_id\$'");
-
-    # cloud-init collect-logs
-    $self->ssh_assert_script_run('sudo cloud-init collect-logs');
-    $self->upload_log('~/cloud-init.tar.gz', failok => 1);
-
-    if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
-        # Check for bootcmd, runcmd and write_files module
-        $self->ssh_assert_script_run('sudo grep pookie /root/test_cloud-init.txt');
-        $self->ssh_assert_script_run('sudo grep Mithrandir /root/test_cloud-init.txt');
-        $self->ssh_assert_script_run('sudo grep snickerdoodle /root/test_cloud-init.txt');
-
-        # Check for packages module
-        $self->ssh_assert_script_run('ed -V');
-
-        # Check for final_message module
-        $self->ssh_assert_script_run('sudo journalctl -b | grep "cloud-init qa has finished"');
-
-        # cloud-init schema
-        $self->ssh_assert_script_run('sudo cloud-init schema --system') unless (is_sle('=12-SP5'));
-    }
-}
-
-sub enable_kdump() {
-    my ($self) = @_;
-
-    $self->ssh_assert_script_run(q(sudo sed -i "/^GRUB_CMDLINE_LINUX_DEFAULT/ s/\\\\\\"$/ crashkernel=256M,high crashkernel=128M,low \\\\\\"/" /etc/default/grub));
-    $self->ssh_assert_script_run('sudo grub2-mkconfig -o /boot/grub2/grub.cfg');
-
-    if ($self->ssh_script_run('sudo grep -q "^KDUMP_CRASHKERNEL=" /etc/sysconfig/kdump') == 0) {
-        $self->ssh_assert_script_run(q(sudo sed -i "/^KDUMP_CRASHKERNEL/ s/\\\\\\"$/ crashkernel=256M,high crashkernel=128M,low \\\\\\"/" /etc/sysconfig/kdump));
-    } else {
-        $self->ssh_assert_script_run(q(echo "KDUMP_CRASHKERNEL=\"crashkernel=256M,high crashkernel=128M,low\"" | sudo tee -a /etc/sysconfig/kdump));
-    }
-
-    $self->ssh_assert_script_run('sudo systemctl enable kdump.service');
-    $self->softreboot();
-}
-
-=head2 check_system_boottime
-
-    check_system_boottime();
-
-Check the system boot time, measured by C<systemd-analyze>, to be under a threshold.
-Assign the threshold in seconds to PUBLIC_CLOUD_BOOTTIME_MAX in test settings.
-The boot time is saved in a local json structure, then printed in the test's logs:
-when the threshold is exceeded the job is stopped.
-The routine is skipped when the threshold is undefined or zero.
-
-=cut
-
-sub check_system_boottime() {
-    my ($instance, %args) = @_;
-    my $max_boot_time = get_var('PUBLIC_CLOUD_BOOTTIME_MAX');
-    return unless ($max_boot_time);
-
-    my $ret = {
-        kernel_release => undef,
-        kernel_version => undef,
-        type => 'boottime',
-        analyze => {},
-        blame => {},
-    };
-
-    record_info("BOOT TIME", 'systemd_analyze');
-    # first deployment analysis
-    my ($systemd_analyze, $systemd_blame) = $instance->do_systemd_analyze_time(%args);
-    die("failed to obtain boottime from systemd") unless ($systemd_analyze && $systemd_blame);
-
-    $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
-    $ret->{blame} = $systemd_blame;
-    my $boottime = $ret->{analyze}->{overall};
-
-    # Collect kernel version
-    $ret->{kernel_release} = $instance->ssh_script_output(cmd => 'uname -r', proceed_on_failure => 1);
-    $ret->{kernel_version} = $instance->ssh_script_output(cmd => 'uname -v', proceed_on_failure => 1);
-
-    $Data::Dumper::Sortkeys = 1;
-    record_info("RESULTS", Dumper($ret));
-    my $dir = "/var/log";
-    my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
-    $instance->upload_check_logs_tar(map { "$dir/$_" } @logs);
-
-    # Boot time overall limit check
-    if ($boottime > $max_boot_time) {
-        if (is_azure()) {
-            # Unreliable userspace boot time in Azure.
-            record_soft_failure("bsc#1262587 - openQA publiccloud tests have anomalous-high boot-time from systemd-analyze");
-        } else {
-            # threshold exceeded
-            die("System boot time overall $boottime is out of limit $max_boot_time");
-        }
-    }
-}
-
-sub systemd_time_to_second
-{
-    my $str_time = trim(shift);
-
-    if ($str_time !~ /^(?<check_hour>(?<hour>\d{1,2})\s*h\s*)?(?<check_min>(?<min>\d{1,2})\s*min\s*)?((?<sec>\d{1,2}\.\d{1,3})s|(?<ms>\d+)ms)$/) {
-        record_info("WARN", "Unable to parse systemd time '$str_time'", result => 'fail');
-        return -1;
-    }
-    my $sec = $+{sec} // $+{ms} / 1000;
-    $sec += $+{min} * 60 if (defined($+{check_min}));
-    $sec += $+{hour} * 3600 if (defined($+{check_hour}));
-    return $sec;
-}
-
-sub extract_analyze_time {
-    my $str_time = shift;
-    my $res = {};
-    # Pick the line that actually holds the timing, not blindly the first line:
-    # ssh_script_output may prepend an SSH login banner / MOTD, which would
-    # otherwise leave us parsing an empty or non-timing line (poo#203817).
-    ($str_time) = grep { /Startup finished in/i } split(/\r?\n/, $str_time);
-    return undef unless defined($str_time);
-    $str_time =~ s/Startup finished in\s*//i;
-    $str_time =~ s/=(.+)$/+$1 (overall)/;
-    for my $time (split(/\s*\+\s*/, $str_time)) {
-        $time = trim($time);
-        my ($time, $type) = $time =~ /^(.+)\s*\((\w+)\)$/;
-        $res->{$type} = systemd_time_to_second($time);
-        return undef if ($res->{$type} == -1);
-    }
-    foreach (qw(kernel initrd userspace overall)) { return undef unless exists($res->{$_}); }
-    return $res;
-}
-
-sub extract_blame_time {
-    my $str_time = shift;
-    my $ret = {};
-    for my $line (split(/\r?\n/, $str_time)) {
-        $line = trim($line);
-        # Only <time> <service> lines are blame entries; skip anything else
-        # (e.g. an SSH login banner / MOTD prepended to the output, poo#203817).
-        my ($time, $service) = $line =~ /^(\S+)\s+(\S+)$/;
-        next unless defined($service);
-        my $sec = systemd_time_to_second($time);
-        next unless ($sec >= 0);
-        $ret->{$service} = $sec;
-    }
-    return $ret;
-}
-
-sub do_systemd_analyze_time {
-    my ($instance, %args) = @_;
-    my $timeout = $args{timeout} // 300;
-    my $start_time = time();
-    my $output = "";
-    my $finished = 0;
-    my @ret;
-
-    # Poll systemd-analyze until the system has actually finished booting.
-    # On a freshly-launched Public Cloud instance SSH becomes reachable while
-    # late boot units (e.g. cloud-init) are still running, so systemd-analyze
-    # reports "Bootup is not yet finished (...FinishTimestampMonotonic=0)" and
-    # exits non-zero (poo#203817). "Startup finished in" only appears once boot
-    # is complete, so it is our readiness signal. Break out on the successful
-    # match *before* sleeping so a result arriving near the timeout is not
-    # discarded, and gate success on the match rather than on elapsed time.
-    while (time() - $start_time < $timeout) {
-        # calling systemd-analyze time
-        $output = $instance->ssh_script_output(cmd => 'systemd-analyze time', proceed_on_failure => 1);
-        if ($output =~ /Startup finished in/i) {
-            $finished = 1;
-            last;
-        }
-        sleep 5;
-    }
-    unless ($finished) {
-        record_info("WARN", "Unable to get systemd-analyze in ${timeout}s.\nLast output:" . $output, result => 'fail');
-        return (0, 0);
-    }
-    # log time
-    $instance->ssh_script_run("uptime");
-
-    push @ret, extract_analyze_time($output);
-
-    $output = $instance->ssh_script_output(cmd => 'systemd-analyze blame', proceed_on_failure => 1);
-    push @ret, extract_blame_time($output);
-
-    return @ret;
 }
 
 sub upload_supportconfig_log {

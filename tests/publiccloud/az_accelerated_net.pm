@@ -24,9 +24,10 @@ sub prepare_vms {
     my ($self, $provider) = @_;
     my $repo = get_required_var('IPERF_REPO');
     record_info('INFO', "Create VM\nInstalling iperf package from $repo");
-    my @instances = $provider->create_instances(check_guestregister => 0, count => 2);
+    my @instances = $provider->create_instances(count => 2);
     foreach my $instance (@instances) {
         record_info('Instance', 'Instance ' . $instance->instance_id . ' created');
+        $instance->wait_for_ssh(scan_ssh_host_key => 1);
         record_info('Iperf', 'Install IPerf binaries in VM');
         pc_zypper_call($instance, "ar --no-gpgcheck $repo net_perf");
         pc_pkg_call($instance, "in -r net_perf iperf");

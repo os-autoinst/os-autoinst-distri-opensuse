@@ -24,6 +24,11 @@ sub load_maintenance_publiccloud_tests {
 
     loadtest "publiccloud/download_repos" unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/prepare_instance", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args;
+    loadtest "publiccloud/auto_registration", run_args => $args;
+    loadtest "publiccloud/network_test", run_args => $args;
+    loadtest "publiccloud/check_cloudinit", run_args => $args;
+    loadtest "publiccloud/kdump", run_args => $args;
     if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
         loadtest("publiccloud/registercloudguest", run_args => $args);
     } else {
@@ -31,6 +36,7 @@ sub load_maintenance_publiccloud_tests {
     }
     loadtest "publiccloud/transfer_repos", run_args => $args unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/patch_and_reboot", run_args => $args;
+    loadtest "publiccloud/check_cloudinit", run_args => $args;
     if (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
         loadtest "publiccloud/check_services", run_args => $args;
         loadtest("publiccloud/img_proof", run_args => $args);
@@ -43,6 +49,7 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest 'publiccloud/run_ltp', run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
+        loadtest "publiccloud/check_services", run_args => $args;
         loadtest('publiccloud/metadata', run_args => $args);
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
         loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
@@ -73,6 +80,7 @@ sub load_maintenance_publiccloud_tests {
             loadtest "xfstests/run", run_args => $args;
             return;
         } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
+            loadtest "publiccloud/check_services", run_args => $args;
             loadtest "publiccloud/smoketest";
             # flavor_check is concentrated on checking things which make sense only for image which is registered
             # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
@@ -123,6 +131,11 @@ sub load_latest_publiccloud_tests {
 
     if (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest "publiccloud/prepare_instance", run_args => $args;
+        loadtest "publiccloud/check_boottime", run_args => $args;
+        loadtest "publiccloud/auto_registration", run_args => $args;
+        loadtest "publiccloud/network_test", run_args => $args;
+        loadtest "publiccloud/check_cloudinit", run_args => $args;
+        loadtest "publiccloud/kdump", run_args => $args;
         loadtest("publiccloud/registration", run_args => $args);
         loadtest 'publiccloud/run_ltp', run_args => $args;
     }
@@ -134,14 +147,21 @@ sub load_latest_publiccloud_tests {
         return;    # Do not continue as there is no instance to destroy
     } else {    # All test cases below require prepare_instance
         loadtest "publiccloud/prepare_instance", run_args => $args;
+        loadtest "publiccloud/check_boottime", run_args => $args;
+        loadtest "publiccloud/auto_registration", run_args => $args;
+        loadtest "publiccloud/network_test", run_args => $args;
+        loadtest "publiccloud/check_cloudinit", run_args => $args;
+        loadtest "publiccloud/kdump", run_args => $args;
         if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
             loadtest "publiccloud/registercloudguest", run_args => $args;
         }
         elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
+            loadtest "publiccloud/check_services", run_args => $args;
             loadtest "publiccloud/img_proof", run_args => $args;
         } else {    # All test cases below require registration
             loadtest("publiccloud/registration", run_args => $args);
             if (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
+                loadtest "publiccloud/check_services", run_args => $args;
                 loadtest('publiccloud/metadata', run_args => $args);
                 loadtest('publiccloud/cloud_netconfig', run_args => $args);
                 loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
@@ -221,6 +241,11 @@ sub load_publiccloud_appimg_tests {
     my $args = OpenQA::Test::RunArgs->new();
     my $publiccloud_app_img = get_var('PUBLIC_CLOUD_APP_IMG');
     loadtest "publiccloud/prepare_instance", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args;
+    loadtest "publiccloud/auto_registration", run_args => $args;
+    loadtest "publiccloud/network_test", run_args => $args;
+    loadtest "publiccloud/check_cloudinit", run_args => $args;
+    loadtest "publiccloud/kdump", run_args => $args;
     loadtest("publiccloud/registration", run_args => $args);
     loadtest "publiccloud/instance_overview", run_args => $args;
 

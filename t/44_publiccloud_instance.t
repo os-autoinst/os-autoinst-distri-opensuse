@@ -3,9 +3,9 @@
 # Copyright 2026 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 #
-# Summary: Unit tests for publiccloud::instance -- systemd time parsing,
-# ssh command construction and the thin provider-delegating
-# methods (start/stop/get_state/wait_for_state).
+# Summary: Unit tests for publiccloud::instance -- ssh command construction
+# and the thin provider-delegating methods
+# (start/stop/get_state/wait_for_state).
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use strict;
@@ -24,58 +24,6 @@ use Test::Mock::Time;
 use testapi 'set_var';
 
 use publiccloud::instance;
-
-subtest '[systemd_time_to_second] parsing' => sub {
-    cmp_ok(publiccloud::instance::systemd_time_to_second('1.234s'), '==', 1.234, 'seconds only');
-    cmp_ok(publiccloud::instance::systemd_time_to_second('500ms'), '==', 0.5, 'milliseconds converted');
-    cmp_ok(publiccloud::instance::systemd_time_to_second('1min 30.000s'), '==', 90, 'minutes + seconds');
-    cmp_ok(publiccloud::instance::systemd_time_to_second('1h 0min 0.000s'), '==', 3600, 'hours + min + sec');
-    cmp_ok(publiccloud::instance::systemd_time_to_second('2h 3min 4.500s'), '==', 2 * 3600 + 3 * 60 + 4.5, 'full combination');
-};
-
-subtest '[systemd_time_to_second] invalid returns -1' => sub {
-    my $instance = Test::MockModule->new('publiccloud::instance', no_auto => 1);
-    $instance->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    is(publiccloud::instance::systemd_time_to_second('garbage'), -1, 'unparseable string returns -1');
-    is(publiccloud::instance::systemd_time_to_second(''), -1, 'empty string returns -1');
-};
-
-# ---------------------------------------------------------------------------
-# Pure helper: extract_analyze_time
-# ---------------------------------------------------------------------------
-subtest '[extract_analyze_time] systemd-analyze time output' => sub {
-    my $out = 'Startup finished in 1.500s (kernel) + 2.000s (initrd) + 10.000s (userspace) = 13.500s';
-    my $res = publiccloud::instance::extract_analyze_time($out);
-    is(ref $res, 'HASH', 'returns hashref on success');
-    cmp_ok($res->{kernel}, '==', 1.5, 'kernel time parsed');
-    cmp_ok($res->{initrd}, '==', 2, 'initrd time parsed');
-    cmp_ok($res->{userspace}, '==', 10, 'userspace time parsed');
-    cmp_ok($res->{overall}, '==', 13.5, 'overall (after =) parsed');
-};
-
-subtest '[extract_analyze_time] missing component returns undef' => sub {
-    # No initrd component -> incomplete -> undef
-    my $out = 'Startup finished in 1.500s (kernel) + 10.000s (userspace) = 11.500s';
-    is(publiccloud::instance::extract_analyze_time($out), undef, 'incomplete data returns undef');
-};
-
-# ---------------------------------------------------------------------------
-# Pure helper: extract_blame_time
-# ---------------------------------------------------------------------------
-subtest '[extract_blame_time] systemd-analyze blame output' => sub {
-    my $out = "5.000s foo.service\n2.500s bar.service";
-    my $res = publiccloud::instance::extract_blame_time($out);
-    is(ref $res, 'HASH', 'returns hashref');
-    cmp_ok($res->{'foo.service'}, '==', 5, 'foo.service parsed');
-    cmp_ok($res->{'bar.service'}, '==', 2.5, 'bar.service parsed');
-};
-
-subtest '[extract_blame_time] unparseable line returns empty hashref' => sub {
-    my $instance = Test::MockModule->new('publiccloud::instance', no_auto => 1);
-    $instance->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-    my $out = "totally bogus";
-    is_deeply(publiccloud::instance::extract_blame_time($out), {}, 'bad time token returns empty hashref');
-};
 
 # ---------------------------------------------------------------------------
 # _prepare_ssh_cmd / ssh_script_run command construction
