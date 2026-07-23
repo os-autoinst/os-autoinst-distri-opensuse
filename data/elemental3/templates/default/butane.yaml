@@ -23,6 +23,13 @@ storage:
         - subvol=/@/home
       path: /home
   files:
+    - path: /etc/hosts
+      overwrite: false
+      append:
+        - inline: |
+            # BEGIN_STATIC_HOSTS
+%STATIC_HOSTS%
+            # END_STATIC_HOSTS
     - path: /etc/ssh/sshd_config.d/root_access.conf
       overwrite: true
       mode: 0600

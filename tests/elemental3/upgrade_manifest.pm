@@ -18,6 +18,33 @@ sub run {
     my $k8s_version_prefix = get_required_var('K8S_VERSION_PREFIX');
     my $totest_path = get_required_var('TOTEST_PATH');
 
+    # Add static hosts if needed
+    # TODO: use a support-server to add a DNS server with internal LAN access?
+    my $static_hosts = script_output('sed -n \'/^# BEGIN_STATIC_HOSTS$/,/^# END_STATIC_HOSTS$/p\' /etc/hosts | grep -v ^#');
+    if ($static_hosts ne '' && $k8s eq 'rke2') {
+        my $ns = '-n kube-system';
+        my $configmap = 'rke2-coredns-rke2-coredns';
+        my $yaml_file = 'coredns-configmap.yaml';
+        my $s = ' ' x 4;
+
+        # Remove the last newline and replace the other ones with '@', otherwise sed will fail
+        chomp($static_hosts);
+        $static_hosts =~ s/\R/@/g;
+        $static_hosts = '@' . ${static_hosts};
+
+        # Get the configmap to patch
+        kubectl_cmd(cmd => "${ns} get configmap ${configmap} -o yaml >${yaml_file}");
+        assert_script_run(
+            "sed -i -e 's/\\(\\.:53.*\\)/\\1\\n${s}${s}hosts {${static_hosts}\\n${s}${s}${s}fallthrough\\n${s}${s}}/' -e 's/@/\\n${s}${s}${s}/g' ${yaml_file}"
+        );
+
+        # Apply the patch
+        # NOTE: kubectl_cmd cannot be used for the 'rollout status' command!
+        kubectl_cmd(cmd => "${ns} apply -f ${yaml_file}");
+        kubectl_cmd(cmd => "${ns} rollout restart deployment -l k8s-app=kube-dns");
+        assert_script_run("kubectl ${ns} rollout status deployment -l k8s-app=kube-dns", timeout => bmwqemu::scale_timeout('300'));
+    }
+
     my $uri = get_container_uri(
         url => $totest_path,
         arch => $arch,
