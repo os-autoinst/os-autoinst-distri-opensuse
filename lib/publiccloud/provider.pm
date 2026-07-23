@@ -461,8 +461,7 @@ to a failure.
 sub _tofu_run_step {
     my ($self, %args) = @_;
     my $output_file = "tf_$args{step}_output";
-    my $cmd = "set -o pipefail; TF_LOG=" . TERRAFORM_LOG . " $args{cmd} 2>&1 | tee $output_file";
-    my $ret = script_retry($cmd, timeout => $args{timeout}, delay => $args{delay}, retry => $args{retry}, die => 0);
+    my $ret = script_retry("set -o pipefail; TF_LOG=" . TERRAFORM_LOG . " $args{cmd} 2>&1 | tee $output_file", timeout => $args{timeout}, delay => $args{delay}, retry => $args{retry}, die => 0);
     my $output = script_output("cat $output_file", proceed_on_failure => 1);
     record_info("TFM $args{step} output", "exit code: $ret", result => ($ret) ? 'fail' : 'ok');
     return ($ret, $output);

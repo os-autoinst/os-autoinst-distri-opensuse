@@ -13,6 +13,7 @@ use warnings;
 use Test::More;
 use Test::MockObject;
 use Test::MockModule;
+use Test::Exception;
 use Test::Warnings;
 use testapi 'set_var';
 use List::Util qw(any);
@@ -479,11 +480,8 @@ subtest '[terraform_apply] Azure retries never succeed' => sub {
     my $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new());
 
     # Every region fails with a resource shortage, so after trying them all
-    # terraform_apply gives up and dies. Plain eval rather than dies_ok: the
-    # extra _tofu_run_step call frame trips up Test::Exception's Sub::Uplevel
-    # stack rewriting here, letting the exception escape the subtest instead
-    # of being reported as a normal test failure.
-    ok(!eval { $provider->terraform_apply(vars => {}); 1 }, 'terraform_apply dies after every region is exhausted');
+    # terraform_apply gives up and dies.
+    dies_ok { $provider->terraform_apply(vars => {}) } 'terraform_apply dies after every region is exhausted';
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     # code under test try "tofu plan" in all the regions
@@ -641,7 +639,7 @@ subtest '[terraform_apply] GCE loops over zones, then over regions' => sub {
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
 };
 
-subtest '[terraform_apply] init/plan failures die with captured output, no region retry (poo#204060)' => sub {
+subtest '[terraform_apply] init/plan failures die with captured output, no region retry' => sub {
     set_var('PUBLIC_CLOUD', 1);
     set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
     set_var('PUBLIC_CLOUD_REGION', 'Ferengi');
@@ -654,7 +652,6 @@ subtest '[terraform_apply] init/plan failures die with captured output, no regio
     $mock->noop("$_") for qw(get_image_uri data_url);
     $mock->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $mock->redefine(get_current_job_id => sub { return 42; });
-    $mock->redefine(assert_script_run => sub { return 0; });
     Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
 
     for my $case (
@@ -662,14 +659,17 @@ subtest '[terraform_apply] init/plan failures die with captured output, no regio
         {step => 'plan', fail_cmd => qr/tofu plan/, timeout => 300, garbage => ''},
       )
     {
-        my @retry_calls;
+        my (@calls, @retry_calls);
+        $mock->redefine(assert_script_run => sub { push @calls, $_[0]; return 0; });
         $mock->redefine(script_retry => sub {
                 my ($cmd, %retry_args) = @_;
+                push @calls, $cmd;
                 push @retry_calls, [$cmd, \%retry_args];
                 return 1 if ($cmd =~ $case->{fail_cmd});
                 return 0;
         });
         $mock->redefine(script_output => sub {
+                push @calls, $_[0];
                 return $case->{garbage} if ($_[0] =~ /cat /);
                 return '';
         });
@@ -688,6 +688,8 @@ subtest '[terraform_apply] init/plan failures die with captured output, no regio
         is($retry_call->[1]{timeout}, $case->{timeout}, "$case->{step} uses its own fixed timeout, not TERRAFORM_TIMEOUT");
         ok($retry_call->[1]{retry} > 1, "$case->{step} is configured to actually retry multiple times");
         is($retry_call->[1]{die}, 0, "$case->{step} does not let script_retry die internally (so output can be captured)");
+
+        note("\n  C-->  " . join("\n  C-->  ", @calls));
     }
 
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_ALTERNATE_REGIONS PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
