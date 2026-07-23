@@ -510,6 +510,17 @@ sub wait_for_ssh_login {
     ## ssh options to avoid issues with pipelining and host key validation
     my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10 -o strictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
     $self->ssh_script_retry("true", ssh_opts => $ssh_opts, retry => $retry, delay => $delay, fail_message => "ssh connection failed ($delay attempts in $timeout seconds)");
+
+    # bsc#1250320 - augenrules.service fails at startup on Hardened Images on 15-SP7.
+    # publiccloud_img_proof jobs don't run the check_services test module, where this
+    # known failure is already allowlisted, so record it here instead.
+    if (is_sle('=15-SP7') && is_hardened()) {
+        my $sysout = $self->ssh_script_output(cmd => 'sudo systemctl is-system-running', ssh_opts => $ssh_opts, proceed_on_failure => 1);
+        if ($sysout =~ m/degraded/) {
+            my $failed_svcs = $self->ssh_script_output(cmd => 'sudo systemctl --failed', ssh_opts => $ssh_opts, proceed_on_failure => 1);
+            record_soft_failure('bsc#1250320 - augenrules.service fails at startup on Hardened Images') if ($failed_svcs =~ m/augenrules/);
+        }
+    }
 }
 
 =head2 isok
