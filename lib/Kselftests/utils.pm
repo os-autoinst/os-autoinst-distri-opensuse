@@ -335,6 +335,7 @@ sub post_process_single
     my $hardfails = 0;
     my $softfails = 0;
     for my $test_ln (@log) {
+        next if $test_ln =~ /^(not )?ok \d+ selftests: \S+: \S+/;
         $test_ln = $parser->parse_line($test_ln);
         if (!$test_ln) {
             next;
