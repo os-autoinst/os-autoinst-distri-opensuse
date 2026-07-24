@@ -748,7 +748,7 @@ sub get_cac_code {
     if (is_sle) {
         zypper_call("in git-core");
     }
-    assert_script_run("mkdir src");
+    assert_script_run("mkdir -p src");
     assert_script_run("rm -r $cac_dir", quiet => 1) if (-e "$cac_dir");
     assert_script_run('git config --global http.sslVerify false', quiet => 1);
     assert_script_run("set -o pipefail ; $git_clone_cmd", timeout => 600, quiet => 1);
