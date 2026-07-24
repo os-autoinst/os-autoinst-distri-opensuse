@@ -2703,12 +2703,14 @@ sub setup_guest_agama_installation_shell {
     }
     else {
         enter_cmd("clear", wait_still_screen => 3);
-        if (script_run("$_timeout_command_prefix 120 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}") != 0) {
+        if (script_run("$_timeout_command_prefix 120 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=12 $_ssh_command_options root\@$self->{guest_ipaddr}", timeout => 150) != 0) {
             type_string("reset\n");
             wait_still_screen;
-            enter_cmd("$_timeout_command_prefix 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
+            enter_cmd("$_timeout_command_prefix 180 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=18 $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
             assert_screen('password-prompt', timeout => 30);
             enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
+            # Wait for ssh-copy-id to finish writing the public key and exit
+            wait_still_screen(30, 210);
         }
         wait_still_screen(15);
         if (script_run("$_timeout_command_prefix 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
@@ -3341,7 +3343,7 @@ sub upload_guest_installation_logs {
     my $self = shift;
 
     $self->reveal_myself;
-    assert_script_run("tar czvf /tmp/guest_installation_and_configuration_logs.tar.gz $_host_params{common_log_folder}");
+    assert_script_run("tar czf /tmp/guest_installation_and_configuration_logs.tar.gz $_host_params{common_log_folder}", timeout => 360);
     upload_logs("/tmp/guest_installation_and_configuration_logs.tar.gz");
     return $self;
 }
