@@ -26,6 +26,7 @@ use hacluster qw(choose_node
 use utils qw(zypper_call exec_and_insert_password);
 use version_utils qw(is_sle);
 use Utils::Logging qw(record_avc_selinux_alerts);
+use package_utils qw(install_package);
 
 sub handle_diskless_sbd_scenario_cluster_node {
     my $cluster_name = get_cluster_name;
@@ -95,10 +96,10 @@ sub run {
     prepare_console_for_fencing;
 
     # iptables is not installed in SLE 16 by default
-    zypper_call 'in iptables' if is_sle('>=16');
+    install_package('iptables', trup_reboot => 1) if is_sle('>=16');
 
     if (check_var('QDEVICE_TEST_ROLE', 'qnetd_server')) {
-        zypper_call 'in corosync-qnetd';
+        install_package('corosync-qnetd', trup_reboot => 1);
         barrier_wait("QNETD_SERVER_READY_$cluster_name");
     }
     else {
