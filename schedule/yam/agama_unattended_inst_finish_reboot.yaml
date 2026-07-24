@@ -1,0 +1,8 @@
+---
+name: agama_unattended_inst_finish_reboot
+description: >
+  Default unattended installation with inst.finish=reboot.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/first_boot
