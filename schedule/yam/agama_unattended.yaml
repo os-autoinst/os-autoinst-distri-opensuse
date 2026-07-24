@@ -15,6 +15,7 @@ schedule:
   - yam/validate/validate_hostname
   - yam/validate/validate_snapshots
   - yam/validate/validate_registered_products
+  - yam/validate/validate_registration_server
   - console/validate_repos
   - shutdown/grub_set_bootargs
   - shutdown/cleanup_before_shutdown
