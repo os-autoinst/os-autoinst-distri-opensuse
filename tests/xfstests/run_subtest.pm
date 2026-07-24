@@ -134,7 +134,6 @@ sub run_sporadic_once {
             $SCRATCH_DEV, $SCRATCH_DEV_POOL, $XFSTESTS_DEEP_CLEAN, $INJECT_INFO,
             $LOOP_DEVICE, $ENABLE_KDUMP, $VIRTIO_CONSOLE, 0, $my_instance);
         ($status, $duration) = ($result->{status}, $result->{time});
-        return ($result->{status}, $result->{time});
     }
     # Heartbeat mode: start the heartbeat, run the test, wait for the done marker
     # and recover the SUT if the heartbeat is lost.
