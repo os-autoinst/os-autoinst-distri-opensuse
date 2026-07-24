@@ -349,6 +349,7 @@ sub load_slem_on_pc_tests {
         # SLEM basic test
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/prepare_instance", run_args => $args);
+        loadtest("publiccloud/network_test", run_args => $args);
         loadtest("publiccloud/registration", run_args => $args) unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
         # 2 next modules of pubcloud needed for sle-micro incidents/repos verification
         if (get_var('PUBLIC_CLOUD_QAM', 0)) {

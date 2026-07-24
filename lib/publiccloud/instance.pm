@@ -632,36 +632,6 @@ sub get_state {
     return $self->provider->get_state_from_instance($self, @_);
 }
 
-=head2 network_speed_test
-
-    network_speed_test();
-
-Test the network speed.
-=cut
-
-sub network_speed_test() {
-    my ($self, %args) = @_;
-    my ($cmd, $ret);
-
-    # Curl stats output format
-    my $write_out
-      = 'time_namelookup:\t%{time_namelookup} s\ntime_connect:\t\t%{time_connect} s\ntime_appconnect:\t%{time_appconnect} s\ntime_pretransfer:\t%{time_pretransfer} s\ntime_redirect:\t\t%{time_redirect} s\ntime_starttransfer:\t%{time_starttransfer} s\ntime_total:\t\t%{time_total} s\n';
-    # PC RMT server domain name
-    my $rmt_host = "smt-" . lc(get_required_var('PUBLIC_CLOUD_PROVIDER')) . ".susecloud.net";
-
-    $cmd = "grep \"$rmt_host\" /etc/hosts";
-    $ret = $self->ssh_script_run(cmd => $cmd, apply_graceful_timeout => 1);
-    record_info("RMT_HOST", printf('$ %s\n%s', $cmd, $ret));
-
-    $cmd = "ping -c3 1.1.1.1";
-    $ret = $self->ssh_script_run(cmd => $cmd, apply_graceful_timeout => 1);
-    record_info("PING", printf('$ %s\n%s', $cmd, $ret));
-
-    $cmd = "curl -w '$write_out' -o /dev/null -v https://$rmt_host/";
-    $ret = $self->ssh_script_run(cmd => $cmd, apply_graceful_timeout => 1);
-    record_info("CURL", printf('$ %s\n%s', $cmd, $ret));
-}
-
 sub cleanup_cloudinit() {
     my ($self) = @_;
     $self->ssh_assert_script_run('sudo cloud-init clean --logs');
