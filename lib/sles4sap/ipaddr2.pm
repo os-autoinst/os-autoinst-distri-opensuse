@@ -2348,7 +2348,7 @@ sub ipaddr2_patch_system(%args) {
         push @vms, $vm_private_ip;
 
         ipaddr2_ssh_internal(id => $id,
-            cmd => "sudo zypper -n ref",
+            cmd => "sudo zypper -n --gpg-auto-import-keys ref",
             timeout => 1500,
             bastion_ip => $args{bastion_ip});
     }
