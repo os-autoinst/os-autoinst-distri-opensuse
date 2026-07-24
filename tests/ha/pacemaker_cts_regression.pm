@@ -10,7 +10,7 @@
 use Mojo::Base 'haclusterbasetest';
 use testapi;
 use Utils::Architectures;
-use utils 'zypper_call';
+use package_utils qw(install_package);
 use hacluster;
 
 sub run {
@@ -31,15 +31,26 @@ sub run {
     # This increases the timeout in that ARCH
     $timeout *= 2 if is_aarch64;
 
-    zypper_call 'in pacemaker-cts';
+    install_package('pacemaker-cts', trup_reboot => 1);
 
     foreach my $cts_tests (@tests_to_run) {
         record_info("$cts_tests", "Starting $cts_tests");
+        assert_script_run("echo ==== Starting $cts_tests ==== >> $log");
         assert_script_run "$cts_path/$cts_tests -V | tee -a $log 2>&1 ; ( exit \${PIPESTATUS[0]} )", timeout => $timeout;
         save_screenshot;
     }
 
     upload_logs $log;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+
+    # Upload the logs
+    upload_logs '/tmp/cts_regression.log';
+
+    # Execute the common part
+    $self->SUPER::post_fail_hook();
 }
 
 1;
