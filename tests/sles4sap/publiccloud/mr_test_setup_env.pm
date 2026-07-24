@@ -51,7 +51,6 @@ sub run {
 
     # Clear $instance->ssh_opts which omit the known hosts file and strict host checking by default
     $instance->ssh_opts('');
-    $instance->network_speed_test();
 
     # Set ssh-tunnel
     $testapi::username = 'bernhard';
