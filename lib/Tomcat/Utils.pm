@@ -8,36 +8,17 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 package Tomcat::Utils;
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_sle';
 use registration;
 use serial_terminal;
 
-# allow a 60 second timeout for asserting needles
-use constant TIMEOUT => 90;
-
-# Use keyboard to browse the examples faster
-sub browse_with_keyboard {
-    my ($self, $fallback_needle, $test_func, $tab_num) = @_;
-
-    assert_screen($fallback_needle, TIMEOUT);
-    for (1 .. $tab_num) { send_key('tab'); }
-    send_key('ctrl-ret');
-    send_key('ctrl-tab');
-
-    $test_func->();
-    send_key('ctrl-w');
-}
-
 # Install tomcat and set initial configuration
 sub tomcat_setup() {
     my ($self, $version) = @_;
     $version //= '';    # default version is tomcat9
-    select_console('root-console');    # log in to root console
 
     record_info('Initial Setup');
     # we need to disable packagekit because it can block zypper sometimes later
@@ -59,7 +40,7 @@ sub tomcat_setup() {
     }
 
     # check that tomcat is listening on port 8080
-    assert_script_run('lsof -i :8080 | grep tomcat');
+    wait_for_port(":8080", process => "java");
 
     # create manager-gui role
     assert_script_run('curl -v -o /etc/tomcat/tomcat-users.xml ' .
@@ -77,14 +58,13 @@ sub tomcat_setup() {
         assert_script_run('chmod 644 /etc/tomcat/localhost.crt');
         systemctl('restart tomcat');
         # check that tomcat is listening on port 8443
-        assert_script_run('lsof -i :8443 | grep tomcat');
+        wait_for_port(":8443", process => "java");
     }
     else {
         # restart tomcat in order to take into account new role
         systemctl('restart tomcat');
     }
 }
-
 
 # Check Servlet, JSP and Websocket, the example files can be accessed, login with admin via tomcat manager
 sub tomcat_manager_test() {
@@ -101,15 +81,6 @@ sub tomcat_manager_test() {
     # curl examples of JSP and Websockets
     assert_script_run('curl --connect-timeout 20 --output jsp localhost:8080/examples/jsp --output websocket 127.0.0.1:8080/examples/websocket', 90);
     assert_script_run('curl -k --connect-timeout 20 --output jsp https://localhost:8443/examples/jsp --output websocket https://127.0.0.1:8443/examples/websocket', 90) if is_sle('>=15-sp4');
-}
-
-# Switch to desktop
-sub switch_to_desktop() {
-
-    # switch to desktop
-    if (!check_var('DESKTOP', 'textmode')) {
-        select_console('x11', await_console => 0);
-    }
 }
 
 1;

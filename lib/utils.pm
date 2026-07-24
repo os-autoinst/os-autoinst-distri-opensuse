@@ -150,6 +150,7 @@ our @EXPORT = qw(
   show_all_disks
   render_scc_url
   query_installed_packages
+  wait_for_port
 );
 
 our @EXPORT_OK = qw(
@@ -3830,5 +3831,33 @@ sub query_installed_packages {
     $ret |= script_run("rpm -q $_") foreach (split(/,/, $args{packages}));
     return ($ret ? 0 : 1);
 }
+=head2 wait_for_port
+
+  wait_for_port(":8080", process => "tomcat")
+
+Waits for a port to be listening, can also check that the port belongs to a process. Extra
+arguments are passed down to script_retry.
+=cut
+
+sub wait_for_port {
+    my ($port, %args) = @_;
+    record_info("Waiting for port", $port);
+
+    die "port must start with a colon (:) and in digits, got '$port' instead" unless $port =~ /^:\d+/;
+    die "process is empty" if (defined $args{process} && $args{process} !~ /^\S+$/);
+
+    my $fail_message = "No port ($port) open";
+    $fail_message .= " that belongs to a process called $args{process}" if $args{process};
+    $args{fail_message} //= $fail_message;
+
+    my $expr = "LISTEN";
+    $expr .= ".*$args{process}" if $args{process};
+
+    my $ret = script_retry("ss -HnptlT 'sport = $port' | grep -q $expr", %args);
+    record_info("Port ready");
+
+    return $ret;
+}
+
 
 1;
