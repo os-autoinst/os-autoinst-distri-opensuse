@@ -1,6 +1,9 @@
 #!/bin/bash -x
 
-#Setup libguestfs environmen for non-x86_64 machine
+# Setup libguestfs environmen for non-x86_64 machine
+# Arguments explanation:
+# host_arch: Host hardware architecture.
+# Please also refer to script help_usage().
 function setup_libguestfs_env() {
         local host_arch=`uname -p`
         if [[ ${host_arch} != "x86_64" ]];then
@@ -15,7 +18,14 @@ function setup_libguestfs_env() {
         return 0
 }
 
-#Find the correct disk device that holds the specific folder which contains log filesystem
+# Find the correct disk device that holds the specific folder which contains log
+# filesystem.
+# Arguments explanation:
+# guest_domain: Guest name can be used with libvirt or libguestfs.
+# guest_filesystem: Absolute filesystem path to logs_folder on guest from which
+# the storage device hosting it can be found, because libguestfs tool only works
+# with specified storage device.
+# Please also refer to script help_usage().
 function find_disk_hosts_filesystem() { 
         local guest_domain=$1
         local guest_filesystem=$2
@@ -42,13 +52,21 @@ function find_disk_hosts_filesystem() {
         fi
 }
 
-#Fetach logs from virtual machine to local host via ssh
+# Fetach logs from virtual machine to local host via ssh.
+# Arguments explanation:
+# guest_domain: Guest name can be used with libvirt or libguestfs.
+# guest_ipaddr: Guest IP address to which ssh connection can be established.
+# guest_password: Guest password with which ssh connection can be established.
+# logs_folder: The folder hosts all logs on guest from which to be fetched. It is
+# the top logs residence to which all logs are stored by virt_logs_collector.sh.
+# Please also refer to script help_usage().
 function fetch_logs_from_guest_via_ssh() {
         local guest_domain=$1
         local guest_ipaddr=$2
-        local logs_folder=$3
+        local guest_password=$3
+        local logs_folder=$4
         local guest_user="root"
-        local guest_pass="novell"
+        local guest_pass=${guest_password}
         local sshpass_scp_cmd="sshpass -p ${guest_pass} scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -r ${guest_user}@${guest_ipaddr}"
         local sshpass_ssh_cmd="sshpass -p ${guest_pass} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no ${guest_user}@${guest_ipaddr}"
         local guest_transformed=${guest_domain//./_}
@@ -76,11 +94,21 @@ function fetch_logs_from_guest_via_ssh() {
 	return ${ret_result}
 }
 
-#Fetch logs from virtual machine to local host by using libguestfs tools
+# Fetch logs from virtual machine to local host by using libguestfs tools.
+# Arguments explanatiion:
+# guest_domain: Guest name can be used with libvirt or libguestfs.
+# guest_password: Guest password with which ssh connection can be established.
+# logs_fetched: Each folder or file to be fetached from logs_folder on guest which
+# is the same as logs_folder via ssh and is sub-folder or sub-file in logs_folder
+# via libguestfs tool because libguestfs can not fetch a whole folder all at once.  
+# logs_folder: The folder hosts all logs on guest from which to be fetched. It is
+# the top logs residence to which all logs are stored by virt_logs_collector.sh.
+# Please also refer to script help_usage().
 function fetch_logs_from_guest_via_libguestfs() {
         local guest_domain=$1
-        local logs_fetched=$2
-        local logs_folder=$3
+        local guest_password=$2
+        local logs_fetched=$3
+        local logs_folder=$4
 
         setup_libguestfs_env
         virt-filesystems -d ${guest_domain} &> /dev/null
@@ -111,10 +139,18 @@ function fetch_logs_from_guest_via_libguestfs() {
         fi
 }
 
-#Power off virtual machine if necessary and remove logs folder in it by using libguestfs
+# Power off virtual machine if necessary and remove logs folder in it by using
+# libguestfs.
+# Arguments explanation:
+# guest_domain: Guest name can be used with libvirt or libguestfs.
+# guest_password: Guest password with which ssh connection can be established.
+# logs_folder: The folder hosts all logs on guest from which to be fetched. It is
+# the top logs residence to which all logs are stored by virt_logs_collector.sh.
+# Please also refer to script help_usage().
 function remove_logs_folder_from_guest_via_libguestfs() {
         local guest_domain=$1
-        local logs_folder=$2
+        local guest_password=$2
+        local logs_folder=$3
         local ret_result=0
 
         echo -e "Going to remove ${logs_folder} from ${guest_domain} via libguestfs"
@@ -140,24 +176,37 @@ function remove_logs_folder_from_guest_via_libguestfs() {
         return ${ret_result}
 }
 
-#Fetch logs from virtual machine to local host via ssh firstly. Will resort to libguestfs tools if ssh connection is broken
+# Fetch logs from virtual machine to local host via ssh firstly. Will resort to
+# libguestfs tools if ssh connection is broken
+# Arguments explanation:
+# guest_domain: Guest name can be used with libvirt or libguestfs.
+# guest_ipaddr: Guest IP address to which ssh connection can be established.
+# guest_password: Guest password with which ssh connection can be established
+# logs_folder: The folder hosts all logs on guest from which to be fetched. It is
+# the top logs residence to which all logs are stored by virt_logs_collector.sh.
+# extra_logs: Extra logs to fetched from guest via libguestfs tool because they
+# might not be able to be collected successfully into logs_folder via ssh in the
+# virt_logs_collector.sh. So they are only fetched again one by ne if logs_folder
+# is not fetched successfully.  
+# Please also refer to script help_usage().
 function fetch_logs_from_guest() {
 	local guest_domain=$1
 	local guest_ipaddr=$2
-	local logs_folder=$3
+	local guest_password=$3
+	local logs_folder=$4
 	shift
 	shift
 	shift
 	local extra_logs=($@)
 
 	local ret1=0
-	fetch_logs_from_guest_via_ssh ${guest_domain} ${guest_ipaddr} ${logs_folder}
+	fetch_logs_from_guest_via_ssh ${guest_domain} ${guest_ipaddr} ${guest_password} ${logs_folder}
 	if [[ $? -ne 0 ]];then
 	   echo -e "Try to use libguestfs tools to fetch ${logs_folder} from ${guest_domain}."
-	   fetch_logs_from_guest_via_libguestfs ${guest_domain} ${logs_folder} ${logs_folder}
+	   fetch_logs_from_guest_via_libguestfs ${guest_domain} ${guest_password} ${logs_folder} ${logs_folder}
 	   ret1=$?
 	   if [[ ${ret1} -eq 0 ]];then
-	      remove_logs_folder_from_guest_via_libguestfs ${guest_domain} ${logs_folder}	
+	      remove_logs_folder_from_guest_via_libguestfs ${guest_domain} ${guest_password} ${logs_folder}	
 	      if [[ $? -eq 0 ]];then
 	         echo -e "Successfully removed ${logs_folder} from ${guest_domain} via libguestfs."
 	      else
@@ -171,7 +220,7 @@ function fetch_logs_from_guest() {
 	   echo -e "Try to use libguestfs tools to fetch ${extra_logs[@]} from ${guest_domain}."
 	   local eachlog=""
 	   for eachlog in ${extra_logs[@]};do
-	       fetch_logs_from_guest_via_libguestfs ${guest_domain} ${eachlog} ${logs_folder}
+	       fetch_logs_from_guest_via_libguestfs ${guest_domain} ${guest_password} ${eachlog} ${logs_folder}
 	       ret2=$(( ${ret2} | $? ))
 	   done           
 	   if [[ ${ret2} -eq 0 ]];then
@@ -189,7 +238,11 @@ function fetch_logs_from_guest() {
 	fi
 }
 
-#Compress logs folder on local host which contains all logs from host and guest
+# Compress logs folder on local host which contains all logs from host and guest.
+# Arguments explanation:
+# logs_folder: The folder hosts all logs on guest from which to be fetched. It is
+# the top logs residence to which all logs are stored by virt_logs_collector.sh.
+# Please also refer to script help_usage().
 function compress_virt_logs_folder() {
 	local logs_folder=$1
 	local logs_root=${logs_folder/\//}
@@ -214,12 +267,14 @@ function compress_virt_logs_folder() {
 help_usage(){
 	echo "script usage: $(basename $0) [-f \"Logs folder which contains logs collected(Can be omitted/Default to /tmp/virt_logs_residence)\"] \
 [-g \"guests to be involved, for example, \"guest1 guest2 guest3\" or all or none(Can be omitted/Default to all)\"] \
+[-p \"Root password to access all guests\"] \
 [-e \"Extra folders or files to be fetched from guest, for example, \"log_file1 log_file2 log_folder1\"(Can be omitted/Default to nothing)\"] \
 [-h help]"
 }
 
 fetch_logs_from_guest_log="/var/log/fetch_logs_from_guest.log"
 virt_guests_wanted=""
+virt_guests_password="novell"
 virt_logs_folder=""
 virt_extra_logs_guest=""
 fetch_logs_from_guest_log_result=0
@@ -227,7 +282,7 @@ rm -f -r ${fetch_logs_from_guest_log}
 
 #Parse input arguments, all options are optional
 #Any log paremter passed in should take absolute path form
-while getopts 'l:g:e:h' OPTION; do
+while getopts 'l:g:p:e:h' OPTION; do
    case "$OPTION" in
       f)
         virt_logs_folder="$OPTARG"
@@ -236,6 +291,10 @@ while getopts 'l:g:e:h' OPTION; do
       g)
         virt_guests_wanted="$OPTARG"
         echo "The guests involved are ${virt_guests_wanted}" | tee -a ${fetch_logs_from_guest_log}
+        ;;
+      p)
+        virt_guests_password="$OPTARG"
+        echo "Root password to access all guests [redacted]" | tee -a ${virt_logs_collecor_log}
         ;;
       e)
         virt_extra_logs_guest="$OPTARG"
@@ -324,8 +383,8 @@ else
           if [[ ${guests_inactive_array[@]} == .*${guest_current}.* ]];then
              echo -e "Virtual machine ${guest_current} in shutdown state. Skip fetching logs from it." | tee -a ${fetch_logs_from_guest_log}
           else
-             echo -e "fetch_logs_from_guest ${guest_current} ${virt_logs_folder}" | tee -a ${fetch_logs_from_guest_log}
-             fetch_logs_from_guest ${guest_current} ${guest_hash_ipaddr[${guest_hash_index}]} ${virt_logs_folder} ${virt_extra_logs_guest[@]} | tee -a ${fetch_logs_from_guest_log}
+             echo -e "fetch_logs_from_guest ${guest_current} ${guest_hash_ipaddr[${guest_hash_index}]} ${virt_guests_password} ${virt_logs_folder} ${virt_extra_logs_guest[@]}" | tee -a ${fetch_logs_from_guest_log}
+             fetch_logs_from_guest ${guest_current} ${guest_hash_ipaddr[${guest_hash_index}]} ${virt_guests_password} ${virt_logs_folder} ${virt_extra_logs_guest[@]} | tee -a ${fetch_logs_from_guest_log}
              fetch_logs_from_guest_log_result=$(( ${fetch_logs_from_guest_log_result} | $? ))
           fi
        else
