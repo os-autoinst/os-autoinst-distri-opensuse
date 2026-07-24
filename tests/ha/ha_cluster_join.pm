@@ -37,7 +37,7 @@ sub run {
 
     # Qdevice configuration
     if (get_var('QDEVICE')) {
-        zypper_call 'in corosync-qdevice';
+        install_package('corosync-qdevice', trup_reboot => 1);
         barrier_wait("QNETD_SERVER_READY_$cluster_name");
     }
 

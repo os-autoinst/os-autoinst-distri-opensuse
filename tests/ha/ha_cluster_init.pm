@@ -68,7 +68,7 @@ sub run {
 
     # Qdevice configuration
     if (get_var('QDEVICE')) {
-        zypper_call 'in corosync-qdevice';
+        install_package('corosync-qdevice', trup_reboot => 1);
         my $qnet_node_host = choose_node(3);
         $qdevice_opt = "--qnetd-hostname=" . get_ip($qnet_node_host);
         barrier_wait("QNETD_SERVER_READY_$cluster_name");
