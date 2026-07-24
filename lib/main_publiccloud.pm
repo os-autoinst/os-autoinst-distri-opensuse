@@ -26,6 +26,7 @@ sub load_maintenance_publiccloud_tests {
     loadtest "publiccloud/prepare_instance", run_args => $args;
     loadtest "publiccloud/auto_registration", run_args => $args;
     loadtest "publiccloud/network_test", run_args => $args;
+    loadtest "publiccloud/kdump", run_args => $args;
     loadtest "publiccloud/check_boottime", run_args => $args;
     loadtest "publiccloud/check_cloudinit", run_args => $args;
     if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
@@ -130,6 +131,7 @@ sub load_latest_publiccloud_tests {
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest "publiccloud/auto_registration", run_args => $args;
         loadtest "publiccloud/network_test", run_args => $args;
+        loadtest "publiccloud/kdump", run_args => $args;
         loadtest "publiccloud/check_boottime", run_args => $args;
         loadtest "publiccloud/check_cloudinit", run_args => $args;
         loadtest("publiccloud/registration", run_args => $args);
@@ -145,6 +147,7 @@ sub load_latest_publiccloud_tests {
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest "publiccloud/auto_registration", run_args => $args;
         loadtest "publiccloud/network_test", run_args => $args;
+        loadtest "publiccloud/kdump", run_args => $args;
         loadtest "publiccloud/check_boottime", run_args => $args;
         loadtest "publiccloud/check_cloudinit", run_args => $args;
         if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
@@ -236,6 +239,7 @@ sub load_publiccloud_appimg_tests {
     loadtest "publiccloud/prepare_instance", run_args => $args;
     loadtest "publiccloud/auto_registration", run_args => $args;
     loadtest "publiccloud/network_test", run_args => $args;
+    loadtest "publiccloud/kdump", run_args => $args;
     loadtest "publiccloud/check_boottime", run_args => $args;
     loadtest "publiccloud/check_cloudinit", run_args => $args;
     loadtest("publiccloud/registration", run_args => $args);
