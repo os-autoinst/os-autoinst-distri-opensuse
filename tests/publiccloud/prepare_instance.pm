@@ -35,15 +35,13 @@ sub run {
 
     # Create public cloud instance
     my %instance_args;
-    $instance_args{check_connectivity} = 0;    # Don't run wait_for_ssh() inside create_instance()
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
 
     $args->{my_provider} = $self->provider_factory();
     $args->{my_instance} = $args->{my_provider}->create_instance(%instance_args);
     my $provider = $self->{my_provider} = $args->{my_provider};
     my $instance = $args->{my_instance};
-    # check needed when not-executed in create_instance
-    $instance->wait_for_ssh(scan_ssh_host_key => 1) if ($instance_args{check_connectivity} == 0);
+    $instance->wait_for_ssh(scan_ssh_host_key => 1);
 
     $instance->enable_kdump() if (get_var('PUBLIC_CLOUD_ENABLE_KDUMP'));
 
