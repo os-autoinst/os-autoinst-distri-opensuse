@@ -184,6 +184,9 @@ sub check_reboot_changes {
     die "Error during diff" if $change_happened > 1;
     die "Change expected: $change_expected, happened: $change_happened" if $change_expected != $change_happened;
 
+    # https://progress.opensuse.org/issues/204552
+    assert_script_run 'time sync' if check_var('ENCRYPTED_IMAGE', 1);
+
     # Reboot into new snapshot
     process_reboot(trigger => 1) if $change_happened;
 }
