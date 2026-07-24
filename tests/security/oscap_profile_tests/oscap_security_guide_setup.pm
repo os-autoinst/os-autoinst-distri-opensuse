@@ -8,6 +8,7 @@ use Mojo::Base 'oscap_tests';
 use testapi;
 use utils;
 use version_utils qw(is_sle);
+use registration qw(add_suseconnect_product);
 
 sub run {
     my ($self) = @_;
