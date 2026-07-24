@@ -210,10 +210,11 @@ subtest '[sdaf_cleanup] Test correct usage' => sub {
     $ms_sdaf->noop(qw(record_info
           script_output
           deployment_dir
-          resource_group_exists));
+    ));
     $ms_sdaf->redefine(generate_resource_group_name => sub { return 'ResourceGroup'; });
     $ms_sdaf->redefine(sdaf_execute_remover => sub { return 0; });
     $ms_sdaf->redefine(script_run => sub { return 0; });
+    $ms_sdaf->redefine(az_group_exists => sub { return {rc => 'true'}; });
 
     my %cleanup_results = %{sdaf_cleanup()};
     ok(!$cleanup_results{remover_failed}, 'Remover passes with correct usage');
@@ -224,7 +225,7 @@ subtest '[sdaf_cleanup] Test remover script failures' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my $force_group_delete;
     $ms_sdaf->noop(qw(script_output deployment_dir generate_resource_group_name ));
-    $ms_sdaf->redefine(resource_group_exists => sub { return 'yes'; });
+    $ms_sdaf->redefine(az_group_exists => sub { return {rc => 'true'}; });
     $ms_sdaf->redefine(sdaf_destroy_resources => sub { $force_group_delete = 1; });
     $ms_sdaf->redefine(sdaf_execute_remover => sub { return 1; });
     $ms_sdaf->redefine(script_run => sub { return 0; });
@@ -238,21 +239,23 @@ subtest '[sdaf_cleanup] Test remover script failures' => sub {
 
 subtest '[sdaf_execute_remover] Check command line arguments' => sub {
     # Tested indirectly via sdaf_cleanup()
-
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);
     my @script_run_calls;
 
     $ms_sdaf->noop(qw(
-          record_info
           upload_logs
           assert_script_run
-          resource_group_exists
           log_dir
           deployment_dir
-          sdaf_scripts_dir
-          generate_resource_group_name)
+          sdaf_scripts_dir )
     );
-    $ms_sdaf->redefine(script_run => sub { push @script_run_calls, $_[0] if grep /remover/, $_[0]; return 0; });
+    $ms_sdaf->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', join(' : ', @_))); });
+    $ms_sdaf->redefine(generate_resource_group_name => sub { return 'sap_system'; });
+    $ms_sdaf->redefine(az_group_exists => sub { return 'true' if grep /sap_system/, @_; });
+    $ms_sdaf->redefine(script_run => sub {
+            push @script_run_calls, $_[0] if grep /remover/, $_[0];
+            return 0;
+    });
     $ms_sdaf->redefine(get_os_variable => sub {
             return '/some/path/LAB-SECE-SAP04-INFRASTRUCTURE-6453.tfvars' if $_[0] eq 'workload_zone_parameter_file';
             return '/some/path/LAB-SECE-SAP04-QES-6453.tfvars' if $_[0] eq 'sap_system_parameter_file';
@@ -273,7 +276,6 @@ subtest '[sdaf_execute_remover] Check command line arguments' => sub {
     $ms_sdaf->redefine(script_run => sub { return 1; });
     dies_ok { sdaf_cleanup() } 'Test failing remover script: retried 3 times and failed';
 };
-
 
 subtest '[sdaf_execute_deployment] Test expected failures' => sub {
     my $ms_sdaf = Test::MockModule->new('sles4sap::sap_deployment_automation_framework::deployment', no_auto => 1);

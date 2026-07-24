@@ -342,12 +342,12 @@ subtest '[qesap_az_diagnostic_log] no VMs integration test' => sub {
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     # Configure vm list to return no VMs
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '[]'; });
+    $azcli->redefine(az_vm_list => sub { push @calls, $_[1]; return (); });
 
     my @log_files = qesap_az_diagnostic_log();
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /az vm list.*DENTIST.*/ } @calls), 'List all VMs in the resource group');
+    ok((any { /.*DENTIST.*/ } @calls), 'List all VMs in the resource group');
     ok((scalar @log_files == 0), 'No returned logs');
 };
 
@@ -371,9 +371,8 @@ subtest '[qesap_az_diagnostic_log] one VMs integration test' => sub {
 
     $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     # Configure vm list to return one VM
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
-            return '[{"name":"NEMO", "id":"MARLIN"}]';
+    $azcli->redefine(az_vm_list => sub {
+            return [{name => 'NEMO', id => 'MARLIN'}];
     });
     $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -394,7 +393,6 @@ subtest '[qesap_az_diagnostic_log] three VMs' => sub {
 
     # Configure vm list to return three VMs
     $qesap->redefine(az_vm_list => sub {
-            push @calls, {@_};
             return [
                 {name => "DORY", id => "BLUE_TANG"},
                 {name => "BRUCE", id => "GREAT_WHITE"},
@@ -415,9 +413,12 @@ subtest '[qesap_az_diagnostic_log] three VMs integration test' => sub {
 
     $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     # Configure vm list to return 3 VMs
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
-            return '[{"name":"DORY", "id":"BLUE_TANG"},{"name":"BRUCE", "id":"GREAT_WHITE"},{"name":"CRUSH", "id":"SEA_TURTLE"}]';
+    $azcli->redefine(az_vm_list => sub {
+            return [
+                {name => 'DORY', id => 'BLUE_TANG'},
+                {name => 'BRUCE', id => 'GREAT_WHITE'},
+                {name => 'CRUSH', 'id' => 'SEA_TURTLE'}
+            ];
     });
     $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 

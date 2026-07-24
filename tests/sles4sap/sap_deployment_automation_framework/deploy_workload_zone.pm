@@ -69,7 +69,6 @@ sub run {
     for my $variable_name (keys(%network_data)) {
         set_var(uc($variable_name), $network_data{$variable_name});
     }
-
     create_workload_tfvars(network_data => \%network_data, workload_vnet_code => $workload_vnet_code, os_image => $os);
 
     az_login();

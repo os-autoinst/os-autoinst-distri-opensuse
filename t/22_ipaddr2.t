@@ -297,26 +297,25 @@ subtest '[ipaddr2_cluster_check_version]' => sub {
 
 subtest '[ipaddr2_deployment_sanity] Pass' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
+    my @vm_waits;
+    my @vm_list = qw(ip2t-vm-01 ip2t-vm-02 ip2t-vm-bastion);
+
+    $ipaddr2->redefine(az_vm_list => sub { return \@vm_list; });
     $ipaddr2->redefine(script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-
-    my @vm_list = qw(ip2t-vm-01 ip2t-vm-02 ip2t-vm-bastion);
-    my @vm_waits;
+    # Simulate az cli to return exactly one name for the bastion VM name
     $ipaddr2->redefine(az_vm_wait_running => sub {
             my (%args) = @_;
             push @vm_waits, $args{name};
     });
-
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azcli->redefine(script_output => sub {
             push @calls, ['azure_cli', $_[0]];
             # Simulate az cli to return 2 resource groups
             # one for the current jobId Volta and another one
             if ($_[0] =~ /az group list*/) { return '["ip2tVolta","ip2tFermi"]'; }
-            # Simulate az cli to return exactly one name for the bastion VM name
-            if ($_[0] =~ /az vm list*/) { return '["ip2t-vm-bastion", "ip2t-vm-02", "ip2t-vm-01"]'; }
     });
 
     ipaddr2_deployment_sanity();
@@ -335,6 +334,7 @@ subtest '[ipaddr2_deployment_sanity] Fails rg num' => sub {
     my @calls;
     $ipaddr2->redefine(script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(az_vm_list => sub { return ['ip2t-vm-bastion']; });
 
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
 
@@ -344,7 +344,6 @@ subtest '[ipaddr2_deployment_sanity] Fails rg num' => sub {
     $azcli->redefine(script_output => sub {
             push @calls, ['azure_cli', $_[0]];
             if ($_[0] =~ /az group list*/) { return '["ip2tVolta","ip2tFermi"]'; }
-            if ($_[0] =~ /az vm list*/) { return '["ip2t-vm-bastion"]'; }
     });
 
     dies_ok { ipaddr2_deployment_sanity() } "Sanity check if there's any rg with the expected name";

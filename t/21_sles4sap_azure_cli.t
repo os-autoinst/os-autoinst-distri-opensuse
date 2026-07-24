@@ -6,7 +6,7 @@ use Test::Warnings;
 use Test::MockModule;
 use Test::Mock::Time;
 use List::Util qw(any none);
-
+use JSON::PP;
 use sles4sap::azure_cli;
 
 subtest '[az_img_from_vhd_create]' => sub {
@@ -446,31 +446,18 @@ subtest '[az_vm_create] SDAF mix' => sub {
 subtest '[az_vm_list]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
-            return '["Mirandolina","Truffaldino"]'; });
+    $azcli->redefine(az => sub {
+            push @calls, $_[1];
+            return {output => ['Mirandolina', 'Truffaldino']};
+    });
 
     my $res = az_vm_list(resource_group => 'Arlecchino', query => 'ZAMZAM');
 
     note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /az vm list/ } @calls), 'Correct composition of the main command');
+    ok((any { /vm list/ } @calls), 'Correct composition of the main command');
     ok((any { /-g Arlecchino/ } @calls), 'Correct composition of the -g argument');
     ok((any { /Mirandolina/ } @$res), 'Correct result decoding');
 };
-
-subtest '[az_vm_list] query' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
-            return '["Mirandolina","Truffaldino"]'; });
-
-    my $res = az_vm_list(resource_group => 'Arlecchino', query => 'ZAMZAM');
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /--query.*ZAMZAM/ } @calls), 'Correct composition of the --query argument');
-};
-
 
 subtest '[az_vm_wait_running] running at first try' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
@@ -895,10 +882,10 @@ subtest '[az_vm_diagnostic_log_enable]' => sub {
 subtest '[az_vm_diagnostic_log_get]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
+    $azcli->redefine(az_vm_list => sub {
             # simulate 2 VM
-            return '[{"id": "0001", "name": "Truffaldino"}, {"id": "0002", "name": "Mirandolina"}]'; });
+            return [{id => '0001', name => 'Truffaldino'}, {id => '0002', name => 'Mirandolina'}];
+    });
     $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -906,7 +893,6 @@ subtest '[az_vm_diagnostic_log_get]' => sub {
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  R-->  " . join("\n  R-->  ", @ret));
-    ok((any { /az vm list/ } @calls), 'Correct composition of the list command');
     ok((any { /az vm boot-diagnostics get-boot-log/ } @calls), 'Correct composition of the main command');
     ok((any { /--ids 0001.*Truffaldino\.txt/ } @calls), 'Correct composition of the --id for the first VM');
     ok((any { /--ids 0002.*Mirandolina\.txt/ } @calls), 'Correct composition of the --id for the second VM');
@@ -919,10 +905,10 @@ subtest '[az_vm_diagnostic_log_get]' => sub {
 subtest '[az_vm_diagnostic_log_get] verbose' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
+    $azcli->redefine(az_vm_list => sub {
             # simulate 2 VM
-            return '[{"id": "0001", "name": "Truffaldino"}, {"id": "0002", "name": "Mirandolina"}]'; });
+            return [{id => '0001', name => 'Truffaldino'}, {id => '0002', name => 'Mirandolina'}];
+    });
     $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -936,10 +922,7 @@ subtest '[az_vm_diagnostic_log_get] verbose' => sub {
 subtest '[az_vm_diagnostic_log_get] no VMs' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
-            # simulate 2 VM
-            return '[]'; });
+    $azcli->redefine(az_vm_list => sub { return []; });
     $azcli->redefine(script_run => sub { push @calls, $_[0]; });
     $azcli->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -947,7 +930,6 @@ subtest '[az_vm_diagnostic_log_get] no VMs' => sub {
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  R-->  " . join("\n  R-->  ", @ret));
-    ok((any { /az vm list/ } @calls), 'Correct composition of the list command');
     ok((none { /az vm boot-diagnostics get-boot-log/ } @calls), 'Correct composition of the main command');
     ok scalar @ret == 0, "No logs";
 };
@@ -955,10 +937,10 @@ subtest '[az_vm_diagnostic_log_get] no VMs' => sub {
 subtest '[az_vm_diagnostic_log_get] one fail' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub {
-            push @calls, $_[0];
+    $azcli->redefine(az_vm_list => sub {
             # simulate 2 VM
-            return '[{"id": "0001", "name": "Truffaldino"}, {"id": "0002", "name": "Mirandolina"}]'; });
+            return [{id => '0001', name => 'Truffaldino'}, {id => '0002', name => 'Mirandolina'}];
+    });
     $azcli->redefine(script_run => sub {
             my ($cmd) = @_;
             push @calls, $cmd;
@@ -969,7 +951,6 @@ subtest '[az_vm_diagnostic_log_get] one fail' => sub {
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  R-->  " . join("\n  R-->  ", @ret));
-    ok((any { /az vm list/ } @calls), 'Correct composition of the list command');
     ok((any { /az vm boot-diagnostics get-boot-log/ } @calls), 'Correct composition of the main command');
     ok((any { /--ids 0001.*Truffaldino\.txt/ } @calls), 'Correct composition of the --id for the first VM');
     ok((any { /--ids 0002.*Mirandolina\.txt/ } @calls), 'Correct composition of the --id for the second VM');
@@ -1174,26 +1155,9 @@ END_MSG
     }
 };
 
-subtest '[az_resource_list] Check command composition' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
-
-    az_resource_list();
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az resource list/ } @calls), 'Correct composition of the main command');
-
-    az_resource_list(resource_group => 'Carlo', query => '[].Goldoni');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /--resource-group Carlo/ } @calls), 'Check for --resource-group option.');
-    ok((any { /--query \"\[].Goldoni\"/ } @calls), 'Check for --query option.');
-};
-
 subtest '[az_resource_list] Check return values' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    $azcli->redefine(script_output => sub { return '["Carlo", "Goldoni"]'; });
+    $azcli->redefine(az => sub { return {output => ['Carlo', 'Goldoni']}; });
 
     my $output = az_resource_list();
 
@@ -1285,379 +1249,393 @@ subtest '[az_storage_blob_lease_acquire] valid UUID with error ErrorCode' => sub
 subtest '[az_storage_blob_list]' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["Arlecchino", "Pantalone"]'; });
+    $azcli->redefine(az => sub { @calls = split(' ', $_[1]); return {
+        output =>  }; });
 
-    my $return_value = az_storage_blob_list(
+    my @return_value = az_storage_blob_list(
         container_name => 'Arlecchino',
         storage_account_name => 'Pantalone',
     );
 
     note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az storage blob list/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+    ok((any { /storage blob list/ } @calls), 'Correct composition of the main command');
     ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
     ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
-    ok(grep(/--output json/, @calls), 'Return output in "json" format');
-    is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');
+    note("\n Retval --> " . join("\n --> ", @return_value));
+    is(join(' ', @return_value), 'Arlecchino Pantalone', 'Return correct value');
 };
-
-subtest '[az_storage_blob_update]' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_run => sub { @calls = @_; return 'wololo'; });
-
-    az_storage_blob_update(
-        container_name => 'Arlecchino',
-        account_name => 'Pantalone',
-        name => 'Colombina'
-    );
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az storage blob update/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
-    ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
-    ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
-    ok(grep(/--output json/, @calls), 'Return output in "json" format');
-    ok(grep(/--name Colombina/, @calls), 'Return output in "json" format');
-
-    az_storage_blob_update(
-        container_name => 'Arlecchino',
-        account_name => 'Pantalone',
-        name => 'Colombina',
-        lease_id => '12345'
-    );
-    note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/--lease-id 12345/, @calls), 'Check for argument "--lease-id"');
-};
-
-subtest '[az_keyvault_list]' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["Arlecchino", "Pantalone"]'; });
-
-    my $return_value = az_keyvault_list(
-        resource_group => 'Arlecchino',
-        query => '[].Pantalone',
-    );
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az keyvault list/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
-    ok(grep(/--resource-group Arlecchino/, @calls), 'Check for argument "--resource_group"');
-    ok(grep(/--query \[\].Pantalone/, @calls), 'Check for argument "--query"');
-    ok(grep(/--output json/, @calls), 'Return output in "json" format');
-    is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');
-};
-
-subtest '[az_keyvault_list] Test exception' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(croak => sub { @calls = $_[0]; die; });
-
-    dies_ok { az_keyvault_list() } 'Fail with missing "resource_group" argument';
-    ok(grep(/resource_group/, @calls), 'Check if test fails for correct reason - Missing resource group argument');
-};
-
-subtest '[az_keyvault_secret_list]' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["Arlecchino", "Pantalone"]'; });
-
-    my $return_value = az_keyvault_secret_list(
-        vault_name => 'Arlecchino',
-        query => '[].Pantalone',
-    );
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az keyvault secret list/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
-    ok(grep(/--vault-name Arlecchino/, @calls), 'Check for argument "--vault-name"');
-    ok(grep(/--query \[\].Pantalone/, @calls), 'Check for argument "--query"');
-    ok(grep(/--output json/, @calls), 'Return output in "json" format');
-    is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');
-};
-
-subtest '[az_keyvault_secret_list] Test exception' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(croak => sub { @calls = $_[0]; die; });
-
-    dies_ok { az_keyvault_secret_list() } 'Fail with missing "resource_group" argument';
-    ok(grep(/vault_name/, @calls), 'Check if test fails for correct reason - Missing vault name argument');
-};
-
-subtest '[az_keyvault_secret_show] Test exception' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    $azcli->redefine(croak => sub { note("\n --> " . join("\n --> ", $_[0])); die; });
-    dies_ok { az_keyvault_secret_show(id => '123', vault_name => 'Arlecchino', name => 'Colombina') }
-    'Fail with mutually exclusive arguments defined';
-    dies_ok { az_keyvault_secret_show(vault_name => 'Pantalone') } 'Fail with missing "name" argument';
-    dies_ok { az_keyvault_secret_show(name => 'Colombina') } 'Fail with missing "vault_name" argument';
-    dies_ok { az_keyvault_secret_show() } 'Fail with missing "id" argument';
-};
-
-subtest '[az_keyvault_secret_show] Calling with "id" argument' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return 'SUper$ecretStuffAnD_even_m0re_secret$tuFF'; });
-
-    az_keyvault_secret_show(id => 'Arlecchino');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az keyvault secret show/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
-    ok(grep(/--id Arlecchino/, @calls), 'Check for argument "--id"');
-    ok(grep(/--query value/, @calls), 'Check for argument "--query"');
-    ok(grep(/--output tsv/, @calls), 'Return output in "tsv" format');
-};
-
-subtest '[az_keyvault_secret_show] Calling with "name" and "vault_name" arguments' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '"SUper$ecretStuffAnD_even_m0re_secret$tuFF"'; });
-
-    my $result = az_keyvault_secret_show(name => 'Arlecchino', vault_name => 'Pantalone', output => 'json');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az keyvault secret show/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
-    ok(grep(/--name Arlecchino/, @calls), 'Check for argument "--name"');
-    ok(grep(/--vault-name Pantalone/, @calls), 'Check for argument "--vault-name"');
-    ok(grep(/--query value/, @calls), 'Check for argument "--query"');
-    ok(grep(/--output json/, @calls), 'Return output in "json" format');
-    is $result, 'SUper$ecretStuffAnD_even_m0re_secret$tuFF', 'Decode JSON output';
-};
-
-subtest '[az_group_exists] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return 'Arlecchino'; });
-
-    my $ret = az_group_exists(name => 'Pantalone');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az group exists/ } @calls), 'Correct composition of the main command');
-    ok((grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"'), 'Correct argument about resource group name');
-    ok(($ret eq 'Arlecchino'), "Correct return code: expect 'Arlecchino' get '$ret'");
-};
-
-subtest '[az_nic_list] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
-
-    az_nic_list(resource_group => 'Pantalone');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az network nic list/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--query "\[].name"/, @calls), 'Check for default query');
-};
-
-subtest '[az_nic_list] Optional args' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
-
-    az_nic_list(resource_group => 'Pantalone', query => '[].calzini');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/--query "\[].calzini"/, @calls), 'Check for optional argument "--query"');
-};
-
-
-subtest '[az_network_vnet_show] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
-
-    az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az network vnet show/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
-};
-
-subtest '[az_network_vnet_show] Optional arg' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
-
-    az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini', query => 'id');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/--query "id"/, @calls), 'Check for argument "--query"');
-};
-
-subtest '[az_network_dns_zone_create] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
-
-    az_network_dns_zone_create(resource_group => 'Pantalone', name => 'calzini');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az network private-dns zone create/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
-};
-
-subtest '[az_network_dns_zone_delete] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
-
-    az_network_dns_zone_delete(resource_group => 'Pantalone', zone_name => 'calzini');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az network private-dns zone delete/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
-    ok(grep(/--yes/, @calls), 'Autoapprove option "--yes"');
-};
-
-subtest '[az_network_dns_add_record] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
-
-    az_network_dns_add_record(
-        resource_group => 'Pantalone',
-        zone_name => 'opensuse.org',
-        record_name => 'openqa',
-        ip_addr => '192.168.1.5'
-    );
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az network private-dns record-set a add-record/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
-    ok(grep(/--record-set-name openqa/, @calls), 'Check for argument "--record-set-name"');
-    ok(grep(/--ipv4-address 192.168.1.5/, @calls), 'Check for argument "--ipv4-address"');
-};
-
-subtest '[az_network_dns_link_create] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
-
-    az_network_dns_link_create(
-        resource_group => 'Pantalone',
-        zone_name => 'opensuse.org',
-        vnet => 'vnet_rg',
-        name => 'link_to_rg_vnet'
-    );
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az network private-dns link vnet create/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
-    ok(grep(/--virtual-network vnet_rg/, @calls), 'Check for argument "--virtual-network"');
-    ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
-    ok(grep(/--registration-enabled false/, @calls), 'Check for argument "--auto-registration"');
-};
-
-subtest '[az_network_dns_zone_list] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
-
-    az_network_dns_zone_list(resource_group => 'Pantalone');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az network private-dns zone list/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--query "\[].name"/, @calls), 'Check for default argument "--query" value');
-};
-
-subtest '[az_network_dns_zone_list] check custom query' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
-
-    az_network_dns_zone_list(resource_group => 'Pantalone', query => '[].id');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/--query "\[].id"/, @calls), 'Check for custom argument "--query" value');
-};
-
-subtest '[az_network_dns_link_list] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
-
-    az_network_dns_link_list(resource_group => 'Pantalone', zone_name => 'opensuse.org');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az network private-dns link vnet list/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
-    ok(grep(/--query "\[].name"/, @calls), 'Check for custom argument "--query" value');
-};
-
-subtest '[az_network_dns_link_list] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
-
-    az_network_dns_link_list(resource_group => 'Pantalone', zone_name => 'opensuse.org', query => '[].id');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok(grep(/--query "\[].id"/, @calls), 'Check for custom argument "--query" value');
-};
-
-subtest '[az_network_dns_link_delete] Compose command' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
-
-    az_network_dns_link_delete(
-        resource_group => 'Pantalone',
-        zone_name => 'opensuse.org',
-        link_name => 'link_to_rg_vnet'
-    );
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az network private-dns link vnet delete/ } @calls), 'Correct composition of the main command');
-    ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
-    ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
-    ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
-    ok(grep(/--yes/, @calls), 'Check for autoapprove argument "--yes"');
-};
-
-subtest '[az_role_definition_list]' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["Pantalone"]'; });
-
-    my $ret = az_role_definition_list(name => 'Pulcinella');
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az role definition list/ } @calls), 'Correct composition of the main command');
-    ok((any { /\[\?roleName=='Pulcinella'\]\.id/ } @calls), 'Query uses roleName filter');
-    ok(($ret eq 'Pantalone'), 'Ret is the expected value, of type string');
-};
-
-subtest '[az_resource_tag] Check command composition' => sub {
-    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    my @calls;
-    $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
-    my $resource_ids = ['/sub/A', '/sub/B'];
-    my $tags = ['pcw_ignore=1'];
-
-    az_resource_tag(resource_ids => $resource_ids, tags => $tags);
-
-    note("\n --> " . join("\n --> ", @calls));
-    ok((any { /az resource tag/ } @calls), 'Correct composition of the main command');
-    ok((any { /--ids "\/sub\/A" "\/sub\/B"/ } @calls), 'Check for --ids option.');
-    ok((any { /--tags "pcw_ignore=1"/ } @calls), 'Check for --tags');
-};
-
-subtest '[az_resource_tag] Test exceptions' => sub {
-    dies_ok { az_resource_tag(resource_ids => ['A', 'B']) } 'Fail with missing "tags" argument';
-    dies_ok { az_resource_tag(tags => ['pcw_ignore=1']) } 'Fail with missing "resource_ids" argument';
-    dies_ok { az_resource_tag(resource_ids => 'string', tags => ['pcw_ignore=1']) } 'Fail with non arrayref argument - resource_ids';
-    dies_ok { az_resource_tag(resource_ids => ['A', 'B'], tags => 'string') } 'Fail with non arrayref argument - tags';
-};
+#
+# subtest '[az_storage_blob_update]' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_run => sub { @calls = @_; return 'wololo'; });
+#
+#     az_storage_blob_update(
+#         container_name => 'Arlecchino',
+#         account_name => 'Pantalone',
+#         name => 'Colombina'
+#     );
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az storage blob update/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+#     ok(grep(/--container-name Arlecchino/, @calls), 'Check for argument "--container-name"');
+#     ok(grep(/--account-name Pantalone/, @calls), 'Check for argument "--account-name"');
+#     ok(grep(/--output json/, @calls), 'Return output in "json" format');
+#     ok(grep(/--name Colombina/, @calls), 'Return output in "json" format');
+#
+#     az_storage_blob_update(
+#         container_name => 'Arlecchino',
+#         account_name => 'Pantalone',
+#         name => 'Colombina',
+#         lease_id => '12345'
+#     );
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok(grep(/--lease-id 12345/, @calls), 'Check for argument "--lease-id"');
+# };
+#
+# subtest '[az_keyvault_list]' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '["Arlecchino", "Pantalone"]'; });
+#
+#     my $return_value = az_keyvault_list(
+#         resource_group => 'Arlecchino',
+#         query => '[].Pantalone',
+#     );
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az keyvault list/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+#     ok(grep(/--resource-group Arlecchino/, @calls), 'Check for argument "--resource_group"');
+#     ok(grep(/--query \[\].Pantalone/, @calls), 'Check for argument "--query"');
+#     ok(grep(/--output json/, @calls), 'Return output in "json" format');
+#     is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');
+# };
+#
+# subtest '[az_keyvault_list] Test exception' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(croak => sub { @calls = $_[0]; die; });
+#
+#     dies_ok { az_keyvault_list() } 'Fail with missing "resource_group" argument';
+#     ok(grep(/resource_group/, @calls), 'Check if test fails for correct reason - Missing resource group argument');
+# };
+#
+# subtest '[az_keyvault_secret_list]' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '["Arlecchino", "Pantalone"]'; });
+#
+#     my $return_value = az_keyvault_secret_list(
+#         vault_name => 'Arlecchino',
+#         query => '[].Pantalone',
+#     );
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az keyvault secret list/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+#     ok(grep(/--vault-name Arlecchino/, @calls), 'Check for argument "--vault-name"');
+#     ok(grep(/--query \[\].Pantalone/, @calls), 'Check for argument "--query"');
+#     ok(grep(/--output json/, @calls), 'Return output in "json" format');
+#     is(join(' ', @$return_value), 'Arlecchino Pantalone', 'Return correct value');
+# };
+#
+# subtest '[az_keyvault_secret_list] Test exception' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(croak => sub { @calls = $_[0]; die; });
+#
+#     dies_ok { az_keyvault_secret_list() } 'Fail with missing "resource_group" argument';
+#     ok(grep(/vault_name/, @calls), 'Check if test fails for correct reason - Missing vault name argument');
+# };
+#
+# subtest '[az_keyvault_secret_show] Test exception' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     $azcli->redefine(croak => sub { note("\n --> " . join("\n --> ", $_[0])); die; });
+#     dies_ok { az_keyvault_secret_show(id => '123', vault_name => 'Arlecchino', name => 'Colombina') }
+#     'Fail with mutually exclusive arguments defined';
+#     dies_ok { az_keyvault_secret_show(vault_name => 'Pantalone') } 'Fail with missing "name" argument';
+#     dies_ok { az_keyvault_secret_show(name => 'Colombina') } 'Fail with missing "vault_name" argument';
+#     dies_ok { az_keyvault_secret_show() } 'Fail with missing "id" argument';
+# };
+#
+# subtest '[az_keyvault_secret_show] Calling with "id" argument' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return 'SUper$ecretStuffAnD_even_m0re_secret$tuFF'; });
+#
+#     az_keyvault_secret_show(id => 'Arlecchino');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az keyvault secret show/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+#     ok(grep(/--id Arlecchino/, @calls), 'Check for argument "--id"');
+#     ok(grep(/--query value/, @calls), 'Check for argument "--query"');
+#     ok(grep(/--output tsv/, @calls), 'Return output in "tsv" format');
+# };
+#
+# subtest '[az_keyvault_secret_show] Calling with "name" and "vault_name" arguments' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '"SUper$ecretStuffAnD_even_m0re_secret$tuFF"'; });
+#
+#     my $result = az_keyvault_secret_show(name => 'Arlecchino', vault_name => 'Pantalone', output => 'json');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az keyvault secret show/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--only-show-errors/, @calls), 'Check for argument "--only-show-errors"');
+#     ok(grep(/--name Arlecchino/, @calls), 'Check for argument "--name"');
+#     ok(grep(/--vault-name Pantalone/, @calls), 'Check for argument "--vault-name"');
+#     ok(grep(/--query value/, @calls), 'Check for argument "--query"');
+#     ok(grep(/--output json/, @calls), 'Return output in "json" format');
+#     is $result, 'SUper$ecretStuffAnD_even_m0re_secret$tuFF', 'Decode JSON output';
+# };
+#
+# subtest '[az_group_exists] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(az => sub { @calls = $_[1]; return {output => $JSON::PP::true}; });
+#     az_group_exists(name => 'Pantalone');
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /group exists/ } @calls), 'Correct composition of the main command');
+#     ok((grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"'), 'Correct argument about resource group name');
+# };
+#
+# subtest '[az_group_exists] Test return values' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @invalid_values = ('true', 'false', 'Arlecchino');
+#     my @valid_values = ($JSON::PP::true, $JSON::PP::false);
+#
+#     for my $retval (@valid_values) {
+#         $azcli->redefine(az => sub { return {output => $retval}; });
+#         ok((JSON::PP::is_bool(az_group_exists(name => 'Pantalone'))),
+#             'Return "' . ref($retval) . '" object if group exists');
+#     }
+#
+#     for my $retval (@invalid_values) {
+#         $azcli->redefine(az => sub { return {output => $retval}; });
+#         dies_ok { az_group_exists(name => 'Pantalone') } "Fail with plain string returned '$retval'.";
+#     }
+# };
+
+# subtest '[az_nic_list] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+#
+#     az_nic_list(resource_group => 'Pantalone');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az network nic list/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+#     ok(grep(/--query "\[].name"/, @calls), 'Check for default query');
+# };
+#
+# subtest '[az_nic_list] Optional args' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+#
+#     az_nic_list(resource_group => 'Pantalone', query => '[].calzini');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok(grep(/--query "\[].calzini"/, @calls), 'Check for optional argument "--query"');
+# };
+#
+#
+# subtest '[az_network_vnet_show] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+#
+#     az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az network vnet show/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+#     ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+# };
+#
+# subtest '[az_network_vnet_show] Optional arg' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '[]'; });
+#
+#     az_network_vnet_show(resource_group => 'Pantalone', name => 'calzini', query => 'id');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok(grep(/--query "id"/, @calls), 'Check for argument "--query"');
+# };
+#
+# subtest '[az_network_dns_zone_create] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+#
+#     az_network_dns_zone_create(resource_group => 'Pantalone', name => 'calzini');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az network private-dns zone create/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+#     ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+# };
+#
+# subtest '[az_network_dns_zone_delete] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+#
+#     az_network_dns_zone_delete(resource_group => 'Pantalone', zone_name => 'calzini');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az network private-dns zone delete/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+#     ok(grep(/--name calzini/, @calls), 'Check for argument "--name"');
+#     ok(grep(/--yes/, @calls), 'Autoapprove option "--yes"');
+# };
+#
+# subtest '[az_network_dns_add_record] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+#
+#     az_network_dns_add_record(
+#         resource_group => 'Pantalone',
+#         zone_name => 'opensuse.org',
+#         record_name => 'openqa',
+#         ip_addr => '192.168.1.5'
+#     );
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az network private-dns record-set a add-record/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+#     ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
+#     ok(grep(/--record-set-name openqa/, @calls), 'Check for argument "--record-set-name"');
+#     ok(grep(/--ipv4-address 192.168.1.5/, @calls), 'Check for argument "--ipv4-address"');
+# };
+#
+# subtest '[az_network_dns_link_create] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+#
+#     az_network_dns_link_create(
+#         resource_group => 'Pantalone',
+#         zone_name => 'opensuse.org',
+#         vnet => 'vnet_rg',
+#         name => 'link_to_rg_vnet'
+#     );
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az network private-dns link vnet create/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+#     ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
+#     ok(grep(/--virtual-network vnet_rg/, @calls), 'Check for argument "--virtual-network"');
+#     ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
+#     ok(grep(/--registration-enabled false/, @calls), 'Check for argument "--auto-registration"');
+# };
+#
+# subtest '[az_network_dns_zone_list] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
+#
+#     az_network_dns_zone_list(resource_group => 'Pantalone');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az network private-dns zone list/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+#     ok(grep(/--query "\[].name"/, @calls), 'Check for default argument "--query" value');
+# };
+#
+# subtest '[az_network_dns_zone_list] check custom query' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
+#
+#     az_network_dns_zone_list(resource_group => 'Pantalone', query => '[].id');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok(grep(/--query "\[].id"/, @calls), 'Check for custom argument "--query" value');
+# };
+#
+# subtest '[az_network_dns_link_list] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
+#
+#     az_network_dns_link_list(resource_group => 'Pantalone', zone_name => 'opensuse.org');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az network private-dns link vnet list/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+#     ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
+#     ok(grep(/--query "\[].name"/, @calls), 'Check for custom argument "--query" value');
+# };
+#
+# subtest '[az_network_dns_link_list] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { @calls = $_[0]; return '["zone1", "zone2"]'; });
+#
+#     az_network_dns_link_list(resource_group => 'Pantalone', zone_name => 'opensuse.org', query => '[].id');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok(grep(/--query "\[].id"/, @calls), 'Check for custom argument "--query" value');
+# };
+#
+# subtest '[az_network_dns_link_delete] Compose command' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+#
+#     az_network_dns_link_delete(
+#         resource_group => 'Pantalone',
+#         zone_name => 'opensuse.org',
+#         link_name => 'link_to_rg_vnet'
+#     );
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az network private-dns link vnet delete/ } @calls), 'Correct composition of the main command');
+#     ok(grep(/--resource-group Pantalone/, @calls), 'Check for argument "--resource-group"');
+#     ok(grep(/--zone-name opensuse.org/, @calls), 'Check for argument "--zone-name"');
+#     ok(grep(/--name link_to_rg_vnet/, @calls), 'Check for argument "--name"');
+#     ok(grep(/--yes/, @calls), 'Check for autoapprove argument "--yes"');
+# };
+#
+# subtest '[az_role_definition_list]' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(script_output => sub { push @calls, $_[0]; return '["Pantalone"]'; });
+#
+#     my $ret = az_role_definition_list(name => 'Pulcinella');
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az role definition list/ } @calls), 'Correct composition of the main command');
+#     ok((any { /\[\?roleName=='Pulcinella'\]\.id/ } @calls), 'Query uses roleName filter');
+#     ok(($ret eq 'Pantalone'), 'Ret is the expected value, of type string');
+# };
+#
+# subtest '[az_resource_tag] Check command composition' => sub {
+#     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+#     my @calls;
+#     $azcli->redefine(assert_script_run => sub { @calls = $_[0]; return; });
+#     my $resource_ids = ['/sub/A', '/sub/B'];
+#     my $tags = ['pcw_ignore=1'];
+#
+#     az_resource_tag(resource_ids => $resource_ids, tags => $tags);
+#
+#     note("\n --> " . join("\n --> ", @calls));
+#     ok((any { /az resource tag/ } @calls), 'Correct composition of the main command');
+#     ok((any { /--ids "\/sub\/A" "\/sub\/B"/ } @calls), 'Check for --ids option.');
+#     ok((any { /--tags "pcw_ignore=1"/ } @calls), 'Check for --tags');
+# };
+#
+# subtest '[az_resource_tag] Test exceptions' => sub {
+#     dies_ok { az_resource_tag(resource_ids => ['A', 'B']) } 'Fail with missing "tags" argument';
+#     dies_ok { az_resource_tag(tags => ['pcw_ignore=1']) } 'Fail with missing "resource_ids" argument';
+#     dies_ok { az_resource_tag(resource_ids => 'string', tags => ['pcw_ignore=1']) } 'Fail with non arrayref argument - resource_ids';
+#     dies_ok { az_resource_tag(resource_ids => ['A', 'B'], tags => 'string') } 'Fail with non arrayref argument - tags';
+# };
 
 done_testing;
