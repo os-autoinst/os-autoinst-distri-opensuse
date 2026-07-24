@@ -19,7 +19,6 @@ use mm_tests;
 use Utils::Logging 'save_and_upload_log';
 use POSIX 'strftime';
 
-our $file = 'tmpresults.xml';
 
 sub run ($self) {
     select_serial_terminal();
@@ -30,8 +29,7 @@ sub run ($self) {
 
     ensure_ca_certificates_suse_installed();
     mutex_create 'ww4_ready';
-    my $rt = zypper_call("in warewulf4");
-    test_case('Installation', 'ww4', $rt);
+    zypper_call("in warewulf4");
 
     assert_script_run("wget --quiet " . data_url("hpc/net/ifcfg-eth1") . " -O /etc/sysconfig/network/ifcfg-eth1");
     # Detect if warewulf4 installed dnsmasq as dependency, otherwise use dhcp-server configuration
@@ -47,8 +45,7 @@ sub run ($self) {
     assert_script_run(qq{sed -ri 's/^network:.*\$/network: 192.168.10.0/g' /etc/warewulf/warewulf.conf});
     assert_script_run(qq{sed -ri 's/^  range start:.*\$/  range start: 192.168.10.111/g' /etc/warewulf/warewulf.conf});
     assert_script_run(qq{sed -ri 's/^  range end:.*\$/  range end: 192.168.10.115/g' /etc/warewulf/warewulf.conf});
-    $rt = (systemctl 'enable --now warewulfd') ? 1 : 0;
-    test_case('systemd', 'ww4', $rt);
+    systemctl 'enable --now warewulfd';
     record_info "warewulf.conf", script_output("cat /etc/warewulf/warewulf.conf");
 
     # Authentication support
@@ -64,16 +61,12 @@ sub run ($self) {
     # See: progress.opensuse.org/issues/168028
     script_run(qq{sed -i 's/url/#url/g' /etc/SUSEConnect});
 
-    $rt = (assert_script_run "wwctl container import $hpc_container warewulf-container", timeout => 320) ? 1 : 0;
-    test_case('Container pull', 'ww4', $rt);
-    $rt = (assert_script_run "wwctl profile set -y --image warewulf-container default") ? 1 : 0;
-    test_case('Profile', 'ww4', $rt);
+    assert_script_run "wwctl container import $hpc_container warewulf-container", timeout => 320;
+    assert_script_run "wwctl profile set -y --image warewulf-container default";
     assert_script_run "wwctl profile set -y default --netname default --netmask 255.255.255.0 --gateway 192.168.10.100";
     assert_script_run "wwctl profile list -a";
-    $rt = (assert_script_run "wwctl node add compute10 --netdev eth0 -I 192.168.10.111 --discoverable=true --image warewulf-container") ? 1 : 0;
-    test_case('Nodes', 'first node added successfully', $rt);
-    $rt = (assert_script_run "wwctl node add compute11 --netdev eth0 -I 192.168.10.112 --discoverable=true --image warewulf-container") ? 1 : 0;
-    test_case('Nodes', 'second node added successfully', $rt);
+    assert_script_run "wwctl node add compute10 --netdev eth0 -I 192.168.10.111 --discoverable=true --image warewulf-container";
+    assert_script_run "wwctl node add compute11 --netdev eth0 -I 192.168.10.112 --discoverable=true --image warewulf-container";
 
     my $compute_nodes = script_output "wwctl node list -a";
     record_info "nodes in conf", "$compute_nodes";
@@ -83,8 +76,7 @@ sub run ($self) {
 
     # I think running the configuration after the profile and the nodes are set
     # provides complete results of the scripts.
-    $rt = (assert_script_run "echo yes | wwctl -v configure --all") ? 1 : 0;
-    test_case('Service configuration', 'ww4', $rt);
+    assert_script_run "echo yes | wwctl -v configure --all";
     # Build overlay, mandatory since warewulf4 version 4.5
     assert_script_run "wwctl overlay build";
     # Refresh repositories inside the container
@@ -100,11 +92,9 @@ sub run ($self) {
     my @compute_nodes = _get_compute_node_hostnames();
     foreach my $node (@compute_nodes) {
         script_run("ssh -o StrictHostKeyChecking=accept-new $node ip a | tee /tmp/script_out");
-        $rt = (assert_script_run "grep -E 'inet 192\.168\.10\.11[1-5]' /tmp/script_out", fail_message => 'IP address likely is not set or is not in the defined IP range!!') ? 1 : 0;
-        test_case("Check IP on $node", 'Compute Validate IP', $rt);
+        assert_script_run "grep -E 'inet 192\.168\.10\.11[1-5]' /tmp/script_out", fail_message => 'IP address likely is not set or is not in the defined IP range!!';
         my $expected_name = get_required_var('HPC_WAREWULF_CONTAINER_NAME');
-        $rt = validate_script_output("ssh -o StrictHostKeyChecking=accept-new $node cat /etc/os-release", sub { m/NAME.+$expected_name/ });
-        test_case("Check OS on $node", 'Compute Validate OS', $rt);
+        validate_script_output("ssh -o StrictHostKeyChecking=accept-new $node cat /etc/os-release", sub { m/NAME.+$expected_name/ });
     }
     barrier_wait('WWCTL_COMPUTE_DONE');
     record_info 'WWCTL_COMPUTE_DONE', strftime("\%H:\%M:\%S", localtime);
@@ -121,8 +111,6 @@ sub test_flags ($self) {
 
 sub post_run_hook ($self) {
     record_info "post_run", "hook started";
-    parse_test_results('HPC warewulf4 controller tests', $file, @all_tests_results);
-    parse_extra_log('XUnit', "/tmp/$file");
     $self->upload_service_log('warewulfd');
     save_and_upload_log('cat /etc/hosts', "/tmp/hostfile");
     save_and_upload_log('ip a', "/tmp/controller_network");
