@@ -23,6 +23,7 @@ use qam;
 use testapi;
 use Utils::Systemd 'disable_and_stop_service';
 use serial_terminal qw(select_serial_terminal);
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
@@ -46,6 +47,7 @@ sub run {
 
     # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm;
     $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
     select_serial_terminal;
 
@@ -81,6 +83,7 @@ sub run {
         my $repos_to_check = join(' ', map { "-r $_" } split(',', $repo));
         if (get_var('MACHINE') =~ /uefi/ && !is_transactional && script_run("zypper se $repos_to_check kernel") == 0) {
             power_action('reboot', textmode => 1);
+            reconnect_mgmt_console if is_pvm;
             $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
             select_serial_terminal;
         }
@@ -104,6 +107,7 @@ sub run {
             disable_and_stop_service('lvm2-monitor', ignore_failure => 1);
         }
         power_action('reboot', textmode => 1);
+        reconnect_mgmt_console if is_pvm;
         $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
         select_serial_terminal;
     }
