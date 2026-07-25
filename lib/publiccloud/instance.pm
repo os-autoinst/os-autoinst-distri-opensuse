@@ -814,14 +814,34 @@ sub upload_supportconfig_log {
     # To remove exclusions, _EXCLUDE='-'
     $exclude = undef if ($exclude eq '-');
     $exclude = "-x " . $exclude if ($exclude);
-    my $cmd = "echo | sudo supportconfig -R " . dirname($logs) . " -B supportconfig $exclude > $logs.txt 2>&1";
-    my $res = $self->ssh_script_run($cmd, timeout => $timeout, apply_graceful_timeout => 1);
-    $self->ssh_script_run(cmd => "sudo chmod 0644 $logs.txz", apply_graceful_timeout => 1);
-    $self->upload_log("$logs.txz", failok => 1, timeout => 180);
+    my $res = $self->ssh_script_run("sudo which supportconfig");
+    unless (isok($res)) {
+        record_info('MISSING supportconfig', 'supportconfig command not found', result => 'fail');
+        return;
+    }
+    $res = $self->ssh_script_run("echo | sudo supportconfig -R " . dirname($logs) . " -B supportconfig $exclude > $logs.txt 2>&1",
+        timeout => $timeout,
+        apply_graceful_timeout => 1);
+    my $time = time() - $start;
+    my $archive;
     if (isok($res)) {
-        record_info('supportconfig done', "OK: duration " . (time() - $start) . "s. Log $logs.txz" . (($exclude) ? " - Excluded: $exclude" : ''));
+        $archive = "$logs.txz";
+        record_info('OK supportconfig', "Logs available: duration $time sec.\nLog $archive" . (($exclude) ? " - Excluded: $exclude" : ''));
     } else {
-        record_info('FAILED supportconfig', 'Failed after: ' . (time() - $start) . 'sec.', result => 'fail');
+        my $ls = $self->ssh_script_output(cmd => "sudo ls $logs", proceed_on_failure => 1);
+        # collect partial logs
+        if (length($ls)) {
+            $archive = "${logs}_partial.txz";
+            $res = $self->ssh_script_run(cmd => "sudo tar -cJvf $archive -C " . dirname($logs) . ' ' . basename($logs),
+                timeout => $timeout,
+                apply_graceful_timeout => 1);
+        }
+        record_info('FAILED supportconfig', "Failed after: $time sec." . ($ls ? "\nLogs available:\n$ls" : ''), result => isok($res) ? 'softfail' : 'fail');
+    }
+    $self->upload_log("$logs.txt", failok => 1, timeout => 180);
+    if (isok($res) && $archive) {
+        $self->ssh_script_run(cmd => "sudo chmod 0644 $archive");
+        $self->upload_log($archive, failok => 1, timeout => 180);
     }
     # Never fail
     return 1;
