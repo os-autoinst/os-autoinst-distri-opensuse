@@ -1,0 +1,17 @@
+{
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "streetsidesoftware.code-spell-checker",
+        "richterger.perl",
+        "ms-python.python",
+        "sfodje.perltidy",
+        "ms-vscode.makefile-tools"
+      ]
+    }
+  },
+  "postCreateCommand": "make prepare",
+}
