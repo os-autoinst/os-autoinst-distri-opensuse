@@ -6,17 +6,17 @@
 # - Restart auditd
 # - Create temporary apparmor profile on /tmp
 # - Add root to use_group on /etc/apparmor/notify.conf
-# - Run "aa-notify -l"
+# - Run "aa-notify -s 1"
 # - Make smbd fail intentionally, removing "/etc/smbd.conf" entry from
 # /tmp/apparmor.d/usr.sbin.smbd
 # - Run "aa-disable smbd"
 # - Put smbd back in enforce mode: "aa-enforce -d /tmp/apparmor.d smbd"
 # - Restart smbd
-# - Check the errors from "aa-notify -l -v"
+# - Check the errors from "aa-notify -s 1 -v"
 # - Disable temporary profile, put smbd back in enforce mode, restart smbd
 # - Cleanup temporary profiles
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#36883, tc#1621139
+# Tags: poo#36883, tc#1621139, poo#201084
 
 use Mojo::Base 'apparmortest';
 use testapi;
@@ -69,7 +69,14 @@ sub run {
 
     assert_script_run "echo > $audit_log";
 
-    validate_script_output "aa-notify -l", sub { m/^(AppArmor\sdenials:\s+0\s+\(since.*)?$/ };
+    # Use "-s 1" (since-days) instead of "-l" (last login) as "-l" depends on
+    # having a login recorded in lastlog2.db/wtmp, which is not guaranteed to
+    # exist on freshly installed images (poo#201084). Also match the expected
+    # line with "/m" instead of anchoring the whole output, as newer
+    # apparmor-notify versions can print additional informational lines
+    # (e.g. "ttkthemes not found. Install for best user experience.")
+    # before the actual denial summary.
+    validate_script_output "aa-notify -s 1", sub { m/^AppArmor\sdenials?:\s+0\s+\(since.*$/m };
 
     # Make it failed intentionally to get some audit messages
     assert_script_run "sed -i '/\\/etc\\/nscd.conf/d' $tmp_prof/usr.sbin.nscd" if is_sle('<=15-sp4');
@@ -85,14 +92,14 @@ sub run {
     systemctl("restart $test_service", expect_false => 1);
     upload_logs($audit_log);
 
-    validate_script_output "aa-notify -l -v", sub {
+    validate_script_output "aa-notify -s 1 -v", sub {
         m/
             Name:\s+\/etc\/nscd\.conf.*
             Denied:\s+r.*
             AppArmor\sdenials?:\s+[0-9]+\s+\(since/sxx
     } if is_sle('<=15-sp4');
 
-    validate_script_output "aa-notify -l -v", sub {
+    validate_script_output "aa-notify -s 1 -v", sub {
         m/
             Name:.*samba.*
             Denied:\s+ac.*
