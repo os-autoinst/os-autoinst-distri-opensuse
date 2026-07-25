@@ -1722,10 +1722,6 @@ Possible return values:
 
 =item C<BYOS> - instance-flavor-check exit code 11 or 12
 
-=item C<UNKNOWN> - instance-flavor-check crashed with bsc#1267739
-(FileNotFoundError on fresh BYOS images where /var/cache/cloudregister/
-does not exist). A record_soft_failure is emitted.
-
 =back
 
 The function dies on unexpected exit codes or when rc=1 without the
@@ -1757,21 +1753,6 @@ sub ipaddr2_billing_model_get(%args) {
     # rc 11: not valid instance metadata verified successfully
     # rc 12: we could not reliably determine the flavor of the instance
     return 'BYOS' if (($ret == 11) || ($ret == 12));
-
-    # bsc#1267739: instance-flavor-check crashes with FileNotFoundError
-    # on fresh BYOS images where /var/cache/cloudregister/ does not exist.
-    # Detect the known bug signature and return UNKNOWN so the caller can
-    # fall back to SUSEConnect -s.
-    if ($ret == 1) {
-        my $out = ipaddr2_ssh_internal_output(id => $args{id},
-            cmd => 'sudo instance-flavor-check 2>&1 || true',
-            bastion_ip => $args{bastion_ip});
-
-        if ($out =~ /FileNotFoundError/) {
-            record_soft_failure('bsc#1267739 - instance-flavor-check crashed with FileNotFoundError');
-            return 'UNKNOWN';
-        }
-    }
 
     # Any other unexpected exit code or rc=1 without known signature
     die "instance-flavor-check unexpected result ret:$ret";
