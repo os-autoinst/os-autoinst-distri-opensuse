@@ -20,3 +20,4 @@ final_message: |
   timestamp: $timestamp
   datasource: $datasource
   uptime: $uptime
+
