@@ -25,6 +25,7 @@ sub load_maintenance_publiccloud_tests {
     loadtest "publiccloud/download_repos" unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
     loadtest "publiccloud/prepare_instance", run_args => $args;
     loadtest "publiccloud/network_test", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args;
     loadtest "publiccloud/check_cloudinit", run_args => $args;
     if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
         loadtest("publiccloud/registercloudguest", run_args => $args);
@@ -127,6 +128,7 @@ sub load_latest_publiccloud_tests {
     if (get_var('PUBLIC_CLOUD_LTP')) {
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest "publiccloud/network_test", run_args => $args;
+        loadtest "publiccloud/check_boottime", run_args => $args;
         loadtest "publiccloud/check_cloudinit", run_args => $args;
         loadtest("publiccloud/registration", run_args => $args);
         loadtest 'publiccloud/run_ltp', run_args => $args;
@@ -140,6 +142,7 @@ sub load_latest_publiccloud_tests {
     } else {    # All test cases below require prepare_instance
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest "publiccloud/network_test", run_args => $args;
+        loadtest "publiccloud/check_boottime", run_args => $args;
         loadtest "publiccloud/check_cloudinit", run_args => $args;
         if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
             loadtest "publiccloud/registercloudguest", run_args => $args;
@@ -229,6 +232,7 @@ sub load_publiccloud_appimg_tests {
     my $publiccloud_app_img = get_var('PUBLIC_CLOUD_APP_IMG');
     loadtest "publiccloud/prepare_instance", run_args => $args;
     loadtest "publiccloud/network_test", run_args => $args;
+    loadtest "publiccloud/check_boottime", run_args => $args;
     loadtest "publiccloud/check_cloudinit", run_args => $args;
     loadtest("publiccloud/registration", run_args => $args);
     loadtest "publiccloud/instance_overview", run_args => $args;
