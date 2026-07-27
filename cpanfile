@@ -33,6 +33,7 @@ requires 'Mojo::File';
 requires 'Mojo::JSON';
 requires 'Mojo::UserAgent';
 requires 'Mojo::Util';
+requires 'Module::CPANfile';
 requires 'NetAddr::IP';
 requires 'Net::IP';
 requires 'POSIX';
