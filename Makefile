@@ -1,4 +1,6 @@
 PERL5LIB_:=../..:os-autoinst:lib:tests/installation:tests/x11:tests/qa_automation:tests/virt_autotest:tests/cpu_bugs:tests/sles4sap/saptune:$$PERL5LIB
+# https://rt.cpan.org/Ticket/Display.html?id=133363
+CPANM := PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm -v -nq --installdeps
 
 .PHONY: all
 all:
@@ -12,8 +14,8 @@ prepare:
 	git clone https://github.com/os-autoinst/os-autoinst.git
 	./tools/wheel --fetch
 	$(MAKE) check-links
-	# https://rt.cpan.org/Ticket/Display.html?id=133363
-	PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm -v -nq --installdeps .
+	$(CPANM) .
+	$(CPANM) ./os-autoinst
 
 os-autoinst/:
 	@test -d os-autoinst || (echo "Missing test requirements, \
