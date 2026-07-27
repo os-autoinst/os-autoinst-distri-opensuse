@@ -18,7 +18,6 @@ use utils;
 use susedistribution;
 
 our $cfg_file = "/etc/powerman/powerman.conf";
-our $file = 'tmpresults.xml';
 
 our $dev_caps = sub {
     my $dev = shift;
@@ -31,10 +30,8 @@ our $dev_caps = sub {
 sub run ($self) {
     zypper_call('in powerman');
     my $powerman_dev = 'bashfun';
-    assert_script_run("touch $file");
     my $cfg_file = "/etc/powerman/powerman.conf";
     my $hostname = script_output('hostname');
-    test_case('hostname', 'Check hostname', $hostname);
 
     assert_script_run("echo 'listen \"0.0.0.0:10101\"' >> $cfg_file");
     assert_script_run("echo 'include \"/etc/powerman/$powerman_dev.dev\"' >> $cfg_file");
@@ -49,38 +46,29 @@ sub run ($self) {
     $self->enable_and_start('powerman');
 
     # list available targets
-    my $rt = validate_script_output("powerman -l", sub { m/$hostname/ });
-    test_case('Test powerman -l', 'powerman can find nodes', $rt);
+    validate_script_output("powerman -l", sub { m/$hostname/ });
 
     # check if target can be turned on
-    $rt = (assert_script_run("powerman -1 \$(hostname)")) ? 1 : 0;
-    test_case('powerman on', 'powerman can turn on nodes', $rt);
+    assert_script_run("powerman -1 \$(hostname)");
 
-    $rt = validate_script_output("powerman -Q \$(hostname)", sub { /on:\s+$hostname.*/ });
-    test_case('powerman list online nodes', 'powerman can find nodes', $rt);
+    validate_script_output("powerman -Q \$(hostname)", sub { /on:\s+$hostname.*/ });
 
     # check if target can be turned off
-    $rt = (assert_script_run("powerman -0 \$(hostname)")) ? 1 : 0;
-    test_case('powerman off', 'powerman can turn off nodes', $rt);
-    $rt = (validate_script_output("powerman -Q \$(hostname)", sub { /off:\s+$hostname.*/ })) ? 1 : 0;
-    test_case('powerman list online nodes', 'powerman can turn off nodes', $rt);
+    assert_script_run("powerman -0 \$(hostname)");
+    validate_script_output("powerman -Q \$(hostname)", sub { /off:\s+$hostname.*/ });
 
     # check if command can be handled by power control device
     # This depends on the device/driver type.
     # Power cycle is not supported by *bashfun*.
     if (exists $$powerman_dev_caps{cycle}) {
         record_info('skip cycle', 'cycle is supported but check is not implemented');
-        $rt = (assert_script_run("powerman -c \$(hostname)")) ? 1 : 0;
-        test_case('powerman cycle', 'powerman can show node cycle', $rt);
+        assert_script_run("powerman -c \$(hostname)");
     } else {
-        $rt = validate_script_output("powerman -c \$(hostname)", sub { /.*cannot be handled by power control device.*/ }, proceed_on_failure => 1);
-        test_case('powerman cycle', 'powerman dev doesnt support cycle command', $rt);
+        validate_script_output("powerman -c \$(hostname)", sub { /.*cannot be handled by power control device.*/ }, proceed_on_failure => 1);
     }
 }
 
 sub post_run_hook ($self) {
-    parse_test_results('HPC powerman tests', $file, @all_tests_results);
-    parse_extra_log('XUnit', "/tmp/$file");
     $self->SUPER::post_run_hook();
 }
 

@@ -15,8 +15,6 @@ use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils;
 
-our $file = 'tmpresults.xml';
-
 sub run {
     my $self = shift;
     select_serial_terminal();
@@ -24,8 +22,7 @@ sub run {
     my $nodes = get_required_var("CLUSTER_NODES");
 
     # install mrsh
-    my $rt = zypper_call('in mrsh mrsh-server');
-    test_case('Installation', 'install mrsh', $rt);
+    zypper_call('in mrsh mrsh-server');
     barrier_wait("MRSH_INSTALLATION_FINISHED");
 
     # Copy munge key to all slave nodes
@@ -53,19 +50,15 @@ sub run {
         enter_cmd("exit");
         sleep(1);
         assert_script_run('hostname|grep mrsh-master');
-        $rt = (assert_script_run("mrsh ${node_name}  rm -f /tmp/hello")) ? 1 : 0;
-        test_case('Delete file remotely', 'mrsh test remote deletion', $rt);
+        assert_script_run("mrsh ${node_name}  rm -f /tmp/hello");
         assert_script_run("echo \"Hello world!\" >/tmp/hello");
-        $rt = (assert_script_run("mrcp /tmp/hello ${node_name}:/tmp/hello")) ? 1 : 0;
-        test_case('Create file remotely', 'mrsh test remote copy', $rt);
+        assert_script_run("mrcp /tmp/hello ${node_name}:/tmp/hello");
         assert_script_run("mrsh ${node_name}  cat /tmp/hello");
     }
     barrier_wait("MRSH_MASTER_DONE");
 }
 
 sub post_run_hook ($self) {
-    parse_test_results('HPC mrsh tests', $file, @all_tests_results);
-    parse_extra_log('XUnit', "/tmp/$file");
     $self->SUPER::post_run_hook();
 }
 sub test_flags {
