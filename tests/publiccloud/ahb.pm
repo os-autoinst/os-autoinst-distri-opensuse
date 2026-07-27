@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Test AHB extension
-# Maintainer: jesusbv@suse.com
+# Maintainer: QE-C team <qa-c@suse.de>
 # Author: jesusbv <jesusbv@suse.com>
 
 use Mojo::Base 'publiccloud::basetest';
@@ -20,7 +20,7 @@ use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
 
 our @license_types = split(
-    ",", get_var('PUBLIC_CLOUD_AHB_LT', 'SLES_BYOS')
+    ',', get_var('PUBLIC_CLOUD_AHB_LT', 'SLES_BYOS')
 );
 our $api_version = get_var('PUBLIC_CLOUD_AZ_API_VERSION', '2021-02-01');
 our $azure_endpoint = get_var(
@@ -45,6 +45,8 @@ sub run {
     my $vm_name = $instance->ssh_script_output(cmd => $vm_name_command);
     my $curl_command = "curl -s -H Metadata:true --noproxy \"*\" \"$azure_endpoint?api-version=$api_version\" | cut -d\, -f5-5  | cut -d\: -f 2";
     my $license_type = $instance->ssh_assert_script_run(cmd => $curl_command);
+
+    record_info('AZ VER', script_output('which az && az --version'));
     # loop over the different license types
     foreach my $license_type_change (@license_types) {
         # update license type to license_type_change
