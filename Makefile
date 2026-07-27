@@ -52,7 +52,7 @@ unit-test:
 
 .PHONY: test-compile
 test-compile: check-links
-	export PERL5LIB=${PERL5LIB_}:$(shell ./tools/wheel --verify) ; ( git ls-files "*.pm" || find . -name \*.pm|grep -v /os-autoinst/ ) | parallel perl -c 2>&1 | grep -v " OK$$" && exit 2; true
+	export PERL5LIB=${PERL5LIB_}:$(shell ./tools/wheel --verify) ; ( git ls-files -- "*.pm" ":!:external/*" || find . -name \*.pm|grep -E -v '/(os-autoinst|external)/' ) | parallel perl -c 2>&1 | grep -v " OK$$" && exit 2; true
 
 .PHONY: test-compile-changed
 test-compile-changed: os-autoinst/
@@ -152,8 +152,8 @@ PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet
 # strictures and warnings are already enforced by os-autoinst basetest.pm so
 # exclude here for test modules
 perlcritic: tools/lib/
-	${PERLCRITIC} $$(git ls-files -- '*.p[ml]' ':!:data/' ':!:tests/')
-	${PERLCRITIC} --exclude=strict $$(git ls-files -- ':tests/*.p[ml]')
+	${PERLCRITIC} $$(git ls-files -- '*.p[ml]' ':!:data/' ':!:tests/' ':!:external/')
+	${PERLCRITIC} --exclude=strict $$(git ls-files -- ':tests/*.p[ml]' ':!:external/')
 
 .PHONY: test-unused-modules-changed
 test-unused-modules-changed:
