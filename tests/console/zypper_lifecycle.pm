@@ -71,7 +71,8 @@ sub run {
     assert_script_run('chmod -R u+rwX,og+rX /var/cache/zypp');
     zypper_call('in curl') if (script_run('rpm -qi curl') == 1);
     # force reinstall release notes, package must not come from expected SLE-Product repo e.g. GMC
-    zypper_call('in -f release-notes*');
+    # Refer jira feature: https://jira.suse.com/browse/PED-16485
+    zypper_call('in -f release-notes*') unless (is_sle('>=16.1'));
     zypper_call('in zypper-lifecycle-plugin') if (is_sle('>=16'));
 
     select_user_serial_terminal;
