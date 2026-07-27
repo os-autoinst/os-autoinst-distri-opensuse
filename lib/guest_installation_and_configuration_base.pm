@@ -2693,7 +2693,7 @@ using publibc key, because Agama installe shell does support full ssh capability
 sub setup_guest_agama_installation_shell {
     my $self = shift;
 
-    my $_timeout_command_prefix = "timeout --kill-after=5";
+    my $_timeout_command_prefix = "timeout --kill-after=1 --signal=9 ";
     my $_ssh_command_options = $self->config_guest_agama_shell_ssh_options();
 
     $self->get_guest_ipaddr if ($self->{guest_ipaddr_static} ne 'true');
@@ -2703,10 +2703,10 @@ sub setup_guest_agama_installation_shell {
     }
     else {
         enter_cmd("clear", wait_still_screen => 3);
-        if (script_run("$_timeout_command_prefix 120 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}") != 0) {
+        if (script_run("$_timeout_command_prefix 120 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=12 $_ssh_command_options root\@$self->{guest_ipaddr}", timeout => 150) != 0) {
             type_string("reset\n");
             wait_still_screen;
-            enter_cmd("$_timeout_command_prefix 180 ssh-copy-id -f $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
+            enter_cmd("$_timeout_command_prefix 180 ssh-copy-id -f -o ConnectTimeout=10 -o ConnectionAttempts=18 $_ssh_command_options root\@$self->{guest_ipaddr}", wait_still_screen => 5, timeout => 210);
             assert_screen('password-prompt', timeout => 30);
             enter_cmd(get_var('_SECRET_GUEST_PASSWORD', $testapi::password), wait_screen_change => 60, max_interval => 1, timeout => 90);
         }
@@ -2742,7 +2742,7 @@ already marked as 'FAILED' for this case in setup_guest_agama_installation_shell
 sub verify_guest_agama_installation_done {
     my $self = shift;
 
-    my $_timeout_command_prefix = "timeout --kill-after=5";
+    my $_timeout_command_prefix = "timeout --kill-after=1 --signal=9 ";
     my $_wait_timeout = get_var('AGAMA_INSTALL_TIMEOUT', 600);
     my $_ssh_command_options = $self->config_guest_agama_shell_ssh_options();
 
@@ -2800,7 +2800,7 @@ still requires password login.
 sub save_guest_agama_installation_logs {
     my $self = shift;
 
-    my $_timeout_command_prefix = "timeout --kill-after=5";
+    my $_timeout_command_prefix = "timeout --kill-after=1 --signal=9 ";
     my $_ssh_command_options = $self->config_guest_agama_shell_ssh_options();
 
     if ($self->{guest_installation_result} eq 'FAILED' and script_run("$_timeout_command_prefix 60 ssh $_ssh_command_options root\@$self->{guest_ipaddr} ls") != 0) {
