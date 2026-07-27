@@ -349,6 +349,7 @@ sub load_slem_on_pc_tests {
         # SLEM basic test
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/prepare_instance", run_args => $args);
+        loadtest("publiccloud/auto_registration", run_args => $args);
         loadtest("publiccloud/network_test", run_args => $args);
         loadtest("publiccloud/check_boottime", run_args => $args);
         loadtest("publiccloud/check_cloudinit", run_args => $args);
