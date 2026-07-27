@@ -52,7 +52,7 @@ sub run {
 
     if (get_var('LTP_COMMAND_FILE')) {
         my $ver_linux_log = '/tmp/ver_linux_after.txt';
-        script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1");
+        script_run("\$LTPROOT/ver_linux > $ver_linux_log 2>&1", 120);
         upload_logs($ver_linux_log, failok => 1);
     }
 
