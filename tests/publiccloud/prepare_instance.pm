@@ -43,8 +43,6 @@ sub run {
     my $instance = $args->{my_instance};
     $instance->wait_for_ssh(scan_ssh_host_key => 1);
 
-    $instance->enable_kdump() if (get_var('PUBLIC_CLOUD_ENABLE_KDUMP'));
-
     $provider->initialize_logging($instance);
     # Add additional authorized_keys for human users
     add_additional_authorized_keys($instance);
