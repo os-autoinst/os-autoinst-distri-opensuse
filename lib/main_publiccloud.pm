@@ -31,7 +31,7 @@ sub load_maintenance_publiccloud_tests {
     loadtest "publiccloud/check_boottime", run_args => $args;
     loadtest "publiccloud/check_cloudinit", run_args => $args;
     if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest("publiccloud/registercloudguest", run_args => $args);
+        loadtest("publiccloud/registration_lifecycle", run_args => $args);
     } else {
         loadtest("publiccloud/registration", run_args => $args);
     }
@@ -61,7 +61,7 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
         loadtest "publiccloud/azure_aitl", run_args => $args;
     } elsif (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-        loadtest("publiccloud/registercloudguest", run_args => $args, name => "re-registration");
+        loadtest("publiccloud/registration_lifecycle", run_args => $args, name => "re-registration");
         loadtest("publiccloud/ssh_interactive_end", run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_EC2_ENCLAVE_TESTS')) {
         loadtest "publiccloud/aws_enclave", run_args => $args;
@@ -154,7 +154,7 @@ sub load_latest_publiccloud_tests {
         loadtest "publiccloud/check_boottime", run_args => $args;
         loadtest "publiccloud/check_cloudinit", run_args => $args;
         if (get_var('PUBLIC_CLOUD_REGISTRATION_TESTS')) {
-            loadtest "publiccloud/registercloudguest", run_args => $args;
+            loadtest "publiccloud/registration_lifecycle", run_args => $args;
         }
         elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
             loadtest "publiccloud/check_services", run_args => $args;
