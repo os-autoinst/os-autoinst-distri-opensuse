@@ -477,7 +477,7 @@ sub _install_ec2_cloudwatch_agent
         $instance->softreboot();
     } else {
         if (is_sle(">12-SP5")) {
-            pc_zypper_call($instance, "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file");
+            pc_zypper_call($instance, "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file", retry => 3);
         } else {
             $instance->ssh_assert_script_run("sudo rpm -Uvh $download_directory/$rpm_file");
         }
