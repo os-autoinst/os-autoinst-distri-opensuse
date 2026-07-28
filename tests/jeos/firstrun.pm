@@ -13,10 +13,11 @@ use Mojo::Base 'opensusebasetest';
 use lockapi qw(mutex_create mutex_wait);
 use testapi;
 use version_utils qw(is_wsl is_jeos is_sle is_tumbleweed is_leap is_opensuse is_microos is_sle_micro
-  is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_grub2_bls has_selinux_by_default is_community_jeos is_sles4sap is_transactional);
+  is_leap_micro is_vmware is_bootloader_sdboot is_bootloader_grub2_bls has_selinux_by_default is_community_jeos is_sles4sap is_transactional
+  is_selfinstall);
 use Utils::Architectures;
 use Utils::Backends;
-use jeos qw(expect_mount_by_uuid is_translations_preinstalled);
+use jeos qw(expect_mount_by_uuid is_translations_preinstalled check_jeos_on_serial_terminal);
 use utils qw(assert_screen_with_soft_timeout ensure_serialdev_permissions enter_cmd_slow);
 use serial_terminal 'prepare_serial_console';
 use Utils::Logging qw(record_avc_selinux_alerts);
@@ -216,20 +217,6 @@ sub create_user_in_ui {
     $user_created = 1;
 }
 
-sub check_jeos_on_serial_terminal {
-    return if (wait_serial("JeOS Firstboot", no_regex => 1, timeout => 300));
-
-    if (is_sle("=16.1") && is_ppc64le) {
-        record_soft_failure("bsc#1260359 - No serial terminal on ppc64le");
-        return;
-    }
-    elsif (is_sle("=16.0") && is_ppc64le) {
-        record_soft_failure("bsc#1271468 - No serial terminal on ppc64le");
-        return;
-    }
-    die "JeOS firstboot not detected on serial terminal";
-}
-
 sub run {
     my ($self) = @_;
     my $lang = get_var('JEOSINSTLANG', 'en_US');
@@ -255,8 +242,13 @@ sub run {
         $initial_screen_timeout = 420 if is_sle_micro;
     }
 
-    # Ensures the JeOS firstboot wizard is present on the serial terminal
-    check_jeos_on_serial_terminal() unless (is_sle("<15") || is_s390x || check_var('JEOS_CHECK_SERIAL', '0'));
+    # Ensures the JeOS firstboot wizard is present on the serial terminal.
+    # In the selfinstall flow this check already happened earlier, in
+    # microos/selfinstall.pm, right before it waits for 'The initial
+    # configuration' on the same serial log. Doing it again here would
+    # always fail because that earlier wait_serial() call already consumed
+    # the 'JeOS Firstboot' line from the serial log (poo#204390).
+    check_jeos_on_serial_terminal() unless (is_sle("<15") || is_s390x || is_selfinstall || check_var('JEOS_CHECK_SERIAL', '0'));
 
     # https://github.com/openSUSE/jeos-firstboot/pull/82 welcome dialog is shown on all consoles
     # and configuration continues on console where *Start* has been pressed

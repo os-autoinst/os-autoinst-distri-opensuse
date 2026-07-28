@@ -9,11 +9,12 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use microos "microos_login";
-use Utils::Architectures qw(is_aarch64);
-use version_utils qw(is_leap_micro is_sle_micro);
+use Utils::Architectures qw(is_aarch64 is_s390x);
+use version_utils qw(is_leap_micro is_sle_micro is_sle);
 use utils;
 use Utils::Backends qw(is_ipmi);
 use ipmi_backend_utils qw(ipmitool set_bootscript_hdd);
+use jeos qw(check_jeos_on_serial_terminal);
 
 sub run {
     my ($self) = @_;
@@ -51,6 +52,13 @@ sub run {
         send_key 'ctrl-alt-delete' unless $no_cd;
         microos_login;
     } elsif (check_var('FIRST_BOOT_CONFIG', 'wizard')) {
+        # Check for the JeOS firstboot wizard on the serial terminal before
+        # waiting for 'The initial configuration' below: both strings are
+        # printed as part of the very same dialog and share the same serial
+        # log, so wait_serial('The initial configuration', ...) would
+        # otherwise consume the 'JeOS Firstboot' line first, making the
+        # equivalent check in jeos/firstrun.pm always fail (poo#204390).
+        check_jeos_on_serial_terminal() unless (is_sle("<15") || is_s390x || check_var('JEOS_CHECK_SERIAL', '0'));
         wait_serial('The initial configuration', 180) or die "jeos-firstboot has not been reached";
         eject_cd() unless ($no_cd || is_usb_boot);
         return 1;
