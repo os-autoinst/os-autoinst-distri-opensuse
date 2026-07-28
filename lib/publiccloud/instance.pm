@@ -319,6 +319,22 @@ In case of BYOS images we checking that service is inactive and quit
 Returns the time needed to wait for the guestregister to complete.
 =cut
 
+=head2 _upload_guestregister_diagnostics
+
+    $self->_upload_guestregister_diagnostics($log, $name);
+
+Upload C<$log> (e.g. C</var/log/cloudregister>) and a short C<journalctl -u
+guestregister.service> excerpt. Used by C<wait_for_guestregister> right
+before dying, so a failure carries the actual registration error instead of
+just the systemd state.
+=cut
+
+sub _upload_guestregister_diagnostics {
+    my ($self, $log, $name) = @_;
+    $self->upload_log($log, log_name => $name, failok => 1);
+    record_info('guestregister journal', $self->ssh_script_output(cmd => 'sudo journalctl -u guestregister.service --no-pager -n 200', proceed_on_failure => 1), result => 'fail');
+}
+
 sub wait_for_guestregister {
     my ($self, %args) = @_;
     $args{timeout} //= 300;
@@ -344,11 +360,15 @@ sub wait_for_guestregister {
             # we have some cases where it is known that guestregister service will fail
             # ( e.g. when we testing images not published on Market hence w/o product codes)
             return 1 if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
+            $self->_upload_guestregister_diagnostics($log, $name);
             die('guestregister failed');
         }
         elsif ($out =~ m/active$/) {
             diag("guestregister active");
-            die "guestregister should not be active on BYOS" if (is_byos);
+            if (is_byos) {
+                $self->_upload_guestregister_diagnostics($log, $name);
+                die "guestregister should not be active on BYOS";
+            }
             $self->upload_log($log, log_name => $name);
         }
 
@@ -359,6 +379,7 @@ sub wait_for_guestregister {
         sleep 1;
     }
     diag("guestregister timeout");
+    $self->_upload_guestregister_diagnostics($log, $name);
     die('guestregister didn\'t end in expected timeout=' . $args{timeout});
 }
 

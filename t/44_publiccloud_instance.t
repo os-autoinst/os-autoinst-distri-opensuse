@@ -311,4 +311,83 @@ subtest '[wait_for_ssh_login] timeout/delay/retry argument propagation' => sub {
     is($call_args[-1]->{retry}, 900 / 30, 'retry derives from PUBLIC_CLOUD_SSH_TIMEOUT var');
     set_var('PUBLIC_CLOUD_SSH_TIMEOUT', undef);
 };
+
+# ---------------------------------------------------------------------------
+# wait_for_guestregister -- diagnostics (log + journal excerpt) must be
+# captured before every die on the failure paths (poo#204360)
+# ---------------------------------------------------------------------------
+$autotest::current_test = {name => 'wait_for_guestregister_test'};
+
+subtest '[wait_for_guestregister] failed captures diagnostics before dying' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my (@uploads, @journal_cmds);
+    $instmod->redefine(ssh_script_run => sub { return 0 });
+    $instmod->redefine(ssh_script_output => sub {
+            my ($self, %args) = @_;
+            push @journal_cmds, $args{cmd} if $args{cmd} =~ /journalctl/;
+            return 'guestregister.service - failed';
+    });
+    $instmod->redefine(upload_log => sub { my ($self, $log, %args) = @_; push @uploads, [$log, \%args] });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+    throws_ok { $inst->wait_for_guestregister() } qr/guestregister failed/, 'dies with guestregister failed';
+    is(scalar @uploads, 1, 'upload_log called exactly once');
+    is($uploads[0][0], '/var/log/cloudregister', 'uploads /var/log/cloudregister');
+    is(scalar @journal_cmds, 1, 'journalctl excerpt captured exactly once');
+    like($journal_cmds[0], qr/journalctl -u guestregister\.service/, 'journal command targets guestregister.service');
+};
+
+subtest '[wait_for_guestregister] failed + PUBLIC_CLOUD_IGNORE_UNREGISTERED skips diagnostics' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my @uploads;
+    $instmod->redefine(ssh_script_run => sub { return 0 });
+    $instmod->redefine(ssh_script_output => sub { return 'guestregister.service - failed' });
+    $instmod->redefine(upload_log => sub { push @uploads, 1 });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+
+    set_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED', 1);
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+    is($inst->wait_for_guestregister(), 1, 'returns 1 for known/expected failure');
+    is(scalar @uploads, 0, 'no diagnostics captured for an ignored failure');
+    set_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED', undef);
+};
+
+subtest '[wait_for_guestregister] active on BYOS captures diagnostics before dying' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my (@uploads, @journal_cmds);
+    $instmod->redefine(ssh_script_run => sub { return 0 });
+    $instmod->redefine(ssh_script_output => sub {
+            my ($self, %args) = @_;
+            push @journal_cmds, $args{cmd} if $args{cmd} =~ /journalctl/;
+            return 'guestregister.service - active';
+    });
+    $instmod->redefine(upload_log => sub { my ($self, $log, %args) = @_; push @uploads, [$log, \%args] });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $instmod->redefine(is_byos => sub { return 1 });
+
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+    throws_ok { $inst->wait_for_guestregister() } qr/should not be active on BYOS/, 'dies for active-on-BYOS';
+    is(scalar @uploads, 1, 'upload_log called exactly once before dying');
+    is(scalar @journal_cmds, 1, 'journalctl excerpt captured exactly once before dying');
+};
+
+subtest '[wait_for_guestregister] timeout captures diagnostics before dying' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my (@uploads, @journal_cmds);
+    $instmod->redefine(ssh_script_run => sub { return 0 });
+    $instmod->redefine(ssh_script_output => sub {
+            my ($self, %args) = @_;
+            push @journal_cmds, $args{cmd} if $args{cmd} =~ /journalctl/;
+            return 'guestregister.service - activating';
+    });
+    $instmod->redefine(upload_log => sub { my ($self, $log, %args) = @_; push @uploads, [$log, \%args] });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
+    throws_ok { $inst->wait_for_guestregister(timeout => 0) } qr/didn't end in expected timeout/, 'dies on timeout';
+    is(scalar @uploads, 1, 'upload_log called exactly once before dying');
+    is(scalar @journal_cmds, 1, 'journalctl excerpt captured exactly once before dying');
+};
+
 done_testing;
