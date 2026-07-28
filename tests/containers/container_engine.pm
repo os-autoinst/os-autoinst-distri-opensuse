@@ -114,7 +114,7 @@ sub basic_container_tests {
 
     # Check for https://bugzilla.suse.com/show_bug.cgi?id=1241216
     my $oci_runtime = get_var("OCI_RUNTIME");
-    if ($oci_runtime) {
+    if (!$oci_runtime) {
         my $template = ($runtime eq "podman") ? "{{ .Host.OCIRuntime.Name }}" : "{{ .DefaultRuntime }}";
         $oci_runtime = script_output("$runtime info -f '$template'");
         # ATM only SLEM 6.0 & SLEM 6.1 use crun for podman
