@@ -5,7 +5,7 @@
 
 # Package: cloud-regionsrv-client
 # Summary: Register addons in the remote system
-#   Registration is in registercloudguest test module
+#   Registration is in registration_lifecycle test module
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
