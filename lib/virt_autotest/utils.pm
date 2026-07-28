@@ -1950,13 +1950,17 @@ sub reselect_openqa_console {
 
 =head2 select_backend_console
 
-Select corresponding ipmi or qemu backend console 'root-ssh' or 'root-console'.
-If argument init is set, select ipmi backend 'sol' console. User can also set
-arguments console or wait to select cusotmized console in desired behavior.
+Select corresponding ipmi, qemu or pvm_hmc backend console, namely 'root-ssh' or
+'root-console'. If argument init is set, select 'sol' console for ipmi backend, 
+or powerhmc-ssh for pvm_hmc backend because test run is in initialization or the
+very beginning phase, for example, pxe boot, host installation or startup. User
+can also set desired console or choose whether to wait for the selected console.
+Argument reset_times specifies the number of times reset_consoles to be done.
 =cut
 
 sub select_backend_console {
     my (%args) = @_;
+    $args{reset_times} //= 1;
     $args{init} //= 1;
     $args{wait} //= 0;
 
@@ -1966,8 +1970,11 @@ sub select_backend_console {
     elsif (is_qemu) {
         $args{console} //= 'root-console';
     }
+    elsif (is_ppc64le) {
+        $args{console} //= ($args{init} ? 'powerhmc-ssh' : 'root-ssh') if (is_pvm_hmc);
+    }
 
-    reset_consoles;
+    reset_consoles for (0 .. $args{reset_times} - 1);
     if (is_ipmi) {
         select_console($args{console}, await_console => $args{wait});
         use_ssh_serial_console if (!$args{init});
@@ -1977,6 +1984,10 @@ sub select_backend_console {
         select_console($args{console}, await_console => $args{wait});
         ensure_serialdev_permissions;
         serial_terminal::prepare_serial_console();
+    }
+    elsif (is_ppc64le) {
+        select_console($args{console}, await_console => $args{wait});
+        select_console('root-ssh') if (!$args{init});
     }
 }
 
