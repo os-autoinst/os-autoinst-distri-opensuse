@@ -45,7 +45,7 @@ function(access_ssh_enabled=false,
          
         base_lib.bootloader(bootloader, bootloader_timeout, bootloader_extra_kernel_params) +
         {
-          [if dasd == true then 'dasd']: dasd_lib.dasd(),
+          [if dasd == true then 'dasd']: if storage == 'lvm_2_disks_dasd' then dasd_lib['dasd_2_disks'] else dasd_lib['dasd'],
           [if files == true then 'files']: base_lib['files'],
           [if iscsi_target_address != '' then 'iscsi']: iscsi_lib.iscsi(iscsi_target_address),
           [if localization == true then 'localization']: base_lib['localization'],
