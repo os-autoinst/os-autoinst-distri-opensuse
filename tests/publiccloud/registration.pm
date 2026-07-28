@@ -48,6 +48,10 @@ sub run {
     if (is_sle('>15-SP5') && is_container_host()) {
         pc_pkg_call($args->{my_instance}, "in --force-resolution -y curl");
     }
+    $args->{my_instance}->ssh_script_run(cmd => "sudo zypper lr -u");
+    $args->{my_instance}->ssh_script_run(cmd => "sudo zypper ls -u");
+    $args->{my_instance}->ssh_script_run(cmd => "echo enough here");
+    $args->{my_instance}->ssh_assert_script_run(cmd => "false");
 }
 
 sub test_flags {
