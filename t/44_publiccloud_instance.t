@@ -299,7 +299,7 @@ subtest '[wait_for_ssh_login] timeout/delay/retry argument propagation' => sub {
     $inst->wait_for_ssh_login(timeout => 600);
     is($call_args[-1]->{delay}, 30, 'delay still defaults to 30');
     is($call_args[-1]->{retry}, 600 / 30, 'retry scales with custom timeout (20)');
-    like($call_args[-1]->{fail_message}, qr/30 attempts in 600 seconds/, 'fail_message reflects custom timeout');
+    like($call_args[-1]->{fail_message}, qr/20 attempts in 600 seconds/, 'fail_message reflects custom timeout');
 
     # Explicit delay propagates and drives retry = timeout/delay
     $inst->wait_for_ssh_login(delay => 10);
