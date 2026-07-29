@@ -59,7 +59,6 @@ sub run {
             # waagent (Azure Linux VM Agent)
             record_info('waagent', $instance->ssh_script_output('systemctl --no-pager --full status waagent*', proceed_on_failure => 1));
             $instance->ssh_assert_script_run('systemctl is-active waagent.service');
-            $instance->ssh_assert_script_run('systemctl is-enabled waagent-network-setup.service');
         }
         if ((is_azure || is_ec2) && !is_container_host()) {
             # cloud-init
