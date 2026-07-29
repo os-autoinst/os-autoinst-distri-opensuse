@@ -63,14 +63,22 @@ sub run {
         }
         if ((is_azure || is_ec2) && !is_container_host()) {
             # cloud-init
-            record_info('cloud-init', $instance->ssh_script_output('systemctl --no-pager --full status cloud-init*', proceed_on_failure => 1));
+            # cloud-init.target/cloud-config.target only become active once cloud-final has
+            # completed, which can still be running when this module executes (poo#204852).
+            # Wait for cloud-init to settle first; the exit code is only informational here,
+            # actual pass/fail is judged by the is-active checks below and by check_cloudinit.
+            my $rc = $instance->ssh_script_run(cmd => 'sudo cloud-init status --wait', timeout => 300);
+            if ($rc) {
+                my $cloud_final = $instance->ssh_script_output('systemctl --no-pager --full status cloud-init* cloud-final.service', proceed_on_failure => 1);
+                record_info('cloud-init', "cloud-init status --wait returned '$rc'\n\n$cloud_final");
+            }
             $instance->ssh_assert_script_run('systemctl is-active cloud-init.service');
-            $instance->ssh_assert_script_run('systemctl is-active cloud-init.target');
+            $instance->ssh_script_retry('systemctl is-active cloud-init.target', retry => 6, delay => 10);
             $instance->ssh_assert_script_run('systemctl is-active cloud-init-local.service');
             # cloud-config
             record_info('cloud-config', $instance->ssh_script_output('systemctl --no-pager --full status cloud-config*', proceed_on_failure => 1));
             $instance->ssh_assert_script_run('systemctl is-active cloud-config.service');
-            $instance->ssh_assert_script_run('systemctl is-active cloud-config.target');
+            $instance->ssh_script_retry('systemctl is-active cloud-config.target', retry => 6, delay => 10);
         }
         if (is_gce) {
             # google-guest-agent & google-osconfig-agent
