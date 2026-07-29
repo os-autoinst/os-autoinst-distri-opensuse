@@ -37,7 +37,7 @@ sub run {
         record_info('azuremetadata detail', $instance->ssh_script_output('sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml'));
     }
     elsif (is_gce) {
-        pc_zypper_call($instance, 'in python3-gcemetadata') unless $instance->ssh_script_run('rpm -q python3-gcemetadata') == 0;
+        pc_zypper_call($instance, 'in python3-gcemetadata') unless $instance->ssh_script_run('which gcemetadata') == 0;
         # Dump all instance metadata
         record_info('gcemetadata instance', $instance->ssh_script_output('gcemetadata --query instance'));
         # XML output format - skipped due to upstream gcemetadata bug: passing --xml with --query
