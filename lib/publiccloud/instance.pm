@@ -323,16 +323,18 @@ Returns the time needed to wait for the guestregister to complete.
 
     $self->_upload_guestregister_diagnostics($log, $name);
 
-Upload C<$log> (e.g. C</var/log/cloudregister>) and a short C<journalctl -u
-guestregister.service> excerpt. Used by C<wait_for_guestregister> right
-before dying, so a failure carries the actual registration error instead of
-just the systemd state.
+Upload C<$log> (e.g. C</var/log/cloudregister>) and the full C<journalctl -u
+guestregister.service> output, as a separate asset file. Used by
+C<wait_for_guestregister> right before dying, so a failure carries the
+actual registration error instead of just the systemd state.
 =cut
 
 sub _upload_guestregister_diagnostics {
     my ($self, $log, $name) = @_;
     $self->upload_log($log, log_name => $name, failok => 1);
-    record_info('guestregister journal', $self->ssh_script_output(cmd => 'sudo journalctl -u guestregister.service --no-pager -n 200', proceed_on_failure => 1), result => 'fail');
+    my $journal_log = '/tmp/guestregister-journal.log';
+    $self->ssh_script_run(cmd => "sudo journalctl -u guestregister.service --no-pager > $journal_log", proceed_on_failure => 1);
+    $self->upload_log($journal_log, log_name => $autotest::current_test->{name} . '-guestregister-journal.log.txt', failok => 1);
 }
 
 sub wait_for_guestregister {
