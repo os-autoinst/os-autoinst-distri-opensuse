@@ -2107,5 +2107,18 @@
             ]
         },
         "type": "bug"
+    },
+    "bsc#1272527": {
+        "description": "pam_wtmpdb\\(login:session\\): Update of logout time changed wrong number of rows, expected \\d+, got \\d+",
+        "products": {
+            "opensuse": [
+                "Tumbleweed"
+            ],
+            "microos": [
+                "Tumbleweed"
+            ]
+        },
+        "type": "bug"
     }
 }
+
