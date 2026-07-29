@@ -94,7 +94,7 @@ sub run {
     }
     # cloud-netconfig
     # in GCE from 15-SP4 (see bsc#1227507, bsc#1227508)
-    unless ((is_sle('<15-SP4') && is_gce) || is_container_host) {
+    unless ((is_sle('<15-SP4') && is_gce) || is_container_host || is_ecs) {
         record_info('cloud-netconfig', $instance->ssh_script_output('systemctl --no-pager --full status cloud-netconfig*', proceed_on_failure => 1));
         $instance->ssh_assert_script_run('systemctl is-enabled cloud-netconfig.service');
         $instance->ssh_assert_script_run('systemctl is-active cloud-netconfig.timer');

@@ -42,6 +42,7 @@ our @EXPORT = qw(
   is_ondemand
   is_ec2
   is_ec2_xen
+  is_ecs
   is_azure
   is_gce
   is_container_host
@@ -81,6 +82,11 @@ sub is_ondemand() {
 # Check if we are on an AWS test run
 sub is_ec2() {
     return is_public_cloud && check_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+}
+
+# check is this is a EC2 ECS instance
+sub is_ecs() {
+    return is_public_cloud && get_var('FLAVOR') =~ /-ECS-/i;
 }
 
 sub is_ec2_xen {
