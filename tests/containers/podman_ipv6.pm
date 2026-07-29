@@ -19,13 +19,16 @@ use utils 'script_retry';
 sub _cleanup {
     my ($self, %args) = @_;
     my $podman = $self->containers_factory('podman');
-    # only switch to log-console on failure, poo#204498 - tty5 can be blanked
-    # after sitting idle for the whole test and never wakes up in time
-    select_console 'log-console' if $args{show_log};
     $podman->cleanup_system_host();
 
     my $registry_ipv4 = script_output('dig +short registry.opensuse.org A | grep -v suse');
     assert_script_run("iptables -D OUTPUT -d $registry_ipv4 -j DROP");
+
+    # only view log-console on failure, poo#204498 - tty5 can be blanked
+    # after sitting idle for the whole test and never wakes up in time.
+    # eval-wrapped so a stall there can't crash the hook after the network
+    # cleanup above already ran.
+    eval { select_console 'log-console' } if $args{show_log};
 }
 
 sub run {

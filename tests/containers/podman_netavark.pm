@@ -79,9 +79,6 @@ sub is_container_running {
 sub _cleanup {
     my ($self, %args) = @_;
     my $podman = $self->containers_factory('podman');
-    # only switch to log-console on failure, poo#204498 - tty5 can be blanked
-    # after sitting idle for the whole test and never wakes up in time
-    select_console 'log-console' if $args{show_log};
     remove_subtest_setup;
 
     if (is_cni_default) {
@@ -94,6 +91,12 @@ sub _cleanup {
     }
 
     validate_script_output('podman network ls', sub { /podman\s+bridge/ });
+
+    # only view log-console on failure, poo#204498 - tty5 can be blanked
+    # after sitting idle for the whole test and never wakes up in time.
+    # eval-wrapped so a stall there can't crash the hook after the network
+    # cleanup above already ran.
+    eval { select_console 'log-console' } if $args{show_log};
 }
 
 sub switch_to_netavark {
