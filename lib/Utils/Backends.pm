@@ -111,7 +111,7 @@ Returns true if the current instance is running as remote backend
 
 sub is_remote_backend {
     # s390x uses only remote repos
-    return check_var('ARCH', 's390x') || (get_var('BACKEND', '') =~ /ipmi|svirt/) || is_pvm();
+    return check_var('ARCH', 's390x') || (get_var('BACKEND', '') =~ /ipmi|svirt|ova/) || is_pvm();
 }
 
 # In some cases we are using a VNC connection provided by the hypervisor that
@@ -177,7 +177,7 @@ Returns true if the current instance is running as svirt backend except s390x
 =cut
 
 sub is_svirt_except_s390x {
-    return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
+    return !get_var('S390_ZKVM') && (check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ova'));
 }
 
 =head2 is_pvm
@@ -217,7 +217,7 @@ Returns true if the current instance is running as svirt backend
 =cut
 
 sub is_svirt {
-    return check_var('BACKEND', 'svirt');
+    return check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ova');
 }
 
 =head2 is_image_backend
