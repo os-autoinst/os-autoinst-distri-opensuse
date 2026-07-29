@@ -506,7 +506,7 @@ sub wait_for_ssh_login {
 
     ## ssh options to avoid issues with pipelining and host key validation
     my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10 -o strictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
-    $self->ssh_script_retry("true", ssh_opts => $ssh_opts, retry => $retry, delay => $delay, fail_message => "ssh connection failed ($delay attempts in $timeout seconds)");
+    $self->ssh_script_retry("true", ssh_opts => $ssh_opts, retry => $retry, delay => $delay, fail_message => "ssh connection failed ($retry attempts in $timeout seconds)");
 }
 
 =head2 isok
