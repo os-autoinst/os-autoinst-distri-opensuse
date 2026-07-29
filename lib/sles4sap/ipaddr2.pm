@@ -2064,6 +2064,25 @@ sub ipaddr2_wait_for_takeover(%args) {
             record_info("TAKE_OVER", "Webserver now reply from $dest_vm");
             return 1;
         }
+
+        record_info("DIAGNOSE_LOOP_$counter", "Probe failed, capturing real-time loop diagnostics");
+        ipaddr2_ssh_bastion_script_output(
+            bastion_ip => $args{bastion_ip},
+            cmd => "echo '--- Verbose Web Probe ---' && curl -iv --connect-timeout 3 http://$frontend_ip || true"
+        );
+        ipaddr2_ssh_bastion_script_output(
+            bastion_ip => $args{bastion_ip},
+            cmd => "echo '--- Ping Test ---' && ping -c 3 $frontend_ip || true"
+        );
+        ipaddr2_ssh_internal(id => 1, bastion_ip => $args{bastion_ip},
+            cmd => "echo '--- CRM Status at retry $counter ---' && sudo crm status || true"
+        );
+        for my $i (1, 2) {
+            ipaddr2_ssh_internal(id => $i, bastion_ip => $args{bastion_ip},
+                cmd => "echo '--- VM-$i Network Listeners ---' && ss -tlnp | grep -E '80|62500' || true"
+            );
+        }
+
         sleep 10;
         $counter++;
     }

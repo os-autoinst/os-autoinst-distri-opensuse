@@ -70,6 +70,14 @@ sub run {
 
     my $bastion_ip = ipaddr2_bastion_pubip();
 
+    record_info("DEBUG_BEFORE", "Capture cluster and network state before move");
+    for my $node_id (1, 2) {
+        my $node_name = sles4sap::ipaddr2::ipaddr2_get_internal_vm_name(id => $node_id);
+        sles4sap::ipaddr2::ipaddr2_ssh_internal(id => $node_id, bastion_ip => $bastion_ip,
+            cmd => "echo '=== $node_name IP ===' && ip addr show && echo '=== $node_name Listeners ===' && ss -tlnp");
+    }
+    sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => $bastion_ip, cmd => "echo '=== CRM STATUS ===' && sudo crm status && echo '=== CRM CONFIG ===' && sudo crm configure show");
+
     # 1. get the webpage using the LB floating IP. It should be from VM1 at the test beginning
     # 2. move the cluster resource on the VM2
     # 3. get the webpage using the LB floating IP. It should be from VM2
@@ -81,6 +89,9 @@ sub run {
     # backend IP of the VM-02
     ipaddr2_crm_move(bastion_ip => $bastion_ip, destination => 2);
     sleep 30;
+
+    record_info("DEBUG_AFTER", "Capture cluster constraints and state after crm move");
+    sles4sap::ipaddr2::ipaddr2_ssh_internal(id => 1, bastion_ip => $bastion_ip, cmd => "echo '=== CRM STATUS AFTER MOVE ===' && sudo crm status && echo '=== CRM CONSTRAINTS ===' && sudo crm configure show xml | grep -i rsc_location");
 
     # probe the webserver using the frontend IP
     # until the reply come from the VM-02
