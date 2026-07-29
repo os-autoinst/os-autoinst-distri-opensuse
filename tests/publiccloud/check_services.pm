@@ -62,14 +62,16 @@ sub run {
             $instance->ssh_assert_script_run('systemctl is-enabled waagent-network-setup.service');
         }
         if ((is_azure || is_ec2) && !is_container_host()) {
+            # cloud-init
             # cloud-init.target/cloud-config.target only become active once cloud-final has
             # completed, which can still be running when this module executes (poo#204852).
             # Wait for cloud-init to settle first; the exit code is only informational here,
             # actual pass/fail is judged by the is-active checks below and by check_cloudinit.
             my $rc = $instance->ssh_script_run(cmd => 'sudo cloud-init status --wait', timeout => 300);
-            record_info('cloud-init wait', "cloud-init status --wait returned $rc") if ($rc);
-            # cloud-init
-            record_info('cloud-init', $instance->ssh_script_output('systemctl --no-pager --full status cloud-init* cloud-final.service', proceed_on_failure => 1));
+            if ($rc) {
+                my $cloud_final = $instance->ssh_script_output('systemctl --no-pager --full status cloud-init* cloud-final.service', proceed_on_failure => 1);
+                record_info('cloud-init', "cloud-init status --wait returned '$rc'\n\n$cloud_final");
+            }
             $instance->ssh_assert_script_run('systemctl is-active cloud-init.service');
             $instance->ssh_script_retry('systemctl is-active cloud-init.target', retry => 6, delay => 10);
             $instance->ssh_assert_script_run('systemctl is-active cloud-init-local.service');
