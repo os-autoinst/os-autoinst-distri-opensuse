@@ -9,6 +9,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use Utils::Backends;
 use utils;
 use audit_test 'parse_kvm_svirt_apparmor_results';
 
@@ -35,7 +36,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => has_snapshots};
 }
 
 1;

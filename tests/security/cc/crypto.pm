@@ -9,6 +9,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use Utils::Backends;
 use utils;
 use audit_test qw(run_testcase compare_run_log);
 
@@ -29,7 +30,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => has_snapshots};
 }
 
 1;

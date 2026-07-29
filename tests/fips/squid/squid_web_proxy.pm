@@ -10,6 +10,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
+use Utils::Backends;
 use utils qw(systemctl);
 use version_utils 'is_sle';
 
@@ -45,7 +46,7 @@ sub post_fail_hook {
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => has_snapshots};
 }
 
 1;
