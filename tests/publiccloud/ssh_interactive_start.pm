@@ -21,10 +21,12 @@ sub run {
     my ($self, $args) = @_;
     die "tunnel-console requires the TUNNELED=1 setting" unless (is_tunneled());
 
-    # activate tty2/tty3/tty4 in advance, as under some circumstances test fails
-    # on assert_screen() if too much time has passed without activity in the tty
+    # activate tty2/tty3/tty4/tty5 in advance, as under some circumstances test
+    # fails on assert_screen() if too much time has passed without activity in
+    # the tty. tty5 (log-console) is rarely used during a passing run, so it's
+    # especially prone to this - see poo#204498.
     select_serial_terminal();
-    systemctl("restart getty\@tty$_.service", timeout => 60) for (2 .. 4);
+    systemctl("restart getty\@tty$_.service", timeout => 60) for (2 .. 5);
 
     # Initialize ssh tunnel for the serial device, if not yet happened
     ssh_interactive_tunnel($args->{my_instance}) if (get_var('_SSH_TUNNELS_INITIALIZED', 0) == 0);
