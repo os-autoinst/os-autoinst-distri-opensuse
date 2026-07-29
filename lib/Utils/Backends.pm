@@ -33,6 +33,7 @@ use constant {
           is_ipmi
           is_qemu
           is_svirt
+          is_ova
           is_image_backend
           is_ssh_installation
           is_backend_s390x
@@ -218,6 +219,16 @@ Returns true if the current instance is running as svirt backend
 
 sub is_svirt {
     return check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ova');
+}
+
+=head2 is_ova
+
+Returns true if the current instance is running as ova backend
+
+=cut
+
+sub is_ova {
+    return check_var('BACKEND', 'ova');
 }
 
 =head2 is_image_backend
