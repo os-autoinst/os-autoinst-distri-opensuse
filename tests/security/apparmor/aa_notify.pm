@@ -75,8 +75,10 @@ sub run {
     # line with "/m" instead of anchoring the whole output, as newer
     # apparmor-notify versions can print additional informational lines
     # (e.g. "ttkthemes not found. Install for best user experience.")
-    # before the actual denial summary.
-    validate_script_output "aa-notify -s 1", sub { m/^AppArmor\sdenials?:\s+0\s+\(since.*$/m };
+    # before the actual denial summary. Older apparmor versions (e.g. 2.8.2 on
+    # SLE 12-SP5) print no output at all when there are no denials, so accept
+    # empty output as well (poo#204807).
+    validate_script_output "aa-notify -s 1", sub { !/\S/ || m/^AppArmor\sdenials?:\s+0\s+\(since/m };
 
     # Make it failed intentionally to get some audit messages
     assert_script_run "sed -i '/\\/etc\\/nscd.conf/d' $tmp_prof/usr.sbin.nscd" if is_sle('<=15-sp4');
