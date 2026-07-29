@@ -114,6 +114,8 @@ INSTALL_SOURCE | string | | Specify network protocol to be used as installation 
 INSTALLATION_VALIDATION | string | | Comma separated list of modules to be used for installed system validation, should be used in combination with INSTALLONLY, to schedule only relevant test modules.
 INSTALLONLY | boolean | false | Indicates that test suite conducts only installation. Is recommended to be used for all jobs which create and publish images
 INSTLANG | string | en_US | Installation locale settings.
+INST_FINISH | see Agama documentation for boot options parameter inst.finish.
+INST_FINISH_DISABLED | If set to 1 then the default behaviour is used, which is 'stop' for interactive installation, 'reboot' for unattende installation.
 IPERF_REPO | string | | Link to repository with iperf tool for network performance testing. Currently used in Public Cloud Azure test
 IPXE | boolean | false | Indicates ipxe boot.
 IPXE_BOOT_FIXED | boolean | false | Indicates to ipxe boot fixed distribution independent on DISTRI and VERSION variables.
