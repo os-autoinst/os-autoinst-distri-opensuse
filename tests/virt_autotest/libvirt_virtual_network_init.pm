@@ -72,7 +72,7 @@ sub run_test {
         #Used with attach-detach(hotplugging) interface to confirm all virtual network mode
         #NOTE: Required all guests keep running status
         #Ensures the SSH connection and ICMP PING responses is workable for given guest system
-        validate_guest_status($guest);
+        validate_guest_status($guest, vif_src => $primary_vif_src);
         save_guest_ip($guest, name => "br123");
         virt_autotest::utils::ssh_copy_id($guest);
 

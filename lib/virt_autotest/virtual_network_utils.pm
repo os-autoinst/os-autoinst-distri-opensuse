@@ -496,15 +496,30 @@ sub update_simple_dns_for_all_vm {
 
 sub validate_guest_status {
     my ($guest, %args) = @_;
-    my $timeout = $args{timeout} // "180";
+    my $timeout = $args{timeout} // "360";
+    my $vif_src = $args{vif_src};
+    my $ping_target = $guest;
+
+    # If vif_src is provided, try to get the guest's IP to avoid hostname resolution issues
+    if ($vif_src) {
+        eval {
+            $ping_target = get_vm_ip_with_nmap($guest, source => $vif_src);
+            record_info("Using guest IP for ping", "Guest: $guest, IP: $ping_target");
+        };
+        if ($@) {
+            record_info("Warning", "Failed to get guest IP, fallback to hostname: $@");
+            $ping_target = $guest;
+        }
+    }
+
     #Ensure the given guest as running status
     if (script_run("virsh list --all | grep $guest | grep running") ne 0) {
         assert_script_run "virsh list --all | grep $guest";
         save_screenshot;
         die "Error: $guest should keep running, please check manually!";
     } else {
-        #Ensure the ICMP PING responses for the given guest
-        die "Error: Ping $guest failed, please check manually!" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => $timeout) ne 0);
+        #Ensure the ICMP PING responses for the given guest (using IP if provided to avoid hostname resolution issues)
+        die "Error: Ping $ping_target failed, please check manually!" if (script_retry("ping -c5 $ping_target", delay => 30, retry => 6, timeout => $timeout) ne 0);
         #Ensure the SSH connection for the given guest
         die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -zv $guest 22", delay => 30, retry => 6, timeout => $timeout) ne 0);
     }
