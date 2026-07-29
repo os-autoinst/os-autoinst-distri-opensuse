@@ -98,11 +98,11 @@ sub run {
     select_serial_terminal;
 
     # Upload test profile for reference
-    upload_logs($test_profile);
+    apparmortest::upload_logs_from_tmp($test_profile);
 
     # Yast2 AppArmor clean up
     assert_script_run("mv $test_profile_bk $test_profile");
-    upload_logs($apparmortest::audit_log);
+    apparmortest::upload_logs_from_tmp($audit_log);
 }
 
 1;

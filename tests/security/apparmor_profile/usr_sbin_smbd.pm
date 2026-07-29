@@ -120,8 +120,8 @@ sub run {
     }
 
     # Upload logs for reference
-    upload_logs("/var/log/samba/log.smbd");
-    upload_logs("$audit_log");
+    apparmortest::upload_logs_from_tmp("/var/log/samba/log.smbd");
+    apparmortest::upload_logs_from_tmp("$audit_log");
 }
 
 1;

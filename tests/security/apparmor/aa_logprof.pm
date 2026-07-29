@@ -63,7 +63,7 @@ sub run {
     assert_script_run "aa-status | tee /dev/$serialdev";
 
     # Upload audit.log for reference
-    upload_logs "$log_file";
+    apparmortest::upload_logs_from_tmp("$log_file");
 
     select_console 'root-console';
     script_run_interactive("aa-logprof -d $aa_tmp_prof", $interactive_str, 30);
