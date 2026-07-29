@@ -154,31 +154,15 @@ subtest '[terraform_apply] vars' => sub {
     # Extract the single recorded call that runs 'tofu ... plan ...'
     my ($plan_cmd) = grep { /tofu.*plan/ } @calls;
     ok($plan_cmd, "tofu plan is executed");
-    # Strip _tofu_run_step()'s "env TF_LOG=... " prefix and " > file 2>&1" suffix.
-    $plan_cmd =~ s/^env TF_LOG=\S+ //;
-    $plan_cmd =~ s/ > \S+ 2>&1$//;
 
-    # Split the command into its individual -var arguments. Values may contain
-    # the shell single-quote escape sequence '"'"', so we split on the ' -var '
-    # delimiter rather than trying to match balanced quotes.
-    my @var_args = split(/\s+-var\s+/, $plan_cmd);
-    shift @var_args;    # drop the 'tofu plan -no-color -out myplan' prefix
-
-    # Keep only the Borg* vars we injected, mapping key => escaped value.
-    # Each argument looks like:  'KEY=VALUE', with the last one also carrying
-    # the ' 2>&1 | tee tf_plan_output' redirection _tofu_run_step appends. As
-    # that suffix never contains a quote, dropping the trailing anchor still
-    # lets the greedy (.*) match up to the real closing quote.
-    my %borg;
-    for my $arg (@var_args) {
-        my ($key, $val) = $arg =~ /^'([^=]+)=(.*)'/s;
-        next unless defined $key && $key =~ /^Borg/;
-        $borg{$key} = $val;
-    }
-
-    is($borg{Borg00}, q{ResistanceIsFutile}, 'plain value left unescaped');
-    is($borg{Borg01}, q{Resistance'"'"'IsFutile}, 'single quote escaped');
-    is($borg{Borg10}, q{Resistance'"'"'Is'"'"'Futile}, 'multiple single quotes escaped');
+    # Each var reaches tofu as a shell-single-quoted -var 'KEY=VALUE', with any
+    # embedded single quote escaped as '"'"' (escape_single_quote). Match those
+    # verbatim anywhere in the recorded command; \Q..\E keeps the quotes/escapes
+    # literal, so the surrounding "env TF_LOG=... " / " > file 2>&1" wrapper needs
+    # no stripping and no per-var splitting/parsing is required.
+    like($plan_cmd, qr/\Q-var 'Borg00=ResistanceIsFutile'\E/, 'plain value left unescaped');
+    like($plan_cmd, qr/\Q-var 'Borg01=Resistance'"'"'IsFutile'\E/, 'single quote escaped');
+    like($plan_cmd, qr/\Q-var 'Borg10=Resistance'"'"'Is'"'"'Futile'\E/, 'multiple single quotes escaped');
 
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
 };
@@ -326,12 +310,11 @@ sub _mock_terraform_apply {
     # responses script_run gets. init/plan aren't under test here and match
     # none of the 'apply.*myplan'-style patterns below, so they transparently
     # succeed (exit 0) unless a subtest explicitly scripts them.
+    # _tofu_run_step() wraps tofu commands as "env TF_LOG=... <cmd> > file 2>&1",
+    # but every assertion below matches substrings/captures on the recorded call,
+    # so the wrapper is harmless and needs no stripping here.
     $mock->redefine($_ => sub {
             my ($cmd) = @_;
-            # _tofu_run_step() prefixes with "env TF_LOG=... " and suffixes with " > file 2>&1".
-            # Strip both so the assertions below see the plain command.
-            $cmd =~ s/^env TF_LOG=\S+ //;
-            $cmd =~ s/ > \S+ 2>&1$//;
             push @{$args{calls}}, $cmd;
             my $r = $next_response->($cmd);
             return (defined $r ? ($r->{exit} // 0) : 0);
