@@ -186,8 +186,9 @@ sub setup_trento_ingress_tls {
         hostname => $args{hostname},
         namespace => $args{namespace});
     assert_script_run("$args{kubeconfig} kubectl apply -f " . _shell_quote($issuer_file), timeout => 120);
+    assert_script_run("$args{kubeconfig} kubectl wait --for=condition=Ready --timeout=300s clusterissuer/selfsigned-issuer", timeout => 330);
     assert_script_run("$args{kubeconfig} kubectl apply -f " . _shell_quote($certificate_file), timeout => 120);
-    assert_script_run("$args{kubeconfig} kubectl wait --for=condition=Ready certificate/trento-certificate --timeout=180s", timeout => 200);
+    assert_script_run("$args{kubeconfig} kubectl wait --for=condition=Ready --timeout=300s certificate/trento-certificate", timeout => 330);
 
     return ($tls_values_file, $smoke_test_script);
 }
