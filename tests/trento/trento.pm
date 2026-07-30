@@ -105,8 +105,24 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     my $kubeconfig = 'KUBECONFIG=/etc/rancher/k3s/k3s.yaml';
+    my $release = get_var('TRENTO_HELM_RELEASE', 'trento-server');
+    my $selector = 'app.kubernetes.io/instance=trento-server';
 
     record_info('Pods', script_output("$kubeconfig kubectl get pods -A -o wide", proceed_on_failure => 1));
+    script_run("$kubeconfig helm status " . trento_shell_quote($release) . " > /tmp/trento-helm-status.txt 2>&1", timeout => 120);
+    script_run("$kubeconfig helm get values " . trento_shell_quote($release) . " -a > /tmp/trento-helm-values.txt 2>&1", timeout => 120);
+    script_run("$kubeconfig kubectl describe pods -A > /tmp/trento-kubectl-describe-pods.txt 2>&1", timeout => 300);
+    script_run("$kubeconfig kubectl get events -A --sort-by=.lastTimestamp > /tmp/trento-k8s-events.txt 2>&1", timeout => 180);
+    script_run(
+        "for p in \$(env $kubeconfig kubectl get pods -n default -l $selector -o name 2>/dev/null); do " .
+          "safe=\$(echo \"\$p\" | tr '/:' '__'); " .
+          "env $kubeconfig kubectl describe -n default \"\$p\" > \"/tmp/trento-\${safe}-describe.txt\" 2>&1; " .
+          "env $kubeconfig kubectl logs -n default \"\$p\" --all-containers=true --timestamps > \"/tmp/trento-\${safe}-logs.txt\" 2>&1; " .
+          "env $kubeconfig kubectl logs -n default \"\$p\" --all-containers=true --previous --timestamps > \"/tmp/trento-\${safe}-logs-previous.txt\" 2>&1; " .
+          "done",
+        timeout => 600);
+    my @diag_files = split(/\n/, script_output('ls -1 /tmp/trento-*.txt 2>/dev/null || true', proceed_on_failure => 1));
+    upload_logs($_, failok => 1) for @diag_files;
     gather_k8s_logs();
 }
 
