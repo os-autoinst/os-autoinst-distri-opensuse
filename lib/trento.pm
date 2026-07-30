@@ -155,10 +155,10 @@ sub _prepare_tls_termination_files {
     file_content_replace($certificate_file,
         '\$\{TRENTO_NAMESPACE\}' => $args{namespace},
         '\$\{TRENTO_WEB_ORIGIN\}' => $args{hostname},
-        letsencrypt-production => 'selfsigned-issuer');
+        'letsencrypt-production' => 'selfsigned-issuer');
     file_content_replace($values_file,
         '\$\{TRENTO_WEB_ORIGIN\}' => $args{hostname},
-        letsencrypt-production => 'selfsigned-issuer');
+        'letsencrypt-production' => 'selfsigned-issuer');
 
     return ($issuer_file, $certificate_file, $values_file);
 }
