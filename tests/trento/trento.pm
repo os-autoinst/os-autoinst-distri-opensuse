@@ -48,7 +48,7 @@ sub run {
     assert_script_run('curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true sh', timeout => 600);
     assert_script_run('mkdir -p ~/.kube && ln -sf /etc/rancher/k3s/k3s.yaml ~/.kube/config');
     assert_script_run('curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-4 | bash', timeout => 600);
-    script_retry("env $kubeconfig kubectl get nodes -o name | grep -q '^node/'", timeout => 30, retry => 50, delay => 6);
+    script_retry("env $kubeconfig kubectl get nodes -o name | grep -q '^node/'", timeout => 180, retry => 10, delay => 10);
     assert_script_run("$kubeconfig kubectl wait --for=condition=Ready node --all --timeout=300s", timeout => 330);
 
     # The chart creates Traefik Middleware objects, so wait for Traefik CRDs and deployment.
