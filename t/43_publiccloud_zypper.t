@@ -28,6 +28,7 @@ use publiccloud::zypper qw(
   pc_installed_packages
   pc_available_packages
   pc_install_packages_local
+  EXIT_LOCKED
   EXIT_REPOS_SKIPPED
   EXIT_TIMEOUT
   EXIT_TIMEOUT_KILLED
@@ -145,6 +146,10 @@ subtest '[_validate_args] guards' => sub {
 # arrayref used as a per-call queue (each call shifts the next value off,
 # repeating the last entry once exhausted) -- handy for simulating "fails N
 # times, then succeeds" retry scenarios.
+#
+# C<grep_rc> is the exit code returned for the internal C<sudo grep ...> log
+# probes (used by _handle_transient_failure to detect lock messages); it
+# defaults to 1 ("pattern not found"). Set it to 0 to simulate a match.
 sub _instance_mock {
     my (%behaviour) = @_;
     my $inst = Test::MockObject->new;
@@ -161,7 +166,7 @@ sub _instance_mock {
             my %a = @rest;
             $a{cmd} = $pos_cmd if defined $pos_cmd;
             push @{$s->{calls}}, {m => 'run', %a};
-            return 1 if defined $a{cmd} && $a{cmd} =~ /^sudo grep /;    # "not found" by default
+            return $behaviour{grep_rc} // 1 if defined $a{cmd} && $a{cmd} =~ /^sudo grep /;    # "not found" by default
             return shift(@run_rc_queue) if @run_rc_queue > 1;
             return $run_rc_queue[0] if @run_rc_queue;
             return $behaviour{run_rc} // 0;
@@ -182,16 +187,71 @@ sub _instance_mock {
 }
 
 subtest '[pc_zypper_call] prefixes sudo zypper -n' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
     my $captured;
     $mod->redefine(_run => sub { my ($inst, $full, %o) = @_; $captured = $full; return 0 });
     my $inst = _instance_mock();
+
     pc_zypper_call($inst, 'ref');
+
     is($captured, 'sudo zypper -n ref', 'command wrapped with sudo zypper -n');
 };
 
+# ---------------------------------------------------------------------------
+# _run / _retry_loop: resilience against SSH-level stalls and repo/credential
+# hiccups right after registration (poo#204057)
+#
+# Unlike the subtests above, these exercise the real _run/_retry_loop/
+# _handle_transient_failure code (only record_info is stubbed out, since it
+# needs a live $autotest::current_test which unit tests don't have).
+# ---------------------------------------------------------------------------
+
+subtest '[pc_zypper_call] _run enables apply_graceful_timeout by default' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    my $inst = _instance_mock(run_rc => 0);
+    pc_zypper_call($inst, 'ref', retry => 1, delay => 0);
+    my ($call) = grep { $_->{m} eq 'run' } @{$inst->{calls}};
+    ok($call, 'ssh_script_run invoked');
+    is($call->{apply_graceful_timeout}, 1,
+        'apply_graceful_timeout defaults on so a stalled SSH call cannot bypass the retry loop (poo#204057)');
+};
+
+subtest '[pc_zypper_call] _run apply_graceful_timeout can still be disabled explicitly' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    my $inst = _instance_mock(run_rc => 0);
+    pc_zypper_call($inst, 'ref', retry => 1, delay => 0, apply_graceful_timeout => 0);
+    my ($call) = grep { $_->{m} eq 'run' } @{$inst->{calls}};
+    is($call->{apply_graceful_timeout}, 0, 'caller override is respected');
+};
+
+subtest '[pc_zypper_call] _handle_transient_failure EXIT_TIMEOUT / EXIT_TIMEOUT_KILLED are retried' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+
+    for my $code (EXIT_TIMEOUT, EXIT_TIMEOUT_KILLED) {
+        my $inst = _instance_mock(run_rc => [$code, 0]);
+        my $ret = pc_zypper_call($inst, 'ref', retry => 2, delay => 0);
+        is($ret, 0, "exit $code is retried and the retry succeeds");
+        my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n ref' } @{$inst->{calls}};
+        is(scalar @attempts, 2, "exactly 2 attempts made for exit $code (no premature die)");
+    }
+};
+
+subtest '[pc_zypper_call] _handle_transient_failure EXIT_TIMEOUT dies once retries are exhausted' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    my $inst = _instance_mock(run_rc => EXIT_TIMEOUT);
+    throws_ok { pc_zypper_call($inst, 'ref', retry => 2, delay => 0) }
+    qr/failed with code: @{[EXIT_TIMEOUT]}/,
+      'still dies with the timeout exit code once every retry has been used up';
+    my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n ref' } @{$inst->{calls}};
+    is(scalar @attempts, 2, 'used all configured retries before giving up');
+};
+
 subtest '[pc_refresh] always plain zypper with gpg auto import' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
     my ($cmd, %opts_seen);
     $mod->redefine(pc_zypper_call => sub { my ($inst, $c, %o) = @_; $cmd = $c; %opts_seen = %o; return 0 });
     my $inst = _instance_mock();
@@ -212,7 +272,7 @@ subtest '[pc_add_repo] uses ssh_assert_script_run' => sub {
 };
 
 subtest '[pc_pkg_call] routing transactional vs plain' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
     my %seen;
     $mod->redefine(pc_transactional_call => sub { my ($i, $c, %o) = @_; $seen{transactional} = $c; return 0 });
     $mod->redefine(pc_zypper_call => sub { my ($i, $c, %o) = @_; $seen{zypper} = $c; return 0 });
@@ -239,8 +299,120 @@ subtest '[pc_pkg_call] routing transactional vs plain' => sub {
     ok(!defined $seen{transactional}, 'no translation on non-transactional host');
 };
 
-subtest '[pc_transactional_call] reboots on accepted exit code' => sub {
+subtest '[pc_pkg_call] _handle_transient_failure EXIT_REPOS_SKIPPED (106) fails immediately, not retried' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $mod->redefine(is_transactional => sub { 0 });
+
+    my $inst = _instance_mock(run_rc => EXIT_REPOS_SKIPPED);
+    throws_ok { pc_pkg_call($inst, 'in -y docker', retry => 3, delay => 0) }
+    qr/failed with code: 106.*poo#204057/s,
+      'dies with a poo#204057 pointer instead of silently retrying (not enough evidence yet it is safe to mask)';
+    my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n in -y docker' } @{$inst->{calls}};
+    is(scalar @attempts, 1, 'only the first attempt was made -- no retry');
+};
+
+sub _capture_pkg_call {
+    my ($transactional, $cmd, %opts) = @_;
     my $mod = Test::MockModule->new('publiccloud::zypper');
+    $mod->redefine(is_transactional => sub { $transactional });
+
+    my %captured;
+    $mod->redefine(pc_transactional_call => sub {
+            my ($instance, $c, %o) = @_;
+            $captured{transactional} = $c;
+            return 0;
+    });
+    $mod->redefine(pc_zypper_call => sub {
+            my ($instance, $c, %o) = @_;
+            $captured{zypper} = $c;
+            return 0;
+    });
+
+    my $inst = Test::MockObject->new;
+    pc_pkg_call($inst, $cmd, %opts);
+    return \%captured;
+}
+
+# These assert that zypper *command* options stay attached to the verb and are
+# never hoisted into transactional-update's global slot. Regression guard for
+# the case where `zypper in -y curl` became `transactional-update -y pkg ...`,
+# with -y being an invalid transactional-update global option.
+
+# Run pc_pkg_call with is_transactional() forced to $transactional and capture
+# the command string handed to the transactional / plain-zypper layer.
+subtest '[pc_pkg_call] command flags stay with verb, not hoisted to global' => sub {
+    my %cases = (
+        'in -y docker' => 'pkg install -y docker',
+        'in --force-resolution -y curl' => 'pkg install --force-resolution -y curl',
+        'in -r net_perf iperf' => 'pkg install -r net_perf iperf',
+        'install --no-recommends foo bar' => 'pkg install --no-recommends foo bar',
+        'update -y' => 'pkg update -y',
+        'in libcontainers-common' => 'pkg install libcontainers-common',
+        'rm -u oldpkg' => 'pkg remove -u oldpkg',
+    );
+    for my $input (sort keys %cases) {
+        my $cap = _capture_pkg_call(1, $input);
+        is $cap->{transactional}, $cases{$input},
+          "[$input] -> transactional-update $cases{$input}";
+        ok !defined $cap->{zypper}, "[$input] did not fall through to plain zypper";
+    }
+};
+
+# The core regression guard: a zypper *command* flag placed BEFORE the verb must
+# NOT be hoisted into transactional-update's global slot (where it is invalid).
+# The old loop swept every leading dash-token into @flags; these cases prove the
+# command flag now travels with the verb instead.
+subtest '[pc_pkg_call] pre-verb command flag is kept with the verb' => sub {
+    my %cases = (
+        '-y in docker' => 'pkg install -y docker',
+        '--force-resolution in curl' => 'pkg install --force-resolution curl',
+        '--no-recommends install foo' => 'pkg install --no-recommends foo',
+        # only the genuine global (-n) stays global; -y moves to the verb
+        '-n -y in curl' => '-n pkg install -y curl',
+    );
+    for my $input (sort keys %cases) {
+        my $cap = _capture_pkg_call(1, $input);
+        is $cap->{transactional}, $cases{$input},
+          "[$input] -> transactional-update $cases{$input}";
+    }
+};
+
+subtest '[pc_pkg_call] bare top-level verbs translate without pkg wrapper' => sub {
+    my %cases = (
+        'up' => 'up',
+        'dup' => 'dup',
+        'dist-upgrade' => 'dup',
+        'patch' => 'patch',
+    );
+    for my $input (sort keys %cases) {
+        my $cap = _capture_pkg_call(1, $input);
+        is $cap->{transactional}, $cases{$input},
+          "[$input] -> transactional-update $cases{$input}";
+    }
+};
+
+subtest '[pc_pkg_call] real transactional-update global opt is hoisted' => sub {
+    # A genuine global option placed before the verb belongs in the global slot.
+    my $cap = _capture_pkg_call(1, '-n in -y curl');
+    is $cap->{transactional}, '-n pkg install -y curl',
+      'global -n stays global; command -y stays with verb';
+};
+
+subtest '[pc_pkg_call] non-translatable verb falls through to plain zypper' => sub {
+    my $cap = _capture_pkg_call(1, 'info foo');
+    is $cap->{zypper}, 'info foo', 'info passed verbatim to pc_zypper_call';
+    ok !defined $cap->{transactional}, 'info not routed through transactional-update';
+};
+
+subtest '[pc_pkg_call] non-transactional system always uses plain zypper' => sub {
+    my $cap = _capture_pkg_call(0, 'in -y docker');
+    is $cap->{zypper}, 'in -y docker', 'verbatim zypper on non-transactional host';
+    ok !defined $cap->{transactional}, 'no transactional-update translation';
+};
+
+subtest '[pc_transactional_call] reboots on accepted exit code' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
     $mod->redefine(_run => sub { return 0 });    # success exit code
     my $inst = _instance_mock();
     pc_transactional_call($inst, 'up');
@@ -270,7 +442,7 @@ subtest '[pc_installed_packages] drops not-installed noise' => sub {
 };
 
 subtest '[pc_available_packages] returns not-installed but available' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
     # 'curl' installed; 'wget' missing but available per zypper info output
     $mod->redefine(pc_installed_packages => sub { ['curl'] });
     my $inst = _instance_mock(output => "Name : wget\nName : other\n");
@@ -284,81 +456,16 @@ subtest '[pc_available_packages] returns not-installed but available' => sub {
     throws_ok { pc_available_packages($inst, 'x') } qr/Expected arrayref/, 'non-arrayref dies';
 };
 
-# ---------------------------------------------------------------------------
-# _run / _retry_loop: resilience against SSH-level stalls and repo/credential
-# hiccups right after registration (poo#204057)
-#
-# Unlike the subtests above, these exercise the real _run/_retry_loop/
-# _handle_transient_failure code (only record_info is stubbed out, since it
-# needs a live $autotest::current_test which unit tests don't have).
-# ---------------------------------------------------------------------------
-
-subtest '[_run] enables apply_graceful_timeout by default' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
-    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
-    my $inst = _instance_mock(run_rc => 0);
-    pc_zypper_call($inst, 'ref', retry => 1, delay => 0);
-    my ($call) = grep { $_->{m} eq 'run' } @{$inst->{calls}};
-    ok($call, 'ssh_script_run invoked');
-    is($call->{apply_graceful_timeout}, 1,
-        'apply_graceful_timeout defaults on so a stalled SSH call cannot bypass the retry loop (poo#204057)');
-};
-
-subtest '[_run] apply_graceful_timeout can still be disabled explicitly' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
-    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
-    my $inst = _instance_mock(run_rc => 0);
-    pc_zypper_call($inst, 'ref', retry => 1, delay => 0, apply_graceful_timeout => 0);
-    my ($call) = grep { $_->{m} eq 'run' } @{$inst->{calls}};
-    is($call->{apply_graceful_timeout}, 0, 'caller override is respected');
-};
-
-subtest '[_handle_transient_failure] EXIT_TIMEOUT / EXIT_TIMEOUT_KILLED are retried' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
-    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
-
-    for my $code (EXIT_TIMEOUT, EXIT_TIMEOUT_KILLED) {
-        my $inst = _instance_mock(run_rc => [$code, 0]);
-        my $ret = pc_zypper_call($inst, 'ref', retry => 2, delay => 0);
-        is($ret, 0, "exit $code is retried and the retry succeeds");
-        my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n ref' } @{$inst->{calls}};
-        is(scalar @attempts, 2, "exactly 2 attempts made for exit $code (no premature die)");
-    }
-};
-
-subtest '[_handle_transient_failure] EXIT_TIMEOUT dies once retries are exhausted' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
-    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
-    my $inst = _instance_mock(run_rc => EXIT_TIMEOUT);
-    throws_ok { pc_zypper_call($inst, 'ref', retry => 2, delay => 0) }
-    qr/failed with code: @{[EXIT_TIMEOUT]}/,
-      'still dies with the timeout exit code once every retry has been used up';
-    my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n ref' } @{$inst->{calls}};
-    is(scalar @attempts, 2, 'used all configured retries before giving up');
-};
-
-subtest '[_handle_transient_failure] EXIT_REPOS_SKIPPED (106) fails immediately, not retried' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
-    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
-    $mod->redefine(is_transactional => sub { 0 });
-
-    my $inst = _instance_mock(run_rc => EXIT_REPOS_SKIPPED);
-    throws_ok { pc_pkg_call($inst, 'in -y docker', retry => 3, delay => 0) }
-    qr/failed with code: 106.*poo#204057/s,
-      'dies with a poo#204057 pointer instead of silently retrying (not enough evidence yet it is safe to mask)';
-    my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n in -y docker' } @{$inst->{calls}};
-    is(scalar @attempts, 1, 'only the first attempt was made -- no retry');
-};
-
 subtest '[pc_install_packages_local] transactional vs plain' => sub {
-    my $mod = Test::MockModule->new('publiccloud::zypper');
-
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
     # non-transactional -> utils::zypper_call
     $mod->redefine(is_transactional => sub { 0 });
     my $utils = Test::MockModule->new('utils', no_auto => 1);
     my $zypper_cmd;
     $utils->redefine(zypper_call => sub { $zypper_cmd = $_[0]; return 0 });
+
     pc_install_packages_local(['curl', 'wget']);
+
     is($zypper_cmd, 'in curl wget', 'plain install uses utils::zypper_call');
 
     # transactional -> trup_call + reboot_on_changes
@@ -367,7 +474,9 @@ subtest '[pc_install_packages_local] transactional vs plain' => sub {
     my ($trup, $rebooted);
     $trans->redefine(trup_call => sub { $trup = $_[0]; return 0 });
     $trans->redefine(reboot_on_changes => sub { $rebooted = 1; return 0 });
+
     pc_install_packages_local(['docker']);
+
     is($trup, 'pkg install docker', 'transactional uses trup_call');
     ok($rebooted, 'reboot_on_changes called on transactional host');
 
@@ -395,8 +504,12 @@ subtest '[BUSY_PROCESS_PATTERN] transactional-update is truncated to avoid pgrep
 };
 
 subtest '[pc_wait_quit] pgrep pattern covers transactional-update/snapper' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
     my $inst = _instance_mock();
+
     pc_wait_quit($inst);
+
     my ($call) = grep { $_->{m} eq 'retry' } @{$inst->{calls}};
     ok($call, 'ssh_script_retry invoked');
     like($call->{cmd}, qr/pgrep/, 'command greps processes');
@@ -407,7 +520,9 @@ subtest '[pc_wait_quit_local] polls via plain script_retry, no SSH' => sub {
     my $utils = Test::MockModule->new('utils', no_auto => 1);
     my ($cmd, %opts_seen);
     $utils->redefine(script_retry => sub { $cmd = $_[0]; %opts_seen = @_[1 .. $#_]; return 0 });
+
     pc_wait_quit_local(timeout => 5, delay => 1, retry => 2);
+
     like($cmd, qr/pgrep/, 'command greps processes');
     like($cmd, qr/\Q@{[publiccloud::zypper::BUSY_PROCESS_PATTERN()]}\E/, 'uses the shared busy-process pattern');
     is($opts_seen{timeout}, 5, 'timeout forwarded');
@@ -416,57 +531,58 @@ subtest '[pc_wait_quit_local] polls via plain script_retry, no SSH' => sub {
 };
 
 # ---------------------------------------------------------------------------
-# _handle_transient_failure -- transactional-update lock detection (poo#204534)
+# transactional-update lock detection (poo#204534) and zypp-lock retry,
+# exercised through the public pc_transactional_call / pc_zypper_call API
+# rather than the internal _handle_transient_failure helper.
 # ---------------------------------------------------------------------------
-subtest '[_handle_transient_failure] transactional lock message triggers retry' => sub {
-    my $testapi_mock = Test::MockModule->new('publiccloud::zypper');
-    $testapi_mock->redefine(record_info => sub { return 1 });
-    my $inst = _instance_mock();
-    $inst->mock(ssh_script_run => sub {
-            my ($s, $cmd) = @_;
-            push @{$s->{calls}}, {m => 'run', cmd => $cmd};
-            return ($cmd =~ /transactional-update\.log/) ? 0 : 1;    # pattern found
-    });
-    is(publiccloud::zypper::_handle_transient_failure($inst, 1, 1, 3, 'transactional'),
-        'retry', 'retries when log confirms the lock message');
+subtest '[pc_transactional_call] transactional-update lock message triggers a retry (poo#204534)' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    # First attempt fails; the lock grep on transactional-update.log matches
+    # (grep_rc => 0), so the failure is treated as transient and retried; the
+    # second attempt succeeds.
+    my $inst = _instance_mock(run_rc => [1, 0], grep_rc => 0);
+
+    my $ret = pc_transactional_call($inst, 'up', retry => 2, delay => 0);
+
+    is($ret, 0, 'retries when the log confirms a lock, then succeeds');
+    my @attempts = grep { $_->{m} eq 'run' && ($_->{cmd} // '') eq 'sudo transactional-update -n up' } @{$inst->{calls}};
+    is(scalar @attempts, 2, 'exactly 2 attempts made (retried once)');
+
+    # The lock-detection grep must target transactional-update.log and cover
+    # both independent lock messages (CLI bashlock and tukit backend).
+    my ($grep) = grep { $_->{m} eq 'run' && ($_->{cmd} // '') =~ /^sudo grep / } @{$inst->{calls}};
+    ok($grep, 'a lock-detection grep was issued');
+    like($grep->{cmd}, qr{/var/log/transactional-update\.log}, 'greps transactional-update.log');
+    like($grep->{cmd}, qr/get lock/, 'checks the CLI bashlock message');
+    like($grep->{cmd}, qr/Another instance of tukit is already running/, 'checks the tukit backend message');
 };
 
-subtest '[_handle_transient_failure] greps for both known lock messages' => sub {
-    my $testapi_mock = Test::MockModule->new('publiccloud::zypper');
-    $testapi_mock->redefine(record_info => sub { return 1 });
+subtest '[pc_transactional_call] transactional-update failure without a lock message is not retried' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    # Every attempt fails and the lock grep never matches (grep_rc default 1),
+    # so this is a genuine failure that must surface instead of being retried.
+    my $inst = _instance_mock(run_rc => 1);
 
-    for my $case (
-        {label => 'bashlock (CLI wrapper) message', needle => 'Couldn'},
-        {label => 'tukit backend message', needle => 'Another instance of tukit is already running'},
-      )
-    {
-        my $inst = _instance_mock_positional();
-        $inst->mock(ssh_script_run => sub {
-                my ($s, $cmd) = @_;
-                push @{$s->{calls}}, $cmd;
-                # The composed grep command must reference this case's
-                # message (checked as a plain substring since _shell_quote
-                # escapes the apostrophe in "Couldn't").
-                return (index($cmd, $case->{needle}) >= 0) ? 0 : 1;
-        });
-        is(publiccloud::zypper::_handle_transient_failure($inst, 1, 1, 3, 'transactional'),
-            'retry', "retries on $case->{label}");
-    }
+    throws_ok { pc_transactional_call($inst, 'up', retry => 3, delay => 0) }
+    qr/failed with code: 1/, 'a genuine transactional-update failure dies';
+    my @attempts = grep { $_->{m} eq 'run' && ($_->{cmd} // '') eq 'sudo transactional-update -n up' } @{$inst->{calls}};
+    is(scalar @attempts, 1, 'only the first attempt was made -- no retry');
 };
 
-subtest '[_handle_transient_failure] transactional failure without lock message fails' => sub {
-    my $inst = _instance_mock_positional();
-    $inst->mock(ssh_script_run => sub { return 1 });    # grep finds nothing -> non-zero
-    is(publiccloud::zypper::_handle_transient_failure($inst, 1, 1, 3, 'transactional'),
-        'fail', 'does not retry a genuine transactional-update failure');
-};
+subtest '[pc_zypper_call] EXIT_LOCKED (zypp lock) is retried' => sub {
+    my $mod = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    $mod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    # Unlike the transactional case, a zypp lock (exit 7) is always transient
+    # and retried without needing a log confirmation.
+    my $inst = _instance_mock(run_rc => [EXIT_LOCKED, 0]);
 
-subtest '[_handle_transient_failure] zypper-kind checks unaffected by kind arg' => sub {
-    my $testapi_mock = Test::MockModule->new('publiccloud::zypper');
-    $testapi_mock->redefine(record_info => sub { return 1 });
-    my $inst = _instance_mock(run_rc => 1);    # log grep misses
-    is(publiccloud::zypper::_handle_transient_failure($inst, publiccloud::zypper::EXIT_LOCKED(), 1, 3),
-        'retry', 'zypp lock still retried when kind defaults to zypper');
+    my $ret = pc_zypper_call($inst, 'ref', retry => 2, delay => 0);
+
+    is($ret, 0, 'EXIT_LOCKED is retried and the retry succeeds');
+    my @attempts = grep { $_->{m} eq 'run' && ($_->{cmd} // '') eq 'sudo zypper -n ref' } @{$inst->{calls}};
+    is(scalar @attempts, 2, 'exactly 2 attempts made (retried once)');
 };
 
 sub _instance_mock_positional {
@@ -495,6 +611,104 @@ subtest '[_report_failure] uses transactional-update.log for transactional kind'
     qr/Related transactional-update logs/, 'error message references the right log';
     my ($chmod_cmd) = grep { /chmod/ } @{$inst->{calls}};
     like($chmod_cmd, qr{/var/log/transactional-update\.log}, 'chmod targets transactional-update.log');
+};
+
+subtest '[pc_wait_quit] uses defaults and expected command' => sub {
+    my $inst = Test::MockObject->new;
+    my @calls;
+
+    $inst->mock('ssh_script_retry', sub {
+            my ($self, %args) = @_;
+            push @calls, {%args};
+            return 1;
+    });
+
+    pc_wait_quit($inst);
+
+    is scalar(@calls), 1, 'one call to ssh_script_retry';
+    is $calls[0]->{cmd},
+      q{! pgrep -a "} . publiccloud::zypper::BUSY_PROCESS_PATTERN() . q{"},
+      'expected pgrep/false/true command';
+    is $calls[0]->{timeout}, 20, 'default timeout=20';
+    is $calls[0]->{delay}, 10, 'default delay=10';
+    is $calls[0]->{retry}, 120, 'default retry=120';
+};
+
+subtest '[pc_wait_quit] honors custom timeout/delay/retry' => sub {
+    my $inst = Test::MockObject->new;
+    my $seen;
+
+    $inst->mock('ssh_script_retry', sub {
+            my ($self, %args) = @_;
+            $seen = {%args};
+            return 1;
+    });
+
+    pc_wait_quit($inst,
+        timeout => 5, delay => 2, retry => 3);
+
+    is $seen->{cmd},
+      q{! pgrep -a "} . publiccloud::zypper::BUSY_PROCESS_PATTERN() . q{"},
+      'same command with custom args';
+    is $seen->{timeout}, 5, 'custom timeout applied';
+    is $seen->{delay}, 2, 'custom delay applied';
+    is $seen->{retry}, 3, 'custom retry applied';
+};
+
+subtest '[pc_wait_quit] succeeds on 5th attempt (4 fail + 1 success)' => sub {
+    my $inst = Test::MockObject->new;
+    my $calls = 0;
+    my %seen;
+
+    $inst->mock('ssh_script_retry', sub {
+            my ($self, %args) = @_;
+            %seen = %args;
+
+            while ($calls < $args{retry}) {
+                $calls++;
+                last if $calls == 5;
+            }
+            return 1;
+    });
+
+    my $rc = pc_wait_quit($inst, retry => 5, delay => 0, timeout => 1);
+
+    ok($rc, 'returned success');
+    is($calls, 5, 'performed 5 attempts (4 fail + 1 success)');
+    is($seen{retry}, 5, 'retry=5 passed');
+    is($seen{delay}, 0, 'delay=0 passed');
+    is($seen{timeout}, 1, 'timeout=1 passed');
+};
+
+subtest '[pc_wait_quit] times out after 5 failures' => sub {
+    my $expected_cmd = q{! pgrep -a "} . publiccloud::zypper::BUSY_PROCESS_PATTERN() . q{"};
+
+    my $inst = Test::MockObject->new;
+    my $calls = 0;
+    my %seen;
+
+    $inst->mock('ssh_script_retry', sub {
+            my ($self, %args) = @_;
+            %seen = %args;
+
+            while ($calls < $args{retry}) {
+                $calls++;
+            }
+            die "retries exhausted after $args{retry} attempts\n";
+    });
+
+    my $err;
+    eval {
+        pc_wait_quit($inst, retry => 5, delay => 0, timeout => 1);
+        1;
+    } or $err = $@;
+
+    like($err, qr/retries exhausted after 5 attempts/, 'died with timeout message');
+    is($calls, 5, 'performed 5 failing attempts');
+    is($seen{cmd}, $expected_cmd, 'used expected pgrep command');
+    is($seen{retry}, 5, 'retry=5 passed');
+    is($seen{delay}, 0, 'delay=0 passed');
+    is($seen{timeout}, 1, 'timeout=1 passed');
 };
 
 done_testing;
