@@ -1162,10 +1162,11 @@ sub sdaf_upload_logs {
 
     # Uploading NW install logs
     record_info('Uploading NW ERS/SCS install logs');
-    my $nw_log = script_run("ls /var/tmp/$sap_sid | grep $sap_sid");
-    if (!script_run("ls /var/tmp/$sap_sid | grep $sap_sid")) {
-        my $nw_log = script_output("ls /var/tmp/$sap_sid | grep $sap_sid | grep 'zip'");
-        upload_logs("/var/tmp/$sap_sid/$nw_log", failok => 1);
+    my $nw_logs = script_output("ls /var/tmp/$sap_sid | grep ${sap_sid}.*zip", proceed_on_failure => 1);
+    if ($nw_logs =~ /\Q$sap_sid\E/ && $nw_logs =~ /zip/) {
+        foreach my $file (split /\n/, $nw_logs) {
+            upload_logs("/var/tmp/$sap_sid/$file", log_name => "$autotest::current_test->{name}-${hostname}_${file}", failok => 1);
+        }
     }
 
     # Uploading supportconfig log (it is time consuming so it is conditional)
