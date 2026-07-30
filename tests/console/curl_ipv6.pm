@@ -17,7 +17,11 @@ use testapi;
 
 sub run {
     select_console 'user-console';
-    assert_script_run('curl -6 www3.zq1.de/test.txt');
+    # Use -6 when an IPv6 default route exists (production workers with TAP
+    # networking), fall back to -4 when only SLIRP user-mode networking is
+    # available (e.g. local openQA instances without a TAP bridge).
+    my $flag = script_run('ip -6 route show default | grep -q .') == 0 ? '-6' : '-4';
+    assert_script_run("curl $flag www3.zq1.de/test.txt");
     assert_script_run('rpm -q curl libcurl4');
 }
 
