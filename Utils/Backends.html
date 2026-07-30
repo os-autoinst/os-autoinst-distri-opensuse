@@ -28,6 +28,7 @@
       <li><a href="#is_qemu">is_qemu</a></li>
       <li><a href="#is_svirt">is_svirt</a></li>
       <li><a href="#is_image_backend">is_image_backend</a></li>
+      <li><a href="#has_snapshots">has_snapshots</a></li>
       <li><a href="#is_backend_s390x">is_backend_s390x</a></li>
       <li><a href="#is_spvm">is_spvm</a></li>
       <li><a href="#is_pvm_hmc">is_pvm_hmc</a></li>
@@ -94,6 +95,14 @@
 <h2 id="is_image_backend">is_image_backend</h2>
 
 <p>Returns true if the current instance is running on backend with image support</p>
+
+<h2 id="has_snapshots">has_snapshots</h2>
+
+<p>Returns true if the current backend supports VM snapshots, and therefore the <code>always_rollback</code> test flag. Requesting <code>always_rollback</code> where snapshots are unavailable makes os-autoinst abort the job.</p>
+
+<p>This mirrors the <code>can_handle(&#39;snapshots&#39;)</code> implementations of the qemu and svirt backends, the only two which implement it; every other backend inherits the <code>backend::baseclass</code> version, which always refuses.</p>
+
+<p>Note that <code>VIRSH_VMM_FAMILY</code> must not be defaulted to &#39;kvm&#39; here as <code>consoles/sshVirtsh.pm</code> does: the svirt backend reads it undefaulted, so s390x zKVM jobs, which leave it unset, get no snapshot support.</p>
 
 <h2 id="is_backend_s390x">is_backend_s390x</h2>
 
