@@ -26,7 +26,12 @@ sub run {
 
     install_package('traceroute', trup_reboot => 1) if (script_run('rpm -q traceroute'));
     record_info("Version", script_output("rpm -q --qf '%{version}' traceroute"));
-    validate_script_output_retry("traceroute -I $target  | tail -n +2 | tee $log", sub { m/$ip_target/ }, retry => 3);
+
+    # Use ICMP (-I) when raw sockets are available (production workers with TAP
+    # networking), fall back to UDP (-U) under QEMU SLIRP user-mode networking
+    # where raw ICMP sockets are not forwarded by the host.
+    my $mode = script_run('traceroute -I -m 1 127.0.0.1 &>/dev/null') == 0 ? '-I' : '-U';
+    validate_script_output_retry("traceroute $mode $target | tail -n +2 | tee $log", sub { m/$ip_target/ }, retry => 3);
     record_info("Traceroute logs", script_output("cat $log"));
     assert_script_run("test -s $log", fail_message => "Log file is empty");
 }
