@@ -65,18 +65,13 @@ sub run {
     push @packages, 'coverage-tools';
     zypper_call '--gpg-auto-import-keys in ' . join ' ', @packages;
 
-    # sets up the environment for coverage
-    assert_script_run 'export LOG_DIR=/var/coverage/data';
-    assert_script_run 'export PIN_ROOT=/usr/lib64/coverage-tools/pin';
+    assert_script_run 'mkdir -m 0777 -p /var/coverage/data';
 
-    # add the environment setup to .bashrc for future sessions (root and plain user)
-    assert_script_run 'echo "LOG_DIR=/var/coverage/data" > /etc/bash.bashrc.local';
-    assert_script_run 'echo "PIN_ROOT=/usr/lib64/coverage-tools/pin" >> /etc/bash.bashrc.local';
+    # set up eBPF capabilities required by funkoverage
+    assert_script_run 'funkoverage setup';
 
-    assert_script_run "mkdir -m 0777 -p \$LOG_DIR";
-
-    # wrap the binaries that will be instrumented for 'coverage'
-    assert_script_run "funkoverage wrap " . join ' ', @{$test_data->{coverage_targets}};
+    # install shims around the binaries to be instrumented for coverage
+    assert_script_run "funkoverage install " . join ' ', @{$test_data->{coverage_targets}};
 }
 
 sub test_flags {
