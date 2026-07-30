@@ -131,6 +131,73 @@ sub basic_container_tests {
     ## Note: Leave the tumbleweed container to save some bandwidth. It is used in other test modules as well.
 }
 
+my $macvlan_netname = 'macvlan_test';
+my $macvlan_dev;
+
+sub cleanup_macvlan {
+    my %args = @_;
+    my $runtime = $args{runtime};
+    script_run("$runtime rm -f busybox_1");
+    script_run("$runtime rm -f busybox_2");
+    return unless defined $macvlan_dev;
+    record_info "Clean up macvlan test";
+    script_run("$runtime network rm $macvlan_netname");
+    script_run("ip link delete dev $macvlan_dev");
+    undef $macvlan_dev;
+}
+
+
+sub check_network_macvlan {
+    my %args = @_;
+    my $runtime = $args{runtime};
+    my $image = "registry.opensuse.org/opensuse/busybox";
+    my $ip1 = "192.168.60.10";
+    my $ip2 = "192.168.60.11";
+
+    record_info "Start macvlan test";
+
+    record_info "Check for kernel module 8021q required for macvlan test";
+    if (is_jeos && is_sle('=16.1') && script_run('modprobe 8021q') != 0) {
+        record_soft_failure("bsc#1274833 - kernel module 8021q is not available");
+        return;
+    }
+
+    assert_script_run("modinfo macvlan", fail_message => "required macvlan module not present");
+
+    my $nic = script_output(q(ip -4 route show default | awk '{print $5}'; exit));
+    $macvlan_dev = "$nic.666";
+    script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
+
+    # Create new VLAN sub nic for isolation
+    assert_script_run("ip link add link $nic name $macvlan_dev type vlan id 666");
+    assert_script_run("ip link set $macvlan_dev up");
+
+    # Create macvlan network
+    assert_script_run("$runtime network create -d macvlan -o parent=$macvlan_dev --subnet=192.168.60.0/24 --gateway=192.168.60.254 $macvlan_netname");
+    validate_script_output("$runtime network ls", qr/$macvlan_netname/);
+    record_info("macvlan network", script_output("$runtime network inspect $macvlan_netname"));
+
+    # Create containers with macvlan network
+    assert_script_run("$runtime run -d --network $macvlan_netname --ip $ip1 --name busybox_1 $image sleep infinity");
+    assert_script_run("$runtime run -d --network $macvlan_netname --ip $ip2 --name busybox_2 $image sleep infinity");
+
+    # Check if container realy use macvlan network
+    validate_script_output("$runtime container inspect busybox_1", qr/$macvlan_netname/);
+    validate_script_output("$runtime container inspect busybox_2", qr/$macvlan_netname/);
+    validate_script_output("$runtime exec busybox_1 ip a", qr/$ip1/);
+    validate_script_output("$runtime exec busybox_2 ip a", qr/$ip2/);
+
+    # Containers using the macvlan network can reach each other
+    assert_script_run("$runtime exec busybox_1 ping -c3 $ip2");
+    assert_script_run("$runtime exec busybox_2 ping -c3 $ip1");
+
+    # Containers using the macvlan network should not be able to reach 1.1.1.1
+    assert_script_run("! $runtime exec busybox_1 ping -c2 1.1.1.1", fail_message => "container reached the internet, macvlan is not isolated");
+
+    # Clean up
+    cleanup_macvlan(runtime => $runtime);
+}
+
 sub run {
     my ($self, $args) = @_;
     die('You must define a engine') unless ($args->{runtime});
@@ -150,6 +217,9 @@ sub run {
 
     basic_container_tests(runtime => $self->{runtime});
 
+    # Kernel module 8021q is needed to test macvlan and must be available on Tumbleweed and 16.1
+    check_network_macvlan(runtime => $self->{runtime}) if (is_tumbleweed || is_sle(">=16.1"));
+
     # Build an image from Dockerfile and run it
     my $base = (is_opensuse ? 'registry.opensuse.org/opensuse/bci/python:latest' : 'registry.suse.com/bci/python:latest');
     build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3', base => $base);
@@ -163,6 +233,7 @@ sub run {
 
 sub post_fail_hook {
     my ($self) = @_;
+    cleanup_macvlan(runtime => $self->{runtime});
     $self->SUPER::post_fail_hook;
 }
 
