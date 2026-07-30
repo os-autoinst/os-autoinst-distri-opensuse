@@ -7,6 +7,7 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
+use Utils::Backends;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
@@ -53,7 +54,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => has_snapshots};
 }
 
 1;

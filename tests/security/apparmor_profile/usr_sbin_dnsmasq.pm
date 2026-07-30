@@ -14,6 +14,7 @@
 
 use Mojo::Base 'apparmortest';
 use testapi;
+use Utils::Backends;
 use utils;
 
 sub check_audit_log {
@@ -89,7 +90,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => 1};
+    return {always_rollback => has_snapshots};
 }
 
 1;

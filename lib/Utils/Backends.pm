@@ -34,6 +34,7 @@ use constant {
           is_qemu
           is_svirt
           is_image_backend
+          has_snapshots
           is_ssh_installation
           is_backend_s390x
           is_spvm
@@ -228,6 +229,32 @@ Returns true if the current instance is running on backend with image support
 
 sub is_image_backend {
     return (is_qemu || is_svirt);
+}
+
+=head2 has_snapshots
+
+Returns true if the current backend supports VM snapshots, and therefore the
+C<always_rollback> test flag. Requesting C<always_rollback> where snapshots are
+unavailable makes os-autoinst abort the job.
+
+This mirrors the C<can_handle('snapshots')> implementations of the qemu and
+svirt backends, the only two which implement it; every other backend inherits
+the C<backend::baseclass> version, which always refuses.
+
+Note that C<VIRSH_VMM_FAMILY> must not be defaulted to 'kvm' here as
+C<consoles/sshVirtsh.pm> does: the svirt backend reads it undefaulted, so s390x
+zKVM jobs, which leave it unset, get no snapshot support.
+
+=cut
+
+sub has_snapshots {
+    if (is_qemu) {
+        return 0 if get_var('QEMU_DISABLE_SNAPSHOTS');
+        # snapshotting requires migration, which NVMe drives do not support
+        my @models = map { get_var($_, '') } ('HDDMODEL', map { "HDDMODEL_$_" } 1 .. get_var('NUMDISKS', 1));
+        return (grep { $_ eq 'nvme' } @models) ? 0 : 1;
+    }
+    return (is_svirt && get_var('VIRSH_VMM_FAMILY', '') =~ /kvm|hyperv|vmware/) ? 1 : 0;
 }
 
 =head2 is_backend_s390x
