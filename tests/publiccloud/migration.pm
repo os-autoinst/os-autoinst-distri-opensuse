@@ -112,8 +112,11 @@ sub run {
         record_info('SUSEConnect post-removal', $instance->ssh_script_output("sudo SUSEConnect --status-text", timeout => 120));
 
         # Reboot to run the migration
+        dump_ssh_state($instance, 'before migration');
         $instance->softreboot(check_connectivity => 0, timeout => 3600);
         $instance->wait_for_ssh();
+        dump_ssh_state($instance, 'after migration');
+        archive_zypp_logs($instance);
         validate_version($instance);
 
         # Reboot again so the system will freshly boot into the new system
@@ -128,6 +131,21 @@ sub print_os_version {
     my $os_release = $instance->ssh_script_output("cat /etc/os-release", proceed_on_failure => 1);
     my $zypper_lr = $instance->ssh_script_output("sudo zypper -n lr", proceed_on_failure => 1);
     record_info('VER CHCK', "# ssh sut cat /etc/os-release:\n" . $os_release . "\n\n# ssh sut sudo zypper -n lr:\n" . $zypper_lr);
+}
+
+sub dump_ssh_state {
+    my ($instance, $label) = @_;
+    my $ls = $instance->ssh_script_output('sudo ls -lR /etc/ssh', proceed_on_failure => 1);
+    my $md5 = $instance->ssh_script_output('sudo md5sum /etc/ssh/sshd_config', proceed_on_failure => 1);
+    my $rpm_v = $instance->ssh_script_output('sudo rpm -qVf /etc/ssh/sshd_config', proceed_on_failure => 1);
+    record_info("SSH state ($label)", "# ls -lR /etc/ssh:\n$ls\n\n# md5sum /etc/ssh/sshd_config:\n$md5\n\n# rpm -qVf /etc/ssh/sshd_config:\n$rpm_v");
+}
+
+sub archive_zypp_logs {
+    my $instance = shift;
+    my $archive = '/tmp/var_log_zypp.tar.gz';
+    my $ret = $instance->ssh_script_run("sudo tar -czf $archive /var/log/zypp", timeout => 300, proceed_on_failure => 1);
+    $instance->upload_log($archive, log_name => 'var_log_zypp.tar.gz', failok => 1) if (defined($ret) && $ret == 0);
 }
 
 sub validate_version {
