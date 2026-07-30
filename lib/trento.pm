@@ -172,7 +172,7 @@ sub setup_trento_ingress_tls {
     my $helm_charts_dir = '/root/trento-helm-charts';
     my $smoke_test_script = "$helm_charts_dir/.github/scripts/helm-upgrade-smoke-test.sh";
 
-    install_package('git', timeout => 600);
+    install_package('git-core', timeout => 600);
 
     _install_cert_manager(kubeconfig => $args{kubeconfig}, version => $cert_manager_version);
     _checkout_helm_charts_repository(
