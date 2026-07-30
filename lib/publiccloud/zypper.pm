@@ -336,20 +336,60 @@ give a ~20 minute ceiling.
 
 =cut
 
+# Poll until no BUSY_PROCESS_PATTERN process is running, or time out.
+#
+# Shared implementation behind pc_wait_quit (remote/SSH) and pc_wait_quit_local
+# (console-direct). The only thing that varies between the two is how the raw
+# process list is obtained, so callers pass that in as C<fetch> (a code-ref
+# returning the C<ps -eo comm> output); C<label> is used to tag record_info.
+sub _wait_for_busy_processes {
+    my (%args) = @_;
+    my $fetch = $args{fetch};
+    my $label = $args{label};
+    my $delay = $args{delay};
+    my $retry = $args{retry};
+
+    my $pattern = BUSY_PROCESS_PATTERN;
+    my $regex = qr/^(?:$pattern)$/;
+
+    record_info($label, 'Waiting for system processes to finish...');
+
+    for (my $try = 0; $try < $retry; $try++) {
+        my $output = $fetch->() // '';
+        my $found = 0;
+
+        for my $proc (split(/\r?\n/, $output)) {
+            $proc =~ s/^\s+|\s+$//g;
+            if ($proc =~ $regex) {
+                record_info('busy process', "Active busy process found: $proc (waiting $delay seconds)");
+                $found = 1;
+                last;
+            }
+        }
+
+        if (!$found) {
+            record_info($label, 'No busy processes found. Proceeding.');
+            return;
+        }
+
+        sleep($delay);
+    }
+
+    die "Timed out waiting for busy processes (" . BUSY_PROCESS_PATTERN . ") to finish!";
+}
+
 sub pc_wait_quit {
     my ($instance, %opts) = @_;
     my $timeout = $opts{timeout} // 20;
     my $delay = $opts{delay} // 10;
     my $retry = $opts{retry} // 120;
 
-    # RC 0 (success) only when no matching processes exist.
-    my $cmd = q{! pgrep -a "} . BUSY_PROCESS_PATTERN . q{"};
-
-    $instance->ssh_script_retry(
-        cmd => $cmd,
-        timeout => $timeout,
+    _wait_for_busy_processes(
+        label => 'wait_quit',
         delay => $delay,
         retry => $retry,
+        # Fetch remote processes using sudo ps -eo comm
+        fetch => sub { eval { $instance->ssh_script_output(cmd => 'sudo ps -eo comm', proceed_on_failure => 1, quiet => 1) } },
     );
 }
 
@@ -375,7 +415,13 @@ sub pc_wait_quit_local {
     my $delay = $opts{delay} // 10;
     my $retry = $opts{retry} // 120;
 
-    utils::script_retry(q{! pgrep -a "} . BUSY_PROCESS_PATTERN . q{"}, timeout => $timeout, delay => $delay, retry => $retry);
+    _wait_for_busy_processes(
+        label => 'wait_quit_local',
+        delay => $delay,
+        retry => $retry,
+        # Fetch local processes using sudo ps -eo comm
+        fetch => sub { eval { testapi::script_output('sudo ps -eo comm', proceed_on_failure => 1, quiet => 1) } },
+    );
 }
 
 =head2 pc_installed_packages
