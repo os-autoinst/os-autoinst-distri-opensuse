@@ -672,9 +672,12 @@ sub upload_supportconfig_log {
     # To remove exclusions, _EXCLUDE='-'
     $exclude = undef if ($exclude eq '-');
     $exclude = "-x " . $exclude if ($exclude);
-    my $res = $self->ssh_script_run("sudo which supportconfig");
+    my $res = $self->ssh_script_run("sudo which supportconfig", apply_graceful_timeout => 1);
     unless (isok($res)) {
-        record_info('MISSING supportconfig', 'supportconfig command not found', result => 'fail');
+        record_info('Fail supportconfig',
+            ($res == 255) ? "ssh connectivity issues during remote supportconfig check"
+            : "supportconfig command not found",
+            result => 'fail');
         return;
     }
     $res = $self->ssh_script_run("echo | sudo supportconfig -R " . dirname($logs) . " -B supportconfig $exclude > $logs.txt 2>&1",
