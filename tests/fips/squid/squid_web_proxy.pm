@@ -13,7 +13,16 @@ use testapi;
 use utils qw(systemctl);
 use version_utils 'is_sle';
 
+sub cleanup_squid {
+    # run() leaves squid serving on :3128 with a generated config and credentials file
+    script_run 'systemctl stop squid';
+    script_run 'test -e /etc/squid/squid.conf.orig && mv -f /etc/squid/squid.conf.orig /etc/squid/squid.conf';
+    script_run 'rm -f /etc/squid/passwd.txt';
+}
+
 sub configure_squid {
+    # keep the packaged configuration so it can be restored afterwards
+    script_run 'cp -a /etc/squid/squid.conf /etc/squid/squid.conf.orig';
     # configure squid as a web proxy cache
     assert_script_run 'curl ' . data_url('squid/squid_authdigest.conf') . ' -o /etc/squid/squid.conf';
     # on Tumbleweed the auth helper path is different
@@ -39,13 +48,16 @@ sub run {
       sub { m/HTTP\/1.1 200 OK/ };
 }
 
+sub post_run_hook {
+    my ($self) = @_;
+    cleanup_squid;
+    $self->SUPER::post_run_hook;
+}
+
 sub post_fail_hook {
     upload_logs('/var/log/squid/access.log', log_name => 'squid_access.log');
     upload_logs('/var/log/squid/cache.log', log_name => 'squid_cache.log');
-}
-
-sub test_flags {
-    return {always_rollback => 1};
+    cleanup_squid;
 }
 
 1;
