@@ -10,7 +10,6 @@
 
 use Mojo::Base 'x11test';
 use testapi;
-use Utils::Backends;
 use Utils::Architectures;
 use utils;
 use power_action_utils 'power_action';
@@ -87,7 +86,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => has_snapshots};
+    return {always_rollback => 1};
 }
 
 1;

@@ -8,7 +8,6 @@
 use Mojo::Base 'opensusebasetest';
 use power_action_utils "power_action";
 use testapi;
-use Utils::Backends;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(check_version is_sle is_leap is_tumbleweed);
@@ -40,7 +39,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => has_snapshots};
+    return {always_rollback => 1};
 }
 
 1;

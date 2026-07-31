@@ -8,7 +8,6 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
-use Utils::Backends;
 use serial_terminal 'select_serial_terminal';
 use security::agnosticTestRunner;
 use version_utils 'is_sle';
@@ -38,7 +37,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => has_snapshots};
+    return {always_rollback => 1};
 }
 
 1;
