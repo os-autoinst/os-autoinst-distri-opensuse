@@ -81,8 +81,4 @@ sub post_fail_hook {
     $self->SUPER::post_fail_hook;
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;

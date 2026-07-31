@@ -85,8 +85,4 @@ sub run {
     select_console 'x11';
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;

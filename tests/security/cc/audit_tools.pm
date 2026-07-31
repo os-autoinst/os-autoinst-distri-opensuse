@@ -13,6 +13,13 @@ use utils;
 use version_utils 'is_sle';
 use audit_test qw(run_testcase compare_run_log rerun_fail_cases);
 
+sub restore_auditd {
+    # The suite ends on 'auditd_stop', which stops the daemon and registers no cleanup,
+    # and the 'auditd_reload' that follows it does not bring it back up. Restart it so the
+    # modules scheduled after this one do not run against a dead auditd.
+    script_run('systemctl is-active --quiet auditd || systemctl start auditd');
+}
+
 sub run {
     my ($self) = shift;
 
@@ -34,8 +41,16 @@ sub run {
     }
 }
 
-sub test_flags {
-    return {always_rollback => 1};
+sub post_run_hook {
+    my ($self) = @_;
+    restore_auditd;
+    $self->SUPER::post_run_hook;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    restore_auditd;
+    $self->SUPER::post_fail_hook;
 }
 
 1;
