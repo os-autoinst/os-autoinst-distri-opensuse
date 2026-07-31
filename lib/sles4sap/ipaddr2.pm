@@ -1760,10 +1760,13 @@ sub ipaddr2_billing_model_get(%args) {
 
     # bsc#1267739: instance-flavor-check crashes with FileNotFoundError
     # on fresh BYOS images where /var/cache/cloudregister/ does not exist.
-    # Detect the known bug signature and return UNKNOWN so the caller can
+    # bsc#1261166: instance-flavor-check crashes with AttributeError
+    # when update servers are unreachable.
+    # Detect the known bug signatures and return UNKNOWN so the caller can
     # fall back to SUSEConnect -s.
+    my $out = '';
     if ($ret == 1) {
-        my $out = ipaddr2_ssh_internal_output(id => $args{id},
+        $out = ipaddr2_ssh_internal_output(id => $args{id},
             cmd => 'sudo instance-flavor-check 2>&1 || true',
             bastion_ip => $args{bastion_ip});
 
@@ -1771,10 +1774,16 @@ sub ipaddr2_billing_model_get(%args) {
             record_soft_failure('bsc#1267739 - instance-flavor-check crashed with FileNotFoundError');
             return 'UNKNOWN';
         }
+        if ($out =~ /AttributeError.*get_ipv4/) {
+            record_soft_failure('bsc#1261166 - instance-flavor-check crashed with AttributeError: get_ipv4');
+            return 'UNKNOWN';
+        }
     }
 
     # Any other unexpected exit code or rc=1 without known signature
-    die "instance-flavor-check unexpected result ret:$ret";
+    my $err_msg = "instance-flavor-check unexpected result ret:$ret";
+    $err_msg .= "\nCommand output: $out" if ($ret == 1 && $out);
+    die $err_msg;
 }
 
 =head2 ipaddr2_configure_web_server

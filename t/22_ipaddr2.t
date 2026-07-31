@@ -1548,7 +1548,20 @@ subtest '[ipaddr2_billing_model_get] UNKNOWN bsc#1267739' => sub {
     ok(($ret eq 'UNKNOWN'), "Ret:'$ret' expected to be 'UNKNOWN' for bsc#1267739");
 };
 
-subtest '[ipaddr2_billing_model_get] die on rc=1 without FileNotFoundError' => sub {
+subtest '[ipaddr2_billing_model_get] UNKNOWN bsc#1261166' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            return "AttributeError: 'NoneType' object has no attribute 'get_ipv4'";
+    });
+    $ipaddr2->redefine(record_soft_failure => sub { note("SOFT_FAILURE --> $_[0]"); });
+
+    my $ret = ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5');
+    ok(($ret eq 'UNKNOWN'), "Ret:'$ret' expected to be 'UNKNOWN' for bsc#1261166");
+};
+
+subtest '[ipaddr2_billing_model_get] die on rc=1 without FileNotFoundError or AttributeError' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
@@ -1557,7 +1570,7 @@ subtest '[ipaddr2_billing_model_get] die on rc=1 without FileNotFoundError' => s
     });
 
     dies_ok { ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5') }
-    "Die on rc=1 without FileNotFoundError signature";
+    "Die on rc=1 without known traceback signatures";
 };
 
 subtest '[ipaddr2_billing_model_get] die on unexpected rc' => sub {
