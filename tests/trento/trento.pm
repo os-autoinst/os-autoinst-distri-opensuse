@@ -32,7 +32,9 @@ sub run {
     set_var('HELM_VALUES_IMAGE_PATH', $helm_values_image_path);
 
     my $trento_server_hostname = get_var('TRENTO_SERVER_HOSTNAME', 'localhost');
-    my $admin_password = get_var('TRENTO_ADMIN_PASSWORD', random_string(10));
+    my $admin_password = get_var('TRENTO_ADMIN_PASSWORD');
+    $admin_password = random_string(undef, 12) if (!defined $admin_password || $admin_password eq '');
+    die 'TRENTO_ADMIN_PASSWORD must contain at least 8 characters' if length($admin_password) < 8;
     my $admin_user = get_var('TRENTO_ADMIN_USER', 'admin');
     my $helm_release = get_var('TRENTO_HELM_RELEASE', 'trento-server');
 
