@@ -420,7 +420,10 @@ sub terraform_prepare_env {
     assert_script_run('mkdir -p ' . TERRAFORM_DIR);
     $file = get_var('PUBLIC_CLOUD_TERRAFORM_FILE', "publiccloud/terraform/$file.tf");
     assert_script_run('curl ' . data_url("$file") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
-    assert_script_run('curl ' . data_url("publiccloud/cloud-init.yaml") . ' -o ' . TERRAFORM_DIR . "/cloud-init.yaml") if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
+    if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
+        my $cloud_init_profile = 'publiccloud/' . (check_var('PUBLIC_CLOUD_CLOUD_INIT', 'install') ? 'cloud-init-install.yaml' : 'cloud-init.yaml');
+        assert_script_run('curl ' . data_url($cloud_init_profile) . ' -o ' . TERRAFORM_DIR . '/cloud-init.yaml');
+    }
     $self->terraform_env_prepared(1);
 }
 

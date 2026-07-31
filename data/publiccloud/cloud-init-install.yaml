@@ -11,6 +11,9 @@ write_files:
   path: /root/test_cloud-init.txt
   append: true
 
+packages:
+- ed
+
 final_message: |
   cloud-init qa has finished
   version: $version

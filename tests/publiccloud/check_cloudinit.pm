@@ -43,7 +43,7 @@ sub check_cloudinit {
         $instance->ssh_assert_script_run('sudo grep snickerdoodle /root/test_cloud-init.txt');
 
         # Check for packages module
-        $instance->ssh_assert_script_run('ed -V');
+        $instance->ssh_assert_script_run('ed -V') if check_var('PUBLIC_CLOUD_CLOUD_INIT', 'install');
 
         # Check for final_message module
         $instance->ssh_assert_script_run('sudo journalctl -b | grep "cloud-init qa has finished"');
