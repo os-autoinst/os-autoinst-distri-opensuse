@@ -19,8 +19,8 @@ sub run {
 
     select_console('root-console');
 
-    # Add repo for devel:DMS when using proxy
-    if ((get_var('SCC_URL', "") =~ /proxy/)) {
+    # Add repo for devel:DMS when using proxy or rmt
+    if ((get_var('SCC_URL', "") =~ /proxy|rmt/)) {
         my $repo_server = "https://download.opensuse.org/repositories/devel:/DMS/";
         my $repo_url = $repo_server . "SLE_" . (get_var('VERSION_UPGRADE_FROM') =~ s/-/_/gr);
         zypper_call("ar --refresh -p 90 '$repo_url' Migration");
@@ -40,7 +40,7 @@ sub run {
     }
 
     # clean repos before migration
-    if ((get_var('SCC_URL', "") =~ /proxy/)) {
+    if ((get_var('SCC_URL', "") =~ /proxy|rmt/)) {
         zypper_call("rr Migration");
     }
     my $repo_num = script_output(q(zypper lr -u | awk -F '|' '/(cd|ftp):/ {printf $1}'));
