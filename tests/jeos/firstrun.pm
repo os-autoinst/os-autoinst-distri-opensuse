@@ -248,7 +248,7 @@ sub run {
     # configuration' on the same serial log. Doing it again here would
     # always fail because that earlier wait_serial() call already consumed
     # the 'JeOS Firstboot' line from the serial log (poo#204390).
-    check_jeos_on_serial_terminal() unless (is_sle("<15") || is_s390x || is_selfinstall || check_var('JEOS_CHECK_SERIAL', '0'));
+    check_jeos_on_serial_terminal() unless (is_sle("<15") || is_s390x || is_selfinstall || is_wsl || check_var('JEOS_CHECK_SERIAL', '0'));
 
     # https://github.com/openSUSE/jeos-firstboot/pull/82 welcome dialog is shown on all consoles
     # and configuration continues on console where *Start* has been pressed
