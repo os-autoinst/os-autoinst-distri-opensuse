@@ -83,10 +83,15 @@ sub run {
     script_retry($helm_cmd, timeout => 900, retry => 5, delay => 15);
 
     # Wait for chart workloads before validating endpoints.
-    assert_script_run(
-        "$kubeconfig bash -c 'for w in \$(kubectl get deploy,statefulset -o name); do kubectl rollout status \"\$w\" --timeout=900s; done'",
-        timeout => 930);
-    assert_script_run("$kubeconfig kubectl wait --for=condition=Ready pods --all --timeout=900s", timeout => 930);
+    assert_script_run("timeout -k 5s 60s env $kubeconfig kubectl --request-timeout=15s get deploy,statefulset -o name > /tmp/trento-workloads.txt", timeout => 90);
+    my @workloads = split(/\n/, script_output('cat /tmp/trento-workloads.txt', proceed_on_failure => 1));
+    foreach my $workload (@workloads) {
+        next if $workload eq '';
+        assert_script_run(
+            'timeout -k 5s 360s env ' . $kubeconfig . ' kubectl --request-timeout=15s rollout status ' . trento_shell_quote($workload) . ' --timeout=300s',
+            timeout => 390);
+    }
+    assert_script_run("timeout -k 5s 360s env $kubeconfig kubectl --request-timeout=15s wait --for=condition=Ready pods --all --timeout=300s", timeout => 390);
     assert_script_run("$kubeconfig helm status " . trento_shell_quote($helm_release), timeout => 120);
 
     # Run the upstream smoke test through the TLS ingress.
@@ -110,20 +115,20 @@ sub post_fail_hook {
     my $release = get_var('TRENTO_HELM_RELEASE', 'trento-server');
     my $selector = 'app.kubernetes.io/instance=trento-server';
 
-    script_run("timeout 60s env $kubeconfig kubectl get pods -A -o wide > /tmp/trento-pods-wide.txt 2>&1", timeout => 90);
+    script_run("timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s get pods -A -o wide > /tmp/trento-pods-wide.txt 2>&1", timeout => 60);
     record_info('Pods', script_output('cat /tmp/trento-pods-wide.txt', proceed_on_failure => 1));
-    script_run("timeout 60s env $kubeconfig helm status " . trento_shell_quote($release) . " > /tmp/trento-helm-status.txt 2>&1", timeout => 90);
-    script_run("timeout 60s env $kubeconfig helm get values " . trento_shell_quote($release) . " -a > /tmp/trento-helm-values.txt 2>&1", timeout => 90);
-    script_run("timeout 120s env $kubeconfig kubectl describe pods -A > /tmp/trento-kubectl-describe-pods.txt 2>&1", timeout => 150);
-    script_run("timeout 60s env $kubeconfig kubectl get events -A --sort-by=.lastTimestamp > /tmp/trento-k8s-events.txt 2>&1", timeout => 90);
+    script_run("timeout -k 5s 30s env $kubeconfig helm status " . trento_shell_quote($release) . " > /tmp/trento-helm-status.txt 2>&1", timeout => 60);
+    script_run("timeout -k 5s 30s env $kubeconfig helm get values " . trento_shell_quote($release) . " -a > /tmp/trento-helm-values.txt 2>&1", timeout => 60);
+    script_run("timeout -k 5s 45s env $kubeconfig kubectl --request-timeout=15s describe pods -A > /tmp/trento-kubectl-describe-pods.txt 2>&1", timeout => 75);
+    script_run("timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s get events -A --sort-by=.lastTimestamp > /tmp/trento-k8s-events.txt 2>&1", timeout => 60);
     script_run(
-        "for p in \$(timeout 30s env $kubeconfig kubectl get pods -n default -l $selector -o name 2>/dev/null); do " .
+        "for p in \$(timeout -k 5s 20s env $kubeconfig kubectl --request-timeout=15s get pods -n default -l $selector -o name 2>/dev/null); do " .
           "safe=\$(echo \"\$p\" | tr '/:' '__'); " .
-          "timeout 45s env $kubeconfig kubectl describe -n default \"\$p\" > \"/tmp/trento-\${safe}-describe.txt\" 2>&1; " .
-          "timeout 45s env $kubeconfig kubectl logs -n default \"\$p\" --all-containers=true --timestamps > \"/tmp/trento-\${safe}-logs.txt\" 2>&1; " .
-          "timeout 45s env $kubeconfig kubectl logs -n default \"\$p\" --all-containers=true --previous --timestamps > \"/tmp/trento-\${safe}-logs-previous.txt\" 2>&1; " .
+          "timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s describe -n default \"\$p\" > \"/tmp/trento-\${safe}-describe.txt\" 2>&1; " .
+          "timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s logs -n default \"\$p\" --all-containers=true --timestamps > \"/tmp/trento-\${safe}-logs.txt\" 2>&1; " .
+          "timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s logs -n default \"\$p\" --all-containers=true --previous --timestamps > \"/tmp/trento-\${safe}-logs-previous.txt\" 2>&1; " .
           "done",
-        timeout => 360);
+        timeout => 240);
     my @diag_files = split(/\n/, script_output('ls -1 /tmp/trento-*.txt 2>/dev/null || true', proceed_on_failure => 1));
     upload_logs($_, failok => 1) for @diag_files;
     gather_k8s_logs();
