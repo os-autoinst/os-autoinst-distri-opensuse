@@ -77,8 +77,8 @@ sub is_container_running {
 
 # clean up routine only for systems that run CNI as default network backend
 sub _cleanup {
-    my $podman = shift->containers_factory('podman');
-    select_console 'log-console';
+    my ($self, %args) = @_;
+    my $podman = $self->containers_factory('podman');
     remove_subtest_setup;
 
     if (is_cni_default) {
@@ -91,6 +91,12 @@ sub _cleanup {
     }
 
     validate_script_output('podman network ls', sub { /podman\s+bridge/ });
+
+    # only view log-console on failure, poo#204498 - tty5 can be blanked
+    # after sitting idle for the whole test and never wakes up in time.
+    # eval-wrapped so a stall there can't crash the hook after the network
+    # cleanup above already ran.
+    eval { select_console 'log-console' } if $args{show_log};
 }
 
 sub switch_to_netavark {
@@ -252,7 +258,7 @@ sub post_run_hook {
 
 sub post_fail_hook {
     load_ipv6_route;
-    shift->_cleanup();
+    shift->_cleanup(show_log => 1);
 }
 
 sub test_flags {
