@@ -17,7 +17,6 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use Utils::Backends;
 use serial_terminal 'select_serial_terminal';
 use utils "zypper_call";
 
@@ -56,7 +55,7 @@ sub run {
 }
 
 sub test_flags {
-    return {always_rollback => has_snapshots};
+    return {always_rollback => 1};
 }
 
 1;
