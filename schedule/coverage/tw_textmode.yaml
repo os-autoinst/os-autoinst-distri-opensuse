@@ -36,6 +36,7 @@ schedule:
   - console/tcpdump
   - console/unzip
   - console/vim
+  - console/rsync
   - console/wavpack
   - coverage/coverage_report
 test_data:
@@ -61,6 +62,7 @@ test_data:
     - tcpdump
     - traceroute
     - wavpack
+    - rsync
     - wget    # to download the test data
     - vim
   # the following section is an array of binaries that we want to instrument
@@ -87,6 +89,7 @@ test_data:
     - /usr/sbin/powertop
     - /usr/sbin/tcpdump
     - /usr/sbin/traceroute
+    - /usr/bin/rsync
     - /usr/bin/unzip
     - /usr/bin/wavpack
     - /usr/bin/wvunpack
