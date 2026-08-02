@@ -21,4 +21,6 @@ sub run {
     assert_script_run('rpm -q curl libcurl4');
 }
 
+sub test_flags { return {no_rollback => 1} }
+
 1;
