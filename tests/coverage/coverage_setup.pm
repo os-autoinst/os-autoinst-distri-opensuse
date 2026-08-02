@@ -70,8 +70,13 @@ sub run {
     # set up eBPF capabilities required by funkoverage
     assert_script_run 'funkoverage setup';
 
-    # install shims around the binaries to be instrumented for coverage
-    assert_script_run "funkoverage install " . join ' ', @{$test_data->{coverage_targets}};
+    # install shims around the binaries to be instrumented for coverage.
+    # funkoverage install exits non-zero if any single binary fails (e.g. ELF
+    # type mismatch, wrong path, package rename).  Use script_run so that a
+    # partial failure does not abort the whole setup module and discard all
+    # successfully-installed shims.  The log is preserved for post-mortem.
+    script_run("funkoverage install " . join(' ', @{$test_data->{coverage_targets}}) . " 2>&1 | tee /tmp/fv_install.log", timeout => 300);
+    assert_script_run 'cat /tmp/fv_install.log';
 }
 
 sub test_flags {
