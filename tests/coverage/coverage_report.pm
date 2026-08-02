@@ -11,7 +11,12 @@ use serial_terminal 'select_serial_terminal';
 sub run {
     select_serial_terminal;
     assert_script_run 'mkdir -p /var/coverage/report';
-    assert_script_run 'funkoverage report /var/coverage/data /var/coverage/report';
+    # funkoverage report reads eBPF trace logs, resolves symbols via eu-unstrip
+    # and DWARF debug info, and writes XML + HTML for every instrumented binary
+    # and shared library.  With the default 90 s timeout this reliably fails
+    # once the schedule tracks more than ~5 binaries.  600 s is sufficient for
+    # schedules with up to ~20 targets and their transitive shared libraries.
+    assert_script_run 'funkoverage report /var/coverage/data /var/coverage/report', timeout => 600;
     # Upload the coverage report files
     my @files = split("\n", script_output 'ls -1 /var/coverage/report/*');
     # parse the XML reports
