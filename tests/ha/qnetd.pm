@@ -114,6 +114,9 @@ sub run {
         my $qnet_node_host = choose_node(3);
         my $qnet_node_ip = get_ip($qnet_node_host);
 
+        # Wait until pacemaker and resources are fully started and online (especially after reboot)
+        wait_until_resources_started;
+
         # Add a promotable resource to check if the current node is hosting
         # master instance of the resource. If so, this cluster partition
         # is preferred to be given the vote from qnetd.
