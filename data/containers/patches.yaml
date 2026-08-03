@@ -128,6 +128,7 @@ podman:
   # https://github.com/containers/podman/pull/28603 - test/system: quadlet - rootfs failure on kernel 7.1
   # https://github.com/containers/podman/pull/28794 - Test fixes/skips for new CI system
   # https://github.com/containers/podman/pull/28804 - More test fixes for new CI
+  # https://github.com/containers/podman/pull/29380 - test/e2e: accept RESTORE in checkpoint tcp error match
   21875:
     merged: "5.0.0"
   24068:
@@ -192,6 +193,8 @@ podman:
   28804:
     merged: "6.0.0"
     min: "5.4.2"
+  29380:
+    min: "6.0"
 
 podman-py:
   # https://github.com/containers/podman-py/pull/623 - Fix pytest flag for rootful test
