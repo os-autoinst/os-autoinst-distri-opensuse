@@ -112,6 +112,11 @@ sub run {
         && version->parse(numeric_version($version)) >= version->parse("5.8.2")
         && version->parse(numeric_version($version)) < version->parse("6.0")
     );
+    push @xfails, (
+        # These tests fail due to https://bugzilla.opensuse.org/show_bug.cgi?id=1273282
+        'Libpod Suite::[It] Podman checkpoint podman checkpoint container with established tcp connections',
+        'Libpod Suite::[It] Podman checkpoint podman restore container with tcp-close',
+    ) if ($oci_runtime eq "runc" && version->parse(numeric_version($version)) >= version->parse("6.0"));
 
     # Skip remoteintegration on SLES as it panics with:
     # Too many RemoteSocket collisions [PANICKED] Test Panicked
