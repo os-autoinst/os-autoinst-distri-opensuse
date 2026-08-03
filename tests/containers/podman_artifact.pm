@@ -28,7 +28,8 @@ sub run {
     assert_script_run "! podman artifact add $artifact $test_file";
 
     # Test inspect
-    validate_script_output "podman artifact inspect $artifact", qr/"Name": "$artifact"/;
+    # Note: podman 6.0+ appends the "latest" tag to the artifact name
+    validate_script_output "podman artifact inspect $artifact", qr/"Name": "$artifact(:latest)?"/;
     assert_script_run "! podman artifact inspect noexist";
 
     # Test ls
