@@ -18,7 +18,7 @@ sub run {
     select_serial_terminal;
 
     my $test_file = "$test_dir/test_file";
-    my $artifact = "test-artifact";
+    my $artifact = "localhost/test-artifact";
 
     assert_script_run "mkdir -p $test_dir";
     assert_script_run "touch $test_file";
