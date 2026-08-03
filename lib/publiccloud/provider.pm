@@ -420,7 +420,14 @@ sub terraform_prepare_env {
     assert_script_run('mkdir -p ' . TERRAFORM_DIR);
     $file = get_var('PUBLIC_CLOUD_TERRAFORM_FILE', "publiccloud/terraform/$file.tf");
     assert_script_run('curl ' . data_url("$file") . ' -o ' . TERRAFORM_DIR . '/plan.tf');
-    assert_script_run('curl ' . data_url("publiccloud/cloud-init.yaml") . ' -o ' . TERRAFORM_DIR . "/cloud-init.yaml") if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
+    if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
+        assert_script_run('curl ' . data_url("publiccloud/cloud-init.yaml.ep") . ' -o ' . TERRAFORM_DIR . "/cloud-init.yaml");
+        if (check_var('PUBLIC_CLOUD_CLOUD_INIT', 'install')) {
+            file_content_replace(TERRAFORM_DIR . "/cloud-init.yaml", '%PACKAGES%' => 'packages:\n- ed');
+        } else {
+            file_content_replace(TERRAFORM_DIR . "/cloud-init.yaml", '%PACKAGES%' => '');
+        }
+    }
     $self->terraform_env_prepared(1);
 }
 
