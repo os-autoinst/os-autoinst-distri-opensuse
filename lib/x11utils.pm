@@ -41,6 +41,7 @@ our @EXPORT = qw(
   close_gui_terminal
   handle_gnome_activities
   save_print_file
+  update_x11_vt
 );
 
 =head1 X11_UTILS
@@ -732,6 +733,22 @@ sub save_print_file {
     send_key 'delete';
     type_string_slow($filename);
     send_key "ret";
+}
+
+=head2 update_x11_vt
+
+  update_x11_vt()
+
+From a graphical session, read $XDG_VTNR to update the VT of the "x11"
+openQA console.
+
+=cut
+
+sub update_x11_vt {
+    x11_start_program_xterm();
+    my $tty = script_output('echo $XDG_VTNR');
+    send_key('alt-f4');    # close xterm
+    console('x11')->set_tty(int($tty));
 }
 
 1;
