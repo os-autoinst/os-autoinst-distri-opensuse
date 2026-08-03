@@ -2,8 +2,9 @@ Testing on real hardware for Raspberry Pi
 =========================================
 
 # Initial notes
-This document is refering to the internal openqa.suse.de (OSD) setup and not to the
-public openqa.opensuse.org (O3) setup.
+This document is refering to the internal openqa.suse.de (OSD) setup and not ggardet's public
+openqa.opensuse.org (O3) setup for RPi2/RPi3/RPi4.
+There is an additional setup for RPi5 on O3 that is described later.
 
 While most of the setup is similar, there are some key differences:
 
@@ -59,6 +60,40 @@ The Shelly Plugs are connected to the piworker directly via WLAN (`openQA-worker
 The SUTs are connecting to that WLAN Network during the openQA test as well as searching for Bluetooth devices during the test to check wireless connectivity.
 The 230V AC to 5V DC power adapters have been omitted in this graphic for better overview.
 The code of the Rpi Pico Keyboard Emulator can be found [here](https://github.com/os-autoinst/os-autoinst-distri-opensuse/tree/master/data/generalhw_scripts/rpi_pico_w_keyboard).
+
+# O3 RPi5 setup
+There is an O3 RPi5 setup operated by SUSE.
+
+```
+┌───────────────────────────┐
+│                           │       ┌──┬───────┬────┐
+│        o3-piworker        │       │  │SD-Card│    │
+│      Raspberry Pi 4B      │  USB  │  └───────┘    │
+│                           ├──────►│ USB SD-Mux v2 ├─┐ µSD ┌─────────────────────┐    ┌─────────────────┐
+│ ┌───────────────────────┐ │       └───────────────┘ └────►│                     │ 5V │ WLAN Power Plug │
+│ │ openQA-worker WLAN AP │ │                               │   Raspberry Pi 5B   ├───►│  Shelly Plug S  │
+│ └───────────────────────┘ │  USB  ┌───────────────┐ UART  │                     │    └─────────────────┘
+│ ┌───────────────────────┐ ├──────►│ RPi Dbg Probe │──────►│                     │
+│ │ openQA-worker BT      │ │       │  UART Adapter │       │                     │
+│ └───────────────────────┘ │       └───────────────┘       │                     │
+│                           │  USB  ┌──────────────┐  HDMI  │                     │
+│                           ├──────►│ HDMI Grabber │───────►│                     │
+│                           │       └──────────────┘        │                     │
+│                           │                               │                     │
+│                           │  WIFI ┌──────────────┐  USB   │                     │
+│                           ├──────►│ RPi Pico Kbd │───────►│                     │
+│                           │       │   Emulator   │        │                     │
+│                           │       └──────────────┘        └─────────────────────┘
+└───────────────────────────┘
+```
+
+The RPi5 setup uses the Raspberry Pi Debug Probe as a USB-UART Adapter to connect
+to the dedicated three pin UART connector on the RPi5 (that is not part of the GPIO header).
+This 3 pin port on the RPi5 can be used as a UART (the default) or as a SWD for debugging.
+To use it as a UART, the cable is connected to the `U` socket on the Probe - not the `D` socket.
+This UART port is available as `/dev/ttyAMA10` on the SUT and provides logs of the complete boot
+sequence including the firmware and U-Boot messages.
+As of 2026-07-29 the regular UART via the GPIO header was not supported by U-Boot and the Kernel on Tumbleweed.
 
 # Setup
 
