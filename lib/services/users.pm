@@ -163,6 +163,7 @@ sub full_users_check {
     if ($stage eq 'before') {
         # change pwd for current user and add new user for switch scenario
         x11test::unlock_user_settings;
+        wait_still_screen(1, 2);
         change_pwd;
         add_user;
         # verify changed password work well in the following scenario:
