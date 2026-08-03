@@ -46,8 +46,10 @@ sub tomcat_setup() {
 
     my $tomcat = 'tomcat' . $version;
     install_package("$tomcat ${tomcat}-webapps ${tomcat}-admin-webapps", trup_reboot => 1);
-    install_package('libtcnative-2-0', trup_reboot => 1) if is_sle('>=15-sp4');
+    # tomcat10/11 are compiled to use libtcnative-2-0
+    install_package('libtcnative-2-0', trup_reboot => 1) if (check_var('TOMCAT_VER', '10') || check_var('TOMCAT_VER', '11'));
     assert_script_run("rpm -q $tomcat");
+    script_run 'rpm -q libtcnative-1-0 libtcnative-2-0';
 
     # start the tomcat daemon and check that it is running
     systemctl('start tomcat');
@@ -55,8 +57,12 @@ sub tomcat_setup() {
 
     # https://jira.suse.com/browse/PED-16024
     if (is_sle('>=15-sp4')) {
-        record_info('Verify bsc#1232390');
+        record_info('Verify bsc#1232390 bsc#1273043');
         die('Older version Apache Tomcat Native library is installed') if script_run('journalctl -u tomcat.service |grep -i "older version"') == 0;
+        validate_script_output 'journalctl -u tomcat --no-pager', sub { $_ !~ /An incompatible version.*Tomcat Native/ };
+        validate_script_output 'journalctl -u tomcat --no-pager', sub { $_ !~ /SEVERE.*AprLifecycleListener/ };
+        # Verify APR loaded successfully
+        assert_script_run 'journalctl -u tomcat --no-pager | grep -E "Loaded Apache Tomcat Native library"';
     }
 
     # check that tomcat is listening on port 8080
