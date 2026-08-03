@@ -29,10 +29,13 @@ buildah:
     merged: "1.41.0"
   6602:
     min: "1.43.0"
+    merged: "1.44.0"
   6701:
     min: "1.43.0"
+    merged: "1.44.0"
   6791:
     min: "1.39.5"
+    merged: "1.44.0"
 
 buildx:
   # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
