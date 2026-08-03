@@ -18,6 +18,7 @@ use utils qw(zypper_call);
 use JSON;
 use XML::LibXML;
 use Data::Dumper;
+use publiccloud::utils qw(calculate_custodian_ttl);
 
 
 sub is_cleaned_up {
@@ -58,9 +59,13 @@ sub run {
 
     my $aitl_get_options = "-s $subscription_id -r $resource_group -n $aitl_job_name";
 
+    my $openqa_ttl = get_var('MAX_JOB_TIME', 7200) +
+      get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
+    my $custodian_ttl = calculate_custodian_ttl($openqa_ttl);
+
     my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     my $created_by = "$openqa_url/t$job_id";
-    my $tags = "openqa-aitl=$job_id openqa_created_by=$created_by openqa_var_server=$openqa_url";
+    my $tags = "openqa-aitl=$job_id openqa_created_by=$created_by openqa_var_server=$openqa_url openqa_ttl=$openqa_ttl custodian_ttl=$custodian_ttl";
 
     my $timeout //= get_var('PUBLIC_CLOUD_AITL_TIMEOUT', 3600 * 1.5);
 
