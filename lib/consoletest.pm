@@ -11,6 +11,7 @@ use known_bugs;
 use version_utils qw(is_public_cloud);
 use Utils::Logging qw(export_logs_basic export_logs_desktop record_avc_selinux_alerts);
 use utils;
+use Utils::Architectures qw(is_aarch64);
 
 =head1 consoletest
 
@@ -27,11 +28,14 @@ Method executed when run() finishes.
 sub post_run_hook {
     my ($self) = @_;
 
+    # https://progress.opensuse.org/issues/183761#note-45
+    wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
     # start next test in home directory
     assert_script_run "cd";
 
     $self->record_avc_selinux_alerts();
     # clear screen to make screen content ready for next test
+    wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
     $self->clear_and_verify_console;
 }
 

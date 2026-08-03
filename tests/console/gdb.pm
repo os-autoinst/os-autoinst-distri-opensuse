@@ -20,6 +20,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use package_utils 'install_package';
 use version_utils qw(is_leap is_sle);
+use Utils::Architectures qw(is_aarch64);
 
 sub wait_serial_or_die {
     my ($feedback, %args) = @_;
@@ -53,6 +54,8 @@ sub run {
     #Test Case 1
     assert_script_run("curl -O " . data_url('gdb/test1.c'));
     assert_script_run("gcc -g -std=c99 test1.c -o test1");
+    # https://progress.opensuse.org/issues/183761#note-45
+    wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
     enter_cmd("gdb test1 | tee /dev/$serialdev");
     wait_serial_or_die('GNU gdb');
     #Needed because colour codes mess up the output on $serialdev
