@@ -66,6 +66,35 @@ local lvm(encrypted=false, encryption='luks2') = {
   ],
 };
 
+local lvm_2_disks(dasd=false) = {
+  drives: [
+    {
+      search: if dasd == true then '/dev/dasda' else '/dev/vda',
+      alias: 'pvs-disk1',
+    },
+    {
+      search: if dasd == true then '/dev/dasdb' else '/dev/vdb',
+      alias: 'pvs-disk2',
+    },
+  ],
+  volumeGroups: [
+    {
+      name: 'system',
+      physicalVolumes: [
+        {
+          generate: {
+            targetDevices: ['pvs-disk1', 'pvs-disk2'],
+            spacePolicy: 'useAvailable'
+          }
+        },
+      ],
+      logicalVolumes: [
+        { generate: 'default' },
+      ],
+    },
+  ],
+};
+
 local whole_disk_and_boot_unattended() = {
   drives: [
     {
@@ -339,6 +368,8 @@ local btrfs_without_snapshots() = {
   lvm: lvm(false),
   lvm_encrypted: lvm(true),
   lvm_tpm_fde: lvm(true, 'tpmFde'),
+  lvm_2_disks: lvm_2_disks(),
+  lvm_2_disks_dasd: lvm_2_disks(true),
   raid0: raid('raid0'),
   raid0_uefi: raid('raid0', 'uefi'),
   raid0_uefi_search: search_raid0(),
