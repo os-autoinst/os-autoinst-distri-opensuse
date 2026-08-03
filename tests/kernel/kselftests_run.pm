@@ -73,7 +73,7 @@ sub run {
         my $test_bare = ($test =~ s/^[^:]+://r);
         my $cmd = "./run_kselftest.sh --override-timeout $timeout --test $test 2>&1 | tee /tmp/$test_bare;"
           . " echo '# selftests: $collection: $test_bare' >> \$HOME/summary.tap;"
-          . " grep -m1 -E '^(not )?ok [0-9]+ selftests: ' /tmp/$test_bare"
+          . " grep -m1 -o -E '(not )?ok [0-9]+ selftests: .*' /tmp/$test_bare"
           . " | sed 's/ok [0-9]*/ok $i/' >> \$HOME/summary.tap;"
           . " echo '$stamp $test END'";
 
