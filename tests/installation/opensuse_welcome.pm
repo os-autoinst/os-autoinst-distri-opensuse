@@ -10,7 +10,7 @@
 use Mojo::Base 'x11test';
 use testapi;
 use utils;
-use x11utils qw(handle_welcome_screen turn_off_plasma_tooltips);
+use x11utils qw(handle_welcome_screen turn_off_plasma_tooltips update_x11_vt);
 use version_utils qw(is_upgrade is_leap);
 
 sub run {
@@ -30,7 +30,10 @@ sub run {
         }
     }
 
-    turn_off_plasma_tooltips;
+    if (check_var('DESKTOP', 'kde')) {
+        turn_off_plasma_tooltips;
+        update_x11_vt;
+    }
 }
 
 sub test_flags {

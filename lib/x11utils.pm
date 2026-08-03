@@ -10,6 +10,7 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap is_plasma6);
+use Mojo::File qw(path);
 use utils qw(assert_and_click_until_screen_change type_string_slow);
 use Utils::Architectures;
 use Utils::Backends qw(is_pvm is_qemu);
@@ -746,8 +747,13 @@ openQA console.
 
 sub update_x11_vt {
     x11_start_program_xterm();
-    my $tty = script_output('echo $XDG_VTNR');
-    send_key('alt-f4');    # close xterm
+    # At this point, permissions for $serialdev may not be set up yet and switching
+    # to root-console won't work either, so (mis)use log upload.
+    enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url('/uploadlog/xdgvtnr') . ' && exit');
+    assert_screen('generic-desktop');    # Waits until finished
+
+    my $tty = path('ulogs/xdgvtnr')->slurp;
+    record_info('XDG_VTNR', "Graphical session on VT $tty");
     console('x11')->set_tty(int($tty));
 }
 
