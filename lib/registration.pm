@@ -786,7 +786,7 @@ sub registration_bootloader_params {
     my ($max_interval) = @_;    # see 'type_string'
     $max_interval //= 13;
     my @params;
-    if (!(is_agama && check_var('FLAVOR', 'Full'))) {
+    if (check_var('AGAMA_FORCE_REGISTER', '1') || !(is_agama && check_var('FLAVOR', 'Full'))) {
         push @params, split ' ', registration_bootloader_cmdline;
     }
     type_string "@params", $max_interval;
