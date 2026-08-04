@@ -1,7 +1,7 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: python3-ec2metadata python3-azuremetadata python3-gcemetadata
+# Package: python3-ec2metadata python3-azuremetadata python-gcemetadata
 # Summary: Test the cloud provider metadata CLI tools:
 #   ec2metadata on AWS, azuremetadata on Azure, gcemetadata on GCE
 #
@@ -37,7 +37,7 @@ sub run {
         record_info('azuremetadata detail', $instance->ssh_script_output('sudo /usr/bin/azuremetadata --api latest --subscriptionId --billingTag --attestedData --signature --xml'));
     }
     elsif (is_gce) {
-        pc_zypper_call($instance, 'in python3-gcemetadata') unless $instance->ssh_script_run('which gcemetadata') == 0;
+        pc_zypper_call($instance, 'in python-gcemetadata') unless $instance->ssh_script_run('which gcemetadata') == 0;
         # Dump all instance metadata
         record_info('gcemetadata instance', $instance->ssh_script_output('gcemetadata --query instance'));
         # XML output format - skipped due to upstream gcemetadata bug: passing --xml with --query
