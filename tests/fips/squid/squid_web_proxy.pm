@@ -14,8 +14,9 @@ use utils qw(systemctl);
 use version_utils 'is_sle';
 
 sub cleanup_squid {
-    # run() leaves squid serving on :3128 with a generated config and credentials file
-    script_run 'systemctl stop squid';
+    # run() leaves squid serving on :3128 with a generated config and credentials file.
+    # squid is slow to settle, so allow the same timeout used for the restart above
+    systemctl('stop squid', ignore_failure => 1, timeout => 600);
     script_run 'test -e /etc/squid/squid.conf.orig && mv -f /etc/squid/squid.conf.orig /etc/squid/squid.conf';
     script_run 'rm -f /etc/squid/passwd.txt';
 }
