@@ -116,7 +116,7 @@
 
 <h2 id="select_backend_console">select_backend_console</h2>
 
-<p>Select corresponding ipmi or qemu backend console &#39;root-ssh&#39; or &#39;root-console&#39;. If argument init is set, select ipmi backend &#39;sol&#39; console. User can also set arguments console or wait to select cusotmized console in desired behavior.</p>
+<p>Select corresponding ipmi, qemu or pvm_hmc backend console, namely &#39;root-ssh&#39; or &#39;root-console&#39;. If argument init is set, select &#39;sol&#39; console for ipmi backend, or powerhmc-ssh for pvm_hmc backend because test run is in initialization or the very beginning phase, for example, pxe boot, host installation or startup. User can also set desired console or choose whether to wait for the selected console. Argument reset_times specifies the number of times reset_consoles to be done.</p>
 
 <h2 id="double_check_xen_role">double_check_xen_role</h2>
 
