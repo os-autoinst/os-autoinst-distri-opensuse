@@ -87,18 +87,24 @@ sub ssh_basic_check {
     assert_script_run("echo \"PS1='# '\" >> ~$ssh_testman/.bashrc") unless check_var('VIRTIO_CONSOLE', '0');
 
     # Make interactive SSH connection as the new user
-    enter_cmd "expect -c 'spawn ssh $ssh_testman\@localhost -t;expect \"Are you sure\";send yes\\n;expect sword:;send $ssh_testman_passwd\\n;expect #;send \\n;interact'";
-    sleep(1);
+    # poo#205149: the sub-shell spawned via expect doesn't inherit the outer
+    # shell's PROMPT_COMMAND marker hook, so fall back to classic markers
+    # for this interactive region only.
+    {
+        my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
+        enter_cmd "expect -c 'spawn ssh $ssh_testman\@localhost -t;expect \"Are you sure\";send yes\\n;expect sword:;send $ssh_testman_passwd\\n;expect #;send \\n;interact'";
+        sleep(1);
 
-    # Check that we are really in the SSH session
-    assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
-    assert_script_run 'ps ux | grep -E ".* \? .* sshd(-session)?\:"';
-    assert_script_run "whoami | grep $ssh_testman";
-    assert_script_run "mkdir .ssh";
+        # Check that we are really in the SSH session
+        assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
+        assert_script_run 'ps ux | grep -E ".* \? .* sshd(-session)?\:"';
+        assert_script_run "whoami | grep $ssh_testman";
+        assert_script_run "mkdir .ssh";
 
-    # Exit properly and check we're root again
-    script_run("exit", 0);
-    assert_script_run "whoami | grep root";
+        # Exit properly and check we're root again
+        script_run("exit", 0);
+        assert_script_run "whoami | grep root";
+    }
 
     # Generate RSA key for root and the user
     assert_script_run "ssh-keygen -t rsa -P '' -C 'root\@localhost' -f ~/.ssh/id_rsa";
