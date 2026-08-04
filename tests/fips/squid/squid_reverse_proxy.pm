@@ -14,7 +14,8 @@ use utils qw(systemctl zypper_call script_retry);
 use serial_terminal qw(select_serial_terminal);
 
 sub cleanup_squid_and_apache {
-    script_run 'systemctl stop squid apache2';
+    # squid is slow to settle, so allow the same timeout used for the restart below
+    systemctl('stop squid apache2', ignore_failure => 1, timeout => 600);
     # run() trusts a self-signed certificate system-wide - removing it matters most here,
     # since anything scheduled after this module would otherwise keep trusting it
     script_run 'rm -f /usr/share/pki/trust/anchors/squid.cert && update-ca-certificates';

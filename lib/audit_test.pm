@@ -91,6 +91,10 @@ sub prepare_for_test {
 
     # Run test case
     assert_script_run("cd ${test_dir}/audit-test/");
+    # MODE/ARCH are only consumed by run.bash. An earlier module in the same schedule may have
+    # left them exported in this console, and MODE=64 makes rules.mk append -m64, which aarch64
+    # cc rejects - so build in a pristine environment.
+    assert_script_run('unset MODE ARCH');
     assert_script_run('make') if ($args{make});
     assert_script_run('make netconfig') if ($args{make_netconfig});
 

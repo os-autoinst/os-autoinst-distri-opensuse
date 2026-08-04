@@ -17,8 +17,8 @@ sub restore_ptrace_scope {
     my ($self) = @_;
     # run() tightens kernel.yama.ptrace_scope for the whole system and persists it, which
     # would otherwise confine anything scheduled after this module
-    script_run('test -e /etc/sysctl.conf.orig && mv -f /etc/sysctl.conf.orig /etc/sysctl.conf');
-    script_run('sysctl -w kernel.yama.ptrace_scope=' . ($self->{orig_ptrace_scope} // 0));
+    script_run('rm -f /etc/sysctl.d/99-yama-openqa.conf');
+    script_run("sysctl -w kernel.yama.ptrace_scope=$self->{orig_ptrace_scope}") if defined $self->{orig_ptrace_scope};
 }
 
 sub run {
@@ -27,8 +27,8 @@ sub run {
     install_package("aaa_base-yama-enable-ptrace strace", trup_continue => 1);
     # remember the pre-test state so it can be put back afterwards
     $self->{orig_ptrace_scope} = script_output('sysctl -n kernel.yama.ptrace_scope 2>/dev/null || echo 0');
-    assert_script_run('cp -a /etc/sysctl.conf /etc/sysctl.conf.orig');
-    assert_script_run("echo 'kernel.yama.ptrace_scope = 1' >> /etc/sysctl.conf");
+    # use a drop-in: /etc/sysctl.conf is not shipped on SLE 16 and later
+    assert_script_run("echo 'kernel.yama.ptrace_scope = 1' > /etc/sysctl.d/99-yama-openqa.conf");
     assert_script_run("sysctl --system ");
     power_action('reboot', textmode => 1);
     $self->wait_boot;
