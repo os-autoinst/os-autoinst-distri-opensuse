@@ -90,11 +90,6 @@ sub verify_hypervisor {
         is_vmware && $virt =~ /vmware/ ||
         check_var("VIRSH_VMM_FAMILY", "xen") && $virt =~ /xen/);
 
-    if (is_qemu && is_riscv && $virt =~ /none/) {
-        record_soft_failure('boo#1218309');
-        return 0;
-    }
-
     die("Unknown hypervisor: $virt");
 }
 
