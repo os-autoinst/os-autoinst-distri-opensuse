@@ -11,7 +11,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use Utils::Architectures qw(is_s390x);
-use version_utils qw(is_bootloader_sdboot is_sle_micro is_bootloader_grub2_bls);
+use version_utils qw(is_sle_micro);
 use serial_terminal;
 
 sub action {
@@ -36,12 +36,7 @@ sub run {
     action('bootloader', 'Reinstall bootloader');
     action('grub.cfg', 'Regenerate grub.cfg');
     action('initrd', 'Regenerate initrd');
-    if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
-        record_soft_failure("boo#1226676: kdump not yet implemented with sdbootutil");
-    }
-    else {
-        action('kdump', 'Regenerate kdump') if is_sle_micro;
-    }
+    action('kdump', 'Regenerate kdump') if is_sle_micro;
     action('cleanup', 'Run cleanup', 0);
 }
 
