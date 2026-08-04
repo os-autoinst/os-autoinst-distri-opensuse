@@ -89,7 +89,10 @@ sub enable_pilot_debug_for_flakes {
         next if ($instance->ssh_script_run("test -L /usr/bin/$app") != 0);
         my $wrapper_file = "pilot_debug_$app.sh";
         save_tmp_file($wrapper_file, "#!/bin/bash\nexport PILOT_DEBUG=1\nexec -a $app /usr/bin/podman-pilot \"\$\@\"\n");
-        $instance->ssh_assert_script_run('curl -O ' . autoinst_url . "/files/$wrapper_file");
+        # autoinst_url is only reachable from the local tooling instance, not
+        # from the actual cloud SUT, so download locally first, then scp it over.
+        assert_script_run('curl -O ' . autoinst_url . "/files/$wrapper_file");
+        $instance->scp($wrapper_file, "remote:$wrapper_file");
         $instance->ssh_assert_script_run("sudo install -m 755 $wrapper_file /usr/bin/$app");
         record_info('PILOT_DEBUG', "Enabled PILOT_DEBUG=1 wrapper for flake app '$app' (poo#205053 diagnostics)");
     }
