@@ -344,17 +344,15 @@ sub load_slem_on_pc_tests {
     } elsif (get_var('PUBLIC_CLOUD_UPLOAD_IMG')) {
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/upload_image");
-        return;    # Do not continue as there is no instance to destroy
     } else {
         # SLEM basic test
         loadtest("boot/boot_to_desktop");
         loadtest("publiccloud/prepare_instance", run_args => $args);
-        loadtest("publiccloud/auto_registration", run_args => $args);
+        loadtest("publiccloud/registration", run_args => $args) unless (check_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED', 1));
         loadtest("publiccloud/network_test", run_args => $args);
         loadtest("publiccloud/kdump", run_args => $args);
         loadtest("publiccloud/check_boottime", run_args => $args);
         loadtest("publiccloud/check_cloudinit", run_args => $args);
-        loadtest("publiccloud/registration", run_args => $args) unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
         # 2 next modules of pubcloud needed for sle-micro incidents/repos verification
         if (get_var('PUBLIC_CLOUD_QAM', 0)) {
             loadtest("publiccloud/transfer_repos", run_args => $args) unless (check_var('PUBLIC_CLOUD_SKIP_MU', 1));
