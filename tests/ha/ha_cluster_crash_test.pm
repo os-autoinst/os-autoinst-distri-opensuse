@@ -28,11 +28,13 @@ use hacluster qw(check_cluster_state
   setup_sbd_delay
   wait_until_resources_started
   prepare_console_for_fencing
+  save_state
 );
-use utils qw(zypper_call reconnect_mgmt_console);
+use utils qw(reconnect_mgmt_console);
 use Utils::Backends 'is_pvm';
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_transactional);
 use Mojo::JSON qw(encode_json);
+use package_utils qw(install_package);
 
 our $dir_log = '/var/lib/crmsh/crash_test/';
 
@@ -74,7 +76,13 @@ sub run {
         record_info($check, "Executing $cmd");
         if ($check eq 'split-brain-iptables') {
             # iptables is not installed in SLE 16 by default
-            zypper_call 'in iptables' if is_sle('>=16');
+            if (is_sle('>=16')) {
+                install_package('iptables', trup_reboot => 1);
+                if (is_transactional) {
+                    wait_until_resources_started();
+                    save_state();
+                }
+            }
             # Wait for a moment and save the screen shot for debugging purpose
             enter_cmd $cmd, wait_still_screen => 10;
             save_screenshot();
