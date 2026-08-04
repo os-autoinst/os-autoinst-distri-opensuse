@@ -108,11 +108,16 @@ END
     upload_logs($pam_session);
     upload_logs($pam_mount_cfg);
 
-    # Test and make sure user's home directory can mount/unmount during login/logout
+    # Test and make sure user's home directory can mount/unmount during login/logout.
+    # The nested "su -" shell has no PROMPT_COMMAND hook, so pretty serial markers
+    # would never be emitted there, cf. poo#204471
+    my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
+
     enter_cmd "su - $user";
     assert_script_run "df -k | grep /home/$user";
     enter_cmd "exit";
     validate_script_output "df -k | grep /home/$user || echo 'check pass'", sub { m/check pass/ };
+    undef $marker_guard;
 
     # Tear down, clear the pam configuration changes
     assert_script_run "mv $pam_session_bak $pam_session";
