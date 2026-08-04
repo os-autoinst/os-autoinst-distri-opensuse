@@ -102,6 +102,11 @@ sub full_test {
 }
 
 sub run {
+    # Disable PRETTY_SERIAL_MARKER because this test uses nested expect/su shells
+    # which drop the bash prompt hook
+    my $prev_pretty = get_var('PRETTY_SERIAL_MARKER');
+    set_var('PRETTY_SERIAL_MARKER', 0) if $prev_pretty;
+
     select_console 'root-console';
     install_package('sudo expect', trup_reboot => 1) if (script_run('rpm -qi sudo expect'));
     select_console 'user-console';
@@ -128,6 +133,8 @@ sub run {
         prepare_sudoers("$num");
         full_test;
     }
+
+    set_var('PRETTY_SERIAL_MARKER', $prev_pretty) if defined $prev_pretty;
 }
 
 sub post_run_hook {

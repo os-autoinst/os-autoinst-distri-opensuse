@@ -109,10 +109,16 @@ END
     upload_logs($pam_mount_cfg);
 
     # Test and make sure user's home directory can mount/unmount during login/logout
+    # Disable PRETTY_SERIAL_MARKER for the sub-shell execution which
+    # does not have the bash prompt hook injected
+    my $prev_pretty = get_var("PRETTY_SERIAL_MARKER");
+    set_var("PRETTY_SERIAL_MARKER", 0) if $prev_pretty;
+
     enter_cmd "su - $user";
     assert_script_run "df -k | grep /home/$user";
     enter_cmd "exit";
     validate_script_output "df -k | grep /home/$user || echo 'check pass'", sub { m/check pass/ };
+    set_var("PRETTY_SERIAL_MARKER", $prev_pretty) if defined $prev_pretty;
 
     # Tear down, clear the pam configuration changes
     assert_script_run "mv $pam_session_bak $pam_session";
