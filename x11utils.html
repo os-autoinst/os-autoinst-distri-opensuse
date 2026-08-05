@@ -40,6 +40,7 @@
       <li><a href="#close_gui_terminal">close_gui_terminal</a></li>
       <li><a href="#handle_gnome_activities">handle_gnome_activities</a></li>
       <li><a href="#save_print_file">save_print_file</a></li>
+      <li><a href="#update_x11_vt">update_x11_vt</a></li>
     </ul>
   </li>
 </ul><h1>lib/x11utils.pm</h1>
@@ -204,6 +205,12 @@
 <pre><code>save_print_file($filename)</code></pre>
 
 <p>Run save_print_file in x11: Smoke test of GTK interfacing with CUPS</p>
+
+<h2 id="update_x11_vt">update_x11_vt</h2>
+
+<pre><code>update_x11_vt()</code></pre>
+
+<p>From a graphical session, read $XDG_VTNR to update the VT of the &quot;x11&quot; openQA console.</p>
 
 
 </body>
