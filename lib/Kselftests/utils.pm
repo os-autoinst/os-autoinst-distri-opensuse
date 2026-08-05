@@ -117,7 +117,7 @@ sub install_from_git
     my $git_ref = get_var('KSELFTEST_GIT_REF', '');
 
     install_package('git', trup_apply => 1);
-    my $clone_cmd = "git clone --depth 1 --single-branch";
+    my $clone_cmd = "git clone --depth 1 --filter=blob:none --single-branch";
     $clone_cmd .= " --branch $git_ref" if $git_ref ne '';
     $clone_cmd .= " $git_tree linux";
     assert_script_run($clone_cmd, 240);
