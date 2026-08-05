@@ -173,9 +173,15 @@ sub configure_docker {
     }
     run_command "mv -f /etc/sysconfig/docker{,.bak} || true";
     run_command "mv -f /etc/docker/daemon.json{,.bak} || true";
+    run_command "echo '{}' > /etc/docker/daemon.json";
     if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
         my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
         run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > /etc/docker/daemon.json);
+    }
+    if (is_tumbleweed) {
+        # Compose "image volumes" require the containerd image store
+        run_command qq(DAEMON_JSON=\$(jq '.+{"features": {"containerd-snapshotter": true}}' /etc/docker/daemon.json));
+        run_command q(tee /etc/docker/daemon.json <<< "$DAEMON_JSON");
     }
     run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
     record_info "DOCKER_OPTS", $docker_opts;
