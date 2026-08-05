@@ -9,14 +9,11 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 package Tomcat::ModjkTest;
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
-use registration;
 
 # install and configure apache2, apache2-mod_jk and verify the interaction between apache2 and tomcat
 # via the package apache2-mod_jk

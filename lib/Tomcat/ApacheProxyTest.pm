@@ -8,12 +8,11 @@
 # Maintainer: QE Core <qe-core@suse.de>
 
 package Tomcat::ApacheProxyTest;
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use version_utils 'has_selinux';
 
 sub mod_proxy_setup() {
     my $self = shift;
@@ -38,7 +37,7 @@ EOF
     systemctl('restart apache2');
     # bsc#1253707 set the booleans that allow httpd_can_network_connect
     # with semanage boolean
-    assert_script_run('semanage boolean -m --on httpd_can_network_connect');
+    assert_script_run('semanage boolean -m --on httpd_can_network_connect') if has_selinux;
     assert_script_run('curl -L http://localhost/examples/ | grep websocket');
 }
 
