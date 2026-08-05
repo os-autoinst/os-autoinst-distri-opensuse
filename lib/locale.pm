@@ -37,7 +37,7 @@ sub verify_default_keymap_textmode {
         select_console($tty{console});
     }
     else {
-        send_key('alt-f3');
+        send_key('alt-f1');
         # remote backends can not provide a "not logged in console" so we use
         # a cleared remote terminal instead
         assert_screen(has_ttys() ? 'linux-login' : 'cleared-console');

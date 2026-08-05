@@ -10,7 +10,7 @@
 use Mojo::Base 'x11test';
 use testapi;
 use utils;
-use x11utils qw(handle_welcome_screen turn_off_plasma_tooltips);
+use x11utils qw(handle_welcome_screen turn_off_plasma_tooltips update_x11_vt);
 use version_utils qw(is_upgrade is_leap);
 
 sub run {
@@ -30,19 +30,10 @@ sub run {
         }
     }
 
-    # Workaround for boo#1211628
-    if (check_var('DESKTOP', 'kde') && match_has_tag('boo1211628')) {
-        # plasmashell crashed and openSUSE theme is not fully applied
-        # Workaround that
-        x11_start_program('rm ~/.config/plasma-org.kde.plasma.desktop-appletsrc', valid => 0);
-        x11_start_program('konsole', valid => 0);
-        x11_start_program('plasmashell --replace', valid => 0);
-        x11_start_program('pkill konsole', valid => 0);
-        assert_screen 'generic-desktop';
-        die 'Workaround for boo#1211628 did not work' if (match_has_tag('boo1211628'));
+    if (check_var('DESKTOP', 'kde')) {
+        turn_off_plasma_tooltips;
+        update_x11_vt;
     }
-
-    turn_off_plasma_tooltips;
 }
 
 sub test_flags {

@@ -15,7 +15,7 @@
 
 use Mojo::Base 'bootbasetest';
 use testapi;
-use x11utils 'turn_off_plasma_tooltips';
+use x11utils qw(turn_off_plasma_tooltips update_x11_vt);
 
 sub run {
     # Workaround: on vmware or hyperv the 'ret' from grub_test is occasionally
@@ -31,7 +31,10 @@ sub run {
     shift->wait_boot_past_bootloader;
     # This only works with generic-desktop. In the opensuse-welcome case,
     # the opensuse-welcome module will handle it instead.
-    turn_off_plasma_tooltips if match_has_tag('generic-desktop');
+    if (check_var('DESKTOP', 'kde') && match_has_tag('generic-desktop')) {
+        turn_off_plasma_tooltips;
+        update_x11_vt;
+    }
 }
 
 sub test_flags {
