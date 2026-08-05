@@ -12,6 +12,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
+use package_utils qw(install_package uninstall_package);
 
 sub run {
     select_serial_terminal;
@@ -21,7 +22,7 @@ sub run {
     my $srcdir = "/tmp/stalld-src";
 
     # Install stalld package
-    zypper_call("in $pkg");
+    install_package("$pkg", trup_reboot => 1);
     assert_script_run("rpm -q $pkg");
     record_info("VERSION", script_output("stalld --version"));
     # Start service and verify service is active
@@ -40,7 +41,7 @@ sub run {
     systemctl("stop stalld");
     # Running the upstream test suite
     # Install packages required for compiling stalld and running upstream tests
-    zypper_call("in git make clang bpftool libbpf-devel llvm");
+    install_package('git make clang bpftool libbpf-devel llvm', trup_reboot => 1);
     assert_script_run("rm -rf $srcdir");
     assert_script_run("git clone $repo $srcdir", timeout => 120);
 
@@ -64,7 +65,7 @@ sub run {
 sub cleanup {
     my $pkg = "stalld";
     systemctl("stop stalld");
-    zypper_call("rm $pkg");
+    uninstall_package("$pkg", trup_continue => 1, trup_reboot => 1);
     assert_script_run("rm -rf /tmp/stalld-src");
 }
 
