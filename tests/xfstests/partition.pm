@@ -557,8 +557,6 @@ lease-time=$nfsgrace
 END
         write_sut_file('/etc/nfs.conf', $content);
         if ($nfsversion =~ 'pnfs') {
-            assert_script_run('mkdir -p /srv/pnfs_data && chown nobody:nogroup /srv/pnfs_data && echo \'/srv/pnfs_data *(rw,pnfs,no_subtree_check,no_root_squash,fsid=10)\' >> /etc/exports');
-            assert_script_run('sed -i \'/^\[nfsd\\]$/a pnfs_dlm_device = localhost:/srv/pnfs_data\' /etc/nfs.conf');
             assert_script_run("echo '[NFSMount_Global_Options]' >> /etc/nfsmount.conf && echo 'Defaultvers=4.1' >> /etc/nfsmount.conf && echo 'Nfsvers=4.1' >> /etc/nfsmount.conf");
         }
         enable_rdma_in_nfs if $nfsversion =~ 'rdma';
