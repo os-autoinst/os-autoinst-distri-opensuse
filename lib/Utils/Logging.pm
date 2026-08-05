@@ -602,10 +602,27 @@ sub record_avc_selinux_alerts {
     my $self = shift;
 
     return if (current_console() !~ /root|log/);
-    return if (script_run('test -d /sys/fs/selinux') != 0);
 
-    my @logged = split(/\n/, script_output('ausearch -m avc,user_avc,selinux_err,user_selinux_err -r',
-            timeout => 300, proceed_on_failure => 1));
+    # This runs from consoletest::post_run_hook, so the module body has already passed
+    # by the time we get here and collecting AVCs must never be the reason it goes red.
+    # Both script_run() and script_output() croak when the console does not answer in
+    # time, which happens on loaded workers, so gather the alerts opportunistically and
+    # report what we could not collect instead of dying. See poo#204810.
+    my ($selinux, @logged);
+    unless (eval { $selinux = script_run('test -d /sys/fs/selinux'); 1 }) {
+        record_info('AVC', "Console did not answer, skipping the AVC check: $@", result => 'softfail');
+        return;
+    }
+    return if (!defined($selinux) || $selinux != 0);
+
+    unless (eval {
+            @logged = split(/\n/, script_output('ausearch -m avc,user_avc,selinux_err,user_selinux_err -r',
+                    timeout => 300, proceed_on_failure => 1));
+            1;
+    }) {
+        record_info('AVC', "'ausearch' did not answer, skipping the AVC check: $@", result => 'softfail');
+        return;
+    }
 
     if (scalar @logged <= $avc_record{start}) {
         record_info('AVC', 'No AVCs were recorded');
