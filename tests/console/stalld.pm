@@ -58,13 +58,14 @@ sub run {
         # Modify run_tests.sh to use the system binary
         assert_script_run("sed -i 's|STALLD_BIN=.*|STALLD_BIN=\"$system_stalld\"|' tests/run_tests.sh");
 
-        validate_script_output("./tests/run_tests.sh --test test_cpu_selection", sub { m/Test PASSED/ }, timeout => 120);
+        validate_script_output("./tests/run_tests.sh --test test_log_only", sub { m/Test PASSED/ }, timeout => 120);
     }
 }
 
 sub cleanup {
     my $pkg = "stalld";
     systemctl("stop stalld");
+    assert_script_run("cd /");
     uninstall_package("$pkg", trup_continue => 1, trup_reboot => 1);
     assert_script_run("rm -rf /tmp/stalld-src");
 }
