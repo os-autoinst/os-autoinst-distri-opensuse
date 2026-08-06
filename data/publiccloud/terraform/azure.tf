@@ -158,10 +158,10 @@ resource "azurerm_image" "image" {
   count               = var.image_id != "" ? 1 : 0
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "https://${var.storage-account}.blob.core.windows.net/sle-images/${var.image_id}"
-    size_gb  = var.root-disk-size 
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "https://${var.storage-account}.blob.core.windows.net/sle-images/${var.image_id}"
+    size_gb      = var.root-disk-size
     storage_type = "Standard_LRS"
   }
 
@@ -202,7 +202,7 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
     storage_account_type = "Standard_LRS"
     # SLE images are 30G by default. Uncomment this line in case we need to increase the disk size
     # note: value can not be decreased because 30 GB is minimum allowed by Azure
-    disk_size_gb         = var.root-disk-size
+    disk_size_gb = var.root-disk-size
   }
 
   source_image_id = var.image_uri != "" ? var.image_uri : (var.image_id != "" ? azurerm_image.image[0].id : null)
@@ -225,7 +225,7 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
     create = var.vm_create_timeout
   }
 
-  custom_data = var.cloud_init != "" ? filebase64(var.cloud_init) : null
+  user_data = var.cloud_init != "" ? filebase64(var.cloud_init) : null
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "default" {
