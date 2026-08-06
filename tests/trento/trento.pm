@@ -1,0 +1,140 @@
+# SUSE's openQA tests
+#
+# Copyright 2026 SUSE LLC
+# SPDX-FileCopyrightText: SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Smoke test for Trento container images
+# Packages: trento-web-image trento-wanda-image trento-checks-image mcp-server-trento-image
+# Maintainer: Trento team <trento-developers@suse.com>
+
+use Mojo::Base 'containers::basetest';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use containers::helm;
+use containers::k8s 'gather_k8s_logs';
+use package_utils 'install_package';
+use trento qw(
+  setup_trento_ingress_tls
+  trento_helm_set_options
+  trento_helm_values_image_path_from_image
+  trento_shell_quote
+  trento_wait_for_crd_established
+);
+use utils qw(random_string script_retry);
+
+sub run {
+    select_serial_terminal;
+
+    my $helm_chart = get_var('HELM_CHART', 'oci://registry.suse.com/trento/trento-server');
+    my $image = get_required_var('CONTAINER_IMAGE_TO_TEST');
+    my $helm_values_image_path = trento_helm_values_image_path_from_image($image);
+    set_var('HELM_VALUES_IMAGE_PATH', $helm_values_image_path);
+
+    my $trento_server_hostname = get_var('TRENTO_SERVER_HOSTNAME', 'localhost');
+    my $admin_password = get_var('TRENTO_ADMIN_PASSWORD');
+    $admin_password = random_string(undef, 12) if (!defined $admin_password || $admin_password eq '');
+    die 'TRENTO_ADMIN_PASSWORD must contain at least 8 characters' if length($admin_password) < 8;
+    my $admin_user = get_var('TRENTO_ADMIN_USER', 'admin');
+    my $helm_release = get_var('TRENTO_HELM_RELEASE', 'trento-server');
+
+    my $trento_ingress_url = get_var('TRENTO_INGRESS_URL', "https://$trento_server_hostname");
+    my $kubeconfig = 'KUBECONFIG=/etc/rancher/k3s/k3s.yaml';
+    my $trento_namespace = 'default';
+
+    record_info('Chart', "Installing Trento chart under test: $helm_chart");
+    record_info('Image', "Overriding $helm_values_image_path.image with $image");
+
+    # Install the Kubernetes toolchain used by the Trento chart.
+    install_package('curl', timeout => 600);
+    assert_script_run('curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true sh', timeout => 600);
+    assert_script_run('mkdir -p ~/.kube && ln -sf /etc/rancher/k3s/k3s.yaml ~/.kube/config');
+    assert_script_run('curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-4 | bash', timeout => 600);
+    script_retry("env $kubeconfig kubectl get nodes -o name | grep -q '^node/'", timeout => 180, retry => 10, delay => 10);
+    assert_script_run("$kubeconfig kubectl wait --for=condition=Ready node --all --timeout=300s", timeout => 330);
+
+    # The chart creates Traefik Middleware objects, so wait for Traefik CRDs and deployment.
+    trento_wait_for_crd_established(kubeconfig => $kubeconfig, name => 'middlewares.traefik.io');
+    script_retry("env $kubeconfig kubectl -n kube-system get deploy traefik", timeout => 180, retry => 30, delay => 6);
+    assert_script_run("$kubeconfig kubectl -n kube-system rollout status deploy/traefik --timeout=180s", timeout => 200);
+
+    assert_script_run('getent hosts ' . trento_shell_quote($trento_server_hostname) . ' || echo ' . trento_shell_quote("127.0.0.1 $trento_server_hostname") . ' >> /etc/hosts');
+
+    # Reuse the upstream helper manifests to enable cert-manager-backed ingress TLS.
+    my ($tls_values_file, $smoke_test_script) = setup_trento_ingress_tls(
+        kubeconfig => $kubeconfig,
+        hostname => $trento_server_hostname,
+        namespace => $trento_namespace);
+
+    my $chart = helm_get_chart($helm_chart);
+    my ($set_options, $helm_options) = helm_configure_values(get_var('HELM_CONFIG'), split_image_registry => 0);
+    $set_options .= trento_helm_set_options(hostname => $trento_server_hostname, admin_password => $admin_password);
+    $helm_options .= ' -f ' . trento_shell_quote($tls_values_file);
+
+    # Install Trento Server with the rebuilt image and ingress TLS values.
+    my $helm_cmd = join(' ',
+        'env',
+        $kubeconfig,
+        'helm upgrade --install',
+        $set_options,
+        trento_shell_quote($helm_release),
+        trento_shell_quote($chart),
+        $helm_options);
+    script_retry($helm_cmd, timeout => 900, retry => 5, delay => 15);
+
+    # Wait for chart workloads before validating endpoints.
+    assert_script_run("timeout -k 5s 60s env $kubeconfig kubectl --request-timeout=15s get deploy,statefulset -o name > /tmp/trento-workloads.txt", timeout => 90);
+    my @workloads = split(/\n/, script_output('cat /tmp/trento-workloads.txt', proceed_on_failure => 1));
+    foreach my $workload (@workloads) {
+        next if $workload eq '';
+        assert_script_run(
+            'timeout -k 5s 360s env ' . $kubeconfig . ' kubectl --request-timeout=15s rollout status ' . trento_shell_quote($workload) . ' --timeout=300s',
+            timeout => 390);
+    }
+    assert_script_run("timeout -k 5s 360s env $kubeconfig kubectl --request-timeout=15s wait --for=condition=Ready pods --all --timeout=300s", timeout => 390);
+    assert_script_run("$kubeconfig helm status " . trento_shell_quote($helm_release), timeout => 120);
+
+    # Run the upstream smoke test through the TLS ingress.
+    my $smoke_test_cmd = join(' ',
+        'env',
+        $kubeconfig,
+        'INGRESS_HOST=' . trento_shell_quote($trento_server_hostname),
+        'WEB_BASE_URL=' . trento_shell_quote($trento_ingress_url),
+        'WANDA_BASE_URL=' . trento_shell_quote("$trento_ingress_url/wanda"),
+        'MCP_BASE_URL=' . trento_shell_quote("$trento_ingress_url/mcp"),
+        'TEST_USERNAME=' . trento_shell_quote($admin_user),
+        'TEST_PASSWORD=' . trento_shell_quote($admin_password),
+        'bash',
+        trento_shell_quote($smoke_test_script));
+    script_retry($smoke_test_cmd, timeout => 300, retry => 3, delay => 15);
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    my $kubeconfig = 'KUBECONFIG=/etc/rancher/k3s/k3s.yaml';
+    my $release = get_var('TRENTO_HELM_RELEASE', 'trento-server');
+    my $selector = 'app.kubernetes.io/instance=trento-server';
+
+    script_run("timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s get pods -A -o wide > /tmp/trento-pods-wide.txt 2>&1", timeout => 60);
+    record_info('Pods', script_output('cat /tmp/trento-pods-wide.txt', proceed_on_failure => 1));
+    script_run("timeout -k 5s 30s env $kubeconfig helm status " . trento_shell_quote($release) . " > /tmp/trento-helm-status.txt 2>&1", timeout => 60);
+    script_run("timeout -k 5s 30s env $kubeconfig helm get values " . trento_shell_quote($release) . " -a > /tmp/trento-helm-values.txt 2>&1", timeout => 60);
+    script_run("timeout -k 5s 45s env $kubeconfig kubectl --request-timeout=15s describe pods -A > /tmp/trento-kubectl-describe-pods.txt 2>&1", timeout => 75);
+    script_run("timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s get events -A --sort-by=.lastTimestamp > /tmp/trento-k8s-events.txt 2>&1", timeout => 60);
+    script_run(
+        "for p in \$(timeout -k 5s 20s env $kubeconfig kubectl --request-timeout=15s get pods -n default -l $selector -o name 2>/dev/null); do " .
+          "safe=\$(echo \"\$p\" | tr '/:' '__'); " .
+          "timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s describe -n default \"\$p\" > \"/tmp/trento-\${safe}-describe.txt\" 2>&1; " .
+          "timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s logs -n default \"\$p\" --all-containers=true --timestamps > \"/tmp/trento-\${safe}-logs.txt\" 2>&1; " .
+          "timeout -k 5s 30s env $kubeconfig kubectl --request-timeout=15s logs -n default \"\$p\" --all-containers=true --previous --timestamps > \"/tmp/trento-\${safe}-logs-previous.txt\" 2>&1; " .
+          "done",
+        timeout => 240);
+    my @diag_files = split(/\n/, script_output('ls -1 /tmp/trento-*.txt 2>/dev/null || true', proceed_on_failure => 1));
+    upload_logs($_, failok => 1) for @diag_files;
+    gather_k8s_logs();
+}
+
+sub test_flags {
+    return {fatal => 0};
+}
+1;
