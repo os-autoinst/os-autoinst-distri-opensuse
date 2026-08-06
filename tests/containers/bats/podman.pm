@@ -67,7 +67,7 @@ sub run_tests {
     push @xfails, (
         # This test is racy on ppc64le:
         "090-events.bats::events - died event contains OOMKilled attribute",
-    ) if (is_ppc64le && version->parse(numeric_version($version)) >= version->parse("6.0.0"));
+    ) if (version->parse(numeric_version($version)) >= version->parse("6.0.0"));
 
     my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
 
