@@ -34,6 +34,7 @@ sub check_cloudinit {
 
     # cloud-init collect-logs
     $instance->ssh_assert_script_run('sudo cloud-init collect-logs');
+    $instance->ssh_script_run('sudo chown $(id -un) ~/cloud-init.tar.gz');
     $instance->upload_log('~/cloud-init.tar.gz', failok => 1);
 
     if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
