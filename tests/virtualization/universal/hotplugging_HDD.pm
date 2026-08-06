@@ -28,17 +28,18 @@ sub test_add_virtual_disk {
     assert_script_run("rm -f $disk_image");
     # Set disk size=9.5G to make it to be found more easily within the guest
     assert_script_run "qemu-img create -f $disk_format $disk_image 9.5G";
-    my $domblk_target = 'vdz';
-    $domblk_target = 'xvdz' if (is_xen_host);
-    script_run("virsh detach-disk $guest ${domblk_target}", 240);
-    if (try_attach("virsh attach-disk --domain $_ --source $disk_image --target ${domblk_target}")) {
+    my $domblk_target = is_xen_host ? 'xvdz' : 'vdz';
+    # Drop a disk left over by a previous run, but only if the guest really has it.
+    # Detaching a target the domain does not have makes libvirt fail and has been seen to crash it.
+    script_run("virsh domblklist $guest | grep -w ${domblk_target} && virsh detach-disk $guest ${domblk_target}", 240);
+    if (try_attach("virsh attach-disk --domain $guest --source $disk_image --target ${domblk_target}")) {
         assert_script_run "virsh domblklist $guest | grep ${domblk_target}";
         assert_script_run("ssh root\@$guest lsblk");
         # Attach disk check
-        assert_script_run("ssh root\@$guest lsblk | grep -iE '[x]?vd[a-z] +.*9.5G'", timeout => 60, fail_message => "Failed to attach disk for guest $guest");
+        script_retry("ssh root\@$guest lsblk | grep -iE '[x]?vd[a-z] +.*9.5G'", delay => 5, retry => 12, fail_message => "Failed to attach disk for guest $guest");
         assert_script_run("virsh detach-disk $guest ${domblk_target}", 240);
-        # Detach disk check
-        assert_script_run("! ssh root\@$guest lsblk | grep -iE '[x]?vd[b-z]'", timeout => 60, fail_message => "Failed to detach disk for guest $guest");
+        # Detach disk check, the unplug is asynchronous so the guest needs time to process it
+        script_retry("! ssh root\@$guest lsblk | grep -iE '[x]?vd[b-z]'", delay => 5, retry => 12, fail_message => "Failed to detach disk for guest $guest");
     }
     assert_script_run("rm -f $disk_image");
 }
