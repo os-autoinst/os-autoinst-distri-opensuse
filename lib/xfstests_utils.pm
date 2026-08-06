@@ -552,6 +552,7 @@ sub copy_all_log {
     copy_log($category, $num, 'out.bad');
     copy_log($category, $num, 'full');
     copy_log($category, $num, 'dmesg');
+    copy_log($category, $num, 'mountfail');
     copy_fsxops($category, $num);
     if (script_run("ls /opt/xfstests/results/$category/$num.*.md* 1> /dev/null 2>&1") == 0) {
         script_run("tar -cf $LOG_DIR/$num.dump.tar /opt/xfstests/results/$category/$num.*.md*");
