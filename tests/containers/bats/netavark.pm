@@ -25,10 +25,6 @@ sub run_tests {
     my $log_file = "netavark";
 
     my @xfails = ();
-    push @xfails, (
-        # Test fails on SLES 15 which uses netavark 1.12.x
-        "250-bridge-nftables.bats",
-    ) if (version->parse(numeric_version($version)) < version->parse("1.14.0"));
 
     return bats_tests($log_file, \%env, \@xfails, 1200);
 }
