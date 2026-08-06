@@ -271,13 +271,14 @@ sub run {
         $ifacecfg{source} = {bridge => 'br0'};
         $ifacecfg{mac} = {address => genmac('00:16:3e')};
         # We currently support ovs and native bridges as well as libvirt network definitions
-        if (my $bridge = $svirt->get_cmd_output("which ovs-vsctl > /dev/null && ovs-vsctl list-br | head -n1 | tr -d '\\n'")) {
-            # If any ovs-bridge is configured, assume it is used for SUT traffic as it provides the most features
+        # First, fetch the columns `name`+`type` of the `Interface`-table of the `Open_vSwitch` database.
+        # Then extract `internal` interfaces and use the first `name` as bridge for the SUT
+        if (my $bridge = $svirt->get_cmd_output("which ovsdb-client > /dev/null && ovsdb-client -f json dump Open_vSwitch Interface name type | jq -r '(.data[] | select(.[1] == \"internal\"))[0]' | head -n1 | tr -d '\\n'")) {
             $ifacecfg{source} = {bridge => $bridge};
             $ifacecfg{virtualport} = {type => 'openvswitch'};
         }
         elsif (my $bridge = $svirt->get_cmd_output("virsh iface-list --all | grep -v ovs-system | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
-            # If no ovs-bridge is found, try the first found native bridge
+            # If no (suitable) ovs-bridge is found, try the first found native bridge
             $ifacecfg{source} = {bridge => $bridges};
         }
         elsif (my $network = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
