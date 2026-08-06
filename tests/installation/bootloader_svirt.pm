@@ -250,56 +250,48 @@ sub run {
     $svirt->add_vnc({port => get_var('VIRSH_INSTANCE', 1) + 5900});
 
     my %ifacecfg = ();
-
-    # VMs should be specified with known-to-work network interface.
-    # Xen PV and Hyper-V use streams.
     my $iface_model;
-    if ($vmm_family eq 'kvm') {
-        $iface_model = 'virtio';
-    }
-    elsif ($vmm_family eq 'xen') {
-        $ifacecfg{type} = 'bridge';
-        $ifacecfg{source} = {bridge => 'br0'};
-        $ifacecfg{virtualport} = {type => 'openvswitch'};
-        $ifacecfg{mac} = {address => genmac('00:16:3e')};
-        $iface_model = 'netfront';
-    }
-    elsif ($vmm_family eq 'vmware') {
-        $iface_model = 'e1000';
-    } else {
-        die "Unsupported value of *VIRSH_VMM_FAMILY*\n";
-    }
-
-    if ($iface_model) {
-        $ifacecfg{model} = {type => $iface_model};
-    }
-
+    # VMs should be specified with known-to-work network interface.
     if ($vmm_family eq 'vmware') {
+        $iface_model = 'e1000';
         # `virsh iface-list' won't produce correct bridge name for VMware.
         # It should be provided by the worker or relied upon the default.
         $ifacecfg{type} = 'bridge';
         $ifacecfg{source} = {bridge => get_var('VMWARE_BRIDGE', 'VM Network')};
     }
     elsif ($vmm_family eq 'kvm') {
+        $iface_model = 'virtio';
         $ifacecfg{type} = 'user';
         # This is the default MAC address for user mode networking; same in qemu backend
         $ifacecfg{mac} = {address => '52:54:00:12:34:56'};
     }
-    else {
-        # We can use bridge or network as a base for network interface. Network named 'default'
-        # happens to be omnipresent on workstations, bridges (br0, ...) on servers. If both 'default'
-        # network and bridge are defined and active, bridge should be prefered as 'default' network
-        # does not work.
-        if (my $bridges = $svirt->get_cmd_output("virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
-            $ifacecfg{type} = 'bridge';
-            # Due to poo#126647, the default iface 'ovs-system' on xen platform can not work fine, so we need to use br0 instead
-            $bridges = 'br0' if $bridges eq 'ovs-system';
+    elsif ($vmm_family eq 'xen') {
+        $iface_model = 'netfront';
+        $ifacecfg{type} = 'bridge';
+        $ifacecfg{source} = {bridge => 'br0'};
+        $ifacecfg{mac} = {address => genmac('00:16:3e')};
+        # We currently support ovs and native bridges as well as libvirt network definitions
+        if (my $bridge = $svirt->get_cmd_output("which ovs-vsctl > /dev/null && ovs-vsctl list-br | head -n1 | tr -d '\\n'")) {
+            # If any ovs-bridge is configured, assume it is used for SUT traffic as it provides the most features
+            $ifacecfg{source} = {bridge => $bridge};
+            $ifacecfg{virtualport} = {type => 'openvswitch'};
+        }
+        elsif (my $bridge = $svirt->get_cmd_output("virsh iface-list --all | grep -v ovs-system | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+            # If no ovs-bridge is found, try the first found native bridge
             $ifacecfg{source} = {bridge => $bridges};
         }
-        elsif (my $networks = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+        elsif (my $network = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+            # Lastly, fallback to any configured libvirt network
             $ifacecfg{type} = 'network';
-            $ifacecfg{source} = {network => $networks};
+            $ifacecfg{source} = {network => $network};
         }
+    }
+    else {
+        die "Unsupported value of *VIRSH_VMM_FAMILY*\n";
+    }
+
+    if ($iface_model) {
+        $ifacecfg{model} = {type => $iface_model};
     }
 
     $svirt->add_interface(\%ifacecfg);
