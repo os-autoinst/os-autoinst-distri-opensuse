@@ -37,13 +37,7 @@ jobs:
         INLINE_PYTHON_EXECUTABLE: /usr/bin/python3
       run: |
         # Prefix with space to bypass ./tools/update_spec
-        echo " requires 'Code::DRY';" >> cpanfile
-        echo " requires 'Code::TidyAll';" >> cpanfile
-        echo " requires 'Date::Parse';" >> cpanfile
         echo " requires 'List::Compare';" >> cpanfile
-        echo " requires 'Regexp::Common';" >> cpanfile
-        echo " requires 'Syntax::Keyword::Try';" >> cpanfile
-        echo " requires 'Perl::Tidy', '== 20250616.0.0';" >> cpanfile
         . "$HOME/.cargo/env"
         make prepare
     - name: Run ${{ matrix.test }} tests
