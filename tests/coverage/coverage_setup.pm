@@ -54,6 +54,12 @@ sub run {
     }
     while (my ($name, $url) = each(%repositories)) {
         assert_script_run "zypper ar -e -f $url $name";
+        # Set repo type explicitly so zypper does not probe for media.1/media.
+        # Several of these HTTP repos (debug, update, devtools) do not serve
+        # media.1/media; the CDN returns 404, which zypper treats as a fatal
+        # refresh error.  Writing type=rpm-md directly to the .repo file is the
+        # reliable fix that survives subsequent zypper refresh calls.
+        assert_script_run "echo type=rpm-md >> /etc/zypp/repos.d/$name.repo";
     }
 
     # install coverage tools and any extra packages + debug info
