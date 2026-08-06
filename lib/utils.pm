@@ -1793,6 +1793,15 @@ sub disable_serial_getty {
     my $mask = is_qemu;
     my $cmd = $mask ? 'mask' : 'disable';
     disable_and_stop_service($service_name, mask_service => $mask, ignore_failure => 1);
+    # os-autoinst keeps *-virtio-terminal consoles on level 1 serial markers and
+    # reads them back from the virtio console, but the shell running there still
+    # inherits the PRETTY_SERIAL_MARKER PROMPT_COMMAND hook from ~/.bashrc and
+    # writes to /dev/$serialdev on every single prompt. With serial-getty masked
+    # that write can block until the port drains, and has been seen to block for
+    # good, leaving the shell without a prompt for the rest of the job. Drop the
+    # hook where it buys us nothing; consoles that do rely on it install it into
+    # their own shell from ~/.bashrc, which is left untouched.
+    script_run('unset PROMPT_COMMAND') if is_serial_terminal;
     record_info 'serial-getty', "Serial getty $cmd for $testapi::serialdev";
 }
 
