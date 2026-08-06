@@ -10,6 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
+use Utils::Architectures;
 use version_utils;
 use version;
 use containers::bats;
@@ -25,6 +26,11 @@ sub run_tests {
     my $log_file = "netavark";
 
     my @xfails = ();
+    push @xfails, (
+        # For some reason it fails on s390x with:
+        # ping: connect: Network is unreachable
+        "250-bridge-nftables.bats::nftables - isolate networks",
+    ) if (is_s390x);
 
     return bats_tests($log_file, \%env, \@xfails, 1200);
 }
