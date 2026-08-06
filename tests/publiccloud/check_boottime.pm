@@ -103,22 +103,38 @@ sub do_systemd_analyze_time {
     return @ret;
 }
 
+=head2 is_first_boot
+
+    is_first_boot($instance);
+
+Return true the first time this is called for a given instance, tracked via a marker file left on the instance (the journal is volatile on public cloud images, so C<journalctl --list-boots> cannot be used to detect earlier boots).
+
+=cut
+
+sub is_first_boot {
+    my ($instance) = @_;
+    my $marker = '/root/openqa_boottime_seen';
+    return 0 if ($instance->ssh_script_run(cmd => "sudo test -e $marker", proceed_on_failure => 1) == 0);
+    $instance->ssh_script_run(cmd => "sudo touch $marker", proceed_on_failure => 1);
+    return 1;
+}
+
 =head2 check_system_boottime
 
     check_system_boottime($instance);
 
-Check the system boot time, measured by C<systemd-analyze>, to be under a threshold.
-Assign the threshold in seconds to PUBLIC_CLOUD_BOOTTIME_MAX in test settings.
-The boot time is saved in a local json structure, then printed in the test's logs:
-when the threshold is exceeded the job is stopped.
-The routine is skipped when the threshold is undefined or zero.
+Wait for the instance to finish booting (via C<systemd-analyze time>) and
+record the timing, acting as a readiness gate for whatever runs after this
+module (poo#203817, poo#204852, poo#205311). When C<PUBLIC_CLOUD_BOOTTIME_MAX>
+is set, also fail the job if the measured boot time exceeds it. Diagnostic
+logs are collected only on the first boot.
 
 =cut
 
 sub check_system_boottime {
     my ($instance, %args) = @_;
     my $max_boot_time = get_var('PUBLIC_CLOUD_BOOTTIME_MAX');
-    return unless ($max_boot_time);
+    my $first_boot = is_first_boot($instance);
 
     my $ret = {
         kernel_release => undef,
@@ -143,11 +159,14 @@ sub check_system_boottime {
 
     $Data::Dumper::Sortkeys = 1;
     record_info("RESULTS", Dumper($ret));
-    my $dir = "/var/log";
-    my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
-    $instance->upload_check_logs_tar(map { "$dir/$_" } @logs);
+    if ($first_boot) {
+        my $dir = "/var/log";
+        my @logs = qw(cloudregister cloud-init.log cloud-init-output.log messages NetworkManager);
+        $instance->upload_check_logs_tar(map { "$dir/$_" } @logs);
+    }
 
-    # Boot time overall limit check
+    # Boot time overall limit check, only when a threshold is configured
+    return unless ($max_boot_time);
     if ($boottime > $max_boot_time) {
         if (is_azure()) {
             # Unreliable userspace boot time in Azure.
