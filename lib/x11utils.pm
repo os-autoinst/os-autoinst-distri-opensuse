@@ -412,10 +412,18 @@ Turns off the Plasma desktop screen energy saving.
 sub turn_off_plasma_screen_energysaver {
     my $kcmshell = is_plasma6 ? 'kcmshell6' : 'kcmshell5';
     x11_start_program("$kcmshell powerdevilprofilesconfig", target_match => [qw(kde-energysaver-enabled energysaver-disabled)]);
-    # Open dropdown menu if necessary
+    # Open dropdown menu if necessary ("Turn off screen")
     click_lastmatch if match_has_tag('kde-display-timeout-menu');
     assert_and_click 'kde-disable-energysaver' if match_has_tag('kde-energysaver-enabled');
     assert_screen 'kde-energysaver-disabled';
+    # Disable "Dim automatically" if necessary.
+    # That option is not available on X11, there 'kde-display-dim-disabled' should match absence of the option.
+    assert_screen [qw(kde-display-dim-enabled kde-display-dim-disabled)];
+    if (match_has_tag('kde-display-dim-enabled')) {
+        click_lastmatch;    # Open dropdown
+        assert_and_click 'kde-display-dim-disable';
+        assert_screen 'kde-display-dim-disabled';
+    }
     # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
     send_key 'ctrl-ret';
     assert_screen 'generic-desktop';
