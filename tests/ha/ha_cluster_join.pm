@@ -50,6 +50,7 @@ sub run {
 
     # Try to join the HA cluster through first node
     assert_script_run "ping -c1 $node_to_join";
+    wait_serial($testapi::distri->{serial_term_prompt}, no_regex => 1, quiet => 1);
     record_info 'cluster_join', "Joining $node_to_join";
     enter_cmd "crm cluster join -yc $node_to_join ; echo cluster-join-finished-\$?";
     wait_for_password_prompt(timeout => $join_timeout);
