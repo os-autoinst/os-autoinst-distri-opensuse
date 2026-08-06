@@ -90,6 +90,9 @@ sub do_systemd_analyze_time {
     }
     unless ($finished) {
         record_info("WARN", "Unable to get systemd-analyze in ${timeout}s.\nLast output:" . $output, result => 'fail');
+        # List all jobs and the failed units to support debug the issue
+        record_info("list-jobs", $instance->ssh_script_output(cmd => 'systemctl list-jobs --no-pager', proceed_on_failure => 1));
+        record_info("failed units", $instance->ssh_script_output(cmd => 'systemctl --failed --no-pager', proceed_on_failure => 1));
         return (0, 0);
     }
     # log time
@@ -147,7 +150,16 @@ sub check_system_boottime {
     record_info("BOOT TIME", 'systemd_analyze');
     # first deployment analysis
     my ($systemd_analyze, $systemd_blame) = do_systemd_analyze_time($instance, %args);
-    die("failed to obtain boottime from systemd") unless ($systemd_analyze && $systemd_blame);
+    unless ($systemd_analyze && $systemd_blame) {
+        # Softfailure for bsc#1264275 which causes guestregister.service to fail
+        # Do not confuse with bsc#1246104, where the title matches the failure but doesn't cover the root cause here.
+        if ($instance->ssh_script_output("sudo systemctl list-jobs") =~ "guestregister.service.*running") {
+            record_soft_failure("bsc#1264275 - systemd bootup never finished, cannot measure boot time");
+            return;
+        } else {
+            die("failed to obtain boottime from systemd");
+        }
+    }
 
     $ret->{analyze}->{$_} = $systemd_analyze->{$_} foreach (keys(%{$systemd_analyze}));
     $ret->{blame} = $systemd_blame;
