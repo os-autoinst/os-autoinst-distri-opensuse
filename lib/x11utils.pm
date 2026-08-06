@@ -19,6 +19,7 @@ our @EXPORT = qw(
   desktop_runner_hotkey
   ensure_unlocked_desktop
   ensure_fullscreen
+  update_x11_vt
   handle_additional_polkit_windows
   handle_login
   handle_logout
@@ -42,7 +43,6 @@ our @EXPORT = qw(
   close_gui_terminal
   handle_gnome_activities
   save_print_file
-  update_x11_vt
 );
 
 =head1 X11_UTILS
@@ -228,6 +228,27 @@ sub ensure_fullscreen {
     }
 }
 
+=head2 update_x11_vt
+
+  update_x11_vt()
+
+From a graphical session, read $XDG_VTNR to update the VT of the "x11"
+openQA console.
+
+=cut
+
+sub update_x11_vt {
+    x11_start_program_xterm();
+    # At this point, permissions for $serialdev may not be set up yet and switching
+    # to root-console won't work either, so (mis)use log upload.
+    enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url('/uploadlog/xdgvtnr') . ' && exit');
+    assert_screen('generic-desktop');    # Waits until finished
+
+    my $tty = path('ulogs/xdgvtnr')->slurp;
+    record_info('XDG_VTNR', "Graphical session on VT $tty");
+    console('x11')->set_tty(int($tty));
+}
+
 sub handle_additional_polkit_windows {
     my $mypwd = shift // $testapi::password;
     if (match_has_tag('authentication-required-user-settings')) {
@@ -328,6 +349,9 @@ sub handle_login {
             send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc', 5, 10;
         }
     }
+    # Need to update the VT the session runs on.
+    # In the opensuse-welcome case, that's handled afterwards.
+    update_x11_vt if (check_var('DESKTOP', 'kde') && match_has_tag('generic-desktop'));
 }
 
 =head2 handle_logout
@@ -742,27 +766,6 @@ sub save_print_file {
     send_key 'delete';
     type_string_slow($filename);
     send_key "ret";
-}
-
-=head2 update_x11_vt
-
-  update_x11_vt()
-
-From a graphical session, read $XDG_VTNR to update the VT of the "x11"
-openQA console.
-
-=cut
-
-sub update_x11_vt {
-    x11_start_program_xterm();
-    # At this point, permissions for $serialdev may not be set up yet and switching
-    # to root-console won't work either, so (mis)use log upload.
-    enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url('/uploadlog/xdgvtnr') . ' && exit');
-    assert_screen('generic-desktop');    # Waits until finished
-
-    my $tty = path('ulogs/xdgvtnr')->slurp;
-    record_info('XDG_VTNR', "Graphical session on VT $tty");
-    console('x11')->set_tty(int($tty));
 }
 
 1;
