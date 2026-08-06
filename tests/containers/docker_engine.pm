@@ -79,13 +79,6 @@ sub setup {
     my $frozen_images = script_output q(grep -oE '[[:alnum:]./_-]+:[[:alnum:]._-]+@sha256:[0-9a-f]{64}' Dockerfile | xargs echo);
     assert_script_run "curl -o contrib/download-frozen-image-v2.sh " . data_url("containers/download-frozen-image.sh");
     run_command "contrib/download-frozen-image-v2.sh /var/tmp/docker-frozen-images $frozen_images", timeout => 300;
-
-    if (grep { $_ eq "integration-cli" } @test_dirs) {
-        # integration-cli tests need an older cli version
-        my $arch = get_var("ARCH");
-        my $cliversion = get_var("DOCKER_CLIVERSION", script_output q(sed -n '/DOCKERCLI_INTEGRATION_VERSION=/s/.*=v//p' Dockerfile));
-        run_command "curl -sSL https://download.docker.com/linux/static/stable/$arch/docker-$cliversion.tgz | tar zxvf - -C /var/tmp --strip-components 1 docker/docker";
-    }
 }
 
 sub run {
@@ -130,7 +123,6 @@ sub run {
 
     foreach my $dir (@test_dirs) {
         my $report = $dir =~ s|/|-|gr;
-        $env{TEST_CLIENT_BINARY} = "/var/tmp/docker" if ($dir eq "integration-cli");
         my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
         run_command "pushd $dir";
         run_timeout_command "$env gotestsum --junitfile $report.xml --format standard-verbose ./... -- -tags '$tags' |& tee -a /var/tmp/report.txt", no_assert => 1, timeout => 900;
@@ -144,7 +136,7 @@ sub run {
 sub cleanup {
     cleanup_rootless_docker if get_var("ROOTLESS");
     select_serial_terminal;
-    script_run "rm -f /usr/local/bin/{ctr,docker,ping} /var/tmp/docker";
+    script_run "rm -f /usr/local/bin/{ctr,docker,ping}";
     cleanup_docker;
 }
 
