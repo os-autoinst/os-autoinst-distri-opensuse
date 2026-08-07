@@ -61,6 +61,8 @@ sub run {
 
     if ((is_ipmi || is_pvm || is_s390x) && get_var('INST_AUTO')) {
         select_console('install-shell');
+        assert_script_run("sed -i 's/printf \"OA:DONE-/printf \"\\\\nOA:DONE-/' ~/.bashrc");
+        assert_script_run('. ~/.bashrc');
         record_info 'Wait for installation phase done';
         verify_agama_auto_install_done_cmdline();
         upload_agama_logs();

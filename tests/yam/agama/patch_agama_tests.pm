@@ -11,7 +11,13 @@ use testapi qw(assert_script_run get_required_var select_console);
 sub run {
     select_console 'install-shell';
     my ($repo, $branch) = split /#/, get_required_var('YUPDATE_GIT');
+    assert_script_run("cat ~/.bashrc");
+    assert_script_run("sed -i 's/printf \"OA:DONE-/printf \"\\\\nOA:DONE-/' ~/.bashrc");
+    assert_script_run('. ~/.bashrc');
+    assert_script_run("cat ~/.bashrc");
     assert_script_run("AGAMA_TEST=" . get_required_var('AGAMA_TEST') . " yupdate patch $repo $branch", timeout => 60);
+    # Flush the serial buffer and force a fresh OA:DONE marker after yupdate's heavy output
+    # assert_script_run('true');
 }
 
 1;
