@@ -363,7 +363,8 @@ sub wait_for_guestregister {
             # ( e.g. when we testing images not published on Market hence w/o product codes)
             return 1 if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
             $self->_upload_guestregister_diagnostics($log, $name);
-            die('guestregister failed');
+            record_soft_failure('bsc#1264275 - guestregister.service fails to register the instance against the update infrastructure');
+            return 1;
         }
         elsif ($out =~ m/active$/) {
             diag("guestregister active");

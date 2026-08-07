@@ -315,21 +315,24 @@ subtest '[wait_for_ssh_login] timeout/delay/retry argument propagation' => sub {
 
 $autotest::current_test = {name => 'wait_for_guestregister_test'};
 
-subtest '[wait_for_guestregister] failed captures diagnostics before dying' => sub {
-    # wait_for_guestregister -- diagnostics (log + full journal) must be captured before every die on the failure paths (poo#204360)
+subtest '[wait_for_guestregister] failed records a soft failure (bsc#1264275)' => sub {
+    # wait_for_guestregister -- diagnostics (log + full journal) must be captured on every failure path (poo#204360)
     my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
-    my (@uploads, @calls);
+    my (@uploads, @calls, @softfails);
     $instmod->redefine(ssh_script_run => sub { my ($self, %args) = @_; push @calls, $args{cmd}; return 0 });
     $instmod->redefine(ssh_script_output => sub { my ($self, %args) = @_; push @calls, $args{cmd}; return 'guestregister.service - failed' });
     $instmod->redefine(upload_log => sub { my ($self, $log, %args) = @_; push @uploads, [$log, \%args] });
     $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $instmod->redefine(record_soft_failure => sub { push @softfails, $_[0] });
 
     my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
-    throws_ok { $inst->wait_for_guestregister() } qr/guestregister failed/, 'dies with guestregister failed';
+    is($inst->wait_for_guestregister(), 1, 'returns 1 instead of dying');
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     is(scalar @uploads, 2, 'upload_log called for the cloudregister log and the guestregister journal');
     is($uploads[0][0], '/var/log/cloudregister', 'uploads /var/log/cloudregister');
     ok((any { /journalctl -u guestregister\.service/ } @calls), 'journal command targets guestregister.service');
+    is(scalar @softfails, 1, 'records exactly one soft failure');
+    like($softfails[0], qr/bsc#1264275/, 'soft failure references bsc#1264275');
 };
 
 subtest '[wait_for_guestregister] failed + PUBLIC_CLOUD_IGNORE_UNREGISTERED skips diagnostics' => sub {
