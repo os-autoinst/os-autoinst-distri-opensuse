@@ -397,7 +397,7 @@ tests=(
   # Test 8. Composite images
 
   # a. Composite an image from two images
-  "gm composite blue.png quadrants500x500_transparent_blue.png __1.png;compare PAE __1.png quadrants500x500.png 0"
+  "gm composite blue.png quadrants500x500_transparent_blue.png PNG32:__1.png; compare PAE __1.png quadrants500x500.png 0"
 
   # b. Compute the difference between images:
   "gm composite -compose difference red.png blue.png __1.png;compare PAE __1.png magenta.png 0"
