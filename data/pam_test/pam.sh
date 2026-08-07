@@ -19,10 +19,9 @@ function version_or_higher() {
   local version="${1:-0}"
   local required="${2:-0}"
 
-  zypper vcmp "$version" "$required" >/dev/null 2>&1
-  local rc=$?
-
-  [ "$rc" -eq 0 ] || [ "$rc" -eq 11 ]
+  local out
+  out=$(zypper -t vcmp "$version" "$required" 2>/dev/null)
+  [ "$out" = "0" ] || [ "$out" = "1" ]
 }
 
 PAM_VERSION=$(rpm -q pam --qf '%{VERSION}')
