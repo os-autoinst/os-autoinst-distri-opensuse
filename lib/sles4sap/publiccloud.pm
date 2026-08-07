@@ -22,7 +22,6 @@ use List::MoreUtils qw(uniq);
 use Carp qw(croak);
 use YAML::PP;
 use testapi;
-use utils qw(file_content_replace);
 use serial_terminal qw(serial_term_prompt);
 use version_utils qw(check_version is_sle);
 use hacluster;
