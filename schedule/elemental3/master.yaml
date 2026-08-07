@@ -6,5 +6,10 @@ schedule:
   - microos/disk_boot
   - elemental3/init_barriers
   - elemental3/wait_barriers
-  - elemental3/configure_network
-  - elemental3/test_framework
+  - '{{master_tests}}'
+conditional_schedule:
+  master_tests:
+    TEST_TYPE:
+      k8s_validation:
+        - elemental3/configure_network
+        - elemental3/test_framework

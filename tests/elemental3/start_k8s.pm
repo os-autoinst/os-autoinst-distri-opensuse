@@ -8,159 +8,10 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
-use serial_terminal qw(select_serial_terminal);
-use utils qw(exec_and_insert_password systemctl);
-use mm_network qw(configure_hostname);
-use network_utils qw(get_default_dns is_running_in_isolated_network set_resolv);
+use elemental3;
 use utils qw(file_content_replace);
 use Mojo::File qw(path);
 use Carp qw(croak);
-
-=head2 wait_on_cmd
-
- wait_on_cmd( cmd => <value> [, timeout => <value> ] );
-
-Checks for up to B<$timeout> seconds whether command is executed.
-Returns 0 if command is successful or croaks on timeout.
-
-=cut
-
-sub wait_on_cmd {
-    my (%args) = @_;
-    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $ret = undef;
-
-    croak('Argument <cmd> missing') unless $args{cmd};
-    while ($ret = script_run("$args{cmd}", timeout => $timeout / 10)) {
-        if (time - $starttime >= $timeout) {
-            record_info("failed command: $args{cmd}");
-            die("Command timed out after $timeout seconds!");
-        }
-        sleep 5;
-    }
-
-    # Return the command status
-    die('Check did not return a defined value!') unless defined $ret;
-    return $ret;
-}
-
-=head2 kubectl_cmd
-
- kubectl_cmd( cmd => <value> [, timeout => <value> ] );
-
-Checks for up to B<$timeout> seconds whether kubectl command is executed.
-Returns 0 if command is successful or croaks on timeout.
-
-=cut
-
-sub kubectl_cmd {
-    my (%args) = @_;
-    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $ret = undef;
-
-    croak('Argument <cmd> missing') unless $args{cmd};
-    while ($ret = script_run("kubectl $args{cmd}", timeout => $timeout / 10)) {
-        if (time - $starttime >= $timeout) {
-            record_info('kubectl failed command: ', script_output("kubectl $args{cmd}", proceed_on_failure => 1));
-            die("kubectl command timed out after $timeout seconds!");
-        }
-        sleep 5;
-    }
-
-    # Return the command status
-    die('Check did not return a defined value!') unless defined $ret;
-    return $ret;
-}
-
-=head2 wait_kubectl_cmd
-
- wait_kubectl_cmd( [ timeout => <value> ] );
-
-Wait for kubectl command to be available.
-
-=cut
-
-sub wait_kubectl_cmd {
-    my (%args) = @_;
-    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $ret = undef;
-
-    while ($ret = script_run('which kubectl', timeout => $timeout / 10)) {
-        die("kubectl command did not appear within $timeout seconds!") if (time - $starttime >= $timeout);
-        sleep 5;
-    }
-
-    # Return the command status
-    die('Check did not return a defined value!') unless defined $ret;
-    return $ret;
-}
-
-=head2 wait_k8s_state
-
- wait_k8s_state( regex => <value> [, timeout => <value> ] );
-
-Checks for up to B<$timeout> seconds whether K8s cluster is running.
-Returns 0 if cluster is running or croaks on timeout.
-
-=cut
-
-sub wait_k8s_state {
-    my (%args) = @_;
-    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $ret = undef;
-    my $chk_cmd = 'kubectl get pod -A 2>&1';
-
-    croak('A regex should be defined!') unless (defined $args{regex} && $args{regex} ne '');
-    while (
-        $ret = script_run(
-            "! ($chk_cmd | grep -E -i -v -q '$args{regex}')",
-            timeout => $timeout / 10
-        )
-      )
-    {
-        if (time - $starttime >= $timeout) {
-            record_info('K8s failed state', script_output("$chk_cmd", proceed_on_failure => 1));
-            die("K8s cluster did not start within $timeout seconds!");
-        }
-        sleep 10;
-    }
-
-    # Return the command status
-    die('Check did not return a defined value!') unless defined $ret;
-    return $ret;
-}
-
-=head2 wait_nodes_ready
-
- wait_nodes_ready( [ timeout => <value> ] );
-
-Wait for up to B<$timeout> seconds until K8s nodes are ready.
-Returns 0 if nodes are ready or croaks on timeout.
-
-=cut
-
-sub wait_nodes_ready {
-    my (%args) = @_;
-    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $chk_cmd = 'kubectl get nodes 2>&1';
-    my $out = ' NotReady ';    # Spaces are needed for the next regex to work!
-
-    while ($out =~ m/\s+NotReady\s+/s) {
-        $out = script_output("$chk_cmd", proceed_on_failure => 1);
-        if (time - $starttime >= $timeout) {
-            record_info('K8s nodes state', script_output("$chk_cmd", proceed_on_failure => 1));
-            die("K8s nodes not ready within $timeout seconds!");
-        }
-        sleep 10;
-    }
-
-    return 0;
-}
 
 =head2 prepare_test_framework
 
@@ -247,17 +98,6 @@ sub run {
         $self->result('skip');
         return;
     }
-
-    # Set default root password
-    $testapi::password = get_required_var('TEST_PASSWORD');
-
-    # Define k8s service
-    my $k8s_svc;
-    $k8s_svc = 'k3s' if ($k8s eq 'k3s');
-    $k8s_svc = 'rke2-server' if ($k8s eq 'rke2');
-
-    # No GUI, easier and quicker to use the serial console
-    select_serial_terminal();
 
     # Cannot be defined with the other variables, as we need terminal access
     my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
