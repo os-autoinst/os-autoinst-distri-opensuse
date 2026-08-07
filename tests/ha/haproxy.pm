@@ -65,6 +65,9 @@ sub run {
 
     upload_logs($_, failok => 1) for ($apache_file, $haproxy_cfg);
 
+    # Enable kernel option
+    assert_script_run 'sysctl -w net.ipv4.ip_nonlocal_bind=1';
+
     # Apache have to be started on the both nodes for load balancing
     # TODO: Add apache2 in the HA configuration
     systemctl 'enable --now apache2';
@@ -93,8 +96,12 @@ sub run {
         # Do a check of the cluster with a screenshot
         save_state;
 
-        # Check service is started
-        systemctl 'status haproxy';
+        # Restart haproxy
+        assert_script_run 'crm resource restart haproxy';
+
+        # Check haproxy
+        assert_script_run 'crm resource status haproxy';
+        assert_script_run 'crm resource cleanup haproxy';
     }
 
     if (is_node(2)) {
