@@ -93,8 +93,8 @@ sub run {
         # Do a check of the cluster with a screenshot
         save_state;
 
-        # Check service is started
-        systemctl 'status haproxy';
+        # Check haproxy
+        assert_script_run 'crm resource status haproxy';
     }
 
     if (is_node(2)) {
