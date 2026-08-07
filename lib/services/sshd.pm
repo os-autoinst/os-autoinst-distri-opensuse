@@ -87,28 +87,19 @@ sub ssh_basic_check {
     assert_script_run("echo \"PS1='# '\" >> ~$ssh_testman/.bashrc") unless check_var('VIRTIO_CONSOLE', '0');
 
     # Make interactive SSH connection as the new user
-    # poo#205149: the sub-shell spawned via expect doesn't inherit the outer
+    # poo#205149: the sub-shell spawned via ssh -t doesn't inherit the outer
     # shell's PROMPT_COMMAND marker hook, so fall back to classic markers
     # for this interactive region only.
     {
         my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
-        # expect's braced multi-pattern form needs real newlines between
-        # clauses, so the script is a downloaded file, not one typed line.
-        my $sync_marker = 'SSHRDY' . int(rand(90000) + 10000);
-        # -v aids debugging; retry is safe since -o always overwrites the file.
-        script_retry('curl -f -v ' . data_url('console/sshd_interactive_login.exp') . ' -o /tmp/ssh_expect.exp', retry => 3, delay => 5, timeout => 90);
-        file_content_replace(
-            '/tmp/ssh_expect.exp',
-            '%SSH_TESTMAN%' => $ssh_testman,
-            '%SSH_PASSWD%' => $ssh_testman_passwd,
-            '%SYNC_MARKER%' => $sync_marker,
-            '%SERIALDEV%' => $serialdev,
-            '--sed-modifier' => 'g',
-        );
-        enter_cmd "expect -f /tmp/ssh_expect.exp";
-        # See data/console/sshd_interactive_login.exp for how the marker is emitted.
-        die "interactive ssh login did not complete, no $sync_marker marker seen\n"
-          unless wait_serial(qr/$sync_marker-\d+/, timeout => 420);
+        # script_start_io already redirects to /dev/$serialdev on backends
+        # that need it (e.g. svirt/Hyper-V), so no hand-rolled marker needed.
+        script_start_io("ssh -4 -v -E /tmp/ssh_log0 $ssh_testman\@localhost -t");
+        # Host key is always untrusted: prepare_test_data cleared ~/.ssh.
+        die "host key prompt did not appear\n" unless wait_serial('Are you sure', timeout => 300);
+        enter_cmd('yes');
+        die "password prompt did not appear\n" unless wait_serial('sword:', timeout => 300);
+        enter_cmd($ssh_testman_passwd);
 
         # Check that we are really in the SSH session
         assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
@@ -117,7 +108,8 @@ sub ssh_basic_check {
         assert_script_run "mkdir .ssh";
 
         # Exit properly and check we're root again
-        script_run("exit", 0);
+        enter_cmd('exit');
+        script_finish_io(timeout => 300, exitcodes => [0]);
         assert_script_run "whoami | grep root";
     }
 

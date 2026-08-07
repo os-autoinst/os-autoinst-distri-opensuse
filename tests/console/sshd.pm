@@ -131,8 +131,9 @@ sub cleanup() {
     # eval guards against a wedged console timing out the upload/cat below.
     eval { upload_logs('/tmp/ssh_log0', failok => 1) };
     record_info('sshd cleanup', "upload of /tmp/ssh_log0 failed: $@") if $@;
-    eval { script_run('cat /tmp/ssh_log*', timeout => 30) };
-    record_info('sshd cleanup', "cat /tmp/ssh_log* failed: $@") if $@;
+    # ssh_log0 is uploaded above already, so it's excluded here to avoid duplication.
+    eval { script_run('cat /tmp/ssh_log[12]', timeout => 30) };
+    record_info('sshd cleanup', "cat /tmp/ssh_log[12] failed: $@") if $@;
     script_run('rm -f /tmp/ssh_log*');
     check_journal();
 }
