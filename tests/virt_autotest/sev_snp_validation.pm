@@ -44,7 +44,7 @@ use power_action_utils 'power_action';
 # Define constants for SNP verification
 use constant {
     # ucode-amd provides CPU microcode required by snphost ok verification
-    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'snpguest', 'ucode-amd'],
+    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'ucode-amd'],
     SNP_GUEST_TOOLS => ['snpguest'],
     SNP_MIN_KERNEL_VER => '5.19.0',
 
@@ -179,6 +179,8 @@ sub check_sev_snp_on_host {
         my $installed_pkgs_info = script_output("rpm -q " . join(' ', @{+SNP_HOST_TOOLS}) . " 2>/dev/null || echo 'Some packages not found'", proceed_on_failure => 1);
         record_info('Installed SEV-SNP Packages', $installed_pkgs_info);
     }
+
+    validate_script_output("zypper if snphost", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if check_var("UPDATE_PACKAGE", "snphost");
 
     # Configure SEV-SNP kernel parameters (reboots if needed, also loads newly installed ucode-amd)
     $self->configure_sev_snp_kernel_parameters();
@@ -854,6 +856,8 @@ sub install_snp_packages_on_guest {
         timeout => 180    # Increased timeout for package installation
     );
     save_screenshot;
+
+    validate_script_output("ssh root\@$guest_name zypper if snpguest", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if check_var("UPDATE_PACKAGE", "snpguest");
 
     if ($install_result != 0) {
         record_info('Installation Failed', "Failed to install packages on guest $guest_name: $package_list", result => 'softfail');
