@@ -28,6 +28,7 @@ sub type_qnetd_pwd {
 sub cluster_init {
     my ($init_method, $fencing_opt, $unicast_opt, $qdevice_opt) = @_;
 
+    wait_serial($testapi::distri->{serial_term_prompt}, no_regex => 1, quiet => 1);
     record_info 'cluster_init', "Initializing cluster with: -y $fencing_opt $unicast_opt $qdevice_opt";
     if ($init_method eq 'crm-cluster-init') {
         enter_cmd "crm cluster init -y $fencing_opt $unicast_opt $qdevice_opt ; echo cluster-init-finished-\$?";
