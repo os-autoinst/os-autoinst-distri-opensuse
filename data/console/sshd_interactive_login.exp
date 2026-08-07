@@ -1,0 +1,25 @@
+set timeout 300
+spawn ssh -4 -v -E /tmp/ssh_log0 %SSH_TESTMAN%@localhost -t
+expect {
+    "Are you sure" {send yes\n;exp_continue}
+    "sword:" {send %SSH_PASSWD%\n}
+    timeout {exit 1}
+}
+expect {
+    "#" {}
+    timeout {exit 2}
+}
+# [pid] only becomes a real number once this line executes, so it can't
+# self-match echoed source. puts covers plain qemu (console==/dev/$serialdev);
+# the direct write covers svirt/Hyper-V's separate COM port; catch and 3x repeat guard against a failed/garbled write.
+puts "%SYNC_MARKER%-[pid]"
+flush stdout
+catch {exec sh -c "echo \"%SYNC_MARKER%-[pid]\" > /dev/%SERIALDEV%"}
+puts "%SYNC_MARKER%-[pid]"
+flush stdout
+catch {exec sh -c "echo \"%SYNC_MARKER%-[pid]\" > /dev/%SERIALDEV%"}
+puts "%SYNC_MARKER%-[pid]"
+flush stdout
+catch {exec sh -c "echo \"%SYNC_MARKER%-[pid]\" > /dev/%SERIALDEV%"}
+send \n
+interact
