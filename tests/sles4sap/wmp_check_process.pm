@@ -42,7 +42,7 @@ sub run {
     # Run script
     my $current_test = get_var('WMP_PHASE', $testphases[0]);
     $current_test = $testphases[0] unless (grep /^$current_test$/, @testphases);
-    enter_cmd "cd /root/$testname";
+    assert_script_run "cd /root/$testname";
     my $out = script_output_retry("python3 check_process.py -o $logdir -n $current_test 2>&1", retry => 3, timeout => 30, delay => 10);
     die "$testname failed with error [$out]" if ($out =~ /ERROR:/);
     my ($index) = grep { $testphases[$_] eq $current_test } (0 .. $#testphases);
