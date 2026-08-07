@@ -6,6 +6,8 @@
 # Summary: Check public cloud specific services
 # Maintainer: QE-C team <qa-c@suse.de>
 
+# Requires publiccloud/check_boottime to run first (poo#205311): waagent.service starts only after guestregister.service finishes, so a not-yet-booted instance reports it as inactive.
+
 use Mojo::Base 'publiccloud::basetest';
 use serial_terminal 'select_serial_terminal';
 use registration;
