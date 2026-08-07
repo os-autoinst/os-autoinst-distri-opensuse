@@ -17,20 +17,34 @@ use package_utils;
 use LTP::utils;
 use OpenQA::Test::RunArgs;
 
-sub setup_openssl_test {
-    my $packname = 'openssl-3-livepatches';
+# Define global testing parameters
+my $openssl_ver = get_var('OPENSSL_LP_VERSION', '3');
+my ($packname, $libpackage, $command, $legacy_pkg_suffix);
 
+if ($openssl_ver eq '1_1') {
+    $packname = 'openssl-1_1-livepatches';
+    $libpackage = 'libopenssl1_1';
+    $command = '/usr/bin/openssl-1_1';
+    $legacy_pkg_suffix = 'openssl-1_1';
+} else {
+    $packname = 'openssl-3-livepatches';
+    $libpackage = 'libopenssl3';
+    $command = 'openssl';
+    $legacy_pkg_suffix = 'openssl-3';
+}
+
+sub setup_openssl_test {
     # Ensure libpulp tools are installed
     install_klp_product if is_sle('<16');
     install_package('libpulp0 libpulp-tools libpulp-load-default');
 
     # Get all available openssl-3 versions from repositories
-    my $openssl_versions_rpm = zypper_search('-s -x -t package libopenssl3');
+    my $openssl_versions_rpm = zypper_search("-s -x -t package $libpackage");
     my %available_versions;
     $available_versions{$$_{version}} = 1 for (@$openssl_versions_rpm);
 
     if (scalar(keys %available_versions) == 0) {
-        die "No openssl-3 packages found in repositories.";
+        die "No $legacy_pkg_suffix packages found in repositories.";
     }
 
     # Inspect the 'Provides:' of the livepatch package.
@@ -46,7 +60,7 @@ sub setup_openssl_test {
     my @targeted_versions = grep { defined($available_versions{$_}) } keys %lp_versions;
 
     if (scalar(@targeted_versions) == 0) {
-        record_info('No Targets', "No livepatchable openssl-3 versions found based on $packname provides.");
+        record_info('No Targets', "No livepatchable $legacy_pkg_suffix versions found based on $packname provides.");
         return undef;
     }
 
@@ -61,9 +75,9 @@ sub setup_openssl_test {
 
 sub get_livepatch_path {
     if (is_transactional()) {
-        return "/var/livepatches/openssl-3-livepatches/";
+        return "/var/livepatches/$legacy_pkg_suffix-livepatches/";
     } else {
-        return "/usr/(lib64/)?openssl-3-livepatches/";
+        return "/usr/(lib64/)?$legacy_pkg_suffix-livepatches/";
     }
 }
 
@@ -80,23 +94,22 @@ sub run {
 
     my $run_id = $tinfo->{run_id};
     my $target_ver = $tinfo->{target_versions}[$run_id];
-    my $packname = "openssl-3-livepatches";
     my $total_runs = scalar(@{$tinfo->{target_versions}});
 
-    record_info('Test Iter', "Iteration " . ($run_id + 1) . "/$total_runs: Testing with openssl-3-$target_ver");
+    record_info('Test Iter', "Iteration " . ($run_id + 1) . "/$total_runs: Testing with $legacy_pkg_suffix-$target_ver");
     # Ensure livepatch is not installed from a previous run
     if (script_run("rpm -q $packname") == 0) {
         uninstall_package($packname);
     }
-    record_info('Downgrade', "Installing old version: openssl-3-$target_ver");
+    record_info('Downgrade', "Installing old version: $legacy_pkg_suffix-$target_ver");
     # Force install the old package. Exit codes 106/107 indicate updates are available, which is expected.
-    my $ssl_packs = zypper_search('-i libopenssl3');
+    my $ssl_packs = zypper_search("-i $libpackage");
     my @downgrade_list = map { "$_->{name}=$target_ver" } @$ssl_packs;
-    push @downgrade_list, "openssl-3=$target_ver";
+    push @downgrade_list, "$legacy_pkg_suffix=$target_ver";
     install_package("--oldpackage " . join(' ', @downgrade_list), trup_continue => 1, trup_reboot => 1);
 
     # Start `openssl s_server` in the background. It's a long-running process that links with libssl/libcrypto.
-    my $server_pid = background_script_run("openssl s_server -cert cert.pem -key key.pem -pass pass:password -accept 44330 -www");
+    my $server_pid = background_script_run("$command s_server -cert cert.pem -key key.pem -pass pass:password -accept 44330 -www");
     record_info('Workload', "Started openssl s_server with PID $server_pid");
 
     # Verify the server is running and unpatched by checking its memory maps.
@@ -158,8 +171,8 @@ sub post_fail_hook {
     my ($self) = @_;
     # Collect some debug info on failure
     script_run("ulp status");
-    script_run("rpm -qi openssl-3-livepatches");
-    script_run("rpm -qi openssl-3");
+    script_run("rpm -qi $packname");
+    script_run("rpm -qi $legacy_pkg_suffix");
     # Remove temporary certificate files.
     assert_script_run("rm key.pem cert.pem");
     $self->SUPER::post_fail_hook;
