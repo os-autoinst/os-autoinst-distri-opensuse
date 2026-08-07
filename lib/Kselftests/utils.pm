@@ -117,7 +117,7 @@ sub install_from_git
     my $git_ref = get_var('KSELFTEST_GIT_REF', '');
 
     install_package('git', trup_apply => 1);
-    my $clone_cmd = "git clone --depth 1 --single-branch";
+    my $clone_cmd = "git clone --depth 1 --filter=blob:none --single-branch";
     $clone_cmd .= " --branch $git_ref" if $git_ref ne '';
     $clone_cmd .= " $git_tree linux";
     assert_script_run($clone_cmd, 240);
@@ -466,7 +466,7 @@ sub validate_kconfig
         record_info('KConfig', "Unable to find /boot/config-$kver file");
         return;
     }
-    assert_script_run('wget https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/scripts/config && chmod +x config');
+    assert_script_run("curl -o config " . data_url("kernel/config"));
     my @mismatches;
     for my $expected (@expected) {
         my ($sym, $expected_st);
@@ -479,7 +479,7 @@ sub validate_kconfig
         } else {
             next;
         }
-        my $actual_st = script_output("./config --state --file /boot/config-$kver $sym");
+        my $actual_st = script_output("sh config --state --file /boot/config-$kver $sym");
         if ($actual_st ne $expected_st) {
             my $mismatch = "$sym => $actual_st (actual) -> $expected_st (expected)";
             push(@mismatches, $mismatch);
