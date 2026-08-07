@@ -92,8 +92,23 @@ sub ssh_basic_check {
     # for this interactive region only.
     {
         my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
-        enter_cmd "expect -c 'spawn ssh $ssh_testman\@localhost -t;expect \"Are you sure\";send yes\\n;expect sword:;send $ssh_testman_passwd\\n;expect #;send \\n;interact'";
-        sleep(1);
+        # expect's braced multi-pattern form needs real newlines between
+        # clauses, so the script is a downloaded file, not one typed line.
+        my $sync_marker = 'SSHRDY' . int(rand(90000) + 10000);
+        # -v aids debugging; retry is safe since -o always overwrites the file.
+        script_retry('curl -f -v ' . data_url('console/sshd_interactive_login.exp') . ' -o /tmp/ssh_expect.exp', retry => 3, delay => 5, timeout => 90);
+        file_content_replace(
+            '/tmp/ssh_expect.exp',
+            '%SSH_TESTMAN%' => $ssh_testman,
+            '%SSH_PASSWD%' => $ssh_testman_passwd,
+            '%SYNC_MARKER%' => $sync_marker,
+            '%SERIALDEV%' => $serialdev,
+            '--sed-modifier' => 'g',
+        );
+        enter_cmd "expect -f /tmp/ssh_expect.exp";
+        # See data/console/sshd_interactive_login.exp for how the marker is emitted.
+        die "interactive ssh login did not complete, no $sync_marker marker seen\n"
+          unless wait_serial(qr/$sync_marker-\d+/, timeout => 420);
 
         # Check that we are really in the SSH session
         assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';

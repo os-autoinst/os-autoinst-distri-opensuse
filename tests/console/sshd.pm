@@ -128,8 +128,11 @@ sub post_fail_hook {
 sub cleanup() {
     my $self = shift;
     systemctl('start ' . $self->firewall) if $reenable_firewall;
-    # Show debug log contents
-    script_run('cat /tmp/ssh_log*');
+    # eval guards against a wedged console timing out the upload/cat below.
+    eval { upload_logs('/tmp/ssh_log0', failok => 1) };
+    record_info('sshd cleanup', "upload of /tmp/ssh_log0 failed: $@") if $@;
+    eval { script_run('cat /tmp/ssh_log*', timeout => 30) };
+    record_info('sshd cleanup', "cat /tmp/ssh_log* failed: $@") if $@;
     script_run('rm -f /tmp/ssh_log*');
     check_journal();
 }
