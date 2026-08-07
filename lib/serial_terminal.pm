@@ -382,7 +382,7 @@ sub select_serial_terminal {
         }
     } elsif (get_var('SUT_IP') || is_backend_s390x) {
         $console = $root ? 'root-serial-ssh' : 'user-serial-ssh';
-    } elsif ($backend eq 'svirt') {
+    } elsif ($backend eq 'svirt' || $backend eq 'ova') {
         if (check_var('SERIAL_CONSOLE', 0)) {
             $console = $root ? 'root-console' : 'user-console';
         } else {
