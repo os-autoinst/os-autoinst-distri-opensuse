@@ -10,6 +10,23 @@
 #
 # Usage; test.sh path_of_resources
 
+function exit_handler {
+  local exit_code=$?
+  echo "OK: $count_ok, ERRORS: $count_ko, TOTAL: ${#tests[*]}"
+  case $exit_code in
+    0)
+      echo "All tests passed"
+      ;;
+    *)
+      echo "KO:" >&2
+      printf '%s\n' "${ko_list[@]}" >&2
+    ;;
+    esac
+  exit $exit_code;
+}
+
+trap exit_handler EXIT
+
 #####################
 # Download resorces
 #####################
@@ -82,7 +99,7 @@ gm convert white.png frame4.gif
 
 ## Check if the first version is equal or greater than the required version
 # e.g version_or_higher "1.3.33" "1.3.28" returns true
-function version_or_higher() {
+function version_or_higher {
   local version="${1:-0}"
   local required="${2:-0}"
 
@@ -454,7 +471,7 @@ if ! version_or_higher "$(rpm -q GraphicsMagick --qf '%{VERSION}')" "1.3.47"; th
   )
 fi
 
-function special(){
+function special {
   case $1 in
     0) gm convert -resize 500x250! -fill red -draw 'rectangle 250,0 500,250' blue.png $2 && compare PAE $2 quadrants_up_500x250.png 0;;
     1) gm convert -fill red -draw 'circle 125,125 125,0' white.png $2 && compare PAE $2 red_circle.png 0;;
@@ -497,8 +514,8 @@ do
 
       res=$($cmd)
       if [ $? -ne 0 ]; then
-        res="KO"
-        break;
+        res=$cmd
+        break
       fi
     done
 
@@ -506,13 +523,11 @@ do
       ok_list[$count_ok]=$index
       count_ok=$(( count_ok + 1 ))
     else
-      ko_list[$count_ko]=$index
+      ko_list[$count_ko]="test $index => $res"
       count_ko=$(( count_ko + 1 ))
     fi
 
     echo "$index - $res - $original_command"
 done
-
-echo "OK: $count_ok , ERRORS: $count_ko"
 
 exit $count_ko
