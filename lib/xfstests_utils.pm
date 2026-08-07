@@ -639,6 +639,7 @@ Enable softlockup panic collection and could manually enable other setting by XF
 
 sub config_debug_option {
     my $debug_info = shift;
+    script_run('echo 1 > /proc/sys/kernel/sysrq');      # The default 184 will skip some sysrq key
     script_run('echo 1 > /proc/sys/kernel/softlockup_all_cpu_backtrace');    # on detection capture more debug information
     script_run('echo 1 > /proc/sys/kernel/softlockup_panic');    # panic when softlockup
     if ($debug_info) {
