@@ -53,7 +53,6 @@ schedule:
   - console/libxslt
   - console/valkey
   - console/ruby
-  - console/gdb            # softfail: breakpoint timeout under shim
   - console/journald_fss
   - console/vhostmd
   - console/clamav         # softfail: OOM on virus DB; coverage ok
@@ -140,6 +139,8 @@ schedule:
   - console/shar
   - console/run0
   - coverage/coverage_report
+  # --- after report: modules that may crash the console on o3 ---
+  - console/gdb            # post_fail_hook breaks console on o3; coverage data already collected
 test_data:
   helper_packages:
     - gzip
