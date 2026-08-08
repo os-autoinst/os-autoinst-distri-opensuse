@@ -21,11 +21,15 @@ sub run {
     select_serial_terminal;
 
     install_package("tcpdump", trup_reboot => 1);
-    # Start tcpdump to sniff only icmp loclhost packets in background and do ping
-    script_run("tcpdump -i lo icmp and src localhost -vv > $tcpdump_log_file 2>&1 & echo \$! > $pid_file & sleep 4");
-    assert_script_run("ping -c4 localhost -4 & sleep 4");
+    # Start tcpdump in the background sniffing ICMP on loopback
+    script_run("tcpdump -i lo icmp and src localhost -vv > $tcpdump_log_file 2>&1 & echo \$! > $pid_file");
+    # Wait until tcpdump is ready before sending traffic
+    script_retry("grep -q 'listening on' $tcpdump_log_file", delay => 1, retry => 10);
+    assert_script_run("ping -c4 localhost -4");
 
     assert_script_run("kill \$(cat $pid_file)");
+    # Wait for tcpdump to exit and flush its summary
+    script_retry("! kill -0 \$(cat $pid_file) 2>/dev/null", delay => 1, retry => 5);
     record_info("TEST LOG", script_output("cat $tcpdump_log_file"));
     validate_script_output("cat $tcpdump_log_file", sub { m/0 packets dropped by kernel/ });
 }
