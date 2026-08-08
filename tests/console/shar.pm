@@ -25,7 +25,8 @@ sub run {
     }
 
     select_console 'user-console';
-    assert_script_run('sh ~/data/shar_testdata.sh');
+    assert_script_run('curl -o /tmp/shar_testdata.sh ' . data_url('shar_testdata.sh'));
+    assert_script_run('sh /tmp/shar_testdata.sh');
     assert_script_run('file shar_testdata/suse.png | grep "600 x 550"');
     assert_script_run('head -1 shar_testdata/hallo.txt | grep "Hallo Welt"');
     assert_script_run('shar shar_testdata > a.sh');
