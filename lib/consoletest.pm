@@ -50,7 +50,11 @@ sub post_fail_hook {
     return if is_public_cloud();
     # Remaining log functions are executed in Utils::Logging::export_logs()
     # called in opensusebasetest::post_fail_hook()
-    select_console('log-console');
+    eval { select_console('log-console') };
+    if ($@) {
+        record_info('console error', "Could not switch to log-console: $@", result => 'fail');
+        return;
+    }
     show_oom_info;
     show_tasks_in_blocked_state;
 }
