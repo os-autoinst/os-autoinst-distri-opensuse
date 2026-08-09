@@ -74,7 +74,7 @@ sub run {
 
     my $log_dir = '/var/coverage/data';
     assert_script_run "mkdir -m 0777 -p $log_dir";
-    assert_script_run 'find /lib* /usr/lib* -type f -executable -exec chmod +x {} +';
+
     assert_script_run 'funkoverage setup';
 
     # funkoverage install soft-fails per binary and exits non-zero if any fail.
