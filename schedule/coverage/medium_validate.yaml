@@ -1,0 +1,91 @@
+name: coverage - medium o3 validation (25 test modules)
+description: >
+    Medium validation to verify coverage across 25 test modules on o3.
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_uefi
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - coverage/coverage_setup
+  # --- 25 test modules ---
+  - console/tar
+  - console/curl_https
+  - console/kmod
+  - console/cpio
+  - console/unzip
+  - console/nano
+  - console/vim
+  - console/sqlite3
+  - console/wget_https
+  - console/gpg
+  - console/openssl_alpn
+  - console/nginx
+  - console/dnsmasq
+  - console/chrony
+  - console/cron
+  - console/quota
+  - console/arping
+  - console/tracepath
+  - console/dig
+  - console/shells
+  - console/procps
+  - console/man_pages
+  - console/irqbalance
+  - console/shar
+  - console/run0
+  - coverage/coverage_report
+test_data:
+  helper_packages:
+    - gzip
+    - iputils
+    - systemd
+    - wget
+  coverage_targets:
+    tar: /usr/bin/tar
+    curl: /usr/bin/curl
+    kmod: /usr/bin/kmod
+    cpio: /usr/bin/cpio
+    unzip: /usr/bin/unzip
+    nano: /usr/bin/nano
+    vim: /usr/bin/vim-nox11
+    sqlite3: /usr/bin/sqlite3
+    wget: /usr/bin/wget
+    gpg2:
+      - /usr/bin/gpg
+      - /usr/bin/gpgconf
+    openssl-3: /usr/bin/openssl
+    nginx: /usr/sbin/nginx
+    dnsmasq: /usr/sbin/dnsmasq
+    chrony: /usr/bin/chronyc
+    cronie:
+      - /usr/sbin/cron
+      - /usr/bin/crontab
+    quota:
+      - /usr/bin/quota
+      - /usr/sbin/quotacheck
+      - /usr/sbin/quotaon
+    iputils:
+      - /usr/bin/arping
+      - /usr/bin/tracepath
+    bind-utils:
+      - /usr/bin/dig
+      - /usr/bin/host
+    tcsh: /usr/bin/tcsh
+    zsh: /usr/bin/zsh
+    procps:
+      - /usr/bin/free
+      - /usr/bin/top
+      - /usr/bin/ps
+      - /usr/bin/vmstat
+    man: /usr/bin/man
+    irqbalance: /usr/sbin/irqbalance
+    sharutils:
+      - /usr/bin/shar
+      - /usr/bin/unshar
+    systemd: /usr/bin/run0
