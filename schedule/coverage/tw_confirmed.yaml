@@ -59,7 +59,6 @@ schedule:
   - console/pkcon
   - console/redis          # softfail: OOM; coverage ok
   - console/shells
-  - console/sudo           # softfail: capabilities check; coverage ok
   - console/valgrind
   - console/zziplib
   # --- confirmed: tier 1 ---
@@ -139,8 +138,12 @@ schedule:
   - console/shar
   - console/run0
   - coverage/coverage_report
-  # --- after report: modules that may crash the console on o3 ---
-  - console/gdb            # post_fail_hook breaks console on o3; coverage data already collected
+  # --- after report: modules whose post_fail_hook crashes the console on o3 ---
+  # These use VNC console switching or interactive terminal sessions.
+  # Their coverage data is NOT in the report (shim data written after report).
+  # See: https://github.com/os-autoinst/os-autoinst-distri-opensuse/pull/26330
+  - console/gdb
+  - console/sudo
 test_data:
   helper_packages:
     - gzip
