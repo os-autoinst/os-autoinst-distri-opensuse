@@ -1,0 +1,30 @@
+name: coverage - quick o3 validation
+description: >
+    Minimal schedule to verify funkoverage shims produce coverage
+    on o3. Compare tar, curl, kmod numbers with local results.
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_uefi
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - coverage/coverage_setup
+  - console/tar
+  - console/curl_https
+  - console/kmod
+  - coverage/coverage_report
+test_data:
+  helper_packages:
+    - gzip
+    - iputils
+    - systemd
+    - wget
+  coverage_targets:
+    tar: /usr/bin/tar
+    curl: /usr/bin/curl
+    kmod: /usr/bin/kmod
