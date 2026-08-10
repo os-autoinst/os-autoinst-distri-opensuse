@@ -66,7 +66,7 @@ sub run {
 
 
     if (@{zypper_search('lklfuse')}) {
-        install_package 'lklfuse';
+        install_package('lklfuse', trup_apply => 1);
         assert_script_run "usermod -a -G disk bernhard";
 
         select_user_serial_terminal;
