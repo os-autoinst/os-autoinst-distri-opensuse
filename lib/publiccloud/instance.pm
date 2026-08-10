@@ -533,6 +533,32 @@ sub wait_for_ssh_login {
     $self->ssh_script_retry("true", ssh_opts => $ssh_opts, retry => $retry, delay => $delay, fail_message => "ssh connection failed ($retry attempts in $timeout seconds)");
 }
 
+=head2 wait_for_sudo
+
+    wait_for_sudo([timeout => 180] [, delay => 10]);
+
+Wait until the ssh user can run C<sudo> without a password, polling
+C<sudo -n true> every C<delay> seconds for at most C<timeout> seconds,
+and die if it never succeeds.
+
+Meant to be used right after C<wait_for_ssh>: sshd can already be reachable
+while first-boot provisioning is still granting the user its sudo rights.
+
+=cut
+
+sub wait_for_sudo {
+    my ($self, %args) = @_;
+    my $timeout = $args{timeout} // 180;
+    my $delay = $args{delay} // 10;
+    my $retry = $timeout / $delay;
+
+    ## ControlPath=none is required: the public cloud ssh config keeps a persistent ControlMaster and
+    ## group membership is resolved at login, so a master opened before the sudoers group was added
+    ## would never see it
+    my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none';
+    $self->ssh_script_retry('sudo -n true', ssh_opts => $ssh_opts, retry => $retry, delay => $delay, fail_message => "sudo still requires a password after $timeout seconds");
+}
+
 =head2 isok
 
     isok($exit_code);

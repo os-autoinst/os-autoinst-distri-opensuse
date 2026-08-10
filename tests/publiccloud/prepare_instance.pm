@@ -43,6 +43,9 @@ sub run {
     my $instance = $args->{my_instance};
     $instance->wait_for_ssh(scan_ssh_host_key => 1);
 
+    # sshd can be reachable before first-boot provisioning granted the user sudo
+    $instance->wait_for_sudo();
+
     $provider->initialize_logging($instance);
     # Add additional authorized_keys for human users
     add_additional_authorized_keys($instance);
