@@ -30,4 +30,13 @@ sub run {
     }
 }
 
+# Overwrite post_run_hook due to no HOME defined in root TTY
+sub post_run_hook {
+    my ($self) = @_;
+
+    $self->record_avc_selinux_alerts();
+    # clear screen to make screen content ready for next test
+    $self->clear_and_verify_console;
+}
+
 1;
