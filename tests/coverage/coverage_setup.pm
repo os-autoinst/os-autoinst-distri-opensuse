@@ -75,6 +75,9 @@ sub run {
     my $log_dir = '/var/coverage/data';
     assert_script_run "mkdir -m 0777 -p $log_dir";
 
+    # Dump kernel eBPF/uprobe limits for diagnostics
+    script_run 'echo "=== eBPF diagnostics ===" && cat /proc/sys/kernel/perf_event_paranoid && echo "perf_event_paranoid" && ulimit -l && echo "memlock limit (kB)" && cat /proc/sys/kernel/perf_event_max_sample_rate 2>/dev/null && echo "max_sample_rate" && ls /sys/kernel/debug/tracing/uprobe_events 2>/dev/null && echo "uprobe_events accessible" || echo "uprobe_events NOT accessible"';
+
     assert_script_run 'funkoverage setup';
 
     # funkoverage install soft-fails per binary and exits non-zero if any fail.
