@@ -110,6 +110,8 @@ sub run {
     push @hashes, 'md5' unless check_var('FIPS_ENABLED', '1');
     for my $alg (@hashes) {
         assert_script_run "sigtool --$alg /usr/local/bin/maybeavirus > test.hdb";
+        # https://progress.opensuse.org/issues/183761#note-45
+        wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
         enter_cmd "clamscan -d test.hdb  /usr/local/bin/maybeavirus | tee /dev/$serialdev";
         die "Virus scan result was not expected" unless (wait_serial qr/maybeavirus\.UNOFFICIAL FOUND.*Known viruses: 1/ms);
     }
