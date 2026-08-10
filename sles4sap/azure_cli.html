@@ -14,6 +14,7 @@
 <ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
+      <li><a href="#az">az</a></li>
       <li><a href="#az_version">az_version</a></li>
       <li><a href="#az_group_create">az_group_create</a></li>
       <li><a href="#az_group_name_get">az_group_name_get</a></li>
@@ -91,6 +92,34 @@
 
 <p>Library to compose and run Azure cli commands</p>
 
+<h2 id="az">az</h2>
+
+<pre><code>az(az_args =&gt; &#39;group list&#39; [, query =&gt; &#39;[].name&#39;]);</code></pre>
+
+<p>Executes az cli command specified. Commands are executed with `-o json` Returns perl data structure containing return code, command output, errors.</p>
+
+<p>Example: { rc =&gt; &#39;0&#39;, output =&gt; [&#39;group_name_a&#39;, &#39;group_name_b&#39;], error =&gt; &#39;&#39; }</p>
+
+<dl>
+
+<dt id="az_args---Specify-arguments-passed-to-az-cli"><b>az_args</b> - Specify arguments passed to `az cli`</dt>
+<dd>
+
+</dd>
+<dt id="query---specify---query"><b>query</b> - specify `--query`</dt>
+<dd>
+
+</dd>
+<dt id="quiet---pass-quiet-to-azure-cli-commands"><b>quiet</b> - pass <b>quiet</b> to azure cli commands</dt>
+<dd>
+
+</dd>
+<dt id="timeout---override-default-bmwqemu-timeout-for-az-cli-command"><b>timeout</b> - override default bmwqemu timeout for `az cli` command</dt>
+<dd>
+
+</dd>
+</dl>
+
 <h2 id="az_version">az_version</h2>
 
 <pre><code>az_version();</code></pre>
@@ -153,7 +182,7 @@
 
 <pre><code>az_group_exists(name =&gt; &#39;resource group name&#39; [, quiet=&gt;&#39;pssst!&#39;]);</code></pre>
 
-<p>Check if specified resource group exists. Returns whatever &#39;az group exist&#39; is returning that usually is string <b>true</b> or <b>false</b>.</p>
+<p>Returns non-empty value if resource group exists, otherwise <b>undef</b></p>
 
 <dl>
 
@@ -1309,7 +1338,7 @@ Return a validated systemAssignedIdentity ID or die.</code></pre>
 
 <pre><code>az_resource_list([resource_group=&gt;$resource_group, query=&gt;$query, output=&gt;$output]);</code></pre>
 
-<p>Lists existing az resources based on arguments provided. Calling function without any argument returns full information from all existing resource groups. Returns decoded json structure if json format is requested, otherwise whole output is a string.</p>
+<p>Lists existing az resources based on arguments provided. Calling function without any argument returns full information from all existing resource groups. Returns data structure returned from az cli json output.</p>
 
 <dl>
 
