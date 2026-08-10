@@ -102,6 +102,7 @@ sub override_known_failures {
     $self->record_resultfile('out.bad', "$targs->{outbad}", %args) if defined($targs->{outbad});
     $self->record_resultfile('full', "$targs->{fullog}", %args) if defined($targs->{fullog});
     $self->record_resultfile('dmesg', "$targs->{dmesg}", %args) if defined($targs->{dmesg});
+    $self->record_resultfile('mountfail', "$targs->{mountfail}", %args) if defined($targs->{mountfail});
 
     if ($targs->{status} =~ /SOFTFAILED/) {
         $self->record_soft_failure_result($targs->{failinfo}, force_status => 1, %args) if defined($targs->{failinfo});
@@ -430,6 +431,7 @@ sub run {
         $targs{outbad} = script_output("if [ -f $test_path.out.bad ]; then tail -n 200 $test_path.out.bad | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.out.bad not exist';fi", 600, type_command => 1, proceed_on_failure => 1);
         $targs{fullog} = script_output("if [ -f $test_path.full ]; then tail -n 200 $test_path.full | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; else echo '$test_path.full not exist'; fi", 600, type_command => 1, proceed_on_failure => 1);
         $targs{dmesg} = script_output("if [ -f $test_path.dmesg ]; then tail -n 200 $test_path.dmesg | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600, type_command => 1, proceed_on_failure => 1);
+        $targs{mountfail} = script_output("if [ -f $test_path.mountfail ]; then tail -n 200 $test_path.mountfail | sed \"s/'//g\" | tr -cd '\\11\\12\\15\\40-\\176'; fi", 600, type_command => 1, proceed_on_failure => 1);
         $targs{status} = 'SOFTFAILED' if $status =~ /SOFTFAILED/;
 
         if (exists($softfail_list{$generate_name})) {
