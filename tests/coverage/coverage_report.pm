@@ -23,6 +23,8 @@ sub run {
                     grep { /\.html$/ && !/^lib/i } @files;  # skip lib*.html (220+ shared lib reports)
     parse_extra_log('XUnit', $_) for @xmlfiles;
     upload_logs($_)              for @htmlfiles;
+    # Print XML coverage summaries to serial console for ease of diagnostics (poo#205467)
+    assert_script_run 'grep -h "<testsuite" /var/coverage/report/*.xml || true';
 }
 
 1;

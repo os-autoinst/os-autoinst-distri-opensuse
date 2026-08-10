@@ -78,6 +78,14 @@ sub run {
     # Dump kernel eBPF/uprobe limits for diagnostics
     script_run 'echo "=== eBPF diagnostics ===" && cat /proc/sys/kernel/perf_event_paranoid && echo "perf_event_paranoid" && ulimit -l && echo "memlock limit (kB)" && cat /proc/sys/kernel/perf_event_max_sample_rate 2>/dev/null && echo "max_sample_rate" && ls /sys/kernel/debug/tracing/uprobe_events 2>/dev/null && echo "uprobe_events accessible" || echo "uprobe_events NOT accessible"';
 
+    # Raise memlock limits to unlimited to prevent uprobe resource exhaustion (poo#205467)
+    assert_script_run 'ulimit -l unlimited';
+    assert_script_run 'mkdir -p /etc/systemd/system.conf.d /etc/security/limits.d';
+    assert_script_run 'printf "[Manager]\nDefaultLimitMEMLOCK=infinity\n" > /etc/systemd/system.conf.d/memlock.conf';
+    assert_script_run 'systemctl daemon-reexec';
+    assert_script_run 'printf "* - memlock unlimited\n" > /etc/security/limits.d/99-memlock.conf';
+    assert_script_run 'ulimit -l';
+
     assert_script_run 'funkoverage setup';
 
     # funkoverage install soft-fails per binary and exits non-zero if any fail.
