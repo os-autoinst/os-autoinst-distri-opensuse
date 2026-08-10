@@ -635,6 +635,7 @@ sub zypper_call {
     my $log = $args{log};
     my $var = $args{tmpfs} ? '/var' : '';
     my $dumb_term = $args{dumb_term} // is_serial_terminal;
+    my $check_typing = is_serial_terminal ? '0' : '1';
 
     my $printer = $log ? "| tee $var/tmp/$log" : $dumb_term ? '| cat' : '';
     die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
@@ -648,7 +649,7 @@ sub zypper_call {
                     /var/log/zypper.log
                     ';
     for (1 .. 5) {
-        $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout);
+        $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout, check_typing_cmd => $check_typing);
         die "zypper did not finish in $timeout seconds" unless defined($ret);
         if ($ret == 4) {
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
