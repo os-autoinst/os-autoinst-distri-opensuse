@@ -44,7 +44,7 @@ use bootloader_setup;
 use registration;
 use utils;
 use version_utils qw(is_jeos is_microos is_opensuse is_sle is_selfinstall is_sle_micro is_leap_micro is_bootloader_sdboot is_bootloader_grub2_bls is_transactional);
-use Utils::Backends qw(is_ipmi);
+use Utils::Backends qw(is_ipmi is_qemu);
 
 # hint: press shift-f10 trice for highest debug level
 sub run {
@@ -130,8 +130,9 @@ sub run {
         return;
     }
 
-    my $efi_vars_have_nosb = get_var('UEFI_PFLASH_VARS', '') =~ /nosb/i;
-    if (!$efi_vars_have_nosb && get_var('DISABLE_SECUREBOOT') && (get_var('BACKEND') eq 'qemu')) {
+    my $secure_boot_disabled = get_var('UEFI_PFLASH_VARS', '') =~ /nosb/i
+      || check_var('UEFI_PFLASH_SECURE_BOOT', '0');
+    if (!$secure_boot_disabled && get_var('DISABLE_SECUREBOOT') && is_qemu) {
         $self->tianocore_disable_secureboot;
     }
     if ((get_var("ZDUP") && !is_jeos) || (get_var('ONLINE_MIGRATION') && check_var('BOOTFROM', 'd'))) {
