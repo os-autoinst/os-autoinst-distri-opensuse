@@ -174,6 +174,11 @@ sub cleanup_known_coredumps {
         # cmdline is a literal string, not a regex, matching part of the command line.
         # signals is optional; all signals match if not specified.
         # architectures is optional; all architectures match if not specified.
+        'poo#200531' => {
+            cmdline => q(/usr/sbin/nscd),
+            signals => [qw(BUS)],
+            architectures => [qw(s390x)],
+        },
         'poo#198596' => {
             cmdline => q(openssl3-conf/base_only.cnf -p $'"hello"'),
             signals => [qw(ABRT)],
