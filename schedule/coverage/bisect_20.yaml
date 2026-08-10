@@ -1,0 +1,62 @@
+name: coverage - bisect 20 binaries
+description: Binary search for uprobe limit. 11 works, 35 fails. Testing 20.
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_uefi
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - coverage/coverage_setup
+  - console/tar
+  - console/curl_https
+  - console/kmod
+  - console/cpio
+  - console/unzip
+  - console/nano
+  - console/gpg
+  - console/nginx
+  - console/dig
+  - console/shells
+  - console/sqlite3
+  - console/vim
+  - console/wget_https
+  - console/openssl_alpn
+  - console/dnsmasq
+  - console/chrony
+  - console/cron
+  - console/quota
+  - console/arping
+  - console/tracepath
+  - coverage/coverage_report
+test_data:
+  helper_packages:
+    - gzip
+    - iputils
+    - systemd
+    - wget
+  coverage_targets:
+    tar: /usr/bin/tar
+    curl: /usr/bin/curl
+    kmod: /usr/bin/kmod
+    cpio: /usr/bin/cpio
+    unzip: /usr/bin/unzip
+    nano: /usr/bin/nano
+    gpg2: /usr/bin/gpg
+    nginx: /usr/sbin/nginx
+    bind-utils: /usr/bin/dig
+    tcsh: /usr/bin/tcsh
+    zsh: /usr/bin/zsh
+    sqlite3: /usr/bin/sqlite3
+    vim: /usr/bin/vim-nox11
+    wget: /usr/bin/wget
+    openssl-3: /usr/bin/openssl
+    dnsmasq: /usr/sbin/dnsmasq
+    chrony: /usr/bin/chronyc
+    cronie: /usr/sbin/cron
+    quota: /usr/bin/quota
+    iputils: /usr/bin/arping
