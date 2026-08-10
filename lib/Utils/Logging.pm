@@ -173,6 +173,12 @@ sub cleanup_known_coredumps {
     my %known_coredumps = (
         # cmdline is a literal string, not a regex, matching part of the command line.
         # signals is optional; all signals match if not specified.
+        # architectures is optional; all architectures match if not specified.
+        'poo#200531' => {
+            cmdline => q(/usr/sbin/nscd),
+            signals => [qw(BUS)],
+            architectures => [qw(s390x)],
+        },
         'poo#198596' => {
             cmdline => q(openssl3-conf/base_only.cnf -p $'"hello"'),
             signals => [qw(ABRT)],
@@ -190,6 +196,7 @@ sub cleanup_known_coredumps {
         },
     );
 
+    my $arch = get_var('ARCH');
     for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 ~ /^(present|truncated)$/ { print $5 }'), proceed_on_failure => 1))) {
         my $coredump_info = script_output("time coredumpctl info --no-pager $pid", proceed_on_failure => 1);
         my ($cmdline) = $coredump_info =~ /^\s+Command Line: (.*)$/m;
@@ -200,6 +207,7 @@ sub cleanup_known_coredumps {
             my $entry = $known_coredumps{$known};
             next if index($cmdline, $entry->{cmdline}) < 0;
             next if $entry->{signals} && !grep { $_ eq $signal } @{$entry->{signals}};
+            next if $entry->{architectures} && !grep { $_ eq $arch } @{$entry->{architectures}};
             record_info('Known dump', $coredump_info);
             # Fetch path from a line like:
             #   Storage: /var/lib/systemd/coredump/core.binary.999.zst (present)
