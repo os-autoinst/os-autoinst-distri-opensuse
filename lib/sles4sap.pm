@@ -443,6 +443,7 @@ sub prepare_profile {
 
     if ($has_saptune) {
         assert_script_run 'saptune service takeover';
+        wait_serial($testapi::distri->{serial_term_prompt}, no_regex => 1, quiet => 1) if testapi::is_serial_terminal;
         enter_cmd "saptune solution verify $profile; echo DONE-$\? > /dev/$serialdev";
         my $ret = wait_serial qr/DONE-\d/, timeout => 30;
         if (!defined $ret) {
