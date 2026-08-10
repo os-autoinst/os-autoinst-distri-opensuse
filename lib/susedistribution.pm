@@ -517,8 +517,8 @@ sub init_consoles {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
                 username => 'root',
-                serial => 'rm -f /dev/virtsshserial; mkfifo /dev/virtsshserial; chmod 666 /dev/virtsshserial; while true; do cat /dev/virtsshserial; done',
-                gui => 1
+                serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
+                gui => 0
             }) if (get_var('VIRT_AUTOTEST', '') or get_var('REGRESSION', ''));
     }
 
