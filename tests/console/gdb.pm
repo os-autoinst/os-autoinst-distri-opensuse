@@ -106,4 +106,15 @@ sub run {
     assert_script_run("pkill -9 test3");
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    # gdb may still be running interactively on the serial terminal.
+    # Exit it before the base class tries to switch consoles.
+    type_string("quit\n");
+    type_string("y\n");
+    sleep 1;
+    script_run('pkill -9 gdb', timeout => 5);
+    $self->SUPER::post_fail_hook;
+}
+
 1;

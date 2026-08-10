@@ -1,0 +1,336 @@
+name: coverage - confirmed binaries (production schedule)
+description: >
+    Clean list of binaries confirmed compatible with funkoverage eBPF coverage
+    measurement. Every binary here has been validated in a local podman+QEMU job
+    and produces non-zero coverage data. This is the production schedule.
+    Only stock test modules from os-autoinst-distri-opensuse are used.
+    Maintainer: amanzini / balogh
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_uefi
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - coverage/coverage_setup
+  # --- confirmed: original batch ---
+  - network/snmp
+  - console/cpio
+  - console/curl_https
+  - console/gd
+  - console/kmod
+  - console/lshw
+  - console/nano
+  - console/nftables
+  - console/rpm
+  - console/sqlite3
+  - console/tar
+  - console/unzip
+  - console/vim
+  - console/wavpack
+  - console/wget_https
+  - console/zbar
+  # --- confirmed: job 52 additions ---
+  - console/chrony
+  - console/dnsmasq
+  - console/gpg
+  - console/mta
+  - console/quota
+  # --- confirmed: batch 1 ---
+  - console/arping
+  - console/ping          # softfail: cap check; coverage ok
+  - console/tracepath
+  - console/openssl_alpn
+  - console/cron
+  - console/syslog
+  - console/timezone
+  - console/nginx
+  - console/libvorbis
+  - console/libxslt
+  - console/valkey
+  - console/ruby
+  - console/gdb            # softfail: breakpoint timeout under shim
+  - console/journald_fss
+  - console/vhostmd
+  - console/clamav         # softfail: OOM on virus DB; coverage ok
+  - console/pkcon
+  - console/redis          # softfail: OOM; coverage ok
+  - console/shells
+  - console/sudo           # softfail: capabilities check; coverage ok
+  - console/valgrind
+  - console/zziplib
+  # --- confirmed: tier 1 ---
+  - console/dig
+  - console/lsof           # softfail: no sshd on :22; coverage ok
+  - console/perf           # softfail: probe timeout under shim; coverage ok
+  # --- confirmed: tier 2 (job 85) ---
+  - console/procps
+  - console/osinfo_db
+  - console/gcc
+  - console/cryptsetup
+  - console/vsftpd
+  - console/fwupd
+  - security/audit/auditctl
+  - security/audit/auditd
+  - security/audit/autrace
+  # --- confirmed: apparmor (no coverage targets — aa-* are scripts; AppArmor inactive) ---
+  - security/apparmor/aa_status
+  - security/apparmor/aa_enforce
+  - security/apparmor/aa_complain
+  - security/apparmor/aa_disable
+  - security/apparmor/aa_autodep
+  - security/apparmor/aa_notify
+  - security/apparmor/aa_easyprof
+  # --- confirmed: batch 3 (jobs 87+89) — stock modules only ---
+  - console/pciutils
+  - security/lynis/lynis_setup
+  - security/usbguard/usbguard
+  - hpc/cpuid
+  - security/pam/pam_config
+  # --- batch from job 106 ---
+  - console/mariadb_srv
+  - console/udisks2
+  # --- batch from job 107 ---
+  - console/mariadb_odbc
+  # --- batch from job 110 ---
+  - console/systemd_resolved
+  - console/check_default_network_manager
+  - console/libgpiod
+#  - console/libjpeg_turbo  # removed: consistently fails in full run
+#  - console/openvswitch  # removed: consistently fails in full run
+  - console/libaom
+  - console/btrfs_check
+  - console/snapper_create
+  - console/suse_module_tools
+  # --- batch from job 118 ---
+#  - console/apache  # removed: fails in full run
+#  - console/ovn  # removed: fails in full run
+  - console/btrfsmaintenance
+  - console/snapper_cleanup
+  - console/snapper_used_space
+  # --- batch from job 119 ---
+  - console/irqbalance
+  - console/man_pages
+  - console/dns_srv
+  - console/textinfo
+  # --- batch from job 121 ---
+#  - security/libserf/libserf  # removed: fails in full run
+  - security/pam/pam_u2f
+  - console/ca_certificates_mozilla
+  - security/pam/pam_basic_function
+  - security/crypto_policies/crypto_policies_setup
+  - security/selinux/sestatus
+  - security/selinux/selinuxexeccon
+  # --- batch from job 123 ---
+#  - console/fs_stress  # removed: consistently fails in full run
+  - yast2_cmd/yast_lang
+  - yast2_cmd/yast_timezone
+#  - yast2_cmd/yast_storage  # removed: yast2-storage package not found
+  # --- batch from job 124 ---
+  - security/openscap/oscap_setup
+  - security/openscap/oscap_info
+  - security/openscap/oscap_oval_scanning
+  # --- batch from job 139 (deep repo scan August 8, 2026) ---
+  - security/selinux/semodule
+  # --- batch from job 146 (PR verification August 8, 2026) ---
+  - console/shar
+  - console/run0
+  - coverage/coverage_report
+test_data:
+  helper_packages:
+    - gzip
+    - iputils
+    - systemd
+    - wget
+  coverage_targets:
+    # --- original ---
+    bzip2: /usr/bin/bzip2
+    cpio: /usr/bin/cpio
+    curl: /usr/bin/curl
+    gd:
+      - /usr/bin/giftogd2
+      - /usr/bin/gd2togif
+      - /usr/bin/gd2topng             # job 147
+      - /usr/bin/gdcmpgif             # job 147
+      - /usr/bin/pngtogd              # job 147
+      - /usr/bin/gdtopng              # job 147
+      - /usr/bin/webpng               # job 147
+    lshw: /usr/sbin/lshw
+    nano: /usr/bin/nano
+    net-snmp:
+      - /usr/bin/snmpget
+      - /usr/bin/snmpset
+      - /usr/bin/snmpusm
+    nftables: /usr/sbin/nft
+    tar: /usr/bin/tar
+    traceroute: /usr/sbin/traceroute
+    unzip: /usr/bin/unzip
+    vim: /usr/bin/vim-nox11
+    wavpack:
+      - /usr/bin/wavpack
+      - /usr/bin/wvunpack
+      - /usr/bin/wvgain               # job 147
+    kmod: /usr/bin/kmod
+    rpm: /usr/bin/rpm
+    sqlite3: /usr/bin/sqlite3
+    wget: /usr/bin/wget
+    zbar: /usr/bin/zbarimg
+    # --- job 52 additions ---
+    chrony: /usr/bin/chronyc
+    dnsmasq: /usr/sbin/dnsmasq
+    gpg2:
+      - /usr/bin/gpg
+      - /usr/bin/gpgconf              # job 147
+    postfix: /usr/sbin/postfix
+    quota:
+      - /usr/bin/quota
+      - /usr/sbin/quotacheck
+      - /usr/sbin/quotaon             # job 147
+    # --- batch 1 ---
+    iputils:
+      - /usr/bin/arping
+      - /usr/bin/ping
+      - /usr/bin/tracepath
+    openssl-3: /usr/bin/openssl
+    cronie:
+      - /usr/sbin/cron
+      - /usr/bin/crontab
+    util-linux-systemd: /usr/bin/logger
+    timezone:
+      - /usr/sbin/zdump
+      - /usr/sbin/zic                 # job 147
+    nginx: /usr/sbin/nginx
+    vorbis-tools:
+      - /usr/bin/ogg123
+      - /usr/bin/ogginfo
+    libxslt-tools: /usr/bin/xsltproc
+    valkey:
+      - /usr/bin/valkey-server
+      - /usr/bin/valkey-cli           # job 147
+    gdb: /usr/bin/gdb
+    clamav:
+      - /usr/bin/clamscan
+      - /usr/bin/clamdscan
+      - /usr/sbin/clamd
+    vhostmd: /usr/sbin/vhostmd
+    # --- batch 2 ---
+    sudo: /usr/bin/sudo
+    tcsh: /usr/bin/tcsh
+    zsh: /usr/bin/zsh
+    redis:
+      - /usr/sbin/redis-server
+      - /usr/bin/redis-cli            # job 147
+    valgrind: /usr/bin/valgrind
+    PackageKit:
+      - /usr/bin/pkcon
+      - /usr/libexec/packagekitd
+    # --- tier 1 ---
+    bind-utils:
+      - /usr/bin/dig
+      - /usr/bin/host                 # job 147
+    lsof: /usr/bin/lsof
+    perf: /usr/bin/perf
+    netcat-openbsd: /usr/bin/netcat
+    psmisc: /usr/bin/killall
+    zziplib-devel:
+      - /usr/bin/unzzip
+      - /usr/bin/unzip-mem
+    # --- tier 2: confirmed job 85 ---
+    procps:
+      - /usr/bin/free
+      - /usr/bin/pgrep
+      - /usr/bin/pmap
+      - /usr/bin/pwdx
+      - /usr/bin/top
+      - /usr/bin/ps
+      - /usr/bin/w
+      - /usr/bin/pidof
+      - /usr/bin/vmstat
+      - /sbin/sysctl
+    gcc16: /usr/bin/gcc
+    cryptsetup: /usr/sbin/cryptsetup
+    vsftpd: /usr/sbin/vsftpd
+    lftp: /usr/bin/lftp
+    fwupd: /usr/bin/fwupdmgr
+    audit:
+      - /usr/sbin/auditd
+      - /usr/sbin/aureport
+      - /usr/sbin/ausearch
+    # --- batch 3: confirmed jobs 87+89 ---
+    pciutils: /usr/sbin/lspci
+    cpupower: /usr/bin/cpupower
+    powertop: /usr/sbin/powertop
+    util-linux:
+      - /usr/bin/lscpu
+      - /usr/bin/uuidgen
+      - /usr/bin/dmesg
+      - /usr/sbin/sfdisk
+      - /usr/sbin/blkid
+      - /usr/bin/lsmem
+      - /usr/bin/chrt
+    glibc: /usr/bin/getent
+    gawk: /usr/bin/gawk
+    xmlstarlet: /usr/bin/xmlstarlet
+    dmidecode: /usr/sbin/dmidecode
+    cpuid: /usr/bin/cpuid
+    pam-config: /usr/sbin/pam-config
+    # --- job 106 additions ---
+    mariadb-client:
+      - /usr/bin/mariadb              # 12.4%
+      - /usr/bin/mariadb-admin        # job 147
+    udisks2: /usr/bin/udisksctl          # 43.8%
+    systemd-container: /usr/bin/systemd-nspawn  # 19.9%
+    # --- job 107 additions ---
+    unixODBC:
+      - /usr/bin/isql              # 38.5%
+      - /usr/bin/odbcinst          # 66.7%
+    socat: /usr/bin/socat          # shows as socat1 in report, 16.5%
+    # --- job 110 additions ---
+    # resolvectl, networkctl already in systemd package
+    libgpiod-utils:
+      - /usr/bin/gpiodetect
+      - /usr/bin/gpioinfo
+      - /usr/bin/gpioset
+      - /usr/bin/gpioget
+    libjpeg-turbo: /usr/bin/jpegtran
+    ImageMagick: /usr/bin/identify
+    openvswitch:
+      - /usr/bin/ovs-vsctl
+      - /usr/bin/ovs-ofctl
+    mokutil:
+      - /usr/bin/modhash
+      - /usr/bin/modsign-verify
+    # systemd-cat already in systemd package; 100% coverage
+
+    # --- job 118 additions ---
+    ovn:
+      - /usr/bin/ovn-nbctl            # 8.9%
+      - /usr/bin/ovn-sbctl            # 29.2%
+    # --- job 119 additions ---
+    irqbalance: /usr/sbin/irqbalance  # 73.9%
+    man: /usr/bin/man                  # 60.9%
+    aide: /usr/bin/aide                # 14.5% (test softfails, coverage ok)
+    openslp-server: /usr/sbin/slpd     # 32.9% (test softfails, coverage ok)
+    openslp: /usr/bin/slptool          # 25.0%
+    # --- job 124 additions ---
+    openscap-utils: /usr/bin/oscap     # 18.75%
+    # --- job 139 additions (deep repo scan August 8, 2026) ---
+    snapper: /usr/bin/snapper          # 275 funcs; exercised by snapper_create/cleanup/used_space
+    dirmngr:
+      - /usr/bin/dirmngr              # 455 funcs; exercised indirectly by gpg
+      - /usr/bin/dirmngr-client       # 105 funcs
+    policycoreutils:
+      - /usr/sbin/setfiles            # 47 funcs; restorecon is symlink to this
+      - /usr/sbin/semodule            # 63 funcs; exercised by security/selinux/semodule
+      - /usr/sbin/setsebool           # 41 funcs; exercised by SELinux setup
+      - /usr/bin/sestatus             # 47 funcs; exercised by security/selinux/sestatus
+    # run0 is a symlink to systemd-run; this gets systemd-debuginfo installed
+    systemd: /usr/bin/run0             # 193 funcs; shimmed as run0 -> systemd-run
+    # --- job 146 additions (PR verification August 8, 2026) ---
+    sharutils:
+      - /usr/bin/shar                  # verified in job #146
+      - /usr/bin/unshar

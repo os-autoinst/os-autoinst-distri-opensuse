@@ -1,0 +1,45 @@
+name: coverage - diagnostic (10 binaries + kernel limits)
+description: >
+    Test 10 binaries to find the uprobe scaling boundary.
+    Also dumps kernel eBPF limits for diagnosis.
+schedule:
+  - autoyast/prepare_profile
+  - installation/isosize
+  - installation/bootloader_uefi
+  - autoyast/installation
+  - autoyast/console
+  - autoyast/login
+  - autoyast/autoyast_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - coverage/coverage_setup
+  - console/tar
+  - console/curl_https
+  - console/kmod
+  - console/cpio
+  - console/unzip
+  - console/nano
+  - console/gpg
+  - console/nginx
+  - console/dig
+  - console/shells
+  - coverage/coverage_report
+test_data:
+  helper_packages:
+    - gzip
+    - iputils
+    - systemd
+    - wget
+  coverage_targets:
+    tar: /usr/bin/tar
+    curl: /usr/bin/curl
+    kmod: /usr/bin/kmod
+    cpio: /usr/bin/cpio
+    unzip: /usr/bin/unzip
+    nano: /usr/bin/nano
+    gpg2: /usr/bin/gpg
+    nginx: /usr/sbin/nginx
+    bind-utils: /usr/bin/dig
+    tcsh: /usr/bin/tcsh
+    zsh: /usr/bin/zsh
