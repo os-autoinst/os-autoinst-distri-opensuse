@@ -24,7 +24,6 @@ Library to compose and run Azure cli commands
 =cut
 
 our @EXPORT = qw(
-  $SDAF_Azure_podman_flake_filter
   az_version
   az_group_create
   az_group_name_get
@@ -96,6 +95,75 @@ our $SDAF_Azure_podman_flake_filter = (get_var('SDAF_GIT_AUTOMATION_BRANCH', '')
   ? "2> >(grep -Ev 'FutureWarning|Launching flake|self.' >&2)"
   : '';
 
+=head2 az
+
+    az(az_args => 'group list' [, query => '[].name']);
+
+Executes az cli command specified. Commands are executed with `-o json`
+Returns perl data structure containing return code, command output, errors.
+
+Example:
+{
+    rc => '0',
+    output => ['group_name_a', 'group_name_b'],
+    error => ''
+}
+
+=over
+
+=item B<az_args> - Specify arguments passed to `az cli`
+
+=item B<query> - specify `--query`
+
+=item B<quiet> - pass B<quiet> to azure cli commands
+
+=item B<timeout> - override default bmwqemu timeout for `az cli` command
+
+=back
+=cut
+
+sub az(%args) {
+    $args{timeout} //= $bmwqemu::default_timeout;
+    croak 'Command `az` is not needed in $args{az_args}'
+      if $args{az_args} =~ /az/;
+    croak 'Missing mandatory argument: <az_args>' unless $args{az_args};
+    croak 'Jmespath query "--query" must be specified using $args{query}'
+      if $args{az_args} =~ /--query/;
+    croak 'Argument "--only-show-errors" is used by default and not needed.'
+      if $args{az_args} =~ /--only-show-errors/;
+    croak 'Argument "--output" is not supported.'
+      if $args{az_args} =~ /--output/;
+
+    my %result;
+    # Create unique temporary files (inside /tmp by default)
+    my $err_file = script_output('mktemp --suffix _az.err', quiet => '1');
+    my $out_file = script_output('mktemp --suffix _az.json', quiet => '1');
+
+    my @az_cmd = ('az', $args{az_args});
+    push @az_cmd, '--only-show-errors';
+    push @az_cmd, "--query \"$args{query}\"" if $args{query};
+    push @az_cmd, '--output json';
+    # Remove lines which should not be considered as error.
+    my $grep_filter = 'FutureWarning|self.|Launching flake';
+    # This should be at the end of whole command !
+    push @az_cmd, "> $out_file 2> >(grep -Ev \"$grep_filter\" |tee $err_file >&2)";
+
+    $result{rc} = script_run(join(' ', @az_cmd),
+        quiet => $args{quiet}, timeout => $args{timeout});
+    $result{output} = decode_json(script_output("cat $out_file",
+            quiet => $args{quiet}));
+    $result{error} = script_output("cat $err_file",
+        quiet => $args{quiet});
+
+    die "Error messages present during az cli execution:\n$result{error}\n"
+      if $result{error};
+    die "AZ CLI returned non zero value:$result{rc}\n" if $result{error};
+
+    # Delete unique temporary files
+    assert_script_run("rm $err_file $out_file", quiet => '1');
+    return \%result;
+}
+
 =head2 az_version
 
     az_version();
@@ -106,7 +174,6 @@ Print the version of the az cli available on system
 sub az_version {
     assert_script_run('az --version');
 }
-
 
 =head2 az_group_create
 
@@ -196,9 +263,7 @@ sub az_group_delete(%args) {
 
     az_group_exists(name => 'resource group name' [, quiet=>'pssst!']);
 
-Check if specified resource group exists.
-Returns whatever 'az group exist' is returning
-that usually is string B<true> or B<false>.
+Returns non-empty value if resource group exists, otherwise B<undef>
 
 =over
 
@@ -211,7 +276,11 @@ that usually is string B<true> or B<false>.
 
 sub az_group_exists(%args) {
     croak "Missing mandatory argument: 'name'" unless $args{name};
-    return script_output("az group exists --resource-group $args{name} $SDAF_Azure_podman_flake_filter", quiet => $args{quiet});
+    my $out = az(az_args => "group exists --resource-group $args{name}",
+        quiet => $args{quiet});
+    die "Command failed.\nCommand didn't return a boolean value: $out->{output}"
+      unless JSON::PP::is_bool($out->{output});
+    return $out->{output};
 }
 
 =head2 az_network_vnet_create
@@ -911,14 +980,9 @@ sub az_vm_list(%args) {
     croak("Argument < resource_group > missing") unless $args{resource_group};
     $args{query} //= '[].name';
 
-    my $az_cmd = join(' ',
-        'az vm list',
-        "-g $args{resource_group}",
-        "--query \"$args{query}\"",
-        '-o json',
-        $SDAF_Azure_podman_flake_filter
-    );
-    return decode_json(script_output($az_cmd));
+    my $az_args = "vm list -g $args{resource_group}";
+    my $result = az(az_args => $az_args, query => $args{query});
+    return $result->{output};
 }
 
 
@@ -1786,7 +1850,7 @@ sub az_resource_delete(%args) {
 
 Lists existing az resources based on arguments provided. Calling function without any argument returns full information
 from all existing resource groups.
-Returns decoded json structure if json format is requested, otherwise whole output is a string.
+Returns data structure returned from az cli json output.
 
 =over
 
@@ -1798,13 +1862,11 @@ Returns decoded json structure if json format is requested, otherwise whole outp
 =cut
 
 sub az_resource_list(%args) {
-    my @az_command = ('az resource list');
+    $args{query} //= undef;
+    my @az_command = ('resource list');
     push(@az_command, "--resource-group $args{resource_group}") if $args{resource_group};
-    push(@az_command, "--query \"$args{query}\"") if $args{query};
-    push(@az_command, '--output json');
-    push(@az_command, $SDAF_Azure_podman_flake_filter);
-
-    return (decode_json(script_output(join(' ', @az_command))));
+    my $az_out = az(az_args => join(' ', @az_command), query => $args{query});
+    return $az_out->{output};
 }
 
 =head2 az_resource_tag
@@ -2019,18 +2081,16 @@ sub az_storage_blob_list(%args) {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
     $args{query} //= '[].name';
+    $args{timeout} //= $bmwqemu::default_timeout;
 
     my $az_cmd = join(' ',
-        'az storage blob list',
-        '--only-show-errors',
+        'storage blob list',
         "--container-name $args{container_name}",
-        "--account-name $args{storage_account_name}",
-        "--query \"$args{query}\"",
-        '--output json',
-        $SDAF_Azure_podman_flake_filter
+        "--account-name $args{storage_account_name}"
     );
-
-    return decode_json(script_output($az_cmd, $args{timeout}));
+    my $out =
+      az(az_args => $az_cmd, timeout => $args{timeout}, query => $args{query});
+    return $out->{output};
 }
 
 =head2 az_storage_blob_update
