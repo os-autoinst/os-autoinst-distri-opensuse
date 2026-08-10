@@ -468,8 +468,8 @@ sub test_flags {
 
 sub post_fail_hook {
     my ($self) = @_;
-
     $self->override_known_failures() if $self->{result} eq 'fail';
+    $self->SUPER::post_fail_hook;
 }
 
 1;
