@@ -673,11 +673,11 @@ sub upload_supportconfig_log {
     # To remove exclusions, _EXCLUDE='-'
     $exclude = undef if ($exclude eq '-');
     $exclude = "-x " . $exclude if ($exclude);
-    my $res = $self->ssh_script_run("sudo which supportconfig", apply_graceful_timeout => 1);
+    my $res = $self->ssh_script_run("sudo -s command -v supportconfig", apply_graceful_timeout => 1);
     unless (isok($res)) {
         record_info('Fail supportconfig',
             ($res == 255) ? "ssh connectivity issues during remote supportconfig check"
-            : "supportconfig command not found",
+            : "supportconfig command not found. Exit: $res",
             result => 'fail');
         return;
     }
