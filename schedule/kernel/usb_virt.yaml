@@ -11,6 +11,13 @@ vars:
     QEMU_DISABLE_SNAPSHOTS: '1'
     QEMU_APPEND: "device qemu-xhci,id=usb-bus0 -netdev user,id=unstack -device usb-net,netdev=unstack,bus=usb-bus0.0,id=nic0"
 schedule:
+- '{{boot}}'
 - boot/boot_to_desktop
 - kernel/usb_drive
 - kernel/usb_nic
+
+conditional_schedule:
+    boot:
+        ARCH:
+            s390x:
+                - installation/bootloader_zkvm
