@@ -554,7 +554,10 @@ sub terraform_apply {
     $vars{type} = $instance_type;
     $vars{name} = $self->resource_name;
     $vars{project} = $args{project} if ($args{project});
-    $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml" if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
+    if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
+        $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml";
+        $vars{use_user_data} = get_var('PUBLIC_CLOUD_USER_DATA') if defined get_var('PUBLIC_CLOUD_USER_DATA');
+    }
     $vars{vm_create_timeout} = $terraform_vm_create_timeout;
     my $root_size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
     $vars{'root-disk-size'} = $root_size if ($root_size);
@@ -706,7 +709,10 @@ sub terraform_destroy {
     record_info('INFO', 'Removing terraform plan...');
     # Add region variable also to `terraform destroy` (poo#63604) -- needed by AWS.
     $vars{region} = $self->provider_client->region;
-    $vars{cloud_init} = TERRAFORM_DIR . '/cloud-init.yaml' if (get_var('PUBLIC_CLOUD_CLOUD_INIT'));
+    if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
+        $vars{cloud_init} = TERRAFORM_DIR . '/cloud-init.yaml';
+        $vars{use_user_data} = get_var('PUBLIC_CLOUD_USER_DATA') if defined get_var('PUBLIC_CLOUD_USER_DATA');
+    }
     $vars{ssh_public_key} = $self->ssh_key . '.pub';
 
     # Add image_id, offer and sku on Azure runs, if defined.

@@ -414,6 +414,7 @@ PUBLIC_CLOUD_TOOLS_REPO | string | false | The URL to the cloud:tools repo (opti
 PUBLIC_CLOUD_TTL_OFFSET | integer | 300 | This number + MAX_JOB_TIME equals the TTL of created VM.
 PUBLIC_CLOUD_UPLOAD_IMG | boolean | false | If set, `publiccloud/upload_image` test module is added to the job.
 PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
+PUBLIC_CLOUD_USER_DATA | boolean | true | Specific to Azure, about the API used in the azure.tf file to inject the cloud-init profile. 1:user_data, 0:custom_data.
 PUBLIC_CLOUD_XEN | boolean | false | Indicates if this is a Xen test run.
 SCC_REGISTRY | string | "" | Registry which requires SCC login
 SCC_PROXY_USERNAME | string | "" | Credentials username for registry which requires SCC login
