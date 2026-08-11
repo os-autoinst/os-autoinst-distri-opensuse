@@ -313,6 +313,19 @@ subtest '[wait_for_ssh_login] timeout/delay/retry argument propagation' => sub {
     set_var('PUBLIC_CLOUD_SSH_TIMEOUT', undef);
 };
 
+subtest '[wait_for_sudo] probes sudo over a non-multiplexed connection' => sub {
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my ($cmd, %args);
+    $instmod->redefine(ssh_script_retry => sub { (my $self, $cmd, %args) = @_; return 0; });
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u', provider => Test::MockObject->new);
+
+    $inst->wait_for_sudo();
+    is($cmd, 'sudo -n true', 'probes passwordless sudo non-interactively');
+    # group membership is resolved at login, so a ControlMaster opened before
+    # the sudoers group was added would never see it
+    like($args{ssh_opts}, qr/ControlPath=none/, 'does not reuse an existing ssh master connection');
+};
+
 $autotest::current_test = {name => 'wait_for_guestregister_test'};
 
 subtest '[wait_for_guestregister] failed records a soft failure (bsc#1264275)' => sub {
