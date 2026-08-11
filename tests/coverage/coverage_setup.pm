@@ -114,8 +114,21 @@ sub run {
     # set capabilities to run eBPF programs without root privileges
     assert_script_run 'funkoverage setup';
 
-    # wrap the binaries that will be instrumented for 'coverage'
-    assert_script_run "funkoverage install " . join ' ', @binaries;
+    # Wrap the binaries that will be instrumented for coverage.
+    # Split into batches to keep each command within the serial console
+    # input buffer. Some binaries may legitimately fail to shim (symlinks,
+    # already-shimmed, non-ELF); record failures visibly but continue.
+    my @bin_chunks;
+    my $failures = 0;
+    while (@binaries) { push @bin_chunks, [splice(@binaries, 0, 15)] }
+    for my $chunk (@bin_chunks) {
+        my $cmd = 'funkoverage install ' . join(' ', @{$chunk}) . ' 2>&1 >> /tmp/fv_install.log';
+        if (script_run($cmd, timeout => 300) != 0) {
+            $failures++;
+            record_info('shim warning', "funkoverage install returned non-zero for batch: @{$chunk}", result => 'softfail');
+        }
+    }
+    record_info('shim summary', "$failures of " . scalar(@bin_chunks) . " batches had failures") if $failures;
 }
 
 sub test_flags {
