@@ -151,6 +151,8 @@ sub run {
     my $host_version = get_var("HOST_VERSION", get_required_var("VERSION"));    # VERSION is the version of the container, not the host.
 }
 
+sub post_run_hook { }
+
 sub test_flags {
     return {fatal => 1, milestone => 1};
 }
