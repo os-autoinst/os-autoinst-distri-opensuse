@@ -59,8 +59,10 @@ sub run {
     }
 }
 
+sub post_run_hook { }
+
 sub test_flags {
-    return {fatal => 1, milestone => 1};
+    return {fatal => 1, milestone => 0};
 }
 
 1;
