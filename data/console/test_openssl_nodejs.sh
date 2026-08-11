@@ -70,7 +70,7 @@ test_node_version(){
       ACTUAL_DIR=$(cd /usr/src/packages/SOURCES/ && find . -maxdepth 1 -type d -name "nodejs*" -print -quit)
       if [ "$OS_VERSION" = "SLE_16.0" ]; then
         pushd "$ACTUAL_DIR/$SOURCE_DIR"
-      else 
+      else
         pushd "$SOURCE_DIR"
       fi
       quilt push -a
@@ -86,7 +86,7 @@ test_node_version(){
 
   # Cleanup sources
   rm -rf /usr/src/packages/SOURCES/*
-  rm -rf /usr/src/packages/SPECS/* 
+  rm -rf /usr/src/packages/SPECS/*
 }
 
 main(){
@@ -115,7 +115,7 @@ main(){
   for v in $NODE_VERSIONS; do
     echo "Found node version: $v"
   done
-  echo "Will test only latest version: $NODE_LATEST_VERSION" 
+  echo "Will test only latest version: $NODE_LATEST_VERSION"
 
   # Install latest nodejs version and sources
   zypper -n in --no-recommends "nodejs$NODE_LATEST_VERSION"
@@ -176,6 +176,19 @@ skip_test=(
   ["10.22.1-1.27.1 test/parallel/test-crypto-dh.js SLE_15_SP1"]="skip"
   ["10.24.1-1.36.1 test/parallel/test-tls-passphrase.js SLE_15"]="skip"
   ["10.24.1-1.36.1 test/parallel/test-tls-passphrase.js SLE_15_SP1"]="skip"
+  # https://bugzilla.suse.com/show_bug.cgi?id=1272321
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-encap-decap.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-key-objects-raw.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-key-objects-to-crypto-key.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-keygen-raw.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-encrypted-pkcs8.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-key-objects-ml-dsa.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-key-objects-ml-kem.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-key-objects-slh-dsa.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-keygen-ml-dsa.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-keygen-ml-kem.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-keygen-slh-dsa.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-sign-verify-ml-dsa.js SLE_15_SP7"]="skip"
 )
 
 # Common flags to use on each test
