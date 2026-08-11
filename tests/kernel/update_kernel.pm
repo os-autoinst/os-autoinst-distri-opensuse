@@ -16,7 +16,7 @@ use utils;
 use version_utils qw(is_sle is_sle_micro is_transactional package_version_cmp is_opensuse);
 use bootloader_setup 'add_grub_cmdline_settings';
 use qam;
-use kernel;
+use Kernel::utils qw(get_initial_kernel_flavor get_kernel_flavor get_kernel_source_flavor get_kernel_devel_flavor get_kernel_devel_libs remove_kernel_packages check_kernel_package is_kernel_validation_flavor);
 use klp;
 use power_action_utils 'power_action';
 use repo_tools qw(add_qa_head_repo);

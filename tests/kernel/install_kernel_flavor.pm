@@ -10,7 +10,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call);
-use kernel 'get_kernel_flavor';
+use Kernel::utils 'get_kernel_flavor';
 
 sub run {
     select_serial_terminal;

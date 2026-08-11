@@ -13,7 +13,7 @@ use utils;
 use LTP::utils;
 use power_action_utils 'power_action';
 use upload_system_log;
-use kernel;
+use Kernel::utils qw(get_kernel_flavor check_kernel_package);
 use qam;
 
 sub export_to_json {

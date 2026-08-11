@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
-use kernel 'remove_kernel_packages';
+use Kernel::utils 'remove_kernel_packages';
 
 sub from_repo {
     my ($repo, $pkg) = @_;

@@ -19,7 +19,7 @@ use power_action_utils 'power_action';
 use serial_terminal qw(select_serial_terminal);
 use utils 'assert_secureboot_status';
 use kdump_utils;
-use kernel;
+use Kernel::utils qw(get_kernel_flavor check_kernel_package);
 
 sub run {
     my ($self) = @_;

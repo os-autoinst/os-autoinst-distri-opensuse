@@ -13,7 +13,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use utils;
-use kernel;
+use Kernel::utils 'remove_kernel_packages';
 use power_action_utils 'power_action';
 
 sub run {

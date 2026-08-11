@@ -17,7 +17,7 @@ use registration;
 use version_utils 'is_sle';
 use transactional;
 use package_utils;
-use kernel;
+use Kernel::utils 'get_kernel_devel_flavor';
 use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
 
 sub run {

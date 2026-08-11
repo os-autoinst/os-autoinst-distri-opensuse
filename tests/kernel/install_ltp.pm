@@ -27,7 +27,7 @@ use rpi 'enable_tpm_slb9670';
 use bootloader_setup 'add_grub_xen_replace_cmdline_settings';
 use virt_autotest::utils 'is_xen_host';
 use Utils::Backends qw(get_serial_console is_ipmi);
-use kernel;
+use Kernel::utils qw(get_kernel_flavor check_kernel_package);
 use transactional;
 use package_utils;
 

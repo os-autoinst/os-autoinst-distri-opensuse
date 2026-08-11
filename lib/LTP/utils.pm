@@ -19,7 +19,7 @@ use File::Basename 'basename';
 use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
 use utils;
-use kernel 'get_kernel_flavor';
+use Kernel::utils 'get_kernel_flavor';
 use serial_terminal 'select_serial_terminal';
 use kdump_utils 'configure_service';
 use package_utils;

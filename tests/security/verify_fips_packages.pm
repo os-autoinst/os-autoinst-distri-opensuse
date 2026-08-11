@@ -16,7 +16,7 @@ use Utils::Architectures qw(is_s390x);
 use power_action_utils 'power_action';
 use version_utils 'is_sle';
 use autotest;
-use kernel;
+use Kernel::utils 'remove_kernel_packages';
 use security::vendoraffirmation;
 
 my $final_result = 'ok';
