@@ -397,6 +397,7 @@ PUBLIC_CLOUD_ROOT_DISK_SIZE | int |  | Set size of system disk in GiB for public
 PUBLIC_CLOUD_SCC_ENDPOINT | string | "registercloudguest" | Name of binary which will be used to register image . Except default value only possible value is "SUSEConnect" anything else will lead to test failure!
 PUBLIC_CLOUD_SKIP_MU | boolean | false | Run tests without downloading/applying maintenance updates.
 PUBLIC_CLOUD_SLES4SAP | boolean | false | If set, sles4sap test module is added to the job.
+PUBLIC_CLOUD_SSH_CONFIG | string | "publiccloud/ssh_config" | Allows to override the default ssh config template location.
 PUBLIC_CLOUD_SSH_TIMEOUT | int | 300 | Sets the timeout for ssh wait operations.
 PUBLIC_CLOUD_STORAGE_ACCOUNT | string | "" | Storage account used e.g. for custom disk and container images
 PUBLIC_CLOUD_SUPPORTCONFIG_EXCLUDE | string | "" | List of comma-separated features to exclude from 'supportconfig' execution
