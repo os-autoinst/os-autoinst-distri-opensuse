@@ -85,7 +85,14 @@ sub run {
     }
     push @packages, 'elfutils';
     push @packages, 'coverage-tools' unless $gitref;
-    zypper_call '--gpg-auto-import-keys in ' . join ' ', @packages;
+    # Split into batches of 20 to keep each command within the serial
+    # console input buffer. With 80+ coverage targets the full package
+    # list exceeds what can be typed in a single command.
+    my @pkg_chunks;
+    while (@packages) { push @pkg_chunks, [splice(@packages, 0, 20)] }
+    for my $chunk (@pkg_chunks) {
+        zypper_call '--gpg-auto-import-keys in ' . join(' ', @{$chunk});
+    }
 
     # sets up the environment for coverage
     my $log_dir = '/var/coverage/data';
