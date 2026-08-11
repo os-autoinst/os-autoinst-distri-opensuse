@@ -173,10 +173,8 @@ sub configure_docker {
     }
     run_command "mv -f /etc/sysconfig/docker{,.bak} || true";
     run_command "mv -f /etc/docker/daemon.json{,.bak} || true";
-    if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
-        my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
-        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > /etc/docker/daemon.json);
-    }
+    my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
+    run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > /etc/docker/daemon.json);
     run_command qq(echo 'DOCKER_OPTS="$docker_opts"' > /etc/sysconfig/docker);
     record_info "DOCKER_OPTS", $docker_opts;
     # Configure the default buildkitd config so BuildKit workers that don't receive
@@ -207,13 +205,10 @@ sub configure_rootless_docker {
     switch_to_user;
 
     run_command 'install -D -m 0600 <(echo {}) $HOME/.config/docker/daemon.json';
-    if (script_output(q(docker --version | awk -F'[. ]' '{ print $3 }')) > 28) {
-        # Docker v29 increased minimum API version from 1.24 to 1.44 which broke some tests and stuff like
-        # docker-compose & container_diff and also some tests.  Docker v29.3 lowered it from 1.44 to 1.40.
-        # Remove this when we no longer have Docker v29.2 in SLES 16.1.
-        my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
-        run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \$HOME/.config/docker/daemon.json);
-    }
+    # Docker v29 increased minimum API version from 1.24 to 1.44 which broke some tests and stuff like
+    # docker-compose & container_diff and also some tests.  Docker v29.3 lowered it from 1.44 to 1.40.
+    my $docker_min_api_version = get_var("DOCKER_MIN_API_VERSION", "1.24");
+    run_command qq(echo '{"min-api-version": "$docker_min_api_version"}' > \$HOME/.config/docker/daemon.json);
     run_command qq(DAEMON_JSON=\$(jq '.+{"registry-mirrors": ["http://$registry"]}' \$HOME/.config/docker/daemon.json));
     run_command q(tee $HOME/.config/docker/daemon.json <<< "$DAEMON_JSON");
 
