@@ -27,6 +27,7 @@
       <li><a href="#upload_guestregister_diagnostics">_upload_guestregister_diagnostics</a></li>
       <li><a href="#update_instance_ip">update_instance_ip</a></li>
       <li><a href="#wait_for_ssh_unreachable">wait_for_ssh_unreachable</a></li>
+      <li><a href="#wait_for_sudo">wait_for_sudo</a></li>
       <li><a href="#isok">isok</a></li>
       <li><a href="#softreboot">softreboot</a></li>
       <li><a href="#stop">stop</a></li>
@@ -193,6 +194,14 @@ C&lt;apply_graceful_timeout&gt; - in case waiting longer than timeout normally s
 
 </dd>
 </dl>
+
+<h2 id="wait_for_sudo">wait_for_sudo</h2>
+
+<pre><code>wait_for_sudo([timeout =&gt; 180] [, delay =&gt; 10]);</code></pre>
+
+<p>Wait until the ssh user can run <code>sudo</code> without a password, polling <code>sudo -n true</code> every <code>delay</code> seconds for at most <code>timeout</code> seconds, and die if it never succeeds.</p>
+
+<p>Meant to be used right after <code>wait_for_ssh</code>: sshd can already be reachable while first-boot provisioning is still granting the user its sudo rights.</p>
 
 <h2 id="isok">isok</h2>
 
