@@ -162,6 +162,8 @@ sub run {
     die("$error_count tests failed.") if ($error_count > 0);
 }
 
+sub post_run_hook { }
+
 sub test_flags {
     return {fatal => 0, no_rollback => 1};
 }
