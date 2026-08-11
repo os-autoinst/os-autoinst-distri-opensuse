@@ -2,6 +2,9 @@
 # when you add a test, you need to fill out the last
 # section about coverage targets as well
 
+# TODO figure out a better way to select the tuple : coverage targets, tests and packages
+
+
 name:  measure test coverage for selected text mode utils
 description: >
     Maintainer: amanzini
@@ -18,7 +21,7 @@ schedule:
   - console/system_prepare
   - coverage/coverage_setup
   - network/snmp
-  - console/dig
+#  - console/dig
   - console/cpio
   - console/curl_https
   - console/curl_ipv6
@@ -26,67 +29,47 @@ schedule:
   - console/lshw
   - console/nano
   - console/nftables
-  - console/run0
-  - console/tracepath
+#  - console/tracepath
   - console/traceroute
-  - console/nginx
-  - console/pciutils
-  - console/sysctl
+#  - console/nginx
+#  - console/pciutils
+#  - console/sysctl
   - console/tar
-  - console/tcpdump
   - console/unzip
   - console/vim
   - console/wavpack
   - coverage/coverage_report
 test_data:
-  # these packages are needed by the tests, we need to install them early to instrument them
-  extra_packages:
-    - bind-utils  # for dig test
-    - bzip2  # for tar test
-    - cpio
-    - curl
-    - cpupower
-    - gd
-    - iputils  # for ping and tracepath
-    - lshw
-    - nano
-    - nftables
-    - nginx
-    - procps
-    - powertop
-    - unzip
-    - net-snmp
-    - systemd  # for systemd-run (run0 test)
-    - tar
-    - tcpdump
-    - traceroute
-    - wavpack
-    - wget    # to download the test data
-    - vim
-  # the following section is an array of binaries that we want to instrument
+  # packages needed to make tests work, but NOT instrumented
+  helper_packages:
+    - gzip       # used by tar test
+    - iputils    # for ping
+    - systemd    # for systemd-run (run0 test)
+    - wget       # to download test data
+  # syntax: package -> binary (or list of binaries) to instrument
   coverage_targets:
-    - /usr/bin/cpio
-    - /usr/bin/cpupower
-    - /usr/bin/curl
-    - /usr/bin/dig
-    - /usr/bin/giftogd2
-    - /usr/bin/gd2togif
-    - /usr/bin/nano
-    - /usr/bin/run0
-    - /usr/bin/snmpget
-    - /usr/bin/snmpset
-    - /usr/bin/snmpusm
-    - /usr/bin/tar
-    - /usr/bin/tracepath
-    - /usr/bin/vim-nox11
-    - /usr/bin/vmstat
-    - /sbin/nginx
-    - /sbin/sysctl
-    - /usr/sbin/lshw
-    - /usr/sbin/nft
-    - /usr/sbin/powertop
-    - /usr/sbin/tcpdump
-    - /usr/sbin/traceroute
-    - /usr/bin/unzip
-    - /usr/bin/wavpack
-    - /usr/bin/wvunpack
+    bind-utils: /usr/bin/dig
+    bzip2: /usr/bin/bzip2
+    cpio: /usr/bin/cpio
+    curl: /usr/bin/curl
+    gd:
+      - /usr/bin/giftogd2
+      - /usr/bin/gd2togif
+    lshw: /usr/sbin/lshw
+    net-snmp:
+      - /usr/bin/snmpget
+      - /usr/bin/snmpset
+      - /usr/bin/snmpusm
+    nftables: /usr/sbin/nft
+    nano: /usr/bin/nano
+    procps:
+      - /usr/bin/vmstat
+      - /sbin/sysctl
+    tar: /usr/bin/tar
+    unzip: /usr/bin/unzip
+    vim: /usr/bin/vim-nox11
+    wavpack:
+      - /usr/bin/wavpack
+      - /usr/bin/wvunpack
+#    nginx: /sbin/nginx
+    traceroute: /usr/sbin/traceroute
