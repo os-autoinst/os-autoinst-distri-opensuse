@@ -34,7 +34,7 @@ sub run {
     wait_still_screen;
 
     # Use cryptsetup to luksFormat and luksOpen volume
-    assert_script_run("echo -e $cryptpasswd | cryptsetup -q luksFormat /test.dm");
+    assert_script_run("echo -e $cryptpasswd | cryptsetup -q luksFormat /test.dm", timeout => 300);
     assert_script_run("echo -e $cryptpasswd | cryptsetup -q luksOpen /test.dm dmtest");
 
     # Format the dmtest and mount it with /test
