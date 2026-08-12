@@ -13,12 +13,27 @@ use testapi;
 use scheduler 'get_test_suite_data';
 use Test::Assert ':assert';
 use Utils::Architectures qw(is_s390x is_zvm);
+use Utils::Backends qw(is_svirt);
 
 sub run {
     select_console 'root-console';
-    my $expected_install_hostname = is_zvm ? get_required_var('ZVM_GUEST')
-      : is_s390x ? (split(/\./, get_required_var('SUT_IP')))[0]
-      : get_test_suite_data()->{hostname} // 'localhost';
+    my @s390x_resolvers = (
+        {
+            match => sub { is_s390x && is_zvm },
+            resolve => sub { get_required_var('ZVM_GUEST') },
+        },
+        {
+            match => sub { is_s390x && is_svirt },
+            resolve => sub { (split(/\./, get_required_var('SUT_IP')))[0] },
+        },
+    );
+
+    my ($active_rule) = grep { $_->{match}->() } @s390x_resolvers;
+
+    my $expected_install_hostname = $active_rule
+      ? $active_rule->{resolve}->()
+      : (get_test_suite_data()->{hostname} // 'localhost');
+
     my $hostname = script_output('hostnamectl hostname');
     assert_str_equals($expected_install_hostname, $hostname, "Wrong hostname. Expected: '$expected_install_hostname', got '$hostname'");
 }
