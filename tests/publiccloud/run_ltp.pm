@@ -190,60 +190,6 @@ sub dump_kernel_config
     record_info("ver_linux", $instance->ssh_script_output("/opt/ltp/ver_linux"));
 }
 
-sub run {
-    my ($self, $args) = @_;
-    my $qam = get_var('PUBLIC_CLOUD_QAM', 0);
-    my $arch = check_var('PUBLIC_CLOUD_ARCH', 'arm64') ? 'aarch64' : 'x86_64';
-    my $ltp_pkg = get_var('LTP_PKG', 'ltp-stable');
-    my $ltp_repo_name = "ltp_repo";
-    my $ltp_repo_url = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
-    my $ltp_command = get_var('LTP_COMMAND_FILE', 'publiccloud');
-    $self->{ltp_command} = $ltp_command;
-    my @commands = split(/\s+/, $ltp_command);
-
-    select_host_console();
-
-    my $instance = $args->{my_instance};
-    my $provider = $args->{my_provider};
-
-    prepare_scripts();
-
-    my $ltp_dir = '/tmp/ltp';
-    my $ltp_prefix = '/opt/ltp';
-
-    if (should_fully_build_ltp_from_git()) {
-        fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
-    } else {
-        install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
-        partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git_modules_install();
-    }
-
-    $self->gen_ltp_env($instance, $ltp_pkg);
-
-    my $include_tests_pattern = get_var('LTP_COMMAND_PATTERN');
-    my $skip_tests = $self->prepare_skip_tests(\@commands);
-
-    prepare_kirk($instance);
-
-    printk_loglevel($instance);
-
-    my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($provider, $instance);
-
-    my $env = get_var('LTP_PC_RUNLTP_ENV');
-    my $log_start_cmd = $root_dir . '/log_instance.sh start ' . instance_log_args($provider, $instance);
-    prepare_logging($log_start_cmd);
-
-    my $cmd_run_ltp = prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env);
-
-    dump_kernel_config($instance);
-    record_info('LTP START', 'Command launch');
-    # $ltp_timeout is also used for --suite-timeout so we need give kirk some time to try to kill itself before trying to kill it
-    my $kirk_exit_code = script_run($cmd_run_ltp, timeout => $ltp_timeout + 60);
-    record_info('LTP END', 'krik finished with ' . $kirk_exit_code);
-    die('kirk failed') if ($kirk_exit_code);
-}
-
-
 sub prepare_scripts {
     assert_script_run("cd $root_dir");
     assert_script_run('curl ' . data_url('publiccloud/restart_instance.sh') . ' -o restart_instance.sh');
@@ -347,28 +293,6 @@ sub prepare_ltp_cmd {
     return $cmd;
 }
 
-sub cleanup {
-    my ($self) = @_;
-
-    # Ensure that the ltp script gets killed
-    type_string('', terminate_with => 'ETX');
-    $self->upload_ltp_logs();
-
-    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
-        die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
-    }
-
-    if (script_run("test -f $root_dir/log_instance.sh") == 0) {
-        my $log_instance_stop_command = $root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance});
-        script_run($log_instance_stop_command, timeout => 600);
-
-        script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
-        upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
-    }
-
-    return 1;
-}
-
 sub gen_ltp_env {
     my ($self, $instance, $ltp_pkg) = @_;
     my $ltp_version = get_var('LTP_RELEASE', 'master');
@@ -407,6 +331,80 @@ sub install_optional_build_deps {
         timeout => 300,
     );
 }
+
+sub cleanup {
+    my ($self) = @_;
+
+    # Ensure that the ltp script gets killed
+    type_string('', terminate_with => 'ETX');
+    $self->upload_ltp_logs();
+
+    unless ($self->{run_args} && $self->{run_args}->{my_instance}) {
+        die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
+    }
+
+    if (script_run("test -f $root_dir/log_instance.sh") == 0) {
+        my $log_instance_stop_command = $root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance});
+        script_run($log_instance_stop_command, timeout => 600);
+
+        script_run("(cd /tmp/log_instance && tar -zcf $root_dir/instance_log.tar.gz *)");
+        upload_logs("$root_dir/instance_log.tar.gz", failok => 1);
+    }
+
+    return 1;
+}
+
+sub run {
+    my ($self, $args) = @_;
+    my $ltp_pkg = get_var('LTP_PKG', 'ltp-stable');
+    my $ltp_repo_name = "ltp_repo";
+    my $ltp_repo_url = get_var('LTP_REPO', 'https://download.opensuse.org/repositories/benchmark:/ltp:/stable/' . generate_version("_") . '/');
+    my $ltp_command = get_var('LTP_COMMAND_FILE', 'publiccloud');
+    $self->{ltp_command} = $ltp_command;
+    my @commands = split(/\s+/, $ltp_command);
+
+    select_host_console();
+
+    my $instance = $args->{my_instance};
+    my $provider = $args->{my_provider};
+
+    prepare_scripts();
+
+    my $ltp_dir = '/tmp/ltp';
+    my $ltp_prefix = '/opt/ltp';
+
+    if (should_fully_build_ltp_from_git()) {
+        fully_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix);
+    } else {
+        install_ltp($instance, $ltp_repo_name, $ltp_repo_url, $ltp_pkg);
+        partially_build_ltp_from_git($instance, $ltp_dir, $ltp_prefix) if should_partially_build_ltp_from_git_modules_install();
+    }
+
+    $self->gen_ltp_env($instance, $ltp_pkg);
+
+    my $include_tests_pattern = get_var('LTP_COMMAND_PATTERN');
+    my $skip_tests = $self->prepare_skip_tests(\@commands);
+
+    prepare_kirk($instance);
+
+    printk_loglevel($instance);
+
+    my $reset_cmd = $root_dir . '/restart_instance.sh ' . instance_log_args($provider, $instance);
+
+    my $env = get_var('LTP_PC_RUNLTP_ENV');
+    my $log_start_cmd = $root_dir . '/log_instance.sh start ' . instance_log_args($provider, $instance);
+    prepare_logging($log_start_cmd);
+
+    my $cmd_run_ltp = prepare_ltp_cmd($instance, $provider, $reset_cmd, $ltp_command, $include_tests_pattern, $skip_tests, $env);
+
+    dump_kernel_config($instance);
+    record_info('LTP START', 'Command launch');
+    # $ltp_timeout is also used for --suite-timeout so we need give kirk some time to try to kill itself before trying to kill it
+    my $kirk_exit_code = script_run($cmd_run_ltp, timeout => $ltp_timeout + 60);
+    record_info('LTP END', 'krik finished with ' . $kirk_exit_code);
+    die('kirk failed') if ($kirk_exit_code);
+}
+
 
 sub test_flags {
     return {fatal => 1};
