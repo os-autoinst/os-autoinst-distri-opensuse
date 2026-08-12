@@ -66,11 +66,12 @@ sub run {
         $clone_cmd .= " --branch $version" if $version;
         assert_script_run($clone_cmd);
         $test_dir = 'blktests';
-        record_info('test version', script_output('git -C blktests log -1 --oneline'));
+        record_info('blktests version', script_output('git -C blktests log -1 --oneline'));
     }
     else {
         install_package('blktests fio', trup_apply => 1);
         $test_dir = '/usr/lib/blktests';
+        record_info('blktests version', script_output('rpm -q blktests'));
     }
 
     #Prepare configuration, log/results directories
