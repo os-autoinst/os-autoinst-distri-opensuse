@@ -124,6 +124,11 @@ sub run {
         os => $os,
         diagnostic => get_var('IPADDR2_DIAGNOSTIC', 0));
 
+    if (my $tags = get_var('PUBLIC_CLOUD_TAGS')) {
+        $tags =~ s/,/ /g;
+        $deployment{tags} = $tags;
+    }
+
     $deployment{region} = $provider->provider_client->region;
     # If required (by default cloud-init is active), both:
     #   - create on the fly the cloud-init profile
