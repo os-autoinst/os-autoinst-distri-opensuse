@@ -44,7 +44,7 @@ sub run {
         record_info('lsof -i :PORT', "Using port $port");
         assert_script_run("lsof -i :$port");
     } else {
-        record_info('No listeners', 'No TCP listeners found, skipping — covered by netcat tests below');
+        record_info('No listeners', 'No TCP listeners found, skipping - covered by netcat tests below');
     }
 
     assert_script_run("lsof -p 1");
