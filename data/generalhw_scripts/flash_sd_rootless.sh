@@ -9,8 +9,13 @@ echo "Flash script start...";
 
 # Check number of args
 if [ "$#" -ne 3 ]; then
-    echo "Please provide <device serial>, <image to flash> and <hdd size> (ignored)."
-    exit 1;
+    # Workaround for jeos-container_host@RPi3 where NUMDISKS=2 is set and adds 2 additonal args
+    if [ "$#" -ne 5 ]; then
+        echo "Please provide <device serial>, <image to flash> and <hdd size> (ignored)."
+        exit 1;
+    else
+        echo "Too many arguments, but ignore them as a workaround for jeos-container_host@RPi3"
+    fi
 fi
 
 # Get device serial (check 'sd-mux-ctrl --list', or usb-sd-mux/id-<SERIAL>)
