@@ -12,6 +12,7 @@ use testapi;
 use utils;
 use package_utils 'install_package';
 use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
@@ -25,7 +26,8 @@ sub run {
     script_run("tcpdump -i lo icmp and src localhost -vv > $tcpdump_log_file 2>&1 & echo \$! > $pid_file");
     # Wait until tcpdump is ready before sending traffic
     script_retry("grep -q 'listening on' $tcpdump_log_file", delay => 1, retry => 10);
-    assert_script_run("ping -c4 localhost -4");
+    my $ipv4_option = is_sle('=12-sp3') ? '' : ' -4';
+    assert_script_run("ping -c4$ipv4_option localhost");
 
     assert_script_run("kill \$(cat $pid_file)");
     # Wait for tcpdump to exit and flush its summary
