@@ -39,7 +39,7 @@ sub run {
     # Find any listening TCP port instead of assuming sshd on :22.
     # If nothing is listening, skip — lsof -i :PORT is already covered
     # by the netcat sections below.
-    my $port = script_output('ss -tlnp | awk \'NR>1 {split($4,a,":"); print a[length(a)]; exit}\'', proceed_on_failure => 1);
+    my $port = script_output(q{ss -tlnp | awk 'NR>1 {split($4,a,":"); print a[length(a)]; exit}'}, proceed_on_failure => 1);
     if ($port && $port =~ /^\d+$/) {
         record_info('lsof -i :PORT', "Using port $port");
         assert_script_run("lsof -i :$port");
