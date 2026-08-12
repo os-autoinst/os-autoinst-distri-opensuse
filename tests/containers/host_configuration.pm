@@ -122,6 +122,8 @@ sub run {
     record_info("podman info", script_output("podman info")) if ($engine =~ 'podman');
 }
 
+sub post_run_hook { }
+
 sub test_flags {
     return {fatal => 1, milestone => 1};
 }
