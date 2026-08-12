@@ -28,9 +28,12 @@ sub prepare_boot_params {
     my $serial_dev = get_var('SERIALDEV') // 'ttyS0';
     my $has_net_config_tui = get_var('EXTRABOOTPARAMS', '') =~ /live\.net_config_tui=1/;
 
-    my @params = $has_net_config_tui
-      ? ("console=$serial_dev console=tty0")
-      : ('console=tty', "console=$serial_dev");
+    my @params = ();
+    if !get_var('CHECK_PLYMOUTH', '') {
+        @params = $has_net_config_tui
+          ? ("console=$serial_dev console=tty0")
+          : ('console=tty', "console=$serial_dev");
+    }
     push @params, 'kernel.softlockup_panic=1';
     push @params, "live.password=$testapi::password";
 
