@@ -61,13 +61,13 @@ sub run {
     assert_script_run('lsof -a -p $$ -d 4 | grep testoutput || test $? -eq 1');
 
     assert_script_run('(netcat -l 5555 &)');
-    sleep 1;
+    assert_script_run('for i in $(seq 1 10); do lsof -i :5555 >/dev/null 2>&1 && break; sleep 0.5; done');
     validate_script_output("lsof -i :5555 |grep netcat", sub { m/TCP/ });
     assert_script_run("killall netcat");
     assert_script_run('lsof -i :5555|grep netcat || test $? -eq 1');
 
     assert_script_run('(netcat -ul 5555 &)');
-    sleep 1;
+    assert_script_run('for i in $(seq 1 10); do lsof -i UDP:5555 >/dev/null 2>&1 && break; sleep 0.5; done');
     validate_script_output("lsof -i UDP:5555 |grep netcat", sub { m/UDP/ });
     assert_script_run("killall netcat");
     assert_script_run('lsof -i UDP:5555|grep netcat || test $? -eq 1');
