@@ -64,7 +64,7 @@ sub run {
     # Dynamic Tracing (probe command)
     if (script_run('timeout 10 perf probe --add tcp_sendmsg') != 0) {
         record_info('Run without debuginfod', 'Timeout or wrong symbol address when using debuginfod (boo#1213785)', result => 'softfail');
-        if (script_run('DEBUGINFOD_URLS= perf probe --add tcp_sendmsg') != 0) {
+        if (script_run('DEBUGINFOD_URLS= perf probe --add tcp_sendmsg', timeout => 120) != 0) {
             die "Adding perf probe failed" unless is_riscv;
             record_info('Adding tcp_sendmsg probe manually', 'Working around kernel bug (boo#1249436)', result => 'softfail');
             assert_script_run("echo p:probe/tcp_sendmsg tcp_sendmsg >> /sys/kernel/tracing/kprobe_events");
