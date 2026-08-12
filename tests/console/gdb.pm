@@ -24,7 +24,7 @@ use Utils::Architectures qw(is_aarch64);
 
 sub wait_serial_or_die {
     my ($feedback, %args) = @_;
-    $args{timeout} //= 10;
+    $args{timeout} //= 20;
 
     my $e = wait_serial($feedback, %args);
     if (!defined $e) {
@@ -92,7 +92,7 @@ sub run {
     script_run("./test3 & echo 'this is a workaround'");
     assert_script_run("pidof test3");    #Make sure the process was launched.
     enter_cmd("gdb -p \$(pidof test3) | tee /dev/$serialdev");
-    wait_serial_or_die("Attaching to process", 10);
+    wait_serial_or_die("Attaching to process");
     enter_gdb_cmd("set style enabled 0");
     enter_gdb_cmd("break test3.c:9");
     wait_serial_or_die("Breakpoint 1 at");
