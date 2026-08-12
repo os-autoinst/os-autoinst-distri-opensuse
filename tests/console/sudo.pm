@@ -146,6 +146,10 @@ sub post_run_hook {
     assert_script_run 'userdel -r sudo_test && groupdel sudo_group';
 }
 
+sub test_flags {
+    return {fatal => 0};
+}
+
 sub post_fail_hook {
     script_run('tar -cf /var/tmp/sudoers.tmp /etc/sudoers');
     upload_logs('/var/tmp/sudoers.tmp');
