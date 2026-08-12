@@ -27,7 +27,7 @@ sub prepare_boot_params {
     my @params = ();
 
     # add mandatory boot params
-    push @params, 'console=tty', 'console=' . (is_x86_64 ? 'ttyS0' : (is_ppc64le ? 'hvc0' : 'ttyAMA0'));
+    #    push @params, 'console=tty', 'console=' . (is_x86_64 ? 'ttyS0' : (is_ppc64le ? 'hvc0' : 'ttyAMA0'));
     push @params, 'kernel.softlockup_panic=1';
     push @params, "live.password=$testapi::password";
 
