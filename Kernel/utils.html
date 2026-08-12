@@ -16,6 +16,7 @@
     <ul>
       <li><a href="#is_debugfs_mounted">is_debugfs_mounted</a></li>
       <li><a href="#enable_debugfs">enable_debugfs</a></li>
+      <li><a href="#get_kernel_config">get_kernel_config</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/utils.pm</h1>
@@ -31,6 +32,12 @@
 <pre><code>enable_debugfs();</code></pre>
 
 <p>Mounts debugfs at /sys/kernel/debug (e.g. on SLE 16.1+, where it is disabled by default per PED-8812).</p>
+
+<h2 id="get_kernel_config">get_kernel_config</h2>
+
+<pre><code>get_kernel_config();</code></pre>
+
+<p>Locates the running kernel&#39;s config file (<code>/boot/config-$(uname -r)</code>, falling back to <code>/usr/lib/modules/$(uname -r)/config</code> and then <code>/proc/config.gz</code>) and records its full contents via <code>record_info()</code>, prefixed with a comment naming the source file (as done in <code>LTP::utils::log_versions</code>).</p>
 
 
 </body>
