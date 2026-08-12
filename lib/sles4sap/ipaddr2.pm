@@ -228,11 +228,17 @@ sub ipaddr2_infra_deploy(%args) {
 
     az_version();
 
+    # TODO: Determine how 'tags' should be retrieved.
+    # It is undecided whether to fetch this value from job settings (using get_var())
+    # or set it internally in OSADO. Currently defaults to empty string (does not exist).
+    my $tags = '';
+
     my $rg = ipaddr2_azure_resource_group();
 
     az_group_create(
         name => $rg,
-        region => $args{region});
+        region => $args{region},
+        tags => $tags);
 
     # If image provided is a blob storage link, create image out of it
     if ($args{os} =~ /\.vhd$/) {
@@ -240,7 +246,8 @@ sub ipaddr2_infra_deploy(%args) {
         az_img_from_vhd_create(
             resource_group => $rg,
             name => $img_name,
-            source => $args{os});
+            source => $args{os},
+            tags => $tags);
         $args{os} = $img_name;
     }
 
@@ -257,14 +264,16 @@ sub ipaddr2_infra_deploy(%args) {
         vnet => $vnet,
         address_prefixes => $priv_net_address_range{main_address_range},
         snet => $subnet,
-        subnet_prefixes => $priv_net_address_range{subnet_address_range});
+        subnet_prefixes => $priv_net_address_range{subnet_address_range},
+        tags => $tags);
 
     # Create a Network Security Group
     # only needed later when creating the VM
     my $nsg = DEPLOY_PREFIX . '-nsg';
     az_network_nsg_create(
         resource_group => $rg,
-        name => $nsg);
+        name => $nsg,
+        tags => $tags);
 
     # Create a public IP for external test access.
     # It is later assigned to the third VM (bastion role)
@@ -272,14 +281,16 @@ sub ipaddr2_infra_deploy(%args) {
         resource_group => $rg,
         name => $bastion_pub_ip,
         sku => 'Standard',
-        allocation_method => 'Static');
+        allocation_method => 'Static',
+        tags => $tags);
 
     # Create a public IP for the NAT Gateway
     az_network_publicip_create(
         resource_group => $rg,
         name => $nat_pub_ip,
         sku => 'Standard',
-        allocation_method => 'Static');
+        allocation_method => 'Static',
+        tags => $tags);
 
     # Create the NAT Gateway
     my $nat_name = DEPLOY_PREFIX . '-nat';
@@ -287,7 +298,8 @@ sub ipaddr2_infra_deploy(%args) {
         resource_group => $rg,
         region => $args{region},
         name => $nat_name,
-        public_ip => $nat_pub_ip);
+        public_ip => $nat_pub_ip,
+        tags => $tags);
 
     # Associate one of the Public IP to the NAT Gateway
     az_network_vnet_subnet_update(
@@ -311,7 +323,8 @@ sub ipaddr2_infra_deploy(%args) {
         backend => $lb_be,
         frontend_ip_name => $lb_fe,
         fip => $frontend_ip,
-        sku => 'Standard');
+        sku => 'Standard',
+        tags => $tags);
 
     # All the 2 VM are later assigned to it.
     # The load balancer does not explicitly knows about it
@@ -320,7 +333,8 @@ sub ipaddr2_infra_deploy(%args) {
         resource_group => $rg,
         name => $as,
         region => $args{region},
-        fault_count => 2);
+        fault_count => 2,
+        tags => $tags);
     # Next two lines are for debug purpose only:
     # in time to time next vm create fails for missing AS
     az_vm_as_list(resource_group => $rg);
@@ -334,7 +348,8 @@ sub ipaddr2_infra_deploy(%args) {
         az_storage_account_create(
             resource_group => $rg,
             region => $args{region},
-            name => $storage_name);
+            name => $storage_name,
+            tags => $tags);
     }
 
     # - Create 2 VMs
@@ -349,7 +364,8 @@ sub ipaddr2_infra_deploy(%args) {
         vnet => $vnet,
         snet => $subnet,
         ssh_pubkey => get_ssh_private_key_path() . '.pub',
-        public_ip => "");
+        public_ip => "",
+        tags => $tags);
 
     my %vm_create_internal_args = %vm_create_generic_args;
     $vm_create_internal_args{availability_set} = $as;

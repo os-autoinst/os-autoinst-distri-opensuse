@@ -432,7 +432,7 @@ subtest '[az_vm_create] SDAF mix' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     my @calls;
     $azcli->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    my @tags = ('Balanzone', 'CapitanSpaventa');
+    my $tags = 'Balanzone=CapitanSpaventa';
 
     az_vm_create(
         resource_group => 'Arlecchino',
@@ -440,11 +440,11 @@ subtest '[az_vm_create] SDAF mix' => sub {
         attach_os_disk => 'Mirandolina',
         size => 'Stenterello',
         os_type => 'Tartaglia',
-        tags => \@tags);
+        tags => $tags);
 
     note("\n  -->  " . join("\n  -->  ", @calls));
     ok((any { /az vm create/ } @calls), 'Correct composition of the main command');
-    ok((any { /.*--tags Balanzone CapitanSpaventa/ } @calls), 'Correct composition of tags');
+    ok((any { /.*--tags Balanzone=CapitanSpaventa/ } @calls), 'Correct composition of tags');
 };
 
 subtest '[az_vm_list]' => sub {
