@@ -1,0 +1,17 @@
+---
+name: extra_tests_zypper_wrapper
+description: >
+    Maintainer: qe-core
+      zypper wrapper for transactional update
+conditional_schedule:
+    bootloader:
+        BACKEND:
+            'svirt':
+                - installation/bootloader_zkvm
+schedule:
+    - '{{bootloader}}'
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/prepare_test_data
+    - console/consoletest_setup
+    - console/zypper_wrapper
