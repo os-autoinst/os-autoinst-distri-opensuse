@@ -8,3 +8,4 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - locale/keymap_or_locale
+  - yam/validate/validate_locale
