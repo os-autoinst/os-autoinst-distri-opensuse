@@ -133,10 +133,17 @@ sub repl_repo_in_sourcefile {
     if (get_var("REPO_0")) {
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . locate_sourcefile;
         my $newrepo = get_repo_0_prefix . get_var("REPO_0");
+        my $guest_full = get_var('GUEST_FLAVOR', '') =~ /full/i;
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
-        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i || get_var('GUEST_FLAVOR', '') =~ /full/i);
+        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i || $guest_full);
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
+        # a guest pinned by GUEST_PATTERN to another version than $veritem keeps its own entry,
+        # virt-install.sh reads the agama install mode from it, so flip its keyword to Full too
+        (my $guestver = lc(get_var('GUEST_PATTERN', ''))) =~ s/\./-/g;
+        (my $guestitem = $veritem) =~ s/source\.http\..*/source.http.$guestver/;
+        $shell_cmd .= ";sed -i \"/^$guestitem=/s#-Online-#-Full-#\" $soucefile;grep \"^$guestitem=.*Full\" $soucefile"
+          if ($guest_full && $guestver && $guestitem ne $veritem);
         if (is_s390x) {
             lpar_cmd("$shell_cmd");
             lpar_cmd("grep \"$veritem\" $soucefile");
