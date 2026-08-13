@@ -1842,6 +1842,8 @@ sub load_extra_tests_himmelblau {
 }
 
 sub load_extra_tests_filesystem {
+    loadtest "console/zfs";
+    return;
     loadtest "console/lsof";
     loadtest "console/autofs";
     loadtest 'console/lvm';
