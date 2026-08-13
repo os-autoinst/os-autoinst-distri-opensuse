@@ -92,9 +92,8 @@ sub ssh_basic_check {
     # for this interactive region only.
     {
         my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
-        # script_start_io already redirects to /dev/$serialdev on backends
-        # that need it (e.g. svirt/Hyper-V), so no hand-rolled marker needed.
-        script_start_io("ssh -4 -v -E /tmp/ssh_log0 $ssh_testman\@localhost -t");
+        # ssh writes prompts to its own tty, not stdout, so give it a fresh pty via `script` (poo#205149).
+        script_start_io("script -qe -c 'ssh -4 -v -E /tmp/ssh_log0 $ssh_testman\@localhost -t' /dev/null");
         # Host key is always untrusted: prepare_test_data cleared ~/.ssh.
         die "host key prompt did not appear\n" unless wait_serial('Are you sure', timeout => 300);
         enter_cmd('yes');
