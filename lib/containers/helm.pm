@@ -61,7 +61,7 @@ sub helm_configure_values {
     my ($helm_values, %args) = @_;
 
     # Pull helm values file if defined
-    assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o myvalue.yaml $helm_values") if ($helm_values);
+    assert_script_run("curl -sSL --retry 3 --retry-delay 30 -o /root/myvalue.yaml $helm_values") if ($helm_values);
 
     # Configure Registry, Image repository and Image tag
     my $full_registry_path = get_var('HELM_FULL_REGISTRY_PATH');
@@ -95,7 +95,7 @@ sub helm_configure_values {
     my $helm_options = "--debug";
 
     # Use the provided helm values if defined
-    $helm_options = "-f myvalue.yaml $helm_options" if ($helm_values);
+    $helm_options = "-f /root/myvalue.yaml $helm_options" if ($helm_values);
     return ($set_options, $helm_options);
 }
 
