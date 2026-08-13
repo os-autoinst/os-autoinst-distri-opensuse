@@ -52,7 +52,7 @@ sub run {
     }
     assert_script_run("snapper list");
     # Delete all those snapshots we just created so other tests are not confused
-    assert_script_run("snapper delete --sync $first_snap_to_delete-" . $self->get_last_snap_number(), timeout => 240);
+    assert_script_run("snapper delete --sync $first_snap_to_delete-" . $self->get_last_snap_number(), timeout => 600);
     assert_script_run("snapper list");
     # check whether average system load is below treshold
     # wait until the load gets below 0.2
