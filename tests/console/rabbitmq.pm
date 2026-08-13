@@ -64,4 +64,13 @@ EOF
     }
 }
 
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->SUPER::post_fail_hook;
+    script_run 'rabbitmq-diagnostics &> /var/log/rabbitmq/rabbitmq-diagnostics.log';
+    script_run 'tar -zcvf rabbitmq.tar.gz /var/log/rabbitmq';
+    upload_logs 'rabbitmq.tar.gz';
+    upload_logs '/var/lib/rabbitmq/erl_crash.dump';
+}
+
 1;
