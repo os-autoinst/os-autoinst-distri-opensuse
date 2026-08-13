@@ -117,6 +117,7 @@ sub configure_default_gateway {
 
         assert_script_run "nmcli connection modify '$nm_id' ipv4.gateway 10.0.2.2";
     } else {
+        wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
         enter_cmd("echo 'default 10.0.2.2 - -' > /etc/sysconfig/network/routes");
     }
 }
@@ -133,7 +134,7 @@ sub configure_static_dns {
         $nm_id = script_output("nmcli -t -f NAME c | grep -v '^lo' | head -n 1") unless ($nm_id);
         assert_script_run "nmcli connection modify '$nm_id' ipv4.dns '$servers'";
     } else {
-        assert_script_run("time sync", timeout => 1000) if is_aarch64;    # workaround for slow virtual disk device
+        assert_script_run("sync", timeout => 600) if is_aarch64;    # workaround for slow virtual disk device
         assert_script_run "sed -i -e 's|^NETCONFIG_DNS_STATIC_SERVERS=.*|NETCONFIG_DNS_STATIC_SERVERS=\"$servers\"|' /etc/sysconfig/network/config";
         assert_script_run "netconfig -f update";
     }
