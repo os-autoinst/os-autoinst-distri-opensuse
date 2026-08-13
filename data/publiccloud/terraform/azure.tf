@@ -71,6 +71,10 @@ variable "cloud_init" {
   default = ""
 }
 
+variable "use_user_data" {
+  default = true
+}
+
 variable "storage-account" {
   # Note: Don't delete the default value!!!
   # Not all of our `terraform destroy` calls pass this variable and neither is it necessary.
@@ -225,7 +229,8 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
     create = var.vm_create_timeout
   }
 
-  user_data = var.cloud_init != "" ? filebase64(var.cloud_init) : null
+  custom_data = (!var.use_user_data && var.cloud_init != "") ? filebase64(var.cloud_init) : null
+  user_data   = (var.use_user_data && var.cloud_init != "") ? filebase64(var.cloud_init) : null
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "default" {
