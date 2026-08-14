@@ -2484,7 +2484,7 @@ sub set_mu_virt_vars {
     # If $_pkg contains none, it is for ease of functional testing when no incidents are coming.
     if ($_pkg =~ /none/) {
         $_update_package = '';
-    } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|open-vm-tools|dnsmasq|sevctl/) {
+    } elsif ($_pkg =~ /qemu|xen|virt-manager|libguestfs|open-vm-tools|dnsmasq|sevctl|snpguest|snphost/) {
         $_update_package = $_pkg;
     } elsif ($_pkg =~ /libvirt/) {
         $_update_package = 'libvirt-client';
@@ -2651,6 +2651,7 @@ sub set_sles16_mu_virt_vars {
 
 sub load_hypervisor_tests {
     return unless (get_var('HOST_HYPERVISOR') =~ /xen|kvm|qemu/);
+    die "SNP testing is supported only on SLE >= 15-SP7" if (get_var('UPDATE_PACKAGE') =~ /snphost|snpguest/ && is_sle('<15-SP7'));
 
     if (check_var('ENABLE_HOST_INSTALLATION', 1)) {
         if (get_var('AUTOYAST')) {
@@ -2676,7 +2677,7 @@ sub load_hypervisor_tests {
         }
         if (check_var('PATCH_WITH_ZYPPER', 1)) {
             loadtest "virtualization/universal/patch_and_reboot";
-            if (check_var('UPDATE_PACKAGE', 'kernel-default')) {
+            if (check_var('UPDATE_PACKAGE', 'kernel-default') || check_var("UPDATE_PACKAGE", "snpguest")) {
                 loadtest "virt_autotest/login_console";
                 loadtest "virtualization/universal/list_guests";
                 loadtest "virtualization/universal/patch_guests";
@@ -2685,7 +2686,7 @@ sub load_hypervisor_tests {
                 loadtest "virtualization/universal/list_guests" unless (check_var('VIRT_NEW_GUEST_MIGRATION_DST', '1'));
             }
         }
-        loadtest "virtualization/universal/kernel";
+        loadtest "virtualization/universal/kernel" unless (check_var("UPDATE_PACKAGE", "snpguest") || check_var("UPDATE_PACKAGE", "snphost"));
         loadtest "virtualization/universal/finish";
     }
 
