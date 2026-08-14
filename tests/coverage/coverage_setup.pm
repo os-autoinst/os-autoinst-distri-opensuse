@@ -44,6 +44,7 @@ sub run {
     my %repositories;    # an hash of repositories to add
 
     if (is_sle '>=15-SP4') {
+        # TODO adapt the check for Leap and SLE, as the debug repos are not in the same place
         add_qa_head_repo;
         # enable debug repos
         assert_script_run q(zypper mr -e $(zypper lr | awk '/Debug/ {print $1}'));
@@ -95,7 +96,7 @@ sub run {
     if ($gitref) {
         # build funkoverage from source instead of using the packaged coverage-tools.
         # $gitref is a full git URL (any fork), optionally with a '#branch' suffix.
-        zypper_call 'in go git';
+        zypper_call 'in go git libcap-progs elfutils';
         my ($repo_url, $branch) = split /#/, $gitref, 2;
         assert_script_run 'git clone --depth 1 ' . ($branch ? "--branch $branch " : '')
           . "'$repo_url' /opt/BinaryCoverage", timeout => 300;
