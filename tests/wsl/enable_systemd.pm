@@ -41,10 +41,13 @@ sub run {
         cmd => q(wsl --user root),
         code => sub {
             enter_cmd("zypper in -y -t pattern wsl_systemd");
-            wait_still_screen stilltime => 3, timeout => 10, similarity_level => 43;
+            wait_still_screen stilltime => 5, timeout => 300, similarity_level => 43;
             save_screenshot;
             enter_cmd("exit");
-            wait_still_screen stilltime => 3, timeout => 10, similarity_level => 43;
+            # Leaving the distribution takes noticeably longer once systemd is
+            # in charge of the session, and anything typed before the prompt is
+            # back gets swallowed by the console
+            wait_still_screen stilltime => 5, timeout => 120, similarity_level => 43;
         }
     );
     $self->run_in_powershell(cmd => q(wsl --shutdown));
