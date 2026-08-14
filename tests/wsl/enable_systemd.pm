@@ -24,14 +24,19 @@ sub run {
         $self->open_powershell_as_admin;
     }
 
-    # Check that systemd is not enabled by default.
+    # Check whether systemd is enabled by default. The legacy appx images boot
+    # without it, while the images built from the tarball recipe ship
+    # /etc/wsl.conf with '[boot] systemd=true' and come up with systemd on.
+    my $systemd_on_by_default = 1;
     $self->run_in_powershell(
         cmd => '$port.WriteLine($(wsl /bin/bash -c "systemctl is-system-running"))',
         code => sub {
-            die("Systemd is running by default...")
-              unless wait_serial("offline");
+            $systemd_on_by_default = 0 if wait_serial("offline", timeout => 90);
         }
     );
+    record_info('systemd', $systemd_on_by_default ?
+          'systemd is already enabled in the image' :
+          'systemd is off by default, enabling it');
     $self->run_in_powershell(
         cmd => q(wsl --user root),
         code => sub {
