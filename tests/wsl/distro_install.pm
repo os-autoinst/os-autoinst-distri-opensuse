@@ -107,7 +107,10 @@ sub run {
         }
         if (check_var('DISTRI', 'sle') || is_aarch64) {
             assert_and_click("welcome_to_wsl", timeout => 120);
-            assert_screen("welcome_to_wsl-window");
+            # The window is cascaded by Windows, so where it ends up depends on
+            # what else is on the screen. Wait for it to settle instead of
+            # pinning its position down with a needle
+            wait_still_screen stilltime => 3, timeout => 60;
             send_key "alt-f4";
         }
     } elsif ($install_from eq 'msstore') {
