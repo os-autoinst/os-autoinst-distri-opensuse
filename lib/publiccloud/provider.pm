@@ -126,50 +126,6 @@ sub img_proof {
     die('img_proof() isn\'t implemented');
 }
 
-=head2 parse_img_proof_output
-
-Parse the output from img-proof command and retrieves instance-id, ip and logfile names.
-
-=cut
-
-sub parse_img_proof_output {
-    my ($self, $output) = @_;
-    my $ret = {};
-    my $instance_id;
-    my $ip;
-
-    for my $line (split(/\r?\n/, $output)) {
-        if ($line =~ m/^ID of instance: (\S+)$/) {
-            $ret->{instance_id} = $1;
-        }
-        elsif ($line =~ m/^Terminating instance (\S+)$/) {
-            $ret->{instance_id} = $1;
-        }
-        elsif ($line =~ m/^IP of instance: (\S+)$/) {
-            $ret->{ip} = $1;
-        }
-        elsif ($line =~ m/^Created log file (\S+)$/) {
-            $ret->{logfile} = $1;
-        }
-        elsif ($line =~ m/^Created results file (\S+)$/) {
-            $ret->{results} = $1;
-        }
-        elsif ($line =~ m/tests=(\d+)\|pass=(\d+)\|skip=(\d+)\|fail=(\d+)\|error=(\d+)/) {
-            $ret->{tests} = $1;
-            $ret->{pass} = $2;
-            $ret->{skip} = $3;
-            $ret->{fail} = $4;
-            $ret->{error} = $5;
-        }
-        $ret->{output} .= $line . "\n";
-    }
-
-    for my $k (qw(ip logfile results tests pass skip fail error)) {
-        return unless (exists($ret->{$k}));
-    }
-    return $ret;
-}
-
 =head2 create_ssh_key
 
 Creates an ssh keypair in a given file path by $args{ssh_private_key_file}
@@ -202,78 +158,6 @@ sub place_ssh_config {
     my $ssh_config_url = data_url(get_var('PUBLIC_CLOUD_SSH_CONFIG', 'publiccloud/ssh_config'));
     assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
     file_content_replace("~/.ssh/config", "%SSH_KEY%" => get_ssh_private_key_path());
-}
-
-=head2 run_img_proof
-
-called by childs within img-proof function
-
-=cut
-
-sub run_img_proof {
-    my ($self, %args) = @_;
-    die('Must provide an instance object') if (!$args{instance});
-
-    $args{tests} //= '';
-    $args{timeout} //= 60 * 120;
-    $args{results_dir} //= 'img_proof_results';
-    $args{distro} //= 'sles';
-    $args{tests} =~ s/,/ /g;
-
-    my $exclude = $args{exclude} // '';
-    my $beta = $args{beta} // 0;
-
-    my $version = script_output('img-proof --version', 300);
-    record_info("img-proof version", $version);
-
-    my $cmd = 'img-proof --no-color test ' . $args{provider};
-    $cmd .= ' --debug ';
-    $cmd .= "--distro " . $args{distro} . " ";
-    if (is_gce()) {
-        $cmd .= '--region "' . $self->provider_client->region . '-' . $self->provider_client->availability_zone . '" ';
-    }
-    else {
-        $cmd .= '--region "' . $self->provider_client->region . '" ';
-    }
-    $cmd .= '--results-dir "' . $args{results_dir} . '" ';
-    $cmd .= '--no-cleanup ';
-    $cmd .= '--collect-vm-info ';
-    $cmd .= '--service-account-file "' . $args{credentials_file} . '" ' if ($args{credentials_file});
-    #TODO: this if is just dirty hack which needs to be replaced with something more sane ASAP.
-    $cmd .= '--access-key-id $AWS_ACCESS_KEY_ID --secret-access-key $AWS_SECRET_ACCESS_KEY ' if (is_ec2());
-    $cmd .= '--ssh-key-name $(realpath ' . $args{key_name} . ') ' if ($args{key_name});
-    $cmd .= '-u ' . $args{user} . ' ' if ($args{user});
-    $cmd .= '--ssh-private-key-file $(realpath ' . $self->ssh_key . ') ';
-    $cmd .= '--running-instance-id "' . ($args{running_instance_id} // $args{instance}->instance_id) . '" ';
-    $cmd .= "--beta " if ($beta);
-    if ($exclude) {
-        # Split exclusion tests by command and add them individually
-        for my $excl (split ',', $exclude) {
-            $excl =~ s/^\s+|\s+$//g;    # trim spaces
-            $cmd .= "--exclude $excl ";
-        }
-    }
-
-    # Tell img-proof to generate SCAP report on hardened images
-    if (is_hardened) {
-        my $scap_report = get_var("SCAP_REPORT", "skip");
-        $cmd = "SCAP_REPORT=$scap_report " . $cmd;
-    }
-
-    $cmd .= $args{tests};
-    record_info("img-proof cmd", $cmd);
-
-    my $output = script_output($cmd . ' 2>&1', $args{timeout}, proceed_on_failure => 1);
-    record_info("img-proof output", $output);
-    my $img_proof = $self->parse_img_proof_output($output);
-    record_info("img-proof results", Dumper($img_proof));
-    die($output) unless (defined($img_proof));
-
-    $args{instance}->public_ip($img_proof->{ip});
-    delete($img_proof->{instance_id});
-    delete($img_proof->{ip});
-
-    return $img_proof;
 }
 
 =head2 get_image_id
