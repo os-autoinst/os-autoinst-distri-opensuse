@@ -87,13 +87,18 @@ sub ssh_basic_check {
     assert_script_run("echo \"PS1='# '\" >> ~$ssh_testman/.bashrc") unless check_var('VIRTIO_CONSOLE', '0');
 
     # Make interactive SSH connection as the new user
-    # poo#205149: the sub-shell spawned via expect doesn't inherit the outer
+    # poo#205149: the sub-shell spawned via ssh -t doesn't inherit the outer
     # shell's PROMPT_COMMAND marker hook, so fall back to classic markers
     # for this interactive region only.
     {
         my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
-        enter_cmd "expect -c 'spawn ssh $ssh_testman\@localhost -t;expect \"Are you sure\";send yes\\n;expect sword:;send $ssh_testman_passwd\\n;expect #;send \\n;interact'";
-        sleep(1);
+        # ssh writes prompts to its own tty, not stdout, so give it a fresh pty via `script` (poo#205149).
+        script_start_io("script -qe -c 'ssh -4 -v -E /tmp/ssh_log0 $ssh_testman\@localhost -t' /dev/null");
+        # Host key is always untrusted: prepare_test_data cleared ~/.ssh.
+        die "host key prompt did not appear\n" unless wait_serial('Are you sure', timeout => 300);
+        enter_cmd('yes');
+        die "password prompt did not appear\n" unless wait_serial('sword:', timeout => 300);
+        enter_cmd($ssh_testman_passwd);
 
         # Check that we are really in the SSH session
         assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
@@ -102,7 +107,8 @@ sub ssh_basic_check {
         assert_script_run "mkdir .ssh";
 
         # Exit properly and check we're root again
-        script_run("exit", 0);
+        enter_cmd('exit');
+        script_finish_io(timeout => 300, exitcodes => [0]);
         assert_script_run "whoami | grep root";
     }
 
