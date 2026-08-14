@@ -69,12 +69,16 @@ sub run {
     record_info('Azure', script_output('az -v'));
 
     # Install Google Cloud SDK
+    my $google_cli_install_log = '/tmp/google_cli_install.txt';
+
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
     assert_script_run("export CLOUDSDK_PYTHON=$python_exec");
-    assert_script_run("curl sdk.cloud.google.com | bash");
+    assert_script_run("curl sdk.cloud.google.com | bash > $google_cli_install_log 2>&1");
     assert_script_run("echo . /root/google-cloud-sdk/completion.bash.inc >> ~/.bashrc");
     assert_script_run("echo . /root/google-cloud-sdk/path.bash.inc >> ~/.bashrc");
     record_info('GCE', script_output('source ~/.bashrc && gcloud version'));
+
+    upload_logs("$google_cli_install_log", failok => 1);
 
     my $terraform_version = get_var('TERRAFORM_VERSION', '1.5.7');
     # Terraform in a container
