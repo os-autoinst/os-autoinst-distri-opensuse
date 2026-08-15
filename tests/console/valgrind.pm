@@ -127,9 +127,6 @@ sub run {
     assert_present($output, 'heap_tree=', "massif 'heap_tree' mismatch");
 
     assert_script_run 'cd';
-    if (is_sle('<16') && !main_common::is_updates_tests()) {
-        remove_suseconnect_product(get_addon_fullname('sdk'));    # unregister SDK
-    }
 }
 
 sub prepare {
@@ -151,10 +148,25 @@ sub prepare {
     assert_script_run 'gcc -Wall -Werror -Wextra -Wno-maybe-uninitialized -std=c99 -g2 -O0 -o valgrind-test valgrind-test.c';
 }
 
+sub post_run_hook {
+    my ($self) = @_;
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
+        remove_suseconnect_product(get_addon_fullname('sdk'));
+    }
+}
+
 sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
     tar_and_upload_log('/var/tmp/valgrind', 'valgrind-failed.tar.bz2');
     script_run 'cd';
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
+        remove_suseconnect_product(get_addon_fullname('sdk'));
+    }
 }
+
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;
