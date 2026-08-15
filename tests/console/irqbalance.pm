@@ -46,4 +46,8 @@ sub run {
     clear_console if !is_serial_terminal;
 }
 
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;
