@@ -27,7 +27,7 @@ sub run {
     assert_script_run 'wget --quiet ' . data_url('libaom/ffmpeg-snapshot.tar.bz2');
     assert_script_run 'tar xjvf ffmpeg-snapshot.tar.bz2';
     assert_script_run 'cd ffmpeg';
-    assert_script_run "PATH=\"\$HOME/bin:\$PATH\" PKG_CONFIG_PATH=\"\$HOME/ffmpeg_build/lib/pkgconfig\" ./configure --prefix=\"\$HOME/ffmpeg_build\" --pkg-config-flags=\"--static\" --extra-cflags=\"-I\$HOME/ffmpeg_build/include\" --extra-ldflags=\"-L\$HOME/ffmpeg_build/lib\" --extra-libs=-lpthread --extra-libs=-lm --bindir=\"\$HOME/bin\" --enable-libaom";
+    assert_script_run("PATH=\"\$HOME/bin:\$PATH\" PKG_CONFIG_PATH=\"\$HOME/ffmpeg_build/lib/pkgconfig\" ./configure --prefix=\"\$HOME/ffmpeg_build\" --pkg-config-flags=\"--static\" --extra-cflags=\"-I\$HOME/ffmpeg_build/include\" --extra-ldflags=\"-L\$HOME/ffmpeg_build/lib\" --extra-libs=-lpthread --extra-libs=-lm --bindir=\"\$HOME/bin\" --enable-libaom", timeout => 600);
 
     my $make_cmd;
     my $time_out = 1200;
@@ -38,8 +38,8 @@ sub run {
         $make_cmd = "make -j$jobs";
     }
     else {
-        $make_cmd = "make";
-        $time_out = 1500;
+        $make_cmd = "make -j$num_cpus";
+        $time_out = 2400;
     }
     assert_script_run($make_cmd, timeout => $time_out);
     assert_script_run "$make_cmd install";
