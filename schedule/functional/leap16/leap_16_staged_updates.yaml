@@ -24,3 +24,5 @@ schedule:
   - console/zypper_add_repos
   - console/qam_zypper_patch
   - console/qam_verify_package_install
+  - x11/reboot_gnome
+  - shutdown/shutdown
