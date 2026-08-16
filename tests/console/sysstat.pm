@@ -62,7 +62,9 @@ sub run {
     validate_script_output "iostat 2 5 |grep Device |wc -l", sub { /5/ };
 
     #mpstat 5 mpstat device iterations, we confirm success couting the summary 'all' column spawns
-    validate_script_output "mpstat -P ALL 2 5 |grep all |wc -l", sub { /6/ };
+    # 5 intervals + 1 average = 6 "all" lines, but some sysstat versions
+    # also print an initial snapshot, producing 7.
+    validate_script_output "mpstat -P ALL 2 5 |grep all |wc -l", sub { /^[67]$/ };
 
     #header integrity checks:
     if (is_sle('>=12-SP2') || is_opensuse) {
