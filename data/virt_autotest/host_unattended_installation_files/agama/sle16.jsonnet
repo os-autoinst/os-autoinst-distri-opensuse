@@ -77,7 +77,7 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
         content: |||
           #!/usr/bin/env bash
           sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
-          echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > $sshd_config_file
+          echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 720" > $sshd_config_file
         |||
       },
       {
