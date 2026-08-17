@@ -88,4 +88,8 @@ sub run {
     assert_script_run('timeout 5 perf --no-pager list');
 }
 
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;
