@@ -19,6 +19,9 @@ our @EXPORT_OK = qw(
   record_storage_info
   create_loop_backing_file
   attach_loop_device
+  start_block_trace
+  stop_block_trace
+  count_block_writes
 );
 
 =head2 is_block_device
@@ -122,6 +125,65 @@ sub attach_loop_device {
         die "Failed to parse loop device from: $output" unless $loop_dev;
         return $loop_dev;
     }
+}
+
+=head2 start_block_trace
+
+ start_block_trace($dev, $log);
+ start_block_trace($dev, $log, $mask);
+
+Start a background C<blktrace> on a block device, piped into C<blkparse>, to
+record the requests reaching the device while a test runs. Use
+C<stop_block_trace> to end it and C<count_block_writes> to evaluate the result.
+
+Arguments:
+  $dev  - Block device to trace (e.g. '/dev/loop0')
+  $log  - Path of the blkparse output file to write
+  $mask - Optional blktrace action mask (default: write)
+
+blktrace needs debugfs, so it gets mounted if it is not available yet.
+
+Returns: the blktrace pid
+
+=cut
+
+sub start_block_trace {
+    my ($dev, $log, $mask) = @_;
+    $mask //= 'write';
+
+    script_run('mountpoint -q /sys/kernel/debug || mount -t debugfs none /sys/kernel/debug');
+    return background_script_run("blktrace -d $dev -a $mask -o - | blkparse -i - > $log 2>&1");
+}
+
+=head2 stop_block_trace
+
+ stop_block_trace();
+
+Stop the trace started by C<start_block_trace>. blktrace is interrupted rather
+than killed, so that it closes the pipe and blkparse flushes its output.
+
+=cut
+
+sub stop_block_trace {
+    script_run('pkill -INT blktrace; sleep 3');
+}
+
+=head2 count_block_writes
+
+ count_block_writes($log);
+
+Count the write requests in a blkparse output file and return the number. The
+RWBS field of an event holds C<W> followed by optional modifiers like C<S> for
+sync or C<M> for metadata, the summary lines at the end of the file spell the
+direction out and are not counted.
+
+=cut
+
+sub count_block_writes {
+    my ($log) = @_;
+
+    my ($count) = script_output("grep -cE ' W[A-Z]* ' $log || true", proceed_on_failure => 1) =~ /(\d+)/;
+    return $count;
 }
 
 1;

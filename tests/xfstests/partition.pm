@@ -29,7 +29,7 @@ use version_utils qw(is_transactional is_sle_micro is_sle);
 use Utils::Architectures 'is_ppc64le';
 use transactional;
 use Kernel::block_dev qw(create_loop_backing_file attach_loop_device);
-use Kernel::nfs qw(setup_pnfs_client);
+use Kernel::nfs qw(setup_pnfs_client verify_pnfs_block_layout);
 use List::Util 'sum';
 use rdma;
 
@@ -596,6 +596,9 @@ sub setup_nfs_client {
     # There's a graceful time we need to wait before using the NFS server
     my $gracetime = script_output('cat /proc/fs/nfsd/nfsv4gracetime;');
     sleep($gracetime * 2);
+    if ($nfsversion =~ 'pnfs' && get_var('XFSTESTS_PNFS_TRAFFIC_CHECK')) {
+        verify_pnfs_block_layout('localhost', '/opt/export/test', '/opt/nfs/test', '/dev/loop0');
+    }
 }
 
 sub run {
