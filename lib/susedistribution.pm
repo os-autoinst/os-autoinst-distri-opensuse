@@ -15,7 +15,7 @@ use utils qw(
   type_string_very_slow
   zypper_call
 );
-use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_hyperv is_plasma6 is_public_cloud is_agama);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_hyperv is_plasma6 is_public_cloud is_agama is_wsl);
 use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm default_gui_terminal close_gui_terminal);
 use Utils::Backends;
 
@@ -891,7 +891,7 @@ sub activate_console {
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
-            push(@tags, 'wsl-linux-prompt') if (get_var('FLAVOR') eq 'WSL');
+            push(@tags, 'wsl-linux-prompt') if is_wsl;
             # Wait a bit to avoid false match on 'text-logged-in-$user', if tty has not switched yet,
             # or premature typing of credentials on sle15+
             my $stilltime = is_sle('15+') ? 6 : 1;
@@ -1024,7 +1024,7 @@ sub console_selected {
     $args{ignore} //= qr{sut|user-virtio-terminal|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};
     $args{timeout} //= 30;
 
-    if ($args{tags} =~ $args{ignore} || !$args{await_console} || (get_var('FLAVOR') eq 'WSL')) {
+    if ($args{tags} =~ $args{ignore} || !$args{await_console} || is_wsl) {
         set_var('CONSOLE_JUST_ACTIVATED', 0);
         return;
     }
