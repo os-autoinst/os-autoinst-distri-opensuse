@@ -62,7 +62,7 @@ sub prepare_run_test {
     select_console 'sol', await_console => 0;
     use_ssh_serial_console;
     reconnect_if_problematic;
-    assert_script_run("history -c");
+    assert_script_run("> ~/.bash_history");
 
     check_host_health;
 
