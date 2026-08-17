@@ -38,10 +38,7 @@ my %test_data_lang = (
 );
 
 sub switch_user {
-    # In aarch64 the user change takes some time, causing the next command to get
-    # lost
-    enter_cmd("su - $testapi::username", wait_still_screen => 10);
-    validate_script_output('whoami', sub { m/$testapi::username/ });
+    become_user($testapi::username);
 }
 
 sub change_locale {
