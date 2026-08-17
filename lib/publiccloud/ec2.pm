@@ -17,6 +17,7 @@ use Utils::Architectures qw(is_aarch64);
 use publiccloud::utils qw(is_byos pc_data_url);
 use publiccloud::zypper qw(pc_zypper_call pc_transactional_call);
 use publiccloud::aws_client;
+use publiccloud::img_proof qw(run_img_proof);
 use publiccloud::ssh_interactive 'select_host_console';
 
 has ssh_key_pair => undef;
@@ -215,7 +216,7 @@ sub img_proof {
     $args{ssh_private_key_file} //= SSH_KEY_PEM;
     $args{key_name} //= $self->ssh_key;
 
-    return $self->run_img_proof(%args);
+    return run_img_proof($self, %args);
 }
 
 sub teardown {
@@ -444,6 +445,42 @@ sub _install_dmesg_capture_to_log
     );
 }
 
+# Deploy CloudWatch agent configuration and start the service.
+# Returns "" on success, or a descriptive error string on failure.
+sub _configure_and_start_cloudwatch_agent {
+    my ($self, $instance) = @_;
+
+    my $cfg_file = 'cloudwatch_config.json';
+    my $cfg_target = '/opt/aws/amazon-cloudwatch-agent/etc/' . $cfg_file;
+
+    my $rc = $instance->ssh_script_run("sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc");
+    return "mkdir for config dir failed (rc=$rc)" if $rc;
+
+    $rc = $instance->ssh_script_run("sudo $curl_cmd $cfg_target " . pc_data_url("publiccloud/$cfg_file"));
+    return "config download failed (rc=$rc)" if $rc;
+
+    $rc = $instance->ssh_script_run(
+        "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl " .
+          "-a fetch-config " .
+          "-m ec2 " .
+          "-c file:$cfg_target " .
+          "-s"
+    );
+    return "agent-ctl fetch-config failed (rc=$rc)" if $rc;
+
+    $rc = $instance->ssh_script_run("sudo systemctl enable --now amazon-cloudwatch-agent");
+    return "systemctl enable --now failed (rc=$rc)" if $rc;
+
+    $rc = $instance->ssh_script_retry("sudo systemctl is-active amazon-cloudwatch-agent",
+        die => 0, retry => 3, delay => 5);
+    return "agent not active after start (rc=$rc)" if $rc;
+
+    return "";
+}
+
+# Install the CloudWatch agent RPM and start the service.
+# Uses non-fatal APIs internally — never dies.
+# Returns "" on success, or a descriptive error string on failure.
 sub _install_ec2_cloudwatch_agent
 {
     my ($self, $instance) = @_;
@@ -457,54 +494,88 @@ sub _install_ec2_cloudwatch_agent
 
     my $download_directory = "/root";
 
-    $instance->ssh_assert_script_run("sudo $curl_cmd $download_directory/$gpg_file https://amazoncloudwatch-agent.s3.amazonaws.com/assets/amazon-cloudwatch-agent.gpg");
+    # Pre-check: skip download+install if already present
+    if ($instance->ssh_script_run("rpm -q amazon-cloudwatch-agent") == 0) {
+        record_info('CW agent', 'Already installed, skipping RPM installation');
+        return $self->_configure_and_start_cloudwatch_agent($instance);
+    }
 
-    $instance->ssh_assert_script_run("sudo gpg --batch --status-fd=1 --import $download_directory/$gpg_file 2>&1");
-
-    $instance->ssh_assert_script_run("sudo $curl_cmd $download_directory/$rpm_file.sig https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm.sig");
-    $instance->ssh_assert_script_run("sudo $curl_cmd $download_directory/$rpm_file https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm");
-    $instance->ssh_assert_script_run(
-        "sudo gpg --verify $download_directory/$rpm_file.sig $download_directory/$rpm_file 2>&1 | grep 'Good signature'",
-        fail_message => "GPG signature verification failed for the downloaded RPM package."
+    # Download GPG key
+    my $rc = $instance->ssh_script_run(
+        "sudo $curl_cmd $download_directory/$gpg_file " .
+          "https://amazoncloudwatch-agent.s3.amazonaws.com/assets/amazon-cloudwatch-agent.gpg"
     );
+    return "GPG key download failed (rc=$rc)" if $rc;
 
+    # Import GPG key
+    $rc = $instance->ssh_script_run(
+        "sudo gpg --batch --status-fd=1 --import $download_directory/$gpg_file 2>&1"
+    );
+    return "GPG key import failed (rc=$rc)" if $rc;
+
+    # Download RPM signature
+    $rc = $instance->ssh_script_run(
+        "sudo $curl_cmd $download_directory/$rpm_file.sig " .
+          "https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm.sig"
+    );
+    return "RPM signature download failed (rc=$rc)" if $rc;
+
+    # Download RPM
+    $rc = $instance->ssh_script_run(
+        "sudo $curl_cmd $download_directory/$rpm_file " .
+          "https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm"
+    );
+    return "RPM download failed (rc=$rc)" if $rc;
+
+    # Verify GPG signature
+    $rc = $instance->ssh_script_run(
+        "sudo gpg --verify $download_directory/$rpm_file.sig $download_directory/$rpm_file 2>&1 | " .
+          "grep 'Good signature'"
+    );
+    return "GPG signature verification failed (rc=$rc)" if $rc;
+
+    # Install the RPM
     if (is_transactional) {
-        pc_transactional_call(
+        $rc = pc_transactional_call(
             $instance,
             "run sh -c 'rpm -Uvh --noscripts $download_directory/$rpm_file'",
-            timeout => 300, exitcode => [0], no_reboot => 1
+            timeout => 300, exitcode => [0], no_reboot => 1,
+            proceed_on_failure => 1
         );
-        $instance->softreboot();
+        return "transactional-update install failed (rc=$rc)" if $rc;
+
+        eval { $instance->softreboot() };
+        return "softreboot after transactional-update failed: $@" if $@;
     } else {
         if (is_sle(">12-SP5")) {
-            pc_zypper_call($instance, "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file", retry => 3);
+            $rc = pc_zypper_call(
+                $instance,
+                "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file",
+                retry => 3, proceed_on_failure => 1
+            );
+            return "zypper install failed (rc=$rc)" if $rc;
         } else {
-            $instance->ssh_assert_script_run("sudo rpm -Uvh $download_directory/$rpm_file");
+            $rc = $instance->ssh_script_run("sudo rpm -Uvh $download_directory/$rpm_file");
+            return "rpm install failed (rc=$rc)" if $rc;
         }
     }
 
-    $instance->ssh_assert_script_run("sudo rm -f $download_directory/$rpm_file $download_directory/$rpm_file.sig $download_directory/$gpg_file");
-
-    my $cfg_file = 'cloudwatch_config.json';
-    my $cfg_target = '/opt/aws/amazon-cloudwatch-agent/etc/' . $cfg_file;
-    $instance->ssh_assert_script_run("sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc");
-    $instance->ssh_assert_script_run("sudo $curl_cmd $cfg_target " . pc_data_url("publiccloud/$cfg_file"));
-    $instance->ssh_assert_script_run(
-        "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl " .
-          "-a fetch-config " .
-          "-m ec2 " .
-          "-c file:$cfg_target " .
-          "-s"
+    # Cleanup downloads (non-critical, don't fail on error)
+    $instance->ssh_script_run(
+        "sudo rm -f $download_directory/$rpm_file $download_directory/$rpm_file.sig $download_directory/$gpg_file"
     );
-    $instance->ssh_assert_script_run("sudo systemctl enable --now amazon-cloudwatch-agent");
-    $instance->ssh_script_retry("sudo systemctl is-active amazon-cloudwatch-agent");
+
+    return $self->_configure_and_start_cloudwatch_agent($instance);
 }
 
 sub initialize_logging {
     my ($self, $instance) = @_;
     $self->upload_boot_diagnostics(log_name => "console-beginning");
     record_info('Logging', 'Initializing logging for EC2 instance');
-    $self->_install_ec2_cloudwatch_agent($instance);
+    my $err = $self->_install_ec2_cloudwatch_agent($instance);
+    if ($err) {
+        record_soft_failure("poo#205539 - CloudWatch agent setup failed: $err");
+    }
 }
 
 sub finalize_logging {

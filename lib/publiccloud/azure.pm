@@ -15,6 +15,7 @@ use testapi qw(is_serial_terminal :DEFAULT);
 use mmapi 'get_current_job_id';
 use utils qw(script_retry script_output_retry);
 use publiccloud::azure_client;
+use publiccloud::img_proof qw(run_img_proof);
 use publiccloud::ssh_interactive 'select_host_console';
 use Data::Dumper;
 
@@ -496,7 +497,7 @@ sub img_proof {
         $args{running_instance_id} = $parsed_id->{vm_name};
     }
 
-    return $self->run_img_proof(%args);
+    return run_img_proof($self, %args);
 }
 
 sub terraform_apply {

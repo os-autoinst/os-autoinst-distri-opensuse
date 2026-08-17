@@ -13,6 +13,7 @@ use Mojo::Util qw(trim);
 use Mojo::JSON 'decode_json';
 use testapi;
 use utils;
+use publiccloud::img_proof qw(run_img_proof);
 use publiccloud::ssh_interactive 'select_host_console';
 
 sub init {
@@ -197,7 +198,7 @@ sub img_proof {
     $args{user} //= $self->provider_client->username;
     $args{provider} //= 'gce';
 
-    return $self->run_img_proof(%args);
+    return run_img_proof($self, %args);
 }
 
 sub terraform_apply {
