@@ -28,13 +28,13 @@ sub run {
     # Mount Btrfs sub-volumes
     assert_script_run('mount -a');
     # Configure GRUB with serial terminal (in addition to gfxterm)
-    assert_script_run('sed -ie \'s/GRUB_TERMINAL.*//\' /etc/default/grub');
+    assert_script_run('sed -i -e \'s/GRUB_TERMINAL.*//\' /etc/default/grub');
     # VMware needs to always stop in Grub and wait for interaction.
     # Migration seems to reset it.
     if (get_var('GRUB_TIMEOUT')) {
-        assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=' . get_var('GRUB_TIMEOUT') . '/\' /etc/default/grub');
+        assert_script_run('sed -i -e \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=' . get_var('GRUB_TIMEOUT') . '/\' /etc/default/grub');
     } else {
-        assert_script_run('sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub');
+        assert_script_run('sed -i -e \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=-1/\' /etc/default/grub');
     }
     assert_script_run('echo GRUB_TERMINAL_OUTPUT=\"serial gfxterm\" >> /etc/default/grub');
     # Specify the serial unit to workaround bsc#1219463
@@ -44,7 +44,7 @@ sub run {
         assert_script_run('echo GRUB_SERIAL_COMMAND=\"serial\" >> /etc/default/grub');
     }
     # Set expected resolution for GRUB and kernel
-    assert_script_run('sed -ie \'s/GRUB_GFXMODE.*/GRUB_GFXMODE=\"1024x768x32\"/\' /etc/default/grub');
+    assert_script_run('sed -i -e \'s/GRUB_GFXMODE.*/GRUB_GFXMODE=\"1024x768x32\"/\' /etc/default/grub');
     assert_script_run('echo GRUB_GFXPAYLOAD_LINUX=\"1024x768x32\" >> /etc/default/grub');
     assert_script_run('grep ^[[:alpha:]] /etc/default/grub');
     # Update GRUB

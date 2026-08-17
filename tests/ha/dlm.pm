@@ -26,9 +26,9 @@ sub run {
 
     if (is_node(1)) {
         # Create DLM resource
-        assert_script_run 'EDITOR="sed -ie \'$ a primitive dlm ocf:pacemaker:controld\'" crm configure edit', $default_timeout;
-        assert_script_run 'EDITOR="sed -ie \'$ a group base-group dlm\'" crm configure edit', $default_timeout;
-        assert_script_run 'EDITOR="sed -ie \'$ a clone base-clone base-group\'" crm configure edit', $default_timeout;
+        assert_script_run 'EDITOR="sed -i -e \'$ a primitive dlm ocf:pacemaker:controld\'" crm configure edit', $default_timeout;
+        assert_script_run 'EDITOR="sed -i -e \'$ a group base-group dlm\'" crm configure edit', $default_timeout;
+        assert_script_run 'EDITOR="sed -i -e \'$ a clone base-clone base-group\'" crm configure edit', $default_timeout;
     }
     else {
         diag 'Wait until DLM resource is created...';
