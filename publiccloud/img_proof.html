@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>publiccloud::img_proof - Routines to run img-proof and parse its output</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#NAME">NAME</a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a></li>
+  <li><a href="#DESCRIPTION">DESCRIPTION</a>
+    <ul>
+      <li><a href="#run_img_proof">run_img_proof</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/publiccloud/img_proof.pm</h1>
+
+<h1 id="NAME">NAME</h1>
+
+<p>publiccloud::img_proof - Routines to run img-proof and parse its output</p>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<pre><code>use publiccloud::img_proof qw(run_img_proof);
+
+my $results = run_img_proof($provider, instance =&gt; $instance, tests =&gt; $tests);</code></pre>
+
+<h1 id="DESCRIPTION">DESCRIPTION</h1>
+
+<p>Helper module for interacting with the <code>img-proof</code> tool during public cloud image testing.</p>
+
+<h2 id="run_img_proof">run_img_proof</h2>
+
+<pre><code>run_img_proof(
+    $provider,
+    instance =&gt; $instance,
+    [provider =&gt; &#39;ec2&#39;,]
+    [tests =&gt; &#39;test_security&#39;,]
+    [distro =&gt; &#39;sles&#39;,]
+    [timeout =&gt; 7200,]
+    [results_dir =&gt; &#39;img_proof_results&#39;,]
+    [user =&gt; &#39;ec2-user&#39;,]
+    [key_name =&gt; &#39;my_key&#39;,]
+    [credentials_file =&gt; &#39;aws_creds.json&#39;,]
+    [running_instance_id =&gt; &#39;i-12345&#39;,]
+    [exclude =&gt; &#39;test_a, test_b&#39;,]
+    [beta =&gt; 0]
+);</code></pre>
+
+<p>Calls the <code>img-proof</code> CLI tool and retrieves a hash reference containing the test results.</p>
+
+<p>Updates <code>$instance-</code>public_ip&gt; with the instance IP extracted from the command output. Returns a hash reference containing the parsed results (with <code>instance_id</code> and <code>ip</code> deleted from the returned hash).</p>
+
+<dl>
+
+<dt id="provider---Public-cloud-provider-instance-object-first-positional-parameter"><b>provider</b> - Public cloud provider instance object (first positional parameter)</dt>
+<dd>
+
+</dd>
+<dt id="instance---Mandatory-public-cloud-instance-object"><b>instance</b> - Mandatory public cloud instance object</dt>
+<dd>
+
+</dd>
+<dt id="provider---Cloud-provider-name-string-e.g.-azure-ec2-gce"><b>provider</b> - Cloud provider name string (e.g., &#39;azure&#39;, &#39;ec2&#39;, &#39;gce&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="tests---Comma-separated-or-space-separated-list-of-test-cases-to-run-default"><b>tests</b> - Comma-separated or space-separated list of test cases to run (default: &#39;&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="distro---Target-Linux-distribution-name-passed-to---distro-default:-sles"><b>distro</b> - Target Linux distribution name passed to <code>--distro</code> (default: &#39;sles&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="timeout---Execution-timeout-in-seconds-default:-7200"><b>timeout</b> - Execution timeout in seconds (default: 7200)</dt>
+<dd>
+
+</dd>
+<dt id="results_dir---Directory-path-for-img-proof-test-results-passed-to---results-dir-default:-img_proof_results"><b>results_dir</b> - Directory path for img-proof test results passed to <code>--results-dir</code> (default: &#39;img_proof_results&#39;)</dt>
+<dd>
+
+</dd>
+<dt id="user---SSH-username-used-for-accessing-the-target-instance--u"><b>user</b> - SSH username used for accessing the target instance (<code>-u</code>)</dt>
+<dd>
+
+</dd>
+<dt id="key_name---Name-or-file-path-of-the-SSH-key-passed-to---ssh-key-name"><b>key_name</b> - Name or file path of the SSH key passed to <code>--ssh-key-name</code></dt>
+<dd>
+
+</dd>
+<dt id="credentials_file---Path-to-service-account-or-cloud-credentials-file-passed-to---service-account-file"><b>credentials_file</b> - Path to service account or cloud credentials file passed to <code>--service-account-file</code></dt>
+<dd>
+
+</dd>
+<dt id="running_instance_id---Override-instance-ID-if-different-from-instance-instance_id"><b>running_instance_id</b> - Override instance ID if different from <code>$instance-</code>instance_id&gt;</dt>
+<dd>
+
+</dd>
+<dt id="exclude---Comma-separated-list-of-test-cases-to-exclude-from-execution---exclude"><b>exclude</b> - Comma-separated list of test cases to exclude from execution (<code>--exclude</code>)</dt>
+<dd>
+
+</dd>
+<dt id="beta---Enable-beta-features-flag-in-img-proof-default:-0"><b>beta</b> - Enable beta features flag in img-proof (default: 0)</dt>
+<dd>
+
+</dd>
+</dl>
+
+
+</body>
+
+</html>
+
+

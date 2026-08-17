@@ -18,10 +18,8 @@
       <li><a href="#find_img">find_img</a></li>
       <li><a href="#upload_img">upload_img</a></li>
       <li><a href="#img_proof">img_proof</a></li>
-      <li><a href="#parse_img_proof_output">parse_img_proof_output</a></li>
       <li><a href="#create_ssh_key">create_ssh_key</a></li>
       <li><a href="#place_ssh_config">place_ssh_config</a></li>
-      <li><a href="#run_img_proof">run_img_proof</a></li>
       <li><a href="#get_image_id">get_image_id</a></li>
       <li><a href="#get_image_uri">get_image_uri</a></li>
       <li><a href="#create_instance">create_instance</a></li>
@@ -69,10 +67,6 @@ Returns a string-name containing distri, version, flavor, arch.</code></pre>
 
 <p>Call img-proof tool and retrieves a hashref as result. Do not die if img-proof call exit with error. $result_hash = { instance =&gt; &lt;publiccloud:instance&gt;, # instance object logfile =&gt; &lt;string&gt;, # the pytest logfile results =&gt; &lt;string&gt;, # json results file tests =&gt; &lt;int&gt;, # total number of tests pass =&gt; &lt;int&gt;, # successful tests skip =&gt; &lt;int&gt;, # skipped tests fail =&gt; &lt;int&gt;, # number of failed tests error =&gt; &lt;int&gt;, # number of errors };</p>
 
-<h2 id="parse_img_proof_output">parse_img_proof_output</h2>
-
-<p>Parse the output from img-proof command and retrieves instance-id, ip and logfile names.</p>
-
 <h2 id="create_ssh_key">create_ssh_key</h2>
 
 <p>Creates an ssh keypair in a given file path by $args{ssh_private_key_file}</p>
@@ -80,10 +74,6 @@ Returns a string-name containing distri, version, flavor, arch.</code></pre>
 <h2 id="place_ssh_config">place_ssh_config</h2>
 
 <p>Creates ~/.ssh/config file with all the common ssh client settings</p>
-
-<h2 id="run_img_proof">run_img_proof</h2>
-
-<p>called by childs within img-proof function</p>
 
 <h2 id="get_image_id">get_image_id</h2>
 
