@@ -407,8 +407,13 @@ sub unplug_vf_from_vm {
     script_run("cp $vf_xml_file $log_dir/unplug_$vf->{host_id}.xml");
     assert_script_run("virsh detach-device $vm $vf_xml_file --persistent", 60);
 
-    #check if the nic is removed from vm
-    assert_script_run(" ! ssh root\@$vm \"ip l show $vf->{vm_nic}\"", fail_message => "ERROR: vf is unplugged from vm, but nic still exists!");
+    # Use scoped classic serial markers for checking the nic is removed from vm
+    {
+        my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
+
+        #check if the nic is removed from vm
+        assert_script_run(" ! ssh root\@$vm \"ip l show $vf->{vm_nic}\"", fail_message => "ERROR: vf is unplugged from vm, but nic still exists!");
+    }
 }
 
 #print logs for debugging
