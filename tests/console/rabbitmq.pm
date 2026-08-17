@@ -17,6 +17,7 @@ use serial_terminal qw(select_serial_terminal);
 sub run {
     select_serial_terminal;
     install_package('rabbitmq-server go curl', trup_reboot => 1);
+    record_info('rabbitmq-server&erlang versions: ', script_output('rpm -qa | grep -E "rabbitmq-server|erlang"'));
     systemctl 'start rabbitmq-server';
     systemctl 'status rabbitmq-server';
     my $curl_opts = "--retry 1 --retry-max-time 60 -D - -O";
@@ -55,6 +56,7 @@ EOF
         script_run('rm -rf /usr/lib{.64}/rabbitmq');
 
         zypper_call 'in rabbitmq-server31*';
+        record_info('rabbitmq-server&erlang versions: ', script_output('rpm -qa | grep -E "rabbitmq-server|erlang"'));
         systemctl 'start rabbitmq-server';
         systemctl 'status rabbitmq-server';
         enter_cmd 'go run send.go';
