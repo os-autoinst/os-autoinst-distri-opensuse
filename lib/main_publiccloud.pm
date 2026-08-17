@@ -66,8 +66,14 @@ sub load_maintenance_publiccloud_tests {
     } elsif (get_var('PUBLIC_CLOUD_EC2_ENCLAVE_TESTS')) {
         loadtest "publiccloud/aws_enclave", run_args => $args;
     } else {
+        my $smoketest = get_var('PUBLIC_CLOUD_SMOKETEST')
+          && !get_var('PUBLIC_CLOUD_CONSOLE_TESTS')
+          && !get_var('PUBLIC_CLOUD_BTRFS')
+          && !get_var('PUBLIC_CLOUD_CONTAINERS')
+          && !get_var('PUBLIC_CLOUD_XFS');
         loadtest("publiccloud/check_services", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
         loadtest("publiccloud/systemd_detect_virt", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
+        loadtest("publiccloud/smoketest", run_args => $args) if ($smoketest);
         loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
@@ -82,8 +88,7 @@ sub load_maintenance_publiccloud_tests {
             loadtest "publiccloud/xfsprepare", run_args => $args;
             loadtest "xfstests/run", run_args => $args;
             return;
-        } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
-            loadtest "publiccloud/smoketest";
+        } elsif ($smoketest) {
             # flavor_check is concentrated on checking things which make sense only for image which is registered
             # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
             loadtest "publiccloud/flavor_check" if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
@@ -158,8 +163,14 @@ sub load_latest_publiccloud_tests {
             } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
                 loadtest("publiccloud/bsc_1205002", run_args => $args);
             } else {    # All test cases below excluding check_service require tunelled environment
+                my $smoketest = get_var('PUBLIC_CLOUD_SMOKETEST')
+                  && !get_var('PUBLIC_CLOUD_CONSOLE_TESTS')
+                  && !get_var('PUBLIC_CLOUD_BTRFS')
+                  && !check_var('PUBLIC_CLOUD_NVIDIA', 1)
+                  && !get_var('PUBLIC_CLOUD_CONTAINERS');
                 loadtest("publiccloud/check_services", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
                 loadtest("publiccloud/systemd_detect_virt", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
+                loadtest("publiccloud/smoketest", run_args => $args) if ($smoketest);
                 loadtest "publiccloud/ssh_interactive_start", run_args => $args;
                 loadtest "publiccloud/instance_overview", run_args => $args;
                 if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
@@ -174,8 +185,7 @@ sub load_latest_publiccloud_tests {
                 }
                 elsif (get_var('PUBLIC_CLOUD_CONTAINERS')) {
                     load_container_tests();
-                } elsif (get_var('PUBLIC_CLOUD_SMOKETEST')) {
-                    loadtest "publiccloud/smoketest", run_args => $args;
+                } elsif ($smoketest) {
                     # flavor_check is concentrated on checking things which make sense only for image which is registered
                     # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
                     loadtest "publiccloud/flavor_check", run_args => $args if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
