@@ -42,6 +42,7 @@ sub build_installer_cmd {
     # OS configuration script
     assert_script_run("curl -sf -o $config_file "
           . data_url('elemental3/' . path($config_file)->basename));
+    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
@@ -99,6 +100,7 @@ sub customize_cmd {
 
     # Configure the build
     $out = "$args{img_filename}.qcow2" if ($type =~ m/raw/);
+    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
     file_content_replace(
         "$args{config_dir}/butane.yaml",
         '--sed-modifier' => 'g',
@@ -121,6 +123,7 @@ sub customize_cmd {
     );
 
     if ($args{template} =~ m/recovery/) {
+        # NOTE: some variables can be empty/undef, so double-quotes are expected here!
         file_content_replace(
             "$args{config_dir}/custom/scripts/50-firstboot.sh",
             '--sed-modifier' => 'g',
@@ -153,7 +156,7 @@ sub customize_cmd {
         # We need to add SUSE CA into generated OS image,
         # as Dev artifacts does not have the standard CA
         # NOTE: we can't use file_content_replace here as the
-        # CA line has too much characters, so the function fails
+        # CA line has too many characters, so the function fails
         my $ca = '/usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem';
         my $ca_cmd = "printf '%0.1s' ' '{1..4}; base64 -w0 $ca";
         assert_script_run(
@@ -172,9 +175,9 @@ sub customize_cmd {
             # Add some spaces in front to comply with yaml
             $static_hosts .= " " x 12 . "${ip} ${s}\\n";
         }
-        # Remove the last newline and the 2 last characters, otherwise sed will fail
-        chomp($static_hosts);
-        $static_hosts =~ s/.{2}$//;
+        # Remove the last newline, otherwise sed will fail
+        $static_hosts =~ s@\\n$@@;
+        # NOTE: some variables can be empty/undef, so double-quotes are expected here!
         file_content_replace(
             "$args{config_dir}/butane.yaml",
             '%STATIC_HOSTS%' => "$static_hosts"
@@ -259,6 +262,7 @@ sub install_cmd {
     # OS configuration script
     assert_script_run("curl -sf -o $config_file "
           . data_url('elemental3/' . path($config_file)->basename));
+    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',

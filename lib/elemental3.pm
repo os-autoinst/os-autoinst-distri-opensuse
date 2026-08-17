@@ -209,7 +209,7 @@ sub wait_k8s_state {
       )
     {
         if (time - $starttime >= $timeout) {
-            record_info('K8s failed state', script_output("$chk_cmd", proceed_on_failure => 1));
+            record_info('K8s failed state', script_output($chk_cmd, proceed_on_failure => 1));
             die("K8s cluster did not start within $timeout seconds!");
         }
         sleep 10;
@@ -261,9 +261,9 @@ sub wait_nodes_ready {
     my $out = ' NotReady ';    # Spaces are needed for the next regex to work!
 
     while ($out =~ m/\s+NotReady\s+/s) {
-        $out = script_output("$chk_cmd", proceed_on_failure => 1);
+        $out = script_output($chk_cmd, proceed_on_failure => 1);
         if (time - $starttime >= $timeout) {
-            record_info('K8s nodes state', script_output("$chk_cmd", proceed_on_failure => 1));
+            record_info('K8s nodes state', script_output($chk_cmd, proceed_on_failure => 1));
             die("K8s nodes not ready within $timeout seconds!");
         }
         sleep 10;
@@ -318,7 +318,7 @@ sub wait_script_output {
 
     croak('Argument <cmd> missing') unless $args{cmd};
     while ($out eq '') {
-        $out = script_output("$args{cmd}", timeout => $timeout / 10);
+        $out = script_output($args{cmd}, timeout => $timeout / 10);
         if (time - $starttime >= $timeout) {
             die("command '$args{cmd}' timed out after $timeout seconds!");
         }
