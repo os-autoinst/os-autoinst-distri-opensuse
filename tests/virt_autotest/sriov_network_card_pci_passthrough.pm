@@ -408,7 +408,7 @@ sub unplug_vf_from_vm {
     assert_script_run("virsh detach-device $vm $vf_xml_file --persistent", 60);
 
     #check if the nic is removed from vm
-    assert_script_run(" ! ssh root\@$vm \"ip l show $vf->{vm_nic}\"", fail_message => "ERROR: vf is unplugged from vm, but nic still exists!");
+    assert_script_run("! ssh root\@$vm \"ip l show $vf->{vm_nic}\"", fail_message => "ERROR: vf is unplugged from vm, but nic still exists!");
 }
 
 #print logs for debugging
