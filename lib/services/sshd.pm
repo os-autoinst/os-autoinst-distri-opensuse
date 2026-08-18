@@ -94,6 +94,7 @@ sub ssh_basic_check {
         my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
         # ssh writes prompts to its own tty, not stdout, so give it a fresh pty via `script` (poo#205149).
         script_start_io("script -qe -c 'ssh -4 -v -E /tmp/ssh_log0 $ssh_testman\@localhost -t' /dev/null");
+        set_var('SUBSHELL_NOT_AS_ROOT', 1);
         # Host key is always untrusted: prepare_test_data cleared ~/.ssh.
         die "host key prompt did not appear\n" unless wait_serial('Are you sure', timeout => 300);
         enter_cmd('yes');
@@ -111,6 +112,7 @@ sub ssh_basic_check {
         enter_cmd('exit');
         script_finish_io(timeout => 300, exitcodes => [0]);
         assert_script_run "whoami | grep root";
+        set_var('SUBSHELL_NOT_AS_ROOT', 0);
     }
 
     # Generate RSA key for root and the user

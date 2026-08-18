@@ -121,6 +121,14 @@ sub post_run_hook {
 
 sub post_fail_hook {
     my $self = shift;
+
+    # If the test fails inside the subshell, many commands can fail
+    if (get_var('SUBSHELL_NOT_AS_ROOT', 0)) {
+        script_run "ps -aux";
+        script_run "env";
+        enter_cmd('exit');
+    }
+
     $self->cleanup();
     $self->SUPER::post_fail_hook;
 }
