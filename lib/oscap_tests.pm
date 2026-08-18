@@ -748,8 +748,7 @@ sub get_cac_code {
     if (is_sle) {
         zypper_call("in git-core");
     }
-    assert_script_run("mkdir src");
-    assert_script_run("rm -r $cac_dir", quiet => 1) if (-e "$cac_dir");
+    assert_script_run("rm -rf $cac_dir && mkdir -p $cac_dir");
     assert_script_run('git config --global http.sslVerify false', quiet => 1);
     assert_script_run("set -o pipefail ; $git_clone_cmd", timeout => 600, quiet => 1);
 
@@ -1149,7 +1148,7 @@ sub oscap_security_guide_setup {
 
     Some hosts were unreachable during the run (login errors, host unavailable, etc). This will NOT end the run early.
     All of the hosts within a single batch were unreachable- i.e. if you set serial: 3 at the play level, and three hosts in a batch were unreachable. This WILL end the run early.
-    A synax or parsing error was encountered- either in command arguments, within a playbook, or within a static include (import_role or import_task). This is a fatal error. 
+    A synax or parsing error was encountered- either in command arguments, within a playbook, or within a static include (import_role or import_task). This is a fatal error.
 
 5 = Error with the options provided to the command
 6 = Command line args are not UTF-8 encoded
