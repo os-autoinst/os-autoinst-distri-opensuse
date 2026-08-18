@@ -85,7 +85,7 @@ sub run {
         my $tap_file = "/tmp/${test}.tap";
         my $stderr_file = "${tap_file}.stderr";
         assert_script_run("echo '$test.tap ..' > $tap_file");
-        script_run("python3 tests/tap_runner.py --start-dir tests $test >> $tap_file 2>> $stderr_file", 300);
+        script_run("python3 tests/nvme-cli-e2e --config tests/config.json $test >> $tap_file 2> $stderr_file", 300);
         parse_extra_log(TAP => $tap_file);
         upload_logs($stderr_file);
 
@@ -128,7 +128,7 @@ and C<NVMECLI_NS1> at disposable hardware.
 =head2 NVMECLI_TESTS
 
 Required. Comma-separated list of test modules passed one at a time to
-C<tap_runner.py>, for example:
+C<tests/nvme-cli-e2e>, for example:
 
   NVMECLI_TESTS=nvme_id_ctrl_test
   NVMECLI_TESTS=nvme_id_ctrl_test,nvme_id_ns_test,nvme_smart_log_test
@@ -158,7 +158,7 @@ branch is used.
 Optional. URL or local path to a known-issues YAML file parsed with
 C<LTP::WhiteList>. Entries under the C<nvme-cli> suite with C<skip: 1> are
 removed from the C<NVMECLI_TESTS> list when they match the current openQA
-environment, since C<tap_runner.py> runs a whole test module at a time and
-individual test methods within it cannot be excluded.
+environment, since C<tests/nvme-cli-e2e> runs a whole test module at a time
+and individual test methods within it cannot be excluded.
 
 =cut
