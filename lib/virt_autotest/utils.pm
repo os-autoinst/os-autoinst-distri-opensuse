@@ -513,31 +513,36 @@ sub check_guest_health {
     #check if guest is still alive
     my $vmstate = "nok";
     my $failures = "";
-    if (script_run("virsh list --all | grep \"$vm \"") == 0) {
-        $vmstate = "ok" if (script_run("virsh domstate $vm | grep running") == 0);
-    }
-    elsif (is_xen_host and script_run("xl list $vm") == 0) {
-        script_retry("xl list $vm | grep \"\\-b\\-\\-\\-\\-\"", delay => 10, retry => 1, die => 0) for (0 .. 3);
-        $vmstate = "ok" if script_run("xl list $vm | grep \"\\-b\\-\\-\\-\\-\"");
-    }
-    if ($vmstate eq "ok") {
-        $failures = caller 0 eq 'validate_system_health' ? check_failures_in_journal($vm, no_cursor => 1) : check_failures_in_journal($vm);
-        if (script_run("ssh root\@$vm 'ping -c3 8.8.8.8'") == 0) {
-            record_info("Healthy guest!", "$vm looks good so far!");
-        } else {
-            my $fail_msg = "Unable to access outside network from $vm";
-            record_info("Possible network inaccessibility", "$fail_msg!", result => 'fail');
-            record_soft_failure("$fail_msg, please track it in poo#192382");
-            $failures .= $fail_msg;
-            my $vm_route = script_output("ssh root\@$vm 'ip r'", proceed_on_failure => 1);
-            record_info("Missing default route", $vm_route, result => 'fail') unless $vm_route =~ /default/;
+
+    # Use scoped classic serial markers for checking the nic is removed from vm
+    {
+        my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
+        if (script_run("virsh list --all | grep \"$vm \"") == 0) {
+            $vmstate = "ok" if (script_run("virsh domstate $vm | grep running") == 0);
         }
+        elsif (is_xen_host and script_run("xl list $vm") == 0) {
+            script_retry("xl list $vm | grep \"\\-b\\-\\-\\-\\-\"", delay => 10, retry => 1, die => 0) for (0 .. 3);
+            $vmstate = "ok" if script_run("xl list $vm | grep \"\\-b\\-\\-\\-\\-\"");
+        }
+        if ($vmstate eq "ok") {
+            $failures = caller 0 eq 'validate_system_health' ? check_failures_in_journal($vm, no_cursor => 1) : check_failures_in_journal($vm);
+            if (script_run("ssh root\@$vm 'ping -c3 8.8.8.8'") == 0) {
+                record_info("Healthy guest!", "$vm looks good so far!");
+            } else {
+                my $fail_msg = "Unable to access outside network from $vm";
+                record_info("Possible network inaccessibility", "$fail_msg!", result => 'fail');
+                record_soft_failure("$fail_msg, please track it in poo#192382");
+                $failures .= $fail_msg;
+                my $vm_route = script_output("ssh root\@$vm 'ip r'", proceed_on_failure => 1);
+                record_info("Missing default route", $vm_route, result => 'fail') unless $vm_route =~ /default/;
+            }
+        }
+        else {
+            record_info("Skip check_failures_in_journal for $vm", "$vm is in an ambiguous state judged by either virsh or xl tool stack", result => 'fail');
+            record_soft_failure("Ambiguous $vm, please track it in poo#192382");
+        }
+        $failures ? return 'fail' : return 'pass';
     }
-    else {
-        record_info("Skip check_failures_in_journal for $vm", "$vm is in an ambiguous state judged by either virsh or xl tool stack", result => 'fail');
-        record_soft_failure("Ambiguous $vm, please track it in poo#192382");
-    }
-    $failures ? return 'fail' : return 'pass';
 }
 
 #ammend the output of the command to an existing log file
