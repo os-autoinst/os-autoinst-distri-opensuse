@@ -384,9 +384,9 @@ sub load_slem_on_pc_tests {
                 loadtest("publiccloud/img_proof", run_args => $args);
             } else {
                 loadtest("publiccloud/slem_basic", run_args => $args);
+                loadtest "publiccloud/systemd_detect_virt", run_args => $args;
                 loadtest "publiccloud/ssh_interactive_start", run_args => $args;
                 loadtest "publiccloud/instance_overview", run_args => $args;
-                loadtest "publiccloud/systemd_detect_virt", run_args => $args;
             }
         }
         loadtest("publiccloud/destroy", run_args => $args);
