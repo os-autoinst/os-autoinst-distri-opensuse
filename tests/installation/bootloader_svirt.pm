@@ -24,6 +24,7 @@ use data_integrity_utils 'verify_checksum';
 use File::Basename;
 use network_utils qw(genmac);
 use bootloader_setup;
+use Utils::Backends qw(is_ova);
 
 sub vmware_set_permanent_boot_device {
     return unless is_vmware;
@@ -89,6 +90,13 @@ sub run {
     my $vmm_type = get_required_var('VIRSH_VMM_TYPE');
     my $svirt = select_console('svirt');
     my $name = $svirt->name;
+
+    if (is_ova) {
+        $svirt->define_and_start;
+        select_console('sut', await_console => 0);
+        return;
+    }
+
     my $repo;
     my $vmware_openqa_datastore;
 
