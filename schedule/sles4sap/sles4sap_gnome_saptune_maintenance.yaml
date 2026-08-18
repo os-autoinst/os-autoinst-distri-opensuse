@@ -30,5 +30,5 @@ conditional_schedule:
         - publiccloud/registration
         - sles4sap/publiccloud/cluster_add_repos
         - publiccloud/patch_and_reboot
-        - publiccloud/ssh_interactive_start
         - publiccloud/instance_overview
+        - publiccloud/ssh_interactive_start

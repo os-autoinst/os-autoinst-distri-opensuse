@@ -74,8 +74,8 @@ sub load_maintenance_publiccloud_tests {
         loadtest("publiccloud/check_services", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
         loadtest("publiccloud/systemd_detect_virt", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
         loadtest("publiccloud/smoketest", run_args => $args) if ($smoketest);
-        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         loadtest "publiccloud/instance_overview", run_args => $args;
+        loadtest "publiccloud/ssh_interactive_start", run_args => $args;
         if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
             load_publiccloud_consoletests($args);
         } elsif (get_var('PUBLIC_CLOUD_BTRFS')) {
@@ -171,8 +171,8 @@ sub load_latest_publiccloud_tests {
                 loadtest("publiccloud/check_services", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
                 loadtest("publiccloud/systemd_detect_virt", run_args => $args) if (get_var('PUBLIC_CLOUD_SMOKETEST'));
                 loadtest("publiccloud/smoketest", run_args => $args) if ($smoketest);
-                loadtest "publiccloud/ssh_interactive_start", run_args => $args;
                 loadtest "publiccloud/instance_overview", run_args => $args;
+                loadtest "publiccloud/ssh_interactive_start", run_args => $args;
                 if (get_var('PUBLIC_CLOUD_CONSOLE_TESTS')) {
                     load_publiccloud_consoletests($args);
                 } elsif (get_var('PUBLIC_CLOUD_BTRFS')) {
