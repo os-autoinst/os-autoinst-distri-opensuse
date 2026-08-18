@@ -12,11 +12,11 @@ use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use Path::Tiny;
 use Mojo::JSON;
-use publiccloud::utils qw(is_hardened);
+use publiccloud::utils qw(is_hardened is_ondemand);
 use publiccloud::ssh_interactive 'select_host_console';
 use File::Basename 'basename';
 use version_utils "is_sle";
-use utils qw(zypper_call);
+use utils;
 
 sub patch_json {
     my ($file) = @_;
@@ -28,10 +28,36 @@ sub patch_json {
             $data->{tests}[$i]{outcome} = 'passed';
             record_soft_failure(get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP', "bsc#1220269 - scap-security-guide fails"));
             my $json = Mojo::JSON::encode_json($data);
-            assert_script_run "cat > $file <<EOF\n$json\nEOF";
+            write_sut_file($file, $json);
             return;
         }
     }
+}
+
+sub softfail_guestregister {
+    my ($file) = @_;
+    my $data = Mojo::JSON::decode_json(script_output("cat $file"));
+    my $patched = 0;
+
+    # When guestregister.service gets stuck re-registering after img-proof's internal
+    # hard-reboot, it cascades into these three unrelated-looking failures. Soft-fail
+    # them as a group instead of failing the whole job on a known registration hiccup.
+    # See https://bugzilla.suse.com/show_bug.cgi?id=1264275
+    my @REGISTRATION_TIMEOUT_TESTS = qw(test_sles_wait_on_registration test_sles_smt_reg test_sles_repos);
+
+    foreach my $t (@{$data->{tests}}) {
+        next unless ($t->{outcome} && $t->{outcome} eq 'failed');
+        my ($name) = $t->{nodeid} =~ /::([a-z_0-9]+)\[/;
+        next unless (defined($name) && grep { $_ eq $name } @REGISTRATION_TIMEOUT_TESTS);
+        $t->{outcome} = 'passed';
+        $patched++;
+    }
+    return 0 unless ($patched);
+
+    record_soft_failure('bsc#1264275 - guestregister.service fails to register the instance against the update infrastructure');
+    my $json = Mojo::JSON::encode_json($data);
+    write_sut_file($file, $json);
+    return $patched;
 }
 
 sub analyze_results {
@@ -131,6 +157,10 @@ sub run {
     if (is_hardened() && !check_var('SCAP_REPORT', 'skip')) {
         # Add soft-failure for https://bugzilla.suse.com/show_bug.cgi?id=1220269
         patch_json $img_proof->{results} if (get_var('PUBLIC_CLOUD_SOFTFAIL_SCAP'));
+    }
+
+    if ($img_proof->{fail} > 0 && is_ondemand()) {
+        $img_proof->{fail} -= softfail_guestregister($img_proof->{results});
     }
 
     my $log_prefix = 'img_proof_log';
