@@ -94,6 +94,9 @@ sub run {
 
     my %range = ibsm_calculate_address_range(slot => get_required_var('WORKER_ID'));
 
+    my $tags = get_var('PUBLIC_CLOUD_TAGS');
+    $tags =~ s/,/ /g if $tags;
+
     if ($provider_type eq 'EC2') {
         my $instance_id = crash_deploy_aws(
             region => $provider->provider_client->region,
@@ -112,12 +115,14 @@ sub run {
         my $os_ver = get_var('PUBLIC_CLOUD_IMAGE_LOCATION') ?
           $self->{provider}->get_blob_uri(get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) :
           $provider->get_image_id();
-        crash_deploy_azure(
+        my %deploy_args = (
             region => $provider->provider_client->region,
             ssh_pub_key => $provider->ssh_key . ".pub",
             os => $os_ver,
             address_range => $range{main_address_range},
             subnet_range => $range{subnet_address_range});
+        $deploy_args{tags} = $tags if $tags;
+        crash_deploy_azure(%deploy_args);
     }
     elsif ($provider_type eq 'GCE') {
         crash_deploy_gcp(
