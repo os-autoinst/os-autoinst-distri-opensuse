@@ -2616,11 +2616,15 @@ Collect logs from the ipaddr2 cluster.
                       Providing it as an argument is recommended
                       to avoid having to query Azure to get it.
 
+=item B<no_supportconfig> - Optional boolean (default 0). When set to 1,
+                            skip supportconfig log collection.
+
 =back
 =cut
 
 sub ipaddr2_logs_collect(%args) {
     $args{bastion_ip} //= ipaddr2_bastion_pubip();
+    $args{no_supportconfig} //= 0;
     my $bastion_ssh_addr = ipaddr2_bastion_ssh_addr(bastion_ip => $args{bastion_ip});
     my $vm_addr;
     my $worker_tmp_dir;
@@ -2635,13 +2639,23 @@ sub ipaddr2_logs_collect(%args) {
     foreach my $log (ipaddr2_logs_collect_cmds()) {
         $scp_ret = 0;
 
+        next if ($args{no_supportconfig} && defined $log->{name} && $log->{name} eq 'supportconfig');
+
         if (defined $log->{remote_log} && $log->{remote_log} == 1) {
             $timeout = $log->{timeout} // 300;
             # Iterate through each remote VM to generate and collect logs.
             foreach my $id (1 .. 2) {
-                $vm_addr = USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $id);
                 $worker_tmp_dir = ipaddr2_get_worker_tmp_for_internal_vm(id => $id);
-                assert_script_run("mkdir -p $worker_tmp_dir || echo 'Folder $worker_tmp_dir already exist'");
+
+                # Use script_run with short timeout to detect a stuck terminal
+                my $mkdir_ret = script_run("mkdir -p $worker_tmp_dir || echo 'Folder $worker_tmp_dir already exist'", timeout => 10);
+                if (!defined $mkdir_ret) {
+                    record_info('Terminal stuck',
+                        "Cannot reach shell prompt, skipping remaining logs for VM $id",
+                        result => 'fail');
+                    last;
+                }
+
                 %log_data = %{$log->{f_log}->($id)};
                 $log_data{name} = $log->{name} if defined $log->{name};
                 $remote_file = $log_data{file};
@@ -2670,13 +2684,26 @@ sub ipaddr2_logs_collect(%args) {
                         no_assert => 1,
                         timeout => $timeout,
                         cmd => $log_data{cmd});
+
+                    # Diagnostic: if supportconfig timed out, probe the VM to identify what is blocking.
+                    if (!defined $cmd_ret && defined $log_data{name} && $log_data{name} eq 'supportconfig') {
+                        record_info('SC timeout',
+                            "supportconfig timed out on VM $id, running diagnostic",
+                            result => 'fail');
+                        ipaddr2_ssh_internal(
+                            id => $id,
+                            bastion_ip => $args{bastion_ip},
+                            no_assert => 1,
+                            timeout => 30,
+                            cmd => 'ps aux --sort=-pcpu | grep -E "supportconfig|zypper|rpm" | grep -v grep');
+                    }
                 }
 
                 # Download the generated file from the remote VM to the local worker
                 # only if the previous command was successful.
                 if (defined $cmd_ret && $cmd_ret == 0) {
                     $local_file = join('/', $worker_tmp_dir, basename($remote_file));
-
+                    $vm_addr = USER . '@' . ipaddr2_get_internal_vm_private_ip(id => $id);
                     $scp_cmd = join(' ',
                         'scp',
                         '-J', $bastion_ssh_addr,

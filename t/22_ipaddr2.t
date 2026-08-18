@@ -372,9 +372,11 @@ subtest '[ipaddr2_os_sanity]' => sub {
             push @calls, ["VM$args{id}", $args{cmd}]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
-            push @calls, ["VM$args{id}", $args{cmd}];
             # return exactly what ipaddr2_os_ssh_sanity needs
-            return 3; });
+            my $fake_log = 3;
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
+    });
 
     ipaddr2_os_sanity();
 
@@ -405,9 +407,11 @@ subtest '[ipaddr2_os_sanity] root' => sub {
             push @calls, ["VM$args{id}", $args{cmd}]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
-            push @calls, ["VM$args{id}", $args{cmd}];
             # return exactly what ipaddr2_os_ssh_sanity needs
-            return 3; });
+            my $fake_log = 3;
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
+    });
 
     ipaddr2_os_sanity(user => 'root');
 
@@ -435,9 +439,11 @@ subtest '[ipaddr2_os_sanity] enable_dig' => sub {
             push @calls, ["VM$args{id}", $args{cmd}]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
-            push @calls, ["VM$args{id}", $args{cmd}];
             # return exactly what ipaddr2_os_ssh_sanity needs
-            return 3; });
+            my $fake_log = 3;
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
+    });
 
     ipaddr2_os_sanity(enable_dig => 1);
 
@@ -601,30 +607,30 @@ subtest '[ipaddr2_test_master_vm]' => sub {
             push @calls, ["VM$args{id}", $args{cmd}, ""]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
-            my $out;
+            my $fake_log;
             # return only good vibes for expected commands ...
             if ($args{cmd} =~ /crm resource failcount/) {
-                $out = 'value=0';
+                $fake_log = 'value=0';
             } elsif ($args{cmd} =~ /crm resource locate/) {
-                $out = 'is running on: ip2t-vm-042';
+                $fake_log = 'is running on: ip2t-vm-042';
             } elsif ($args{cmd} =~ /crm configure show/) {
-                $out = 'cli-prefer-ip2t-vm-042';
+                $fake_log = 'cli-prefer-ip2t-vm-042';
             } elsif ($args{cmd} =~ /ip a show eth0/) {
-                $out = '192.168.0.50';
+                $fake_log = '192.168.0.50';
             } elsif ($args{cmd} =~ /ps -xa/) {
-                $out = '12345   ?   S 12:34  nginx';
+                $fake_log = '12345   ?   S 12:34  nginx';
             } else {
                 # ... otherwise !!!
-                $out = "Galileo Galilei";
+                $fake_log = "Galileo Galilei";
             }
-            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
-            return $out;
+            push @calls, ["VM$args{id}", "C--> $args{cmd} OUT--> $fake_log"];
+            return $fake_log;
     });
 
     ipaddr2_test_master_vm(id => 42);
 
     for my $call_idx (0 .. $#calls) {
-        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+        note($calls[$call_idx][0] . " " . $calls[$call_idx][1]);
     }
     ok((scalar @calls > 0), "Some calls to ipaddr2_ssh_internal");
 };
@@ -639,21 +645,21 @@ subtest '[ipaddr2_test_master_vm] crm failure' => sub {
             push @calls, ["VM$args{id}", $args{cmd}, ""]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
-            my $out;
+            my $fake_log;
             # return non zero failcount
             if ($args{cmd} =~ /crm resource failcount/) {
-                $out = "value=1";
+                $fake_log = "value=1";
             } elsif ($args{cmd} =~ /crm resource locate/) {
-                $out = "is running on: ip2t-vm-042";
+                $fake_log = "is running on: ip2t-vm-042";
             } elsif ($args{cmd} =~ /crm configure show/) {
-                $out = 'cli-prefer-ip2t-vm-042';
+                $fake_log = 'cli-prefer-ip2t-vm-042';
             } elsif ($args{cmd} =~ /ip a show eth0/) {
-                $out = '192.168.0.50';
+                $fake_log = '192.168.0.50';
             } else {
-                $out = "Galileo Galilei";
+                $fake_log = "Galileo Galilei";
             }
-            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
-            return $out;
+            push @calls, ["VM$args{id}", "C--> $args{cmd} OUT--> $fake_log"];
+            return $fake_log;
     });
     $ipaddr2->redefine(ipaddr2_ssh_bastion_script_output => sub {
             my (%args) = @_;
@@ -665,7 +671,7 @@ subtest '[ipaddr2_test_master_vm] crm failure' => sub {
     dies_ok { ipaddr2_test_master_vm(id => 42) } "Die for failcount";
 
     for my $call_idx (0 .. $#calls) {
-        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+        note($calls[$call_idx][0] . " " . $calls[$call_idx][1]);
     }
 };
 
@@ -681,21 +687,21 @@ subtest '[ipaddr2_test_master_vm] web failure' => sub {
             push @calls, ["VM$args{id}", $args{cmd}, ""]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
-            my $out;
+            my $fake_log;
             # return only good vibes
             if ($args{cmd} =~ /crm resource failcount/) {
-                $out = "value=0";
+                $fake_log = "value=0";
             } elsif ($args{cmd} =~ /crm resource locate/) {
-                $out = "is running on: ip2t-vm-042";
+                $fake_log = "is running on: ip2t-vm-042";
             } elsif ($args{cmd} =~ /crm configure show/) {
-                $out = 'cli-prefer-ip2t-vm-042';
+                $fake_log = 'cli-prefer-ip2t-vm-042';
             } elsif ($args{cmd} =~ /ip a show eth0/) {
-                $out = '192.168.0.50';
+                $fake_log = '192.168.0.50';
             } else {
-                $out = "Galileo Galilei";
+                $fake_log = "Galileo Galilei";
             }
-            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $out"];
-            return $out;
+            push @calls, ["VM$args{id}", "C--> $args{cmd} OUT--> $fake_log"];
+            return $fake_log;
     });
     $ipaddr2->redefine(ipaddr2_ssh_bastion_script_output => sub {
             my (%args) = @_;
@@ -707,7 +713,7 @@ subtest '[ipaddr2_test_master_vm] web failure' => sub {
     dies_ok { ipaddr2_test_master_vm(id => 42) } "Die for web failure";
 
     for my $call_idx (0 .. $#calls) {
-        note($calls[$call_idx][0] . " C-->  $calls[$call_idx][1]   $calls[$call_idx][2]");
+        note($calls[$call_idx][0] . " " . $calls[$call_idx][1]);
     }
 };
 
@@ -882,7 +888,7 @@ subtest '[ipaddr2_scc_check] SUSEConnect execution failed' => sub {
 
     my $ret = ipaddr2_scc_check(id => 42);
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok(($ret eq 0), "Is not registered ret:$ret");
 };
 
@@ -890,12 +896,17 @@ subtest '[ipaddr2_scc_registration_workaround_PAYG] service succeeds immediately
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @calls;
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
-            return "ActiveState=inactive\nResult=success";
+            my (%args) = @_;
+            my $fake_log = "ActiveState=inactive\nResult=success";
+            push @calls, "VM$args{id} C--> $args{cmd} OUT--> $fake_log";
+            return $fake_log;
     });
 
     ipaddr2_scc_registration_workaround_PAYG(id => 42);
 
+    note("\n" . join("\n", @calls));
     ok(1, 'Workaround returns immediately when service succeeds');
 };
 
@@ -903,7 +914,6 @@ subtest '[ipaddr2_scc_register]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     my @calls;
-
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
@@ -912,7 +922,7 @@ subtest '[ipaddr2_scc_register]' => sub {
 
     ipaddr2_scc_register(id => 42, scc_code => '1234567890');
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok((any { /registercloudguest.*clean/ } @calls), 'registercloudguest clean');
     ok((any { /registercloudguest.*force-new.*-r.*1234567890/ } @calls), 'registercloudguest register');
 };
@@ -1343,14 +1353,19 @@ subtest '[ipaddr2_logs_collect]' => sub {
     });
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $fake_log = '3.0.0';
+            push @calls, "VM$args{id}  C--> $args{cmd} OUT--> $fake_log";
+            return $fake_log;
+    });
 
     note("Testing log collection with successful SSH commands...");
     ipaddr2_logs_collect();
 
     note("\n  SSH CALLS -->  " . join("\n  SSH CALLS -->  ", @ssh_calls));
     note("\n  UPLOAD CALLS -->  " . join("\n  UPLOAD CALLS -->  ", @upload_calls));
-    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  " . join("\n", @calls));
 
     is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal called " . (scalar @ssh_calls) . " and expected 8 times (4 log files * 2 VM)");
     is(scalar @upload_calls, 10, "upload_logs called 10 times (4 log files * 2 VM + 2 ssh local logs)");
@@ -1389,12 +1404,17 @@ subtest '[ipaddr2_logs_collect] skip scp on failure' => sub {
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
-    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.0.0'; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $fake_log = '3.0.0';
+            push @calls, "VM$args{id} C--> $args{cmd} OUT--> $fake_log";
+            return $fake_log;
+    });
 
     note("Testing log collection with failing SSH commands (skip scp)...");
     ipaddr2_logs_collect();
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n" . join("\n", @calls));
     is(scalar @ssh_calls, 8, "ipaddr2_ssh_internal still called 8 times for log generation");
     is(scalar @scp_calls, 0, "scp is NOT called because all log generation failed");
     is(scalar @upload_calls, 2, "upload_logs called only 2 times for local logs");
@@ -1538,8 +1558,12 @@ subtest '[ipaddr2_billing_model_get] UNKNOWN bsc#1267739' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+    my @calls;
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
-            return "FileNotFoundError: [Errno 2] No such file or directory: '/var/cache/cloudregister/availableSMTInfo_1.obj'";
+            my (%args) = @_;
+            my $fake_log = "FileNotFoundError: [Errno 2] No such file or directory: '/var/cache/cloudregister/availableSMTInfo_1.obj'";
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
     });
     $ipaddr2->redefine(record_soft_failure => sub { note("SOFT_FAILURE --> $_[0]"); });
 
@@ -1551,8 +1575,12 @@ subtest '[ipaddr2_billing_model_get] UNKNOWN bsc#1261166' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+    my @calls;
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
-            return "AttributeError: 'NoneType' object has no attribute 'get_ipv4'";
+            my (%args) = @_;
+            my $fake_log = "AttributeError: 'NoneType' object has no attribute 'get_ipv4'";
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
     });
     $ipaddr2->redefine(record_soft_failure => sub { note("SOFT_FAILURE --> $_[0]"); });
 
@@ -1564,8 +1592,12 @@ subtest '[ipaddr2_billing_model_get] die on rc=1 without FileNotFoundError or At
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2');
 
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 1; });
+    my @calls;
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
-            return "Some other traceback error without known signature";
+            my (%args) = @_;
+            my $fake_log = 'Some other traceback error without known signature';
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
     });
 
     dies_ok { ipaddr2_billing_model_get(id => 1, bastion_ip => '2.3.4.5') }
@@ -1586,18 +1618,21 @@ subtest '[ipaddr2_scc_registration_workaround_PAYG] service succeeds' => sub {
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
+    my @cmds;
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
-            push @calls, $args{cmd};
+            my $fake_log = "ActiveState=inactive\nResult=success";
+            push @calls, "VM$args{id} C-->$args{cmd} OUT--> $fake_log";
+            push @cmds, $args{cmd};
             # Simulate service completed successfully
-            return "ActiveState=inactive\nResult=success";
+            return $fake_log;
     });
 
     ipaddr2_scc_registration_workaround_PAYG(id => 1, bastion_ip => '1.2.3.4');
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /systemctl show guestregister/ } @calls), 'Polls guestregister.service state');
-    ok((none { /systemctl restart/ } @calls), 'No restart needed when service succeeds');
+    note("\n" . join("\n", @calls));
+    ok((any { /systemctl show guestregister/ } @cmds), 'Polls guestregister.service state');
+    ok((none { /systemctl restart/ } @cmds), 'No restart needed when service succeeds');
 };
 
 subtest '[ipaddr2_scc_registration_workaround_PAYG] service fails then recovers' => sub {
@@ -1607,52 +1642,58 @@ subtest '[ipaddr2_scc_registration_workaround_PAYG] service fails then recovers'
     $ipaddr2->redefine(record_soft_failure => sub { note("SOFT_FAILURE --> $_[0]"); });
 
     my $poll_count = 0;
+    my @cmds;
     my @calls;
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
-            push @calls, $args{cmd};
+            my $fake_log = '';
             if ($args{cmd} =~ /systemctl show guestregister/) {
                 $poll_count++;
-                # First poll: service failed
-                return "ActiveState=failed\nResult=exit-code" if $poll_count == 1;
-                # After restart: service succeeded
-                return "ActiveState=inactive\nResult=success";
+                if ($poll_count == 1) {
+                    # First poll: service failed
+                    $fake_log = "ActiveState=failed\nResult=exit-code";
+                } else {
+                    # After restart: service succeeded
+                    $fake_log = "ActiveState=inactive\nResult=success";
+                }
             }
             if ($args{cmd} =~ /SUSEConnect -s/) {
-                return '[{"status":"Registered"}]';
+                $fake_log = '[{"status":"Registered"}]';
             }
-            return '';
+            push @cmds, $args{cmd};
+            push @calls, "VM$args{id} C--> $args{cmd} OUT--> $fake_log";
+            return $fake_log;
     });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
-            push @calls, $args{cmd};
+            push @cmds, $args{cmd};
+            push @calls, "C-->" . $args{cmd};
             return 0;
     });
 
     ipaddr2_scc_registration_workaround_PAYG(id => 1, bastion_ip => '1.2.3.4');
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /systemctl restart guestregister/ } @calls), 'Service restarted after failure');
-    ok((any { /SUSEConnect -s/ } @calls), 'SUSEConnect verification after restart');
+    note("\n" . join("\n", @calls));
+    ok((any { /systemctl restart guestregister/ } @cmds), 'Service restarted after failure');
+    ok((any { /SUSEConnect -s/ } @cmds), 'SUSEConnect verification after restart');
 };
 
 subtest '[ipaddr2_scc_registration_workaround_PAYG] recovery fails' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
     $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-
-    my $poll_count = 0;
+    my @calls;
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
+            my $fake_log = '';
             if ($args{cmd} =~ /systemctl show guestregister/) {
-                $poll_count++;
-                # Always report failure
-                return "ActiveState=failed\nResult=exit-code";
+                $fake_log = "ActiveState=failed\nResult=exit-code";
             }
             if ($args{cmd} =~ /SUSEConnect -s/) {
-                return '[{"status":"Not Registered"}]';
+                $fake_log = '[{"status":"Not Registered"}]';
             }
-            return '';
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
     });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub { return 0; });
 
@@ -1667,11 +1708,12 @@ subtest '[ipaddr2_logs_collect] supportconfig workaround applied when supportuti
     $ipaddr2->noop('upload_logs');
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(script_run => sub { return 0; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
     my @version_cmds;
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
+            push @calls, $args{cmd};
             push @version_cmds, $args{cmd};
             return '3.2.12.2';
     });
@@ -1679,6 +1721,7 @@ subtest '[ipaddr2_logs_collect] supportconfig workaround applied when supportuti
     my @ssh_cmds;
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
+            push @calls, $args{cmd};
             push @ssh_cmds, $args{cmd};
             return 0;
     });
@@ -1688,7 +1731,7 @@ subtest '[ipaddr2_logs_collect] supportconfig workaround applied when supportuti
 
     ipaddr2_logs_collect();
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
     note("\n  VERSION CMDS -->  " . join("\n  VERSION CMDS -->  ", @version_cmds));
     note("\n  SSH CMDS -->  " . join("\n  SSH CMDS -->  ", @ssh_cmds));
     note("\n  SOFT FAILURES -->  " . join("\n  SOFT FAILURES -->  ", @soft_failures));
@@ -1705,8 +1748,13 @@ subtest '[ipaddr2_logs_collect] supportconfig workaround not applied when suppor
     $ipaddr2->noop('upload_logs');
     my @calls;
     $ipaddr2->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
-    $ipaddr2->redefine(script_run => sub { return 0; });
-    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub { return '3.1.24'; });
+    $ipaddr2->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $fake_log = '3.1.24';
+            push @calls, "VM$args{id} C--> $args{cmd} OUT--> $fake_log";
+            return $fake_log;
+    });
 
     my @ssh_cmds;
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
@@ -1720,11 +1768,129 @@ subtest '[ipaddr2_logs_collect] supportconfig workaround not applied when suppor
 
     ipaddr2_logs_collect();
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
+    note("\n" . join("\n", @calls));
     note("\n  SSH CMDS -->  " . join("\n  SSH CMDS -->  ", @ssh_cmds));
 
     ok((none { /sudo supportconfig.*< \/dev\/null/ } @ssh_cmds), 'supportconfig cmd has no /dev/null redirect when supportutils < 3.1.25');
     ok((none { /bsc#1268173/ } @soft_failures), 'record_soft_failure not called when supportutils < 3.1.25');
+};
+
+subtest '[ipaddr2_logs_collect] no_supportconfig skips supportconfig' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    my @upload_calls;
+    $ipaddr2->redefine(upload_logs => sub {
+            push @upload_calls, $_[0];
+            return;
+    });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @ssh_calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @ssh_calls, $_[0] if $_[0] =~ /^ssh /;
+            return 0;
+    });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $fake_log = '3.0.0';
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
+    });
+
+    my @ssh_cmds;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_cmds, $args{cmd};
+            return 0;
+    });
+
+    note("Testing log collection with no_supportconfig => 1...");
+    ipaddr2_logs_collect(no_supportconfig => 1);
+
+    note("\n  SSH CMDS -->  " . join("\n  SSH CMDS -->  ", @ssh_cmds));
+    note("\n  UPLOAD CALLS -->  " . join("\n  UPLOAD CALLS -->  ", @upload_calls));
+
+    # 3 remote log types (cloudregister, crm_report, y2logs) * 2 VMs = 6 SSH calls
+    # supportconfig is skipped entirely
+    is(scalar @ssh_cmds, 6, "ipaddr2_ssh_internal called 6 times (supportconfig skipped)");
+    ok((none { /supportconfig/ } @ssh_cmds), "no supportconfig command called");
+    # 3 remote log types * 2 VMs + 2 local logs = 8 uploads
+    is(scalar @upload_calls, 8, "upload_logs called 8 times (supportconfig skipped)");
+};
+
+subtest '[ipaddr2_logs_collect] terminal stuck detection' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $fake_log = '3.0.0';
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
+    });
+    my @record_info_calls;
+    $ipaddr2->redefine(record_info => sub { push @record_info_calls, $_[0]; });
+    $ipaddr2->noop('upload_logs');
+
+    my @ssh_cmds;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_cmds, $args{cmd};
+            return 0;
+    });
+
+    # script_run returns undef (timeout) to simulate stuck terminal
+    $ipaddr2->redefine(script_run => sub { return undef; });
+
+    note("Testing log collection when terminal is stuck (script_run returns undef)...");
+    ipaddr2_logs_collect();
+
+    note("\n  SSH CMDS -->  " . join("\n  SSH CMDS -->  ", @ssh_cmds));
+    note("\n  RECORD_INFO -->  " . join("\n  RECORD_INFO -->  ", @record_info_calls));
+
+    # When the terminal is stuck, the mkdir for VM 1 returns undef and the
+    # inner loop breaks immediately.  No SSH commands should be issued for
+    # the remote log type because the terminal is unreachable.
+    is(scalar @ssh_cmds, 0, "no SSH commands issued when terminal is stuck");
+    ok((any { /Terminal stuck/ } @record_info_calls), "record_info called with Terminal stuck message");
+};
+
+subtest '[ipaddr2_logs_collect] supportconfig timeout triggers diagnostic' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return '1.2.3.4'; });
+    my @calls;
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            my $fake_log = '3.0.0';
+            push @calls, ["VM$args{id}", $args{cmd}, "OUT-->  $fake_log"];
+            return $fake_log;
+    });
+    my @record_info_calls;
+    $ipaddr2->redefine(record_info => sub { push @record_info_calls, $_[0]; });
+    $ipaddr2->noop('upload_logs');
+    # script_run succeeds (for mkdir and scp)
+    $ipaddr2->redefine(script_run => sub { return 0; });
+
+    my @ssh_cmds;
+    my $call_count = 0;
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @ssh_cmds, $args{cmd};
+            $call_count++;
+            # Return undef (timeout) only for supportconfig commands
+            return undef if $args{cmd} =~ /supportconfig/;
+            return 0;
+    });
+
+    note("Testing supportconfig timeout diagnostic...");
+    ipaddr2_logs_collect();
+
+    note("\n  SSH CMDS -->  " . join("\n  SSH CMDS -->  ", @ssh_cmds));
+    note("\n  RECORD_INFO -->  " . join("\n  RECORD_INFO -->  ", @record_info_calls));
+
+    # After supportconfig times out, a diagnostic ps command should be issued
+    ok((any { /ps aux.*supportconfig.*zypper.*rpm/ } @ssh_cmds), "diagnostic ps command issued after supportconfig timeout");
+    ok((any { /SC timeout/ } @record_info_calls), "record_info called with SC timeout");
 };
 
 done_testing;
