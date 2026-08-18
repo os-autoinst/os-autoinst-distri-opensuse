@@ -489,10 +489,10 @@ sub is_hpc {
 
 =head2 is_wsl
 
-Returns true if called on a wsl build
+Returns true if called on a wsl build, which is identified by its flavor.
 =cut
 
-sub is_wsl { get_var('WSL_VERSION', '') }
+sub is_wsl { check_var('FLAVOR', 'WSL') }
 
 =head2 is_dualboot
 

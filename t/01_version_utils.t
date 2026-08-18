@@ -231,9 +231,9 @@ subtest 'bootloader_tests' => sub {
     ok get_default_bootloader eq 'systemd-boot', "Microos upgrades on UEFI is systemd-boot";
     set_var('UPGRADE', 0);
 
-    set_var('WSL_VERSION', '10');
+    set_var('FLAVOR', 'WSL');
     ok get_bootloader eq 'wsl', "WSL uses a custom bootloader";
-    set_var('WSL_VERSION', undef);
+    set_var('FLAVOR', 'Server-DVD');
 
     set_var('BOOTLOADER', 'does-not-exist');
     dies_ok { get_default_bootloader } "Bootloader variable set, non existant bootloader, causes failure";

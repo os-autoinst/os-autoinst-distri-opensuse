@@ -63,38 +63,54 @@ sub run {
         my $wsl_image_uri = get_var('WSL_CUSTOM_IMAGE', data_url('ASSET_1'));
         my $wsl_image_filename = (split /\//, $wsl_image_uri)[-1];
         my $wsl_image_ext = (split /\./, $wsl_image_filename)[-1];
-        die("The image provided is not in .appx neither .tar.xz format.\nImage extension: $wsl_image_ext")
-          unless ($wsl_image_ext =~ /^(appx|xz)$/);
-        # Enable the 'developer mode' in Windows
-        $self->run_in_powershell(
-            cmd => 'Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -Type DWORD -Value 1'
-        );
+        die("The image provided is not in .appx, .tar.xz neither .wsl format.\nImage extension: $wsl_image_ext")
+          unless ($wsl_image_ext =~ /^(appx|xz|wsl)$/);
+        my $is_appx = $wsl_image_ext eq 'appx';
 
-        $self->install_certificates;
+        if ($is_appx) {
+            # Sideloading an appx package requires the 'developer mode' to be
+            # enabled in Windows and the certificate the image was signed with
+            $self->run_in_powershell(
+                cmd => 'Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name AllowDevelopmentWithoutDevLicense -Type DWORD -Value 1'
+            );
+
+            $self->install_certificates;
+        }
 
         $self->run_in_powershell(
             cmd => "Start-BitsTransfer -Source $wsl_image_uri -Destination C:\\\\$wsl_image_filename",
-            timeout => 60
+            timeout => 600
         );
         # Select the installation method based on the file extension
-        if ($wsl_image_ext eq 'appx') {
+        if ($is_appx) {
             $self->run_in_powershell(
                 cmd => "Add-AppxPackage -Path C:\\$wsl_image_filename",
-                timeout => 60
+                timeout => 300
             );
-        } elsif ($wsl_image_ext eq 'xz') {
-            $self->run_in_powershell(cmd => "mkdir C:\\$WSL_version");
+            $self->close_powershell;
+            # The appx package only registers the distribution, the first run
+            # has to be triggered from the start menu entry it created
+            $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
+            assert_and_click 'wsl-suse-startup-search';
+        } else {
+            # Tarball images ship /etc/wsl-distribution.conf, so '--install
+            # --from-file' registers the distribution, creates the start menu
+            # entry and runs the out-of-box experience right away, none of
+            # which 'wsl --import' does
             $self->run_in_powershell(
-                cmd => "wsl --import $WSL_version C:\\$WSL_version C:\\$wsl_image_filename",
-                timeout => 60
+                cmd => "wsl --install --from-file C:\\$wsl_image_filename",
+                timeout => 900,
+                code => sub {
+                    assert_screen('jeos-wsl-firstboot-welcome', timeout => 900);
+                }
             );
         }
-        $self->close_powershell;
-        $self->use_search_feature($WSL_version =~ s/\-/\ /gr);
-        assert_and_click 'wsl-suse-startup-search';
         if (check_var('DISTRI', 'sle') || is_aarch64) {
             assert_and_click("welcome_to_wsl", timeout => 120);
-            assert_screen("welcome_to_wsl-window");
+            # The window is cascaded by Windows, so where it ends up depends on
+            # what else is on the screen. Wait for it to settle instead of
+            # pinning its position down with a needle
+            wait_still_screen stilltime => 3, timeout => 60;
             send_key "alt-f4";
         }
     } elsif ($install_from eq 'msstore') {
