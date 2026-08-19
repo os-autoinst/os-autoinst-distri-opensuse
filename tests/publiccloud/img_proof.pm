@@ -77,6 +77,27 @@ sub analyze_results {
     }
 }
 
+sub enable_pilot_debug_for_flakes {
+    # Diagnostic-only helper (poo#205053): forces PILOT_DEBUG=1 for the
+    # given flake-pilot registered binaries (e.g. az, aws) on the SUT by
+    # replacing their /usr/bin symlink with a wrapper that re-execs
+    # podman-pilot with PILOT_DEBUG set. This surfaces the otherwise
+    # hidden stdout/stderr of the "systemfiles" host-dependency generator
+    # script directly in the pytest/testinfra failure output.
+    my ($instance, @apps) = @_;
+    for my $app (@apps) {
+        next if ($instance->ssh_script_run("test -L /usr/bin/$app") != 0);
+        my $wrapper_file = "pilot_debug_$app.sh";
+        save_tmp_file($wrapper_file, "#!/bin/bash\nexport PILOT_DEBUG=1\nexec -a $app /usr/bin/podman-pilot \"\$\@\"\n");
+        # autoinst_url is only reachable from the local tooling instance, not
+        # from the actual cloud SUT, so download locally first, then scp it over.
+        assert_script_run('curl -O ' . autoinst_url . "/files/$wrapper_file");
+        $instance->scp($wrapper_file, "remote:$wrapper_file");
+        $instance->ssh_assert_script_run("sudo install -m 755 $wrapper_file /usr/bin/$app");
+        record_info('PILOT_DEBUG', "Enabled PILOT_DEBUG=1 wrapper for flake app '$app' (poo#205053 diagnostics)");
+    }
+}
+
 sub run {
     my ($self, $args) = @_;
 
@@ -88,6 +109,10 @@ sub run {
 
     $instance = $args->{my_instance};
     $provider = $args->{my_provider};
+
+    if (my $debug_apps = get_var('PUBLIC_CLOUD_IMG_PROOF_PILOT_DEBUG')) {
+        enable_pilot_debug_for_flakes($instance, split(/,/, $debug_apps));
+    }
 
     # SLES 16 doesn't have AppArmor and stores ssh configuration in /usr/etc
     if (is_hardened && is_sle("<16")) {
