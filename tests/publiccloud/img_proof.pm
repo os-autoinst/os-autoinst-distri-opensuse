@@ -138,8 +138,10 @@ sub run {
     upload_logs($img_proof->{results}, log_name => sprintf('%s-%s.%s', $log_prefix, basename($img_proof->{results}), 'json'));
     parse_extra_log(IPA => $img_proof->{results});
 
-    $instance->ssh_script_run(cmd => 'sudo chmod a+r /var/tmp/report.html || true');
-    $instance->upload_log('/var/tmp/report.html', failok => 1);
+    if (is_hardened() && !check_var('SCAP_REPORT', 'skip')) {
+        $instance->ssh_script_run(cmd => 'sudo chmod a+r /var/tmp/report.html || true');
+        $instance->upload_log('/var/tmp/report.html', failok => 1);
+    }
 
     my $log = script_output('cat ' . $img_proof->{logfile});
     eval { analyze_results($log, $img_proof->{output}, $self->{extra_test_results}) };
