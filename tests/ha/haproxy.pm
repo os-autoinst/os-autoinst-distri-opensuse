@@ -10,9 +10,10 @@
 use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
-use utils qw(zypper_call systemctl);
+use utils qw(systemctl);
 use network_utils qw(iface);
 use hacluster;
+use package_utils qw(install_package);
 
 sub run {
     # Exit of this module if we are in a maintenance update not related to haproxy
@@ -34,7 +35,7 @@ sub run {
     barrier_wait("HAPROXY_INIT_$cluster_name");
 
     # Installation of haproxy and apache2 packages
-    zypper_call 'in haproxy apache2';
+    install_package("haproxy apache2", trup_apply => 1);
     save_screenshot;
 
     # Get apache file template from the openQA server
