@@ -265,6 +265,9 @@ sub prepare_guest_for_sriov_passthrough {
         #set e820_host for pv guest
         #refer to bug #1167217 and but #1185081 for the reason
         unless (is_fv_guest($vm) && is_sle('<15-SP2')) {
+	 # Use scoped classic serial markers for checking the nic is removed from vm
+	 {
+          my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
             unless (script_run("xmlstarlet sel -t -c /domain/features $changed_xml_dir/$vm.xml") == 0) {
                 assert_script_run "xmlstarlet edit -L -s /domain -t elem -n features -v '' $changed_xml_dir/$vm.xml";
             }
@@ -283,6 +286,7 @@ sub prepare_guest_for_sriov_passthrough {
                                    -s ////e820_host -t attr -n state -v on \\
                                    $changed_xml_dir/$vm.xml";
             }
+          }
         }
 
         script_run "virsh undefine $vm || virsh undefine $vm --keep-nvram";
