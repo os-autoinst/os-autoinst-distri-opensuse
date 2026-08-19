@@ -265,28 +265,32 @@ sub prepare_guest_for_sriov_passthrough {
         #set e820_host for pv guest
         #refer to bug #1167217 and but #1185081 for the reason
         unless (is_fv_guest($vm) && is_sle('<15-SP2')) {
-            unless (script_run("xmlstarlet sel -t -c /domain/features $changed_xml_dir/$vm.xml") == 0) {
-                assert_script_run "xmlstarlet edit -L -s /domain -t elem -n features -v '' $changed_xml_dir/$vm.xml";
-            }
-            unless (script_run("xmlstarlet sel -t -c /domain/features/xen $changed_xml_dir/$vm.xml") == 0) {
-                assert_script_run "xmlstarlet edit -L -s /domain/features -t elem -n xen -v '' $changed_xml_dir/$vm.xml";
-            }
-            if (is_sle('>=15-SP2') && script_run("xmlstarlet sel -t -c /domain/features/xen/passthrough $changed_xml_dir/$vm.xml") != 0) {
-                assert_script_run "xmlstarlet edit -L \\
+            # Use scoped classic serial markers for checking the nic is removed from vm
+            {
+                my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
+                unless (script_run("xmlstarlet sel -t -c /domain/features $changed_xml_dir/$vm.xml") == 0) {
+                    assert_script_run "xmlstarlet edit -L -s /domain -t elem -n features -v '' $changed_xml_dir/$vm.xml";
+                }
+                unless (script_run("xmlstarlet sel -t -c /domain/features/xen $changed_xml_dir/$vm.xml") == 0) {
+                    assert_script_run "xmlstarlet edit -L -s /domain/features -t elem -n xen -v '' $changed_xml_dir/$vm.xml";
+                }
+                if (is_sle('>=15-SP2') && script_run("xmlstarlet sel -t -c /domain/features/xen/passthrough $changed_xml_dir/$vm.xml") != 0) {
+                    assert_script_run "xmlstarlet edit -L \\
                                    -s /domain/features/xen -t elem -n passthrough -v '' \\
                                    -s ////passthrough -t attr -n state -v on \\
                                    $changed_xml_dir/$vm.xml";
-            }
-            if (is_pv_guest($vm) and script_run("xmlstarlet sel -t -c /domain/features/xen/e820_host $changed_xml_dir/$vm.xml") != 0) {
-                assert_script_run "xmlstarlet edit -L \\
+                }
+                if (is_pv_guest($vm) and script_run("xmlstarlet sel -t -c /domain/features/xen/e820_host $changed_xml_dir/$vm.xml") != 0) {
+                    assert_script_run "xmlstarlet edit -L \\
                                    -s /domain/features/xen -t elem -n e820_host -v '' \\
                                    -s ////e820_host -t attr -n state -v on \\
                                    $changed_xml_dir/$vm.xml";
+                }
             }
         }
 
         script_run "virsh undefine $vm || virsh undefine $vm --keep-nvram";
-        assert_script_run(" ! virsh list --all | grep $vm");
+        assert_script_run("! virsh list --all | grep $vm");
         assert_script_run "virsh define $changed_xml_dir/$vm.xml";
         assert_script_run "virsh start $vm";
         wait_guest_online($vm);
