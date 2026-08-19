@@ -42,7 +42,11 @@ sub init {
           . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
           . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
           . '}');
-    script_run("PILOT_DEBUG=1 az %silent --help") if is_sle(">=16");
+    if (is_sle(">=16")) {
+        my $debug = "az-cli-debug.txt";
+        script_run("PILOT_DEBUG=1 az %silent --help &> $debug");
+        upload_logs($debug, failok => 1);
+    }
 
     $self->az_login();
     assert_script_run("az account set --subscription \$ARM_SUBSCRIPTION_ID");
