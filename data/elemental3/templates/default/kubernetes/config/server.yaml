@@ -1,3 +1,4 @@
 token: openqa-test-token
 debug: true
 selinux: true
+ingress-controller: traefik
