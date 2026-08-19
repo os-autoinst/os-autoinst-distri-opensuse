@@ -191,6 +191,7 @@ sub run {
 
 sub cleanup {
     my ($self) = @_;
+    select_host_console();
     # upload logs on unexpected failure
     my $ret = script_run('test -d img_proof_results');
     if (defined($ret) && $ret == 0) {
