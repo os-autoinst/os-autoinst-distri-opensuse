@@ -100,8 +100,18 @@ sub run {
     record_info('VM instance', get_var('VIRSH_INSTANCE'));
     record_info('Guest ip', get_var('VIRSH_GUEST'));
 
+    my $is_remote_disabled = get_var('EXTRABOOTPARAMS', '') =~ /inst\.remote=0/;
+
     if (is_agama) {
-        wait_serial('Connect to the Agama installer using these URLs', 300) || die "Agama installer didn't start";
+        my %expectations = (
+            pattern => $is_remote_disabled
+            ? 'Remote access to the Agama installer is disabled, it can be used only locally'
+            : 'Connect to the Agama installer using these URLs',
+            error => $is_remote_disabled
+            ? "Remote access to Agama installer was not disabled"
+            : "Agama installer didn't start",
+        );
+        wait_serial($expectations{pattern}, 300) or die $expectations{error};
         return;
     }
     if (!get_var("BOOT_HDD_IMAGE") or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {
