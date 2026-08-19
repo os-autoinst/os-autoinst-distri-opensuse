@@ -45,7 +45,9 @@ sub init {
         assert_script_run('mkdir -p ~/.aws');
         # CAVEAT: Use the bash environment variables to prevent credential leaks.
         assert_script_run('printf "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY\nregion=$AWS_DEFAULT_REGION\n" > ~/.aws/credentials');
-        script_run("PILOT_DEBUG=1 aws %silent --help");
+        my $debug = "aws-cli-debug.txt";
+        script_run("PILOT_DEBUG=1 aws %silent --help &> $debug");
+        upload_logs($debug, failok => 1);
     }
 
     # Disable pager (see poo#133226 - EC2: WARNING: terminal is not fully functional)
