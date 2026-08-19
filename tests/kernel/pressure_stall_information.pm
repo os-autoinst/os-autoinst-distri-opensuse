@@ -28,10 +28,15 @@ sub boot {
     }
 }
 
+sub select_test_console {
+    my $self = shift;
+    return get_var('PSI') && is_s390x() ? select_console('root-console') : $self->boot;
+}
+
 sub run {
     my $self = shift;
 
-    $self->boot;
+    $self->select_test_console;
 
     if (is_sle('>=16.1') || is_tumbleweed()) {
         # Starting with SLE-16.1 along with Tumbleweed (jsc#PED-15418),

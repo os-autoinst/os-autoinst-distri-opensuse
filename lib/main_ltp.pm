@@ -137,6 +137,9 @@ sub load_kernel_tests {
     elsif (get_var('KDUMP')) {
         loadtest_kernel 'kdump';
     }
+    elsif (get_var('PSI')) {
+        loadtest_kernel 'pressure_stall_information';
+    }
 
     if (is_svirt && get_var('PUBLISH_HDD_1')) {
         loadtest_kernel '../shutdown/svirt_upload_assets';
