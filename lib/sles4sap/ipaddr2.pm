@@ -882,9 +882,43 @@ sub ipaddr2_os_sanity(%args) {
     ipaddr2_os_ssh_sanity(user => $args{user}, bastion_ip => $args{bastion_ip});
 
     foreach (1 .. 2) {
-        ipaddr2_ssh_internal(id => $_,
+        my $ret = ipaddr2_ssh_internal(id => $_,
             cmd => 'sudo systemctl is-system-running',
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            no_assert => 1);
+
+        # if cloud-regionsrv-client version is older than 11.0.3, softfail with bsc#1254984
+        # and any other situation, die
+        if (defined $ret && $ret == 1) {
+            # get the names of the failed services
+            my $failed_services = ipaddr2_ssh_internal_output(id => $_,
+                cmd => q(sudo systemctl list-units --state=failed --plain --no-legend | awk '{print $1}' || true),
+                bastion_ip => $args{bastion_ip});
+
+            my @failed_units = split(/\n/, $failed_services);
+	    my @other_failures = grep { $_ ne 'guestregister.service' } @failed_units;
+
+            if (@other_failures || !@failed_units) {
+                die "The failed services on VM $_:\n" . ($failed_services || "No failed service list");
+            }
+	    else {
+                my $pkg_ver = ipaddr2_ssh_internal_output(id => $_,
+                    cmd => q(rpm -q --quiet cloud-regionsrv-client && rpm -q --queryformat '%{VERSION}' cloud-regionsrv-client || echo -n '0.0.0'),
+                    bastion_ip => $args{bastion_ip});
+
+	        record_info("cloud-regionsrv-client", "Version: $pkg_ver");
+                my $cmp = package_version_cmp($pkg_ver, '11.0.3');
+                if ($cmp < 0) {
+                    record_soft_failure("bsc#1254984 - Only guestregister.service failed on VM $_.");
+                }
+		else {
+                    die "guestregister.service failed on VM $_";
+                }
+            }
+        }
+	elsif (!defined $ret || $ret != 0) {
+            die "VM $_ is not in a non-ready state with exit code " . ($ret // 'undef');
+        }
     }
 
     ipaddr2_cloudinit_sanity(bastion_ip => $args{bastion_ip});
