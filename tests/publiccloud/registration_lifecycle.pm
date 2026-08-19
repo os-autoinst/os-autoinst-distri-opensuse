@@ -5,7 +5,7 @@
 
 # Package: cloud-regionsrv-client
 # Summary: Test system (re)registration
-# https://github.com/SUSE-Enceladus/cloud-regionsrv-client/blob/master/integration_test-process.txt
+# https://github.com/SUSE-Enceladus/cloud-regionsrv-client/blob/master/doc/integration_test-process.txt
 # Leave system in *registered* state
 #
 # Maintainer: QE-C team <qa-c@suse.de>
