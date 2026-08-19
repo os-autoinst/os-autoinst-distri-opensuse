@@ -31,12 +31,21 @@ Execute elemental3 command from container.
 sub elemental3_cmd {
     my (%args) = @_;
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
+    my $ca_vol;
 
     croak('Missing arguments!') if (!%args);
 
+    # Check if we need to mount the local CA in the container
+    # This could be needed when we have to test updates on released versions,
+    # as internal SUSE CAs are not installed in that case!
+    unless (get_var('TOTEST_PATH', '') =~ /Main:/) {
+        # NOTE: ':z' is needed because of SELinux!
+        $ca_vol = '--volume /var/lib/ca-certificates:/var/lib/ca-certificates:ro,z --volume /etc/ssl:/etc/ssl:ro,z';
+    }
+
     # NOTE: ':z' is needed because of SELinux!
     assert_script_run(
-        "$runtime run --rm --volume $args{config_dir}:/config:z $args{uri} $args{cmd}",
+        "$runtime run --rm ${ca_vol} --volume $args{config_dir}:/config:z $args{uri} $args{cmd}",
         timeout => $args{timeout}
     );
 }
