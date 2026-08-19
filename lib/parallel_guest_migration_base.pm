@@ -664,17 +664,21 @@ sub config_host_security {
         assert_script_run("sed -i -r \'s/^SELINUX=enforcing\$/SELINUX=permissive/g\' /etc/selinux/config");
     }
 
-    enter_cmd("iptables -P INPUT ACCEPT;
+    # Use scoped classic serial markers for iptables network configuration
+    {
+        my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
+
+        script_run("iptables -P INPUT ACCEPT;
 iptables -P FORWARD ACCEPT;
 iptables -P OUTPUT ACCEPT;
 iptables -t nat -F;
 iptables -F;
 sysctl -w net.ipv4.ip_forward=1;
 sysctl -w net.ipv4.conf.all.forwarding=1"
-    );
+        );
+    }
+
     save_screenshot;
-    reset_consoles;
-    select_console("root-ssh");
     setup_common_ssh_config(ssh_id_file => $args{_keyfile});
 }
 
