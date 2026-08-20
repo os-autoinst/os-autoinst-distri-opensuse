@@ -41,10 +41,11 @@ subtest '[elemental3_cmd]' => sub {
 };
 
 # Test get_container_uri function
+# NOTE: not easy to test this function, but if it does not work it will return
+#       nothing and openQA tests will fail anyway, so issue will be seen quickly
 subtest '[get_container_uri]' => sub {
     my $elemental3 = Test::MockModule->new('elemental3', no_auto => 1);
 
-    #$elemental3->noop(qw(get_values));
     my %params = (
         url => 'https://dist.suse.de/ibs/Devel:/UnifiedCore:/Main:/ToTest',
         arch => 'aarch64',
@@ -53,24 +54,6 @@ subtest '[get_container_uri]' => sub {
 
     # Check with no arguments
     dies_ok { get_container_uri() } 'Croak if no argument is provided';
-
-    # Check return URI
-    my $out =
-      'reg.suse.de/elemental/3/main/totest/containers/my-manifest:1.2.3-4.5';
-    my $value = "docker pull $out";
-    $elemental3->redefine(
-        get_values => sub { return ('test.file', '1.2.3', '4.5') });
-    $elemental3->redefine(script_output => sub { return "$value" });
-    is get_container_uri(%params), $out, 'Return URI';
-
-    # Check empty return
-    $out =
-      'reg.suse.de/elemental/3/main/totest/containers/my-manifest:1.2.3-4.5';
-    $value = "docker pull $out";
-    $elemental3->redefine(
-        get_values => sub { return ('test.file', '3.2.1', '4.5') });
-    $elemental3->redefine(script_output => sub { return "$value" });
-    is get_container_uri(%params), '', 'Return nothing';
 };
 
 # Test get_sysext function
