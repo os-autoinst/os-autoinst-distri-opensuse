@@ -18,6 +18,12 @@
       <li><a href="#get_container_uri">get_container_uri</a></li>
       <li><a href="#get_sysext">get_sysext</a></li>
       <li><a href="#get_values">get_values</a></li>
+      <li><a href="#kubectl_cmd">kubectl_cmd</a></li>
+      <li><a href="#wait_k8s_state">wait_k8s_state</a></li>
+      <li><a href="#wait_kubectl_cmd">wait_kubectl_cmd</a></li>
+      <li><a href="#wait_nodes_ready">wait_nodes_ready</a></li>
+      <li><a href="#wait_on_cmd">wait_on_cmd</a></li>
+      <li><a href="#wait_script_output">wait_script_output</a></li>
     </ul>
   </li>
 </ul><h1>lib/elemental3.pm</h1>
@@ -46,6 +52,42 @@
 <pre><code>get_values( url =&gt; &lt;value&gt;, arch =&gt; &lt;value&gt;, regex =&gt; &lt;value&gt; );</code></pre>
 
 <p>Get values from filelist webpage based on provided regex.</p>
+
+<h2 id="kubectl_cmd">kubectl_cmd</h2>
+
+<pre><code>kubectl_cmd( cmd =&gt; &lt;value&gt; [, timeout =&gt; &lt;value&gt; ] );</code></pre>
+
+<p>Checks for up to <b>$timeout</b> seconds whether kubectl command is executed. Returns 0 if command is successful or croaks on timeout.</p>
+
+<h2 id="wait_k8s_state">wait_k8s_state</h2>
+
+<pre><code>wait_k8s_state( regex =&gt; &lt;value&gt; [, timeout =&gt; &lt;value&gt; ] );</code></pre>
+
+<p>Checks for up to <b>$timeout</b> seconds whether K8s cluster is running. Returns 0 if cluster is running or croaks on timeout.</p>
+
+<h2 id="wait_kubectl_cmd">wait_kubectl_cmd</h2>
+
+<pre><code>wait_kubectl_cmd( [ timeout =&gt; &lt;value&gt; ] );</code></pre>
+
+<p>Wait for kubectl command to be available.</p>
+
+<h2 id="wait_nodes_ready">wait_nodes_ready</h2>
+
+<pre><code>wait_nodes_ready( [ timeout =&gt; &lt;value&gt; ] );</code></pre>
+
+<p>Wait for up to <b>$timeout</b> seconds until K8s nodes are ready. Returns 0 if nodes are ready or croaks on timeout.</p>
+
+<h2 id="wait_on_cmd">wait_on_cmd</h2>
+
+<pre><code>wait_on_cmd( cmd =&gt; &lt;value&gt; [, timeout =&gt; &lt;value&gt; ] );</code></pre>
+
+<p>Checks for up to <b>$timeout</b> seconds whether command is executed. Returns 0 if command is successful or croaks on timeout.</p>
+
+<h2 id="wait_script_output">wait_script_output</h2>
+
+<pre><code>wait_script_output( cmd =&gt; &lt;value&gt; [, timeout =&gt; &lt;value&gt; ] );</code></pre>
+
+<p>Checks for up to <b>$timeout</b> seconds whether command is executed. Returns command output if successful or croaks on timeout.</p>
 
 
 </body>
