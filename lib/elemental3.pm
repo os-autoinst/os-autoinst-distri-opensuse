@@ -80,7 +80,15 @@ sub get_container_uri {
     );
     my $regex = "pull\\s+\(.*:${version}-${build}\)";
 
-    return ($1) if (script_output("curl -s $args{url}/${fn}") =~ m/${regex}/);
+    # Open webpage
+    my $res = Mojo::UserAgent->new->get("$args{url}/${fn}")->result;
+    if ($res->is_success) {
+        # Return the found URI
+        return ($1) if ($res->body =~ m/${regex}/);
+    }
+    else {
+        die("Cannot parse the result: $res->message");
+    }
 }
 
 =head2 get_sysext
@@ -137,9 +145,7 @@ sub get_values {
     $args{url} .= '/' unless (substr($args{url}, -1) eq '/');
 
     # Open webpage
-    my $ua = Mojo::UserAgent->new;
-    my $res = $ua->get($args{url})->result;
-
+    my $res = Mojo::UserAgent->new->get($args{url})->result;
     if ($res->is_success) {
         # Extract informations from the webpage
         my $dom = Mojo::DOM->new($res->body);
