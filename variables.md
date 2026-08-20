@@ -8,13 +8,15 @@ NOTE: This list is not complete and may contain outdated info. If you face such 
 
 For a better overview some domain-specific values have been moved to their own section:
 
-* [Publiccloud](#publiccloud-specific-variables)
+* [Public Cloud](#publiccloud-specific-variables)
 * [Wicked](#wicked-testsuite-specifc-variables)
 * [xfstests](#xfstests-specific-variables)
+* [Agama](#Agama-specific-variables)
+* [Remote Desktop](#Remote-desktop-specific-variables)
 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
-`APACHE2_PKG` | string | `apache` | Apache2 package under test (e.g. `apache2` or `apache2-tls13`)
+APACHE2_PKG | string | apache | Apache2 package under test (e.g. `apache2` or `apache2-tls13`)
 AARCH64_MTE_SUPPORTED | boolean | false     | Set to 1 if your machine supports Memory Tagging Extension (MTE)
 ADDONS          | string    |               | Comma separated list of addons to be added using DVD. Also used to indicate addons in the SUT.
 ADDONURL        | string    |               | Comma separated list of addons. Includes addon names to get url defined in ADDONURL_*. For example: ADDONURL=sdk,we ADDONURL_SDK=https://url ADDONURL_WE=ftp://url
@@ -306,7 +308,7 @@ SMELT_URL | string | https://smelt.suse.de | Defines the URL for the SUSE Mainte
 TRANSACTIONAL | boolean | false | Mark the SUT as a transactional system. Used in SLFO.
 
 
-### Publiccloud specific variables
+### Public Cloud specific variables
 
 The following variables are relevant for publiccloud related jobs. Keep in mind that variables that start with `_SECRET` are secret variables, accessible only to the job but hidden in the webui. They will be not present in cloned jobs outside the original instance.
 
