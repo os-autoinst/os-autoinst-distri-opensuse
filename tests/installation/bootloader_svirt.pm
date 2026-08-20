@@ -56,6 +56,59 @@ sub search_image_on_svirt_host {
     return $path;
 }
 
+# A plain open() of a file on a VMFS datastore, as done by sha256sum, takes an
+# Exclusive lock for the whole ESXi host and is refused with 'Device or resource
+# busy' when that host already holds the file in an incompatible mode. That is
+# exactly the case for an image another openQA job is running from right now.
+# The image data is fine then, only its checksum cannot be calculated, which is
+# no reason to fail the job. Unlike sha256sum, vmfsfilelockinfo queries the lock
+# metadata instead of opening the data, so it still answers while the file is
+# locked. See https://progress.opensuse.org/issues/204300
+sub vmware_vms_using_image {
+    my ($svirt, $image_path) = @_;
+    my $image = basename($image_path);
+    # Only powered-on VMs can hold a lock, so ask for those and report the ones
+    # whose configuration references the image, i.e. have it attached
+    my $vmx_files = $svirt->get_cmd_output(
+        "esxcli vm process list | sed -n 's/.*Config File: *//p' | while read f; do grep -q '$image' \"\$f\" && echo \"\$f\"; done",
+        {domain => 'sshVMwareServer'});
+    return map { basename($_, '.vmx') } grep { /\S/ } split(/\n/, $vmx_files // '');
+}
+
+sub vmware_locked_images {
+    my ($svirt, $location) = @_;
+    my %locked;
+    foreach my $var (grep { /^CHECKSUM_/ } keys %bmwqemu::vars) {
+        (my $image = $var) =~ s/^CHECKSUM_//;
+        my $file = get_var($image) or next;
+        my $path = $location . basename($file);
+        # grep prints the owner line only while the file is locked
+        my $owner = $svirt->get_cmd_output("vmfsfilelockinfo -p '$path' | grep 'Host owning the lock on file'", {domain => 'sshVMwareServer'});
+        next unless $owner;
+        $owner =~ s/^\s+|\s+$//g;
+        my @vms = vmware_vms_using_image($svirt, $path);
+        # the lock owner can be another ESXi host, then no local VM is found
+        $locked{$image} = "$path\n\t$owner\n\t" . (@vms ? 'VM using this image: ' . join(', ', @vms) : 'No VM of this host has the image attached');
+    }
+    return \%locked;
+}
+
+sub verify_image_checksum {
+    my ($svirt, $location) = @_;
+    my $errors = verify_checksum $location;
+    return record_info('Checksum matched', '', result => 'ok') unless $errors;
+
+    my @failed = $errors =~ /^Checksum does not match for (\S+):/gm;
+    my $locked = is_vmware ? vmware_locked_image($svirt, $location) : {};
+    my @busy = grep { $locked->{$_} } @failed;
+    record_info('File busy', "Checksum verification skipped, image in use:\n" . join("\n", map { $locked->{$_} } @busy), result => 'softfail') if @busy;
+    # nothing failed but the image which is merely locked
+    return if @failed && @busy == @failed;
+
+    record_info('Checksum', $errors, result => 'fail');
+    die 'Checksum verification failed.';
+}
+
 sub cleanup_leftover_vmware_vms {
     my ($svirt, $name, $vmware_openqa_datastore) = @_;
 
@@ -187,11 +240,8 @@ sub run {
 
     ## Verify checksum of the copied images
     my $location = '/var/lib/libvirt/images/';
-    if (is_vmware) {
-        $location = get_var('BOOT_HDD_IMAGE') ? $vmware_openqa_datastore : $isodir;
-    }
-    my $errors = verify_checksum $location;
-    record_info("Checksum", $errors, result => 'fail') if $errors;
+    $location = $vmware_openqa_datastore if is_vmware;
+    verify_image_checksum($svirt, $location);
 
     # We need to use 'tablet' as a pointer device, i.e. a device
     # with absolute axis. That needs to be explicitely configured
