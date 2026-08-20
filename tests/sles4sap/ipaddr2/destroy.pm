@@ -79,7 +79,10 @@ sub run {
     my $bastion_ip = ipaddr2_bastion_pubip();
 
     ipaddr2_ssh_intrusion_detection(bastion_ip => $bastion_ip);
-    ipaddr2_logs_collect(bastion_ip => $bastion_ip);
+    # Skip supportconfig in the normal pass path: it is time-consuming and
+    # only needed for failure diagnostics.  The post_fail_hook will collect
+    # it if the test fails.
+    ipaddr2_logs_collect(bastion_ip => $bastion_ip, no_supportconfig => 1);
     ipaddr2_logs_cloudinit(bastion_ip => $bastion_ip) unless (check_var('IPADDR2_CLOUDINIT', 0));
     ipaddr2_network_peering_delete(ibsm_rg => get_var('IBSM_RG')) if (get_var('IBSM_RG'));
     ipaddr2_infra_destroy();
