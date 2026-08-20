@@ -46,8 +46,4 @@ sub run {
     assert_script_run "cd .. && rm -rf $test_dir";
 }
 
-sub test_flags {
-    return {always_rollback => 1};
-}
-
 1;
