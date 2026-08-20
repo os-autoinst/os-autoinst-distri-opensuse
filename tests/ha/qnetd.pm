@@ -175,10 +175,10 @@ sub run {
         ensure_resource_running('promotable-1', ":[[:blank:]]*$node_01\[[:blank:]]*([Mm]aster|[Pp]romoted)\$");
     }
 
-    barrier_wait("SPLIT_BRAIN_TEST_DONE_$cluster_name");
-
     # Show cluster status before ending the test
     save_state if (is_node(1) || !(get_var('USE_DISKLESS_SBD') || check_var('QDEVICE_TEST_ROLE', 'qnetd_server')));
+
+    barrier_wait("SPLIT_BRAIN_TEST_DONE_$cluster_name");
 
     # Restart stonith. This should fence node 2
     assert_script_run qq|crm configure property $fencing_property="true"| if is_node(1);
