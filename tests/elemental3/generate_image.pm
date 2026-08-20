@@ -42,6 +42,7 @@ sub build_installer_cmd {
     # OS configuration script
     assert_script_run("curl -sf -o $config_file "
           . data_url('elemental3/' . path($config_file)->basename));
+    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
@@ -99,6 +100,7 @@ sub customize_cmd {
 
     # Configure the build
     $out = "$args{img_filename}.qcow2" if ($type =~ m/raw/);
+    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
     file_content_replace(
         "$args{config_dir}/butane.yaml",
         '--sed-modifier' => 'g',
@@ -121,6 +123,7 @@ sub customize_cmd {
     );
 
     if ($args{template} =~ m/recovery/) {
+        # NOTE: some variables can be empty/undef, so double-quotes are expected here!
         file_content_replace(
             "$args{config_dir}/custom/scripts/50-firstboot.sh",
             '--sed-modifier' => 'g',
@@ -259,6 +262,7 @@ sub install_cmd {
     # OS configuration script
     assert_script_run("curl -sf -o $config_file "
           . data_url('elemental3/' . path($config_file)->basename));
+    # NOTE: some variables can be empty/undef, so double-quotes are expected here!
     file_content_replace(
         $config_file,
         '--sed-modifier' => 'g',
