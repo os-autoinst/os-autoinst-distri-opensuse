@@ -8,13 +8,16 @@ NOTE: This list is not complete and may contain outdated info. If you face such 
 
 For a better overview some domain-specific values have been moved to their own section:
 
-* [Publiccloud](#publiccloud-specific-variables)
+* [Public Cloud](#publiccloud-specific-variables)
 * [Wicked](#wicked-testsuite-specifc-variables)
 * [xfstests](#xfstests-specific-variables)
+* [Agama](#Agama-specific-variables)
+* [Remote Desktop](#Remote-desktop-specific-variables)
+* [Elemental3](#Elemental3-specific-variables)
 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
-`APACHE2_PKG` | string | `apache` | Apache2 package under test (e.g. `apache2` or `apache2-tls13`)
+APACHE2_PKG | string | apache | Apache2 package under test (e.g. `apache2` or `apache2-tls13`)
 AARCH64_MTE_SUPPORTED | boolean | false     | Set to 1 if your machine supports Memory Tagging Extension (MTE)
 ADDONS          | string    |               | Comma separated list of addons to be added using DVD. Also used to indicate addons in the SUT.
 ADDONURL        | string    |               | Comma separated list of addons. Includes addon names to get url defined in ADDONURL_*. For example: ADDONURL=sdk,we ADDONURL_SDK=https://url ADDONURL_WE=ftp://url
@@ -54,10 +57,12 @@ CONTAINERS_CRICTL_VERSION | string | v1.23.0 | The version of CriCtl tool.
 CONTAINERS_NERDCTL_VERSION | string | 0.16.1 | The version of NerdCTL tool.
 CONTAINERS_DOCKER_FLAVOUR | string | | Flavour of docker to install. Valid options are `stable` or undefined (for standard docker package)
 CONTAINERS_CHECK_SIGNATURE | boolean | false | Perform image signature check in BCI tests
+HDDSIZEGB(_*) | integer | | Size of the disk, others can be added like this: `HDDSIZEGB_1`, `HDDSIZEGB_2`, etc.
 HELM_CHART | string | | Helm chart under test. See `main_containers.pm` for supported chart types |
 HELM_CONFIG | string | | Additional configuration file for helm |
 HELM_LOGIN | string | Comma-separated list of login information if required for a registry, e.g. `registry.suse.de:username:password,registry.suse.de:geekotest:notsecret`
 HELM_FULL_REGISTRY_PATH | string | Full path to the registry images used by the helm chart. e.g. `my.registry.com/myteam/secret_project`. Only necessary when using non-publicly available container images. | 
+HOSTNAME | string | | Hostname of the SUT
 COREDUMP_IGNORE_ERRORS | boolean | | Don't quit test if coredump files are seen
 COREDUMP_WITH_BACKTRACE | boolean | | Get a backtrace when analyzing coredumps
 CPU_BUGS | boolean | | Into Mitigations testing
@@ -306,7 +311,7 @@ SMELT_URL | string | https://smelt.suse.de | Defines the URL for the SUSE Mainte
 TRANSACTIONAL | boolean | false | Mark the SUT as a transactional system. Used in SLFO.
 
 
-### Publiccloud specific variables
+### Public Cloud specific variables
 
 The following variables are relevant for publiccloud related jobs. Keep in mind that variables that start with `_SECRET` are secret variables, accessible only to the job but hidden in the webui. They will be not present in cloned jobs outside the original instance.
 
@@ -532,9 +537,28 @@ INST_AUTO | string | | The auto-installation is started by passing `inst.auto=<u
 INST_INSTALL_URL | string | | This will support using 'inst.install_url' boot parameter for overriding the default installation repositories. You can use multiple URLs separated by comma: inst.install_url=https://example.com/1,https://example.com/2
 
 ### Remote desktop specific variables
+
 Following variables are relevant for remote desktop testing
 But "x11_helm_server" and "x11_helm_client" are used to test deploy X11, pulseaudio, firefox kiosk with Kubernetes Using Helm
 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
 REMOTE_DESKTOP_TYPE | string | | This variable mainly used for remote desktop testing or other testing that uses multi machines.
+
+### Elemental3 specific variables
+
+Following variables are relevant for Elemental3 tests.
+
+Variable        | Type      | Default value | Details
+---             | ---       | ---           | ---
+CLUSTER_TYPE | string | | Type of cluster to test (single-node, multi-node)
+CRYPTO_POLICY | string | fips | Cryptographic policy to use
+INSTALL_DISK | string | /dev/vda | Installation disk to use
+ISO_CMD_LINE | string | | Set kernel command line for ISO container test
+K8S | string | rke2 | Supported K8s distribution to test (RKE2, K3s)
+STATIC_HOSTS | string | | In isolated env (like multi-machine tests) we need to hard some servers' information
+SYSEXT_IMAGES_TO_TEST | string | | Define the systemd system extensions to test
+TEMPLATE | string | default | Template to use to build the OS image
+TEST_GROUP | string | qetestgroup | Test group to create and use
+TEST_USER | string | qetest | Test user to create and use
+TOTEST_PATH | string | | Path where the ToTest artifacts could be found
