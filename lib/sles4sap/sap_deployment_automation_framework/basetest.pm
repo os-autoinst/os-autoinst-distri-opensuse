@@ -69,8 +69,8 @@ sub full_cleanup {
     }
     my $sut_cleanup_message
       = $redirection_works
-      ? 'Console redirection to Deployer VM does not seem to work. Destroying SUT infrastructure is not possible.'
-      : 'Console redirection works, proceeding with SUT cleanup';
+      ? 'Console redirection works, proceeding with SUT cleanup'
+      : 'Console redirection to Deployer VM does not seem to work. Destroying SUT infrastructure is not possible.';
     record_info('SUT cleanup', $sut_cleanup_message);
 
     # Trigger SDAF remover script to destroy 'workload zone' and 'sap systems' resources

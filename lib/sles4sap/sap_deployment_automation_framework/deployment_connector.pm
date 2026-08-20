@@ -316,7 +316,7 @@ sub destroy_resources {
       ref($args{resource_cleanup_list}) eq 'ARRAY';
 
     $args{timeout} //= '800';
-    my $retries = 3;    # retry to delete 3x
+    my $retries = 15;    # retry to delete 15x
     my $deployer_resource_group = get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
 
     unless ($args{resource_cleanup_list}) {
@@ -331,7 +331,7 @@ sub destroy_resources {
 
         last unless az_resource_delete(ids => join(' ', @resource_cleanup_list),
             resource_group => $deployer_resource_group, verbose => 'yes', timeout => $args{timeout});
-        sleep 5;    # Just give things few secs to avoid command spamming.
+        sleep 30;    # Just give things few secs to avoid command spamming.
         die "Failed to clean up resources:\n" . join("\n", @resource_cleanup_list) if ($attempt == $retries);
     }
     record_info('Destroy resources', 'All resources destroyed');
