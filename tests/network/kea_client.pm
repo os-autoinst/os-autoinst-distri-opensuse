@@ -18,7 +18,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
 use network_utils qw(iface set_nic_dhcp_auto reload_connections_until_all_ips_assigned delete_all_existing_connections);
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal upload_file);
 
 sub run {
     select_serial_terminal;
@@ -39,6 +39,14 @@ sub run {
         die "IP did not change" if ($last_octet == 102);
         die "Assigned IP $client_ip is not within pool (10.0.2.15 - 10.0.2.100)" unless ($last_octet >= 15 && $last_octet <= 100);
     }
+}
+
+sub post_fail_hook {
+    # Upload log file via serial terminal in case no ip assigned
+    # https://progress.opensuse.org/issues/205938
+    my ($self) = @_;
+    select_serial_terminal;
+    upload_file('/var/log/messages', 'var_log_messages');
 }
 
 1;
