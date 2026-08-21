@@ -29,6 +29,7 @@ use version_utils qw(is_transactional is_sle_micro is_sle);
 use Utils::Architectures 'is_ppc64le';
 use transactional;
 use Kernel::block_dev qw(create_loop_backing_file attach_loop_device);
+use Kernel::nfs qw(setup_pnfs_client verify_pnfs_block_layout);
 use List::Util 'sum';
 use rdma;
 
@@ -196,11 +197,12 @@ sub create_loop_device_by_rootsize {
         $i++;
     }
     script_run("losetup -a");
-    if ($para{fstype} =~ /overlay/) {
-        my $ovl_base_fs = get_var('XFSTESTS_OVERLAY_BASE_FS', 'xfs');
-        format_with_options("$INST_DIR/test_dev", $ovl_base_fs);
-        format_with_options("$INST_DIR/scratch_dev1", $ovl_base_fs);
-        script_run("echo 'export FSTYP=$ovl_base_fs' >> $CONFIG_FILE");
+    if ($para{fstype} =~ /overlay|nfs/) {
+        my $base_fs = get_var('XFSTESTS_OVERLAY_BASE_FS', 'xfs');
+        format_with_options("$INST_DIR/test_dev", $base_fs);
+        format_with_options("$INST_DIR/scratch_dev1", $base_fs);
+        return @loop_dev_size if ($para{fstype} =~ /nfs/);
+        script_run("echo 'export FSTYP=$base_fs' >> $CONFIG_FILE");
     }
     else {
         format_with_options("$INST_DIR/test_dev", $para{fstype});
@@ -528,7 +530,12 @@ sub setup_nfs_server {
         setup_ktls;
     }
     if ($nfsversion =~ 'pnfs') {
-        assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,pnfs,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,pnfs,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
+        my %para;
+        $para{fstype} = 'nfs';
+        $para{size} = str_to_mb(script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'"));
+        create_loop_device_by_rootsize(\%para);
+        assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && mount /dev/loop0 /opt/export/test && mount /dev/loop1 /opt/export/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,pnfs,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,pnfs,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
+        record_info('pNFS export dev', script_output('df -Th /opt/export/test /opt/export/scratch', proceed_on_failure => 1));
     }
     elsif ($nfsversion =~ 'krb5') {
         setup_krb5($nfsversion);
@@ -566,6 +573,7 @@ END
 
 sub setup_nfs_client {
     my $nfsversion = shift;
+    setup_pnfs_client if ($nfsversion =~ 'pnfs');
     if ($nfsversion =~ 'rdma') {
         install_rdma_dependency;
         modprobe_rdma;
@@ -588,6 +596,9 @@ sub setup_nfs_client {
     # There's a graceful time we need to wait before using the NFS server
     my $gracetime = script_output('cat /proc/fs/nfsd/nfsv4gracetime;');
     sleep($gracetime * 2);
+    if ($nfsversion =~ 'pnfs' && get_var('XFSTESTS_PNFS_TRAFFIC_CHECK')) {
+        verify_pnfs_block_layout('localhost', '/opt/export/test', '/opt/nfs/test', '/dev/loop0');
+    }
 }
 
 sub run {
@@ -624,6 +635,7 @@ sub run {
         elsif (get_var('PARALLEL_WITH')) {
             setup_static_mm_network('10.0.2.102/24');
             install_dependencies_nfs;
+            setup_pnfs_client if ($NFS_VERSION =~ 'pnfs');
             assert_script_run('mkdir -p /opt/nfs/test /opt/nfs/scratch');
             $NFS_SERVER_IP = '10.0.2.101';
         }
