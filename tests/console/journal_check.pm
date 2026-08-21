@@ -18,6 +18,7 @@ sub parse_bug_refs {
     my $bug_file = sprintf("%s/data/journal_check/bug_refs.json", get_var('CASEDIR'));
     my $tested_product = get_required_var('DISTRI');
     my $tested_version = get_required_var('VERSION');
+    my $tested_arch = get_required_var('ARCH');
     my %bp;
 
     # Treat staging projects like the full product
@@ -38,10 +39,11 @@ sub parse_bug_refs {
     foreach my $bugid (keys %$bugs) {
         if (exists $bugs->{$bugid}->{products}->{$tested_product} && ref $bugs->{$bugid}->{products}->{$tested_product} eq ref []) {
             foreach my $ver (@{$bugs->{$bugid}->{products}->{$tested_product}}) {
-                if ($ver eq $base_version) {
-                    $bp{$bugid} = {%{$bugs->{$bugid}}{qw(type description)}};
-                    last;
-                }
+                next unless $ver eq $base_version;
+                my $archs = $bugs->{$bugid}->{arch} // [];
+                next if @$archs && !grep { $_ eq $tested_arch } @$archs;
+                $bp{$bugid} = {%{$bugs->{$bugid}}{qw(type description)}};
+                last;
             }
         } else {
             bmwqemu::diag("Versions of a product in journal_check::bug_refs.json should be stored in an array, or the product key is missing!");
