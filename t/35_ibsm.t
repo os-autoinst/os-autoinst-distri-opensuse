@@ -83,7 +83,7 @@ subtest '[ibsm_network_peering_azure_create] az integration' => sub {
 
     my @calls;
     $az_cli->redefine(script_run => sub {
-            push @calls, 'SR: ' . $_[0];
+            push @calls, 'MockASR: ' . $_[0];
             return; });
 
     $az_cli->redefine(assert_script_run => sub {
@@ -92,9 +92,28 @@ subtest '[ibsm_network_peering_azure_create] az integration' => sub {
 
     $az_cli->redefine(script_output => sub {
             push @calls, 'SO: ' . $_[0];
-            if ($_[0] =~ /az network vnet list.* -g (.*) --query.*/) { return '["VNET-' . $1 . '"]'; }
-            if ($_[0] =~ /az network vnet show.* --query id.*--name (.*)/) { return $1 . '-ID'; }
-            return 'NOT VALID'; });
+            my $cmd = $_[0];
+
+            return 'error.log' if grep /az.err/, $cmd;
+            return 'out.json' if grep /az.json/, $cmd;
+            return if grep /error.log/, $cmd;
+
+            if ($cmd =~ /out\.json/) {
+                my ($last_az_cmd) = grep { /az network vnet/ } reverse @calls;
+                if ($last_az_cmd && $last_az_cmd =~ /vnet list.*-g\s+(\S+)/) {
+                    return qq|["VNET-$1"]|;
+                }
+                if ($last_az_cmd && $last_az_cmd =~ /vnet show/) {
+                    if ($last_az_cmd =~ /(?:--name|-n)\s+(\S+)/) {
+                        return qq|"$1-ID"|;
+                    }
+                    if ($last_az_cmd =~ /-g\s+(\S+)/) {
+                        return qq|"VNET-$1-ID"|;
+                    }
+                }
+                return '[]';
+            }
+            return '"NOT VALID"'; });
 
     $ibsm->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
@@ -157,11 +176,26 @@ subtest '[ibsm_network_peering_azure_delete] including az_cli code layer' => sub
 
     $az_cli->redefine(script_output => sub {
             push @calls, 'SO: ' . $_[0];
-            if ($_[0] =~ /az network vnet list.* -g (.*) --query.*/) { return '["VNET-' . $1 . '"]'; }
-            if ($_[0] =~ /az network vnet show --query id.*--name (.*)/) { return $1 . '-ID'; }
-            if ($_[0] =~ /az network vnet peering list/) { return '["GABBIANO"]'; }
-            if ($_[0] =~ /az network vnet peering delete/) { return 0; }
-            return 'NOT VALID'; });
+            my $cmd = $_[0];
+
+            return 'error.log' if $cmd =~ /az\.err/;
+            return 'out.json' if $cmd =~ /az\.json/;
+
+            if ($cmd =~ /out\.json/) {
+                my ($last_az_cmd) = grep { /az network vnet/ } reverse @calls;
+                if ($last_az_cmd && $last_az_cmd =~ /vnet list.*-g\s+(\S+)/) {
+                    return qq|["VNET-$1"]|;
+                }
+                if ($last_az_cmd && $last_az_cmd =~ /vnet show.*(?:--name|-n)\s+(\S+)/) {
+                    return qq|"$1-ID"|;
+                }
+                if ($last_az_cmd && $last_az_cmd =~ /vnet peering list/) {
+                    return '["GABBIANO"]';
+                }
+                return '[]';
+            }
+            return;
+    });
 
     ibsm_network_peering_azure_delete(sut_rg => 'PICCIONE', ibsm_rg => 'COLOMBA');
     note("\n  C-->  " . join("\n  C-->  ", @calls));

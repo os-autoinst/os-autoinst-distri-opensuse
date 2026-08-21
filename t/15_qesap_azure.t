@@ -205,17 +205,18 @@ subtest '[qesap_az_clean_old_peerings] integrate test' => sub {
             push @calls, $_[0];
             return 0;
     });
+    $azcli->noop('assert_script_run');
+    $azcli->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $azcli->redefine(script_output => sub {
             push @calls, $_[0];
-            if ($_[0] =~ /az network vnet peering list.*/) {
-                return '["COCCO100001", "COCCO100002", "COCCO100003"]'; }
-            return 'INVALID'; });
+            return 'out.json' if grep /az.json/, $_[0];
+            return '["COCCO100001", "COCCO100002", "COCCO100003"]' if grep /out.json/, $_[0]; });
 
     qesap_az_clean_old_peerings(rg => 'myresourcegroup', vnet => 'myvnetname');
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok((any { /az network vnet peering delete --name COCCO100001/ } @calls), "Peering1 was deleted");
-    ok((none { /az network vnet peering delete --name COCCO100002/ } @calls), "Peering2 was not deleted");
-    ok((any { /az network vnet peering delete --name COCCO100003/ } @calls), "Peering3 was deleted");
+    ok((any { /network vnet peering delete --name COCCO100001/ } @calls), "Peering1 was deleted");
+    ok((none { /network vnet peering delete --name COCCO100002/ } @calls), "Peering2 was not deleted");
+    ok((any { /network vnet peering delete --name COCCO100003/ } @calls), "Peering3 was deleted");
 };
 
 subtest '[qesap_az_create_sas_token] mandatory arguments' => sub {

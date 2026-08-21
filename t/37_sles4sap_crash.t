@@ -20,6 +20,10 @@ subtest '[crash_deploy_azure]' => sub {
     $crash->redefine(az_vm_wait_running => sub { push @calls, 'az_vm_wait_running'; return; });
     my $azure = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
     $azure->redefine(assert_script_run => sub { push @calls, $_[0]; return; });
+    $azure->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $azure->redefine(script_output => sub {
+            return 'out.json' if grep /az.json/, $_[0];
+            return '"Arlecchino"' if grep /out.json/, $_[0]; });
 
     crash_deploy_azure(
         region => 'AmanitaMuscaria',

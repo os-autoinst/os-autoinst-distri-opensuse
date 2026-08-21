@@ -504,7 +504,7 @@ sub sdaf_ssh_key_from_keyvault {
     $args{target_file} //= homedir() . '/.ssh/id_rsa';
     my ($target_filename, $target_path) = fileparse($args{target_file});
     my @secret_ids = @{az_keyvault_secret_list(
-            vault_name => $args{key_vault}, query => "\"[?ends_with(name, \'$args{query}\')].id\"")};
+            vault_name => $args{key_vault}, query => "[?ends_with(name, \'$args{query}\')].id")};
 
     croak "Multiple or no secrets found: \n" . join("\n", @secret_ids) unless @secret_ids == 1;
 

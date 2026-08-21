@@ -90,11 +90,6 @@ our @EXPORT = qw(
   az_role_definition_list
 );
 
-# Workaround for bsc#1261229 - az-cli-cmd 'Launching flake' message breaks JSON output format
-our $SDAF_Azure_podman_flake_filter = (get_var('SDAF_GIT_AUTOMATION_BRANCH', '') =~ /feature\/sles16/)
-  ? "2> >(grep -Ev 'FutureWarning|Launching flake|self.' >&2)"
-  : '';
-
 =head2 az
 
     az(az_args => 'group list' [, query => '[].name']);
@@ -150,8 +145,12 @@ sub az(%args) {
 
     $result{rc} = script_run(join(' ', @az_cmd),
         quiet => $args{quiet}, timeout => $args{timeout});
-    $result{output} = decode_json(script_output("cat $out_file",
-            quiet => $args{quiet}));
+    my $out = script_output("cat $out_file", quiet => $args{quiet});
+    if (defined $out && $out =~ /\S/) {
+        $result{output} = decode_json($out);
+    } else {
+        $result{output} = {};
+    }
     $result{error} = script_output("cat $err_file",
         quiet => $args{quiet});
 
@@ -409,12 +408,9 @@ sub az_network_vnet_get(%args) {
     croak("Argument < resource_group > missing") unless $args{resource_group};
     $args{query} //= '[].name';
 
-    my $az_cmd = join(' ', 'az network vnet list',
-        '-g', $args{resource_group},
-        "--query \"$args{query}\"",
-        '-o json',
-        $SDAF_Azure_podman_flake_filter);
-    return decode_json(script_output($az_cmd));
+    my $az_args = "network vnet list -g $args{resource_group}";
+    my $az_out = az(az_args => $az_args, query => $args{query});
+    return $az_out->{output};
 }
 
 =head2 az_network_nsg_create
@@ -1254,15 +1250,19 @@ sub az_nic_create(%args) {
     foreach (qw(resource_group name vnet subnet nsg pubip_name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    assert_script_run(join(' ', 'az network nic create',
-            '--resource-group', $args{resource_group},
-            '--name', $args{name},
-            '--vnet-name', $args{vnet},
-            '--subnet', $args{subnet},
-            '--network-security-group', $args{nsg},
-            '--private-ip-address-version IPv4',
-            '--public-ip-address', $args{pubip_name},
-            $SDAF_Azure_podman_flake_filter));
+    my $az_args = join(' ',
+        'network nic create',
+        '--resource-group', $args{resource_group},
+        '--name', $args{name},
+        '--vnet-name', $args{vnet},
+        '--subnet', $args{subnet},
+        '--network-security-group', $args{nsg},
+        '--private-ip-address-version IPv4',
+        '--public-ip-address', $args{pubip_name}
+    );
+
+    my $az_out = az(az_args => $az_args);
+    return $az_out->{output};
 }
 
 =head2 az_nic_get
@@ -1643,22 +1643,21 @@ sub az_network_peering_create(%args) {
     foreach (qw(name source_rg source_vnet target_rg target_vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    my $az_cmd = join(' ', 'az network vnet show',
-        '--query id',
-        '--output tsv',
+    my $az_args = join(' ', 'network vnet show',
         '--resource-group', $args{target_rg},
         '--name', $args{target_vnet});
 
-    my $target_vnet_id = script_output($az_cmd);
+    my $az_out = az(az_args => $az_args, query => 'id');
+    my $target_vnet_id = $az_out->{output};
 
-    $az_cmd = join(' ', 'az network vnet peering create',
+    $az_args = join(' ', 'network vnet peering create',
         '--name', $args{name},
         '--resource-group', $args{source_rg},
         '--vnet-name', $args{source_vnet},
         '--remote-vnet', $target_vnet_id,
-        '--allow-vnet-access',
-        '--output table');
-    assert_script_run($az_cmd);
+        '--allow-vnet-access');
+    $az_out = az(az_args => $az_args);
+    return $az_out->{output};
 }
 
 =head2 az_network_peering_list
@@ -1685,14 +1684,12 @@ sub az_network_peering_list(%args) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{query} //= '[].name';
 
-    my $az_cmd = join(' ', 'az network vnet peering list',
+    my $az_args = join(' ', 'network vnet peering list',
         '--resource-group', $args{resource_group},
-        '--vnet-name', $args{vnet},
-        "--query \"$args{query}\"",
-        '-o json',
-        $SDAF_Azure_podman_flake_filter
+        '--vnet-name', $args{vnet}
     );
-    return decode_json(script_output($az_cmd));
+    my $az_out = az(az_args => $az_args, query => $args{query});
+    return $az_out->{output};
 }
 
 =head2 az_network_peering_delete
@@ -2032,22 +2029,21 @@ sub az_storage_blob_lease_acquire(%args) {
     }
     $args{lease_duration} //= '-1';    # -1 = infinite lease
 
-    my $az_cmd = join(' ',
-        'az storage blob lease acquire',
-        '--only-show-errors',
+    my $az_args = join(' ',
+        'storage blob lease acquire',
         "--container-name $args{container_name}",
         "--account-name $args{storage_account_name}",
         "--blob-name $args{blob_name}",
         "--lease-duration $args{lease_duration}",
-        '--output tsv',
         # Json output won't work here.
         # If it is not possible to acquire lease command will return a message which is not in json format.
         # decode_json() would cause function to fail instead of just returning
-        $SDAF_Azure_podman_flake_filter
     );
 
-    my $lease_id = script_output($az_cmd, $args{timeout}, proceed_on_failure => 1, timeout => 180);
+    my $az_out = az(az_args => $az_args, timeout => 180);
+    my $lease_id = $az_out->{output};
     record_info('AZ CLI out', "AZ CLI returned output:\n $lease_id");
+
     # Return a string if az_validate_uuid_pattern return "true"
     # otherwise return undef, thanks to Perl's implicit return that get value from the if statement.
     return $lease_id if (az_validate_uuid_pattern(uuid => $lease_id));
@@ -2117,17 +2113,15 @@ sub az_storage_blob_update(%args) {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
 
-    my @az_cmd = ('az storage blob update',
-        '--only-show-errors',
+    my @az_args = ('storage blob update',
         '--container-name', $args{container_name},
         '--account-name', $args{account_name},
         '--name', $args{name},
-        '--output json',
-        $SDAF_Azure_podman_flake_filter
     );
-    push(@az_cmd, "--lease-id $args{lease_id}") if $args{lease_id};
+    push(@az_args, "--lease-id $args{lease_id}") if $args{lease_id};
 
-    return script_run(join(' ', @az_cmd), timeout => 180);
+    my $az_out = az(az_args => join(' ', @az_args), timeout => 180);
+    return $az_out->{rc};
 }
 
 =head2 az_keyvault_list
@@ -2150,15 +2144,8 @@ sub az_keyvault_list(%args) {
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     $args{query} //= '[].name';
 
-    my @az_cmd = ('az keyvault list',
-        '--only-show-errors',
-        '--resource-group', $args{resource_group},
-        '--query', "$args{query}",
-        '--output json',
-        $SDAF_Azure_podman_flake_filter
-    );
-
-    return decode_json(script_output(join(' ', @az_cmd)));
+    my $az_out = az(az_args => "keyvault list --resource-group $args{resource_group}", query => $args{query});
+    return $az_out->{output};
 }
 
 =head2 az_keyvault_secret_list
@@ -2181,15 +2168,8 @@ sub az_keyvault_secret_list(%args) {
     croak "Missing mandatory argument: 'vault_name'" unless $args{vault_name};
     $args{query} //= '[].name';
 
-    my @az_cmd = ('az keyvault secret list',
-        '--only-show-errors',
-        '--vault-name', $args{vault_name},
-        '--query', "$args{query}",
-        '--output json',
-        $SDAF_Azure_podman_flake_filter
-    );
-
-    return decode_json(script_output(join(' ', @az_cmd)));
+    my $az_out = az(az_args => "keyvault secret list --vault-name $args{vault_name}", query => $args{query}, timeout => 120);
+    return $az_out->{output};
 }
 
 =head2 az_keyvault_secret_show
@@ -2267,14 +2247,18 @@ sub az_network_vnet_show {
     foreach (@mandatory_args) {
         croak "Missing mandatory argument: '$_'" unless $args{$_};
     }
-    my @cmd = ('az network vnet show',
+    my @az_args = ('network vnet show',
         "--resource-group $args{resource_group}",
-        "--name $args{name}",
-        $SDAF_Azure_podman_flake_filter
+        "--name $args{name}"
     );
-    push @cmd, "--query \"$args{query}\"" if $args{query};
 
-    return decode_json(script_output(join(' ', @cmd)));
+    my $az_out;
+    if ($args{query}) {
+        $az_out = az(az_args => join(' ', @az_args), query => $args{query});
+    } else {
+        $az_out = az(az_args => join(' ', @az_args));
+    }
+    return $az_out->{output};
 }
 
 =head2 az_network_dns_zone_create
@@ -2295,13 +2279,12 @@ Creates private DNS zone within specified B<resource_group>.
 sub az_network_dns_zone_create {
     my (%args) = @_;
     foreach ('resource_group', 'name') { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
-    my @cmd = ('az network private-dns zone create',
+    my @az_args = ('network private-dns zone create',
         "--resource-group $args{resource_group}",
         "--name $args{name}",
-        $SDAF_Azure_podman_flake_filter
     );
-
-    return assert_script_run(join(' ', @cmd));
+    my $az_out = az(az_args => join(' ', @az_args));
+    return $az_out->{rc};
 }
 
 =head2 az_network_dns_zone_delete
@@ -2322,14 +2305,14 @@ Deletes private DNS zone within B<resource_group> specified by B<zone_name>.
 sub az_network_dns_zone_delete {
     my (%args) = @_;
     foreach ('resource_group', 'zone_name') { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
-    my @cmd = ('az network private-dns zone delete',
+    my @az_args = ('network private-dns zone delete',
         "--resource-group $args{resource_group}",
         "--name $args{zone_name}",
-        '--yes',
-        $SDAF_Azure_podman_flake_filter
+        '--yes'
     );
 
-    return assert_script_run(join(' ', @cmd));
+    my $az_out = az(az_args => (join(' ', @az_args)));
+    return $az_out->{rc};
 }
 
 =head2 az_network_dns_zone_list
@@ -2351,9 +2334,8 @@ sub az_network_dns_zone_list {
     my (%args) = @_;
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     $args{query} //= '[].name';
-    return decode_json(
-        script_output("az network private-dns zone list --resource-group $args{resource_group} --query \"$args{query}\" $SDAF_Azure_podman_flake_filter")
-    );
+    my $az_out = az(az_args => "network private-dns zone list --resource-group $args{resource_group}", query => $args{query});
+    return $az_out->{output};
 }
 
 =head2 az_network_dns_add_record
@@ -2384,16 +2366,16 @@ sub az_network_dns_add_record {
     my (%args) = @_;
     my @mandatory_args = qw(resource_group zone_name record_name ip_addr);
     foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
-    my @cmd = (' ',
-        'az network private-dns record-set a add-record',    # 'a' here is not a typo
+    my @az_args = (' ',
+        'network private-dns record-set a add-record',    # 'a' here is not a typo
         "--resource-group $args{resource_group}",
         "--zone-name $args{zone_name}",
         "--record-set-name $args{record_name}",
-        "--ipv4-address $args{ip_addr}",
-        $SDAF_Azure_podman_flake_filter
+        "--ipv4-address $args{ip_addr}"
     );
 
-    return assert_script_run(join(' ', @cmd));
+    my $az_out = az(az_args => join(' ', @az_args));
+    return $az_out->{rc};
 }
 
 =head2 az_network_dns_link_create
@@ -2427,17 +2409,17 @@ sub az_network_dns_link_create {
     my (%args) = @_;
     my @mandatory_args = qw(resource_group zone_name vnet name);
     foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
-    my @cmd = (' ',
-        'az network private-dns link vnet create',
+    my @az_args = (' ',
+        'network private-dns link vnet create',
         "--resource-group $args{resource_group}",
         "--zone-name $args{zone_name}",
         "--virtual-network $args{vnet}",
         "--name $args{name}",
-        '--registration-enabled false',
-        $SDAF_Azure_podman_flake_filter    # This updates all VMs A records immediately
+        '--registration-enabled false'
     );
 
-    return assert_script_run(join(' ', @cmd));
+    my $az_out = az(az_args => join(' ', @az_args));
+    return $az_out->{rc};
 }
 
 =head2 az_network_dns_link_delete
@@ -2465,16 +2447,16 @@ sub az_network_dns_link_delete {
     my (%args) = @_;
     my @mandatory_args = qw(resource_group zone_name link_name);
     foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
-    my @cmd = (' ',
-        'az network private-dns link vnet delete',
+    my @az_args = (' ',
+        'network private-dns link vnet delete',
         "--resource-group $args{resource_group}",
         "--zone-name $args{zone_name}",
         "--name $args{link_name}",
-        '--yes',
-        $SDAF_Azure_podman_flake_filter
+        '--yes'
     );
 
-    return assert_script_run(join(' ', @cmd));
+    my $az_out = az(az_args => join(' ', @az_args));
+    return $az_out->{rc};
 }
 
 =head2 az_network_dns_link_list
@@ -2499,15 +2481,14 @@ sub az_network_dns_link_list {
     $args{query} //= '[].name';
     my @mandatory_args = qw(resource_group zone_name);
     foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
-    my @cmd = (' ',
-        'az network private-dns link vnet list',
+    my @az_args = (' ',
+        'network private-dns link vnet list',
         "--resource-group $args{resource_group}",
-        "--zone-name $args{zone_name}",
-        "--query \"$args{query}\"",
-        $SDAF_Azure_podman_flake_filter
+        "--zone-name $args{zone_name}"
     );
 
-    return decode_json(script_output(join(' ', @cmd)));
+    my $az_out = az(az_args => join(' ', @az_args), query => $args{query});
+    return $az_out->{output};
 }
 
 =head2 az_network_dns_links_cleanup
