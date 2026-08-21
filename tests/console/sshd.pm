@@ -127,6 +127,8 @@ sub post_fail_hook {
         script_run "ps -aux";
         script_run "env";
         enter_cmd('exit');
+        # For some reason the serial guard seems to fail
+        $testapi::distri->pretty_serial_marker_guard(1);
     }
 
     $self->cleanup();
