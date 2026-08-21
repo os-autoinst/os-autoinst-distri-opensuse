@@ -198,6 +198,78 @@ sub check_network_macvlan {
     cleanup_macvlan(runtime => $runtime);
 }
 
+my $ipvlan_netname = 'ipvlan_test';
+my $ipvlan_dev;
+
+sub cleanup_ipvlan {
+    my %args = @_;
+    my $runtime = $args{runtime};
+    script_run("$runtime rm -f busybox_1");
+    script_run("$runtime rm -f busybox_2");
+    return unless defined $ipvlan_dev;
+    record_info "Clean up ipvlan test";
+    script_run("$runtime network rm $ipvlan_netname");
+    script_run("ip link delete dev $ipvlan_dev");
+    undef $ipvlan_dev;
+}
+
+sub check_network_ipvlan {
+    my %args = @_;
+    my $runtime = $args{runtime};
+    my $image = "registry.opensuse.org/opensuse/busybox";
+    my $ip1 = "192.168.61.10";
+    my $ip2 = "192.168.61.11";
+
+    record_info "Start ipvlan test";
+
+    record_info "Check for kernel module 8021q required for ipvlan test";
+    if (is_jeos && is_sle('=16.1') && script_run('modprobe 8021q') != 0) {
+        record_soft_failure("bsc#1274833 - kernel module 8021q is not available");
+        return;
+    }
+
+    # assert_script_run("modinfo ipvlan", fail_message => "required ipvlan module not present");
+
+    my $nic = script_output(q(ip -4 route show default | awk '{print $5}'; exit));
+    $ipvlan_dev = "$nic.667";
+    script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
+
+    # Create new VLAN sub nic for isolation
+    assert_script_run("ip link add link $nic name $ipvlan_dev type vlan id 667");
+    assert_script_run("ip link set $ipvlan_dev up");
+
+    # Create ipvlan network
+    assert_script_run("$runtime network create -d ipvlan -o parent=$ipvlan_dev -o mode=l2 --subnet=192.168.61.0/24 --gateway=192.168.61.254 $ipvlan_netname");
+    validate_script_output("$runtime network ls", qr/$ipvlan_netname/);
+    validate_script_output("$runtime network inspect -f '{{.Driver}}' $ipvlan_netname", qr/ipvlan/);
+    record_info("ipvlan network", script_output("$runtime network inspect $ipvlan_netname"));
+
+    # Create containers with ipvlan network
+    assert_script_run("$runtime run -d --network $ipvlan_netname --ip $ip1 --name busybox_1 $image sleep infinity");
+    assert_script_run("$runtime run -d --network $ipvlan_netname --ip $ip2 --name busybox_2 $image sleep infinity");
+
+    # Check if container realy use ipvlan network
+    validate_script_output("$runtime container inspect busybox_1", qr/$ipvlan_netname/);
+    validate_script_output("$runtime container inspect busybox_2", qr/$ipvlan_netname/);
+    validate_script_output("$runtime exec busybox_1 ip a", qr/$ip1/);
+    validate_script_output("$runtime exec busybox_2 ip a", qr/$ip2/);
+
+    # Check if ipvlan interfaces share the MAC address of host
+    my $parent_mac = script_output("cat /sys/class/net/$ipvlan_dev/address");
+    validate_script_output("$runtime exec busybox_1 ip link show eth0", qr/$parent_mac/i);
+    validate_script_output("$runtime exec busybox_2 ip link show eth0", qr/$parent_mac/i);
+
+    # Containers using the ipvlan network can reach each other
+    assert_script_run("$runtime exec busybox_1 ping -c3 $ip2");
+    assert_script_run("$runtime exec busybox_2 ping -c3 $ip1");
+
+    # Containers using the ipvlan network should not be able to reach 1.1.1.1
+    assert_script_run("! $runtime exec busybox_1 ping -c2 1.1.1.1", fail_message => "container reached the internet, ipvlan is not isolated");
+
+    # Clean up
+    cleanup_ipvlan(runtime => $runtime);
+}
+
 sub run {
     my ($self, $args) = @_;
     die('You must define a engine') unless ($args->{runtime});
@@ -217,8 +289,11 @@ sub run {
 
     basic_container_tests(runtime => $self->{runtime});
 
-    # Kernel module 8021q is needed to test macvlan and must be available on Tumbleweed and 16.1
-    check_network_macvlan(runtime => $self->{runtime}) if (is_tumbleweed || is_sle(">=16.1"));
+    # Kernel module 8021q is needed to test macvlan and ipvlan and must be available on Tumbleweed and 16.1
+    if (is_tumbleweed || is_sle(">=16.1")) {
+        check_network_macvlan(runtime => $self->{runtime});
+        check_network_ipvlan(runtime => $self->{runtime});
+    }
 
     # Build an image from Dockerfile and run it
     my $base = (is_opensuse ? 'registry.opensuse.org/opensuse/bci/python:latest' : 'registry.suse.com/bci/python:latest');
@@ -234,6 +309,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     cleanup_macvlan(runtime => $self->{runtime});
+    cleanup_ipvlan(runtime => $self->{runtime});
     $self->SUPER::post_fail_hook;
 }
 
