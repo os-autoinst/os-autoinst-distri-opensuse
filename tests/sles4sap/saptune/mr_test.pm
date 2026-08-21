@@ -158,6 +158,7 @@ sub run {
 
     # Preserve args for post_fail_hook
     $self->{provider} = $run_args->{my_provider};    # required for cleanup
+
     $self->setup;
 
     my $test_list = get_required_var("MR_TEST");
@@ -171,7 +172,7 @@ sub post_fail_hook {
         select_host_console(force => 1);
         my $run_args = OpenQA::Test::RunArgs->new();
         $run_args->{my_provider} = $self->{provider};
-        $run_args->{my_provider}->finalize($run_args);
+        $run_args->{my_provider}->teardown($run_args);
         return;
     }
     $self->SUPER::post_fail_hook;
