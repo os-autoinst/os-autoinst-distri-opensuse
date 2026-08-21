@@ -158,20 +158,26 @@ sub run {
 
     # Preserve args for post_fail_hook
     $self->{provider} = $run_args->{my_provider};    # required for cleanup
-    $self->setup;
 
     my $test_list = get_required_var("MR_TEST");
     record_info("MR_TEST=$test_list");
     mr_test_lib::load_mr_tests("$test_list", $run_args);
+
+    $self->setup;
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         select_host_console(force => 1);
-        my $run_args = OpenQA::Test::RunArgs->new();
-        $run_args->{my_provider} = $self->{provider};
-        $run_args->{my_provider}->finalize($run_args);
+        # SLES4SAP public cloud deployments are managed by qe-sap-deployment
+        # (qesap). The correct teardown is deployment_cleanup() (the same one used by
+        # publiccloud::basetest and sles4sap::publiccloud_basetest).
+        deployment_cleanup(
+            $self,
+            cleanup_called => $self->{cleanup_called} // undef,
+            ansible_present => $self->{ansible_present} // 0
+        );
         return;
     }
     $self->SUPER::post_fail_hook;
