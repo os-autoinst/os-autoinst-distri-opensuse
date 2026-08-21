@@ -21,8 +21,9 @@ sub install_google_repo_key {
     assert_script_run "rpm -qi gpg-pubkey-d38b4796-*";
 }
 
-sub avoid_async_keyring_popups {
-    x11_start_program('google-chrome --password-store=basic', target_match => [qw(chrome-default-browser-query authentication-required)]);
+sub launch_chrome {
+    my @tags = qw(chrome-default-browser-query google-chrome-main-window authentication-required google-chrome-dont-sign-in);
+    x11_start_program('google-chrome --password-store=basic --no-first-run', target_match => \@tags);
     if (match_has_tag 'authentication-required') {
         type_password;
         assert_and_click "unlock";
@@ -63,17 +64,24 @@ sub run {
     zypper_call "in $chrome_url";
     save_screenshot;
     close_gui_terminal;
-    avoid_async_keyring_popups;
+    launch_chrome;
     preserve_privacy_of_non_human_openqa_workers;
-    assert_and_click 'chrome-default-browser-query';
-    assert_screen [qw(google-chrome-main-window google-chrome-dont-sign-in)];
-    click_lastmatch if match_has_tag('google-chrome-dont-sign-in');
-    assert_screen [qw(google-chrome-main-window google-chrome-ad-privacy-feature-more make-chrome-faster)];
-    click_ad_privacy_feature if match_has_tag('google-chrome-ad-privacy-feature-more');
+
+    my $i = 10;
+    my @tags = qw(google-chrome-main-window google-chrome-dont-sign-in chrome-default-browser-query google-chrome-ad-privacy-feature-more make-chrome-faster);
+    while (--$i) {
+        assert_screen \@tags;
+        click_lastmatch if match_has_tag('chrome-default-browser-query');
+        click_lastmatch if match_has_tag('google-chrome-dont-sign-in');
+        click_lastmatch if match_has_tag('make-chrome-faster');
+        click_ad_privacy_feature if match_has_tag('google-chrome-ad-privacy-feature-more');
+        last if match_has_tag('google-chrome-main-window');
+    }
+
     my $make_faster_popup_seen = handle_make_faster_popup();
     wait_screen_change { send_key 'ctrl-l' };
     enter_cmd 'about:';
-    my @tags = qw(google-chrome-about);
+    @tags = qw(google-chrome-about);
     push @tags, 'make-chrome-faster' unless $make_faster_popup_seen;
     assert_screen @tags, 60;
     if (match_has_tag 'make-chrome-faster') {
