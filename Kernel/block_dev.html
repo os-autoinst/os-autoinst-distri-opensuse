@@ -18,6 +18,9 @@
       <li><a href="#record_storage_info">record_storage_info</a></li>
       <li><a href="#create_loop_backing_file">create_loop_backing_file</a></li>
       <li><a href="#attach_loop_device">attach_loop_device</a></li>
+      <li><a href="#start_block_trace">start_block_trace</a></li>
+      <li><a href="#stop_block_trace">stop_block_trace</a></li>
+      <li><a href="#count_block_writes">count_block_writes</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/block_dev.pm</h1>
@@ -57,6 +60,31 @@
 <p>Arguments: $backing_file - Path to the backing file %opts - Optional parameters: loop_dev =&gt; specific loop device path (e.g., &#39;/dev/loop100&#39;) If not provided, uses &#39;losetup -f&#39; to find next free device timeout =&gt; timeout in seconds (default: 300)</p>
 
 <p>Returns: the loop device path (e.g., &#39;/dev/loop0&#39;)</p>
+
+<h2 id="start_block_trace">start_block_trace</h2>
+
+<pre><code>start_block_trace($dev, $log);
+start_block_trace($dev, $log, $mask);</code></pre>
+
+<p>Start a background <code>blktrace</code> on a block device, piped into <code>blkparse</code>, to record the requests reaching the device while a test runs. Use <code>stop_block_trace</code> to end it and <code>count_block_writes</code> to evaluate the result.</p>
+
+<p>Arguments: $dev - Block device to trace (e.g. &#39;/dev/loop0&#39;) $log - Path of the blkparse output file to write $mask - Optional blktrace action mask (default: write)</p>
+
+<p>blktrace needs debugfs, so it gets mounted if it is not available yet.</p>
+
+<p>Returns: the blktrace pid</p>
+
+<h2 id="stop_block_trace">stop_block_trace</h2>
+
+<pre><code>stop_block_trace();</code></pre>
+
+<p>Stop the trace started by <code>start_block_trace</code>. blktrace is interrupted rather than killed, so that it closes the pipe and blkparse flushes its output.</p>
+
+<h2 id="count_block_writes">count_block_writes</h2>
+
+<pre><code>count_block_writes($log);</code></pre>
+
+<p>Count the write requests in a blkparse output file and return the number. The RWBS field of an event holds <code>W</code> followed by optional modifiers like <code>S</code> for sync or <code>M</code> for metadata, the summary lines at the end of the file spell the direction out and are not counted.</p>
 
 
 </body>

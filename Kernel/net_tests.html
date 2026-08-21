@@ -28,6 +28,10 @@
       <li><a href="#validate_ipsec_tcpdump">validate_ipsec_tcpdump</a></li>
       <li><a href="#validate_tcpdump">validate_tcpdump</a></li>
       <li><a href="#capture_tcpdump">capture_tcpdump</a></li>
+      <li><a href="#start_packet_capture">start_packet_capture</a></li>
+      <li><a href="#stop_packet_capture">stop_packet_capture</a></li>
+      <li><a href="#count_capture_packets">count_capture_packets</a></li>
+      <li><a href="#capture_statistics">capture_statistics</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/net_tests.pm</h1>
@@ -161,6 +165,38 @@ capture_tcpdump($dev, $timeout);</code></pre>
 </ul>
 
 <p>The function always uses <code>tcpdump -n</code> (numeric output) and sets <code>proceed_on_failure =</code> 1&gt; so that failed or empty captures do not abort the test module.</p>
+
+<h2 id="start_packet_capture">start_packet_capture</h2>
+
+<pre><code>start_packet_capture($dev, $pcap);
+start_packet_capture($dev, $pcap, $filter);</code></pre>
+
+<p>Start a background <code>tcpdump</code> writing a pcap file, to capture traffic across a whole test sequence instead of a fixed duration. Use <code>stop_packet_capture</code> to end it, <code>count_capture_packets</code> and <code>capture_statistics</code> to evaluate it.</p>
+
+<p>Arguments: $dev - Network interface to capture on (e.g. &#39;lo&#39;) $pcap - Path of the pcap file to write $filter - Optional BPF filter (e.g. &#39;port 2049&#39;)</p>
+
+<p>The tcpdump diagnostics are kept in $pcap.log.</p>
+
+<p>Returns: the tcpdump pid</p>
+
+<h2 id="stop_packet_capture">stop_packet_capture</h2>
+
+<pre><code>stop_packet_capture();</code></pre>
+
+<p>Stop the capture started by <code>start_packet_capture</code> and give tcpdump the time to flush the remaining packets to the pcap file.</p>
+
+<h2 id="count_capture_packets">count_capture_packets</h2>
+
+<pre><code>count_capture_packets($pcap);
+count_capture_packets($pcap, $filter);</code></pre>
+
+<p>Count the packets of a pcap file with <code>tshark</code> and return the number. Without a filter all packets are counted, a display filter restricts them to a protocol or even a single operation, e.g. <code>count_capture_packets($pcap, &#39;nfs.opcode == 38&#39;)</code> returns the number of NFSv4 WRITE operations.</p>
+
+<h2 id="capture_statistics">capture_statistics</h2>
+
+<pre><code>capture_statistics($pcap);</code></pre>
+
+<p>Return the protocol hierarchy of a pcap file as reported by <code>tshark</code>, listing the protocols seen with their frame and byte counts. Useful to record which flows a test actually produced.</p>
 
 
 </body>

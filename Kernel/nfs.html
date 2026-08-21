@@ -15,6 +15,8 @@
   <li><a href="#SYNOPSIS">SYNOPSIS</a>
     <ul>
       <li><a href="#create_export">create_export</a></li>
+      <li><a href="#setup_pnfs_client">setup_pnfs_client</a></li>
+      <li><a href="#verify_pnfs_block_layout">verify_pnfs_block_layout</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/nfs.pm</h1>
@@ -28,6 +30,22 @@
 <pre><code>create_export();</code></pre>
 
 <p>Create an NFS share and export it with specified settings: - <code>path</code>: Filesystem path to export - <code>cl</code>: client IP/hostname to create the share for - <code>options</code>: options to record in /etc/exports</p>
+
+<h2 id="setup_pnfs_client">setup_pnfs_client</h2>
+
+<pre><code>setup_pnfs_client();</code></pre>
+
+<p>Prepare a client for a pNFS block layout. Enable nfs-blkmap.service, blkmapd is required to resolve the block devices of a layout, and blacklist the flexfiles layout driver so it never silently replaces the block layout.</p>
+
+<h2 id="verify_pnfs_block_layout">verify_pnfs_block_layout</h2>
+
+<pre><code>verify_pnfs_block_layout($server, $export, $mountpoint, $dev);</code></pre>
+
+<p>Verify that a pNFS block layout carries the data. Write a 4K probe file over NFS while capturing both the NFS traffic and the requests of the block device backing the export, then record the counters: - <code>server</code>: NFS server to mount from - <code>export</code>: exported path to mount - <code>mountpoint</code>: where to mount it, has to be free again afterwards - <code>dev</code>: block device backing the export</p>
+
+<p>With a working block layout the client writes to the block device on its own and only the layout operations reach the server, so no NFS WRITE operation must show up while the block device must see the write. The check has to run after the NFS grace period, during the grace LAYOUTGET is answered with NFS4ERR_GRACE and the client falls back to regular NFS writes.</p>
+
+<p>Products without the capture tools are reported and skipped.</p>
 
 
 </body>
