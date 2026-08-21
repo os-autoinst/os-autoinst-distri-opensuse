@@ -650,8 +650,13 @@ sub run {
     }
     elsif ($device) {
         assert_script_run("parted $device --script -- mklabel gpt");
+        my $dev_bytes = script_output("lsblk -bno SIZE $device");
+        my $dev_mb = int($dev_bytes / (1024 * 1024));
+        my %size_num = partition_amount_by_homesize("${dev_mb}M");
         $para{fstype} = $filesystem;
         $para{dev} = $device;
+        $para{amount} = $size_num{num};
+        $para{size} = $size_num{size};
         post_env_info(do_partition_for_xfstests(\%para));
     }
     else {
