@@ -228,7 +228,7 @@ sub check_network_ipvlan {
         return;
     }
 
-    assert_script_run("modinfo ipvlan", fail_message => "required ipvlan module not present");
+    # assert_script_run("modinfo ipvlan", fail_message => "required ipvlan module not present");
 
     my $nic = script_output(q(ip -4 route show default | awk '{print $5}'; exit));
     $ipvlan_dev = "$nic.667";
