@@ -92,11 +92,16 @@ sub build
     my $make_cmd = "make -j$jobs -C $source_dir/tools/testing/selftests install O=$build_dir SKIP_TARGETS= TARGETS=$targets FORCE_TARGETS=1 $build_env";
     $make_cmd =~ s/\s+$//;
 
-    assert_script_run("make -j$jobs -C $source_dir modules_prepare O=$build_dir $build_env");
+    assert_script_run("make -j$jobs -C $source_dir headers O=$build_dir $build_env");
 
-    # Mount the source dir overlay only after make modules_prepare. Mounting it
-    # earlier disturbs make's timestamp evaluation and causes it to try to
-    # regenerate headers from source files absent in the kernel-source package.
+    # Needed for resolve_btfids/BTF module builds. Only safe for
+    # KSELFTEST_FROM_SRC, where .config is in sync with the source tree
+    assert_script_run("make -j$jobs -C $source_dir modules_prepare O=$build_dir $build_env") if get_var('KSELFTEST_FROM_SRC', 0);
+
+    # Mount the source dir overlay only after make headers/modules_prepare.
+    # Mounting it earlier disturbs make's timestamp evaluation and causes it
+    # to try to regenerate headers from source files absent in the
+    # kernel-source package.
     my $real_source_dir = script_output("readlink -f $source_dir");
     if (script_run("test -w $real_source_dir") != 0) {
         (my $tag = $real_source_dir) =~ s|[/ ]|_|g;
