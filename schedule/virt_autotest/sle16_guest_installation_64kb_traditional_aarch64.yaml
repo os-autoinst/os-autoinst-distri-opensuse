@@ -1,0 +1,29 @@
+name: sle16-virt-guest-installation-64kb-traditional-aarch64
+description: |
+  Maintainer: qe-virt@suse.de
+  poo#126110 - SLE 16.1 aarch64 KVM host + guest with kernel-64kb (64KB page
+  size) on traditional (non-immutable) image. Host and guest are installed
+  via Agama from the same developing build, then switched from kernel-default
+  to kernel-64kb during installation (see data/virt_autotest/host_unattended_installation_files/agama/sle16.jsonnet
+  and data/virt_autotest/guest_unattended_installation_files/sles_16_plus_kvm_hvm_guest_64kb_non_encrypted_storage_aarch64.jsonnet).
+  Only developing host + developing guest is covered, no cross-version matrix.
+vars:
+  VIRT_AUTOTEST: 1
+  VIRT_UNIFIED_GUEST_INSTALL: 1
+  TRANSACTIONAL: 0
+  KERNEL_64KB_PAGE_SIZE: 1
+  SYSTEM_ROLE: kvm
+  HOST_HYPERVISOR: kvm
+  PATTERNS: default,kvm
+  INST_AUTO: virt_autotest/host_unattended_installation_files/agama/sle16.jsonnet
+  UNIFIED_GUEST_LIST: sles-16-1-traditional-64kb
+  UNIFIED_GUEST_PROFILES: sles_16_1_traditional_64kb_kvm_hvm_aarch64_agama_online_iso
+  MAX_JOB_TIME: 10800
+schedule:
+  - installation/ipxe_install
+  - installation/agama_reboot
+  - virt_autotest/login_console
+  - virt_autotest/prepare_non_transactional_server
+  - virt_autotest/unified_guest_installation
+  - virt_autotest/set_config_as_glue
+  - virt_autotest/verify_guest_kernel_64kb
