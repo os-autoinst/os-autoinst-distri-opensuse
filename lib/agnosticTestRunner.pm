@@ -66,9 +66,8 @@ sub setup {
     # SLE15 needs PackageHub for some packages (can be skipped per domain)
     add_suseconnect_product(get_addon_fullname('phub')) if !$self->{skip_phub} && is_sle('<16.0');
 
-    zypper_call 'in go gotestsum' if $self->{language} eq 'go';
-    zypper_call 'in python3-pytest' if $self->{language} eq 'python';
-    zypper_call 'in ' . latest_java_devel() if $self->{language} eq 'java';
+    my %dependencies = ( go => 'go gotestsum', python => 'python3-pytest', java => latest_java_devel() );
+    zypper_call "in $dependencies{$self->{language}";
 
     # Create lib directory and download shared helpers
     assert_script_run 'mkdir -p ' . $self->{test_dir} . '/../lib';
