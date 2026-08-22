@@ -1,0 +1,33 @@
+From a65402296b29aec13e8fd835702d999ec16e6cae Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 22 Aug 2026 22:50:15 +0200
+Subject: [PATCH] tests: isolate FromContextTest from ambient TLS env vars
+
+DOCKER_TLS_VERIFY/DOCKER_CERT_PATH leaking from the host running the
+tests (e.g. openQA) broke from_env()'s base_url scheme and caused
+TLSParameterError. Pop both in setUp alongside DOCKER_HOST, etc.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/unit/client_test.py | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/tests/unit/client_test.py b/tests/unit/client_test.py
+index e299e5906..ed7af11ad 100644
+--- a/tests/unit/client_test.py
++++ b/tests/unit/client_test.py
+@@ -269,9 +269,13 @@ class FromContextTest(unittest.TestCase):
+ 
+     def setUp(self):
+         self.os_environ = os.environ.copy()
+-        # Make sure DOCKER_HOST does not short-circuit the context path
++        # Make sure DOCKER_HOST does not short-circuit the context path,
++        # and that ambient DOCKER_TLS_VERIFY/DOCKER_CERT_PATH from the host
++        # running the tests don't leak into kwargs_from_env.
+         os.environ.pop('DOCKER_HOST', None)
+         os.environ.pop('DOCKER_CONTEXT', None)
++        os.environ.pop('DOCKER_CERT_PATH', None)
++        os.environ.pop('DOCKER_TLS_VERIFY', None)
+ 
+     def tearDown(self):
+         os.environ.clear()
