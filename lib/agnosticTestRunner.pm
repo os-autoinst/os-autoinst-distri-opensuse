@@ -70,8 +70,6 @@ sub setup {
     zypper_call 'in python3-pytest' if $self->{language} eq 'python';
     zypper_call 'in ' . latest_java_devel() if $self->{language} eq 'java';
 
-    assert_script_run 'mkdir -p ' . $self->{test_dir};
-
     # Create lib directory and download shared helpers
     assert_script_run 'mkdir -p ' . $self->{test_dir} . '/../lib';
     my $helper_url = data_url($self->{helper_path});
