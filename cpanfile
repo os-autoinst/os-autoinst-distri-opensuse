@@ -7,6 +7,7 @@
 
 requires 'Carp';
 requires 'Code::DRY';
+requires 'Code::TidyAll';
 requires 'Config::Tiny';
 requires 'Class::Accessor::Fast';
 requires 'Cwd';
@@ -32,6 +33,7 @@ requires 'Mojo::File';
 requires 'Mojo::JSON';
 requires 'Mojo::UserAgent';
 requires 'Mojo::Util';
+requires 'Module::CPANfile';
 requires 'NetAddr::IP';
 requires 'Net::IP';
 requires 'POSIX';
@@ -57,6 +59,8 @@ requires 'utf8';
 requires 'version';
 requires 'warnings';
 requires 'SemVer';
+requires 'Perl::Tidy', '== 20260204.0.0';
+requires 'Syntax::Keyword::Try';
 
 
 on 'test' => sub {
@@ -66,6 +70,7 @@ on 'test' => sub {
   requires 'Test::MockModule';
   requires 'Test::MockObject';
   requires 'Test::More', '0.88';
+  requires 'Test::Most';
   requires 'Test::Warnings';
   requires 'JSON::Validator';
 };
