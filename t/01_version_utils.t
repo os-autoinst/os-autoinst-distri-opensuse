@@ -31,6 +31,39 @@ subtest 'check_version' => sub {
     ok version_utils::check_version('>=10.4', '10.10-mariadb'), "check that poo#120918 doesn't happen";
 };
 
+subtest 'is_agama' => sub {
+    use version_utils 'is_agama';
+
+    ok !is_agama, "check !is_agama by default";
+
+    set_var('AGAMA', 1);
+    ok is_agama, "check is_agama with AGAMA=1";
+    set_var('AGAMA', undef);
+
+    set_var('INST_AUTO', 1);
+    ok is_agama, "check is_agama with INST_AUTO=1";
+    set_var('INST_AUTO', undef);
+
+    set_var('FLAVOR', 'agama');
+    ok is_agama, "check is_agama with FLAVOR=agama";
+
+    set_var('FLAVOR', 'agama-installer');
+    ok is_agama, "check is_agama with FLAVOR=agama-installer";
+
+    set_var('FLAVOR', 'online-installer');
+    ok !is_agama, "check !is_agama with FLAVOR=online-installer without opensuse";
+
+    set_var('DISTRI', 'opensuse');
+    ok is_agama, "check is_agama with FLAVOR=online-installer and DISTRI=opensuse";
+
+    set_var('FLAVOR', 'offline-install');
+    ok is_agama, "check is_agama with FLAVOR=offline-install and DISTRI=opensuse";
+
+    set_var('FLAVOR', 'Server-DVD');
+    ok !is_agama, "check !is_agama with FLAVOR=Server-DVD and DISTRI=opensuse";
+
+};
+
 subtest 'is_microos' => sub {
     use version_utils 'is_microos';
 
