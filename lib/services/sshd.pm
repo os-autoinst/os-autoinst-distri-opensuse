@@ -103,8 +103,8 @@ sub ssh_basic_check {
 
         # Check that we are really in the SSH session
         assert_script_run '[ -n "$SSH_TTY" ]';
-        assert_script_run 'grep  "$PPID (sshd-session)" /proc/$PPID/stat';
-        assert_script_run 'ps ux | grep sshd-session';
+        assert_script_run 'grep -E "$PPID \(sshd(-session)?\)" /proc/$PPID/stat';
+        assert_script_run "ps ux | grep -E '$ssh_testman.*sshd(-session)?'";
         assert_script_run "whoami | grep $ssh_testman";
         assert_script_run "mkdir .ssh";
 
