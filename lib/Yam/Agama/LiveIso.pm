@@ -20,7 +20,6 @@ use strict;
 use warnings;
 use v5.20;
 use feature qw(signatures);
-no warnings qw(experimental::signatures);
 use testapi;
 use Mojo::JSON qw(decode_json);
 use File::Temp qw(tempfile);
