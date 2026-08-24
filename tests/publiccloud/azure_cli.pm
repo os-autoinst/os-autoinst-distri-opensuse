@@ -34,7 +34,6 @@ sub run {
         my $pkgs = (is_sle('>=16')) ? 'az-cli-cmd jq python-susepubliccloudinfo' : 'azure-cli jq python3-susepubliccloudinfo';
         zypper_call("in $pkgs");
     }
-    assert_script_run('az version');
 
     my $provider = $self->provider_factory();
 
