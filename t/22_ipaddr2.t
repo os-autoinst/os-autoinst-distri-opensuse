@@ -369,7 +369,8 @@ subtest '[ipaddr2_os_sanity]' => sub {
             push @calls, ['bastion', $args{cmd}]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
-            push @calls, ["VM$args{id}", $args{cmd}]; });
+            push @calls, ["VM$args{id}", $args{cmd}];
+            return 0; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
             # return exactly what ipaddr2_os_ssh_sanity needs
@@ -404,7 +405,8 @@ subtest '[ipaddr2_os_sanity] root' => sub {
             push @calls, ['bastion', $args{cmd}]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
-            push @calls, ["VM$args{id}", $args{cmd}]; });
+            push @calls, ["VM$args{id}", $args{cmd}];
+            return 0; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
             # return exactly what ipaddr2_os_ssh_sanity needs
@@ -436,7 +438,8 @@ subtest '[ipaddr2_os_sanity] enable_dig' => sub {
             push @calls, ['bastion', $args{cmd}]; });
     $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
             my (%args) = @_;
-            push @calls, ["VM$args{id}", $args{cmd}]; });
+            push @calls, ["VM$args{id}", $args{cmd}];
+            return 0; });
     $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
             my (%args) = @_;
             # return exactly what ipaddr2_os_ssh_sanity needs
@@ -454,6 +457,41 @@ subtest '[ipaddr2_os_sanity] enable_dig' => sub {
     # extract just the command strings
     my @cmds = map { $_->[1] } @calls;
     ok((any { /dig/ } @cmds), 'dig command present when enable_dig is set');
+};
+
+subtest '[ipaddr2_os_sanity] Failure Scenarios' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $ipaddr2->redefine(ipaddr2_get_internal_vm_name => sub { return 'Galileo'; });
+    $ipaddr2->redefine(ipaddr2_bastion_pubip => sub { return 'Invalid_IP_Galileo'; });
+    my @calls;
+    $ipaddr2->redefine(script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(assert_script_run => sub {
+            push @calls, ['local', $_[0]]; });
+    $ipaddr2->redefine(ipaddr2_ssh_bastion_assert_script_run => sub {
+            my (%args) = @_;
+            push @calls, ['bastion', $args{cmd}]; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal_output => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}];
+            return "example.service" if ($args{cmd} =~ /failed/);
+            # return exactly what ipaddr2_os_ssh_sanity needs
+            return 3; });
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}];
+            return 1 if ($args{id} == 1);
+            return 0; });
+    throws_ok { ipaddr2_os_sanity(); } qr/Test died on VM 1/, 'Test die due to failed services';
+
+    $ipaddr2->redefine(ipaddr2_ssh_internal => sub {
+            my (%args) = @_;
+            push @calls, ["VM$args{id}", $args{cmd}];
+            return 0 if ($args{id} == 1);
+            return 3 if ($args{id} == 2);
+            return 0; });
+    throws_ok { ipaddr2_os_sanity(); } qr/VM 2 .* with exit code 3/, 'Unexpected non-zero exit code';
 };
 
 subtest '[ipaddr2_bastion_pubip]' => sub {
