@@ -87,8 +87,9 @@ sub do_partition_for_xfstests {
     unless ($para{amount}) {
         $para{amount} = 1;
     }
-    if ($para{fstype} =~ /btrfs/ && $para{amount} > 5) {
-        $para{amount} = 5;
+    # Btrfs SCRATCH_DEV up to 5. If amount exceeds 5, set it at 5.
+    if ($para{fstype} =~ /btrfs/) {
+        $para{amount} = 5 if $para{amount} > 5;
     }
     else {
         # Mandatory xfs and ext4 has only 1 SCRATCH_DEV
