@@ -18,7 +18,7 @@ use containers::bats;
 
 my $firewall_backend;
 my $version;
-my $port = 2375;
+my $port = 2376;
 
 sub setup {
     my $self = shift;
@@ -27,12 +27,7 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    # On SLES 15-SP4 & 15-SP5, dockerd fails with:
-    # invalid TLS configuration: failed to append certificates from PEM file: "/etc/docker/ca.pem"
-    my $tls = is_sle("<15-SP6") ? 0 : 1;
-    $port++ if $tls;
-
-    configure_docker(selinux => 1, tls => $tls);
+    configure_docker(selinux => 1, tls => 1);
 
     run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 

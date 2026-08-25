@@ -320,16 +320,6 @@ sub go_arch {
     return $arch;
 }
 
-sub install_git {
-    # We need git 2.47.0+ to use `--ours` with `git apply -3`
-    return if (script_run("test -f /etc/zypp/repos.d/Kernel_tools.repo") == 0);
-    my $version = get_var("VERSION");
-    $version =~ s/-/_/;
-    $version = "SLE_$version";
-    run_command "zypper addrepo https://download.opensuse.org/repositories/Kernel:/tools/$version/Kernel:tools.repo";
-    run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change git-core", timeout => 300;
-}
-
 sub install_gotestsum {
     # We need gotestsum to parse "go test" and create JUnit XML output
     return if (script_run("command -v gotestsum") == 0);
@@ -417,11 +407,9 @@ sub setup_pkgs {
     if ($oci_runtime && !grep { $_ eq $oci_runtime } @pkgs) {
         push @pkgs, $oci_runtime;
     }
-    push @pkgs, qw(jq xz);
+    push @pkgs, qw(git jq xz);
     @pkgs = uniq sort @pkgs;
-    push @pkgs, "git" unless is_sle("<16.0");
     run_command "zypper --gpg-auto-import-keys -n install --allow-vendor-change @pkgs", timeout => 1200;
-    install_git if is_sle("<16.0");
 
     configure_oci_runtime $oci_runtime;
 
