@@ -23,11 +23,20 @@ use bootloader_s390;
 use bootloader_zkvm;
 use bootloader_pvm;
 
+sub get_console_boot_params {
+    my $serial_dev = get_var('SERIALDEV') // 'ttyS0';
+    return "console=$serial_dev console=tty0";
+}
+
 sub prepare_boot_params {
     my @params = ();
 
     # add mandatory boot params
-    push @params, 'console=tty', 'console=' . (is_x86_64 ? 'ttyS0' : (is_ppc64le ? 'hvc0' : 'ttyAMA0'));
+    if (get_var('EXTRABOOTPARAMS', '') =~ /live\.net_config_tui=1/) {
+        push @params, get_console_boot_params();
+    } else {
+        push @params, 'console=tty', 'console=' . (is_x86_64 ? 'ttyS0' : (is_ppc64le ? 'hvc0' : 'ttyAMA0'));
+    }
     push @params, 'kernel.softlockup_panic=1';
     push @params, "live.password=$testapi::password";
 
@@ -77,6 +86,16 @@ sub prepare_boot_params {
     return @params;
 }
 
+sub validate_net_config_tui {
+    my $network_config = $testapi::distri->get_net_config_tui();
+
+    $network_config->expect_is_shown();
+    $network_config->open_edit();
+    $network_config->cancel_edit_and_exit();
+    $network_config->test_network();
+    $network_config->continue_boot();
+}
+
 sub run {
     my $self = shift;
 
@@ -115,6 +134,9 @@ sub run {
     $grub_entry_edition->boot();
 
     return if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
+
+    validate_net_config_tui if (get_var('EXTRABOOTPARAMS', '') =~ /live\.net_config_tui=1/);
+
     if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
         wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
         return;

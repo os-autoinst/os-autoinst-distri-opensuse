@@ -22,6 +22,7 @@ use Yam::Agama::Pom::EnterPassphraseBasePage;
 use Yam::Agama::Pom::EnterPassphraseForRootPage;
 use Yam::Agama::Pom::EnterPassphraseForSwapPage;
 use Yam::Agama::Pom::EnterPassphraseForHomePage;
+use Yam::Agama::Pom::NetConfigTUIPage;
 
 use Utils::Architectures;
 
@@ -72,6 +73,10 @@ sub get_enter_passphrase_for_home {
     return Yam::Agama::Pom::EnterPassphraseForHomePage->new({
             enter_passphrase_base => Yam::Agama::Pom::EnterPassphraseBasePage->new()
     });
+}
+
+sub get_net_config_tui {
+    return Yam::Agama::Pom::NetConfigTUIPage->new();
 }
 
 1;
