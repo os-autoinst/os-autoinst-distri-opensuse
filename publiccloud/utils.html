@@ -18,6 +18,8 @@
       <li><a href="#ssh_remove_suseconnect_product">ssh_remove_suseconnect_product</a></li>
       <li><a href="#get_credentials-get_credentials-url_suffix-some_csp.json-namespace-some_name-output_json-.-local_credentials.json">get_credentials get_credentials(url_suffix =&gt; &#39;some_csp.json&#39;[, namespace =&gt; &#39;some_name&#39;, output_json =&gt; &#39;./local_credentials.json&#39;])</a></li>
       <li><a href="#gcloud_install-gcloud_install-url-dir-timeout">gcloud_install gcloud_install($url, $dir, $timeout)</a></li>
+      <li><a href="#get_ssh_key_algo">get_ssh_key_algo</a></li>
+      <li><a href="#get_ssh_private_key_path">get_ssh_private_key_path</a></li>
       <li><a href="#ssh_update_transactional_system">ssh_update_transactional_system</a></li>
       <li><a href="#get_python_exec">get_python_exec</a></li>
       <li><a href="#create_script_file">create_script_file</a></li>
@@ -74,6 +76,22 @@
 <p>This function is used to install the gcloud CLI for the GKE Google Cloud.</p>
 
 <p>From $url we get the full package and install it in $dir local folder as a subdir of /root. Defaults are available for a simple call without parameters: gcloud_install()</p>
+
+<h2 id="get_ssh_key_algo">get_ssh_key_algo</h2>
+
+<pre><code>my $algo = get_ssh_key_algo();</code></pre>
+
+<p>Returns the SSH key algorithm used for public cloud testing.</p>
+
+<p>The openQA setting <b>PUBLIC_CLOUD_SSH_KEY_ALGO</b> overrides the default when set. Supported values are <code>rsa</code> or <code>ed25519</code>.</p>
+
+<p>The default is <code>ed25519</code> except for Azure and for <code>PUBLIC_CLOUD_LTP</code> runs where it is <code>rsa</code>.</p>
+
+<h2 id="get_ssh_private_key_path">get_ssh_private_key_path</h2>
+
+<pre><code>my $path = get_ssh_private_key_path();</code></pre>
+
+<p>Returns the path of the SSH private key used for public cloud testing.</p>
 
 <h2 id="ssh_update_transactional_system">ssh_update_transactional_system</h2>
 
