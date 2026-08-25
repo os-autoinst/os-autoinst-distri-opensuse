@@ -44,6 +44,10 @@ my $SCRATCH_FOLDER = '/opt/scratch';
 sub partition_amount_by_homesize {
     my $home_size = shift;
     $home_size = str_to_mb($home_size);
+
+    # Leave 100MB margin to prevent partition No space error
+    $home_size -= 100 if $home_size > 100;
+
     my %ret;
     if ($home_size && check_var('XFSTESTS', 'btrfs')) {
         # If enough space, then have 5 disks in SCRATCH_DEV_POOL, or have 2 disks in SCRATCH_DEV_POOL
