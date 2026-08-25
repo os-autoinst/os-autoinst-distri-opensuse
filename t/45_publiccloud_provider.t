@@ -85,6 +85,39 @@ subtest '[create_ssh_key] derives algorithm and generates when absent' => sub {
     $mod->redefine(script_run => sub { 0 });    # key file exists
     $provider->create_ssh_key();
     ok(!(grep { /ssh-keygen/ } @asr), 'does not regenerate existing key');
+
+    # rsa needs the PEM format for paramiko, ed25519 must not get -m pem
+    @asr = ();
+    $mod->redefine(script_run => sub { 1 });    # key file absent
+    publiccloud::provider->new(ssh_key => '~/.ssh/id_rsa')->create_ssh_key();
+    ok((grep { /ssh-keygen -t rsa .* -m pem / } @asr), 'rsa key is generated in PEM format');
+    ok(!(grep { /ssh-keygen -t ed25519 .*-m pem/ } @asr), 'ed25519 key is not forced to PEM');
+};
+
+subtest '[create_ssh_key] rejects a key path without a derivable algorithm' => sub {
+    my $provider = publiccloud::provider->new(ssh_key => '~/.ssh/some_key');
+    my $mod = Test::MockModule->new('publiccloud::provider', no_auto => 1);
+    $mod->noop('record_info');
+    $mod->redefine(script_run => sub { 1 });
+    $mod->redefine(assert_script_run => sub { 0 });
+
+    throws_ok { $provider->create_ssh_key() } qr/Cannot derive ssh key algorithm/,
+      'dies instead of running ssh-keygen with an empty algorithm';
+};
+
+subtest '[ssh_key] is resolved lazily from PUBLIC_CLOUD_SSH_KEY_ALGO' => sub {
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+
+    # The attribute must not be baked in at compile time, otherwise the job
+    # setting could never influence it.
+    set_var('PUBLIC_CLOUD_SSH_KEY_ALGO', 'rsa');
+    is(publiccloud::provider->new()->ssh_key, '~/.ssh/id_rsa', 'override honoured');
+
+    set_var('PUBLIC_CLOUD_SSH_KEY_ALGO', undef);
+    is(publiccloud::provider->new()->ssh_key, '~/.ssh/id_ed25519', 'default honoured');
+
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_SSH_KEY_ALGO/);
 };
 
 subtest '[terraform_apply] minimal happy path' => sub {

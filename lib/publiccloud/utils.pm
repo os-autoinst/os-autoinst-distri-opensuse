@@ -52,6 +52,7 @@ our @EXPORT = qw(
   register_addon
   register_addons_in_pc
   gcloud_install
+  get_ssh_key_algo
   get_ssh_private_key_path
   permit_root_login
   prepare_ssh_tunnel
@@ -376,9 +377,40 @@ sub gcloud_install {
     record_info('GCE', script_output('gcloud version'));
 }
 
-sub get_ssh_private_key_path {
+=head2 get_ssh_key_algo
+
+    my $algo = get_ssh_key_algo();
+
+Returns the SSH key algorithm used for public cloud testing.
+
+The openQA setting B<PUBLIC_CLOUD_SSH_KEY_ALGO> overrides the default when set.
+Supported values are C<rsa> or C<ed25519>.
+
+The default is C<ed25519> except for Azure and for C<PUBLIC_CLOUD_LTP>
+runs where it is C<rsa>.
+
+=cut
+
+sub get_ssh_key_algo {
+    my $algo = get_var('PUBLIC_CLOUD_SSH_KEY_ALGO');
+    if ($algo) {
+        die "Unsupported PUBLIC_CLOUD_SSH_KEY_ALGO" unless grep { $_ eq $algo } qw(rsa ed25519);
+        return $algo;
+    }
     # Paramiko needs to be updated for ed25519 https://stackoverflow.com/a/60791079
-    return (is_azure() || get_var('PUBLIC_CLOUD_LTP')) ? "~/.ssh/id_rsa" : '~/.ssh/id_ed25519';
+    return (is_azure() || get_var('PUBLIC_CLOUD_LTP')) ? 'rsa' : 'ed25519';
+}
+
+=head2 get_ssh_private_key_path
+
+    my $path = get_ssh_private_key_path();
+
+Returns the path of the SSH private key used for public cloud testing.
+
+=cut
+
+sub get_ssh_private_key_path {
+    return '~/.ssh/id_' . get_ssh_key_algo();
 }
 
 sub permit_root_login {

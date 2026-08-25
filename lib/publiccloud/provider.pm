@@ -39,7 +39,8 @@ has terraform_applied => 0;
 has resource_name => sub { get_var('PUBLIC_CLOUD_RESOURCE_NAME', 'openqa-vm') };
 has provider_client => undef;
 
-has ssh_key => get_ssh_private_key_path();
+# Use lazy evaluation otherwise unit tests will not work
+has ssh_key => sub { get_ssh_private_key_path() };
 
 my $runner = get_var('PUBLIC_CLOUD_TERRAFORM_RUNNER', 'tofu');
 unless ($runner eq 'terraform' || $runner eq 'tofu') {
@@ -134,8 +135,8 @@ Creates an ssh keypair in a given file path by $args{ssh_private_key_file}
 
 sub create_ssh_key {
     my ($self) = @_;
-    my $alg = $self->ssh_key;
-    $alg =~ s@[a-z0-9/-_~.]*id_@@;
+    my ($alg) = $self->ssh_key =~ m/id_([a-z0-9]+)$/;
+    die "Cannot derive ssh key algorithm from '" . $self->ssh_key . "'" unless $alg;
     record_info($alg, "The $alg key will be generated.");
     if (script_run('test -f ' . $self->ssh_key) != 0) {
         assert_script_run('SSH_DIR=`dirname ' . $self->ssh_key . '`; mkdir -p $SSH_DIR');
@@ -150,6 +151,7 @@ Creates ~/.ssh/config file with all the common ssh client settings
 =cut
 
 sub place_ssh_config {
+    my ($self) = @_;
     # configure ssh client
     # ssh will be configured by a ~/.ssh/config file, the config file come from a template.
     # By default the template is in publiccloud/ssh_config data directory.
@@ -157,7 +159,7 @@ sub place_ssh_config {
     # From now on all ssh calls will use this configuration file.
     my $ssh_config_url = data_url(get_var('PUBLIC_CLOUD_SSH_CONFIG', 'publiccloud/ssh_config'));
     assert_script_run("curl $ssh_config_url -o ~/.ssh/config");
-    file_content_replace("~/.ssh/config", "%SSH_KEY%" => get_ssh_private_key_path());
+    file_content_replace("~/.ssh/config", "%SSH_KEY%" => $self->ssh_key);
 }
 
 =head2 get_image_id

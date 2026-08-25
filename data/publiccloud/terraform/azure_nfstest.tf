@@ -61,8 +61,20 @@ variable "subnet_id" {
   default = ""
 }
 
+variable "ssh_key_algo" {
+  type        = string
+  default     = "rsa"
+  description = "SSH key algorithm"
+}
+
 variable "ssh_public_key" {
-  default = "/root/.ssh/id_rsa.pub"
+  type        = string
+  default     = ""
+  description = "Explicit path to the SSH public key. Overrides ssh_key_algo when non-empty."
+}
+
+locals {
+  ssh_public_key = var.ssh_public_key != "" ? var.ssh_public_key : "/root/.ssh/id_${var.ssh_key_algo}.pub"
 }
 
 
@@ -208,7 +220,7 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file("${var.ssh_public_key}")
+    public_key = file(local.ssh_public_key)
   }
 
   os_disk {
