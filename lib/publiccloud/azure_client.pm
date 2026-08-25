@@ -46,7 +46,9 @@ sub init {
         my $debug = "az-cli-debug.txt";
         script_run("PILOT_DEBUG=1 az %silent --help &> $debug");
         upload_logs($debug, failok => 1);
+        script_run("rpm -qi az-cli-cmd");
     }
+    record_info("az version", script_output("az version"));
 
     $self->az_login();
     assert_script_run("az account set --subscription \$ARM_SUBSCRIPTION_ID");

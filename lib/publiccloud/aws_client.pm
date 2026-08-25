@@ -48,10 +48,13 @@ sub init {
         my $debug = "aws-cli-debug.txt";
         script_run("PILOT_DEBUG=1 aws %silent --help &> $debug");
         upload_logs($debug, failok => 1);
+        script_run("rpm -qi aws-cli-cmd");
     }
 
     # Disable pager (see poo#133226 - EC2: WARNING: terminal is not fully functional)
     assert_script_run('export AWS_PAGER=""');
+
+    record_info("aws version", script_output("aws --version"));
 
     die('Credentials are invalid') unless ($self->_check_credentials());
 
