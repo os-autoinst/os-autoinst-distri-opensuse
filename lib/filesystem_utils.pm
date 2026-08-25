@@ -94,7 +94,7 @@ sub partition_num_by_start_end {
     my ($dev, $start, $end) = @_;
     my $output = parted_print(dev => $dev);
     my $match;
-    if ($output =~ /(\d+)\s+($start)MB\s+($end)MB\s+(\d+\.?\d*)MB/i) {
+    if ($output =~ /(\d+)\s+(\Q$start\E(?:\.\d*)?)MB\s+(\Q$end\E(?:\.\d*)?)MB\s+(\d+\.?\d*)MB/i) {
         $match = $1;
     }
     return $match;
