@@ -278,23 +278,20 @@ subtest '[additional_repos] xfs repo composition' => sub {
 };
 
 subtest '[register_addons_in_pc] discriminates the no-enabled-repos cause' => sub {
-    # poo#205965: EXIT_NO_REPOS used to be asserted as always meaning the
-    # closed/INVALID bsc#1245651. It has at least two distinct causes -
-    # never registered, or registered and repos dropped afterwards - so the
-    # code must name the actual one instead, and never mention that bug.
+    # poo#205965
     my $zypper = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
     my $utils = Test::MockModule->new('publiccloud::utils', no_auto => 1);
     $utils->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
     set_var('SCC_ADDONS', '');
 
+    my $output;
     my $mock_instance = sub {
-        my (%outputs) = @_;
         my $inst = Test::MockObject->new;
         $inst->mock(username => sub { 'susetest' });
         $inst->mock(public_ip => sub { '1.2.3.4' });
         $inst->mock(ssh_script_output => sub {
                 my (undef, %args) = @_;
-                return $args{cmd} =~ /SUSEConnect/ ? ($outputs{suseconnect} // '') : '';
+                return $args{cmd} =~ /SUSEConnect/ ? ($output // '') : '';
         });
         return $inst;
     };
@@ -303,13 +300,15 @@ subtest '[register_addons_in_pc] discriminates the no-enabled-repos cause' => su
     lives_ok { register_addons_in_pc($mock_instance->()) } 'EXIT_OK does not die';
 
     $zypper->redefine(pc_refresh => sub { return publiccloud::zypper::EXIT_NO_REPOS });
+    $output = "SLES15-SP6-x86_64 is not managed by SUSEConnect (Not Registered)\n";
     throws_ok {
-        register_addons_in_pc($mock_instance->(suseconnect => "SLES15-SP6-x86_64 is not managed by SUSEConnect (Not Registered)\n"));
+        register_addons_in_pc($mock_instance->());
     }
     qr/not registered/, 'unregistered system is named as the cause';
 
+    $output = "SUSE Linux Enterprise Server 15 SP6 x86_64 (Activated)\n";
     throws_ok {
-        register_addons_in_pc($mock_instance->(suseconnect => "SUSE Linux Enterprise Server 15 SP6 x86_64 (Activated)\n"));
+        register_addons_in_pc($mock_instance->());
     }
     qr/reports as registered/, 'registered system is named as the cause';
     unlike($@, qr/bsc#1245651/, 'no reference to the closed/INVALID bug remains');

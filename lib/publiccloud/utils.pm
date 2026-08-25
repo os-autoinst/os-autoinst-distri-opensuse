@@ -265,7 +265,7 @@ sub register_addons_in_pc {
         # "No enabled repositories" is a symptom with (at least) two causes:
         # the system was never registered, or it was registered and the
         # repos were dropped afterwards. Collect the evidence to tell them
-        # apart instead of asserting one of them - see poo#205965.
+        # apart.
         record_info('repos (lr)', $instance->ssh_script_output(
                 cmd => 'sudo zypper lr -u', proceed_on_failure => 1));
         my $reg = $instance->ssh_script_output(
