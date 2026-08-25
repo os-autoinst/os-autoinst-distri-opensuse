@@ -2,6 +2,7 @@ use strict;
 use warnings;
 use Test::More;
 use Test::MockModule;
+use Test::Exception;
 use Test::Warnings;
 use testapi 'set_var';
 
@@ -22,7 +23,7 @@ subtest '[export boundary] exported vs internal helpers' => sub {
     for my $exported (qw(
         is_byos is_ondemand is_ec2 is_ec2_xen is_azure is_gce
         is_container_host is_hardened is_cloudinit_supported
-        get_python_exec get_ssh_private_key_path pc_data_url
+        get_python_exec get_ssh_key_algo get_ssh_private_key_path pc_data_url
         additional_repos calculate_custodian_ttl
         )) {
         ok(__PACKAGE__->can($exported), "$exported is exported into caller");
@@ -199,6 +200,44 @@ subtest '[get_ssh_private_key_path] depends on provider/LTP' => sub {
     is(get_ssh_private_key_path(), '~/.ssh/id_rsa', 'LTP forces rsa');
 
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_LTP/);
+};
+
+subtest '[get_ssh_key_algo] PUBLIC_CLOUD_SSH_KEY_ALGO overrides the default' => sub {
+    set_var('PUBLIC_CLOUD', 1);
+
+    # Unset and empty behave alike: fall back to the provider/LTP default.
+    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+    set_var('PUBLIC_CLOUD_SSH_KEY_ALGO', undef);
+    is(get_ssh_key_algo(), 'ed25519', 'unset falls back to the default');
+    set_var('PUBLIC_CLOUD_SSH_KEY_ALGO', '');
+    is(get_ssh_key_algo(), 'ed25519', 'empty string falls back to the default');
+
+    # The override wins over the ed25519 default ...
+    set_var('PUBLIC_CLOUD_SSH_KEY_ALGO', 'rsa');
+    is(get_ssh_key_algo(), 'rsa', 'rsa override on a ed25519-by-default provider');
+    is(get_ssh_private_key_path(), '~/.ssh/id_rsa', 'key path follows the override');
+
+    # ... over the azure rsa default ...
+    set_var('PUBLIC_CLOUD_PROVIDER', 'AZURE');
+    set_var('PUBLIC_CLOUD_SSH_KEY_ALGO', 'ed25519');
+    is(get_ssh_key_algo(), 'ed25519', 'ed25519 override beats the azure rsa default');
+    is(get_ssh_private_key_path(), '~/.ssh/id_ed25519', 'key path follows the override');
+
+    # ... and over the LTP rsa default.
+    set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
+    set_var('PUBLIC_CLOUD_LTP', 1);
+    is(get_ssh_key_algo(), 'ed25519', 'ed25519 override beats the LTP rsa default');
+    _unset(qw/PUBLIC_CLOUD_LTP/);
+
+    # Anything else is a hard error: a silently wrong algorithm would only
+    # surface much later as an unexplained ssh timeout. The match is
+    # case-sensitive on purpose, so the setting has exactly one spelling.
+    for my $bogus (qw(dsa ecdsa id_rsa 1 ED25519 RSA Rsa)) {
+        set_var('PUBLIC_CLOUD_SSH_KEY_ALGO', $bogus);
+        throws_ok { get_ssh_key_algo() } qr/Unsupported PUBLIC_CLOUD_SSH_KEY_ALGO/, "'$bogus' is rejected";
+    }
+
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_LTP PUBLIC_CLOUD_SSH_KEY_ALGO/);
 };
 
 subtest '[pc_data_url] github/gitlab/gitea URL conversion' => sub {

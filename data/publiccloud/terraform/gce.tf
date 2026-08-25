@@ -28,7 +28,8 @@ data "external" "gce_cred" {
 }
 
 locals {
-  zone = "${var.region}-${var.availability_zone}"
+  zone           = "${var.region}-${var.availability_zone}"
+  ssh_public_key = var.ssh_public_key != "" ? var.ssh_public_key : "/root/.ssh/id_${var.ssh_key_algo}.pub"
 }
 
 variable "cred_file" {
@@ -105,8 +106,16 @@ variable "vm_create_timeout" {
   default = "20m"
 }
 
+variable "ssh_key_algo" {
+  type        = string
+  default     = "ed25519"
+  description = "SSH key algorithm"
+}
+
 variable "ssh_public_key" {
-  default = "/root/.ssh/id_ed25519.pub"
+  type        = string
+  default     = ""
+  description = "Explicit path to the SSH public key. Overrides ssh_key_algo when non-empty."
 }
 
 variable "stack_type" {
@@ -159,7 +168,7 @@ resource "google_compute_instance" "openqa" {
   }
 
   metadata = merge({
-    sshKeys             = "susetest:${file(var.ssh_public_key)}"
+    sshKeys             = "susetest:${file(local.ssh_public_key)}"
     openqa_created_by   = var.name
     openqa_created_date = timestamp()
     openqa_created_id   = element(random_id.service[*].hex, count.index)
