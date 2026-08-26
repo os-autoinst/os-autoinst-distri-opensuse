@@ -51,9 +51,7 @@ my @conflicting_packages = (
 
 push(@conflicting_packages, (
         'nv-prefer-signed-open-driver',
-        'nvidia-open-driver-G06-signed-64kb-devel',
-        'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
-        'nvidia-open-driver-G07-signed-64kb-devel',
+        qr/^nvidia-open-driver-G\d+-signed-(?:64kb-devel|cuda-kmp-64kb)$/,
 )) if is_aarch64;
 
 # We may need to skip installing some packages based on test requirements
@@ -132,7 +130,7 @@ sub run {
         print "Conflicting packages: @patch_conflicts\n";
 
         for my $pkg (@patch_conflicts) {
-            if (grep($pkg eq $_, @conflicting_packages)) {
+            if (grep { ref($_) eq 'Regexp' ? $pkg =~ $_ : $pkg eq $_ } @conflicting_packages) {
                 push(@single_conflicts, $pkg);
             }
         }
