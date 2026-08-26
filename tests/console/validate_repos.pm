@@ -11,11 +11,12 @@ use Mojo::Base 'consoletest';
 use testapi;
 use repo_tools 'validate_repo_properties';
 use scheduler 'get_test_suite_data';
+use utils 'select_backend_console';
 
 sub run {
     my $test_data = get_test_suite_data();
 
-    select_console 'root-console';
+    select_backend_console;
 
     my %expected_repos = map { $_->{alias} => 1 } @{$test_data->{repos}};
     my @actual_aliases = split(/\n/, script_output("zypper -n lr --uri | awk \'NR>4 && \$1 ~ /[0-9]/ {print \$3}\'"));

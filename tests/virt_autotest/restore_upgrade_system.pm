@@ -11,11 +11,12 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
-use virt_autotest::utils qw(select_backend_console reset_network_config);
+use virt_autotest::utils 'reset_network_config';
+use utils 'select_backend_console';
 
 sub run {
     # Login as root
-    select_backend_console(init => 0) if (!check_screen('text-logged-in-root'));
+    select_backend_console if (!check_screen('text-logged-in-root'));
     # Ensure automatic network configuration migration
     reset_network_config;
 }
