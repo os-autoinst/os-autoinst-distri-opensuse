@@ -2027,9 +2027,13 @@ Check whether kvm moduldes are successfully loaded on running system.
 =cut
 
 sub check_kvm_modules {
-    unless (script_run('lsmod | grep "^kvm\b"') == 0 or script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0) {
+    my $kvm_available = is_aarch64
+        ? (script_run('test -c /dev/kvm') == 0)
+        : (script_run('lsmod | grep "^kvm\b"') == 0
+            or script_run('lsmod | grep -e "^kvm_intel\b" -e "^kvm_amd\b"') == 0);
+    unless ($kvm_available) {
         save_screenshot;
-        die "KVM modules are not loaded!";
+        die "KVM is not available!";
     }
 
     # for modular libvirt, virtqemud is expected in "loaded: active or inactive" status.

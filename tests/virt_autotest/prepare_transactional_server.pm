@@ -18,6 +18,7 @@ use utils;
 use version_utils;
 use Utils::Systemd;
 use Utils::Backends qw(get_serial_console);
+use Utils::Architectures qw(is_aarch64);
 use ipmi_backend_utils;
 use virt_autotest::utils;
 use virt_autotest::virtual_network_utils;

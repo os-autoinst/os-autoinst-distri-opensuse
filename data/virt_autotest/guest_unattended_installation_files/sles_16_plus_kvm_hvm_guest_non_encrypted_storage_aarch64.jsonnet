@@ -1,3 +1,5 @@
+local kernel_64kb = "##Kernel-64kb##";
+
 {
   "localization": {
     "language": "en_US.UTF-8",
@@ -48,7 +50,7 @@
     ]
   },
   software: {
-    packages: ['openssh-server-config-rootlogin'],
+    packages: ['openssh-server-config-rootlogin'] + if kernel_64kb == '1' then ['kernel-64kb'] else [],
   },
   "network": {
     "connections": [
@@ -100,6 +102,16 @@
           echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-qe-virtualization-functional.conf
         |||
       }
-    ]
+    ] + if kernel_64kb == '1' then [{
+      name: "select_kernel_64kb",
+      chroot: true,
+      content: |||
+        #!/usr/bin/env bash
+        if rpm -q kernel-default >/dev/null 2>&1; then
+            zypper --non-interactive remove kernel-default
+        fi
+        grub2-mkconfig -o /boot/grub2/grub.cfg
+      |||
+    }] else []
   }
 }
