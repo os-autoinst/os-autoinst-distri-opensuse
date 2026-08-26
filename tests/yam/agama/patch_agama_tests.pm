@@ -17,7 +17,7 @@ sub run {
     script_run("mkdir -p $destination");
     assert_script_run("curl -sfL https://github.com/$repo/releases/download/$branch/$latest_commit_sha.tar.gz | tar -xz",
         fail_message => "Error: CI build artifact (tarball) for $repo/$branch is not available yet. The CI run may still be in progress.");
-    script_run("cp -t $destination dist/vendor.js dist/$agama_test* ");
+    script_run("cp dist/vendor.js dist/${agama_test}* $destination");
 }
 
 1;
