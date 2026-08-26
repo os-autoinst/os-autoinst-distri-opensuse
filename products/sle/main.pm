@@ -678,6 +678,7 @@ if (is_jeos) {
         return 1;
     } else {
         load_jeos_tests();
+        return 1 if (get_var('CONTAINER_VALIDATE_UPGRADE'));
     }
 }
 

@@ -652,7 +652,20 @@ sub load_jeos_tests {
         loadtest "jeos/efi_tid" if (get_var('UEFI') && is_sle('=12-sp5'));
     }
 
-    loadtest 'qa_automation/patch_and_reboot' if is_updates_tests;
+    if (is_updates_tests) {
+        if (get_var('CONTAINER_VALIDATE_UPGRADE')) {
+            my $run_args = OpenQA::Test::RunArgs->new();
+            $run_args->{phase} = "pre";
+            loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+        }
+        loadtest 'qa_automation/patch_and_reboot';
+        if (get_var('CONTAINER_VALIDATE_UPGRADE')) {
+            my $run_args = OpenQA::Test::RunArgs->new();
+            $run_args->{phase} = "post";
+            loadtest 'containers/upgrade', run_args => $run_args, name => "upgrade_" . $run_args->{phase};
+            return;
+        }
+    }
     replace_opensuse_repos_tests if is_repo_replacement_required;
     loadtest 'console/verify_efi_mok' if get_var 'CHECK_MOK_IMPORT';
     # zypper_ref needs to run on jeos-containers. the is_sle is required otherwise is scheduled twice on o3
