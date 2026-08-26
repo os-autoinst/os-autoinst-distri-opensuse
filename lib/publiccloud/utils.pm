@@ -265,7 +265,9 @@ sub register_addons_in_pc {
         # "No enabled repositories" is a symptom with (at least) two causes:
         # the system was never registered, or it was registered and the
         # repos were dropped afterwards. Collect the evidence to tell them
-        # apart.
+        # apart. Only the second case is bsc#1245651, which is closed but
+        # still reachable on images shipping cloud-regionsrv-client < 11.0.0,
+        # see poo#205101.
         record_info('repos (lr)', $instance->ssh_script_output(
                 cmd => 'sudo zypper lr -u', proceed_on_failure => 1));
         my $reg = $instance->ssh_script_output(
@@ -273,7 +275,7 @@ sub register_addons_in_pc {
         record_info('SUSEConnect -s', $reg);
         die 'No enabled repos: the system is not registered'
           if ($reg =~ /Not Registered/m || $reg !~ /\S/);
-        die 'No enabled repos although the system reports as registered';
+        die 'No enabled repos on registered system (bsc#1245651)';
     }
     die 'System management is locked by the application with pid xxx (/usr/bin/zypper)' if $ret == publiccloud::zypper::EXIT_LOCKED;
     for my $addon (@addons) {

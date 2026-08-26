@@ -305,13 +305,13 @@ subtest '[register_addons_in_pc] discriminates the no-enabled-repos cause' => su
         register_addons_in_pc($mock_instance->());
     }
     qr/not registered/, 'unregistered system is named as the cause';
+    unlike($@, qr/bsc#1245651/, 'the unregistered case does not claim to be bsc#1245651');
 
     $output = "SUSE Linux Enterprise Server 15 SP6 x86_64 (Activated)\n";
     throws_ok {
         register_addons_in_pc($mock_instance->());
     }
-    qr/reports as registered/, 'registered system is named as the cause';
-    unlike($@, qr/bsc#1245651/, 'no reference to the closed/INVALID bug remains');
+    qr/registered system \(bsc#1245651\)/, 'registered system is named as the cause';
 
     _unset(qw/SCC_ADDONS/);
 };
