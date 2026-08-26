@@ -11,6 +11,7 @@ use Mojo::Base 'opensusebasetest';
 use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
 use Utils::Logging 'upload_solvertestcase_logs';
+use utils 'select_backend_console';
 
 sub run {
     my $self = shift;
@@ -24,7 +25,7 @@ sub run {
         continue => qr/^Continue\? \[y/m,
     };
 
-    select_console 'root-console';
+    select_backend_console;
 
     # Register openSUSE Leap against SCC; Leap can not be registered against ProxySCC, it is not available on ProxySCC.
     assert_script_run("SUSEConnect -r " . get_var("SCC_REGCODE"), timeout => 60) if (get_var("ISO") =~ /Leap/);
@@ -49,7 +50,7 @@ sub run {
 
     wait_serial(qr/^$zypper_done/m, 900) || die "zypper migration completion was not found";
 
-    select_console('root-console', await_console => 0);
+    select_backend_console(wait => 0);
     power_action('reboot', textmode => 1);
     $self->wait_boot(textmode => 1, bootloader_time => 300);
 }

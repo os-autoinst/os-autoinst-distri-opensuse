@@ -12,7 +12,7 @@ use testapi;
 use utils;
 
 sub run {
-    select_console 'root-console';
+    select_backend_console;
     my $ip_address_show = script_output("ip address show");
     record_info("ip address show", $ip_address_show);
     my $connectivity = check_var('INST_COPY_NETWORK', '0') || check_var('OFFLINE_SUT', '1') ? 'none|unknown' : 'full';
