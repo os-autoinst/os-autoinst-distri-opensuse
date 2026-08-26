@@ -54,6 +54,7 @@ sub load_maintenance_publiccloud_tests {
         loadtest('publiccloud/metadata', run_args => $args);
         loadtest('publiccloud/cloud_netconfig', run_args => $args);
         loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
+        loadtest('publiccloud/aws_efs', run_args => $args) if (is_ec2());
     } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
         loadtest('publiccloud/ahb', run_args => $args);
     } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
@@ -158,6 +159,7 @@ sub load_latest_publiccloud_tests {
                 loadtest('publiccloud/metadata', run_args => $args);
                 loadtest('publiccloud/cloud_netconfig', run_args => $args);
                 loadtest('publiccloud/suspending', run_args => $args) if (is_sle('15-SP6+'));
+                loadtest('publiccloud/aws_efs', run_args => $args) if (is_ec2());
             } elsif (check_var('PUBLIC_CLOUD_AHB', 1)) {
                 loadtest('publiccloud/ahb', run_args => $args);
             } elsif (get_var('PUBLIC_CLOUD_NEW_INSTANCE_TYPE')) {
