@@ -1625,6 +1625,7 @@ sub config_guest_installation_media {
             else {
                 assert_script_run("curl -s -o $self->{guest_storage_backing_path} " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 3600);
             }
+            $self->convert_raw_backing_image(cluster_size => 65536) if (is_aarch64 && check_var('KERNEL_64KB', '1'));
         }
         else {
             record_info("Installation media $self->{guest_installation_media} does not exist", script_output("curl -I " . render_autoinst_url(url => $self->{guest_installation_media}), proceed_on_failure => 1), result => 'fail');
@@ -1632,6 +1633,35 @@ sub config_guest_installation_media {
         }
     }
     record_info("Guest $self->{guest_name} is going to use installation media $self->{guest_installation_media}", "Please check it out !");
+    return $self;
+}
+
+=head2 convert_raw_backing_image
+
+    convert_raw_backing_image($self, cluster_size => $cluster_size)
+
+Convert a raw guest backing image to qcow2 with the requested cluster size. The
+converted image is checked and the guest storage options are updated to use it.
+This subroutine returns without changes when the backing image format is not
+raw.
+
+=cut
+
+sub convert_raw_backing_image {
+    my ($self, %args) = @_;
+
+    return if ($self->{guest_storage_backing_format} ne 'raw');
+    croak('cluster_size must be a positive integer') unless (defined $args{cluster_size} && $args{cluster_size} =~ /^\d+$/ && $args{cluster_size} > 0);
+
+    my $_raw_path = $self->{guest_storage_backing_path};
+    my $_qcow_path = "$_raw_path-converted.qcow2";
+    my $_cluster_size = $args{cluster_size};
+    assert_script_run("qemu-img convert --force-share -f raw -O qcow2 -o cluster_size=$_cluster_size $_raw_path $_qcow_path", timeout => 3600);
+    assert_script_run("qemu-img check --force-share $_qcow_path", timeout => 600);
+    $self->{guest_storage_options} =~ s/\Qbacking_store=$_raw_path,backing_format=raw\E/backing_store=$_qcow_path,backing_format=qcow2/;
+    $self->{guest_storage_backing_path} = $_qcow_path;
+    $self->{guest_storage_backing_format} = 'qcow2';
+    record_info('QEMU raw backing image workaround', "bsc#1277435 - Converted raw backing image with ${_cluster_size}-byte clusters: $_raw_path -> $_qcow_path", result => 'softfail');
     return $self;
 }
 
@@ -2118,6 +2148,8 @@ sub config_guest_unattended_installation {
         assert_script_run("sed -ri \'s/##Device-MacAddr##/$self->{guest_macaddr}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Logging-HostName##/$_host_params{host_name}.$_host_params{host_domain_name}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Logging-HostPort##/514/g;\' $self->{guest_installation_automation_file}");
+        my $_kernel_64kb = check_var('KERNEL_64KB', '1') ? 1 : 0;
+        assert_script_run("sed -ri \'s/##Kernel-64kb##/$_kernel_64kb/g;\' $self->{guest_installation_automation_file}");
         $self->config_guest_installation_automation_registration;
         $self->validate_guest_installation_automation_file;
 
@@ -2921,8 +2953,8 @@ sub check_guest_installation_result_via_ssh {
     $self->get_guest_ipaddr if (is_agama_guest(guest => $self->{guest_name}) or is_tumbleweed or (($self->{guest_ipaddr_static} ne 'true') and (!($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im))));
     save_screenshot;
     if ($self->{guest_ipaddr} =~ /^\d+\.\d+\.\d+\.\d+$/im) {
-        $_ret = script_run("timeout --kill-after=3 --signal=9 30 " . $_host_params{ssh_command} . "\@$self->{guest_ipaddr} hostname", timeout => 60);
-        $_guest_transient_hostname_via_ipaddr = script_output("timeout --kill-after=3 --signal=9 30 " . $_host_params{ssh_command} . "\@$self->{guest_ipaddr} hostname", proceed_on_failure => 1);
+        $_ret = script_run("timeout --kill-after=3 --signal=9 30 " . $_host_params{ssh_command} . "\@$self->{guest_ipaddr} hostname -s", timeout => 60);
+        $_guest_transient_hostname_via_ipaddr = script_output("timeout --kill-after=3 --signal=9 30 " . $_host_params{ssh_command} . "\@$self->{guest_ipaddr} hostname -s", proceed_on_failure => 1);
         save_screenshot;
         if ($_guest_transient_hostname_via_ipaddr ne '' and $_ret == 0) {
             record_info("Guest $self->{guest_name} can be connected via ssh using ip $self->{guest_ipaddr} directly", "So far so good.");
