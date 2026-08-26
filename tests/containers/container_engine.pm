@@ -303,7 +303,7 @@ sub run {
 
     # Build an image from Dockerfile and run it
     my $base = (is_opensuse ? 'registry.opensuse.org/opensuse/bci/python:latest' : 'registry.suse.com/bci/python:latest');
-    build_and_run_image(runtime => $engine, dockerfile => 'Dockerfile.python3', base => $base);
+    build_and_run_image(runtime => $engine, base => $base);
 
     # Once more test the basic functionality
     runtime_smoke_tests(runtime => $engine);
