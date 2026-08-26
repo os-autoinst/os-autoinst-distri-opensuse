@@ -145,6 +145,8 @@ our @EXPORT = qw(
   show_all_disks
   render_scc_url
   query_installed_packages
+  is_textmode
+  select_backend_console
 );
 
 our @EXPORT_OK = qw(
@@ -3737,6 +3739,92 @@ sub query_installed_packages {
     my $ret = 0;
     $ret |= script_run("rpm -q $_") foreach (split(/,/, $args{packages}));
     return ($ret ? 0 : 1);
+}
+
+=head2 is_textmode
+
+  is_textmode()
+
+Check whether system runs in 'textmode' or not.
+=cut
+
+sub is_textmode {
+    return check_var('DESKTOP', 'textmode') || check_var('TEXTMODE', 1);
+}
+
+=head2 select_backend_console
+
+This subroutine aims to serve console selecting for different backends, including
+ipmi, qemu, pvm_hvm, svirt except s390x and s390 backends, and uses the most common
+values as default consoles. This can help eliminate the need to specify console and
+avoid if...else code block in test modules being shared across functions. In order
+to have universal functionality, some arguments are introduced to facilitate console
+selecting at different phases and for different purposes. If argument init is set,
+select the initial or initialization console to start, for example, sol console for
+ipmi, or powerhmc-ssh for pvm_hmc because test is at the very beginning phase, still
+booting up or just for reference purpose, for example, system bootup, already spilled
+login prompt, confirm the system state and etc, especially if system is ready (up
+and running) and init is also set, the initial and desired consoles will be selected
+in order (e.g. sol and root-ssh for ipmi). In the latter case, user can check both
+consoles in order after coming back from other tasks. User can also specify desired
+console or choose whether to wait for the selected console. 
+C<%args> have following keys to be defined:
+- C<console>: desired console to be selected or use backend default.
+- C<reset_times>: specifies the number of times (default to 1) reset_consoles to 
+                  be done.
+- C<init>: Whether select the initial or initialization console (default to 0).
+           By the way, some backends may not use it at all, for example, qemu
+           backend.
+- C<wait>: Whether wait for asserting the selected console (default to 1).
+- C<ready>: Whether system is alread up and running (default to 0).
+=cut
+
+sub select_backend_console {
+    my (%args) = @_;
+    $args{reset_times} //= 1;
+    $args{init} //= 0;
+    $args{wait} //= 1;
+    $args{ready} //= 0;
+
+    reset_consoles for (0 .. $args{reset_times} - 1);
+    if (is_ipmi) {
+        $args{console} //= ($args{init} ? 'sol' : 'root-ssh');
+        select_console($args{console}, await_console => $args{wait});
+        use_ssh_serial_console if ($args{init} and $args{ready});
+    }
+    elsif (is_qemu) {
+        $args{console} //= 'root-console';
+        console('x11')->set_tty(get_x11_console_tty);
+        console('root-console')->set_tty(get_root_console_tty);
+        reset_consoles;
+        select_console($args{console}, await_console => $args{wait});
+        ensure_serialdev_permissions;
+        serial_terminal::prepare_serial_console();
+    }
+    elsif (is_pvm_hmc) {
+        $args{console} //= ($args{init} ? 'powerhmc-ssh' : 'root-ssh');
+        select_console($args{console}, await_console => $args{wait});
+        select_console('root-ssh') if ($args{init} and $args{ready});
+    }
+    elsif (is_svirt_except_s390x) {
+        $args{console} //= (is_textmode ? 'svirt' : 'x11');
+        select_console($args{console}, await_console => $args{wait});
+        save_svirt_pty if (is_s390x and is_textmode);
+    }
+    elsif (is_backend_s390x) {
+        $args{console} //= ($args{init} ? 'x3270' : 'root-console');
+        if ($args{init}) {
+            console('installation')->disable_vnc_stalls;
+            return console($args{console});
+        }
+        else {
+            select_console($args{console}, await_console => $args{wait});
+        }
+    }
+    else {
+        $args{console} //= 'root-console';
+        select_console($args{console}, await_console => $args{wait});
+    }
 }
 
 1;

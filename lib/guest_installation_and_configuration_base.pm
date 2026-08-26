@@ -2764,7 +2764,7 @@ sub verify_guest_agama_installation_done {
         enter_cmd("exit");
         wait_still_screen(15);
         if (!check_screen('text-logged-in-root', timeout => 30)) {
-            select_backend_console(init => 0);
+            select_backend_console;
             $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
             type_string("reset\n");
             wait_still_screen;
@@ -2825,7 +2825,7 @@ sub save_guest_agama_installation_logs {
         enter_cmd("exit");
         wait_still_screen(15);
         if (!check_screen('text-logged-in-root', timeout => 30)) {
-            select_backend_console(init => 0);
+            select_backend_console;
             $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
             type_string("reset\n");
             wait_still_screen;
@@ -3214,7 +3214,7 @@ sub do_detach_guest_installation_screen {
     }
     else {
         record_info("Failed to detach $self->{guest_name} installation screen process $self->{guest_installation_session}", "Bad luck !");
-        select_backend_console(init => 0);
+        select_backend_console;
         $self->get_guest_installation_session if ($self->{guest_installation_session} eq '');
         type_string("reset\n");
         wait_still_screen;

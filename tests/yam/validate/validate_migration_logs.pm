@@ -8,10 +8,10 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use utils 'upload_folders';
+use utils qw(upload_folders select_backend_console);
 
 sub run {
-    select_console 'root-console';
+    select_backend_console;
 
     upload_logs("/var/log/distro_migration.log", failok => 1);
     script_run 'tar zcvf /tmp/cache_wicked_config.tar.gz /var/cache/wicked_config/*';
