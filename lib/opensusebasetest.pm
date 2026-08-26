@@ -22,7 +22,6 @@ use main_common 'opensuse_welcome_applicable';
 use isotovideo;
 use IO::Socket::INET;
 use x11utils qw(handle_login ensure_unlocked_desktop handle_additional_polkit_windows);
-use publiccloud::ssh_interactive 'select_host_console';
 use Utils::Logging qw(save_and_upload_log tar_and_upload_log export_healthcheck_basic select_log_console upload_coredumps export_logs);
 
 # Base class for all openSUSE tests
@@ -1076,14 +1075,6 @@ sub post_fail_hook {
     }
 
     export_logs;
-
-    if (is_public_cloud() && $self->{run_args}->{my_provider}) {
-        select_host_console(force => 1);
-
-        # Destroy the public cloud instance in case of fatal test failure
-        my $flags = $self->test_flags();
-        $self->{run_args}->{my_provider}->finalize() if ($flags->{fatal});
-    }
 }
 
 sub test_flags {
