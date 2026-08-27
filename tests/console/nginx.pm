@@ -23,6 +23,10 @@ sub run {
     services::nginx::check_function();
 }
 
+sub post_run_hook {
+    services::nginx::stop_service();
+}
+
 sub test_flags {
     return {fatal => 0};
 }

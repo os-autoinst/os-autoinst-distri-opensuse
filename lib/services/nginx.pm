@@ -78,6 +78,10 @@ sub enable_service {
     common_service_action 'nginx', $service_type, 'enable';
 }
 
+sub stop_service {
+    common_service_action 'nginx', $service_type, 'stop';
+}
+
 sub start_service {
     common_service_action('apache2', $service_type, 'stop') if (script_run("systemctl is-active apache2.service") == 0);
     common_service_action 'nginx', $service_type, 'start';
