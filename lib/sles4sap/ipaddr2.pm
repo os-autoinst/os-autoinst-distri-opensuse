@@ -882,9 +882,27 @@ sub ipaddr2_os_sanity(%args) {
     ipaddr2_os_ssh_sanity(user => $args{user}, bastion_ip => $args{bastion_ip});
 
     foreach (1 .. 2) {
-        ipaddr2_ssh_internal(id => $_,
+        my $ret = ipaddr2_ssh_internal(id => $_,
             cmd => 'sudo systemctl is-system-running',
-            bastion_ip => $args{bastion_ip});
+            bastion_ip => $args{bastion_ip},
+            no_assert => 1);
+
+        if (defined $ret && $ret == 0) {
+            next;
+        }
+        elsif (defined $ret && $ret == 1) {
+            # get the names of the failed services
+            my $failed_services = ipaddr2_ssh_internal_output(id => $_,
+                cmd => 'sudo systemctl --failed --no-pager',
+                bastion_ip => $args{bastion_ip});
+
+            # record the failed services for investigating
+            record_info('Error', "The Services failed on VM $_:\n$failed_services", result => 'fail');
+            die "Test died on VM $_ due to failed services.";
+        }
+        else {
+            die "VM $_ is not in a running state with exit code " . ($ret // 'undef');
+        }
     }
 
     ipaddr2_cloudinit_sanity(bastion_ip => $args{bastion_ip});
