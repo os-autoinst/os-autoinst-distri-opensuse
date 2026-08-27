@@ -27,6 +27,7 @@ sub run {
         augenrules => 'bsc#1250320 - augenrules.service fails at startup on Hardened Images',
         cleanoldsepoldir => 'bsc#1271814 - snapper is intentionally not installed on Public Cloud images',
         guestregister => 'bsc#1264275 - guestregister.service fails to register the instance against the update infrastructure',
+        aidecheck => 'bsc#1276228 - gcry_md_enable 3 failed in aidecheck.service',
     );
     $known_failing_services{guestregister} = 'Custom ignore of guestregister via openQA variable' if (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED'));
     my $failed_services_output = $instance->ssh_script_output(
