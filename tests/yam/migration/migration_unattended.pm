@@ -20,11 +20,16 @@ sub run {
 
     select_console('root-console');
 
-    # Add repo for devel:DMS when using proxy or rmt
-    if ((get_var('SCC_URL', "") =~ /proxy|rmt/)) {
+    # Only for products in development, not maintenance
+    # Online FLAVOR is the only one running migrations for products in development
+    my $is_devel_dms_required = sub {
+        return get_var('FLAVOR', '') eq 'Online';
+    };
+
+    if ($is_devel_dms_required->()) {
         my $repo_server = "https://download.opensuse.org/repositories/devel:/DMS/";
         my $repo_url = $repo_server . "SLE_" . (get_var('VERSION_UPGRADE_FROM') =~ s/-/_/gr);
-        zypper_call("ar --refresh -p 90 '$repo_url' Migration");
+        zypper_call("ar --refresh -p 90 '$repo_url' devel_DMS");
     }
 
     # install the migration image and active it
@@ -40,9 +45,8 @@ sub run {
         }
     }
 
-    # clean repos before migration
-    if ((get_var('SCC_URL', "") =~ /proxy|rmt/)) {
-        zypper_call("rr Migration");
+    if ($is_devel_dms_required->()) {
+        zypper_call("rr devel_DMS");
     }
     my $repo_num = script_output(q(zypper lr -u | awk -F '|' '/(cd|ftp):/ {printf $1}'));
     zypper_call("rr $repo_num") if $repo_num;
