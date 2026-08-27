@@ -22,14 +22,14 @@ sub run {
     unless (check_var('TESTED_CMD', 'install')) {
         # Wait for OS installer boot
         assert_screen('grub-unifiedcore_installer', timeout => 120);
-        wait_still_screen;
+        wait_still_screen(stilltime => 2);
     }
 
     # This ISO image does not install anything
     # It is just the basic container that should be used with 'customize' command
     if (check_var('TESTED_CMD', 'extract_iso')) {
         # Just validate that the OS boot, no more
-        assert_screen('elemental3-tty1-selected', timeout => 120);
+        $self->wait_boot_past_bootloader(ready_time => 120, textmode => 1, nologin => 1);
         wait_still_screen;
         record_info('ISO', 'ISO image booted!');
         return;
