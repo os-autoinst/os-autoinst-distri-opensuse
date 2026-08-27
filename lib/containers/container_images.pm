@@ -105,7 +105,7 @@ sub build_and_run_image {
     if ($no_label_started) {
         script_run("$runtime inspect myapp-no-label");
         script_run("$runtime port myapp-no-label");
-        my $no_label_reachable = script_run("for i in 1 2 3 4 5; do curl -v --connect-timeout 2 --max-time 5 http://127.0.0.1:8889/ && exit 0; sleep 1; done; exit 1") == 0;
+        my $no_label_reachable = script_run("rc=1; for i in 1 2 3 4 5; do curl -v --connect-timeout 2 --max-time 5 http://127.0.0.1:8889/ && { rc=0; break; }; sleep 1; done; test \$rc -eq 0", timeout => 40) == 0;
         record_info('SELinux result', $no_label_reachable ? 'Reachable' : 'Unreachable');
         script_run("$runtime logs myapp-no-label");
     }
@@ -118,7 +118,7 @@ sub build_and_run_image {
     if ($no_seccomp_started) {
         script_run("$runtime inspect myapp-no-seccomp");
         script_run("$runtime port myapp-no-seccomp");
-        my $no_seccomp_reachable = script_run("for i in 1 2 3 4 5; do curl -v --connect-timeout 2 --max-time 5 http://127.0.0.1:8890/ && exit 0; sleep 1; done; exit 1") == 0;
+        my $no_seccomp_reachable = script_run("rc=1; for i in 1 2 3 4 5; do curl -v --connect-timeout 2 --max-time 5 http://127.0.0.1:8890/ && { rc=0; break; }; sleep 1; done; test \$rc -eq 0", timeout => 40) == 0;
         record_info('Seccomp result', $no_seccomp_reachable ? 'Reachable' : 'Unreachable');
         script_run("$runtime logs myapp-no-seccomp");
     }
