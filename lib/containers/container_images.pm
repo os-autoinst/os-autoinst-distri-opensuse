@@ -83,6 +83,19 @@ sub build_and_run_image {
     validate_script_output_retry("$runtime ps -a", sub { m/myapp/ }, retry => 3, delay => 5, timeout => 300);
     assert_script_run("$runtime logs myapp");
 
+    # Keep these probes non-fatal so one run captures where connectivity stops.
+    record_info('Port diagnostics', 'Inspect container state and published ports');
+    script_run("$runtime inspect myapp");
+    script_run("$runtime port myapp");
+    script_run('curl -v --connect-timeout 5 --max-time 10 http://localhost:8888/');
+    script_run('curl -4 -v --connect-timeout 5 --max-time 10 http://127.0.0.1:8888/');
+    script_run("ip -6 addr show dev lo | grep -q 'inet6.*::1/' && curl -6 -v --connect-timeout 5 --max-time 10 'http://[::1]:8888/'");
+    my $network_format = $runtime->runtime eq 'podman' ? '.NetworkSettings.IPAddress' : '.NetworkSettings.Networks.bridge.IPAddress';
+    my $container_ip = script_output("$runtime inspect myapp --format='{{$network_format}}'", proceed_on_failure => 1);
+    record_info('Container IP', $container_ip || 'Unavailable');
+    script_run("curl -v --connect-timeout 5 --max-time 10 http://$container_ip:80/") if $container_ip;
+    script_run("$runtime logs myapp");
+
     # Test that the exported port is reachable
     validate_script_output_retry("curl -s http://localhost:8888/", sub { m/The test shall pass/ }, retry => 5, delay => 60, timeout => 300);
 
