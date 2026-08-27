@@ -94,6 +94,8 @@ sub build_and_run_image {
     my $container_ip = script_output("$runtime inspect myapp --format='{{$network_format}}'", proceed_on_failure => 1);
     record_info('Container IP', $container_ip || 'Unavailable');
     script_run("curl -v --connect-timeout 5 --max-time 10 http://$container_ip:80/") if $container_ip;
+    my $container_pid = script_output("$runtime inspect myapp --format='{{.State.Pid}}'", proceed_on_failure => 1);
+    script_run("nsenter -t $container_pid -n curl -v --connect-timeout 5 --max-time 10 http://127.0.0.1:80/") if $container_pid =~ /^\d+$/ && $container_pid > 0;
     script_run("$runtime logs myapp");
 
     # Test that the exported port is reachable
