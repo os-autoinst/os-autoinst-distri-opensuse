@@ -2654,7 +2654,7 @@ sub set_sles16_mu_virt_vars {
     set_var('SLES16_MU_INSTALL_TYPE', $install_type);
 
     set_var('ENABLE_HOST_INSTALLATION', '1') unless get_var('ENABLE_HOST_INSTALLATION');
-    set_var('ENABLE_VM_INSTALL', '1') unless get_var('ENABLE_VM_INSTALL');
+    set_var('ENABLE_VM_INSTALL', '1') unless (check_var('ENABLE_VM_INSTALL', 0));
 
     diag("SLES16 MU variables configured: test_mode=staging, install_type=$install_type, host_install=" .
           get_var('ENABLE_HOST_INSTALLATION') . ", vm_install=" . get_var('ENABLE_VM_INSTALL'));
