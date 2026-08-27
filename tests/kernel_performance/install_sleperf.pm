@@ -29,7 +29,7 @@ sub install_pkg {
         $deploy = '16.1';
     }
     assert_script_run("curl $repo >>sleperf_deploy.sh");
-    assert_script_run("sh sleperf_deploy.sh -t sles$deploy");
+    assert_script_run("sh sleperf_deploy.sh -t sles$deploy | tee -a /root/sleperf_deploy.log ");
 
 }
 
