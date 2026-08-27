@@ -79,7 +79,12 @@ sub build_and_run_image {
 
     # Test that we can execute programs in the container and test container's variables
     assert_script_run("$runtime run --rm --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
-    assert_script_run("$runtime run -d --name myapp -p 8888:80 myapp");
+    my $security_opt = '';
+    if (is_sle_micro('<6.0')) {
+        record_soft_failure('bsc#1277097 - SELinux container labeling prevents HTTP processing on SLE Micro 5.x');
+        $security_opt = '--security-opt label=disable';
+    }
+    assert_script_run("$runtime run -d --name myapp $security_opt -p 8888:80 myapp");
     validate_script_output_retry("$runtime ps -a", sub { m/myapp/ }, retry => 3, delay => 5, timeout => 300);
     assert_script_run("$runtime logs myapp");
 
