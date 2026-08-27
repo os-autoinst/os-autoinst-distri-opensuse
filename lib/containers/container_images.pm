@@ -79,50 +79,14 @@ sub build_and_run_image {
 
     # Test that we can execute programs in the container and test container's variables
     assert_script_run("$runtime run --rm --entrypoint 'printenv' myapp WORLD_VAR | grep Arda");
-    assert_script_run("$runtime run -d --name myapp -p 8888:80 myapp");
+    my $security_opt = '';
+    if (is_sle_micro('>=5.0') && is_sle_micro('<6.0')) {
+        record_soft_failure('bsc#1277097 - SELinux container labeling prevents HTTP processing on SLE Micro 5.x');
+        $security_opt = ' --security-opt label=disable';
+    }
+    assert_script_run("$runtime run -d --name myapp$security_opt -p 8888:80 myapp");
     validate_script_output_retry("$runtime ps -a", sub { m/myapp/ }, retry => 3, delay => 5, timeout => 300);
     assert_script_run("$runtime logs myapp");
-
-    # Keep these probes non-fatal so one run captures where connectivity stops.
-    record_info('Port diagnostics', 'Inspect container state and published ports');
-    script_run("$runtime inspect myapp");
-    script_run("$runtime port myapp");
-    script_run('curl -v --connect-timeout 5 --max-time 10 http://localhost:8888/');
-    script_run('curl -4 -v --connect-timeout 5 --max-time 10 http://127.0.0.1:8888/');
-    script_run("ip -6 addr show dev lo | grep -q 'inet6.*::1/' && curl -6 -v --connect-timeout 5 --max-time 10 'http://[::1]:8888/'");
-    my $network_format = $runtime->runtime eq 'podman' ? '.NetworkSettings.IPAddress' : '.NetworkSettings.Networks.bridge.IPAddress';
-    my $container_ip = script_output("$runtime inspect myapp --format='{{$network_format}}'", proceed_on_failure => 1);
-    record_info('Container IP', $container_ip || 'Unavailable');
-    script_run("curl -v --connect-timeout 5 --max-time 10 http://$container_ip:80/") if $container_ip;
-    my $container_pid = script_output("$runtime inspect myapp --format='{{.State.Pid}}'", proceed_on_failure => 1);
-    script_run("nsenter -t $container_pid -n curl -v --connect-timeout 5 --max-time 10 http://127.0.0.1:80/") if $container_pid =~ /^\d+$/ && $container_pid > 0;
-    script_run("$runtime logs myapp");
-
-    record_info('SELinux diagnostic', 'Run without SELinux container labeling');
-    script_run("$runtime rm -f myapp-no-label");
-    my $no_label_started = script_run("$runtime run -d --name myapp-no-label --security-opt label=disable -p 127.0.0.1:8889:80 myapp") == 0;
-    record_info('SELinux launch', $no_label_started ? 'Started' : 'Failed');
-    if ($no_label_started) {
-        script_run("$runtime inspect myapp-no-label");
-        script_run("$runtime port myapp-no-label");
-        my $no_label_reachable = script_run("rc=1; for i in 1 2 3 4 5; do curl -v --connect-timeout 2 --max-time 5 http://127.0.0.1:8889/ && { rc=0; break; }; sleep 1; done; test \$rc -eq 0", timeout => 40) == 0;
-        record_info('SELinux result', $no_label_reachable ? 'Reachable' : 'Unreachable');
-        script_run("$runtime logs myapp-no-label");
-    }
-    script_run("$runtime rm -f myapp-no-label");
-
-    record_info('Seccomp diagnostic', 'Run without the container seccomp profile');
-    script_run("$runtime rm -f myapp-no-seccomp");
-    my $no_seccomp_started = script_run("$runtime run -d --name myapp-no-seccomp --security-opt seccomp=unconfined -p 127.0.0.1:8890:80 myapp") == 0;
-    record_info('Seccomp launch', $no_seccomp_started ? 'Started' : 'Failed');
-    if ($no_seccomp_started) {
-        script_run("$runtime inspect myapp-no-seccomp");
-        script_run("$runtime port myapp-no-seccomp");
-        my $no_seccomp_reachable = script_run("rc=1; for i in 1 2 3 4 5; do curl -v --connect-timeout 2 --max-time 5 http://127.0.0.1:8890/ && { rc=0; break; }; sleep 1; done; test \$rc -eq 0", timeout => 40) == 0;
-        record_info('Seccomp result', $no_seccomp_reachable ? 'Reachable' : 'Unreachable');
-        script_run("$runtime logs myapp-no-seccomp");
-    }
-    script_run("$runtime rm -f myapp-no-seccomp");
 
     # Test that the exported port is reachable
     validate_script_output_retry("curl -s http://localhost:8888/", sub { m/The test shall pass/ }, retry => 5, delay => 60, timeout => 300);
