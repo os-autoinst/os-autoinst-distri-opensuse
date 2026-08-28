@@ -41,12 +41,10 @@ use utils qw(write_sut_file);
 use package_utils;
 use bootloader_setup qw(add_grub_cmdline_settings grub_mkconfig);
 use power_action_utils 'power_action';
+use virt_autotest::sev_snp_utils qw(SNP_HOST_TOOLS SNP_GUEST_TOOLS);
 
 # Define constants for SNP verification
 use constant {
-    # ucode-amd provides CPU microcode required by snphost ok verification
-    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'ucode-amd'],
-    SNP_GUEST_TOOLS => ['snpguest'],
     SNP_MIN_KERNEL_VER => '5.19.0',
 
     # Log directory for collecting all test artifacts
