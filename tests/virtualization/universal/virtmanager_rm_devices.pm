@@ -62,7 +62,7 @@ sub run_test {
             close_guest();
         }
     }
-    wait_screen_change { send_key 'ctrl-q'; };
+    quit_virtmanager();
 
     # Workaround to return guests to initial sate, related to bsc#1221917
     shutdown_guests();

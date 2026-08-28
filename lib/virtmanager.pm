@@ -7,7 +7,7 @@ use version_utils 'is_sle';
 our @ISA = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
   create_new_volume create_netinterface delete_netinterface create_guest powercycle
-  detect_login_screen select_guest close_guest establish_connection);
+  detect_login_screen select_guest close_guest establish_connection quit_virtmanager);
 
 
 sub launch_virtmanager {
@@ -677,6 +677,13 @@ sub close_guest {
     assert_and_click 'virt-manager_file';
     mouse_set(1023, 0);
     assert_and_click 'virt-manager_close';
+}
+
+# Quit virt-manager and wait for the console to be usable again
+# A bare wait_screen_change returns too early, the next command loses its first characters
+sub quit_virtmanager {
+    wait_screen_change { send_key 'ctrl-q'; };
+    wait_still_screen(stilltime => 3, timeout => 60);
 }
 
 sub powercycle {
