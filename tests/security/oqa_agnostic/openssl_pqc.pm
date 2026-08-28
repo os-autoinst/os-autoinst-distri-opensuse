@@ -9,7 +9,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use security::agnosticTestRunner;
+use agnosticTestRunner;
 use version_utils 'is_sle';
 use package_utils 'install_package';
 
@@ -21,9 +21,10 @@ sub run {
     }
     install_package("openssl", trup_continue => 1);
     record_info('openssl version:', script_output('rpm -q openssl'));
-    my $test = security::agnosticTestRunner->new({
+    my $test = agnosticTestRunner->new({
             language => 'python',
             name => 'testPostQuantumCrypto',
+            domain => 'security',
         }
     );
     if (is_sle('=15-SP7')) {

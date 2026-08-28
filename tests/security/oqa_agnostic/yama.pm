@@ -9,7 +9,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use security::agnosticTestRunner;
+use agnosticTestRunner;
 use package_utils 'install_package';
 use power_action_utils 'power_action';
 
@@ -33,9 +33,10 @@ sub run {
     power_action('reboot', textmode => 1);
     $self->wait_boot;
     select_serial_terminal;
-    my $test = security::agnosticTestRunner->new({
+    my $test = agnosticTestRunner->new({
             language => 'python',
             name => 'yama',
+            domain => 'security',
         }
     );
 

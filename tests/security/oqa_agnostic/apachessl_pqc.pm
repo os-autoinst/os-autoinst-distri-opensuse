@@ -9,7 +9,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use security::agnosticTestRunner;
+use agnosticTestRunner;
 use version_utils 'is_sle';
 use utils 'zypper_call';
 use Utils::Architectures 'is_s390x';
@@ -48,9 +48,10 @@ sub run {
     assert_script_run "curl -s -o $test_dir/pqc-ssl.conf $data_url/pqc-ssl.conf";
 
     # run test
-    my $test = security::agnosticTestRunner->new({
+    my $test = agnosticTestRunner->new({
             language => 'python',
             name => 'testApacheSSLPQC',
+            domain => 'security',
             files => 'runtest apache_pqc_ssl_test.py'
         }
     );
