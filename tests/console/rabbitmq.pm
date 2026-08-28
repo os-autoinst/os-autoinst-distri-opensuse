@@ -45,6 +45,7 @@ sub run {
         systemctl 'start rabbitmq-server';
         systemctl 'status rabbitmq-server';
         record_info('Send/receive message: "Hello World!"');
+        script_run('cd /root/rabbitmq');
         script_run('go run send.go', timeout => 120);
         enter_cmd('timeout 2 go run receive.go');
         wait_serial(".*Received.*Hello World.*") || die 'Failed to receive message';
