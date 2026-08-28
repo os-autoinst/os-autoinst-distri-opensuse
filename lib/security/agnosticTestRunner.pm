@@ -17,19 +17,12 @@ use version_utils 'is_sle';
 sub new {
     my ($class, $args) = @_;
 
-    # Handle case where $args is a string (from openQA loader)
-    if (!ref($args)) {
-        $args = {name => $args};
-    }
-
-    # check mandatory attributes or bail out
+    die "Constructor requires a hashref" unless ref($args) eq 'HASH';
     die "Attribute 'name' is mandatory" unless defined $args->{name};
     die "Attribute 'language' is mandatory" unless defined $args->{language};
+    die "Unsupported language '$args->{language}'. Supported: go, python, java"
+      unless $args->{language} =~ /^(go|python|java)$/;
 
-    # check language support validity
-    die "Unsupported language '$args->{language}'. Supported languages are 'go', 'python' and 'java'" unless $args->{language} =~ /^(go|python|java)$/;
-
-    # Default values for attributes
     $args->{test_dir} //= '~/' . $args->{name};
     $args->{result_format} //= $args->{language} eq 'java' ? 'TAP' : 'XUnit';
     $args->{result_file} //= '/tmp/' . lc($args->{name}) . ($args->{language} eq 'java' ? '_results.tap' : '_results.xml');
@@ -51,37 +44,28 @@ sub setup {
     my ($self) = @_;
     my $url = data_url($self->{data_url_path});
 
-    # SLE15 needs phub for that packages
     add_suseconnect_product(get_addon_fullname('phub')) if is_sle('<16.0');
 
-    zypper_call 'in go gotestsum' if $self->{language} eq 'go';
-    zypper_call 'in python3-pytest' if $self->{language} eq 'python';
-    zypper_call 'in ' . latest_java_devel() if $self->{language} eq 'java';
+    my %lang_deps = (go => 'go gotestsum', python => 'python3-pytest');
+    my $packages = $self->{language} eq 'java' ? latest_java_devel() : $lang_deps{$self->{language}};
+    zypper_call "in $packages";
 
-    assert_script_run 'mkdir -p ' . $self->{test_dir};
-
-    # Create lib directory and download shared helpers
-    assert_script_run 'mkdir -p ' . $self->{test_dir} . '/../lib';
+    # Create test_dir and sibling lib/ for shared helpers in one shot
+    my $test_dir = $self->{test_dir};
+    assert_script_run "mkdir -p $test_dir/../lib";
     my $helper_url = data_url('security/openqa_agnostic/lib/helper.sh');
-    assert_script_run 'curl -s -o ' . $self->{test_dir} . '/../lib/helper.sh ' . $helper_url;
+    assert_script_run "curl -s -o $test_dir/../lib/helper.sh $helper_url";
 
-    # Download the main run script first
+    # Download and discover test files via runtest -f
     my $run_script = $self->{run_command};
-    assert_script_run 'cd ' . $self->{test_dir} . ' && curl -s -O ' . "$url/$run_script";
-    assert_script_run 'chmod +x ' . $self->{test_dir} . '/' . $run_script;
+    assert_script_run "curl -s -o $test_dir/$run_script $url/$run_script";
+    assert_script_run "chmod +x $test_dir/$run_script";
 
-    # Execute the run script with -f to get the list of files to download
-    # We use script_output to capture the list
-    my $file_list_output = script_output('cd ' . $self->{test_dir} . ' && ./' . $run_script . ' -f');
-
-    # Trim whitespace
+    my $file_list_output = script_output("cd $test_dir && ./$run_script -f");
     $file_list_output =~ s/^\s+|\s+$//g;
-
     if ($file_list_output) {
         my @files = split(/\s+/, $file_list_output);
-        if (@files) {
-            assert_script_run 'cd ' . $self->{test_dir} . ' && curl -s ' . join(' ', map { "-O $url/$_" } @files);
-        }
+        assert_script_run "cd $test_dir && curl -s " . join(' ', map { "-O $url/$_" } @files) if @files;
     }
 
     return $self;
@@ -108,7 +92,10 @@ sub parse_results {
 
 sub cleanup {
     my ($self) = @_;
-    assert_script_run('rm -rf ' . $self->{test_dir});
+    # Return to home before removing test_dir, otherwise the shell's
+    # cwd points to a deleted directory and subsequent commands fail
+    # with "getcwd: cannot access parent directories".
+    assert_script_run 'cd ~ && rm -rf ' . $self->{test_dir};
     return $self;
 }
 
