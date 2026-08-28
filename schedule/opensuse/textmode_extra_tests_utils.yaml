@@ -90,3 +90,4 @@ schedule:
     - console/systemd_rpm_macros
     - console/journalctl
     - console/tar
+    - console/sevenzip

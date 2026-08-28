@@ -109,6 +109,7 @@ schedule:
     - console/osinfo_db
     - console/journalctl
     - console/tar
+    - console/sevenzip
     - console/ruby
     - console/coredump_collect
     - console/valgrind
