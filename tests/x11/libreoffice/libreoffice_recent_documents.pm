@@ -46,7 +46,7 @@ sub run {
     wait_still_screen(2);
     assert_screen [qw(oowriter-menus-file oowriter)];
     if (match_has_tag 'oowriter') {
-        record_soft_failure('workaround for boo#1156745');
+        record_info('workaround for boo#1156745');
         assert_and_click('ooffice-writing-file', timeout => 10);
         assert_screen 'oowriter-menus-file';
     }
