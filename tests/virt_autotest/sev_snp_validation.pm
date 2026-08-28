@@ -38,17 +38,12 @@ use virt_autotest::utils qw(guest_is_sle wait_guest_online is_guest_online execu
 use version_utils qw(is_sle package_version_cmp);
 use Utils::Architectures;
 use utils qw(write_sut_file);
-use package_utils;
 use bootloader_setup qw(add_grub_cmdline_settings grub_mkconfig);
 use power_action_utils 'power_action';
 
 # Define constants for SNP verification
 use constant {
-    # ucode-amd provides CPU microcode required by snphost ok verification
-    SNP_HOST_TOOLS => ['snphost', 'sevctl', 'ucode-amd'],
-    SNP_GUEST_TOOLS => ['snpguest'],
     SNP_MIN_KERNEL_VER => '5.19.0',
-
     # Log directory for collecting all test artifacts
     LOG_DIR => '/tmp/sev_snp_test_logs'
 };
@@ -163,25 +158,6 @@ sub check_sev_snp_on_host {
 
     # Activate Confidential Computing module if needed
     $self->activate_coco_module();
-
-    # Install packages before kernel parameter configuration so the reboot also loads new microcode
-    # (configure_sev_snp_kernel_parameters triggers a reboot when parameters are missing)
-    record_info('Installing SNP packages', "Installing SEV-SNP packages: " . join(', ', @{+SNP_HOST_TOOLS}));
-    install_package(join(' ', @{+SNP_HOST_TOOLS}));
-
-    # Simple verification of package installation - check first package in list
-    my $primary_package = SNP_HOST_TOOLS->[0];    # snphost for both SLE15 and SLE16
-    my $pkg_found = script_run("rpm -q $primary_package") == 0;
-    if (!$pkg_found) {
-        record_info('Package Installation Failed', "Failed to install primary SEV-SNP package: $primary_package", result => 'fail');
-        die "SEV-SNP verification requires SEV-SNP packages to be installed. Test cannot continue.";
-    } else {
-        # Record installed package versions for debugging
-        my $installed_pkgs_info = script_output("rpm -q " . join(' ', @{+SNP_HOST_TOOLS}) . " 2>/dev/null || echo 'Some packages not found'", proceed_on_failure => 1);
-        record_info('Installed SEV-SNP Packages', $installed_pkgs_info);
-    }
-
-    validate_script_output("zypper if snphost", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if check_var("UPDATE_PACKAGE", "snphost");
 
     # Configure SEV-SNP kernel parameters (reboots if needed, also loads newly installed ucode-amd)
     $self->configure_sev_snp_kernel_parameters();
@@ -533,18 +509,6 @@ sub check_sev_snp_on_guest {
         # Wait for guest to be online before further checks
         wait_guest_online($guest_name, 50, 1);
 
-        # Install required packages on guest
-        record_info('Package Installation', "Installing required SEV-SNP packages on guest $guest_name");
-        if (!$self->install_snp_packages_on_guest(guest_name => $guest_name, packages => +SNP_GUEST_TOOLS)) {
-            record_info("Package Install Warning", "Some packages could not be installed on guest $guest_name. Proceeding with verification anyway.", result => 'softfail');
-        }
-
-        # Verify at least one package installed successfully
-        if (!$self->verify_any_snp_package_installed(required_pkgs => +SNP_GUEST_TOOLS, dst_machine => $guest_name)) {
-            record_info('Package Verification Failed', "No required SEV-SNP packages are installed on guest $guest_name", result => 'fail');
-            die "SEV-SNP verification requires at least one SEV-SNP package to be installed on the guest. Test cannot continue.";
-        }
-
         # Verify attestation report
         $self->verify_guest_attestation(guest_name => $guest_name);
     }
@@ -769,110 +733,8 @@ EOL
     return 1;
 }
 
-#############################################
-#  SECTION 4: PACKAGE VERIFICATION FUNCTIONS #
-#############################################
-
-=head2 verify_any_snp_package_installed
-
-  verify_any_snp_package_installed($self, required_pkgs => ['pkg1', 'pkg2'], [dst_machine => 'machine'])
-
-Verifies that at least one of the required SEV-SNP packages is installed on the system.
-Returns true if at least one package is installed, false otherwise.
-
-This function:
-1. Takes a list of required packages to check
-2. Optionally checks on a remote machine via SSH (specify dst_machine parameter)
-3. Returns true if at least one package is installed, false otherwise
-
-Note: This is a specialized function for SEV-SNP verification. For general package 
-checking on the local system, use the more general is_package_installed function
-from hacluster.pm or package_utils module.
-
-=cut
-
-sub verify_any_snp_package_installed {
-    my ($self, %args) = @_;
-    $args{required_pkgs} //= [];
-    $args{dst_machine} //= 'localhost';
-
-    my $is_local = ($args{dst_machine} eq 'localhost');
-    my $location = $is_local ? "host" : "guest $args{dst_machine}";
-
-    record_info("Verifying packages", "Checking for at least one installed package on $location: " . join(', ', @{$args{required_pkgs}}));
-
-    foreach my $pkg (@{$args{required_pkgs}}) {
-        my $ret;
-
-        if ($is_local) {
-            # Check package locally using rpm command
-            $ret = script_run("rpm -q $pkg");
-        } else {
-            # For remote machines, use SSH
-            $ret = execute_over_ssh(
-                address => $args{dst_machine},
-                command => "rpm -q $pkg",
-                assert => 0
-            );
-        }
-
-        # If package is installed, return true immediately
-        if ($ret == 0) {
-            record_info("Package found", "Package $pkg is installed on $location", result => 'ok');
-            return 1;
-        }
-    }
-
-    # If we get here, none of the packages were installed
-    record_info('No packages found', "None of the required packages are installed on $location", result => 'fail');
-    return 0;
-}
-
-=head2 install_snp_packages_on_guest
-
-  install_snp_packages_on_guest($self, guest_name => 'name', packages => ['pkg1', 'pkg2'])
-
-Install the necessary SEV-SNP packages on a guest machine.
-This function uses SSH to install packages on the remote guest.
-Returns 1 for success, 0 for failure.
-
-=cut
-
-sub install_snp_packages_on_guest {
-    my ($self, %args) = @_;
-    $args{guest_name} //= '';
-    $args{packages} //= [];
-
-    die 'Guest name must be provided for remote package installation' if ($args{guest_name} eq '');
-    die 'Package list must be provided for installation' if (!@{$args{packages}});
-
-    my $guest_name = $args{guest_name};
-    my $package_list = join(' ', @{$args{packages}});
-
-    record_info("Installing Packages", "Installing packages on guest $guest_name: $package_list");
-
-    # Use execute_over_ssh with better error handling and longer timeout for package installation
-    my $install_result = execute_over_ssh(
-        address => $guest_name,
-        command => "zypper --non-interactive in $package_list",
-        assert => 0,
-        timeout => 180    # Increased timeout for package installation
-    );
-    save_screenshot;
-
-    validate_script_output("ssh root\@$guest_name zypper if snpguest", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if check_var("UPDATE_PACKAGE", "snpguest");
-
-    if ($install_result != 0) {
-        record_info('Installation Failed', "Failed to install packages on guest $guest_name: $package_list", result => 'softfail');
-        return 0;
-    }
-
-    record_info('Installation Attempted', "Attempted to install all required packages on guest $guest_name");
-    return 1;
-}
-
 ##############################################
-#  SECTION 5: ATTESTATION VERIFICATION FUNCTIONS #
+#  SECTION 4: ATTESTATION VERIFICATION FUNCTIONS #
 ##############################################
 
 =head2 verify_guest_attestation
@@ -1080,7 +942,7 @@ sub _cleanup_attestation_dir {
 }
 
 ###########################################
-#  SECTION 6: LOG COLLECTION FUNCTIONS   #
+#  SECTION 5: LOG COLLECTION FUNCTIONS   #
 ###########################################
 
 =head2 upload_all_logs
