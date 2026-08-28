@@ -32,6 +32,21 @@ use serial_terminal 'select_serial_terminal';
 use scheduler 'get_test_suite_data';
 use repo_tools 'add_qa_head_repo';
 
+# postgres's initdb bootstrap makes tens of thousands of instrumented
+# function calls; under full eBPF tracing that consistently costs ~90s of
+# CPU time even though postgresql.service itself starts up fine, which on
+# slower/shared CI hardware exceeds systemd's default TimeoutStartSec and
+# fails the unit before postgres ever gets a chance to finish.
+# See https://github.com/ilmanzo/BinaryCoverage/issues/152
+#
+# Returns true on success, false (without dying) on failure, so this
+# best-effort enhancement can't abort the rest of coverage setup.
+sub raise_postgres_start_timeout {
+    return 0 if script_run('mkdir -p /etc/systemd/system/postgresql.service.d') != 0;
+    write_sut_file('/etc/systemd/system/postgresql.service.d/coverage_timeout.conf', "[Service]\nTimeoutStartSec=150\n");
+    return script_run('systemctl daemon-reload') == 0;
+}
+
 sub run {
     select_serial_terminal;
     # enable debug repos
@@ -81,6 +96,8 @@ sub run {
         my @pkg_bins = ref($targets) eq 'ARRAY' ? @$targets : ($targets);
         push @binaries, @pkg_bins;
     }
+    # keep a copy before the destructive splice loop below empties @binaries
+    my @all_binaries = @binaries;
     for (@{$test_data->{helper_packages} // []}) {
         push @packages, $_;
     }
@@ -130,6 +147,15 @@ sub run {
         }
     }
     record_info('shim summary', "$failures of " . scalar(@bin_chunks) . " batches had failures") if $failures;
+
+    if (grep { /\/postgres$/ } @all_binaries) {
+        if (raise_postgres_start_timeout()) {
+            record_info('postgres timeout', 'Raised postgresql.service TimeoutStartSec to 150s to cover coverage instrumentation overhead (issue #152)');
+        }
+        else {
+            record_info('postgres timeout', 'Failed to raise postgresql.service TimeoutStartSec', result => 'softfail');
+        }
+    }
 }
 
 sub test_flags {
