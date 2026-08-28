@@ -251,7 +251,12 @@ sub post_fail_hook {
     script_run("cp -r /etc/sysconfig/network/scripts > /var/log/etc_sysconfig_network_scripts");
     script_run("cp -r /etc/NetworkManager/system-connections > /var/log/etc_networkmanager_system_connections");
     script_run("iptables -L -n -v > /var/log/iptables_rules");
-    virt_utils::collect_host_and_guest_logs("", "/var/log", "/root /var/log", "_verify_virtualization");
+    virt_utils::collect_host_and_guest_logs(
+        extra_guest_log => get_var('EXTRA_GUEST_LOG', '/root /var/log'),
+        full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1),
+        excluded_supportconfig_features => get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX'),
+        token => '_verify_virtualization'
+    );
     save_screenshot;
     upload_coredumps;
     save_screenshot;
