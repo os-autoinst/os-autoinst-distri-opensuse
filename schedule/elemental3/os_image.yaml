@@ -1,3 +1,4 @@
+# See in tests/ for file '- elemental3/README.md' for some informations
 name: os_image
 description: |
   - Test boot of Elemental OS image

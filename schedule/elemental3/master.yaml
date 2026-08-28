@@ -1,3 +1,4 @@
+# See in tests/ for file '- elemental3/README.md' for some informations
 name: master
 description: |
   - Run distros-test-framework K8s tests
