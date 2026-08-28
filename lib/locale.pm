@@ -38,15 +38,8 @@ sub verify_default_keymap_textmode {
         select_console($tty{console});
     }
     else {
-        if ((is_sle('=15-SP6') || is_sle('=15-SP7')) && check_var('DESKTOP', 'gnome')) {
-            # Switching to tty1 is broken, use tty3 as workaround
-            record_soft_failure 'bsc#1274029 - plymouth blocks switch to tty1';
-            send_key('alt-f3');
-        } else {
-            # Check tty1, which is the initial console set up by kernel and initrd
-            send_key('alt-f1');
-        }
-
+        # Check tty1, which is the initial console set up by kernel and initrd
+        send_key('alt-f1');
         # remote backends can not provide a "not logged in console" so we use
         # a cleared remote terminal instead
         assert_screen(has_ttys() ? 'linux-login' : 'cleared-console');
