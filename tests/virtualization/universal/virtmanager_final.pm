@@ -30,7 +30,7 @@ sub run_test {
         close_guest();
     }
 
-    wait_screen_change { send_key 'ctrl-q'; };
+    quit_virtmanager();
 }
 
 1;
