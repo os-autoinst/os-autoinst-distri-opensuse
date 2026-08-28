@@ -20,17 +20,27 @@ sub run {
     select_console('root-console');
     my $pkg = get_var("UPDATE_PACKAGE");
 
-    # Verify the host has the correct MU pkg installed
-    validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if ($pkg);
+    # Verify the MU pkg is from TEST repository and up-to-date wherever it is installed:
+    # some packages live only on the host (e.g. qemu, snphost), others only on guests (e.g. snpguest).
+    # Earlier modules (patch_and_reboot, patch_guests, sev_snp_prepare_packages) are expected to have installed it.
+    if ($pkg) {
+        my $validated = 0;
+        if (script_run("rpm -q $pkg") == 0) {
+            validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
+            record_info("Package Validated on host", "$pkg validated on host: from TEST repository and up-to-date");
+            $validated++;
+        }
 
-    # For kernel updates, verify MU pkg is installed on compatible guests
-    my @guests = keys %virt_autotest::common::guests;
-
-    foreach my $guest (@guests) {
-        if ($pkg eq "kernel-default" && is_guest_of_host_version($guest)) {
+        foreach my $guest (keys %virt_autotest::common::guests) {
+            # Only guests running the same OS version as the host get the TEST repositories,
+            # and host-only packages (e.g. snphost) are not installed on guests at all
+            my $pkg_on_guest = is_guest_of_host_version($guest) && script_run("ssh root\@$guest rpm -q $pkg") == 0;
+            next unless $pkg_on_guest;
             validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
             record_info("Package Validated on $guest", "$pkg validated on $guest: from TEST repository and up-to-date");
+            $validated++;
         }
+        die "$pkg is not installed on the host nor on any compatible guest" unless $validated;
     }
     if (check_var('PATCH_WITH_ZYPPER', '1')) {
         assert_script_run("dmesg --level=emerg,crit,alert,err -tx |sort |comm -23 - /tmp/dmesg_err_before.txt > /tmp/dmesg_err.txt");
