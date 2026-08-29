@@ -6,6 +6,7 @@
             "selections": [
                 {
                     "caseName": [
+                        "verify_drm_driver",
                         "verify_connection_status",
                         "verify_no_error_output",
                         "verify_dri_node",
