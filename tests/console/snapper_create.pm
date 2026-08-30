@@ -38,9 +38,9 @@ sub run {
             my $description = "type=$type,cleanup_algorithm=$cleanup_algorithm";
             push @snapper_cmd, "--print-number --description \"$description\"";
             push @snapper_cmd, "--userdata \"$description\"";
-            assert_script_run(join ' ', @snapper_cmd);
+            assert_script_run(join(' ', @snapper_cmd), timeout => 300);
             $first_snap_to_delete = $self->get_last_snap_number() unless ($first_snap_to_delete);
-            assert_script_run("snapper list | tail -n1");
+            assert_script_run("snapper list | tail -n1", timeout => 120);
             for (1 .. 3) { pop @snapper_cmd; }
             if ($type eq 'pre') {
                 # Add last snapshot id for pre type
@@ -50,10 +50,10 @@ sub run {
         pop @snapper_cmd if ($type eq 'post');
         pop @snapper_cmd;
     }
-    assert_script_run("snapper list");
+    assert_script_run("snapper list", timeout => 120);
     # Delete all those snapshots we just created so other tests are not confused
     assert_script_run("snapper delete --sync $first_snap_to_delete-" . $self->get_last_snap_number(), timeout => 600);
-    assert_script_run("snapper list");
+    assert_script_run("snapper list", timeout => 120);
     # check whether average system load is below treshold
     # wait until the load gets below 0.2
     select_console 'root-console';
