@@ -26,7 +26,6 @@ use Data::Dumper;
 use version_utils;
 use Utils::Architectures qw(is_aarch64);
 
-my $kirk_virtualenv = 'kirk-virtualenv';
 our $root_dir = '/root';
 our $ltp_timeout = get_var('LTP_TIMEOUT', 12600);
 
@@ -241,15 +240,24 @@ sub prepare_kirk {
     my $kirk_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/kirk.git");
     my $kirk_branch = get_var("LTP_RUN_NG_BRANCH", "master");
     record_info('LTP RUNNER REPO', "Repo: " . $kirk_repo . "\nBranch: " . $kirk_branch);
-    script_retry("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo", retry => 5, delay => 60, timeout => 300);
     $instance->ssh_assert_script_run(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->ssh_script_output(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
-    assert_script_run("cd kirk");
-    my $ghash = script_output("git rev-parse HEAD", proceed_on_failure => 1);
+
+    # uv is normally already baked into the PC Tools image (see
+    # tests/publiccloud/prepare_tools.pm), but install it here too so this
+    # module keeps working against older images (poo#205596).
+    install_uv();
+
+    # tail picks the peeled commit of an annotated tag, LTP_RUN_NG_BRANCH is often one
+    my $ghash = script_output("git ls-remote $kirk_repo $kirk_branch | cut -f1 | tail -n1", proceed_on_failure => 1);
+    $ghash = $kirk_branch unless $ghash =~ /^[0-9a-f]{40}$/;
     set_var("LTP_RUN_NG_GIT_HASH", $ghash);
     record_info("KIRK_GIT_HASH", "$ghash");
-    my $venv = install_in_venv($kirk_virtualenv, pip_packages => "asyncssh msgpack");
-    venv_activate($venv);
+
+    # Install kirk straight from git as a uv tool, matching its declared ssh/ltx
+    # extras (asyncssh, msgpack), instead of a pip virtualenv.
+    assert_script_run("env UV_TOOL_BIN_DIR=/usr/local/bin UV_PYTHON_DOWNLOADS=never uv tool install --python "
+          . get_python_exec() . " 'kirk[ssh,ltx] \@ git+$kirk_repo\@$ghash'", timeout => 600);
 }
 
 sub printk_loglevel {
@@ -279,8 +287,7 @@ sub prepare_ltp_cmd {
         $env_prefix = join(' ', @vars) . ' ';
     }
 
-    my $python_exec = get_python_exec();
-    my $cmd = "$env_prefix$python_exec kirk";
+    my $cmd = "${env_prefix}kirk";
     $cmd .= " --verbose";
     $cmd .= " --exec-timeout=$exec_timeout";
     $cmd .= " --suite-timeout=$ltp_timeout";
