@@ -148,13 +148,17 @@ sub run {
     }
     record_info('shim summary', "$failures of " . scalar(@bin_chunks) . " batches had failures") if $failures;
 
-    if (grep { /\/postgres$/ } @all_binaries) {
-        if (raise_postgres_start_timeout()) {
-            record_info('postgres timeout', 'Raised postgresql.service TimeoutStartSec to 150s to cover coverage instrumentation overhead (issue #152)');
-        }
-        else {
-            record_info('postgres timeout', 'Failed to raise postgresql.service TimeoutStartSec', result => 'softfail');
-        }
+    # For shimmed daemons with Type=notify, the shim sits between systemd
+    # and the real binary, so sd_notify never reaches systemd and service
+    # start times out. Create a drop-in override to use Type=simple.
+    # See https://github.com/ilmanzo/BinaryCoverage/issues/143
+    for my $svc (@{$test_data->{notify_override} // []}) {
+        assert_script_run "mkdir -p /etc/systemd/system/${svc}.d";
+        assert_script_run "printf '[Service]\\nType=simple\\nNotifyAccess=none\\nExecStartPost=/bin/sleep 10\\n' > /etc/systemd/system/${svc}.d/coverage.conf";
+    }
+    if (@{$test_data->{notify_override} // []}) {
+        assert_script_run 'systemctl daemon-reload';
+        record_info('notify override', join(', ', @{$test_data->{notify_override}}));
     }
 }
 
