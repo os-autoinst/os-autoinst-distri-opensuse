@@ -35,4 +35,8 @@ sub run {
     record_info("TEST LOG", script_output("cat $tcpdump_log_file"));
     validate_script_output("cat $tcpdump_log_file", sub { m/0 packets dropped by kernel/ });
 }
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;
