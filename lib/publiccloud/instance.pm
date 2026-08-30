@@ -425,14 +425,21 @@ sub scan_ssh_host_key {
       ? "/home/$testapi::username/.ssh/known_hosts"
       : "";
 
-    script_retry("ssh-keyscan $self->{public_ip} | tee -a ~/.ssh/known_hosts $user_known_hosts", retry => 6, delay => 10);
+    # ssh-keyscan exits 0 even when it retrieves nothing, and 'tee' masks its status anyway, so
+    # a still-booting instance silently leaves known_hosts empty. 'grep -q .' makes the pipeline
+    # fail so script_retry retries it. '-T 20' raises ssh-keyscan's 5s connect timeout, still
+    # well inside the 30s script_retry timeout.
+    script_retry("ssh-keyscan -T 20 $self->{public_ip} | tee -a ~/.ssh/known_hosts $user_known_hosts | grep -q .",
+        retry => 6, delay => 10, fail_message => "ssh-keyscan did not return a host key for $self->{public_ip} after retries");
 }
 
 sub wait_for_ssh {
     my ($self, %args) = @_;
     $self->wait_for_ssh_reachable(%args);
-    $self->scan_ssh_host_key(%args) if $args{scan_ssh_host_key};
+    # wait_for_ssh_login relaxes host key checking, so it can loop until sshd is really serving.
+    # Scanning only after it returns means ssh-keyscan talks to a ready sshd instead of racing it.
     $self->wait_for_ssh_login(%args);
+    $self->scan_ssh_host_key(%args) if $args{scan_ssh_host_key};
 }
 
 sub wait_for_ssh_reachable {
@@ -554,7 +561,8 @@ sub wait_for_sudo {
 
     ## ControlPath=none is required: the public cloud ssh config keeps a persistent ControlMaster and
     ## group membership is resolved at login, so a master opened before the sudoers group was added
-    ## would never see it
+    ## would never see it. That forces a fresh connection, which verifies the host key for real, so
+    ## scan_ssh_host_key must have recorded one by now.
     my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none';
     $self->ssh_script_retry('sudo -n true', ssh_opts => $ssh_opts, retry => $retry, delay => $delay, fail_message => "sudo still requires a password after $timeout seconds");
 }
