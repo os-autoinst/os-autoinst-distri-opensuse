@@ -234,7 +234,19 @@ sub verify_ssh_proxy_connection {
         my $hosts = $args{inventory_data}->{$instance_type}{hosts};
         for my $hostname (keys %$hosts) {
             # run simple 'hostname' command on each host
-            my $hostname_output = script_output("ssh $hostname hostname", quiet => 1);
+            my $max_retries = 10;
+            my $hostname_output = '';
+            for my $attempt (1 .. $max_retries) {
+                $hostname_output = script_output("ssh $hostname hostname", timeout => 15, quiet => 1, proceed_on_failure => 1);
+                last if defined $hostname_output && $hostname_output ne '';
+
+                if ($attempt < $max_retries) {
+                    my $delay = 30;
+                    record_info('SSH Retry', "Failed to connect to $hostname. Retrying ($attempt/$max_retries) in ${delay}s...");
+                    sleep $delay;
+                }
+            }
+
             die "Hostname returned does not match target host.\nExpected: $hostname\nGot: $hostname_output"
               unless $hostname_output =~ $hostname;
             record_info('SSH check', "SSH proxy connection to $hostname: OK");
