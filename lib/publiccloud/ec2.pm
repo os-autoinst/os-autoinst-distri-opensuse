@@ -380,8 +380,7 @@ sub _download_ec2_cloudwatch_logs {
     my ($self, $instance) = @_;
 
     my $instance_id = $instance->instance_id;
-
-    $self->_disable_and_stop_ec2_cloudwatch_agent($instance);
+    my @downloaded_entries;
 
     for my $entry (@$EC2_CW_LOGS) {
 
@@ -416,9 +415,23 @@ sub _download_ec2_cloudwatch_logs {
 
         upload_logs($log_filename);
 
+        push @downloaded_entries, $entry;
+    }
+
+    return \@downloaded_entries;
+}
+
+# Delete the CloudWatch log streams for $entries (as returned by
+# _download_ec2_cloudwatch_logs), so only streams known to exist are deleted.
+sub _delete_ec2_cloudwatch_logs {
+    my ($self, $instance, $entries) = @_;
+
+    my $log_stream = $instance->instance_id;
+
+    for my $entry (@$entries) {
         assert_script_run(
             "aws logs delete-log-stream " .
-              "--log-group-name '$log_group' " .
+              "--log-group-name '$entry->{log_group}' " .
               "--log-stream-name '$log_stream'"
         );
     }
@@ -572,16 +585,32 @@ sub initialize_logging {
     my ($self, $instance) = @_;
     $self->upload_boot_diagnostics(log_name => "console-beginning");
     record_info('Logging', 'Initializing logging for EC2 instance');
-    my $err = $self->_install_ec2_cloudwatch_agent($instance);
-    if ($err) {
-        record_soft_failure("poo#205539 - CloudWatch agent setup failed: $err");
-    }
 }
 
 sub finalize_logging {
     my ($self, $instance) = @_;
     $self->upload_boot_diagnostics(log_name => "console-end");
     record_info('Logging', 'Finalizing logging for EC2 instance');
-    $self->_download_ec2_cloudwatch_logs($instance);
+}
+
+# Install & start the EC2 CloudWatch agent. Called from run_ltp's run(),
+# after check_cloudinit has already waited for cloud-init to finish, so it
+# can't race it for the zypper lock (poo#205539).
+sub setup_cloudwatch_agent {
+    my ($self, $instance) = @_;
+    my $err = $self->_install_ec2_cloudwatch_agent($instance);
+    if ($err) {
+        record_soft_failure("poo#205539 - CloudWatch agent setup failed: $err");
+    }
+}
+
+# Stop the CloudWatch agent, download the EC2 CloudWatch logs, then delete
+# the log streams. Counterpart of setup_cloudwatch_agent, called from
+# run_ltp's cleanup().
+sub teardown_cloudwatch_agent {
+    my ($self, $instance) = @_;
+    $self->_disable_and_stop_ec2_cloudwatch_agent($instance);
+    my $entries = $self->_download_ec2_cloudwatch_logs($instance);
+    $self->_delete_ec2_cloudwatch_logs($instance, $entries);
 }
 1;
