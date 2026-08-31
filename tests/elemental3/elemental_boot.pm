@@ -18,27 +18,33 @@ sub run {
     # Set default root password
     $testapi::password = get_required_var('TEST_PASSWORD');
 
-    # 'install' command directly install the OS image without the installer step
-    unless (check_var('TESTED_CMD', 'install')) {
-        # Wait for OS installer boot
-        assert_screen('grub-unifiedcore_installer', timeout => 120);
-        wait_still_screen(stilltime => 2);
-    }
-
-    # This ISO image does not install anything
-    # It is just the basic container that should be used with 'customize' command
     if (check_var('TESTED_CMD', 'extract_iso')) {
-        # Just validate that the OS boot, no more
+        # This ISO image does not install anything, it is just the basic container
+        # that should be used with 'customize' command, validating the OS boot is enough
         $self->wait_boot_past_bootloader(ready_time => 120, textmode => 1, nologin => 1);
         wait_still_screen;
         record_info('ISO', 'ISO image booted!');
         return;
-    }
+    } elsif (check_var('TESTED_CMD', 'install')) {
+        # 'install' command directly installed the OS image previously without
+        # the installer step
+        $self->wait_boot(bootloader_time => bmwqemu::scale_timeout(300), textmode => 1, nologin => 1);
+        wait_still_screen;
+    } else {
+        # Wait for OS installer boot
+        assert_screen('grub-unifiedcore_installer', timeout => 120);
+        wait_still_screen();
 
-    # OS installation is done automatically as well as the reboot after installation
-    # We just have to wait for the VM to reboot
-    $self->wait_boot(bootloader_time => bmwqemu::scale_timeout(900), textmode => 1, nologin => 1);
-    wait_still_screen;
+        # Wait for the first automatic login screen
+        assert_screen('linux-login', timeout => 120);
+        wait_still_screen();
+
+        # OS installation is done automatically as well as the reboot after installation
+        # We just have to wait for the VM to reboot and a login screen to appear
+        wait_screen_change(undef, bmwqemu::scale_timeout(300));
+        assert_screen('linux-login', timeout => 120);
+        wait_still_screen();
+    }
 
     # No GUI, easier and quicker to use the serial console
     select_serial_terminal();
