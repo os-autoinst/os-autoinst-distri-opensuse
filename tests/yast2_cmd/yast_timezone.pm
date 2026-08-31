@@ -28,4 +28,8 @@ sub run {
     validate_script_output 'yast timezone summary 2>&1', sub { m#Africa/Cairo# };
     assert_script_run("yast timezone set timezone=$timezone", timeout => 300);
 }
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;
