@@ -22,4 +22,8 @@ sub run {
     assert_script_run('yast language set lang=en_US', timeout => 300);
 }
 
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;
