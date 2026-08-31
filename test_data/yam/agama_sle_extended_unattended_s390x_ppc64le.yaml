@@ -27,3 +27,5 @@ repos:
     enabled: 'Yes'
     filter: name
 bootloader_timeout: '30'
+ntp_servers:
+  - 2.suse.pool.ntp.org
