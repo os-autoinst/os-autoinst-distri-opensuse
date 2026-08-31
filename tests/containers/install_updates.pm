@@ -11,6 +11,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use power_action_utils;
+use serial_terminal qw(get_login_message);
 use version_utils qw(check_os_release get_os_release is_sle);
 
 sub run {
@@ -39,7 +40,15 @@ sub run {
     # Perform system reboot to ensure the system is still ok
     my $prev_console = current_console();
     power_action('reboot', textmode => 1);
-    $self->wait_boot(bootloader_time => 300);
+    # On this SLE 16.0 aarch64/qemu image GRUB fails to init its configured
+    # serial terminal ("serial port `com0' isn't found") and the video
+    # framebuffer then genuinely stalls instead of ever painting a screen,
+    # so wait_boot's needle-based checks hit a real "Stall detected" rather
+    # than a missed match. Confirm boot completion over the serial console
+    # instead, which stays live throughout.
+    die 'System did not come back up after update reboot' unless wait_serial(get_login_message(), 300);
+    $self->{in_wait_boot} = 0;
+    reset_consoles;
     select_console($prev_console);
 }
 
