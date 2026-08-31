@@ -44,6 +44,10 @@ my $SCRATCH_FOLDER = '/opt/scratch';
 sub partition_amount_by_homesize {
     my $home_size = shift;
     $home_size = str_to_mb($home_size);
+
+    # Leave 100MB margin to prevent partition No space error
+    $home_size -= 100 if $home_size > 100;
+
     my %ret;
     if ($home_size && check_var('XFSTESTS', 'btrfs')) {
         # If enough space, then have 5 disks in SCRATCH_DEV_POOL, or have 2 disks in SCRATCH_DEV_POOL
@@ -87,8 +91,9 @@ sub do_partition_for_xfstests {
     unless ($para{amount}) {
         $para{amount} = 1;
     }
-    if ($para{fstype} =~ /btrfs/ && $para{amount} > 5) {
-        $para{amount} = 5;
+    # Btrfs SCRATCH_DEV up to 5. If amount exceeds 5, set it at 5.
+    if ($para{fstype} =~ /btrfs/) {
+        $para{amount} = 5 if $para{amount} > 5;
     }
     else {
         # Mandatory xfs and ext4 has only 1 SCRATCH_DEV
@@ -650,8 +655,13 @@ sub run {
     }
     elsif ($device) {
         assert_script_run("parted $device --script -- mklabel gpt");
+        my $dev_bytes = script_output("lsblk -bno SIZE $device");
+        my $dev_mb = int($dev_bytes / (1024 * 1024));
+        my %size_num = partition_amount_by_homesize("${dev_mb}M");
         $para{fstype} = $filesystem;
         $para{dev} = $device;
+        $para{amount} = $size_num{num};
+        $para{size} = $size_num{size};
         post_env_info(do_partition_for_xfstests(\%para));
     }
     else {
