@@ -33,7 +33,7 @@ sub run {
     if (is_sle("=12-sp5")) {
         assert_script_run('mkdir -p ~/.docker');
         assert_script_run(
-            q{printf '{"auths":{"registry.suse.com":{"auth":"%s"}}}' "$(awk -F= '/^username/{u=$2} /^password/{p=$2} END{printf "%s:%s", u, p}' /etc/zypp/credentials.d/SCCcredentials | base64 -w0)" > ~/.docker/config.json}
+q{printf '{"auths":{"registry.suse.com":{"auth":"%s"}}}' "$(awk -F= '/^username/{u=$2} /^password/{p=$2} END{printf "%s:%s", u, p}' /etc/zypp/credentials.d/SCCcredentials | base64 -w0)" > ~/.docker/config.json}
         );
     }
 
