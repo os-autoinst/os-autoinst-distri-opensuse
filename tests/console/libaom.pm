@@ -50,4 +50,8 @@ sub run {
     assert_script_run('ffmpeg -c:v libaom-av1 -i input.mp4 -f rawvideo input_yuv', timeout => 50);
 }
 
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;
