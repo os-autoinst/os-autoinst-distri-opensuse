@@ -18,7 +18,16 @@ sub run {
     select_console 'root-console';
 
     my %expected_repos = map { $_->{alias} => 1 } @{$test_data->{repos}};
-    my @actual_aliases = split(/\n/, script_output("zypper -n lr --uri | awk \'NR>4 && \$1 ~ /[0-9]/ {print \$3}\'"));
+    my $repos = $test_data->{repos} // [];
+    my $zypper_lr_cmd = 'zypper -n lr --uri';
+    my $raw_output = script_output($zypper_lr_cmd, proceed_on_failure => 1);
+
+    if (!@$repos) {
+        die "Expected no repositories, but found some" unless $raw_output =~ /No repositories defined/;
+        return;
+    }
+
+    my @actual_aliases = split(/\n/, script_output("$zypper_lr_cmd | awk \'NR>4 && \$1 ~ /[0-9]/ {print \$3}\'"));
     my $unexpected_aliases = '';
     my @skip_aliases = (
         qr/Increment_repo/,
@@ -26,7 +35,7 @@ sub run {
         qr/^http-openqa.suse.de/,    # QU Full installation on s390x repository (Random alias skip)
     );
 
-    script_output 'zypper -n lr --uri';
+    script_output $zypper_lr_cmd;
 
     foreach my $repo (@{$test_data->{repos}}) {
         my $filter = $repo->{filter} ? $repo->{$repo->{filter}} : undef;
