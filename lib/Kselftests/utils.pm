@@ -204,7 +204,7 @@ sub install_dependencies
     }
 
     if ($collection eq 'mm') {
-        install_package('libcap-devel liburing-devel libnuma-devel libdw-devel', trup_continue => 1);
+        install_package('libcap-devel liburing-devel libnuma-devel', trup_continue => 1);
     }
 
     if ($collection eq 'bpf') {
