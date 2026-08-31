@@ -103,7 +103,19 @@ sub run {
     }
     push @packages, 'elfutils';
     push @packages, 'coverage-tools' unless $gitref;
-    zypper_call '--gpg-auto-import-keys in ' . join ' ', @packages;
+    # Split into batches of 20 to avoid serial console buffer overflow
+    my @pkg_chunks;
+    my @_pkgs = @packages;
+    while (@_pkgs) { push @pkg_chunks, [splice(@_pkgs, 0, 20)] }
+    for my $chunk (@pkg_chunks) {
+        my $cmd = '--gpg-auto-import-keys in ' . join(' ', @{$chunk});
+        my $ret = zypper_call($cmd, exitcode => [0, 8, 106]);
+        if ($ret != 0) {
+            record_info('Retry', "zypper returned $ret, retrying after ref");
+            zypper_call('--gpg-auto-import-keys ref', exitcode => [0, 106]);
+            zypper_call($cmd);
+        }
+    }
 
     # sets up the environment for coverage
     my $log_dir = '/var/coverage/data';
