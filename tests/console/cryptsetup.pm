@@ -58,4 +58,8 @@ sub run {
     assert_script_run('rm -rf /test.dm');
 }
 
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;
