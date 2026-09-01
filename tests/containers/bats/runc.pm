@@ -73,7 +73,7 @@ sub run {
     patch_sources "runc", "v$runc_version", "tests/integration";
 
     # Compile helpers used by the tests
-    my $helpers = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d ! -name _bin -printf '%f ' || true";
+    my $helpers = script_output "find contrib/cmd tests/cmd -mindepth 1 -maxdepth 1 -type d ! -name _bin -printf '%f '", proceed_on_failure => 1;
     record_info("helpers", $helpers);
     run_command "make $helpers || true";
 
