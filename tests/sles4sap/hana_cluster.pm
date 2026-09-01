@@ -14,6 +14,7 @@ use lockapi;
 use network_utils qw(iface);
 use hacluster;
 use utils qw(write_sut_file systemctl file_content_replace);
+use version_utils qw(is_sle);
 
 sub hanasr_angi_hadr_providers_setup {
     # Setup SAPHanaSR-angi HA/DR providers and
@@ -60,8 +61,12 @@ sub run {
         $cluster_conf = '/tmp/' . $cluster_conf;
         my $iface = get_var('SUT_NETDEVICE', iface());
 
+        # Calculate the fencing prefix based on the OS version
+        my $fencing_prefix = is_sle('>=16.1') ? 'fencing' : 'stonith';
+
         # Initiate the template
         file_content_replace($cluster_conf, '--sed-modifier' => 'g',
+            '%FENCING_PREFIX%' => $fencing_prefix,
             '%SID%' => $sid,
             '%HDB_INSTANCE%' => $instance_id,
             '%AUTOMATED_REGISTER%' => get_required_var('AUTOMATED_REGISTER'),
