@@ -9,6 +9,7 @@
 provider: 'aws'
 apiver: 4
 terraform:
+  bin: '%TERRAFORM_RUNNER%'
   variables:
     # GENERAL VARIABLES #
     aws_region: '%PUBLIC_CLOUD_REGION%'

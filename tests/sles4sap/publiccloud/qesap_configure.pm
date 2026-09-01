@@ -200,6 +200,7 @@ sub run {
     set_var('FENCING_MECHANISM', 'native') unless ($ha_enabled);
     set_var('ISCSI_ENABLED', check_var('FENCING_MECHANISM', 'sbd') ? 'true' : 'false');
     set_var_output('ANSIBLE_REMOTE_PYTHON', '/usr/bin/python3');
+    set_var_output('TERRAFORM_RUNNER', 'terraform');
 
     # Within the qe-sap-deployment terraform code, in each different CSP implementation,
     # an empty string means no peering.

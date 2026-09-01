@@ -9,6 +9,7 @@
 provider: 'gcp'
 apiver: 4
 terraform:
+  bin: '%TERRAFORM_RUNNER%'
   variables:
     # GENERAL VARIABLES #
     project: '%SLES4SAP_GOOGLE_PROJECT%'
