@@ -338,6 +338,9 @@ PUBLIC_CLOUD_BOOTTIME_MAX | integer | undef | To set the 'overall' `boot time` t
 PUBLIC_CLOUD_BTRFS | boolean | false | If set, it schedules `publiccloud/btrfs` job.
 PUBLIC_CLOUD_BUILD | string | "" | The image build number. Used only when we use custom built image.
 PUBLIC_CLOUD_BUILD_KIWI | string | "" | The image kiwi build number. Used only when we use custom built image.
+PUBLIC_CLOUD_CIT | boolean | 0 | Schedule Google's cloud-image-test framework
+PUBLIC_CLOUD_CIT_TESTS | string | "" | Execute a list of Google's cloud-image-test internal testsuites
+PUBLIC_CLOUD_CIT_CONTAINER | string | "" | Run Google's cloud-image-test framework using a container
 PUBLIC_CLOUD_CLOUD_INIT | string | "" | If this is defined and not empty custom `cloud-config` will be attached to the instance. If it is "install" the used `cloud-config` also contain a section to install ed.
 PUBLIC_CLOUD_CONFIDENTIAL_VM | boolean | false | GCE Confidential VM instance
 PUBLIC_CLOUD_CONSOLE_TESTS | boolean | false | If set, console tests are added to the job.
