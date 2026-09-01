@@ -133,6 +133,7 @@ podman:
   # https://github.com/containers/podman/pull/28804 - More test fixes for new CI
   # https://github.com/containers/podman/pull/29380 - test/e2e: accept RESTORE in checkpoint tcp error match
   # https://github.com/containers/podman/pull/29381 - test/e2e/healthcheck: skip ignore-result test on non-amd64
+  # https://github.com/containers/podman/pull/29690 - test/system: Update test to handle new error message from runc 1.5.0
   21875:
     merged: "5.0.0"
   24068:
@@ -200,6 +201,8 @@ podman:
   29380:
     min: "6.0"
   29381:
+    min: "6.0"
+  29690:
     min: "6.0"
 
 podman-py:
