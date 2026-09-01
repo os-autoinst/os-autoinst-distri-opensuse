@@ -64,5 +64,9 @@ sub run {
     wait_serial('LOAD_OK', timeout => 600, no_regex => 1) or die 'System average load was not settled after taking snapshots';
 }
 
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;
 
