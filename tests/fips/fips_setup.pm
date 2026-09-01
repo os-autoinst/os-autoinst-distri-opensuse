@@ -35,7 +35,6 @@ sub reboot_and_login {
             # wait_boot's needle-based checks hit a "Stall detected" on this image
             # rather than a missed match. Confirmed only on SLE 16+ qemu so far.
             die 'System did not come back up after FIPS reboot' unless wait_serial(get_login_message(), 300);
-            $self->{in_wait_boot} = 0;
             reset_consoles;
         } else {
             $self->wait_boot;

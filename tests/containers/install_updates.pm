@@ -51,7 +51,6 @@ sub run {
         # svirt) already have their own proven serial-based handling inside
         # wait_boot, so they keep using it.
         die 'System did not come back up after update reboot' unless wait_serial(get_login_message(), 300);
-        $self->{in_wait_boot} = 0;
         reset_consoles;
     } else {
         $self->wait_boot(bootloader_time => 300);
