@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/Kernel/hba.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#SYNOPSIS">SYNOPSIS</a>
+    <ul>
+      <li><a href="#detect_fc_hba">detect_fc_hba</a></li>
+      <li><a href="#list_scsi_hosts">list_scsi_hosts</a></li>
+      <li><a href="#list_fc_hosts">list_fc_hosts</a></li>
+      <li><a href="#check_fc_hosts">check_fc_hosts</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/Kernel/hba.pm</h1>
+
+<h1 id="SYNOPSIS">SYNOPSIS</h1>
+
+<p>Utils for working with Host Bus Adapters.</p>
+
+<h2 id="detect_fc_hba">detect_fc_hba</h2>
+
+<pre><code>detect_fc_hba();</code></pre>
+
+<p>Checks whether at least one Fibre Channel HBA port is registered in sysfs. Returns true/false.</p>
+
+<h2 id="list_scsi_hosts">list_scsi_hosts</h2>
+
+<pre><code>my @hosts = list_scsi_hosts();</code></pre>
+
+<p>Lists the SCSI/SAS host adapters (initiators), via <code>lsscsi -H -t</code> (list hosts, not devices/LUNs, with transport info), as an array of hashes: - <code>host</code>: sysfs host name, e.g. <code>host0</code> - <code>driver</code>: kernel driver bound to the host, e.g. <code>ahci</code>, <code>virtio_scsi</code>, <code>qla2xxx</code> - <code>transport</code>: raw transport string as reported by lsscsi, e.g. <code>fc:0x50060b00741cc28e,0x0b1900</code>, <code>sata:</code>, <code>usb: 7-1:1.0</code>; undef if lsscsi reports none.</p>
+
+<p>Returns an empty list if none are found.</p>
+
+<h2 id="list_fc_hosts">list_fc_hosts</h2>
+
+<pre><code>my @hosts = list_fc_hosts();</code></pre>
+
+<p>Lists the Fibre Channel host ports registered in sysfs (<code>/sys/class/fc_host</code>), as an array of hashes: - <code>host</code>: sysfs host name, e.g. <code>host6</code> - <code>port_state</code>: link state, e.g. <code>Online</code>, <code>Linkdown</code>, <code>Offline</code> - <code>port_type</code>: topology, e.g. <code>NPort</code> (fabric via switch), <code>NLPort</code> (loop), <code>Point-To-Point</code> - <code>speed</code>: negotiated link speed, e.g. <code>16 Gbit</code></p>
+
+<p>Returns an empty list if none are found.</p>
+
+<h2 id="check_fc_hosts">check_fc_hosts</h2>
+
+<pre><code>check_fc_hosts();</code></pre>
+
+<p>Checks that at least one Fibre Channel port is <code>Online</code>, per <code>list_fc_hosts()</code>. Records a failure if none are found.</p>
+
+<p>Returns the number of <code>Online</code> ports found.</p>
+
+
+</body>
+
+</html>
+
+
