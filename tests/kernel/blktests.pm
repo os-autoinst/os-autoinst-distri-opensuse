@@ -17,7 +17,7 @@ use LTP::utils 'prepare_whitelist_environment';
 use package_utils 'install_package';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
 use Kernel::block_dev qw(is_block_device record_storage_info);
-use Kernel::hba qw(detect_fc_hba list_scsi_hosts list_fc_hosts);
+use Kernel::hba qw(check_fc_hosts list_scsi_hosts list_fc_hosts);
 use Kernel::utils qw(is_debugfs_mounted enable_debugfs get_kernel_config);
 
 sub prepare_blktests_config {
@@ -37,7 +37,9 @@ sub prepare_blktests_config {
 sub run {
     select_serial_terminal;
 
-    if (detect_fc_hba()) {
+    # initial FC tests - simple check if the port is online. This checks if
+    # fabric login was successful
+    if (check_fc_hosts()) {
         my @scsi_hosts = list_scsi_hosts();
         record_info('SCSI hosts', @scsi_hosts ? join(', ', map { "$_->{host} ($_->{driver}" . ($_->{transport} ? ", $_->{transport}" : '') . ')' } @scsi_hosts) : 'No SCSI/SAS Host Bus Adapter found (lsscsi -H -t)');
 
@@ -160,9 +162,9 @@ sub post_fail_hook {
 Run the upstream blktests suite either from the C<blktests> package (default)
 or from a git checkout.
 
-If a Fibre Channel HBA is detected, SCSI/SAS host adapters (via
+If at least one Fibre Channel port is online, SCSI/SAS host adapters (via
 C<lsscsi>) and Fibre Channel host adapters (C</sys/class/fc_host>) are
-recorded via C<record_info()>.
+recorded via C<record_info()>; otherwise a failure is recorded.
 
 The test groups to execute are selected with C<BLKTESTS>. Individual tests can
 be skipped either directly with C<BLKTESTS_EXCLUDE> (mostly for debugging purposes)
