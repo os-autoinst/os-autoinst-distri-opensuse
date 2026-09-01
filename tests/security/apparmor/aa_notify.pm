@@ -16,7 +16,7 @@
 # - Disable temporary profile, put smbd back in enforce mode, restart smbd
 # - Cleanup temporary profiles
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#36883, tc#1621139, poo#201084
+# Tags: poo#36883, tc#1621139, poo#201084, poo#204771
 
 use Mojo::Base 'apparmortest';
 use testapi;
@@ -96,7 +96,7 @@ sub run {
     smbd_service_autorestart(DISABLED) unless is_sle('<=15-sp4');
 
     systemctl("restart $test_service", expect_false => 1);
-    upload_logs($audit_log);
+    $self->upload_logs_from_tmp($audit_log);
 
     validate_script_output "aa-notify -s 1 -v", sub {
         m/
