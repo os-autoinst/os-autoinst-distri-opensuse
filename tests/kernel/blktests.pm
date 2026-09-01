@@ -17,6 +17,7 @@ use LTP::utils 'prepare_whitelist_environment';
 use package_utils 'install_package';
 use Utils::Logging qw(export_logs_basic save_and_upload_log);
 use Kernel::block_dev qw(is_block_device record_storage_info);
+use Kernel::hba qw(detect_fc_hba list_scsi_hosts list_fc_hosts);
 use Kernel::utils qw(is_debugfs_mounted enable_debugfs get_kernel_config);
 
 sub prepare_blktests_config {
@@ -35,6 +36,14 @@ sub prepare_blktests_config {
 
 sub run {
     select_serial_terminal;
+
+    if (detect_fc_hba()) {
+        my @scsi_hosts = list_scsi_hosts();
+        record_info('SCSI hosts', @scsi_hosts ? join(', ', map { "$_->{host} ($_->{driver}" . ($_->{transport} ? ", $_->{transport}" : '') . ')' } @scsi_hosts) : 'No SCSI/SAS Host Bus Adapter found (lsscsi -H -t)');
+
+        my @fc_hosts = list_fc_hosts();
+        record_info('FC hosts', @fc_hosts ? join(', ', map { "$_->{host} ($_->{port_state}, $_->{port_type}, $_->{speed})" } @fc_hosts) : 'No Fibre Channel HBA found in /sys/class/fc_host');
+    }
 
     #below variable exposes blktests options to the openQA testsuite
     #definition, so that it allows flexible ways of re-runing the tests
@@ -150,6 +159,10 @@ sub post_fail_hook {
 
 Run the upstream blktests suite either from the C<blktests> package (default)
 or from a git checkout.
+
+If a Fibre Channel HBA is detected, SCSI/SAS host adapters (via
+C<lsscsi>) and Fibre Channel host adapters (C</sys/class/fc_host>) are
+recorded via C<record_info()>.
 
 The test groups to execute are selected with C<BLKTESTS>. Individual tests can
 be skipped either directly with C<BLKTESTS_EXCLUDE> (mostly for debugging purposes)
