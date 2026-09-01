@@ -155,7 +155,7 @@ sub set_sestatus {
     # workaround for 'selinux-auto-relabel' in case: auto relabel then trigger reboot
     my $results = script_run("zypper --non-interactive se selinux-autorelabel");
     if (!$results) {
-        assert_script_run("sed -ie \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=8/\' /etc/default/grub");
+        assert_script_run("sed -i -e \'s/GRUB_TIMEOUT.*/GRUB_TIMEOUT=8/\' /etc/default/grub");
     }
 
     # enable SELinux in grub

@@ -93,7 +93,7 @@ sub run {
     # DRBD passive test need some specific LVM configuration *after* PV/VG/LV creation
     if ($resource eq 'drbd_passive') {
         my $vol_list = script_output "for I in \$(vgs -o vg_name --noheadings | grep -v $vg_name); do echo -e '\"\$I\", \\c'; done | sed 's/, \$//'";
-        assert_script_run "sed -ie '/\\<volume_list\\>[[:blank:]][[:blank:]]*=/ a volume_list = [ $vol_list ]' $lvm_conf";
+        assert_script_run "sed -i -e '/\\<volume_list\\>[[:blank:]][[:blank:]]*=/ a volume_list = [ $vol_list ]' $lvm_conf";
     }
 
     # Wait until PV-VG-LV is created
@@ -107,20 +107,20 @@ sub run {
         if (get_var("USE_LVMLOCKD")) {
             $activation_mode = undef if ($vg_exclusive eq 'true');
             assert_script_run
-"EDITOR=\"sed -ie '\$ a primitive $vg_name ocf:heartbeat:LVM-activate params vgname=$vg_name vg_access_mode=lvmlockd $activation_mode'\" crm configure edit";
+"EDITOR=\"sed -i -e '\$ a primitive $vg_name ocf:heartbeat:LVM-activate params vgname=$vg_name vg_access_mode=lvmlockd $activation_mode'\" crm configure edit";
         }
         else {
             assert_script_run
-              "EDITOR=\"sed -ie '\$ a primitive $vg_name ocf:heartbeat:LVM params volgrpname=$vg_name exclusive=$vg_exclusive'\" crm configure edit";
+              "EDITOR=\"sed -i -e '\$ a primitive $vg_name ocf:heartbeat:LVM params volgrpname=$vg_name exclusive=$vg_exclusive'\" crm configure edit";
         }
 
         if ($resource eq 'drbd_passive') {
             # DRBD passive test need some specific HA configuration
-            assert_script_run "EDITOR=\"sed -ie '\$ a colocation colocation_$vg_name inf: $vg_name ms_$resource:Master'\" crm configure edit";
-            assert_script_run "EDITOR=\"sed -ie '\$ a order order_$vg_name inf: ms_$resource:promote $vg_name:start'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a colocation colocation_$vg_name inf: $vg_name ms_$resource:Master'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e '\$ a order order_$vg_name inf: ms_$resource:promote $vg_name:start'\" crm configure edit";
         }
         else {
-            assert_script_run "EDITOR=\"sed -ie 's/^\\(group base-group.*\\)/\\1 $vg_name/'\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -i -e 's/^\\(group base-group.*\\)/\\1 $vg_name/'\" crm configure edit";
         }
 
         # Wait to get VG active on all nodes
