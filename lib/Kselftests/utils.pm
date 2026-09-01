@@ -75,9 +75,6 @@ sub build
     install_package('-t pattern --recommends devel_kernel', trup_apply => 1);
     zypper_call('rl kernel-source kernel-syms') if $lock_kernel_pkgs;
 
-    # CONFIG_GENDWARFKSYMS=y
-    install_package('libdw-devel', trup_apply => 1) if is_tumbleweed;
-
     # On immutable systems the build dir is read-only; mount a writable overlayfs on it.
     my $real_build_dir = script_output("readlink -f $build_dir");
     if (script_run("test -w $real_build_dir") != 0) {
@@ -207,7 +204,7 @@ sub install_dependencies
     }
 
     if ($collection eq 'mm') {
-        install_package('libcap-devel liburing-devel libnuma-devel libdw-devel', trup_continue => 1);
+        install_package('libcap-devel liburing-devel libnuma-devel', trup_continue => 1);
     }
 
     if ($collection eq 'bpf') {
