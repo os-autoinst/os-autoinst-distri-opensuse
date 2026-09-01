@@ -127,7 +127,7 @@ sub update_test_repos {
     record_info('Clone', "Cloning BCI tests repository: $bci_tests_repo\nBranch: $bci_tests_branch");
     my $branch = $bci_tests_branch ? "-b $bci_tests_branch" : '';
     assert_script_run('rm -rf /root/BCI-tests');
-    assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/BCI-tests");
+    assert_script_run("git clone $branch -q --depth 1 $bci_tests_repo /root/BCI-tests", timeout => 300);
 }
 
 sub run {

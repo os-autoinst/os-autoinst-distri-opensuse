@@ -136,7 +136,7 @@ sub run {
     assert_script_run('source bci/bin/activate');
 
     record_info('Run', "Starting the tests for the following environments:\n$test_envs");
-    assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard $bci_tests_branch");
+    assert_script_run("cd /root/BCI-tests && git fetch && git reset --hard $bci_tests_branch", timeout => 300);
     assert_script_run("export TOX_PARALLEL_NO_SPINNER=1");
     assert_script_run("export TOX_SKIP_ENV=" . get_var('BCI_SKIP_ENVS', ''));
     assert_script_run("export CONTAINER_RUNTIME=$engine");
