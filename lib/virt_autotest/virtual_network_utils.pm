@@ -574,8 +574,50 @@ sub validate_guest_status {
         save_screenshot;
         die "Error: $guest should keep running, please check manually!";
     } else {
+        # Snapshot before pinging: state, IP, name resolution, ARP
+        record_info("Guest $guest status",
+            script_output("virsh domstate $guest; virsh domifaddr $guest; getent hosts $guest; ip neigh",
+                proceed_on_failure => 1, timeout => 30));
         #Ensure the ICMP PING responses for the given guest
-        die "Error: Ping $guest failed, please check manually!" if (script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => $timeout) ne 0);
+        my $ping_rc = script_retry("ping -c5 $guest", delay => 30, retry => 6, timeout => $timeout);
+        if ($ping_rc != 0) {
+            # ---- layered diagnostics to pinpoint the cause ----
+            # (1) guest NIC config
+            record_info("Debug[1] $guest NIC",
+                script_output("virsh domiflist $guest; virsh dumpxml $guest | grep -A5 '<interface'",
+                    proceed_on_failure => 1, timeout => 30));
+            # (2) host bridge / libvirt virtual network
+            record_info("Debug[2] host bridge/vnet",
+                script_output("virsh net-list --all; ip link show; ip addr show | grep -E 'br|vnet'",
+                    proceed_on_failure => 1, timeout => 30));
+            # (3) DHCP lease / agent IP for the guest MAC
+            my $mac = script_output("virsh domiflist $guest | grep -iE 'br|vnet' | awk '{print \$5}'", proceed_on_failure => 1);
+            my $lease = $mac ? script_output("grep -i $mac /var/lib/libvirt/dnsmasq/*.leases 2>/dev/null", proceed_on_failure => 1) : '';
+            record_info("Debug[3] DHCP/agent (mac=$mac)",
+                ($lease || 'no dnsmasq lease found')
+                  . "\n" . script_output("virsh net-dhcp-leases --all 2>/dev/null; virsh domifaddr $guest --source agent 2>/dev/null",
+                    proceed_on_failure => 1, timeout => 30));
+            # (4) host routing to the guest subnet
+            record_info("Debug[4] host route",
+                script_output("ip route", proceed_on_failure => 1));
+            # (5) stale /etc/hosts: compare stored IP with the guest's actual IP
+            my $hosts_ip = script_output("getent hosts $guest | awk '/[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+/{print \$1; exit}'",
+                proceed_on_failure => 1);
+            my $real_ip = eval { get_vm_ip_with_nmap($guest) } // '';
+            my $stale = $hosts_ip && $real_ip && $hosts_ip ne $real_ip;
+            # (6) ping by actual IP: separates a stale /etc/hosts from an unreachable guest
+            my $ip_ping = $real_ip
+              ? script_output("ping -c2 -W2 $real_ip; echo ip_ping_rc=\$?", proceed_on_failure => 1)
+              : 'n/a (no IP found for guest)';
+            # summary snapshot
+            record_info("Guest $guest ping failed",
+                script_output("virsh domstate $guest; virsh domifaddr $guest; getent hosts $guest; ip neigh; ping -c2 -W2 $guest",
+                    proceed_on_failure => 1, timeout => 30)
+                  . "\n/etc/hosts IP: $hosts_ip\nactual guest IP: $real_ip"
+                  . ($stale ? "  (STALE /etc/hosts entry)" : "")
+                  . "\nping by actual IP:\n$ip_ping");
+            die "Error: Ping $guest failed, please check manually!";
+        }
         #Ensure the SSH connection for the given guest
         die "Error: SSH $guest failed, please check manually!" if (script_retry("nc -4zv $guest 22", delay => 30, retry => 6, timeout => $timeout) ne 0);
     }
