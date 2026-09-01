@@ -123,23 +123,17 @@ sub list_fc_hosts {
 
  check_fc_hosts();
 
-Checks that at least C<REQUIRED_FC_PORTS_ONLINE> Fibre Channel ports are
-C<Online>, per C<list_fc_hosts()>. Does nothing if the job setting is not
-set. Records a failure if fewer are found than required.
+Checks that at least one Fibre Channel port is C<Online>, per
+C<list_fc_hosts()>. Records a failure if none are found.
 
 Returns the number of C<Online> ports found.
 
 =cut
 
 sub check_fc_hosts {
-    my $required = get_var('REQUIRED_FC_PORTS_ONLINE');
-    return unless defined $required;
-
     my @online = grep { $_->{port_state} eq 'Online' } list_fc_hosts();
-    if (@online < $required) {
-        record_info('FC ports missing',
-            "Expected $required Online FC port(s), found " . scalar(@online),
-            result => 'fail');
+    unless (@online) {
+        record_info('FC port not online', 'No Online Fibre Channel port found', result => 'fail');
     }
     return scalar(@online);
 }
