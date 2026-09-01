@@ -1084,6 +1084,7 @@ sub create_playbook_section_list {
         push @reg_args, "-e reg_code=$args{scc_code} -e email_address=''";
         push @reg_args, '-e use_suseconnect=true' if ($args{registration} eq 'suseconnect');
         push @reg_args, qesap_ansible_reg_module(reg => $args{ltss}) if ($args{ltss});
+        push @reg_args, get_var('REG_ARGS') if get_var('REG_ARGS');
         # Add registration module as first element
         push @playbook_list, join(' ', @reg_args);
     }

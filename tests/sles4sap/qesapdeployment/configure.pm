@@ -156,6 +156,10 @@ The IP address of the IBSm server, used for repository redirection.
 
 The hostname of the repository server to redirect to the IBSm.
 
+=item B<REG_ARGS>
+
+Additional registration arguments for the registration playbook.
+
 =back
 
 =head1 MAINTAINER
