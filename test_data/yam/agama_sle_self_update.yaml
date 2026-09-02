@@ -40,4 +40,3 @@ selinux:
   mode: enforcing
 products:
   - SLES
-self_update_enabled: 1
