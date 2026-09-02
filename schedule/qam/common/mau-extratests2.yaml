@@ -51,6 +51,7 @@ conditional_schedule:
         - console/journald_fss
         - console/valgrind
         - console/valkey
+        - console/sevenzip
         - console/ds389_advanced_functional
       15-SP7:
         - console/pkcon
@@ -70,6 +71,7 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
         - console/valkey
+        - console/sevenzip
         - console/ds389_advanced_functional
       15-SP6:
         - console/pkcon
@@ -89,6 +91,7 @@ conditional_schedule:
         - '{{arch_specific}}'
         - console/valgrind
         - console/valkey
+        - console/sevenzip
         - console/ds389_advanced_functional
       15-SP5:
         - console/pkcon
@@ -107,6 +110,7 @@ conditional_schedule:
         - console/nginx
         - '{{arch_specific}}'
         - console/valgrind
+        - console/sevenzip
         - console/ds389_advanced_functional
       15-SP4:
         - console/pkcon
