@@ -228,7 +228,7 @@ sub registercloudguest {
         die 'cloud-regionsrv-client should be installed' if !is_container_host;
     }
 
-    my $custom_smt;
+    my $custom_smt = '';
     if ((my $smt_ip = get_var('PUBLIC_CLOUD_SMT_IP')) && (my $smt_fqdn = get_var('PUBLIC_CLOUD_SMT_FQDN')) && (my $smt_fp = get_var('PUBLIC_CLOUD_SMT_FP'))) {
         $custom_smt = "--smt-ip $smt_ip --smt-fqdn $smt_fqdn --smt-fp $smt_fp";
     }
