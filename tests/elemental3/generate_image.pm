@@ -322,7 +322,7 @@ sub run {
         trup_call('--continue run zypper --gpg-auto-import-keys refresh');
         $pkgs .= ' elemental3ctl';
     }
-    install_package($pkgs, trup_apply => 1, trup_continue => 1);
+    install_package($pkgs, skip_trup => 0, trup_apply => 1, trup_continue => 1, trup_extra => '');
 
     # Use a crypted password
     my $hashpwd = script_output("openssl passwd -6 $rootpwd");
