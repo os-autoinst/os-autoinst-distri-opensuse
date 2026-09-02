@@ -20,11 +20,12 @@ my $repo_dir = 'nvme-cli';
 
 # TODO: extend the nvem-cli tests to use env, so config could be replaced
 sub prepare_nvmecli_config {
-    my ($ctrl, $ns1) = @_;
+    my ($ctrl, $ns1, $nvme_bin) = @_;
+    my $nvme_bin_line = $nvme_bin ? qq(    "nvme_bin": "$nvme_bin",\n) : '';
 
     my $config = <<"END_CONFIG";
 {
-    "controller": "$ctrl",
+${nvme_bin_line}    "controller": "$ctrl",
     "ns1": "$ns1",
     "log_dir": "nvmetests",
     "log_level": "DEBUG"
@@ -32,6 +33,15 @@ sub prepare_nvmecli_config {
 END_CONFIG
     write_sut_file('tests/config.json', $config);
     record_info('config.json', script_output('cat tests/config.json'));
+}
+
+sub build_nvmecli_from_source {
+    install_package('meson ninja gcc pkg-config libjson-c-devel', trup_apply => 1);
+    assert_script_run('meson setup .build', 300);
+    assert_script_run('meson compile -C .build', 600);
+    my $nvme_bin = script_output('realpath .build/nvme');
+    record_info('nvme build', script_output("$nvme_bin version"));
+    return $nvme_bin;
 }
 
 sub run {
@@ -46,6 +56,7 @@ sub run {
     my $repo = get_var('NVMECLI_REPO', 'https://github.com/linux-nvme/nvme-cli.git');
     my $version = get_var('NVMECLI_VERSION');
     my $issues = get_var('NVMECLI_KNOWN_ISSUES');
+    my $build_from_source = get_var('NVMECLI_BUILD_FROM_SOURCE');
 
     record_info('KERNEL', script_output('rpm -qi kernel-default'));
     save_and_upload_log('(rpm -qi kernel-default; uname -a)', 'kernel_bug_report.txt');
@@ -60,7 +71,8 @@ sub run {
     assert_script_run("git clone --depth=1 $branch $repo $repo_dir");
     assert_script_run("cd $repo_dir");
 
-    prepare_nvmecli_config($ctrl, $ns1);
+    my $nvme_bin = $build_from_source ? build_nvmecli_from_source() : undef;
+    prepare_nvmecli_config($ctrl, $ns1, $nvme_bin);
 
     my @tests = split(',', $tests);
 
@@ -152,6 +164,15 @@ upstream C<linux-nvme/nvme-cli> repository on GitHub.
 
 Optional. Git branch or tag to check out. If unset, the repository's default
 branch is used.
+
+=head2 NVMECLI_BUILD_FROM_SOURCE
+
+Optional. When true, build the cloned repository with meson
+(C<meson setup .build && meson compile -C .build>) and point
+F<tests/config.json>'s C<nvme_bin> at the resulting binary instead of
+the packaged C<nvme> command, so the suite exercises the CLI actually
+shipped with the cloned test source rather than the version installed
+by C<install_package>. Nothing is installed system-wide.
 
 =head2 NVMECLI_KNOWN_ISSUES
 
