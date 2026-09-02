@@ -12,7 +12,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use version_utils 'package_version_cmp';
-use security::agnosticTestRunner;
+use agnosticTestRunner;
 
 # Older providers predate the algorithm names and the '-provider oqs' CLI handling
 # the test relies on, so there is nothing meaningful to assert against them.
@@ -36,9 +36,10 @@ sub run {
     }
     record_info('oqs-provider', "version $oqs_version");
 
-    my $test = security::agnosticTestRunner->new({
+    my $test = agnosticTestRunner->new({
             language => 'python',
             name => 'testOqsProvider',
+            domain => 'security',
         }
     );
     $test->setup()->run_test()->parse_results()->cleanup();

@@ -9,12 +9,12 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use security::agnosticTestRunner;
+use agnosticTestRunner;
 
 sub run {
     select_serial_terminal;
     for my $name (qw(java_hashing java_elliptic)) {
-        security::agnosticTestRunner->new({language => 'java', name => $name})
+        agnosticTestRunner->new({language => 'java', name => $name, domain => 'security'})
           ->setup()->run_test()->parse_results()->cleanup();
     }
 }
