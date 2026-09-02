@@ -12,6 +12,5 @@ repos:
     enabled: 'Yes'
     filter: name
 bootloader_timeout: '8'
-self_update_enabled: 1
 ntp_servers:
   - 2.suse.pool.ntp.org
