@@ -149,6 +149,7 @@ sub configure_docker {
     $args{experimental} //= get_var("DOCKER_EXPERIMENTAL", 0);
     $args{selinux} //= get_var("DOCKER_SELINUX", 0);
     $args{tls} //= get_var("DOCKER_TLS", 0);
+    $args{insecure_registries} //= [];
 
     # docker-compose is needed for tests but is not available on SLES 15
     install_docker_compose if (is_sle("<16") && script_run("test -f /usr/lib/docker/cli-plugins/docker-compose"));
@@ -156,6 +157,7 @@ sub configure_docker {
     run_command "export DOCKER_BUILDKIT=1" if is_sle("<16");
 
     my $docker_opts = "-H unix:///var/run/docker.sock --insecure-registry localhost:5000 --log-level warn --registry-mirror http://$registry";
+    $docker_opts .= " --insecure-registry $_" for @{$args{insecure_registries}};
     $docker_opts .= " --experimental" if $args{experimental};
     $docker_opts .= " --selinux-enabled" if $args{selinux};
     my $port = 2375;

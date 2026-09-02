@@ -19,6 +19,8 @@ use containers::bats;
 my $firewall_backend;
 my $version;
 my $port = 2376;
+# Note: Remove and assume true when Docker v29.7.x arrives on all SLES versions
+my $has_private_registries = 0;
 
 sub setup {
     my $self = shift;
@@ -27,7 +29,9 @@ sub setup {
     $self->setup_pkgs(@pkgs);
     install_gotestsum;
 
-    configure_docker(selinux => 1, tls => 1);
+    # privateregistry (e2e/compose-env.yaml) is plain HTTP, so the host
+    # dockerd needs to be told to treat it as insecure.
+    configure_docker(selinux => 1, tls => 1, insecure_registries => ["privateregistry:5001"]);
 
     run_command "docker run -d --name registry -p 5000:5000 registry.opensuse.org/opensuse/registry:2";
 
@@ -35,6 +39,8 @@ sub setup {
     run_command 'ln -s /usr /usr/local/go';
 
     run_command "echo 127.0.0.1 registry >> /etc/hosts";
+    run_command "echo 127.0.0.1 privateregistry >> /etc/hosts";
+    run_command "echo 127.0.0.1 tlsregistry >> /etc/hosts";
 
     $version = script_output "docker version --format '{{.Client.Version}}' 2>/dev/null", proceed_on_failure => 1;
     $version =~ s/-ce$//;
@@ -57,8 +63,35 @@ sub setup {
     # Init Docker Swarm
     my $ip_addr = script_output("ip -j route get 8.8.8.8 | jq -Mr '.[0].prefsrc'");
     run_command "docker swarm init --advertise-addr $ip_addr" unless ($firewall_backend eq "nftables");
+
+    $has_private_registries = script_run("test -f e2e/testdata/registry/certs/gen-certs.sh") == 0;
+    record_info "private registries", $has_private_registries ? "present" : "not present in this cli checkout";
+
+    my $compose_files = "./e2e/compose-env.yaml";
+    my @compose_services = ("registry");
+
+    if ($has_private_registries) {
+        run_command "sh e2e/testdata/registry/certs/gen-certs.sh";
+
+        run_command "mkdir -p '/etc/docker/certs.d/tlsregistry:5003'";
+        run_command "cp e2e/testdata/registry/certs/ca.crt '/etc/docker/certs.d/tlsregistry:5003/ca.crt'";
+
+        write_sut_file("e2e/compose-env.override.yaml", <<'EOF');
+services:
+  privateregistry:
+    ports:
+      - "5001:5001"
+  tlsregistry:
+    ports:
+      - "5003:5003"
+EOF
+        $compose_files .= ":./e2e/compose-env.override.yaml";
+        push @compose_services, ("privateregistry", "tlsregistry");
+    }
+
     # Init Docker Compose
-    run_command "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose up --build -d registry";
+    run_command "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=$compose_files " .
+      "docker compose up --build -d @compose_services";
 }
 
 sub run {
@@ -102,7 +135,9 @@ sub run {
 
 sub cleanup {
     script_run "docker rm -vf registry";
-    script_run "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=./e2e/compose-env.yaml docker compose down -v --rmi all";
+    my $compose_files = "./e2e/compose-env.yaml";
+    $compose_files .= ":./e2e/compose-env.override.yaml" if $has_private_registries;
+    script_run "COMPOSE_PROJECT_NAME=clie2e COMPOSE_FILE=$compose_files docker compose down -v --rmi all";
     script_run "docker swarm leave -f" unless ($firewall_backend eq "nftables");
     cleanup_docker;
 }
