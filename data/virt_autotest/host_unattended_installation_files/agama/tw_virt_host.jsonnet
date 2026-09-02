@@ -1,0 +1,115 @@
+{
+  product: {
+    id: 'Tumbleweed',
+  },
+  user: {
+    userName: 'bernhard',
+    fullName: "Bernhard M. Wiedemann",
+    password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
+    hashedPassword: true
+  },
+  root: {
+    password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
+    hashedPassword: true,
+    sshPublicKey: '{{_SECRET_ED25519_PUB_KEY}}'
+  },
+  storage: {
+    drives: [
+      {
+        partitions: [
+          {
+            filesystem: { path: 'swap' },
+            size: '4 GiB'
+          },
+          {
+            filesystem: { path: '/' },
+          }
+        ]
+      }
+    ]
+  },
+  software: {
+      patterns: {
+        add: [
+          'kvm_server',
+          'kvm_tools'
+        ],
+      },
+      packages: [
+        'openssh-server-config-rootlogin',
+        'virt-bridge-setup',
+      ]
+  },
+  scripts: {
+    pre: [
+      {
+        name: 'wipefs',
+        content: |||
+          #!/usr/bin/env bash
+          for i in `lsblk -n -l -o NAME -d -e 7,11,254`
+              do wipefs -af /dev/$i
+              # The following 4 lines work around Agama race condition on NVMe devices.
+              # See bsc#1269730 and PR#25926
+              partprobe /dev/$i 2>/dev/null
+              blockdev --rereadpt /dev/$i 2>/dev/null
+          done
+          udevadm settle --timeout=30
+          sync
+          sleep 2
+        |||
+      }
+    ],
+    post: [
+      {
+        name: "config_sshd",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
+          echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > $sshd_config_file
+        |||
+      },
+      {
+        name: "enable_persistent_journal_logging",
+        content: |||
+          #!/usr/bin/env bash
+          echo -e "[Journal]\nStorage=persistent" > /etc/systemd/journald.conf.d/01-virt-test.conf
+        |||
+      },
+      {
+        name: "Configure_ssh_client",
+        content: |||
+          #!/usr/bin/env bash
+          ssh_config_dir="/etc/ssh/ssh_config.d"
+          mkdir -p $ssh_config_dir
+          ssh_config_file="$ssh_config_dir/01-virt-test.conf"
+          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null\nLogLevel ERROR" > $ssh_config_file
+          chmod 644 "$ssh_config_file"
+        |||
+      },
+      {
+        name: 'turn_on_modular_libvirt_debug_logging',
+        chroot: true,
+        content: |||
+          for daemon in qemu storage network nodedev secret ; do
+            config_file=/etc/libvirt/virt${daemon}d.conf
+            log_file=/var/log/libvirt/virt${daemon}d.log
+            sed -i "/^[# ]*log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs = \"1:file:${log_file}\"%};\${x;/^\$/{s%%log_outputs = \"1:file:${log_file}\"%;H};x}" $config_file
+            sed -i "/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}" $config_file
+          done
+        |||
+      },
+      {
+        name: "disable_nm_for_sriov_vfs",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          # Make a udev rule to force NM to skip SR-IOV VFs
+          rules_file="/etc/udev/rules.d/99-sriov-vfs-unmanaged.rules"
+          echo 'SUBSYSTEM=="net", ACTION=="add|change", TEST=="device/physfn", ENV{NM_UNMANAGED}="1"' > "$rules_file"
+          chmod 644 "$rules_file"
+        |||
+      }
+    ]
+  }
+}

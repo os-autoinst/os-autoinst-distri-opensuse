@@ -70,6 +70,10 @@ sub instantiate_guests_and_profiles {
         my $_geturl = data_url("virt_autotest/guest_params_xml_files/$_store_of_guests{$_element}{PROFILE}.xml");
         my $_req = HTTP::Request->new(GET => "$_geturl");
         my $_res = $_ua->request($_req);
+
+        # Check if the request actually succeeded before parsing
+        die "Failed to fetch profile from $_geturl: " . $_res->status_line unless $_res->is_success;
+
         my $_guest_profile = (XML::Simple->new)->XMLin($_res->content, SuppressEmpty => '');
         $_guest_profile->{guest_name} = $_element;
         $_guest_profile->{guest_installation_media} = $_store_of_guests{$_element}{INSTALL_MEDIA} if ($_store_of_guests{$_element}{INSTALL_MEDIA} ne '');
