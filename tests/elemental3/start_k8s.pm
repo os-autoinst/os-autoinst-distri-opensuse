@@ -103,8 +103,9 @@ sub run {
     # Cannot be defined with the other variables, as we need terminal access
     my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
 
-    # Wait for K8s directory to appears
-    wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $timeout);
+    # Wait for K8s directory and configuration file to appear
+    wait_on_cmd(cmd => "test -d $k8s_dir", timeout => $default_timeout);
+    wait_on_cmd(cmd => "test -f $k8s_dir/$k8s.yaml", timeout => $default_timeout);
 
     # Record K8s configuration files
     record_info("$k8s_dir config files", "ls -l $k8s_dir; echo; cat $k8s_dir/*");
