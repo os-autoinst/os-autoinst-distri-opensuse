@@ -606,11 +606,15 @@ sub setup_cloudwatch_agent {
 
 # Stop the CloudWatch agent, download the EC2 CloudWatch logs, then delete
 # the log streams. Counterpart of setup_cloudwatch_agent, called from
-# run_ltp's cleanup().
+# run_ltp's cleanup(). Never dies, so a CloudWatch hiccup can't skip the
+# rest of cleanup (log_instance.sh stop, instance log upload, etc.).
 sub teardown_cloudwatch_agent {
     my ($self, $instance) = @_;
-    $self->_disable_and_stop_ec2_cloudwatch_agent($instance);
-    my $entries = $self->_download_ec2_cloudwatch_logs($instance);
-    $self->_delete_ec2_cloudwatch_logs($instance, $entries);
+    eval {
+        $self->_disable_and_stop_ec2_cloudwatch_agent($instance);
+        my $entries = $self->_download_ec2_cloudwatch_logs($instance);
+        $self->_delete_ec2_cloudwatch_logs($instance, $entries);
+        1;
+    } or record_soft_failure("poo#205539 - CloudWatch agent teardown failed: $@");
 }
 1;
