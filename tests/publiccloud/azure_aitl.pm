@@ -19,6 +19,7 @@ use JSON;
 use XML::LibXML;
 use Data::Dumper;
 use publiccloud::utils qw(calculate_custodian_ttl);
+use version_utils 'is_sle';
 
 
 sub is_cleaned_up {
@@ -101,6 +102,14 @@ sub run {
         foreach my $aitl_test (@excluded_tests_list) {
             assert_script_run(qq(sed -i -e "/$aitl_test/d" /tmp/$aitl_manifest));
         }
+    }
+
+    # poo#204309: verify_dri_node fails chronically on SLE 16.1+ Azure VMs --
+    # SLE 16.1+ disables debugfs by default (PED-8812) and the upstream LISA
+    # fix (mounting it late) doesn't populate the DRM debugfs directory.
+    # Skip only on affected versions; other products keep testing it.
+    if (is_sle('>=16.1')) {
+        assert_script_run(qq(sed -i -e "/verify_dri_node/d" /tmp/$aitl_manifest));
     }
 
     # Create AITL Job based on a manifest
