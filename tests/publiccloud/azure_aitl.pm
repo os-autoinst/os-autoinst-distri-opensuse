@@ -116,7 +116,10 @@ sub run {
     # AITL Jobs run in parallel so it's possible to have Jobs in all kind of states.
     # The goal of the loop is to check there are no Jobs Queued or currently Running.
     my $status_data;
+    my $poll_start = time();
     while (1) {
+        die "AITL jobs did not complete within PUBLIC_CLOUD_AITL_TIMEOUT (${timeout}s)" if (time() - $poll_start > $timeout);
+
         # # poo#200979: If the AITL resource was already deleted by Azure don't overwrite last known results
         my $results_rc = script_run("$aitl_job get $aitl_get_options -q 'properties.results[]' > /tmp/aitl_results.out 2>&1", timeout => 300);
         my $results_current = script_output("cat /tmp/aitl_results.out");
