@@ -18,6 +18,4 @@ conditional_schedule:
       s390x:
         - installation/bootloader_start
       aarch64:
-        - installation/bootloader_uefi
-      x86_64:
-        - installation/bootloader_uefi
+        - boot/boot_to_desktop
