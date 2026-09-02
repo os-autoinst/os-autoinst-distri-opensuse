@@ -118,6 +118,13 @@ sub run {
     push @xfails, (
         "github.com/moby/moby/v2/integration/container::TestNetworkLoopbackNat",
     ) if (is_sle("<16") && get_var("ROOTLESS"));
+    # These fail because Linux 7.2 deprecated AF_ALG sockets and
+    # https://bugzilla.opensuse.org/show_bug.cgi?id=1278193 - SELinux CIL files are not shipped in Docker
+    push @xfails, (
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied",
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80",
+        "github.com/moby/moby/v2/integration/container::TestExecSocketDenied/socketcall_int80/AF_ALG",
+    ) unless (is_sle("<16"));
 
     my $tags = "apparmor selinux seccomp pkcs11";
 
