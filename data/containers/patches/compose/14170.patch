@@ -1,0 +1,122 @@
+From ff07b687bcf5a296411c46e0fd959ea8d822a2ec Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Wed, 2 Sep 2026 16:27:36 +0200
+Subject: [PATCH 1/2] test(e2e): bump compose-bridge images to v0.0.7
+
+v0.0.3 had a mis-published multi-arch manifest, causing exec format
+errors on non-amd64 architectures.
+
+Fixed upstream in docker/compose-bridge-transformer@665f67e.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ pkg/e2e/bridge_test.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pkg/e2e/bridge_test.go b/pkg/e2e/bridge_test.go
+index 19f8eec478..abb8f657f7 100644
+--- a/pkg/e2e/bridge_test.go
++++ b/pkg/e2e/bridge_test.go
+@@ -28,7 +28,7 @@ import (
+ 	"gotest.tools/v3/assert"
+ )
+ 
+-const bridgeImageVersion = "v0.0.3"
++const bridgeImageVersion = "v0.0.7"
+ 
+ func TestConvertAndTransformList(t *testing.T) {
+ 	c := NewParallelCLI(t)
+
+From ebe1190e22c5c7a64097a19080d09fb5c321cd0f Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Wed, 2 Sep 2026 17:18:58 +0200
+Subject: [PATCH 2/2] test(e2e): bump compose-bridge images to v0.0.7
+
+v0.0.6 dropped the Egress policyType/block from generated
+NetworkPolicy manifests since it blocked CoreDNS traffic; update
+the fixtures to match.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ .../templates/private-network-network-policy.yaml           | 6 ------
+ .../templates/public-network-network-policy.yaml            | 6 ------
+ .../base/private-network-network-policy.yaml                | 6 ------
+ .../base/public-network-network-policy.yaml                 | 6 ------
+ 4 files changed, 24 deletions(-)
+
+diff --git a/pkg/e2e/fixtures/bridge/expected-helm/templates/private-network-network-policy.yaml b/pkg/e2e/fixtures/bridge/expected-helm/templates/private-network-network-policy.yaml
+index 0300049be6..987878e292 100755
+--- a/pkg/e2e/fixtures/bridge/expected-helm/templates/private-network-network-policy.yaml
++++ b/pkg/e2e/fixtures/bridge/expected-helm/templates/private-network-network-policy.yaml
+@@ -11,14 +11,8 @@ spec:
+             com.docker.compose.network.private-network: "true"
+     policyTypes:
+         - Ingress
+-        - Egress
+     ingress:
+         - from:
+             - podSelector:
+                 matchLabels:
+                     com.docker.compose.network.private-network: "true"
+-    egress:
+-        - to:
+-            - podSelector:
+-                matchLabels:
+-                    com.docker.compose.network.private-network: "true"
+diff --git a/pkg/e2e/fixtures/bridge/expected-helm/templates/public-network-network-policy.yaml b/pkg/e2e/fixtures/bridge/expected-helm/templates/public-network-network-policy.yaml
+index da042b3e8c..b771c23b88 100755
+--- a/pkg/e2e/fixtures/bridge/expected-helm/templates/public-network-network-policy.yaml
++++ b/pkg/e2e/fixtures/bridge/expected-helm/templates/public-network-network-policy.yaml
+@@ -11,14 +11,8 @@ spec:
+             com.docker.compose.network.public-network: "true"
+     policyTypes:
+         - Ingress
+-        - Egress
+     ingress:
+         - from:
+             - podSelector:
+                 matchLabels:
+                     com.docker.compose.network.public-network: "true"
+-    egress:
+-        - to:
+-            - podSelector:
+-                matchLabels:
+-                    com.docker.compose.network.public-network: "true"
+diff --git a/pkg/e2e/fixtures/bridge/expected-kubernetes/base/private-network-network-policy.yaml b/pkg/e2e/fixtures/bridge/expected-kubernetes/base/private-network-network-policy.yaml
+index 3f59b22dd9..aa9565cbe8 100755
+--- a/pkg/e2e/fixtures/bridge/expected-kubernetes/base/private-network-network-policy.yaml
++++ b/pkg/e2e/fixtures/bridge/expected-kubernetes/base/private-network-network-policy.yaml
+@@ -11,14 +11,8 @@ spec:
+             com.docker.compose.network.private-network: "true"
+     policyTypes:
+         - Ingress
+-        - Egress
+     ingress:
+         - from:
+             - podSelector:
+                 matchLabels:
+                     com.docker.compose.network.private-network: "true"
+-    egress:
+-        - to:
+-            - podSelector:
+-                matchLabels:
+-                    com.docker.compose.network.private-network: "true"
+diff --git a/pkg/e2e/fixtures/bridge/expected-kubernetes/base/public-network-network-policy.yaml b/pkg/e2e/fixtures/bridge/expected-kubernetes/base/public-network-network-policy.yaml
+index 04913d4b9a..dcb14c3900 100755
+--- a/pkg/e2e/fixtures/bridge/expected-kubernetes/base/public-network-network-policy.yaml
++++ b/pkg/e2e/fixtures/bridge/expected-kubernetes/base/public-network-network-policy.yaml
+@@ -11,14 +11,8 @@ spec:
+             com.docker.compose.network.public-network: "true"
+     policyTypes:
+         - Ingress
+-        - Egress
+     ingress:
+         - from:
+             - podSelector:
+                 matchLabels:
+                     com.docker.compose.network.public-network: "true"
+-    egress:
+-        - to:
+-            - podSelector:
+-                matchLabels:
+-                    com.docker.compose.network.public-network: "true"
