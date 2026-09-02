@@ -615,6 +615,6 @@ sub teardown_cloudwatch_agent {
         my $entries = $self->_download_ec2_cloudwatch_logs($instance);
         $self->_delete_ec2_cloudwatch_logs($instance, $entries);
         1;
-    } or record_soft_failure("poo#205539 - CloudWatch agent teardown failed: $@");
+    } or record_info("cleanup error", CloudWatch agent teardown failed: $@", result=>'fail');
 }
 1;
