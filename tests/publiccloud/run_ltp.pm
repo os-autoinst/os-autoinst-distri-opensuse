@@ -343,6 +343,14 @@ sub cleanup {
         die('cleanup: Either $self->{run_args} or $self->{run_args}->{my_instance} is not available. Maybe the test died before the instance has been created?');
     }
 
+    # EC2-only: download & clean up the CloudWatch logs collected by
+    # setup_cloudwatch_agent(). Runs here so it still collects post-mortem
+    # dmesg logs, and never blocks the rest of cleanup, even if run() died.
+    if (is_ec2()) {
+        select_host_console(force => 1);
+        $self->{run_args}->{my_provider}->teardown_cloudwatch_agent($self->{run_args}->{my_instance});
+    }
+
     if (script_run("test -f $root_dir/log_instance.sh") == 0) {
         my $log_instance_stop_command = $root_dir . '/log_instance.sh stop ' . instance_log_args($self->{run_args}->{my_provider}, $self->{run_args}->{my_instance});
         script_run($log_instance_stop_command, timeout => 600);
@@ -367,6 +375,11 @@ sub run {
 
     my $instance = $args->{my_instance};
     my $provider = $args->{my_provider};
+
+    # EC2-only: install & start the CloudWatch agent for centralized dmesg
+    # logging, after check_cloudinit so it can't race cloud-init for the
+    # zypper lock (poo#205539).
+    $provider->setup_cloudwatch_agent($instance) if is_ec2();
 
     prepare_scripts();
 
