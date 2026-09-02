@@ -228,7 +228,7 @@ sub extract_iso {
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
     my $out = "$args{img_filename}.iso";
 
-    assert_script_run("$runtime pull $args{image}");
+    assert_script_run("$runtime pull $args{image}", timeout => $args{timeout});
     my $run_id = script_output("$runtime run -d $args{image}");
     assert_script_run("$runtime cp ${run_id}:/iso/$args{iso} .");
     assert_script_run("mv $args{iso} '$out'");
