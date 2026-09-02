@@ -1,0 +1,39 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: libsoup-3.0 installed tests
+# desc: >
+#   Runs the upstream installed tests for libsoup 3.x via
+#   gnome-desktop-testing-runner. Tests cover HTTP client/server,
+#   caching, cookies, TLS, websockets, HTTP/2, multipart, and more.
+# steps:
+#   - discover available libsoup-3.0 test cases
+#   - run each test via gnome-desktop-testing-runner
+#   - collect results as JUnit XML via pytest
+# requires: libsoup-tests and gnome-desktop-testing must be installed
+# author: <zbalogh@suse.com>
+# maintainer: QE Core <qe-core@suse.de>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 16+
+# tags: console libsoup http networking
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_libsoup.py)
+
+handle_args "$0" "$@"
+
+ensure_command_available "gnome-desktop-testing-runner"
+
+set +e
+pytest -v -s test_libsoup.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc
