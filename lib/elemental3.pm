@@ -38,7 +38,7 @@ Execute elemental3 command from container.
 sub elemental3_cmd {
     my (%args) = @_;
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
-    my $ca_vol;
+    my $ca_vol = '';
 
     croak('Missing arguments!') if (!%args);
 
@@ -114,7 +114,7 @@ sub get_sysext {
     assert_script_run("mkdir -p $sysext_dir");
 
     # Get the system extensions
-    foreach my $img (split(/,/, get_var('SYSEXT_IMAGES_TO_TEST'))) {
+    foreach my $img (split(/,/, get_var('SYSEXT_IMAGES_TO_TEST', ''))) {
         assert_script_run(
             "elemental3ctl --debug unpack-image --image ${img} --target ${sysext_dir}",
             timeout => $args{timeout}

@@ -11,7 +11,7 @@ sub run {
     my ($self) = @_;
 
     # Skip the test in multi-machine mode
-    if (get_var('PARALLEL_WITH')) {
+    if (get_var('PARALLEL_WITH', '')) {
         record_info('SKIP', 'Skip test - Network is not up at this stage');
         $self->result('skip');
         return;

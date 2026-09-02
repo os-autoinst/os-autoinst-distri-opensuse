@@ -30,7 +30,7 @@ containerized OS image.
 sub build_installer_cmd {
     my (%args) = @_;
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
-    my $isocmdline = get_var('ISO_CMD_LINE');
+    my $isocmdline = get_var('ISO_CMD_LINE', '');
     my $config_file = "$args{config_dir}/config.sh";
     my $iso_config_file = "$args{config_dir}/config-iso.sh";
     my $device = get_var('INSTALL_DISK', '/dev/vda');
@@ -80,7 +80,7 @@ release-manifest.
 
 sub customize_cmd {
     my (%args) = @_;
-    my $crypto_policy = get_var('CRYPTO_POLICY');
+    my $crypto_policy = get_var('CRYPTO_POLICY', '');
     my $device = get_var('INSTALL_DISK', '/dev/vda');
     my $krnlcmdline = get_required_var('KERNEL_CMD_LINE');
     my $type = get_required_var('IMAGE_TYPE');
@@ -130,7 +130,7 @@ sub customize_cmd {
             '%INSTALL_DISK%' => "$device"
         );
     } else {
-        if (get_var('CLUSTER_TYPE') =~ /(singlenode|multinode)/) {
+        if (get_var('CLUSTER_TYPE', '') =~ /(singlenode|multinode)/) {
             # K8s configuration file
             assert_script_run(
                 "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
@@ -169,8 +169,8 @@ sub customize_cmd {
         # (and it can be improved later)
         # TODO: use a support-server to add a DNS server with internal LAN access?
         assert_script_run('toolbox -- zypper -n in bind-utils');
-        my $static_hosts;
-        foreach my $s (split(',', get_var('STATIC_HOSTS'))) {
+        my $static_hosts = '';
+        foreach my $s (split(',', get_var('STATIC_HOSTS', ''))) {
             my $ip = script_output("toolbox -- dig +short ${s} | grep ^[1-9]") =~ s/\R//r;
             # Add some spaces in front to comply with yaml
             $static_hosts .= " " x 12 . "${ip} ${s}\\n";
