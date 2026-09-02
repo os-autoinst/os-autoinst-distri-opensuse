@@ -323,6 +323,7 @@ PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable sh
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
 PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
 PUBLIC_CLOUD_AHB_LT | string | "SLES_BYOS" | For Azure, it specifies the license type to change to (and test).
+PUBLIC_CLOUD_AITL_TIMEOUT | integer | 5400 | Timeout in seconds for the AITL job poll loop in `azure_aitl.pm` to wait for job completion before failing the test.
 PUBLIC_CLOUD_ARCH | string | "x86_64" | The architecture of created VM.
 PUBLIC_CLOUD_AVAILABILITY_ZONE | string | "" | The availability zone to use. Depends on `PUBLIC_CLOUD_REGION`. Only for GCE.
 PUBLIC_CLOUD_AZURE_IMAGE_DEFINITION | string | "" | Defines the image definition for uploading Arm64 images to the image gallery.
