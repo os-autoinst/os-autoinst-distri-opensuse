@@ -40,8 +40,9 @@ Execute elemental3 command from container.
 
 sub elemental3_cmd {
     my (%args) = @_;
-    my $runtime = get_required_var('CONTAINER_RUNTIMES');
     my $ca_vol = '';
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
+    my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
     croak('Missing required argument!') unless (%args);
 
@@ -56,7 +57,7 @@ sub elemental3_cmd {
     # NOTE: ':z' is needed because of SELinux!
     assert_script_run(
         "$runtime run --rm ${ca_vol} --volume $args{config_dir}:/config:z $args{uri} $args{cmd}",
-        timeout => $args{timeout}
+        timeout => $timeout
     );
 }
 
@@ -105,6 +106,7 @@ prepare them to be used by elemental tool.
 
 sub get_sysext {
     my (%args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
 
     croak('Missing required argument!') unless (%args);
 
@@ -120,7 +122,7 @@ sub get_sysext {
     foreach my $img (split(/,/, get_var('SYSEXT_IMAGES_TO_TEST', ''))) {
         assert_script_run(
             "elemental3ctl --debug unpack-image --image ${img} --target ${sysext_dir}",
-            timeout => $args{timeout}
+            timeout => $timeout
         );
     }
 
