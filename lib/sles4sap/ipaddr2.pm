@@ -25,6 +25,7 @@ use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
 use publiccloud::utils qw( get_ssh_private_key_path register_addon);
 use sles4sap::ibsm;
 use sles4sap::azure_cli;
+use sles4sap::qesap::utils qw( qesap_get_public_cloud_tags );
 use version_utils qw(package_version_cmp);
 
 
@@ -228,10 +229,7 @@ sub ipaddr2_infra_deploy(%args) {
 
     az_version();
 
-    # TODO: Determine how 'tags' should be retrieved.
-    # It is undecided whether to fetch this value from job settings (using get_var())
-    # or set it internally in OSADO. Currently defaults to empty string (does not exist).
-    my $tags = '';
+    my $tags = qesap_get_public_cloud_tags();
 
     my $rg = ipaddr2_azure_resource_group();
 

@@ -18,6 +18,7 @@ use sles4sap::azure_cli;
 use sles4sap::aws_cli;
 use sles4sap::gcp_cli;
 use sles4sap::ibsm;
+use sles4sap::qesap::utils qw( qesap_get_public_cloud_tags );
 use version_utils qw(is_sle);
 use utils;
 
@@ -105,10 +106,7 @@ sub crash_deploy_azure(%args) {
     foreach (qw(region os)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
-    # TODO: Determine how 'tags' should be retrieved.
-    # It is undecided whether to fetch this value from job settings (using get_var())
-    # or set it internally in OSADO. Currently defaults to empty string (does not exist).
-    my $tags = '';
+    my $tags = qesap_get_public_cloud_tags();
 
     my $rg = crash_deploy_name();
     az_group_create(name => $rg, region => $args{region}, tags => $tags);

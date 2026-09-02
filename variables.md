@@ -413,6 +413,7 @@ PUBLIC_CLOUD_SMOKETEST | boolean | false | Scheduling setting - Run instance smo
 PUBLIC_CLOUD_SMT_IP | string | Specify custom SMT IP for publiccloud::utils::registercloudguest()
 PUBLIC_CLOUD_SMT_FQDN | string | Specify custom SMT FQDN for publiccloud::utils::registercloudguest()
 PUBLIC_CLOUD_SMT_FP | string | Specify custom SMT FP for publiccloud::utils::registercloudguest()
+PUBLIC_CLOUD_TAGS | string | "" | Comma-separated list of tags to apply to the public cloud resources. Supported key=value pairs or keys without value.
 PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root path to terraform directory
 PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file (from the `data/` directory) instead the CSP default
 PUBLIC_CLOUD_TERRAFORM_RUNNER | string | "tofu" | Override terraform runner container. Can be either "tofu" or "terraform".
