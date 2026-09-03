@@ -12,6 +12,7 @@ use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
 use package_utils 'install_package';
+use Kernel::nfs;
 
 sub copy_file {
     my ($flag, $nfs_mount, $file) = @_;
@@ -25,82 +26,55 @@ sub run {
 
     install_package('nfs-client', trup_apply => 1);
 
-    my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/var/lib/nfs-tests/shared_nfs3');
-    my $nfs_mount_nfs3_async = get_var('NFS_MOUNT_NFS3_ASYNC', '/var/lib/nfs-tests/shared_nfs3_async');
-    my $nfs_mount_nfs4 = get_var('NFS_MOUNT_NFS4', '/var/lib/nfs-tests/shared_nfs4');
-    my $nfs_mount_nfs4_async = get_var('NFS_MOUNT_NFS4_ASYNC', '/var/lib/nfs-tests/shared_nfs4_async');
-    my $local_nfs3 = get_var('NFS_LOCAL_NFS3', '/var/lib/nfs-tests/localNFS3');
-    my $local_nfs3_async = get_var('NFS_LOCAL_NFS3_ASYNC', '/var/lib/nfs-tests/localNFS3async');
-    my $local_nfs4 = get_var('NFS_LOCAL_NFS4', '/var/lib/nfs-tests/localNFS4');
-    my $local_nfs4_async = get_var('NFS_LOCAL_NFS4_ASYNC', '/var/lib/nfs-tests/localNFS4async');
-    my $multipath = get_var('NFS_MULTIPATH', '0');
+    my $nfsd_versions = get_var_array('NFSD_VERSIONS', '3,4');
 
-    # check kernel config options and set the variables
-    my $kernel_nfs3 = 0;
-    my $kernel_nfs4 = 0;
-    my $kernel_nfs4_1 = 0;
-    my $kernel_nfs4_2 = 0;
-    my $kernel_nfsd_v3 = 0;
-    my $kernel_nfsd_v4 = 0;
+    my %mount_map = (
+        3 => {
+            export_sync => get_var('NFS_MOUNT_NFS3', '/var/lib/nfs-tests/shared_nfs3'),
+            export_async => get_var('NFS_MOUNT_NFS3_ASYNC', '/var/lib/nfs-tests/shared_nfs3_async'),
+            local_sync => get_var('NFS_LOCAL_NFS3', '/var/lib/nfs-tests/localNFS3'),
+            local_async => get_var('NFS_LOCAL_NFS3_ASYNC', '/var/lib/nfs-tests/localNFS3async'),
+        },
+        4 => {
+            export_sync => get_var('NFS_MOUNT_NFS4', '/var/lib/nfs-tests/shared_nfs4'),
+            export_async => get_var('NFS_MOUNT_NFS4_ASYNC', '/var/lib/nfs-tests/shared_nfs4_async'),
+            local_sync => get_var('NFS_LOCAL_NFS4', '/var/lib/nfs-tests/localNFS4'),
+            local_async => get_var('NFS_LOCAL_NFS4_ASYNC', '/var/lib/nfs-tests/localNFS4async'),
+        },
+    );
 
-    $kernel_nfs3 = 1 unless script_run('zgrep "CONFIG_NFS_V3=[my]" /proc/config.gz');
-    $kernel_nfs4 = 1 unless script_run('zgrep "CONFIG_NFS_V4=[my]" /proc/config.gz');
-    $kernel_nfs4_1 = 1 unless script_run('zgrep "CONFIG_NFS_V4_1=[my]" /proc/config.gz');
-    $kernel_nfs4_2 = 1 unless script_run('zgrep "CONFIG_NFS_V4_2=[my]" /proc/config.gz');
-    $kernel_nfsd_v3 = 1 unless script_run('zgrep "CONFIG_NFSD=[my]" /proc/config.gz');
-    $kernel_nfsd_v4 = 1 unless script_run('zgrep "CONFIG_NFSD_V4=[my]" /proc/config.gz');
+    my @file_flags = qw(direct dsync sync);
 
     barrier_wait("NFS_SERVER_ENABLED");
     record_info("showmount", script_output("showmount -e $server_node"));
 
-    if ($kernel_nfs3 == 1) {
-        record_info('INFO', 'Kernel has support for NFSv3');
-        assert_script_run("mkdir -p $local_nfs3 $local_nfs3_async");
-        assert_script_run("mount -t nfs -o nfsvers=3,sync $server_node:$nfs_mount_nfs3 $local_nfs3");
-        assert_script_run("mount -t nfs -o nfsvers=3 $server_node:$nfs_mount_nfs3_async $local_nfs3_async");
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv3, skipping NFSv3 tests');
-    }
+    for my $version (@$nfsd_versions) {
+        unless (check_nfs_support($version)) {
+            record_info('INFO', "Kernel has no support for NFSv$version, skipping");
+            next;
+        }
 
-    if ($kernel_nfs4 == 1) {
-        record_info('INFO', 'Kernel has support for NFSv4');
-        assert_script_run("mkdir -p $local_nfs4 $local_nfs4_async");
-        assert_script_run("mount -t nfs -o nfsvers=4,sync $server_node:$nfs_mount_nfs4 $local_nfs4");
-        assert_script_run("mount -t nfs -o nfsvers=4 $server_node:$nfs_mount_nfs4_async $local_nfs4_async");
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv4, skipping NFSv4tests');
+        record_info('INFO', "Kernel has support for NFSv$version");
+        my $cfg = $mount_map{$version} or die "No mount mapping defined for NFSv$version";
+
+        assert_script_run("mkdir -p $cfg->{local_sync} $cfg->{local_async}");
+        assert_script_run("mount -t nfs -o nfsvers=$version,sync $server_node:$cfg->{export_sync} $cfg->{local_sync}");
+        assert_script_run("mount -t nfs -o nfsvers=$version $server_node:$cfg->{export_async} $cfg->{local_async}");
     }
 
     barrier_wait("NFS_CLIENT_ENABLED");
 
-    #run basic checks - add a file to each folder and check for the checksum
-    #proper tests should come in the next modules
     assert_script_run("dd if=/dev/zero of=testfile bs=1024 count=10240");
     assert_script_run("md5sum testfile > md5sum.txt");
 
-    if ($kernel_nfs3 == 1) {
-        assert_script_run("cp testfile md5sum.txt $local_nfs3");
-        assert_script_run("cp testfile md5sum.txt $local_nfs3_async");
+    for my $version (@$nfsd_versions) {
+        next unless check_nfs_support($version);
+        my $cfg = $mount_map{$version};
 
-        copy_file('direct', $local_nfs3, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs3, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs3, 'testfile_oflag_sync');
-
-        copy_file('direct', $local_nfs3_async, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs3_async, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs3_async, 'testfile_oflag_sync');
-    }
-    if ($kernel_nfs4 == 1) {
-        assert_script_run("cp testfile md5sum.txt $local_nfs4");
-        assert_script_run("cp testfile md5sum.txt $local_nfs4_async");
-
-        copy_file('direct', $local_nfs4, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs4, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs4, 'testfile_oflag_sync');
-
-        copy_file('direct', $local_nfs4_async, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs4_async, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs4_async, 'testfile_oflag_sync');
+        for my $local_dir ($cfg->{local_sync}, $cfg->{local_async}) {
+            assert_script_run("cp testfile md5sum.txt $local_dir");
+            copy_file($_, $local_dir, "testfile_oflag_$_") for @file_flags;
+        }
     }
 
     barrier_wait("NFS_SERVER_CHECK");
