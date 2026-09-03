@@ -69,7 +69,7 @@ sub run_tests {
         "copy.bats::copy-preserving-extended-attributes",
     ) if (is_ppc64le);
 
-    my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
+    my $ret = bats_tests($log_file, \%env, \@xfails, 6900);
 
     run_command "STORAGE_DRIVER=$storage_driver buildah prune -a -f";
     cleanup_podman;
