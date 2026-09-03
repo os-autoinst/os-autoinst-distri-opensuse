@@ -15,8 +15,8 @@ use bootloader_setup qw(add_grub_cmdline_settings change_grub_config);
 use power_action_utils 'power_action';
 use transactional qw(trup_call process_reboot);
 use utils qw(zypper_call reconnect_mgmt_console);
-use serial_terminal qw(get_login_message select_serial_terminal);
-use Utils::Backends qw(is_pvm is_qemu);
+use serial_terminal 'select_serial_terminal';
+use Utils::Backends 'is_pvm';
 use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x);
 use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional is_microos);
 use security::vendoraffirmation;
@@ -29,17 +29,7 @@ sub reboot_and_login {
 
     is_transactional ? process_reboot(trigger => 1) : power_action('reboot', textmode => 1, keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
-    if (!is_transactional) {
-        if (is_qemu && is_sle('>=16')) {
-            # Same GRUB serial-terminal-init stall as containers/install_updates.pm:
-            # wait_boot's needle-based checks hit a "Stall detected" on this image
-            # rather than a missed match. Confirmed only on SLE 16+ qemu so far.
-            die 'System did not come back up after FIPS reboot' unless wait_serial(get_login_message(), 300);
-            reset_consoles;
-        } else {
-            $self->wait_boot;
-        }
-    }
+    $self->wait_boot if !is_transactional;
     is_ppc64le() ? select_console('root-console') : select_serial_terminal();
     return;
 }
