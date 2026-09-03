@@ -65,16 +65,23 @@ sub config_service {
     assert_script_run("wget --quiet " . data_url("389ds/.dsrc") . " -O /root/.dsrc");
     self_sign_ca("$ca_dir", "$local_name");
 
+    # Stop the instance before modifying the NSS certificate database
+    # to prevent race condition/corruption leading to segfault in libsoftokn3.so
+    assert_script_run("dsctl localhost stop");
+
     # Deleted the default CA files since it can only resolve "localhost",
     # Please refer to bug 1180628 for more detail information
     assert_script_run("certutil -D -d $inst_ca_dir -n Server-Cert");
     assert_script_run("certutil -D -d $inst_ca_dir -n Self-Signed-CA");
 
-    # Import new CA files and restart the instance
+    # Import new CA files while instance is stopped
     assert_script_run("dsctl localhost tls import-server-key-cert $ca_dir/server.pem $ca_dir/server.key");
     assert_script_run("dsctl localhost tls import-ca $ca_dir/myca.pem myca");
     assert_script_run("cp $ca_dir/myca.pem $inst_ca_dir/ca.crt");
-    systemctl("restart dirsrv\@localhost.service");
+
+    # Start the instance with new certificates
+    assert_script_run("dsctl localhost start");
+    validate_script_output("dsctl localhost status", sub { m/Instance.*is running/ });
 
     # Configure host names for C/S communication
     assert_script_run("sed -i -e 's/master/$local_name.example.com/' -e 's/minion/$remote_name.example.com/' /etc/hosts");
