@@ -71,10 +71,6 @@ sub test ($target) {
         "github.com/docker/compose/v5/pkg/e2e::TestImageVolume",
         "github.com/docker/compose/v5/pkg/e2e::TestImageVolumeRecreateOnRebuild",
     ) if (is_tumbleweed);
-    push @xfails, (
-        # This test uses an image available only for x86_64 and fails with "exec format error" on other architectures:
-        "github.com/docker/compose/v5/pkg/e2e::TestConvertBuildOnlyService",
-    ) if (is_tumbleweed && !is_x86_64);
 
     run_timeout_command "$env make $target &> $target.txt", no_assert => 1, timeout => 3600;
     upload_logs "$target.txt", failok => 1;
