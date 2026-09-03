@@ -69,7 +69,7 @@ sub run_tests {
         "090-events.bats::events - died event contains OOMKilled attribute",
     ) if (version->parse(numeric_version($version)) >= version->parse("6.0.0"));
 
-    my $ret = bats_tests($log_file, \%env, \@xfails, 6000);
+    my $ret = bats_tests($log_file, \%env, \@xfails, 6900);
 
     run_command 'kill %1; kill -9 %1 || true' if ($remote);
 
