@@ -76,7 +76,7 @@ sub run {
         delay => 60,
         die => 1,
         fail_message => 'systemd not in running state!'
-    ) unless (get_var('PARALLEL_WITH'));
+    ) unless (get_var('PARALLEL_WITH', ''));
 
     # Test reboot in recovery mode
     if (check_var('TESTED_CMD', 'customize_recovery')) {

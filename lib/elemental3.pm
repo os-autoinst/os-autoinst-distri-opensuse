@@ -7,11 +7,14 @@
 
 package elemental3;
 
+use strict;
+use warnings;
 use Mojo::Base qw(Exporter);
 use Mojo::UserAgent;
 use Mojo::DOM;
 use testapi;
 use Carp qw(croak);
+use utils qw(script_retry script_output_retry validate_script_output_retry);
 
 our @EXPORT = qw(
   elemental3_cmd
@@ -37,10 +40,11 @@ Execute elemental3 command from container.
 
 sub elemental3_cmd {
     my (%args) = @_;
+    my $ca_vol = '';
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
-    my $ca_vol;
 
-    croak('Missing arguments!') if (!%args);
+    croak('Missing required argument!') unless (%args);
 
     # Check if we need to mount the local CA in the container
     # This could be needed when we have to test updates on released versions,
@@ -53,7 +57,7 @@ sub elemental3_cmd {
     # NOTE: ':z' is needed because of SELinux!
     assert_script_run(
         "$runtime run --rm ${ca_vol} --volume $args{config_dir}:/config:z $args{uri} $args{cmd}",
-        timeout => $args{timeout}
+        timeout => $timeout
     );
 }
 
@@ -68,7 +72,7 @@ Get URI from registry file.
 sub get_container_uri {
     my (%args) = @_;
 
-    croak('Missing arguments!') if (!%args);
+    croak('Missing required argument!') unless (%args);
 
     # Force containers directory
     $args{url} .= "/containers";
@@ -87,7 +91,7 @@ sub get_container_uri {
         return ($1) if ($res->body =~ m/${regex}/);
     }
     else {
-        die("Cannot parse the result: $res->message");
+        croak("Cannot get '$args{url}/${fn}': " . $res->message);
     }
 }
 
@@ -102,8 +106,9 @@ prepare them to be used by elemental tool.
 
 sub get_sysext {
     my (%args) = @_;
+    my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
 
-    croak('Missing arguments!') if (!%args);
+    croak('Missing required argument!') unless (%args);
 
     my $overlay_dir = "$args{tmpdir}/overlays";
     my $sysext_dir = "$overlay_dir/etc/extensions";
@@ -114,10 +119,10 @@ sub get_sysext {
     assert_script_run("mkdir -p $sysext_dir");
 
     # Get the system extensions
-    foreach my $img (split(/,/, get_var('SYSEXT_IMAGES_TO_TEST'))) {
+    foreach my $img (split(/,/, get_var('SYSEXT_IMAGES_TO_TEST', ''))) {
         assert_script_run(
             "elemental3ctl --debug unpack-image --image ${img} --target ${sysext_dir}",
-            timeout => $args{timeout}
+            timeout => $timeout
         );
     }
 
@@ -129,25 +134,25 @@ sub get_sysext {
 
  get_values( url => <value>, arch => <value>, regex => <value> );
 
-Get values from filelist webpage  based on provided regex.
+Get values from filelist webpage based on provided regex.
 
 =cut
 
 sub get_values {
     my (%args) = @_;
 
-    croak('Missing arguments!') if (!%args);
+    croak('Missing required argument!') unless (%args);
 
     # Set file prefix to search
     my $prefix_regex = "\\.$args{arch}-.*\\.tar\\.registry\\.txt\$";
 
     # If needed add '/' at the end of the URL as without it connection will fail
-    $args{url} .= '/' unless (substr($args{url}, -1) eq '/');
+    $args{url} .= '/' unless $args{url} =~ m{/\z};
 
     # Open webpage
     my $res = Mojo::UserAgent->new->get($args{url})->result;
     if ($res->is_success) {
-        # Extract informations from the webpage
+        # Extract information from the webpage
         my $dom = Mojo::DOM->new($res->body);
 
         # Get the first more recent occurence found
@@ -157,8 +162,11 @@ sub get_values {
         }
     }
     else {
-        die("Cannot parse the result: $res->message");
+        croak("Cannot get '$args{url}': " . $res->message);
     }
+
+    # If we reach this point, no match was found
+    croak("Could not find any file matching the regex in '$args{url}'");
 }
 
 =head2 kubectl_cmd
@@ -166,28 +174,24 @@ sub get_values {
  kubectl_cmd( cmd => <value> [, timeout => <value> ] );
 
 Checks for up to B<$timeout> seconds whether kubectl command is executed.
-Returns 0 if command is successful or croaks on timeout.
+Returns command status if command is successful or die on timeout.
 
 =cut
 
 sub kubectl_cmd {
     my (%args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $ret = undef;
+    my $retry = 10;
+    my $delay = $timeout / $retry;
 
     croak('Argument <cmd> missing') unless $args{cmd};
-    while ($ret = script_run("kubectl $args{cmd}", timeout => $timeout / 10)) {
-        if (time - $starttime >= $timeout) {
-            record_info('kubectl failed command: ', script_output("kubectl $args{cmd}", proceed_on_failure => 1));
-            die("kubectl command timed out after $timeout seconds!");
-        }
-        sleep 5;
-    }
 
-    # Return the command status
-    die('Check did not return a defined value!') unless defined $ret;
-    return $ret;
+    return script_retry(
+        "kubectl $args{cmd}",
+        delay => $delay,
+        retry => $retry,
+        fail_message => "kubectl command not found!"
+    );
 }
 
 =head2 wait_k8s_state
@@ -202,28 +206,19 @@ Returns 0 if cluster is running or croaks on timeout.
 sub wait_k8s_state {
     my (%args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $ret = undef;
-    my $chk_cmd = 'kubectl get pod -A 2>&1';
+    my $retry = 10;
+    my $delay = $timeout / $retry;
 
     croak('A regex should be defined!') unless (defined $args{regex} && $args{regex} ne '');
-    while (
-        $ret = script_run(
-            "! ($chk_cmd | grep -E -i -v -q '$args{regex}')",
-            timeout => $timeout / 10
-        )
-      )
-    {
-        if (time - $starttime >= $timeout) {
-            record_info('K8s failed state', script_output($chk_cmd, proceed_on_failure => 1));
-            die("K8s cluster did not start within $timeout seconds!");
-        }
-        sleep 10;
-    }
 
-    # Return the command status
-    die('Check did not return a defined value!') unless defined $ret;
-    return $ret;
+    my $chk_cmd = 'kubectl get pod -A 2>&1';
+    return script_retry(
+        "$chk_cmd | grep -Eivq '$args{regex}'",
+        delay => $delay,
+        expect => 1,
+        retry => $retry,
+        fail_message => "K8s cluster did not reach the required state within $timeout seconds!"
+    );
 }
 
 =head2 wait_kubectl_cmd
@@ -237,17 +232,15 @@ Wait for kubectl command to be available.
 sub wait_kubectl_cmd {
     my (%args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $ret = undef;
+    my $retry = 10;
+    my $delay = $timeout / $retry;
 
-    while ($ret = script_run('which kubectl', timeout => $timeout / 10)) {
-        die("kubectl command did not appear within $timeout seconds!") if (time - $starttime >= $timeout);
-        sleep 5;
-    }
-
-    # Return the command status
-    die('Check did not return a defined value!') unless defined $ret;
-    return $ret;
+    return script_retry(
+        'which kubectl',
+        delay => $delay,
+        retry => $retry,
+        fail_message => "kubectl command did not appear within $timeout seconds!"
+    );
 }
 
 =head2 wait_nodes_ready
@@ -255,27 +248,25 @@ sub wait_kubectl_cmd {
  wait_nodes_ready( [ timeout => <value> ] );
 
 Wait for up to B<$timeout> seconds until K8s nodes are ready.
-Returns 0 if nodes are ready or croaks on timeout.
+Returns 0 if nodes are ready or die on timeout.
 
 =cut
 
 sub wait_nodes_ready {
     my (%args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $chk_cmd = 'kubectl get nodes 2>&1';
-    my $out = ' NotReady ';    # Spaces are needed for the next regex to work!
+    my $retry = 10;
+    my $delay = $timeout / $retry;
 
-    while ($out =~ m/\s+NotReady\s+/s) {
-        $out = script_output($chk_cmd, proceed_on_failure => 1);
-        if (time - $starttime >= $timeout) {
-            record_info('K8s nodes state', script_output($chk_cmd, proceed_on_failure => 1));
-            die("K8s nodes not ready within $timeout seconds!");
-        }
-        sleep 10;
-    }
-
-    return 0;
+    # Use a negative lookahead to ensure 'NotReady' is not in the output.
+    # The /s modifier allows '.' to match newline characters.
+    return validate_script_output_retry(
+        'kubectl get nodes 2>&1',
+        qr/^(?!.*\bNotReady\b)/s,
+        delay => $delay,
+        retry => $retry,
+        fail_message => "K8s nodes not ready within $timeout seconds!"
+    );
 }
 
 =head2 wait_on_cmd
@@ -283,28 +274,24 @@ sub wait_nodes_ready {
  wait_on_cmd( cmd => <value> [, timeout => <value> ] );
 
 Checks for up to B<$timeout> seconds whether command is executed.
-Returns 0 if command is successful or croaks on timeout.
+Returns command status if command is successful or die on timeout.
 
 =cut
 
 sub wait_on_cmd {
     my (%args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $ret = undef;
+    my $retry = 10;
+    my $delay = $timeout / $retry;
 
     croak('Argument <cmd> missing') unless $args{cmd};
-    while ($ret = script_run("$args{cmd}", timeout => $timeout / 10)) {
-        if (time - $starttime >= $timeout) {
-            record_info("failed command: $args{cmd}");
-            die("Command timed out after $timeout seconds!");
-        }
-        sleep 5;
-    }
 
-    # Return the command status
-    die('Check did not return a defined value!') unless defined $ret;
-    return $ret;
+    return script_retry(
+        $args{cmd},
+        delay => $delay,
+        retry => $retry,
+        fail_message => "Command '$args{cmd}' did not appear within $timeout seconds!"
+    );
 }
 
 =head2 wait_script_output
@@ -312,28 +299,24 @@ sub wait_on_cmd {
  wait_script_output( cmd => <value> [, timeout => <value> ] );
 
 Checks for up to B<$timeout> seconds whether command is executed.
-Returns command output if successful or croaks on timeout.
+Returns command output if successful or die on timeout.
 
 =cut
 
 sub wait_script_output {
     my (%args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
-    my $starttime = time;
-    my $out = undef;
+    my $retry = 10;
+    my $delay = $timeout / $retry;
 
     croak('Argument <cmd> missing') unless $args{cmd};
-    while ($out eq '') {
-        $out = script_output($args{cmd}, timeout => $timeout / 10);
-        if (time - $starttime >= $timeout) {
-            die("command '$args{cmd}' timed out after $timeout seconds!");
-        }
-        sleep 5;
-    }
 
-    # Return the command output
-    die('Check did not return a defined value!') unless defined $out;
-    return $out;
+    return script_output_retry(
+        cmd => $args{cmd},
+        delay => $delay,
+        retry => $retry,
+        fail_message => "command '$args{cmd}' timed out after $timeout seconds!"
+    );
 }
 
 1;

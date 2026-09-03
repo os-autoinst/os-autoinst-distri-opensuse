@@ -28,9 +28,11 @@ sub run {
     # Add git/go package(s)
     install_package(
         'git go kubernetes-client-provider',
+        skip_trup => 0,
         timeout => $timeout,
         trup_apply => 1,
-        trup_continue => 1
+        trup_continue => 1,
+        trup_extra => ''
     );
 
     # Configure ssh options
