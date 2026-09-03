@@ -540,12 +540,17 @@ sub ssh_update_transactional_system {
 
 get_python_exec()
 
-Returns the Python executable name for public cloud purposes. As of now, it returns "python3.11" by default.
+Returns the Python executable name for public cloud purposes. Defaults to
+"python3.11", the interpreter of the SLE 15-SP7 tools image. Set
+PUBLIC_CLOUD_PYTHON_VERSION to override it, e.g. to 3.13 on SLE 16.
+
+The version cannot be derived from VERSION: in a publiccloud_ltp job that is
+the version of the instance under test, not of the tools image this runs on.
 
 =cut
 
 sub get_python_exec {
-    my $version = '3.11';
+    my $version = get_var('PUBLIC_CLOUD_PYTHON_VERSION', '3.11');
     return "python$version";
 }
 
