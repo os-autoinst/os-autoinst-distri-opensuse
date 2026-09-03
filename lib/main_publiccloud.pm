@@ -139,6 +139,10 @@ sub load_latest_publiccloud_tests {
     elsif (get_var('PUBLIC_CLOUD_AZURE_AITL')) {
         loadtest "publiccloud/azure_aitl", run_args => $args;
         return;    # Do not continue as there is no instance to destroy
+    }
+    elsif (get_var('PUBLIC_CLOUD_CIT')) {
+        loadtest "publiccloud/run_cit", run_args => $args;
+        return;
     } else {    # All test cases below require prepare_instance
         loadtest "publiccloud/prepare_instance", run_args => $args;
         loadtest "publiccloud/network_test", run_args => $args;
@@ -150,7 +154,6 @@ sub load_latest_publiccloud_tests {
         }
         elsif (get_var('PUBLIC_CLOUD_IMG_PROOF_TESTS')) {
             loadtest "publiccloud/check_services", run_args => $args;
-            loadtest "publiccloud/img_proof", run_args => $args;
         } else {    # All test cases below require registration
             loadtest("publiccloud/registration", run_args => $args);
             if (get_var('PUBLIC_CLOUD_FUNCTIONAL')) {
