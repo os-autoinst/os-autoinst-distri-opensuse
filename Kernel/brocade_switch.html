@@ -17,6 +17,10 @@
       <li><a href="#login">login</a></li>
       <li><a href="#logout">logout</a></li>
       <li><a href="#get_port">get_port</a></li>
+      <li><a href="#get_all_ports">get_all_ports</a></li>
+      <li><a href="#get_all_enabled_ports">get_all_enabled_ports</a></li>
+      <li><a href="#enable_port">enable_port</a></li>
+      <li><a href="#disable_port">disable_port</a></li>
     </ul>
   </li>
 </ul><h1>lib/Kernel/brocade_switch.pm</h1>
@@ -42,6 +46,38 @@
 <pre><code>get_port($token, $port_name);</code></pre>
 
 <p>Fetches the current state of a Fibre Channel port, e.g. get_port($token, &#39;0/1&#39;). Returns the decoded &quot;fibrechannel&quot; hashref from the switch&#39;s response, e.g. containing &#39;is-enabled-state&#39;, &#39;physical-state&#39;, &#39;name&#39; and other port fields.</p>
+
+<p>Dies on any non-2xx response.</p>
+
+<h2 id="get_all_ports">get_all_ports</h2>
+
+<pre><code>get_all_ports($token);</code></pre>
+
+<p>Fetches the current state of every Fibre Channel port on the switch. Returns an array of the same per-port hashrefs as get_port().</p>
+
+<p>Dies on any non-2xx response.</p>
+
+<h2 id="get_all_enabled_ports">get_all_enabled_ports</h2>
+
+<pre><code>get_all_enabled_ports($token);</code></pre>
+
+<p>Fetches every Fibre Channel port that is currently enabled (is-enabled-state true), as returned by get_all_ports().</p>
+
+<p>Dies on any non-2xx response.</p>
+
+<h2 id="enable_port">enable_port</h2>
+
+<pre><code>enable_port($token, $port_name);</code></pre>
+
+<p>Enables a Fibre Channel port, e.g. enable_port($token, &#39;0/1&#39;).</p>
+
+<p>Dies on any non-2xx response.</p>
+
+<h2 id="disable_port">disable_port</h2>
+
+<pre><code>disable_port($token, $port_name);</code></pre>
+
+<p>Disables a Fibre Channel port, e.g. disable_port($token, &#39;0/1&#39;).</p>
 
 <p>Dies on any non-2xx response.</p>
 
