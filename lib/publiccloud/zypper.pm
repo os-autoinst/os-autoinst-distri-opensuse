@@ -92,6 +92,13 @@ use constant {
     DEFAULT_DELAY => 5,
     ZYPPER_LOG => '/var/log/zypper.log',
     TRANSACTIONAL_LOG => '/var/log/transactional-update.log',
+
+    # Bounded budget for actively waiting out an EXIT_LOCKED holder in
+    # _retry_loop(), instead of blindly sleep()ing DEFAULT_DELAY and
+    # retrying straight back into the same lock (~120s ceiling).
+    LOCK_WAIT_TIMEOUT => 10,
+    LOCK_WAIT_DELAY => 10,
+    LOCK_WAIT_RETRY => 6,
 };
 
 # Process names pc_wait_quit()/pc_wait_quit_local() poll for (poo#204534).
@@ -526,7 +533,18 @@ sub _retry_loop {
     for my $attempt (1 .. $retry) {
         $ret = $instance->ssh_script_run(cmd => $cmd, %$ssh_args);
         return $ret if $ret == EXIT_OK;
-        sleep($delay) if defined $ret;
+
+        if (defined $ret && $ret == EXIT_LOCKED) {
+            # A previous attempt may have been orphaned (e.g. left running
+            # server-side by a client-side SSH timeout) and still hold the
+            # zypp lock. Actively wait it out instead of blindly retrying
+            # straight back into the same lock; best-effort, so swallow a
+            # timeout here and fall through to the normal retry/backoff.
+            eval { pc_wait_quit($instance, timeout => LOCK_WAIT_TIMEOUT, delay => LOCK_WAIT_DELAY, retry => LOCK_WAIT_RETRY) };
+        }
+        else {
+            sleep($delay) if defined $ret;
+        }
 
         my $action = _handle_transient_failure($instance, $ret, $attempt, $retry, $kind);
         return $ret if $action eq 'stop';

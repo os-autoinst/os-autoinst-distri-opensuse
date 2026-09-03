@@ -245,7 +245,8 @@ sub registercloudguest {
 
 sub register_addons_in_pc {
     my ($instance, %args) = @_;
-    my $timeout = $args{timeout} // 90;
+    # pc_refresh() below can take several minutes on many aggregated repos.
+    my $timeout = $args{timeout} // 900;
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     my $remote = $instance->username . '@' . $instance->public_ip;
     # Refresh repos. publiccloud::zypper::pc_refresh always uses plain zypper

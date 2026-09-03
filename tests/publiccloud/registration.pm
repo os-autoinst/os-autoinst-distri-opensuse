@@ -40,7 +40,7 @@ sub run {
     }
 
     pc_wait_quit($args->{my_instance});
-    register_addons_in_pc($args->{my_instance}, timeout => 240);
+    register_addons_in_pc($args->{my_instance});
     pc_wait_quit($args->{my_instance});
     # Double confirm system is correctly registered, and quit earlier if anything wrong
     # see bsc#1253777, we may need have to rerun the failed job in this case
