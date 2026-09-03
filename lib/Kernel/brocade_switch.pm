@@ -22,6 +22,10 @@ our @EXPORT_OK = qw(
   login
   logout
   get_port
+  get_all_ports
+  get_all_enabled_ports
+  enable_port
+  disable_port
 );
 
 =head2 login
@@ -112,6 +116,100 @@ sub get_port {
       unless $response->{success};
 
     return decode_json($response->{content})->{Response}{fibrechannel};
+}
+
+=head2 get_all_ports
+
+ get_all_ports($token);
+
+Fetches the current state of every Fibre Channel port on the switch.
+Returns an array of the same per-port hashrefs as get_port().
+
+Dies on any non-2xx response.
+
+=cut
+
+sub get_all_ports {
+    my ($token) = @_;
+    my $host = get_required_var('FC_SWITCH_BROCADE_HOST');
+    my $ip = inet_ntoa(inet_aton($host));
+
+    my $response = HTTP::Tiny->new->request('GET',
+        "http://$ip/rest/running/brocade-interface/fibrechannel", {
+            headers => {
+                'Accept' => 'application/yang-data+json',
+                'Authorization' => $token,
+            },
+        });
+    die "Brocade switch get_all_ports() failed: $response->{status} $response->{reason}"
+      unless $response->{success};
+
+    my $ports = decode_json($response->{content})->{Response}{fibrechannel};
+    # normalize: a single-port result may come back as a hashref rather than
+    # an arrayref of one, depending on FOS version
+    return ref($ports) eq 'ARRAY' ? @$ports : ($ports);
+}
+
+=head2 get_all_enabled_ports
+
+ get_all_enabled_ports($token);
+
+Fetches every Fibre Channel port that is currently enabled
+(is-enabled-state true), as returned by get_all_ports().
+
+Dies on any non-2xx response.
+
+=cut
+
+sub get_all_enabled_ports {
+    my ($token) = @_;
+    return grep { $_->{'is-enabled-state'} } get_all_ports($token);
+}
+
+=head2 enable_port
+
+ enable_port($token, $port_name);
+
+Enables a Fibre Channel port, e.g. enable_port($token, '0/1').
+
+Dies on any non-2xx response.
+
+=cut
+
+sub enable_port {
+    my ($token, $port_name) = @_;
+    _set_port_state($token, $port_name, 'true');
+}
+
+=head2 disable_port
+
+ disable_port($token, $port_name);
+
+Disables a Fibre Channel port, e.g. disable_port($token, '0/1').
+
+Dies on any non-2xx response.
+
+=cut
+
+sub disable_port {
+    my ($token, $port_name) = @_;
+    _set_port_state($token, $port_name, 'false');
+}
+
+sub _set_port_state {
+    my ($token, $port_name, $state) = @_;
+    my $host = get_required_var('FC_SWITCH_BROCADE_HOST');
+    my $ip = inet_ntoa(inet_aton($host));
+    (my $encoded_port_name = $port_name) =~ s{/}{%2f}g;
+
+    my $response = HTTP::Tiny->new->request('PATCH',
+        "http://$ip/rest/running/brocade-interface/fibrechannel/name/$encoded_port_name/is-enabled-state/$state", {
+            headers => {
+                'Authorization' => $token,
+            },
+        });
+    die "Brocade switch set_port_state($port_name, $state) failed: $response->{status} $response->{reason}"
+      unless $response->{success};
 }
 
 1;
