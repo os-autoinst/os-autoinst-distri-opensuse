@@ -16,7 +16,7 @@ use utils;
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
-use publiccloud::utils qw(install_in_venv create_script_file get_python_exec);
+use publiccloud::utils qw(install_in_venv install_uv create_script_file get_python_exec);
 
 my $python_exec = get_python_exec();
 
@@ -100,6 +100,10 @@ EOT
     create_script_file('tofu', '/usr/local/bin/tofu', $opentofu_wrapper);
     validate_script_output("tofu version", qr/OpenTofu v?$opentofu_version/);
     record_info('OpenTofu', script_output('tofu version'));
+
+    # Bake uv into the image so kirk (tests/publiccloud/run_ltp.pm) does not
+    # have to install it at runtime on every job (poo#205596)
+    install_uv();
 
     # Ansible install with pip
     # Default version is chosen as low as possible so it run also on SLE12's

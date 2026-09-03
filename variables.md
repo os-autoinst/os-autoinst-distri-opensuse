@@ -161,7 +161,7 @@ LTP_KNOWN_ISSUES | string | | Used to specify a url for a json file with well kn
 LTP_MIN_UPTIME | integer | | Minimum uptime in seconds before LTP tests start. It applies only to the native openQA runner, not to tests run by kirk.
 LTP_REPO | string | | The repo which will be added and is used to install LTP package.
 LTP_RUN_NG_BRANCH | string | master | Define the branch of the LTP_RUN_NG_REPO.
-LTP_RUN_NG_REPO | string | https://github.com/linux-test-project/kirk.git | Define the runltp-ng repo to be used.
+LTP_RUN_NG_REPO | string | https://github.com/linux-test-project/kirk.git | Define the kirk repo to be used.
 LTP_PC_RUNLTP_ENV | string | empty | Contains eventual internal environment new parameters for `runltp-ng`, defined with the `--env` option, initialized in a column-separated string format: "PAR1=xxx:PAR2=yyy:...". By default it is empty, undefined.
 LTP_SUITE_TIMEOUT | integer | 9600 |Used to define --suite-timeout value passed to kirk
 LTP_TAINT_EXPECTED | integer | 0x80019801 | Bitmask of expected kernel taint flags.
@@ -264,6 +264,7 @@ ULP_THREAD_SLEEP | integer | 100 | Sleep length after each thread loop iteration
 UPGRADE | boolean | false | Indicates upgrade scenario.
 USBBOOT | boolean | false | Indicates booting to the usb device.
 USEIMAGES |||
+UV_VERSION | string | 0.12.7 | Pins the version of the `uv` Python package/project manager installed via the astral.sh standalone installer, used to run/install `kirk` (see `tests/publiccloud/run_ltp.pm` and `tests/publiccloud/prepare_tools.pm`).
 VALIDATE_ETC_HOSTS | boolean | false | Validate changes in /etc/hosts when using YaST network module. Is used in yast2_lan and yast2_lan_restart test modules which test module in ncurses and x11 respectively.
 VALIDATE_INST_SRC | boolean | false | Validate installation source in /etc/install.inf
 VALIDATE_CHECKSUM | boolean | false | Validate checksum of the mediums. Also see CHECKSUM_*.

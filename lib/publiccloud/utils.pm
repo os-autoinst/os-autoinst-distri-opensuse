@@ -61,6 +61,7 @@ our @EXPORT = qw(
   ssh_update_transactional_system
   create_script_file
   install_in_venv
+  install_uv
   venv_activate
   get_python_exec
   detect_worker_ip
@@ -564,6 +565,27 @@ sub create_script_file {
     save_tmp_file($filename, $content);
     assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $fullpath, autoinst_url, $filename));
     assert_script_run(sprintf('chmod +x %s', $fullpath));
+}
+
+=head2 install_uv
+
+install_uv()
+
+Installs the C<uv> Python package/project manager if it is not already present, using the
+pinned standalone installer from astral.sh (no rpm exists for SLE, see UV_VERSION default).
+The install directory is fixed to C</usr/local/bin> so C<uv>/C<uvx> land on the default PATH
+regardless of user or shell type.
+
+=cut
+
+sub install_uv {
+    return if script_run('command -v uv') == 0;
+
+    my $version = get_var('UV_VERSION', '0.12.7');
+    script_retry("curl -LsSf https://astral.sh/uv/$version/install.sh -o /tmp/uv-install.sh",
+        retry => 3, delay => 30, timeout => 120);
+    assert_script_run('env UV_INSTALL_DIR=/usr/local/bin INSTALLER_NO_MODIFY_PATH=1 sh /tmp/uv-install.sh', timeout => 300);
+    record_info('uv', script_output('uv --version'));
 }
 
 =head2 install_in_venv
