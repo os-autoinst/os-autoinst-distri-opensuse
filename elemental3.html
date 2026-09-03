@@ -57,7 +57,7 @@
 
 <pre><code>kubectl_cmd( cmd =&gt; &lt;value&gt; [, timeout =&gt; &lt;value&gt; ] );</code></pre>
 
-<p>Checks for up to <b>$timeout</b> seconds whether kubectl command is executed. Returns 0 if command is successful or croaks on timeout.</p>
+<p>Checks for up to <b>$timeout</b> seconds whether kubectl command is executed. Returns command status if command is successful or die on timeout.</p>
 
 <h2 id="wait_k8s_state">wait_k8s_state</h2>
 
@@ -75,19 +75,19 @@
 
 <pre><code>wait_nodes_ready( [ timeout =&gt; &lt;value&gt; ] );</code></pre>
 
-<p>Wait for up to <b>$timeout</b> seconds until K8s nodes are ready. Returns 0 if nodes are ready or croaks on timeout.</p>
+<p>Wait for up to <b>$timeout</b> seconds until K8s nodes are ready. Returns 0 if nodes are ready or die on timeout.</p>
 
 <h2 id="wait_on_cmd">wait_on_cmd</h2>
 
 <pre><code>wait_on_cmd( cmd =&gt; &lt;value&gt; [, timeout =&gt; &lt;value&gt; ] );</code></pre>
 
-<p>Checks for up to <b>$timeout</b> seconds whether command is executed. Returns 0 if command is successful or croaks on timeout.</p>
+<p>Checks for up to <b>$timeout</b> seconds whether command is executed. Returns command status if command is successful or die on timeout.</p>
 
 <h2 id="wait_script_output">wait_script_output</h2>
 
 <pre><code>wait_script_output( cmd =&gt; &lt;value&gt; [, timeout =&gt; &lt;value&gt; ] );</code></pre>
 
-<p>Checks for up to <b>$timeout</b> seconds whether command is executed. Returns command output if successful or croaks on timeout.</p>
+<p>Checks for up to <b>$timeout</b> seconds whether command is executed. Returns command output if successful or die on timeout.</p>
 
 
 </body>
