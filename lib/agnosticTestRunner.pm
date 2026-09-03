@@ -32,7 +32,7 @@ sub new {
     $args->{result_format} //= $args->{language} eq 'java' ? 'TAP' : 'XUnit';
     $args->{result_file} //= '/tmp/' . lc($args->{name}) . ($args->{language} eq 'java' ? '_results.tap' : '_results.xml');
     $args->{data_url_path} //= $args->{domain} . '/openqa_agnostic/' . $args->{language} . '/' . $args->{name};
-    $args->{helper_path} //= $args->{domain} . '/openqa_agnostic/lib/helper.sh';
+    $args->{helper_path} //= 'openqa_agnostic/lib/helper.sh';
     $args->{run_command} //= 'runtest';
     $args->{skip_phub} //= 0;
     return bless $args, $class;
