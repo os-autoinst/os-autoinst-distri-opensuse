@@ -6,9 +6,7 @@
 # Summary: Wait for all nodes which are allowed to upgrade or update after.
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use hacluster;
 use lockapi;

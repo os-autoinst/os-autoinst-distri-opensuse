@@ -6,9 +6,7 @@
 # Summary: Install SL Micro image on bare metal disk
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 
@@ -17,13 +15,37 @@ use Utils::Architectures 'is_x86_64';
 use power_action_utils 'power_action';
 use serial_terminal 'select_serial_terminal';
 
+sub get_disk_by_wwn {
+    my $wwn = shift;
+    $wwn =~ s/^wwn-//;
+
+    my $name;
+    my $output = script_output('lsblk -d -o name,wwn');
+    for my $line (split /\n/, $output) {
+        if ($line =~ /\Q$wwn\E$/) {
+            ($name) = split(/\s+/, $line);
+            return $name;
+        }
+    }
+    die "WWN ${wwn} not found in\n${output}";
+}
+
+sub get_serial_console_params {
+    my ($tty, $speed) = split(/,/, get_required_var('IPXE_CONSOLE'));
+    my ($unit) = $tty =~ /(\d+)$/;
+    return ($tty, $unit, $speed);
+}
+
 sub run {
     select_serial_terminal;
 
     # Use image name from HDD_1 variable
     my $image = get_required_var('HDD_1');
-    # Use sda as target disk by default
-    my $device = get_var("MICRO_INSTALL_IMAGE_TARGET_DEVICE", "/dev/sda");
+    # List all available disk devices
+    record_info('Available disks', script_output('lsblk -o name,wwn,type'));
+    # Use target disk supplied by the variable, find by WWN or use sda by default
+    my $wwn = get_var('INSTALL_DISK_WWN');
+    my $device = get_var("MICRO_INSTALL_IMAGE_TARGET_DEVICE", $wwn ? "/dev/" . get_disk_by_wwn($wwn) : "/dev/sda");
     # Use partition prefix for nvme devices
     my $prefix = $device =~ /nvme/ ? "p" : "";
     # SL Micro x86_64 image has three partitions, aarch64 and ppc64le images have only two partitions
@@ -36,9 +58,15 @@ sub run {
 
     # Mount nfs share with images
     assert_script_run("mount -o ro,noauto,nofail,nolock -t nfs openqa.suse.de:/var/lib/openqa/share /mnt");
-    assert_script_run("ls -als /mnt/factory/hdd/${image}");
-    # dd image to disk
-    assert_script_run("xzcat /mnt/factory/hdd/${image} | dd of=${device} bs=65536 status=progress", timeout => 300);
+    # Image can be in hdd/fixed or hdd, search it, use first one and prefer fixed directory
+    my $image_file = script_output("find /mnt/factory/hdd/fixed /mnt/factory/hdd -maxdepth 1 -name $image -print -quit");
+    die "$image does not exist" unless $image_file =~ /\Q$image\E$/;
+    # Recognize if it is compressed image or not and dd image to disk
+    if ($image_file =~ /\.xz$/) {
+        assert_script_run("xzcat ${image_file} | dd of=${device} bs=65536 status=progress", timeout => 300);
+    } else {
+        assert_script_run("dd if=${image_file} of=${device} bs=65536 status=progress", timeout => 300);
+    }
     assert_script_run("sync");
     assert_script_run("umount /mnt");
 
@@ -48,18 +76,35 @@ sub run {
     # Modify disk to be able to correctly boot and login
     assert_script_run("mount ${root_partition} /mnt");
     assert_script_run("btrfs property set /mnt ro false");
-    # Set correct serial console to be able to see login in first boot
-    assert_script_run("sed -i 's/console=ttyS0,115200/console=ttyS1,115200/g' /mnt/boot/grub2/grub.cfg") if is_x86_64;
     # Upload original grub configuration
     upload_logs("/mnt/etc/default/grub", failok => 1);
-    # Set permanent grub configuration
-    assert_script_run("sed -i 's/console=ttyS0,115200/console=ttyS1,115200/g' /mnt/etc/default/grub") if is_x86_64;
-    # Fully disable graphical terminal on legacy systems without UEFI
-    assert_script_run("sed -i 's/#GRUB_TERMINAL=console/GRUB_TERMINAL=console/g' /mnt/etc/default/grub") if (is_ipmi && !get_var('IPXE_UEFI'));
-    # We need to properly set grub terminal bsc#1230844, otherwise grub menu will not be visible in non graphical boot environments
-    assert_script_run("sed -i 's/GRUB_TERMINAL_INPUT=\".*\"/GRUB_TERMINAL_INPUT=\"console gfxterm\"/g' /mnt/etc/default/grub");
-    assert_script_run("sed -i 's/GRUB_TERMINAL_OUTPUT=\".*\"/GRUB_TERMINAL_OUTPUT=\"console gfxterm\"/g' /mnt/etc/default/grub");
-    # Enable root loging with password
+    my $grub_file = '/mnt/etc/default/grub';
+    if (is_x86_64) {
+        my ($tty, $unit, $speed) = get_serial_console_params;
+        # Set correct serial console to be able to see login in first boot
+        assert_script_run("sed -i 's/console=ttyS0,115200/console=${tty},${speed}/g' /mnt/boot/grub2/grub.cfg");
+        # Set permanent grub configuration
+        assert_script_run("sed -i 's/console=ttyS0,115200/console=${tty},${speed}/g' ${grub_file}");
+    }
+
+    # Set grub terminal on x86_64 bare metal with UEFI to serial
+    my $grub_terminal_io = is_ipmi && get_var('IPXE_UEFI') && is_x86_64 ? 'serial' : 'console';
+    assert_script_run("sed -i 's/GRUB_TERMINAL_INPUT=\".*\"/GRUB_TERMINAL_INPUT=\"${grub_terminal_io}\"/g' $grub_file");
+    assert_script_run("sed -i 's/GRUB_TERMINAL_OUTPUT=\".*\"/GRUB_TERMINAL_OUTPUT=\"${grub_terminal_io}\"/g' $grub_file");
+
+    # Set GRUB_SERIAL_COMMAND on x86_64 UEFI systems only
+    if (get_var('IPXE_UEFI') && is_x86_64) {
+        my ($tty, $unit, $speed) = get_serial_console_params;
+        my $grub_line = "GRUB_SERIAL_COMMAND=\"serial --speed=$speed --unit=$unit --word=8 --parity=no --stop=1\"";
+        my $grub_content = script_output("cat $grub_file");
+        if ($grub_content =~ /^GRUB_SERIAL_COMMAND/m) {
+            assert_script_run("sed -i 's|^GRUB_SERIAL_COMMAND=.*|$grub_line|' $grub_file");
+        } else {
+            assert_script_run("echo '$grub_line' >> $grub_file");
+        }
+    }
+
+    # Enable root login with password
     assert_script_run("echo 'PermitRootLogin yes' > /mnt/etc/ssh/sshd_config.d/root.conf");
     assert_script_run("btrfs property set /mnt ro true");
     assert_script_run("umount /mnt");
@@ -83,6 +128,15 @@ sub run {
     assert_script_run("umount /mnt");
     my $final_disk_layout = script_output("parted ${device} --script print");
     record_info("INFO", "${image} was installed on ${device}. System is going to be rebooted.\n\nFinal disk layout:\n ${final_disk_layout}");
+
+    # Register UEFI boot entry after dd
+    if (get_var('IPXE_UEFI')) {
+        my $distri = get_var('DISTRI');
+        my $efi_loader = is_x86_64 ? '\\EFI\\BOOT\\bootx64.efi' : '\\EFI\\BOOT\\bootaa64.efi';
+        remove_efiboot_entry(boot_entry => $distri);
+        assert_script_run("efibootmgr --create --disk ${device} --part 2 --label '${distri}' --loader '${efi_loader}'");
+        record_info('efiboot information', script_output('efibootmgr -v'));
+    }
 
     # We have to use force option to reboot command as installer doesn't have fully running systemd environment
     power_action("reboot", textmode => 1, force => 1);

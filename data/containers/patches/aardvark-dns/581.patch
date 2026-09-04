@@ -1,0 +1,62 @@
+From a70c535b8586adf50580f05a3d7c55f4c0ba8f3d Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Thu, 13 Mar 2025 14:24:40 +0100
+Subject: [PATCH] test: use ncat not nc
+
+nc can be provided by either ncat (nmap) or netcat (OpenBSD), we only
+work with the nmap version so make sure we always use that one and not
+the short alias which can be resolved to either one.
+
+It is not clear to me what changed on rawhide but it seems on the tmt
+env nc is preferred even though we have nmap-ncat installed.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/100-basic-name-resolution.bats | 4 ++--
+ test/600-errors.bats                | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/test/100-basic-name-resolution.bats b/test/100-basic-name-resolution.bats
+index e1c0ae79..93900ff8 100644
+--- a/test/100-basic-name-resolution.bats
++++ b/test/100-basic-name-resolution.bats
+@@ -75,7 +75,7 @@ function teardown() {
+ 	setup_dnsmasq
+ 
+ 	# using sh-exec to keep the udp query hanging for at least 3 seconds
+-	nsenter -m -n -t $HOST_NS_PID nc -l -u 127.5.5.5 53 --sh-exec "sleep 3" 3>/dev/null &
++	nsenter -m -n -t $HOST_NS_PID ncat -l -u 127.5.5.5 53 --sh-exec "sleep 3" 3>/dev/null &
+ 	HELPER_PID=$!
+ 
+ 	subnet_a=$(random_subnet 5)
+@@ -91,7 +91,7 @@ function teardown() {
+ 	assert "$output" =~ "Query time: [23][0-9]{3} msec" "timeout should be 2.5s so request should then work shortly after (udp)"
+ 
+ 	# Now the same with tcp.
+-	nsenter -m -n -t $HOST_NS_PID nc -l 127.5.5.5 53 --sh-exec "sleep 3" 3>/dev/null &
++	nsenter -m -n -t $HOST_NS_PID ncat -l 127.5.5.5 53 --sh-exec "sleep 3" 3>/dev/null &
+ 	HELPER_PID=$!
+ 	run_in_container_netns "$a1_pid" "dig" +tcp "$TEST_DOMAIN" "@$gw"
+ 	assert "$output" =~ "Query time: [23][0-9]{3} msec" "timeout should be 2.5s so request should then work shortly after (tcp)"
+diff --git a/test/600-errors.bats b/test/600-errors.bats
+index 96b1dbf7..0b1b6844 100644
+--- a/test/600-errors.bats
++++ b/test/600-errors.bats
+@@ -17,7 +17,7 @@ function teardown() {
+ @test "aardvark-dns should fail when udp port is already bound" {
+ 	# bind the port to force a failure for aardvark-dns
+ 	# we cannot use run_is_host_netns to run in the background
+-	nsenter -m -n -t $HOST_NS_PID nc -u -l 0.0.0.0 53 </dev/null 3> /dev/null &
++	nsenter -m -n -t $HOST_NS_PID ncat -u -l 0.0.0.0 53 </dev/null 3> /dev/null &
+ 	NCPID=$!
+ 
+ 	# ensure nc has time to bind the port
+@@ -33,7 +33,7 @@ function teardown() {
+ @test "aardvark-dns should fail when tcp port is already bound" {
+ 	# bind the port to force a failure for aardvark-dns
+ 	# we cannot use run_is_host_netns to run in the background
+-	nsenter -m -n -t $HOST_NS_PID nc -l 0.0.0.0 53 </dev/null 3> /dev/null &
++	nsenter -m -n -t $HOST_NS_PID ncat -l 0.0.0.0 53 </dev/null 3> /dev/null &
+ 	NCPID=$!
+ 
+ 	# ensure nc has time to bind the port

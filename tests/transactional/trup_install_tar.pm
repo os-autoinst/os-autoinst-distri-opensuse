@@ -4,11 +4,9 @@
 # Summary: Module to install tar package via transactional-update. The system is
 # rebooted so changes take effect.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 

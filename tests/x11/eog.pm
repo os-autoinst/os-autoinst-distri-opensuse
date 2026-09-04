@@ -12,9 +12,7 @@
 # - Close eog
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

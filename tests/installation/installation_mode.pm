@@ -5,11 +5,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Installation/upgrade mode selection during installation
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

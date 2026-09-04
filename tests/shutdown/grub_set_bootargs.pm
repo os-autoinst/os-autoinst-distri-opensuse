@@ -13,14 +13,14 @@
 #   - Apply all changes by running: "grub2-mkconfig -o /boot/grub2/grub.cfg"
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Architectures;
+use serial_terminal qw(select_serial_terminal prepare_serial_console);
 
 sub run {
-    select_console('root-console');
+    prepare_serial_console() if is_ppc64le();
+    select_serial_terminal();
     my @cmds;
     push @cmds, "source /etc/default/grub";
     push @cmds, 'new_cmdline=`echo $GRUB_CMDLINE_LINUX_DEFAULT | sed \'s/\(^\| \)quiet\($\| \)/ /\'`';
@@ -46,4 +46,3 @@ sub run {
 }
 
 1;
-

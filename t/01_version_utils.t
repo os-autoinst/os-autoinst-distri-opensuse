@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Test::Exception;
 use Test::Warnings;
+use Test::MockModule;
 
 use testapi qw(check_var get_var set_var);
 
@@ -115,6 +116,11 @@ subtest 'package_version_cmp' => sub {
         '5.3.18-198.1.g6b7890d < 5.3.18-200.1.g3e09edd ');
     ok(package_version_cmp('5.3.18-200.1.g3e09edd ', '5.3.18-198.1.g6b7890d') > 0,
         '5.3.18-200.1.g3e09edd > 5.3.18-198.1.g6b7890d');
+
+    ok(package_version_cmp('1.2.10+20250410', '1.2.9+20250110') > 0, '1.2.10+20250410 > 1.2.9+20250110');
+    ok(package_version_cmp('1.2.9+20250110', '1.2.10+20250410') < 0, '1.2.9+20250110 < 1.2.10+20250410');
+    ok(package_version_cmp('1.2.10+20250410', '1.2.9') > 0, '1.2.10+20250410 > 1.2.9');
+    ok(package_version_cmp('1.2.9', '1.2.10+20250410') < 0, '1.2.9 < 1.2.10+20250410');
 };
 
 subtest 'has_selinux_by_default' => sub {
@@ -169,6 +175,147 @@ subtest 'has_selinux' => sub {
     ok has_selinux, "check has_selinux for Tumbleweed with SELINUX=1";
     set_var('SELINUX', '0');
     ok !has_selinux, "check !has_selinux for Tumbleweed with SELINUX=0";
+};
+
+subtest 'bootloader_tests' => sub {
+    use version_utils qw(get_default_bootloader get_bootloader);
+
+    set_var('DISTRI', 'opensuse');
+    set_var('FLAVOR', 'Server-DVD');
+    set_var('VERSION', 'Tumbleweed');
+    set_var('UEFI', '0');
+    ok get_default_bootloader eq 'grub2', "Tumbleweed no UEFI is grub2";
+
+    set_var('UEFI', '1');
+    ok get_default_bootloader eq 'systemd-boot', "Tumbleweed on UEFI is systemd-boot";
+
+    set_var('DUALBOOT', 1);
+    ok get_default_bootloader eq 'systemd-boot', "Tumbleweed on UEFI with DUALBOOT is systemd-boot";
+    set_var('DUALBOOT', 0);
+
+    set_var('VERSION', 'Slowroll');
+    ok get_default_bootloader eq 'grub2', "Slowroll on UEFI is grub2";
+
+    set_var('DISTRI', 'sle-micro');
+    set_var('VERSION', '5.5');
+    set_var('FLAVOR', 'Default-Updates');
+    ok get_default_bootloader eq 'grub2', "SLE Micro 5.5 is grub2";
+
+    set_var('DISTRI', 'microos');
+    set_var('VERSION', 'Tumbleweed');
+    set_var('FLAVOR', 'MicroOS-Image-ContainerHost');
+    ok get_default_bootloader eq 'grub2', "Container host image is grub2";
+
+    set_var('FLAVOR', 'MicroOS-Image');
+    ok get_default_bootloader eq 'grub2', "MicroOS-Image image is grub2";
+
+    set_var('FLAVOR', 'JeOS-for-RISCV');
+    ok get_default_bootloader eq 'grub2', "JeOS-for-RISCV image is grub2";
+
+    set_var('DISTRI', 'opensuse');
+    set_var('FLAVOR', 'Server-DVD');
+    set_var('UPGRADE', 1);
+    ok get_default_bootloader eq 'systemd-boot', "Upgrading Tumbleweed on UEFI is systemd-boot";
+    set_var('UPGRADE', undef);
+
+    set_var('UEFI', '0');
+    ok get_default_bootloader eq 'grub2', "Tumbleweed non UEFI is grub2";
+
+    set_var('DISTRI', 'microos');
+    ok get_default_bootloader eq 'grub2', "Microos non UEFI is grub2";
+
+    set_var('UEFI', '1');
+    ok get_default_bootloader eq 'systemd-boot', "Microos on UEFI is systemd-boot";
+
+    set_var('UPGRADE', 1);
+    ok get_default_bootloader eq 'systemd-boot', "Microos upgrades on UEFI is systemd-boot";
+    set_var('UPGRADE', 0);
+
+    set_var('FLAVOR', 'WSL');
+    ok get_bootloader eq 'wsl', "WSL uses a custom bootloader";
+    set_var('FLAVOR', 'Server-DVD');
+
+    set_var('BOOTLOADER', 'does-not-exist');
+    dies_ok { get_default_bootloader } "Bootloader variable set, non existant bootloader, causes failure";
+
+    set_var('BOOTLOADER', 'grub2');
+    ok get_default_bootloader eq 'grub2', "Forcing bootloader works";
+};
+
+subtest 'is_staging tests' => sub {
+    use version_utils qw(is_staging);
+    is is_staging, undef, "No staging variable means it isn't staging";
+
+    set_var('STAGING', 'foo');
+    ok is_staging, "foo is a staging project";
+    isnt is_staging('bar'), 0, "bar is not this staging";
+    is is_staging('foo'), 1, "foo is the current staging";
+};
+
+subtest 'is_ltss' => sub {
+    use version_utils 'is_ltss';
+    my $my_ver = Test::MockModule->new('version_utils', no_auto => 1);
+    my $my_fake_today;
+
+    $my_ver->redefine(strftime => sub { return $my_fake_today });
+
+    # Test 1: SLE 15-SP6 and older are always LTSS (regardless of date)
+    set_var('DISTRI', 'sle');
+    set_var('VERSION', '15-SP6');
+    $my_fake_today = '20260702';    # Today - way before LTSS
+    ok is_ltss(), "SLE 15-SP6 is LTSS even before lifecycle date";
+
+    set_var('VERSION', '15-SP5');
+    $my_fake_today = '20260702';
+    ok is_ltss(), "SLE 15-SP5 is LTSS";
+
+    set_var('VERSION', '12-SP5');
+    $my_fake_today = '20260702';
+    ok is_ltss(), "SLE 12-SP5 is LTSS";
+
+    # Test 2: Future versions before their lifecycle date
+    set_var('VERSION', '15-SP7');
+    $my_fake_today = '20310730';    # One day before 20310731
+    ok !is_ltss(), "SLE 15-SP7 is not yet LTSS (one day before)";
+
+    set_var('VERSION', '16.0');
+    $my_fake_today = '20271129';    # One day before 20271130
+    ok !is_ltss(), "SLE 16.0 is not yet LTSS (one day before)";
+
+    # Test 3: Future versions on their lifecycle date
+    set_var('VERSION', '15-SP7');
+    $my_fake_today = '20310731';    # Exactly on lifecycle date
+    ok is_ltss(), "SLE 15-SP7 is LTSS on lifecycle date";
+
+    set_var('VERSION', '16.0');
+    $my_fake_today = '20271130';    # Exactly on lifecycle date
+    ok is_ltss(), "SLE 16.0 is LTSS on lifecycle date";
+
+    # Test 4: Future versions after their lifecycle date
+    set_var('VERSION', '15-SP7');
+    $my_fake_today = '20310801';    # One day after 20310731
+    ok is_ltss(), "SLE 15-SP7 is LTSS (one day after)";
+
+    set_var('VERSION', '16.1');
+    $my_fake_today = '20321201';    # After 20281130
+    ok is_ltss(), "SLE 16.1 is LTSS (years after)";
+
+    # Test 5: Undefined SLE version should die
+    set_var('VERSION', '42.0');
+    dies_ok { is_ltss() } "SLE 42.0 (undefined version) should die";
+
+    # Test 6: openSUSE products return false (not LTSS)
+    set_var('DISTRI', 'opensuse');
+    set_var('VERSION', 'Tumbleweed');
+    ok !is_ltss(), "Tumbleweed is not LTSS";
+
+    set_var('DISTRI', 'microos');
+    set_var('VERSION', '6.0');
+    ok !is_ltss(), "MicroOS is not LTSS";
+
+    # Cleanup
+    set_var('DISTRI', undef);
+    set_var('VERSION', undef);
 };
 
 done_testing;

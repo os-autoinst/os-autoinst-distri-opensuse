@@ -7,6 +7,7 @@ schedule:
   - boot/boot_to_desktop
   - console/suseconnect_scc
   - update/zypper_up
+  - ha/downgrade_suseconnect_ng
   - console/console_reboot
   - migration/online_migration/register_without_ltss
   - ha/wait_barriers
@@ -16,7 +17,7 @@ schedule:
   - console/hostname
   - ha/ha_sle15_workarounds
   - ha/firewall_disable
-  - ha/iscsi_client
+  - ha/iscsi_client_setup
   - ha/watchdog
   - ha/ha_cluster_init
   - ha/check_hawk

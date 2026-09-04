@@ -5,11 +5,9 @@
 
 # Summary: run InfiniBand test suite hpc-testing
 #
-# Maintainer: Michael Moese <mmoese@suse.de>,
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 
@@ -21,3 +19,9 @@ sub run {
 }
 
 1;
+
+=head1 Description
+
+Test module to create the barriers used for synchronizing the InfiniBand
+master and slave test setup (ibtests_prepare / ibtests).
+

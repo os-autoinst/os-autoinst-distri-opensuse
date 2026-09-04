@@ -1,19 +1,24 @@
-# Copyright 2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: PAM tests for login, user login should fail without authentication
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, tc#1767577
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils;
+use utils qw(write_sut_file);
 
 sub run {
     select_serial_terminal;
+
+    # pam_ssh is not part of SLE16 and above
+    if (is_sle('>=16')) {
+        record_info('SKIPPING TEST', "Skipping pam_login for now as pam_ssh.so is no longer part of SLE>=16. Refactoring might be needed.");
+        return;
+    }
 
     # Define the user and password, which are already configured in previous milestone
     my $user = 'suse';
@@ -53,23 +58,62 @@ sub run {
     upload_logs($pam_sshd);
     upload_logs($pam_login);
 
-    # Try to login to the OS with user suse, access should fail
-    assert_script_run(
-        "expect -c 'spawn ssh $user\@localhost; \\
-expect \"Password: \"; send \"$passwd\\n\"; \\
-expect \"Password: \"; send \"$passwd\\n\"; \\
-expect \"Password: \"; send \"$passwd\\n\"; \\
-expect \"*password: \"; send \"$passwd\\n\"; \\
-expect \"*password: \"; send \"$passwd\\n\"; \\
+    my $expect_script = <<"END";
+spawn ssh suse\@localhost
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "*password: "
+send "$passwd\\r"
+
+expect "*password: "
+send "$passwd\\r"
+
 expect {
-    \"*authentication failures\" {
-      exit 0
-   }
-   eof {
-       exit 1
-   }
-}'"
-    );
+    "*authentication failures" {
+        exit 0
+    }
+    eof {
+        exit 1
+    }
+}
+END
+
+    my $expect_script_12_sp5 = <<"END";
+spawn ssh suse\@localhost
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "Password: "
+send "$passwd\\r"
+
+expect "Password: "
+send "$passwd\\r"
+
+expect {
+    "*Permission denied*" {
+        exit 0
+    }
+    eof {
+        exit 1
+    }
+}
+END
+
+    $expect_script = (is_sle('=12-sp5')) ? $expect_script_12_sp5 : $expect_script;
+
+    write_sut_file("/tmp/pam_ssh.exp", $expect_script);
+
+    # Try to login to the OS with user suse, access should fail
+    assert_script_run('expect -f /tmp/pam_ssh.exp');
 
     # Make sure your current user is not "suse"
     validate_script_output "whoami | grep $user|| echo 'check pass'", sub { m/check pass/ };
@@ -82,10 +126,6 @@ expect {
     assert_script_run "rm -rf $deny_user_file";
     assert_script_run "mv $pam_sshd_bak $pam_sshd";
     assert_script_run "mv $pam_login_bak $pam_login";
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 sub post_fail_hook {

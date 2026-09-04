@@ -15,11 +15,12 @@
 # - Stop heartbeat after last test on list
 # - Collect all logs
 # Maintainer: Yong Sun <yosun@suse.com>, An Long <lan@suse.com>
+
+## no os-autoinst style
+
 package run;
 
 use 5.018;
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use File::Basename;
 use testapi;
@@ -27,7 +28,7 @@ use utils;
 use Utils::Backends 'is_pvm';
 use serial_terminal 'select_serial_terminal';
 use power_action_utils qw(power_action prepare_system_shutdown);
-use filesystem_utils qw(format_partition generate_xfstests_list);
+use filesystem_utils qw(format_partition fetch_xfstests_blacklist_from_url generate_xfstests_list);
 use lockapi;
 use mmapi;
 use version_utils 'is_public_cloud';
@@ -54,7 +55,6 @@ my $SUBTEST_MAX_TIME = get_var('XFSTESTS_SUBTEST_MAXTIME') || 2400;
 my $FSTYPE = get_required_var('XFSTESTS');
 my $TEST_SUITE = get_var('TEST');
 my $ENABLE_KDUMP = check_var('NO_KDUMP', '1') ? 0 : 1;
-#my $VIRTIO_CONSOLE = get_var('VIRTIO_CONSOLE');
 
 # variables set by previous steps
 my $TEST_DEV = get_var('XFSTESTS_TEST_DEV');
@@ -64,12 +64,10 @@ my $LOOP_DEVICE = get_var('XFSTESTS_LOOP_DEVICE');
 
 # Debug variables
 # - INJECT_INFO: inject a line or more line into xfstests subtests for debugging.
-# - BTRFS_DUMP: set it a non-zero value to enable btrfs dump.
 # - RAW_DUMP: set it a non-zero value to enable raw dump by dd the super block.
 # - XFSTESTS_DEBUG: enable collect more info by set 1 to files under /proc/sys/kernel/, more than 1 info split by space
 #     e.g. "hardlockup_panic hung_task_panic panic_on_io_nmi panic_on_oops panic_on_rcu_stall..."
 my $INJECT_INFO = get_var('INJECT_INFO', '');
-my $BTRFS_DUMP = get_var('BTRFS_DUMP', 0);
 my $RAW_DUMP = get_var('RAW_DUMP', 0);
 my $DEBUG_INFO = get_var('XFSTESTS_DEBUG', '');
 
@@ -84,6 +82,20 @@ my $HB_DONE = '<d>';
 # - XFSTESTS_TIMEOUT: Set the sub-test timeout threshold
 my $TIMEOUT_NO_HEARTBEAT = get_var('XFSTESTS_TIMEOUT', 2000);
 
+# Sporadic debug: tests listed in DEBUG_SPORADIC_FAIL are looped in place (at
+# their scheduled position among the other tests) by run_subtest.pm instead of
+# running once. run.pm only builds the set and tags the affected subtests; the
+# loop, statistics and reporting all live in run_subtest.pm. Related variables
+# (DEBUG_SPORADIC_LOOP/MODE/MAX) are documented in variables.md.
+my $SPORADIC_TESTS = get_var('DEBUG_SPORADIC_FAIL', '');
+
+sub parse_sporadic_tests {
+    my ($sporadic_str, $fstype, $inst_dir) = @_;
+    return {} unless $sporadic_str;
+
+    my %sporadic_hash = map { $_ => 1 } generate_xfstests_list($sporadic_str, $fstype, $inst_dir);
+    return \%sporadic_hash;
+}
 
 sub run {
     my ($self, $args) = @_;
@@ -115,6 +127,10 @@ sub run {
     heartbeat_prepare($HB_INTVL) if $enable_heartbeat;
     assert_script_run("mkdir -p $KDUMP_DIR $LOG_DIR");
 
+    # Tests to loop for sporadic failure debugging; run_subtest.pm does the loop
+    my $sporadic_hash = parse_sporadic_tests($SPORADIC_TESTS, $FSTYPE, $INST_DIR);
+    record_info('Sporadic Debug', "Loop run enabled for: " . join(', ', sort keys %$sporadic_hash)) if %$sporadic_hash;
+
     # wait until nfs service is ready
     if (get_var('PARALLEL_WITH')) {
         mutex_wait('xfstests_nfs_server_ready');
@@ -122,12 +138,17 @@ sub run {
     }
 
     # Generate xfstests blacklist
-    my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist($TEST_RANGES, $GROUPLIST, $FSTYPE));
+    my $whitelist;
     if (my $issues = get_var('XFSTESTS_KNOWN_ISSUES')) {
-        my $whitelist = LTP::WhiteList->new($issues);
-        my %skipped = map { $_ => 1 } $whitelist->list_skipped_tests($whitelist_env, $TEST_SUITE);
-        %black_list = (%black_list, %skipped);
+        $whitelist = LTP::WhiteList->new($issues);
     }
+    my ($yaml, $blist);
+    if ($BLACKLIST =~ m{^https?://}i) {
+        $yaml = fetch_xfstests_blacklist_from_url($BLACKLIST);
+        $blist = join(',', map { $_->{items} } @{$yaml->{$TEST_SUITE}{xfstests_blacklist}}) if grep { defined $_->{items} } @{$yaml->{$TEST_SUITE}{xfstests_blacklist}};
+        $BLACKLIST = $blist;
+    }
+    my %black_list = (generate_xfstests_list($BLACKLIST), exclude_grouplist($TEST_RANGES, $GROUPLIST, $FSTYPE));
 
     my $subtest_num = scalar @tests;
     foreach my $index (0 .. $#tests) {
@@ -135,15 +156,19 @@ sub run {
         # trim testname
         $test =~ s/^\s+|\s+$//g;
         # Skip tests inside blacklist
-        if (exists($black_list{$test})) {
+        if (exists($black_list{$test}) || ($whitelist && $whitelist->is_test_disabled($whitelist_env, $TEST_SUITE, $test))) {
             next;
         }
+        # Tag sporadic tests before the name is normalized (hash keys use "/")
+        my $is_sporadic = exists $sporadic_hash->{$test};
         my $targs = OpenQA::Test::RunArgs->new();
         # Change / to -, because openqa will see / as path and it'll fail to find run file in loadtest
         $test =~ s/\//-/;
         $targs->{name} = $test;
         $targs->{enable_heartbeat} = $enable_heartbeat;
         $targs->{last_one} = 0;
+        # run_subtest.pm loops this test in place instead of running it once
+        $targs->{sporadic} = 1 if $is_sporadic;
         $targs->{my_instance} = $args->{my_instance} if is_public_cloud;
         if ($index == $subtest_num - 1) {
             mutex_create 'last_subtest_run_finish';
@@ -151,9 +176,7 @@ sub run {
             autotest::loadtest("tests/xfstests/run_subtest.pm", name => $test, run_args => $targs);
             mutex_lock 'last_subtest_run_finish';
             autotest::loadtest 'tests/xfstests/generate_report.pm';
-            autotest::loadtest("tests/publiccloud/ssh_interactive_end.pm", run_args => $args) if is_public_cloud();
-        }
-        else {
+        } else {
             autotest::loadtest("tests/xfstests/run_subtest.pm", name => $test, run_args => $targs);
         }
     }
@@ -163,11 +186,25 @@ sub test_flags {
     return {
         fatal => 1,
         milestone => 1,
+        # We need to run this always on PC because of post_fail_hook()
+        always_run => (is_public_cloud()) ? 1 : 0
     };
 }
 
+sub post_run_hook {
+    my ($self) = @_;
+    cleanup($self->{run_args});
+}
+
 sub post_fail_hook {
+    my ($self) = @_;
+    cleanup($self->{run_args});
     return;
+}
+
+sub cleanup {
+    my ($args) = @_;
+    autotest::loadtest('tests/publiccloud/destroy.pm', run_args => $args) if is_public_cloud();
 }
 
 1;

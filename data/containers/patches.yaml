@@ -1,0 +1,236 @@
+# To find out whether a patch was merged:
+#   commit="$(gh pr view "$PR" --json mergeCommit --jq '.mergeCommit.oid')"
+#   git tag --contains "$commit" --sort=version:refname | head -1
+# If the patch was not merged you may want to set min
+
+aardvark-dns:
+  # https://github.com/containers/aardvark-dns/pull/519 is needed for 100-basic-name-resolution
+  # https://github.com/containers/aardvark-dns/pull/581 is needed for PR#623
+  # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
+  519:
+    merged: "1.13.0"
+  581:
+    merged: "1.15.0"
+  623:
+    merged: "1.17.0"
+
+buildah:
+  # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
+  # https://github.com/containers/buildah/pull/6226 is needed for bud & run
+  # https://github.com/containers/buildah/pull/6271 - Update "bud with --cpu-shares" test, and rename it
+  # https://github.com/containers/buildah/pull/6602 is needed with docker v29
+  # https://github.com/containers/buildah/pull/6701 is needed to test on arches other than amd64
+  # https://github.com/containers/buildah/pull/6791 - CI: remove dependencies on online apt repositories
+  5495:
+    merged: "1.36.0"
+  6226:
+    merged: "1.41.0"
+  6271:
+    merged: "1.41.0"
+  6602:
+    min: "1.43.0"
+    merged: "1.44.0"
+  6701:
+    min: "1.43.0"
+    merged: "1.44.0"
+  6791:
+    min: "1.39.5"
+    merged: "1.44.0"
+
+buildx:
+  # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
+  3475:
+    min: "0.29.0"
+
+compose:
+  # https://github.com/docker/compose/pull/13214 - test: Set stop_signal to SIGTERM
+  # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
+  # https://github.com/docker/compose/pull/14170 - test(e2e): bump compose-bridge images to v0.0.7
+  13214:
+    merged: "2.39.4"
+  13564:
+  14170:
+    min: "5.4.0"
+
+conmon:
+  # https://github.com/containers/conmon/pull/579 is needed to enable tests
+  579:
+    merged: "2.2.0"
+
+containerd:
+  # https://github.com/containerd/containerd/pull/13149 - Skip TestExportAndImportMultiLayer on s390x
+  # https://github.com/containerd/containerd/pull/13151 - Skip more tests on s390x
+  13149:
+  13151:
+    min: "2.0.0"
+
+docker-py:
+  # https://github.com/docker/docker-py/pull/3261 - Bump default API version to 1.45 (Moby 26.0/26.1)
+  # https://github.com/docker/docker-py/pull/3290 - tests/exec: expect 127 exit code for missing executable
+  # https://github.com/docker/docker-py/pull/3354 - tests: Fix deprecation warning for utcfromtimestamp()
+  # https://github.com/docker/docker-py/pull/3362 - test/integration: don't check for deprecated Networks field
+  # https://github.com/docker/docker-py/pull/3366 - test: Skip from_env_unix tests if DOCKER_HOST is network socket
+  # https://github.com/docker/docker-py/pull/3367 - tests/integration: Make the tests runnable on SELinux enabled daemon
+  # https://github.com/docker/docker-py/pull/3372 - test_connect_with_ipv6_address: enable IPv6
+  # https://github.com/docker/docker-py/pull/3373 - test_create_with_ipv6_address: enable IPv6
+  # https://github.com/docker/docker-py/pull/3380 - integration: Remove test_build_squash tests
+  # https://github.com/docker/docker-py/pull/3393 - tests: Make stream assertions robust to chunk splitting
+  # https://github.com/docker/docker-py/pull/3407 - Fix integration tests on non-amd64 hosts
+  # https://github.com/docker/docker-py/pull/3431 - tests: isolate FromContextTest from ambient TLS env vars
+  3261:
+  3290:
+  3354:
+  3362:
+  3366:
+  3367:
+  3372:
+  3373:
+  3380:
+  3393:
+  3407:
+  3431:
+    min: "7.2.0"
+
+moby:
+  # https://github.com/moby/moby/pull/51794 - integration: Support iputils ping
+  # https://github.com/moby/moby/pull/51970 - Skip some tests as rootless when SELinux is enabled
+  # https://github.com/moby/moby/pull/51972 - integration: Support containerd pull error message
+  # https://github.com/moby/moby/pull/52199 - Fix testsuite when running directly as rootless
+  51794:
+  51970:
+    min: "29.2.0"
+  51972:
+    min: "29.2.0"
+  52199:
+    min: "29.2.0"
+
+netavark:
+  # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
+  1191:
+    merged: "1.15.0"
+
+podman:
+  # https://github.com/containers/podman/pull/21875 is needed for 060-mount
+  # https://github.com/containers/podman/pull/24068 is needed for 271-tcp-cors-server
+  # https://github.com/containers/podman/pull/25858 is needed for 161-volume-quotas
+  # https://github.com/containers/podman/pull/25918 is needed for 195-run-namespaces
+  # https://github.com/containers/podman/pull/25942 is needed for 252-quadlet
+  # https://github.com/containers/podman/pull/26017 is needed for 030-run
+  # https://github.com/containers/podman/pull/26920 is needed to drop ncat
+  # https://github.com/containers/podman/pull/26921 is needed to drop socat
+  # https://github.com/containers/podman/pull/26934 - test/e2e: fix 'block all syscalls' seccomp for runc
+  # https://github.com/containers/podman/pull/26947 - test/system: some small fixes
+  # https://github.com/containers/podman/pull/27230 is needed for 130-kill
+  # https://github.com/containers/podman/pull/27233 is needed for 130-kill
+  # https://github.com/containers/podman/pull/27463 - test/system: Update test to handle new error message from runc 1.3.3
+  # https://github.com/containers/podman/pull/27760 - test/system: remove apk from build
+  # https://github.com/containers/podman/pull/27813 - test: Fix --hostuser octal UID test flakiness
+  # https://github.com/containers/podman/pull/28133 - test: Use yq for yaml2json instead of PyYAML
+  # https://github.com/containers/podman/pull/28151 - test/system: fix pod inspect ordering test leak
+  # https://github.com/containers/podman/pull/28266 - Fixes for running the e2e testsuite on architectures other than amd64
+  # https://github.com/containers/podman/pull/28281 - tests/e2e: Do not try to list /proc/acpi on non-amd64
+  # https://github.com/containers/podman/pull/28338 - test: relax rootless runc pid namespace assertion
+  # https://github.com/containers/podman/pull/28448 - test/system: Fix 260-sdnotify being silently skipped
+  # https://github.com/containers/podman/pull/28603 - test/system: quadlet - rootfs failure on kernel 7.1
+  # https://github.com/containers/podman/pull/28794 - Test fixes/skips for new CI system
+  # https://github.com/containers/podman/pull/28804 - More test fixes for new CI
+  # https://github.com/containers/podman/pull/29380 - test/e2e: accept RESTORE in checkpoint tcp error match
+  # https://github.com/containers/podman/pull/29381 - test/e2e/healthcheck: skip ignore-result test on non-amd64
+  # https://github.com/containers/podman/pull/29690 - test/system: Update test to handle new error message from runc 1.5.0
+  21875:
+    merged: "5.0.0"
+  24068:
+    merged: "5.3.0"
+  25858:
+    merged: "5.5.0"
+    min: "5.0.0"
+  25918:
+    merged: "5.5.0"
+    min: "5.0.0"
+  25942:
+    merged: "5.6.0"
+  26017:
+    merged: "5.6.0"
+    min: "5.0.0"
+  26022:
+    merged: "5.6.0"
+    min: "5.4.0"
+  26947:
+    merged: "5.7.0"
+    min: "5.4.0"
+  26920:
+    merged: "5.7.0"
+  26921:
+    merged: "5.7.0"
+  26934:
+    merged: "5.7.0"
+  27230:
+    merged: "5.7.0"
+  27233:
+    merged: "5.7.0"
+  27463:
+    merged: "5.7.0"
+  27760:
+    merged: "5.7.0"
+  27813:
+    merged: "5.8.0"
+  28133:
+    merged: "6.0.0"
+    min: "5.8.0"
+  28151:
+    merged: "6.0.0"
+    min: "5.8.0"
+  28266:
+    merged: "6.0.0"
+    min: "5.8.0"
+  28281:
+    merged: "6.0.0"
+    min: "5.8.0"
+  28338:
+    merged: "5.8.2"
+    min: "5.4.0"
+  28448:
+    min: "5.7.1"
+    merged: "6.0.0"
+  28603:
+    merged: "6.0.0"
+    min: "5.4.2"
+  28794:
+    merged: "6.0.0"
+    min: "5.4.2"
+  28804:
+    merged: "6.0.0"
+    min: "5.4.2"
+  29380:
+    min: "6.0"
+  29381:
+    min: "6.0"
+  29690:
+    min: "6.0"
+
+podman-py:
+  # https://github.com/containers/podman-py/pull/623 - Fix pytest flag for rootful test
+  # https://github.com/containers/podman-py/pull/637 - tests/integration: Skip test on non-x86_64 arches
+  # https://github.com/containers/podman-py/pull/641 - tests: Remove obsolete podman 3.1 skip markers
+  623:
+  637:
+  641:
+
+runc:
+  # https://github.com/opencontainers/runc/pull/4842 - Update busybox:glibc in integration tests to latest builds
+  # https://github.com/opencontainers/runc/pull/5295 - Update busybox:glibc in integration tests to latest (1.38.0) builds
+  # https://github.com/opencontainers/runc/pull/5307 - tests/integration: fix seccomp tests on big-endian architectures
+  4842:
+    merged: "1.4.3"
+    min: "1.3.4"
+  5295:
+    merged: "1.4.3"
+  5307:
+
+skopeo:
+  # https://github.com/containers/skopeo/pull/2834 - integration: Force amd64 on TestProxyMetadata
+  2834:
+    min: "1.22.0"
+    merged: "1.23.0"
+
+umoci:

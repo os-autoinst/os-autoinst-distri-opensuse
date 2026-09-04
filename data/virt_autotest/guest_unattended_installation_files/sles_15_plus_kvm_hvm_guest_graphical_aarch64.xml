@@ -55,14 +55,14 @@
   </add-on>
   <bootloader t="map">
     <global t="map">
-      <append>console=tty console=ttyS0,115200n8 mitigations=auto</append>
+      <append>console=tty console=ttyAMA0,115200n8 mitigations=auto</append>
       <cpu_mitigations>auto</cpu_mitigations>
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
       <secure_boot>##Secure-Boot##</secure_boot>
       <serial>serial --unit=0 --speed=115200 --parity=no --word=8</serial>
-      <terminal>gfxterm serial</terminal>
+      <terminal>serial</terminal>
       <timeout t="integer">3</timeout>
       <update_nvram>true</update_nvram>
     </global>
@@ -252,7 +252,7 @@
       </password_settings>
       <shell>/bin/bash</shell>
       <uid>0</uid>
-      <user_password>$2a$05$tvuIlgZ.sSzeCvQD6JN84uqsL26g17B7It3pTYPmJa.Qt7L03XjMu</user_password>
+      <user_password>$y$j9T$nRJRQUwZDai/K44Dn8RD40$tNACP3rJ5/oHQD1XIgVmj0MaBZKpD7GWN9nhpyDMgr5</user_password>
       <username>root</username>
     </user>
   </users>

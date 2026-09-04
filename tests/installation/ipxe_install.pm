@@ -6,16 +6,16 @@
 # Summary: Verify installation starts and is in progress
 # Maintainer: Michael Moese <mmoese@suse.de>
 
+## no os-autoinst style
+
 package ipxe_install;
 use base 'y2_installbase';
-use strict;
-use warnings;
 
 use utils;
 use testapi;
 use bmwqemu;
 use ipmi_backend_utils;
-use version_utils qw(is_upgrade is_tumbleweed is_sle is_leap is_sle_micro is_agama);
+use version_utils qw(is_upgrade is_tumbleweed is_sle is_leap is_sle_micro is_agama is_transactional);
 use bootloader_setup 'prepare_disks';
 use Utils::Architectures;
 use Utils::Backends qw(is_ipmi is_qemu);
@@ -24,6 +24,7 @@ use virt_autotest::utils qw(is_kvm_host is_xen_host);
 use HTTP::Tiny;
 use IPC::Run;
 use Time::HiRes 'sleep';
+use Socket qw(inet_ntoa inet_aton);
 
 
 sub poweroff_host {
@@ -84,8 +85,16 @@ sub set_bootscript {
     if (is_disk_image) {
         $install = "rd.kiwi.install.image=" . get_required_var('MIRROR_HTTP') . "/";
         $install .= get_var('HDD_1') ? get_var('HDD_1') : get_required_var('INSTALL_HDD_IMAGE');
-        $kernel .= "/pxeboot.$distri.$arch-$version.kernel";
-        $initrd .= "/pxeboot.$distri.$arch-$version.initrd";
+        if (is_sle('>=16.1')) {
+            if (is_transactional) {
+                $kernel .= "/pxeboot." . uc($distri) . "S-$version-Immutable.$arch-$version.0.kernel";
+                $initrd .= "/pxeboot." . uc($distri) . "S-$version-Immutable.$arch-$version.0.initrd";
+            }
+        }
+        else {
+            $kernel .= "/pxeboot.$distri.$arch-$version.kernel";
+            $initrd .= "/pxeboot.$distri.$arch-$version.initrd";
+        }
     } elsif ($arch eq 'aarch64') {
         $kernel .= '/boot/aarch64/linux';
         $initrd .= '/boot/aarch64/initrd';
@@ -124,23 +133,11 @@ END_BOOTSCRIPT
     set_ipxe_bootscript($bootscript);
 }
 
-sub set_bootscript_hdd {
-    my $bootscript = <<"END_BOOTSCRIPT";
-#!ipxe
-exit
-END_BOOTSCRIPT
-
-    set_ipxe_bootscript($bootscript);
-}
-
 sub set_bootscript_agama {
     my $host = get_required_var('SUT_IP');
     my $arch = get_required_var('ARCH');
     my $mirror_http = get_required_var('MIRROR_HTTP');
-    my $openqa_hostname = get_var('OPENQA_HOSTNAME', 'openqa.suse.de');
-    my $agama_iso = get_required_var('ISO');
-    my $agama_live_iso = get_var("AGAMA_LIVE_ISO_URL", "http://$openqa_hostname/assets/iso/$agama_iso");
-    my $install = "root=live:$agama_live_iso live.password=$testapi::password";
+    my $install = "root=live:$mirror_http/LiveOS/squashfs.img live.password=$testapi::password";
     my $kernel = "$mirror_http/boot/$arch/loader/linux";
     my $initrd = "$mirror_http/boot/$arch/loader/initrd";
 
@@ -184,7 +181,7 @@ sub enter_o3_ipxe_boot_entry {
 sub set_bootscript_agama_cmdline_extra {
     my $cmdline_extra = " ";
     if (my $agama_auto = get_var('INST_AUTO')) {
-        my $agama_auto_url = autoyast::expand_agama_profile($agama_auto);
+        my $agama_auto_url = ($agama_auto =~ /\.libsonnet/) ? autoyast::generate_json_profile($agama_auto) : autoyast::expand_agama_profile($agama_auto);
         $cmdline_extra .= "inst.auto=$agama_auto_url inst.finish=stop ";
     }
     # Agama Installation repository URL
@@ -194,19 +191,26 @@ sub set_bootscript_agama_cmdline_extra {
         $agama_install_url =~ s/^\s+|\s+$//g;
         $cmdline_extra .= "inst.install_url=$agama_install_url ";
     }
-    # Add register URL
-    if (my $register_url = get_var('SCC_URL')) {
-        $cmdline_extra .= "inst.register_url=$register_url ";
+    # Add register URL, we don't need to register the system in case:
+    #   1. Any install repos are used
+    #   2. Register the system via scc, see https://bugzilla.suse.com/show_bug.cgi?id=1246600
+    unless (get_var('INST_INSTALL_URL')) {
+        if (my $register_url = get_var('HOST_SCC_URL', get_var('SCC_URL'))) {
+            $cmdline_extra .= "inst.register_url=$register_url " unless $register_url =~ /https:\/\/scc.suse.com/;
+        }
     }
     if (is_ipmi) {
         my $ipxe_console = get_required_var('IPXE_CONSOLE');
-        my $sol_console = (split(/,/, $ipxe_console))[0];
-        $cmdline_extra .= "console=$ipxe_console linuxrc.log=/dev/$sol_console linuxrc.core=/dev/$sol_console linuxrc.debug=4,trace ";
+        $cmdline_extra .= "console=$ipxe_console ";
     }
 
     # Support passing EXTRA_PXE_CMDLINE and EXTRABOOTPARAMS to bootscripts (inherited from set_bootscript_cmdline_extra)
-    $cmdline_extra .= get_var('EXTRA_PXE_CMDLINE', '');
-    $cmdline_extra .= get_var('EXTRABOOTPARAMS', '');
+    $cmdline_extra .= ' ' . get_var('EXTRA_PXE_CMDLINE', '');
+    $cmdline_extra .= ' ' . get_var('EXTRABOOTPARAMS', '');
+    $cmdline_extra .= ' ' . get_var('AGAMA_NETWORK_PARAMS', '');
+    # Pass specific CPU parameters for a particular type of tests
+    $cmdline_extra .= ' ' . get_var('CPU_BOOTPARAMS', '') if get_var('ALLOW_CPU_BOOTPARAMS', '');
+    $cmdline_extra .= ' arm64.nompam' if (is_aarch64 and get_var('NO_MPAM'));
 
     return $cmdline_extra;
 }
@@ -348,14 +352,26 @@ sub run {
     select_console 'sol', await_console => 0;
 
     if (is_disk_image) {
-        check_screen([qw(load-linux-kernel load-initrd)], 120 / get_var('TIMEOUT_SCALE', 1));
+        check_screen([qw(load-linux-kernel load-initrd)]);
         return;
     }
 
+    if (get_var('WORKER_CLASS') =~ /(ipmi-nvdimm.+region-nue|region-nue.+ipmi-nvdimm)/) {
+        assert_screen 'nue-ipxe-menu', 600;
+        my $sut_ip = inet_ntoa(inet_aton(get_required_var('SUT_IP')));
+        wait_screen_change { send_key 'i' };
+        assert_screen 'ipxe-shell';
+        # machine has two interfaces with IPs, ipxe detects the first one,
+        # but it is not correct, this line is correcting it
+        enter_cmd_slow 'chain --replace --autofree ' . get_var('IPXE_HTTPSERVER') . '/' . $sut_ip . '/script.ipxe';
+        send_key "ret";
+    }
+
     if (is_agama) {
-        assert_screen([qw(load-linux-kernel load-initrd)], 240);
-        record_info("Installing", "Please check the expected product is being installed");
+        record_info('Loading kernel&initrd and starting installation');
+        check_screen([qw(load-linux-kernel load-initrd)], 240);
         assert_screen('agama-installer-live-root', 400);
+        set_bootscript_hdd if get_var('IPXE_SET_HDD_BOOTSCRIPT');
         return;
     }
 
@@ -365,6 +381,7 @@ sub run {
         enter_o3_ipxe_boot_entry if get_var('IPXE_STATIC');
         check_screen([qw(load-linux-kernel load-initrd)], 80);
         assert_screen([qw(network-config-created loading-installation-system sshd-server-started autoyast-installation)], 300);
+        set_bootscript_hdd if get_var('IPXE_SET_HDD_BOOTSCRIPT');
         return if get_var('AUTOYAST');
         wait_still_screen(stilltime => 12, similarity_level => 60, timeout => 30) unless check_screen('sshd-server-started', timeout => 60);
         save_screenshot;

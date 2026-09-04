@@ -8,15 +8,26 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(systemctl);
+use version_utils 'is_sle';
+
+sub cleanup_squid {
+    # run() leaves squid serving on :3128 with a generated config and credentials file.
+    # squid is slow to settle, so allow the same timeout used for the restart above
+    systemctl('stop squid', ignore_failure => 1, timeout => 600);
+    script_run 'test -e /etc/squid/squid.conf.orig && mv -f /etc/squid/squid.conf.orig /etc/squid/squid.conf';
+    script_run 'rm -f /etc/squid/passwd.txt';
+}
 
 sub configure_squid {
+    # keep the packaged configuration so it can be restored afterwards
+    script_run 'cp -a /etc/squid/squid.conf /etc/squid/squid.conf.orig';
     # configure squid as a web proxy cache
     assert_script_run 'curl ' . data_url('squid/squid_authdigest.conf') . ' -o /etc/squid/squid.conf';
+    # on Tumbleweed the auth helper path is different
+    assert_script_run 'sed -i "s|/usr/lib/squid/digest_file_auth|/usr/libexec/squid/digest_file_auth|" /etc/squid/squid.conf' unless is_sle();
     # digest is for proxyuser:proxypassword with realm SUSE
     assert_script_run 'echo "proxyuser:SUSE:7935d7d2f866548295f9b3c5400b97e6" > /etc/squid/passwd.txt';
     systemctl('restart squid', timeout => 600);
@@ -38,13 +49,16 @@ sub run {
       sub { m/HTTP\/1.1 200 OK/ };
 }
 
+sub post_run_hook {
+    my ($self) = @_;
+    cleanup_squid;
+    $self->SUPER::post_run_hook;
+}
+
 sub post_fail_hook {
     upload_logs('/var/log/squid/access.log', log_name => 'squid_access.log');
     upload_logs('/var/log/squid/cache.log', log_name => 'squid_cache.log');
-}
-
-sub test_flags {
-    return {always_rollback => 1};
+    cleanup_squid;
 }
 
 1;

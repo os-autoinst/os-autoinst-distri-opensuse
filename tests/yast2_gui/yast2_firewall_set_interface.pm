@@ -5,11 +5,9 @@
 
 # Summary: YaST2 Firewall UI test checks verious configurations and settings of firewall
 # Make sure yast2 firewall can opened properly. Configurations can be changed and written correctly.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_guitest";
-use strict;
-use warnings;
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use utils;
 use network_utils 'iface';
@@ -19,6 +17,13 @@ use serial_terminal 'select_serial_terminal';
 sub run {
     my $self = shift;
     select_console 'root-console';
+
+    my $network_daemon = script_output 'readlink /etc/systemd/system/network.service | sed \'s#.*/\(.*\)\.service#\1#\'';
+    if ($network_daemon == "NetworkManager") {
+        record_info('Skipped', 'YaST2 cannot manage firewall setting when using NetworkManager (boo#1207390)', result => 'softfail');
+        select_console 'x11', await_console => 0;
+        return;
+    }
     my $iface = iface();
     my %setting = (device => $iface, zone => 'public');
 

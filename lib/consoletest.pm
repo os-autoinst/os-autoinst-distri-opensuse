@@ -8,14 +8,10 @@ use strict;
 use warnings;
 use testapi;
 use known_bugs;
-use version_utils qw(is_public_cloud is_openstack);
-use Utils::Logging qw(export_logs_basic export_logs_desktop);
+use version_utils qw(is_public_cloud);
+use Utils::Logging qw(export_logs_basic export_logs_desktop record_avc_selinux_alerts);
 use utils;
-
-my %avc_record = (
-    start => 0,
-    end => undef
-);
+use Utils::Architectures qw(is_aarch64);
 
 =head1 consoletest
 
@@ -32,11 +28,14 @@ Method executed when run() finishes.
 sub post_run_hook {
     my ($self) = @_;
 
+    # https://progress.opensuse.org/issues/183761#note-45
+    wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
     # start next test in home directory
-    enter_cmd "cd";
+    assert_script_run "cd";
 
-    record_avc_selinux_alerts();
+    $self->record_avc_selinux_alerts();
     # clear screen to make screen content ready for next test
+    wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
     $self->clear_and_verify_console;
 }
 
@@ -49,40 +48,19 @@ Method executed when run() finishes and the module has result => 'fail'
 sub post_fail_hook {
     my ($self) = @_;
     return if get_var('NOLOGS');
-    record_avc_selinux_alerts();
     $self->SUPER::post_fail_hook;
+    $self->record_avc_selinux_alerts();
     # at this point the instance is shutdown
-    return if (is_public_cloud() || is_openstack());
+    return if is_public_cloud();
     # Remaining log functions are executed in Utils::Logging::export_logs()
     # called in opensusebasetest::post_fail_hook()
-    select_console('log-console');
+    eval { select_console('log-console') };
+    if ($@) {
+        record_info('console error', "Could not switch to log-console: $@", result => 'fail');
+        return;
+    }
     show_oom_info;
     show_tasks_in_blocked_state;
-}
-
-=head2 record_avc_selinux_alerts
-
-List AVCs that have been recorded during a runtime of a test module that executes this function
-
-=cut
-
-sub record_avc_selinux_alerts {
-    if ((current_console() !~ /root|log/) || (script_run('test -f /var/log/audit/audit.log') != 0)) {
-        return;
-    }
-
-    my @logged = split(/\n/, script_output('ausearch -m avc -r', timeout => 300, proceed_on_failure => 1));
-
-    # no new messages are registered
-    if (scalar @logged <= $avc_record{start}) {
-        return;
-    }
-
-    $avc_record{end} = scalar @logged - 1;
-    my @avc = @logged[$avc_record{start} .. $avc_record{end}];
-    $avc_record{start} = $avc_record{end} + 1;
-
-    record_info('AVC', join("\n", @avc));
 }
 
 =head2 use_wicked_network_manager

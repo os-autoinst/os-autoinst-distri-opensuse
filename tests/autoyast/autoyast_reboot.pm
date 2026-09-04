@@ -7,9 +7,7 @@
 # 1"
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
-use strict;
-use warnings;
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use power_action_utils 'power_action';
 

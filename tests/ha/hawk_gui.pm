@@ -7,9 +7,7 @@
 # Summary: check HAWK GUI with the a python+selenium script and firefox
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;
@@ -33,9 +31,6 @@ sub run {
         record_info('Version switch', 'New version = ' . get_var('VERSION'));
     }
 
-    # Wait for each cluster node to check for its hawk service
-    barrier_wait("HAWK_GUI_INIT_$cluster_name");
-
     unless (is_desktop_installed()) {
         record_info "HAWK GUI test", "HAWK GUI test requires GUI desktop installed";
         return;
@@ -47,9 +42,9 @@ sub run {
     # TODO: Use another namespace using team group name
     # Docker image source in https://github.com/ricardobranco777/hawk_test
     # It will be eventually moved to https://github.com/ClusterLabs/hawk/e2e_test
-    my $image = "registry.opensuse.org/devel/openqa/ci/tooling/containers_15_4/hawk_test:latest";
-
-    assert_script_run("podman pull $image", 240);
+    my $image = get_var('HAWK_E2E_TEST_IMAGE', 'registry.opensuse.org/devel/openqa/ci/tooling/containers_16_0/hawk_test:latest');
+    my $docker_content_trust = get_var('DOCKER_CONTENT_TRUST') ? 'env DOCKER_CONTENT_TRUST=1 ' : '';
+    assert_script_run($docker_content_trust . 'podman pull ' . $image, 240);
 
     # Rest of the test needs to be performed on the x11 console, but with the
     # HA_CLUSTER setting that console is not yet activated; newer versions of gdm
@@ -60,6 +55,9 @@ sub run {
     $self->handle_displaymanager_login();
     x11_start_program('xterm');
     turn_off_gnome_screensaver;
+
+    # Wait for each cluster node to check for its hawk service
+    barrier_wait("HAWK_GUI_INIT_$cluster_name");
 
     my $pyscr = 'hawk_test';
     my $path = 'test';
@@ -82,15 +80,16 @@ sub run {
     # and then cd to the user's home directory.
     become_root;
     assert_script_run("cd /home/$testapi::username");
-    my $test_cmd = "podman run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
+    record_info('podman images', script_output('podman images'));
+    my $test_cmd = "${docker_content_trust}podman run --rm --name test --ipc=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=\$DISPLAY -v \$PWD/$path:/$path ";
     $test_cmd .= "$image -b $browser -H $node1 -S $node2 -s $testapi::password -r /$results --virtual-ip $virtual_ip";
-    enter_cmd "$test_cmd 2>&1 | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode";
+    enter_cmd "$test_cmd 2>&1 | tee $logs; echo $pyscr-\$PIPESTATUS > $retcode; echo HAWK_TEST_DONE; sleep 30;";
     assert_screen "hawk-$browser", 60;
 
     my $loop_count = 360;    # 30 minutes (360*5)
     while (1) {
         $loop_count--;
-        last if ($loop_count < 0);
+        last if ($loop_count < 0 or check_screen('hawk-test-done', 5));
         if (check_screen('generic-desktop', 0, no_wait => 1)) {
             # We may reach generic-desktop in two scenarios: (1) the python script
             # finishes, or (2) it has finished an individual test and closed the
@@ -113,6 +112,8 @@ sub run {
     # test files to $testapi::username just to be on the safe side
     assert_script_run "chown -R $testapi::username $path";
 
+    # Close Gui terminal, generic-desktop should be clean, no windows
+    close_gui_terminal;
     assert_screen "generic-desktop";
     barrier_wait("HAWK_GUI_CPU_TEST_FINISH_$cluster_name");
 

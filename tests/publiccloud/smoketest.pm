@@ -4,23 +4,23 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run basic smoketest on publiccloud test instance
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
-use testapi;
-use serial_terminal 'select_serial_terminal';
-use utils;
+use Mojo::Base 'publiccloud::basetest';
+use publiccloud::ssh_interactive 'select_host_console';
 
 sub run {
-    select_serial_terminal;
+    my ($self, $args) = @_;
+    select_host_console();
+
+    my $instance = $args->{my_instance};
 
     # Check if systemd completed sucessfully
-    assert_script_run 'journalctl -b | grep "Reached target Basic System"';
+    $instance->ssh_assert_script_run('sudo journalctl -b | grep "Reached target Basic System"');
     # Additional basic commands to verify the instance is healthy
-    validate_script_output('echo "ping"', sub { m/ping/ });
-    assert_script_run 'uname -a';
+    my $output = $instance->ssh_script_output('echo "ping"');
+    die("Unexpected output of 'echo ping': $output") unless ($output =~ m/ping/);
+    $instance->ssh_assert_script_run('uname -a');
 }
 
 1;

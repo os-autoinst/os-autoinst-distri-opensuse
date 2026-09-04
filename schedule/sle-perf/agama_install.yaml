@@ -1,0 +1,10 @@
+name:          sle16-installation
+description:  >
+    Maintainer: Qi Wang (qi.wang@suse.com) qe-perf@suse.de
+    SLE16 installation
+vars:
+  AUTOYAST_PREPARE_PROFILE: '1'
+  AY_EXPAND_VARS: DISKID,MILESTONENAME
+schedule:
+  - installation/ipxe_install
+  - installation/agama_reboot

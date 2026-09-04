@@ -15,17 +15,15 @@
 # Maintainer: Michal Nowak <mnowak@suse.com>
 # Tags: fate#320292
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
-use version_utils qw(is_transactional);
+use package_utils 'install_package';
 
 sub run {
     select_console 'root-console';
 
-    zypper_call 'in openssl' unless is_transactional;
+    install_package('openssl', trup_reboot => 1) if (script_run('rpm -q openssl'));
     assert_script_run 'openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365 -out domain.crt -subj "/C=CZ/L=Prague/O=SUSE/CN=alpn.suse.cz"';
 
     clear_console;

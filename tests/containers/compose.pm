@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2024 SUSE LLC
+# Copyright 2017-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: docker-compose
@@ -23,11 +23,19 @@ use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use registration;
 use utils;
 use containers::common;
-use version_utils qw(is_transactional);
+use version_utils qw(is_sle_micro is_transactional is_vmware);
 
 sub basic_test {
     my ($runtime, $rootless) = @_;
     my $opts = $rootless ? "--user" : "";
+
+    # Apply workaround for https://bugzilla.suse.com/show_bug.cgi?id=1245762
+    # docker-compose doesn't work with podman using podman-docker package
+    if (is_sle_micro('=6.1')) {
+        assert_script_run 'export PODMAN_COMPOSE_PROVIDER=/usr/lib/docker/cli-plugins/docker-compose';
+    }
+
+    validate_script_output("$runtime compose version", qr/version/);
 
     systemctl "start $opts podman.socket" if ($runtime eq "podman");
 
@@ -45,6 +53,7 @@ sub basic_test {
 
     assert_script_run "$runtime compose ps";
     assert_script_run "$runtime compose top";
+    assert_script_run "$runtime compose logs";
 
     # Send HTTP request to haproxy - it should be proxied to nginx
     assert_script_run 'curl -s http://127.0.0.1:8080/ | grep "Welcome to nginx!"';
@@ -69,22 +78,31 @@ sub run {
 
     my $engine = $self->containers_factory($runtime);
 
-    install_packages('docker-compose');
-
-    validate_script_output("$runtime compose version", qr/version 2/);
+    my @pkgs = ('docker-compose');
+    # Work-around for https://bugzilla.suse.com/show_bug.cgi?id=1244448
+    # docker-compose package pulls all docker dependencies when used with podman
+    # Note: When `CONTAINER_RUNTIMES=podman,docker` we don't care and it allows
+    # us to test how both runtimes behave when installed together.
+    push @pkgs, 'podman-docker' if check_var("CONTAINER_RUNTIMES", "podman");
+    install_packages(@pkgs);
 
     basic_test($runtime, 0);
 
     if ($runtime eq "podman") {
-        if (is_transactional) {
+        if (is_transactional || is_vmware) {
             select_console "user-console";
         } else {
             select_user_serial_terminal();
         }
         basic_test($runtime, 1);
+        select_serial_terminal;
     }
 
     $engine->cleanup_system_host();
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

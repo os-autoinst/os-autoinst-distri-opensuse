@@ -5,14 +5,14 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#48929
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils "power_action";
+use version_utils qw(is_sle);
+use Utils::Architectures qw(is_aarch64);
 
 sub run {
     my ($self) = @_;
@@ -57,7 +57,8 @@ sub run {
 
         # Reboot to make settings work
         power_action('reboot', textmode => 1);
-        $self->wait_boot;
+        my $boot_method = ((is_aarch64 && is_sle('>=16')) ? 'wait_boot_past_bootloader' : 'wait_boot');
+        $self->$boot_method;
         select_serial_terminal;
 
         my $meas_tmpfile = "/tmp/ascii_runtime_measurements-" . @$k{name};

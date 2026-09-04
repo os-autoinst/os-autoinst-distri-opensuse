@@ -29,13 +29,11 @@
 # Maintainer: Antonio Caristia <acaristia@suse.com> (autofs)
 # Maintainer: Timo Jyrinki <tjyrinki@suse.com> (nfsidmap)
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use lockapi;
 use utils qw(systemctl zypper_call);
 use version_utils qw(is_leap is_sle);
-use strict;
-use warnings;
 
 sub run {
     # MM tests autofs requires barrier_create

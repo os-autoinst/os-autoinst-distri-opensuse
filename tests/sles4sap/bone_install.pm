@@ -6,9 +6,7 @@
 # Summary: Install SAP Business One via command line.
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
-use strict;
-use warnings;
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
@@ -50,7 +48,6 @@ sub run {
     # Download xml config
     my $b1_cfg = "bone.cfg";
     my $hostname = script_output 'hostname';
-    my $local_url = "http://10.100.103.247:8000/";
     my $admin_id = "ndbadm";
 
     assert_script_run "curl -f -v " . autoinst_url . "/data/sles4sap/$b1_cfg -o /tmp/$b1_cfg";
@@ -58,6 +55,7 @@ sub run {
     # change some default values
     file_content_replace("/tmp/$b1_cfg", '%SERVER%' => $hostname, '%INSTANCE%' => $instid, '%TENANT_DB%' => $sid, '%PASSWORD%' => $sles4sap::instance_password);
 
+    # Install
     assert_script_run "$install_bin -i silent -f /tmp/$b1_cfg --debug", $tout;
 
     # Upload installations logs

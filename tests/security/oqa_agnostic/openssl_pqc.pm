@@ -1,0 +1,44 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+#
+# Summary: Run openssl post quantum go test
+# Maintainer: QE Security <none@suse.de>
+
+use Mojo::Base 'opensusebasetest';
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use agnosticTestRunner;
+use version_utils 'is_sle';
+use package_utils 'install_package';
+
+sub run {
+    select_serial_terminal;
+    if (is_sle('<15-SP7')) {
+        record_info('SKIP', 'OpenSSL post quantum crypto tests are only available on SLE 15-SP7 and later');
+        return;
+    }
+    install_package("openssl", trup_continue => 1);
+    record_info('openssl version:', script_output('rpm -q openssl'));
+    my $test = agnosticTestRunner->new({
+            language => 'python',
+            name => 'testPostQuantumCrypto',
+            domain => 'security',
+        }
+    );
+    if (is_sle('=15-SP7')) {
+        eval { $test->setup()->run_test()->parse_results()->cleanup() };
+        if ($@) {
+            record_soft_failure("poo#200579 OpenSSL PQ not yet ready for SLE15-SP7: $@");
+        }
+    } else {
+        $test->setup()->run_test()->parse_results()->cleanup();
+    }
+}
+
+sub test_flags {
+    return {always_rollback => 1};
+}
+
+1;

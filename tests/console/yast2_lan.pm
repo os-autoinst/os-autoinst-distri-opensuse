@@ -14,12 +14,10 @@
 # - Set domain (zq1.de) and hostname (system var, or "susetest")
 # - Optionally, set ip, mask, hostname and check if /etc/hosts reflects the changes
 # - Get system ip and hostname
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
-use strict;
-use warnings;
 use testapi;
 use utils;
 use y2lan_restart_common;

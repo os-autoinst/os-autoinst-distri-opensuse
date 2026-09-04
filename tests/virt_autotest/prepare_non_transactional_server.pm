@@ -12,54 +12,80 @@
 # Maintainer: Wayne Chen <wchen@suse.com> qe-virt@suse.de
 package prepare_non_transactional_server;
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use transactional;
 use utils;
+use zypper;
 use version_utils;
 use Utils::Systemd;
 use Utils::Backends qw(get_serial_console);
-use ipmi_backend_utils;
+use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
+use Utils::Architectures qw(is_aarch64);
+use ipmi_backend_utils qw(set_grub_terminal_and_timeout);
 
 sub run {
     my $self = shift;
 
     $self->prepare_ground;
+    $self->prepare_console;
+    $self->prepare_storages;
     $self->prepare_extensions;
     $self->prepare_packages;
     $self->prepare_bootloader;
     $self->prepare_services;
     $self->prepare_reboot;
+    $self->prepare_networks;
     $self->restore_ground;
+}
+
+sub prepare_networks {
+    my $self = shift;
+
+    # Skip br0 bridge creation if SKIP_HOST_BRIDGE_SETUP is set
+    if (get_var('SKIP_HOST_BRIDGE_SETUP')) {
+        record_info("Host bridge preparation skipped", "Host bridge preparation skipped due to SKIP_HOST_BRIDGE_SETUP setting");
+    } else {
+        virt_autotest::virtual_network_utils::create_host_bridge_nm;
+    }
 }
 
 sub prepare_ground {
     my $self = shift;
 
     set_var('_NEEDS_REBOOTING', get_var('NEEDS_REBOOTING', 0));
-    set_var('NEEDS_REBOOTING', 0);
+}
+
+sub prepare_console {
+    my $self = shift;
+
+    select_backend_console(init => 0);
+}
+
+sub prepare_storages {
+    my $self = shift;
+
+    show_all_disks;
 }
 
 sub prepare_extensions {
     my $self = shift;
 
     zypper_call("install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change suseconnect-ng");
-    virt_autotest::utils::subscribe_extensions_and_modules;
+    virt_autotest::utils::subscribe_extensions_and_modules(reg_exts => get_var('SCC_REGEXTS', ''));
 }
 
 sub prepare_packages {
     my $self = shift;
 
-    # install additional packages from product repositories
-    zypper_call("--gpg-auto-import-keys refresh");
-    if (get_var('INSTALL_PRODUCT_PACKAGES', '')) {
-        my $cmd = "install --no-allow-downgrade --no-allow-name-change --no-allow-vendor-change";
-        $cmd = $cmd . " $_" foreach (split(/,/, get_var('INSTALL_PRODUCT_PACKAGES', '')));
-        zypper_call($cmd);
+    if (!check_var('DESKTOP', 'textmode')) {
+        quit_packagekit;
+        wait_quit_zypper;
     }
+
+    # install additional packages from product repositories
+    install_product_software;
     # install auxiliary packages from additional repositories to facilitate automation, for example screen and etc.
     install_extra_packages;
 }
@@ -67,10 +93,22 @@ sub prepare_packages {
 sub prepare_bootloader {
     my $self = shift;
 
+    # On aarch64, remove serial terminal config to avoid serial issues during host upgrade
+    if (is_aarch64()) {
+        my $has_serial_terminal = q{grep -Eq '^GRUB_SERIAL_COMMAND=|^GRUB_TERMINAL.*serial' /etc/default/grub || grep -Eq '^terminal.*serial|^[[:space:]]*serial([[:space:]]|$)' /boot/grub2/grub.cfg};
+        if (script_run($has_serial_terminal) == 0) {
+            set_grub_terminal_and_timeout(terminals => 'console');
+            assert_script_run(q{sed -i -r 's/^GRUB_SERIAL_COMMAND=/#GRUB_SERIAL_COMMAND=/g' /etc/default/grub});
+            assert_script_run(q{sed -i -r '/^[[:space:]]*serial([[:space:]]|$)/d' /boot/grub2/grub.cfg});
+            set_var('_NEEDS_REBOOTING', 1);
+        }
+    }
+
     my $serialconsole = get_serial_console();
     if (script_run("grep -E \"\\s+linux\\s+/boot/.*console=$serialconsole,115200\" /boot/grub2/grub.cfg") != 0) {
+        set_grub_terminal_and_timeout;
         ipmi_backend_utils::add_kernel_options(kernel_opts => "console=tty console=$serialconsole,115200");
-        set_var('NEEDS_REBOOTING', 1);
+        set_var('_NEEDS_REBOOTING', 1);
     }
 }
 
@@ -95,7 +133,7 @@ sub prepare_reboot {
 sub restore_ground {
     my $self = shift;
 
-    set_var('NEEDS_REBOOTING', get_required_var('_NEEDS_REBOOTING'));
+    # recovery to be done here
 }
 
 sub test_flags {

@@ -6,9 +6,7 @@
 # Summary: upload svirt assets
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base 'installbasetest';
-use strict;
-use warnings;
+use Mojo::Base 'installbasetest';
 use testapi;
 use version_utils 'is_vmware';
 use backend::svirt ();
@@ -30,7 +28,13 @@ sub extract_assets {
         $cmd .= ' -c';
     }
     enter_cmd("$cmd && echo OK");
-    assert_screen('svirt-asset-upload-hdd-image-converted', 2000);
+    assert_screen('svirt-asset-upload-hdd-image-converted', 3000);
+
+    # Record md5sum value of the asset
+    record_info('md5sum value', 'please check the value in next page');
+    enter_cmd("md5sum $image_storage/$name && echo 'MD5SUMOK'");
+    assert_screen('svirt-asset-upload-md5sum-check');
+    enter_cmd("clear");
 
     # Upload the image as a private asset; do the upload verification
     # on your own - hence the following assert_screen().

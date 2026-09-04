@@ -7,9 +7,7 @@
 # and modify some of these options.
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 use registration 'assert_registration_screen_present';
 

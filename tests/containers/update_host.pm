@@ -11,7 +11,7 @@
 # Summary: Update host system
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use utils qw(zypper_call script_retry);
 use version_utils qw(get_os_release);
 use power_action_utils qw(power_action);
@@ -28,6 +28,8 @@ sub disable_selinux {
 sub run {
     my ($self) = @_;
     select_serial_terminal;
+    record_info('uname', script_output('uname -a'));
+    record_info('os-release', script_output('cat /etc/os-release'));
     my $update_timeout = 1200;
 
     my ($version, $sp, $host_distri) = get_os_release;

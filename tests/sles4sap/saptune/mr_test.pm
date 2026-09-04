@@ -1,15 +1,58 @@
-# SUSE's openQA tests
-#
 # Copyright 2019-2023 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: saptune testing with mr_test, setup mr_test environments and load mr_test
-#          mr_test repo: https://gitlab.suse.de/qa/mr_test
-# Maintainer: QE-SAP <qe-sap@suse.de>, Ricardo Branco <rbranco@suse.de>, llzhao <llzhao@suse.com>
+# Summary: saptune testing with mr_test
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings;
-use base 'sles4sap';
+=head1 NAME
+
+sles4sap/saptune/mr_test.pm - saptune testing with mr_test
+
+=head1 DESCRIPTION
+
+saptune testing with mr_test, setup mr_test environments and load mr_test.
+mr_test repo: https://gitlab.suse.de/qa/mr_test
+
+Its primary tasks are:
+
+- Install saptune and sapconf (if applicable).
+- Install mr_test dependencies.
+- Download and extract mr_test.
+- Configure environment (bashrc, remove sapconf config).
+- Enable and start saptune service.
+- Patch test patterns if running on QEMU/Public Cloud.
+- Reboot and wait.
+- Load and run mr_test tests.
+
+=head1 SETTINGS
+
+=over
+
+=item B<MR_TEST_TARBALL>
+
+URL to the mr_test tarball. Defaults to 'https://gitlab.suse.de/qa/mr_test/-/archive/master/mr_test-master.tar.gz'.
+
+=item B<PUBLIC_CLOUD_SLES4SAP>
+
+If set, indicates running on Public Cloud SLES4SAP images.
+
+=item B<DESKTOP>
+
+Used to check if running in 'textmode' to skip some systemd config moves.
+
+=item B<MR_TEST>
+
+Comma-separated list (or similar) of mr_test tests to load. Required.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use Mojo::Base 'sles4sap';
 use autotest;
 use testapi;
 use serial_terminal 'select_serial_terminal';
@@ -21,7 +64,7 @@ use Utils::Systemd qw(systemctl);
 use mr_test_lib qw(load_mr_tests);
 use publiccloud::ssh_interactive 'select_host_console';
 use publiccloud::instances;
-use sles4sap_publiccloud;
+use sles4sap::publiccloud;
 
 sub reboot_wait {
     my ($self) = @_;
@@ -104,38 +147,37 @@ sub setup {
 sub run {
     my ($self, $run_args) = @_;
 
-    # This test module is using sles4sap and not sles4sap_publiccloud_basetest
-    # as base class. network_peering_present and ansible_present are propagated here
+    # This test module is using sles4sap and not sles4sap::publiccloud_basetest
+    # as base class. ansible_present is propagated here
     # to a different context than usual
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     $self->{ansible_present} = 1 if ($run_args->{ansible_present});
     record_info('MR_TEST CONTEXT', join(' ',
             'cleanup_called:', $self->{cleanup_called} // 'undefined',
-            'network_peering_present:', $self->{network_peering_present} // 'undefined',
             'ansible_present:', $self->{ansible_present} // 'undefined')
     );
 
     # Preserve args for post_fail_hook
     $self->{provider} = $run_args->{my_provider};    # required for cleanup
-    $self->setup;
 
     my $test_list = get_required_var("MR_TEST");
     record_info("MR_TEST=$test_list");
     mr_test_lib::load_mr_tests("$test_list", $run_args);
+
+    $self->setup;
 }
 
 sub post_fail_hook {
     my ($self) = @_;
     if (get_var('PUBLIC_CLOUD_SLES4SAP')) {
         select_host_console(force => 1);
-        my $run_args = OpenQA::Test::RunArgs->new();
-        record_info('CONTEXT LOG', join(' ', 'network_peering_present:', $self->{network_peering_present} // 'undefined'));
-        if ($self->{network_peering_present}) {
-            delete_network_peering();
-            $run_args->{network_peering_present} = $self->{network_peering_present} = 0;
-        }
-        $run_args->{my_provider} = $self->{provider};
-        $run_args->{my_provider}->cleanup($run_args);
+        # SLES4SAP public cloud deployments are managed by qe-sap-deployment
+        # (qesap). The correct teardown is deployment_cleanup() (the same one used by
+        # publiccloud::basetest and sles4sap::publiccloud_basetest).
+        deployment_cleanup(
+            $self,
+            cleanup_called => $self->{cleanup_called} // undef,
+            ansible_present => $self->{ansible_present} // 0
+        );
         return;
     }
     $self->SUPER::post_fail_hook;

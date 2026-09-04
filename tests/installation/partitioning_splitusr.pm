@@ -5,11 +5,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test custom partitioning selection: Split off '/usr' partition
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 use version_utils qw(is_storage_ng is_tumbleweed);
 use partition_setup 'addpart';

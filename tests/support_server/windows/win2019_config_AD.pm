@@ -10,9 +10,7 @@
 #
 # Maintainer: mmartins <mmartins@suse.com>
 
-use base 'windowsbasetest';
-use strict;
-use warnings;
+use Mojo::Base 'windowsbasetest';
 use testapi;
 use utils;
 

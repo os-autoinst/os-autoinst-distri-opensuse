@@ -6,7 +6,7 @@
 # Summary: Basic smoke test to verify SUSE/openSUSE efiboot
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use transactional qw(trup_call check_reboot_changes);
 use version_utils qw(is_sle_micro);

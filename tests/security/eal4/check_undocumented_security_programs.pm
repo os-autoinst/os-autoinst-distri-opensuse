@@ -7,18 +7,17 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#111671
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use Data::Dumper;
 use eal4_test;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # The programs are defined by the FSP and corresponding man pages
     my $known_programs = {

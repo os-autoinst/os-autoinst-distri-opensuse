@@ -5,9 +5,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#36916, tc#1621174
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use openscaptest;

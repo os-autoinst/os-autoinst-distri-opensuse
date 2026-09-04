@@ -7,11 +7,9 @@
 #       reload needles.
 #       At the beginning of upgrade, we need patch the original
 #       system on hdd, which is still old version at the moment.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use migration;
 

@@ -50,9 +50,9 @@
 #
 # Maintainer: Ondřej Súkup <osukup@suse.cz>, Anton Pappas <apappas@suse.com>
 
+## no os-autoinst style
+
 use base "opensusebasetest";
-use strict;
-use warnings;
 
 use utils;
 use power_action_utils qw(prepare_system_shutdown power_action);
@@ -82,13 +82,21 @@ my @conflicting_packages = (
     'libglfw3',
     'openvpn-dco',
     # docker-stable cannot be used alongside docker. see docker-stable.spec
-    'docker-stable', 'docker-stable-bash-completion',
+    'docker-stable', 'docker-stable-bash-completion', 'docker-stable-zsh-completion', 'docker-zsh-completion',
     'libica-openssl1_1-tools', 'libica-devel', 'libica-devel-static',
     'cyrus-sasl-bdb-ntlm', 'cyrus-sasl-bdb-otp', 'cyrus-sasl-saslauthd-bdb', 'cyrus-sasl-otp',
     'cyrus-sasl-ntlm', 'cyrus-sasl-bdb-devel', 'cyrus-sasl-sqlauxprop',
-    'kernel-firmware-nvidia-gspx-G06-cuda', 'nvidia-open-driver-G06-signed-cuda-kmp-default',
-    'nv-prefer-signed-open-driver', 'nvidia-open-driver-G06-signed-cuda-kmp-azure',
-    'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
+    'nv-prefer-signed-open-driver',
+    'nvidia-open-driver-G06-signed-kmp-default',
+    'nvidia-open-driver-G06-signed-cuda-kmp-default',
+    'nvidia-open-driver-G06-signed-cuda-default-devel',
+    'nvidia-open-driver-G06-signed-azure-devel',
+    'nvidia-open-driver-G06-signed-cuda-kmp-azure',
+    'kernel-firmware-nvidia-gspx-G06-cuda',
+    'nv-prefer-signed-open-driver-G07',
+    'nvidia-open-driver-G07-signed-kmp-default',
+    'nvidia-open-driver-G07-signed-cuda-kmp-default',
+    'nvidia-open-driver-G07-signed-cuda-default-devel',
     'kernel-default-base', 'kernel-default-extra',
     'patterns-base-fips-certified',
     'gnu-compilers-hpc-macros-devel', 'gnu12-compilers-hpc-macros-devel',
@@ -97,8 +105,10 @@ my @conflicting_packages = (
 );
 
 # https://progress.opensuse.org/issues/153388
-push(@conflicting_packages, ('dpdk-thunderx', 'dpdk-thunderx-devel', 'dpdk-thunderx-kmp-default')) if is_aarch64;
-push(@conflicting_packages, ('dpdk22-thunderx', 'dpdk22-thunderx-devel', 'dpdk22-thunderx-kmp-default')) if is_aarch64;
+push(@conflicting_packages, ('dpdk-thunderx', 'dpdk-thunderx-devel', 'dpdk-thunderx-kmp-default',
+        'dpdk22-thunderx', 'dpdk22-thunderx-devel', 'dpdk22-thunderx-kmp-default',
+        'nvidia-open-driver-G06-signed-cuda-64kb-devel', 'nvidia-open-driver-G06-signed-cuda-kmp-64kb',
+        'nvidia-open-driver-G07-signed-64kb-devel', 'nvidia-open-driver-G07-signed-cuda-kmp-64kb',)) if is_aarch64;
 
 my @conflicting_packages_sle12 = ('apache2-prefork', 'apache2-doc', 'apache2-example-pages', 'apache2-utils', 'apache2-worker',
     'apache2-tls13', 'apache2-tls13-doc', 'apache2-tls13-example-pages', 'apache2-tls13-prefork', 'apache2-tls13-worker',
@@ -201,6 +211,17 @@ sub run {
         zypper_call("rr sle-module-packagehub-subpackages:${version}::pool sle-module-packagehub-subpackages:${version}::update");
     }
 
+    # Enable PackageHub repos in case dependent packages are required.
+    # Note: avoid enabling by default as it may introduce new dependency issues,
+    # especially when LTSS repos are present.
+    if (get_var('QAM_ENABLE_PHUB_REPO')) {
+        my $version = get_var('VERSION');
+        my $arch = get_var('ARCH');
+        zypper_ar("http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Packagehub-Subpackages/$version/$arch/product/",
+            name => "sle-module-packagehub-subpackages:${version}::pool");
+        zypper_ar("http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Packagehub-Subpackages/$version/$arch/update/",
+            name => "sle-module-packagehub-subpackages:${version}::update");
+    }
     my $zypper_version = script_output(q(rpm -q zypper|awk -F. '{print$2}'));
 
     zypper_call(q{mr -d $(zypper lr | awk -F '|' '/NVIDIA/ {print $2}')}, exitcode => [0, 3]);
@@ -231,6 +252,7 @@ sub run {
 
     my @patches = get_patch($incident_id, $repos);
     record_info "Patches", "@patches";
+    die 'No patch found!' unless scalar(@patches);
 
     # Get packages affected by the incident.
     my @packages = get_incident_packages($incident_id);
@@ -251,9 +273,9 @@ sub run {
 
     for my $patch (@patches) {
         my %patch_bins = %bins;
-        my (@patch_l2, @patch_l3, @patch_unsupported, @update_conflicts);
+        my (@patch_l2, @patch_l3, @patch_unsupported, @update_conflicts, $patch_info_status);
         my @conflicts = is_sle('<=12-SP5') ? @conflicting_packages_sle12 : @conflicting_packages;
-        foreach (split(/,/, get_var('UPDATE_ADD_CONFLICT'))) {
+        foreach (split(/,/, get_var('UPDATE_ADD_CONFLICT', ''))) {
             push(@conflicts, $_);
         }
         # Make sure on SLE 15+ zyppper 1.14+ with '--force-resolution --solver-focus Update' patched binaries are installed
@@ -337,22 +359,25 @@ sub run {
                     sle12_zypp_resolve("zypper -v in -l $single_package", "prepare_${patch}_${single_package}.log", get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_PREINSTALL', 1));
                 }
 
-                # Store version of installed binaries before update.
-                $patch_bins{$single_package}->{old} = get_installed_bin_version($single_package, 'old');
-
                 enable_test_repositories($repos_count);
+
+                $patch_info_status = script_output("zypper -n info -t patch $patch|grep Status");
+                record_info "Patch status", "$patch_info_status";
+
+                # Store version of installed binaries before update.
+                $patch_bins{$single_package}->{old} = get_installed_bin_version($single_package, 'old') if $patch_info_status !~ /Status\s+: applied/;
 
                 # Patch binaries already installed.
                 record_info 'Conflict install', "Install patch $patch with conflicting $single_package";
                 if ($solver_focus) {
-                    zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 2000);
+                    zypper_call("in -l $solver_focus -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 2000);
                 }
                 else {
                     sle12_zypp_resolve("zypper -v in -l -t patch $patch", get_var('UPDATE_RESOLVE_SOLUTION_CONFLICT_INSTALL', 1));
                 }
 
                 # Store version of installed binaries after update.
-                $patch_bins{$single_package}->{new} = get_installed_bin_version($single_package, 'new');
+                $patch_bins{$single_package}->{new} = get_installed_bin_version($single_package, 'new') if $patch_info_status !~ /Status\s+: applied/;
 
                 record_info 'Conflict rollback', "Rollback patch $patch with conflicting $single_package";
                 assert_script_run("snapper rollback $rollback_number") if is_sle('12-sp3+');
@@ -365,8 +390,9 @@ sub run {
         if (scalar(keys %installable)) {
             record_info 'Preinstall', 'Install affected packages before update repo is enabled';
             if ($solver_focus) {
-                zypper_call("in -l $solver_focus" . join(' ', keys %installable), exitcode => [0, 102, 103], log => "prepare_$patch.log", timeout => 1500);
+                zypper_call("--ignore-unknown in -l $solver_focus" . join(' ', keys %installable), exitcode => [0, 102, 103], log => "prepare_$patch.log", timeout => 1500);
                 die "Package scriptlet failed, check log prepare_${patch}." if (script_run("grep 'scriptlet failed, exit status' /tmp/prepare_${patch}.log") == 0);
+                record_soft_failure "poo#1234 Preinstalled package is missing, check log prepare_${patch}." if (script_run("grep 'not found in package names' /tmp/prepare_${patch}.log") == 0);
             }
             else {
                 my $packages = join(' ', keys %installable);
@@ -374,13 +400,18 @@ sub run {
             }
         }
 
-        # Store the version of the installed binaries before the update.
-        foreach (keys %patch_bins) {
-            next if grep($_, @update_conflicts);
-            $patch_bins{$_}->{old} = get_installed_bin_version($_, 'old');
-        }
-
         enable_test_repositories($repos_count);
+
+        $patch_info_status = script_output("zypper -n info -t patch $patch|grep Status");
+        record_info "Patch status", "$patch_info_status";
+
+        if ($patch_info_status !~ /Status\s+: applied/) {
+            # Store the version of the installed binaries before the update.
+            for my $bin (keys %patch_bins) {
+                next if grep($bin eq $_, @update_conflicts);
+                $patch_bins{$bin}->{old} = get_installed_bin_version($bin, 'old');
+            }
+        }
 
         # Patch binaries already installed.
         my $patch_replacefiles = get_var('UPDATE_PATCH_ENABLE_REPLACEFILES') ? '--replacefiles' : '';
@@ -399,14 +430,14 @@ sub run {
             }
         }
         else {
-            zypper_call("in -l $patch_replacefiles $solver_focus -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
+            zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500);
         }
 
         # Install binaries newly added by the incident.
         if (scalar @new_binaries) {
             my $new_replacefiles = get_var('UPDATE_NEW_BIN_ENABLE_REPLACEFILES') ? '--replacefiles' : '';
             record_info 'Install new packages', "New packages: @new_binaries";
-            zypper_call("in -l $new_replacefiles $solver_focus @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
+            zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500);
         }
 
         foreach (@new_binaries_conflicts) {
@@ -428,36 +459,38 @@ sub run {
         record_info 'Reboot after patch', "system is bootable after patch $patch";
         reboot_and_login;
 
-        # After the patches have been applied and the new binaries have been
-        # installed, check the version again and based on that determine if the
-        # update was succesfull.
-        foreach (keys %patch_bins) {
-            next if grep($_, @update_conflicts);
-            $patch_bins{$_}->{new} = get_installed_bin_version($_, 'new');
-        }
-        my $l3_results = "L3 binaries must always be updated.\n";
-        foreach (@l3) {
-            if ($patch_bins{$_}->{old} eq $patch_bins{$_}->{new} or not $patch_bins{$_}->{new}) {
-                $patch_bins{$_}->{update_status} = 0;
-            } else {
-                $patch_bins{$_}->{update_status} = 1;
+        if ($patch_info_status !~ /Status\s+: applied/ && script_run("grep '$patch already installed' /tmp/zypper_$patch.log") == 1) {
+            # After and only if the patches have been applied and the new binaries
+            # have been installed, check the version again and based on that
+            # determine if the update was succesfull.
+            for my $bin (keys %patch_bins) {
+                next if grep($bin eq $_, @update_conflicts);
+                $patch_bins{$bin}->{new} = get_installed_bin_version($bin, 'new');
             }
+            my $l3_results = "L3 binaries must always be updated.\n";
+            foreach (@l3) {
+                if ($patch_bins{$_}->{old} eq $patch_bins{$_}->{new} or not $patch_bins{$_}->{new}) {
+                    $patch_bins{$_}->{update_status} = 0;
+                } else {
+                    $patch_bins{$_}->{update_status} = 1;
+                }
+            }
+            $l3_results = get_results({bins => \%patch_bins, package_list => \@patch_l3});
+            record_info('L3', $l3_results) if scalar(@patch_l3);
+
+            my $l2_results = "L2 binaries need not always be updated but they must be installed.\n";
+            $patch_bins{$_}->{update_status} = !!$patch_bins{$_}->{new} foreach (@patch_l2);
+            $l2_results = get_results({bins => \%patch_bins, package_list => \@patch_l2});
+            record_info('L2', $l2_results) if scalar(@patch_l2);
+
+            my $unsupported_results = "Unsupported binaries are ignored.\n";
+            $patch_bins{$_}->{update_status} = 1 foreach (@patch_unsupported);
+            $unsupported_results = get_results({bins => \%patch_bins, package_list => \@patch_unsupported});
+            record_info('UNSUPPORTED', $unsupported_results) if scalar(@patch_unsupported);
+
+            record_soft_failure 'poo#67357 Some L3 binaries were not updated.' if scalar(grep { !$patch_bins{$_}->{update_status} } @patch_l3);
+            record_soft_failure 'poo#67357 Some L2 binaries were not installed.' if scalar(grep { !$patch_bins{$_}->{update_status} } @patch_l2);
         }
-        $l3_results = get_results({bins => \%patch_bins, package_list => \@patch_l3});
-        record_info('L3', $l3_results) if scalar(@patch_l3);
-
-        my $l2_results = "L2 binaries need not always be updated but they must be installed.\n";
-        $patch_bins{$_}->{update_status} = !!$patch_bins{$_}->{new} foreach (@patch_l2);
-        $l2_results = get_results({bins => \%patch_bins, package_list => \@patch_l2});
-        record_info('L2', $l2_results) if scalar(@patch_l2);
-
-        my $unsupported_results = "Unsupported binaries are ignored.\n";
-        $patch_bins{$_}->{update_status} = 1 foreach (@patch_unsupported);
-        $unsupported_results = get_results({bins => \%patch_bins, package_list => \@patch_unsupported});
-        record_info('UNSUPPORTED', $unsupported_results) if scalar(@patch_unsupported);
-
-        record_soft_failure 'poo#67357 Some L3 binaries were not updated.' if scalar(grep { !$patch_bins{$_}->{update_status} } @patch_l3);
-        record_soft_failure 'poo#67357 Some L2 binaries were not installed.' if scalar(grep { !$patch_bins{$_}->{update_status} } @patch_l2);
 
         # no need to rollback last patch
         unless ($patch eq $patches[-1]) {
@@ -473,6 +506,13 @@ sub run {
         assert_script_run("cat /tmp/$_* > /tmp/$_.log");
         upload_logs("/tmp/$_.log");
     }
+}
+
+sub post_fail_hook {
+    my $self = shift;
+    force_soft_failure('Expected to fail') if get_var('BUILD') =~ /update-test-trivial/;
+    return if get_var('BUILD') =~ /update-test-trivial/;
+    $self->SUPER::post_fail_hook;
 }
 
 sub test_flags {

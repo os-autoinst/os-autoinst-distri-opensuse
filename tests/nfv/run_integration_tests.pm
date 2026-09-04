@@ -8,11 +8,9 @@
 #
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use mmapi;
 

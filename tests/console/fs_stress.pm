@@ -6,11 +6,9 @@
 # Summary: Run the fs_stress testsuite
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use Utils::Logging 'save_and_upload_log';
 

@@ -12,14 +12,13 @@
 # - install also the package via pipx
 # Maintainer: QE Core <qe-core@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils;
 use python_version_utils;
 use utils "zypper_call";
+use package_utils 'install_package';
 use feature qw(signatures);
 no warnings qw(experimental::signatures);
 
@@ -32,8 +31,11 @@ sub run {
     record_info("System python version", "$system_python_version");
     # Run the package creation and install test for system python
     run_tests($system_python_version);
-    # Test all available new python3 versions in SLEs if any
-    if (is_sle() || is_leap('>15.5')) { run_tests($_) foreach (get_available_python_versions()); }
+    # Test all available new python3 versions in SLEs, excluding the system version
+    if (is_sle() || is_leap('>15.5')) {
+        my @other_versions = grep { $_ ne $system_python_version } get_available_python_versions();
+        run_tests($_) foreach (@other_versions);
+    }
 }
 
 sub run_tests ($python3_spec_release) {
@@ -43,26 +45,27 @@ sub run_tests ($python3_spec_release) {
         record_info("Skip!", "either $python3_spec_release-pipx or $python3_spec_release-wheel doesn't exist");
         return;
     }
-    zypper_call("in $python3_spec_release-pipx $python3_spec_release-setuptools $python3_spec_release-wheel");
+    install_package("$python3_spec_release-pipx $python3_spec_release-setuptools $python3_spec_release-wheel", trup_reboot => 1);
     my $python_binary = get_python3_binary($python3_spec_release);
     my $version_number = (split("python", $python_binary))[1];
+    assert_script_run "cd /root/data/" if is_transactional;
     script_run("$python_binary setup.py bdist_wheel");
     assert_script_run("$python_binary -mpipx install dist/package-0.1-py3-none-any.whl");
     script_run("pipx list");
     assert_script_run("export PATH=\$PATH:~/.local/bin");
+    assert_script_run("cd ..");    # avoids test failing to uninstall 'package', as it is relative path too
     validate_script_output("hello-world", sub { m/Hello world from package!/ });
     validate_script_output("pipx uninstall package", sub { m/uninstalled package!/ });
     validate_script_output("pipx list", sub { m/nothing has been installed with pipx/ });
+    assert_script_run("cd /root/data");    # move back to data directory, so cleanup function works as expected
 }
 
 sub cleanup {
     if (is_sle() || is_leap('>15.5')) {
-        foreach my $python_version (get_available_python_versions()) {
-            zypper_call("rm $python_version-base", exitcode => [0, 104]);
-        }
+        remove_installed_pythons();
     }
-    assert_script_run("cd ..");
-    script_run("rm -r data");
+    assert_script_run("cd /root");
+    script_run("rm -r /root/data");
 }
 
 sub post_run_hook {

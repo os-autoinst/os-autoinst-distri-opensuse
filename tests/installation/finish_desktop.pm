@@ -7,12 +7,10 @@
 # Summary: move all inst/$DESKTOP.pm into one global 999_finish_desktop and run the tests from start.pl
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
-use strict;
-use warnings;
 use main_common 'opensuse_welcome_applicable';
-use x11utils 'turn_off_plasma_tooltips';
+use x11utils qw(turn_off_plasma_tooltips update_x11_vt);
 use Utils::Logging qw(save_and_upload_log export_logs);
 
 # using this as base class means only run when an install is needed
@@ -38,7 +36,10 @@ sub run {
 
     # This only works with generic-desktop. In the opensuse-welcome case,
     # the opensuse-welcome module will handle it instead.
-    turn_off_plasma_tooltips if match_has_tag('generic-desktop');
+    if (check_var('DESKTOP', 'kde') && match_has_tag('generic-desktop')) {
+        turn_off_plasma_tooltips;
+        update_x11_vt;
+    }
 }
 
 sub post_fail_hook {

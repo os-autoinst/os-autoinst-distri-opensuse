@@ -6,6 +6,7 @@ schedule:
     - boot/boot_to_desktop
     - kernel/bpftrace
     - kernel/bcc
+    - kernel/bpf
     - shutdown/shutdown
 
 conditional_schedule:

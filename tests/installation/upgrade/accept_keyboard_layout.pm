@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Handles page for keyboard layout selection.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_language_keyboard()->get_keyboard_test();

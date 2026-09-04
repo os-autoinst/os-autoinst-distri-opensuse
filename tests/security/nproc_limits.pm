@@ -5,10 +5,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#43724, poo#123763
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use power_action_utils "power_action";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -29,7 +27,7 @@ sub run {
 
     # Set systemd config file and check with ulimit command
     my $file_path = "$pathprefix/etc/security/limits.d/nproc.conf";
-    assert_script_run(qq{echo -e "* soft nproc unlimited\n* hard nproc unlimited" > $file_path});
+    assert_script_run(qq{echo -e "* soft nproc unlimited\\n* hard nproc unlimited" > $file_path});
 
     # 'systemctl daemon-reexec' does not work here, so we have to reboot
     power_action('reboot', textmode => 1);

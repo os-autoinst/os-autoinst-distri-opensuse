@@ -48,6 +48,9 @@ for test in $MODULES ; do
 done | \
     # Whitelist
 
+    # Some tests are loaded dynamically via CONTAINER_TESTS or BATS_PACKAGE
+    grep -v 'containers' |\
+
     # https://progress.opensuse.org/issues/31750
     grep -vE '(fetchmail_ssl|mailx_ssl|mutt_ssl|postfix_tls)' |\
 

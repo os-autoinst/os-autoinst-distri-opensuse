@@ -12,8 +12,7 @@ use Utils::Architectures;
 use Utils::Backends qw(is_qemu);
 use serial_terminal 'select_serial_terminal';
 use utils qw(addon_decline_license assert_screen_with_soft_timeout zypper_call systemctl handle_untrusted_gpg_key quit_packagekit script_retry script_output_retry wait_for_purge_kernels);
-use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc is_jeos is_transactional is_staging is_agama is_vmware);
-use transactional qw(trup_call process_reboot);
+use version_utils qw(is_sle is_sles4sap is_upgrade is_leap_migration is_sle_micro is_hpc is_jeos is_transactional is_staging is_agama);
 use constant ADDONS_COUNT => 50;
 use y2_module_consoletest;
 use YaST::workarounds;
@@ -46,6 +45,7 @@ our @EXPORT = qw(
   handle_scc_popups
   process_modules
   runtime_registration
+  detect_suseconnect_path
   %SLE15_MODULES
   %SLE15_DEFAULT_MODULES
   %ADDONS_REGCODE
@@ -174,7 +174,7 @@ in format X-SPY into X.Y.
 
 sub scc_version {
     my $version = shift;
-    $version //= get_required_var('VERSION');
+    $version //= get_var('VERSION_UPGRADE_FROM', get_var('VERSION_TO_INSTALL', get_var('VERSION', '')));
     return $version =~ s/-SP/./gr;
 }
 
@@ -187,6 +187,8 @@ Wrapper for SUSEConnect -p $name.
 
 sub add_suseconnect_product {
     my ($name, $version, $arch, $params, $timeout, $retry) = @_;
+    # no SCC registration https://progress.opensuse.org/issues/131498#note-5
+    record_info('skip SCC', "Skip activating product on flavor without SCC registration") && return if ((get_var('FLAVOR') =~ /TERADATA/) && is_sle('=15-SP4'));
     assert_script_run 'source /etc/os-release';
     $version //= '${VERSION_ID}';
     $arch //= '${CPU}';
@@ -202,7 +204,7 @@ sub add_suseconnect_product {
     my $try_cnt = 0;
     while ($try_cnt++ <= $retry) {
         if (is_transactional) {
-            eval { trup_call("register -p $name/" . get_var('VERSION') . '/' . get_var('ARCH')) };
+            eval { trup_call("register -p $name/" . $version . '/' . get_var('ARCH') . " $params") };
         } else {
             eval { assert_script_run("SUSEConnect $debug_flag -p $name/$version/$arch $params", timeout => $timeout); };
         }
@@ -771,7 +773,7 @@ sub registration_bootloader_cmdline {
     # SCC_URL=https://smt.example.com
     # prevent rogue RMT servers to show up in unexpected selection dialogs
     # https://progress.opensuse.org/issues/94696
-    set_var('SCC_URL', 'https://scc.suse.com') unless get_var('SCC_URL');
+    set_var('SCC_URL', 'https://scc.suse.com') unless (get_var('SCC_URL') || is_agama);
     my $cmdline = '';
     if (my $url = get_var('SMT_URL') || get_var('SCC_URL')) {
         $cmdline .= is_agama ? " inst.register_url=$url" : " regurl=$url";
@@ -784,7 +786,7 @@ sub registration_bootloader_params {
     my ($max_interval) = @_;    # see 'type_string'
     $max_interval //= 13;
     my @params;
-    if (!(is_agama && check_var('FLAVOR', 'Full'))) {
+    if (check_var('AGAMA_FORCE_REGISTER', '1') || !(is_agama && check_var('FLAVOR', 'Full'))) {
         push @params, split ' ', registration_bootloader_cmdline;
     }
     type_string "@params", $max_interval;
@@ -865,6 +867,8 @@ sub get_addon_fullname {
         nvidia => 'sle-module-NVIDIA-compute',
         idu => is_sle('15+') ? 'IBM-POWER-Tools' : 'IBM-DLPAR-utils',
         ids => is_sle('15+') ? 'IBM-POWER-Adv-Toolchain' : 'IBM-DLPAR-SDK',
+        sysm => 'sle-module-systems-management',
+        coco => 'sle-module-confidential-computing',
     );
     return $product_list{"$addon"};
 }
@@ -928,6 +932,11 @@ sub scc_deregistration {
         quit_packagekit;
         wait_for_purge_kernels;
         assert_script_run('SUSEConnect --version');
+        # Remove registercloudguest when use suseconnect in a non public cloud environment.
+        if (get_var('SCC_ADDONS', '') =~ /pcm/) {
+            my $cloudguest_bin = "/usr/sbin/registercloudguest";
+            script_run "[ -f $cloudguest_bin ] && rm -f $cloudguest_bin";
+        }
         # We don't need to pass $debug_flag to SUSEConnect, because it's already set
         my $deregister_ret = script_run("SUSEConnect --de-register --debug > /tmp/SUSEConnect.debug 2>&1", 300);
         if ($deregister_ret) {
@@ -1046,7 +1055,7 @@ sub process_modules {
     if (check_var('SCC_REGISTER', 'installation') || check_var('SCC_REGISTER', 'yast') || check_var('SCC_REGISTER', 'console')) {
         process_scc_register_addons;
     }
-    elsif (!get_var('SCC_REGISTER', '') =~ /addon|network/) {
+    elsif (get_var('SCC_REGISTER', '') !~ /addon|network/) {
         send_key $cmd{next};
     }
 }
@@ -1055,11 +1064,10 @@ sub runtime_registration {
     return if get_var('HDD_SCC_REGISTERED');
     my $cmd = ' -r ' . get_required_var 'SCC_REGCODE';
     my $scc_addons = get_var 'SCC_ADDONS', '';
-    # fake scc url pointing to synced repos on openQA
-    # valid only for products currently in development
-    # please unset in job def *SCC_URL* if not required
-    my $fake_scc = get_var 'SCC_URL', '';
-    $cmd .= ' --url ' . $fake_scc if $fake_scc;
+    my $scc_url = get_var('SCC_URL', '');
+    # we skip proxy scc for slm when doing 16.1+ migration.
+    my $skip_scc = is_sle('16.1+') && is_transactional && get_var('TARGET_VERSION');
+    $cmd .= " --url $scc_url" if $scc_url && !$skip_scc;
     my $retries = 5;    # number of retries to run SUSEConnect commands
     my $delay = 60;    # time between retries to run SUSEConnect commands
 
@@ -1079,9 +1087,8 @@ sub runtime_registration {
         trup_call('register' . $cmd);
         trup_call('--continue run zypper --gpg-auto-import-keys refresh') if is_staging;
         if (is_sle_micro('>=6.0') && is_sle_micro('<=6.1')) {
-            my $expected_grub = !is_vmware;    # On VMware GRUB is not needed and often is missed by openQA
-            process_reboot(trigger => 1, expected_grub => $expected_grub);
-            add_suseconnect_product('SL-Micro-Extras');
+            process_reboot(trigger => 1);
+            add_suseconnect_product('SL-Micro-Extras', get_var('HDDVERSION'), undef, undef, 90, 1);
         }
         process_reboot(trigger => 1);
     }
@@ -1100,6 +1107,20 @@ sub runtime_registration {
     # Check that repos actually work
     zypper_call 'refresh';
     zypper_call 'repos --details';
+}
+
+sub detect_suseconnect_path {
+    my $ret = '';
+
+    if (script_run("test -f /etc/SUSEConnect") == 0) {
+        $ret = '/etc/SUSEConnect';
+    } elsif (script_run("test -f /etc/SUSEConnect.example") == 0) {
+        $ret = '/etc/SUSEConnect.example';
+    } else {
+        die("Neither /etc/SUSEConnect nor /etc/SUSEConnect.example exist, please check!");
+    }
+
+    return $ret;
 }
 
 1;

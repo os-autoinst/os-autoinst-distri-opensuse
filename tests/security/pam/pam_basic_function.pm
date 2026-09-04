@@ -1,4 +1,4 @@
-# Copyright 2020 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Basic function check for PAM, and prepare the setup for other
@@ -6,9 +6,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#70345, tc#1767569
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

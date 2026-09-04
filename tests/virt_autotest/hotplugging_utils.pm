@@ -5,11 +5,11 @@
 # Summary: virtualization test utilities.
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
+## no os-autoinst style
+
 package hotplugging_utils;
 
 use base Exporter;
-use strict;
-use warnings;
 use utils;
 use version_utils;
 use testapi;

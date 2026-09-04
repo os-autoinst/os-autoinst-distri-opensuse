@@ -7,12 +7,11 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#101956
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use eal4_test;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
@@ -20,6 +19,7 @@ sub run {
 
     select_console 'root-console';
     script_run('printf "# Starting kvm_check test #" >> ' . $test_log . '');
+    select_serial_terminal;
 
     # Install the required packages
     zypper_call('in libvirt');
@@ -60,10 +60,6 @@ sub run {
     script_run('printf "\n# Ending kvm_check test #" >> ' . $test_log . '');
 
     upload_log_file($test_log);
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

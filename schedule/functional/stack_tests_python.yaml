@@ -23,7 +23,6 @@ conditional_schedule:
         - console/python_pycairo
         - console/django
         - '{{python_liblouis}}'
-        - console/rabbitmq
   version_specific:
     VERSION:
       15-SP7:
@@ -38,7 +37,6 @@ conditional_schedule:
         - console/python_pycairo
         - console/django
         - '{{python_liblouis}}'
-        - console/rabbitmq
       15-SP6:
         - console/python3_new_version_check
         - console/python3_setuptools
@@ -51,7 +49,6 @@ conditional_schedule:
         - console/python_pycairo
         - console/django
         - '{{python_liblouis}}'
-        - console/rabbitmq
       15-SP5:
         - console/python3_new_version_check
         - console/python3_setuptools
@@ -64,7 +61,6 @@ conditional_schedule:
         - console/python_pycairo
         - console/django
         - '{{python_liblouis}}'
-        - console/rabbitmq
       15-SP4:
         - console/python3_new_version_check
         - console/python3_setuptools
@@ -77,7 +73,6 @@ conditional_schedule:
         - console/python_pycairo
         - console/django
         - '{{python_liblouis}}'
-        - console/rabbitmq
       15-SP3:
         - console/python_flake8
         - console/django

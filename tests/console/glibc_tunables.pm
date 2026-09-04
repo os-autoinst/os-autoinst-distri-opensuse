@@ -7,9 +7,7 @@
 # Summary: Check GLIBC_TUNABLES support
 # Maintainer: Guillaume GARDET <guillaume@opensuse.org>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 use Utils::Architectures;

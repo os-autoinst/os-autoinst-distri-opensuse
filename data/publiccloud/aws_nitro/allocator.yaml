@@ -1,0 +1,4 @@
+---
+# AWS Nitro Enclave allocator configuration
+memory_mib: 2048
+cpu_count: 2

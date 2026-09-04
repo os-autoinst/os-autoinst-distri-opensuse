@@ -5,12 +5,10 @@
 #
 # Package: nfs-client
 # Summary: Validate nfs share is mounted after is enabled in AutoYaST installation.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
 use testapi;
-use base 'basetest';
+use Mojo::Base 'basetest';
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';
 

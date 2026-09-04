@@ -17,9 +17,7 @@
 # - Cleanup
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "y2_module_guitest";
-use strict;
-use warnings;
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use lockapi qw(mutex_create mutex_wait);
 use version_utils qw(is_sle is_leap);

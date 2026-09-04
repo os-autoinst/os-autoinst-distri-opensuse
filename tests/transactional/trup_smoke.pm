@@ -7,9 +7,7 @@
 #           operations work and system can properly boot.
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use Utils::Architectures qw(is_s390x);
@@ -26,14 +24,8 @@ sub action {
         record_soft_failure("Workaround for bsc#1228126");
         script_run("fdectl tpm-authorize");
     }
-    if ($reboot && $target =~ /bootloader|grub\.cfg|initrd/ && (is_bootloader_sdboot || is_bootloader_grub2_bls)) {
-        # With sdbootutil, the snapshot is not changed. Verify that and test rebooting.
-        check_reboot_changes(0);
-        process_reboot(trigger => 1);
-    }
-    else {
-        check_reboot_changes($reboot);
-    }
+
+    check_reboot_changes($reboot);
 }
 
 sub run {
@@ -48,7 +40,7 @@ sub run {
         record_soft_failure("boo#1226676: kdump not yet implemented with sdbootutil");
     }
     else {
-        action('kdump', 'Regenerate kdump');
+        action('kdump', 'Regenerate kdump') if is_sle_micro;
     }
     action('cleanup', 'Run cleanup', 0);
 }

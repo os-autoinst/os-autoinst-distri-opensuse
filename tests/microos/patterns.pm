@@ -6,7 +6,7 @@
 # Summary: Smoke pattern installation check
 # Maintainer: QA-c Team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional qw(trup_call process_reboot);
 use utils qw(zypper_call);

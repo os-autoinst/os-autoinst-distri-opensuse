@@ -1,52 +1,12 @@
 use strict;
 use warnings;
+use Test::Mock::Time;
 use Test::More;
 use Test::Exception;
 use Test::Warnings;
 use Test::MockModule;
 use testapi;
 use sles4sap::sap_host_agent;
-
-subtest '[saphostctrl_list_databases] Verify command compilation' => sub {
-    my $saphostctrl_output = 'Instance name: PRD00, Hostname: qesdhdb01l029, Vendor: HDB, Type: hdb, Release: 42';
-    my $mock = Test::MockModule->new('sles4sap::sap_host_agent', no_auto => 1);
-    my @calls;
-    $mock->redefine(script_output => sub { push @calls, $_[0]; return $saphostctrl_output; });
-    $mock->redefine(assert_script_run => sub { return 0; });
-
-    saphostctrl_list_databases();
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((grep /saphostctrl/, @calls), 'Execute "saphostctrl" binary');
-    ok((grep /-function ListDatabases/, @calls), 'Execute "ListDatabases" fucntion');
-    ok((grep /\| grep Instance/, @calls), 'Show only "Instances" entries');
-};
-
-subtest '[saphostctrl_list_databases] Verify command compilation - executed as root' => sub {
-    my $saphostctrl_output = 'Instance name: PRD00, Hostname: qesdhdb01l029, Vendor: HDB, Type: hdb, Release: 42';
-    my $mock = Test::MockModule->new('sles4sap::sap_host_agent', no_auto => 1);
-    my @calls;
-    $mock->redefine(script_output => sub { push @calls, $_[0]; return $saphostctrl_output; });
-    $mock->redefine(assert_script_run => sub { return 0; });
-
-    saphostctrl_list_databases(as_root => 1);
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((grep /sudo/, @calls), 'Execute as root');
-};
-
-subtest '[saphostctrl_list_databases] Verify output' => sub {
-    my $saphostctrl_output = 'Instance name: PRD00, Hostname: qesdhdb01l029, Vendor: HDB, Type: hdb, Release: 42';
-
-    my $mock = Test::MockModule->new('sles4sap::sap_host_agent', no_auto => 1);
-    $mock->redefine(script_output => sub { return $saphostctrl_output; });
-    $mock->redefine(assert_script_run => sub { return 0; });
-
-    my @output = @{saphostctrl_list_databases()};
-    is $output[0]->{instance_name}, 'PRD00', 'Check "instance_name" value';
-    is $output[0]->{hostname}, 'qesdhdb01l029', 'Check "hostname" value';
-    is $output[0]->{vendor}, 'HDB', 'Check "vendor" value';
-    is $output[0]->{type}, 'hdb', 'Check "type" value';
-    is $output[0]->{release}, '42', 'Check "release" value';
-};
 
 subtest '[parse_instance_name] ' => sub {
     my ($sid, $id) = @{parse_instance_name('POO08')};
@@ -60,6 +20,43 @@ subtest '[parse_instance_name] Exceptions' => sub {
     dies_ok { parse_instance_name('POO0 ') } 'Instance name contains spaces';
     dies_ok { parse_instance_name('Poo0a') } 'Instance name contains lowercase characters';
     dies_ok { parse_instance_name('POO0.') } 'Instance name contains any non-word characters';
+};
+
+subtest '[saphostctrl_list_instances] Command composition' => sub {
+    my $saphostagent = Test::MockModule->new('sles4sap::sap_host_agent', no_auto => 1);
+    my $mock_data = ' Inst Info : HDB - 00 - qesdhdb01l000 - 753, patch 1236, changelist 2222163';
+    my @cmd_args;
+    $saphostagent->redefine(script_run => sub { return 0; });
+    $saphostagent->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $saphostagent->redefine(script_output => sub { @cmd_args = @_; return $mock_data; });
+    $saphostagent->redefine(get_instance_type => sub { return 'ERS'; });
+
+    saphostctrl_list_instances();
+    note("\n  -->  " . join("\n  -->  ", @cmd_args));
+    ok((grep /\/usr\/sap\/hostctrl\/exe\/saphostctrl/, @cmd_args), 'Base saphostctrl command');
+    ok((grep /-function/, @cmd_args), 'Add "-function" argument');
+    ok((grep /ListInstances/, @cmd_args), 'Execute "ListInstances" function');
+    ok((grep /| grep 'Inst Info'/, @cmd_args), 'Filter out instance info');
+
+    $saphostagent->redefine(script_run => sub { return 1; });
+    dies_ok { saphostctrl_list_instances() } 'Die if no instances found after retry';
+};
+
+subtest '[saphostctrl_list_instances] Command composition - switch user' => sub {
+    my $saphostagent = Test::MockModule->new('sles4sap::sap_host_agent', no_auto => 1);
+    my $mock_data = ' Inst Info : HDB - 00 - qesdhdb01l000 - 753, patch 1236, changelist 2222163';
+    my @cmd_args;
+    $saphostagent->redefine(script_run => sub { return 0; });
+    $saphostagent->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    $saphostagent->redefine(script_output => sub { @cmd_args = @_; return $mock_data; });
+    $saphostagent->redefine(get_instance_type => sub { return 'ERS'; });
+
+    saphostctrl_list_instances();
+    note("\n  -->  " . join("\n  -->  ", @cmd_args));
+    ok((grep /\/usr\/sap\/hostctrl\/exe\/saphostctrl/, @cmd_args), 'Base saphostctrl command');
+    ok((grep /-function/, @cmd_args), 'Add "-function" argument');
+    ok((grep /ListInstances/, @cmd_args), 'Execute "ListInstances" function');
+    ok((grep /| grep 'Inst Info'/, @cmd_args), 'Filter out instance info');
 };
 
 done_testing;

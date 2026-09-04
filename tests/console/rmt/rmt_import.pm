@@ -6,12 +6,10 @@
 # Summary: Add rmt configuration test and basic configuration via
 #    rmt-wizard, import RMT data and repos from one folder which
 #    stored RMT export data, then verify the imported data can list
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
 use testapi;
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use repo_tools;
 use utils;
 use lockapi qw(mutex_create mutex_wait);

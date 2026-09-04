@@ -1,0 +1,17 @@
+[
+  {
+    "products": {
+      "distri": ["sle"],
+      "version": ["16.0"],
+      "arch": ["s390x"]
+    },
+    "permission": "signal",
+    "scontext": "system_u:system_r:sshd_t",
+    "tcontext": "unconfined_u:unconfined_r:unconfined_t",
+    "tclass": "process",
+    "match": {
+      "context_mode": "prefix"
+    },
+    "comment": "Ignore MLS/MCS range; match user:role:type only"
+  }
+]

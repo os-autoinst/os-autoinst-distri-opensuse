@@ -5,15 +5,14 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#48926
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup qw(add_grub_cmdline_settings replace_grub_cmdline_settings);
 use power_action_utils "power_action";
-use version_utils;
+use version_utils qw(is_sle);
+use Utils::Architectures qw(is_aarch64);
 
 sub run {
     my ($self) = @_;
@@ -32,13 +31,20 @@ sub run {
 
         # Reboot to make settings work
         power_action('reboot', textmode => 1);
-        $self->wait_boot;
+        my $boot_method = ((is_aarch64 && is_sle('>=16')) ? 'wait_boot_past_bootloader' : 'wait_boot');
+        $self->$boot_method;
         select_serial_terminal;
 
         # Clear audit log
         assert_script_run("echo -n '' > /var/log/audit/audit.log");
 
         ($f->{cmd}) ? assert_script_run($f->{cmd}) : die "Get command failure";
+
+        if (is_sle('>=16')) {
+            # skipping audit check on SLE 16 due to bsc#1247246
+            record_soft_failure('SKIPPING TEST; bsc#1247246');
+            next;
+        }
 
         # We do not check the exact file hash here, but to ensure the audit
         # record existed

@@ -8,9 +8,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#88873, tc#1768663
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

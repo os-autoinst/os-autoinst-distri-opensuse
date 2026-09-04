@@ -7,7 +7,6 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Tags: TEAM-6709
 
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::ssh_interactive qw(select_host_console);
 use publiccloud::utils;
@@ -16,27 +15,24 @@ use testapi;
 sub test_flags {
     return {
         fatal => 1,
-        milestone => 0,
-        publiccloud_multi_module => 1
+        milestone => 0
     };
 }
 
 sub run {
     my ($self, $run_args) = @_;
 
-    # Needed to have peering and ansible state propagated in post_fail_hook
+    # Needed to have ansible state propagated in post_fail_hook
     my $mr_test_tar = 'mr_test-master.tar.gz';
     my $instance = $run_args->{my_instance};
 
-    # This test module is using publiccloud::basetest and not sles4sap_publiccloud_basetest
-    # as base class. network_peering_present and ansible_present are propagated here
+    # This test module is using publiccloud::basetest and not sles4sap::publiccloud_basetest
+    # as base class. ansible_present is propagated here
     # to a different context than usual
-    $self->{network_peering_present} = 1 if ($run_args->{network_peering_present});
     $self->{ansible_present} = 1 if ($run_args->{ansible_present});
     record_info('MR_TEST CONTEXT', join(' ',
             'cleanup_called:', $self->{cleanup_called} // 'undefined',
             'instance:', $instance // 'undefined',
-            'network_peering_present:', $self->{network_peering_present} // 'undefined',
             'ansible_present:', $self->{ansible_present} // 'undefined')
     );
 
@@ -53,9 +49,8 @@ sub run {
     $instance->ssh_assert_script_run("sudo tar zxf /tmp/$mr_test_tar --strip-components 1 -C /root/");
     record_info('Copy mr_test code to instance OK');
 
-    # Clear $instance->ssh_opts which ommit the known hosts file and strict host checking by default
+    # Clear $instance->ssh_opts which omit the known hosts file and strict host checking by default
     $instance->ssh_opts('');
-    $instance->network_speed_test();
 
     # Set ssh-tunnel
     $testapi::username = 'bernhard';

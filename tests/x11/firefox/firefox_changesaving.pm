@@ -21,16 +21,14 @@
 # - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
-use strict;
-use warnings;
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils 'is_sle';
 
 sub run {
 
     my ($self) = @_;
-    my $changesaving_checktimestamp = "ll --time-style=full-iso .mozilla/firefox/*default*/prefs.js | cut -d' ' -f7";
+    my $changesaving_checktimestamp = "ll --time-style=full-iso \$(find  ~/.config/mozilla ~/.mozilla  -type f -name prefs.js | grep '/firefox/' | head -n1) | cut -d' ' -f7";
 
     $self->start_firefox_with_profile;
 

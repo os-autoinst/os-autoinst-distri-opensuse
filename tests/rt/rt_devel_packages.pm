@@ -6,9 +6,7 @@
 # Summary: RT installation media should contain devel packages
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 

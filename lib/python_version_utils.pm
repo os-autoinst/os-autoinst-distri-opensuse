@@ -23,17 +23,17 @@ our @EXPORT = qw(
   get_python3_binary
   remove_installed_pythons
   get_available_fullstack_pythons
+  get_current_python_version
 );
 
 =head2 get_system_python_version
 
-returns a string with the system's current default python version, for example 'python311'
+returns a string with the system's current python versions, for example 'python3 python311'
 =cut
 
 sub get_system_python_version() {
-    my @system_python_version = script_output(qq[zypper se --installed-only --provides '/usr/bin/python3' | awk -F '|' '/python3[0-9]*/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]);
-    die "There are many python3 versions installed " if (scalar(@system_python_version) > 1);
-    return $system_python_version[0];
+    my $system_python_version = script_output(qq[rpm -qf \$(readlink -f /usr/bin/python3) | awk -F '-' '{print \$1}' | uniq | awk '{printf "%s ", \$0}']);
+    return $system_python_version;
 }
 
 =head2 get_available_python_versions
@@ -75,6 +75,7 @@ remove all the installed available python versions
 
 sub remove_installed_pythons() {
     my $default_python = script_output("python3 --version | awk -F ' ' '{print \$2}\'");
+    record_info("Default python", "$default_python");
     my @python3_versions = split(/\n/, script_output(qq[zypper se -i 'python3[0-9]*' | awk -F '|' '/python3[0-9]/ {gsub(" ", ""); print \$2}' | awk -F '-' '{print \$1}' | uniq]));
     record_info("Installed versions", "All Installed new python3 versions are: @python3_versions");
     foreach my $python3_spec_release (@python3_versions) {
@@ -112,6 +113,31 @@ sub get_available_fullstack_pythons {
 
     # Return the array of Python versions
     return @available_pythons;
+}
+
+=head2 get_current_python_version
+
+returns python3 version as example:
+"313" for Python 3.13.0
+"39" for Python 3.9.18
+=cut
+
+sub get_current_python_version {
+    # Helper function: returns (py_pkg_ver) for current python3
+    my $py_pkg_ver = "";
+    my $version_output = script_output('python3 --version 2>&1 || true');
+
+    # Expected format: "Python 3.13.0" or "Python 3.9.18"
+    if ($version_output =~ /Python\s+(\d+)\.(\d+)/) {
+        my $major = $1;
+        my $minor = $2;
+        $py_pkg_ver = "$major$minor";
+        return ($py_pkg_ver);
+    }
+    # Returns empty string if "python3 --version" has not correct output
+    else {
+        return ($py_pkg_ver);
+    }
 }
 
 1;

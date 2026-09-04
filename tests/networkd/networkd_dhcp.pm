@@ -6,9 +6,7 @@
 # Summary: Basic Networkd test: Two nodes, DHCP Server/Client, IP assignment and communication
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'networkdbase';
-use strict;
-use warnings;
+use Mojo::Base 'networkdbase';
 use testapi;
 use utils;
 

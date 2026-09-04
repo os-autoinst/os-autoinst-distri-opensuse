@@ -17,6 +17,14 @@ conditional_schedule:
                 - console/yast2_lan_device_settings
             x86_64:
                 - console/yast2_lan_device_settings
+    fwupd:
+        ARCH:
+            aarch64:
+                - console/fwupd
+            x86_64:
+                - console/fwupd
+            ppc64le:
+                - console/fwupd
     snmp:
         MACHINE:
             64bit:
@@ -52,7 +60,6 @@ conditional_schedule:
             opensuse:
                 - '{{sound_tests}}'
                 - console/libvorbis
-                - console/ntp_client
                 - console/gdb
                 - console/perf
                 - console/salt
@@ -71,13 +78,9 @@ conditional_schedule:
                 - '{{steamcmd}}'
                 - console/libqca2
                 - console/vmstat
-                - console/kdump_and_crash
+                - kernel/kdump
                 - console/ansible
                 - console/libgit2
-    opensuse_repos:
-        DISTRI:
-            opensuse:
-                - console/opensuse_repos
     validate_packages_and_patterns:
         DISTRI:
             sle:
@@ -97,13 +100,14 @@ conditional_schedule:
     tumbleweed_tests:
         VERSION:
             'Tumbleweed':
-                - console/parsec
+                - console/systemd_resolved
                 - console/systemd_rpm_macros
                 - console/vsftpd
                 - console/year_2038_detection
                 - console/libjpeg_turbo
                 - console/valkey
                 - '{{velociraptor_tests}}'
+                - console/apache2_php_fpm
     velociraptor_tests:
         ARCH:
             x86_64:
@@ -119,9 +123,16 @@ schedule:
     - console/prepare_test_data
     - console/consoletest_setup
     - '{{update_repos}}'
+    - console/clamav_upgrade
+    - console/chrony
+    - console/dnsmasq
     - console/man_pages
     - console/ping
     - console/arping
+    - console/wireshark_cli
+    - console/traceroute
+    - console/tracepath
+    - console/dig
     - console/orphaned_packages_check
     - console/zypper_lr_validate
     - console/zypper_ref
@@ -154,6 +165,8 @@ schedule:
     - console/sqlite3
     - console/sysctl
     - console/sysstat
+    - console/tuned
+    - '{{fwupd}}'
     - '{{snmp}}'
     - console/curl_ipv6
     - console/wget_ipv6
@@ -164,6 +177,7 @@ schedule:
     - console/rust
     - console/shells
     - console/sudo
+    - console/run0
     - console/dstat
     - x11/evolution/evolution_prepare_servers
     - console/mutt
@@ -184,7 +198,6 @@ schedule:
     - console/aaa_base
     - console/osinfo_db
     - '{{opensuse_tests}}'
-    - '{{opensuse_repos}}'
     - '{{leap_tests}}'
     - '{{tumbleweed_tests}}'
     - console/journalctl
@@ -193,4 +206,5 @@ schedule:
     - console/coredump_collect
     - console/valgrind
     - console/sssd_389ds_functional
+    - console/tcpdump
     - console/zypper_log_packages

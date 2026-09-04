@@ -34,7 +34,18 @@ $needle::cleanuphandler = sub {
     unregister_needle_tags("ENV-VERSION-11-SP4");
     unregister_needle_tags("ENV-12ORLATER-1");
     unregister_needle_tags("ENV-FLAVOR-Server-DVD");
+    unregister_needle_tags('ENV-15SP3ORLATER-1');
     unregister_needle_tags('ENV-OFW-1') unless get_var('OFW');
+    unregister_needle_tags('bootloader-shim-import-prompt');
+    unregister_needle_tags('ENV-15SP4');
+    unless (check_var('BOOTLOADER', 'grub2-bls')) {
+        unregister_needle_tags('bootloader-grub2-bls');
+        unregister_needle_tags('grub2-bls');
+    }
+    unless (get_var('FLAVOR', '') =~ /selfinstall|dvd/i) {
+        unregister_needle_tags('inst-bootmenu');
+        unregister_needle_tags('inst-oninstallation');
+    }
 };
 
 
@@ -48,7 +59,7 @@ $needle::cleanuphandler = sub {
 if (is_updates_test_repo && !get_var('MAINT_TEST_REPO')) {
     my %incidents;
     my %u_url;
-    $incidents{OS} = get_var('OS_TEST_REPOS', get_var('INCIDENT_REPO'));
+    $incidents{OS} = get_var('INCIDENT_REPO', get_var('OS_TEST_REPOS'));
 
     if (exists $incidents{OS} && !$incidents{OS}) {
         carp '"OS_TEST_REPOS" or "INCIDENT_REPO" variable is empty!';

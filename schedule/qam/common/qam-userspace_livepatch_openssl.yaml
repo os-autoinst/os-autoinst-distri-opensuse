@@ -1,0 +1,10 @@
+---
+name: qam-userspace_livepatch_openssl
+description: >
+    Maintainer: qe-core@suse.com
+    Userspace livepatching tests for openssl
+schedule:
+    - boot/boot_to_desktop
+    - console/apache
+    - console/apache_ssl
+    - kernel/ulp_openssl

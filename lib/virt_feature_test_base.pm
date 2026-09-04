@@ -41,7 +41,7 @@ use Utils::Backends 'use_ssh_serial_console';
 use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle is_alp get_os_release);
 use alp_workloads::kvm_workload_utils;
 
 sub run_test {
@@ -62,7 +62,7 @@ sub prepare_run_test {
     select_console 'sol', await_console => 0;
     use_ssh_serial_console;
     reconnect_if_problematic;
-    assert_script_run("history -c");
+    assert_script_run("> ~/.bash_history");
 
     check_host_health;
 
@@ -126,7 +126,8 @@ sub junit_log_params_provision {
     my $stop_time = $self->{"stop_run"};
     $self->{"test_time"} = strftime("\%H:\%M:\%S", gmtime($stop_time - $start_time));
     if (!version_utils::is_alp) {
-        $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+        my ($os_version, $os_sp, $host_os) = get_os_release;
+        $self->{product_tested_on} = join('-', $host_os, $os_version, $os_sp);
     } else {
         alp_workloads::kvm_workload_utils::exit_kvm_container;
         $self->{"product_tested_on"} = script_output(q@cat /etc/os-release |grep PRETTY_NAME | sed 's/PRETTY_NAME=//'@);
@@ -191,7 +192,11 @@ sub post_fail_hook {
     # virt logs are included in next step "virt_utils::collect_host_and_guest_logs"
     collect_virt_system_logs() unless get_var("VIRT_AUTOTEST");
 
-    virt_utils::collect_host_and_guest_logs('', '', '', "_" . caller 0);
+    virt_utils::collect_host_and_guest_logs(
+        full_supportconfig => get_var('FULL_SUPPORTCONFIG', 1),
+        excluded_supportconfig_features => get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX'),
+        token => "_" . caller 0
+    );
     upload_logs("/var/log/clean_up_virt_logs.log");
     save_screenshot;
     upload_logs("/var/log/guest_console_monitor.log");

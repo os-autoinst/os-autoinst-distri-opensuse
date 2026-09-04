@@ -9,26 +9,30 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#40361, tc#1682591
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use registration qw(add_suseconnect_product register_product);
 use version_utils qw(is_sle);
+use package_utils qw(install_package uninstall_package);
+use version_utils qw(is_transactional);
 
 sub test_zypper {
     # Refresh & update
     zypper_call("ref", timeout => 1200);
-    zypper_call("up", timeout => 1200);
+    if (is_transactional) {
+        assert_script_run("transactional-update -n up");
+    } else {
+        zypper_call("up", timeout => 1200);
+    }
 
     # Install & remove packages
-    zypper_call("in apache2");
-    zypper_call("rm apache2");
+    install_package("apache2", trup_reboot => 1);
+    uninstall_package("apache2", trup_reboot => 1);
 
-    # Register available extensions and modules for SLE, e.g., free addons
-    if (is_sle && !main_common::is_updates_tests()) {
+    # Register available extensions and modules for SLE, e.g., free addons, if SLE16 skip
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         register_product();
         my $version = get_required_var('VERSION') =~ s/([0-9]+).*/$1/r;
         if ($version == '15') {
@@ -41,8 +45,8 @@ sub test_zypper {
     }
 
     # Install & remove patterns
-    zypper_call("in -t pattern mail_server");
-    zypper_call("rm -t pattern mail_server");
+    install_package("-t pattern mail_server", trup_reboot => 1);
+    uninstall_package("-t pattern mail_server", trup_reboot => 1);
 
     # Add & remove a repository and test priorities
     zypper_call("ar -f https://download.opensuse.org/repositories/utilities/openSUSE_Factory/ utilities");

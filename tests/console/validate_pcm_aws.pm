@@ -7,9 +7,7 @@
 #
 # Maintainer: Joaquín Rivera <jeriveramoya@suse.com>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 

@@ -14,13 +14,11 @@
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
 
-use strict;
-use warnings;
 
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
-use x11utils 'ensure_unlocked_desktop';
+use x11utils qw(ensure_unlocked_desktop close_gui_terminal);
 
 
 sub run {
@@ -52,11 +50,6 @@ sub run {
         assert_script_run("piglit run /usr/lib64/piglit/tests/suse_qa.py /tmp/p_results", 1.5 * 60 * 60);
     }
 
-    # recover from VNC stall, and unlock desktop
-    wait_screen_change { send_key('ret'); };
-    ensure_unlocked_desktop;
-    send_key('ret');
-    wait_still_screen;
     # upload results
     upload_logs("/tmp/p_results/results.json.bz2");
     # upload results in human readable format
@@ -64,6 +57,7 @@ sub run {
     upload_logs("/tmp/piglit.log");
     # if any test crash mark test as failed
     assert_script_run('! grep ": crash" < /tmp/piglit.log', 90);
+    close_gui_terminal;
 }
 
 sub post_fail_hook {

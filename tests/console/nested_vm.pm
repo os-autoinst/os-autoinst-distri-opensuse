@@ -7,11 +7,9 @@
 # Summary: Basics libvirtd test before and after migration, with a nested
 # VM running or shutdown, performance of the nested vm is irrelevant as long
 # as the service status is still enabled and active after migration.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use services::libvirtd;

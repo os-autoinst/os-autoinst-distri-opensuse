@@ -8,9 +8,7 @@
 # Summary: Start dolphin and do some file operations
 # Maintainer: Fabian Vogt <fvogt@suse.de>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils 'assert_screen_with_soft_timeout';
 use version_utils 'is_plasma6';

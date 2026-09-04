@@ -12,9 +12,7 @@
 # - Check system target
 # Maintainer: Richard Brown <RBrownCCB@opensuse.org>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 use utils;
 use version_utils qw(is_microos is_sle_micro is_upgrade is_sle is_tumbleweed is_opensuse);

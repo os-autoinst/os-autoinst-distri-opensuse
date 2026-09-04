@@ -1,0 +1,83 @@
+name: sle16-host-upgrade
+description: |
+  This handles both online and offline upgrade to the latest sle16 version,
+  with KVM guests verification.
+  Platforms:
+    - x86_64: qemu nested virtualization, fresh install via ISO+DVD
+    - aarch64: ipmi baremetal, fresh install via ipxe_install
+  Guests installed fresh via unified_guest_installation (autoyast/agama),
+  verified via verify_virtualization after upgrade.
+vars:
+  DESKTOP: textmode
+  HOST_HYPERVISOR: kvm
+  INSTALL_PRODUCT_PATTERNS: kvm_server,kvm_tools
+  YAML_TEST_DATA: test_data/yam/agama_sle.yaml
+schedule:
+  - yam/migration/setup_upgrade_env
+  - "{{install_host}}"
+  - "{{prepare_virtualization}}"
+  - yam/migration/restore_upgrade_env
+  - console/system_prepare
+  - "{{pre_migration}}"
+  - "{{migration_module}}"
+  - "{{post_migration_boot}}"
+  - yam/validate/validate_migration_logs
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_product
+  - console/validate_repos
+  - "{{verify_virtualization}}"
+conditional_schedule:
+  install_host:
+    ARCH:
+      x86_64:
+        - "{{install_host_x86}}"
+      aarch64:
+        - "{{install_host_aarch64}}"
+  install_host_x86:
+    AUTOYAST_PREPARE_PROFILE:
+      "1":
+        - autoyast/prepare_profile
+        - installation/bootloader_start
+        - autoyast/installation
+        - installation/first_boot
+    AGAMA:
+      "1":
+        - yam/agama/boot_agama
+        - yam/agama/agama_auto
+        - installation/first_boot
+  install_host_aarch64:
+    AUTOYAST_PREPARE_PROFILE:
+      "1":
+        - autoyast/prepare_profile
+        - installation/ipxe_install
+        - autoyast/installation
+        - virt_autotest/login_console
+    AGAMA:
+      "1":
+        - installation/ipxe_install
+        - installation/agama_reboot
+        - virt_autotest/login_console
+  prepare_virtualization:
+    VIRT_AUTOTEST:
+      "1":
+        - virt_autotest/prepare_non_transactional_server
+        - virt_autotest/unified_guest_installation
+  pre_migration:
+    AUTOYAST_PREPARE_PROFILE:
+      "1":
+        - console/hostname
+  migration_module:
+    OFFLINE_UPGRADE:
+      "1":
+        - yam/migration/migration_unattended
+      "":
+        - yam/migration/zypper_migration
+  post_migration_boot:
+    AUTOYAST_PREPARE_PROFILE:
+      "1":
+        - installation/grub_test
+        - installation/first_boot
+  verify_virtualization:
+    VIRT_AUTOTEST:
+      "1":
+        - virt_autotest/verify_virtualization

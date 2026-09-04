@@ -5,7 +5,7 @@
 
 # Summary: Helper class for Azure Kubernetes Service (AKS)
 #
-# Maintainer: Ivan Lausuch <ilausuch@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 # Documentation: https://docs.aws.amazon.com/AmazonECR/latest/userguide/docker-push-ecr-image.html
 
 package publiccloud::aks;

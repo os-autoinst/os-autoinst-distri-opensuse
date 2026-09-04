@@ -5,11 +5,12 @@
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
-package spectre_v2;
-use strict;
-use warnings;
 
-use base "consoletest";
+## no os-autoinst compile-check
+
+package spectre_v2;
+
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';

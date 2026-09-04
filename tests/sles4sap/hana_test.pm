@@ -7,11 +7,9 @@
 # Requires: sles4sap/wizard_hana_install, ENV variables INSTANCE_SID
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
-use strict;
-use warnings;
+use Mojo::Base 'sles4sap';
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal);
 
 sub test_python3 {
     my ($self) = @_;
@@ -61,7 +59,7 @@ sub run {
     my $instance_id = get_required_var('INSTANCE_ID');
     my $sapadm = $self->set_sap_info($sid, $instance_id);
 
-    # Test PIDs max, as SAP as some prerequisites on this and change for SAP user
+    # Test PIDs max, as SAP has some prerequisites on this and change for SAP user
     $self->test_pids_max unless get_var('CLUSTER_NAME');
     $self->user_change;
 

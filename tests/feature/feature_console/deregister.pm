@@ -4,9 +4,7 @@
 # Summary: Test the function of SUSEConnect to deregister a module
 # Maintainer: Yi Xu <yxu@suse.com>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use suseconnect_register;
 use registration;

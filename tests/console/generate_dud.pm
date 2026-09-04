@@ -7,11 +7,9 @@
 # Summary: Generate DUD dynamically using mkdud and xml file where variables
 # are expanded for the corresponding product/build.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use XML::Writer;
 use utils qw(zypper_call);

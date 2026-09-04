@@ -8,23 +8,22 @@
 #  be opened by corresponding applications
 # Maintainer: Zhaocong Jia <zcjia@suse.com> Grace Wang <grace.wang@suse.com>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use x11utils 'default_gui_terminal';
 
 sub run {
     # Prepare test files
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
 
     my @applications = (
-        ['image/jpg', 'eog.desktop'],
-        ['image/png', 'eog.desktop'],
-        ['application/pdf', 'evince.desktop'],
-        ['application/x-bzip2', 'org.gnome.FileRoller.desktop'],
-        ['application/gzip', 'org.gnome.FileRoller.desktop']);
+        ['image/jpeg', 'org.gnome.Loupe.desktop'],
+        ['image/png', 'org.gnome.Loupe.desktop'],
+        ['application/pdf', 'org.gnome.Papers.desktop'],
+        ['application/x-bzip2', 'org.gnome.Nautilus.desktop'],
+        ['application/gzip', 'org.gnome.Nautilus.desktop']);
     my $defaultApps = check_default_apps(@applications);
     if ($defaultApps) {
         prepare_application_environment();
@@ -32,7 +31,7 @@ sub run {
         clear_application_environment();
     }
 
-    # clear the xterm
+    # clear the terminal
     send_key 'alt-f4';
 
 }

@@ -6,11 +6,9 @@
 # Summary: SLES for SAP Applications default desktop icons check
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use version_utils 'is_sle';
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;

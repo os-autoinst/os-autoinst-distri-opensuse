@@ -42,14 +42,12 @@
 # Maintainer: Marcelo Martins <mmartins@suse.cz>, Anna Minou <anna.minou@suse.com>
 # Tags: poo#51521, poo#49076
 #
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils qw(zypper_call);
-use version_utils qw(is_sle is_leap is_jeos is_tumbleweed);
+use version_utils qw(is_sle is_leap is_jeos is_tumbleweed is_opensuse);
 
 sub run {
     select_serial_terminal;
@@ -89,13 +87,24 @@ sub run {
     #Cleaning up dependencies of removed packages
     zypper_call "rm --clean-deps cmake";
 
+    my $repo_version;
+    my $package_to_install = "funny-manpages";
+    if (is_opensuse) {
+        my $string = (is_leap) ? 'Leap_' : '';
+        $repo_version = "openSUSE_$string" . get_var('VERSION');
+    } elsif (is_sle) {
+        $repo_version = "openSUSE_Leap_15.6";
+    } else {
+        die "Unknown distribution";
+    }
+
     #Add a repository
-    zypper_call 'ar -p 90 -f --no-gpgcheck http://ftp.gwdg.de/pub/linux/misc/packman/suse/openSUSE_Leap_15.1/ packman';
+    zypper_call "ar -p 90 -f --no-gpgcheck http://ftp.gwdg.de/pub/linux/misc/packman/suse/$repo_version/ packman";
     assert_script_run("zypper lr | grep packman");
 
     #Install package from a disabled repository
     zypper_call 'mr -d packman';
-    zypper_call '--plus-content packman install funny-manpages';
+    zypper_call "--plus-content packman install $package_to_install";
 
     #Prioritize a repository
     zypper_call 'mr -e -p 20 packman';
@@ -129,7 +138,7 @@ sub run {
     #Show packages which are without repository:
     zypper_call 'pa --orphaned';
     #There should be one orphan left funny-manpages, let's remove it
-    zypper_call 'rm funny-manpages';
+    zypper_call "rm $package_to_install";
 
     #Show packages which are installed but are not needed:
     zypper_call 'pa --unneeded';
@@ -152,7 +161,7 @@ sub run {
     validate_script_output('zypper lr 1', sub { m/Enabled\s+:\sYes/ });
 
     #Forced refresh of repositories
-    zypper_call 'refresh -fdb';
+    zypper_call '--gpg-auto-import-keys refresh -fdb';
 
     #Autorefresh on repository on/off
     my $refresh = is_sle('=12-sp1') ? '-r' : '-f';

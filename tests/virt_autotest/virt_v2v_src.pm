@@ -7,9 +7,7 @@
 #          This is the part to run on source host.
 # Maintainer: alice <xlai@suse.com>
 
-use base multi_machine_job_base;
-use strict;
-use warnings;
+use Mojo::Base 'multi_machine_job_base';
 use testapi;
 use lockapi;
 use mmapi;

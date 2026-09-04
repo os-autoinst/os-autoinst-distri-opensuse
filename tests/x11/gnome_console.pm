@@ -11,13 +11,12 @@
 # - Close gnome-console
 # Maintainer: Santiago Zarate <santiago.zarate@suse.com>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {
     my ($self) = @_;
+    select_console 'x11';
     mouse_hide(1);
     x11_start_program('kgx');
     send_key "ctrl-shift-t";

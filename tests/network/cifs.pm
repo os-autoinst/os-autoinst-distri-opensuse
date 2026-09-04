@@ -12,9 +12,7 @@
 # * force a local samba server (on the test machine) with CIFS_TEST_REMOTE=local
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -46,13 +44,13 @@ sub setup_local_server() {
 
 sub run {
     # Package 'samba-client' requires PackageHub is available
-    return if (!is_phub_ready() && is_sle);
+    return if (!is_phub_ready() && is_sle('<16'));
 
     my $smb_domain = get_var("CIFS_TEST_DOMAIN") // "currywurst";
     # The test host is only available from the internal openqa.suse.de
     my $smb_remote = get_var("CIFS_TEST_REMOTE", is_opensuse ? "local" : "currywurst.qe.suse.de");
     select_serial_terminal;
-    add_suseconnect_product(get_addon_fullname('phub')) if is_sle;    # samba-client requires package hub
+    add_suseconnect_product(get_addon_fullname('phub')) if is_sle('<16');    # samba-client requires package hub
 
     # Use local samba server, if defined or if defined SMB server is not accessible
     my $is_local = $smb_remote eq 'local';

@@ -1,11 +1,17 @@
 ---
 name: agama_extended
 description: >
-  Perform interactive installation with agama.
+  Perform interactive installation with the following additional test:
+    - Set static hostname via UI.
+    - Install packages gvim,rpm-build via profile.
 schedule:
   - yam/agama/boot_agama
   - yam/agama/patch_agama_tests
+  - yam/validate/validate_self_update
   - yam/agama/agama
   - installation/grub_test
   - installation/first_boot
   - yam/validate/validate_hostname
+  - yam/validate/validate_connectivity
+  - yam/validate/validate_bootloader_timeout
+  - yam/validate/validate_ntp

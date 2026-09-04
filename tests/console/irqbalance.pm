@@ -7,9 +7,7 @@
 # Summary: Test irqbalance runs as service as well as standalone
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use warnings;
-use base "consoletest";
-use strict;
+use Mojo::Base 'consoletest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call clear_console);
@@ -17,9 +15,12 @@ use utils qw(systemctl zypper_call clear_console);
 sub run {
     select_serial_terminal;
 
-    # Return when balancing is ineffective on system with a single cpu
+    # Skip when balancing is ineffective on system with a single cpu
     my $nproc = script_output('cat /proc/cpuinfo | grep processor | wc -l');
-    die("Balancing is ineffective on systems with a single cpu (nproc=$nproc)") unless ($nproc > 1);
+    unless ($nproc > 1) {
+        record_info('SKIP', "Balancing is ineffective on systems with a single cpu (nproc=$nproc)");
+        return;
+    }
 
     zypper_call("in irqbalance");
     systemctl('enable --now irqbalance.service');
@@ -43,6 +44,10 @@ sub run {
 
     # Clear the remains from background commands
     clear_console if !is_serial_terminal;
+}
+
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
 }
 
 1;

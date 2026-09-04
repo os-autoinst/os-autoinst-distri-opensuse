@@ -9,16 +9,14 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#65375, poo#67309, poo#101782
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use apachetest;
 use utils 'clear_console';
+use serial_terminal 'select_serial_terminal';
 
 sub run {
-    my $self = shift;
-    select_console 'root-console';
+    select_serial_terminal;
     setup_apache2(mode => 'SSL');
 }
 

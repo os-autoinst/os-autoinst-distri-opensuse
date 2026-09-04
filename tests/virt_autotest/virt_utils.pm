@@ -8,10 +8,10 @@ package virt_utils;
 #          This file provides fundamental utilities.
 # Maintainer: alice <xlai@suse.com>
 
+## no os-autoinst style
+
 use base Exporter;
 use Exporter;
-use strict;
-use warnings;
 use Sys::Hostname;
 use File::Basename;
 use testapi;
@@ -37,6 +37,7 @@ our @EXPORT = qw(
   handle_sp_in_settings_with_sp0
   clean_up_red_disks
   lpar_cmd
+  lpar_upload_logs
   generate_guest_asset_name
   get_guest_disk_name_from_guest_xml
   compress_single_qcow2_disk
@@ -93,9 +94,7 @@ sub get_version_for_daily_build_guest {
         $version = get_var("VERSION", '');
     }
     $version = lc($version);
-    if ($version !~ /sp/m) {
-        $version = $version . "-fcs";
-    }
+    $version =~ s/\./-/g;
     return $version;
 }
 
@@ -134,10 +133,17 @@ sub repl_repo_in_sourcefile {
     if (get_var("REPO_0")) {
         my $soucefile = "/usr/share/qa/virtautolib/data/" . "sources." . locate_sourcefile;
         my $newrepo = get_repo_0_prefix . get_var("REPO_0");
+        my $guest_full = get_var('GUEST_FLAVOR', '') =~ /full/i;
         # for sles15sp2+, install host with Online installer, while install guest with Full installer
-        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i);
+        $newrepo =~ s/-Online-/-Full-/ if ($verorig =~ /15-sp[2-9]/i || $guest_full);
         my $shell_cmd
           = "if grep $veritem $soucefile >> /dev/null;then sed -i \"s#^$veritem=.*#$veritem=$newrepo#\" $soucefile;else echo \"$veritem=$newrepo\" >> $soucefile;fi";
+        # a guest pinned by GUEST_PATTERN to another version than $veritem keeps its own entry,
+        # virt-install.sh reads the agama install mode from it, so flip its keyword to Full too
+        (my $guestver = lc(get_var('GUEST_PATTERN', ''))) =~ s/\./-/g;
+        (my $guestitem = $veritem) =~ s/source\.http\..*/source.http.$guestver/;
+        $shell_cmd .= ";sed -i \"/^$guestitem=/s#-Online-#-Full-#\" $soucefile;grep \"^$guestitem=.*Full\" $soucefile"
+          if ($guest_full && $guestver && $guestitem ne $veritem);
         if (is_s390x) {
             lpar_cmd("$shell_cmd");
             lpar_cmd("grep \"$veritem\" $soucefile");
@@ -180,7 +186,7 @@ sub repl_module_in_sourcefile {
     if (is_s390x) {
         lpar_cmd("$command");
         lpar_cmd("grep Module $source_file -r");
-        upload_asset "/usr/share/qa/virtautolib/data/sources.de", 1, 1;
+        lpar_upload_logs("/usr/share/qa/virtautolib/data/sources.de");
     }
     else {
         assert_script_run($command, timeout => 120);
@@ -228,9 +234,19 @@ sub handle_sp_in_settings {
 
     # We need small case variable value
     my $var_value = lc(get_required_var("$var_name"));
-    # Add $value_for_sp after release for products like sle15, sle16
-    if ($var_value !~ /sp|fcs/ && $value_for_sp) {
-        $var_value =~ s/(sles-\d+)/$1-$value_for_sp/;
+
+    my ($major_version) = $var_value =~ /sles-(\d+)/;
+    if ($major_version >= 16) {
+        # Follow SLES16+ Major.Minor format
+        if ($var_value !~ /sles-\d+[\.-]\d+/) {
+            $var_value .= "-0";
+        }
+    }
+    else {
+        # Add $value_for_sp after release for products like sle12, sle15
+        if ($var_value !~ /sp|fcs/ && $value_for_sp) {
+            $var_value =~ s/(sles-\d+)/$1-$value_for_sp/;
+        }
     }
     set_var("$var_name", "$var_value");
     bmwqemu::save_vars();
@@ -238,7 +254,15 @@ sub handle_sp_in_settings {
 
 sub handle_sp_in_settings_with_fcs {
     my $var_name = shift;
-    handle_sp_in_settings($var_name, "fcs");
+
+    my $var_value = lc(get_required_var("$var_name"));
+
+    if ($var_value =~ /sles-16/) {
+        handle_sp_in_settings($var_name, "0");
+    }
+    else {
+        handle_sp_in_settings($var_name, "fcs");
+    }
 }
 
 sub handle_sp_in_settings_with_sp0 {
@@ -306,12 +330,66 @@ sub clean_up_red_disks {
 
 sub lpar_cmd {
     my ($cmd, $args) = @_;
+
+    # Ensure $args is a hashref if nothing is passed
+    $args ||= {};
     my $timeout = $args->{timeout} // 300;
+    my $ignore_return_code = $args->{ignore_return_code} // 0;
+
     die 'Command not provided' unless $cmd;
-    $args->{ignore_return_code} ||= 0;
-    my $ret = console('svirt')->run_cmd($cmd, timeout => $timeout);
-    record_info('INFO', "Command $cmd run on S390X LPAR: SUCESS") if ($ret == 0);
-    die 'Find new failure, please check manually' unless ($args->{ignore_return_code} || !$ret);
+
+    # Append 2>&1 to capture standard error (stderr) into standard output (stdout),
+    # unless the command already includes it.
+    $cmd .= ' 2>&1' unless $cmd =~ /2>&1/;
+
+    # Execute the command with wantarray => 1 to capture both RC and combined output
+    my ($ret, $output) = console('svirt')->run_cmd($cmd, timeout => $timeout, wantarray => 1);
+
+    # Fallbacks in case run_cmd returns undefined values
+    $ret = 1 unless defined $ret;
+    $output = '' unless defined $output;
+
+    # Record the result and the captured output/errors to openQA Web UI
+    if ($ret == 0) {
+        record_info('LPAR_CMD_PASS', "Command finished with RC 0: $cmd\n\nOutput:\n$output");
+    }
+    else {
+        record_info('LPAR_CMD_FAIL', "Command failed with RC $ret: $cmd\n\nOutput:\n$output");
+    }
+
+    # Die with the output string if the command failed and we are not ignoring the RC
+    die "Find new failure (RC $ret), please check manually for command: $cmd\nOutput:\n$output"
+      unless ($ignore_return_code || $ret == 0);
+
+    # Return context-aware results: list of (RC, output) or just RC
+    return wantarray ? ($ret, $output) : $ret;
+}
+
+=head2 lpar_upload_logs
+
+  lpar_upload_logs($file_path, [$custom_upname])
+
+Upload a log file directly from the s390x LPAR host to the openQA web UI.
+This helper subroutine executes a native C<curl> command via C<lpar_cmd()>,
+bypassing the standard C<upload_logs()> to avoid fragile C<wait_serial> timeouts
+caused by console context mismatches. It takes the absolute C<$file_path> on the host,
+and an optional C<$custom_upname> for the openQA Assets tab (defaults to the file's base name).
+
+=cut
+
+sub lpar_upload_logs {
+    my ($file_path, $custom_upname) = @_;
+
+    my ($filename) = $file_path =~ m|([^/]+)$|;
+    my $upname = $custom_upname || $filename;
+    my $upload_url = autoinst_url("/uploadlog/$filename");
+
+    my $curl_cmd = "curl -s --form upload=\@$file_path " .
+      "--form upname=$upname " .
+      "--max-time 90 $upload_url";
+
+    record_info('Upload Log', "Uploading $file_path directly from LPAR");
+    lpar_cmd($curl_cmd);
 }
 
 # Guest xml will be uploaded with name format [generated_name_by_this_func].xml
@@ -327,18 +405,15 @@ sub generate_guest_asset_name {
     if (get_var('CASEDIR') and get_var('BUILD') !~ /^\d+[\._]?\d*$/) {
         die "Downloading guest assets is not allowed without a particular build number. Please trigger job with BUILD=<build_number> or with SKIP_GUEST_INSTALL=1 not to download guest assets from openqa server";
     }
-    else {
-        $build_num = get_required_var('BUILD');
-    }
 
     my $composed_name
       = 'guest_'
       . $guest
       . '_on-host_'
       . get_required_var('DISTRI') . '-'
-      . get_required_var('VERSION')
+      . get_var('VERSION_TO_INSTALL', get_required_var('VERSION'))
       . '_build'
-      . $build_num . '_'
+      . (get_var('VERSION_TO_INSTALL') ? 'gm' : get_required_var('BUILD')) . '_'
       . lc(get_required_var('SYSTEM_ROLE')) . '_'
       . get_required_var('ARCH');
 
@@ -349,7 +424,7 @@ sub get_guest_disk_name_from_guest_xml {
     my $guest = shift;
 
     # Our automation only supports single guest disk
-    my $disk_from_xml = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //disk/source/\@file";
+    my $disk_from_xml = script_output "virsh dumpxml $guest | xmlstarlet sel -t -v //disk/source/\@file | grep -vE \'(ignition|combustion).*\.(qcow2|raw|img)\'";
     record_info('Guest disk config from xml', "Guest $guest disk_from_xml is: $disk_from_xml.");
     die 'There is no guest disk file parsed out from guest xml configuration!' unless $disk_from_xml;
 
@@ -411,7 +486,6 @@ sub download_guest_assets {
 
     # clean up vm stuff
     script_run "[ -d $vm_xml_dir ] && rm -rf $vm_xml_dir; mkdir -p $vm_xml_dir";
-    my $disk_image_dir = script_output "source /usr/share/qa/virtautolib/lib/virtlib; get_vm_disk_dir";
     script_run "[ -d /tmp/prj3_guest_migration/ ] && rm -rf /tmp/prj3_guest_migration/" if get_var('VIRT_NEW_GUEST_MIGRATION_SOURCE');
 
     # check if vm xml files have been uploaded
@@ -422,6 +496,10 @@ sub download_guest_assets {
         for my $i (1 .. @guests) {
             # ASSET_n0: put the guest xml file
             # ASSET_n1: put the guest disk file
+            unless (get_var("ASSET_${i}0", "")) {
+                record_info('Softfail', "ASSET_${i}0 is empty!", result => 'softfail');
+                next;
+            }
             if (get_var("ASSET_${i}0", "") =~ /$guest_asset_name/) {
 
                 # Download the guest xml file
@@ -626,34 +704,60 @@ sub perform_guest_restart {
     }
 }
 
-#This subroutine collects desired logs from host and guest, and place them into folder /tmp/virt_logs_residence on host then compress it to /tmp/virt_logs_all.tar.gz
-#Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest for their detailed functionality, implementation and usage
+# This subroutine collects desired logs from host and guest, and place them into
+# folder /tmp/virt_logs_residence on host then compress it to /tmp/virt_logs_all.tar.gz
+# Please refer to virt_logs_collector.sh and fetch_logs_from_guest.sh in data/virt_autotest
+# for their detailed functionality, implementation and usage.
+# Arguments explanation:
+# guest: only collect and fetch logs from specified guests which are separated
+# by space.
+# guest_password: password to establish ssh or console connection to guest.
+# extra_host_log: extra logs to be collected from host separated by space.
+# extra_guest_log: extra logs to be collected from guest separated by space.
+# full_supportconfig: whether use supportconfig with -A option to activate all
+# features (1 or 0).
+# excluded_supportconfig_features: features to be excluded from supportconfig
+# separated by space.
+# token: label to appended at the end to form the final uploaded log name.
+# keep: whether remove uploaded logs at the last (true or false).
+# timeout: time out value for logs collecting and fetching. Default to 3600.
 sub collect_host_and_guest_logs {
-    my ($guest_wanted, $host_extra_logs, $guest_extra_logs, $log_token) = @_;
-    $guest_wanted //= '';
-    $host_extra_logs //= '';
-    $guest_extra_logs //= '';
-    $log_token //= '';
+    my %args = @_;
+    $args{guest} //= '';
+    $args{guest_password} //= get_var('_SECRET_GUEST_PASSWORD', $testapi::password);
+    $args{extra_host_log} //= get_var('EXTRA_HOST_LOG', '/var/log');
+    $args{extra_guest_log} //= get_var('EXTRA_GUEST_LOG', '/var/log');
+    $args{full_supportconfig} //= get_var('FULL_SUPPORTCONFIG', 1);
+    $args{excluded_supportconfig_features} //= get_var('EXCLUDED_SUPPORTCONFIG_FEATURES', 'aFSLIST AUDIT SELINUX');
+    $args{token} //= '';
+    $args{keep} //= 'false';
+    $args{timeout} //= 3600;
 
+    $args{full_supportconfig} = ($args{full_supportconfig} ? 'true' : 'false');
     my $logs_collector_script_url = data_url("virt_autotest/virt_logs_collector.sh");
-    script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", 180, type_command => 0, proceed_on_failure => 0);
+    script_output("curl -s -o ~/virt_logs_collector.sh $logs_collector_script_url", timeout => 180, type_command => 0, proceed_on_failure => 0);
     save_screenshot;
-    script_output("chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$host_extra_logs\" -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 3600 / get_var('TIMEOUT_SCALE', 1), type_command => 1, proceed_on_failure => 1);
+    script_output(
+"chmod +x ~/virt_logs_collector.sh && ~/virt_logs_collector.sh -l \"$args{extra_host_log}\" -g \"$args{guest}\" -p \"$args{guest_password}\" -e \"$args{extra_guest_log}\" -a \"$args{full_supportconfig}\" -x \"$args{excluded_supportconfig_features}\"",
+        timeout => $args{timeout},
+        type_command => 1,
+        proceed_on_failure => 1
+    );
     save_screenshot;
 
     send_key("ret");
     my $logs_fetching_script_url = data_url("virt_autotest/fetch_logs_from_guest.sh");
     script_output("curl -s -o ~/fetch_logs_from_guest.sh $logs_fetching_script_url", 180, type_command => 0, proceed_on_failure => 0);
     save_screenshot;
-    script_output("chmod +x ~/fetch_logs_from_guest.sh && ~/fetch_logs_from_guest.sh -g \"$guest_wanted\" -e \"$guest_extra_logs\"", 1800, type_command => 1, proceed_on_failure => 1);
+    script_output("chmod +x ~/fetch_logs_from_guest.sh && ~/fetch_logs_from_guest.sh -g \"$args{guest}\" -p \"$args{guest_password}\" -e \"$args{extra_guest_log}\"", timeout => $args{timeout}, type_command => 1, proceed_on_failure => 1);
     save_screenshot;
 
     send_key("ret");
-    upload_logs("/tmp/virt_logs_all.tar.gz", log_name => "virt_logs_all$log_token.tar.gz", timeout => 600);
-    upload_logs("/var/log/virt_logs_collector.log", log_name => "virt_logs_collector$log_token.log");
-    upload_logs("/var/log/fetch_logs_from_guest.log", log_name => "fetch_logs_from_guest$log_token.log");
+    upload_logs("/tmp/virt_logs_all.tar.gz", log_name => "virt_logs_all$args{token}.tar.gz", timeout => 600);
+    upload_logs("/var/log/virt_logs_collector.log", log_name => "virt_logs_collector$args{token}.log");
+    upload_logs("/var/log/fetch_logs_from_guest.log", log_name => "fetch_logs_from_guest$args{token}.log");
     save_screenshot;
-    script_run("rm -f -r /tmp/virt_logs_all.tar.gz /var/log/virt_logs_collector.log /var/log/fetch_logs_from_guest.log");
+    script_run("rm -f -r /tmp/virt_logs_all.tar.gz /var/log/virt_logs_collector.log /var/log/fetch_logs_from_guest.log") if ($args{keep} eq 'false');
     save_screenshot;
 }
 
@@ -664,8 +768,12 @@ sub cleanup_host_and_guest_logs {
     $extra_logs_to_cleanup //= '';
 
     #Clean dhcpd and named services up explicity
-    if (get_var('VIRT_AUTOTEST') and !is_alp) {
-        script_run("brctl addbr br123;brctl setfd br123 0;ip addr add 192.168.123.1/24 dev br123;ip link set br123 up");
+    my ($os_running_version) = get_os_release;
+    if (get_var('VIRT_AUTOTEST') and $os_running_version < 16) {
+        my $bridge_name = "br123";
+        if (script_run("ip link show $bridge_name") != 0) {
+            script_run("brctl addbr $bridge_name;brctl setfd $bridge_name 0;ip addr add 192.168.123.1/24 dev $bridge_name;ip link set $bridge_name up");
+        }
         if (!get_var('VIRT_UNIFIED_GUEST_INSTALL')) {
             my @control_operation = ('restart');
             virt_autotest::utils::manage_system_service('dhcpd', \@control_operation);

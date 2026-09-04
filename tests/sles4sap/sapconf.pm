@@ -7,15 +7,13 @@
 # Working both on plain SLE and SLES4SAP products
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_staging is_sle is_upgrade);
 use Utils::Architectures;
 use Utils::Systemd 'systemctl';
 use utils qw(zypper_call);
-use strict;
-use warnings;
 
 sub run_developers_tests {
     my $devel_repo = 'https://gitlab.suse.de/AngelaBriel/sapconf-test';
@@ -107,8 +105,7 @@ sub run {
 
     verify_sapconf_service('sapconf.service', 'sapconf') unless ($default_profile eq 'saptune');
     verify_sapconf_service('uuidd.socket', 'UUID daemon activation socket');
-    verify_sapconf_service('sysstat.service', 'Write information about system start to sysstat log')
-      if is_sle('15+');
+    verify_sapconf_service('sysstat.service', '') if is_sle('15+');
 
     my $sapconf_bin = is_sle('<15') ? 'sapconf' : '/usr/lib/sapconf/sapconf';
     if (is_sle('<15')) {

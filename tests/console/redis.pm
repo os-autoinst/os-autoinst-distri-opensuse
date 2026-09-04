@@ -12,17 +12,17 @@
 #
 # Maintainer: QE-Core <qe-core@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(zypper_call script_retry validate_script_output_retry);
+use utils qw(script_retry validate_script_output_retry);
 use registration qw(add_suseconnect_product get_addon_fullname);
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_tumbleweed);
+use package_utils qw(install_package uninstall_package);
 
-my @redis_versions = ("redis");
-push(@redis_versions, 'redis7') unless is_sle('<=15-sp4') || is_sle('>15-sp6');
+# https://jira.suse.com/browse/PED-11976
+my @redis_versions = is_sle('=15-SP7') ? ("valkey-compat-redis") : ("redis");
+push(@redis_versions, 'redis7') unless is_sle('<=15-sp4') || is_sle('>15-sp6') || is_tumbleweed;
 my %ROLES = (
     MASTER => 'MASTER',
     REPLICA => 'REPLICA',
@@ -32,6 +32,7 @@ my %PORTS = map { $ROLES{$_} => $base_port++ } keys %ROLES;
 my %REDIS_CLI_CMD = map {
     $_ => "redis-cli -p " . $PORTS{$ROLES{$_}}
 } keys %ROLES;
+
 my %logfile_locations = map {
     my $version = $_;
     $version => {
@@ -96,9 +97,14 @@ sub cleanup_redis {
     foreach my $role (values %ROLES) {
         assert_script_run($REDIS_CLI_CMD{$role} . " flushall");
     }
-    assert_script_run($killall_redis_server_cmd);
+    my $redis_conf_dir = script_output("redis-cli config get dir | tail -n 1") // '/';
+
+    # Gracefully stop redis instance, stopping redis replica first
+    assert_script_run($REDIS_CLI_CMD{$ROLES{REPLICA}} . " shutdown");
+    assert_script_run($REDIS_CLI_CMD{$ROLES{MASTER}} . " shutdown");
+
     assert_script_run($remove_test_db_file_cmd);
-    assert_script_run("find / -type f -name 'dump.rdb' -print -exec rm -f {} + || true");
+    assert_script_run("find $redis_conf_dir -type f -name 'dump.rdb' -print -exec rm -f {} + || true", timeout => 180);
 }
 
 sub upload_redis_logs {
@@ -114,7 +120,7 @@ sub upload_redis_logs {
 sub test_redis {
     my (%args) = @_;
     $args{redis_version} //= $redis_versions[0];
-    zypper_call('in --force-resolution --solver-focus Update ' . $args{redis_version});
+    install_package('--force-resolution --solver-focus Update ' . $args{redis_version}, trup_reboot => 1);
     record_info("Testing " . $args{redis_version});
     foreach my $role (values %ROLES) {
         my $port = $PORTS{$role};
@@ -131,6 +137,15 @@ sub test_redis {
 sub run {
     my $self = shift;
     select_serial_terminal;
+
+    # For redis is removed from 15-SP7, so the log directory doesn't exist, which will cause failure.
+    # So create this directory as a workaround.
+    my $log_dir = "/var/log/redis/";
+    if (script_run("test -d $log_dir") != 0) {
+        record_info("Workaround for poo#179867");
+        script_run("mkdir -p $log_dir");
+    }
+
     foreach my $redis_version (@redis_versions) {
         test_redis(redis_version => $redis_version);
     }
@@ -148,7 +163,7 @@ sub post_fail_hook {
 
 sub post_run_hook {
     my $self = shift;
-    zypper_call('rm -u ' . $redis_versions[-1]);
+    uninstall_package('-u ' . $redis_versions[-1]);
     $self->SUPER::post_run_hook;
 }
 

@@ -12,43 +12,27 @@
 # - Stop and disable packagekit
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use zypper;
-use version_utils qw(is_sle is_agama);
+use version_utils qw(is_sle is_agama is_tumbleweed);
 use serial_terminal 'prepare_serial_console';
 use bootloader_setup qw(change_grub_config grub_mkconfig);
 use registration;
 use services::registered_addons 'full_registered_check';
 use List::MoreUtils 'uniq';
 use migration 'modify_kernel_multiversion';
-use strict;
 use Utils::Architectures 'is_ppc64le';
-use warnings;
-use virt_autotest::hyperv_utils 'hyperv_cmd';
+use Utils::Backends 'is_pvm';
 use transactional qw(process_reboot);
 use suseconnect_register qw(command_register);
 
 sub run {
     my ($self) = @_;
     select_console 'root-console';
-
     ensure_serialdev_permissions;
-
     prepare_serial_console;
-
-    # This code checks if the environment is Hyper-V 2016 with UEFI. If true,
-    # it adds a new VM network adapter connected to a virtual switch and logs a known UEFI boot issue.
-    if (check_var('HYPERV_VERSION', '2016') && is_uefi_boot) {
-        my $virsh_instance = get_required_var("VIRSH_INSTANCE");
-        my $hyperv_switch_name = get_var('HYPERV_VIRTUAL_SWITCH', 'ExternalVirtualSwitch');
-        hyperv_cmd("powershell -Command "
-              . "\"if ((Get-VMNetworkAdapter -VMName openQA-SUT-${virsh_instance} | Where-Object { \$_.SwitchName -eq '${hyperv_switch_name}' }) -eq \$null) "
-              . "{ Add-VMNetworkAdapter -VMName openQA-SUT-${virsh_instance} -SwitchName ${hyperv_switch_name} }\"");
-        record_soft_failure('bsc#1217800 - [Baremetal windows server 2016][guest VM UEFI]UEFI Boot Issues with Different Build ISOs on Hyper-V Guests');
-    }
-
     if (!check_var('DESKTOP', 'textmode')) {
         # Make sure packagekit is not running, or it will conflict with SUSEConnect.
         quit_packagekit;
@@ -84,8 +68,18 @@ sub run {
         }
     }
 
+    # This workaround is intentionally guarded for Tumbleweed only - SLE must never ever accept that as a workaround
+    if (is_tumbleweed) {
+        my $nss_systemd = script_run('if [ -f /usr/etc/nsswitch.conf -a -f /etc/nsswitch.conf ]; then grep passwd.*systemd /etc/nsswitch.conf; fi');
+        if ($nss_systemd) {
+            assert_script_run('rm /etc/nsswitch.conf');
+            record_soft_failure("boo#1250513 - /etc/nsswitch.conf does not handle nss_systemd");
+        }
+    }
+
     # bsc#997263 - VMware screen resolution defaults to 800x600 and longer GRUB_TIMEOUT for better needle detection
-    if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+    # Also for HA ha_cluster_crash_test test cases
+    if (check_var('VIRSH_VMM_FAMILY', 'vmware') || (check_var('CLUSTER_NAME', 'crashtest') && is_pvm)) {
         #change_grub_config('=.*', '=1024x768x32', 'GFXMODE=');
         #change_grub_config('=.*', '=1024x768x32', 'GFXPAYLOAD_LINUX=');
         change_grub_config('=.*', '=30', 'GRUB_TIMEOUT=');
@@ -117,6 +111,15 @@ sub run {
     # enable multiversion for kernel-default based on bsc#1097111, for migration continuous cases only
     if (get_var('FLAVOR', '') =~ /Continuous-Migration/) {
         modify_kernel_multiversion("enable");
+    }
+
+    # hosts for containers testing should not be registered against proxy SCC
+    # unless they are still in product development phase
+    my $scc_file = '/etc/SUSEConnect';
+    if (get_var('FLAVOR', '') =~ /container-host/i && !get_var('BETA') && script_run(qq|grep -qE "^url:.*proxy" $scc_file 2> /dev/null|) == 0) {
+        assert_script_run('SUSEConnect -d');
+        assert_script_run("rm -f $scc_file");
+        assert_script_run(sprintf('SUSEConnect -r %s', get_required_var('SCC_REGCODE')));
     }
 
     assert_script_run 'rpm -q systemd-coredump || zypper -n in systemd-coredump || true', timeout => 200 if get_var('COLLECT_COREDUMPS');

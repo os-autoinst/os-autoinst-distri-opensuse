@@ -5,9 +5,7 @@
 # Summary: boot disk using the right moodules
 # Maintainer: QE Security <none@suse.de>
 
-use strict;
-use warnings;
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use utils;
 use Utils::Architectures;
 use Utils::Backends;

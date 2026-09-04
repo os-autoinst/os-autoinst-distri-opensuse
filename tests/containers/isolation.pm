@@ -22,8 +22,7 @@ my $network = "test_isolated_network";
 sub test_ip_version {
     my ($ip_version, $ip_addr) = @_;
 
-    # s390x is using an older BusyBox image with https://bugzilla.suse.com/show_bug.cgi?id=1239176
-    my $image = is_s390x ? 'registry.opensuse.org/opensuse/toolbox' : 'registry.opensuse.org/opensuse/busybox';
+    my $image = 'registry.opensuse.org/opensuse/busybox';
     script_retry("$runtime pull $image", timeout => 300, delay => 60, retry => 3);
 
     # Test that containers can't access the host
@@ -52,12 +51,8 @@ sub run {
     }
     install_packages(@packages);
 
-    # Avoid this error as rootless:
-    # "docker: Error response from daemon: SUSE:secrets :: failed to read through tar reader: unexpected EOF."
-    script_run "echo 0 > /etc/docker/suse-secrets-enable";
-
     my @ip_versions = (4);
-    push @ip_versions, 6 unless (is_hyperv || is_vmware);
+    push @ip_versions, 6 unless (is_hyperv || is_s390x || is_vmware);
 
     my %ip_addr;
     for my $ip_version (@ip_versions) {
@@ -118,4 +113,8 @@ sub post_run_hook {
     my ($self) = @_;
     cleanup;
     $self->SUPER::post_run_hook;
+}
+
+sub test_flags {
+    return {fatal => 0};
 }

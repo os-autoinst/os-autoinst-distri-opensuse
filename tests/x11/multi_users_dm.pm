@@ -10,13 +10,12 @@
 # Maintainer: Dominik Heidler <dheidler@suse.de>, Rodion Iafarov <riafarov@suse.com>
 # Tags: poo#9694
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
-use x11utils qw(handle_login handle_logout handle_welcome_screen);
+use x11utils qw(handle_login handle_logout handle_welcome_screen default_gui_terminal);
 use main_common 'opensuse_welcome_applicable';
+use version_utils;
 
 sub ensure_multi_user_target {
     enter_cmd "systemctl isolate multi-user.target";
@@ -70,10 +69,10 @@ sub run {
     }
     # Make sure screen changed before calling handle_login function (for slow workers)
     wait_still_screen;
-    handle_login($user, 1);
+    handle_login(myuser => $user, user_selected => 1);
     handle_welcome_screen(timeout => 120) if (opensuse_welcome_applicable);
     # verify correct user is logged in
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     wait_still_screen;
     enter_cmd "whoami|grep $user > /tmp/whoami.log";
     assert_script_sudo "grep $user /tmp/whoami.log";
@@ -88,7 +87,7 @@ sub run {
     script_run "mv /etc/sysconfig/displaymanager.bak /etc/sysconfig/displaymanager";
     assert_script_run "~$username/data/delete_users $users_to_create";
     script_run "clear";
-    assert_script_run "rcxdm restart";
+    assert_script_run "systemctl restart display-manager";
     # Wait for gdm to be started before selecting x11-console
     wait_still_screen 10;
     select_console 'x11';

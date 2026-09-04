@@ -17,18 +17,17 @@
 # - Save screenshot
 # Maintainer: Jan Baier <jbaier@suse.cz>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle);
 use utils;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call("-v in mutt wget", exitcode => [0, 102, 103], timeout => 1000);
+    install_package("mutt", exitcode => [0, 102, 103], trup_reboot => 1, timeout => 1000) if (script_run('rpm -q mutt'));
 
     # Mutt is Mutt (bsc#1094717) and has build in support for IMAP and SMTP
     validate_script_output 'mutt -v', sub { m/\+USE_IMAP/ && m/\+USE_SMTP/ && not m/NeoMutt/ };

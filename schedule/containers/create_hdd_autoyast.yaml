@@ -16,10 +16,11 @@ conditional_schedule:
         FIPS:
             '1':
                 - fips/fips_setup
-    bci_prepare:
-        BCI_PREPARE:
+    k3s_helm_install:
+        INSTALL_K3S:
             '1':
-                - containers/bci_prepare
+                - containers/k3s_helm_install
+
 schedule:
     - autoyast/prepare_profile
     - installation/bootloader_start
@@ -32,7 +33,8 @@ schedule:
     - containers/install_updates
     - console/system_prepare
     - '{{fips}}'
-    - '{{bci_prepare}}'
+    - containers/bci_prepare
+    - '{{k3s_helm_install}}'
     - shutdown/cleanup_before_shutdown
     - shutdown/shutdown
     - '{{svirt_upload_assets}}'

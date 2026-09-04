@@ -3,11 +3,9 @@
 #
 # Summary: The test module selects Ext4 Filesystem for Root Partition on
 # Filesystem Options Screen of Guided Setup.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_filesystem_options()->select_root_filesystem_type('ext4');

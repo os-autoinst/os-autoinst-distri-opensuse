@@ -8,9 +8,7 @@
 # Summary: Test YaST2 module for software management
 # Maintainer: Max Lin <mlin@suse.com>
 
-use base "y2_module_guitest";
-use strict;
-use warnings;
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 
 sub run {

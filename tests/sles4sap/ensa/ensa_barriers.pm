@@ -6,9 +6,7 @@
 # Summary: Initialize barriers used in ENSA cluster tests
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
 use mmapi;
@@ -73,6 +71,11 @@ sub run {
 
     create_general_ha_barriers();
     create_ensa_only_barriers();
+
+    # Create a final mutex to signal all jobs that barriers are ready to use
+    # It must be used with mutex_wait() before any barrier_wait() calls in the jobs
+    # Taken from ha/barriers_init
+    mutex_create('ha_barriers_ready');
 
     # Wait for all children to start
     # Children are server/test suites that use the PARALLEL_WITH variable

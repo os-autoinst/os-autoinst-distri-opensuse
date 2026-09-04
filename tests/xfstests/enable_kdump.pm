@@ -19,10 +19,8 @@
 # Maintainer: Yong Sun <yosun@suse.com>
 package enable_kdump;
 
-use strict;
 use 5.018;
-use warnings;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use utils;
 use Utils::Backends;
 use power_action_utils 'power_action';

@@ -6,9 +6,7 @@
 # Summary: Basic check for cockpit service
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils qw(systemctl);
@@ -44,9 +42,7 @@ sub run {
     }
 
 
-    unless (is_sle_micro('<5.2') || is_leap_micro('<5.2')) {
-        push @pkgs, qw(cockpit-machines cockpit-tukit);
-    }
+    push @pkgs, qw(cockpit-machines cockpit-tukit);
 
     if (@pkgs) {
         record_info('TEST', 'Installing Cockpit\'s Modules...');

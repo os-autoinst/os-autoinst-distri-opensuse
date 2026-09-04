@@ -7,58 +7,18 @@
 # python3-img-proof azure-cli
 # Summary: Install IPA tool
 #
-# Maintainer: qa-c team <qa-c@suse.de>, QE-SAP <qe-sap@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>, QE-SAP <qe-sap@suse.de>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle is_opensuse);
 use repo_tools 'generate_version';
 
-my $python_exec = 'python3.11';
+use publiccloud::utils qw(install_in_venv create_script_file get_python_exec);
 
-sub create_script_file {
-    my ($filename, $fullpath, $content) = @_;
-    save_tmp_file($filename, $content);
-    assert_script_run(sprintf('curl -o "%s" "%s/files/%s"', $fullpath, autoinst_url, $filename));
-    assert_script_run(sprintf('chmod +x %s', $fullpath));
-}
-
-sub install_in_venv {
-    my ($binary, %args) = @_;
-    die("Need to define path to requirements.txt or list of packages") unless $args{pip_packages} || $args{requirements};
-    die("Missing binary name") unless ($binary);
-    my $install_timeout = 15 * 60;
-    assert_script_run(sprintf('curl -f -v %s/data/publiccloud/venv/%s.txt > /tmp/%s.txt', autoinst_url(), $binary, $binary)) if defined($args{requirements});
-
-    my $venv = '/root/.venv_' . $binary;
-    assert_script_run("$python_exec -m venv $venv");
-    assert_script_run("source '$venv/bin/activate'");
-    my $what_to_install = defined($args{requirements}) ? sprintf('-r /tmp/%s.txt', $binary) : $args{pip_packages};
-    assert_script_run('pip install --force-reinstall ' . $what_to_install, timeout => $install_timeout);
-    record_info($venv, script_output('pip freeze'));
-    assert_script_run('deactivate');
-    my $script = <<EOT;
-#!/bin/sh
-. "$venv/bin/activate"
-if [ ! -e "$venv/bin/$binary" ]; then
-   echo "Missing $binary in virtualenv $venv"
-   deactivate
-   exit 2
-fi
-$binary "\$@"
-exit_code=\$?
-deactivate
-exit \$exit_code
-EOT
-
-    my $fullpath = "$venv/bin/$binary-run-in-venv";
-    create_script_file($binary, $fullpath, $script);
-    assert_script_run(sprintf('ln -s %s /usr/bin/%s', $fullpath, $binary));
-}
+my $python_exec = get_python_exec();
 
 sub run {
     my $PUBLISH_HDD_1 = get_required_var("PUBLISH_HDD_1");
@@ -74,7 +34,7 @@ sub run {
     ensure_ca_certificates_suse_installed();
 
     # Install prerequisite packages test
-    zypper_call('-q in python311-img-proof python311-img-proof-tests');
+    zypper_call('-q in python-img-proof python-img-proof-tests');
     record_info('python exec', script_output("$python_exec --version"));
 
     assert_script_run("img-proof list");
@@ -87,13 +47,14 @@ sub run {
     assert_script_run('docker ps');
 
     # Install AWS cli
-    my $aws_version = '2.17.63';
+    my $aws_version = '2.31.36';
     # Download and import the AWS public PGP key
     assert_script_run(sprintf('curl -f -v %s/data/publiccloud/aws.asc -o /tmp/aws.asc', autoinst_url()));
     assert_script_run('gpg --import /tmp/aws.asc');
     # Download the aws cli binary, its signature and verify those
-    script_retry("curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip -o /tmp/awscliv2.zip", retry => 3, delay => 60);
-    script_retry("curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip.sig -o /tmp/awscliv2.sig", retry => 3, delay => 60);
+    my $curl_opts = "--retry 3 --retry-delay 60";
+    assert_script_run("curl $curl_opts https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip -o /tmp/awscliv2.zip");
+    assert_script_run("curl $curl_opts https://awscli.amazonaws.com/awscli-exe-linux-x86_64-$aws_version.zip.sig -o /tmp/awscliv2.sig");
     assert_script_run('gpg --verify /tmp/awscliv2.sig /tmp/awscliv2.zip', fail_message => 'The gpg check of downloaded installation file failed.');
     assert_script_run('unzip /tmp/awscliv2.zip -d /tmp/');
     assert_script_run('/tmp/aws/install -i /usr/local/aws-cli -b /usr/local/bin');
@@ -108,12 +69,16 @@ sub run {
     record_info('Azure', script_output('az -v'));
 
     # Install Google Cloud SDK
+    my $google_cli_install_log = '/tmp/google_cli_install.txt';
+
     assert_script_run("export CLOUDSDK_CORE_DISABLE_PROMPTS=1");
     assert_script_run("export CLOUDSDK_PYTHON=$python_exec");
-    assert_script_run("curl sdk.cloud.google.com | bash");
+    assert_script_run("curl sdk.cloud.google.com | bash > $google_cli_install_log 2>&1");
     assert_script_run("echo . /root/google-cloud-sdk/completion.bash.inc >> ~/.bashrc");
     assert_script_run("echo . /root/google-cloud-sdk/path.bash.inc >> ~/.bashrc");
     record_info('GCE', script_output('source ~/.bashrc && gcloud version'));
+
+    upload_logs("$google_cli_install_log", failok => 1);
 
     my $terraform_version = get_var('TERRAFORM_VERSION', '1.5.7');
     # Terraform in a container
@@ -121,10 +86,20 @@ sub run {
 #!/bin/bash -e
 podman run --rm -w=\$PWD -v /root/:/root/ --env-host=true docker.io/hashicorp/terraform:$terraform_version \$@
 EOT
-
     create_script_file('terraform', '/usr/local/bin/terraform', $terraform_wrapper);
     validate_script_output("terraform -version", qr/$terraform_version/);
     record_info('Terraform', script_output('terraform -version'));
+
+    my $opentofu_version = get_var('OPENTOFU_VERSION', '1.11.6');
+    # opentofu in a container
+    my $opentofu_wrapper = <<EOT;
+#!/bin/bash -e
+podman run --rm -w=\$PWD -v /root/:/root/ --env-host=true ghcr.io/opentofu/opentofu:$opentofu_version \$@
+EOT
+
+    create_script_file('tofu', '/usr/local/bin/tofu', $opentofu_wrapper);
+    validate_script_output("tofu version", qr/OpenTofu v?$opentofu_version/);
+    record_info('OpenTofu', script_output('tofu version'));
 
     # Ansible install with pip
     # Default version is chosen as low as possible so it run also on SLE12's
@@ -143,12 +118,8 @@ EOT
     }
     record_info('Ansible', script_output('ansible --version'));
 
-    # Kubectl in a container
-    my $kubectl_version = get_var('KUBECTL_VERSION', 'v1.22.12');
-    assert_script_run("curl -Lo /usr/bin/kubectl https://dl.k8s.io/release/$kubectl_version/bin/linux/amd64/kubectl");
-    assert_script_run("curl -Lo /usr/bin/kubectl.sha256 https://dl.k8s.io/$kubectl_version/bin/linux/amd64/kubectl.sha256");
-    assert_script_run('echo "$(cat /usr/bin/kubectl.sha256)  /usr/bin/kubectl" | sha256sum --check');
-    assert_script_run('chmod +x /usr/bin/kubectl');
+    my $kubectl_version = get_var('KUBECTL_VERSION', '1.35');
+    zypper_call("in kubernetes$kubectl_version-client");
     record_info('kubectl', script_output('kubectl version --client=true'));
 
     # Remove persistent net rules, necessary to boot the x86_64 image in the aarch64 test runs

@@ -8,9 +8,7 @@
 # - Prints output of zypper lr --uri to serial console.
 # Maintainer: Rodion Iafarov <riafarov@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 

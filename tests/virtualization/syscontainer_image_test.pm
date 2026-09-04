@@ -7,10 +7,8 @@
 # Summary: tests running system containers images with libvirt-lxc
 # Maintainer: Cédric Bosdonnat <cbosdonnat@suse.de>
 
-use base "basetest";
+use Mojo::Base 'basetest';
 use testapi;
-use strict;
-use warnings;
 use version_utils 'is_sle';
 use utils;
 

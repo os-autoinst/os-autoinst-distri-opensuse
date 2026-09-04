@@ -1,13 +1,13 @@
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2026 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Package: bpftrace
 # Summary: Compile and attach eBPF probes with bpftrace
 # Maintainer: kernel-qa@suse.de
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils 'is_sle';
 use serial_terminal;
 use Mojo::File 'path';
@@ -15,7 +15,7 @@ use Mojo::File 'path';
 sub run {
     select_serial_terminal;
 
-    zypper_call('in bpftrace bpftrace-tools');
+    install_package('bpftrace bpftrace-tools', trup_apply => 1);
 
     assert_script_run('bpftrace --info');
 
@@ -100,7 +100,7 @@ sub test_flags {
 
 1;
 
-=head1 Discussion
+=head1 Description
 
 First we check that we can list tracepoints and that a common
 tracepoint is available.

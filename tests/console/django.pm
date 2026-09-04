@@ -7,11 +7,9 @@
 # Summary: Test basic python3-Django
 # Maintainer: qe-core@suse.de
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils 'zypper_call';
 use version_utils qw(is_sle is_leap);
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);

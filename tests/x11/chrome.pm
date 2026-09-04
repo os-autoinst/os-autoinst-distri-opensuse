@@ -8,23 +8,22 @@
 # Summary: GOOGLE Chrome: attempt to install and run google chrome
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use Utils::Architectures;
 use utils;
+use x11utils qw(default_gui_terminal close_gui_terminal);
 
 sub install_google_repo_key {
     become_root;
     assert_script_run "rpm --import https://dl.google.com/linux/linux_signing_key.pub";
     # validate it's properly installed
-    script_run "rpm -qi gpg-pubkey-7fac5991-*";
-    assert_screen 'google-key-installed';
+    assert_script_run "rpm -qi gpg-pubkey-d38b4796-*";
 }
 
-sub avoid_async_keyring_popups {
-    x11_start_program('google-chrome --password-store=basic', target_match => [qw(chrome-default-browser-query authentication-required)]);
+sub launch_chrome {
+    my @tags = qw(chrome-default-browser-query google-chrome-main-window authentication-required google-chrome-dont-sign-in);
+    x11_start_program('google-chrome --password-store=basic --no-first-run', target_match => \@tags);
     if (match_has_tag 'authentication-required') {
         type_password;
         assert_and_click "unlock";
@@ -46,26 +45,49 @@ sub click_ad_privacy_feature {
     assert_and_click 'google-chrome-ad-privacy-feature-ok';
 }
 
+sub handle_make_faster_popup {
+    check_screen 'make-chrome-faster', 10;
+    if (match_has_tag 'make-chrome-faster') {
+        click_lastmatch;
+        return 1;
+    }
+    return 0;
+}
+
 sub run {
     my $arch = is_i586 ? 'i386' : 'x86_64';
     my $chrome_url = "https://dl.google.com/linux/direct/google-chrome-stable_current_$arch.rpm";
     select_console('x11');
     mouse_hide;
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     install_google_repo_key;
     zypper_call "in $chrome_url";
     save_screenshot;
-    # closing xterm
-    send_key "alt-f4";
-    avoid_async_keyring_popups;
+    close_gui_terminal;
+    launch_chrome;
     preserve_privacy_of_non_human_openqa_workers;
-    assert_and_click 'chrome-default-browser-query';
-    assert_screen [qw(google-chrome-main-window google-chrome-dont-sign-in)];
-    click_lastmatch if match_has_tag('google-chrome-dont-sign-in');
-    click_ad_privacy_feature;
+
+    my $i = 10;
+    my @tags = qw(google-chrome-main-window google-chrome-dont-sign-in chrome-default-browser-query google-chrome-ad-privacy-feature-more make-chrome-faster);
+    while (--$i) {
+        assert_screen \@tags;
+        click_lastmatch if match_has_tag('chrome-default-browser-query');
+        click_lastmatch if match_has_tag('google-chrome-dont-sign-in');
+        click_lastmatch if match_has_tag('make-chrome-faster');
+        click_ad_privacy_feature if match_has_tag('google-chrome-ad-privacy-feature-more');
+        last if match_has_tag('google-chrome-main-window');
+    }
+
+    my $make_faster_popup_seen = handle_make_faster_popup();
     wait_screen_change { send_key 'ctrl-l' };
     enter_cmd 'about:';
-    assert_screen 'google-chrome-about';
+    @tags = qw(google-chrome-about);
+    push @tags, 'make-chrome-faster' unless $make_faster_popup_seen;
+    assert_screen @tags, 60;
+    if (match_has_tag 'make-chrome-faster') {
+        click_lastmatch;
+        assert_screen 'google-chrome-about';
+    }
     send_key 'alt-f4';
 }
 

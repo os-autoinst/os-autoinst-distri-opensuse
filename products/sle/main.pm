@@ -13,7 +13,7 @@ use registration;
 use utils;
 use mmapi 'get_parents';
 use version_utils
-  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade is_public_cloud is_openstack);
+  qw(is_vmware is_hyperv is_hyperv_in_gui is_installcheck is_rescuesystem is_desktop_installed is_jeos is_sle is_staging is_upgrade is_public_cloud is_transactional);
 use File::Find;
 use File::Basename;
 use LWP::Simple 'head';
@@ -24,13 +24,14 @@ use main_publiccloud;
 use main_security;
 use Utils::Architectures;
 use DistributionProvider;
-use virt_autotest::utils qw(is_registered_sles is_sles_mu_virt_test);
+use virt_autotest::utils qw(is_registered_sles is_sles_mu_virt_test is_sles16_mu_virt_test);
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../lib';
 }
 use utils;
 use main_common;
+use main_micro_alp;
 use main_ltp_loader 'load_kernel_tests';
 use main_pods;
 use known_bugs;
@@ -605,8 +606,15 @@ sub load_virt_guest_install_tests {
     if (get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
         loadtest "virt_autotest/unified_guest_installation";
         loadtest "virt_autotest/set_config_as_glue";
-        loadtest "virt_autotest/uefi_guest_verification" if get_var("VIRT_UEFI_GUEST_INSTALL");
-        loadtest "virt_autotest/sev_es_guest_verification" if get_var("VIRT_SEV_ES_GUEST_INSTALL");
+        if (get_var("VIRT_SEV_SNP_GUEST_INSTALL")) {
+            loadtest "virt_autotest/sev_snp_validation";
+        }
+        elsif (get_var("VIRT_SEV_ES_GUEST_INSTALL")) {
+            loadtest "virt_autotest/sev_es_guest_verification";
+        }
+        elsif (get_var("VIRT_UEFI_GUEST_INSTALL")) {
+            loadtest "virt_autotest/uefi_guest_verification";
+        }
     }
     else {
         loadtest "virt_autotest/guest_installation_run";
@@ -652,11 +660,7 @@ testapi::set_distribution(DistributionProvider->provide());
 $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures());
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
-# Do it only for SLES MU virt test before loadtest
-if (is_sles_mu_virt_test) {
-    set_mu_virt_vars;
-    diag "Set necessary variables for SLES MU virtualization test before loadtest is done!";
-}
+
 
 if (load_yaml_schedule) {
     if (YuiRestClient::is_libyui_rest_api) {
@@ -669,16 +673,19 @@ if (load_yaml_schedule) {
 return load_wicked_create_hdd if (get_var('WICKED_CREATE_HDD'));
 
 if (is_jeos) {
-    if (is_openstack) {
-        load_jeos_openstack_tests();
+    if (is_transactional) {
+        main_micro_alp::load_tests;
         return 1;
+    } else {
+        load_jeos_tests();
+        return 1 if (get_var('CONTAINER_VALIDATE_UPGRADE'));
     }
-    load_jeos_tests();
 }
 
 # load the tests in the right order
 if (is_kernel_test()) {
     load_kernel_tests();
+    return 1;
 }
 elsif (is_systemd_test()) {
     unless (is_jeos()) {
@@ -694,6 +701,7 @@ elsif (is_public_cloud) {
 }
 elsif (is_container_test) {
     load_container_tests();
+    load_helm_chart_tests() if (get_var("HELM_CHART"));
 }
 elsif (get_var("NFV")) {
     load_kernel_baremetal_tests();
@@ -701,7 +709,21 @@ elsif (get_var("NFV")) {
 }
 elsif (get_var("REGRESSION")) {
     load_common_x11;
-    load_hypervisor_tests if (get_var("REGRESSION") =~ /xen|kvm|qemu/);
+    if (get_var("REGRESSION") =~ /xen|kvm|qemu/) {
+        # Check if it's SLES16 MU virtualization test
+        if (is_sles16_mu_virt_test) {
+            # SLES16 MU virtualization specific logic
+            set_sles16_mu_virt_vars;
+            load_sles16_mu_virt_tests;
+        } elsif (is_sles_mu_virt_test) {
+            # Traditional SLES MU virtualization logic (SLES15 and earlier)
+            set_mu_virt_vars;
+            load_hypervisor_tests;
+        } else {
+            # Standard hypervisor tests logic - should not reach here for MU tests
+            die "Unexpected virtualization test configuration: neither SLES16 MU nor traditional SLES MU test detected";
+        }
+    }
     load_suseconnect_tests if check_var("REGRESSION", "suseconnect");
     load_yast2_registration_tests if check_var("REGRESSION", "yast2_registration");
 }
@@ -800,8 +822,14 @@ elsif (get_var('XFSTESTS')) {
     if (get_var('KOTD_REPO')) {
         loadtest 'kernel/update_kernel';
     }
-    prepare_target;
-    if (check_var('XFSTESTS_INSTALL', 1) || check_var('XFSTESTS', 'installation') || is_pvm || check_var('ARCH', 's390x')) {
+    if (check_var('ARCH', 'ppc64le') && check_var('BACKEND', 'qemu')) {
+        loadtest "installation/bootloader_start";
+        loadtest "boot/boot_to_desktop";
+    }
+    else {
+        prepare_target;
+    }
+    if (check_var('XFSTESTS_INSTALL', 1) || check_var('XFSTESTS', 'installation') || (is_sle('<16') && (is_pvm || check_var('ARCH', 's390x')))) {
         loadtest 'xfstests/install';
         unless (check_var('NO_KDUMP', '1')) {
             loadtest 'xfstests/enable_kdump';
@@ -811,6 +839,7 @@ elsif (get_var('XFSTESTS')) {
         }
         if (check_var('XFSTESTS', 'installation')) {
             loadtest 'shutdown/shutdown';
+            loadtest 'shutdown/svirt_upload_assets' if check_var('BACKEND', 'svirt');
         }
         else {
             loadtest 'xfstests/partition';
@@ -875,11 +904,17 @@ elsif (get_var("VIRT_AUTOTEST")) {
             }
         }
         loadtest "virt_autotest/login_console";
-        loadtest "virt_autotest/install_package";
-        loadtest "virt_autotest/update_package";
+        if (get_var('VIRT_UNIFIED_GUEST_INSTALL')) {
+            is_transactional ? loadtest "virt_autotest/prepare_transactional_server" : loadtest "virt_autotest/prepare_non_transactional_server";
+        }
+        else {
+            loadtest "virt_autotest/install_package";
+            loadtest "virt_autotest/update_package";
+        }
         # Skip reset_partition for s390x due to there just be 42Gib disk space for each s390x LPAR
         loadtest "virt_autotest/reset_partition" if is_x86_64 && get_var('VIRT_PRJ1_GUEST_INSTALL') && !get_var('LTSS');
         loadtest "virt_autotest/reboot_and_wait_up_normal" if !is_registered_sles && get_var('REPO_0_TO_INSTALL');
+        loadtest "virt_autotest/prepare_nvram_for_snapshot" if get_var("ENABLE_SNAPSHOT") && is_x86_64 && get_var("VIRT_UEFI_GUEST_INSTALL") && is_sle('<16.1');
         loadtest "virt_autotest/download_guest_assets" if get_var("SKIP_GUEST_INSTALL") && is_x86_64;
     }
     if (get_var("VIRT_PRJ1_GUEST_INSTALL")) {
@@ -989,7 +1024,7 @@ elsif (get_var('LIBSOLV_INSTALLCHECK')) {
 elsif (get_var("EXTRATEST")) {
     boot_hdd_image;
     load_extra_tests();
-    loadtest "console/coredump_collect" unless (check_var('EXTRATEST', 'wicked') || get_var('PUBLIC_CLOUD') || is_jeos);
+    loadtest "console/coredump_collect" unless (get_var('EXTRATEST') =~ /wicked|himmelblau/ || get_var('PUBLIC_CLOUD') || is_jeos);
 }
 elsif (get_var("WINDOWS")) {
     loadtest "installation/win10_installation";

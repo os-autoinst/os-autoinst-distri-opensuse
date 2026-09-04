@@ -4,11 +4,9 @@
 # Summary: Module to set up the environment for using libyui REST API in the
 # running system by installing libyui-rest-api packages.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use YuiRestClient;
 

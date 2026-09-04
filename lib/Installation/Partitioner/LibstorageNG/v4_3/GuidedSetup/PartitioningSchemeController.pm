@@ -6,7 +6,7 @@
 # Summary: This class introduces business actions for Partitioning Scheme page
 #          in Guided Partitioning using YuiRestClient.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v4_3::GuidedSetup::PartitioningSchemeController;
 use strict;
@@ -54,6 +54,11 @@ sub configure_encryption {
     $self->get_partitioning_scheme_page()->select_enable_disk_encryption();
     $self->get_partitioning_scheme_page()->enter_password($password);
     $self->get_partitioning_scheme_page()->enter_confirm_password($password);
+}
+
+sub set_fde_enrollment_authentication {
+    my ($self, $type) = @_;
+    $self->get_partitioning_scheme_page()->set_fde_enrollment_authentication($type);
 }
 
 sub enable_lvm {

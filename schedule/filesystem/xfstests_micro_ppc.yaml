@@ -5,5 +5,9 @@ description:    >
   xfstests test suite for SLE-Micro on ppc
 schedule:
     - installation/bootloader
+    - microos/install_image
+    - transactional/host_config
+    - console/suseconnect_scc
+    - xfstests/install
     - xfstests/partition
     - xfstests/run

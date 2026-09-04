@@ -5,10 +5,8 @@
 # Summary: Checks an service after an upgrade
 # Maintainer: Joachim Rauch <jrauch@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils 'systemctl';
 use service_check;
 use version_utils qw(is_sle is_sles4sap);

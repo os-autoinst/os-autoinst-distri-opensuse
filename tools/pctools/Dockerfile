@@ -21,10 +21,6 @@ ARG PIPAZR="azure-cli appdirs azure-identity importlib-metadata virtualenv"
 ARG ENVEC2=ec2 
 ARG PIPEC2="ec2imgutils"
 
-# Openstack
-ARG ENVOPS=opstk 
-ARG PIPOPS="openstacksdk python-openstackclient typing-extensions importlib-metadata importlib-resources colorama"
-
 # create the internal container's environment
 RUN cat /etc/os-release && mkdir $WKDIR && pip install virtualenv && echo Pre-virtualenv && python3 --version && pip --version
 

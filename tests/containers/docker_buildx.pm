@@ -1,0 +1,113 @@
+# SUSE's openQA tests
+#
+# Copyright SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Packages: docker
+# Summary: Upstream docker-buildx tests
+# Maintainer: QE-C team <qa-c@suse.de>
+
+use Mojo::Base 'containers::basetest', -signatures;
+use testapi;
+use serial_terminal qw(select_serial_terminal);
+use version_utils;
+use version;
+use utils;
+use Utils::Architectures;
+use containers::bats;
+
+my $version;
+my $mirror_dir = "/var/tmp/buildkit-registry-mirror";
+
+sub setup {
+    my $self = shift;
+    my @pkgs = qw(distribution-registry docker docker-buildx go1.26 openssl);
+    push @pkgs, qw(buildkit docker-compose) unless is_sle("<16");
+    $self->setup_pkgs(@pkgs);
+    install_gotestsum;
+
+    configure_docker(selinux => 1, tls => 1);
+
+    # The tests expect the plugins to be in PATH without the "docker-" prefix
+    my $docker_buildx = "/usr/lib/docker/cli-plugins/docker-buildx";
+    my $docker_compose = "/usr/lib/docker/cli-plugins/docker-compose";
+    run_command "cp $docker_buildx /usr/local/bin/buildx";
+    run_command "cp $docker_compose /usr/local/bin/compose";
+
+    $version = script_output qq($docker_buildx version | awk '{ print \$2 }');
+    $version = "v$version" if ($version !~ /^v/);
+    record_info "docker-buildx version", $version;
+
+    patch_sources "buildx", $version, "tests";
+
+    # The buildx test framework starts its own local distribution registry as a BuildKit
+    # mirror (via BUILDKIT_REGISTRY_MIRROR_DIR).  By default it generates a plain registry
+    # config (no pull-through), so images not pre-seeded in the mirror fall back to
+    # docker.io directly and hit rate limits.  Pre-seed a config.yaml that makes the
+    # local registry a pull-through proxy backed by our mirror; the framework skips
+    # writing its own config.yaml when one already exists.
+    my $registry = get_var("REGISTRY", "3.126.238.126:5000");
+    run_command "mkdir -p $mirror_dir/data";
+    write_sut_file("$mirror_dir/config.yaml", <<END_YAML);
+version: 0.1
+loglevel: debug
+storage:
+    filesystem:
+        rootdirectory: $mirror_dir/data
+http:
+    addr: 127.0.0.1:0
+proxy:
+    remoteurl: http://$registry
+END_YAML
+}
+
+sub run {
+    my $self = shift;
+    select_serial_terminal;
+    $self->setup;
+    select_serial_terminal;
+
+    my %env = (
+        BUILDKIT_REGISTRY_MIRROR_DIR => $mirror_dir,
+        TZ => "UTC",
+    );
+    my $env = join " ", map { "$_=\"$env{$_}\"" } sort keys %env;
+
+    my @xfails = ();
+    push @xfails, (
+        # These tests fail on aarch64
+        "github.com/docker/buildx/tests::TestIntegration",
+        "github.com/docker/buildx/tests::TestIntegration/TestBuildAnnotations/worker=remote",
+    ) if (is_aarch64);
+    push @xfails, (
+        # XXX These fail for unknown reasons and not really important right now:
+        "github.com/docker/buildx/tests::TestIntegration",
+        "github.com/docker/buildx/tests::TestIntegration/TestComposeBuildCheck/worker=remote",
+        "github.com/docker/buildx/tests::TestIntegration/TestComposeBuildRegistry/worker=remote",
+        "github.com/docker/buildx/tests::TestIntegration/TestDapBuildExitedEvent/worker=remote",
+        "github.com/docker/buildx/tests::TestIntegration/TestDapBuildExitedEvent/worker=remote/failure",
+    ) if (is_sle);
+
+    run_timeout_command "$env gotestsum --junitfile buildx.xml --format standard-verbose --packages=./tests &> buildx.txt", no_assert => 1, timeout => 1200;
+    upload_logs "buildx.txt", failok => 1;
+    die "Testsuite failed" if script_run("test -s buildx.xml");
+    patch_junit "docker-buildx", $version, "buildx.xml", @xfails;
+    parse_extra_log(XUnit => "buildx.xml", timeout => 180);
+}
+
+sub cleanup {
+    script_run 'rm -vf /usr/local/bin/{buildx,compose}';
+    cleanup_docker;
+}
+
+sub post_fail_hook {
+    bats_post_hook;
+    cleanup;
+}
+
+sub post_run_hook {
+    bats_post_hook;
+    cleanup;
+}
+
+1;

@@ -7,9 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#95911
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use audit_test qw(run_testcase compare_run_log);

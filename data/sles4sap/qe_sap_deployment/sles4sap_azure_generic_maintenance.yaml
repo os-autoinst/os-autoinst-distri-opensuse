@@ -7,8 +7,9 @@
 #   Settings are meant to be controlled via OpenQA variables and managed by test:
 #   tests/sles4sap/publiccloud/qesap_ansible.pm
 provider: 'azure'
-apiver: 3
+apiver: 4
 terraform:
+  bin: '%TERRAFORM_RUNNER%'
   variables:
     # GENERAL VARIABLES #
     vnet_address_range: "%MAIN_ADDRESS_RANGE%"
@@ -18,6 +19,11 @@ terraform:
     admin_user: 'cloudadmin'
     public_key: '%SLES4SAP_PUBSSHKEY%'
     os_image: '%SLES4SAP_OS_IMAGE_NAME%'
+    allowed_ssh_cidr_csv: '%SLES4SAP_WORKER_IP%'
+
+    # IBSM PEERING VARIABLES
+    ibsm_rg: '%IBSM_RG%'
+    ibsm_vnet_name: '%IBSM_VNET%'
 
     # REMOTE PYTHON
     hana_remote_python: '%ANSIBLE_REMOTE_PYTHON%'
@@ -30,8 +36,10 @@ terraform:
     hana_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
     drbd_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
     netweaver_cluster_fencing_mechanism: '%FENCING_MECHANISM%'
+    iscsi_enabled: '%ISCSI_ENABLED%'
 
 ansible:
+  verbosity: 3
   az_storage_account_name: '%HANA_ACCOUNT%'
   az_container_name:  '%HANA_CONTAINER%'
   az_key_name: '%HANA_KEYNAME%'
@@ -39,6 +47,4 @@ ansible:
     - '%HANA_SAR%'
     - '%HANA_CLIENT_SAR%'
     - '%HANA_SAPCAR%'
-  destroy:
-    - deregister.yaml
 

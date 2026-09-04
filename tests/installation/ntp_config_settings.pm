@@ -6,9 +6,7 @@
 # Summary: YaST/Installation screen: NTP Configuration
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 use version_utils qw(is_tumbleweed is_microos);
 

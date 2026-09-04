@@ -7,12 +7,10 @@
 #          This test verifies virtualization host upgrade test result.
 # Maintainer: alice <xlai@suse.com>
 
-use base "host_upgrade_base";
+use Mojo::Base 'host_upgrade_base';
 use testapi;
 use utils "zypper_call";
 use virt_utils;
-use strict;
-use warnings;
 use Utils::Architectures;
 use version_utils 'is_sle';
 

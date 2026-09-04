@@ -6,11 +6,9 @@
 # Summary: Prepare AutoYaST xml files when using rules and clases
 # by expanding variables before installation and setting correct URL
 # for the installer.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use autoyast qw(
   get_test_data_files

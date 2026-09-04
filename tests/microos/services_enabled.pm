@@ -7,14 +7,12 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: fate#321738
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use utils;
 use testapi;
 
 my %services_for = (
-    default => [qw(sshd issue-generator issue-add-ssh-keys transactional-update.timer)],
+    default => [qw(sshd transactional-update.timer)],
     cloud => [qw(cloud-init-local cloud-init cloud-config cloud-final)],
     cluster => [qw(chronyd)],
     admin => [qw(docker kubelet etcd)],

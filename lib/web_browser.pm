@@ -71,11 +71,7 @@ sub run_web_browser_text_based {
     my %https_url = (
         tuta => "https://tuta.com/",
         suse => "https://www.suse.com/",
-        OBS => "https://build.opensuse.org/",
     );
-
-    # <= 15-SP5 has problems under FIPS with new b.o.o configuration bsc#1239835
-    delete $https_url{OBS} if (is_sle('<=15-SP5'));
 
     for my $p (keys %https_url) {
         enter_cmd "clear";

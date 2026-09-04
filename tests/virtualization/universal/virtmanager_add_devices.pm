@@ -5,10 +5,8 @@
 # Summary: This test adds some devices to our VMs
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils;
@@ -81,7 +79,7 @@ sub run_test {
         }
     }
 
-    wait_screen_change { send_key 'ctrl-q'; };
+    quit_virtmanager();
 }
 
 1;

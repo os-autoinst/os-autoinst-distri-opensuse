@@ -6,9 +6,7 @@
 # Summary: Start feature tests before installation
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {

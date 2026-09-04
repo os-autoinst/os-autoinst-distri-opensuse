@@ -10,14 +10,13 @@
 # - Type "If you can see this text xterm is working" in the terminal
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {
     my ($self) = @_;
     select_console 'x11';
+    ensure_installed('xterm');
     $self->test_terminal('xterm');
 }
 

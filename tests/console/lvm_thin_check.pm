@@ -8,9 +8,7 @@
 # Summary: Simple LVM thin provisioning check
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

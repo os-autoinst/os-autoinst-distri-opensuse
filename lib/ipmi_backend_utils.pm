@@ -19,10 +19,10 @@ use power_action_utils 'prepare_system_shutdown';
 use Utils::Architectures;
 use Carp;
 use Socket;
-use virt_autotest::utils qw(is_xen_host check_port_state);
+use virt_autotest::utils;
 use Utils::Backends;
 
-our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript set_floppy_boot set_disk_boot);
+our @EXPORT = qw(set_grub_on_vh switch_from_ssh_to_sol_console adjust_for_ipmi_xen set_pxe_efiboot ipmitool enable_sev_in_kernel add_kernel_options set_grub_terminal_and_timeout reconnect_when_ssh_console_broken set_ipxe_bootscript set_floppy_boot set_disk_boot set_bootscript_hdd);
 
 #With the new ipmi backend, we only use the root-ssh console when the SUT boot up,
 #and no longer setup the real serial console for either kvm or xen.
@@ -48,7 +48,7 @@ sub switch_from_ssh_to_sol_console {
 
 sub get_dom0_serialdev {
     my $dom0_serialdev;
-    if (is_xen_host) {
+    if (virt_autotest::utils::is_xen_host()) {
         $dom0_serialdev = "hvc0";
     }
     else {
@@ -74,7 +74,7 @@ sub setup_console_in_grub {
     if (${virt_type} eq "xen") {
 
         # Setting grub menuentry selection on sol console with grub2-set-default as xen, during host installation
-        if (is_xen_host && get_var('XEN_DEFAULT_BOOT_IS_SET')) {
+        if (virt_autotest::utils::is_xen_host() && get_var('XEN_DEFAULT_BOOT_IS_SET')) {
             $cmd = "sed -i '/### END \\\/etc\\\/grub.d\\\/00_header ###/iset default=2' $grub_cfg_file";
             assert_script_run($cmd);
         }
@@ -136,7 +136,7 @@ sub setup_console_in_grub {
         die "Host Hypervisor is not xen or kvm";
     }
 
-    if (!script_run('grep HPE /sys/class/dmi/id/board_vendor') == 0) {
+    if (script_run('grep HPE /sys/class/dmi/id/board_vendor') != 0) {
         $cmd = "sed -ri '/^terminal.*\$/ {:mylabel; n; s/^terminal.*\$//;b mylabel;}' $grub_cfg_file";
         assert_script_run($cmd);
         $cmd = "sed -ri '/^[[:space:]]*\$/d' $grub_cfg_file";
@@ -550,6 +550,22 @@ sub reconnect_when_ssh_console_broken {
     script_run("uptime");
     script_run("ls -l /var/crash/");
     save_screenshot;
+}
+
+=head2 set_bootscript_hdd
+
+  set_bootscript_hdd()
+
+Call set_ipxe_bootscript to upload iPXE bootscript to exit network boot process.
+=cut
+
+sub set_bootscript_hdd {
+    my $bootscript = <<"END_BOOTSCRIPT";
+#!ipxe
+exit
+END_BOOTSCRIPT
+
+    set_ipxe_bootscript($bootscript);
 }
 
 =head2 set_ipxe_bootscript

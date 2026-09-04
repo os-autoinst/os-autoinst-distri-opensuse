@@ -10,17 +10,15 @@
 #
 # Maintainer: Ondřej Pithart <ondrej.pithart@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-
-use utils qw(zypper_call systemctl);
+use package_utils qw(install_package uninstall_package);
+use utils 'systemctl';
 
 sub run {
     select_serial_terminal();
-    zypper_call('in dnsmasq bind-utils');
+    install_package('dnsmasq bind-utils', trup_reboot => 1);
 
     assert_script_run 'curl ' . data_url('console/dnsmasq.conf') . ' -o /etc/dnsmasq.conf';
     systemctl('enable --now dnsmasq');
@@ -45,6 +43,15 @@ sub run {
     while (my ($query, $output) = each %records) {
         my $dig = script_output("dig \@127.0.0.1 $query");
         if ($dig !~ m/$output/) {
+            # retry when query failed
+            my $count = 1;
+            if ($dig =~ m/status: SERVFAIL/) {
+                die "query: $query returned status: SERVFAIL after ${count}th attempt" if $count > 19;
+                $count++;
+                record_info("Retry $count", 'Do query again due to status: SERVFAIL');
+                sleep 2;
+                redo;
+            }
             die "expected output not foud. query: $query, expected match: $output";
         }
     }
@@ -52,7 +59,7 @@ sub run {
 
 sub cleanup {
     systemctl('disable --now dnsmasq');
-    zypper_call('rm dnsmasq');
+    uninstall_package('dnsmasq');
 }
 
 sub post_fail_hook {

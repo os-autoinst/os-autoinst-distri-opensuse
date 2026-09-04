@@ -7,9 +7,7 @@
 # Summary: Test mailx send/reveive mails with SSL enabled
 # Maintainer: QE Security <none@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use mailtest;

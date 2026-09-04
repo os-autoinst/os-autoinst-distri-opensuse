@@ -13,10 +13,8 @@
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>, QE Security <none@suse.de>
 # Tags: poo#106011, poo#109840
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils qw(clear_console ensure_serialdev_permissions);
 use Utils::Architectures;
 use Utils::Backends;
@@ -38,7 +36,7 @@ sub run {
     my $max_retries = 7;
     for (1 .. $max_retries) {
         eval {
-            validate_script_output('curl -f -v https://httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?httpbin.org["]? matched, }, timeout => 90, proceed_on_failure => 1, quiet => 1);
+            validate_script_output('curl -f -v https://httpbin.org/get 2>&1', sub { m,subjectAltName:[\w\s]+["]?httpbin.org["]? matche[ds], }, timeout => 90, proceed_on_failure => 1, quiet => 1);
         };
         last unless ($@);
         diag "curl -f -v https://eu.httpbin.org/get failed: $@";

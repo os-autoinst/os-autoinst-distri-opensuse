@@ -13,11 +13,9 @@
 # - Legacy Module
 # - Web and Scripting Module
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_module_selection()->select_modules(

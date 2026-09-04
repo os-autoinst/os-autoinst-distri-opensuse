@@ -7,9 +7,7 @@
 # Summary: Check that there is access to the local hard disk from rescue system
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run {

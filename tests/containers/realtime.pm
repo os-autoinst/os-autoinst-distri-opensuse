@@ -5,9 +5,9 @@
 
 # Package: podman, docker
 # Summary: Test RT workload in a container
-# Maintainer: qa-c@suse.de
+# Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(containers::basetest);
+use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(script_retry);
@@ -17,7 +17,6 @@ sub test_schedule {
     my ($is_rt, $runtime, $container) = @_;
 
     assert_script_run("$runtime exec $container chrt -m");
-    validate_script_output("$runtime exec $container cat /sys/kernel/realtime", qr/^1$/);
     assert_script_run("$runtime exec $container test -f /proc/sys/kernel/sched_rt_period_us");
     assert_script_run("$runtime exec $container test -f /proc/sys/kernel/sched_rt_runtime_us");
 

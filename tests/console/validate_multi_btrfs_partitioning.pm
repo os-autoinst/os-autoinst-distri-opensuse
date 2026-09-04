@@ -9,11 +9,9 @@
 # - Verify labels for all the mount points provided from test data (e.g. "/", "/test");
 # - Verify the number of devices used for multi-device Btrfs filesystems;
 # - Verify devices that are used in multi-device Btrfs filesystems.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';

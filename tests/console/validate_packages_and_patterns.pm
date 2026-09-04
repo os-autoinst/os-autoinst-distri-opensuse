@@ -9,11 +9,9 @@
 #   the structure
 # - Using zypper, check if patterns are installed, following rules defined in
 #   the structure
-# Maintainer: Zaoliang Luo <zluo@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -58,13 +56,13 @@ sub run {
     $software{'salt-minion'} = {
         repo => $repo,
         installed => is_jeos() ? 1 : 0,    # On JeOS Salt is present in the default image
-        condition => sub { is_sle('15+') },
+        condition => sub { is_sle('15+') && is_sle('<15-SP7') },
     };
     $software{'sles-ltss-release'} = {
         repo => $ltss_release_repo ? $ltss_release_repo : 'LTSS',
         installed => 1,
         condition => sub { is_sle('15+') },
-        available => sub { get_var('SCC_REGCODE_LTSS') && script_run('SUSEConnect --list-extensions|grep LTSS.*ALPHA.*Activated') == 1 }
+        available => sub { get_var('SCC_REGCODE_LTSS') && script_run('SUSEConnect --list-extensions|grep LTSS.*Activated') == 0 }
     };
     $software{'update-test-feature'} = {    # See poo#36451
         repo => is_sle('15+') ? 'Basesystem' : 'SLES',

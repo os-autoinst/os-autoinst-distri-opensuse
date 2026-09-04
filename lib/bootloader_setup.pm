@@ -15,7 +15,7 @@ use Time::HiRes 'sleep';
 use testapi;
 use Utils::Architectures;
 use utils;
-use version_utils qw(is_opensuse is_microos is_sle_micro is_jeos is_leap is_sle is_selfinstall is_transactional is_leap_micro);
+use version_utils;
 use mm_network;
 use Utils::Backends;
 
@@ -55,6 +55,7 @@ our @EXPORT = qw(
   ensure_shim_import
   GRUB_CFG_FILE
   GRUB_DEFAULT_FILE
+  modify_grub_parameters_grub2_bls
   add_grub_cmdline_settings
   add_grub_xen_replace_cmdline_settings
   change_grub_config
@@ -76,6 +77,7 @@ my $in_grub_edit = 0;
 use constant GRUB_CFG_FILE => "/boot/grub2/grub.cfg";
 use constant GRUB_DEFAULT_FILE => "/etc/default/grub";
 use constant GRUB_CMDLINE_VAR => "GRUB_CMDLINE_LINUX_DEFAULT";
+use constant BLS_DEFAULT_FILE => "/etc/kernel/cmdline";
 
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
 # 'up' also works in textmode and UEFI menues.
@@ -133,9 +135,6 @@ sub add_custom_grub_entries {
     }
     elsif (check_var('SLE_PRODUCT', 'slert')) {
         $distro = "SLE_RT" . ' \\?' . get_required_var('VERSION');
-    }
-    elsif (is_sle("16+")) {
-        $distro = "SUSE Linux" . ' \\?' . get_required_var('VERSION');
     }
     elsif (is_sle()) {
         $distro = "SLES" . ' \\?' . get_required_var('VERSION');
@@ -250,6 +249,27 @@ sub boot_grub_item {
     grub_key_enter;
 }
 
+=head2 modify_grub_parameters_grub2_bls
+
+    modify_grub_parameters_grub2_bls()
+
+For grub2-bls bootloader, update /etc/kernel/cmdline contents by appending
+the desired custom kernel parameters taken in C<GRUB_ARGS>, and call
+sdbootutil to update the grub entry for the currently running kernel, which
+persists through reboots.
+
+=cut
+
+sub modify_grub_parameters_grub2_bls {
+    my $args = get_var('GRUB_ARGS');
+    $args =~ s/,/ /g;
+
+    assert_script_run("sed -i 's/\$/ $args/' /etc/kernel/cmdline");
+    script_output("cat /etc/kernel/cmdline");
+    record_info('modifying grub entry using the updated /etc/kernel/cmdline');
+    assert_script_run('sdbootutil update-entry $(uname -r)');
+}
+
 sub get_scsi_id {
     my $sid;
     type_string_very_slow "devalias";
@@ -312,26 +332,33 @@ sub boot_local_disk {
 }
 
 sub boot_into_snapshot {
-    send_key_until_needlematch('boot-menu-snapshot', 'down', 11, 5);
-    send_key 'ret';
-    # assert needle to make sure grub2 page show up
-    assert_screen('grub2-page', 60);
-    # assert needle to avoid send down key early in grub_test_snapshot.
-    if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc')) {
-        send_key_until_needlematch('snap-default', 'down', 61, 5);
-    }
-    # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
-    if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
-        send_key_until_needlematch('snap-before-update', 'down', 61, 5);
+    if (is_bootloader_grub2()) {
+        send_key_until_needlematch('boot-menu-snapshot', 'down', 11, 5);
+        send_key 'ret';
+        # assert needle to make sure grub2 page show up
+        assert_screen('grub2-page', 60);
+        # assert needle to avoid send down key early in grub_test_snapshot.
+        if (get_var('OFW') || is_pvm || check_var('SLE_PRODUCT', 'hpc')) {
+            send_key_until_needlematch('snap-default', 'down', 61, 5);
+        }
+        # in upgrade/migration scenario, we want to boot from snapshot 1 before migration.
+        if ((get_var('UPGRADE') && !get_var('ONLINE_MIGRATION', 0)) || get_var('ZDUP')) {
+            send_key_until_needlematch('snap-before-update', 'down', 61, 5);
+            save_screenshot;
+        }
+        # in an online migration
+        send_key_until_needlematch('snap-before-migration', 'down', 61, 5) if (get_var('ONLINE_MIGRATION'));
         save_screenshot;
+        send_key 'ret';
+        # avoid timeout for booting to HDD
+        save_screenshot;
+        send_key 'ret';
+    } else {
+        assert_screen(get_default_bootloader());
+        send_key 'down';
+        save_screenshot;
+        send_key 'ret';
     }
-    # in an online migration
-    send_key_until_needlematch('snap-before-migration', 'down', 61, 5) if (get_var('ONLINE_MIGRATION'));
-    save_screenshot;
-    send_key 'ret';
-    # avoid timeout for booting to HDD
-    save_screenshot;
-    send_key 'ret';
 }
 
 sub select_bootmenu_option {
@@ -339,8 +366,8 @@ sub select_bootmenu_option {
     assert_screen 'inst-bootmenu', $timeout;
 
     # Special handling for Agama
-    if (get_var('AGAMA')) {
-        send_key_until_needlematch 'boot-agama-installation', 'up', 11, 5;
+    if (is_agama) {
+        send_key_until_needlematch 'boot-agama-installation', 'down', 11, 5;
         return 0;
     }
     if (get_var('LIVECD')) {
@@ -494,12 +521,12 @@ sub uefi_bootmenu_params {
     # The main branch should be used only for bootable pre-installed images that contain already full
     # grub2 configuration
     my $linux = 0;
-    if (get_var('BOOT_HDD_IMAGE') && (is_jeos || is_leap_micro || is_microos || is_sle_micro)) {
+    if (get_var('BOOT_HDD_IMAGE') && (is_jeos || is_transactional)) {
         # there is always a blank line
         # sle 12-sp5 has no load_video
         # if there is a healthchecker, skip it
         my $gfx = 2;
-        if (is_leap_micro || is_microos || is_sle_micro) {
+        if (is_transactional || (is_jeos && is_transactional)) {
             $gfx += 5;
         } elsif (is_sle('=12-SP5')) {
             ;
@@ -529,7 +556,7 @@ sub uefi_bootmenu_params {
         # sle15sp4+, leap15.4+ and TW (grub 2.06)
         $linux += 4 if is_sle('>12-SP5') && is_sle('<15-SP4');
         if (get_var('FLAVOR', '') =~ /encrypt/i) {
-            $linux += is_sle_micro('6.1+') ? 11 : 10;
+            $linux += is_sle_micro('6.1+') || is_sle('16.1+') ? 11 : 10;
         }
     }
     else {
@@ -548,7 +575,7 @@ sub uefi_bootmenu_params {
     }
 
     # flag, in order to skip more movement in grub2 submenu in case of powerPC
-    $in_grub_edit = 1 if (get_var('OFW') && is_sle_micro);
+    $in_grub_edit = 1 if (get_var('OFW') && (is_sle_micro || is_jeos));
 
     # jump to linux kernel bootparams
     wait_screen_change(sub {
@@ -622,28 +649,15 @@ sub bootmenu_default_params {
         }
         push @params, "Y2DEBUG=1";
     }
-    elsif (get_var('AGAMA')) {
-        wait_screen_change { send_key "e" };
-        send_key "down";
-        send_key "down";
-        send_key "down";
-        send_key "down";
-        wait_screen_change { send_key "end" };
-        # REPO_0 should be set everywhere where we rsync repo (aside from iso)
-        if (get_var('REPO_0')) {
-            my $host = get_var('OPENQA_HOST', 'https://openqa.opensuse.org');
-            my $repo = get_var('REPO_0');
-
-            # Split repodata functionality in Leap 16.0
-            # https://code.opensuse.org/leap/features/issue/193
-            if (get_var('SPLIT_REPODATA')) {
-                $repo .= "/\\\$basearch";
-            }
-
-            # inst.install_url supports comma separated list if more repos are needed ...
-            push @params, "inst.install_url=$host/assets/repo/$repo";
+    elsif (is_agama) {
+        if (!$args{in_grub_edit}) {
+            wait_screen_change { send_key "e" };
+            send_key "down";
+            send_key "down";
+            send_key "down";
+            send_key "down";
+            wait_screen_change { send_key "end" };
         }
-        push @params, "live.password=$testapi::password";
     }
     else {
         # On JeOS and MicroOS we don't have YaST installer.
@@ -895,17 +909,23 @@ sub specific_bootmenu_params {
         push @params, "autoupgrade=1";
     }
 
-    if (my $agama_auto = get_var('INST_AUTO')) {
-        my $url = autoyast::expand_agama_profile($agama_auto);
+    if (my $inst_auto = get_var('INST_AUTO')) {
+        autoyast::create_file_as_profile_companion() if get_var('AGAMA_PROFILE_OPTIONS') =~ /files=true/;
+        my $url = ($inst_auto =~ /\.libsonnet/) ? autoyast::generate_json_profile($inst_auto) : autoyast::expand_agama_profile($inst_auto);
         $url = shorten_url($url) if (is_backend_s390x && !is_opensuse);
         push @params, "inst.auto=$url inst.finish=stop";
     }
 
-    if (my $agama_install_url = get_var('INST_INSTALL_URL')) {
+    my $agama_install_url = get_var('INST_INSTALL_URL');
+    if ($agama_install_url && is_agama) {
         if (get_var('SPLIT_REPODATA')) {
             $agama_install_url .= "/\\\$basearch";
         }
         push @params, "inst.install_url=$agama_install_url";
+    }
+
+    if (my $agama_self_update = get_var('INST_SELF_UPDATE')) {
+        push @params, "inst.self_update=$agama_self_update";
     }
 
     # Boot the system with the debug options if shutdown takes suspiciously long time.
@@ -984,6 +1004,9 @@ sub specific_bootmenu_params {
     # Enable kernel.softlockup_panic, unless explicitly disabled
     # See bsc#1126782
     push @params, 'kernel.softlockup_panic=1' unless get_var('SOFTLOCKUP_PANIC_DISABLED', 0);
+
+    # qemu workaround on ppc64le https://bugzilla.suse.com/show_bug.cgi?id=1239691#c34
+    push @params, 'disable_ddw=1' if is_ppc64le && is_qemu && is_sle('15-SP6+');
 
     type_boot_parameters(" @params ") if (@params);
     save_screenshot;
@@ -1115,9 +1138,13 @@ sub select_bootmenu_language {
 sub tianocore_enter_menu {
     # we need to reduce this waiting time as much as possible
     my $counter = 300;
-    while (!check_screen('tianocore-mainmenu', 0, no_wait => 1) && $counter--) {
+    while (!check_screen([qw(tianocore-mainmenu tianocore-bootmenu)], 0, no_wait => 1) && $counter--) {
         send_key 'f2';
         sleep 0.1;
+    }
+    if (check_screen('tianocore-bootmenu')) {
+        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+        send_key "ret";
     }
 }
 
@@ -1130,8 +1157,19 @@ sub tianocore_disable_secureboot {
 
     assert_screen 'grub2';
     send_key 'c';
-    sleep 2;
+    sleep 5;
     enter_cmd "exit";
+
+    # There might be a boot menu before the mainmenu.
+    # Wait until the main menu appears and move to the EFI firmware setup, if the boot menu is present
+    while (!check_screen('tianocore-mainmenu')) {
+        wait_still_screen();
+        if (check_screen('tianocore-bootmenu')) {
+            send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+            send_key "ret";
+        }
+    }
+
     assert_screen 'tianocore-mainmenu';
     # Select 'Boot manager' entry
     send_key_until_needlematch('tianocore-devicemanager', 'down', 6, 5);
@@ -1266,7 +1304,7 @@ sub zkvm_add_disk {
                 $hdd_path or die "Unable to find image $basename in $hdd_dir";
                 diag("HDD path found: $hdd_path");
 
-                enter_cmd("# copying image ($basename)...");
+                record_info("copying image ($basename)...");
                 if (my $size = get_var("HDDSIZEGB_$di")) {
                     $size .= "G";
                     $svirt->add_disk({file => $hdd_path, backingfile => 1, dev_id => $dev_id, size => $size});
@@ -1414,12 +1452,20 @@ sub change_grub_config {
     $new //= '';
     $search = "/$search/" if defined $search;
 
-    assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
+    if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
+        die "Unsupported option $search on BLS" unless $search == "GRUB_CMDLINE_LINUX_DEFAULT";
+        assert_script_run("sed -ie 's/${old}/${new}/${modifiers}' " . BLS_DEFAULT_FILE);
+    } else {
+        assert_script_run("sed -ie '${search}s/${old}/${new}/${modifiers}' " . GRUB_DEFAULT_FILE);
+    }
 
-    if ($update_grub) {
+    if ($update_grub && is_bootloader_grub2) {
         grub_mkconfig();
         upload_logs(GRUB_CFG_FILE, failok => 1);
         upload_logs(GRUB_DEFAULT_FILE, failok => 1);
+    } elsif ($update_grub && (is_bootloader_sdboot || is_bootloader_grub2_bls)) {
+        assert_script_run('sdbootutil update-all-entries');
+        upload_logs(BLS_DEFAULT_FILE, failok => 1);
     }
 }
 
@@ -1433,6 +1479,7 @@ C<$search> if set, bypass default grub cmdline variable.
 =cut
 
 sub add_grub_cmdline_settings {
+    my $needs_quote = (is_bootloader_grub2) ? '"' : '';
     my $add = shift;
     my %args = testapi::compat_args(
         {
@@ -1444,7 +1491,7 @@ sub add_grub_cmdline_settings {
         @_
     );
 
-    change_grub_config('"$', " $add\"", $args{search}, "g", $args{update_grub});
+    change_grub_config($needs_quote . '$', " " . $add . $needs_quote, $args{search}, "g", $args{update_grub});
 }
 
 =head2 add_grub_xen_cmdline_settings

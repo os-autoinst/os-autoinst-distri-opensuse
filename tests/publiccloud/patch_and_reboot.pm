@@ -6,17 +6,15 @@
 # Package: zypper
 # Summary: Refresh repositories, apply patches and reboot
 #
-# Maintainer: qa-c <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use registration;
-use warnings;
 use testapi;
-use strict;
 use utils qw(ssh_fully_patch_system);
-use publiccloud::utils qw(kill_packagekit ssh_update_transactional_system is_cloudinit_supported permit_root_login);
+use publiccloud::utils;
 use publiccloud::ssh_interactive qw(select_host_console);
-use version_utils qw(is_sle_micro);
+use version_utils qw(is_sle_micro is_sle);
 
 sub run {
     my ($self, $args) = @_;
@@ -24,23 +22,34 @@ sub run {
 
     my $cmd_time = time();
     my $ref_timeout = check_var('PUBLIC_CLOUD_PROVIDER', 'AZURE') ? 3600 : 240;
-    my $remote = $args->{my_instance}->username . '@' . $args->{my_instance}->public_ip;
-    # pkcon not present on SLE-micro
-    kill_packagekit($args->{my_instance}) unless (is_sle_micro);
+    my $instance = $args->{my_instance};
+    my $remote = $instance->username . '@' . $instance->public_ip;
 
-    # Record package list before fully patch system
-    if (get_var('SAVE_LIST_OF_PACKAGES')) {
-        $args->{my_instance}->ssh_script_run(cmd => 'rpm -qa > /tmp/rpm-qa-before-patch-system.txt');
-        $args->{my_instance}->upload_log('/tmp/rpm-qa-before-patch-system.txt');
+    my $rpm_qa_command = 'rpm -qa --qf "%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n" | sort';
+    my $rpm_list_before = "/var/tmp/rpm-qa-before-patch-system.txt";
+    my $rpm_list_after = "/var/tmp/rpm-qa-after-patch-system.txt";
+    # kernel-azure is discontinued in LTSS so we need to replace it with kernel-default
+    if (is_ondemand && is_azure && is_sle('<=15-SP6')) {
+        record_info('kernel-azure Switch', 'Switching from kernel-azure to kernel-default for LTSS');
+        $args->{my_instance}->ssh_script_retry(
+            "sudo zypper -n in kernel-default -kernel-azure",
+            timeout => 600,
+            retry => 3,
+            delay => 60
+        );
     }
 
-    $args->{my_instance}->ssh_script_retry("sudo zypper -n --gpg-auto-import-keys ref", timeout => $ref_timeout, retry => 6, delay => 60);
+    # Record package list before fully patch system
+    $instance->ssh_assert_script_run(cmd => $rpm_qa_command . ' | tee ' . $rpm_list_before, timeout => 180);
+    $instance->upload_log($rpm_list_before);
+
+    $args->{my_instance}->ssh_script_retry("sudo zypper -n --gpg-auto-import-keys ref", timeout => $ref_timeout, retry => 6, delay => 60, fail_message => 'Remote execution of zypper ref failed. See previous steps for details');
     record_info('zypper ref time', 'The command zypper -n ref took ' . (time() - $cmd_time) . ' seconds.');
     record_soft_failure('bsc#1195382 - Considerable decrease of zypper performance and increase of registration times') if ((time() - $cmd_time) > 240);
     if (is_sle_micro) {
         ssh_update_transactional_system($args->{my_instance});
     } else {
-        ssh_fully_patch_system($remote);
+        ssh_fully_patch_system($remote, $args->{my_instance});
     }
     record_info('UNAME', $args->{my_instance}->ssh_script_output(cmd => 'uname -a'));
     $args->{my_instance}->ssh_assert_script_run(cmd => 'rpm -qa > /tmp/rpm-qa.txt');
@@ -49,15 +58,39 @@ sub run {
     if (is_cloudinit_supported) {
         $args->{my_instance}->cleanup_cloudinit();
         $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600), scan_ssh_host_key => 1);
-        $args->{my_instance}->check_cloudinit();
         permit_root_login($args->{my_instance});
     } else {
         $args->{my_instance}->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
     }
+
+    # Record package list after fully patch system
+    $instance->ssh_assert_script_run(cmd => $rpm_qa_command . ' | tee ' . $rpm_list_after, timeout => 180);
+    $instance->upload_log($rpm_list_after);
+
+    # Check if list is not empty
+    $instance->ssh_assert_script_run(cmd => "test -s $rpm_list_before", fail_message => 'The package list before patching is empty, check the log for details');
+    $instance->ssh_assert_script_run(cmd => "test -s $rpm_list_after", fail_message => 'The package list after patching is empty, check the log for details');
+
+    my $rpm_list_diff = "/var/tmp/rpm-qa-diff.txt";
+    $instance->ssh_assert_script_run(cmd => "diff $rpm_list_before $rpm_list_after | tee $rpm_list_diff");
+    $instance->upload_log($rpm_list_diff);
+
+    my $ignore_empty_updates = get_var("PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES");
+    my $rc = $instance->ssh_script_run(cmd => "test -s $rpm_list_diff");
+    unless ($rc == 0) {
+        if ($ignore_empty_updates) {
+            record_info(
+                'PUBLIC_CLOUD_IGNORE_EMPTY_UPDATES',
+                'No packages were updated during patching'
+            );
+        } else {
+            die 'No packages were updated during patching';
+        }
+    }
 }
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 1;

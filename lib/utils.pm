@@ -1,4 +1,4 @@
-# Copyright 2015-2022 SUSE LLC
+# Copyright 2015-2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 package utils;
@@ -11,7 +11,7 @@ use warnings;
 use testapi qw(is_serial_terminal :DEFAULT);
 use lockapi 'mutex_wait';
 use mm_network;
-use version_utils qw(is_sle_micro is_microos is_krypton_argon is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_sdboot);
+use version_utils qw(is_sle_micro is_microos is_krypton_argon is_leap is_leap_micro is_public_cloud is_sle is_sle12_hdd_in_upgrade is_storage_ng is_jeos package_version_cmp is_transactional is_bootloader_grub2_bls is_bootloader_sdboot is_bootloader_grub2);
 use Carp qw(croak);
 use Utils::Architectures;
 use Utils::Systemd qw(systemctl disable_and_stop_service);
@@ -21,12 +21,14 @@ use zypper qw(wait_quit_zypper);
 use Storable qw(dclone);
 use Getopt::Long qw(GetOptionsFromString);
 use File::Basename;
-use XML::LibXML;
 use security::config;
+use JSON;
+use Scalar::Util qw(refaddr);
+use LWP::Simple;
+use LWP::UserAgent;
+use Data::Dumper;
 
 our @EXPORT = qw(
-  generate_results
-  parse_test_results
   check_console_font
   clear_console
   type_string_slow
@@ -43,6 +45,7 @@ our @EXPORT = qw(
   zypper_call
   zypper_enable_install_dvd
   zypper_ar
+  zypper_version_cmp
   fully_patch_system
   handle_patch_11sp4_zvm
   ssh_fully_patch_system
@@ -84,6 +87,8 @@ our @EXPORT = qw(
   exec_and_insert_password
   shorten_url
   reconnect_mgmt_console
+  check_nm_connectivity
+  restart_network
   set_hostname
   show_tasks_in_blocked_state
   show_oom_info
@@ -108,7 +113,6 @@ our @EXPORT = qw(
   permit_root_ssh_in_sol
   cleanup_disk_space
   package_upgrade_check
-  test_case
   remount_tmp_if_ro
   detect_bsc_1063638
   script_start_io
@@ -116,7 +120,6 @@ our @EXPORT = qw(
   handle_screen
   define_secret_variable
   write_sut_file
-  @all_tests_results
   ping_size_check
   is_ipxe_boot
   is_uefi_boot
@@ -133,6 +136,15 @@ our @EXPORT = qw(
   install_extra_packages
   render_autoinst_url
   is_agama_guest
+  upload_folders
+  cmd_run
+  assert_cmd_run
+  parse_json
+  inspect_existing_issue
+  dump_tasktrace
+  show_all_disks
+  render_scc_url
+  query_installed_packages
 );
 
 our @EXPORT_OK = qw(
@@ -178,7 +190,8 @@ Does B<not> work on B<Hyper-V>.
 sub save_svirt_pty {
     return if check_var('VIRSH_VMM_FAMILY', 'hyperv');
     my $name = console('svirt')->name;
-    enter_cmd "pty=`virsh dumpxml $name 2>/dev/null | grep \"console type=\" | sed \"s/'/ /g\" | awk '{ print \$5 }'`";
+    enter_cmd "pty=`virsh ttyconsole $name`";
+    wait_still_screen 1;
     enter_cmd "echo \$pty";
 }
 
@@ -310,16 +323,37 @@ are present and in working condition.
 =cut
 
 sub integration_services_check {
+    if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
+        if (script_run('rpmquery hyper-v') != 0) {
+            record_soft_failure("Workaround for bsc#1257498");
+            zypper_call('in hyper-v');
+            systemctl('enable --now hv_kvp_daemon.service', timeout => 180);
+            systemctl('enable --now hv_vss_daemon.service', timeout => 180);
+        }
+    }
+    elsif (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
+        if (script_run('rpmquery open-vm-tools') != 0) {
+            record_soft_failure("Workaround for bsc#1257498");
+            zypper_call('in open-vm-tools');
+            systemctl('enable --now vmtoolsd', timeout => 180);
+            systemctl('enable --now vgauthd', timeout => 180);
+        }
+    }
     integration_services_check_ip();
     if (check_var('VIRSH_VMM_FAMILY', 'hyperv')) {
         # Guest-side of Integration Services
         assert_script_run('rpmquery hyper-v');
         assert_script_run('rpmverify hyper-v');
         my $base = is_jeos() ? '-base' : '';
+        # Check Hyper-V drivers: may be builtin or loaded as modules depending on kernel
         for my $module (qw(utils netvsc storvsc vmbus)) {
-            assert_script_run("rpmquery -l kernel-default$base | grep hv_${module}.ko");
             assert_script_run("modinfo hv_$module");
-            assert_script_run("lsmod | grep hv_$module");
+            if (script_run("modinfo -F filename hv_$module | grep -qF '(builtin)'") == 0) {
+                record_info("hv_$module", "Module is built into the kernel");
+            } else {
+                assert_script_run("rpmquery -l kernel-default$base | grep hv_${module}.ko");
+                assert_script_run("lsmod | grep hv_$module");
+            }
         }
         # 'hv_balloon' need not to be loaded
         assert_script_run('modinfo hv_balloon');
@@ -350,11 +384,12 @@ sub unlock_if_encrypted {
     my (%args) = @_;
     $args{check_typed_password} //= 0;
     my $password = check_var('SYSTEM_ROLE', 'Common_Criteria') ? $security::config::strong_password : $testapi::password;
-
     return unless get_var("ENCRYPT");
+    record_info("Attempting to unlock disk");
 
     if (get_var('S390_ZKVM')) {
         select_console('svirt');
+        save_svirt_pty;
 
         # enter passphrase twice (before grub and after grub) if full disk is encrypted
         if (get_var('FULL_LVM_ENCRYPT')) {
@@ -598,9 +633,11 @@ sub zypper_call {
     my $allow_exit_codes = $args{exitcode} || [0];
     my $timeout = $args{timeout} || 700;
     my $log = $args{log};
+    my $var = $args{tmpfs} ? '/var' : '';
     my $dumb_term = $args{dumb_term} // is_serial_terminal;
+    my $check_typing = is_serial_terminal ? '0' : '1';
 
-    my $printer = $log ? "| tee /tmp/$log" : $dumb_term ? '| cat' : '';
+    my $printer = $log ? "| tee $var/tmp/$log" : $dumb_term ? '| cat' : '';
     die 'Exit code is from PIPESTATUS[0], not grep' if $command =~ /^((?!`).)*\| ?grep/;
 
     $IN_ZYPPER_CALL = 1;
@@ -612,7 +649,7 @@ sub zypper_call {
                     /var/log/zypper.log
                     ';
     for (1 .. 5) {
-        $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout);
+        $ret = script_run("zypper -n $command $printer; ( exit \${PIPESTATUS[0]} )", $timeout, check_typing_cmd => $check_typing);
         die "zypper did not finish in $timeout seconds" unless defined($ret);
         if ($ret == 4) {
             if (script_run('grep "Error code.*502" /var/log/zypper.log') == 0) {
@@ -686,7 +723,7 @@ sub zypper_call {
         });
     }
 
-    upload_logs("/tmp/$log") if $log;
+    upload_logs("$var/tmp/$log") if $log;
 
     unless (grep { $_ == $ret } @$allow_exit_codes) {
         upload_logs('/var/log/zypper.log');
@@ -784,6 +821,29 @@ sub zypper_ar {
     }
 }
 
+
+=head2 zypper_version_cmp
+
+ zypper_version_cmp($ver1, $ver2);
+
+Compare the versions supplied as arguments and tell whether version1 is
+older or newer than version2 or the two version strings match.
+
+The default output is in human-friendly form. If --terse global option is used,
+the result is an integer number, negative/positive if version1 is older/newer
+than version2, zero if they match.
+
+=cut
+
+sub zypper_version_cmp {
+    my ($ver1, $ver2) = @_;
+    my ($ret, $output) = cmd_run("zypper --terse vcmp $ver1 $ver2");
+    die "Zypper cannot compare $ver1 and $ver2" unless defined($ret) && grep { $_ == $ret } (0, 11, 12);
+    chomp($output);
+    die "Invalid zypper output: $output" unless $output =~ m/^-?[01]$/;
+    return $output;
+}
+
 =head2 fully_patch_system
 
  fully_patch_system();
@@ -836,6 +896,40 @@ sub fully_patch_system {
     return $ret;
 }
 
+sub _ssh_fully_patch_system_upload_solver {
+    my ($remote) = @_;
+    script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
+    script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
+    upload_logs('/tmp/solver.tar.gz', failok => 1);
+}
+
+sub _ssh_fully_patch_system_run_patch {
+    my (%args) = @_;
+    my $remote = $args{remote};
+    my $timeout = $args{timeout};
+    my $label = $args{label};
+    my $accept_codes = $args{accept_codes};
+    my $instance = $args{instance};
+
+    my $t0 = time();
+    my $cmd;
+    my $ret;
+
+    if ($instance) {
+        $cmd = "patch --with-interactive -l";
+        # Lazy require to avoid a circular `use` loop at compile time
+        # (publiccloud::zypper -> transactional -> utils).
+        require publiccloud::zypper;
+        $ret = publiccloud::zypper::pc_pkg_call($instance, $cmd, exitcode => $accept_codes, timeout => $timeout);
+    }
+    else {
+        $cmd = "ssh $remote 'sudo zypper -n patch --with-interactive -l'";
+        $ret = script_run($cmd, $timeout);
+    }
+    record_info('zypper patch', "$label took " . (time() - $t0) . "s (exit $ret)");
+    return $ret;
+}
+
 =head2 ssh_fully_patch_system
 
  ssh_fully_patch_system($host);
@@ -847,31 +941,25 @@ the second run will update the system.
 =cut
 
 sub ssh_fully_patch_system {
-    my $remote = shift;
-    my $cmd_time = time();
-    my $resolver_option = get_var('PUBLIC_CLOUD_GEN_RESOLVER') ? '--debug-solver' : '';
-    my $cmd = "ssh $remote 'sudo zypper -n patch $resolver_option --with-interactive -l'";
-    # first run, possible update of packager -- exit code 103
-    my $ret = script_run($cmd, 1500);
-    record_info('zypper patch', 'The command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    if ($ret != 0 && $ret != 102 && $ret != 103) {
-        if ($resolver_option) {
-            script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
-            script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
-            upload_logs('/tmp/solver.tar.gz', failok => 1);
-        }
-        croak("Zypper failed with $ret");
-    }
-    $cmd_time = time();
-    # second run, full system update
-    $ret = script_run($cmd, 6000);
-    record_info('zypper patch', 'The second command zypper patch took ' . (time() - $cmd_time) . ' seconds.');
-    if ($resolver_option) {
-        script_run("ssh $remote 'tar -czvf /tmp/solver.tar.gz /var/log/zypper.solverTestCase /var/log/zypper.log'");
-        script_run("scp $remote:/tmp/solver.tar.gz /tmp/solver.tar.gz");
-        upload_logs('/tmp/solver.tar.gz', failok => 1);
-    }
-    croak("Zypper failed with $ret") if ($ret != 0 && $ret != 102);
+    my ($remote, $instance) = @_;
+
+    # First run — allow 103 (zypper updated itself)
+    _ssh_fully_patch_system_run_patch(
+        instance => $instance,
+        remote => $remote,
+        timeout => 1500,
+        label => 'zypper patch (first run)',
+        accept_codes => [0, 102, 103]
+    );
+
+    # Second run — system update, only 0/102 allowed
+    _ssh_fully_patch_system_run_patch(
+        instance => $instance,
+        remote => $remote,
+        timeout => 6000,
+        label => 'zypper patch (second run)',
+        accept_codes => [0, 102]
+    );
 }
 
 =head2 minimal_patch_system
@@ -948,7 +1036,10 @@ sub zypper_search {
         @fields = ('status', 'name', 'type', 'version', 'arch', 'repository');
     }
 
-    my $output = script_output("zypper -n se $params");
+    my ($ret, $output) = cmd_run("zypper -n se $params");
+
+    die 'zypper search failed unexpectedly'
+      unless defined($ret) && ($ret == 0 || $ret == 104);
     return parse_zypper_table($output, \@fields);
 }
 
@@ -999,18 +1090,21 @@ into an array of hashes.
 
 sub zypper_patches {
     my $params = shift // '';
+    my $cmd;
     my @fields;
 
     if (is_sle('<12-SP2')) {
+        $cmd = "pch";
         @fields = ('repository', 'name', 'version', 'category', 'status');
     } else {
+        $cmd = "lp -a";
         @fields = ('repository', 'name', 'category', 'severity',
             'interactive', 'status');
         push @fields, 'since' if is_sle('15+');
         push @fields, 'summary';
     }
 
-    my $output = script_output("zypper pch $params", 300);
+    my $output = script_output("zypper $cmd $params", 300);
     return parse_zypper_table($output, \@fields);
 }
 
@@ -1026,8 +1120,10 @@ by exact name match.
 sub zypper_install_available {
     my $packlist = join(' ', @_);
     my $result = zypper_search("-t package --match-exact $packlist");
+    my @foundpacks = map { $_->{name} } @$result;
 
-    return zypper_call('-t in ' . join(' ', map { $_->{name} } @$result));
+    return 0 unless @foundpacks;
+    return zypper_call('-t in ' . join(' ', @foundpacks));
 }
 
 =head2 set_zypper_lock_timeout
@@ -1070,6 +1166,8 @@ that the boot partition is encrypted.
 sub is_boot_encrypted {
     my $is_enc_cc_s390x = check_var('SYSTEM_ROLE', 'Common_Criteria') && check_var('FULL_LVM_ENCRYPT', '1') && is_s390x;
 
+    # systemd-boot and grub-bls don't support encrypted bootloader
+    return 0 if !is_bootloader_grub2;
     return 0 if get_var('UNENCRYPTED_BOOT') && !$is_enc_cc_s390x;
     return 0 if !get_var('ENCRYPT') && !get_var('FULL_LVM_ENCRYPT');
     # for Leap 42.3 and SLE 12 codestream the boot partition is not encrypted
@@ -1104,12 +1202,20 @@ without LVM configuration (cr_swap,cr_home etc).
 =cut
 
 sub need_unlock_after_bootloader {
-    my $is_enc_cc_s390x = check_var('SYSTEM_ROLE', 'Common_Criteria') && check_var('FULL_LVM_ENCRYPT', '1') && is_s390x;
-
-    my $need_unlock_after_bootloader = is_leap('<15.6') || is_sle('<15-sp6') || is_leap_micro || is_sle_micro || (!get_var('LVM', '0') && !get_var('FULL_LVM_ENCRYPT', '0')) || $is_enc_cc_s390x;
-    return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
     # MicroOS with sdboot supports automatic TPM based unlocking.
-    return 0 if is_microos && is_bootloader_sdboot && get_var('QEMUTPM');
+    return 0 if is_microos && (is_bootloader_sdboot || is_bootloader_grub2_bls) && get_var('QEMUTPM');
+    return 0 if check_var('ENCRYPT', 0) && (is_bootloader_sdboot || is_bootloader_grub2_bls) && get_var('QEMUTPM');
+
+    my $is_enc_cc_s390x = check_var('SYSTEM_ROLE', 'Common_Criteria') && check_var('FULL_LVM_ENCRYPT', '1') && is_s390x;
+    my $need_unlock_after_bootloader = is_leap('<15.6') ||
+      is_sle('<15-sp6') ||
+      is_leap_micro ||
+      is_sle_micro ||
+      (!get_var('LVM', '0')
+        && !get_var('FULL_LVM_ENCRYPT', '0'))
+      || $is_enc_cc_s390x;
+    return 0 if is_boot_encrypted && !$need_unlock_after_bootloader;
+
     return 1;
 }
 
@@ -1158,6 +1264,66 @@ sub print_ip_info {
     script_run('ip neigh');
 }
 
+=head2 check_nm_connectivity
+
+  check_nm_connectivity();
+
+helper function to check NetworkManager connectivity
+
+=cut
+
+sub check_nm_connectivity {
+    my $attempts = shift // 5;
+    my $state;
+
+    for (my $i = 0; $i < $attempts; $i++) {
+        $state = script_output("nmcli -w 5 networking connectivity check", proceed_on_failure => 1);
+        last if $state =~ /full/;
+        sleep 1;
+    }
+    return $state;
+}
+
+=head2 restart_network
+
+  restart_network();
+
+helper function to restart network
+
+=cut
+
+sub restart_network {
+    if (is_qemu && systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
+        record_info('nmcli device status', script_output('nmcli device s'));
+        my @devs = split("\n", script_output('nmcli device'));
+        foreach my $indx (keys @devs) {
+            my $line = $devs[$indx];
+
+            if (!($line =~ /^([a-z0-9_-]+)/i)) {
+                record_info('nmcli output error', 'device id did not match: ' . $devs[$indx], result => 'fail');
+                next;
+            }
+            my $dev = $1;
+
+            next if ($indx == 0 && $dev eq 'DEVICE');
+            next if ($dev eq 'lo');
+
+            script_run("nmcli general logging level DEBUG");
+
+            # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
+            script_run('nmcli -w 120 device disconnect ' . $dev, timeout => 120);
+            script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
+            record_info("Logs", script_output("cat /var/log/nmcli_logs"));
+            script_run('nmcli device connect ' . $dev, timeout => 120);
+        }
+
+        check_nm_connectivity();
+        record_info('nmcli device status', script_output('nmcli device s'));
+    } else {
+        assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
+    }
+}
+
 =head2 set_hostname
 
  set_hostname($hostname);
@@ -1183,54 +1349,7 @@ sub set_hostname {
     systemctl 'status network.service';
     save_screenshot;
 
-    if (is_qemu && systemctl('is-active NetworkManager', ignore_failure => 1) == 0) {
-        my $state = script_output 'nmcli networking connectivity check', proceed_on_failure => 1;
-
-        if (!($state =~ /full/)) {
-            systemctl('restart NetworkManager');
-
-            for (my $i = 0; $i < 10; $i++) {
-                $state = script_output("nmcli -w 5 networking connectivity check", proceed_on_failure => 1);
-                last if $state =~ /full/;
-                sleep 1;
-            }
-        }
-
-        if ($state =~ /full/) {
-            my @devs = split("\n", script_output('nmcli device'));
-
-            foreach my $indx (keys @devs) {
-                my $line = $devs[$indx];
-
-                if (!($line =~ /^([a-z0-9_-]+)/i)) {
-                    record_info('nmcli output error', 'device id did not match: ' . $devs[$indx], result => 'fail');
-                    next;
-                }
-                my $dev = $1;
-
-                next if ($indx == 0 && $dev eq 'DEVICE');
-                next if ($dev eq 'lo');
-                next if !($line =~ /connected/);
-
-                # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
-                script_run("nmcli general logging level DEBUG");
-                assert_script_run("nmcli -w 120 device disconnect $dev");
-                script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
-                record_info("Logs", script_output("cat /var/log/nmcli_logs"));
-                assert_script_run 'nmcli device connect ' . $dev;
-            }
-
-            for (my $i = 0; $i < 5; $i++) {
-                $state = script_output("nmcli -w 5 networking connectivity check", proceed_on_failure => 1);
-
-                last if $state =~ /full/;
-
-                sleep 1;
-            }
-        }
-    } else {
-        assert_script_run "if systemctl -q is-active network.service; then systemctl reload-or-restart network.service; fi";
-    }
+    restart_network();
 
     print_ip_info;
     script_run("dig +short $hostname.openqa.test");
@@ -1675,6 +1794,15 @@ sub disable_serial_getty {
     my $mask = is_qemu;
     my $cmd = $mask ? 'mask' : 'disable';
     disable_and_stop_service($service_name, mask_service => $mask, ignore_failure => 1);
+    # os-autoinst keeps *-virtio-terminal consoles on level 1 serial markers and
+    # reads them back from the virtio console, but the shell running there still
+    # inherits the PRETTY_SERIAL_MARKER PROMPT_COMMAND hook from ~/.bashrc and
+    # writes to /dev/$serialdev on every single prompt. With serial-getty masked
+    # that write can block until the port drains, and has been seen to block for
+    # good, leaving the shell without a prompt for the rest of the job. Drop the
+    # hook where it buys us nothing; consoles that do rely on it install it into
+    # their own shell from ~/.bashrc, which is left untouched.
+    script_run('unset PROMPT_COMMAND') if is_serial_terminal;
     record_info 'serial-getty', "Serial getty $cmd for $testapi::serialdev";
 }
 
@@ -1705,8 +1833,8 @@ sub exec_and_insert_password {
         send_key 'ret';
         assert_screen('password-prompt', 60);
     }
-    if (get_var("VIRT_PRJ1_GUEST_INSTALL") || get_var("VIRT_UNIFIED_GUEST_INSTALL")) {
-        type_password("novell");
+    if (get_var("VIRT_AUTOTEST")) {
+        type_password(get_required_var('_SECRET_GUEST_PASSWORD'));
     }
     else {
         type_password;
@@ -1884,9 +2012,13 @@ sub reconnect_mgmt_console {
     elsif (is_x86_64) {
         if (is_ipmi) {
             select_console 'sol', await_console => 0;
-            assert_screen([qw(qa-net-selection prague-pxe-menu nue-ipxe-menu grub2)], 300);
-            # boot to hard disk is default
-            send_key 'ret';
+            my $screen_to_match = [qw(qa-net-selection prague-pxe-menu nue-ipxe-menu grub2)];
+            push @$screen_to_match, 'linux-login' if (get_var('WORKER_CLASS') =~ /ipmi-nvdimm/);
+            assert_screen($screen_to_match, 300);
+            if ($args{grub_expected_twice}) {
+                check_screen 'grub2', 60;
+                wait_screen_change { send_key 'ret' };
+            }
         }
     }
     elsif (is_aarch64) {
@@ -1894,7 +2026,10 @@ sub reconnect_mgmt_console {
             select_console 'sol', await_console => 0;
             # aarch64 baremetal machine takes longer to boot than 5 minutes
             assert_screen([qw(qa-net-selection prague-pxe-menu grub2)], 600);
-            send_key 'ret';
+            if ($args{grub_expected_twice}) {
+                check_screen 'grub2', 60;
+                wait_screen_change { send_key 'ret' };
+            }
         }
     }
     else {
@@ -1965,9 +2100,23 @@ sub svirt_host_basedir {
 
 =head2 script_retry
 
- script_retry($cmd, [expect => $expect], [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die]);
+ script_retry($cmd, [expect => $expect], [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die], [kill_timeout => $kill_timeout], [retry_grace => $retry_grace]);
 
-Repeat command until expected result or timeout.
+Repeat a command until the expected result is found or the retries are exhausted.
+
+The command is run through C<script_run> wrapped in C<timeout -k>, so each
+attempt can end in one of two ways, both of which are retried:
+
+=over
+
+=item * The command returns quickly with an exit code different from C<$expect>
+(a genuine command failure). C<script_retry> waits C<$delay> seconds and tries again.
+
+=item * The command does not finish within C<$timeout> seconds and is killed by
+C<timeout>. In this case C<script_run> returns C<undef>; C<script_retry> waits
+C<$delay> seconds and tries again.
+
+=back
 
 C<$expect> refers to the expected command exit code and defaults to C<0>.
 
@@ -1977,10 +2126,17 @@ C<$delay> is the time between retries and defaults to C<30>.
 
 C<$fail_message> is an optional error message in case of failure. Defaults to "Waiting for Godot".
 
-The command must return within C<$timeout> seconds (default: 25).
+The command must return within C<$timeout> seconds (default: 30).
+
+C<$kill_timeout> is the number of seconds passed to C<timeout -k> (SIGKILL grace period after SIGTERM). Defaults to C<5>.
+
+C<$retry_grace> is the number of extra seconds C<script_run> waits beyond C<$timeout> to allow the shell to report the exit code after SIGKILL. Defaults to C<10>.
 
 If the command doesn't return C<$expect> after C<$retry> retries,
-this function will die, if C<$die> is set.
+this function will die.
+This default behavior can be disabled by setting C<$die> to C<0>.
+
+Returns the exit code of the last executed command.
 
 Example:
 
@@ -1997,19 +2153,21 @@ sub script_retry {
     my $option = $args{option} // '';
     my $die = $args{die} // 1;
     my $fail_msg = $args{fail_message} // "Waiting for Godot: $cmd";
-
-    my $ret;
-
-    my $exec = "timeout $option $timeout $cmd";
+    my $kill_timeout = $args{kill_timeout} // 5;
+    my $retry_grace = $args{retry_grace} // 10;
+    my $negate;
     # Exclamation mark needs to be moved before the timeout command, if present
     if (substr($cmd, 0, 1) eq "!") {
         $cmd = substr($cmd, 1);
         $cmd =~ s/^\s+//;    # left trim spaces after the exclamation mark
-        $exec = "! timeout $option $timeout $cmd";
+        $negate = '!';
     }
+    my $exec = join ' ', grep { defined && length } ($negate, "timeout -k $kill_timeout", $option, $timeout, $cmd);
+    my $ret;
     for (1 .. $retry) {
-        # timeout for script_run must be larger than for the 'timeout ...' command
-        $ret = script_run($exec, ($timeout + 3));
+        # timeout for script_run must be larger than for the 'timeout ...' command  to give the shell more headroom to report the exit code after SIGKILL.
+        # to give the shell more headroom to report the exit code after SIGKILL
+        $ret = script_run($exec, ($timeout + $retry_grace));
         last if defined($ret) && $ret == $ecode;
 
         die($fail_msg) if $retry == $_ && $die == 1;
@@ -2024,8 +2182,6 @@ sub script_retry {
  script_output_retry($cmd, [retry => $retry], [delay => $delay], [timeout => $timeout], [die => $die]);
 
 Repeat command until expected result or timeout. Return the output of the command on success.
-
-C<$expect> refers to the expected command exit code and defaults to C<0>.
 
 C<$retry> refers to the number of retries and defaults to C<10>.
 
@@ -2057,7 +2213,7 @@ sub script_output_retry {
         my $ret = eval { script_output($exec, timeout => $timeout, proceed_on_failure => 0); };
         return $ret if ($ret);
         sleep $delay;
-        record_info('Retry', 'script_output failed, retrying.');
+        record_info("Retry", "Command:\n$cmd\nfailed, retrying.");
     }
     die($fail_msg) if $die;
 }
@@ -2151,7 +2307,11 @@ sub script_run_interactive {
     $timeout //= 180;
 
     if ($cmd) {
-        script_run("(script -qe -a /dev/null -c \'", 0);
+        # util-linux >= 2.42 rejects a positional typescript file together
+        # with -c, so use -O to specify the output file instead.
+        my $ul_ver = script_output("rpm -q --qf '%{version}' util-linux");
+        my $script_opts = package_version_cmp($ul_ver, '2.42') >= 0 ? '-qe -O /dev/null' : '-qe -a /dev/null';
+        script_run("(script $script_opts -c \'", 0);
         script_run($cmd, 0);
         # Can not get return value from script_run, so we have to do it in
         # the shell with $? following the endmark.
@@ -2165,14 +2325,15 @@ sub script_run_interactive {
     }
 
     # Hack: '$' doesn't match '\r\n' line endings, so use '\s' instead
-    push(@words, qr/${endmark}\d+\s/m);
+    my $exitre = qr/${endmark}\d+\s/m;
+    push(@words, $exitre);
 
     {
         do {
             $output = wait_serial(\@words, $timeout) || die "No message matched!";
 
             last if ($output =~ /${endmark}0\s/m);    # return value is 0
-            die if ($output =~ /${endmark}/m);    # other return values
+            die if ($output =~ $exitre);    # other return values
 
             for my $i (@$scan) {
                 next if ($output !~ $i->{prompt});
@@ -2389,16 +2550,19 @@ This functions checks if ca-certificates-suse is installed and if it is not it a
 sub ensure_ca_certificates_suse_installed {
     return unless is_sle || is_sle_micro;
     if (script_run('rpm -qi ca-certificates-suse') == 1) {
-        my $host_version = get_var("HOST_VERSION") ? 'HOST_VERSION' : 'VERSION';
-        my $distversion = 'SLE_' . get_required_var($host_version) =~ s/-SP/_SP/r;    # 15 -> 15, 15-SP1 -> 15_SP1
-        my $exit = script_run("curl -fkIL http://download.suse.de/ibs/SUSE:/CA/$distversion/SUSE:CA.repo >/dev/null 2>&1");
-        $distversion = 'SLE-Factory' if ($exit != 0);
-        diag "CA folder: $distversion";
-        zypper_call("ar --refresh http://download.suse.de/ibs/SUSE:/CA/$distversion/SUSE:CA.repo");
+        my $version = "openSUSE_Tumbleweed";
+        # Given that our primary need was simply to install certificates, we decided to abandon
+        # the complex logic that determined which package version to select for each run.
+        # Our new approach is to install the TW package universally. Regrettably,
+        # this has presented a challenge with SLE 12 SP5, as the TW package utilizes an unsupported compression method.
+        # For more details, please see https://forums.opensuse.org/t/error-rpm-failed-error-unpacking-of-archive-failed-cpio-bad-magic/142434
+        $version = "SLE_12_SP5" if (is_sle('=12-SP5'));
+        zypper_call("ar --refresh https://download.opensuse.org/repositories/SUSE:/CA/$version/SUSE:CA.repo");
         if (is_sle_micro) {
+            transactional::trup_call("--continue run zypper --gpg-auto-import-keys refresh");
             transactional::trup_call('--continue pkg install ca-certificates-suse');
         } else {
-            zypper_call("in ca-certificates-suse");
+            zypper_call("--gpg-auto-import-keys in ca-certificates-suse");
         }
     }
 }
@@ -2521,8 +2685,6 @@ sub install_patterns {
             record_soft_failure('bsc#1202478 - skip pattern Amazon-Web-Service');
             next;
         }
-        # For Public cloud module test we need install 'Tools' but not 'Instance' pattern if outside of public cloud images.
-        next if (($pt =~ /OpenStack/) && ($pt !~ /Tools/) && !is_public_cloud);
         # skip installation of wsl_base, wsl_gui and wsl_systemd patterns due to bsc#1226314.
         next if (($pt =~ /wsl_base|wsl_gui|wsl_systemd/) && check_var('PATTERNS', 'all'));
         # if pattern is common-criteria and PATTERNS is all, skip, poo#73645
@@ -2705,103 +2867,6 @@ sub package_upgrade_check {
     }
 }
 
-=head2 _validate_result
-    _validate_result();
-
-This is a private method which is used by C<generate_results> to convert the
-results in a string representation. At the moment the status that are supported
-are {PASS,FAIL}.
-
-The method takes as the only argument the return of a perl statement or
-subroutine.
-
-=cut
-
-sub _validate_result {
-    my $result = shift;
-    if ($result == 0) {
-        return 'PASS';
-    } elsif ($result == 1) {
-        return 'FAIL';
-    } else {
-        return undef;
-    }
-}
-
-=head2 generate_results
-    generate_results();
-
-This function is used to construct a hash suitable for representation in junit
-xml format.
-
-=cut
-
-sub generate_results {
-    my ($name, $description, $result) = @_;
-
-    my %results = (
-        test => $name,
-        description => $description,
-        result => _validate_result($result)
-    );
-    return %results;
-}
-
-=head2 parse_test_results
-    parse_test_results();
-
-Takes C<test> as an argument. C<test> is an array of hashes which contain the
-test results. They usually are generated by C<generate_results>. Those are
-parsed and create the junit xml representation.
-
-=cut
-
-sub parse_test_results {
-    my ($testsuite, $xmlfile, @test) = @_;
-
-    my $dom = XML::LibXML::Document->new('1.0', 'utf-8');
-    my $root = $dom->createElement('testsuite');
-    $root->setAttribute(name => "$testsuite");
-    my $date_elem = $dom->createElement('date');
-    $date_elem->appendTextNode(`date +"%m/%d/%Y"`);
-    my $build_elem = $dom->createElement('build');
-    $build_elem->appendTextNode(get_required_var('BUILD'));
-    $root->appendChild($build_elem);
-    $root->appendChild($date_elem);
-
-    for my $i (@test) {
-        my $tc_elem = $dom->createElement('testcase');
-        $tc_elem->setAttribute(name => "$i->{test}");
-        if ($i->{result} eq 'FAIL') {
-            $tc_elem->setAttribute(error => '1');
-        }
-        my $description_elem = $dom->createElement('system-out');
-        $description_elem->appendTextNode($i->{description});
-        $tc_elem->appendChild($description_elem);
-        $root->appendChild($tc_elem);
-    }
-    $dom->setDocumentElement($root);
-    $dom->toFile(hashed_string($xmlfile), 1);
-    assert_script_run('curl -v ' . autoinst_url("/files/" . $xmlfile) . " -o /tmp/$xmlfile");
-}
-
-our @all_tests_results;
-
-=head2 test_case
-    test_case($name, $description, $result);
-
-C<test_case> can produce a data_structure which C<parse_test_results> can utilize.
-Using C<test_case> in an OpenQA module you are able to /name/ and describe
-the whole test as subtasks, in a XUnit format.
-
-=cut
-
-sub test_case {
-    my ($name, $description, $result) = @_;
-    my %results = generate_results($name, $description, $result);
-    push(@all_tests_results, dclone(\%results));
-}
-
 =head2 remount_tmp_if_ro
 
  remount_tmp_if_ro();
@@ -2974,6 +3039,8 @@ used afterwards by using $SECRET.
 
 sub define_secret_variable {
     my ($var_name, $var_value) = @_;
+    @_ = ($var_name, "==== MASKED VALUE ====");    # Mask the value for traceback
+
     script_run("set -a");
     script_run("read -sp '$var_name: ' $var_name", 0);
     type_password($var_value . "\n");
@@ -3069,6 +3136,7 @@ sub is_usb_boot {
  remove_efiboot_entry(boot_entry => 'entry');
 
 Remove provided efiboot entry name by its corresponding boot number.
+All entries with this name will be removed.
 
 =cut
 
@@ -3077,11 +3145,14 @@ sub remove_efiboot_entry {
     $args{boot_entry} //= '';
 
     if ($args{boot_entry}) {
-        if (script_run("efibootmgr | grep $args{boot_entry}") == 0) {
-            script_output("efibootmgr | grep $args{boot_entry}") =~ /Boot([0-9A-F]+)\*/m;
-            assert_script_run("efibootmgr -B -b $1");
-            save_screenshot;
-            record_info("efiboot entry $args{boot_entry} deleted", script_output('efibootmgr -v'));
+        my $output = script_output("efibootmgr");
+        if ($output =~ /$args{boot_entry}/) {
+            my @matches = ($output =~ /Boot([0-9A-F]+)\*?\s*$args{boot_entry}/gm);
+            foreach my $match (@matches) {
+                assert_script_run("efibootmgr -B -b $match");
+                save_screenshot;
+                record_info("efiboot entry $args{boot_entry} deleted", script_output('efibootmgr -v'));
+            }
         }
         else {
             record_info("efiboot entry $args{boot_entry} does not exist", script_output('efibootmgr -v'));
@@ -3234,7 +3305,10 @@ sub is_reboot_needed {
 
     my $check_reboot_needed = "zypper needs-rebooting";
     $check_reboot_needed = "ssh $args{username}\@$args{address} \"$check_reboot_needed\"" if ($args{address} ne 'localhost');
-    return 1 if (script_run("$check_reboot_needed") == 102 or get_var('NEEDS_REBOOTING'));
+    if (script_run("$check_reboot_needed") == 102 or get_var('_NEEDS_REBOOTING')) {
+        set_var('_NEEDS_REBOOTING', 0);
+        return 1;
+    }
     return 0;
 }
 
@@ -3334,6 +3408,335 @@ sub is_agama_guest {
 
     croak("Guest or domain name must be given") if (!$args{guest});
     return $args{guest} =~ /agama/img;
+}
+
+=head2 upload_folders
+
+ upload_folders(folders => 'absolute path to folder separated by commas');
+
+Compress folders to files and call upload_logs to upload. The arguments are folders
+which accept absolute path to folders and store which indicates the absolute path to
+a folder that stores compressed files
+=cut
+
+sub upload_folders {
+    my %args = @_;
+    $args{folders} //= '';
+    $args{store} //= '/var/log';
+    $args{failok} //= 1;
+    $args{cleanup} //= 1;
+
+    croak("Absolute path to folders must be given") if (!$args{folders});
+    foreach my $folder (split(/,/, $args{folders})) {
+        my $file = $folder;
+        $file =~ s|/$|| if ($file ne '/');
+        $file =~ s/\//_/g;
+        $file =~ s/^_+//g if ($file ne '_');
+        $args{store} =~ s|/$|| if ($args{store} ne '/');
+        script_run("tar -I 'gzip -9' -cvf $args{store}/$file.tar.gz $folder");
+        upload_logs("$args{store}/$file.tar.gz", failok => $args{failok});
+        script_run("rm -f -r $args{store}/$file.tar.gz") if ($args{cleanup});
+    }
+}
+
+sub _flush_console {
+    my $buf;
+    my $ret = '';
+
+    while ($buf = wait_serial(qr/.+/s, timeout => 1, quiet => 1, record_output => 1)) {
+        $ret .= $buf;
+    }
+
+    return $ret;
+}
+
+sub _cmd_run_impl {
+    my ($cmd, %args) = @_;
+
+    $args{timeout} //= $bmwqemu::default_timeout;
+    die "Terminator '&' found in cmd_run call. cmd_run can not check script success. Use 'background_script_run' instead."
+      if $cmd =~ m/(?<!\\)&\s*$/;
+
+    if (is_serial_terminal()) {
+        wait_serial(serial_terminal::serial_term_prompt(), no_regex => 1, quiet => 1, timeout => 5) or die 'Terminal not ready';
+    }
+
+    my $marker = hashed_string("CR" . $cmd . $args{timeout});
+    my $preface = "echo $marker";
+    my $delim = "echo $marker-\$?-";
+
+    unless (is_serial_terminal()) {
+        $preface .= " >/dev/$testapi::serialdev";
+        $cmd = "( $cmd ) | tee /dev/$testapi::serialdev";
+        $delim = "echo $marker-\${PIPESTATUS[0]}- >/dev/$testapi::serialdev";
+    }
+
+    $cmd = "$preface; $cmd; $delim";
+    type_string($cmd);
+
+    if (is_serial_terminal()) {
+        wait_serial($cmd, no_regex => 1, timeout => 1, quiet => 1, buffer_size => length($cmd) + 64) or die 'Terminal echo mismatch';
+        type_string("\n");
+    }
+    else {
+        send_key('ret');
+    }
+
+    my $output = wait_serial("$marker-\\d+-", timeout => $args{timeout}, quiet => 1, record_output => 1);
+    $autotest::current_test->take_screenshot() unless is_serial_terminal();
+
+    unless ($output) {
+        wait_serial(qr/$marker\r?\n/s, timeout => 1, quiet => 1);
+        die 'Command timed out';
+    }
+
+    $output =~ m/$marker\n(.*)$marker-(\d+)-/s;
+    return ($2, $1);
+}
+
+=head2 cmd_run
+
+ cmd_run($cmd [, timeout => $timeout])
+
+Run I<$cmd> in console and wait for its completion. In scalar context, return
+command exit code. In array context, return tuple (exit code, console output).
+
+=cut
+
+sub cmd_run {
+    my ($cmd, %args) = @_;
+    my $output = "Command: $cmd\n";
+    my @ret;
+
+    eval {
+        @ret = _cmd_run_impl($cmd, %args);
+    };
+
+    if ($@) {
+        my $log = _flush_console();
+
+        $output .= "Error: $@\n\nConsole output:\n$log";
+        $autotest::current_test->record_resultfile($cmd, $output, result => 'fail');
+        return wantarray ? (undef, undef) : undef;
+    }
+
+    $output .= "Exit code: ${ret[0]}\n\nConsole output:\n${ret[1]}";
+    $autotest::current_test->record_resultfile($cmd, $output, result => ($args{assert} && $ret[0] != 0) ? 'fail' : 'ok');
+    return wantarray ? @ret : $ret[0];
+}
+
+sub assert_cmd_run {
+    my ($cmd, %args) = @_;
+    $args{assert} = 1;
+    my @ret = cmd_run($cmd, %args);
+
+    die "Command '$cmd' timed out" unless defined $ret[0];
+    die "Command '$cmd' failed" unless $ret[0] == 0;
+    return wantarray ? @ret : $ret[0];
+}
+
+=head2 parse_json
+
+  parse_json(json => 'raw json structure reference', visisted => 'visited data
+      structure reference')
+
+Iterate raw json data structure recursively, skip visited data by referring to
+visited data structure and return handled json data reference. Any keys start 
+with underscore will be ignored in iteration, which can be used for comment or
+example. Argument json takes reference of the raw json data structure generate
+by decode_json, visited takes referecne of data structure which records data
+already visited to ensure no indefinite loop in iteration.
+
+=cut
+
+sub parse_json {
+    my %args = @_;
+    $args{json} //= '';
+    $args{visited} //= {};
+    die('JSON structure must be given') if (!$args{json});
+
+    if (ref $args{json}) {
+        my $addr = refaddr($args{json});
+        return if $args{visited}->{$addr};
+        $args{visited}->{$addr} = 1;
+        if (ref $args{json} eq 'HASH') {
+            my %next_hash;
+            while (my ($key, $value) = each(%{$args{json}})) {
+                next if $key =~ /^_/;
+                $next_hash{$key} = parse_json(json => $value, visited => {%{$args{visited}}});
+            }
+            return \%next_hash;
+        }
+        elsif (ref $args{json} eq 'ARRAY') {
+            my @next_array;
+            foreach my $element (@{$args{json}}) {
+                push(@next_array, parse_json(json => $element, visited => {%{$args{visited}}}));
+            }
+            return \@next_array;
+        }
+    }
+    return $args{json};
+}
+
+=head2 inspect_existing_issue
+
+  inspect_existing_issue(issuefile => 'relative path of json files to data folder,
+      issue => 'issues to be inspected separated by double hash ##', distri => 
+      'comma separated issue distri', version => 'comma separated issue version',
+      mode => 'comma separted issue mode')
+
+Inspect whether concerned issues are bug, feature or can be ignore. Only record
+bug as soft failure. Argument issuefile can take mulitple json files separated by
+comma which are used as reference to compare, issue takes issues to be inspected
+separated by double hash ##. User can also use setting JSON_REFERRAL_FILE to pass
+in comma separated json file path. Settings ISSUE_DISTRI, ISSUE_VERSION and
+ISSUE_MODE can also be used to specify the real distri, version and mode with which
+inspected issue is associated, they are separated by comma if multiple values are
+provided, for example, ISSUE_MODE=('transactional', 'traditional'). Key 'modes'
+is not mandatory in reference file data/virt_autotest/existing_issues_referral.json,
+if it does not exist or empty, any mode is matched. User can also pass in by using
+arguments distri, version and mode. Generally speaking, first find a distri match
+in all products of an issue by iteraing disris in ISSUE_DISTRI, second find a
+version match in all versions of a product by iterating versions in ISSUE_VERSION
+if there is a distri match(namley @existing_issue_version is not empty), at the
+last find a mode match in all modes of an issue by iteraing modes in ISSUE_MODE
+(empty @existing_issue_mode means any mode will be matched). There will be a final
+successful match if issue matches description, distri/version and mode all matched. 
+
+=cut
+
+sub inspect_existing_issue {
+    my %args = @_;
+    $args{issuefile} //= get_var('ISSUE_REFERRAL_FILE', 'virt_autotest/existing_issues_referral.json');
+    $args{issue} //= '';
+    $args{distri} //= get_var('ISSUE_DISTRI', get_required_var('DISTRI'));
+    $args{version} //= get_var('ISSUE_VERSION', get_required_var('VERSION'));
+    $args{mode} //= get_var('ISSUE_MODE', (is_transactional ? 'transactional' : 'traditional'));
+    die('Issue file in json and issue to be inspected must be given') if (!$args{issuefile} or !$args{issue});
+
+    my @issuefile = split(',', $args{issuefile});
+
+    my $ret = 0;
+    while (my ($index, $file) = each(@issuefile)) {
+        my $parsed_json_file = parse_json(json => decode_json(LWP::Simple::get(data_url($file))));
+        diag("JSON file $file content:\n" . Dumper($parsed_json_file));
+
+        my @issue_distri = split(',', $args{distri});
+        my @issue_version = split(',', $args{version});
+        my @issue_mode = split(',', $args{mode});
+        my @issues = split('##', $args{issue});
+        my @matched_issues = ();
+        foreach my $existing_issue (keys %$parsed_json_file) {
+            my $buffer = '';
+            foreach my $issue (@issues) {
+                my $existing_issue_description = $parsed_json_file->{$existing_issue}->{description};
+                my @existing_issue_distri = (keys %{$parsed_json_file->{$existing_issue}->{products}});
+                my @existing_issue_version = ();
+                my $version_matched = 0;
+                foreach my $distri (@issue_distri) {
+                    @existing_issue_version = @{$parsed_json_file->{$existing_issue}->{products}->{$distri}} if (grep { $_ eq $distri } @existing_issue_distri);
+                }
+                foreach my $version (@issue_version) {
+                    $version_matched = 1 if (grep { $_ eq $version } @existing_issue_version);
+                }
+                my @existing_issue_mode = ((exists $parsed_json_file->{$existing_issue}->{modes}) ? @{$parsed_json_file->{$existing_issue}->{modes}} : ());
+                my $mode_matched = 0;
+                foreach my $mode (@issue_mode) {
+                    $mode_matched = 1 if (grep { $_ eq $mode } @existing_issue_mode);
+                }
+                $mode_matched = 1 if (!@existing_issue_mode);
+                if (($issue =~ m#$existing_issue_description#img or $existing_issue_description =~ m#$issue#img) and $version_matched and $mode_matched) {
+                    $buffer .= $issue . "\n";
+                    push(@matched_issues, $existing_issue);
+                }
+            }
+            if ($buffer) {
+                if ($parsed_json_file->{$existing_issue}->{type} eq 'feature') {
+                    $ret += 1;
+                    record_info($existing_issue, $buffer);
+                } elsif ($parsed_json_file->{$existing_issue}->{type} eq 'ignore') {
+                    record_info("Ignoring issue:\n$buffer\n");
+                } else {
+                    $ret += 1;
+                    my $reference = "$existing_issue\n$buffer";
+                    record_soft_failure($reference);
+                }
+            }
+        }
+    }
+    return $ret;
+}
+
+=head2 dump_tasktrace
+
+dump_tasktrace triggers SysRq key combinations to:
+
+- Show a stack backtrace for all active CPUs.
+- Dump a list of current tasks and their information to your console.
+- Dump tasks that are in uninterruptible (blocked) state.
+
+See https://docs.kernel.org/admin-guide/sysrq.html
+
+=cut
+
+sub dump_tasktrace {
+    my $old_console = current_console();
+
+    select_console('root-console', await_console => 0);
+    send_key('alt-sysrq-l');
+    send_key('alt-sysrq-t');
+    send_key('alt-sysrq-w');
+    wait_serial(qr/sysrq: .*Show Blocked State/, timeout => 300);
+    send_key('ret');
+    select_console($old_console, await_console => 0);
+}
+
+=head2 show_all_disks
+
+Output information about all disks on system to facilitate convenient and quick
+information lookup on the fly without manual intervention.
+=cut
+
+sub show_all_disks {
+    record_info('Disk info', script_output('lsblk -p -o NAME,SIZE,FSTYPE,TYPE,MOUNTPOINT,WWN;ls -ahl /dev/disk/by-id;df -ah', proceed_on_failure => 1));
+}
+
+=head2 render_scc_url
+
+The SCC_URL is always generated from BUILD which might raise issue for image testing
+which has different BUILD number but still uses the same software repositories used
+by media from fresh installation. So registration url for image testing needs to be
+tweaked a bit to also use the same BUILD number as fresh installation, for example,
+starting from SLES 16.1 which provides transactional pre-built images, these images
+have different BUILD number but still use SLES 16.1 repositories build of which are
+reflected in BUILD_SLE.
+=cut
+
+sub render_scc_url {
+    my $test_build = get_required_var('BUILD');
+    my $main_build = (is_sle ? get_required_var('BUILD_SLE') : get_required_var('BUILD'));
+    my $scc_url = get_var('SCC_URL', 'https://scc.suse.com');
+    $scc_url =~ s/$test_build/$main_build/g if is_disk_image;
+    return $scc_url;
+}
+
+=head2 query_installed_packages
+
+  query_installed_packages(packages => 'package1,package2,package3')
+
+Query whether provided packages are all installed by using 'rpm -q'. Return 1 if
+all packages are already installed or 0 if any of them is not installed. The only
+argument is packages which accepts list of package names separated by comma.
+=cut
+
+sub query_installed_packages {
+    my %args = @_;
+    $args{packages} //= '';
+
+    croak('No packages to be checked') if (!$args{packages});
+    my $ret = 0;
+    $ret |= script_run("rpm -q $_") foreach (split(/,/, $args{packages}));
+    return ($ret ? 0 : 1);
 }
 
 1;

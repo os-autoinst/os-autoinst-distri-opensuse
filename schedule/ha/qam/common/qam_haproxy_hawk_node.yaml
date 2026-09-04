@@ -33,7 +33,7 @@ vars:
   DESKTOP: textmode
   USE_SUPPORT_SERVER: '1'
   HDD_SCC_REGISTERED: '1'
-  VIRTIO_CONSOLE: '0'
+  VIRTIO_CONSOLE: '1'
   HA_CLUSTER: '1'
   HAWKGUI_TEST_ROLE: 'server'
   QEMU_DISABLE_SNAPSHOTS: '1'
@@ -48,7 +48,7 @@ schedule:
   - console/check_os_release
   - console/hostname
   - ha/firewall_disable
-  - ha/iscsi_client
+  - ha/iscsi_client_setup
   - ha/watchdog
   - '{{cluster_setup}}'
   - ha/check_after_reboot

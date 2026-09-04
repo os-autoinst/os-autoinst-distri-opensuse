@@ -8,14 +8,13 @@
 #
 # Maintainer: elemental@suse.de
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use utils qw(file_content_replace);
 use version_utils qw(is_sle_micro);
+use Utils::Architectures qw(is_aarch64);
 
 =head2 get_filename
 
@@ -44,6 +43,12 @@ sub run {
     my $img_filename = "elemental-$build-$arch";
     my $shared = '/var/shared';
 
+    # Clean image filename (useful for cloned jobs)
+    $img_filename =~ tr/\/#/_/;
+
+    # Define timeouts based on the architecture
+    my $timeout = (is_aarch64) ? 960 : 480;
+
     # Set SELinux in permissive mode, as there is an issue with Enforcing mode and Elemental doesn't support it
     assert_script_run("setenforce Permissive");
 
@@ -51,7 +56,7 @@ sub run {
     assert_script_run("mkdir -p $shared");
 
     if (lc($flavor) =~ m/image/) {
-        assert_script_run("podman pull $image");
+        assert_script_run("podman pull $image", $timeout);
         assert_script_run("podman run --name $cnt_name -v $shared:/host:Z -dt $image sleep infinity");
 
         record_info('Kernel', 'Test that kernel files are present');
@@ -98,9 +103,9 @@ sub run {
             # Create and upload QCOW2 image (forced to 20GB to allow enough space for creating active partition)
             my $build_opts = is_sle_micro('<6.0') ? "--unprivileged dir:/" : "--system dir:/";
             my $build_raw_cmd = "elemental --debug build-disk --expandable --squash-no-compression --name $img_filename --cloud-init /host/*.yaml --output /host $build_opts";
-            assert_script_run("podman exec $cnt_name /bin/sh -c '$build_raw_cmd'");
-            assert_script_run("qemu-img convert -f raw -O qcow2 $shared/$img_filename.raw $shared/$img_filename.qcow2");
-            assert_script_run("qemu-img resize $shared/$img_filename.qcow2 20G");
+            assert_script_run("podman exec $cnt_name /bin/sh -c '$build_raw_cmd'", $timeout);
+            assert_script_run("qemu-img convert -f raw -O qcow2 $shared/$img_filename.raw $shared/$img_filename.qcow2", $timeout);
+            assert_script_run("qemu-img resize $shared/$img_filename.qcow2 20G", $timeout);
             upload_asset("$shared/$img_filename.qcow2", 1);
         }
     }
@@ -108,7 +113,7 @@ sub run {
     if (lc($flavor) =~ m/iso/) {
         # Create and upload ISO image
         record_info('ISO', 'Generate and upload ISO');
-        assert_script_run("podman run --rm -v $shared:/host:Z $image /bin/sh -c 'busybox cp /elemental-iso/*.iso /host/$img_filename.iso'");
+        assert_script_run("podman run --rm -v $shared:/host:Z $image /bin/sh -c 'busybox cp /elemental-iso/*.iso /host/$img_filename.iso'", $timeout);
         upload_asset("$shared/$img_filename.iso", 1);
     }
 }

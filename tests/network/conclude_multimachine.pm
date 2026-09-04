@@ -6,9 +6,7 @@
 # Summary: Waits for parallel children to finish
 # Maintainer: Marius Kittler <mkittler@suse.de>
 
-use base 'basetest';
-use strict;
-use warnings;
+use Mojo::Base 'basetest';
 use testapi;
 use mmapi;
 

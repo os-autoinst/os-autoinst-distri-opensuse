@@ -17,12 +17,18 @@ use utils 'script_retry';
 
 # clean up routine only for systems that run CNI as default network backend
 sub _cleanup {
-    my $podman = shift->containers_factory('podman');
-    select_console 'log-console';
+    my ($self, %args) = @_;
+    my $podman = $self->containers_factory('podman');
     $podman->cleanup_system_host();
 
     my $registry_ipv4 = script_output('dig +short registry.opensuse.org A | grep -v suse');
     assert_script_run("iptables -D OUTPUT -d $registry_ipv4 -j DROP");
+
+    # only view log-console on failure, poo#204498 - tty5 can be blanked
+    # after sitting idle for the whole test and never wakes up in time.
+    # eval-wrapped so a stall there can't crash the hook after the network
+    # cleanup above already ran.
+    eval { select_console 'log-console' } if $args{show_log};
 }
 
 sub run {
@@ -46,7 +52,7 @@ sub run {
     assert_script_run("iptables -A OUTPUT -d $registry_ipv4 -j DROP");
     validate_script_output('iptables -L OUTPUT', sub { m/$registry_ipv4/g });
     # Test that access to openSUSE registry no longer works via IPv4
-    script_retry("!curl -sSf4 https://registry.opensuse.org/v2/", delay => 25, retry => 4);
+    assert_script_run("!curl -sSf4 https://registry.opensuse.org/v2/");
     # Test that access to openSUSE registry still works (IPv6 should work)
     script_retry('curl -sSf https://registry.opensuse.org/v2/', delay => 25, retry => 4);
     # Pull image from openSUSE registry (over IPv6 now)
@@ -90,7 +96,11 @@ sub post_run_hook {
 }
 sub post_fail_hook {
     script_run("sysctl -a | grep --color=never net");
-    shift->_cleanup();
+    shift->_cleanup(show_log => 1);
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

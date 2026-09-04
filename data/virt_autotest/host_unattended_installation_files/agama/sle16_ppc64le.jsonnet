@@ -1,0 +1,132 @@
+local version_to_install = '{{VERSION_TO_INSTALL}}';
+local raw_version = if version_to_install == '' || std.length(std.findSubstr('VERSION_TO_INSTALL', version_to_install)) > 0 then '{{VERSION}}' else version_to_install;
+local version = if std.length(std.findSubstr('VERSION', raw_version)) > 0 then -999 else std.parseJson(raw_version);
+local transactional = '{{TRANSACTIONAL}}';
+local agama_product_mode = if transactional == '1' then 'immutable' else 'standard';
+
+{
+  product: {
+    id: 'SLES',
+    registrationCode: '{{SCC_REGCODE}}',
+    [if version >= 16.1 then "mode"]: agama_product_mode
+  },
+  user: {
+    userName: 'bernhard',
+    fullName: "Bernhard M. Wiedemann",
+    password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
+    hashedPassword: true
+  },
+  root: {
+    password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
+    hashedPassword: true,
+    sshPublicKey: '{{_SECRET_ED25519_PUB_KEY}}'
+  },
+  bootloader: {
+    "timeout": 120
+  },
+  "storage": {
+    "drives": [
+      {
+        "partitions": [
+          {
+            "search": { "ifNotFound": "skip" },
+            "delete": true
+          },
+          {
+            "filesystem": { "path": "/" },
+            "size": { "min": "20 GiB" }
+          },
+          {
+            "filesystem": { "path": "swap" },
+            "size": "4 GiB"
+          },
+          {
+            "filesystem": { "path": "/home" },
+            "size": "6 GiB"
+          }
+        ]
+      }
+    ]
+  },
+  software: {
+      patterns: {
+        add: [
+          'kvm_server',
+          'kvm_tools'
+        ],
+      },
+      packages: [
+        'openssh-server-config-rootlogin',
+        'virt-bridge-setup'
+      ]
+  },
+  scripts: {
+    pre: [
+      {
+        name: 'wipefs',
+        content: |||
+          #!/usr/bin/env bash
+          for i in `lsblk -n -l -o NAME -d -e 7,11,254`
+              do wipefs -af /dev/$i
+              sleep 1
+              sync
+          done
+        |||
+      }
+    ],
+    post: [
+      {
+        name: "config_sshd",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
+          echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > $sshd_config_file
+        |||
+      },
+      {
+        name: "enable_persistent_journal_logging",
+        content: |||
+          #!/usr/bin/env bash
+          echo -e "[Journal]\nStorage=persistent" > /etc/systemd/journald.conf.d/01-virt-test.conf
+        |||
+      },
+      {
+        name: "Configure_ssh_client",
+        content: |||
+          #!/usr/bin/env bash
+          ssh_config_dir="/etc/ssh/ssh_config.d"
+          mkdir -p $ssh_config_dir
+          ssh_config_file="$ssh_config_dir/01-virt-test.conf"
+          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null\nLogLevel ERROR" > $ssh_config_file
+          chmod 644 "$ssh_config_file"
+        |||
+      },
+      {
+        name: "Setup_root_ssh_keys",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          mkdir -p -m 700 /root/.ssh
+          echo '{{_SECRET_ED25519_PRIV_KEY}}' > /root/.ssh/id_ed25519
+          # Replace '9A' with carriage and return as openqa setting doesn't allow a value in multiple lines
+          sed -i 's/9A/\n/g' /root/.ssh/id_ed25519
+          chmod 600 /root/.ssh/id_ed25519
+          echo '{{_SECRET_ED25519_PUB_KEY}}' > /root/.ssh/id_ed25519.pub
+        |||
+      },
+      {
+        name: 'turn_on_modular_libvirt_debug_logging',
+        chroot: true,
+        content: |||
+          for daemon in qemu storage network nodedev secret ; do
+            config_file=/etc/libvirt/virt${daemon}d.conf
+            log_file=/var/log/libvirt/virt${daemon}d.log
+            sed -i "/^[# ]*log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs = \"1:file:${log_file}\"%};\${x;/^\$/{s%%log_outputs = \"1:file:${log_file}\"%;H};x}" $config_file
+            sed -i "/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}" $config_file
+          done
+        |||
+      }
+    ]
+  }
+}

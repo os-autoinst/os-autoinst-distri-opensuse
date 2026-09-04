@@ -10,11 +10,9 @@
 # - Display the exclusive space used by each snapshot
 # - Query the exclusive space when data is included in a single snapshot
 # - Query the exclusive space when data is included in several snapshots (pre- and post-)
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'btrfs_test';
-use strict;
-use warnings;
+use Mojo::Base 'btrfs_test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_leap';
@@ -89,6 +87,10 @@ sub run {
     ensure_size_displayed;
     query_space_single_snapshot;
     query_space_several_snapshot;
+}
+
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
 }
 
 1;

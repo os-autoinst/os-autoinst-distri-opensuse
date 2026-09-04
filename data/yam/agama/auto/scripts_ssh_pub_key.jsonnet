@@ -1,18 +1,17 @@
 {
+  bootloader: {
+    stopOnBootMenu: true,
+  },
   root: {
     sshPublicKey: 'fake public key to enable sshd and open firewall',
   },
   scripts: {
     pre: [
       {
-        name: 'wipefs',
+        name: 'disable questions',
         content: |||
           #!/usr/bin/env bash
-          for i in `lsblk -n -l -o NAME -d -e 7,11,254`
-              do wipefs -af /dev/$i
-              sleep 1
-              sync
-          done
+          agama questions mode non-interactive
         |||
       }
     ],

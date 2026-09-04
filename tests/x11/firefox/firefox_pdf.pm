@@ -16,15 +16,13 @@
 # - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
-use strict;
-use warnings;
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {
     my ($self) = @_;
     $self->start_firefox_with_profile;
-    $self->firefox_open_url('http://www.gnupg.org/gph/en/manual.pdf', assert_loaded_url => 'firefox-pdf-load');
+    $self->firefox_open_url('https://www.gnupg.org/documentation/manuals/gnupg.pdf', assert_loaded_url => 'firefox-pdf-load');
 
     sleep 1;
     for my $i (1 .. 2) { assert_and_click 'firefox-pdf-zoom_out_button'; }

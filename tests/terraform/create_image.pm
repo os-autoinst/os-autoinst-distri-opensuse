@@ -8,10 +8,8 @@
 # Maintainer: Jose Lausuch <jalausuch@suse.com>
 
 
-use base 'opensusebasetest';
-use strict;
+use Mojo::Base 'opensusebasetest';
 use testapi;
-use warnings;
 use utils 'systemctl';
 use version_utils qw(is_sle is_tumbleweed is_leap);
 

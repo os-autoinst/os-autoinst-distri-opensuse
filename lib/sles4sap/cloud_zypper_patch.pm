@@ -11,6 +11,7 @@ use warnings FATAL => 'all';
 use testapi;
 use Carp qw(croak);
 use Exporter qw(import);
+use Mojo::JSON qw( decode_json );
 use mmapi qw(get_current_job_id);
 use sles4sap::azure_cli;
 use publiccloud::utils qw(get_ssh_private_key_path);
@@ -26,8 +27,10 @@ our @EXPORT = qw(
   zp_azure_destroy
   zp_azure_netpeering
   zp_ssh_connect
-  zp_add_repos
+  zp_repos_add
   zp_zypper_patch
+  zp_scc_check
+  zp_scc_register
 );
 
 use constant DEPLOY_PREFIX => 'zp';
@@ -59,7 +62,7 @@ Create a deployment in Azure designed for this specific test.
 3. Create one Public IP
 4. Create 1 VM
 
-=over 2
+=over
 
 =item B<region> - existing resource group
 
@@ -111,9 +114,9 @@ sub zp_azure_deploy {
 
 Destroy the deployment by deleting the resource group and created network peering
 
-=over 1
+=over
 
-=item B<target_rg> - (optional) name of the resource group of the IBSm
+=item B<ibsm_rg> - (optional) name of the resource group of the IBSm
 
 =back
 =cut
@@ -123,23 +126,23 @@ sub zp_azure_destroy {
     my $rg = zp_azure_resource_group();
     az_group_delete(name => $rg, timeout => 600);
 
-    if ($args{target_rg}) {
-        my $target_vnet = az_network_vnet_get(resource_group => $args{target_rg});
+    if ($args{ibsm_rg}) {
+        my $target_vnet = az_network_vnet_get(resource_group => $args{ibsm_rg});
         my $target_vnet_name = @$target_vnet[0];
         az_network_peering_delete(
-            name => zp_ibsm2sut_peering_name(target_rg => $args{target_rg}, target_vnet_name => $target_vnet_name),
-            resource_group => $args{target_rg},
+            name => zp_ibsm2sut_peering_name(target_rg => $args{ibsm_rg}, target_vnet_name => $target_vnet_name),
+            resource_group => $args{ibsm_rg},
             vnet => $target_vnet_name);
     }
 }
 
 =head2 zp_ibsm2sut_peering_name
 
-    my $peering_name = zp_ibsm2sut_peering_name(target_rg => get_required_var('ZP_IBSM_RG'));
+    my $peering_name = zp_ibsm2sut_peering_name(target_rg => get_required_var('IBSM_RG'));
 
 Get the Azure resource group name for this test
 
-=over 2
+=over
 
 =item B<target_rg> - name of the resource group of the IBSm
 
@@ -150,7 +153,7 @@ Get the Azure resource group name for this test
 
 sub zp_ibsm2sut_peering_name {
     my (%args) = @_;
-    croak("Argument < target_rg > missing") unless $args{target_rg};
+    croak('Argument < target_rg > missing') unless $args{target_rg};
     my $target_vnet_name;
     if ($args{target_vnet_name}) {
         $target_vnet_name = $args{target_vnet_name};
@@ -164,9 +167,9 @@ sub zp_ibsm2sut_peering_name {
 
 =head2 zp_azure_netpeering
 
-    zp_azure_netpeering(target_rg => get_required_var('ZP_IBSM_RG'))
+    zp_azure_netpeering(target_rg => get_required_var('IBSM_RG'))
 
-=over 1
+=over
 
 =item B<target_rg> - name of the resource group of the IBSm
 
@@ -175,7 +178,7 @@ sub zp_ibsm2sut_peering_name {
 
 sub zp_azure_netpeering {
     my (%args) = @_;
-    croak("Argument < target_rg > missing") unless $args{target_rg};
+    croak('Argument < target_rg > missing') unless $args{target_rg};
 
     my $rg = zp_azure_resource_group();
 
@@ -216,19 +219,29 @@ sub zp_ssh_connect {
     assert_script_run("ssh $user\@$pubip_addr whoami | grep $user");
 }
 
-=head2 zp_add_repos
+=head2 zp_repos_add
 
-    zp_add_repos()
+    zp_repos_add()
 
 Add MU repos to the zypper list
+
+=over
+
+=item B<ip> - IBSm IP
+
+=item B<name> - hostname of the download server
+
+=item B<repos> - array of repos. It could be an empty list.
+
+=back
 =cut
 
-sub zp_add_repos {
+sub zp_repos_add {
     my (%args) = @_;
-    foreach (qw(ip name repos)) {
+    foreach (qw(ip name)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
+    croak("Argument 'repos' must be an array reference") unless (exists $args{repos} && ref($args{repos}) eq 'ARRAY');
 
-    my @repos = split(/,/, $args{repos});
     my $count = 0;
     my $pubip_addr = az_network_publicip_get(
         resource_group => zp_azure_resource_group(),
@@ -246,10 +259,10 @@ sub zp_add_repos {
         "'sudo cat /etc/hosts'");
     assert_script_run($cmd);
 
-    while (defined(my $maintrepo = shift @repos)) {
+    foreach my $maintrepo (@{$args{repos}}) {
         next if $maintrepo =~ /^\s*$/;
         if ($maintrepo =~ /Development-Tools/ or $maintrepo =~ /Desktop-Applications/) {
-            record_info("MISSING REPOS",
+            record_info('MISSING REPOS',
                 "There are repos in this incident, that are not uploaded to IBSM. ($maintrepo). Later errors, if they occur, may be due to these.");
             next;
         }
@@ -280,6 +293,67 @@ sub zp_zypper_patch {
         "$user\@$pubip_addr",
         "'sudo zypper --non-interactive patch --auto-agree-with-licenses --no-recommends'");
     assert_script_run($cmd);
+}
+
+=head2 zp_scc_check
+
+    my $is_registered = zp_scc_check();
+
+Check if the OS is registered by calling SUSEConnect -s.
+Return 1 if all modules are registered, 0 if at least one is not.
+
+=cut
+
+sub zp_scc_check {
+    # Initially suppose is registered
+    my $registered = 1;
+    my $pubip_addr = az_network_publicip_get(
+        resource_group => zp_azure_resource_group(),
+        name => $pub_ip);
+    my $cmd = join(' ', 'ssh',
+        "$user\@$pubip_addr",
+        'sudo SUSEConnect -s');
+    my $json = decode_json(script_output($cmd));
+    foreach (@$json) {
+        if ($_->{status} =~ '^Not Registered') {
+            $registered = 0;
+            last;
+        }
+    }
+    return $registered;
+}
+
+=head2 zp_scc_register
+
+    zp_scc_register(scc_code => '1234567890');
+
+Register the image. (For the moment) it only supports registercloudguest endpoint.
+Notice that this library also supports registration through
+ipaddr2_infra_deploy by adding couple of lines to cloud-init configuration file.
+
+=over
+
+=item B<scc_code> - registration code
+
+=back
+=cut
+
+sub zp_scc_register {
+    my (%args) = @_;
+    croak('Argument < scc_code > missing') unless $args{scc_code};
+
+    my $pubip_addr = az_network_publicip_get(
+        resource_group => zp_azure_resource_group(),
+        name => $pub_ip);
+    my $cmd = join(' ', 'ssh',
+        "$user\@$pubip_addr",
+        "'sudo registercloudguest --clean'");
+    assert_script_run($cmd);
+
+    $cmd = join(' ', 'ssh',
+        "$user\@$pubip_addr",
+        "'sudo registercloudguest --force-new -r \"$args{scc_code}\"'");
+    assert_script_run($cmd, timeout => 360);
 }
 
 1;

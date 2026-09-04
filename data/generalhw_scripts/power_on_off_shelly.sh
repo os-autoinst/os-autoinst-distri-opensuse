@@ -14,8 +14,10 @@ shelly_ip=$1
 state=$2
 
 echo "$0: Setting shelly $shelly_ip output $state"
-res=$(curl -s "http://${shelly_ip}/relay/0?turn=${state}")
+res=$(curl --no-progress-meter "http://${shelly_ip}/relay/0?turn=${state}")
 if ! echo "$res" | grep -q "ison" ; then
+	echo "ERROR: Failed to set shelly $shelly_ip to $state"
+	echo "Server response: '$res'"
 	exit 1
 fi
 test "$state" == "on" && expected_ison="true"

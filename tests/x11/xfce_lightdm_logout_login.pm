@@ -7,9 +7,7 @@
 # Summary: log out, check lightdm-gtk-greeter and log in again
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

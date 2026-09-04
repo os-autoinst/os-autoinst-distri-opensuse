@@ -18,12 +18,10 @@
 # - Cleanup
 # Maintainer: Leon Guo <xguo@suse.com>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_autotest::virtual_storage_utils;
 use virt_autotest::utils;
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use utils;
 use virt_utils;

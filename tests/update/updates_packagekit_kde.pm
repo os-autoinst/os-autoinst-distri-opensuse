@@ -7,9 +7,7 @@
 # Summary: Packagekit updates using kde applet
 # Maintainer: mkravec <mkravec@suse.com>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use utils;
 use testapi;
 use x11utils qw(ensure_unlocked_desktop turn_off_kde_screensaver);
@@ -38,7 +36,7 @@ sub run {
                 select_console 'x11', await_console => 0;
                 last;
             }
-            assert_screen_change { assert_and_click('updates_click-install'); };
+            assert_screen_change { assert_and_click('updates_click-install', timeout => 90); };
             assert_screen [qw(updates_click-install pkit_installing_state)];
             # Discover needs an additional confirmation
             if (match_has_tag 'updates_click-install') {
@@ -52,11 +50,17 @@ sub run {
             do {
                 # wait if pkit is installing updates, no need to check status every second
                 sleep 60 if match_has_tag('pkit_installing_state');
+
+                # Handle popup asking to confirm changes
+                click_lastmatch if match_has_tag('updates_click-install');
                 # Check for needles matching the end of the update installation.
                 die "Installing updates took over " . ($timeout / 3600) . " hour(s)." if (time - $start_time > $timeout);
-                assert_screen \@updates_installed_tags, 3600;
+                check_screen \@updates_installed_tags, 30;
+
+                last if match_has_tag('updates_none');
+
                 # Make sure that the match was not false, and that the installing panel is not still up
-            } while (check_screen([qw(pkit_installing_state updates_waiting)]));
+            } while (check_screen([qw(pkit_installing_state updates_waiting updates_click-install)]));
             # Make sure the applet has fetched the current status from the backend
             # and has finished redrawing. In case the update status changed after
             # the assert_screen, record a soft failure

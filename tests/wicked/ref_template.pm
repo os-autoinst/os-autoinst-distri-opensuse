@@ -9,9 +9,7 @@
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 
-use base 'wickedbase';
-use strict;
-use warnings;
+use Mojo::Base 'wickedbase';
 use testapi;
 
 sub run {

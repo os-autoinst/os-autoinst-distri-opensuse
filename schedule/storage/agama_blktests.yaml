@@ -1,0 +1,23 @@
+---
+name: agama-blktests
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    LTP_BAREMETAL: '1'
+schedule:
+- '{{boot}}'
+- installation/agama_reboot
+- installation/grub_test
+- installation/first_boot
+- kernel/update_kernel
+- console/system_prepare
+- console/consoletest_setup
+- console/hostname
+- console/textinfo
+- console/consoletest_finish
+- kernel/blktests
+- shutdown/shutdown
+conditional_schedule:
+    boot:
+        IPXE:
+            1:
+                - installation/bootloader_start

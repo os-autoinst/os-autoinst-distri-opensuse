@@ -8,11 +8,9 @@
 #          - Verificaiton of FCP devices
 #          - Verification of LUNs visible as SCSI devices
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use scheduler 'get_test_suite_data';
 use utils qw(arrays_subset);

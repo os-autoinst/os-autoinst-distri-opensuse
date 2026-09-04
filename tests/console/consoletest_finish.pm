@@ -15,12 +15,10 @@
 # - if not in textmode, then ensure that desktop is unlocked
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Utils::Architectures;
 use utils;
-use strict;
-use warnings;
 use x11utils 'ensure_unlocked_desktop';
 use Utils::Logging 'export_logs';
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);

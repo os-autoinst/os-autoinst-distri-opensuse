@@ -11,12 +11,11 @@
 # - Close glxgears
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {
+    select_console 'x11';
     ensure_installed 'Mesa-demo-x';
     # 'no_wait' for screen check because glxgears will be always moving
     x11_start_program('glxgears', match_no_wait => 1);

@@ -23,7 +23,7 @@
 #
 # Maintainer: Maurizio Galli <maurizio.galli@suse.com>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

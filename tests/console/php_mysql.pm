@@ -20,12 +20,11 @@
 # - Drop created database
 # Maintainer: QE Core <qe-core@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_leap php_version);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use apachetest;
@@ -36,7 +35,7 @@ sub run {
     my ($php, $php_pkg, $php_ver) = php_version();
     setup_apache2(mode => uc($php));
     # install requirements
-    zypper_call "in $php-mysql mysql sudo";
+    install_package("$php-mysql mysql sudo", trup_reboot => 1);
 
     systemctl 'restart mysql', timeout => 300;
 

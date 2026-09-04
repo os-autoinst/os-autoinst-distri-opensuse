@@ -5,7 +5,7 @@
 
 # Package: podman
 # Summary: Test podman-remote functionality
-# Maintainer: qe-c <qe-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'containers::basetest';
 use testapi;
@@ -92,6 +92,10 @@ sub post_run_hook {
 sub post_fail_hook {
     my ($self) = @_;
     $self->cleanup();
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

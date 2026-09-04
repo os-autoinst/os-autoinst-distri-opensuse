@@ -1,0 +1,37 @@
+From d8fb2782d781858cda1e98c4b97dbfe581f35138 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 2 Apr 2026 19:32:33 +0200
+Subject: [PATCH] tests: Remove obsolete podman 3.1 skip markers
+
+Unskip corrupt_load and network_prune integration tests
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ podman/tests/integration/test_images.py   | 1 -
+ podman/tests/integration/test_networks.py | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/podman/tests/integration/test_images.py b/podman/tests/integration/test_images.py
+index 48bf38dc..4ae791f5 100644
+--- a/podman/tests/integration/test_images.py
++++ b/podman/tests/integration/test_images.py
+@@ -140,7 +140,6 @@ def test_search(self):
+         # Just check that it doesn't throw an exception and move on.
+         self.client.images.search("alpine")
+ 
+-    @unittest.skip("Needs Podman 3.1.0")
+     def test_corrupt_load(self):
+         with self.assertRaises(APIError) as e:
+             next(self.client.images.load(b"This is a corrupt tarball"))
+diff --git a/podman/tests/integration/test_networks.py b/podman/tests/integration/test_networks.py
+index 76e9b854..f6e4875a 100644
+--- a/podman/tests/integration/test_networks.py
++++ b/podman/tests/integration/test_networks.py
+@@ -105,7 +105,6 @@ def test_network_connect(self):
+             post_count = network.containers
+             self.assertGreater(pre_count, post_count)
+ 
+-    @unittest.skip("Requires Podman 3.1")
+     def test_network_prune(self):
+         network = self.client.networks.create(
+             "integration_test",

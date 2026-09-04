@@ -320,7 +320,7 @@ sub power_action {
     my $shutdown_timeout = 60;
 
     if (is_sle('15-sp1+') && check_var('DESKTOP', 'textmode') && ($action eq 'poweroff')) {
-        $soft_fail_data = {bugref => 'bsc#1158145', soft_timeout => 60, timeout => $shutdown_timeout *= 3};
+        $soft_fail_data = {bugref => 'bsc#1158145', soft_timeout => 60, timeout => $shutdown_timeout *= 4};
     }
 
     # Shutdown takes longer than 60 seconds on SLE12 SP4 and SLE 15
@@ -357,7 +357,12 @@ sub power_action {
             systemctl 'poweroff';
         }
 
-        assert_shutdown_with_soft_timeout($soft_fail_data) if ($action eq 'poweroff');
+        if ($action eq 'poweroff') {
+            # Swicth back to mgmt console then video can capture some logs in case shutdown fails on PVM setup
+            reconnect_mgmt_console if is_pvm;
+            assert_shutdown_with_soft_timeout($soft_fail_data);
+        }
+
         # We should only reset consoles if the system really rebooted.
         # Otherwise the next select_console will check for a login prompt
         # instead of handling the still logged in system.

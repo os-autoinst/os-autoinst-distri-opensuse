@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2026 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Smoke test for multipath over iscsi
@@ -8,11 +8,10 @@
 # - Start iscsid and multipathd services and check status
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
+use package_utils 'install_package';
 use iscsi;
 use serial_terminal 'select_serial_terminal';
 
@@ -27,7 +26,7 @@ sub run {
     ping_size_check($target);
 
     # Install iscsi and make sure multipath-tools are installed
-    zypper_call("in open-iscsi multipath-tools");
+    install_package('open-iscsi multipath-tools', trup_apply => 1);
 
     # Start isci and multipath services
     systemctl 'start iscsid';

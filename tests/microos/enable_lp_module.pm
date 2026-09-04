@@ -6,9 +6,7 @@
 # Summary: Enable Live Patching module in SLE Micro
 # Maintainer: qa-c@suse.de
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils qw(zypper_call);

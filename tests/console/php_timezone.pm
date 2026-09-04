@@ -8,9 +8,7 @@
 # Maintainer: QE Core <qe-core@suse.com>
 
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';

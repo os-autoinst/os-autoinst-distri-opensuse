@@ -28,7 +28,8 @@ C<Utils::Git> - Library for various git related functions
         depth=>1,
         single_branch=>1,
         skip_ssl_verification=>'true',
-        output_log_file=>'git_clone.log']);
+        output_log_file=>'git_clone.log',
+        target_dir => '/path/to/repo/dir']);
 
 B<repository>: Git repository url. Mandatory argument.
 
@@ -45,6 +46,8 @@ B<skip_ssl_verification>: Disable SSL verification. Can be useful in case of sel
 
 B<output_log_file>: Log output into a file.
 
+B<target_dir>: Clone into specific directory. Directory will be created, must be empty.
+
 Generic wrapper around C<git clone> command. Supports basic set of switches and output logging.
 
 =cut
@@ -54,24 +57,26 @@ sub git_clone {
     croak 'Missing mandatory argument "repository"' unless $repository;
 
     # Base command
-    my $git_cmd = 'git clone';
-
-    # Skip SSL verification
-    $git_cmd =~ s/git/git -c http.sslVerify=false/ if $args{skip_ssl_verification};
-
+    my @git_cmd = ('git');
+    # Skip SSL verification - must be between  'git' and 'clone'
+    push @git_cmd, '-c http.sslVerify=false' if $args{skip_ssl_verification};
+    push @git_cmd, 'clone';
     # Checkout branch
-    $git_cmd .= " --branch $args{branch}" if $args{branch};
-
+    push @git_cmd, "--branch $args{branch}" if $args{branch};
     # Pro tip: cloning with --single-branch and --depth=1 gives you infinite cloning speed boost.
     # Clone single branch
-    $git_cmd .= " --single-branch" if $args{single_branch};
+    push @git_cmd, '--single-branch' if $args{single_branch};
+    # Shallow clone
+    push @git_cmd, "--depth $args{depth}" if $args{depth};
+    push @git_cmd, $repository;
 
-    # Shallow clone -  add --depth option
-    $git_cmd .= " --depth $args{depth}" if $args{depth};
+    # Append target directory - must be last argument
+    if ($args{target_dir}) {
+        assert_script_run("mkdir -p $args{target_dir}");
+        push @git_cmd, $args{target_dir};
+    }
 
-    # Append repository
-    $git_cmd .= " $repository";
-
+    my $git_cmd = join(' ', @git_cmd);
     # Enable logging
     $git_cmd = "set -o pipefail; $git_cmd 2>&1 | tee $args{output_log_file}" if $args{output_log_file};
 

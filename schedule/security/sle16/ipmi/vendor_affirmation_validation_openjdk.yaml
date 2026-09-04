@@ -1,0 +1,14 @@
+name: fips_crypt_openjdk
+description:    >
+    This is for the crypt_openjdk fips tests.
+schedule:
+    - boot/boot_to_desktop
+    - '{{repo_setup}}'
+    - fips/fips_setup
+    - fips/openjdk/prepare_env
+    - fips/openjdk/openjdk_fips
+conditional_schedule:
+    repo_setup:
+        BETA:
+            1:
+                - security/test_repo_setup

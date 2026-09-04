@@ -5,11 +5,9 @@
 
 # Summary: Validate that a RAID multi-disk is directly formatted with an
 # encrypted home (md is not partitioned).
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Mojo::JSON qw(decode_json);
 use scheduler 'get_test_suite_data';

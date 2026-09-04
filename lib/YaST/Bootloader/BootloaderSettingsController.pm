@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Controller for YaST bootloader module.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::Bootloader::BootloaderSettingsController;
 use strict;
@@ -98,6 +98,13 @@ sub disable_grub_timeout {
     my ($self) = @_;
     $self->get_boot_code_options_page->switch_to_bootloader_options_tab();
     $self->get_bootloader_options_page->set_grub_timeout('-1');
+    $self->get_bootloader_options_page->press_next();
+}
+
+sub bls_disable_timeout {
+    my ($self) = @_;
+    $self->get_boot_code_options_page->switch_to_bootloader_options_tab();
+    $self->get_bootloader_options_page->bls_disable_timeout();
     $self->get_bootloader_options_page->press_next();
 }
 

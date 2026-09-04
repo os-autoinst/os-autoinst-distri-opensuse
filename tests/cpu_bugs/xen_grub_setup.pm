@@ -10,9 +10,7 @@
 # - upload configuration
 # Maintainer: An Long <lan@suse.com>
 
-use warnings;
-use strict;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use bootloader_setup qw(replace_grub_cmdline_settings add_grub_cmdline_settings);

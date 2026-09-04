@@ -20,37 +20,33 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: TC1595169, poo#46880, poo#65375, poo#80182
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
+use package_utils 'install_package';
+use transactional 'reboot_on_changes';
 use version_utils qw(is_jeos is_opensuse is_sle);
 
+my $test_dir = "/var/lib/clamav/eicar_test_files";
+
 sub scan_and_parse {
-    my $re = 'm/(eicar_test_files\/eicar.(pdf|txt|zip): Eicar-Test-Signature FOUND\n)+(\n.*)+Infected files: 3(\n.*)+/';
-    my $cmd = shift;
+    my ($cmd) = @_;
     my $log_file = "$cmd.log";
 
-    script_run "$cmd -i --log=$log_file eicar_test_files", 300;
-    validate_script_output("cat $log_file", sub { $re });
+    script_run "$cmd -i --log=$log_file $test_dir", 900;
+    validate_script_output "cat $log_file", sub {
+        /Infected files:\s+3/ && /Eicar.*FOUND/;
+    };
     script_run "rm -f $log_file";
 }
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in clamav');
+    install_package('clamav', trup_reboot => 1);
     zypper_call('info clamav');
-
-    # only skip on maintenance if FIPS is enabled
-    if (is_sle('>=15-SP6') && check_var('FIPS_ENABLED', '1') && (check_var('BETA', '0') || !get_var('BETA'))) {
-        record_info('SKIPPING TEST', "Skipping test due to bsc#1221954");
-        return;
-    }
-
     # Create a random file
     assert_script_run "dd if=/dev/urandom of=/usr/local/bin/maybeavirus bs=1M count=1";
     assert_script_run "chmod +x /usr/local/bin/maybeavirus";
@@ -62,6 +58,11 @@ sub run {
 
     if (is_sle('>=15-SP3') && ($current_ver < 0.101)) {
         record_soft_failure("jsc#SLE-16780: upgrade Clamav SLE feature is not yet released");
+    }
+    # Softfail until BSC1258122 resolved
+    elsif (get_var('FIPS_ENABLED') && (is_sle('=15-SP5') || is_sle('=15-SP4'))) {
+        record_soft_failure("Softfail clamav on SLE 15.4 and 15.5 due to bsc#1258122");
+        return;
     }
 
     # Initialize and download ClamAV database
@@ -102,18 +103,25 @@ sub run {
     # Create md5, sha1 and sha256 Hash-based signatures
     # Assume /usr/local/bin/maybeavirus is an virus program and add its
     # signature to viruses database, then scan the virus
-    for my $alg (qw(md5 sha1 sha256)) {
+    #
+    # Base hashes always allowed
+    my @hashes = qw(sha1 sha256);
+    # MD5 is not allowed in FIPS mode
+    push @hashes, 'md5' unless check_var('FIPS_ENABLED', '1');
+    for my $alg (@hashes) {
         assert_script_run "sigtool --$alg /usr/local/bin/maybeavirus > test.hdb";
+        # https://progress.opensuse.org/issues/183761#note-45
+        wait_serial($testapi::distri->{serial_term_prompt}, timeout => 5, quiet => 1) if is_aarch64;
         enter_cmd "clamscan -d test.hdb  /usr/local/bin/maybeavirus | tee /dev/$serialdev";
         die "Virus scan result was not expected" unless (wait_serial qr/maybeavirus\.UNOFFICIAL FOUND.*Known viruses: 1/ms);
     }
 
     # test 3 different file formats containing the EICAR signature
-    assert_script_run "mkdir eicar_test_files";
-    my $rel_path;
+    assert_script_run "mkdir -p $test_dir";
     for my $ext (qw(pdf txt zip)) {
-        $rel_path = "eicar_test_files/eicar.$ext";
-        assert_script_run("curl -o $rel_path " . data_url("$rel_path"));
+        my $asset = "eicar_test_files/eicar.$ext";
+        my $dest = "$test_dir/eicar.$ext";
+        assert_script_run("curl -f -o $dest " . data_url($asset));
     }
 
     scan_and_parse "clamscan";

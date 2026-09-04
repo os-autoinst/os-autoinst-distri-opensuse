@@ -20,10 +20,12 @@ use testapi;
 use bootloader_setup;
 use registration 'registration_bootloader_params';
 use utils qw(get_netboot_mirror type_string_slow enter_cmd_slow);
-use version_utils qw(is_agama is_upgrade);
+use version_utils qw(is_agama is_upgrade is_sle);
 use Utils::Backends;
 use YuiRestClient;
 use ntlm_auth;
+use autoyast qw(parse_dud_parameter);
+use Yam::Agama::LiveIso qw(read_live_iso);
 
 our @EXPORT = qw(
   boot_pvm
@@ -131,10 +133,17 @@ sub enter_netboot_parameters {
     }
     my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
     if (is_agama) {
-        type_string_slow "linux $mntpoint/linux root=live:http://" . get_var('OPENQA_HOSTNAME') . "/assets/iso/" . get_var('ISO') . " live.password=$testapi::password";
+        $mntpoint .= "/loader" if (is_sle('16.1+'));
+        my $mirror_http = get_required_var('MIRROR_HTTP');
+        type_string_slow "linux $mntpoint/linux root=live:$mirror_http/LiveOS/squashfs.img live.password=$testapi::password console=hvc0";
         # inst.auto and inst.install_url are defined in below function
         specific_bootmenu_params;
-        type_string_slow " " . get_var('EXTRABOOTPARAMS') if (get_var('EXTRABOOTPARAMS'));
+        type_string_slow " " . get_var('EXTRABOOTPARAMS') . " " if (get_var('EXTRABOOTPARAMS'));
+        # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
+        type_string_slow " " . get_var('AGAMA_NETWORK_PARAMS') . " " if (get_var('AGAMA_NETWORK_PARAMS'));
+
+        # additional parameters requiring parsing
+        type_string_slow parse_dud_parameter(get_var('INST_DUD')) if get_var('INST_DUD');
     }
     else {
         type_string_slow "linux $mntpoint/linux vga=normal $ntlm_p install=$mirror ";
@@ -217,6 +226,8 @@ Decide whether job is booting a pvm_hmc backend system or a spvm via Novalink on
 =cut
 
 sub boot_pvm {
+    read_live_iso() if (is_agama);
+
     if (is_spvm) {
         boot_spvm();
     } elsif (is_pvm_hmc) {

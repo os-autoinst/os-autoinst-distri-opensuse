@@ -8,9 +8,7 @@
 # Summary: Test Racoon host-to-host scenario
 # Maintainer: QE Security <none@suse.de>
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use lockapi;
 use testapi;
 use utils;

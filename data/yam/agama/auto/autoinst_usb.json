@@ -1,0 +1,46 @@
+{
+   "bootloader": {
+      "stopOnBootMenu": true
+   },
+   "product": {
+      "id": "SLES"
+   },
+   "root": {
+      "hashedPassword": true,
+      "password": "$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/",
+      "sshPublicKey": "fake public key to enable sshd and open firewall"
+   },
+   "scripts": {
+      "post": [
+         {
+            "chroot": true,
+            "content": "#!/usr/bin/env bash\necho 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf\n",
+            "name": "enable root login"
+         }
+      ]
+   },
+   "storage": {
+      "drives": [
+         {
+            "partitions": [
+               {
+                  "generate": "default"
+               },
+               {
+                  "filesystem": {
+                     "path": "/",
+                     "type": "ext4"
+                  }
+               }
+            ],
+            "search": "/dev/sda"
+         }
+      ]
+   },
+   "user": {
+      "fullName": "Bernhard M. Wiedemann",
+      "hashedPassword": true,
+      "password": "$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/",
+      "userName": "bernhard"
+   }
+}

@@ -15,11 +15,9 @@
 #   - Save screenshot
 # - Check network status (using ip command)
 # - Save screenshot
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils "is_sle";

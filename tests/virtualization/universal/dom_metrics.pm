@@ -5,10 +5,8 @@
 # Summary: Obtain the dom0 metrics
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use utils;
 

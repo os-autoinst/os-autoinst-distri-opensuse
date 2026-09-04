@@ -7,9 +7,7 @@
 # Summary: Add stonith sbd resource
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use utils qw(systemctl);
@@ -35,7 +33,9 @@ sub run {
         exec_csync;
 
         # Add stonith/sbd resource
-        assert_script_run "crm configure primitive stonith-sbd stonith:external/sbd params pcmk_delay_max=30s";
+        my $fencing_ra = get_fencing_ra_name(script_output($crm_config_show_fence_sbd));
+        $fencing_ra =~ s/-sbd$//;
+        assert_script_run "crm configure primitive $fencing_ra-sbd $fencing_ra:external/sbd params pcmk_delay_max=30s";
         sleep 5;
         save_state;
     }

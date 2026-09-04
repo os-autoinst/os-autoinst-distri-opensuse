@@ -11,9 +11,7 @@
 # - Close totem
 # Maintainer: Grace Wang <gwang@suse.com>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

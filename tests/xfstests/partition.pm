@@ -12,9 +12,7 @@
 package partition;
 
 use 5.018;
-use strict;
-use warnings;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use utils;
 use testapi;
 use serial_terminal 'select_serial_terminal';
@@ -30,7 +28,10 @@ use registration;
 use version_utils qw(is_transactional is_sle_micro is_sle);
 use Utils::Architectures 'is_ppc64le';
 use transactional;
+use Kernel::block_dev qw(create_loop_backing_file attach_loop_device);
+use Kernel::nfs qw(setup_pnfs_client verify_pnfs_block_layout);
 use List::Util 'sum';
+use rdma;
 
 my $INST_DIR = '/opt/xfstests';
 my $CONFIG_FILE = "$INST_DIR/local.config";
@@ -43,6 +44,10 @@ my $SCRATCH_FOLDER = '/opt/scratch';
 sub partition_amount_by_homesize {
     my $home_size = shift;
     $home_size = str_to_mb($home_size);
+
+    # Leave 100MB margin to prevent partition No space error
+    $home_size -= 100 if $home_size > 100;
+
     my %ret;
     if ($home_size && check_var('XFSTESTS', 'btrfs')) {
         # If enough space, then have 5 disks in SCRATCH_DEV_POOL, or have 2 disks in SCRATCH_DEV_POOL
@@ -86,8 +91,9 @@ sub do_partition_for_xfstests {
     unless ($para{amount}) {
         $para{amount} = 1;
     }
-    if ($para{fstype} =~ /btrfs/ && $para{amount} > 5) {
-        $para{amount} = 5;
+    # Btrfs SCRATCH_DEV up to 5. If amount exceeds 5, set it at 5.
+    if ($para{fstype} =~ /btrfs/) {
+        $para{amount} = 5 if $para{amount} > 5;
     }
     else {
         # Mandatory xfs and ext4 has only 1 SCRATCH_DEV
@@ -135,6 +141,7 @@ sub do_partition_for_xfstests {
     # Create mount points
     script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
     # Setup configure file xfstests/local.config
+    script_run("echo 'export FSTYP=$para{fstype}' >> $CONFIG_FILE") if ($para{fstype} !~ /overlay/);
     script_run("echo 'export TEST_DEV=$test_dev' >> $CONFIG_FILE");
     set_var('XFSTESTS_TEST_DEV', $test_dev);
     script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
@@ -187,17 +194,20 @@ sub create_loop_device_by_rootsize {
     }
     @filename = ('test_dev');
     foreach (1 .. $amount) { push(@filename, "scratch_dev$_"); }
+
     my $i = 0;
     foreach (@filename) {
-        assert_script_run("fallocate -l $loop_dev_size[$i++] $INST_DIR/$_", 300);
-        assert_script_run("losetup -fP $INST_DIR/$_", 300);
+        create_loop_backing_file("$INST_DIR/$_", $loop_dev_size[$i]);
+        attach_loop_device("$INST_DIR/$_");
+        $i++;
     }
     script_run("losetup -a");
-    if ($para{fstype} =~ /overlay/) {
-        my $ovl_base_fs = get_var('XFSTESTS_OVERLAY_BASE_FS', 'xfs');
-        format_with_options("$INST_DIR/test_dev", $ovl_base_fs);
-        format_with_options("$INST_DIR/scratch_dev1", $ovl_base_fs);
-        script_run("echo 'export FSTYP=$ovl_base_fs' >> $CONFIG_FILE");
+    if ($para{fstype} =~ /overlay|nfs/) {
+        my $base_fs = get_var('XFSTESTS_OVERLAY_BASE_FS', 'xfs');
+        format_with_options("$INST_DIR/test_dev", $base_fs);
+        format_with_options("$INST_DIR/scratch_dev1", $base_fs);
+        return @loop_dev_size if ($para{fstype} =~ /nfs/);
+        script_run("echo 'export FSTYP=$base_fs' >> $CONFIG_FILE");
     }
     else {
         format_with_options("$INST_DIR/test_dev", $para{fstype});
@@ -205,10 +215,13 @@ sub create_loop_device_by_rootsize {
     # Create mount points
     script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
     # Setup configure file xfstests/local.config
+    script_run("echo 'export FSTYP=$para{fstype}' >> $CONFIG_FILE") if ($para{fstype} !~ /overlay/);
     script_run("echo 'export TEST_DEV=/dev/loop0' >> $CONFIG_FILE");
     set_var('XFSTESTS_TEST_DEV', '/dev/loop0');
     script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
     script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
+    script_run("echo 'export DUMP_CORRUPT_FS=1' >> $CONFIG_FILE");
+    script_run("echo 'export DUMP_COMPRESSOR=gzip' >> $CONFIG_FILE") if (script_run('which gzip') == 0);
     if ($amount == 1) {
         script_run("echo 'export SCRATCH_DEV=/dev/loop1' >> $CONFIG_FILE");
         set_var('XFSTESTS_SCRATCH_DEV', '/dev/loop1');
@@ -222,8 +235,8 @@ sub create_loop_device_by_rootsize {
         my $logdev = "/dev/loop100";
         my $logdev_name = "logdev";
 
-        assert_script_run("fallocate -l 1G $INST_DIR/$logdev_name", 300);
-        assert_script_run("losetup -P $logdev $INST_DIR/$logdev_name", 300);
+        create_loop_backing_file("$INST_DIR/$logdev_name", '1G');
+        attach_loop_device("$INST_DIR/$logdev_name", loop_dev => $logdev);
         format_partition("$INST_DIR/$logdev_name", $para{fstype});
         script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
         script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
@@ -231,6 +244,30 @@ sub create_loop_device_by_rootsize {
     # Sync
     script_run('sync');
     return @loop_dev_size;
+}
+
+# Create zoned device when enable XFSTESTS_ZONE_DEVICE in openQA
+sub create_zoned_device {
+    my @zone_dev_size;
+    my $ZONE_CREATER = '/opt/nullblk-zoned.sh';
+
+    # Get nullblk-zone.sh
+    assert_script_run("curl -o $ZONE_CREATER " . data_url('xfstests/nullblk-zoned.sh'));
+    assert_script_run("chmod a+x $ZONE_CREATER");
+
+    script_run("for i in {1..6}; do $ZONE_CREATER 4096 256 4 16; done");
+    assert_script_run("mkfs.btrfs -f /dev/nullb0");
+    set_var('XFSTESTS_TEST_DEV', '/dev/nullb0');
+    set_var('XFSTESTS_SCRATCH_DEV_POOL', '/dev/nullb1 /dev/nullb2 /dev/nullb3 /dev/nullb4 /dev/nullb5');
+    script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
+    script_run("echo 'export TEST_DEV=/dev/nullb0' >> $CONFIG_FILE");
+    script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
+    script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
+    script_run("echo 'export DUMP_CORRUPT_FS=1' >> $CONFIG_FILE");
+    script_run("echo 'export DUMP_COMPRESSOR=gzip' >> $CONFIG_FILE") if (script_run('which gzip') == 0);
+    script_run("echo 'export SCRATCH_DEV_POOL=\"/dev/nullb1 /dev/nullb2 /dev/nullb3 /dev/nullb4 /dev/nullb5\"' >> $CONFIG_FILE");
+    foreach (0 .. 5) { push(@zone_dev_size, '5120M'); }
+    return @zone_dev_size;
 }
 
 sub set_config {
@@ -243,8 +280,19 @@ sub set_config {
         script_run("echo export TEST_DIR=/opt/nfs/test >> $CONFIG_FILE");
         script_run("echo export SCRATCH_DEV=$NFS_SERVER_IP:/opt/export/scratch >> $CONFIG_FILE");
         script_run("echo export SCRATCH_MNT=/opt/nfs/scratch >> $CONFIG_FILE");
+        script_run("echo export FSTYP=nfs >> $CONFIG_FILE");
         if ($NFS_VERSION =~ 'pnfs') {
             script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.1,minorversion=1\"' >> $CONFIG_FILE");
+        }
+        elsif ($NFS_VERSION =~ 'TLS') {
+            script_run('modprobe tls');
+            my ($vers_num) = $NFS_VERSION =~ /-([\d.]+)/;
+            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$vers_num,sec=sys,xprtsec=mtls\"' >> $CONFIG_FILE");
+        }
+        elsif ($NFS_VERSION =~ 'krb5') {
+            my ($vers_num) = $NFS_VERSION =~ /-([\d.]+)/;
+            my ($krb5_type) = $NFS_VERSION =~ /(krb5[pi]?)/;
+            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$vers_num,sec=$krb5_type\"' >> $CONFIG_FILE");
         }
         else {
             script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
@@ -275,6 +323,10 @@ sub post_env_info {
     $size_info = $size_info . "QEMURAM       " . get_var("QEMURAM") . "\n";
     $size_info = $size_info . "\n" . script_output("df -h");
     record_info('Size', $size_info);
+
+    # record mounted filesystem info
+    my $mount_info = script_output("mount");
+    record_info('Mount', $mount_info);
 }
 
 sub format_with_options {
@@ -348,6 +400,8 @@ sub install_dependencies_nfs {
       nfs-kernel-server
       nfs4-acl-tools
     );
+    push @deps, 'ktls-utils', 'openssl-3' if ($NFS_VERSION =~ 'TLS');
+    push @deps, 'krb5-client', 'krb5-server' if ($NFS_VERSION =~ 'krb5');
     script_run('zypper --gpg-auto-import-keys ref');
     if (is_transactional) {
         trup_install(join(' ', @deps));
@@ -375,10 +429,124 @@ sub install_dependencies_overlayfs {
     }
 }
 
+sub setup_ktls {
+    my $tlshd_dir = '/etc/tlshd';
+    assert_script_run("mkdir $tlshd_dir; cd $tlshd_dir");
+    #Generate CA
+    assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ca.key -out ca.pem -subj \"/CN=NFS Test CA\"");
+    #Generate server-CA
+    assert_script_run("openssl req -new -nodes -newkey rsa:2048 -keyout server.key -out server.csr  -subj \"/CN=nfs-server\" -addext \"subjectAltName=IP:127.0.0.1,IP:0:0:0:0:0:0:0:1\"");
+    assert_script_run("openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.pem -days 365 -extfile <(printf \"subjectAltName=IP:127.0.0.1,IP:0:0:0:0:0:0:0:1\")");
+    #Generate client-CA(use for mtls, multi-way tls verification)
+    assert_script_run("openssl req -new -nodes -newkey rsa:2048 -keyout client.key -out client.csr -subj \"/CN=nfs-client\" -addext \"subjectAltName=IP:127.0.0.1,IP:0:0:0:0:0:0:0:1\"");
+    assert_script_run("openssl x509 -req -in client.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out client.pem -days 365 -extfile <(printf \"subjectAltName=IP:127.0.0.1,IP:0:0:0:0:0:0:0:1\")");
+    script_run('cd -');
+    my $content = <<END;
+[debug]
+loglevel=1
+tls=1
+nl=1
+
+[authenticate.client]
+x509.truststore = /etc/tlshd/ca.pem
+x509.certificate = /etc/tlshd/client.pem
+x509.private_key = /etc/tlshd/client.key
+
+[authenticate.server]
+x509.truststore = /etc/tlshd/ca.pem
+x509.certificate = /etc/tlshd/server.pem
+x509.private_key = /etc/tlshd/server.key
+END
+    write_sut_file('/etc/tlshd.conf', $content);
+    script_run("sed -i '/^ExecStart/ s|ExecStart=.*|ExecStart=/usr/sbin/tlshd -c /etc/tlshd.conf|' /usr/lib/systemd/system/tlshd.service");
+    script_run('systemctl daemon-reload; systemctl enable tlshd.service; systemctl start tlshd.service');
+}
+
+sub setup_krb5 {
+    script_run('hostname localhost');
+    script_run('echo "127.0.0.1 localhost localhost.localdomain" >> /etc/hosts');
+    my $content = <<END;
+includedir  /etc/krb5.conf.d
+
+[libdefaults]
+    dns_canonicalize_hostname = false
+    rdns = false
+    verify_ap_req_nofail = true
+    default_ccache_name = KEYRING:persistent:%{uid}
+    default_realm = SUSETEST.COM
+    dns_lookup_realm = false
+    dns_lookup_kdc = false
+
+[realms]
+       SUSETEST.COM = {
+        kdc = 127.0.0.1:88
+        admin_server = 127.0.0.1:749
+    }
+
+[logging]
+    kdc = FILE:/var/log/krb5/krb5kdc.log
+    admin_server = FILE:/var/log/krb5/kadmind.log
+    default = SYSLOG:NOTICE:DAEMON
+END
+    write_sut_file('/etc/krb5.conf', $content);
+
+    #Config idmapd.conf
+    $content = <<END;
+[General]
+Domain = susetest.com
+
+[Mapping]
+Nobody-User = nobody
+Nobody-Group = nobody
+END
+    write_sut_file('/etc/idmapd.conf', $content);
+
+    #create KDC database, start service and setup key
+    script_run('kdb5_util create -s -P susetest -r SUSETEST.COM');
+    script_run('systemctl start krb5kdc kadmind; systemctl enable krb5kdc kadmind');
+    script_run('echo -e "susetest\nsusetest" | kadmin.local -q "addprinc root/admin@SUSETEST.COM"');
+    script_run('kadmin.local -q "addprinc -randkey nfs/localhost@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab nfs/localhost@SUSETEST.COM"');
+
+    #create fsgqa/fsgqa2 users for some xfstests
+    script_run('kadmin.local -q "addprinc -randkey fsgqa@SUSETEST.COM"');
+    script_run('kadmin.local -q "addprinc -randkey fsgqa2@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab fsgqa@SUSETEST.COM"');
+    script_run('kadmin.local -q "ktadd -k /etc/krb5.keytab fsgqa2@SUSETEST.COM"');
+
+    #verify the key
+    script_run('klist -kte /etc/krb5.keytab');
+    script_run('kadmin.local -q "getprinc nfs/localhost@SUSETEST.COM"');
+
+    #get kerberos ticket and check
+    script_run('kinit -k host/localhost@SUSETEST.COM');
+    script_run('klist');
+    script_run('kinit -k nfs/localhost@SUSETEST.COM');
+    script_run('klist');
+
+    script_run("systemctl restart nfs-idmapd");
+    script_run("systemctl restart rpc-gssd");
+    script_run("sleep 10");
+}
+
 sub setup_nfs_server {
     my $nfsversion = shift;
+    if ($nfsversion =~ 'TLS') {
+        setup_ktls;
+    }
     if ($nfsversion =~ 'pnfs') {
-        assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,pnfs,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,pnfs,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
+        my %para;
+        $para{fstype} = 'nfs';
+        $para{size} = str_to_mb(script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'"));
+        create_loop_device_by_rootsize(\%para);
+        assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && mount /dev/loop0 /opt/export/test && mount /dev/loop1 /opt/export/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,pnfs,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,pnfs,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
+        record_info('pNFS export dev', script_output('df -Th /opt/export/test /opt/export/scratch', proceed_on_failure => 1));
+    }
+    elsif ($nfsversion =~ 'krb5') {
+        setup_krb5($nfsversion);
+        assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,no_subtree_check,no_root_squash,sec=krb5:krb5i:krb5p,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,no_subtree_check,no_root_squash,sec=krb5:krb5i:krb5p,fsid=2)\' >> /etc/exports');
+        script_run("sed -i 's/RPCGSSDARGS=\"/RPCGSSDARGS=\"-vvv /' /etc/sysconfig/nfs");
+        script_run("systemctl daemon-reload");
     }
     else {
         assert_script_run('mkdir -p /opt/export/test /opt/export/scratch /opt/nfs/test /opt/nfs/scratch && chown nobody:nogroup /opt/export/test /opt/export/scratch && echo \'/opt/export/test *(rw,no_subtree_check,no_root_squash,fsid=1)\' >> /etc/exports && echo \'/opt/export/scratch *(rw,no_subtree_check,no_root_squash,fsid=2)\' >> /etc/exports');
@@ -386,7 +554,7 @@ sub setup_nfs_server {
     my $nfsgrace = get_var('NFS_GRACE_TIME', 15);
     assert_script_run("echo 'options lockd nlm_grace_period=$nfsgrace' >> /etc/modprobe.d/lockd.conf && echo 'options lockd nlm_timeout=5' >> /etc/modprobe.d/lockd.conf");
 
-    if ($nfsversion == '3') {
+    if ($nfsversion =~ '3') {
         assert_script_run("echo 'MOUNT_NFS_V3=\"yes\"' >> /etc/sysconfig/nfs");
         assert_script_run("echo 'MOUNT_NFS_DEFAULT_PROTOCOL=3' >> /etc/sysconfig/autofs && echo 'OPTIONS=\"-O vers=3\"' >> /etc/sysconfig/autofs");
         assert_script_run("echo '[NFSMount_Global_Options]' >> /etc/nfsmount.conf && echo 'Defaultvers=3' >> /etc/nfsmount.conf && echo 'Nfsvers=3' >> /etc/nfsmount.conf");
@@ -394,45 +562,59 @@ sub setup_nfs_server {
     }
     else {
         assert_script_run("sed -i 's/NFSV4LEASETIME=\"\"/NFSV4LEASETIME=\"$nfsgrace\"/' /etc/sysconfig/nfs");
-        assert_script_run("echo -e '[nfsd]\\ngrace-time=$nfsgrace\\nlease-time=$nfsgrace' > /etc/nfs.conf.local");
+        my $content = <<END;
+[nfsd]
+grace-time=$nfsgrace
+lease-time=$nfsgrace
+END
+        write_sut_file('/etc/nfs.conf', $content);
         if ($nfsversion =~ 'pnfs') {
-            assert_script_run('mkdir -p /srv/pnfs_data && chown nobody:nogroup /srv/pnfs_data && echo \'/srv/pnfs_data *(rw,pnfs,no_subtree_check,no_root_squash,fsid=10)\' >> /etc/exports');
-            assert_script_run('sed -i \'/^\[nfsd\\]$/a pnfs_dlm_device = localhost:/srv/pnfs_data\' /etc/nfs.conf');
             assert_script_run("echo '[NFSMount_Global_Options]' >> /etc/nfsmount.conf && echo 'Defaultvers=4.1' >> /etc/nfsmount.conf && echo 'Nfsvers=4.1' >> /etc/nfsmount.conf");
         }
+        enable_rdma_in_nfs if $nfsversion =~ 'rdma';
     }
     assert_script_run('exportfs -a && systemctl restart rpcbind && systemctl enable nfs-server.service && systemctl restart nfs-server');
-    if ($nfsversion =~ 'pnfs') {
+}
+
+sub setup_nfs_client {
+    my $nfsversion = shift;
+    setup_pnfs_client if ($nfsversion =~ 'pnfs');
+    if ($nfsversion =~ 'rdma') {
+        install_rdma_dependency;
+        modprobe_rdma;
+        link_add_rxe;
+        rdma_record_info;
+    }
+    if ($nfsversion =~ 'rdma') {
+        my $ip_addr = script_output("ip route | awk 'NR==2 {print \$9}'");
+        script_run("mount -t nfs4 -o vers=4.1,minorversion=1,rdma $ip_addr:/opt/export/test /opt/nfs/test");
+        record_info('pNFS_checkpoint', script_output('cat /proc/self/mountstats | grep pnfs', proceed_on_failure => 1));
+        record_info('rdma mount checkpoint', script_output('cat /proc/fs/nfsfs/servers; grep opts: /proc/self/mountstats; grep xprt: /proc/self/mountstats', proceed_on_failure => 1));
+    }
+    elsif ($nfsversion =~ 'pnfs') {
         script_run('mount -t nfs4 -o vers=4.1,minorversion=1 localhost:/opt/export/test /opt/nfs/test');
         record_info('pNFS_checkpoint', script_output('cat /proc/self/mountstats | grep pnfs', proceed_on_failure => 1));
+        record_info('/etc/exports', script_output('cat /etc/exports', proceed_on_failure => 1));
+        record_info('nfsstat -m', script_output('nfsstat -m', proceed_on_failure => 1));
+        script_run('umount /opt/nfs/test');
     }
-    elsif ($nfsversion =~ '4') {
-        script_run("mount -t nfs4 -o vers=$nfsversion localhost:/opt/export/test /opt/nfs/test");
-    }
-    else {
-        script_run("mount -t nfs -o vers=$nfsversion localhost:/opt/export/test /opt/nfs/test");
-    }
-    record_info('/etc/exports', script_output('cat /etc/exports', proceed_on_failure => 1));
-    record_info('nfsstat -m', script_output('nfsstat -m', proceed_on_failure => 1));
-    script_run('umount /opt/nfs/test');
-
     # There's a graceful time we need to wait before using the NFS server
     my $gracetime = script_output('cat /proc/fs/nfsd/nfsv4gracetime;');
     sleep($gracetime * 2);
+    if ($nfsversion =~ 'pnfs' && get_var('XFSTESTS_PNFS_TRAFFIC_CHECK')) {
+        verify_pnfs_block_layout('localhost', '/opt/export/test', '/opt/nfs/test', '/dev/loop0');
+    }
 }
 
 sub run {
     my ($self) = @_;
-    if (is_sle_micro && is_ppc64le) {
-        record_info('INFO', 'Booting microos on ppc64le');
-        $self->wait_boot(ready_time => 1800);
-    }
     select_serial_terminal;
 
     # DO NOT set XFSTESTS_DEVICE if you don't know what's this mean
     # by default we use /home partition spaces for test, and don't need this setting
     my $device = get_var('XFSTESTS_DEVICE');
     my $loopdev = get_var('XFSTESTS_LOOP_DEVICE');
+    my $zonedev = get_var('XFSTESTS_ZONE_DEVICE');
 
     my $filesystem = get_required_var('XFSTESTS');
     my %para;
@@ -451,25 +633,35 @@ sub run {
             server_configure_network($self);
             install_dependencies_nfs;
             setup_nfs_server("$NFS_VERSION");
+            setup_nfs_client("$NFS_VERSION");
             mutex_create('xfstests_nfs_server_ready');
             wait_for_children;
         }
         elsif (get_var('PARALLEL_WITH')) {
             setup_static_mm_network('10.0.2.102/24');
             install_dependencies_nfs;
+            setup_pnfs_client if ($NFS_VERSION =~ 'pnfs');
             assert_script_run('mkdir -p /opt/nfs/test /opt/nfs/scratch');
             $NFS_SERVER_IP = '10.0.2.101';
         }
         else {
             install_dependencies_nfs;
             setup_nfs_server("$NFS_VERSION");
+            setup_nfs_client("$NFS_VERSION");
             $NFS_SERVER_IP = 'localhost';
+            $NFS_SERVER_IP = '127.0.0.1' if $NFS_VERSION =~ 'TLS';    #ipv6 will make some issue for the test key
+            $NFS_SERVER_IP = script_output("ip route | awk 'NR==2 {print \$9}'") if $NFS_VERSION =~ 'rdma';
         }
     }
     elsif ($device) {
         assert_script_run("parted $device --script -- mklabel gpt");
+        my $dev_bytes = script_output("lsblk -bno SIZE $device");
+        my $dev_mb = int($dev_bytes / (1024 * 1024));
+        my %size_num = partition_amount_by_homesize("${dev_mb}M");
         $para{fstype} = $filesystem;
         $para{dev} = $device;
+        $para{amount} = $size_num{num};
+        $para{size} = $size_num{size};
         post_env_info(do_partition_for_xfstests(\%para));
     }
     else {
@@ -478,6 +670,9 @@ sub run {
             $para{size} = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
             $para{size} = str_to_mb($para{size});
             post_env_info(create_loop_device_by_rootsize(\%para));
+        }
+        elsif ($zonedev) {
+            post_env_info(create_zoned_device());
         }
         else {
             my $home_size = script_output("df -h | grep home | awk -F \" \" \'{print \$2}\'");

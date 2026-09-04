@@ -20,11 +20,9 @@
 #   - Handle warning pop ups
 #   - Handle autoyast errors during second stage
 #   - Handle grub to boot on local disk (aarch64)
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Architectures;
 use utils;
@@ -109,7 +107,7 @@ sub run {
 
     test_ayp_url unless get_var('IPXE_STATIC');
     my $test_data = get_test_suite_data();
-    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed import-untrusted-gpg-key);
+    my @needles = qw(bios-boot nonexisting-package reboot-after-installation linuxrc-install-fail scc-invalid-url warning-pop-up autoyast-boot package-notification nvidia-validation-failed import-untrusted-gpg-key error-show-details);
 
     my $expected_licenses = get_var('AUTOYAST_LICENSE');
     my @expected_warnings;
@@ -159,6 +157,8 @@ sub run {
     push(@needles, 'inst-bootmenu') if (is_aarch64 && get_var('UPGRADE'));
     # If we have an encrypted root or boot volume, we reboot to a grub password prompt.
     push(@needles, 'encrypted-disk-password-prompt') if get_var("ENCRYPT_ACTIVATE_EXISTING");
+    # Yast is now honoring reboot_timeout=0, the popup needs to be handled
+    push(@needles, 'reboot_now');
     # Kill ssh proactively before reboot to avoid half-open issue on zVM, do not need this on zKVM
     prepare_system_shutdown if is_backend_s390x;
     my $postpartscript = 0;
@@ -309,6 +309,12 @@ sub run {
         }
         elsif (match_has_tag 'expired-gpg-key') {
             send_key 'alt-y';
+        }
+        elsif (match_has_tag 'error-show-details') {
+            send_key 'alt-d';
+        }
+        elsif (match_has_tag('reboot_now')) {
+            send_key 'alt-o';
         }
     }
 

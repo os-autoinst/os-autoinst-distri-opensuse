@@ -1,0 +1,34 @@
+# See in tests/ for file '- elemental3/README.md' for some informations
+name: os_image
+description: |
+  - Test boot of Elemental OS image
+  - Test user and group creation
+  - Test toolbox command and container image
+  - Test k8s distribution included in the image
+  Maintainer: unified-core@suse.com, ldevulder@suse.com
+schedule:
+  - elemental3/elemental_boot
+  - '{{validation_tests}}'
+  - '{{elemental_tests}}'
+conditional_schedule:
+  validation_tests:
+    TESTED_CMD:
+      customize:
+        - elemental3/validate_kernel_params
+        - elemental3/validate_toolbox
+        - elemental3/validate_users
+  elemental_tests:
+    TEST_TYPE:
+      test_image:
+        - elemental3/start_k8s
+      test_iso:
+        - elemental3/start_k8s
+      k8s_validation:
+        - elemental3/wait_barriers
+        - elemental3/configure_network
+        - elemental3/start_k8s
+      upgrade:
+        - elemental3/validate_k8s
+        - elemental3/upgrade_manifest
+        - elemental3/validate_k8s
+        - elemental3/wait_barriers

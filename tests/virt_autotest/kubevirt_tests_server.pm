@@ -7,9 +7,7 @@
 #          This is the part running on server node.
 # Maintainer: Nan Zhang <nan.zhang@suse.com> qe-virt@suse.de
 
-use base multi_machine_job_base;
-use strict;
-use warnings;
+use Mojo::Base 'multi_machine_job_base';
 use testapi;
 use lockapi;
 use transactional;
@@ -98,8 +96,8 @@ sub rke2_server_setup {
 
     record_info('RKE2 Server Setup', '');
     unless (is_transactional) {
-        disable_and_stop_service('apparmor.service');
-        disable_and_stop_service('firewalld.service');
+        disable_and_stop_service('apparmor.service') if (script_run('systemctl is-active apparmor') == 0);
+        disable_and_stop_service('firewalld.service') if (script_run('systemctl is-active firewalld') == 0);
     }
     # Enable NTP service
     systemctl('enable --now chronyd', timeout => 180);
@@ -151,30 +149,28 @@ sub rke2_server_setup {
     assert_script_run('kubectl config view');
     assert_script_run('kubectl get nodes');
 
+    # Configure rke2-server service
+    assert_script_run("echo 'nonroot-devices: true' > /etc/rancher/rke2/config.yaml");
+
     # Create registries ready
     our $local_registry_fqdn = get_required_var("LOCAL_REGISTRY_FQDN");
     our $local_registry_ip = script_output("nslookup $local_registry_fqdn|sed -n '5,1p'|awk -F' ' '{print \$2}'");
-    assert_script_run("cat > /etc/rancher/rke2/registries.yaml <<__END
+    assert_script_run(qq(cat > /etc/rancher/rke2/registries.yaml <<__END
 mirrors:
-  $local_registry_fqdn:5000:
+  "$local_registry_fqdn:5000":
     endpoint:
-      - http://$local_registry_fqdn:5000
-  $local_registry_ip:5000:
+      - "http://$local_registry_fqdn:5000"
+  "$local_registry_ip:5000":
     endpoint:
-      - http://$local_registry_ip:5000
+      - "http://$local_registry_ip:5000"
 __END
-(exit \$?)");
+(exit \$?)));
 
     # Wait for rke2-agent service to be ready
     my $children = get_children();
     mutex_wait('rke2_agent_start_ready', (keys %$children)[0]);
 
     assert_script_run("scp /etc/rancher/rke2/registries.yaml root\@$agent_ip:/etc/rancher/rke2/registries.yaml");
-
-    # Workaround for bsc#1217658
-    my $config_toml_tmpl = 'config.toml.tmpl';
-    assert_script_run("curl " . data_url("virt_autotest/kubevirt_tests/$config_toml_tmpl") . " -o $config_toml_tmpl");
-    assert_script_run("cp $config_toml_tmpl /var/lib/rancher/rke2/agent/etc/containerd/$config_toml_tmpl");
 
     # Restart RKE2 service and check the service is active well after restart
     systemctl('restart rke2-server.service', timeout => 180);
@@ -203,34 +199,69 @@ sub install_kubevirt_packages {
     my $self = shift;
     # Install required kubevirt packages
     my $os_version = get_var('VERSION');
-    my $virt_tests_repo = get_required_var('VIRT_TESTS_REPO');
-    my $virt_manifests_repo = get_var('VIRT_MANIFESTS_REPO');
+    my $virt_manifests_repo;
+    my $virt_tests_repo;
+    my $virt_manifests_pkgs = 'containerized-data-importer-manifests kubevirt-manifests kubevirt-virtctl';
+    my $virt_tests_pkg = 'kubevirt-tests';
+    my $search_manifests;
 
     record_info('Install kubevirt packages', '');
     # Development Tools repo for OBS Module, e.g. http://download.suse.de/download/ibs/SUSE/Products/SLE-Module-Development-Tools-OBS/15-SP4/x86_64/product/
     # Development product test repo for SLE official product OSD testing, e.g. http://download.suse.de/ibs/SUSE:/SLE-15-SP4:/GA/standard/
     # Devel test repo, e.g. http://download.suse.de/download/ibs/Devel:/Virt:/SLE-15-SP4/SUSE_SLE-15-SP4_Update_standard/
     # MU product test (SLE official MU channel+incidents)
-    transactional::enter_trup_shell(global_options => '--drop-if-no-change') if (is_transactional);
+    if (get_var('INCIDENT_REPO')) {
+        zypper_call("in -f $virt_manifests_pkgs $virt_tests_pkg");
 
-    zypper_call("lr -d");
-    zypper_call("ar $virt_tests_repo Virt-Tests-Repo");
-    zypper_call("ar $virt_manifests_repo Virt-Manifests-Repo") if ($virt_manifests_repo);
-    zypper_call("--gpg-auto-import-keys ref");
-
-    my $virt_manifests = 'containerized-data-importer-manifests kubevirt-manifests kubevirt-virtctl';
-    my $search_manifests = $virt_manifests =~ s/\s+/\\\|/gr;
-
-    if ($virt_manifests_repo) {
-        zypper_call("in -f -r Virt-Manifests-Repo $virt_manifests");
-    } elsif (script_run("rpmquery $virt_manifests")) {
-        if (is_transactional || script_run("zypper se -r SLE-Module-Containers${os_version}-Updates $virt_manifests | grep -w '$search_manifests'")) {
-            zypper_call("in -f $virt_manifests");
-        } else {
-            zypper_call("in -f -r SLE-Module-Containers${os_version}-Updates $virt_manifests");
+        # Check if at least one installed kubevirt package is from the incident repo
+        my $pkgs_from_incident_repo;
+        foreach (split(' ', $virt_manifests_pkgs), $virt_tests_pkg) {
+            $pkgs_from_incident_repo += 1 if (script_output("zypper info $_ | awk -F': ' '/^Repository/{print \$2}'") =~ /^TEST_/);
         }
+        if ($pkgs_from_incident_repo < 1) {
+            die "No kubevirt packages were installed from incident repository.";
+        } else {
+            record_info("$pkgs_from_incident_repo package(s) installed from incident repository.", script_output("zypper lr -u; zypper se -s $virt_manifests_pkgs $virt_tests_pkg"));
+        }
+
+        # Patch the kubevirt or cdi manifest for incident build to use images from the SUSE internal registry
+        my $incident_id = get_required_var('INCIDENT_ID');
+        my $src_repo = "registry.suse.com";
+        my $dst_repo = "registry.suse.de/suse/maintenance/$incident_id/containerfile";
+        my $manifest;
+        if (get_var('BUILD') =~ /kubevirt/) {
+            $manifest = "/usr/share/kube-virt/manifests/release/kubevirt-operator.yaml";
+            record_info("Patch kubevirt-operator to suse.de");
+        } elsif (get_var('BUILD') =~ /cdi-cloner-container/) {
+            $manifest = "/usr/share/cdi/manifests/release/cdi-operator.yaml";
+            record_info("Patch cdi-operator to suse.de");
+        }
+        assert_script_run("sed -i 's|$src_repo|$dst_repo|g' $manifest");
+    } else {
+        $virt_manifests_repo = get_var('VIRT_MANIFESTS_REPO');
+        $virt_tests_repo = get_var('VIRT_TESTS_REPO');
+
+        transactional::enter_trup_shell(global_options => '--drop-if-no-change') if (is_transactional);
+
+        zypper_call("lr -d");
+        zypper_call("ar $virt_manifests_repo Virt-Manifests-Repo") if ($virt_manifests_repo);
+        zypper_call("ar $virt_tests_repo Virt-Tests-Repo") if ($virt_tests_repo);
+        zypper_call("--gpg-auto-import-keys ref");
+
+        if ($virt_manifests_repo) {
+            zypper_call("in -f -r Virt-Manifests-Repo $virt_manifests_pkgs");
+        } else {
+            zypper_call("in -f $virt_manifests_pkgs");
+        }
+
+        if ($virt_tests_repo) {
+            zypper_call("in -f -r Virt-Tests-Repo $virt_tests_pkg");
+        } else {
+            zypper_call("in -f $virt_tests_pkg");
+        }
+
+        record_info('Installed kubevirt package version', script_output("zypper lr -u; zypper se -s $virt_manifests_pkgs $virt_tests_pkg"));
     }
-    zypper_call("in -f -r Virt-Tests-Repo kubevirt-tests");
 
     # Install Longhorn dependencies
     our $kubevirt_ver = script_output("rpm -q --qf \%{VERSION} kubevirt-manifests");
@@ -261,8 +292,6 @@ sub install_kubevirt_packages {
     assert_script_run('cpan install Config::Tiny <<<yes', timeout => 300) if (script_run('cpan -l <<<yes | grep Config::Tiny') == 1);
 
     transactional::exit_trup_shell_and_reboot() if (is_transactional);
-
-    record_info('Installed kubevirt package version', script_output('rpm -qa |grep -E "containerized|kubevirt|virt-test"'));
 
     # Enable iscsid service
     systemctl('enable --now iscsid', timeout => 180) if ($kubevirt_ver ge "0.50.0");
@@ -509,16 +538,24 @@ EOF
     my $additional_reg_tag = "-previous-release-registry=$pre_rel_reg -previous-release-tag=$pre_rel_tag";
 
     our $local_registry_fqdn;
-    my ($container_prefix, $container_tag, $pre_util_container_reg, $pre_util_container_tag);
-    if ($kubevirt_ver ge "0.50.0") {
-        $container_prefix = "$local_registry_fqdn:5000";
-        $container_tag = get_required_var('CONTAINER_TAG');
-        $pre_util_container_reg = "$local_registry_fqdn:5000";
-        $pre_util_container_tag = get_required_var('PREVIOUS_UTILITY_CONTAINER_TAG');
+    my ($private_reg, $container_tag, $utility_container_tag);
+    $private_reg = "$local_registry_fqdn:5000";
+    # Dynamically get the value of the parameter "-container-tag" and "-previous-utility-container-tag or -utility-container-tag"
+    $container_tag = (split('-', $kubevirt_ver))[0];
+    $utility_container_tag = (split('-', $pre_rel_tag))[0];
+    # Check if the container tag exists in local private registry
+    assert_script_run("curl $private_reg/v2/alpine-container-disk-demo/tags/list | jq -r '.tags[]' | grep $container_tag");
+
+    if ($kubevirt_ver ge "0.50.0" and $kubevirt_ver le "1.7.0") {
         $additional_reg_tag = "$additional_reg_tag " .
-          "-container-prefix=$container_prefix -container-tag=$container_tag " .
-          "-previous-utility-container-registry=$pre_util_container_reg " .
-          "-previous-utility-container-tag=$pre_util_container_tag";
+          "-container-prefix=$private_reg -container-tag=$container_tag " .
+          "-previous-utility-container-registry=$private_reg " .
+          "-previous-utility-container-tag=$utility_container_tag";
+    } elsif ($kubevirt_ver gt "1.7.0") {
+        $additional_reg_tag = "$additional_reg_tag " .
+          "-container-prefix=$private_reg -container-tag=$container_tag " .
+          "-utility-container-prefix=$private_reg " .
+          "-utility-container-tag=$utility_container_tag";
     }
 
     $ginkgo_focus = get_var('GINKGO_FOCUS');
@@ -625,7 +662,7 @@ EOF
                 $n_runs++;
             }
             send_key 'ctrl-c';
-            assert_script_run("sed -i 's/Tests Suite/$section/g' $junit_xml");
+            assert_script_run("sed -i 's/\\(KubeVirt Tests Suite\\|Tests Suite\\)/$section/g' $junit_xml");
             $if_case_fail = 1 if (script_output("tail -1 $test_log") eq 'FAIL');
         }
     }
@@ -664,7 +701,7 @@ sub generate_test_report {
                 <include name="*_test.xml" />
             </fileset>
             <report format="noframes" todir="$html_dir" styledir="/tmp">
-                <param name="TITLE" expression="Kubevirt Test Results"/>
+                <param name="TITLE" expression="KubeVirt Test Results"/>
             </report>
         </junitreport>
     </target>
@@ -707,9 +744,9 @@ sub upload_test_results {
             upload_logs("$html_dir/$_", log_name => "$_");
         }
 
-        my $openqa_host = get_var('OPENQA_URL');
+        my $openqa_url = get_var('OPENQA_URL');
         my $job_id = get_current_job_id();
-        record_info('HTML report URL', "http://$openqa_host/tests/$job_id/file/junit-noframes.html");
+        record_info('HTML report URL', "$openqa_url/tests/$job_id/file/junit-noframes.html");
     }
 }
 

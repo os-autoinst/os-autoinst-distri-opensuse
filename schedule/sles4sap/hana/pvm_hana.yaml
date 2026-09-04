@@ -36,6 +36,7 @@ schedule:
   - sles4sap/patterns
   - sles4sap/hana_install
   - sles4sap/hana_test
+  - shutdown/shutdown
 conditional_schedule:
   multipath:
     MULTIPATH:

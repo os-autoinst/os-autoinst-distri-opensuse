@@ -8,15 +8,13 @@
 # sles4sap/hana_test
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
-use strict;
-use warnings;
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
-use utils qw(file_content_replace zypper_call);
+use utils qw(file_content_replace zypper_call script_retry);
 use Utils::Systemd 'systemctl';
-use version_utils 'is_sle';
+use version_utils qw(is_sle has_selinux);
 use POSIX 'ceil';
 use Utils::Logging 'save_and_upload_log';
 use repo_tools 'add_qa_head_repo';
@@ -91,6 +89,14 @@ sub get_test_summary {
     return $info;
 }
 
+sub restorecon_rootfs {
+    # restorecon does not behave too well with btrfs, so exclude /.snapshots in btrfs rootfs
+    my $restorecon_cmd = 'restorecon -i -R /';
+    $restorecon_cmd .= ' -e /.snapshots' unless (script_run('test -d /.snapshots'));
+    # Use script_retry to workaround bsc#1255385 liked issue
+    script_retry("$restorecon_cmd", timeout => 180, retry => 3);
+}
+
 sub run {
     my ($self) = @_;
     my ($proto, $path) = $self->fix_path(get_required_var('HANA'));
@@ -115,7 +121,6 @@ sub run {
         else {
             push @zypper_in, 'SAPHanaSR', 'SAPHanaSR-doc';
         }
-        push @zypper_in, 'ClusterTools2';
         zypper_call(join(' ', @zypper_in));
     }
 
@@ -130,6 +135,17 @@ sub run {
     if (get_var("WORKAROUND_BSC1239148")) {
         record_soft_failure("bsc#1239148: workaround by changing mode to Permissive");
         $self->modify_selinux_setenforce('selinux_mode' => 'Permissive');
+    }
+
+    # On SLES for SAP 16.0 and newer, we need to do further SELinux setup for HANA
+    if (has_selinux) {
+        # Per https://bugzilla.suse.com/show_bug.cgi?id=1254395#c1, no need to run these
+        # commands if selinux-policy-sapenablement is installed
+        if (script_run 'rpm -q selinux-policy-sapenablement') {
+            assert_script_run 'semanage boolean -m --on selinuxuser_execmod';
+            assert_script_run 'semanage boolean -m --on unconfined_service_transition_to_unconfined_user';
+            assert_script_run 'semanage permissive -a snapper_grub_plugin_t';
+        }
     }
 
     # Add host's IP to /etc/hosts
@@ -271,8 +287,10 @@ sub run {
     # installs shared pkgs from dir 'hdbclient'
     my @hdblcm_args = qw(--autostart=n --shell=/bin/sh --workergroup=default --system_usage=custom --batch
       --hostname=$(hostname) --db_mode=multiple_containers --db_isolation=low --restrict_max_mem=n
-      --userid=1001 --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production
+      --groupid=79 --use_master_password=n --skip_hostagent_calls=n --system_usage=production
     );
+    push @hdblcm_args, "--nostart" if has_selinux;
+    push @hdblcm_args, "--userid=" . get_var('SIDADM_UID', '1001');
     push @hdblcm_args,
       "--components=" . get_var("HDBLCM_COMPONENTS", 'server'),
       "--sid=$sid",
@@ -309,6 +327,19 @@ sub run {
     $self->upload_hana_install_log;
     save_and_upload_log('rpm -qa', 'packages.list');
     save_and_upload_log('systemctl list-units --all', 'systemd-units.list');
+
+    # On SLES for SAP 16.0 and newer, we need to do further SELinux setup for HANA
+    if (has_selinux) {
+        restorecon_rootfs();
+        # SAP admin
+        $self->set_sap_info($sid, $instid);
+        # Connect SAP account
+        $self->user_change;
+        # Start Hana
+        assert_script_run('HDB start', timeout => 300);
+        # Disconnect SAP account
+        $self->reset_user_change;
+    }
 
     # Quick check of block/filesystem devices after installation
     assert_script_run 'mount';

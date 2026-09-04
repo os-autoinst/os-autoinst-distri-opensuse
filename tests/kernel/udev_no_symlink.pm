@@ -8,7 +8,7 @@
 #
 # Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-use Mojo::Base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

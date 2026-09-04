@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2019 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Check for any orphaned packages. There should be none in fully
@@ -8,9 +8,9 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: poo#19606
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils 'is_upgrade';
 use Utils::Logging 'export_logs';
 use serial_terminal 'select_serial_terminal';
@@ -47,9 +47,9 @@ sub compare_orphans_lists {
     }
 
     # Summary
-    record_info('Detected Orphans', to_string @detected_orphans);
-    record_info('Orphans whitelisted', $whitelist // 'No orphans whitelisted within the test suite');
-    record_info('Missing', @missed_orphans ? to_string @missed_orphans : 'None', result => @missed_orphans ? 'fail' : 'ok');
+    record_info('Detected orphans', to_string @detected_orphans);
+    record_info('Allowed orphans', $whitelist // 'No orphans whitelisted within the test suite');
+    record_info('Unexpected orphans', @missed_orphans ? to_string @missed_orphans : 'None', result => @missed_orphans ? 'fail' : 'ok');
 
     return ((scalar @missed_orphans) == 0);
 }
@@ -59,7 +59,7 @@ sub run {
 
     record_info((is_offline_upgrade_or_livecd) ? 'Upgrade/LiveCD' : 'No upgrade/LiveCD', 'Upgraded or installed from LIVECD can possibly cause orphans');
 
-    zypper_call('in curl') if (script_run('rpm -qi curl') == 1);
+    install_package('curl') if (script_run('rpm -qi curl'));
     # Orphans are also expected in JeOS without SDK module (jeos-firstboot, jeos-license and live-langset-data)
     # Save the orphaned packages list to one log file and upload the log, so QA can use this log to report bug
     # Filter out zypper warning messages and release or skelcd packages

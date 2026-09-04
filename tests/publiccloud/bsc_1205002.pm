@@ -5,11 +5,9 @@
 
 # Summary: Test to check for bsc#1205002
 #
-# Maintainer: <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
-use base "publiccloud::basetest";
-use strict;
-use warnings;
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use utils;
 use publiccloud::ec2;
@@ -36,6 +34,7 @@ sub run {
     $provider->start_instance($instance);
 
     # The instance changes its public IP address so the key must be rescanned
+    $instance->update_instance_ip();
     $instance->wait_for_ssh(scan_ssh_host_key => 1);
     $instance->ssh_assert_script_run("echo we can login");
 }

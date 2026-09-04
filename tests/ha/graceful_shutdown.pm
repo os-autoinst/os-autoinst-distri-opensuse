@@ -7,9 +7,7 @@
 # Summary: shutdown a cluster gracefully and start it up again using "crm cluster" commands
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;
@@ -43,7 +41,7 @@ sub run {
 
     # confirm cluster suite is started (only needed for logging purposes)
     record_info('corosync', 'check if corosync is started');
-    validate_script_output_retry("systemctl --no-pager -l status corosync", sub { m/Started Corosync Cluster Engine/i });
+    validate_script_output_retry("systemctl --no-pager -l status corosync", sub { m/Active: active \(running\)/i });
     record_info('pacemaker', 'check if pacemaker is started');
     validate_script_output_retry("systemctl --no-pager -l status pacemaker", sub { m/Active: active \(running\)/i });
     record_info('crm_mon', 'check crm_mon output');

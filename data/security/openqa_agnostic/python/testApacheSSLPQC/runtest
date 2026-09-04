@@ -1,0 +1,39 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: Apache web server SSL post-quantum cryptography test using ML-DSA signature and ML-KEM key exchange algorithms
+# desc: Verifies that ML-DSA & ML-KEM post-quantum algorithms work through the Apache web server
+# steps:
+# - 1. Setup Apache
+#   - generate MLDSA65 key + certficate pair (self signed)
+#   - set up an Apache SSL virtual host with these keys and enforce TLS v1.3 and the 3 ML-KEM key exchange algorithms
+#     (see provided pqc-ssl.conf)
+#   - stop firewall if running
+#   - start Apache and check that it's listening
+# - 2. Test MLDSA65 algorithm with MLKEM512, MLKEM768 and MLKEM1024 key exchange algorithms
+#   - use openssl s_client to verify that we can establish a TLS v1.3 connection using the 3 ML-KEM algorithms
+#   - verify peer signature is MLDSA65
+#   - fetch default Apache web page with curl through TLS v1.3 connection, using the 3 ML-KEM algorithms
+# author: <mmilian@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: no errors raised, connection succeed
+# platform: SLE16
+# tags: security post-quantum-crypto ssl apache python
+# ---
+# METADATA_END
+
+set -e
+
+# Source the helper script for argument handling
+source ../lib/helper.sh
+
+# Define files required for this test
+TEST_FILES=(apache_pqc_ssl_test.py)
+
+# Delegate argument processing to the helper
+handle_args "$0" "$@"
+
+# If the metadata flag is not provided, run the tests as usual.
+
+# run tests with pytest and generate junit xml results
+pytest apache_pqc_ssl_test.py --junitxml=results.xml

@@ -7,8 +7,13 @@ schedule:
   - console/prepare_test_data
   - console/consoletest_setup
   - console/check_os_release
+  - console/clamav_upgrade
   - console/ping
   - console/arping
+  - console/wireshark_cli
+  - console/traceroute
+  - console/tracepath
+  - console/dig
   - console/man_pages
   - console/openvswitch
   - console/pam
@@ -38,47 +43,85 @@ schedule:
   - console/cpio
   - console/tar
   - console/ruby
+  - console/tcpdump
   - '{{version_specific}}'
   - console/coredump_collect
 conditional_schedule:
   version_specific:
     VERSION:
-      15-SP6:
+      '16.0':
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
+        - console/ansible
+        - console/libxslt
+        - qe-core/systemd/journal_remote
+        - '{{arch_specific}}'
+      15-SP7:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - console/ansible
+        - console/libxslt
+        - qe-core/systemd/journal_remote
+        - '{{arch_specific}}'
+      15-SP6:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
+        - console/openssl_nodejs
+        - console/golang
+        - console/redis
+        - console/ansible
+        - console/libxslt
         - qe-core/systemd/journal_remote
         - '{{arch_specific}}'
       15-SP5:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
+        - console/ansible
+        - console/libxslt
         - '{{arch_specific}}'
       15-SP4:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
+        - console/ansible
+        - console/libxslt
         - '{{arch_specific}}'
       15-SP3:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
         - '{{arch_specific}}'
       15-SP2:
+        - console/sssd_389ds_functional
+        - console/rabbitmq
+        - console/chrony
         - console/openssl_nodejs
         - console/golang
         - console/redis
         - '{{arch_specific}}'
-      15-SP1:
-        - console/openssl_nodejs
-        - console/golang
-        - '{{arch_specific}}'
-      15:
-        - console/openssl_nodejs
-        - '{{arch_specific}}'
       12-SP5:
         - console/openssl_nodejs
         - '{{arch_specific}}'
+        - '{{sssd_12SP5_arch_specific}}'
   arch_specific:
     ARCH:
       x86_64:
@@ -87,6 +130,14 @@ conditional_schedule:
         - '{{sle15}}'
   sle15:
     VERSION:
+      '16.0':
+        - console/firewalld
+        - console/lshw
+        - console/dpdk
+      15-SP7:
+        - console/firewalld
+        - console/lshw
+        - console/dpdk
       15-SP6:
         - console/firewalld
         - console/lshw
@@ -104,9 +155,9 @@ conditional_schedule:
       15-SP2:
         - console/firewalld
         - console/lshw
-      15-SP1:
-        - console/firewalld
-        - console/lshw
-      15:
-        - console/lshw
-        - console/firewalld
+  sssd_12SP5_arch_specific:
+    ARCH:
+      x86_64:
+        - console/sssd_389ds_functional
+      s390x:
+        - console/sssd_389ds_functional

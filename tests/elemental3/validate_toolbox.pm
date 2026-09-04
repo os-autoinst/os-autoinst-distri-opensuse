@@ -1,0 +1,44 @@
+# Copyright 2026 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Test toolbox command and container image availability
+# Maintainer: unified-core@suse.com, ldevulder@suse.com
+
+use Mojo::Base 'opensusebasetest';
+use testapi;
+
+sub run {
+    my ($self) = @_;
+
+    # Skip the test in multi-machine mode
+    if (get_var('PARALLEL_WITH', '')) {
+        record_info('SKIP', 'Skip test - Network is not up at this stage');
+        $self->result('skip');
+        return;
+    }
+
+    my $runtime = get_var('CONTAINER_RUNTIMES', 'podman');
+    record_info('Toolbox Info', 'Verify toolbox script is installed');
+
+    assert_script_run('which toolbox');
+    assert_script_run('file -Ls $(which toolbox) | grep -iq "shell script"');
+
+    record_info('Toolbox Run', 'Start toolbox, pull image, and exit cleanly');
+
+    validate_script_output(
+        'echo exit | toolbox',
+        sub { m/Entering container/i },
+        timeout => 240
+    );
+
+    record_info('Image Verify',
+        'Verify that the toolbox image was stored on the host');
+
+    validate_script_output("$runtime images", sub { m/toolbox/i });
+}
+
+sub test_flags {
+    return {fatal => 1, milestone => 1};
+}
+
+1;

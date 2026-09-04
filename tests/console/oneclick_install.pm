@@ -5,11 +5,9 @@
 
 # Package: yast2-metapackage-handler
 # Summary: Test OneClickInstallCLI and OneClickInstallUI
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

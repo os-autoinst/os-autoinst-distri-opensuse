@@ -8,9 +8,7 @@
 #          Update the openQA internal configuration after the DE has been installed
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

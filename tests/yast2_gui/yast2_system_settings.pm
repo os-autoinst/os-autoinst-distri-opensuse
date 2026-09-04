@@ -8,11 +8,9 @@
 # keys at the kernel settings and validate the change in the system configuration.
 # Enable sysrq and validate again.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "y2_module_guitest";
-use strict;
-use warnings;
+use Mojo::Base 'y2_module_guitest';
 use testapi;
 use YuiRestClient;
 use YaST::Module;

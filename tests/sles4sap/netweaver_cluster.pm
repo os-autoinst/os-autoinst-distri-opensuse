@@ -7,14 +7,12 @@
 # Summary: Configure NetWeaver cluster
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
 use utils 'systemctl';
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;

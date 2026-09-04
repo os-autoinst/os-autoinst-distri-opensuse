@@ -9,8 +9,6 @@ description: >
      - Check available and selected by default modules for installation.
 schedule:
   access_beta:
-    - installation/validate_beta_message
-    - installation/access_beta_distribution
     - installation/language_keyboard/switch_keyboard_layout
   license_agreement:
     - installation/licensing/verify_license_translations

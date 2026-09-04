@@ -9,9 +9,7 @@
 # Maintainer: nick wang <nwang@suse.com>
 # Tags: tc#1436344
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 
 

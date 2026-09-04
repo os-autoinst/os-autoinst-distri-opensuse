@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run basic xen smoketest on a publiccloud test instance
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 

@@ -14,12 +14,12 @@ defaults
   timeout client    50s
   timeout server    50000
 
-frontend LB
+frontend LBF
   bind %VIP_IP%:8080
   http-request add-header X-Forwarded-Proto http
-  default_backend LB
+  default_backend LBB
 
-backend LB
+backend LBB
   mode http
   stats enable
   stats hide-version

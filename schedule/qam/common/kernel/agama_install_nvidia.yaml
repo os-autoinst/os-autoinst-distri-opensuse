@@ -1,0 +1,11 @@
+name: agama_install_nvidia_maintenance
+description:    >
+    Nvidia installation with Agama schedule for SLE 16 maintenance
+schedule:
+    - installation/bootloader_start
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - kernel/update_kernel
+    - console/system_prepare
+    - kernel/nvidia

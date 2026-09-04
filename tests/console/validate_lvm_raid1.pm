@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: RAID1 on LVM partition validation
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 use Test::Assert ':all';

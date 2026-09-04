@@ -16,12 +16,11 @@
 #
 # Maintainer: Markos Chandras <mchandras@suse.de>, QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_leap);
 
 sub run {
@@ -31,7 +30,7 @@ sub run {
     # package openvswitch-switch still exist for sle12-sp2
     $pkg_name = 'openvswitch-switch' if is_sle('=12-sp2');
 
-    zypper_call("in $pkg_name iputils", timeout => 300);
+    install_package("$pkg_name iputils", trup_reboot => 1, timeout => 300);
 
     # Start the openvswitch daemon
     systemctl 'start openvswitch', timeout => 200;

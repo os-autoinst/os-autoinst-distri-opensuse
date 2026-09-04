@@ -1,0 +1,42 @@
+From 6efb722c941af7daef1f4a7e4c9c670f61e90c9b Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Wed, 20 Aug 2025 21:02:52 +0200
+Subject: [PATCH] tests: Fix deprecation warning for utcfromtimestamp()
+
+Fix DeprecationWarning for datetime.datetime.utcfromtimestamp()
+
+It suggests to use timezone-aware objects to represent datetimes in UTC
+with datetime.UTC but datetime.timezone.utc is backwards compatible.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/unit/api_container_test.py | 2 +-
+ tests/unit/api_test.py           | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tests/unit/api_container_test.py b/tests/unit/api_container_test.py
+index b2e5237a2a..1c4dda756a 100644
+--- a/tests/unit/api_container_test.py
++++ b/tests/unit/api_container_test.py
+@@ -1302,7 +1302,7 @@ def test_log_since_with_float(self):
+ 
+     def test_log_since_with_datetime(self):
+         ts = 809222400
+-        time = datetime.datetime.utcfromtimestamp(ts)
++        time = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc)
+         with mock.patch('docker.api.client.APIClient.inspect_container',
+                         fake_inspect_container):
+             self.client.logs(fake_api.FAKE_CONTAINER_ID, stream=False,
+diff --git a/tests/unit/api_test.py b/tests/unit/api_test.py
+index 3ce127b346..7e3e95178a 100644
+--- a/tests/unit/api_test.py
++++ b/tests/unit/api_test.py
+@@ -231,7 +231,7 @@ def test_events(self):
+ 
+     def test_events_with_since_until(self):
+         ts = 1356048000
+-        now = datetime.datetime.utcfromtimestamp(ts)
++        now = datetime.datetime.fromtimestamp(ts, datetime.timezone.utc)
+         since = now - datetime.timedelta(seconds=10)
+         until = now + datetime.timedelta(seconds=10)
+ 

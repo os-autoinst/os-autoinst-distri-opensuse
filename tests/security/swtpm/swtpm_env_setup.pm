@@ -8,14 +8,13 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#81256, tc#1768671, poo#100512
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
 use Utils::Architectures;
 use rpi 'enable_tpm_slb9670';
+use version_utils 'is_sle';
 
 sub run {
     # Enable TPM on Raspberry Pi 4
@@ -26,7 +25,14 @@ sub run {
         select_serial_terminal;
     }
 
-    zypper_call("in qemu libvirt swtpm virt-install virt-manager wget gnutls");
+    # SLE16 misses libvirt and virt-manager packages
+    zypper_call("in qemu swtpm virt-install wget gnutls libvirt-daemon");
+    if (is_sle('>=16.0')) {
+        zypper_call("in -t pattern kvm_server");
+    }
+    else {
+        zypper_call("in libvirt virt-manager");
+    }
 
     assert_script_run("systemctl start libvirtd");
     assert_script_run("virsh net-start default");

@@ -12,9 +12,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#174175, poo#174178
 
-use base "selinuxtest";
-use strict;
-use warnings;
+use Mojo::Base 'selinuxtest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -31,7 +29,9 @@ sub ensure_setroubleshootd_cannot_be_directly_run_as_root {
 # ensure service is inactive; then after restart should be active, and inactive again after some time
 sub validate_service_restart {
     validate_script_output('systemctl is-active setroubleshootd.service', sub { m/inactive/ }, proceed_on_failure => 1);
-    validate_script_output('systemctl restart setroubleshootd;systemctl is-active setroubleshootd.service;sleep 15;systemctl is-active setroubleshootd.service', sub { m/active.*inactive/s }, proceed_on_failure => 1);
+    validate_script_output('systemctl restart setroubleshootd; systemctl is-active setroubleshootd.service', sub { m/active/s }, proceed_on_failure => 1);
+    script_retry("journalctl  --lines 10 | grep 'setroubleshootd.service: Deactivated successfully'", retry => 10, delay => 3, fail_message => 'setroubleshootd took too long to stop');
+    validate_script_output('systemctl is-active setroubleshootd.service', sub { m/inactive/s }, proceed_on_failure => 1);
 }
 
 sub validate_invocation_via_polkit {
@@ -76,7 +76,7 @@ sub check_sealert() {
     while ($retries--) {
         $sealert_l_output = script_output "sealert -l '*'";
         $sealert_a_output = script_output "sealert -a /var/log/audit/audit.log";
-        last if valid_sealert_output($sealert_a_output) || valid_sealert_output($sealert_l_output);
+        last if valid_sealert_output($sealert_a_output) && valid_sealert_output($sealert_l_output);
         sleep 1;
     }
     die "sealert -l '*' Does not validate" unless $retries;
@@ -87,11 +87,6 @@ sub check_sealert() {
     } else {
         die "alert event ID not found";
     }
-    # https://bugzilla.suse.com/show_bug.cgi?id=1237388
-    # run same validations against specific ID output
-    record_soft_failure('bsc#1237388 -- sealert -l ID') unless valid_sealert_output(script_output "sealert -l $local_id", proceed_on_failure => 1);
-    # we should find deny message in journal as well
-    record_soft_failure('bsc#1237388 - journalctl') if script_run "journalctl -u setroubleshootd.service | grep 'SELinux is preventing runcon from using the transition access'";
 }
 
 sub run {

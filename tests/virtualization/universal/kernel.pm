@@ -7,11 +7,10 @@
 # Summary: Test the host kernel
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use virt_autotest::common;
-use warnings;
-use strict;
 use virt_autotest::kernel;
+use virt_autotest::utils;
 use testapi;
 use utils;
 use qam;
@@ -19,8 +18,19 @@ use qam;
 sub run {
     my $self = shift;
     select_console('root-console');
-    if (my $pkg = get_var("UPDATE_PACKAGE")) {
-        validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
+    my $pkg = get_var("UPDATE_PACKAGE");
+
+    # Verify the host has the correct MU pkg installed
+    validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if ($pkg);
+
+    # For kernel updates, verify MU pkg is installed on compatible guests
+    my @guests = keys %virt_autotest::common::guests;
+
+    foreach my $guest (@guests) {
+        if ($pkg eq "kernel-default" && is_guest_of_host_version($guest)) {
+            validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
+            record_info("Package Validated on $guest", "$pkg validated on $guest: from TEST repository and up-to-date");
+        }
     }
     if (check_var('PATCH_WITH_ZYPPER', '1')) {
         assert_script_run("dmesg --level=emerg,crit,alert,err -tx |sort |comm -23 - /tmp/dmesg_err_before.txt > /tmp/dmesg_err.txt");

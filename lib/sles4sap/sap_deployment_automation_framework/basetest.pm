@@ -13,12 +13,15 @@ use strict;
 use warnings;
 use testapi;
 use Exporter qw(import);
-use sles4sap::sap_deployment_automation_framework::deployment qw(sdaf_cleanup az_login load_os_env_variables $output_log_file);
-use sles4sap::sap_deployment_automation_framework::deployment_connector
-  qw(find_deployer_resources destroy_deployer_vm get_deployer_vm_name find_deployment_id get_deployer_ip destroy_orphaned_resources);
+use sles4sap::sap_deployment_automation_framework::deployment;
+use sles4sap::sap_deployment_automation_framework::deployment_connector;
+use sles4sap::sap_deployment_automation_framework::naming_conventions;
+use sles4sap::sap_deployment_automation_framework::inventory_tools;
 use sles4sap::console_redirection;
+use sles4sap::azure_cli;
+use sles4sap::ibsm qw(ibsm_network_peering_azure_delete);
 
-our @EXPORT = qw(full_cleanup $serial_regexp_playbook);
+our @EXPORT = qw(full_cleanup $serial_regexp_playbook sdaf_ibsm_data_collect sdaf_ibsm_teardown);
 our $serial_regexp_playbook = 0;
 
 =head1 SYNOPSIS
@@ -47,11 +50,6 @@ unnecessary cleanup commands. Cleanup is done in following order:
 =cut
 
 sub full_cleanup {
-    if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
-        record_info('Cleanup OFF', 'OpenQA variable "SDAF_RETAIN_DEPLOYMENT" is active, skipping cleanup.');
-        return;
-    }
-
     # Disable any stray redirection being active. This resets the console to the worker VM.
     disconnect_target_from_serial if check_serial_redirection();
     az_login();
@@ -71,18 +69,26 @@ sub full_cleanup {
     }
     my $sut_cleanup_message
       = $redirection_works
-      ? 'Console redirection to Deployer VM does not seem to work. Destroying SUT infrastructure is not possible.'
-      : 'Console redirection works, proceeding with SUT cleanup';
+      ? 'Console redirection works, proceeding with SUT cleanup'
+      : 'Console redirection to Deployer VM does not seem to work. Destroying SUT infrastructure is not possible.';
     record_info('SUT cleanup', $sut_cleanup_message);
 
     # Trigger SDAF remover script to destroy 'workload zone' and 'sap systems' resources
     # Clean up all config files, keys, etc.. on deployer VM
+    my %cleanup_results;
     if ($redirection_works) {
         load_os_env_variables();
         az_login();
-        sdaf_cleanup();
+        sdaf_ibsm_teardown() if get_var('IS_MAINTENANCE');
+        # IBSm teardown must happen even with reused deployment.
+        if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
+            record_info('Cleanup OFF', 'OpenQA variable "SDAF_RETAIN_DEPLOYMENT" is active, skipping cleanup.');
+            return;
+        }
+        %cleanup_results = %{sdaf_cleanup()};
         disconnect_target_from_serial();    # Exist Deployer console since we are about to destroy it
     }
+
     # Do not make cleanup fail here, we still need to destroy deployer VM and its resources.
     record_info('SUT cleanup', 'Failed to set up redirection, skipping SDAF cleanup scripts.') unless $redirection_works;
 
@@ -93,9 +99,131 @@ sub full_cleanup {
     # Resource retention time can be controlled by OpenQA parameter: SDAF_DEPLOYER_VM_RETENTION_SEC
     record_info('Remove orphans', 'Cleaning up orphaned resources');
     destroy_orphaned_resources();
+    if (my $ret = destroy_orphaned_peerings()) {
+        record_info('Retry', 'Delete orphaned peerings failed and retry');
+        $ret = destroy_orphaned_peerings();
+        if ($ret) {
+            die('Delete orphaned peerings failed, please check log and delete manually');
+        }
+    }
+    # Report cleanup failures
+    if ($cleanup_results{remover_failed} or ($cleanup_results{file_cleanup} eq 'fail')) {
+        die('Some of the cleanup tasks failed, please check logs for details.');
+    }
+}
+
+=head2 sdaf_ibsm_teardown
+
+
+    sdaf_ibsm_teardown();
+
+All existing peerings are deleted in 3 attempts. Function does not croak/die. Only reports about failure and
+lets other cleanup procedures to continue.
+
+=cut
+
+sub sdaf_ibsm_teardown {
+    my $attempt = 1;
+    my $peering_data = sdaf_ibsm_data_collect();
+    my $id = find_deployment_id();
+
+    while ($peering_data->{workload_peering}{exists} || $peering_data->{ibsm_peering}{exists}) {
+        # Delete two way network peering
+        record_info("Attempt #$attempt");
+        ibsm_network_peering_azure_delete(
+            sut_rg => $peering_data->{workload_peering}{source_resource_group},
+            sut_vnet => $peering_data->{workload_peering}{source_vnet},
+            ibsm_rg => $peering_data->{ibsm_peering}{source_resource_group},
+            name_prefix => 'SDAF');
+
+        # Sleep 5 seconds between API calls
+        sleep 5;
+        # Check if peering was deleted
+        $peering_data = sdaf_ibsm_data_collect();
+        if ($peering_data->{workload_peering}{exists} || $peering_data->{ibsm_peering}{exists}) {
+            # Check again as previous 'sleep 5' is not engough sometime
+            record_info('Note', "workload_peering=$peering_data->{workload_peering}{exists}; ibsm_peering=$peering_data->{ibsm_peering}{exists}");
+            sleep 30;
+            $peering_data = sdaf_ibsm_data_collect();
+        }
+
+        # Exit loop after 3rd attempt
+        last if $attempt == 3;
+        $attempt++;
+    }
+    if ($peering_data->{workload_peering}{exists} || $peering_data->{ibsm_peering}{exists}) {
+        # Only set `record_info` to fail, let the rest of cleanup continue.
+        record_info('DELETE FAIL', "Deleting peerings failed after $attempt attempts", result => 'fail');
+    }
+    else {
+        record_info('DELETE PASS', 'Deleting peerings successful');
+    }
+
+    my $workload_resource_group = get_sdaf_resource_group(deployment_id => find_deployment_id(), resource_group_type => 'workload_zone');
+    az_network_dns_links_cleanup(resource_group => $workload_resource_group);
+    az_network_dns_zones_cleanup(resource_group => $workload_resource_group);
+}
+
+=head2 sdaf_ibsm_data_collect
+
+    sdaf_ibsm_data_collect();
+
+
+Collects information about existing network peerings between B<IBSM mirror VNET> and B<test workload zone VNET>.
+Returns B<HASHREF> with all data collected in following format:
+
+{ peering_type = {
+    peering_name => 'peering_name',
+    source_resource_group => 'source_resource_group_name',
+    target_resource_group => 'target_resource_group_name',
+    source_vnet => 'source_vnet_game',
+    target_vnet => 'target_vnet_game',
+    exists => '<0/1>'
+  }
+}
+
+=cut
+
+sub sdaf_ibsm_data_collect {
+    my $ibsm_rg = get_required_var('IBSM_RG');
+    my $ibsm_vnet_name = ${az_network_vnet_get(resource_group => $ibsm_rg)}[0];
+    my $workload_resource_group = get_sdaf_resource_group(deployment_id => find_deployment_id(), resource_group_type => 'workload_zone');
+    my $workload_vnet_name = ${az_network_vnet_get(resource_group => $workload_resource_group)}[0];
+    my $ibsm_peering_name = get_ibsm_peering_name(source_vnet => $ibsm_vnet_name, target_vnet => $workload_vnet_name);
+    my $workload_peering_name = get_ibsm_peering_name(source_vnet => $workload_vnet_name, target_vnet => $ibsm_vnet_name);
+
+    my %peerings = (
+        ibsm_peering => {
+            peering_name => $ibsm_peering_name,
+            source_resource_group => $ibsm_rg,
+            target_resource_group => $workload_resource_group,
+            source_vnet => $ibsm_vnet_name,
+            target_vnet => $workload_vnet_name,
+            exists => az_network_peering_exists(
+                resource_group => $ibsm_rg,
+                vnet => $ibsm_vnet_name,
+                name => $ibsm_peering_name)
+        },
+        workload_peering => {
+            peering_name => $workload_peering_name,
+            source_resource_group => $workload_resource_group,
+            target_resource_group => $ibsm_rg,
+            source_vnet => $workload_vnet_name,
+            target_vnet => $ibsm_vnet_name,
+            exists => az_network_peering_exists(
+                resource_group => $workload_resource_group,
+                vnet => $workload_vnet_name,
+                name => $workload_peering_name)
+        }
+    );
+    return (\%peerings);
 }
 
 sub post_fail_hook {
+    my ($self, $run_args) = @_;
+    # Flag for uploading SUT logs if sdaf_execute_playbook() failed
+    my $upload_SUT_logs = $serial_regexp_playbook;
+
     record_info('Post fail', 'Executing post fail hook');
     if (testapi::is_serial_terminal()) {
         # In case playbook/script times out, it will keep occupying the command line,
@@ -121,6 +249,71 @@ sub post_fail_hook {
             }
             else {
                 record_info('Terminated other script process');
+            }
+        }
+    }
+
+    # Disable any stray redirection being active. This resets the console to the worker VM.
+    disconnect_target_from_serial if check_serial_redirection();
+    az_login();
+
+    # Upload logs before cleanup
+    if (get_required_var('TEST') !~ /_deploy_/ || $upload_SUT_logs) {
+        # Upload logs appearing in deployer VM
+        record_info('Upload logs appearing in deloyer VM');
+        # Prepare deployer logs path
+        my $sap_sid = get_required_var('SAP_SID');
+        my $config_root_path = get_sdaf_config_path(
+            deployment_type => 'sap_system',
+            vnet_code => get_workload_vnet_code(),
+            env_code => get_required_var('SDAF_ENV_CODE'),
+            sdaf_region_code => convert_region_to_short(get_required_var('PUBLIC_CLOUD_REGION')),
+            sap_sid => $sap_sid);
+        my $logs_dir = $config_root_path . '/logs/';
+        connect_target_to_serial();
+
+        # Upload deployer logs
+        my $qesap_log_find = "find $logs_dir -type f -name '*.zip' 2>/dev/null";
+        foreach my $log (split(/\n/, script_output($qesap_log_find, proceed_on_failure => 1))) {
+            record_info("Upload file $log");
+            upload_logs($log, failok => 1);
+        }
+
+        # Upload logs appearing in SUTs
+        record_info('Upload logs appearing in SUTs');
+        # Prepare redirection data, reset $run_args in case of post_fail_hook being invoked before $run_args is set
+        my $inventory_path = get_sdaf_inventory_path(sap_sid => $sap_sid, config_root_path => $config_root_path);
+        my $inventory_data = read_inventory_file($inventory_path);
+        my $private_key_src_path = get_sut_sshkey_path(sut => 'sid', config_root_path => $config_root_path);
+        $run_args->{sdaf_inventory} = $inventory_data;
+        $run_args->{redirection_data} = create_redirection_data(inventory_data => $inventory_data);
+        my %redirection_data = %{$run_args->{redirection_data}};
+        disconnect_target_from_serial();
+
+        # Prepare ssh config, download ssh private key for accessing SUTs
+        my $jump_host_user = get_required_var('REDIRECT_DESTINATION_USER');
+        my $jump_host_ip = get_required_var('REDIRECT_DESTINATION_IP');
+        my $scp_cmd = join(' ', 'scp ', "$jump_host_user\@$jump_host_ip:$private_key_src_path", $sut_sid_private_key_path);
+        assert_script_run($scp_cmd);
+        if (get_required_var('SDAF_FENCING_MECHANISM') eq 'sbd') {
+            $scp_cmd = join(' ', 'scp', "$jump_host_user\@$jump_host_ip:$private_key_src_path", $sut_iscsi_private_key_path);
+            assert_script_run($scp_cmd);
+        }
+        prepare_ssh_config(
+            inventory_data => $inventory_data,
+            jump_host_ip => $jump_host_ip,
+            jump_host_user => $jump_host_user
+        );
+
+        # Upload SUTs logs
+        for my $instance_type (keys(%redirection_data)) {
+            next() unless grep /$instance_type/, qw(db_hana nw_ers nw_ascs nw_iscsi nw_pas nw_aas);
+            for my $hostname (keys(%{$redirection_data{$instance_type}})) {
+                my %host_data = %{$redirection_data{$instance_type}{$hostname}};
+                connect_target_to_serial(
+                    destination_ip => $host_data{ip_address}, ssh_user => $host_data{ssh_user}, switch_root => '1');
+                sdaf_upload_logs(hostname => $hostname, sap_sid => $sap_sid);
+                disconnect_target_from_serial();
             }
         }
     }

@@ -7,18 +7,17 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#111518
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use eal4_test;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
     my $test_log = "permission_settings_log.txt";
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     my $output = script_output('find -L /etc -perm -g+w,o+w');
 

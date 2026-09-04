@@ -6,9 +6,7 @@
 # Summary: Test static VLAN configuration using networkd
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'networkdbase';
-use strict;
-use warnings;
+use Mojo::Base 'networkdbase';
 use testapi;
 use utils;
 

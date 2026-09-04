@@ -7,9 +7,7 @@
 #   It loops over all hosts defined in `$run_args->{redirection_data}` and attempts few common OpenQA api calls.
 #   For more information read 'README.md'
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
-use warnings;
-use strict;
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
 use sles4sap::console_redirection;
@@ -24,7 +22,7 @@ sub run {
             my %host_data = %{$redirection_data{$instance_type}{$hostname}};
             record_info("Host: $hostname");
             connect_target_to_serial(
-                destination_ip => $host_data{ip_address}, ssh_user => $host_data{ssh_user});
+                destination_ip => $host_data{ip_address}, ssh_user => $host_data{ssh_user}, switch_root => 1);
 
             # Check if hostnames matches with what is expected
             # Check API calls: script_output, assert_script_run

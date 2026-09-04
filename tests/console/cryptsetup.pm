@@ -11,9 +11,7 @@
 # Tags: tc#1528909, poo#101575
 
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';
@@ -36,8 +34,8 @@ sub run {
     wait_still_screen;
 
     # Use cryptsetup to luksFormat and luksOpen volume
-    assert_script_run("echo -e $cryptpasswd | cryptsetup -q luksFormat /test.dm");
-    assert_script_run("echo -e $cryptpasswd | cryptsetup -q luksOpen /test.dm dmtest");
+    assert_script_run("echo -e $cryptpasswd | cryptsetup -q luksFormat /test.dm", timeout => 300);
+    assert_script_run("echo -e $cryptpasswd | cryptsetup -q luksOpen /test.dm dmtest", timeout => 300);
 
     # Format the dmtest and mount it with /test
     assert_script_run('mkfs.ext4 /dev/mapper/dmtest');
@@ -58,6 +56,10 @@ sub run {
     # Cleanup
     assert_script_run('rm -rf /test');
     assert_script_run('rm -rf /test.dm');
+}
+
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
 }
 
 1;

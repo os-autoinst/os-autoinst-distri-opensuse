@@ -6,9 +6,7 @@
 # Summary: Ensure the system can reboot from gnome
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 
 use testapi;
 use Utils::Architectures;

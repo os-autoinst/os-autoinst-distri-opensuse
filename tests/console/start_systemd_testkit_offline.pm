@@ -21,14 +21,12 @@
 #                                                                  #
 ####################################################################
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use Mojo::JSON qw(encode_json);
 use version_utils qw(is_sle);
-use strict;
-use warnings;
 use Utils::Logging;
 
 my $log = '/tmp/systemd_run.log';
@@ -47,6 +45,15 @@ sub run {
     record_info("START", "Testsuite execution is starting");
     assert_script_run "cp systemd/*.sh .";
     assert_script_run 'sh -e ./systemd_prepare.sh';
+
+    # For sle16.0, selinux is enforcing mode, so we need to adjust the permission
+    if (is_sle('>=16')) {
+        assert_script_run("semanage fcontext -a -t bin_t '/systemd/bin/systemd_dummy_srv'");
+        assert_script_run("restorecon -v /systemd/bin/systemd_dummy_srv");
+        assert_script_run("semanage fcontext -a -t bin_t '/systemd/bin/semtest'");
+        assert_script_run("restorecon -v /systemd/bin/semtest");
+    }
+
     # Wait at least 180s for test to finish
     my $wait = 180;
     # Run the test and save the logs and results

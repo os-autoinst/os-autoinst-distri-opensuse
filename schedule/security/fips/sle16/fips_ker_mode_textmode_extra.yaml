@@ -11,7 +11,7 @@ schedule:
     - console/journald_fss
     - console/git
     - console/openvswitch_ssl
-    - console/ntp_client
+    - console/chrony
     - console/cups
     - console/curl_https
     - console/wget_https
@@ -21,6 +21,7 @@ schedule:
     - console/apache_ssl
     - security/vsftpd/vsftpd_setup
     - security/vsftpd/vsftpd
+    - security/vsftpd/lftp
     - console/ca_certificates_mozilla
     - console/unzip
     - console/rsync
@@ -40,3 +41,5 @@ schedule:
     - console/nginx
     - console/gdb
     - console/sysctl
+    - console/clamav
+    - security/oqa_agnostic/go_post_quantum

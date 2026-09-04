@@ -4,12 +4,10 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: run save_y2logs and upload the generated tar.bz2
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 
-use strict;
-use warnings;
-use parent 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 
 sub run {

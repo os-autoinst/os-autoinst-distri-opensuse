@@ -7,11 +7,9 @@
 # Summary: Add rmt configuration test and basic configuration via
 #    rmt-wizard, test enable/disable products/repo, test rmt sync
 #    rmt mirror, test import SMT data to RMT
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use repo_tools;
 use utils;

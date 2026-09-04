@@ -13,15 +13,14 @@
 # - Kill xterm
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 
 sub run {
     my ($self) = @_;
     mouse_hide(1);
+    ensure_installed("xterm xauth");
     x11_start_program('xterm');
     enter_cmd("ssh -o StrictHostKeyChecking=no -XC root\@localhost xterm");
     assert_screen "ssh-second-xterm";

@@ -7,13 +7,12 @@
 # Summary: Configure NetWeaver filesystems for ENSA2 based installation
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base "sles4sap";
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
-use strict;
-use warnings;
+use version_utils qw(has_selinux has_selinux_by_default);
 use sles4sap::sapcontrol;
 
 sub raise_barriers {
@@ -50,7 +49,7 @@ sub run {
     my $sar_archives_dir = $media_mount_point . '/' . get_var('SAR_SOURCES', 'SAR_SOURCES'); # relative path from NFS root to the DIR with KERNEL, SWPM... SAR archives
     my $sapcar_bin = $media_mount_point . '/' . get_var('SAPCAR_BIN', 'SAPCAR');    # relative path from NFS root to SAPCAR binary
     my $swpm_sar_filename = get_required_var('SWPM_SAR_FILENAME');
-    my $sapinst_unpack_path = '/tmp/SWPM';
+    my $sapinst_unpack_path = '/usr/sap/SWPM';
     my $sap_install_profile = "$sapinst_unpack_path/inifile.params";
 
     my $product_id = $instance_data->{product_id};
@@ -82,6 +81,22 @@ sub run {
     # Raises instance specific barrier to prevent dependencies from running
     raise_barriers(instance_type => $instance_type, instances => \@instances);
 
+    # We created new unlabeled files so we must relabel them for SELinux
+    my $exclusion = '';
+    if (has_selinux) {
+        # Fetch NFS mounts
+        my $mountpoints = script_output(q|awk '$3 ~ /^nfs/ {print $2}' /proc/mounts|, timeout => 60);
+        if ($mountpoints) {
+            # Fetch associated overlays only
+            my $mnt_regex = join('|', split(/\n/, $mountpoints));
+            my $overlay_cmd = q{awk '$3=="overlay" && $4~"lowerdir=(} . $mnt_regex . q{)(/|,|$)" {print $2}' /proc/mounts};
+            my $overlay = script_output($overlay_cmd, timeout => 60);
+            $exclusion = join(' ', map { "-e $_" } grep { $_ } split(/\n/, "$mountpoints\n$overlay"));
+        }
+        assert_script_run("test -d /.snapshots && restorecon -R / -e /.snapshots $exclusion", timeout => 1200);
+        assert_script_run('test -d /.snapshots || restorecon -R /', timeout => 600);
+    }
+
     my $swpm_command = join(' ', $swpm_binary,
         "SAPINST_INPUT_PARAMETERS_URL=$sap_install_profile",
         "SAPINST_USE_HOSTNAME=$hostname",
@@ -92,6 +107,12 @@ sub run {
 
     record_info('SAPINST EXEC', "Executing sapinst command:\n$swpm_command");
     assert_script_run($swpm_command, timeout => 600);
+
+    # Labelling the newly installed files only for systems with SELinux.
+    if (has_selinux) {
+        assert_script_run("test -d /.snapshots && restorecon -R / -e /.snapshots $exclusion", timeout => 1200);
+        assert_script_run('test -d /.snapshots || restorecon -R /', timeout => 600);
+    }
 
     sapcontrol_process_check(sidadm => $nw_install_data->{sidadm},
         instance_id => $instance_data->{instance_id},
@@ -106,3 +127,4 @@ sub run {
 }
 
 1;
+

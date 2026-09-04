@@ -10,11 +10,9 @@
 #          Branch via SYS_PARAM_CHECK_BRANCH, default is main
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "sles4sap";
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use version_utils qw(is_sle);
 use utils qw(zypper_call script_retry);
 use hacluster qw(is_package_installed);
@@ -52,6 +50,9 @@ sub run {
     my $branch = get_var('SYS_PARAM_CHECK_BRANCH', 'main');
     my $python_bin = is_sle('<15') ? 'python' : 'python3';
     select_serial_terminal;
+
+    record_info 'upload kernel config file';
+    upload_logs('/boot/config-$(uname -r)', failok => 1);
 
     # regenerate initrd bsc#1204897
     assert_script_run 'dracut --force', 180;

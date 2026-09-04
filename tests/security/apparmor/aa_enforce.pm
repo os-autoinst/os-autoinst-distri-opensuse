@@ -11,9 +11,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#36877, tc#1621145, poo#81730, tc#1767574
 
-use strict;
-use warnings;
-use base "apparmortest";
+use Mojo::Base 'apparmortest';
 use testapi;
 use utils;
 use services::apparmor;

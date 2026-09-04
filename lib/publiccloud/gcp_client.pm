@@ -5,7 +5,7 @@
 
 # Summary: Helper class for google connection and authentication
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::gcp_client;
 use Mojo::Base -base;
@@ -24,21 +24,20 @@ has project_id => sub { get_var('PUBLIC_CLOUD_GOOGLE_PROJECT_ID') };
 has account => sub { get_var('PUBLIC_CLOUD_GOOGLE_ACCOUNT') };
 has gcr_zone => sub { get_var('PUBLIC_CLOUD_GCR_ZONE', 'eu.gcr.io') };
 has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
+has availability_zone => sub { get_required_var('PUBLIC_CLOUD_AVAILABILITY_ZONE') };
 has username => sub { get_var('PUBLIC_CLOUD_USER', 'susetest') };
 
 sub init {
-    my ($self) = @_;
-    my $data = get_credentials('gce.json', CREDENTIALS_FILE);
+    my ($self, %args) = @_;
+    # Namespace precedence:  1. *_GOOGLE_NAMESPACE, 2. *_NAMESPACE
+    my $namespace = get_var('PUBLIC_CLOUD_GOOGLE_NAMESPACE') // get_required_var('PUBLIC_CLOUD_NAMESPACE');
+
+    my $data = get_credentials(url_suffix => 'gce.json', namespace => $namespace, output_json => CREDENTIALS_FILE);
     $self->project_id($data->{project_id});
     $self->account($data->{client_id});
     assert_script_run('source ~/.bashrc');
-    if (is_sle('>=15')) {
-        # kill it in case it's running
-        script_run("killall chronyd && sleep 5 && if pgrep chronyd; then killall -9 chronyd; fi");
-        assert_script_run("chronyd -q 'pool time.google.com iburst'");
-    } else {
-        assert_script_run('ntpdate -s time.google.com');
-    }
+    systemctl('stop chronyd.service');
+    script_retry("chronyd -q 'pool time.google.com iburst'", retry => 5, delay => 30);
     assert_script_run('gcloud config set account ' . $self->account);
     assert_script_run(
         'gcloud auth activate-service-account --key-file=' . CREDENTIALS_FILE . ' --project=' . $self->project_id);

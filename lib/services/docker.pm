@@ -38,8 +38,8 @@ sub full_docker_check {
     # Test the basic functionality
     runtime_smoke_tests(runtime => $engine);
 
-    # Clean container (assert => 0 will skip script_output checks)
-    $engine->cleanup_system_host(assert => 0);
+    # Clean container
+    $engine->cleanup_system_host();
 
     check_service();
 }

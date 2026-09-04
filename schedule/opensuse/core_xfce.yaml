@@ -1,0 +1,16 @@
+name:  core_xfce
+description:    >
+    Core XFCE Desktop applications
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - x11/user_gui_login
+    - x11/desktop_runner
+    - x11/desktop_mainmenu
+    - locale/keymap_or_locale_x11
+    - x11/xfce4_terminal
+    - x11/ristretto
+    - x11/thunar
+    - x11/xfce4_appfinder
+    - x11/xfce_lightdm_logout_login
+    - x11/reboot_xfce

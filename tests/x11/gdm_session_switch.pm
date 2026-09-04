@@ -10,9 +10,7 @@
 #    Also test rebooting from login screen.
 # Maintainer: Chingkai Chu <chuchingkai@gmail.com>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils 'is_sle';

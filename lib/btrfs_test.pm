@@ -11,7 +11,7 @@ use warnings;
 use Exporter 'import';
 use testapi;
 use utils 'get_root_console_tty';
-use version_utils qw(is_sle);
+use version_utils qw(is_sle is_jeos is_opensuse);
 use Utils::Systemd qw(systemctl);
 use JSON qw(decode_json);
 
@@ -78,6 +78,10 @@ it means that DBus got activated somehow, thus invalidated `snapper --no-dbus` t
 sub snapper_nodbus_restore {
     my $ret = script_run('systemctl is-active dbus', timeout => 300);
     die 'DBus service should be inactive, but it is active' if ($ret == 0);
+
+    # workaround bsc#1231986 by enabling the tty before switching to default target
+    script_run('systemctl enable getty@tty6.service') if (is_jeos && is_opensuse);
+
     script_run('systemctl default', timeout => 600);
     my $tty = get_root_console_tty;
 

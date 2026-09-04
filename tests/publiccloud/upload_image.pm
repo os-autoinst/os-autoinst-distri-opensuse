@@ -5,17 +5,14 @@
 
 # Summary: Testmodule to upload images to CSP
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
-use base "publiccloud::basetest";
-use strict;
-use warnings;
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use utils;
 use publiccloud::ec2;
 use publiccloud::azure;
 use publiccloud::gce;
-use publiccloud::openstack;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_jeos);
 
@@ -60,9 +57,14 @@ sub run {
     $provider->upload_img($img_name);
 }
 
+sub finalize {
+    # because it is upload_img we don't have instance created hence clasical cleanup does not make sense
+    #TODO: nevertheless we can implement here upload of logs related to image upload process per provider
+}
+
 sub test_flags {
     # in case of migration this is not single module so we need to skip cleanup
-    return {fatal => 1, publiccloud_multi_module => 1} if (get_var('PUBLIC_CLOUD_MIGRATION'));
+    return {fatal => 1} if (get_var('PUBLIC_CLOUD_MIGRATION'));
     return {fatal => 1};
 }
 
@@ -72,4 +74,3 @@ sub test_flags {
 
 OpenQA script to upload images into public cloud. This test module is only
 added if PUBLIC_CLOUD_IMAGE_LOCATION is set.
-

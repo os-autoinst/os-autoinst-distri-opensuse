@@ -18,23 +18,19 @@
 # - Check if directories are listed correctly with ls -d /*
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Architectures;
-use utils 'zypper_call';
+use package_utils 'install_package';
 use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use version_utils qw(is_leap is_sle);
 
 sub run() {
     select_serial_terminal();
-    my @packages = qw(tcsh);
-    # zsh not available on SLES16 (bsc#1238873)
-    push @packages, qw(zsh) unless (is_sle("16+"));
+    my @packages = qw(tcsh zsh);
     # ksh does not build for Leap 15.x on aarch64, so, skip it
     push @packages, qw(ksh) unless (is_leap('15.0+') and is_aarch64);
-    zypper_call("in @packages");
+    install_package("@packages", trup_reboot => 1);
     select_user_serial_terminal();
     assert_script_run 'ksh -c "print hello" | grep hello' unless (is_leap('15.0+') and is_aarch64);
     assert_script_run 'tcsh -c "printf \'hello\n\'" | grep hello';
@@ -73,6 +69,10 @@ sub tcsh_extra_tests {
     #cleanup:
     script_run 'rm /tmp/tcsh ~/.tcsh';
     script_run 'userdel tcsh_user';
+}
+
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
 }
 
 1;

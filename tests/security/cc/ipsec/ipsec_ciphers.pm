@@ -7,9 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#110980
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use lockapi;

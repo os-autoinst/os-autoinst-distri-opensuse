@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Prepare SLEM on PC for testing
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
@@ -29,7 +29,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 1;

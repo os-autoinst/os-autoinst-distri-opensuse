@@ -5,7 +5,7 @@
 #
 # Summary: A set of tools to verify encryption.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package validate_encrypt_utils;
 use strict;

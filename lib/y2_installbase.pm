@@ -685,15 +685,17 @@ sub post_fail_hook {
         wait_for_children;
     }
     else {
-        # In case of autoyast, actions in parent post fail hook might close
-        # error pop-up and system will reboot, so log collection will fail (see poo#61052)
-        $self->SUPER::post_fail_hook unless get_var('AUTOYAST');
         get_to_console;
         detect_bsc_1063638;
         $self->get_ip_address;
         remount_tmp_if_ro;
-        # Avoid collectin logs twice when investigate_yast2_failure() is inteded to hard-fail
+        # Avoid collecting logs twice when investigate_yast2_failure() is inteded to hard-fail
         $self->save_upload_y2logs unless get_var('ASSERT_Y2LOGS');
+
+        # In case of AutoYaST, actions in parent post fail hook might close
+        # error pop-up and system will reboot, so log collection will fail (see poo#61052)
+        $self->SUPER::post_fail_hook unless get_var('AUTOYAST');
+
         return if is_microos;
         $self->save_system_logs;
 

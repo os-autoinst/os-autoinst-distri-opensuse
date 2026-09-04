@@ -11,11 +11,9 @@
 #
 # Test data would override SCC_ADDONS.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use registration qw(cleanup_registration register_product register_addons_cmd);
 use scheduler 'get_test_suite_data';

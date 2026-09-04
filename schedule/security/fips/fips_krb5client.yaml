@@ -1,10 +1,11 @@
 name: crypt_krb5client
 description:    >
-    This is for crypt_krb5client test
+  This is for crypt_krb5client test
 schedule:
-    - boot/boot_to_desktop
-    - console/consoletest_setup
-    - security/krb5/krb5_crypt_prepare
-    - security/krb5/krb5_crypt_setup_client
-    - security/krb5/krb5_crypt_ssh_client
-    - security/krb5/krb5_crypt_nfs_client
+  - installation/bootloader_start
+  - boot/boot_to_desktop
+  - console/consoletest_setup
+  - security/krb5/krb5_crypt_prepare
+  - security/krb5/krb5_crypt_setup_client
+  - security/krb5/krb5_crypt_ssh_client
+  - security/krb5/krb5_crypt_nfs_client

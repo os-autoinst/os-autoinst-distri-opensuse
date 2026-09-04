@@ -1,21 +1,29 @@
-# Copyright 2023 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test that TPM is present and is working fine.
 #
 # Maintainer: QE Security <none@suse.de>
 
-use strict;
-use warnings;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use serial_terminal 'select_serial_terminal';
 use testapi;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
-    enter_cmd 'fdectl tpm-present';
-    wait_serial 'qr/^TPM self test succeeded\.(\n|.*)+TPM seal\/unseal works$/' ? record_info 'TPM is present and is working fine' : die 'TPM is not present or is not working as expected.';
+    install_package('fde-tools', trup_continue => 1, trup_reboot => 1);
+    my $out = script_output('fdectl tpm-present', proceed_on_failure => 1);
+    record_info('TPM output', $out);
+
+    die 'TPM self-test failed'
+      unless $out =~ /TPM self test succeeded/i;
+
+    die 'TPM seal/unseal failed'
+      unless $out =~ /TPM seal\/unseal works/i;
+
+    record_info('TPM', 'TPM is present and working');
 }
 
 sub test_flags {

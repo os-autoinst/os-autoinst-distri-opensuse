@@ -6,9 +6,9 @@
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
 
-use strict;
-use warnings;
-use base "consoletest";
+## no os-autoinst compile-check
+
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use testapi;
 use Utils::Backends;

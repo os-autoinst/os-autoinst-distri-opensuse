@@ -4,13 +4,11 @@
 # Summary: The openldap_to_ds tool will attempt to automatically migrate
 # custom schema, backens, some overlays from openldap to 389ds.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use Utils::Systemd qw(systemctl);
 use version_utils;

@@ -7,13 +7,13 @@
 # Summary: Test haproxy resource agent
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
-use utils qw(zypper_call systemctl);
+use utils qw(systemctl);
+use network_utils qw(iface);
 use hacluster;
+use package_utils qw(install_package);
 
 sub run {
     # Exit of this module if we are in a maintenance update not related to haproxy
@@ -25,6 +25,7 @@ sub run {
     my $apache_file = '/srv/www/htdocs/index.html';
     my $vip_ip = '10.0.2.30';
     my $vip_rsc = 'vip_haproxy';
+    my $iface = iface();
     my $node_01 = choose_node(1);
     my $node_02 = choose_node(2);
     my $node_01_ip = get_ip($node_01);
@@ -34,7 +35,7 @@ sub run {
     barrier_wait("HAPROXY_INIT_$cluster_name");
 
     # Installation of haproxy and apache2 packages
-    zypper_call 'in haproxy apache2';
+    install_package("haproxy apache2", trup_apply => 1);
     save_screenshot;
 
     # Get apache file template from the openQA server
@@ -51,10 +52,7 @@ sub run {
         assert_script_run "sed -i 's/%NODE_02_IP%/$node_02_ip/g' $haproxy_cfg";
         assert_script_run "sed -i 's/%VIP_IP%/$vip_ip/g' $haproxy_cfg";
 
-        add_file_in_csync(value => "$haproxy_cfg");
-
-        # Execute csync2 to synchronise the configuration files
-        exec_csync;
+        sync_file($haproxy_cfg);
 
         # Modify the apache template file according to our needs
         assert_script_run "sed -i 's/%NODE%/$node_01/g' $apache_file";
@@ -66,13 +64,15 @@ sub run {
         assert_script_run "sed -i 's/%IP%/$node_02_ip/g' $apache_file";
     }
 
+    upload_logs($_, failok => 1) for ($apache_file, $haproxy_cfg);
+
     # Apache have to be started on the both nodes for load balancing
     # TODO: Add apache2 in the HA configuration
     systemctl 'enable --now apache2';
 
     if (is_node(1)) {
         # Create vip resource
-        assert_script_run "EDITOR=\"sed -ie '\$ a primitive $vip_rsc IPaddr2 params ip='$vip_ip' nic='eth0' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
+        assert_script_run "EDITOR=\"sed -ie '\$ a primitive $vip_rsc IPaddr2 params ip='$vip_ip' nic='$iface' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
 
         # Just to be sure that vip resource is started
         sleep 5;
@@ -89,17 +89,26 @@ sub run {
 
         # Sometimes we need to cleanup the resource
         rsc_cleanup $haproxy_rsc;
+        wait_for_idle_cluster;
+
+        # Do a check of the cluster with a screenshot
+        save_state;
+
+        # Check haproxy
+        assert_script_run 'crm resource status haproxy';
     }
 
-    # Do a check of the cluster with a screenshot
-    save_state;
-
     if (is_node(2)) {
+        # Do a check of the cluster with a screenshot
+        save_state;
         # Test if the HTML content is the one expected on both nodes
         assert_script_run "curl -s $node_02_ip | grep $node_02";
     }
     elsif (is_node(1)) {
         assert_script_run "curl -s $node_01_ip | grep $node_01";
+        # Confirm $vip_ip is responding in HTTP (apache2) and 8080 (haproxy)
+        assert_script_run "curl $vip_ip";
+        assert_script_run "curl $vip_ip:8080";
         # Check if haproxy round-robin mode is working
         # The output of both curl commands must be different
         assert_script_run "[[ \$(curl -s $vip_ip:8080) != \$(curl -s $vip_ip:8080) ]]";

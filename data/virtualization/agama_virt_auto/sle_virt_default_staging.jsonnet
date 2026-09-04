@@ -1,0 +1,137 @@
+local repo = '{{INCIDENT_REPO}}';
+local urls = if repo != '' then std.split(repo, ',') else [];
+{
+  product: {
+    id: '{{AGAMA_PRODUCT_ID}}',
+    registrationCode: '{{SCC_REGCODE}}',
+    addons: []
+  },
+  bootloader: {
+    stopOnBootMenu: true,
+  },
+  user: {
+    fullName: 'Bernhard M. Wiedemann',
+    password: '$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/',
+    hashedPassword: true,
+    userName: 'bernhard'
+  },
+  root: {
+    password: '$6$0bUrc6YvA/qw$h1Z3pzadaxmc/KgcHRSEcYoU1ShVNymoXBaRAQZJ4ozVhTbCvdAMbGQrQAAX7cC9cLRybhsvDio3kBX/IB3xj/',
+    hashedPassword: true,
+    sshPublicKey: '{{_SECRET_ED25519_PUB_KEY}}'
+  },
+  software: {
+    packages: [
+      'openssh-server-config-rootlogin',
+      'xauth',
+      'xmlstarlet',
+      'virt-viewer'
+    ],
+    patterns: [
+      'base',
+      'kvm_server',
+      'kvm_tools'
+    ],
+    extraRepositories:
+      if std.length(urls) > 0 then
+        [
+          {
+            alias: 'TEST_' + std.toString(i),
+            url: urls[i],
+            allowUnsigned: true
+          }
+          for i in std.range(0, std.length(urls) -1)
+        ]
+      else
+        [],
+    onlyRequired: false
+  },
+  questions: {
+    policy: 'auto',
+    answers: [
+      {
+        answer: 'Trust',
+        class: 'software.import_gpg'
+      }
+    ]
+  },
+  scripts: {
+    pre: [
+      {
+        name: "erase-disks",
+        content: |||
+          #!/bin/sh
+          disks=$(lsblk -n -l -o NAME -d -e 7,11,254);
+          for disk in $disks;do
+              echo "Wiping /dev/$disk..."
+              wipefs -af /dev/$disk
+              sync
+              parted -s /dev/$disk mklabel gpt
+              sync
+          done
+          echo "All disks are wiped out."
+          lsblk
+        |||
+      }
+    ],
+    post: [
+      {
+        name: 'config_ssh',
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          # Configure SSH for passwordless access to guests
+          # Note: authorized_keys is already configured by Agama via root.sshPublicKey
+          
+          # 1. Setup SSH server (sshd) - configure server first
+          sshd_config_file="/etc/ssh/sshd_config.d/01-virt-test.conf"
+          echo -e "TCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 120" > $sshd_config_file
+          
+          # 2. Setup SSH client keys and config - configure client after server
+          mkdir -p -m 700 /root/.ssh
+          
+          # Write private key (use 9A as newline placeholder, same as host_15.xml.ep)
+          cat > /root/.ssh/id_ed25519 << 'EOF'
+          {{_SECRET_ED25519_PRIV_KEY}}
+          EOF
+          # Use perl for more reliable newline replacement (sed may have issues in some shells)
+          perl -pi -e 's/9A/\n/g' /root/.ssh/id_ed25519
+          chmod 600 /root/.ssh/id_ed25519
+          
+          # Write public key (for reference, Agama may have already created this)
+          echo '{{_SECRET_ED25519_PUB_KEY}}' > /root/.ssh/id_ed25519.pub
+          
+          # Configure SSH client settings
+          cat > /root/.ssh/config << 'EOF'
+          StrictHostKeyChecking no
+          PreferredAuthentications publickey,password
+          EOF
+          chmod 600 /root/.ssh/config
+        |||
+      },
+      {
+        name: 'turn_on_modular_libvirt_debug_logging',
+        chroot: true,
+        content: |||
+          for daemon in qemu storage network nodedev secret ; do
+            config_file=/etc/libvirt/virt${daemon}d.conf
+            log_file=/var/log/libvirt/virt${daemon}d.log
+            sed -i "/^[# ]*log_outputs *=/{h;s%^[# ]*log_outputs *=.*[0-9].*\$%log_outputs = \"1:file:${log_file}\"%};\${x;/^\$/{s%%log_outputs = \"1:file:${log_file}\"%;H};x}" $config_file
+            sed -i "/^[# ]*log_filters *=/{h;s%^[# ]*log_filters *=.*[0-9].*\$%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%};\${x;/^\$/{s%%log_filters = \"1:qemu 1:libvirt 4:object 4:json 4:event 3:util 1:util.pci\"%;H};x}" $config_file
+          done
+        |||
+      },
+      {
+        name: "disable_nm_for_sriov_vfs",
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          # Make a udev rule to force NM to skip SR-IOV VFs
+          rules_file="/etc/udev/rules.d/99-sriov-vfs-unmanaged.rules"
+          echo 'SUBSYSTEM=="net", ACTION=="add|change", TEST=="device/physfn", ENV{NM_UNMANAGED}="1"' > "$rules_file"
+          chmod 644 "$rules_file"
+        |||
+      }
+    ]
+  }
+}

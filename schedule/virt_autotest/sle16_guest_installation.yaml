@@ -1,9 +1,96 @@
-name:          sle16-virt-guest-installation
-description:    >
-    Virtualization guest installation tests including extended feature tests schedule with agama and IPXE
+name: sle16-virt-guest-installation
+description: |
+  Virtualization guest installation tests including extended feature tests schedule with agama and IPXE
 schedule:
-    - installation/ipxe_install
-    - installation/agama_reboot
-    - virt_autotest/login_console
-    # - virt_autotest/prepare_non_transactional_server
-    # - virt_autotest/unified_guest_installation
+  - '{{host_installation}}'
+  - virt_autotest/login_console
+  - '{{do_preparation}}'
+  - '{{prepare_nvram_for_snapshot}}'
+  - '{{virt_bridge_setup_test}}'
+  - virt_autotest/unified_guest_installation
+  - virt_autotest/set_config_as_glue
+  - '{{uefi_guest_verification}}'
+  - '{{sev_snp_validation}}'
+  - '{{sev_es_guest_verification}}'
+  - '{{tdx_validation}}'
+  - '{{sriov_network_card_pci_passthrough_test}}'
+  - '{{virtual_network_test}}'
+  - '{{hotplugging_test}}'
+  - '{{storage_test}}'
+  - '{{snapshot}}'
+conditional_schedule:
+  host_installation:
+    DO_NOT_INSTALL_HOST:
+      0:
+        - installation/ipxe_install
+        - installation/agama_reboot
+  do_preparation:
+    TRANSACTIONAL:
+      0:
+        - virt_autotest/prepare_non_transactional_server
+      1:
+        - virt_autotest/prepare_transactional_server
+  prepare_nvram_for_snapshot:
+    ENABLE_SNAPSHOT:
+      1:
+        - '{{prepare_nvram_for_snapshot_DEV_version}}'
+        - '{{prepare_nvram_for_snapshot_QU_version}}'
+  prepare_nvram_for_snapshot_DEV_version:
+    VERSION_TO_INSTALL:
+      '16.0':
+        - virt_autotest/prepare_nvram_for_snapshot
+  prepare_nvram_for_snapshot_QU_version:
+    VERSION:
+      '16.0':
+        - virt_autotest/prepare_nvram_for_snapshot
+  virt_bridge_setup_test:
+    ENABLE_VIRT_BRIDGE_SETUP_TEST:
+      1:
+        - virt_autotest/virt_bridge_setup
+  uefi_guest_verification:
+    VIRT_UEFI_GUEST_INSTALL:
+      1:
+        - virt_autotest/uefi_guest_verification
+  sev_snp_validation:
+    VIRT_SEV_SNP_GUEST_INSTALL:
+      1:
+        - virt_autotest/sev_snp_validation
+  tdx_validation:
+    VIRT_TDX_GUEST_INSTALL:
+      1:
+        - virt_autotest/tdx_validation
+  sev_es_guest_verification:
+    VIRT_SEV_ES_GUEST_INSTALL:
+      1:
+        - virt_autotest/sev_es_guest_verification
+  virtual_network_test:
+    ENABLE_VIR_NET:
+      1:
+        - virt_autotest/libvirt_virtual_network_init
+        - virt_autotest/libvirt_host_bridge_virtual_network
+        - virt_autotest/libvirt_nated_virtual_network
+        - virt_autotest/libvirt_routed_virtual_network
+        - virt_autotest/libvirt_isolated_virtual_network
+  snapshot:
+    ENABLE_SNAPSHOT:
+      1:
+        - virt_autotest/virsh_internal_snapshot
+        - virt_autotest/virsh_external_snapshot
+  sriov_network_card_pci_passthrough_test:
+    ENABLE_SRIOV_NETWORK_CARD_PCI_PASSTHROUGH:
+      1:
+        - virt_autotest/sriov_network_card_pci_passthrough
+  hotplugging_test:
+    ENABLE_HOTPLUGGING:
+      1:
+        - virtualization/universal/hotplugging_guest_preparation
+        - virtualization/universal/hotplugging_network_interfaces
+        - virtualization/universal/hotplugging_HDD
+        - virtualization/universal/hotplugging_vCPUs
+        - virtualization/universal/hotplugging_memory
+        - virtualization/universal/hotplugging_cleanup
+  storage_test:
+    ENABLE_STORAGE:
+      1:
+        - virtualization/universal/storage
+        - virt_autotest/libvirt_extend_storage_lvm

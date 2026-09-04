@@ -5,7 +5,7 @@
 
 # Summary: Base class for publiccloud tests
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::k8sbasetest;
 use Mojo::Base 'publiccloud::basetest';

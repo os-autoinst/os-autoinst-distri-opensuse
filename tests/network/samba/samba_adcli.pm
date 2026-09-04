@@ -9,14 +9,13 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Remote server: https://confluence.suse.com/display/qasle/AD+configuration+for+testing
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 use Utils::Architectures;
+use mm_network qw(is_networkmanager);
 
 ## Fail fast when required variables are not present
 my $AD_hostname = get_required_var("AD_HOSTNAME");
@@ -24,6 +23,7 @@ my $AD_ip = get_required_var("AD_HOST_IP");
 my $AD_domain = get_required_var("AD_DOMAIN");
 my $AD_workgroup = get_required_var("AD_WORKGROUP");
 my $domain_joined = 0;
+my $NetworkManager = 0;
 
 sub get_supportserver_file {
     my ($filename, $location) = @_;
@@ -47,6 +47,8 @@ sub samba_sssd_install {
     # https://progress.opensuse.org/issues/164394
     script_run("if [ ! -d '/etc/sssd/conf.d' ]; then mkdir -p /etc/sssd/conf.d; fi") if is_sle('>=15-SP6');
 
+    # Back up nsswitch.conf, see https://bugzilla.suse.com/show_bug.cgi?id=1259696
+    assert_script_run("cp /etc/nsswitch.conf{,.bak}") if !script_run 'test -f /etc/nsswitch.conf';
     # Copy config files enviroment.
     get_supportserver_file("kinit.exp", '$HOME/kinit.exp');
     get_supportserver_file("smb.conf", "/etc/samba/smb.conf");
@@ -54,15 +56,23 @@ sub samba_sssd_install {
     get_supportserver_file("nsswitch.conf", "/etc/nsswitch.conf");
     get_supportserver_file("sssd/conf.d/suse.conf", $sssd_config_location);
     assert_script_run "chmod go-rwx $sssd_config_location";
-    assert_script_run 'sed -i -E \'s/\tenable-cache(.*)(passwd|group)(.*)yes/\tenable-cache\1\2\3no/g\' /etc/nscd.conf';
+    assert_script_run 'sed -i -E \'s/\tenable-cache(.*)(passwd|group)(.*)yes/\tenable-cache\1\2\3no/g\' /etc/nscd.conf' unless $NetworkManager;
 
     # Update the DNS configuration to use the Domain controller as primary source
-    assert_script_run("cp /etc/sysconfig/network/config{,.bak}");
     assert_script_run("cp /etc/resolv.conf{,.bak}");
-    assert_script_run("echo NETCONFIG_DNS_STATIC_SEARCHLIST='$AD_hostname' >> /etc/sysconfig/network/config");
-    assert_script_run("echo NETCONFIG_DNS_STATIC_SERVERS='$AD_ip' >> /etc/sysconfig/network/config");
-    assert_script_run('netconfig update -f');
-    validate_script_output("cat /etc/resolv.conf", qr/nameserver $AD_ip/, fail_message => "Domain controller not present in /etc/resolv.conf");
+    if ($NetworkManager) {
+        my $nm_id = script_output("nmcli -t -f NAME c | grep -v '^lo' | head -n 1");
+        assert_script_run "nmcli connection modify '$nm_id' ipv4.dns-search '$AD_hostname'";
+        assert_script_run "nmcli connection modify '$nm_id' ipv4.dns '$AD_ip'";
+        systemctl('restart NetworkManager');
+    }
+    else {
+        assert_script_run("cp /etc/sysconfig/network/config{,.bak}");
+        assert_script_run("echo NETCONFIG_DNS_STATIC_SEARCHLIST='$AD_hostname' >> /etc/sysconfig/network/config");
+        assert_script_run("echo NETCONFIG_DNS_STATIC_SERVERS='$AD_ip' >> /etc/sysconfig/network/config");
+        assert_script_run('netconfig update -f');
+        validate_script_output("cat /etc/resolv.conf", qr/nameserver $AD_ip/, fail_message => "Domain controller not present in /etc/resolv.conf");
+    }
 
     # Ensure DNS name resolution works for the AD host
     script_retry("ping -c 2 $AD_hostname", retry => 3, timeout => 60, die => 1, fail_message => "$AD_hostname is unreachable");
@@ -94,7 +104,7 @@ sub join_domain {
     foreach my $service (qw(smb nmb winbind sssd)) {
         systemctl("enable --now $service");
     }
-    systemctl('restart nscd');
+    systemctl('restart nscd') unless $NetworkManager;
 }
 
 sub update_password {
@@ -102,6 +112,12 @@ sub update_password {
     script_retry("adcli update --verbose --computer-password-lifetime=0 --domain '$AD_domain'", retry => 3, delay => 60, fail_message => "Error invalidating local password");
     # Restore the password with --add-samba-data as requested by poo#91950
     script_retry("adcli update --verbose --computer-password-lifetime=0 --domain '$AD_domain' --add-samba-data", retry => 3, delay => 60, fail_message => "Error re-adding password with samba data");
+
+    # wbinfo -t gives "failed to call wbcCheckTrustCredentials: WBC_ERR_AUTH_ERROR" in FIPS mode, see bsc#1249042
+    if (get_var('FIPS_ENABLED')) {
+        record_soft_failure("bsc#1249042 - winbind issue in FIPS mode");
+        return;
+    }
 
     # Check the trust secret for the domain
     if (script_run("wbinfo -tP") != 0) {
@@ -134,12 +150,6 @@ sub run {
         record_info("Not available", "this test run is not available for SLES version older than 12-SP3.");
         return;
     }
-    # when run in FIPS mode, bail out on < 15-SP6 due to lack of proper support for crypto-policies
-    # https://jira.suse.com/browse/PED-12018
-    if (get_var('FIPS_ENABLED') && is_sle('<15-SP6')) {
-        record_info('TEST SKIPPED', 'missing crypto-policies support for legacy AD auth');
-        return;
-    }
     select_serial_terminal;
 
     # Ensure the required variables are set
@@ -152,7 +162,19 @@ sub run {
         return;
     }
 
+    $NetworkManager = 1 if is_networkmanager;
     samba_sssd_install();
+
+    # when in FIPS mode, we need to set the correct crypto policy
+    # bail out if the system is too old to support AD in FIPS mode
+    if (get_var('FIPS_ENABLED')) {
+        if (is_sle('<15-SP6')) {
+            record_info('TEST SKIPPED', 'missing crypto-policies support for legacy AD auth');
+            return 0;
+        }
+        assert_script_run 'update-crypto-policies --set FIPS:AD-SUPPORT';
+    }
+
     randomize_hostname();    # Prevent race condition with parallel test runs
     disable_ipv6();    # AD host is not reachable via IPv6 on some of our workers
     join_domain();
@@ -175,15 +197,16 @@ sub run {
     # - smbclient //$AD_hostname/openQA as geekouser is permitted (read-only), but as berhard it is denied
     # - delete the computer OU after the test is done in post_run_hook
     # - test winbind (samba?) authentication
-
-    # Restore the network config files, poo#156427
-    assert_script_run("cp /etc/sysconfig/network/config{.bak,}");
-    assert_script_run("cp /etc/resolv.conf{.bak,}");
 }
 
 sub post_run_hook {
     my ($self) = shift;
     enable_ipv6();
+    # Restore the network config files
+    assert_script_run("mv /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
+    assert_script_run("mv /etc/resolv.conf{.bak,}");
+    assert_script_run("rm -f /etc/nsswitch.conf") if script_run 'test -f /etc/nsswitch.conf.bak';
+    assert_script_run("mv /etc/nsswitch.conf{.bak,}") if !script_run 'test -f /etc/nsswitch.conf.bak';
 }
 
 sub post_fail_hook {
@@ -200,8 +223,10 @@ sub post_fail_hook {
         script_run("echo \"\$AD_DOMAIN_PASSWORD\" | net ads leave --domain '$AD_hostname' -U Administrator -i");
     }
     # Restore the network config files
-    assert_script_run("cp /etc/sysconfig/network/config{.bak,}");
-    assert_script_run("cp /etc/resolv.conf{.bak,}");
+    assert_script_run("mv /etc/sysconfig/network/config{.bak,}") unless $NetworkManager;
+    assert_script_run("mv /etc/resolv.conf{.bak,}");
+    assert_script_run("rm -f /etc/nsswitch.conf") if script_run 'test -f /etc/nsswitch.conf.bak';
+    assert_script_run("mv /etc/nsswitch.conf{.bak,}") if !script_run 'test -f /etc/nsswitch.conf.bak';
 }
 
 1;

@@ -8,9 +8,7 @@
 #          Install ucode package if not installed
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use strict;
-use warnings;
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils 'zypper_call';
 use Utils::Backends 'use_ssh_serial_console';

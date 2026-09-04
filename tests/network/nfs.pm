@@ -16,11 +16,9 @@
 #  33d32
 #  <     sync; sleep 3
 ######################################################
-# Maintainer: rfan1 <richard.fan@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

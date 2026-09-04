@@ -7,17 +7,16 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#108485
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use eal4_test;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     zypper_call('in wget gcc make curl p7zip');
 

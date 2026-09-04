@@ -5,9 +5,7 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test initializes console redirection to cloud Deployer VM.
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
-use strict;
-use warnings;
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 use testapi;
 use sles4sap::sap_deployment_automation_framework::deployment
   qw(serial_console_diag_banner az_login sdaf_ssh_key_from_keyvault);
@@ -35,7 +33,7 @@ sub run {
     set_var('REDIRECT_DESTINATION_USER', get_var('PUBLIC_CLOUD_USER', 'azureadm'));
     set_var('REDIRECT_DESTINATION_IP', $deployer_ip);    # IP addr to redirect console to
     sdaf_ssh_key_from_keyvault(
-        key_vault => get_required_var('SDAF_DEPLYOER_KEY_VAULT'), target_file => $deployer_private_key_path);
+        query => 'sshkey', key_vault => get_required_var('SDAF_DEPLOYER_KEY_VAULT'), target_file => $deployer_private_key_path);
     serial_console_diag_banner('Module sdaf_redirect_console_to_deployer.pm : end');
 }
 

@@ -3,11 +3,9 @@
 
 # Summary: Run interactive installation with Agama,
 # using a web automation tool to test directly from the Live ISO.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base Yam::Agama::agama_base;
-use strict;
-use warnings;
+use Mojo::Base 'Yam::Agama::agama_base';
 use Carp qw(croak);
 use testapi qw(
   diag
@@ -23,8 +21,14 @@ use testapi qw(
   select_console
   console
 );
-use Utils::Architectures qw(is_s390x);
-use Utils::Backends qw(is_svirt);
+use Utils::Architectures qw(is_s390x is_ppc64le);
+use Utils::Backends qw(is_pvm is_svirt);
+use version_utils qw(is_vmware);
+use power_action_utils 'power_action';
+
+sub is_headless_installation {
+    return 1 if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/);
+}
 
 sub run {
     my $self = shift;
@@ -33,9 +37,18 @@ sub run {
     my $reboot_page = $testapi::distri->get_reboot();
     my $spec = "spec.txt";
     my $tap = "tap.txt";
-    my $reporters = "--test-reporter=spec --test-reporter=tap --test-reporter-destination=/tmp/$spec --test-reporter-destination=/tmp/$tap";
-    my $node_cmd = "node --enable-source-maps $reporters /usr/share/agama/system-tests/${test}.js $test_options";
+    my $node_cmd = "node" .
+      " --enable-source-maps" .
+      " --test-reporter=spec" .
+      " --test-reporter=tap" .
+      " --test-reporter-destination=/tmp/$spec" .
+      " --test-reporter-destination=/tmp/$tap" .
+      " /usr/share/agama/system-tests/${test}.js" .
+      " --product-version " . get_required_var('VERSION') .
+      " --agama-web-ui-package-version " . get_var('AGAMA_WEBUI_PACKAGE_VERSION') .
+      " $test_options";
 
+    select_console 'install-shell';
     record_info("node cmd", $node_cmd);
     my $ret = script_run($node_cmd, timeout => 2400);
 
@@ -52,12 +65,16 @@ sub run {
     return if get_var('INST_ABORT');
 
     # make sure we will boot from hard disk next time
-    if (is_s390x && is_svirt) {
+    if (is_s390x() && is_svirt()) {
         select_console 'installation';
         my $svirt = console('svirt')->change_domain_element(os => boot => {dev => 'hd'});
     }
 
-    $reboot_page->reboot();
+    (is_s390x() || is_pvm() || is_headless_installation()) || is_vmware() ?
+      # reboot via console
+      power_action('reboot', keepconsole => 1, first_reboot => 1) :
+      # graphical reboot
+      $reboot_page->reboot();
 }
 
 1;

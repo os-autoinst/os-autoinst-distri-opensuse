@@ -18,9 +18,7 @@
 #    - for each of the plugging/unplugging step above, check domain network status and host&guest status.
 # Maintainer: Julie CAO <JCao@suse.com>, qe-virt@suse.de
 
-use base "virt_feature_test_base";
-use strict;
-use warnings;
+use Mojo::Base 'virt_feature_test_base';
 use utils;
 use testapi;
 use virt_autotest::common;
@@ -30,11 +28,14 @@ use virt_autotest::virtual_network_utils qw(save_guest_ip test_network_interface
 
 our $log_dir = "/tmp/sriov_pcipassthru";
 our $vm_xml_save_dir = "/tmp/download_vm_xml";
+our @host_pfs;
 
 sub run_test {
     my $self = shift;
 
     #set up ssh, packages and iommu on host
+    check_host_health;
+    script_run("journalctl --cursor-file /tmp/cursor.txt -u NetworkManager | grep -e 'timeout' -e 'failure' -e 'failed to acquire D-Bus name' -e 'critical'") if is_sle('16+');
     prepare_host();
 
     #clean up test logs
@@ -44,19 +45,40 @@ sub run_test {
     save_guests_xml_for_change($vm_xml_save_dir);
 
     #get the SR-IOV device BDF and interface
-    my @host_pfs;
     @host_pfs = find_sriov_ethernet_devices();
 
     #get/set necessary variables for test
-    my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3";
+    my $gateway = script_output "ip r s | grep 'default via' | cut -d ' ' -f3 | sort -u";
 
-    # enable 8 vfs for the SR-IOV device on host
-    my @host_vfs = enable_vf(@host_pfs);
+    # Back up /etc/resolv.conf as it will refresh by creating VFs
+    assert_script_run("cp /etc/resolv.conf /etc/resolv_before_enable_vf.conf");
+
+    record_info("Before enabling VF", script_output("ip a"));
+    script_run("ip r");
+    script_run("nmcli con");
+
+    # Enable VFs for the SR-IOV devices on host
+    my @host_vfs = enable_vf(number => get_var("ENABLE_VF_COUNT", '7'), pfs => \@host_pfs);
     record_info("VFs enabled", "@host_vfs");
+    enter_cmd "ip r; echo DONE > /dev/$serialdev";
+    unless (defined(wait_serial 'DONE', timeout => 30)) {
+        reset_consoles;
+        select_console('root-ssh');
+    }
+    record_info("After enabling VF", script_output("ip a", proceed_on_failure => 1));
+    script_run("nmcli con");
+
+    # Restore /etc/resolv.conf after VFs are created
+    assert_script_run("cp /etc/resolv_before_enable_vf.conf /etc/resolv.conf");
+    script_run("cat /etc/resolv.conf");
 
     foreach my $guest (keys %virt_autotest::common::guests) {
         if (virt_autotest::utils::is_sev_es_guest($guest) ne 'notsev') {
             record_info("Skip SR-IOV test on $guest", "SEV/SEV-ES guest $guest does not support SR-IOV");
+            next;
+        }
+        if (is_pv_guest($guest)) {
+            record_soft_failure("bsc#1262599 - SR-IOV PCI passthrough is not supported on Xen PV guest $guest, skipping.");
             next;
         }
         record_info("Test $guest");
@@ -96,10 +118,11 @@ sub run_test {
         save_network_device_status_logs($guest, "2-after_hotplug_$vfs[0]->{host_id}");
         #check the networking of the plugged interface
         #use br123 as ssh connection
-        test_network_interface($guest, gate => $gateway, mac => $vfs[0]->{vm_mac}, net => 'br123');
+        test_network_interface($guest, gateway => $gateway, mac => $vfs[0]->{vm_mac});
 
         #unplug the first vf from vm
         unplug_vf_from_vm($guest, $vfs[0]);
+        check_guest_health($guest);
         assert_script_run("virsh nodedev-reattach $vfs[0]->{host_id}", 60);
         record_info("Reattach VF to host", "vm=$guest \nvf=$vfs[0]->{host_id}");
         save_network_device_status_logs($guest, "3-after_hot_unplug_$vfs[0]->{host_id}");
@@ -108,7 +131,7 @@ sub run_test {
         #test network after reboot as dhcp lease spends time
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
             plugin_vf_device($guest, $vfs[$i]);
-            test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123') if $i == 1;
+            test_network_interface($guest, gateway => $gateway, mac => $vfs[$i]->{vm_mac}) if $i == 1;
             save_network_device_status_logs($guest, $i + 3 . "-after_hotplug_$vfs[$i]->{host_id}");
         }
 
@@ -120,12 +143,13 @@ sub run_test {
 
         #check the remaining vf(s) inside vm
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
-            test_network_interface($guest, gate => $gateway, mac => $vfs[$i]->{vm_mac}, net => 'br123');
+            test_network_interface($guest, gateway => $gateway, mac => $vfs[$i]->{vm_mac});
         }
 
         #unplug the remaining vf(s) from vm
         for (my $i = 1; $i < $passthru_vf_count; $i++) {
             unplug_vf_from_vm($guest, $vfs[$i]);
+            check_guest_health($guest);
             assert_script_run("virsh nodedev-reattach $vfs[$i]->{host_id}", 60);
             record_info("Reattach VF to host", "vm=$guest \nvf=$vfs[$i]->{host_id}");
             save_network_device_status_logs($guest, $passthru_vf_count + 4 + $i . "-after_hot_unplug_$vfs[$i]->{host_id}");
@@ -134,6 +158,13 @@ sub run_test {
         script_run "lspci | grep Ethernet";
         save_screenshot;
 
+    }
+
+    # Turn off SR-IOV
+    foreach (@host_pfs) {
+        record_info("Turn off SR-IOV", "@host_pfs");
+        script_run("echo 0 > /sys/bus/pci/devices/0000:$_/sriov_numvfs");
+        script_run("lspci | grep Ethernet");
     }
 
     #upload network device related logs
@@ -194,20 +225,21 @@ sub find_sriov_ethernet_devices {
     return @sriov_devices;
 }
 
-#enable 8 virtual functions for the specified physical functions of the SR-IOV network device
+#Enable $number VFs for one of the passing PFs of the SR-IOV network devices
 sub enable_vf {
-    my @pfs = @_;
+    my %args = @_;
+    my $pfs_ref = $args{pfs};
+    # All SR-IOV ethernet cards allow the maxium fv number is above 7
+    my $number = $args{number} // 7;
 
-    #enable VFs for SR-IOV PFs by modifying SYS PCI
-    #modifying SYS PCI is much better than passing max_vfs=8 in reloading network device drivers
-    #as no network break is required anymore(ie. no sol console is needed or no worries about ip/nic change),
-    #also modifying SYS PCI allows to enable specified PFs
-    foreach my $pf (@pfs) {
-        #enable 7 VFs as all of SR-IOV ethernet cards allow the maxium fv number is beyond 7
-        assert_script_run("echo 7 > /sys/bus/pci/devices/0000:$pf/sriov_numvfs");
-    }
+    # Enable specified VFs on a random PF by modifying SYS PCI
+    my $random_pf = $pfs_ref->[int(rand(@$pfs_ref))];
+    assert_script_run("echo $number > /sys/bus/pci/devices/0000:$random_pf/sriov_numvfs");
 
+    # It takes a litte longer on SLE16 due to network activation
+    script_retry("lspci | grep Ethernet | grep \"Virtual Function\"", delay => 5, retry => 3);
     my $vf_devices = script_output "lspci | grep Ethernet | grep \"Virtual Function\" | cut -d ' ' -f1";
+    record_info("Error", "The VF number is not correct!", result => 'fail') if script_output("echo '$vf_devices' | wc -l") != $number;
     my @vfs = split("\n", $vf_devices);
 
 }
@@ -233,36 +265,40 @@ sub prepare_guest_for_sriov_passthrough {
         #set e820_host for pv guest
         #refer to bug #1167217 and but #1185081 for the reason
         unless (is_fv_guest($vm) && is_sle('<15-SP2')) {
-            unless (script_run("xmlstarlet sel -t -c /domain/features $changed_xml_dir/$vm.xml") == 0) {
-                assert_script_run "xmlstarlet edit -L -s /domain -t elem -n features -v '' $changed_xml_dir/$vm.xml";
-            }
-            unless (script_run("xmlstarlet sel -t -c /domain/features/xen $changed_xml_dir/$vm.xml") == 0) {
-                assert_script_run "xmlstarlet edit -L -s /domain/features -t elem -n xen -v '' $changed_xml_dir/$vm.xml";
-            }
-            if (is_sle('>=15-SP2') && script_run("xmlstarlet sel -t -c /domain/features/xen/passthrough $changed_xml_dir/$vm.xml") != 0) {
-                assert_script_run "xmlstarlet edit -L \\
+            # Use scoped classic serial markers for checking the nic is removed from vm
+            {
+                my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
+                unless (script_run("xmlstarlet sel -t -c /domain/features $changed_xml_dir/$vm.xml") == 0) {
+                    assert_script_run "xmlstarlet edit -L -s /domain -t elem -n features -v '' $changed_xml_dir/$vm.xml";
+                }
+                unless (script_run("xmlstarlet sel -t -c /domain/features/xen $changed_xml_dir/$vm.xml") == 0) {
+                    assert_script_run "xmlstarlet edit -L -s /domain/features -t elem -n xen -v '' $changed_xml_dir/$vm.xml";
+                }
+                if (is_sle('>=15-SP2') && script_run("xmlstarlet sel -t -c /domain/features/xen/passthrough $changed_xml_dir/$vm.xml") != 0) {
+                    assert_script_run "xmlstarlet edit -L \\
                                    -s /domain/features/xen -t elem -n passthrough -v '' \\
                                    -s ////passthrough -t attr -n state -v on \\
                                    $changed_xml_dir/$vm.xml";
-            }
-            if (is_pv_guest($vm) and script_run("xmlstarlet sel -t -c /domain/features/xen/e820_host $changed_xml_dir/$vm.xml") != 0) {
-                assert_script_run "xmlstarlet edit -L \\
+                }
+                if (is_pv_guest($vm) and script_run("xmlstarlet sel -t -c /domain/features/xen/e820_host $changed_xml_dir/$vm.xml") != 0) {
+                    assert_script_run "xmlstarlet edit -L \\
                                    -s /domain/features/xen -t elem -n e820_host -v '' \\
                                    -s ////e820_host -t attr -n state -v on \\
                                    $changed_xml_dir/$vm.xml";
+                }
             }
         }
 
-        #try undefine with --keep-nvram if undefine fails on uefi guest
         script_run "virsh undefine $vm || virsh undefine $vm --keep-nvram";
-        assert_script_run(" ! virsh list --all | grep $vm");
+        assert_script_run("! virsh list --all | grep $vm");
         assert_script_run "virsh define $changed_xml_dir/$vm.xml";
         assert_script_run "virsh start $vm";
         wait_guest_online($vm);
     }
 
     #passwordless access to guest
-    save_guest_ip($vm, name => "br123");    #get the guest ip via key words in 'virsh domiflist'
+    save_guest_ip($vm);
+    check_guest_health($vm);
 
     # Enable udev debug logs
     my $udev_conf_file = "/etc/udev/udev.conf";
@@ -287,6 +323,12 @@ sub detach_vf_from_host {
     #change to device id in libvirt
     $device_bdf =~ s/[:\.]/_/g;
     my $device_id = script_output "virsh nodedev-list | grep $device_bdf";
+
+    # Show the NM status on host to see if it is fine
+    if (is_sle('16+')) {
+        script_run("nmcli con");
+        script_run("journalctl --cursor-file /tmp/cursor.txt -u NetworkManager | grep -e 'timeout' -e 'failure' -e 'failed to acquire D-Bus name' -e 'critical'");
+    }
 
     #detach from host
     assert_script_run "virsh nodedev-detach $device_id";
@@ -315,7 +357,10 @@ sub plugin_vf_device {
     #attach device to vm
     assert_script_run "virsh -d 1 attach-device $vm $vf->{host_id}.xml --persistent";
 
-    #get the mac address and bdf by parsing the domain xml
+    # We used to get the mac address and bdf by parsing the domain xml
+    # But we found it was not always the case that the BDF is consistent with the domain xml
+    # Since there is no way to identify the BDF of the plugged VF inside the domain
+    # Now we only get MAC here
     #tips: there may be multiple interfaces and multiple hostdev devices in the guest
     my $nics_count = script_output "virsh dumpxml $vm --inactive | grep -c \"<interface.*type='hostdev'\"";
     my $devs_xml = script_output "virsh dumpxml $vm --inactive | sed -n \"/<interface.*type='hostdev'/,/<\\/devices/p\"";
@@ -332,33 +377,18 @@ sub plugin_vf_device {
             #get mac address
             $nic_xml =~ /\<mac.*address='(.*)'/;
             $vf->{vm_mac} = $1;
-
-            #get bdf for guests on KVM
-            $nic_xml =~ s/\<source.*\<\/source\>//s;
-            if ($nic_xml =~ /bus='(\w+)'.*slot='(\w+)'.*function='(\w+)'/) {
-                my ($bus, $slot, $func) = ($1, $2, $3);
-                $vf->{vm_bdf} = $bus . ":" . $slot . "." . $func;
-            }
-
-            #have to get bdf by other means for guests on XEN
-            #pv & fv guest differs a bit in directory archeteture
-            else {
-                $vf->{vm_bdf} = script_output "ssh root\@$vm \"if [ -e /sys/devices/pci-0/pci????:?? ]; then grep -H '$vf->{vm_mac}' /sys/devices/pci-0/*/*/net/*/address | cut -d '/' -f6; else grep -H '$vf->{vm_mac}' /sys/devices/*/*/net/*/address | cut -d '/' -f5; fi\"";
-            }
-            die "NO BDF is found for $vf->{vm_mac} within $vm!" unless $vf->{vm_bdf};
             last;
-
         }
         else {
             $devs_xml =~ s/\<interface.*?type='hostdev'.*?\<\/interface\>//s;
         }
     }
 
-    #print the vf device
-    $vf->{vm_bdf} =~ /[a-z\d]+:[a-z\d]+[.:][a-z\d]+/;    #bdf has different format in guests on KVM and XEN
-    assert_script_run "ssh root\@$vm \"lspci -vvv -s $vf->{vm_bdf}\"";
+    # Print the vf device
+    validate_script_output("ssh root\@$vm \"lspci\"", sub { m/Virtual Function/ });
+    # TBD. found empty output here sporadically, not locate the root cause yet
     $vf->{vm_nic} = script_output "ssh root\@$vm \"grep '$vf->{vm_mac}' /sys/class/net/*/address | cut -d'/' -f5 | head -n1\"";
-    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nbdf='$vf->{vm_bdf}'   mac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
+    record_info("VF plugged to vm", "$vf->{host_id} \nGuest: $vm\nmac_address='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
     if ($vf->{vm_nic} eq '') {
         script_output "ssh root\@$vm \"for FILE in /sys/class/net/*/address; do echo \\\$FILE; cat \\\$FILE; done\"";    #for debug
         die "Fail to get NIC in $vm: nic='$vf->{vm_nic}'";
@@ -370,10 +400,10 @@ sub plugin_vf_device {
 sub unplug_vf_from_vm {
     my ($vm, $vf) = @_;
 
-    record_info("Unplug VF from vm", "$vf->{host_id} \nGuest: $vm \nbdf='$vf->{vm_bdf}'   mac='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
+    record_info("Unplug VF from vm", "$vf->{host_id} \nGuest: $vm \nmac='$vf->{vm_mac}'   nic='$vf->{vm_nic}'");
 
     #bring the nic down
-    script_run("ssh root\@$vm 'ifdown $vf->{vm_nic}'", 300);
+    script_run("ssh root\@$vm 'ip l set dev $vf->{vm_nic} down'", 300);
 
     #detach vf from guest
     my $vf_xml_file = "vf_in_vm.xml";
@@ -382,7 +412,7 @@ sub unplug_vf_from_vm {
     assert_script_run("virsh detach-device $vm $vf_xml_file --persistent", 60);
 
     #check if the nic is removed from vm
-    assert_script_run(" ! ssh root\@$vm \"ip l show $vf->{vm_nic}\"", fail_message => "ERROR: vf is unplugged from vm, but nic still exists!");
+    assert_script_run("! ssh root\@$vm \"ip l show $vf->{vm_nic}\"", fail_message => "ERROR: vf is unplugged from vm, but nic still exists!");
 }
 
 #print logs for debugging
@@ -412,12 +442,47 @@ sub post_fail_hook {
     my $self = shift;
 
     diag("Module sriov_network_card_pci_passthrough post fail hook starts.");
+    # List guests meanwhile check if the host is available
+    enter_cmd "virsh list --all; echo DONE > /dev/$serialdev";
+    unless (defined(wait_serial 'DONE', timeout => 30)) {
+        record_info("SOL console", "");
+        reset_consoles;
+        select_console 'sol', await_console => 1;
+        send_key 'ret' if check_screen('sol-console-wait-typing-ret');
+        if (check_screen('text-login')) {
+            enter_cmd "root";
+            assert_screen "password-prompt";
+            type_password;
+            send_key 'ret';
+        }
+        assert_screen "text-logged-in-root";
+        enter_cmd("date");
+        enter_cmd("journalctl --no-pager | tail -18");
+        wait_still_screen 1;
+        save_screenshot;
+        if (is_sle('16+')) {
+            enter_cmd("systemctl status NetworkManager --no-pager");
+            wait_still_screen 1;
+            save_screenshot;
+        }
+        # Any NM comman will hung at here, and restarting NM is unhelpful, even make the host hung
+        # So determine not to run them here to keep the host sol console vailable
+        return;
+    }
+
     foreach (keys %virt_autotest::common::guests) {
         save_network_device_status_logs($_, "post_fail_hook");
         script_run("timeout 20 ssh root\@$_ 'dmesg' >> $log_dir/dmesg_$_ 2>&1");
         check_guest_health($_);
     }
     virt_autotest::utils::upload_virt_logs($log_dir, "network_device_status");
+
+    # Turn off SR-IOV to save IPs
+    foreach (@host_pfs) {
+        record_info("Turn off SR-IOV", "@host_pfs");
+        script_run("echo 0 > /sys/bus/pci/devices/0000:$_/sriov_numvfs");
+        script_run("lspci | grep Ethernet");
+    }
     $self->SUPER::post_fail_hook;
     restore_original_guests($vm_xml_save_dir);
 

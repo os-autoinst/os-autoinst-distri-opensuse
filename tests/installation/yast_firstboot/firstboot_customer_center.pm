@@ -5,11 +5,9 @@
 
 # Summary: Handles Customer Center dialog in YaST Firstboot Configuration
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_firstboot_basetest';
-use strict;
-use warnings;
+use Mojo::Base 'y2_firstboot_basetest';
 
 sub run {
     $testapi::distri->get_registration_of_registered_system()

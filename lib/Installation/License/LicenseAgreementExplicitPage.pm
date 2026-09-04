@@ -5,7 +5,7 @@
 
 # Summary: Page to handle License Agreement page with checkbox to
 # explicitly accept it
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::License::LicenseAgreementExplicitPage;
 use parent 'Installation::License::LicenseAgreementPage';

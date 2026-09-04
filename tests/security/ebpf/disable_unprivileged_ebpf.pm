@@ -10,10 +10,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#103932, tc#1769831, poo#108302
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use power_action_utils "power_action";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use Utils::Backends 'is_pvm';
@@ -53,8 +51,11 @@ sub run {
     # Verify the eBPF status: OS should be disabled unprivileged eBPF by default
     validate_script_output("cat $f_unpriv_bpf_disabled", sub { m/2/ });
 
-    # Re-enable unprivileged eBPF temporarily using 'sysctl'
-    validate_script_output('sysctl kernel.unprivileged_bpf_disabled=0', sub { m/kernel.unprivileged_bpf_disabled = 0/ });
+    # Re-enable unprivileged eBPF temporarily using 'sysctl'.
+    # Use assert_script_run instead of validate_script_output: the 2->0 transition
+    # triggers a kernel printk WARNING on ttyAMA0 that races with the script marker
+    # echoed via 'tee', breaking script_output's marker-newline regex on slow aarch64.
+    assert_script_run('sysctl kernel.unprivileged_bpf_disabled=0');
     # Verify the eBPF status: should be enabled unprivileged eBPF
     validate_script_output("cat $f_unpriv_bpf_disabled", sub { m/0/ });
 
@@ -90,10 +91,6 @@ sub run {
 
     # Reboot, verify the eBPF status: should be enabled unprivileged eBPF
     $self->reboot_and_check('0');
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

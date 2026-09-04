@@ -10,7 +10,7 @@
 use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'script_retry';
+use utils;
 use containers::common 'check_containers_connectivity';
 use Utils::Systemd 'systemctl';
 
@@ -40,8 +40,8 @@ sub run {
     assert_script_run "$runtime pull $image";
     assert_script_run "$runtime run -d --name $container_name -p 1234:1234 $image nc -l -p 1234";
     script_retry "ss -tln sport = :1234", delay => 5, retry => 3;
-    assert_script_run "echo Hola Mundo >/dev/tcp/127.0.0.1/1234";
-    script_retry "$runtime logs $container_name | grep Hola", delay => 5, retry => 3;
+    script_retry "echo Hola Mundo >/dev/tcp/127.0.0.1/1234", delay => 5, retry => 3;
+    validate_script_output_retry("$runtime logs $container_name", sub { m/Hola/ }, retry => 5, delay => 60);
 
     assert_script_run "$runtime stop $container_name ";
     assert_script_run "$runtime rm -vf $container_name ";
@@ -68,6 +68,10 @@ sub post_fail_hook {
     }
 
     $self->SUPER::post_fail_hook;
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

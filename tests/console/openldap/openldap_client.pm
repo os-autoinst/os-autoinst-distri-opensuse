@@ -6,10 +6,8 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: poo#165258
 #
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils;
 use lockapi;
 use serial_terminal 'select_serial_terminal';
@@ -32,6 +30,8 @@ sub run {
     assert_script_run("curl " . data_url("sssd/openldap/nsswitch.conf") . " -o /etc/nsswitch.conf");
     assert_script_run("curl " . data_url("sssd/openldap/ldapserver.crt") . " -o /etc/sssd/ldapserver.crt");
     assert_script_run("curl " . data_url("sssd/openldap/config") . " --create-dirs -o ~/.ssh/config");
+    # https://progress.opensuse.org/issues/195908
+    assert_script_run('chmod 600 /etc/sssd/sssd.conf');
     systemctl('disable --now nscd.service');
     systemctl('enable --now sssd.service');
 

@@ -12,15 +12,15 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: bsc#598574
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 
 sub run {
     select_console 'user-console';
-    assert_script_run('curl www3.zq1.de/test.txt');
+    assert_script_run('curl -6 www3.zq1.de/test.txt');
     assert_script_run('rpm -q curl libcurl4');
 }
+
+sub test_flags { return {no_rollback => 1} }
 
 1;

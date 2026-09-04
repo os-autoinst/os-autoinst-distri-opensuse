@@ -33,6 +33,7 @@ sub virt_storage_management {
     my ($vstorage_pool_name, %args) = @_;
     my $vol_size = $args{size};
     my $timeout = $args{timeout} // 120;
+    my $clone_timeout = $args{clone_timeout} // 600;
     my $dir = $args{dir} // 0;
     my $vol_resize = $args{resize} // 0;
     ## Basic Virtualization Storage Pool Management
@@ -65,7 +66,7 @@ sub virt_storage_management {
     record_info "Detached";
     assert_script_run("virsh detach-disk $_ $target", $timeout) foreach (keys %virt_autotest::common::guests);
     record_info "Clone";
-    assert_script_run("virsh vol-clone --pool $vstorage_pool_name $_-storage $_-clone", $timeout) foreach (keys %virt_autotest::common::guests);
+    assert_script_run("virsh vol-clone --pool $vstorage_pool_name $_-storage $_-clone", $clone_timeout) foreach (keys %virt_autotest::common::guests);
     assert_script_run("virsh vol-info --pool $vstorage_pool_name $_-clone", $timeout) foreach (keys %virt_autotest::common::guests);
     # Delete and Remove a Storage Volume from storage pool
     record_info "Remove";

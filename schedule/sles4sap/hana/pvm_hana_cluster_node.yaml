@@ -66,7 +66,6 @@ schedule:
   - console/hostname
   - ha/ha_sle15_workarounds
   - ha/firewall_disable
-  - ha/iscsi_client
   - ha/iscsi_client_setup
   - ha/setup_hosts_and_luns
   - ha/watchdog
@@ -81,6 +80,8 @@ schedule:
   - '{{boot_to_desktop_non_init}}'
   - ha/check_after_reboot
   - ha/check_logs
+  - ha/prepare_shutdown
+  - shutdown/shutdown
 conditional_schedule:
   multipath:
     MULTIPATH:

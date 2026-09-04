@@ -3,20 +3,18 @@
 
 # Summary: Boot to agama adding bootloader kernel parameters and expecting web ui up and running.
 # At the moment redirecting to legacy handling for remote architectures booting.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "installbasetest";
-use strict;
-use warnings;
+use Mojo::Base 'installbasetest';
 
 use testapi;
-use autoyast qw(expand_agama_profile generate_json_profile);
+use autoyast qw(create_file_as_profile_companion expand_agama_profile generate_json_profile parse_dud_parameter);
 use Utils::Architectures;
 use Utils::Backends;
-
 use Mojo::Util 'trim';
 use File::Basename;
 use Yam::Agama::agama_base 'upload_agama_logs';
+use Yam::Agama::LiveIso qw(read_live_iso);
 
 BEGIN {
     unshift @INC, dirname(__FILE__) . '/../../installation';
@@ -29,7 +27,7 @@ sub prepare_boot_params {
     my @params = ();
 
     # add mandatory boot params
-    push @params, 'console=tty' . (is_x86_64 ? 'S0' : 'AMA0'), 'console=tty';
+    push @params, 'console=tty', 'console=' . (is_x86_64 ? 'ttyS0' : (is_ppc64le ? 'hvc0' : 'ttyAMA0'));
     push @params, 'kernel.softlockup_panic=1';
     push @params, "live.password=$testapi::password";
 
@@ -40,17 +38,41 @@ sub prepare_boot_params {
     }
 
     # add default boot params
-    if (my $agama_auto = get_var('INST_AUTO')) {
-        my $profile_url = ($agama_auto =~ /\.libsonnet/) ?
-          generate_json_profile() :
-          expand_agama_profile($agama_auto);
+    if (my $inst_auto = get_var('INST_AUTO')) {
+        create_file_as_profile_companion() if get_var('AGAMA_PROFILE_OPTIONS') =~ /files=true/;
+        my $profile_url = $inst_auto;
+        unless ($inst_auto =~ /usb:\/\//) {
+            $profile_url = ($inst_auto =~ /\.libsonnet/) ?
+              generate_json_profile($inst_auto) :
+              expand_agama_profile($inst_auto);
+        }
         set_var('INST_AUTO', $profile_url);
-        push @params, "inst.auto=\"$profile_url\"", "inst.finish=stop";
+        push @params, "inst.auto=\"$profile_url\"";
+        push @params, map { "inst.finish=$_" } grep { $_ && !get_var('INST_FINISH_DISABLED') } (get_var('INST_FINISH') || 'stop');
     }
-    push @params, 'inst.register_url=' . get_var('SCC_URL') if get_var('FLAVOR') eq 'Online';
+
+    # add register url
+    my $has_scc_url = get_var('SCC_URL');
+    my $is_online_flavor = get_var('FLAVOR') =~ /^(Online.*|agama-installer)$/;
+    my $is_forced_register = get_var('AGAMA_FORCE_REGISTER');
+    my $is_leap = get_var('ISO') =~ /Leap/;
+    my $should_register = ($is_online_flavor || $is_forced_register) && !$is_leap;
+    if ($has_scc_url && $should_register) {
+        push @params, 'inst.register_url=' . get_var('SCC_URL');
+    }
+
+    push @params, 'inst.install_url=' . get_var('INST_INSTALL_URL') if get_var('INST_INSTALL_URL');
+
+    push @params, 'inst.self_update=' . get_var('INST_SELF_UPDATE') if get_var('INST_SELF_UPDATE');
 
     # add extra boot params along with the default ones
     push @params, split ' ', trim(get_var('EXTRABOOTPARAMS', ''));
+
+    # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
+    push @params, split ' ', trim(get_var('AGAMA_NETWORK_PARAMS', ''));
+
+    # additional parameters requiring parsing
+    push @params, split ' ', trim(parse_dud_parameter(get_var('INST_DUD'))) if get_var('INST_DUD');
 
     return @params;
 }
@@ -75,19 +97,33 @@ sub run {
         return;
     }
 
+    read_live_iso();
+
     my $grub_menu = $testapi::distri->get_grub_menu_agama();
     my $grub_entry_edition = $testapi::distri->get_grub_entry_edition();
-    my $agama_up_an_running = $testapi::distri->get_agama_up_an_running();
+    my $agama_up_and_running = $testapi::distri->get_agama_up_and_running();
 
     my @params = prepare_boot_params();
 
     $grub_menu->expect_is_shown();
-    $grub_menu->select_check_installation_medium_entry() if get_var('AGAMA_GRUB_CHECK_MEDIUM');
+    $grub_menu->select_install_product();
+    $grub_menu->select_check_installation_medium_entry() if check_var('AGAMA_GRUB_SELECTION', 'check_medium');
+    $grub_menu->select_rescue_system_entry() if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
     $grub_menu->edit_current_entry();
     $grub_entry_edition->move_cursor_to_end_of_kernel_line();
     $grub_entry_edition->type(\@params);
     $grub_entry_edition->boot();
-    $agama_up_an_running->expect_is_shown();
+
+    return if check_var('AGAMA_GRUB_SELECTION', 'rescue_system');
+    if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/) {
+        wait_serial('Connect to the Agama installer using these URLs:', 300) || die "Agama installer didn't start";
+        return;
+    }
+    if (check_var('AGAMA_GRUB_SELECTION', 'check_medium')) {
+        wait_serial("Medium check succeeded", 600) || die "Medium check failed";
+        send_key 'ret' if wait_serial("Press any key to continue...", 60);
+    }
+    $agama_up_and_running->expect_is_shown();
 }
 
 sub post_fail_hook {

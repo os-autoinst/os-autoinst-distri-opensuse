@@ -6,9 +6,7 @@
 # Summary: Basic SLEPOS test, wait for other nodes
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
-use strict;
-use warnings;
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use mmapi;
 

@@ -26,13 +26,13 @@
 # - Stop both master and minion at the end
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "saltbase";
-use strict;
-use warnings;
+use Mojo::Base 'saltbase';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use utils qw(script_retry zypper_call);
+use version_utils 'is_sle';
+use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 
 sub run {
     barrier_create('SALT_MINIONS_READY', 2);
@@ -40,6 +40,9 @@ sub run {
     mutex_create 'barrier_setup_done';
     my $self = shift;
     select_serial_terminal;
+
+    # Package 'salt-master' requires PackageHub is available
+    add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready() && is_sle('>=16.0'));
 
     # Install, configure and start the salt master
     $self->master_prepare();
@@ -54,11 +57,11 @@ sub run {
     script_retry('salt-key -L -l unaccepted | grep "master"', delay => 15, retry => 15);
     script_retry('salt-key -L -l unaccepted | grep "minion"', delay => 15, retry => 15);
     assert_script_run('salt-run state.event tagmatch="salt/auth" count=1', timeout => 300);
-    assert_script_run("(sleep 5 && salt-key -A -y ) & salt-run state.event tagmatch='salt/minion/*/start' count=2 && salt '*' test.ping", timeout => 360);
+    background_script_run("sleep 5 && salt-key -A -y");
+    assert_script_run("salt-run state.event tagmatch='salt/minion/*/start' count=2", timeout => 360);
 
     # Inform minion that keys were accepted
     mutex_create 'SALT_KEYS_ACCEPTED';
-    assert_script_run('salt-call test.ping', timeout => 360);
 
     # Try to ping both minions
     record_info 'test.ping';

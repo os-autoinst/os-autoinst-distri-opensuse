@@ -1,0 +1,7 @@
+---
+name: agama_dud_unattended
+description: >
+  Patch the Live Media by pointing to so called Driver Update (DUD), this test check RPM and DUD file with JSON profile to perform unattended installation.
+schedule:
+  - yam/agama/boot_agama
+  - yam/validate/validate_dud

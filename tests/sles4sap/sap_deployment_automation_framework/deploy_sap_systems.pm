@@ -5,14 +5,11 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Deployment of the SAP systems zone using SDAF automation
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
-use Mojo::Base 'publiccloud::basetest';
+use Mojo::Base qw(sles4sap::sap_deployment_automation_framework::basetest publiccloud::basetest);
 
-use strict;
-use warnings;
-use sles4sap::sap_deployment_automation_framework::deployment
-  qw(serial_console_diag_banner load_os_env_variables sdaf_execute_deployment az_login);
-use sles4sap::sap_deployment_automation_framework::configure_tfvars qw(prepare_tfvars_file);
+use sles4sap::sap_deployment_automation_framework::deployment;
+use sles4sap::sap_deployment_automation_framework::configure_sap_systems_tfvars qw(create_sap_systems_tfvars);
+use sles4sap::sap_deployment_automation_framework::deployment_connector qw(no_cleanup_tag find_deployment_id);
 use sles4sap::sap_deployment_automation_framework::naming_conventions;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
@@ -63,7 +60,8 @@ sub test_flags {
 
 sub run {
     my ($self) = @_;
-
+    # Skip module if existing deployment is being re-used
+    return if sdaf_deployment_reused();
     serial_console_diag_banner('Module sdaf_deploy_sap_systems.pm : start');
     select_serial_terminal();
     my $env_code = get_required_var('SDAF_ENV_CODE');
@@ -73,14 +71,11 @@ sub run {
 
     # SAP systems use same VNET as workload zone
     set_var('SDAF_VNET_CODE', $workload_vnet_code);
-    # Setup Workload zone openQA variables - used for tfvars template
-    set_var('SDAF_RESOURCE_GROUP', generate_resource_group_name(deployment_type => 'sap_system'));
 
     # From now on everything is executed on Deployer VM (residing on cloud).
     connect_target_to_serial();
     load_os_env_variables();
 
-    my @installed_components = split(',', get_required_var('SDAF_DEPLOYMENT_SCENARIO'));
     my $os;
     # This section is only needed by Azure tests using images uploaded
     if (get_var('PUBLIC_CLOUD_IMAGE_LOCATION')) {
@@ -89,7 +84,6 @@ sub run {
     } else {
         $os = get_required_var('PUBLIC_CLOUD_IMAGE_ID');
     }
-    prepare_tfvars_file(deployment_type => 'sap_system', os_image => $os, components => \@installed_components);
 
     # Custom VM sizing since default VMs are way too large for functional testing
     # Check for details: https://learn.microsoft.com/en-us/azure/sap/automation/configure-extra-disks#custom-sizing-file
@@ -100,14 +94,25 @@ sub run {
         sdaf_region_code => $sdaf_region_code,
         env_code => $env_code);
 
+    my $custom_sizing_file = get_sizing_filename();
+    record_info('Sizing file', "Sizing file used: $custom_sizing_file");
     my $retrieve_custom_sizing = join(' ', 'curl', '-v', '-fL',
-        data_url('sles4sap/sap_deployment_automation_framework/custom_sizes.json'),
-        '-o', $config_root_path . '/custom_sizes.json');
+        data_url("sles4sap/sap_deployment_automation_framework/$custom_sizing_file"),
+        '-o', $config_root_path . "/$custom_sizing_file");
 
     assert_script_run($retrieve_custom_sizing);
 
     az_login();
+
+    create_sap_systems_tfvars(workload_vnet_code => $workload_vnet_code, os_image => $os);
     sdaf_execute_deployment(deployment_type => 'sap_system', timeout => 3600);
+
+    if (get_var('SDAF_RETAIN_DEPLOYMENT')) {
+        my $workload_rg = get_sdaf_resource_group(
+            deployment_id => find_deployment_id(), resource_group_type => 'sap_system'
+        );
+        apply_no_cleanup_tag(resource_group => $workload_rg, no_cleanup_tag => no_cleanup_tag());
+    }
 
     my @check_files = (
         "$config_root_path/sap-parameters.yaml",
@@ -117,11 +122,9 @@ sub run {
         assert_script_run("cat $file");
     }
 
-    # diconnect the console
+    # disconnect the console
     disconnect_target_from_serial();
-
     # reset temporary variables
-    set_var('SDAF_RESOURCE_GROUP', undef);
     set_var('SDAF_VNET_CODE', undef);
     serial_console_diag_banner('Module sdaf_deploy_sap_systems.pm : end');
 }

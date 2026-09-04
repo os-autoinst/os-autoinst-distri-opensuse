@@ -5,4 +5,4 @@ schedule:
     - boot/boot_to_desktop
     - console/consoletest_setup
     - security/ima/ima_setup
-    - security/ima/ima_measure_critical_data_aarch64
+    - security/ima/ima_measure_critical_data

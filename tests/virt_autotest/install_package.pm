@@ -6,9 +6,7 @@
 # Summary: virt_autotest: the initial version of virtualization automation test in openqa, with kvm support fully, xen support not done yet
 # Maintainer: alice <xlai@suse.com>
 
-use strict;
-use warnings;
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use virt_autotest::utils;
 use testapi;
 use Utils::Architectures;
@@ -75,7 +73,7 @@ sub install_package {
     #Switch all VM Passwords from installed settings files
     my $setting_file = "/usr/share/qa/virtautolib/data/settings." . locate_sourcefile;
     my $qa_password = $testapi::password;
-    my $vm_password = get_var('VIRTAUTO_VM_PASSWORD');
+    my $vm_password = get_required_var('_SECRET_GUEST_PASSWORD');
     my $cmd = "sed -i -e 's/vm.pass=/vm.pass=$vm_password/g' -e 's/xen.pass=/xen.pass=$vm_password/g' -e 's/migratee.pass=/migratee.pass=$vm_password/g' -e 's/vm.sshpassword=/vm.sshpassword=$qa_password/g' $setting_file";
     if (is_s390x) {
         lpar_cmd("$cmd");

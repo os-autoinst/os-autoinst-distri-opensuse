@@ -8,10 +8,8 @@
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306
 
-use base 'y2_module_guitest';
+use Mojo::Base 'y2_module_guitest';
 use y2_base;
-use strict;
-use warnings;
 use testapi;
 use utils;
 

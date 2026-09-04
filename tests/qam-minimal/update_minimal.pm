@@ -12,9 +12,7 @@
 #    x11 tests
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 
 use utils;
 use power_action_utils qw(power_action);
@@ -22,6 +20,7 @@ use qam;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use zypper;
+use Utils::Backends 'is_pvm';
 
 sub run {
     my ($self) = @_;
@@ -41,6 +40,7 @@ sub run {
     capture_state('after', 1);
 
     power_action('reboot', textmode => 1);
+    reconnect_mgmt_console if is_pvm;
     $self->wait_boot(bootloader_time => get_var('BOOTLOADER_TIMEOUT', 200));
     select_serial_terminal;
 }

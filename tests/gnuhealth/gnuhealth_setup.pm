@@ -6,16 +6,15 @@
 # Summary: Initial setup of gnuhealth, e.g. database
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'x11test';
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils 'is_leap';
 use utils 'systemctl';
+use x11utils;
 
 sub run() {
     my ($self) = @_;
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
     systemctl 'start postgresql';
     wait_screen_change { script_run 'su postgres', 0 };

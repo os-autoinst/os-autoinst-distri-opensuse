@@ -7,11 +7,9 @@
 # Summary: Validate partitioning for autoyast installation when using whole disk as PV
 #          We have 2 disks, one contains bios boot and /boot partitions, second one
 #          is used for LVM group with root and swap logical volumes.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 
 sub validate_disk_as_partition {

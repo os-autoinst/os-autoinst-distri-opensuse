@@ -13,12 +13,11 @@
 #  * Deregister one service
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
-use utils qw(zypper_call systemctl script_retry);
+use package_utils 'install_package';
+use utils qw(systemctl script_retry validate_script_output_retry);
 use Utils::Systemd 'disable_and_stop_service';
 use Utils::Logging 'save_and_upload_log';
 use version_utils qw(is_tumbleweed is_sle);
@@ -28,7 +27,7 @@ sub run {
     select_serial_terminal;
 
     # Let's install slpd
-    zypper_call 'in openslp-server';
+    install_package('openslp-server', trup_reboot => 1);
 
     disable_and_stop_service($self->firewall) if (script_run("which " . $self->firewall) == 0);
 
@@ -70,7 +69,7 @@ sub run {
     # Deregister one NTP service and find the other one
     assert_script_run 'slptool deregister ntp://tik.cesnet.cz:123,en,65535';
     assert_script_run 'slptool findsrvs ntp';
-    assert_script_run 'if [[ $(slptool findsrvs ntp | grep -c "tik\|tak" | cut -d, -f1 | sort | uniq ) = "1" ]]; then echo "One remaining NTP announcement was found"; else false; fi';
+    validate_script_output_retry('slptool findsrvs ntp | grep -c "tik\|tak" | wc -l', sub { m/\s*1$/ }, retry => 10, delay => 5);
 
     # Turn off slpd
     systemctl 'stop slpd';

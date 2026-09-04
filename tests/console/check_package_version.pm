@@ -2,11 +2,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Compare package version with its expected version for SLE15SP3.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "basetest";
-use strict;
-use warnings;
+use Mojo::Base 'basetest';
 use version;
 use testapi;
 use utils qw(systemctl zypper_call);

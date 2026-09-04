@@ -15,12 +15,11 @@
 # - Revert timezone changes
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use strict;
-use warnings;
+use version_utils 'is_sle';
 
 sub get_tz_data {
     my $save = shift;
@@ -48,7 +47,8 @@ sub run {
     assert_script_run("rpm -q timezone");
 
     validate_script_output("zdump Europe/London", sub { m/Europe\/London\s+\w{3} \w{3}\s+\d+ (\d{2}|:){5} \d{4} (GMT|BST)/ });
-    validate_script_output("date", sub { m/\w{3} \w{3}\s+\d+ (\d{2}|:){5} \w+ \d{4}/ });
+    my $dateformat = is_sle ? "+'%a %b %e %r %Z %Y'" : "";
+    validate_script_output("LC_TIME=\$(localectl status | head -n1 | cut -d= -f2) date $dateformat", sub { m/\w{3} \w{3}\s+\d+ (\d{2}|:){5} (AM|PM) \w+ \d{4}/ });
 
     my $zdump_cmd = "zdump -v Europe/Rome | grep -E 'Sun Mar 25 [0-9]{2}:[0:9]{2}:[0-9]{2} 2018'";
 

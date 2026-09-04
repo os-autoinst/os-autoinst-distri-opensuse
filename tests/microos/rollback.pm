@@ -5,13 +5,11 @@
 
 # Summary: Test rolling back to original system version after
 #          migration, using transactional-update rollback.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
-use strict;
-use warnings;
 use version_utils 'verify_os_version';
 use transactional 'process_reboot';
 

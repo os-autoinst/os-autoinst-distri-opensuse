@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Change the VERSION to ORIGIN_SYSTEM_VERSION
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi qw(get_required_var set_var);
 use migration qw(reset_consoles_tty);
 

@@ -32,10 +32,13 @@ use utils qw(write_sut_file);
 use Carp qw(croak);
 use Time::Piece;
 use mmapi qw(get_parents get_job_autoinst_vars get_children get_job_info get_current_job_id);
-use sles4sap::azure_cli qw(az_resource_delete az_resource_list);
+use sles4sap::azure_cli;
 use Data::Dumper;
+use Mojo::URL;
+use Mojo::UserAgent;
 
 our @EXPORT = qw(
+  $DEPLOYMENT_ID
   get_deployer_vm_name
   get_deployer_ip
   check_ssh_availability
@@ -43,7 +46,12 @@ our @EXPORT = qw(
   find_deployer_resources
   destroy_deployer_vm
   destroy_orphaned_resources
+  destroy_orphaned_peerings
+  no_cleanup_tag
+  get_deployment_tags
 );
+
+our $DEPLOYMENT_ID;
 
 =head2 check_ssh_availability
 
@@ -143,18 +151,12 @@ Function dies if there is more than one VM found, because two VM's must not have
 sub get_deployer_vm_name {
     my (%args) = @_;
     $args{deployer_resource_group} //= get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
-    $args{deployment_id} //= find_deployment_id();
+    $args{deployment_id} //= find_deployment_id(deployer_resource_group => $args{deployer_resource_group});
     croak 'Missing mandatory argument $args{deployment_id}' unless $args{deployment_id};
 
     # Following query lists VMs within a resource group that were tagged with specified deployment id.
-    my $az_cmd = join(' ',
-        'az vm list',
-        "--resource-group $args{deployer_resource_group}",
-        "--query \"\[?tags.deployment_id == '$args{deployment_id}'].name\"",
-        '--output json'
-    );
-
-    my @vm_list = @{decode_json(script_output($az_cmd))};
+    my @vm_list = @{az_vm_list(resource_group => $args{deployer_resource_group},
+            query => "[?tags.deployment_id == '$args{deployment_id}'].name")};
     diag((caller(0))[3] . " - VMs found: " . join(', ', @vm_list));
     die "Multiple VMs with same IDs found. Each VM must have unique ID!\n
     Following VMs found tagged with: deployment_id=$args{deployment_id}"
@@ -167,12 +169,20 @@ sub get_deployer_vm_name {
 
     get_parent_ids();
 
-Returns B<ARRAYREF> of all parent job IDs acquired from current job data.
+Returns B<ARRAYREF> of all parent job IDs acquired from job data.
+
+=over
+
+=item * B<job_id>: Job ID which parents should be listed
+
+=back
 
 =cut
 
 sub get_parent_ids {
-    my $job_info = get_job_info(get_current_job_id());
+    my (%args) = @_;
+    croak 'Missing mandatory argument "$args{job_id}"' unless $args{job_id};
+    my $job_info = get_job_info($args{job_id});
     # This will loop through all parent job types (chained, parallel, etc...) and creates a list of IDs
     my @parent_ids = map { @{$job_info->{parents}{$_}} } keys(%{$job_info->{parents}});
     diag((caller(0))[3] . "Parent job data: " . Dumper($job_info->{parents}));
@@ -207,21 +217,42 @@ Deployment ID returned from both jobs: 123456 - because it matches with existing
 
 sub find_deployment_id {
     my (%args) = @_;
+    # For reusing already deployed infrastructure - check function description
     return get_var('SDAF_DEPLOYMENT_ID') if get_var('SDAF_DEPLOYMENT_ID');
+    return $DEPLOYMENT_ID if $DEPLOYMENT_ID;
     $args{deployer_resource_group} //= get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
-    my @check_list = (get_current_job_id(), @{get_parent_ids()});
 
-    diag("Job IDs found: " . Dumper(@check_list));
-    my @ids_found;
-    for my $deployment_id (@check_list) {
-        my $vm_name =
-          get_deployer_vm_name(deployer_resource_group => $args{deployer_resource_group}, deployment_id => $deployment_id);
-        push(@ids_found, $deployment_id) if $vm_name;
+    # Lists VMs in cloud which contain 'deployment_id' tag and displays only tag values => list of all deployments
+    my @cloud_deployments = @{az_vm_list(
+            resource_group => $args{deployer_resource_group}, query => '[?tags.deployment_id].tags.deployment_id')};
+    my @found_deployments;
+    # check current job first
+    my @to_check = get_current_job_id;
+
+    my $round = 0;
+    # Just a limit to to prevent infinite loops
+    # If there are actually 20 jobs in any chain, increase this number
+    my $die_after = 20;
+    while (my $id = shift(@to_check)) {
+        diag("Checking ID: $id");
+        diag("Deployments in cloud:\n" . join("\n", @cloud_deployments));
+        push @to_check, @{get_parent_ids(job_id => $id)} if get_parent_ids(job_id => $id);
+        diag("IDs to be checked:\n" . join("\n", @to_check));
+
+        push @found_deployments, $id if grep(/^$id$/, @cloud_deployments);
+        diag("Matching deployments:\n" . join("\n", @found_deployments));
+
+        die "Possible infinite loop encountered. Check repeated '$die_after' times" if $round == $die_after;
+        $round++;
     }
-    die "More than one deployment found.\nJobs IDs: " .
-      join(', ', @check_list) . "\nVMs found: " . join(', ', @ids_found) if @ids_found > 1;
 
-    return ($ids_found[0]);
+    die 'No deployment detected' unless @found_deployments;
+    die "Multiple deployments detected. This should not happen.\nFound:\n" . join("\n", @found_deployments)
+      if @found_deployments != 1;
+
+    $DEPLOYMENT_ID = $found_deployments[0];
+    record_info('Deploy ID', "Deployment ID found:\n" . join("\n", @found_deployments));
+    return $found_deployments[0];
 }
 
 =head2 get_deployer_resources
@@ -285,7 +316,7 @@ sub destroy_resources {
       ref($args{resource_cleanup_list}) eq 'ARRAY';
 
     $args{timeout} //= '800';
-    my $retries = 3;    # retry to delete 3x
+    my $retries = 15;    # retry to delete 15x
     my $deployer_resource_group = get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
 
     unless ($args{resource_cleanup_list}) {
@@ -300,7 +331,7 @@ sub destroy_resources {
 
         last unless az_resource_delete(ids => join(' ', @resource_cleanup_list),
             resource_group => $deployer_resource_group, verbose => 'yes', timeout => $args{timeout});
-        sleep 5;    # Just give things few secs to avoid command spamming.
+        sleep 30;    # Just give things few secs to avoid command spamming.
         die "Failed to clean up resources:\n" . join("\n", @resource_cleanup_list) if ($attempt == $retries);
     }
     record_info('Destroy resources', 'All resources destroyed');
@@ -360,10 +391,11 @@ permanent SDAF infrastructure.
 sub destroy_orphaned_resources {
     my (%args) = @_;
     $args{timeout} //= 1200;
-    # List all resources containing 'deployment_id' tag - this should filter out only resources created by an openQA test.
+    # List all resources containing 'deployment_id' tag with exception of ones containing 'no cleanup' tag
+    # Result will show only resources created by OpenQA tests and only those which are allowed to be cleaned up.
     my $all_resources = az_resource_list(
         resource_group => get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP'),
-        query => '[?tags.deployment_id].{resource_id:id, creation_time:createdTime}'
+        query => '[?tags.deployment_id && tags.' . no_cleanup_tag() . ' == null ].{resource_id:id, creation_time:createdTime}'
     );
     my @orphaned_resources;
 
@@ -387,3 +419,85 @@ sub destroy_orphaned_resources {
     record_info('az destroy', "Following orphaned resources will be destroyed:\n" . join("\n", @orphaned_resources));
     destroy_resources(timeout => $args{timeout}, resource_cleanup_list => \@orphaned_resources);
 }
+
+=head2 destroy_orphaned_peerings
+
+    destroy_orphaned_peerings();
+
+Searches for network peerings in B<Disconnected> state. Destroys a peering if its resource group does not exist anymore.
+Returns the result of deleting: 0 succeeded, 1 failed.
+
+=cut
+
+sub destroy_orphaned_peerings {
+    my $query = q|[?peeringState=='Disconnected' && tags.| . no_cleanup_tag() .
+      q| == null].{peering_name:name, workload_resource_group:remoteVirtualNetwork.resourceGroup}|;
+    my $deployer_resource_group = get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
+    my $vnet_name = @{az_network_vnet_get(resource_group => $deployer_resource_group,
+            query => '[?contains(name, \'' . get_required_var('SDAF_DEPLOYER_VNET_CODE') . '\')].name')}[0];
+    # This makes list of peerings in `DISCONNECTED` state
+    my $disconnected_peerings = az_network_peering_list(
+        resource_group => $deployer_resource_group,
+        vnet => $vnet_name,
+        query => $query
+    );
+    my @deleted_peerings;
+
+    my $result = 0;
+    for my $peering (@{$disconnected_peerings}) {
+        # Do not delete peering if group it belongs to still exists
+        next if az_group_exists(name => $peering->{workload_resource_group}, quiet => 'yes') eq 'true';
+        my $ret = az_network_peering_delete(
+            resource_group => $deployer_resource_group,
+            vnet => $vnet_name,
+            name => $peering->{peering_name});
+        if ($ret) {
+            $result = 1;
+            record_info("Issue found: deleting $vnet_name failed, continue to delete other peerings");
+            next;
+        }
+        push @deleted_peerings, $peering->{peering_name};
+    }
+
+    record_info('Peer clean', "Following orphaned peerings were deleted:\n" . join("\n", @deleted_peerings) . "\n");
+    return $result;
+}
+
+=head2 no_cleanup_tag
+
+    no_cleanup_tag();
+
+Returns tag name that marks resource to be omitted during cleanup routine. Tag name can be defined by OpenQA setting
+`SDAF_NO_CLEANUP_TAG` with default value being 'sdaf_cleanup_ignore'.
+This function ensures default value naming consistency across all modules, instead defining it with each 'get_var' call.
+
+=cut
+
+sub no_cleanup_tag {
+    return get_var('SDAF_NO_CLEANUP_TAG', 'sdaf_cleanup_ignore');
+}
+
+
+=head2 get_deployment_tags
+
+    get_deployment_tags();
+
+Returns Hash of tag name and values to be applied on deployment resources.
+
+=cut
+
+sub get_deployment_tags {
+    my %tags = (
+        deployed_by => get_var('SDAF_DEPLOYMENT_OWNER', 'OpenQA-SDAF-automation'),
+        openqa_instance => get_var('WORKER_HOSTNAME', 'N/A'),
+        deployment_id => get_current_job_id(),
+        openqa_build => get_var('BUILD', 'N/A'),
+        deployment_scenario => get_var('SDAF_DEPLOYMENT_SCENARIO', 'N/A'),
+        openqa_created_date => Time::Piece->new->datetime()
+    );
+
+    $tags{no_cleanup_tag()} = '1' if get_var('SDAF_RETAIN_DEPLOYMENT');
+    return \%tags;
+}
+
+1;

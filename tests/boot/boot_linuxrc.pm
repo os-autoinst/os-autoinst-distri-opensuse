@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test the ability to boot installed linux from cd with linuxrc.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "bootbasetest";
-use strict;
-use warnings;
+use Mojo::Base 'bootbasetest';
 use testapi;
 use bootloader_setup qw(select_bootmenu_more ensure_shim_import);
 

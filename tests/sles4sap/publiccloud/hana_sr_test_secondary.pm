@@ -2,23 +2,53 @@
 #
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
+# Summary: Test module for performing database events on secondary HANA database site.
 # Maintainer: QE-SAP <qe-sap@suse.de>
-# Summary: Test module for performing database stop using various methods on secondary HANA database site.
-#
-# Parameters:
-# HA_SBD_START_DELAY (optional) - Sets SBD start delay in /etc/sysconfig/sbd
-# DB_ACTION (optional) - Action to be done on the database to simulate failure - check lib/sles4sap_publiccloud "stop_hana" function
 
-use strict;
-use warnings FATAL => 'all';
-use base 'sles4sap_publiccloud_basetest';
+=head1 NAME
+
+sles4sap/publiccloud/hana_sr_test_secondary.pm - Tests the secondary (replica) HANA database node.
+
+=head1 DESCRIPTION
+
+This module tests the resilience and recovery of the secondary (replica) HANA
+database node in a System Replication setup. It simulates a failure on the
+secondary node by performing an action such as 'stop', 'kill', or 'crash'.
+
+After the action is performed, the module waits for the node to recover and
+verifies that the HANA database starts correctly and that the node remains in
+replication (secondary) mode without being promoted to primary. It also checks
+the overall cluster health after the event.
+
+This module is typically scheduled by C<hana_sr_schedule_replica_tests.pm>, which
+passes the specific action to perform via the C<$run_args> hashref.
+
+=head1 SETTINGS
+
+=over
+
+=item B<DB_ACTION>
+
+Specifies the action to be performed on the secondary HANA database. Valid options
+are 'stop', 'kill', or 'crash'. This variable can be used to run the test standalone,
+but it is typically overridden by the parameters passed from the scheduling module.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use Mojo::Base 'sles4sap::publiccloud_basetest';
 use testapi;
-use sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use serial_terminal 'select_serial_terminal';
 use Time::HiRes 'sleep';
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {
@@ -63,7 +93,10 @@ sub run {
     # Calculate SBD delay sleep time
     $sbd_delay = $self->sbd_delay_formula if $db_action eq 'crash';
 
-    $self->stop_hana(method => $db_action);
+    # Cache the online_string to avoid repeated SSH calls to pacemaker_version()
+    my $online_string = get_online_string($self);
+
+    $self->stop_hana(method => $db_action, online_string => $online_string);
 
     # SBD delay is active only after reboot
     if ($db_action eq 'crash' || $db_action eq 'stop') {
@@ -87,7 +120,7 @@ sub run {
 
     # Cleanup the resource and check cluster
     $self->cleanup_resource();
-    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
+    $self->wait_for_cluster(wait_time => 60, max_retries => 10, online_string => $online_string);
     $self->display_full_status();
 
     record_info("Done", "Test finished");

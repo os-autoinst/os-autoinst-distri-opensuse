@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-test
+  labels:
+    app: nginx-test
+spec:
+  containers:
+    - name: nginx
+      image: registry.suse.com/suse/nginx
+      volumeMounts:
+        - name: html-volume
+          mountPath: /srv/www/htdocs/audio.html
+          subPath: audio.html
+  volumes:
+    - name: html-volume
+      configMap:
+        name: audio-html-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-test
+spec:
+  type: ClusterIP
+  clusterIP: 10.43.0.69
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: nginx-test

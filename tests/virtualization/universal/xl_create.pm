@@ -5,10 +5,8 @@
 # Summary: Export XML from virsh and create new guests in xl stack
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils;

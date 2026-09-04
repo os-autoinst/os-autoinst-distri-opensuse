@@ -1,13 +1,11 @@
-# Copyright 2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
-# Summary: Test vsftpd with ssl enabled
+# Summary: Test vsftpd with SSL enabled
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#108614, tc#1769978
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use version_utils 'has_selinux';
@@ -25,14 +23,19 @@ sub run {
         assert_script_run("restorecon -R $ftp_users_path");
     }
 
-    # Change to ftpuser
     enter_cmd("su - $user");
+    # The login shell of $user does not have the openQA prompt hook for
+    # PRETTY_SERIAL_MARKER in its ~/.bashrc yet, so force a re-install on the
+    # next command, same as become_root does. poo#205122
+    $testapi::distri->invalidate_serial_marker_hook();
 
-    # Download a file using atomatic ssl method selection
+    # Download/upload file using atomatic SSL method selection
     assert_script_run("curl -v -k --ssl ftp://$user:$pwd\@localhost/served/f1.txt -o $ftp_users_path/$user/$ftp_received_dir/f1.txt");
-
-    # Upload a file using atomatic ssl method selection
     assert_script_run("curl -v -k --ssl ftp://$user:$pwd\@localhost/served/f2.txt -T $ftp_users_path/$user/$ftp_received_dir/f1.txt");
+
+    # Test download with TLS 1.2 and TLS 1.3
+    assert_script_run("curl -v -k --tlsv1.2 --ftp-ssl ftp://$user:$pwd\@localhost/served/f1.txt -o $ftp_users_path/$user/$ftp_received_dir/f1_tls12.txt");
+    assert_script_run("curl -v -k --tlsv1.3 --ftp-ssl ftp://$user:$pwd\@localhost/served/f1.txt -o $ftp_users_path/$user/$ftp_received_dir/f1_tls13.txt");
 
     # Use a specific cipher
     assert_script_run("curl -v -k --ssl --ciphers 'ECDHE-RSA-AES128-GCM-SHA256' ftp://$user:$pwd\@localhost/served/f1.txt -o $ftp_users_path/$user/$ftp_received_dir/f1_cipher.txt");

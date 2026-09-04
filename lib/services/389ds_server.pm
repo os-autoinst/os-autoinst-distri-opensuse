@@ -8,30 +8,56 @@
 # Maintainer: QE Security <none@suse.de>
 
 package services::389ds_server;
-use base "opensusebasetest";
+use base 'consoletest';
 use testapi;
 use utils;
 use warnings;
 use strict;
 use opensslca;
+use network_utils 'iface';
+use Utils::Architectures 'is_s390x';
+use Utils::Systemd qw(disable_and_stop_service systemctl);
+use version_utils qw(has_selinux is_sle);
+use package_utils 'install_package';
 
-our @EXPORT = qw($local_ip $remote_ip $local_name $remote_name $ca_dir $inst_ca_dir);
-our $local_ip = '10.0.2.101';
-our $remote_ip = '10.0.2.102';
-our $local_name = '389ds';
-our $remote_name = 'sssdclient';
-our $ca_dir = '/etc/openldap/ssl';
-our $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
+my $local_name = '389ds';
+my $remote_name = 'sssdclient';
+my $ca_dir = '/etc/openldap/ssl';
+my $inst_ca_dir = '/etc/dirsrv/slapd-localhost';
 
 sub install_service {
-    zypper_call("in 389-ds openssl");
+    install_package("389-ds openssl", trup_reboot => 1);
+}
+
+# move ssh server to another port on s390x architecture
+sub workaround_CC_s390x {
+    my $server_ip = get_var('SERVER_IP', '10.0.2.101');
+    my $client_ip = get_var('CLIENT_IP', '10.0.2.102');
+    my $ssh_port = '2222';
+    my $sshd_conf_file = is_sle('>=16') ? '/etc/ssh/sshd_config.d/root.conf' : '/etc/ssh/sshd_config';
+    assert_script_run "ip addr add $server_ip/24 dev " . iface;
+    assert_script_run "echo \"$server_ip server master\" >> /etc/hosts";
+    assert_script_run "echo 'ListenAddress 0.0.0.0' >> $sshd_conf_file";
+    assert_script_run "echo \"Port $ssh_port\" >> $sshd_conf_file";
+    # on SELINUX enabled system, we need to add new port type to avoid sshd start failure
+    assert_script_run "semanage port -a -t ssh_port_t -p tcp $ssh_port" if has_selinux;
+    systemctl('restart sshd');
+    disable_and_stop_service('firewalld', ignore_failure => 1);
+    disable_and_stop_service('apparmor', ignore_failure => 1);
 }
 
 # The function below covers all required steps for 389ds server's configuration
 sub config_service {
+    my %args = @_;
+    my $no_check = $args{no_check} // 0;    # Need to check by default
+    my $workaround = $args{workaround} // 1;    # Need workaround for s390x
+    permit_root_ssh();    # Permit ssh/scp from client as root
+    workaround_CC_s390x if (is_s390x && $workaround);
     # Start a local instance with basic configuration file
     assert_script_run("wget --quiet " . data_url("389ds/instance.inf") . " -O /tmp/instance.inf");
     assert_script_run("sed -i 's/\{\{PASSWORD\}\}/$testapi::password/g' /tmp/instance.inf");
+    # On s390x we need to set strict_host_checking to False, otherwise the test will fail
+    assert_script_run("sed -i 's/True/False/g' /tmp/instance.inf") if (is_s390x || $no_check);
     assert_script_run("dscreate from-file /tmp/instance.inf");
     validate_script_output("dsctl localhost status", sub { m/Instance.*is running/ });
 
@@ -99,8 +125,6 @@ sub config_service {
     # Set the ldap_uri with LDAP over SSL (LDAPS) Certificate
     assert_script_run("sed -i 's/^ldap_uri =.*\$/ldap_uri = ldaps:\\/\\/$local_name.example.com/' /tmp/sssd.conf");
 
-    # Permit ssh/scp from client as root
-    permit_root_ssh();
 }
 
 sub enable_service {

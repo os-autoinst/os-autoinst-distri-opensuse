@@ -7,12 +7,10 @@
 # Summary: Test apparmor utilities
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use services::apparmor;
-use strict;
 use testapi;
 use utils;
-use warnings;
 
 sub run {
     select_console 'root-console';

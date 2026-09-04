@@ -14,10 +14,8 @@
 # all QEMU-backed tests will be executed at the end until all physical machine tests are completed.
 # Maintainer: James Wang <jnwang@suse.com>
 
-use strict;
-use warnings;
 use Mitigation;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use ipmi_backend_utils;
 use power_action_utils 'power_action';

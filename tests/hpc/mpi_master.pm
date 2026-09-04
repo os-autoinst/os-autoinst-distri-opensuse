@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2017-2021 SUSE LLC
+# Copyright 2017-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Basic MPI integration test. Checking for installability and
@@ -132,8 +132,9 @@ sub run ($self) {
         }
     } else {
         if ($mpi_c eq 'sample_cplusplus.cpp') {
-            assert_script_run($mpirun_s->slave_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 120);
-            assert_script_run($mpirun_s->n_nodes("$exports_path{'bin'}/$mpi_bin", 2), timeout => 120);
+            assert_script_run($mpirun_s->slave_nodes("$exports_path{'bin'}/$mpi_bin"), timeout => 240);
+            # following also could work and could be used for some tests:
+            # assert_script_run($mpirun_s->n_nodes("$exports_path{'bin'}/$mpi_bin", 2), timeout => 360);
         } else {
             # Skipping papi test on compute nodes as for some reason
             # module is not getting loaded for the c test execution

@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2019-2023 SUSE LLC
+# Copyright 2019-2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Initialize testing environment for Libvirt Virtual Networks
@@ -14,13 +14,11 @@
 
 use virt_autotest::virtual_network_utils;
 use virt_autotest::utils;
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_utils;
-use strict;
-use warnings;
 use testapi;
 use utils;
-use version_utils qw(is_sle is_alp);
+use version_utils qw(is_sle);
 use virt_autotest::utils qw(is_xen_host);
 
 sub run_test {
@@ -35,6 +33,12 @@ sub run_test {
 
     #After deployed guest systems, ensure active pool have at least 40GiB(XEN)
     #or 20GiB(KVM) available disk space on vm host for virtual network test
+    #From sle16, there are multiple active pools when multiple VMs created with storage file
+    #in different sub-directories of /var/lib/libvirt/images, while on sle15, for such case,
+    #there is only 1.
+    #Good thing is that the pools are on the same partition that /var/lib/libvirt/images resides,
+    #so the pools capacity and available space data is almost the same. Thus we can use the first pool info.
+    #However, if someday we store VM disk files on different partitions, we will need to change the logic here.
     my ($ACTIVE_POOL_NAME, $AVAILABLE_POOL_SIZE) = virt_autotest::virtual_network_utils::get_active_pool_and_available_space();
     record_info('Detect Active POOL NAME:', $ACTIVE_POOL_NAME);
     record_info('Detect Available POOL SIZE:', $AVAILABLE_POOL_SIZE . 'GiB');
@@ -42,12 +46,8 @@ sub run_test {
     assert_script_run("test $AVAILABLE_POOL_SIZE -ge $expected_pool_size",
         fail_message => "The SUT needs at least " . $expected_pool_size . "GiB available space of active pool for virtual network test");
 
-    # ALP has done this in earlier setup
-    unless (is_alp) {
-        #Need to reset up environemt - br123 for virt_atuo test due to after
-        #finished guest installation to trigger cleanup step on sles11sp4 vm hosts
-        virt_autotest::virtual_network_utils::restore_standalone() if (is_sle('=11-sp4'));
-
+    # SLES16 has done this in earlier setup
+    unless (is_sle('>=16')) {
         #Enable libvirt debug log
         turn_on_libvirt_debugging_log;
 
@@ -59,10 +59,13 @@ sub run_test {
     virt_autotest::virtual_network_utils::hosts_backup();
 
     #Install required packages
-    zypper_call '-t in iproute2 iptables iputils bind-utils sshpass nmap';
+    zypper_call '-t in iproute2 iptables iputils bind-utils nmap';
 
     #Prepare Guests
     foreach my $guest (keys %virt_autotest::common::guests) {
+        my ($primary_vif_type, $primary_vif_src) = find_vm_primary_nic_info($guest);
+        record_info('Source of guest network', "Found the $guest network source: " . $primary_vif_src);
+
         #Archive deployed Guests
         #NOTE: Keep Archive deployed Guests for restore_guests func
         assert_script_run("virsh dumpxml $guest > /tmp/$guest.xml");
@@ -71,20 +74,11 @@ sub run_test {
         #NOTE: Required all guests keep running status
         #Ensures the SSH connection and ICMP PING responses is workable for given guest system
         validate_guest_status($guest);
-        save_guest_ip($guest, name => "br123");
+        save_guest_ip($guest);
         virt_autotest::utils::ssh_copy_id($guest);
 
-        # ALP guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
-        next if ($guest =~ /alp/i);
-        #Prepare the new guest network interface files for libvirt virtual network
-        #for some guests, interfaces are named eth0, eth1, eth2, ...
-        #for TW kvm guest, they are enp1s0, enp2s0, enp3s0, ...
-        my $primary_nic = script_output("ssh root\@$guest \"ip a|awk -F': ' '/state UP/ {print \\\$2}'|head -n1\"");
-        $primary_nic =~ /([a-zA-Z]*)(\d)(\w*)/;
-        for (my $i = 1; $i <= 6; $i++) {
-            my $nic = $1 . (int($2) + $i) . $3;
-            assert_script_run("ssh root\@$guest 'cp /etc/sysconfig/network/ifcfg-$primary_nic /etc/sysconfig/network/ifcfg-$nic'");
-        }
+        # SLES16 guest uses networkmanager to control network, no /etc/sysconfig/network/ifcfg*
+        next if ($guest =~ /sles-16/i);
         #enable guest wickedd debugging
         assert_script_run "ssh root\@$guest \"sed -i 's/^WICKED_DEBUG=.*/WICKED_DEBUG=\"all\"/g' /etc/sysconfig/network/config\"";
         assert_script_run "ssh root\@$guest 'grep 'WICKED_DEBUG' /etc/sysconfig/network/config'";

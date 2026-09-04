@@ -7,7 +7,7 @@ use version_utils 'is_sle';
 our @ISA = qw(Exporter);
 our @EXPORT = qw(launch_virtmanager connection_details create_vnet create_new_pool
   create_new_volume create_netinterface delete_netinterface create_guest powercycle
-  detect_login_screen select_guest close_guest establish_connection);
+  detect_login_screen select_guest close_guest establish_connection quit_virtmanager);
 
 
 sub launch_virtmanager {
@@ -603,7 +603,7 @@ sub detect_login_screen {
     send_key 'backspace';
 
     # Escape from the guest's console
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     send_key "ctrl-alt";
     send_key "ctrl-alt";
     send_key 'esc';
@@ -629,9 +629,9 @@ sub detect_login_screen {
     send_key 'ret';
 
     # Reopen the guest window
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_file';
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_close';
     send_key 'ret';
 
@@ -673,14 +673,21 @@ sub select_guest {
 }
 
 sub close_guest {
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_file';
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_close';
 }
 
+# Quit virt-manager and wait for the console to be usable again
+# A bare wait_screen_change returns too early, the next command loses its first characters
+sub quit_virtmanager {
+    wait_screen_change { send_key 'ctrl-q'; };
+    wait_still_screen(stilltime => 3, timeout => 60);
+}
+
 sub powercycle {
-    mouse_set(0, 0);
+    mouse_set(1023, 0);
     assert_and_click 'virt-manager_shutdown';
     if (!check_screen 'virt-manager_notrunning', 120) {
         assert_and_click 'virt-manager_shutdown_menu';

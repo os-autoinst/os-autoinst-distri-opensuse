@@ -5,7 +5,7 @@
 
 # Summary: Class with helpers related to SSH Interactive mode
 #
-# Maintainer: qa-c@suse.de
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::ssh_interactive;
 use base Exporter;
@@ -26,7 +26,7 @@ sub establish_tunnel_console {
     # Note: Don't use script_run here! The serial terminal is set to /dev/sshserial, so every script_run will time out
     type_string("\n~.\n", max_interval => 1);    # ensure no previous ssh connection is present
     enter_cmd("clear");
-    enter_cmd('ssh -t sut');
+    enter_cmd('ssh -E /var/tmp/ssh_sut.log -t sut');
     # give the ssh connection some time to settle
     sleep 5;
 }
@@ -49,6 +49,12 @@ sub ssh_interactive_tunnel {
     # Prepare the environment for the SSH tunnel
     my $upload_port = get_required_var('QEMUPORT') + 1;
     my $upload_host = testapi::host_ip();
+
+    # Check that the openQA VM has the serial device present
+    assert_script_run("test -c /dev/$serialdev", fail_message => "File /dev/$serialdev either does not exist or is not character special file.");
+
+    # Test that SSH to 'sut' works
+    assert_script_run('ssh -o BatchMode=yes sut true', fail_message => 'SSH is kaput.');
 
     # Pipe the output of the device fifo to the local serial terminal
 # Note: We run this in a loop so that the ssh tunnel gets automatically re-established after device reboots and such. The sleep helps to avoid unnecessary CPU hogging in case of connection issues
@@ -93,7 +99,6 @@ sub ssh_interactive_leave {
         last if ($test->());
         sleep 5;    # some cool down after a failed attempt
     }
-    die "tunnel-console is not functional" if ($retries <= 0);
 
     select_console($prev_console) if ($prev_console !~ /tunnel-console/);
     set_var('_SSH_TUNNELS_INITIALIZED', 0);    # set after the last select_console!

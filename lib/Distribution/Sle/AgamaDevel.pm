@@ -5,7 +5,7 @@
 
 # Summary: Agama Devel distribution (not really a real distribution!)
 # for integration tests using the current state of code at GitHub for Agama.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Distribution::Sle::AgamaDevel;
 use strict;
@@ -17,6 +17,11 @@ use Yam::Agama::Pom::GrubMenuSlesPage;
 
 sub get_grub_menu_installed_system {
     return Yam::Agama::Pom::GrubMenuSlesPage->new({
+            grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
+}
+
+sub get_grub_menu_agama {
+    return Yam::Agama::Pom::GrubMenuAgamaPage->new({
             grub_menu_base => Yam::Agama::Pom::GrubMenuBasePage->new()});
 }
 

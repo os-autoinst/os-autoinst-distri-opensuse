@@ -9,28 +9,25 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';    # used in select_serial_terminal
-use utils 'zypper_call';    # used in zypper_call
+use serial_terminal 'select_serial_terminal';
+use utils qw(script_retry zypper_call);
 use version_utils qw(is_transactional is_vmware is_opensuse);
 use transactional;
 use containers::common qw(install_packages);
 
 # Set a variable for test working directory
 my $workdir = '/tmp/test';
-my $runtime = "";
 
 sub run {
     # Required packages
     my @packages = qw(skopeo jq);
-    my ($self, $args) = @_;
-    $runtime = $args->{runtime};
 
     select_serial_terminal() unless is_vmware;    # Select most suitable text console
 
     # Set a variable for my remote image
     my $remote_image = is_opensuse ? "registry.opensuse.org/opensuse/bci/bci-busybox:latest" : "registry.suse.com/bci/bci-busybox:latest";
     # Set a variable for my local image
-    my $local_image = 'localhost:5050/bci-busybox:latest';
+    my $local_image = 'containers-storage:bci-busybox:latest';
 
     # install_packages accounts for SLE-Micro environment with transactional-update
     record_info('Installing packages', 'Install required packages');
@@ -94,22 +91,17 @@ sub run {
     record_info('Compare images', 'Both extracted copies must be identical.');
     assert_script_run("diff -urN $dir1 $dir2", fail_message => 'Copied images are not identical.');
 
-    ######### Spin-up an instance of the latest Registry
-    my $registry_image = is_opensuse ? "registry.opensuse.org/opensuse/registry:latest" : "registry.suse.com/suse/registry:latest";
-    assert_script_run("$runtime run --rm -d -p 5050:5000 --name skopeo-registry $registry_image",
-        fail_message => "Failed to start local registry container");
-
     ######### Pull the image into a our local repository
     # skipping tls verification as by default most local registries don't have certificates
     record_info('Copy Image', 'Copy image from remote repository into the local repository.');
-    validate_script_output("skopeo copy --remove-signatures --dest-tls-verify=0 docker://$remote_image docker://$local_image",
+    validate_script_output("skopeo copy --remove-signatures docker://$remote_image $local_image",
         sub { m/Writing manifest to image destination/ },
         fail_message => 'Failed to copy image to local repository.');
 
     ######### Inspect the local image repository
     # skipping tls verification as by default most local registries don't have certificates
     record_info('Inspect Image', 'Inspect an image from the local repository.');
-    assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image",
+    assert_script_run("skopeo inspect $local_image",
         fail_message => 'Failed to inspect local image.');
 
     ######### Compare remote image to local image
@@ -119,7 +111,7 @@ sub run {
         fail_message => 'Failed to inspect remote image.');
 
     record_info('Verify Local Image', 'Inspect local image and save results.');
-    assert_script_run("skopeo inspect --tls-verify=0 docker://$local_image | jq .Layers[] >> $workdir/inspect_local.json",
+    assert_script_run("skopeo inspect $local_image | jq .Layers[] >> $workdir/inspect_local.json",
         fail_message => 'Failed to inspect local image.');
 
     record_info('Compare local and remote images', 'Compare local and remote images.');
@@ -130,10 +122,6 @@ sub run {
 sub cleanup {
     record_info('Cleanup', 'Delete copied image directories');
     script_run "rm -rf $workdir";
-
-    record_info('Cleanup Registry', 'Remove local image Registry');
-    script_run "$runtime stop skopeo-registry";
-    script_run "$runtime rm -vf skopeo-registry";
 }
 
 sub post_run_hook {
@@ -142,6 +130,10 @@ sub post_run_hook {
 
 sub post_fail_hook {
     cleanup;
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

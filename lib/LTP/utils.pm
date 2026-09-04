@@ -20,9 +20,13 @@ use Utils::Architectures;
 use repo_tools 'add_qa_head_repo';
 use utils;
 use kernel 'get_kernel_flavor';
+use serial_terminal 'select_serial_terminal';
+use kdump_utils 'configure_service';
+use package_utils;
 
 our @EXPORT = qw(
   check_kernel_taint
+  unmask_serial_failures
   export_ltp_env
   get_ltproot
   get_ltp_openposix_test_list_file
@@ -38,6 +42,9 @@ our @EXPORT = qw(
   get_default_pkg
   install_from_repo
   prepare_whitelist_environment
+  setup_kernel_logging
+  init_debug
+  run_supportconfig
 );
 
 sub loadtest_kernel {
@@ -97,11 +104,16 @@ sub log_versions {
       (is_rt ? 'kernel-rt' : get_kernel_flavor);
     my $kernel_pkg_log = '/tmp/kernel-pkg.txt';
     my $ver_linux_log = '/tmp/ver_linux_before.txt';
+    my $rpm_qa_log = '/tmp/rpm-qa.txt';
     my $kernel_config = script_output('for f in "/boot/config-$(uname -r)" "/usr/lib/modules/$(uname -r)/config" /proc/config.gz; do if [ -f "$f" ]; then echo "$f"; break; fi; done');
     my $run_cmd = is_transactional ? 'transactional-update -c run ' : '';
 
     script_run("$run_cmd rpm -qi $kernel_pkg > $kernel_pkg_log 2>&1", timeout => 120);
     upload_logs($kernel_pkg_log, failok => 1);
+
+    # Full package manifest (sorted for stable diffing across runs)
+    script_run("$run_cmd rpm -qa | sort > $rpm_qa_log 2>&1", timeout => 120);
+    upload_logs($rpm_qa_log, failok => 1);
 
     if (get_var('LTP_COMMAND_FILE') || get_var('LIBC_LIVEPATCH')) {
         script_run("$run_cmd " . get_ltproot . "/ver_linux > $ver_linux_log 2>&1");
@@ -252,6 +264,23 @@ sub check_kernel_taint {
     }
 }
 
+sub unmask_serial_failures {
+    my ($pattern_list) = @_;
+    my @ret;
+    my $expect_warn = get_var('LTP_WARN_EXPECTED');
+
+    for my $pattern (@$pattern_list) {
+        my %tmp = %$pattern;
+
+        # don't switch to hard fail when test is expected to produce kernel warning
+        $tmp{type} = $tmp{post_boot_type} if defined($tmp{post_boot_type}) && !($tmp{soft_on_expect_warn} && $expect_warn);
+
+        push @ret, \%tmp;
+    }
+
+    return \@ret;
+}
+
 sub init_ltp_tests {
     my $cmd_file = shift;
     my $is_network = $cmd_file =~ m/^\s*(net|net_stress)\./;
@@ -289,7 +318,7 @@ EOF
         script_run('ip6tables -S');
 
         # display various network configuration
-        script_run('netstat -nap');
+        script_run('ss -nap || netstat -nap');
 
         script_run('cat /etc/resolv.conf');
         script_run('f=/etc/nsswitch.conf; [ ! -f $f ] && f=/usr$f; cat $f');
@@ -350,6 +379,16 @@ sub schedule_tests {
     $environment->{ltp_version} = script_output("touch $file; cat $file");
     record_info("LTP version", $environment->{ltp_version});
     record_info("env", script_output('env'));
+
+    # Wait for minimum system uptime before running tests
+    if (my $min_uptime = get_var('LTP_MIN_UPTIME')) {
+        my $current_uptime = int(script_output("awk '{print int(\$1)}' /proc/uptime"));
+        my $wait = $min_uptime - $current_uptime;
+        if ($wait > 0) {
+            record_info('LTP_MIN_UPTIME', "Waiting $wait seconds for minimum uptime $min_uptime seconds.");
+            script_run("sleep $wait", timeout => $wait + 5);
+        }
+    }
 
     $test_result_export->{environment} = $environment;
 
@@ -492,10 +531,6 @@ sub get_default_pkg {
 }
 
 sub install_from_repo {
-    # Workaround for kernel-64kb, until we add multibuild support to LTP package
-    # Lock kernel-default to don't pull it as LTP dependency
-    zypper_call 'al kernel-default' if get_kernel_flavor eq 'kernel-64kb';
-
     my @pkgs = split(/\s* \s*/, get_var('LTP_PKG', get_default_pkg));
 
     if (is_transactional) {
@@ -523,6 +558,7 @@ sub prepare_whitelist_environment {
         flavor => get_var('FLAVOR'),
         arch => get_var('ARCH'),
         backend => get_var('BACKEND'),
+        machine => get_var('MACHINE'),
         kernel => '',
         libc => '',
         gcc => '',
@@ -531,6 +567,55 @@ sub prepare_whitelist_environment {
     };
 
     return $environment;
+}
+
+# NOTE: root is expected
+sub setup_kernel_logging {
+    my $grub_param = 'ignore_loglevel';
+
+    # /sys/module/printk/parameters/ignore_loglevel was added to mainline in v3.2-rc1 in
+    # 0eca6b7c78fd ("printk: add module parameter ignore_loglevel to control ignore_loglevel").
+    # Therefore SLE11-SP4 doesn't support it (but it supports ignore_loglevel
+    # as an early kernel command-line parameter => ok to add it to grub).
+    script_run('echo 1 >/sys/module/printk/parameters/ignore_loglevel')
+      unless is_sle('<12');
+
+    if (script_output('cat /sys/module/printk/parameters/time') eq 'N') {
+        script_run('echo 1 > /sys/module/printk/parameters/time');
+        $grub_param .= ' printk.time=1';
+    }
+
+    return $grub_param;
+}
+
+sub init_debug {
+    select_serial_terminal;
+    return unless (get_var('LTP_COMMAND_FILE') && get_var('LTP_DEBUG'));
+    record_info('LTP_DEBUG', get_var('LTP_DEBUG'));
+
+    if (check_var_array('LTP_DEBUG', 'crashdump')) {
+        configure_service(yast_interface => 'cli');
+    }
+
+    if (check_var_array('LTP_DEBUG', 'oprofile')) {
+        install_package('oprofile', trup_reboot => 1);
+    }
+
+    if (check_var_array('LTP_DEBUG', 'supportconfig')) {
+        install_package('supportutils', trup_reboot => 1);
+    }
+
+    # Initialize VNC console now to avoid login attempts on frozen system
+    select_console('root-console');
+
+    # required to be last to avoid resetting the preinitialized root-console on transactional systems.
+    select_serial_terminal;
+}
+
+sub run_supportconfig {
+    return unless check_var_array('LTP_DEBUG', 'supportconfig');
+    script_run("supportconfig -B ltp", timeout => 1800);
+    upload_logs("/var/log/scc_ltp.txz", failok => 1);
 }
 
 1;

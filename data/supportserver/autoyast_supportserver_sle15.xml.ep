@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <final_halt config:type="boolean">false</final_halt>
+      <final_reboot config:type="boolean">false</final_reboot>
+      <halt config:type="boolean">false</halt>
+      <second_stage config:type="boolean">true</second_stage>
+    </mode>
+    <proposals config:type="list"/>
+    <!-- The PackageHub repos feature an unknown gpg key. We want to both trust it and import it. -->
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">false</accept_file_without_checksum>
+      <!-- autoyast docu says: ... accept known keys you have not yet trusted . Not enough here. -->
+      <accept_non_trusted_gpg_key config:type="boolean">false</accept_non_trusted_gpg_key>
+      <!-- autoyast docu says: ... new GPG keys of the installation sources... Supposedly needed. -->
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">false</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <!-- autoyast docu says: ... accept and import new GPG keys ... in its database. Supposedly also needed. -->
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage/>
+  </general>
+  <add-on>
+    <add_on_products config:type="list">
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Products/SLE-Module-Basesystem/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/</media_url>
+        <product>sle-module-basesystem</product>
+        <alias>sle-module-basesystem:<%= $get_var->('VERSION') %>::pool</alias>
+        <name>sle-module-basesystem:<%= $get_var->('VERSION') %>::pool</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Basesystem/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/</media_url>
+        <alias>sle-module-basesystem:<%= $get_var->('VERSION') %>::update</alias>
+        <name>sle-module-basesystem:<%= $get_var->('VERSION') %>::update</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Products/SLE-Module-Desktop-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/</media_url>
+        <product>sle-module-desktop-applications</product>
+        <alias>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::pool</alias>
+        <name>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::pool</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Desktop-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/</media_url>
+        <alias>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::update</alias>
+        <name>sle-module-desktop-applications:<%= $get_var->('VERSION') %>::update</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Products/SLE-Module-Development-Tools/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/</media_url>
+        <product>sle-module-development-tools</product>
+        <alias>sle-module-development-tools:<%= $get_var->('VERSION') %>::pool</alias>
+        <name>sle-module-development-tools:<%= $get_var->('VERSION') %>::pool</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/</media_url>
+        <alias>sle-module-development-tools:<%= $get_var->('VERSION') %>::update</alias>
+        <name>sle-module-development-tools:<%= $get_var->('VERSION') %>::update</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/</media_url>
+        <product>sle-module-server-applications</product>
+        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</alias>
+        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::pool</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/</media_url>
+        <alias>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</alias>
+        <name>sle-module-server-applications:<%= $get_var->('VERSION') %>::update</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Products/SLE-Product-SLES/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/product/</media_url>
+        <product>SLES</product>
+        <alias>SLES:<%= $get_var->('VERSION') %>::pool</alias>
+        <name>SLES:<%= $get_var->('VERSION') %>::pool</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Updates/SLE-Product-SLES/<%= $get_var->('VERSION') %>/<%= $get_var->('ARCH') %>/update/</media_url>
+        <alias>SLES:<%= $get_var->('VERSION') %>::update</alias>
+        <name>SLES:<%= $get_var->('VERSION') %>::update</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Backports/SLE-15-SP7_x86_64/product/</media_url>
+        <alias>PackageHub:<%= $get_var->('VERSION') %>::product</alias>
+        <name>PackageHub:<%= $get_var->('VERSION') %>::product</name>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Backports/SLE-15-SP7_x86_64/standard/</media_url>
+        <alias>PackageHub:<%= $get_var->('VERSION') %>::pool</alias>
+        <name>PackageHub:<%= $get_var->('VERSION') %>::pool</name>
+      </listentry>
+    </add_on_products>
+  </add-on>
+  <bootloader>
+    <global>
+      <timeout config:type="integer">90</timeout>
+    </global>
+  </bootloader>
+  <firewall t="map">
+    <enable_firewall t="boolean">false</enable_firewall>
+  </firewall>
+  <networking>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+      </interface>
+    </interfaces>
+    <dhcp_options>
+      <dhclient_hostname_option>auto</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <hostname>susetest</hostname>
+    </dns>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">false</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
+  <software>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <products config:type="list">
+      <product>SLES</product>
+    </products>
+    <packages config:type="list">
+      <package>vim</package>
+      <package>apache2</package>
+      <package>dhcp-server</package>
+      % if ($check_var->('ARCH', 'x86_64')) {
+      <package>mc</package>
+      <package>syslinux</package>
+      % }
+      <package>openssh</package>
+      <package>less</package>
+      <package>nfs-kernel-server</package>
+      <package>nfs-client</package>
+      <package>autofs</package>
+      <package>bind</package>
+      <package>tftp</package>
+      <package>yast2-iscsi-lio-server</package>
+      <package>tgt</package>
+    </packages>
+    <patterns config:type="list">
+      <pattern>enhanced_base</pattern>
+    </patterns>
+  </software>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <username>root</username>
+      <user_password>{{PASSWORD}}</user_password>
+    </user>
+    <user>
+      <encrypted config:type="boolean">false</encrypted>
+      <username>bernhard</username>
+      <user_password>{{PASSWORD}}</user_password>
+    </user>
+  </users>
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+</profile>

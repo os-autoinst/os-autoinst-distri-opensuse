@@ -26,6 +26,7 @@ sub install_klp_product {
     my $arch = get_required_var('ARCH');
     my $version = get_required_var('VERSION');
     my $livepatch_repo = get_var('REPO_SLE_MODULE_LIVE_PATCHING');
+    my $mirror_host = get_var('REPO_MIRROR_HOST', 'download.suse.de');
     my $release_override;
     my $lp_product;
     my $lp_module;
@@ -48,25 +49,32 @@ sub install_klp_product {
     if ($livepatch_repo) {
         zypper_ar("$utils::OPENQA_HTTP_URL/$livepatch_repo", name => "repo-live-patching");
     }
-    elsif (is_sle) {
-        zypper_ar("http://download.suse.de/ibs/SUSE/Products/$lp_module/$version/$arch/product/", name => "kgraft-pool");
-        zypper_ar("$release_override http://download.suse.de/ibs/SUSE/Updates/$lp_module/$version/$arch/update/", name => "kgraft-update");
+    elsif (is_sle('<16')) {
+        zypper_ar("http://$mirror_host/ibs/SUSE/Products/$lp_module/$version/$arch/product/", name => "kgraft-pool");
+        zypper_ar("$release_override http://$mirror_host/ibs/SUSE/Updates/$lp_module/$version/$arch/update/", name => "kgraft-update");
     }
 
-    # Enable live patching
+    my $livepatch_pack = 'kernel-default-livepatch';
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        $livepatch_pack = 'kernel-rt-livepatch';
+    }
+
+    # Configure livepatching controls on SLE-Micro
     if (is_sle_micro) {
-        my $livepatch_pack = 'kernel-default-livepatch';
-
-        if (check_var('SLE_PRODUCT', 'slert')) {
-            $livepatch_pack = 'kernel-rt-livepatch';
-        }
-
-        $livepatch_pack .= "-$kver" if defined($kver);
         assert_script_run 'cp /etc/zypp/zypp.conf /etc/zypp/zypp.conf.orig';
         assert_script_run 'sed -i "/^multiversion =.*/c\\multiversion = provides:multiversion(kernel)" /etc/zypp/zypp.conf';
         assert_script_run 'sed -i "/^multiversion\.kernels =.*/c\\multiversion.kernels = latest" /etc/zypp/zypp.conf';
         assert_script_run 'echo "LIVEPATCH_KERNEL=\'always\'" >> /etc/sysconfig/livepatching';
-        install_package($livepatch_pack, trup_continue => 1, trup_reboot => 1);
+    }
+
+    # Enable live patching
+    if (is_sle('16+') || is_sle_micro('6.2+')) {
+        install_package('-t pattern kernel_livepatching', trup_continue => 1, trup_reboot => 1);
+    }
+    elsif (is_sle_micro) {
+        $livepatch_pack .= "-$kver" if defined($kver);
+        install_package($livepatch_pack, trup_continue => 1, trup_reboot => 1)
+          unless (is_sle_micro('=6.0') || is_sle_micro('=6.1')) && $livepatch_pack eq 'kernel-rt-livepatch-6.4.0-10.1';
     } else {
         zypper_call("in -l -t product $lp_product", exitcode => [0, 102, 103]);
         zypper_call("mr -e kgraft-update") unless $livepatch_repo;
@@ -399,8 +407,9 @@ sub verify_klp_pkg_patch_is_active {
     # Verify that the livepatch module has been properly signed by
     # checking the kernel for TAINT_UNSIGNED_MODULE tainting.
     # TAINT_UNSIGNED_MODULE is represented by bit 13 within the
-    # kernel's tainted bitmask.
-    if (is_kernel_tainted(0x2000)) {
+    # kernel's tainted bitmask. Staging livepatches are not signed,
+    # skip the check.
+    if (get_var('FLAVOR', '') !~ m/-Staging$/ && is_kernel_tainted(0x2000)) {
         die "The kernel has been tainted with TAINT_UNSIGNED_MODULE";
     }
 }

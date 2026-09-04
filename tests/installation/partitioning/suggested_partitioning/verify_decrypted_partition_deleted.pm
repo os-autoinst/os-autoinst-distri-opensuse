@@ -6,11 +6,9 @@
 # Summary: The test module reuses the partition that was created with LVM on
 # previous installation and verifies that the encrypted partition and the
 # relevant mount points are marked for deletion in the partitioning list.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use Test::Assert qw(assert_matches);
 use List::MoreUtils qw(pairwise);
 use scheduler 'get_test_suite_data';

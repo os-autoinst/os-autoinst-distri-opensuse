@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: base class for Agama tests
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Yam::Agama::agama_base;
 use base 'opensusebasetest';
@@ -17,7 +17,7 @@ sub post_fail_hook {
 }
 
 sub upload_agama_logs {
-    select_console 'root-console';
+    select_console 'install-shell';
 
     if (script_run("test -d /run/agama/scripts") == 0) {
         script_run("tar czvf /tmp/agama_scripts.tar.gz /run/agama/scripts/*", {timeout => 60});
@@ -27,6 +27,11 @@ sub upload_agama_logs {
     script_run("agama logs store -d /tmp/agama-logs", {timeout => 60});
     upload_logs("/tmp/agama-logs.tar.gz", failok => 1);
     save_and_upload_log('journalctl -b > /tmp/journal.log', "/tmp/journal.log", {timeout => 60});
+
+    # logs from the UI saved by default to this path
+    my $full_log_path = script_output("find /root/Downloads/ -name 'agama-logs*.tar.gz' 2>/dev/null || true");
+    $full_log_path =~ s/^\s+|\s+$//g;
+    upload_logs($full_log_path, log_name => 'agama-logs-from-ui.tar.gz') if $full_log_path;
 }
 
 sub upload_browser_automation_dumps {

@@ -1,0 +1,16 @@
+---
+tools:
+    - /usr/bin/chroot
+    - /sbin/fsck.btrfs
+    - /sbin/fsck.ext4
+    - /sbin/fsck.xfs
+masked_services:
+    - agama.service
+    - agama-dbus-monitor.service
+    - agama-ssh-issue.service
+    - agama-avahi-issue.service
+    - agama-welcome-issue.service
+    - agama-url-issue.service
+    - agama-certificate-issue.service
+    - agama-certificate-issue.path
+    - agama-certificate-wait.service

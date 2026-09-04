@@ -6,13 +6,11 @@
 # Summary: If Full-QR don't register the system, otherwise do the registration.
 # Maintainer: QE Security <none@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {
-    if (check_var('FLAVOR', 'Full-QR')) {
+    if (check_var('FLAVOR', 'Full-QR') || check_var('FLAVOR', 'Full')) {
         $testapi::distri->get_registration()->skip_registration();
     } else {
         $testapi::distri->get_registration()->register_via_scc({

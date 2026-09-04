@@ -5,11 +5,9 @@
 
 # Summary: Enable YaST2 Firstboot module - Desktop workstation configuration utility
 # Doc: https://en.opensuse.org/YaST_Firstboot
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 use utils qw(zypper_call clear_console);
 use scheduler 'get_test_suite_data';

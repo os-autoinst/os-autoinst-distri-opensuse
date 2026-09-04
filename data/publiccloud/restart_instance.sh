@@ -42,7 +42,7 @@ PROVIDER=$1
 INSTANCE_ID=$2
 HOST=$3
 ZONE=$4
-CNT=120;
+CNT=360;
 LOG_SCRIPT="./log_instance.sh"
 
 test -x $LOG_SCRIPT && $LOG_SCRIPT stop "$PROVIDER" "$INSTANCE_ID" "$HOST" "$ZONE"
@@ -56,9 +56,6 @@ case $PROVIDER in
         ;;
     GCE)
         gcloud compute instances reset "$INSTANCE_ID" --zone "$ZONE"
-        ;;
-    OPENSTACK)
-        openstack server reboot "$INSTANCE_ID"
         ;;
     *)
         echo "Unknown provider $PROVIDER given";

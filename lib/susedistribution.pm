@@ -1,8 +1,7 @@
 package susedistribution;
+use Mojo::Base -strict, -signatures;
 use base 'distribution';
 use serial_terminal ();
-use strict;
-use warnings;
 use Sys::Hostname qw(hostname);
 use Utils::Architectures;
 use utils qw(
@@ -16,8 +15,8 @@ use utils qw(
   type_string_very_slow
   zypper_call
 );
-use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_opensuse is_hyperv is_plasma6 is_public_cloud);
-use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm default_gui_terminal);
+use version_utils qw(is_hyperv_in_gui is_sle is_leap is_svirt_except_s390x is_tumbleweed is_hyperv is_plasma6 is_public_cloud is_agama is_wsl);
+use x11utils qw(desktop_runner_hotkey ensure_unlocked_desktop x11_start_program_xterm default_gui_terminal close_gui_terminal);
 use Utils::Backends;
 
 use backend::svirt qw(SERIAL_TERMINAL_DEFAULT_DEVICE SERIAL_TERMINAL_DEFAULT_PORT SERIAL_USER_TERMINAL_DEFAULT_DEVICE SERIAL_USER_TERMINAL_DEFAULT_PORT);
@@ -198,8 +197,8 @@ sub init_desktop_runner {
     $timeout //= 30;
     my $hotkey = desktop_runner_hotkey;
 
-    # Force krunner to run single words as shell command (see also kde#477794)
-    $program .= ' ;' if (is_plasma6 && $program !~ /\s/);
+    # Force krunner to run the input as shell command (see also kde#477794)
+    $program .= ' ;' if is_plasma6;
 
     send_key($hotkey);
 
@@ -345,15 +344,7 @@ sub ensure_installed {
     quit_packagekit;
     zypper_call "in $pkglist";
     wait_still_screen 1;
-    send_key("alt-f4");    # close terminal
-
-    if (check_screen 'terminal-close-window', timeout => 30) {
-        wait_screen_change {
-            testapi::assert_and_click('terminal-close-window');
-        };
-    }
-
-    assert_screen 'generic-desktop' if is_opensuse;
+    close_gui_terminal;
 }
 
 =head2 script_sudo
@@ -371,6 +362,7 @@ sub script_sudo {
             $prog .= " > /dev/$testapi::serialdev" unless is_serial_terminal();
         }
     }
+    wait_still_screen(2, 4) if is_aarch64;
     enter_cmd "clear";    # poo#13710
     enter_cmd "su -c \'$prog\'", max_interval => 125;
     handle_password_prompt unless ($testapi::username eq 'root');
@@ -417,7 +409,9 @@ Log in as root in the current console
 sub become_root {
     my ($self) = @_;
 
+    $self->detect_serial_marker_capability() if $self->get_pretty_serial_marker();
     $self->script_sudo('bash', 1);
+    $self->invalidate_serial_marker_hook();
     # No need to apply on more recent kernels
     if (is_sle('<=15-SP2') || is_leap('<=15.2')) {
         disable_serial_getty() unless $self->script_run("systemctl is-enabled serial-getty\@$testapi::serialdev");
@@ -483,8 +477,9 @@ sub init_consoles {
             || (get_var('BACKEND', '') =~ /generalhw/ && get_var('GENERAL_HW_VNC_IP'))
             || is_svirt_except_s390x))
     {
-        $self->add_console('install-shell', 'tty-console', {tty => 2});
-        $self->add_console('installation', 'tty-console', {tty => check_var('VIDEOMODE', 'text') ? 1 : 7});
+        $self->add_console('install-shell', 'tty-console', {tty => is_agama() ? 8 : 2});
+        $self->add_console('installation', 'tty-console', {tty =>
+                  check_var('VIDEOMODE', 'text') ? 1 : is_agama() ? 2 : 7});
         $self->add_console('install-shell2', 'tty-console', {tty => 9});
         # On SLE15 X is running on tty2 see bsc#1054782
         $self->add_console('root-console', 'tty-console', {tty => get_root_console_tty});
@@ -522,8 +517,8 @@ sub init_consoles {
                 hostname => get_required_var('SUT_IP'),
                 password => $testapi::password,
                 username => 'root',
-                serial => 'rm -f /dev/virtsshserial; mkfifo /dev/virtsshserial; chmod 666 /dev/virtsshserial; while true; do cat /dev/virtsshserial; done',
-                gui => 1
+                serial => 'rm -f /dev/sshserial; mkfifo /dev/sshserial; chmod 666 /dev/sshserial; while true; do cat /dev/sshserial; done',
+                gui => 0
             }) if (get_var('VIRT_AUTOTEST', '') or get_var('REGRESSION', ''));
     }
 
@@ -819,16 +814,38 @@ sub get_console_info {
     return ($name, $user, $type);
 }
 
+=head2 disable_key_repeat_if_applicable
+
+  disable_key_repeat_if_applicable()
+
+Calls disable_key_repeat from the base class implementation if applicable with
+backward-compatible workaround.
+
+s390x excluded due to "kbdrate: Failed waiting for kbd controller!" error.
+
+Applies backward compatibility for os-autoinst below interface version 48.
+=cut
+
+sub disable_key_repeat_if_applicable ($self) {
+    return undef if is_s390x;
+    return $self->disable_key_repeat() if exists &distribution::disable_key_repeat;
+
+    # backward compatible workaround for os-autoinst below interface version
+    # 48. Can be eventually removed if relying on an infrastructure recent
+    # enough.
+    return enter_cmd('kbdrate -s -d99999');
+}
+
 =head2 activate_console
 
-  activate_console($console [, [ensure_tty_selected => 0|1] [, skip_set_standard_prompt => 0|1] [, skip_setterm => 0|1] [, timeout => $timeout]])
+  activate_console($console [, [ensure_tty_selected => 0|1] [, skip_set_standard_prompt => 0|1] [, skip_setterm => 0|1] [, skip_disable_key_repeat => 0|1] [, timeout => $timeout]])
 
 Callback whenever a console is selected for the first time. Accepts arguments
 provided to select_console().
 
-C<skip_set_standard_prompt> and C<skip_setterm> arguments skip respective routines,
-e.g. if you want select_console() without addition console setup. Then, at some
-point, you should set it on your own.
+C<skip_set_standard_prompt>, C<skip_setterm> and C<skip_disable_key_repeat>
+arguments skip respective routines, e.g. if you want select_console() without
+addition console setup. Then, at some point, you should set it on your own.
 
 Option C<ensure_tty_selected> ensures TTY is selected.
 
@@ -853,7 +870,7 @@ sub activate_console {
         else {
             # on s390x we need to login here by providing a password
             handle_password_prompt if is_s390x;
-            assert_screen "inst-console";
+            assert_screen 'inst-console';
         }
     }
 
@@ -874,7 +891,7 @@ sub activate_console {
             # s390 zkvm uses a remote ssh session which is root by default so
             # search for that and su to user later if necessary
             push(@tags, 'text-logged-in-root') if get_var('S390_ZKVM');
-            push(@tags, 'wsl-linux-prompt') if (get_var('FLAVOR') eq 'WSL');
+            push(@tags, 'wsl-linux-prompt') if is_wsl;
             # Wait a bit to avoid false match on 'text-logged-in-$user', if tty has not switched yet,
             # or premature typing of credentials on sle15+
             my $stilltime = is_sle('15+') ? 6 : 1;
@@ -883,7 +900,7 @@ sub activate_console {
             # case the system is still booting (https://bugzilla.novell.com/show_bug.cgi?id=895602)
             # or when using remote consoles which can take some seconds, e.g.
             # just after ssh login
-            assert_screen \@tags, $args{timeout} // 60;
+            assert_screen \@tags, $args{timeout} // 90;
             if (match_has_tag("tty$nr-selected")) {
                 enter_cmd "$user";
                 handle_password_prompt;
@@ -902,6 +919,7 @@ sub activate_console {
             $self->set_standard_prompt($user, skip_set_standard_prompt => $args{skip_set_standard_prompt});
             assert_screen $console;
         }
+        $self->disable_key_repeat_if_applicable() unless $args{skip_disable_key_repeat};
     }
     elsif ($type =~ /^(virtio-terminal|sut-serial)$/) {
         serial_terminal::login($user, $self->prompt_for_user($user));
@@ -934,7 +952,6 @@ sub activate_console {
         handle_password_prompt($console);
         assert_screen('text-logged-in-root', 60) unless is_hyperv;
         $self->set_standard_prompt('root', os_type => $os_type, skip_set_standard_prompt => $args{skip_set_standard_prompt});
-        save_svirt_pty;
     }
     elsif (
         $console eq 'installation'
@@ -1007,7 +1024,7 @@ sub console_selected {
     $args{ignore} //= qr{sut|user-virtio-terminal|root-virtio-terminal|root-sut-serial|iucvconn|svirt|root-ssh|hyperv-intermediary|serial-ssh};
     $args{timeout} //= 30;
 
-    if ($args{tags} =~ $args{ignore} || !$args{await_console} || (get_var('FLAVOR') eq 'WSL')) {
+    if ($args{tags} =~ $args{ignore} || !$args{await_console} || is_wsl) {
         set_var('CONSOLE_JUST_ACTIVATED', 0);
         return;
     }

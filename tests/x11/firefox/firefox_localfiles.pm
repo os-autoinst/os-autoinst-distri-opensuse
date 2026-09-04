@@ -14,13 +14,17 @@
 # - Exit firefox
 # Maintainer: wnereiz <wnereiz@github>
 
-use strict;
-use warnings;
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
+use version_utils qw(is_sle);
 
 sub run {
     my ($self) = @_;
+
+    if (is_sle(">=16.0")) {
+        ensure_installed(['w3m', 'alsa', 'mozilla-nss']);
+    }
+
     $self->start_firefox_with_profile;
 
     # html

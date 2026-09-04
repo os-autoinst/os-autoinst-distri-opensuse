@@ -6,8 +6,6 @@
 # Summary:  to execute testsuites in openQA from QA:Head by running its build up test run script
 # Maintainer: Yong Sun  <yosun@suse.com>
 
-use strict;
-use warnings;
 use File::Basename;
 use IO::File;
 use Data::Dumper;
@@ -15,7 +13,7 @@ use utils;
 use testapi;
 use ctcs2_to_junit;
 use upload_system_log;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use version_utils "is_jeos";
 
 sub run {

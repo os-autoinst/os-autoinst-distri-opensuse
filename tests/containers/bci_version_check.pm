@@ -11,7 +11,7 @@
 # Summary: Checks if the container version for the test run is still up-to-date
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use utils qw(zypper_call script_retry);
 use version_utils;
 use containers::common;
@@ -42,7 +42,13 @@ sub run {
         die('No valid container engines defined in CONTAINER_RUNTIMES variable!');
     }
 
-    script_retry("$engine pull -q $image", timeout => 300, delay => 60, retry => 3);
+    # Avoid unnecessary load on IBS by holding back all test runs except 15-SP7, so that registry.suse.de can load the images into the cache
+    # This is a temporary workaround until https://progress.opensuse.org/issues/189813 is done.
+    sleep(150 + rand(150)) unless (get_var("CASEDIR") || check_var('HOST_VERSION', '15-SP7'));
+
+    die "Pulling container image '$image' timed out. Likely a new build is already being prepared. Look for a new build and ignore this test run.\n"
+      if script_run("timeout 3600 $engine pull -q $image", timeout => 3600 + 30) == 124;
+    script_retry("$engine pull -q $image", timeout => 3600, delay => 60, retry => 2);
     record_info('Inspect', script_output("$engine inspect $image"));
 
     if ($build && $build ne 'UNKNOWN') {
@@ -53,8 +59,10 @@ sub run {
     }
 }
 
+sub post_run_hook { }
+
 sub test_flags {
-    return {fatal => 1, milestone => 1};
+    return {fatal => 1, milestone => 0};
 }
 
 1;

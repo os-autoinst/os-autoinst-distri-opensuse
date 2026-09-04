@@ -9,13 +9,12 @@
 # - install package with options
 # Maintainer: Zaoliang Luo <zluo@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use registration;
 use version_utils 'is_sle';
+use package_utils 'install_package';
 
 sub run {
     my @command = qw(refresh repo-list backend-details get-roles get-groups get-filters);
@@ -23,9 +22,9 @@ sub run {
 
     select_console 'root-console';
     # need to add required product at first
-    add_suseconnect_product('sle-module-desktop-applications', undef, undef, undef, 300, 1) if is_sle(">=15");
+    add_suseconnect_product('sle-module-desktop-applications', undef, undef, undef, 300, 1) if (is_sle(">=15") && is_sle("<16"));
 
-    zypper_call('in PackageKit');
+    install_package('PackageKit', trup_reboot => 1);
     # on sles and tw we need to unmask packagekit service because it got masked on the qcow2 image
     assert_script_run("systemctl unmask packagekit.service");
     assert_script_run("systemctl start packagekit.service");

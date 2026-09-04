@@ -7,14 +7,14 @@
 # Summary: Test FirewallD basic usage, including nftables/iptables
 # Maintainer: Alexandre Makoto Tanno <atanno@suse.com>
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(systemctl zypper_call script_retry);
-use version_utils qw(is_sle is_leap is_transactional);
+use version_utils qw(is_sle is_leap is_transactional is_sle_micro);
 use transactional qw(trup_call check_reboot_changes);
+use registration;
+use package_utils 'install_package';
 
 sub uses_iptables {
     return is_sle('<15-SP3') || is_leap('<15.3');
@@ -340,20 +340,18 @@ sub test_firewall_offline_cmd {
 #            Factory derived products, should have nf_tables too
 sub test_default_backend {
     return if (script_run("command -v iptables") != 0);
+    # Only install iptables-backend-nft then iptables backend will change to nf_tables, refer bsc#1206383
+    add_suseconnect_product("sle-module-legacy") if (is_sle('>=15-SP5') && is_sle('<16'));
+    zypper_call('in iptables-backend-nft') if ((is_sle('>=15-SP5') && is_sle('<16')) || is_leap('>=15.6'));
     validate_script_output('iptables --version', sub {
             # This could have been done using capture groups too
             # removing the need for repeating regexes and nesting ifs
             # let's wait until a new backend is added, before optimizing
-            if (uses_iptables) {
+            if (is_sle('<15-SP5') || is_sle_micro('<6.2')) {
                 # if iptables reports no backend, or legacy backend, we' re using old version of it
                 m/(?:iptables\sv[[:digit:]].+\w)\s?($|(?:.legacy.$))/;
             } else {
-                if (m/(?:iptables\sv[[:digit:]].+\w)\s?($|(?:.legacy.$))/) {
-                    record_soft_failure('bsc#1206383 - iptables uses legacy backend instead of nftables');
-                    return 1;
-                } else {
-                    m/nf_tables/;
-                }
+                m/nf_tables/;
             }
     });
 }
@@ -361,7 +359,7 @@ sub test_default_backend {
 sub run {
     select_serial_terminal;
 
-    zypper_call('in iptables') if is_sle('>=16');
+    install_package('iptables', trup_reboot => 1) if is_sle('>=16');
 
     # Check Service State, enable it if necessary, set default zone to public
     pre_test;

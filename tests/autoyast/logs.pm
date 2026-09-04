@@ -7,9 +7,7 @@
 #      earlier
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
-use strict;
-use warnings;
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 
 sub run {
@@ -18,9 +16,8 @@ sub run {
 
     # save all logs that might be useful
 
-    enter_cmd "systemctl status > /var/log/systemctl_status";
-    type_string
-"tar cjf /tmp/logs.tar.bz2 --exclude=/etc/{brltty,udev/hwdb.bin} --exclude=/var/log/{YaST2,zypp,{pbl,zypper}.log} /var/{log,adm/autoinstall} /run/systemd/system/ /usr/lib/systemd/system/ /boot/grub2/{device.map,grub{.cfg,env}} /etc/\n";
+    script_run "systemctl status > /var/log/systemctl_status ||:";
+    script_run "tar cjf /tmp/logs.tar.bz2 --exclude=/etc/{brltty,udev/hwdb.bin} --exclude=/var/log/{YaST2,zypp,{pbl,zypper}.log} /var/{log,adm/autoinstall} /run/systemd/system/ /usr/lib/systemd/system/ /boot/grub2/grub{.cfg,env} /etc/ ||:", timeout => 300;
     upload_logs "/tmp/logs.tar.bz2";
     enter_cmd "echo UPLOADFINISH >/dev/$serialdev";
     wait_serial("UPLOADFINISH", 200);

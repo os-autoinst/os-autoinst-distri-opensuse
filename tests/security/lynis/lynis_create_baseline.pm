@@ -1,4 +1,4 @@
-# Copyright SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: create the baseline file when the LYNIS_CREATE_BASELINE var is set
@@ -7,11 +7,9 @@
 #
 # usage: schedule this module to have in the test output the baseline to use for subsequent tests
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use version_utils qw(is_sle);
 use registration qw(add_suseconnect_product);
-use strict;
-use warnings;
 use testapi;
 use utils;
 use lynis::lynistest;
@@ -27,7 +25,7 @@ sub run {
     add_suseconnect_product("PackageHub", undef, undef, undef, 300, 1) if is_sle;
     add_suseconnect_product("sle-module-legacy", undef, undef, undef, 300, 1) if is_sle;
     # Set timeout to 300s as the default 90s is not enough in some situations
-    zypper_call("in lynis", timeout => 300);
+    zypper_call("--gpg-auto-import-keys in lynis", timeout => 300);
 
     # Record the pkgs' version for reference
     my $results = script_output("rpm -qi lynis");

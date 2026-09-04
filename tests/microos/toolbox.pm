@@ -1,17 +1,15 @@
 # SUSE's openQA tests
 #
-# Copyright 2024 SUSE LLC
+# Copyright 2024-2025 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run simple toolbox tests
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use containers::common;
-use version_utils qw(is_sle_micro is_leap_micro);
+use version_utils qw(is_sle_micro is_leap_micro is_microos);
 use transactional;
 use Utils::Architectures qw(is_ppc64le);
 
@@ -71,6 +69,8 @@ sub run {
         # $image = suse/sle-15-sp3/update/products/microos51/update/cr/images/suse/sle-micro/5.1/toolbox:latest
         (my $registry = $toolbox_image_to_test) =~ s/\/.*//;
         (my $image = $toolbox_image_to_test) =~ s/^[^\/]*\///;
+        # CONTAINER_IMAGE_TO_TEST may have a totest tumbleweed image
+        ($image) =~ s/\/tumbleweed(?:latest)?$/\/toolbox/ if is_microos;
         assert_script_run "echo REGISTRY=$registry > /etc/toolboxrc";
         assert_script_run "echo IMAGE=$image >> /etc/toolboxrc";
         record_info 'toolboxrc', script_output('cat /etc/toolboxrc');
@@ -100,15 +100,18 @@ sub run {
     validate_script_output 'podman ps -a', sub { m/test_name/ };
     assert_script_run 'podman rm test_name';
 
-
     record_info 'Test', "Rootless toolbox as $user";
     my $console = select_console 'user-console';
-    my $uid = script_output 'id -u';
-    validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 300;
-    die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
-    # Check if toolbox sees processes from outside the container (there should be no pid namespace separation)
-    background_script_run 'sleep 3612';
-    validate_script_output 'toolbox ps a', sub { m/sleep 3612/ };
+    if (is_sle_micro("<6.0")) {
+        record_soft_failure("bsc#1252754 - toolbox failure for SLEM containter 5.2 - 5.5. unable to open container due to ptmx");
+    } else {
+        my $uid = script_output 'id -u';
+        validate_script_output 'toolbox -u id', sub { m/uid=${uid}\(${user}\)/ }, timeout => 300;
+        die "$user shouldn't have access to /etc/passwd!" if (script_run('toolbox -u touch /etc/passwd') == 0);
+        # Check if toolbox sees processes from outside the container (there should be no pid namespace separation)
+        background_script_run 'sleep 3612';
+        validate_script_output 'toolbox ps a', sub { m/sleep 3612/ };
+    }
 
     record_info 'Test', "Rootfull toolbox as $user";
     validate_script_output 'toolbox -r id', sub { m/uid=0\(root\)/ };
@@ -127,7 +130,7 @@ sub run {
         } else {
             assert_script_run 'toolbox -r -- zypper -n ref', timeout => 300;
         }
-        if (script_run('toolbox -- zypper -n up 2>&1 | tee /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
+        if (script_run('toolbox -r -- zypper -n up 2>&1 | tee /var/tmp/toolbox_zypper_up.txt', timeout => 300) != 0) {
             upload_logs('/var/tmp/toolbox_zypper_up.txt');
             die "zypper up failed within toolbox";
         }
@@ -165,7 +168,7 @@ sub run {
             assert_script_run 'toolbox run -c devel -- zypper -n ref -s', timeout => 300;
         }
         assert_script_run 'toolbox run -c devel -- zypper lr -u', timeout => 180;
-        assert_script_run 'toolbox run -c devel -- zypper -n in python3', timeout => 180;
+        assert_script_run 'toolbox run -c devel -- zypper -n in sysstat', timeout => 180;
     }
     assert_script_run 'podman rm devel';
 

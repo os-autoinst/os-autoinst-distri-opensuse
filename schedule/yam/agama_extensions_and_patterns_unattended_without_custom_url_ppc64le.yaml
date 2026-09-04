@@ -1,0 +1,12 @@
+---
+name: agama_extensions_and_patterns_unattended_without_custom_url_ppc64le.
+description: >
+  Prepare url for agama.auto boot parameter, perform auto-installation with extensions and software pattern selection on ppc64le without custom url.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_registered_products
+  - yam/validate/validate_installed_patterns

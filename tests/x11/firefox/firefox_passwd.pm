@@ -27,9 +27,7 @@
 # - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
-use strict;
-use warnings;
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils;
 
@@ -74,7 +72,10 @@ sub run {
     $self->firefox_preferences;
     assert_and_click('firefox-passwd-security');
     send_key_until_needlematch([qw(firefox-primary-passwd-selected firefox-passwd-master_setting)], 'alt-shift-u', 4, 2);
-    send_key 'spc' unless check_screen('firefox-passwd-master_setting', 3);
+    if (check_screen('firefox-passwd-master_setting', 3)) {
+        assert_and_click('firefox-passwd-master_setting');
+    }
+    assert_and_click("firefox-enter-new-password");
     # We should use strong password due to bsc#1208951
     type_string $masterpw, 150;
     send_key "tab";
@@ -91,7 +92,7 @@ sub run {
     type_string "squiddy";
     send_key "tab";
     type_string "calamari";
-    send_key "ret";
+    assert_and_click('firefox-passwd-login');
     wait_still_screen(2);
     assert_and_click('firefox-passwd-confirm_remember');
     confirm_master_pw;
@@ -103,8 +104,6 @@ sub run {
         # jump to logins, alt-shift-d does not rotate between multiple places :(
         wait_still_screen(3);
         send_key 'alt-shift-f';
-        send_key 'alt-shift-f';
-        send_key "alt-shift-$key";
     }
     send_key_until_needlematch 'firefox-saved-logins-button', "alt-shift-$key", 6, 2;
     wait_still_screen 3;

@@ -7,12 +7,10 @@
 # Summary: setup one RMT server, sync, enable, mirror and list
 # products. Then export RMT data to one folder. Wait another RMT
 # Server to import those data
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
 use testapi;
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use repo_tools;
 use utils;
 use lockapi 'mutex_create';

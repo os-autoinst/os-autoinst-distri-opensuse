@@ -8,9 +8,7 @@
 # Maintainer: Nick Singer <nsinger@suse.de>
 # Tags: poo#20306
 
-use base 'x11test';
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use Utils::Logging 'save_and_upload_systemd_unit_log';
@@ -30,7 +28,7 @@ sub run {
 }
 
 sub install_packages {
-    my $required_packages = 'NetworkManager hostapd';
+    my $required_packages = 'NetworkManager hostapd openssl';
     enter_cmd 'echo "# installing required packages"';
     quit_packagekit;
     zypper_call("in $required_packages");

@@ -8,7 +8,7 @@
 #     by the controller, and run checks.
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base qw(hpcbase), -signatures;
+use Mojo::Base 'hpcbase', -signatures;
 use testapi;
 use lockapi;
 use mmapi;

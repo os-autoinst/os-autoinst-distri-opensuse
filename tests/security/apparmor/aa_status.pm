@@ -11,9 +11,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: tc#1767574, poo#81727, poo#36874, poo#44912
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use services::apparmor;

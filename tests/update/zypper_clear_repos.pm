@@ -8,9 +8,7 @@
 # Summary: Clear unneed repos before updating for Staging Project
 # Maintainer: Max Lin <mlin@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 
@@ -23,7 +21,7 @@ sub run {
     my $repos_folder = '/etc/zypp/repos.d';
     zypper_call 'lr -d', exitcode => [0, 6];
     assert_script_run(
-"find $repos_folder/ -name \\*.repo -type f -exec grep -Eq 'baseurl=(http|https)://download.opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
+"find $repos_folder/ -name \\*.repo -type f -exec grep -Eq 'baseurl=(http|https)://(download|cdn|openqa|codecs).opensuse.org/' {} \\; -delete && echo 'unneed_repos_removed' > /dev/$serialdev",
         15
     );
     zypper_call 'lr -d', exitcode => [0, 6];

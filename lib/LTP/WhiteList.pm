@@ -66,15 +66,18 @@ sub find_whitelist_entry {
 
     $suite = $self->{whitelist}->{$suite};
     return undef unless ($suite);
+    $test =~ s/_postun$//g if check_var('KGRAFT', 1) && (check_var('UNINSTALL_INCIDENT', 1) || check_var('KGRAFT_DOWNGRADE', 1));
 
     my @issues;
     if (ref($suite) eq 'ARRAY') {
         @issues = @{$suite};
     }
-    else {
-        $test =~ s/_postun$//g if check_var('KGRAFT', 1) && (check_var('UNINSTALL_INCIDENT', 1) || check_var('KGRAFT_DOWNGRADE', 1));
-        return undef unless exists $suite->{$test};
+    elsif (defined($suite->{$test})) {
         @issues = @{$suite->{$test}};
+    }
+    else {
+        return unless defined $suite->{'*'};
+        @issues = grep { $_->{test} && $test =~ m/$_->{test}/ } @{$suite->{'*'}};
     }
 
     foreach my $cond (@issues) {
@@ -132,8 +135,7 @@ sub override_known_failures {
     else {
         my $msg = "Failure in LTP:$suite:$testname is known, overriding to softfail";
         bmwqemu::diag($msg);
-        $testmod->{result} = 'softfail';
-        $testmod->record_soft_failure_result(join("\n", $msg, ($entry->{message} // ())));
+        $testmod->record_soft_failure_result(join("\n", $msg, ($entry->{message} // ())), force_status => 1);
     }
 
     return 1;
@@ -171,6 +173,7 @@ sub list_skipped_tests {
     return @skipped_tests if (ref($suite) eq 'ARRAY');
 
     for my $test (keys(%$suite)) {
+        next if $test eq '*';
         my @entrys = grep { $_->{skip} && _whitelist_entry_match($_, $env) } @{$suite->{$test}};
         push @skipped_tests, $test if @entrys;
     }
@@ -180,7 +183,7 @@ sub list_skipped_tests {
 sub _whitelist_entry_match
 {
     my ($entry, $env) = @_;
-    my @attributes = qw(product ltp_version revision arch kernel backend retval flavor);
+    my @attributes = qw(product ltp_version revision arch kernel backend retval flavor machine test_variant);
 
     foreach my $attr (@attributes) {
         next unless defined $entry->{$attr};

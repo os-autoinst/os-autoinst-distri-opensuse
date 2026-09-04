@@ -11,11 +11,11 @@
 #          option.
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
+## no os-autoinst style
+
 package bootloader_svirt;
 
 use base "installbasetest";
-use strict;
-use warnings;
 use testapi;
 use utils;
 use version_utils qw(is_jeos is_microos is_installcheck is_rescuesystem is_sle is_vmware);
@@ -24,6 +24,7 @@ use data_integrity_utils 'verify_checksum';
 use File::Basename;
 use network_utils qw(genmac);
 use bootloader_setup;
+use Utils::Backends qw(is_ova);
 
 sub vmware_set_permanent_boot_device {
     return unless is_vmware;
@@ -56,28 +57,53 @@ sub search_image_on_svirt_host {
     return $path;
 }
 
+sub cleanup_leftover_vmware_vms {
+    my ($svirt, $name, $vmware_openqa_datastore) = @_;
+
+    # Power off and unregister any leftover VM from a previous openQA job
+    # before deleting its files to avoid it becomes an orphaned VM
+    my $vm_id = $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | awk '\$2 == \"$name\" { print \$1 }'", {domain => 'sshVMwareServer'});
+    if ($vm_id) {
+        record_info('Remove leftover VM', "$vm_id ($name)");
+        my $power_state = $svirt->get_cmd_output("vim-cmd vmsvc/power.getstate $vm_id", {domain => 'sshVMwareServer'});
+        $svirt->run_cmd("vim-cmd vmsvc/power.off $vm_id", domain => 'sshVMwareServer') if ($power_state =~ /Powered on/);
+        $svirt->run_cmd("vim-cmd vmsvc/destroy $vm_id", domain => 'sshVMwareServer');
+    }
+    # Remove invalid VM by previous openQA job
+    my @invalid_vmid = split('\n', $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | grep 'invalid VM' | cut -d\\' -f2", {domain => 'sshVMwareServer'}));
+    foreach (@invalid_vmid) {
+        if ($_ == $vm_id) {
+            record_info('Remove invalid VM: ', "$_ ($name)");
+            $svirt->run_cmd("vim-cmd vmsvc/reload $_", domain => 'sshVMwareServer');
+            $svirt->run_cmd("vim-cmd vmsvc/unregister $_", domain => 'sshVMwareServer');
+            last;
+        }
+    }
+    # Clear datastore on VMware host (the VM is unregistered its disk files
+    # are no longer locked and can be removed cleanly)
+    $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
+}
+
 sub run {
     my $arch = get_var('ARCH');
     my $vmm_family = get_required_var('VIRSH_VMM_FAMILY');
     my $vmm_type = get_required_var('VIRSH_VMM_TYPE');
     my $svirt = select_console('svirt');
     my $name = $svirt->name;
+
+    if (is_ova) {
+        $svirt->define_and_start;
+        select_console('sut', await_console => 0);
+        return;
+    }
+
     my $repo;
     my $vmware_openqa_datastore;
 
     if (check_var('VIRSH_VMM_FAMILY', 'vmware')) {
-        # Clear datastore on VMware host
         $vmware_openqa_datastore = "/vmfs/volumes/" . get_required_var('VMWARE_DATASTORE') . "/openQA/";
-        $svirt->get_cmd_output("set -x; rm -f ${vmware_openqa_datastore}*${name}*", {domain => 'sshVMwareServer'});
-        # Remove invalid VM by previous openQA job
-        my @vm_id = split('\n', $svirt->get_cmd_output("vim-cmd vmsvc/getallvms 2>&1 | grep 'invalid VM' | cut -d\\' -f2", {domain => 'sshVMwareServer'}));
-        foreach (@vm_id) {
-            $svirt->run_cmd("vim-cmd vmsvc/reload $_", domain => 'sshVMwareServer');
-            $svirt->run_cmd("vim-cmd vmsvc/unregister $_", domain => 'sshVMwareServer');
-        }
+        cleanup_leftover_vmware_vms($svirt, $name, $vmware_openqa_datastore);
     }
-
-    my $n = get_var('NUMDISKS', 1);
 
     my $xenconsole = "hvc0";
     if (!get_var('SP2ORLATER')) {
@@ -141,18 +167,13 @@ sub run {
 
     my $hdddir = "$basedir/openqa/${share_factory}hdd $basedir/openqa/${share_factory}hdd/fixed";
     my $size_i = get_var('HDDSIZEGB', '10');
-    foreach my $n (1 .. get_var('NUMDISKS')) {
+    foreach my $n (1 .. get_var('NUMDISKS', 1)) {
         if (my $full_hdd = get_var('HDD_' . $n)) {
             my $hdd = basename($full_hdd);
             my $hddpath = search_image_on_svirt_host($svirt, $hdd, $hdddir);
-            if ($hddpath =~ m/vmdk\.xz$/) {
-                my $nfs_ro = $hddpath;
-                $hddpath = "$vmware_openqa_datastore/$hdd" =~ s/vmdk\.xz/vmdk/r;
+            if ($hddpath =~ m/\.vmdk\.xz$|\.vmdk$/) {
                 # do nothing if the image is already unpacked in datastore
-                if ($svirt->run_cmd("test -e $hddpath", domain => 'sshVMwareServer')) {
-                    my $ret = $svirt->run_cmd("xz --decompress --keep --verbose $vmware_openqa_datastore/$hdd", domain => 'sshVMwareServer');
-                    die "Image decompress in datastore failed!\n" if $ret;
-                }
+                $hddpath = $svirt->provide_image_vmware_in_ds($hddpath, $vmware_openqa_datastore, backingfile => 1);
             }
             $svirt->add_disk(
                 {
@@ -237,56 +258,49 @@ sub run {
     $svirt->add_vnc({port => get_var('VIRSH_INSTANCE', 1) + 5900});
 
     my %ifacecfg = ();
-
-    # VMs should be specified with known-to-work network interface.
-    # Xen PV and Hyper-V use streams.
     my $iface_model;
-    if ($vmm_family eq 'kvm') {
-        $iface_model = 'virtio';
-    }
-    elsif ($vmm_family eq 'xen') {
-        $ifacecfg{type} = 'bridge';
-        $ifacecfg{source} = {bridge => 'br0'};
-        $ifacecfg{virtualport} = {type => 'openvswitch'};
-        $ifacecfg{mac} = {address => genmac('00:16:3e')};
-        $iface_model = 'netfront';
-    }
-    elsif ($vmm_family eq 'vmware') {
-        $iface_model = 'e1000';
-    } else {
-        die "Unsupported value of *VIRSH_VMM_FAMILY*\n";
-    }
-
-    if ($iface_model) {
-        $ifacecfg{model} = {type => $iface_model};
-    }
-
+    # VMs should be specified with known-to-work network interface.
     if ($vmm_family eq 'vmware') {
+        $iface_model = 'e1000';
         # `virsh iface-list' won't produce correct bridge name for VMware.
         # It should be provided by the worker or relied upon the default.
         $ifacecfg{type} = 'bridge';
         $ifacecfg{source} = {bridge => get_var('VMWARE_BRIDGE', 'VM Network')};
     }
     elsif ($vmm_family eq 'kvm') {
+        $iface_model = 'virtio';
         $ifacecfg{type} = 'user';
         # This is the default MAC address for user mode networking; same in qemu backend
         $ifacecfg{mac} = {address => '52:54:00:12:34:56'};
     }
-    else {
-        # We can use bridge or network as a base for network interface. Network named 'default'
-        # happens to be omnipresent on workstations, bridges (br0, ...) on servers. If both 'default'
-        # network and bridge are defined and active, bridge should be prefered as 'default' network
-        # does not work.
-        if (my $bridges = $svirt->get_cmd_output("virsh iface-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
-            $ifacecfg{type} = 'bridge';
-            # Due to poo#126647, the default iface 'ovs-system' on xen platform can not work fine, so we need to use br0 instead
-            $bridges = 'br0' if $bridges eq 'ovs-system';
+    elsif ($vmm_family eq 'xen') {
+        $iface_model = 'netfront';
+        $ifacecfg{type} = 'bridge';
+        $ifacecfg{source} = {bridge => 'br0'};
+        $ifacecfg{mac} = {address => genmac('00:16:3e')};
+        # We currently support ovs and native bridges as well as libvirt network definitions
+        # First, fetch the columns `name`+`type` of the `Interface`-table of the `Open_vSwitch` database.
+        # Then extract `internal` interfaces and use the first `name` as bridge for the SUT
+        if (my $bridge = $svirt->get_cmd_output("which ovsdb-client > /dev/null && ovsdb-client -f json dump Open_vSwitch Interface name type | jq -r '(.data[] | select(.[1] == \"internal\"))[0]' | head -n1 | tr -d '\\n'")) {
+            $ifacecfg{source} = {bridge => $bridge};
+            $ifacecfg{virtualport} = {type => 'openvswitch'};
+        }
+        elsif (my $bridge = $svirt->get_cmd_output("virsh iface-list --all | grep -v ovs-system | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+            # If no (suitable) ovs-bridge is found, try the first found native bridge
             $ifacecfg{source} = {bridge => $bridges};
         }
-        elsif (my $networks = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+        elsif (my $network = $svirt->get_cmd_output("virsh net-list --all | grep -w active | awk '{ print \$1 }' | tail -n1 | tr -d '\\n'")) {
+            # Lastly, fallback to any configured libvirt network
             $ifacecfg{type} = 'network';
-            $ifacecfg{source} = {network => $networks};
+            $ifacecfg{source} = {network => $network};
         }
+    }
+    else {
+        die "Unsupported value of *VIRSH_VMM_FAMILY*\n";
+    }
+
+    if ($iface_model) {
+        $ifacecfg{model} = {type => $iface_model};
     }
 
     $svirt->add_interface(\%ifacecfg);

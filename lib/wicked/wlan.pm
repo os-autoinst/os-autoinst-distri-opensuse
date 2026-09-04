@@ -369,6 +369,7 @@ sub hostapd_kill {
     my ($self, %args) = @_;
     $args{name} //= 'hostapd';
     assert_script_run("kill \$(cat /tmp/$args{name}.pid)");
+    sleep 3;    # slow down hostapd_kill cycle a bit
 }
 
 sub assert_connection {

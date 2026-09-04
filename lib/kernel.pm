@@ -12,51 +12,114 @@ use base Exporter;
 use testapi;
 use strict;
 use utils;
-use version_utils qw(is_sle is_transactional);
+use package_utils;
+use version_utils qw(is_sle is_sle_micro is_transactional);
 use transactional;
 use warnings;
 
 our @EXPORT = qw(
   remove_kernel_packages
+  get_initial_kernel_flavor
   get_kernel_flavor
+  get_kernel_source_flavor
+  get_kernel_devel_flavor
+  get_kernel_devel_libs
+  check_kernel_package
+  is_kernel_validation_flavor
 );
 
+# Kernel flavor preinstalled on the boot disk
+sub get_initial_kernel_flavor {
+    my $kernel_package = 'kernel-default';
+
+    $kernel_package = 'kernel-default-base' if is_sle('<12');
+    $kernel_package = 'kernel-rt' if check_var('SLE_PRODUCT', 'slert');
+    return $kernel_package;
+}
+
+# Kernel flavor that needs to be installed before running tests
 sub get_kernel_flavor {
-    return get_var('KERNEL_FLAVOR', 'kernel-default');
+    my $kernel_package = get_initial_kernel_flavor();
+
+    $kernel_package = 'kernel-default-base' if get_var('KERNEL_BASE');
+    $kernel_package = 'kernel-azure' if get_var('AZURE');
+    $kernel_package = 'kernel-coco' if get_var('COCO');
+    $kernel_package = 'kernel-64kb' if get_var('KERNEL_64KB');
+    return get_var('KERNEL_FLAVOR', $kernel_package);
+}
+
+sub get_kernel_source_flavor {
+    my $src_pack = 'kernel-source';
+
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        $src_pack = 'kernel-source-rt'
+          unless is_sle('16+') || is_sle_micro('6.2+');
+    }
+    elsif (get_var('COCO')) {
+        $src_pack = 'kernel-source-coco';
+    }
+
+    return $src_pack;
+}
+
+sub get_kernel_devel_flavor {
+    my $devel_pack = 'kernel-devel';
+
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        $devel_pack = 'kernel-devel-rt'
+          unless is_sle('16+') || is_sle_micro('6.2+');
+    }
+    elsif (get_var('COCO')) {
+        $devel_pack = 'kernel-devel-coco';
+    }
+
+    return $devel_pack;
+}
+
+sub get_kernel_devel_libs {
+    my $devel_pack = 'kernel-default-devel';
+
+    if (check_var('SLE_PRODUCT', 'slert')) {
+        $devel_pack = 'kernel-rt-devel';
+    }
+
+    return $devel_pack;
 }
 
 sub remove_kernel_packages {
-    my @packages;
+    my @packages = map { $_->{name} } @{zypper_search('-i kernel')};
+    @packages = grep { m/^kernel-(?!firmware)/ } @packages;
+    my @rmpacks = @packages;
 
-    if (check_var('SLE_PRODUCT', 'slert')) {
-        # workaround for bsc1227773
-        @packages = qw(kernel-rt);
-        push @packages, qw(kernel-rt-devel kernel-source-rt) unless is_transactional;
-    }
-    elsif (get_kernel_flavor eq 'kernel-64kb') {
-        @packages = qw(kernel-64kb*);
-    }
-    else {
-        @packages = qw(kernel-default);
-        push @packages, qw(kernel-default-devel kernel-macros kernel-source) unless is_transactional;
-    }
+    push @rmpacks, 'multipath-tools'
+      if !get_var('KGRAFT') and scalar @{zypper_search('-i --match-exact multipath-tools')};
 
-    # SLE12 and SLE12SP1 has xen kernel
-    if (is_sle('<=12-SP1')) {
-        push @packages, qw(kernel-xen kernel-xen-devel);
+    uninstall_package(join(' ', @rmpacks));
+    return @packages;
+}
+
+# Check that only the given kernel flavor is installed
+sub check_kernel_package {
+    my $kernel_name = shift;
+
+    enter_trup_shell(global_options => '-c') if is_transactional;
+    script_run("bash -O nullglob -c 'ls -1 /boot/vmlinu[xz]* /boot/[Ii]mage* /usr/lib/modules/*/[Ii]mage*'");
+    # Only check versioned kernels in livepatch tests. Some old kernel
+    # packages install /boot/vmlinux symlink but don't set package ownership.
+    my $glob = get_var('KGRAFT', 0) ? '-*' : '*';
+    my $cmd = "bash -O nullglob -c 'rpm -qf --qf \"%{NAME}\\n\" /boot/vmlinu[xz]$glob /boot/[Ii]mage$glob /usr/lib/modules/*/[Ii]mage$glob'";
+    my $packs = script_output($cmd);
+    exit_trup_shell if is_transactional;
+
+    for my $packname (split /\s+/, $packs) {
+        die "Unexpected kernel package $packname is installed, test may boot the wrong kernel"
+          if $packname ne $kernel_name;
     }
+}
 
-    my @retlist = @packages;
-    push @packages, "multipath-tools"
-      if is_sle('>=15-SP3') and !get_var('KGRAFT');
-
-    if (is_transactional) {
-        trup_call 'pkg remove ' . join(' ', @packages);
-    } else {
-        zypper_call('-n rm ' . join(' ', @packages), exitcode => [0, 104]);
-    }
-
-    return @retlist;
+# Check if flavor is validation
+sub is_kernel_validation_flavor {
+    return get_var('FLAVOR', '') =~ /(Online-Immutable|Full-QR|Online-QR|Online|Online-Kernel-(Nvidia|RT|Base|Azure|Baremetal|(RT|64kb)-Baremetal))$/;
 }
 
 1;

@@ -1,0 +1,7 @@
+---
+name: agama_unattended_inst_finish_poweroff
+description: >
+  Default unattended installation with inst.finish=poweroff.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto

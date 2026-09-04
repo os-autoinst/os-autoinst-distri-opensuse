@@ -4,14 +4,13 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Run the instance-flavor-check
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use publiccloud::utils qw(is_byos is_ondemand);
 use serial_terminal 'select_serial_terminal';
+use version_utils qw(is_sle);
 use utils;
 
 my $log_path = '/var/log/instance_billing_flavor_check';
@@ -22,6 +21,14 @@ sub run {
     zypper_call('in python-instance-billing-flavor-check') if (script_run('which python-instance-billing-flavor-check') != 0);
 
     record_info('SMT record', script_output('grep -i smt /etc/hosts'));
+
+    if (is_sle(">=16.0")) {
+        my $out = script_output("instance-flavor-check", proceed_on_failure => 1);
+        if ($out =~ /required file not found/) {
+            record_soft_failure("bsc#1250110 - instance_billing_flavor_check is broken");
+            return 1;
+        }
+    }
 
     if (is_byos()) {
         validate_script_output('instance-flavor-check || true', sub { m/^BYOS$/m }, fail_message => "The command did not return 'BYOS'.");

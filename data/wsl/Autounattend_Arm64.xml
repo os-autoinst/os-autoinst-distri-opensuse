@@ -358,6 +358,10 @@
             <Order>59</Order>
             <Path>powershell.exe Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -NoRestart; Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform /Y</Path>
         </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>60</Order>
+          <Path>%windir%\System32\net.exe accounts /maxpwage:UNLIMITED</Path>
+        </RunSynchronousCommand>
       </RunSynchronous>
     </component>
   </settings>

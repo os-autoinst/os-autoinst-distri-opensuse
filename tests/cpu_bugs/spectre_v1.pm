@@ -6,9 +6,7 @@
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: James Wang <jnwang@suse.com>
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use ipmi_backend_utils;
 use testapi;

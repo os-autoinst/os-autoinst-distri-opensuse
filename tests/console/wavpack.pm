@@ -18,25 +18,24 @@
 # - Show stored values on compressed files
 # Maintainer: Ednilson Miura <emiura@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 use version_utils 'is_sle';
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 
 sub run {
     select_serial_terminal;
     # development module needed for dependencies, released products are tested with sdk module
-    if (is_sle() && !main_common::is_updates_tests()) {
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         cleanup_registration;
         register_product;
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
-    zypper_call 'in alsa alsa-utils wavpack';
+    install_package('alsa alsa-utils wavpack', trup_reboot => 1) if (script_run('rpm -q alsa alsa-utils wavpack'));
     assert_script_run("cp /usr/share/sounds/alsa/Noise.wav .");
     assert_script_run("cp /usr/share/sounds/alsa/test.wav .");
     assert_script_run("cp /usr/share/sounds/alsa/Side_Left.wav .");
@@ -60,7 +59,7 @@ sub run {
     assert_script_run("wvgain -s Noise.wv 2>&1 | grep -Pzo \"replaygain_track_gain = \\+11.06 dB(.|\\n)*replaygain_track_peak = 0.126251\"");
 
     # unregister SDK
-    if (is_sle() && !main_common::is_updates_tests()) {
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         remove_suseconnect_product(get_addon_fullname('sdk'));
     }
 }

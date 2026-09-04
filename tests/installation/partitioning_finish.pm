@@ -9,9 +9,7 @@
 # - Send next and wait for partioning resume screen
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

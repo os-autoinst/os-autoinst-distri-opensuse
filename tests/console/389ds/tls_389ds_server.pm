@@ -5,12 +5,10 @@
 #          This test module covers the server features check before
 #          and after migration, 389ds exsits sles15sp3+
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils;
 use lockapi;
 use mmapi;

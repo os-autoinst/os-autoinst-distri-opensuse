@@ -1,26 +1,27 @@
-# Copyright 2023 SUSE LLC
+# Copyright 2023-2026 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Package: bpftrace
 # Summary: Compile and attach eBPF probes with BCC tools
 # Maintainer: kernel-qa@suse.de
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils 'is_sle';
 use serial_terminal 'select_serial_terminal';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in bcc-tools');
+    install_package('bcc-tools', trup_apply => 1);
 
     my $tools_dir = '/usr/share/bcc/tools';
 
     assert_script_run("$tools_dir/btrfsdist 5 2");
     assert_script_run("$tools_dir/btrfsslower -d 10");
     assert_script_run("$tools_dir/filetop -a 5 10");
+    assert_script_run("$tools_dir/runqlat 2 5");
 }
 
 sub test_flags {
@@ -29,6 +30,6 @@ sub test_flags {
 
 1;
 
-=head1 Discussion
+=head1 Description
 
 Smoke test for a small selection of BCC tools.

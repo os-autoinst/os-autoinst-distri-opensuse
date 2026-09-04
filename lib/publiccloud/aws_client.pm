@@ -5,12 +5,13 @@
 
 # Summary: Helper class for amazon connection and authentication
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::aws_client;
 use Mojo::Base -base;
 use testapi;
 use utils;
+use version_utils 'is_sle';
 use publiccloud::utils;
 
 has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
@@ -34,21 +35,33 @@ sub _check_credentials {
 sub init {
     my ($self, %params) = @_;
 
-    my $data = get_credentials('aws.json');
+    my $data = get_credentials(url_suffix => 'aws.json');
 
     assert_script_run('export AWS_DEFAULT_REGION="' . $self->region . '"');
     define_secret_variable("AWS_ACCESS_KEY_ID", $data->{access_key_id});
     define_secret_variable("AWS_SECRET_ACCESS_KEY", $data->{secret_access_key});
+    if (is_sle('>=16')) {
+        # This is a workaround for `aws-cli` test on SLES16 until the 'flake' container accepts above environment variables
+        assert_script_run('mkdir -p ~/.aws');
+        # CAVEAT: Use the bash environment variables to prevent credential leaks.
+        assert_script_run('printf "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY\nregion=$AWS_DEFAULT_REGION\n" > ~/.aws/credentials');
+        my $debug = "aws-cli-debug.txt";
+        script_run("PILOT_DEBUG=1 aws %silent --help &> $debug");
+        upload_logs($debug, failok => 1);
+        script_run("rpm -qi aws-cli-cmd");
+    }
 
     # Disable pager (see poo#133226 - EC2: WARNING: terminal is not fully functional)
     assert_script_run('export AWS_PAGER=""');
+
+    record_info("aws version", script_output("aws --version"));
 
     die('Credentials are invalid') unless ($self->_check_credentials());
 
     # AWS STS is the secure token service, which is used for those credentials
     $self->aws_account_id(script_output("aws sts get-caller-identity | jq -r '.Account'"));
     die("Cannot get the UserID") unless ($self->aws_account_id);
-    die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->aws_account_id =~ /^\d{12}$/;
+    die("The UserID doesn't have the correct format: $self->{user_id}") unless $self->aws_account_id =~ /^\d{12}$/m;
 }
 
 =head2 get_container_image_full_name

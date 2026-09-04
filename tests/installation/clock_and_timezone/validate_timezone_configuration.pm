@@ -5,11 +5,9 @@
 
 # Summary: Collects all the info about current Timezone configuration
 # and validates it against the one provided by test_data.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use scheduler 'get_test_suite_data';
 use cfg_files_utils;
 

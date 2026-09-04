@@ -7,7 +7,7 @@
 # Summary: This tests will deploy the public cloud instance, create user,
 #   prepare ssh config and permit password login
 #
-# Maintainer: <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use publiccloud::ssh_interactive qw(select_host_console);
@@ -35,15 +35,20 @@ sub run {
 
     # Create public cloud instance
     my %instance_args;
-    $instance_args{check_connectivity} = 1;
     $instance_args{use_extra_disk} = {size => $additional_disk_size, type => $additional_disk_type} if ($additional_disk_size > 0);
+
     $args->{my_provider} = $self->provider_factory();
     $args->{my_instance} = $args->{my_provider}->create_instance(%instance_args);
-    my $provider = $args->{my_provider};
+    my $provider = $self->{my_provider} = $args->{my_provider};
     my $instance = $args->{my_instance};
+    $instance->wait_for_ssh(scan_ssh_host_key => 1);
 
-    $instance->network_speed_test();
-    $instance->check_cloudinit() if (is_cloudinit_supported);
+    # sshd can be reachable before first-boot provisioning granted the user sudo
+    $instance->wait_for_sudo();
+
+    $provider->initialize_logging($instance);
+    # Add additional authorized_keys for human users
+    add_additional_authorized_keys($instance);
 
     # ssh-tunnel settings
     prepare_ssh_tunnel($instance) if (is_tunneled());
@@ -62,8 +67,8 @@ sub run {
 sub test_flags {
     return {
         fatal => 1,
-        milestone => 0,
-        publiccloud_multi_module => 1
+        milestone => 1,
+        no_rollback => 1
     };
 }
 

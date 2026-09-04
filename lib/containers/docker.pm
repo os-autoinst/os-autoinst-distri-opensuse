@@ -7,11 +7,13 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 package containers::docker;
+use strict;
+use warnings;
 use Mojo::Base 'containers::engine';
 use testapi;
 use containers::utils qw(registry_url);
 use containers::common qw(install_docker_when_needed);
-use utils qw(systemctl file_content_replace);
+use utils qw(systemctl);
 has runtime => 'docker';
 
 sub init {
@@ -21,6 +23,7 @@ sub init {
 
 sub configure_insecure_registries {
     my ($self) = shift;
+    return if (script_run("grep -q insecure-registries /etc/docker/daemon.json") == 0);
     my $registry = registry_url();
     # The debug output is messing with terminal in migration tests
     my $debug = (get_var('UPGRADE')) ? 'false' : 'true';

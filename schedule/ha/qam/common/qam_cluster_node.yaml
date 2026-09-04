@@ -36,7 +36,7 @@ vars:
   TIMEOUT_SCALE: '3'
   # LVM locking daemon used since SLE 15
   USE_SUPPORT_SERVER: '1'
-  VIRTIO_CONSOLE: '0'
+  VIRTIO_CONSOLE: '1'
   # Below have to be entered in the OpenQA UI because it doesn't read this YAML
   # HDD_1: SLE-%VERSION%-%ARCH%-Build%BUILD%-HA-BV.qcow2
 schedule:
@@ -48,7 +48,7 @@ schedule:
   - console/hostname
   - ha/ha_sle15_workarounds
   - ha/firewall_disable
-  - ha/iscsi_client
+  - ha/iscsi_client_setup
   - ha/watchdog
   - '{{cluster_setup}}'
   - ha/check_hawk

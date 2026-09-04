@@ -1,47 +1,82 @@
 # Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Summary: Test for qe-sap-deployment
-# Maintainer: QE-SAP <qe-sap@suse.de>, Michele Pagot <michele.pagot@suse.com>
+# Summary: Verify connectivity to the repository mirror
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings;
+=head1 NAME
+
+qesapdeployment/test_mirror.pm - Verify connectivity to the repository mirror
+
+=head1 DESCRIPTION
+
+Checks if the deployed VMs has been properly configured to be able to use
+the internal repository mirror (IBSm).
+
+It uses Ansible to run 'ping' against the mirror's hostname and then refreshes
+the 'zypper' repositories to ensure that the package manager can communicate
+with the mirrored services.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+Specifies the public cloud provider.
+
+=item B<QESAPDEPLOY_IBSM_VNET> and B<QESAPDEPLOY_IBSM_RG>
+
+(Azure-specific) VNet and Resource Group of the IBSm. If set, the test logic is executed.
+
+=item B<QESAPDEPLOY_IBSM_PRJ_TAG>
+
+(EC2-specific) The project tag of the IBSm. If set, the test logic is executed.
+
+=item B<QESAPDEPLOY_IBSM_VPC_NAME>, B<IBSM_SUBNET_NAME>, B<IBSM_SUBNET_REGION>, B<IBSM_NCC_HUB>
+
+(GCE-specific) Networking details of the IBSm. If set, the test logic is executed.
+
+=item B<QESAPDEPLOY_DOWNLOAD_HOSTNAME>
+
+The hostname of the repository server (e.g., 'download.suse.de') that is
+redirected to the IBSm. This is the target for the 'ping' command.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
-use qesapdeployment;
-use hacluster qw($crm_mon_cmd cluster_status_matches_regex);
+use sles4sap::qesap::qesapdeployment;
+use sles4sap::publiccloud;
+use sles4sap::qesap::aws;
 
 sub run {
     my ($self) = @_;
     my $provider_setting = get_required_var('PUBLIC_CLOUD_PROVIDER');
 
-    if ($provider_setting eq 'AZURE') {
-        if (get_var("QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP")) {
-            my $rg = qesap_az_get_resource_group();
-            my $ibs_mirror_rg = get_var('QESAPDEPLOY_IBSMIRROR_RESOURCE_GROUP');
-            qesap_az_vnet_peering(source_group => $rg, target_group => $ibs_mirror_rg);
-            qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("QESAPDEPLOY_IBSMIRROR_IP"));
-            qesap_az_vnet_peering_delete(source_group => $rg, target_group => $ibs_mirror_rg);
-        }
-    }
-    elsif ($provider_setting eq 'EC2') {
-        if (get_var("QESAPDEPLOY_IBSMIRROR_IP_RANGE")) {
-            my $deployment_name = qesap_calculate_deployment_name('qesapval');
-            my $vpc_id = qesap_aws_get_vpc_id(resource_group => $deployment_name);
-            die "No vpc_id in this deployment" if $vpc_id eq 'None';
-            my $ibs_mirror_target_ip = get_var('QESAPDEPLOY_IBSMIRROR_IP_RANGE');    # '10.254.254.240/28'
-            die 'Error in network peering setup.' if !qesap_aws_vnet_peering(target_ip => $ibs_mirror_target_ip, vpc_id => $vpc_id, mirror_tag => get_var('QESAPDEPLOY_IBSM_PRJ_TAG', 'IBS Mirror'));
-            qesap_add_server_to_hosts(name => 'download.suse.de', ip => get_required_var("QESAPDEPLOY_IBSMIRROR_IP"));
-            die 'Error in network peering delete.' if !qesap_aws_delete_transit_gateway_vpc_attachment(name => $deployment_name . '*');
-        }
+    if (($provider_setting eq 'AZURE' && get_var('QESAPDEPLOY_IBSM_VNET') && get_var('QESAPDEPLOY_IBSM_RG')) ||
+        ($provider_setting eq 'EC2' && get_var('QESAPDEPLOY_IBSM_PRJ_TAG')) ||
+        ($provider_setting eq 'GCE' && get_var('QESAPDEPLOY_IBSM_VPC_NAME') && get_var('QESAPDEPLOY_IBSM_SUBNET_NAME') && get_var('QESAPDEPLOY_IBSM_SUBNET_REGION')) ||
+        ($provider_setting eq 'GCE' && get_var('QESAPDEPLOY_IBSM_NCC_HUB'))
+    ) {
+        my @remote_cmd = (
+            'ping -c3 ' . get_required_var('QESAPDEPLOY_DOWNLOAD_HOSTNAME'),
+            'zypper -n ref -s -f',
+            'zypper -n lr');
+        qesap_ansible_cmd(cmd => $_, provider => $provider_setting, timeout => 300) for @remote_cmd;
     }
 }
 
 sub post_fail_hook {
     my ($self) = shift;
-    # This test module does not have both
-    # fatal flag and qesap_test_postfail, so that in case of failure
-    # the next test_ module is executed too.
+    # This test module does not have the fatal flag.
+    # In case of failure, the next test_ module is executed too.
     # Deployment destroy is delegated to the destroy test module
     $self->SUPER::post_fail_hook;
 }

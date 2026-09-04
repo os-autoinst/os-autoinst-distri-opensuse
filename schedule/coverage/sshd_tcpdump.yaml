@@ -1,0 +1,37 @@
+# schedule tests for coverage measurement ;
+# when you add a test, you need to fill out the last
+# section about coverage targets as well
+
+name: measure test coverage for sshd and tcpdump
+description: >
+    Maintainer: amanzini
+    Boots from an existing Agama-installed HDD (chained after
+    create_hdd_agama_textmode) to verify
+    https://github.com/ilmanzo/BinaryCoverage/issues/152
+vars:
+    BOOT_HDD_IMAGE: 1
+    HDD_1: opensuse-Tumbleweed-x86_64-%BUILD%-textmode-agama@%MACHINE%.qcow2
+    UEFI_PFLASH_VARS: opensuse-Tumbleweed-x86_64-%BUILD%-textmode-agama@%MACHINE%-uefi-vars.qcow2
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - console/system_prepare
+    - console/consoletest_setup
+    - coverage/coverage_setup
+    - console/cups
+    - console/postgresql_server
+    - console/rpcbind
+    - console/tcpdump
+    - console/sshd
+    - coverage/coverage_report
+test_data:
+    helper_packages:
+        - pam-extra-debuginfo
+        - wget
+    # package -> binary (or list of binaries) to instrument
+    coverage_targets:
+        openssh-server: /usr/sbin/sshd
+        tcpdump: /usr/sbin/tcpdump
+        cups: /usr/sbin/cupsd
+        postgresql18-server: /usr/lib/postgresql18/bin/postgres
+        rpcbind: /usr/sbin/rpcbind

@@ -4,21 +4,22 @@
 # SPDX-License-Identifier: FSFAP
 #
 # Summary: Restore environmental variables which differ between the products involved in the upgrade.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use migration 'reset_consoles_tty';
 
 sub run {
     # Restore the original value of the variables
-    foreach my $var (qw(VERSION SCC_ADDONS)) {
-        set_var($var, get_var($var . "_ENV"));
-        record_info($var, $var . '=' . get_var($var));
+    my $env_content = '';
+    foreach my $var (qw(AGAMA BETA SCC_ADDONS VERSION)) {
+        if (get_var($var . "_ENV")) {
+            set_var($var, get_var($var . "_ENV"));
+            $env_content .= "$var=" . get_var($var) . "\n";
+        }
     }
-
+    record_info('ENV', $env_content);
     # tty assignation might differ between product versions
     reset_consoles_tty();
 }

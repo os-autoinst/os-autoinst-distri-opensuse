@@ -8,21 +8,19 @@
 # - Fetch mdadm.sh from datadir
 # - Execute bash mdadm.sh |& tee mdadm.log
 # - Upload mdadm.log
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Logging 'save_and_upload_log';
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils 'is_sle';
-use strict;
-use warnings;
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in mdadm expect');
+    install_package('mdadm expect', trup_reboot => 1);
 
     record_info("mdadm build", script_output("rpm -q --qf '%{version}-%{release}' mdadm"));
 
@@ -30,21 +28,21 @@ sub run {
 
     my $timeout = 360;
     if (is_sle('<15')) {
-        if (script_run('bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout)) {
+        if (script_run('bash mdadm.sh |& tee mdadm.txt; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout)) {
             record_soft_failure 'bsc#1105628';
-            assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout;
+            assert_script_run 'bash mdadm.sh |& tee mdadm.txt; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout;
         }
     }
     else {
-        assert_script_run 'bash mdadm.sh |& tee mdadm.log; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout;
+        assert_script_run 'bash mdadm.sh |& tee mdadm.txt; if [ ${PIPESTATUS[0]} -ne 0 ]; then false; fi', $timeout;
     }
-    upload_logs 'mdadm.log';
+    upload_logs 'mdadm.txt';
 }
 
 sub post_fail_hook {
     select_serial_terminal;
-    upload_logs 'mdadm.log';
-    save_and_upload_log('journalctl --no-pager -ab -o short-precise', 'journal.log');
+    upload_logs 'mdadm.txt';
+    save_and_upload_log('journalctl --no-pager -ab -o short-precise', 'journal.txt');
 }
 
 1;

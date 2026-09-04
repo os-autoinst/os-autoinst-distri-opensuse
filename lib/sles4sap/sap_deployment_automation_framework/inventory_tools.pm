@@ -13,7 +13,7 @@ use testapi;
 use Exporter qw(import);
 use Carp qw(croak);
 use sles4sap::sap_deployment_automation_framework::naming_conventions
-  qw($deployer_private_key_path $sut_private_key_path);
+  qw($deployer_private_key_path $sut_sid_private_key_path $sut_iscsi_private_key_path);
 use publiccloud::azure;
 
 =head1 SYNOPSIS
@@ -186,10 +186,18 @@ sub prepare_ssh_config {
     );
 
     # Add all SUT systems defined in inventory file
+    my $sut_private_key_path = $sut_sid_private_key_path;
     for my $instance_type (keys(%{$args{inventory_data}})) {
         my $hosts = $args{inventory_data}->{$instance_type}{hosts};
         for my $hostname (keys %$hosts) {
             my $host_data = $hosts->{$hostname};
+            if ($hostname =~ 'iscsi') {
+                $sut_private_key_path = $sut_iscsi_private_key_path;
+            }
+            else {
+                $sut_private_key_path = $sut_sid_private_key_path;
+            }
+
             ssh_config_entry_add(
                 entry_name => "$hostname $host_data->{ansible_host}",    # This allows both hostname and IP login
                 user => $host_data->{ansible_user},
@@ -226,7 +234,19 @@ sub verify_ssh_proxy_connection {
         my $hosts = $args{inventory_data}->{$instance_type}{hosts};
         for my $hostname (keys %$hosts) {
             # run simple 'hostname' command on each host
-            my $hostname_output = script_output("ssh $hostname hostname", quiet => 1);
+            my $max_retries = 10;
+            my $hostname_output = '';
+            for my $attempt (1 .. $max_retries) {
+                $hostname_output = script_output("ssh $hostname hostname", timeout => 15, quiet => 1, proceed_on_failure => 1);
+                last if defined $hostname_output && $hostname_output ne '';
+
+                if ($attempt < $max_retries) {
+                    my $delay = 30;
+                    record_info('SSH Retry', "Failed to connect to $hostname. Retrying ($attempt/$max_retries) in ${delay}s...");
+                    sleep $delay;
+                }
+            }
+
             die "Hostname returned does not match target host.\nExpected: $hostname\nGot: $hostname_output"
               unless $hostname_output =~ $hostname;
             record_info('SSH check', "SSH proxy connection to $hostname: OK");
@@ -304,7 +324,7 @@ sub translate_hosts_data {
 
     sdaf_create_instances(inventory_content=>HASHREF);
 
-Creates and returns  B<$instances> class which is a main component of F<lib/sles4sap_publiccloud.pm> and
+Creates and returns  B<$instances> class which is a main component of F<lib/sles4sap/publiccloud.pm> and
 general public cloud libraries F</lib/publiccloud/*>.
 Check SDAF inventory file example in B<SYNOPSIS>
 

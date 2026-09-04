@@ -47,6 +47,20 @@ local::lib, or others), from within the working copy: call
 
 * For linting YAML, you need the openSUSE package `python3-yamllint` or install `yamllint` via pip
 
+#### Optional: Enable local git hooks
+
+Starting with git 2.54.0, you can enable local git hooks that automatically validate your commits before they are created. This provides immediate feedback and helps avoid CI failures later.
+
+To enable the optional commit message linter hook:
+
+```
+git config --local include.path ../.githooks.config
+```
+
+```
+git config --local --unset include.path
+```
+
 #### Relevant documentation
 
 * All openQA documentation in a single [html page](https://open.qa/docs/)
@@ -156,8 +170,6 @@ and additionally the following rules:
   with non-zero timeout to prevent introducing any timing dependent behaviour,
   to save test execution time as well as state more explicitly from the testers
   point of view what are the expected alternatives. For example:
-* Avoid use of egrep and fgrep. The two commands are deprecated, so please use 
-  `grep -E` and `grep -F` respectively.
 
 ```perl
 assert_screen([qw(yast2_console-finished yast2_missing_package)]);
@@ -166,6 +178,8 @@ if (match_has_tag('yast2_missing_package')) {
     assert_screen 'yast2_console-finished';
 }
 ```
+* Avoid use of egrep and fgrep. The two commands are deprecated, so please use 
+  `grep -E` and `grep -F` respectively.
 * Please add a bug/ticket reference for `record_soft_failure`, otherwise
   CI checks may fail. you can use formats like below:
   bsc#12345 -> Bugzilla bug

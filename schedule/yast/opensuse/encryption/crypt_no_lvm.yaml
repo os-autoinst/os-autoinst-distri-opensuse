@@ -7,7 +7,6 @@ description: >
   Encrypted installations can take longer, especially on non-x86_64
   architectures.
 vars:
-  ENCRYPT: 1
   LVM: 0
   MAX_JOB_TIME: 14400
   YUI_REST_API: 1

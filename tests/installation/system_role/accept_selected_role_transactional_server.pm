@@ -4,11 +4,9 @@
 # Summary: Test module which accept pre-selected System Role
 # 'Transactional Server' and navigate to next screen in SLES and openSUSE.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use Test::Assert 'assert_equals';
 
 sub run {

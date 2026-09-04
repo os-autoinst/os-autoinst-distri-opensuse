@@ -7,18 +7,17 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#108485
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use eal4_test;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
     my $test_log = "/tmp/drng_test_preparation_log.txt";
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Install the required packages
     zypper_call('in libopenssl-devel libgcrypt-devel');
@@ -26,6 +25,7 @@ sub run {
     my $test_dir = '/root/eval/drng';
     # Complile gather_random_data
     script_run('printf "#Starting drng_test_preparation test \nCompliling gather_random_data\n" >> ' . $test_log . '');
+    # Compile gather_random_data
     my $exe_file = 'gather_random_data';
     assert_script_run("cd $eal4_test::code_dir");
     assert_script_run("gcc -o $exe_file -lcrypto -lssl -lgcrypt gather_random_data.c");
@@ -71,10 +71,6 @@ sub run {
         }
     }
     upload_log_file($test_log);
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

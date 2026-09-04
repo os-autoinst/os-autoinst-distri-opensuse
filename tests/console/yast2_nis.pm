@@ -18,9 +18,7 @@
 # Step 9: Finish
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
-use strict;
-use warnings;
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 
 use testapi;
 use utils 'zypper_call';
@@ -43,7 +41,7 @@ sub run() {
     if (match_has_tag 'yast2_package_install') {
         send_key 'alt-i';
     }
-    wait_still_screen;    # install package takes a long time
+    wait_still_screen 10;    # install package takes a long time
     send_key 'alt-u';
     wait_screen_change { send_key 'alt-t' };
     assert_screen([qw(open_port_in_firewall yast2_cannot-open-interface)]);

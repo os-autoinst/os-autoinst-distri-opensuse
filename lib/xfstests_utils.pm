@@ -48,6 +48,9 @@ my $KDUMP_DIR = '/opt/kdump';
 my $TEST_FOLDER = '/opt/test';
 my $SCRATCH_FOLDER = '/opt/scratch';
 
+# Worker-side buffer for status log entries, survives VM snapshot rollbacks
+my @_worker_status_log;
+
 our @EXPORT = qw(
   heartbeat_prepare
   heartbeat_start
@@ -70,10 +73,12 @@ our @EXPORT = qw(
   collect_fs_status
   copy_all_log
   reload_loop_device
+  recover_after_crash
   umount_xfstests_dev
   config_debug_option
   test_run_without_heartbeat
-  check_bugzilla_status);
+  check_bugzilla_status
+  get_status_log_content);
 
 =head2 heartbeat_prepare
 
@@ -112,7 +117,7 @@ Start heartbeat, setup environment variables (Call it everytime SUT reboots)
 =cut
 
 sub heartbeat_start {
-    enter_cmd(". ~/.xfstests; nohup sh $HB_SCRIPT &");
+    enter_cmd(". $INST_DIR/local.config; nohup sh $HB_SCRIPT &");
 }
 
 =head2 heartbeat_stop
@@ -146,7 +151,7 @@ sub heartbeat_wait {
         else {
             my $status;
             ($virtio_console == 1) ? type_string "\n" : send_key 'ret';
-            my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE");
+            my $ret = script_output("cat $HB_DONE_FILE; rm -f $HB_DONE_FILE", 120, type_command => 1, proceed_on_failure => 1);
             $ret =~ s/^\s+|\s+$//g;
             if ($ret == 0) {
                 $status = 'PASSED';
@@ -213,8 +218,23 @@ sub log_add {
     my $name = test_name($test);
     unless ($name and $status) { return; }
     my $cmd = "echo '$name ... ... $status (${time}s)' | tee -a $file";
-    my $ret = script_output($cmd);
+    my $ret = script_output($cmd, 60, type_command => 1, proceed_on_failure => 1);
+    # Buffer on worker side to survive VM snapshot rollbacks
+    push @_worker_status_log, "$name ... ... $status (${time}s)";
     return $ret;
+}
+
+=head2 get_status_log_content
+
+Return the complete status log content from worker-side buffer.
+This buffer survives VM snapshot rollbacks since it lives in the
+worker process memory, not on the SUT filesystem.
+
+=cut
+
+sub get_status_log_content {
+    return join("\n", @_worker_status_log) . "\n" if @_worker_status_log;
+    return '';
 }
 
 =head2 tests_from_category
@@ -228,7 +248,7 @@ dir      - xfstests installation dir (e.g. /opt/xfstests)
 sub tests_from_category {
     my ($category, $dir) = @_;
     my $cmd = "find '$dir/tests/$category' -regex '.*/[0-9]+'";
-    my $output = script_output($cmd, 60);
+    my $output = script_output($cmd, 120, type_command => 1, proceed_on_failure => 1);
     my @tests = split(/\n/, $output);
     foreach my $test (@tests) {
         $test = basename($test);
@@ -259,7 +279,7 @@ sub exclude_grouplist {
         $cmd = "awk '/$group_name/' $INST_DIR/tests/$fstype/group.list | awk '{printf \"$fstype/\"}{printf \$1}{printf \",\"}' >> tmp.group";
         script_run($cmd) if ($test_folder eq "generic" and $test_ranges =~ /$fstype/);
         $cmd = "cat tmp.group";
-        my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd), 0, -1));
+        my %tmp_list = map { $_ => 1 } split(/,/, substr(script_output($cmd, 120, type_command => 1, proceed_on_failure => 1), 0, -1));
         %tests_list = (%tests_list, %tmp_list);
     }
     return %tests_list;
@@ -287,7 +307,7 @@ sub include_grouplist {
         $cmd = "awk '/$group_name/' $INST_DIR/tests/$fstype/group.list | awk '{printf \"$fstype/\"}{printf \$1}{printf \",\"}' >> tmp.group";
         script_run($cmd) if ($test_folder eq "generic" and $test_ranges =~ /$fstype/);
         $cmd = "cat tmp.group";
-        my $tests = substr(script_output($cmd), 0, -1);
+        my $tests = substr(script_output($cmd, 120, type_command => 1, proceed_on_failure => 1), 0, -1);
         foreach my $single_test (split(/,/, $tests)) {
             push(@tests_list, $single_test);
         }
@@ -343,7 +363,7 @@ sub tests_from_ranges {
 =cut
 
 sub test_run {
-    my ($test, $fstype, $inject_info) = @_;
+    my ($test, $fstype, $deep_clean, $inject_info) = @_;
     my ($category, $num) = split(/\//, $test);
     my $run_options = '';
     if ($fstype =~ 'nfs') {
@@ -352,7 +372,10 @@ sub test_run {
     elsif ($fstype =~ 'overlay') {
         $run_options = '-overlay';
     }
-    my $cmd = "\n$TEST_WRAPPER '$test' $run_options $inject_info | tee $LOG_DIR/$category/$num; ";
+    else {
+        $run_options = $fstype;
+    }
+    my $cmd = "\n$TEST_WRAPPER '$test' $run_options $deep_clean $inject_info | tee $LOG_DIR/$category/$num; ";
     $cmd .= "echo \${PIPESTATUS[0]} > $HB_DONE_FILE\n";
     type_string($cmd);
 }
@@ -428,20 +451,12 @@ Log: Copy junk.fsxops for fails fsx tests included in subtests
 
 sub copy_fsxops {
     my ($category, $num) = @_;
-    my $cmd = "if [ -e $TEST_FOLDER/junk.fsxops ]; then cp $TEST_FOLDER/junk.fsxops $LOG_DIR/$category/$num.junk.fsxops; fi";
-    script_run($cmd);
-}
-
-=head2 dump_btrfs_img
-
-Log: Only run in test Btrfs, collect image dump for inconsistent error
-
-=cut
-
-sub dump_btrfs_img {
-    my ($category, $num, $dev) = @_;
-    my $cmd = "umount $dev; btrfs-image $dev $LOG_DIR/$category/$num.img";
-    script_run($cmd);
+    script_run(". $INST_DIR/local.config && mount \$TEST_DEV $TEST_FOLDER 2>/dev/null");
+    if (script_run("test -f $TEST_FOLDER/junk.fsxops") == 0) {
+        my $fsxops = script_output("cat $TEST_FOLDER/junk.fsxops 2>/dev/null", 30, proceed_on_failure => 1);
+        record_info('fsxops', $fsxops) if $fsxops;
+    }
+    script_run("umount $TEST_FOLDER 2>/dev/null");
 }
 
 =head2 raw_dump
@@ -481,7 +496,14 @@ END_CMD
         $cmd = "find /sys/fs/$fstype/*/allocation/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat";
     }
     elsif ($fstype eq 'ext4') {
-        $cmd = "find /sys/fs/$fstype/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat";
+        $cmd = <<END_CMD;
+find /sys/fs/$fstype/ -type f -exec tail -n +1 {} + >> $LOG_DIR/$category/$num.fs_stat
+. $INST_DIR/local.config
+echo "==> dumpe2fs SCRATCH_DEV (\$SCRATCH_DEV) <==" >> $LOG_DIR/$category/$num.fs_stat
+dumpe2fs -h \$SCRATCH_DEV >> $LOG_DIR/$category/$num.fs_stat 2>&1
+echo "==> dumpe2fs TEST_DEV (\$TEST_DEV) <==" >> $LOG_DIR/$category/$num.fs_stat
+dumpe2fs -h \$TEST_DEV >> $LOG_DIR/$category/$num.fs_stat 2>&1
+END_CMD
     }
     elsif ($fstype eq 'nfs') {
         enter_cmd("$cmd");
@@ -492,7 +514,27 @@ umount \$TEST_DEV &> /dev/null
 [ -n "\$SCRATCH_DEV" ] && umount \$SCRATCH_DEV &> /dev/null
 END_CMD
     enter_cmd("$cmd");
-    record_info('fs_stat log', script_output("find $LOG_DIR/$category/ -name $num.fs_stat -type f -exec cat {} +"));
+    record_info('fs_stat log', script_output("find $LOG_DIR/$category/ -name $num.fs_stat -type f -exec cat {} +", 120, type_command => 1, proceed_on_failure => 1));
+}
+
+=head2 record_env_pressure
+
+Record the host-contention fingerprint on a subtest failure: load average plus
+CPU steal (mpstat) and IO await / avg-cpu (iostat), to help diagnose failures
+caused by an oversubscribed/contended host. Reported via a single dedicated
+record_info.
+
+=cut
+
+sub record_env_pressure {
+    my ($category, $num) = @_;
+    my $load = script_output('cat /proc/loadavg', proceed_on_failure => 1, timeout => 30);
+    my $cpu = script_output('mpstat 1 1', proceed_on_failure => 1, timeout => 30);
+    my $io = script_output('iostat -x 1 1', proceed_on_failure => 1, timeout => 30);
+    my $info = "loadavg (1/5/15 min):\n$load\n\n"
+      . "CPU (watch %steal for host CPU oversubscription):\n$cpu\n\n"
+      . "IO (watch await/%util and avg-cpu for shared-storage/host contention):\n$io";
+    record_info("random-fail env: $category/$num", $info);
 }
 
 =head2 copy_all_log
@@ -502,13 +544,22 @@ Add all above logs
 =cut
 
 sub copy_all_log {
-    my ($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, $is_crash) = @_;
+    my ($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, $is_crash) = @_;
+    # Host-contention fingerprint for sporadic/random failure debugging. Taken
+    # first, before the log copying below adds IO/CPU of its own, and skipped on
+    # crash paths where the reading would be post-reboot or the SUT is stuck.
+    record_env_pressure($category, $num) unless $is_crash;
     copy_log($category, $num, 'out.bad');
     copy_log($category, $num, 'full');
     copy_log($category, $num, 'dmesg');
+    copy_log($category, $num, 'mountfail');
     copy_fsxops($category, $num);
+    if (script_run("ls /opt/xfstests/results/$category/$num.*.md* 1> /dev/null 2>&1") == 0) {
+        script_run("tar -cf $LOG_DIR/$num.dump.tar /opt/xfstests/results/$category/$num.*.md*");
+        upload_logs("$LOG_DIR/$num.dump.tar");
+    }
     collect_fs_status($category, $num, $fstype, $is_crash);
-    if ($btrfs_dump && (check_var 'XFSTESTS', 'btrfs')) { dump_btrfs_img($category, $num, $btrfs_dump); }
+    script_run("cp $INST_DIR/results/$category/$num.e2image $LOG_DIR/$category/$num.e2image 2>/dev/null");
     if ($raw_dump) { raw_dump($category, $num, $scratch_dev, $scratch_dev_pool); }
 }
 
@@ -521,7 +572,7 @@ Reload loop device for xfstests
 sub reload_loop_device {
     my ($self, $fstype) = @_;
     assert_script_run("losetup -fP $INST_DIR/test_dev");
-    my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l");
+    my $scratch_amount = script_output("ls $INST_DIR/scratch_dev* | wc -l", 60, type_command => 1, proceed_on_failure => 1);
     my $scratch_num = 1;
     while ($scratch_amount >= $scratch_num) {
         assert_script_run("losetup -fP $INST_DIR/scratch_dev$scratch_num", 300);
@@ -529,6 +580,41 @@ sub reload_loop_device {
     }
     script_run('losetup -a');
     format_partition("$INST_DIR/test_dev", $fstype);
+}
+
+=head2 recover_after_crash
+
+Recover the SUT after a subtest crashed or hung. Reboots the system (soft reboot
+on public cloud), saves kdump data when enabled and reloads loop devices so that
+the next subtest starts from a clean environment. Shared by the heartbeat path
+and the non-heartbeat path (test_run_without_heartbeat), and by the sporadic
+debug loop. $cloud_instance is only used on public cloud.
+
+=cut
+
+sub recover_after_crash {
+    my ($self, $test, $fstype, $enable_kdump, $cloud_instance) = @_;
+    my ($category, $num) = split(/\//, $test);
+    if (is_public_cloud) {
+        $cloud_instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
+    }
+    else {
+        prepare_system_shutdown;
+        reset_consoles if check_var('DESKTOP', 'textmode');
+        check_var('VIRTIO_CONSOLE', '1') ? power_action('reboot') : send_key 'alt-sysrq-b';
+        reconnect_mgmt_console if is_pvm;
+        check_var('DESKTOP', 'textmode') ? $self->wait_boot_textmode : $self->wait_boot;
+        select_serial_terminal();
+    }
+    # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
+    if ($enable_kdump) {
+        unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
+            # If no kdump data found, write warning to log
+            script_run("echo 'Warning: $test crashed SUT but has no kdump data' >> $LOG_DIR/$category/$num");
+        }
+    }
+    # Reload loop device after a reboot
+    reload_loop_device($self, $fstype) if get_var('XFSTESTS_LOOP_DEVICE');
 }
 
 =head2 umount_xfstests_dev
@@ -554,6 +640,7 @@ Enable softlockup panic collection and could manually enable other setting by XF
 
 sub config_debug_option {
     my $debug_info = shift;
+    script_run('echo 1 > /proc/sys/kernel/sysrq');    # The default 184 will skip some sysrq key
     script_run('echo 1 > /proc/sys/kernel/softlockup_all_cpu_backtrace');    # on detection capture more debug information
     script_run('echo 1 > /proc/sys/kernel/softlockup_panic');    # panic when softlockup
     if ($debug_info) {
@@ -570,54 +657,34 @@ Run a single test and write log to file but without heartbeat, return log_add ou
 =cut
 
 sub test_run_without_heartbeat {
-    my ($self, $test, $timeout, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, $inject_info, $loop_device, $enable_kdump, $virtio_console, $get_log_content, $cloud_instance) = @_;
+    my ($self, $test, $timeout, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, $deep_clean, $inject_info, $loop_device, $enable_kdump, $virtio_console, $get_log_content, $cloud_instance) = @_;
     my ($category, $num) = split(/\//, $test);
     my $run_options = '';
     my $status_num = 1;
+    my $test_timeout = 0;
     if ($fstype =~ /nfs/) {
         $run_options = '-nfs';
     }
     elsif ($fstype =~ /overlay/) {
         $run_options = '-overlay';
     }
+    else {
+        $run_options = $fstype;
+    }
     eval {
         $test_start = time();
         # Send kill signal 3 seconds after sending the default SIGTERM to avoid some tests refuse to stop after timeout
-        assert_script_run("timeout -k 3 " . ($timeout - 5) . " $TEST_WRAPPER '$test' $run_options $inject_info | tee $LOG_DIR/$category/$num; echo \${PIPESTATUS[0]} > $LOG_DIR/subtest_result_num", $timeout);
+        assert_script_run("timeout -k 3 " . ($timeout - 5) . " $TEST_WRAPPER '$test' $run_options $deep_clean $inject_info | tee $LOG_DIR/$category/$num; echo \${PIPESTATUS[0]} > $LOG_DIR/subtest_result_num", $timeout);
         $test_duration = time() - $test_start;
     };
     if ($@) {
         $test_status = 'FAILED';
         $test_duration = time() - $test_start;
-        script_run('rm -rf /tmp/*', timeout => 90);    # Get some space and inode for no-space-left-on-device error to get reboot signal
-        sleep 2;
-        copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, 1);
-
-        if (is_public_cloud) {
-            $cloud_instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
-        }
-        else {
-            prepare_system_shutdown;
-            reset_consoles if check_var('DESKTOP', 'textmode');
-            ($virtio_console == 1) ? power_action('reboot') : send_key 'alt-sysrq-b';
-            reconnect_mgmt_console if is_pvm;
-            check_var('DESKTOP', 'textmode') ? $self->wait_boot_textmode : $self->wait_boot;
-            select_serial_terminal();
-        }
-        # Save kdump data to KDUMP_DIR if not set "NO_KDUMP=1"
-        if ($enable_kdump) {
-            unless (save_kdump($test, $KDUMP_DIR, vmcore => 1, kernel => 1, debug => 1)) {
-                # If no kdump data found, write warning to log
-                my $msg = "Warning: $test crashed SUT but has no kdump data";
-                script_run("echo '$msg' >> $LOG_DIR/$category/$num");
-            }
-        }
-
-        # Reload loop device after a reboot
-        reload_loop_device($self, $fstype) if $loop_device;
+        copy_all_log($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, 1);
+        recover_after_crash($self, $test, $fstype, $enable_kdump, $cloud_instance);
     }
     else {
-        $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num");
+        $status_num = script_output("tail -n 1 $LOG_DIR/subtest_result_num", 120, type_command => 1, proceed_on_failure => 1);
         $status_num =~ s/^\s+|\s+$//g;
         if ($status_num == 0) {
             $test_status = 'PASSED';
@@ -625,9 +692,15 @@ sub test_run_without_heartbeat {
         elsif ($status_num == 22) {
             $test_status = 'SKIPPED';
         }
-        else {
+        elsif ($status_num == 1) {
             $test_status = 'FAILED';
-            copy_all_log($category, $num, $fstype, $btrfs_dump, $raw_dump, $scratch_dev, $scratch_dev_pool, 0);
+            copy_all_log($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, 0);
+        }
+        else {
+            # Here maybe test terminated because of run out of time killed by timeout command or have some internal error
+            $test_status = 'FAILED';
+            $test_timeout = 1;
+            copy_all_log($category, $num, $fstype, $raw_dump, $scratch_dev, $scratch_dev_pool, 0);
         }
     }
     # Add test status to STATUS_LOG file
@@ -636,12 +709,13 @@ sub test_run_without_heartbeat {
     }
     else {
         log_add($STATUS_LOG, $test, $test_status, $test_duration);
-        my $log_content = script_output("cat $LOG_DIR/subtest_result_num");
+        my $log_content = script_output("cat $LOG_DIR/subtest_result_num", 120, type_command => 1, proceed_on_failure => 1);
         my $targs = {
             name => $test,
             status => $test_status,
             time => $test_duration,
             output => $log_content,
+            timeout => $test_timeout,
         };
         return $targs;
     }

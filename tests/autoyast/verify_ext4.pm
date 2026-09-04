@@ -8,11 +8,9 @@
 #          * Verify registration (only 15+)
 #          * Verify partitioning: ext4 and swap
 #          * Verify users
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'basetest';
-use strict;
-use warnings;
+use Mojo::Base 'basetest';
 use testapi;
 use version_utils 'is_sle';
 

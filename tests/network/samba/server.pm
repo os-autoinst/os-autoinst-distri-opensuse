@@ -7,19 +7,18 @@
 # Summary: Test samba server, users, rpcclient and smbcontrol
 # Maintainer: qe-core@suse.de
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use version_utils;
 use registration;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call "in samba samba-winbind";
+    install_package("samba samba-winbind", trup_reboot => 1);
 
     record_info 'start services';
     systemctl 'start smb nmb winbind';
@@ -41,7 +40,8 @@ sub run {
 
     record_info 'access';
     assert_script_run "rpcclient -U '$username%$password' -c srvinfo localhost";
-    validate_script_output "net share -S localhost -U '$username%$password'", sub { $_ =~ m/profiles/ && $_ =~ m/users/ && $_ =~ m/groups/ };
+    validate_script_output "net share -S localhost -U '$username%$password'", sub { $_ =~ m/profiles/ && $_ =~ m/users/ };
+    validate_script_output "net share -S localhost -U '$username%$password'", sub { $_ =~ m/groups/ } if (is_sle('<16'));
 
     record_info 'delete user';
     assert_script_run "smbpasswd -x $username";

@@ -9,7 +9,7 @@
 # 2) Check rootfs size
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Utils::Architectures qw(is_s390x);
 

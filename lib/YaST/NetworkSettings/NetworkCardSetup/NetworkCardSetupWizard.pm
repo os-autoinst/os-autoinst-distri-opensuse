@@ -7,7 +7,7 @@
 # Introduces accessing methods to the elements that are common for all steps
 # of the Wizard.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::NetworkSettings::NetworkCardSetup::NetworkCardSetupWizard;
 use strict;

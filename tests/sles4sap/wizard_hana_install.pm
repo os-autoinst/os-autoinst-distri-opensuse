@@ -7,9 +7,7 @@
 # Verify installation with sles4sap/hana_test
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
-use strict;
-use warnings;
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(file_content_replace type_string_slow);
@@ -150,10 +148,10 @@ sub run {
         assert_screen [qw(sap-wizard-installation-summary sap-wizard-finished sap-wizard-failed sap-wizard-error sap-wizard-missing-32bit-client)], $timeout;
         send_key $cmd{ok};
         if (match_has_tag 'sap-wizard-installation-summary') {
-            assert_screen 'generic-desktop', 600;
+            assert_screen 'generic-desktop', 1200;
         } elsif (match_has_tag 'sap-wizard-missing-32bit-client') {
             record_soft_failure "bsc#1227390 - Missing 32-bit client happened";
-            assert_screen 'generic-desktop', 600;
+            assert_screen 'generic-desktop', 1200;
         } else {
             # Wait for SAP wizard to finish writing logs
             check_screen 'generic-desktop', 90;

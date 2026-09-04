@@ -6,13 +6,11 @@
 # Summary: If Full-QR enable most modules, otherwise don't.
 # Maintainer: QE Security <none@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {
-    if (check_var('FLAVOR', 'Full-QR')) {
+    if (check_var('FLAVOR', 'Full-QR') || check_var('FLAVOR', 'Full')) {
         $testapi::distri->get_module_selection()->select_modules(
             [qw(containers desktop development legacy web python)]);
     } else {

@@ -23,9 +23,7 @@
 #   - verify the option is not changed
 # Maintainer: Veronika Svecova <vsvecova@suse.cz>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use version_utils 'is_sle';
 use testapi;
 use serial_terminal 'select_serial_terminal';

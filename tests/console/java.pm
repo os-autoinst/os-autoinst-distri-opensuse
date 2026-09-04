@@ -14,9 +14,9 @@
 # Maintainer: Panos Georgiadis <pgeorgiadis@suse.com>
 # Maintainer: Andrej Semen <asemen@suse.com>
 
+## no os-autoinst style
+
 use base "consoletest";
-use strict;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(quit_packagekit zypper_call);
@@ -24,6 +24,7 @@ use version_utils qw(is_sle is_leap is_opensuse is_tumbleweed is_transactional);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
 use main_common qw(is_updates_tests is_migration_tests);
 use transactional qw(check_reboot_changes trup_call);
+use Utils::Architectures qw(is_aarch64);
 
 my $arch = get_var('ARCH');
 # Transform the format of the version, e.g. from 15-SP3 to 15.3
@@ -57,6 +58,8 @@ sub run {
 
     if (is_tumbleweed) {
         $cmd .= 'java-*-devel';
+    } elsif (is_sle('16.0+') || is_leap('16.0+')) {
+        $cmd .= "java-21-openjdk{,-demo,-devel}";
     } elsif (is_sle('15-SP6+') || is_leap('15.6+')) {
         $cmd .= "java-21-openjdk{,-demo,-devel} $pkgs_legacy";
     } elsif (is_sle('15+') || is_sle('=12-SP5') || is_leap) {
@@ -76,6 +79,10 @@ sub run {
     }
     else {
         zypper_call($cmd, timeout => 2000);
+        if (is_sle('>=15-SP6') && is_sle('<=15-SP7') && !is_aarch64) {
+            record_info 'https://jira.suse.com/browse/PED-13096';
+            die 'java-1_8_0-ibm is not available' if (script_run('rpm -q java-1_8_0-ibm') != 0);
+        }
         zypper_call 'in wget' if (script_run 'rpm -q wget');
     }
     assert_script_run 'wget --quiet ' . data_url('console/test_java.sh');

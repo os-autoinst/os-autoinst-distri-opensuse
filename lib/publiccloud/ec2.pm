@@ -5,19 +5,32 @@
 
 # Summary: Helper class for amazon ec2
 #
-# Maintainer: Clemens Famulla-Conrad <cfamullaconrad@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::ec2;
 use Mojo::Base 'publiccloud::provider';
 use Mojo::JSON 'decode_json';
 use testapi;
-use publiccloud::utils "is_byos";
+use utils qw(random_string script_retry);
+use version_utils qw(is_transactional is_sle);
+use Utils::Architectures qw(is_aarch64);
+use publiccloud::utils qw(is_byos pc_data_url);
+use publiccloud::zypper qw(pc_zypper_call pc_transactional_call);
 use publiccloud::aws_client;
+use publiccloud::img_proof qw(run_img_proof);
 use publiccloud::ssh_interactive 'select_host_console';
-use DateTime;
 
 has ssh_key_pair => undef;
 use constant SSH_KEY_PEM => 'QA_SSH_KEY.pem';
+
+my $EC2_CW_LOGS = [
+    {
+        log_group => '/ec2/logs/dmesg',
+        filename => 'ec2__logs__dmesg.txt',
+    }
+];
+
+my $curl_cmd = is_sle("=12-SP5") ? "wget -O" : "curl -sLo";
 
 sub init {
     my ($self) = @_;
@@ -116,29 +129,33 @@ sub upload_img {
     # because we passing all needed info via params anyway
     assert_script_run('echo " " > /root/.ec2utils.conf');
 
-    assert_script_run("ec2uploadimg --access-id \$AWS_ACCESS_KEY_ID -s \$AWS_SECRET_ACCESS_KEY "
-          . "--backing-store ssd "
-          . "--grub2 "
-          . "--machine '" . $img_arch . "' "
-          . "-n '" . $self->prefix . '-' . $img_name . "' "
-          . "--virt-type hvm --sriov-support "
-          . (is_byos() ? '' : '--use-root-swap ')
-          . '--ena-support '
-          . "--verbose "
-          . "--regions '" . $self->provider_client->region . "' "
-          . "--ssh-key-pair '" . $self->ssh_key_pair . "' "
-          . "--private-key-file " . SSH_KEY_PEM . " "
-          . "-d 'OpenQA upload image' "
-          . "--wait-count 3 "
-          . "--ec2-ami '" . $helper_ami_id . "' "
-          . "--type '" . $instance_type . "' "
-          . "--user '" . $self->provider_client->username . "' "
-          . "--boot-mode '" . get_var('PUBLIC_CLOUD_EC2_BOOT_MODE', 'uefi-preferred') . "' "
-          . ($sec_group ? "--security-group-ids '" . $sec_group . "' " : '')
-          . ($vpc_subnet ? "--vpc-subnet-id '" . $vpc_subnet . "' " : '')
-          . "'$file'",
-        timeout => 60 * 60
-    );
+    my @ec2_cmd = ("ec2uploadimg",
+        "--access-id \$AWS_ACCESS_KEY_ID -s \$AWS_SECRET_ACCESS_KEY",
+        "--backing-store ssd",
+        "--grub2",
+        "--machine",
+        "'$img_arch'",
+        "-n", $self->prefix . "-" . $img_name,
+        "--virt-type hvm",
+        "--sriov-support",
+        "--ena-support",
+        "--verbose",
+        "--regions", $self->provider_client->region,
+        "--ssh-key-pair", $self->ssh_key_pair,
+        "--private-key-file", SSH_KEY_PEM,
+        "-d 'OpenQA upload image'",
+        "--wait-count 3",
+        "--ec2-ami '$helper_ami_id'",
+        "--type", $instance_type,
+        "--user", $self->provider_client->username,
+        "--boot-mode", get_var("PUBLIC_CLOUD_EC2_BOOT_MODE", "uefi-preferred"));
+
+    push @ec2_cmd, "--use-root-swap" unless ((get_var('FLAVOR') =~ '-SAP-') || is_byos());
+    push @ec2_cmd, "--security-group-ids '$sec_group'" if ($sec_group);
+    push @ec2_cmd, "--vpc-subnet-id '$vpc_subnet'" if ($vpc_subnet);
+    push @ec2_cmd, "'$file'";
+
+    assert_script_run(join(" ", @ec2_cmd), timeout => 60 * 60);
 
     my $ami = $self->find_img($img_name);
     die("Cannot find image after upload!") unless $ami;
@@ -149,39 +166,42 @@ sub upload_img {
 
 sub terraform_apply {
     my ($self, %args) = @_;
-    $args{confidential_compute} = get_var("PUBLIC_CLOUD_CONFIDENTIAL_VM", 0);
+    my $confidential_compute = get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM');
+    $args{vars}->{enable_confidential_vm} = 'enabled' if $confidential_compute;
+    $args{vars}->{ipv6_address_count} = get_var('PUBLIC_CLOUD_EC2_IPV6_ADDRESS_COUNT', 0);
+    $args{vars}->{nitro_enclave} = "true" if check_var("PUBLIC_CLOUD_EC2_NITRO_ENCLAVE", "1");
     return $self->SUPER::terraform_apply(%args);
 }
 
 sub on_terraform_apply_timeout {
     my ($self) = @_;
-    $self->upload_boot_diagnostics();
 }
 
 sub upload_boot_diagnostics {
     my ($self, %args) = @_;
+    $args{log_name} //= "console";
+
     my $instance_id = $self->get_terraform_output('.vm_name.value[]');
     return if (check_var('PUBLIC_CLOUD_SLES4SAP', 1));
-
-    my $dt = DateTime->now;
-    my $time = $dt->hms;
-    $time =~ s/:/-/g;
-    my $asset_path = "/tmp/console-$time.txt";
+    unless (defined($instance_id)) {
+        record_info('UNDEF. diagnostics', 'upload_boot_diagnostics: on ec2, undefined instance');
+        return;
+    }
+    my $asset_path = "/tmp/" . $args{log_name} . ".txt";
     script_run("aws ec2 get-console-output --latest --color=off --no-paginate --output text --instance-id $instance_id &> $asset_path", proceed_on_failure => 1);
     if (script_output("du $asset_path | cut -f1") < 8) {
-        record_soft_failure('poo#155116 - The console log is empty.');
-        record_info($asset_path, script_output("cat $asset_path"));
+        record_info("EMPTY", "The console log is empty. `cat $asset_path`:\n" . script_output("cat $asset_path"));
     } elsif (check_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'i3.large')) {
         record_info('UNSUPPORTED_INSTANCE', "The 'i3.large' instance doesn't support serial terminal.");
     } else {
         upload_logs("$asset_path", failok => 1);
     }
 
-    $asset_path = "/tmp/console-$time.jpg";
-    script_run("aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > $asset_path");
+    $asset_path = "/tmp/console.jpg";
+    script_run("timeout -k 5 150s aws ec2 get-console-screenshot --instance-id $instance_id | jq -r '.ImageData' | base64 --decode > $asset_path", timeout => 180);
     if (script_output("du $asset_path | cut -f1") < 8) {
         record_info('empty screenshot', 'The console screenshot is empty.');
-        record_info($asset_path, script_output("cat $asset_path"));
+        record_info('Asset path', "$asset_path - " . script_output("cat $asset_path"));
     } else {
         upload_logs("$asset_path", failok => 1);
     }
@@ -191,39 +211,39 @@ sub img_proof {
     my ($self, %args) = @_;
 
     $args{instance_type} //= 't3a.large';
-    $args{user} //= 'ec2-user';
+    $args{user} //= $self->provider_client->username;
     $args{provider} //= 'ec2';
     $args{ssh_private_key_file} //= SSH_KEY_PEM;
     $args{key_name} //= $self->ssh_key;
 
-    return $self->run_img_proof(%args);
+    return run_img_proof($self, %args);
 }
 
-sub cleanup {
+sub teardown {
     my ($self, $args) = @_;
 
-    $self->upload_boot_diagnostics();
-    $self->terraform_destroy() if ($self->terraform_applied);
+    $self->SUPER::teardown();
     $self->delete_keypair();
+    return 1;
 }
 
 sub describe_instance {
-    my ($self, $instance_id) = @_;
-    my $json_output = decode_json(script_output('aws ec2 describe-instances --filter Name=instance-id,Values=' . $instance_id, quiet => 1));
-    my $i_desc = $json_output->{Reservations}->[0]->{Instances}->[0];
-    return $i_desc;
+    my ($self, $instance_id, $query) = @_;
+    my $region = get_required_var('PUBLIC_CLOUD_REGION');
+    chomp($query);
+    return script_output("aws ec2 describe-instances --filter Name=instance-id,Values=$instance_id --region $region | jq -r '.Reservations[0].Instances[0]" . $query . "'", quiet => 1);
 }
 
 sub get_state_from_instance {
     my ($self, $instance) = @_;
     my $instance_id = $instance->instance_id();
-    return $self->describe_instance($instance_id)->{State}->{Name};
+    return $self->describe_instance($instance_id, '.State.Name');
 }
 
 sub get_public_ip {
     my ($self) = @_;
     my $instance_id = $self->get_terraform_output('.vm_name.value[]');
-    return $self->describe_instance($instance_id)->{PublicIpAddress};
+    return $self->describe_instance($instance_id, '.PublicIpAddress');
 }
 
 sub stop_instance
@@ -242,14 +262,13 @@ sub stop_instance
     die("Failed to stop instance $instance_id") unless ($attempts > 0);
 }
 
-sub start_instance
-{
+sub start_instance {
     my ($self, $instance, %args) = @_;
     my $attempts = 60;
     my $instance_id = $instance->instance_id();
 
-    my $i_desc = $self->describe_instance($instance_id);
-    die("Try to start a running instance") if ($i_desc->{State}->{Name} ne 'stopped');
+    my $state = $self->describe_instance($instance_id, '.State.Name');
+    die("Try to start a running instance") if ($state ne 'stopped');
 
     assert_script_run("aws ec2 start-instances --instance-ids $instance_id", quiet => 1);
     sleep 1;    # give some time to update public_ip
@@ -264,9 +283,9 @@ sub start_instance
 sub change_instance_type {
     my ($self, $instance, $instance_type) = @_;
     my $instance_id = $instance->instance_id();
-    die "Instance type is already $instance_type" if ($self->describe_instance($instance_id)->{InstanceType} eq $instance_type);
+    die "Instance type is already $instance_type" if ($self->describe_instance($instance_id, '.InstanceType') eq $instance_type);
     assert_script_run("aws ec2 modify-instance-attribute --instance-id $instance_id --instance-type '{\"Value\": \"$instance_type\"}'");
-    die "Failed to change instance type to $instance_type" if ($self->describe_instance($instance_id)->{InstanceType} ne $instance_type);
+    die "Failed to change instance type to $instance_type" if ($self->describe_instance($instance_id, '.InstanceType') ne $instance_type);
 }
 
 sub query_metadata {
@@ -287,4 +306,315 @@ sub query_metadata {
     return $data;
 }
 
+sub _disable_and_stop_ec2_cloudwatch_agent {
+    my ($self, $instance) = @_;
+
+    # systemctl is-enabled exits 4 when the unit file does not exist at all.
+    return if $instance->ssh_script_run("sudo systemctl is-enabled amazon-cloudwatch-agent") == 4;
+
+    if ($instance->ssh_script_run("sudo systemctl is-active amazon-cloudwatch-agent") == 0) {
+        my $instance_id = $instance->instance_id;
+        my $region = $self->provider_client->region;
+        my $token = random_string(6) . '-vamoosed';
+        $instance->ssh_assert_script_run("echo 'openqa-cloudwatch-fence-$token' | sudo tee -a /var/log/dmesg");
+        script_retry(
+            "aws logs get-log-events --region '$region' --log-group-name '/ec2/logs/dmesg' " .
+              "--log-stream-name '$instance_id' --no-start-from-head --limit 10 " .
+              "--query 'events[*].message' --output text | grep -q '$token'",
+            retry => 6, delay => 5, timeout => 30, die => 0
+        );
+        $instance->ssh_script_run("sudo systemctl disable --now amazon-cloudwatch-agent");
+    } else {
+        $instance->ssh_script_run("sudo systemctl disable amazon-cloudwatch-agent");
+    }
+}
+
+sub _fetch_ec2_cloudwatch_log_events {
+    my ($self, %args) = @_;
+
+    my $log_group = $args{log_group};
+    my $log_stream = $args{log_stream};
+    my $log_filename = $args{log_filename};
+
+    my $end_time = int(time() * 1000);
+
+    my $next_token;
+    my $prev_token = "";
+
+    my $cli_timeout = 5 * 60;    # Timeout for each CLI call, set to 5 minutes
+    my $loop_eol = time() + (2 * $cli_timeout * 10); # Loop end-of-life to prevent infinite loops in case of unexpected CLI behavior. 2 cli calls per loop, so 2x cli timeout with maximum of 10 loops.
+
+    while (time() < $loop_eol) {
+        my $cmd =
+          "aws logs get-log-events " .
+          "--log-group-name '$log_group' " .
+          "--log-stream-name '$log_stream' " .
+          "--start-from-head ";
+
+        $cmd .= "--next-token '$next_token' " if $next_token;
+
+        assert_script_run(
+            "$cmd "
+              . "--end-time $end_time "
+              . "--query 'events[*].[timestamp,message]' "
+              . "--output text >> '$log_filename'",
+            timeout => $cli_timeout
+        );
+
+        my $token_cmd =
+          "$cmd "
+          . "--end-time $end_time "
+          . "--query 'nextForwardToken' "
+          . "--output text";
+
+        my $new_token = script_output($token_cmd, timeout => $cli_timeout);
+
+        last if !$new_token || $new_token eq $prev_token;
+
+        $prev_token = $new_token;
+        $next_token = $new_token;
+    }
+}
+
+sub _download_ec2_cloudwatch_logs {
+    my ($self, $instance) = @_;
+
+    my $instance_id = $instance->instance_id;
+    my @downloaded_entries;
+
+    for my $entry (@$EC2_CW_LOGS) {
+
+        my $log_group = $entry->{log_group};
+        my $log_filename = $entry->{filename};
+        my $log_stream = $instance_id;
+
+        my $next_token;
+        my $prev_token = "";
+
+        my $describe_cmd =
+          "aws logs describe-log-streams " .
+          "--log-group-name '$log_group' " .
+          "--log-stream-name-prefix '$log_stream' " .
+          "--query 'logStreams[?logStreamName==`$log_stream`].logStreamName' " .
+          "--output text";
+        my $existing_log_stream = script_output($describe_cmd, timeout => 300, proceed_on_failure => 1);
+        chomp $existing_log_stream;
+        unless ($existing_log_stream && $existing_log_stream eq $log_stream) {
+            record_info("EC2 CloudWatch Logs", "Log stream '$log_stream' does not exist in log group '$log_group'. Skipping download for this log group.");
+            next;
+        }
+
+        assert_script_run(": > '$log_filename'");
+
+        $self->_fetch_ec2_cloudwatch_log_events(
+            log_group => $log_group,
+            log_stream => $log_stream,
+            log_filename => $log_filename,
+        );
+
+
+        upload_logs($log_filename);
+
+        push @downloaded_entries, $entry;
+    }
+
+    return \@downloaded_entries;
+}
+
+# Delete the CloudWatch log streams for $entries (as returned by
+# _download_ec2_cloudwatch_logs), so only streams known to exist are deleted.
+sub _delete_ec2_cloudwatch_logs {
+    my ($self, $instance, $entries) = @_;
+
+    my $log_stream = $instance->instance_id;
+
+    for my $entry (@$entries) {
+        assert_script_run(
+            "aws logs delete-log-stream " .
+              "--log-group-name '$entry->{log_group}' " .
+              "--log-stream-name '$log_stream'"
+        );
+    }
+}
+
+# Write dmesg output to /var/log/dmesg so it can be collected as a file-based log source for centralized logging.
+sub _install_dmesg_capture_to_log
+{
+    my ($self, $instance) = @_;
+
+    my $svc_file = 'dmesg-capture.service';
+    my $svc_target = '/etc/systemd/system/' . $svc_file;
+    $instance->ssh_assert_script_run(
+        "sudo $curl_cmd $svc_target " . pc_data_url("publiccloud/$svc_file") . " && " .
+          "sudo systemctl daemon-reload && " .
+          "sudo systemctl enable --now $svc_file"
+    );
+
+    my $logrotate_file = 'dmesg-capture-logrotate.conf';
+    my $logrotate_target = '/etc/logrotate.d/dmesg';
+    $instance->ssh_assert_script_run(
+        "sudo $curl_cmd $logrotate_target " . pc_data_url("publiccloud/$logrotate_file") . " && " .
+          "sudo logrotate -d $logrotate_target"
+    );
+}
+
+# Deploy CloudWatch agent configuration and start the service.
+# Returns "" on success, or a descriptive error string on failure.
+sub _configure_and_start_cloudwatch_agent {
+    my ($self, $instance) = @_;
+
+    my $cfg_file = 'cloudwatch_config.json';
+    my $cfg_target = '/opt/aws/amazon-cloudwatch-agent/etc/' . $cfg_file;
+
+    my $rc = $instance->ssh_script_run("sudo mkdir -p /opt/aws/amazon-cloudwatch-agent/etc");
+    return "mkdir for config dir failed (rc=$rc)" if $rc;
+
+    $rc = $instance->ssh_script_run("sudo $curl_cmd $cfg_target " . pc_data_url("publiccloud/$cfg_file"));
+    return "config download failed (rc=$rc)" if $rc;
+
+    $rc = $instance->ssh_script_run(
+        "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl " .
+          "-a fetch-config " .
+          "-m ec2 " .
+          "-c file:$cfg_target " .
+          "-s"
+    );
+    return "agent-ctl fetch-config failed (rc=$rc)" if $rc;
+
+    $rc = $instance->ssh_script_run("sudo systemctl enable --now amazon-cloudwatch-agent");
+    return "systemctl enable --now failed (rc=$rc)" if $rc;
+
+    $rc = $instance->ssh_script_retry("sudo systemctl is-active amazon-cloudwatch-agent",
+        die => 0, retry => 3, delay => 5);
+    return "agent not active after start (rc=$rc)" if $rc;
+
+    return "";
+}
+
+# Install the CloudWatch agent RPM and start the service.
+# Uses non-fatal APIs internally — never dies.
+# Returns "" on success, or a descriptive error string on failure.
+sub _install_ec2_cloudwatch_agent
+{
+    my ($self, $instance) = @_;
+
+    $self->_install_dmesg_capture_to_log($instance);
+
+    my $arch = is_aarch64() ? "arm64" : "amd64";
+
+    my $rpm_file = "amazon-cloudwatch-agent.rpm";
+    my $gpg_file = "amazon-cloudwatch-agent.gpg";
+
+    my $download_directory = "/root";
+
+    # Pre-check: skip download+install if already present
+    if ($instance->ssh_script_run("rpm -q amazon-cloudwatch-agent") == 0) {
+        record_info('CW agent', 'Already installed, skipping RPM installation');
+        return $self->_configure_and_start_cloudwatch_agent($instance);
+    }
+
+    # Download GPG key
+    my $rc = $instance->ssh_script_run(
+        "sudo $curl_cmd $download_directory/$gpg_file " .
+          "https://amazoncloudwatch-agent.s3.amazonaws.com/assets/amazon-cloudwatch-agent.gpg"
+    );
+    return "GPG key download failed (rc=$rc)" if $rc;
+
+    # Import GPG key
+    $rc = $instance->ssh_script_run(
+        "sudo gpg --batch --status-fd=1 --import $download_directory/$gpg_file 2>&1"
+    );
+    return "GPG key import failed (rc=$rc)" if $rc;
+
+    # Download RPM signature
+    $rc = $instance->ssh_script_run(
+        "sudo $curl_cmd $download_directory/$rpm_file.sig " .
+          "https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm.sig"
+    );
+    return "RPM signature download failed (rc=$rc)" if $rc;
+
+    # Download RPM
+    $rc = $instance->ssh_script_run(
+        "sudo $curl_cmd $download_directory/$rpm_file " .
+          "https://amazoncloudwatch-agent.s3.amazonaws.com/suse/$arch/latest/amazon-cloudwatch-agent.rpm"
+    );
+    return "RPM download failed (rc=$rc)" if $rc;
+
+    # Verify GPG signature
+    $rc = $instance->ssh_script_run(
+        "sudo gpg --verify $download_directory/$rpm_file.sig $download_directory/$rpm_file 2>&1 | " .
+          "grep 'Good signature'"
+    );
+    return "GPG signature verification failed (rc=$rc)" if $rc;
+
+    # Install the RPM
+    if (is_transactional) {
+        $rc = pc_transactional_call(
+            $instance,
+            "run sh -c 'rpm -Uvh --noscripts $download_directory/$rpm_file'",
+            timeout => 300, exitcode => [0], no_reboot => 1,
+            proceed_on_failure => 1
+        );
+        return "transactional-update install failed (rc=$rc)" if $rc;
+
+        eval { $instance->softreboot() };
+        return "softreboot after transactional-update failed: $@" if $@;
+    } else {
+        if (is_sle(">12-SP5")) {
+            $rc = pc_zypper_call(
+                $instance,
+                "install --no-recommends --allow-unsigned-rpm $download_directory/$rpm_file",
+                retry => 3, proceed_on_failure => 1
+            );
+            return "zypper install failed (rc=$rc)" if $rc;
+        } else {
+            $rc = $instance->ssh_script_run("sudo rpm -Uvh $download_directory/$rpm_file");
+            return "rpm install failed (rc=$rc)" if $rc;
+        }
+    }
+
+    # Cleanup downloads (non-critical, don't fail on error)
+    $instance->ssh_script_run(
+        "sudo rm -f $download_directory/$rpm_file $download_directory/$rpm_file.sig $download_directory/$gpg_file"
+    );
+
+    return $self->_configure_and_start_cloudwatch_agent($instance);
+}
+
+sub initialize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-beginning");
+    record_info('Logging', 'Initializing logging for EC2 instance');
+}
+
+sub finalize_logging {
+    my ($self, $instance) = @_;
+    $self->upload_boot_diagnostics(log_name => "console-end");
+    record_info('Logging', 'Finalizing logging for EC2 instance');
+}
+
+# Install & start the EC2 CloudWatch agent. Called from run_ltp's run(),
+# after check_cloudinit has already waited for cloud-init to finish, so it
+# can't race it for the zypper lock (poo#205539).
+sub setup_cloudwatch_agent {
+    my ($self, $instance) = @_;
+    my $err = $self->_install_ec2_cloudwatch_agent($instance);
+    if ($err) {
+        record_soft_failure("poo#205539 - CloudWatch agent setup failed: $err");
+    }
+}
+
+# Stop the CloudWatch agent, download the EC2 CloudWatch logs, then delete
+# the log streams. Counterpart of setup_cloudwatch_agent, called from
+# run_ltp's cleanup(). Never dies, so a CloudWatch hiccup can't skip the
+# rest of cleanup (log_instance.sh stop, instance log upload, etc.).
+sub teardown_cloudwatch_agent {
+    my ($self, $instance) = @_;
+    eval {
+        $self->_disable_and_stop_ec2_cloudwatch_agent($instance);
+        my $entries = $self->_download_ec2_cloudwatch_logs($instance);
+        $self->_delete_ec2_cloudwatch_logs($instance, $entries);
+        1;
+    } or record_info('cleanup error', "poo#205539 - CloudWatch agent teardown failed: $@", result => 'fail');
+}
 1;

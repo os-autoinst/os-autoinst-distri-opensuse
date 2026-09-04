@@ -18,7 +18,7 @@
 #             Martin Loviska <martin.loviska@suse.com>
 # Tags: bsc#1063066 bsc#1171858
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use Date::Parse qw(str2time);
 use testapi;
 use serial_terminal 'select_serial_terminal';
@@ -141,7 +141,7 @@ sub run {
     my %log_entries = (
         info => q{'(Testing, journalctl.pm) We need to call batman'},
         err => q{'(Testing, journalctl.pm) We NEED to call the batman NOW'},
-        emerg => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!1!! AARRGGH!!'}
+        alert => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!!! AARRGGH!!'}
     );
     my @boots;
 
@@ -191,10 +191,6 @@ sub run {
         assert_script_run 'journalctl --flush' if (is_sle('15-sp4+') || is_leap('15.4+'));
         # test for installed rsyslog and for imuxsock existance
         # rsyslog must be there by design
-        if (is_sle('=15-sp1') && is_jeos) {
-            zypper_call 'in rsyslog';
-            systemctl 'enable --now rsyslog';
-        }
         assert_script_run 'rpm -q rsyslog';
         assert_script_run 'test -S /run/systemd/journal/syslog';
         upload_logs(${\SYSLOG});
@@ -291,7 +287,7 @@ sub run {
     %log_entries = (
         info => q{'(Testing, journalctl.pm) We need to call batman-after sealing'},
         err => q{'(Testing, journalctl.pm) We NEED to call the batman NOW-after sealing'},
-        emerg => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!1!! AARRGGH!!-after sealing'}
+        alert => q{'(Testing, journalctl.pm) CALL THE BATMAN NOW!!! AARRGGH!!-after sealing'}
     );
     rotatelogs_and_verify;
     # remove first bootid

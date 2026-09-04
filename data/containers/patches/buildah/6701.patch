@@ -1,0 +1,318 @@
+From 331c046d510ade3ca090e161871470120499150b Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sat, 28 Feb 2026 19:03:45 +0100
+Subject: [PATCH 1/3] tests: Adapt test to work on systems with 64k page size
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/containers_conf.bats | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/tests/containers_conf.bats b/tests/containers_conf.bats
+index 802325b7233..1e8e16dffa4 100644
+--- a/tests/containers_conf.bats
++++ b/tests/containers_conf.bats
+@@ -83,7 +83,14 @@ load helpers
+     run_buildah from --quiet $WITH_POLICY_JSON alpine
+     cid="$output"
+     run_buildah --log-level=error run $cid sh -c 'df /dev/shm | awk '\''/shm/{print $4}'\'''
+-    expect_output "200"
++    # On architectures with 64k page size (e.g. ppc64le), the
++    # kernel rounds shm sizes up to the nearest page boundary.
++    pagesize="$(getconf PAGESIZE)"
++    expected=200
++    if [ "$pagesize" -eq 65536 ]; then
++        expected=256
++    fi
++    expect_output "$expected"
+ }
+ 
+ @test "containers.conf custom runtime" {
+
+From 4a66ea9ee5d0b5c39a5827fb77c267788972fcd9 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Tue, 3 Mar 2026 00:14:08 +0100
+Subject: [PATCH 2/3] tests: Fix tests to run on other architectures
+
+Capture the container ID via --cidfile to avoid unexpected platform
+warnings in output.
+
+Also fix quoting issues and the expected architecture instead of
+relying on the output of `go env GOARCH`.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/blobcache.bats                  |  8 ++++----
+ tests/bud/base-with-arg/Containerfile |  6 ++++++
+ tests/byid.bats                       |  6 +++---
+ tests/digest.bats                     |  4 ++--
+ tests/lists.bats                      | 24 ++++++++++++------------
+ tests/run.bats                        |  4 ++--
+ 6 files changed, 29 insertions(+), 23 deletions(-)
+
+diff --git a/tests/blobcache.bats b/tests/blobcache.bats
+index ab97350b9b1..519bffdfdd6 100644
+--- a/tests/blobcache.bats
++++ b/tests/blobcache.bats
+@@ -102,8 +102,8 @@ function _check_matches() {
+ 	blobcachedir=${TEST_SCRATCH_DIR}/cache
+ 	mkdir -p ${blobcachedir}
+ 	# Pull an image using a fresh directory for the blob cache.
+-	run_buildah from --quiet --blob-cache=${blobcachedir} $WITH_POLICY_JSON registry.k8s.io/pause
+-	ctr="$output"
++	run_buildah from --quiet --cidfile ${TEST_SCRATCH_DIR}/cid --blob-cache=${blobcachedir} $WITH_POLICY_JSON registry.k8s.io/pause
++	ctr="$(< ${TEST_SCRATCH_DIR}/cid)"
+ 	run_buildah add ${ctr} $BUDFILES/add-file/file /
+ 	# Commit the image without using the blob cache, using compression so that uncompressed blobs
+ 	# in the cache which we inherited from our base image won't be matched.
+@@ -131,8 +131,8 @@ function _check_matches() {
+ 	blobcachedir=${TEST_SCRATCH_DIR}/cache
+ 	mkdir -p ${blobcachedir}
+ 	# Pull an image using a fresh directory for the blob cache.
+-	run_buildah from --quiet --blob-cache=${blobcachedir} $WITH_POLICY_JSON registry.k8s.io/pause
+-	ctr="$output"
++	run_buildah from --quiet --cidfile ${TEST_SCRATCH_DIR}/cid --blob-cache=${blobcachedir} $WITH_POLICY_JSON registry.k8s.io/pause
++	ctr="$(< ${TEST_SCRATCH_DIR}/cid)"
+ 	run_buildah add ${ctr} $BUDFILES/add-file/file /
+ 	# Commit the image using the blob cache.
+ 	ls -l ${blobcachedir}
+diff --git a/tests/bud/base-with-arg/Containerfile b/tests/bud/base-with-arg/Containerfile
+index 8ed7bd5929a..3064a6ea068 100644
+--- a/tests/bud/base-with-arg/Containerfile
++++ b/tests/bud/base-with-arg/Containerfile
+@@ -16,5 +16,11 @@ ENV BUILT_FOR=arm/v7
+ FROM build AS platform-arm/v6
+ ENV BUILT_FOR=arm/v6
+ 
++FROM build AS platform-ppc64le
++ENV BUILT_FOR=ppc64le
++
++FROM build AS platform-s390x
++ENV BUILT_FOR=s390x
++
+ FROM platform-${TARGETARCH} AS final
+ RUN echo "This is built for ${BUILT_FOR}"
+diff --git a/tests/byid.bats b/tests/byid.bats
+index 902c19fa5f6..63842d9c79e 100644
+--- a/tests/byid.bats
++++ b/tests/byid.bats
+@@ -65,9 +65,9 @@ load helpers
+     mkdir -p $TARGET $TARGET-truncated
+ 
+     # Pull down the image, if we have to.
+-    run_buildah from --quiet --pull=false $WITH_POLICY_JSON $image
+-    expect_output "${image##*/}-working-container"  # image, w/o registry prefix
+-    run_buildah rm $output
++    run_buildah from --quiet --cidfile ${TEST_SCRATCH_DIR}/cid --pull=false $WITH_POLICY_JSON $image
++    cid="$(< ${TEST_SCRATCH_DIR}/cid)"
++    run_buildah rm $cid
+ 
+     # Get the image's ID.
+     run_buildah images -q $image
+diff --git a/tests/digest.bats b/tests/digest.bats
+index adff594afe2..4ecc5e38be1 100644
+--- a/tests/digest.bats
++++ b/tests/digest.bats
+@@ -5,8 +5,8 @@ load helpers
+ fromreftest() {
+   local img=$1
+ 
+-  run_buildah from --quiet --pull $WITH_POLICY_JSON $img
+-  cid=$output
++  run_buildah from --quiet --cidfile ${TEST_SCRATCH_DIR}/cid --pull $WITH_POLICY_JSON $img
++  cid="$(< ${TEST_SCRATCH_DIR}/cid)"
+ 
+   # If image includes '_v2sN', verify that image is schema version N
+   local expected_schemaversion=$(expr "$img" : '.*_v2s\([0-9]\)')
+diff --git a/tests/lists.bats b/tests/lists.bats
+index c21851124e7..d428ff017cf 100644
+--- a/tests/lists.bats
++++ b/tests/lists.bats
+@@ -258,26 +258,26 @@ IMAGE_LIST_S390X_INSTANCE_DIGEST=sha256:882a20ee0df7399a445285361d38b711c299ca09
+ 
+ @test "manifest-from-tag" {
+     run_buildah from $WITH_POLICY_JSON --name test-container ${IMAGE_LIST}
+-    run_buildah inspect --format ''{{.OCIv1.Architecture}}' ${IMAGE_LIST}
+-    expect_output --substring $(go env GOARCH)
+-    run_buildah inspect --format ''{{.OCIv1.Architecture}}' test-container
+-    expect_output --substring $(go env GOARCH)
++    run_buildah inspect --format '{{.OCIv1.Architecture}}' ${IMAGE_LIST#docker://}
++    expect_output --substring amd64
++    run_buildah inspect --format '{{.OCIv1.Architecture}}' test-container
++    expect_output --substring amd64
+ }
+ 
+ @test "manifest-from-digest" {
+     run_buildah from $WITH_POLICY_JSON --name test-container ${IMAGE_LIST_DIGEST}
+-    run_buildah inspect --format ''{{.OCIv1.Architecture}}' ${IMAGE_LIST_DIGEST}
+-    expect_output --substring $(go env GOARCH)
+-    run_buildah inspect --format ''{{.OCIv1.Architecture}}' test-container
+-    expect_output --substring $(go env GOARCH)
++    run_buildah inspect --format '{{.OCIv1.Architecture}}' ${IMAGE_LIST_DIGEST#docker://}
++    expect_output --substring amd64
++    run_buildah inspect --format '{{.OCIv1.Architecture}}' test-container
++    expect_output --substring amd64
+ }
+ 
+ @test "manifest-from-instance" {
+     run_buildah from $WITH_POLICY_JSON --name test-container ${IMAGE_LIST_INSTANCE}
+-    run_buildah inspect --format ''{{.OCIv1.Architecture}}' ${IMAGE_LIST_INSTANCE}
+-    expect_output --substring arm64
+-    run_buildah inspect --format ''{{.OCIv1.Architecture}}' test-container
+-    expect_output --substring arm64
++    run_buildah inspect --format '{{.OCIv1.Architecture}}' ${IMAGE_LIST_INSTANCE#docker://}
++    expect_output --substring amd64
++    run_buildah inspect --format '{{.OCIv1.Architecture}}' test-container
++    expect_output --substring amd64
+ }
+ 
+ @test "manifest-no-matching-instance" {
+diff --git a/tests/run.bats b/tests/run.bats
+index f562b0eb418..4b37a15e2e1 100644
+--- a/tests/run.bats
++++ b/tests/run.bats
+@@ -571,8 +571,8 @@ function configure_and_check_user() {
+ 	# This image is known to include a volume, but not include the mountpoint
+ 	# in the image.
+ 	_prefetch quay.io/libpod/registry:volume_omitted
+-	run_buildah from --quiet --pull=ifmissing $WITH_POLICY_JSON quay.io/libpod/registry:volume_omitted
+-	cid=$output
++	run_buildah from --quiet --cidfile ${TEST_SCRATCH_DIR}/cid --pull=ifmissing $WITH_POLICY_JSON quay.io/libpod/registry:volume_omitted
++	cid="$(< ${TEST_SCRATCH_DIR}/cid)"
+ 	run_buildah mount $cid
+ 	mnt=$output
+ 	# By default, the mountpoint should not be there.
+
+From 6871d76142e8c599735fe3717eaf16ab47497874 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Tue, 3 Mar 2026 00:19:17 +0100
+Subject: [PATCH 3/3] tests: Introduce skip_unless_arch helper function
+
+and skip some tests if we're not running on arm64 and/or amd64 for
+some images so we can run the testsuite on other architectures.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/bud.bats     |  8 ++++++++
+ tests/helpers.bash | 18 ++++++++++++++++++
+ tests/lists.bats   |  2 ++
+ tests/ssh.bats     | 10 +++++++++-
+ 4 files changed, 37 insertions(+), 1 deletion(-)
+
+diff --git a/tests/bud.bats b/tests/bud.bats
+index 81f11531fc8..2cf30c3ac95 100644
+--- a/tests/bud.bats
++++ b/tests/bud.bats
+@@ -2351,6 +2351,9 @@ _EOF
+ }
+ 
+ @test "bud-multistage-copy-final-slash" {
++  # This test requires a statically linked busybox which is not
++  # the case for quay.io/libpod/busybox on ppc64le & s390x
++  skip_unless_arch amd64 arm64
+   _prefetch busybox
+   target=foo
+   run_buildah build $WITH_POLICY_JSON -t ${target} $BUDFILES/dest-final-slash
+@@ -7953,6 +7956,8 @@ _EOF
+ }
+ 
+ @test "bud with ADD with git repository source" {
++  # quay.io/hummingbird/git is only available on these arches:
++  skip_unless_arch amd64 arm64
+   _prefetch quay.io/hummingbird/git # any image with git preinstalled would do
+ 
+   local repodir=${TEST_SCRATCH_DIR}/repository
+@@ -9023,6 +9028,9 @@ _EOF
+ }
+ 
+ @test "bud with exec-form RUN instruction" {
++  # This test requires a statically linked busybox which is not
++  # the case for quay.io/libpod/busybox on ppc64le & s390x
++  skip_unless_arch amd64 arm64
+   baseimage=busybox
+   _prefetch $baseimage
+   local contextdir=${TEST_SCRATCH_DIR}/context
+diff --git a/tests/helpers.bash b/tests/helpers.bash
+index d08221a5275..6047d32b3d8 100644
+--- a/tests/helpers.bash
++++ b/tests/helpers.bash
+@@ -753,6 +753,24 @@ function skip_if_no_unshare() {
+   fi
+ }
+ 
++######################
++#  skip_unless_arch  #
++######################
++function skip_unless_arch() {
++  local goarch
++  goarch="$(go env GOARCH 2>/dev/null)"
++
++  [ -z "$goarch" ] && return 0
++
++  for arch in "$@"; do
++    if [ "$arch" = "$goarch" ]; then
++      return 0
++    fi
++  done
++
++  skip "test requires one of these architectures: $* (current: $goarch)"
++}
++
+ ######################
+ #  start_git_daemon  #
+ ######################
+diff --git a/tests/lists.bats b/tests/lists.bats
+index d428ff017cf..feccaf7e223 100644
+--- a/tests/lists.bats
++++ b/tests/lists.bats
+@@ -93,6 +93,8 @@ IMAGE_LIST_S390X_INSTANCE_DIGEST=sha256:882a20ee0df7399a445285361d38b711c299ca09
+ }
+ 
+ @test "manifest-add-one" {
++    # This test must be run on amd64 to get an error when pulling an image from a different platform
++    skip_unless_arch amd64
+     run_buildah manifest create foo
+     run_buildah manifest add --arch=arm64 foo ${IMAGE_LIST_INSTANCE}
+     run_buildah manifest inspect foo
+diff --git a/tests/ssh.bats b/tests/ssh.bats
+index ee0ba5c1eb0..f905378ee6c 100644
+--- a/tests/ssh.bats
++++ b/tests/ssh.bats
+@@ -14,6 +14,8 @@ function teardown(){
+ }
+ 
+ @test "bud with ssh key" {
++  # quay.io/hummingbird/git is only available on these arches:
++  skip_unless_arch amd64 arm64
+   _prefetch quay.io/hummingbird/git
+ 
+   mytmpdir=${TEST_SCRATCH_DIR}/my-dir1
+@@ -31,7 +33,9 @@ function teardown(){
+ }
+ 
+ @test "bud with ssh key secret accessed on second RUN" {
+- _prefetch quay.io/hummingbird/git
++  # quay.io/hummingbird/git is only available on these arches:
++  skip_unless_arch amd64 arm64
++  _prefetch quay.io/hummingbird/git
+ 
+   mytmpdir=${TEST_SCRATCH_DIR}/my-dir1
+   mkdir -p ${mytmpdir}
+@@ -43,6 +47,8 @@ function teardown(){
+ }
+ 
+ @test "bud with containerfile ssh options" {
++  # quay.io/hummingbird/git is only available on these arches:
++  skip_unless_arch amd64 arm64
+   _prefetch quay.io/hummingbird/git
+ 
+   mytmpdir=${TEST_SCRATCH_DIR}/my-dir1
+@@ -57,6 +63,8 @@ function teardown(){
+ }
+ 
+ @test "bud with ssh sock" {
++  # quay.io/hummingbird/git is only available on these arches:
++  skip_unless_arch amd64 arm64
+   _prefetch quay.io/hummingbird/git
+ 
+   mytmpdir=${TEST_SCRATCH_DIR}/my-dir1

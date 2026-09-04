@@ -41,6 +41,22 @@
 	<alias>SLES15-SP2-LTSS-TERADATA</alias>
       </listentry>
       % }
+      % if ($get_var->('KUBEVIRT_TEST')) {
+      <listentry>
+        <media_url>http://download.suse.de/download/ibs/SUSE/Products/SLE-Module-Development-Tools-OBS/<%= $get_var->('VERSION') %>/x86_64/product/</media_url>
+	<alias>Development-Tools-OBS</alias>
+      </listentry>
+      <listentry>
+        <media_url>http://download.suse.de/ibs/SUSE/Updates/SLE-Module-Development-Tools-OBS/<%= $get_var->('VERSION') %>/x86_64/update/</media_url>
+	<alias>Development-Tools-OBS-IBS</alias>
+      </listentry>
+        % if ($get_var->('CONTM_TEST_ISSUES')) {
+        <listentry>
+          <media_url>http://download.suse.de/ibs/SUSE:/Maintenance:/<%= $get_var->('CONTM_TEST_ISSUES') %>/SUSE_Updates_SLE-Module-Development-Tools-OBS_<%= $get_var->('VERSION') %>_x86_64/</media_url>
+          <alias>TEST_9</alias>
+        </listentry>
+        % }
+      % }
       % my $n =0;
       % for my $repo (@$repos) {
       <listentry>
@@ -97,18 +113,27 @@
       <gfxmode>auto</gfxmode>
       <hiddenmenu>false</hiddenmenu>
       <os_prober>false</os_prober>
+      % if ($check_var->('IPXE_UEFI', '1')) {
+      <update_nvram>true</update_nvram>
+      % }
       <serial>serial --speed=115200 --unit=<%= $get_var->('SERIALDEV') =~ s/ttyS//r %> --word=8 --parity=no --stop=1</serial>
       <timeout config:type="integer">10</timeout>
       <trusted_grub>false</trusted_grub>
       <terminal>console</terminal>
       % if ($check_var->('SYSTEM_ROLE', 'xen')) {
       <xen_append>splash=silent quiet console=<%= $get_var->('SERIALDEV') %>,115200</xen_append>
+      % if ($check_var->('VERSION', '15-SP6')) {
+      <xen_kernel_append><%= $check_var->('IPMI_HW', 'AMD') ? "" : "dom0_max_vcpus=4 dom0_mem=8192M,max:8192M" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all <%= $get_var->('XEN_EXTRA_HYPERVISOR_PARAMS', '') %></xen_kernel_append>
+      % } else {
       <xen_kernel_append><%= $check_var->('IPMI_HW', 'AMD') ? "" : "dom0_max_vcpus=4 dom0_mem=8192M,max:8192M" %> vga=gfx-1024x768x16 loglvl=all guest_loglvl=all</xen_kernel_append>
+      % }
+      % } elsif ($check_var->('ENABLE_SEV_ES', '1')) {
+      <append>splash=silent amd_iommu=on mem_encrypt=on kvm_amd.sev=1</append>
       % } else {
       <append>splash=silent <%= $check_var->('IPMI_HW', 'AMD') ? "" : "intel_iommu=on" %></append>
       % }
     </global>
-    <loader_type>grub2</loader_type>
+    <loader_type>default</loader_type>
   </bootloader>
   <general>
     <ask-list config:type="list"/>
@@ -146,17 +171,22 @@
   <login_settings/>
   <networking>
     <keep_install_network config:type="boolean">true</keep_install_network>
-<interfaces config:type="list">
-  <interface>
-    <device>br0</device>
-    <bootproto>dhcp</bootproto>
-    <bridge>yes</bridge>
-    <bridge_forwarddelay>0</bridge_forwarddelay>
-    <bridge_ports>eth0 eth1</bridge_ports>
-    <bridge_stp>off</bridge_stp>
-    <startmode>auto</startmode>
-  </interface>
-</interfaces>
+    % if ($get_var->('VERSION') ge '15-SP4') {
+    <backend>wicked</backend>
+    <virt_bridge_proposal config:type="boolean">true</virt_bridge_proposal>
+    % } else {
+    <interfaces config:type="list">
+      <interface>
+        <device>br0</device>
+        <bootproto>dhcp</bootproto>
+        <bridge>yes</bridge>
+        <bridge_forwarddelay>0</bridge_forwarddelay>
+        <bridge_ports><%= $get_var->('BRIDGE_PORT', 'eth0') %></bridge_ports>
+        <bridge_stp>off</bridge_stp>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+  % }
   </networking>
   <ntp-client>
     <ntp_policy>auto</ntp_policy>
@@ -171,7 +201,7 @@
   </ntp-client>
   <partitioning config:type="list">
     <drive>
-  % my $wwn = {lipa => 'wwn-0x5002538c4002f8bd', briza => 'wwn-0x5000c5004f0e566d', pegasus => 'wwn-0x5002538c4002f8be', galactica => 'wwn-0x5002538c4002f8cd'};
+  % my $wwn = {lipa => 'wwn-0x5002538c4002f8bd', briza => 'wwn-0x5000c5004f0e566d', pegasus => 'wwn-0x5002538c4002f8be', galactica => 'wwn-0x5002538c4002f8cd', 'bare-metal1' => 'nvme-eui.35354b3054a009160025384300000002', 'bare-metal2' => 'nvme-eui.35354b3054a008260025384300000002', 'bare-metal3' => 'nvme-eui.35354b3054a008880025384300000002'};
   % my $hostname = (split(/\./, $get_var->("SUT_IP")))[0];
   % my $device_id = defined($wwn->{$hostname}) ? '/dev/disk/by-id/' . $wwn->{$hostname} : '';
       <device><%= $device_id %></device>
@@ -179,6 +209,17 @@
       <enable_snapshots config:type="boolean">false</enable_snapshots>
       <initialize config:type="boolean">true</initialize>
       <partitions config:type="list">
+        % if ($check_var->('IPXE_UEFI', '1') or $check_var->('UEFI', '1')) {
+        <partition>
+          <create config:type="boolean">true</create>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <partition_id t="integer">259</partition_id>
+          <mount>/boot/efi</mount>
+          <mountby config:type="symbol">uuid</mountby>
+          <size>512M</size>
+        </partition>
+        % }
         <partition>
           <create config:type="boolean">true</create>
           <create_subvolumes config:type="boolean">true</create_subvolumes>
@@ -239,6 +280,9 @@
       <package>guestfs-tools</package>
       % if ($get_var->('VERSION') gt '15-SP5') {
       <package>libvirt-daemon-proxy</package>
+      % }
+      % if ($check_var->('ENABLE_SEV_ES', '1')) {
+      <package>sevctl</package>
       % }
     </packages>
     <products config:type="list">
@@ -326,7 +370,7 @@ lsblk
       <script>
         <filename>configure_xen_modular_libvirt_log.sh</filename>
         <source><![CDATA[
-for drv in xen network nodedev nwfilter secret storage proxy lock
+for drv in xen network nodedev secret storage proxy lock
 do
 cat >> "/etc/libvirt/virt${drv}d.conf" << EOF
 log_level = 1
@@ -342,7 +386,7 @@ done
       <script>
         <filename>configure_kvm_modular_libvirt_log.sh</filename>
         <source><![CDATA[
-for drv in qemu log network nodedev nwfilter secret storage proxy lock 
+for drv in qemu log network nodedev secret storage proxy lock
 do
 cat >> "/etc/libvirt/virt${drv}d.conf" << EOF
 log_level = 1
@@ -403,7 +447,7 @@ echo <%= $get_var->('_SECRET_RSA_PUB_KEY') %> > /root/.ssh/id_rsa.pub
 cat >> /root/.ssh/config << EOF
 StrictHostKeyChecking no
 HostKeyAlgorithms ssh-rsa,ssh-ed25519
-PreferredAuthentications publickey
+PreferredAuthentications publickey,password
 #ControlMaster auto
 #ControlPersist 86400
 #ControlPath ~/.ssh/ssh_%r_%h_%p

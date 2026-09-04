@@ -13,14 +13,12 @@
 # - Push update via ssh
 # - Git clone via https protocol
 # - Clean up
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils qw(zypper_call);
+use package_utils 'install_package';
 
 sub run {
     my $username = $testapi::username;
@@ -28,8 +26,8 @@ sub run {
     select_serial_terminal;
 
     # Create a test repo
-    zypper_call("in git-core");
-    assert_script_run("mkdir -p repos/qa1;cd repos/qa1");
+    install_package("git-core", trup_reboot => 1);
+    assert_script_run("rm -rf ~/repos && mkdir -p repos/qa1;cd repos/qa1");
     assert_script_run("git init");
     assert_script_run("echo \"SUSE Test\" > README");
     assert_script_run("git config --global user.email \"$email\"");
@@ -38,6 +36,13 @@ sub run {
 
     # Clone to a bare git repo
     assert_script_run("cd ~/repos;git clone --bare qa1 qa0");
+
+    # Prepare ssh
+    assert_script_run("mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/known_hosts");
+    assert_script_run("rm -rf ~/.ssh/id_rsa");
+    assert_script_run("ssh-keyscan -H localhost >> ~/.ssh/known_hosts");
+    assert_script_run("ssh-keygen -q -trsa -b4096 -f ~/.ssh/id_rsa -N ''");
+    assert_script_run("cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys");
 
     # Clone repo via ssh
     script_run("git clone ssh://localhost:/root/repos/qa0 qa2 | tee /dev/$serialdev", 0);
@@ -52,6 +57,10 @@ sub run {
 
     # clean up
     assert_script_run("rm -rf ~/repos ~/os-autoinst*");
+}
+
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
 }
 
 1;

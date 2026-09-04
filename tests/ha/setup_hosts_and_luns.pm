@@ -8,14 +8,14 @@
 #          tests with no supportserver
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.com>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
-use Socket qw(inet_ntoa);
-use utils qw(systemctl file_content_replace);
+use Socket qw(getaddrinfo getnameinfo NI_NUMERICHOST);
+use utils qw(systemctl file_content_replace script_retry);
+use package_utils qw(install_package);
 use hacluster qw(get_cluster_name get_hostname get_ip get_my_ip is_node choose_node exec_csync);
+use mmapi qw(get_current_job_id get_parents);
 
 sub replace_text_in_ha_files {
     my %changes = @_;
@@ -31,16 +31,21 @@ sub iscsi_server_ip {
     my ($host) = @_;
     return $host if ($host =~ /^\d+\.\d+\.\d+\.\d+$/);    # Arg it's already IPv4
     return $host if ($host =~ /^[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+:[a-f\d]+$/);    # Arg it's IPv6
-    my $packed_ip = gethostbyname($host);
-    return inet_ntoa($packed_ip);
+    my ($error, $ip) = getaddrinfo($host);
+    die "Error in Name resolution: [$host] - [$error]" if ($error);
+    ($error, $ip) = getnameinfo($ip->{addr}, NI_NUMERICHOST);
+    die "Error in Name Info: [$host] - [$error]" if ($error);
+    return $ip;
 }
 
 sub run {
     my $nfs_share = get_required_var('NFS_SUPPORT_SHARE');
-    my $mountpt = '/support_fs';
+    my $mountpt = '/srv/nfs/support_fs';
     my $cluster_name = get_cluster_name;
-    my $build = join('_', get_required_var('BUILD') =~ m/(\w+)/g);
-    my $dir_id = join('_', $cluster_name, get_required_var('VERSION'), get_required_var('ARCH'), $build);
+
+    my $master_job_id = is_node(1) ? get_current_job_id : (get_parents)->[0];
+    $master_job_id = $master_job_id ? $master_job_id : 'no_master_id';
+    my $dir_id = join('_', $cluster_name, get_required_var('VERSION'), get_required_var('ARCH'), $master_job_id);
     my $testname = get_required_var('TEST');
     my $time_to_wait;
 
@@ -51,6 +56,10 @@ sub run {
     $dir_id .= "_$testname" if get_var('HDDVERSION', '');
     $dir_id .= '_angi' if get_var('USE_SAP_HANA_SR_ANGI', '');
 
+    if (script_run('rpm -q nfs-client') != 0) {
+        install_package('nfs-client', trup_reboot => 1);
+    }
+
     set_var('NFS_SUPPORT_DIR', "$mountpt/$dir_id");
     assert_script_run "mkdir -p $mountpt";
     assert_script_run "mount -t nfs $nfs_share $mountpt";
@@ -58,12 +67,9 @@ sub run {
     if (is_node(1)) {
         assert_script_run "rm -rf $mountpt/$dir_id";    # Remove info from previous test
         assert_script_run "mkdir -p $mountpt/$dir_id";
-        barrier_wait("BARRIER_HA_NFS_SUPPORT_DIR_SETUP_$cluster_name");
-    }
-    else {
-        barrier_wait("BARRIER_HA_NFS_SUPPORT_DIR_SETUP_$cluster_name");
     }
 
+    barrier_wait("BARRIER_HA_NFS_SUPPORT_DIR_SETUP_$cluster_name");
     my $hostname = get_hostname;
     my $ipaddr = get_my_ip;
     assert_script_run "echo \"$ipaddr  $hostname\" > $mountpt/$dir_id/$hostname.hosts";
@@ -127,6 +133,7 @@ sub run {
         my $num_luns = (split(/:/, $cluster))[2];
         my $lun_list_file = "$mountpt/$dir_id/$cluster_name-lun.list";
         my $index = get_var('ISCSI_LUN_INDEX', 0);
+        $index = 0 if (check_var('ISCSI_LUN_INDEX', 'ondemand'));
 
         assert_script_run "rm -f $lun_list_file ; touch $lun_list_file";
 
@@ -137,8 +144,17 @@ sub run {
                 $lun = script_output 'echo \|$(ls ' . $lun . ')\|';
                 $lun =~ /\|([^\|]+)\|/;
                 $lun = $1;
-                assert_script_run "wipefs --all $lun";
-                assert_script_run "dd if=/dev/zero of=$lun bs=1M count=128";
+                # Skip cleanup of LUNs when using On Demand targets
+                next if (check_var('ISCSI_LUN_INDEX', 'ondemand'));
+                # Need more time due to low performance on hmc_ppc64le workers
+                # Even with "ls $lun" returns 0 command 'dd' still reports sporadic error like:
+                #  "dd: failed to open '/xxx/*-lun-41': No such device or address"
+                # and command 'wipefs' reports sporadic error like:
+                #  "command 'wipefs --all /xxx/*-lun-4' timed out".
+                # So using 'script_retry'
+                script_retry "wipefs --all $lun", timeout => 300, delay => 5, retry => 10, die => 1, fail_message => "failed to wipefs $lun";
+                script_retry "ls $lun", delay => 5, retry => 10;
+                script_retry "dd if=/dev/zero of=$lun bs=1M count=128", timeout => 300, delay => 5, retry => 10, die => 1, fail_message => "failed to dd $lun";
             }
         }
 

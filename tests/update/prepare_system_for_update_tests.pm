@@ -9,9 +9,7 @@
 # - Run "pkcon refresh"
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_sle';

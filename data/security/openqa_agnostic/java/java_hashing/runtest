@@ -1,0 +1,28 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: java hashing
+# desc: Verifies SunPKCS11-FIPS JCA provider serves SHA/HMAC and routes MD5
+# steps:
+#   - assume kernel FIPS mode is enabled (/proc/sys/crypto/fips_enabled == 1)
+#   - assert MD5 is routed through SunPKCS11-FIPS provider
+#   - enumerate every MessageDigest the FIPS provider exposes; each must hash via SunPKCS11-FIPS
+#   - enumerate every Hmac* Mac the FIPS provider exposes; each must MAC via SunPKCS11-FIPS
+# author: <andrea.manzini@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: results.tap reports all tests passed (or skipped if FIPS is off)
+# platform: SLE 16.1
+# tags: security java FIPS
+# ---
+# METADATA_END
+
+set -e
+source ../lib/helper.sh
+
+TEST_FILES=(FipsJcaProviderTest.java)
+handle_args "$0" "$@"
+
+ensure_command_available "javac"
+
+javac FipsJcaProviderTest.java
+java FipsJcaProviderTest > results.tap

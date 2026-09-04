@@ -5,7 +5,7 @@
 
 # Summary: The module provides interface to act with Add On Product
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::AddOnProduct::AddOnProductPage;
 use parent 'Installation::Navigation::NavigationBase';

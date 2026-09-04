@@ -1,0 +1,32 @@
+# schedule tests for coverage measurement ;
+# when you add a test, you need to fill out the last
+# section about coverage targets as well
+
+name:  measure test coverage for clamav
+description: >
+    Maintainer: amanzini
+vars:
+    QEMUCPU: host
+    QEMURAM: 8192
+    QEMUCPUS: 4
+schedule:
+    - autoyast/prepare_profile
+    - installation/bootloader_uefi
+    - autoyast/installation
+    - autoyast/console
+    - autoyast/login
+    - autoyast/autoyast_reboot
+    - installation/first_boot
+    - console/system_prepare
+    - coverage/coverage_setup
+    - console/clamav
+    - coverage/coverage_report
+test_data:
+    # package -> binary (or list of binaries) to instrument
+    coverage_targets:
+        clamav:
+            # - /usr/bin/freshclam # needs investigation, gives operation not permitted
+            - /usr/bin/clamdscan
+            - /usr/bin/clamscan
+            - /usr/bin/sigtool
+            - /usr/sbin/clamd

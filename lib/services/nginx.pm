@@ -13,7 +13,8 @@ use base 'opensusebasetest';
 use testapi;
 use warnings;
 use strict;
-use utils qw(zypper_call common_service_action script_retry);
+use utils qw(common_service_action script_retry);
+use package_utils 'install_package';
 
 my $service_type = 'Systemd';
 
@@ -70,11 +71,15 @@ sub add_custom_ports_to_selinux {
 }
 
 sub install_service {
-    zypper_call '-v in nginx', timeout => 1000;
+    install_package('nginx', trup_reboot => 1, timeout => 1000);
 }
 
 sub enable_service {
     common_service_action 'nginx', $service_type, 'enable';
+}
+
+sub stop_service {
+    common_service_action 'nginx', $service_type, 'stop';
 }
 
 sub start_service {
@@ -85,9 +90,8 @@ sub start_service {
 # Configure nginx so it can be tested
 sub config_service {
     my $selinux_enabled = script_run('selinuxenabled') == 0;
-    zypper_call('in policycoreutils-python-utils') if ($selinux_enabled && script_run('which semanage') != 0);
-    zypper_call('in curl') if (script_run('which curl') != 0);
-    zypper_call('in openssl') if (script_run('which openssl') != 0);
+    install_package('policycoreutils-python-utils', trup_continue => 1, trup_reboot => 1) if ($selinux_enabled && script_run('which semanage') != 0);
+    install_package('curl openssl', trup_continue => 1, trup_reboot => 1) if (script_run('rpm -q curl openssl'));
 
     assert_script_run('echo "<html>Hello from nginx</html>" > /srv/www/htdocs/index.html');
 
@@ -99,7 +103,8 @@ sub config_service {
     my $nginx_conf = "/etc/nginx/vhosts.d/nginx_vhost.conf";
 
     # Add new virtual host and check the configuration files
-    assert_script_run("curl -fv " . data_url("console/nginx_vhost.conf") . " -o $nginx_conf");
+    assert_script_run("curl -fv " . data_url("console/nginx_vhost.conf") . " -o /tmp/nginx_vhost.conf");
+    assert_script_run("mv -Z /tmp/nginx_vhost.conf $nginx_conf");
 
     # Add custom ports to SELinux
     add_custom_ports_to_selinux(nginx_conf => $nginx_conf) if $selinux_enabled;

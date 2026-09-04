@@ -3,6 +3,9 @@
     id: '{{AGAMA_PRODUCT_ID}}',
     registrationCode: '{{SCC_REGCODE}}'
   },
+  bootloader: {
+    stopOnBootMenu: true,
+  },
   user: {
     fullName: 'Bernhard M. Wiedemann',
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
@@ -11,18 +14,10 @@
   },
   root: {
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
-    hashedPassword: true
+    hashedPassword: true,
+    sshPublicKey: 'fake public key to enable sshd and open firewall'
   },
-  scripts: {
-    post: [
-      {
-        name: 'enable sshd',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          systemctl enable sshd
-        |||
-      }
-    ]
+  software: {
+    packages: ['openssh-server-config-rootlogin'],
   }
 }

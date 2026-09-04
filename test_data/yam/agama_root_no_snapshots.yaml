@@ -1,0 +1,9 @@
+---
+disks:
+  - name: vda
+    table_type: gpt
+    partitions:
+      - name: vda2
+        mounting_options:
+          mount_point: /
+        size: 5G

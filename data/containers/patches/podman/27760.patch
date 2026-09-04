@@ -1,0 +1,32 @@
+From 15ae942a48ca0fa9680d70438df472d2971e0680 Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Fri, 12 Dec 2025 15:44:38 +0100
+Subject: [PATCH] test/system: remove apk from build
+
+We do not use that package that we install for the test anyway and doing
+this networking connection is causing heavy flakes at the moment.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/070-build.bats | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/test/system/070-build.bats b/test/system/070-build.bats
+index ecf4f79b42f..23baebfacde 100644
+--- a/test/system/070-build.bats
++++ b/test/system/070-build.bats
+@@ -17,13 +17,11 @@ load helpers.registry
+     dockerfile=$tmpdir/Dockerfile
+     cat >$dockerfile <<EOF
+ FROM $IMAGE
+-RUN apk add nginx
+ RUN echo $rand_content > /$rand_filename
+ EOF
+ 
+-    # The 'apk' command can take a long time to fetch files; bump timeout
+     imgname="b-$(safename)"
+-    PODMAN_TIMEOUT=240 run_podman build -t $imgname --format=docker $tmpdir
++    run_podman build -t $imgname --format=docker $tmpdir
+     is "$output" ".*COMMIT" "COMMIT seen in log"
+ 
+     # $IMAGE is preloaded, so we should never re-pull

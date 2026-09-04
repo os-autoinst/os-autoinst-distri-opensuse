@@ -26,7 +26,7 @@
     <guest_installation_extra_args/>
     <guest_installation_wait/>
     <guest_installation_method_others/>
-    <guest_installation_media>http://openqa.suse.de/assets/hdd/SL-Micro.x86_64-6.2-Default-encrypted-Build12345.raw.xz</guest_installation_media>
+    <guest_installation_media>http://openqa.suse.de/assets/hdd/SL-Micro.x86_64-6.2-Default-encrypted-Build16.3.raw.xz</guest_installation_media>
     <guest_os_variant>slem6.1</guest_os_variant>
     <guest_storage_path/>
     <guest_storage_type>disk</guest_storage_type>

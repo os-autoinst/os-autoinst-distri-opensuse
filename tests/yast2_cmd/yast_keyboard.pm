@@ -10,7 +10,7 @@
 # - Set keyboard layout to korean and validate.
 # - Set keyboard layout to german.
 # - Restore keyboard settings to english-us and verify (enter using german characters).
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 =head1 Create regression test for keyboard layout and verify
 
@@ -23,9 +23,7 @@ https://www.suse.com/documentation/sles-15/singlehtml/book_sle_admin/book_sle_ad
 
 =cut
 
-use base 'y2_module_basetest';
-use strict;
-use warnings;
+use Mojo::Base 'y2_module_basetest';
 use testapi;
 use utils qw(zypper_call);
 

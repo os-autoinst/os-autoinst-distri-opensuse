@@ -8,9 +8,7 @@
 #   Then, it runs models with the images as inputs.
 # Maintainer: Guillaume GARDET <guillaume@opensuse.org>
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -91,13 +89,17 @@ sub run {
     armnn_get_images;
 
     # Test TensorFlow Lite backend
-    record_info('TF Lite', "TensorFlow Lite backend");
-    armnn_tf_lite_test_prepare;
-    # Run with default backend, if no specific backend required
-    armnn_tf_lite_test_run if !defined($armnn_backends);
-    # Run with explicit backend, if requested
-    armnn_tf_lite_test_run(backend => $_) for split(/,/, $armnn_backends);
-    cleanup_model_folder;
+    if (is_tumbleweed) {
+        record_info('Skip TensorFlow Lite', "TensorFlow Lite has been removed from Tumbleweed");
+    } else {
+        record_info('TF Lite', "TensorFlow Lite backend");
+        armnn_tf_lite_test_prepare;
+        # Run with default backend, if no specific backend required
+        armnn_tf_lite_test_run if !defined($armnn_backends);
+        # Run with explicit backend, if requested
+        armnn_tf_lite_test_run(backend => $_) for split(/,/, $armnn_backends);
+        cleanup_model_folder;
+    }
 
     # Test ONNX backend
     if (is_tumbleweed) {

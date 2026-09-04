@@ -41,9 +41,7 @@
 #
 
 package xen_mitigations;
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use Mitigation;
 use ipmi_backend_utils;

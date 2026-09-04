@@ -7,13 +7,11 @@
 # Requires: ENV variable NW pointing to installation media
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
 use hacluster;
-use strict;
-use warnings;
 
 sub run {
     my ($self) = @_;
@@ -39,7 +37,8 @@ sub run {
         $product_id = 'NW_ERS';
     }
 
-    select_serial_terminal;
+    # Run test in root-console, as there are timing issues when running on the serial terminal
+    select_console 'root-console';
 
     # The SAP Admin was set in sles4sap/netweaver_install
     $self->set_sap_info(get_required_var('INSTANCE_SID'), get_required_var('INSTANCE_ID'));

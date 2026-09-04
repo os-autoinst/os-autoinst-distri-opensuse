@@ -1,0 +1,221 @@
+# SUSE's openQA tests
+#
+# Copyright 2018-2020 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+#
+# Summary: Maintenance SLFO incident install test
+#
+#    Test is booting preinstalled qcow2 image, which is updated regularly
+#    It saves time, test is quick does not need to wait until image is created
+#    First is system updated, then preinstall  will install packages present
+#    in patch then patch from update is installed and rebooted to make sure
+#    system can boot
+#
+#    1) Update system with released updates and do reboot if needed
+#    2) [Preinstall] install packages mentioned in each patch at once
+#    3) [Patch] install patch
+#    4) [New packages] install new packages if present
+#    5) Reboot after installation
+#    6) Rollback to state before patch if multiple patches are tested
+#
+# Maintainer: QE Core <qe-core@suse.com>
+
+use Mojo::Base 'opensusebasetest';
+
+use utils;
+use power_action_utils qw(prepare_system_shutdown power_action);
+use List::Util qw(first pairmap uniq);
+use qam;
+use testapi;
+use serial_terminal 'select_serial_terminal';
+use Utils::Architectures qw(is_s390x is_aarch64);
+use version_utils qw(is_sle);
+
+my @conflicting_packages = (
+    'coreutils-single',
+    'nvidia-open-driver-G06-signed-kmp-default',
+    'nvidia-open-driver-G06-signed-cuda-kmp-default',
+    'nvidia-open-driver-G06-signed-cuda-default-devel',
+    'nvidia-open-driver-G07-signed-kmp-default',
+    'nvidia-open-driver-G07-signed-cuda-kmp-default',
+    'nvidia-open-driver-G07-signed-cuda-default-devel',
+    'ImageMagick-config-7-upstream-limited',
+    'ImageMagick-config-7-upstream-open',
+    'ImageMagick-config-7-upstream-secure',
+    'ImageMagick-config-7-upstream-websafe',
+    'tomcat10', 'tomcat',
+    'rmt-server-pubcloud', 'rmt-server-config',
+    'cloud-netconfig-ec2', 'cloud-netconfig-gce', 'cloud-netconfig-azure',
+    'apache2-mod_php8'
+);
+
+push(@conflicting_packages, (
+        'nv-prefer-signed-open-driver',
+        qr/^nvidia-open-driver-G\d+-signed-(?:64kb-devel|cuda-kmp-64kb)$/,
+)) if is_aarch64;
+
+# We may need to skip installing some packages based on test requirements
+# see example at poo#191485
+my @skipped_pkgs = qw(kernel-kvmsmall kernel-kvmsmall-devel kernel-default-base);
+
+sub get_patch {
+    my ($incident_id, $repos) = @_;
+    $repos =~ tr/,/ /;
+    my $patches = script_output("zypper patches -r $repos | awk -F '|' '/$incident_id/ { print\$2 }'|uniq|tr '\n' ' '");
+    return split(/\s+/, $patches);
+}
+
+sub reboot_and_login {
+    prepare_system_shutdown;
+    assert_script_run("rm -f /etc/ima/ima-policy*") if (!script_run("ls /etc/ima/ima-policy*"));
+    my $textmode = 1;
+    if (systemctl('is-enabled display-manager', ignore_failure => 1) == 0 && !is_s390x) {
+        $textmode = 0;
+        power_action('reboot');
+        set_var('DESKTOP', 'gnome', reload_needles => 1);
+    }
+    else {
+        power_action('reboot');
+    }
+    opensusebasetest::wait_boot(opensusebasetest->new(), bootloader_time => 200, textmode => $textmode);
+    select_serial_terminal;
+}
+
+sub run {
+    my ($self) = @_;
+    my $incident_id = get_required_var('INCIDENT_ID');
+    my $repos = get_required_var('INCIDENT_REPO');
+    my $rollback_number;
+
+    select_serial_terminal;
+
+    # On sle16.0, no kernel livepatches on aarch64
+    # https://progress.opensuse.org/issues/201861
+    return record_info('Skip "kernel-livepatch-SLE16" on aarch64') if (get_var('BUILD') =~ /kernel-livepatch-SLE16/ && is_aarch64 && is_sle('=16.0'));
+    # Patch the SUT to a released state and reboot if reboot is needed;
+    reboot_and_login if fully_patch_system == 102;
+
+    set_var('MAINT_TEST_REPO', $repos);
+    my $repos_count = add_test_repositories;
+    record_info('Repos', script_output('zypper lr -u'));
+
+    record_info 'Snapshot created', 'Snapshot for rollback';
+    $rollback_number = script_output('snapper create --description "Pre-patch" -p');
+
+    my @patches = get_patch($incident_id, $repos);
+    record_info "Patches", "@patches";
+    die 'No patch found!' unless scalar(@patches);
+
+    for my $patch (@patches) {
+        my @single_conflicts;
+        # Get info about the update patch.
+        my $patch_info = script_output("zypper -n info -t patch $patch", 200);
+        my @patchinfo = split '\n', $patch_info;
+        record_info "$patch", "$patch_info";
+
+        # Find the lines where the Conflict sections begins.
+        foreach (0 .. $#patchinfo) {
+            print "$_: $patchinfo[$_]\n";
+        }
+        my @conflict_indexes = grep { $patchinfo[$_] =~ /^Conflicts\D*(\d+)/ } 0 .. $#patchinfo;
+        print "conflict_indexes @conflict_indexes\n";
+
+        # Find the ranges where there are conflict sections.
+        my @ranges = map { $patchinfo[$_] =~ /Conflicts\D*(?<num>\d+)/; ($_ + 1, $_ + $+{num}) } @conflict_indexes;
+        print "ranges @ranges\n";
+
+        # Make a list of the conflicting binaries in this patch
+        my @patch_conflicts = uniq pairmap {
+            map { $_ =~ /(^\s+(?!srcpackage:)(?<with_ext>\S*)(\.(?!src)\S* <))|^\s+(?!srcpackage:)(?<no_ext>\S*)/; $+{with_ext} // $+{no_ext} } @patchinfo[$a .. $b] } @ranges;
+        print "Conflicting packages: @patch_conflicts\n";
+
+        for my $pkg (@patch_conflicts) {
+            if (grep { ref($_) eq 'Regexp' ? $pkg =~ $_ : $pkg eq $_ } @conflicting_packages) {
+                push(@single_conflicts, $pkg);
+            }
+        }
+
+        # remove the conflicting packages from list which is used for preinstall
+        for my $pkg (@single_conflicts) {
+            @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
+        }
+
+        for my $pkg (@skipped_pkgs) {
+            @patch_conflicts = grep { !/$pkg/ } @patch_conflicts;
+        }
+
+        record_info "Patch packages", "@patch_conflicts";
+
+        disable_test_repositories($repos_count);
+
+        # install conflicting packages one by one
+        if (@single_conflicts) {
+            record_info 'Conflicts', "@single_conflicts";
+            for my $single_package (@single_conflicts) {
+                record_info 'Conflict preinstall', "Install conflicting package $single_package before update repo is enabled";
+                zypper_call("-v in -l --force-resolution --solver-focus Update $single_package", exitcode => [0, 102, 103], log => "prepare_${patch}_${single_package}.log", timeout => 1500, tmpfs => 1);
+
+                enable_test_repositories($repos_count);
+
+                # Patch binaries already installed.
+                record_info 'Conflict install', "Install patch $patch with conflicting $single_package";
+                zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500, tmpfs => 1);
+
+                record_info 'Conflict rollback', "Rollback patch $patch with conflicting $single_package";
+                assert_script_run("snapper rollback $rollback_number");
+                reboot_and_login;
+                disable_test_repositories($repos_count);
+            }
+        }
+
+        # Install released binaries present in patch
+        record_info 'Preinstall', 'Install affected packages before update repo is enabled';
+        if (grep { /\S/ } @patch_conflicts) {
+            zypper_call("--ignore-unknown in -l --force-resolution --solver-focus Update @patch_conflicts", exitcode => [0, 102, 103, 104], log => "prepare_$patch.log", timeout => 1500, tmpfs => 1);
+            record_soft_failure "poo#1234 Preinstalled package is missing, check log prepare_${patch}." if (script_run("grep 'not found in package names' /var/tmp/prepare_${patch}.log") == 0);
+        }
+        enable_test_repositories($repos_count);
+
+        # Patch binaries installed in preinstall
+        record_info 'Patch', "Install patch $patch";
+        zypper_call("in -l -t patch $patch", exitcode => [0, 102, 103], log => "zypper_$patch.log", timeout => 1500, tmpfs => 1);
+
+        # Install binaries newly added by the incident
+        my @new_binaries;
+        if (scalar @new_binaries) {
+            record_info 'New packages', "New packages: @new_binaries";
+            zypper_call("in -l @new_binaries", exitcode => [0, 102, 103], log => "new_$patch.log", timeout => 1500, tmpfs => 1);
+        }
+
+        if (is_s390x) {
+            # Make sure that openssh-server-config-disallow-rootlogin is not installed
+            # we need ssh to reconnect to s390x system after reboot
+            zypper_call("rm openssh-server-config-disallow-rootlogin", exitcode => [0, 104]);
+        }
+
+        record_info 'Reboot after patch', "system is bootable after patch $patch";
+        reboot_and_login;
+
+        # no need to rollback last patch
+        unless ($patch eq $patches[-1]) {
+            record_info 'Rollback', "Rollback system before $patch";
+            assert_script_run("snapper rollback $rollback_number");
+            reboot_and_login;
+        }
+    }
+
+    assert_script_run("mount");
+    assert_script_run("ls -l /var/tmp");
+    # merge logs from all patches into one which is testreport template expecting
+    foreach (qw(prepare zypper new)) {
+        next if script_run("timeout 20 ls /var/tmp|grep ${_}_");
+        assert_script_run("cat /var/tmp/$_* > /var/tmp/$_.log");
+        upload_logs("/var/tmp/$_.log");
+    }
+}
+
+sub test_flags {
+    return {fatal => 1};
+}
+
+1;

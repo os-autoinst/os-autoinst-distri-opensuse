@@ -7,12 +7,11 @@
 # Summary: Ensure system can reboot from plasma5 session
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'x11test';
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use power_action_utils;
+use x11utils qw(update_x11_vt);
 
 sub run {
     my ($self) = @_;
@@ -26,10 +25,7 @@ sub run {
     $self->disable_key_repeat;
 
     # After reboot and login the graphical session might be on a different VT again.
-    x11_start_program('xterm');
-    my $tty = script_output('echo $XDG_VTNR');
-    send_key("alt-f4");    # close xterm
-    console('x11')->set_tty(int($tty));
+    update_x11_vt;
 }
 
 sub test_flags {

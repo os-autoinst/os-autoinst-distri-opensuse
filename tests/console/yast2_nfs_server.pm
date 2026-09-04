@@ -16,10 +16,8 @@
 #    * The NFSv3 version is mounted and checked
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
-use strict;
-use warnings;
 
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use utils qw(clear_console zypper_call systemctl);
 use version_utils;
 use testapi;

@@ -11,9 +11,7 @@
 # * modsign-verify: the output is checked for correct format
 # Maintainer: Vasileios Anastasiadis <vasilios.anastasiadis@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils 'zypper_call';

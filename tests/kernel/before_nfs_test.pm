@@ -5,7 +5,7 @@
 # Summary: Preparation before provisioning NFS setup
 # Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal "select_serial_terminal";
 use utils;
@@ -33,6 +33,8 @@ sub prepare_bond {
     assert_script_run("wicked ifup all bond0");
 }
 
+
+
 sub run {
     my ($self) = @_;
     my $role = get_required_var('ROLE');
@@ -42,6 +44,7 @@ sub run {
     set_hostname(get_var("HOSTNAME", "susetest"));
 
     prepare_bond if get_var('NFS_BOND') == "1";
+    barrier_wait("NFS_BEFORE_TEST_DONE");
 }
 
 sub test_flags {

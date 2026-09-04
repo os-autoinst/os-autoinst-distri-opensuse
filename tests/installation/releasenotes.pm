@@ -7,9 +7,7 @@
 # Summary: SLE12 release notes
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Architectures;
 use version_utils qw(is_sle is_microos);

@@ -6,11 +6,9 @@
 # Summary: Register the system via SCC in the installer with registration
 # code, optional email and enabling update repositories.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

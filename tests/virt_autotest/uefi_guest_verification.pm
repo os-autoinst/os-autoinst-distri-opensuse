@@ -11,9 +11,7 @@
 # Maintainer: Wayne Chen <wchen@suse.com>
 package uefi_guest_verification;
 
-use base 'virt_feature_test_base';
-use strict;
-use warnings;
+use Mojo::Base 'virt_feature_test_base';
 use POSIX 'strftime';
 use File::Basename;
 use testapi;
@@ -23,27 +21,22 @@ use virt_utils;
 use virt_autotest::common;
 use virt_autotest::utils;
 use version_utils qw(is_sle is_alp);
+use Utils::Architectures;
 
 sub run_test {
     my $self = shift;
 
     $self->check_guest_bootloader($_) foreach (keys %virt_autotest::common::guests);
     $self->check_guest_bootcurrent($_) foreach (keys %virt_autotest::common::guests);
-    if (is_kvm_host) {
-        if (is_sle) {
-            record_soft_failure("In order to implement pm features, current kvm virtual machine uses uefi firmware that does not support PXE/HTTP boot and secureboot. bsc#1182886 UEFI virtual machine boots with trouble");
-        }
-        elsif (is_alp) {
-            # The current default uefi firmware in alp kvm container supports secure boot,
-            # but does not support PXE/HTTP boot, and pm is not well supported either.
-            $self->check_guest_secure_boot($_) foreach (keys %virt_autotest::common::guests);
-        }
-        #$self->check_guest_uefi_boot($_) foreach (keys %virt_autotest::common::guests);
 
+    # No machine type on aarch64 supports power management, or secure boot
+    return $self if (is_aarch64);
+
+    if (is_sle('>=15-SP7')) {
+        $self->check_guest_secure_boot($_) foreach (keys %virt_autotest::common::guests);
+        #$self->check_guest_uefi_boot($_) foreach (keys %virt_autotest::common::guests);
     }
-    else {
-        record_soft_failure("UEFI implementation for xen fullvirt uefi virtual machine is incomplete. bsc#1184936 Xen fullvirt lacks of complete support for UEFI");
-    }
+    record_soft_failure("UEFI implementation for xen fullvirt uefi virtual machine is incomplete. bsc#1184936 Xen fullvirt lacks of complete support for UEFI") if (is_xen_host);
 
     # TODO: enable pm check for alp once default uefi firmware supports it well
     if (is_sle('>=15')) {
@@ -71,11 +64,11 @@ sub check_guest_bootloader {
 sub check_guest_bootcurrent {
     my ($self, $guest_name) = @_;
 
-    record_info("Booted os checking on $guest_name", "Booted os should be sles if $guest_name is installed as such judging by /etc/issue");
+    record_info("Booted os checking on $guest_name", "Booted os should be sles if $guest_name is installed as such judging by /etc/os-release");
     my $ssh_command_prefix = "ssh -vvv -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no";
     my $current_boot_entry = script_output("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i BootCurrent | grep -oE [[:digit:]]+");
     assert_script_run("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i \"BootOrder: $current_boot_entry\"");
-    assert_script_run("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i Boot$current_boot_entry.*sles") if (script_output("$ssh_command_prefix root\@$guest_name cat /etc/issue | grep -io \"SUSE Linux Enterprise Server.*\"", proceed_on_failure => 1) ne '');
+    assert_script_run("$ssh_command_prefix root\@$guest_name efibootmgr -v | grep -i Boot$current_boot_entry.*sles") if (script_output("$ssh_command_prefix root\@$guest_name cat /etc/os-release | grep -io \"SUSE Linux Enterprise Server.*\"", proceed_on_failure => 1) ne '');
     return $self;
 }
 
@@ -112,19 +105,18 @@ sub regen_efi_secret_key {
 sub check_guest_pmsuspend_enabled {
     my $self = shift;
 
+    # Function-level skip for all LTSS hosts to avoid bsc#1270215 deadlocks
+    if (is_sle('=15-SP4') || is_sle('=15-SP5') || is_sle('=15-SP6')) {
+        record_info("Skip PM Suspend", "Skipping dompmsuspend tests entirely on LTSS hosts (15-SP4/5/6) as per LTP updates and developer feedback.");
+        return $self;
+    }
+
     $self->do_guest_pmsuspend($_, 'mem') foreach (keys %virt_autotest::common::guests);
+
     if (is_kvm_host) {
         foreach (keys %virt_autotest::common::guests) {
-            if (is_sle('>=15') and ($_ =~ /12-sp5/img)) {
-                record_info("PMSUSPEND to hyrbrid is not supported here", "Guest $_ on kvm sles 15+ host");
-                next;
-            }
-            $self->regen_efi_secret_key($_) if (is_sle('>=15') or ($_ =~ /sles-15|sles15/img));
-            $self->do_guest_pmsuspend($_, 'hybrid');
-        }
-        foreach (keys %virt_autotest::common::guests) {
-            if (is_sle('>=15') and ($_ =~ /12-sp5/img)) {
-                record_info("PMSUSPEND to disk is not supported here", "Guest $_ on kvm sles 15+ host");
+            if ((is_sle('>=15') and $_ =~ /12-sp5/img) or is_transactional_guest(address => $_)) {
+                record_info("bsc#1260076 PMSUSPEND to disk is not supported here", "Guest $_ is sles 15- on kvm sles 15+ host or transactional");
                 next;
             }
             $self->regen_efi_secret_key($_) if (is_sle('>=15') or ($_ =~ /sles-15|sles15/img));
@@ -143,7 +135,7 @@ sub do_guest_pmsuspend {
     $suspend_target //= 'mem';
     $suspend_duration //= 0;
 
-    record_info("PM suspend to $suspend_target on $suspend_domain test", "Xen only supports suspend to memory, kvm also supports suspend to disk and hybrid modes");
+    record_info("PM suspend to $suspend_target on $suspend_domain test", "Xen only supports suspend to memory, kvm also supports disk/hybrid but only suspend to memory/disk is officially supported.");
     my $guest_state_after_suspend = 'pmsuspended';
     $guest_state_after_suspend = 'shut off' if ($suspend_target eq 'disk');
     assert_script_run("virsh dompmsuspend --domain $suspend_domain --target $suspend_target");

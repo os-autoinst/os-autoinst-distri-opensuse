@@ -22,9 +22,7 @@ package qaset_post_patch_run;
 #
 # Maintainer: Tony Yuan <tyuan@suse.com>
 
-use strict;
-use warnings;
-use base "qa_run";
+use Mojo::Base 'qa_run';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 

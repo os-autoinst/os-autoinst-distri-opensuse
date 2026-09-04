@@ -15,11 +15,16 @@ use base 'Exporter';
 use Exporter;
 use strict;
 use warnings;
+use feature 'state';
 use testapi;
+use JSON qw(decode_json);
 use utils qw(clear_console show_oom_info remount_tmp_if_ro detect_bsc_1063638 download_script);
 use Utils::Systemd 'get_started_systemd_services';
+use File::Basename 'basename';
 use Mojo::File 'path';
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal upload_file);
+use version_utils qw(is_tumbleweed is_transactional);
+use network_utils;
 
 our @EXPORT = qw(
   save_and_upload_log
@@ -28,12 +33,14 @@ our @EXPORT = qw(
   save_ulog
   export_healthcheck_basic
   select_log_console
+  cleanup_known_coredumps
   upload_coredumps
   export_logs
   problem_detection
   upload_solvertestcase_logs
   export_logs_basic
   export_logs_desktop
+  record_avc_selinux_alerts
 );
 
 =head2 save_and_upload_log
@@ -50,8 +57,16 @@ sub save_and_upload_log {
     my ($cmd, $file, $args) = @_;
     script_run("$cmd | tee $file", timeout => $args->{timeout});
     my $lname = $args->{logname} ? $args->{logname} : '';
-    upload_logs($file, failok => 1, log_name => $lname) unless $args->{noupload};
-    save_screenshot if $args->{screenshot};
+    if (can_upload_logs()) {
+        upload_logs($file, failok => 1, log_name => $lname) unless $args->{noupload};
+        save_screenshot if $args->{screenshot};
+    }
+    else {
+        select_serial_terminal;
+        my $file_name = $file =~ s|^/||r =~ tr|/|_|r;
+        upload_file($file, $file_name);
+    }
+
 }
 
 =head2 tar_and_upload_log
@@ -138,7 +153,13 @@ echo -e "\nALL Processes" >> $health_log_file
 ps axwwo user,pid,ppid,%cpu,%mem,vsz,rss,stat,time,cmd >> $health_log_file
 EOF
     script_run($_) foreach (split /\n/, $cmd);
-    upload_logs "/tmp/basic_health_check.txt";
+    if (can_upload_logs()) {
+        upload_logs "/tmp/basic_health_check.txt";
+    }
+    else {
+        select_serial_terminal;
+        upload_file("/tmp/basic_health_check.txt", "basic_health_check.txt");
+    }
 
 }
 
@@ -154,28 +175,105 @@ This should be especially useful in C<post_fail_hook> implementations.
 
 sub select_log_console { select_console('log-console', timeout => 180, @_) }
 
+=head2 cleanup_known_coredumps
+
+ cleanup_known_coredumps;
+
+Remove known coredumps, following upload_coredumps in coredump_collect will
+fail on present unexpected coredump
+
+=cut
+
+sub cleanup_known_coredumps {
+    my %known_coredumps = (
+        # cmdline is a literal string, not a regex, matching part of the command line.
+        # signals is optional; all signals match if not specified.
+        # architectures is optional; all architectures match if not specified.
+        'poo#200531' => {
+            cmdline => q(/usr/sbin/nscd),
+            signals => [qw(BUS)],
+            architectures => [qw(s390x)],
+        },
+        'poo#198596' => {
+            cmdline => q(openssl3-conf/base_only.cnf -p $'"hello"'),
+            signals => [qw(ABRT)],
+        },
+        'bsc#1129403' => {
+            cmdline => q(unzip-mem "" v files.zip),
+            signals => [qw(FPE)],
+        },
+        'bsc#1261358' => {
+            cmdline => q(ovs-vswitchd unix:),
+            signals => [qw(ABRT)],
+        },
+        'https://gitlab.isc.org/isc-projects/bind9/-/work_items/2983' => {
+            cmdline => q(9.18.33/bin/named/.libs/named -D doth),
+        },
+    );
+
+    my $arch = get_var('ARCH');
+    for my $pid (split(/\n/, script_output(q(coredumpctl -q --no-pager --no-legend | awk '$9 ~ /^(present|truncated)$/ { print $5 }'), proceed_on_failure => 1))) {
+        my $coredump_info = script_output("time coredumpctl info --no-pager $pid", proceed_on_failure => 1);
+        my ($cmdline) = $coredump_info =~ /^\s+Command Line: (.*)$/m;
+        # Fetch "ABRT" from a line like:
+        #   Signal: 6 (ABRT)
+        my ($signal) = $coredump_info =~ /^\s+Signal: \d+ \(([A-Z0-9]+)\)$/m;
+        for my $known (keys %known_coredumps) {
+            my $entry = $known_coredumps{$known};
+            next if index($cmdline, $entry->{cmdline}) < 0;
+            next if $entry->{signals} && !grep { $_ eq $signal } @{$entry->{signals}};
+            next if $entry->{architectures} && !grep { $_ eq $arch } @{$entry->{architectures}};
+            record_info('Known dump', $coredump_info);
+            # Fetch path from a line like:
+            #   Storage: /var/lib/systemd/coredump/core.binary.999.zst (present)
+            my ($coredump) = $coredump_info =~ /^\s+Storage: (.+?) \((?:present|truncated)\)$/m;
+            script_output("rm -vf $coredump");
+            last;
+        }
+    }
+}
+
 =head2 upload_coredumps
 
  upload_coredumps(%args);
 
-Upload all coredumps to logs. In case `proceed_on_failure` key is set to true,
-errors during logs collection will be ignored, which is usefull for the
-post_fail_hook calls.
+Upload all coredumps to logs.
+
+It only uploads present coredumps so in case of expected coredumps it's possible
+remove them from /var/lib/systemd/coredump/ to avoid processing them here.
+
 =cut
 
 sub upload_coredumps {
-    my (%args) = @_;
     my $res = script_run('coredumpctl --no-pager');
-    if (!$res) {
-        record_info("COREDUMPS found", "we found coredumps on SUT, attemp to upload");
-        script_run("coredumpctl info --no-pager | tee coredump-info.txt");
-        upload_logs("coredump-info.txt", failok => $args{proceed_on_failure});
-        my $basedir = '/var/lib/systemd/coredump/';
-        my @files = split("\n", script_output("\\ls -1 $basedir | cat", proceed_on_failure => $args{proceed_on_failure}));
-        foreach my $file (@files) {
-            upload_logs($basedir . $file, failok => $args{proceed_on_failure});
+    return if $res;
+    # XXX https://progress.opensuse.org/issues/201375
+    script_run("rm -f /var/lib/systemd/coredump/core.ovs-vswitchd.*");
+    my @pids = split(/\n/, script_output(q(coredumpctl --no-pager --no-legend | awk '$9 ~ /^(present|truncated)$/ { print $5 }'), proceed_on_failure => 1));
+    return unless @pids;
+    my $get_backtrace = get_var("COREDUMP_WITH_BACKTRACE") && !is_transactional;
+    if ($get_backtrace) {
+        script_run('sed -i s/enabled=0/enabled=1/ /etc/zypp/repos.d/*-[Dd]ebug.repo');
+        script_run('zypper -n refresh', timeout => 300);
+        script_run('zypper -n install -y gdb', timeout => 300);
+        script_run('echo set debuginfod enabled on > ~/.gdbinit');
+        script_run('echo set pagination off >> ~/.gdbinit');
+    }
+    foreach my $pid (@pids) {
+        my $cmd = qq(coredumpctl info --no-pager $pid | tee info$pid.txt | awk '\$1 == "Storage:" { print \$2; exit }');
+        my $core = script_output($cmd, timeout => 600, proceed_on_failure => 1);
+        last unless $core;
+        upload_logs("info$pid.txt", log_name => basename($core) . ".txt", failok => 1);
+        upload_logs($core, failok => 1);
+        if ($get_backtrace) {
+            # First download debuginfo stuff to avoid polluting backtrace with download progress
+            script_run(qq(coredumpctl debug -A '-q -ex quit' $pid), timeout => 900);
+            my $gdb_script = '-q -batch -ex "thread apply all bt full" -ex quit';
+            script_run("coredumpctl debug -A '$gdb_script' $pid > backtrace$pid.txt", timeout => 900);
+            upload_logs("backtrace$pid.txt", log_name => basename($core) . "_backtrace.txt", failok => 1);
         }
     }
+    die("COREDUMPS found") unless get_var('COREDUMP_IGNORE_ERRORS');
 }
 
 =head2 export_logs
@@ -205,10 +303,6 @@ sub export_logs {
     if ($utils::IN_ZYPPER_CALL) {
         upload_solvertestcase_logs();
     }
-
-    my $audit_log = "/var/log/audit/audit_log.txt";
-    script_run("cp /var/log/audit/audit.log $audit_log");
-    upload_logs("$audit_log", failok => 1);
 }
 
 =head2 problem_detection
@@ -287,9 +381,28 @@ sub problem_detection {
         clear_console;
     }
 
-    script_run 'tar cvvJf problem_detection_logs.tar.xz *';
+    # Mounts
+    save_and_upload_log("findmnt -o TARGET,SOURCE,FSTYPE,VFS-OPTIONS,FS-OPTIONS,PROPAGATION", "findmnt.txt", {screenshot => 1, noupload => 1});
+
+    # Snapper info
+    save_and_upload_log("snapper --no-dbus list --disable-used-space", "snapper-list.txt", {screenshot => 1, noupload => 1});
+
+    # Include generally useful log files as-is. Nonexisting files will be ignored.
+    my @logs = qw(/var/log/audit/audit.log /var/log/snapper.log /var/log/transactional-update.log
+      /var/log/zypper.log /var/log/zypp/history);
+
+    script_run("cp -v --parents @logs .");
+
+    script_run('tar cvvJf problem_detection_logs.tar.xz *');
     upload_logs('problem_detection_logs.tar.xz', failok => 1);
-    enter_cmd "popd";
+    enter_cmd("popd");
+
+    # Upload small (< 64KiB) files in the ESP
+    script_run('find /boot/efi -size -64k -type f -print0 | xargs -0 tar cavf esp-config.tar.gz');
+    upload_logs('esp-config.tar.gz', failok => 1);
+
+    # Upload BLS state as seen by bootctl
+    save_and_upload_log("bootctl status; bootctl list", "bootctl.txt");
 }
 
 =head2 upload_solvertestcase_logs
@@ -323,7 +436,6 @@ sub export_logs_basic {
     save_and_upload_log('journalctl -b -o short-precise', '/tmp/journal.txt', {screenshot => 1});
     save_and_upload_log('dmesg', '/tmp/dmesg.txt', {screenshot => 1});
     tar_and_upload_log('/etc/sysconfig', '/tmp/sysconfig.tar.gz', {gzip => 1});
-
     for my $service (get_started_systemd_services()) {
         save_and_upload_log("journalctl -b -u $service", "/tmp/journal_$service.txt", {screenshot => 1});
     }
@@ -371,6 +483,200 @@ sub export_logs_desktop {
     $log_path = '/home/*/.local/share/sddm/*session.txt';
     if (!script_run("ls -l $log_path")) {
         save_and_upload_log("cat $log_path", '/tmp/sddm_session.txt', {screenshot => 1});
+    }
+}
+
+# I am not sure if this should even be here
+my %avc_record = (
+    start => 0,
+    end => undef
+);
+
+sub _avc_products_apply {
+    my ($products) = @_;
+
+    return 1 if !defined $products;
+
+    my $distri = get_required_var('DISTRI');
+    my $version = get_required_var('VERSION');
+    my $arch = get_required_var('ARCH');
+
+    if (exists $products->{distri}) {
+        my %allow = map { $_ => 1 } @{$products->{distri}};
+        return 0 if !$allow{$distri};
+    }
+
+    if (exists $products->{version}) {
+        my %allow = map { $_ => 1 } @{$products->{version}};
+        return 0 if !$allow{$version};
+    }
+
+    if (exists $products->{arch}) {
+        my %allow = map { $_ => 1 } @{$products->{arch}};
+        return 0 if !$allow{$arch};
+    }
+
+    return 1;
+}
+
+sub _avc_ctx_match {
+    my ($want, $got, $mode) = @_;
+    $want //= '';
+    $got //= '';
+    $mode //= 'exact';
+
+    return 0 if $want eq '';
+
+    return ($want eq $got) if $mode eq 'exact';
+
+    if ($mode eq 'prefix') {
+        my $want_colons = ($want =~ tr/:/:/);
+        if ($want_colons < 3) {
+            return ($got eq $want) || (index($got, $want . ':') == 0);
+        }
+        return ($want eq $got);
+    }
+
+    return ($want eq $got);
+}
+
+sub _avc_parse_line {
+    my ($ln) = @_;
+    my @events;
+
+    return \@events if !defined $ln;
+    return \@events if $ln !~ /\bavc:\s+denied\b/i;
+
+    my ($perm_blob) = $ln =~ /\{\s*([^}]+?)\s*\}/;
+    my ($scontext) = $ln =~ /\bscontext=([^\s]+)/;
+    my ($tcontext) = $ln =~ /\btcontext=([^\s]+)/;
+    my ($tclass) = $ln =~ /\btclass=([^\s]+)/;
+
+    return \@events if !$perm_blob || !$scontext || !$tcontext || !$tclass;
+
+    my @perms = grep { length($_) } split(/\s+/, $perm_blob);
+    for my $p (@perms) {
+        push @events, {
+            permission => $p,
+            scontext => $scontext,
+            tcontext => $tcontext,
+            tclass => $tclass,
+        };
+    }
+
+    return \@events;
+}
+
+sub _load_avc_whitelist {
+    state $cached;
+    return $cached if defined $cached;
+
+    my $file = sprintf(
+        "%s/data/avc_check/avc_whitelist.json",
+        get_var('CASEDIR')
+    );
+
+    open(my $fh, '<', $file)
+      or die "Can't open AVC whitelist '$file': $!";
+
+    local $/ = undef;
+    my $json = <$fh>;
+    close $fh;
+
+    my $whitelist = decode_json($json);
+    return $cached = $whitelist;
+}
+
+sub _avc_is_permitted {
+    my ($ev, $whitelist) = @_;
+
+    for my $entry (@$whitelist) {
+        if (exists $entry->{products}) {
+            next if !_avc_products_apply($entry->{products});
+        }
+
+        next if ($entry->{permission} // '') ne ($ev->{permission} // '');
+
+        my $mode = $entry->{match}->{context_mode} // 'exact';
+
+        next if !_avc_ctx_match($entry->{scontext}, $ev->{scontext}, $mode);
+
+        if (exists $entry->{tcontext}) {
+            next if !_avc_ctx_match($entry->{tcontext}, $ev->{tcontext}, $mode);
+        }
+
+        if (exists $entry->{tclass}) {
+            next if ($entry->{tclass} // '') ne ($ev->{tclass} // '');
+        }
+
+        return 1;
+    }
+
+    return 0;
+}
+
+=head2 record_avc_selinux_alerts
+
+List AVCs that have been recorded during a runtime of a test module that executes this function
+
+=cut
+
+sub record_avc_selinux_alerts {
+    my $self = shift;
+
+    return if (current_console() !~ /root|log/);
+    return if (script_run('test -d /sys/fs/selinux') != 0);
+
+    my @logged = split(/\n/, script_output('ausearch -m avc,user_avc,selinux_err,user_selinux_err -r',
+            timeout => 300, proceed_on_failure => 1));
+
+    if (scalar @logged <= $avc_record{start}) {
+        record_info('AVC', 'No AVCs were recorded');
+        return;
+    }
+
+    $avc_record{end} = scalar @logged - 1;
+    my @avc = @logged[$avc_record{start} .. $avc_record{end}];
+    $avc_record{start} = $avc_record{end} + 1;
+
+    return if !@avc;
+
+    my $whitelist = _load_avc_whitelist();
+
+    my (@permitted_raw, @unpermitted_raw);
+
+    for my $ln (@avc) {
+        my $events = _avc_parse_line($ln);
+
+        if (!@$events) {
+            push @unpermitted_raw, $ln;
+            next;
+        }
+
+        my $all_permitted = 1;
+        for my $ev (@$events) {
+            if (!_avc_is_permitted($ev, $whitelist)) {
+                $all_permitted = 0;
+                last;
+            }
+        }
+
+        if ($all_permitted) {
+            push @permitted_raw, $ln;
+        } else {
+            push @unpermitted_raw, $ln;
+        }
+    }
+
+    if (@unpermitted_raw) {
+        my $fail_on_denials = get_var('AVC_FAIL_ON_DENIALS', 0);
+
+        my $result = $fail_on_denials ? 'fail' : 'softfail';
+        record_info('AVC (unpermitted)', join("\n", @unpermitted_raw), result => $result);
+
+        if ($fail_on_denials && ($self->{post_fail_hook_running} == 0)) {
+            $self->result('fail');
+        }
     }
 }
 

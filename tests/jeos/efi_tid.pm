@@ -6,7 +6,7 @@
 # Summary: HotFix for UEFI SecureBoot issue for sle12sp5
 # Maintainer: QA-c <qa-c@suse.com>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi qw(select_console assert_script_run get_var);
 use utils qw(zypper_call);
 use power_action_utils qw(power_action);

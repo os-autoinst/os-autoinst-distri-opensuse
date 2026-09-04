@@ -23,16 +23,13 @@ schedule:
   - installation/logs_from_installation_system
   - installation/reboot_after_installation
   - installation/handle_reboot
-  - installation/first_boot
+  - security/boot_disk
   - console/hostname
   - console/system_prepare
   - console/consoletest_setup
   - '{{repo_setup}}'
   - fips/fips_setup
   - console/force_scheduled_tasks
-  - shutdown/grub_set_bootargs
-  - shutdown/cleanup_before_shutdown
-  - shutdown/shutdown
 conditional_schedule:
   repo_setup:
     BETA:

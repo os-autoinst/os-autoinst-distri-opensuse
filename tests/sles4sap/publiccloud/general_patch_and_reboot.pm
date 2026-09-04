@@ -3,22 +3,52 @@
 # Copyright 2019 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: zypper
 # Summary: Refresh repositories, apply patches and reboot
-#
-# Maintainer: qa-c <qa-c@suse.de>
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings;
-use base 'sles4sap_publiccloud_basetest';
+=head1 NAME
+
+sles4sap/publiccloud/general_patch_and_reboot.pm - Refresh repositories, apply patches and reboot
+
+=head1 DESCRIPTION
+
+Refreshes repositories, applies all patches, and reboots the system.
+This is targeted at instances matching 'vmhana'.
+
+Its primary tasks are:
+
+- Connect to each 'vmhana' instance.
+- Kill PackageKit to release locks.
+- Refresh repositories (`zypper ref`).
+- Fully patch the system.
+- Reboot the instance.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_REBOOT_TIMEOUT>
+
+Timeout for the system reboot. Defaults to 600.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use Mojo::Base 'sles4sap::publiccloud_basetest';
 use testapi;
 use registration;
 use utils;
 use publiccloud::ssh_interactive qw(select_host_console);
-use publiccloud::utils qw(kill_packagekit is_azure);
+use publiccloud::utils qw(is_azure);
+use publiccloud::zypper qw(pc_refresh);
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {
@@ -34,8 +64,7 @@ sub run {
 
         my $cmd_time = time();
         my $ref_timeout = is_azure ? 3600 : 240;
-        kill_packagekit($instance);
-        $instance->ssh_script_retry("sudo zypper -n --gpg-auto-import-keys ref", timeout => $ref_timeout, retry => 6, delay => 60);
+        pc_refresh($instance, timeout => $ref_timeout, retry => 6, delay => 60);
         record_info('zypper ref time', 'The command zypper -n ref took ' . (time() - $cmd_time) . ' seconds.');
         record_soft_failure('bsc#1195382 - Considerable decrease of zypper performance and increase of registration times') if ((time() - $cmd_time) > 240);
 

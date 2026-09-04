@@ -7,18 +7,20 @@
 # Summary: Test ctdb resource agent
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;
-use version_utils 'is_sle';
+use serial_terminal qw(select_serial_terminal);
+use version_utils qw(is_sle);
 use utils qw(systemctl file_content_replace zypper_call);
+use network_utils qw(iface);
 
 sub run {
     # Exit of this module if we are in a maintenance update not related to samba
     return 1 if is_not_maintenance_update('samba');
+
+    select_serial_terminal;
 
     my $cluster_name = get_cluster_name;
     my $vip_ip = '10.0.2.20';
@@ -33,13 +35,14 @@ sub run {
         my $nmb_rsc = 'nmb';
         my $smb_rsc = 'smb';
         my $ip_rsc = 'vip';
+        my $iface = iface();
         my @node_list;
 
         foreach my $node (1 .. get_node_number) {
             my $node_ip = get_ip(choose_node($node));
             push @node_list, $node_ip;
         }
-        assert_script_run 'echo -e "' . join("\n", @node_list) . '" > /etc/ctdb/nodes';
+        assert_script_run 'echo -e "' . join("\\n", @node_list) . '" > /etc/ctdb/nodes';
 
         # Make sure samba is installed
         zypper_call 'in samba';
@@ -69,7 +72,7 @@ sub run {
             assert_script_run "crm configure property maintenance-mode=true";
 
             # Create vip resource
-            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ip_rsc IPaddr2 params ip='$vip_ip' nic='eth0' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
+            assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ip_rsc IPaddr2 params ip='$vip_ip' nic='$iface' cidr_netmask='24' broadcast='10.0.2.255''\" crm configure edit";
 
             # Add ctdb, nmb, smb, group, clone and order resources
             assert_script_run "EDITOR=\"sed -ie '\$ a primitive $ctdb_rsc CTDB params ctdb_manages_winbind=false ctdb_manages_samba=false ctdb_recovery_lock='$ctdb_folder/ctdb.lock' ctdb_socket='$ctdb_socket''\" crm configure edit";
@@ -91,14 +94,14 @@ sub run {
             assert_script_run "ctdb status";
 
             # Add SMB password for root
-            enter_cmd "smbpasswd -a root ; echo smbpasswd-finished-\$? > /dev/$serialdev";
-            assert_screen 'smbpasswd-password', $ctdb_timeout;
+            enter_cmd "smbpasswd -a root ; echo smbpasswd-finished-\$?";
+            die "No SMB password prompt in [$ctdb_timeout] seconds" unless (wait_serial(qr/New SMB password:/, $ctdb_timeout));
             type_password;
             send_key 'ret';
-            assert_screen 'smbpasswd-confirm-password', $ctdb_timeout;
+            die "No Retype SMB password prompt in [$ctdb_timeout] seconds" unless (wait_serial(qr/Retype new SMB password:/, $ctdb_timeout));
             type_password;
             send_key 'ret';
-            wait_serial("smbpasswd-finished-0", $ctdb_timeout);
+            die 'Could not set smbpassword' unless (wait_serial(qr/smbpasswd-finished-0/, $ctdb_timeout));
             save_screenshot;
         }
     }
@@ -109,11 +112,11 @@ sub run {
     # Tests done by a client server
     if (check_var('CTDB_TEST_ROLE', 'client')) {
         # Mount the shared filesystem and test access
-        enter_cmd "mount -t cifs //$vip_ip/ctdb /mnt/ -o rw,user=root ; echo smbmount-finished-\$? > /dev/$serialdev";
-        assert_screen 'smbmount-password', $ctdb_timeout;
+        enter_cmd "mount -t cifs //$vip_ip/ctdb /mnt/ -o rw,user=root ; echo smbmount-finished-\$?";
+        die 'No password prompt in mount' unless (wait_serial(qr/Password for root@/, $ctdb_timeout));
         type_password;
         send_key 'ret';
-        wait_serial("smbmount-finished-0", $ctdb_timeout);
+        die 'Failed to mount CIFS share' unless (wait_serial(qr/smbmount-finished-0/, $ctdb_timeout));
         assert_script_run "cd /mnt; ls -altrh";
         save_screenshot;
 

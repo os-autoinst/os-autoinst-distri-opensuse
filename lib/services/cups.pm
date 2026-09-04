@@ -11,13 +11,14 @@ package services::cups;
 use base 'opensusebasetest';
 use testapi;
 use utils;
+use package_utils 'install_package';
 use strict;
 use warnings;
 
 my $service_type = 'Systemd';
 
 sub install_service {
-    zypper_call("in cups", exitcode => [0, 102, 103]);
+    install_package("cups", exitcode => [0, 102, 103], trup_reboot => 1);
 }
 
 sub config_service {

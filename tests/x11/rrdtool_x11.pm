@@ -14,20 +14,22 @@
 #
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils 'is_sle';
+use x11utils qw(close_gui_terminal default_gui_terminal);
+
+
 
 sub verify_rrd_image {
     my $rrdtool_image = shift;
+    my $defaut_terminal = (is_sle) ? "xterm" : default_gui_terminal;
     send_key("alt-f2");
     enter_cmd("eog /tmp/rrdtool/${rrdtool_image}.png");
     assert_screen "rrdtool_image_${rrdtool_image}";
     send_key 'alt-f4';
-    assert_screen "rrdtool_xterm";
+    assert_screen "rrdtool_$defaut_terminal";
 }
 
 sub rrdtool_update {
@@ -37,7 +39,7 @@ sub rrdtool_update {
 
 sub run {
     select_console 'x11';
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
     quit_packagekit;
     # create a tmp dir/files to work
@@ -80,7 +82,7 @@ sub run {
 
     #clean files.
     assert_script_run "cd ; rm -rf /tmp/rrdtool";
-    send_key 'alt-f4';
+    close_gui_terminal;
 }
 
 1;

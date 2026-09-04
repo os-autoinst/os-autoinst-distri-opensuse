@@ -10,9 +10,7 @@
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
 
-use base 'wickedbase';
-use strict;
-use warnings;
+use Mojo::Base 'wickedbase';
 use testapi;
 use network_utils 'ifc_exists';
 use utils 'file_content_replace';

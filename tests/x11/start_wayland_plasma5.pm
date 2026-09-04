@@ -7,12 +7,10 @@
 # Summary: Prepare for wayland and log out of X11 and into wayland
 # Maintainer: Fabian Vogt <fvogt@suse.com>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
-use x11utils 'handle_login';
+use x11utils qw(handle_login update_x11_vt);
 
 sub run {
     my ($self) = @_;
@@ -39,11 +37,7 @@ sub run {
     handle_login;
 
     # We're now in a wayland session, which is in a different VT
-    x11_start_program('xterm');
-    my $tty = script_output('echo $XDG_VTNR');
-    send_key("alt-f4");    # close xterm
-
-    console('x11')->set_tty(int($tty));
+    update_x11_vt;
 }
 
 sub test_flags {

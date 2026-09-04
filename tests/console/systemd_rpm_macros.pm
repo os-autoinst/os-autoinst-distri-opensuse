@@ -5,13 +5,11 @@
 
 # Summary: systemd-rpm-macros test
 #          - call a list of macros to make sure they are available (list taken from manual testing report)
-#          - if Tumbleweed or SLE >= 15, also download sources and install multipath-tools to run some macros
+#          - SLE >= 15, also download sources and install multipath-tools to run some macros
 #
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -37,15 +35,20 @@ sub run {
 
     # Test build of multipath-tools on tw, or SLE >= 15
     if (is_sle '>=15') {
+        my $repo_name_pattern = "Basesystem.*Source";
+        if (is_sle '>=16.0') {
+            $repo_name_pattern = "SLE-Product.*Source";
+        }
+        my $source_repo = script_output(qq(zypper lr|awk '/$repo_name_pattern/ {print \$5}'));
         # enable & disable source repo for multipat-tools source
-        assert_script_run(q(zypper mr -e --refresh $(zypper lr|awk '/Basesystem.*Source/ {print$5}')));
+        if ($source_repo) {
+            assert_script_run(qq(zypper mr -e --refresh $source_repo));
+        }
         zypper_call("--gpg-auto-import-keys ref", 300) if (get_var('FIPS') || get_var('FIPS_ENABLED'));
         build_mt();
-        assert_script_run(q(zypper mr -d $(zypper lr|awk '/Basesystem.*Source/ {print$5}')));
-    } elsif (is_tumbleweed) {
-        zypper_call("ar -f http://download.opensuse.org/source/tumbleweed/repo/oss/ my-source-repo");
-        build_mt();
-        zypper_call("rr my-source-repo");
+        if ($source_repo) {
+            assert_script_run(qq(zypper mr -d $source_repo));
+        }
     }
 }
 1;

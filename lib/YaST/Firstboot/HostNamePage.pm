@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods for Host Name page
 # in Firstboot Configuration
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::Firstboot::HostNamePage;
 use parent 'Installation::Navigation::NavigationBase';

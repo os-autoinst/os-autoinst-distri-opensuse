@@ -21,7 +21,7 @@ use version_utils qw(is_sle is_microos is_public_cloud is_transactional is_sle_m
 use registration qw(add_suseconnect_product get_addon_fullname);
 use transactional qw(trup_call check_reboot_changes);
 
-our @EXPORT = qw(install_k3s uninstall_k3s install_kubectl install_helm apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
+our @EXPORT = qw(check_k3s install_k3s uninstall_k3s install_kubectl install_helm apply_manifest wait_for_k8s_job_complete wait_for_pod_ready find_pods validate_pod_log get_pod_logs gather_k8s_logs dump_k3s_debug_info);
 
 sub check_k3s {
     record_info('k3s', "k3s version " . script_output("k3s --version") . " installed");
@@ -40,7 +40,7 @@ sub check_k3s {
     validate_script_output('k3s kubectl config get-users', qr/default/);
     validate_script_output('k3s kubectl config get-contexts --no-headers=true -o name', qr/default/);
     assert_script_run('k3s kubectl config view --raw');
-    validate_script_output_retry("k3s kubectl get nodes", qr/ Ready.*control-plane,master /, retry => 6, delay => 15, timeout => 90);
+    validate_script_output_retry("k3s kubectl get nodes", qr/ Ready.*control-plane/, retry => 6, delay => 15, timeout => 90);
     validate_script_output_retry("k3s kubectl get namespaces", qr/default.*Active/, timeout => 120, delay => 60, retry => 3);
 
     # the default service account should be ready by now
@@ -52,7 +52,7 @@ sub check_k3s {
 }
 
 sub ensure_k3s_start {
-    systemctl('start k3s');
+    systemctl('start k3s', timeout => 180);
     systemctl('is-active k3s');
 }
 
@@ -99,7 +99,7 @@ sub install_k3s {
     # github.com/k3s-io/k3s#5946 - The kubectl delete namespace helm-ns-413 command freezes and does nothing
     my $disables = '--disable=metrics-server';
     $disables .= ' --disable-helm-controller' unless (get_var('K3S_ENABLE_HELM_CONTROLLER'));
-    $disables .= ' --disable=traefik';
+    $disables .= ' --disable=traefik' unless get_var('K3S_ENABLE_TRAEFIK');
     $disables .= ' --disable=coredns' unless get_var('K3S_ENABLE_COREDNS');
 
     while (my ($key, $value) = each %k3s_args) {
@@ -112,9 +112,9 @@ sub install_k3s {
     if (get_var('K3S_INSTALL_UPSTREAM') || (is_sle || is_leap || is_sle_micro || is_leap_micro)) {
         if (is_tumbleweed && !is_microos) {
             zypper_call('in k3s-selinux');
-            record_soft_failure("gh#k3s-io/k3s#10876 - Support selinux on Tumbleweed");
         }
-        script_retry("curl -sfL https://get.k3s.io  -o install_k3s.sh", timeout => 180, delay => 60, retry => 3);
+        my $curl_opts = "-sfL --retry 3 --retry-delay 60 --retry-max-time 180";
+        assert_script_run("curl $curl_opts https://get.k3s.io -o install_k3s.sh");
         assert_script_run("sh install_k3s.sh $disables", timeout => 300);
         script_run("rm -f install_k3s.sh");
         zypper_call('in apparmor-parser') if is_sle('<15-SP4', get_var('HOST_VERSION', get_required_var('VERSION')));
@@ -155,27 +155,40 @@ Installs kubectl from the respositories
 =cut
 
 sub install_kubectl {
-    if (script_run("which kubectl") == 0) {
-        record_info('kubectl preinstalled', script_output('kubectl version --client'));
-        return;
-    }
+    return if (script_run("which kubectl") == 0);
+    my $k8s_version = shift;
 
-    # kubectl is in the container module
-    add_suseconnect_product(get_addon_fullname('contm')) if (is_sle("<16"));
-    my $k8s_pkg = get_var('K8S_CLIENT', 'kubernetes-client-provider');
-    if (!get_var('K8S_CLIENT') && (is_sle || is_sle_micro)) {
-        die '"K8S_CLIENT" was not set in test suite definition';
+    if (is_sle(">=16.0")) {
+        my $arch = (get_required_var("ARCH") eq "x86_64") ? "amd64" : "arm64";
+        $k8s_version = $k8s_version ? $k8s_version : script_output("curl -L -s https://dl.k8s.io/release/stable.txt");
+        assert_script_run "curl -Lo /usr/local/bin/kubectl 'https://dl.k8s.io/release/$k8s_version/bin/linux/$arch/kubectl'";
+        assert_script_run 'chmod +x /usr/local/bin/kubectl';
+    } else {
+        # kubectl is in the container module
+        add_suseconnect_product(get_addon_fullname('contm')) if is_sle;
+        my $k8s_pkg = $k8s_version ? "kubernetes$k8s_version-client" : get_var('K8S_CLIENT', 'kubernetes-client-provider');
+        zypper_call("in -C $k8s_pkg");
+        record_info('kubectl version', script_output('kubectl version --client'));
     }
-    zypper_call("in -C $k8s_pkg");
-    record_info('kubectl version', script_output('kubectl version --client'));
 }
 
 =head2 install_helm
-Installs helm from our repositories
+Installs helm from our upstream or repositories
 =cut
 
 sub install_helm {
-    zypper_call("in helm");
+    return if (script_run("which helm") == 0);
+
+    if (get_var('HELM_INSTALL_UPSTREAM')) {
+        assert_script_run("curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3");
+        assert_script_run("chmod 700 get_helm.sh");
+        assert_script_run("./get_helm.sh");
+    } elsif (is_transactional) {
+        trup_call("pkg install helm");
+        check_reboot_changes;
+    } else {
+        zypper_call("in helm");
+    }
     record_info('helm', script_output("helm version"));
 }
 
@@ -194,8 +207,8 @@ sub apply_manifest {
     assert_script_run("kubectl apply -f $path");
 }
 
-=head2 find_pods
-Find pods using kubectl queries
+=head2 wait_for_k8s_job_complete
+Wait until the job is complete
 =cut
 
 sub wait_for_k8s_job_complete {
@@ -204,8 +217,44 @@ sub wait_for_k8s_job_complete {
     script_retry($cmd, retry => 5, timeout => 360, die => 1);
 }
 
-=head2 wait_for_k8s_job_complete
-Wait until the job is complete
+=head2 wait_for_pod_ready
+
+    wait_for_pod_ready(labels => "app=myapp", timeout => 60, delay => 12, retry => 5)
+    wait_for_pod_ready(pod_name => "myapp-12345", timeout => 60, delay => 12, retry => 5)
+
+    Waits until the Pod is in Ready status. You can specify either a label selector or the full Pod name.
+
+=cut
+
+sub wait_for_pod_ready {
+    my (%args) = @_;
+    unless ($args{labels} || $args{pod_name}) {
+        die "wait_for_pod_ready requires 'labels' or 'pod_name' arguments";
+    }
+    $args{timeout} //= 60;
+    $args{delay} //= 12;
+    $args{retry} //= 5;
+
+    my $selector = "";
+    $selector .= ($args{pod_name} . " ") if $args{pod_name};
+    $selector .= "-l $args{labels}" if $args{labels};
+
+    my $cmd = "kubectl get pod $selector"
+      . " -o jsonpath='{.items[0].status.conditions[?(@.type==\"Ready\")].status}'";
+
+    validate_script_output_retry(
+        $cmd,
+        sub { $_ eq 'True' },
+        retry => $args{retry},
+        delay => $args{delay},
+        timeout => $args{timeout},
+        fail_message => 'Pod with selector ' . $selector . ' did not become Ready'
+    );
+}
+
+
+=head2 find_pods
+Find pods using kubectl queries
 =cut
 
 sub find_pods {
@@ -220,6 +269,89 @@ Validates that the logs contains a text
 sub validate_pod_log {
     my ($pod, $text) = @_;
     validate_script_output("kubectl logs $pod 2>&1", qr/$text/, timeout => 180);
+}
+
+=head2 get_pod_name
+
+    Gets the full Pod name based on a Label and the Value of that Label.
+    e.g. get_pod_logs("component", "nginx")
+
+    We are getting the Pods by label instead of other methods as that makes it re-usable regardless of
+    Workload type, e.g. Deployments, StatefulSets, Jobs and etc. 
+
+=cut
+
+sub get_pod_name {
+    my ($label, $value) = @_;
+    return script_output("kubectl get pods --no-headers -l $label=$value -o custom-columns=':metadata.name'");
+}
+
+
+=head2 get_pod_logs
+
+    get_pod_logs($pod_name)
+    e.g. get_pod_logs("postgrest-7f9d46ff77-87hj4")
+
+    Gets the logs from a Pod running on Kubernetes and uploads them to the OpenQA Job.
+
+=cut
+
+sub get_pod_logs {
+    my ($pod_name) = @_;
+    my $logfile = "/tmp/$pod_name.txt";
+
+    assert_script_run("kubectl logs pods/$pod_name --all-containers=true > $logfile", timeout => 180, title => "$pod_name logs", fail_message => "Error getting $pod_name logs!");
+    upload_logs("$logfile");
+}
+
+=head2 get_namespace_events
+
+    Gets the Events from the currently active Kubernetes Namespace and uploads them to the OpenQA Job.
+
+=cut
+
+sub get_namespace_events {
+    my $logfile = "/tmp/namespace_events.txt";
+    assert_script_run("kubectl events > $logfile", timeout => 120, title => "K8s Events", fail_message => "Error getting K8s Events!");
+    upload_logs("$logfile");
+}
+
+=head2 gather_k8s_logs
+
+    gather_k8s_logs($label, @list_of_components)
+
+    Gets Events, general Pod status and specific Pod logs and uploads them to the OpenQA Job.
+
+=cut
+
+sub gather_k8s_logs {
+    my $label = shift;
+    my (@components) = @_;
+
+    script_run("kubectl get pods > /tmp/k8s_pods.txt");
+    upload_logs("/tmp/k8s_pods.txt");
+    get_namespace_events();
+
+    foreach my $component (@components) {
+        my $pod_name = get_pod_name($label, $component);
+        get_pod_logs($pod_name);
+    }
+
+}
+
+=head2 dump_k3s_debug_info
+
+    dump_k3s_debug_info()
+
+    Dumps k3s and kubectl status and logs for debugging purposes.
+
+=cut
+
+sub dump_k3s_debug_info {
+    record_info('K3s status', script_output('systemctl status k3s', proceed_on_failure => 1));
+    script_run('journalctl -u k3s --no-pager');
+    record_info("kubectl get all", script_output("kubectl get all --all-namespaces", proceed_on_failure => 1));
+    record_info("kubectl describe all", script_output("kubectl describe all --all-namespaces", proceed_on_failure => 1));
 }
 
 1;

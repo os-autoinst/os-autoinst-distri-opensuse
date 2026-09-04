@@ -7,14 +7,13 @@
 # Summary: Configure HANA-SR cluster
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;
+use network_utils qw(iface);
 use hacluster;
 use utils qw(write_sut_file systemctl file_content_replace);
-use strict;
-use warnings;
 
 sub hanasr_angi_hadr_providers_setup {
     # Setup SAPHanaSR-angi HA/DR providers and
@@ -59,6 +58,7 @@ sub run {
         my $cluster_conf = get_var('USE_SAP_HANA_SR_ANGI') ? 'angi_hana_cluster.conf' : "hana_cluster_$sles4sap::resource_alias.conf";
         assert_script_run 'curl -f -v ' . autoinst_url . "/data/sles4sap/$cluster_conf -o /tmp/$cluster_conf";
         $cluster_conf = '/tmp/' . $cluster_conf;
+        my $iface = get_var('SUT_NETDEVICE', iface());
 
         # Initiate the template
         file_content_replace($cluster_conf, '--sed-modifier' => 'g',
@@ -66,7 +66,8 @@ sub run {
             '%HDB_INSTANCE%' => $instance_id,
             '%AUTOMATED_REGISTER%' => get_required_var('AUTOMATED_REGISTER'),
             '%VIRTUAL_IP_ADDRESS%' => $virtual_ip,
-            '%VIRTUAL_IP_NETMASK%' => $virtual_netmask);
+            '%VIRTUAL_IP_NETMASK%' => $virtual_netmask,
+            '%NIC%' => $iface);
 
         foreach ($node1, $node2) {
             add_to_known_hosts($_);
@@ -136,6 +137,9 @@ sub run {
     $self->check_hanasr_attr;
     $self->check_landscape;
     assert_script_run 'cs_clusterstate';
+
+    # Check getting crm configuration by <sid>adm
+    check_crm_nonroot($sapadm);
 }
 
 1;

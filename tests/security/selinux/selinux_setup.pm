@@ -1,20 +1,17 @@
-# Copyright 2018-2025 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Setup environment for selinux tests.
 # Maintainer: QE Security <none@suse.de>
-# Tags: poo#40358, poo#105202, tc#1769801
+# Tags: poo#40358, poo#105202, tc#1769801, poo#197837
 
-use base 'selinuxtest';
-use strict;
-use warnings;
+use Mojo::Base 'selinuxtest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use power_action_utils 'power_action';
-use version_utils qw(is_sle is_leap is_tumbleweed is_sle_micro has_selinux);
+use version_utils qw(is_sle is_sle_micro has_selinux);
 use transactional qw(process_reboot trup_call);
-use Utils::Architectures;
 
 sub get_policy_date {
     if (is_sle('>=15') && is_sle('<15-sp4')) {
@@ -37,9 +34,7 @@ sub install_pkgs {
     );
     zypper_install_available "@pkgs";
 
-    # For sle15 and sle15+ "selinux-policy-*" pkgs will not be released
-    # NOTE 1: we have to install "selinux-policy-minimum-*" pkg due to this bug: bsc#1108949
-    # NOTE 2: we have to install policy packages separately due to this bug: bsc#1177675
+    # For SLE15.X "selinux-policy-*" pkgs will not be released, installing from private source
     if (is_sle('>=15')) {
         my $policy_date = get_policy_date();
         my $policy_archive = $policy_date ? "selinux-$policy_date.tgz" : 'none';
@@ -51,6 +46,18 @@ sub install_pkgs {
 
 sub run {
     my ($self) = @_;
+    # On SLE16 selinux is preinstalled, skip selinux setup if
+
+    if (is_sle('>=16')) {
+        select_serial_terminal;
+        validate_script_output("sestatus", sub { m/.*Current\ mode:\ .*enforcing/sx });
+        # After update, clean the audit log to make suere there aren't any leftovers that were already fixed
+        # see poo181403 and poo#200766
+        assert_script_run 'tar czf /tmp/audit_before.tgz /var/log/audit';
+        upload_logs '/tmp/audit_before.tgz';
+        assert_script_run 'rm -f /var/log/audit/* /tmp/audit_before.tgz';
+        return 1;
+    }
 
     # on SLE Micro selinux is enabled and set to enforcing by default
     if (is_sle_micro('>=6.0')) {
@@ -58,8 +65,8 @@ sub run {
         trup_call('pkg install policycoreutils-python-utils');
         process_reboot(trigger => 1);
     } else {
-        # In CC testing, the root login will be disabled, so we need to use select_console
-        is_s390x() ? select_console 'root-console' : select_serial_terminal;
+        # Switched to serial console everywhere due to random errors on s390x and aarch64
+        select_serial_terminal;
 
         install_pkgs;
 
@@ -78,6 +85,11 @@ sub run {
         validate_script_output('sestatus', sub { m/SELinux status: .*$expected_state/ }, fail_message => $fail_msg);
 
         $self->set_sestatus('permissive', 'minimum') unless has_selinux();
+        if (is_sle('=15-SP6') || is_sle('=15-SP7')) {
+            # https://progress.opensuse.org/issues/194768
+            assert_script_run("semanage fcontext -a -t lib_t '/usr/lib(64)?/systemd/libsystemd.+'");
+            assert_script_run("restorecon -vR /usr/lib/systemd /usr/lib64/systemd", timeout => 600);
+        }
     }
 }
 

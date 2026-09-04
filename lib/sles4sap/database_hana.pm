@@ -16,6 +16,7 @@ use sles4sap::sapcontrol;
 
 our @EXPORT = qw(
   hdb_stop
+  hdb_info
   wait_for_failed_resources
   wait_for_takeover
   register_replica
@@ -67,6 +68,30 @@ sub hdb_stop {
     # Wait Hana processes to stop
     sapcontrol_process_check(instance_id => $args{instance_id}, expected_state => 'stopped', wait_for_state => 'yes', timeout => $stop_timeout);
     record_info('DB stopped');
+}
+
+=head2 hdb_info
+
+    hdb_info([switch_user=>'sidadm']);
+
+List hana database processes using C<HDB info> command. Returns command output.
+Function expects to be executed as sidadm, however you can use B<switch_user> to execute command using C<sudo su ->
+as a different user.
+
+=over
+
+=item * B<switch_user>: Execute command as specified user with help of C<sudo su ->. Default: undef
+
+=item * B<quiet>: Execute C<script_output> with quiet=>'true'. Default: undef
+
+=back
+
+=cut
+
+sub hdb_info {
+    my (%args) = @_;
+    my $cmd = $args{switch_user} ? qq/sudo su - $args{switch_user} -c "HDB info"/ : 'HDB info';
+    return script_output($cmd, quiet => $args{quiet});
 }
 
 =head2 wait_for_failed_resources

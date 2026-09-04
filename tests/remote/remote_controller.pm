@@ -7,9 +7,7 @@
 # Tags: poo#9576
 # Maintainer: Martin Loviska <mloviska@suse.com>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use mm_network;

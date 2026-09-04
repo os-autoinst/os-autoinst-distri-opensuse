@@ -12,11 +12,10 @@
 #
 # Maintainer: João Walter Bruno Filho <bfilho@suse.com>
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
+use x11utils qw(close_gui_terminal default_gui_terminal);
 
 sub exiv2_info_test {
 
@@ -73,12 +72,8 @@ sub exiv2_info_test {
 
 sub run {
     select_console "x11";
-    x11_start_program('xterm');
-
-    #prepare
-    become_root;
-    quit_packagekit;
-    zypper_call "in exiv2";
+    ensure_installed("exiv2 eog");
+    x11_start_program(default_gui_terminal);
 
     #Get assets to local directory
     assert_script_run "wget --quiet " . data_url('exiv2/test.jpg') . " -O test.jpg";
@@ -106,7 +101,7 @@ sub run {
     # clean-up
     assert_script_run "rm 20190201_154421.jpg";
     assert_script_run "rm 20190201_154421-preview1.jpg";
-    send_key "alt-f4";
+    close_gui_terminal;
 }
 
 1;

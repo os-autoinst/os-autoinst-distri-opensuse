@@ -5,9 +5,7 @@
 # Summary: Setup ZNC IRC bouncer as proxy to freenode
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(zypper_call systemctl);
 

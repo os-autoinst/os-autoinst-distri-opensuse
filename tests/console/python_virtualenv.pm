@@ -16,14 +16,13 @@
 # Summary: testsuite python3-virtualenv
 # Maintainer: QE Core <qe-core@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils;
 use python_version_utils;
 use utils "zypper_call";
+use package_utils 'install_package';
 use feature qw(signatures);
 no warnings qw(experimental::signatures);
 
@@ -38,7 +37,10 @@ sub run {
     # Run the package creation and install test for system python
     run_tests($system_python_version);
     # Test all available new python3 versions in SLEs if any
-    if (is_sle() || is_leap('>15.5')) { run_tests($_) foreach (get_available_python_versions()); }
+    if (is_sle() || is_leap('>15.5')) {
+        my @other_versions = grep { $_ ne $system_python_version } get_available_python_versions();
+        run_tests($_) foreach (@other_versions);
+    }
 }
 
 sub run_tests ($python3_spec_release) {
@@ -53,10 +55,11 @@ sub run_tests ($python3_spec_release) {
         record_info("Skip! either $python3_spec_release-pipx or $python3_spec_release-virtualenv doesn't exist");
         return;
     }
-    zypper_call("in $python3_spec_release-pipx $python3_spec_release-virtualenv");
+    install_package("$python3_spec_release-pipx $python3_spec_release-virtualenv", trup_reboot => 1);
     # create a virtual environment named myenv using virtualenv with Python 3.11 and activate it
     my $python_binary = get_python3_binary($python3_spec_release);
     my $version_number = (split("python", $python_binary))[1];
+    assert_script_run "cd /root/data" if is_transactional;
     assert_script_run("pipx run --python=$python_binary virtualenv myenv");
     assert_script_run("source myenv/bin/activate");
     # Install build tools and build, install the package locally
@@ -80,11 +83,9 @@ sub uninstall_package ($version_number) {
 
 sub cleanup {
     if (is_sle()) {
-        foreach my $python_version (get_available_python_versions()) {
-            zypper_call("rm $python_version-base", exitcode => [0, 104]);
-        }
+        remove_installed_pythons();
     }
-    assert_script_run("cd ..");
+    assert_script_run("cd /root");
     script_run("rm -r data");
 }
 

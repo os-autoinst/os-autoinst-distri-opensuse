@@ -5,13 +5,14 @@
 
 # Summary: Helper class for Azure connection and authentication
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 package publiccloud::azure_client;
 use Mojo::Base -base;
 use testapi;
 use utils;
 use publiccloud::utils;
+use version_utils qw(is_sle);
 
 has subscription => sub { get_var('PUBLIC_CLOUD_AZURE_SUBSCRIPTION_ID') };
 has region => sub { get_required_var('PUBLIC_CLOUD_REGION') };
@@ -20,8 +21,9 @@ has credentials_file_content => undef;
 has container_registry => sub { get_var('PUBLIC_CLOUD_CONTAINER_IMAGES_REGISTRY', 'suseqectesting') };
 
 sub init {
-    my ($self) = @_;
-    my $data = get_credentials('azure.json');
+    my ($self, %args) = @_;
+    $args{namespace} //= get_required_var('PUBLIC_CLOUD_NAMESPACE');
+    my $data = get_credentials(url_suffix => 'azure.json', namespace => $args{namespace});
     $self->subscription($data->{subscription_id});
     define_secret_variable("ARM_SUBSCRIPTION_ID", $self->subscription);
     define_secret_variable("ARM_CLIENT_ID", $data->{client_id});
@@ -40,13 +42,23 @@ sub init {
           . '"galleryEndpointUrl": "https://gallery.azure.com/", ' . $/
           . '"managementEndpointUrl": "https://management.core.windows.net/" ' . $/
           . '}');
+    if (is_sle(">=16")) {
+        my $debug = "az-cli-debug.txt";
+        script_run("PILOT_DEBUG=1 az %silent --help &> $debug");
+        upload_logs($debug, failok => 1);
+        script_run("rpm -qi az-cli-cmd");
+    }
+    record_info("az version", script_output("az version"));
+
     $self->az_login();
     assert_script_run("az account set --subscription \$ARM_SUBSCRIPTION_ID");
 }
 
 sub az_login {
     my ($self) = @_;
-    my $login_cmd = "while ! az login --service-principal -u \$ARM_CLIENT_ID -p \$ARM_CLIENT_SECRET -t \$ARM_TENANT_ID; do sleep 10; done";
+    # Remove survey and telemetry messages which can mangle JSON outputs.
+    assert_script_run('az config set core.survey_message=false core.collect_telemetry=no --only-show-errors --output json', timeout => 240);
+    my $login_cmd = "while ! az login --service-principal -u \$ARM_CLIENT_ID -p \$ARM_CLIENT_SECRET -t \$ARM_TENANT_ID -o none 1>/dev/null 2>&1; do sleep 10; done";
 
     assert_script_run($login_cmd, timeout => 5 * 60);
 }

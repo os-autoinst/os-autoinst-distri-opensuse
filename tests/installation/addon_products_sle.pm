@@ -7,9 +7,7 @@
 # Summary: Add add-on via DVD, network or DUD during installation
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use strict;
-use warnings;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use Utils::Backends;
 use utils qw(addon_license handle_untrusted_gpg_key assert_screen_with_soft_timeout);
@@ -34,6 +32,10 @@ sub handle_all_packages_medium {
     unless (is_sle('15-SP2+')) {
         push @addons, $sle_prod if !grep(/^$sle_prod$/, @addons);
     }
+
+    # For sles 15-SP6 and SP7, systems-management is the default product should be installed.
+    push @addons, 'sysm' if (is_sle('>=15-SP6'));
+
     # Select Desktop-Applications module if gnome is wanted
     push @addons, 'desktop' if check_var('DESKTOP', 'gnome') && !grep(/^desktop$/, @addons);
 

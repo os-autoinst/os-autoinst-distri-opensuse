@@ -16,6 +16,7 @@ use strict;
 use warnings;
 use testapi;
 use utils;
+use package_utils qw(install_package uninstall_package);
 use version_utils qw(is_sle is_leap check_version is_tumbleweed is_jeos);
 use Utils::Architectures qw(is_aarch64);
 
@@ -38,7 +39,7 @@ sub setup_apache2 {
     my %args = @_;
     my $mode = uc $args{mode} || "";
     # package hostname is available on sle15+ and openSUSE, on <15 it's net-tools
-    my @packages = qw(/bin/hostname);
+    my @packages = is_sle('<15') ? qw(net-tools) : qw(hostname);
     push @packages, get_var('APACHE2_PKG', "apache2");
 
     # For gensslcert
@@ -53,20 +54,26 @@ sub setup_apache2 {
 
     if ($mode eq "PHP5") {
         push @packages, qw(apache2-mod_php5 php5);
-        zypper_call("rm -u apache2-mod_php{7,8} php{7,8}", exitcode => [0, 104]);
+        if (script_run('rpm -qa | grep -E "php[78]"') == 0) {
+            uninstall_package("apache2-mod_php7 apache2-mod_php8 php7 php8", exitcode => [0, 104], trup_reboot => 1);
+        }
     }
     elsif ($mode eq "PHP7") {
         push @packages, qw(apache2-mod_php7 php7);
-        zypper_call("rm -u apache2-mod_php{5,8} php{5,8}", exitcode => [0, 104]);
+        if (script_run('rpm -qa | grep -E "php[58]"') == 0) {
+            uninstall_package("apache2-mod_php5 apache2-mod_php8 php5 php8", exitcode => [0, 104], trup_reboot => 1);
+        }
     }
     elsif ($mode eq "PHP8") {
         push @packages, qw(apache2-mod_php8 php8-cli);
-        zypper_call("rm -u apache2-mod_php{5,7} php{5,7}", exitcode => [0, 104]);
+        if (script_run('rpm -qa | grep -E "php[57]"') == 0) {
+            uninstall_package("apache2-mod_php5 apache2-mod_php7 php5 php7", exitcode => [0, 104], trup_reboot => 1);
+        }
     }
 
     # Make sure the packages are installed
     my $timeout = is_aarch64 ? 1200 : 300;
-    zypper_call("--no-gpg-checks in @packages", timeout => $timeout);
+    install_package("@packages", trup_continue => 1, trup_reboot => 1, timeout => $timeout) if (script_run("rpm -q @packages") != 0);
 
     # Enable php5
     if ($mode eq "PHP5") {
@@ -144,7 +151,11 @@ sub setup_apache2 {
 "expect -c 'spawn systemctl start apache2; expect \"Enter SSL pass phrase for NSS FIPS 140-2 Certificate DB (NSS)\"; send \"$nsspasswd\\n\"; interact'";
     }
     else {
-        systemctl 'start apache2';
+        if (systemctl 'start apache2', ignore_failure => 1) {
+            record_info('poo#179678', 'Job for apache2.service may fail because start of the service was attempted too often');
+            sleep 5;
+            systemctl 'start apache2';
+        }
     }
     systemctl 'is-active apache2';
 
@@ -274,6 +285,10 @@ sub test_pgsql {
     assert_script_run 'sudo chsh postgres -s /bin/bash';
     enter_cmd "su - postgres", wait_still_screen => 1;
     enter_cmd "PS1='# '", wait_still_screen => 1;
+    # The login shell of $user does not have the openQA prompt hook for
+    # PRETTY_SERIAL_MARKER in its ~/.bashrc yet, so force a re-install on the
+    # next command, same as become_root does. poo#205122
+    $testapi::distri->invalidate_serial_marker_hook();
     # upgrade db from oldest version to latest version
     if (script_run('test $(sudo update-alternatives --list postgresql|wc -l) -gt 1') == 0) {
         assert_script_run 'for v in $(sudo update-alternatives --list postgresql); do rpm -q ${v##*/};done';
@@ -335,7 +350,7 @@ EOF
         }
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data stop';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_OLDEST';
-        assert_script_run 'initdb -D /tmp/psql';
+        assert_script_run 'initdb --data-checksums -D /tmp/psql';
         assert_script_run 'pg_ctl -D /tmp/psql start';
         if (script_run('pg_ctl -D /tmp/psql status')) {
             record_info('status', 'wait 5s more before status query');
@@ -344,7 +359,7 @@ EOF
         }
         assert_script_run 'pg_ctl -D /tmp/psql stop';
         assert_script_run 'sudo update-alternatives --set postgresql $PG_LATEST';
-        assert_script_run 'initdb -D /var/lib/pgsql/data2';
+        assert_script_run 'initdb --data-checksums -D /var/lib/pgsql/data2';
         assert_script_run 'pg_upgrade -b $PG_OLDEST/bin/ -B $PG_LATEST/bin/ -d /tmp/psql -D /var/lib/pgsql/data2';
         assert_script_run 'pg_ctl -D /var/lib/pgsql/data2 start';
         my $analyze = is_sle('=12-sp2') ? './analyze_new_cluster.sh' : 'vacuumdb --all --analyze-in-stages';
@@ -425,7 +440,7 @@ sub postgresql_cleanup {
     systemctl 'disable postgresql';
     systemctl 'is-active postgresql', expect_false => 1;
     assert_script_run('kill -s KILL $(ps -u postgres -o pid=)') unless script_run('ps -u postgres -o pid=');
-    zypper_call "rm postgresql";
+    uninstall_package("postgresql", trup_reboot => 1);
 }
 
 1;

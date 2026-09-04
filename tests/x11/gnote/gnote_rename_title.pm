@@ -12,9 +12,7 @@
 # Maintainer: Xudong Zhang <xdzhang@suse.com>
 # Tags: tc#1436169
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils qw(is_sle is_tumbleweed);
 

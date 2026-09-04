@@ -6,8 +6,7 @@
 # Package: dovecot postfix openssl
 # Summary: Setup dovecot and postfix servers as backend for evolution
 # - Stop packagekit service
-# - Install dovecot if DOVECOT_REPO is defined or it is sled. Otherwise, install
-#   dovecot and postfix and start the later
+# - Install on SLED dovecot from Server Apllications module else install dovecot and postfix
 # - Configure dovecot enabling ssl and for use of plain login
 # - Enable postix smtp auth in dovecot and generate certificates
 # - Configure postfix enabling tls, smtpd sasl and hostname as localhost
@@ -15,39 +14,47 @@
 # - Create 2 test users: admin and nimda
 # Maintainer: Petr Cervinka <pcervinka@suse.com>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils qw(is_sle is_jeos is_opensuse is_public_cloud);
+use version_utils qw(is_sle is_jeos is_opensuse is_public_cloud is_leap);
 
 sub run() {
     select_serial_terminal;
 
     quit_packagekit;
 
-    if (check_var('SLE_PRODUCT', 'sled') || get_var('DOVECOT_REPO')) {
-        my $dovecot_repo = get_required_var("DOVECOT_REPO");
-        # Add dovecot repository and install dovecot
-        zypper_call("ar -f ${dovecot_repo} dovecot_repo");
+    if (check_var('SLE_PRODUCT', 'sled')) {
+        my $version = get_var('VERSION');
+        # Add server-applications to get dovecot, dovecot or server applications repo is not available on SLE Desktop
+        zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Updates/SLE-Module-Server-Applications/$version/x86_64/update/ sle-module-server-applications:${version}::pool");
+        zypper_call("ar -f http://dist.suse.de/ibs/SUSE/Products/SLE-Module-Server-Applications/$version/x86_64/product/ sle-module-server-applications:${version}::update");
 
         zypper_call("--gpg-auto-import-keys ref");
         zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);
-        zypper_call("rr dovecot_repo");
+        zypper_call("rr sle-module-server-applications:${version}::pool sle-module-server-applications:${version}::update");
     } else {
         if (is_opensuse) {
             # exim is installed by default in openSUSE, but we need postfix
             zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]);
             systemctl 'start postfix';
         }
-        zypper_call("in dovecot 'openssl(cli)'", exitcode => [0, 102, 103]);
+        zypper_call("in dovecot 'openssl(cli)' postfix", exitcode => [0, 102, 103]);
         zypper_call("in --force-resolution postfix", exitcode => [0, 102, 103]) if is_jeos;
     }
 
-    # configure dovecot
-    assert_script_run "sed -i -e 's/#mail_location =/mail_location = mbox:~\\/mail:INBOX=\\/var\\/mail\\/%u/g' /etc/dovecot/conf.d/10-mail.conf";
+    # Configure dovecot for sle16 and tumbleweed, see https://progress.opensuse.org/issues/182768
+    my $dovecot24 = !is_sle('<16') && !is_leap('<16.0');
+    if ($dovecot24) {
+        assert_script_run('cd /etc/dovecot');
+        assert_script_run('rm dovecot.conf');
+        # The sample configre files are downloaded from https://github.com/dovecot/tools/blob/main/dovecot-2.4.0-example-config.tar.gz
+        assert_script_run('curl -o dovecot.tar ' . data_url('dovecot.tar'));
+        assert_script_run('tar xf dovecot.tar');
+        assert_script_run('cd');
+    }
+    assert_script_run "sed -i -e 's/#mail_location =/mail_location = mbox:~\\/mail:INBOX=\\/var\\/mail\\/%u/g' /etc/dovecot/conf.d/10-mail.conf" unless $dovecot24;
     assert_script_run "sed -i -e 's/#mail_access_groups =/mail_access_groups = mail/g' /etc/dovecot/conf.d/10-mail.conf";
     assert_script_run "sed -i -e 's/#ssl_cert =/ssl_cert =/g' /etc/dovecot/conf.d/10-ssl.conf";
     assert_script_run "sed -i -e 's/#ssl_key =/ssl_key =/g' /etc/dovecot/conf.d/10-ssl.conf";
@@ -70,10 +77,13 @@ sub run() {
         $dovecot_path = "/usr/share/doc/packages/dovecot";
     }
 
+    # Provision our own dovecot-openssl.cnf see https://bugzilla.suse.com/show_bug.cgi?id=1244597
+    assert_script_run("cp /etc/dovecot/dovecot-openssl.cnf $dovecot_path") if $dovecot24;
     assert_script_run "(cd $dovecot_path; bash mkcert.sh)";
 
     # configure postfix
     assert_script_run "postconf -e 'smtpd_use_tls = yes'";
+    assert_script_run "postconf -e 'smtpd_tls_security_level = encrypt'" if $dovecot24;
     assert_script_run "postconf -e 'smtpd_tls_key_file = /etc/ssl/private/dovecot.pem'";
     assert_script_run "postconf -e 'smtpd_tls_cert_file = /etc/ssl/private/dovecot.crt'";
     assert_script_run "sed -i -e 's/#tlsmgr/tlsmgr/g' /etc/postfix/master.cf";
@@ -81,6 +91,7 @@ sub run() {
     assert_script_run "postconf -e 'smtpd_sasl_path = private/auth'";
     assert_script_run "postconf -e 'smtpd_sasl_type = dovecot'";
     assert_script_run "postconf -e 'myhostname = localhost'";
+    assert_script_run "postconf -e 'home_mailbox = Maildir/'" if $dovecot24;
 
     # start/restart services
     systemctl 'start dovecot';

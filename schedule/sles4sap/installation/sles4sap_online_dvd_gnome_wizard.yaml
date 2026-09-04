@@ -6,7 +6,7 @@ vars:
   INSTANCE_ID: '00'
   INSTANCE_SID: NDB
 schedule:
-  - boot/boot_from_pxe
+  - installation/bootloader_start
   - installation/welcome
   - installation/scc_registration
   - installation/addon_products_sle

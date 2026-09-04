@@ -8,9 +8,7 @@
 # Summary: Startup of rhythmbox
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils "zypper_call";
 use x11utils 'start_root_shell_in_xterm';

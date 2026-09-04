@@ -7,9 +7,7 @@
 # Summary: Server configurations to test curl .
 # Maintainer: Marcelo Martins <mmartins@@suse.com>
 
-use base 'opensusebasetest';
-use warnings;
-use strict;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use mmapi;

@@ -7,9 +7,7 @@
 #
 # Maintainer: QE Core <qe-core@suse.de>
 #
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use serial_terminal 'select_serial_terminal';
@@ -24,6 +22,12 @@ my $script_download_path = "~/test_pynacl.py";
 sub run_test {
     my ($python_package) = @_;
     my $pkg = "$python_package-PyNaCl";
+
+    if ($python_package eq 'python311' && is_sle('>=16.0')) {
+        # python311-setuptools is not available on sle16
+        record_info("Skip python311", 'Skip python311-PyNaCl test on SLE 16.0');
+        return;
+    }
 
     zypper_call("se $pkg");
 

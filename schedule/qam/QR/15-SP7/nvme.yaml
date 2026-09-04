@@ -1,0 +1,74 @@
+---
+name: nvme
+description: >
+  Basic installation test to confirm that installing and booting to an nvme as
+  your root disk works. Installation is validated by successful boot and that
+  YaST does not report any issue in first place. Smoke testing and validation of partitioning of NVMe.
+schedule:
+  - installation/bootloader_start
+  - installation/welcome
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning
+  - installation/partitioning_finish
+  - installation/installer_timezone
+  - installation/hostname_inst
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - installation/grub_test
+  - installation/first_boot
+  - console/system_prepare
+  - console/nvme_checks
+  - console/validate_partition_table_via_blkid
+  - console/validate_blockdevices
+  - console/validate_free_space
+  - console/validate_read_write
+test_data:
+  nvm_disk: nvme0n1
+  nvm_char_device: nvme0
+  nvme_sys_path: /sys/class/nvme
+  nvm_disk_size: 22.55
+  sn: hd0
+  model: QEMU NVMe Ctrl
+  namespace_count: 1
+  nvm_block_size: 512
+  nvm_ns: 0x1
+  disks:
+    - name: nvme0n1
+      table_type: gpt
+      partitions:
+        - name: nvme0n1p2
+          role: operating-system
+          partition_type: primary
+          formatting_options:
+            should_format: 1
+            filesystem: btrfs
+          mounting_options:
+            should_mount: 1
+            mount_point: /
+        - name: nvme0n1p3
+          role: data
+          partition_type: primary
+          formatting_options:
+            should_format: 1
+            filesystem: xfs
+          mounting_options:
+            should_mount: 1
+            mount_point: /home
+        - name: nvme0n1p4
+          role: swap
+          partition_type: primary
+          formatting_options:
+            should_format: 1
+            filesystem: swap
+          mounting_options:
+            should_mount: 1
+            mount_point: SWAP

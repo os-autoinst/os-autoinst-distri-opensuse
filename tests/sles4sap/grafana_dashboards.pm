@@ -6,10 +6,8 @@
 # Summary: Basic tests for HA & SAP grafana dashboards
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
-use strict;
-use warnings;
 use hacluster qw(get_my_ip);
 use registration;
 use utils qw(zypper_call systemctl);

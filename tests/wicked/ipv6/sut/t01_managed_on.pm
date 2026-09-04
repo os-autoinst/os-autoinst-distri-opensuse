@@ -9,9 +9,7 @@
 #             Jose Lausuch <jalausuch@suse.com>
 #             Clemens Famulla-Conrad <cfamullaconrad@suse.de>
 
-use base 'wickedbase';
-use strict;
-use warnings;
+use Mojo::Base 'wickedbase';
 use lockapi;
 
 sub run {

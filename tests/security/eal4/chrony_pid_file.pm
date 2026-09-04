@@ -7,12 +7,11 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#111386
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use eal4_test;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
@@ -21,6 +20,7 @@ sub run {
 
     select_console 'root-console';
     script_run('printf "# Starting chrony_pid test #\n" >> ' . $test_log_r . '');
+    select_serial_terminal;
 
     # The chrony pid file does not exist is the expected result
     script_run('printf "# Check chronyd status: active is the expected result #\n" >> ' . $test_log_r . '');
@@ -72,10 +72,6 @@ sub run {
 
     script_run('printf "\n# Ending chrony_pid test #\n" >> ' . $test_log_u . '');
     upload_log_file($test_log_u);
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

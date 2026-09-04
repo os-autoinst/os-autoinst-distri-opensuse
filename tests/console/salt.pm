@@ -18,9 +18,7 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: fate#318875, fate#320919
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call quit_packagekit systemctl);
@@ -43,8 +41,8 @@ sub run {
 
     quit_packagekit;
     my @packages = qw(salt-master);
-    # On SLE/Leap based Minimal-VM/Minimal-Image, salt-minion has to be preinstalled
-    push @packages, 'salt-minion' unless is_jeos && (is_sle || is_leap) && !is_community_jeos;
+    # On SLE/Leap < 16 based Minimal-VM/Minimal-Image, salt-minion has to be preinstalled
+    push @packages, 'salt-minion' unless (is_jeos && (is_sle("<16") || is_leap("<16"))) && !is_community_jeos;
     if (is_transactional) {
         trup_call("pkg in @packages");
         check_reboot_changes;

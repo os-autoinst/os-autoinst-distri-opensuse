@@ -17,10 +17,9 @@
 # - Exit xterm
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
-use strict;
-use warnings;
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
+use x11utils 'default_gui_terminal';
 
 sub run {
     my ($self) = @_;
@@ -31,12 +30,13 @@ sub run {
     assert_screen 'firefox-pagesaving-saveas';
     wait_still_screen 3;
     # on sle15 just one alt-s does not work
-    send_key_until_needlematch 'firefox-downloading-saving_dialog', 'alt-s', 4, 3;
+    assert_and_click 'firefox-downloading-saveas_click';
+    wait_still_screen 3;
 
     # Exit
     $self->exit_firefox;
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     send_key "ctrl-l";
     wait_still_screen 3;
     # look for file name "Internet for people, not profit",

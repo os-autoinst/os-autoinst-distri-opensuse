@@ -4,13 +4,12 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Simple RAID partitioning layout validation
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use Utils::Architectures;
+use Utils::Backends 'is_pvm';
 use version_utils 'is_sle';
 use Test::Assert ':all';
 
@@ -26,7 +25,7 @@ my $raid_partitions_2_arrays = qr/(md(0|1).*){8}|(md(0|1).*){2}/s;
 # 12 raid partitions, with new lsblk output partitions are listed only once
 my $raid_partitions_3_arrays = qr/(md(0|1|2).*){12}|(md(0|1|2).*){3}/s;
 # 8 linux raid members
-my $linux_raid_member_2_arrays = qr/((v|s)d(a|b|c|d)(2|3).+linux_raid_member.*){8}/s;
+my $linux_raid_member_2_arrays = qr/((v|s)d(a|b|c|d)(1|2|3).+linux_raid_member.*){8}/s;
 # 12 linux raid members
 my $linux_raid_member_3_arrays = qr/((v|s)d(a|b|c|d)(1|2|3|4).+linux_raid_member.*){12}/s;
 # 4 hard disks
@@ -52,19 +51,19 @@ my $raid0 = qr/\/dev\/md(1|2):.*?Raid Level : raid0/s;
 my $raid1 = qr/\/dev\/md1:.*?Raid Level : raid1/s;
 my @raid_detail = (
     # 4 RAID devices per RAID array
-    /(Raid Devices : 4.*){$num_raid_arrays}/s,
+    qr/(Raid Devices : 4.*){$num_raid_arrays}/s,
     # 4 active RAID devices per RAID array
-    /(Active Devices : 4.*){$num_raid_arrays}/s,
+    qr/(Active Devices : 4.*){$num_raid_arrays}/s,
     # 4 working RAID devices per RAID array
-    /(Working Devices : 4.*){$num_raid_arrays}/s,
+    qr/(Working Devices : 4.*){$num_raid_arrays}/s,
     # 1st raid device per RAID array, i.e.: /dev/vda2
-    /(0.*\/dev\/\w{2}a\d.*){$num_raid_arrays}/s,
+    qr/(0.*\/dev\/\w{2}a\d.*){$num_raid_arrays}/s,
     # 2nd raid device per RAID array, i.e.: /dev/vdb2
-    /(1.*\/dev\/\w{2}b\d.*){$num_raid_arrays}/s,
+    qr/(1.*\/dev\/\w{2}b\d.*){$num_raid_arrays}/s,
     # 3rd raid device per RAID array, i.e.: /dev/vdc2
-    /(2.*\/dev\/\w{2}c\d.*){$num_raid_arrays}/s,
+    qr/(2.*\/dev\/\w{2}c\d.*){$num_raid_arrays}/s,
     # 4th raid device per RAID array, i.e.: /dev/vdd2
-    /(3.*\/dev\/\w{2}d\d.*){$num_raid_arrays}/s,
+    qr/(3.*\/dev\/\w{2}d\d.*){$num_raid_arrays}/s,
 );
 # Store test data to test expected partitioning/raid in specific architecture/product
 my (
@@ -73,7 +72,7 @@ my (
 );
 # Prepare test data depending on specific architecture/product
 sub prepare_test_data {
-    if (is_ppc64le || is_ppc64) {
+    if ((is_ppc64le || is_ppc64) && !is_sle('16+')) {
         @partitioning = (
             $raid_partitions_3_arrays, $hard_disks, $linux_raid_member_3_arrays,
             $ext4_boot,

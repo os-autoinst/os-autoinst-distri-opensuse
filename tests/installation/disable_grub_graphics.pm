@@ -6,9 +6,7 @@
 # Summary: On IPMI hardware we need to have clear grub
 # Maintainer: Stephan Kulow <coolo@suse.de>
 
-use strict;
-use warnings;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

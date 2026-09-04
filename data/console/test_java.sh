@@ -3,7 +3,7 @@
 # Variables Definition
 # --------------------
 PWD=$(/usr/bin/pwd)
-DIR="/var/tmp"
+DIR=$(mktemp -d)
 LIST_INSTALLED_IBM_VERSIONS="$DIR/javas_ibm"
 LIST_INSTALLED_JDK_VERSIONS="$DIR/javas_jdk"
 LIST_INSTALLED_GCJ_VERSIONS="$DIR/javas.gcj"
@@ -42,12 +42,25 @@ EOF
 
 # Remove unecessarry files
 clean_up() {
-    rm $LIST_INSTALLED_IBM_VERSIONS
-    rm $LIST_INSTALLED_JDK_VERSIONS
-    rm $RPM_QUERY_JAVA
-    rm $LIST_ALL_INSTALLED_VERSIONS
-    rm $HELLO_WORLD
+    for file in "$LIST_INSTALLED_IBM_VERSIONS" \
+                "$LIST_INSTALLED_JDK_VERSIONS" \
+                "$LIST_ALL_INSTALLED_VERSIONS" \
+                "$LIST_ALL_JAVAC_ALTERNATIVES" \
+                "$LIST_ALL_JAVAPLUGIN_ALTERNATIVES" \
+                "$RPM_QUERY_JAVA" \
+                "$HELLO_WORLD"; do
+
+        # Printing the file before deleting it, helps with debugging in case the script fails
+        if [[ -f "$file" ]]; then
+            echo "=== Contents of $file ==="
+            cat "$file"
+            rm "$file"
+            echo "=== end of $file ==="
+        fi
+    done
 }
+
+trap clean_up EXIT
 
 # Find each (already) installed java version
 find_all_installed_java() {
@@ -72,19 +85,41 @@ find_all_installed_java() {
     cat $LIST_INSTALLED_JDK_VERSIONS $LIST_INSTALLED_IBM_VERSIONS $LIST_INSTALLED_GCJ_VERSIONS > $LIST_ALL_INSTALLED_VERSIONS
 }
 
-# Save the ouput of "update-alternatives --list java"
+# Save the ouput of "alternatives_list_wrapper java"
 list_all_java_alternatives () {
-    update-alternatives --list java > $LIST_ALL_JAVA_ALTERNATIVES
+    alternatives_list_wrapper java > $LIST_ALL_JAVA_ALTERNATIVES
 }
 
-# Save the output of "update-alternatives --list javac"
+# Save the output of "alternatives_list_wrapper javac"
 list_all_javac_alternatives () {
-    update-alternatives --list javac > $LIST_ALL_JAVAC_ALTERNATIVES
+    alternatives_list_wrapper javac > $LIST_ALL_JAVAC_ALTERNATIVES
 }
 
-# Save the output of "update-alternatives --list javaplugin"
+# Save the output of "alternatives_list_wrapper javaplugin"
 list_all_javaplugin_alternatives () {
-    update-alternatives --list javaplugin > $LIST_ALL_JAVAPLUGIN_ALTERNATIVES
+    alternatives_list_wrapper javaplugin > $LIST_ALL_JAVAPLUGIN_ALTERNATIVES
+}
+
+# Saves the output of either update-alternatives or alts
+# in the case of alts, it stores with $priority:$binary as there are no symlinks, but
+# a binary wrapper that resolves which binary to call based on the priority configured
+alternatives_list_wrapper() {
+    if [[ "$ALTERNATIVES_PROVIDER" == "alts" ]]; then
+        alts -l "$1" | awk '/Priority.*Target/ {gsub(/[!*]/, "", $2); print $2 ":" $4}'
+    else
+        update-alternatives --list "$1"
+    fi
+}
+
+alternatives_set_wrapper() {
+    local alternative_priority="${2%%:*}"
+    local alternative_path="${2#*:}"
+    echo "Setting alternative for $1 $alternative_priority $alternative_path"
+    if [[ "$ALTERNATIVES_PROVIDER" == "alts" ]]; then
+        alts -n "$1" -p "$alternative_priority"
+    else
+        update-alternatives --set "$1" "$alternative_path"
+    fi
 }
 
 # Check if there's a 1:1 analogy with update-alternatives and the java versions
@@ -111,7 +146,6 @@ test_java_alternatives () {
 # java alternatives and the java pkgs installed
 test_javac_alternatives () {
     list_all_javac_alternatives
-#    java_versions=$(cat $LIST_ALL_INSTALLED_VERSIONS | wc -l)
     javac_versions=$(rpm -qa | grep 'java.*devel' | grep -c -vE 'debuginfo|32bit')
     javac_alternatives=$(wc -l < $LIST_ALL_JAVAC_ALTERNATIVES)
     if [ "$javac_versions" -eq "$javac_alternatives" ]; then
@@ -227,6 +261,15 @@ else
     echo "No Java versions found on the system"
     exit 1
 fi
+
+# Use java as the source of truth, if javac or javaplugin have a different
+# alternative provider, its a packaging error
+if [[ "$(realpath /usr/bin/java 2>/dev/null)" == "/usr/bin/alts" ]]; then
+    ALTERNATIVES_PROVIDER="alts"
+else
+    ALTERNATIVES_PROVIDER="update-alternatives"
+fi
+
 echo -e "\n------------------------------------------------------"
 echo "Test if there's an alternative per Java, Devel, Plugin"
 echo "------------------------------------------------------"
@@ -251,10 +294,10 @@ if [[ "$1" != "--transactional-server" ]]; then
         fi
         # Current java under test
         dot_version=$(echo $java_version | awk -F '-' '{print $2 "-" $3}' | sed 's/_/./g')
-        # Test if there's an alternativ for java, and if yes, set it as the current used one
+        # Test if there's an alternative for java, and if yes, set it as the current used one
         if grep -q $dot_version $LIST_ALL_JAVA_ALTERNATIVES; then
 	    java=$(grep $dot_version $LIST_ALL_JAVA_ALTERNATIVES)
-	    update-alternatives --set java $java
+	    alternatives_set_wrapper java "$java"
         else
 	    echo "Error: java alternative not found for $java_version"
 	    exit 1
@@ -262,7 +305,7 @@ if [[ "$1" != "--transactional-server" ]]; then
         # Test if there's an alternative for javac, and if yes, set it as the current used one
         if grep -q $dot_version $LIST_ALL_JAVAC_ALTERNATIVES; then
 	    javac=$(grep $dot_version $LIST_ALL_JAVAC_ALTERNATIVES)
-	    update-alternatives --set javac $javac
+	    alternatives_set_wrapper javac "$javac"
         else
 	    if echo $java_version | grep -q ibm; then
 	        if ! rpm -qa | grep 'java.*devel' | grep -v "32bit" | grep -q $dot_version; then
@@ -288,7 +331,7 @@ if [[ "$1" != "--transactional-server" ]]; then
 	    if echo $java_version | grep -q ibm; then
 	        if grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES > /dev/null; then
 		    javaplugin=$(grep $dot_version $LIST_ALL_JAVAPLUGIN_ALTERNATIVES)
-		    update-alternatives --set javaplugin $javaplugin
+		    alternatives_set_wrapper javaplugin "$javaplugin"
 	        else
 		    echo "Error: java plugin alternative not found for $java_version"
 		    exit 1
@@ -311,6 +354,3 @@ else
     echo "-----------------------------------------------------------------------------------------------------------------"
     compile_hello_world
 fi
-
-# Breakdown
-clean_up;

@@ -14,11 +14,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#81721, poo#95548, poo#97175, poo#101238, tc#1768659
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base qw(opensusebasetest consoletest);
 use testapi;
-use base 'consoletest';
 use version_utils 'is_sle';
 use utils 'zypper_call';
 

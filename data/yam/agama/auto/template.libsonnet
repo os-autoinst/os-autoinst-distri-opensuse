@@ -1,38 +1,91 @@
-local base_lib = import 'lib/base.libsonnet';
 local addons_lib = import 'lib/addons.libsonnet';
+local base_lib = import 'lib/base.libsonnet';
+local dasd_lib = import 'lib/dasd.libsonnet';
+local iscsi_lib = import 'lib/iscsi.libsonnet';
 local scripts_post_lib = import 'lib/scripts_post.libsonnet';
+local scripts_post_partitioning_lib = import 'lib/scripts_post_partitioning.libsonnet';
 local scripts_pre_lib = import 'lib/scripts_pre.libsonnet';
+local software_lib = import 'lib/software.libsonnet';
 local storage_lib = import 'lib/storage.libsonnet';
+local security_lib = import 'lib/security.libsonnet';
+local answers_lib = import 'lib/answers.libsonnet';
 
-function(addon_ha_reg_code='',
-         bootloader=false,
-         user=true,
-         root=true,
-         storage='',
+function(access_ssh_enabled=false,
+         access_webconsole_enabled=false,
+         bootloader=true,
+         bootloader_timeout=false,
+         bootloader_extra_kernel_params='',
+         dasd=false,
+         extra_repositories=false,
+         files=false,
+         iscsi_target_address='',
+         localization='',
+         mode='',
+         multipath_activate=false,
+         packages='',
          patterns='',
+         patterns_to_add='',
+         patterns_to_remove='',
          product='',
+         questions_policy_auto=true,
          registration_code='',
+         registration_code_ha='',
+         registration_packagehub=false,
+         registration_url='',
+         root_password=true,
          scripts_pre='',
-         scripts_post='') {
-  [if bootloader == true then 'bootloader']: base_lib['bootloader'],
-  [if patterns != '' then 'software']: {
-    patterns: [patterns]
-  },
-  [if product != '' then 'product']: {
-    [if addon_ha_reg_code != '' then 'addons']: std.prune([
-      if addon_ha_reg_code != '' then addons_lib.addon_ha(addon_ha_reg_code),
-    ]),
-    id: product,
-    [if registration_code != '' then 'registrationCode']: registration_code,
-  },
-  [if root == true then 'root']: base_lib['root'],
-  [if scripts_pre != '' || scripts_post != '' then 'scripts']: {
-    [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],
-    [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
-  },
-  [if storage == 'lvm' then 'storage']: storage_lib['lvm'],
-  [if storage == 'lvm_encrypted' then 'storage']: storage_lib['lvm_encrypted'],
-  [if storage == 'root_filesystem_ext4' then 'storage']: storage_lib['root_filesystem_ext4'],
-  [if storage == 'root_filesystem_xfs' then 'storage']: storage_lib['root_filesystem_xfs'],
-  [if user == true then 'user']: base_lib['user'],
-}
+         scripts_post_partitioning='',
+         scripts_post='',
+         software_only_required=false,
+          // Only for 16.0 needed
+         ssh_public_key=false,
+         ssl_certificates=false,
+         storage='',
+         decrypt_password='',
+         user=true) (
+         
+        base_lib.bootloader(bootloader, bootloader_timeout, bootloader_extra_kernel_params) +
+        {
+          [if dasd == true then 'dasd']: if storage == 'lvm_2_disks_dasd' then dasd_lib['dasd_2_disks'] else dasd_lib['dasd'],
+          [if files == true then 'files']: base_lib['files'],
+          [if iscsi_target_address != '' then 'iscsi']: iscsi_lib.iscsi(iscsi_target_address),
+          [if localization == true then 'localization']: base_lib['localization'],
+          [if access_ssh_enabled || access_webconsole_enabled then 'access']: base_lib.access(access_ssh_enabled, access_webconsole_enabled),
+          [if patterns != '' || packages != '' || extra_repositories ||
+            patterns_to_add != '' || patterns_to_remove != '' ||
+            software_only_required then 'software']: std.prune({
+            patterns: if patterns_to_add != '' || patterns_to_remove != ''
+              then software_lib.modify_patterns(patterns_to_add, patterns_to_remove)
+              else if patterns != '' then std.split(patterns, ','),
+            packages: if packages != '' then std.split(packages, ','),
+            extraRepositories: if extra_repositories then software_lib['extraRepositories'],
+            onlyRequired: if software_only_required then true,
+          }),
+          [if product != '' then 'product']: {
+            [if registration_code_ha != '' || registration_packagehub then 'addons']: std.prune([
+              if registration_code_ha != '' then addons_lib.addon_ha(registration_code_ha),
+              if registration_packagehub then addons_lib.addon_packagehub(),
+            ]),
+            id: product,
+            [if mode != '' then 'mode']: mode,
+            [if registration_code != '' then 'registrationCode']: registration_code,
+            [if registration_url != '' then 'registrationUrl']: registration_url,
+          },
+          root: base_lib.root(root_password, ssh_public_key),
+          [if ssl_certificates == true then 'security']: security_lib.sslCertificates(),
+          [if scripts_pre != '' || scripts_post != '' || scripts_post_partitioning != '' then 'scripts']: {
+            [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],
+            [if scripts_post_partitioning != '' then 'postPartitioning']: [ scripts_post_partitioning_lib[x] for x in std.split(scripts_post_partitioning, ',') ],
+            [if scripts_pre != '' then 'pre']: [ scripts_pre_lib[x] for x in std.split(scripts_pre, ',') ],
+          },
+          [if decrypt_password != '' || registration_packagehub || multipath_activate then 'questions']: {
+            [if questions_policy_auto then 'policy']: 'auto',
+            answers: std.prune([
+              if decrypt_password != '' then answers_lib.questions_decrypt(decrypt_password),
+              if registration_packagehub then answers_lib.questions_import_gpg(),
+              if multipath_activate then answers_lib.questions_activate_multipath(),
+            ]),
+          },
+          [if storage != '' then 'storage']: storage_lib[storage],
+          [if user == true then 'user']: base_lib['user'],
+        })

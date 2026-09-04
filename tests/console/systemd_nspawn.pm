@@ -7,14 +7,12 @@
 # Summary: Test systemd-nspawn "chroots", booting systemd and starting from OCI bundle
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use utils;
 use version_utils;
-use strict;
-use warnings;
 
 sub run {
     select_serial_terminal;

@@ -203,7 +203,7 @@ sub valgrind_cmd {
 
     valgrind_enable()
 
-Modify all systemd service units, to enable valgrind for all binarys which where 
+Modify all systemd service units, to enable valgrind for all binarys which where
 specified via WICKED_VALGRIND.
 
 =cut
@@ -295,8 +295,8 @@ sub reset_wicked {
     assert_script_run("netconfig -f update");
 
     # Restart services
-    assert_script_run('rcwickedd restart');
-    assert_script_run('rcwicked restart');
+    systemctl('restart wickedd');
+    systemctl('restart wicked');
 }
 
 
@@ -694,7 +694,7 @@ sub upload_wicked_logs {
   do_barrier_create(<barrier_postfix> [, <test_name>] )
 
 Create a barier which can be later used to syncronize the wicked tests for SUT and REF.
-This function can be called statically. In this case the C<test_name> parameter is 
+This function can be called statically. In this case the C<test_name> parameter is
 mandatory.
 
 =cut
@@ -1177,18 +1177,22 @@ sub check_coredump {
     my $self = shift;
 
     install_coredump;
-    return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend | grep wicked )" ]') == 0);
+    # Skip checking SIGQUIT coredump files
+    record_info('List all coredump files', script_output('coredumpctl list --no-pager', proceed_on_failure => 1));
+    return if (script_run('[ -z "$(coredumpctl -1 --no-pager --no-legend | grep -v SIGQUIT)" ]') == 0);
 
-    my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | grep wicked | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
+    my @core_pids = split(/\s+/, script_output(q(coredumpctl list --no-pager --no-legend | grep -v SIGQUIT | perl -ne '$_ =~ m/ ([0-9]+) / && print $1 .$/')));
     for my $pid (@core_pids) {
         my $core;
-        if ($self->coredumpctl_has_debug() && script_run('command -v gdb') == 0 && script_run('rpm -q --qf "" wicked-debuginfo') == 0) {
+        my $is_wicked = script_run('coredumpctl info ' . $pid . ' | grep -E "Executable:.*wicked"') == 0;
+        if ($is_wicked && $self->coredumpctl_has_debug() && script_run('command -v gdb') == 0 && script_run('rpm -q --qf "" wicked-debuginfo') == 0) {
             $core = script_output(qq(coredumpctl debug $pid --debugger-arguments='-quiet -ex "set pagination off" -ex "set debuginfod off" -ex bt -ex quit'));
         } else {
             $core = script_output(qq(coredumpctl info $pid));
         }
-        record_info('CORE DUMP', $core, result => 'fail');
-        $self->result('fail');
+        my $result = $is_wicked ? 'fail' : 'softfail';
+        record_info('CORE DUMP', $core, result => $result);
+        $self->result($result);
     }
 }
 
@@ -1236,6 +1240,31 @@ sub reboot {
     $self->check_logs();
 }
 
+sub is_selinux_enabled() {
+    return 0 if (script_run('test -f /var/log/audit/audit.log') != 0);
+    return script_run(q(command -v sestatus 2>&1 > /dev/null && sestatus | grep -P '^SELinux status:\s+enabled')) == 0;
+}
+
+sub selinux_info_pre() {
+    my $self = shift;
+
+    return unless $self->is_selinux_enabled;
+
+    $self->{selinux_log_length_start} = script_output('ausearch -m AVC,USER_AVC,SELINUX_ERR,USER_SELINUX_ERR -i 2> /dev/null | wc -l', timeout => 300, proceed_on_failure => 1);
+}
+
+sub selinux_info_post() {
+    my $self = shift;
+
+    return unless $self->is_selinux_enabled;
+
+    my $len = $self->{selinux_log_length_start} // 0;
+    my $output = script_output('ausearch -m AVC,USER_AVC,SELINUX_ERR,USER_SELINUX_ERR -i 2> /dev/null | tail -n +' . $len, timeout => 300, proceed_on_failure => 1);
+    $output = trim($output);
+
+    record_info('AVC', $output) if length($output) > 0;
+}
+
 sub post_run {
     my ($self) = @_;
     $self->{wicked_post_run} = 1;
@@ -1248,6 +1277,7 @@ sub post_run {
     $self->check_logs() unless $self->{skip_check_logs_on_post_run};
     $self->check_coredump();
     $self->valgrind_postrun();
+    $self->selinux_info_post();
     $self->upload_wicked_logs('post');
 
     if (get_var('IS_WICKED_REF')) {
@@ -1283,6 +1313,7 @@ sub pre_run_hook {
     $self->SUPER::pre_run_hook;
 
     $self->valgrind_prerun();
+    $self->selinux_info_pre();
     $self->do_barrier('pre_run');
 }
 

@@ -5,11 +5,9 @@
 #
 # Summary: Validate the sshd is running *and* that port 22 is opened,as
 # admins may want to connect with ssh right after an ssh installation.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use services::sshd;
 use testapi "select_console";
 

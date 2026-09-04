@@ -6,15 +6,14 @@
 # Package: azure-cli
 # Summary: Network performance for Azure Accelerated NICs
 #
-# Maintainer: Jose Lausuch <jalausuch@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
-use base "publiccloud::basetest";
-use strict;
-use warnings;
+use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use publiccloud::utils qw(is_container_host);
+use publiccloud::zypper qw(pc_zypper_call pc_pkg_call);
 
 =head2 prepare_vm
 
@@ -25,12 +24,13 @@ sub prepare_vms {
     my ($self, $provider) = @_;
     my $repo = get_required_var('IPERF_REPO');
     record_info('INFO', "Create VM\nInstalling iperf package from $repo");
-    my @instances = $provider->create_instances(check_guestregister => 0, count => 2);
+    my @instances = $provider->create_instances(count => 2);
     foreach my $instance (@instances) {
         record_info('Instance', 'Instance ' . $instance->instance_id . ' created');
+        $instance->wait_for_ssh(scan_ssh_host_key => 1);
         record_info('Iperf', 'Install IPerf binaries in VM');
-        $instance->run_ssh_command(cmd => "sudo zypper -n ar --no-gpgcheck $repo net_perf");
-        $instance->run_ssh_command(cmd => "sudo zypper -n in -r net_perf iperf");
+        pc_zypper_call($instance, "ar --no-gpgcheck $repo net_perf");
+        pc_pkg_call($instance, "in -r net_perf iperf");
     }
 
     return \@instances;
@@ -88,9 +88,9 @@ ethtool |grep vf_ must show numbers different than 0 if SR-IOV is enabled.
 sub check_sriov {
     my ($self, $instance) = @_;
     record_info('sr-iov', 'Checking SRIOV feature for instance ' . $instance->instance_id);
-    my $lspci_output = $instance->run_ssh_command(cmd => "sudo lspci");
-    $instance->run_ssh_command(cmd => 'sudo zypper -n in ethtool') if is_container_host();
-    my $ethtool_output = $instance->run_ssh_command(cmd => "sudo ethtool -S eth0 | grep vf_");
+    my $lspci_output = $instance->ssh_script_output(cmd => "sudo lspci");
+    pc_pkg_call($instance, 'in ethtool') if is_container_host();
+    my $ethtool_output = $instance->ssh_script_output(cmd => "sudo ethtool -S eth0 | grep vf_");
     record_info('lspci', $lspci_output);
     record_info('ethtool', $ethtool_output);
     if (($lspci_output =~ m/Mellanox/) && ($ethtool_output !~ m/^\s+vf_rx_bytes: 0$/)) {
@@ -110,12 +110,11 @@ test on the client side. The test runs TEST_TIME seconds.
 sub run_test {
     my ($self, $client, $server) = @_;
     record_info('server', 'Start IPERF in server ' . $server->public_ip);
-    $server->run_ssh_command(cmd => 'nohup iperf3 -s -D &', no_quote => 1);
+    $server->ssh_assert_script_run(cmd => 'nohup iperf3 -s -D &');
     sleep 60;    # Wait 60 seconds so that the server starts up safely and the clinet can connect to it
     record_info('client', 'Start IPERF in client');
     my $ttime = get_required_var('TEST_TIME');
-    my $output = $client->run_ssh_command(cmd => 'iperf3 -t ' . $ttime . ' -c ' . $server->{private_ip}, timeout => $ttime * 3);
-    record_info('RESULTS', $output);
+    record_info('RESULTS', $client->ssh_script_output(cmd => 'iperf3 -t ' . $ttime . ' -c ' . $server->{private_ip}, timeout => $ttime * 3));
 }
 
 
@@ -141,4 +140,3 @@ Test module to run performance test on Azure with accelerated network (SRIOV). T
 image to start the VMs, Azure can't enable accelerated network at start time. Therefore, the only
 way to do this is to enable it stopping the VM and starting it again.
 More info here: https://goo.gl/3SGkMX
-

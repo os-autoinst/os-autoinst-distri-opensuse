@@ -12,37 +12,42 @@
 #   6. Ansible Vault
 # Maintainer: QE Core <qe-core@suse.de>, Pavel Dostál <pdostal@suse.cz>
 
-use warnings;
-use base "consoletest";
-use strict;
+use Mojo::Base 'consoletest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use serial_terminal 'select_serial_terminal';
 use utils qw(zypper_call random_string systemctl file_content_replace ensure_serialdev_permissions);
-use version_utils qw(is_opensuse is_tumbleweed is_transactional is_microos is_sle is_jeos);
+use version_utils qw(is_sle is_opensuse is_tumbleweed is_transactional is_microos is_jeos);
 use registration qw(add_suseconnect_product get_addon_fullname is_phub_ready);
 use transactional qw(trup_call check_reboot_changes);
+use Utils::Architectures qw(is_s390x);
 
 # git-core needed by ansible-galaxy
 # sudo is used by ansible to become root
 # sudo has to be pop-out after installation otherwise
 # during the cleanup it will remove preinstalled salt packages
-my @pkgs = qw(sudo git-core);
+my @pkgs = qw(sudo git-core ansible);
 
 sub run {
     select_serial_terminal;
 
     # 1. System setup
 
-    if (is_sle('<15-SP7')) {
+    # poo#181136, 15-SP6 and above use from Systems Managent Module, 15-SP4 and 15-SP5 use LTSS
+    # PackageHub should not be covered
+    if (is_sle('<15-SP6') && !main_common::is_updates_tests()) {
         # The Desktop module is required by the Development Tools module
         add_suseconnect_product(get_addon_fullname('desktop'));
         # Package 'ansible-test' needs python3-virtualenv from Development Tools module
         add_suseconnect_product(get_addon_fullname('sdk'));
-
         # Package 'python3-yamllint' and 'ansible' require PackageHub is available
-        add_suseconnect_product(get_addon_fullname('phub')) if (is_phub_ready());
+        add_suseconnect_product(get_addon_fullname('phub'));
+        zypper_call '--gpg-auto-import-keys ref';
     }
-    zypper_call '--gpg-auto-import-keys ref';
+    if (is_sle('<15-SP4') && main_common::is_updates_tests()) {
+        # For sle15sp3 and older release, ansible packages are still from PackageHub
+        add_suseconnect_product(get_addon_fullname('phub'));
+        zypper_call '--gpg-auto-import-keys ref';
+    }
 
     # Create user account, if image doesn't already contain user
     # (which is the case for SLE images that were already prepared by openQA)
@@ -52,10 +57,9 @@ sub run {
     }
     ensure_serialdev_permissions;
 
-    push @pkgs, is_sle('=15-SP7') ? 'ansible-9' : 'ansible';
     # python3-yamllint needed by ansible-test
     # ansible-test is not available in newer sles'
-    push @pkgs, qw(ansible-test python3-yamllint) if is_opensuse || is_sle('<15-SP7');
+    push @pkgs, qw(ansible-test python3-yamllint) unless is_sle;
     if (is_transactional) {
         trup_call("pkg install @pkgs");
         check_reboot_changes;
@@ -104,8 +108,12 @@ sub run {
     # 2. Ansible basics
 
     # Check Ansible version
-    record_info('ansible --version', script_output('ansible --version'));
+    record_info('ansible --version', script_output('ansible --version', timeout => 300));
 
+    # older sles with wicked changes its transient hostname after reboot to s390kvm0XX
+    # wicked can leave the hostname configuration for DHCP
+    # s390x VMs run in a VLAN, this issue is not present present outside s390x and wicked
+    assert_script_run('hostnamectl --transient hostname susetest') if is_s390x && is_jeos && is_sle('<16');
     my $hostname = script_output('hostnamectl --static');
     validate_script_output 'ansible -m setup localhost | grep ansible_hostname', sub { m/$hostname/ };
 
@@ -116,7 +124,7 @@ sub run {
 
     # Install config_manager role from ansible-network
     # https://galaxy.ansible.com/ansible-network/config_manager
-    assert_script_run 'ansible-galaxy install ansible-network.config_manager', timeout => 300;
+    assert_script_run 'ansible-galaxy install ansible-network.config_manager', timeout => 700;
 
     # Verify that the config_manager is installed
     my $galaxy_installed = script_output 'ansible-galaxy list';
@@ -142,8 +150,8 @@ sub run {
         assert_script_run "ansible-playbook -vvv -i hosts main.yaml --check", timeout => 300;
     }
 
-    if (is_opensuse || is_sle('<15-SP7')) {
-        # Run the ansible sanity test
+    # Run the ansible sanity test
+    unless (is_sle) {
         script_run 'ansible-test --help';
         assert_script_run 'ansible-test sanity';
     }

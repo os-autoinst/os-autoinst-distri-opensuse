@@ -1,0 +1,125 @@
+From bf7dcd5619b9600d7fdf93da16c8d0258e58f896 Mon Sep 17 00:00:00 2001
+From: rcmadhankumar <madhankumar.chellamuthu@suse.com>
+Date: Thu, 17 Apr 2025 18:23:57 +0530
+Subject: [PATCH] Fix: Remove appending rw as the default mount option
+
+The backstory for this is that runc 1.2 (opencontainers/runc#3967)
+fixed a long-standing bug in our mount flag handling (a bug that crun
+still has). Before runc 1.2, when dealing with locked mount flags that
+user namespaced containers cannot clear, trying to explicitly clearing
+locked flags (like rw clearing MS_RDONLY) would silently ignore the rw
+flag in most cases and would result in a read-only mount. This is
+obviously not what the user expects.
+
+What runc 1.2 did is that it made it so that passing clearing flags
+like rw would always result in an attempt to clear the flag (which was
+not the case before), and would (in all cases) explicitly return an
+error if we try to clear locking flags. (This also let us finally fix a
+bunch of other long-standing issues with locked mount flags causing
+seemingly spurious errors).
+
+The problem is that podman sets rw on all mounts by default (even if
+the user doesn't specify anything). This is actually a no-op in
+runc 1.1 and crun because of a bug in how clearing flags were handled
+(rw is the absence of MS_RDONLY but until runc 1.2 we didn't correctly
+track clearing flags like that, meaning that rw would literally be
+handled as if it were not set at all by users) but in runc 1.2 leads to
+unfortunate breakages and a subtle change in behaviour (before, a ro
+mount being bind-mounted into a container would also be ro -- though
+due to the above bug even setting rw explicitly would result in ro in
+most cases -- but with runc 1.2 the mount will always be rw even if
+the user didn't explicitly request it which most users would find
+surprising). By the way, this "always set rw" behaviour is a departure
+from Docker and it is not necesssary.
+
+Signed-off-by: rcmadhankumar <madhankumar.chellamuthu@suse.com>
+---
+ pkg/util/mount_opts.go                       | 3 ---
+ pkg/util/utils_test.go                       | 4 ++--
+ test/e2e/play_kube_test.go                   | 2 +-
+ test/python/docker/compat/test_containers.py | 4 ++--
+ test/system/252-quadlet.bats                 | 2 +-
+ 5 files changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/pkg/util/mount_opts.go b/pkg/util/mount_opts.go
+index c9a773093e..4e37fd74a0 100644
+--- a/pkg/util/mount_opts.go
++++ b/pkg/util/mount_opts.go
+@@ -191,9 +191,6 @@ func processOptionsInternal(options []string, isTmpfs bool, sourcePath string, g
+ 		newOptions = append(newOptions, opt)
+ 	}
+ 
+-	if !foundWrite {
+-		newOptions = append(newOptions, "rw")
+-	}
+ 	if !foundProp {
+ 		if recursiveBind {
+ 			newOptions = append(newOptions, "rprivate")
+diff --git a/pkg/util/utils_test.go b/pkg/util/utils_test.go
+index b582b51ecc..524f1f0250 100644
+--- a/pkg/util/utils_test.go
++++ b/pkg/util/utils_test.go
+@@ -802,13 +802,13 @@ func TestProcessOptions(t *testing.T) {
+ 		{
+ 			name:       "default bind mount",
+ 			sourcePath: "/path/to/source",
+-			expected:   []string{"nodev", "nosuid", "rbind", "rprivate", "rw"},
++			expected:   []string{"nodev", "nosuid", "rbind", "rprivate"},
+ 		},
+ 		{
+ 			name:       "default bind mount with bind",
+ 			sourcePath: "/path/to/source",
+ 			options:    []string{"bind"},
+-			expected:   []string{"nodev", "nosuid", "bind", "private", "rw"},
++			expected:   []string{"nodev", "nosuid", "bind", "private"},
+ 		},
+ 	}
+ 
+diff --git a/test/e2e/play_kube_test.go b/test/e2e/play_kube_test.go
+index 98f8e0e1d6..6902d51178 100644
+--- a/test/e2e/play_kube_test.go
++++ b/test/e2e/play_kube_test.go
+@@ -5818,7 +5818,7 @@ spec:
+ 		podmanTest.PodmanExitCleanly("kube", "play", outputFile)
+ 
+ 		inspectCtr2 := podmanTest.PodmanExitCleanly("inspect", "-f", "'{{ .HostConfig.Binds }}'", ctrNameInKubePod)
+-		Expect(inspectCtr2.OutputToString()).To(ContainSubstring(":" + vol1 + ":rw"))
++		Expect(inspectCtr2.OutputToString()).To(ContainSubstring(":" + vol1))
+ 
+ 		inspectCtr1 := podmanTest.PodmanExitCleanly("inspect", "-f", "'{{ .HostConfig.Binds }}'", ctr1)
+ 		Expect(inspectCtr2.OutputToString()).To(Equal(inspectCtr1.OutputToString()))
+diff --git a/test/python/docker/compat/test_containers.py b/test/python/docker/compat/test_containers.py
+index cb2c5f340b..138372fafd 100644
+--- a/test/python/docker/compat/test_containers.py
++++ b/test/python/docker/compat/test_containers.py
+@@ -265,7 +265,7 @@ def test_build_pull(self):
+                 has_tried_pull = True
+         self.assertFalse(has_tried_pull, "the build process has tried tried to pull the base image")
+ 
+-    def test_mount_rw_by_default(self):
++    def test_mount_options_by_default(self):
+         ctr: Optional[Container] = None
+         vol: Optional[Volume] = None
+ 
+@@ -282,7 +282,7 @@ def test_mount_rw_by_default(self):
+             ctr_inspect = self.docker.api.inspect_container(ctr.id)
+             binds: List[str] = ctr_inspect["HostConfig"]["Binds"]
+             self.assertEqual(len(binds), 1)
+-            self.assertEqual(binds[0], "test-volume:/vol-mnt:rw,rprivate,nosuid,nodev,rbind")
++            self.assertEqual(binds[0], "test-volume:/vol-mnt:rprivate,nosuid,nodev,rbind")
+         finally:
+             if ctr is not None:
+                 ctr.remove()
+diff --git a/test/system/252-quadlet.bats b/test/system/252-quadlet.bats
+index 38da54e592..6a7cf884de 100644
+--- a/test/system/252-quadlet.bats
++++ b/test/system/252-quadlet.bats
+@@ -988,7 +988,7 @@ EOF
+     service_setup $QUADLET_SERVICE_NAME
+ 
+     run_podman container inspect  --format '{{index .HostConfig.Tmpfs "/tmpfs1"}}' $QUADLET_CONTAINER_NAME
+-    is "$output" "rw,rprivate,nosuid,nodev,tmpcopyup" "regular tmpfs mount"
++    is "$output" "rprivate,nosuid,nodev,tmpcopyup" "regular tmpfs mount"
+ 
+     run_podman container inspect  --format '{{index .HostConfig.Tmpfs "/tmpfs2"}}' $QUADLET_CONTAINER_NAME
+     is "$output" "ro,rprivate,nosuid,nodev,tmpcopyup" "read-only tmpfs mount"

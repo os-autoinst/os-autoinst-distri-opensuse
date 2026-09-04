@@ -1,0 +1,11 @@
+name: vendor_affirmation_validation
+description: >
+    This is for vendor affirmation
+schedule:
+    - boot/boot_to_desktop
+    - fips/fips_setup
+    - fips/openssl/openssl_fips_hash
+    - fips/gnutls/gnutls_base_check
+    - console/import_gpg_keys
+    - console/gpg
+    - fips/mozilla_nss/nss_smoke

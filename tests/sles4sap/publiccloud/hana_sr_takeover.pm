@@ -1,21 +1,51 @@
-# SUSE's openQA tests
-#
 # Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
-# Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module for performing database takeover using various methods on "master" HANA database.
+# Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings FATAL => 'all';
-use base 'sles4sap_publiccloud_basetest';
+=head1 NAME
+
+sles4sap/publiccloud/hana_sr_takeover.pm - Performs a HANA database takeover.
+
+=head1 DESCRIPTION
+
+This module tests the takeover process in a SAP HANA System Replication environment.
+It simulates a failure on the primary (master) HANA database node using a specified
+action (e.g., 'stop', 'kill', 'crash'). After the failure is induced, the module
+verifies that the cluster correctly promotes the secondary node to become the new
+primary. It then checks the cluster status, ensures replication is re-established,
+and cleans up resources to return the cluster to a stable state.
+
+This module is typically scheduled by another test module (e.g., C<hana_sr_schedule_primary_tests.pm>)
+and receives its parameters through the C<$run_args> hashref. The C<action> and C<site_name>
+parameters, which define the test's behavior, are passed within the C<$run_args->{hana_test_definitions}{$test_name}> hashref.
+
+=head1 SETTINGS
+
+=over
+
+=item B<PUBLIC_CLOUD_PROVIDER>
+
+If set to 'EC2' and the takeover action is 'stop', a specific SBD (STONITH Block Device)
+delay is configured to prevent timing issues during the test.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use Mojo::Base 'sles4sap::publiccloud_basetest';
 use testapi;
-use sles4sap_publiccloud;
+use sles4sap::publiccloud;
 use publiccloud::utils;
 use hacluster qw($crm_mon_cmd);
 use serial_terminal 'select_serial_terminal';
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {
@@ -57,8 +87,11 @@ sub run {
         $sbd_delay = $self->sbd_delay_formula();
     }
 
+    # Cache the online_string to avoid repeated SSH calls to pacemaker_version()
+    my $online_string = get_online_string($self);
+
     # Stop/kill/crash HANA DB and wait till SSH is again available with pacemaker running.
-    $self->stop_hana(method => $takeover_action);
+    $self->stop_hana(method => $takeover_action, online_string => $online_string);
 
     # SBD delay is active only after reboot
     if ($takeover_action eq 'crash' || $takeover_action eq 'stop') {
@@ -78,7 +111,7 @@ sub run {
     record_info(ucfirst($site_name) . ' start');
 
     $self->cleanup_resource();
-    $self->wait_for_cluster(wait_time => 60, max_retries => 10);
+    $self->wait_for_cluster(wait_time => 60, max_retries => 10, online_string => $online_string);
     die "Required hana resource is NOT running on $self->{my_instance}, aborting" unless $self->is_hana_resource_running();
     $self->display_full_status();
     if ($self->get_promoted_hostname() eq $target_site->{instance_id}) {

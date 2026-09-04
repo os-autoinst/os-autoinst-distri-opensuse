@@ -11,9 +11,7 @@
 # - Run a PHP script and verify it
 # Maintainer: QE-Core <qe-core@suse.de>
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

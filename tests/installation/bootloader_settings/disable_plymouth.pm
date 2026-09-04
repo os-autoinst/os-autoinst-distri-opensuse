@@ -5,11 +5,9 @@
 
 # Summary: Disable plymouth in Boot Loader Settings during installation.
 # Required in PowerVM.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 
 sub run {
     $testapi::distri->get_installation_settings()->access_booting_options();

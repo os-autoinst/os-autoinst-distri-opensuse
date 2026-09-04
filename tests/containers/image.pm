@@ -77,7 +77,6 @@ sub run {
     reset_container_network_if_needed($runtime);
 
     scc_apply_docker_image_credentials() if (get_var('SCC_DOCKER_IMAGE') && $runtime eq 'docker');
-
     # Running podman as root with docker installed may be problematic as netavark uses nftables
     # while docker still uses iptables.
     # Use workaround suggested in:
@@ -110,6 +109,10 @@ sub run {
     scc_restore_docker_image_credentials() if ($runtime eq 'docker');
 
     $engine->cleanup_system_host();
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

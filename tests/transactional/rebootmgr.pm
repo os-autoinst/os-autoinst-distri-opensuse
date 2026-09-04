@@ -8,14 +8,13 @@
 # Maintainer: Martin Kravec <mkravec@suse.com>
 # Tags: poo#16266
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils;
-use version_utils 'is_tumbleweed';
+use version_utils qw(is_tumbleweed is_sle_micro);
 use Utils::Backends 'is_pvm';
+use serial_terminal 'select_serial_terminal';
 
 # Optionally skip exit status check in case immediate reboot is expected
 sub rbm_call {
@@ -48,21 +47,21 @@ sub rbm_set_window {
 
 #1 Test instant reboot
 sub check_strategy_instantly {
+    select_console('root-console');
     rbm_call "set-strategy instantly";
     trup_call "reboot ptf install" . rpmver('interactive');
-    process_reboot(expected_grub => 1);
+    check_reboot_strategy_and_reboot();
     rbm_call "get-strategy | grep instantly";
 }
 
 #2 Test maint-window strategy
 sub check_strategy_maint_window {
+    select_console('root-console');
     rbm_call "set-strategy maint-window";
-
     # Trigger reboot during maint-window
     rbm_set_window '-5minutes', '20m';
     trup_call "reboot pkg install" . rpmver('feature');
-    process_reboot(expected_grub => 1);
-
+    check_reboot_strategy_and_reboot();
     # Trigger reboot and wait for maintenance window
     rbm_set_window '+2minutes', '1m';
     rbm_call 'reboot';
@@ -79,7 +78,7 @@ sub check_strategy_maint_window {
 }
 
 sub run {
-    select_console 'root-console';
+    select_serial_terminal;
 
     get_utt_packages;
 

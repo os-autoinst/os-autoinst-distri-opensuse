@@ -18,21 +18,19 @@
 # - Create a lock for vsftpd suite
 # - If HOSTNAME contains "client", run "run.sh" script
 # - Unlock vsftpd barrier
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
-use utils 'zypper_call';
+use package_utils 'install_package';
 use Utils::Architectures;
 use version_utils 'has_selinux';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call 'in vsftpd expect';
+    install_package('vsftpd expect', trup_reboot => 1);
 
     # Allow full FTP access when enable selinux
     assert_script_run 'setsebool -P ftpd_full_access on' if has_selinux;

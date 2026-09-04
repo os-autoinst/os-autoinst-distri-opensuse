@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: modify and resize existing partitions on a pre-formatted disk.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use parent 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 use version_utils ':VERSION';
 use scheduler 'get_test_suite_data';

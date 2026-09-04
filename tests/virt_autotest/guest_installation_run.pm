@@ -6,9 +6,7 @@
 # Summary: guest_installation_run: This test is used to verify if different products can be installed successfully as guest on specify host.
 # Maintainer: alice <xlai@suse.com>
 
-use base "virt_autotest_base";
-use strict;
-use warnings;
+use Mojo::Base 'virt_autotest_base';
 use testapi;
 use Utils::Architectures;
 use Utils::Backends 'use_ssh_serial_console';
@@ -24,13 +22,8 @@ sub get_script_run {
         $pre_test_cmd .= "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
     }
     else {
-        my $prd_version = script_output("cat /etc/issue");
-        if ($prd_version =~ m/SUSE Linux Enterprise Server 11/) {
-            $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-standalone-run";
-        }
-        else {
-            $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
-        }
+        my $prd_version = script_output(q@cat /etc/os-release |grep VERSION | sed 's/VERSION=//'@);
+        $pre_test_cmd = "/usr/share/qa/tools/test_virtualization-virt_install_withopt-run";
     }
     # testsuite setting pre-handling for no service pack products
     handle_sp_in_settings_with_fcs("GUEST_PATTERN");
@@ -102,9 +95,13 @@ sub run {
     $self->run_test(7600, "", "yes", "yes", "/var/log/qa/", "guest-installation-logs", $upload_guest_assets_flag);
     #upload testing logs for s390x guest installation test
     if (is_s390x) {
-        #upload s390x_guest_install_test.log
-        upload_asset("/tmp/s390x_guest_install_test.log", 1, 1);
-        lpar_cmd("rm -r /tmp/s390x_guest_install_test.log");
+        # Find and upload the extracted virt-install log
+        my ($ret, $target_log) = lpar_cmd("ls /tmp/*_virt_install.log 2>/dev/null", {ignore_return_code => 1});
+        $target_log =~ s/^\s+|\s+$//g if defined $target_log;
+        lpar_upload_logs($target_log) if ($ret == 0 && $target_log);
+        # Upload s390x_guest_install_test.log
+        lpar_upload_logs("/tmp/s390x_guest_install_test.log");
+        lpar_cmd("rm -f /tmp/s390x_guest_install_test.* /tmp/*_virt_install.log");
     }
 }
 

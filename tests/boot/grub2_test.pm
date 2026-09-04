@@ -10,11 +10,9 @@
 #           - fips
 #           - password
 #           - with UEFI (secureboot enabled by default)
-# Maintainer: Jozef Pupava <jpupava@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use strict;
-use warnings;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use bootloader_setup qw(stop_grub_timeout boot_grub_item grub_mkconfig);
 use utils qw(zypper_call zypper_ar);

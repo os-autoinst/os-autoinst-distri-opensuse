@@ -17,6 +17,7 @@ use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils 'is_sle';
 use registration;
+use package_utils 'install_package';
 
 # install and configure apache2, apache2-mod_jk and verify the interaction between apache2 and tomcat
 # via the package apache2-mod_jk
@@ -25,7 +26,7 @@ sub mod_jk_setup() {
     select_serial_terminal();
 
     record_info('install and configure apache2 and apache2-mod_jk connector Setup');
-    zypper_call('in apache2 apache2-mod_jk');
+    install_package('apache2 apache2-mod_jk', trup_reboot => 1);
 
     $self->conn_apache2_tomcat();
     $self->load_jk_module();
@@ -74,18 +75,6 @@ EOF
     # Connection from apache2 to tomcat: apache2 part
     systemctl('stop apache2');
     assert_script_run('cp -ai /usr/share/doc/packages/apache2-mod_jk/jk.conf /etc/apache2/conf.d');
-    if (is_sle('=15') or is_sle('<12-sp4')) {
-        # apache2-mod_jk package includes jk.conf is required to specify valid JkShmFile and Aliases.
-        record_soft_failure 'boo#1167896 included jk.conf broken';
-        assert_script_run(
-            "echo \"\$(cat <<EOF
-JkShmFile /var/log/tomcat/jk-runtime-status
-EOF
-        )\" >> /etc/apache2/conf.d/jk.conf", timeout => 180
-        );
-        assert_script_run("sed -i 's|servlets-examples|examples/servlets|g' /etc/apache2/conf.d/jk.conf");
-        assert_script_run("sed -i 's|jsp-examples|examples/jsp|g' /etc/apache2/conf.d/jk.conf");
-    }
     systemctl('start tomcat');
 }
 

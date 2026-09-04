@@ -4,9 +4,7 @@
 # Summary: Generic test for hardening profile in the 'scap-security-guide': detection mode with remote
 # Maintainer: QE Security <none@suse.de>
 
-use base 'oscap_tests';
-use strict;
-use warnings;
+use Mojo::Base 'oscap_tests';
 use testapi;
 use utils;
 

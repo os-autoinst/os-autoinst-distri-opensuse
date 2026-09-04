@@ -14,9 +14,7 @@
 # - Close firefox
 # Maintainer: wnereiz <wnereiz@github>
 
-use strict;
-use warnings;
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 

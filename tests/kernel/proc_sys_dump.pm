@@ -11,8 +11,7 @@
 # Maintainer: Richard Palethorpe <rpalethorpe@suse.com>
 
 use 5.018;
-use warnings;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi qw(is_serial_terminal :DEFAULT);
 use utils;
 use serial_terminal;
@@ -39,7 +38,7 @@ sub run {
     upload_logs($tar);
 }
 
-=head1 Discussion
+=head1 Description
 
 The /proc and /sys directories contain lots of useful information which is
 only available on a running system or in a crash dump. In order to get this

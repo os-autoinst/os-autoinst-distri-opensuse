@@ -7,7 +7,7 @@
 # Summary: Start Sway WM
 # Maintainer: rpalethorpe@suse.com
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal;
 use utils;

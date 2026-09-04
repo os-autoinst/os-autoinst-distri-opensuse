@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Python2 module doesn't exist since SLE15SP3, need to remove it before migration
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use registration qw(remove_suseconnect_product get_addon_fullname);
 use testapi qw(get_var set_var);
 

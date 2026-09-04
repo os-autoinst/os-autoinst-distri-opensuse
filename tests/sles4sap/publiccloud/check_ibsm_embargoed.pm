@@ -4,14 +4,43 @@
 # Summary: Checks for embargoed updates on IBSM
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use strict;
-use warnings;
-use base 'sles4sap_publiccloud_basetest';
+=head1 NAME
+
+sles4sap/publiccloud/check_ibsm_embargoed.pm - Checks for embargoed updates on IBSM
+
+=head1 DESCRIPTION
+
+Checks for embargoed updates on the Internal Build Service Mirror (IBSM).
+
+Its primary tasks are:
+
+- Retrieve the list of repositories from C<INCIDENT_REPO>.
+- For each repository, validate if it is potentially embargoed.
+- If so, attempt to add and refresh the repository on the instance.
+- Fail the test if an embargoed repository is successfully refreshed.
+
+=head1 SETTINGS
+
+=over
+
+=item B<INCIDENT_REPO>
+
+A comma-separated list of repository URLs to check.
+
+=back
+
+=head1 MAINTAINER
+
+QE-SAP <qe-sap@suse.de>
+
+=cut
+
+use Mojo::Base 'sles4sap::publiccloud_basetest';
 use publiccloud::utils "validate_repo";
 use testapi;
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run() {
@@ -26,9 +55,9 @@ sub run() {
         next if $maintrepo =~ /^\s*$/;
         # validate_repo returns 0 if an embargoed update is found, so it's reversed to enter the loop
         if (!validate_repo($maintrepo)) {
-            $instance->run_ssh_command(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
+            $instance->ssh_assert_script_run(cmd => "sudo zypper --no-gpg-checks ar -f -n TEST_$count $maintrepo TEST_$count",
                 username => 'cloudadmin');
-            my $rc = $instance->run_ssh_command(cmd => "sudo zypper -n ref TEST_$count", username => 'cloudadmin', timeout => 1500, rc_only => 1);
+            my $rc = $instance->ssh_script_run(cmd => "sudo zypper -n ref TEST_$count", username => 'cloudadmin', timeout => 1500);
             die "EMBARGOED REPOSITORY IN IBSM: $maintrepo" if !$rc;
             $count++;
         }

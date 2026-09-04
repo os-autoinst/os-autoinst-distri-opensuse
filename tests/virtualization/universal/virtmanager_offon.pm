@@ -5,10 +5,8 @@
 # Summary: This test turns all VMs off and then on again
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use utils;
 use virtmanager;
@@ -36,10 +34,8 @@ sub run_test {
         close_guest();
     }
 
-    wait_screen_change { send_key 'ctrl-q'; };
+    quit_virtmanager();
 
-    # Wait a while untill the ssh console fully reacts after closing the X window of virt-manager
-    sleep 5;
     # Reconnect if the text console does not respond well after long time no use
     reconnect_console_if_not_good;
 }

@@ -1,0 +1,85 @@
+From 0ff079d320952cffb7a5794b3d380c34357725b5 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 28 Aug 2025 13:48:27 +0200
+Subject: [PATCH] tests: Replace ncat for socat
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/system/252-quadlet.bats    |  6 +++---
+ test/system/500-networking.bats | 12 ++++++------
+ test/system/README.md           |  1 -
+ 3 files changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/test/system/252-quadlet.bats b/test/system/252-quadlet.bats
+index 0e2c15f8cb..3b2bbb5be7 100644
+--- a/test/system/252-quadlet.bats
++++ b/test/system/252-quadlet.bats
+@@ -1188,8 +1188,8 @@ spec:
+ EOF
+ 
+     # Bind the port to force a an error when starting the pod
+-    timeout --foreground -v --kill=10 10 ncat -l 127.0.0.1 $port &
+-    nc_pid=$!
++    timeout --foreground -v --kill=10 10 socat TCP-LISTEN:$port,bind=127.0.0.1,fork - &
++    socat_pid=$!
+ 
+     # Create the Quadlet file
+     local quadlet_file=$PODMAN_TMPDIR/start_err_$(safename).kube
+@@ -1214,7 +1214,7 @@ EOF
+     run -0 journalctl -eu $QUADLET_SERVICE_NAME
+     assert "$output" =~ "$port: bind: address already in use" "journal contains the real podman start error"
+ 
+-    kill "$nc_pid"
++    kill "$socat_pid"
+ }
+ 
+ # https://github.com/containers/podman/issues/25786
+diff --git a/test/system/500-networking.bats b/test/system/500-networking.bats
+index fd07c16939..44e8e1ce58 100644
+--- a/test/system/500-networking.bats
++++ b/test/system/500-networking.bats
+@@ -806,26 +806,26 @@ nameserver 8.8.8.8" "nameserver order is correct"
+         cid="$output"
+ 
+         # make sure binding the same port fails
+-        run timeout 5 ncat -l 127.0.0.1 $port
+-        assert "$status" -eq 2 "ncat unexpected exit code"
+-        assert "$output" =~ "127.0.0.1:$port: Address already in use" "ncat error message"
++        run timeout 5 socat TCP-LISTEN:$port,bind=127.0.0.1,fork -
++        assert "$status" -eq 1 "socat unexpected exit code"
++        assert "$output" =~ ".* 127.0.0.1:$port.* Address already in use" "socat error message"
+ 
+         for port in $(seq $port $end_port); do
+             run_podman exec -d $cid nc -l -p $port -e /bin/cat
+ 
+-            # we have to rety ncat as it can flake as we exec in the background so nc -l
++            # we have to retry socat as it can flake as we exec in the background so nc -l
+             # might not have bound the port yet, retry seems simpler than checking if the
+             # port is bound in the container, https://github.com/containers/podman/issues/21561.
+             retries=5
+             while [[ $retries -gt 0 ]]; do
+-                run ncat 127.0.0.1 $port <<<$random
++                run socat - TCP:127.0.0.1:$port <<<$random
+                 if [[ $status -eq 0 ]]; then
+                     break
+                 fi
+                 sleep 0.5
+                 retries=$((retries -1))
+             done
+-            is "$output" "$random" "ncat got data back (netmode=$netmode port=$port)"
++            is "$output" "$random" "socat got data back (netmode=$netmode port=$port)"
+         done
+ 
+         run_podman rm -f -t0 $cid
+diff --git a/test/system/README.md b/test/system/README.md
+index fdd873a655..2e9d2f0ce6 100644
+--- a/test/system/README.md
++++ b/test/system/README.md
+@@ -86,7 +86,6 @@ Requirements
+ - bats
+ - jq
+ - skopeo
+-- nmap-ncat
+ - httpd-tools
+ - openssl
+ - socat

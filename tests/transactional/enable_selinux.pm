@@ -8,9 +8,7 @@
 #
 # Maintainer: QA-C team <qa-c@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional qw(process_reboot);
 use version_utils qw(has_selinux_by_default is_leap_micro is_microos is_sle_micro is_public_cloud);
@@ -44,12 +42,6 @@ sub is_enforcing {
 sub run {
     select_console 'root-console';
 
-    # Until bsc#1211058 is resolved, we cannot enable SELinux via `transactional-update setup-selinux`.
-    if (is_sle_micro('=5.2')) {
-        record_soft_failure("bsc#1211058 Enabling SELinux broken via transactional-update setup-selinux");
-        return;
-    }
-
     my $trup_log = "/var/log/transactional-update.log";
 
     # auditd should be enabled
@@ -58,11 +50,7 @@ sub run {
     # install and enable SELinux if not done by default
     if (!is_enforcing) {
         if (has_selinux_by_default) {
-            if (is_sle_micro('=5.4')) {
-                record_soft_failure("bsc#1211917 - SELinux not in enforcing mode on SLEM 5.4");
-            } else {
-                die("SELinux should be enabled by default on " . get_required_var("DISTRI") . " " . get_required_var("VERSION"));
-            }
+            die("SELinux should be enabled by default on " . get_required_var("DISTRI") . " " . get_required_var("VERSION"));
         }
 
         trup_call('setup-selinux');

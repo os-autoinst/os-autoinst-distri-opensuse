@@ -16,10 +16,10 @@ use Config::Tiny;
 use Utils::Architectures;
 use utils;
 use version_utils qw(is_sle is_leap is_tumbleweed);
-use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities);
+use x11utils qw(select_user_gnome start_root_shell_in_xterm handle_gnome_activities default_gui_terminal close_gui_terminal);
 use POSIX 'strftime';
 use mm_network;
-use Utils::Logging qw(export_healthcheck_basic select_log_console export_logs_basic export_logs_desktop);
+use Utils::Logging qw(export_healthcheck_basic select_log_console export_logs_basic export_logs_desktop record_avc_selinux_alerts);
 use serial_terminal 'select_serial_terminal';
 
 sub post_run_hook {
@@ -33,6 +33,7 @@ sub post_fail_hook {
     select_serial_terminal();
     export_healthcheck_basic;
     export_logs_basic;
+    shift->record_avc_selinux_alerts;
     # Export extra log after failure for further check gdm issue 1127317, also poo#45236 used for tracking action on Openqa
     export_logs_desktop;
     select_log_console;
@@ -144,14 +145,14 @@ sub clean_shotwell {
 # upload libreoffice specified file into /home/$username/Documents
 sub upload_libreoffice_specified_file {
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     assert_script_run('wget ' . autoinst_url . "/data/x11/ooo-test-doc-types.tar.bz2 -O /home/$username/Documents/ooo-test-doc-types.tar.bz2");
     assert_script_run("cd /home/$username/Documents && ls -l");
     # extract the files directly in /home/berhard/Documents, no need to write whole path in libreoffice_open_specified_file
     assert_script_run('tar -xjvf ooo-test-doc-types.tar.bz2 --strip-components 1');
     # delete the archive, to keep the order for already existing needles
     assert_script_run('rm ooo-test-doc-types.tar.bz2');
-    send_key "alt-f4";
+    close_gui_terminal;
     wait_still_screen;
 
 }
@@ -159,20 +160,20 @@ sub upload_libreoffice_specified_file {
 # cleanup libreoffcie specified file from test vm
 sub cleanup_libreoffice_specified_file {
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     assert_script_run("rm -f /home/$username/Documents/{cs,ooo-test-doc-types,template,test}*");
     assert_script_run("ls -l /home/$username/Documents");
-    send_key "alt-f4";
+    close_gui_terminal;
     wait_still_screen;
 
 }
 
 # cleanup libreoffice recent open file to make sure libreoffice clean
 sub cleanup_libreoffice_recent_file {
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     assert_script_run("rm -rf /home/$username/.config/libreoffice/");
     wait_still_screen;
-    send_key "alt-f4";
+    close_gui_terminal;
     x11_start_program('libreoffice');
     wait_still_screen 3;
     assert_screen("welcome-to-libreoffice");
@@ -560,7 +561,7 @@ sub setup_mail_account {
 # https://support.mozilla.org/en-US/kb/customizing-firefox-using-autoconfig
 sub prepare_firefox_autoconfig {
     my ($self) = @_;
-    start_root_shell_in_xterm;
+    select_console 'root-console';
 
     # Enable AutoConfig by pointing to a cfg file
     type_string(
@@ -587,9 +588,7 @@ pref("trailhead.firstrun.branches", "nofirstrun-empty");
 EOF
 });
 
-    save_screenshot;
-    # Close the xterm with root shell
-    enter_cmd "killall xterm";
+    select_console 'x11';
 }
 
 # start clean firefox with one suse.com tab, visit pages which trigger pop-up so they will not pop again
@@ -598,7 +597,7 @@ sub start_clean_firefox {
     my ($self) = @_;
     mouse_hide(1);
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     # Clean and Start Firefox
     enter_cmd "killall -9 firefox;rm -rf .moz* .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*; firefox /home >firefox.log 2>&1 &";
     wait_still_screen 3;
@@ -626,7 +625,7 @@ sub start_firefox_with_profile {
     $url ||= '/home';
     mouse_hide(1);
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     # use mozilla configuration stored with start_clean_firefox
     enter_cmd "killall -9 firefox;rm -rf .mozilla .config/iced* .cache/iced* .local/share/gnome-shell/extensions/*;cp -rp .mozilla_first_run .mozilla";
     # Start Firefox
@@ -656,7 +655,7 @@ sub restart_firefox {
     enter_cmd "$cmd" if defined $cmd;
     enter_cmd "firefox $url >>firefox.log 2>&1 &";
     $self->firefox_check_default;
-    assert_screen 'firefox-url-loaded';
+    assert_screen 'firefox-url-loaded', 300;
 }
 
 sub firefox_check_default {
@@ -700,15 +699,16 @@ sub firefox_open_url {
 }
 
 sub firefox_preferences {
-    send_key_until_needlematch 'firefox-edit-menu', 'alt-e', 6, 5;
-    send_key_until_needlematch 'firefox-preferences', 'n', 6, 5;
+    send_key "alt";
+    assert_and_click "firefox-title-appear";
+    assert_and_click "firefox-edit-menu";
 }
 
 sub exit_firefox_common {
     # Exit
     send_key 'ctrl-q';
     wait_still_screen 3, 6;
-    send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus)], "alt-f4", 7, 30);
+    send_key_until_needlematch([qw(firefox-save-and-quit xterm-left-open xterm-without-focus console-left-open)], "alt-f4", 7, 30);
     if (match_has_tag 'firefox-save-and-quit') {
         # confirm "save&quit"
         send_key "ret";
@@ -769,6 +769,7 @@ sub unlock_user_settings {
     type_string "users";
     assert_screen "settings-users-selected";
     send_key "ret";
+    wait_still_screen(1, 2);
     assert_screen "users-settings";
     assert_and_click "Unlock-user-settings";
     assert_screen "authentication-required-user-settings";
@@ -965,7 +966,7 @@ sub gnote_start_with_new_note {
 sub configure_static_ip_nm {
     my ($self, $ip) = @_;
 
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal);
     become_root;
 
     # Dynamic get network interface names
@@ -977,7 +978,7 @@ sub configure_static_ip_nm {
     assert_script_run "nmcli device disconnect '$niName'";
     assert_script_run "nmcli connection up wired ifname '$niName'";
     enter_cmd "exit";
-    wait_screen_change { send_key 'alt-f4' };
+    close_gui_terminal;
 }
 
 # Open the firewall port of xdmcp service
@@ -1002,17 +1003,55 @@ sub disable_key_repeat {
     x11_start_program('xset -r', target_match => 'generic-desktop', no_wait => 1);
 }
 
-# Start one of the libreoffice components, close any first-run dialogs
-sub libreoffice_start_program {
-    my ($self, $program) = @_;
-    my %start_program_args;
-    $start_program_args{timeout} = 100 if get_var('LIVECD') && check_var('MACHINE', 'uefi-usb');
-    x11_start_program($program, %start_program_args);
+sub open_overview {
+    wait_still_screen 3;
+    send_key "super";
+    assert_screen 'tracker-mainmenu-launched';
+}
+
+sub libreoffice_handle_welcome_popup {
+    if (check_screen('popup-welcome-to-libreoffice')) {
+        send_key "alt-f4";
+    }
+}
+
+sub libreoffice_handle_tip_of_the_day {
     if (check_screen([qw(ooffice-tip-of-the-day oomath-tip-of-the-day)], 5)) {
         # Unselect "_S_how tips on startup", select "_O_k"
         send_key "alt-s";
         send_key "alt-o";
     }
+}
+
+# Start one of the libreoffice components, close any first-run dialogs
+sub libreoffice_start_program {
+    my ($self, $program, %args) = @_;
+    my %start_program_args;
+
+    my %libreoffice_applications = (
+        "libreoffice" => "libreoffice",
+        "oobase" => "base",
+        "oocalc" => "calc",
+        "oodraw" => "draw",
+        "ooimpress" => "impress",
+        "oomath" => "math",
+        "oowriter" => "writer"
+    );
+
+    die "Unrecognized LibreOffice application: $program" unless $libreoffice_applications{$program};
+
+    if ($args{from_overview}) {
+        $self->open_overview;
+        type_string $libreoffice_applications{$program};
+        assert_and_click "overview-office-" . $libreoffice_applications{$program};
+        assert_screen $program;
+    } else {
+        $start_program_args{timeout} = 100 if get_var('LIVECD') && check_var('MACHINE', 'uefi-usb');
+        x11_start_program($program, %start_program_args);
+    }
+
+    libreoffice_handle_welcome_popup;
+    libreoffice_handle_tip_of_the_day;
 }
 
 sub start_gnome_tweak_tool {
@@ -1071,7 +1110,7 @@ sub firefox_print2file_overview {
     my ($self, $file) = @_;
 
     # Prepare files for firefox printing
-    x11_start_program('gnome-terminal');
+    x11_start_program(default_gui_terminal);
     if (script_run("test -d ffprint")) {
         assert_script_run "mkdir ffprint";
     }
@@ -1120,9 +1159,11 @@ sub firefox_print {
 
 sub verify_firefox_print_output {
     my ($self, $file) = @_;
+    my $pdf_viewer = is_sle(">=16.0") ? "papers" : "evince";
 
     # Verify the content and format of output file
-    x11_start_program("evince /home/$username/ffprint/$file-output.pdf", target_match => "evince-$file-output-default");
+    ensure_installed($pdf_viewer);
+    x11_start_program("$pdf_viewer /home/$username/ffprint/$file-output.pdf", target_match => "pdf_viewer-$file-output-default");
     wait_still_screen 2;
     send_key "alt-f10";    # maximize window
     assert_screen("evince-$file-output-pdf", 5);
@@ -1130,6 +1171,7 @@ sub verify_firefox_print_output {
 }
 
 sub cleanup_firefox_print {
+    x11_start_program(default_gui_terminal);
     assert_script_run "rm -rf /home/$username/ffprint/*";
     send_key 'ctrl-d';
     assert_screen 'generic-desktop';

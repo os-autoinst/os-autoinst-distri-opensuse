@@ -6,10 +6,9 @@
 # Summary: Boot from disk and login into MicroOS
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
+use main_micro_alp;
 use version_utils qw(is_sle_micro);
 use Utils::Architectures qw(is_aarch64);
 use microos "microos_login";
@@ -17,13 +16,12 @@ use transactional "record_kernel_audit_messages";
 use utils qw(is_uefi_boot);
 
 sub run {
-
     # default timeout in grub2 is set to 10s
     # Sometimes, machines tend to stall when trying to match grub2
     # this leads to test failures because openQA does not assert grub2 properly
     # KEEP_GRUB_TIMEOUT=0 will force the grub needle to match, useful when booting
     # pre-configured images with disabled timeout. See opensusebasetest::handle_grub
-    if ((is_uefi_boot || is_aarch64 || is_sle_micro('>=6.0')) && get_var('KEEP_GRUB_TIMEOUT', '1') && !main_micro_alp::is_dvd()) {
+    if ((is_uefi_boot || is_aarch64 || get_var('OFW') || is_sle_micro('>=6.0')) && get_var('KEEP_GRUB_TIMEOUT', '1') && !main_micro_alp::is_dvd()) {
         shift->wait_boot_past_bootloader(textmode => 1);
     } else {
         shift->wait_boot(bootloader_time => 300);

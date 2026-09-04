@@ -6,7 +6,7 @@
 # Summary: The class introduces business actions for License Agreement Page
 #          of the installer in SLE
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::License::Sle::LicenseAgreementController;
 use parent 'Installation::License::AbstractLicenseAgreementController';

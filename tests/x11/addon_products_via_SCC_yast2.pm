@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: add addon to SLES via SCC
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base qw(y2_installbase y2_module_guitest);
-use strict;
-use warnings;
+use Mojo::Base qw(y2_installbase y2_module_guitest);
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use registration;

@@ -12,11 +12,9 @@
 #
 # In case of failure, the test will die.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use base 'consoletest';
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use scheduler 'get_test_suite_data';
 use Utils::Firewalld qw(add_port_to_zone reload_firewalld);

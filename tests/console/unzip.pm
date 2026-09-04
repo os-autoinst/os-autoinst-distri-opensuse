@@ -14,16 +14,14 @@
 #     - 4. Unzip only one file (instead of all)
 # Maintainer: Panos Georgiadis <pgeorgiadis@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    zypper_call 'in wget unzip';
+    install_package('unzip', trup_reboot => 1) if (script_run('rpm -q unzip'));
     assert_script_run 'mkdir -p /tmp/unzip-test/ && pushd /tmp/unzip-test';
 
     # 1. Unzip (basic usage)

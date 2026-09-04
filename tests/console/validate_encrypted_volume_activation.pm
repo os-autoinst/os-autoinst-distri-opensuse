@@ -9,11 +9,9 @@
 # - Verify that all properties of the activated partition are correct (using 'cryptsetup status')
 # encrypted volumes that encrypted volume is successfully activated during
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use scheduler 'get_test_suite_data';
 use testapi;
 use validate_encrypt_utils;

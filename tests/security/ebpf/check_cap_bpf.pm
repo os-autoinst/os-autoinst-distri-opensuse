@@ -5,15 +5,13 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#103932, tc#1769831, poo#108302
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 
 sub run {
     my $capability = 'cap_bpf';
-    my $f_bpf_test = '/tmp/bpf_test';
+    my $f_bpf_test = '/var/tmp/bpf_test';
 
     select_console 'root-console';
 

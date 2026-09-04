@@ -7,19 +7,17 @@
 #
 # Maintainer: QE Core <qe-core@suse.de>
 #
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use power_action_utils "power_action";
 use serial_terminal 'select_serial_terminal';
-use network_utils qw(get_nics cidr_to_netmask is_nm_used is_wicked_used delete_all_existing_connections set_nics_link_speed_duplex check_connectivity_to_host_with_retry set_resolv set_nic_dhcp_auto reload_connections_until_all_ips_assigned);
+use network_utils qw(get_nics cidr_to_netmask is_nm_used is_wicked_used delete_all_existing_connections set_nics_link_speed_duplex check_connectivity_to_host_with_retry set_resolv set_nic_dhcp_auto reload_connections_until_all_ips_assigned setup_dhcp_server_network);
 use Utils::Systemd qw(disable_and_stop_service systemctl check_unit_file);
 use lockapi;
 use utils;
 use version_utils;
 use registration qw(runtime_registration add_suseconnect_product);
-use transactional qw(trup_call process_reboot);
+use transactional qw(trup_call process_reboot check_reboot_strategy_and_reboot);
 
 my $server_ip = "10.0.2.101";
 my $subnet = "/24";
@@ -63,7 +61,7 @@ sub install_pkgs {
             assert_script_run "rebootmgrctl set-strategy instantly";
             record_info("Installing packages", "Using transactional-update, requires reboot: $pkg_list");
             trup_call "reboot pkg install $pkg_list";
-            process_reboot(expected_grub => 1);
+            check_reboot_strategy_and_reboot;
             select_serial_terminal;
         } else {
             record_info("Installing packages", "Using zypper for installation: $pkg_list");
@@ -109,51 +107,6 @@ sub setup_kea_container {
     validate_script_output('ss -lnp', sub { /$server_ip:67/ });
 }
 
-sub setup_server_network {
-    my ($nics_ref) = @_;
-    my @nics = @$nics_ref;
-    my $nic0 = $nics[0];
-
-    record_info("SETUP_SERVER_NETWORK");
-
-    # Bring down all non-loopback interfaces except the first one
-    foreach my $nic (@nics[1 .. $#nics]) {
-        record_info("Non-loopback interface $nic detected, bringing it down...");
-        assert_script_run("ip link set $nic down");
-    }
-
-    delete_all_existing_connections();
-
-    my $netmask = cidr_to_netmask($subnet);
-
-    if (is_nm_used()) {
-        # Setting IP and bringing the connection up
-        assert_script_run "nmcli con add type ethernet ifname $nic0 con-name $nic0";
-        assert_script_run "nmcli con modify $nic0 ipv4.addresses ${server_ip}${subnet} ipv4.gateway $gateway ipv4.routes '0.0.0.0/0 $gateway' ipv4.method manual";
-        assert_script_run "nmcli con modify $nic0 connection.autoconnect yes";
-        assert_script_run "nmcli con up $nic0";
-    }
-
-    if (is_wicked_used()) {
-        # Wicked configuration: setting IP and Netmask
-        assert_script_run "echo 'BOOTPROTO=static' > /etc/sysconfig/network/ifcfg-$nic0";
-        assert_script_run "echo 'STARTMODE=auto' >> /etc/sysconfig/network/ifcfg-$nic0";
-        assert_script_run "echo 'IPADDR=$server_ip' >> /etc/sysconfig/network/ifcfg-$nic0";
-        assert_script_run "echo 'GATEWAY=$gateway' >> /etc/sysconfig/network/ifcfg-$nic0";
-        assert_script_run "echo 'NETMASK=$netmask' >> /etc/sysconfig/network/ifcfg-$nic0";
-
-        my $route_config_file = "/etc/sysconfig/network/ifroute-$nic0";
-
-        # Delete existing route configuration if it exists
-        script_run "rm -f $route_config_file";
-
-        # Create a new route configuration file
-        assert_script_run "echo 'default $gateway dev $nic0' > $route_config_file";
-
-        systemctl 'restart wicked';
-    }
-}
-
 sub configure_kea {
     my (%args) = @_;
     $args{nic} //= "eth0";
@@ -196,13 +149,18 @@ sub setup_server {
     my @local_ns = ($server_ip);
 
     record_info("SETUP_SERVER");
-    setup_server_network(\@nics);
+    setup_dhcp_server_network(
+        server_ip => $server_ip,
+        subnet => $subnet,
+        gateway => $gateway,
+        nics => \@nics
+    );
 
     set_resolv(nameservers => \@public_dns);
 
     set_resolv(nameservers => \@scc_dns) if scalar(@scc_dns) > 0;
     runtime_registration() if $requires_scc_registration;
-    add_suseconnect_product("sle-module-containers") if is_sle;
+    add_suseconnect_product("sle-module-containers") if is_sle('<16');
 
     install_pkgs($self, "podman", "ethtool", "dnsmasq");
 

@@ -9,15 +9,17 @@
 # Maintainer: QE Kernel <kernel-qa@suse.de>
 
 use 5.018;
-use warnings;
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
 use Utils::Backends;
 use LTP::utils;
-use version_utils qw(is_jeos is_sle is_sle_micro);
+use version_utils qw(is_jeos is_sle is_sle_micro is_bootloader_grub2_bls);
+use bootloader_setup qw(modify_grub_parameters_grub2_bls);
+use power_action_utils 'power_action';
+use serial_terminal qw(select_serial_terminal);
 use utils 'assert_secureboot_status';
 use kdump_utils;
+use kernel;
 
 sub run {
     my ($self) = @_;
@@ -41,19 +43,25 @@ sub run {
         $self->wait_boot(ready_time => 1800);
     }
 
-    if (check_var_array('LTP_DEBUG', 'crashdump')) {
+    # if we need to test with modified grub parameters
+    if (get_var('GRUB_ARGS') && is_bootloader_grub2_bls()) {
+
         select_serial_terminal;
-        configure_service(yast_interface => 'cli');
+        modify_grub_parameters_grub2_bls();
+
+        power_action('reboot', textmode => 1);
+        $self->wait_boot(ready_time => 1800);
     }
 
-    # Initialize VNC console now to avoid login attempts on frozen system
-    select_console('root-console') if get_var('LTP_DEBUG');
-    select_serial_terminal;
+    init_debug;    # calls select_serial_terminal
+
+    run_supportconfig;
 
     # Debug code for poo#81142
     script_run('gzip -9 </dev/fb0 >framebuffer.dat.gz');
     upload_logs('framebuffer.dat.gz', failok => 1);
 
+    check_kernel_package(get_kernel_flavor());
     assert_secureboot_status(1) if (get_var('SECUREBOOT'));
 
     log_versions;

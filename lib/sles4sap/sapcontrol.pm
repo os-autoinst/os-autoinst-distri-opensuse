@@ -18,6 +18,7 @@ our @EXPORT = qw(
   sapcontrol_process_check
   sap_show_status_info
   get_remote_instance_number
+  get_instance_type
 );
 
 =head1 SYNOPSIS
@@ -32,7 +33,8 @@ Package containing functions which interact or are related to C<sapcontrol> exec
     webmethod=>'GetProcessList',
     sidadm=>'pooadm',
     [additional_args=>'someargument',
-    remote_execution=>$remote_execution]);
+    remote_execution=>$remote_execution,
+    return_output=>'true']);
 
 Executes sapcontrol webmethod for instance specified in arguments and returns exit code received from command.
 Allows remote execution of webmethods between instances, however not all webmethods are possible to execute in that manner.
@@ -208,21 +210,24 @@ sub sapcontrol_process_check {
 
 =head2 get_remote_instance_number
 
- get_instance_number(instance_type=>$instance_type);
+ get_instance_number(instance_type=>$instance_type [instance_id=>'00']);
 
 Finds instance number from remote instance using sapcontrol "GetSystemInstanceList" webmethod.
-Local system instance number is required to execute sapcontrol though.
+Local system instance number is required to execute sapcontrol though and can be supplied using openQA
+setting B<INSTANCE_ID> or argument B<$args{local_instance_id}>.
 
 =over
 
 =item * B<instance_type> Instance type (ASCS, ERS) - this can be expanded to other instances
+
+=item * B<local_instance_id> SAP instance id - defaults to OpenQA setting INSTANCE_ID
 
 =back
 =cut
 
 sub get_remote_instance_number {
     my (%args) = @_;
-    my $local_instance_id = get_required_var('INSTANCE_ID');
+    $args{local_instance_id} //= get_required_var('INSTANCE_ID');
 
     croak "Missing mandatory argument 'instance_type'." unless $args{instance_type};
     croak "Function is not yet implemented for instance type: $args{instance_type}" unless
@@ -233,11 +238,41 @@ sub get_remote_instance_number {
         ASCS => 'MESSAGESERVER',
         ERS => 'ENQREP'
     );
-
-    my @instance_data = grep /$instance_type_features{$args{instance_type}}/,
-      split('\n', sapcontrol(webmethod => 'GetSystemInstanceList', instance_id => $local_instance_id, return_output => 1));
+    my $attempts = 10;
+    my @instance_data;
+    while ($attempts--) {
+        @instance_data = grep /$instance_type_features{$args{instance_type}}/,
+          split('\n', sapcontrol(webmethod => 'GetSystemInstanceList', instance_id => $args{local_instance_id}, return_output => 1));
+        last if (@instance_data);
+        sleep 3;
+    }
+    die "Timeout: Could not find instance with $args{instance_type} after 30 seconds" unless @instance_data;
     my $instance_id = (split(', ', $instance_data[0]))[1];
-    $instance_id = sprintf("%02d", $instance_id);
+    return sprintf("%02d", $instance_id);
+}
 
-    return ($instance_id);
+=head2 get_instance_type
+
+ get_instance_type(local_instance_id=>'00');
+
+=over
+
+=item * B<local_instance_id> SAP instance id - defaults to OpenQA setting INSTANCE_ID
+
+=back
+=cut
+
+sub get_instance_type {
+    my (%args) = @_;
+    croak 'Missing mandatory argument "$args{local_instance_id}"' unless $args{local_instance_id};
+    my $sapcontrol_result = sapcontrol(instance_id => $args{local_instance_id},
+        webmethod => 'GetInstanceProperties',
+        return_output => 'true',    # we need command output instead of RC
+        additional_args => '| grep INSTANCE_NAME'    # Filter only important line. There is a lot of garbage output.
+    );
+
+    my @cmd_result = split(', ', $sapcontrol_result);
+    $cmd_result[2] =~ s/[0-9].//,
+
+      return ($cmd_result[2]);
 }

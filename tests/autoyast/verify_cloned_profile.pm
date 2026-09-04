@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Validate if generated autoyast profile corresponds to the expected one
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base 'basetest';
+use Mojo::Base 'basetest';
 use testapi;
 use scheduler;
 use autoyast 'validate_autoyast_profile';

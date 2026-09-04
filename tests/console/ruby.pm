@@ -6,12 +6,11 @@
 #          -  run a simple ruby program
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
@@ -29,7 +28,7 @@ sub run {
     foreach my $r (split('\n', $ruby)) {
         record_info("Test $r");
         # Install ruby
-        zypper_call("in $r");
+        install_package("$r", trup_reboot => 1);
 
         # Find our ruby command
         my $ruby_shell = script_output("ruby-find-versioned | grep $r");

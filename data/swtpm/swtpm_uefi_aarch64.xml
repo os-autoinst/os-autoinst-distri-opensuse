@@ -1,4 +1,4 @@
-<domain type='kvm'>
+<domain type='qemu'>
   <name>vm-swtpm-uefi</name>
   <uuid>b5049116-80e1-4c6a-9a68-d48e6528c687</uuid>
   <metadata>
@@ -14,7 +14,9 @@
   <features>
     <acpi/>
   </features>
-  <cpu mode='host-passthrough' check='none'/>
+  <cpu mode='custom' match='exact' check='partial'>
+    <model fallback='allow'>cortex-a57</model>
+  </cpu>
   <clock offset='utc'/>
   <on_poweroff>destroy</on_poweroff>
   <on_reboot>restart</on_reboot>

@@ -14,14 +14,13 @@
 #     'SAP_SID' SAP system ID.
 #     'SDAF_DEPLOYER_RESOURCE_GROUP' Existing deployer resource group - part of the permanent cloud infrastructure.
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
-use strict;
-use warnings;
 use sles4sap::sap_deployment_automation_framework::deployment;
 use sles4sap::console_redirection;
 use serial_terminal qw(select_serial_terminal);
 use testapi;
+use utils;
 
 sub test_flags {
     return {fatal => 1};
@@ -41,16 +40,46 @@ sub check_required_vars {
 }
 
 sub run {
+    # Skip module if existing deployment is being re-used
+    return if sdaf_deployment_reused();
     serial_console_diag_banner('Module sdaf_deployer_setup.pm : start');
     select_serial_terminal();
 
     # From now on everything is executed on Deployer VM (residing on cloud).
     connect_target_to_serial();
 
+    # Re-register - Repair registration on cloned VM
+    record_info('Register', 'Repairing registration on cloned VM');
+    my @cleanup_retries = (1 .. 3);
+    my $cleanup_rc;
+    while (shift @cleanup_retries) {
+        $cleanup_rc = script_run('sudo registercloudguest --clean', timeout => 180);
+        last unless $cleanup_rc;
+    }
+    die 'Registration cleanup attempts failed' if $cleanup_rc;
+
+    my $register_rc = script_run('sudo registercloudguest --force-new');
+    collect_guestregister_logs();
+    die 'Registration attempts failed. Check logs for details' if $register_rc;
+    record_info('Reg OK', 'Registration repaired');
+
+    # It is a workaround for https://github.com/ansible/ansible/issues/82758:
+    #   (Heads up: Python 3.13 will remove the module crypt, impacting ansible)
+    assert_script_run('sudo /opt/ansible/venv/2.16/bin/python -m pip install passlib');
+    record_soft_failure 'gh#34 - https://github.com/sdaf-suse/sap-automation/issues/34 - Install passlib';
+
     my $subscription_id = az_login();
     set_common_sdaf_os_env(subscription_id => $subscription_id);
     prepare_sdaf_project();
+    my $tf_version_out = script_output('terraform -v');
+    $tf_version_out =~ /Terraform\s(v\.*)/;
+    record_info("Terraform $1", $tf_version_out);
     record_info('Jumphost ready');
+
+    # Check if resource disk is mounted for early failure
+    my $mount_out = script_output('findmnt /mnt');
+    record_info('Check disk', "Checking if temporary resource disk is present:\n$mount_out");
+    die 'Temporary resource disk not mounted at /mnt: ' . script_output('mount') unless ($mount_out =~ /mnt/);
 
     # Do not leave connection hanging around between modules.
     disconnect_target_from_serial();

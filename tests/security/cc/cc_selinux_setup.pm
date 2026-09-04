@@ -7,9 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#93441
 
-use base 'selinuxtest';
-use strict;
-use warnings;
+use Mojo::Base 'selinuxtest';
 use testapi;
 use utils;
 

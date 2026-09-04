@@ -1,0 +1,51 @@
+name:           btrfs_libstorage-ng@s390x_zvm
+description:    >
+  Validate default installation with btrfs and libstorage-ng.
+vars:
+  DESKTOP: gnome
+  FILESYSTEM: btrfs
+  YUI_REST_API: 1
+schedule:
+  - installation/bootloader_start
+  - installation/setup_libyui
+  - installation/welcome
+  - installation/disk_activation
+  - installation/scc_registration
+  - installation/addon_products_sle
+  - installation/system_role
+  - installation/partitioning/select_guided_setup
+  - installation/partitioning/guided_setup
+  - installation/partitioning/accept_proposed_layout
+  - installation/installer_timezone
+  - installation/user_settings
+  - installation/user_settings_root
+  - installation/resolve_dependency_issues
+  - installation/installation_overview
+  - installation/disable_grub_timeout
+  - installation/start_install
+  - installation/await_install
+  - installation/logs_from_installation_system
+  - installation/reboot_after_installation
+  - boot/reconnect_mgmt_console
+  - installation/first_boot
+  - console/system_prepare
+  - console/force_scheduled_tasks
+  - console/check_resume
+  - console/validate_no_cow_attribute
+  - console/verify_no_separate_home
+test_data:
+  device: vda
+  table_type: gpt
+  subvolume:
+    cow:
+      - /root
+      - /tmp
+      - /usr/local
+      - /.snapshots
+      - /srv
+      - /opt
+    no_cow:
+      - /var
+  file_system:
+    /home: xfs
+    /: btrfs

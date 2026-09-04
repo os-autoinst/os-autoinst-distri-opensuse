@@ -11,16 +11,14 @@
 # - Save screenshot
 # Maintainer: Alberto Planas <aplanas@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
+use serial_terminal qw(select_user_serial_terminal);
 
 sub run {
-    select_console 'user-console';
+    select_user_serial_terminal;
     assert_script_run 'test -L /etc/mtab';
-    script_run('cat /etc/mtab');
-    save_screenshot;
+    record_info('/etc/mtab', script_output('cat /etc/mtab'));
 }
 
 1;

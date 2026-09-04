@@ -8,16 +8,16 @@
 #
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
 use publiccloud::utils;
 use Utils::Architectures qw(is_ppc64le);
-use containers::k8s qw(install_k3s uninstall_k3s apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log);
+use containers::k8s qw(install_k3s uninstall_k3s apply_manifest wait_for_k8s_job_complete find_pods validate_pod_log dump_k3s_debug_info);
+use bootloader_setup qw(add_grub_cmdline_settings);
+use power_action_utils qw(power_action);
 
 sub prepare_pod_yaml {
     record_info('Prep', 'Generate the yaml from a pod');
@@ -30,7 +30,18 @@ sub prepare_pod_yaml {
 }
 
 sub run {
+    my $self = shift;
+
     select_serial_terminal;
+
+    # Switch to cgroup v2 if not already active
+    # NOTE: Remove when SLEM 5.5 is EOL
+    if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
+        add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
+        power_action('reboot', textmode => 1);
+        $self->wait_boot();
+        select_serial_terminal;
+    }
 
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.suse.com/bci/bci-base:latest");
 
@@ -49,36 +60,22 @@ sub run {
 
     # Staging does not have access to repositories, only to DVD
     # curl -sfL https://get.k3s.io is not supported on ppc poo#128456
-    if (!is_staging && !is_ppc64le) {
-        prepare_pod_yaml();
-        record_info('Test', 'kube apply');
-        assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml', timeout => 180);
-        assert_script_run('kubectl wait --timeout=600s --for=condition=Ready pod/testing-pod', timeout => 610);
-        validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ }, timeout => 300);
-    }
+    return if (is_staging || is_ppc64le || get_var('HELM_CHART', ''));
 
-}
-
-sub cleanup {
-    my ($self) = @_;
-    uninstall_k3s();
+    prepare_pod_yaml();
+    record_info('Test', 'kube apply');
+    assert_script_run('podman kube apply --kubeconfig ~/.kube/config -f pod.yaml', timeout => 180);
+    assert_script_run('kubectl wait --timeout=600s --for=condition=Ready pod/testing-pod', timeout => 610);
+    validate_script_output('kubectl exec testing-pod -- cat /etc/os-release', sub { m/SUSE Linux Enterprise Server/ }, timeout => 300);
 }
 
 sub post_fail_hook {
     my ($self) = @_;
-    record_info('K3s status', script_output('systemctl status k3s'));
-    script_run('journalctl -u k3s --no-pager');
-    record_info('K3s nodes', script_output('kubectl get nodes'));
-    script_run('kubectl describe nodes');
-    record_info('K3s pods', script_output('kubectl get pods --all-namespaces'));
-    script_run('kubectl describe pods --all-namespaces');
-    script_run('kubectl describe jobs --all-namespaces');
-    $self->cleanup();
+    dump_k3s_debug_info();
 }
 
 sub post_run_hook {
     my ($self) = @_;
-    $self->cleanup();
 }
 
 

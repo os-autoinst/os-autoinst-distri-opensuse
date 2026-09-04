@@ -5,7 +5,7 @@ schedule:
     - installation/bootloader_start
     - security/boot_disk
     - '{{setup_multimachine}}'
-    - '{{cc_audit_test_setup}}'
+    - security/cc/cc_audit_test_setup
     - security/selinux/selinux_setup
     - security/cc/cc_selinux_setup
     - '{{disable_root_ssh}}'
@@ -17,10 +17,6 @@ conditional_schedule:
                 - network/setup_multimachine
             x86_64:
                 - network/setup_multimachine
-    cc_audit_test_setup:
-        ARCH:
-            s390x:
-                - security/cc/cc_audit_test_setup
     disable_root_ssh:
         ARCH:
             s390x:

@@ -1,0 +1,9 @@
+name:           wireguard_nm
+description:    >
+    Maintainer: qe-core.
+    Wireguard test with nmcli
+schedule:
+    - installation/bootloader_start
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - network/wireguard_nm

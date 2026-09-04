@@ -4,10 +4,9 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Accept proposed partitioning layout
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'y2_installbase';
-use strict;
+use Mojo::Base 'y2_installbase';
 use warnings FATAL => 'all';
 
 sub run {

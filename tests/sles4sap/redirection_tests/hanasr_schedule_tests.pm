@@ -5,9 +5,8 @@
 # Maintainer: QE-SAP <qe-sap@suse.de>
 # Summary: Test module is used for scheduling multiple variants of HanaSR failover scenario on primary database.
 
-use parent 'sles4sap::sap_deployment_automation_framework::basetest';
+use Mojo::Base 'sles4sap::sap_deployment_automation_framework::basetest';
 
-use strict;
 use warnings FATAL => 'all';
 use testapi;
 use main_common 'loadtest';
@@ -35,7 +34,7 @@ B<OpenQA parameters:>
 =cut
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {
@@ -103,9 +102,6 @@ sub run {
         Failover site $primary_db will be restarted.\n
         Primary site $failover_db will stay intact.");
     }
-
-    loadtest('sles4sap/sap_deployment_automation_framework/cleanup', name => "SDAF cleanup", run_args => $run_args, @_);
-    record_info('Load test', 'Scheduling SDAF cleanup');
 
     $run_args->{scenarios} = \%scenarios;
 }

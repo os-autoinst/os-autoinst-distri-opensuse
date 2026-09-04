@@ -1,0 +1,44 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: yama ptrace confinement
+# desc: Verifies that yama.ptrace_scope=1 prevents non-privileged users from ptracing other processes.
+# steps:
+# - 1. Check /proc/sys/kernel/yama/ptrace_scope is 1.
+# - 2. Create a temporary user.
+# - 3. Start a process as that user.
+# - 4. Attempt to strace that process as the same user; verify "Operation not permitted" is returned.
+# - 5. Cleanup user and process.
+# author: <qe-security@suse.de>
+# maintainer: QE Security <none@suse.de>
+# expected: no errors raised
+# platform: SLE16
+# tags: security yama ptrace
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_yama.py)
+
+handle_args "$0" "$@"
+
+# If the metadata flag is not provided, run the tests as usual.
+sysctl --system >/dev/null
+
+# Run tests with pytest and generate junitxml results.
+# Disable `set -e` around pytest so that a non-zero pytest exit code does
+# not abort this script before results.xml has been produced. The outer
+# agnosticTestRunner chains `./runtest && mv results.xml ...`, so we must
+# exit 0 here whenever results.xml was generated; pytest failures are then
+# surfaced by parse_extra_log('XUnit', ...) from the uploaded XML.
+set +e
+pytest test_yama.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc

@@ -1,4 +1,4 @@
-# Copyright 2025 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-Later
 #
 # Summary: Verify the "aulastlog" can print the last login for all users of a
@@ -7,9 +7,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#81772, tc#1768580
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use version_utils qw(is_tumbleweed);

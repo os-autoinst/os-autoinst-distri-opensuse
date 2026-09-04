@@ -13,12 +13,10 @@
 # system units tests (restart, stop, start, staus);
 # rckadmind service start, stop, restart, status
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use utils qw(zypper_call systemctl);
 use Utils::Architectures 'is_aarch64';
-use strict;
 use serial_terminal;
-use warnings;
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

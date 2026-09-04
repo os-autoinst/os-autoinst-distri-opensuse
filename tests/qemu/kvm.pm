@@ -6,9 +6,7 @@
 # Summary: Run QEMU using KVM
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use Utils::Architectures;
 use utils;
@@ -43,12 +41,16 @@ sub run {
     elsif (is_s390x) {
         # Native kvm requires SIE support (start-interpretive execution)
         die "SIE support on s390x cpu required for native kvm" if (script_run('grep sie /proc/cpuinfo') != 0);
-        enter_cmd "qemu-system-s390x -nographic -enable-kvm -kernel /boot/image -initrd /boot/initrd";
+        enter_cmd "qemu-system-s390x -nographic -enable-kvm -m 1G -kernel /boot/image -initrd /boot/initrd";
         assert_screen 'qemu-reached-target-basic-system', 60;
     }
     elsif (is_aarch64) {
         enter_cmd "qemu-system-aarch64 -M virt,usb=off,gic-version=host -cpu host -enable-kvm -nographic -pflash flash0.img -pflash flash1.img";
-        assert_screen 'qemu-uefi-shell', 600;
+        assert_screen([qw(qemu-enter-boot-manager qemu-uefi-shell)], 600);
+        if (match_has_tag('qemu-enter-boot-manager')) {
+            send_key('e');
+            assert_screen('qemu-uefi-boot-manager');
+        }
     }
 
     # close qemu

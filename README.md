@@ -34,6 +34,8 @@ In case of adding new test for Installation, please use approach described in th
 ## How to contribute
 Please, refer to [Contributing Guide](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/CONTRIBUTING.md)
 
+**Tip:** You can enable optional local git hooks for automatic commit message validation (requires git 2.54.0+). See the Contributing Guide for setup instructions.
+
 ## How to get in touch
 Reach us via https://open.qa/contact, we are also on twitter as https://twitter.com/openQAhq
 

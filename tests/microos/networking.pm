@@ -6,10 +6,10 @@
 # Summary: Test network connectivity
 # Maintainer: Panagiotis Georgiadis <pgeorgiadis@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
+use utils;
+use version_utils;
 
 sub run {
     # check the network configuration
@@ -21,8 +21,10 @@ sub run {
     assert_script_run 'ping -c 1 ::1';
 
     # curl
-    assert_script_run 'curl -L openqa.opensuse.org';    # openQA Networking (required for mirrors)
-    assert_script_run 'curl -L github.com';    # Required for kubeadm (behind the scenes)
+    my $openqa = is_opensuse ? "openqa.opensuse.org" : "openqa.suse.de";
+    my $curl_opts = "-Lf --head --retry 5 --retry-delay 60";
+    assert_script_run "curl $curl_opts $openqa";    # openQA Networking (required for mirrors)
+    assert_script_run "curl $curl_opts github.com";    # Required for kubeadm (behind the scenes)
 
 }
 

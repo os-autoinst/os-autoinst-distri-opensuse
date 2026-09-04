@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: common parts on SMT and RMT, and other tools related to repositories.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 =head1 repo_tools
 
@@ -424,10 +424,13 @@ sub prepare_source_repo {
         elsif (is_sle('>=12-SP4') and get_var('REPO_SLES_POOL_SOURCE')) {
             zypper_call("ar -f " . "$utils::OPENQA_HTTP_URL/" . get_var('REPO_SLES_POOL_SOURCE') . " repo-source");
         }
-        # SLE maintenance tests are assumed to be SCC registered
+        # SLE maintenance tests and SLE16 QR tests are assumed to be SCC registered
         # and source repositories disabled by default
-        elsif (main_common::is_updates_tests) {
+        elsif (main_common::is_updates_tests || get_var('ENABLE_SOURCE')) {
             zypper_call(q{mr -e $(zypper -n lr | awk '/-Source/ {print $1}')});
+        }
+        elsif (is_sle('>=16') and get_var("REPO_SLES_16_SOURCE")) {
+            zypper_call("ar -f " . "$utils::OPENQA_HTTP_URL/" . get_var("REPO_SLES_16_SOURCE") . " repo-source");
         }
         else {
             record_info('No repo', 'Missing source repository');
@@ -467,7 +470,7 @@ Disable source repositories
 =cut
 
 sub disable_source_repo {
-    if (is_sle && get_var('FLAVOR') =~ /-Updates$|-Incidents$/) {
+    if (is_sle && (get_var('FLAVOR') =~ /-Updates$|-Incidents$/ || get_var('ENABLE_SOURCE'))) {
         zypper_call(q{mr -d $(zypper -n lr | awk '/-Source/ {print $1}')});
     }
     elsif (script_run('zypper lr repo-source') == 0) {
@@ -493,9 +496,7 @@ sub generate_version {
         return $version;
     } elsif (is_sle_micro) {
         $dist = 'SLE';
-        if (is_sle_micro('<5.3')) {
-            $version = "15_SP3";
-        } elsif (is_sle_micro('<5.5')) {
+        if (is_sle_micro('<5.5')) {
             $version = "15_SP4";
         } elsif (is_sle_micro('<6.0')) {
             $version = "15_SP5";
@@ -579,7 +580,7 @@ Returns Hash reference with all the parsed properties and their values, for exam
 
 sub parse_repo_data {
     my ($repo_identifier) = @_;
-    my @lines = split(/\n/, script_output("zypper lr $repo_identifier"));
+    my @lines = split(/\n/, script_output("zypper -q lr $repo_identifier"));
     my %repo_data = map { split(/\s*:\s*/, $_, 2) } @lines;
     return \%repo_data;
 }

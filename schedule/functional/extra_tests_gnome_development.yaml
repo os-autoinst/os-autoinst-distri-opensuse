@@ -26,6 +26,7 @@ conditional_schedule:
                 - x11/steam
                 - x11/wine
                 - x11/chrome
+                - x11/doom.py
                 - qe-core/x11/openbroadcastersoftware.py
     opensuse_tests:
         DISTRI:

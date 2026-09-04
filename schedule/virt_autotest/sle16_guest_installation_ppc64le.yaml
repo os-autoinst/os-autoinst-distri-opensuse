@@ -1,0 +1,18 @@
+---
+name: virtualization_installation_for_ppc64le
+description: "Virtualization guest installation tests with ppc64le machine  \n"
+schedule:
+  - installation/bootloader
+  - installation/agama_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - virt_autotest/login_console
+  - '{{do_preparation}}'
+  - virt_autotest/unified_guest_installation
+conditional_schedule:
+  do_preparation:
+    TRANSACTIONAL:
+      0:
+        - virt_autotest/prepare_non_transactional_server
+      1:
+        - virt_autotest/prepare_transactional_server

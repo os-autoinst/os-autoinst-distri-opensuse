@@ -4,8 +4,6 @@
 # Summary: Configuration steps for repository mirror
 # Maintainer: QE-SAP <qe-sap@suse.de>, Jan Kohoutek <jan.kohoutek@suse.com>
 
-use strict;
-use warnings;
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
@@ -33,7 +31,7 @@ sub run {
 
     # Clone the terraform and ansible files from the gitlab
     my $work_dir = '~/deployment/';
-    # Get the code for the Trento deployment
+    # Get the code for the plan-b deployment
     my $gitlab_repo = get_var('GITLAB_REPO', 'gitlab.suse.de/jkohoutek/plan-b');
 
     # The usage of a variable with a different name is to

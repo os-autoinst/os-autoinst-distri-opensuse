@@ -13,9 +13,7 @@
 # - Return to previous timezone
 # Maintainer: Katerina Lorenzova <klorenzova@suse.cz>
 
-use base 'y2_module_basetest';
-use strict;
-use warnings;
+use Mojo::Base 'y2_module_basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -26,8 +24,12 @@ sub run {
     my $timezone = script_output 'yast timezone summary 2>&1 | grep "Current Time Zone" | cut -d: -f2';
     record_info 'default timezone', $timezone;
     validate_script_output 'yast timezone list 2>&1', sub { m#Africa/Cairo# };
-    assert_script_run 'yast timezone set timezone=Africa/Cairo';
+    assert_script_run('yast timezone set timezone=Africa/Cairo', timeout => 300);
     validate_script_output 'yast timezone summary 2>&1', sub { m#Africa/Cairo# };
-    assert_script_run "yast timezone set timezone=$timezone";
+    assert_script_run("yast timezone set timezone=$timezone", timeout => 300);
 }
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;

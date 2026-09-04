@@ -24,6 +24,7 @@ schedule:
   - installation/first_boot
   - console/system_prepare
   - '{{test_sles4sap}}'
+  - shutdown/shutdown
 conditional_schedule:
   test_sles4sap:
     TEST_SLES4SAP:

@@ -8,40 +8,58 @@
 # Working both on plain SLE and SLES4SAP products
 # Maintainer: QE-SAP <qe-sap@suse.de>, Alvaro Carvajal <acarvajal@suse.de>
 
-use base 'sles4sap';
+use Mojo::Base 'sles4sap';
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal qw(select_serial_terminal);
 use utils;
 use version_utils qw(is_sle is_upgrade);
-use main_common 'is_updates_tests';
+use main_common qw(is_updates_tests);
 use registration qw(add_suseconnect_product);
-use strict;
-use warnings;
+
+# Make sure that runs that the BETA flag from the job settings matches the beta status of the SUT.
+# Tests for bsc#1257948 and bsc#1259179.
+sub validate_beta_status {
+    my $beta_status_expected = get_var('BETA', 0);
+    my $beta_status_on_sut = !script_run("grep -r '<betaversion>' /etc/products.d/");
+    return if ($beta_status_expected == $beta_status_on_sut);
+
+    my $msg = "Beta Status Expected: $beta_status_expected\nBeta status in /etc/products.d/: $beta_status_on_sut";
+    record_info('Beta status mismatch!', $msg);
+    if (is_sle('=15-SP6') && script_output("grep -r '<betaversion>' /etc/products.d/") =~ /sle-module-systems-management.prod/) {
+        record_soft_failure('bsc#1259179 - Released System Management module has beta tag on 15-SP6');
+        return;
+    }
+    die $msg;
+}
 
 sub run {
-    my @sappatterns = is_sle('16+') ? ("sles_sap_APP", "sles_sap_DB", "sles_sap_addons", "sles_sap_automation", "sles_sap_debug", "sles_sap_security", "sles_sap_trento_agent", "sles_sap_trento_server") : ("sap-nw", "sap-b1", "sap-hana");
-    splice(@sappatterns, 1, 1) if (is_sle('15-SP5+') && !is_sle('16+'));    # sap-bone pattern is no longer part of SLES4SAP starting on 15-SP5
-    my $output = '';
-
     select_serial_terminal;
 
     # Disable packagekit
     quit_packagekit;
 
+    # Test for beta status mismatch. (bsc#1257948)
+    validate_beta_status;
+
+    my @sappatterns = is_sle('16+') ? ("sles_sap_APP", "sles_sap_DB", "sles_sap_addons", "sles_sap_automation", "sles_sap_debug", "sles_sap_security", "sles_sap_trento_agent", "sles_sap_trento_server") : ("sap-nw", "sap-b1", "sap-hana");
+    splice(@sappatterns, 1, 1) if (is_sle('15-SP5+') && !is_sle('16+'));    # sap-bone pattern is no longer part of SLES4SAP starting on 15-SP5
+    my $output = '';
+
     # Is HA pattern needed?
     if (get_var('HA_CLUSTER')) {
-        is_sle('16+') ? push(@sappatterns, 'sles_ha', 'sles_sap_HAAPP', 'sles_sap_HADB') : push(@sappatterns, 'ha_sles');
+        push(@sappatterns, 'ha_sles');
+        push(@sappatterns, 'sles_sap_HAAPP', 'sles_sap_HADB') if is_sle('16+');
     }
 
-    my $base_pattern = is_sle('15+') ? 'patterns-server-enterprise-sap_server' : 'patterns-sles-sap_server';
-    $base_pattern = 'patterns-sap-base_sap_server' if (is_sle('16+'));
+    my $base_pattern = is_sle('15+') ? '(patterns-server-enterprise-sap_server|pattern:sap_server)' : 'patterns-sles-sap_server';
+    $base_pattern = '(patterns-sap-base_sap_server|pattern:sles_sap_base_sap_server)' if (is_sle('16+'));
 
     zypper_enable_install_dvd;
     # First check pattern sap_server which is installed by default in SLES4SAP
     # when 'SLES for SAP Applications' system role is selected
     my $sap_server = is_sle('16+') ? "sles_sap_base_sap_server" : "sap_server";
     $output = script_output("zypper info -t pattern $sap_server");
-    if ($output !~ /i.?\s+\|\s$base_pattern\s+\|\spackage\s\|\sRequired/) {
+    if ($output !~ /i.?\s+\|\s$base_pattern\s+\|\s(package|pattern)\s\|\sRequired/) {
         # Pattern sap_server is not installed. Could be a due to a bug, caused by the
         # use of the 'textmode' system role during install, or on upgrades when the
         # original system didn't have the pattern (for example, from SLES4SAP 11-SP4)
@@ -68,10 +86,11 @@ sub run {
             zypper_call("in -y -t pattern $pattern", timeout => 1500);
             $output = script_output "zypper info -t pattern $pattern";
             # Name of HA pattern is weird...
+            my $origin_pattern = $pattern;
             $pattern = "ha-$pattern" if ($pattern =~ /ha_sles/) && get_var('HA_CLUSTER');
             $pattern =~ s/^sles_sap_/sap-/ if (is_sle('16+'));
             die "SAP zypper pattern [$pattern] info check failed"
-              unless ($output =~ /i.?\s+\|\spatterns-$pattern\s+\|\spackage\s\|\sRequired/);
+              unless ($output =~ /i.?\s+\|\s(patterns-$pattern|pattern:($origin_pattern|$pattern))\s+\|\s(package|pattern)\s\|\sRequired/);
         }
     }
     elsif (check_var('SLE_PRODUCT', 'sles') && get_var('HANA')) {

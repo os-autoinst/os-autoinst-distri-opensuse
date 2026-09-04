@@ -33,8 +33,12 @@ use POSIX 'strftime';
 use File::Basename;
 use testapi;
 use IPC::Run;
+use utils qw(inspect_existing_issue);
+use version_utils qw(get_os_release);
 use virt_utils;
 use virt_autotest_base;
+use virt_autotest::utils qw(check_guest_health);
+use virt_autotest::domain_management_utils;
 use XML::Simple;
 use Data::Dumper;
 use LWP;
@@ -70,10 +74,14 @@ sub instantiate_guests_and_profiles {
         $_guest_profile->{guest_name} = $_element;
         $_guest_profile->{guest_installation_media} = $_store_of_guests{$_element}{INSTALL_MEDIA} if ($_store_of_guests{$_element}{INSTALL_MEDIA} ne '');
         $_guest_profile->{guest_build} = $_store_of_guests{$_element}{INSTALL_BUILD} if ($_store_of_guests{$_element}{INSTALL_BUILD} ne '');
+        $_guest_profile->{guest_registration_server} = $_store_of_guests{$_element}{REG_SERVER} if ($_store_of_guests{$_element}{REG_SERVER} ne '');
         $_guest_profile->{guest_registration_code} = $_store_of_guests{$_element}{REG_CODE};
         $_guest_profile->{guest_registration_extensions_codes} = $_store_of_guests{$_element}{REG_EXTS_CODES};
         $_guest_profile->{guest_installation_fine_grained_media} = $_store_of_guests{$_element}{INSTALL_FINE_GRAINED_MEDIA} if ($_store_of_guests{$_element}{INSTALL_FINE_GRAINED_MEDIA} ne '');
         $_guest_profile->{guest_installation_fine_grained_repos} = $_store_of_guests{$_element}{INSTALL_FINE_GRAINED_REPOS} if ($_store_of_guests{$_element}{INSTALL_FINE_GRAINED_REPOS} ne '');
+        $_guest_profile->{guest_product_mode} = $_store_of_guests{$_element}{PRODUCT_MODE} if ($_store_of_guests{$_element}{PRODUCT_MODE} ne '');
+        $_guest_profile->{guest_network_type} = $_store_of_guests{$_element}{NETWORK_TYPE} if ($_store_of_guests{$_element}{NETWORK_TYPE} ne '');
+        $_guest_profile->{guest_network_mode} = $_store_of_guests{$_element}{NETWORK_MODE} if ($_store_of_guests{$_element}{NETWORK_MODE} ne '');
         $guest_instances_profiles{$_element} = $_guest_profile;
         diag "Guest $_element is going to use profile" . Dumper($guest_instances_profiles{$_element});
     }
@@ -103,6 +111,8 @@ sub install_guest_instances {
         next if $guest_instances{$_}->{guest_installation_result} eq 'FAILED';
         if ($guest_instances{$_}->has_noautoconsole_for_sure) {
             assert_screen('text-logged-in-root');
+            # No serial console during installation for Windows guests
+            next if $guest_instances{$_}->{guest_os_name} eq 'windows';
             $guest_instances{$_}->do_attach_guest_installation_screen_without_session;
         }
         $guest_instances{$_}->{guest_installation_attached} = 'true';
@@ -133,19 +143,23 @@ sub monitor_concurrent_guest_installations {
     my $_monitor_start_time = time();
     while (time() - $_monitor_start_time <= 7200) {
         foreach (keys %guest_instances) {
-            if ($guest_instances{$_}->{guest_installation_result} eq '') {
-                $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
-                $guest_instances{$_}->monitor_guest_installation;
-                if ($guest_instances{$_}->{guest_installation_result} eq '') {
-                    $_guest_installations_not_the_last = 0 if ($_guest_installations_left eq 1);
-                    $guest_instances{$_}->detach_guest_installation_screen if ($_guest_installations_not_the_last ne 0);
+            if (!($guest_instances{$_}->is_guest_installation_done)) {
+                if ($guest_instances{$_}->{guest_os_name} eq 'windows') {
+                    $guest_instances{$_}->monitor_windows_guest_installation;
+                } else {
+                    $guest_instances{$_}->attach_guest_installation_screen if (($_guest_installations_not_the_last ne 0) or ($guest_instances{$_}->{guest_installation_attached} ne 'true'));
+                    $guest_instances{$_}->monitor_guest_installation;
+                    if (!($guest_instances{$_}->is_guest_installation_done)) {
+                        $_guest_installations_not_the_last = 0 if ($_guest_installations_left eq 1);
+                        $guest_instances{$_}->detach_guest_installation_screen if ($_guest_installations_not_the_last ne 0);
+                    }
                 }
             }
             my $_current_guest_instance = $_;
-            if ((!(grep { $_ eq $_current_guest_instance } @guest_installations_done)) and ($guest_instances{$_}->{guest_installation_result} ne '')) {
+            if ((!(grep { $_ eq $_current_guest_instance } @guest_installations_done)) and ($guest_instances{$_}->is_guest_installation_done)) {
                 push(@guest_installations_done, $_);
                 $_guest_installations_left = scalar(keys %guest_instances) - scalar(@guest_installations_done);
-                $guest_instances{$_}->collect_guest_installation_logs_via_ssh if ($guest_instances{$_}->{guest_installation_result} ne 'PASSED');
+                $guest_instances{$_}->collect_guest_installation_logs_via_ssh unless ($guest_instances{$_}->{guest_installation_result} eq 'PASSED' or $guest_instances{$_}->{guest_os_name} eq 'windows');
                 last if ($_guest_installations_left eq 0);
             }
         }
@@ -166,7 +180,7 @@ sub validate_guest_installations_results {
             record_info("Guest $guest_instances{$_}->{guest_name} still has no installation result at the end.Makr it as UNKNOWN.", "It will be treated as a kind of failure !");
             $guest_instances{$_}->{guest_installation_result} = 'UNKNOWN';
             push(@guest_installations_done, $_);
-            $guest_instances{$_}->collect_guest_installation_logs_via_ssh;
+            $guest_instances{$_}->collect_guest_installation_logs_via_ssh unless $guest_instances{$_}->{guest_os_name} eq 'windows';
         }
         $_overall_test_result = "$guest_instances{$_}->{guest_installation_result},$_overall_test_result";
     }
@@ -180,8 +194,10 @@ sub clean_up_guest_installations {
 
     $self->reveal_myself;
     foreach (keys %guest_instances) {
-        $guest_instances{$_}->detach_guest_installation_screen;
-        $guest_instances{$_}->terminate_guest_installation_session;
+        unless ($guest_instances{$_}->{guest_os_name} eq 'windows') {
+            $guest_instances{$_}->detach_guest_installation_screen;
+            $guest_instances{$_}->terminate_guest_installation_session;
+        }
         if ($guest_instances{$_}->{guest_ipaddr_static} ne 'true') {
             $guest_instances{$_}->get_guest_ipaddr;
         }
@@ -203,7 +219,8 @@ sub junit_log_provision {
         $_guest_installations_results->{$_}{stop_run} = ($guest_instances{$_}->{stop_run} eq '' ? time() : $guest_instances{$_}->{stop_run});
         $_guest_installations_results->{$_}{test_time} = strftime("\%Hh\%Mm\%Ss", gmtime($_guest_installations_results->{$_}{stop_run} - $_guest_installations_results->{$_}{start_run}));
     }
-    $self->{"product_tested_on"} = script_output("cat /etc/issue | grep -io -e \"SUSE.*\$(arch))\" -e \"openSUSE.*[0-9]\"");
+    my ($major_version, $minor_version, $distri) = get_os_release;
+    $self->{product_tested_on} = join('-', $distri, $major_version, $minor_version);
     $self->{"product_name"} = ref($self);
     $self->{"package_name"} = ref($self);
     my $_guest_installation_xml_results = virt_autotest_base::generateXML($self, $_guest_installations_results);
@@ -265,6 +282,26 @@ sub save_guest_installations_assets {
     return $self;
 }
 
+#Shut down guests if KEEP_GUEST_SHUTOFF is set after health checking. Remove guests
+#having unsuccessful installations according to setting KEEP_NORMAL_GUEST. List out
+#all guests on system at the end.
+sub clean_up_guests {
+    my $self = shift;
+
+    $self->reveal_myself;
+    foreach (keys %guest_instances) {
+        if ($guest_instances{$_}->{guest_installation_result} eq 'PASSED') {
+            check_guest_health($_);
+            virt_autotest::domain_management_utils::shutdown_guest(guest => $_) if (get_var('KEEP_GUEST_SHUTOFF', ''));
+        }
+        else {
+            virt_autotest::domain_management_utils::remove_guest(guest => $_) if (get_var('KEEP_NORMAL_GUEST', ''));
+        }
+    }
+    virt_autotest::domain_management_utils::show_guest;
+    return $self;
+}
+
 sub post_fail_hook {
     my $self = shift;
 
@@ -273,6 +310,7 @@ sub post_fail_hook {
     $self->junit_log_provision((caller(0))[3]);
     $self->SUPER::post_fail_hook;
     $self->save_guest_installations_assets;
+    $self->clean_up_guests;
     return $self;
 }
 

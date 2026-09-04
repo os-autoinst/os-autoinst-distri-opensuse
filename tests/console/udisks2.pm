@@ -6,15 +6,14 @@
 # Package: cdrkit-cdrtools-compat udisks2 util-linux mkisofs
 # Summary: Simple tests for udisks2 using udisksctl checking status,
 # block device information and loop-setup.
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use strict;
-use warnings;
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils qw(is_sle);
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
@@ -25,7 +24,7 @@ sub run {
         zypper_call('in cdrkit-cdrtools-compat udisks2 util-linux');
     }
     else {
-        zypper_call('in mkisofs udisks2 util-linux');
+        install_package('mkisofs udisks2 util-linux', trup_reboot => 1);
     }
 
     # Compares block devices from lsblk and udisksctl outputs.

@@ -8,9 +8,7 @@
 # Maintainer: GraceWang <gwang@suse.com>
 # Tags: tc#1610388
 
-use strict;
-use warnings;
-use base 'x11test';
+use Mojo::Base 'x11test';
 use testapi;
 use lockapi;
 use version_utils qw(is_sles4sap is_tumbleweed);
@@ -18,7 +16,7 @@ use version_utils qw(is_sles4sap is_tumbleweed);
 sub run {
     my $self = shift;
 
-    mutex_lock 'xrdp_server_ready';
+    mutex_wait 'xrdp_server_ready';
 
     send_key "super-r";
     assert_screen "windows-run";
@@ -27,12 +25,8 @@ sub run {
     type_string '10.0.2.17';
     assert_screen "remote-ip-filled";
     send_key 'ret';
-    if (check_screen "accept-custom-cert", 90) {
-        send_key 'y';
-    } else {
-        assert_screen "verify-identity", 90;
-        send_key 'y';
-    }
+    assert_screen [qw(accept-custom-cert verify-identity)], 90;
+    send_key 'alt-y';
     assert_screen "xrdp-login-screen";
     type_string $username;    # input account name
     send_key "tab";

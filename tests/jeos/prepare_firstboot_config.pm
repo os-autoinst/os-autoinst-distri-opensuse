@@ -7,9 +7,7 @@
 # configuration
 # Maintainer: Wayne Chen <wchen@suse.com>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils qw(is_ipxe_boot);
 use autoyast qw(expand_template expand_variables upload_profile);
@@ -45,7 +43,7 @@ sub prepare_profile {
     $profile = expand_template($profile) if ($args{path} =~ s/^(.*)\.ep$/$1/);
     $profile = expand_variables($profile);
     my $path = $args{path};
-    $path = get_required_var('SUT_IP') . $args{path} if (is_ipxe_boot);
+    $path = join('/', get_required_var('SUT_IP'), $args{path}) if (is_ipxe_boot);
     upload_profile(profile => $profile, path => $path);
     return $path;
 }

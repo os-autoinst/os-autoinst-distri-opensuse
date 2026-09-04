@@ -22,12 +22,11 @@
 # - Cleanup
 # Maintainer: Marcelo Martins <mmartins@suse.cz>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'has_selinux';
+use package_utils 'install_package';
 
 sub run {
     my $username = $testapi::username;
@@ -35,7 +34,7 @@ sub run {
     select_console 'root-console';
 
     # install requirements
-    zypper_call 'in quota quota-nfs';
+    install_package('quota quota-nfs', trup_reboot => 1);
     my $systemd_version = int(script_output('systemctl --version | grep systemd | awk \'{print $2}\''));
     my $use_templated_service = ($systemd_version >= 256);
     record_info('Systemd Version', "Detected systemd version: $systemd_version");
@@ -44,7 +43,13 @@ sub run {
     systemctl "restart quotaon" unless $use_templated_service;
 
     # create filesystem image to use
-    my $quota_path = "/home/$testapi::username";
+    my $quota_path;
+    if ($testapi::username eq 'root') {
+        $quota_path = "/root";
+    }
+    else {
+        $quota_path = "/home/$testapi::username";
+    }
     assert_script_run "dd if=/dev/zero of=$quota_path/quota.img bs=10M count=10";
     assert_script_run "mkfs.ext3 -m0 $quota_path/quota.img";
     assert_script_run "mkdir $quota_path/quota";

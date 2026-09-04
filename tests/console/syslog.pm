@@ -12,19 +12,18 @@
 # - Check journalctl -b output for test message
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use version_utils;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
     # Install runtime dependencies
-    zypper_call("in rsyslog");
+    install_package('rsyslog', trup_reboot => 1);
 
     my $test_log_msg = 'Test Log Message FOOBAR123';
     assert_script_run "logger $test_log_msg";

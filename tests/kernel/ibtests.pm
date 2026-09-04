@@ -1,14 +1,14 @@
 # SUSE's openQA tests
 #
-# Copyright 2018-2022 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: git-core twopence-shell-client bc iputils python
 # Summary: run InfiniBand test suite hpc-testing
 #
-# Maintainer: Michael Moese <mmoese@suse.de>, Nick Singer <nsinger@suse.de>, ybonatakis <ybonatakis@suse.com>
+# Maintainer: Kernel QE <kernel-qa@suse.de>
 
-use Mojo::Base qw(opensusebasetest);
+use Mojo::Base 'opensusebasetest';
 use Utils::Backends;
 use testapi;
 use serial_terminal 'select_serial_terminal';
@@ -17,26 +17,26 @@ use power_action_utils 'power_action';
 use lockapi;
 use mmapi;
 use Utils::Logging qw(save_and_upload_log save_and_upload_systemd_unit_log);
+use mm_network;
+use LTP::WhiteList;
+use LTP::utils 'prepare_whitelist_environment';
 
 our $master;
 our $slave;
 
 sub upload_ibtest_logs {
     my $self = shift;
+    my $default_units = 'opensm srp_daemon nvmet nvmf-autoconnect rdma-hw rdma-load-modules@infiniband rdma-load-modules@rdma rdma-ndd rdma-sriov';
+
+    my @systemd_units = split(/\s+/, get_var('IBTEST_UNIT_LOGS', $default_units));
+
 
     save_and_upload_log('dmesg', '/tmp/dmesg.log', {screenshot => 0});
-    save_and_upload_log('systemctl list-units -l', '/tmp/systemd_units.log', {screenshot => 0});
 
-    save_and_upload_systemd_unit_log('opensm.service');
-    save_and_upload_systemd_unit_log('srp_daemon.service');
-    save_and_upload_systemd_unit_log('nvmet.service');
-    save_and_upload_systemd_unit_log('nvmf-autoconnect.service');
-    save_and_upload_systemd_unit_log('rdma-hw.service');
-    save_and_upload_systemd_unit_log('rdma-load-modules@infiniband.service');
-    save_and_upload_systemd_unit_log('rdma-load-modules@rdma.service');
-    save_and_upload_systemd_unit_log('rdma-load-modules@roce.service');
-    save_and_upload_systemd_unit_log('rdma-ndd.service');
-    save_and_upload_systemd_unit_log('rdma-sriov.service');
+    # save logs for relevant systemd units
+    foreach (@systemd_units) {
+        save_and_upload_log("journalctl -u ${_}.service", "/tmp/${_}.service.log", {screenshot => 0});
+    }
 }
 
 sub ibtest_slave {
@@ -50,8 +50,7 @@ sub ibtest_master {
     my $self = shift;
     my $master = get_required_var('IBTEST_IP1');
     my $slave = get_required_var('IBTEST_IP2');
-    my $hpc_testing = get_var('IBTEST_GITTREE', 'https://github.com/SUSE/hpc-testing.git');
-    my $hpc_testing_branch = get_var('IBTEST_GITBRANCH', 'master');
+    my $install = get_var('IBTEST_INSTALL', 'from_repo');
     my $timeout = get_var('IBTEST_TIMEOUT', '3600');
 
     # construct some parameters to allow to customize test runs when needed
@@ -60,6 +59,10 @@ sub ibtest_master {
     my $phase = get_var('IBTEST_ONLY_PHASE');
     my $mpi_flavours = get_var('IBTEST_MPI_FLAVOURS');
     my $ipoib_modes = get_var('IBTEST_IPOIB_MODES');
+    my $ipoib_ip1 = get_var('IBTEST_IPOIB_IP1', '192.168.0.1');
+    my $ipoib_ip2 = get_var('IBTEST_IPOIB_IP2', '192.168.0.2');
+    my $exclude = get_var('IBTEST_EXCLUDE');
+    my $issues = get_var('IBTEST_KNOWN_ISSUES');
 
     my $args = '';
 
@@ -76,13 +79,28 @@ sub ibtest_master {
 
     $args = $args . "--mpi $mpi_flavours " if $mpi_flavours;
     $args = $args . "--ipoib $ipoib_modes " if $ipoib_modes;
+    $args = $args . "--ip1 $ipoib_ip1 --ip2 $ipoib_ip2 ";
 
+    my @exclude = split(/,/, $exclude // '');
+    if ($issues) {
+        my $whitelist = LTP::WhiteList->new($issues);
+        my $environment = prepare_whitelist_environment();
+        $environment->{kernel} = script_output('uname -r');
 
-    # pull in the testsuite
-    assert_script_run("git clone $hpc_testing --branch $hpc_testing_branch", timeout => $timeout);
+        for my $test ($whitelist->list_skipped_tests($environment, 'ibtest')) {
+            my $entry = $whitelist->find_whitelist_entry($environment, 'ibtest', $test);
+            my $message = $entry->{message} // '';
+            record_info('Known issue', "Skipping $test" . ($message ? ": $message" : ''));
+            push @exclude, $test;
+        }
+    }
+    $args = $args . join(' ', map { "--skip-test '$_'" } @exclude) . ' ' if @exclude;
+
+    # testsuite is already fetched by ibtests_prepare.pm before the reboot
+    my $test_dir = $install =~ /git/i ? 'hpc-testing' : '/usr/share/hpc-testing';
 
     # wait until the two machines under test are ready setting up their local things
-    assert_script_run('cd hpc-testing');
+    assert_script_run("cd $test_dir");
     barrier_wait('IBTEST_BEGIN');
     script_run("./ib-test.sh $args $master $slave", timeout => $timeout);
     script_run('tr -cd \'\11\12\15\40-\176\' < results/TEST-ib-test.xml > /tmp/results.xml');
@@ -105,6 +123,9 @@ sub run {
 
     select_serial_terminal;
 
+    record_info('KERNEL', script_output('rpm -qi kernel-default; uname -r'));
+    save_and_upload_log('(rpm -qi kernel-default; uname -r)', 'kernel_bug_report.txt');
+
     # wait for both machines to boot up before we continue
     barrier_wait('IBTEST_SETUP');
 
@@ -114,10 +135,26 @@ sub run {
     exec_and_insert_password("ssh-copy-id -o StrictHostKeyChecking=no root\@$slave");
     script_run("/usr/bin/clear");
 
+    if (is_networkmanager) {
+        assert_script_run('nmcli device set ib0 managed no');
+        assert_script_run('nmcli device set ib1 managed no');
+        sleep(3);
+    }
+    assert_script_run('ip link set up dev ib0');
+    assert_script_run('ip link set up dev ib1');
+
     if ($role eq 'IBTEST_MASTER') {
+        assert_script_run('ip addr add fe80::1/64 dev ib0');
+        assert_script_run('ip addr add fe80::2/64 dev ib1');
+        sleep(5);
+        record_info("ip addr show", script_output('ip addr show'));
         $self->ibtest_master;
     }
     elsif ($role eq 'IBTEST_SLAVE') {
+        assert_script_run('ip addr add fe80::3/64 dev ib0');
+        assert_script_run('ip addr add fe80::4/64 dev ib1');
+        sleep(5);
+        record_info("ip addr show", script_output('ip addr show'));
         $self->ibtest_slave;
     }
 
@@ -139,64 +176,106 @@ sub post_fail_hook {
 
 1;
 
-=head1 bare metal testing for InfiniBand
-This section describes how to setup your environment for running the testsuite on bare metal.
-Once fully implemented, it will be expanded to virtualized testing.
+=head1 Description
 
-=head2 Overview
-This test is executing the hpc-testing testsuite from https://github.com/SUSE/hpc-testing
+Test module for bare metal testing of InfiniBand. This section describes how
+to setup your environment for running the testsuite on bare metal. Once fully
+implemented, it will be expanded to virtualized testing.
 
-In order to run this testsuite, two machines with InfiniBand HCA's are required.
+This test is executing the hpc-testing testsuite from
+https://github.com/SUSE/hpc-testing
 
-The test has some additional dependencies (twopence) that need to be in DEVEL_TOOLS_REPO.
+In order to run this testsuite, two machines with InfiniBand HCA's are
+required.
+
+The test has some additional dependencies (twopence) that need to be in
+DEVEL_TOOLS_REPO.
 
 =head1 openQA setup
 
 =head2 openQA worker setup
+
 The workers with the InfiniBand HCA's need a special worker class, in this case
 we assume it is "64bit-mlx_con5". See the schedule/kernel/ibtest-master.yaml and
 schedule/kernel/ibtest-slave.yaml for more details.
 
 =head2 openQA test suites
+
 As the test is executed on two hosts, two test suites should be created. Please note:
 most settings are now defined in the YAML schedule.
 
 =head3 ibtest-master
+
 YAML_SCHEDULE=schedule/kernel/ibtest-master.yaml
 
 =head3 ibtest-slave
+
 PARALLEL_WITH=ibtest-master
 YAML_SCHEDULE=schedule/kernel/ibtest-slave.yaml
 
-=head3 additional configuration variables
+=head1 Configuration
+
 These are only effective, when defined for the master job. Leave them at their
 defaults unless you know what you are doing.
 
-IBTEST_TIMEOUT
- Test timeout in seconds.
- Default: 3600 (1 hour)
-IBTEST_ONLY_PHASE
- integer value. Only run the defined phase.
- Not set by default.
-IBTEST_START_PHASE
- integer value. Start with specified phase.
- Default: 0
-IBTEST_END_PHASE
- integer value. End with specified phase.
- Default: 999
-IBTEST_MPI_FLAVOURS
- Comma separated list of MPI flavours to test.
- Default: mvapich2,mpich,openmpi,openmpi2,openmpi3
-IBTEST_IPOIB_MODES
- Comma separated list of IPoIB modes to test
- Default: connected,datagram
-IBTEST_VERBOSE
- Set this variable to enable verbose mode
- Default: not set
-IBTEST_IN_VM
- Set this variable to enable testing in a VM.
- Default: not set
-IBTEST_NO_MAD
- Set this variable toisable test that requires MAD support. Needed for testing over SR-IOV
- Default: not set
+=head2 IBTEST_INSTALL
 
+Installation method for the hpc-testing suite, C<from_repo> (default) or
+C<from_git>. See ibtests_prepare.pm, which fetches the testsuite before
+the reboot.
+
+=head2 IBTEST_TIMEOUT
+
+Test timeout in seconds. Also used by ibtests_prepare.pm as the git clone
+timeout.
+Default: 3600 (1 hour)
+
+=head2 IBTEST_ONLY_PHASE
+
+Integer value. Only run the defined phase.
+Not set by default.
+
+=head2 IBTEST_START_PHASE
+
+Integer value. Start with specified phase.
+Default: 0
+
+=head2 IBTEST_END_PHASE
+
+Integer value. End with specified phase.
+Default: 999
+
+=head2 IBTEST_MPI_FLAVOURS
+
+Comma separated list of MPI flavours to test.
+Default: mvapich2,mpich,openmpi,openmpi2,openmpi3
+
+=head2 IBTEST_IPOIB_MODES
+
+Comma separated list of IPoIB modes to test.
+Default: connected,datagram
+
+=head2 IBTEST_VERBOSE
+
+Set this variable to enable verbose mode.
+Default: not set
+
+=head2 IBTEST_IN_VM
+
+Set this variable to enable testing in a VM.
+Default: not set
+
+=head2 IBTEST_NO_MAD
+
+Set this variable to disable test that requires MAD support. Needed for testing over SR-IOV.
+Default: not set
+
+=head2 IBTEST_EXCLUDE
+
+Optional. Comma-separated list of test names/patterns to skip (passed as
+C<--skip-test>).
+
+=head2 IBTEST_KNOWN_ISSUES
+
+Optional. URL or path to a known-issues YAML file parsed with
+C<LTP::WhiteList>

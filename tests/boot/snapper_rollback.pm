@@ -4,13 +4,11 @@
 # SPDX-License-Identifier: FSFAP
 
 # Summary: Test rollback after migration back to downgraded system
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
-use strict;
-use warnings;
 use migration 'check_rollback_system';
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';

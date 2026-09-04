@@ -6,7 +6,7 @@
 # Summary: Configure WSL users
 # Maintainer: qa-c  <qa-c@suse.de>
 
-use Mojo::Base qw(windowsbasetest);
+use Mojo::Base 'windowsbasetest';
 use testapi;
 use utils qw(enter_cmd_slow);
 use version_utils qw(is_sle);

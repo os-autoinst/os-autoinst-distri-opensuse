@@ -11,9 +11,7 @@
 #   * Run gimp
 # Maintainer: Felix Niederwanger <felix.niederwanger@suse.de>
 
-use base 'x11test';
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;

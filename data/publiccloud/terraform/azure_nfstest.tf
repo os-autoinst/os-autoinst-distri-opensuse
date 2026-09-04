@@ -61,8 +61,20 @@ variable "subnet_id" {
   default = ""
 }
 
+variable "ssh_key_algo" {
+  type        = string
+  default     = "rsa"
+  description = "SSH key algorithm"
+}
+
 variable "ssh_public_key" {
-  default = "/root/.ssh/id_rsa.pub"
+  type        = string
+  default     = ""
+  description = "Explicit path to the SSH public key. Overrides ssh_key_algo when non-empty."
+}
+
+locals {
+  ssh_public_key = var.ssh_public_key != "" ? var.ssh_public_key : "/root/.ssh/id_${var.ssh_key_algo}.pub"
 }
 
 
@@ -103,6 +115,12 @@ resource "azurerm_public_ip" "openqa-publicip" {
   resource_group_name = azurerm_resource_group.openqa-group.name
   allocation_method   = "Dynamic"
   count               = var.instance_count
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_network_interface" "openqa-nic" {
@@ -117,6 +135,12 @@ resource "azurerm_network_interface" "openqa-nic" {
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = element(azurerm_public_ip.openqa-publicip.*.id, count.index)
   }
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 ## storage and NFS share
@@ -129,6 +153,12 @@ resource "azurerm_storage_account" "openqa-group" {
   account_replication_type  = "LRS"
   account_kind              = "FileStorage"
   enable_https_traffic_only = false
+
+  tags = merge({
+    openqa_created_by   = var.name
+    openqa_created_date = timestamp()
+    openqa_created_id   = element(random_id.service.*.hex, 0)
+  }, var.tags)
 }
 
 resource "azurerm_storage_account_network_rules" "openqa-group" {
@@ -190,7 +220,7 @@ resource "azurerm_linux_virtual_machine" "openqa-vm" {
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file("${var.ssh_public_key}")
+    public_key = file(local.ssh_public_key)
   }
 
   os_disk {

@@ -1,0 +1,124 @@
+From fb02454b2d0c6d3dc9fdb91ee8db41d5b33eb669 Mon Sep 17 00:00:00 2001
+From: Nalin Dahyabhai <nalin@redhat.com>
+Date: Thu, 16 Apr 2026 16:49:50 -0400
+Subject: [PATCH] tests: remove dependencies on online apt repositories
+
+Rework places to avoid installing packages using apt as part of tests.
+Use ubi10 where we need to be able to call setcap, setfattr, and
+getfattr from the same image.
+
+Test CI images now pre-cache the hummingbird git image, so we no longer
+need to it to be pulled during CI startup.
+
+Signed-off-by: Nalin Dahyabhai <nalin@redhat.com>
+---
+ tests/NEW-IMAGES                              |  2 +-
+ tests/chroot.bats                             |  2 +-
+ tests/conformance/README.md                   |  3 +++
+ .../testdata/header-builtin/Dockerfile        | 23 ++++++++++---------
+ tests/copy.bats                               |  8 ++-----
+ 5 files changed, 19 insertions(+), 19 deletions(-)
+
+diff --git a/tests/NEW-IMAGES b/tests/NEW-IMAGES
+index 5b97c13f816..ff15040c246 100644
+--- a/tests/NEW-IMAGES
++++ b/tests/NEW-IMAGES
+@@ -13,4 +13,4 @@
+ #
+ # Format is one FQIN per line. Enumerate them below:
+ #
+-quay.io/hummingbird/git
++registry.access.redhat.com/ubi10
+diff --git a/tests/chroot.bats b/tests/chroot.bats
+index b0f42ea0331..7e59abc0796 100644
+--- a/tests/chroot.bats
++++ b/tests/chroot.bats
+@@ -22,7 +22,7 @@ load helpers
+   # chosen because its rootfs doesn't have any uid/gid ownership above
+   # $rangesize, because the nested namespace needs to be able to represent all
+   # of them
+-  baseimage=registry.access.redhat.com/ubi9-micro:latest
++  baseimage=registry.access.redhat.com/ubi10:latest
+   _prefetch $baseimage
+   baseimagef=$(tr -c a-zA-Z0-9.- - <<< "$baseimage")
+   # create the directories that we need
+diff --git a/tests/conformance/README.md b/tests/conformance/README.md
+index a0118695be1..964d1fb8fc3 100644
+--- a/tests/conformance/README.md
++++ b/tests/conformance/README.md
+@@ -21,8 +21,11 @@ bash
+ docker pull mirror.gcr.io/golang
+ docker pull mirror.gcr.io/alpine
+ docker pull mirror.gcr.io/busybox
++docker pull quay.io/fedora/python-311:latest
+ docker pull quay.io/libpod/centos:7
+ docker pull quay.io/libpod/ubuntu:latest
++docker pull quay.io/libpod/busybox@sha256:32968e717e29f79e5b889721908b3be6d1573992e1f3ba4c9a41718e2728458c
++docker pull quay.io/libpod/busybox@sha256:1faaf7a75319417261267b3dcef6a2b14c8c5122d7fcc7abeb07a32bc19728fd
+ ```
+ 
+ This test program is used as input in a few of the conformance tests:
+diff --git a/tests/conformance/testdata/header-builtin/Dockerfile b/tests/conformance/testdata/header-builtin/Dockerfile
+index 0fdde7ea379..01816b3920c 100644
+--- a/tests/conformance/testdata/header-builtin/Dockerfile
++++ b/tests/conformance/testdata/header-builtin/Dockerfile
+@@ -1,14 +1,15 @@
+-# Pull architecture-specific ubuntu images from cached registry
+-FROM --platform=linux/amd64 quay.io/libpod/ubuntu:latest AS amd64
+-FROM --platform=linux/arm64 quay.io/libpod/ubuntu:latest AS arm64
++# if TARGETARCH is defined, we'll pull the amd64 image from quay.io/libpod/busybox:glibc, otherwise we'll get the native one
++FROM quay.io/libpod/busybox${TARGETARCH:+@sha256:32968e717e29f79e5b889721908b3be6d1573992e1f3ba4c9a41718e2728458c} AS amd64
++# if TARGETARCH is defined, we'll pull the arm64 image from quay.io/libpod/busybox:glibc, otherwise we'll get the native one
++FROM quay.io/libpod/busybox${TARGETARCH:+@sha256:1faaf7a75319417261267b3dcef6a2b14c8c5122d7fcc7abeb07a32bc19728fd} AS arm64
+ 
+-# run "file" against both shared libraries
+-FROM quay.io/libpod/ubuntu:latest AS native
+-COPY --from=amd64 /lib/x86_64-linux-gnu/libc.so.6 /libc-amd64
+-COPY --from=arm64 /lib/aarch64-linux-gnu/libc.so.6 /libc-arm64
+-RUN apt-get update && apt-get install -y file && apt-get clean
+-RUN file /libc-* | tee /libc-types.txt && touch -d @0 /libc-types.txt
++# run "readelf" against both shared libraries from any image that comes with it
++FROM quay.io/fedora/python-311:latest AS native
++USER 0:0
++COPY --from=amd64 /lib64/libc.so.6 /libc-amd64
++COPY --from=arm64 /lib64/libc.so.6 /libc-arm64
++RUN readelf -h /libc-* | grep -i machine: | sort -u | tee /libc-types.txt && touch -d @0 /libc-types.txt
+ 
+-# expect them to have different target architectures listed in their ELF headers
+-FROM quay.io/libpod/ubuntu:latest
++# expect to have read two different "Machine:" values from library headers
++FROM scratch
+ COPY --from=native /libc-types.txt /
+diff --git a/tests/copy.bats b/tests/copy.bats
+index 40a7a3e0165..abd39d5cbc4 100644
+--- a/tests/copy.bats
++++ b/tests/copy.bats
+@@ -534,8 +534,8 @@ parents/y/b.txt"
+ 
+ @test "copy-preserving-extended-attributes" {
+   createrandom ${TEST_SCRATCH_DIR}/randomfile
+-  # if we need to change which image we use, any image that can provide a working setattr/setcap/getfattr will do
+-  image="quay.io/libpod/ubuntu"
++  # if we need to change which image we use, any image that includes working setattr/setcap/getfattr will do
++  image=registry.access.redhat.com/ubi10
+   if ! which setfattr > /dev/null 2> /dev/null; then
+     skip "setfattr not available, unable to check if it'll work in filesystem at ${TEST_SCRATCH_DIR}"
+   fi
+@@ -549,8 +549,6 @@ parents/y/b.txt"
+   _prefetch $image
+   run_buildah from --quiet $WITH_POLICY_JSON $image
+   first="$output"
+-  run_buildah run $first apt-get -y update
+-  run_buildah run $first apt-get -y install attr libcap2-bin
+   run_buildah copy $first ${TEST_SCRATCH_DIR}/randomfile /
+   # set security.capability
+   run_buildah run $first setcap cap_setuid=ep /randomfile
+@@ -559,8 +557,6 @@ parents/y/b.txt"
+   # copy the file to a second container
+   run_buildah from --quiet $WITH_POLICY_JSON $image
+   second="$output"
+-  run_buildah run $second apt-get -y update
+-  run_buildah run $second apt-get -y install attr
+   run_buildah copy --from $first $second /randomfile /
+   # compare what the extended attributes look like. if we're on a system with SELinux, there's a label in here, too
+   run_buildah run $first sh -c "getfattr -d -m . --absolute-names /randomfile | grep -v ^security.selinux | sort"

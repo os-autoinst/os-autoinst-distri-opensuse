@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: PAM tests for faillock, the uesr login can be locked
@@ -7,11 +7,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#102990 tc#1769824
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base qw(opensusebasetest consoletest);
 use testapi;
-use base 'consoletest';
 use utils qw(zypper_call enter_cmd_slow);
 use version_utils 'is_sle';
 use Utils::Architectures qw(is_aarch64);
@@ -31,8 +28,8 @@ sub run {
         assert_script_run("echo $user_name:$user_pw | chpasswd");
     }
 
-    # Package change log check on SLE: jsc#sle-20638
-    validate_script_output('rpm -q pam --changelog', sub { m/jsc#sle-20638/ }) if (is_sle);
+    # Package change log check on SLE < 16: jsc#sle-20638
+    validate_script_output('rpm -q pam --changelog', sub { m/jsc#sle-20638/ }) if (is_sle('<16'));
 
     # Basic function test, lock&unlock
     # Modify the pam configuration files
@@ -52,7 +49,7 @@ EOF
     spawn ssh $user_name\@localhost
     expect {
         {continue} { send \"yes\\r\"; exp_continue }
-    {assword} { send \"$bad_pw\\r\" }
+        {assword} { send \"$bad_pw\\r\" }
     }
     expect {
         {denied} { exp_continue }
@@ -74,7 +71,7 @@ EOF
     spawn ssh $user_name\@localhost
     expect {
         {continue} { send \"yes\\r\"; exp_continue }
-    {assword} { send \"$user_pw\\r\" }
+        {assword} { send \"$user_pw\\r\" }
     }
     expect -nocase {The account is locked due to 3 failed logins} { close; wait }'"
     );
@@ -89,7 +86,7 @@ EOF
     spawn ssh $user_name\@localhost
     expect {
         {continue} { send \"yes\\r\"; exp_continue }
-    {assword} { send \"$user_pw\\r\" }
+        {assword} { send \"$user_pw\\r\" }
     }
     expect {$user_name\@\$HOSAME} { send \"exit\\r\" }'"
     );
@@ -97,11 +94,7 @@ EOF
     # Clean up
     assert_script_run('mv /etc/pam.d/common-auth.back /etc/pam.d/common-auth');
     assert_script_run('mv /etc/pam.d/common-password.back /etc/pam.d/common-password');
-    assert_script_run("userdel -r $user_name");
-}
-
-sub test_flags {
-    return {always_rollback => 1};
+    assert_script_run("userdel -r -f $user_name");
 }
 
 1;

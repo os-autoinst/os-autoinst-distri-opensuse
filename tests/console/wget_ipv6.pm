@@ -12,18 +12,16 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: bsc#598574
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
-use utils 'zypper_call';
+use package_utils 'install_package';
 
 sub run {
     select_console 'root-console';
-    zypper_call 'in wget';
+    install_package('wget', trup_reboot => 1) if (script_run('rpm -q wget'));
     select_console 'user-console';
     assert_script_run('rpm -q wget');
-    assert_script_run('wget -O- -q www3.zq1.de/test.txt');
+    assert_script_run('wget -O- -6 -q www3.zq1.de/test.txt');
 }
 
 1;

@@ -1,0 +1,30 @@
+---
+os_release:
+  NAME: "SLES"
+  PRETTY_NAME: "SUSE Linux Enterprise Server %VERSION%"
+  VARIANT: "Enterprise Server for SAP applications"
+  VARIANT_ID: "server-sap"
+  VERSION_ID: "%VERSION%"
+  ID: "sles"
+  ID_LIKE: "suse opensuse"
+  CPE_NAME: "cpe:/o:suse:sles:16:%VERSION%"
+  SUSE_SUPPORT_PRODUCT: "SUSE Linux Enterprise Server for SAP applications"
+repos:
+  - name: SLE-Product-SLES_SAP-%VERSION%
+    alias: SUSE_Linux_Enterprise_Server_for_SAP_applications_%VERSION%_%ARCH%:SLE-Product-SLES_SAP-%VERSION%
+    uri: http://openqa.suse.de/assets/repo/SLES-SAP-%VERSION%-%ARCH%-Build%BUILD%/
+    enabled: 'Yes'
+    filter: name
+  - name: SLE-Product-SLES_SAP-%VERSION%-Debug
+    alias: SUSE_Linux_Enterprise_Server_for_SAP_applications_%VERSION%_%ARCH%:SLE-Product-SLES_SAP-%VERSION%-Debug
+    uri: http://openqa.suse.de/assets/repo/SLES-SAP-%VERSION%-%ARCH%-Debug-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+  - name: SLE-Product-SLES_SAP-%VERSION%-Source
+    alias: SUSE_Linux_Enterprise_Server_for_SAP_applications_%VERSION%_%ARCH%:SLE-Product-SLES_SAP-%VERSION%-Source
+    uri: http://openqa.suse.de/assets/repo/SLES-SAP-%VERSION%-%ARCH%-Source-Build%BUILD%/
+    enabled: 'No'
+    filter: name
+selinux:
+  status: enabled
+  mode: permissive

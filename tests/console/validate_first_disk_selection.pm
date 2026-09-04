@@ -5,12 +5,10 @@
 
 # Summary: Validate that first disk was selected for installation
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 
-use strict;
-use warnings;
 use testapi;
 
 use scheduler qw(get_test_suite_data);

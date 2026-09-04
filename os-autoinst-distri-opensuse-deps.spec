@@ -33,6 +33,7 @@ Requires:       perl(constant)
 Requires:       perl(Cwd)
 Requires:       perl(Data::Dump)
 Requires:       perl(Data::Dumper)
+Requires:       perl(Date::Parse)
 Requires:       perl(DateTime)
 Requires:       perl(Digest::file)
 Requires:       perl(Exporter)
@@ -41,6 +42,7 @@ Requires:       perl(File::Copy)
 Requires:       perl(File::Find)
 Requires:       perl(File::Path)
 Requires:       perl(File::Temp)
+Requires:       perl(Inline::Python)
 Requires:       perl(IO::File)
 Requires:       perl(IO::Socket::INET)
 Requires:       perl(List::MoreUtils)
@@ -79,6 +81,11 @@ Requires:       perl(YAML::PP)
 Recommends:     os-autoinst-devel
 # This package is required for Agama profile generation with JSONNET tool, ticket link: https://progress.opensuse.org/issues/175728
 Requires:       golang-github-google-jsonnet
+# Required to get information from Agama isos
+Requires:       mkisofs
+Requires:       jq
+Requires:       /usr/bin/gzip
+Suggests:       gzip
 
 %description
 Metapackage that contains the dependencies of os-autoinst-distri-opensuse.

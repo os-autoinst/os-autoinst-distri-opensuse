@@ -1,15 +1,14 @@
-theme = freenode
+theme = community
 severity = 4
+exclude = OpenQA::RedundantStrictWarning Community::DiscouragedModules
 
-# TODO: Remove once Perl::Critic::Freenode 0.028 is widely available
-[Freenode::DiscouragedModules]
-severity = 3
+verbose = ::warning file=%f,line=%l,col=%c,title=%m - severity %s::[%p] %e\n
 
 # Test modules have no package declaration
-[Freenode::PackageMatchesFilename]
+[Community::PackageMatchesFilename]
 severity = 1
 
-[Perl::Critic::Policy::HashKeyQuotes]
+[OpenQA::HashKeyQuotes]
 severity = 5
 
 [ControlStructures::ProhibitDeepNests]

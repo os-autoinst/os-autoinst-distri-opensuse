@@ -6,18 +6,24 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#45662
 
-use base "opensusebasetest";
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use bootloader_setup 'add_grub_cmdline_settings';
 use power_action_utils "power_action";
+use version_utils qw(is_sle);
+use Utils::Architectures qw(is_aarch64);
 
 sub run {
     my ($self) = @_;
     select_serial_terminal;
+
+    # Check that the FS is indeed ext4
+    my $root_fs = script_output 'findmnt -n -o FSTYPE /';
+    chomp $root_fs;
+
+    $root_fs eq 'ext4' or die "Root file system is not ext4 but '$root_fs'";
 
     # Add 'iversion' to fstab mount options
     assert_script_run "awk -i inplace '{if(\$3 == \"ext4\") \$4=\$4\",iversion\"; print}' /etc/fstab";

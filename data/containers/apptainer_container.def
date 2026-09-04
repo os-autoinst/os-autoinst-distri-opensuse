@@ -3,6 +3,7 @@ MirrorURL: http://download.opensuse.org/distribution/openSUSE-stable/repo/oss/
 Include: zypper
 
 %post
+    update-ca-certificates
     zypper ref
     zypper -n in cowsay
 

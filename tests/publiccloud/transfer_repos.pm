@@ -6,17 +6,17 @@
 # Package: rsync
 # Summary: Transfer repositories to the public cloud instasnce
 #
-# Maintainer: <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use registration;
-use warnings;
 use testapi;
-use strict;
 use utils;
 use publiccloud::ssh_interactive "select_host_console";
 use maintenance_smelt qw(is_embargo_update);
-use version_utils qw(is_sle_micro);
+use version_utils qw(is_sle_micro is_sle);
+use publiccloud::utils qw(additional_repos);
+use publiccloud::zypper qw(pc_zypper_call);
 
 sub run {
     my ($self, $args) = @_;
@@ -24,79 +24,78 @@ sub run {
 
     my $instance = $args->{my_instance};
     my $remote = $instance->username . '@' . $args->{my_instance}->public_ip;
-    my $skip_mu = get_var('PUBLIC_CLOUD_SKIP_MU', 0);
     my $repodir = "/opt/repos/";
-    # Trigger to skip the download to speed up verification runs
-    if ($skip_mu) {
-        record_info('Skip download', 'Skipping maintenance update download (triggered by setting)');
-    } else {
-        assert_script_run('du -sh ~/repos');
-        my $timeout = 2400;
-        $instance->retry_ssh_command(cmd => "which rsync || sudo zypper -n in rsync", timeout => 420, retry => 6, delay => 60);
 
-        # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
-        # Those two variables contain list of repositories separated by comma
-        set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
+    assert_script_run('du -sh ~/repos');
+    my $timeout = 2400;
+    $instance->retry_ssh_command(cmd => "which rsync || sudo zypper -n in rsync", timeout => 420, retry => 6, delay => 60);
 
-        # We need to exclude embargoed incidents
-        my @all_repos = split(/,/, get_var('MAINT_TEST_REPO'));
-        for my $exclude (split(/,/, get_var('EXCLUDED_TEST_REPO', ''))) {
-            for my $index (reverse 0 .. $#all_repos) {
-                splice(@all_repos, $index, 1, ()) if ($all_repos[$index] =~ /$exclude/);
-            }
+    # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
+    # Those two variables contain list of repositories separated by comma
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) unless get_var('MAINT_TEST_REPO');
+
+    # We need to exclude embargoed incidents
+    my @all_repos = split(/,/, get_var('MAINT_TEST_REPO'));
+    for my $exclude (split(/,/, get_var('EXCLUDED_TEST_REPO', ''))) {
+        for my $index (reverse 0 .. $#all_repos) {
+            splice(@all_repos, $index, 1, ()) if ($all_repos[$index] =~ /$exclude/);
         }
-
-        my @repos;
-        my ($incident, $type);
-        for my $maintrepo (@all_repos) {
-            if (is_sle_micro(">=6.0")) {
-                push(@repos, $maintrepo);
-            } else {
-                ($incident, $type) = ($2, $1) if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g);
-                push(@repos, $maintrepo) unless (is_embargo_update($incident, $type)); }
-        }
-
-        s/https?:\/\/// for @repos;
-
-        # Create list of directories for rsync
-        for my $repo (@repos) {
-            assert_script_run("echo $repo | tee -a /tmp/transfer_repos.txt");
-        }
-        # VM repos.dir support preparation
-        $instance->ssh_assert_script_run("sudo mkdir $repodir;sudo chmod 777 $repodir");
-        # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
-        # Delay of 2 minutes between the tries to give their network some time to recover after a failure
-        # For rsync the ~/repos/./ means that the --relative will take efect after.
-        # * The --relative (-R) option is implied when --files-from is specified.
-        # * The --dirs (-d) option is implied whn --files-from is specified.
-        # * The --archive (-a) option's behavior does not imply --recursive (-r) when --files-from is specified.
-        # --recursive (-r), --update (-u), --archive (-a), --human-readable (-h), --rsh (-e)
-        script_retry("rsync --timeout=$timeout -ruahd -e ssh --files-from /tmp/transfer_repos.txt ~/repos/./ '$remote:$repodir'", timeout => $timeout + 10, retry => 3, delay => 120);
-
-        my $total_size = $instance->ssh_script_output(cmd => "du -hs $repodir");
-        record_info("Repo size", "Total repositories size: $total_size");
-        $instance->ssh_assert_script_run("find $repodir -name '*.rpm' -exec du -h '{}' + | sort -h > /tmp/rpm_list.txt", timeout => 60);
-        $instance->upload_log('/tmp/rpm_list.txt');
-
-        if (is_sle_micro(">=6.0")) {
-            my $counter = 0;
-            for my $repo (@repos) {
-                $instance->ssh_assert_script_run("sudo zypper ar -p10 " . $repodir . $repo . " ToTest_$counter");
-                $counter += 1;
-            }
-        }
-        else {
-            $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://,$repodir,g' '{}' \\;");
-            $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec zypper ar -p10 '{}' \\;");
-            $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec echo '{}' \\;");
-        }
-
-        $instance->ssh_assert_script_run("zypper lr -P");
     }
+
+    my @repos;
+    my ($incident, $type);
+    for my $maintrepo (@all_repos) {
+        if (is_sle_micro(">=6.0")) {
+            push(@repos, $maintrepo);
+        } else {
+            ($incident, $type) = ($2, $1) if ($maintrepo =~ /\/(PTF|Maintenance):\/(\d+)/g);
+            push(@repos, $maintrepo) unless (is_embargo_update($incident, $type)); }
+    }
+
+    push @repos, additional_repos();
+
+    s/https?:\/\/.*\/ibs\/// for @repos;
+
+    # Create list of directories for rsync
+    for my $repo (@repos) {
+        assert_script_run("echo $repo | tee -a /tmp/transfer_repos.txt");
+    }
+    # VM repos.dir support preparation
+    $instance->ssh_assert_script_run("sudo mkdir $repodir;sudo chmod 777 $repodir");
+    # Mitigate occasional CSP network problems (especially one CSP is prone to those issues!)
+    # Delay of 2 minutes between the tries to give their network some time to recover after a failure
+    # For rsync the ~/repos/./ means that the --relative will take efect after.
+    # * The --relative (-R) option is implied when --files-from is specified.
+    # * The --dirs (-d) option is implied whn --files-from is specified.
+    # * The --archive (-a) option's behavior does not imply --recursive (-r) when --files-from is specified.
+    # --recursive (-r), --update (-u), --archive (-a), --human-readable (-h), --rsh (-e)
+    script_retry("rsync --timeout=$timeout -ruahd -e ssh --files-from /tmp/transfer_repos.txt ~/repos/./ '$remote:$repodir'", timeout => $timeout + 10, retry => 3, delay => 120);
+
+    my $total_size = $instance->ssh_script_output(cmd => "du -hs $repodir");
+    record_info("Repo size", "Total repositories size: $total_size");
+    $instance->ssh_assert_script_run("find $repodir -name '*.rpm' -exec du -h '{}' + | sort -h > /tmp/rpm_list.txt", timeout => 60);
+    $instance->upload_log('/tmp/rpm_list.txt');
+
+    if (is_sle_micro(">=6.0") || is_sle("16+")) {
+        my $counter = 0;
+        for my $repo (@repos) {
+            pc_zypper_call($instance, "ar -p10 " . $repodir . $repo . " ToTest_$counter");
+            $counter += 1;
+        }
+    }
+    else {
+        $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec sed -i 's,http://download.suse.de/ibs/,$repodir,g' '{}' \\;");
+        # QA:/Head repos have an untrusted GPG key; disable gpgcheck in the .repo file before adding
+        $instance->ssh_assert_script_run("sudo grep -rl 'QA:/Head' $repodir | grep '\\.repo\$' | xargs -r sudo sed -i 's/^gpgcheck=.*/gpgcheck=0/'");
+        $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec zypper ar -p10 '{}' \\;");
+        $instance->ssh_assert_script_run("sudo find $repodir -name *.repo -exec echo '{}' \\;");
+    }
+
+    record_info("zypper repos", $instance->ssh_script_output("zypper lr -P"));
 }
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 1;

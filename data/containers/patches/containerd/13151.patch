@@ -1,0 +1,82 @@
+From e8ffb8dd3ae193a5a9aa20851693c7fdfd91dbfe Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 2 Apr 2026 20:55:51 +0200
+Subject: [PATCH] Skip more tests on s390x
+
+These images are not available for s390x:
+- ghcr.io/containerd/volume-copy-up:2.2
+- ghcr.io/containerd/volume-ownership:2.1
+
+Otherwise tests fail for containerd v2.2.1 on s390x.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ integration/client/client_test.go                   | 5 +++++
+ integration/client/container_idmapped_linux_test.go | 6 ++++++
+ integration/client/container_linux_test.go          | 6 ++++++
+ 3 files changed, 17 insertions(+)
+
+diff --git a/integration/client/client_test.go b/integration/client/client_test.go
+index 1ab3f151ffafe..e4bf6147bbbad 100644
+--- a/integration/client/client_test.go
++++ b/integration/client/client_test.go
+@@ -476,6 +476,11 @@ func TestImagePullWithTracing(t *testing.T) {
+ }
+ 
+ func TestImagePullWithConcurrentUnpacks(t *testing.T) {
++	// ghcr.io/containerd/volume-copy-up:2.2 is not available on s390x
++	if runtime.GOARCH == "s390x" {
++		t.Skip("test image not available on s390x")
++	}
++
+ 	client, err := newClient(t, address)
+ 	if err != nil {
+ 		t.Fatal(err)
+diff --git a/integration/client/container_idmapped_linux_test.go b/integration/client/container_idmapped_linux_test.go
+index 7d9d5f44fdba0..85e0ed7c85d85 100644
+--- a/integration/client/container_idmapped_linux_test.go
++++ b/integration/client/container_idmapped_linux_test.go
+@@ -18,6 +18,7 @@ package client
+ 
+ import (
+ 	"os"
++	"runtime"
+ 	"strings"
+ 	"syscall"
+ 	"testing"
+@@ -33,6 +34,11 @@ import (
+ )
+ 
+ func TestIDMappedOverlay(t *testing.T) {
++	// ghcr.io/containerd/volume-copy-up:2.2 is not available on s390x
++	if runtime.GOARCH == "s390x" {
++		t.Skip("test image not available on s390x")
++	}
++
+ 	if ok, err := overlayutils.SupportsIDMappedMounts(); err != nil || !ok {
+ 		t.Skip("overlayfs doesn't support idmapped mounts")
+ 	}
+diff --git a/integration/client/container_linux_test.go b/integration/client/container_linux_test.go
+index 1de8776cc9ac7..a69f880b87a01 100644
+--- a/integration/client/container_linux_test.go
++++ b/integration/client/container_linux_test.go
+@@ -24,6 +24,7 @@ import (
+ 	"os"
+ 	"os/exec"
+ 	"path/filepath"
++	"runtime"
+ 	"strings"
+ 	"sync"
+ 	"syscall"
+@@ -1104,6 +1105,11 @@ func TestContainerKillInitPidHost(t *testing.T) {
+ }
+ 
+ func TestUserNamespaces(t *testing.T) {
++	// ghcr.io/containerd/volume-ownership:2.1 is not available on s390x
++	if runtime.GOARCH == "s390x" {
++		t.Skip("test image not available on s390x")
++	}
++
+ 	for name, test := range map[string]struct {
+ 		testCmd  oci.SpecOpts
+ 		roRootFS bool

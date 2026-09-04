@@ -1,10 +1,10 @@
 env: |
   type: env
   logging:
-    logDNA:
-      hostname: syslog-a.eu-de.logging.cloud.ibm.com
-      ingestionKey: INGESTIONKEY
-      port: 6514
+    logRouter:
+      hostname: cfde84ec-0c6f-40bb-bcad-c970319c2f1d.ingress.eu-de.logs.cloud.ibm.com
+      iamApiKey: INGESTIONKEY
+      port: 443
 workload: |
   type: workload
   compose:

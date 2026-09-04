@@ -10,11 +10,10 @@
 # - observe system load and ensure disk layout is balanced
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
+use version_utils 'is_sle';
 
 sub percent_usage {
     my @output = split "\n", script_output("df --local --sync --output=pcent /mnt/raid");
@@ -67,6 +66,10 @@ sub run {
     # raid volume should be almost full, because data
     # is still only on one disk and filesystem is not balanced
     config_balance_parameters();
+    record_info("INFO", script_output("btrfs filesystem usage -b /mnt/raid/"));
+    record_info("INFO", script_output("btrfs ins dump-tree /dev/vdc"));
+    script_run('btrfs balance start -d /mnt/raid/', timeout => 120) if (is_sle('>=16.0'));
+    record_info("INFO", script_output("btrfs filesystem usage -b /mnt/raid/"));
     # try at most N times to rebalance filesystem
     my $retries = 0;
     for (;;) {

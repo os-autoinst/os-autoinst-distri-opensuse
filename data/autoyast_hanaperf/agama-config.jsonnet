@@ -11,7 +11,9 @@
     sshPublicKey: 'enable ssh',
   },
   software: {
-    patterns: ['sles_sap_HADB', 'sles_sap_HAAPP', 'sles_sap_DB', 'sles_sap_APP'],
+    patterns: {
+      add: ['sles_sap_DB', 'sles_sap_APP']
+    },
   },
   product: {
     id: '{{AGAMA_PRODUCT_ID}}',
@@ -25,17 +27,6 @@
           { search: '*', delete: true },
           { generate: 'default' },
         ],
-      },
-    ],
-  },
-  network: {
-    connections: [
-      {
-        id: 'Wired Connection',
-        method4: 'auto',
-        method6: 'auto',
-        ignoreAutoDns: false,
-        status: 'up',
       },
     ],
   },
@@ -65,17 +56,6 @@
         content: |||
           #!/usr/bin/env bash
           echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-          # Workaround for NetworkManager to make sure the expected NIC up only
-          rm -f /etc/NetworkManager/system-connections/default_connection.nmconnection
-          echo -e "[main]\nno-auto-default=type:ethernet" > /etc/NetworkManager/conf.d/disable_auto.conf
-          echo -e "[connection]\nid=nic0\nuuid=$(uuidgen)\ntype=ethernet\n[ethernet]\nmac-address={{SUT_NETDEVICE}}\n[ipv4]\nmethod=auto\n" > /etc/NetworkManager/system-connections/nic0.nmconnection
-          chmod 0600 /etc/NetworkManager/system-connections/nic0.nmconnection
-          # Workaround to set SELinux as permissive
-          cp /boot/grub2/grub.cfg /boot/grub2/grub.cfg.orig
-          cp /etc/default/grub /etc/default/grub.orig
-          sed -e "s/selinux=1 enforcing=1/ /g" -i /boot/grub2/grub.cfg
-          sed -e "s/selinux=1 enforcing=1/ /g" -i /etc/default/grub
-          sed -e "s/SELINUX=enforcing/SELINUX=permissive/g" -i /etc/selinux/config
         |||,
       },
     ],

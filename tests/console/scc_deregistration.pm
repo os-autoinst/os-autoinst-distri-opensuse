@@ -2,11 +2,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: Deregister from the SUSE Customer Center
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use registration "scc_deregistration";
 use serial_terminal 'select_serial_terminal';

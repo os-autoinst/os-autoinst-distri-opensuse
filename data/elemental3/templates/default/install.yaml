@@ -1,0 +1,8 @@
+schema: v0
+bootloader: grub
+kernelCmdLine: "%KERNEL_CMD_LINE%"
+cryptoPolicy: %CRYPTO_POLICY%
+raw:
+  diskSize: %HDDSIZE%G
+iso:
+  device: %INSTALL_DISK%

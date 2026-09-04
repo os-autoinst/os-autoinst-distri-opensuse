@@ -13,7 +13,7 @@ use autotest;
 use base 'Exporter';
 use Exporter;
 use bmwqemu ();
-use version_utils qw(is_sle is_leap is_sle_micro is_openstack);
+use version_utils qw(is_sle is_leap is_sle_micro is_transactional);
 use Mojo::Util qw(b64_encode b64_decode sha1_sum trim);
 use Mojo::File 'path';
 use File::Basename;
@@ -82,11 +82,6 @@ sub prepare_serial_console {
         return;
     }
 
-    if (is_openstack) {
-        record_info('skip virtio', 'Openstack Images do not have hvc consoles');
-        return;
-    }
-
     ensure_testuser_present;
 
     record_info('getty before', script_output('systemctl | grep serial-getty'));
@@ -122,7 +117,15 @@ wait_serial(get_login_message(), 300);
 
 sub get_login_message {
     my $arch = get_required_var("ARCH");
-    return is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
+
+    # this is only a temporary measure for BCI s390x tests that run on slem 6.0 and 6.1
+    if (is_s390x && get_var('BCI_TESTS', '') && get_var('HOST_VERSION', '') =~ /slem/i) {
+        return qr/Welcome to SUSE Linux Micro 6.[01].*\(s390x\)/;
+    }
+    my $agama_opts = get_var('AGAMA_PROFILE_OPTIONS', '');
+    return is_sle() && $agama_opts =~ /software_only_required/ ? qr/\blogin:/
+      : is_sle('>=16') && is_transactional() ? qr/\blogin:/
+      : is_sle() ? qr/Welcome to SUSE Linux Enterprise .*\($arch\)/
       : is_sle_micro() ? qr/Welcome to SUSE Linux.* Micro .*\($arch\)/
       : is_leap() ? qr/Welcome to openSUSE Leap.*/
       : qr/Welcome to openSUSE Tumbleweed 20.*/;
@@ -139,6 +142,8 @@ Set serial terminal prompt to given string.
 sub set_serial_prompt {
     $serial_term_prompt = shift // '';
 
+    # Some (older) versions of bash don't take changes to the terminal during runtime into account. Re-exec it.
+    enter_cmd('export PAGER=cat TERM=dumb; stty cols 2048; exec $SHELL') if (is_sle('>=16') && is_s390x);
     die "Invalid prompt string '$serial_term_prompt'"
       unless $serial_term_prompt =~ s/\s*$//r;
     enter_cmd(qq/PS1="$serial_term_prompt"/);
@@ -188,7 +193,7 @@ sub login {
     die 'Failed to confirm that login was successful' unless wait_serial(qr/$escseq* \w+:~(\s\#|>) $escseq* \s*$/x);
 
     # Some (older) versions of bash don't take changes to the terminal during runtime into account. Re-exec it.
-    enter_cmd('export TERM=dumb; stty cols 2048; exec $SHELL');
+    enter_cmd('export PAGER=cat TERM=dumb; stty cols 2048; exec $SHELL');
     die 'Failed to confirm that shell re-exec was successful' unless wait_serial(qr/$escseq* \w+:~(\s\#|>) $escseq* \s*$/x);
     set_serial_prompt($prompt);
     # TODO: Send 'tput rmam' instead/also
@@ -377,7 +382,7 @@ sub select_serial_terminal {
         }
     } elsif (get_var('SUT_IP') || is_backend_s390x) {
         $console = $root ? 'root-serial-ssh' : 'user-serial-ssh';
-    } elsif ($backend eq 'svirt') {
+    } elsif ($backend eq 'svirt' || $backend eq 'ova') {
         if (check_var('SERIAL_CONSOLE', 0)) {
             $console = $root ? 'root-console' : 'user-console';
         } else {

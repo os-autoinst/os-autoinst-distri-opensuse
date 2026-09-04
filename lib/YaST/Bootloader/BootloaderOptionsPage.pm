@@ -5,7 +5,7 @@
 
 # Summary: The class introduces all accessing methods for Bootloader Options tab
 # in Boot Loader Settings.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package YaST::Bootloader::BootloaderOptionsPage;
 use parent 'Installation::Navigation::NavigationBase';
@@ -28,6 +28,12 @@ sub is_shown {
 sub set_grub_timeout {
     my ($self, $timeout) = @_;
     $self->{txb_grub_timeout}->set($timeout);
+}
+
+sub bls_disable_timeout {
+    my ($self) = @_;
+    $self->{chb_automatically_boot} = $self->{app}->checkbox({id => 'cont_boot'});
+    $self->{chb_automatically_boot}->uncheck();
 }
 
 1;

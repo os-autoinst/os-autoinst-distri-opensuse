@@ -6,11 +6,9 @@
 # Package: yast2-network
 # Summary: Verify that correct value is stored in network config when
 # setting hostname via DHCP to 'yes: any' in YaST2 lan module (https://bugzilla.suse.com/show_bug.cgi?id=984890)
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use parent 'yast2_lan_hostname_base';
-use strict;
-use warnings;
+use Mojo::Base 'yast2_lan_hostname_base';
 use testapi;
 use scheduler qw(get_test_suite_data);
 use YaST::Module;

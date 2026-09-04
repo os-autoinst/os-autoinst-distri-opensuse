@@ -10,9 +10,7 @@
 # Maintainer: qac <qa-c@suse.de>
 
 package check_phub;
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional qw(trup_call check_reboot_changes);
 

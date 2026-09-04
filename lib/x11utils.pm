@@ -10,7 +10,8 @@ use strict;
 use warnings;
 use testapi;
 use version_utils qw(is_sle is_leap is_plasma6);
-use utils 'assert_and_click_until_screen_change';
+use Mojo::File qw(path);
+use utils qw(assert_and_click_until_screen_change type_string_slow);
 use Utils::Architectures;
 use Utils::Backends qw(is_pvm is_qemu);
 
@@ -18,6 +19,7 @@ our @EXPORT = qw(
   desktop_runner_hotkey
   ensure_unlocked_desktop
   ensure_fullscreen
+  update_x11_vt
   handle_additional_polkit_windows
   handle_login
   handle_logout
@@ -38,7 +40,9 @@ our @EXPORT = qw(
   start_root_shell_in_xterm
   x11_start_program_xterm
   default_gui_terminal
+  close_gui_terminal
   handle_gnome_activities
+  save_print_file
 );
 
 =head1 X11_UTILS
@@ -224,6 +228,27 @@ sub ensure_fullscreen {
     }
 }
 
+=head2 update_x11_vt
+
+  update_x11_vt()
+
+From a graphical session, read $XDG_VTNR to update the VT of the "x11"
+openQA console.
+
+=cut
+
+sub update_x11_vt {
+    x11_start_program_xterm();
+    # At this point, permissions for $serialdev may not be set up yet and switching
+    # to root-console won't work either, so (mis)use log upload.
+    enter_cmd('curl --form upload=$XDG_VTNR\;filename=x ' . autoinst_url('/uploadlog/xdgvtnr') . ' && exit');
+    assert_screen('generic-desktop');    # Waits until finished
+
+    my $tty = path('ulogs/xdgvtnr')->slurp;
+    record_info('XDG_VTNR', "Graphical session on VT $tty");
+    console('x11')->set_tty(int($tty));
+}
+
 sub handle_additional_polkit_windows {
     my $mypwd = shift // $testapi::password;
     if (match_has_tag('authentication-required-user-settings')) {
@@ -253,7 +278,7 @@ sub handle_additional_polkit_windows {
 
 =head2 handle_login
 
- handle_login($myuser, $user_selected);
+ handle_login(myuser => $myuser, user_selected => 1);
 
 Log the user in using the displaymanager.
 When C<$myuser> is set, this user will be used for login.
@@ -264,15 +289,15 @@ user has already been selected before this function was called.
 
 Example:
 
-  handle_login('user1', 1);
+  handle_login(myuser => 'user1', user_selected => 1);
 
 =cut
 
 sub handle_login {
-    my ($myuser, $user_selected, $mypwd) = @_;
-    $myuser //= $username;
-    $mypwd //= $testapi::password;
-    $user_selected //= 0;
+    my (%args) = @_;
+    my $myuser = $args{myuser} // $username;
+    my $mypwd = $args{mypwd} // $testapi::password;
+    my $user_selected = $args{user_selected} // 0;
 
     wait_still_screen 3;
     save_screenshot();
@@ -317,8 +342,16 @@ sub handle_login {
     handle_additional_polkit_windows($mypwd) if check_screen([qw(authentication-required-user-settings authentication-required-modify-system)], 15);
     assert_screen([qw(generic-desktop gnome-activities opensuse-welcome)], 180);
     if (match_has_tag('gnome-activities')) {
-        send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc', 5, 10;
+        if ($args{custom_generic_desktop}) {
+            send_key_until_needlematch $args{custom_generic_desktop}, 'esc', 5, 10;
+        }
+        else {
+            send_key_until_needlematch [qw(generic-desktop opensuse-welcome)], 'esc', 5, 10;
+        }
     }
+    # Need to update the VT the session runs on.
+    # In the opensuse-welcome case, that's handled afterwards.
+    update_x11_vt if (check_var('DESKTOP', 'kde') && match_has_tag('generic-desktop'));
 }
 
 =head2 handle_logout
@@ -354,8 +387,9 @@ First logs out and the log in via C<handle_logout()> and C<handle_login()>
 =cut
 
 sub handle_relogin {
+    my (%args) = @_;
     handle_logout;
-    handle_login;
+    handle_login(%args);
 }
 
 =head2 select_user_gnome
@@ -402,10 +436,18 @@ Turns off the Plasma desktop screen energy saving.
 sub turn_off_plasma_screen_energysaver {
     my $kcmshell = is_plasma6 ? 'kcmshell6' : 'kcmshell5';
     x11_start_program("$kcmshell powerdevilprofilesconfig", target_match => [qw(kde-energysaver-enabled energysaver-disabled)]);
-    # Open dropdown menu if necessary
+    # Open dropdown menu if necessary ("Turn off screen")
     click_lastmatch if match_has_tag('kde-display-timeout-menu');
     assert_and_click 'kde-disable-energysaver' if match_has_tag('kde-energysaver-enabled');
     assert_screen 'kde-energysaver-disabled';
+    # Disable "Dim automatically" if necessary.
+    # That option is not available on X11, there 'kde-display-dim-disabled' should match absence of the option.
+    assert_screen [qw(kde-display-dim-enabled kde-display-dim-disabled)];
+    if (match_has_tag('kde-display-dim-enabled')) {
+        click_lastmatch;    # Open dropdown
+        assert_and_click 'kde-display-dim-disable';
+        assert_screen 'kde-display-dim-disabled';
+    }
     # Was 'alt-o' before, but does not work in Plasma 5.17 due to kde#411758
     send_key 'ctrl-ret';
     assert_screen 'generic-desktop';
@@ -459,6 +501,23 @@ prevent needles from failing.
 sub turn_off_kde_screensaver {
     turn_off_plasma_screenlocker;
     turn_off_plasma_screen_energysaver;
+}
+
+=head2 turn_off_xfce_screensaver
+
+  turn_off_xfce_screensaver()
+
+Prevents screen from being locked or turning black while using the xfce
+desktop. Call before tests that are not providing input for a long time, to
+prevent needles from failing.
+
+=cut
+
+sub turn_off_xfce_screensaver {
+    x11_start_program(default_gui_terminal());
+    assert_script_run 'xfconf-query -c xfce4-screensaver -p /saver/enabled -s false -t bool --create';
+    assert_script_run 'xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/dpms-enabled -s false --create';
+    script_run 'exit', 0;
 }
 
 =head2 turn_off_gnome_screensaver
@@ -521,8 +580,9 @@ Turns off the screensaver depending on desktop environment
 
 sub turn_off_screensaver {
     return turn_off_kde_screensaver if check_var('DESKTOP', 'kde');
+    return turn_off_xfce_screensaver if check_var('DESKTOP', 'xfce');
     die "Unsupported desktop '" . get_var('DESKTOP', '') . "'" unless check_var('DESKTOP', 'gnome');
-    x11_start_program('xterm');
+    x11_start_program(default_gui_terminal());
     turn_off_gnome_screensaver;
     script_run 'exit', 0;
 }
@@ -563,7 +623,7 @@ sub untick_welcome_on_next_startup {
  handle_welcome_screen([timeout => $timeout]);
 
 openSUSE Welcome window should be auto-launched.
-Disable auto-launch on next boot and close application.
+Disable auto-launch on next boot and close application (If the checkbox is present)
 Also handle workarounds when needed.
 
 =cut
@@ -572,7 +632,15 @@ sub handle_welcome_screen {
     my (%args) = @_;
     assert_screen([qw(opensuse-welcome opensuse-welcome-gnome40-activities)], $args{timeout});
     send_key 'esc' if match_has_tag('opensuse-welcome-gnome40-activities');
-    untick_welcome_on_next_startup;
+    # The checkbox to start on boot is now dropped, but we need to care for it
+    # in the case of older installs where the autostart is still there.
+    check_screen('opensuse-welcome-show-on-boot');
+    if (match_has_tag('opensuse-welcome-show-on-boot')) {
+        untick_welcome_on_next_startup;
+    } else {
+        assert_and_click_until_screen_change('opensuse-welcome-close', 5, 5);
+        assert_screen("generic-desktop");
+    }
 }
 
 =head2 start_root_shell_in_xterm
@@ -619,13 +687,38 @@ Returns the default console to be used by test modules, defaults to xterm
 =cut
 
 sub default_gui_terminal {
-    return "gnome-terminal" if check_var('DESKTOP', 'gnome') && (is_leap("<16"));
+    return "gnome-terminal" if check_var('DESKTOP', 'gnome') && (is_leap("<16")) || check_var('SLE_PRODUCT', 'sled');
     # Let SLE decide if they want to change to new behavior
     return "xterm" if check_var('DESKTOP', 'gnome') && (is_sle("<16"));
     return "kgx" if check_var('DESKTOP', 'gnome');
     return "konsole" if check_var('DESKTOP', 'kde');
     return "xfce4-terminal" if check_var('DESKTOP', 'xfce');
     return "xterm";
+}
+
+=head2 close_gui_terminal
+
+    close_gui_terminal()
+
+Closes the currently focused window, if its a terminal like kgx, it would handle the close window prompt
+
+=cut
+
+sub close_gui_terminal {
+    my $counter = 5;
+    my @tags = ("terminal-unfocused", "terminal-close-window", "generic-desktop");
+    while ($counter--) {
+        send_key_until_needlematch(\@tags, 'alt-f4', 5, 10);
+        if (match_has_tag('terminal-close-window')) {
+            click_lastmatch;
+            next;
+        }
+        if (match_has_tag("terminal-unfocused")) {
+            click_lastmatch;
+            next;
+        }
+        last if match_has_tag('generic-desktop');
+    }
 }
 
 =head2 handle_gnome_activities
@@ -650,6 +743,29 @@ sub handle_gnome_activities {
         @tags = grep { !/gnome-activities/ } @tags;
         assert_screen \@tags, $timeout;
     }
+}
+
+=head2 save_print_file
+
+ save_print_file($filename)
+
+Run save_print_file in x11: Smoke test of GTK interfacing with CUPS
+
+=cut
+
+sub save_print_file {
+    my ($filename) = @_;
+    send_key "ctrl-p";
+    assert_screen 'gtk-print-dialog';
+
+    # Select 'Print to File' and set PDF format
+    send_key "ret";    # Confirm print
+
+    assert_screen 'pdf_name';
+    send_key 'ctrl-a';
+    send_key 'delete';
+    type_string_slow($filename);
+    send_key "ret";
 }
 
 1;

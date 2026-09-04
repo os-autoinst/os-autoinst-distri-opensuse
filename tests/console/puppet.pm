@@ -5,11 +5,9 @@
 #
 # Package: puppet
 # Summary: Test installation of puppet master and slave on the same host
-# Maintainer: Zaoliang Luo <zluo@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_sle';

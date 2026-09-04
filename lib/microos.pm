@@ -12,7 +12,7 @@ use strict;
 use warnings;
 use testapi;
 use utils qw(need_unlock_after_bootloader unlock_if_encrypted);
-use version_utils qw(is_microos is_selfinstall is_bootloader_grub2 is_bootloader_sdboot);
+use version_utils qw(is_microos is_selfinstall get_default_bootloader);
 use power_action_utils 'power_action';
 use Utils::Architectures qw(is_aarch64);
 use Utils::Backends qw(is_ipmi);
@@ -22,7 +22,7 @@ our @EXPORT = qw(microos_reboot microos_login);
 # Assert login prompt and login as root
 sub microos_login {
     my $login_timeout = (is_aarch64 || is_selfinstall) ? 300 : 150;
-    assert_screen 'linux-login-microos', $login_timeout;
+    assert_screen [qw(linux-login-microos linux-login)], $login_timeout;
 
     if (is_microos 'VMX') {
         # FreeRDP is not sending 'Ctrl' as part of 'Ctrl-Alt-Fx', 'Alt-Fx' is fine though.
@@ -40,16 +40,19 @@ sub microos_login {
 # Process reboot with an option to trigger it
 sub microos_reboot {
     my $trigger = shift // 0;
+    # aka expected_grub from process_reboot
+    my $bootloader_expected = shift // 1;
     power_action('reboot', observe => !$trigger, keepconsole => 1);
 
-    # sol console has to be selected for ipmi backend before asserting grub needle.
-    select_console 'sol', await_console => 0 if is_ipmi();
-    # No grub bootloader on xen-pv
-    # grub2 needle is unreliable (stalls during timeout) - poo#28648
-    assert_screen 'grub2', 300 if is_bootloader_grub2;
-    assert_screen 'systemd-boot', 300 if is_bootloader_sdboot;
-    send_key('ret') unless get_var('KEEP_GRUB_TIMEOUT');
-    unlock_if_encrypted if need_unlock_after_bootloader;
+    if ($bootloader_expected) {
+        # sol console has to be selected for ipmi backend before asserting grub needle.
+        select_console 'sol', await_console => 0 if is_ipmi();
+
+        assert_screen(get_default_bootloader(), 300);
+        send_key('ret') unless get_var('KEEP_GRUB_TIMEOUT');
+        unlock_if_encrypted if need_unlock_after_bootloader;
+    }
+
     microos_login;
 }
 

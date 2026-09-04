@@ -7,12 +7,13 @@ use base Exporter;
 use Exporter;
 use strict;
 use warnings;
-use testapi qw(check_var get_var set_var script_output);
+use testapi qw(check_var get_var get_required_var set_var script_output);
 use version 'is_lax';
 use Carp 'croak';
 use Utils::Backends;
 use Utils::Architectures;
 use SemVer;
+use POSIX 'strftime';
 
 use constant {
     VERSION => [
@@ -26,6 +27,7 @@ use constant {
           is_micro
           is_alp
           is_agama
+          is_aeon
           is_selfinstall
           is_gnome_next
           is_jeos
@@ -47,12 +49,13 @@ use constant {
           is_using_system_role
           is_using_system_role_first_flow
           is_public_cloud
-          is_openstack
           is_leap_migration
           is_tunneled
           is_bootloader_grub2
           is_bootloader_sdboot
           is_bootloader_grub2_bls
+          get_bootloader
+          get_default_bootloader
           is_plasma6
           requires_role_selection
           check_version
@@ -64,6 +67,8 @@ use constant {
           php_version
           has_selinux_by_default
           has_selinux
+          is_wsl
+          is_ltss
         )
     ],
     BACKEND => [
@@ -116,7 +121,7 @@ Returns true if called on jeos
 =cut
 
 sub is_jeos {
-    return get_var('FLAVOR', '') =~ /(JeOS|Minimal-VM)/;
+    return get_var('FLAVOR', '') =~ /(JeOS|Minimal-VM)/ || get_var('MINIMAL_VM');
 }
 
 =head2 is_vmware
@@ -317,6 +322,15 @@ sub is_alp {
     return check_version($query, $version, qr/\d{1,}\.\d/);
 }
 
+=head2 is_aeon
+
+Check if distribution is Aeon
+=cut
+
+sub is_aeon {
+    return check_var('DISTRI', 'aeon');
+}
+
 =head2 is_selfinstall
 
 Check if SLEM is in flavor of self installable iso
@@ -398,7 +412,7 @@ Version: <=12-sp3 =12-sp1 >11-sp1 >=15 15+ (>=15 and 15+ are equivalent)
 
 sub is_sle {
     my $query = shift;
-    my $version = shift // get_var('VERSION');
+    my $version = shift // get_var('VERSION_TO_INSTALL', get_var('VERSION'));
 
     return 0 unless check_var('DISTRI', 'sle');
     return 1 unless $query;
@@ -424,7 +438,8 @@ Returns true if called on a transactional server
 sub is_transactional {
     return 1 if (is_microos || is_sle_micro || is_leap_micro);
     return 1 if (is_alp && get_var('FLAVOR') !~ /NonTransactional/);
-    return check_var('SYSTEM_ROLE', 'serverro') || get_var('TRANSACTIONAL_SERVER');
+    return 1 if (get_var('FLAVOR', '') =~ /transactional/i);
+    return 1 if (check_var('TRANSACTIONAL', '1'));
 }
 
 =head2 is_sles4migration
@@ -442,7 +457,7 @@ Returns true if called in a SAP test
 =cut
 
 sub is_sles4sap {
-    return get_var('FLAVOR', '') =~ /SAP/ || check_var('SLE_PRODUCT', 'sles4sap');
+    return get_var('FLAVOR', '') =~ /SAP/i || check_var('SLE_PRODUCT', 'sles4sap');
 }
 
 =head2 is_sles4sap_standard
@@ -472,6 +487,20 @@ sub is_hpc {
     return check_var('SLE_PRODUCT', 'hpc');
 }
 
+=head2 is_wsl
+
+Returns true if called on a wsl build, which is identified by its flavor.
+=cut
+
+sub is_wsl { check_var('FLAVOR', 'WSL') }
+
+=head2 is_dualboot
+
+Returns true if called on a dual boot test
+=cut
+
+sub is_dualboot { check_var('DUALBOOT', 1) }
+
 =head2 is_released
 
 Returns true if called on a released build
@@ -484,10 +513,12 @@ sub is_released {
 
 =head2 is_staging
 
-Returns true if called in staging
+Returns true if called in staging, checks for a particular staging if argument is passed
 =cut
 
 sub is_staging {
+    my $staging = shift;
+    return check_var('STAGING', $staging) if $staging;
     return get_var('STAGING');
 }
 
@@ -777,7 +808,8 @@ sub check_os_release {
 
 Returns 1 (true) if os release version matches the one passed as arguement.
 If no arguements are given, the function will compare the os release version
-in /etc/os-release file with "VERSION" var.
+in /etc/os-release file with "VERSION" or "VARIANT" var.
+VARIANT contains the version on SL Micro/Microos from 6.2.
 
 =cut
 
@@ -785,7 +817,7 @@ sub verify_os_version {
     my ($version, $os_release_file) = @_;
     $version //= get_var("VERSION");
     $os_release_file //= '/etc/os-release';
-    return script_output("grep VERSION= $os_release_file | grep $version");
+    return script_output("grep 'VERSION=\\|VARIANT=' $os_release_file | grep $version");
 }
 
 =head2 is_public_cloud
@@ -795,17 +827,6 @@ Returns true if PUBLIC_CLOUD is set to 1
 
 sub is_public_cloud {
     return get_var('PUBLIC_CLOUD');
-}
-
-=head2 is_openstack
-
-Returns true if the tests loads Cloud image in OpenStack environment
-NO_CLOUD variable is set in order to test the image in QEMU
-
-=cut
-
-sub is_openstack {
-    return get_var('FLAVOR', '') =~ /JeOS-for-OpenStack-Cloud.*/ && !get_var('NO_CLOUD');
 }
 
 =head2 is_leap_migration
@@ -826,13 +847,22 @@ sub is_tunneled {
     return get_var('TUNNELED', 0);
 }
 
+=head2 is_community_jeos
+
+Returns true for tests using the images built by the "JeOS" package on OBS
+=cut
+
+sub is_community_jeos {
+    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|armv9|RISCV|RPi)/);
+}
+
 =head2 is_bootloader_grub2
 
 Returns true if the SUT uses GRUB2 as bootloader
 =cut
 
 sub is_bootloader_grub2 {
-    return get_var('BOOTLOADER', 'grub2') eq 'grub2';
+    return get_bootloader() eq 'grub2';
 }
 
 =head2 is_bootloader_sdboot
@@ -841,7 +871,7 @@ Returns true if the SUT uses systemd-boot as bootloader
 =cut
 
 sub is_bootloader_sdboot {
-    return get_var('BOOTLOADER', 'grub2') eq 'systemd-boot';
+    return get_bootloader() eq 'systemd-boot';
 }
 
 =head2 is_bootloader_grub2_bls
@@ -850,7 +880,40 @@ Returns true if the SUT uses GRUB2-BLS as bootloader
 =cut
 
 sub is_bootloader_grub2_bls {
-    return get_var('BOOTLOADER', 'grub2') eq 'grub2-bls';
+    return get_bootloader() eq 'grub2-bls';
+}
+
+=head2 get_bootloader
+
+Returns the expected bootloader based on test variables
+can be grub2, grub2-bls or systemd-boot
+=cut
+
+sub get_bootloader {
+    my $bootloader = get_var('BOOTLOADER');
+    return $bootloader if $bootloader;
+
+    return 'wsl' if is_wsl;
+    return 'grub2' if is_sle || is_leap || is_sle_micro;
+    return 'grub2' if !check_var('UEFI', 1);
+    return 'grub2' if (get_var('FLAVOR', '') =~ /(MicroOS-SelfInstall|MicroOS-Image|Image-ContainerHost|JeOS-for-kvm-and-xen|JeOS-for-OpenStack-Cloud)$/);
+    return 'grub2' if is_community_jeos;
+    return 'grub2' if is_slowroll;
+    return 'systemd-boot' if is_microos;
+    return 'systemd-boot';
+}
+
+=head2 get_default_bootloader
+
+Returns the default bootloader, can be grub2, grub2-bls or sdboot
+This is a helper function for unit tests.
+=cut
+
+sub get_default_bootloader {
+    return 'grub2' if is_bootloader_grub2;
+    return 'grub2-bls' if is_bootloader_grub2_bls;
+    return 'systemd-boot' if is_bootloader_sdboot;
+    die "Could not figure out bootloader";
 }
 
 =head2 is_plasma6
@@ -901,8 +964,8 @@ or greater than the second one, respectively.
 sub package_version_cmp {
     my ($ver1, $ver2) = @_;
 
-    my @chunks1 = split(/-/, $ver1);
-    my @chunks2 = split(/-/, $ver2);
+    my @chunks1 = split(/[+-]/, $ver1);
+    my @chunks2 = split(/[+-]/, $ver2);
     my $chunk_cnt = $#chunks1 > $#chunks2 ? scalar @chunks1 : scalar @chunks2;
 
     for (my $cid = 0; $cid < $chunk_cnt; $cid++) {
@@ -988,15 +1051,6 @@ sub php_version {
     ($php, $php_pkg, $php_ver);
 }
 
-=head2 is_community_jeos
-
-Returns true for tests using the images built by the "JeOS" package on OBS
-=cut
-
-sub is_community_jeos {
-    return (get_var('FLAVOR', '') =~ /JeOS-for-(AArch64|RISCV|RPi)/);
-}
-
 =head2 has_selinux_by_default
 
 Returns true if the distro has SELinux as default MAC
@@ -1018,3 +1072,38 @@ Check if agama installation is being used
 sub is_agama {
     return (get_var('AGAMA') || get_var('INST_AUTO'));
 }
+
+=head2 is_ltss
+
+Returns true if the system is running on LTSS (Long Term Service Support)
+=cut
+
+sub is_ltss {
+    my $version = get_required_var('VERSION');
+    my $current_date = strftime("%Y%m%d", localtime);
+    # Product Support Lifecycle Dates defined at https://www.suse.com/lifecycle
+    my %general_ends = (
+        '15-SP7' => '20310731',
+        '16.0' => '20271130',
+        '16.1' => '20281130',
+        '16.2' => '20291130',
+        '16.3' => '20301130',
+        '16.4' => '20311130',
+        '16.5' => '20321130',
+        '16.6' => '20351130'
+    );
+    # Not valid for openSUSE products
+    return 0 if is_opensuse;
+
+    # All versions <=15-SP6 are already in LTSS
+    return 1 if is_sle('<=15-SP6');
+
+    # Die if version is not in the lifecycle table (including non-SLE products)
+    die "Version $version is not defined in LTSS lifecycle table.\nPlease update lib/version_utils.pm\n\n"
+      unless exists $general_ends{$version};
+
+    # Check if current date is past the lifecycle date
+    return $general_ends{$version} <= $current_date;
+}
+
+

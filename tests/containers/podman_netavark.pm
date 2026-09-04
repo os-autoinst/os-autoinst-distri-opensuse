@@ -13,9 +13,9 @@ use serial_terminal qw(select_serial_terminal);
 use version_utils qw(package_version_cmp is_transactional is_jeos is_leap is_sle_micro is_leap_micro is_sle is_microos is_public_cloud is_vmware);
 use containers::common qw(install_packages);
 use Utils::Systemd qw(systemctl);
-use Utils::Architectures qw(is_s390x);
 use main_common qw(is_updates_tests);
 use publiccloud::utils qw(is_gce);
+use utils qw(script_retry);
 
 my ($ipv6_gateway, $ipv6_interface, $dev);
 
@@ -68,9 +68,6 @@ sub is_container_running {
     foreach my $cont (@containers) {
         if ($out =~ m/$cont/) {
             next;
-        } elsif (is_sle_micro) {
-            record_soft_failure('bsc#1211774 - podman fails to start container with SELinux');
-            return 0;
         } else {
             die "Container $cont is not running!";
         }
@@ -80,8 +77,8 @@ sub is_container_running {
 
 # clean up routine only for systems that run CNI as default network backend
 sub _cleanup {
-    my $podman = shift->containers_factory('podman');
-    select_console 'log-console';
+    my ($self, %args) = @_;
+    my $podman = $self->containers_factory('podman');
     remove_subtest_setup;
 
     if (is_cni_default) {
@@ -94,6 +91,12 @@ sub _cleanup {
     }
 
     validate_script_output('podman network ls', sub { /podman\s+bridge/ });
+
+    # only view log-console on failure, poo#204498 - tty5 can be blanked
+    # after sitting idle for the whole test and never wakes up in time.
+    # eval-wrapped so a stall there can't crash the hook after the network
+    # cleanup above already ran.
+    eval { select_console 'log-console' } if $args{show_log};
 }
 
 sub switch_to_netavark {
@@ -139,6 +142,7 @@ sub run {
         name6 => 'webserver_ctr_ipv6'
     };
 
+    script_retry("podman pull $ctr1->{image}", timeout => 300, delay => 60, retry => 3);
     assert_script_run("podman network create --gateway $net1->{gateway} --subnet $net1->{subnet} $net1->{name}");
     assert_script_run("podman run --network $net1->{name}:ip=$ctr1->{ip},mac=$ctr1->{mac} -d --name $ctr1->{name} -v \$PWD/nginx.conf:/etc/nginx/nginx.conf:ro,Z $ctr1->{image}");
     assert_script_run("podman container inspect $ctr1->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
@@ -235,8 +239,6 @@ sub run {
             assert_script_run("podman container inspect $ctr2->{name} --format {{.NetworkSettings.Networks.$net1->{name}.IPAddress}}");
         }
 
-        # s390x is using an older BusyBox image with https://bugzilla.suse.com/show_bug.cgi?id=1239176
-        $ctr2->{image} = 'docker.io/library/alpine' if is_s390x;
         assert_script_run("podman run --network $net1->{name} -td --name $ctr1->{name} --ip 192.168.64.129 $ctr2->{image}");
         assert_script_run("podman exec $ctr2->{name} ip addr show eth0");
         assert_script_run("podman exec $ctr1->{name} ping -c4 192.168.64.128");
@@ -256,7 +258,11 @@ sub post_run_hook {
 
 sub post_fail_hook {
     load_ipv6_route;
-    shift->_cleanup();
+    shift->_cleanup(show_log => 1);
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

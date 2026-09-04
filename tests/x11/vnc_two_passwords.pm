@@ -18,9 +18,7 @@
 # Maintainer: mkravec <mkravec@suse.com>
 # Tags: poo#11794
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use x11utils 'ensure_unlocked_desktop';
 use version_utils qw(is_sle is_tumbleweed package_version_cmp);
@@ -35,9 +33,9 @@ my $timeout = (is_aarch64 && is_sle) ? 120 : 30;
 my $display = ':37';
 
 # Passwords for VNC access
-my @options = ({pw => "readonly_pw", change => 0}, {pw => "readwrite_pw", change => 1});
+my @options = ({pw => "ropasswd", change => 0}, {pw => "rwpasswd", change => 1});
 # A wrong password to check if the access is denied
-my $wrong_password = "password123";
+my $wrong_password = "badpass";
 
 my $test_xauth;
 my $tigervnc_vers;
@@ -258,12 +256,16 @@ sub run {
 }
 
 sub post_fail_hook {
+    my $self = @_;
+    # Normally this test fails on X11, but in the odd chance it doesn't
+    # avoid killing the testsuite by sending ctrl+c in serial terminal
+    send_key "ctrl-c" unless testapi::is_serial_terminal();
     select_console 'log-console';
     # xev seems to hang, send control-c to ensure that we can actually type
-    send_key "ctrl-c";
     upload_logs('/tmp/xev_log', failok => 1);
     upload_logs("/home/testuser/.local/state/tigervnc/susetest$display.log", failok => 1) unless $curr_vers < 0;
     upload_logs("/home/testuser/.vnc/susetest$display.log", failok => 1) if $curr_vers < 0;
+    $self->SUPER::post_fail_hook;
     clean;
 }
 

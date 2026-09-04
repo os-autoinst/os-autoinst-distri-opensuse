@@ -1,0 +1,37 @@
+From 2d5f5395c293d61200c7dac58d40f9f3bf4e609f Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sun, 5 Apr 2026 16:43:40 +0200
+Subject: [PATCH] test/system: Fix 260-sdnotify being silently skipped
+
+PODMAN_CMD is uninitialized until basic_setup() runs, causing
+podman_runtime() to invoke an empty command and fall back to [null].
+
+Call basic_setup() before the runtime check to ensure PODMAN_CMD is
+populated before use.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/system/260-sdnotify.bats | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/test/system/260-sdnotify.bats b/test/system/260-sdnotify.bats
+index 193e0cd5315..b5ac22bde7f 100644
+--- a/test/system/260-sdnotify.bats
++++ b/test/system/260-sdnotify.bats
+@@ -17,14 +17,14 @@ function setup() {
+     # Skip if systemd is not running
+     systemctl list-units &>/dev/null || skip "systemd not available"
+ 
++    basic_setup
++
+     # sdnotify fails with runc 1.0.0-3-dev2 on Ubuntu. Let's just
+     # assume that we work only with crun, nothing else.
+     runtime=$(podman_runtime)
+     if [[ "$runtime" != "crun" ]]; then
+         skip "this test only works with crun, not $runtime"
+     fi
+-
+-    basic_setup
+ }
+ 
+ function teardown() {

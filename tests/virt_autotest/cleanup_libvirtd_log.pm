@@ -7,14 +7,12 @@
 # Maintainer: qe-virt@suse.de
 package cleanup_libvirtd_log;
 
-use strict;
-use warnings;
-use base "virt_autotest_base";
+use Mojo::Base 'virt_autotest_base';
 use testapi;
 
 sub run {
     # Cleanup logs of libvirt daemons
-    my @libvirt_daemons = qw(libvirtd virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtnwfilterd virtlockd virtlogd);
+    my @libvirt_daemons = qw(libvirtd virtqemud virtstoraged virtnetworkd virtnodedevd virtsecretd virtproxyd virtlockd virtlogd);
     foreach (@libvirt_daemons) {
         my $log_file = "/var/log/libvirt/$_.log";
         if (script_run("test -f $log_file") == 0) {

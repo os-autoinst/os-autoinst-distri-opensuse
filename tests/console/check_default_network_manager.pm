@@ -1,7 +1,7 @@
 # Copyright 2018-2020 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Package: systemd-network
+# Package: systemd-networkd
 # Summary: Check that the network daemon in use is the expected one
 # - check which network daemon is in use
 # - based on the system (SLE, JeOS, SLED, openSUSE), check that
@@ -9,9 +9,7 @@
 # - check if network daemon is installed, enabled and running
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -23,7 +21,7 @@ sub run {
     assert_script_run 'ip a';
 
     if (is_opensuse) {
-        zypper_call 'in systemd-network';
+        zypper_call 'in systemd-networkd';
         systemctl 'is-enabled systemd-networkd', expect_false => 1;
         systemctl 'is-active systemd-networkd', expect_false => 1;
         script_run 'networkctl status';

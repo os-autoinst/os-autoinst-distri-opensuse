@@ -66,7 +66,13 @@ test_node_version(){
   # Run the tests on the source using the installed binary
   pushd "/usr/src/packages/SOURCES"
     quilt setup "../SPECS/nodejs$VERSION.spec"
-    pushd "$SOURCE_DIR"
+      local ACTUAL_DIR
+      ACTUAL_DIR=$(cd /usr/src/packages/SOURCES/ && find . -maxdepth 1 -type d -name "nodejs*" -print -quit)
+      if [ "$OS_VERSION" = "SLE_16.0" ]; then
+        pushd "$ACTUAL_DIR/$SOURCE_DIR"
+      else
+        pushd "$SOURCE_DIR"
+      fi
       quilt push -a
       if [[ "$VERSION" -eq 18 && -e /root/crypto_rsa_dsa.patch ]]; then
         patch test/parallel/test-crypto-rsa-dsa.js < /root/crypto_rsa_dsa.patch
@@ -80,7 +86,7 @@ test_node_version(){
 
   # Cleanup sources
   rm -rf /usr/src/packages/SOURCES/*
-  rm -rf /usr/src/packages/SPECS/* 
+  rm -rf /usr/src/packages/SPECS/*
 }
 
 main(){
@@ -92,7 +98,11 @@ main(){
   export OPENSSL_SYSTEM_CIPHERS_OVERRIDE=xyz_nonexistent_file
 
   # Install dependencies to apply source patches and run tests
-  zypper -n in quilt rpm-build  libopenssl1_1-hmac
+  zypper -n in quilt rpm-build
+
+  if [ "$OS_VERSION" != "SLE_16.0" ]; then
+    zypper -n in libopenssl1_1-hmac
+  fi
 
   if [ "$OS_VERSION" = "SLE_12_SP5" ]; then
     zypper -n in openssl-1_1
@@ -105,7 +115,7 @@ main(){
   for v in $NODE_VERSIONS; do
     echo "Found node version: $v"
   done
-  echo "Will test only latest version: $NODE_LATEST_VERSION" 
+  echo "Will test only latest version: $NODE_LATEST_VERSION"
 
   # Install latest nodejs version and sources
   zypper -n in --no-recommends "nodejs$NODE_LATEST_VERSION"
@@ -166,6 +176,19 @@ skip_test=(
   ["10.22.1-1.27.1 test/parallel/test-crypto-dh.js SLE_15_SP1"]="skip"
   ["10.24.1-1.36.1 test/parallel/test-tls-passphrase.js SLE_15"]="skip"
   ["10.24.1-1.36.1 test/parallel/test-tls-passphrase.js SLE_15_SP1"]="skip"
+  # https://bugzilla.suse.com/show_bug.cgi?id=1272321
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-encap-decap.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-key-objects-raw.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-key-objects-to-crypto-key.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-keygen-raw.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-encrypted-pkcs8.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-key-objects-ml-dsa.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-key-objects-ml-kem.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-key-objects-slh-dsa.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-keygen-ml-dsa.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-keygen-ml-kem.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-keygen-slh-dsa.js SLE_15_SP7"]="skip"
+  ["24.18.1-150700.15.16.1 test/parallel/test-crypto-pqc-sign-verify-ml-dsa.js SLE_15_SP7"]="skip"
 )
 
 # Common flags to use on each test

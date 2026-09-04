@@ -9,9 +9,7 @@
 # - Check if sshd is running
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use services::sshd;

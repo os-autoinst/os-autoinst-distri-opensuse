@@ -8,9 +8,7 @@
 # Summary: Clone system and use the autoyast file in chained tests
 # Maintainer: Martin Kravec <mkravec@suse.com>
 
-use base "y2_module_consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures 'is_aarch64';

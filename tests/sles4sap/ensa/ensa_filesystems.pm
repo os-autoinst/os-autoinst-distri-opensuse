@@ -7,12 +7,10 @@
 # Summary: Configure NetWeaver filesystems for ENSA2 based installation
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'sles4sap';
-use strict;
-use warnings;
+use Mojo::Base 'sles4sap';
 use testapi;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(systemctl file_content_replace);
+use utils qw(systemctl script_retry);
 use hacluster;
 use lockapi;
 
@@ -37,22 +35,28 @@ sub run {
         # Create the partitions
         assert_script_run("mkdir -p $sap_dir/$instance_dir");
         assert_script_run("parted -s $lun_path --list");
-        assert_script_run("parted -s $lun_path mklabel gpt");
-        assert_script_run("parted -s $lun_path mkpart primary 0% 50%");
-        script_run('partprobe -s');
-        assert_script_run("parted -s $lun_path mkpart primary 50% 100%");
         # From the manual: changes will *probably* be made to the disk
         # immediately after typing a command. However, the operating system’s
         # cache and the disk’s hardware cache may delay this. When using serial
-        # we hit this limitation, to avoid that we run partprobe and parted again.
-        script_run('partprobe -s');
+        # we hit this limitation, to avoid that we run udevadm settle and parted again.
+        assert_script_run("udevadm settle --timeout=$default_timeout", $default_timeout + 5);
+        assert_script_run("parted -s $lun_path mklabel gpt");
+        assert_script_run("udevadm settle --timeout=$default_timeout", $default_timeout + 5);
+        assert_script_run("parted -s $lun_path mkpart primary 0% 50%");
+        assert_script_run("udevadm settle --timeout=$default_timeout", $default_timeout + 5);
+        assert_script_run("parted -s $lun_path mkpart primary 50% 100%");
+        assert_script_run("udevadm settle --timeout=$default_timeout", $default_timeout + 5);
         assert_script_run("parted -s $lun_path --list");
 
         # Format the partitions
-        assert_script_run("mkfs.xfs $lun_path-part1");
-        assert_script_run("mkfs.xfs $lun_path-part2");
+        script_retry("mkfs.xfs $lun_path-part1", delay => 5, retry => 3);
+        assert_script_run("udevadm settle --timeout=$default_timeout", $default_timeout + 5);
+        script_retry("mkfs.xfs $lun_path-part2", delay => 5, retry => 3);
+        assert_script_run("udevadm settle --timeout=$default_timeout", $default_timeout + 5);
+        assert_script_run("fdisk -l");
         assert_script_run("mount -t xfs $lun_path-part1 $sap_dir/$instance_dir");
         assert_script_run("chmod 777 $sap_dir/$instance_dir");
+        assert_script_run("udevadm settle --timeout=$default_timeout", $default_timeout + 5);
     }
 
     # ENSA needs to wait for partitioning being done
@@ -60,9 +64,10 @@ sub run {
 
     if ($instance_type eq 'ERS') {
         my $lun_path = get_lun;    # ERS removes lun from the list.
-        assert_script_run("partprobe; fdisk -l $lun_path");
+        assert_script_run("fdisk -l $lun_path");
         assert_script_run("mkdir -p $sap_dir/$instance_dir");
-        assert_script_run("mount -t xfs $lun_path-part2 $sap_dir/$instance_dir");
+        script_run('partprobe');
+        script_retry("mount -t xfs $lun_path-part2 $sap_dir/$instance_dir", delay => 10, retry => 3);
         assert_script_run("chmod 777 $sap_dir/$instance_dir");
     }
     record_info('Block devices', assert_script_run('lsblk'));

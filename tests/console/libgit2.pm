@@ -10,13 +10,11 @@
 #
 # Maintainer: QE Core <qe-core@suse.com>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_leap);
-use utils 'zypper_call';
+use package_utils qw(install_package uninstall_package);
 use python_version_utils;
 use registration qw(add_suseconnect_product is_phub_ready);
 
@@ -24,23 +22,24 @@ my $python_sub_version;
 
 sub run {
     # Package 'pygit2' requires PackageHub is available
-    return if (!is_phub_ready() && is_sle);
+    return if (!is_phub_ready() && is_sle('<16'));
 
     select_serial_terminal;
     return if (is_sle('<15-sp6') || is_leap('<15.6'));
 
-    if (is_sle) {
+    if (is_sle('<16')) {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product('sle-module-development-tools');
         add_suseconnect_product('sle-module-python3');
     }
 
     # Install the latest pygit2
-    my @pygit2_versions = split(/\n/, script_output(qq[zypper se '/^python3[0-9]{1,2}-pygit2\$/' | awk -F '|' '/python3[0-9][1,2]/ {gsub(" ", ""); print \$2}' | uniq]));
+    my @pygit2_versions = split(/\n/, script_output(qq[zypper se '/^python3[0-9]{1,2}-pygit2\$/' | awk -F '|' '/python3[0-9]{1,2}/ {gsub(" ", ""); print \$2}' | uniq]));
+    die 'Cannot find any verisons of pygit2' unless (@pygit2_versions);
     record_info("Available versions", "All available new pygit2 versions are: @pygit2_versions");
     record_info("The latest version is:", "$pygit2_versions[$#pygit2_versions]");
 
-    zypper_call "in $pygit2_versions[$#pygit2_versions]";
+    install_package("$pygit2_versions[$#pygit2_versions]", trup_continue => 1, trup_reboot => 1);
 
     # Run test script
     assert_script_run "wget --quiet " . data_url('libgit2/pygit2_test.py') . " -O pygit2_test.py";
@@ -53,9 +52,9 @@ sub run {
 }
 
 sub clean_up {
-    zypper_call "rm python3$python_sub_version-pygit2";
+    uninstall_package("python3$python_sub_version-pygit2", trup_continue => 1, trup_reboot => 1);
     my $out = script_output "python3.$python_sub_version pygit2_test.py", proceed_on_failure => 1;
-    zypper_call "rm python3$python_sub_version";
+    uninstall_package("python3$python_sub_version", trup_continue => 1, trup_reboot => 1);
     assert_script_run "rm -rf libgit2";
     die("uninstalling of python3$python_sub_version-pygit2 failed") if (index($out, "ModuleNotFoundError") == -1);
 }

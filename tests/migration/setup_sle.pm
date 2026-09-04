@@ -2,11 +2,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Summary: After reboot, setup the system again and set HDD as registered.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use migration;
 use utils;

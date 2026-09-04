@@ -7,11 +7,9 @@
 # properly added and enabled. Also, verifies that 'zypper ref' works and all the
 # repositories can be refreshed.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 
 use testapi;
 use repo_tools 'validate_repo_properties';

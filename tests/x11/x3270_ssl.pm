@@ -8,9 +8,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#65570, poo#65615, poo#89005, poo#106504, poo#109566
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use Utils::Architectures;
 use utils;
@@ -85,10 +83,6 @@ sub run {
     enter_cmd 'killall xterm';
 
     select_console 'x11';
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

@@ -8,9 +8,7 @@
 
 package baremetal;
 
-use warnings;
-use strict;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use Mitigation;
 use vt_perf_libs;
 use Utils::Backends 'use_ssh_serial_console';

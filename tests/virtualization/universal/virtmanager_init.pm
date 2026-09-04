@@ -5,11 +5,9 @@
 # Summary: This test connects to hypervisor and check our VMs
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_autotest::common;
 use virt_autotest::utils;
-use strict;
-use warnings;
 use testapi;
 use utils;
 use virtmanager;
@@ -32,7 +30,7 @@ sub run_test {
 
     establish_connection();
 
-    wait_screen_change { send_key 'ctrl-q'; };
+    quit_virtmanager();
 }
 
 sub test_flags {

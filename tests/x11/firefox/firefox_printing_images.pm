@@ -13,9 +13,7 @@
 # - Remove the output file
 # Maintainer: Grace Wang<grace.wang@suse.com>
 
-use strict;
-use warnings;
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

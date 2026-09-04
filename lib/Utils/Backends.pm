@@ -33,6 +33,7 @@ use constant {
           is_ipmi
           is_qemu
           is_svirt
+          is_ova
           is_image_backend
           is_ssh_installation
           is_backend_s390x
@@ -64,6 +65,10 @@ sub save_serial_console {
     my $serialconsole = get_var('SERIALCONSOLE', '');
     return if ($serialconsole ne '');
     $serialconsole = get_var('SERIALDEV', 'ttyS1');
+    if ($serialconsole eq 'sshserial') {
+        record_info('Reset SERIALCONSOLE to ttyS1', 'Because SERIALCONSOLE has no value and SERIALDEV is sshserial');
+        $serialconsole = 'ttyS1';
+    }
     set_var('SERIALCONSOLE', $serialconsole);
     bmwqemu::save_vars();
 }
@@ -107,7 +112,7 @@ Returns true if the current instance is running as remote backend
 
 sub is_remote_backend {
     # s390x uses only remote repos
-    return check_var('ARCH', 's390x') || (get_var('BACKEND', '') =~ /ipmi|svirt/) || is_pvm();
+    return check_var('ARCH', 's390x') || (get_var('BACKEND', '') =~ /ipmi|svirt|ova/) || is_pvm();
 }
 
 # In some cases we are using a VNC connection provided by the hypervisor that
@@ -173,7 +178,7 @@ Returns true if the current instance is running as svirt backend except s390x
 =cut
 
 sub is_svirt_except_s390x {
-    return !get_var('S390_ZKVM') && check_var('BACKEND', 'svirt');
+    return !get_var('S390_ZKVM') && (check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ova'));
 }
 
 =head2 is_pvm
@@ -213,7 +218,17 @@ Returns true if the current instance is running as svirt backend
 =cut
 
 sub is_svirt {
-    return check_var('BACKEND', 'svirt');
+    return check_var('BACKEND', 'svirt') || check_var('BACKEND', 'ova');
+}
+
+=head2 is_ova
+
+Returns true if the current instance is running as ova backend
+
+=cut
+
+sub is_ova {
+    return check_var('BACKEND', 'ova');
 }
 
 =head2 is_image_backend

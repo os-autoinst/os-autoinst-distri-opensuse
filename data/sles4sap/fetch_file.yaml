@@ -1,12 +1,28 @@
 ---
-- hosts: all
+- name: "Fetch file from remote host"
+  hosts: all
   vars:
     remote_path: '/tmp/'
     local_path: '/tmp/ansible_fetch_output/'
     file: 'testout.txt'
   tasks:
-  - name: fetch
-    fetch:
-      flat: yes
-      src: "{{ remote_path }}{{ file }}"
-      dest: "{{ local_path }}"
+    - name: 'List files in /tmp'
+      ansible.builtin.command: "ls -la /tmp"
+      failed_when: false
+      changed_when: false
+
+    - name: Get remote file size
+      ansible.builtin.stat:
+        path: "{{ remote_path }}{{ file }}"
+      register: logfile_stats
+
+    - name: Print remote file size
+      ansible.builtin.debug:
+        msg: "File size: {{ logfile_stats.stat.size | default('UNKNOWN') }} bytes."
+
+    - name: Download the remote file
+      ansible.posix.synchronize:
+        mode: pull
+        src: "{{ remote_path }}{{ file }}"
+        dest: "{{ local_path }}"
+      delegate_to: localhost

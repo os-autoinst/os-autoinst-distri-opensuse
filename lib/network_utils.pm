@@ -46,6 +46,9 @@ our @EXPORT = qw(
   set_nic_dhcp_auto
   all_nics_have_ip
   reload_connections_until_all_ips_assigned
+  setup_dhcp_server_network
+  is_running_in_isolated_network
+  get_default_dns
 );
 
 =head2 setup_static_network
@@ -68,7 +71,7 @@ sub setup_static_network {
     assert_script_run("echo default $gw - - > /etc/sysconfig/network/routes");
     my $iface = iface();
     assert_script_run qq(echo -e "\\nSTARTMODE='auto'\\nBOOTPROTO='static'\\nIPADDR='$ip'\\nMTU='$mtu'">/etc/sysconfig/network/ifcfg-$iface);
-    assert_script_run 'rcnetwork restart';
+    systemctl 'restart network';
     assert_script_run 'ip addr';
     assert_script_run "ping -c 1 $gw", fail_message => 'Gateway is not reachable, please check your network configuration and setups';
     assert_script_run "ip -6 addr add $args{ipv6} dev $iface" if exists $args{ipv6};
@@ -266,7 +269,7 @@ sub get_nics {
     my ($ignore_ref) = @_;
     my @ignore = @$ignore_ref;
 
-    my $command = "ip -o link show | grep -v 'lo'";
+    my $command = "ip -o link show | grep -vE '(lo|docker|podman|veth)'";
 
     foreach my $iface (@ignore) {
         $command .= " | grep -v '$iface'";
@@ -281,6 +284,19 @@ sub get_nics {
     record_info(scalar(@nics) . " NICs Detected", join(', ', @nics));
 
     return @nics;
+}
+
+=head2 is_systemd_networkd_used
+
+ Check if systemd-networkd service is active.
+
+ This function checks if the systemd-networkd service is currently active on the system.
+ It returns true (0) if the service is active, otherwise false (1).
+
+=cut
+
+sub is_systemd_networkd_used {
+    return script_run("systemctl is-active systemd-networkd") == 0;
 }
 
 =head2 is_nm_used
@@ -386,7 +402,7 @@ sub set_resolv {
     my @nameservers = @{$args{nameservers}};
 
     # Set DNS in /etc/resolv.conf
-    assert_script_run("rm /etc/resolv.conf || true");
+    script_run("rm -f /etc/resolv.conf");
     assert_script_run("touch /etc/resolv.conf");
 
     foreach my $nameserver (@nameservers) {
@@ -480,6 +496,125 @@ sub reload_connections_until_all_ips_assigned {
         if ($elapsed_time >= $args{timeout}) {
             die "Failed to obtain IPs for all interfaces within $args{timeout} seconds";
         }
+    }
+}
+
+sub setup_dhcp_server_network {
+    my (%args) = @_;
+
+    my $server_ip = $args{server_ip} // '10.0.2.101';
+    my $subnet = $args{subnet} // '/24';
+    my $gateway = $args{gateway} // '10.0.2.2';
+    my @nics = @{$args{nics}};
+    my @dns = @{$args{dns} || []};
+
+    my $nic0 = $nics[0];
+
+    record_info("SETUP_SERVER_NETWORK");
+
+    # Bring down all non-loopback interfaces except the first one
+    foreach my $nic (@nics[1 .. $#nics]) {
+        record_info("Non-loopback interface $nic detected, bringing it down...");
+        assert_script_run("ip link set $nic down");
+    }
+
+    delete_all_existing_connections();
+
+    my $netmask = cidr_to_netmask($subnet);
+
+    if (is_nm_used()) {
+        assert_script_run "nmcli con add type ethernet ifname $nic0 con-name $nic0";
+        assert_script_run "nmcli con modify $nic0 ipv4.addresses ${server_ip}${subnet} ipv4.gateway $gateway ipv4.routes '0.0.0.0/0 $gateway' ipv4.method manual";
+        assert_script_run "nmcli con modify $nic0 connection.autoconnect yes";
+        assert_script_run "nmcli con up $nic0";
+    }
+
+    if (is_wicked_used()) {
+        my $ifcfg_file = "/etc/sysconfig/network/ifcfg-$nic0";
+        my $route_file = "/etc/sysconfig/network/ifroute-$nic0";
+
+        assert_script_run "echo 'BOOTPROTO=static' > $ifcfg_file";
+        assert_script_run "echo 'STARTMODE=auto' >> $ifcfg_file";
+        assert_script_run "echo 'IPADDR=$server_ip' >> $ifcfg_file";
+        assert_script_run "echo 'GATEWAY=$gateway' >> $ifcfg_file";
+        assert_script_run "echo 'NETMASK=$netmask' >> $ifcfg_file";
+
+        script_run "rm -f $route_file";
+        assert_script_run "echo 'default $gateway dev $nic0' > $route_file";
+
+        if (@dns) {
+            my $dns = join(" ", @dns);
+            assert_script_run "sed s/.*NETCONFIG_DNS_STATIC_SERVERS=.*/NETCONFIG_DNS_STATIC_SERVERS='$dns'/g -i /etc/sysconfig/network/config";
+        }
+
+        systemctl 'restart wicked';
+    }
+
+    if (is_systemd_networkd_used()) {
+        my $netplan_dir = "/etc/netplan";
+        script_run("rm -f $netplan_dir/*");
+        my $yaml_path = "$netplan_dir/01-static.yaml";
+        my $quoted_dns = join(", ", map { "\"$_\"" } @dns);
+        my $dns_block = @dns
+          ? "      nameservers:\n        addresses: [$quoted_dns]\n"
+          : '';
+
+        my $yaml_content = <<"YAML";
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    $nic0:
+      dhcp4: false
+      addresses: [$server_ip$subnet]
+      routes:
+        - to: 0.0.0.0/0
+          via: $gateway
+$dns_block
+YAML
+        assert_script_run("echo -e '$yaml_content' > $yaml_path");
+        assert_script_run("chmod 600 $yaml_path");
+        record_info("$netplan_dir/01-static.yaml", script_output("cat $yaml_path"));
+        assert_script_run("netplan apply");
+    }
+}
+
+=head2 is_running_in_isolated_network
+
+Checks if the test is running in an isolated network environment.
+
+This function determines if the test is running in an isolated network setup by checking the network type and NIC VLAN configuration.
+
+  is_running_in_isolated_network();
+
+=cut
+
+sub is_running_in_isolated_network {
+    return check_var('NICTYPE', 'tap') && get_var('NICVLAN');
+}
+
+=head2 get_default_dns
+
+Returns the default DNS servers based on the OPENQA_HOSTNAME environment variable.
+This function checks the OPENQA_HOSTNAME variable to determine which DNS servers to return. If the hostname matches a specific pattern, it returns a predefined set of private or public DNS servers.
+
+  get_default_dns();
+
+=cut
+
+sub get_default_dns {
+    my $private_dns = get_var('PRIVATE_DNS', '10.100.2.10,10.100.2.8');
+    my $public_dns = get_var('PUBLIC_DNS', '8.8.8.8,8.8.4.4');
+
+    my $openqa_host = get_var('OPENQA_HOSTNAME');
+
+    if ($openqa_host =~ /openqa.suse.de/) {    # OSD hostname
+        return $private_dns;
+    } elsif ($openqa_host =~ /openqa1-opensuse|openqa.opensuse.org/) {    # O3
+        return $public_dns;
+    } else {
+        record_info("DNS Warning", "Unknown OPENQA_HOSTNAME: $openqa_host, using public DNS");
+        return $public_dns;    # Default to public DNS if unknown host
     }
 }
 

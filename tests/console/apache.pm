@@ -11,24 +11,30 @@
 #  * Test http basic authentication
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
+use package_utils 'install_package';
 use version_utils qw(is_sle is_jeos has_selinux);
+
+my $config_snippet = q([main]\n# Install documentation, overrides zypp-excludedocs\nrpm.install.excludedocs = no\n);
+my $config_drop_in = q(/etc/zypp/zypp.conf.d/override-excludedocs.conf);
 
 sub run {
     select_serial_terminal;
 
     # On SLES12-SP5 apache2 and apache2-tls13 are supported
     my $apache2 = get_var('APACHE2_PKG', "apache2");
+    my $zypp_econf = !script_run("rpm -q --provides libzypp | grep 'libzypp(econf)'");
 
     # installation of docs and manpages is excluded in zypp.conf
     # enable full package installation, and clean up previous apache2 deployment
     if (is_jeos) {
-        assert_script_run('sed -ie \'s/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/\' /etc/zypp/zypp.conf');
+        my $command = $zypp_econf ? qq@echo -e "$config_snippet" > "$config_drop_in"@ :
+          'sed -ie \'s/rpm.install.excludedocs = yes/rpm.install.excludedocs = no/\' /etc/zypp/zypp.conf';
+
+        assert_script_run($command);
         zypper_call('rm apache2', exitcode => [0, 104]);
     }
 
@@ -37,9 +43,10 @@ sub run {
     assert_script_run 'echo "index" > /srv/www/htdocs/index.html';
 
     # Install and start apache
-    zypper_call "in $apache2";
+    install_package("$apache2", trup_reboot => 1) if (script_run("rpm -q $apache2"));
     zypper_call "in apache2-utils" if is_jeos;
     zypper_call "in policycoreutils-python-utils" if (is_jeos && has_selinux);
+    assert_script_run 'restorecon -Rv /srv/www' if (has_selinux);
     systemctl 'enable apache2';    # Note: The systemd service is always apache2, not apache2-tls13.
     systemctl 'restart apache2';    # apache2 could be already running from previous test runs
     systemctl 'status apache2';
@@ -65,7 +72,7 @@ sub run {
     }
 
     # Check if the server works and serves the right content
-    assert_script_run 'curl -v http://localhost/ | grep "index"';
+    validate_script_output('curl --fail -v http://localhost/', qr/index/);
 
     # Check if the permissions are set correctly
     assert_script_run 'ls -la /srv/www/htdocs | head -n2 | grep "drwxr\-xr\-x"';
@@ -78,7 +85,7 @@ sub run {
 
     # Start apache again
     systemctl 'start apache2';
-    assert_script_run 'curl -v http://[::1]/ | grep "index"';
+    validate_script_output('curl --fail -v http://[::1]/', qr/index/);
 
     # Listen on 85 and create a vhost for it
     assert_script_run 'echo "Listen 85" >> /etc/apache2/listen.conf';
@@ -176,12 +183,18 @@ sub run {
     assert_script_run 'htpasswd -s -b /srv/www/vhosts/localhost/authtest/.htpasswd joe secret';
 
     # Paste the .htaccess file
-    assert_script_run('curl -o /srv/www/vhosts/localhost/authtest/.htaccess ' . data_url('console/apache_.htaccess'));
+    my $apache_htaccess = "/srv/www/vhosts/localhost/authtest/.htaccess";
+    assert_script_run('curl -o /tmp/apache_.htaccess ' . data_url('console/apache_.htaccess'));
+    assert_script_run("mv -Z /tmp/apache_.htaccess $apache_htaccess");
 
     # Paste the config file
-    assert_script_run('curl -o /etc/apache2/conf.d/authtest.conf ' . data_url('console/apache_authtest.conf'));
+    my $apache_authtest = "/etc/apache2/conf.d/authtest.conf";
+    assert_script_run('curl -o /tmp/apache_authtest.conf ' . data_url('console/apache_authtest.conf'));
+    assert_script_run("mv -Z /tmp/apache_authtest.conf $apache_authtest");
 
     # Start the webserver and test the password access
+    record_info('poo#179678', 'Job for apache2.service may fail because start of the service was attempted too often');
+    sleep 5;
     systemctl 'start apache2';
     assert_script_run 'curl -vI -u "joe:secret" "http://localhost/authtest/" | grep -A99 -B99 "HTTP/1.1 200 OK"';
     assert_script_run 'curl -v -u "joe:secret" "http://localhost/authtest/" | grep -A99 -B99 "HI, JOE"';
@@ -191,9 +204,11 @@ sub run {
 
     # Revert zypp.conf changes on JeOS
     if (is_jeos) {
-        assert_script_run('sed -ie \'s/rpm.install.excludedocs = no/rpm.install.excludedocs = yes/\' /etc/zypp/zypp.conf');
+        my $command = $zypp_econf ? "rm $config_drop_in" :
+          'sed -ie \'s/rpm.install.excludedocs = no/rpm.install.excludedocs = yes/\' /etc/zypp/zypp.conf';
+
+        assert_script_run($command);
     }
 }
 
 1;
-

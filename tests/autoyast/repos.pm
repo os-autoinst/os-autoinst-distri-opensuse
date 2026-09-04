@@ -10,9 +10,7 @@
 # - Save yast2 logs
 # Maintainer: Pavel Sladek <psladek@suse.cz>
 
-use strict;
-use warnings;
-use base 'y2_module_consoletest';
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 use zypper;

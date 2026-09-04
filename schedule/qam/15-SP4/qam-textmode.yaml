@@ -22,10 +22,12 @@ schedule:
 - installation/reboot_after_installation
 - installation/grub_test
 - installation/first_boot
-- qa_automation/patch_and_reboot
+- console/post_installation
 - locale/keymap_or_locale
 - console/system_prepare
 - console/check_network
+- console/chrony
+- console/vim
 - console/system_state
 - console/prepare_test_data
 - console/consoletest_setup

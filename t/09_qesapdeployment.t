@@ -7,13 +7,52 @@ use Test::MockModule;
 use Test::Mock::Time;
 
 use List::Util qw(any none);
+use NetAddr::IP;
 
 use testapi 'set_var';
-use qesapdeployment;
+use sles4sap::qesap::qesapdeployment;
+
 set_var('QESAP_CONFIG_FILE', 'MARLIN');
 
+sub create_qesap_prepare_env_mocks_noret {
+    my $called_functions = shift;
+    my $mock_func = shift;
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+
+    # First mock functions returning nothing
+    foreach (@{$mock_func}) {
+        my $fn = $_;
+        $called_functions->{$fn} = 0;
+        $qesap->redefine($fn => sub { $called_functions->{$fn} = 1; return; });
+    }
+    return $qesap;
+}
+
+sub create_qesap_prepare_env_mocks_with_calls {
+    my ($qesap, $called_functions) = @_;
+
+    # then mock functions with some more complex return value
+    $called_functions->{qesap_get_file_paths} = 0;
+    $qesap->redefine(qesap_get_file_paths => sub {
+            $called_functions->{qesap_get_file_paths} = 1;
+            my %paths;
+            $paths{qesap_conf_src} = '/REEF';
+            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
+            $paths{terraform_dir} = '/SPLASH';
+            $paths{deployment_dir} = '/WAVE';
+            $paths{roles_dir} = '/BRUCE';
+            return (%paths);
+    });
+    $called_functions->{qesap_get_terraform_dir} = 0;
+    $qesap->redefine(qesap_get_terraform_dir => sub { $called_functions->{qesap_get_terraform_dir} = 1; return '/SHELL'; });
+    $called_functions->{qesap_execute} = 0;
+    $qesap->redefine(qesap_execute => sub { $called_functions->{qesap_execute} = 1; return (0, "ALL GOOD"); });
+
+    return $qesap;
+}
+
 subtest '[qesap_get_inventory] upper case' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{terraform_dir} = '/BRUCE';
@@ -27,7 +66,7 @@ subtest '[qesap_get_inventory] upper case' => sub {
 };
 
 subtest '[qesap_get_inventory] lower case' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{terraform_dir} = '/BRUCE';
@@ -41,7 +80,7 @@ subtest '[qesap_get_inventory] lower case' => sub {
 };
 
 subtest '[qesap_get_deployment_code] from default github' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
@@ -60,7 +99,7 @@ subtest '[qesap_get_deployment_code] from default github' => sub {
 };
 
 subtest '[qesap_get_deployment_code] symlinks' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
@@ -82,7 +121,7 @@ subtest '[qesap_get_deployment_code] symlinks' => sub {
 };
 
 subtest '[qesap_get_deployment_code] from fork' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
@@ -105,7 +144,7 @@ subtest '[qesap_get_deployment_code] from fork' => sub {
 };
 
 subtest '[qesap_get_deployment_code] from branch' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
@@ -128,7 +167,7 @@ subtest '[qesap_get_deployment_code] from branch' => sub {
 };
 
 subtest '[qesap_get_deployment_code] from a specific release' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
@@ -153,7 +192,7 @@ subtest '[qesap_get_deployment_code] from a specific release' => sub {
 };
 
 subtest '[qesap_get_deployment_code] from the latest release' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
@@ -179,7 +218,7 @@ subtest '[qesap_get_deployment_code] from the latest release' => sub {
 };
 
 subtest '[qesap_get_roles_code] from default github' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
@@ -197,7 +236,7 @@ subtest '[qesap_get_roles_code] from default github' => sub {
 };
 
 subtest '[qesap_get_roles_code] from fork' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
@@ -217,7 +256,7 @@ subtest '[qesap_get_roles_code] from fork' => sub {
 };
 
 subtest '[qesap_get_roles_code] from branch' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; });
@@ -238,13 +277,13 @@ subtest '[qesap_get_roles_code] from branch' => sub {
 
 subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
     # Call qesap_execute without to mock qesap_venv_cmd_exec
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @logs = ();
     my $expected_res = 0;
     my $cmd = 'GILL';
 
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
@@ -253,6 +292,7 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
             return (%paths);
     });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return $expected_res; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return $expected_res; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
     # needed within the qesap_venv_cmd_exec as activating the vevn
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0] });
@@ -261,8 +301,6 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
 
     note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
     note("\n  -->  " . join("\n  -->  ", @calls));
-    # check that the glue script is called with failok, 90 is default in qesap_execute
-    ok((any { /.*timeout \d+.*qesap\.py/ } @calls), 'timeout wrap the qesap.py with default value');
     # command composition
     ok((any { /.*qesap\.py.*-c.*-b.*$cmd\s+/ } @calls), 'qesap.py cmd composition is fine');
     ok((any { /.*qesap\.py.*tee.*\/tmp\/WALLABY_STREET/ } @calls), 'qesap.py log redirection is fine');
@@ -278,12 +316,12 @@ subtest '[qesap_execute] simple call integrate qesap_venv_cmd_exec' => sub {
 };
 
 subtest '[qesap_execute] simplest call' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @logs = ();
     my $expected_res = 0;
     my $cmd = 'GILL';
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -304,34 +342,11 @@ subtest '[qesap_execute] simplest call' => sub {
     ok(($res[0] == $expected_res), 'The function return what is internally returned by the command call');
 };
 
-subtest '[qesap_execute] positive timeout' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-    my @logs = ();
-    my $cmd = 'GILL';
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
-    $qesap->redefine(qesap_get_file_paths => sub {
-            my %paths;
-            $paths{deployment_dir} = '/BRUCE';
-            $paths{qesap_conf_trgt} = '/BRUCE/MARIANATRENCH';
-            return (%paths);
-    });
-    $qesap->redefine(script_output => sub { push @calls, $_[0]; return ""; });
-
-    my @res = qesap_execute(cmd => $cmd, logname => 'WALLABY_STREET', timeout => 123456);
-
-    note("qesap_execute res[0]: $res[0]  res[1]: $res[1]");
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok((any { /.*timeout 123456.*qesap\.py/ } @calls), 'timeout wrap the qesap.py');
-};
-
 subtest '[qesap_execute] invalid timeout' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my $cmd = 'GILL';
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(qesap_get_file_paths => sub {
@@ -351,14 +366,14 @@ subtest '[qesap_execute] invalid timeout' => sub {
 };
 
 subtest '[qesap_execute] cmd_options' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @logs = ();
     my $expected_res = 0;
     my $cmd = 'GILL';
     my $cmd_options = '--tankgang';
     my $expected_log_name = 'qesap_exec_' . $cmd . '__tankgang.log.txt';
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -381,11 +396,11 @@ subtest '[qesap_execute] cmd_options' => sub {
 };
 
 subtest '[qesap_execute] failure' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @logs = ();
     my $expected_res = 1;
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -408,11 +423,11 @@ subtest '[qesap_execute] failure' => sub {
 };
 
 subtest '[qesap_execute] check_logs' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @logs = ();
     my $expected_res = 1;
-    $qesap->redefine(record_info => sub { note(join(' # ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(upload_logs => sub { push @logs, $_[0]; note("UPLOAD_LOGS:$_[0]") });
     $qesap->redefine(qesap_venv_cmd_exec => sub {
             my (%args) = @_;
@@ -443,30 +458,54 @@ END
     ok((any { /terraform.init.log.txt/ } @logs), 'terraform.init.log.txt in the list of uploaded logs');
 };
 
-subtest '[qesap_execute_conditional_retry] retry after fail with expected error message' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+subtest '[qesap_terraform_conditional_retry] pass at first' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
 
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
+    my @return_list = ();
+    $qesap->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            my @results = (0, 'some_log_name');
+            return @results; });
+
+    my @res = qesap_terraform_conditional_retry(
+        error_list => ['AERIS'],
+        logname => 'WALLABY_STREET',
+        retries => 5);
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok $res[0] == 0, "Check that the rc of the result $res[0] is 0";
+    ok scalar @calls == 1, "Exactly '" . scalar @calls . "' as expected 1 retry";
+};
+
+subtest '[qesap_terraform_conditional_retry] retry after fail with expected error message' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+
+    $qesap->redefine(record_info => sub {
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_cluster_logs => sub { return 1; });
     my @return_list = ();
-    # Reverse order than used in the execution
+    # Reverse order than used in the execution,
+    # so it simulate 2 consecutive fails and a PASS at 3rd attempt.
     push @return_list, 0;
     push @return_list, 1;
     push @return_list, 1;
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
-            push @calls, $args{cmd};
+            my $cmd = $args{cmd};
+            $cmd .= " $args{cmd_options}" if $args{cmd_options};
+            push @calls, $cmd;
             my @results = (pop @return_list, 0);
             return @results; });
-    # Simulate that qesap_execute has always 'AERIS'
-    # in the log
+    # Simulate qesap_execute always having 'AERIS' in the log
     $qesap->redefine(qesap_file_find_strings => sub { return 1; });
-    $qesap->redefine(get_required_var => sub { return ''; });
+    #    $qesap->redefine(get_required_var => sub { return ''; });
 
-    my @res = qesap_execute_conditional_retry(
-        cmd => 'TIFA',
+    my @res = qesap_terraform_conditional_retry(
         error_list => ['AERIS'],
         logname => 'WALLABY_STREET',
         retries => 5);
@@ -476,11 +515,12 @@ subtest '[qesap_execute_conditional_retry] retry after fail with expected error 
     ok scalar @calls == 3, "Exactly '" . scalar @calls . "' as expected 3 retry";
 };
 
-subtest '[qesap_execute_conditional_retry] retry with destroy terraform' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+subtest '[qesap_terraform_conditional_retry] retry with destroy terraform' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @return_list = (0, 0, 1, 0, 1);
-    # Simulate sequence of return codes for qesap_execute (and because the pop function is used, they are retrieved in reverse order: from right to left).
+    # Simulate sequence of return codes for qesap_execute,
+    # and because the pop function is used, they are retrieved in reverse order: from right to left.
     # This sequence is simulating:
     # 1. terraform apply fails with 1
     # 2. terraform destroy, as part of the RETRY procedure, is passing
@@ -489,38 +529,36 @@ subtest '[qesap_execute_conditional_retry] retry with destroy terraform' => sub 
     # 5. re-retry terraform apply PASS
 
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
-            my $cmd = $args{cmd_options} ? $args{cmd} . " " . $args{cmd_options} : $args{cmd};
+            my $cmd = $args{cmd};
+            $cmd .= " $args{cmd_options}" if $args{cmd_options};
             push @calls, $cmd;
             my @results = (pop @return_list, 0);
             return @results; });
 
     $qesap->redefine(qesap_file_find_strings => sub { return 1; });
-    $qesap->redefine(get_required_var => sub { return ''; });
 
-    my @res = qesap_execute_conditional_retry(
-        cmd => 'test',
+    my @res = qesap_terraform_conditional_retry(
         error_list => ['AERIS'],
         logname => 'FOO',
         retries => 2,
-        destroy_terraform => 1);
+        destroy => 1);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     my @terraform_destroy = grep { $_ eq 'terraform -d' } @calls;
     ok scalar @terraform_destroy == 2, "Terraform destroy as expected 2 retry";
+    ok $res[0] == 0, "Check that the rc of the result $res[0] is 0";
 };
 
-subtest '[qesap_execute_conditional_retry] retry with destroy terraform and fail during destruction' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+subtest '[qesap_terraform_conditional_retry] retry with destroy terraform and fail during destruction' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
-    my @return_list = (1, 1);
+    my @return_list = (42, 1);
 
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
             my $cmd = $args{cmd_options} ? $args{cmd} . " " . $args{cmd_options} : $args{cmd};
@@ -529,47 +567,61 @@ subtest '[qesap_execute_conditional_retry] retry with destroy terraform and fail
             return @results; });
 
     $qesap->redefine(qesap_file_find_strings => sub { return 1; });
-    $qesap->redefine(get_required_var => sub { return ''; });
 
-    dies_ok { qesap_execute_conditional_retry(
-            cmd => 'test',
-            error_list => ['AERIS'],
-            logname => 'FOO',
-            retries => 2,
-            destroy_terraform => 1) } 'Expected die if terraform destroy fails';
+    my @res = qesap_terraform_conditional_retry(
+        error_list => ['AERIS'],
+        logname => 'FOO',
+        retries => 2,
+        destroy => 1);
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     my @terraform_destroy = grep { $_ eq 'terraform -d' } @calls;
     ok scalar @terraform_destroy == 1, "Terraform destroy as expected 1 retry";
+    ok $res[0] == 42, "Check that the rc of the result $res[0] is 42";
 };
 
-subtest '[qesap_execute_conditional_retry] dies if expected error message is not found' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+subtest '[qesap_terraform_conditional_retry] dies if expected error message is not found' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(record_info => sub {
-            note(join(' # ', 'RECORD_INFO -->', @_)); });
-    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+            note(join(' ', 'RECORD_INFO -->', @_)); });
     my @calls;
     $qesap->redefine(qesap_execute => sub {
             my (%args) = @_;
             push @calls, $args{cmd};
             return (1, 'log');
     });
-    # Simulate that 'AERIS' is never
-    # in the log
+    # Simulate that 'AERIS' is not in the log, ever
     $qesap->redefine(qesap_file_find_strings => sub { return 0; });
 
-    dies_ok { qesap_execute_conditional_retry(
-            cmd => 'TIFA',
-            logname => 'WALLABY_STREET',
-            error_list => ['AERIS'],
-            retries => 5) } 'Expected die if string is not found';
+    my @res = qesap_terraform_conditional_retry(
+        logname => 'WALLABY_STREET',
+        error_list => ['AERIS'],
+        retries => 5);
     # No retry if 'AERIS' is not in the log
     ok scalar @calls == 1, "Exactly '" . scalar @calls . "' as expected 1 retry";
+    ok $res[0] == 1, "Check that the rc of the result $res[0] is 1";
 };
 
-subtest '[qesap_file_find_strings] success' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+subtest '[qesap_terraform_conditional_retry] test qesap_file_find_strings' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
+
+    $qesap->redefine(record_info => sub {
+            note(join(' ', 'RECORD_INFO -->', @_)); });
+    $qesap->redefine(qesap_cluster_logs => sub { return 1; });
+    my @return_list = ();
+    # Reverse order than used in the execution,
+    # so it simulate 2 consecutive fails and a PASS at 3rd attempt.
+    push @return_list, 0;
+    push @return_list, 1;
+    push @return_list, 1;
+    $qesap->redefine(qesap_execute => sub {
+            my (%args) = @_;
+            my $cmd = $args{cmd};
+            $cmd .= " $args{cmd_options}" if $args{cmd_options};
+            push @calls, $cmd;
+            my @results = (pop @return_list, 'SHARK.log');
+            return @results; });
     # internally the function is using grep to search for a set of specific
     # error strings. Here is an example of grep result.
     #      'ERROR    OUTPUT:              "msg": "Timed out waiting for last boot time check (timeout=600)",';
@@ -578,37 +630,17 @@ subtest '[qesap_file_find_strings] success' => sub {
     # the result of the grep. grep return 0 in case of string match
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
-    my $res = qesap_file_find_strings(
-        file => 'JACQUES',
-        search_strings => [
-            'Health is like a crown',
-            'worn by the healthy',
-            'that only the sick can see']);
+    my @res = qesap_terraform_conditional_retry(
+        error_list => ['AERIS'],
+        logname => 'WALLABY_STREET',
+        retries => 5);
 
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok $res == 1, 'Return is 1 when string is detected';
-    ok((any { /grep.*JACQUES/ } @calls), 'Function calling grep against the log file');
-};
-
-subtest '[qesap_file_find_strings] fail' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @calls;
-
-    # Create a mock to replace the script_output
-    # The mock will return, within the function under test,
-    # the result of the grep.
-    # Here simulate that the grep does not return any match
-    # grep return 1 in case of string NOT matching
-    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 1; });
-
-    my $res = qesap_file_find_strings(file => 'JACQUES', search_strings => ['Timed out waiting for last boot time check']);
-
-    note("\n  -->  " . join("\n  -->  ", @calls));
-    ok $res == 0, 'Return is 0 when string is not detected';
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok $res[0] == 0, "Check that the rc of the result $res[0] is 0";
 };
 
 subtest '[qesap_get_nodes_number]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my $str = <<END;
 all:
@@ -641,7 +673,7 @@ END
 };
 
 subtest '[qesap_remote_hana_public_ips]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     set_var('PUBLIC_CLOUD_PROVIDER', 'EC2');
     $qesap->redefine(qesap_get_terraform_dir => sub { return '/path/to/qesap/terraform/dir'; });
@@ -657,7 +689,7 @@ subtest '[qesap_remote_hana_public_ips]' => sub {
 };
 
 subtest '[qesap_wait_for_ssh]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
@@ -669,7 +701,7 @@ subtest '[qesap_wait_for_ssh]' => sub {
 };
 
 subtest '[qesap_wait_for_ssh] custom port' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
 
@@ -680,7 +712,7 @@ subtest '[qesap_wait_for_ssh] custom port' => sub {
 };
 
 subtest '[qesap_wait_for_ssh] some failures' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @return_list = ();
     push @return_list, 0;
@@ -696,7 +728,7 @@ subtest '[qesap_wait_for_ssh] some failures' => sub {
 };
 
 subtest '[qesap_wait_for_ssh] timeout' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @return_list = ();
     # each loop sleep 5, and we call the function with a timeout of 1sec.
@@ -711,7 +743,7 @@ subtest '[qesap_wait_for_ssh] timeout' => sub {
 };
 
 subtest '[qesap_cluster_logs]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @ansible_calls;
     my @crm_report_calls;
     my @save_file_calls;
@@ -728,6 +760,7 @@ subtest '[qesap_cluster_logs]' => sub {
     $qesap->redefine(upload_logs => sub { push @save_file_calls, $_[0]; return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt'}); });
     $qesap->redefine(qesap_upload_crm_report => sub { my (%args) = @_; push @crm_report_calls, $args{host}; return 0; });
+    $qesap->redefine(qesap_save_y2logs => sub { return 0; });
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -746,7 +779,7 @@ subtest '[qesap_cluster_logs]' => sub {
 };
 
 subtest '[qesap_cluster_logs] multi log command' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @ansible_calls;
     my @logfile_calls;
     $qesap->redefine(qesap_ansible_script_output_file => sub {
@@ -761,6 +794,7 @@ subtest '[qesap_cluster_logs] multi log command' => sub {
     $qesap->redefine(upload_logs => sub { return; });
     $qesap->redefine(qesap_cluster_log_cmds => sub { return ({Cmd => 'crm status', Output => 'crm_status.txt', Logs => ['ignore_me.txt', 'ignore_me_too.txt']}); });
     $qesap->redefine(qesap_upload_crm_report => sub { return 0; });
+    $qesap->redefine(qesap_save_y2logs => sub { return 0; });
     my $cloud_provider = 'NEMO';
     set_var('PUBLIC_CLOUD_PROVIDER', $cloud_provider);
 
@@ -780,7 +814,7 @@ subtest '[qesap_upload_crm_report] die for missing mandatory arguments' => sub {
 };
 
 subtest '[qesap_upload_crm_report]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
 
     $qesap->redefine(is_sle => sub { return 0; });
@@ -799,7 +833,7 @@ subtest '[qesap_upload_crm_report]' => sub {
 };
 
 subtest '[qesap_upload_crm_report] ansible host query' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my @fetch_filename;
 
@@ -823,7 +857,7 @@ subtest '[qesap_upload_crm_report] ansible host query' => sub {
 };
 
 subtest '[qesap_supportconfig_logs]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my $upload_log_called = 0;
 
@@ -845,8 +879,28 @@ subtest '[qesap_supportconfig_logs]' => sub {
     ok($upload_log_called eq 1), 'upload_log called';
 };
 
+subtest '[qesap_save_y2logs]' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @calls;
+    my $upload_log_called = 0;
+
+    $qesap->redefine(qesap_ansible_cmd => sub {
+            my (%args) = @_;
+            push @calls, $args{cmd};
+            return 0; });
+    $qesap->redefine(qesap_ansible_fetch_file => sub { return 0; });
+    $qesap->redefine(upload_logs => sub { $upload_log_called = 1; return 0; });
+
+    qesap_save_y2logs(provider => 'SAND', host => 'boo');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    ok((any { /.*save_y2logs \/tmp\/boo-y2logs.*/ } @calls), 'save_y2logs is called');
+    ok((any { /.*chmod/ } @calls), 'chmod is called');
+    ok($upload_log_called eq 1, 'upload_log called');
+};
+
 subtest '[qesap_calculate_deployment_name]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(get_current_job_id => sub { return 42; });
 
     my $result = qesap_calculate_deployment_name();
@@ -855,7 +909,7 @@ subtest '[qesap_calculate_deployment_name]' => sub {
 };
 
 subtest '[qesap_calculate_deployment_name] with postfix' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(get_current_job_id => sub { return 42; });
 
     my $result = qesap_calculate_deployment_name('AUSTRALIA');
@@ -869,7 +923,7 @@ subtest '[qesap_prepare_env] die for missing argument' => sub {
 
 subtest '[qesap_prepare_env] integration test' => sub {
     # As less mock as possible
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
 
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
@@ -883,8 +937,10 @@ subtest '[qesap_prepare_env] integration test' => sub {
     $qesap->redefine(qesap_get_variables => sub { return; });
     $qesap->redefine(qesap_upload_logs => sub { return; });
     my @calls;
+    my @retries;
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { my ($cmd, %args) = @_; push @retries, $args{retry}; return 0; });
     $qesap->redefine(script_output => sub { push @calls, $_[0]; return 'DENTIST'; });
     $qesap->redefine(enter_cmd => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -892,50 +948,8 @@ subtest '[qesap_prepare_env] integration test' => sub {
     qesap_prepare_env(provider => 'DONALDUCK');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    foreach (@calls) {
-        # check that all command using the redirection also have the pipefail
-        my $cmd = $_;
-        like($cmd, qr/set -o pipefail/, "Command $cmd has pipe and set pipefail") if $cmd =~ /\|/;
-    }
+    ok((any { /3/ } @retries), 'default retry times is 3 for qesap_pip_install and qesap_galaxy_install');
 };
-
-sub create_qesap_prepare_env_mocks_noret {
-    my $called_functions = shift;
-    my $mock_func = shift;
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-
-    # First mock functions returning nothing
-    foreach (@{$mock_func}) {
-        my $fn = $_;
-        $called_functions->{$fn} = 0;
-        $qesap->redefine($fn => sub { $called_functions->{$fn} = 1; return; });
-    }
-    return $qesap;
-}
-
-sub create_qesap_prepare_env_mocks_with_calls {
-    my $called_functions = shift;
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-
-    # then mock functions with some more complex return value
-    $called_functions->{qesap_get_file_paths} = 0;
-    $qesap->redefine(qesap_get_file_paths => sub {
-            $called_functions->{qesap_get_file_paths} = 1;
-            my %paths;
-            $paths{qesap_conf_src} = '/REEF';
-            $paths{qesap_conf_trgt} = '/SYDNEY.YAML';
-            $paths{terraform_dir} = '/SPLASH';
-            $paths{deployment_dir} = '/WAVE';
-            $paths{roles_dir} = '/BRUCE';
-            return (%paths);
-    });
-    $called_functions->{qesap_get_terraform_dir} = 0;
-    $qesap->redefine(qesap_get_terraform_dir => sub { $called_functions->{qesap_get_terraform_dir} = 1; return '/SHELL'; });
-    $called_functions->{qesap_execute} = 0;
-    $qesap->redefine(qesap_execute => sub { $called_functions->{qesap_execute} = 1; return (0, "ALL GOOD"); });
-
-    return $qesap;
-}
 
 subtest '[qesap_prepare_env]' => sub {
     my %called_functions;
@@ -947,7 +961,7 @@ subtest '[qesap_prepare_env]' => sub {
       qesap_pip_install
       qesap_galaxy_install);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
-    $qesap = create_qesap_prepare_env_mocks_with_calls(\%called_functions);
+    create_qesap_prepare_env_mocks_with_calls($qesap, \%called_functions);
     my @calls;
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
@@ -977,7 +991,7 @@ subtest '[qesap_prepare_env] openqa_variables' => sub {
       qesap_pip_install
       qesap_galaxy_install);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
-    $qesap = create_qesap_prepare_env_mocks_with_calls(\%called_functions);
+    create_qesap_prepare_env_mocks_with_calls($qesap, \%called_functions);
     my @calls;
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
@@ -1001,7 +1015,7 @@ subtest '[qesap_prepare_env] only_configure' => sub {
       qesap_pip_install
       qesap_galaxy_install);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
-    $qesap = create_qesap_prepare_env_mocks_with_calls(\%called_functions);
+    create_qesap_prepare_env_mocks_with_calls($qesap, \%called_functions);
     my @calls;
     $qesap->redefine(script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
@@ -1020,7 +1034,7 @@ subtest '[qesap_prepare_env] qesap_yaml_replace' => sub {
     my %called_functions;
     my @mock_func = qw(qesap_get_variables);
     my $qesap = create_qesap_prepare_env_mocks_noret(\%called_functions, \@mock_func);
-    $qesap = create_qesap_prepare_env_mocks_with_calls(\%called_functions);
+    create_qesap_prepare_env_mocks_with_calls($qesap, \%called_functions);
     my @calls;
     $qesap->redefine(script_run => sub { push @calls, $_[0]; });
     $called_functions{file_content_replace} = 0;
@@ -1046,6 +1060,7 @@ subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths defau
     my @calls;
     $qesap->redefine(data_url => sub { return '/TORNADO'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_upload_logs => sub { return; });
@@ -1070,6 +1085,7 @@ subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths user 
     my @calls;
     $qesap->redefine(data_url => sub { return '/TORNADO'; });
     $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+    $qesap->redefine(script_retry => sub { push @calls, $_[0]; return 0; });
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $qesap->redefine(qesap_upload_logs => sub { return; });
@@ -1084,7 +1100,7 @@ subtest '[qesap_prepare_env] qesap_create_folder_tree/qesap_get_file_paths user 
 };
 
 sub create_qesap_prepare_env_mocks() {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     $qesap->redefine(qesap_get_file_paths => sub {
             my %paths;
             $paths{qesap_conf_src} = '/REEF';
@@ -1117,136 +1133,22 @@ subtest '[qesap_prepare_env] AWS' => sub {
     my $qesap = create_qesap_prepare_env_mocks();
 
     my $qesap_create_aws_config_called = 0;
-    $qesap->redefine(qesap_create_aws_config => sub { $qesap_create_aws_config_called = 1; });
+    $qesap->redefine(qesap_aws_create_config => sub { $qesap_create_aws_config_called = 1; });
     my $qesap_create_aws_credentials_called = 0;
-    $qesap->redefine(qesap_create_aws_credentials => sub { $qesap_create_aws_credentials_called = 1; });
+    $qesap->redefine(qesap_aws_create_credentials => sub { $qesap_create_aws_credentials_called = 1; });
 
     my @calls;
     $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
 
-    qesap_prepare_env(provider => 'EC2');
+    qesap_prepare_env(provider => 'EC2', region => 'SOMEWHERE');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
     ok($qesap_create_aws_config_called, '$qesap_create_aws_config called');
     ok($qesap_create_aws_credentials_called, '$qesap_create_aws_credentials called');
 };
 
-subtest '[qesap_prepare_env] qesap_create_aws_config' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @calls;
-    my @contents;
-
-    $qesap->redefine(script_output => sub { return 'eu-central-1'; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, @_; });
-    $qesap->redefine(autoinst_url => sub { return 'http://10.0.2.2/tests/'; });
-    set_var('PUBLIC_CLOUD_REGION', 'eu-south-2');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    ok((any { qr|mkdir -p ~/\.aws| } @calls), '.aws directory initialized');
-    ok((any { qr|curl.+/files/config.+~/\.aws/config| } @calls), 'AWS Config file downloaded');
-    ok((any { qr/eu-central-1/ } @calls), 'AWS Region matches');
-    is $contents[0], 'config', "AWS config file: config is the expected value and got $contents[0]";
-    like $contents[1], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
-};
-
-subtest '[qesap_prepare_env] qesap_create_aws_config fix quote' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @calls;
-    my @contents;
-
-    $qesap->redefine(script_output => sub { return '"eu-central-1"'; });
-    $qesap->redefine(assert_script_run => sub { push @calls, $_[0]; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, @_; });
-    $qesap->redefine(autoinst_url => sub { return 'http://10.0.2.2/tests/'; });
-    set_var('PUBLIC_CLOUD_REGION', 'eu-south-2');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  C-->  " . join("\n  C-->  ", @calls));
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    ok((any { qr/eu-central-1/ } @calls), 'AWS Region matches');
-};
-
-subtest '[qesap_prepare_env] qesap_create_aws_config not solved template' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @contents;
-
-    $qesap->redefine(script_output => sub { return '%REGION%'; });
-    $qesap->redefine(assert_script_run => sub { return; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, $_[1]; });
-    $qesap->redefine(autoinst_url => sub { return ''; });
-    set_var('PUBLIC_CLOUD_REGION', 'eu-central-1');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
-};
-
-subtest '[qesap_prepare_env] qesap_create_aws_config not solved template with quote' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @contents;
-
-    $qesap->redefine(script_output => sub { return '"%REGION%"'; });
-    $qesap->redefine(assert_script_run => sub { return; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, $_[1]; });
-    $qesap->redefine(autoinst_url => sub { return ''; });
-    set_var('PUBLIC_CLOUD_REGION', 'eu-central-1');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
-};
-
-subtest '[qesap_prepare_env] qesap_create_aws_config not solved template and variable with quote' => sub {
-    my $qesap = create_qesap_prepare_env_mocks();
-    my @contents;
-    $qesap->redefine(script_output => sub { return '%REGION%'; });
-    $qesap->redefine(assert_script_run => sub { return; });
-    $qesap->redefine(save_tmp_file => sub { push @contents, $_[1]; });
-    $qesap->redefine(autoinst_url => sub { return ''; });
-    set_var('PUBLIC_CLOUD_REGION', '"eu-central-1"');
-
-    qesap_prepare_env(provider => 'EC2');
-
-    set_var('PUBLIC_CLOUD_REGION', undef);
-    note("\n  CONTENT-->  " . join("\n  CONTENT-->  ", @contents));
-    like $contents[0], qr/region = eu-central-1/, "Expected region eu-central-1 is in the config file";
-};
-
-subtest '[qesap_is_job_finished]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
-    my @results = ();
-    $qesap->redefine(script_output => sub {
-            if ($_[0] =~ /100000/) { return "not json"; }
-            if ($_[0] =~ /200000/) { return "{\"job\":{\"state\":\"donaldduck\"}}"; }
-            if ($_[0] =~ /300000/) { return "{\"job\":{\"state\":\"running\"}}"; }
-    });
-
-    $qesap->redefine(get_required_var => sub { return ''; });
-    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
-
-    push @results, qesap_is_job_finished(100000);
-    push @results, qesap_is_job_finished(200000);
-    push @results, qesap_is_job_finished(300000);
-
-
-    ok($results[0] == 0, "Consider 'running' state if the openqa job status response isn't JSON");
-    ok($results[1] == 1, "Considered 'finished' state if the openqa job status response exists and isn't 'running'");
-    ok($results[2] == 0, "Consider 'running' if the openqa job status response is 'running'");
-};
-
 subtest '[qesap_get_nodes_names]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     my $str = <<END;
 all:
@@ -1279,7 +1181,7 @@ END
 };
 
 subtest '[qesap_add_server_to_hosts]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my @calls;
     $qesap->redefine(qesap_ansible_cmd => sub { my (%args) = @_; push @calls, $args{cmd}; });
     set_var('PUBLIC_CLOUD_PROVIDER', 'NEMO');
@@ -1293,12 +1195,12 @@ subtest '[qesap_add_server_to_hosts]' => sub {
     ok((any { qr/sed.*\/etc\/hosts/ } @calls), 'AWS Region matches');
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] no or unknown Ansible failures, no retry, error' => sub {
+subtest '[qesap_terraform_ansible_deploy_retry] no or unknown Ansible failures, no retry, error' => sub {
     # Simulate to call the qesap_terraform_ansible_deploy_retry but
     # error_detection does not find and known error in the log. It is something could
     # happen if this function is called after a failure of some kind error_detection
     # does not know, or if calling this function after a successful deployment.
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
 
     # 0: unable to detect errors
@@ -1306,15 +1208,15 @@ subtest '[qesap_terrafom_ansible_deploy_retry] no or unknown Ansible failures, n
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
-    ok $ret eq 1, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 1";
+    ok $ret eq 1, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 1";
     ok $qesap_execute_calls eq 0, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 0)";
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] no or unknown Ansible failures, no retry, error. More layers' => sub {
+subtest '[qesap_terraform_ansible_deploy_retry] no or unknown Ansible failures, no retry, error. More layers' => sub {
     # Like previous test but only mock testapi
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
     my @calls;
 
@@ -1329,15 +1231,15 @@ subtest '[qesap_terrafom_ansible_deploy_retry] no or unknown Ansible failures, n
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
     note("\n  C-->  " . join("\n  C-->  ", @calls));
-    ok $ret eq 1, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 1";
+    ok $ret eq 1, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 1";
     ok $qesap_execute_calls eq 0, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 0)";
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retry' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+subtest '[qesap_terraform_ansible_deploy_retry] generic Ansible failures, no retry' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
 
     # 1 means a generic Ansible error
@@ -1345,14 +1247,14 @@ subtest '[qesap_terrafom_ansible_deploy_retry] generic Ansible failures, no retr
     $qesap->redefine(qesap_execute => sub { $qesap_execute_calls++; return; });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
-    ok $ret == 1, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 1";
+    ok $ret == 1, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 1";
     ok $qesap_execute_calls eq 0, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 0)";
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] no sudo password Ansible failures' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+subtest '[qesap_terraform_ansible_deploy_retry] no sudo password Ansible failures' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
 
     # 3 means "no sudo password" error
@@ -1365,14 +1267,14 @@ subtest '[qesap_terrafom_ansible_deploy_retry] no sudo password Ansible failures
     });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
-    ok $ret == 0, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 0";
+    ok $ret == 0, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 0";
     ok $qesap_execute_calls eq 1, "qesap_execute() called once (qesap_execute_calls: $qesap_execute_calls expected 1)";
 };
 
-subtest '[qesap_terrafom_ansible_deploy_retry] reboot timeout Ansible failures' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+subtest '[qesap_terraform_ansible_deploy_retry] reboot timeout Ansible failures' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
     my $qesap_execute_calls = 0;
 
     # 2 means "reboot timeout" error
@@ -1385,52 +1287,118 @@ subtest '[qesap_terrafom_ansible_deploy_retry] reboot timeout Ansible failures' 
     });
     $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
-    my $ret = qesap_terrafom_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
+    my $ret = qesap_terraform_ansible_deploy_retry(error_log => 'CORAL', provider => 'NEMO');
 
-    ok $ret == 0, "Return of qesap_terrafom_ansible_deploy_retry '$ret' is expected 0";
+    ok $ret == 0, "Return of qesap_terraform_ansible_deploy_retry '$ret' is expected 0";
     # 3 = "terraform -d" + "terraform" + "ansible"
     ok $qesap_execute_calls eq 3, "qesap_execute() never called (qesap_execute_calls: $qesap_execute_calls expected 3)";
 };
 
-subtest '[qesap_test_postfail]' => sub {
-    my $qesap = Test::MockModule->new('qesapdeployment', no_auto => 1);
+subtest '[qesap_create_cidr_from_ip]' => sub {
+    my $ret;
+    # ipv4 => /32
+    $ret = qesap_create_cidr_from_ip(ip => '195.0.0.10');
+    note("ipv4 result: $ret");
+    ok($ret eq '195.0.0.10/32', 'IPv4 mask');
 
-    $qesap->redefine(qesap_cluster_logs => sub { return; });
-    $qesap->redefine(qesap_upload_logs => sub { return; });
-    my @calls;
-    $qesap->redefine(qesap_execute => sub {
-            my (%args) = @_;
-            push @calls, $args{cmd}; });
+    # ipv6 => /128
+    $ret = qesap_create_cidr_from_ip(ip => '2001:db8::1');
+    my $exp = NetAddr::IP->new('2001:db8::1')->cidr;
+    note("ipv6 result: $ret");
+    like($ret, qr/\Q$exp\E/i, 'IPv6 mask');
 
-    qesap_test_postfail(provider => 'NEMO');
+    # replace existing mask
+    $ret = qesap_create_cidr_from_ip(ip => '195.0.0.10/24');
+    note("Strip old mask result: $ret");
+    ok($ret eq '195.0.0.10/32', 'Existing mask is removed');
 
-    note("\n  I-->  " . join("\n  I-->  ", @calls));
+    # invalid ip with proceed_on_failure => undef
+    $ret = qesap_create_cidr_from_ip(ip => 'not_an_ip', proceed_on_failure => 1);
+    ok(!defined $ret, 'Invalid IP returns undef when proceed_on_failure is true');
 
-    my $cmd_chk = pop @calls;
-    ok $cmd_chk eq 'terraform', "Postfail calls $cmd_chk : is expected to be terraform ati very last";
-    $cmd_chk = pop @calls;
-    ok $cmd_chk eq 'ansible', "Postfail calls $cmd_chk : is expected to be ansible before terraform";
+    # invalid IP without proceed_on_failure => dies
+    dies_ok { qesap_create_cidr_from_ip(ip => 'still_not_an_ip') } 'Dies on invalid IP without proceed_on_failure';
 };
 
-subtest '[qesap_calculate_address_range]' => sub {
-    my %result_1 = qesap_calculate_address_range(slot => 1);
-    my %result_2 = qesap_calculate_address_range(slot => 2);
-    my %result_64 = qesap_calculate_address_range(slot => 64);
-    my %result_65 = qesap_calculate_address_range(slot => 65);
-    my %result_8192 = qesap_calculate_address_range(slot => 8192);
+subtest '[qesap_ssh_intrusion_detection] die for missing argument' => sub {
+    dies_ok { qesap_ssh_intrusion_detection(); } "Expected die if called without provider argument";
+};
 
-    is($result_1{main_address_range}, "10.0.0.0/21", 'result_1 main_address_range is correct');
-    is($result_1{subnet_address_range}, "10.0.0.0/24", 'result_1 subnet_address_range is correct');
-    is($result_2{main_address_range}, "10.0.8.0/21", 'result_2 main_address_range is correct');
-    is($result_2{subnet_address_range}, "10.0.8.0/24", 'result_2 subnet_address_range is correct');
-    is($result_64{main_address_range}, "10.1.248.0/21", 'result_64 main_address_range is correct');
-    is($result_64{subnet_address_range}, "10.1.248.0/24", 'result_64 subnet_address_range is correct');
-    is($result_65{main_address_range}, "10.2.0.0/21", 'result_65 main_address_range is correct');
-    is($result_65{subnet_address_range}, "10.2.0.0/24", 'result_65 subnet_address_range is correct');
-    is($result_8192{main_address_range}, "10.255.248.0/21", 'result_8192 main_address_range is correct');
-    is($result_8192{subnet_address_range}, "10.255.248.0/24", 'result_8192 subnet_address_range is correct');
-    dies_ok { qesap_calculate_address_range(slot => 0); } "Expected die for slot < 1";
-    dies_ok { qesap_calculate_address_range(slot => 8193); } "Expected die for slot > 8192";
+subtest '[qesap_ssh_intrusion_detection] no inventory' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    # script_run returns 1 to simulate missing inventory file
+    $qesap->redefine(script_run => sub { return 1; });
+    my $ansible_called = 0;
+    $qesap->redefine(qesap_ansible_script_output_file => sub { $ansible_called = 1; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    qesap_ssh_intrusion_detection(provider => 'NEMO');
+
+    ok($ansible_called == 0, 'qesap_ansible_script_output_file is not called when inventory is missing');
+};
+
+subtest '[qesap_ssh_intrusion_detection] with intrusion attempts' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return <<'LOG';
+2025-09-02T11:59:20.291296+0000 vmhana02 sshd[143121]: Connection closed by authenticating user root 1.2.3.4 port 42 [preauth]
+2025-09-02T12:04:21.002220+0000 vmhana02 sshd[160619]: Connection closed by invalid user debian 1.2.3.4 port 42 [preauth]
+2025-09-02T12:04:23.503717+0000 vmhana02 sshd[160801]: Connection closed by invalid user debian 5.6.7.8 port 42 [preauth]
+LOG
+    });
+    $qesap->redefine(upload_logs => sub { note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(qesap_ansible_script_output_file => sub {
+            my (%args) = @_;
+            push @calls, "ANSIBLE:" . $args{cmd};
+            return 'BOUBLE_FILE.txt'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    qesap_ssh_intrusion_detection(provider => 'NEMO');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    # Verify both hosts were processed (2 ansible calls, one per host)
+    my @ansible_calls = grep { /^ANSIBLE:/ } @calls;
+    ok(scalar @ansible_calls == 2, 'Ansible called for both hosts');
+    # Verify log files were read for both hosts
+    my @cat_calls = grep { /^cat / } @calls;
+    ok(scalar @cat_calls == 2, 'Log files read for both hosts');
+};
+
+subtest '[qesap_ssh_intrusion_detection] no intrusion attempts' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    $qesap->redefine(qesap_get_inventory => sub { return '/CRUSH'; });
+    my @calls;
+    $qesap->redefine(script_run => sub { push @calls, $_[0]; return 0; });
+
+    # Return log lines that do NOT match the intrusion pattern
+    $qesap->redefine(script_output => sub {
+            push @calls, $_[0];
+            return <<'LOG';
+2025-09-02T12:00:00.000000+0000 vmhana02 sshd[100]: Accepted publickey for cloudadmin from 10.0.0.1 port 22
+LOG
+    });
+    $qesap->redefine(upload_logs => sub { note("UPLOAD_LOGS:$_[0]") });
+    $qesap->redefine(qesap_ansible_script_output_file => sub {
+            my (%args) = @_;
+            push @calls, "ANSIBLE:" . $args{cmd};
+            return 'BOUBLE_FILE.txt'; });
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    qesap_ssh_intrusion_detection(provider => 'NEMO');
+
+    note("\n  C-->  " . join("\n  C-->  ", @calls));
+    # Verify both hosts were processed (2 ansible calls, one per host)
+    my @ansible_calls = grep { /^ANSIBLE:/ } @calls;
+    ok(scalar @ansible_calls == 2, 'Ansible called for both hosts');
+    # Verify log files were read for both hosts
+    my @cat_calls = grep { /^cat / } @calls;
+    ok(scalar @cat_calls == 2, 'Log files read for both hosts');
 };
 
 done_testing;

@@ -1,0 +1,30 @@
+---
+name: agama_install_sles4sap
+description: >
+  Agama installation tests for sles4sap
+
+  Can be used to generate a qcow2 image, used to test SAP components like
+  HANA, NetWeaver, WMP, etc.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - console/zypper_lr
+  - console/system_prepare
+  - '{{test_sles4sap}}'
+  - '{{generate_image}}'
+conditional_schedule:
+  test_sles4sap:
+    TEST_SLES4SAP:
+      1:
+        - sles4sap/patterns
+        - sles4sap/saptune
+  generate_image:
+    GENERATE_IMAGE:
+      1:
+        - console/hostname
+        - console/force_scheduled_tasks
+        - shutdown/grub_set_bootargs
+        - shutdown/cleanup_before_shutdown
+        - shutdown/shutdown

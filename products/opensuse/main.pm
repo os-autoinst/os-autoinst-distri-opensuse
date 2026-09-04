@@ -60,6 +60,9 @@ $testapi::distri->set_expected_serial_failures(create_list_of_serial_failures())
 $testapi::distri->set_expected_autoinst_failures(create_list_of_autoinst_failures());
 
 set_var('DESKTOP', check_var('VIDEOMODE', 'text') ? 'textmode' : 'kde') unless get_var('DESKTOP');
+# See https://github.com/agama-project/agama/issues/2143
+# Autologin is not possible in agama as of now
+set_var("NOAUTOLOGIN", 1) if (is_leap("16.0+") && !get_var("ZDUP", 0));
 
 if (check_var('DESKTOP', 'minimalx')) {
     set_var("NOAUTOLOGIN", 1);
@@ -157,7 +160,6 @@ sub load_otherDE_tests {
         loadtest "console/system_prepare";
         loadtest "console/consoletest_setup";
         loadtest "console/hostname";
-        loadtest "update/zypper_clear_repos";
         loadtest "console/install_otherDE_pattern";
         loadtest "console/consoletest_finish";
         loadtest "x11/${de}_reconfigure_openqa";
@@ -328,7 +330,6 @@ elsif (get_var('XFSTESTS')) {
     else {
         loadtest 'xfstests/partition';
         loadtest 'xfstests/run';
-        loadtest 'xfstests/generate_report';
     }
 }
 else {
@@ -363,7 +364,7 @@ else {
         if (is_upgrade && get_var('PATCH_BEFORE_MIGRATION')) {
             boot_hdd_image;
             loadtest 'migration/patch_and_reboot_system';
-            loadtest 'migration/reboot_to_upgrade';
+            loadtest 'migration/reboot_to_upgrade' unless get_var('OPENSUSE_MIGRATION_TOOL');
         }
         load_zdup_tests();
     }

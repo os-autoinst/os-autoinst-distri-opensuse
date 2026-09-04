@@ -5,7 +5,7 @@
 # collect the resulting dependencies in a resource_$1.txt file
 # copy the txt in a common dir.
 # --- 
-# $1 CLI Cloud type: aws, azure, ec2, openstack
+# $1 CLI Cloud type: aws, azure, ec2
 # $2 resources output file
 # $3,... : install modules
 # ---

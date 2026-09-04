@@ -19,8 +19,6 @@ use publiccloud::utils;
 use publiccloud::ssh_interactive;
 use transactional;
 use containers::k8s;
-use strict;
-use warnings;
 use utils;
 use publiccloud::utils;
 use transactional qw(process_reboot trup_install trup_shell);
@@ -29,7 +27,7 @@ use version_utils;
 use Data::Dumper;
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub install_dependency_package {

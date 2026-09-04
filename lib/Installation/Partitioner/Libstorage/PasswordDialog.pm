@@ -6,7 +6,7 @@
 # Summary: The class introduces all accessing methods for Password Dialog that
 # appears while selecting LVM-based partitioning proposal.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::Libstorage::PasswordDialog;
 use strict;

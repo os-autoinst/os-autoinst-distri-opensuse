@@ -7,11 +7,9 @@
 # This kernel parameter enables hibernation, it is not supported for all backends.
 # See https://bugzilla.suse.com/show_bug.cgi?id=1188731
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use scheduler 'get_test_suite_data';
 

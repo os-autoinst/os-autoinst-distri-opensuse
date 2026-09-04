@@ -1,0 +1,8 @@
+# See in tests/ for file '- elemental3/README.md' for some informations
+name: validate
+description: |
+  - Validate container images
+  Maintainer: unified-core@suse.com, ldevulder@suse.com
+schedule:
+  - microos/disk_boot
+  - elemental3/validate_container_image

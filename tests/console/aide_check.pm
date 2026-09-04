@@ -15,23 +15,31 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#64364, poo#102032, tc#1744128
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils "zypper_call";
-use strict;
-use warnings;
+
+sub cleanup_aide {
+    # run() replaces the packaged aide.conf and builds a database over a scratch directory.
+    # Put the configuration back and drop everything the test created.
+    script_run 'test -e /etc/aide.conf.orig && mv -f /etc/aide.conf.orig /etc/aide.conf';
+    script_run 'rm -rf /testdir /var/lib/aide/aide.db /var/lib/aide/aide.db.new';
+}
 
 sub run {
     select_serial_terminal;
 
     zypper_call "in aide wget";
 
+    # Keep the packaged configuration so it can be restored afterwards
+    script_run "cp -a /etc/aide.conf /etc/aide.conf.orig";
+
     assert_script_run "wget --quiet " . data_url("security/aide_conf");
     assert_script_run "mv aide_conf /etc/aide.conf";
 
 
-    assert_script_run "mkdir /testdir";
+    assert_script_run "mkdir -p /testdir";
     assert_script_run "echo hello > /testdir/t1.log";
 
     # Initialize the database and move it to the appropriate place before using the --check command
@@ -56,8 +64,16 @@ sub run {
       300;
 }
 
-sub test_flags {
-    return {always_rollback => 1};
+sub post_run_hook {
+    my ($self) = @_;
+    cleanup_aide;
+    $self->SUPER::post_run_hook;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    cleanup_aide;
+    $self->SUPER::post_fail_hook;
 }
 
 1;

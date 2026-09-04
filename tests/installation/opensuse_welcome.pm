@@ -7,40 +7,33 @@
 #          Disable auto-launch on next boot and close application
 # Maintainer: Dominique Leuenberger <dimstar@suse.de>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
-use x11utils qw(handle_welcome_screen turn_off_plasma_tooltips);
-use version_utils 'is_upgrade';
+use x11utils qw(handle_welcome_screen turn_off_plasma_tooltips update_x11_vt);
+use version_utils qw(is_upgrade is_leap);
 
 sub run {
-    # In case of upgrade scenario, check if opensuse_welcome window has been already deactivated from startup
+    my @tags = qw(generic-desktop opensuse-welcome);
+    push(@tags, qw(gnome-activities opensuse-welcome-gnome40-activities)) if check_var('DESKTOP', 'gnome');
+    assert_screen \@tags;
     if (is_upgrade) {
-        my @tags = qw(generic-desktop opensuse-welcome);
-        push(@tags, qw(gnome-activities opensuse-welcome-gnome40-activities)) if check_var('DESKTOP', 'gnome');
-        assert_screen \@tags;
+        # In case of upgrade scenario, check if opensuse_welcome window has been already deactivated from startup
         if (match_has_tag('opensuse-welcome') || match_has_tag('opensuse-welcome-gnome40-activities')) {
             handle_welcome_screen;
         }
     } else {
-        handle_welcome_screen;
+        if (match_has_tag('generic-desktop') && is_leap('=16.0')) {
+            record_soft_failure("bsc#1252847");
+        } else {
+            handle_welcome_screen;
+        }
     }
 
-    # Workaround for boo#1211628
-    if (check_var('DESKTOP', 'kde') && match_has_tag('boo1211628')) {
-        # plasmashell crashed and openSUSE theme is not fully applied
-        # Workaround that
-        x11_start_program('rm ~/.config/plasma-org.kde.plasma.desktop-appletsrc', valid => 0);
-        x11_start_program('konsole', valid => 0);
-        x11_start_program('plasmashell --replace', valid => 0);
-        x11_start_program('pkill konsole', valid => 0);
-        assert_screen 'generic-desktop';
-        die 'Workaround for boo#1211628 did not work' if (match_has_tag('boo1211628'));
+    if (check_var('DESKTOP', 'kde')) {
+        turn_off_plasma_tooltips;
+        update_x11_vt;
     }
-
-    turn_off_plasma_tooltips;
 }
 
 sub test_flags {

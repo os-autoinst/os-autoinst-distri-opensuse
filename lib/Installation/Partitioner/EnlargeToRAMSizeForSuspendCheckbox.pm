@@ -8,7 +8,7 @@
 # The checkbox is extracted to the separate package as several pages contain
 # it, but different shortcut is used for selecting.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>, Dawei Pang <dawei.pang@suse.com>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>, Dawei Pang <dawei.pang@suse.com>
 
 package Installation::Partitioner::EnlargeToRAMSizeForSuspendCheckbox;
 use strict;

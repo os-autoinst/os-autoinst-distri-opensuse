@@ -8,18 +8,16 @@
 # - Check basic functionality of iotop
 # - Run iotop in background and create some load
 # - Make sure load is detected in the report
-# Maintainer: Michael Grifalconi <mgrifalconi@suse.com>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    zypper_call 'in iotop';
+    install_package('iotop', trup_reboot => 1);
 
     # Test iotop with several options
     assert_script_run("iotop -bakPtn 2");

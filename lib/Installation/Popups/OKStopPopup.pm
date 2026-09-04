@@ -5,7 +5,7 @@
 
 # Summary: The class introduces methods to handle an OK/Stop
 # popup containing the message in YRichText Widget.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Popups::OKStopPopup;
 use strict;

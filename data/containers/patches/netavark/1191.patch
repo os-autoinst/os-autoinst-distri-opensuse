@@ -1,0 +1,43 @@
+From 3902d992a0abf0e204f1da718c55283d4b812d77 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Thu, 6 Mar 2025 14:54:00 +0100
+Subject: [PATCH] test/001-basic: Make commit test optional
+
+Some distros like openSUSE & Debian don't build netavark from git,
+so the commit information won't be available.
+
+Make this test conditional when NETAVARK_UPSTREAM is set.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ .cirrus.yml         | 1 +
+ test/001-basic.bats | 4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/.cirrus.yml b/.cirrus.yml
+index 74389fdb2..79610a8a7 100644
+--- a/.cirrus.yml
++++ b/.cirrus.yml
+@@ -22,6 +22,7 @@ env:
+     AARDVARK_DNS_URL: "https://api.cirrus-ci.com/v1/artifact/github/containers/aardvark-dns/success/binary.zip?branch=${AARDVARK_DNS_BRANCH}"
+     FEDORA_NETAVARK_AARCH64_AMI: "fedora-netavark-aws-arm64-${IMAGE_SUFFIX}"
+     EC2_INST_TYPE: "t4g.xlarge"
++    NETAVARK_UPSTREAM: "1"
+ 
+ 
+ gcp_credentials: ENCRYPTED[d6efdb7d6d4c61e3831df2193ca6348bb02f26cd931695f69d41930b1965f7dab72a838ca0902f6ed8cde66c7deddae2]
+diff --git a/test/001-basic.bats b/test/001-basic.bats
+index bc30a1703..f74220dfe 100644
+--- a/test/001-basic.bats
++++ b/test/001-basic.bats
+@@ -12,7 +12,9 @@ load helpers
+     run_netavark version
+     json="$output"
+     assert_json "$json" ".version" =~ "^1\.[0-9]+\.[0-9]+(-rc[0-9]|-dev)?" "correct version"
+-    assert_json "$json" ".commit" =~ "[0-9a-f]{40}" "shows commit sha"
++    if [ -n "$NETAVARK_UPSTREAM" ]; then
++        assert_json "$json" ".commit" =~ "[0-9a-f]{40}" "shows commit sha"
++    fi
+     assert_json "$json" ".build_time" =~ "20.*" "show build date"
+     assert_json "$json" ".target" =~ ".*" "contains target string"
+ }

@@ -7,18 +7,19 @@
 # Summary: Configure DLM in cluster configuration
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'haclusterbasetest';
 use testapi;
 use lockapi;
 use hacluster;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     my $cluster_name = get_cluster_name;
 
     # Wait until DLM test is initialized
     barrier_wait("DLM_INIT_$cluster_name");
+
+    select_serial_terminal;
 
     # Test if DLM kernel module package is installed
     die 'dlm kernel package is not installed' unless is_package_installed 'dlm-kmp-default';

@@ -5,9 +5,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#37006
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use openscaptest;
@@ -15,7 +13,7 @@ use version_utils 'is_opensuse';
 
 sub run {
 
-    zypper_call("in openscap-utils libxslt-tools wget");
+    zypper_call("in openscap-utils libxslt-tools wget libxml2-tools");
 
     oscap_get_test_file("oval.xml");
     oscap_get_test_file("xccdf.xml");

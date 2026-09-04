@@ -10,12 +10,10 @@
 # - Close gedit by "close" button
 # - Launch gedit again
 # - Close gedit by CTRL-Q
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 # Tags: tc#1436122
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

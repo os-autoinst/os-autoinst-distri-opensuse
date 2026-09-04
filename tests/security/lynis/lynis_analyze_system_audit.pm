@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright 2025 SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Integrate the Lynis scanner into OpenQA: analyze the "system audit"
@@ -6,9 +6,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#78224, poo#78230, poo#78330
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use lynis::lynistest;

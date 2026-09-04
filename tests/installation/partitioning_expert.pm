@@ -7,9 +7,7 @@
 # Summary: Some simple actions to test the new expert partitioner.
 # Maintainer: Christopher Hofmann <cwh@suse.de>
 
-use base 'y2_installbase';
-use strict;
-use warnings;
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run() {

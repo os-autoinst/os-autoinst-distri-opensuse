@@ -1,0 +1,26 @@
+name:           Leap16_staged_updates
+description:    >
+    Installs Leap16 and installs binaries in a given update
+conditional_schedule:
+  opensuse_welcome:
+    ARCH:
+      x86_64:
+        - installation/opensuse_welcome
+      aarch64:
+        - installation/opensuse_welcome
+schedule:
+  - installation/bootloader_start
+  - installation/agama
+  - installation/agama_reboot
+  - installation/grub_test
+  - installation/first_boot
+  - '{{opensuse_welcome}}'
+  - console/system_prepare
+  - console/prepare_test_data
+  - console/consoletest_setup
+  - console/import_gpg_keys
+  - update/zypper_up
+  - console/install_packages
+  - console/zypper_add_repos
+  - console/qam_zypper_patch
+  - console/qam_verify_package_install

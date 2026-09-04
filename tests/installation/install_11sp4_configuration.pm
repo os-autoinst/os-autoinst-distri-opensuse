@@ -11,12 +11,10 @@
 
 package install_11sp4_configuration;
 
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 
 use testapi;
 
-use strict;
-use warnings;
 use English;
 
 use bootloader_setup;

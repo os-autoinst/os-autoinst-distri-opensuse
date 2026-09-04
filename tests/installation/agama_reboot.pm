@@ -18,9 +18,7 @@
 #    we need to access to live root system to monitor installation process
 # Maintainer: Lubos Kocman <lubos.kocman@suse.com>,
 
-use strict;
-use warnings;
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use testapi;
 use version_utils qw(is_leap is_sle);
 use utils;
@@ -32,15 +30,11 @@ use power_action_utils 'assert_shutdown_and_restore_system';
 
 sub upload_agama_logs {
     return if (get_var('NOLOGS'));
-    select_console("root-console");
-    # stores logs in /tmp/agma-logs.tar.gz
+    select_console("install-shell");
     script_run('agama logs store -d /tmp');
+    script_run('agama config show > /tmp/agama_config.txt');
     upload_logs('/tmp/agama-logs.tar.gz');
-}
-
-sub get_agama_install_console_tty {
-    # get_x11_console_tty would otherwise autodetermine 2
-    return 7;
+    upload_logs('/tmp/agama_config.txt');
 }
 
 sub verify_agama_auto_install_done_cmdline {
@@ -48,13 +42,17 @@ sub verify_agama_auto_install_done_cmdline {
     # so we need to make sure the installation has completed from command line.
     my $timeout = get_var('AGAMA_INSTALL_TIMEOUT', '480');
     while ($timeout > 0) {
-        if (script_run("journalctl -u agama | grep 'Install phase done'") == 0) {
-            record_info("agama install phase done");
+        my $check_install_finish = is_sle('<16.1') ? "journalctl -u agama -u agama-web-server.service | grep -E 'Install phase done|Installation finished'" : "agama status --format json | jq '.installation' | grep succeeded";
+        if (script_run("$check_install_finish", timeout => 60) == 0) {
+            record_info("agama install phase done", script_output('agama config show'));
             return;
         }
         sleep 20;
         $timeout = $timeout - 20;
     }
+    # Add some debug info for quick check for tester before investigating full agama logs
+    # See https://progress.opensuse.org/issues/182258
+    record_info('debug info', script_output('journalctl --no-pager -u agama -n 100;agama config show'));
     die "Install phase is not done, please check agama logs";
 }
 
@@ -62,13 +60,10 @@ sub run {
     my ($self) = @_;
 
     if ((is_ipmi || is_pvm || is_s390x) && get_var('INST_AUTO')) {
-        select_console('root-console');
+        select_console('install-shell');
         record_info 'Wait for installation phase done';
         verify_agama_auto_install_done_cmdline();
-        script_run('agama logs store -d /tmp');
-        script_run('agama config show > /tmp/agama_config.txt');
-        upload_logs('/tmp/agama-logs.tar.gz');
-        upload_logs('/tmp/agama_config.txt');
+        upload_agama_logs();
         record_info 'Reboot system to disk boot';
         enter_cmd 'reboot';
         # Swith back to sol console, then user can monitor the boot log
@@ -84,17 +79,11 @@ sub run {
     }
 
     assert_screen('agama-congratulations');
-    console('installation')->set_tty(get_agama_install_console_tty());
     upload_agama_logs();
     select_console('installation', await_console => 0);
     # make sure newly booted system does not expect we're still logged in console
     reset_consoles();
     assert_and_click('agama-reboot-after-install');
-
-    # workaround for lack of disable bootloader timeout
-    # https://github.com/openSUSE/agama/issues/1594
-    # simply send space until we hit grub2
-    send_key_until_needlematch("grub2", 'spc', 50, 3);
 
 }
 
@@ -112,7 +101,8 @@ sub post_fail_hook {
 
     return if (get_var('NOLOGS'));
 
-    select_console("root-console");
+    select_console("install-shell");
+    record_info('Disk devices', script_output('ls -l /dev/disk/by-id/'));
     export_healthcheck_basic();
     upload_agama_logs();
 }

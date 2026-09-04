@@ -1,0 +1,76 @@
+# SUSE's openQA tests
+#
+# Copyright 2023 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Summary: Select systemd-boot in the installer
+# Maintainer: Fabian Vogt <fvogt@suse.com>
+
+use Mojo::Base 'y2_installbase';
+use testapi;
+use utils;
+use version_utils qw(is_bootloader_sdboot is_bootloader_grub2_bls is_bootloader_grub2 is_sle is_leap is_staging is_upgrade);
+
+sub run {
+    my ($self) = shift;
+
+    # Verify Installation Settings overview is displayed as starting point
+    assert_screen "installation-settings-overview-loaded", 90;
+    my $is_textmode = check_var('VIDEOMODE', 'text');
+    if ($is_textmode) {
+        # Select section booting on Installation Settings overview on text mode
+        send_key $cmd{change};
+        assert_screen 'inst-overview-options';
+        send_key 'alt-b';
+    }
+    else {
+        # Select section booting on Installation Settings overview (video mode)
+        send_key_until_needlematch 'booting-section-selected', 'tab', 26, 1;
+        send_key 'ret';
+    }
+
+    if (is_upgrade && check_screen('bootloader-technology-mismatch')) {
+        send_key_until_needlematch 'inst-bootloader-settings', 'alt-o';
+    }
+
+    assert_screen 'inst-bootloader-settings';
+
+    # Workaround for bug#1158557
+    if (check_screen('inst-bootloader-unknown-udev-device')) {
+        send_key 'ret';
+    }
+
+    # Select systemd-boot as bootloader
+    send_key 'alt-b', wait_screen_change => 1;
+    send_key 'spc', wait_screen_change => 1;
+    send_key_until_needlematch 'inst-bootloader-systemd-boot-selected', 'down' if is_bootloader_sdboot;
+    send_key_until_needlematch 'inst-bootloader-grub2-bls-selected', 'up' if is_bootloader_grub2_bls;
+    send_key_until_needlematch get_var('UEFI') ? 'inst-bootloader-grub2-efi-selected' : 'inst-bootloader-grub2-selected', 'up' if is_bootloader_grub2;
+    send_key 'ret', wait_screen_change => 1;    # Select the option
+
+    unless (get_var('KEEP_GRUB_TIMEOUT')) {
+        my $bootloader_options_shortcut = (get_var('UEFI')) ? 'alt-t' : 'alt-r';
+        $bootloader_options_shortcut = 'alt-l' if get_var('OFFLINE_SUT');
+        send_key $bootloader_options_shortcut, wait_screen_change => 1;    # select Bootloader Options tab
+        assert_screen 'installation-bootloader-options';
+
+        if (is_bootloader_sdboot || is_bootloader_grub2_bls) {
+            # Uncheck the "automatically boot" checkbox
+            send_key 'alt-a', wait_screen_change => 1;
+        } else {
+            send_key 'alt-t', wait_screen_change => 1;
+            type_string "-1";
+            send_key 'ret' if check_var('VIDEOMODE', 'text');
+        }
+    }
+
+    save_screenshot;
+    send_key $cmd{ok};
+    # It doesn't immediately notice that the overview needs recalculation.
+    # Give it some time to make sure that it's fully loaded.
+    assert_screen 'installation-settings-overview-loaded', 220;
+    wait_still_screen 3;
+    assert_screen 'installation-settings-overview-loaded', 220;
+}
+
+1;

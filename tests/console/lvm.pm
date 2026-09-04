@@ -31,9 +31,7 @@
 # - Cleanup
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>, George Gkioulis <ggkioulis@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
@@ -66,6 +64,9 @@ sub run {
 
     # Create 3 partitions
     assert_script_run 'echo -e "g\nn\n\n\n+1G\nt\n8e\nn\n\n\n+1G\nt\n2\n8e\nn\n\n\n\nt\n\n8e\np\nw" | fdisk ' . $disk;
+
+    # Wait for the system to process the new partitions
+    assert_script_run 'udevadm settle';
     assert_script_run 'lsblk';
 
     my $timeout = 180;

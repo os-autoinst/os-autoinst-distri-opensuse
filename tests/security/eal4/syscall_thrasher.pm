@@ -7,13 +7,17 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#109774
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use Utils::Architectures 'is_s390x';
 use eal4_test;
+use serial_terminal 'select_serial_terminal';
+
+use constant {
+    USER_TERMINAL => 0,
+    ROOT_TERMINAL => 1,
+};
 
 my $log_file = 'syscalls_output_log.txt';
 
@@ -27,7 +31,7 @@ sub run {
         return;
     }
 
-    select_console 'root-console';
+    select_serial_terminal ROOT_TERMINAL;
 
     my $exe_file = 'thrash';
     assert_script_run('cd /usr/local/eal4');
@@ -36,7 +40,7 @@ sub run {
     assert_script_run("chmod 755 $exe_file");
 
     # The test needs to run by non-root
-    select_console 'user-console';
+    select_serial_terminal USER_TERMINAL;
 
     my $test_dir = 'test_syscall_thrasher';
     assert_script_run("mkdir -p $test_dir");
@@ -47,10 +51,6 @@ sub run {
     assert_script_run("./$exe_file >> $log_file", timeout => 900);
     upload_log_file($log_file);
 
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 sub post_fail_hook {

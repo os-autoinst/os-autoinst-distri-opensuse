@@ -6,10 +6,8 @@
 # Summary: Check before/after IP setup
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 
-use strict;
-use warnings;
 
 use qam;
 use testapi;

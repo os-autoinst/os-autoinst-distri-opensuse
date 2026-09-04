@@ -17,10 +17,10 @@
 # - run check_recorded_sound 'DTMF-159D', otherwise, softfail test (bsc#1048271)
 # Maintainer: Rodion Iafarov <aplanas@suse.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
+use transactional 'reboot_on_changes';
+use version_utils 'is_transactional';
 use utils 'ensure_serialdev_permissions';
 
 sub run {
@@ -33,10 +33,16 @@ sub run {
 # minimal has no packagekit so we need to ignore the error
 systemctl stop packagekit.service || :
 echo -e "\n\n\n"
-zypper -n in alsa-utils alsa
+# Detect transactional system and use appropriate installer
+if [ -x "/usr/sbin/transactional-update" ]; then
+    transactional-update -n pkg in alsa-utils alsa
+else
+    zypper -n in alsa-utils alsa
+fi
 EOS
 
     validate_script_output $script, sub { m/Installing:.*alsa/ || m/'alsa' is already installed/ }, 120;
+    reboot_on_changes if is_transactional;
 
     $self->clear_and_verify_console;
     select_console 'user-console';

@@ -7,19 +7,18 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#110218
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use Data::Dumper;
 use eal4_test;
+use serial_terminal 'select_serial_terminal';
 
 sub run {
     my ($self) = shift;
     my $test_log = "netlink_message_log.txt";
 
-    select_console 'root-console';
+    select_serial_terminal;
 
     # Complile
     assert_script_run('cd /usr/local/eal4/pentest/netlink');
@@ -68,10 +67,6 @@ sub run {
     $self->result($test_module_result);
     upload_log_file($test_log);
 
-}
-
-sub test_flags {
-    return {always_rollback => 1};
 }
 
 1;

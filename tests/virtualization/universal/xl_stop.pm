@@ -5,10 +5,8 @@
 # Summary: This stops all xl VMs
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use utils;
 

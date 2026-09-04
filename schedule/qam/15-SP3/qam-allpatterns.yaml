@@ -15,7 +15,7 @@ schedule:
 - autoyast/autoyast_reboot
 - installation/grub_test
 - installation/first_boot
-- qa_automation/patch_and_reboot
+- console/post_installation
 - console/system_prepare
 - console/check_network
 - console/system_state

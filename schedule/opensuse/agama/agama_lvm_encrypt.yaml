@@ -1,0 +1,22 @@
+name:           Agama install for LVM or FDE scenarios
+description:    >
+    This test installs openSUSE Tumbleweed or Leap with possibility of using a combination of LVM and FDE setups
+conditional_schedule:
+  validate_lvm:
+    LVM:
+      1:
+        - console/validate_lvm
+  validate_encrypt:
+    ENCRYPT:
+      1:
+        - console/validate_encrypt
+schedule:
+  - installation/bootloader_start
+  - installation/agama
+  - installation/agama_reboot
+  - installation/grub_test
+  - installation/boot_encrypt
+  - installation/first_boot
+  - '{{validate_lvm}}'
+  - '{{validate_encrypt}}'
+  - shutdown/shutdown

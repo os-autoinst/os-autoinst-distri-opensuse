@@ -11,11 +11,12 @@
 # - If XFSTESTS_REPO is set, install xfstests, filesystems
 # - Otherwise, run "/usr/share/qa/qa_test_xfstests/install.sh"
 # Maintainer: Yong Sun <yosun@suse.com>
+
+## no os-autoinst style
+
 package install;
 
 use 5.018;
-use strict;
-use warnings;
 use base 'opensusebasetest';
 use utils;
 use testapi;
@@ -82,12 +83,7 @@ sub install_xfstests_from_repo {
     else {
         zypper_call('in ' . join(' ', @PACKAGES));
     }
-    if (is_sle) {
-        script_run 'ln -s /var/lib/xfstests /opt/xfstests';
-    }
-    elsif (is_tumbleweed || is_leap) {
-        script_run 'ln -s /usr/lib/xfstests /opt/xfstests';
-    }
+    script_run 'if [ -d /usr/lib/xfstests ]; then ln -s /usr/lib/xfstests /opt/xfstests; else ln -s /var/lib/xfstests /opt/xfstests; fi';
 }
 
 # Create log file used to generate junit xml report
@@ -99,7 +95,8 @@ sub log_create {
 
 sub collect_version {
     my $file = shift;
-    my $cmd = "(rpm -qa xfsprogs xfsdump btrfsprogs e2fsprogs coreutils kernel-default " . join(' ', @PACKAGES) . "; uname -r; rpm -qi kernel-default) | tee $file";
+    my $packs = "xfsprogs xfsdump btrfsprogs e2fsprogs coreutils util-linux attr kernel-default";
+    my $cmd = "(rpm -qa " . join(' ', ($packs, @PACKAGES)) . "; uname -a; rpm -qi kernel-default) | tee $file";
     script_run($cmd, proceed_on_failure => 1);
     upload_logs($file, timeout => 60, log_name => basename($file));
 }

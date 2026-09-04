@@ -6,9 +6,7 @@
 # Summary: Launcher for test scripts running inside the tested virtual machine
 # Maintainer: Martin Doucha <mdoucha@suse.cz>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
 use Mojo::JSON;

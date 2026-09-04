@@ -1,0 +1,41 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: policykit rules
+# desc: Verifies functionality of policykit rules
+# steps:
+#   - check folder permissions /etc/polkit-1/rules.d/ , bail out if !root:polkitd
+#   - save original hostname
+#   - add a permissive polkit rule in /etc/polkit-1/rules.d/ and restart polkit service
+#   - try to change hostname, should succeed (do not ask root password)
+#   - ensure hostname has been changed
+#   - remove polkit rule and restart service
+#   - try to change hostname, should fail (will ask root password)
+#   - ensure hostname has NOT been changed
+#   - restore original hostname
+# author: <andrea.manzini@suse.com>
+# maintainer: QE Security <none@suse.de>
+# expected: no errors raised, connection succeed
+# platform: Tumbleweed
+# tags: security polkit bsc#1249581
+# ---
+# METADATA_END
+
+set -e
+# Source the helper script for argument handling
+source ../lib/helper.sh
+
+# Define files required for this test
+TEST_FILES=(go.mod polkit_test.go utils.go)
+
+# Delegate argument processing to the helper
+handle_args "$0" "$@"
+
+ensure_root
+ensure_command_available "gotestsum"
+
+# If the metadata flag is not provided, run the tests as usual.
+# empty the go test cache to avoid stale results
+go clean -testcache
+# run tests with gotestsum
+exec gotestsum --format=standard-verbose --junitfile results.xml

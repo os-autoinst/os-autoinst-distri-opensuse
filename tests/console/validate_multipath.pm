@@ -8,11 +8,9 @@
 # the Device Mapper Multipath module of the Linux kernel and the multipath-tools user space package.
 # the Multiple Devices Administration utility (multipath) can be used to view the status of multipathed devices.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use scheduler 'get_test_suite_data';
 use Test::Assert ':all';

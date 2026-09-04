@@ -7,9 +7,7 @@
 # Summary: Boot installed MS Windows from image
 # Maintainer: Oliver Kurz <okurz@suse.de>
 
-use base 'windowsbasetest';
-use strict;
-use warnings;
+use Mojo::Base 'windowsbasetest';
 use testapi;
 
 sub run {

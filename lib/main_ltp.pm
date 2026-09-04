@@ -12,7 +12,7 @@ use main_common qw(boot_hdd_image load_bootloader_s390x load_kernel_baremetal_te
 use 5.018;
 use Utils::Backends;
 use Utils::Architectures qw(is_s390x);
-use version_utils qw(is_opensuse is_transactional is_sle_micro);
+use version_utils qw(is_opensuse is_transactional is_sle_micro is_jeos);
 use LTP::utils qw(loadtest_kernel shutdown_ltp);
 use main_common 'loadtest';
 # FIXME: Delete the "## no critic (Strict)" line and uncomment "use warnings;"
@@ -34,7 +34,7 @@ sub load_kernel_tests {
     loadtest_kernel "../installation/bootloader" if (is_pvm && !get_var('LTP_BAREMETAL'));
 
     if (get_var('INSTALL_LTP')) {
-        if (is_transactional) {
+        if (is_transactional && (get_var('FLAVOR', '') !~ /Immutable/)) {
             # Handle specific boot requirements for different backends and architectures
             if (is_s390x) {
                 loadtest 'boot/boot_to_desktop';
@@ -51,32 +51,16 @@ sub load_kernel_tests {
             loadtest 'console/suseconnect_scc' if is_sle_micro;
         }
 
-        if (get_var('INSTALL_KOTD')) {
-            loadtest_kernel 'install_kotd';
-        }
-        elsif (get_var('CHANGE_KERNEL_REPO') ||
+        if (get_var('CHANGE_KERNEL_REPO') ||
             get_var('CHANGE_KERNEL_PKG') ||
             get_var('ASSET_CHANGE_KERNEL_RPM')) {
             loadtest_kernel 'change_kernel';
         }
-        if (get_var('FLAVOR', '') =~ /Incidents-Kernel/) {
-            loadtest_kernel 'update_kernel';
-        }
-
-        # transactional needs to first run install_ltp due broken grub menu
-        # counting detection in add_custom_grub_entries():
-        # Test died: Unexpected number of grub entries: 5, expected: 3 at lib/bootloader_setup.pm line 166.
-        my $needs_update = is_transactional && (get_var('FLAVOR', '') =~ /-Staging|-Updates/);
-
-        if ($needs_update && get_var('KGRAFT')) {
+        elsif (!get_var('LIBC_LIVEPATCH') && !is_jeos) {
             loadtest_kernel 'update_kernel';
         }
 
         loadtest_kernel 'install_ltp';
-
-        if ($needs_update && !get_var('KGRAFT')) {
-            loadtest 'transactional/install_updates';
-        }
 
         if (get_var('LIBC_LIVEPATCH')) {
             die 'LTP_COMMAND_FILE and LIBC_LIVEPATCH are mutually exclusive'
@@ -114,6 +98,7 @@ sub load_kernel_tests {
             is_opensuse) {
             loadtest_kernel 'install_klp_product';
         }
+        shutdown_ltp();
     }
     elsif (get_var('INSTALL_KLP_PRODUCT')) {
         loadtest_kernel 'boot_ltp';
@@ -148,6 +133,12 @@ sub load_kernel_tests {
     elsif (get_var('LIBC_LIVEPATCH')) {
         loadtest_kernel 'boot_ltp';
         loadtest_kernel 'ulp_openposix';
+    }
+    elsif (get_var('KDUMP')) {
+        loadtest_kernel 'kdump';
+    }
+    elsif (get_var('PSI')) {
+        loadtest_kernel 'pressure_stall_information';
     }
 
     if (is_svirt && get_var('PUBLISH_HDD_1')) {

@@ -7,11 +7,9 @@
 # Summary: Virtual network and virtual block device hotplugging
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_autotest::common;
 use virt_autotest::utils;
-use strict;
-use warnings;
 use testapi;
 use utils;
 use virt_utils;
@@ -30,17 +28,24 @@ sub test_add_virtual_disk {
     assert_script_run("rm -f $disk_image");
     # Set disk size=9.5G to make it to be found more easily within the guest
     assert_script_run "qemu-img create -f $disk_format $disk_image 9.5G";
-    my $domblk_target = 'vdz';
-    $domblk_target = 'xvdz' if (is_xen_host);
-    script_run("virsh detach-disk $guest ${domblk_target}", 240);
-    if (try_attach("virsh attach-disk --domain $_ --source $disk_image --target ${domblk_target}")) {
+    my $domblk_target = is_xen_host ? 'xvdz' : 'vdz';
+    # Detach unconditionally: bsc#1272852 - libvirt must reject a missing disk gracefully.
+    my $detach_cmd = "virsh detach-disk $guest ${domblk_target}";
+    # The crash msg is on the shell's stderr, not virsh's, so capture that in a file.
+    my $detach_out = script_output(
+        "bash -c '$detach_cmd; echo \"detach_rc=\$?\"' >/tmp/detach.log 2>&1; cat /tmp/detach.log",
+        proceed_on_failure => 1);
+    my $detach_rc = $detach_out =~ /detach_rc=(\d+)/ ? $1 : -1;
+    record_info("Detach ${domblk_target}", $detach_out,
+        result => $detach_rc == 0 ? 'ok' : 'fail');
+    if (try_attach("virsh attach-disk --domain $guest --source $disk_image --target ${domblk_target}")) {
         assert_script_run "virsh domblklist $guest | grep ${domblk_target}";
         assert_script_run("ssh root\@$guest lsblk");
         # Attach disk check
-        assert_script_run("ssh root\@$guest lsblk | grep -iE '[x]?vd[a-z] +.*9.5G'", timeout => 60, fail_message => "Failed to attach disk for guest $guest");
-        assert_script_run("virsh detach-disk $guest ${domblk_target}", 240);
-        # Detach disk check
-        assert_script_run("! ssh root\@$guest lsblk | grep -iE '[x]?vd[b-z]'", timeout => 60, fail_message => "Failed to detach disk for guest $guest");
+        script_retry("ssh root\@$guest lsblk | grep -iE '[x]?vd[a-z] +.*9.5G'", delay => 5, retry => 12, fail_message => "Failed to attach disk for guest $guest");
+        assert_script_run($detach_cmd, 240);
+        # Detach disk check, the unplug is asynchronous so the guest needs time to process it
+        script_retry("! ssh root\@$guest lsblk | grep -iE '[x]?vd[b-z]'", delay => 5, retry => 12, fail_message => "Failed to detach disk for guest $guest");
     }
     assert_script_run("rm -f $disk_image");
 }

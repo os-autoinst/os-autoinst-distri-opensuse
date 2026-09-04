@@ -6,11 +6,9 @@
 # Summary: Validate that, after remote installation, the xvnc.socket
 # service is active and the firewall allows tigervnc service.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 
 use testapi;
 use utils "systemctl";

@@ -1,0 +1,16 @@
+---
+name: kea
+description: >
+    Maintainer: qe-core
+    Install and test kea
+conditional_schedule:
+    kea:
+        HOSTNAME:
+            'client':
+                - network/kea_client
+            'server':
+                - network/kea_server
+schedule:
+    - boot/boot_to_desktop
+    - network/setup_multimachine
+    - '{{kea}}'

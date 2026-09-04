@@ -11,8 +11,6 @@
 # Ticket: https://jira.suse.com/browse/SUSEAI-22
 
 use Mojo::Base 'publiccloud::basetest';
-use strict;
-use warnings;
 use testapi;
 use utils;
 use publiccloud::utils;
@@ -20,7 +18,7 @@ use version_utils;
 use transactional qw(trup_call);
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 1};
+    return {fatal => 1};
 }
 
 sub run {

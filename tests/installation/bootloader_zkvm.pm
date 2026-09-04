@@ -7,20 +7,21 @@
 # Summary: Interface with the zKVM bootloader based on test settings
 # Maintainer: Matthias Grießmeier <mgriessmeier@suse.de>
 
+## no os-autoinst style
+
 package bootloader_zkvm;
 
 use base "installbasetest";
 
-use strict;
-use warnings;
 
 use bootloader_setup;
 use registration;
 use testapi;
 use utils qw(OPENQA_FTP_URL type_line_svirt save_svirt_pty);
 use ntlm_auth;
-use version_utils qw(is_agama);
-use autoyast qw(expand_agama_profile);
+use version_utils qw(is_agama is_sle);
+use autoyast qw(expand_agama_profile parse_dud_parameter);
+use Yam::Agama::LiveIso qw(read_live_iso);
 
 sub set_svirt_domain_elements {
     my ($svirt) = shift;
@@ -31,13 +32,15 @@ sub set_svirt_domain_elements {
         my $name = $svirt->name;
 
         my $ntlm_p = get_var('NTLM_AUTH_INSTALL') ? $ntlm_auth::ntlm_proxy : '';
-        my $cmdline = get_var('VIRSH_CMDLINE') . $ntlm_p . " ";
+        my $cmdline = get_var('VIRSH_CMDLINE') . " " . $ntlm_p . " ";
         if (is_agama) {
-            $cmdline .= " root=live:http://" . get_var('OPENQA_HOSTNAME') .
-              ((get_var('FLAVOR') eq "Full") ?
-                  "/assets/repo/" . get_required_var('REPO_0') . "/LiveOS/squashfs.img" :
-                  "/assets/iso/" . get_required_var('ISO'));
-            $cmdline .= " live.password=$testapi::password";
+            my $mirror_http = get_required_var('MIRROR_HTTP');
+            $cmdline .= " root=live:$mirror_http/LiveOS/squashfs.img live.password=$testapi::password";
+            # add extra boot params for agama network, e.g. ip=2c-ea-7f-ea-ad-0c:dhcp
+            $cmdline .= ' ' . get_var('AGAMA_NETWORK_PARAMS') if get_var('AGAMA_NETWORK_PARAMS');
+
+            # additional parameters requiring parsing
+            $cmdline .= parse_dud_parameter(get_var('INST_DUD')) if get_var('INST_DUD');
         } else {
             $cmdline .= "install=$repo";
             $cmdline .= remote_install_bootmenu_params;
@@ -53,7 +56,7 @@ sub set_svirt_domain_elements {
         $cmdline .= ' ' . get_var("EXTRABOOTPARAMS") if get_var("EXTRABOOTPARAMS");
         # inst.auto and inst.install_url are defined in 'specific_bootmenu_params'
         $cmdline .= specific_bootmenu_params;
-        if (!(is_agama && check_var('FLAVOR', 'Full'))) {
+        if (check_var('AGAMA_FORCE_REGISTER', '1') || !(is_agama && check_var('FLAVOR', 'Full'))) {
             $cmdline .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation') && !get_var('NTLM_AUTH_INSTALL');
         }
 
@@ -62,9 +65,11 @@ sub set_svirt_domain_elements {
         $svirt->change_domain_element(os => cmdline => $cmdline);
 
         # show this on screen and make sure that kernel and initrd are actually saved
-        enter_cmd "wget $repo/boot/s390x/initrd -O $zkvm_img_path/$name.initrd";
+        my $boot_path = "$repo/boot/s390x";
+        $boot_path .= "/loader" if (is_sle('16.1+'));
+        enter_cmd "wget $boot_path/initrd -O $zkvm_img_path/$name.initrd";
         assert_screen("initrd-saved", timeout => 300);
-        enter_cmd "wget $repo/boot/s390x/linux -O $zkvm_img_path/$name.kernel";
+        enter_cmd "wget $boot_path/linux -O $zkvm_img_path/$name.kernel";
         assert_screen("kernel-saved", timeout => 300);
     }
     # after installation we need to redefine the domain, so just shutdown
@@ -79,21 +84,34 @@ sub set_svirt_domain_elements {
 sub run {
     my $svirt = select_console('svirt', await_console => 0);
 
+    read_live_iso() if (is_agama);
+
     record_info('free -h', $svirt->get_cmd_output('free -h'));
     record_info('virsh freecell --all', $svirt->get_cmd_output('virsh freecell --all'));
     record_info('virsh domstats', $svirt->get_cmd_output('virsh domstats'));
     set_svirt_domain_elements $svirt;
+    $svirt->stop_vm;
     zkvm_add_disk $svirt;
     zkvm_add_pty $svirt;
     zkvm_add_interface $svirt;
 
-    $svirt->define_and_start;
+    $svirt->define_and_start(pre_cleanup => 0);
     record_info('SUT hostname', get_var('VIRSH_HOSTNAME'));
     record_info('VM instance', get_var('VIRSH_INSTANCE'));
     record_info('Guest ip', get_var('VIRSH_GUEST'));
 
+    my $is_remote_disabled = get_var('EXTRABOOTPARAMS', '') =~ /inst\.remote=0/;
+
     if (is_agama) {
-        wait_serial('Connect to the Agama installer using these URLs', 300) || die "Agama installer didn't start";
+        my %expectations = (
+            pattern => $is_remote_disabled
+            ? 'Remote access to the Agama installer is disabled, it can be used only locally'
+            : 'Connect to the Agama installer using these URLs',
+            error => $is_remote_disabled
+            ? "Remote access to Agama installer was not disabled"
+            : "Agama installer didn't start",
+        );
+        wait_serial($expectations{pattern}, 300) or die $expectations{error};
         return;
     }
     if (!get_var("BOOT_HDD_IMAGE") or (get_var('PATCHED_SYSTEM') and !get_var('ZDUP'))) {

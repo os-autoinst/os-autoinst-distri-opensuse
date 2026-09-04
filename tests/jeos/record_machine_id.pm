@@ -6,9 +6,7 @@
 # Summary: Record machine-id
 # Maintainer: Michal Nowak <mnowak@suse.com>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 
 sub run {

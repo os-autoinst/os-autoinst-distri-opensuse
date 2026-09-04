@@ -7,9 +7,7 @@
 # Summary: To a transactional-update dup and reboot the node
 # Maintainer: Richard Brown <rbrown@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 use utils;
@@ -30,12 +28,17 @@ sub run {
     my $nr = 1;
     foreach my $r (split(/,/, get_var('ZDUPREPOS', $defaultrepo))) {
         zypper_call("--no-gpg-checks ar \"$r\" repo$nr");
+        # Workaround to make zypper behaviour more like if it was download.o.o
+        script_run("echo \"gpgkey=$r/repodata/repomd.xml.key\" >> /etc/zypp/repos.d/repo$nr.repo");
         $nr++;
     }
 
-    zypper_call '--gpg-auto-import-keys ref';
+    # Work around that for t-u < 5.5.1, selfupdates break key updates (boo#1239721)
+    if (script_output('zypper -t vcmp 5.5.1 $(rpm -q --qf %{version} transactional-update)', proceed_on_failure => 1) !~ /-1/) {
+        trup_call '--no-selfupdate run zypper ref -f';
+    }
 
-    trup_call 'dup', timeout => 600;
+    trup_call '-c dup', timeout => 600;
 
     check_reboot_changes;
 }

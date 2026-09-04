@@ -7,9 +7,7 @@
 # Summary: Test mutt mail agent with SSL enabled
 # Maintainer: QE Security <none@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils 'is_tumbleweed';

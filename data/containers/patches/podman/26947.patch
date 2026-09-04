@@ -1,0 +1,686 @@
+From 20fb712872864b2d08dd168b1aa7ec2b0fe9b8ac Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Mon, 1 Sep 2025 14:24:35 +0200
+Subject: [PATCH 1/3] test/system: do not connect to github server
+
+This is an unnecessary network connection that flakes from time to time.
+Spawn our own local server instead and use that. That also allows to
+check that the actual file content has been copied.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/070-build.bats | 26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
+
+diff --git a/test/system/070-build.bats b/test/system/070-build.bats
+index 9d603864e76..3b0ceac49a2 100644
+--- a/test/system/070-build.bats
++++ b/test/system/070-build.bats
+@@ -5,6 +5,7 @@
+ #
+ 
+ load helpers
++load helpers.network
+ 
+ # bats test_tags=distro-integration
+ @test "podman build - basic test" {
+@@ -279,20 +280,41 @@ EOF
+     tmpdir=$PODMAN_TMPDIR/build-test
+     mkdir -p $tmpdir
+ 
++    # Create a test file with random content
++    INDEX=$PODMAN_TMPDIR/index.txt
++    local content="test-$(random_string)"
++    echo "$content" > $INDEX
++    echo READY > $PODMAN_TMPDIR/ready
++
++    # Setup local webserver
++    local host_port=$(random_free_port)
++    local server=http://127.0.0.1:$host_port
++    serverctr="c1-$(safename)"
++    run_podman run -d --name $serverctr -p "$host_port:80" \
++               -v $INDEX:/var/www/index.txt:Z \
++               -v $PODMAN_TMPDIR/ready:/var/www/ready:Z \
++               -w /var/www \
++               $IMAGE /bin/busybox-extras httpd -f -p 80
++
++    wait_for_command_output "curl -s -S $server/ready" "READY"
++
+     cat >$tmpdir/Dockerfile <<EOF
+ FROM $IMAGE
+-ADD https://github.com/containers/podman/blob/main/README.md /tmp/
++ADD $server/index.txt /tmp/
+ EOF
+ 
+     imgname="b-$(safename)"
+     run_podman build -t $imgname $tmpdir
+-    run_podman run --rm $imgname stat /tmp/README.md
++    run_podman run --rm $imgname cat /tmp/index.txt
++    assert "$output" == "$content" "file has right content"
+     run_podman rmi -f $imgname
+ 
+     # Now test COPY. That should fail.
+     sed -i -e 's/ADD/COPY/' $tmpdir/Dockerfile
+     run_podman 125 build -t $imgname $tmpdir
+     is "$output" ".* building at STEP .*: source can't be a URL for COPY"
++
++    run_podman rm -f -t0 $serverctr
+ }
+ 
+ 
+
+From ee45782079b6fcfb468d06f4178adbacfa54dddf Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Mon, 1 Sep 2025 14:44:42 +0200
+Subject: [PATCH 2/3] test/system: fix podman load - from URL
+
+The test pulled a new $IMAGE already because it runs the http server
+container. So this doesn't striclty ensure the load works correctly.
+
+Make sure to actually test the load of a different image, so we use
+$PODMAN_NONLOCAL_IMAGE_FQN for that like another load test already
+does.
+
+I noticed this as the image pull on the webserver start flaked in
+a openQA run. Using _prefetch should help to reduce the network pulls
+here as it caches the image locally once it is pulled for the first
+time.
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ test/system/120-load.bats | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
+
+diff --git a/test/system/120-load.bats b/test/system/120-load.bats
+index 3771825f170..f83fe7d4e36 100644
+--- a/test/system/120-load.bats
++++ b/test/system/120-load.bats
+@@ -220,23 +220,33 @@ verify_iid_and_name() {
+ }
+ 
+ @test "podman load - from URL" {
+-    get_iid_and_name
+-    run_podman save $img_name -o $archive
+-    run_podman rmi $iid
++    # Use a different image, not $IMAGE, as we need that for the webserver container.
++    img1=${PODMAN_NONLOCAL_IMAGE_FQN}
++    _prefetch $img1
++
++    run_podman images -a --format '{{.ID}} {{.Repository}}:{{.Tag}}' $img1
++    images_output="$output"
++
++    archive=$PODMAN_TMPDIR/myimage-$(safename).tar
++    run_podman save $img1 -o $archive
++    run_podman rmi $img1
+ 
+     HOST_PORT=$(random_free_port)
+     SERVER=http://127.0.0.1:$HOST_PORT
+ 
+     # Bind-mount the archive to a container running httpd
++    local cname="cweb=$(safename)"
+     run_podman run -d --name myweb -p "$HOST_PORT:80" \
+             -v $archive:/var/www/image.tar:Z \
+             -w /var/www \
+             $IMAGE /bin/busybox-extras httpd -f -p 80
+ 
+     run_podman load -i $SERVER/image.tar
+-    verify_iid_and_name $img_name
+ 
+-    run_podman rm -f -t0 myweb
++    run_podman images -a --format '{{.ID}} {{.Repository}}:{{.Tag}}' $img1
++    assert "$output" == "$images_output"
++
++    run_podman rm -f -t0 $cname
+ }
+ 
+ @test "podman load - redirect corrupt payload" {
+
+From 247a80db45c9f3ec6dee5614d37a27901ae819ca Mon Sep 17 00:00:00 2001
+From: Paul Holzinger <pholzing@redhat.com>
+Date: Mon, 1 Sep 2025 15:03:00 +0200
+Subject: [PATCH 3/3] test/system: remove distro-integration bats tag
+
+The distro-integration tag was added for fedora openQA to only run a
+subset of tests. However since it was added only a few new tests have
+been labelled like that and in general a normal contributor or even
+maintianer has no idea when to add this tag.
+
+We also have been seeing several regressions getting into fedora that
+these tests would have caught. As such I worked with Adam to enable all
+tests for fedora openQA so we actually have proper coverage. This has
+been working for a few weeks so I think we can dop these tags so
+upstream does not need to bother with them at all.
+
+https://pagure.io/fedora-qa/os-autoinst-distri-fedora/issue/373
+
+Signed-off-by: Paul Holzinger <pholzing@redhat.com>
+---
+ hack/bats                           |  2 +-
+ test/system/001-basic.bats          |  3 ---
+ test/system/030-run.bats            |  7 +++----
+ test/system/032-sig-proxy.bats      |  2 --
+ test/system/035-logs.bats           |  4 ++--
+ test/system/060-mount.bats          |  2 +-
+ test/system/070-build.bats          |  2 --
+ test/system/075-exec.bats           |  3 +--
+ test/system/080-pause.bats          |  3 +--
+ test/system/090-events.bats         |  6 +++---
+ test/system/125-import.bats         |  2 +-
+ test/system/130-kill.bats           |  2 +-
+ test/system/160-volumes.bats        |  1 -
+ test/system/161-volume-quotas.bats  |  2 --
+ test/system/170-run-userns.bats     |  2 --
+ test/system/180-blkio.bats          |  2 --
+ test/system/190-run-ipcns.bats      |  2 --
+ test/system/195-run-namespaces.bats |  2 +-
+ test/system/252-quadlet.bats        |  1 -
+ test/system/260-sdnotify.bats       |  6 +++---
+ test/system/280-update.bats         |  1 -
+ test/system/410-selinux.bats        | 21 ++++++++++-----------
+ test/system/420-cgroups.bats        |  2 +-
+ test/system/500-networking.bats     |  5 ++---
+ 24 files changed, 31 insertions(+), 54 deletions(-)
+
+diff --git a/hack/bats b/hack/bats
+index 35fc15f726a..e416f82d15f 100755
+--- a/hack/bats
++++ b/hack/bats
+@@ -24,7 +24,7 @@ $0 is a wrapper for invoking podman system tests.
+                     match that string.
+ 
+    --tag=TAG      Passed on to bats as '--filter-tags TAG'
+-                  As of 2023-07-26 the only tag used is 'distro-integration'
++                  As of 2025-09-01 the only tag used is 'ci:parallel'
+ 
+    -t, --tap      Passed on to bats, which will format output in TAP format
+ 
+diff --git a/test/system/001-basic.bats b/test/system/001-basic.bats
+index ce5b470f242..33a8155dfde 100644
+--- a/test/system/001-basic.bats
++++ b/test/system/001-basic.bats
+@@ -14,7 +14,6 @@ function setup() {
+ 
+ #### DO NOT ADD ANY TESTS HERE! ADD NEW TESTS AT BOTTOM!
+ 
+-# bats test_tags=distro-integration
+ @test "podman version emits reasonable output" {
+     run_podman version
+ 
+@@ -37,7 +36,6 @@ function setup() {
+     is "$output" "podman.*version \+"               "'Version line' in output"
+ }
+ 
+-# bats test_tags=distro-integration
+ @test "podman info" {
+     # These will be displayed on the test output stream, offering an
+     # at-a-glance overview of important system configuration details
+@@ -72,7 +70,6 @@ function setup() {
+        "--context=swarm should fail"
+ }
+ 
+-# bats test_tags=distro-integration
+ @test "podman can pull an image" {
+     run_podman rmi -a -f
+ 
+diff --git a/test/system/030-run.bats b/test/system/030-run.bats
+index 4f2d74183c1..35389284ee1 100644
+--- a/test/system/030-run.bats
++++ b/test/system/030-run.bats
+@@ -4,7 +4,7 @@ load helpers
+ load helpers.network
+ load helpers.registry
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman run - basic tests" {
+     rand=$(random_string 30)
+ 
+@@ -352,7 +352,7 @@ echo $rand        |   0 | $rand
+ }
+ 
+ # #6829 : add username to /etc/passwd inside container if --userns=keep-id
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman run : add username to /etc/passwd if --userns=keep-id" {
+     skip_if_not_rootless "--userns=keep-id only works in rootless mode"
+     # Default: always run as root
+@@ -829,7 +829,6 @@ json-file | f
+ # podman exec may truncate stdout/stderr; actually a bug in conmon:
+ # https://github.com/containers/conmon/issues/236
+ # CANNOT BE PARALLELIZED due to "-l"
+-# bats test_tags=distro-integration
+ @test "podman run - does not truncate or hang with big output" {
+     # Size, in bytes, to dd and to expect in return
+     char_count=700000
+@@ -1147,7 +1146,7 @@ EOF
+     run_podman rm $output
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman run --device-read-bps" {
+     skip_if_rootless "cannot use this flag in rootless mode"
+ 
+diff --git a/test/system/032-sig-proxy.bats b/test/system/032-sig-proxy.bats
+index d34645c7a21..285703c97e7 100644
+--- a/test/system/032-sig-proxy.bats
++++ b/test/system/032-sig-proxy.bats
+@@ -4,8 +4,6 @@ load helpers
+ load helpers.sig-proxy
+ 
+ # Each of the tests below does some setup, then invokes the helper from helpers.sig-proxy.bash.
+-
+-# bats test_tags=distro-integration
+ @test "podman sigproxy test: run" {
+     # We're forced to use $PODMAN because run_podman cannot be backgrounded
+     $PODMAN run -i --name c_run $IMAGE sh -c "$SLEEPLOOP" &
+diff --git a/test/system/035-logs.bats b/test/system/035-logs.bats
+index 39de0ef7825..4aedd4242db 100644
+--- a/test/system/035-logs.bats
++++ b/test/system/035-logs.bats
+@@ -354,7 +354,7 @@ timeout: sending signal TERM to command.*" "logs --since -f on running container
+     _log_test_follow_since k8s-file
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman logs - --since --follow journald" {
+     # We can't use journald on RHEL as rootless: rhbz#1895105
+     skip_if_journald_unavailable
+@@ -398,7 +398,7 @@ $content--2.*" "logs --until -f on running container works"
+     _log_test_follow_until k8s-file
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman logs - --until --follow journald" {
+     # We can't use journald on RHEL as rootless: rhbz#1895105
+     skip_if_journald_unavailable
+diff --git a/test/system/060-mount.bats b/test/system/060-mount.bats
+index 3d5c09cd021..bdde9b459ca 100644
+--- a/test/system/060-mount.bats
++++ b/test/system/060-mount.bats
+@@ -362,7 +362,7 @@ EOF
+     is "$output" "bar1.*bar2.*bar3" "Should match multiple source files on single destination directory"
+ }
+ 
+-# bats test_tags=distro-integration,ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman mount noswap memory mounts" {
+     # tmpfs+noswap new in kernel 6.x, mid-2023; likely not in RHEL for a while
+     if ! is_rootless; then
+diff --git a/test/system/070-build.bats b/test/system/070-build.bats
+index 3b0ceac49a2..7fcf5c87f3e 100644
+--- a/test/system/070-build.bats
++++ b/test/system/070-build.bats
+@@ -7,7 +7,6 @@
+ load helpers
+ load helpers.network
+ 
+-# bats test_tags=distro-integration
+ @test "podman build - basic test" {
+     rand_filename=$(random_string 20)
+     rand_content=$(random_string 50)
+@@ -318,7 +317,6 @@ EOF
+ }
+ 
+ 
+-# bats test_tags=distro-integration
+ @test "podman build - workdir, cmd, env, label" {
+     tmpdir=$PODMAN_TMPDIR/build-test
+     mkdir -p $tmpdir
+diff --git a/test/system/075-exec.bats b/test/system/075-exec.bats
+index 61fee461698..6c4bdfa3493 100644
+--- a/test/system/075-exec.bats
++++ b/test/system/075-exec.bats
+@@ -5,7 +5,7 @@
+ 
+ load helpers
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman exec - basic test" {
+     rand_filename=$(random_string 20)
+     rand_content=$(random_string 50)
+@@ -47,7 +47,6 @@ load helpers
+     run_podman rm $cid
+ }
+ 
+-# bats test_tags=distro-integration
+ @test "podman exec - leak check" {
+     skip_if_remote "test is meaningless over remote"
+ 
+diff --git a/test/system/080-pause.bats b/test/system/080-pause.bats
+index 99e2a847f20..7ce8e9b5cef 100644
+--- a/test/system/080-pause.bats
++++ b/test/system/080-pause.bats
+@@ -6,7 +6,7 @@
+ load helpers
+ load helpers.systemd
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman pause/unpause" {
+     if is_rootless && ! is_cgroupsv2; then
+         skip "'podman pause' (rootless) only works with cgroups v2"
+@@ -65,7 +65,6 @@ load helpers.systemd
+ }
+ 
+ # CANNOT BE PARALLELIZED! (because of unpause --all)
+-# bats test_tags=distro-integration
+ @test "podman unpause --all" {
+     if is_rootless && ! is_cgroupsv2; then
+         skip "'podman pause' (rootless) only works with cgroups v2"
+diff --git a/test/system/090-events.bats b/test/system/090-events.bats
+index 6ad67bbbb5b..e6176086681 100644
+--- a/test/system/090-events.bats
++++ b/test/system/090-events.bats
+@@ -6,7 +6,7 @@
+ load helpers
+ load helpers.network
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "events with a filter by label and --no-trunc option" {
+     cname=test-$(safename)
+     labelname=labelname-$(safename)
+@@ -161,7 +161,7 @@ function _events_disjunctive_filters() {
+     _events_disjunctive_filters ""
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "events with events_logfile_path in containers.conf" {
+     skip_if_remote "remote does not support --events-backend"
+     events_file=$PODMAN_TMPDIR/events.log
+@@ -183,7 +183,7 @@ function _populate_events_file() {
+     done
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "events log-file rotation" {
+     skip_if_remote "setting CONTAINERS_CONF_OVERRIDE logger options does not affect remote client"
+ 
+diff --git a/test/system/125-import.bats b/test/system/125-import.bats
+index 5a494530384..4f7957ab8ca 100644
+--- a/test/system/125-import.bats
++++ b/test/system/125-import.bats
+@@ -47,7 +47,7 @@ load helpers
+ }
+ 
+ # Integration tag to catch future breakage in tar, e.g. #19407
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman export, alter tarball, re-import" {
+     # Create a test file following test
+     mkdir $PODMAN_TMPDIR/tmp
+diff --git a/test/system/130-kill.bats b/test/system/130-kill.bats
+index 6912dd15e2c..dbb5e6d9217 100644
+--- a/test/system/130-kill.bats
++++ b/test/system/130-kill.bats
+@@ -5,7 +5,7 @@
+ 
+ load helpers
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman kill - test signal handling in containers" {
+     local cname=c-$(safename)
+     local fifo=${PODMAN_TMPDIR}/podman-kill-fifo.$(random_string 10)
+diff --git a/test/system/160-volumes.bats b/test/system/160-volumes.bats
+index 703d5671f57..2c7148a0352 100644
+--- a/test/system/160-volumes.bats
++++ b/test/system/160-volumes.bats
+@@ -408,7 +408,6 @@ EOF
+     is "$output"  "" "no more volumes to prune"
+ }
+ 
+-# bats test_tags=distro-integration
+ @test "podman volume type=bind" {
+     myvoldir=${PODMAN_TMPDIR}/volume_$(random_string)
+     mkdir $myvoldir
+diff --git a/test/system/161-volume-quotas.bats b/test/system/161-volume-quotas.bats
+index 6fcf4dfd009..fb49d21cd22 100644
+--- a/test/system/161-volume-quotas.bats
++++ b/test/system/161-volume-quotas.bats
+@@ -2,8 +2,6 @@
+ #
+ # podman volume XFS quota tests
+ #
+-# bats file_tags=distro-integration
+-#
+ 
+ load helpers
+ 
+diff --git a/test/system/170-run-userns.bats b/test/system/170-run-userns.bats
+index 26468661d2a..c1f59e0e8af 100644
+--- a/test/system/170-run-userns.bats
++++ b/test/system/170-run-userns.bats
+@@ -3,8 +3,6 @@
+ #
+ # Tests for podman build
+ #
+-# bats file_tags=distro-integration
+-#
+ 
+ load helpers
+ 
+diff --git a/test/system/180-blkio.bats b/test/system/180-blkio.bats
+index 6fb532c6723..eab0e31e510 100644
+--- a/test/system/180-blkio.bats
++++ b/test/system/180-blkio.bats
+@@ -2,8 +2,6 @@
+ #
+ # podman blkio-related tests
+ #
+-# bats file_tags=distro-integration
+-#
+ 
+ load helpers
+ 
+diff --git a/test/system/190-run-ipcns.bats b/test/system/190-run-ipcns.bats
+index b20871abb35..a764f9a7b41 100644
+--- a/test/system/190-run-ipcns.bats
++++ b/test/system/190-run-ipcns.bats
+@@ -3,8 +3,6 @@
+ #
+ # Tests for podman build
+ #
+-# bats file_tags=distro-integration
+-#
+ 
+ load helpers
+ 
+diff --git a/test/system/195-run-namespaces.bats b/test/system/195-run-namespaces.bats
+index 599ae7eeb36..230669d15be 100644
+--- a/test/system/195-run-namespaces.bats
++++ b/test/system/195-run-namespaces.bats
+@@ -5,7 +5,7 @@
+ 
+ load helpers
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman test all namespaces" {
+     # format is nsname | option name
+     tests="
+diff --git a/test/system/252-quadlet.bats b/test/system/252-quadlet.bats
+index 3b2bbb5be7f..85b6e942ebc 100644
+--- a/test/system/252-quadlet.bats
++++ b/test/system/252-quadlet.bats
+@@ -185,7 +185,6 @@ function wait_for_journal() {
+     die "Timed out waiting for '$expect_str' in journalctl output"
+ }
+ 
+-# bats test_tags=distro-integration
+ @test "quadlet - basic" {
+     # Network=none is to work around a Pasta bug, can be removed once a patched Pasta is available.
+     # Ref https://github.com/containers/podman/pull/21563#issuecomment-1965145324
+diff --git a/test/system/260-sdnotify.bats b/test/system/260-sdnotify.bats
+index 175588f504c..193e0cd5315 100644
+--- a/test/system/260-sdnotify.bats
++++ b/test/system/260-sdnotify.bats
+@@ -116,7 +116,7 @@ function _assert_mainpid_is_conmon() {
+     _stop_socat
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "sdnotify : conmon" {
+     export NOTIFY_SOCKET=$PODMAN_TMPDIR/conmon.sock
+     _start_socat
+@@ -155,7 +155,7 @@ READY=1" "sdnotify sent MAINPID and READY"
+ 
+ # These tests can fail in dev. environment because of SELinux.
+ # quick fix: chcon -t container_runtime_exec_t ./bin/podman
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "sdnotify : container" {
+     _prefetch $SYSTEMD_IMAGE
+ 
+@@ -479,7 +479,7 @@ spec:
+ " > $fname
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman kube play - exit-code propagation" {
+     fname=$PODMAN_TMPDIR/$(random_string).yaml
+ 
+diff --git a/test/system/280-update.bats b/test/system/280-update.bats
+index 0c87332900c..1d137562be0 100644
+--- a/test/system/280-update.bats
++++ b/test/system/280-update.bats
+@@ -16,7 +16,6 @@ function teardown() {
+ }
+ 
+ 
+-# bats test_tags=distro-integration
+ @test "podman update - test all options" {
+     local cgv=1
+     if is_cgroupsv2; then
+diff --git a/test/system/410-selinux.bats b/test/system/410-selinux.bats
+index a7a87054d46..f360e91446a 100644
+--- a/test/system/410-selinux.bats
++++ b/test/system/410-selinux.bats
+@@ -47,42 +47,42 @@ function check_label() {
+ }
+ 
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: confined container" {
+     check_label "" "container_t"
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: container with label=disable" {
+     check_label "--security-opt label=disable" "spc_t"
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: privileged container" {
+     check_label "--privileged" "spc_t"
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: privileged --userns=host container" {
+     check_label "--privileged --userns=host" "spc_t"
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: --ipc=host container" {
+     check_label "--ipc=host" "spc_t"
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: init container" {
+     check_label "--systemd=always" "container_init_t"
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: init container with --security-opt type" {
+     check_label "--systemd=always --security-opt=label=type:spc_t" "spc_t"
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: init container with --security-opt level&type" {
+     check_label "--systemd=always --security-opt=label=level:s0:c1,c2 --security-opt=label=type:spc_t" "spc_t" "s0:c1,c2"
+ }
+@@ -92,7 +92,7 @@ function check_label() {
+     check_label "--systemd=always --security-opt=label=level:s0:c1,c2" "container_init_t"  "s0:c1,c2"
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: pid=host" {
+     # FIXME this test fails when run rootless with runc:
+     #   Error: container_linux.go:367: starting container process caused: process_linux.go:495: container init caused: readonly path /proc/asound: operation not permitted: OCI permission denied
+@@ -193,7 +193,7 @@ function check_label() {
+ }
+ 
+ # pr #7902 - containers in pods should all run under same context
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman selinux: containers in pods share full context" {
+     skip_if_no_selinux
+ 
+@@ -269,7 +269,6 @@ function check_label() {
+     is "$output" "Error.*: $expect" "podman emits useful diagnostic on failure"
+ }
+ 
+-# bats test_tags=distro-integration
+ @test "podman selinux: check relabel" {
+     skip_if_no_selinux
+ 
+diff --git a/test/system/420-cgroups.bats b/test/system/420-cgroups.bats
+index 94ad19ebef2..d0bfd36b664 100644
+--- a/test/system/420-cgroups.bats
++++ b/test/system/420-cgroups.bats
+@@ -38,7 +38,7 @@ load helpers
+     run_podman rm myc
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman run --cgroups=disabled keeps the current cgroup" {
+     skip_if_remote "podman-remote does not support --cgroups=disabled"
+     skip_if_rootless_cgroupsv1
+diff --git a/test/system/500-networking.bats b/test/system/500-networking.bats
+index 27887b619bf..7fc58713ea6 100644
+--- a/test/system/500-networking.bats
++++ b/test/system/500-networking.bats
+@@ -322,7 +322,6 @@ load helpers.network
+ }
+ 
+ # CANNOT BE PARALLELIZED due to iptables/nft commands
+-# bats test_tags=distro-integration
+ @test "podman network reload" {
+     skip_if_remote "podman network reload does not have remote support"
+ 
+@@ -504,7 +503,7 @@ load helpers.network
+ }
+ 
+ # Test for https://github.com/containers/podman/issues/10052
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman network connect/disconnect with port forwarding" {
+     random_1=$(random_string 30)
+     HOST_PORT=$(random_free_port)
+@@ -778,7 +777,7 @@ nameserver 8.8.8.8" "nameserver order is correct"
+     run_podman network rm -f $netname
+ }
+ 
+-# bats test_tags=distro-integration, ci:parallel
++# bats test_tags=ci:parallel
+ @test "podman run port forward range" {
+     # we run a long loop of tests lets run all combinations before bailing out
+     defer-assertion-failures

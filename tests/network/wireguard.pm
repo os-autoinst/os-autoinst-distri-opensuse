@@ -9,16 +9,15 @@
 #  Run iperf3 speed test inside the tunnel for verification
 # Maintainer: Pavel Dostál <pdostal@suse.cz>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use version_utils 'is_sle';
 use registration;
 use lockapi;
 use mmapi 'wait_for_children';
+use package_utils 'install_package';
 
 sub start_wgquick {
     foreach my $dev (@_) {
@@ -58,7 +57,7 @@ sub run {
         $remote = '10.0.2.101';
     }
 
-    if (is_sle()) {
+    if (is_sle('<16')) {
         add_suseconnect_product('sle-module-desktop-applications');
         add_suseconnect_product(get_addon_fullname('we'), undef, undef, "-r " . get_required_var('SCC_REGCODE_WE'), 300, 1);
         # Workaround https://bugzilla.suse.com/show_bug.cgi?id=1181941
@@ -74,7 +73,7 @@ sub run {
     assert_script_run("grep -i CONFIG_WIREGUARD $boot_config") unless (script_run("stat $boot_config") != 0);
     assert_script_run 'modinfo wireguard';
 
-    zypper_call 'in wireguard-tools iperf';
+    install_package('wireguard-tools iperf', trup_reboot => 1);
 
     assert_script_run 'which wg';
     assert_script_run 'umask 077';

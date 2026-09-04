@@ -42,6 +42,8 @@ conditional_schedule:
     FLAVOR:
       Server-DVD-HA-Updates:
         - qa_automation/patch_and_reboot
+      Server-DVD-HA-Updates-LTSS-ES:
+        - qa_automation/patch_and_reboot
   add_update_test_repo:
     QAM_INCI:
       1:

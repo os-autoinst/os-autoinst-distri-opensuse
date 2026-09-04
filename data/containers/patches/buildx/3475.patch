@@ -1,0 +1,51 @@
+From 226c8c54e26d69c9c95748d5eb0d1e2ba2741915 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 17 Oct 2025 13:35:33 +0200
+Subject: [PATCH 1/2] test: Handle version not having the initial 'v'
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/version.go | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/tests/version.go b/tests/version.go
+index 170a676d2aa6..c90a0342dd21 100644
+--- a/tests/version.go
++++ b/tests/version.go
+@@ -45,6 +45,10 @@ func testVersion(t *testing.T, sb integration.Sandbox) {
+ 	// This defaults to something that's still compatible
+ 	// with semver.
+ 	version := fields[1]
++	// Some downstream distributions strip the initial "v"
++	if !strings.HasPrefix(version, "v") {
++		version = "v" + version
++	}
+ 	require.True(t, semver.IsValid(version), "Second field was not valid semver: %+v", version)
+ 
+ 	// Revision should be empty or should look like a git hash.
+
+From cbe50dc1b8df3e48c452a97b2a9db3fa66d8d65f Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Fri, 17 Oct 2025 14:06:23 +0200
+Subject: [PATCH 2/2] test: Drop git revision test from version command
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ tests/version.go | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/tests/version.go b/tests/version.go
+index c90a0342dd21..92be3016390a 100644
+--- a/tests/version.go
++++ b/tests/version.go
+@@ -50,10 +50,4 @@ func testVersion(t *testing.T, sb integration.Sandbox) {
+ 		version = "v" + version
+ 	}
+ 	require.True(t, semver.IsValid(version), "Second field was not valid semver: %+v", version)
+-
+-	// Revision should be empty or should look like a git hash.
+-	if len(fields) > 2 && len(fields[2]) > 0 {
+-		revision := fields[2]
+-		require.Regexp(t, `[0-9a-f]{40}`, revision, "Third field was not a git revision: %+v", revision)
+-	}
+ }

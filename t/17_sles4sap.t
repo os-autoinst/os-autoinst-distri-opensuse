@@ -296,5 +296,4 @@ subtest '[download_hana_assets_from_server]' => sub {
     ok((any { /wget.*MY_DOWNLOAD_URL/ } @calls), 'wget call');
 };
 
-
 done_testing;

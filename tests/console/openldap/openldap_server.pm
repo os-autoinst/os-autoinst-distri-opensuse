@@ -6,10 +6,8 @@
 # Maintainer: QE Core <qe-core@suse.de>
 # Tags: poo#165258
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use utils;
 use lockapi;
 use mmapi 'wait_for_children';

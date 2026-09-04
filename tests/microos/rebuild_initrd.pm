@@ -9,7 +9,7 @@
 #          e.g. qemu/qemu.pm (s390x)
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use Mojo::Base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use transactional;
 
@@ -17,7 +17,7 @@ sub run {
     my ($self) = @_;
     select_console 'root-console';
 
-    assert_script_run(q|echo 'omit_dracutmodules+="ignition ignition-microos combustion"' > /etc/dracut.conf.d/20-disable_ignition.conf|);
+    assert_script_run(q|echo 'omit_dracutmodules+=" ignition ignition-microos combustion "' > /etc/dracut.conf.d/20-disable_ignition.conf|);
     trup_call('initrd');
     check_reboot_changes;
 }

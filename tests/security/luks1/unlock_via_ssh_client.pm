@@ -6,10 +6,7 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#81780, tc#1768639, poo#110953
 
-use strict;
-use warnings;
-use base 'consoletest';
-use base 'opensusebasetest';
+use Mojo::Base qw(consoletest opensusebasetest);
 use testapi;
 use lockapi;
 use utils;

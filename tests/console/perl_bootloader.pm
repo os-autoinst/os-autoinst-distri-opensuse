@@ -7,16 +7,15 @@
 # Summary: Basic functional test for pbl package
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use package_utils;
 use power_action_utils 'power_action';
 use version_utils qw(is_sle is_leap is_sle_micro is_leap_micro check_version is_transactional);
 use Utils::Backends 'is_pvm';
+use Utils::Logging qw(record_avc_selinux_alerts);
 use transactional;
 
 sub run {
@@ -47,15 +46,18 @@ sub run {
     }
 
     if (is_transactional) {
-        trup_call 'run pbl --install';
-        if (get_var('FLAVOR') =~ m/-encrypted/i) {
-            # workaround bsc#1228126 poo#164021 poo#164156
-            script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/sl') unless is_leap_micro('>6.0');
-            script_run('cp /boot/efi/EFI/BOOT/sealed.tpm /boot/efi/EFI/opensuse/') if is_leap_micro('>6.0');
+        # this runs pbl internally and prepares an new snapshot
+        trup_call "bootloader";
+
+        if (!script_run('command -v fdectl') && get_var('QEMUTPM', 0) && !(get_var('FLAVOR', '') =~ /updates/i)) {
+            # in order to avoid LUKS partition prompt, copy the blob into proper EFI dirs
+            assert_script_run 'EFIDIR=$(dirname $(find /boot/efi/ -name "grub*.efi" -print -o -type d -name "BOOT" -prune))';
+            assert_script_run 'test -z ${EFIDIR} || fdectl tpm-activate --uefi-boot-dir ${EFIDIR}';
         }
+
         check_reboot_changes;
-        trup_call 'run pbl --config';
-        check_reboot_changes;
+        assert_script_run 'pbl --show';
+
     }
     else {
         assert_script_run 'pbl --install';
@@ -89,6 +91,11 @@ sub post_fail_hook {
     my ($self) = @_;
     $self->SUPER::post_fail_hook;
     upload_logs('/var/log/pbl.log');
+}
+
+sub post_run_hook {
+    select_console('log-console');
+    shift->record_avc_selinux_alerts;
 }
 
 1;

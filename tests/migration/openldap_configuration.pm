@@ -4,13 +4,11 @@
 # Summary: The module attempts to save openldap configuration files in
 #          the system.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use Utils::Architectures;
 use utils;
 use Utils::Systemd qw(systemctl disable_and_stop_service check_unit_file);

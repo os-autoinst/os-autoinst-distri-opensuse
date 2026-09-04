@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: FSFAP
 # Summary: Package for ssh service tests
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package services::sshd;
 use base 'opensusebasetest';
@@ -87,18 +87,33 @@ sub ssh_basic_check {
     assert_script_run("echo \"PS1='# '\" >> ~$ssh_testman/.bashrc") unless check_var('VIRTIO_CONSOLE', '0');
 
     # Make interactive SSH connection as the new user
-    enter_cmd "expect -c 'spawn ssh $ssh_testman\@localhost -t;expect \"Are you sure\";send yes\\n;expect sword:;send $ssh_testman_passwd\\n;expect #;send \\n;interact'";
-    sleep(1);
+    # poo#205149: the sub-shell spawned via ssh -t doesn't inherit the outer
+    # shell's PROMPT_COMMAND marker hook, so fall back to classic markers
+    # for this interactive region only.
+    {
+        my $marker_guard = $testapi::distri->pretty_serial_marker_guard(0);
+        # ssh writes prompts to its own tty, not stdout, so give it a fresh pty via `script` (poo#205149).
+        script_start_io("script -qe -c 'ssh -4 -v -E /tmp/ssh_log0 $ssh_testman\@localhost -t' /dev/null");
+        set_var('SUBSHELL_NOT_AS_ROOT', 1);
+        # Host key is always untrusted: prepare_test_data cleared ~/.ssh.
+        die "host key prompt did not appear\n" unless wait_serial('Are you sure', timeout => 300);
+        enter_cmd('yes');
+        die "password prompt did not appear\n" unless wait_serial('sword:', timeout => 300);
+        enter_cmd($ssh_testman_passwd);
 
-    # Check that we are really in the SSH session
-    assert_script_run 'echo $SSH_TTY | grep "\/dev\/pts\/"';
-    assert_script_run 'ps ux | grep -E ".* \? .* sshd(-session)?\:"';
-    assert_script_run "whoami | grep $ssh_testman";
-    assert_script_run "mkdir .ssh";
+        # Check that we are really in the SSH session
+        assert_script_run '[ -n "$SSH_TTY" ]';
+        assert_script_run 'grep -E "$PPID \(sshd(-session)?\)" /proc/$PPID/stat';
+        assert_script_run "ps ux | grep -E '$ssh_testman.*sshd(-session)?'";
+        assert_script_run "whoami | grep $ssh_testman";
+        assert_script_run "mkdir .ssh";
 
-    # Exit properly and check we're root again
-    script_run("exit", 0);
-    assert_script_run "whoami | grep root";
+        # Exit properly and check we're root again
+        enter_cmd('exit');
+        script_finish_io(timeout => 300, exitcodes => [0]);
+        assert_script_run "whoami | grep root";
+        set_var('SUBSHELL_NOT_AS_ROOT', 0);
+    }
 
     # Generate RSA key for root and the user
     assert_script_run "ssh-keygen -t rsa -P '' -C 'root\@localhost' -f ~/.ssh/id_rsa";

@@ -16,7 +16,7 @@
 
 use Mojo::Base 'containers::basetest';
 use testapi;
-use serial_terminal 'select_serial_terminal';
+use serial_terminal;
 use utils;
 use containers::common;
 use containers::docker;
@@ -38,13 +38,6 @@ sub run {
 
     my $image = get_var("CONTAINER_IMAGE_TO_TEST", "registry.opensuse.org/opensuse/tumbleweed:latest");
 
-    my $subuid_start = get_user_subuid($user);
-    if ($subuid_start eq '') {
-        record_soft_failure 'bsc#1185342 - YaST does not set up subuids/-gids for users';
-        $subuid_start = 200000;
-        my $subuid_range = $subuid_start + 65535;
-        assert_script_run "usermod --add-subuids $subuid_start-$subuid_range --add-subgids $subuid_start-$subuid_range $user";
-    }
     assert_script_run "grep $user /etc/subuid", fail_message => "subuid range not assigned for $user";
     assert_script_run "grep $user /etc/subgid", fail_message => "subgid range not assigned for $user";
 
@@ -53,23 +46,23 @@ sub run {
     # already exists owned by root
     assert_script_run 'rm -rf /tmp/script*';
     ensure_serialdev_permissions;
-    select_console "user-console";
+    select_user_serial_terminal;
 
     # https://docs.docker.com/engine/security/rootless/
     assert_script_run "dockerd-rootless-setuptool.sh install";
     assert_script_run "systemctl --user enable --now docker";
     record_info("docker info", script_output("docker info"));
+    my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
+    record_info("WARNINGS daemon", $warnings) if $warnings;
+    $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
+    record_info("WARNINGS client", $warnings) if $warnings;
 
     test_container_image(image => $image, runtime => $docker);
     build_and_run_image(base => $image, runtime => $docker);
     test_zypper_on_container($docker, $image);
-}
 
-sub get_user_subuid {
-    my ($user) = shift;
-    my $start_range = script_output("awk -F':' '\$1 == \"$user\" {print \$2}' /etc/subuid",
-        proceed_on_failure => 1);
-    return $start_range;
+    # Like above, but the other way around: Delete the files left by the regular user.
+    assert_script_run 'rm -rf /tmp/script*';
 }
 
 sub cleanup {
@@ -90,6 +83,10 @@ sub post_fail_hook {
     select_serial_terminal();
     save_and_upload_log('cat /etc/{subuid,subgid}', "/tmp/permissions.txt");
     $self->SUPER::post_fail_hook;
+}
+
+sub test_flags {
+    return {fatal => 0};
 }
 
 1;

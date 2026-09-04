@@ -18,11 +18,9 @@
 #   - Collect network card info
 #   - Compress everything and upload the logs
 #   - Save a screenshot
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 
 sub run {
@@ -42,26 +40,26 @@ sub run {
         $up = 0 if !wait_serial("up", 10);
     }
     if (!$up) {
-        enter_cmd "mkdir /tmp/wicked";
+        assert_script_run "mkdir /tmp/wicked";
         # enable debugging
-        enter_cmd "perl -i -lpe 's{^(WICKED_DEBUG)=.*}{\$1=\"all\"};s{^(WICKED_LOG_LEVEL)=.*}{\$1=\"debug\"}' /etc/sysconfig/network/config";
-        enter_cmd "grep -E \"WICKED_DEBUG|WICKED_LOG_LEVEL\" /etc/sysconfig/network/config";
+        assert_script_run "perl -i -lpe 's{^(WICKED_DEBUG)=.*}{\$1=\"all\"};s{^(WICKED_LOG_LEVEL)=.*}{\$1=\"debug\"}' /etc/sysconfig/network/config";
+        script_run "grep -E \"WICKED_DEBUG|WICKED_LOG_LEVEL\" /etc/sysconfig/network/config ||:";
         # restart the daemons
-        enter_cmd "systemctl restart wickedd";
+        script_run "systemctl restart wickedd ||:";
         save_screenshot;
         # reapply the config
-        enter_cmd "wicked --debug all ifup all";
+        script_run "wicked --debug all ifup all ||:";
         save_screenshot;
         # collect the configuration
-        enter_cmd "wicked show-config > /tmp/wicked/config-dump.log";
+        script_run "wicked show-config > /tmp/wicked/config-dump.log ||:";
         # collect the status
-        enter_cmd "wicked ifstatus --verbose all > /tmp/wicked/status.log";
-        enter_cmd "journalctl -b -o short-precise > /tmp/wicked/wicked.log";
-        enter_cmd "ip addr show > /tmp/wicked/ip_addr.log";
-        enter_cmd "ip route show table all > /tmp/wicked/routes.log";
+        script_run "wicked ifstatus --verbose all > /tmp/wicked/status.log ||:";
+        script_run "journalctl -b -o short-precise > /tmp/wicked/wicked.log ||:";
+        script_run "ip addr show > /tmp/wicked/ip_addr.log ||:";
+        script_run "ip route show table all > /tmp/wicked/routes.log ||:";
         # collect network information
-        enter_cmd "hwinfo --netcard > /tmp/wicked/hwinfo-netcard.log";
-        enter_cmd "tar -czf /tmp/wicked_logs.tgz /etc/sysconfig/network /tmp/wicked";
+        script_run "hwinfo --netcard > /tmp/wicked/hwinfo-netcard.log ||:";
+        script_run "tar -czf /tmp/wicked_logs.tgz /etc/sysconfig/network /tmp/wicked ||:", timeout => 300;
         upload_logs "/tmp/wicked_logs.tgz";
         save_screenshot;
     }

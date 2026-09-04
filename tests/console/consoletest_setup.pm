@@ -18,7 +18,7 @@
 
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_leap is_sle);
@@ -26,8 +26,6 @@ use utils qw(check_console_font disable_serial_getty zypper_call);
 use Utils::Backends qw(has_ttys);
 use Utils::Systemd qw(disable_and_stop_service systemctl);
 use Utils::Logging 'export_logs';
-use strict;
-use warnings;
 
 
 sub run {
@@ -42,22 +40,22 @@ sub run {
     }
 
     # copy and add root key into authorized_keys and public key into known_hosts of both root and user
-    # $user is not created or used, like LIVECD or ROOTONLY tests
-    if (get_var('ROOTONLY') || get_var('LIVECD') || get_var('HA_CLUSTER')) {
+    # except when $user is not created or used
+    if (get_var('ROOTONLY') || get_var('HA_CLUSTER')) {
         assert_script_run('mkdir -pv ~/.ssh');
         assert_script_run('touch ~/.ssh/{authorized_keys,known_hosts}');
-        assert_script_run('chmod 600 ~/.ssh/*');
+        assert_script_run('chmod -R go-rwx ~/.ssh');
         assert_script_run('cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys');
-        assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts");
+        assert_script_run("(set -o pipefail; ssh-keyscan -T 20 localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts)");
     }
     else {
         assert_script_run("mkdir -pv ~/.ssh ~$user/.ssh");
         assert_script_run("cp ~/.ssh/id_rsa ~$user/.ssh/id_rsa");
         assert_script_run("touch ~{,$user}/.ssh/{authorized_keys,known_hosts}");
-        assert_script_run("chmod 600 ~{,$user}/.ssh/*");
-        assert_script_run("chown -R bernhard ~$user/.ssh");
+        assert_script_run("chmod -R go-rwx ~{,$user}/.ssh");
+        assert_script_run("chown -R $user ~$user/.ssh");
         assert_script_run("cat ~/.ssh/id_rsa.pub | tee -a ~{,$user}/.ssh/authorized_keys");
-        assert_script_run("ssh-keyscan localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts");
+        assert_script_run("(set -o pipefail; ssh-keyscan -T 20 localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts)");
     }
 
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt

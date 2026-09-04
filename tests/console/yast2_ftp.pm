@@ -15,9 +15,7 @@
 # Step 7: Send finish command exits the app.
 # Maintainer: Sergio R Lemke <slemke@suse.com>
 
-use strict;
-use warnings;
-use base "y2_module_consoletest";
+use Mojo::Base 'y2_module_consoletest';
 use testapi;
 use utils;
 use version_utils;
@@ -78,19 +76,12 @@ sub run {
     script_run("rm /etc/vsftpd.conf");
     assert_script_run("rm -f /etc/vsftpd.pem");    #-f to not trigger error if file does not exist
 
-    # bsc#694167 bsc#1183786
     # create RSA certificate for ftp server at first which can be used for SSL configuration
-    if (is_sle('<=12-SP2')) {
-        # script_run is used due to semicolon breaks the output
-        assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n"
-              . "-subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
-              . "-keyout $vsftpd_directives->{dsa_cert_file} -out $vsftpd_directives->{dsa_cert_file}");
-    }
-    else {
-        assert_script_run("openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\\n"
-              . " -subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin\@localhost' \\\n"
-              . " -keyout $vsftpd_directives->{rsa_cert_file} -out $vsftpd_directives->{rsa_cert_file}");
-    }
+    my $openssl_command = "openssl req -x509 -nodes -days 365 -newkey rsa:2048"
+      . q{ -subj '/C=DE/ST=Bayern/L=Nuremberg/O=Suse/OU=QA/CN=localhost/emailAddress=admin@localhost'}
+      . qq{ -keyout $vsftpd_directives->{rsa_cert_file} -out $vsftpd_directives->{rsa_cert_file} };
+
+    assert_script_run($openssl_command);
 
     # check vsftpd.pem is created
     assert_script_run("ls /etc/vsftpd.pem");

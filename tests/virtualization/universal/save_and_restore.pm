@@ -12,10 +12,8 @@
 # Summary: Test if the guests can be saved and restored
 # Maintainer: QE-Virtualization <qe-virt@suse.de>
 
-use base "virt_feature_test_base";
+use Mojo::Base 'virt_feature_test_base';
 use virt_autotest::common;
-use strict;
-use warnings;
 use testapi;
 use utils;
 

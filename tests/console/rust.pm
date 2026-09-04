@@ -8,16 +8,14 @@
 #    Use cargo to create a project which pulls in dependencies online.
 # Maintainer: Cris Dywan <cdywan@suse.com>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
-use utils qw(zypper_call);
+use package_utils 'install_package';
 use Utils::Architectures 'is_aarch64';
 
 sub run {
     select_console('root-console');
-    zypper_call('in cargo gcc');
+    install_package('cargo gcc', trup_reboot => 1);
 
     select_console('user-console');
     assert_script_run('cargo new testproject');

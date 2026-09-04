@@ -9,16 +9,14 @@
 # - connect to static.opensuse.org:443 using openssl and verify that the return code is 0
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils 'zypper_call';
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    zypper_call 'in ca-certificates-mozilla openssl';
+    install_package('ca-certificates-mozilla openssl', trup_reboot => 1) if (script_run('rpm -qi ca-certificates-mozilla openssl'));
     my $server = "static.opensuse.org";    # due to infra setup, need to pass explicit servername for older openssl
     assert_script_run(qq[echo "x" | openssl s_client -connect $server:443 -servername $server | grep "Verify return code: 0"]);
 }

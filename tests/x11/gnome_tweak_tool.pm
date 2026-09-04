@@ -11,9 +11,7 @@
 # - Close gnome tweak tool
 # Maintainer: Dominique Leuenberger <dimstar@opensuse.org>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

@@ -106,6 +106,17 @@ For instance, depending on the value of DISTRI setting we can schedule an ordere
                   - installation/addon_products_sle
 ```
 
+A special key `+undefined` is a fallback to schedule modules when its corresponding test variable is undefined,
+e.g  if a job doesn't have `FOO` in its settings, module `bar/baz` would be scheduled:
+
+```yaml
+  conditional_schedule:
+      needed_module:
+          FOO:
+              '+undefined':
+                  - bar/baz
+```
+
 #### schedule
 Refers to a sequence of test modules to be executed in the test suite. For the moment it was chosen this format `'{{...}}''`
 to indicate that the module or modules executed at this position is conditional to some variable as described in [conditional_schedule](#conditional_schedule).

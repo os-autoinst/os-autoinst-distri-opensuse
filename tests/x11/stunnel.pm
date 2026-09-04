@@ -8,9 +8,7 @@
 # Maintainer: Grace Wang <grace.wang@suse.com>
 # Tags: TC1595152
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use lockapi;
 use utils;

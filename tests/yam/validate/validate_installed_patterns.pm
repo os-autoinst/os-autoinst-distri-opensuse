@@ -6,11 +6,9 @@
 
 # Summary: Validate installed patterns against the list of additional patterns
 # selected to be installed during installation.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use utils 'zypper_call';
 use testapi;
 

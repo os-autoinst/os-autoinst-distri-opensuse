@@ -17,17 +17,16 @@
 # - Run top -b -n 1 and check
 # Maintainer: Paolo Stivanin <pstivanin@suse.com>
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use strict;
-use warnings;
+use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
 
-    zypper_call('in procps');
+    install_package('procps', trup_reboot => 1) if (script_run('rpm -q procps'));
 
     assert_script_run("rpm -q procps");
 

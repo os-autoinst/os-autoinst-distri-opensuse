@@ -30,6 +30,32 @@
             <initialize config:type="boolean">true</initialize> 
         </drive>
     </partitioning>
+    <firewall config:type="map">
+        <default_zone>public</default_zone>
+        <enable_firewall config:type="boolean">true</enable_firewall>
+        <log_denied_packets>off</log_denied_packets>
+        <start_firewall config:type="boolean">true</start_firewall>
+        <zones config:type="list">
+            <zone config:type="map">
+                <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+                <interfaces config:type="list">
+                    <interface>eth0</interface>
+                </interfaces>
+                <masquerade config:type="boolean">false</masquerade>
+                <name>public</name>
+                <ports config:type="list"/>
+                <protocols config:type="list"/>
+                <services config:type="list">
+                    <service>dhcpv6-client</service>
+                    <service>ssh</service>
+                    <service>tigervnc</service>
+                    <service>tigervnc-https</service>
+                </services>
+                <short>Public</short>
+                <target>default</target>
+            </zone>
+        </zones>
+    </firewall>
     <services-manager>
         <default_target>multi-user</default_target>
         <services>

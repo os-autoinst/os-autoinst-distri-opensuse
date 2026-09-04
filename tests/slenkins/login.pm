@@ -4,9 +4,7 @@
 # Summary: slenkins tests login
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
-use strict;
-use warnings;
-use base "opensusebasetest";
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 

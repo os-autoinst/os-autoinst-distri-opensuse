@@ -7,11 +7,9 @@
 # Summary: Tests for kernel live patching infrastructure
 # Maintainer: Ondřej Súkup <osukup@suse.cz>
 
-use strict;
-use warnings;
 use File::Basename 'basename';
 
-use base 'opensusebasetest';
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -19,6 +17,8 @@ use registration;
 use version_utils 'is_sle';
 use transactional;
 use package_utils;
+use kernel;
+use Kernel::utils qw(is_debugfs_mounted enable_debugfs);
 
 sub run {
     if (get_var('AZURE')) {
@@ -35,12 +35,10 @@ sub run {
     add_suseconnect_product("sle-sdk") if (is_sle('<12-SP5'));
     install_package('autoconf automake gcc git make');
 
-    if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
-        my $devel_pack = 'kernel-devel';
+    enable_debugfs() unless is_debugfs_mounted();
 
-        if (check_var('SLE_PRODUCT', 'slert')) {
-            $devel_pack = 'kernel-devel-rt';
-        }
+    if (script_run('[ -d /lib/modules/$(uname -r)/build ]') != 0) {
+        my $devel_pack = get_kernel_devel_flavor;
 
         # Force recommended packages to pull in kernel-default-devel, etc.
         install_package("--recommends $devel_pack", trup_continue => 1);
@@ -53,7 +51,7 @@ sub run {
     assert_script_run("cd $dir");
     record_info('qa_test_klp', script_output("git show | tee"));
     record_info('bats', script_output("which bats 2>&1", proceed_on_failure => 1));
-    assert_script_run("./run.sh", 2760);
+    assert_script_run("./run.sh", timeout => 300);
 }
 
 1;

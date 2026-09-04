@@ -1,0 +1,152 @@
+From b520fb89514ce9e1b8cfd7527485ece588a90f6b Mon Sep 17 00:00:00 2001
+From: Sebastiaan van Stijn <github@gone.nl>
+Date: Tue, 14 Oct 2025 18:36:34 +0200
+Subject: [PATCH] test/integration: don't check for deprecated Networks field
+
+These tests depended on the deprecated Spec.Networks field, which
+is no longer part of current API versions, causing the test to
+fail;
+
+    =================================== FAILURES ===================================
+    _____________ ServiceTest.test_create_service_with_custom_networks _____________
+    tests/integration/api_service_test.py:379: in test_create_service_with_custom_networks
+    assert 'Networks' in svc_info['Spec']
+    E   AssertionError: assert 'Networks' in {'Labels': {}, 'Mode': {'Replicated': {'Replicas': 1}}, 'Name': 'dockerpytest_a538894175d07404', 'TaskTemplate': {'Con...pec': {'Command': ['true'], 'Image': 'alpine:3.10', 'Isolation': 'default'}, 'ForceUpdate': 0, 'Runtime': 'container'}}
+    ____________ ServiceTest.test_update_service_with_defaults_networks ____________
+    tests/integration/api_service_test.py:1128: in test_update_service_with_defaults_networks
+    assert 'Networks' in svc_info['Spec']
+    E   AssertionError: assert 'Networks' in {'Labels': {}, 'Mode': {'Replicated': {'Replicas': 1}}, 'Name': 'dockerpytest_6d8e30f359c0f5e', 'TaskTemplate': {'Cont...pec': {'Command': ['true'], 'Image': 'alpine:3.10', 'Isolation': 'default'}, 'ForceUpdate': 0, 'Runtime': 'container'}}
+    _____________ ServiceTest.test_update_service_with_network_change ______________
+    tests/integration/api_service_test.py:1333: in test_update_service_with_network_change
+    assert 'Networks' in svc_info['Spec']
+    E   AssertionError: assert 'Networks' in {'Labels': {}, 'Mode': {'Replicated': {'Replicas': 1}}, 'Name': 'dockerpytest_d4e23667cdbaf159', 'TaskTemplate': {'Con... {'Command': ['echo', 'hello'], 'Image': 'busybox', 'Isolation': 'default'}, 'ForceUpdate': 0, 'Runtime': 'container'}}
+    ------- generated xml file: /src/bundles/test-docker-py/junit-report.xml -------
+    =========================== short test summary info ============================
+
+Signed-off-by: Sebastiaan van Stijn <github@gone.nl>
+---
+ tests/integration/api_service_test.py | 56 +++++++++++++++++----------
+ 1 file changed, 35 insertions(+), 21 deletions(-)
+
+diff --git a/tests/integration/api_service_test.py b/tests/integration/api_service_test.py
+index d670968786..ba67c6d538 100644
+--- a/tests/integration/api_service_test.py
++++ b/tests/integration/api_service_test.py
+@@ -367,16 +367,18 @@ def test_create_service_with_custom_networks(self):
+         )
+         self.tmp_networks.append(net2['Id'])
+         container_spec = docker.types.ContainerSpec(TEST_IMG, ['true'])
+-        task_tmpl = docker.types.TaskTemplate(container_spec)
+-        name = self.get_service_name()
+-        svc_id = self.client.create_service(
+-            task_tmpl, name=name, networks=[
++        task_tmpl = docker.types.TaskTemplate(
++            container_spec, networks=[
+                 'dockerpytest_1', {'Target': 'dockerpytest_2'}
+             ]
+         )
++        name = self.get_service_name()
++        svc_id = self.client.create_service(
++            task_tmpl, name=name
++        )
+         svc_info = self.client.inspect_service(svc_id)
+-        assert 'Networks' in svc_info['Spec']
+-        assert svc_info['Spec']['Networks'] == [
++        assert 'Networks' in svc_info['Spec']['TaskTemplate']
++        assert svc_info['Spec']['TaskTemplate']['Networks'] == [
+             {'Target': net1['Id']}, {'Target': net2['Id']}
+         ]
+ 
+@@ -1116,16 +1118,18 @@ def test_update_service_with_defaults_networks(self):
+         )
+         self.tmp_networks.append(net2['Id'])
+         container_spec = docker.types.ContainerSpec(TEST_IMG, ['true'])
+-        task_tmpl = docker.types.TaskTemplate(container_spec)
+-        name = self.get_service_name()
+-        svc_id = self.client.create_service(
+-            task_tmpl, name=name, networks=[
++        task_tmpl = docker.types.TaskTemplate(
++            container_spec, networks=[
+                 'dockerpytest_1', {'Target': 'dockerpytest_2'}
+             ]
+         )
++        name = self.get_service_name()
++        svc_id = self.client.create_service(
++            task_tmpl, name=name
++        )
+         svc_info = self.client.inspect_service(svc_id)
+-        assert 'Networks' in svc_info['Spec']
+-        assert svc_info['Spec']['Networks'] == [
++        assert 'Networks' in svc_info['Spec']['TaskTemplate']
++        assert svc_info['Spec']['TaskTemplate']['Networks'] == [
+             {'Target': net1['Id']}, {'Target': net2['Id']}
+         ]
+ 
+@@ -1143,8 +1147,11 @@ def test_update_service_with_defaults_networks(self):
+             {'Target': net1['Id']}, {'Target': net2['Id']}
+         ]
+ 
++        task_tmpl = docker.types.TaskTemplate(
++            container_spec, networks=[net1['Id']]
++        )
+         self._update_service(
+-            svc_id, name, new_index, networks=[net1['Id']],
++            svc_id, name, new_index, task_tmpl,
+             fetch_current_spec=True
+         )
+         svc_info = self.client.inspect_service(svc_id)
+@@ -1313,7 +1320,6 @@ def test_update_service_with_network_change(self):
+         container_spec = docker.types.ContainerSpec(
+             'busybox', ['echo', 'hello']
+         )
+-        task_tmpl = docker.types.TaskTemplate(container_spec)
+         net1 = self.client.create_network(
+             self.get_service_name(), driver='overlay',
+             ipam={'Driver': 'default'}
+@@ -1324,22 +1330,27 @@ def test_update_service_with_network_change(self):
+             ipam={'Driver': 'default'}
+         )
+         self.tmp_networks.append(net2['Id'])
++        task_tmpl = docker.types.TaskTemplate(
++            container_spec, networks=[net1['Id']]
++        )
+         name = self.get_service_name()
+         svc_id = self.client.create_service(
+-            task_tmpl, name=name, networks=[net1['Id']]
++            task_tmpl, name=name
+         )
+         svc_info = self.client.inspect_service(svc_id)
+-        assert 'Networks' in svc_info['Spec']
+-        assert len(svc_info['Spec']['Networks']) > 0
+-        assert svc_info['Spec']['Networks'][0]['Target'] == net1['Id']
++        assert 'Networks' in svc_info['Spec']['TaskTemplate']
++        assert len(svc_info['Spec']['TaskTemplate']['Networks']) > 0
++        assert svc_info['Spec']['TaskTemplate']['Networks'][0]['Target'] == net1['Id']
+ 
+         svc_info = self.client.inspect_service(svc_id)
+         version_index = svc_info['Version']['Index']
+ 
+-        task_tmpl = docker.types.TaskTemplate(container_spec)
++        task_tmpl = docker.types.TaskTemplate(
++            container_spec, networks=[net2['Id']]
++        )
+         self._update_service(
+             svc_id, name, version_index, task_tmpl, name=name,
+-            networks=[net2['Id']], fetch_current_spec=True
++            fetch_current_spec=True
+         )
+         svc_info = self.client.inspect_service(svc_id)
+         task_template = svc_info['Spec']['TaskTemplate']
+@@ -1351,8 +1362,11 @@ def test_update_service_with_network_change(self):
+         new_index = svc_info['Version']['Index']
+         assert new_index > version_index
+ 
++        task_tmpl = docker.types.TaskTemplate(
++            container_spec, networks=[net1['Id']]
++        )
+         self._update_service(
+-            svc_id, name, new_index, name=name, networks=[net1['Id']],
++            svc_id, name, new_index, task_tmpl, name=name,
+             fetch_current_spec=True
+         )
+         svc_info = self.client.inspect_service(svc_id)

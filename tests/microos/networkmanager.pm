@@ -6,13 +6,13 @@
 # Summary: Test NetworkManager on SLE Micro/MicroOS environments
 # Maintainer: QE Core <qe-core@suse.de>
 
-use Mojo::Base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use transactional;
 use Utils::Architectures qw(is_s390x);
 use Utils::Backends qw(is_qemu is_pvm);
-use version_utils qw(is_vmware);
+use version_utils qw(is_vmware is_sle);
 use virt_autotest::esxi_utils;
 
 my (%network_pvm, %network_s390x, %network_qemu, %network_vmware, %net_config, $nic_name);
@@ -45,12 +45,12 @@ sub restore_config {
 # double check what DNS-Manager is currently used by NetworkManger
 sub dns_mgr {
     my $RcManager = script_output_retry(
-'dbus-send --system --print-reply --dest=org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.DBus.Properties.Get string:org.freedesktop.NetworkManager.DnsManager string:RcManager',
+        'busctl get-property org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.NetworkManager.DnsManager RcManager',
         delay => 5,
         retry => 3
     );
     my $mode = script_output_retry(
-'dbus-send --system --print-reply --dest=org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.DBus.Properties.Get string:org.freedesktop.NetworkManager.DnsManager string:Mode',
+        'busctl get-property org.freedesktop.NetworkManager /org/freedesktop/NetworkManager/DnsManager org.freedesktop.NetworkManager.DnsManager Mode',
         delay => 5,
         retry => 3
     );
@@ -61,8 +61,9 @@ sub run {
     # the below network confiration is used if on pvm
     %network_pvm = ();
     if (is_pvm) {
-        my $vm_mac = script_output qq(ip link show eth0 | grep -F 'link/ether' |awk '{print \$2}');
-        my $vm_ip = script_output qq(ip addr show eth0 | grep -F 'inet ' | awk '{print \$2}' |awk -F '/' '{print \$1}');
+        my $interface = script_output qq(ip -br link show | awk '! /lo/ {print \$1}');
+        my $vm_mac = script_output qq(ip link show $interface | grep -F 'link/ether' |awk '{print \$2}');
+        my $vm_ip = script_output qq(ip addr show $interface | grep -F 'inet ' | awk '{print \$2}' |awk -F '/' '{print \$1}');
         chomp($vm_mac);
         chomp($vm_ip);
         %network_pvm = (
@@ -108,10 +109,15 @@ sub run {
     %net_config = %network_vmware if (is_vmware);
     $nic_name = script_output("grep $net_config{'mac_addr'} /sys/class/net/*/address |cut -d / -f 5");
 
-    # make sure 'sysconfig' and 'sysconfig-netconfig' are not installed by default
     my @pkgs = ('sysconfig', 'sysconfig-netconfig');
-    foreach my $pkg (@pkgs) {
-        die "$pkg will not be installed by default on SLE Micro" if (script_run("rpm -q $pkg") == 0);
+    # package 'sysconfig' is installed by default
+    if (is_sle) {
+        record_info("sysconfig is installed by default in SLE") if (script_run("rpm -q sysconfig") == 0);
+    } else {
+        # make sure 'sysconfig' and 'sysconfig-netconfig' are not installed by default
+        foreach my $pkg (@pkgs) {
+            die "$pkg will not be installed by default on SLE Micro" if (script_run("rpm -q $pkg") == 0);
+        }
     }
     my ($RcManager, $mode);
     # check 'NetworkManager' service is up and it can get right DNS server
@@ -147,7 +153,9 @@ true'
     # DNS-Manager check
     record_info('with dnsmasq');
     ($RcManager, $mode) = dns_mgr();
-    die 'wrong DNS-Manager is currently used for dnsmasq' if ($RcManager !~ /symlink/ || $mode !~ /dnsmasq/);
+    # When netconfig is installed on the system, it is used; otherwise, if no other rc manager is available,
+    # the system falls back to a symlink
+    die 'wrong DNS-Manager is currently used for dnsmasq' if ($RcManager !~ /symlink|netconfig/ || $mode !~ /dnsmasq/);
     ping_check;
     # systemd-resolved
     unless (is_vmware) {

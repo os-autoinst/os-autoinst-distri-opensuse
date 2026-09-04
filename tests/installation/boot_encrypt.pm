@@ -6,11 +6,9 @@
 
 # Summary: Unlock encrypted partitions during bootup after the bootloader
 #   passed, e.g. from plymouth
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use base "installbasetest";
+use Mojo::Base 'installbasetest';
 use utils;
 
 sub run {

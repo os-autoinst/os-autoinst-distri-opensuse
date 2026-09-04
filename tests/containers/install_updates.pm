@@ -7,10 +7,12 @@
 # Maintainer: QE-C team <qa-c@suse.de>
 
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use power_action_utils;
+use serial_terminal qw(get_login_message);
+use Utils::Backends 'is_qemu';
 use version_utils qw(check_os_release get_os_release is_sle);
 
 sub run {
@@ -23,10 +25,6 @@ sub run {
     if ($host_distri =~ /sles|opensuse/) {
         zypper_call("--quiet up", timeout => $update_timeout);
         ensure_ca_certificates_suse_installed() if is_sle();
-        if (script_run('rpm -q tar') && $version =~ '16') {
-            record_soft_failure('bsc#1238784 - tar packet not installed by default');
-            zypper_call('in tar');
-        }
     } elsif ($host_distri eq 'ubuntu') {
         # Sometimes, the host doesn't get an IP automatically via dhcp, we need force it just in case
         assert_script_run("dhclient -v");
@@ -43,7 +41,20 @@ sub run {
     # Perform system reboot to ensure the system is still ok
     my $prev_console = current_console();
     power_action('reboot', textmode => 1);
-    $self->wait_boot(bootloader_time => 300);
+    if (is_qemu) {
+        # On this SLE 16.0 aarch64/qemu image GRUB fails to init its configured
+        # serial terminal ("serial port `com0' isn't found") and the video
+        # framebuffer then genuinely stalls instead of ever painting a screen,
+        # so wait_boot's needle-based checks hit a real "Stall detected" rather
+        # than a missed match. Confirm boot completion over the serial console
+        # instead, which stays live throughout. Non-qemu backends (e.g. s390x
+        # svirt) already have their own proven serial-based handling inside
+        # wait_boot, so they keep using it.
+        die 'System did not come back up after update reboot' unless wait_serial(get_login_message(), 300);
+        reset_consoles;
+    } else {
+        $self->wait_boot(bootloader_time => 300);
+    }
     select_console($prev_console);
 }
 

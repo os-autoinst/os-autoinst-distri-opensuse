@@ -12,23 +12,20 @@ use base "Exporter";
 use Exporter;
 
 use testapi;
-use utils qw(zypper_call handle_screen zypper_repos upload_y2logs);
+use utils qw(zypper_call handle_screen zypper_patches zypper_repos upload_y2logs);
 use JSON;
-use List::Util qw(max);
+use List::Util qw(max uniq);
 use version_utils qw(is_sle is_transactional);
 
 our @EXPORT
   = qw(capture_state check_automounter is_patch_needed add_test_repositories disable_test_repositories enable_test_repositories
   add_extra_customer_repositories ssh_add_test_repositories remove_test_repositories advance_installer_window get_patches check_patch_variables add_repo_if_not_present
-  has_published_assets);
-use constant ZYPPER_PACKAGE_COL => 1;
-use constant OLD_ZYPPER_STATUS_COL => 4;
-use constant ZYPPER_STATUS_COL => 5;
+  has_published_assets get_test_repos);
 
 sub capture_state {
     my ($state, $y2logs) = @_;
     if ($y2logs) {    #save y2logs if needed
-        upload_y2logs(file => "/tmp/y2logs_$state.tar.xz");
+        upload_y2logs(file => "/tmp/y2logs_$state.tar.xz") unless is_sle('>=16');
     }
     #upload ip status
     script_run("ip a | tee /tmp/ip_a_$state.log");
@@ -123,7 +120,9 @@ sub add_test_repositories {
 
     # refresh repositories, inf 106 is accepted because repositories with test
     # can be removed before test start
-    zypper_call('ref', timeout => 1400, exitcode => [0, 106]);
+    # For sle16 staging tests, PR should be untrusted key
+    my $import_key = is_sle('>=16') ? '--gpg-auto-import-keys' : '';
+    zypper_call("$import_key ref", timeout => 1400, exitcode => [0, 106]);
 
     # return the count of repos-1 because counter is increased also on last cycle
     return --$counter;
@@ -207,26 +206,19 @@ sub advance_installer_window {
 
 # Get list of patches
 sub get_patches {
-    my ($incident_id, $repo) = @_;
+    my ($incident_id, $repo, $args) = @_;
 
-    # Replace comma by space, repositories must be divided by space
-    $repo =~ tr/,/ /;
+    # Split repo list into multiple arguments
+    $repo =~ s/,/ -r /g;
+    $args //= '';
 
     # Search for patches by incident, exclude not needed
-    my $patches = script_output("zypper patches -r $repo");
+    my $patches = zypper_patches("-r $repo $args");
     my @patch_list;
-    my $status_col = ZYPPER_STATUS_COL;
 
-    if (is_sle('<12-SP2')) {
-        $status_col = OLD_ZYPPER_STATUS_COL;
-    }
-
-    for my $line (split /\n/, $patches) {
-        my @tokens = split /\s*\|\s*/, $line;
-        next if $#tokens < max(ZYPPER_PACKAGE_COL, $status_col);
-        my $packname = $tokens[ZYPPER_PACKAGE_COL];
-        push @patch_list, $packname if $packname =~ m/$incident_id/ &&
-          'needed' eq lc $tokens[$status_col];
+    for my $item (@$patches) {
+        push @patch_list, $item->{name} if 'needed' eq lc $item->{status} &&
+          (!defined($incident_id) || $item->{name} =~ m/$incident_id/);
     }
 
     return join(' ', @patch_list);
@@ -247,6 +239,25 @@ sub check_patch_variables {
 # Return count of PUBLISH_* job variables
 sub has_published_assets {
     return scalar grep { m/^PUBLISH_/ } keys %bmwqemu::vars;
+}
+
+# Return list of all available repos
+sub get_test_repos {
+    # In Incidents there is INCIDENT_REPO instead of MAINT_TEST_REPO
+    # Those two variables contain list of repositories separated by comma
+    set_var('MAINT_TEST_REPO', get_var('INCIDENT_REPO')) if get_var('INCIDENT_REPO');
+    my @repos = split(/,/, get_var('MAINT_TEST_REPO', ''));
+    # Add aggregate repos to @repos, if they are provided
+    # Test repos are expected to end in '_TEST_REPOS'
+    # These vars are set by qem-bot, e.g.
+    # https://github.com/openSUSE/qem-bot/blob/ecb7acc8badccce85969e05f368455390b1ab6eb/openqabot/types/aggregate.py#L104
+    my @test_repos = grep { /_TEST_REPOS$/ } keys %bmwqemu::vars;
+    for my $repo (@test_repos) {
+        if (my $value = get_var($repo)) {
+            push @repos, split(/,/, $value);
+        }
+    }
+    return uniq @repos;
 }
 
 1;

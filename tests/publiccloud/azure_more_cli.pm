@@ -1,6 +1,6 @@
 # SUSE's openQA tests
 #
-# Copyright 2021 SUSE LLC
+# Copyright 2021,2025 SUSE LLC
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -8,7 +8,7 @@
 # without any warranty.
 
 # Summary: Create VM in Azure using azure-cli binary
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use utils 'zypper_call';
@@ -95,14 +95,15 @@ sub run {
       get_var('PUBLIC_CLOUD_TTL_OFFSET', 300);
     my $openqa_url = get_var('OPENQA_URL', get_var('OPENQA_HOSTNAME'));
     my $created_by = "$openqa_url/t$job_id";
+    my $custodian_ttl = calculate_custodian_ttl($openqa_ttl);
     my $tags = "openqa-cli-test-tag=$job_id openqa_created_by=$created_by openqa_ttl=$openqa_ttl";
-    $tags .= " openqa_var_server=$openqa_url openqa_var_job_id=$job_id";
+    $tags .= " openqa_var_server=$openqa_url openqa_var_job_id=$job_id custodian_ttl=$custodian_ttl";
     my $location = "southeastasia";
     my $sshkey = "~/.ssh/id_rsa.pub";
 
     # Configure default location and create Resource group
     assert_script_run("az configure --defaults location=$location");
-    assert_script_run("az group create -n $resource_group --tags '$tags'");
+    assert_script_run("az group create -n $resource_group --tags $tags");
 
     # Pint - command line tool to query pint.suse.com to get the current image name
     my $image_name = script_output(
@@ -191,8 +192,7 @@ sub cleanup {
     my $resource_group = "oqaclirg$job_id";
     my $machine_name = "oqaclivm$job_id";
 
-    assert_script_run("az group delete --resource-group $resource_group --yes",
-        180);
+    script_run("az group delete --resource-group $resource_group --yes", 180);
 }
 
 sub test_flags {

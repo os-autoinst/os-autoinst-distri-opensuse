@@ -1,6 +1,6 @@
 use Mojo::Base -strict;
 
-use Mojo::File;
+use Mojo::File qw(tempfile);
 use Mojo::JSON;
 use Test::More;
 use Test::MockModule;
@@ -34,7 +34,7 @@ subtest 'whitelist_entry_match' => sub {
     $env->{flavor} = 'EC2-HVM';
     is_deeply(LTP::WhiteList::_whitelist_entry_match($entry, $env), $entry, "Entry match with less attributes");
 
-    for my $attr (qw(product ltp_version revision arch kernel backend retval flavor)) {
+    for my $attr (qw(product ltp_version revision arch kernel backend retval flavor test_variant)) {
         $entry = {$attr => '^incredible_value$'};
         $env = {$attr => "incredible_value"};
         is_deeply(LTP::WhiteList::_whitelist_entry_match($entry, $env), $entry, "Check match attribute $attr");
@@ -44,11 +44,17 @@ subtest 'whitelist_entry_match' => sub {
 
 
 subtest override_known_failures => sub {
-    set_var('LTP_KNOWN_ISSUES_LOCAL' => 'test_known_issues.json');
+    my $tmpfile = tempfile;
+    set_var('LTP_KNOWN_ISSUES_LOCAL' => "$tmpfile");
     my $self = Test::MockObject->new();
     my $msg;
-    $self->mock('record_soft_failure_result' => sub { shift; $msg = shift });
     $self->{result} = 'not_set';
+    $self->mock('record_soft_failure_result' => sub {
+            my $test = shift;
+            $msg = shift;
+
+            $test->{result} = 'softfail';
+    });
 
     my $known_issues_json = {
         testsuite_01 => {
@@ -77,7 +83,7 @@ subtest override_known_failures => sub {
         }
     };
 
-    Mojo::File::path('test_known_issues.json')->spew(Mojo::JSON::encode_json($known_issues_json));
+    $tmpfile->spew(Mojo::JSON::encode_json($known_issues_json));
 
     my $env = {product => 'sle:15', retval => 0};
     my $whitelist = LTP::WhiteList->new();

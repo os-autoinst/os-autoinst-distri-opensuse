@@ -7,9 +7,7 @@
 # Summary: Reboot after autoyast installation
 # Maintainer: Ludwig Nussel <ludwig.nussel@suse.de>
 
-use strict;
-use warnings;
-use base 'y2_installbase';
+use Mojo::Base 'y2_installbase';
 use testapi;
 
 sub run {

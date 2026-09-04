@@ -3,17 +3,24 @@
 
 # Summary: Patch Agama on Live Medium using yupdate in order to copy
 # integration test from GitHub.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base Yam::Agama::patch_agama_base;
-use strict;
-use warnings;
-use testapi qw(assert_script_run get_required_var select_console);
+use Mojo::Base 'Yam::Agama::patch_agama_base';
+use testapi qw(assert_script_run get_required_var select_console script_run assert_script_run script_output record_info);
 
 sub run {
-    select_console 'root-console';
+    select_console 'install-shell';
     my ($repo, $branch) = split /#/, get_required_var('YUPDATE_GIT');
-    assert_script_run("AGAMA_TEST=" . get_required_var('AGAMA_TEST') . " yupdate patch $repo $branch", timeout => 60);
+    my $agama_test = get_required_var("AGAMA_TEST");
+    my $destination = "/usr/share/agama/system-tests";
+    my $url = "https://github.com/$repo/releases/download/tag-$branch/agama-integration-tests.tar.gz";
+
+    script_run("mkdir -p $destination");
+    assert_script_run("curl -sfL $url | tar -xz",
+        fail_message => "No CI build artifact at $url. Either the CI run for $repo#$branch has not finished, or the
+          branch predates the ci.yml change that publishes agama-integration-tests.tar.gz - rebase it on main.");
+    record_info("SHA", script_output("cat dist/BUILD_SHA"));
+    script_run("cp dist/vendor.js dist/${agama_test}* $destination");
 }
 
 1;

@@ -8,3 +8,4 @@ schedule:
   - installation/grub_test
   - installation/first_boot
   - console/validate_lvm
+  - yam/validate/validate_connectivity

@@ -12,8 +12,9 @@ prepare:
 	git clone https://github.com/os-autoinst/os-autoinst.git
 	./tools/wheel --fetch
 	$(MAKE) check-links
-	cd os-autoinst && cpanm -nq --installdeps .
-	cpanm -nq --installdeps .
+	# https://rt.cpan.org/Ticket/Display.html?id=133363
+	cd os-autoinst && PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm -v -nq --installdeps .
+	PERL_MB_OPT="--config optimize=-Wno-error=implicit-function-declaration" PERL_MM_OPT="OPTIMIZE=-Wno-error=implicit-function-declaration" cpanm -v -nq --installdeps .
 
 os-autoinst/:
 	@test -d os-autoinst || (echo "Missing test requirements, \
@@ -23,10 +24,9 @@ testing" && exit 2)
 
 tools/tidy: os-autoinst/
 	@test -e tools/tidy || ln -s ../os-autoinst/tools/tidy tools/
-	@test -e .perltidyrc || ln -s os-autoinst/.perltidyrc ./
 
 tools/lib/: os-autoinst/
-	@test -e tools/lib || ln -s ../os-autoinst/tools/lib tools/
+	@test -e tools/lib || ln -s ../os-autoinst/external/os-autoinst-common/lib/ tools/
 
 .PHONY: check-links
 check-links: tools/tidy tools/lib/ os-autoinst/
@@ -56,6 +56,15 @@ test-compile: check-links
 test-compile-changed: os-autoinst/
 	export PERL5LIB=${PERL5LIB_}:$(shell ./tools/wheel --verify) ; for f in `git diff --name-only | grep '.pm'` ; do perl -c $$f 2>&1 | grep -v " OK$$" && exit 2; done ; true
 
+.PHONY: test-compile-os-autoinst
+test-compile-os-autoinst: os-autoinst/
+	prove tools/check_os_autoinst_compile
+
+.PHONY: test-check-strict
+test-check-strict: os-autoinst/
+	perl ./os-autoinst/script/os-autoinst-testmodules-strict tests/**/*.pm -v --write
+	git diff --exit-code tests
+
 .PHONY: test_pod_whitespace_rule
 test_pod_whitespace_rule:
 	tools/check_pod_whitespace_rule
@@ -67,6 +76,10 @@ test_pod_errors:
 .PHONY: test-yaml-valid
 test-yaml-valid:
 	tools/check_yaml
+
+.PHONY: test-yaml-valid-changed
+test-yaml-valid-changed:
+	tools/check_yaml --only-changed
 
 .PHONY: test-modules-in-yaml-schedule
 test-modules-in-yaml-schedule:
@@ -117,6 +130,10 @@ ifeq ($(TESTS),compile)
 test: test-compile
 else ifeq ($(TESTS),compile-changed)
 test: test-compile-changed
+else ifeq ($(TESTS),compile-os-autoinst)
+test: test-compile-os-autoinst
+else ifeq ($(TESTS),check-strict)
+test: test-check-strict
 else ifeq ($(TESTS),static)
 test: test-static
 else ifeq ($(TESTS),unit)
@@ -127,12 +144,14 @@ else
 test: unit-test test-static test-compile test-isotovideo perlcritic
 endif
 
-PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --stern --include "strict" --include Perl::Critic::Policy::HashKeyQuote \
-  --verbose "::warning file=%f,line=%l,col=%c,title=%m - severity %s::%e\n" --quiet
+PERLCRITIC=PERL5LIB=tools/lib/perlcritic:$$PERL5LIB perlcritic --quiet
 
 .PHONY: perlcritic
+# strictures and warnings are already enforced by os-autoinst basetest.pm so
+# exclude here for test modules
 perlcritic: tools/lib/
-	${PERLCRITIC} $$(git ls-files -- '*.p[ml]' ':!:data/')
+	${PERLCRITIC} $$(git ls-files -- '*.p[ml]' ':!:data/' ':!:tests/')
+	${PERLCRITIC} --exclude=strict $$(git ls-files -- ':tests/*.p[ml]')
 
 .PHONY: test-unused-modules-changed
 test-unused-modules-changed:
@@ -153,7 +172,7 @@ test-deleted-renamed-referenced-files:
 
 .PHONY: test-soft_failure-no-reference
 test-soft_failure-no-reference:
-	@! git --no-pager grep -E -e 'record_soft_failure\>.*\;' --and --not -e '([a-zA-Z]+#[a-zA-Z-]*[0-9]+|fate.suse.com/[0-9]+|\$$(reference|bsc))' lib/ tests/
+	@! git --no-pager grep -E -e 'record_soft_failure\>.*\;' --and --not -e '(^use |[a-zA-Z]+#[a-zA-Z-]*[0-9]+|fate.suse.com/[0-9]+|\$$(reference|bsc))' lib/ tests/
 
 .PHONY: test-invalid-syntax
 test-invalid-syntax:

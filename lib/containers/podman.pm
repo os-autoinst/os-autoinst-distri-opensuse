@@ -7,11 +7,12 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 package containers::podman;
+use strict;
+use warnings;
 use Mojo::Base 'containers::engine';
 use testapi;
 use containers::utils qw(registry_url);
 use containers::common qw(install_podman_when_needed);
-use utils qw(file_content_replace);
 has runtime => "podman";
 
 sub init {
@@ -22,7 +23,9 @@ sub init {
 sub configure_insecure_registries {
     my ($self) = shift;
 
-    assert_script_run "curl " . data_url('containers/registries.conf') . " -o /etc/containers/registries.conf";
+    my $containers_registries = "/etc/containers/registries.conf";
+    assert_script_run "curl " . data_url('containers/registries.conf') . " -o /tmp/containers_registries.conf";
+    assert_script_run "mv -f -Z /tmp/containers_registries.conf $containers_registries";
     assert_script_run "chmod 644 /etc/containers/registries.conf";
     # Add custom registry only if set by the REGISTRY variable
     assert_script_run('echo -e \'[[registry]]\nlocation = "' . registry_url() . '"\ninsecure = true\' >> /etc/containers/registries.conf') if get_var('REGISTRY');

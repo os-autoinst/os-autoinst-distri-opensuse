@@ -19,9 +19,7 @@
 # - Exit firefox
 # Maintainer: wnereiz <wnereiz@gmail.com>
 
-use strict;
-use warnings;
-use base "x11test";
+use Mojo::Base 'x11test';
 use testapi;
 use version_utils 'is_sle';
 use utils 'assert_and_click_until_screen_change';
@@ -63,6 +61,7 @@ sub run {
     $self->firefox_open_url('opensuse.org', assert_loaded_url => 'firefox-extensions-show_flag');
 
     send_key "alt-2";
+    assert_and_click("firefox-extensions-tab");
     wait_still_screen 2, 4;
     assert_and_click('firefox-extensions-menu-icon') if check_screen('firefox-extensions-menu-icon');
     assert_and_click('firefox-extensions-remove');

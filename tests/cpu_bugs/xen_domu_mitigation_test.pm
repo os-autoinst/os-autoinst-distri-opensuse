@@ -62,10 +62,10 @@
 # one by one execution checking.
 #
 
+## no os-autoinst compile-check
+
 package xen_domu_mitigation_test;
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use Mitigation;
 use ipmi_backend_utils;

@@ -21,10 +21,13 @@ conditional_schedule:
     PUBLIC_CLOUD_SLES4SAP:
       '1':
         - publiccloud/download_repos
+        - sles4sap/publiccloud/qesap_configure
         - sles4sap/publiccloud/qesap_terraform
+        - sles4sap/publiccloud/qesap_instances_preparation
         - sles4sap/publiccloud/mr_test_setup_env
+        - publiccloud/network_test
         - publiccloud/registration
         - publiccloud/transfer_repos
         - publiccloud/patch_and_reboot
-        - publiccloud/ssh_interactive_start
         - publiccloud/instance_overview
+        - publiccloud/ssh_interactive_start

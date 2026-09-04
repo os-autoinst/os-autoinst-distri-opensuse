@@ -7,9 +7,7 @@
 # Summary: Run pulpito the teuthology result webpage and tear down openstack when test passed
 # Maintainer: Jozef Pupava <jpupava@suse.com>
 
-use base 'x11test';
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 
 sub run {

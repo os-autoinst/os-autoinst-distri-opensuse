@@ -6,9 +6,7 @@
 # Summary: Prepare UI toolkit tests
 # Maintainer: Dominik Heidler <dheidler@suse.de>
 
-use base 'x11test';
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils;
@@ -38,11 +36,6 @@ sub run {
     }
 
     zypper_call "in gcc gcc-c++ tcl tk xmessage fltk-devel motif-devel gtk2-devel gtk3-devel gtk4-devel java java-devel $qt5_devel $qt6_devel";
-
-    if (is_opensuse) {
-        # make sure to use latest java (that matches the java compiler that was just installed)
-        assert_script_run 'update-alternatives --set java $(ls /usr/lib64/jvm/jre-*-openjdk/bin/java|sort|tail -1)';
-    }
 
     select_console 'x11';
 }

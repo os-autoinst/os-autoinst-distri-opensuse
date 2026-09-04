@@ -6,5 +6,5 @@ description: >
 schedule:
     - boot/boot_to_desktop
     - qa_automation/qaset_pre_patch_run
-    - qa_automation/patch_and_reboot
+    - console/post_installation
     - qa_automation/qaset_post_patch_run

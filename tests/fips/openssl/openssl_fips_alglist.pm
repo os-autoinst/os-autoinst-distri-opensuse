@@ -11,10 +11,8 @@
 # Maintainer: QE Security <none@suse.de>
 # Tags: poo#44831, poo#65375, poo#101932, poo#111818
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_sle_micro is_transactional);
 use security::openssl_misc_utils;
@@ -46,6 +44,9 @@ sub check_pk_algos {
     my ($openssl_binary) = @_;
 
     my @valid_algos = qw(RSA rsa DSA dsa EC DH HMAC CMAC);
+    # Ed25519/Ed448 and ML-DSA/ML-KEM became FIPS-approved starting with OpenSSL 3.5
+    # (FIPS 186-5, FIPS 203/204), so they get the "@ fips" tag only from then on.
+    push(@valid_algos, 'ED', 'ML') if get_openssl_x_y_version($openssl_binary) >= 3.5;
     push(@valid_algos, 'HKDF', 'TLS1-PRF') if has_default_openssl3;
     my %pattern = (
         fips => '\@ fips',

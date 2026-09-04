@@ -7,7 +7,8 @@
   product: {
     id: "SLES",
     registrationCode: "##Registration-Code##", 
-    registrationEmail: "www@suse.com"
+    registrationEmail: "www@suse.com",
+    mode: "##Product-Mode##"
   },
   "bootloader": {
     "stopOnBootMenu": false
@@ -16,38 +17,39 @@
     "fullName": "QE Virtualization Functional Test",
     "userName": "qevirt",
     "password": "$2a$10$v32/h9hPd9cATZgLI/a1AepB9eQuMbjvNBOxQIla19fmAMjznSczG",
-    "hashedPassword": true,
-    "autologin": false
+    "hashedPassword": true
   },
   "root": {
-    "password": "$2a$10$2qfKlKzzEp9tl3mde5CmhuxsEPd3DdlfJMQ.PNSI3rqXx4KztGYT6",
+    "password": "$y$j9T$nRJRQUwZDai/K44Dn8RD40$tNACP3rJ5/oHQD1XIgVmj0MaBZKpD7GWN9nhpyDMgr5",
     "hashedPassword": true,
     "sshPublicKey": "##Authorized-Keys##"
   },
-  legacyAutoyastStorage: [
-      {
-         "device": "/dev/vda",
-         "disklabel": "##Disk-Label##",
-         "enable_snapshots": true,
-         "initialize": true,
-         use: "all"
-      }
-  ],
   "storage": {
     "drives": [
       {
         "partitions": [
-          { "filesystem": { "path": "/" } },
-          { "filesystem": { "path": "/home" } },
-          { "filesystem": { "path": "swap" } }
+          {
+            "search": { "ifNotFound": "skip" },
+            "delete": true
+          },
+          {
+            "filesystem": { "path": "/" },
+            "size": { "min": "20 GiB" }
+          },
+          {
+            "filesystem": { "path": "swap" },
+            "size": "4 GiB"
+          },
+          {
+            "filesystem": { "path": "/home" },
+            "size": "6 GiB"
+          }
         ]
       }
     ]
   },
-  "software": {
-      patterns: [
-         'base'
-      ]
+  software: {
+    packages: ['openssh-server-config-rootlogin'],
   },
   "network": {
     "connections": [
@@ -58,7 +60,7 @@
         "ignoreAutoDns": false,
         "status": "up",
         "autoconnect": true,
-        "dns_searchlist": [
+        "dnsSearchlist": [
           "##Domain-Name##",
           "suse.de",
           "suse.asia",
@@ -71,7 +73,7 @@
     post: [
       {
         name: "persistent_hostname",
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           echo -e "##Host-Name##.##Domain-Name##" > /etc/hostname
         |||
@@ -79,24 +81,34 @@
       {
         name: "sshd_config",
         chroot: true,
-        body: |||
+        content: |||
           #!/usr/bin/env bash
-          echo -e "PermitRootLogin yes\nPubkeyAuthentication yes\nPasswordAuthentication yes\nPermitEmptyPasswords no\nTCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
+          echo -e "PubkeyAuthentication yes\nPasswordAuthentication yes\nPermitEmptyPasswords no\nTCPKeepAlive yes\nClientAliveInterval 60\nClientAliveCountMax 60" > /etc/ssh/sshd_config.d/01-qe-virtualization-functional.conf
         |||
       },
       {
         name: "ssh_config",
-        body: |||
+        content: |||
           #!/usr/bin/env bash
-          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null" > /etc/ssh/ssh_config.d/01-qe-virtualization-functional.conf
+          mkdir -p /etc/ssh/ssh_config.d
+          echo -e "StrictHostKeyChecking no\nUserKnownHostsFile /dev/null\nLogLevel ERROR" > /etc/ssh/ssh_config.d/01-qe-virtualization-functional.conf
         |||
       },
       {
         name: "persistent_journal_logging",
-        body: |||
+        content: |||
           #!/usr/bin/env bash
           echo -e "[Journal]\\nStorage=persistent" > /etc/systemd/journald.conf.d/01-qe-virtualization-functional.conf
         |||
+      }
+    ]
+  },
+  "questions": {
+    "policy": "auto",
+    "answers": [
+      {
+        "class": "load.retry",
+        "answer": "yes"
       }
     ]
   }

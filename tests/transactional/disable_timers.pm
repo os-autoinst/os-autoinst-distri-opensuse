@@ -6,9 +6,7 @@
 # Summary: Disable various timers that sometimes cause test interruptions
 # Maintainer: qa-c team <qa-c@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(systemctl);
 use mm_network qw(is_networkmanager);
@@ -23,7 +21,7 @@ sub run {
     # Disable disruptive timers
     my @timers = qw(snapper-cleanup.timer fstrim.timer transactional-update.timer btrfs-balance.timer btrfs-defrag.timer btrfs-scrub.timer btrfs-trim.timer);
     push(@timers, "snapper-timeline.timer") unless (is_microos);
-    push(@timers, "transactional-update-cleanup.timer") if (is_sle_micro(">5.1"));
+    push(@timers, "transactional-update-cleanup.timer") if (is_sle_micro);
     foreach my $timer (@timers) {
         systemctl("disable --now '$timer'");
     }

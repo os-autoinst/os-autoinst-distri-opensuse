@@ -8,20 +8,27 @@
 # - check if firewalld doesn't break either
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use Mojo::Base qw(containers::basetest);
+use Mojo::Base 'containers::basetest';
 use testapi;
 use serial_terminal qw(select_serial_terminal select_user_serial_terminal);
 use utils;
 use containers::common qw(install_packages);
 use Utils::Logging 'save_and_upload_log';
+use containers::bats qw(bats_post_hook);
 
 my $port = 8000;
+my $test_image = "registry.opensuse.org/opensuse/nginx";
+my $test_url = "https://registry.opensuse.org/v2/";
 
 sub run_tests {
     my $ip_version = shift;
 
-    my $test_image = "registry.opensuse.org/opensuse/nginx";
-    my $test_url = "https://registry.opensuse.org/v2/";
+    # Get our IP address
+    my $try_addr = ($ip_version == 6) ? "2001:4860:4860::8888" : "8.8.8.8";
+    my $ip_addr = script_output "ip -$ip_version --json route get $try_addr | jq -Mr '.[0].prefsrc'", proceed_on_failure => 1;
+    return unless ($ip_addr =~ /^[0-9]/);
+    $ip_addr = "[$ip_addr]" if ($ip_version == 6);
+
     my $volumes = '-v $HOME/nginx/nginx.conf:/etc/nginx/nginx.conf:ro,z -v $HOME/nginx:/usr/share/nginx/html:ro,z';
     my $curl_opts = "-$ip_version -L";
     my @containers;
@@ -56,10 +63,6 @@ sub run_tests {
           fail_message => "failed IPv$ip_version localhost test for $container->{name}";
     }
 
-    my $iface = script_output "ip -$ip_version --json route list match default | jq -r '.[0].dev'";
-    my $ip_addr = script_output "ip -$ip_version --json addr show $iface | jq -r '.[0].addr_info[0].local'";
-    $ip_addr = "[$ip_addr]" if ($ip_version == 6);
-
     # Test connectivity to all containers on IP address
     for my $container (@containers) {
         assert_script_run "curl $curl_opts http://$ip_addr:$container->{port}",
@@ -92,9 +95,27 @@ sub run {
     # https://docs.docker.com/engine/daemon/ipv6/
     assert_script_run "sed -i 's%^{%&\"ipv6\":true,\"fixed-cidr-v6\":\"2001:db8:1::/64\",%' /etc/docker/daemon.json";
     record_info("docker daemon.json", script_output("cat /etc/docker/daemon.json"));
+    my $firewall_backend = get_var("FIREWALL_BACKEND");
+    assert_script_run q(sed -ri 's/^(DOCKER_OPTS)="(.*?)"/\1="\2 --firewall-backend nftables"/' /etc/sysconfig/docker) if $firewall_backend;
+    # https://docs.docker.com/engine/network/firewall-nftables/#ip-forwarding
+    if ($firewall_backend eq "nftables") {
+        assert_script_run "echo 1 > /proc/sys/net/ipv4/ip_forward";
+        assert_script_run "echo 1 > /proc/sys/net/ipv6/conf/all/forwarding";
+        assert_script_run "echo 1 > /proc/sys/net/ipv6/conf/default/forwarding";
+        assert_script_run "echo net.ipv4.ip_forward = 1 > /etc/sysctl.d/ip_forward.conf";
+        assert_script_run "echo net.ipv6.conf.all.forwarding = 1 >> /etc/sysctl.d/ip_forward.conf";
+        assert_script_run "echo net.ipv6.conf.default.forwarding = 1 >> /etc/sysctl.d/ip_forward.conf";
+    }
     systemctl "enable --now docker";
 
+    record_info "firewall backend", script_output "docker info -f '{{ .FirewallBackend.Driver }}' | awk -F+ '{ print \$1 }'";
+
     record_info("docker root", script_output("docker info"));
+    my $warnings = script_output("docker info -f '{{ range .Warnings }}{{ println . }}{{ end }}'");
+    record_info("WARNINGS daemon", $warnings) if $warnings;
+    $warnings = script_output("docker info -f '{{ range .ClientInfo.Warnings }}{{ println . }}{{ end }}'");
+    record_info("WARNINGS client", $warnings) if $warnings;
+    record_info("docker version", script_output("docker version"));
     record_info("podman root", script_output("podman info"));
 
     # Needed to avoid:
@@ -105,15 +126,17 @@ sub run {
 
     assert_script_run "echo '$testapi::username ALL=(ALL:ALL) NOPASSWD: ALL' | tee -a /etc/sudoers.d/nopasswd";
 
-    # Running podman as root with docker installed may be problematic as netavark uses nftables
-    # while docker still uses iptables.
-    # Use workaround suggested in:
-    # - https://fedoraproject.org/wiki/Changes/NetavarkNftablesDefault#Known_Issue_with_docker
-    # - https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-on-a-router
-    if (script_run("iptables -L -v | grep -q DOCKER") == 0) {
-        record_soft_failure("bsc#1196801");
-        script_run "iptables -I DOCKER-USER -j ACCEPT";
-        script_run "ip6tables -I DOCKER-USER -j ACCEPT";
+    # Check for bsc#1255069
+    if (script_run "podman run --rm $test_image curl -sLf -m 10 $test_url") {
+        record_soft_failure "bsc#1255069 - docker denies podman access to network";
+
+        # Running podman as root with docker installed may be problematic as netavark uses nftables
+        # while docker still uses iptables.
+        # Use workaround suggested in:
+        # - https://fedoraproject.org/wiki/Changes/NetavarkNftablesDefault#Known_Issue_with_docker
+        # - https://docs.docker.com/engine/network/packet-filtering-firewalls/#docker-on-a-router
+        assert_script_run "iptables -I DOCKER-USER -j ACCEPT";
+        assert_script_run "ip6tables -I DOCKER-USER -j ACCEPT";
     }
 
     select_user_serial_terminal;
@@ -145,17 +168,12 @@ sub cleanup {
 }
 
 sub post_run_hook {
+    bats_post_hook;
     cleanup;
 }
 
 sub post_fail_hook {
-    for my $ip_version (4, 6) {
-        save_and_upload_log("ip -$ip_version addr", "/tmp/ip${ip_version}addr.txt");
-        save_and_upload_log("ip -$ip_version route", "/tmp/ip${ip_version}route.txt");
-    }
-    save_and_upload_log("sudo nft list ruleset", "/tmp/nft.txt");
-    save_and_upload_log("sudo ss -tnlp", "/tmp/tcp_services.txt");
-    save_and_upload_log("sudo sysctl -a | grep ^net", "/tmp/net_sysctl.txt");
+    bats_post_hook;
 
     for my $runtime ("docker", "podman") {
         for my $sudo ("", "sudo") {
@@ -170,10 +188,6 @@ sub post_fail_hook {
     }
 
     cleanup;
-}
-
-sub test_flags () {
-    return {always_rollback => 1};
 }
 
 1;

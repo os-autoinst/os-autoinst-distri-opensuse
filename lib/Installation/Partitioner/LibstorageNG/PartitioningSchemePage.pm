@@ -6,13 +6,14 @@
 # Summary: The class introduces all accessing methods for Partitioning Scheme
 # Page in Guided Setup.
 
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::LibstorageNG::PartitioningSchemePage;
 use strict;
 use warnings FATAL => 'all';
 use testapi;
 use parent 'Installation::WizardPage';
+use version_utils;
 
 use constant {
     PARTITIONING_SCHEME_PAGE => 'inst-partitioning-scheme',
@@ -31,7 +32,10 @@ sub press_next {
 
 sub select_enable_disk_encryption_checkbox {
     assert_screen(PARTITIONING_SCHEME_PAGE);
-    send_key('alt-a');
+    # after https://build.opensuse.org/request/show/1277719 there's a new control
+    # Authentication, which takes the 'alt-a'
+    my $shortcut = is_sle || is_leap ? 'alt-a' : 'alt-d';
+    send_key($shortcut);
 }
 
 sub enter_password {

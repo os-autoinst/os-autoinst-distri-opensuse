@@ -5,7 +5,7 @@
 
 # Summary: Helper class for Google Container Registry (GCR)
 #
-# Maintainer: Ivan Lausuch <ilausuch@suse.de>, qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 # Documentation: https://cloud.google.com/container-registry/docs/pushing-and-pulling
 
 package publiccloud::gke;

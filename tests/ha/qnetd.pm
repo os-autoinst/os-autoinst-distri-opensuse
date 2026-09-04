@@ -8,20 +8,33 @@
 # qdevice/qnetd is a supported feature since 15-SP1
 # Maintainer: QE-SAP <qe-sap@suse.de>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
+use Mojo::Base 'opensusebasetest';
 use testapi;
 use lockapi;
-use hacluster;
+use hacluster qw(choose_node
+  $default_timeout
+  ensure_resource_running
+  get_cluster_name
+  get_ip
+  is_node
+  prepare_console_for_fencing
+  save_state
+  wait_for_idle_cluster
+  wait_until_resources_started
+  get_bootstrap_properties
+);
 use utils qw(zypper_call exec_and_insert_password);
-use version_utils 'is_sle';
+use version_utils qw(is_sle);
+use Utils::Logging qw(record_avc_selinux_alerts);
+use package_utils qw(install_package);
 
 sub handle_diskless_sbd_scenario_cluster_node {
     my $cluster_name = get_cluster_name;
     if (get_var('USE_DISKLESS_SBD') && !check_var('QDEVICE_TEST_ROLE', 'qnetd_server')) {
         barrier_wait("DISKLESS_SBD_QDEVICE_$cluster_name");
         assert_script_run 'crm cluster restart';
+        wait_until_resources_started;
+        wait_for_idle_cluster;
     }
 }
 
@@ -69,9 +82,27 @@ sub qdevice_status {
 sub run {
     my $cluster_name = get_cluster_name;
     my $qdevice_check = "/etc/corosync/qdevice/check_master.sh";
+    my $fencing_property = 'stonith-enabled';
+
+    # We will require later in node 1 the correct name of the stonith-enabled/fencing-enabled property
+    if (is_node(1)) {
+        my $cluster_properties = get_bootstrap_properties();
+        $fencing_property = 'fencing-enabled' if (defined $cluster_properties->{'fencing-enabled'});
+        $fencing_property = 'stonith-enabled' if (defined $cluster_properties->{'stonith-enabled'});
+    }
+
+    # As this module causes a fence operation, we need to prepare the console for assert_screen
+    # on grub2 and bootmenu
+    prepare_console_for_fencing;
+
+    # iptables is not installed in SLE 16 by default
+    if (is_sle('>=16')) {
+        my @trup_args = ((check_var('QDEVICE_TEST_ROLE', 'qnetd_server') ? 'trup_continue' : 'trup_reboot') => 1);
+        install_package('iptables', @trup_args);
+    }
 
     if (check_var('QDEVICE_TEST_ROLE', 'qnetd_server')) {
-        zypper_call 'in corosync-qnetd';
+        install_package('corosync-qnetd', trup_reboot => 1);
         barrier_wait("QNETD_SERVER_READY_$cluster_name");
     }
     else {
@@ -83,23 +114,26 @@ sub run {
         my $qnet_node_host = choose_node(3);
         my $qnet_node_ip = get_ip($qnet_node_host);
 
+        # Wait until pacemaker and resources are fully started and online (especially after reboot)
+        wait_until_resources_started;
+
         # Add a promotable resource to check if the current node is hosting
         # master instance of the resource. If so, this cluster partition
         # is preferred to be given the vote from qnetd.
-        assert_script_run "EDITOR=\"sed -ie '\$ a primitive stateful-1 ocf:pacemaker:Stateful'\" crm configure edit";
-        assert_script_run "EDITOR=\"sed -ie '\$ a clone promotable-1 stateful-1 meta promotable=true'\" crm configure edit";
+        assert_script_run q|EDITOR="sed -ie '$ a primitive stateful-1 ocf:pacemaker:Stateful'" crm configure edit|;
+        assert_script_run q|EDITOR="sed -ie '$ a clone promotable-1 stateful-1 meta promotable=true'" crm configure edit|;
         save_state;
 
         # Qdevice should be started
         qdevice_status('started');
 
         # Remove qdevice
-        assert_script_run "crm cluster remove --qdevice -y";
+        assert_script_run 'crm -F cluster remove --qdevice -y';
         # Qdevice should be stopped
         qdevice_status('stopped');
 
         # Add qdevice to a running cluster with heuristic check
-        assert_script_run "crm cluster init qdevice --qnetd-hostname=$qnet_node_ip -y --qdevice-heuristics=/etc/corosync/qdevice/check_master.sh --qdevice-heuristics-mode=on";
+        assert_script_run "crm -F cluster init qdevice --qnetd-hostname=$qnet_node_ip -y --qdevice-heuristics=/etc/corosync/qdevice/check_master.sh --qdevice-heuristics-mode=on";
         handle_diskless_sbd_scenario_cluster_node;
         # Qdevice should be started again
         qdevice_status('started');
@@ -117,7 +151,7 @@ sub run {
     record_info('Split-brain info', 'Split brain test');
 
     record_info('Disabling stonith', 'Disable stonith to prevent fencing of node before our check');
-    assert_script_run 'crm configure property stonith-enabled="false"' if is_node(1);
+    assert_script_run qq|crm configure property $fencing_property="false"| if is_node(1);
     # Add firewall rules to provoke a split brain situation and confirm that
     # the qdevice node gives its vote to the node1 (where the master resource is running)
     # Firewall rules go in both nodes in multicast cluster, and only in node 2 in unicast
@@ -138,21 +172,28 @@ sub run {
         qdevice_status('split-brain-check');
         # Resource must be running in this node
         my $node_01 = choose_node(1);
-        ensure_resource_running("promotable-1", ":[[:blank:]]*$node_01\[[:blank:]]*[Mm]aster\$");
+        ensure_resource_running('promotable-1', ":[[:blank:]]*$node_01\[[:blank:]]*([Mm]aster|[Pp]romoted)\$");
     }
-
-    barrier_wait("SPLIT_BRAIN_TEST_DONE_$cluster_name");
 
     # Show cluster status before ending the test
     save_state if (is_node(1) || !(get_var('USE_DISKLESS_SBD') || check_var('QDEVICE_TEST_ROLE', 'qnetd_server')));
 
+    barrier_wait("SPLIT_BRAIN_TEST_DONE_$cluster_name");
+
     # Restart stonith. This should fence node 2
-    assert_script_run 'crm configure property stonith-enabled="true"' if is_node(1);
+    assert_script_run qq|crm configure property $fencing_property="true"| if is_node(1);
 
     barrier_wait("QNETD_SERVER_DONE_$cluster_name");
 
     # The following barrier prevents the QNetd server from stopping before the cluster nodes complete their tests
     barrier_wait("QNETD_TESTS_DONE_$cluster_name") if check_var('QDEVICE_TEST_ROLE', 'qnetd_server');
+}
+
+# Avoid calling hacluster::post_run_hook(). It will fail on node 2 which gets fenced
+# But collect SELinux AVCs on node 1 and server
+sub post_run_hook {
+    my ($self) = @_;
+    $self->record_avc_selinux_alerts() if (is_sle('16+') && !is_node(2));
 }
 
 1;

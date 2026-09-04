@@ -7,19 +7,26 @@
 # Summary: Create filesystem and check content
 # Maintainer: QE-SAP <qe-sap@suse.de>, Loic Devulder <ldevulder@suse.com>
 
-use base 'opensusebasetest';
-use strict;
-use warnings;
-use utils 'zypper_call', 'write_sut_file';
-use version_utils 'is_sle';
+use Mojo::Base 'haclusterbasetest';
+use utils qw(zypper_call write_sut_file);
+use version_utils qw(is_sle);
 use testapi;
 use lockapi;
 use hacluster;
+use serial_terminal qw(select_serial_terminal);
 
 sub run {
     # Exit of this module if 'tag=drbd_passive' and if we are in a maintenance update not related to drbd
     my $tag = read_tag;
     return 1 if (($tag eq 'drbd_passive' and is_not_maintenance_update('drbd')) or $tag eq 'skip_fs_test');
+
+    # On older SPs (<=15-SP3), this module has issues when setting up a filesystem HA resource
+    # for drbd_passive using the serial terminal: it times out after the `crm resource move`
+    # operation after 90 seconds; however, when running on the `root-console` it works. To avoid
+    # adding an unnecessary sleep in all scenarios, the lines below move the module to run on the serial
+    # terminal only when setting up a FS for drbd_passive. In other cases we select the root-console by
+    # calling prepare_console_for_fencing
+    ($tag eq 'drbd_passive') ? prepare_console_for_fencing : select_serial_terminal;
 
     my $cluster_name = get_cluster_name;
     my $node = get_hostname;
@@ -39,7 +46,14 @@ sub run {
     }
     elsif ($tag eq 'drbd_passive') {
         $resource = 'drbd_passive';
-        $fs_lun = '/dev/drbd_passive' if is_node(1);
+
+        # For sle16 MU, /dev/drbd_passive is not generated, /dev/drbd0 replace it.
+        # So we need to add this workaround here.
+        # See more detail in https://bugzilla.suse.com/show_bug.cgi?id=1247534#c23
+        if (is_node(1)) {
+            $fs_lun = '/dev/drbd_passive';
+            $fs_lun = '/dev/drbd0' if (is_sle('>=16') && script_run('ls -la /dev/drbd_passive'));
+        }
         $fs_type = 'xfs';
     }
     elsif ($tag eq 'drbd_active') {
@@ -84,7 +98,7 @@ sub run {
 
     # Format the Filesystem device
     if (is_node(1)) {
-        assert_script_run "mkfs.$fs_type $fs_opts{$fs_type} \"$fs_lun\"", $default_timeout;
+        assert_script_run "mkfs.$fs_type $fs_opts{$fs_type} \"$fs_lun\"", $default_timeout * 2;
     }
     else {
         diag 'Wait until Filesystem device is formatted...';
@@ -130,7 +144,7 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
         rsc_cleanup $fs_rsc if defined($clean_flag) && $clean_flag == 'cleanup';
 
         # Wait to get Filesystem running on all nodes (if applicable)
-        sleep 5;
+        wait_until_resources_started;
     }
     else {
         diag 'Wait until Filesystem resource is added...';
@@ -187,7 +201,7 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
                 # Restart of master/slave rsc after fs_rsc configuration
                 foreach my $action ('stop', 'start') {
                     assert_script_run "crm resource $action ms_$resource", $default_timeout;
-                    sleep 5;
+                    wait_for_idle_cluster;
                 }
 
                 # Migrate resource on the node
@@ -203,6 +217,12 @@ EDITOR='sed -ie \"\$ a order order_$fs_rsc Mandatory: vg_$resource $fs_rsc\"\' c
                 diag 'Wait until Filesystem content is checked on other nodes...';
             }
         }
+
+        # make sure DRBD passive filesystem is ready
+        my $cmd_timeout = ($default_timeout < 60) ? 60 : $default_timeout;
+        my $check_drbd_cmd = "timeout $cmd_timeout bash -c 'until mountpoint -q /srv/$fs_rsc; do sleep 2; done'";
+        assert_script_run("$check_drbd_cmd", $cmd_timeout + 5);
+        assert_script_run 'sync';
 
         # Check if files/data are different in the Filesystem
         assert_script_run "cd /srv/$fs_rsc/bin ; find . -type f -exec md5sum {} \\; > ../out_$node", $default_timeout;

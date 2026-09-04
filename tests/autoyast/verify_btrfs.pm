@@ -5,11 +5,9 @@
 # Summary: Test verifies installation using autoyast_sle_12_btrfs.xml profile
 # configuration for btrfs partitions. Verify subvolumes stcructure, mount options
 # subvolume attributes configured in profile.
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use base 'basetest';
-use strict;
-use warnings;
+use Mojo::Base 'basetest';
 use testapi;
 
 sub run {

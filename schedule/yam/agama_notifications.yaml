@@ -1,0 +1,14 @@
+---
+name: agama_notifications
+description: >
+  Perform interactive installation validating notifications functionality:
+    - Validate notifications for incorrect login.
+    - Validate notifications for invalid registration code.
+    - Validate notifications for invalid or weak user password.
+    - Validate notifications for storage disk change.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/patch_agama_tests
+  - yam/agama/agama
+  - installation/grub_test
+  - installation/first_boot

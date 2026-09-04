@@ -7,9 +7,7 @@
 # Summary: Create and extract archives with cpio, including all the supported archive formats
 # Maintainer: QE-Core <qe-core@suse.de>
 
-use base "consoletest";
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
@@ -21,7 +19,7 @@ sub run {
     my @formats = ("bin", "odc", "newc", "crc", "tar", "ustar", "hpbin", "hpodc");
 
     # Download a folder with some files that will be used for the test purpose
-    my $testdatadir = "/usr/share";
+    my $testdatadir = "/root";
     assert_script_run "cd $testdatadir";
     assert_script_run "wget --quiet " . data_url('console/cpio/topack.tar.gz');
     assert_script_run "tar -xzvf $testdatadir/topack.tar.gz";

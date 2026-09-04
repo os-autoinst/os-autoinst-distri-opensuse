@@ -6,9 +6,7 @@
 # Summary: Basic SLEPOS test
 # Maintainer: Vladimir Nadvornik <nadvornik@suse.cz>
 
-use base "basetest";
-use strict;
-use warnings;
+use Mojo::Base 'basetest';
 use testapi;
 use utils;
 

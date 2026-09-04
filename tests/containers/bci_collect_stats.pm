@@ -9,7 +9,7 @@
 # Maintainer: QE-C team <qa-c@suse.de>
 
 
-use Mojo::Base qw(consoletest);
+use Mojo::Base 'consoletest';
 use utils qw(script_retry);
 use db_utils qw(push_image_data_to_db);
 use testapi;

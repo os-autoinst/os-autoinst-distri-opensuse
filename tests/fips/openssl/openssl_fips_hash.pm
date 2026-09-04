@@ -11,10 +11,8 @@
 #
 # Maintainer: QE Security <none@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
-use strict;
-use warnings;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_sle is_sle_micro is_transactional);
 use security::openssl_misc_utils;

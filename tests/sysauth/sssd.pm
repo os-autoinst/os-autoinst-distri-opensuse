@@ -20,10 +20,8 @@
 # testsuite", "junit success", "junit endsuite", otherwise record as failure
 # Maintainer: HouzuoGuo <guohouzuo@gmail.com>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 
-use strict;
-use warnings;
 
 use testapi;
 use serial_terminal 'select_serial_terminal';

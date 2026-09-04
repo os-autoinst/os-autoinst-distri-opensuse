@@ -5,10 +5,11 @@
 
 # Summary: CPU BUGS on Linux kernel check
 # Maintainer: Qi Wang <qwang@suse.com>
+
+## no os-autoinst compile-check
+
 package kvm_guest_mitigations;
-use strict;
-use warnings;
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use bootloader_setup;
 use Mitigation;
 use ipmi_backend_utils;

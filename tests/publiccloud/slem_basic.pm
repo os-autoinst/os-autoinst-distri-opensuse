@@ -5,48 +5,40 @@
 
 # Summary: Basic test of SLE Micro in public cloud
 #
-# Maintainer: qa-c team <qa-c@suse.de>
+# Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use publiccloud::utils qw(is_byos registercloudguest);
+use publiccloud::utils qw(is_byos is_azure is_ec2 registercloudguest);
 use publiccloud::ssh_interactive 'select_host_console';
+use publiccloud::zypper 'pc_transactional_call';
 use utils qw(zypper_call systemctl);
 use version_utils qw(is_sle_micro check_version);
 use Mojo::JSON 'j';
 use List::Util 'sum';
 
-sub has_wicked {
-    # Check if the image is expected to have wicked
-    return 0 if (is_sle_micro('5.3+'));
-
-    # Helper to check (wrong SLES) version due to poo#128681
-    my $version = get_var('VERSION');
-    return 1 if check_version("<15-SP4", $version, qr/\d{2}(?:-sp\d)?/);
-    return 0;
-}
-
-sub check_avc {
+# Check for Access Vector Cache (AVC) denials and uploads them
+sub report_avc {
     my ($self) = @_;
 
     my $instance = $self->{my_instance};
-    # Read the Access Vector Cache to check for SELinux denials
+    # Read the AVC to check for SELinux denials
     my $avc = $instance->ssh_script_output(cmd => 'sudo ausearch -ts boot -m avc --format raw', proceed_on_failure => 1, ssh_opts => '-t -o ControlPath=none');
-    record_info("AVC at boot", $avc);
 
     ## Gain better formatted logs and upload them for further investigation
     $instance->ssh_script_run(cmd => 'sudo ausearch -ts boot -m avc > ausearch.txt', ssh_opts => '-t -o ControlPath=none'); # ausearch fails if there are no matches
     assert_script_run("scp " . $instance->username() . "@" . $instance->public_ip . ":ausearch.txt ausearch.txt");
     upload_logs("ausearch.txt");
 
-    # TODO: Uncomment once all ongoing issues are resolved. For now there will be only a record_info
-    #die "SELinux access denials on first boot";
+    ## Report all found AVCs
     my @avc = split(/\n/, $avc);
     for my $row (@avc) {
         $row =~ s/^\s+|\s+$//g;
-        record_info("AVC denial", $row, result => 'fail') unless ($row eq '');
+        record_info("AVC denial", $row, result => 'fail') if ($row);
     }
+    # On SLEM 6.0+ we aim for no AVC denials
+    die "AVC denials detected" if ($avc && is_sle_micro('>=6.0'));
 }
 
 sub run {
@@ -54,53 +46,73 @@ sub run {
     select_serial_terminal();
 
     my $instance = $self->{my_instance} = $args->{my_instance};
-
     # On SLEM 5.2+ check that we don't have any SELinux denials. This needs to happen before anything else is ongoing
-    $self->check_avc() unless (is_sle_micro('=5.1'));
+    $self->report_avc();
 
-    my $test_package = get_var('TEST_PACKAGE', 'jq');
-    $instance->run_ssh_command(cmd => 'zypper lr -d', timeout => 600);
-    $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-generator');
-    $instance->run_ssh_command(cmd => 'systemctl is-enabled transactional-update.timer');
-    $instance->run_ssh_command(cmd => 'systemctl is-enabled issue-add-ssh-keys');
+    $instance->ssh_assert_script_run(cmd => 'zypper lr -d', timeout => 600) unless get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED');
+    $instance->ssh_assert_script_run(cmd => 'systemctl is-enabled issue-generator');
+    $instance->ssh_assert_script_run(cmd => 'systemctl is-enabled transactional-update.timer');
+    $instance->ssh_assert_script_run(cmd => 'systemctl is-enabled issue-add-ssh-keys');
 
-    # Ensure NetworkManager is used on SLEM 5.3+
-    my $expected_network_service = has_wicked() ? 'wicked' : 'NetworkManager';
-    $instance->ssh_assert_script_run("systemctl is-active $expected_network_service", fail_message => "$expected_network_service is not active");
+    # Test Networking. On SLEM6+ it needs to be NetworkManager. On <SLEM6 it must be either wicked or NetworkManager but never both at the same time
+    if (is_sle_micro('<6.0')) {
+        my $nm_active = $instance->ssh_script_run("systemctl is-active NetworkManager") == 0;
+        my $wicked_active = $instance->ssh_script_run("systemctl is-active wicked") == 0;
 
-    # package installation test
-    my $ret = $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package, rc_only => 1);
-    unless ($ret) {
-        die("Testing package \'$test_package\' is already installed, choose a different package!");
+        die "Neither wicked nor NetworkManager are active" unless ($nm_active || $wicked_active);
+        # Check for https://bugzilla.suse.com/show_bug.cgi?id=1248284
+        die "wicked and NetworkManager cannot be active at the same time" if ($nm_active && $wicked_active);
+
+        my $nm_enabled = $instance->ssh_script_run("systemctl is-enabled NetworkManager") == 0;
+        my $wicked_enabled = $instance->ssh_script_run("systemctl is-enabled wicked") == 0;
+
+        die "Neither wicked nor NetworkManager are enabled" unless ($nm_enabled || $wicked_enabled);
+        die "wicked and NetworkManager cannot be enabled at the same time" if ($nm_enabled && $wicked_enabled);
+    } else {
+        $instance->ssh_assert_script_run("systemctl is-active NetworkManager", fail_message => "NetworkManager is not active");
+        $instance->ssh_assert_script_run("systemctl is-enabled NetworkManager", fail_message => "NetworkManager is not enabled");
+
+        $instance->ssh_assert_script_run("! systemctl is-active wicked", fail_message => "wicked must not be active");
+        $instance->ssh_assert_script_run("! systemctl is-enabled wicked", fail_message => "wicked must be disabled");
     }
-    $instance->run_ssh_command(cmd => 'sudo transactional-update -n pkg install ' . $test_package, timeout => 600);
-    $instance->softreboot();
-    $instance->run_ssh_command(cmd => 'rpm -q ' . $test_package);
 
-    # cockpit test
-    $instance->run_ssh_command(cmd => '! curl localhost:9090');
-    $instance->run_ssh_command(cmd => 'sudo systemctl enable --now cockpit.socket');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep inactive');
-    $instance->run_ssh_command(cmd => 'curl http://localhost:9090');
-    $instance->run_ssh_command(cmd => 'systemctl status cockpit.service | grep active');
+    # dump list of packages
+    $instance->ssh_assert_script_run(cmd => 'rpm -qa | sort');
 
-    # additional tr-up tests
-    $instance->run_ssh_command(cmd => 'sudo transactional-update -n up', timeout => 360);
-    $instance->softreboot();
+    unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
+        # package installation test
+        my $test_package = get_var('TEST_PACKAGE', 'socat');
+        my $ret = $instance->ssh_script_run(cmd => 'rpm -q ' . $test_package);
+        unless ($ret) {
+            die("Testing package \'$test_package\' is already installed, choose a different package!");
+        }
+        pc_transactional_call($instance, 'pkg install ' . $test_package, timeout => 600, exitcode => [0], no_reboot => 1);
+        $instance->softreboot();
+        $instance->ssh_assert_script_run(cmd => 'rpm -q ' . $test_package);
+    }
+
+    # cockpit is expected not-active in all versions since bsc#1252729
+    $instance->ssh_assert_script_run(cmd => '! curl --no-progress-meter localhost:9090');
+    $instance->ssh_assert_script_run(cmd => 'sudo systemctl enable --now cockpit.socket');
+    $instance->ssh_assert_script_run(cmd => '! systemctl is-active cockpit.service');
+    $instance->ssh_assert_script_run(cmd => 'curl -sf http://localhost:9090');
+    $instance->ssh_assert_script_run(cmd => 'systemctl is-active cockpit.service');
+
+    unless (get_var('PUBLIC_CLOUD_IGNORE_UNREGISTERED')) {
+        # additional tr-up tests
+        pc_transactional_call($instance, 'up', timeout => 360, exitcode => [0], no_reboot => 1);
+        $instance->softreboot();
+    }
 
     # SELinux tests
     my $getenforce = $instance->ssh_script_output('sudo getenforce');
     record_info("SELinux state", $getenforce);
-    if (is_sle_micro('=5.1')) {
-        die "SELinux should be disabled" unless ($getenforce =~ /Disabled/i);
-    } elsif (is_sle_micro('=5.2')) {
-        die "SELinux should be permissive" unless ($getenforce =~ /Permissive/i);
-    } elsif (is_sle_micro('<5.4')) {
+    if (is_sle_micro('<5.4')) {
         die "SELinux should be permissive" unless ($getenforce =~ /Permissive/i);
     } else {
         die "SELinux should be enforcing" unless ($getenforce =~ /Enforcing/i);
     }
-    $instance->run_ssh_command(cmd => 'sudo transactional-update -n setup-selinux');
+    pc_transactional_call($instance, 'setup-selinux', exitcode => [0], no_reboot => 1);
     $instance->softreboot();
 
     record_info('timers', $instance->ssh_script_output(cmd => 'sudo systemctl list-timers --all'));
@@ -110,9 +122,9 @@ sub run {
     $instance->ssh_assert_script_run(cmd => 'sudo systemctl is-enabled snapper-cleanup.timer');
 
     # SElinux and logging tests
-    $instance->run_ssh_command(cmd => 'sudo sestatus | grep enabled');
-    $instance->run_ssh_command(cmd => 'sudo dmesg');
-    $instance->run_ssh_command(cmd => 'sudo journalctl -p err');
+    $instance->ssh_assert_script_run(cmd => 'sudo sestatus | grep enabled');
+    $instance->ssh_assert_script_run(cmd => 'sudo dmesg');
+    $instance->ssh_assert_script_run(cmd => 'sudo journalctl -p err');
 
     # volume size tests
     if (get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE')) {
@@ -136,7 +148,7 @@ sub run {
 }
 
 sub test_flags {
-    return {fatal => 1, publiccloud_multi_module => 0};
+    return {fatal => 1};
 }
 
 1;

@@ -10,9 +10,7 @@
 # - Close help and brasero
 # Maintainer: Grace Wang <gwang@suse.com>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 use version_utils 'is_sle';

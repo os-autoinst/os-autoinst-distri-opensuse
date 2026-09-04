@@ -6,11 +6,9 @@
 # Summary: s390 qetharp
 # Maintainer: Elif Aslan <elas@linux.vnet.ibm.com>
 
-use base "s390base";
+use Mojo::Base 's390base';
 use testapi;
 use utils;
-use warnings;
-use strict;
 
 sub run {
     my $self = shift;

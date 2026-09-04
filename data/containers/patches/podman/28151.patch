@@ -1,0 +1,25 @@
+From 960165b8c53eb04e215440378e388b239b0b56f8 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Tue, 24 Feb 2026 21:46:28 +0100
+Subject: [PATCH] test/system: fix pod inspect ordering test leak
+
+Add missing cleanup.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ test/system/200-pod.bats | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/test/system/200-pod.bats b/test/system/200-pod.bats
+index c4bf92305f..4f957f49e5 100644
+--- a/test/system/200-pod.bats
++++ b/test/system/200-pod.bats
+@@ -813,6 +813,8 @@ function thingy_with_unique_id() {
+ 
+     run_podman pod inspect --format '{{ .SharedNamespaces }}' $pod_name
+     assert "$output" == "[ipc net uts]"
++
++    run_podman pod rm $pod_name
+ }
+ 
+ # vim: filetype=sh

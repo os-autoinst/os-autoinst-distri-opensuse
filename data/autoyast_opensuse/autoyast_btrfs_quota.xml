@@ -42,7 +42,7 @@
     <users config:type="list">
         <user>
             <fullname>Bernhard M. Wiedemann</fullname>
-            <encrypted config:type="boolean">true</encrypted>
+            <encrypted config:type="boolean">false</encrypted>
             <user_password>{{PASSWORD}}</user_password>
             <username>bernhard</username>
         </user>

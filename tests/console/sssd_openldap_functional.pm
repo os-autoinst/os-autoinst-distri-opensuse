@@ -15,11 +15,9 @@
 # Maintainer: Tony Yuan <tyuan@suse.com>
 
 package sssd_openldap_functional;
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use strict;
-use warnings;
 use utils;
 use version_utils;
 use registration qw(add_suseconnect_product get_addon_fullname);

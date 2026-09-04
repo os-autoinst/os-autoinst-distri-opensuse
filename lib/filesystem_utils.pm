@@ -18,6 +18,8 @@ use utils;
 use testapi;
 
 use Mojo::JSON 'decode_json';
+use Mojo::UserAgent;
+use YAML::PP;
 
 our @EXPORT = qw(
   str_to_mb
@@ -35,6 +37,7 @@ our @EXPORT = qw(
   validate_lsblk
   get_partition_table_via_blkid
   is_lsblk_able_to_display_mountpoints
+  fetch_xfstests_blacklist_from_url
   generate_xfstests_list);
 
 =head2 str_to_mb
@@ -91,7 +94,7 @@ sub partition_num_by_start_end {
     my ($dev, $start, $end) = @_;
     my $output = parted_print(dev => $dev);
     my $match;
-    if ($output =~ /(\d+)\s+($start)MB\s+($end)MB\s+(\d+\.?\d*)MB/i) {
+    if ($output =~ /(\d+)\s+(\Q$start\E(?:\.\d*)?)MB\s+(\Q$end\E(?:\.\d*)?)MB\s+(\d+\.?\d*)MB/i) {
         $match = $1;
     }
     return $match;
@@ -217,12 +220,13 @@ sub create_partition {
     if ($space_size == 0) {
         die 'No space left in device!';
     }
+    # Align partition start to 1MB if it is less than 1MB (e.g., 0.02MiB on a clean GPT table).
+    # This avoids GNU parted error "Use a smaller unit instead of a value < 1"
+    $part_start = $space{start} < 1 ? 1 : $space{start};
     if ($size =~ /max/ || $part_type =~ /extended/) {
-        $part_start = $space{start};
         $part_end = $space{end};
     }
     else {
-        $part_start = $space{start};
         $part_end = int($space{start}) + $size;
     }
     my $cmd = "parted -s -a min $dev mkpart $part_type $part_start" . "MB $part_end" . "MB";
@@ -476,10 +480,12 @@ sub validate_lsblk {
     my $dev = $args{device};
     my $type = $args{type};
     my $has_mountpoints_col = $args{has_mountpoints_col};
+    my $size = $args{size};
 
     my $validation_test_data = create_lsblk_validation_test_data(
         device => $dev,
-        has_mountpoints_col => $has_mountpoints_col);
+        has_mountpoints_col => $has_mountpoints_col,
+        size => $size);
 
     my $blockdev = lsblk_command(
         output => join(',', (keys %{$validation_test_data}, 'type')),
@@ -509,6 +515,26 @@ sub validate_lsblk {
         }
     }
     return $errors;
+}
+
+=head2 fetch_xfstests_blacklist_from_url
+
+Fetch the xfstests blacklist YAML file from a specified URL.
+
+Returns hash mapping of the YAML.
+
+=cut
+
+sub fetch_xfstests_blacklist_from_url {
+    my $url = shift;
+    my $res = Mojo::UserAgent->new->get($url)->result;
+    unless ($res->is_success) {
+        record_info("$url not available.", $res->message, result => 'softfail');
+        return;
+    }
+    my $body = $res->body;
+    my $yp = YAML::PP->new;
+    return $yp->load_string($body);
 }
 
 =head2

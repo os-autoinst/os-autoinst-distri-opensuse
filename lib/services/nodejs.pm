@@ -5,7 +5,7 @@
 
 # Summary: Package for nodejs update tests
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package services::nodejs;
 use base 'opensusebasetest';

@@ -7,11 +7,15 @@
 # Maintainer: qac team <qa-c@suse.de>
 
 package containers::basetest;
+use strict;
+use warnings;
 use containers::docker;
 use containers::podman;
 use containers::containerd_crictl;
 use containers::containerd_nerdctl;
 use Mojo::Base 'opensusebasetest';
+use testapi;
+use Utils::Logging qw(record_avc_selinux_alerts);
 
 sub containers_factory {
     my ($self, $runtime) = @_;
@@ -34,6 +38,24 @@ sub containers_factory {
     }
     $engine->init();
     return $engine;
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    # post_{fail|run}_hooks are not working with 3rd party hosts
+    return if get_var('NOLOGS');
+
+    select_console('log-console');
+
+    $self->record_avc_selinux_alerts;
+    $self->SUPER::post_fail_hook;
+}
+
+sub post_run_hook {
+    # post_{fail|run}_hooks are not working with 3rd party hosts
+    return if get_var('NOLOGS');
+
+    shift->record_avc_selinux_alerts;
 }
 
 1;

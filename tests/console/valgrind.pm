@@ -19,15 +19,14 @@
 # - Check the valgrind tool "massif"
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use Utils::Logging;
 use registration qw(cleanup_registration register_product add_suseconnect_product get_addon_fullname remove_suseconnect_product);
 use version_utils "is_sle";
+use package_utils 'install_package';
 
 sub assert_present {
     my $text = shift;
@@ -41,6 +40,7 @@ sub run {
     prepare();
     record_info("valgrind", script_output("valgrind --version"));
 
+    script_run 'export DEBUGINFOD_URLS=""';
     # Run valgrind memchecks
     assert_script_run 'valgrind --tool=memcheck --trace-children=yes ./valgrind-test';
     my $cmd = 'valgrind -s --log-fd=1';    # command with common options
@@ -127,21 +127,18 @@ sub run {
     assert_present($output, 'heap_tree=', "massif 'heap_tree' mismatch");
 
     assert_script_run 'cd';
-    if (is_sle && !main_common::is_updates_tests()) {
-        remove_suseconnect_product(get_addon_fullname('sdk'));    # unregister SDK
-    }
 }
 
 sub prepare {
     # development module needed for dependencies, released products are tested with sdk module
-    if (is_sle && !main_common::is_updates_tests()) {
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
         cleanup_registration;
         register_product;
         add_suseconnect_product(get_addon_fullname('desktop'));
         add_suseconnect_product(get_addon_fullname('sdk'));
     }
 
-    zypper_call '-v in gcc valgrind', timeout => 1000;
+    install_package('gcc valgrind', trup_reboot => 1, timeout => 1000);
 
     # Compile the valgrind test program
     assert_script_run 'mkdir -p /var/tmp/valgrind';
@@ -151,10 +148,25 @@ sub prepare {
     assert_script_run 'gcc -Wall -Werror -Wextra -Wno-maybe-uninitialized -std=c99 -g2 -O0 -o valgrind-test valgrind-test.c';
 }
 
+sub post_run_hook {
+    my ($self) = @_;
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
+        remove_suseconnect_product(get_addon_fullname('sdk'));
+    }
+}
+
 sub post_fail_hook {
     my ($self) = shift;
     $self->SUPER::post_fail_hook;
     tar_and_upload_log('/var/tmp/valgrind', 'valgrind-failed.tar.bz2');
     script_run 'cd';
+    if (is_sle('<16') && !main_common::is_updates_tests()) {
+        remove_suseconnect_product(get_addon_fullname('sdk'));
+    }
 }
+
+sub test_flags {
+    return {fatal => 0, no_rollback => 1};
+}
+
 1;

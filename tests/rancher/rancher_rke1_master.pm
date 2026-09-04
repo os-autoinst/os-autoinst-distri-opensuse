@@ -6,9 +6,7 @@
 # Summary: One master node whene rke1 runs and deploys the cluster and cluster is tested..
 # Maintainer: Pavel Dostal <pdostal@suse.com>
 
-use base 'x11test';
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use lockapi;

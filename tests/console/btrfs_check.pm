@@ -7,9 +7,7 @@
 # Summary: Test that btrfs is setup properly
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base 'consoletest';
-use strict;
-use warnings;
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use List::Util qw(any);

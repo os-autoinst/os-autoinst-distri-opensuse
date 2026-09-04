@@ -12,9 +12,7 @@
 # - Cleanup
 # Maintainer: Zhaocong Jia <zcjia@suse.com>
 
-use base "x11test";
-use strict;
-use warnings;
+use Mojo::Base 'x11test';
 use testapi;
 use utils;
 
@@ -37,22 +35,15 @@ sub run {
         save_screenshot;
         type_string_slow "test.$tag\n";
         wait_still_screen 3, 7;
+        $self->libreoffice_handle_welcome_popup;
+        $self->libreoffice_handle_tip_of_the_day;
         assert_screen("libreoffice-test-$tag", 120);
-        if (match_has_tag('ooffice-tip-of-the-day')) {
-            # Unselect "_S_how tips on startup", select "_O_k"
-            send_key "alt-s";
-            send_key "alt-o";
-        }
         # close document
         send_key "ctrl-f4";
         wait_still_screen(2);
         if (check_screen("libreoffice-test-$tag")) {
-            record_soft_failure("bsc#1209179 ctrl+f4 can't close libreoffice document");
+            record_info("bsc#1209179 ctrl+f4 can't close libreoffice document");
             assert_and_click("close-document");
-        }
-        if (check_screen('generic-desktop')) {
-            record_soft_failure 'bsc#1196648';
-            $self->libreoffice_start_program('libreoffice');
         }
         $i++;
     }

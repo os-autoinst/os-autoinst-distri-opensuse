@@ -11,7 +11,7 @@
 # different steps (e.g. Partitions Tab should be selected first for "Add" button
 # to be visible).
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
 package Installation::Partitioner::LibstorageNG::v3::ExpertPartitionerController;
 use strict;

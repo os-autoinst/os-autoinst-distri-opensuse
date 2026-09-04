@@ -5,11 +5,9 @@
 #
 # Summary: Create new partition table during installation.
 #
-# Maintainer: QE YaST and Migration (QE Yam) <qe-yam at suse de>
+# Maintainer: QE Installation and Migration (QE Iam) <none@suse.de>
 
-use strict;
-use warnings;
-use parent 'installbasetest';
+use Mojo::Base 'installbasetest';
 use testapi;
 use scheduler 'get_test_suite_data';
 

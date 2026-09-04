@@ -1,0 +1,174 @@
+# SUSE's openQA tests
+#
+# Copyright 2024-2025 SUSE LLC
+# SPDX-License-Identifier: FSFAP
+
+# Package: podman integration
+# Summary: Upstream podman integration tests
+# Maintainer: QE-C team <qa-c@suse.de>
+
+use Mojo::Base 'containers::basetest';
+use testapi;
+use serial_terminal qw(select_serial_terminal);
+use version_utils;
+use version;
+use Utils::Architectures;
+use containers::bats;
+
+my $oci_runtime = "";
+my $version;
+
+sub run_tests {
+    my %params = @_;
+    my ($rootless, $remote) = ($params{rootless}, $params{remote});
+
+    my $quadlet = script_output "rpm -ql podman | grep podman/quadlet";
+
+    my $podman = "/usr/bin/podman";
+    $podman .= "-remote" if ($remote);
+
+    my %env = (
+        CONTAINERS_HELPER_BINARY_DIR => "/var/tmp/podman/bin",
+        PODMAN_ROOTLESS_USER => $testapi::username,
+        PODMAN => $podman,
+        QUADLET => $quadlet,
+        REMOTESYSTEM_TRANSPORT => "unix",
+    );
+    # Clone job with PODMAN_BATS_LEAK_CHECK=0 to disable it
+    my $leak_check = get_var("PODMAN_BATS_LEAK_CHECK", is_x86_64 ? 1 : 0);
+    $env{PODMAN_BATS_LEAK_CHECK} = $leak_check ? "1" : "";
+
+    my $log_file = "bats-" . ($rootless ? "user" : "root") . "-" . ($remote ? "remote" : "local");
+
+    run_command "podman system service --timeout=0 &" if ($remote);
+
+    my @xfails = ();
+    if ($rootless) {
+        if (!$remote) {
+            push @xfails, (
+                # These fail for user/local on Tumbleweed
+                "252-quadlet.bats::quadlet kube - start error",
+            ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
+        }
+    } else {
+        if (!$remote) {
+            push @xfails, (
+                # These fail for root/local on SLES 16.0 & Tumbleweed
+                # due to https://github.com/containers/podman/issues/27246
+                "200-pod.bats::pod resource limits",
+            ) if (version->parse(numeric_version($version)) >= version->parse("5.4.0"));
+            push @xfails, (
+                # These fail for root/local on podman v6.0.0 because we don't ship libcontainers-common
+                # with the storage driver set in storage.conf
+                "155-partial-pull.bats::zstd chunked does not modify image content",
+            ) if (version->parse(numeric_version($version)) >= version->parse("6.0.0"));
+        }
+    }
+    push @xfails, (
+        # This test is racy on ppc64le:
+        "090-events.bats::events - died event contains OOMKilled attribute",
+    ) if (version->parse(numeric_version($version)) >= version->parse("6.0.0"));
+
+    my $ret = bats_tests($log_file, \%env, \@xfails, 6900);
+
+    run_command 'kill %1; kill -9 %1 || true' if ($remote);
+
+    cleanup_podman;
+
+    return ($ret);
+}
+
+sub run {
+    my ($self) = @_;
+    select_serial_terminal;
+
+    my @pkgs = qw(aardvark-dns apache2-utils buildah catatonit glibc-devel-static go1.26 gpg2 libgpgme-devel
+      libseccomp-devel make netavark openssl podman podman-remote skopeo socat sudo systemd-container xfsprogs);
+    push @pkgs, qw(criu libcriu2) if is_tumbleweed;
+    push @pkgs, qw(netcat-openbsd) if is_sle("<16");
+    push @pkgs, is_sle ? qw(python3-PyYAML) : qw(yq);
+    # Needed for podman machine
+    if (is_x86_64) {
+        push @pkgs, "qemu-x86";
+    } elsif (is_aarch64) {
+        push @pkgs, "qemu-arm";
+    }
+
+    $self->setup_pkgs(@pkgs);
+
+    run_command "podman system reset -f";
+    run_command "modprobe ip6_tables";
+    run_command "modprobe null_blk nr_devices=1 || true";
+
+    record_info("podman version", script_output("podman version -f json | jq -Mr"));
+    record_info("podman info", script_output("podman info -f json"));
+    record_info("podman package version", script_output("rpm -q podman"));
+
+    # The tests expect an exact list of unqualified-search-registries containing "quay.io" and we ship:
+    # unqualified-search-registries = ["registry.opensuse.org", "registry.suse.com", "docker.io"]
+    run_command "rm -f /etc/containers/registries.conf.d/00-suse-registries.conf";
+
+    switch_to_user;
+
+    record_info("podman rootless", script_output("podman info -f json"));
+
+    # Download podman sources
+    $version = script_output "podman --version | awk '{ print \$3 }'";
+    patch_sources "podman", "v$version", "test/system";
+
+    $oci_runtime = get_var("OCI_RUNTIME", script_output("podman info --format '{{ .Host.OCIRuntime.Name }}'"));
+
+    # Patch tests
+    run_command "sed -i 's/^PODMAN_RUNTIME=/&$oci_runtime/' test/system/helpers.bash";
+    run_command "rm -f contrib/systemd/system/podman-kube@.service.in";
+    unless (get_var("RUN_TESTS")) {
+        # This test is flaky on architectures other than x86_64
+        run_command "rm -f test/system/180-blkio.bats" unless is_x86_64;
+        # This test is flaky on ppc64le & s390x
+        run_command "rm -f test/system/220-healthcheck.bats" if (is_sle("<16") && (is_ppc64le || is_s390x));
+        # This test is flaky and will fail if system is "full"
+        run_command "rm -f test/system/320-system-df.bats";
+        # This tests needs criu, available only on Tumbleweed
+        run_command "rm -f test/system/520-checkpoint.bats" unless is_tumbleweed;
+        if (is_sle("<16.1") && script_run("which pasta") == 0) {
+            # This test fails on older versions of passt
+            # https://bugzilla.suse.com/show_bug.cgi?id=1260032
+            my $passt_version = script_output q(pasta --version | awk -F '[.^]' '{ print $2; exit }'), proceed_on_failure => 1;
+            run_command "rm -f test/system/505-networking-pasta.bats" if ($passt_version <= 20250415);
+        }
+    }
+
+    # Compile helpers used by the tests
+    run_command "make podman-testing || true", timeout => 600;
+
+    my $errors = 0;
+    unless (check_var("BATS_IGNORE_USER", "all")) {
+        # user / local
+        $errors += run_tests(rootless => 1, remote => 0) unless check_var('BATS_IGNORE_USER_LOCAL', 'all');
+
+        # user / remote
+        $errors += run_tests(rootless => 1, remote => 1) unless check_var('BATS_IGNORE_USER_REMOTE', 'all');
+    }
+
+    switch_to_root;
+
+    unless (check_var("BATS_IGNORE_ROOT", "all")) {
+        # root / local
+        $errors += run_tests(rootless => 0, remote => 0) unless check_var('BATS_IGNORE_ROOT_LOCAL', 'all');
+
+        # root / remote
+        $errors += run_tests(rootless => 0, remote => 1) unless check_var('BATS_IGNORE_ROOT_REMOTE', 'all');
+    }
+
+    die "podman tests failed" if ($errors);
+}
+
+sub post_fail_hook {
+    bats_post_hook;
+}
+
+sub post_run_hook {
+    bats_post_hook;
+}
+
+1;

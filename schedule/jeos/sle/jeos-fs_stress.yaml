@@ -9,12 +9,12 @@ conditional_schedule:
             'svirt-xen-hvm':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
-            'svirt-hyperv-uefi':
+            'svirt-hyperv2022-uefi':
                 - installation/bootloader_hyperv
-            'svirt-hyperv':
+            'svirt-hyperv2022':
                 - installation/bootloader_hyperv
                 - installation/bootloader_uefi
-            'svirt-vmware70':
+            'svirt-vmware':
                 - installation/bootloader_svirt
                 - installation/bootloader_uefi
 schedule:
@@ -22,10 +22,8 @@ schedule:
     - jeos/firstrun
     - jeos/record_machine_id
     - console/force_scheduled_tasks
-    - jeos/grub2_gfxmode
+    - jeos/host_config
     - jeos/diskusage
     - jeos/build_key
     - console/suseconnect_scc
-    - qa_automation/prepare_qa_repo
-    - qa_automation/install_test_suite
-    - qa_automation/execute_test_run
+    - console/fs_stress

@@ -21,13 +21,11 @@
 # - Upload results and logs.
 # Maintainer: Alvaro Carvajal <acarvajal@suse.com>
 
-use base 'consoletest';
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use version_utils qw(is_sle is_opensuse is_tumbleweed);
 use Mojo::JSON qw(encode_json);
-use strict;
-use warnings;
 use Utils::Logging qw(save_and_upload_log tar_and_upload_log);
 
 my $log = '/tmp/systemd_run.log';

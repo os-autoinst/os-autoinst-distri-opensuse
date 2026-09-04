@@ -13,7 +13,7 @@ schedule:
   - console/check_os_release
   - console/hostname
   - ha/firewall_disable
-  - ha/iscsi_client
+  - ha/iscsi_client_setup
   - ha/watchdog
   - ha/ha_cluster_init
   - ha/check_hawk

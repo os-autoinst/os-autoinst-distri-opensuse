@@ -8,10 +8,9 @@
 # - Close xterm
 # Maintainer: QE Core <qe-core@suse.de>
 
-use base "locale";
-use strict;
-use warnings;
+use Mojo::Base 'locale';
 use testapi;
+use x11utils qw(default_gui_terminal);
 
 
 sub run {
@@ -22,7 +21,7 @@ sub run {
     my $expected = 'us';
     my $keystrokes = $self->get_keystroke_list($expected);
 
-    $self->verify_default_keymap_x11($keystrokes, "${expected}_keymap_logged_x11", 'xterm');
+    $self->verify_default_keymap_x11($keystrokes, "${expected}_keymap_logged_x11", default_gui_terminal());
 
     assert_screen("generic-desktop");
 }

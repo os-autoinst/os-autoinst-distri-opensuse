@@ -8,12 +8,10 @@
 #          This module assumes kubectl and k3s is already installed.
 # Maintainer: QE-C team <qa-c@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils 'is_sle_micro';
-use strict;
-use warnings;
 
 sub run {
     select_serial_terminal;

@@ -8,14 +8,12 @@
 # - Run "cpio -id < test.data"
 # - Delete the downloaded CPIO archive again
 # - Run "ls -al data"
-# Maintainer: Zaoliang Luo <zluo@suse.de>
+# Maintainer: QE Core <qe-core@suse.de>
 
-use base "consoletest";
+use Mojo::Base 'consoletest';
 use testapi;
 use utils;
 use Utils::Backends;
-use strict;
-use warnings;
 use version_utils 'is_public_cloud';
 
 sub run {
