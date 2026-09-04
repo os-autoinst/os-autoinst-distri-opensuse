@@ -188,6 +188,8 @@ Create an Azure resource group in a specific region
 
 =item B<region> - Azure region where to create the resource group
 
+=item B<tags> - optional string of space separated tags to apply to the Azure resources
+
 =back
 =cut
 
@@ -198,6 +200,7 @@ sub az_group_create(%args) {
     my $az_cmd = join(' ', 'az group create',
         '--name', $args{name},
         '--location', $args{region});
+    $az_cmd .= ' --tags ' . $args{tags} if $args{tags};
     assert_script_run($az_cmd);
 }
 
@@ -308,6 +311,8 @@ Create a virtual network
 
 =item B<subnet_prefixes> - subnet ip address space. Default 192.168.0.0/24
 
+=item B<tags> - optional string of space separated tags to apply to the virtual network
+
 =back
 =cut
 
@@ -340,6 +345,8 @@ sub az_network_vnet_create(%args) {
         push @az_cmd_list, '--subnet-name', $args{snet};
         push @az_cmd_list, '--subnet-prefixes', $ranges{subnet_prefixes};
     }
+    push @az_cmd_list, '--tags', $args{tags} if $args{tags};
+
     assert_script_run(join(' ', @az_cmd_list));
 }
 
@@ -427,6 +434,8 @@ Create a network security group
 
 =item B<name> - security group name
 
+=item B<tags> - optional string of space separated tags to apply to the NSG
+
 =back
 =cut
 
@@ -437,6 +446,7 @@ sub az_network_nsg_create(%args) {
     my $az_cmd = join(' ', 'az network nsg create',
         '--resource-group', $args{resource_group},
         '--name', $args{name});
+    $az_cmd .= ' --tags ' . $args{tags} if $args{tags};
     assert_script_run($az_cmd);
 }
 
@@ -504,6 +514,8 @@ Create an IPv4 public IP resource
 
 =item B<zone> - optionally add --zone
 
+=item B<tags> - optional string of space separated tags to apply to the PubIP
+
 =back
 =cut
 
@@ -520,6 +532,7 @@ sub az_network_publicip_create(%args) {
         '--sku', $args{sku},
         $alloc_cmd,
         $zone_cmd);
+    $az_cmd .= ' --tags ' . $args{tags} if $args{tags};
     assert_script_run($az_cmd);
 }
 
@@ -571,6 +584,8 @@ Create a NAT Gateway
 
 =item B<public_ip> - add to the NAT Gateway a public IP
 
+=item B<tags> - optional string of space separated tags to the NAT Gateway
+
 =back
 =cut
 
@@ -584,6 +599,7 @@ sub az_network_nat_gateway_create(%args) {
         '--name', $args{name},
         '--public-ip-addresses', $args{public_ip},
         '--idle-timeout 10');
+    $az_cmd .= ' --tags ' . $args{tags} if $args{tags};
     assert_script_run($az_cmd);
 }
 
@@ -623,6 +639,8 @@ SKU Standard (and not Basic) is needed to get some Metrics
 
 =item B<fip> - optionally add --private-ip-address
 
+=item B<tags> - optional string of space separated tags to apply to the load balancer
+
 =back
 =cut
 
@@ -646,6 +664,7 @@ sub az_network_lb_create(%args) {
         '--backend-pool-name', $args{backend},
         '--frontend-ip-name', $args{frontend_ip_name},
         $fip_cmd);
+    $az_cmd .= ' --tags ' . $args{tags} if $args{tags};
     assert_script_run($az_cmd);
 }
 
@@ -767,6 +786,8 @@ Create an availability set. Later on VM can be assigned to it.
 
 =item B<fault_count> - value for --platform-fault-domain-count
 
+=item B<tags> - optional string of space separated tags to apply to the availability set
+
 =back
 =cut
 
@@ -781,6 +802,7 @@ sub az_vm_as_create(%args) {
         '-n', $args{name},
         '-l', $args{region},
         $fc_cmd);
+    $az_cmd .= ' --tags ' . $args{tags} if $args{tags};
     assert_script_run($az_cmd);
 }
 
@@ -848,6 +870,8 @@ Create an image out of a .vhd disk in Azure storage.
 
 =item B<source> - URI of the vhd disk from which the image will be created
 
+=item B<tags> - optional string of space separated tags to apply to the image
+
 =back
 =cut
 
@@ -859,6 +883,7 @@ sub az_img_from_vhd_create(%args) {
         '-n', $args{name},
         '--os-type', 'linux',
         '--source', $args{source});
+    $az_cmd .= ' --tags ' . $args{tags} if $args{tags};
     assert_script_run($az_cmd, timeout => 600);
 }
 
@@ -912,7 +937,7 @@ Create a virtual machine
 
 =item B<timeout> - timeout of command execution, default 900
 
-=item B<tags> - reference to a list of tags to apply to the VM
+=item B<tags> - optional string of space separated tags to apply to the VM
 
 =item B<debug> - if not zero add --debug
 
@@ -951,7 +976,7 @@ sub az_vm_create(%args) {
         push @vm_create, '--authentication-type ssh --generate-ssh-keys';
     }
     push @vm_create, '--os-type', $args{os_type} if $args{os_type};
-    push @vm_create, '--tags', join(' ', @{$args{tags}}) if $args{tags};
+    push @vm_create, '--tags', $args{tags} if $args{tags};
 
     assert_script_run(join(' ', @vm_create), timeout => $args{timeout});
 }
@@ -1243,6 +1268,8 @@ Create a NIC
 
 =item B<pubip_name> - existing public ip name
 
+=item B<tags> - optional string of space separated tags to apply to the NIC
+
 =back
 =cut
 
@@ -1261,6 +1288,7 @@ sub az_nic_create(%args) {
         '--public-ip-address', $args{pubip_name}
     );
 
+    $az_args .= ' --tags ' . $args{tags} if $args{tags};
     my $az_out = az(az_args => $az_args);
     return $az_out->{output};
 }
@@ -1599,6 +1627,8 @@ Create a storage account
 =item B<name> - name for the storage account to be created. Storage account name must be
                 between 3 and 24 characters in length and use numbers and lower-case letters only.
 
+=item B<tags> - optional string of space separated tags to apply to the storage account
+
 =back
 =cut
 
@@ -1610,6 +1640,7 @@ sub az_storage_account_create(%args) {
         '--resource-group', $args{resource_group},
         '--location', $args{region},
         '-n', $args{name});
+    $az_cmd .= ' --tags ' . $args{tags} if $args{tags};
     assert_script_run($az_cmd);
 }
 
@@ -2273,6 +2304,8 @@ Creates private DNS zone within specified B<resource_group>.
 
 =item B<name> Private DNS zone name
 
+=item B<tags> optional string of space separated tags to apply to the private DNS zone
+
 =back
 =cut
 
@@ -2283,6 +2316,7 @@ sub az_network_dns_zone_create {
         "--resource-group $args{resource_group}",
         "--name $args{name}",
     );
+    push @az_args, '--tags', $args{tags} if $args{tags};
     my $az_out = az(az_args => join(' ', @az_args));
     return $az_out->{rc};
 }

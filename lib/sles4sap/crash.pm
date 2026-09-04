@@ -18,6 +18,7 @@ use sles4sap::azure_cli;
 use sles4sap::aws_cli;
 use sles4sap::gcp_cli;
 use sles4sap::ibsm;
+use sles4sap::qesap::utils qw( qesap_get_public_cloud_tags );
 use version_utils qw(is_sle);
 use utils;
 
@@ -105,8 +106,10 @@ sub crash_deploy_azure(%args) {
     foreach (qw(region os)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
 
+    my $tags = qesap_get_public_cloud_tags();
+
     my $rg = crash_deploy_name();
-    az_group_create(name => $rg, region => $args{region});
+    az_group_create(name => $rg, region => $args{region}, tags => $tags);
 
     my $os_ver;
     if ($args{os} =~ /\.vhd$/) {
@@ -114,7 +117,8 @@ sub crash_deploy_azure(%args) {
         az_img_from_vhd_create(
             resource_group => $rg,
             name => $img_name,
-            source => $args{os});
+            source => $args{os},
+            tags => $tags);
         $os_ver = $img_name;
     }
     else {
@@ -122,11 +126,11 @@ sub crash_deploy_azure(%args) {
     }
 
     my $nsg = DEPLOY_PREFIX . '-nsg';
-    az_network_nsg_create(resource_group => $rg, name => $nsg);
+    az_network_nsg_create(resource_group => $rg, name => $nsg, tags => $tags);
     az_network_nsg_rule_create(resource_group => $rg, nsg => $nsg, name => $nsg . 'RuleSSH', port => 22);
 
     my $pub_ip_name = DEPLOY_PREFIX . '-pub_ip';
-    az_network_publicip_create(resource_group => $rg, name => $pub_ip_name, zone => '1 2 3');
+    az_network_publicip_create(resource_group => $rg, name => $pub_ip_name, zone => '1 2 3', tags => $tags);
 
     my $vnet = DEPLOY_PREFIX . '-vnet';
     my $subnet = DEPLOY_PREFIX . '-snet';
@@ -136,7 +140,8 @@ sub crash_deploy_azure(%args) {
         vnet => $vnet,
         address_prefixes => $args{address_range},
         snet => $subnet,
-        subnet_prefixes => $args{subnet_range});
+        subnet_prefixes => $args{subnet_range},
+        tags => $tags);
 
     my $nic = DEPLOY_PREFIX . '-nic';
     az_nic_create(
@@ -145,7 +150,8 @@ sub crash_deploy_azure(%args) {
         vnet => $vnet,
         subnet => $subnet,
         nsg => $nsg,
-        pubip_name => $pub_ip_name);
+        pubip_name => $pub_ip_name,
+        tags => $tags);
 
     my %vm_create_args = (
         resource_group => $rg,
@@ -153,7 +159,8 @@ sub crash_deploy_azure(%args) {
         image => $os_ver,
         nic => $nic,
         username => USER,
-        region => $args{region});
+        region => $args{region},
+        tags => $tags);
     $vm_create_args{timeout} = 1200;
     az_vm_create(%vm_create_args);
 

@@ -10,6 +10,9 @@ use testapi qw(set_var);
 
 use sles4sap::ipaddr2;
 
+my $qesap_utils_mock = Test::MockModule->new('sles4sap::qesap::utils', no_auto => 1);
+$qesap_utils_mock->redefine(get_current_job_id => sub { return 'Volta'; });
+
 subtest '[ipaddr2_infra_deploy]' => sub {
     my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
     $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
@@ -151,6 +154,32 @@ subtest '[ipaddr2_infra_deploy] with .vhd' => sub {
 
     ok(($#calls > 0), "There are some command calls");
     ok(any { /az image create/ } @calls, 'az image create is called');
+};
+
+subtest '[ipaddr2_infra_deploy] with PUBLIC_CLOUD_TAGS' => sub {
+    my $ipaddr2 = Test::MockModule->new('sles4sap::ipaddr2', no_auto => 1);
+    $ipaddr2->redefine(get_current_job_id => sub { return 'Volta'; });
+    my @calls;
+    $ipaddr2->redefine(assert_script_run => sub { push @calls, ['ipaddr2', $_[0]]; return; });
+    $ipaddr2->redefine(az_vm_wait_running => sub { return 300; });
+    $ipaddr2->redefine(ipaddr2_cloudinit_create => sub { return '/tmp/Faggin'; });
+    $ipaddr2->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
+    $azcli->redefine(assert_script_run => sub { push @calls, ['azure_cli', $_[0]]; return; });
+    $azcli->redefine(script_output => sub { push @calls, ['azure_cli', $_[0]]; return 'Fermi'; });
+
+    set_var('PUBLIC_CLOUD_TAGS', 'key1=value2,key2=value2,key3,key4,openqa_var_job_id');
+    ipaddr2_infra_deploy(region => 'Marconi', os => 'Meucci');
+    set_var('PUBLIC_CLOUD_TAGS', undef);
+
+    my @cmds;
+    for my $call_idx (0 .. $#calls) {
+        push @cmds, $calls[$call_idx][1];
+    }
+
+    ok(($#calls > 0), "There are some command calls");
+    ok((any { /--tags key1=value2 key2=value2 key3=1 key4=1 openqa_var_job_id=Volta/ } @cmds), 'Tags are properly formatted and passed to az commands');
 };
 
 subtest '[ipaddr2_infra_destroy]' => sub {

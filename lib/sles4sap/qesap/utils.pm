@@ -33,9 +33,11 @@ use Carp qw(croak);
 use Mojo::JSON qw(decode_json);
 use Exporter 'import';
 use testapi;
+use mmapi qw( get_current_job_id );
 
 our @EXPORT = qw(
   qesap_is_job_finished
+  qesap_get_public_cloud_tags
 );
 
 =head1 DESCRIPTION
@@ -76,6 +78,26 @@ sub qesap_is_job_finished {
 
     my $job_state = $job_data->{state} // 'running';    # assume running if missing
     return ($job_state ne 'running');
+}
+
+=head3 qesap_get_public_cloud_tags
+
+    my $tags = qesap_get_public_cloud_tags();
+
+Retrieve tags from the `PUBLIC_CLOUD_TAGS` openQA setting, map key=value pairs,
+override `openqa_var_job_id` with get_current_job_id(), and return a formatted,
+space-separated string suitable for the `--tags` argument of the az cli.
+
+=cut
+
+sub qesap_get_public_cloud_tags {
+    my $tags = '';
+    if (my $value = get_var('PUBLIC_CLOUD_TAGS')) {
+        my %tags_hash = map { if (/([^=]+)=([^=]+)/) { $1 => "$2" } else { $_ => 1 } } split(/,/, $value);
+        $tags_hash{openqa_var_job_id} = get_current_job_id() if exists $tags_hash{openqa_var_job_id};
+        $tags = join(' ', map { "$_=$tags_hash{$_}" } sort keys %tags_hash);
+    }
+    return $tags;
 }
 
 1;

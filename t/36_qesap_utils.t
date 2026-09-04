@@ -29,4 +29,23 @@ subtest '[qesap_is_job_finished]' => sub {
     ok($results[2] == 0, "Consider 'running' if the openqa job status response is 'running'");
 };
 
+subtest '[qesap_get_public_cloud_tags]' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::utils', no_auto => 1);
+    my $var_value;
+    $qesap->redefine(get_var => sub { return $var_value; });
+    $qesap->redefine(get_current_job_id => sub { return '42'; });
+
+    # Case 1: PUBLIC_CLOUD_TAGS is undef/empty
+    $var_value = undef;
+    is(qesap_get_public_cloud_tags(), '', 'Returns empty string if PUBLIC_CLOUD_TAGS is undef');
+
+    # Case 2: Standard tags without openqa_var_job_id
+    $var_value = 'key1=value1,key2=value2,key3';
+    is(qesap_get_public_cloud_tags(), 'key1=value1 key2=value2 key3=1', 'Correctly formats standard tags');
+
+    # Case 3: Tags containing openqa_var_job_id
+    $var_value = 'key1=value1,openqa_var_job_id';
+    is(qesap_get_public_cloud_tags(), 'key1=value1 openqa_var_job_id=42', 'Substitutes openqa_var_job_id with get_current_job_id');
+};
+
 done_testing;
