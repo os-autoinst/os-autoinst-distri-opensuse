@@ -19,6 +19,7 @@
       <li><a href="#poweroff_x11">poweroff_x11</a></li>
       <li><a href="#handle_livecd_reboot_failure">handle_livecd_reboot_failure</a></li>
       <li><a href="#power_action">power_action</a></li>
+      <li><a href="#wait_boot_serial">wait_boot_serial</a></li>
       <li><a href="#assert_shutdown_and_restore_system">assert_shutdown_and_restore_system</a></li>
       <li><a href="#assert_shutdown_with_soft_timeout">assert_shutdown_with_soft_timeout</a></li>
       <li><a href="#check_bsc1215132">check_bsc1215132</a></li>
@@ -71,6 +72,16 @@
 <p>If <code>$observe</code> is set, the function expects that the specified <code>$action</code> was already executed by another actor and the function just makes sure the system shuts down, restarts etc. properly.</p>
 
 <p><code>$keepconsole</code> prevents a console change, which we do by default to make sure that a system with a GUI desktop which was in text console at the time of <code>power_action</code> call, is switched to the expected console, that is &#39;root-console&#39; for textmode, &#39;x11&#39; otherwise. The actual execution happens in a shell for textmode or with GUI commands otherwise unless explicitly overridden by setting <code>$textmode</code> to either 0 or 1. <code>$force</code> sets force option to reboot command in textmode.</p>
+
+<h2 id="wait_boot_serial">wait_boot_serial</h2>
+
+<pre><code>wait_boot_serial();</code></pre>
+
+<p>Confirm a reboot completed by watching the serial console for the login banner, recovering first if GRUB got stuck on its aarch64 serial-terminal bug (bsc#1140464: aarch64 has no legacy I/O ports, so GRUB&#39;s default <code>com0</code> serial addressing can never resolve there; SUSE&#39;s grub2 config generation still doesn&#39;t use <code>efi0</code> instead). Once grub.cfg gets regenerated (e.g. by a kernel/bootloader update or <code>fips-mode-setup</code>), GRUB&#39;s <code>terminal_output</code>/<code>terminal_input serial</code> command aborts grub.cfg&#39;s script execution, parking GRUB at its hidden-menu hint (&quot;Please press &#39;t&#39; to show the boot menu&quot;) instead of ever reaching the auto-boot logic.</p>
+
+<p>Races that hint against the login banner for 60 seconds so an unaffected boot returns as soon as it&#39;s up. If neither appeared yet, keeps waiting for the login banner alone for another 240 seconds (300 seconds total, matching a plain boot-confirmation timeout). If the hint wins the race, presses &#39;t&#39; (reveal the menu) and &#39;ret&#39; (confirm the default entry), then allows a fresh 300 seconds for the now-unstuck boot to actually complete.</p>
+
+<p>Returns the matched text (a true value) on success, or an empty/undef value if the login banner was never seen at all.</p>
 
 <h2 id="assert_shutdown_and_restore_system">assert_shutdown_and_restore_system</h2>
 
