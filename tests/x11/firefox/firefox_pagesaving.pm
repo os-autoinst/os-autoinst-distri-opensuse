@@ -30,7 +30,8 @@ sub run {
     assert_screen 'firefox-pagesaving-saveas';
     wait_still_screen 3;
     # on sle15 just one alt-s does not work
-    send_key_until_needlematch 'firefox-downloading-saving_dialog', 'alt-s', 4, 3;
+    assert_and_click 'firefox-downloading-saveas_click';
+    wait_still_screen 3;
 
     # Exit
     $self->exit_firefox;
