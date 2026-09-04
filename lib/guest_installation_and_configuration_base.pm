@@ -227,6 +227,19 @@ sub print_guest_params {
     return $self;
 }
 
+=head2 is_guest_ppc64le
+
+  is_guest_ppc64le($self)
+
+Check whether guest architecture is ppc64le.
+
+=cut
+
+sub is_guest_ppc64le {
+    my $self = shift;
+    return ($self->{guest_arch} eq 'ppc64le');
+}
+
 =head2 prepare_common_environment
 
   prepare_common_environment($self)
@@ -1511,8 +1524,9 @@ sub config_guest_installation_method {
         my $_guest_arch = ($self->{guest_arch} ? $self->{guest_arch} : get_required_var('ARCH'));
         if (script_output("curl --silent -I $_guest_installation_fine_grained_media | grep -E \"^HTTP\" | awk -F \" \" \'{print \$2}\'") == "200") {
             if ($self->{guest_installation_method} eq 'directkernel') {
-                assert_script_run("curl -s -o $self->{guest_image_folder}/linux $_guest_installation_fine_grained_media/boot/$_guest_arch/loader/linux");
-                assert_script_run("curl -s -o $self->{guest_image_folder}/initrd $_guest_installation_fine_grained_media/boot/$_guest_arch/loader/initrd");
+                my $_loader = ((!$self->is_guest_ppc64le or ($self->is_guest_ppc64le and is_sle('>=16.1', $self->{guest_version}))) ? 'loader' : '');
+                assert_script_run("curl -s -o $self->{guest_image_folder}/linux $_guest_installation_fine_grained_media/boot/$_guest_arch/$_loader/linux");
+                assert_script_run("curl -s -o $self->{guest_image_folder}/initrd $_guest_installation_fine_grained_media/boot/$_guest_arch/$_loader/initrd");
             }
         }
         else {
