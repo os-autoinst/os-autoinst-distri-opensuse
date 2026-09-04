@@ -414,9 +414,15 @@ Upload C</tmp/solverTestCase.tar.bz2>.
 =cut
 
 sub upload_solvertestcase_logs {
+    if (script_run('pkill zypper') == 0) {
+        record_info('Zypper is locked', "zypper is still running in the background");
+        script_run('while pgrep zypper; do sleep 1; done', timeout => 120);
+    }
+
     my $ret = script_run("zypper -n patch --debug-solver --with-interactive -l");
-    # if zypper was not found, we just skip upload solverTestCase.tar.bz2
-    return if $ret != 0;
+    # if zypper had an error, we just skip upload solverTestCase.tar.bz2
+    return if $ret;
+
     script_run("tar -cvjf /tmp/solverTestCase.tar.bz2 /var/log/zypper.solverTestCase/*");
     upload_logs "/tmp/solverTestCase.tar.bz2 ";
 }

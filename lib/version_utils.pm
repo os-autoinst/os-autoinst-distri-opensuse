@@ -1070,7 +1070,14 @@ Check if agama installation is being used
 =cut
 
 sub is_agama {
-    return (get_var('AGAMA') || get_var('INST_AUTO'));
+    return 1 if get_var('AGAMA');
+    return 1 if get_var('INST_AUTO');
+
+    my $flavor = get_var('FLAVOR', '');
+    return 1 if $flavor =~ /agama/;
+    return 1 if is_opensuse && $flavor =~ /(online|offline)-install/;
+
+    return 0;
 }
 
 =head2 is_ltss

@@ -130,9 +130,8 @@ sub run {
                     next;
                 }
 
-                $self->result('fail');
-                save_screenshot;
-                return;
+                # If we reached this line, this is an uknown conflict
+                die "Can't solve this conflict:\n$out";
             }
         }
         elsif ($out =~ $zypper_dup_continue) {
@@ -179,9 +178,9 @@ sub run {
             next;
         }
         elsif ($out =~ $zypper_dup_fileconflict) {
-            $self->result('fail');
-            save_screenshot;
-            return;
+            # Conflicts in files are bugs
+            type_string "no";
+            die "Conflicts in files found:\n$out";
         }
         else {
             # probably to avoid hitting black screen on video
