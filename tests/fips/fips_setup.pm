@@ -30,10 +30,17 @@ sub reboot_and_login {
     is_transactional ? process_reboot(trigger => 1) : power_action('reboot', textmode => 1, keepconsole => is_pvm);
     reconnect_mgmt_console if is_pvm;
     if (!is_transactional) {
-        if (is_qemu && is_sle('>=16')) {
-            # Same GRUB serial-terminal-init stall as containers/install_updates.pm:
-            # wait_boot's needle-based checks hit a "Stall detected" on this image
-            # rather than a missed match. Confirmed only on SLE 16+ qemu so far.
+        if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+            # On this SLE 16.0 aarch64/qemu image GRUB fails to init its configured
+            # serial terminal ("serial port `com0' isn't found") and the video
+            # framebuffer then genuinely stalls instead of ever painting a screen,
+            # so wait_boot's needle-based checks hit a real "Stall detected" rather
+            # than a missed match (same root cause as containers/install_updates.pm).
+            # Confirmed only on SLE 16.0 aarch64 so far: other SLE 16+ qemu images
+            # (e.g. the SLE 16.1 Online flavor booted by docker/podman_fips_tests)
+            # render GRUB fine and instead rely on wait_boot's needle+keypress
+            # handling to get past a deliberately stopped boot menu, so keep this
+            # scoped narrowly rather than gating on qemu/version alone.
             die 'System did not come back up after FIPS reboot' unless wait_serial(get_login_message(), 300);
             reset_consoles;
         } else {
