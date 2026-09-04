@@ -40,265 +40,207 @@ my $NFS_SERVER_IP;
 my $TEST_FOLDER = '/opt/test';
 my $SCRATCH_FOLDER = '/opt/scratch';
 
-# Number of SCRATCH disk in SCRATCH_DEV_POOL, other than btrfs has only 1 SCRATCH_DEV, xfstests specific
-sub partition_amount_by_homesize {
-    my $home_size = shift;
-    $home_size = str_to_mb($home_size);
-
-    # Leave 100MB margin to prevent partition No space error
-    $home_size -= 100 if $home_size > 100;
-
-    my %ret;
-    if ($home_size && check_var('XFSTESTS', 'btrfs')) {
-        # If enough space, then have 5 disks in SCRATCH_DEV_POOL, or have 2 disks in SCRATCH_DEV_POOL
-        # At least 8 GB in each SCRATCH_DEV (SCRATCH_DEV_POOL only available for btrfs tests)
-        if ($home_size >= 49152) {
-            $ret{num} = 5;
-            $ret{size} = 1024 * int($home_size / (($ret{num} + 1) * 1024));
-            return %ret;
-        }
-        else {
-            $ret{num} = 2;
-            $ret{size} = 1024 * int($home_size / (($ret{num} + 1) * 1024));
-            return %ret;
-        }
-    }
-    elsif ($home_size) {
-        $ret{num} = 1;
-        $ret{size} = int($home_size / 2);
-        return %ret;
-    }
-    else {
-        print "Info: Current HDD file don't have a /home partition.";
-    }
-    return %ret;
-}
-
-# Do partition by giving inputs
-# Inputs explain
-# $filesystem: filesystem type
-# $amount: Amount of partitions to be created for SCRATCH_DEV. Available for btrfs, at most 5.
-# $size: Size of each partition size for TEST_DEV and SCRATCH_DEV. Default: 5120
-# $dev: Optional. Device to be partitioned. Default: same device as root partition
-# $delhome: Delete home partition to get free space for test partition.
-sub do_partition_for_xfstests {
+# Consolidated device setup coordinator for xfstests.
+# Expected %para input contract:
+#   mode:    'partition' | 'loop' | 'zoned' | 'nfs' (mandatory, defines the storage medium workflow)
+#   fstype:  target filesystem (e.g., 'btrfs', 'xfs', 'overlay', 'nfs', used in all modes)
+#   size:    total capacity (only used in 'partition' and 'loop' modes, requires unit suffixes like '50G' or '51200M', parsed via str_to_mb)
+#   dev:     target physical disk to partition (e.g., '/dev/vda', only used in 'partition' mode, optional)
+#   delhome: boolean, deletes the /home partition to free space (only used in 'partition' mode, optional)
+sub setup_xfstests_devices {
     my $ref = shift;
     my %para = %{$ref};
-    my ($part_table, $part_type, $test_dev);
-    unless ($para{size}) {
-        $para{size} = 5120;
+    my $mode = $para{mode};
+    my $fstype = $para{fstype};
+
+    my ($test_dev, @scratch_devs, @dev_sizes, $logdev);
+    my $is_overlay = ($fstype =~ /overlay/) ? 1 : 0;
+
+    # ==================== Stage 1: Device Creation ====================
+    if ($mode eq 'zoned') {
+        my $ZONE_CREATER = '/opt/nullblk-zoned.sh';
+        assert_script_run("curl -o $ZONE_CREATER " . data_url('xfstests/nullblk-zoned.sh'));
+        assert_script_run("chmod a+x $ZONE_CREATER");
+        script_run("for i in {1..6}; do $ZONE_CREATER 4096 256 4 16; done");
+
+        $test_dev = '/dev/nullb0';
+        @scratch_devs = map { "/dev/nullb$_" } (1 .. 5);
+        @dev_sizes = ('5120M') x 6;
+        assert_script_run("mkfs.btrfs -f $test_dev");
     }
-    unless ($para{amount}) {
-        $para{amount} = 1;
-    }
-    # Btrfs SCRATCH_DEV up to 5. If amount exceeds 5, set it at 5.
-    if ($para{fstype} =~ /btrfs/) {
-        $para{amount} = 5 if $para{amount} > 5;
+    elsif ($mode eq 'nfs') {
+        # NFS Client Mode: No local block devices to provision.
+        # Test targets are the remote NFS server exports.
+        $test_dev = "$NFS_SERVER_IP:/opt/export/test";
+        @scratch_devs = ("$NFS_SERVER_IP:/opt/export/scratch");
+        @dev_sizes = ('0M') x 2;
     }
     else {
-        # Mandatory xfs and ext4 has only 1 SCRATCH_DEV
-        $para{amount} = 1;
-    }
-    unless (exists($para{dev})) {
-        my $part = mountpoint_to_partition('/');
-        if ($part =~ /(.*?)(\d+)/) {
-            $para{dev} = $1;
+        my $amount = ($fstype =~ /btrfs/) ? 5 : 1;
+        my $total_mb = $para{size};
+        my ($dev, $part_type, $test_path, @scratch_paths);
+
+        # Sizing and margins (normalize size to MB first)
+        $total_mb = str_to_mb($total_mb);
+        $total_mb = ($mode eq 'loop') ? int($total_mb * 0.9) : $total_mb - ($total_mb > 100 ? 100 : 0);
+
+        # Space Allocation
+        my @sizes;
+        if (my @part_list = split(/,/, get_var('XFSTESTS_PART_SIZE'))) {
+            my $list_remaining = $amount + 1 - (scalar @part_list);
+            if ($list_remaining > 0) {
+                my $sum_parts = sum @part_list;
+                my $remaining_space = $total_mb - $sum_parts;
+                my $pad_size = $remaining_space > 0 ? int($remaining_space / $list_remaining) : 0;
+                push(@part_list, ($pad_size) x $list_remaining);
+            }
+            @sizes = @part_list[0 .. $amount];
+        } else {
+            my $single_size = int($total_mb / ($amount + 1));
+            $single_size = 20480 if $single_size > 20480;
+            @sizes = ($single_size) x ($amount + 1);
         }
-    }
-    if (exists($para{delhome}) && $para{delhome} != 0) {
-        my $part = mountpoint_to_partition('/home');
-        remove_partition($part);
-        script_run("sed -i -e '/ \/home /d' /etc/fstab");
-        script_run('mkdir /home/fsgqa; mkdir /home/fsgqa-123456');
-    }
-    parted_print(dev => $para{dev});
-    # Prepare suitable partition type, if don't have extended then create one
-    $part_table = partition_table($para{dev});
-    if ($part_table =~ 'msdos') {
-        $part_type = 'logical';
-    }
-    else {
-        $part_type = 'primary';
-    }
-    if ($part_table =~ 'msdos' && partition_num_by_type($para{dev}, 'extended') == -1) {
-        create_partition($para{dev}, 'extended', 'max');
-        parted_print(dev => $para{dev});
-    }
-    # Create TEST_DEV
-    $test_dev = create_partition($para{dev}, $part_type, $para{size});
-    parted_print(dev => $para{dev});
-    format_with_options($test_dev, $para{fstype});
-    # Create SCRATCH_DEV or SCRATCH_DEV_POOL
-    my @scratch_dev;
-    my $num = $para{amount};
-    while ($num != 0) {
-        $num -= 1;
-        my $part = create_partition($para{dev}, $part_type, $para{size});
-        format_partition($part, $para{fstype});
-        push @scratch_dev, $part;
-    }
-    parted_print(dev => $para{dev});
-    # Create mount points
-    script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
-    # Setup configure file xfstests/local.config
-    script_run("echo 'export FSTYP=$para{fstype}' >> $CONFIG_FILE") if ($para{fstype} !~ /overlay/);
-    script_run("echo 'export TEST_DEV=$test_dev' >> $CONFIG_FILE");
-    set_var('XFSTESTS_TEST_DEV', $test_dev);
-    script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
-    script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
-    if ($para{amount} == 1) {
-        script_run("echo 'export SCRATCH_DEV=$scratch_dev[0]' >> $CONFIG_FILE");
-        set_var('XFSTESTS_SCRATCH_DEV', $scratch_dev[0]);
-    }
-    else {
-        my $SCRATCH_DEV_POOL = join(' ', @scratch_dev);
-        script_run("echo 'export SCRATCH_DEV_POOL=\"$SCRATCH_DEV_POOL\"' >> $CONFIG_FILE");
-        set_var('XFSTESTS_SCRATCH_DEV_POOL', $SCRATCH_DEV_POOL);
-    }
-    # Create SCRATCH_LOGDEV with disk partition
-    if (get_var('XFSTESTS_LOGDEV')) {
-        my $logdev = create_partition($para{dev}, $part_type, 1024);
-        format_partition($logdev, $para{fstype});
-        script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
-        script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
-    }
-    # Sync
-    script_run('sync');
-    return ($para{size} . 'M') x ($para{amount} + 1);
-}
+        @dev_sizes = map { $_ . 'M' } @sizes;
 
-# Create loop device by giving inputs
-# only available when enable XFSTESTS_LOOP_DEVICE in openQA
-# Inputs explain
-# $filesystem: filesystem type
-# $size: Size of free space of the rootfs. The size of each TEST_DEV or SCRATCH_DEV is split 90% of $size equally.
-sub create_loop_device_by_rootsize {
-    my $ref = shift;
-    my %para = %{$ref};
-    my $amount = 1;
-    my ($size, @loop_dev_size, @filename);
-    if ($para{fstype} =~ /btrfs/) {
-        $amount = 5;
-    }
-    # Use 90% of free space, not use all space in /root
-    $size = int($para{size} * 0.9);
-    # get device size from XFSTESTS_PART_SIZE, other devices share the rest
-    if (my @part_list = split(/,/, get_var('XFSTESTS_PART_SIZE'))) {
-        my $list_remaining = $amount + 1 - (scalar @part_list);
-        if ($list_remaining > 0) { push(@part_list, (int(($size - (sum @part_list)) / $list_remaining)) x $list_remaining); }
-        foreach (0 .. $amount) { push(@loop_dev_size, shift(@part_list) . 'M'); }
-    }
-    else {
-        $size > (20480 * ($amount + 1)) ? ($size = 20480) : ($size = int($size / ($amount + 1)));
-        foreach (0 .. $amount) { push(@loop_dev_size, $size . 'M'); }
-    }
-    @filename = ('test_dev');
-    foreach (1 .. $amount) { push(@filename, "scratch_dev$_"); }
+        # Media Creation
+        if ($mode eq 'loop') {
+            my @filename = ('test_dev', map { "scratch_dev$_" } (1 .. $amount));
+            for my $i (0 .. $#filename) {
+                create_loop_backing_file("$INST_DIR/$filename[$i]", $dev_sizes[$i]);
+                attach_loop_device("$INST_DIR/$filename[$i]");
+            }
+            script_run("losetup -a");
 
-    my $i = 0;
-    foreach (@filename) {
-        create_loop_backing_file("$INST_DIR/$_", $loop_dev_size[$i]);
-        attach_loop_device("$INST_DIR/$_");
-        $i++;
-    }
-    script_run("losetup -a");
-    if ($para{fstype} =~ /overlay|nfs/) {
-        my $base_fs = get_var('XFSTESTS_OVERLAY_BASE_FS', 'xfs');
-        format_with_options("$INST_DIR/test_dev", $base_fs);
-        format_with_options("$INST_DIR/scratch_dev1", $base_fs);
-        return @loop_dev_size if ($para{fstype} =~ /nfs/);
-        script_run("echo 'export FSTYP=$base_fs' >> $CONFIG_FILE");
-    }
-    else {
-        format_with_options("$INST_DIR/test_dev", $para{fstype});
-    }
-    # Create mount points
-    script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
-    # Setup configure file xfstests/local.config
-    script_run("echo 'export FSTYP=$para{fstype}' >> $CONFIG_FILE") if ($para{fstype} !~ /overlay/);
-    script_run("echo 'export TEST_DEV=/dev/loop0' >> $CONFIG_FILE");
-    set_var('XFSTESTS_TEST_DEV', '/dev/loop0');
-    script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
-    script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
-    script_run("echo 'export DUMP_CORRUPT_FS=1' >> $CONFIG_FILE");
-    script_run("echo 'export DUMP_COMPRESSOR=gzip' >> $CONFIG_FILE") if (script_run('which gzip') == 0);
-    if ($amount == 1) {
-        script_run("echo 'export SCRATCH_DEV=/dev/loop1' >> $CONFIG_FILE");
-        set_var('XFSTESTS_SCRATCH_DEV', '/dev/loop1');
-    }
-    else {
-        script_run("echo 'export SCRATCH_DEV_POOL=\"/dev/loop1 /dev/loop2 /dev/loop3 /dev/loop4 /dev/loop5\"' >> $CONFIG_FILE");
-        set_var('XFSTESTS_SCRATCH_DEV_POOL', '/dev/loop1 /dev/loop2 /dev/loop3 /dev/loop4 /dev/loop5');
-    }
-    # Create SCRATCH_LOGDEV with loop device
-    if (get_var('XFSTESTS_LOGDEV')) {
-        my $logdev = "/dev/loop100";
-        my $logdev_name = "logdev";
+            $test_dev = '/dev/loop0';
+            @scratch_devs = map { "/dev/loop$_" } (1 .. $amount);
 
-        create_loop_backing_file("$INST_DIR/$logdev_name", '1G');
-        attach_loop_device("$INST_DIR/$logdev_name", loop_dev => $logdev);
-        format_partition("$INST_DIR/$logdev_name", $para{fstype});
-        script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
-        script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
-    }
-    # Sync
-    script_run('sync');
-    return @loop_dev_size;
-}
-
-# Create zoned device when enable XFSTESTS_ZONE_DEVICE in openQA
-sub create_zoned_device {
-    my @zone_dev_size;
-    my $ZONE_CREATER = '/opt/nullblk-zoned.sh';
-
-    # Get nullblk-zone.sh
-    assert_script_run("curl -o $ZONE_CREATER " . data_url('xfstests/nullblk-zoned.sh'));
-    assert_script_run("chmod a+x $ZONE_CREATER");
-
-    script_run("for i in {1..6}; do $ZONE_CREATER 4096 256 4 16; done");
-    assert_script_run("mkfs.btrfs -f /dev/nullb0");
-    set_var('XFSTESTS_TEST_DEV', '/dev/nullb0');
-    set_var('XFSTESTS_SCRATCH_DEV_POOL', '/dev/nullb1 /dev/nullb2 /dev/nullb3 /dev/nullb4 /dev/nullb5');
-    script_run("mkdir $TEST_FOLDER $SCRATCH_FOLDER");
-    script_run("echo 'export TEST_DEV=/dev/nullb0' >> $CONFIG_FILE");
-    script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
-    script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
-    script_run("echo 'export DUMP_CORRUPT_FS=1' >> $CONFIG_FILE");
-    script_run("echo 'export DUMP_COMPRESSOR=gzip' >> $CONFIG_FILE") if (script_run('which gzip') == 0);
-    script_run("echo 'export SCRATCH_DEV_POOL=\"/dev/nullb1 /dev/nullb2 /dev/nullb3 /dev/nullb4 /dev/nullb5\"' >> $CONFIG_FILE");
-    foreach (0 .. 5) { push(@zone_dev_size, '5120M'); }
-    return @zone_dev_size;
-}
-
-sub set_config {
-    script_run("echo export KEEP_DMESG=yes >> $CONFIG_FILE");
-    if (get_var('XFSTESTS_XFS_REPAIR')) {
-        script_run("echo export TEST_XFS_REPAIR_REBUILD=1 >> $CONFIG_FILE");
-    }
-    if (check_var('XFSTESTS', 'nfs')) {
-        script_run("echo export TEST_DEV=$NFS_SERVER_IP:/opt/export/test >> $CONFIG_FILE");
-        script_run("echo export TEST_DIR=/opt/nfs/test >> $CONFIG_FILE");
-        script_run("echo export SCRATCH_DEV=$NFS_SERVER_IP:/opt/export/scratch >> $CONFIG_FILE");
-        script_run("echo export SCRATCH_MNT=/opt/nfs/scratch >> $CONFIG_FILE");
-        script_run("echo export FSTYP=nfs >> $CONFIG_FILE");
-        if ($NFS_VERSION =~ 'pnfs') {
-            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.1,minorversion=1\"' >> $CONFIG_FILE");
-        }
-        elsif ($NFS_VERSION =~ 'TLS') {
-            script_run('modprobe tls');
-            my ($vers_num) = $NFS_VERSION =~ /-([\d.]+)/;
-            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$vers_num,sec=sys,xprtsec=mtls\"' >> $CONFIG_FILE");
-        }
-        elsif ($NFS_VERSION =~ 'krb5') {
-            my ($vers_num) = $NFS_VERSION =~ /-([\d.]+)/;
-            my ($krb5_type) = $NFS_VERSION =~ /(krb5[pi]?)/;
-            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$vers_num,sec=$krb5_type\"' >> $CONFIG_FILE");
+            # Loop Mode: SUT mounts loop block devices (/dev/loopX), but standard mkfs formatting
+            # should operate directly on the raw backing files (e.g. /opt/xfstests/test_dev)
+            ($test_path, @scratch_paths) = map { "$INST_DIR/$_" } @filename;
         }
         else {
-            script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
+            unless (exists($para{dev})) {
+                my $part = mountpoint_to_partition('/');
+                $para{dev} = $1 if $part =~ /(.*?)(\d+)/;
+            }
+            $dev = $para{dev};
+
+            if ($para{delhome}) {
+                remove_partition(mountpoint_to_partition('/home'));
+                script_run("sed -i -e '/ \/home /d' /etc/fstab");
+                script_run('mkdir -p /home/fsgqa /home/fsgqa-123456');
+            }
+
+            parted_print(dev => $dev);
+            my $part_table = partition_table($dev);
+            $part_type = ($part_table =~ 'msdos') ? 'logical' : 'primary';
+
+            if ($part_table =~ 'msdos' && partition_num_by_type($dev, 'extended') == -1) {
+                create_partition($dev, 'extended', 'max');
+                parted_print(dev => $dev);
+            }
+
+            $test_dev = create_partition($dev, $part_type, shift @sizes);
+            parted_print(dev => $dev);
+            @scratch_devs = map { create_partition($dev, $part_type, $_) } @sizes;
+            parted_print(dev => $dev);
+
+            # Physical Partition Mode: Format targets are identical to the partition block devices.
+            ($test_path, @scratch_paths) = ($test_dev, @scratch_devs);
         }
+
+        # ==================== Stage 2: Formatting ====================
+        my $effective_fstype = $fstype;
+        if ($fstype =~ /overlay|nfs/) {
+            my $base_fs = get_var('XFSTESTS_OVERLAY_BASE_FS', 'xfs');
+            format_with_options($test_path, $base_fs);
+            format_with_options($scratch_paths[0], $base_fs);
+            return @dev_sizes if $mode eq 'loop' && $fstype =~ /nfs/;
+            script_run("echo 'export FSTYP=$base_fs' >> $CONFIG_FILE") if $fstype =~ /overlay/;
+            $effective_fstype = $base_fs;
+        } else {
+            format_with_options($test_path, $fstype);
+        }
+
+        # Create External Log Device (if requested)
+        if (get_var('XFSTESTS_LOGDEV')) {
+            if ($mode eq 'loop') {
+                $logdev = "/dev/loop100";
+                create_loop_backing_file("$INST_DIR/logdev", '1G');
+                attach_loop_device("$INST_DIR/logdev", loop_dev => $logdev);
+                format_partition("$INST_DIR/logdev", $fstype);
+            } else {
+                $logdev = create_partition($dev, $part_type, 1024);
+                format_partition($logdev, $fstype);
+            }
+        }
+        $fstype = $effective_fstype;
     }
-    record_info('Config file', script_output("cat $CONFIG_FILE"));
+
+    # ==================== Stage 3: Export Configurations ====================
+    if (!get_var('XFSTESTS_NFS_SERVER')) {
+        script_run("mkdir -p $TEST_FOLDER $SCRATCH_FOLDER");
+
+        # 1. Global Debugging & Diagnostic Configurations
+        script_run("echo export KEEP_DMESG=yes >> $CONFIG_FILE");
+        if (get_var('XFSTESTS_XFS_REPAIR')) {
+            script_run("echo export TEST_XFS_REPAIR_REBUILD=1 >> $CONFIG_FILE");
+        }
+        script_run("echo 'export DUMP_CORRUPT_FS=1' >> $CONFIG_FILE");
+        script_run("echo 'export DUMP_COMPRESSOR=gzip' >> $CONFIG_FILE") if (script_run('which gzip') == 0);
+
+        # 2. NFS Client Configurations
+        if ($mode eq 'nfs') {
+            script_run("echo export TEST_DEV=$test_dev >> $CONFIG_FILE");
+            script_run("echo export TEST_DIR=/opt/nfs/test >> $CONFIG_FILE");
+            script_run("echo export SCRATCH_DEV=$scratch_devs[0] >> $CONFIG_FILE");
+            script_run("echo export SCRATCH_MNT=/opt/nfs/scratch >> $CONFIG_FILE");
+            script_run("echo export FSTYP=nfs >> $CONFIG_FILE");
+            if ($NFS_VERSION =~ 'pnfs') {
+                script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=4.1,minorversion=1\"' >> $CONFIG_FILE");
+            }
+            elsif ($NFS_VERSION =~ 'TLS') {
+                script_run('modprobe tls');
+                my ($vers_num) = $NFS_VERSION =~ /-([\d.]+)/;
+                script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$vers_num,sec=sys,xprtsec=mtls\"' >> $CONFIG_FILE");
+            }
+            elsif ($NFS_VERSION =~ 'krb5') {
+                my ($vers_num) = $NFS_VERSION =~ /-([\d.]+)/;
+                my ($krb5_type) = $NFS_VERSION =~ /(krb5[pi]?)/;
+                script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$vers_num,sec=$krb5_type\"' >> $CONFIG_FILE");
+            }
+            else {
+                script_run("echo export NFS_MOUNT_OPTIONS='\"-o rw,relatime,vers=$NFS_VERSION\"' >> $CONFIG_FILE");
+            }
+        }
+        # 3. Standard Block Device Configurations
+        else {
+            script_run("echo 'export FSTYP=$fstype' >> $CONFIG_FILE") unless $is_overlay;
+            script_run("echo 'export TEST_DEV=$test_dev' >> $CONFIG_FILE");
+            set_var('XFSTESTS_TEST_DEV', $test_dev);
+            script_run("echo 'export TEST_DIR=$TEST_FOLDER' >> $CONFIG_FILE");
+            script_run("echo 'export SCRATCH_MNT=$SCRATCH_FOLDER' >> $CONFIG_FILE");
+
+            if (scalar @scratch_devs == 1) {
+                script_run("echo 'export SCRATCH_DEV=$scratch_devs[0]' >> $CONFIG_FILE");
+                set_var('XFSTESTS_SCRATCH_DEV', $scratch_devs[0]);
+            } else {
+                my $pool = join(' ', @scratch_devs);
+                script_run("echo 'export SCRATCH_DEV_POOL=\"$pool\"' >> $CONFIG_FILE");
+                set_var('XFSTESTS_SCRATCH_DEV_POOL', $pool);
+            }
+
+            if ($logdev) {
+                script_run("echo export SCRATCH_LOGDEV=$logdev >> $CONFIG_FILE");
+                script_run("echo export USE_EXTERNAL=yes >> $CONFIG_FILE");
+            }
+        }
+
+        script_run('sync');
+        record_info('Config file', script_output("cat $CONFIG_FILE"));
+    }
+
+    return @dev_sizes;
 }
 
 sub post_env_info {
@@ -652,40 +594,26 @@ sub run {
             $NFS_SERVER_IP = '127.0.0.1' if $NFS_VERSION =~ 'TLS';    #ipv6 will make some issue for the test key
             $NFS_SERVER_IP = script_output("ip route | awk 'NR==2 {print \$9}'") if $NFS_VERSION =~ 'rdma';
         }
+        post_env_info(setup_xfstests_devices({mode => 'nfs', fstype => 'nfs'})) unless get_var('XFSTESTS_NFS_SERVER');
     }
     elsif ($device) {
         assert_script_run("parted $device --script -- mklabel gpt");
         my $dev_bytes = script_output("lsblk -bno SIZE $device");
         my $dev_mb = int($dev_bytes / (1024 * 1024));
-        my %size_num = partition_amount_by_homesize("${dev_mb}M");
-        $para{fstype} = $filesystem;
-        $para{dev} = $device;
-        $para{amount} = $size_num{num};
-        $para{size} = $size_num{size};
-        post_env_info(do_partition_for_xfstests(\%para));
+        post_env_info(setup_xfstests_devices({mode => 'partition', fstype => $filesystem, dev => $device, size => "${dev_mb}M"}));
     }
     else {
         if ($loopdev) {
-            $para{fstype} = $filesystem;
-            $para{size} = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
-            $para{size} = str_to_mb($para{size});
-            post_env_info(create_loop_device_by_rootsize(\%para));
+            my $rootsize = script_output("df -h | grep /\$ | awk -F \" \" \'{print \$4}\'");
+            post_env_info(setup_xfstests_devices({mode => 'loop', fstype => $filesystem, size => $rootsize}));
         }
         elsif ($zonedev) {
-            post_env_info(create_zoned_device());
+            post_env_info(setup_xfstests_devices({mode => 'zoned', fstype => $filesystem}));
         }
         else {
             my $home_size = script_output("df -h | grep home | awk -F \" \" \'{print \$2}\'");
-            my %size_num = partition_amount_by_homesize($home_size);
-            $para{fstype} = $filesystem;
-            $para{amount} = $size_num{num};
-            $para{size} = $size_num{size};
-            $para{delhome} = 1;
-            post_env_info(do_partition_for_xfstests(\%para));
+            post_env_info(setup_xfstests_devices({mode => 'partition', fstype => $filesystem, size => $home_size, delhome => 1}));
         }
-    }
-    if (!get_var('XFSTESTS_NFS_SERVER')) {
-        set_config;
     }
 }
 
