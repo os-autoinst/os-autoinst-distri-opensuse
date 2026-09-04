@@ -161,6 +161,17 @@ and additionally the following rules:
     described in this document. Keep an eye on the pull request check, it will
     report any offending rule defined in the workflow.
 
+    Some areas (domains) have specific conventions for contributions, refer to them when working on those areas:
+    - [docs/KERNEL_README.md](docs/KERNEL_README.md) must be followed for:
+      - `lib/Kernel`
+      - `lib/LTP`
+      - `lib/Kselftests`
+      - `lib/hpc`
+      - `tests/kernel`
+      - `tests/hpc`
+      - `tests/ipsec`
+      - `tests/xfstests`
+
 * Add comments to the source code if the code is not self-explanatory:
   Comments in the source code should describe the choices made, to answer the
   question "why is the code like this". The git commit message should describe
