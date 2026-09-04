@@ -1,0 +1,10 @@
+---
+name: sles_systemd_boot
+description: >
+  Perform unattended installation with systemd boot.
+schedule:
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
+  - yam/validate/validate_systemd_boot
