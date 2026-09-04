@@ -102,3 +102,15 @@ schedule/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
 test_data/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
 test_data/yast @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
 tests/yam @chcao @hadeskun @hjluo @jknphy @lemon-suse @okynos @rakoenig
+
+# Elemental
+data/elemental @ldevulder
+schedule/elemental @ldevulder
+tests/elemental @ldevulder
+
+# Elemental3 (aka. UnifiedCore)
+data/elemental3 @ldevulder
+lib/elemental3.pm @ldevulder
+schedule/elemental3 @ldevulder
+t/42_elemental3.t @ldevulder
+tests/elemental3 @ldevulder

@@ -93,6 +93,9 @@ sub get_container_uri {
     else {
         croak("Cannot get '$args{url}/${fn}': " . $res->message);
     }
+
+    # If we reach this point, no match was found
+    croak("Could not find any URI matching the regex in '$args{url}'");
 }
 
 =head2 get_sysext
@@ -184,13 +187,13 @@ sub kubectl_cmd {
     my $retry = 10;
     my $delay = $timeout / $retry;
 
-    croak('Argument <cmd> missing') unless $args{cmd};
+    croak('Missing required argument <cmd>!') unless $args{cmd};
 
     return script_retry(
         "kubectl $args{cmd}",
         delay => $delay,
         retry => $retry,
-        fail_message => "kubectl command not found!"
+        fail_message => "kubectl command '$args{cmd}' failed!"
     );
 }
 
@@ -284,7 +287,7 @@ sub wait_on_cmd {
     my $retry = 10;
     my $delay = $timeout / $retry;
 
-    croak('Argument <cmd> missing') unless $args{cmd};
+    croak('Missing required argument <cmd>!') unless $args{cmd};
 
     return script_retry(
         $args{cmd},
@@ -309,13 +312,13 @@ sub wait_script_output {
     my $retry = 10;
     my $delay = $timeout / $retry;
 
-    croak('Argument <cmd> missing') unless $args{cmd};
+    croak('Missing required argument <cmd>!') unless $args{cmd};
 
     return script_output_retry(
         cmd => $args{cmd},
         delay => $delay,
         retry => $retry,
-        fail_message => "command '$args{cmd}' timed out after $timeout seconds!"
+        fail_message => "Command '$args{cmd}' timed out after $timeout seconds!"
     );
 }
 
