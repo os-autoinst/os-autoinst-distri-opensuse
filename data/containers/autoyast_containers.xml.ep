@@ -89,7 +89,7 @@
     <keep_install_network config:type="boolean">true</keep_install_network>
     % }
   </networking>
-  % if ($get_var->('VERSION') =~ /15-SP[4567]$/) {
+  % if ($get_var->('VERSION') =~ /^16|15-SP[4567]$/) {
   <firewall>
     <enable_firewall config:type="boolean">true</enable_firewall>
     <start_firewall config:type="boolean">true</start_firewall>
@@ -227,7 +227,7 @@
     </packages>
     <patterns config:type="list">
       <pattern>base</pattern>
-      % if ($get_var->('VERSION') =~ /^15/) {
+      % if ($get_var->('VERSION') =~ /^15|^16/) {
       <pattern>enhanced_base</pattern>
       % }
     </patterns>
