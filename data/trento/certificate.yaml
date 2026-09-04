@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: SUSE LLC
+# SPDX-License-Identifier: Apache-2.0
+#
+# Derived from hack/cert-manager/certificate.tpl.yaml in
+# https://github.com/trento-project/helm-charts, with the issuer pointing at
+# the self-signed one suitable for an ephemeral test environment.
+# ${TRENTO_NAMESPACE} and ${TRENTO_WEB_ORIGIN} are replaced by the test.
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: trento-certificate
+  namespace: ${TRENTO_NAMESPACE}
+
+spec:
+  secretName: trento-tls
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+
+  commonName: ${TRENTO_WEB_ORIGIN}
+  dnsNames:
+  - ${TRENTO_WEB_ORIGIN}

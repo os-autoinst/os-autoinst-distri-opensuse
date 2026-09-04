@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: SUSE LLC
+# SPDX-License-Identifier: Apache-2.0
+#
+# Taken from hack/cert-manager/selfsigned-issuer.yaml in
+# https://github.com/trento-project/helm-charts
+
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
