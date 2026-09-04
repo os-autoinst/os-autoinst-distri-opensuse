@@ -12,10 +12,10 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use bootloader_setup qw(add_grub_cmdline_settings change_grub_config);
-use power_action_utils 'power_action';
+use power_action_utils qw(power_action wait_boot_serial);
 use transactional qw(trup_call process_reboot);
 use utils qw(zypper_call reconnect_mgmt_console);
-use serial_terminal qw(get_login_message select_serial_terminal);
+use serial_terminal 'select_serial_terminal';
 use Utils::Backends qw(is_pvm is_qemu);
 use Utils::Architectures qw(is_aarch64 is_ppc64le is_s390x);
 use version_utils qw(is_jeos is_sle_micro is_sle is_tumbleweed is_transactional is_microos);
@@ -31,17 +31,16 @@ sub reboot_and_login {
     reconnect_mgmt_console if is_pvm;
     if (!is_transactional) {
         if (is_qemu && is_aarch64 && is_sle('=16.0')) {
-            # On this SLE 16.0 aarch64/qemu image GRUB fails to init its configured
-            # serial terminal ("serial port `com0' isn't found") and the video
-            # framebuffer then genuinely stalls instead of ever painting a screen,
-            # so wait_boot's needle-based checks hit a real "Stall detected" rather
-            # than a missed match (same root cause as containers/install_updates.pm).
-            # Confirmed only on SLE 16.0 aarch64 so far: other SLE 16+ qemu images
-            # (e.g. the SLE 16.1 Online flavor booted by docker/podman_fips_tests)
-            # render GRUB fine and instead rely on wait_boot's needle+keypress
-            # handling to get past a deliberately stopped boot menu, so keep this
-            # scoped narrowly rather than gating on qemu/version alone.
-            die 'System did not come back up after FIPS reboot' unless wait_serial(get_login_message(), 300);
+            # On SLE 16.0 aarch64/qemu, GRUB can hit its serial-terminal bug
+            # (bsc#1140464) and hang at a hidden-menu prompt; wait_boot_serial
+            # recovers from that and confirms the login banner over serial.
+            # Confirmed only on SLE 16.0 aarch64 so far: other SLE 16+ qemu
+            # images (e.g. the SLE 16.1 Online flavor booted by docker/
+            # podman_fips_tests) render GRUB fine and instead rely on
+            # wait_boot's needle+keypress handling for a deliberately stopped
+            # boot menu, so keep this scoped narrowly rather than gating on
+            # qemu/version alone.
+            die 'System did not come back up after FIPS reboot' unless wait_boot_serial;
             reset_consoles;
         } else {
             $self->wait_boot;
