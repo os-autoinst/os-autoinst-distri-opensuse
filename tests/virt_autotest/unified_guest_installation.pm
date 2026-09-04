@@ -73,13 +73,13 @@ use Mojo::Base 'concurrent_guest_installations';
 use testapi;
 use Carp;
 use Utils::Backends;
-use virt_autotest::utils qw(select_backend_console);
 use virt_autotest::domain_management_utils;
+use utils 'select_backend_console';
 
 sub run {
     my $self = shift;
 
-    select_backend_console(init => 0);
+    select_backend_console;
 
     $self->reveal_myself;
     return if get_var('SKIP_GUEST_INSTALL');

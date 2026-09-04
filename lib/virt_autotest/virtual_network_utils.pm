@@ -21,7 +21,7 @@ use Data::Dumper;
 use XML::Writer;
 use IO::File;
 use Carp;
-use utils qw(script_retry query_installed_packages);
+use utils qw(script_retry query_installed_packages select_backend_console);
 use upload_system_log 'upload_supportconfig_log';
 use version_utils qw(is_sle is_alp is_opensuse is_transactional);
 use Utils::Architectures;
@@ -123,7 +123,7 @@ sub create_host_bridge_nm {
         script_output($execute_script, $wait_script, type_command => 0, proceed_on_failure => 0);
         save_screenshot;
         # Re-establish the backend console connection, poo#187197
-        select_backend_console(init => 0);
+        select_backend_console;
         # Set metric the lowest to make br0 always be the default route
         script_run("nmcli con modify br0 ipv4.route-metric 50");
         script_run("nmcli con up br0");
