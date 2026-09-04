@@ -10,11 +10,15 @@ use Mojo::Base 'consoletest';
 use testapi;
 use utils qw(systemctl);
 use scheduler qw(get_test_suite_data);
+use version_utils qw(is_sle);
+
+sub is_16_0_qu_0 {
+    return is_sle('=16.0') && get_var('ISO') =~ /160.4/;
+}
 
 sub run {
     select_console 'install-shell';
-    my $self_update_enabled = get_test_suite_data()->{self_update_enabled};
-    if ($self_update_enabled) {
+    if (is_16_0_qu_0() || is_sle('16.1+')) {
         my $systemctl_output = script_output('systemctl status live-self-update.service', proceed_on_failure => 1);
         unless ($systemctl_output =~ /status=0\/SUCCESS/) {
             die "Self update did not end successfully";
