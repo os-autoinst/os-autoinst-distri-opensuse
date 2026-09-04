@@ -50,7 +50,7 @@ sub run {
         record_info("test version", script_output("git log -1 --oneline"));
         assert_script_run("./configure");
         assert_script_run("make -C src");
-        assert_script_run("make -C test");
+        assert_script_run("make -C test", timeout => 300);
         $test_dir = 'liburing';
     } else {
         my $default_test_dir = '/usr/lib/liburing-tests';
