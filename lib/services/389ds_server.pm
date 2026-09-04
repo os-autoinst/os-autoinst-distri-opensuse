@@ -58,23 +58,104 @@ sub config_service {
     assert_script_run("sed -i 's/\{\{PASSWORD\}\}/$testapi::password/g' /tmp/instance.inf");
     # On s390x we need to set strict_host_checking to False, otherwise the test will fail
     assert_script_run("sed -i 's/True/False/g' /tmp/instance.inf") if (is_s390x || $no_check);
+
+    # FIPS mode workaround for poo#206547: ns-slapd segfaults during dscreate in FIPS mode
+    # The issue occurs because NSS database is not properly initialized for FIPS constraints
+    if (get_var('FIPS_ENABLED')) {
+        record_info('FIPS Workaround', 'Applying 389-ds FIPS compatibility workaround (poo#206547)');
+
+        # Approach 1: Pre-create NSS database with FIPS mode enabled
+        # This follows the same pattern as tests/fips/mozilla_nss/nss_smoke.pm
+        record_info('FIPS Setup', 'Pre-creating NSS database in FIPS mode');
+
+        # Create NSS database directory for the instance
+        assert_script_run("mkdir -p $inst_ca_dir");
+
+        # Initialize empty NSS database
+        assert_script_run("certutil -N -d $inst_ca_dir --empty-password");
+
+        # Check if FIPS is already enabled (auto-enabled when system is in FIPS mode)
+        my $modutil_list = script_output("modutil -dbdir $inst_ca_dir -list", proceed_on_failure => 1);
+
+        if ($modutil_list !~ /FIPS PKCS #11 Module/i) {
+            # FIPS not enabled yet, enable it now
+            record_info('FIPS Enable', 'Enabling FIPS mode in NSS database');
+
+            script_run_interactive(
+                "modutil -fips true -dbdir $inst_ca_dir",
+                [
+                    {
+                        prompt => qr/'q <enter>' to abort, or <enter> to continue:/m,
+                        string => "\n",
+                    },
+                ],
+                60
+            );
+        } else {
+            # FIPS already enabled (happens when system is in FIPS mode)
+            record_info('FIPS Auto-Enabled', 'NSS database already has FIPS mode enabled by system');
+        }
+
+        # Verify FIPS mode is enabled in the database
+        my $modutil_output = script_output("modutil -dbdir $inst_ca_dir -list", proceed_on_failure => 1);
+        if ($modutil_output =~ /FIPS PKCS #11 Module/i) {
+            record_info('FIPS Verified', 'NSS database successfully initialized in FIPS mode');
+
+            # Set NSS_FIPS environment variable for ns-slapd process
+            assert_script_run("export NSS_FIPS=1");
+        } else {
+            # Approach 1 failed - fallback to Approach 2
+            record_soft_failure('poo#206547 - FIPS mode not enabled in NSS DB, trying fallback approach');
+            record_info('FIPS Fallback', 'Using Approach 2: Disable TLS during initial creation');
+
+            # Remove the pre-created NSS database
+            assert_script_run("rm -rf $inst_ca_dir");
+
+            # Disable secure port (TLS) during instance creation
+            # This avoids NSS/FIPS issues during initialization
+            assert_script_run("sed -i '/\\[slapd\\]/a secure_port = 0' /tmp/instance.inf");
+
+            # We'll need to enable TLS after instance creation (handled later in the code)
+            set_var('_389DS_FIPS_DELAYED_TLS', 1);
+        }
+    }
+
     assert_script_run("dscreate from-file /tmp/instance.inf");
     validate_script_output("dsctl localhost status", sub { m/Instance.*is running/ });
+
+    # FIPS Approach 2 continuation: Re-enable TLS if we disabled it
+    if (get_var('_389DS_FIPS_DELAYED_TLS')) {
+        record_info('FIPS TLS', 'Re-enabling TLS after instance creation');
+
+        # Enable secure port in configuration
+        assert_script_run("dsconf localhost config replace nsslapd-secureport=636");
+
+        # Restart to apply TLS configuration
+        systemctl("restart dirsrv\@localhost.service");
+        validate_script_output("dsctl localhost status", sub { m/Instance.*is running/ });
+    }
 
     # Configure CA Certificates for TLS
     assert_script_run("wget --quiet " . data_url("389ds/.dsrc") . " -O /root/.dsrc");
     self_sign_ca("$ca_dir", "$local_name");
+
+    # Stop the instance before modifying the NSS certificate database
+    # to prevent race condition/corruption leading to segfault in libsoftokn3.so
+    assert_script_run("dsctl localhost stop");
 
     # Deleted the default CA files since it can only resolve "localhost",
     # Please refer to bug 1180628 for more detail information
     assert_script_run("certutil -D -d $inst_ca_dir -n Server-Cert");
     assert_script_run("certutil -D -d $inst_ca_dir -n Self-Signed-CA");
 
-    # Import new CA files and restart the instance
+    # Import new CA files while instance is stopped
     assert_script_run("dsctl localhost tls import-server-key-cert $ca_dir/server.pem $ca_dir/server.key");
     assert_script_run("dsctl localhost tls import-ca $ca_dir/myca.pem myca");
     assert_script_run("cp $ca_dir/myca.pem $inst_ca_dir/ca.crt");
-    systemctl("restart dirsrv\@localhost.service");
+
+    # Start the instance with new certificates
+    assert_script_run("dsctl localhost start");
+    validate_script_output("dsctl localhost status", sub { m/Instance.*is running/ });
 
     # Configure host names for C/S communication
     assert_script_run("sed -i -e 's/master/$local_name.example.com/' -e 's/minion/$remote_name.example.com/' /etc/hosts");
