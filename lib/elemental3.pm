@@ -40,21 +40,18 @@ Execute elemental3 command from container.
 
 sub elemental3_cmd {
     my (%args) = @_;
-    my $ca_vol = '';
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 120);
     my $runtime = get_required_var('CONTAINER_RUNTIMES');
 
     croak('Missing required argument!') unless (%args);
 
-    # Check if we need to mount the local CA in the container
-    # This could be needed when we have to test updates on released versions,
-    # as internal SUSE CAs are not installed in that case!
-    unless (get_var('TOTEST_PATH', '') =~ /Main:/) {
-        # NOTE: ':z' is needed because of SELinux!
-        $ca_vol = '--volume /var/lib/ca-certificates:/var/lib/ca-certificates:ro,z --volume /etc/ssl:/etc/ssl:ro,z';
-    }
+    # This is needed to be able to pull images from internal registry
+    # as, for security reasons, internal SUSE CAs are not installed
+    # in Elemental CLI container. As the VM image used to generate
+    # UnifiedCore OS image has the CAs we can simply use them as-is.
 
     # NOTE: ':z' is needed because of SELinux!
+    my $ca_vol = '--volume /var/lib/ca-certificates:/var/lib/ca-certificates:ro,z --volume /etc/ssl:/etc/ssl:ro,z';
     assert_script_run(
         "$runtime run --rm ${ca_vol} --volume $args{config_dir}:/config:z $args{uri} $args{cmd}",
         timeout => $timeout
