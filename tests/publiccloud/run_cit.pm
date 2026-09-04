@@ -13,7 +13,6 @@ use utils qw(zypper_call);
 use serial_terminal 'select_serial_terminal';
 use publiccloud::utils;
 use publiccloud::gce;
-use Mojo::DOM;
 
 my $cred_path = '/tmp/gce_creds.json';
 my $out_path = '/tmp/cit_results.xml';
@@ -109,7 +108,9 @@ sub run_cit_tests {
             "-out_path '$out_path'"
         );
 
+    } else {
         # permissions are required to get the container from google's registry
+        # TODO: this is not tested as the container from google's project requires project authorization
         assert_script_run("gcloud auth activate-service-account --key-file=$cred_path --project=$project");
         assert_script_run('gcloud auth configure-docker --quiet gcr.io');
         assert_script_run('gcloud auth print-access-token | podman login -u oauth2accesstoken --password-stdin gcr.io');
@@ -136,6 +137,22 @@ sub run_cit_tests {
     return $out_path;
 }
 
+# GCE has a specific naming scheme of uploaded images
+sub find_sut_image {
+    my $project = shift;
+
+    my $arch = get_var('ARCH');
+    $arch =~ s/_//;
+    my $version = get_var('VERSION');
+    $version =~ s/\./-/;
+    my $img_regex = lc(sprintf("%ss?-?%s-%s", get_var('DISTRI'), $version, $arch));
+    my $image = script_output(qq[gcloud compute images list --project="$project" --filter="name ~ '(?i)^$img_regex' AND name \!~ '(chost|byos)'" --format="value(name)" --no-standard-images]);
+
+    die "Missing SUT image, no image match '$img_regex' in test project ($project)" unless (!!$image);
+
+    return $image;
+}
+
 sub run {
     my ($self, $run_args) = @_;
     select_serial_terminal;
@@ -146,12 +163,8 @@ sub run {
 
     # login to gce, find the SUT image name
     my $creds = get_credentials(url_suffix => 'gce.json', output_json => $cred_path);
-    my $provider = $self->provider_factory();
-    my $img_regex = lc(sprintf("%s.*%s-x8664", get_var('DISTRI'), get_var('VERSION')));
-    my $sut = script_output(qq[gcloud compute images list --project="suse-gce-qa" --filter="name ~ '(?i)^$img_regex' AND name \!~ '(chost|byos)'" --format="value(name)" --no-standard-images]);
-    unless (!!$sut) {
-        die "Missing SUT image";
-    }
+    $self->provider_factory();
+    my $sut = find_sut_image($creds->{project_id});
 
     # run cloud-image-tests
     my $out = run_cit_tests($self, $sut, $cit, $creds->{project_id}, @ts);
