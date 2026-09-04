@@ -22,8 +22,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use Utils::Architectures;
 use qam;
-use Utils::Backends qw(use_ssh_serial_console is_pvm);
-use power_action_utils qw(power_action);
+use Utils::Backends qw(use_ssh_serial_console is_pvm is_qemu);
+use power_action_utils qw(power_action wait_boot_serial);
 use version_utils qw(is_sle);
 use serial_terminal qw(add_serial_console);
 use version_utils qw(is_jeos);
@@ -70,7 +70,16 @@ sub run {
     # DESKTOP can be gnome, but patch is happening in shell, thus always force reboot in shell
     power_action('reboot', textmode => 1);
     reconnect_mgmt_console if is_pvm;
-    $self->wait_boot(ready_time => 600, bootloader_time => get_var('BOOTLOADER_TIMEOUT', 300));
+    if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+        # On SLE 16.0 aarch64/qemu, patching the kernel/bootloader can
+        # regenerate grub.cfg and trigger GRUB's serial-terminal bug
+        # (bsc#1140464), hanging wait_boot's needle checks with "Stall
+        # detected". wait_boot_serial already confirms the login banner
+        # itself, so it replaces wait_boot here rather than preceding it.
+        die 'System did not come back up after patching' unless wait_boot_serial;
+    } else {
+        $self->wait_boot(ready_time => 600, bootloader_time => get_var('BOOTLOADER_TIMEOUT', 300));
+    }
 }
 
 sub test_flags {

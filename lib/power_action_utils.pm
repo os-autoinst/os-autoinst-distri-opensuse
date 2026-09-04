@@ -22,6 +22,7 @@ use testapi;
 use Utils::Architectures;
 use Utils::Backends;
 use version_utils qw(is_sle is_leap is_opensuse is_tumbleweed is_vmware is_jeos);
+use serial_terminal 'get_login_message';
 use Carp 'croak';
 
 our @EXPORT = qw(
@@ -32,6 +33,7 @@ our @EXPORT = qw(
   assert_shutdown_and_restore_system
   assert_shutdown_with_soft_timeout
   check_bsc1215132
+  wait_boot_serial
 );
 
 =head2 prepare_system_shutdown
@@ -380,6 +382,46 @@ sub power_action {
             select_console('sut');
         }
     }
+}
+
+=head2 wait_boot_serial
+
+ wait_boot_serial();
+
+Confirm a reboot completed by watching the serial console for the login
+banner, recovering first if GRUB got stuck on its aarch64 serial-terminal
+bug (bsc#1140464: aarch64 has no legacy I/O ports, so GRUB's default
+C<com0> serial addressing can never resolve there; SUSE's grub2 config
+generation still doesn't use C<efi0> instead). Once grub.cfg gets
+regenerated (e.g. by a kernel/bootloader update or C<fips-mode-setup>),
+GRUB's C<terminal_output>/C<terminal_input serial> command aborts
+grub.cfg's script execution, parking GRUB at its hidden-menu hint
+("Please press 't' to show the boot menu") instead of ever reaching the
+auto-boot logic.
+
+Races that hint against the login banner for 60 seconds so an unaffected
+boot returns as soon as it's up. If neither appeared yet, keeps waiting
+for the login banner alone for another 240 seconds (300 seconds total,
+matching a plain boot-confirmation timeout). If the hint wins the race,
+presses 't' (reveal the menu) and 'ret' (confirm the default entry), then
+allows a fresh 300 seconds for the now-unstuck boot to actually complete.
+
+Returns the matched text (a true value) on success, or an empty/undef
+value if the login banner was never seen at all.
+
+=cut
+
+sub wait_boot_serial {
+    my $login_message = get_login_message();
+    my $hang = qr/Please press .t. to show the boot menu/;
+
+    my $matched = wait_serial(qr/$hang|$login_message/, 60);
+    if ($matched && $matched =~ $hang) {
+        send_key 't';
+        send_key 'ret';
+        return wait_serial($login_message, 300);
+    }
+    return $matched || wait_serial($login_message, 240);
 }
 
 =head2 assert_shutdown_and_restore_system
