@@ -64,8 +64,10 @@ sub run_tests ($python3_spec_release) {
 # Creating the source package with the name 'dist/user_package_setuptools-1.0.tar.gz' in the dist folder.
 sub build_package ($python_binary, $env) {
     if ($env eq 'pip') {
-        assert_script_run("$python_binary -m venv myenv --system-site-packages");
+        # Refer bsc#1262467
+        assert_script_run("$python_binary -m venv myenv --system-site-packages --without-pip");
         assert_script_run("source myenv/bin/activate");
+        assert_script_run("pip --version");
         assert_script_run("cd /root/data") if is_transactional;
     }
     assert_script_run("$python_binary setup.py sdist");
