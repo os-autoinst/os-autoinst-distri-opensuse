@@ -2490,7 +2490,14 @@ sub load_host_installation_modules {
 sub set_mu_virt_vars {
     # Set UPDATE_PACKAGE based on BUILD(format example, BUILD=:33310:dtb-armv7l or BUILD=:smelt:33310:dtb-armv7l)
     my $BUILD = get_required_var('BUILD');
-    $BUILD =~ /:(\d+):([^:]+)$/im;
+    $BUILD =~ /:(\d+):([^:]+?)(?::[^:]+)?$/im;
+    die "BUILD value is $BUILD, but does not match required format." unless $2;
+    # thre expresion works:
+    # :(\d+): Captures the digits (e.g., 1234) into $1.
+    # ([^:]+?): Captures the main component name immediately following the digits (e.g., kernel-source or java) into $2.
+    # (?::[^:]+)?$: An optional non-capturing group (?: ... ?) at the end of the string. If an extra colon-separated
+    # suffix exists (like git:1234:kernel-source:kernel-rt), it matches and safely ignores/discards it.
+    # Old string to reference $BUILD =~ /:(\d+):([^:]+)$/im;
 
     die "BUILD value is $BUILD, but does not match required format." if (!$2);
     my $_pkg = $2;
