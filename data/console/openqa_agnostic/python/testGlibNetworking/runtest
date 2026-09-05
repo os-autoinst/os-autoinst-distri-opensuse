@@ -1,0 +1,42 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: glib-networking installed tests
+# desc: >
+#   Runs the upstream installed tests for glib-networking via
+#   gnome-desktop-testing-runner. Tests cover TLS/HTTPS connections,
+#   certificates, file database, and proxy resolution (GnuTLS, libproxy, GNOME).
+# steps:
+#   - discover available glib-networking test cases
+#   - run each test via gnome-desktop-testing-runner
+#   - collect results as JUnit XML via pytest
+# requires: glib-networking-tests and gnome-desktop-testing must be installed
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 16+
+# tags: console glib-networking tls gnutls proxy networking
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_glib_networking.py)
+
+handle_args "$0" "$@"
+
+ensure_command_available "gnome-desktop-testing-runner"
+
+# Avoid OpenSC pkcs11-spy wrapper intercepting mock-pkcs11 provider on systems with opensc installed
+export PKCS11SPY_PATH="/usr/libexec/installed-tests/glib-networking/mock-pkcs11.so"
+
+set +e
+pytest -v -s test_glib_networking.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc
