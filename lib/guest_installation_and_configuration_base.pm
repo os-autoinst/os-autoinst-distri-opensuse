@@ -1621,9 +1621,11 @@ sub config_guest_installation_media {
             if ($self->{guest_installation_media} =~ /^.*\.raw\.xz$/i) {
                 assert_script_run("curl -s -o $self->{guest_storage_backing_path}.xz " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 1200);
                 assert_script_run("xz -d $self->{guest_storage_backing_path}.xz", timeout => 120);
+                $self->convert_64kb_raw_backing_image if (is_aarch64 && check_var('KERNEL_64KB', '1'));
             }
             else {
                 assert_script_run("curl -s -o $self->{guest_storage_backing_path} " . render_autoinst_url(url => $self->{guest_installation_media}), timeout => 3600);
+                $self->convert_64kb_raw_backing_image if (is_aarch64 && check_var('KERNEL_64KB', '1'));
             }
         }
         else {
@@ -1632,6 +1634,22 @@ sub config_guest_installation_media {
         }
     }
     record_info("Guest $self->{guest_name} is going to use installation media $self->{guest_installation_media}", "Please check it out !");
+    return $self;
+}
+
+sub convert_64kb_raw_backing_image {
+    my $self = shift;
+
+    return if ($self->{guest_storage_backing_format} ne 'raw');
+
+    my $_raw_path = $self->{guest_storage_backing_path};
+    my $_qcow_path = "$_raw_path-converted.qcow2";
+    assert_script_run("qemu-img convert --force-share -f raw -O qcow2 -o cluster_size=65536 $_raw_path $_qcow_path", timeout => 3600);
+    assert_script_run("qemu-img check --force-share $_qcow_path", timeout => 600);
+    $self->{guest_storage_options} =~ s/\Qbacking_store=$_raw_path,backing_format=raw\E/backing_store=$_qcow_path,backing_format=qcow2/;
+    $self->{guest_storage_backing_path} = $_qcow_path;
+    $self->{guest_storage_backing_format} = 'qcow2';
+    record_info('QEMU 64KB raw workaround', "bsc#1277435 - Converted 64KB raw backing image: $_raw_path -> $_qcow_path", result => 'softfail');
     return $self;
 }
 
@@ -2118,6 +2136,8 @@ sub config_guest_unattended_installation {
         assert_script_run("sed -ri \'s/##Device-MacAddr##/$self->{guest_macaddr}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Logging-HostName##/$_host_params{host_name}.$_host_params{host_domain_name}/g;\' $self->{guest_installation_automation_file}");
         assert_script_run("sed -ri \'s/##Logging-HostPort##/514/g;\' $self->{guest_installation_automation_file}");
+        my $_kernel_64kb = check_var('KERNEL_64KB', '1') ? 1 : 0;
+        assert_script_run("sed -ri \'s/##Kernel-64kb##/$_kernel_64kb/g;\' $self->{guest_installation_automation_file}");
         $self->config_guest_installation_automation_registration;
         $self->validate_guest_installation_automation_file;
 
