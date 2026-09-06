@@ -21,7 +21,8 @@ use version_utils qw(is_sle is_tumbleweed);
 use serial_terminal qw(select_user_serial_terminal select_serial_terminal);
 use registration qw(add_suseconnect_product get_addon_fullname);
 use bootloader_setup 'add_grub_cmdline_settings';
-use power_action_utils 'power_action';
+use power_action_utils qw(power_action wait_boot_serial);
+use Utils::Backends 'is_qemu';
 use List::MoreUtils qw(uniq);
 use YAML::PP;
 use File::Basename;
@@ -475,7 +476,13 @@ EOF
     add_grub_cmdline_settings("ignore_loglevel", update_grub => 1);
 
     power_action('reboot', textmode => 1);
-    $self->wait_boot();
+    if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+        # Some aarch64 SUTs regenerate a bad grub.cfg (bsc#1140464) and hang
+        # at a hidden-menu prompt; wait_boot_serial recovers from that.
+        die 'System did not come back up after reboot' unless wait_boot_serial;
+    } else {
+        $self->wait_boot();
+    }
     push @commands, "reboot";
     $rebooted = 1;
 

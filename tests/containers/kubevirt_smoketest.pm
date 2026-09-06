@@ -21,6 +21,8 @@ use mmapi 'get_current_job_id';
 use power_action_utils;
 use version_utils;
 use containers::k8s;
+use Utils::Architectures 'is_aarch64';
+use Utils::Backends 'is_qemu';
 
 my $vmi_user = 'test';
 my $vmi_pubkey;
@@ -156,7 +158,13 @@ sub install_kernel_with_kvm_support {
     zypper_call('in kernel-default -' . current_kernel_flavor, timeout => 300);
 
     power_action('reboot', textmode => 1);
-    $self->wait_boot(bootloader_time => 300);
+    if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+        # Some aarch64 SUTs regenerate a bad grub.cfg (bsc#1140464) and hang
+        # at a hidden-menu prompt; wait_boot_serial recovers from that.
+        die 'System did not come back up after reboot' unless wait_boot_serial;
+    } else {
+        $self->wait_boot(bootloader_time => 300);
+    }
     select_serial_terminal;
 }
 

@@ -12,9 +12,11 @@ use testapi;
 use serial_terminal;
 use utils;
 use version_utils;
-use power_action_utils 'power_action';
+use power_action_utils qw(power_action wait_boot_serial);
 use containers::bats;
 use containers::common;
+use Utils::Architectures 'is_aarch64';
+use Utils::Backends 'is_qemu';
 
 my $port = 8080;
 
@@ -143,7 +145,13 @@ sub run {
     if (get_var("TEST_REPOS")) {
         upgrade_via_testrepos;
         power_action('reboot', textmode => 1);
-        $self->wait_boot();
+        if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+            # Some aarch64 SUTs regenerate a bad grub.cfg (bsc#1140464) and
+            # hang at a hidden-menu prompt; wait_boot_serial recovers from that.
+            die 'System did not come back up after reboot' unless wait_boot_serial;
+        } else {
+            $self->wait_boot();
+        }
         select_serial_terminal;
     }
 

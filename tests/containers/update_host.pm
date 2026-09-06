@@ -13,10 +13,12 @@
 
 use Mojo::Base 'consoletest';
 use utils qw(zypper_call script_retry);
-use version_utils qw(get_os_release);
-use power_action_utils qw(power_action);
+use version_utils qw(get_os_release is_sle);
+use power_action_utils qw(power_action wait_boot_serial);
 use testapi;
 use serial_terminal 'select_serial_terminal';
+use Utils::Architectures 'is_aarch64';
+use Utils::Backends 'is_qemu';
 
 sub disable_selinux {
     if (script_run('selinuxenabled') == 0) {
@@ -56,7 +58,13 @@ sub run {
     power_action('reboot', textmode => 1);
     # For some reason, we need to wait for some time in RES8 before waiting for boot
     sleep 60 if ($host_distri eq 'rhel');
-    $self->wait_boot();
+    if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+        # Some aarch64 SUTs regenerate a bad grub.cfg (bsc#1140464) and hang
+        # at a hidden-menu prompt; wait_boot_serial recovers from that.
+        die 'System did not come back up after reboot' unless wait_boot_serial;
+    } else {
+        $self->wait_boot();
+    }
     select_serial_terminal;
     record_info('uname', script_output('uname -a'));
     record_info('relaese', script_output('cat /etc/os-release'));

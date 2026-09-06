@@ -15,7 +15,9 @@ use version_utils;
 use publiccloud::utils;
 use containers::k8s;
 use bootloader_setup qw(add_grub_cmdline_settings);
-use power_action_utils qw(power_action);
+use power_action_utils qw(power_action wait_boot_serial);
+use Utils::Architectures 'is_aarch64';
+use Utils::Backends 'is_qemu';
 
 sub run {
     my ($self, $args) = @_;
@@ -27,7 +29,13 @@ sub run {
     if (script_run("test -f /sys/fs/cgroup/cgroup.controllers") != 0) {
         add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=1", update_grub => 1);
         power_action('reboot', textmode => 1);
-        $self->wait_boot();
+        if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+            # Some aarch64 SUTs regenerate a bad grub.cfg (bsc#1140464) and
+            # hang at a hidden-menu prompt; wait_boot_serial recovers from that.
+            die 'System did not come back up after reboot' unless wait_boot_serial;
+        } else {
+            $self->wait_boot();
+        }
         select_serial_terminal;
     }
 

@@ -19,9 +19,10 @@ use containers::common;
 use containers::utils qw(reset_container_network_if_needed);
 use containers::k8s qw(install_k3s);
 use bootloader_setup qw(add_grub_cmdline_settings);
-use power_action_utils qw(power_action);
+use power_action_utils qw(power_action wait_boot_serial);
 use zypper qw(wait_quit_zypper);
 use Utils::Architectures qw(is_x86_64 is_aarch64);
+use Utils::Backends 'is_qemu';
 
 # /tmp as tmpfs has multiple issues: it can't store SELinux labels, consumes RAM and doesn't have enough space
 # Bind-mount it to /var/tmp
@@ -65,7 +66,14 @@ sub run {
         if (is_bootloader_grub2 && script_run('grep -q quiet /proc/cmdline') != 0) {
             add_grub_cmdline_settings('quiet', update_grub => 1);
             power_action("reboot", textmode => 1);
-            $self->wait_boot(textmode => 1);
+            if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+                # Some aarch64 SUTs regenerate a bad grub.cfg (bsc#1140464)
+                # and hang at a hidden-menu prompt; wait_boot_serial
+                # recovers from that.
+                die 'System did not come back up after reboot' unless wait_boot_serial;
+            } else {
+                $self->wait_boot(textmode => 1);
+            }
             select_serial_terminal;
         }
     }
@@ -107,7 +115,14 @@ sub run {
             script_run('systemctl disable SuSEfirewall2');
             add_grub_cmdline_settings('apparmor=0', update_grub => 1);
             power_action("reboot", textmode => 1);
-            $self->wait_boot(textmode => 1);
+            if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+                # Some aarch64 SUTs regenerate a bad grub.cfg (bsc#1140464)
+                # and hang at a hidden-menu prompt; wait_boot_serial
+                # recovers from that.
+                die 'System did not come back up after reboot' unless wait_boot_serial;
+            } else {
+                $self->wait_boot(textmode => 1);
+            }
             select_serial_terminal;
         } else {
             script_run('systemctl disable --now firewalld');

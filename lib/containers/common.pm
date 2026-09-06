@@ -16,10 +16,11 @@ use containers::utils qw(registry_url container_ip container_route);
 use transactional qw(trup_call check_reboot_changes process_reboot);
 use bootloader_setup 'add_grub_cmdline_settings';
 use serial_terminal 'select_serial_terminal';
-use power_action_utils 'power_action';
+use power_action_utils qw(power_action wait_boot_serial);
 use Mojo::JSON;
 use version_utils qw(is_sle);
 use Utils::Architectures qw(is_aarch64);
+use Utils::Backends 'is_qemu';
 
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image
@@ -289,7 +290,13 @@ sub switch_cgroup_version {
     } else {
         add_grub_cmdline_settings("systemd.unified_cgroup_hierarchy=$setting", update_grub => 1);
         power_action('reboot', textmode => 1);
-        $self->wait_boot(bootloader_time => 360);
+        if (is_qemu && is_aarch64 && is_sle('=16.0')) {
+            # Some aarch64 SUTs regenerate a bad grub.cfg (bsc#1140464) and
+            # hang at a hidden-menu prompt; wait_boot_serial recovers from that.
+            die 'System did not come back up after reboot' unless wait_boot_serial;
+        } else {
+            $self->wait_boot(bootloader_time => 360);
+        }
     }
     select_serial_terminal;
 
