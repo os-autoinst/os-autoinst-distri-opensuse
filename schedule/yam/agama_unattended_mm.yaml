@@ -1,0 +1,10 @@
+---
+name: agama_unattended_mm
+description: >
+  Default unattended installation in multi-machine.
+schedule:
+  - yam/agama/wait_support_server
+  - yam/agama/boot_agama
+  - yam/agama/agama_auto
+  - installation/grub_test
+  - installation/first_boot
