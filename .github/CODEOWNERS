@@ -114,3 +114,8 @@ lib/elemental3.pm @ldevulder
 schedule/elemental3 @ldevulder
 t/42_elemental3.t @ldevulder
 tests/elemental3 @ldevulder
+
+# OSADO Maintainers is a special group
+AGENTS.md @os-autoinst/tests-maintainer
+CONTRIBUTING.md @os-autoinst/tests-maintainer
+README.md @os-autoinst/tests-maintainer

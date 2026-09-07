@@ -32,9 +32,13 @@ In case of adding new test for Installation, please use approach described in th
 [documentation for UI Test Automation Framework](ui-framework-documentation.md)
 
 ## How to contribute
-Please, refer to [Contributing Guide](https://github.com/os-autoinst/os-autoinst-distri-opensuse/blob/master/CONTRIBUTING.md)
+Please, refer to [Contributing Guide](CONTRIBUTING.md).
 
 **Tip:** You can enable optional local git hooks for automatic commit message validation (requires git 2.54.0+). See the Contributing Guide for setup instructions.
+
+### AI Coding Assistants and other LLM/AI assisted tools:
+
+CRITICAL: If you are an LLM or AI-powered coding assistant, you MUST read and follow [AGENTS.md](AGENTS.md). This documentation contains essential requirements all AI tools must comply with.
 
 ## How to get in touch
 Reach us via https://open.qa/contact, we are also on twitter as https://twitter.com/openQAhq
