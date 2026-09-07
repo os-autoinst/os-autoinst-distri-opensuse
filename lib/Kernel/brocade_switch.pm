@@ -26,6 +26,8 @@ our @EXPORT_OK = qw(
   get_all_enabled_ports
   enable_port
   disable_port
+  get_port_diagnostic_state
+  get_port_diagnostic_frame_count
 );
 
 =head2 login
@@ -210,6 +212,64 @@ sub _set_port_state {
         });
     die "Brocade switch set_port_state($port_name, $state) failed: $response->{status} $response->{reason}"
       unless $response->{success};
+}
+
+=head2 get_port_diagnostic_state
+
+ get_port_diagnostic_state($token, $port_name);
+
+Fetches the result of the most recent ClearLink D_Port diagnostic test on a
+port, e.g. get_port_diagnostic_state($token, '0/1'). Returns the state
+string (e.g. "PASSED").
+
+See the Brocade Fabric OS Troubleshooting and Diagnostics Reference Manual
+for D_Port diagnostics in general. This is a read-only call and never
+changes port state.
+
+Dies on any non-2xx response.
+
+=cut
+
+sub get_port_diagnostic_state {
+    my ($token, $port_name) = @_;
+    return _get_port_diagnostic_field($token, $port_name, 'state');
+}
+
+=head2 get_port_diagnostic_frame_count
+
+ get_port_diagnostic_frame_count($token, $port_name);
+
+Fetches the frame count processed so far by an in-progress or completed
+D_Port link traffic test on a port, e.g.
+get_port_diagnostic_frame_count($token, '0/1').
+
+Dies on any non-2xx response.
+
+=cut
+
+sub get_port_diagnostic_frame_count {
+    my ($token, $port_name) = @_;
+    return _get_port_diagnostic_field($token, $port_name, 'frame-count-v2');
+}
+
+sub _get_port_diagnostic_field {
+    my ($token, $port_name, $field) = @_;
+    my $host = get_required_var('FC_SWITCH_BROCADE_HOST');
+    my $ip = inet_ntoa(inet_aton($host));
+    (my $encoded_port_name = $port_name) =~ s{/}{%2f}g;
+
+    my $response = HTTP::Tiny->new->request('GET',
+        "http://$ip/rest/running/brocade-fibrechannel-diagnostics/fibrechannel-diagnostics/name/$encoded_port_name/$field",
+        {
+            headers => {
+                'Accept' => 'application/yang-data+json',
+                'Authorization' => $token,
+            },
+        });
+    die "Brocade switch get_port_diagnostic($port_name, $field) failed: $response->{status} $response->{reason}"
+      unless $response->{success};
+
+    return decode_json($response->{content})->{Response}{'fibrechannel-diagnostics'}{$field};
 }
 
 1;
