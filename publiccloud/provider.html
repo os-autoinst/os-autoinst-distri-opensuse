@@ -121,7 +121,7 @@ Returns a string-name containing distri, version, flavor, arch.</code></pre>
     retry   =&gt; 6,                 # number of script_retry() attempts
 );</code></pre>
 
-<p>Run a single tofu/terraform step (<code>init</code>, <code>plan</code> or <code>apply</code>) via <code>script_retry()</code>, capturing its combined stdout/stderr to <code>tf_&lt;step</code>_output&gt; so the output survives even on a timeout (unlike letting <code>script_retry</code> die internally with no diagnostics). Always returns the exit code and the captured output rather than dying itself, so the caller decides how to react to a failure.</p>
+<p>Run a single tofu/terraform step (<code>init</code>, <code>plan</code> or <code>apply</code>) via <code>script_retry()</code>, capturing its combined stdout/stderr to <code>tf_&lt;step</code>_output&gt; so the output survives even on a timeout (unlike letting <code>script_retry</code> die internally with no diagnostics). On failure, <code>tf_&lt;step</code>_output&gt; is uploaded as a job log so the real error stays visible after the job ends. Always returns the exit code and the captured output rather than dying itself, so the caller decides how to react to a failure.</p>
 
 <h2 id="region_out_of_resources">region_out_of_resources</h2>
 
