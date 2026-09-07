@@ -57,7 +57,7 @@ sub login {
                 'Authorization' => 'Basic ' . encode_base64("$user:$password", ''),
             },
     });
-    die "Brocade switch login failed: $response->{status} $response->{reason}"
+    die "Brocade switch login failed: $response->{status} $response->{reason}\n" . ($response->{content} // '')
       unless $response->{success};
 
     my $token = $response->{headers}{authorization};
@@ -85,7 +85,7 @@ sub logout {
                 'Authorization' => $token,
             },
     });
-    die "Brocade switch logout failed: $response->{status} $response->{reason}"
+    die "Brocade switch logout failed: $response->{status} $response->{reason}\n" . ($response->{content} // '')
       unless $response->{success};
 }
 
@@ -114,7 +114,7 @@ sub get_port {
                 'Authorization' => $token,
             },
         });
-    die "Brocade switch get_port($port_name) failed: $response->{status} $response->{reason}"
+    die "Brocade switch get_port($port_name) failed: $response->{status} $response->{reason}\n" . ($response->{content} // '')
       unless $response->{success};
 
     return decode_json($response->{content})->{Response}{fibrechannel};
@@ -143,7 +143,7 @@ sub get_all_ports {
                 'Authorization' => $token,
             },
         });
-    die "Brocade switch get_all_ports() failed: $response->{status} $response->{reason}"
+    die "Brocade switch get_all_ports() failed: $response->{status} $response->{reason}\n" . ($response->{content} // '')
       unless $response->{success};
 
     my $ports = decode_json($response->{content})->{Response}{fibrechannel};
@@ -210,7 +210,7 @@ sub _set_port_state {
                 'Authorization' => $token,
             },
         });
-    die "Brocade switch set_port_state($port_name, $state) failed: $response->{status} $response->{reason}"
+    die "Brocade switch set_port_state($port_name, $state) failed: $response->{status} $response->{reason}\n" . ($response->{content} // '')
       unless $response->{success};
 }
 
@@ -266,7 +266,7 @@ sub _get_port_diagnostic_field {
                 'Authorization' => $token,
             },
         });
-    die "Brocade switch get_port_diagnostic($port_name, $field) failed: $response->{status} $response->{reason}"
+    die "Brocade switch get_port_diagnostic($port_name, $field) failed: $response->{status} $response->{reason}\n" . ($response->{content} // '')
       unless $response->{success};
 
     return decode_json($response->{content})->{Response}{'fibrechannel-diagnostics'}{$field};
