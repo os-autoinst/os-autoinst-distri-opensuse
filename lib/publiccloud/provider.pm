@@ -340,9 +340,10 @@ sub terraform_cmd {
 Run a single tofu/terraform step (C<init>, C<plan> or C<apply>) via
 C<script_retry()>, capturing its combined stdout/stderr to C<tf_<step>_output>
 so the output survives even on a timeout (unlike letting C<script_retry> die
-internally with no diagnostics). Always returns the exit code and the
-captured output rather than dying itself, so the caller decides how to react
-to a failure.
+internally with no diagnostics). On failure, C<tf_<step>_output> is uploaded
+as a job log so the real error stays visible after the job ends. Always
+returns the exit code and the captured output rather than dying itself, so
+the caller decides how to react to a failure.
 
 =cut
 
@@ -353,6 +354,7 @@ sub _tofu_run_step {
         timeout => $args{timeout}, delay => $args{delay}, retry => $args{retry}, die => 0);
     my $output = script_output("cat $output_file", proceed_on_failure => 1);
     record_info("TFM $args{step} output", "exit code: $ret", result => ($ret) ? 'fail' : 'ok');
+    upload_logs($output_file, failok => 1) if $ret;
     return ($ret, $output);
 }
 
@@ -442,7 +444,7 @@ sub terraform_apply {
     $vars{project} = $args{project} if ($args{project});
     if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
         $vars{cloud_init} = TERRAFORM_DIR . "/cloud-init.yaml";
-        $vars{use_user_data} = get_var('PUBLIC_CLOUD_USER_DATA') if defined get_var('PUBLIC_CLOUD_USER_DATA');
+        $vars{use_user_data} = get_var('PUBLIC_CLOUD_USER_DATA') if (is_azure && defined get_var('PUBLIC_CLOUD_USER_DATA'));
     }
     $vars{vm_create_timeout} = $terraform_vm_create_timeout;
     my $root_size = get_var('PUBLIC_CLOUD_ROOT_DISK_SIZE');
@@ -597,7 +599,7 @@ sub terraform_destroy {
     $vars{region} = $self->provider_client->region;
     if (get_var('PUBLIC_CLOUD_CLOUD_INIT')) {
         $vars{cloud_init} = TERRAFORM_DIR . '/cloud-init.yaml';
-        $vars{use_user_data} = get_var('PUBLIC_CLOUD_USER_DATA') if defined get_var('PUBLIC_CLOUD_USER_DATA');
+        $vars{use_user_data} = get_var('PUBLIC_CLOUD_USER_DATA') if (is_azure && defined get_var('PUBLIC_CLOUD_USER_DATA'));
     }
     $vars{ssh_public_key} = $self->ssh_key . '.pub';
 

@@ -200,6 +200,49 @@ subtest '[terraform_apply] vars' => sub {
     _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL/);
 };
 
+subtest '[terraform_apply] use_user_data is only passed on Azure' => sub {
+    # ec2.tf and gce.tf never declare a "use_user_data" variable (only
+    # azure.tf does, since PR#26367). Passing it on EC2/GCE makes tofu plan
+    # die with "Value for undeclared variable" (poo#206739).
+    set_var('PUBLIC_CLOUD', 1);
+    set_var('PUBLIC_CLOUD_REGION', 'Ferengi');
+    set_var('PUBLIC_CLOUD_INSTANCE_TYPE', 'Romulan');
+    set_var('FLAVOR', 'Talaxian');
+    set_var('OPENQA_URL', 'Xindi');
+    set_var('PUBLIC_CLOUD_CLOUD_INIT', 1);
+    set_var('PUBLIC_CLOUD_USER_DATA', 0);
+
+    for my $case (
+        {provider => 'EC2', client => 'publiccloud::aws_client', wants_var => 0},
+        {provider => 'AZURE', client => 'publiccloud::azure_client', wants_var => 1},
+      )
+    {
+        set_var('PUBLIC_CLOUD_PROVIDER', $case->{provider});
+        my $mock = Test::MockModule->new('publiccloud::provider', no_auto => 1);
+        $mock->redefine(get_image_id => sub { '' });
+        $mock->noop("$_") for qw(get_image_uri data_url file_content_replace);
+        $mock->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+        $mock->redefine(get_current_job_id => sub { return 42; });
+        my @calls;
+        $mock->redefine($_ => sub { push @calls, $_[0]; return 0; }) for qw(assert_script_run script_run script_retry);
+        $mock->redefine(script_output => sub {
+                push @calls, $_[0];
+                return '{"vm_name":{"value":[]},"public_ip":{"value":[]}}' if ($_[0] =~ /output -json/);
+                return '';
+        });
+        Test::MockModule->new('publiccloud::instances', no_auto => 1)->redefine(set_instances => sub { });
+
+        my $provider = publiccloud::provider->new(provider_client => $case->{client}->new());
+        $provider->terraform_apply();
+
+        my ($plan_cmd) = grep { /tofu.*plan/ } @calls;
+        is(scalar(() = ($plan_cmd =~ /-var 'use_user_data=/g)), $case->{wants_var},
+            "$case->{provider} plan " . ($case->{wants_var} ? 'passes' : 'omits') . " use_user_data");
+    }
+
+    _unset(qw/PUBLIC_CLOUD PUBLIC_CLOUD_PROVIDER PUBLIC_CLOUD_REGION PUBLIC_CLOUD_INSTANCE_TYPE FLAVOR OPENQA_URL PUBLIC_CLOUD_CLOUD_INIT PUBLIC_CLOUD_USER_DATA/);
+};
+
 subtest '[terraform_apply] query csp at each region loop' => sub {
     set_var('PUBLIC_CLOUD', 1);
     set_var('PUBLIC_CLOUD_REGION', 'Ferengi');
@@ -322,6 +365,7 @@ sub _mock_terraform_apply {
     $mock->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
     $mock->redefine(get_current_job_id => sub { 42 });
     $mock->redefine(assert_script_run => sub { push @{$args{calls}}, $_[0]; return 0; });
+    $mock->redefine(upload_logs => sub { return; });
 
     # It consumes each regexp's list in order and dies if list of response is exhausted. Returns undef when no regexp matches at all.
     my %cursor;
@@ -694,6 +738,7 @@ subtest '[terraform_apply] init/plan failures die with captured output, no regio
             return $case->{garbage} if ($_[0] =~ /cat /);
             return '';
     });
+    $mock->redefine(upload_logs => sub { push @calls, "upload_logs $_[0]"; return; });
     my $provider = publiccloud::provider->new(provider_client => publiccloud::azure_client->new());
 
     for my $c (
@@ -711,6 +756,8 @@ subtest '[terraform_apply] init/plan failures die with captured output, no regio
         # (instead of `my ($ret) = ...`) silently captured the captured
         # output text instead of the numeric exit code from script_retry.
         like($died, qr/exit code 1\b/, "$case->{step} die message reports the numeric exit code, not the captured output");
+        ok((grep { /^upload_logs tf_$case->{step}_output/ } @calls),
+            "$case->{step} failure uploads the captured tofu output as a job log");
 
         my ($retry_call) = grep { $_->[0] =~ $case->{fail_cmd} } @retry_calls;
         ok($retry_call, "$case->{step} is retried via script_retry");
