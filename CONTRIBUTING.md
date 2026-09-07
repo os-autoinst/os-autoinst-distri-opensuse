@@ -189,7 +189,19 @@ if (match_has_tag('yast2_missing_package')) {
 
 ## Submitting changes
 
+Although there is no explicit rule on how big or small changes must be, consider
+smaller pull requests with a few commits on some files. Lots of changes being
+submitted all at once are harder to review, and less likely to catch the attention
+and keep the interest from maintainers in your changes; an exception would be
+cases where the changes are all related (e.g: a function has been renamed and
+affects many files or some repeated code is being refactored)
+
 ### Commit messages
+
+* When changes are ready to be submitted, tidy up your commit messages.
+* Be mindful of the reader: Long commit messages with multiple paragraphs
+  require more attention from the reader leverage the pull request body or
+  ticket when a commit message starts to look like a story.
 * Details in commit messages: The commit message should have enough details,
   e.g. what issue is fixed, why this needs to change, to which versions of which
   product it applies, link to a bug or a feature entry, the choices you made,
@@ -199,7 +211,7 @@ if (match_has_tag('yast2_missing_package')) {
   Keep in mind that the text in the github pull request description is only
   visible on github, not in the git log which can be considered permanent
   information storage.  
-  Commits will be checked automatically by [this workflow defined in
+ * Commits will be checked automatically by [this workflow defined in
   `os-autoinst/os-autoinst-common`][4] to enforce the following rules:
     * The commit subject **must not**:
         * exceed 72 characters in length.
@@ -213,7 +225,33 @@ if (match_has_tag('yast2_missing_package')) {
     More rules could be added in the check and not necessarily be explicitly
     described in this document. Keep an eye on the pull request check, it will
     report any offending rule defined in the workflow.
+
+#### Commit message example
+
+ An example of a good commit format from https://commit.style/
+
+```commit
+Commit message style guide for Git
+
+The first line of a commit message serves as a summary.  When displayed
+on the web, it's often styled as a heading, and in emails, it's
+typically used as the subject.  As such, you should capitalize it and
+omit any trailing punctuation.  Aim for about 50 characters, give or
+take, otherwise it may be painfully truncated in some contexts.  Write
+it, along with the rest of your message, in the imperative tense: "Fix
+bug" and not "Fixed bug" or "Fixes bug".  Consistent wording makes it
+easier to mentally process a list of commits.
+
+Oftentimes a subject by itself is sufficient.  When it's not, add a
+blank line (this is important) followed by one or more paragraphs hard
+wrapped to 72 characters.  Git is strongly opinionated that the author
+is responsible for line breaks; if you omit them, command line tooling
+will show it as one extremely long unwrapped line.  Fortunately, most
+text editors are capable of automating this.
+ ```
+
 ### Preparing a new Pull Request
+
 * All code needs to be tidy, for this use `make prepare` the first time you
   set up your local environment, use `make tidy` before committing your changes,
   ensure your new code adheres to our coding style or use `make tidy-full` if
@@ -226,6 +264,10 @@ if (match_has_tag('yast2_missing_package')) {
   `openqa: Clone https://openqa.opensuse.org/tests/<JOB_ID>` in the PR description.
   This only works for jobs on https://openqa.opensuse.org. For other jobs you can
   use the [openqa-clone-custom-git-refspec][2] script.
+* Leverage [collapsed-sections][5] to split large bodies into digestable blocks,
+  leaving the most important details to the main section (A a paragraph explaining
+  the changes and links to verification runs, ticket, failing test) and the rest
+  can be collapsed or left in the ticket.
 
 Also see the [DoD/DoR][3] as a helpful (but not mandatory) guideline for new contributions.
 
@@ -233,7 +275,7 @@ Also see the [DoD/DoR][3] as a helpful (but not mandatory) guideline for new con
 [2]: https://open.qa/docs/#_triggering_tests_based_on_an_any_remote_git_refspec_or_open_github_pull_request
 [3]: https://progress.opensuse.org/projects/openqatests/wiki/Wiki#Definition-of-DONEREADY
 [4]: https://github.com/os-autoinst/os-autoinst-common/blob/master/.github/workflows/base-commit-message-checker.yml
-
+[5]: https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/organizing-information-with-collapsed-sections
 
 ### Handling separate product codebases or versions
 
