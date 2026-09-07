@@ -145,8 +145,8 @@ sub find_sut_image {
     $arch =~ s/_//;
     my $version = get_var('VERSION');
     $version =~ s/\./-/;
-    my $img_regex = lc(sprintf("%ss?-?%s-%s", get_var('DISTRI'), $version, $arch));
-    my $image = script_output(qq[gcloud compute images list --project="$project" --filter="name ~ '(?i)^$img_regex' AND name \!~ '(chost|byos)'" --format="value(name)" --no-standard-images]);
+    my $img_regex = lc(sprintf("%ss?-?%s(-gce)?-%s", get_var('DISTRI'), $version, $arch));
+    my $image = script_output(qq[gcloud compute images list --project="$project" --filter="name ~ '(?i)^$img_regex' AND name \!~ '(chost|byos|sap)'" --format="value(name)" --no-standard-images]);
 
     die "Missing SUT image, no image match '$img_regex' in test project ($project)" unless (!!$image);
 
