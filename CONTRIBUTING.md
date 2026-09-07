@@ -137,29 +137,6 @@ and additionally the following rules:
   repository, either in `git stash` or a temporary "WIP"-commit. If it needs to
   be added, it should come with an accompanying comment stating the reasons why
   it must be there.
-* Details in commit messages: The commit message should have enough details,
-  e.g. what issue is fixed, why this needs to change, to which versions of which
-  product it applies, link to a bug or a feature entry, the choices you made,
-  etc. Also see https://commit.style/ or http://chris.beams.io/posts/git-commit/
-  as a helpful guide how to write good commit messages. And make code
-  reviewers fall in love with you :) https://mtlynch.io/code-review-love/
-  Keep in mind that the text in the github pull request description is only
-  visible on github, not in the git log which can be considered permanent
-  information storage.  
-  Commits will be checked automatically by [this workflow defined in
-  `os-autoinst/os-autoinst-common`][4] to enforce the following rules:
-    * The commit subject **must not**:
-        * exceed 72 characters in length.
-        * end with a dot.
-    * The commit subject **must** start with a capital or tag. For example:
-        * `Fix deep issue in test module`
-        * `bugfix: Fix deep issue in a library`
-    * There must be an empty newline between the commit subject and the commit
-      body.
-
-    More rules could be added in the check and not necessarily be explicitly
-    described in this document. Keep an eye on the pull request check, it will
-    report any offending rule defined in the workflow.
 
     Some areas (domains) have specific conventions for contributions, refer to them when working on those areas:
     - [docs/KERNEL_README.md](docs/KERNEL_README.md) must be followed for:
@@ -203,6 +180,32 @@ if (match_has_tag('yast2_missing_package')) {
   step as soft_fail, please use `record_info` with softfail tag:
   record_info($title [, $output] [, result => softfail] [, resultname => $resultname]);
 
+## Submitting changes
+
+### Commit messages
+* Details in commit messages: The commit message should have enough details,
+  e.g. what issue is fixed, why this needs to change, to which versions of which
+  product it applies, link to a bug or a feature entry, the choices you made,
+  etc. Also see https://commit.style/ or http://chris.beams.io/posts/git-commit/
+  as a helpful guide how to write good commit messages. And make code
+  reviewers fall in love with you :) https://mtlynch.io/code-review-love/
+  Keep in mind that the text in the github pull request description is only
+  visible on github, not in the git log which can be considered permanent
+  information storage.  
+  Commits will be checked automatically by [this workflow defined in
+  `os-autoinst/os-autoinst-common`][4] to enforce the following rules:
+    * The commit subject **must not**:
+        * exceed 72 characters in length.
+        * end with a dot.
+    * The commit subject **must** start with a capital or tag. For example:
+        * `Fix deep issue in test module`
+        * `bugfix: Fix deep issue in a library`
+    * There must be an empty newline between the commit subject and the commit
+      body.
+
+    More rules could be added in the check and not necessarily be explicitly
+    described in this document. Keep an eye on the pull request check, it will
+    report any offending rule defined in the workflow.
 ### Preparing a new Pull Request
 * All code needs to be tidy, for this use `make prepare` the first time you
   set up your local environment, use `make tidy` before committing your changes,
