@@ -46,7 +46,8 @@ sub init {
         # CAVEAT: Use the bash environment variables to prevent credential leaks.
         assert_script_run('printf "[default]\naws_access_key_id=$AWS_ACCESS_KEY_ID\naws_secret_access_key=$AWS_SECRET_ACCESS_KEY\nregion=$AWS_DEFAULT_REGION\n" > ~/.aws/credentials');
         my $debug = "aws-cli-debug.txt";
-        script_run("PILOT_DEBUG=1 aws %silent --help &> $debug");
+        script_run("PILOT_DEBUG=1 time -p aws %silent --help &> $debug");
+        record_info("aws cli time", script_output("tail -n 3 $debug", proceed_on_failure => 1));
         upload_logs($debug, failok => 1);
         script_run("rpm -qi aws-cli-cmd");
     }
