@@ -116,6 +116,9 @@ t/42_elemental3.t @ldevulder
 tests/elemental3 @ldevulder
 
 # OSADO Maintainers is a special group
-AGENTS.md @os-autoinst/tests-maintainer
 CONTRIBUTING.md @os-autoinst/tests-maintainer
 README.md @os-autoinst/tests-maintainer
+AGENTS.md @os-autoinst/tests-maintainer
+CLAUDE.md @os-autoinst/tests-maintainer
+GEMINI.md @os-autoinst/tests-maintainer
+.github/copilot-instructions.md @os-autoinst/tests-maintainer
