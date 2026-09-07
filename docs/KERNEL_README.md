@@ -69,3 +69,36 @@ Kernel test modules need to check for and enable debugfs at
 per PED-8812). is_debugfs_mounted() mirrors blktests' _have_debugfs()
 findmnt check; enable_debugfs() mounts it.
 ```
+
+## LLM assistance
+
+For the areas covered by this guide, follow the attribution approach in
+the Linux kernel's [AI Coding Assistants guidance][ai-assistants] and
+[Guidelines for Tool-Generated Content][generated-content].
+
+If you used an LLM to co-develop a meaningful part of the changes or
+commit message, you should include this commit trailer:
+
+```
+Assisted-by: LLM
+```
+
+You can append specialized analysis tools used. For example, if you used
+an LLM together with Coccinelle and Sparse:
+
+```
+Assisted-by: LLM coccinelle sparse
+```
+
+Do not list basic development tools such as git, compilers, or editors.
+
+Trivial spelling, grammar, formatting, and mechanical changes do not
+require this attribution. If a tool helped find the problem, describe
+that assistance in the commit message. When in doubt, disclose the
+assistance and explain which parts it affected.
+
+You remain responsible for reviewing, testing, and understanding the
+whole contribution.
+
+[ai-assistants]: https://docs.kernel.org/process/coding-assistants.html
+[generated-content]: https://docs.kernel.org/process/generated-content.html
