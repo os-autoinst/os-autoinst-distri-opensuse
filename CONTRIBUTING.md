@@ -17,6 +17,25 @@ Please, find up-to-date documentation references on the official [openQA project
 If you are looking for a task to start with, check out the [openQA Tests](https://progress.opensuse.org/projects/openqatests/issues/)
 Redmine project. Look for tickets with [easy] or [easy-hack] tags.
 
+## Areas and scope of work
+
+Some areas (domains) have specific conventions for contributions, refer to them when working on those areas:
+    - [docs/KERNEL_README.md](docs/KERNEL_README.md) must be followed for:
+      - `lib/Kernel`
+      - `lib/LTP`
+      - `lib/Kselftests`
+      - `lib/hpc`
+      - `tests/kernel`
+      - `tests/hpc`
+      - `tests/ipsec`
+      - `tests/xfstests`
+
+As a general guideline `tests/kernel`, `lib/security` and `lib/sles4sap` can be considered separate areas, as the names
+are specific enough to infer who they belong to, while `tests/helpers`, `lib/Utils` or `lib/Tomcat` are not because they
+are too generic, multiple teams can use things from `lib/Tomcat` but `lib/selinux.pm` is more likely to belong to the
+`security` area or domain, [CODEOWNERS](.github/CODEOWNERS) can help clarifying domains further if they are not defined
+above.
+
 ## How to get this repository working
 
 Upon setting up a new openQA instance, it's also necessary to install some
@@ -137,18 +156,6 @@ and additionally the following rules:
   repository, either in `git stash` or a temporary "WIP"-commit. If it needs to
   be added, it should come with an accompanying comment stating the reasons why
   it must be there.
-
-    Some areas (domains) have specific conventions for contributions, refer to them when working on those areas:
-    - [docs/KERNEL_README.md](docs/KERNEL_README.md) must be followed for:
-      - `lib/Kernel`
-      - `lib/LTP`
-      - `lib/Kselftests`
-      - `lib/hpc`
-      - `tests/kernel`
-      - `tests/hpc`
-      - `tests/ipsec`
-      - `tests/xfstests`
-
 * Add comments to the source code if the code is not self-explanatory:
   Comments in the source code should describe the choices made, to answer the
   question "why is the code like this". The git commit message should describe
