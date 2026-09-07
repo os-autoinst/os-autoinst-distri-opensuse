@@ -1,0 +1,8 @@
+---
+name: systemd_boot
+description: >
+  Check if the system is systemd boot.
+schedule:
+  - boot/boot_to_desktop
+  - yam/validate/validate_systemd_boot
+  - shutdown/shutdown
