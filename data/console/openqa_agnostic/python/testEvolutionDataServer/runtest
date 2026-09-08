@@ -1,0 +1,59 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: evolution-data-server installed tests
+# desc: >
+#   Runs the upstream installed tests for evolution-data-server via
+#   gnome-desktop-testing-runner. Tests cover address book, calendar,
+#   contacts, SQLite cache, and D-Bus registry services.
+# steps:
+#   - discover available evolution-data-server test cases
+#   - run each test via gnome-desktop-testing-runner inside dbus-run-session
+#   - collect results as JUnit XML via pytest
+# requires: evolution-data-server-tests, gnome-desktop-testing, and dbus-1-daemon must be installed
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 16+
+# tags: console evolution-data-server eds calendar addressbook
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_evolution_data_server.py)
+
+handle_args "$0" "$@"
+
+ensure_command_available "gnome-desktop-testing-runner"
+
+# Ensure machine-id exists for D-Bus message bus
+dbus-uuidgen --ensure 2>/dev/null || true
+
+# Set UTF-8 locale for character set conversion tests
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+
+# Symlink camel test binaries if installed with short names
+EDS_TEST_DIR="/usr/libexec/evolution-data-server/evolution-data-server/installed-tests"
+if [ -d "$EDS_TEST_DIR" ]; then
+    ln -sf test-camel-db "$EDS_TEST_DIR/cameltest-misc-test-camel-db" 2>/dev/null || true
+    ln -sf test-folder-thread "$EDS_TEST_DIR/cameltest-misc-test-folder-thread" 2>/dev/null || true
+    ln -sf test-store-search "$EDS_TEST_DIR/cameltest-misc-test-store-search" 2>/dev/null || true
+    ln -sf test-vee-folder "$EDS_TEST_DIR/cameltest-misc-test-vee-folder" 2>/dev/null || true
+fi
+
+set +e
+if command -v dbus-run-session &>/dev/null; then
+    dbus-run-session -- pytest -v -s test_evolution_data_server.py --junitxml=results.xml
+else
+    pytest -v -s test_evolution_data_server.py --junitxml=results.xml
+fi
+rc=$?
+set -e
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc
