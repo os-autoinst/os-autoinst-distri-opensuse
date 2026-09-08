@@ -225,12 +225,8 @@ sub load_create_publiccloud_tools_image {
 sub load_publiccloud_cli_tools {
     loadtest 'installation/bootloader_zkvm' if (is_s390x);
     loadtest 'boot/boot_to_desktop';
-    if (get_var('PUBLIC_CLOUD_AZURE_CLI_TEST')) {
-        loadtest 'publiccloud/azure_more_cli';
-    } else {
-        loadtest 'publiccloud/azure_cli' if (is_azure());
-        loadtest 'publiccloud/aws_cli' if (is_ec2());
-    }
+    loadtest 'publiccloud/azure_cli' if (is_azure());
+    loadtest 'publiccloud/aws_cli' if (is_ec2());
 }
 
 sub load_publiccloud_download_repos {

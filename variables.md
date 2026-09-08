@@ -319,7 +319,6 @@ The following variables are relevant for publiccloud related jobs. Keep in mind 
 Variable        | Type      | Default value | Details
 ---             | ---       | ---           | ---
 OPENTOFU_VERSION | string | "1.11.6" | Version of opentofu to include into PC Tools image
-PUBLIC_AZURE_CLI_TEST | string | "vmss" | Azure CLI test names. This variable should list the test name which should be tested.
 PUBLIC_CLOUD | boolean | false | All Public Cloud tests have this variable set to true. Contact: qa-c@suse.de
 PUBLIC_CLOUD_ACCNET | boolean | false | If set, az_accelerated_net test module is added to the job.
 PUBLIC_CLOUD_AHB_LT | string | "SLES_BYOS" | For Azure, it specifies the license type to change to (and test).
@@ -394,8 +393,6 @@ PUBLIC_CLOUD_MIGRATE_SLEM | boolean | false | Enable module for SL micro 6.x ver
 PUBLIC_CLOUD_NVIDIA | boolean | 0 | If enabled, nvidia module would be scheduled. This variable should be enabled only sle15SP4 and above.
 PUBLIC_CLOUD_PREPARE_TOOLS | boolean | false | Activate prepare_tools test module by setting this variable.
 PUBLIC_CLOUD_PROVIDER | string | "" | The type of the CSP (e.g. AZURE, EC2, GCE).
-PUBLIC_CLOUD_PY_AZURE_REPO | string | "" | PY azure repo URL for azure_more_cli_test.
-PUBLIC_CLOUD_PY_BACKPORTS_REPO | string | "" | PY Backport repo URL for azure_more_cli_test.
 PUBLIC_CLOUD_QAM | boolean | false |  1 : to identify jobs running to test "Maintenance" updates; 0 : for jobs testing "Latest" (in development). Used to control all behavioral implications which this brings.
 PUBLIC_CLOUD_REBOOT_TIMEOUT | integer | 600 | Number of seconds we wait for instance to reboot.
 PUBLIC_CLOUD_REDOWNLOAD_MU | boolean | false | Debug variable used to redownload the maintenance repositories (as they might be downloaded by parent test)
@@ -422,8 +419,7 @@ PUBLIC_CLOUD_TERRAFORM_DIR | string | "/root/terraform" | Override default root 
 PUBLIC_CLOUD_TERRAFORM_FILE | string | "" | If defined, use this terraform file (from the `data/` directory) instead the CSP default
 PUBLIC_CLOUD_TERRAFORM_RUNNER | string | "tofu" | Override terraform runner container. Can be either "tofu" or "terraform".
 PUBLIC_CLOUD_TOOLS_CLI | boolean | false | If set, it schedules `publiccloud_tools_cli` job group.
-PUBLIC_CLOUD_TOOLS_REPO | string | "" | cloud tools repo URL for azure_more_cli_test.
-PUBLIC_CLOUD_TOOLS_REPO | string | false | The URL to the cloud:tools repo (optional). (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo).
+PUBLIC_CLOUD_TOOLS_REPO | string | "" | The URL to the cloud:tools repo (optional). (e.g. http://download.opensuse.org/repositories/Cloud:/Tools/openSUSE_Tumbleweed/Cloud:Tools.repo).
 PUBLIC_CLOUD_TTL_OFFSET | integer | 300 | This number + MAX_JOB_TIME equals the TTL of created VM.
 PUBLIC_CLOUD_UPLOAD_IMG | boolean | false | If set, `publiccloud/upload_image` test module is added to the job.
 PUBLIC_CLOUD_USER | string | "" | The public cloud instance system user.
