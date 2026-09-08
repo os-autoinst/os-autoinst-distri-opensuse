@@ -11,28 +11,29 @@ vars:
   DESKTOP: textmode
   HOST_HYPERVISOR: kvm
   INSTALL_PRODUCT_PATTERNS: kvm_server,kvm_tools
-  YAML_TEST_DATA: test_data/yam/agama_sle.yaml
 schedule:
   - yam/migration/setup_upgrade_env
-  - "{{install_host}}"
-  - "{{prepare_virtualization}}"
-  - yam/migration/restore_upgrade_env
-  - console/system_prepare
-  - "{{pre_migration}}"
-  - "{{migration_module}}"
-  - "{{post_migration_boot}}"
+  - '{{install_host}}'
+  - '{{prepare_virtualization}}'
+  - '{{restore_before_upgrade}}'
+  - '{{pre_migration}}'
+  - '{{migration_module}}'
+  - '{{post_migration_boot}}'
   - yam/validate/validate_migration_logs
   - yam/validate/validate_connectivity
   - yam/validate/validate_product
   - console/validate_repos
-  - "{{verify_virtualization}}"
+  - '{{post_migration_validation}}'
+  - '{{verify_virtualization}}'
 conditional_schedule:
   install_host:
     ARCH:
       x86_64:
-        - "{{install_host_x86}}"
+        - '{{install_host_x86}}'
       aarch64:
-        - "{{install_host_aarch64}}"
+        - '{{install_host_aarch64}}'
+      ppc64le:
+        - '{{install_host_ppc64le}}'
   install_host_x86:
     AUTOYAST_PREPARE_PROFILE:
       "1":
@@ -57,11 +58,28 @@ conditional_schedule:
         - installation/ipxe_install
         - installation/agama_reboot
         - virt_autotest/login_console
+  install_host_ppc64le:
+    AGAMA:
+      "1":
+        - installation/bootloader
+        - installation/agama_reboot
+        - installation/grub_test
+        - installation/first_boot
+        - virt_autotest/login_console
   prepare_virtualization:
     VIRT_AUTOTEST:
       "1":
         - virt_autotest/prepare_non_transactional_server
         - virt_autotest/unified_guest_installation
+  restore_before_upgrade:
+    ADDITIONAL_RESTORATION:
+      "1":
+        - yam/migration/restore_upgrade_env
+        - console/system_prepare
+        - virt_autotest/restore_upgrade_system
+      "0":
+        - yam/migration/restore_upgrade_env
+        - console/system_prepare
   pre_migration:
     AUTOYAST_PREPARE_PROFILE:
       "1":
@@ -70,13 +88,17 @@ conditional_schedule:
     OFFLINE_UPGRADE:
       "1":
         - yam/migration/migration_unattended
-      "":
+      "0":
         - yam/migration/zypper_migration
   post_migration_boot:
     AUTOYAST_PREPARE_PROFILE:
       "1":
         - installation/grub_test
         - installation/first_boot
+  post_migration_validation:
+    ADDITIONAL_RESTORATION:
+      "1":
+        - virt_autotest/prepare_non_transactional_server
   verify_virtualization:
     VIRT_AUTOTEST:
       "1":

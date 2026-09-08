@@ -918,7 +918,8 @@ sub wait_boot {
     # for powerVM, it need switch console, it need wait longer time to
     # get grub page. After we get grub page, the workflow will be same
     # as others
-    $self->wait_grub(bootloader_time => $bootloader_time) if is_pvm;
+    select_console('powerhmc-ssh', await_console => 0) if (is_pvm_hmc);
+    $self->wait_grub(bootloader_time => $bootloader_time) if (is_pvm);
 
     # Reset the consoles after the reboot: there is no user logged in anywhere
     reset_consoles;
