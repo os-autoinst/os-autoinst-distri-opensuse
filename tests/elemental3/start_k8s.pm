@@ -100,6 +100,9 @@ sub run {
         return;
     }
 
+    # No GUI, easier and quicker to use the serial console
+    select_serial_terminal();
+
     # Cannot be defined with the other variables, as we need terminal access
     my $hostname = get_var('HOSTNAME', script_output('hostnamectl hostname'));
 
@@ -146,6 +149,9 @@ sub post_fail_hook {
     my ($self) = @_;
 
     record_info(__PACKAGE__ . ':' . 'post_fail_hook');
+
+    # No GUI, easier and quicker to use the serial console
+    select_serial_terminal();
 
     # Useful to debug K8s starting issues
     foreach my $svc ('k8s-resource-installer', 'k3s', 'rke2-server') {
