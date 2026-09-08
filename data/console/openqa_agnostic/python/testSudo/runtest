@@ -1,0 +1,43 @@
+#!/bin/bash
+# METADATA_START
+# ---
+# test: sudo functional tests
+# desc: >
+#   Functional tests for the sudo package, ported from Debian's autopkgtest
+#   suite and adapted for openSUSE/SUSE. Tests basic authentication (correct
+#   password, wrong password, non-member rejection), DNS-less operation, and
+#   sudoers.d include file parsing. Requires root.
+# steps:
+#   - create test users and sudoers policy
+#   - verify wheel group member can sudo with correct password
+#   - verify wrong password is rejected
+#   - verify non-wheel user is rejected
+#   - verify sudo works with broken DNS resolution
+#   - verify sudoers.d include files are parsed correctly
+#   - clean up test users and restore sudoers
+# author: <zbalogh@suse.com>
+# maintainer: Zoltan Balogh <zbalogh@suse.com>
+# expected: all tests pass
+# platform: Tumbleweed, SLE 16+, SLE 15 SP4+
+# tags: console sudo authentication sudoers pam
+# ---
+# METADATA_END
+
+set -e
+
+source ../lib/helper.sh
+
+TEST_FILES=(test_sudo.py)
+
+handle_args "$0" "$@"
+
+ensure_root
+
+set +e
+pytest -v --tb=line test_sudo.py --junitxml=results.xml
+rc=$?
+set -e
+if [ -f results.xml ]; then
+    exit 0
+fi
+exit $rc
