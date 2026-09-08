@@ -15,7 +15,7 @@ sub run {
 
     my $grub_timeout = get_test_suite_data()->{bootloader_timeout};
     assert_script_run("cat /etc/default/grub");
-    assert_script_run("grep GRUB_TIMEOUT=$grub_timeout /etc/default/grub");
+    assert_script_run("grep -E -- 'GRUB_TIMEOUT=($grub_timeout)' /etc/default/grub");
 }
 
 1;
