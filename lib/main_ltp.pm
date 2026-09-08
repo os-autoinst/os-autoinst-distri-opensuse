@@ -51,12 +51,7 @@ sub load_kernel_tests {
             loadtest 'console/suseconnect_scc' if is_sle_micro;
         }
 
-        if (get_var('CHANGE_KERNEL_REPO') ||
-            get_var('CHANGE_KERNEL_PKG') ||
-            get_var('ASSET_CHANGE_KERNEL_RPM')) {
-            loadtest_kernel 'change_kernel';
-        }
-        elsif (!get_var('LIBC_LIVEPATCH') && !is_jeos) {
+        if ((!get_var('LIBC_LIVEPATCH') && !is_jeos)) {
             loadtest_kernel 'update_kernel';
         }
 
@@ -75,15 +70,6 @@ sub load_kernel_tests {
           unless get_var('LTP_COMMAND_FILE') || get_var('LIBC_LIVEPATCH');
     }
     elsif (get_var('LTP_COMMAND_FILE')) {
-        if (get_var('INSTALL_KOTD')) {
-            loadtest_kernel 'install_kotd';
-        }
-        elsif (get_var('CHANGE_KERNEL_REPO') ||
-            get_var('CHANGE_KERNEL_PKG') ||
-            get_var('ASSET_CHANGE_KERNEL_RPM')) {
-            loadtest_kernel 'change_kernel';
-        }
-
         loadtest_kernel 'boot_ltp';
     }
     elsif (get_var('QA_TEST_KLP_REPO')) {

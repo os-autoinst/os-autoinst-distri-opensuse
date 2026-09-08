@@ -814,12 +814,7 @@ elsif (get_var("QA_TESTSUITE")) {
     loadtest "qa_automation/execute_test_run";
 }
 elsif (get_var('XFSTESTS')) {
-    if (get_var('CHANGE_KERNEL_REPO') ||
-        get_var('CHANGE_KERNEL_PKG') ||
-        get_var('ASSET_CHANGE_KERNEL_RPM')) {
-        loadtest 'kernel/change_kernel';
-    }
-    if (get_var('KOTD_REPO')) {
+    if (get_var('KOTD_REPO') || get_var('KERNEL_FLAVOR')) {
         loadtest 'kernel/update_kernel';
     }
     if (check_var('ARCH', 'ppc64le') && check_var('BACKEND', 'qemu')) {
