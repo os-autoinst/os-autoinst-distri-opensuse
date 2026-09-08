@@ -19,6 +19,7 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 
 sub run {
+    my $self = shift;
     select_serial_terminal;
 
     return unless (get_var('CONTAINER_IMAGE_TO_TEST') && get_var('CONTAINER_IMAGE_BUILD'));
@@ -55,7 +56,11 @@ sub run {
         my $reference = script_output(qq($engine inspect --type image $image | jq -r '.[0].Config.Labels."org.opensuse.reference"'));
         # Note: Both lines are aligned, thus the additional space
         record_info('builds', "CONTAINER_IMAGE_BUILD:  $build\norg.opensuse.reference: $reference");
-        die('Missmatch in image build number. The image build number is different than the one triggered by the container bot!') if ($reference !~ /$buildrelease$/);
+        if ($reference !~ /$buildrelease$/) {
+            record_info('Stale build', "CONTAINER_IMAGE_BUILD=$build does not match image label org.opensuse.reference=$reference.\nA newer build has already replaced this one in the registry, so container-release-bot will (correctly) not release it.\nA new job for the newer build should already be scheduled or running in openQA. This build can be ignored.", result => 'fail', resultname => 'build_superseded');
+            $self->result('fail');
+            return;
+        }
     }
 }
 
