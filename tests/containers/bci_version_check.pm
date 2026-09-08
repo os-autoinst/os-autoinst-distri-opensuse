@@ -57,7 +57,7 @@ sub run {
         # Note: Both lines are aligned, thus the additional space
         record_info('builds', "CONTAINER_IMAGE_BUILD:  $build\norg.opensuse.reference: $reference");
         if ($reference !~ /$buildrelease$/) {
-            record_info('Stale build', "CONTAINER_IMAGE_BUILD=$build does not match image label org.opensuse.reference=$reference.\nA newer build has already replaced this one in the registry, so container-release-bot will (correctly) not release it.\nA new job for the newer build should already be scheduled or running in openQA. This build can be ignored.", result => 'fail', resultname => 'build_superseded');
+            record_info('Stale build', "CONTAINER_IMAGE_BUILD=$build does not match image label org.opensuse.reference=$reference.\nA newer build has already replaced this one.\nThis jobs is obsolete and can be ignored.", result => 'fail', resultname => 'build_superseded');
             $self->result('fail');
             return;
         }
