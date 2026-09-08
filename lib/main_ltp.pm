@@ -113,20 +113,7 @@ sub load_kernel_tests {
         boot_hdd_image();
         loadtest_kernel 'blktests';
     }
-    elsif (get_var('TRINITY')) {
-        if (get_var('INSTALL_KOTD')) {
-            loadtest_kernel 'install_kotd';
-        }
-        elsif (get_var('CHANGE_KERNEL_REPO') ||
-            get_var('CHANGE_KERNEL_PKG') ||
-            get_var('ASSET_CHANGE_KERNEL_RPM')) {
-            loadtest_kernel 'change_kernel';
-        }
-        else {
-            boot_hdd_image();
-        }
-        loadtest_kernel "trinity";
-    } elsif (get_var('NUMA_IRQBALANCE')) {
+    elsif (get_var('NUMA_IRQBALANCE')) {
         boot_hdd_image();
         loadtest_kernel 'numa_irqbalance';
     }
