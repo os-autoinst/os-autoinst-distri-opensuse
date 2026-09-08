@@ -9,7 +9,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use elemental3;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(file_content_replace);
+use utils qw(file_content_replace validate_script_output_retry);
 
 sub run {
     my ($self) = @_;
@@ -72,6 +72,15 @@ sub run {
     # Apply upgrade plan
     kubectl_cmd(cmd => "apply -f ${upgrade_file}");
     record_info('Upgrade Plan status', script_output('kubectl get release upgrade-manifest -o yaml 2>&1'));
+
+    # Wait for upgrade to complete
+    validate_script_output_retry(
+        'kubectl get release upgrade-manifest -o jsonpath={.status.version}',
+        qr/.+/,
+        delay => bmwqemu::scale_timeout(30),
+        retry => 10,
+        fail_message => "Manifest upgrade failed!"
+    );
 
     # Select SUT for bootloader
     select_console('sut');
