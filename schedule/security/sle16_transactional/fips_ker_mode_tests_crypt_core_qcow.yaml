@@ -28,5 +28,11 @@ conditional_schedule:
     ARCH:
       s390x:
         - installation/bootloader_start
-      aarch64:
-        - boot/boot_to_desktop
+    # The image boots with "console=ttyAMA0" only, so /dev/console is the
+    # serial port and jeos-firstboot renders there instead of on the
+    # graphical console. bootloader_uefi appends "console=tty", which the
+    # needle based modules that follow need. Non-UEFI systems boot the
+    # image directly and need no bootloader module.
+    UEFI:
+      '1':
+        - installation/bootloader_uefi
