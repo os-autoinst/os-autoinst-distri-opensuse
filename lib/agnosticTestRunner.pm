@@ -16,7 +16,7 @@ use warnings;
 use testapi qw(assert_script_run data_url parse_extra_log script_output enter_cmd upload_logs record_info);
 use Mojo::DOM;
 use registration 'add_suseconnect_product', 'get_addon_fullname';
-use utils 'zypper_call';
+use package_utils 'install_package';
 use version_utils 'is_sle';
 
 sub new {
@@ -56,7 +56,7 @@ sub setup {
 
     my %lang_deps = (go => 'go gotestsum', python => 'python3-pytest');
     my $packages = $self->{language} eq 'java' ? latest_java_devel() : $lang_deps{$self->{language}};
-    zypper_call "in $packages";
+    install_package($packages, trup_reboot => 1);
 
     # Create test_dir and sibling lib/ for shared helpers in one shot
     my $test_dir = $self->{test_dir};
