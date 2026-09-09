@@ -1,5 +1,5 @@
 ---
-name: Run a basic openQA test
+name: Run openQA tests on openqa.o.o
 # yamllint disable-line rule:truthy
 on:
   pull_request_target:
@@ -17,33 +17,6 @@ env:
   GH_PR_HTML_URL: ${{ github.event.pull_request.html_url }}
 
 jobs:
-  trigger_and_monitor_openqa:
-    runs-on: ubuntu-latest
-    container:
-      image: registry.opensuse.org/devel/openqa/containers/tumbleweed:client
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6
-      - name: Determine the latest Tumbleweed build on o3
-        id: latest_build
-        run: >-
-          echo build=$(openqa-cli api
-          --host ${OPENQA_HOST:-https://openqa.opensuse.org}
-          job_groups/${OPENQA_BUILD_LOOKUP_GROUP_ID:-1}/build_results only_tagged=1
-          | jq -e -r '[ .build_results[] | select(.tag.description=="published") | .build ][0]'
-
-          ) >> "$GITHUB_OUTPUT"
-      - name: Trigger and monitor a basic openQA test on o3
-        run: >-
-          openqa-cli schedule
-          --monitor
-          --host "${OPENQA_HOST:-https://openqa.opensuse.org}/"
-          --apikey "$OPENQA_API_KEY" --apisecret "$OPENQA_API_SECRET"
-          --param-file SCENARIO_DEFINITIONS_YAML=scenario-definitions.yaml
-          DISTRI=openSUSE VERSION=Tumbleweed FLAVOR=github ARCH=x86_64
-          HDD_1=opensuse-Tumbleweed-x86_64-${{ steps.latest_build.outputs.build }}-textmode@64bit.qcow2
-          UEFI_PFLASH_VARS=opensuse-Tumbleweed-x86_64-${{ steps.latest_build.outputs.build }}-textmode@64bit-uefi-vars.qcow2
-          BUILD="$GH_REPO.git#$GH_REF" _GROUP_ID="${OPENQA_SCHEDULE_GROUP_ID:-118}"
-          CASEDIR="$GITHUB_SERVER_URL/$GH_REPO.git#$GH_REF"
   clone_mentioned_job:
     runs-on: ubuntu-latest
     container:
