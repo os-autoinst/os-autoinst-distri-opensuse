@@ -131,9 +131,11 @@ sub customize_cmd {
         );
     } else {
         if (get_var('CLUSTER_TYPE', '') =~ /(singlenode|multinode)/) {
+            my $cluster_yaml = "$args{config_dir}/kubernetes/cluster.yaml";
+
             # K8s configuration file
             assert_script_run(
-                "curl -sf -o $args{config_dir}/kubernetes/cluster.yaml "
+                "curl -sf -o $cluster_yaml "
                   . data_url('elemental3/cluster.yaml')
             );
 
@@ -141,9 +143,17 @@ sub customize_cmd {
             if (check_var('CLUSTER_TYPE', 'singlenode')) {
                 # Keep configuration for first node only
                 assert_script_run(
-                    "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $args{config_dir}/kubernetes/cluster.yaml"
+                    "sed -i -e '/^nodes:/,/^network:/d' -e '/apiVIP:.*/i network:' $cluster_yaml"
                 );
             }
+
+            # Set CertManager version and LCM registry/version
+            file_content_replace(
+                $cluster_yaml,
+                '%CERTMANAGER_VERSION%' => get_required_var('CERTMANAGER_VERSION'),
+                '%LCM_REGISTRY%' => get_required_var('LCM_REGISTRY'),
+                '%LCM_VERSION%' => get_required_var('LCM_VERSION')
+            );
         } else {
             # Remove k8s-preinstall service, as this is only useful
             # for the single-node and multi-node tests

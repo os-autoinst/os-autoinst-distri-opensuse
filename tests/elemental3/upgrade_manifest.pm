@@ -9,7 +9,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use elemental3;
 use serial_terminal qw(select_serial_terminal);
-use utils qw(file_content_replace);
+use utils qw(file_content_replace validate_script_output_retry);
 
 sub run {
     my ($self) = @_;
@@ -17,6 +17,8 @@ sub run {
     my $k8s = get_required_var('K8S');
     my $k8s_version_prefix = get_required_var('K8S_VERSION_PREFIX');
     my $totest_path = get_required_var('TOTEST_PATH');
+    my $timeout = bmwqemu::scale_timeout(300);
+    my $long_timeout = bmwqemu::scale_timeout(900);
 
     # Add static hosts if needed
     # TODO: use a support-server to add a DNS server with internal LAN access?
@@ -42,7 +44,7 @@ sub run {
         # NOTE: kubectl_cmd cannot be used for the 'rollout status' command!
         kubectl_cmd(cmd => "${ns} apply -f ${yaml_file}");
         kubectl_cmd(cmd => "${ns} rollout restart deployment -l k8s-app=kube-dns");
-        assert_script_run("kubectl ${ns} rollout status deployment -l k8s-app=kube-dns", timeout => bmwqemu::scale_timeout('300'));
+        assert_script_run("kubectl ${ns} rollout status deployment -l k8s-app=kube-dns", timeout => $timeout);
     }
 
     my $uri = get_container_uri(
@@ -71,12 +73,21 @@ sub run {
     kubectl_cmd(cmd => "apply -f ${upgrade_file}");
     record_info('Upgrade Plan status', script_output('kubectl get release upgrade-manifest -o yaml 2>&1'));
 
+    # Wait for upgrade to complete
+    validate_script_output_retry(
+        'kubectl get release upgrade-manifest -o jsonpath={.status.version}',
+        qr/.+/,
+        delay => bmwqemu::scale_timeout(30),
+        retry => 10,
+        fail_message => "Manifest upgrade failed!"
+    );
+
     # Select SUT for bootloader
     select_console('sut');
 
     # OS upgrade is done automatically as well as the reboot after upgrade
     # We just have to wait for the VM to reboot
-    $self->wait_boot(bootloader_time => bmwqemu::scale_timeout(900), textmode => 1, nologin => 1);
+    $self->wait_boot(bootloader_time => $long_timeout, textmode => 1, nologin => 1);
 
     # Set default root password
     $testapi::password = get_required_var('TEST_PASSWORD');
@@ -85,10 +96,10 @@ sub run {
     select_serial_terminal();
 
     # Check K8s status
-    wait_k8s_state(regex => 'status.*restarts|(1/1|2/2|3/3|4.4).*running|0/1.*completed', timeout => bmwqemu::scale_timeout('1200'));
+    wait_k8s_state(regex => 'status.*restarts|(1/1|2/2|3/3|4.4).*running|0/1.*completed', timeout => $long_timeout);
 
     # Check upgrade status after reboot
-    my $upgrade_version = wait_script_output(cmd => 'kubectl get release upgrade-manifest -o jsonpath={.spec.version}', timeout => 300);
+    my $upgrade_version = wait_script_output(cmd => 'kubectl get release upgrade-manifest -o jsonpath={.status.version}', timeout => $timeout);
 
     # Record upgrade status
     record_info('Upgrade done', "Upgrade to version '${upgrade_version}' done successfully!");

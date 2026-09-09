@@ -14,7 +14,7 @@ network:
 helm:
   charts:
     - name: "cert-manager"
-      version: "v1.20.3"
+      version: "%CERTMANAGER_VERSION%"
       targetNamespace: "cert-manager"
       repositoryName: "jetstack-charts"
       valuesFile: cert-manager.yaml
@@ -23,11 +23,11 @@ helm:
       targetNamespace: "cattle-system"
       repositoryName: "rancher-charts"
     - name: "elemental-lifecycle-manager-crds"
-      version: "0.1.0"
+      version: "%LCM_VERSION%"
       targetNamespace: "elemental-system"
       repositoryName: "elemental-charts"
     - name: "elemental-lifecycle-manager"
-      version: "0.1.0"
+      version: "%LCM_VERSION%"
       targetNamespace: "elemental-system"
       repositoryName: "elemental-charts"
       valuesFile: lcm-internal-suse-ca.yaml
@@ -37,4 +37,4 @@ helm:
     - name: "rancher-charts"
       url: "https://charts.rancher.io"
     - name: "elemental-charts"
-      url: "oci://registry.suse.com/elemental/charts"
+      url: "%LCM_REGISTRY%"
