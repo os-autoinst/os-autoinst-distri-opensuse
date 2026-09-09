@@ -3086,7 +3086,12 @@ sub write_sut_file {
 
     save_tmp_file($path, $contents);
     my $url = join('/', (autoinst_url, 'files', $path));
-    assert_script_run("curl -v -o $path $url");
+    # AppArmor's curl profile only allows curl to write within $HOME, /tmp,
+    # /var/tmp, etc. so fetch into /tmp first and move it into place
+    # afterwards, since mv is not confined by that profile.
+    my $tmp_path = '/tmp/' . basename($path);
+    assert_script_run("curl -v -o $tmp_path $url");
+    assert_script_run("mv -Zf $tmp_path $path") unless $tmp_path eq $path;
 }
 
 =head2 is_ipxe_boot
