@@ -44,7 +44,7 @@ sub init {
           . '}');
     if (is_sle(">=16")) {
         my $debug = "az-cli-debug.txt";
-        script_run("PILOT_DEBUG=1 bash -c 'time -p az %silent --help' &> $debug");
+        script_run("PILOT_DEBUG=1 bash -c 'time -p az --help' &> $debug");
         record_info("az cli time", script_output("tail -n 3 $debug", proceed_on_failure => 1));
         upload_logs($debug, failok => 1);
         script_run("rpm -qi az-cli-cmd");

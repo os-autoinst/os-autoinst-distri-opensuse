@@ -19,8 +19,6 @@ use version_utils 'is_sle';
 use registration qw(add_suseconnect_product get_addon_fullname);
 use publiccloud::utils qw(calculate_custodian_ttl);
 
-my $silent = (is_sle('>=16')) ? '%silent' : '';
-
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
@@ -64,7 +62,7 @@ sub run {
     record_info("PINT", "Pint query: " . $image_name);
 
     # VM creation
-    my $vm_create = "az $silent vm create --resource-group $resource_group --name $machine_name --public-ip-sku Standard --tags $tags";
+    my $vm_create = "az vm create --resource-group $resource_group --name $machine_name --public-ip-sku Standard --tags $tags";
     $vm_create .= " --image $image_name --size Standard_B1ms --admin-username azureuser --ssh-key-values ~/.ssh/id_rsa.pub";
     my $output = script_output($vm_create, timeout => 600);
     die('Failed to start/stop vms with azure cli') if ($output =~ /ValidationError.*object has no attribute/);
@@ -73,7 +71,7 @@ sub run {
     assert_script_run("az vm list-ip-addresses -g $resource_group -n $machine_name");
 
     # Check that the machine is reachable via ssh
-    my $ip_address = script_output("az $silent vm list-ip-addresses -g $resource_group -n $machine_name --query '[].virtualMachine.network.publicIpAddresses[0].ipAddress' --output tsv", 90);
+    my $ip_address = script_output("az vm list-ip-addresses -g $resource_group -n $machine_name --query '[].virtualMachine.network.publicIpAddresses[0].ipAddress' --output tsv", 90);
     die "IP address not found in output!" unless $ip_address;
     script_retry("ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no azureuser\@$ip_address hostnamectl", 90, delay => 15, retry => 12);
 }
