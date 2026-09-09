@@ -790,7 +790,9 @@ sub unlock_user_settings {
     assert_screen "users-settings";
     assert_and_click "Unlock-user-settings";
     assert_screen "authentication-required-user-settings";
+    wait_still_screen(1, 2);
     type_password;
+    wait_still_screen(1, 2);
     assert_and_click "authenticate";
 }
 
