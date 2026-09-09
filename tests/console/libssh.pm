@@ -19,6 +19,11 @@
 #      virsh -c "qemu+libssh://"
 #      virsh -c "qemu+libssh2://"
 #  * It's difficult to clean up libvirt so set test flag to rollback always
+#  * FIPS section (when FIPS_ENABLED=1):
+#      - Verify kernel FIPS mode is active
+#      - Positive: FIPS-approved cipher (aes256-ctr) via sftp must succeed
+#      - Negative: non-FIPS cipher (arcfour/RC4) from non-FIPS container must be rejected by FIPS host sshd
+#      - Probe: sshd -T confirms only FIPS-approved ciphers are advertised by the host sshd
 #
 #  The detailed test cases: https://bugzilla.suse.com/tr_show_case.cgi?case_id=1768668
 #
@@ -150,6 +155,53 @@ EOF
 ', sub { m/libssh_block\.raw/ });
 
     assert_script_run("docker stop libssh_container");
+
+    # FIPS validation section
+    # Only executed when the host system is running in FIPS mode (FIPS_ENABLED=1).
+    # The container intentionally runs WITHOUT FIPS
+    if (get_var('FIPS_ENABLED')) {
+        validate_script_output('cat /proc/sys/crypto/fips_enabled', sub { m/^1$/ },
+            fail_message => 'FIPS_ENABLED is set but kernel FIPS mode is off - aborting FIPS tests');
+
+        record_info('FIPS', 'Running FIPS-specific libssh cipher tests');
+        assert_script_run('docker start libssh_container');
+
+        # From inside the non-FIPS container, connect to the FIPS host sshd using a
+        # FIPS-approved cipher (aes256-ctr).
+        record_info('FIPS positive', 'ssh with FIPS-approved cipher aes256-ctr to FIPS host must succeed');
+        type_string("docker exec -it libssh_container bash\n\n");
+        set_serial_prompt('# ') if is_serial_terminal;
+        assert_script_run('test -f /.dockerenv');    # verify inside container
+        assert_script_run('ssh-keyscan susetest >> /root/.ssh/known_hosts');
+        assert_script_run(
+            'ssh -o Ciphers=aes256-ctr -o StrictHostKeyChecking=no root@susetest'
+              . ' "cat /tmp/test/libssh_testfile"',
+            timeout => 30
+        );
+
+        # Inside the non-FIPS container, now attempt the same connection using
+        # arcfour (RC4) - forbidden by FIPS 140-2/3.
+        record_info('FIPS negative', 'arcfour (RC4) from non-FIPS container to FIPS host sshd must be rejected');
+        my $rc = script_run(
+            'ssh -o Ciphers=arcfour -o StrictHostKeyChecking=no root@susetest true',
+            timeout => 30
+        );
+        die 'FIPS negative test FAILED: arcfour was accepted by the FIPS host sshd - FIPS cipher enforcement is broken!'
+          unless $rc != 0;
+        record_info('FIPS negative', "arcfour correctly rejected by FIPS host sshd (exit: $rc)");
+        type_string("exit\n\n");
+        sleep 1;
+
+        # --- SSH cipher probe on the host ---
+        record_info('FIPS probe', 'Probing host sshd active cipher list for FIPS compliance');
+        validate_script_output('sshd -T 2>/dev/null | grep "^ciphers "', sub { m/aes256-ctr/ });
+        my $arcfour_in_sshd = script_run('sshd -T 2>/dev/null | grep "^ciphers " | grep -q arcfour');
+        die 'FIPS probe FAILED: arcfour found in host sshd cipher list - FIPS policy not applied to sshd'
+          unless $arcfour_in_sshd != 0;
+        record_info('FIPS probe', 'Host sshd cipher list is FIPS-compliant (aes256-ctr present, arcfour absent)');
+
+        assert_script_run('docker stop libssh_container');
+    }
 }
 
 1;
