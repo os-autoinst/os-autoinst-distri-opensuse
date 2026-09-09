@@ -1251,7 +1251,7 @@ sub script_output_retry_check {
     }
 
     foreach (1 .. $retry) {
-        $result = script_output($cmd, %args);
+        $result = script_output($cmd, %args, proceed_on_failure => 1);
         return $result if $result =~ /$regex/;
         sleep $sleep;
         record_info('CMD RETRY', "Retry $_/$retry.\nScript output did not match pattern '$regex'\nOutput: $result");
