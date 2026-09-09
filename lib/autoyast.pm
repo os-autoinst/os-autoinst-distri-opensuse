@@ -787,7 +787,20 @@ sub expand_agama_secrets {
 sub expand_agama_profile {
     my ($profile, $profile_expanded) = @_;
     $profile_expanded //= $profile;
-    my $content = expand_variables(expand_agama_secrets(expand_version(get_test_data($profile))));
+
+    my $test_data = get_test_data($profile);
+
+    # Expand by Mojo when EXPAND_AGAMA_PROFILE_BY_MOJO=1 and
+    # the file ending with jsonnet.ep or json.ep
+    if (check_var('EXPAND_AGAMA_PROFILE_BY_MOJO', '1')
+        && $profile_expanded =~ s/\.(json(?:net)?)\.ep$/.$1/) {
+        # Expand agama json/jsonnet by Mojo
+        $test_data = expand_template($test_data);
+        die $test_data if $test_data->isa('Mojo::Exception');
+        record_info('Mojo Expand', "Expanded profile: $profile_expanded");
+    }
+
+    my $content = expand_variables(expand_agama_secrets(expand_version($test_data)));
     save_tmp_file($profile_expanded, $content);
     my $profile_url = autoinst_url . "/files/$profile_expanded";
     upload_profile(path => $profile_expanded, profile => $content);
