@@ -1401,4 +1401,52 @@ LOG
     ok(scalar @cat_calls == 2, 'Log files read for both hosts');
 };
 
+subtest '[qesap_gcp_delete_leftover_ncc_spokes] missing hub argument' => sub {
+    my $ret = qesap_gcp_delete_leftover_ncc_spokes();
+    is $ret, 0, 'Returns 0 when hub argument is missing';
+};
+
+subtest '[qesap_gcp_delete_leftover_ncc_spokes] cleanup logic' => sub {
+    my $qesap = Test::MockModule->new('sles4sap::qesap::qesapdeployment', no_auto => 1);
+    my @deleted_spokes;
+
+    $qesap->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    # Mock GCP spoke listing returning various test cases
+    $qesap->redefine(qesap_gcp_get_ncc_spokes => sub {
+            return [
+                # 1. Permanent center spoke by name -> SKIP
+                {name => 'projects/FF8/locations/global/spokes/ibsm-center-spoke', group => 'center'},
+                # 2. Spoke assigned to center group -> SKIP
+                {name => 'projects/FF8/locations/global/spokes/custom-center-spoke', group => 'center'},
+                # 3. Spoke without trailing digits -> SKIP
+                {name => 'projects/FF8/locations/global/spokes/edge-spoke-squall', group => 'edge'},
+                # 4. Spoke from an active/running openQA job -> SKIP
+                {name => 'projects/FF8/locations/global/spokes/edge-running-100001', group => 'edge'},
+                # 5. Spoke from a finished openQA job -> DELETE
+                {name => 'projects/FF8/locations/global/spokes/edge-finished-200002', group => 'edge'},
+            ];
+    });
+
+    # Mock job status check
+    $qesap->redefine(qesap_is_job_finished => sub {
+            my (%args) = @_;
+            return 1 if $args{job_id} eq '200002';
+            return 0;
+    });
+
+    # Record which spokes get triggered for deletion
+    $qesap->redefine(qesap_gcp_delete_ncc_spoke => sub {
+            my (%args) = @_;
+            push @deleted_spokes, $args{name};
+            return 1;
+    });
+
+    my $res = qesap_gcp_delete_leftover_ncc_spokes(hub => 'ibsm-ncc-hub');
+
+    is $res, 1, 'Function returns 1 on successful execution';
+    is scalar @deleted_spokes, 1, 'Exactly 1 leftover spoke deleted';
+    is $deleted_spokes[0], 'edge-finished-200002', 'Target spoke matching finished job ID was selected for deletion';
+};
+
 done_testing;

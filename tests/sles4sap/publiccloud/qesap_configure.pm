@@ -370,6 +370,9 @@ sub run {
     elsif (is_ec2 && get_var('IBSM_PRJ_TAG')) {
         qesap_aws_delete_leftover_tgw_attachments(mirror_tag => get_var('IBSM_PRJ_TAG'));
     }
+    elsif (is_gce && get_var('IBSM_NCC_HUB')) {
+        qesap_gcp_delete_leftover_ncc_spokes(hub => get_var('IBSM_NCC_HUB'));
+    }
 
     # Regenerate config files
     qesap_prepare_env(provider => $provider_setting, only_configure => 1, region => get_required_var('PUBLIC_CLOUD_REGION'));
