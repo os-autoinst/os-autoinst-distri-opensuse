@@ -13,7 +13,8 @@ package agnosticTestRunner;
 
 use strict;
 use warnings;
-use testapi qw(assert_script_run data_url parse_extra_log script_output enter_cmd);
+use testapi qw(assert_script_run data_url parse_extra_log script_output enter_cmd upload_logs record_info);
+use Mojo::DOM;
 use registration 'add_suseconnect_product', 'get_addon_fullname';
 use utils 'zypper_call';
 use version_utils 'is_sle';
@@ -59,20 +60,20 @@ sub setup {
 
     # Create test_dir and sibling lib/ for shared helpers in one shot
     my $test_dir = $self->{test_dir};
-    assert_script_run "mkdir -p $test_dir/../lib";
+    assert_script_run("mkdir -p $test_dir/../lib", quiet => 1);
     my $helper_url = data_url($self->{helper_path});
-    assert_script_run "curl -s -o $test_dir/../lib/helper.sh $helper_url";
+    assert_script_run("curl -s -o $test_dir/../lib/helper.sh $helper_url", quiet => 1);
 
     # Download and discover test files via runtest -f
     my $run_script = $self->{run_command};
-    assert_script_run "curl -s -o $test_dir/$run_script $url/$run_script";
-    assert_script_run "chmod +x $test_dir/$run_script";
+    assert_script_run("curl -s -o $test_dir/$run_script $url/$run_script", quiet => 1);
+    assert_script_run("chmod +x $test_dir/$run_script", quiet => 1);
 
-    my $file_list_output = script_output("cd $test_dir && ./$run_script -f");
+    my $file_list_output = script_output("cd $test_dir && ./$run_script -f", quiet => 1);
     $file_list_output =~ s/^\s+|\s+$//g;
     if ($file_list_output) {
         my @files = split(/\s+/, $file_list_output);
-        assert_script_run "cd $test_dir && curl -s " . join(' ', map { "-O $url/$_" } @files) if @files;
+        assert_script_run("cd $test_dir && curl -s " . join(' ', map { "-O $url/$_" } @files), quiet => 1) if @files;
     }
 
     return $self;
@@ -83,8 +84,13 @@ sub run_test {
     my $run_script = $self->{run_command};
     $run_script = "./$run_script" unless $run_script =~ m{^/|^\./};
     my $result_src = $self->{result_format} eq 'TAP' ? 'results.tap' : 'results.xml';
-    my $command = 'cd ' . $self->{test_dir} . ' && chmod +x ' . $run_script . ' && ' . $run_script . ' && mv ' . $result_src . ' ' . $self->{result_file};
-    assert_script_run($command);
+    my $name = $self->{name};
+    my $output_log = "/tmp/${name}_output.log";
+    my $command = 'cd ' . $self->{test_dir} . ' && chmod +x ' . $run_script
+      . ' && ( set -o pipefail; ' . $run_script . " 2>&1 | tee $output_log )"
+      . ' && mv ' . $result_src . ' ' . $self->{result_file};
+    assert_script_run($command, quiet => 1);
+    upload_logs($output_log, failok => 1);
     enter_cmd('reset');
     return $self;
 }
@@ -92,12 +98,43 @@ sub run_test {
 sub parse_results {
     my ($self) = @_;
     parse_extra_log($self->{result_format}, $self->{result_file});
+
+    my $content = script_output('cat ' . $self->{result_file}, quiet => 1);
+    my $has_failures = 0;
+
+    if ($self->{result_format} eq 'TAP') {
+        for my $line (split /\n/, $content) {
+            if ($line =~ /^ok\s+\d+\s*-?\s*(.*)/) {
+                record_info("PASSED: $1", '', result => 'ok');
+            } elsif ($line =~ /^not ok\s+\d+\s*-?\s*(.*)/) {
+                $has_failures = 1;
+                record_info("FAILED: $1", $line, result => 'fail');
+            }
+        }
+    } else {
+        my $dom = Mojo::DOM->new->xml(1)->parse($content);
+        for my $tc ($dom->find('testcase')->each) {
+            my $name = $tc->{name};
+            my $failure = $tc->at('failure');
+            if ($failure) {
+                $has_failures = 1;
+                my $msg = $failure->{message} || $failure->text || '';
+                record_info("FAILED: $name", $msg, result => 'fail');
+            } else {
+                record_info("PASSED: $name", '', result => 'ok');
+            }
+        }
+    }
+
+    if ($has_failures) {
+        $autotest::current_test->{result} = 'fail';
+    }
     return $self;
 }
 
 sub cleanup {
     my ($self) = @_;
-    assert_script_run 'cd ~ && rm -rf ' . $self->{test_dir};
+    assert_script_run('cd ~ && rm -rf ' . $self->{test_dir}, quiet => 1);
     return $self;
 }
 
