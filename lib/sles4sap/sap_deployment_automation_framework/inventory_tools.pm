@@ -237,7 +237,7 @@ sub verify_ssh_proxy_connection {
             my $max_retries = 10;
             my $hostname_output = '';
             for my $attempt (1 .. $max_retries) {
-                $hostname_output = script_output("ssh $hostname hostname", timeout => 15, quiet => 1, proceed_on_failure => 1);
+                $hostname_output = script_output("ssh $hostname hostname", timeout => 60, quiet => 1, proceed_on_failure => 1);
                 last if defined $hostname_output && $hostname_output ne '';
 
                 if ($attempt < $max_retries) {

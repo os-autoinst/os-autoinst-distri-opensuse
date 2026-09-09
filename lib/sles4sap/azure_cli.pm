@@ -117,7 +117,8 @@ Example:
 =back
 =cut
 
-sub az(%args) {
+sub az {
+    my (%args) = @_;
     $args{timeout} //= $bmwqemu::default_timeout;
     croak 'Command `az` is not needed in $args{az_args}'
       if $args{az_args} =~ /az/;
@@ -277,9 +278,10 @@ Returns non-empty value if resource group exists, otherwise B<undef>
 =cut
 
 sub az_group_exists(%args) {
+    $args{timeout} //= 90;
     croak "Missing mandatory argument: 'name'" unless $args{name};
     my $out = az(az_args => "group exists --resource-group $args{name}",
-        quiet => $args{quiet});
+        quiet => $args{quiet}, timeout => $args{timeout});
     die "Command failed.\nCommand didn't return a boolean value: $out->{output}"
       unless JSON::PP::is_bool($out->{output});
     return $out->{output};
@@ -414,9 +416,10 @@ some query result in the function to die on decode_json.
 sub az_network_vnet_get(%args) {
     croak("Argument < resource_group > missing") unless $args{resource_group};
     $args{query} //= '[].name';
+    $args{timeout} //= 90;
 
     my $az_args = "network vnet list -g $args{resource_group}";
-    my $az_out = az(az_args => $az_args, query => $args{query});
+    my $az_out = az(az_args => $az_args, query => $args{query}, timeout => $args{timeout});
     return $az_out->{output};
 }
 
@@ -1714,12 +1717,13 @@ sub az_network_peering_list(%args) {
     foreach (qw(resource_group vnet)) {
         croak("Argument < $_ > missing") unless $args{$_}; }
     $args{query} //= '[].name';
+    $args{timeout} //= 90;
 
     my $az_args = join(' ', 'network vnet peering list',
         '--resource-group', $args{resource_group},
         '--vnet-name', $args{vnet}
     );
-    my $az_out = az(az_args => $az_args, query => $args{query});
+    my $az_out = az(az_args => $az_args, query => $args{query}, timeout => $args{timeout});
     return $az_out->{output};
 }
 
@@ -2311,13 +2315,14 @@ Creates private DNS zone within specified B<resource_group>.
 
 sub az_network_dns_zone_create {
     my (%args) = @_;
+    $args{timeout} //= 90;
     foreach ('resource_group', 'name') { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
     my @az_args = ('network private-dns zone create',
         "--resource-group $args{resource_group}",
         "--name $args{name}",
     );
     push @az_args, '--tags', $args{tags} if $args{tags};
-    my $az_out = az(az_args => join(' ', @az_args));
+    my $az_out = az(az_args => join(' ', @az_args), timeout => $args{timeout});
     return $az_out->{rc};
 }
 
@@ -2338,6 +2343,7 @@ Deletes private DNS zone within B<resource_group> specified by B<zone_name>.
 
 sub az_network_dns_zone_delete {
     my (%args) = @_;
+    $args{timeout} //= 90;
     foreach ('resource_group', 'zone_name') { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
     my @az_args = ('network private-dns zone delete',
         "--resource-group $args{resource_group}",
@@ -2345,7 +2351,7 @@ sub az_network_dns_zone_delete {
         '--yes'
     );
 
-    my $az_out = az(az_args => (join(' ', @az_args)));
+    my $az_out = az(az_args => (join(' ', @az_args)), timeout => $args{timeout});
     return $az_out->{rc};
 }
 
@@ -2366,9 +2372,10 @@ Returns private DNS zone list as an B<ARRAYREF> existing within specified B<reso
 
 sub az_network_dns_zone_list {
     my (%args) = @_;
+    $args{timeout} //= 90;
     croak "Missing mandatory argument: 'resource_group'" unless $args{resource_group};
     $args{query} //= '[].name';
-    my $az_out = az(az_args => "network private-dns zone list --resource-group $args{resource_group}", query => $args{query});
+    my $az_out = az(az_args => "network private-dns zone list --resource-group $args{resource_group}", query => $args{query}, timeout => $args{timeout});
     return $az_out->{output};
 }
 
@@ -2441,6 +2448,7 @@ Setting it to false (Common Use Cases) means Auto-Registration is disabled.
 
 sub az_network_dns_link_create {
     my (%args) = @_;
+    $args{timeout} //= 90;
     my @mandatory_args = qw(resource_group zone_name vnet name);
     foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
     my @az_args = (' ',
@@ -2452,7 +2460,7 @@ sub az_network_dns_link_create {
         '--registration-enabled false'
     );
 
-    my $az_out = az(az_args => join(' ', @az_args));
+    my $az_out = az(az_args => join(' ', @az_args), timeout => $args{timeout});
     return $az_out->{rc};
 }
 
@@ -2479,6 +2487,7 @@ Deletes private DNS link between VNET and DNS zone.
 
 sub az_network_dns_link_delete {
     my (%args) = @_;
+    $args{timeout} //= 90;
     my @mandatory_args = qw(resource_group zone_name link_name);
     foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
     my @az_args = (' ',
@@ -2489,7 +2498,7 @@ sub az_network_dns_link_delete {
         '--yes'
     );
 
-    my $az_out = az(az_args => join(' ', @az_args));
+    my $az_out = az(az_args => join(' ', @az_args), timeout => $args{timeout});
     return $az_out->{rc};
 }
 
@@ -2512,6 +2521,7 @@ Lists private DNS links withing specified B<resource_group> and B<zone_name>. Re
 
 sub az_network_dns_link_list {
     my (%args) = @_;
+    $args{timeout} //= 90;
     $args{query} //= '[].name';
     my @mandatory_args = qw(resource_group zone_name);
     foreach (@mandatory_args) { croak "Missing mandatory argument: '$_'" unless $args{$_}; }
@@ -2521,7 +2531,7 @@ sub az_network_dns_link_list {
         "--zone-name $args{zone_name}"
     );
 
-    my $az_out = az(az_args => join(' ', @az_args), query => $args{query});
+    my $az_out = az(az_args => join(' ', @az_args), query => $args{query}, timeout => $args{timeout});
     return $az_out->{output};
 }
 

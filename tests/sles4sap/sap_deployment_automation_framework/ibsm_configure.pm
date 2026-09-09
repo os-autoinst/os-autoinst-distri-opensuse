@@ -122,7 +122,7 @@ record_info
 
     record_info(
         'IBSm DNS', "Private DNS zone: $zone_name\nDNS record: $ibsm_ip -> " . get_required_var('REPO_MIRROR_HOST'));
-    az_network_dns_zone_create(resource_group => $workload_resource_group, name => $zone_name);
+    az_network_dns_zone_create(resource_group => $workload_resource_group, name => $zone_name, timeout => 90);
     az_network_dns_add_record(
         resource_group => $workload_resource_group, zone_name => $zone_name, record_name => $subdomain, ip_addr => $ibsm_ip);
     az_network_dns_link_create(

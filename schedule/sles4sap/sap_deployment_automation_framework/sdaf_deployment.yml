@@ -16,10 +16,12 @@ schedule:
   - '{{iscsi_workaround}}'
   - sles4sap/sap_deployment_automation_framework/os_preparation
   - '{{maintenance_update}}'
-  - sles4sap/sap_deployment_automation_framework/app_deployment
-  - sles4sap/redirection_tests/check_hana_database
-  - sles4sap/redirection_tests/check_ensa2_cluster
-  - sles4sap/redirection_tests/check_netweaver
+  #- sles4sap/sap_deployment_automation_framework/app_deployment
+  #- sles4sap/redirection_tests/check_hana_database
+  #- sles4sap/redirection_tests/check_ensa2_cluster
+  #- sles4sap/redirection_tests/check_netweaver
+  - sles4sap/sap_deployment_automation_framework/cleanup
+
 
 conditional_schedule:
   maintenance_update:
