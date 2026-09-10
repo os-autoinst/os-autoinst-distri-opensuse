@@ -428,6 +428,42 @@ sub run {
     upload_asset("$out_file", 1);
 }
 
+sub post_run {
+    my ($self) = @_;
+    $self->{post_run} = 1;
+
+    # NOTE: '/root/tmp' is hardcoded for now
+    my $tmpdir = '/root/tmp';
+
+    # Upload files modified during the test run for debugging purposes.
+    my @files_to_upload = split(/\n/, script_output("find $tmpdir -type f ! -name '*.raw*' ! -name '*.qcow2*'", proceed_on_failure => 1));
+    upload_logs($_, failok => 1) foreach (@files_to_upload);
+
+    # Create a tarball file with all and upload it
+    my $k8s = get_var('K8S', 'k8s');
+    my $tar_file = "${k8s}-manifest.tar.bz2";
+    script_run("cd ${tmpdir} ; tar --exclude='*.raw*' --exclude='*.qcow2*' -cvjf $tar_file *");
+    upload_asset("$tar_file", 1);
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    $self->post_run() unless $self->{post_run};
+
+    # Execute the common part
+    record_info(__PACKAGE__ . ':' . 'post_fail_hook');
+    $self->SUPER::post_fail_hook;
+}
+
+sub post_run_hook {
+    my ($self) = @_;
+    $self->post_run() unless $self->{post_run};
+
+    # Execute the common part
+    record_info(__PACKAGE__ . ':' . 'post_run_hook');
+    $self->SUPER::pre_run_hook;
+}
+
 sub test_flags {
     return {fatal => 1, milestone => 1};
 }
