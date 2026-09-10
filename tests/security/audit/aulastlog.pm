@@ -10,7 +10,8 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use utils;
-use version_utils qw(is_tumbleweed);
+use package_utils 'install_package';
+use version_utils 'is_tumbleweed';
 
 sub run {
     my $audit_log = '/var/log/audit/audit.log';
@@ -30,7 +31,7 @@ sub run {
     assert_script_run('aulastlog -u root');
 
     # Creat a new user 'suse'
-    zypper_call('in expect');
+    install_package("expect", trup_reboot => 1);
     assert_script_run("useradd -m $user");
     assert_script_run("echo $user:$pwd | chpasswd");
 
