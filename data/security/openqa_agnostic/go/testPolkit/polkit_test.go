@@ -126,7 +126,7 @@ func addRuleAndRestart(t *testing.T) {
 func changeHostnameWithAuth(t *testing.T) {
 	log.Printf("- Attempting to change hostname to %s as user %s (should succeed without password).", newHostname, testUser)
 
-	result := RunCommandTimeout(MediumTimeout, "sudo", "-u", testUser, "hostnamectl", "set-hostname", newHostname)
+	result := RunCommandTimeout(MediumTimeout, "sudo", "-u", testUser, "hostnamectl", "--no-ask-password", "set-hostname", newHostname)
 	if result.Error != nil {
 		t.Errorf("Exit code: %d\nError: %v\nStdout: %s\nStderr: %s",
 			result.ExitCode, result.Error, result.Stdout, result.Stderr)
@@ -166,17 +166,20 @@ func removeRuleAndRestart(t *testing.T) {
 
 // changeHostnameShouldFail attempts to change hostname (should fail without polkit rule)
 func changeHostnameShouldFail(t *testing.T) {
-	log.Printf("- Attempting to change hostname to 'should-fail-hostname' as user %s (should fail or ask for password).", testUser)
+	log.Printf("- Attempting to change hostname to 'should-fail-hostname' as user %s (should fail).", testUser)
 
-	// We expect this to fail because it will require authentication, which we can't provide.
-	// The command will either timeout or return an error.
-	result := RunCommandTimeout(ShortTimeout, "sudo", "-u", testUser, "hostnamectl", "set-hostname", "should-fail-hostname")
+	// Without the polkit rule, this requires authentication. The
+	// --no-ask-password flag tells hostnamectl to fail immediately
+	// instead of spawning pkttyagent on the terminal. Without this
+	// flag, pkttyagent stays running after the timeout kills
+	// hostnamectl and leaves the terminal in a broken state.
+	result := RunCommandTimeout(ShortTimeout, "sudo", "-u", testUser, "hostnamectl", "--no-ask-password", "set-hostname", "should-fail-hostname")
 	if result.Error == nil {
 		t.Error("Changing hostname succeeded when it should have failed")
 	}
 
-	if result.ExitCode != -1 {
-		t.Errorf("Unexpected exit code: %d error : %s", result.ExitCode, result.Error)
+	if result.ExitCode == 0 {
+		t.Errorf("Expected non-zero exit code but got 0")
 	}
 }
 
@@ -196,7 +199,7 @@ func restoreHostname(hostname string, t *testing.T) {
 
 	// This command needs to be run because the test might have failed,
 	// leaving the system in a state where permissions are messed up.
-	result := RunCommandTimeout(MediumTimeout, "hostnamectl", "set-hostname", hostname)
+	result := RunCommandTimeout(MediumTimeout, "hostnamectl", "--no-ask-password", "set-hostname", hostname)
 	if result.Error != nil {
 		t.Errorf("Failed to restore original hostname '%s'\nExit code: %d\nError: %v\nStdout: %s\nStderr: %s",
 			hostname, result.ExitCode, result.Error, result.Stdout, result.Stderr)
