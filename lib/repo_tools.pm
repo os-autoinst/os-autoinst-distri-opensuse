@@ -50,6 +50,8 @@ Tools for repositories used by openQA:
 
 =item * validate_repo_properties
 
+=item * validate_repo_arch
+
 =item * parse_repo_data
 
 =item * verify_software
@@ -72,6 +74,7 @@ use version_utils qw(is_leap is_sle is_sle_micro is_tumbleweed);
 use y2_module_consoletest;
 use Test::Assert ':all';
 use xml_utils;
+use HTTP::Tiny;
 
 our @EXPORT = qw(
   add_qa_head_repo
@@ -94,6 +97,7 @@ our @EXPORT = qw(
   disable_oss_repo
   generate_version
   validate_repo_properties
+  validate_repo_arch
   parse_repo_data
   verify_software
   validate_install_repo
@@ -560,6 +564,76 @@ sub validate_repo_properties {
         assert_equals($actual_repo_data->{Autorefresh}, $args->{Autorefresh},
             "Repository $args->{Name} has wrong value for the field 'Autorefresh'");
     }
+}
+
+=head2 validate_repo_arch
+
+  validate_repo_arch($args);
+
+Validates whether repositories are valid for specific architecture. For example:
+1. If given repo_uri already has repo_arch, check whether this repo_uri is valid
+by do http request. In this case, repo_arch_uri=repo_uri and repo_base_uri=repo_uri
+after being stripped appending repo_arch.
+2. If given repo_uri does not have repo_arch, check whether it has architecture
+sub-folders by do http request to repo_uri/x86_64. If repo_uri/x86_64 is valid,
+check corresponding repo_uri/{repo_arch,noarch} to do the same validation. In 
+this case, repo_arch_uri=repo_uri/{repo_arch,noarch} and repo_base_uri=repo_uri.
+The returned values are 0 or 1 which represents in/valid repository uri for the
+architecture involved.
+C<$args> should have following keys defined:
+- C<repo_uri>: The URIs of repositories which support multiple URIs separated by
+               comma or space.
+=cut
+
+sub validate_repo_arch {
+    my (%args) = @_;
+    $args{repo_uri} //= '';
+    die('Can not parse with empty repo_uri') if (!$args{repo_uri});
+
+    my %parse_result = ();
+    my $repo_arch = get_required_var('ARCH');
+    my $repo_http = HTTP::Tiny->new(verify_SSL => 0);
+    foreach (split(/[ ,]+/, $args{repo_uri})) {
+        my $repo_arch_uri = my $repo_base_uri = $_;
+        if ($_ =~ m{/\Q$repo_arch\E(?:/|$)}) {
+            $repo_base_uri =~ s{/\Q$repo_arch\E.*$}{};
+        }
+        else {
+            my $repo_x86_response = $repo_http->request('HEAD', "$_/x86_64");
+            my $repo_has_arch = ($repo_x86_response->{success} || $repo_x86_response->{status} eq '403' ? 1 : 0);
+            if ($repo_has_arch) {
+                $repo_arch_uri .= "/$repo_arch";
+            }
+            else {
+                $parse_result{$_} = 1;
+                next;
+            }
+        }
+
+        my $arch_uri_response = $repo_http->request('HEAD', $repo_arch_uri);
+        my $base_uri_response = $repo_http->request('HEAD', $repo_base_uri);
+        my $arch_uri_ok = ($arch_uri_response->{success} || $arch_uri_response->{status} eq '403' ? 1 : 0);
+        my $base_uri_ok = ($base_uri_response->{success} || $base_uri_response->{status} eq '403' ? 1 : 0);
+        if ($base_uri_ok and $arch_uri_ok) {
+            $parse_result{$_} = 1;
+        }
+        elsif ($base_uri_ok and !$arch_uri_ok) {
+            my $noarch_uri_response = $repo_http->request('HEAD', "$_/noarch");
+            my $noarch_uri_ok = ($noarch_uri_response->{success} || $noarch_uri_response->{status} eq '403' ? 1 : 0);
+            if (!$noarch_uri_ok) {
+                record_info("Invalid uri $repo_arch_uri and $_/noarch for $repo_arch", "Skip checking repository for uri $repo_arch_uri");
+                $parse_result{$_} = 0;
+            }
+            else {
+                $parse_result{$_} = 1;
+            }
+        }
+        else {
+            $parse_result{$_} = 0;
+            die("Not accessible uri $repo_base_uri and $repo_arch_uri");
+        }
+    }
+    return \%parse_result;
 }
 
 =head2 parse_repo_data
