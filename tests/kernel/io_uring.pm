@@ -100,14 +100,14 @@ sub run {
     if ($install =~ /git/i) {
         assert_script_run("echo 'TEST_EXCLUDE=\"$test_exclude\"' > test/config.local") if $test_exclude;
         $out = script_output(
-            "make -C test runtests",
+            "TIMEOUT=300 make -C test runtests",
             timeout => $timeout,
             proceed_on_failure => 1
         );
     } else {
         my $env = $test_exclude ? "TEST_EXCLUDE=\"$test_exclude\" " : '';
         $out = script_output(
-            "cd $test_dir && ${env}./runtests.sh *.t",
+            "cd $test_dir && TIMEOUT=300 ${env}./runtests.sh *.t",
             timeout => $timeout,
             proceed_on_failure => 1
         );
