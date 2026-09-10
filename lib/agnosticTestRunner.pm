@@ -90,8 +90,8 @@ sub run_test {
       . ' && ( set -o pipefail; ' . $run_script . " 2>&1 | tee $output_log )"
       . ' && mv ' . $result_src . ' ' . $self->{result_file};
     assert_script_run($command, quiet => 1);
-    upload_logs($output_log, failok => 1);
     enter_cmd('reset');
+    eval { upload_logs($output_log, failok => 1) };
     return $self;
 }
 
