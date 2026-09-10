@@ -278,61 +278,38 @@ sub check_network_ipvlan {
 
 my $bridge_netname = 'bridge_test';
 my $bridge_iface = 'br_test0';
-my $bridge_conf = "/etc/containers/networks/$bridge_netname.json";
-my $bridge_json;
+my $bridge_created;
 
 sub cleanup_bridge {
     my %args = @_;
     my $runtime = $args{runtime};
     script_run("$runtime rm -f busybox_1");
     script_run("$runtime rm -f busybox_2");
-    return unless defined $bridge_json;
+    return unless $bridge_created;
     record_info "Clean up bridge test";
     script_run("$runtime network rm $bridge_netname");
-    script_run("rm -f $bridge_conf");
-    undef $bridge_json;
+    undef $bridge_created;
 }
 
 sub check_network_bridge {
     my %args = @_;
     my $runtime = $args{runtime};
     my $image = "registry.opensuse.org/opensuse/busybox";
-    my $ip1 = "10.88.3.10";
-    my $ip2 = "10.88.3.11";
+    my $ip1 = "10.89.3.10";
+    my $ip2 = "10.89.3.11";
+    # Set a custom bridge interface name using the driver-specific option
+    my %bridge_iface_opt = (
+        podman => "--interface-name=$bridge_iface",
+        docker => "-o com.docker.network.bridge.name=$bridge_iface",
+    );
 
     record_info "Start bridge test";
 
-    record_info "Check that backend netavark is used";
-    validate_script_output("$runtime info -f '{{.Host.NetworkBackend}}'", qr/netavark/, fail_message => "Test requires the netavark backend");
-
     script_retry("$runtime image pull $image", timeout => 600, retry => 3, delay => 120);
-    assert_script_run("mkdir -p /etc/containers/networks");
 
-    # Import a second bridge network from a configuration file.
-    $bridge_json = <<"EOF";
-{
-  "name": "$bridge_netname",
-  "id": "0000000000000000000000000000000000000000000000000000000000000000",
-  "driver": "bridge",
-  "network_interface": "$bridge_iface",
-  "subnets": [
-    {
-      "subnet": "10.88.3.0/24",
-      "gateway": "10.88.3.1"
-    }
-  ],
-  "ipv6_enabled": false,
-  "internal": false,
-  "dns_enabled": false,
-  "ipam_options": {
-    "driver": "host-local"
-  }
-}
-EOF
-    write_sut_file($bridge_conf, $bridge_json);
-    record_info("bridge config", script_output("cat $bridge_conf"));
-
-    # The network must be picked up from the configuration file.
+    # Create a second bridge network using native podman/docker commands
+    assert_script_run("$runtime network create -d bridge --subnet=10.89.3.0/24 --gateway=10.89.3.1 $bridge_iface_opt{$runtime} $bridge_netname");
+    $bridge_created = 1;
     validate_script_output("$runtime network ls", qr/$bridge_netname/);
     validate_script_output("$runtime network inspect -f '{{.Driver}}' $bridge_netname", qr/bridge/);
     record_info("bridge network", script_output("$runtime network inspect $bridge_netname"));
@@ -340,7 +317,7 @@ EOF
     # Create containers with the second bridge network
     assert_script_run("$runtime run -d --network $bridge_netname --ip $ip1 --name busybox_1 $image sleep infinity");
     assert_script_run("$runtime run -d --network $bridge_netname --ip $ip2 --name busybox_2 $image sleep infinity");
-    assert_script_run("ip link show $bridge_iface", fail_message => "bridge interface $bridge_iface from the configuration file was not created");
+    assert_script_run("ip link show $bridge_iface", fail_message => "bridge interface $bridge_iface was not created");
 
     # Check if containers really use the second bridge network
     validate_script_output("$runtime container inspect busybox_1", qr/$bridge_netname/);
@@ -385,9 +362,8 @@ sub run {
         check_network_ipvlan(runtime => $self->{runtime});
     }
 
-    # Only Podman supports importing bridge configurations from /etc/containers/networks
     if (is_tumbleweed || is_sle(">=15.4") || is_sle_micro('>=6.0')) {
-        check_network_bridge(runtime => $self->{runtime}) if ($self->{runtime} eq 'podman');
+        check_network_bridge(runtime => $self->{runtime});
     }
 
     # Build an image from Dockerfile and run it
