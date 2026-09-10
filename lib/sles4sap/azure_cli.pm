@@ -118,7 +118,9 @@ Example:
 =cut
 
 sub az(%args) {
-    $args{timeout} //= $bmwqemu::default_timeout;
+    # azure cli needs sometimes even 50s to start the container (bsc#1271390)
+    # 2min should be enough for an average azure cli command to finish
+    $args{timeout} //= 120;
     croak 'Command `az` is not needed in $args{az_args}'
       if $args{az_args} =~ /az/;
     croak 'Missing mandatory argument: <az_args>' unless $args{az_args};
