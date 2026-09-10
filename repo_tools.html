@@ -32,6 +32,7 @@
       <li><a href="#disable_source_repo">disable_source_repo</a></li>
       <li><a href="#generate_version">generate_version</a></li>
       <li><a href="#validate_repo_properties">validate_repo_properties</a></li>
+      <li><a href="#validate_repo_arch">validate_repo_arch</a></li>
       <li><a href="#parse_repo_data">parse_repo_data</a></li>
       <li><a href="#verify_software">verify_software</a></li>
       <li><a href="#"></a></li>
@@ -100,6 +101,9 @@
 
 </li>
 <li><p>validate_repo_properties</p>
+
+</li>
+<li><p>validate_repo_arch</p>
 
 </li>
 <li><p>parse_repo_data</p>
@@ -222,6 +226,12 @@
 <pre><code>validate_repo_properties($args);</code></pre>
 
 <p>Validates that repo with given search criteria (uri, alias, number) has other properties mathing the expectations. If one of the keys is not provided, that field will NOT be validated. <code>$args</code> should have following keys defined: - <code>Alias</code>: repository alias, optional - <code>Autorefresh</code>: repository Autorefresh property, optional - <code>Enabled</code>: repository Enabled property, optional - <code>Filter</code>: repository search criteria (alias, uri, number), uri is used if not defined - <code>Name</code>: repository name, optional - <code>URI</code>: repository uri, used as a search criteria if no <code>Filter</code> provided.</p>
+
+<h2 id="validate_repo_arch">validate_repo_arch</h2>
+
+<pre><code>validate_repo_arch($args);</code></pre>
+
+<p>Validates whether repositories are valid for specific architecture. For example: 1. If given repo_uri already has repo_arch, check whether this repo_uri is valid by do http request. In this case, repo_arch_uri=repo_uri and repo_base_uri=repo_uri after being stripped appending repo_arch. 2. If given repo_uri does not have repo_arch, check whether it has architecture sub-folders by do http request to repo_uri/x86_64. If repo_uri/x86_64 is valid, check corresponding repo_uri/{repo_arch,noarch} to do the same validation. In this case, repo_arch_uri=repo_uri/{repo_arch,noarch} and repo_base_uri=repo_uri. The returned values are 0 or 1 which represents in/valid repository uri for the architecture involved. <code>$args</code> should have following keys defined: - <code>repo_uri</code>: The URIs of repositories which support multiple URIs separated by comma or space.</p>
 
 <h2 id="parse_repo_data">parse_repo_data</h2>
 

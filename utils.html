@@ -117,6 +117,7 @@
       <li><a href="#is_ipxe_with_disk_image">is_ipxe_with_disk_image</a></li>
       <li><a href="#is_reboot_needed">is_reboot_needed</a></li>
       <li><a href="#install_extra_packages">install_extra_packages</a></li>
+      <li><a href="#remove_installed_packages">remove_installed_packages</a></li>
       <li><a href="#render_autoinst_url">render_autoinst_url</a></li>
       <li><a href="#is_agama_guest">is_agama_guest</a></li>
       <li><a href="#upload_folders">upload_folders</a></li>
@@ -903,6 +904,12 @@ script_finish_io(exitcode =&gt; [12]);</code></pre>
 <pre><code>install_extra_packages(repos =&gt; &#39;repositories&#39;, packages =&gt; &#39;packages&#39;);</code></pre>
 
 <p>Install extra packages that are only available in extra repositories. User may need to install some useful utilities from other repositories to facilitate test run. At the same time, it also needs to ensure such operations will not alter existing system. Althought user should not be prevented from installing legitimate tools and utilities, it is expected that use of additional packages should be limited to the minimum and their impact should be paid attention to. User can specify required repositories and pacakges via arguments, repos and packages or settings INSTALL_OTHER_REPOS and INSTALL_OTHER_PACKAGES.</p>
+
+<h2 id="remove_installed_packages">remove_installed_packages</h2>
+
+<pre><code>remove_installed_packages(packages =&gt; &#39;packages&#39;);</code></pre>
+
+<p>Remove installed packages on demand. User may need to remove some packages for different purposes, for example, restoring environment or unsupported scenario. User can specify pacakges to be removed via named argument packages which support multiple packages separated by comma.</p>
 
 <h2 id="render_autoinst_url">render_autoinst_url</h2>
 
