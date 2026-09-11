@@ -806,7 +806,13 @@ sub create_guest {
             $extra_args = "autoyast=$autoinstall_url $extra_args";
         }
         $extra_args = trim($extra_args);
-        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
+        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory";
+        # disable graphics for TDX guests, enable VNC for others
+        if ($name =~ /-tdx/) {
+            $virtinstall .= " --graphics none";
+        } else {
+            $virtinstall .= " --vnc";
+        }
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
         $virtinstall .= " --network $network --autostart";
         record_info("Network Config", "Guest $name using network: $network");

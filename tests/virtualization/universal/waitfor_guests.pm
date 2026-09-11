@@ -17,12 +17,20 @@ use version_utils 'is_sle';
 # Open vnc and take screenshot of guests
 sub screenshot_vnc_guests {
     foreach my $guest (keys %virt_autotest::common::guests) {
+        next if $guest =~ /-tdx/;
         # Wait for virt-viewer to fully connect and display VNC stream
         enter_cmd "virt-viewer -f $guest & sleep 21 && killall virt-viewer";
         sleep 19;
         record_info "$guest", "$guest screenshot";
         save_screenshot();
         sleep 6;
+    }
+}
+
+sub upload_serial_console_guests {
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        assert_script_run("virsh console $guest > /tmp/${guest}-serial.log 2>&1");
+        upload_logs("/tmp/${guest}-serial.log", failok => 1);
     }
 }
 
