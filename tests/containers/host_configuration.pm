@@ -52,7 +52,11 @@ sub run {
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
-    if ($host_distri =~ /sle|opensuse/) {
+    # Transactional hosts (e.g. sle-micro) have read-only roots and are
+    # already updated by their own build pipeline, see poo#206769
+    if ($host_distri =~ /sle|opensuse/
+        && script_run("which transactional-update && findmnt -no OPTIONS /| grep -w ro") != 0)
+    {
         zypper_call("--quiet up", timeout => $update_timeout);
         # Cannot use `ensure_ca_certificates_suse_installed` as it will depend
         # on the BCI container version instead of the host
