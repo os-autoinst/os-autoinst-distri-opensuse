@@ -83,7 +83,7 @@ sub set {
     # DB installation pulls in SAP specific configuration
     if (grep /db_install/, @$components) {
         # SAP-specific operating system configuration
-        push @playbook_list, {playbook_filename => 'playbook_02_os_sap_specific_config.yaml'};
+        push @playbook_list, {playbook_filename => 'playbook_02_os_sap_specific_config.yaml', timeout => 5400};
         # SAP Bill of Materials processing - this also mounts install media storage
         push @playbook_list, {playbook_filename => 'playbook_03_bom_processing.yaml', timeout => 7200};
         # SAP HANA database installation
