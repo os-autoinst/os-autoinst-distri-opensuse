@@ -53,7 +53,7 @@ sub prepare_parmfile {
     else {
         if (get_var('AGAMA')) {
             my $host = "ftp://" . get_var('REPO_HOST', 'openqa');
-            my $root_line = " root=live:" . ((get_var('FLAVOR') =~ /^(Full|agama-installer|offline-installer|online-installer)$/) ?
+            my $root_line = " root=live:" . ((get_var('FLAVOR') =~ /^(Full(-Immutable)?|agama-installer|offline-installer|online-installer)$/) ?
                   $host . '/' . get_required_var('REPO_0') . "/LiveOS/squashfs.img" :
                   $host . '/' . get_var('REPO_999'));
             $params .= $root_line;
@@ -79,7 +79,7 @@ sub prepare_parmfile {
     }
 
     $params .= specific_bootmenu_params;
-    if (!(is_agama && check_var('FLAVOR', 'Full'))) {
+    if (!(is_agama && get_var('FLAVOR') =~ /^(Full(-Immutable)?)$/)) {
         $params .= registration_bootloader_cmdline if check_var('SCC_REGISTER', 'installation') || get_var('FLAVOR') =~ 'Online';
     }
 
