@@ -26,8 +26,8 @@ parameters, which define the test's behavior, are passed within the C<$run_args-
 
 =item B<PUBLIC_CLOUD_PROVIDER>
 
-If set to 'EC2' and the takeover action is 'stop', a specific SBD (STONITH Block Device)
-delay is configured to prevent timing issues during the test.
+On EC2, Azure, or GCP, SBD (STONITH Block Device) delay and a post-failure wait are
+configured for stop and kill actions to reduce takeover timing races.
 
 =back
 
@@ -76,14 +76,10 @@ sub run {
         join(' ', ucfirst($takeover_action) . 'DB on', ucfirst($site_name), "('", $target_site->{instance_id}, "')")
     );
 
-    # SBD delay related setup in case of crash OS to prevent cluster starting too quickly after reboot
-    $self->setup_sbd_delay_publiccloud() if $takeover_action eq 'crash';
-    # Calculate SBD delay sleep time
-    $sbd_delay = $self->sbd_delay_formula if $takeover_action eq 'crash';
-
-    # SBD delay related setup for 'stop' to fix sporadic 'takeover failed to complete' issue on EC2
-    if ($takeover_action eq 'stop' and check_var('PUBLIC_CLOUD_PROVIDER', 'EC2')) {
+    # SBD delay related setup in case of crash OS and stop to prevent cluster starting too quickly
+    if ($takeover_action eq 'crash' || $takeover_action eq 'stop') {
         $self->setup_sbd_delay_publiccloud();
+        # Calculate SBD delay sleep time
         $sbd_delay = $self->sbd_delay_formula();
     }
 
@@ -99,7 +95,7 @@ sub run {
         # Also fix sporadic issues (ssh timed out) mentioned in TEAM-9601
         record_info('SBD SLEEP', "Waiting $sbd_delay sec for SBD delay timeout.");
         # test needs to wait a little more than sbd delay
-        sleep($sbd_delay + 30);
+        sleep($sbd_delay + 60);
         $self->wait_for_pacemaker();
     }
 
