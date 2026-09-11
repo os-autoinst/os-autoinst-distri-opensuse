@@ -23,6 +23,7 @@ subtest "[run_cmd]" => sub {
 
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
     my @calls;
     $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
@@ -336,6 +337,7 @@ subtest "[stop_hana]" => sub {
     my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
     $self->{my_instance} = $mock_pc;
 
     set_var('INSTANCE_SID', 'INSTANCE_SIDTEST');
@@ -360,6 +362,9 @@ subtest "[stop_hana] crash" => sub {
     my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
+    $mock_pc->set_true('ssh_assert_script_run');
+    $mock_pc->set_true('ssh_script_run');
     $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
@@ -388,6 +393,9 @@ subtest "[stop_hana] crash wait_hana_node_up running" => sub {
     my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
+    $mock_pc->set_true('ssh_assert_script_run');
+    $mock_pc->set_true('ssh_script_run');
     $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
@@ -418,6 +426,9 @@ subtest "[stop_hana] crash wait_hana_node_up degradated" => sub {
     my $self = sles4sap::publiccloud->new();
     my $mock_pc = Test::MockObject->new();
     $mock_pc->set_true('wait_for_ssh');
+    $mock_pc->set_true('update_instance_ip');
+    $mock_pc->set_true('ssh_assert_script_run');
+    $mock_pc->set_true('ssh_script_run');
     $mock_pc->mock('ssh_script_output', sub {
             my ($self, %args) = @_;
             push @calls, $args{cmd};
@@ -633,6 +644,29 @@ subtest '[is_hana_database_online]' => sub {
 };
 
 
+subtest '[is_hana_database_online] ignores single offline blip' => sub {
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my $calls = 0;
+    $sles4sap_publiccloud->redefine(get_hana_database_status => sub {
+            $calls++;
+            # First poll offline, then online for the remaining consecutive checks.
+            return ($calls == 1) ? 0 : 1;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+    set_var('SAP_SIDADM', 'SAP_SIDADMTEST');
+    set_var('INSTANCE_ID', 'INSTANCE_IDTEST');
+    set_var('_HANA_MASTER_PW', '1234');
+
+    my $res = $self->is_hana_database_online(total_consecutive_passes => 3);
+    set_var('SAP_SIDADM', undef);
+    set_var('INSTANCE_ID', undef);
+    set_var('_HANA_MASTER_PW', undef);
+    is $res, 1, "Single offline reading does not mark database offline";
+    ok $calls >= 4, "Continued polling after offline blip";
+};
+
+
 subtest '[is_hana_database_online] with status online' => sub {
     my $self = sles4sap::publiccloud->new();
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
@@ -647,6 +681,19 @@ subtest '[is_hana_database_online] with status online' => sub {
     set_var('INSTANCE_ID', undef);
     set_var('_HANA_MASTER_PW', undef);
     is $res, 1, "Hana database is online";
+};
+
+
+subtest '[is_primary_node_online] with timeout 0 (single poll)' => sub {
+    my $self = sles4sap::publiccloud->new();
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return "mode: PRIMARY\nsite id: 1"; });
+    $sles4sap_publiccloud->redefine(record_info => sub { return; });
+    set_var('INSTANCE_SID', 'HA0');
+    is $self->is_primary_node_online(timeout => 0), 1, 'Detects PRIMARY mode on single poll';
+    $sles4sap_publiccloud->redefine(run_cmd => sub { return "mode: sync\nsite id: 2"; });
+    is $self->is_primary_node_online(timeout => 0), 0, 'Detects non-PRIMARY mode on single poll';
+    set_var('INSTANCE_SID', undef);
 };
 
 
@@ -824,6 +871,7 @@ subtest '[check_takeover]' => sub {
     $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
@@ -849,6 +897,8 @@ subtest '[check_takeover] fail in showAttr' => sub {
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
+    $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     $sles4sap_publiccloud->redefine(run_cmd => sub {
             my ($self, %args) = @_;
@@ -872,6 +922,8 @@ subtest '[check_takeover] missing fields in SAPHanaSR-showAttr' => sub {
     my @calls;
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana02' });
+    $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     my $showAttr;
     $sles4sap_publiccloud->redefine(run_cmd => sub {
@@ -918,10 +970,159 @@ subtest '[check_takeover] fail if primary online' => sub {
     my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
     $sles4sap_publiccloud->redefine(wait_for_idle => sub { return; });
     my @calls;
+    my %test_topology = (
+        Host => {
+            vmhana02 => {
+                vhost => 'vmhana02',
+                site => 'site_b'
+            },
+            vmhana01 => {
+                site => 'site_a',
+                vhost => 'vmhana01',
+            }
+        },
+        Site => {
+            site_b => {
+                lss => '4',
+                mns => 'vmhana02',
+                srPoll => 'SOK',
+            },
+            site_a => {
+                lss => '4',
+                mns => 'vmhana01',
+                srPoll => 'PRIM',
+            }
+        }
+    );
+    $sles4sap_publiccloud->redefine(calculate_hana_topology => sub { return \%test_topology; });
     $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
     $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
+    $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
+    $sles4sap_publiccloud->redefine(run_cmd => sub {
+            my ($self, %args) = @_;
+            push @calls, $args{cmd};
+            return "Output does no matter as calculate_hana_topology is redefined.";
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
 
     dies_ok { $self->check_takeover() } "Takeover failed if is_primary_node_online return 1";
+};
+
+
+subtest '[is_local_primary_recovery_aborting_takeover]' => sub {
+    my $self = sles4sap::publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'vmhana01';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    set_var('INSTANCE_ID', '00');
+    set_var('_HANA_MASTER_PW', '1234');
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 1 });
+    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 1 });
+    is $self->is_local_primary_recovery_aborting_takeover(), 1,
+      'Recovered local primary with DB online is detected';
+
+    $sles4sap_publiccloud->redefine(get_hana_database_status => sub { return 0 });
+    is $self->is_local_primary_recovery_aborting_takeover(), 0,
+      'Promoted PRIMARY with DB offline is not treated as recovery';
+
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana02' });
+    is $self->is_local_primary_recovery_aborting_takeover(), 0,
+      'Peer promotion is not treated as local recovery';
+
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub {
+            my ($self, %args) = @_;
+            return undef if $args{proceed_on_failure};
+            die 'Master database was not found';
+    });
+    is $self->is_local_primary_recovery_aborting_takeover(), 0,
+      'Missing Promoted node during takeover is not treated as local recovery';
+    set_var('INSTANCE_ID', undef);
+    set_var('_HANA_MASTER_PW', undef);
+};
+
+
+subtest '[check_takeover] tolerates missing promoted hostname' => sub {
+    my $self = sles4sap::publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'vmhana01';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my $loops = 0;
+    my %pending_topology = (
+        Host => {
+            vmhana02 => {vhost => 'vmhana02', site => 'site_b'},
+            vmhana01 => {vhost => 'vmhana01', site => 'site_a'}
+        },
+        Site => {
+            site_b => {lss => '4', mns => 'vmhana02', srPoll => 'SOK'},
+            site_a => {lss => '4', mns => 'vmhana01', srPoll => 'PRIM'}
+        }
+    );
+    my %done_topology = (
+        Host => {
+            vmhana02 => {vhost => 'vmhana02', site => 'site_b'},
+            vmhana01 => {vhost => 'vmhana01', site => 'site_a'}
+        },
+        Site => {
+            site_b => {lss => '4', mns => 'vmhana02', srPoll => 'PRIM'},
+            site_a => {lss => '4', mns => 'vmhana01', srPoll => 'SFAIL'}
+        }
+    );
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_primary_node_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_local_primary_recovery_aborting_takeover => sub { return 0 });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub {
+            my ($self, %args) = @_;
+            return undef if $args{proceed_on_failure};
+            die 'Master database was not found';
+    });
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub {
+            $loops++;
+            return $loops == 1 ? \%pending_topology : \%done_topology;
+    });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    ok $self->check_takeover(), 'Continues waiting when promoted hostname lookup fails mid-takeover';
+};
+
+
+subtest '[check_takeover] fail on local primary recovery' => sub {
+    my $self = sles4sap::publiccloud->new();
+    $self->{my_instance}->{instance_id} = 'vmhana01';
+    my $sles4sap_publiccloud = Test::MockModule->new('sles4sap::publiccloud', no_auto => 1);
+    my %test_topology = (
+        Host => {
+            vmhana02 => {
+                vhost => 'vmhana02',
+                site => 'site_b'
+            },
+            vmhana01 => {
+                site => 'site_a',
+                vhost => 'vmhana01',
+            }
+        },
+        Site => {
+            site_b => {
+                lss => '4',
+                mns => 'vmhana02',
+                srPoll => 'SOK',
+            },
+            site_a => {
+                lss => '4',
+                mns => 'vmhana01',
+                srPoll => 'PRIM',
+            }
+        }
+    );
+    $sles4sap_publiccloud->redefine(get_hana_topology => sub { return \%test_topology; });
+    $sles4sap_publiccloud->redefine(get_promoted_hostname => sub { return 'vmhana01' });
+    $sles4sap_publiccloud->redefine(is_hana_database_online => sub { return 0 });
+    $sles4sap_publiccloud->redefine(is_local_primary_recovery_aborting_takeover => sub { return 1 });
+    $sles4sap_publiccloud->redefine(record_takeover_diagnostics => sub { return; });
+    $sles4sap_publiccloud->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); });
+
+    throws_ok { $self->check_takeover() }
+    qr/Takeover aborted by local primary recovery/,
+      'Detects local primary recovery aborting takeover';
 };
 
 
