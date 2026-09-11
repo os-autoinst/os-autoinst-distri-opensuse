@@ -21,13 +21,18 @@ use testapi qw(
   select_console
   console
 );
-use Utils::Architectures qw(is_s390x is_ppc64le);
+use Utils::Architectures qw(is_aarch64 is_s390x is_ppc64le);
 use Utils::Backends qw(is_pvm is_svirt);
 use version_utils qw(is_vmware);
 use power_action_utils 'power_action';
 
 sub is_headless_installation {
     return 1 if (get_var('EXTRABOOTPARAMS', '') =~ /systemd.unit=multi-user.target/);
+}
+
+sub stop_on_boot_menu {
+    assert_script_run('echo \'{"bootloader":{"stopOnBootMenu":true}}\' > /tmp/bootloader_onboot.json');
+    assert_script_run('agama config load /tmp/bootloader_onboot.json', timeout => 60);
 }
 
 sub run {
@@ -49,6 +54,7 @@ sub run {
       " $test_options";
 
     select_console 'install-shell';
+    stop_on_boot_menu if (is_aarch64 || is_ppc64le);
     record_info("node cmd", $node_cmd);
     my $ret = script_run($node_cmd, timeout => 2400);
 
