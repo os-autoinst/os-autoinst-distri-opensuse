@@ -40,7 +40,7 @@ component (e.g. a shared CI/tooling fix) can fall back to a plain
 
 **Conventional Commits (`type(scope): subject`, e.g. `fix(hpc):`,
 `feat(kernel):`) are not OK.** Use the bare component prefix above
-instead — a handful of `type(scope):` commits exist in history, but
+instead. A handful of `type(scope):` commits exist in history, but
 they are exceptions, not the style to follow.
 
 ## Commit body
