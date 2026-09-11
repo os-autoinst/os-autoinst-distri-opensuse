@@ -47,12 +47,14 @@ sub run {
 
     my $interface;
     my $update_timeout = 2400;    # aarch64 takes sometimes 20-30 minutes for completion
-    my ($version, $sp, $host_distri) = get_os_release;
+    my ($version, $sp, $host_distri, $host_distri_like) = get_os_release;
     my $engine = get_required_var('CONTAINER_RUNTIMES');
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
-    if ($host_distri =~ /sle|opensuse/) {
+    # Transactional hosts (e.g. sle-micro) have read-only roots and are
+    # already updated by their own build pipeline, see poo#206769
+    if ($host_distri =~ /sle|opensuse/ && $host_distri_like !~ /micro/i) {
         zypper_call("--quiet up", timeout => $update_timeout);
         # Cannot use `ensure_ca_certificates_suse_installed` as it will depend
         # on the BCI container version instead of the host
