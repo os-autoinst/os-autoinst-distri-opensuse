@@ -806,7 +806,22 @@ sub create_guest {
             $extra_args = "autoyast=$autoinstall_url $extra_args";
         }
         $extra_args = trim($extra_args);
-        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory --vnc";
+
+        $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory";
+        $virtinstall .= " --serial pty,log.file=/tmp/${name}-serial.log,log.append=on";
+
+        # TDX guests have no usable graphical installer console. Route the
+        # installer/kernel console to ttyS0 and let libvirt continuously log
+        # that serial stream. Keep the PTY as well so `virsh console` remains
+        # usable while the installation is running.
+        my $is_tdx = ($name =~ /-tdx/);
+
+        # disable graphics for TDX guests, enable VNC for others
+        if ($is_tdx) {
+            $virtinstall .= " --graphics none";
+        } else {
+            $virtinstall .= " --vnc";
+        }
         $virtinstall .= " --disk path=/var/lib/libvirt/images/$name.$diskformat,size=20,format=$diskformat --noautoconsole";
         $virtinstall .= " --network $network --autostart";
         record_info("Network Config", "Guest $name using network: $network");
