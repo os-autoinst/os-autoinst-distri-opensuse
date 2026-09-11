@@ -819,18 +819,46 @@ sub wait_for_pacemaker {
     my ($self, %args) = @_;
     my $timeout = bmwqemu::scale_timeout($args{timeout} // 300);
     my $start_time = time;
-    my $systemd_cmd = 'systemctl --no-pager is-active pacemaker';
+    my $systemd_pm_cmd = 'systemctl --no-pager is-active pacemaker';
+    my $systemd_cs_cmd = 'systemctl --no-pager is-active corosync';
     my $pacemaker_state = '';
+    my $corosync_state = '';
 
-    while ($pacemaker_state ne 'active') {
+    while (time - $start_time < $timeout) {
         sleep 15;
-        $pacemaker_state = $self->run_cmd(cmd => $systemd_cmd, proceed_on_failure => 1);
-        if (time - $start_time > $timeout) {
-            record_info('Pacemaker status', $self->run_cmd(cmd => 'systemctl --no-pager status pacemaker'));
-            die('wait_for_pacemaker [ERROR] Pacemaker did not start within defined timeout');
+
+        $pacemaker_state = eval { $self->run_cmd(cmd => $systemd_pm_cmd, proceed_on_failure => 1, quiet => 1, timeout => 30) } // '';
+        $corosync_state = eval { $self->run_cmd(cmd => $systemd_cs_cmd, proceed_on_failure => 1, quiet => 1, timeout => 30) } // '';
+        record_info('WAIT CLUSTER', "pacemaker=$pacemaker_state corosync=$corosync_state elapsed=" . (time - $start_time));
+        if ($pacemaker_state eq 'active' && $corosync_state eq 'active') {
+            my $cib_ready = eval { $self->run_cmd(cmd => $crm_mon_cmd, rc_only => 1, quiet => 1, timeout => 30) == 0 } // 0;
+            if ($cib_ready) {
+                record_info('Cluster Ready', 'Both Pacemaker and Corosync API are fully up and running.');
+                return 1;
+            }
+            record_info('Cluster Boot', 'Systemd services are active, but waiting for Corosync Ring/cmap initialization...');
+        }
+        elsif ($corosync_state eq 'failed' or $pacemaker_state eq 'failed') {
+            last;
         }
     }
-    return 1;
+
+    my $systemd_pm_st = 'systemctl --no-pager status pacemaker';
+    my $systemd_cs_st = 'systemctl --no-pager status corosync';
+    my $systemd_cs_log = 'journalctl -u corosync -n 80 --no-pager';
+    record_info('Pacemaker status',
+        eval { $self->run_cmd(cmd => $systemd_pm_st, proceed_on_failure => 1, quiet => 1) } // 'node unreachable',
+        result => 'fail'
+    );
+    record_info('Corosync status',
+        eval { $self->run_cmd(cmd => $systemd_cs_st, proceed_on_failure => 1, quiet => 1) } // 'node unreachable',
+        result => 'fail'
+    );
+    record_info('Corosync Info',
+        eval { $self->run_cmd(cmd => $systemd_cs_log, proceed_on_failure => 1, quiet => 1) } // 'node unreachable',
+        result => 'fail'
+    );
+    die('wait_for_pacemaker [ERROR] Cluster services failed to fully initialize within timeout');
 }
 
 =head2 change_sbd_service_timeout
@@ -1628,7 +1656,7 @@ sub wait_for_idle {
         $self->run_cmd(cmd => 'crm_mon -r -R -n -N -1', proceed_on_failure => 1);
         $self->run_cmd(cmd => 'SAPHanaSR-showAttr', proceed_on_failure => 1);
         # Run again, but allow to fail this time
-        $self->run_cmd(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout);
+        $self->run_cmd_retry(cmd => 'cs_wait_for_idle --sleep 5', timeout => $timeout, retry => 3, proceed_on_failure => 1);
     } elsif ($rc != 0) {
         die "Command 'cs_wait_for_idle --sleep 5' failed with return code $rc";
     }
