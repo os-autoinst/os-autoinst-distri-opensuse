@@ -14,19 +14,35 @@ use virt_autotest::utils;
 use testapi;
 use utils;
 use qam;
+use package_utils;
 
 sub run {
     my $self = shift;
     select_console('root-console');
     my $pkg = get_var("UPDATE_PACKAGE");
 
+    # Install packages required for SEV-SNP validation
+    if (check_var("ENABLE_SEV_SNP", "1")) {
+        install_package("snphost sevctl ucode-amd");
+    }
+
     # Verify the host has the correct MU pkg installed
-    validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if ($pkg);
+    validate_script_output("zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s }) if ($pkg && $pkg ne "snpguest");
 
     # For kernel updates, verify MU pkg is installed on compatible guests
     my @guests = keys %virt_autotest::common::guests;
 
     foreach my $guest (@guests) {
+        if (check_var("ENABLE_SEV_SNP", "1") && $guest =~ /efi|sev-snp/) {
+            assert_script_run("ssh root\@$guest zypper --non-interactive in snpguest", timeout => 180);
+        }
+
+        if ($pkg eq "snpguest" && $guest =~ /efi|sev-snp/) {
+            validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
+
+            record_info("Package Validated on $guest", "$pkg validated on $guest: from TEST repository and up-to-date");
+        }
+
         if ($pkg eq "kernel-default" && is_guest_of_host_version($guest)) {
             validate_script_output("ssh root\@$guest zypper if $pkg", sub { m/(?=.*TEST_\d+)(?=.*up-to-date)/s });
             record_info("Package Validated on $guest", "$pkg validated on $guest: from TEST repository and up-to-date");
