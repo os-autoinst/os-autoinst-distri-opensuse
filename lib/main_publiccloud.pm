@@ -223,10 +223,15 @@ sub load_create_publiccloud_tools_image {
 
 # Test CLI tools for each provider
 sub load_publiccloud_cli_tools {
+    my $args = OpenQA::Test::RunArgs->new();
     loadtest 'installation/bootloader_zkvm' if (is_s390x);
     loadtest 'boot/boot_to_desktop';
-    loadtest 'publiccloud/azure_cli' if (is_azure());
-    loadtest 'publiccloud/aws_cli' if (is_ec2());
+    if (is_azure()) {
+        loadtest 'publiccloud/azure_cli';
+    } elsif (is_ec2()) {
+        loadtest 'publiccloud/aws_cli';
+        loadtest 'publiccloud/s3', run_args => $args, name => 'aws_s3';
+    }
 }
 
 sub load_publiccloud_download_repos {
@@ -276,6 +281,7 @@ The rest of the scheduling is divided into two separate subroutines C<load_maint
 =cut
 
 sub load_publiccloud_tests {
+    my $args = OpenQA::Test::RunArgs->new();
     if (check_var('PUBLIC_CLOUD_PREPARE_TOOLS', 1)) {
         load_create_publiccloud_tools_image();
     }
