@@ -47,7 +47,6 @@
     <guest_ipaddr/>
     <guest_ipaddr_static>false</guest_ipaddr_static>
     <guest_macaddr/>
-    <guest_graphics>vnc</guest_graphics>
     <guest_controller/>
     <guest_input/>
     <guest_serial>pty</guest_serial>
@@ -58,7 +57,6 @@
     <guest_filesystem/>
     <guest_sound/>
     <guest_watchdog/>
-    <guest_video/>
     <guest_smartcard/>
     <guest_redirdev/>
     <guest_memballoon/>
