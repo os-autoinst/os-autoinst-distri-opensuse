@@ -27,7 +27,6 @@
       <li><a href="#reboot_virtual_machine">reboot_virtual_machine</a></li>
       <li><a href="#get_guest_settings">get_guest_settings</a></li>
       <li><a href="#reselect_openqa_console">reselect_openqa_console</a></li>
-      <li><a href="#select_backend_console">select_backend_console</a></li>
       <li><a href="#double_check_xen_role">double_check_xen_role</a></li>
       <li><a href="#check_kvm_modules">check_kvm_modules</a></li>
       <li><a href="#download_installation_iso">download_installation_iso</a></li>
@@ -113,10 +112,6 @@
 <h2 id="reselect_openqa_console">reselect_openqa_console</h2>
 
 <p>Reselect named console in openQA test if concerned console is lost after detecting ssh port or needle. Arguments include address to be detected, console to be selected , needle to be checked on console, counter to be used for lost console detection, countdown value to be decreased at the end of each loopthe number of retries when detecting ssh port of address and delay before next ssh port detection.</p>
-
-<h2 id="select_backend_console">select_backend_console</h2>
-
-<p>Select corresponding ipmi, qemu or pvm_hmc backend console, namely &#39;root-ssh&#39; or &#39;root-console&#39;. If argument init is set, select &#39;sol&#39; console for ipmi backend, or powerhmc-ssh for pvm_hmc backend because test run is in initialization or the very beginning phase, for example, pxe boot, host installation or startup. User can also set desired console or choose whether to wait for the selected console. Argument reset_times specifies the number of times reset_consoles to be done.</p>
 
 <h2 id="double_check_xen_role">double_check_xen_role</h2>
 
