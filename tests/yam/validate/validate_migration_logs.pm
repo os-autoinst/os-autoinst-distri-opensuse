@@ -8,7 +8,7 @@
 
 use Mojo::Base 'consoletest';
 use testapi;
-use utils qw(upload_folders select_backend_console);
+use utils 'upload_folders';
 use Utils::Architectures;
 
 sub run {
@@ -16,7 +16,7 @@ sub run {
         record_soft_failure('bsc#1259353 - Failed to log in root after migration from 15sp{5-7} to sles16.1 on s390x kvm');
         sleep 120;
     }
-    select_backend_console;
+    select_console 'root-console';
 
     upload_logs("/var/log/distro_migration.log", failok => 1);
     script_run 'tar zcvf /tmp/cache_wicked_config.tar.gz /var/cache/wicked_config/*';

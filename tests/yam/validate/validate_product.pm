@@ -11,10 +11,9 @@ use testapi;
 use Config::Tiny;
 use Test::Assert ':all';
 use scheduler 'get_test_suite_data';
-use utils 'select_backend_console';
 
 sub run {
-    select_backend_console;
+    select_console 'root-console';
 
     my $test_data = get_test_suite_data()->{os_release};
     my $os_release = Config::Tiny->read_string(script_output('cat /etc/os-release'))->{_};

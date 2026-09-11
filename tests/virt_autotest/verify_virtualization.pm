@@ -29,7 +29,7 @@ our @guest_list = ();
 sub run {
     my $self = shift;
 
-    select_backend_console;
+    select_backend_console(init => 0);
     $self->verify_bootloader;
     $self->verify_system;
     $self->verify_hypervisor;

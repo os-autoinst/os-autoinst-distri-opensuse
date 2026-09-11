@@ -30,7 +30,7 @@ use suseconnect_register qw(command_register);
 
 sub run {
     my ($self) = @_;
-    select_backend_console;
+    select_console 'root-console';
     ensure_serialdev_permissions;
     prepare_serial_console;
     if (!check_var('DESKTOP', 'textmode')) {
