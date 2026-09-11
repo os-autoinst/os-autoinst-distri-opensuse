@@ -4,23 +4,14 @@
 # Copyright 2012-2020 SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
-# Summary: server hostname setup and check
-# - Set hostname as "susetest"
-# - If network is down (using ip command)
-#   - Reload network
-#   - Check network status
-#   - Save screenshot
-#   - Restart network
-#   - Check status
-#   - Save screenshot
-# - Check network status (using ip command)
-# - Save screenshot
+# Summary: Set system hostname for test environment
+# - Prevent DHCP from resetting hostname
+# - Set hostname via hostnamectl
 # Maintainer: QE Core <qe-core@suse.de>
 
 use Mojo::Base 'consoletest';
 use testapi;
 use utils;
-use version_utils "is_sle";
 
 sub run {
     select_console 'root-console';
