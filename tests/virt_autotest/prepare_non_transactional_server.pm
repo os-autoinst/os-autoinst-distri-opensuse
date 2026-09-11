@@ -60,7 +60,7 @@ sub prepare_ground {
 sub prepare_console {
     my $self = shift;
 
-    select_backend_console;
+    select_backend_console(init => 0);
 }
 
 sub prepare_storages {

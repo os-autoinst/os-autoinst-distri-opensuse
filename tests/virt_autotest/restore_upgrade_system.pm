@@ -11,12 +11,12 @@
 
 use Mojo::Base 'opensusebasetest';
 use testapi;
-use virt_autotest::utils qw(reset_network_config subscribe_extensions_and_modules);
-use utils qw(remove_installed_packages select_backend_console);
+use virt_autotest::utils qw(select_backend_console reset_network_config subscribe_extensions_and_modules);
+use utils qw(remove_installed_packages);
 
 sub run {
     # Login as root
-    select_backend_console if (!check_screen('text-logged-in-root'));
+    select_backend_console(init => 0) if (!check_screen('text-logged-in-root'));
     # Remove unnecessary or unsupported packages
     remove_installed_packages(packages => get_var('INSTALL_OTHER_PACKAGES', ''));
     # Deregister unnecessary or unsupported extensions
