@@ -15,147 +15,82 @@ use Utils::Logging "export_logs_basic";
 use package_utils 'install_package';
 use Kernel::nfs;
 
+
 sub compare_checksums {
     my ($file) = @_;
 
-    assert_script_run("md5sum $file > new_md5sum.txt");
-    record_info("$file: checksum", script_output("cat new_md5sum.txt"));
+    # Compare hashes directly in memory (no temporary new_md5sum.txt file on disk)
+    my ($expected_md5) = split(/\s+/, script_output("md5sum testfile"));
+    my ($actual_md5) = split(/\s+/, script_output("md5sum $file"));
 
-    my $md5 = script_output("cut -d ' ' -f1 md5sum.txt");
-    my $new_md5 = script_output("cut -d ' ' -f1 new_md5sum.txt");
-
-    record_info("Checksums md5 $md5 newMd5: $new_md5");
-
-    die "checksums differ $md5 : $new_md5" unless ($md5 eq $new_md5);
+    record_info("MD5 Check", "$file: $actual_md5 (expected $expected_md5)");
+    die "Checksum mismatch for $file! Expected: $expected_md5, Got: $actual_md5"
+      unless ($expected_md5 && $actual_md5 && $expected_md5 eq $actual_md5);
 }
 
 sub run {
-    my $self = @_;
-    my $kernel_nfs3 = 0;
-    my $kernel_nfs4 = 0;
-    my $kernel_nfs4_1 = 0;
-    my $kernel_nfs4_2 = 0;
-    my $kernel_nfsd_v3 = 0;
-    my $kernel_nfsd_v4 = 0;
-    my $client = get_var('CLIENT_NODE', 'client-node00');
-
+    my ($self) = @_;
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
 
-    my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/var/lib/nfs-tests/shared_nfs3');
-    my $nfs_mount_nfs3_async = get_var('NFS_MOUNT_NFS3_ASYNC', '/var/lib/nfs-tests/shared_nfs3_async');
-    my $nfs_mount_nfs4 = get_var('NFS_MOUNT_NFS4', '/var/lib/nfs-tests/shared_nfs4');
-    my $nfs_mount_nfs4_async = get_var('NFS_MOUNT_NFS4_ASYNC', '/var/lib/nfs-tests/shared_nfs4_async');
-
+    my $client = get_var('CLIENT_NODE', 'client-node00');
+    my $nfsd_versions = get_var_array('NFSD_VERSIONS', '3,4');
     my $nfs_options = get_var('NFS_OPTIONS', 'rw,sync,no_root_squash');
     my $nfs_options_async = get_var('NFS_OPTIONS_ASYNC', 'rw,async,no_root_squash');
 
-    # check kernel config options and set the variables
-    $kernel_nfs3 = 1 unless script_run('zgrep "CONFIG_NFS_V3=[my]" /proc/config.gz');
-    $kernel_nfs4 = 1 unless script_run('zgrep "CONFIG_NFS_V4=[my]" /proc/config.gz');
-    $kernel_nfs4_1 = 1 unless script_run('zgrep "CONFIG_NFS_V4_1=[my]" /proc/config.gz');
-    $kernel_nfs4_2 = 1 unless script_run('zgrep "CONFIG_NFS_V4_2=[my]" /proc/config.gz');
-    $kernel_nfsd_v3 = 1 unless script_run('zgrep "CONFIG_NFSD=[my]" /proc/config.gz');
-    $kernel_nfsd_v4 = 1 unless script_run('zgrep "CONFIG_NFSD_V4=[my]" /proc/config.gz');
+    my @file_flags = qw(testfile_oflag_direct testfile_oflag_dsync testfile_oflag_sync);
 
-    # following files are copied on the client side using dd with specific flags: direct, dsync, sync
-    my $file_flag_direct = 'testfile_oflag_direct';
-    my $file_flag_dsync = 'testfile_oflag_dsync';
-    my $file_flag_sync = 'testfile_oflag_sync';
+    my %exports = (
+        3 => {
+            sync => get_var('NFS_MOUNT_NFS3', '/var/lib/nfs-tests/shared_nfs3'),
+            async => get_var('NFS_MOUNT_NFS3_ASYNC', '/var/lib/nfs-tests/shared_nfs3_async'),
+        },
+        4 => {
+            sync => get_var('NFS_MOUNT_NFS4', '/var/lib/nfs-tests/shared_nfs4'),
+            async => get_var('NFS_MOUNT_NFS4_ASYNC', '/var/lib/nfs-tests/shared_nfs4_async'),
+        },
+    );
 
-    # provision NFS server(s) of various types
     install_package('nfs-kernel-server', trup_apply => 1);
 
-    # configure our exports
-    if ($kernel_nfs3 == 1) {
-        record_info('INFO', 'Kernel has support for NFSv3');
-        create_export($nfs_mount_nfs3, $client, $nfs_options);
-        create_export($nfs_mount_nfs3_async, $client, $nfs_options_async);
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv3, skipping NFSv3 tests');
-    }
-    if ($kernel_nfs4 == 1) {
-        record_info('INFO', 'Kernel has support for NFSv4');
-        create_export($nfs_mount_nfs4, $client, $nfs_options);
-        create_export($nfs_mount_nfs4_async, $client, $nfs_options_async);
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv4, skipping NFSv4 tests');
+    for my $version (@$nfsd_versions) {
+        die "NFSv$version server support missing in this kernel"
+          unless check_nfs_support($version, nfsd => 1);
+
+        record_info('INFO', "Kernel has support for NFSDv$version");
+
+        my $cfg = $exports{$version} or die "No export mapping defined for NFSv$version";
+        create_export($cfg->{sync}, $client, $nfs_options);
+        create_export($cfg->{async}, $client, $nfs_options_async);
     }
 
-    record_info("EXPORTS", script_output("cat /etc/exports"));
-
-    systemctl("enable rpcbind --now");
-    systemctl("is-active rpcbind");
-    systemctl("enable nfs-server --now");
+    systemctl("enable --now rpcbind nfs-server");
     systemctl("restart nfs-server");
-    systemctl("is-active nfs-server");
+    systemctl("is-active rpcbind nfs-server");
 
     record_info("RPC", script_output("rpcinfo"));
-    record_info("NFS config", script_output("cat /etc/sysconfig/nfs"));
-
-    #my $nfsstat = script_output("nfsstat -s");
-    record_info("NFS stat for server", script_output("nfsstat -s"));
+    record_info("NFS stat", script_output("nfsstat -s"));
 
     barrier_wait("NFS_SERVER_ENABLED");
     barrier_wait("NFS_CLIENT_ENABLED");
+    # client writes testfile and all oflag copies between NFS_CLIENT_ENABLED
+    # and NFS_SERVER_CHECK; verification must not start before this barrier
     barrier_wait("NFS_SERVER_CHECK");
 
-    if ($kernel_nfs3 == 1) {
-        #checking files in /nfs/shared_nfs3
-        record_info("TESTS: NFS3");
-        record_info("NFS3 list all files", script_output("ls $nfs_mount_nfs3"));
+    for my $version (@$nfsd_versions) {
+        my $cfg = $exports{$version};
 
-        assert_script_run("cd $nfs_mount_nfs3");
+        for my $type (qw(sync async)) {
+            my $export_dir = $cfg->{$type};
+            record_info("TESTS", "Checking NFSv$version ($type) at $export_dir");
 
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS3 checksum", script_output("md5sum -c md5sum.txt"));
-        record_info("NFS3 checksum", script_output("cat md5sum.txt"));
+            assert_script_run("cd $export_dir");
 
-        #check files copied with various flags: direct, dsync, sync
-        compare_checksums($file_flag_direct);
-        compare_checksums($file_flag_dsync);
-        compare_checksums($file_flag_sync);
-
-        #checking files in /nfs/shared_nfs3_async
-        record_info("TESTS: NFS3 async");
-
-        assert_script_run("cd $nfs_mount_nfs3_async");
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS3 async checksum", script_output("md5sum -c md5sum.txt"));
-
-        #check files copied with various flags: direct, dsync, sync
-        compare_checksums($file_flag_direct);
-        compare_checksums($file_flag_dsync);
-        compare_checksums($file_flag_sync);
+            compare_checksums('testfile');
+            compare_checksums($_) for @file_flags;
+        }
     }
-
-    if ($kernel_nfs4 == 1) {
-        #checking files in /nfs/shared_nfs4
-        record_info("TESTS: NFS4");
-
-        assert_script_run("cd $nfs_mount_nfs4");
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS4 checksum", script_output("md5sum -c md5sum.txt"));
-
-        #check files copied with various flags: direct, dsync, sync
-        compare_checksums($file_flag_direct);
-        compare_checksums($file_flag_dsync);
-        compare_checksums($file_flag_sync);
-
-        #checking files in /nfs/shared_nfs4_async
-        record_info("TESTS: NFS4 async");
-
-        assert_script_run("cd $nfs_mount_nfs4_async");
-        assert_script_run("md5sum -c md5sum.txt");
-        record_info("NFS4 async checksum", script_output("md5sum -c md5sum.txt"));
-
-        #check files copied with various flags: direct, dsync, sync
-        compare_checksums($file_flag_direct);
-        compare_checksums($file_flag_dsync);
-        compare_checksums($file_flag_sync);
-    }
-
-    record_info("NFS stat for server", script_output("nfsstat -s"));
+    record_info("NFS stat final", script_output("nfsstat -s"));
 }
 
 sub test_flags {

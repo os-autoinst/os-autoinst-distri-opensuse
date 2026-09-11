@@ -16,6 +16,7 @@ our @EXPORT = qw(
   create_export
   setup_pnfs_client
   verify_pnfs_block_layout
+  check_nfs_support
 );
 
 =head1 SYNOPSIS
@@ -114,6 +115,45 @@ sub verify_pnfs_block_layout {
 }
 
 
+sub _check_kconfig {
+    my ($option) = @_;
+    return script_run("zgrep \"$option=[my]\" /proc/config.gz") == 0;
+}
 
+=head2 check_nfs_support
+
+  check_nfs_support();
+
+Check if the kernel is supporting the requested nfs features:
+- C<version>: NFS version to check support for
+- C<nfsf>: set to 1 to check for server support
+
+=cut
+
+sub check_nfs_support {
+    my ($version, %args) = @_;
+    my $is_nfsd = $args{nfsd} // 0;
+
+    if ($is_nfsd) {
+        return 0 unless _check_kconfig('CONFIG_NFSD');
+        return 1 if $version eq '3';
+
+        if ($version =~ /^4(\.[012])?$/) {
+            return _check_kconfig('CONFIG_NFSD_V4');
+        }
+        return 0;
+    }
+
+    my %client_map = (
+        '3' => 'CONFIG_NFS_V3',
+        '4' => 'CONFIG_NFS_V4',
+        '4.0' => 'CONFIG_NFS_V4',
+        '4.1' => 'CONFIG_NFS_V4_1',
+        '4.2' => 'CONFIG_NFS_V4_2',
+    );
+
+    my $opt = $client_map{$version} // return 0;
+    return _check_kconfig($opt);
+}
 
 1;
