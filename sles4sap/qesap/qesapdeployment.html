@@ -67,6 +67,9 @@
           <li><a href="#qesap_ansible_error_detection">qesap_ansible_error_detection</a></li>
           <li><a href="#qesap_create_cidr_from_ip">qesap_create_cidr_from_ip</a></li>
           <li><a href="#qesap_ssh_intrusion_detection">qesap_ssh_intrusion_detection</a></li>
+          <li><a href="#qesap_gcp_get_ncc_spokes">qesap_gcp_get_ncc_spokes</a></li>
+          <li><a href="#qesap_gcp_delete_ncc_spoke">qesap_gcp_delete_ncc_spoke</a></li>
+          <li><a href="#qesap_gcp_delete_leftover_ncc_spokes">qesap_gcp_delete_leftover_ncc_spokes</a></li>
         </ul>
       </li>
     </ul>
@@ -928,6 +931,71 @@ Return:
 <dl>
 
 <dt id="PROVIDER---cloud-provider-name-as-from-PUBLIC_CLOUD_PROVIDER-setting1"><b>PROVIDER</b> - cloud provider name as from PUBLIC_CLOUD_PROVIDER setting</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_gcp_get_ncc_spokes">qesap_gcp_get_ncc_spokes</h3>
+
+<pre><code>qesap_gcp_get_ncc_spokes( [hub =&gt; $hub], [name =&gt; $name] )
+
+Queries GCP for Network Connectivity Center (NCC) spokes matching the given
+hub or spoke name.
+Return:
+ - Array ref of spoke HASH references
+ - Empty array ref on failure or if no spokes are found</code></pre>
+
+<dl>
+
+<dt id="hub---Optional-NCC-hub-name-to-filter-spokes-by"><b>hub</b> - Optional NCC hub name to filter spokes by</dt>
+<dd>
+
+</dd>
+<dt id="name---Optional-spoke-name-to-filter-by"><b>name</b> - Optional spoke name to filter by</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_gcp_delete_ncc_spoke">qesap_gcp_delete_ncc_spoke</h3>
+
+<pre><code>qesap_gcp_delete_ncc_spoke( name =&gt; $name, [wait =&gt; 1], [timeout =&gt; 300] )
+
+Deletes a GCP NCC spoke by name and optionally waits until deletion completes.
+Return:
+ - 1 if deletion succeeded or wait flag is 0
+ - 0 if wait timed out before deletion completed</code></pre>
+
+<dl>
+
+<dt id="name---Mandatory-spoke-name-to-delete"><b>name</b> - Mandatory spoke name to delete</dt>
+<dd>
+
+</dd>
+<dt id="wait---Optional-boolean-flag-to-wait-for-deletion-completion-default:-1"><b>wait</b> - Optional boolean flag to wait for deletion completion (default: 1)</dt>
+<dd>
+
+</dd>
+<dt id="timeout---Optional-max-seconds-to-wait-in-seconds-default:-300"><b>timeout</b> - Optional max seconds to wait in seconds (default: 300)</dt>
+<dd>
+
+</dd>
+</dl>
+
+<h3 id="qesap_gcp_delete_leftover_ncc_spokes">qesap_gcp_delete_leftover_ncc_spokes</h3>
+
+<pre><code>qesap_gcp_delete_leftover_ncc_spokes( hub =&gt; $hub )
+
+Scans GCP NCC spokes attached to the given hub, identifies edge spokes left over
+from finished openQA jobs, and initiates deletion. Ignores the center spoke.
+Return:
+ - 0 if mandatory arguments are missing
+ - 1 on successful scan and cleanup execution</code></pre>
+
+<dl>
+
+<dt id="hub---Mandatory-NCC-hub-name-to-inspect"><b>hub</b> - Mandatory NCC hub name to inspect</dt>
 <dd>
 
 </dd>
