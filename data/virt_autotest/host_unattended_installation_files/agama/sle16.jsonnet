@@ -2,6 +2,7 @@ local version_to_install = '{{VERSION_TO_INSTALL}}';
 local raw_version = if version_to_install == '' || std.length(std.findSubstr('VERSION_TO_INSTALL', version_to_install)) > 0 then '{{VERSION}}' else version_to_install;
 local version = if std.length(std.findSubstr('VERSION', raw_version)) > 0 then -999 else std.parseJson(raw_version);
 local transactional = '{{TRANSACTIONAL}}';
+local kernel_64kb = '{{KERNEL_64KB}}';
 local agama_product_mode = if transactional == '1' then 'immutable' else 'standard';
 
 {
@@ -49,7 +50,7 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
         'virt-bridge-setup',
         // Workaround for bsc#1260073
         'curl'
-      ]
+      ] + if kernel_64kb == '1' then ['kernel-64kb'] else []
   },
   scripts: {
     pre: [
@@ -134,6 +135,16 @@ local agama_product_mode = if transactional == '1' then 'immutable' else 'standa
           chmod 644 "$rules_file"
         |||
       }
-    ]
+    ] + if kernel_64kb == '1' then [{
+        name: 'select_kernel_64kb',
+        chroot: true,
+        content: |||
+          #!/usr/bin/env bash
+          if rpm -q kernel-default >/dev/null 2>&1; then
+              zypper --non-interactive remove kernel-default
+          fi
+          grub2-mkconfig -o /boot/grub2/grub.cfg
+        |||
+      }] else []
   }
 }
