@@ -1988,6 +1988,8 @@ sub reconnect_mgmt_console {
                 wait_serial('GNU GRUB', $args{grub_timeout}) ||
                   diag 'Could not find GRUB screen, continuing nevertheless, trying to boot';
                 type_line_svirt '', expect => $login_ready, timeout => $args{timeout}, fail_message => 'Could not find login prompt';
+                # Wait for the post-migration login prompt on serial console (bsc#1259353)
+                wait_serial('susetest login', timeout => $args{timeout}, fail_message => 'Could not find login prompt') if (is_sle('>=16.1') && get_var('VERSION_UPGRADE_FROM'));
             }
         }
 
