@@ -58,7 +58,10 @@ sub ssh_interactive_tunnel {
 
     # Pipe the output of the device fifo to the local serial terminal
 # Note: We run this in a loop so that the ssh tunnel gets automatically re-established after device reboots and such. The sleep helps to avoid unnecessary CPU hogging in case of connection issues
-    enter_cmd("while true; do ssh sut -yt -R '$upload_port:$upload_host:$upload_port' 'rm -f /dev/sshserial && mkfifo -m a=rwx /dev/sshserial && tail -fn +1 /dev/sshserial' 2>&1 >/dev/$serialdev; sleep 5; done");
+    # Runs in the background (PID saved) so this console keeps a free prompt, instead of
+    # depending on 'ctrl-c' which can land on the remote session instead of the local loop.
+    # Redirect order matters: '2>&1' after the device redirect, or stderr leaks onto the console.
+    enter_cmd("(while true; do ssh sut -yt -R '$upload_port:$upload_host:$upload_port' 'rm -f /dev/sshserial && mkfifo -m a=rwx /dev/sshserial && tail -fn +1 /dev/sshserial' >/dev/$serialdev 2>&1; sleep 5; done) & echo \$! > /tmp/openqa_tunnel_loop.pid");
     # give the ssh connection some time to settle
     sleep 10;
 
@@ -88,15 +91,22 @@ sub ssh_interactive_leave {
     my $test = sub { my $ret; eval { $ret = script_run('true', timeout => 5) == 0 };
         if ($@) { $ret = 0 }; return $ret };
 
-    # While the tunnel console is active, the serial terminal sometimes swallows characters. To terminate the
-    # ssh tunnel reliably, we repeat the process until it succeeds. A delay between retries is useful to let thinks
-    # cool down after a failed attempt
+    # Kill the background reverse-tunnel loop by PID - deterministic, unlike 'ctrl-c'.
+    # Typed blind (no marker wait), since the still-alive loop would corrupt script_run's
+    # marker. Kill the whole process group (negative PID) so the ssh child doesn't survive
+    # as an orphan; SIGKILL follows up in case SIGTERM is momentarily ignored.
+    enter_cmd('test -f /tmp/openqa_tunnel_loop.pid && kill -- -$(cat /tmp/openqa_tunnel_loop.pid) 2>/dev/null');
+    sleep 1;
+    enter_cmd('test -f /tmp/openqa_tunnel_loop.pid && kill -9 -- -$(cat /tmp/openqa_tunnel_loop.pid) 2>/dev/null');
+    sleep 8;    # let the loop's leftover output settle before checking the console below
+
+    # Fallback for the rare case the kill didn't fully clean up: ctrl-c can still
+    # recover a stuck console. Without it, the next command on it hangs forever.
     my $retries = 8;
-    while ($retries-- > 0) {
+    while (!$test->() && $retries-- > 0) {
         send_key 'ctrl-c';
         send_key 'ctrl-c';
         send_key 'ret';
-        last if ($test->());
         sleep 5;    # some cool down after a failed attempt
     }
 

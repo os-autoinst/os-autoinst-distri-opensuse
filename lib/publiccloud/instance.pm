@@ -14,7 +14,7 @@ use Mojo::Base -base;
 use File::Basename;
 use publiccloud::utils;
 use Utils::Backends qw(set_sshserial_dev unset_sshserial_dev);
-use publiccloud::ssh_interactive qw(ssh_interactive_tunnel ssh_interactive_leave select_host_console);
+use publiccloud::ssh_interactive qw(ssh_interactive_tunnel select_host_console);
 use version_utils;
 use utils;
 
@@ -605,18 +605,17 @@ sub softreboot {
     my $prev_console = current_console();
     # On TUNNELED test runs, we need to re-establish the tunnel
     my $tunneled = is_tunneled() && get_var("_SSH_TUNNELS_INITIALIZED", 0);
-    if ($tunneled) {
-        select_console('tunnel-console', await_console => 0);
-        ssh_interactive_leave();
-        for (1 .. 5) {
-            last if (script_run(sprintf('ssh -O check %s@%s', $args{username}, $self->public_ip)) != 0);
-            script_run(sprintf('ssh -O exit %s@%s', $args{username}, $self->public_ip));
-            sleep 5;
-        }
-    }
 
-    # Let's go to host console (where we have the provider specific environment variables)
-    select_host_console();
+    # Let's go to host console (where we have the provider specific environment variables).
+    # force => 1 makes select_host_console() handle leaving a stale tunnel-console itself.
+    select_host_console(force => 1);
+
+    if ($tunneled) {
+        # Remove any leftover SSH ControlMaster socket for 'sut' directly (ControlPersist
+        # keeps it running - see data/publiccloud/ssh_config), instead of polling it via
+        # 'ssh -O check/exit', which can hang forever on a master that's alive but unresponsive.
+        script_run(sprintf('rm -f /tmp/ssh_%s_%s_22', $args{username}, $self->public_ip));
+    }
 
     $self->ssh_assert_script_run(cmd => 'sudo /sbin/shutdown -r +1');
     sleep 60;    # wait for the +1 in the previous command
