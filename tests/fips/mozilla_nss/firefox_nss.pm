@@ -142,7 +142,9 @@ sub run {
 
     # Change from "alt-shift-d" hotkey to needles match Security Device
     # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
-    assert_and_click("firefox-click-security-device");
+    assert_and_click("firefox_software-security_settings");
+    send_key "end";
+    assert_and_click("firefox_click_security_device");
     assert_screen "firefox-device-manager";
     save_screenshot;
     # on s390x the dialog with Security Modules and Devices is colored wrong
