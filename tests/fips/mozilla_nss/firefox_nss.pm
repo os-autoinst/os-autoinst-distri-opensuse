@@ -95,6 +95,13 @@ sub set_master_password {
     wait_still_screen 2;
 }
 
+sub firefox_check_security_device {
+    assert_and_click("firefox_software-security_settings");
+    send_key "end";
+    assert_and_click("firefox_click_security_device");
+    assert_screen "firefox-device-manager";
+}
+
 sub run {
     my ($self) = @_;
     select_console 'root-console';
@@ -142,8 +149,7 @@ sub run {
 
     # Change from "alt-shift-d" hotkey to needles match Security Device
     # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
-    assert_and_click("firefox-click-security-device");
-    assert_screen "firefox-device-manager";
+    firefox_check_security_device;
     save_screenshot;
     # on s390x the dialog with Security Modules and Devices is colored wrong
     # https://bugzilla.suse.com/show_bug.cgi?id=1203578
@@ -233,8 +239,7 @@ sub run {
 
     # Change from "alt-shift-d" hotkey to needles match Security Device
     # send_key "alt-shift-d" is fail to react in s390x/aarch64 usually
-    assert_and_click("firefox-click-security-device");
-    assert_screen("firefox-device-manager");
+    firefox_check_security_device;
     # on s390x the dialog with Security Modules and Devices is colored wrong
     # https://bugzilla.suse.com/show_bug.cgi?id=1203578
     if (is_s390x) {
