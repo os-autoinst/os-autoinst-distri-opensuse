@@ -21,9 +21,9 @@ use virt_autotest::virtual_network_utils;
 sub run {
     my ($self) = @_;
 
-    # Only run on SLES16 non-s390x systems for virtualization
-    unless (is_sle('=16') && !is_s390x) {
-        record_info("Skip bridge setup", "Bridge setup only required for SLES16 non-s390x virtualization hosts");
+    # Only run on SLES 16+ non-s390x systems for virtualization
+    unless (is_sle('16+') && !is_s390x) {
+        record_info("Skip bridge setup", "Bridge setup only required for SLES 16+ non-s390x virtualization hosts");
         return;
     }
 
