@@ -100,6 +100,7 @@ sub run {
 
     install_docker_when_needed() if ($engine =~ 'docker');
     install_podman_when_needed() if ($engine =~ 'podman|k3s' && !is_sle("=12-SP5", get_var('HOST_VERSION', get_required_var('VERSION'))));
+    registry_login();
 
     if ($engine =~ 'k3s') {
         # Disable firewall for k3s but don't fail if not installed
