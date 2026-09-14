@@ -118,6 +118,10 @@ sub run {
     push @xfails, (
         "github.com/moby/moby/v2/integration/container::TestNetworkLoopbackNat",
     ) if (is_sle("<16") && get_var("ROOTLESS"));
+    # Fails with "assertion failed: error is not nil: fork/exec /lib64/ld-linux-x86-64.so.2: no such file or directory"
+    push @xfails, (
+        "github.com/moby/moby/v2/integration/container::TestStatsNetworkStats",
+    ) if (get_var("ROOTLESS"));
     # These fail because Linux 7.2 deprecated AF_ALG sockets and
     # https://bugzilla.opensuse.org/show_bug.cgi?id=1278193 - SELinux CIL files are not shipped in Docker
     push @xfails, (
