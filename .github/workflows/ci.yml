@@ -43,7 +43,7 @@ jobs:
         echo " requires 'List::Compare';" >> cpanfile
         echo " requires 'Regexp::Common';" >> cpanfile
         echo " requires 'Syntax::Keyword::Try';" >> cpanfile
-        echo " requires 'Perl::Tidy', '== 20250616.0.0';" >> cpanfile
+        echo " requires 'Perl::Tidy', '== 20260826';" >> cpanfile
         . "$HOME/.cargo/env"
         make prepare
     - name: Run ${{ matrix.test }} tests
