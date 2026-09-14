@@ -1,14 +1,15 @@
 # SUSE's openQA tests
 #
-# Copyright 2009-2013 Bernhard M. Wiedemann
-# Copyright 2012-2019 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: FSFAP
 
 # Package: command-not-found
-# Summary: check that command-not-found works as intended
-# - as a normal user, check that command-not-found works
-# - if in textmode or on SLE-15+, prepare the systembefore executing the command
-# Maintainer: Dominik Heidler <dheidler@suse.de>
+# Summary: check that command-not-found works as intended, http://bugzilla.suse.com/show_bug.cgi?id=952496
+# - install command-not-found in textmode
+# - as a normal user
+#     check cnf returns expected output how to install package
+#     check cnf returns expected output where can be package found
+# Maintainer: QE Core <qe-core@suse.com>
 
 use Mojo::Base 'consoletest';
 use testapi;
@@ -16,13 +17,13 @@ use utils;
 use version_utils 'is_sle';
 use package_utils qw(install_package uninstall_package);
 use registration qw(add_suseconnect_product remove_suseconnect_product);
+use serial_terminal 'select_serial_terminal';
 
-# test for regression of bug http://bugzilla.suse.com/show_bug.cgi?id=952496
 sub run {
     my ($self) = @_;
     my $not_installed_pkg = is_sle(">=16.0") ? 'tmux' : 'iftop';    # iftop is not available on SLES16
 
-    select_console 'root-console';
+    select_serial_terminal;
     uninstall_package("$not_installed_pkg", trup_reboot => 1) if (script_run("which $not_installed_pkg") == 0);
 
     # command-not-found is part of the enhanced_base pattern, missing in textmode
@@ -32,22 +33,18 @@ sub run {
     select_console 'user-console';
 
     save_screenshot;
-    assert_script_run(qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"});
+    assert_script_run(qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "sudo zypper install $not_installed_pkg"});
     save_screenshot;
 
-    select_console 'root-console';
+    if (is_sle('15+')) {
+        # test if cnf works for non-registered modules
+        assert_script_run "! rpm -q evince";    # evince is in desktop module
+        assert_script_run(qq{echo "\$(cnf evince 2>&1 | tee /dev/stderr)" | grep -q "The program 'evince' can be found in following packages"});
+    }
+
+    select_serial_terminal;
     install_package("$not_installed_pkg", trup_continue => 1, trup_reboot => 1);
     uninstall_package("$not_installed_pkg", trup_continue => 1, trup_reboot => 1);
-    select_console 'user-console';
-
-    if (is_sle('15+')) {
-        # test for https://fate.suse.com/323424 if cnf works for non-registered modules
-        $not_installed_pkg = 'wireshark';    # wireshark is in desktop module which is not registered here
-        assert_script_run "! rpm -q $not_installed_pkg";
-        if (script_run(qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "zypper install $not_installed_pkg"}) != 0) {
-            record_soft_failure "https://fate.suse.com/323424 - cnf doesn't cover non-registered modules";
-        }
-    }
 }
 
 1;
