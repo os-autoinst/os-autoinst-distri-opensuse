@@ -20,6 +20,7 @@ use utils;
 use Utils::Logging qw(export_healthcheck_basic);
 use Utils::Architectures;
 use x11utils 'ensure_unlocked_desktop';
+use partition_setup qw(resize_partition);
 
 sub scroll_down {
     # We need to click on an empty space so we can press arrow down
@@ -200,6 +201,16 @@ sub agama_lvm_setup {
     send_key_until_needlematch('agama-lvm-proposal', 'ctrl-down');
 }
 
+sub agama_dual_boot_setup {
+    assert_and_click('agama-storage-tab');
+    assert_and_click('agama-storage-vda-all-content-deleted');
+    assert_and_click('agama-storage-vda-resize-shrink-partition');
+    wait_still_screen 5;
+    mouse_set(630, 300);
+    mouse_click;    # click on a blank portion, so we can scroll down with the keyboard
+    send_key_until_needlematch('agama-storage-vda-shrink-ntfs', 'ctrl-down');
+}
+
 sub select_product {
     # Product selection dialog scrolls with 4+ products at 1024x768.
     # As of now TW is the last item in the list, so we need to scroll a bit.
@@ -294,6 +305,11 @@ sub run {
     # Install additional patterns
     software_select_patterns();
     back_to_overview;
+
+    if (check_var('DUALBOOT', 1)) {
+        agama_dual_boot_setup();
+        back_to_overview;
+    }
 
     if (check_var('LVM', 1)) {
         agama_lvm_setup();
