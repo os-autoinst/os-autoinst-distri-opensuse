@@ -1176,10 +1176,12 @@ END_MSG
 
 subtest '[az_resource_list] Check return values' => sub {
     my $azcli = Test::MockModule->new('sles4sap::azure_cli', no_auto => 1);
-    $azcli->noop('assert_script_run', 'script_run');
+    $azcli->noop('assert_script_run');
     $azcli->redefine(script_output => sub {
             return 'out.json' if grep /az.json/, $_[0];
-            return '["Carlo","Goldoni"]' if grep /out.json/, $_[0]; });
+            return '["Carlo","Goldoni"]' if grep /out.json/, $_[0];
+    });
+    $azcli->redefine(script_run => sub { return 0 });
     my $output = az_resource_list();
 
     note("\n --> " . join("\n --> ", join(' ', @$output)));
