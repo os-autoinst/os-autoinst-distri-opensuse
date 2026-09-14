@@ -806,10 +806,13 @@ sub create_guest {
             $extra_args = "autoyast=$autoinstall_url $extra_args";
         }
         $extra_args = trim($extra_args);
+        $extra_args .= " init=/does/not/exist";
+        $extra_args .= " console=ttyS0,115200" if ($name =~ /-tdx$/);
         $virtinstall = "virt-install $v_type $guest->{osinfo} --name $name --vcpus=$vcpus,maxvcpus=$maxvcpus --memory=$memory,maxmemory=$maxmemory";
         # disable graphics for TDX guests, enable VNC for others
         if ($name =~ /-tdx/) {
             $virtinstall .= " --graphics none";
+            $virtinstall .= " --serial file,path=/tmp/${name}-serial.log";
         } else {
             $virtinstall .= " --vnc";
         }

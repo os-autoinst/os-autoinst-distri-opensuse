@@ -29,8 +29,19 @@ sub screenshot_vnc_guests {
 
 sub upload_serial_console_guests {
     foreach my $guest (keys %virt_autotest::common::guests) {
-        assert_script_run("virsh console $guest > /tmp/${guest}-serial.log 2>&1");
-        upload_logs("/tmp/${guest}-serial.log", failok => 1);
+        next unless $guest =~ /-tdx$/;
+
+        my $log = "/tmp/${guest}-serial.log";
+
+        if (script_run("test -f $log") == 0) {
+            script_run("tail -n 100 $log");
+            upload_logs($log, failok => 1);
+        } else {
+            record_info(
+                "Serial console",
+                "No serial log found for $guest"
+            );
+        }
     }
 }
 
@@ -125,6 +136,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     screenshot_vnc_guests();
+    upload_serial_console_guests();
     access_vm_profiles();
     collect_virt_system_logs();
     $self->SUPER::post_fail_hook;
