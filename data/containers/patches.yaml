@@ -96,6 +96,7 @@ moby:
   # https://github.com/moby/moby/pull/51970 - Skip some tests as rootless when SELinux is enabled
   # https://github.com/moby/moby/pull/51972 - integration: Support containerd pull error message
   # https://github.com/moby/moby/pull/52199 - Fix testsuite when running directly as rootless
+  # https://github.com/moby/moby/pull/53661 - Fix testsuite when running directly as rootless
   51794:
   51970:
     min: "29.2.0"
@@ -103,6 +104,9 @@ moby:
     min: "29.2.0"
   52199:
     min: "29.2.0"
+    merged: "29.7.0"
+  53661:
+    min: "29.7.0"
 
 netavark:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
