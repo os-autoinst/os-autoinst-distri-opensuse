@@ -304,7 +304,7 @@
 
 <h2 id="get_os_release">get_os_release</h2>
 
-<p>Get SLE release version, service pack and distribution name info from any running sles os without any dependencies It parses the info from /etc/os-release file, which can reside in any physical host or virtual machine The file can also be placed anywhere as long as it can be reached somehow by its absolute file path, which should be passed in as the second argument os_release_file, for example, &quot;/etc/os-release&quot; At the same time, connection method to the entity in which the file reside should be passed in as the first argument go_to_target, for example, &quot;ssh root at name or ip address&quot; or &quot;way to download the file&quot; For use only on locahost, no argument needs to be specified</p>
+<p>Get SLE release version, service pack, distribution name and ID_LIKE info from any running sles os without any dependencies It parses the info from /etc/os-release file, which can reside in any physical host or virtual machine The file can also be placed anywhere as long as it can be reached somehow by its absolute file path, which should be passed in as the second argument os_release_file, for example, &quot;/etc/os-release&quot; At the same time, connection method to the entity in which the file reside should be passed in as the first argument go_to_target, for example, &quot;ssh root at name or ip address&quot; or &quot;way to download the file&quot; For use only on locahost, no argument needs to be specified The 4th return value (ID_LIKE) is useful to detect e.g. sle-micro, which since the SLE 16 unified base reports ID=&quot;sles&quot; and only differentiates itself via ID_LIKE containing &quot;sle-micro&quot;/&quot;microos&quot;</p>
 
 <h2 id="check_os_release">check_os_release</h2>
 
