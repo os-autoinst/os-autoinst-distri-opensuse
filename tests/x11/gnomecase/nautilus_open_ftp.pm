@@ -12,14 +12,15 @@
 
 use Mojo::Base 'x11test';
 use testapi;
-use version_utils qw(is_sle is_tumbleweed);
+use version_utils qw(is_sle is_opensuse);
 
 sub run {
     x11_start_program('nautilus');
     wait_screen_change { send_key 'ctrl-l' };
-    enter_cmd "ftp://ftp.suse.com";
+    my $ftp_server = (is_sle) ? 'ftp.suse.com' : 'openqa.opensuse.org';
+    enter_cmd "ftp://$ftp_server";
     assert_screen 'nautilus-ftp-login';
-    if (is_tumbleweed || is_sle('15-SP6+')) {
+    if (is_opensuse || is_sle('15-SP6+')) {
         # bsc#1205589, Upstream change which is by design
         assert_and_click "nautilus-ftp-connect";
     }
