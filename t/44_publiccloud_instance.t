@@ -43,6 +43,13 @@ subtest '[_prepare_ssh_cmd] composes ssh command' => sub {
     like($cmd, qr/uname -a/, 'embeds the remote command');
 };
 
+subtest '[_prepare_ssh_cmd] wraps sudo commands with ZYPP_LOCK_TIMEOUT (poo#206763)' => sub {
+    my $inst = publiccloud::instance->new(public_ip => '203.0.113.5', username => 'cloudadmin');
+    my $t = publiccloud::utils::ZYPP_LOCK_TIMEOUT;
+    my $cmd = $inst->_prepare_ssh_cmd(cmd => 'sudo zypper -n ref');
+    like($cmd, qr/sudo env ZYPP_LOCK_TIMEOUT=$t zypper -n ref/, 'sudo command gets the env indirection');
+};
+
 subtest '[_prepare_ssh_cmd] dies without cmd' => sub {
     my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'u');
     throws_ok { $inst->_prepare_ssh_cmd() } qr/No command defined/, 'missing cmd dies';

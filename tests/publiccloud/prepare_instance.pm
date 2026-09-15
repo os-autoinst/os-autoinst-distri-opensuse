@@ -46,6 +46,10 @@ sub run {
     # sshd can be reachable before first-boot provisioning granted the user sudo
     $instance->wait_for_sudo();
 
+    # Debug evidence for poo#206763: confirm ZYPP_LOCK_TIMEOUT actually reaches
+    # the remote sudo session, not just that it was prepended locally.
+    record_info('ZYPP_LOCK_TIMEOUT check', $instance->ssh_script_output('sudo printenv ZYPP_LOCK_TIMEOUT', proceed_on_failure => 1));
+
     $provider->initialize_logging($instance);
     # Add additional authorized_keys for human users
     add_additional_authorized_keys($instance);

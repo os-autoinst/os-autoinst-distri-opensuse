@@ -15,6 +15,64 @@ use publiccloud::utils;
 
 sub _unset { for my $k (@_) { set_var($k, undef) } }
 
+my $T = publiccloud::utils::ZYPP_LOCK_TIMEOUT;
+
+subtest '[ZYPP_LOCK_TIMEOUT] stays below the client-side ssh timeout it runs under' => sub {
+    # The wrapped command also runs under a client-side timeout. If libzypp
+    # waits longer than that, the worker gives up first -- and since
+    # ssh_script_output()/ssh_script_retry() do not wrap the remote side in
+    # `timeout`, the remote command keeps running and keeps holding the lock,
+    # so the next retry collides with our own orphan (poo#206763).
+    cmp_ok($T, '<', $bmwqemu::default_timeout, "inner lock wait ${T}s is below the smallest client-side default ($bmwqemu::default_timeout" . 's)');
+};
+
+subtest '[with_zypp_lock_timeout] sudo commands get the env indirection' => sub {
+    is(with_zypp_lock_timeout('sudo zypper -n ref'), "sudo env ZYPP_LOCK_TIMEOUT=$T zypper -n ref", 'inserted right after sudo');
+    is(with_zypp_lock_timeout('sudo  SUSEConnect -s'), "sudo  env ZYPP_LOCK_TIMEOUT=$T SUSEConnect -s", 'tolerates extra whitespace after sudo, preserving it');
+};
+
+subtest '[with_zypp_lock_timeout] non-sudo commands get a plain prefix' => sub {
+    is(with_zypp_lock_timeout('zypper -n lr'), "ZYPP_LOCK_TIMEOUT=$T zypper -n lr", 'plain prefix, no env indirection needed');
+    is(with_zypp_lock_timeout('pgrep -a zypper'), "ZYPP_LOCK_TIMEOUT=$T pgrep -a zypper", 'harmless no-op prefix for non-libzypp commands too');
+};
+
+subtest '[with_zypp_lock_timeout] sudo commands with their own flag are left untouched' => sub {
+    # inserting env between "sudo" and its own flag would corrupt these --
+    # the flag would land on env, not sudo (real call sites: wait_for_sudo's
+    # "sudo -n true", instance.pm's "sudo -s command -v supportconfig")
+    is(with_zypp_lock_timeout('sudo -n true'), "ZYPP_LOCK_TIMEOUT=$T sudo -n true", 'sudo -n left untouched, falls back to plain prefix');
+    is(with_zypp_lock_timeout('sudo -s command -v supportconfig'), "ZYPP_LOCK_TIMEOUT=$T sudo -s command -v supportconfig", 'sudo -s left untouched too');
+};
+
+subtest '[with_zypp_lock_timeout] leading ! (pipeline negation) is preserved, not corrupted' => sub {
+    # a plain VAR=val prefix in front of "!" makes the shell try to run "!"
+    # itself as a command (bash: !: command not found, exit 127) -- this
+    # broke pc_wait_quit's own lock-busy check in every single publiccloud
+    # job before being fixed (poo#206763)
+    is(with_zypp_lock_timeout('! pgrep -a "zypper|packagekit"'), "! ZYPP_LOCK_TIMEOUT=$T pgrep -a \"zypper|packagekit\"", 'pgrep check stays a valid negated pipeline');
+    is(with_zypp_lock_timeout('! systemctl is-active google-startup-scripts.service'), "! ZYPP_LOCK_TIMEOUT=$T systemctl is-active google-startup-scripts.service", 'systemctl check stays valid too');
+    is(with_zypp_lock_timeout('! sudo SUSEConnect -d'), "! sudo env ZYPP_LOCK_TIMEOUT=$T SUSEConnect -d", 'a negated sudo command gets both fixes applied');
+    is(with_zypp_lock_timeout('  ! pgrep -a zypper'), "! ZYPP_LOCK_TIMEOUT=$T pgrep -a zypper", 'leading whitespace does not sneak past the ! guard');
+};
+
+subtest '[with_zypp_lock_timeout] every sudo occurrence in a chained/piped command is wrapped' => sub {
+    is(
+        with_zypp_lock_timeout('sudo mkdir /tmp/x;sudo chmod 777 /tmp/x'),
+        "sudo env ZYPP_LOCK_TIMEOUT=$T mkdir /tmp/x;sudo env ZYPP_LOCK_TIMEOUT=$T chmod 777 /tmp/x",
+        'both sides of a ; chain get wrapped, not just the first'
+    );
+    is(
+        with_zypp_lock_timeout("echo hi | xargs -r sudo zypper -n ref"),
+        "echo hi | xargs -r sudo env ZYPP_LOCK_TIMEOUT=$T zypper -n ref",
+        'sudo appearing after a pipe (not at the start of the string) still gets wrapped'
+    );
+    is(
+        with_zypp_lock_timeout('sudo -n true && sudo zypper -n ref'),
+        "sudo -n true && sudo env ZYPP_LOCK_TIMEOUT=$T zypper -n ref",
+        'a flag-guarded sudo and a real one in the same chain are handled independently'
+    );
+};
+
 # --- export boundary ----------------------------------------------------------
 #
 # Calling exported helpers unqualified below only works if they are actually
@@ -25,7 +83,7 @@ subtest '[export boundary] exported vs internal helpers' => sub {
         is_byos is_ondemand is_ec2 is_ec2_xen is_azure is_gce
         is_container_host is_hardened is_cloudinit_supported
         get_python_exec get_ssh_key_algo get_ssh_private_key_path pc_data_url
-        additional_repos calculate_custodian_ttl
+        additional_repos calculate_custodian_ttl with_zypp_lock_timeout
         )) {
         ok(__PACKAGE__->can($exported), "$exported is exported into caller");
     }

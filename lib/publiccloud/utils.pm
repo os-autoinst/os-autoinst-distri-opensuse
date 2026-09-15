@@ -66,7 +66,14 @@ our @EXPORT = qw(
   detect_worker_ip
   calculate_custodian_ttl
   pc_data_url
+  with_zypp_lock_timeout
 );
+
+# Seconds a remote zypper/SUSEConnect/transactional-update call waits for the
+# libzypp lock before giving up (poo#206763). Must stay below the smallest
+# client-side ssh timeout (30s) or a stuck remote command outlives it and the
+# next retry collides with our own orphan instead of the original holder.
+use constant ZYPP_LOCK_TIMEOUT => 20;
 
 # Check if we are a BYOS test run
 sub is_byos() {
@@ -126,6 +133,33 @@ sub utc_timestamp {
 }
 
 
+=head2 with_zypp_lock_timeout
+
+    with_zypp_lock_timeout($cmd);
+
+Prefixes a remote shell command so libzypp (zypper, SUSEConnect,
+transactional-update, ...) waits up to L</ZYPP_LOCK_TIMEOUT> seconds for the
+system package lock instead of failing immediately (poo#206763). Each public
+cloud command runs over its own fresh SSH session with no persistent shell
+for a plain C<export> to survive into, so the setting travels with each
+command instead.
+
+Rewrites C<sudo> to C<sudo env VAR=val> (sudo's C<env_reset> strips a plain
+assignment but not one passed to C<env>), skips a C<sudo> followed by its
+own flag (e.g. C<sudo -n>) to avoid corrupting it, and re-prefixes a leading
+C<!> after wrapping so pipeline negation still works. Commands without
+C<sudo> just get a plain leading prefix, a no-op for non-libzypp commands.
+
+=cut
+
+sub with_zypp_lock_timeout {
+    my ($cmd) = @_;
+    return '! ' . with_zypp_lock_timeout($1) if $cmd =~ /^\s*!\s+(.*)$/s;
+    my $timeout = ZYPP_LOCK_TIMEOUT;
+    my $wrapped = $cmd =~ s/\bsudo(\s+)(?!-)/sudo${1}env ZYPP_LOCK_TIMEOUT=$timeout /gr;
+    return $wrapped ne $cmd ? $wrapped : "ZYPP_LOCK_TIMEOUT=$timeout $cmd";
+}
+
 =head2 ssh_add_suseconnect_product
 
     ssh_add_suseconnect_product($remote, $name, [program => $program, [version => $version, [arch => $arch, [params => $params, [timeout => $timeout, [retries => $retries, [delay => $delay]]]]]]]);
@@ -135,11 +169,10 @@ Register addon in the SUT
 
 sub ssh_add_suseconnect_product {
     my ($remote, $name, %args) = @_;
-    if ($args{program} eq 'registercloudguest') {
-        script_retry(sprintf("ssh %s sudo %s %s", $remote, $args{program}, $args{params}), delay => $args{delay}, retry => $args{retries}, timeout => $args{timeout});
-    } else {
-        script_retry(sprintf("ssh %s sudo %s -p %s/%s/%s %s", $remote, $args{program}, $name, $args{version}, $args{arch}, $args{params}), delay => $args{delay}, retry => $args{retries}, timeout => $args{timeout});
-    }
+    my $cmd = ($args{program} eq 'registercloudguest')
+      ? sprintf("sudo %s %s", $args{program}, $args{params})
+      : sprintf("sudo %s -p %s/%s/%s %s", $args{program}, $name, $args{version}, $args{arch}, $args{params});
+    script_retry(sprintf("ssh %s %s", $remote, with_zypp_lock_timeout($cmd)), delay => $args{delay}, retry => $args{retries}, timeout => $args{timeout});
 }
 
 sub register_addon {
@@ -188,7 +221,7 @@ sub ssh_remove_suseconnect_product {
     my ($remote, $name, $version, $arch, $params) = @_;
     assert_script_run "sftp $remote:/etc/os-release /tmp/os-release";
     assert_script_run 'source /tmp/os-release';
-    script_retry(sprintf("ssh $remote sudo SUSEConnect -d -p $name/$version/$arch $params", $remote, $name, $version, $arch, $params), retry => 5, delay => 60, timeout => 180);
+    script_retry(sprintf("ssh %s %s", $remote, with_zypp_lock_timeout("sudo SUSEConnect -d -p $name/$version/$arch $params")), retry => 5, delay => 60, timeout => 180);
 }
 
 sub deregister_addon {

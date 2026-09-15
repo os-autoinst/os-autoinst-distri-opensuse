@@ -68,7 +68,7 @@ sub _prepare_ssh_cmd {
     $args{ssh_opts} //= $self->ssh_opts();
     $args{username} //= $self->username();
 
-    my $cmd = $args{cmd};
+    my $cmd = with_zypp_lock_timeout($args{cmd});
     $cmd =~ s/'/\\'/g;
 
     my $log = '/var/tmp/ssh_sut.log';
