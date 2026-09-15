@@ -442,7 +442,7 @@ sub test_override {
         $self->wrap_script_run("mr_test dump Pattern/$SLE/testpattern_note_${override}_b > baseline_testpattern_note_${override}_b");
         $self->wrap_script_run("cp Pattern/$SLE/override/$override /etc/saptune/override/$note");
         $self->wrap_script_run("saptune note apply $note");
-        my $override_suffix = ($suffix && is_sle('>=16.1') && $override eq '3565382') ? $suffix : '';
+        my $override_suffix = ($suffix && is_sle('>=16') && $override eq '3565382') ? $suffix : '';
         $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override${override_suffix}");
         $self->wrap_script_run("mr_test verify baseline_testpattern_note_${override}_b");
         tune_baseline("baseline_testpattern_note_${override}_b");
