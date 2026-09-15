@@ -3,24 +3,24 @@ description:    >
     Maintainer: jcao@suse.com
     Virtualization guest installation tests including extended feature tests schedule
 schedule:
-    - '{{install_and_bootup}}'
+    - '{{host_installation}}'
+    - virt_autotest/login_console
     - '{{install_guest}}'
-    - virt_autotest/set_config_as_glue
     - '{{virtual_network_test}}'
     - '{{sriov_network_card_pci_passthrough_test}}'
     - '{{hotplugging_test}}'
     - '{{storage_test}}'
 conditional_schedule:
-    install_and_bootup:
+    host_installation:
         DO_NOT_INSTALL_HOST:
             0:
                 - installation/ipxe_install
-                - autoyast/installation
-                - virt_autotest/login_console
+                - installation/agama_reboot
     install_guest:
         SKIP_GUEST_INSTALL:
             0:
                 - virt_autotest/unified_guest_installation
+                - virt_autotest/set_config_as_glue
     virtual_network_test:
         ENABLE_VIR_NET:
             1:
