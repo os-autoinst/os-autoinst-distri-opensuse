@@ -196,6 +196,11 @@ and keep the interest from maintainers in your changes; an exception would be
 cases where the changes are all related (e.g: a function has been renamed and
 affects many files or some repeated code is being refactored)
 
+Keep commits atomic: if a pull request touches a file or component unrelated
+to its main change (e.g. an incidental fix in a different module), split that
+into its own commit. Atomic commits are easier to review and can be reverted
+independently without pulling in unrelated changes.
+
 ### Commit messages
 
 * When changes are ready to be submitted, tidy up your commit messages.
