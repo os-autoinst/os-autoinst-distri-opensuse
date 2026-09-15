@@ -26,7 +26,10 @@
   software: {
     patterns: {
       add: ['ha_sles']
-    }
+    },
+    packages: [
+      'openssh-server-config-rootlogin',
+    ],
   },
   scripts: {
     pre: [
@@ -43,16 +46,5 @@
         |||
       }
     ],
-    post: [
-      {
-        name: 'enable sshd',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-          systemctl enable sshd
-        |||
-      }
-    ]
   }
 }
