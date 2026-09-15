@@ -416,15 +416,20 @@ zypper_ar(&#39;https://download.opensuse.org/repositories/devel:/kubic/openSUSE_
 
 <pre><code>restart_network();</code></pre>
 
-<p>helper function to restart network</p>
+<p>Restart the network stack to propagate hostname changes to DHCP/DNS.</p>
+
+<p>On QEMU systems with NetworkManager, disconnects and reconnects each network device to trigger a DHCP lease renewal. On wicked systems, reloads or restarts the network service.</p>
 
 <h2 id="set_hostname">set_hostname</h2>
 
-<pre><code>set_hostname($hostname);</code></pre>
+<pre><code>set_hostname($hostname);
+set_hostname($hostname, restart_network =&gt; 1);</code></pre>
 
-<p>Setting hostname according input parameter using hostnamectl. Calling <i>reload-or-restart</i> to make sure that network stack will propogate hostname into DHCP/DNS.</p>
+<p>Set the system hostname using hostnamectl and verify it took effect.</p>
 
-<p>If you change hostname using <code>hostnamectl set-hostname</code>, then <code>hostname -f</code> will fail with <i>hostname: Name or service not known</i> also DHCP/DNS don&#39;t know about the changed hostname, you need to send a new DHCP request to update dynamic DNS yast2-network module does <code>NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh</code> if hostname is changed via <code>yast2 lan</code>.</p>
+<p>By default, no network restart is performed because all existing callers use <code>/etc/hosts</code> for name resolution and do not depend on DHCP/DNS propagation of the hostname.</p>
+
+<p>Pass <code>restart_network =&gt; 1</code> to force a network restart after setting the hostname (disconnects and reconnects all NM devices to trigger DHCP lease renewal). This is only needed if downstream code resolves the hostname via DHCP-registered dynamic DNS rather than <code>/etc/hosts</code>.</p>
 
 <h2 id="assert_and_click_until_screen_change">assert_and_click_until_screen_change</h2>
 
