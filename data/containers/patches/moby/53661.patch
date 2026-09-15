@@ -1,0 +1,178 @@
+From 649eb7549df3ab8b63a132765890ec04f41c1c69 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Mon, 14 Sep 2026 10:09:20 +0200
+Subject: [PATCH 1/4] testutil/daemon: Set rootlesskit --state-dir on rootless
+ tests
+
+This is done to avoid colliding with another instance set up via
+dockerd-rootless.sh
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ internal/testutil/daemon/daemon_unix.go | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/internal/testutil/daemon/daemon_unix.go b/internal/testutil/daemon/daemon_unix.go
+index 7a4e06dd7e786..6d1156bfc63f7 100644
+--- a/internal/testutil/daemon/daemon_unix.go
++++ b/internal/testutil/daemon/daemon_unix.go
+@@ -5,6 +5,7 @@ package daemon
+ import (
+ 	"net/http"
+ 	"os/exec"
++	"path/filepath"
+ 	"strconv"
+ 	"syscall"
+ 	"testing"
+@@ -33,6 +34,8 @@ func (d *Daemon) rootlessCommand(dockerdBinary string) (string, []string, error)
+ 		"--preserve-env=PATH", // Pass through PATH, overriding secure_path.
+ 		"XDG_RUNTIME_DIR=" + d.rootlessXDGRuntimeDir,
+ 		"HOME=" + d.rootlessUser.HomeDir,
++		// Avoid colliding with another instance set up via dockerd-rootless.sh
++		"DOCKERD_ROOTLESS_ROOTLESSKIT_STATE_DIR=" + filepath.Join(d.rootlessXDGRuntimeDir, "rootless"),
+ 		"--",
+ 		defaultDockerdRootlessBinary,
+ 	}, nil
+
+From 7dc8994a384e4e3c971bcd2baeb35ea8a03ef505 Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sun, 22 Mar 2026 22:53:17 +0100
+Subject: [PATCH 2/4] integration: Skip some tests when not run as root
+
+These tests pass when DOCKER_ROOTLESS is set when run on privileged
+containers but fail otherwise as they call mknod on /dev/, or try to
+read /proc/1/ns/pid, etc.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ integration/container/mounts_linux_test.go  | 2 ++
+ integration/container/pidmode_linux_test.go | 1 +
+ integration/container/run_linux_test.go     | 1 +
+ 3 files changed, 4 insertions(+)
+
+diff --git a/integration/container/mounts_linux_test.go b/integration/container/mounts_linux_test.go
+index d725c7a0f38f4..9a3f07528eb2f 100644
+--- a/integration/container/mounts_linux_test.go
++++ b/integration/container/mounts_linux_test.go
+@@ -75,6 +75,7 @@ func TestContainerMultipleMountsSamePath(t *testing.T) {
+ func TestContainerNetworkMountsNoChown(t *testing.T) {
+ 	// chown only applies to Linux bind mounted volumes; must be same host to verify
+ 	skip.If(t, testEnv.IsRemoteDaemon)
++	skip.If(t, testEnv.IsRootless, "skipping test that requires root")
+ 
+ 	ctx := setupTest(t)
+ 
+@@ -752,6 +753,7 @@ func TestContainerBindMountReadOnlyDefault(t *testing.T) {
+ func TestContainerBindMountRecursivelyReadOnly(t *testing.T) {
+ 	skip.If(t, testEnv.IsRemoteDaemon)
+ 	skip.If(t, versions.LessThan(testEnv.DaemonAPIVersion(), "1.44"), "requires API v1.44")
++	skip.If(t, testEnv.IsRootless, "skipping test that requires root")
+ 
+ 	ctx := setupTest(t)
+ 
+diff --git a/integration/container/pidmode_linux_test.go b/integration/container/pidmode_linux_test.go
+index 5cc8e6c58ac76..646786cf3eebc 100644
+--- a/integration/container/pidmode_linux_test.go
++++ b/integration/container/pidmode_linux_test.go
+@@ -16,6 +16,7 @@ func TestPIDModeHost(t *testing.T) {
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsRemoteDaemon())
+ 	skip.If(t, testEnv.IsUserNamespace, "host PID mode is incompatible with user namespaces")
++	skip.If(t, testEnv.IsRootless, "skipping test that requires root")
+ 
+ 	hostPid, err := os.Readlink("/proc/1/ns/pid")
+ 	assert.NilError(t, err)
+diff --git a/integration/container/run_linux_test.go b/integration/container/run_linux_test.go
+index a8916961b4af9..64e331be2d168 100644
+--- a/integration/container/run_linux_test.go
++++ b/integration/container/run_linux_test.go
+@@ -139,6 +139,7 @@ func TestPrivilegedHostDevices(t *testing.T) {
+ 	skip.If(t, testEnv.IsRemoteDaemon)
+ 	skip.If(t, testEnv.DaemonInfo.OSType != "linux")
+ 	skip.If(t, testEnv.IsUserNamespace, "privileged mode is incompatible with user namespaces")
++	skip.If(t, testEnv.IsRootless, "skipping test that requires root")
+ 
+ 	ctx := setupTest(t)
+ 	apiClient := testEnv.APIClient()
+
+From 321ff655009de15f5d8e1cf03ace74e03d9a3eae Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Mon, 14 Sep 2026 12:37:53 +0200
+Subject: [PATCH 3/4] testutil/daemon: add DockerdPid helper
+
+Pid() returns the pid of the direct child process started by the
+test framework, which in rootless mode is the outermost process
+(e.g. sudo) rather than dockerd itself. Add DockerdPid, which reads
+the actual dockerd pid from the pidfile dockerd writes on startup.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ internal/testutil/daemon/daemon.go | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/internal/testutil/daemon/daemon.go b/internal/testutil/daemon/daemon.go
+index c582e8d38d1ae..fd0cd27d56425 100644
+--- a/internal/testutil/daemon/daemon.go
++++ b/internal/testutil/daemon/daemon.go
+@@ -709,11 +709,27 @@ func (d *Daemon) Kill() error {
+ 	return nil
+ }
+ 
+-// Pid returns the pid of the daemon
++// Pid returns the pid of the daemon's direct child process. In rootless
++// mode, this is the outermost process started by the test framework (e.g.
++// sudo), not dockerd itself.
+ func (d *Daemon) Pid() int {
+ 	return d.cmd.Process.Pid
+ }
+ 
++// DockerdPid returns the pid of the dockerd process itself, as recorded by
++// dockerd in its pidfile. Unlike Pid, this is accurate in rootless mode.
++func (d *Daemon) DockerdPid(t testing.TB) int {
++	t.Helper()
++
++	pidBytes, err := os.ReadFile(d.pidFile)
++	assert.NilError(t, err)
++
++	pid, err := strconv.Atoi(strings.TrimSpace(string(pidBytes)))
++	assert.NilError(t, err)
++
++	return pid
++}
++
+ // Interrupt stops the daemon by sending it an Interrupt signal
+ func (d *Daemon) Interrupt() error {
+ 	return d.Signal(os.Interrupt)
+
+From 2f2f9418870e28160d4ea007465c8317f38b130a Mon Sep 17 00:00:00 2001
+From: Ricardo Branco <rbranco@suse.de>
+Date: Sun, 22 Mar 2026 18:12:12 +0100
+Subject: [PATCH 4/4] testutil/daemon: fix CgroupNamespace reading wrong
+ process's ns
+
+In rootless mode, d.Pid() returns the PID of the outermost process
+started by the test framework (e.g., sudo), not dockerd itself.
+Even without sudo, reading the shell's cgroup namespace instead of
+dockerd's is incorrect.
+
+dockerd always writes its own PID to the --pidfile passed by the test
+framework, so read that instead. This gives the actual dockerd PID.
+
+Signed-off-by: Ricardo Branco <rbranco@suse.de>
+---
+ internal/testutil/daemon/daemon_linux.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/internal/testutil/daemon/daemon_linux.go b/internal/testutil/daemon/daemon_linux.go
+index 70a4fa15882b4..65cb66a920026 100644
+--- a/internal/testutil/daemon/daemon_linux.go
++++ b/internal/testutil/daemon/daemon_linux.go
+@@ -30,7 +30,7 @@ func cleanupNetworkNamespace(t testing.TB, d *Daemon) {
+ 
+ // CgroupNamespace returns the cgroup namespace the daemon is running in
+ func (d *Daemon) CgroupNamespace(t testing.TB) string {
+-	link, err := os.Readlink(fmt.Sprintf("/proc/%d/ns/cgroup", d.Pid()))
++	link, err := os.Readlink(fmt.Sprintf("/proc/%d/ns/cgroup", d.DockerdPid(t)))
+ 	assert.NilError(t, err)
+ 
+ 	return strings.TrimSpace(link)
