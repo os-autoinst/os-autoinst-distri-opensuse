@@ -1,0 +1,148 @@
+#!/bin/bash
+# combustion: network prepare
+# 
+# Simple openQA combustion script used for sle-micro or Minimal-VM start from 15-SP6 and their opensuse counterparts
+# due to known bug boo#1157133, the script is intended to be used only on x86_64
+# 
+# Test Objects:
+#   1) set localization and timezone
+#   2) create new fs in the test drive
+#   3) set root password
+#   4) create test users
+#   5) set systemd mount for test partition
+#   6) create test oneshot systemd service that creates a file
+#   7) enable sshd
+#   8) set test hostname 
+#   9) test networking
+#
+set -euxo pipefail
+
+# look for a drive that has no partition table or other information that blkid would return
+detect_free_drive() {
+    declare -a drives
+    drives=( $(ls /sys/block/) )
+    empty=
+
+    for d in ${drives[@]}; do
+        blkid /dev/"$d" &> /dev/null || echo "/dev/$d"
+    done
+}
+
+create_fs() {
+    DRIVE=$(detect_free_drive)
+    test -n "$DRIVE" || exit 2
+
+    PART="${DRIVE}1"
+
+    # create partition and filesystem on additional drive
+    echo "label: gpt" | sfdisk "$DRIVE"
+    echo "name=testing_part" | sfdisk "$DRIVE" -N1
+
+    # label new partition for testing and create labeled ext4
+    mkfs.ext4 -L home "$PART"
+
+    # mount new partition
+    mount -t ext4 "$PART" /home
+
+    # DEBUG
+    blkid
+    lsblk
+}
+
+systemd_mount() {
+
+cat << EOF > /etc/systemd/system/home.mount
+[Unit]
+Before=local-fs.target
+Requires=systemd-fsck@dev-disk-by\x2dpartlabel-testing_part.service
+After=systemd-fsck@dev-disk-by\x2dpartlabel-testing_part.service
+
+[Mount]
+Where=/home
+What=/dev/disk/by-partlabel/testing_part
+Type=ext4
+
+[Install]
+RequiredBy=local-fs.target
+EOF
+
+}
+
+test_prepare() {
+    echo "combustion: test_prepare function ran OK" > /dev/kmsg
+}
+
+if [ "${1-}" = "--prepare" ]; then
+    test_prepare
+    exit 0
+fi
+
+# Redirect output to the console
+exec > >(exec tee -a /dev/console) 2>&1
+
+### set locale, keyboard and timezone
+# exception: sle-micro comes with symlink /etc/localtime, thus systemd-firstboot fails
+# bsc#1215618 - systemd-firstboot --force fails to replace an existing /etc/localtime symlink
+rm -f /etc/localtime
+systemd-firstboot --force --timezone=UTC --locale=en_US.UTF-8 --keymap=us
+echo 'FONT=eurlatgr.psfu' >> /etc/vconsole.conf
+
+if ! grep -q tumbleweed /etc/os-release; then
+    create_fs
+    systemd_mount
+fi
+
+#
+### users and groups
+# groups
+groupadd --gid 2002 geekos
+
+# users
+echo 'root:$6$eEm2HpuzI7dfE4i7$dbYiTRLhrqVvwryR7zmMEcnrp13IqZ3mzLbsx9EeHAX7849PibGVgX5vdPuaeYYIO7hVfcboI9/JDpGiDZhHf/' | chpasswd -e
+useradd --no-create-home --uid 2002 --gid geekos --groups users HomelessTester
+useradd --create-home --uid 1001 --comment "Bernhard M. Wiedemann" --no-user-group --gid users bernhard
+echo 'bernhard:$6$eEm2HpuzI7dfE4i7$dbYiTRLhrqVvwryR7zmMEcnrp13IqZ3mzLbsx9EeHAX7849PibGVgX5vdPuaeYYIO7hVfcboI9/JDpGiDZhHf/' | chpasswd -e
+
+#
+### files and directories
+#
+echo "cucaracha" > /etc/hostname
+mkdir --mode=0755 /home/bernhard/testdir
+chown bernhard:users /home/bernhard/testdir
+echo "Hello there!" > /home/bernhard/testdir/hello
+chown bernhard:users /home/bernhard/testdir/hello
+chmod 0600 /home/bernhard/testdir/hello
+
+#
+### systemd units
+#
+cat << EOF > /etc/systemd/system/create_test_file.service
+[Unit]
+Description=Just a Test!
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/usr/bin/touch /var/log/flagfile
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl enable sshd.service
+systemctl enable create_test_file.service
+
+#
+### Networking
+#
+# configure interface for minimal-vm based on sle
+IF=$(find /sys/class/net -type l -not -lname '*virtual*' -printf '%f\n' | head -n1)
+IF_CFG="/etc/sysconfig/network/ifcfg-$IF"
+if command -v wicked &> /dev/null && ! grep -q 'dhcp' "$IF_CFG" &> /dev/null; then
+    echo -e "BOOTPROTO=dhcp\nSTARTMODE=auto" > "$IF_CFG"
+fi
+
+# leave a marker that combustion configure the system
+echo Combustion was here > /usr/share/combustion-welcome
+curl conncheck.opensuse.org
+
+# close outputs and wait for tee to finish
+exec 1>&- 2>&-; wait;

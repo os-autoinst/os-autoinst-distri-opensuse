@@ -1,0 +1,6 @@
+#!/bin/sh
+# combustion: network
+set -eux
+systemctl enable sshd.service
+echo Combustion was here > /usr/share/combustion-welcome
+curl conncheck.opensuse.org
