@@ -11,16 +11,9 @@
     hashedPassword: true,
     sshPublicKey: 'enable ssh',
   },
-  scripts: {
-    post: [
-      {
-        name: 'enable root login',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-        |||,
-      },
-    ],
+  software: {
+    packages: [
+      "openssh-server-config-rootlogin"
+    ]
   },
 }

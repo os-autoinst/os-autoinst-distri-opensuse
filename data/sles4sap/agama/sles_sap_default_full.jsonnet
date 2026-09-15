@@ -10,6 +10,11 @@
     hashedPassword: true,
     sshPublicKey: 'enable ssh',
   },
+  software: {
+    packages: [
+      'openssh-server-config-rootlogin',
+    ],
+  },
   scripts: {
     post: [
       {
