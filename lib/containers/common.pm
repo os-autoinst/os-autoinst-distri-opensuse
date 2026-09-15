@@ -24,7 +24,7 @@ use Utils::Architectures qw(is_aarch64);
 our @EXPORT = qw(is_unreleased_sle install_podman_when_needed install_docker_when_needed install_containerd_when_needed
   test_container_runtime test_container_image
   install_buildah_when_needed activate_containers_module check_containers_connectivity
-  switch_cgroup_version install_packages);
+  switch_cgroup_version install_packages registry_login);
 
 sub is_unreleased_sle {
     # If "SCC_URL" is set, it means we are in not-released SLE host and it points to proxy SCC url
@@ -305,6 +305,22 @@ sub install_packages {
             check_reboot_changes;
         } else {
             zypper_call("in @pkgs");
+        }
+    }
+}
+
+# Apply registration for the given registry and the given container runtimes
+sub registry_login {
+    my ($runtimes, $registry) = @_;
+    $runtimes //= get_var('CONTAINER_RUNTIMES');
+    $registry //= get_var('CONTAINER_REGISTRY', 'registry.suse.com');
+
+    # Register LTSS subscription, if present
+    if (get_var('CONTAINERS_REGISTRY_REGCODE')) {
+        my $scc_email = get_var('CONTAINERS_REGISTRY_EMAIL', 'e');
+        my $scc_regcode = get_required_var('CONTAINERS_REGISTRY_REGCODE');
+        for my $runtime (split /,/, $runtimes) {
+            assert_script_run(qq(echo "$scc_regcode" | $runtime login -u "$scc_email" --password-stdin $registry));
         }
     }
 }
