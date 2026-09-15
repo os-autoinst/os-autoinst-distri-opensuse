@@ -20,6 +20,7 @@ use containers::utils qw(reset_container_network_if_needed);
 use containers::k8s qw(install_k3s);
 use bootloader_setup qw(add_grub_cmdline_settings);
 use power_action_utils qw(power_action);
+use transactional qw(trup_call);
 use zypper qw(wait_quit_zypper);
 use Utils::Architectures qw(is_x86_64 is_aarch64);
 
@@ -47,23 +48,42 @@ sub run {
 
     my $interface;
     my $update_timeout = 2400;    # aarch64 takes sometimes 20-30 minutes for completion
-    my ($version, $sp, $host_distri) = get_os_release;
+    my ($version, $sp, $host_distri, $host_distri_like) = get_os_release;
     my $engine = get_required_var('CONTAINER_RUNTIMES');
 
     # Update the system to get the latest released state of the hosts.
     # Check routing table is well configured
     if ($host_distri =~ /sle|opensuse/) {
-        zypper_call("--quiet up", timeout => $update_timeout);
+        my $is_transactional_host = ($host_distri_like =~ /micro/i);
+
+        # Transactional hosts (e.g. sle-micro) have read-only roots and are
+        # already updated by their own build pipeline, see poo#206769
+        zypper_call("--quiet up", timeout => $update_timeout) unless $is_transactional_host;
+
         # Cannot use `ensure_ca_certificates_suse_installed` as it will depend
         # on the BCI container version instead of the host
         if (script_run('rpm -qi ca-certificates-suse') == 1) {
             zypper_call("addrepo --refresh https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_Tumbleweed/SUSE:CA.repo");
-            zypper_call("--gpg-auto-import-keys -n install ca-certificates-suse");
+            # Refreshing repo metadata only touches /var/cache/zypp, which is writable even on transactional hosts
+            zypper_call("--gpg-auto-import-keys refresh");
+            if ($is_transactional_host) {
+                trup_call('--continue pkg install ca-certificates-suse');
+                power_action("reboot", textmode => 1);
+                $self->wait_boot(textmode => 1);
+                select_serial_terminal;
+            } else {
+                zypper_call("--gpg-auto-import-keys -n install ca-certificates-suse");
+            }
         }
 
         # some images do not have quiet option in kernel parameters
         if (is_bootloader_grub2 && script_run('grep -q quiet /proc/cmdline') != 0) {
-            add_grub_cmdline_settings('quiet', update_grub => 1);
+            if ($is_transactional_host) {
+                add_grub_cmdline_settings('quiet', update_grub => 0);
+                trup_call('--continue grub.cfg');
+            } else {
+                add_grub_cmdline_settings('quiet', update_grub => 1);
+            }
             power_action("reboot", textmode => 1);
             $self->wait_boot(textmode => 1);
             select_serial_terminal;

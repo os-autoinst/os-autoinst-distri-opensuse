@@ -754,13 +754,15 @@ sub uses_qa_net_hardware {
 
 =head2 get_os_release
 
-Get SLE release version, service pack and distribution name info from any running sles os without any dependencies
+Get SLE release version, service pack, distribution name and ID_LIKE info from any running sles os without any dependencies
 It parses the info from /etc/os-release file, which can reside in any physical host or virtual machine
 The file can also be placed anywhere as long as it can be reached somehow by its absolute file path,
 which should be passed in as the second argument os_release_file, for example, "/etc/os-release"
 At the same time, connection method to the entity in which the file reside should be passed in as the
 first argument go_to_target, for example, "ssh root at name or ip address" or "way to download the file"
 For use only on locahost, no argument needs to be specified
+The 4th return value (ID_LIKE) is useful to detect e.g. sle-micro, which since the SLE 16 unified base
+reports ID="sles" and only differentiates itself via ID_LIKE containing "sle-micro"/"microos"
 =cut
 
 sub get_os_release {
@@ -772,7 +774,7 @@ sub get_os_release {
     ($os_release{VERSION}) = $os_release{VERSION} =~ /(^\d+\S*\d*)/im;
     my ($os_version, $os_service_pack) = split(/\.|-sp/i, $os_release{VERSION});
     $os_service_pack //= 0;
-    return $os_version, $os_service_pack, $os_release{ID};
+    return $os_version, $os_service_pack, $os_release{ID}, $os_release{ID_LIKE} // '';
 }
 
 =head2 check_os_release
