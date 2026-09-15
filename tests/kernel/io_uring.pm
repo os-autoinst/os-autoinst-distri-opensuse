@@ -11,7 +11,7 @@ use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
-use version_utils 'is_transactional';
+use version_utils qw(is_transactional has_selinux);
 use LTP::WhiteList;
 use repo_tools 'add_qa_head_repo';
 use package_utils 'install_package';
@@ -20,6 +20,10 @@ sub run {
     my $self = shift;
 
     select_serial_terminal;
+
+    # liburing tests (like zcrx.t) can trigger AVC denials on SELinux-enabled systems
+    # due to operations such as mapping memory at address 0 (NULL)
+    script_run('setenforce 0') if has_selinux;
 
     my $install = get_var('LIBURING_INSTALL', 'from_repo');
     my $timeout = get_var('LIBURING_TIMEOUT', 1800);
