@@ -16,6 +16,12 @@ use LTP::WhiteList;
 use repo_tools 'add_qa_head_repo';
 use package_utils 'install_package';
 
+sub get_package_version {
+    my $pkg = shift;
+    my $out_ver = script_output("rpm -q --qf '%{Version}\n' $pkg | sort -nr | head -1");
+    return "liburing-$out_ver";
+}
+
 sub run {
     my $self = shift;
 
@@ -26,6 +32,7 @@ sub run {
     my $exclude = get_var('LIBURING_EXCLUDE', '');
     my $issues = get_var('LIBURING_KNOWN_ISSUES', '');
     my $whitelist = LTP::WhiteList->new($issues);
+    my $version = get_var('LIBURING_VERSION', '');
     my $test_dir;
     my $out;
 
@@ -33,7 +40,6 @@ sub run {
 
     if ($install =~ /git/i) {
         my $repository = get_var('LIBURING_REPO', 'https://github.com/axboe/liburing.git');
-        my $version = get_var('LIBURING_VERSION', '');
         my $pkgs = "git-core";
 
         $pkgs .= " liburing2" if script_run('rpm -q liburing2');
@@ -41,8 +47,7 @@ sub run {
         install_package($pkgs, trup_continue => 1, trup_apply => 1);
 
         if ($version eq '') {
-            $out = script_output('rpm -q --qf "%{Version}\n" liburing2 | sort -nr | head -1');
-            $version = "liburing-$out";
+            $version = get_package_version('liburing2');
         }
 
         assert_script_run("git clone --depth=1 --branch $version $repository");
@@ -62,6 +67,9 @@ sub run {
         } else {
             $test_dir = $default_test_dir;
         }
+        if ($version eq '') {
+            $version = get_package_version('liburing-tests');
+        }
     }
 
     my $environment = {
@@ -74,6 +82,7 @@ sub run {
         libc => '',
         gcc => '',
         harness => 'SUSE OpenQA',
+        ltp_version => $version,
     };
 
     # run tests executables
