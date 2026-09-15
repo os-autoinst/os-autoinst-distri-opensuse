@@ -21,7 +21,8 @@ use package_utils 'install_package';
 
 sub run {
     select_serial_terminal;
-    install_package('unzip', trup_reboot => 1) if (script_run('rpm -q unzip'));
+    my @packages = grep { script_run("rpm -q $_") } qw(unzip wget);
+    install_package("@packages", trup_reboot => 1) if @packages;
     assert_script_run 'mkdir -p /tmp/unzip-test/ && pushd /tmp/unzip-test';
 
     # 1. Unzip (basic usage)
