@@ -15,13 +15,15 @@
 use Mojo::Base 'consoletest';
 use testapi;
 use package_utils 'install_package';
+use utils 'script_retry';
 
 sub run {
     select_console 'root-console';
     install_package('wget', trup_reboot => 1) if (script_run('rpm -q wget'));
     select_console 'user-console';
     assert_script_run('rpm -q wget');
-    assert_script_run('wget -O- -6 -q www3.zq1.de/test.txt');
+    # www3.zq1.de occasionally answers with a transient server error, so retry a few times
+    script_retry('wget -O- -6 -q www3.zq1.de/test.txt', retry => 3, delay => 15, timeout => 90);
 }
 
 1;
