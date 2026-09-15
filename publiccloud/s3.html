@@ -1,0 +1,129 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>lib/publiccloud/s3.pm</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel='stylesheet' href='../style.css' />
+</head>
+
+<body>
+
+
+
+<ul id="index"><li><a href="../index.html"><i>&lt;= Back to file list</i></a></li>
+  <li><a href="#METHODS">METHODS</a>
+    <ul>
+      <li><a href="#new">new</a></li>
+      <li><a href="#get_bucket_uri">get_bucket_uri</a></li>
+      <li><a href="#create_bucket">create_bucket</a></li>
+      <li><a href="#upload_file">upload_file</a></li>
+      <li><a href="#list_bucket">list_bucket</a></li>
+      <li><a href="#download_file">download_file</a></li>
+      <li><a href="#delete_file">delete_file</a></li>
+      <li><a href="#delete_bucket">delete_bucket</a></li>
+      <li><a href="#force_delete_bucket">force_delete_bucket</a></li>
+      <li><a href="#verify_file_exists">verify_file_exists</a></li>
+      <li><a href="#verify_checksum">verify_checksum</a></li>
+      <li><a href="#generate_unique_bucket_name">generate_unique_bucket_name</a></li>
+    </ul>
+  </li>
+</ul><h1>lib/publiccloud/s3.pm</h1>
+
+<h1 id="METHODS">METHODS</h1>
+
+<h2 id="new">new</h2>
+
+<p>Create a new storage helper instance</p>
+
+<pre><code>my $s3 = publiccloud::s3-&gt;new(provider =&gt; &#39;EC2&#39;, region =&gt; &#39;us-east-1&#39;);</code></pre>
+
+<p>Supported providers: &#39;EC2&#39; (AWS S3), &#39;AZURE&#39; (Azure Blob Storage)</p>
+
+<h2 id="get_bucket_uri">get_bucket_uri</h2>
+
+<p>Generate bucket URI for the provider</p>
+
+<pre><code>my $uri = $s3-&gt;get_bucket_uri($bucket_name);           # Returns: s3://bucket or gs://bucket
+my $uri = $s3-&gt;get_bucket_uri($bucket_name, $key);     # Returns: s3://bucket/key or gs://bucket/key</code></pre>
+
+<p>Returns the provider-specific URI format. For Azure, returns just the bucket name.</p>
+
+<h2 id="create_bucket">create_bucket</h2>
+
+<p>Create a storage bucket/container</p>
+
+<pre><code>$s3-&gt;create_bucket($bucket_name);</code></pre>
+
+<h2 id="upload_file">upload_file</h2>
+
+<p>Upload a file to a storage bucket</p>
+
+<pre><code>$s3-&gt;upload_file(bucket =&gt; $bucket_name, file =&gt; $local_file, [key =&gt; $remote_key]);</code></pre>
+
+<p>If key is not specified, the basename of the file is used.</p>
+
+<h2 id="list_bucket">list_bucket</h2>
+
+<p>List contents of a storage bucket</p>
+
+<pre><code>my $contents = $s3-&gt;list_bucket($bucket_name);</code></pre>
+
+<p>Returns the output of the list command</p>
+
+<h2 id="download_file">download_file</h2>
+
+<p>Download a file from a storage bucket</p>
+
+<pre><code>$s3-&gt;download_file(bucket =&gt; $bucket_name, key =&gt; $remote_key, file =&gt; $local_file);</code></pre>
+
+<h2 id="delete_file">delete_file</h2>
+
+<p>Delete a file from a storage bucket and verify deletion</p>
+
+<pre><code>$s3-&gt;delete_file(bucket =&gt; $bucket_name, key =&gt; $file_key);</code></pre>
+
+<h2 id="delete_bucket">delete_bucket</h2>
+
+<p>Delete a storage bucket (bucket must be empty)</p>
+
+<pre><code>$s3-&gt;delete_bucket($bucket_name);</code></pre>
+
+<h2 id="force_delete_bucket">force_delete_bucket</h2>
+
+<p>Delete a storage bucket along with any contents it still holds.</p>
+
+<pre><code>$s3-&gt;force_delete_bucket($bucket_name);</code></pre>
+
+<p>Intended for cleanup paths where the bucket may not be empty (e.g. mid-test failure).</p>
+
+<h2 id="verify_file_exists">verify_file_exists</h2>
+
+<p>Verify that a file exists in an S3 bucket</p>
+
+<pre><code>$s3-&gt;verify_file_exists(bucket =&gt; $bucket_name, key =&gt; $file_key);</code></pre>
+
+<p>Dies if the file is not found in the bucket listing.</p>
+
+<h2 id="verify_checksum">verify_checksum</h2>
+
+<p>Verify that two files have the same SHA256 checksum</p>
+
+<pre><code>$s3-&gt;verify_checksum(file1 =&gt; $path1, file2 =&gt; $path2);</code></pre>
+
+<p>Dies if checksums don&#39;t match.</p>
+
+<h2 id="generate_unique_bucket_name">generate_unique_bucket_name</h2>
+
+<p>Generate a unique S3 bucket name</p>
+
+<pre><code>my $bucket_name = $s3-&gt;generate_unique_bucket_name([$prefix]);</code></pre>
+
+<p>Generates a globally unique bucket name using a prefix (default: &#39;openqa-s3-test&#39;) and timestamp. S3 bucket names must be globally unique and DNS-compliant.</p>
+
+
+</body>
+
+</html>
+
+
