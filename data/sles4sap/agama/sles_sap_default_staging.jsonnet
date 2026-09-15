@@ -15,6 +15,9 @@ local product_id = '{{AGAMA_PRODUCT_ID}}';
     hashedPassword: true,
     sshPublicKey: 'enable ssh',
   },
+  "access": {
+    "ssh": "enabled"
+  },
   [if desktop == 'gnome' then 'user']: {
     fullName: 'Bernhard M. Wiedemann',
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
@@ -22,7 +25,9 @@ local product_id = '{{AGAMA_PRODUCT_ID}}';
     userName: 'bernhard'
   },
   software: {
-    packages: [],
+    packages: [
+      'openssh-server-config-rootlogin',
+    ],
     [if desktop == 'gnome' then 'patterns']: {
       add: ['gnome']
     },
@@ -48,17 +53,5 @@ local product_id = '{{AGAMA_PRODUCT_ID}}';
         class: 'software.import_gpg'
       }
     ]
-  },
-  scripts: {
-    post: [
-      {
-        name: 'enable root login',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-        |||,
-      },
-    ],
   },
 }
