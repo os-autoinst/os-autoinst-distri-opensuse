@@ -238,32 +238,33 @@ sub acquire_network_file_lease {
 }
 
 
-=head2 deployer_peering_exists
+=head2 check_peering_exists
 
-    deployer_peering_exists(addr_space=>'192.168.0.0', deployer_vnet_name=>'SHODAN-vnet');
+    check_peering_exists(addr_space=>'192.168.0.0/26', vnet_name=>'SHODAN-vnet', resource_group=>'SDAF-RG');
 
 =over
 
 =item B<addr_space>: Address space to check for. Must include subnet prefix.
 
-=item B<deployer_vnet_name>: Deployer virtual network name
+=item B<vnet_name>: Virtual network name.
+
+=item B<resource_group>: Resource group name.
 
 =back
 
-Checks if there is already a network peering established between deployer virtual network and address space specified by
-B<addr_space>.
+Checks if there is already a network peering established between virtual network and address space specified by B<addr_space>.
 
 =cut
 
-sub deployer_peering_exists {
+sub check_peering_exists {
     my (%args) = @_;
-    foreach ('addr_space', 'deployer_vnet_name') {
+    foreach ('addr_space', 'vnet_name', 'resource_group') {
         croak "Missing mandatory argument: $_" unless $args{$_};
     }
     my $jmespath_query = "length([?contains(remoteVirtualNetworkAddressSpace.addressPrefixes, '$args{addr_space}')])";
     return (az_network_peering_list(
-            resource_group => get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP'),
-            vnet => $args{deployer_vnet_name},
+            resource_group => $args{resource_group},
+            vnet => $args{vnet_name},
             query => $jmespath_query));
 }
 
@@ -282,12 +283,13 @@ sub deployer_peering_exists {
 Assign network that has already lease file present in storage account.
 Lists existing network files which were modified more than B<$args{networks_older_than}> seconds in the past and picks
 one of the files at random. A check is performed if the network space is already peered to deployer virtual network
-B<deployer_vnet_name>. Last step is to attempt to assign a blob lease for the network file associated. Blob file lease
+B<deployer_vnet_name> and IBSm. Last step is to attempt to assign a blob lease for the network file associated. Blob file lease
 serves as a locking mechanism to prevent multiple tests assign same network space, causing collisions.
 
-For a successful network assignment three criteria must be met:
+For a successful network assignment these criteria must be met:
 - there is blob file that represents a network space in storage account (check list_expired_files())
 - network peering between network space and deployer virtual network does not exist
+- network peering between network space and IBSm virtual network does not exist (if in maintenance mode)
 - function is able to assign a 60s blob file lease to reserve exclusive network rights
 
 Argument B<networks_older_than> value should be greater than time between the start of this function
@@ -314,6 +316,13 @@ sub assign_defined_network {
     my $lease_file;
     my $count = 0;
     my $num = 10;    # Exit the dead loop if exceed
+    my $deployer_rg = get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP');
+    my $ibsm_rg = '';
+    my $ibsm_vnet = '';
+    if (check_var('IS_MAINTENANCE', '1')) {
+        $ibsm_rg = get_required_var('IBSM_RG');
+        $ibsm_vnet = get_required_var('IBSM_VNET');
+    }
     record_info('NET assign', "Searching for free networks older than $args{networks_older_than} seconds");
     while (!$lease_file) {
         $count++;
@@ -323,7 +332,8 @@ sub assign_defined_network {
         # Taking random file from the list decreases the chance of two tests spending time checking same file.
         $lease_file = $lease_files[int(rand(@lease_files - 1))];
         # Check if network resource associated with chosen lease file exists.
-        if (deployer_peering_exists(addr_space => $lease_file . '/26', deployer_vnet_name => $args{deployer_vnet_name})) {
+        if (check_peering_exists(addr_space => $lease_file . '/26', vnet_name => $args{deployer_vnet_name}, resource_group => $deployer_rg) ||
+            (check_var('IS_MAINTENANCE', '1') && check_peering_exists(addr_space => $lease_file . '/26', vnet_name => $ibsm_vnet, resource_group => $ibsm_rg))) {
             $lease_file = 0;
             if ($count > $num) {
                 record_info("Debug: searched for $count times, more than $num times, return to create new network");
@@ -424,7 +434,7 @@ sub create_new_address_space {
         # Check if there is already a network peering present for this network file.
         # Do not assign this network space if it is already used by something else.
         # No need to delete the lease file. It will tell other tests that this one is already assigned.
-        next if deployer_peering_exists(addr_space => $generated_address_space . '/26', deployer_vnet_name => $args{deployer_vnet_name});
+        next if check_peering_exists(addr_space => $generated_address_space . '/26', vnet_name => $args{deployer_vnet_name}, resource_group => get_required_var('SDAF_DEPLOYER_RESOURCE_GROUP'));
         $address_space = $generated_address_space;
     }
     return $address_space . '/26';

@@ -38,7 +38,7 @@ subtest '[assign_defined_network] ' => sub {
     # mock assign_defined_network
     $mocklib->redefine(record_info => sub { record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); } });
     $mocklib->redefine(list_expired_files => sub { return ('prime') });
-    $mocklib->redefine(deployer_peering_exists => sub { return });
+    $mocklib->redefine(check_peering_exists => sub { return });
     $mocklib->redefine(acquire_network_file_lease => sub { return 'yes' });
     set_var('SDAF_DEPLOYER_VNET_CODE', 'Decepticons');
     set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'Autobots');
@@ -49,7 +49,7 @@ subtest '[assign_defined_network] ' => sub {
     $mocklib->redefine(acquire_network_file_lease => sub { return });
     is assign_address_space(networks_older_than => 'yesterday'), undef, 'Return undef if lease was not acquired';
 
-    $mocklib->redefine(deployer_peering_exists => sub { return 'yeees' });
+    $mocklib->redefine(check_peering_exists => sub { return 'yeees' });
     is assign_address_space(networks_older_than => 'yesterday'), undef, 'Return undef if there is existing peering present';
     unset_vars();
 
@@ -61,11 +61,11 @@ subtest '[acquire_network_file_lease]' => sub {
     # mock assign_address_space
     $mocklib->redefine(az_network_vnet_get => sub { return ['optimus'] });
     $mocklib->redefine(create_new_address_space => sub { return });
-    $mocklib->redefine(deployer_peering_exists => sub { return });
+    $mocklib->redefine(check_peering_exists => sub { return });
     # mock assign_defined_network
     $mocklib->redefine(record_info => sub { record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); } });
     $mocklib->redefine(list_expired_files => sub { return ('prime') });
-    $mocklib->redefine(deployer_peering_exists => sub { return });
+    $mocklib->redefine(check_peering_exists => sub { return });
     # mock acquire_network_file_lease
     $mocklib->redefine(az_storage_blob_lease_acquire => sub { return '1984' });
     $mocklib->redefine(az_storage_blob_update => sub { return '0' });
@@ -94,7 +94,7 @@ subtest '[create_new_address_space] ' => sub {
     $mocklib->redefine(calculate_net_addr_space => sub { return '127.0.0.1'; });
     $mocklib->redefine(list_network_lease_files => sub { return []; });
     $mocklib->redefine(create_lease_file => sub { return; });
-    $mocklib->redefine(deployer_peering_exists => sub { return; });
+    $mocklib->redefine(check_peering_exists => sub { return; });
 
     set_var('SDAF_DEPLOYER_VNET_CODE', 'Decepticons');
     set_var('SDAF_DEPLOYER_RESOURCE_GROUP', 'Autobots');
@@ -102,7 +102,7 @@ subtest '[create_new_address_space] ' => sub {
     is assign_address_space(networks_older_than => 'yesterday'), '127.0.0.1/26',
       'Return address space created by create_new_address_space() function';
 
-    $mocklib->redefine(deployer_peering_exists => sub { return 'yes'; });
+    $mocklib->redefine(check_peering_exists => sub { return 'yes'; });
     dies_ok { assign_address_space(networks_older_than => 'yesterday') }
     'Die if address space pool runs out - all address peerings assigned.';
 
@@ -118,7 +118,7 @@ subtest '[list_expired_files] ' => sub {
     $mocklib->redefine(create_new_address_space => sub { return 1 });
     # mock assign_defined_network
     $mocklib->redefine(record_info => sub { record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)); } });
-    $mocklib->redefine(deployer_peering_exists => sub { return });
+    $mocklib->redefine(check_peering_exists => sub { return });
     $mocklib->redefine(acquire_network_file_lease => sub { return 1 });
     $mocklib->redefine(az_storage_blob_list => sub { return [
                 {network => 'old_network_file', last_modified => '2022-09-23T13:44:42+02:00'},
