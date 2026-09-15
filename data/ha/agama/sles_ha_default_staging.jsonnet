@@ -25,11 +25,16 @@ local urls = std.split(repo, ",");
     hashedPassword: true,
     sshPublicKey: 'enable ssh',
   },
+  "access": {
+    "ssh": "enabled"
+  },
   software: {
-    packages: [],
     patterns: {
       add: ['ha_sles']
     },
+    packages: [
+      'openssh-server-config-rootlogin',
+    ],
     extraRepositories:
       if repo != "" then
         [
@@ -77,16 +82,5 @@ local urls = std.split(repo, ",");
         |||
       }
     ],
-    post: [
-      {
-        name: 'enable sshd',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-          systemctl enable sshd
-        |||
-      }
-    ]
   }
 }
