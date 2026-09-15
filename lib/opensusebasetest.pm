@@ -513,7 +513,10 @@ sub wait_grub_to_boot_on_local_disk {
         assert_screen(\@tags, 15);
     }
     if (match_has_tag('tianocore-bootmenu')) {
-        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+        # The boot device list has one entry per boot option, so its length
+        # differs per machine. The menu wraps around, so walking it with the
+        # default step count is safe.
+        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down');
         send_key "ret";
         assert_screen(\@tags, 90);
     }
