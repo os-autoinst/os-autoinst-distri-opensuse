@@ -17,12 +17,31 @@ use version_utils 'is_sle';
 # Open vnc and take screenshot of guests
 sub screenshot_vnc_guests {
     foreach my $guest (keys %virt_autotest::common::guests) {
+        next if $guest =~ /-tdx/;
         # Wait for virt-viewer to fully connect and display VNC stream
         enter_cmd "virt-viewer -f $guest & sleep 21 && killall virt-viewer";
         sleep 19;
         record_info "$guest", "$guest screenshot";
         save_screenshot();
         sleep 6;
+    }
+}
+
+sub upload_serial_console_guests {
+    foreach my $guest (keys %virt_autotest::common::guests) {
+        next unless $guest =~ /-tdx$/;
+
+        my $log = "/tmp/${guest}-serial.log";
+
+        if (script_run("test -f $log") == 0) {
+            script_run("tail -n 100 $log");
+            upload_logs($log, failok => 1);
+        } else {
+            record_info(
+                "Serial console",
+                "No serial log found for $guest"
+            );
+        }
     }
 }
 
@@ -117,6 +136,7 @@ sub run {
 sub post_fail_hook {
     my ($self) = @_;
     screenshot_vnc_guests();
+    upload_serial_console_guests();
     access_vm_profiles();
     collect_virt_system_logs();
     $self->SUPER::post_fail_hook;
