@@ -56,15 +56,15 @@ tests/ha/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @janko
 tests/sles4sap/ @a-kpappas @alvarocarvajald @Amrysliu @BillAnastasiadis @emiura @jankohoutek @lilyeyes @lpalovsky @mpagot @badboywj
 
 # Security
-data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-lib/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-lib/main_security.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-lib/eal4_test.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-lib/selinuxtest.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-schedule/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-test_data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-tests/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
-tests/fips/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @DeepthiYV @chubykalo
+data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+lib/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+lib/main_security.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+lib/eal4_test.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+lib/selinuxtest.pm @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+schedule/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+test_data/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+tests/security/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
+tests/fips/ @feri @ilmanzo @paolostivanin @realcharmer @tjyrinki @fsimorda @mmisi @chubykalo
 
 # Kernel, xfstests, IPsec, NFS, btrfs-progs, rt, kdump, nvidia, kselftests, storage
 tests/kernel/ @Avinesh @acerv @coolgw @czerw @frankenmichl @lansuse @mdoucha @pevik @rbmarliere @SeroSun @schlad
