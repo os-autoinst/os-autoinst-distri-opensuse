@@ -16,9 +16,8 @@ my $make_faster_popup_seen = 0;
 
 sub type_address ($string) {
     $make_faster_popup_seen = handle_make_faster_popup() unless $make_faster_popup_seen;
-    send_key 'ctrl-l';    # select text in address bar
-                          # wait for the urlbar to be in a consistent state
-    assert_screen 'chromium-highlighted-urlbar';
+    # wait for the urlbar to be in a consistent state
+    send_key_until_needlematch 'chromium-highlighted-urlbar', 'ctrl-l';
     # type individual characters only as the screen changes to avoid losing input
     enter_cmd($string, wait_screen_change => 1);
 }
@@ -55,7 +54,8 @@ sub run {
 sub handle_make_faster_popup {
     check_screen 'make-chromium-faster', 10;
     if (match_has_tag 'make-chromium-faster') {
-        click_lastmatch;
+        wait_screen_change(sub { click_lastmatch },
+            5);
         return 1;
     }
     return 0;
