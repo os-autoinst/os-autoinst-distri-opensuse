@@ -22,22 +22,15 @@
     password: '$6$vYbbuJ9WMriFxGHY$gQ7shLw9ZBsRcPgo6/8KmfDvQ/lCqxW8/WnMoLCoWGdHO6Touush1nhegYfdBbXRpsQuy/FTZZeg7gQL50IbA/',
     hashedPassword: true
   },
+  "access": {
+    "ssh": "enabled"
+  },
   software: {
+    packages: [
+      'openssh-server-config-rootlogin',
+    ],
     patterns: {
       add: ['ha_sles']
     }
   },
-  scripts: {
-    post: [
-      {
-        name: 'enable root login sshd',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
-          systemctl enable sshd
-        |||
-      }
-    ]
-  }
 }

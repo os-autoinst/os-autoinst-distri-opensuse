@@ -11,6 +11,11 @@
     hashedPassword: true,
     sshPublicKey: 'enable ssh',
   },
+  software: {
+    packages: [
+      "openssh-server-config-rootlogin"
+    ]
+  },
   storage: {
     drives: [
       {
@@ -21,7 +26,10 @@
         ],
       },
     ],
-  },  
+  },
+  "access": {
+    "ssh": "enabled"
+  },
   scripts: {
     pre: [
       {
@@ -33,16 +41,6 @@
               sleep 1
               sync
           done
-        |||,
-      },
-    ],    
-    post: [
-      {
-        name: 'enable root login',
-        chroot: true,
-        content: |||
-          #!/usr/bin/env bash
-          echo 'PermitRootLogin yes' > /etc/ssh/sshd_config.d/root.conf
         |||,
       },
     ],
