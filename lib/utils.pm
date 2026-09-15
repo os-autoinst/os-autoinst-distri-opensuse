@@ -1289,7 +1289,11 @@ sub check_nm_connectivity {
 
   restart_network();
 
-helper function to restart network
+Restart the network stack to propagate hostname changes to DHCP/DNS.
+
+On QEMU systems with NetworkManager, disconnects and reconnects each
+network device to trigger a DHCP lease renewal. On wicked systems,
+reloads or restarts the network service.
 
 =cut
 
@@ -1309,12 +1313,8 @@ sub restart_network {
             next if ($indx == 0 && $dev eq 'DEVICE');
             next if ($dev eq 'lo');
 
-            script_run("nmcli general logging level DEBUG");
-
-            # poo#169726 Increasing timeout to 120s and adding DEBUG logs for future investigation
+            # poo#169726: 120s timeout needed for slow VMs (ARM qemu, nested virt)
             script_run('nmcli -w 120 device disconnect ' . $dev, timeout => 120);
-            script_run("journalctl -u NetworkManager -b >> /var/log/nmcli_logs");
-            record_info("Logs", script_output("cat /var/log/nmcli_logs"));
             script_run('nmcli device connect ' . $dev, timeout => 120);
         }
 
@@ -1328,32 +1328,37 @@ sub restart_network {
 =head2 set_hostname
 
  set_hostname($hostname);
+ set_hostname($hostname, restart_network => 1);
 
-Setting hostname according input parameter using hostnamectl.
-Calling I<reload-or-restart> to make sure that network stack will propogate
-hostname into DHCP/DNS.
+Set the system hostname using hostnamectl and verify it took effect.
 
-If you change hostname using C<hostnamectl set-hostname>, then C<hostname -f>
-will fail with I<hostname: Name or service not known> also DHCP/DNS don't know
-about the changed hostname, you need to send a new DHCP request to update
-dynamic DNS yast2-network module does
-C<NetworkService.ReloadOrRestart if Stage.normal || !Linuxrc.usessh>
-if hostname is changed via C<yast2 lan>.
+By default, no network restart is performed because all existing
+callers use C</etc/hosts> for name resolution and do not depend on
+DHCP/DNS propagation of the hostname.
+
+Pass C<restart_network =E<gt> 1> to force a network restart after
+setting the hostname (disconnects and reconnects all NM devices to
+trigger DHCP lease renewal). This is only needed if downstream code
+resolves the hostname via DHCP-registered dynamic DNS rather than
+C</etc/hosts>.
 
 =cut
 
 sub set_hostname {
-    my ($hostname) = @_;
+    my ($hostname, %args) = @_;
+    my $do_restart = $args{restart_network} // 0;
+
     assert_script_run "hostnamectl set-hostname $hostname";
     assert_script_run "hostnamectl status|grep $hostname";
     assert_script_run "uname -n|grep $hostname";
-    systemctl 'status network.service';
     save_screenshot;
 
-    restart_network();
-
-    print_ip_info;
-    script_run("dig +short $hostname.openqa.test");
+    if ($do_restart) {
+        systemctl 'status network.service';
+        restart_network();
+        print_ip_info;
+        script_run("dig +short $hostname.openqa.test");
+    }
 }
 
 =head2 assert_and_click_until_screen_change
