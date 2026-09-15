@@ -1,4 +1,4 @@
-# Copyright 2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: dm crypt -> add flags to optionally bypass kcryptd
@@ -11,30 +11,38 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use utils;
+use utils 'reconnect_mgmt_console';
 use power_action_utils 'power_action';
 use Utils::Backends 'is_pvm';
-use version_utils 'is_sle';
+use package_utils 'install_package';
 
 sub run {
     my $self = shift;
     select_serial_terminal;
 
     # Install runtime dependencies
-    zypper_call("in sudo device-mapper");
+    install_package("device-mapper", trup_reboot => 1);
 
-    # Simulate a ram device
+    # Simulate a ram device. rd_size is in KB, so this creates a 500MiB ramdisk
     assert_script_run("modprobe brd rd_nr=1 rd_size=512000");
 
-    # Create dm-crypt devices upon the ram device with different flags
-    my $inline_r_dev = 'eram0-inline-read';
-    my $inline_w_dev = 'eram0-inline-write';
-    assert_script_run("echo '0 1024000 crypt capi:ecb(cipher_null) - 0 /dev/ram0 0 1 no_write_workqueue' | sudo dmsetup create $inline_w_dev");
-    assert_script_run("echo '0 1024000 crypt capi:ecb(cipher_null) - 0 /dev/ram0 0 1 no_read_workqueue' | sudo dmsetup create $inline_r_dev");
+    my $ram_dev = '/dev/ram0';
+    my $cipher = 'capi:ecb(cipher_null)';
+    # dm-crypt target length is in 512-byte sectors: 512000KB * 1024 / 512
+    # covers the whole ramdisk created above
+    my $sectors = 1024000;
 
-    # Check the flags are set correctly
-    assert_script_run("dmsetup table /dev/mapper/$inline_w_dev | grep no_write_workqueue");
-    assert_script_run("dmsetup table /dev/mapper/$inline_r_dev | grep no_read_workqueue");
+    # Create dm-crypt devices upon the ram device, one per bypass flag
+    my @variants = (
+        {flag => 'no_write_workqueue', dev => 'eram0-inline-write'},
+        {flag => 'no_read_workqueue', dev => 'eram0-inline-read'},
+    );
+
+    for my $variant (@variants) {
+        assert_script_run("echo '0 $sectors crypt $cipher - 0 $ram_dev 0 1 $variant->{flag}' | dmsetup create $variant->{dev}");
+        # Check the flag is set correctly
+        assert_script_run("dmsetup table /dev/mapper/$variant->{dev} | grep $variant->{flag}");
+    }
 
     # Teardown and release the ram resource
     power_action("reboot", textmode => 1);
