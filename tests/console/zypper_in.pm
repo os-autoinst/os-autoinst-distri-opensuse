@@ -31,9 +31,12 @@ use serial_terminal 'select_serial_terminal';
 # 	rm -f /preinstall_sleeping
 # fi
 
-sub run {
-    my $timeout = 300;
-    select_serial_terminal;
+my $timeout = 300;
+
+sub install_rm_packages {
+    my $zypp_medianetwork = @_;
+    $zypp_medianetwork //= 0;    #Add ZYPP_MEDIANETWORK=1 feature
+    assert_script_run 'export ZYPP_MEDIANETWORK=1' if $zypp_medianetwork;
     script_run("zypper lr -d | tee /dev/$serialdev", timeout => $timeout);
     my $pkgname = get_var('PACKAGETOINSTALL');
     if (!$pkgname) {
@@ -44,6 +47,16 @@ sub run {
     clear_console;    # clear screen to see that second update does not do any more
     assert_script_run("rpm -e $pkgname", timeout => $timeout);
     assert_script_run("! rpm -q $pkgname");
+    assert_script_run 'unset ZYPP_MEDIANETWORK' if $zypp_medianetwork;
+}
+
+sub run {
+    select_serial_terminal;
+
+    install_rm_packages;
+
+    record_info('Test ZYPP_MEDIANETWORK=1');
+    install_rm_packages('zypp_medianetwork');
 
     if (!is_sle('<15-SP4') && !is_leap('<15.4') && !check_var('OFFLINE_SUT', '1')) {
         # older releases than 15 don't have the --allow-unsigned-rpm switch
