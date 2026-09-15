@@ -2059,8 +2059,17 @@ sub show_tasks_in_blocked_state {
     if (has_ttys) {
         my $has_logger = script_run('test -x /usr/bin/logger') == 0;
         script_run('logger "### Beginning of show_tasks_in_blocked_state"') if $has_logger;
-        send_key 'alt-sysrq-t';
-        send_key 'alt-sysrq-w';
+        # Avoid alt-sysrq-t/w keypresses: on some backends they can log out
+        # every tty, breaking a later select_console('root-console').
+        my $can_use_sysrq_trigger = eval { script_run('test -w /proc/sysrq-trigger', timeout => 30) == 0 };
+        if ($can_use_sysrq_trigger) {
+            script_run('echo t > /proc/sysrq-trigger');
+            script_run('echo w > /proc/sysrq-trigger');
+        }
+        else {
+            send_key 'alt-sysrq-t';
+            send_key 'alt-sysrq-w';
+        }
         # info will be sent to serial tty
         wait_serial(qr/sysrq\s*:\s+show\s+blocked\s+state/i);
         script_run('logger "### End of show_tasks_in_blocked_state"') if $has_logger;
