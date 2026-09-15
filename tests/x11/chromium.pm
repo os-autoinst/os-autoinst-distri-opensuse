@@ -54,7 +54,13 @@ sub run {
 sub handle_make_faster_popup {
     check_screen 'make-chromium-faster', 10;
     if (match_has_tag 'make-chromium-faster') {
-        wait_screen_change(sub { click_lastmatch },
+        wait_screen_change(sub {
+                click_lastmatch;
+
+                # Ensure we have the focus, in some scenarios chromium may lose it
+                assert_and_click 'chromium-main-window';
+
+            },
             5);
         return 1;
     }
