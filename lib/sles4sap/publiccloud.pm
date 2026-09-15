@@ -1112,7 +1112,15 @@ sub create_playbook_section_list {
         push @reg_args, "-e reg_code=$args{scc_code} -e email_address=''";
         push @reg_args, '-e use_suseconnect=true' if ($args{registration} eq 'suseconnect');
         push @reg_args, qesap_ansible_reg_module(reg => $args{ltss}) if ($args{ltss});
-        push @reg_args, get_var('REG_ARGS') if get_var('REG_ARGS');
+
+        if (get_var('SLES4SAP_FORCE_FLAVOR')) {
+            # FLAVOR is something like 'Hansr-Gcp-Byos' or 'Hanasr-Aws-Payg',
+            # but is_flavor expects exactly 'BYOS' or 'PAYG'. Extract it from
+            # anywhere in the string; a FLAVOR containing both is ambiguous and invalid.
+            my @is_flavor = uc(get_required_var('FLAVOR')) =~ /(BYOS|PAYG)/g;
+            die "FLAVOR '" . get_var('FLAVOR') . "' must contain exactly one of BYOS or PAYG" unless (scalar(@is_flavor) == 1);
+            push @reg_args, "-e is_flavor=$is_flavor[0]";
+        }
         # Add registration module as first element
         push @playbook_list, join(' ', @reg_args);
     }

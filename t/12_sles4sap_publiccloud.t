@@ -216,8 +216,8 @@ subtest "[deployment_cleanup] SUPPORTCONFIG=0 => never collect, even on FAIL" =>
 
     my $ret = $self->deployment_cleanup();
 
-    set_var('SUPPORTCONFIG', undef);
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    set_var('SUPPORTCONFIG', undef);
 
     ok($ret eq 0, "Cleanup returns 0");
     is($support_calls, 0, "supportconfig logs NOT collected when SUPPORTCONFIG=0 even on FAIL");
@@ -245,8 +245,8 @@ subtest "[deployment_cleanup] SUPPORTCONFIG=1 => always collect (PASS case)" => 
 
     my $ret = $self->deployment_cleanup();
 
-    set_var('SUPPORTCONFIG', undef);
     set_var('PUBLIC_CLOUD_PROVIDER', undef);
+    set_var('SUPPORTCONFIG', undef);
 
     ok($ret eq 0, "Cleanup returns 0");
     is($support_calls, 1, "supportconfig logs collected when SUPPORTCONFIG=1 (PASS case)");
@@ -942,6 +942,25 @@ subtest '[create_playbook_section_list] scc_code' => sub {
     note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
     ok((any { /.*registration\.yaml.*reg_code=Magellano/ } @$ansible_playbooks), 'registration playbook is called with reg code from scc_code');
     ok((any { /.*sap-hana-preconfigure\.yaml.*use_sapconf=Colombo/ } @$ansible_playbooks), 'pre-cluster playbook is called with use_sapconf from USE_SAPCONF');
+};
+
+
+subtest '[create_playbook_section_list] is_flavor' => sub {
+    set_var('SLES4SAP_FORCE_FLAVOR', '1');
+    set_var('FLAVOR', 'Hanasr-Gcp-Byos');
+    my $ansible_playbooks = create_playbook_section_list(scc_code => 'Magellano');
+    set_var('SLES4SAP_FORCE_FLAVOR', undef);
+    set_var('FLAVOR', undef);
+    note("\n  -->  " . join("\n  -->  ", @$ansible_playbooks));
+    ok((any { /.*registration\.yaml.*is_flavor=BYOS/ } @$ansible_playbooks), 'registration playbook is called with is_flavor extracted from FLAVOR');
+};
+
+subtest '[create_playbook_section_list] is_flavor ambiguous FLAVOR dies' => sub {
+    set_var('SLES4SAP_FORCE_FLAVOR', '1');
+    set_var('FLAVOR', 'Hanasr-Byos-Payg');
+    dies_ok { create_playbook_section_list(scc_code => 'Magellano') } 'FLAVOR with both BYOS and PAYG is invalid';
+    set_var('SLES4SAP_FORCE_FLAVOR', undef);
+    set_var('FLAVOR', undef);
 };
 
 
