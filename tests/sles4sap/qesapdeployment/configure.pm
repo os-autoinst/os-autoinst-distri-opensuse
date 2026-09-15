@@ -156,9 +156,9 @@ The IP address of the IBSm server, used for repository redirection.
 
 The hostname of the repository server to redirect to the IBSm.
 
-=item B<REG_ARGS>
+=item B<QESAPDEPLOY_FORCE_FLAVOR>
 
-Additional registration arguments for the registration playbook.
+Force passing is_flavor to the register playbook, disabling instance-flavor-check.
 
 =back
 
@@ -224,7 +224,15 @@ sub run {
     $variables{REGISTRATION_PLAYBOOK} =~ s/\.yaml$//;
 
     my $reg_args;
-    $reg_args = "-e use_suseconnect=true " if (get_var('QESAPDEPLOY_USE_SUSECONNECT'));
+    if (get_var('QESAPDEPLOY_FORCE_FLAVOR')) {
+        # FLAVOR is something like 'Qesap-Gcp-Byos' or 'Qesap-Aws-Payg',
+        # but is_flavor expects exactly 'BYOS' or 'PAYG'. Extract it from
+        # anywhere in the string; a FLAVOR containing both is ambiguous and invalid.
+        my @is_flavor = uc(get_required_var('FLAVOR')) =~ /(BYOS|PAYG)/g;
+        die "FLAVOR '" . get_var('FLAVOR') . "' must contain exactly one of BYOS or PAYG" unless (scalar(@is_flavor) == 1);
+        $reg_args = "-e is_flavor=$is_flavor[0] ";
+    }
+    $reg_args .= '-e use_suseconnect=true ' if (get_var('QESAPDEPLOY_USE_SUSECONNECT'));
     my @addons = split(/,/, get_var('SCC_ADDONS', ''));
     # This implementation has a known limitation
     # if SCC_ADDONS has two or more elements (like "ltss,ltss_es")
