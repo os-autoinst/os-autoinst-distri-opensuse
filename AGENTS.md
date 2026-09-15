@@ -12,3 +12,4 @@
 - LLM Attribution Standard:
   - Any work produced with LLM tool assistance MUST include an `Assisted-by:` trailer in the commit message metadata (e.g., `Assisted-by: Qwen3-4B`). Include one line per model involved.
   - Agents MUST NOT add `Signed-off-by:` or `Co-authored-by:` trailers, these are strictly reserved for human contributors.
+- Atomic Commits: Agents MUST NOT bundle unrelated changes into a single commit. If a change touches a file or component unrelated to the main change, split it into its own atomic commit, per `CONTRIBUTING.md`.
