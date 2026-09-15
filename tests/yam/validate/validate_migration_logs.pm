@@ -14,7 +14,7 @@ use Utils::Architectures;
 sub run {
     if (is_s390x()) {
         record_soft_failure('bsc#1259353 - Failed to log in root after migration from 15sp{5-7} to sles16.1 on s390x kvm');
-        sleep 120;
+        sleep 240;
     }
     select_console 'root-console';
 
