@@ -93,6 +93,9 @@ use constant {
     ZYPPER_LOG => '/var/log/zypper.log',
     TRANSACTIONAL_LOG => '/var/log/transactional-update.log',
 
+    # Seconds libzypp waits for the system lock before giving up (poo#206763).
+    ZYPP_LOCK_TIMEOUT => 300,
+
     # Bounded budget for actively waiting out an EXIT_LOCKED holder in
     # _retry_loop(), instead of blindly sleep()ing DEFAULT_DELAY and
     # retrying straight back into the same lock (~120s ceiling).
@@ -241,7 +244,7 @@ Options (all optional):
 sub pc_zypper_call {
     my ($instance, $cmd, %opts) = _normalize_call_args(@_);
     _validate_args($cmd, \%opts);
-    return _run($instance, "sudo zypper -n $cmd", %opts, _kind => 'zypper');
+    return _run($instance, _sudo_env("zypper -n $cmd"), %opts, _kind => 'zypper');
 }
 
 =head2 pc_transactional_call
@@ -265,7 +268,7 @@ sub pc_transactional_call {
     $opts{exitcode} //= [EXIT_OK, EXIT_REBOOT_NEEDED, EXIT_REBOOT_SCHED];
     my $no_reboot = delete $opts{no_reboot};
 
-    my $ret = _run($instance, "sudo transactional-update -n $cmd", %opts, _kind => 'transactional');
+    my $ret = _run($instance, _sudo_env("transactional-update -n $cmd"), %opts, _kind => 'transactional');
 
     if (!$no_reboot && grep { $_ == $ret } @{$opts{exitcode}}) {
         $instance->softreboot(timeout => get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600));
@@ -328,7 +331,7 @@ sub pc_add_repo {
     my ($instance, $name, $url, %opts) = @_;
     my $timeout = $opts{timeout} // 600;
     $instance->ssh_assert_script_run(
-        cmd => "sudo zypper -n addrepo -fG $url $name",
+        cmd => _sudo_env("zypper -n addrepo -fG $url $name"),
         timeout => $timeout,
     );
 }
@@ -462,6 +465,12 @@ sub pc_install_packages_local {
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+# Prefix a sudo command with the ZYPP_LOCK_TIMEOUT env wait (poo#206763).
+sub _sudo_env {
+    my ($cmd) = @_;
+    return 'sudo env ZYPP_LOCK_TIMEOUT=' . ZYPP_LOCK_TIMEOUT . " $cmd";
+}
 
 # Accept any of:
 #   func($instance, "cmd", retry => 3)             positional cmd

@@ -34,6 +34,8 @@ use publiccloud::zypper qw(
   EXIT_TIMEOUT_KILLED
 );
 
+my $T = publiccloud::zypper::ZYPP_LOCK_TIMEOUT;
+
 # ---------------------------------------------------------------------------
 # Pure helpers: _shell_quote
 # ---------------------------------------------------------------------------
@@ -194,7 +196,7 @@ subtest '[pc_zypper_call] prefixes sudo zypper -n' => sub {
 
     pc_zypper_call($inst, 'ref');
 
-    is($captured, 'sudo zypper -n ref', 'command wrapped with sudo zypper -n');
+    is($captured, "sudo env ZYPP_LOCK_TIMEOUT=$T zypper -n ref", 'command wrapped with sudo env ZYPP_LOCK_TIMEOUT zypper -n');
 };
 
 # ---------------------------------------------------------------------------
@@ -234,7 +236,7 @@ subtest '[pc_zypper_call] _handle_transient_failure EXIT_TIMEOUT / EXIT_TIMEOUT_
         my $inst = _instance_mock(run_rc => [$code, 0]);
         my $ret = pc_zypper_call($inst, 'ref', retry => 2, delay => 0);
         is($ret, 0, "exit $code is retried and the retry succeeds");
-        my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n ref' } @{$inst->{calls}};
+        my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq "sudo env ZYPP_LOCK_TIMEOUT=$T zypper -n ref" } @{$inst->{calls}};
         is(scalar @attempts, 2, "exactly 2 attempts made for exit $code (no premature die)");
     }
 };
@@ -246,7 +248,7 @@ subtest '[pc_zypper_call] _handle_transient_failure EXIT_TIMEOUT dies once retri
     throws_ok { pc_zypper_call($inst, 'ref', retry => 2, delay => 0) }
     qr/failed with code: @{[EXIT_TIMEOUT]}/,
       'still dies with the timeout exit code once every retry has been used up';
-    my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n ref' } @{$inst->{calls}};
+    my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq "sudo env ZYPP_LOCK_TIMEOUT=$T zypper -n ref" } @{$inst->{calls}};
     is(scalar @attempts, 2, 'used all configured retries before giving up');
 };
 
@@ -267,7 +269,7 @@ subtest '[pc_add_repo] uses ssh_assert_script_run' => sub {
     pc_add_repo($inst, 'myrepo', 'http://example.com/repo', timeout => 123);
     my ($call) = grep { $_->{m} eq 'assert' } @{$inst->{calls}};
     ok($call, 'ssh_assert_script_run invoked');
-    is($call->{cmd}, 'sudo zypper -n addrepo -fG http://example.com/repo myrepo', 'addrepo command composed');
+    is($call->{cmd}, "sudo env ZYPP_LOCK_TIMEOUT=$T zypper -n addrepo -fG http://example.com/repo myrepo", 'addrepo command composed');
     is($call->{timeout}, 123, 'timeout forwarded');
 };
 
@@ -308,7 +310,7 @@ subtest '[pc_pkg_call] _handle_transient_failure EXIT_REPOS_SKIPPED (106) fails 
     throws_ok { pc_pkg_call($inst, 'in -y docker', retry => 3, delay => 0) }
     qr/failed with code: 106.*poo#204057/s,
       'dies with a poo#204057 pointer instead of silently retrying (not enough evidence yet it is safe to mask)';
-    my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq 'sudo zypper -n in -y docker' } @{$inst->{calls}};
+    my @attempts = grep { $_->{m} eq 'run' && $_->{cmd} eq "sudo env ZYPP_LOCK_TIMEOUT=$T zypper -n in -y docker" } @{$inst->{calls}};
     is(scalar @attempts, 1, 'only the first attempt was made -- no retry');
 };
 
@@ -546,7 +548,7 @@ subtest '[pc_transactional_call] transactional-update lock message triggers a re
     my $ret = pc_transactional_call($inst, 'up', retry => 2, delay => 0);
 
     is($ret, 0, 'retries when the log confirms a lock, then succeeds');
-    my @attempts = grep { $_->{m} eq 'run' && ($_->{cmd} // '') eq 'sudo transactional-update -n up' } @{$inst->{calls}};
+    my @attempts = grep { $_->{m} eq 'run' && ($_->{cmd} // '') eq "sudo env ZYPP_LOCK_TIMEOUT=$T transactional-update -n up" } @{$inst->{calls}};
     is(scalar @attempts, 2, 'exactly 2 attempts made (retried once)');
 
     # The lock-detection grep must target transactional-update.log and cover
@@ -567,7 +569,7 @@ subtest '[pc_transactional_call] transactional-update failure without a lock mes
 
     throws_ok { pc_transactional_call($inst, 'up', retry => 3, delay => 0) }
     qr/failed with code: 1/, 'a genuine transactional-update failure dies';
-    my @attempts = grep { $_->{m} eq 'run' && ($_->{cmd} // '') eq 'sudo transactional-update -n up' } @{$inst->{calls}};
+    my @attempts = grep { $_->{m} eq 'run' && ($_->{cmd} // '') eq "sudo env ZYPP_LOCK_TIMEOUT=$T transactional-update -n up" } @{$inst->{calls}};
     is(scalar @attempts, 1, 'only the first attempt was made -- no retry');
 };
 
@@ -581,7 +583,7 @@ subtest '[pc_zypper_call] EXIT_LOCKED (zypp lock) is retried' => sub {
     my $ret = pc_zypper_call($inst, 'ref', retry => 2, delay => 0);
 
     is($ret, 0, 'EXIT_LOCKED is retried and the retry succeeds');
-    my @attempts = grep { $_->{m} eq 'run' && ($_->{cmd} // '') eq 'sudo zypper -n ref' } @{$inst->{calls}};
+    my @attempts = grep { $_->{m} eq 'run' && ($_->{cmd} // '') eq "sudo env ZYPP_LOCK_TIMEOUT=$T zypper -n ref" } @{$inst->{calls}};
     is(scalar @attempts, 2, 'exactly 2 attempts made (retried once)');
 };
 
