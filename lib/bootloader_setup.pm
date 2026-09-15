@@ -1143,7 +1143,10 @@ sub tianocore_enter_menu {
         sleep 0.1;
     }
     if (check_screen('tianocore-bootmenu')) {
-        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+        # The boot device list has one entry per boot option, so its length
+        # differs per machine. The menu wraps around, so walking it with the
+        # default step count is safe.
+        send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down');
         send_key "ret";
     }
 }
@@ -1165,7 +1168,7 @@ sub tianocore_disable_secureboot {
     while (!check_screen('tianocore-mainmenu')) {
         wait_still_screen();
         if (check_screen('tianocore-bootmenu')) {
-            send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down', 6, 1);
+            send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down');
             send_key "ret";
         }
     }
