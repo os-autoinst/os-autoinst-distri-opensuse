@@ -36,7 +36,7 @@ sub run {
     assert_script_run(qq{echo "\$(cnf $not_installed_pkg 2>&1 | tee /dev/stderr)" | grep -q "sudo zypper install $not_installed_pkg"});
     save_screenshot;
 
-    if (is_sle('15+')) {
+    if (is_sle('15+') && is_sle('<16')) {
         # test if cnf works for non-registered modules
         assert_script_run "! rpm -q evince";    # evince is in desktop module
         assert_script_run(qq{echo "\$(cnf evince 2>&1 | tee /dev/stderr)" | grep -q "The program 'evince' can be found in following packages"});
