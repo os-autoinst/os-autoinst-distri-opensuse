@@ -53,9 +53,9 @@ sub run {
     # Complete
     assert_and_click 'aeon-firstboot-complete';
 
-    # Wait until the Aeon Welcome message appears
+    # Wait until the overview with the Aeon Welcome message appears
     assert_screen 'aeon-firstboot-applications-1', 600;
-    assert_and_click 'aeon-firstboot-applications-1';
+    send_key 'esc';
 
     # Click Customize
     assert_and_click 'aeon-firstboot-applications-2';
