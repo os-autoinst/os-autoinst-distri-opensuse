@@ -13,7 +13,6 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use utils;
 use publiccloud::ssh_interactive qw(ssh_interactive_tunnel);
-use publiccloud::utils qw(ssh_allow_openqa_port_selinux);
 use version_utils;
 use Utils::Systemd qw(systemctl);
 
@@ -26,13 +25,6 @@ sub run {
     # the tty. tty5 (log-console) is rarely used during a passing run, so it's
     # especially prone to this - see poo#204498.
     select_serial_terminal();
-
-    # Allow openQA on instances where SELinux is in enforcing state by default. Done here,
-    # before the interactive tunnel is established (poo#207027/#206808), addressed directly
-    # via $instance so any reboot it triggers takes softreboot()'s simple untunneled path
-    # instead of the tunneled leave/reconnect dance.
-    ssh_allow_openqa_port_selinux($args->{my_instance}) if (is_public_cloud && is_sle_micro(">=5.4"));
-
     systemctl("restart getty\@tty$_.service", timeout => 60) for (2 .. 5);
 
     # Initialize ssh tunnel for the serial device, if not yet happened
