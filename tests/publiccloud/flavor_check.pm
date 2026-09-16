@@ -18,7 +18,7 @@ my $log_path = '/var/log/instance_billing_flavor_check';
 sub run {
     select_serial_terminal;
 
-    zypper_call('in python-instance-billing-flavor-check') if (script_run('which python-instance-billing-flavor-check') != 0);
+    zypper_call('in python-instance-billing-flavor-check') if (script_run('which instance-flavor-check') != 0);
 
     record_info('SMT record', script_output('grep -i smt /etc/hosts'));
 
