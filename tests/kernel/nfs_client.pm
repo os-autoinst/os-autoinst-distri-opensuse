@@ -12,6 +12,7 @@ use serial_terminal "select_serial_terminal";
 use lockapi;
 use utils;
 use package_utils 'install_package';
+use Kernel::nfs;
 
 sub copy_file {
     my ($flag, $nfs_mount, $file) = @_;
@@ -79,6 +80,7 @@ sub post_fail_hook {
     my ($self) = @_;
     $self->destroy_test_barriers();
     select_serial_terminal;
+    dump_nfs_kconfig();
 }
 
 1;

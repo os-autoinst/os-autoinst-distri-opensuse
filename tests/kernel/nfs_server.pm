@@ -104,6 +104,7 @@ sub post_fail_hook {
     $self->destroy_test_barriers();
     select_serial_terminal;
     export_logs_basic;
+    dump_nfs_kconfig();
 }
 
 1;
