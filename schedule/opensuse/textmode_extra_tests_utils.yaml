@@ -56,7 +56,7 @@ schedule:
     - console/gpg
     - console/rsync
     - console/shells
-    - console/sudo
+    - console/oqa_agnostic/sudo_agnostic
     - console/dstat
     - console/pciutils
     - console/mdadm
