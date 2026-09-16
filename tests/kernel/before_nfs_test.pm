@@ -41,7 +41,7 @@ sub run {
 
     select_serial_terminal;
     systemctl 'stop ' . $self->firewall;
-    set_hostname(get_var("HOSTNAME", "susetest"));
+    set_hostname(get_var("HOSTNAME", "susetest"), restart_network => 1);
 
     prepare_bond if get_var('NFS_BOND') == "1";
     barrier_wait("NFS_BEFORE_TEST_DONE");
