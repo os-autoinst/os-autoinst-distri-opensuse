@@ -92,7 +92,7 @@ sub load_maintenance_publiccloud_tests {
         } elsif ($smoketest) {
             # flavor_check is concentrated on checking things which make sense only for image which is registered
             # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
-            loadtest "publiccloud/flavor_check" if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
+            loadtest "publiccloud/flavor_check" if (!check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
             loadtest "publiccloud/sev" if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
             loadtest "publiccloud/xen" if (get_var('PUBLIC_CLOUD_XEN'));
             loadtest "publiccloud/hardened" if is_hardened;
@@ -193,7 +193,7 @@ sub load_latest_publiccloud_tests {
                 } elsif ($smoketest) {
                     # flavor_check is concentrated on checking things which make sense only for image which is registered
                     # against internal Public Cloud infra, so whenever we using SUSEConnect whole module does not make much sense
-                    loadtest "publiccloud/flavor_check", run_args => $args if (is_ec2() && !check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
+                    loadtest "publiccloud/flavor_check", run_args => $args if (!check_var('PUBLIC_CLOUD_SCC_ENDPOINT', 'SUSEConnect'));
                     loadtest "publiccloud/sev", run_args => $args if (get_var('PUBLIC_CLOUD_CONFIDENTIAL_VM'));
                     loadtest "publiccloud/xen", run_args => $args if (get_var('PUBLIC_CLOUD_XEN'));
                 } elsif (get_var('PUBLIC_CLOUD_XFS')) {
