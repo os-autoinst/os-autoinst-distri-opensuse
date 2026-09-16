@@ -1,4 +1,4 @@
-# Copyright 2019-2021 SUSE LLC
+# Copyright SUSE LLC
 # SPDX-License-Identifier: GPL-2.0-or-later
 #
 # Summary: Test IMA appraisal using hashes
@@ -22,7 +22,7 @@ sub run {
     my $sample_cmd = 'yes --version';
 
     my ($kver) = script_output('uname -r') =~ /(\d+\.\d+)\.\d+-*/;
-    assert_script_run "echo $kver";
+    record_info('Kernel version', $kver);
     my $tcb_cmdline = ($kver lt 4.13) ? 'ima_appraise_tcb' : 'ima_policy=appraise_tcb';
 
     add_grub_cmdline_settings("ima_appraise=fix $tcb_cmdline", update_grub => 1);
