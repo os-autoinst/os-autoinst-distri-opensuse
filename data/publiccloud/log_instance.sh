@@ -64,11 +64,17 @@ gce_start_log()
 
 gce_stop_log()
 {
-    # Use flock to wait max 60s that gce_read_serial() is ready. And kill during
-    # the 30s sleep afterwards. If flock fail, just kill the bg process.
-    (flock -w 60 -e 9 || exit 1
-        gce_is_running && kill -9 "$(< "$PID_FILE" )"
-        rm "$PID_FILE"
+    # Use flock to wait max 60s that gce_read_serial() is ready, then kill
+    # during the 30s sleep afterwards. Serial logging is best-effort
+    # diagnostics: if the lock cannot be acquired in time, warn and kill the
+    # logger without it rather than failing the caller's VM reset.
+    (
+        flock -w 60 -e 9 ||
+            echo "WARNING: timed out waiting for serial log lock (${LOCK}), killing logger without it" >&2
+        if gce_is_running; then
+            kill -9 "$(< "$PID_FILE")" || true
+        fi
+        rm -f "$PID_FILE"
     ) 9> "${LOCK}"
 }
 
