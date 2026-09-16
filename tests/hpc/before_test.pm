@@ -24,7 +24,7 @@ sub run ($self) {
 
     $self->provision_cluster();
 
-    set_hostname(get_var('HOSTNAME', 'susetest'));
+    set_hostname(get_var('HOSTNAME', 'susetest'), restart_network => 1);
 
     if (get_var('HPC_REPO')) {
         my $repo = get_var('HPC_REPO');
