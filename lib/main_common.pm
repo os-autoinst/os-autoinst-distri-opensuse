@@ -2872,6 +2872,7 @@ sub load_extra_tests_kernel {
 
     # keep it on the latest place as it taints kernel
     loadtest "kernel/module_build";
+    loadtest "kernel/magic_sysrq";
 }
 
 # Scheduling set for validation of specific installation
