@@ -18,15 +18,12 @@ use Kernel::nfs;
 sub compare_checksums {
     my ($file) = @_;
 
-    assert_script_run("md5sum $file > new_md5sum.txt");
-    record_info("$file: checksum", script_output("cat new_md5sum.txt"));
+    my ($expected_md5) = split(/\s+/, script_output("cat md5sum.txt"));
+    my ($actual_md5) = split(/\s+/, script_output("md5sum $file"));
 
-    my $md5 = script_output("cut -d ' ' -f1 md5sum.txt");
-    my $new_md5 = script_output("cut -d ' ' -f1 new_md5sum.txt");
+    record_info("$file: checksum", "expected $expected_md5, got $actual_md5");
 
-    record_info("Checksums md5 $md5 newMd5: $new_md5");
-
-    die "checksums differ $md5 : $new_md5" unless ($md5 eq $new_md5);
+    die "checksums differ $expected_md5 : $actual_md5" unless ($actual_md5 eq $expected_md5);
 }
 
 sub run {
