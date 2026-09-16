@@ -316,6 +316,43 @@ subtest '[register_addons_in_pc] discriminates the no-enabled-repos cause' => su
     _unset(qw/SCC_ADDONS/);
 };
 
+subtest '[ssh_allow_openqa_port_selinux] addresses $instance directly, not the current console' => sub {
+    # poo#207027/#206808: must not depend on any interactive console, so it can run before
+    # the interactive ssh tunnel exists and any reboot it triggers takes softreboot()'s
+    # simple untunneled path instead of the fragile tunneled leave/reconnect dance.
+    my $zypper = Test::MockModule->new('publiccloud::zypper', no_auto => 1);
+    my @zypper_calls;
+    $zypper->redefine(pc_pkg_call => sub {
+            my (undef, $cmd) = @_;
+            push @zypper_calls, $cmd;
+            return 0;
+    });
+    my $utils = Test::MockModule->new('publiccloud::utils', no_auto => 1);
+    $utils->redefine(is_transactional => sub { 1 });
+    set_var('QEMUPORT', 20222);
+
+    my @instance_calls;
+    my $inst = Test::MockObject->new;
+    $inst->mock(ssh_assert_script_run => sub { my (undef, $cmd) = @_; push @instance_calls, $cmd; return 0; });
+    $inst->mock(softreboot => sub { push @instance_calls, 'softreboot' });
+
+    ssh_allow_openqa_port_selinux($inst);
+
+    is(scalar @zypper_calls, 1, 'installs the semanage package via pc_pkg_call (instance-addressed, transactional-aware)');
+    like($zypper_calls[0], qr/in policycoreutils-python-utils/, 'installs policycoreutils-python-utils');
+    ok((grep { /^sudo semanage port -a -t ssh_port_t -p tcp 20223$/ } @instance_calls), 'labels QEMUPORT+1 via $instance->ssh_assert_script_run, with sudo');
+    is((grep { $_ eq 'softreboot' } @instance_calls), 1, 'reboots once (on top of pc_pkg_call\'s own reboot) on a transactional system');
+
+    # idempotent: a second call must not repeat any of the work
+    @zypper_calls = ();
+    @instance_calls = ();
+    ssh_allow_openqa_port_selinux($inst);
+    is(scalar @zypper_calls, 0, 'second call is a no-op (package already installed/port already allowed)');
+    is(scalar @instance_calls, 0, 'second call does not touch the instance again');
+
+    _unset(qw/QEMUPORT/);
+};
+
 subtest '[calculate_custodian_ttl] ISO 8601 with offset' => sub {
     my $res = calculate_custodian_ttl(3600);
     like($res, qr{^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$}, 'ISO 8601 Z format');

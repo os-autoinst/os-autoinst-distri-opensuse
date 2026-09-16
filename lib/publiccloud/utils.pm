@@ -58,6 +58,7 @@ our @EXPORT = qw(
   prepare_ssh_tunnel
   add_additional_authorized_keys
   allow_openqa_port_selinux
+  ssh_allow_openqa_port_selinux
   ssh_update_transactional_system
   create_script_file
   install_in_venv
@@ -505,6 +506,44 @@ sub allow_openqa_port_selinux {
     assert_script_run("semanage port -a -t ssh_port_t -p tcp $upload_port");
     process_reboot(trigger => 1) if (is_transactional);
     $openqa_port_allowed = 1;
+}
+
+# Indicating if the openQA port has been already allowed via SELinux policies, for
+# ssh_allow_openqa_port_selinux() -- kept separate from $openqa_port_allowed since this
+# is a distinct call site with its own lifecycle.
+my $ssh_openqa_port_allowed = 0;
+
+=head2 ssh_allow_openqa_port_selinux
+
+    ssh_allow_openqa_port_selinux($instance);
+
+Same purpose as C<allow_openqa_port_selinux> (allow the reverse-tunnel/upload port through
+SELinux's C<ssh_port_t> restriction on SLE Micro), but addressed explicitly via C<$instance>'s
+SSH methods instead of relying on a currently-selected interactive console. This lets it run
+*before* the interactive ssh tunnel is established (poo#207027/#206808): any reboot it triggers
+then takes C<softreboot()>'s simple, untunneled path instead of the tunneled leave/reconnect
+dance, which the interactive tunnel needs but is fragile around reboots.
+
+Exclusively for C<ssh_interactive_start.pm>; C<enable_selinux.pm> keeps using the
+console-based C<allow_openqa_port_selinux> unchanged.
+
+=cut
+
+sub ssh_allow_openqa_port_selinux {
+    my ($instance) = @_;
+    # not needed to perform multiple times, also semanage would fail.
+    return if ($ssh_openqa_port_allowed);
+
+    # Additional packages required for semanage. pc_pkg_call dispatches to pc_transactional_call
+    # (which reboots right away, needed since semanage isn't usable until then) on transactional
+    # systems, or a plain zypper install otherwise -- unlike pc_transactional_call directly, this
+    # keeps the function usable on non-transactional publiccloud images too.
+    publiccloud::zypper::pc_pkg_call($instance, 'in policycoreutils-python-utils');
+    # allow ssh tunnel port (to openQA)
+    my $upload_port = get_required_var('QEMUPORT') + 1;
+    $instance->ssh_assert_script_run("sudo semanage port -a -t ssh_port_t -p tcp $upload_port");
+    $instance->softreboot() if (is_transactional);
+    $ssh_openqa_port_allowed = 1;
 }
 
 
