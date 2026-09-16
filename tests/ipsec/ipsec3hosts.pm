@@ -327,7 +327,7 @@ sub pre_run_hook {
     quit_packagekit();
     ensure_service_disabled('apparmor');
     ensure_service_disabled($self->firewall);
-    set_hostname(get_var('HOSTNAME', 'susetest'));
+    set_hostname(get_var('HOSTNAME', 'susetest'), restart_network => 1);
 
     install_package('tcpdump', trup_apply => 1);
 }
