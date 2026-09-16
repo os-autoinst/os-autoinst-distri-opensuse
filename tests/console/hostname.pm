@@ -21,7 +21,7 @@ sub run {
         file_content_replace('/etc/sysconfig/network/dhcp', 'DHCLIENT_SET_HOSTNAME="yes"' => 'DHCLIENT_SET_HOSTNAME="no"');
     }
 
-    set_hostname(get_var('HOSTNAME', 'susetest'));
+    set_hostname(get_var('HOSTNAME', 'susetest'), restart_network => check_var('HOSTNAME_RESTART_NETWORK', '1'));
 }
 
 sub test_flags {
