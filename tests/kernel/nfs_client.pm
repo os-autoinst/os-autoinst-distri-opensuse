@@ -19,6 +19,21 @@ sub copy_file {
     assert_script_run("dd oflag=$flag if=testfile of=$nfs_mount/$file bs=1024 count=10240");
 }
 
+sub mount_nfs {
+    my ($mountpoint, $server_node, $export, $version, @opts) = @_;
+    my $nfs_opts = join(',', "vers=$version", @opts);
+    my $cmd = "mount -t nfs -o $nfs_opts $server_node:$export $mountpoint";
+
+    my $rc = script_run($cmd);
+    return if defined $rc && $rc == 0;
+
+    my $output = script_output($cmd, proceed_on_failure => 1);
+    record_info('Mount failed', "$cmd\n$output", result => 'fail');
+    die "NFSv$version mount failed - the client kernel or product likely doesn't support this "
+      . "version. Exclude it via NFS_VERSIONS, or check the 'Mount failed' and 'NFS kconfig' "
+      . "entries above for the actual reason.";
+}
+
 sub run {
     select_serial_terminal();
     record_info("hostname", script_output("hostname"));
@@ -51,8 +66,8 @@ sub run {
         my $cfg = $mount_map{$version};
 
         assert_script_run("mkdir -p $cfg->{local_sync} $cfg->{local_async}");
-        assert_script_run("mount -t nfs -o vers=$version,sync $server_node:$cfg->{export_sync} $cfg->{local_sync}");
-        assert_script_run("mount -t nfs -o vers=$version $server_node:$cfg->{export_async} $cfg->{local_async}");
+        mount_nfs($cfg->{local_sync}, $server_node, $cfg->{export_sync}, $version, 'sync');
+        mount_nfs($cfg->{local_async}, $server_node, $cfg->{export_async}, $version);
     }
 
     barrier_wait("NFS_CLIENT_ENABLED");
