@@ -35,7 +35,7 @@ schedule:
   - ha/check_hae_active.py
   - console/consoletest_setup
   - console/check_os_release
-  - console/hostname
+  - console/hostname_restart
   - ha/ha_sle15_workarounds
   - ha/firewall_disable
   - ha/iscsi_client_setup

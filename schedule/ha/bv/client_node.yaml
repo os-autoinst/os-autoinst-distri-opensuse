@@ -35,7 +35,7 @@ schedule:
   - boot/boot_to_desktop
   - console/system_prepare
   - console/consoletest_setup
-  - console/hostname
+  - console/hostname_restart
   - '{{ctdb}}'
   - '{{hawk}}'
   - '{{cts}}'

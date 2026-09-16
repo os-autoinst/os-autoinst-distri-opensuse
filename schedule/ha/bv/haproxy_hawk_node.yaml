@@ -45,7 +45,7 @@ schedule:
   - console/system_prepare
   - console/consoletest_setup
   - console/check_os_release
-  - console/hostname
+  - console/hostname_restart
   - ha/firewall_disable
   - ha/iscsi_client_setup
   - ha/watchdog

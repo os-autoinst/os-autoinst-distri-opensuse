@@ -14,7 +14,7 @@ schedule:
   - '{{patch_and_reboot}}'
   - console/consoletest_setup
   - console/check_os_release
-  - console/hostname
+  - console/hostname_restart
   - sles4sap/patterns
   - '{{single_node_testcase}}'
   - '{{multi_node_testcase}}'
