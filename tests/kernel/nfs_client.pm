@@ -25,82 +25,47 @@ sub run {
 
     install_package('nfs-client', trup_apply => 1);
 
-    my $nfs_mount_nfs3 = get_var('NFS_MOUNT_NFS3', '/var/lib/nfs-tests/shared_nfs3');
-    my $nfs_mount_nfs3_async = get_var('NFS_MOUNT_NFS3_ASYNC', '/var/lib/nfs-tests/shared_nfs3_async');
-    my $nfs_mount_nfs4 = get_var('NFS_MOUNT_NFS4', '/var/lib/nfs-tests/shared_nfs4');
-    my $nfs_mount_nfs4_async = get_var('NFS_MOUNT_NFS4_ASYNC', '/var/lib/nfs-tests/shared_nfs4_async');
-    my $local_nfs3 = get_var('NFS_LOCAL_NFS3', '/var/lib/nfs-tests/localNFS3');
-    my $local_nfs3_async = get_var('NFS_LOCAL_NFS3_ASYNC', '/var/lib/nfs-tests/localNFS3async');
-    my $local_nfs4 = get_var('NFS_LOCAL_NFS4', '/var/lib/nfs-tests/localNFS4');
-    my $local_nfs4_async = get_var('NFS_LOCAL_NFS4_ASYNC', '/var/lib/nfs-tests/localNFS4async');
-    my $multipath = get_var('NFS_MULTIPATH', '0');
+    my $nfs_versions = get_var_array('NFS_VERSIONS', '3,4.0,4.1,4.2');
 
-    # check kernel config options and set the variables
-    my $kernel_nfs3 = 0;
-    my $kernel_nfs4 = 0;
-    my $kernel_nfs4_1 = 0;
-    my $kernel_nfs4_2 = 0;
-    my $kernel_nfsd_v3 = 0;
-    my $kernel_nfsd_v4 = 0;
+    # Every NFS version gets its own export/mount pair, so that concurrent
+    # writes from different NFSv4 minor-version mounts never collide.
+    my %mount_map;
+    for my $version (@$nfs_versions) {
+        (my $suffix = $version) =~ s/\./_/g;
+        $mount_map{$version} = {
+            export_sync => get_var("NFS_MOUNT_NFS$suffix", "/var/lib/nfs-tests/shared_nfs$suffix"),
+            export_async => get_var("NFS_MOUNT_NFS${suffix}_ASYNC", "/var/lib/nfs-tests/shared_nfs${suffix}_async"),
+            local_sync => get_var("NFS_LOCAL_NFS$suffix", "/var/lib/nfs-tests/localNFS$suffix"),
+            local_async => get_var("NFS_LOCAL_NFS${suffix}_ASYNC", "/var/lib/nfs-tests/localNFS${suffix}_async"),
+        };
+    }
 
-    $kernel_nfs3 = 1 unless script_run('zgrep "CONFIG_NFS_V3=[my]" /proc/config.gz');
-    $kernel_nfs4 = 1 unless script_run('zgrep "CONFIG_NFS_V4=[my]" /proc/config.gz');
-    $kernel_nfs4_1 = 1 unless script_run('zgrep "CONFIG_NFS_V4_1=[my]" /proc/config.gz');
-    $kernel_nfs4_2 = 1 unless script_run('zgrep "CONFIG_NFS_V4_2=[my]" /proc/config.gz');
-    $kernel_nfsd_v3 = 1 unless script_run('zgrep "CONFIG_NFSD=[my]" /proc/config.gz');
-    $kernel_nfsd_v4 = 1 unless script_run('zgrep "CONFIG_NFSD_V4=[my]" /proc/config.gz');
+    my @file_flags = qw(direct dsync sync);
 
     barrier_wait("NFS_SERVER_ENABLED");
     record_info("showmount", script_output("showmount -e $server_node"));
 
-    if ($kernel_nfs3 == 1) {
-        record_info('INFO', 'Kernel has support for NFSv3');
-        assert_script_run("mkdir -p $local_nfs3 $local_nfs3_async");
-        assert_script_run("mount -t nfs -o nfsvers=3,sync $server_node:$nfs_mount_nfs3 $local_nfs3");
-        assert_script_run("mount -t nfs -o nfsvers=3 $server_node:$nfs_mount_nfs3_async $local_nfs3_async");
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv3, skipping NFSv3 tests');
-    }
+    for my $version (@$nfs_versions) {
+        record_info('INFO', "Mounting NFSv$version");
+        my $cfg = $mount_map{$version};
 
-    if ($kernel_nfs4 == 1) {
-        record_info('INFO', 'Kernel has support for NFSv4');
-        assert_script_run("mkdir -p $local_nfs4 $local_nfs4_async");
-        assert_script_run("mount -t nfs -o nfsvers=4,sync $server_node:$nfs_mount_nfs4 $local_nfs4");
-        assert_script_run("mount -t nfs -o nfsvers=4 $server_node:$nfs_mount_nfs4_async $local_nfs4_async");
-    } else {
-        record_info('INFO', 'Kernel has no support for NFSv4, skipping NFSv4tests');
+        assert_script_run("mkdir -p $cfg->{local_sync} $cfg->{local_async}");
+        assert_script_run("mount -t nfs -o vers=$version,sync $server_node:$cfg->{export_sync} $cfg->{local_sync}");
+        assert_script_run("mount -t nfs -o vers=$version $server_node:$cfg->{export_async} $cfg->{local_async}");
     }
 
     barrier_wait("NFS_CLIENT_ENABLED");
 
-    #run basic checks - add a file to each folder and check for the checksum
-    #proper tests should come in the next modules
     assert_script_run("dd if=/dev/zero of=testfile bs=1024 count=10240");
     assert_script_run("md5sum testfile > md5sum.txt");
 
-    if ($kernel_nfs3 == 1) {
-        assert_script_run("cp testfile md5sum.txt $local_nfs3");
-        assert_script_run("cp testfile md5sum.txt $local_nfs3_async");
+    for my $version (@$nfs_versions) {
+        my $cfg = $mount_map{$version};
 
-        copy_file('direct', $local_nfs3, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs3, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs3, 'testfile_oflag_sync');
-
-        copy_file('direct', $local_nfs3_async, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs3_async, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs3_async, 'testfile_oflag_sync');
-    }
-    if ($kernel_nfs4 == 1) {
-        assert_script_run("cp testfile md5sum.txt $local_nfs4");
-        assert_script_run("cp testfile md5sum.txt $local_nfs4_async");
-
-        copy_file('direct', $local_nfs4, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs4, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs4, 'testfile_oflag_sync');
-
-        copy_file('direct', $local_nfs4_async, 'testfile_oflag_direct');
-        copy_file('dsync', $local_nfs4_async, 'testfile_oflag_dsync');
-        copy_file('sync', $local_nfs4_async, 'testfile_oflag_sync');
+        for my $local_dir ($cfg->{local_sync}, $cfg->{local_async}) {
+            assert_script_run("cp testfile md5sum.txt $local_dir");
+            copy_file($_, $local_dir, "testfile_oflag_$_") for @file_flags;
+        }
     }
 
     barrier_wait("NFS_SERVER_CHECK");
@@ -124,10 +89,14 @@ Provisions the NFS client node of the coordinated multi-machine NFS test.
 This module is designed to execute in lockstep with L<tests/kernel/nfs_server.pm>,
 synchronised at runtime via shared barriers.
 
-Installs C<nfs-client>, mounts the exports provided by the server (NFSv3 and
-NFSv4, sync and async variants, subject to kernel support), creates a 10 MiB
-test file with C<dd>, computes its md5 checksum, then copies it to every mount
-using C<cp> and C<dd> with C<direct>, C<dsync>, and C<sync> flags.
+Installs C<nfs-client> and mounts the exports provided by the server for
+every version in NFS_VERSIONS. No kernel-support pre-check is done: the
+mount command itself is the test, and fails the module if the client
+kernel or the requested version doesn't work. Creates a 10 MiB test file
+with C<dd>, computes its md5 checksum, then copies it to every mount
+using C<cp> and C<dd> with C<direct>, C<dsync>, and C<sync> flags. Every
+version gets its own export/mount pair, so that concurrent writes from
+different NFSv4 minor-version mounts never collide.
 
 =head1 Configuration
 
@@ -136,45 +105,33 @@ using C<cp> and C<dd> with C<direct>, C<dsync>, and C<sync> flags.
 Hostname or IP of the NFS server.
 Defaults to C<server-node00>.
 
-=head2 NFS_MOUNT_NFS3
+=head2 NFS_VERSIONS
 
-Server-side export path for the NFSv3 synchronous mount.
-Defaults to C</var/lib/nfs-tests/shared_nfs3>.
+NFS versions to mount and verify.
+Defaults to C<3,4.0,4.1,4.2>. Pass a narrower list here to exclude
+versions known not to work on the product under test (e.g. NFSv4.0 on
+current Tumbleweed) - the mount itself fails otherwise.
 
-=head2 NFS_MOUNT_NFS3_ASYNC
+=head2 NFS_MOUNT_NFS3, NFS_MOUNT_NFS4_0, NFS_MOUNT_NFS4_1, NFS_MOUNT_NFS4_2
 
-Server-side export path for the NFSv3 asynchronous mount.
-Defaults to C</var/lib/nfs-tests/shared_nfs3_async>.
+Server-side export path for the synchronous mount of the matching version
+(C<.> in the version replaced by C<_>, e.g. NFSv4.1 uses C<NFS_MOUNT_NFS4_1>).
+Defaults to C</var/lib/nfs-tests/shared_nfsVERSION>.
 
-=head2 NFS_MOUNT_NFS4
+=head2 NFS_MOUNT_NFS3_ASYNC, NFS_MOUNT_NFS4_0_ASYNC, NFS_MOUNT_NFS4_1_ASYNC, NFS_MOUNT_NFS4_2_ASYNC
 
-Server-side export path for the NFSv4 synchronous mount.
-Defaults to C</var/lib/nfs-tests/shared_nfs4>.
+Server-side export path for the asynchronous mount of the matching version.
+Defaults to C</var/lib/nfs-tests/shared_nfsVERSION_async>.
 
-=head2 NFS_MOUNT_NFS4_ASYNC
+=head2 NFS_LOCAL_NFS3, NFS_LOCAL_NFS4_0, NFS_LOCAL_NFS4_1, NFS_LOCAL_NFS4_2
 
-Server-side export path for the NFSv4 asynchronous mount.
-Defaults to C</var/lib/nfs-tests/shared_nfs4_async>.
+Local mountpoint for the synchronous export of the matching version.
+Defaults to C</var/lib/nfs-tests/localNFSVERSION>.
 
-=head2 NFS_LOCAL_NFS3
+=head2 NFS_LOCAL_NFS3_ASYNC, NFS_LOCAL_NFS4_0_ASYNC, NFS_LOCAL_NFS4_1_ASYNC, NFS_LOCAL_NFS4_2_ASYNC
 
-Local mountpoint for the NFSv3 synchronous export.
-Defaults to C</var/lib/nfs-tests/localNFS3>.
-
-=head2 NFS_LOCAL_NFS3_ASYNC
-
-Local mountpoint for the NFSv3 asynchronous export.
-Defaults to C</var/lib/nfs-tests/localNFS3async>.
-
-=head2 NFS_LOCAL_NFS4
-
-Local mountpoint for the NFSv4 synchronous export.
-Defaults to C</var/lib/nfs-tests/localNFS4>.
-
-=head2 NFS_LOCAL_NFS4_ASYNC
-
-Local mountpoint for the NFSv4 asynchronous export.
-Defaults to C</var/lib/nfs-tests/localNFS4async>.
+Local mountpoint for the asynchronous export of the matching version.
+Defaults to C</var/lib/nfs-tests/localNFSVERSION_async>.
 
 =head2 NFS_MULTIPATH
 
