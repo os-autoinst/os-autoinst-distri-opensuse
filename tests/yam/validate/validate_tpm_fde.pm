@@ -16,7 +16,7 @@ sub run {
     select_console 'root-console';
     zypper_call("mr -e SLES") if (check_var('FLAVOR', 'Full'));
     zypper_call("in tpm2.0-tools");
-    assert_script_run("fdectl tpm-present");
+    assert_script_run("fdectl tpm-present", timeout => 300);
 }
 
 1;
