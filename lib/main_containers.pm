@@ -114,11 +114,10 @@ sub load_secret_tests {
 sub load_image_tests_docker {
     my ($run_args) = @_;
     load_image_test($run_args);
-    # container_diff package is not avaiable for <=15 in aarch64
+    # container_diff provides additional debugging information but does not work on LTSS hosts
+    # and with containers that require login (i.e. LTSS containers)
     # Also, we don't want to run it on 3rd party hosts
-    unless ((is_sle("<=15") and is_aarch64) || get_var('CONTAINERS_NO_SUSE_OS') || is_staging) {
-        loadtest 'containers/container_diff';
-    }
+    loadtest 'containers/container_diff' unless (is_ltss || get_var('CONTAINERS_NO_SUSE_OS') || is_staging);
 }
 
 sub load_container_engine_privileged_mode {
