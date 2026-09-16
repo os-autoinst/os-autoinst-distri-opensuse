@@ -21,7 +21,9 @@ sub run {
         file_content_replace('/etc/sysconfig/network/dhcp', 'DHCLIENT_SET_HOSTNAME="yes"' => 'DHCLIENT_SET_HOSTNAME="no"');
     }
 
-    set_hostname(get_var('HOSTNAME', 'susetest'));
+    # Multi-machine tests need DHCP renewal to register the hostname with
+    # the support server's DNS so other nodes can resolve it.
+    set_hostname(get_var('HOSTNAME', 'susetest'), restart_network => check_var('NICTYPE', 'tap'));
 }
 
 sub test_flags {
