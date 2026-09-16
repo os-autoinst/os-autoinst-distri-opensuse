@@ -609,10 +609,17 @@ sub softreboot {
         select_console('tunnel-console', await_console => 0);
         ssh_interactive_leave();
         for (1 .. 5) {
-            last if (script_run(sprintf('ssh -O check %s@%s', $args{username}, $self->public_ip)) != 0);
-            script_run(sprintf('ssh -O exit %s@%s', $args{username}, $self->public_ip));
+            # A hung/unresponsive console here must not fatally abort the whole test (poo#207027):
+            # wrap 'ssh -O check' in a shell-level timeout (same pattern as _wrap_timeout above)
+            # so a stuck ControlMaster gets killed outright instead of being left running in the
+            # console's foreground; the eval stays as a last-resort safety net.
+            my $rc;
+            eval { $rc = script_run(sprintf('timeout -k 5 30 ssh -O check %s@%s', $args{username}, $self->public_ip), timeout => 40) };
+            last if ($@ || $rc != 0);
             sleep 5;
         }
+        # Always attempt a best-effort cleanup exit, regardless of what the checks above found.
+        eval { script_run(sprintf('timeout -k 5 30 ssh -O exit %s@%s', $args{username}, $self->public_ip), timeout => 40) };
     }
 
     # Let's go to host console (where we have the provider specific environment variables)
