@@ -10,7 +10,7 @@
 use Mojo::Base 'opensusebasetest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
-use Kernel::multimachine_topology qw(get_local_node get_peers get_interface get_network_by_id);
+use Kernel::multimachine_topology qw(get_local_node get_remote_nodes get_interface get_network_by_id);
 use Kernel::mikrotik_switch qw(add_vlan remove_vlan set_port_pvid);
 use Kernel::net_tests qw(add_ipv4_addr get_net_prefix_len);
 
@@ -21,7 +21,7 @@ sub set_vlan {
     # see run() below for why only one role ever calls this, to avoid two
     # concurrent jobs racing each other on the same REST calls.
     my @network_ports = map { get_interface($_, 0)->{switch_port} }
-      grep { get_interface($_, 0)->{network} eq $network->{id} } ($node, @{get_peers($node)});
+      grep { get_interface($_, 0)->{network} eq $network->{id} } ($node, @{get_remote_nodes($node)});
     my $untagged = join(',', @network_ports);
 
     my $vlan_id = $network->{vlan_id};

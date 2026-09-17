@@ -12,7 +12,7 @@ our @EXPORT_OK = qw(
   get_topology
   get_node_by_role
   get_local_node
-  get_peers
+  get_remote_nodes
   get_network_by_id
   get_interface
   require_field
@@ -183,20 +183,20 @@ sub get_local_node {
     return get_node_by_role($role);
 }
 
-=head2 get_peers
+=head2 get_remote_nodes
 
-  my $peers = get_peers('left');
-  my $peers = get_peers($node);
+  my $remote_nodes = get_remote_nodes('left');
+  my $remote_nodes = get_remote_nodes($node);
 
 Return an arrayref containing all nodes except the selected one.
 
 =cut
 
-sub get_peers {
+sub get_remote_nodes {
     my ($node_or_role) = @_;
     my $topology = get_topology();
     my $node = ref $node_or_role eq 'HASH' ? $node_or_role : get_node_by_role($node_or_role);
-    my $node_id = require_field($node->{id}, 'multimachine_topology node id missing while resolving peers');
+    my $node_id = require_field($node->{id}, 'multimachine_topology node id missing while resolving remote nodes');
 
     return [grep { $_->{id} ne $node_id } @{$topology->{nodes}}];
 }
