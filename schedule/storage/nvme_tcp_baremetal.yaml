@@ -26,6 +26,7 @@ conditional_schedule:
             nvme_target:
                 - kernel/nvme_tcp_target
             nvme_initiator:
+                - kernel/blktests_multimachine
                 - kernel/blktests
 
 schedule:

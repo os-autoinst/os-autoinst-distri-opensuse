@@ -20,9 +20,7 @@ use Kernel::block_dev qw(is_block_device record_storage_info);
 use Kernel::hba qw(check_fc_hosts list_scsi_hosts list_fc_hosts);
 use Kernel::utils qw(is_debugfs_mounted enable_debugfs get_kernel_config);
 use Kernel::nvme qw(deploy_nvme_target_control);
-use Kernel::multimachine_topology qw(get_node_by_role get_interface get_network_by_id);
-use Kernel::mikrotik_switch qw(add_vlan remove_vlan set_port_pvid);
-use Kernel::net_tests qw(add_ipv4_addr get_net_prefix_len);
+use Kernel::multimachine_topology qw(get_node_by_role get_interface);
 
 sub prepare_blktests_config {
     my ($devices, $test_case_dev_array) = @_;
@@ -147,28 +145,6 @@ sub run {
         );
         record_info('NVMe target', "control script -> $control_script (target=$target_node->{hostname}, addr=$target_addr, blkdev=$blkdev)");
         $nvme_target_control = "NVME_TARGET_CONTROL=\"$control_script\" ";
-
-        my $initiator_node = get_node_by_role('nvme_initiator');
-        my $initiator_if = get_interface($initiator_node, 0);
-        my $initiator_net = get_network_by_id($initiator_if->{network});
-
-        # Mikrotik switch VLAN is recreated on every run rather than checked
-        # for existence first: add_vlan() deliberately dies on an existing
-        # VLAN id (see Kernel::mikrotik_switch), so a plain delete-then-add
-        # is the simplest way to keep this idempotent across job runs.
-        my $vlan_id = $initiator_net->{vlan_id};
-        my $switch_port = $initiator_net->{switch_port};
-        eval { remove_vlan($vlan_id) };
-        add_vlan(bridge => 'bridge', vlan_id => $vlan_id, untagged => $switch_port);
-        set_port_pvid($switch_port, $vlan_id);
-        record_info('Mikrotik VLAN', "VLAN $vlan_id recreated, $switch_port set untagged/PVID $vlan_id");
-
-        add_ipv4_addr(
-            ip => $initiator_if->{ipv4},
-            dev => $initiator_if->{dev},
-            plen => get_net_prefix_len(net => $initiator_net->{ipv4_cidr}),
-        );
-        record_info('NVMe initiator', "assigned $initiator_if->{ipv4} to $initiator_if->{dev}");
     }
 
     foreach my $i (@tests) {
