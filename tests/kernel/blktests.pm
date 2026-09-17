@@ -21,6 +21,7 @@ use Kernel::hba qw(check_fc_hosts list_scsi_hosts list_fc_hosts);
 use Kernel::utils qw(is_debugfs_mounted enable_debugfs get_kernel_config);
 use Kernel::nvme qw(deploy_nvme_target_control);
 use Kernel::multimachine_topology qw(get_node_by_role get_interface);
+use Kernel::mikrotik_switch qw(get_all_vlans);
 
 sub prepare_blktests_config {
     my ($devices, $test_case_dev_array) = @_;
@@ -38,6 +39,16 @@ sub prepare_blktests_config {
 
 sub run {
     select_serial_terminal;
+
+    # DUMMY: smoke-test Kernel::mikrotik_switch's REST API connectivity.
+    # Not related to blktests itself - remove once there's a real caller.
+    eval {
+        my @vlans = get_all_vlans();
+        record_info('Mikrotik VLANs', @vlans
+            ? join("\n", map { "vlan-ids=$_->{'vlan-ids'} bridge=$_->{bridge} tagged=" . ($_->{tagged} // '') . " untagged=" . ($_->{untagged} // '') } @vlans)
+            : '(no VLANs configured)');
+        1;
+    } or record_info('Mikrotik VLANs', "get_all_vlans() failed: $@", result => 'fail');
 
     # initial FC tests - simple check if the port is online. This checks if
     # fabric login was successful
