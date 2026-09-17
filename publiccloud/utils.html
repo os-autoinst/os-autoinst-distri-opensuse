@@ -20,6 +20,7 @@
       <li><a href="#gcloud_install-gcloud_install-url-dir-timeout">gcloud_install gcloud_install($url, $dir, $timeout)</a></li>
       <li><a href="#get_ssh_key_algo">get_ssh_key_algo</a></li>
       <li><a href="#get_ssh_private_key_path">get_ssh_private_key_path</a></li>
+      <li><a href="#ssh_allow_openqa_port_selinux">ssh_allow_openqa_port_selinux</a></li>
       <li><a href="#ssh_update_transactional_system">ssh_update_transactional_system</a></li>
       <li><a href="#get_python_exec">get_python_exec</a></li>
       <li><a href="#create_script_file">create_script_file</a></li>
@@ -92,6 +93,14 @@
 <pre><code>my $path = get_ssh_private_key_path();</code></pre>
 
 <p>Returns the path of the SSH private key used for public cloud testing.</p>
+
+<h2 id="ssh_allow_openqa_port_selinux">ssh_allow_openqa_port_selinux</h2>
+
+<pre><code>ssh_allow_openqa_port_selinux($instance);</code></pre>
+
+<p>Same purpose as <code>allow_openqa_port_selinux</code> (allow the reverse-tunnel/upload port through SELinux&#39;s <code>ssh_port_t</code> restriction on SLE Micro), but addressed explicitly via <code>$instance</code>&#39;s SSH methods instead of relying on a currently-selected interactive console. This lets it run *before* the interactive ssh tunnel is established (poo#207027/#206808): any reboot it triggers then takes <code>softreboot()</code>&#39;s simple, untunneled path instead of the tunneled leave/reconnect dance, which the interactive tunnel needs but is fragile around reboots.</p>
+
+<p>Exclusively for <code>ssh_interactive_start.pm</code>; <code>enable_selinux.pm</code> keeps using the console-based <code>allow_openqa_port_selinux</code> unchanged.</p>
 
 <h2 id="ssh_update_transactional_system">ssh_update_transactional_system</h2>
 
