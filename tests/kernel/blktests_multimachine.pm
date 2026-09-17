@@ -26,7 +26,7 @@ sub run {
     # (see Kernel::mikrotik_switch), so a plain delete-then-add is the
     # simplest way to keep this idempotent across job runs.
     my $vlan_id = $network->{vlan_id};
-    my $switch_port = $network->{switch_port};
+    my $switch_port = $interface->{switch_port};
     eval { remove_vlan($vlan_id) };
     add_vlan(bridge => 'bridge', vlan_id => $vlan_id, untagged => $switch_port);
     set_port_pvid($switch_port, $vlan_id);
