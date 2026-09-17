@@ -8,7 +8,10 @@ description: >
 vars:
     INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
     DESKTOP: textmode
-    NVMET_TRTYPES: tcp
+    BLKTESTS: nvme
+    BLKTESTS_TEST_DEVS: none
+    BLKTESTS_TRTYPES: tcp
+    BLKTESTS_NVME_REMOTE_TARGET: 1
 
 test_data:
     <<: !include test_data/kernel/multimachine/nvme_tcp_2hosts.yaml
@@ -23,7 +26,7 @@ conditional_schedule:
             nvme_target:
                 - kernel/nvme_tcp_target
             nvme_initiator:
-                - kernel/nvme_tcp_initiator
+                - kernel/blktests
 
 schedule:
     - '{{nvme_barriers}}'
