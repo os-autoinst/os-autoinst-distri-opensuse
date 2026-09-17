@@ -50,6 +50,11 @@ sub run {
         1;
     } or record_info('Mikrotik VLANs', "get_all_vlans() failed: $@", result => 'fail');
 
+    # DUMMY: see how many network interfaces this SUT actually has and their
+    # state/addresses, to correlate with what the switch sees. Remove once
+    # this is no longer needed for debugging the NVMe-over-TCP setup.
+    record_info('Network interfaces', script_output('ip -br addr show', proceed_on_failure => 1));
+
     # initial FC tests - simple check if the port is online. This checks if
     # fabric login was successful
     if (check_fc_hosts()) {
