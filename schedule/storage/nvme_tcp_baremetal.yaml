@@ -24,10 +24,8 @@ conditional_schedule:
     nvme_test:
         ROLE:
             nvme_target:
-                - kernel/blktests_multimachine
                 - kernel/nvme_tcp_target
             nvme_initiator:
-                - kernel/blktests_multimachine
                 - kernel/blktests
 
 schedule:
@@ -39,4 +37,5 @@ schedule:
     - console/hostname
     - console/system_prepare
     - console/force_scheduled_tasks
+    - kernel/blktests_multimachine
     - '{{nvme_test}}'
