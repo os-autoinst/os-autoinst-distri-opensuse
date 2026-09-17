@@ -366,14 +366,20 @@ sub load_slem_on_pc_tests {
             loadtest 'publiccloud/run_ltp', run_args => $args;
         } elsif (get_var('PUBLIC_CLOUD_AISTACK')) {
             # AISTACK test verification
+            # slem_prepare must run before ssh_interactive_start (poo#207027/#206808): it
+            # allows the tunnel's port through SELinux before the tunnel exists, so any
+            # reboot it triggers takes softreboot()'s simple untunneled path.
+            loadtest("publiccloud/slem_prepare", run_args => $args);
             loadtest("publiccloud/ssh_interactive_start", run_args => $args);
             loadtest("publiccloud/create_aistack_env", run_args => $args);
             loadtest("publiccloud/aistack_rbac_run", run_args => $args);
             loadtest("publiccloud/aistack_sanity_run", run_args => $args);
         } elsif (is_container_test) {
             loadtest("publiccloud/instance_overview", run_args => $args);
-            loadtest("publiccloud/ssh_interactive_start", run_args => $args);
+            # slem_prepare must run before ssh_interactive_start (poo#207027/#206808): see
+            # comment in the AISTACK branch above.
             loadtest("publiccloud/slem_prepare", run_args => $args);
+            loadtest("publiccloud/ssh_interactive_start", run_args => $args);
             my $runtime = get_required_var('CONTAINER_RUNTIMES');
             for (split(',\s*', $runtime)) {
                 my $run_args = OpenQA::Test::RunArgs->new();

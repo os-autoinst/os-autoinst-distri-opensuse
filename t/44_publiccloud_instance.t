@@ -326,6 +326,36 @@ subtest '[wait_for_sudo] probes sudo over a non-multiplexed connection' => sub {
     like($args{ssh_opts}, qr/ControlPath=none/, 'does not reuse an existing ssh master connection');
 };
 
+subtest '[softreboot] tolerates a hung ssh -O check during tunneled cleanup (poo#207027)' => sub {
+    # A hung/unresponsive console during the pre-shutdown "ssh -O check" cleanup must not
+    # fatally abort the whole test: it must be treated like "connection already gone" and
+    # the reboot must still proceed.
+    my $instmod = Test::MockModule->new('publiccloud::instance', no_auto => 1);
+    my %vars = (_SSH_TUNNELS_INITIALIZED => 1, SERIALDEV => 'sshserial');
+    my @calls;
+    # These all return unused/discarded values, or just need to be truthy -- noop's
+    # always-return-1 stub covers every one of them.
+    $instmod->noop(qw(is_tunneled select_console ssh_interactive_leave select_host_console
+          ssh_interactive_tunnel update_instance_ip wait_for_ssh_unreachable wait_for_ssh));
+    $instmod->redefine(get_var => sub { my ($key, $default) = @_; return exists $vars{$key} ? $vars{$key} : $default; });
+    $instmod->redefine(current_console => sub { 'tunnel-console' });
+    $instmod->redefine(record_info => sub { note(join(' ', 'RECORD_INFO -->', @_)) });
+    $instmod->redefine(script_run => sub {
+            my ($cmd) = @_;
+            push @calls, $cmd;
+            die "command '$cmd' timed out\n" if ($cmd =~ /-O check/);
+            return 0;
+    });
+    $instmod->redefine(assert_script_run => sub { push @calls, $_[0]; return 0; });
+
+    my $inst = publiccloud::instance->new(public_ip => '10.0.0.1', username => 'azureuser', provider => Test::MockObject->new);
+
+    lives_ok { $inst->softreboot() } 'a hung ssh -O check does not fatally abort softreboot';
+    is((grep { /-O check/ } @calls), 1, 'ssh -O check was attempted exactly once, not retried against a dead console');
+    ok((any { /-O exit/ } @calls), 'ssh -O exit is still attempted even after a hung check');
+    ok((any { /shutdown -r \+1/ } @calls), 'the reboot is still triggered after the hung check');
+};
+
 $autotest::current_test = {name => 'wait_for_guestregister_test'};
 
 subtest '[wait_for_guestregister] failed records a soft failure (bsc#1264275)' => sub {
