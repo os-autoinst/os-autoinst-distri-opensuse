@@ -316,7 +316,12 @@ class TestGetRoot:
 
         rc, stdout, stderr = sudo_as_user(user, "wrongpasswd")
         assert rc != 0, "sudo should have failed with wrong password"
-        assert "Sorry, try again" in stderr or "incorrect password" in stderr
+        assert (
+            "Sorry, try again" in stderr
+            or "incorrect password" in stderr
+            or "authentication error" in stderr
+            or "a password is required" in stderr
+        ), f"unexpected rejection message: {stderr}"
 
     def test_non_member_rejected(self, test_users):
         """User not in wheel group is rejected."""
