@@ -13,7 +13,7 @@ package agnosticTestRunner;
 
 use strict;
 use warnings;
-use testapi qw(assert_script_run data_url parse_extra_log script_output enter_cmd upload_logs record_info);
+use testapi qw(assert_script_run script_run data_url parse_extra_log script_output enter_cmd upload_logs record_info);
 use Mojo::DOM;
 use registration 'add_suseconnect_product', 'get_addon_fullname';
 use package_utils 'install_package';
@@ -60,7 +60,16 @@ sub setup {
 
     my %lang_deps = (go => 'go gotestsum', python => 'python3-pytest');
     my $packages = $self->{language} eq 'java' ? latest_java_devel() : $lang_deps{$self->{language}};
-    install_package($packages, trup_reboot => 1);
+    eval { install_package($packages, trup_reboot => 1) };
+    if ($@) {
+        die $@ unless $self->{language} eq 'python';
+        record_info('pkg fallback', "zypper cannot install $packages, using pip3");
+        install_package('python3-pip');
+        my $pip_cmd = 'pip3 install pytest';
+        my $pyver = script_run('python3 -c "import sys; sys.exit(0 if sys.version_info >= (3,12) else 1)"', timeout => 10);
+        $pip_cmd .= ' --break-system-packages' if defined($pyver) && $pyver == 0;
+        assert_script_run($pip_cmd, timeout => 120);
+    }
 
     # Create test_dir and sibling lib/ for shared helpers in one shot
     my $test_dir = $self->{test_dir};
