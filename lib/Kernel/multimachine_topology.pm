@@ -44,7 +44,7 @@ The topology data is expected to be provided by YAML included from the
 schedule, for example:
 
   test_data:
-    <<: !include test_data/kernel/multimachine/ipsec_3hosts.yaml
+    <<: !include test_data/kernel/multimachine/nvme_tcp_2hosts.yaml
 
 The expected topology shape is:
 
@@ -62,6 +62,27 @@ This module validates the basic structure, builds lookup indexes, and exposes
 helpers for resolving nodes, networks, and interfaces. It is intentionally
 limited to reading and validating topology data; it does not configure the
 system networking itself.
+
+=head1 FIELD CONTRACT
+
+The shape above is all this module itself checks: C<networks[].id> must
+exist, C<nodes[].id> must exist and be unique, C<nodes[].interfaces> must
+exist, and each interface's C<network> must reference a known network id.
+Node C<role> is optional here, but required by C<get_node_by_role>/
+C<get_local_node> if anything actually looks a node up by role.
+
+Anything beyond that - C<hostname>, an interface's device name, its IP,
+which switch port it's cabled to, a network's VLAN id or CIDR, or any
+other field a scenario needs - is deliberately I<not> validated here.
+This module is shared across unrelated multimachine scenarios that need
+different data, so it can't own a fixed field list without forcing every
+scenario into the same shape. A typo'd or missing field beyond the
+skeleton above will not be caught at this layer; it will silently read
+back as C<undef> wherever a consumer tries to use it.
+
+The actual list of fields a given scenario's topology YAML needs to
+provide is defined by whichever test module consumes them, not by this
+one - check that module's own code/POD for what it reads.
 
 =cut
 
