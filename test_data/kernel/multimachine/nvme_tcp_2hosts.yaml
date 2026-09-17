@@ -1,0 +1,23 @@
+multimachine_topology:
+  name: nvme_tcp_2hosts
+
+  networks:
+    - id: nvme_vlan
+      ipv4_cidr: "192.168.42.0/24"   # placeholder - the dedicated Mikrotik VLAN's real CIDR
+
+  nodes:
+    - id: nvme-target-node00        # placeholder hostname
+      role: nvme_target
+      hostname: nvme-target-node00
+      interfaces:
+        - id: eth0
+          network: nvme_vlan
+          ipv4: "192.168.42.10"     # placeholder - target's real IP on the VLAN
+
+    - id: nvme-initiator-node00     # placeholder hostname
+      role: nvme_initiator
+      hostname: nvme-initiator-node00
+      interfaces:
+        - id: eth0
+          network: nvme_vlan
+          ipv4: "192.168.42.11"     # placeholder - initiator's real IP on the VLAN

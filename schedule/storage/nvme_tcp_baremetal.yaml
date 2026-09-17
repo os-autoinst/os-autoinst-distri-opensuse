@@ -10,6 +10,9 @@ vars:
     DESKTOP: textmode
     NVMET_TRTYPES: tcp
 
+test_data:
+    <<: !include test_data/kernel/multimachine/nvme_tcp_2hosts.yaml
+
 conditional_schedule:
     nvme_barriers:
         ROLE:
