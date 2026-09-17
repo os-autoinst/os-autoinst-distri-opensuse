@@ -25,6 +25,8 @@
       <li><a href="#stop_hana-stop_hana-timeout-timeout-method-method">stop_hana stop_hana([timeout =&gt; $timeout, method =&gt; $method]);</a></li>
       <li><a href="#start_hana-start_hana-timeout-60">start_hana start_hana([timeout =&gt; 60]);</a></li>
       <li><a href="#cleanup_resource-cleanup_resource-timeout-60">cleanup_resource cleanup_resource([timeout =&gt; 60]);</a></li>
+      <li><a href="#record_takeover_diagnostics-record_takeover_diagnostics">record_takeover_diagnostics record_takeover_diagnostics();</a></li>
+      <li><a href="#is_local_primary_recovery_aborting_takeover">is_local_primary_recovery_aborting_takeover</a></li>
       <li><a href="#check_takeover-check_takeover">check_takeover check_takeover();</a></li>
       <li><a href="#enable_replication-enable_replication-site_name-site_a-hana_inn-10">enable_replication enable_replication([site_name =&gt; &#39;site_a&#39;, hana_inn =&gt; &#39;10&#39; ]);</a></li>
       <li><a href="#get_replication_info-get_replication_info">get_replication_info get_replication_info();</a></li>
@@ -242,9 +244,24 @@ Return 0 if no internal error.</code></pre>
 </dd>
 </dl>
 
+<h2 id="record_takeover_diagnostics-record_takeover_diagnostics">record_takeover_diagnostics record_takeover_diagnostics();</h2>
+
+<pre><code>Collect cluster and HANA system replication diagnostics for takeover failures.</code></pre>
+
+<h2 id="is_local_primary_recovery_aborting_takeover">is_local_primary_recovery_aborting_takeover</h2>
+
+<pre><code>Returns 1 when the cluster appears to have restarted HANA as primary on the
+local node while takeover to the peer has not completed yet.
+
+Requires the database to be online again. During a normal slow takeover the
+local node can stay Promoted with SR mode PRIMARY while the database is still
+offline; that state must not be treated as recovery.</code></pre>
+
 <h2 id="check_takeover-check_takeover">check_takeover check_takeover();</h2>
 
-<pre><code>Checks takeover status and waits for finish until successful or reaches timeout.</code></pre>
+<pre><code>Checks takeover status and waits for finish until successful or reaches timeout.
+Waits for cluster topology to show takeover first, then verifies local system
+replication left PRIMARY mode. Dies with diagnostics on failure.</code></pre>
 
 <h2 id="enable_replication-enable_replication-site_name-site_a-hana_inn-10">enable_replication enable_replication([site_name =&gt; &#39;site_a&#39;, hana_inn =&gt; &#39;10&#39; ]);</h2>
 
@@ -521,6 +538,7 @@ Returns 1 if the response from hana database is online, 0 otherwise</code></pre>
 <h2 id="is_hana_database_online">is_hana_database_online</h2>
 
 <pre><code>Setup a timeout and check the hana database status is offline and there is not connection.
+Requires several consecutive offline readings before treating the database as offline.
 If the connection still is online run a wait and try again to get the status.
 Returns 1 if the output of the hana database is online, 0 means that hana database is offline</code></pre>
 
@@ -530,7 +548,7 @@ Returns 1 if the output of the hana database is online, 0 means that hana databa
 <dd>
 
 </dd>
-<dt id="total_consecutive_passes---default-5"><b>total_consecutive_passes</b> - default 5</dt>
+<dt id="total_consecutive_passes---consecutive-offline-polls-required---default-5"><b>total_consecutive_passes</b> - consecutive offline polls required - default 5</dt>
 <dd>
 
 </dd>
@@ -543,7 +561,11 @@ Returns if primary node status is offline with 0 and 1 online</code></pre>
 
 <dl>
 
-<dt id="timeout---default-300"><b>timeout</b> - default 300</dt>
+<dt id="timeout---wait-time-for-PRIMARY-mode-to-disappear-default-600"><b>timeout</b> - wait time for PRIMARY mode to disappear, default 600</dt>
+<dd>
+
+</dd>
+<dt id="cmd_timeout---timeout-for-each-systemReplicationStatus.py-call-default-300"><b>cmd_timeout</b> - timeout for each systemReplicationStatus.py call, default 300</dt>
 <dd>
 
 </dd>
