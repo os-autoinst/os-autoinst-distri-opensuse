@@ -12,7 +12,7 @@ multimachine_topology:
       hostname: merckx
       interfaces:
         - id: eth0
-          device:                  # placeholder - merckx is currently powered off, real NIC name unknown
+          device: enp20s0f0np0     # merckx's real NIC, cabled to sfp-sfpplus11
           switch_port: sfp-sfpplus11
           network: nvme_vlan
           ipv4: "192.168.7.1"
