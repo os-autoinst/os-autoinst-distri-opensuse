@@ -17,8 +17,8 @@ sub run {
     # wait for welcome screen to appear, this can take a while
     assert_screen 'tik-welcome', 600;
 
-    # click the welcome screen, to close the GNOME Overview
-    assert_and_click 'tik-welcome';
+    # close GNOME Overview
+    send_key 'esc';
 
     # press "Install Now"
     send_key 'ret';
