@@ -4,6 +4,8 @@ multimachine_topology:
   networks:
     - id: nvme_vlan
       ipv4_cidr: "192.168.7.0/26"   # Mikrotik VLAN 7, per progress#188433
+      vlan_id: 7
+      switch_port: sfp-sfpplus9    # Mikrotik port cabled to coppi's enp20s0f0np0
 
   nodes:
     - id: nvme-target-node00        # placeholder - target machine not chosen yet
@@ -19,5 +21,6 @@ multimachine_topology:
       hostname: coppi
       interfaces:
         - id: eth0
+          dev: enp20s0f0np0        # coppi's real NIC, cabled to sfp-sfpplus9
           network: nvme_vlan
           ipv4: "192.168.7.10"
