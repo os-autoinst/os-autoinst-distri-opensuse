@@ -8,11 +8,9 @@
 # (see lib/publiccloud/provider.pm) and has access to a persistent EFS
 # ("tf-efs", one mount target per AZ in tf-subnet, NFS ingress on tf-sg).
 # This test installs and inspects the aws-efs-utils package (helper binaries, the mount.efs
-# Python interpreter ABI and its man page), then mounts the existing EFS into a job-private
+# as Python script and its man page), then mounts the existing EFS into a job-private
 # subdirectory, runs basic read/write checks and finally unmounts and removes that subdirectory.
-# Optional test setting:
-#   PUBLIC_CLOUD_EFS_WORKAROUND=1 : Disable stunnel_check_cert_hostname and stunnel_check_cert_validity in efs-utils.conf (SLES 12)
-#   PUBLIC_CLOUD_EFS_WORKAROUND=2 : Upgrade stunnel via security:Stunnel OBS repo (SLES 12)
+#
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
@@ -20,7 +18,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use mmapi 'get_current_job_id';
 use publiccloud::zypper qw(pc_zypper_call);
-use version_utils qw(is_sle);
+use utils;
+use version_utils qw(package_version_cmp is_sle);
 
 # creation_token of the persistent EFS provisioned by the infra terraform (aws/tf/main.tf)
 use constant EFS_CREATION_TOKEN => 'tf-efs';
@@ -40,6 +39,34 @@ sub efs_file_system_id {
     return $fs_id;
 }
 
+sub check_stunnel {
+    my ($inst) = @_;
+    return 0 unless (is_sle('<=12-sp5'));
+
+    # Check available stunnel version in repositories before installing aws-efs-utils.
+    # stunnel 5.00 lacks certificate hostname and OCSP validity validation (stunnel >= 5.25 required).
+    # If the official repo only offers an older stunnel, upgrade from the AWS-documented security:Stunnel OBS repo.
+    # (https://docs.aws.amazon.com/efs/latest/ug/upgrading-stunnel.html)
+    # Must be installed before aws-efs-utils so zypper doesn't pull stock stunnel or block vendor change.
+    my $search_out = $inst->ssh_script_output('zypper -n se -s -x --type package stunnel', proceed_on_failure => 1);
+    my $stunnel_entries = utils::parse_zypper_table($search_out, [qw(status name type version arch repository)]);
+    my @available_stunnel_versions;
+    for my $entry (@$stunnel_entries) {
+        push @available_stunnel_versions, $1 if (($entry->{name} // '') eq 'stunnel' && ($entry->{version} // '') =~ /^(\d+(?:\.\d+)*)/);
+    }
+    if (!@available_stunnel_versions) {
+        while ($search_out =~ /\|\s*stunnel\s*\|\s*package\s*\|\s*(\d+(?:\.\d+)*)/g) {
+            push @available_stunnel_versions, $1;
+        }
+    }
+    record_info('stunnel repo', @available_stunnel_versions
+        ? "Available stunnel version(s) in repo: " . join(', ', @available_stunnel_versions)
+        : "No stunnel package found in repo search");
+
+    return 1 unless grep { package_version_cmp($_, '5.25') >= 0 } @available_stunnel_versions;
+    return 0;
+}
+
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
@@ -48,17 +75,17 @@ sub run {
     my $region = $self->{my_instance}->region;
     my $job_id = get_current_job_id();
 
-    # Workaround 2 for SLES 12-SP5: upgrade stunnel from the official AWS-documented security:Stunnel OBS repository
-    # (https://docs.aws.amazon.com/efs/latest/ug/upgrading-stunnel.html)
-    # Must be installed before aws-efs-utils so zypper doesn't pull stock stunnel or block vendor change.
-    if (is_sle('<=12-sp5') && check_var('PUBLIC_CLOUD_EFS_WORKAROUND', 2)) {
-        record_info('Workaround 2', "Upgrading stunnel from security:Stunnel OBS repository for SLES 12");
+    my $needs_stunnel_upgrade = check_stunnel($self->{my_instance});
+    if ($needs_stunnel_upgrade) {
+        $self->{stunnel_workaround} = 1;
+        record_info('Workaround', "Available stunnel is < 5.25. Upgrading stunnel from security:Stunnel OBS repository (required for TLS mount).");
         pc_zypper_call($self->{my_instance}, 'addrepo https://download.opensuse.org/repositories/security:Stunnel/SLE_12_SP5/security:Stunnel.repo');
         pc_zypper_call($self->{my_instance}, '--gpg-auto-import-keys ref');
         pc_zypper_call($self->{my_instance}, '--gpg-auto-import-keys in -y --allow-vendor-change stunnel');
+        record_soft_failure 'bsc#1280691, stunnel from security:Stunnel repo';
     }
 
-    pc_zypper_call($self->{my_instance}, 'in aws-efs-utils');
+    pc_zypper_call($self->{my_instance}, 'in -y aws-efs-utils');
 
     # Record package versions and stunnel details
     my $pkg_versions = $self->{my_instance}->ssh_script_output('rpm -q aws-efs-utils stunnel', proceed_on_failure => 1);
@@ -91,27 +118,6 @@ sub run {
         'sudo sed -i -e "s/^[#[:space:]]*logging_level[[:space:]]*=.*/logging_level = DEBUG/"' .
           ' -e "s/^[#[:space:]]*stunnel_debug_enabled[[:space:]]*=.*/stunnel_debug_enabled = true/" /etc/amazon/efs/efs-utils.conf'
     );
-
-    # Workaround 1 for SLES 12-SP5: stunnel 5.00 lacks certificate hostname and OCSP validity validation (stunnel >= 5.25 required).
-    # Gated by PUBLIC_CLOUD_EFS_WORKAROUND=1:
-    # Tune /etc/amazon/efs/efs-utils.conf to set stunnel_check_cert_hostname = false and stunnel_check_cert_validity = false
-    # (https://docs.aws.amazon.com/efs/latest/ug/troubleshooting-efs-encryption.html#mounting-tls-fails)
-    if (is_sle('<=12-sp5') && check_var('PUBLIC_CLOUD_EFS_WORKAROUND', 1)) {
-        record_info('Workaround 1', "Disabling stunnel_check_cert_hostname and stunnel_check_cert_validity in /etc/amazon/efs/efs-utils.conf\n" .
-              "stunnel 5.00 on SLES 12 lacks certificate hostname and OCSP validity checking support.");
-        $self->{my_instance}->ssh_assert_script_run(
-            'sudo sed -i -e "s/^[#[:space:]]*stunnel_check_cert_hostname[[:space:]]*=.*/stunnel_check_cert_hostname = false/"' .
-              ' -e "s/^[#[:space:]]*stunnel_check_cert_validity[[:space:]]*=.*/stunnel_check_cert_validity = false/" /etc/amazon/efs/efs-utils.conf'
-        );
-        $self->{my_instance}->ssh_script_run(
-            'grep -q "^[[:space:]]*stunnel_check_cert_hostname[[:space:]]*=" /etc/amazon/efs/efs-utils.conf || ' .
-              'sudo sed -i "/^\[mount\]/a stunnel_check_cert_hostname = false" /etc/amazon/efs/efs-utils.conf'
-        );
-        $self->{my_instance}->ssh_script_run(
-            'grep -q "^[[:space:]]*stunnel_check_cert_validity[[:space:]]*=" /etc/amazon/efs/efs-utils.conf || ' .
-              'sudo sed -i "/^\[mount\]/a stunnel_check_cert_validity = false" /etc/amazon/efs/efs-utils.conf'
-        );
-    }
 
     # Discover the persistent EFS provisioned by the infra terraform
     my $fs_id = efs_file_system_id($region);
@@ -178,6 +184,7 @@ sub collect_efs_logs {
 
 sub post_fail_hook {
     my ($self) = @_;
+    select_serial_terminal;
     eval { $self->collect_efs_logs(); };
     $self->SUPER::post_fail_hook;
 }
@@ -192,8 +199,8 @@ sub cleanup {
     my $job_dir = EFS_MOUNT_DIR . "/openqa-$job_id";
     $self->{my_instance}->ssh_script_run("sudo rm -rf $job_dir");
     $self->{my_instance}->ssh_script_run('sudo umount ' . EFS_MOUNT_DIR);
-    if (check_var('PUBLIC_CLOUD_EFS_WORKAROUND', 2)) {
-        $self->{my_instance}->ssh_script_run('sudo zypper -n rr security_Stunnel');
+    if ($self->{stunnel_workaround}) {
+        pc_zypper_call($self->{my_instance}, 'rr security_Stunnel', proceed_on_failure => 1);
     }
     return 1;
 }
