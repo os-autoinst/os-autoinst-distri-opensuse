@@ -26,9 +26,10 @@ use Data::Dumper;
 use version_utils;
 use Utils::Architectures qw(is_aarch64);
 
-my $kirk_virtualenv = 'kirk-virtualenv';
 our $root_dir = '/root';
 our $ltp_timeout = get_var('LTP_TIMEOUT', 12600);
+our $kirk_report = '/tmp/kirk-results.json';
+our $kirk_console_log = '/tmp/kirk-console.log';
 
 sub should_fully_build_ltp_from_git {
     return get_var('PUBLIC_CLOUD_LTP_GIT_FULL_BUILD', 0);    # 1 if env var is set, otherwise 0
@@ -135,12 +136,13 @@ sub upload_ltp_logs
     # 1) the file is never created, so a blind upload emits a confusing
     # "curl: (26) Failed to open/read local data" line. Guard the upload and
     # note the absence instead. See poo#203316.
-    if (script_run('test -e /tmp/kirk.$USER/latest/results.json') == 0) {
-        upload_logs("/tmp/kirk.\$USER/latest/results.json", log_name => $log_file->basename, failok => 1);
+    if (script_run("test -e $kirk_report") == 0) {
+        upload_logs($kirk_report, log_name => $log_file->basename, failok => 1);
     } else {
         record_info('No results.json', 'kirk did not produce results.json (run likely aborted); skipping upload', result => 'softfail');
     }
-    upload_logs("/tmp/kirk.\$USER/latest/debug.log", log_name => 'debug.txt', failok => 1);
+    upload_logs($kirk_console_log, log_name => 'debug.txt', failok => 1)
+      if script_run("test -e $kirk_console_log") == 0;
 
     return unless -e $log_file->to_string;
 
@@ -236,20 +238,25 @@ sub prepare_skip_tests {
     return $skip_tests;
 }
 
+sub kirk_repo_url {
+    return get_var('KIRK_RS_REPO') if get_var('KIRK_RS_REPO');
+    my $dir = script_output(
+        '. /etc/os-release; [ "$ID" = "opensuse-tumbleweed" ] && echo openSUSE_Tumbleweed || echo "$VERSION_ID"');
+    chomp $dir;
+    return "https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/QAC/$dir/";
+}
+
 sub prepare_kirk {
     my ($instance) = @_;
-    my $kirk_repo = get_var("LTP_RUN_NG_REPO", "https://github.com/linux-test-project/kirk.git");
-    my $kirk_branch = get_var("LTP_RUN_NG_BRANCH", "master");
-    record_info('LTP RUNNER REPO', "Repo: " . $kirk_repo . "\nBranch: " . $kirk_branch);
-    script_retry("git clone -q --single-branch -b $kirk_branch --depth 1 $kirk_repo", retry => 5, delay => 60, timeout => 300);
+    my $repo = kirk_repo_url();
+    record_info('KIRK REPO', $repo);
+    zypper_ar($repo, name => 'kirk_rs_repo');
+    zypper_call('in kirk-rs');
+    record_info('KIRK', script_output('kirk --version'));
+
     $instance->ssh_assert_script_run(cmd => 'sudo CREATE_ENTRIES=1 ' . get_ltproot() . '/IDcheck.sh', timeout => 300);
     record_info('Kernel info', $instance->ssh_script_output(cmd => q(rpm -qa 'kernel*' --qf '%{NAME}\n' | sort | uniq | xargs rpm -qi)));
-    assert_script_run("cd kirk");
-    my $ghash = script_output("git rev-parse HEAD", proceed_on_failure => 1);
-    set_var("LTP_RUN_NG_GIT_HASH", $ghash);
-    record_info("KIRK_GIT_HASH", "$ghash");
-    my $venv = install_in_venv($kirk_virtualenv, pip_packages => "asyncssh msgpack");
-    venv_activate($venv);
+    $instance->scan_ssh_host_key;
 }
 
 sub printk_loglevel {
@@ -279,8 +286,7 @@ sub prepare_ltp_cmd {
         $env_prefix = join(' ', @vars) . ' ';
     }
 
-    my $python_exec = get_python_exec();
-    my $cmd = "$env_prefix$python_exec kirk";
+    my $cmd = "${env_prefix}kirk";
     $cmd .= " --verbose";
     $cmd .= " --exec-timeout=$exec_timeout";
     $cmd .= " --suite-timeout=$ltp_timeout";
@@ -289,6 +295,7 @@ sub prepare_ltp_cmd {
     $cmd .= " --skip-tests '$skip_tests'" if $skip_tests;
     $cmd .= " --sut default:com=ssh";
     $cmd .= " --com=ssh$sut";
+    $cmd .= " --json-report $kirk_report";
     $cmd .= " ";
     return $cmd;
 }
@@ -412,8 +419,11 @@ sub run {
 
     dump_kernel_config($instance);
     record_info('LTP START', 'Command launch');
+    script_run("rm -f $kirk_report");
     # $ltp_timeout is also used for --suite-timeout so we need give kirk some time to try to kill itself before trying to kill it
-    my $kirk_exit_code = script_run($cmd_run_ltp, timeout => $ltp_timeout + 60);
+    my $kirk_exit_code = script_run(
+        "$cmd_run_ltp 2>&1 | tee $kirk_console_log; test \${PIPESTATUS[0]} -eq 0",
+        timeout => $ltp_timeout + 60);
     record_info('LTP END', 'krik finished with ' . $kirk_exit_code);
     die('kirk failed') if ($kirk_exit_code);
 }

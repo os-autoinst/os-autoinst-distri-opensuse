@@ -139,6 +139,7 @@ K3S_ENABLE_COREDNS | boolean | | During K3s installation, should CoreDNS be inst
 K3S_ENABLE_TRAEFIK | boolean | | During K3s installation, should Traefik be installed.
 K3S_ENABLE_HELM_CONTROLLER | boolean | | During K3s installation, should Helm Controller be installed.
 KERNEL_FLAVOR | string | kernel-default | Set specific kernel flavor for test scenarios
+KIRK_RS_REPO | string | https://download.opensuse.org/repositories/devel:/openSUSE:/QA:/QAC/<host version>/ | OBS repository providing the kirk-rs package used by publiccloud LTP.
 KUBECTL_CLUSTER | string | | Defines the cluster used to test `kubectl`. Currently only `k3s` is supported.
 KUBECTL_VERSION | string | v1.22.12 | Defines the kubectl version.
 KUBERNETES_VERSIONS | string | | List of Kubernetes versions to install.
@@ -160,8 +161,6 @@ LTP_EXEC_TIMEOUT | integer | 1200 |Used to define --exec-timeout value passed to
 LTP_KNOWN_ISSUES | string | | Used to specify a url for a json file with well known LTP issues. If an error occur which is listed, then the result is overwritten with softfailure.
 LTP_MIN_UPTIME | integer | | Minimum uptime in seconds before LTP tests start. It applies only to the native openQA runner, not to tests run by kirk.
 LTP_REPO | string | | The repo which will be added and is used to install LTP package.
-LTP_RUN_NG_BRANCH | string | master | Define the branch of the LTP_RUN_NG_REPO.
-LTP_RUN_NG_REPO | string | https://github.com/linux-test-project/kirk.git | Define the runltp-ng repo to be used.
 LTP_PC_RUNLTP_ENV | string | empty | Contains eventual internal environment new parameters for `runltp-ng`, defined with the `--env` option, initialized in a column-separated string format: "PAR1=xxx:PAR2=yyy:...". By default it is empty, undefined.
 LTP_SUITE_TIMEOUT | integer | 9600 |Used to define --suite-timeout value passed to kirk
 LTP_TAINT_EXPECTED | integer | 0x80019801 | Bitmask of expected kernel taint flags.
