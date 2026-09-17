@@ -34,10 +34,10 @@ sub run {
 
     add_ipv4_addr(
         ip => $interface->{ipv4},
-        dev => $interface->{dev},
+        dev => $interface->{device},
         plen => get_net_prefix_len(net => $network->{ipv4_cidr}),
     );
-    record_info('Local node', "assigned $interface->{ipv4} to $interface->{dev}");
+    record_info('Local node', "assigned $interface->{ipv4} to $interface->{device}");
 }
 
 sub test_flags {
