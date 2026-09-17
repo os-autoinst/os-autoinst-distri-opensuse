@@ -1757,7 +1757,7 @@ sub load_extra_tests_console {
     loadtest "console/rsync";
     loadtest "console/clamav" unless is_arm;
     loadtest "console/shells";
-    loadtest 'console/sudo';
+    loadtest 'console/oqa_agnostic/sudo_agnostic';
     # dstat is not in sle12sp1
     loadtest "console/dstat" if is_sle('12-SP2+') || is_opensuse;
     # MyODBC-unixODBC not available on < SP2 and sle 15 and only in SDK

@@ -17,6 +17,7 @@ use testapi qw(assert_script_run data_url parse_extra_log script_output enter_cm
 use Mojo::DOM;
 use registration 'add_suseconnect_product', 'get_addon_fullname';
 use package_utils 'install_package';
+use utils 'zypper_call';
 use version_utils 'is_sle';
 
 sub new {
@@ -52,7 +53,10 @@ sub setup {
     my ($self) = @_;
     my $url = data_url($self->{data_url_path});
 
-    add_suseconnect_product(get_addon_fullname('phub')) if !$self->{skip_phub} && is_sle('<16.0');
+    if (!$self->{skip_phub} && is_sle('<16.0')) {
+        add_suseconnect_product(get_addon_fullname('phub'));
+        zypper_call('--gpg-auto-import-keys ref');
+    }
 
     my %lang_deps = (go => 'go gotestsum', python => 'python3-pytest');
     my $packages = $self->{language} eq 'java' ? latest_java_devel() : $lang_deps{$self->{language}};

@@ -25,7 +25,7 @@ schedule:
     - console/ca_certificates_mozilla
     - console/unzip
     - console/rsync
-    - console/sudo
+    - console/oqa_agnostic/sudo_agnostic
     - console/supportutils
     - console/mdadm
     - console/quota
