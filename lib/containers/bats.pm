@@ -649,8 +649,8 @@ sub patch_sources {
     if (!@patches) {
         for my $pr (sort { $a <=> $b } keys %{$patches}) {
             my $def = $patches->{$pr} // {};
-            # Skip if already merged in this version
-            next if defined $def->{merged} && version->parse($version) >= version->parse("v$def->{merged}");
+            # Skip if already merged or invalid on this package version
+            next if defined $def->{max} && version->parse($version) >= version->parse("v$def->{max}");
             # Skip if below minimum required version
             next if defined $def->{min} && version->parse($version) < version->parse("v$def->{min}");
             push @patches, $pr;

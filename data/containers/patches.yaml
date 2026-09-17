@@ -8,11 +8,11 @@ aardvark-dns:
   # https://github.com/containers/aardvark-dns/pull/581 is needed for PR#623
   # https://github.com/containers/aardvark-dns/pull/623 is needed to drop ncat
   519:
-    merged: "1.13.0"
+    max: "1.13.0"
   581:
-    merged: "1.15.0"
+    max: "1.15.0"
   623:
-    merged: "1.17.0"
+    max: "1.17.0"
 
 buildah:
   # https://github.com/containers/buildah/pull/5495 is needed to skip nixery.dev registry
@@ -22,20 +22,20 @@ buildah:
   # https://github.com/containers/buildah/pull/6701 is needed to test on arches other than amd64
   # https://github.com/containers/buildah/pull/6791 - CI: remove dependencies on online apt repositories
   5495:
-    merged: "1.36.0"
+    max: "1.36.0"
   6226:
-    merged: "1.41.0"
+    max: "1.41.0"
   6271:
-    merged: "1.41.0"
+    max: "1.41.0"
   6602:
     min: "1.43.0"
-    merged: "1.44.0"
+    max: "1.44.0"
   6701:
     min: "1.43.0"
-    merged: "1.44.0"
+    max: "1.44.0"
   6791:
     min: "1.39.5"
-    merged: "1.44.0"
+    max: "1.44.0"
 
 buildx:
   # https://github.com/docker/buildx/pull/3475/ - test: Handle version not having the initial 'v'
@@ -47,7 +47,7 @@ compose:
   # https://github.com/docker/compose/pull/13564 - test: fix pull failure assertion for Docker v29
   # https://github.com/docker/compose/pull/14170 - test(e2e): bump compose-bridge images to v0.0.7
   13214:
-    merged: "2.39.4"
+    max: "2.39.4"
   13564:
   14170:
     min: "5.4.0"
@@ -55,7 +55,7 @@ compose:
 conmon:
   # https://github.com/containers/conmon/pull/579 is needed to enable tests
   579:
-    merged: "2.2.0"
+    max: "2.2.0"
 
 containerd:
   # https://github.com/containerd/containerd/pull/13149 - Skip TestExportAndImportMultiLayer on s390x
@@ -104,14 +104,14 @@ moby:
     min: "29.2.0"
   52199:
     min: "29.2.0"
-    merged: "29.7.0"
+    max: "29.7.0"
   53661:
     min: "29.7.0"
 
 netavark:
   # https://github.com/containers/netavark/pull/1191 is needed for 001-basic
   1191:
-    merged: "1.15.0"
+    max: "1.15.0"
 
 podman:
   # https://github.com/containers/podman/pull/21875 is needed for 060-mount
@@ -142,68 +142,68 @@ podman:
   # https://github.com/containers/podman/pull/29381 - test/e2e/healthcheck: skip ignore-result test on non-amd64
   # https://github.com/containers/podman/pull/29690 - test/system: Update test to handle new error message from runc 1.5.0
   21875:
-    merged: "5.0.0"
+    max: "5.0.0"
   24068:
-    merged: "5.3.0"
+    max: "5.3.0"
   25858:
-    merged: "5.5.0"
+    max: "5.5.0"
     min: "5.0.0"
   25918:
-    merged: "5.5.0"
+    max: "5.5.0"
     min: "5.0.0"
   25942:
-    merged: "5.6.0"
+    max: "5.6.0"
   26017:
-    merged: "5.6.0"
+    max: "5.6.0"
     min: "5.0.0"
   26022:
-    merged: "5.6.0"
+    max: "5.6.0"
     min: "5.4.0"
   26947:
-    merged: "5.7.0"
+    max: "5.7.0"
     min: "5.4.0"
   26920:
-    merged: "5.7.0"
+    max: "5.7.0"
   26921:
-    merged: "5.7.0"
+    max: "5.7.0"
   26934:
-    merged: "5.7.0"
+    max: "5.7.0"
   27230:
-    merged: "5.7.0"
+    max: "5.7.0"
   27233:
-    merged: "5.7.0"
+    max: "5.7.0"
   27463:
-    merged: "5.7.0"
+    max: "5.7.0"
   27760:
-    merged: "5.7.0"
+    max: "5.7.0"
   27813:
-    merged: "5.8.0"
+    max: "5.8.0"
   28133:
-    merged: "6.0.0"
+    max: "6.0.0"
     min: "5.8.0"
   28151:
-    merged: "6.0.0"
+    max: "6.0.0"
     min: "5.8.0"
   28266:
-    merged: "6.0.0"
+    max: "6.0.0"
     min: "5.8.0"
   28281:
-    merged: "6.0.0"
+    max: "6.0.0"
     min: "5.8.0"
   28338:
-    merged: "5.8.2"
+    max: "5.8.2"
     min: "5.4.0"
   28448:
     min: "5.7.1"
-    merged: "6.0.0"
+    max: "6.0.0"
   28603:
-    merged: "6.0.0"
+    max: "6.0.0"
     min: "5.4.2"
   28794:
-    merged: "6.0.0"
+    max: "6.0.0"
     min: "5.4.2"
   28804:
-    merged: "6.0.0"
+    max: "6.0.0"
     min: "5.4.2"
   29380:
     min: "6.0"
@@ -225,16 +225,16 @@ runc:
   # https://github.com/opencontainers/runc/pull/5295 - Update busybox:glibc in integration tests to latest (1.38.0) builds
   # https://github.com/opencontainers/runc/pull/5307 - tests/integration: fix seccomp tests on big-endian architectures
   4842:
-    merged: "1.4.3"
+    max: "1.4.3"
     min: "1.3.4"
   5295:
-    merged: "1.4.3"
+    max: "1.4.3"
   5307:
 
 skopeo:
   # https://github.com/containers/skopeo/pull/2834 - integration: Force amd64 on TestProxyMetadata
   2834:
     min: "1.22.0"
-    merged: "1.23.0"
+    max: "1.23.0"
 
 umoci:
