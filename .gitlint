@@ -1,6 +1,7 @@
 [general]
 ignore=body-min-length,body-is-missing
 regex-style-search=True
+contrib = contrib-title-conventional-commits
 
 [title-max-length]
 line-length=72
@@ -21,3 +22,4 @@ regex=^([A-Z]|\S+:|git subrepo (clone|pull)).*(?<!\.)$
 [ignore-body-lines]
 # Accept lines stating only a long unwrappable URL
 regex=^https?:\/\/\S+$
+
