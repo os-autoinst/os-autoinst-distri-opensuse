@@ -423,6 +423,13 @@ sub test_override {
     # With notes 1557506 & 1771258 we have to test 2 override files
     my @overrides = ($note =~ m/^(1557506|1771258)$/) ? ("${note}-1", "${note}-2") : (${note});
 
+    # disk elevator in pvm_hmc depends on the actual hardware of the hard disk in the
+    # LPARs, so a set pattern checking for `bfq` or `mq-deadline` can produce failures
+    # in different workers depending if the host system has HDDs or SSDs. The function
+    # below queries the actual value before the test and replaces it in the *_ppc64le pattern
+    # to be used in the verify step
+    $self->pvm_hmc_workaround_for_disk_elevator() if (is_sle('>=16') && is_pvm_hmc());
+
     $result = 'ok';
     $not_ignored = '';
     $self->result($result);
@@ -442,7 +449,7 @@ sub test_override {
         $self->wrap_script_run("mr_test dump Pattern/$SLE/testpattern_note_${override}_b > baseline_testpattern_note_${override}_b");
         $self->wrap_script_run("cp Pattern/$SLE/override/$override /etc/saptune/override/$note");
         $self->wrap_script_run("saptune note apply $note");
-        my $override_suffix = ($suffix && is_sle('>=16.1') && $override eq '3565382') ? $suffix : '';
+        my $override_suffix = ($suffix && is_sle('>=16') && $override eq '3565382') ? $suffix : '';
         $self->wrap_script_run("mr_test verify Pattern/$SLE/testpattern_note_${override}_a_override${override_suffix}");
         $self->wrap_script_run("mr_test verify baseline_testpattern_note_${override}_b");
         tune_baseline("baseline_testpattern_note_${override}_b");
@@ -821,13 +828,30 @@ sub wrap_script_run {
     }
 }
 
+=head2 pvm_hmc_workaround_for_disk_elevator
+
+    $self->pvm_hmc_workaround_for_disk_elevator();
+
+On B<pvm_hmc> workers, the value of disk elevator depends on the type of
+harddrive the actual system has. This means that a set pattern checking for
+B<bfq> or B<mq-deadline> could fail depending on the worker. This method
+queries the actual value and replaces it in the verification patterns to be
+used when testing.
+
+=cut
+
+sub pvm_hmc_workaround_for_disk_elevator {
+    assert_script_run 'export MY_DISK_ELEVATOR=$(./scripts/disk_elevator dump)';
+    record_info('SUT disk elevator', script_output('echo $MY_DISK_ELEVATOR', proceed_on_failure => 1));
+    assert_script_run q|sed -i '/disk elevator/s/:\&\&.*/:\&\&'$MY_DISK_ELEVATOR'/' Pattern/SLE16/*_ppc64le|;
+}
+
 # remove this function after the bug was fixed
 sub workaround_for_bsc1260865 {
     my ($self) = @_;
     record_soft_failure("bsc#1260865 - circular dependency issue");
     $self->wrap_script_run("systemctl restart saptune.service");
 }
-
 
 sub run {
     my ($self, $tinfo) = @_;
