@@ -8,8 +8,9 @@
 # (see lib/publiccloud/provider.pm) and has access to a persistent EFS
 # ("tf-efs", one mount target per AZ in tf-subnet, NFS ingress on tf-sg).
 # This test installs and inspects the aws-efs-utils package (helper binaries, the mount.efs
-# Python interpreter ABI and its man page), then mounts the existing EFS into a job-private
+# as Python script and its man page), then mounts the existing EFS into a job-private
 # subdirectory, runs basic read/write checks and finally unmounts and removes that subdirectory.
+#
 # Maintainer: QE-C team <qa-c@suse.de>
 
 use Mojo::Base 'publiccloud::basetest';
@@ -17,6 +18,8 @@ use testapi;
 use serial_terminal 'select_serial_terminal';
 use mmapi 'get_current_job_id';
 use publiccloud::zypper qw(pc_zypper_call);
+use utils;
+use version_utils qw(package_version_cmp is_sle);
 
 # creation_token of the persistent EFS provisioned by the infra terraform (aws/tf/main.tf)
 use constant EFS_CREATION_TOKEN => 'tf-efs';
@@ -36,6 +39,34 @@ sub efs_file_system_id {
     return $fs_id;
 }
 
+sub check_stunnel {
+    my ($inst) = @_;
+    return 0 unless (is_sle('<=12-sp5'));
+
+    # Check available stunnel version in repositories before installing aws-efs-utils.
+    # stunnel 5.00 lacks certificate hostname and OCSP validity validation (stunnel >= 5.25 required).
+    # If the official repo only offers an older stunnel, upgrade from the AWS-documented security:Stunnel OBS repo.
+    # (https://docs.aws.amazon.com/efs/latest/ug/upgrading-stunnel.html)
+    # Must be installed before aws-efs-utils so zypper doesn't pull stock stunnel or block vendor change.
+    my $search_out = $inst->ssh_script_output('zypper -n se -s -x --type package stunnel', proceed_on_failure => 1);
+    my $stunnel_entries = utils::parse_zypper_table($search_out, [qw(status name type version arch repository)]);
+    my @available_stunnel_versions;
+    for my $entry (@$stunnel_entries) {
+        push @available_stunnel_versions, $1 if (($entry->{name} // '') eq 'stunnel' && ($entry->{version} // '') =~ /^(\d+(?:\.\d+)*)/);
+    }
+    if (!@available_stunnel_versions) {
+        while ($search_out =~ /\|\s*stunnel\s*\|\s*package\s*\|\s*(\d+(?:\.\d+)*)/g) {
+            push @available_stunnel_versions, $1;
+        }
+    }
+    record_info('stunnel repo', @available_stunnel_versions
+        ? "Available stunnel version(s) in repo: " . join(', ', @available_stunnel_versions)
+        : "No stunnel package found in repo search");
+
+    return 1 unless grep { package_version_cmp($_, '5.25') >= 0 } @available_stunnel_versions;
+    return 0;
+}
+
 sub run {
     my ($self, $args) = @_;
     select_serial_terminal;
@@ -44,7 +75,24 @@ sub run {
     my $region = $self->{my_instance}->region;
     my $job_id = get_current_job_id();
 
-    pc_zypper_call($self->{my_instance}, 'in aws-efs-utils');
+    my $needs_stunnel_upgrade = check_stunnel($self->{my_instance});
+    if ($needs_stunnel_upgrade) {
+        $self->{stunnel_workaround} = 1;
+        record_info('Workaround', "Available stunnel is < 5.25. Upgrading stunnel from security:Stunnel OBS repository (required for TLS mount).");
+        pc_zypper_call($self->{my_instance}, 'addrepo https://download.opensuse.org/repositories/security:Stunnel/SLE_12_SP5/security:Stunnel.repo');
+        pc_zypper_call($self->{my_instance}, '--gpg-auto-import-keys ref');
+        pc_zypper_call($self->{my_instance}, '--gpg-auto-import-keys in -y --allow-vendor-change stunnel');
+        record_soft_failure 'bsc#1280691, stunnel from security:Stunnel repo';
+    }
+
+    pc_zypper_call($self->{my_instance}, 'in -y aws-efs-utils');
+
+    # Record package versions and stunnel details
+    my $pkg_versions = $self->{my_instance}->ssh_script_output('rpm -q aws-efs-utils stunnel', proceed_on_failure => 1);
+    record_info('packages', $pkg_versions);
+
+    my $stunnel_ver = $self->{my_instance}->ssh_script_output('/usr/sbin/stunnel -version 2>&1 || stunnel -version 2>&1', proceed_on_failure => 1);
+    record_info('stunnel', $stunnel_ver) if ($stunnel_ver =~ /\S/);
 
     # Package content inspection and validation
     my $files = $self->{my_instance}->ssh_script_output('rpm -ql aws-efs-utils', quiet => 1);
@@ -57,10 +105,19 @@ sub run {
     $self->{my_instance}->ssh_assert_script_run("$efs_proxy --help") if ($efs_proxy);
 
     my ($mount_efs) = grep { m{/mount\.efs$} } @file_list;
-    $self->{my_instance}->ssh_assert_script_run("$mount_efs --version", proceed_on_failure => 1, quiet => 1) if ($mount_efs);
+    if ($mount_efs) {
+        my $mount_efs_ver = $self->{my_instance}->ssh_script_output("$mount_efs --version 2>&1", proceed_on_failure => 1);
+        record_info('mount.efs', $mount_efs_ver) if ($mount_efs_ver =~ /\S/);
+    }
 
     # Man page shipped by the package
     $self->{my_instance}->ssh_assert_script_run('test -f /usr/share/man/man8/mount.efs.8.gz');
+
+    # Configure logging in /etc/amazon/efs/efs-utils.conf for troubleshooting
+    $self->{my_instance}->ssh_script_run(
+        'sudo sed -i -e "s/^[#[:space:]]*logging_level[[:space:]]*=.*/logging_level = DEBUG/"' .
+          ' -e "s/^[#[:space:]]*stunnel_debug_enabled[[:space:]]*=.*/stunnel_debug_enabled = true/" /etc/amazon/efs/efs-utils.conf'
+    );
 
     # Discover the persistent EFS provisioned by the infra terraform
     my $fs_id = efs_file_system_id($region);
@@ -76,7 +133,7 @@ sub run {
     # A mount target exists in the SUT AZ and tf-sg allows NFS from the VPC, so the DNS-based
     # mount is expected to work; fall back to ip only for triage of DNS issues.
     my $mount_cmd = "sudo mount -t efs -o tls $fs_id:/ " . EFS_MOUNT_DIR;
-    if ($self->{my_instance}->ssh_script_run($mount_cmd, timeout => 120) != 0) {
+    if ($self->{my_instance}->ssh_script_run($mount_cmd, timeout => 120, quiet => 0) != 0) {
         my $sut_az = script_output("aws ec2 describe-instances --region '$region'" .
               " --instance-ids " . $self->{my_instance}->instance_id .
               " --query 'Reservations[0].Instances[0].Placement.AvailabilityZone' --output text", timeout => 60);
@@ -84,7 +141,7 @@ sub run {
               " --query \"MountTargets[?AvailabilityZoneName=='$sut_az'].IpAddress | [0]\" --output text", timeout => 60);
         record_info('Mount fallback', "DNS mount failed; retrying with mounttargetip=$mt_ip (SUT az=$sut_az)");
         $self->{my_instance}->ssh_assert_script_run(
-            "sudo mount -t efs -o tls,mounttargetip=$mt_ip $fs_id:/ " . EFS_MOUNT_DIR, timeout => 120);
+            "sudo mount -t efs -o tls,mounttargetip=$mt_ip $fs_id:/ " . EFS_MOUNT_DIR, timeout => 120, quiet => 0);
     }
     record_info('EFS mount', 'EFS mounted successfully');
     $self->{my_instance}->ssh_assert_script_run('systemctl status mnt-efs.mount');
@@ -97,6 +154,41 @@ sub run {
     $self->{my_instance}->ssh_assert_script_run("sudo ls -la $job_dir/");
 }
 
+sub collect_efs_logs {
+    my ($self) = @_;
+    return unless $self->{my_instance};
+
+    # Show mount helper log in openQA details
+    my $mount_log = $self->{my_instance}->ssh_script_output('sudo cat /var/log/amazon/efs/mount.log 2>/dev/null', proceed_on_failure => 1);
+    record_info('mount.log', $mount_log) if ($mount_log && $mount_log =~ /\S/);
+
+    # Show watchdog log in openQA details if present
+    my $watchdog_log = $self->{my_instance}->ssh_script_output('sudo cat /var/log/amazon/efs/mount-watchdog.log 2>/dev/null', proceed_on_failure => 1);
+    record_info('watchdog.log', $watchdog_log) if ($watchdog_log && $watchdog_log =~ /\S/);
+
+    # Show active efs-utils configuration
+    my $efs_conf = $self->{my_instance}->ssh_script_output('sudo cat /etc/amazon/efs/efs-utils.conf 2>/dev/null', proceed_on_failure => 1);
+    record_info('efs-utils.conf', $efs_conf) if ($efs_conf && $efs_conf =~ /\S/);
+
+    # Show watchdog systemd service status/journal if relevant
+    my $journal = $self->{my_instance}->ssh_script_output('sudo journalctl -n 50 -u amazon-efs-mount-watchdog --no-pager 2>/dev/null', proceed_on_failure => 1);
+    record_info('watchdog journal', $journal) if ($journal && $journal =~ /\S/);
+
+    # Upload all efs logs and configuration as a tarball asset
+    my $files = $self->{my_instance}->ssh_script_output('sudo ls -d /var/log/amazon/efs/* 2>/dev/null', proceed_on_failure => 1);
+    my @logs = grep { /\S/ } split(/\s+/, $files // '');
+    push @logs, '/etc/amazon/efs/efs-utils.conf';
+    $self->{my_instance}->upload_check_logs_tar(@logs) if (@logs);
+    $self->{my_instance}->upload_log('/var/log/amazon/efs/mount.log', failok => 1);
+}
+
+sub post_fail_hook {
+    my ($self) = @_;
+    select_serial_terminal;
+    eval { $self->collect_efs_logs(); };
+    $self->SUPER::post_fail_hook;
+}
+
 # Remove the job-private directory and unmount the EFS. Never delete any AWS resource:
 # the EFS is a persistent, terraform-managed resource shared by all jobs.
 # Called as a method by publiccloud::basetest::finalize() on both success and failure.
@@ -107,6 +199,9 @@ sub cleanup {
     my $job_dir = EFS_MOUNT_DIR . "/openqa-$job_id";
     $self->{my_instance}->ssh_script_run("sudo rm -rf $job_dir");
     $self->{my_instance}->ssh_script_run('sudo umount ' . EFS_MOUNT_DIR);
+    if ($self->{stunnel_workaround}) {
+        pc_zypper_call($self->{my_instance}, 'rr security_Stunnel', proceed_on_failure => 1);
+    }
     return 1;
 }
 
