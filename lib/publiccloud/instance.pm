@@ -595,7 +595,7 @@ reachable anymore. The second one is the estimated bootup time.
 
 sub softreboot {
     my ($self, %args) = @_;
-    $args{timeout} //= 600;
+    $args{timeout} //= get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600);
     $args{scan_ssh_host_key} //= 0;
     $args{username} //= $self->username();
     # see detailed explanation inside wait_for_ssh
@@ -630,7 +630,7 @@ sub softreboot {
     my $start_time = time();
 
     # wait till ssh disappear
-    $self->wait_for_ssh_unreachable(die => 0);
+    $self->wait_for_ssh_unreachable(timeout => $args{timeout}, die => 0);
 
     my $shutdown_time = time() - $start_time;
     die("Waiting for system down failed!") unless ($shutdown_time < $args{timeout});
