@@ -71,7 +71,7 @@ function(access_ssh_enabled=false,
             [if registration_code != '' then 'registrationCode']: registration_code,
             [if registration_url != '' then 'registrationUrl']: registration_url,
           },
-          root: base_lib.root(root_password, ssh_public_key),
+          [if root_password || ssh_public_key then 'root']: base_lib.root(root_password, ssh_public_key),
           [if ssl_certificates == true then 'security']: security_lib.sslCertificates(),
           [if scripts_pre != '' || scripts_post != '' || scripts_post_partitioning != '' then 'scripts']: {
             [if scripts_post != '' then 'post']: [ scripts_post_lib[x] for x in std.split(scripts_post, ',') ],
