@@ -2,8 +2,8 @@ local repo = '{{INCIDENT_REPO}}';
 local urls = if repo != '' then std.split(repo, ',') else [];
 {
   product: {
-    id: '{{AGAMA_PRODUCT_ID}}',
-    registrationCode: '{{SCC_REGCODE}}',
+    id: '{{AGAMA_PRODUCT_ID}}a',
+    registrationCode: '{{SCC_REGCODE}}a',
     addons: []
   },
   bootloader: {
