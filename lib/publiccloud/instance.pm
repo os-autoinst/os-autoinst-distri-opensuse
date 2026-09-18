@@ -595,6 +595,7 @@ reachable anymore. The second one is the estimated bootup time.
 
 sub softreboot {
     my ($self, %args) = @_;
+
     $args{timeout} //= get_var('PUBLIC_CLOUD_REBOOT_TIMEOUT', 600);
     $args{scan_ssh_host_key} //= 0;
     $args{username} //= $self->username();
