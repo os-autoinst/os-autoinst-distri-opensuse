@@ -19,6 +19,8 @@ use Utils::Logging qw(export_logs_basic save_and_upload_log);
 use Kernel::block_dev qw(is_block_device record_storage_info);
 use Kernel::hba qw(check_fc_hosts list_scsi_hosts list_fc_hosts);
 use Kernel::utils qw(is_debugfs_mounted enable_debugfs get_kernel_config);
+use Kernel::nvme qw(deploy_nvme_target_control);
+use Kernel::multimachine_topology qw(get_node_by_role get_interface);
 
 sub prepare_blktests_config {
     my ($devices, $test_case_dev_array) = @_;
@@ -36,6 +38,11 @@ sub prepare_blktests_config {
 
 sub run {
     select_serial_terminal;
+
+    # DUMMY: see how many network interfaces this SUT actually has and their
+    # state/addresses, to correlate with what the switch sees. Remove once
+    # this is no longer needed for debugging the NVMe-over-TCP setup.
+    record_info('Network interfaces', script_output('ip -br addr show', proceed_on_failure => 1));
 
     # initial FC tests - simple check if the port is online. This checks if
     # fabric login was successful
@@ -58,6 +65,7 @@ sub run {
     my $issues = get_var('BLKTESTS_KNOWN_ISSUES');
     my $test_case_dev_array = get_var('BLKTESTS_TEST_CASE_DEV_ARRAY');
     my $install = get_var('BLKTESTS_INSTALL', 'from_repo');
+    my $remote_target = get_var('BLKTESTS_NVME_REMOTE_TARGET');
 
     record_info('KERNEL', script_output('(rpm -qi kernel-default; uname -a)'));
     save_and_upload_log('(rpm -qi kernel-default; uname -a)', 'kernel_bug_report.txt');
@@ -125,10 +133,24 @@ sub run {
     $trtypes = "NVMET_TRTYPES=\"$trtypes\" " if $trtypes;
     $md_kver = "BLKTESTS_MD_KVER=\"$md_kver\" " if $md_kver;
 
+    my $nvme_target_control = '';
+    if ($remote_target) {
+        my $target_node = get_node_by_role('nvme_target');
+        my $target_addr = get_interface($target_node, 0)->{ipv4};
+        my $blkdev = get_var('BLKTESTS_NVME_TARGET_BLKDEV', '/dev/nvme0n1');
+        my $control_script = deploy_nvme_target_control('/tmp/nvme_target_control',
+            target_host => $target_node->{hostname},
+            target_addr => $target_addr,
+            blkdev => $blkdev,
+        );
+        record_info('NVMe target', "control script -> $control_script (target=$target_node->{hostname}, addr=$target_addr, blkdev=$blkdev)");
+        $nvme_target_control = "NVME_TARGET_CONTROL=\"$control_script\" ";
+    }
+
     foreach my $i (@tests) {
         my $config = $devices eq 'none' ? '' : '-c /etc/blktests/config';
         my $quick_arg = $quick ? "--quick=$quick" : '';
-        script_run("${trtypes}${md_kver}./check $config -o ${log_dir}/results $quick_arg $exclude $i", 1200);
+        script_run("${nvme_target_control}${trtypes}${md_kver}./check $config -o ${log_dir}/results $quick_arg $exclude $i", 1200);
     }
 
     script_run("cd ${log_dir}");
@@ -268,5 +290,26 @@ backport md atomic write support to an older base version. Example:
 Optional. NVMe transport type passed to blktests through C<NVMET_TRTYPES>.
 This value is also available to C<BLKTESTS_KNOWN_ISSUES> entries through the
 C<test_variant> matcher.
+
+=head2 BLKTESTS_NVME_REMOTE_TARGET
+
+Optional. When set, run the NVMe fabric tests against a real, separate
+target host instead of blktests' own same-host loopback setup. The target
+is resolved via C<Kernel::multimachine_topology> (the node with
+C<role: nvme_target> in the schedule's C<multimachine_topology> test data)
+and a C<NVME_TARGET_CONTROL> script is generated and deployed with
+C<Kernel::nvme::deploy_nvme_target_control> to drive it over SSH, then
+passed to C<./check> the same way C<NVMET_TRTYPES> already is.
+
+Requires a topology-based multimachine schedule providing a node with
+C<role: nvme_target> (see C<schedule/storage/nvme_tcp_baremetal.yaml> and
+C<test_data/kernel/multimachine/nvme_tcp_2hosts.yaml>). Combine with
+C<BLKTESTS_TRTYPES=tcp>.
+
+=head2 BLKTESTS_NVME_TARGET_BLKDEV
+
+Optional. Device or file path on the C<nvme_target> host to expose as the
+NVMe namespace backing store, used only when C<BLKTESTS_NVME_REMOTE_TARGET>
+is set. Defaults to C</dev/nvme0n1>.
 
 =cut

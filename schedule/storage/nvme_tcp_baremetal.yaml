@@ -1,0 +1,41 @@
+---
+name: NVMe-over-TCP 2-host Baremetal
+description: >
+    Topology-based 2-host baremetal schedule for NVMe-over-TCP using
+    blktests, with one host as the NVMe target and the other as the
+    initiator, connected via a dedicated VLAN on the Mikrotik switch.
+
+vars:
+    INST_AUTO: agama_auto/sle_default_ipmi.jsonnet
+    DESKTOP: textmode
+    BLKTESTS: nvme
+    BLKTESTS_TEST_DEVS: none
+    BLKTESTS_TRTYPES: tcp
+    BLKTESTS_NVME_REMOTE_TARGET: 1
+
+test_data:
+    <<: !include test_data/kernel/multimachine/nvme_tcp_2hosts.yaml
+
+conditional_schedule:
+    nvme_barriers:
+        ROLE:
+            nvme_target:
+                - kernel/nvme_tcp_barriers
+    nvme_test:
+        ROLE:
+            nvme_target:
+                - kernel/nvme_tcp_target
+            nvme_initiator:
+                - kernel/blktests
+
+schedule:
+    - '{{nvme_barriers}}'
+    - installation/ipxe_install
+    - installation/agama_reboot
+    - installation/grub_test
+    - installation/first_boot
+    - console/hostname
+    - console/system_prepare
+    - console/force_scheduled_tasks
+    - kernel/blktests_multimachine
+    - '{{nvme_test}}'

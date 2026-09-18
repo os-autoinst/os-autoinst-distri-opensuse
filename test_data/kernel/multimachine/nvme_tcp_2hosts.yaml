@@ -1,0 +1,28 @@
+multimachine_topology:
+  name: nvme_tcp_2hosts
+
+  networks:
+    - id: nvme_vlan
+      ipv4_cidr: "192.168.7.0/26"   # Mikrotik VLAN 7, per progress#188433
+      vlan_id: 7
+
+  nodes:
+    - id: merckx
+      role: nvme_target
+      hostname: merckx
+      interfaces:
+        - id: eth0
+          device: enp20s0f0np0     # merckx's real NIC, cabled to sfp-sfpplus11
+          switch_port: sfp-sfpplus11
+          network: nvme_vlan
+          ipv4: "192.168.7.1"
+
+    - id: coppi
+      role: nvme_initiator
+      hostname: coppi
+      interfaces:
+        - id: eth0
+          device: enp20s0f0np0     # coppi's real NIC, cabled to sfp-sfpplus9
+          switch_port: sfp-sfpplus9
+          network: nvme_vlan
+          ipv4: "192.168.7.10"
