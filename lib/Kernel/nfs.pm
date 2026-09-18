@@ -16,6 +16,7 @@ our @EXPORT = qw(
   create_export
   setup_pnfs_client
   verify_pnfs_block_layout
+  dump_nfs_kconfig
 );
 
 =head1 SYNOPSIS
@@ -114,6 +115,19 @@ sub verify_pnfs_block_layout {
 }
 
 
+=head2 dump_nfs_kconfig
 
+  dump_nfs_kconfig();
+
+Record the kernel's C<CONFIG_NFS>/C<CONFIG_NFSD> lines via C<record_info>.
+Intended for use from a C<post_fail_hook>, so the kernel's actual NFS
+feature set is visible in the job log without needing direct access to
+the kernel under test.
+
+=cut
+
+sub dump_nfs_kconfig {
+    record_info('NFS kconfig', script_output("zgrep -E '^#?\\s*CONFIG_NFS' /proc/config.gz", proceed_on_failure => 1));
+}
 
 1;
