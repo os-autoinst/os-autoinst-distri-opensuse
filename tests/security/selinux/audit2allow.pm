@@ -30,9 +30,11 @@ sub run {
     assert_script_run("systemctl restart $audit_service");
     assert_script_run("cp $original_audit $audit_log");
 
-    if (!has_selinux) {
+    # Check if SELinux is actually enabled on the system
+    my $selinux_enabled = script_run("selinuxenabled") == 0;
+    if (!$selinux_enabled) {
         validate_script_output("audit2allow -a", sub { m/^\s*$/sx });
-        record_info("Empty output", "Since SELinux is not enabled, audit2allow returns empty output.");
+        record_info("SELinux is diabled, empty output", "SELinux is not enabled, audit2allow returns empty output.");
         return 0;
     }
 
