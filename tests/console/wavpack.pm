@@ -49,7 +49,7 @@ sub run {
 
     # test wavunpack functions
     assert_script_run("wvunpack Noise.wv -o Noise2.wav 2>&1 | grep  \"restored Noise2.wav\"");
-    assert_script_run("aplay Noise2.wav 2>&1 | grep \"Signed 16 bit Little Endian, Rate 48000 Hz, Mono\"");
+    assert_script_run("aplay -D plughw:0,0 Noise2.wav 2>&1 | grep \"Signed 16 bit Little Endian, Rate 48000 Hz, Mono\"");
     assert_script_run("wvunpack -v Noise.wv 2>&1 | grep  \"verified Noise.wv\"");
 
     # test wavgain functions
