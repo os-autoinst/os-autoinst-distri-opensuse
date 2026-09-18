@@ -148,7 +148,10 @@ sub validate_cuda
     my $gcc_ver = get_var('NVIDIA_CUDA_GCC_VERSION');
     my $gcc_pkgs = $gcc_ver ? "gcc$gcc_ver gcc$gcc_ver-c++" : "";
 
-    zypper_call("install -l cmake git $gcc_pkgs cuda-toolkit vulkan-devel freeglut-devel Mesa-libEGL-devel", timeout => 1200);
+    my $cuda_ver = get_var('NVIDIA_CUDA_VERSION');
+    my $cuda_pkg = $cuda_ver ? "cuda-toolkit-$cuda_ver" : "cuda-toolkit";
+
+    zypper_call("install -l cmake git $gcc_pkgs $cuda_pkg vulkan-devel freeglut-devel Mesa-libEGL-devel", timeout => 1200);
 
     # Query the GPU capabilities
     my $query = script_output('nvidia-smi --query-gpu=compute_cap --format=csv');
