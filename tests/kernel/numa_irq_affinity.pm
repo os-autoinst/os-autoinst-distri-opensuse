@@ -33,6 +33,16 @@ sub get_cpu_numa_map {
     return (\%cpu_to_node, scalar(keys(%nodes)));
 }
 
+=head2 get_nvme_interrupt_lines
+
+Return the lines of C</proc/interrupts> that belong to NVMe queues.
+
+=cut
+
+sub get_nvme_interrupt_lines {
+    return split("\n", script_output('grep nvme /proc/interrupts'));
+}
+
 =head2 get_nvme_queue_irqs
 
 Return a list of hashrefs C<{irq, name, admin}> for every NVMe MSI-X
@@ -43,8 +53,7 @@ admin queue of its controller by its name, e.g. C<nvme0q0>.
 
 sub get_nvme_queue_irqs {
     my @queues;
-    my @lines = split("\n", script_output('grep nvme /proc/interrupts'));
-    for my $line (@lines) {
+    for my $line (get_nvme_interrupt_lines()) {
         my @fields = split(' ', $line);
         my $irq = shift(@fields);
         $irq =~ s/://;
@@ -54,18 +63,48 @@ sub get_nvme_queue_irqs {
     return @queues;
 }
 
-=head2 get_irq_affinity_nodes
+=head2 get_irq_affinity_lists
 
-Resolve the effective CPU affinity of IRQ C<$irq> (from
-C</proc/irq/$irq/effective_affinity_list>) into the set of NUMA nodes it
-touches, using the CPU to node map from L</get_cpu_numa_map>.
+Read the effective CPU affinity of a list of IRQs in a single round trip
+to the SUT. Returns a hashref of IRQ number to its raw affinity list
+string, e.g. C<{24 =E<gt> '0-1', 25 =E<gt> '2-3'}>, as found in
+C</proc/irq/$irq/effective_affinity_list>.
 
 =cut
 
-sub get_irq_affinity_nodes {
-    my ($irq, $cpu_to_node) = @_;
+sub get_irq_affinity_lists {
+    my (@irqs) = @_;
+    my %affinity;
+    return \%affinity unless @irqs;
+
+    my $cmd = '';
+    for my $irq (@irqs) {
+        $cmd .= "echo IRQ=$irq; cat /proc/irq/$irq/effective_affinity_list; ";
+    }
+    my @lines = split("\n", script_output($cmd));
+
+    my $current_irq;
+    for my $line (@lines) {
+        if ($line =~ /^IRQ=(\d+)$/) {
+            $current_irq = $1;
+        }
+        elsif (defined($current_irq)) {
+            $affinity{$current_irq} = $line;
+        }
+    }
+    return \%affinity;
+}
+
+=head2 expand_affinity_to_nodes
+
+Resolve a raw affinity list string (e.g. C<'0-1,4'>) into the set of NUMA
+nodes it touches, using the CPU to node map from L</get_cpu_numa_map>.
+
+=cut
+
+sub expand_affinity_to_nodes {
+    my ($affinity, $cpu_to_node) = @_;
     my %nodes;
-    my $affinity = script_output("cat /proc/irq/$irq/effective_affinity_list");
     for my $part (split(',', $affinity)) {
         if ($part =~ /^(\d+)-(\d+)$/) {
             for (my $cpu = $1; $cpu <= $2; $cpu++) {
@@ -90,11 +129,11 @@ assumed to be numbered contiguously from 0, as reported by C<lscpu>.
 sub get_interrupt_counts_per_node {
     my ($numcpu, $cpu_to_node, $numnodes) = @_;
     my @per_node = (0) x $numnodes;
-    my @lines = split("\n", script_output('grep nvme /proc/interrupts'));
-    for my $line (@lines) {
+    for my $line (get_nvme_interrupt_lines()) {
         $line =~ s/^\s*\d+:\s*//;
         my @counts = split(' ', $line);
         for (my $cpu = 0; $cpu < $numcpu; $cpu++) {
+            next unless defined($cpu_to_node->{$cpu});
             $per_node[$cpu_to_node->{$cpu}] += $counts[$cpu] // 0;
         }
     }
@@ -121,10 +160,15 @@ sub run {
     # probe time, independent of any load. If that assignment alone doesn't
     # already cover every NUMA node, no amount of I/O will make it do so.
     # The admin queue is excluded, as it is not part of the I/O spreading.
-    my %covered_nodes;
+    my @io_irqs;
     for my $queue (@queues) {
-        next if $queue->{admin};
-        for my $node (get_irq_affinity_nodes($queue->{irq}, $cpu_to_node)) {
+        push(@io_irqs, $queue->{irq}) unless $queue->{admin};
+    }
+    my $affinity_lists = get_irq_affinity_lists(@io_irqs);
+
+    my %covered_nodes;
+    for my $irq (@io_irqs) {
+        for my $node (expand_affinity_to_nodes($affinity_lists->{$irq}, $cpu_to_node)) {
             $covered_nodes{$node} = 1;
         }
     }
