@@ -82,7 +82,12 @@ use constant BLS_DEFAULT_FILE => "/etc/kernel/cmdline";
 # prevent grub2 timeout; 'esc' would be cleaner, but grub2-efi falls to the menu then
 # 'up' also works in textmode and UEFI menues.
 sub stop_grub_timeout {
-    send_key 'up';
+    # The bootloader uses USB polling, which can be slow, especially if storage is also
+    # attached over USB (e.g. USBBOOT=1). A plain send_key releases it too quickly,
+    # so hold the key for longer.
+    hold_key("up");
+    sleep(0.2);
+    release_key("up");
 }
 
 =head2 add_custom_grub_entries
