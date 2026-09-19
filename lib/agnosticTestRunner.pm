@@ -3,9 +3,11 @@
 # SPDX-License-Identifier: FSFAP
 # Summary: Generic helper for openQA-agnostic tests
 #
-# Runs standalone test artifacts (Go/Python/Java) both inside openQA
+# Runs standalone test artifacts (Go/Python/Java/shell) both inside openQA
 # and on a bare SUT. The 'domain' constructor arg controls which data/
 # subtree test files are fetched from (e.g. 'security', 'console').
+# The 'shell' language expects a self-contained runtest emitting TAP and
+# installs no test framework, so it also works on minimal images.
 #
 # Maintainer: QE Core <qe-core@suse.de>
 
@@ -26,13 +28,14 @@ sub new {
     die "Constructor requires a hashref" unless ref($args) eq 'HASH';
     die "Attribute 'name' is mandatory" unless defined $args->{name};
     die "Attribute 'language' is mandatory" unless defined $args->{language};
-    die "Unsupported language '$args->{language}'. Supported: go, python, java"
-      unless $args->{language} =~ /^(go|python|java)$/;
+    die "Unsupported language '$args->{language}'. Supported: go, python, java, shell"
+      unless $args->{language} =~ /^(go|python|java|shell)$/;
 
     $args->{domain} //= 'security';
     $args->{test_dir} //= '~/' . $args->{name};
-    $args->{result_format} //= $args->{language} eq 'java' ? 'TAP' : 'XUnit';
-    $args->{result_file} //= '/tmp/' . lc($args->{name}) . ($args->{language} eq 'java' ? '_results.tap' : '_results.xml');
+    my $is_tap = $args->{language} =~ /^(java|shell)$/;
+    $args->{result_format} //= $is_tap ? 'TAP' : 'XUnit';
+    $args->{result_file} //= '/tmp/' . lc($args->{name}) . ($is_tap ? '_results.tap' : '_results.xml');
     $args->{data_url_path} //= $args->{domain} . '/openqa_agnostic/' . $args->{language} . '/' . $args->{name};
     $args->{helper_path} //= 'openqa_agnostic/lib/helper.sh';
     $args->{run_command} //= 'runtest';
@@ -53,22 +56,25 @@ sub setup {
     my ($self) = @_;
     my $url = data_url($self->{data_url_path});
 
-    if (!$self->{skip_phub} && is_sle('<16.0')) {
-        add_suseconnect_product(get_addon_fullname('phub'));
-        zypper_call('--gpg-auto-import-keys ref');
-    }
+    # The shell language brings its own tooling, so nothing is installed.
+    if ($self->{language} ne 'shell') {
+        if (!$self->{skip_phub} && is_sle('<16.0')) {
+            add_suseconnect_product(get_addon_fullname('phub'));
+            zypper_call('--gpg-auto-import-keys ref');
+        }
 
-    my %lang_deps = (go => 'go gotestsum', python => 'python3-pytest');
-    my $packages = $self->{language} eq 'java' ? latest_java_devel() : $lang_deps{$self->{language}};
-    eval { install_package($packages, trup_reboot => 1) };
-    if ($@) {
-        die $@ unless $self->{language} eq 'python';
-        record_info('pkg fallback', "zypper cannot install $packages, using pip3");
-        install_package('python3-pip');
-        my $pip_cmd = 'pip3 install pytest';
-        my $pyver = script_run('python3 -c "import sys; sys.exit(0 if sys.version_info >= (3,12) else 1)"', timeout => 10);
-        $pip_cmd .= ' --break-system-packages' if defined($pyver) && $pyver == 0;
-        assert_script_run($pip_cmd, timeout => 120);
+        my %lang_deps = (go => 'go gotestsum', python => 'python3-pytest');
+        my $packages = $self->{language} eq 'java' ? latest_java_devel() : $lang_deps{$self->{language}};
+        eval { install_package($packages, trup_reboot => 1) };
+        if ($@) {
+            die $@ unless $self->{language} eq 'python';
+            record_info('pkg fallback', "zypper cannot install $packages, using pip3");
+            install_package('python3-pip');
+            my $pip_cmd = 'pip3 install pytest';
+            my $pyver = script_run('python3 -c "import sys; sys.exit(0 if sys.version_info >= (3,12) else 1)"', timeout => 10);
+            $pip_cmd .= ' --break-system-packages' if defined($pyver) && $pyver == 0;
+            assert_script_run($pip_cmd, timeout => 120);
+        }
     }
 
     # Create test_dir and sibling lib/ for shared helpers in one shot
