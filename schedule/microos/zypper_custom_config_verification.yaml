@@ -1,0 +1,8 @@
+name: zypper_custom_config_verification
+description: >
+  Side-by-side run of the original microos/libzypp_config module and the new
+  openQA-agnostic zypper custom configuration test on an installed system.
+schedule:
+  - microos/disk_boot
+  - microos/oqa_agnostic/zypper_custom_config
+  - microos/libzypp_config
