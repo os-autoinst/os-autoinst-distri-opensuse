@@ -3,9 +3,11 @@
 # SPDX-License-Identifier: FSFAP
 # Summary: Generic helper for openQA-agnostic tests
 #
-# Runs standalone test artifacts (Go/Python/Java) both inside openQA
+# Runs standalone test artifacts (Go/Python/Java/shell) both inside openQA
 # and on a bare SUT. The 'domain' constructor arg controls which data/
 # subtree test files are fetched from (e.g. 'security', 'console').
+# The 'shell' language expects a self-contained runtest emitting TAP and
+# installs no test framework, so it also works on minimal images.
 #
 # Maintainer: QE Core <qe-core@suse.de>
 
@@ -26,13 +28,14 @@ sub new {
     die "Constructor requires a hashref" unless ref($args) eq 'HASH';
     die "Attribute 'name' is mandatory" unless defined $args->{name};
     die "Attribute 'language' is mandatory" unless defined $args->{language};
-    die "Unsupported language '$args->{language}'. Supported: go, python, java"
-      unless $args->{language} =~ /^(go|python|java)$/;
+    die "Unsupported language '$args->{language}'. Supported: go, python, java, shell"
+      unless $args->{language} =~ /^(go|python|java|shell)$/;
 
     $args->{domain} //= 'security';
     $args->{test_dir} //= '~/' . $args->{name};
-    $args->{result_format} //= $args->{language} eq 'java' ? 'TAP' : 'XUnit';
-    $args->{result_file} //= '/tmp/' . lc($args->{name}) . ($args->{language} eq 'java' ? '_results.tap' : '_results.xml');
+    my $is_tap = $args->{language} =~ /^(java|shell)$/;
+    $args->{result_format} //= $is_tap ? 'TAP' : 'XUnit';
+    $args->{result_file} //= '/tmp/' . lc($args->{name}) . ($is_tap ? '_results.tap' : '_results.xml');
     $args->{data_url_path} //= $args->{domain} . '/openqa_agnostic/' . $args->{language} . '/' . $args->{name};
     $args->{helper_path} //= 'openqa_agnostic/lib/helper.sh';
     $args->{run_command} //= 'runtest';
@@ -73,27 +76,30 @@ sub setup {
     my ($self) = @_;
     my $url = data_url($self->{data_url_path});
 
-    if ($self->{language} eq 'python') {
-        # Version check before PackageHub to avoid wasting 30-60s
-        my $minor = _python_version();
-        if ($minor < 6) {
-            record_info('skip', "Python 3.$minor < 3.6, skipping agnostic test");
-            $self->{skipped} = 1;
-            return $self;
+    # The shell language brings its own tooling, so nothing is installed.
+    if ($self->{language} ne 'shell') {
+        if ($self->{language} eq 'python') {
+            # Version check before PackageHub to avoid wasting 30-60s
+            my $minor = _python_version();
+            if ($minor < 6) {
+                record_info('skip', "Python 3.$minor < 3.6, skipping agnostic test");
+                $self->{skipped} = 1;
+                return $self;
+            }
         }
-    }
 
-    if (!$self->{skip_phub} && is_sle('<16.0')) {
-        add_suseconnect_product(get_addon_fullname('phub'));
-        zypper_call('--gpg-auto-import-keys ref');
-    }
+        if (!$self->{skip_phub} && is_sle('<16.0')) {
+            add_suseconnect_product(get_addon_fullname('phub'));
+            zypper_call('--gpg-auto-import-keys ref');
+        }
 
-    if ($self->{language} eq 'python') {
-        $self->_install_python_deps();
-    } elsif ($self->{language} eq 'go') {
-        install_package('go gotestsum', trup_reboot => 1);
-    } elsif ($self->{language} eq 'java') {
-        install_package(latest_java_devel(), trup_reboot => 1);
+        if ($self->{language} eq 'python') {
+            $self->_install_python_deps();
+        } elsif ($self->{language} eq 'go') {
+            install_package('go gotestsum', trup_reboot => 1);
+        } elsif ($self->{language} eq 'java') {
+            install_package(latest_java_devel(), trup_reboot => 1);
+        }
     }
 
     # Create test_dir and sibling lib/ for shared helpers in one shot
