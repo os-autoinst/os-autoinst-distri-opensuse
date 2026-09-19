@@ -1165,13 +1165,16 @@ sub tianocore_disable_secureboot {
 
     # There might be a boot menu before the mainmenu.
     # Wait until the main menu appears and move to the EFI firmware setup, if the boot menu is present
-    while (!check_screen('tianocore-mainmenu')) {
+    my $max_attempts = 60;    # ~7min max (60 iterations * ~7s wait_still_screen)
+    my $attempts = 0;
+    while (!check_screen('tianocore-mainmenu') && $attempts++ < $max_attempts) {
         wait_still_screen();
         if (check_screen('tianocore-bootmenu')) {
             send_key_until_needlematch("tianocore-bootmenu-EFI-fimware-selected", 'down');
             send_key "ret";
         }
     }
+    die "Timeout waiting for tianocore-mainmenu or tianocore-bootmenu after $max_attempts attempts" unless $attempts < $max_attempts;
 
     assert_screen 'tianocore-mainmenu';
     # Select 'Boot manager' entry
