@@ -22,7 +22,7 @@ use Mojo::Base 'consoletest';
 use testapi;
 use serial_terminal 'select_serial_terminal';
 use version_utils qw(is_leap is_sle);
-use utils qw(check_console_font disable_serial_getty zypper_call);
+use utils 'disable_serial_getty';
 use Utils::Backends qw(has_ttys);
 use Utils::Systemd qw(disable_and_stop_service systemctl);
 use Utils::Logging 'export_logs';
@@ -42,37 +42,42 @@ sub run {
     # copy and add root key into authorized_keys and public key into known_hosts of both root and user
     # except when $user is not created or used
     if (get_var('ROOTONLY') || get_var('HA_CLUSTER')) {
-        assert_script_run('mkdir -pv ~/.ssh');
-        assert_script_run('touch ~/.ssh/{authorized_keys,known_hosts}');
-        assert_script_run('chmod -R go-rwx ~/.ssh');
-        assert_script_run('cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys');
-        assert_script_run("(set -o pipefail; ssh-keyscan -T 20 localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts)");
+        assert_script_run(
+            'mkdir -pv ~/.ssh'
+              . ' && touch ~/.ssh/{authorized_keys,known_hosts}'
+              . ' && chmod -R go-rwx ~/.ssh'
+              . ' && cat ~/.ssh/id_rsa.pub | tee -a ~/.ssh/authorized_keys'
+        );
+        assert_script_run("(set -o pipefail; ssh-keyscan -T 5 localhost 127.0.0.1 ::1 | tee -a ~/.ssh/known_hosts)");
     }
     else {
-        assert_script_run("mkdir -pv ~/.ssh ~$user/.ssh");
-        assert_script_run("cp ~/.ssh/id_rsa ~$user/.ssh/id_rsa");
-        assert_script_run("touch ~{,$user}/.ssh/{authorized_keys,known_hosts}");
-        assert_script_run("chmod -R go-rwx ~{,$user}/.ssh");
-        assert_script_run("chown -R $user ~$user/.ssh");
-        assert_script_run("cat ~/.ssh/id_rsa.pub | tee -a ~{,$user}/.ssh/authorized_keys");
-        assert_script_run("(set -o pipefail; ssh-keyscan -T 20 localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts)");
+        assert_script_run(
+            "mkdir -pv ~/.ssh ~$user/.ssh"
+              . " && cp ~/.ssh/id_rsa ~$user/.ssh/id_rsa"
+              . " && touch ~{,$user}/.ssh/{authorized_keys,known_hosts}"
+              . " && chmod -R go-rwx ~{,$user}/.ssh"
+              . " && chown -R $user ~$user/.ssh"
+              . " && cat ~/.ssh/id_rsa.pub | tee -a ~{,$user}/.ssh/authorized_keys"
+        );
+        assert_script_run("(set -o pipefail; ssh-keyscan -T 5 localhost 127.0.0.1 ::1 | tee -a ~{,$user}/.ssh/known_hosts)");
     }
 
     # Stop serial-getty on serial console to avoid serial output pollution with login prompt
     disable_serial_getty;
 
     # Prevent mail notification messages to show up in shell and interfere with running console tests
-    script_run 'echo "unset MAILCHECK" >> /etc/bash.bashrc.local';
-    script_run 'echo "set -o pipefail" >> /etc/bash.bashrc.local';
-    script_run '. /etc/bash.bashrc.local';
+    script_run 'printf "unset MAILCHECK\nset -o pipefail\n" >> /etc/bash.bashrc.local && . /etc/bash.bashrc.local';
     disable_and_stop_service('packagekit.service', mask_service => 1);
 
-    # switch to root console and print the current console font to stdout
-    # make a use of selected root-console in check_console_font to apply
-    # the same environment changes as to root-virtio
+    # Source bashrc.local on the VGA root-console session too.
+    # prepare_test_data created that session before bashrc.local existed,
+    # so it needs explicit sourcing. Switch back to serial afterward so
+    # that post_run_hook (clear_and_verify_console) skips the VGA needle
+    # match via is_serial_terminal().
     if (has_ttys()) {
-        check_console_font;
+        select_console('root-console', await_console => 0);
         script_run '. /etc/bash.bashrc.local';
+        select_serial_terminal;
     }
 
     # workaround for boo#1205518, stops getty for tty2 so that it won't compete with gdm
