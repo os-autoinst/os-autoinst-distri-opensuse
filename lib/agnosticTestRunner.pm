@@ -58,17 +58,25 @@ sub setup {
         zypper_call('--gpg-auto-import-keys ref');
     }
 
-    my %lang_deps = (go => 'go gotestsum', python => 'python3-pytest');
-    my $packages = $self->{language} eq 'java' ? latest_java_devel() : $lang_deps{$self->{language}};
-    eval { install_package($packages, trup_reboot => 1) };
-    if ($@) {
-        die $@ unless $self->{language} eq 'python';
-        record_info('pkg fallback', "zypper cannot install $packages, using pip3");
-        install_package('python3-pip');
-        my $pip_cmd = 'pip3 install pytest';
-        my $pyver = script_run('python3 -c "import sys; sys.exit(0 if sys.version_info >= (3,12) else 1)"', timeout => 10);
-        $pip_cmd .= ' --break-system-packages' if defined($pyver) && $pyver == 0;
-        assert_script_run($pip_cmd, timeout => 120);
+    # Python tests share pytest; install it only when it is missing so that
+    # later tests in the same schedule do not touch the package manager again.
+    my $deps_present = $self->{language} eq 'python' && script_run('python3 -m pytest --version', timeout => 10, quiet => 1) == 0;
+    if ($deps_present) {
+        record_info('pytest', 'pytest is already installed, skipping the installation');
+    }
+    else {
+        my %lang_deps = (go => 'go gotestsum', python => 'python3-pytest');
+        my $packages = $self->{language} eq 'java' ? latest_java_devel() : $lang_deps{$self->{language}};
+        eval { install_package($packages, trup_reboot => 1) };
+        if ($@) {
+            die $@ unless $self->{language} eq 'python';
+            record_info('pkg fallback', "zypper cannot install $packages, using pip3");
+            install_package('python3-pip');
+            my $pip_cmd = 'pip3 install pytest';
+            my $pyver = script_run('python3 -c "import sys; sys.exit(0 if sys.version_info >= (3,12) else 1)"', timeout => 10);
+            $pip_cmd .= ' --break-system-packages' if defined($pyver) && $pyver == 0;
+            assert_script_run($pip_cmd, timeout => 120);
+        }
     }
 
     # Create test_dir and sibling lib/ for shared helpers in one shot
