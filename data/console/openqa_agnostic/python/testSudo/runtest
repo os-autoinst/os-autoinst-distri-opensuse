@@ -33,6 +33,22 @@ handle_args "$0" "$@"
 
 ensure_root
 
+# test_sudo.py uses f-strings and subprocess.run, which require Python 3.6+.
+# SLE 12 ships Python 3.4 -- skip gracefully rather than crash at collection.
+py_ver=$(python3 -c "import sys; print('%d%02d' % sys.version_info[:2])" 2>/dev/null || echo "000")
+if [ "$py_ver" -lt 306 ]; then
+    echo "SKIP: Python 3.6+ required (found $(python3 --version 2>&1)), skipping on this platform"
+    cat > results.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="testSudo" tests="1" skipped="1" failures="0" errors="0">
+  <testcase name="test_sudo" classname="testSudo">
+    <skipped message="Python 3.6+ required for f-strings and subprocess.run"/>
+  </testcase>
+</testsuite>
+EOF
+    exit 0
+fi
+
 set +e
 pytest -v --tb=line test_sudo.py --junitxml=results.xml
 rc=$?
