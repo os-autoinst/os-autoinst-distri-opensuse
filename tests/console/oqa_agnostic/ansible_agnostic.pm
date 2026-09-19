@@ -53,6 +53,8 @@ sub run {
             language => 'python',
             name => 'testAnsible',
             domain => 'console',
+            # PackageHub is enabled above only when the product needs it
+            skip_phub => 1,
         }
     );
     $test->setup()->run_test()->parse_results()->cleanup();
