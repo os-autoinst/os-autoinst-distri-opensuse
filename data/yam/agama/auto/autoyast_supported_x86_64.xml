@@ -47,6 +47,15 @@ systemLog:
    logAppend: true
 ]]></file_contents>
     </file>
+    <!-- This is a workaround for bsc#1279451 by adding global DNS configuration -->
+    <file>
+      <file_owner>root</file_owner>
+      <file_permissions>644</file_permissions>
+      <file_path>/etc/NetworkManager/conf.d/global-dns.conf</file_path>
+      <file_contents><![CDATA[[global-dns-domain-*]
+servers=1.1.1.1,8.8.8.8
+]]></file_contents>
+    </file>
   </files>
   <keyboard>
     <keymap>us</keymap>
