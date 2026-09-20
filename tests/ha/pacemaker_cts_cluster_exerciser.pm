@@ -12,9 +12,10 @@ use Mojo::Base 'haclusterbasetest';
 use Mojo::JSON 'encode_json';
 use lockapi;
 use testapi;
-use utils qw(systemctl zypper_call exec_and_insert_password);
+use utils qw(systemctl exec_and_insert_password);
 use hacluster;
-use version_utils qw(package_version_cmp);
+use version_utils qw(is_transactional package_version_cmp);
+use package_utils qw(install_package);
 
 sub run {
     my $cts_bin = '/usr/share/pacemaker/tests/cts/CTSlab.py';
@@ -31,7 +32,7 @@ sub run {
     # Wait until Pacemaker cts test is initialized
     barrier_wait("PACEMAKER_CTS_INIT_$cluster_name");
 
-    zypper_call 'in pacemaker-cts';
+    install_package('pacemaker-cts', trup_apply => 1);
     save_screenshot;
     # Get package version
     my $pacemaker_cts_package_version = script_output("rpm -q --qf '%{VERSION}\n' pacemaker-cts");
@@ -48,15 +49,6 @@ sub run {
             exec_and_insert_password("ssh-copy-id -f root\@$node");
         }
 
-        # Don't do stonith test since this one reboots a node randomly
-        # and it's very difficult to handle in MM scenario.
-        if (package_version_cmp($pacemaker_cts_package_version, '2.1.6') >= 0) {
-            assert_script_run "sed -i '/StonithdTest,/ s/^/#/' \$(rpm -ql pacemaker-cts|grep tests/__init__.py)";
-        }
-        else {
-            assert_script_run "sed -i '/AllTestClasses.append(StonithdTest)/ s/^/#/' \$(rpm -ql pacemaker-cts|grep CTStests.py)";
-        }
-
         # Start pacemaker cts cluster exerciser
         my $cts_start_time = time;
 
@@ -64,6 +56,19 @@ sub run {
             $cts_bin, '--nodes', "'$node_01 $node_02'", '--test-ip-base', $test_ip,
             '--no-unsafe-tests', '--outputfile', $log, '--once'
         );
+
+        # Don't do stonith test since this one reboots a node randomly
+        # and it's very difficult to handle in MM scenario.
+        if (is_transactional) {
+            push @cmd_seq, '--disable-fencing';
+        } else {
+            if (package_version_cmp($pacemaker_cts_package_version, '2.1.6') >= 0) {
+                assert_script_run "sed -i '/StonithdTest,/ s/^/#/' \$(rpm -ql pacemaker-cts|grep tests/__init__.py)";
+            }
+            else {
+                assert_script_run "sed -i '/AllTestClasses.append(StonithdTest)/ s/^/#/' \$(rpm -ql pacemaker-cts|grep CTStests.py)";
+            }
+        }
 
         if (package_version_cmp($pacemaker_cts_package_version, '3.0.1') >= 0) {
             push @cmd_seq, '--fencing-agent', $stonith_type, '--fencing-params', $stonith_args;
