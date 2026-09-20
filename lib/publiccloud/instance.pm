@@ -447,10 +447,14 @@ sub wait_for_ssh_reachable {
 
     my $delay = $args{delay} // 30;
     my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
-    my $retry = $timeout / $delay;
+    my $retry = $args{retry} // 10;
     my $port = $args{port} // 22;
+    # For script_retry, the timeout in single loop is calulated from
+    # the total $timeout, but for kill and grace we'll use the defaults:
+    # $timeout / $retry - ($delay + $kill_timeout + $retry_grace);
+    my $cmd_timeout = $timeout / $retry - ($delay + 5 + 10);
 
-    script_retry('nc -vz -w 1 ' . $self->public_ip . ' ' . $port, delay => $delay, retry => $retry, fail_message => "ssh port unreachable after $timeout seconds (port probed via nc)");
+    script_retry('nc -vz -w 1 ' . $self->public_ip . ' ' . $port, timeout => $cmd_timeout, delay => $args{delay}, retry => $args{retry}, fail_message => "ssh port unreachable after $timeout seconds (port probed via nc)");
 }
 
 =head2 wait_for_ssh_unreachable
@@ -515,11 +519,16 @@ sub wait_for_ssh_unreachable {
     # delay must be low otherwise we miss the reboot window where ssh is unreachable
     my $delay = $args{delay} // 2;
     my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
-    my $retry = $timeout / $delay;
+    my $retry = $args{retry} // 10;
     my $port = $args{port} // 22;
     my $die = ${args}{die} // 1;
+    # For script_retry, in ssh_script_retry, the timeout in single loop is calulated from
+    # the total $timeout, but for kill and grace we'll use the defaults:
+    # $timeout / $retry - ($delay + $kill_timeout + $retry_grace);
+    my $cmd_timeout = $timeout / $retry - ($delay + 5 + 10);
 
     my $rc = script_retry('! nc -vz -w 1 ' . $self->public_ip . ' ' . $port,
+        timeout => $cmd_timeout,
         delay => $delay,
         retry => $retry,
         fail_message => "ssh port still reachable after $timeout seconds (port probed via nc)",
@@ -533,11 +542,15 @@ sub wait_for_ssh_login {
     my ($self, %args) = @_;
     my $timeout = $args{timeout} // get_var('PUBLIC_CLOUD_SSH_TIMEOUT', 300);
     my $delay = $args{delay} // 30;
-    my $retry = $timeout / $delay;
+    my $retry = $args{retry} // 10;
+    # For script_retry, in ssh_script_retry, the timeout in single loop is calulated from
+    # the total $timeout, but for kill and grace we'll use the defaults:
+    # $timeout / $retry - ($delay + $kill_timeout + $retry_grace);
+    my $cmd_timeout = $timeout / $retry - ($delay + 5 + 10);
 
     ## ssh options to avoid issues with pipelining and host key validation
     my $ssh_opts = $self->ssh_opts() . ' -o ControlPath=none -o ConnectTimeout=10 -o strictHostKeyChecking=no -o UserKnownHostsFile=/dev/null';
-    $self->ssh_script_retry("true", ssh_opts => $ssh_opts, retry => $retry, delay => $delay, fail_message => "ssh connection failed ($retry attempts in $timeout seconds)");
+    $self->ssh_script_retry("true", ssh_opts => $ssh_opts, timeout => $cmd_timeout, retry => $retry, delay => $delay, fail_message => "ssh connection failed ($retry attempts in $timeout seconds)");
 }
 
 =head2 wait_for_sudo
